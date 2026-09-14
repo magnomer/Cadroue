@@ -4,7 +4,10 @@ namespace Cadroue.Application;
 
 public static class LRetention
 {
-    private static readonly string[] LRetentionExcludedRoots = { "scheduled", "running", "palettes" };
+    private static readonly string[] LRetentionSweptRoots =
+    {
+        "done", "failed", "cancelled", "audiowork", "mergework", "bridgework", "passwork"
+    };
 
     public static bool LRetentionExpiredCheck(
         DateTime lRetentionWriteUtc,
@@ -19,7 +22,7 @@ public static class LRetention
         return lRetentionWriteUtc < lRetentionNowUtc - TimeSpan.FromDays(lRetentionDays);
     }
 
-    public static bool LRetentionExcludedCheck(string lRetentionRelativePath)
+    public static bool LRetentionSweptCheck(string lRetentionRelativePath)
     {
         if (string.IsNullOrWhiteSpace(lRetentionRelativePath))
         {
@@ -29,21 +32,20 @@ public static class LRetention
         string[] lRetentionSegments = lRetentionRelativePath.Split(
             new[] { '/', '\\' },
             StringSplitOptions.RemoveEmptyEntries);
-        if (lRetentionSegments.Length == 0)
+        if (lRetentionSegments.Length < 2)
         {
             return false;
         }
 
         string lRetentionRoot = lRetentionSegments[0];
-        foreach (string lRetentionExcludedRoot in LRetentionExcludedRoots)
+        foreach (string lRetentionSweptRoot in LRetentionSweptRoots)
         {
-            if (string.Equals(lRetentionRoot, lRetentionExcludedRoot, StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(lRetentionRoot, lRetentionSweptRoot, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
             }
         }
 
-        string lRetentionName = lRetentionSegments[^1];
-        return lRetentionName.StartsWith("work.db", StringComparison.OrdinalIgnoreCase);
+        return false;
     }
 }

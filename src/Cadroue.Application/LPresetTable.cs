@@ -21,7 +21,7 @@ public sealed partial class LPreset
         {
             "Split" => LPresetSplitDefault,
             "Merge" => LPresetMergeDefault,
-            _ => null
+            _ => LPresetFirstName
         };
 
         if (lPresetName is not null && LPresetTryLoad(lPresetName, lPresetState))

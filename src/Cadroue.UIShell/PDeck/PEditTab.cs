@@ -122,7 +122,7 @@ public sealed partial class PEditTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
-        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
+        pAction.PActionListAttach(pList);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
@@ -188,7 +188,7 @@ public sealed partial class PEditTab : PTabSurface
         pList.PListPathChange += PEditPathShow;
         pList.PListItemsAdd += PEditItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindEdit);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);

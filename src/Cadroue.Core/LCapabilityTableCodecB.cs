@@ -7,28 +7,30 @@ public static partial class LCapabilityTable
         yield return new("libvpx", new(
             "libvpx",
             [
-                new("Constant quality (CQ)", new("CRF", "-crf", "10", 0, 63)),
-                new("Constrained quality", new("CRF", "-crf", "10", 0, 63)),
+                new("Constant quality (CQ)", new("CRF", "-crf", "10", 0, 63), "-b:v 0"),
+                new("Constrained quality", new("CRF", "-crf", "10", 0, 63), "-b:v 2M"),
                 new("Target bitrate", LCapabilityBitrateCreate("2M")),
-                new("CBR", LCapabilityBitrateCreate("2M"))
+                new("CBR", LCapabilityBitrateCreate("2M"), LCapabilityCbrArgument)
             ],
             new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 16, true)),
             [new LCapabilityExtra("Deadline", "-deadline", "good",
                 [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
-            "VP8 constant quality requires -b:v 0 alongside -crf. Speed is -cpu-used, not a preset."));
+            "VP8 constant quality sets -b:v 0 alongside -crf; constrained quality caps it at 2M. " +
+            "Speed is -cpu-used, not a preset."));
         yield return new("libvpx-vp9", new(
             "libvpx-vp9",
             [
-                new("Constant quality (CQ)", new("CRF", "-crf", "31", 0, 63)),
-                new("Constrained quality", new("CRF", "-crf", "31", 0, 63)),
+                new("Constant quality (CQ)", new("CRF", "-crf", "31", 0, 63), "-b:v 0"),
+                new("Constrained quality", new("CRF", "-crf", "31", 0, 63), "-b:v 2M"),
                 new("Target bitrate", LCapabilityBitrateCreate("2M")),
-                new("CBR", LCapabilityBitrateCreate("2M")),
-                new("Lossless")
+                new("CBR", LCapabilityBitrateCreate("2M"), LCapabilityCbrArgument),
+                new("Lossless", null, "-lossless 1")
             ],
             new LCapabilitySpeed("Speed (cpu-used)", "-cpu-used", "1", LCapabilityNumbersCreate(0, 8, true)),
             [new LCapabilityExtra("Deadline", "-deadline", "good",
                 [new("best", "Best"), new("good", "Good"), new("realtime", "Real-time")])],
-            "VP9 constant quality requires -b:v 0 alongside -crf. Lossless is -lossless 1."));
+            "VP9 constant quality sets -b:v 0 alongside -crf; constrained quality caps it at 2M. " +
+            "Lossless is -lossless 1."));
         yield return new("vp9_qsv", LCapabilityQsvCreate("vp9_qsv"));
 
         yield return new("libxvid", LCapabilityQscaleCreate("libxvid", "5", 1, 31,
@@ -88,7 +90,7 @@ public static partial class LCapabilityTable
             "jpeg2000",
             [
                 new("Lossy (qscale)", new("qscale", "-q:v", "7", 1, 31)),
-                new("Lossless (reversible DWT)")
+                new("Lossless (reversible DWT)", null, "-pred dwt53", 1, ["-pred"])
             ],
             null,
             [
@@ -101,7 +103,7 @@ public static partial class LCapabilityTable
             "libopenjpeg",
             [
                 new("Lossless (reversible)"),
-                new("Lossy (irreversible DWT)", new("qscale", "-q:v", "7", 1, 31))
+                new("Lossy (irreversible DWT)", new("qscale", "-q:v", "7", 1, 31), "-irreversible 1")
             ],
             null,
             [

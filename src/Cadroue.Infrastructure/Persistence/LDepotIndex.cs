@@ -202,7 +202,7 @@ public static class LDepotIndex
             {
                 foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
                 {
-                    LWorkRecord? lWorkRecord = LDepotRecordRead(lDepotFilePath);
+                    LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
                     if (lWorkRecord is null)
                     {
                         continue;
@@ -268,18 +268,6 @@ public static class LDepotIndex
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
         {
             LDepotIndexRecord("compaction failed", lDepotException);
-        }
-    }
-
-    private static LWorkRecord? LDepotRecordRead(string lDepotFilePath)
-    {
-        try
-        {
-            return LWorkRecord.LWorkRecordParse(File.ReadAllText(lDepotFilePath));
-        }
-        catch (IOException)
-        {
-            return null;
         }
     }
 

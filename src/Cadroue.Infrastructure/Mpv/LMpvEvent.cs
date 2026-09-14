@@ -17,9 +17,42 @@ public sealed partial class LMpv
 
     public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget, CancellationToken lToken)
     {
-        LMpvEventClear();
-        LMpvOpen(lPath);
-        return LMpvLoadedScan(lBudget, lToken);
+        CancellationTokenSource lScan = CancellationTokenSource.CreateLinkedTokenSource(lToken);
+        CancellationTokenSource? lPrevious = Interlocked.Exchange(ref lMpvScanCancellation, lScan);
+        lPrevious?.Cancel();
+        lock (lMpvScanGate)
+        {
+            try
+            {
+                if (lScan.IsCancellationRequested)
+                {
+                    return LMpvProbe.LMpvProbeUnusable;
+                }
+
+                LMpvEventClear();
+                LMpvOpen(lPath);
+                return LMpvLoadedScan(lBudget, lScan.Token);
+            }
+            finally
+            {
+                lPrevious?.Dispose();
+                if (Interlocked.CompareExchange(ref lMpvScanCancellation, null, lScan) == lScan)
+                {
+                    lScan.Dispose();
+                }
+            }
+        }
+    }
+
+    public void LMpvScanCancel()
+    {
+        try
+        {
+            Volatile.Read(ref lMpvScanCancellation)?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 
     public static LMpvProbe LMpvCheck()

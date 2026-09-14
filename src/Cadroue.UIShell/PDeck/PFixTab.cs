@@ -123,7 +123,7 @@ public sealed class PFixTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
-        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
+        pAction.PActionListAttach(pList);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
@@ -147,7 +147,7 @@ public sealed class PFixTab : PTabSurface
         pList.PListItemsAdd += PFixItemsHandle;
         pList.PListClearChange += pClinic.PClinicResultsRemove;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);

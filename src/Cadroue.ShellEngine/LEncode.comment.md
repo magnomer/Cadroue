@@ -25,6 +25,17 @@ The audio-tab work has nothing to filter (no active chain, or audio excluded out
 So it is one ordinary whole-file command honouring the Audio output contract.
 Exclude writes no audio, Copy copies, Encode encodes.
 
+## `private static LEncodeStage LEncodePassBuild(LWorkItem lWorkItem, string lPassArguments)`
+
+The first pass of a two-pass mode writes no media, only the rate-control log.
+Its stage path is the per-job log folder, marked temporary, so job cleanup removes the whole folder.
+Both passes carry the same filters, so the log describes the frames the second pass will encode.
+
+## `private static bool LEncodePassAppend(StringBuilder lArguments, int lPass)`
+
+Pass 1 ends the command right after the video arguments: no audio, no muxer, a null output.
+Any later pass falls through and writes the real output.
+
 ## `internal static void LEncodeMuxerAppend(StringBuilder lArguments, LWorkItem lWorkItem)`
 
 Every command that writes the final output states its muxer explicitly.

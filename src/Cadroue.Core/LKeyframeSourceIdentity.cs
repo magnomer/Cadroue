@@ -56,6 +56,21 @@ public sealed record LKeyframeSourceIdentity
             LKeyframeHashCreate(fileInfo));
     }
 
+    public bool LKeyframeIdentityMatch(string sourcePath, TimeSpan duration)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+        {
+            return false;
+        }
+
+        var fileInfo = new FileInfo(Path.GetFullPath(sourcePath));
+        return fileInfo.Exists
+            && string.Equals(LKeyframeSourcePath, fileInfo.FullName, StringComparison.OrdinalIgnoreCase)
+            && LKeyframeSourceDuration == (long)Math.Round(duration.TotalMilliseconds)
+            && LKeyframeSourceLength == fileInfo.Length
+            && LKeyframeWriteTicks == fileInfo.LastWriteTimeUtc.Ticks;
+    }
+
     private static string LKeyframeHashCreate(FileInfo fileInfo)
     {
         using var sha256 = SHA256.Create();

@@ -159,6 +159,13 @@ internal sealed partial class LJob
             {
                 try
                 {
+                    if (Directory.Exists(pPath))
+                    {
+                        Directory.Delete(pPath, true);
+                        pRemoved = true;
+                        break;
+                    }
+
                     if (!File.Exists(pPath))
                     {
                         pRemoved = true;

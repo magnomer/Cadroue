@@ -62,4 +62,36 @@ public sealed class TKeyframeNavigation
         Assert.True(result.LKeyframeReady);
         Assert.Null(result.LKeyframeTarget);
     }
+
+    [Fact]
+    public void NextKeyframe_WithAbandonedSpanInCoverage_IsFailedNotPending()
+    {
+        var result = TInterface.TKeyframeMoveResolve(
+            new long[] { 270_000 },
+            new HashSet<int> { 9, 10, 11, 12 },
+            TKeyframeAtCreate(600),
+            TKeyframeAtCreate(180),
+            1,
+            new HashSet<int> { 13 });
+
+        Assert.True(result.LKeyframeFailed);
+        Assert.False(result.LKeyframeReady);
+        Assert.Null(result.LKeyframeTarget);
+    }
+
+    [Fact]
+    public void NextKeyframe_WithAbandonedSpanOutsideCoverage_IsReady()
+    {
+        var result = TInterface.TKeyframeMoveResolve(
+            new long[] { 190_000 },
+            new HashSet<int> { 9 },
+            TKeyframeAtCreate(600),
+            TKeyframeAtCreate(180),
+            1,
+            new HashSet<int> { 13 });
+
+        Assert.False(result.LKeyframeFailed);
+        Assert.True(result.LKeyframeReady);
+        Assert.Equal(TKeyframeAtCreate(190), result.LKeyframeTarget);
+    }
 }

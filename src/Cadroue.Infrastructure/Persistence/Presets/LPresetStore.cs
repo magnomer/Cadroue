@@ -138,16 +138,29 @@ public static class LPresetStore
             .Select(lPresetRecord => lPresetRecord!.LPresetRecordNormalize())
             .ToArray();
 
-    public static void LPresetFileSave(LPresetRecord lRecord, string lPresetFilePath)
+    public static bool LPresetFileSave(LPresetRecord lRecord, string lPresetFilePath) =>
+        !LPresetCatalogCheck(lPresetFilePath) && LVault.LVaultSave(lPresetFilePath, lRecord);
+
+    public static bool LPresetCatalogCheck(string lPresetFilePath)
     {
-        string lPresetJson = JsonSerializer.Serialize(lRecord, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(lPresetFilePath, lPresetJson);
+        try
+        {
+            return string.Equals(
+                Path.GetFullPath(lPresetFilePath),
+                Path.GetFullPath(LPresetPathCreate()),
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception lPathException) when (
+            lPathException is ArgumentException or PathTooLongException or NotSupportedException)
+        {
+            return false;
+        }
     }
 
     public static LPresetRecord? LPresetFileLoad(string lPresetFilePath)
     {
         string lPresetJson = File.ReadAllText(lPresetFilePath);
-        return JsonSerializer.Deserialize<LPresetRecord>(lPresetJson);
+        return JsonSerializer.Deserialize<LPresetRecord>(lPresetJson)?.LPresetRecordNormalize();
     }
 
     private static string LPresetPathCreate()

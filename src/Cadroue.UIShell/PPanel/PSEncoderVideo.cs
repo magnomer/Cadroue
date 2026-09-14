@@ -166,7 +166,7 @@ internal sealed partial class PSEncoder
         }
 
         PSVideoSpeedBuild(pCodec, pModeStored);
-        PSVideoExtraBuild(pCodec);
+        PSVideoExtraBuild(pCodec, pMode);
     }
 
     private void PSVideoQualityBuild(LCapabilityMode pMode, bool pModeStored)
@@ -266,10 +266,15 @@ internal sealed partial class PSEncoder
         return psVideoSpeedChoices[pAt].LCapabilityChoiceValue;
     }
 
-    private void PSVideoExtraBuild(LCapabilityCodec pCodec)
+    private void PSVideoExtraBuild(LCapabilityCodec pCodec, LCapabilityMode pMode)
     {
         foreach (LCapabilityExtra pExtra in pCodec.LCapabilityExtraList)
         {
+            if (pMode.LCapabilityConflictCheck(pExtra.LCapabilityExtraOption))
+            {
+                continue;
+            }
+
             string pSelected = lsExportSpecificEdit.LPresetVideo.LPresetExtras.TryGetValue(
                     pExtra.LCapabilityExtraOption,
                     out string? pStored)

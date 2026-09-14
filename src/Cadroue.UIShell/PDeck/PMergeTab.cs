@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanel;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.ShellEngine;
@@ -10,7 +11,8 @@ public sealed class PMergeTab : PTabSurface
 {
     private readonly PFlowControl pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly LDocket lDocket = new();
+    private readonly PList pList;
     private readonly LGroupSelection lGroupOwner;
     private readonly PGroup pGroup;
     private readonly PAction pAction = new();
@@ -18,6 +20,7 @@ public sealed class PMergeTab : PTabSurface
 
     public PMergeTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
+        pList = new PList(lDocket);
         lGroupOwner = new LGroupSelection(
             lPreferenceTabLayout?.LSceneGroupAuto ?? false,
             lPreferenceTabLayout?.LSceneGroupStrict ?? true,
@@ -55,16 +58,16 @@ public sealed class PMergeTab : PTabSurface
         pGroup.PGroupSourceFiles = () => pList.PListUnlockedRead()
             .Select(pItem => pItem.LDocketEntryPath)
             .ToArray();
-        pGroup.PGroupFileRequest = pDropPaths =>
-        {
-            pList.PListPathsAdd(pDropPaths);
-            return PList.PListMediaScan(pDropPaths);
-        };
-        pList.PListItemsAdd += PMergeItemsHandle;
+        pGroup.PGroupFileRequest = pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pAction.PActionEligibleSource = () => PMergeGroupsRead()
+            .SelectMany(pMergeGroup => pMergeGroup.LWorkGroupPaths)
+            .ToArray();
+        lDocket.LDocketChange += PMergeDocketHandle;
+        pList.PListClearChange += pGroup.PGroupPathsRemove;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
-        PTabLockAttach(pList, pGroup, pExport);
+        PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
             new PCompass(pFlow),
@@ -85,17 +88,32 @@ public sealed class PMergeTab : PTabSurface
         return pMergeRelays;
     }
 
-    private IReadOnlyList<LWorkGroup> PMergeGroupsRead() =>
-        pGroup.PGroupGroupsRead()
-            .Select(pGroupSelection => new LWorkGroup(
-                pGroupSelection.PGroupSelectionName,
-                pGroupSelection.PGroupSelectionPaths
-                    .Where(pPath => !pList.PListLockCheck(pPath))
-                    .ToArray()))
-            .Where(pGroupSelection => pGroupSelection.LWorkGroupPaths.Count > 0)
-            .ToArray();
+    private IReadOnlyList<LWorkGroup> PMergeGroupsRead()
+    {
+        var pMergeGroups = new List<LWorkGroup>();
+        foreach (PGroup.PGroupSelection pGroupSelection in pGroup.PGroupGroupsRead())
+        {
+            string[] pMergeLocked = pGroupSelection.PGroupSelectionPaths
+                .Where(pList.PListLockCheck)
+                .ToArray();
+            if (pMergeLocked.Length > 0)
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Merge skipped group '{pGroupSelection.PGroupSelectionName}': "
+                    + $"{pMergeLocked.Length} of {pGroupSelection.PGroupSelectionPaths.Count} file(s) still in the worklist");
+                continue;
+            }
 
-    private void PMergeItemsHandle(IReadOnlyList<LDocketEntry> pAddedItems)
+            if (pGroupSelection.PGroupSelectionPaths.Count > 0)
+            {
+                pMergeGroups.Add(new LWorkGroup(pGroupSelection.PGroupSelectionName, pGroupSelection.PGroupSelectionPaths));
+            }
+        }
+
+        return pMergeGroups;
+    }
+
+    private void PMergeDocketHandle(IReadOnlyList<LDocketEntry> pDocketEntries)
     {
         if (lGroupOwner.LGroupAuto)
         {

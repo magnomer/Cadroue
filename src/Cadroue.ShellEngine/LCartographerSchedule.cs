@@ -86,25 +86,46 @@ public static partial class LCartographer
             return;
         }
 
-        var lCartographerUnlocks = new List<(string PListPath, Guid PListBatch)>();
-        foreach (LWorkItem lCartographerItem in lCartographerSchedule.LScheduleRecords)
+        IReadOnlyList<LWorkItem> lCartographerRecords = lCartographerSchedule.LScheduleRecords;
+        var lCartographerHeld = new Dictionary<Guid, HashSet<string>>();
+        foreach (LWorkItem lCartographerItem in lCartographerRecords.Where(LCartographerActiveCheck))
         {
-            if (lCartographerItem.LWorkRelayTarget != Guid.Empty
-                || lCartographerItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning)
+            if (!lCartographerHeld.TryGetValue(lCartographerItem.LWorkBatchId, out HashSet<string>? lCartographerPaths))
+            {
+                lCartographerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                lCartographerHeld[lCartographerItem.LWorkBatchId] = lCartographerPaths;
+            }
+
+            lCartographerPaths.UnionWith(LCartographerSourcesRead(lCartographerItem));
+        }
+
+        var lCartographerUnlocks = new List<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>();
+        foreach (LWorkItem lCartographerItem in lCartographerRecords)
+        {
+            bool lCartographerBatchActive = lCartographerHeld.TryGetValue(
+                lCartographerItem.LWorkBatchId, out HashSet<string>? lCartographerBatchPaths);
+            if (LCartographerActiveCheck(lCartographerItem)
+                || (lCartographerBatchActive && lCartographerItem.LWorkRelayTarget != Guid.Empty))
             {
                 continue;
             }
 
-            lCartographerUnlocks.Add((lCartographerItem.LWorkSourcePath, lCartographerItem.LWorkBatchId));
-            lCartographerUnlocks.AddRange(lCartographerItem.LWorkMergeSources.Select(
-                lCartographerPath => (lCartographerPath, lCartographerItem.LWorkBatchId)));
+            lCartographerUnlocks.AddRange(LCartographerSourcesRead(lCartographerItem)
+                .Where(lCartographerPath => lCartographerBatchPaths?.Contains(lCartographerPath) != true)
+                .Select(lCartographerPath => (lCartographerPath, lCartographerItem.LWorkBatchId, lCartographerItem)));
         }
 
         if (lCartographerUnlocks.Count > 0)
         {
-            lCartographerSeam.LCartographerSourceUnlock(lCartographerUnlocks.Distinct().ToArray());
+            lCartographerSeam.LCartographerSourceUnlock(lCartographerUnlocks);
         }
     }
+
+    private static bool LCartographerActiveCheck(LWorkItem lCartographerItem) =>
+        lCartographerItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
+
+    private static IEnumerable<string> LCartographerSourcesRead(LWorkItem lCartographerItem) =>
+        lCartographerItem.LWorkMergeSources.Prepend(lCartographerItem.LWorkSourcePath);
 
     private static void LCartographerBatchesUpdate(
         LScheduleContract lCartographerSchedule,

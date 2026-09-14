@@ -70,24 +70,42 @@ public sealed partial class PViewer
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (pViewerUnloaded || !PViewerMpvEligible)
+            if (pViewerUnloaded || !PViewerMpvEligible || !pViewerCommandActive)
             {
                 return;
             }
 
-            if (!pViewerCommandActive)
+            if (pViewerMpvActive == (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv))
             {
                 return;
             }
 
-            string? pViewerSourcePath = PViewerSourcePath;
-            if (!PViewerEngineSelect() || pViewerSourcePath is null)
-            {
-                return;
-            }
-
-            PPlayerVideoLoad(pViewerSourcePath);
+            PViewerEngineRestore();
         });
+    }
+
+    private bool PViewerEngineRestore()
+    {
+        PViewerIntent? pViewerPending = pViewerIntent;
+        string? pViewerSourcePath = PViewerSourcePath;
+        bool pViewerPlaying = pViewerResumeInactive || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+        TimeSpan pViewerPosition = pViewerPlayer.PPlayerReady
+            ? pViewerPlayer.PPlayerTimeRead()
+            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+        bool pViewerSwapped = PViewerEngineSelect();
+        if (pViewerPending is { } pViewerRequest)
+        {
+            PPlayerVideoLoad(pViewerRequest);
+            return true;
+        }
+
+        if (!pViewerSwapped || pViewerSourcePath is null)
+        {
+            return false;
+        }
+
+        PPlayerVideoLoad(new PViewerIntent(pViewerSourcePath, pViewerPosition, pViewerPlaying));
+        return true;
     }
 
     private void PViewerMpvUpdate()
@@ -244,7 +262,6 @@ public sealed partial class PViewer
                 PViewerFilterSet(LPreview.LPreviewFilterResolve(PViewerRenderRead()));
             }
 
-            pViewerPlayer.PPlayerMpvCancel();
             await System.Threading.Tasks.Task.Run(() => pViewerPlayer.PPlayerOpen(sourcePath));
         }
         catch (Exception pViewerException)
@@ -254,6 +271,7 @@ public sealed partial class PViewer
 
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
+            PViewerMpvRestore();
             return;
         }
 
@@ -272,6 +290,38 @@ public sealed partial class PViewer
             pViewerPreviewOk,
             ffmpegError,
             pViewerPreviewError));
+    }
+
+    private void PViewerMpvRestore()
+    {
+        if (pViewerUnloaded || !pViewerMpvActive || pViewerIntent is not null)
+        {
+            return;
+        }
+
+        if (PViewerSourcePath is { } pViewerKeptPath)
+        {
+            var pViewerRequest = new PViewerIntent(
+                pViewerKeptPath,
+                LPreviewStateCurrent.LPlaybackState.LPlaybackPosition,
+                false);
+            if (pViewerCommandActive)
+            {
+                PPlayerVideoLoad(pViewerRequest);
+            }
+            else
+            {
+                pViewerIntent = pViewerRequest;
+            }
+
+            return;
+        }
+
+        if (pViewerPlayer.PPlayerReady)
+        {
+            pViewerPlayer.PPlayerStop();
+            PViewerHostShow(false);
+        }
     }
 
     private void PViewerMpvCommit(LCargo pViewerStatus)
@@ -307,6 +357,8 @@ public sealed partial class PViewer
             PCropHide();
         }
 
+        PViewerIntent? pViewerRequest = pViewerIntent;
+        pViewerIntent = null;
         PViewerMediaRaise(pViewerStatus);
         if (!pViewerHasPreview)
         {
@@ -317,19 +369,7 @@ public sealed partial class PViewer
 
         PViewerMpvUpdate();
         PViewerAudioApply();
-
-        if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
-        {
-            pViewerResumeInactive = false;
-            pViewerPlayer.PPlayerPlay();
-            PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
-            pViewerClockTimer.Start();
-        }
-        else
-        {
-            pViewerPlayer.PPlayerPause();
-            PViewerPlaybackUpdate(false, TimeSpan.Zero);
-        }
+        PViewerIntentApply(pViewerRequest);
     }
 
     private void PViewerMpvRebuild(

@@ -18,8 +18,10 @@ public static class LKeyframeSeeker
         TimeSpan scanEndTime,
         CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
-            return Array.Empty<LKeyframeEntry>();
+        if (string.IsNullOrWhiteSpace(sourcePath))
+            throw new ArgumentException("Source path is required.", nameof(sourcePath));
+        if (!File.Exists(sourcePath))
+            throw new FileNotFoundException("Source file does not exist.", sourcePath);
 
         TimeSpan normalizedStart = scanStartTime < TimeSpan.Zero ? TimeSpan.Zero : scanStartTime;
         if (scanEndTime <= normalizedStart)
@@ -27,20 +29,7 @@ public static class LKeyframeSeeker
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        double timelineStartSeconds;
-        try
-        {
-            timelineStartSeconds = LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
-        {
-            timelineStartSeconds = 0;
-        }
-
+        double timelineStartSeconds = LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
         double intervalStartSeconds = timelineStartSeconds + normalizedStart.TotalSeconds;
         double intervalEndSeconds = timelineStartSeconds + scanEndTime.TotalSeconds + LKeyframeScanTolerance;
         string intervalStart = intervalStartSeconds > 0
@@ -51,7 +40,7 @@ public static class LKeyframeSeeker
 
         var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
         {
-            Arguments = $"-v quiet -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" "
+            Arguments = $"-v error -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" "
                 + $"-print_format csv -show_entries packet=pts_time,dts_time,flags -i \"{sourcePath}\"",
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -60,21 +49,15 @@ public static class LKeyframeSeeker
         };
 
         var keyframePackets = new List<LKeyframePacket>();
-        double scanStartSeconds = normalizedStart.TotalSeconds;
-        double scanEndSeconds = scanEndTime.TotalSeconds;
-        Process? process = null;
-
+        using var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started.");
         try
         {
-            process = Process.Start(psi);
-            if (process is null)
-                return Array.Empty<LKeyframeEntry>();
-
             LCustody.LCustodyAttach(process);
             LKeyframePrioritySet(process);
             using var killOnCancel = cancellationToken.Register(
                 static p => { try { ((Process)p!).Kill(); } catch { } }, process);
 
+            Task<string> errorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
             string? line;
             while ((line = process.StandardOutput.ReadLine()) is not null)
             {
@@ -82,24 +65,29 @@ public static class LKeyframeSeeker
             }
 
             process.WaitForExit();
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
-        {
             cancellationToken.ThrowIfCancellationRequested();
-            return Array.Empty<LKeyframeEntry>();
+            if (process.ExitCode != 0)
+            {
+                throw new InvalidOperationException(
+                    LKeyframeFailureFormat(process.ExitCode, errorTask.GetAwaiter().GetResult()));
+            }
         }
         finally
         {
-            if (process is not null && !process.HasExited)
+            if (!process.HasExited)
                 try { process.Kill(); } catch { }
-            process?.Dispose();
         }
 
-        cancellationToken.ThrowIfCancellationRequested();
+        return LKeyframeEntriesResolve(
+            keyframePackets, timelineStartSeconds, normalizedStart.TotalSeconds, scanEndTime.TotalSeconds);
+    }
+
+    private static IReadOnlyList<LKeyframeEntry> LKeyframeEntriesResolve(
+        List<LKeyframePacket> keyframePackets,
+        double timelineStartSeconds,
+        double scanStartSeconds,
+        double scanEndSeconds)
+    {
         var keyframeTimes = new SortedDictionary<long, long?>();
         foreach ((double presentationAbsolute, double? decodeAbsolute) in keyframePackets)
         {
@@ -121,6 +109,15 @@ public static class LKeyframeSeeker
                 TimeSpan.FromTicks(pair.Key),
                 pair.Value is long decodeTicks ? TimeSpan.FromTicks(decodeTicks) : null))
             .ToArray();
+    }
+
+    private static string LKeyframeFailureFormat(int exitCode, string errorText)
+    {
+        string diagnostic = string.IsNullOrWhiteSpace(errorText)
+            ? "No ffprobe diagnostic message was returned."
+            : errorText.Trim();
+        return $"ffprobe packet scan failed with exit code {exitCode}. "
+            + (diagnostic.Length <= 2000 ? diagnostic : diagnostic[..2000]);
     }
 
     private static void LKeyframePrioritySet(Process process)

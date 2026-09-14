@@ -84,6 +84,23 @@ internal sealed class TSidecar : IDisposable
     internal bool TLoudnessSave(string sourcePath, double loudness) =>
         LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness);
 
+    internal double TLoudnessRead(string sourcePath) => LSidecarStore.LSidecarLoudnessRead(sourcePath);
+
+    internal void TSidecarLocationSet(bool locationMode) => LSidecarStore.LSidecarFolderSet(tSidecarRoot, !locationMode);
+
+    internal string TSidecarPathRead(string sourcePath) => LSidecarStore.LSidecarPathRead(sourcePath);
+
+    internal string TSidecarTextRead(string sourcePath) =>
+        File.ReadAllText(LSidecarStore.LSidecarPathRead(sourcePath), Encoding.UTF8);
+
+    internal void TSidecarTextSave(string sourcePath, string content) =>
+        File.WriteAllText(LSidecarStore.LSidecarPathRead(sourcePath), content, Encoding.UTF8);
+
+    internal void TSidecarLegacySave(string sourcePath, string content) =>
+        File.WriteAllText(Path.ChangeExtension(sourcePath, ".cad"), content, Encoding.UTF8);
+
+    internal int TSidecarBrokenRead() => Directory.EnumerateFiles(tSidecarRoot, "*.broken").Count();
+
     internal bool TWaveformSave(
         string sourcePath,
         int bucketMilliseconds,

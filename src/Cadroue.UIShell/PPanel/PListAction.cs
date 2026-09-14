@@ -147,7 +147,7 @@ public sealed partial class PList
         if (pDialog.ShowDialog() == true)
         {
             LTraceLog.LTraceInfoRecord($"List manual file dialog confirmed: {pDialog.FileNames.Length} file(s)");
-            PListPathsAdd(pDialog.FileNames);
+            _ = PListPathsAdd(pDialog.FileNames);
         }
     }
 
@@ -161,7 +161,7 @@ public sealed partial class PList
         if (pDialog.ShowDialog() == true)
         {
             LTraceLog.LTraceInfoRecord($"List manual folder dialog confirmed: {pDialog.FolderNames.Length} folder(s)");
-            PListPathsAdd(pDialog.FolderNames);
+            _ = PListPathsAdd(pDialog.FolderNames);
         }
     }
 }

@@ -25,10 +25,18 @@ public static partial class LSidecarStore
 
     public static bool LSidecarFolderCheck() => lSidecarRecordActive;
 
-    public static string LSidecarPathRead(string lSidecarSourcePath) =>
-        lSidecarRecordActive && lSidecarRecordFolder is { } lSidecarFolder
-            ? Path.Combine(lSidecarFolder, LSidecarKeyCreate(lSidecarSourcePath) + LSidecarExtension)
-            : Path.ChangeExtension(Path.GetFullPath(lSidecarSourcePath), LSidecarExtension);
+    public static string LSidecarPathRead(string lSidecarSourcePath)
+    {
+        if (lSidecarRecordActive && lSidecarRecordFolder is { } lSidecarFolder)
+        {
+            return Path.Combine(lSidecarFolder, LSidecarKeyCreate(lSidecarSourcePath) + LSidecarExtension);
+        }
+
+        string lSidecarFullPath = Path.GetFullPath(lSidecarSourcePath);
+        string lSidecarPreciousPath = lSidecarFullPath + LSidecarExtension;
+        LSidecarLegacyMove(lSidecarFullPath, lSidecarPreciousPath);
+        return lSidecarPreciousPath;
+    }
 
     internal static string LSidecarCacheResolve(string lSidecarPreciousPath) =>
         Path.ChangeExtension(lSidecarPreciousPath, LSidecarCacheExtension);
@@ -37,6 +45,50 @@ public static partial class LSidecarStore
     {
         string lSidecarFullPath = Path.GetFullPath(lSidecarSourcePath).ToUpperInvariant();
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(lSidecarFullPath)));
+    }
+
+    private static void LSidecarLegacyMove(string lSidecarFullPath, string lSidecarPreciousPath)
+    {
+        string lSidecarLegacyPath = Path.ChangeExtension(lSidecarFullPath, LSidecarExtension);
+        if (string.Equals(lSidecarLegacyPath, lSidecarPreciousPath, StringComparison.OrdinalIgnoreCase)
+            || File.Exists(lSidecarPreciousPath)
+            || !File.Exists(lSidecarLegacyPath))
+        {
+            return;
+        }
+
+        try
+        {
+            using (LLatch.LLatchClaim(lSidecarLegacyPath))
+            {
+                if (File.Exists(lSidecarPreciousPath) || !File.Exists(lSidecarLegacyPath))
+                {
+                    return;
+                }
+
+                string? lSidecarLegacyJson = LSidecarFile.LSidecarFileRead(lSidecarLegacyPath);
+                if (lSidecarLegacyJson is null
+                    || LSidecarParse.LSidecarCoreParse(lSidecarLegacyJson) is not { } lSidecarLegacy
+                    || !string.Equals(
+                        lSidecarLegacy.LSidecarSource.LSidecarFileName,
+                        Path.GetFileName(lSidecarFullPath),
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    return;
+                }
+
+                string lSidecarLegacyCache = LSidecarCacheResolve(lSidecarLegacyPath);
+                if (File.Exists(lSidecarLegacyCache))
+                {
+                    File.Move(lSidecarLegacyCache, LSidecarCacheResolve(lSidecarPreciousPath), overwrite: false);
+                }
+
+                File.Move(lSidecarLegacyPath, lSidecarPreciousPath, overwrite: false);
+            }
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or TimeoutException)
+        {
+        }
     }
 
     public static int LSidecarFolderClear()
@@ -105,35 +157,18 @@ public static partial class LSidecarStore
         IReadOnlyCollection<int> lSidecarScannedSpans,
         int lSidecarSpanGridMilliseconds)
     {
-        string lSidecarPreciousPath = LSidecarPathRead(lSidecarIdentity.LKeyframeSourcePath);
-        bool lSidecarCoreSaved;
-        try
-        {
-            using (LLatch.LLatchClaim(lSidecarPreciousPath))
+        string lSidecarSourcePath = lSidecarIdentity.LKeyframeSourcePath;
+        bool lSidecarCoreSaved = LSidecarCoreSave(
+            lSidecarSourcePath,
+            lSidecarCore =>
             {
-                string? lSidecarExistingJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
-                LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
-
-                LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null
-                    && LSidecarParse.LSidecarCoreParse(lSidecarExistingJson) is { } lSidecarParsed
-                        ? lSidecarParsed
-                        : new LSidecarCoreRecord();
                 lSidecarCore.LSidecarVersion = 2;
-                lSidecarCore.LSidecarSource = LSidecarSourceCreate(lSidecarIdentity, lSidecarPreciousPath);
-
-                lSidecarCoreSaved = LSidecarFile.LSidecarFileSave(
-                    lSidecarPreciousPath,
-                    LSidecarParse.LSidecarCoreFormat(lSidecarCore));
-            }
-        }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException or TimeoutException)
-        {
-            return false;
-        }
+                lSidecarCore.LSidecarSource = LSidecarSourceCreate(lSidecarIdentity, LSidecarPathRead(lSidecarSourcePath));
+            });
 
         bool lSidecarCacheSaved = LSidecarCacheStore.LSidecarCacheSave(
             lSidecarIdentity,
-            lSidecarPreciousPath,
+            LSidecarPathRead(lSidecarSourcePath),
             lSidecarKeyframeMilliseconds,
             lSidecarScannedSpans,
             lSidecarSpanGridMilliseconds);
@@ -143,31 +178,84 @@ public static partial class LSidecarStore
 
     public static LSidecarCoreRecord? LSidecarCoreRead(string lSidecarSourcePath)
     {
-        string? lSidecarJson = LSidecarFile.LSidecarFileRead(LSidecarPathRead(lSidecarSourcePath));
-        return lSidecarJson is null ? null : LSidecarParse.LSidecarCoreParse(lSidecarJson);
+        LSidecarCoreResult lSidecarResult = LSidecarCoreResolve(lSidecarSourcePath, LSidecarPathRead(lSidecarSourcePath));
+        return lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
+            ? lSidecarResult.LSidecarCoreValue
+            : null;
     }
 
     public static IReadOnlyList<long> LSidecarKeyframesRead(string lSidecarSourcePath) =>
-        LSidecarRead(LSidecarPathRead(lSidecarSourcePath))?.LSidecarKeyframesRead() ?? Array.Empty<long>();
+        LSidecarRead(LSidecarPathRead(lSidecarSourcePath)) is { } lSidecar
+        && LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecar.LSidecarSource)
+            ? lSidecar.LSidecarKeyframesRead()
+            : Array.Empty<long>();
+
+    internal static LSidecarCoreResult LSidecarCoreResolve(string lSidecarSourcePath, string lSidecarPreciousPath)
+    {
+        if (!File.Exists(lSidecarPreciousPath))
+        {
+            return new LSidecarCoreResult(LSidecarReadKind.LSidecarReadMissing, null, null);
+        }
+
+        string? lSidecarJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
+        if (lSidecarJson is null)
+        {
+            return new LSidecarCoreResult(LSidecarReadKind.LSidecarReadUnreadable, null, null);
+        }
+
+        if (LSidecarParse.LSidecarCoreParse(lSidecarJson) is not { } lSidecarCore)
+        {
+            return new LSidecarCoreResult(LSidecarReadKind.LSidecarReadMalformed, null, lSidecarJson);
+        }
+
+        return LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarCore.LSidecarSource)
+            ? new LSidecarCoreResult(LSidecarReadKind.LSidecarReadMatched, lSidecarCore, lSidecarJson)
+            : new LSidecarCoreResult(LSidecarReadKind.LSidecarReadForeign, lSidecarCore, lSidecarJson);
+    }
 
     private static bool LSidecarCoreSave(string lSidecarSourcePath, Action<LSidecarCoreRecord> lSidecarMutate)
     {
         try
         {
-            string lSidecarPreciousPath = LSidecarPathRead(lSidecarSourcePath);
+            string lSidecarFullPath = Path.GetFullPath(lSidecarSourcePath);
+            if (!File.Exists(lSidecarFullPath))
+            {
+                return false;
+            }
+
+            string lSidecarPreciousPath = LSidecarPathRead(lSidecarFullPath);
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
-                string? lSidecarExistingJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
+                LSidecarCoreResult lSidecarResult = LSidecarCoreResolve(lSidecarFullPath, lSidecarPreciousPath);
+                switch (lSidecarResult.LSidecarCoreState)
+                {
+                    case LSidecarReadKind.LSidecarReadUnreadable:
+                        return false;
+                    case LSidecarReadKind.LSidecarReadMalformed
+                        when !LSidecarFile.LSidecarBrokenMove(lSidecarPreciousPath):
+                        return false;
+                }
+
+                bool lSidecarMatched = lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched;
+                string? lSidecarExistingJson = lSidecarMatched ? lSidecarResult.LSidecarCoreJson : null;
                 LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
-                LSidecarCoreRecord lSidecarCore = lSidecarExistingJson is not null
-                    && LSidecarParse.LSidecarCoreParse(lSidecarExistingJson) is { } lSidecarParsed
-                        ? lSidecarParsed
-                        : LSidecarStubCreate(lSidecarSourcePath, lSidecarPreciousPath);
+                LSidecarCoreRecord lSidecarCore = lSidecarMatched
+                    ? lSidecarResult.LSidecarCoreValue!
+                    : new LSidecarCoreRecord();
+                if (string.IsNullOrWhiteSpace(lSidecarCore.LSidecarSource.LSidecarPartialHash))
+                {
+                    lSidecarCore.LSidecarSource = LSidecarSourceCreate(
+                        LKeyframeSourceIdentity.LKeyframeIdentityCreate(
+                            lSidecarFullPath,
+                            TimeSpan.FromMilliseconds(lSidecarCore.LSidecarSource.LSidecarDurationMilliseconds)),
+                        lSidecarPreciousPath);
+                }
+
                 lSidecarMutate(lSidecarCore);
                 return LSidecarFile.LSidecarFileSave(
                     lSidecarPreciousPath,
-                    LSidecarParse.LSidecarCoreFormat(lSidecarCore));
+                    LSidecarParse.LSidecarCoreFormat(lSidecarCore, lSidecarExistingJson));
             }
         }
         catch (Exception lException) when (
@@ -195,27 +283,6 @@ public static partial class LSidecarStore
             LSidecarWriteTicks = lSidecarIdentity.LKeyframeWriteTicks,
             LSidecarDurationMilliseconds = lSidecarIdentity.LKeyframeSourceDuration,
             LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash
-        };
-    }
-
-    private static LSidecarCoreRecord LSidecarStubCreate(string lSidecarSourcePath, string lSidecarPreciousPath)
-    {
-        string lSidecarFullPath = Path.GetFullPath(lSidecarSourcePath);
-        var lSidecarFile = new FileInfo(lSidecarFullPath);
-        string lSidecarFolder = Path.GetDirectoryName(Path.GetFullPath(lSidecarPreciousPath)) ?? string.Empty;
-
-        return new LSidecarCoreRecord
-        {
-            LSidecarSource = new LSidecarSourceRecord
-            {
-                LSidecarFileName = Path.GetFileName(lSidecarFullPath),
-                LSidecarRelativePath = string.IsNullOrWhiteSpace(lSidecarFolder)
-                    ? string.Empty
-                    : LSidecarRelativeCreate(lSidecarFolder, lSidecarFullPath),
-                LSidecarAbsolutePath = lSidecarFullPath,
-                LSidecarLength = lSidecarFile.Exists ? lSidecarFile.Length : 0,
-                LSidecarWriteTicks = lSidecarFile.Exists ? lSidecarFile.LastWriteTimeUtc.Ticks : 0
-            }
         };
     }
 

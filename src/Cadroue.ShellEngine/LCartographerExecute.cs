@@ -90,6 +90,11 @@ public static partial class LCartographer
         Guid lCartographerSource,
         Guid lCartographerBatch)
     {
+        if (!lCartographerLayout.LSceneGroupAuto)
+        {
+            return Array.Empty<string>();
+        }
+
         var lCartographerGroupOwner = new LGroupSelection(
             lCartographerLayout.LSceneGroupAuto,
             lCartographerLayout.LSceneGroupStrict,

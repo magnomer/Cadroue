@@ -26,7 +26,7 @@ public static class LRetentionSweep
         foreach (string lRetentionPath in Directory.EnumerateFiles(lRetentionRoot, "*", SearchOption.AllDirectories))
         {
             string lRetentionRelative = Path.GetRelativePath(lRetentionRoot, lRetentionPath);
-            if (LRetention.LRetentionExcludedCheck(lRetentionRelative))
+            if (!LRetention.LRetentionSweptCheck(lRetentionRelative))
             {
                 continue;
             }

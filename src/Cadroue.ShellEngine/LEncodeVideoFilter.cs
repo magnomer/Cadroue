@@ -15,8 +15,8 @@ internal static partial class LEncodeVideo
 
         bool lRgbDomain = LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
-        string? lSize = LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize);
-        if (lSize is not null)
+        if (LEncodeSizeCheck(lOutput.LEncodingVideo)
+            && LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize) is { } lSize)
         {
             lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LEncodingVideo.LEncodingSizeReactive));
             lFilters.Add("setsar=1");
@@ -42,7 +42,7 @@ internal static partial class LEncodeVideo
         string lPixel = LEncodePixelResolve(lWorkItem, lOutput.LEncodingVideo);
         if (lPixel.Length > 0)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {lPixel}");
+            lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {LEncode.LEncodeValueFormat(lPixel)}");
         }
     }
 

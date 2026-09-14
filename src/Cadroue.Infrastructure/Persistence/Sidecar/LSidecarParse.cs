@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 
 using Cadroue.Core;
 using Cadroue.Media;
@@ -9,8 +10,37 @@ internal static class LSidecarParse
 {
     private static readonly JsonSerializerOptions lSidecarJsonOptions = new() { WriteIndented = false };
 
-    internal static string LSidecarCoreFormat(LSidecarCoreRecord lSidecarCore) =>
-        JsonSerializer.Serialize(lSidecarCore, lSidecarJsonOptions);
+    internal static string LSidecarCoreFormat(LSidecarCoreRecord lSidecarCore, string? lSidecarExistingJson)
+    {
+        JsonObject lSidecarFresh = JsonSerializer.SerializeToNode(lSidecarCore, lSidecarJsonOptions)!.AsObject();
+        if (lSidecarExistingJson is null)
+        {
+            return lSidecarFresh.ToJsonString(lSidecarJsonOptions);
+        }
+
+        JsonObject? lSidecarExisting;
+        try
+        {
+            lSidecarExisting = JsonNode.Parse(lSidecarExistingJson) as JsonObject;
+        }
+        catch (JsonException)
+        {
+            lSidecarExisting = null;
+        }
+
+        if (lSidecarExisting is not null)
+        {
+            foreach ((string lSidecarName, JsonNode? lSidecarNode) in lSidecarExisting)
+            {
+                if (!lSidecarFresh.ContainsKey(lSidecarName))
+                {
+                    lSidecarFresh[lSidecarName] = lSidecarNode?.DeepClone();
+                }
+            }
+        }
+
+        return lSidecarFresh.ToJsonString(lSidecarJsonOptions);
+    }
 
     internal static string LSidecarCacheFormat(LSidecarCacheRecord lSidecarCache) =>
         JsonSerializer.Serialize(lSidecarCache, lSidecarJsonOptions);
@@ -85,7 +115,13 @@ internal static class LSidecarParse
 
     internal static LSidecar LSidecarCreate(LSidecarCoreRecord lSidecarCore, LSidecarCacheRecord? lSidecarCache)
     {
-        LSidecarCacheRecord? lSidecarValid = LSidecarCacheValidate(lSidecarCache);
+        LSidecarCacheRecord? lSidecarValid = lSidecarCache is not null
+            && LSidecarSource.LSidecarCacheMatch(
+                lSidecarCore.LSidecarSource,
+                lSidecarCache.LSidecarLength,
+                lSidecarCache.LSidecarPartialHash)
+                ? LSidecarCacheValidate(lSidecarCache)
+                : null;
         return new LSidecar
         {
             LSidecarVersion = lSidecarCore.LSidecarVersion,

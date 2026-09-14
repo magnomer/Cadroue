@@ -14,6 +14,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly SortedSet<long> lKeyframeStorage = new();
     private readonly HashSet<int> lKeyframeScannedSpans = new();
     private const int LKeyframeRetryLimit = 3;
+    private static readonly TimeSpan LKeyframeScanLimit = TimeSpan.FromMinutes(1);
 
     private const int LKeyframeSaveCount = 10;
 
@@ -22,7 +23,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
     private CancellationTokenSource? lKeyframeCancelSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
-    private string? lKeyframeSourcePath;
     private TimeSpan lKeyframeDuration;
     private int lKeyframeRequestSerial;
     private long lKeyframeNoticeSerial;
@@ -58,43 +58,30 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
         CancellationTokenSource cancel;
         int serial;
-        LKeyframeSourceIdentity identity;
+        LKeyframeSourceIdentity? identity;
         lock (lKeyframeLock)
         {
-            if (LKeyframeSourceCheck(sourcePath, duration))
-            {
-                try
-                {
-                    identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
-                }
-                catch
-                {
-                    return;
-                }
-
-                lKeyframeStorage.Clear();
-                lKeyframeScannedSpans.Clear();
-                lKeyframeFailedCounts.Clear();
-                lKeyframeSavedSignature = new LKeyframeSignature(-1, -1);
-                lKeyframeSourceIdentity = identity;
-                lKeyframeSourcePath = identity.LKeyframeSourcePath;
-                lKeyframeDuration = duration;
-                LKeyframeCacheLoad(identity);
-            }
-            else
-            {
-                identity = lKeyframeSourceIdentity!;
-            }
-
             lKeyframeCancelSource?.Cancel();
             lKeyframeCancelSource?.Dispose();
             lKeyframeCancelSource = new CancellationTokenSource();
             cancel = lKeyframeCancelSource;
             serial = ++lKeyframeRequestSerial;
+
+            identity = lKeyframeSourceIdentity;
+            if (LKeyframeSourceCheck(sourcePath, duration))
+            {
+                identity = null;
+                LKeyframeStateClear();
+                lKeyframeDuration = duration;
+            }
         }
 
+        identity ??= LKeyframeIdentityLoad(sourcePath, duration, serial);
         LKeyframeNoticePublish(serial);
-        LKeyframePlanStart(identity.LKeyframeSourcePath, duration, cursor, serial, cancel.Token);
+        if (identity is not null)
+        {
+            LKeyframePlanStart(identity.LKeyframeSourcePath, duration, cursor, serial, cancel.Token);
+        }
     }
 
     public void LKeyframeSuspend()
@@ -125,6 +112,11 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         var previous = LKeyframePreviousMove(cursor);
         var next = LKeyframeNextMove(cursor);
+        if (previous.LKeyframeFailed || next.LKeyframeFailed)
+        {
+            return LKeyframeMoveResult.LKeyframeFailedCreate();
+        }
+
         if (!previous.LKeyframeReady || !next.LKeyframeReady)
         {
             return LKeyframeMoveResult.LKeyframePending;
@@ -144,16 +136,24 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 lKeyframeScannedSpans,
                 lKeyframeDuration,
                 cursor,
-                direction);
+                direction,
+                LKeyframeFailureRead());
         }
     }
+
+    private HashSet<int> LKeyframeFailureRead() =>
+        lKeyframeFailedCounts
+            .Where(pair => pair.Value >= LKeyframeRetryLimit)
+            .Select(pair => pair.Key)
+            .ToHashSet();
 
     internal static LKeyframeMoveResult LKeyframeMoveResolve(
         IReadOnlyCollection<long> keyframes,
         IReadOnlySet<int> scannedSpans,
         TimeSpan duration,
         TimeSpan cursor,
-        int direction)
+        int direction,
+        IReadOnlySet<int>? failedSpans = null)
     {
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
@@ -176,16 +176,20 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         long coverageEndMs = direction < 0 ? cursorMs : target is null ? rangeEndMs : target.Value + 1;
         int firstSpan = (int)(coverageStartMs / LKeyframeGridMilliseconds);
         int lastSpan = (int)((coverageEndMs - 1) / LKeyframeGridMilliseconds);
+        bool pending = false;
         for (int span = firstSpan; span <= lastSpan; span++)
         {
-            if (!scannedSpans.Contains(span))
+            if (failedSpans?.Contains(span) == true)
             {
-                return LKeyframeMoveResult.LKeyframePending;
+                return LKeyframeMoveResult.LKeyframeFailedCreate();
             }
+
+            pending |= !scannedSpans.Contains(span);
         }
 
-        return LKeyframeMoveResult.LKeyframeReadyCreate(
-            target is null ? null : TimeSpan.FromMilliseconds(target.Value));
+        return pending
+            ? LKeyframeMoveResult.LKeyframePending
+            : LKeyframeMoveResult.LKeyframeReadyCreate(
+                target is null ? null : TimeSpan.FromMilliseconds(target.Value));
     }
-
 }

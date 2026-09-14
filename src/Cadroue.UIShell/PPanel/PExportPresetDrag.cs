@@ -19,7 +19,12 @@ public sealed partial class PExport
         pPresetRowDragging = null;
         pPresetNameDragging = null;
         pExportDragOrigin = null;
+        bool pDragMoved = pPresetDragActive;
         pPresetDragActive = false;
+        if (pDragMoved)
+        {
+            PExportPresetSync();
+        }
     }
 
     private void PExportMoveHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)

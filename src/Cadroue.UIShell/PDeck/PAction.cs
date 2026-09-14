@@ -41,8 +41,8 @@ public sealed class PAction : UserControl
         pActionAllButton = PActionButtonBuild("AddAll", "PActionAddAll.svg", "Action.AddAll");
         Button pExecuteButton = PActionButtonBuild("Execute", "PActionExecute.svg", "Action.Execute");
         pAddListButton.Click += (_, _) => PActionListAdd();
-        pActionAllButton.Click += (_, _) => PActionAllAdd?.Invoke();
-        pExecuteButton.Click += (_, _) => PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
+        pActionAllButton.Click += (_, _) => PActionAllRun();
+        pExecuteButton.Click += (_, _) => PActionHighRun();
         pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
         pActionRelayIcon = PActionIconBuild();
         pActionRelayLabel = PActionLabelBuild();
@@ -67,6 +67,16 @@ public sealed class PAction : UserControl
     public Func<IReadOnlyList<PActionRelayOption>>? PActionRelaySource { get; set; }
 
     public Func<IReadOnlyList<string>>? PActionSelectionSource { get; set; }
+
+    public Func<IReadOnlyList<string>>? PActionEligibleSource { get; set; }
+
+    public void PActionListAttach(PPanel.PList pActionList)
+    {
+        PActionSelectionSource = pActionList.PListSelectionRead;
+        PActionEligibleSource = () => pActionList.PListUnlockedRead()
+            .Select(pActionItem => pActionItem.LDocketEntryPath)
+            .ToArray();
+    }
 
     public void PActionRelayAttach(Guid pActionSourceTab)
     {
@@ -127,12 +137,31 @@ public sealed class PAction : UserControl
         pActionAutoBox.IsChecked = pActionAutoRelay;
     }
 
-    public void PActionAllRun() => PActionAllAdd?.Invoke();
+    public void PActionAllRun()
+    {
+        if (PActionEligibleCheck(false))
+        {
+            PActionAllAdd?.Invoke();
+        }
+    }
 
     public void PActionItemsRun(IReadOnlyList<string> pActionPaths) => PActionItemsAdd?.Invoke(pActionPaths);
 
+    private void PActionHighRun()
+    {
+        if (PActionEligibleCheck(true))
+        {
+            PActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
+        }
+    }
+
     private void PActionListAdd()
     {
+        if (!PActionEligibleCheck(true))
+        {
+            return;
+        }
+
         if (PActionSelectionSource?.Invoke() is { Count: > 0 } pActionSelected)
         {
             PActionItemsAdd?.Invoke(pActionSelected);
@@ -141,6 +170,33 @@ public sealed class PAction : UserControl
 
         PActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
     }
+
+    private bool PActionEligibleCheck(bool pActionSelected)
+    {
+        if (PActionEligibleSource is not { } pActionEligibleSource)
+        {
+            return true;
+        }
+
+        IReadOnlyList<string> pActionEligible = pActionEligibleSource();
+        IReadOnlyList<string> pActionChosen = pActionSelected
+            ? PActionSelectionSource?.Invoke() ?? Array.Empty<string>()
+            : Array.Empty<string>();
+        bool pActionAllowed = pActionChosen.Count == 0
+            ? pActionEligible.Count > 0
+            : pActionChosen.Any(pActionPath => pActionEligible.Contains(pActionPath, StringComparer.OrdinalIgnoreCase));
+        if (!pActionAllowed)
+        {
+            PActionEmptyShow();
+        }
+
+        return pActionAllowed;
+    }
+
+    public static void PActionEmptyShow() => PSCasement.PSWarning.PSWarningShow(
+        null,
+        LLocalization.LLocalizationTextRead("Action.Empty.Title"),
+        LLocalization.LLocalizationTextRead("Action.Empty.Body"));
 
     private CheckBox PActionAutoBuild()
     {

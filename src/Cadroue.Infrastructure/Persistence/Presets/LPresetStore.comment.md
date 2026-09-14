@@ -1,5 +1,11 @@
 # LPresetStore.cs
 
+## `public static bool LPresetCatalogCheck(string lPresetFilePath)`
+
+A standalone export writes one record, but the catalogue holds a list of records.
+Writing the export over the catalogue path would make the next load unreadable and lose every stored preset.
+So the export writer refuses that path outright, before any file is touched.
+
 ## `private static LPresetCatalog LPresetCatalogRead(string lPresetPath)`
 
 The vault moves damaged storage aside as ".corrupt" before reporting it unreadable.

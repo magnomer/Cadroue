@@ -41,48 +41,70 @@ public sealed partial class LKeyframeOrchestrator
 
     private bool LKeyframeSourceCheck(string sourcePath, TimeSpan duration)
     {
-        if (lKeyframeSourceIdentity is null)
+        try
+        {
+            return lKeyframeSourceIdentity?.LKeyframeIdentityMatch(sourcePath, duration) != true;
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
         {
             return true;
         }
-
-        string fullPath = Path.GetFullPath(sourcePath);
-        long durationMs = (long)Math.Round(duration.TotalMilliseconds);
-        return !string.Equals(lKeyframeSourceIdentity.LKeyframeSourcePath, fullPath, StringComparison.OrdinalIgnoreCase)
-            || lKeyframeSourceIdentity.LKeyframeSourceDuration != durationMs;
     }
 
-    private void LKeyframeCacheLoad(LKeyframeSourceIdentity identity)
+    private void LKeyframeStateClear()
+    {
+        lKeyframeStorage.Clear();
+        lKeyframeScannedSpans.Clear();
+        lKeyframeFailedCounts.Clear();
+        lKeyframeUnsavedCount = 0;
+        lKeyframeSavedSignature = new LKeyframeSignature(-1, -1);
+        lKeyframeSourceIdentity = null;
+    }
+
+    private LKeyframeSourceIdentity? LKeyframeIdentityLoad(string sourcePath, TimeSpan duration, int serial)
+    {
+        LKeyframeSourceIdentity identity;
+        try
+        {
+            identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
+        }
+        catch (Exception exception)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Keyframe scan skipped: source identity could not be read for '{Path.GetFileName(sourcePath)}'",
+                exception.Message);
+            return null;
+        }
+
+        (long[] keyframes, int[] scannedSpans) = LKeyframeCacheLoad(identity);
+        lock (lKeyframeLock)
+        {
+            if (serial != lKeyframeRequestSerial)
+            {
+                return null;
+            }
+
+            lKeyframeSourceIdentity = identity;
+            lKeyframeStorage.UnionWith(keyframes);
+            lKeyframeScannedSpans.UnionWith(scannedSpans);
+            lKeyframeSavedSignature = new LKeyframeSignature(lKeyframeStorage.Count, lKeyframeScannedSpans.Count);
+        }
+
+        return identity;
+    }
+
+    private static (long[] LKeyframeList, int[] LKeyframeSpans) LKeyframeCacheLoad(LKeyframeSourceIdentity identity)
     {
         if (LSidecarStore.LSidecarLoad(identity) is { } lSidecar)
         {
-            foreach (long keyframe in lSidecar.LSidecarKeyframesRead())
-            {
-                lKeyframeStorage.Add(keyframe);
-            }
-
-            foreach (int scannedSpan in lSidecar.LSidecarSpansRead(LKeyframeGridMilliseconds))
-            {
-                lKeyframeScannedSpans.Add(scannedSpan);
-            }
-
-            return;
+            return (
+                lSidecar.LSidecarKeyframesRead().ToArray(),
+                lSidecar.LSidecarSpansRead(LKeyframeGridMilliseconds).ToArray());
         }
 
-        if (!LKeyframeCacheStore.LKeyframeCacheLoad(identity, out var keyframes, out var scannedSpans))
-        {
-            return;
-        }
-
-        foreach (long keyframe in keyframes)
-        {
-            lKeyframeStorage.Add(keyframe);
-        }
-
-        foreach (int scannedSpan in scannedSpans)
-        {
-            lKeyframeScannedSpans.Add(scannedSpan);
-        }
+        return LKeyframeCacheStore.LKeyframeCacheLoad(identity, out var keyframes, out var scannedSpans)
+            ? (keyframes.ToArray(), scannedSpans.ToArray())
+            : (Array.Empty<long>(), Array.Empty<int>());
     }
 
     public void LKeyframeSidecarSave()

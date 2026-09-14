@@ -19,7 +19,6 @@ public sealed partial class PGroup
         }
 
         PGroupAutoApply();
-        PGroupSort();
     }
 
     private UIElement PGroupActionBuild()

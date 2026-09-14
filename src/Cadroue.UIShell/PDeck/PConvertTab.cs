@@ -69,10 +69,10 @@ public sealed class PConvertTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
-        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
+        pAction.PActionListAttach(pList);
         pList.PListPathChange += PConvertPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(

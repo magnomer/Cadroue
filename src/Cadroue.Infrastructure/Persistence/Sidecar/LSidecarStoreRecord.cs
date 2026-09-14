@@ -81,7 +81,16 @@ public static partial class LSidecarStore
     {
         try
         {
-            return LSidecarCacheStore.LSidecarCacheRead(lSidecarSourcePath)?.LSidecarWaveform;
+            return LSidecarCacheStore.LSidecarCacheRead(lSidecarSourcePath) is { } lSidecarCache
+                && LSidecarSource.LSidecarSourceMatch(
+                    lSidecarSourcePath,
+                    new LSidecarSourceRecord
+                    {
+                        LSidecarLength = lSidecarCache.LSidecarLength,
+                        LSidecarPartialHash = lSidecarCache.LSidecarPartialHash
+                    })
+                ? lSidecarCache.LSidecarWaveform
+                : null;
         }
         catch (Exception lException) when (
             lException is IOException
@@ -142,7 +151,6 @@ public static partial class LSidecarStore
         {
             return LSidecarCoreRead(lSidecarSourcePath)
                     is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarCore
-                && LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarCore.LSidecarSource)
                 ? TimeSpan.FromMilliseconds(lSidecarCore.LSidecarSource.LSidecarDurationMilliseconds)
                 : TimeSpan.Zero;
         }
@@ -166,8 +174,7 @@ public static partial class LSidecarStore
                 lSidecarCore = LSidecarCoreRead(lSidecarSourcePath);
             }
 
-            if (lSidecarCore is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown
-                && LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarKnown.LSidecarSource))
+            if (lSidecarCore is { LSidecarSource.LSidecarDurationMilliseconds: > 0 } lSidecarKnown)
             {
                 return TimeSpan.FromMilliseconds(lSidecarKnown.LSidecarSource.LSidecarDurationMilliseconds);
             }
@@ -187,24 +194,10 @@ public static partial class LSidecarStore
                 return TimeSpan.Zero;
             }
 
-            LSidecarCoreSave(lSidecarSourcePath, lSidecarTarget =>
-            {
-                try
-                {
-                    lSidecarTarget.LSidecarSource = LSidecarSourceCreate(
-                        LKeyframeSourceIdentity.LKeyframeIdentityCreate(lSidecarSourcePath, lSidecarProbed),
-                        lSidecarPreciousPath);
-                }
-                catch (Exception lSidecarException) when (
-                    lSidecarException is IOException
-                        or UnauthorizedAccessException
-                        or ArgumentException
-                        or FileNotFoundException)
-                {
-                    lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds =
-                        (long)Math.Round(lSidecarProbed.TotalMilliseconds);
-                }
-            });
+            LSidecarCoreSave(
+                lSidecarSourcePath,
+                lSidecarTarget => lSidecarTarget.LSidecarSource.LSidecarDurationMilliseconds =
+                    (long)Math.Round(lSidecarProbed.TotalMilliseconds));
 
             return lSidecarProbed;
         }

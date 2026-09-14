@@ -79,16 +79,24 @@ public static partial class LEncode
 
     internal static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(
         LWorkItem lWorkItem,
-        LBridgeStream? lBridgeSource = null) =>
-        new[]
+        LBridgeStream? lBridgeSource = null)
+    {
+        string? lTimescale = LEncodeTimescaleRead(lWorkItem, lBridgeSource);
+        int lPass = LEncodePassRead(lWorkItem, lWorkItem.LWorkOutput);
+        var lStages = new List<LEncodeStage>();
+        if (lPass > 0)
         {
-            new LEncodeStage(
-                LEncodeArgumentBuild(lWorkItem, LEncodeTimescaleRead(lWorkItem, lBridgeSource)),
-                LWorkStage.LWorkStageEncode,
-                "Encoding",
-                lWorkItem.LWorkOutputPath,
-                false)
-        };
+            lStages.Add(LEncodePassBuild(lWorkItem, LEncodeArgumentBuild(lWorkItem, lTimescale, 1)));
+        }
+
+        lStages.Add(new LEncodeStage(
+            LEncodeArgumentBuild(lWorkItem, lTimescale, lPass),
+            LWorkStage.LWorkStageEncode,
+            "Encoding",
+            lWorkItem.LWorkOutputPath,
+            false));
+        return lStages;
+    }
 
     public static IReadOnlyList<LEncodeStage> LEncodeSmartBuild(
         LWorkItem lWorkItem,

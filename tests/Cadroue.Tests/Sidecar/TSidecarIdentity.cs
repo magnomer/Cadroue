@@ -40,4 +40,49 @@ public sealed class TSidecarIdentity
 
         Assert.Null(sidecar.TSidecarLoad(source, TimeSpan.FromSeconds(3)));
     }
+
+    [Fact]
+    public void TypedRead_RefusesRecordOfReplacedSameLengthSource()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.TSourceCreate("replaced.mp4", "first!");
+        Assert.True(sidecar.TLoudnessSave(source, -20));
+        Assert.Equal(-20, sidecar.TLoudnessRead(source));
+
+        sidecar.TSidecarSourceSet(source, "second");
+
+        Assert.Equal(0, sidecar.TLoudnessRead(source));
+        Assert.True(sidecar.TLoudnessSave(source, -9));
+        Assert.Equal(-9, sidecar.TLoudnessRead(source));
+    }
+
+    [Fact]
+    public void CachePayload_IsDroppedWhenCoreBelongsToNewerSource()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.TSourceCreate("regen.mp4", "first!");
+        Assert.True(sidecar.TSidecarSave(source, TimeSpan.FromSeconds(2), new long[] { 0, 700 }));
+        Assert.True(sidecar.TWaveformSave(source, 25, 2000, "AQ==", "Ag=="));
+
+        sidecar.TSidecarSourceSet(source, "second");
+        Assert.True(sidecar.TLoudnessSave(source, -5));
+
+        TSidecar.TSidecarData? read = sidecar.TSidecarRead(source);
+        Assert.NotNull(read);
+        Assert.Empty(read.TSidecarKeyframes);
+        Assert.Null(read.TSidecarWave);
+        Assert.Equal(-5, read.TSidecarLoudness);
+    }
+
+    [Fact]
+    public void KeyframeLoad_RefusesRecordWhenWriteTimeDiffers()
+    {
+        using var sidecar = new TSidecar();
+        string source = sidecar.TSourceCreate("touched.mp4", "same bytes");
+        Assert.True(sidecar.TSidecarSave(source, TimeSpan.FromSeconds(2), new long[] { 0, 700 }));
+
+        File.SetLastWriteTimeUtc(source, File.GetLastWriteTimeUtc(source).AddMinutes(5));
+
+        Assert.Null(sidecar.TSidecarLoad(source, TimeSpan.FromSeconds(2)));
+    }
 }

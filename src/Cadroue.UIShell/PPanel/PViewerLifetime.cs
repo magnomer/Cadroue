@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -198,31 +199,38 @@ public sealed partial class PViewer
             return;
         }
 
+        pViewerUnloaded = true;
+        pViewerLoadSerial++;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
+        if (pViewerEngineSubscribed)
+        {
+            Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
+            pViewerEngineSubscribed = false;
+        }
+
+        pViewerMediaProbe.LMediaLoadCompleted -= PViewerLoadHandle;
+        pViewerClockTimer.Tick -= PViewerClockHandle;
+        pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
+        pViewerOverlay.MouseMove -= PCropMoveHandle;
+        pViewerOverlay.MouseLeftButtonUp -= PCropReleaseHandle;
+        pViewerOverlay.SizeChanged -= PCropSizeHandle;
+        PDropHandlersRemove();
+
+        PViewerStageRun("media probe", pViewerMediaProbe.Dispose);
+        PViewerStageRun("player", PPlayerStopDispose);
+        PViewerStageRun("flyleaf host", PViewerFlyleafDispose);
+        PViewerStageRun("mpv host", PViewerMpvDispose);
+    }
+
+    private static void PViewerStageRun(string pViewerStage, Action pViewerAction)
+    {
         try
         {
-            pViewerUnloaded = true;
-            pViewerLoadSerial++;
-            Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
-            if (pViewerEngineSubscribed)
-            {
-                Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
-                pViewerEngineSubscribed = false;
-            }
-
-            pViewerMediaProbe.LMediaLoadCompleted -= PViewerLoadHandle;
-            pViewerMediaProbe.Dispose();
-            pViewerClockTimer.Tick -= PViewerClockHandle;
-            pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
-            pViewerOverlay.MouseMove -= PCropMoveHandle;
-            pViewerOverlay.MouseLeftButtonUp -= PCropReleaseHandle;
-            pViewerOverlay.SizeChanged -= PCropSizeHandle;
-            PDropHandlersRemove();
-            PPlayerStopDispose();
-            PViewerFlyleafDispose();
-            PViewerMpvDispose();
+            pViewerAction();
         }
-        catch
+        catch (Exception pViewerException)
         {
+            LTraceLog.LTraceErrorRecord($"Viewer close stage '{pViewerStage}' failed", pViewerException);
         }
     }
 
@@ -246,7 +254,7 @@ public sealed partial class PViewer
 
         string pViewerClosedPath = PViewerSourcePath ?? string.Empty;
         pViewerLoadSerial++;
-        pViewerLoadPath = null;
+        pViewerIntent = null;
         PViewerHostShow(false);
         PPlayerStopDispose();
         PViewerSourcePath = null;
@@ -266,6 +274,22 @@ public sealed partial class PViewer
         return true;
     }
 
+    public bool PViewerLoadCancel()
+    {
+        if (pViewerIntent is null)
+        {
+            return false;
+        }
+
+        pViewerIntent = null;
+        pViewerLoadSerial++;
+        return true;
+    }
+
+    public bool PViewerProtectedCheck(IReadOnlySet<string> pProtectedPaths) =>
+        (PViewerSourcePath is { } pViewerSource && pProtectedPaths.Contains(pViewerSource))
+        || (pViewerIntent is { } pViewerPending && pProtectedPaths.Contains(pViewerPending.PViewerIntentPath));
+
     private void PViewerFlyleafDispose()
     {
         if (!pViewerHostBuilt || pViewerFlyleafHost is null || pViewerSurface is null) return;
@@ -277,8 +301,9 @@ public sealed partial class PViewer
             pViewerSurface.Child = null;
             ((IDisposable)pViewerFlyleafHost).Dispose();
         }
-        catch
+        catch (Exception pViewerException)
         {
+            LTraceLog.LTraceErrorRecord("Viewer Flyleaf host dispose failed", pViewerException);
         }
     }
 }

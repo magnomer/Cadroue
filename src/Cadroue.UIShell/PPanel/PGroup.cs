@@ -1,8 +1,9 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIShell.PPanel;
 
@@ -24,7 +25,7 @@ public sealed partial class PGroup : PPanel
     private readonly UIElement pGroupStripBody;
     private bool pGroupMinimized;
 
-    public Func<IReadOnlyList<string>, IReadOnlyList<string>>? PGroupFileRequest { get; set; }
+    public Action<IReadOnlyList<string>>? PGroupFileRequest { get; set; }
 
     public Func<IReadOnlyList<string>>? PGroupSourceFiles { get; set; }
 
@@ -101,44 +102,32 @@ public sealed partial class PGroup : PPanel
 
         foreach (PGroupRecord pRecord in pGroupRecords)
         {
-            pRecord.PGroupRecordPaths.Sort((pLeft, pRight) =>
-                string.Compare(Path.GetFileName(pLeft), Path.GetFileName(pRight), StringComparison.OrdinalIgnoreCase));
+            IReadOnlyList<string> pGroupSorted = LSeries.LSeriesPathsSort(pRecord.PGroupRecordPaths);
+            pRecord.PGroupRecordPaths.Clear();
+            pRecord.PGroupRecordPaths.AddRange(pGroupSorted);
         }
 
         PGroupRebuild();
     }
 
-    public void PGroupClear(IReadOnlySet<string> pGroupProtectedPaths)
-    {
-        if (pGroupRecords.Count == 0)
-        {
-            return;
-        }
-
-        int pGroupRemoved = pGroupRecords.RemoveAll(pRecord =>
-            !(pRecord.PGroupRecordPaths.Count > 0
-                && pRecord.PGroupRecordPaths.All(pRecordPath => pGroupProtectedPaths.Contains(pRecordPath))));
-        if (pGroupRemoved == 0)
-        {
-            return;
-        }
-
-        PGroupRebuild();
-    }
-
-    public bool PGroupPathsRemove(IReadOnlyList<string> pGroupPaths)
+    public void PGroupPathsRemove(IReadOnlyList<string> pGroupPaths)
     {
         var pGroupTargetSet = new HashSet<string>(pGroupPaths, StringComparer.OrdinalIgnoreCase);
-        int pGroupRemovedCount = pGroupRecords.RemoveAll(pRecord =>
-            pRecord.PGroupRecordPaths.Count > 0
-            && pRecord.PGroupRecordPaths.All(pRecordPath => pGroupTargetSet.Contains(pRecordPath)));
-        if (pGroupRemovedCount == 0)
+        int pGroupRemovedCount = 0;
+        foreach (PGroupRecord pRecord in pGroupRecords)
         {
-            return false;
+            pGroupRemovedCount += pRecord.PGroupRecordPaths.RemoveAll(pGroupTargetSet.Contains);
         }
 
+        if (pGroupRemovedCount == 0)
+        {
+            return;
+        }
+
+        int pGroupEmptied = pGroupRecords.RemoveAll(pRecord => pRecord.PGroupRecordPaths.Count == 0);
+        LTraceLog.LTraceInfoRecord(
+            $"Group: removed {pGroupRemovedCount} unloaded file(s) from groups, {pGroupEmptied} group(s) emptied");
         PGroupRebuild();
-        return true;
     }
 
     public IReadOnlyList<PGroupSelection> PGroupGroupsRead() =>

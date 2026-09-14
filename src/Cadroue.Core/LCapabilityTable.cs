@@ -41,15 +41,19 @@ public static partial class LCapabilityTable
         new("p5", "P5"), new("p6", "P6"), new("p7", "P7 (slowest)")
     ];
 
-    private static LCapabilityCodec LCapabilityLibxCreate(string lEncoder, string lCrfDefault) => new(
+    private const string LCapabilityCbrArgument =
+        "-minrate {quality} -maxrate {quality} -bufsize {quality}";
+
+    private static LCapabilityCodec LCapabilityLibxCreate(
+        string lEncoder, string lCrfDefault, string lLosslessArgument) => new(
         lEncoder,
         [
             new("CRF (constant quality)", new("CRF", "-crf", lCrfDefault, 0, 51)),
             new("CQP (constant quantizer)", new("QP", "-qp", lCrfDefault, 0, 51)),
             new("Target bitrate (ABR)", LCapabilityBitrateCreate()),
-            new("Two-pass bitrate", LCapabilityBitrateCreate()),
-            new("CBR", LCapabilityBitrateCreate()),
-            new("Lossless")
+            new("Two-pass bitrate", LCapabilityBitrateCreate(), "", 2),
+            new("CBR", LCapabilityBitrateCreate(), LCapabilityCbrArgument),
+            new("Lossless", null, lLosslessArgument)
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityLibxPresets),
         [new LCapabilityExtra("Tune", "-tune", "none",
@@ -61,10 +65,11 @@ public static partial class LCapabilityTable
         lEncoder,
         [
             new("ICQ (constant quality)", new("Global quality", "-global_quality", "23", 1, 51)),
-            new("LA-ICQ (lookahead quality)", new("Global quality", "-global_quality", "23", 1, 51)),
+            new("LA-ICQ (lookahead quality)",
+                new("Global quality", "-global_quality", "23", 1, 51), "-look_ahead 1"),
             new("CQP (constant quantizer)", new("QP", "-q", "23", 0, 51)),
             new("VBR (target bitrate)", LCapabilityBitrateCreate()),
-            new("CBR", LCapabilityBitrateCreate())
+            new("CBR", LCapabilityBitrateCreate(), "-maxrate {quality}")
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityQsvPresets),
         [new LCapabilityExtra("Low power", "-low_power", "auto",
@@ -75,11 +80,11 @@ public static partial class LCapabilityTable
     private static LCapabilityCodec LCapabilityNvencCreate(string lEncoder) => new(
         lEncoder,
         [
-            new("Constant quality (VBR + CQ)", new("CQ", "-cq", "23", 0, 51)),
-            new("CQP (constant quantizer)", new("QP", "-qp", "23", 0, 51)),
-            new("VBR (target bitrate)", LCapabilityBitrateCreate()),
-            new("CBR", LCapabilityBitrateCreate()),
-            new("Lossless")
+            new("Constant quality (VBR + CQ)", new("CQ", "-cq", "23", 0, 51), "-rc vbr -b:v 0"),
+            new("CQP (constant quantizer)", new("QP", "-qp", "23", 0, 51), "-rc constqp"),
+            new("VBR (target bitrate)", LCapabilityBitrateCreate(), "-rc vbr"),
+            new("CBR", LCapabilityBitrateCreate(), "-rc cbr"),
+            new("Lossless", null, "-tune lossless", 1, ["-tune"])
         ],
         new LCapabilitySpeed("Speed preset", "-preset", "p4", LCapabilityNvencPresets),
         [new LCapabilityExtra("Tune", "-tune", "hq",
@@ -91,13 +96,14 @@ public static partial class LCapabilityTable
     private static LCapabilityCodec LCapabilityAmfCreate(string lEncoder) => new(
         lEncoder,
         [
-            new("CQP (constant quantizer)", new("QP (I-frame)", "-qp_i", "22", 0, 51)),
-            new("QVBR (quality VBR)", new("QVBR quality level", "-qvbr_quality_level", "23", 0, 51)),
-            new("Peak-constrained VBR", LCapabilityBitrateCreate()),
-            new("Latency-constrained VBR", LCapabilityBitrateCreate()),
-            new("CBR", LCapabilityBitrateCreate()),
-            new("High-quality VBR", LCapabilityBitrateCreate()),
-            new("High-quality CBR", LCapabilityBitrateCreate())
+            new("CQP (constant quantizer)", new("QP (I-frame)", "-qp_i", "22", 0, 51), "-rc cqp"),
+            new("QVBR (quality VBR)",
+                new("QVBR quality level", "-qvbr_quality_level", "23", 0, 51), "-rc qvbr"),
+            new("Peak-constrained VBR", LCapabilityBitrateCreate(), "-rc vbr_peak"),
+            new("Latency-constrained VBR", LCapabilityBitrateCreate(), "-rc vbr_latency"),
+            new("CBR", LCapabilityBitrateCreate(), "-rc cbr"),
+            new("High-quality VBR", LCapabilityBitrateCreate(), "-rc hqvbr"),
+            new("High-quality CBR", LCapabilityBitrateCreate(), "-rc hqcbr")
         ],
         new LCapabilitySpeed("Quality preset", "-quality", "balanced",
             [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality")]),
@@ -110,14 +116,14 @@ public static partial class LCapabilityTable
     private static LCapabilityCodec LCapabilityMfCreate(string lEncoder) => new(
         lEncoder,
         [
-            new("Quality", new("Quality", "-quality", "75", 0, 100, true)),
-            new("CBR", LCapabilityBitrateCreate()),
-            new("Peak-constrained VBR", LCapabilityBitrateCreate()),
-            new("Unconstrained VBR", LCapabilityBitrateCreate()),
-            new("Low-delay VBR", LCapabilityBitrateCreate()),
-            new("Global VBR", LCapabilityBitrateCreate()),
-            new("Global low-delay VBR", LCapabilityBitrateCreate()),
-            new("Encoder default")
+            new("Quality", new("Quality", "-quality", "75", 0, 100, true), "-rate_control quality"),
+            new("CBR", LCapabilityBitrateCreate(), "-rate_control cbr"),
+            new("Peak-constrained VBR", LCapabilityBitrateCreate(), "-rate_control pc_vbr"),
+            new("Unconstrained VBR", LCapabilityBitrateCreate(), "-rate_control u_vbr"),
+            new("Low-delay VBR", LCapabilityBitrateCreate(), "-rate_control ld_vbr"),
+            new("Global VBR", LCapabilityBitrateCreate(), "-rate_control g_vbr"),
+            new("Global low-delay VBR", LCapabilityBitrateCreate(), "-rate_control gld_vbr"),
+            new("Encoder default", null, "-rate_control default")
         ],
         null,
         [new LCapabilityExtra("Scenario", "-scenario", "default",
@@ -157,7 +163,7 @@ public static partial class LCapabilityTable
         lEncoder,
         [
             new("Lossy quality", new("Quality", "-quality", "75", 0, 100, true)),
-            new("Lossless")
+            new("Lossless", null, "-lossless 1")
         ],
         null,
         [new LCapabilityExtra("Content preset", "-preset", "default",

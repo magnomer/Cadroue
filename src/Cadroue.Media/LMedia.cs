@@ -10,6 +10,12 @@ using Cadroue.Core;
 
 namespace Cadroue.Media;
 
+internal readonly record struct LMediaProcessResult(
+    string LMediaProcessOutput,
+    string LMediaProcessError,
+    int LMediaProcessExit,
+    bool LMediaProcessStalled);
+
 public static partial class LMedia
 {
     public static readonly IReadOnlyList<string> LMediaVideoExtensions =
@@ -30,6 +36,9 @@ public static partial class LMedia
 
     private const int LMediaProbeAttempts = 3;
     private const int LMediaRetryMs = 120;
+    private const int LMediaPollMs = 200;
+    private const int LMediaStreamChars = 4096;
+    private static readonly TimeSpan lMediaIdleLimit = TimeSpan.FromSeconds(30);
 
     public static LMediaInfo LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default)
     {
@@ -37,17 +46,20 @@ public static partial class LMedia
         {
             lMediaToken.ThrowIfCancellationRequested();
 
-            string json;
-            string errorText;
-            int exitCode;
-            LMediaFfprobeRun(sourcePath, lMediaToken, out json, out errorText, out exitCode);
-
-            if (exitCode != 0)
+            LMediaProcessResult lMediaResult = LMediaProcessRun(LMediaFfprobeStart(sourcePath), lMediaToken);
+            string errorText = lMediaResult.LMediaProcessError;
+            if (lMediaResult.LMediaProcessStalled)
             {
-                throw new InvalidOperationException(LMediaFailureFormat(exitCode, errorText));
+                throw new InvalidOperationException(LMediaStallFormat(errorText));
+            }
+
+            if (lMediaResult.LMediaProcessExit != 0)
+            {
+                throw new InvalidOperationException(LMediaFailureFormat(lMediaResult.LMediaProcessExit, errorText));
             }
 
             bool lMediaLastAttempt = lMediaAttempt >= LMediaProbeAttempts;
+            string json = lMediaResult.LMediaProcessOutput;
 
             if (string.IsNullOrWhiteSpace(json))
             {
@@ -85,31 +97,61 @@ public static partial class LMedia
         }
     }
 
-    private static void LMediaFfprobeRun(
-        string sourcePath,
-        CancellationToken lMediaToken,
-        out string json,
-        out string errorText,
-        out int exitCode)
+    internal static LMediaProcessResult LMediaProcessRun(ProcessStartInfo lMediaStart, CancellationToken lMediaToken)
     {
-        ProcessStartInfo psi = LMediaFfprobeStart(sourcePath);
+        using var lMediaProcess = Process.Start(lMediaStart)
+            ?? throw new InvalidOperationException(
+                $"{Path.GetFileNameWithoutExtension(lMediaStart.FileName)} could not be started.");
+        LCustody.LCustodyAttach(lMediaProcess);
 
-        using var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started.");
-        LCustody.LCustodyAttach(process);
-        Task<string> jsonTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
-        Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
-        try
+        long lMediaPulse = Environment.TickCount64;
+        void lMediaPulseSet() => Volatile.Write(ref lMediaPulse, Environment.TickCount64);
+
+        var lMediaOutput = new StringBuilder();
+        var lMediaError = new StringBuilder();
+        Task lMediaOutputTask = LMediaStreamRead(lMediaProcess.StandardOutput, lMediaOutput, lMediaPulseSet, lMediaToken);
+        Task lMediaErrorTask = LMediaStreamRead(lMediaProcess.StandardError, lMediaError, lMediaPulseSet, lMediaToken);
+
+        bool lMediaStalled = false;
+        while (!lMediaProcess.WaitForExit(LMediaPollMs))
         {
-            process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
+            if (lMediaToken.IsCancellationRequested)
+            {
+                lMediaProcess.Kill(entireProcessTree: true);
+                lMediaToken.ThrowIfCancellationRequested();
+            }
+
+            if (Environment.TickCount64 - Volatile.Read(ref lMediaPulse) > lMediaIdleLimit.TotalMilliseconds)
+            {
+                lMediaStalled = true;
+                lMediaProcess.Kill(entireProcessTree: true);
+                lMediaProcess.WaitForExit();
+                break;
+            }
         }
-        catch (OperationCanceledException)
+
+        lMediaOutputTask.GetAwaiter().GetResult();
+        lMediaErrorTask.GetAwaiter().GetResult();
+        return new LMediaProcessResult(
+            lMediaOutput.ToString(),
+            lMediaError.ToString(),
+            lMediaStalled ? -1 : lMediaProcess.ExitCode,
+            lMediaStalled);
+    }
+
+    private static async Task LMediaStreamRead(
+        StreamReader lMediaReader,
+        StringBuilder lMediaSink,
+        Action lMediaPulse,
+        CancellationToken lMediaToken)
+    {
+        char[] lMediaBuffer = new char[LMediaStreamChars];
+        int lMediaRead;
+        while ((lMediaRead = await lMediaReader.ReadAsync(lMediaBuffer.AsMemory(), lMediaToken).ConfigureAwait(false)) > 0)
         {
-            process.Kill(entireProcessTree: true);
-            throw;
+            lMediaSink.Append(lMediaBuffer, 0, lMediaRead);
+            lMediaPulse();
         }
-        json = jsonTask.GetAwaiter().GetResult();
-        errorText = errorTask.GetAwaiter().GetResult();
-        exitCode = process.ExitCode;
     }
 
     internal static ProcessStartInfo LMediaFfprobeStart(string sourcePath)
@@ -169,26 +211,8 @@ public static partial class LMedia
 
         try
         {
-            using var process = Process.Start(psi);
-            if (process is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(process);
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(lMediaToken);
-            Task<string> errorTask = process.StandardError.ReadToEndAsync(lMediaToken);
-            try
-            {
-                process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
-            }
-            catch (OperationCanceledException)
-            {
-                process.Kill(entireProcessTree: true);
-                throw;
-            }
-            _ = outputTask.GetAwaiter().GetResult();
-            return LMediaLoudnessParse(errorTask.GetAwaiter().GetResult());
+            LMediaProcessResult lMediaResult = LMediaProcessRun(psi, lMediaToken);
+            return lMediaResult.LMediaProcessStalled ? null : LMediaLoudnessParse(lMediaResult.LMediaProcessError);
         }
         catch (Exception lMediaException) when (
             lMediaException is System.ComponentModel.Win32Exception
@@ -228,15 +252,8 @@ public static partial class LMedia
             };
             psi.ArgumentList.Add("-version");
 
-            using var process = Process.Start(psi);
-            if (process is null)
-            {
-                return false;
-            }
-
-            LCustody.LCustodyAttach(process);
-            process.WaitForExit();
-            return process.ExitCode == 0;
+            LMediaProcessResult lMediaResult = LMediaProcessRun(psi, CancellationToken.None);
+            return !lMediaResult.LMediaProcessStalled && lMediaResult.LMediaProcessExit == 0;
         }
         catch (Exception lMediaException) when (
             lMediaException is System.ComponentModel.Win32Exception
@@ -250,6 +267,12 @@ public static partial class LMedia
     {
         string diagnostic = LMediaDiagnosticNormalize(errorText);
         return $"ffprobe failed with exit code {exitCode}. {diagnostic}";
+    }
+
+    private static string LMediaStallFormat(string errorText)
+    {
+        string diagnostic = LMediaDiagnosticNormalize(errorText);
+        return $"ffprobe produced no output for {lMediaIdleLimit.TotalSeconds:0} seconds and was stopped. {diagnostic}";
     }
 
     private static string LMediaEmptyFormat(string errorText)

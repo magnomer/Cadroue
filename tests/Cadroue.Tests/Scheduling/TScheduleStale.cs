@@ -173,6 +173,76 @@ public sealed class TScheduleStale
     }
 
     [Fact]
+    public void ForeignIdentity_DoesNotFabricateWork()
+    {
+        using var recovery = new TScheduleRecovery();
+        TScheduleRecoveryWork work = recovery.TWorkCreate(Guid.NewGuid(), "foreign");
+        recovery.TScheduleSave(work);
+        recovery.TScheduleRecordChange(
+            work,
+            json => json.Replace(work.TWorkId.ToString(), Guid.NewGuid().ToString(), StringComparison.Ordinal));
+
+        recovery.TScheduleRestore();
+
+        Assert.Empty(recovery.TScheduleItemsRead());
+    }
+
+    [Fact]
+    public void NewerSchema_DoesNotFabricateWork()
+    {
+        using var recovery = new TScheduleRecovery();
+        TScheduleRecoveryWork work = recovery.TWorkCreate(Guid.NewGuid(), "future");
+        recovery.TScheduleSave(work);
+        recovery.TScheduleRecordChange(
+            work,
+            json => json.Replace("\"LWorkSchema\": 1", "\"LWorkSchema\": 99", StringComparison.Ordinal));
+
+        recovery.TScheduleRestore();
+
+        Assert.Empty(recovery.TScheduleItemsRead());
+    }
+
+    [Fact]
+    public void UnknownWorkKind_DoesNotFabricateWork()
+    {
+        using var recovery = new TScheduleRecovery();
+        TScheduleRecoveryWork work = recovery.TWorkCreate(Guid.NewGuid(), "unknown");
+        recovery.TScheduleSave(work);
+        recovery.TScheduleRecordChange(
+            work,
+            json => json.Replace("LWorkKindEdit", "LWorkKindHologram", StringComparison.Ordinal));
+
+        recovery.TScheduleRestore();
+
+        Assert.Empty(recovery.TScheduleItemsRead());
+    }
+
+    [Fact]
+    public void UnwritableCommit_KeepsWorkRunning()
+    {
+        using var recovery = new TScheduleRecovery();
+        TScheduleRecoveryWork work = recovery.TWorkCreate(Guid.NewGuid(), "locked");
+        recovery.TScheduleSave(work);
+        TScheduleRecoveryWork claimed = recovery.TScheduleNextClaim();
+
+        recovery.TScheduleLockSet(claimed, true);
+        try
+        {
+            recovery.TScheduleCommit(claimed, succeeded: true);
+        }
+        finally
+        {
+            recovery.TScheduleLockSet(claimed, false);
+        }
+
+        recovery.TScheduleRestore();
+
+        TScheduleRecovered item = Assert.Single(recovery.TScheduleItemsRead());
+        Assert.Equal(LWorkState.LWorkStateRunning, item.TScheduleState);
+        Assert.Contains("LWorkStateRunning", recovery.TScheduleRunningRead(claimed), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void RepeatedRecovery_DoesNotDuplicateItems()
     {
         using var recovery = new TScheduleRecovery();

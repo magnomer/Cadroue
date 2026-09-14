@@ -194,6 +194,7 @@ public sealed partial class LPreset
                 lPreset.LPresetName, lPresetRecord, lPresetPrevious?.LPresetRecordCreate());
         }
 
+        LPresetNamesApply(lPresetStoredNames);
         foreach (string lName in LPresetMap.Keys.ToArray())
         {
             if (!LPresetNativeCheck(lName)
@@ -203,7 +204,10 @@ public sealed partial class LPreset
                 LPresetSelection.LPresetDraftSync(lName, null, null);
             }
         }
+    }
 
+    private static void LPresetNamesApply(IReadOnlyList<string> lPresetStoredNames)
+    {
         if (LPresetNames.Where(lName => !LPresetNativeCheck(lName))
             .SequenceEqual(lPresetStoredNames, StringComparer.OrdinalIgnoreCase))
         {

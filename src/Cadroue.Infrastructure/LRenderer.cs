@@ -20,6 +20,7 @@ public static class LRenderer
         LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
 
     private static LPreviewEngine lRendererEnginePreview = LPreviewEngine.LPreviewEngineFlyleaf;
+    private static bool lRendererMpvAvailable;
 
     private static readonly object lRendererCheckGate = new();
     private static Task<LMpvProbe>? lRendererCheckTask;
@@ -27,6 +28,8 @@ public static class LRenderer
     public static event Action? LRendererEngineChange;
 
     public static Action? LRendererFlyleafSeam { get; set; }
+
+    public static Action<Action>? LRendererDispatchSeam { get; set; }
 
     public static void LRendererSettingsLoad() =>
         LRendererSettingsCurrent = LRendererSettingsStore.LRendererSettingsLoad();
@@ -40,21 +43,46 @@ public static class LRenderer
     {
         LRendererFlyleafSeam?.Invoke();
         LRendererEngineSet(LRendererPreferenceRead());
+        if (LMpv.LMpvLibraryCheck() && LMpv.LMpvResultRead() == LMpvProbe.LMpvProbeUnknown)
+        {
+            _ = LRendererEngineCheck();
+        }
     }
 
     public static void LRendererEngineSet(LPreviewEngine lRendererEngine)
     {
+        bool lRendererAvailable = LMpv.LMpvAvailableCheck();
+        bool lRendererAvailableChanged = lRendererAvailable != lRendererMpvAvailable;
+        lRendererMpvAvailable = lRendererAvailable;
         LPreviewEngine lRendererResolved =
-            lRendererEngine == LPreviewEngine.LPreviewEngineMpv && LMpv.LMpvInstalledCheck()
+            lRendererEngine == LPreviewEngine.LPreviewEngineMpv && lRendererAvailable
                 ? LPreviewEngine.LPreviewEngineMpv
                 : LPreviewEngine.LPreviewEngineFlyleaf;
-        if (lRendererResolved == lRendererEnginePreview)
+        if (lRendererResolved == lRendererEnginePreview && !lRendererAvailableChanged)
         {
             return;
         }
 
         lRendererEnginePreview = lRendererResolved;
         LRendererEngineChange?.Invoke();
+    }
+
+    public static void LRendererEngineUpdate() => LRendererEngineSet(LRendererPreferenceRead());
+
+    public static async Task<bool> LRendererMpvCheck()
+    {
+        if (!LMpv.LMpvLibraryCheck())
+        {
+            return false;
+        }
+
+        LMpvProbe lRendererProbe = LMpv.LMpvResultRead();
+        if (lRendererProbe == LMpvProbe.LMpvProbeUnknown)
+        {
+            lRendererProbe = await LRendererEngineCheck();
+        }
+
+        return lRendererProbe == LMpvProbe.LMpvProbeUsable;
     }
 
     private static LPreviewEngine LRendererPreferenceRead() =>
@@ -87,6 +115,15 @@ public static class LRenderer
                 }
 
                 LMpv.LMpvResultSave(lRendererProbed);
+                if (LRendererDispatchSeam is { } lRendererDispatch)
+                {
+                    lRendererDispatch(LRendererEngineUpdate);
+                }
+                else
+                {
+                    LRendererEngineUpdate();
+                }
+
                 return lRendererProbed;
             });
 

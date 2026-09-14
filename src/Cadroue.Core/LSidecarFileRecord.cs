@@ -14,6 +14,20 @@ public sealed class LSidecarCoreRecord
     public double LSidecarLoudness { get; set; }
 }
 
+public enum LSidecarReadKind
+{
+    LSidecarReadMissing,
+    LSidecarReadUnreadable,
+    LSidecarReadMalformed,
+    LSidecarReadForeign,
+    LSidecarReadMatched
+}
+
+public sealed record LSidecarCoreResult(
+    LSidecarReadKind LSidecarCoreState,
+    LSidecarCoreRecord? LSidecarCoreValue,
+    string? LSidecarCoreJson);
+
 public enum LSidecarSourceKind
 {
     LSidecarSourceSibling,

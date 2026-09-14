@@ -13,19 +13,26 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PViewer
 {
-    private void PPlayerVideoLoad(string sourcePath)
+    private void PPlayerVideoLoad(PViewerIntent pViewerRequest)
     {
         if (!pViewerCommandActive) return;
         PViewerEngineSelect();
         int loadSerial = ++pViewerLoadSerial;
         pViewerClockTimer.Stop();
         pViewerResumeInactive = false;
-        pViewerPlayer.PPlayerPause();
+        if (pViewerPlayer.PPlayerReady)
+        {
+            pViewerPlayer.PPlayerPause();
+            PViewerPlaybackUpdate(false, null);
+        }
+
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
             return;
         }
 
+        string sourcePath = pViewerRequest.PViewerIntentPath;
+        string pViewerLoadPath;
         try
         {
             pViewerLoadPath = System.IO.Path.GetFullPath(sourcePath);
@@ -35,6 +42,7 @@ public sealed partial class PViewer
             pViewerLoadPath = sourcePath;
         }
 
+        pViewerIntent = pViewerRequest with { PViewerIntentPath = pViewerLoadPath };
         pViewerMediaProbe.LMediaLoadTail = PViewerEngineRead() != LPreviewEngine.LPreviewEngineMpv;
         LTraceLog.LTraceInfoRecord(
             $"Video load start serial={loadSerial} '{System.IO.Path.GetFileName(sourcePath)}'",
@@ -52,7 +60,9 @@ public sealed partial class PViewer
         {
             if (pViewerUnloaded
                 || loadSerial != pViewerLoadSerial
-                || !string.Equals(result.LMediaLoadPath, pViewerLoadPath, StringComparison.OrdinalIgnoreCase))
+                || pViewerIntent is not { } pViewerPending
+                || !string.Equals(
+                    result.LMediaLoadPath, pViewerPending.PViewerIntentPath, StringComparison.OrdinalIgnoreCase))
             {
                 LTraceLog.LTraceInfoRecord(
                     "Video probe outcome discarded (stale/superseded): "
@@ -60,27 +70,37 @@ public sealed partial class PViewer
                 return;
             }
 
-            if (result.LMediaLoadKind != LMediaLoadKind.LMediaLoadSuccess)
+            if (result.LMediaLoadKind == LMediaLoadKind.LMediaLoadSuccess)
             {
-                PViewerMediaRaise(new LCargo(
+                PPlayerMediaApply(result.LMediaLoadPath, result.LMediaLoadInfo, null, loadSerial);
+                return;
+            }
+
+            if (result.LMediaLoadKind == LMediaLoadKind.LMediaLoadFailure)
+            {
+                PViewerCargoCommit(new LCargo(
                     result.LMediaLoadPath,
                     null,
                     false,
                     false,
                     result.LMediaLoadError,
                     null));
-                return;
             }
-
-            PPlayerMediaApply(
-                result.LMediaLoadPath,
-                result.LMediaLoadInfo,
-                null,
-                loadSerial);
         });
     }
 
-    private void PPlayerMediaApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
+    private void PViewerCargoCommit(LCargo pViewerStatus)
+    {
+        if (pViewerMpvActive)
+        {
+            PViewerMpvCommit(pViewerStatus);
+            return;
+        }
+
+        PViewerMediaCommit(pViewerStatus, null);
+    }
+
+    private async void PPlayerMediaApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
     {
         if (pViewerMpvActive)
         {
@@ -97,42 +117,21 @@ public sealed partial class PViewer
         }
 
         Player? player = pViewerPlayer.PPlayerFlyleafPlayer;
-        bool pPlayerCreated = false;
+        bool pPlayerCreated = player is null;
         string? previewError = null;
         var pPlayerClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            if (player is null)
-            {
-                player = new Player(new Config());
-                player.Config.Player.KeyBindings.Keys.Clear();
-                if (PViewerColorPreview && LFlyleaf.LFlyleafActive)
-                {
-                    player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
-                    player.Config.Video.SyncVPFilters = false;
-                }
-
-                player.Config.Video.BackColor = PViewerBackColor;
-                player.Config.Video.ClearScreen = false;
-                player.SeekCompleted += PPlayerSeekHandle;
-                pPlayerCreated = true;
-                LTrace.LTraceRecord(
-                    LTraceKind.LTraceUi,
-                    "Player created",
-                    PPlayerConfigRead(player),
-                    pPlayerClock.Elapsed.TotalMilliseconds);
-            }
-
+            player ??= PPlayerFlyleafCreate(pPlayerClock);
             player.Audio.Volume = (int)Math.Round(pViewerVolume);
+            Player pPlayerOpening = player;
             double pPlayerBeforeOpen = pPlayerClock.Elapsed.TotalMilliseconds;
-            PPlayerFlyleafOpen(player, sourcePath);
-            pPlayerRendererPending = true;
+            await System.Threading.Tasks.Task.Run(() => PPlayerFlyleafOpen(pPlayerOpening, sourcePath));
             LTrace.LTraceRecord(
                 LTraceKind.LTraceUi,
                 $"Player opened '{System.IO.Path.GetFileName(sourcePath)}'",
                 PPlayerAccelRead(player),
                 pPlayerClock.Elapsed.TotalMilliseconds - pPlayerBeforeOpen);
-            PPlayerStartPause(player);
         }
         catch (Exception exception)
         {
@@ -147,12 +146,21 @@ public sealed partial class PViewer
 
         if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
         {
-            if (pPlayerCreated && !ReferenceEquals(player, pViewerPlayer.PPlayerFlyleafPlayer))
+            if (pPlayerCreated)
             {
                 PPlayerFlyleafDispose(player);
             }
 
+            LTraceLog.LTraceInfoRecord(
+                "Player open discarded (stale/superseded): "
+                + $"serial got={loadSerial} now={pViewerLoadSerial}, unloaded={pViewerUnloaded}");
             return;
+        }
+
+        if (player is not null)
+        {
+            pPlayerRendererPending = true;
+            PPlayerStartPause(player);
         }
 
         LCargo mediaStatus = new(
@@ -215,6 +223,8 @@ public sealed partial class PViewer
             PCropHide();
         }
 
+        PViewerIntent? pViewerRequest = pViewerIntent;
+        pViewerIntent = null;
         PViewerMediaRaise(mediaStatus);
         if (player is null)
         {
@@ -222,19 +232,31 @@ public sealed partial class PViewer
             return;
         }
 
-        if (LPreference.LPreferenceStateCurrent.LPreferenceAutoplay)
+        PViewerPreviewRestore();
+        PViewerIntentApply(pViewerRequest);
+    }
+
+    private void PViewerIntentApply(PViewerIntent? pViewerRequest)
+    {
+        TimeSpan pViewerPosition = pViewerRequest?.PViewerIntentPosition ?? TimeSpan.Zero;
+        if (pViewerPosition > TimeSpan.Zero)
         {
-            pViewerResumeInactive = false;
-            pViewerPlayer.PPlayerPlay();
-            PViewerPreviewRestore();
-            PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
-            pViewerClockTimer.Start();
+            PPlayerAccurateSeek(pViewerPosition);
         }
-        else
+
+        bool pViewerPlaying = pViewerRequest?.PViewerIntentPlaying
+            ?? LPreference.LPreferenceStateCurrent.LPreferenceAutoplay;
+        pViewerResumeInactive = false;
+        if (!pViewerPlaying)
         {
-            PViewerPreviewRestore();
-            PViewerPlaybackUpdate(false, TimeSpan.Zero);
+            pViewerPlayer.PPlayerPause();
+            PViewerPlaybackUpdate(false, pViewerPosition);
+            return;
         }
+
+        pViewerPlayer.PPlayerPlay();
+        PViewerPlaybackUpdate(true, pViewerPosition);
+        pViewerClockTimer.Start();
     }
 
     private void PViewerMediaRaise(LCargo mediaStatus)

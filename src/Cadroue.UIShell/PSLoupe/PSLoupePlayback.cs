@@ -48,8 +48,7 @@ internal sealed partial class PSLoupe
             return;
         }
 
-        bool pLoupeMpv = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv
-            && LMpv.LMpvInstalledCheck();
+        bool pLoupeMpv = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
 
         try
         {
@@ -273,7 +272,6 @@ internal sealed partial class PSLoupe
 
     private void PSLoupePlaybackDispose()
     {
-        psLoupePlayer.PPlayerMpvCancel();
         psLoupePlayer.PPlayerDispose();
         PSLoupeFlyleafDispose();
         if (psLoupeMpvHost is not null)

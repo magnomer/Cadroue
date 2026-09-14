@@ -98,10 +98,8 @@ public partial class PWindow
         if (pListActive is not null)
         {
             IReadOnlyList<string> dropPaths = PDropPathsRead(dragEvent);
-            int dropAdded = pListActive.PListPathsAdd(dropPaths);
-            PDropTraceAppend(
-                dragEvent,
-                $"Drop into list: {dropAdded} of {dropPaths.Count} path(s) added");
+            _ = pListActive.PListPathsAdd(dropPaths);
+            PDropTraceAppend(dragEvent, $"Drop into list: {dropPaths.Count} path(s) handed to the list scan");
             PDropTraceRecord($"File drag accepted onto list ({dropEffect})");
             return;
         }
@@ -224,25 +222,10 @@ public partial class PWindow
         return PDropAllowedRead(dragEvent);
     }
 
-    private static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent)
-    {
-        if ((dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy)
-        {
-            return DragDropEffects.Copy;
-        }
-
-        if ((dragEvent.AllowedEffects & DragDropEffects.Move) == DragDropEffects.Move)
-        {
-            return DragDropEffects.Move;
-        }
-
-        if ((dragEvent.AllowedEffects & DragDropEffects.Link) == DragDropEffects.Link)
-        {
-            return DragDropEffects.Link;
-        }
-
-        return DragDropEffects.None;
-    }
+    internal static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent) =>
+        (dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy
+            ? DragDropEffects.Copy
+            : DragDropEffects.None;
 
     private static IReadOnlyList<string> PDropPathsRead(DragEventArgs dragEvent)
     {

@@ -128,7 +128,7 @@ public sealed partial class PAudioTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
-        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
+        pAction.PActionListAttach(pList);
         pAction.PActionAllSet(
             true,
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
@@ -136,7 +136,7 @@ public sealed partial class PAudioTab : PTabSurface
         pList.PListItemsAdd += PAudioItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PViewerMediaChange += PAudioMediaHandle;
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(

@@ -16,7 +16,7 @@ public abstract partial class PTabSurface : UserControl
     public virtual bool PTabSectionVisible => false;
     public PAction? PTabAction { get; protected set; }
     public virtual bool PTabBusyCheck() => false;
-    public virtual void PTabClose() { }
+    public virtual void PTabClose() => PTabList?.PListClose();
     public abstract LSceneTabRecord PTabLayoutRead();
 
     protected const double PTabWidthPadding = 16;
@@ -54,6 +54,13 @@ public abstract partial class PTabSurface : UserControl
         };
         pList.PListClearChange += pRemovedPaths =>
         {
+            if (pViewer.PViewerPendingPath is { } pPendingPath
+                && pRemovedPaths.Any(
+                    pRemoved => string.Equals(pRemoved, pPendingPath, StringComparison.OrdinalIgnoreCase)))
+            {
+                pViewer.PViewerLoadCancel();
+            }
+
             if (pViewer.PViewerSourcePath is { } pLoadedPath
                 && pRemovedPaths.Any(
                     pRemoved => string.Equals(pRemoved, pLoadedPath, StringComparison.OrdinalIgnoreCase)))

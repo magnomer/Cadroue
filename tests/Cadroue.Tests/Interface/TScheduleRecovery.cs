@@ -112,12 +112,28 @@ internal sealed class TScheduleRecovery : IDisposable
         tSchedule = TScheduleLoad();
     }
 
-    internal void TScheduleMalformSave(TScheduleRecoveryWork work)
+    internal void TScheduleMalformSave(TScheduleRecoveryWork work) =>
+        TScheduleRecordChange(work, _ => "this is not a schedule record");
+
+    internal void TScheduleRecordChange(TScheduleRecoveryWork work, Func<string, string> change)
     {
         string persistedPath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, work.TWorkId);
-        File.WriteAllText(persistedPath, "this is not a schedule record");
+        File.WriteAllText(persistedPath, change(File.ReadAllText(persistedPath)));
         LDepotIndex.LDepotDirtySet();
     }
+
+    internal void TScheduleLockSet(TScheduleRecoveryWork work, bool locked)
+    {
+        string persistedPath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, work.TWorkId);
+        File.SetAttributes(
+            persistedPath,
+            locked
+                ? File.GetAttributes(persistedPath) | FileAttributes.ReadOnly
+                : File.GetAttributes(persistedPath) & ~FileAttributes.ReadOnly);
+    }
+
+    internal string TScheduleRunningRead(TScheduleRecoveryWork work) =>
+        File.ReadAllText(LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, work.TWorkId));
 
     public void Dispose()
     {

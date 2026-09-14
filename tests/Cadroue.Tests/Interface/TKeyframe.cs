@@ -34,6 +34,7 @@ internal sealed class TKeyframe : IDisposable
     private readonly ConcurrentDictionary<string, long[]> tKeyframeResults = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, TKeyframeControl> tKeyframeControls =
         new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, int> tKeyframeFailures = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<TKeyframeRange> tKeyframeScans = new();
     private readonly ConcurrentQueue<TKeyframeState> tKeyframeNotices = new();
     private LKeyframeOrchestrator tKeyframeOrchestrator;
@@ -63,6 +64,17 @@ internal sealed class TKeyframe : IDisposable
 
     internal void TKeyframeSourceSet(string sourcePath, string content) =>
         File.WriteAllText(sourcePath, content, Encoding.UTF8);
+
+    internal void TKeyframeSourceDelete(string sourcePath) => File.Delete(sourcePath);
+
+    internal void TKeyframeFailureSet(string sourcePath, int count) => tKeyframeFailures[sourcePath] = count;
+
+    internal LKeyframeMoveResult TKeyframeMoveRead(TimeSpan cursor, int direction) => direction switch
+    {
+        < 0 => tKeyframeOrchestrator.LKeyframePreviousMove(cursor),
+        > 0 => tKeyframeOrchestrator.LKeyframeNextMove(cursor),
+        _ => tKeyframeOrchestrator.LKeyframeNearestMove(cursor)
+    };
 
     internal bool TKeyframeCacheSave(
         string sourcePath,
@@ -183,6 +195,12 @@ internal sealed class TKeyframe : IDisposable
         if (!ignoreCancellation)
         {
             cancellationToken.ThrowIfCancellationRequested();
+        }
+
+        if (tKeyframeFailures.TryGetValue(sourcePath, out int failures) && failures > 0)
+        {
+            tKeyframeFailures[sourcePath] = failures - 1;
+            throw new InvalidOperationException("ffprobe packet scan failed with exit code 1.");
         }
         return tKeyframeResults.GetValueOrDefault(sourcePath, Array.Empty<long>())
             .Where(milliseconds => milliseconds >= start.TotalMilliseconds

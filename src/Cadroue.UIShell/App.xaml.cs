@@ -219,6 +219,7 @@ public partial class PProgram : System.Windows.Application
         LRetentionSweepStart();
         LScheduleRecoverRun();
         Cadroue.Infrastructure.LRenderer.LRendererFlyleafSeam = LRendererFlyleafStart;
+        Cadroue.Infrastructure.LRenderer.LRendererDispatchSeam = lAction => Dispatcher.BeginInvoke(lAction);
         Cadroue.Infrastructure.LRenderer.LRendererEngineStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();

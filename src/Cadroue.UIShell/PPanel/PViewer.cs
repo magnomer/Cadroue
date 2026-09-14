@@ -28,6 +28,11 @@ public sealed partial class PViewer : PPanel
         PViewerToolNeutral
     }
 
+    private readonly record struct PViewerIntent(
+        string PViewerIntentPath,
+        TimeSpan PViewerIntentPosition,
+        bool? PViewerIntentPlaying);
+
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
     private readonly Button pViewerPreviewButton;
@@ -62,7 +67,7 @@ public sealed partial class PViewer : PPanel
     private int pViewerAnchorX = -1;
     private int pViewerAnchorY = -1;
     private int pViewerLoadSerial;
-    private string? pViewerLoadPath;
+    private PViewerIntent? pViewerIntent;
     private readonly LMediaLoad pViewerMediaProbe = new();
     private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private bool pViewerCommandActive;
@@ -100,6 +105,7 @@ public sealed partial class PViewer : PPanel
         pViewerWindow is null ? nint.Zero : new System.Windows.Interop.WindowInteropHelper(pViewerWindow).Handle;
 
     public string? PViewerSourcePath { get; private set; }
+    public string? PViewerPendingPath => pViewerIntent?.PViewerIntentPath;
     public Rect? PCropVideo { get; private set; }
     public double PViewerVolumeCurrent => pViewerVolume;
     public LPreviewEngine PViewerEngineCurrent { get; private set; } = LPreviewEngine.LPreviewEngineFlyleaf;
@@ -258,10 +264,8 @@ public sealed partial class PViewer : PPanel
 
         PViewerHostBuild();
         pViewerCommandActive = true;
-        string? pViewerSourcePath = PViewerSourcePath;
-        if (PViewerEngineSelect() && pViewerSourcePath is not null)
+        if (PViewerEngineRestore())
         {
-            PPlayerVideoLoad(pViewerSourcePath);
             return;
         }
 

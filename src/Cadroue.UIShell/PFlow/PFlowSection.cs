@@ -12,6 +12,8 @@ public sealed partial class PFlow
     public void PFlowEditSet(bool pFlowSectionEdit) =>
         pFlowSectionEditable = pFlowSectionEdit;
 
+    public bool PFlowEditCheck() => pFlowSectionEditable;
+
     private void PFlowSegmentHandle(IReadOnlyList<LPiece> pFlowSections, int? pFlowActive)
     {
         pFlowSegmentFired = true;

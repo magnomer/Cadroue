@@ -81,6 +81,16 @@ public static class LSeries
         return lSeriesGroups;
     }
 
+    public static IReadOnlyList<string> LSeriesPathsSort(IReadOnlyList<string> lSeriesPaths) =>
+        lSeriesPaths
+            .Select(LSeriesItemParse)
+            .OrderBy(lSeriesItem => lSeriesItem.LSeriesBase, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(lSeriesItem => lSeriesItem.LSeriesNumber ?? int.MinValue)
+            .ThenBy(lSeriesItem => lSeriesItem.LSeriesStem, StringComparer.OrdinalIgnoreCase)
+            .ThenBy(lSeriesItem => lSeriesItem.LSeriesPath, StringComparer.OrdinalIgnoreCase)
+            .Select(lSeriesItem => lSeriesItem.LSeriesPath)
+            .ToArray();
+
     private static List<List<LSeriesItem>> LSeriesRunsDivide(List<LSeriesItem> lSeriesSorted)
     {
         var lSeriesRuns = new List<List<LSeriesItem>>();

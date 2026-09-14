@@ -34,8 +34,6 @@ internal sealed class PPlayer
 
     public void PPlayerOpen(string sourcePath) => pPlayerActive?.PPlayerOpen(sourcePath);
 
-    public void PPlayerMpvCancel() => (pPlayerActive as PPlayerMpv)?.PPlayerMpvCancel();
-
     public void PPlayerSeek(TimeSpan playbackPosition) => pPlayerActive?.PPlayerSeek(playbackPosition);
 
     public void PPlayerEndSet(TimeSpan? videoEnd) => (pPlayerActive as PPlayerFlyleaf)?.PPlayerEndSet(videoEnd);

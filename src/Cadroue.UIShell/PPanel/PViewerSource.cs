@@ -44,7 +44,7 @@ public sealed partial class PViewer
             LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
         }
 
-        PPlayerVideoLoad(sourcePath);
+        PPlayerVideoLoad(new PViewerIntent(sourcePath, TimeSpan.Zero, null));
     }
 
     private string? PViewerSidecarResolve(string pSidecarPath)

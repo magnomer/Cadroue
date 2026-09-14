@@ -3,7 +3,6 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIShell.PToolbar;
-using Cadroue.UIShell.PDeck;
 
 namespace Cadroue.UIShell.PPanel;
 
@@ -63,9 +62,7 @@ public sealed partial class PList
 
         var pListDropPaths = new List<string> { lWorkItem.LWorkSourcePath };
         pListDropPaths.AddRange(lWorkItem.LWorkMergeSources);
-        PTabSurface pListSurface = pListSource.PTabWorkspace.PWorkspaceSurface;
-
-        if (pListSurface.PTabList?.PListDocketRead() is { } pListOwner)
+        if (pListSource.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
         {
             int pListDrained = pListOwner.LDocketPathsRemove(pListDropPaths);
             if (pListDrained > 0)
@@ -73,13 +70,6 @@ public sealed partial class PList
                 LTraceLog.LTraceInfoRecord(
                     $"Relay removed {pListDrained} source file(s) from tab '{pListSource.PTabTitle}' after delivery");
             }
-        }
-
-        if (pListSurface.PTabGroup is { } pListSourceGroup
-            && pListSourceGroup.PGroupPathsRemove(pListDropPaths))
-        {
-            LTraceLog.LTraceInfoRecord(
-                $"Relay removed the delivered group from tab '{pListSource.PTabTitle}' after delivery");
         }
     }
 
@@ -93,42 +83,76 @@ public sealed partial class PList
         var pListRemovedSet = pListRemovedBatches.ToHashSet();
         foreach (PTabRecord pListTab in pListTabset.PStripRecords)
         {
-            PTabSurface pListSurface = pListTab.PTabWorkspace.PWorkspaceSurface;
-            if (pListSurface.PTabList?.PListDocketRead() is not { } pListOwner)
+            if (pListTab.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
             {
                 continue;
             }
 
-            string[] pListRemovedPaths = pListOwner.LDocketItemsRead()
+            LDocketEntry[] pListDeparted = pListOwner.LDocketItemsRead()
                 .Where(pListItem => pListRemovedSet.Contains(pListItem.LDocketEntryBatch))
+                .ToArray();
+            (string, Guid)[] pListOrphans = pListDeparted
+                .Where(pListItem => pListItem.LDocketEntryLocked && !pListItem.LDocketEntryDelivered)
+                .Select(pListItem => (pListItem.LDocketEntryPath, pListItem.LDocketEntryBatch))
+                .ToArray();
+            string[] pListRemovedPaths = pListDeparted
+                .Where(pListItem => pListItem.LDocketEntryDelivered)
                 .Select(pListItem => pListItem.LDocketEntryPath)
                 .ToArray();
+
+            int pListReleased = pListOrphans.Length == 0 ? 0 : pListOwner.LDocketRelease(pListOrphans);
+            if (pListReleased > 0)
+            {
+                LTraceLog.LTraceInfoRecord(
+                    $"Relay unlocked {pListReleased} source file(s) in tab '{pListTab.PTabTitle}' "
+                    + "after their work left the worklist unfinished");
+            }
+
             if (pListRemovedPaths.Length == 0)
             {
                 continue;
             }
 
             pListOwner.LDocketPathsRemove(pListRemovedPaths);
-            pListSurface.PTabGroup?.PGroupPathsRemove(pListRemovedPaths);
             LTraceLog.LTraceInfoRecord(
-                $"Relay removed {pListRemovedPaths.Length} file(s) from tab '{pListTab.PTabTitle}' "
+                $"Relay removed {pListRemovedPaths.Length} delivered file(s) from tab '{pListTab.PTabTitle}' "
                 + "after their batch left the worklist");
         }
     }
 
-    public static void PListSourceRelease(IReadOnlyList<(string PListPath, Guid PListBatch)> pListUnlocks)
+    public static void PListSourceRelease(
+        IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> pListUnlocks)
     {
         if (pListUnlocks.Count == 0 || PStrip.PStripCurrent is not { } pListTabset)
         {
             return;
         }
 
+        var pListOrphans = new List<(string, Guid)>();
+        foreach (IGrouping<PTabRecord?, (string PListPath, Guid PListBatch, LWorkItem PListOwner)> pListGroup
+            in pListUnlocks.GroupBy(pListUnlock => PStrip.PStripTabFind(pListUnlock.PListOwner)))
+        {
+            (string, Guid)[] pListReleases = pListGroup
+                .Select(pListUnlock => (pListUnlock.PListPath, pListUnlock.PListBatch))
+                .Distinct()
+                .ToArray();
+            if (pListGroup.Key is { } pListTab)
+            {
+                pListTab.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead().LDocketRelease(pListReleases);
+                continue;
+            }
+
+            pListOrphans.AddRange(pListReleases);
+        }
+
+        if (pListOrphans.Count == 0)
+        {
+            return;
+        }
+
         foreach (PTabRecord pListTab in pListTabset.PStripRecords)
         {
-            if (pListTab.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
-            {
-                pListOwner.LDocketRelease(pListUnlocks);
-            }
+            pListTab.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead().LDocketRelease(pListOrphans);
         }
     }
 

@@ -2,6 +2,7 @@ using System;
 using FlyleafLib;
 using FlyleafLib.MediaPlayer;
 
+using Cadroue.Core;
 using Cadroue.Application;
 
 using Cadroue.Infrastructure;
@@ -41,6 +42,27 @@ public sealed partial class PViewer
             pPlayerRendererPending = false;
             PPlayerRendererRecord(pPlayerSeeked);
         }
+    }
+
+    private Player PPlayerFlyleafCreate(System.Diagnostics.Stopwatch pPlayerClock)
+    {
+        var player = new Player(new Config());
+        player.Config.Player.KeyBindings.Keys.Clear();
+        if (PViewerColorPreview && LFlyleaf.LFlyleafActive)
+        {
+            player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
+            player.Config.Video.SyncVPFilters = false;
+        }
+
+        player.Config.Video.BackColor = PViewerBackColor;
+        player.Config.Video.ClearScreen = false;
+        player.SeekCompleted += PPlayerSeekHandle;
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceUi,
+            "Player created",
+            PPlayerConfigRead(player),
+            pPlayerClock.Elapsed.TotalMilliseconds);
+        return player;
     }
 
     private static void PPlayerFlyleafOpen(Player player, string sourcePath)

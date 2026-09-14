@@ -29,7 +29,7 @@ public sealed record LCartographerDelivery(
     Action<LWorkItem, bool> LCartographerSourceDrop,
     Action<Guid, string, Guid> LCartographerTabArrive,
     Action<IReadOnlyList<Guid>> LCartographerBatchEvict,
-    Action<IReadOnlyList<(string PListPath, Guid PListBatch)>> LCartographerSourceUnlock);
+    Action<IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>> LCartographerSourceUnlock);
 
 public static partial class LCartographer
 {

@@ -118,6 +118,15 @@ public sealed partial class PFlow
             > 0 => lKeyframeOrchestrator.LKeyframeNextMove(lCursor),
             _ => lKeyframeOrchestrator.LKeyframeNearestMove(lCursor)
         };
+        if (result.LKeyframeFailed)
+        {
+            pFlowKeyframeDirection = null;
+            LTraceLog.LTraceWarningRecord(
+                "Keyframe navigation unavailable: the scan around the cursor failed repeatedly",
+                $"source {System.IO.Path.GetFileName(lSourcePath)}, cursor {lCursor:hh\\:mm\\:ss\\.fff}");
+            return;
+        }
+
         if (!result.LKeyframeReady)
         {
             pFlowKeyframeDirection = direction;

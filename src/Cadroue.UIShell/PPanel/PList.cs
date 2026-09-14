@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -30,6 +31,7 @@ public sealed partial class PList : PPanel
     private readonly UIElement pListFullBody;
     private readonly UIElement pListStripBody;
     private string? pListPathCurrent;
+    private string? pListPathSuccessor;
     private bool pListMinimized;
     private Point? pListDragOrigin;
     private Point pListDragOffset;
@@ -40,6 +42,8 @@ public sealed partial class PList : PPanel
     public event Action<IReadOnlyList<string>>? PListClearChange;
     public event Action<IReadOnlyList<LDocketEntry>>? PListItemsAdd;
     public event Action<bool>? PListLockChange;
+
+    private readonly CancellationTokenSource pListScanSource = new();
 
     public PList(LDocket pListOwner) : base("")
     {
@@ -115,12 +119,17 @@ public sealed partial class PList : PPanel
 
     private void PListRemoveHandle(IReadOnlyList<string> pListRemoved)
     {
-        if (pListPathCurrent is null || pListDocket.LDocketItemFind(pListPathCurrent) is null)
+        pListPathsSelected.ExceptWith(pListRemoved);
+        if (PListIndexRead(pListPathAnchor) < 0)
         {
-            PListSelectApply(pListDocket.LDocketPathsRead().FirstOrDefault());
+            pListPathAnchor = null;
         }
 
         PListClearChange?.Invoke(pListRemoved);
+        if (pListPathCurrent is { } pListCurrentPath && pListDocket.LDocketItemFind(pListCurrentPath) is null)
+        {
+            PListSelectApply(pListPathSuccessor);
+        }
     }
 
     public bool PListMinimizedCheck() => pListMinimized;
@@ -158,7 +167,7 @@ public sealed partial class PList : PPanel
 
     public bool PListLockCheck(string pListPath) => pListDocket.LDocketLockCheck(pListPath);
 
-    public int PListPathsAdd(IEnumerable<string> pAddPaths)
+    public async Task<int> PListPathsAdd(IEnumerable<string> pAddPaths)
     {
         IReadOnlyList<string> pRequested = pAddPaths as IReadOnlyList<string> ?? pAddPaths.ToArray();
         LTraceLog.LTraceInfoRecord(
@@ -166,27 +175,40 @@ public sealed partial class PList : PPanel
             string.Join(", ", pRequested.Select(System.IO.Path.GetFileName)));
         try
         {
-            IReadOnlyList<string> pScannedPaths = PListMediaScan(pRequested);
+            CancellationToken pScanToken = pListScanSource.Token;
+            IReadOnlyList<string> pScannedPaths = pRequested.Any(Directory.Exists)
+                ? await Task.Run(() => PListMediaScan(pRequested, pScanToken), pScanToken)
+                : PListMediaScan(pRequested, pScanToken);
             LTraceLog.LTraceInfoRecord($"List scan resolved {pScannedPaths.Count} media path(s); adding to docket");
             int pAdded = pScannedPaths.Count == 0 ? 0 : pListDocket.LDocketPathsAdd(pScannedPaths);
             LTraceLog.LTraceInfoRecord($"List add committed: {pAdded} entry(ies)");
             return pAdded;
         }
+        catch (OperationCanceledException)
+        {
+            LTraceLog.LTraceInfoRecord("List add cancelled: the tab closed during the folder scan");
+            return 0;
+        }
         catch (Exception pAddException)
         {
             LTraceLog.LTraceErrorRecord("List add failed", pAddException);
-            throw;
+            return 0;
         }
     }
+
+    public void PListClose() => pListScanSource.Cancel();
 
     public static bool PListMediaCheck(string pMediaPath) =>
         Cadroue.Media.LMedia.LMediaCheck(pMediaPath);
 
-    public static IReadOnlyList<string> PListMediaScan(IEnumerable<string> pScanPaths)
+    public static IReadOnlyList<string> PListMediaScan(
+        IEnumerable<string> pScanPaths,
+        CancellationToken pScanToken = default)
     {
         var pScanned = new List<string>();
         foreach (string pScanPath in pScanPaths)
         {
+            pScanToken.ThrowIfCancellationRequested();
             if (File.Exists(pScanPath) && PListMediaCheck(pScanPath))
             {
                 pScanned.Add(pScanPath);
@@ -198,20 +220,41 @@ public sealed partial class PList : PPanel
                 continue;
             }
 
-            try
-            {
-                pScanned.AddRange(Directory
-                    .EnumerateFiles(pScanPath, "*", SearchOption.AllDirectories)
-                    .Where(PListMediaCheck)
-                    .OrderBy(pFilePath => pFilePath, StringComparer.OrdinalIgnoreCase));
-            }
-            catch (Exception pScanError) when (pScanError is IOException or UnauthorizedAccessException)
-            {
-                LTraceLog.LTraceErrorRecord($"List skipped folder '{pScanPath}': {pScanError.Message}");
-            }
+            int pScanStart = pScanned.Count;
+            PListFolderScan(pScanPath, pScanned, pScanToken);
+            pScanned.Sort(pScanStart, pScanned.Count - pScanStart, StringComparer.OrdinalIgnoreCase);
         }
 
         return pScanned;
+    }
+
+    private static void PListFolderScan(string pScanRoot, List<string> pScanned, CancellationToken pScanToken)
+    {
+        var pScanPending = new Stack<string>();
+        pScanPending.Push(pScanRoot);
+        while (pScanPending.Count > 0)
+        {
+            pScanToken.ThrowIfCancellationRequested();
+            string pScanFolder = pScanPending.Pop();
+            try
+            {
+                var pScanInfo = new DirectoryInfo(pScanFolder);
+                pScanned.AddRange(pScanInfo.EnumerateFiles()
+                    .Select(pScanFile => pScanFile.FullName)
+                    .Where(PListMediaCheck));
+                foreach (DirectoryInfo pScanChild in pScanInfo.EnumerateDirectories())
+                {
+                    if ((pScanChild.Attributes & FileAttributes.ReparsePoint) == 0)
+                    {
+                        pScanPending.Push(pScanChild.FullName);
+                    }
+                }
+            }
+            catch (Exception pScanError) when (pScanError is IOException or UnauthorizedAccessException)
+            {
+                LTraceLog.LTraceWarningRecord($"List skipped folder '{pScanFolder}': {pScanError.Message}");
+            }
+        }
     }
 
     private void PListRemove()
@@ -224,12 +267,33 @@ public sealed partial class PList : PPanel
             return;
         }
 
-        int pRemovedIndex = PListIndexRead(pRemovedPaths[0]);
+        pListPathSuccessor = PListSuccessorResolve(pRemovedPaths);
         pListDocket.LDocketPathsRemove(pRemovedPaths);
-        IReadOnlyList<string> pRemainingPaths = pListDocket.LDocketPathsRead();
-        PListSelectApply(pRemainingPaths.Count == 0
-            ? null
-            : pRemainingPaths[Math.Clamp(pRemovedIndex, 0, pRemainingPaths.Count - 1)]);
+        pListPathSuccessor = null;
+    }
+
+    private string? PListSuccessorResolve(IReadOnlyList<string> pRemovedPaths)
+    {
+        var pRemovedSet = new HashSet<string>(pRemovedPaths, StringComparer.OrdinalIgnoreCase);
+        IReadOnlyList<string> pPaths = pListDocket.LDocketPathsRead();
+        int pRemovedIndex = PListIndexRead(pRemovedPaths[0]);
+        for (int pIndex = pRemovedIndex; pIndex < pPaths.Count; pIndex++)
+        {
+            if (!pRemovedSet.Contains(pPaths[pIndex]))
+            {
+                return pPaths[pIndex];
+            }
+        }
+
+        for (int pIndex = pRemovedIndex - 1; pIndex >= 0; pIndex--)
+        {
+            if (!pRemovedSet.Contains(pPaths[pIndex]))
+            {
+                return pPaths[pIndex];
+            }
+        }
+
+        return null;
     }
 
     public void PListClear()

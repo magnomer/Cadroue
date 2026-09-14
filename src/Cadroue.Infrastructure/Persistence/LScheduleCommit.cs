@@ -10,7 +10,11 @@ public sealed partial class LSchedule
         LWorkState lScheduleState = lWorkItem.LWorkStateCurrent;
         LDepotFolder lScheduleTarget = LScheduleFolderResolve(lScheduleState, lScheduleSucceeded);
 
-        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
+        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+        lWorkRecord.LWorkStateName = lScheduleState.ToString();
+        lWorkRecord.LWorkMessage = lScheduleMessage;
+        lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
+        if (!LScheduleStore.LScheduleRecordMove(lWorkRecord, LDepotFolder.LDepotFolderRunning, lScheduleTarget))
         {
             LTraceLog.LTraceWarningRecord(
                 $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
@@ -21,17 +25,6 @@ public sealed partial class LSchedule
         LTraceLog.LTraceInfoRecord(
             $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
             $"committed as {lScheduleState}");
-
-        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-        lWorkRecord.LWorkStateName = lScheduleState.ToString();
-        lWorkRecord.LWorkMessage = lScheduleMessage;
-        lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
-        if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, lScheduleTarget))
-        {
-            LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
-                $"was filed as {lScheduleTarget} but its details could not be written");
-        }
     }
 
     public bool LScheduleItemCancel(LWorkItem lWorkItem)
@@ -42,7 +35,12 @@ public sealed partial class LSchedule
         LDepotFolder lCancelSource = lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
             ? LDepotFolder.LDepotFolderRunning
             : LDepotFolder.LDepotFolderScheduled;
-        if (!LScheduleStore.LScheduleMove(lWorkItem.LWorkId, lCancelSource, LDepotFolder.LDepotFolderCancelled))
+        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+        LScheduleOwnerClear(lWorkRecord);
+        lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateCancelled);
+        lWorkRecord.LWorkProgress = 0;
+        lWorkRecord.LWorkMessage = string.Empty;
+        if (!LScheduleStore.LScheduleRecordMove(lWorkRecord, lCancelSource, LDepotFolder.LDepotFolderCancelled))
         {
             LTraceLog.LTraceWarningRecord(
                 $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] " +
@@ -50,16 +48,6 @@ public sealed partial class LSchedule
             return false;
         }
 
-        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-        lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateCancelled);
-        lWorkRecord.LWorkOwnerProcess = 0;
-        lWorkRecord.LWorkOwnerStamp = 0;
-        lWorkRecord.LWorkOwnerRunner = Guid.Empty;
-        lWorkRecord.LWorkLeaseTime = default;
-        lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
-        lWorkRecord.LWorkProgress = 0;
-        lWorkRecord.LWorkMessage = string.Empty;
-        LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderCancelled);
         LScheduleLoad();
         LTraceLog.LTraceInfoRecord(
             $"Schedule: work '{lWorkItem.LWorkOutputName}' [{LScheduleIdShorten(lWorkItem.LWorkId)}] cancelled");
@@ -81,7 +69,13 @@ public sealed partial class LSchedule
                 continue;
             }
 
-            if (!LScheduleStore.LScheduleMove(lWorkId, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
+            LScheduleOwnerClear(lWorkRecord);
+            lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
+            lWorkRecord.LWorkAttemptCount = 0;
+            lWorkRecord.LWorkRecoverCount = 0;
+            lWorkRecord.LWorkProgress = 0;
+            lWorkRecord.LWorkMessage = string.Empty;
+            if (!LScheduleStore.LScheduleRecordMove(lWorkRecord, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
             {
                 LTraceLog.LTraceWarningRecord(
                     $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkId)}] " +
@@ -89,17 +83,6 @@ public sealed partial class LSchedule
                 return false;
             }
 
-            lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
-            lWorkRecord.LWorkOwnerProcess = 0;
-            lWorkRecord.LWorkOwnerStamp = 0;
-            lWorkRecord.LWorkOwnerRunner = Guid.Empty;
-            lWorkRecord.LWorkLeaseTime = default;
-            lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
-            lWorkRecord.LWorkAttemptCount = 0;
-            lWorkRecord.LWorkRecoverCount = 0;
-            lWorkRecord.LWorkProgress = 0;
-            lWorkRecord.LWorkMessage = string.Empty;
-            LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled);
             LScheduleLoad();
             LTraceLog.LTraceInfoRecord(
                 $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkId)}] reset to pending");

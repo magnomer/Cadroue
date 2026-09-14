@@ -39,6 +39,8 @@ public sealed partial class PFlow : UserControl
 
     public event Action<IReadOnlyList<LPiece>, int?>? PFlowSectionChange;
 
+    public event Action? PFlowMediaChange;
+
     public PFlow()
     {
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
@@ -105,6 +107,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
         lSegment.LSegmentLoad(lSpool.LSpoolDuration);
         PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
+        PFlowMediaChange?.Invoke();
         PFlowKeyframeRun();
         PFlowWaveformStart();
         if (pFlowSameSource && lCursor > TimeSpan.Zero)
@@ -138,6 +141,7 @@ public sealed partial class PFlow : UserControl
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
         pMapLabelRight.Text = PFlowTimeFormat(TimeSpan.Zero);
         PFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
+        PFlowMediaChange?.Invoke();
         return true;
     }
 

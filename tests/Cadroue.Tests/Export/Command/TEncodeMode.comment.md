@@ -3,6 +3,7 @@
 ## `public sealed class TEncodeMode`
 
 Locks the three video modes (Copy / Smart / Encode) and the legacy Auto normalization through the production stage builder.
+Also locks rate-control mode arguments, lossless conflict suppression, two-pass staging, and VP8 identity.
 
 ## Inline notes
 

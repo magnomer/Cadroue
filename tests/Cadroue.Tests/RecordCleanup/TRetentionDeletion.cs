@@ -14,6 +14,11 @@ public sealed class TRetentionDeletion
         string audioOld = cleanup.TRetentionRecordCreate("audiowork", "clip.wav", 60);
         string paletteOld = cleanup.TRetentionRecordCreate("palettes", "set.json", 60);
         string indexOld = cleanup.TRetentionRecordCreate(null, "work.db", 60);
+        string placementOld = cleanup.TRetentionRecordCreate(null, "placement.json", 60);
+        string logOld = cleanup.TRetentionRecordCreate("log", "Cadroue-old.log", 60);
+        string recordOld = cleanup.TRetentionRecordCreate("filerecord", "clip.cad", 60);
+        string mpvOld = cleanup.TRetentionRecordCreate("local-mpv", "libmpv-2.dll", 60);
+        string flyleafOld = cleanup.TRetentionRecordCreate("local-flyleaf", "FlyleafLib.dll", 60);
 
         int removed = cleanup.TRetentionRun(30);
 
@@ -23,5 +28,10 @@ public sealed class TRetentionDeletion
         Assert.True(cleanup.TRetentionExist(doneNew));
         Assert.True(cleanup.TRetentionExist(paletteOld));
         Assert.True(cleanup.TRetentionExist(indexOld));
+        Assert.True(cleanup.TRetentionExist(placementOld));
+        Assert.True(cleanup.TRetentionExist(logOld));
+        Assert.True(cleanup.TRetentionExist(recordOld));
+        Assert.True(cleanup.TRetentionExist(mpvOld));
+        Assert.True(cleanup.TRetentionExist(flyleafOld));
     }
 }

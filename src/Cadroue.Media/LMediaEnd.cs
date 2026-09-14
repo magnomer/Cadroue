@@ -98,29 +98,9 @@ public static partial class LMedia
 
         try
         {
-            using var lMediaProcess = Process.Start(lMediaProcessInfo);
-            if (lMediaProcess is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(lMediaProcess);
-            Task<string> lMediaOutput = lMediaProcess.StandardOutput.ReadToEndAsync(lMediaToken);
-            Task<string> lMediaError = lMediaProcess.StandardError.ReadToEndAsync(lMediaToken);
-            try
-            {
-                lMediaProcess.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
-            }
-            catch (OperationCanceledException)
-            {
-                lMediaProcess.Kill(entireProcessTree: true);
-                throw;
-            }
-
-            string lMediaPacketText = lMediaOutput.GetAwaiter().GetResult();
-            _ = lMediaError.GetAwaiter().GetResult();
-            return lMediaProcess.ExitCode == 0
-                ? LMediaEndParse(lMediaPacketText, lMediaStart)
+            LMediaProcessResult lMediaResult = LMediaProcessRun(lMediaProcessInfo, lMediaToken);
+            return !lMediaResult.LMediaProcessStalled && lMediaResult.LMediaProcessExit == 0
+                ? LMediaEndParse(lMediaResult.LMediaProcessOutput, lMediaStart)
                 : null;
         }
         catch (Exception lMediaException) when (

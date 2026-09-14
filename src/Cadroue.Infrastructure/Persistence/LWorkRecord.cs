@@ -6,9 +6,12 @@ namespace Cadroue.Infrastructure;
 
 public sealed class LWorkRecord
 {
+    public const int LWorkSchemaCurrent = 1;
+
+    public int LWorkSchema { get; set; } = LWorkSchemaCurrent;
     public Guid LWorkId { get; set; }
     public Guid LWorkBatchId { get; set; }
-    public string LWorkKindName { get; set; } = nameof(LWorkKind.LWorkKindSplit);
+    public string? LWorkKindName { get; set; }
     public string LWorkPriorityName { get; set; } = nameof(LWorkPriority.LWorkPriorityNormal);
     public string LWorkStateName { get; set; } = nameof(LWorkState.LWorkStatePending);
     public string LWorkSourcePath { get; set; } = string.Empty;
@@ -116,8 +119,8 @@ public sealed class LWorkRecord
     {
         var lWorkItem = new LWorkItem(
             LWorkBatchId,
-            LWorkEnumRead(LWorkKindName, LWorkKind.LWorkKindSplit),
-            LWorkEnumRead(LWorkPriorityName, LWorkPriority.LWorkPriorityNormal),
+            Enum.Parse<LWorkKind>(LWorkKindName!),
+            Enum.Parse<LWorkPriority>(LWorkPriorityName),
             LWorkSourcePath,
             TimeSpan.FromTicks(LWorkStartTicks),
             TimeSpan.FromTicks(LWorkEndTicks),
@@ -135,14 +138,14 @@ public sealed class LWorkRecord
         lWorkItem.LWorkRelaySource = LWorkRelaySource;
         lWorkItem.LWorkLineage = LWorkLineage;
         lWorkItem.LWorkTab = LWorkTab;
-        lWorkItem.LWorkStateCurrent = LWorkEnumRead(LWorkStateName, LWorkState.LWorkStatePending);
+        lWorkItem.LWorkStateCurrent = Enum.Parse<LWorkState>(LWorkStateName);
         lWorkItem.LWorkMessage = LWorkMessage;
         lWorkItem.LWorkProgress = LWorkProgress;
         lWorkItem.LWorkOwnerProcess = LWorkOwnerProcess;
         lWorkItem.LWorkOwnerStamp = LWorkOwnerStamp;
         lWorkItem.LWorkOwnerRunner = LWorkOwnerRunner;
         lWorkItem.LWorkSignet = LWorkSignet;
-        lWorkItem.LWorkPhaseCurrent = LWorkEnumRead(LWorkPhaseName, LWorkPhase.LWorkPhaseNone);
+        lWorkItem.LWorkPhaseCurrent = Enum.Parse<LWorkPhase>(LWorkPhaseName);
         lWorkItem.LWorkAttemptCount = LWorkAttemptCount;
         lWorkItem.LWorkRecoverCount = LWorkRecoverCount;
         lWorkItem.LWorkStartTime = LWorkStartTime;
@@ -166,8 +169,13 @@ public sealed class LWorkRecord
         try
         {
             LWorkRecord? lWorkRecord = JsonSerializer.Deserialize<LWorkRecord>(lWorkJson);
-            lWorkRecord?.LWorkRecordNormalize();
-            return lWorkRecord;
+            if (lWorkRecord is null)
+            {
+                return null;
+            }
+
+            lWorkRecord.LWorkRecordNormalize();
+            return lWorkRecord.LWorkRecordCheck() ? lWorkRecord : null;
         }
         catch (Exception lWorkException) when (lWorkException is JsonException or NotSupportedException)
         {
@@ -177,7 +185,6 @@ public sealed class LWorkRecord
 
     private void LWorkRecordNormalize()
     {
-        LWorkKindName ??= nameof(LWorkKind.LWorkKindSplit);
         LWorkPriorityName ??= nameof(LWorkPriority.LWorkPriorityNormal);
         LWorkStateName ??= nameof(LWorkState.LWorkStatePending);
         LWorkSourcePath ??= string.Empty;
@@ -198,9 +205,22 @@ public sealed class LWorkRecord
         (LWorkOutputSnapshot ??= new()).LWorkOutputNormalize();
     }
 
-    private static LWorkEnum LWorkEnumRead<LWorkEnum>(string lWorkValue, LWorkEnum lWorkFallback)
-        where LWorkEnum : struct =>
-        Enum.TryParse(lWorkValue, out LWorkEnum lWorkParsed) ? lWorkParsed : lWorkFallback;
+    private bool LWorkRecordCheck() =>
+        LWorkSchema <= LWorkSchemaCurrent
+        && LWorkId != Guid.Empty
+        && LWorkEnumCheck<LWorkKind>(LWorkKindName)
+        && LWorkEnumCheck<LWorkPriority>(LWorkPriorityName)
+        && LWorkEnumCheck<LWorkState>(LWorkStateName)
+        && LWorkEnumCheck<LWorkPhase>(LWorkPhaseName)
+        && LWorkStartTicks >= 0
+        && (LWorkEndTicks <= 0 || LWorkEndTicks >= LWorkStartTicks)
+        && !double.IsNaN(LWorkProgress);
+
+    private static bool LWorkEnumCheck<LWorkEnum>(string? lWorkValue)
+        where LWorkEnum : struct, Enum =>
+        lWorkValue is not null
+        && Enum.TryParse(lWorkValue, out LWorkEnum lWorkParsed)
+        && Enum.IsDefined(lWorkParsed);
 }
 
 public sealed class LWorkOutputRecord

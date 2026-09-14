@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -11,8 +12,15 @@ public sealed partial class LMpv : IDisposable
 {
     private const string LMpvLibraryFile = "libmpv-2.dll";
 
+    private static readonly TimeSpan LMpvTeardownBudget = TimeSpan.FromSeconds(5);
+
     private static bool lMpvResolverActive;
     private static readonly object lMpvResolverGate = new();
+    private static readonly object lMpvTeardownGate = new();
+    private static Task? lMpvTeardownTask;
+
+    private readonly object lMpvScanGate = new();
+    private CancellationTokenSource? lMpvScanCancellation;
 
     private nint lMpvContext;
 
@@ -46,11 +54,45 @@ public sealed partial class LMpv : IDisposable
         return LMpvLibraryFile;
     }
 
+    public static bool LMpvLibraryCheck()
+    {
+        string lPath = LMpvLibraryRead();
+        if (Path.IsPathRooted(lPath))
+        {
+            return File.Exists(lPath);
+        }
+
+        if (!NativeLibrary.TryLoad(lPath, out nint lHandle))
+        {
+            return false;
+        }
+
+        NativeLibrary.Free(lHandle);
+        return true;
+    }
+
+    public static bool LMpvAvailableCheck() =>
+        LMpvLibraryCheck() && LMpvResultRead() == LMpvProbe.LMpvProbeUsable;
+
     public void LMpvContextCreate(nint lWindowHandle)
     {
         if (lMpvContext != nint.Zero)
         {
             throw new InvalidOperationException("mpv handle already created.");
+        }
+
+        Task? lTeardown;
+        lock (lMpvTeardownGate)
+        {
+            lTeardown = lMpvTeardownTask;
+        }
+
+        try
+        {
+            lTeardown?.Wait(LMpvTeardownBudget);
+        }
+        catch (AggregateException)
+        {
         }
 
         nint lHandle = LMpvNative.mpv_create();
@@ -137,27 +179,30 @@ public sealed partial class LMpv : IDisposable
 
     public void LMpvDispose()
     {
-        nint lContext = Interlocked.Exchange(ref lMpvContext, nint.Zero);
-        if (lContext == nint.Zero)
+        LMpvScanCancel();
+        nint lContext;
+        lock (lMpvScanGate)
         {
-            return;
+            lContext = Interlocked.Exchange(ref lMpvContext, nint.Zero);
         }
 
-        var lTeardown = new Thread(() =>
+        if (lContext != nint.Zero)
         {
-            try
-            {
-                LMpvNative.mpv_terminate_destroy(lContext);
-            }
-            catch
-            {
-            }
-        })
+            LMpvTeardownStart(lContext);
+        }
+    }
+
+    private static void LMpvTeardownStart(nint lContext)
+    {
+        lock (lMpvTeardownGate)
         {
-            IsBackground = true,
-            Name = "LMpvTeardown"
-        };
-        lTeardown.Start();
+            Task lPrevious = lMpvTeardownTask ?? Task.CompletedTask;
+            lMpvTeardownTask = lPrevious.ContinueWith(
+                _ => LMpvNative.mpv_terminate_destroy(lContext),
+                CancellationToken.None,
+                TaskContinuationOptions.LongRunning,
+                TaskScheduler.Default);
+        }
     }
 
     public void Dispose()

@@ -12,47 +12,23 @@ internal sealed class PPlayerMpv : PPlayerEngine
 
     private readonly LMpv pPlayerMpvLibrary;
 
-    private CancellationTokenSource? pPlayerMpvCancellation;
-
     public PPlayerMpv(nint hostHandle)
     {
         pPlayerMpvLibrary = new LMpv();
         pPlayerMpvLibrary.LMpvContextCreate(hostHandle);
     }
 
-    public void PPlayerMpvCancel()
-    {
-        pPlayerMpvCancellation?.Cancel();
-    }
-
     public override void PPlayerOpen(string sourcePath)
     {
-        CancellationTokenSource pPlayerMpvCancel = new();
-        CancellationTokenSource? pPlayerMpvPrevious = Interlocked.Exchange(
-            ref pPlayerMpvCancellation,
-            pPlayerMpvCancel);
-        pPlayerMpvPrevious?.Cancel();
-        pPlayerMpvPrevious?.Dispose();
-
-        try
+        LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(
+            sourcePath,
+            pPlayerMpvBudget,
+            CancellationToken.None);
+        if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
         {
-            LMpvProbe pPlayerMpvLoaded = pPlayerMpvLibrary.LMpvMediaCheck(
-                sourcePath,
-                pPlayerMpvBudget,
-                pPlayerMpvCancel.Token);
-            if (pPlayerMpvLoaded != LMpvProbe.LMpvProbeUsable)
-            {
-                throw new InvalidOperationException(
-                    $"mpv did not reach the loaded state for '{sourcePath}' "
-                    + $"within {pPlayerMpvBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
-            }
-        }
-        finally
-        {
-            if (Interlocked.CompareExchange(ref pPlayerMpvCancellation, null, pPlayerMpvCancel) == pPlayerMpvCancel)
-            {
-                pPlayerMpvCancel.Dispose();
-            }
+            throw new InvalidOperationException(
+                $"mpv did not reach the loaded state for '{sourcePath}' "
+                + $"within {pPlayerMpvBudget.TotalSeconds:0.#}s ({pPlayerMpvLoaded}).");
         }
     }
 
@@ -113,7 +89,6 @@ internal sealed class PPlayerMpv : PPlayerEngine
     {
         try
         {
-            pPlayerMpvCancellation?.Cancel();
             pPlayerMpvLibrary.LMpvDispose();
         }
         catch

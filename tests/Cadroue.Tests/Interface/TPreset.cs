@@ -46,8 +46,14 @@ public sealed class TPreset : IDisposable
             && record.LPresetAudio is not null
             && !string.IsNullOrWhiteSpace(record.LPresetDisplay));
 
-    public void TPresetNativeSave(string name, string path) =>
+    public bool TPresetNativeSave(string name, string path) =>
         LPresetStore.LPresetFileSave(new LPresetRecord { LPresetName = name }, path);
+
+    public bool TPresetCatalogCheck(string path) => LPresetStore.LPresetCatalogCheck(path);
+
+    public LPresetRecord? TPresetFileLoad(string path) => LPresetStore.LPresetFileLoad(path);
+
+    public LPresetRecord TPresetDefaultCreate() => new();
 
     internal TPresetSelectionResult TPresetSelectionChange(string current, string old, string renamed)
     {

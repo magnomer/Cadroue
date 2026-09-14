@@ -40,8 +40,6 @@ public sealed partial class PExport : UserControl
 
     private bool pExportPresetBusy;
 
-    private bool pExportPresetClean = true;
-
     public PExport(LPresetSelection lPresetOwner, LWorkKind? pExportKind = null, bool pExportSmartAllowed = false)
     {
         this.lPresetOwner = lPresetOwner;
@@ -164,9 +162,6 @@ public sealed partial class PExport : UserControl
         pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
         pExportSummaryAudio.Text = lWorking.LPresetAudioSummary;
         pExportSummaryOutput.Text = lWorking.LPresetOutputSummary;
-
-        pExportPresetClean = string.IsNullOrEmpty(pPresetNameSelected)
-            || LPreset.LPresetMatch(pPresetNameSelected, lWorking);
     }
 
     private static UIElement PHeaderBuild() => new Border

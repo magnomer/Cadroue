@@ -43,14 +43,6 @@ public sealed partial class LSchedule
 
         foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
         {
-            if (!LScheduleStore.LScheduleMove(
-                    lWorkRecord.LWorkId,
-                    LDepotFolder.LDepotFolderScheduled,
-                    LDepotFolder.LDepotFolderRunning))
-            {
-                continue;
-            }
-
             lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateRunning);
             lWorkRecord.LWorkOwnerProcess = Environment.ProcessId;
             lWorkRecord.LWorkOwnerStamp = LSentinel.LSentinelStampRead();
@@ -58,12 +50,12 @@ public sealed partial class LSchedule
             lWorkRecord.LWorkLeaseTime = DateTimeOffset.Now;
             lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseStarted);
             lWorkRecord.LWorkAttemptCount++;
-            if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderRunning))
+            if (!LScheduleStore.LScheduleRecordMove(
+                    lWorkRecord,
+                    LDepotFolder.LDepotFolderScheduled,
+                    LDepotFolder.LDepotFolderRunning))
             {
-                LTraceLog.LTraceWarningRecord(
-                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
-                    "was claimed but its owner/lease could not be written; " +
-                    "it may be reclaimed after the lease expires");
+                continue;
             }
 
             LWorkItem lWorkClaimed = lWorkRecord.LWorkItemCreate();
@@ -345,29 +337,22 @@ public sealed partial class LSchedule
 
     private static bool LScheduleFailedSet(LWorkRecord lWorkRecord, string lScheduleMessage)
     {
-        if (!LScheduleStore.LScheduleMove(
-                lWorkRecord.LWorkId,
-                LDepotFolder.LDepotFolderRunning,
-                LDepotFolder.LDepotFolderFailed))
-        {
-            return false;
-        }
-
+        LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateFailed);
+        lWorkRecord.LWorkMessage = lScheduleMessage;
+        return LScheduleStore.LScheduleRecordMove(
+            lWorkRecord,
+            LDepotFolder.LDepotFolderRunning,
+            LDepotFolder.LDepotFolderFailed);
+    }
+
+    internal static void LScheduleOwnerClear(LWorkRecord lWorkRecord)
+    {
         lWorkRecord.LWorkOwnerProcess = 0;
         lWorkRecord.LWorkOwnerStamp = 0;
         lWorkRecord.LWorkOwnerRunner = Guid.Empty;
         lWorkRecord.LWorkLeaseTime = default;
         lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
-        lWorkRecord.LWorkMessage = lScheduleMessage;
-        if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderFailed))
-        {
-            LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
-                "was filed as Failed but its details could not be written");
-        }
-
-        return true;
     }
 
     public bool LScheduleOwnerCheck(LWorkItem lWorkItem, Guid lRunnerId) =>
@@ -378,29 +363,13 @@ public sealed partial class LSchedule
 
     private static bool LScheduleRecordRelease(LWorkRecord lWorkRecord, string? lScheduleMessage = null)
     {
-        if (!LScheduleStore.LScheduleMove(
-                lWorkRecord.LWorkId,
-                LDepotFolder.LDepotFolderRunning,
-                LDepotFolder.LDepotFolderScheduled))
-        {
-            return false;
-        }
-
+        LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
-        lWorkRecord.LWorkOwnerProcess = 0;
-        lWorkRecord.LWorkOwnerStamp = 0;
-        lWorkRecord.LWorkOwnerRunner = Guid.Empty;
-        lWorkRecord.LWorkLeaseTime = default;
-        lWorkRecord.LWorkPhaseName = nameof(LWorkPhase.LWorkPhaseNone);
         lWorkRecord.LWorkProgress = 0;
         lWorkRecord.LWorkMessage = lScheduleMessage ?? string.Empty;
-        if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
-        {
-            LTraceLog.LTraceWarningRecord(
-                $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
-                "was returned to the queue but its details could not be written");
-        }
-
-        return true;
+        return LScheduleStore.LScheduleRecordMove(
+            lWorkRecord,
+            LDepotFolder.LDepotFolderRunning,
+            LDepotFolder.LDepotFolderScheduled);
     }
 }

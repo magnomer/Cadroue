@@ -37,7 +37,7 @@ internal sealed partial class PSOptions
 
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
-            psOptionsEngineEnable("Mpv", pResult.LMpvInstallSuccess || LMpv.LMpvInstalledCheck());
+            await PSOptionsEngineUpdate();
             string pMpvTitle = LLocalization.LLocalizationTextRead("Options.System.LocalMpv");
             if (pResult.LMpvInstallSuccess)
             {
@@ -66,6 +66,12 @@ internal sealed partial class PSOptions
         pButtons.Children.Add(pProgress);
 
         return PSFieldBuild(string.Empty, pButtons);
+    }
+
+    private async System.Threading.Tasks.Task PSOptionsEngineUpdate()
+    {
+        bool psEngineAvailable = await LRenderer.LRendererMpvCheck();
+        psOptionsEngineEnable("Mpv", psEngineAvailable);
     }
 
     private static string PSSystemMpvFormat() =>

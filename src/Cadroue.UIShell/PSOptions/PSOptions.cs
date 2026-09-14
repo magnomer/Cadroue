@@ -81,7 +81,7 @@ internal sealed partial class PSOptions : Window
             PSOptionsTabsItems);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
-        bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvInstalledCheck();
+        bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvAvailableCheck();
         bool psEngineMpv = psEngineMpvInstalled
             && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
         psOptionsEngineMode = PSModeBuild(
@@ -90,6 +90,7 @@ internal sealed partial class PSOptions : Window
             out psOptionsEngineEnable,
             PSOptionsEngineItems);
         psOptionsEngineEnable("Mpv", psEngineMpvInstalled);
+        _ = PSOptionsEngineUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(
             LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"),
@@ -223,7 +224,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceCleanupActive = psOptionsCleanupBox.IsChecked == true;
         lsOptionsDraft.LPreferenceCleanupDays = (int)Math.Round(psOptionsCleanupSlider.Value);
 
-        lsOptionsDraft.LPreferenceWorkspaceFolder = psWorkspaceBox.Text;
+        lsOptionsDraft.LPreferenceWorkspaceFolder = PSOptionsWorkspaceResolve(psWorkspaceBox.Text);
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
         bool psOptionsSaved = LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
@@ -253,6 +254,27 @@ internal sealed partial class PSOptions : Window
                 LLocalization.LLocalizationTextRead("Options.Language.RestartTitle"),
                 LLocalization.LLocalizationTextRead("Options.Language.RestartMessage"));
         }
+    }
+
+    private string PSOptionsWorkspaceResolve(string psWorkspaceFolder)
+    {
+        string psWorkspaceCurrent = LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder;
+        string psWorkspaceNext = Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceFolder);
+        if (string.Equals(
+                psWorkspaceNext,
+                Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceCurrent),
+                StringComparison.OrdinalIgnoreCase)
+            || !Cadroue.Infrastructure.LDepot.LDepotOccupiedCheck(psWorkspaceNext))
+        {
+            return psWorkspaceFolder;
+        }
+
+        psWorkspaceBox.Text = psWorkspaceCurrent;
+        PSWarning.PSWarningShow(
+            this,
+            LLocalization.LLocalizationTextRead("Options.System.Workspace"),
+            LLocalization.LLocalizationFormat("Options.System.WorkspaceOccupied", psWorkspaceNext));
+        return psWorkspaceCurrent;
     }
 
     private void PSOptionsCloseHandle(object? sender, EventArgs e)

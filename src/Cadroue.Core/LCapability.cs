@@ -35,7 +35,17 @@ public sealed record LCapabilityQuality(
 
 public sealed record LCapabilityMode(
     string LCapabilityModeLabel,
-    LCapabilityQuality? LCapabilityModeQuality = null);
+    LCapabilityQuality? LCapabilityModeQuality = null,
+    string LCapabilityModeArgument = "",
+    int LCapabilityModePass = 1,
+    IReadOnlyList<string>? LCapabilityModeConflict = null)
+{
+    public const string LCapabilityModeToken = "{quality}";
+
+    public bool LCapabilityConflictCheck(string lOption) =>
+        LCapabilityModeConflict is { } lConflicts
+        && lConflicts.Contains(lOption, StringComparer.Ordinal);
+}
 
 public sealed record LCapabilityChoice(string LCapabilityChoiceValue, string LCapabilityChoiceLabel)
 {
@@ -111,6 +121,11 @@ public static class LCapability
         if (string.IsNullOrWhiteSpace(lEncoderText))
         {
             return string.Empty;
+        }
+
+        if (LRepertoireCatalog.LRepertoireTokenResolve(lEncoderText) is { } lToken)
+        {
+            return lToken;
         }
 
         int lSlashIndex = lEncoderText.LastIndexOf('/');

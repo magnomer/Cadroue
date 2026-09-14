@@ -74,8 +74,8 @@ internal static partial class TInterface
 
     internal static LKeyframeMoveResult TKeyframeMoveResolve(
         IReadOnlyCollection<long> keyframes, IReadOnlySet<int> scannedSpans,
-        TimeSpan duration, TimeSpan cursor, int direction) =>
-        LKeyframeOrchestrator.LKeyframeMoveResolve(keyframes, scannedSpans, duration, cursor, direction);
+        TimeSpan duration, TimeSpan cursor, int direction, IReadOnlySet<int>? failedSpans = null) =>
+        LKeyframeOrchestrator.LKeyframeMoveResolve(keyframes, scannedSpans, duration, cursor, direction, failedSpans);
 
     internal static LPreferenceState TPreferenceDefaultCreate() => LPreferenceState.LPreferenceDefaultCreate();
     internal static LPreferenceState TPreferenceCreate(int cleanupDays = 30) =>
@@ -119,8 +119,8 @@ internal static partial class TInterface
 
     internal static bool TRetentionExpiredCheck(DateTime writeUtc, DateTime nowUtc, int days) =>
         LRetention.LRetentionExpiredCheck(writeUtc, nowUtc, days);
-    internal static bool TRetentionExcludedCheck(string relativePath) =>
-        LRetention.LRetentionExcludedCheck(relativePath);
+    internal static bool TRetentionSweptCheck(string relativePath) =>
+        LRetention.LRetentionSweptCheck(relativePath);
     internal static IReadOnlyList<Guid> TScheduleRemovableResolve(
         IEnumerable<Guid> workIds, IReadOnlyDictionary<Guid, LWorkState> states) =>
         LSchedule.LScheduleRemovableResolve(workIds, states);

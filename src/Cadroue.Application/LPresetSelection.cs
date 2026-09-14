@@ -9,6 +9,8 @@ public sealed class LPresetSelection
 
     private static event Action<string>? LPresetDraftChange;
 
+    private static event Action<string, string>? LPresetNameChange;
+
     public static Func<string, LPresetRecord?>? LPresetLoadSeam;
     public static Func<string, LPresetRecord, bool>? LPresetSaveSeam;
     public static Func<string, string, LPresetRecord, bool>? LPresetRenameSeam;
@@ -17,17 +19,19 @@ public sealed class LPresetSelection
 
     public LPresetSelection(string lPresetName)
     {
-        LPresetSelectionName = lPresetName;
-        LPresetDraftAttach(lPresetName);
+        LPresetSelectionName = LPresetSelectionResolve(lPresetName);
+        LPresetDraftAttach(LPresetSelectionName);
         LPresetDraftChange += LPresetDraftHandle;
+        LPresetNameChange += LPresetNameHandle;
     }
 
     public LPresetSelection(LPresetRecord lPresetValue, string lPresetName)
+        : this(lPresetName)
     {
-        LPresetSelectionName = lPresetName;
-        lPresetValue.LPresetName = lPresetName;
-        LPresetDrafts[lPresetName] = lPresetValue;
-        LPresetDraftChange += LPresetDraftHandle;
+        if (string.Equals(LPresetSelectionName, lPresetName, StringComparison.OrdinalIgnoreCase))
+        {
+            LPresetDraftAccept(lPresetName, lPresetValue);
+        }
     }
 
     public event Action? LPresetSelectionChange;
@@ -39,48 +43,36 @@ public sealed class LPresetSelection
         get => LPresetDraftRead(LPresetSelectionName);
         set
         {
-            LPresetSelectionName = value.LPresetName;
-            LPresetDraftSet(value.LPresetName, value);
+            if (LPresetNameCheck(value.LPresetName))
+            {
+                LPresetSelectionName = value.LPresetName;
+            }
+
+            LPresetDraftSet(LPresetSelectionName, value);
         }
     }
 
-    public bool LPresetSelectionValid =>
-        LPreset.LPresetNames.Any(lName =>
-            string.Equals(lName, LPresetSelectionName, StringComparison.OrdinalIgnoreCase));
+    public bool LPresetSelectionValid => LPresetNameCheck(LPresetSelectionName);
 
     public LEncoding? LPresetSelectionEncoding =>
         LPresetSelectionValid ? LPresetOutputSeam?.Invoke(LPresetSelectionValue) : null;
 
-    public void LPresetSelectionClose() => LPresetDraftChange -= LPresetDraftHandle;
+    public void LPresetSelectionClose()
+    {
+        LPresetDraftChange -= LPresetDraftHandle;
+        LPresetNameChange -= LPresetNameHandle;
+    }
 
     public void LPresetSelectionSelect(string lPresetName)
     {
+        if (!LPresetNameCheck(lPresetName))
+        {
+            return;
+        }
+
         LPresetSelectionName = lPresetName;
         LPresetDraftAttach(lPresetName);
         LPresetSelectionRaise();
-    }
-
-    public bool LPresetSelectionSet(string lPresetName)
-    {
-        string lName = lPresetName.Trim();
-        string lOldName = LPresetSelectionName;
-        if (string.IsNullOrWhiteSpace(lName) || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        LPresetRecord lRecord = LPresetDraftRead(lOldName);
-        lRecord.LPresetName = lName;
-        LPresetSelectionName = lName;
-        if (LPresetRenameSeam is null || !LPresetRenameSeam(lOldName, lName, lRecord))
-        {
-            lRecord.LPresetName = lOldName;
-            LPresetSelectionName = lOldName;
-            return false;
-        }
-
-        LPresetDraftMove(lOldName, lName);
-        return true;
     }
 
     public bool LPresetSelectionCommit(string lOldName, string lNewName)
@@ -89,27 +81,25 @@ public sealed class LPresetSelection
         if (string.IsNullOrWhiteSpace(lName)
             || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase)
             || (LPresetNativeSeam?.Invoke(lOldName) ?? LPreset.LPresetNativeCheck(lOldName))
-            || LPreset.LPresetNames.Any(
-                lExisting => string.Equals(lExisting, lName, StringComparison.OrdinalIgnoreCase)))
+            || LPresetNameCheck(lName))
         {
             return false;
         }
 
-        if (string.Equals(lOldName, LPresetSelectionName, StringComparison.OrdinalIgnoreCase))
+        if (LPresetLoadSeam?.Invoke(lOldName) is not { } lPresetStored)
         {
-            return LPresetSelectionSet(lName);
-        }
-
-        LPresetRecord lRecord = LPresetDraftRead(lOldName);
-        lRecord.LPresetName = lName;
-        if (LPresetRenameSeam?.Invoke(lOldName, lName, lRecord) != true)
-        {
-            lRecord.LPresetName = lOldName;
             return false;
         }
 
+        lPresetStored.LPresetName = lName;
         LPresetDraftMove(lOldName, lName);
-        return true;
+        if (LPresetRenameSeam?.Invoke(lOldName, lName, lPresetStored) == true)
+        {
+            return true;
+        }
+
+        LPresetDraftMove(lName, lOldName);
+        return false;
     }
 
     public bool LPresetSelectionSave(string lPresetName)
@@ -157,19 +147,16 @@ public sealed class LPresetSelection
         LPresetRecord? lPresetStored,
         LPresetRecord? lPresetPrevious)
     {
-        if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetRecord? lPresetDraft))
-        {
-            return;
-        }
-
         if (lPresetStored is null)
         {
             LPresetDrafts.Remove(lPresetName);
-            LPresetDraftRaise(lPresetName);
+            LPresetNameChange?.Invoke(lPresetName, LPreset.LPresetFirstName ?? string.Empty);
             return;
         }
 
-        if (lPresetPrevious is null || !LPreset.LPresetRecordMatch(lPresetPrevious, lPresetDraft))
+        if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetRecord? lPresetDraft)
+            || lPresetPrevious is null
+            || !LPreset.LPresetRecordMatch(lPresetPrevious, lPresetDraft))
         {
             return;
         }
@@ -180,15 +167,31 @@ public sealed class LPresetSelection
 
     internal static void LPresetDraftMove(string lOldPresetName, string lNewPresetName)
     {
-        if (!string.Equals(lOldPresetName, lNewPresetName, StringComparison.OrdinalIgnoreCase)
-            && LPresetDrafts.Remove(lOldPresetName, out LPresetRecord? lPresetDraft))
+        if (LPresetDrafts.Remove(lOldPresetName, out LPresetRecord? lPresetDraft))
         {
             lPresetDraft.LPresetName = lNewPresetName;
             LPresetDrafts[lNewPresetName] = lPresetDraft;
-            LPresetDraftRaise(lOldPresetName);
         }
 
-        LPresetDraftRaise(lNewPresetName);
+        LPresetNameChange?.Invoke(lOldPresetName, lNewPresetName);
+    }
+
+    private static bool LPresetNameCheck(string lPresetName) =>
+        LPreset.LPresetNames.Any(lName =>
+            string.Equals(lName, lPresetName, StringComparison.OrdinalIgnoreCase));
+
+    private static string LPresetSelectionResolve(string lPresetName) =>
+        LPresetNameCheck(lPresetName) ? lPresetName : LPreset.LPresetFirstName ?? string.Empty;
+
+    private static void LPresetDraftAccept(string lPresetName, LPresetRecord lPresetValue)
+    {
+        lPresetValue.LPresetName = lPresetName;
+        if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetRecord? lPresetDraft)
+            || (LPresetLoadSeam?.Invoke(lPresetName) is { } lPresetStored
+                && LPreset.LPresetRecordMatch(lPresetStored, lPresetDraft)))
+        {
+            LPresetDrafts[lPresetName] = lPresetValue;
+        }
     }
 
     private static LPresetRecord LPresetDraftRead(string lPresetName)
@@ -261,6 +264,18 @@ public sealed class LPresetSelection
         {
             LPresetSelectionRaise();
         }
+    }
+
+    private void LPresetNameHandle(string lOldPresetName, string lNewPresetName)
+    {
+        if (!string.Equals(lOldPresetName, LPresetSelectionName, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LPresetSelectionName = lNewPresetName;
+        LPresetDraftAttach(lNewPresetName);
+        LPresetSelectionRaise();
     }
 
     private void LPresetSelectionRaise() => LPresetSelectionChange?.Invoke();

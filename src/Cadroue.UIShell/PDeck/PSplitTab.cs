@@ -86,7 +86,7 @@ public sealed partial class PSplitTab : PTabSurface
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab);
         };
-        pAction.PActionSelectionSource = () => pList.PListSelectionRead();
+        pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
         pProcessing.PProcessingStepAdd(
@@ -123,7 +123,7 @@ public sealed partial class PSplitTab : PTabSurface
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PDropPathsChange += pDropPaths => pList.PListPathsAdd(pDropPaths);
+        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
         pList.PListLockChange += pLocked => pFlow.PFlowEditSet(!pLocked);

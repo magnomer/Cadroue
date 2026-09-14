@@ -122,18 +122,8 @@ internal sealed partial class PSEncoder
         PSVideoEncoderUpdate();
     }
 
-    private static string PSCodecValueRead(string pText)
-    {
-        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
-        {
-            if (string.Equals(pCandidate.LRepertoireText, pText, StringComparison.Ordinal))
-            {
-                return pCandidate.LRepertoireTokens.FirstOrDefault() ?? string.Empty;
-            }
-        }
-
-        return string.Empty;
-    }
+    private static string PSCodecValueRead(string pText) =>
+        LRepertoireCatalog.LRepertoireTokenResolve(pText) ?? string.Empty;
 
     private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton, IProgress<double> pFeed)
     {

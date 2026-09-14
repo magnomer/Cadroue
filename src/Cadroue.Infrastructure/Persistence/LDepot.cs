@@ -24,6 +24,8 @@ public static class LDepot
 
     private const string LDepotBridgeFolder = "bridgework";
 
+    private const string LDepotPassFolder = "passwork";
+
     public const string LDepotIndexFile = "work.db";
 
     private static string? lDepotRootOverride;
@@ -81,6 +83,13 @@ public static class LDepot
         string lDepotBridge = Path.Combine(LDepotRootRead(), LDepotBridgeFolder);
         Directory.CreateDirectory(lDepotBridge);
         return lDepotBridge;
+    }
+
+    public static string LDepotPassRead()
+    {
+        string lDepotPass = Path.Combine(LDepotRootRead(), LDepotPassFolder);
+        Directory.CreateDirectory(lDepotPass);
+        return lDepotPass;
     }
 
     public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>
@@ -237,6 +246,13 @@ public static class LDepot
                 return false;
             }
 
+            if (LDepotOccupiedCheck(lDepotNext))
+            {
+                LTraceLog.LTraceErrorRecord(
+                    $"Workspace kept at {lDepotPrevious}: {lDepotNext} already contains files, so nothing was moved");
+                return false;
+            }
+
             if (!LTraceWriter.LTraceRootMove(() =>
                 {
                     LDepotIndex.LDepotIndexRelease();
@@ -259,6 +275,9 @@ public static class LDepot
         }
     }
 
+    public static bool LDepotOccupiedCheck(string lDepotRoot) =>
+        Directory.Exists(lDepotRoot) && Directory.EnumerateFileSystemEntries(lDepotRoot).Any();
+
     public static void LDepotMove(string lDepotSource, string lDepotTarget)
     {
         if (!Directory.Exists(lDepotSource))
@@ -280,23 +299,63 @@ public static class LDepot
             throw new IOException("A workspace cannot be moved inside itself.");
         }
 
-        LDepotTreeMove(new DirectoryInfo(lDepotSourceFull), Directory.CreateDirectory(lDepotTargetFull));
-        LDepotFolderDelete(new DirectoryInfo(lDepotSourceFull));
+        if (LDepotOccupiedCheck(lDepotTargetFull))
+        {
+            throw new IOException("A workspace cannot be moved onto a folder that already contains files.");
+        }
+
+        if (Path.GetDirectoryName(lDepotTargetFull) is { } lDepotParent)
+        {
+            Directory.CreateDirectory(lDepotParent);
+        }
+
+        if (Directory.Exists(lDepotTargetFull))
+        {
+            Directory.Delete(lDepotTargetFull);
+        }
+
+        try
+        {
+            Directory.Move(lDepotSourceFull, lDepotTargetFull);
+            return;
+        }
+        catch (IOException)
+        {
+        }
+
+        try
+        {
+            LDepotTreeCopy(new DirectoryInfo(lDepotSourceFull), Directory.CreateDirectory(lDepotTargetFull));
+        }
+        catch
+        {
+            Directory.Delete(lDepotTargetFull, recursive: true);
+            throw;
+        }
+
+        try
+        {
+            Directory.Delete(lDepotSourceFull, recursive: true);
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Workspace copied to {lDepotTargetFull}, but files still in use remain at {lDepotSourceFull}");
+        }
     }
 
-    private static void LDepotTreeMove(DirectoryInfo lDepotSource, DirectoryInfo lDepotTarget)
+    private static void LDepotTreeCopy(DirectoryInfo lDepotSource, DirectoryInfo lDepotTarget)
     {
         foreach (FileInfo lDepotFile in lDepotSource.GetFiles())
         {
-            lDepotFile.MoveTo(Path.Combine(lDepotTarget.FullName, lDepotFile.Name), true);
+            lDepotFile.CopyTo(Path.Combine(lDepotTarget.FullName, lDepotFile.Name), overwrite: false);
         }
 
         foreach (DirectoryInfo lDepotChild in lDepotSource.GetDirectories())
         {
-            LDepotTreeMove(
+            LDepotTreeCopy(
                 lDepotChild,
                 Directory.CreateDirectory(Path.Combine(lDepotTarget.FullName, lDepotChild.Name)));
-            LDepotFolderDelete(lDepotChild);
         }
     }
 

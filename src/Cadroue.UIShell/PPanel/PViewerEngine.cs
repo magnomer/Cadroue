@@ -22,7 +22,7 @@ public sealed partial class PViewer
     private void PViewerEngineShow()
     {
         bool pViewerEngineMpv = PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv;
-        bool pViewerEngineInstalled = LMpv.LMpvInstalledCheck();
+        bool pViewerEngineInstalled = LMpv.LMpvAvailableCheck();
         pViewerEngineSurface.Child = PViewerEngineBuild(pViewerEngineMpv, pViewerEngineInstalled);
         pViewerEngineOverlay.Child = PViewerEngineBuild(pViewerEngineMpv, pViewerEngineInstalled);
     }

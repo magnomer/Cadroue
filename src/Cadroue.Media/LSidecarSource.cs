@@ -62,7 +62,8 @@ public static class LSidecarSource
 
             if (string.IsNullOrWhiteSpace(lSidecarSource.LSidecarPartialHash))
             {
-                return true;
+                return lSidecarSource.LSidecarWriteTicks != 0
+                    && lSidecarFile.LastWriteTimeUtc.Ticks == lSidecarSource.LSidecarWriteTicks;
             }
 
             return string.Equals(
@@ -75,6 +76,11 @@ public static class LSidecarSource
             return false;
         }
     }
+
+    public static bool LSidecarCacheMatch(LSidecarSourceRecord lSidecarSource, long lSidecarLength, string lSidecarHash) =>
+        lSidecarSource.LSidecarLength == lSidecarLength
+        && !string.IsNullOrWhiteSpace(lSidecarHash)
+        && string.Equals(lSidecarSource.LSidecarPartialHash, lSidecarHash, StringComparison.Ordinal);
 
     private static IEnumerable<(string, LSidecarSourceKind)> LSidecarCandidatesRead(
         string lSidecarFolder,

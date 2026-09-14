@@ -15,23 +15,10 @@ public sealed partial class LKeyframeOrchestrator
         int serial,
         CancellationToken cancellationToken)
     {
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                await LKeyframePlanRun(sourcePath, duration, cursor, serial, cancellationToken).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(ex);
-            }
-        }, CancellationToken.None);
+        _ = Task.Run(() => LKeyframePlanRun(sourcePath, duration, cursor, serial, cancellationToken), CancellationToken.None);
     }
 
-    private async Task LKeyframePlanRun(
+    private void LKeyframePlanRun(
         string sourcePath,
         TimeSpan duration,
         TimeSpan cursor,
@@ -48,10 +35,13 @@ public sealed partial class LKeyframeOrchestrator
 
             LKeyframeDirectionRun(sourcePath, duration, center - 1, first, -1, serial, cancellationToken);
             LKeyframeDirectionRun(sourcePath, duration, center + 1, last, 1, serial, cancellationToken);
-            await Task.CompletedTask.ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
+        }
+        catch (Exception exception)
+        {
+            LTraceLog.LTraceErrorRecord("Keyframe scan plan failed", exception);
         }
         finally
         {
@@ -107,11 +97,14 @@ public sealed partial class LKeyframeOrchestrator
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            var entries = lKeyframeScanner(sourcePath, start, end, cancellationToken);
+            using var lKeyframeLimit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            lKeyframeLimit.CancelAfter(LKeyframeScanLimit);
+            var entries = lKeyframeScanner(sourcePath, start, end, lKeyframeLimit.Token);
+            cancellationToken.ThrowIfCancellationRequested();
             int lKeyframeNewCount = 0;
             lock (lKeyframeLock)
             {
-                if (serial != lKeyframeRequestSerial || cancellationToken.IsCancellationRequested)
+                if (serial != lKeyframeRequestSerial)
                 {
                     return;
                 }
@@ -139,25 +132,46 @@ public sealed partial class LKeyframeOrchestrator
                 LKeyframeCacheSave();
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             return;
         }
-        catch
+        catch (Exception exception)
         {
-            lock (lKeyframeLock)
+            if (!LKeyframeFailureRecord(spanIndex, serial, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
             {
-                if (serial != lKeyframeRequestSerial)
-                {
-                    return;
-                }
-
-                lKeyframeFailedCounts.TryGetValue(spanIndex, out int lFailedSpanCount);
-                lKeyframeFailedCounts[spanIndex] = lFailedSpanCount + 1;
+                return;
             }
         }
 
         LKeyframeNoticePublish(serial);
+    }
+
+    private bool LKeyframeFailureRecord(int spanIndex, int serial, Exception exception, double milliseconds)
+    {
+        int lFailedSpanCount;
+        lock (lKeyframeLock)
+        {
+            if (serial != lKeyframeRequestSerial)
+            {
+                return false;
+            }
+
+            lKeyframeFailedCounts.TryGetValue(spanIndex, out lFailedSpanCount);
+            lKeyframeFailedCounts[spanIndex] = ++lFailedSpanCount;
+        }
+
+        bool lKeyframeExhausted = lFailedSpanCount >= LKeyframeRetryLimit;
+        LTrace.LTraceRecord(
+            lKeyframeExhausted ? LTraceKind.LTraceError : LTraceKind.LTraceWarning,
+            exception is OperationCanceledException
+                ? $"Keyframe span {spanIndex} scan timed out after {LKeyframeScanLimit.TotalSeconds:0}s"
+                : $"Keyframe span {spanIndex} scan failed",
+            $"Attempt {lFailedSpanCount} of {LKeyframeRetryLimit}"
+            + (lKeyframeExhausted ? "; span abandoned for this source.\n" : ".\n")
+            + exception.Message,
+            milliseconds);
+        return true;
     }
 
     private static LKeyframeBounds LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)

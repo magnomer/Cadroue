@@ -34,6 +34,19 @@ internal static class LSidecarFile
         return true;
     }
 
+    internal static bool LSidecarBrokenMove(string lSidecarPath)
+    {
+        try
+        {
+            File.Move(lSidecarPath, lSidecarPath + "." + DateTime.UtcNow.Ticks + ".broken", overwrite: false);
+            return true;
+        }
+        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
+    }
+
     internal static string? LSidecarFileRead(string lSidecarPath)
     {
         if (!File.Exists(lSidecarPath))

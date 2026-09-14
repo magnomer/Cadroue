@@ -74,7 +74,9 @@ internal static class LEncodeAudio
             if (!string.IsNullOrWhiteSpace(lValue)
                 && !string.Equals(lValue, "Custom", StringComparison.OrdinalIgnoreCase))
             {
-                lArguments.Append(CultureInfo.InvariantCulture, $" {lQuality.LCapabilityQualityOption} {lValue}");
+                lArguments.Append(
+                    CultureInfo.InvariantCulture,
+                    $" {lQuality.LCapabilityQualityOption} {LEncode.LEncodeValueFormat(lValue)}");
             }
         }
 
@@ -83,7 +85,8 @@ internal static class LEncodeAudio
         {
             lArguments.Append(
                 CultureInfo.InvariantCulture,
-                $" {lSpeed.LCapabilitySpeedOption} {lOutput.LEncodingAudio.LEncodingSpeed}");
+                $" {lSpeed.LCapabilitySpeedOption}"
+                + $" {LEncode.LEncodeValueFormat(lOutput.LEncodingAudio.LEncodingSpeed)}");
         }
 
         foreach (var lExtra in lOutput.LEncodingAudio.LEncodingExtras)
@@ -94,7 +97,9 @@ internal static class LEncodeAudio
                 continue;
             }
 
-            lArguments.Append(CultureInfo.InvariantCulture, $" {lExtra.Key} {lExtra.Value}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture,
+                $" {LEncode.LEncodeValueFormat(lExtra.Key)} {LEncode.LEncodeValueFormat(lExtra.Value)}");
         }
 
         if (!LEncode.LEncodeSourceCheck(lOutput.LEncodingAudio.LEncodingSampleRate)
@@ -125,7 +130,7 @@ internal static class LEncodeAudio
             "Stereo" => "stereo",
             _ => lChannels
         };
-        lArguments.Append(CultureInfo.InvariantCulture, $" -channel_layout {lLayout}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -channel_layout {LEncode.LEncodeValueFormat(lLayout)}");
     }
 
     private static string LEncodeTrackRead(string lAudioEncoder) => lAudioEncoder switch

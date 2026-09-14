@@ -31,7 +31,7 @@ internal static partial class LEncodeVideo
             "hevc_mf" => "yuv420p",
             "libvvenc" => "yuv420p10le",
 
-            "libvpx" or "libvpx-vp8" or "libxvid" or "mpeg4" or "libtheora"
+            "libvpx" or "libxvid" or "mpeg4" or "libtheora"
                 or "libxavs2" => "yuv420p",
 
             "prores" or "prores_aw" or "prores_ks" => lAlpha ? "yuva444p10le" : "yuv422p10le",

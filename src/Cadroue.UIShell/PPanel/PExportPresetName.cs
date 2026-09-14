@@ -172,7 +172,7 @@ public sealed partial class PExport
             {
                 pPresetNameEditing = null;
                 pExportBoxCurrent = null;
-                PExportPresetRebuild();
+                PExportPresetSync();
                 pEvent.Handled = true;
             }
         };

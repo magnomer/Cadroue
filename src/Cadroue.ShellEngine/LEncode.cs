@@ -99,7 +99,8 @@ public static partial class LEncode
         return lFixStages;
     }
 
-    internal static string LEncodeArgumentBuild(LWorkItem lWorkItem, string? lOutputArguments = null)
+    internal static string LEncodeArgumentBuild(
+        LWorkItem lWorkItem, string? lOutputArguments = null, int lPass = 0)
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
         var lArguments = new StringBuilder();
@@ -135,7 +136,12 @@ public static partial class LEncode
             }
         }
 
-        LEncodeVideo.LEncodeVideoAppend(lArguments, lWorkItem, lOutput);
+        LEncodeVideo.LEncodeVideoAppend(lArguments, lWorkItem, lOutput, lPass);
+        if (LEncodePassAppend(lArguments, lPass))
+        {
+            return lArguments.ToString();
+        }
+
         LEncodeAudio.LEncodeAudioAppend(lArguments, lOutput);
 
         if (!string.IsNullOrWhiteSpace(lOutputArguments))
@@ -282,7 +288,24 @@ public static partial class LEncode
         LEncodeHeaderAppend(lMux);
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lMux.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioInputWav)}");
+        string lMuxInputs = lMux.ToString();
 
+        if (LEncodeVideo.LEncodePassRead(lWorkItem, lOutput) > 1)
+        {
+            lStages.Add(LEncodePassBuild(
+                lWorkItem, LEncodeMuxBuild(lWorkItem, lOutput, lMuxInputs, 1)));
+        }
+
+        lStages.Add(new LEncodeStage(
+            LEncodeMuxBuild(lWorkItem, lOutput, lMuxInputs, LEncodePassRead(lWorkItem, lOutput)),
+            LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
+
+        return lStages;
+    }
+
+    private static string LEncodeMuxBuild(LWorkItem lWorkItem, LEncoding lOutput, string lMuxInputs, int lPass)
+    {
+        var lMux = new StringBuilder(lMuxInputs);
         bool lAllTracks = LEncodeAudio.LEncodeAllCheck(lOutput);
         lMux.Append(" -map 0:v:0?");
         lMux.Append(" -map 1:a:0");
@@ -291,37 +314,57 @@ public static partial class LEncode
             lMux.Append(" -map 0:a? -map -0:a:0?");
         }
 
-        if (string.Equals(lOutput.LEncodingVideo.LEncodingMode, "Copy", StringComparison.OrdinalIgnoreCase)
-            && !LEncodeVideo.LEncodeVideoCheck(lWorkItem, lOutput))
+        LEncodeVideo.LEncodeVideoAppend(lMux, lWorkItem, lOutput, lPass);
+        if (LEncodePassAppend(lMux, lPass))
         {
-            lMux.Append(" -c:v copy -avoid_negative_ts make_zero");
-        }
-        else
-        {
-            LEncodeVideo.LEncodeEncoderAppend(lMux, lWorkItem, lOutput);
+            return lMux.ToString();
         }
 
         LEncodeAudio.LEncodeMuxAppend(lMux, lOutput, lAllTracks);
         LEncodeMuxerAppend(lMux, lWorkItem);
         lMux.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
-        lStages.Add(new LEncodeStage(
-            lMux.ToString(), LWorkStage.LWorkStageMux, "Encoding output", lWorkItem.LWorkOutputPath, false));
-
-        return lStages;
+        return lMux.ToString();
     }
+
+    private static int LEncodePassRead(LWorkItem lWorkItem, LEncoding lOutput) =>
+        LEncodeVideo.LEncodePassRead(lWorkItem, lOutput) > 1 ? 2 : 0;
+
+    private static bool LEncodePassAppend(StringBuilder lArguments, int lPass)
+    {
+        if (lPass != 1)
+        {
+            return false;
+        }
+
+        lArguments.Append(" -an -f null -");
+        return true;
+    }
+
+    private static LEncodeStage LEncodePassBuild(LWorkItem lWorkItem, string lPassArguments) =>
+        new(
+            lPassArguments,
+            LWorkStage.LWorkStageAnalyze,
+            "Analyzing video",
+            Path.GetDirectoryName(LEncodeVideo.LEncodePassFormat(lWorkItem)) ?? string.Empty,
+            true);
 
     private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem, LEncoding lOutput)
     {
         bool lWholeCopy = LEncodeCopyCheck(lWorkItem, lOutput);
-        return new[]
+        int lPass = LEncodePassRead(lWorkItem, lOutput);
+        var lStages = new List<LEncodeStage>();
+        if (lPass > 0)
         {
-            new LEncodeStage(
-                LEncodeArgumentBuild(lWorkItem),
-                lWholeCopy ? LWorkStage.LWorkStagePassthrough : LWorkStage.LWorkStageEncode,
-                lWholeCopy ? "Copying" : "Encoding",
-                lWorkItem.LWorkOutputPath,
-                false)
-        };
+            lStages.Add(LEncodePassBuild(lWorkItem, LEncodeArgumentBuild(lWorkItem, null, 1)));
+        }
+
+        lStages.Add(new LEncodeStage(
+            LEncodeArgumentBuild(lWorkItem, null, lPass),
+            lWholeCopy ? LWorkStage.LWorkStagePassthrough : LWorkStage.LWorkStageEncode,
+            lWholeCopy ? "Copying" : "Encoding",
+            lWorkItem.LWorkOutputPath,
+            false));
+        return lStages;
     }
 
     private static void LEncodeHeaderAppend(StringBuilder lArguments)
@@ -350,4 +393,9 @@ public static partial class LEncode
         lTime.TotalSeconds.ToString("0.#######", CultureInfo.InvariantCulture);
 
     internal static string LEncodeFormat(string lPath) => $"\"{lPath}\"";
+
+    internal static string LEncodeValueFormat(string lValue) =>
+        lValue.Any(lCharacter => char.IsWhiteSpace(lCharacter) || lCharacter == '"')
+            ? LEncodeFormat(lValue.Replace("\"", "\\\""))
+            : lValue;
 }

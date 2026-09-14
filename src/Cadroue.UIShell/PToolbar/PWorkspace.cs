@@ -27,6 +27,7 @@ public sealed class PWorkspace
         PWorkspacePresetOwner = new LPresetSelection(
             PWorkspaceExportState.LPresetRecordCreate(), PWorkspaceExportState.LPresetName);
         PWorkspacePresetOwner.LPresetSelectionChange += PWorkspacePresetHandle;
+        PWorkspacePresetHandle();
         PWorkspaceSurface = PWorkspaceSurfaceCreate(
             pTabLayoutKey, PWorkspacePresetOwner, lPreferenceTabLayout);
         bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
@@ -49,6 +50,7 @@ public sealed class PWorkspace
         if (PWorkspaceFlow is not null)
         {
             PWorkspaceFlow.PFlowSectionChange += PWorkspaceSectionHandle;
+            PWorkspaceFlow.PFlowMediaChange += PWorkspaceHistoryReset;
         }
 
         PWorkspaceExportState.LPresetChange += PWorkspaceExportHandle;
@@ -74,8 +76,7 @@ public sealed class PWorkspace
             ?? (IReadOnlySet<string>)new HashSet<string>();
 
         bool pWorkspaceViewerProtected =
-            !string.IsNullOrWhiteSpace(PWorkspaceViewer?.PViewerSourcePath)
-            && pWorkspaceProtectedPaths.Contains(PWorkspaceViewer!.PViewerSourcePath!);
+            PWorkspaceViewer?.PViewerProtectedCheck(pWorkspaceProtectedPaths) == true;
 
         bool pWorkspaceCleared = false;
         if (!pWorkspaceViewerProtected)
@@ -83,13 +84,17 @@ public sealed class PWorkspace
             pWorkspaceCleared |= PWorkspaceViewer?.PViewerMediaClose(true) == true;
             pWorkspaceCleared |= PWorkspaceFlow?.PFlowClear() == true;
         }
+        else if (PWorkspaceViewer!.PViewerPendingPath is { } pWorkspacePending
+            && !pWorkspaceProtectedPaths.Contains(pWorkspacePending))
+        {
+            pWorkspaceCleared |= PWorkspaceViewer.PViewerLoadCancel();
+        }
 
         if (PWorkspaceList is { } pList && pList.PListPathsRead().Count > 0)
         {
             pWorkspaceCleared |= pList.PListStaleClear(pWorkspaceActiveBatches) > 0;
         }
 
-        PWorkspaceSurface.PTabGroup?.PGroupClear(pWorkspaceProtectedPaths);
         return pWorkspaceCleared;
     }
 
@@ -104,6 +109,7 @@ public sealed class PWorkspace
         if (PWorkspaceFlow is not null)
         {
             PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
+            PWorkspaceFlow.PFlowMediaChange -= PWorkspaceHistoryReset;
         }
 
         if (PWorkspaceViewer is not null)
@@ -159,9 +165,17 @@ public sealed class PWorkspace
     private void PWorkspaceHistoryAdd()
         => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead());
 
-    public bool PWorkspaceUndo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
+    private void PWorkspaceHistoryReset()
+        => lWorkspaceHistory.LHistoryReset(PWorkspaceStateRead());
 
-    public bool PWorkspaceRedo() => PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryRedo());
+    private bool PWorkspaceHistoryCheck()
+        => PWorkspaceFlow is null || PWorkspaceFlow.PFlowEditCheck();
+
+    public bool PWorkspaceUndo()
+        => PWorkspaceHistoryCheck() && PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
+
+    public bool PWorkspaceRedo()
+        => PWorkspaceHistoryCheck() && PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryRedo());
 
     private bool PWorkspaceHistoryApply(LHistoryEntry? lHistoryEntry)
     {

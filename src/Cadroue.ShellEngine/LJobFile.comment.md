@@ -17,6 +17,11 @@ Never touches a file that received content.
 
 ## Inline notes
 
+### `if (Directory.Exists(pPath))`
+
+A temporary stage may name a folder rather than a file: the two-pass log folder.
+FFmpeg derives the log file names itself, so the folder is the only stable handle to remove.
+
 ### `bool pPreExisting = LJobCollisionCheck(pOutput, LJobInputsRead())`
 
 Never delete a file this job did not create.

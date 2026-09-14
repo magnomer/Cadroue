@@ -27,12 +27,18 @@ public sealed partial class PViewer
             return;
         }
 
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
+        if (!pViewerCommandActive)
         {
             return;
         }
 
-        if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        if (pViewerIntent is { } pViewerPending)
+        {
+            pViewerIntent = pViewerPending with { PViewerIntentPlaying = true };
+            return;
+        }
+
+        if (!pViewerPlayer.PPlayerReady || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
         {
             return;
         }
@@ -57,7 +63,18 @@ public sealed partial class PViewer
             return;
         }
 
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
+        if (!pViewerCommandActive)
+        {
+            return;
+        }
+
+        if (pViewerIntent is { } pViewerPending)
+        {
+            pViewerIntent = pViewerPending with { PViewerIntentPlaying = false };
+            return;
+        }
+
+        if (!pViewerPlayer.PPlayerReady)
         {
             return;
         }
@@ -77,7 +94,19 @@ public sealed partial class PViewer
             return;
         }
 
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
+        if (!pViewerCommandActive)
+        {
+            return;
+        }
+
+        if (pViewerIntent is { } pViewerPending)
+        {
+            pViewerIntent = pViewerPending with { PViewerIntentPosition = playbackPosition };
+            PViewerPlaybackUpdate(null, playbackPosition);
+            return;
+        }
+
+        if (!pViewerPlayer.PPlayerReady)
         {
             return;
         }

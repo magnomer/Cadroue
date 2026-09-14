@@ -110,7 +110,7 @@ public static class LRepertoireCatalog
         new("VP8", ["vp8"], "libvpx",
             ["Matroska", "WebM"],
             [
-                LRepertoireEncoderCreate("VP8, libvpx / libvpx / libvpx-vp8", "libvpx", "libvpx-vp8"),
+                LRepertoireEncoderCreate("VP8, libvpx / libvpx", "libvpx"),
             ]),
         new("VP9", ["vp9"], "libvpx-vp9",
             ["MP4", "Matroska", "WebM"],
@@ -184,6 +184,32 @@ public static class LRepertoireCatalog
         }
 
         return lEncoders;
+    }
+
+    private static readonly IReadOnlyDictionary<string, string> LRepertoireLegacyTexts =
+        new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["VP8, libvpx / libvpx / libvpx-vp8"] = "VP8, libvpx / libvpx"
+        };
+
+    public static string LRepertoireTextNormalize(string lText) =>
+        LRepertoireLegacyTexts.TryGetValue(lText.Trim(), out string? lCurrent) ? lCurrent : lText;
+
+    public static string? LRepertoireTokenResolve(string lText)
+    {
+        string lTrimmed = LRepertoireTextNormalize(lText).Trim();
+        foreach (LRepertoireFamily lFamily in LRepertoireFamilies)
+        {
+            foreach (LRepertoireEncoder lEncoder in lFamily.LRepertoireEncoders)
+            {
+                if (string.Equals(lEncoder.LRepertoireText, lTrimmed, StringComparison.Ordinal))
+                {
+                    return lEncoder.LRepertoireTokens[0];
+                }
+            }
+        }
+
+        return null;
     }
 
     public static bool LRepertoireContainerCheck(string lText, string lContainer)

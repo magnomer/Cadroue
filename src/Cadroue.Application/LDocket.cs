@@ -16,10 +16,13 @@ public sealed class LDocket
         lDocketEntries.Where(lDocketEntry => !lDocketEntry.LDocketEntryLocked).ToArray();
 
     public IReadOnlyList<LDocketEntry> LDocketStaleRead(IReadOnlySet<Guid> lDocketActiveBatches) =>
-        lDocketEntries.Where(lDocketEntry => !lDocketActiveBatches.Contains(lDocketEntry.LDocketEntryBatch)).ToArray();
+        lDocketEntries.Where(lDocketEntry => !LDocketProtectedCheck(lDocketEntry, lDocketActiveBatches)).ToArray();
 
     public IReadOnlyList<LDocketEntry> LDocketProtectedRead(IReadOnlySet<Guid> lDocketActiveBatches) =>
-        lDocketEntries.Where(lDocketEntry => lDocketActiveBatches.Contains(lDocketEntry.LDocketEntryBatch)).ToArray();
+        lDocketEntries.Where(lDocketEntry => LDocketProtectedCheck(lDocketEntry, lDocketActiveBatches)).ToArray();
+
+    private static bool LDocketProtectedCheck(LDocketEntry lDocketEntry, IReadOnlySet<Guid> lDocketActiveBatches) =>
+        lDocketEntry.LDocketEntryLocked || lDocketActiveBatches.Contains(lDocketEntry.LDocketEntryBatch);
 
     public IReadOnlyList<string> LDocketPathsRead() =>
         lDocketEntries.Select(lDocketEntry => lDocketEntry.LDocketEntryPath).ToArray();

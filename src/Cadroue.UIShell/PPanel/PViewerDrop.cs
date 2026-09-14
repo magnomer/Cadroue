@@ -74,7 +74,7 @@ public sealed partial class PViewer
                 return DragDropEffects.None;
             }
 
-            return PDropAllowedRead(dragEvent);
+            return PHouse.PWindow.PDropAllowedRead(dragEvent);
         }
 
         string? pSourcePath = PDropPathRead(dragEvent);
@@ -83,24 +83,7 @@ public sealed partial class PViewer
             return DragDropEffects.None;
         }
 
-        return PDropAllowedRead(dragEvent);
-    }
-
-    private static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent)
-    {
-        if ((dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy)
-        {
-            return DragDropEffects.Copy;
-        }
-        if ((dragEvent.AllowedEffects & DragDropEffects.Move) == DragDropEffects.Move)
-        {
-            return DragDropEffects.Move;
-        }
-        if ((dragEvent.AllowedEffects & DragDropEffects.Link) == DragDropEffects.Link)
-        {
-            return DragDropEffects.Link;
-        }
-        return DragDropEffects.None;
+        return PHouse.PWindow.PDropAllowedRead(dragEvent);
     }
 
     private static string? PDropPathRead(DragEventArgs dragEvent)
