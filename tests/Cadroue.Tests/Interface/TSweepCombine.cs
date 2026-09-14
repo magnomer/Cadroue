@@ -76,4 +76,23 @@ public sealed class TSweepCombine
             lSection.LPieceOrigin == TimeSpan.FromSeconds(5) && lSection.LPieceEnd == TimeSpan.FromSeconds(10));
     }
 
+    [Fact]
+    public void LSweepCombineResolve_KeepsUserPiecesWhenDetectionExceedsCeiling()
+    {
+        var lUser = new LPiece(TimeSpan.Zero, TimeSpan.FromSeconds(1), 0, "keep") { LPieceDetected = false };
+        LSweepBoundary[] lBoundaries = Enumerable.Range(1, LPiece.LPieceCeiling)
+            .Select(lIndex => new LSweepBoundary(TimeSpan.FromSeconds(lIndex), TimeSpan.Zero))
+            .ToArray();
+
+        IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
+            new[] { lUser },
+            Array.Empty<LSweepSpan>(),
+            Array.Empty<LSweepSpan>(),
+            lBoundaries,
+            TimeSpan.FromSeconds(LPiece.LPieceCeiling + 1),
+            4);
+
+        Assert.Equal(LPiece.LPieceCeiling + 2, lResult.Count);
+        Assert.Contains(lResult, lSection => !lSection.LPieceDetected && lSection.LPieceName == "keep");
+    }
 }

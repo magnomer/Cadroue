@@ -7,26 +7,26 @@ namespace Cadroue.UIShell.PToolbar;
 
 public partial class PRail
 {
-    private bool PTabRelayCheck(PTabRecord pTabRecord, Point pDevicePoint)
+    private async void PTabRelayRun(PTabRecord pTabRecord, Point pDevicePoint)
     {
         Window? pRelayWindow = Window.GetWindow(this);
-        if (pRelayWindow is null)
+        if (pRelayWindow is null || PTabInsideCheck(pRelayWindow, pDevicePoint))
         {
-            return false;
+            return;
         }
 
-        Point pDipPoint = PTabDipRead(pRelayWindow, pDevicePoint);
-        if (PTabInsideCheck(pRelayWindow, pDevicePoint))
+        if (pTabRecord.PTabRelayState)
         {
-            return false;
+            return;
         }
 
         if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck())
         {
             PTabBusyShow(pRelayWindow, pTabRecord);
-            return false;
+            return;
         }
 
+        Point pDipPoint = PTabDipRead(pRelayWindow, pDevicePoint);
         LRelay lRelay = pTabRecord.PTabWorkspace.PWorkspaceRelayCreate(pTabRecord, pDipPoint.X, pDipPoint.Y);
         string lRelayFilePath;
         try
@@ -36,19 +36,44 @@ public partial class PRail
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord("Relay payload could not be written; tab kept", lException);
-            return false;
+            return;
         }
 
-        switch (LRelayChannel.LRelayDispatch(lRelayFilePath, pDevicePoint.X, pDevicePoint.Y))
+        pTabRecord.PTabRelayState = true;
+        try
         {
-            case LRelayOutcome.LRelayOutcomeExisting:
-            case LRelayOutcome.LRelayOutcomeLaunched:
-                LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed");
-                pStrip?.PStripClose(pTabRecord);
-                return true;
-            default:
-                return false;
+            switch (await LRelayChannel.LRelayDispatch(lRelayFilePath, pDevicePoint.X, pDevicePoint.Y))
+            {
+                case LRelayOutcome.LRelayOutcomeExisting:
+                case LRelayOutcome.LRelayOutcomeLaunched:
+                    if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck())
+                    {
+                        LTraceLog.LTraceInfoRecord(
+                            $"Tab '{pTabRecord.PTabTitle}' copied: the worklist started working during the relay");
+                        return;
+                    }
+
+                    LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' relayed");
+                    pStrip?.PStripClose(pTabRecord);
+                    return;
+                default:
+                    PTabKeptShow(pRelayWindow, pTabRecord);
+                    return;
+            }
         }
+        finally
+        {
+            pTabRecord.PTabRelayState = false;
+        }
+    }
+
+    private static void PTabKeptShow(Window pRelayWindow, PTabRecord pTabRecord)
+    {
+        LTraceLog.LTraceInfoRecord($"Tab '{pTabRecord.PTabTitle}' kept: the other window did not take it");
+        PSWarning.PSWarningShow(
+            pRelayWindow,
+            LLocalization.LLocalizationTextRead("Tab.Relay.KeptTitle"),
+            LLocalization.LLocalizationTextRead("Tab.Relay.KeptMessage"));
     }
 
     private static void PTabBusyShow(Window pRelayWindow, PTabRecord pTabRecord)

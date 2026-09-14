@@ -31,8 +31,13 @@ public partial class PWindow
             : Math.Max(0, pStrip.PStripRecords.IndexOf(pStrip.PStripSelected))
     };
 
-    public void PWindowSceneApply(LSceneRecord lScene)
+    public bool PWindowSceneApply(LSceneRecord lScene)
     {
+        if (!pStrip.PStripCloseConfirm(this))
+        {
+            return false;
+        }
+
         LSceneRecord pWindowSceneBackup = PWindowSceneRead(LScene.LSceneActiveName);
 
         LTrace.LTraceLoadingSet(true);
@@ -62,6 +67,8 @@ public partial class PWindow
         {
             LTrace.LTraceLoadingSet(false);
         }
+
+        return true;
     }
 
     public static IReadOnlyList<int> PWindowRelayRead(IReadOnlyList<PTabRecord> pWindowTabRecords)

@@ -39,20 +39,33 @@ public partial class PWindow
 
         pStrip.PStripSelect(pRelayTabRecord);
         pRelayTabRecord.PTabWorkspace.PWorkspaceRelayApply(lRelay);
+        if (pRelayTabRecord.PTabWorkspace.PWorkspaceSurface is PDeck.PFunnelTab pFunnelSurface)
+        {
+            pFunnelSurface.PFunnelTargetsResolve(pStrip.PStripRecords);
+        }
     }
 
-    private void PWindowRelayHandle(LRelay lRelay)
+    private bool PWindowRelayHandle(LRelay lRelay)
     {
-        Dispatcher.BeginInvoke(new Action(() =>
+        try
         {
-            PWindowRelayAccept(lRelay);
-            if (WindowState == WindowState.Minimized)
+            return Dispatcher.Invoke(() =>
             {
-                WindowState = WindowState.Normal;
-            }
+                PWindowRelayAccept(lRelay);
+                if (WindowState == WindowState.Minimized)
+                {
+                    WindowState = WindowState.Normal;
+                }
 
-            Activate();
-        }));
+                Activate();
+                return true;
+            });
+        }
+        catch (Exception pRelayException)
+        {
+            LTraceLog.LTraceErrorRecord($"Relayed '{lRelay.LRelayLayoutKey}' tab could not be taken; refused", pRelayException);
+            return false;
+        }
     }
 
 }

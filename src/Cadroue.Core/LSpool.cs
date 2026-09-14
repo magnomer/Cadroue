@@ -63,6 +63,13 @@ public sealed class LSpool
         }
     }
 
+    public void LSpoolRangeSet(TimeSpan origin, TimeSpan limit)
+    {
+        LSpoolRangeOrigin = origin;
+        LSpoolRangeLimit = limit;
+        LSpoolNormalize();
+    }
+
     public void LSpoolMove(TimeSpan delta)
     {
         var span = LSpoolRangeLimit - LSpoolRangeOrigin;

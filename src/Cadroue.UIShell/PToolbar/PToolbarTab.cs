@@ -168,7 +168,7 @@ public partial class PRail : UserControl
 
         if (pReleasedRecord is not null)
         {
-            PTabRelayCheck(pReleasedRecord, pReleasedScreenPoint);
+            PTabRelayRun(pReleasedRecord, pReleasedScreenPoint);
         }
     }
 
@@ -382,9 +382,11 @@ public partial class PRail : UserControl
     {
         PTabDragClear();
         e.Handled = true;
-        if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord })
+        if (sender is FrameworkElement { DataContext: PTabRecord pTabRecord }
+            && pStrip is { } pCloseStrip
+            && pCloseStrip.PStripCloseConfirm(Window.GetWindow(this), pTabRecord))
         {
-            pStrip?.PStripClose(pTabRecord);
+            pCloseStrip.PStripClose(pTabRecord);
         }
     }
 

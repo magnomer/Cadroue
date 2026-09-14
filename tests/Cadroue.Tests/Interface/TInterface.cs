@@ -1,4 +1,4 @@
-﻿using Cadroue.Application;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -53,6 +53,42 @@ internal static partial class TInterface
     internal static LPieceResult? TPieceEndSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
         LPiece.LPieceEndSet(sections, activeIndex, cursor, colorIndex, overlapAllowed);
+
+    internal static bool TPieceIntersectCheck(
+        IReadOnlyList<LPiece> sections, TimeSpan origin, TimeSpan end, int skipIndex, bool overlapAllowed) =>
+        LPiece.LPieceIntersectCheck(sections, origin, end, skipIndex, overlapAllowed);
+
+    internal static LSegment TSegmentCreate() => new();
+
+    internal static void TSegmentSet(LSegment segment, IReadOnlyList<LPiece> sections, int? select) =>
+        segment.LSegmentSet(sections, select);
+
+    internal static bool TSegmentDelete(LSegment segment, IReadOnlyList<int> indexes, int approved) =>
+        segment.LSegmentDelete(indexes, approved);
+
+    internal static bool TSegmentClear(LSegment segment, int approved) => segment.LSegmentClear(approved);
+
+    internal static int TSegmentVersionRead(LSegment segment) => segment.LSegmentVersionRead();
+
+    internal static IReadOnlyList<LPiece> TSegmentListRead(LSegment segment) => segment.LSegmentListRead();
+
+    internal static void TSegmentFaultAttach(LSegment segment, Action<LSegmentFault, int> handler) =>
+        segment.LSegmentFaultNotice += handler;
+
+    internal static bool TSegmentBoundSet(
+        LSegment segment, IReadOnlyList<LPiece> sections, int? select, TimeSpan duration) =>
+        segment.LSegmentBoundSet(sections, select, duration);
+
+    internal static void TSegmentLoad(LSegment segment, string source, TimeSpan duration)
+    {
+        segment.LSegmentSourceSet(source);
+        segment.LSegmentLoad(duration);
+    }
+
+    internal static void TSegmentSeamSet(Func<string, IReadOnlyList<LSidecarSectionRecord>>? seam) =>
+        LSegment.LSegmentLoadSeam = seam;
+
+    internal static LPiece TPieceCreate(LSidecarSectionRecord record) => LPiece.LPieceCreate(record);
 
     internal static LPieceDivision? TPieceDivide(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>

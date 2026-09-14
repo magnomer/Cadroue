@@ -256,7 +256,6 @@ internal static class LSidecarParse
         if (lSidecarCache.LSidecarWaveform is { } lSidecarWaveform)
         {
             lSidecarWaveform.LSidecarPeaks ??= string.Empty;
-            lSidecarWaveform.LSidecarRms ??= string.Empty;
         }
     }
 }

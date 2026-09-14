@@ -46,6 +46,16 @@ public sealed partial class PFlow
         }
     }
 
+    public (TimeSpan, TimeSpan)? PFlowRangeRead() =>
+        lSpool is null ? null : (lSpool.LSpoolRangeOrigin, lSpool.LSpoolRangeLimit);
+
+    public void PFlowRangeSet(TimeSpan pFlowOrigin, TimeSpan pFlowLimit)
+    {
+        if (lSpool is null) return;
+        lSpool.LSpoolRangeSet(pFlowOrigin, pFlowLimit);
+        PFlowSpoolHandle();
+    }
+
     private void PFlowSpoolHandle()
     {
         PFlowKeyframeSuspend();

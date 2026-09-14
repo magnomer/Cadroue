@@ -141,12 +141,21 @@ public sealed partial class PSplitTab : PTabSurface
         PSplitDetectorRestore(lPreferenceTabLayout);
     }
 
+    public override void PTabClose()
+    {
+        pSplitSweepSource?.Cancel();
+        base.PTabClose();
+    }
+
     private void PSplitPathShow(string? pSourcePath)
     {
         if (!string.IsNullOrWhiteSpace(pSourcePath))
         {
             pViewer.PViewerSourceOpen(pSourcePath);
-            PSplitDetectorLoad(pSourcePath);
+            if (!pInspector.PSensorPersistentCheck())
+            {
+                PSplitDetectorLoad(pSourcePath);
+            }
         }
     }
 

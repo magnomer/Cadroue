@@ -19,6 +19,14 @@ public sealed partial class PList
 
     private bool PListSelectionCheck(string pRowPath) => pListPathsSelected.Contains(pRowPath);
 
+    public void PListSelect(string pListPath)
+    {
+        if (pListDocket.LDocketItemFind(pListPath) is not null)
+        {
+            PListSelectApply(pListPath);
+        }
+    }
+
     private void PListSelectApply(string? pSelectPath)
     {
         pListPathsSelected.Clear();

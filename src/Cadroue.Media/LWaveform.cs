@@ -10,36 +10,36 @@ public static class LWaveform
 
     public const int LWaveformPeakMaximum = 255;
 
+    public static long LWaveformMillisecondsResolve(TimeSpan lWaveformDuration) =>
+        (long)Math.Round(lWaveformDuration.TotalMilliseconds);
+
+    public static int LWaveformBucketsResolve(long lWaveformMilliseconds) =>
+        lWaveformMilliseconds <= 0
+            ? 0
+            : (int)((lWaveformMilliseconds + LWaveformBucketMilliseconds - 1) / LWaveformBucketMilliseconds);
+
     public static LSidecarWaveformRecord LWaveformRecordCreate(
         IReadOnlyCollection<byte> lWaveformPeaks,
-        IReadOnlyCollection<byte> lWaveformRms,
         TimeSpan lWaveformDuration)
     {
         return new LSidecarWaveformRecord
         {
             LSidecarBucketMilliseconds = LWaveformBucketMilliseconds,
-            LSidecarDurationMilliseconds = (long)Math.Round(lWaveformDuration.TotalMilliseconds),
-            LSidecarPeaks = Convert.ToBase64String(lWaveformPeaks.ToArray()),
-            LSidecarRms = Convert.ToBase64String(lWaveformRms.ToArray())
+            LSidecarDurationMilliseconds = LWaveformMillisecondsResolve(lWaveformDuration),
+            LSidecarPeaks = Convert.ToBase64String(lWaveformPeaks.ToArray())
         };
     }
 
-    public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord) =>
-        LWaveformBytesRead(lWaveformRecord?.LSidecarPeaks);
-
-    public static byte[] LWaveformRmsRead(LSidecarWaveformRecord? lWaveformRecord) =>
-        LWaveformBytesRead(lWaveformRecord?.LSidecarRms);
-
-    private static byte[] LWaveformBytesRead(string? lWaveformEncoded)
+    public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord)
     {
-        if (string.IsNullOrWhiteSpace(lWaveformEncoded))
+        if (string.IsNullOrWhiteSpace(lWaveformRecord?.LSidecarPeaks))
         {
             return Array.Empty<byte>();
         }
 
         try
         {
-            return Convert.FromBase64String(lWaveformEncoded);
+            return Convert.FromBase64String(lWaveformRecord.LSidecarPeaks);
         }
         catch (FormatException)
         {
@@ -47,19 +47,39 @@ public static class LWaveform
         }
     }
 
+    public static double[] LWaveformEnvelopeRead(byte[] lWaveformPeaks)
+    {
+        if (lWaveformPeaks.Length == 0)
+        {
+            return Array.Empty<double>();
+        }
+
+        var lWaveformEnvelope = new double[lWaveformPeaks.Length];
+        for (int lWaveformIndex = 0; lWaveformIndex < lWaveformPeaks.Length; lWaveformIndex++)
+        {
+            lWaveformEnvelope[lWaveformIndex] = lWaveformPeaks[lWaveformIndex] / (double)LWaveformPeakMaximum;
+        }
+
+        return lWaveformEnvelope;
+    }
+
     public static bool LWaveformRecordMatch(LSidecarWaveformRecord? lWaveformRecord, TimeSpan lWaveformDuration)
     {
         if (lWaveformRecord is null
             || lWaveformRecord.LSidecarBucketMilliseconds != LWaveformBucketMilliseconds
-            || lWaveformRecord.LSidecarPeaks.Length == 0
-            || lWaveformRecord.LSidecarRms.Length == 0)
+            || lWaveformRecord.LSidecarPeaks.Length == 0)
         {
             return false;
         }
 
-        long lWaveformExpected = (long)Math.Round(lWaveformDuration.TotalMilliseconds);
-        return Math.Abs(lWaveformRecord.LSidecarDurationMilliseconds - lWaveformExpected)
-            <= LWaveformBucketMilliseconds;
+        long lWaveformExpected = LWaveformMillisecondsResolve(lWaveformDuration);
+        if (Math.Abs(lWaveformRecord.LSidecarDurationMilliseconds - lWaveformExpected) > LWaveformBucketMilliseconds)
+        {
+            return false;
+        }
+
+        return LWaveformPeaksRead(lWaveformRecord).Length
+            == LWaveformBucketsResolve(lWaveformRecord.LSidecarDurationMilliseconds);
     }
 
     public static double[] LWaveformRangeRead(
@@ -110,5 +130,4 @@ public static class LWaveform
 
         return lWaveformColumns;
     }
-
 }

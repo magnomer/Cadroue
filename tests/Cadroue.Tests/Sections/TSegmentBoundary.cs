@@ -110,4 +110,54 @@ public sealed class TSegmentBoundary
         var sections = new[] { TSegmentPieceCreate(0, 2), TSegmentPieceCreate(5, 8) };
         Assert.Null(TInterface.TPieceEndCreate(sections, TSegmentAtCreate(6), 0, TSegmentOverlapOff));
     }
+
+    [Fact]
+    public void EndGrowingIntoAdjacentNext_IsRejected()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 10), TSegmentPieceCreate(10, 20) };
+        Assert.Null(TInterface.TPieceEndSet(sections, 0, TSegmentAtCreate(15), 0, TSegmentOverlapOff));
+    }
+
+    [Fact]
+    public void StartGrowingIntoAdjacentPrevious_IsRejected()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 10), TSegmentPieceCreate(10, 20) };
+        Assert.Null(TInterface.TPieceStartSet(
+            sections,
+            1,
+            TSegmentAtCreate(5),
+            TSegmentAtCreate(30),
+            0,
+            TSegmentOverlapOff));
+    }
+
+    [Fact]
+    public void CursorInsideSectionAdjacentToFloor_CreatingEndIsRejected()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 10), TSegmentPieceCreate(10, 20) };
+        Assert.Null(TInterface.TPieceEndCreate(sections, TSegmentAtCreate(15), 0, TSegmentOverlapOff));
+    }
+
+    [Fact]
+    public void OverlappedSelection_CannotGrowWhenOverlapOff()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 12), TSegmentPieceCreate(8, 20) };
+        Assert.Null(TInterface.TPieceEndSet(sections, 0, TSegmentAtCreate(14), 0, TSegmentOverlapOff));
+        Assert.Null(TInterface.TPieceStartSet(
+            sections,
+            1,
+            TSegmentAtCreate(6),
+            TSegmentAtCreate(30),
+            0,
+            TSegmentOverlapOff));
+    }
+
+    [Fact]
+    public void OverlapAllowed_AdjacentGrowthIsAccepted()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 10), TSegmentPieceCreate(10, 20) };
+        var plan = TInterface.TPieceEndSet(sections, 0, TSegmentAtCreate(15), 0, true);
+        Assert.NotNull(plan);
+        Assert.Equal(TSegmentAtCreate(15), plan!.LPieceSections[0].LPieceEnd);
+    }
 }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -11,6 +12,7 @@ public sealed class LRelaySectionRecord
     public string LRelayPrefix { get; set; } = string.Empty;
     public string LRelaySuffix { get; set; } = string.Empty;
     public bool LRelayHidden { get; set; }
+    public bool LRelayDetected { get; set; }
 }
 
 public sealed class LRelay
@@ -19,7 +21,12 @@ public sealed class LRelay
     public string LRelayCustomName { get; set; } = string.Empty;
     public LPresetRecord LRelayExport { get; set; } = new();
     public LSceneTabRecord LRelayLayout { get; set; } = new();
+    public List<string> LRelayPaths { get; set; } = new();
     public string LRelaySourcePath { get; set; } = string.Empty;
+    public long LRelayPositionTicks { get; set; }
+    public double? LRelayVolume { get; set; }
+    public long? LRelayOriginTicks { get; set; }
+    public long? LRelayLimitTicks { get; set; }
     public List<LRelaySectionRecord> LRelaySections { get; set; } = new();
     public int? LRelaySectionIndex { get; set; }
 
@@ -29,6 +36,8 @@ public sealed class LRelay
     public int LRelaySenderProcess { get; set; }
 
     public string LRelayId { get; set; } = string.Empty;
+
+    public string LRelayVersion { get; set; } = string.Empty;
 }
 
 public static class LRelayPayload
@@ -43,28 +52,39 @@ public static class LRelayPayload
                 LRelayName = lRelaySegment.LPieceName,
                 LRelayPrefix = lRelaySegment.LPiecePrefix,
                 LRelaySuffix = lRelaySegment.LPieceSuffix,
-                LRelayHidden = lRelaySegment.LPieceHidden
+                LRelayHidden = lRelaySegment.LPieceHidden,
+                LRelayDetected = lRelaySegment.LPieceDetected
             })
             .ToList();
 
     public static LRelay LRelayCreate(
         string layoutKey, string customName, LPresetRecord export,
-        LSceneTabRecord layout, string sourcePath, double dropLeft, double dropTop,
-        IReadOnlyList<LPiece> sections, int? sectionIndex) =>
+        LSceneTabRecord layout, double dropLeft, double dropTop) =>
         new()
         {
             LRelayLayoutKey = layoutKey,
             LRelayCustomName = customName,
             LRelayExport = export,
             LRelayLayout = layout,
-            LRelaySourcePath = sourcePath,
             LRelayDropLeft = dropLeft,
             LRelayDropTop = dropTop,
-            LRelaySections = LRelayRecordsCreate(sections),
-            LRelaySectionIndex = sectionIndex,
             LRelaySenderProcess = Environment.ProcessId,
-            LRelayId = Guid.NewGuid().ToString("N")
+            LRelayId = Guid.NewGuid().ToString("N"),
+            LRelayVersion = LRelayVersionRead()
         };
+
+    public static bool LRelayVersionMatch(LRelay lRelay) =>
+        string.Equals(lRelay.LRelayVersion, LRelayVersionRead(), StringComparison.Ordinal);
+
+    public static string LRelayVersionRead()
+    {
+        Assembly lAssembly = Assembly.GetEntryAssembly() ?? typeof(LRelay).Assembly;
+        string? lInformational = lAssembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+        return string.IsNullOrWhiteSpace(lInformational)
+            ? lAssembly.GetName().Version?.ToString() ?? "unknown"
+            : lInformational;
+    }
 
     public static IReadOnlyList<LPiece> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
         lRelaySections
@@ -76,7 +96,8 @@ public static class LRelayPayload
             {
                 LPiecePrefix = lRelaySection.LRelayPrefix,
                 LPieceSuffix = lRelaySection.LRelaySuffix,
-                LPieceHidden = lRelaySection.LRelayHidden
+                LPieceHidden = lRelaySection.LRelayHidden,
+                LPieceDetected = lRelaySection.LRelayDetected
             })
             .ToList();
 }

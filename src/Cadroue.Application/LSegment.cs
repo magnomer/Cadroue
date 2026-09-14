@@ -2,6 +2,13 @@ using Cadroue.Core;
 
 namespace Cadroue.Application;
 
+public enum LSegmentFault
+{
+    LSegmentFaultCeiling,
+    LSegmentFaultStorage,
+    LSegmentFaultInvalid
+}
+
 public sealed class LSegment
 {
     private readonly List<LPiece> lSegmentPieces = new();
@@ -9,13 +16,17 @@ public sealed class LSegment
     private int? lSegmentIndexActive;
     private string? lSegmentSourcePath;
     private bool lSegmentRestoring;
+    private int lSegmentVersion;
 
     public Action<IReadOnlyList<LPiece>, int?>? LSegmentNotice;
+    public Action<LSegmentFault, int>? LSegmentFaultNotice;
 
     public static Func<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentLoadSeam;
-    public static Action<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentSaveSeam;
+    public static Func<string, IReadOnlyList<LSidecarSectionRecord>, bool>? LSegmentSaveSeam;
 
     public IReadOnlyList<LPiece> LSegmentListRead() => lSegmentPieces.ToArray();
+
+    public int LSegmentVersionRead() => lSegmentVersion;
 
     public int? LSegmentSelectionRead() => lSegmentIndexActive;
 
@@ -41,8 +52,12 @@ public sealed class LSegment
         if (lSegmentRecords.Count == 0) return;
 
         IReadOnlyList<LPiece> lSegmentList = LPiece.LPieceValidSelect(
-            lSegmentRecords.Select(LSegmentPieceCreate).ToArray(),
+            lSegmentRecords.Select(LPiece.LPieceCreate).ToArray(),
             lSegmentDuration);
+        if (lSegmentList.Count < lSegmentRecords.Count)
+        {
+            LSegmentFaultNotice?.Invoke(LSegmentFault.LSegmentFaultInvalid, lSegmentRecords.Count - lSegmentList.Count);
+        }
 
         lSegmentRestoring = true;
         try
@@ -56,52 +71,27 @@ public sealed class LSegment
     }
 
     public IReadOnlyList<LSidecarSectionRecord> LSegmentRecordsRead() =>
-        lSegmentPieces.Select(LSegmentRecordCreate).ToArray();
+        lSegmentPieces.Select(lSegmentPiece => lSegmentPiece.LPieceRecordCreate()).ToArray();
 
-    private static LSidecarSectionRecord LSegmentRecordCreate(LPiece lSegmentPiece) => new()
+    private bool LSegmentSave()
     {
-        LSidecarStartMilliseconds = (long)lSegmentPiece.LPieceOrigin.TotalMilliseconds,
-        LSidecarEndMilliseconds = (long)lSegmentPiece.LPieceEnd.TotalMilliseconds,
-        LSidecarColorIndex = lSegmentPiece.LPieceColorIndex,
-        LSidecarName = lSegmentPiece.LPieceName,
-        LSidecarPrefix = lSegmentPiece.LPiecePrefix,
-        LSidecarSuffix = lSegmentPiece.LPieceSuffix,
-        LSidecarHidden = lSegmentPiece.LPieceHidden,
-        LSidecarDetected = lSegmentPiece.LPieceDetected
-    };
-
-    private static LPiece LSegmentPieceCreate(LSidecarSectionRecord lSegmentRecord) =>
-        new(
-            TimeSpan.FromMilliseconds(lSegmentRecord.LSidecarStartMilliseconds),
-            TimeSpan.FromMilliseconds(lSegmentRecord.LSidecarEndMilliseconds),
-            lSegmentRecord.LSidecarColorIndex,
-            lSegmentRecord.LSidecarName)
-        {
-            LPiecePrefix = lSegmentRecord.LSidecarPrefix ?? string.Empty,
-            LPieceSuffix = lSegmentRecord.LSidecarSuffix ?? string.Empty,
-            LPieceHidden = lSegmentRecord.LSidecarHidden,
-            LPieceDetected = lSegmentRecord.LSidecarDetected
-        };
-
-    private void LSegmentSave()
-    {
-        if (lSegmentRestoring || lSegmentSourcePath is not { } lSegmentSource) return;
-        LSegmentSaveSeam?.Invoke(lSegmentSource, LSegmentRecordsRead());
+        if (lSegmentRestoring || lSegmentSourcePath is not { } lSegmentSource) return true;
+        return LSegmentSaveSeam?.Invoke(lSegmentSource, LSegmentRecordsRead()) ?? true;
     }
 
-    public void LSegmentSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect)
+    public bool LSegmentSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect)
     {
         List<LPiece> lSegmentList = lSegmentSections.ToList();
         int? lSegmentClamp = lSegmentList.Count == 0 || lSegmentSelect is not int lSelect
             ? null
             : Math.Clamp(lSelect, 0, lSegmentList.Count - 1);
-        LSegmentApply(lSegmentList, lSegmentClamp);
+        return LSegmentApply(lSegmentList, lSegmentClamp);
     }
 
-    public void LSegmentBoundSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect, TimeSpan lSegmentDuration)
+    public bool LSegmentBoundSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect, TimeSpan lSegmentDuration)
     {
         IReadOnlyList<LPiece> lSegmentValid = LPiece.LPieceValidSelect(lSegmentSections, lSegmentDuration);
-        LSegmentSet(lSegmentValid, lSegmentSelect);
+        return LSegmentSet(lSegmentValid, lSegmentSelect);
     }
 
     public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)
@@ -132,11 +122,10 @@ public sealed class LSegment
     {
         int lSegmentPalette = Math.Max(1, lSegmentPaletteCount);
         return lSegmentSections
-            .Select((lSegmentSection, lSegmentIndex) => new LPiece(
-                TimeSpan.FromMilliseconds(lSegmentSection.LSidecarStartMilliseconds),
-                TimeSpan.FromMilliseconds(lSegmentSection.LSidecarEndMilliseconds),
-                (lSegmentColorOffset + lSegmentIndex) % lSegmentPalette,
-                lSegmentSection.LSidecarName ?? string.Empty))
+            .Select((lSegmentSection, lSegmentIndex) => LPiece.LPieceCreate(lSegmentSection) with
+            {
+                LPieceColorIndex = (lSegmentColorOffset + lSegmentIndex) % lSegmentPalette
+            })
             .ToList();
     }
 
@@ -170,8 +159,9 @@ public sealed class LSegment
                 lSegmentColorIndex,
                 lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
-        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
-        return lSegmentPlan.LPieceAdded;
+        return LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive)
+            ? lSegmentPlan.LPieceAdded
+            : null;
     }
 
     public bool? LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
@@ -183,8 +173,9 @@ public sealed class LSegment
                 lSegmentColorIndex,
                 lSegmentOverlapAllowed)
             is not { } lSegmentPlan) return null;
-        LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive);
-        return lSegmentPlan.LPieceAdded;
+        return LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceActive)
+            ? lSegmentPlan.LPieceAdded
+            : null;
     }
 
     public void LSegmentDivide(TimeSpan lSegmentCursor, int lSegmentColorIndex)
@@ -194,21 +185,21 @@ public sealed class LSegment
         LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceFirst);
     }
 
-    public void LSegmentDelete()
+    public bool LSegmentDelete(IReadOnlyList<int> lSegmentIndexes, int lSegmentApproved)
     {
-        if (lSegmentIndexSelected.Count == 0) return;
-        int lSegmentFirst = lSegmentIndexSelected.Min;
+        if (lSegmentApproved != lSegmentVersion || lSegmentIndexes.Count == 0) return false;
+        var lSegmentDeleted = new HashSet<int>(lSegmentIndexes);
         List<LPiece> lSegmentList = lSegmentPieces
-            .Where((_, lSegmentIndex) => !lSegmentIndexSelected.Contains(lSegmentIndex))
+            .Where((_, lSegmentIndex) => !lSegmentDeleted.Contains(lSegmentIndex))
             .ToList();
-        int? lSegmentSelect = lSegmentList.Count == 0 ? null : Math.Min(lSegmentFirst, lSegmentList.Count - 1);
-        LSegmentApply(lSegmentList, lSegmentSelect);
+        int? lSegmentSelect = lSegmentList.Count == 0 ? null : Math.Min(lSegmentIndexes.Min(), lSegmentList.Count - 1);
+        return LSegmentApply(lSegmentList, lSegmentSelect);
     }
 
-    public void LSegmentClear()
+    public bool LSegmentClear(int lSegmentApproved)
     {
-        if (lSegmentPieces.Count == 0) return;
-        LSegmentApply(new List<LPiece>(), null);
+        if (lSegmentApproved != lSegmentVersion || lSegmentPieces.Count == 0) return false;
+        return LSegmentApply(new List<LPiece>(), null);
     }
 
     public void LSegmentToggle(int lSegmentIndex)
@@ -331,8 +322,14 @@ public sealed class LSegment
         LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
     }
 
-    private void LSegmentApply(List<LPiece> lSegmentSections, int? lSegmentSelect)
+    private bool LSegmentApply(List<LPiece> lSegmentSections, int? lSegmentSelect)
     {
+        if (lSegmentSections.Count > LPiece.LPieceCeiling)
+        {
+            LSegmentFaultNotice?.Invoke(LSegmentFault.LSegmentFaultCeiling, lSegmentSections.Count);
+            return false;
+        }
+
         lSegmentPieces.Clear();
         lSegmentPieces.AddRange(lSegmentSections);
         lSegmentIndexActive = lSegmentSelect;
@@ -342,7 +339,13 @@ public sealed class LSegment
             lSegmentIndexSelected.Add(lSegmentActive);
         }
 
+        lSegmentVersion++;
         LSegmentNotice?.Invoke(lSegmentPieces.ToArray(), lSegmentIndexActive);
-        LSegmentSave();
+        if (!LSegmentSave())
+        {
+            LSegmentFaultNotice?.Invoke(LSegmentFault.LSegmentFaultStorage, lSegmentPieces.Count);
+        }
+
+        return true;
     }
 }

@@ -192,8 +192,7 @@ public partial class PProgram : System.Windows.Application
         Cadroue.Media.LTool.LToolFolderSource = () => Cadroue.Infrastructure.LRenderer.LRendererFolderCurrent;
         LLibrarianSeamApply();
         Cadroue.Application.LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
-        Cadroue.Application.LSegment.LSegmentSaveSeam = (lSidecarSourcePath, lSidecarSections) =>
-            Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave(lSidecarSourcePath, lSidecarSections);
+        Cadroue.Application.LSegment.LSegmentSaveSeam = Cadroue.Infrastructure.LSidecarStore.LSidecarSectionsSave;
         LPresetSelectionAttach();
         LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;

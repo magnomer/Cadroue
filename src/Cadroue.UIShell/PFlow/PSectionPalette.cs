@@ -129,16 +129,16 @@ internal static class PSectionPalette
             ? pBrushes
             : pSectionBadgeBrushes[PSectionPaletteDefault];
 
-    internal static Brush PSectionPaletteRead(int pColorIndex)
-    {
-        Brush[] pSet = PSectionSetRead(pSectionBandBrushes);
-        return pSet[Math.Abs(pColorIndex) % pSet.Length];
-    }
+    internal static Brush PSectionPaletteRead(int pColorIndex) =>
+        PSectionBrushRead(pSectionBandBrushes, pColorIndex);
 
-    internal static Brush PSectionBadgeRead(int pColorIndex)
+    internal static Brush PSectionBadgeRead(int pColorIndex) =>
+        PSectionBrushRead(pSectionBadgeBrushes, pColorIndex);
+
+    private static Brush PSectionBrushRead(Dictionary<string, Brush[]> pSectionSets, int pColorIndex)
     {
-        Brush[] pSet = PSectionSetRead(pSectionBadgeBrushes);
-        return pSet[Math.Abs(pColorIndex) % pSet.Length];
+        Brush[] pSet = PSectionSetRead(pSectionSets);
+        return pSet[((pColorIndex % pSet.Length) + pSet.Length) % pSet.Length];
     }
 
     private static Brush[] PSectionSetRead(Dictionary<string, Brush[]> pSectionSets)

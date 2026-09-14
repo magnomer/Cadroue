@@ -31,29 +31,33 @@ internal sealed partial class PSMonitor
     {
         psMonitorTimer.Stop();
         PSMonitorRailApply(psMonitorBeforeCanvas, psMonitorBeforeStatus, psMonitorEstimate.LSMonitorBefore, false);
-        PSMonitorRailApply(
-            psMonitorAfterCanvas,
-            psMonitorAfterStatus,
-            psMonitorEstimate.LSMonitorAfter,
-            psMonitorSource.LSMonitorScanning);
+        PSMonitorRailApply(psMonitorAfterCanvas, psMonitorAfterStatus, psMonitorEstimate.LSMonitorAfter, true);
     }
 
     private static double PSMonitorLevelRead(double pPeak) => Math.Clamp(pPeak, 0, 1);
 
-    private void PSMonitorRailApply(Canvas pCanvas, TextBlock pStatus, double[] pEnvelope, bool pScanning)
+    private void PSMonitorRailApply(Canvas pCanvas, TextBlock pStatus, double[] pEnvelope, bool pAfter)
     {
-        if (pEnvelope.Length == 0)
+        string? pKey = PSMonitorStatusResolve(pEnvelope, pAfter);
+        pStatus.Text = pKey is null ? string.Empty : LLocalization.LLocalizationTextRead(pKey);
+        pCanvas.DataContext = pEnvelope.Length == 0 ? null : pEnvelope;
+        PSMonitorEnvelopeDraw(pCanvas);
+    }
+
+    private string? PSMonitorStatusResolve(double[] pEnvelope, bool pAfter)
+    {
+        bool pBeforeReady = psMonitorEstimate.LSMonitorBefore.Length > 0;
+        if (psMonitorEstimate.LSMonitorPending)
         {
-            pStatus.Text = LLocalization.LLocalizationTextRead(
-                psMonitorSource.LSMonitorScanning ? "NormalizePreview.Loading" : "NormalizePreview.Empty");
-            pCanvas.DataContext = null;
-            PSMonitorEnvelopeDraw(pCanvas);
-            return;
+            return pBeforeReady && pAfter ? "NormalizePreview.Updating" : "NormalizePreview.Loading";
         }
 
-        pStatus.Text = pScanning ? LLocalization.LLocalizationTextRead("NormalizePreview.Updating") : string.Empty;
-        pCanvas.DataContext = pEnvelope;
-        PSMonitorEnvelopeDraw(pCanvas);
+        if (pEnvelope.Length > 0)
+        {
+            return null;
+        }
+
+        return psMonitorEstimate.LSMonitorFailed ? "NormalizePreview.Unavailable" : "NormalizePreview.Empty";
     }
 
     private void PSMonitorEnvelopeDraw(Canvas pCanvas)

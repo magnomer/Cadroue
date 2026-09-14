@@ -45,7 +45,7 @@ public sealed partial class PSection
             pSectionRowPanel.ReleaseMouseCapture();
             PSectionDragClear();
             PSectionEditCommit();
-            if (pRowBorderHost is { } pToggleRow)
+            if (pSectionEditable && pRowBorderHost is { } pToggleRow)
             {
                 pFlowAttached?.PFlowSectionToggle(pSectionRowPanel.Children.IndexOf(pToggleRow));
             }
@@ -88,7 +88,7 @@ public sealed partial class PSection
             TextBlock pNameText = PSectionTextBuild(pSectionIndex, pSectionEntry);
             pNameText.MouseLeftButtonDown += (_, pEvent) =>
             {
-                if (pEvent.ClickCount < 2)
+                if (pEvent.ClickCount < 2 || !pSectionEditable)
                 {
                     return;
                 }

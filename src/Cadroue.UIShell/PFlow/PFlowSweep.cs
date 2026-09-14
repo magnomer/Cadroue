@@ -12,14 +12,14 @@ public sealed partial class PFlow
 
     public TimeSpan PFlowSweepDuration => lSpool?.LSpoolDuration ?? TimeSpan.Zero;
 
-    public void PFlowCombineApply(
+    public bool PFlowCombineApply(
         IReadOnlyList<LSweepSpan> pFlowExcluded,
         IReadOnlyList<LSweepSpan> pFlowKept,
         IReadOnlyList<LSweepBoundary> pFlowBoundaries)
     {
-        if (lSpool is not { } pFlowSpool)
+        if (pFlowUnloaded || lSpool is not { } pFlowSpool)
         {
-            return;
+            return false;
         }
 
         IReadOnlyList<LPiece> pFlowSections = LSweep.LSweepCombineResolve(
@@ -30,6 +30,6 @@ public sealed partial class PFlow
             pFlowSpool.LSpoolDuration,
             Math.Max(1, PSectionPalette.PSectionActiveCount));
         int? pFlowSelect = pFlowSections.Count > 0 ? 0 : null;
-        lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
+        return lSegment.LSegmentBoundSet(pFlowSections, pFlowSelect, pFlowSpool.LSpoolDuration);
     }
 }

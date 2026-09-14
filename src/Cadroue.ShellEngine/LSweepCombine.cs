@@ -91,9 +91,6 @@ public static partial class LSweep
         }
 
         lSweepResult.AddRange(lSweepUser);
-
-        return lSweepResult.Count > LPiece.LPieceCeiling
-            ? lSweepResult.GetRange(0, LPiece.LPieceCeiling)
-            : lSweepResult;
+        return lSweepResult;
     }
 }

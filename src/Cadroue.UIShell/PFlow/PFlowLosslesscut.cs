@@ -14,7 +14,7 @@ public sealed partial class PFlow
 {
     public void PFlowLosslesscutFind()
     {
-        if (!pFlowCommandActive || lSourcePath is null || lSpool is null)
+        if (!pFlowCommandActive || !pFlowSectionEditable || lSourcePath is null || lSpool is null)
         {
             return;
         }
@@ -68,7 +68,7 @@ public sealed partial class PFlow
 
     public void PFlowLosslesscutImport(string pLosslesscutPath)
     {
-        if (!pFlowCommandActive || lSourcePath is null || lSpool is null)
+        if (!pFlowCommandActive || !pFlowSectionEditable || lSourcePath is null || lSpool is null)
         {
             PSAnnouncement.PSAnnouncementShow(
                 Window.GetWindow(this),

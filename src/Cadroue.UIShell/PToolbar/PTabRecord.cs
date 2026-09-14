@@ -46,6 +46,12 @@ public sealed class PTabRecord : INotifyPropertyChanged
 
     public Guid PTabId { get; }
 
+    public bool PTabRelayState
+    {
+        get => !PTabWorkspace.PWorkspaceRoot.IsEnabled;
+        set => PTabWorkspace.PWorkspaceRoot.IsEnabled = !value;
+    }
+
     public string PTabTitle
     {
         get => pTabTitle;

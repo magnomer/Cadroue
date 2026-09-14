@@ -8,25 +8,18 @@ public sealed class TWaveformSnapshot
     public void Peaks_DecodeToExpectedValues()
     {
         byte[] expected = { 0, 1, 127, 255 };
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(expected, new byte[] { 1 }, TimeSpan.FromSeconds(1));
+        TWaveformRecord record = TWaveform.TWaveformRecordCreate(expected, TimeSpan.FromSeconds(1));
 
         Assert.Equal(expected, TWaveform.TWaveformPeaksRead(record));
-    }
-
-    [Fact]
-    public void Rms_DecodeToExpectedValues()
-    {
-        byte[] expected = { 3, 32, 96, 192 };
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(new byte[] { 1 }, expected, TimeSpan.FromSeconds(1));
-
-        Assert.Equal(expected, TWaveform.TWaveformRmsRead(record));
     }
 
     [Fact]
     public void DurationWithinOneBucket_MatchesProductionValidityRule()
     {
         TimeSpan duration = TimeSpan.FromSeconds(3);
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(new byte[] { 1 }, new byte[] { 1 }, duration);
+        byte[] peaks = new byte[TWaveform.TWaveformBucketsResolve(duration)];
+        peaks[0] = 1;
+        TWaveformRecord record = TWaveform.TWaveformRecordCreate(peaks, duration);
 
         Assert.True(TWaveform.TWaveformRecordMatch(
             record,
@@ -37,16 +30,25 @@ public sealed class TWaveformSnapshot
     }
 
     [Fact]
+    public void PeakCountOffTheDuration_FailsMatch()
+    {
+        TimeSpan duration = TimeSpan.FromSeconds(3);
+        byte[] truncated = new byte[TWaveform.TWaveformBucketsResolve(duration) - 1];
+        truncated[0] = 1;
+        TWaveformRecord record = TWaveform.TWaveformRecordCreate(truncated, duration);
+
+        Assert.False(TWaveform.TWaveformRecordMatch(record, duration));
+    }
+
+    [Fact]
     public void MissingOrMalformedEncodedData_DecodesAsEmpty()
     {
         var malformed = new TWaveformRecord(
             TWaveform.TWaveformBucketMilliseconds,
             1_000,
-            "not base64",
-            string.Empty);
+            "not base64");
 
         Assert.Empty(TWaveform.TWaveformPeaksRead(malformed));
-        Assert.Empty(TWaveform.TWaveformRmsRead(malformed));
         Assert.Empty(TWaveform.TWaveformPeaksRead(null));
         Assert.False(TWaveform.TWaveformRecordMatch(malformed, TimeSpan.FromSeconds(1)));
     }

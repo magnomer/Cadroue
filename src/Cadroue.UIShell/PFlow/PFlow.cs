@@ -52,6 +52,7 @@ public sealed partial class PFlow : UserControl
         pMap.PMapSpoolChange += PFlowSpoolHandle;
         pMap.PMapDragChange += PFlowDragSet;
         lSegment.LSegmentNotice += PFlowSegmentHandle;
+        lSegment.LSegmentFaultNotice += PFlowFaultHandle;
         lKeyframeOrchestrator.LKeyframeNoticeReady += PFlowNoticeHandle;
         lWaveformOrchestrator.LWaveformReady += PFlowWaveformHandle;
         lKeyframeRequestTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(250) };
@@ -91,6 +92,7 @@ public sealed partial class PFlow : UserControl
         TimeSpan pFlowResumeAt = pFlowSameSource ? lCursor : cursorTime;
         lSourcePath = pFlowNextSource;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
+        pFlowWaveformAudio = mediaInfo.LMediaAudioPresent;
         pFlowKeyframeDirection = null;
         lCursor = PFlowCursorClamp(pFlowResumeAt);
         lSegment.LSegmentSourceSet(lSourcePath);
@@ -189,12 +191,12 @@ public sealed partial class PFlow : UserControl
         {
             case "zoomIn": lSpool.LSpoolZoom(lCursor, 1); PFlowSpoolUpdate(); return true;
             case "zoomOut": lSpool.LSpoolZoom(lCursor, -1); PFlowSpoolUpdate(); return true;
-            case "addSection" when pFlowSectionActive: PFlowSectionAdd(); return true;
-            case "setStart" when pFlowSectionActive: PFlowStartSet(); return true;
-            case "splitSection" when pFlowSectionActive: PFlowSectionDivide(); return true;
-            case "setEnd" when pFlowSectionActive: PFlowEndSet(); return true;
-            case "deleteSection" when pFlowSectionActive: PFlowSectionDelete(); return true;
-            case "nameSection" when pFlowSectionActive: return PFlowNameShow();
+            case "addSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionAdd(); return true;
+            case "setStart" when pFlowSectionActive && pFlowSectionEditable: PFlowStartSet(); return true;
+            case "splitSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionDivide(); return true;
+            case "setEnd" when pFlowSectionActive && pFlowSectionEditable: PFlowEndSet(); return true;
+            case "deleteSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionDelete(); return true;
+            case "nameSection" when pFlowSectionActive && pFlowSectionEditable: return PFlowNameShow();
             case "previousKey": PFlowKeyframeMove(-1); return true;
             case "nearestKey": PFlowKeyframeMove(0); return true;
             case "nextKey": PFlowKeyframeMove(1); return true;

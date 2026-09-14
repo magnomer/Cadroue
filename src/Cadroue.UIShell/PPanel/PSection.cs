@@ -27,7 +27,9 @@ public sealed partial class PSection : UserControl
     private HashSet<int> pSectionSelectedCurrent = new();
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
+    private readonly UIElement pSectionActionBar;
     private bool pSectionRebuilding;
+    private bool pSectionEditable = true;
 
     public PSection()
     {
@@ -57,10 +59,10 @@ public sealed partial class PSection : UserControl
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
-        UIElement pActionBar = PSectionActionBuild();
-        DockPanel.SetDock(pActionBar, Dock.Bottom);
+        pSectionActionBar = PSectionActionBuild();
+        DockPanel.SetDock(pSectionActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
-        pRoot.Children.Add(pActionBar);
+        pRoot.Children.Add(pSectionActionBar);
         pRoot.Children.Add(pScroll);
 
         pSectionFullBody = pRoot;
@@ -81,6 +83,8 @@ public sealed partial class PSection : UserControl
         PSectionDetach();
         pFlowAttached = pFlow;
         pFlowAttached.PFlowSectionChange += PSectionUpdateHandle;
+        pFlowAttached.PFlowEditChange += PSectionEditHandle;
+        PSectionEditHandle(pFlow.PFlowEditCheck());
         PSectionRebuild();
     }
 
@@ -88,7 +92,18 @@ public sealed partial class PSection : UserControl
     {
         if (pFlowAttached is null) return;
         pFlowAttached.PFlowSectionChange -= PSectionUpdateHandle;
+        pFlowAttached.PFlowEditChange -= PSectionEditHandle;
         pFlowAttached = null;
+    }
+
+    private void PSectionEditHandle(bool pSectionEdit)
+    {
+        pSectionEditable = pSectionEdit;
+        pSectionActionBar.IsEnabled = pSectionEdit;
+        if (pSectionEdit) return;
+        pSectionRowPanel.ReleaseMouseCapture();
+        PSectionDragClear();
+        if (pSectionIndexEditing is not null) PSectionEditCancel();
     }
 
     private void PSectionUpdateHandle(IReadOnlyList<LPiece> pSectionList, int? pSectionIndexSelect)

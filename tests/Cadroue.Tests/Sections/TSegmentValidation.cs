@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 using Xunit;
@@ -28,6 +29,61 @@ public sealed class TSegmentValidation
         Assert.Single(valid);
         Assert.Equal(TSegmentAtCreate(1), valid[0].LPieceOrigin);
         Assert.Equal(TSegmentAtCreate(2), valid[0].LPieceEnd);
+    }
+
+    [Fact]
+    public void SectionBeforeMediaStart_IsDropped()
+    {
+        var sections = new[] { TSegmentPieceCreate(-1, 2), TSegmentPieceCreate(2, 4) };
+        var valid = TInterface.TPieceValidSelect(sections, TSegmentAtCreate(10));
+        Assert.Single(valid);
+        Assert.Equal(TSegmentAtCreate(2), valid[0].LPieceOrigin);
+    }
+
+    [Fact]
+    public void NegativeColorIndex_IsNormalizedToZero()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 2) with { LPieceColorIndex = int.MinValue } };
+        var valid = TInterface.TPieceValidSelect(sections, TSegmentAtCreate(10));
+        Assert.Equal(0, Assert.Single(valid).LPieceColorIndex);
+    }
+
+    [Fact]
+    public void BoundSet_RejectsOutOfRangeAndReportsResult()
+    {
+        var segment = TInterface.TSegmentCreate();
+        Assert.True(TInterface.TSegmentBoundSet(
+            segment, new[] { TSegmentPieceCreate(-2, 1), TSegmentPieceCreate(1, 3), TSegmentPieceCreate(5, 20) }, 0, TSegmentAtCreate(10)));
+        var kept = Assert.Single(TInterface.TSegmentListRead(segment));
+        Assert.Equal(TSegmentAtCreate(1), kept.LPieceOrigin);
+    }
+
+    [Fact]
+    public void Load_DropsInvalidSavedSections_AndRaisesInvalidFault()
+    {
+        LSidecarSectionRecord TSidecarSectionCreate(long start, long end, int color) => new()
+        {
+            LSidecarStartMilliseconds = start, LSidecarEndMilliseconds = end, LSidecarColorIndex = color
+        };
+        TInterface.TSegmentSeamSet(_ => new[] { TSidecarSectionCreate(-500, 1000, 0), TSidecarSectionCreate(1000, 2000, -7), TSidecarSectionCreate(3000, 99000, 1) });
+        try
+        {
+            var segment = TInterface.TSegmentCreate();
+            int dropped = 0;
+            TInterface.TSegmentFaultAttach(segment, (kind, count) =>
+            {
+                if (kind == LSegmentFault.LSegmentFaultInvalid) dropped = count;
+            });
+            TInterface.TSegmentLoad(segment, "clip.mp4", TSegmentAtCreate(10));
+            var kept = Assert.Single(TInterface.TSegmentListRead(segment));
+            Assert.Equal(TSegmentAtCreate(1), kept.LPieceOrigin);
+            Assert.Equal(0, kept.LPieceColorIndex);
+            Assert.Equal(2, dropped);
+        }
+        finally
+        {
+            TInterface.TSegmentSeamSet(null);
+        }
     }
 
     [Fact]
@@ -133,5 +189,43 @@ public sealed class TSegmentValidation
     {
         var sections = new[] { TSegmentPieceCreate(0, 4) };
         Assert.Equal(TimeSpan.Zero, TInterface.TPieceFloorRead(sections, TSegmentAtCreate(6), -1, TSegmentOverlapOn));
+    }
+
+    [Fact]
+    public void TouchingSections_DoNotIntersect()
+    {
+        var sections = new[] { TSegmentPieceCreate(0, 4) };
+        Assert.False(TInterface.TPieceIntersectCheck(
+            sections, TSegmentAtCreate(4), TSegmentAtCreate(8), -1, TSegmentOverlapOff));
+        Assert.True(TInterface.TPieceIntersectCheck(
+            sections, TSegmentAtCreate(3), TSegmentAtCreate(8), -1, TSegmentOverlapOff));
+    }
+
+    [Fact]
+    public void ListAboveCeiling_IsRefusedWithFault()
+    {
+        var segment = TInterface.TSegmentCreate();
+        LSegmentFault? fault = null;
+        TInterface.TSegmentFaultAttach(segment, (kind, _) => fault = kind);
+        var sections = Enumerable.Range(0, LPiece.LPieceCeiling + 1)
+            .Select(index => TSegmentPieceCreate(index, index + 1))
+            .ToArray();
+        TInterface.TSegmentSet(segment, sections, 0);
+        Assert.Equal(LSegmentFault.LSegmentFaultCeiling, fault);
+        Assert.Empty(TInterface.TSegmentListRead(segment));
+    }
+
+    [Fact]
+    public void StaleApproval_DoesNotDeleteOrClear()
+    {
+        var segment = TInterface.TSegmentCreate();
+        TInterface.TSegmentSet(segment, new[] { TSegmentPieceCreate(0, 2) }, 0);
+        int approved = TInterface.TSegmentVersionRead(segment);
+        TInterface.TSegmentSet(segment, new[] { TSegmentPieceCreate(0, 2), TSegmentPieceCreate(3, 4) }, 0);
+        Assert.False(TInterface.TSegmentDelete(segment, new[] { 0 }, approved));
+        Assert.False(TInterface.TSegmentClear(segment, approved));
+        Assert.Equal(2, TInterface.TSegmentListRead(segment).Count);
+        Assert.True(TInterface.TSegmentDelete(segment, new[] { 1 }, TInterface.TSegmentVersionRead(segment)));
+        Assert.Single(TInterface.TSegmentListRead(segment));
     }
 }

@@ -20,40 +20,9 @@ public static partial class LSweep
             return Array.Empty<LSweepSpan>();
         }
 
-        var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
-        Process? lSweepProcess = null;
-        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
-        {
-            try
-            {
-                lSweepProcess?.Kill(true);
-            }
-            catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception
-                    or InvalidOperationException
-                    or NotSupportedException)
-            {
-            }
-        });
-        await lSweepEmployer.LEmployerRun(
-            LSweepArgsFormat(lSweepSource, lSweepBlank),
-            lSweepToken,
-            lSweepAttach => lSweepProcess = lSweepAttach,
-            _ => { },
-            lSweepLine =>
-            {
-                lSweepLines.Add(lSweepLine);
-                if (lSweepProgress is not null
-                    && lSweepDuration > TimeSpan.Zero
-                    && LSweepTimeRead(lSweepLine) is { } lSweepElapsed)
-                {
-                    lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
-                }
-            }).ConfigureAwait(false);
-
-        lSweepProgress?.Report(1);
-        return LSweepOutputParse(lSweepLines);
+        return LSweepOutputParse(
+            await LSweepLinesRead(LSweepArgsFormat(lSweepSource, lSweepBlank), lSweepDuration, lSweepToken, lSweepProgress)
+                .ConfigureAwait(false));
     }
 
     public static async Task<IReadOnlyList<TimeSpan>> LSweepSceneScan(
@@ -68,40 +37,9 @@ public static partial class LSweep
             return Array.Empty<TimeSpan>();
         }
 
-        var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
-        Process? lSweepProcess = null;
-        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
-        {
-            try
-            {
-                lSweepProcess?.Kill(true);
-            }
-            catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception
-                    or InvalidOperationException
-                    or NotSupportedException)
-            {
-            }
-        });
-        await lSweepEmployer.LEmployerRun(
-            LSweepSceneFormat(lSweepSource, lSweepThreshold),
-            lSweepToken,
-            lSweepAttach => lSweepProcess = lSweepAttach,
-            _ => { },
-            lSweepLine =>
-            {
-                lSweepLines.Add(lSweepLine);
-                if (lSweepProgress is not null
-                    && lSweepDuration > TimeSpan.Zero
-                    && LSweepTimeRead(lSweepLine) is { } lSweepElapsed)
-                {
-                    lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
-                }
-            }).ConfigureAwait(false);
-
-        lSweepProgress?.Report(1);
-        return LSweepSceneParse(lSweepLines);
+        return LSweepSceneParse(
+            await LSweepLinesRead(LSweepSceneFormat(lSweepSource, lSweepThreshold), lSweepDuration, lSweepToken, lSweepProgress)
+                .ConfigureAwait(false));
     }
 
     public static async Task<IReadOnlyList<LSweepSpan>> LSweepStillScan(
@@ -117,40 +55,14 @@ public static partial class LSweep
             return Array.Empty<LSweepSpan>();
         }
 
-        var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
-        Process? lSweepProcess = null;
-        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
-        {
-            try
-            {
-                lSweepProcess?.Kill(true);
-            }
-            catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception
-                    or InvalidOperationException
-                    or NotSupportedException)
-            {
-            }
-        });
-        await lSweepEmployer.LEmployerRun(
-            LSweepStillFormat(lSweepSource, lSweepTolerance, lSweepMinimum),
-            lSweepToken,
-            lSweepAttach => lSweepProcess = lSweepAttach,
-            _ => { },
-            lSweepLine =>
-            {
-                lSweepLines.Add(lSweepLine);
-                if (lSweepProgress is not null
-                    && lSweepDuration > TimeSpan.Zero
-                    && LSweepTimeRead(lSweepLine) is { } lSweepElapsed)
-                {
-                    lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
-                }
-            }).ConfigureAwait(false);
-
-        lSweepProgress?.Report(1);
-        return LSweepStillParse(lSweepLines, lSweepDuration);
+        return LSweepStillParse(
+            await LSweepLinesRead(
+                    LSweepStillFormat(lSweepSource, lSweepTolerance, lSweepMinimum),
+                    lSweepDuration,
+                    lSweepToken,
+                    lSweepProgress)
+                .ConfigureAwait(false),
+            lSweepDuration);
     }
 
     public static async Task<IReadOnlyList<TimeSpan>> LSweepLuminanceScan(
@@ -168,40 +80,9 @@ public static partial class LSweep
             return Array.Empty<TimeSpan>();
         }
 
-        var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
-        Process? lSweepProcess = null;
-        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
-        {
-            try
-            {
-                lSweepProcess?.Kill(true);
-            }
-            catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception
-                    or InvalidOperationException
-                    or NotSupportedException)
-            {
-            }
-        });
-        await lSweepEmployer.LEmployerRun(
-            LSweepLuminanceFormat(lSweepSource, lSweepMode),
-            lSweepToken,
-            lSweepAttach => lSweepProcess = lSweepAttach,
-            _ => { },
-            lSweepLine =>
-            {
-                lSweepLines.Add(lSweepLine);
-                if (lSweepProgress is not null
-                    && lSweepDuration > TimeSpan.Zero
-                    && LSweepTimeRead(lSweepLine) is { } lSweepElapsed)
-                {
-                    lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
-                }
-            }).ConfigureAwait(false);
-
-        IReadOnlyList<LSweepSample> lSweepSamples = LSweepLuminanceParse(lSweepLines);
-        lSweepProgress?.Report(1);
+        IReadOnlyList<LSweepSample> lSweepSamples = LSweepLuminanceParse(
+            await LSweepLinesRead(LSweepLuminanceFormat(lSweepSource, lSweepMode), lSweepDuration, lSweepToken, lSweepProgress)
+                .ConfigureAwait(false));
         return LSweepMinimumResolve(
             LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
     }
@@ -219,6 +100,22 @@ public static partial class LSweep
             return Array.Empty<LSweepSpan>();
         }
 
+        return LSweepSilenceParse(
+            await LSweepLinesRead(
+                    LSweepSilenceFormat(lSweepSource, lSweepThresholdDb, lSweepMinimum),
+                    lSweepDuration,
+                    lSweepToken,
+                    lSweepProgress)
+                .ConfigureAwait(false),
+            lSweepDuration);
+    }
+
+    private static async Task<IReadOnlyList<string>> LSweepLinesRead(
+        string lSweepArguments,
+        TimeSpan lSweepDuration,
+        CancellationToken lSweepToken,
+        IProgress<double>? lSweepProgress)
+    {
         var lSweepLines = new List<string>();
         var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
         Process? lSweepProcess = null;
@@ -235,8 +132,8 @@ public static partial class LSweep
             {
             }
         });
-        await lSweepEmployer.LEmployerRun(
-            LSweepSilenceFormat(lSweepSource, lSweepThresholdDb, lSweepMinimum),
+        LEmployerResult lSweepResult = await lSweepEmployer.LEmployerRun(
+            lSweepArguments,
             lSweepToken,
             lSweepAttach => lSweepProcess = lSweepAttach,
             _ => { },
@@ -251,8 +148,26 @@ public static partial class LSweep
                 }
             }).ConfigureAwait(false);
 
+        lSweepToken.ThrowIfCancellationRequested();
+        if (lSweepResult.LEmployerExit != 0)
+        {
+            throw new InvalidOperationException(LSweepFaultFormat(lSweepResult));
+        }
+
         lSweepProgress?.Report(1);
-        return LSweepSilenceParse(lSweepLines, lSweepDuration);
+        return lSweepLines;
+    }
+
+    private static string LSweepFaultFormat(LEmployerResult lSweepResult)
+    {
+        string[] lSweepTail = lSweepResult.LEmployerError
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        LAutopsyResult lSweepAutopsy = LAutopsy.LAutopsyResolve(
+            lSweepResult.LEmployerExit,
+            string.Join(" | ", lSweepTail[^Math.Min(3, lSweepTail.Length)..]));
+        return lSweepAutopsy.LAutopsyResultVisible
+            ? $"{lSweepAutopsy.LAutopsyResultSimple} (exit {lSweepAutopsy.LAutopsyResultCode})"
+            : $"{lSweepAutopsy.LAutopsyResultTechnical} (exit {lSweepAutopsy.LAutopsyResultCode})";
     }
 
     private static double? LSweepTimeRead(string lSweepLine)

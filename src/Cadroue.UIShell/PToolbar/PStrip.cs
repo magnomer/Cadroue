@@ -347,6 +347,31 @@ public sealed class PStrip
         return pStripCleared;
     }
 
+    public bool PStripBusyCheck(PTabRecord? pTabRecord = null) =>
+        pTabRecord is null
+            ? PStripRecords.Any(pTabItem => pTabItem.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck())
+            : pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabBusyCheck();
+
+    public bool PStripCloseConfirm(System.Windows.Window? pOwner, PTabRecord? pTabRecord = null)
+    {
+        if (!PStripBusyCheck(pTabRecord))
+        {
+            return true;
+        }
+
+        bool pStripConfirmed = PSCasement.PSAlert.PSAlertConfirm(
+            pOwner,
+            LLocalization.LLocalizationTextRead("Tab.Close.BusyTitle"),
+            LLocalization.LLocalizationTextRead(pTabRecord is null ? "Tab.Close.BusyAllMessage" : "Tab.Close.BusyMessage"),
+            LLocalization.LLocalizationTextRead("Terms.Stop"));
+        if (!pStripConfirmed)
+        {
+            LTraceLog.LTraceInfoRecord("Close declined: a worklist is still working");
+        }
+
+        return pStripConfirmed;
+    }
+
     public void PStripClose(PTabRecord pTabRecord)
     {
         var pTabIndex = PStripRecords.IndexOf(pTabRecord);

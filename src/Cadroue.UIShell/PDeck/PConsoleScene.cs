@@ -181,8 +181,13 @@ public sealed partial class PConsole
             return;
         }
 
-        pWindow.PWindowSceneApply(lScene);
-        PConsoleSceneSet(lSceneName);
+        if (pWindow.PWindowSceneApply(lScene))
+        {
+            PConsoleSceneSet(lSceneName);
+            return;
+        }
+
+        PConsoleSceneUpdate();
     }
 
     private void PConsoleSceneRebuild()

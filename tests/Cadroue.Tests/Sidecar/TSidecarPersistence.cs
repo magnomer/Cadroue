@@ -29,11 +29,11 @@ public sealed class TSidecarPersistence
         string source = sidecar.TSourceCreate("waveform.wav", "waveform source");
         Assert.True(sidecar.TSidecarSave(source, TimeSpan.FromMilliseconds(4321), new long[] { 0 }));
 
-        Assert.True(sidecar.TWaveformSave(source, 25, 4321, "AQIDBA==", "BQYHCA=="));
+        Assert.True(sidecar.TWaveformSave(source, 25, 4321, "AQIDBA=="));
 
         TSidecar.TSidecarData? loaded = sidecar.TSidecarLoad(source, TimeSpan.FromMilliseconds(4321));
         Assert.NotNull(loaded);
-        Assert.Equal(new TSidecar.TSidecarWaveform(25, 4321, "AQIDBA==", "BQYHCA=="), loaded.TSidecarWave);
+        Assert.Equal(new TSidecar.TSidecarWaveform(25, 4321, "AQIDBA=="), loaded.TSidecarWave);
     }
 
     [Fact]

@@ -16,8 +16,7 @@ internal sealed class TSidecar : IDisposable
     internal sealed record TSidecarWaveform(
         int TSidecarBucketMilliseconds,
         long TSidecarDurationMilliseconds,
-        string TSidecarPeaks,
-        string TSidecarRms);
+        string TSidecarPeaks);
 
     internal sealed record TSidecarData(
         int TSidecarVersion,
@@ -105,16 +104,14 @@ internal sealed class TSidecar : IDisposable
         string sourcePath,
         int bucketMilliseconds,
         long durationMilliseconds,
-        string peaks,
-        string rms) =>
+        string peaks) =>
         LSidecarStore.LSidecarWaveformSave(
             sourcePath,
             new LSidecarWaveformRecord
             {
                 LSidecarBucketMilliseconds = bucketMilliseconds,
                 LSidecarDurationMilliseconds = durationMilliseconds,
-                LSidecarPeaks = peaks,
-                LSidecarRms = rms
+                LSidecarPeaks = peaks
             });
 
     internal void TSidecarPersistCopy(string sourcePath, string destinationPath)
@@ -174,8 +171,7 @@ internal sealed class TSidecar : IDisposable
                 ? new TSidecarWaveform(
                     waveform.LSidecarBucketMilliseconds,
                     waveform.LSidecarDurationMilliseconds,
-                    waveform.LSidecarPeaks,
-                    waveform.LSidecarRms)
+                    waveform.LSidecarPeaks)
                 : null);
 
     public void Dispose()

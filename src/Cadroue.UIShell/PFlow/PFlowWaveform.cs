@@ -69,6 +69,7 @@ public sealed partial class PFlow
         return pFlowWaveformGeometry;
     }
     private bool pFlowWaveformActive = LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
+    private bool pFlowWaveformAudio;
 
     public event Action<bool>? PFlowWaveformChange;
 
@@ -94,7 +95,10 @@ public sealed partial class PFlow
             return;
         }
 
-        lWaveformOrchestrator.LWaveformStart(lSourcePath, lSpool?.LSpoolDuration ?? TimeSpan.Zero);
+        lWaveformOrchestrator.LWaveformStart(
+            lSourcePath,
+            lSpool?.LSpoolDuration ?? TimeSpan.Zero,
+            pFlowWaveformAudio);
     }
 
     private void PFlowWaveformClear()
@@ -108,7 +112,7 @@ public sealed partial class PFlow
         lWaveformOrchestrator.Dispose();
     }
 
-    private void PFlowWaveformHandle(byte[] pFlowWaveformPeaks)
+    private void PFlowWaveformHandle(LWaveformNotice pFlowWaveformNotice)
     {
         if (pFlowUnloaded || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
         {

@@ -61,16 +61,23 @@ public partial class PWindow : Window
         {
             PWindowRelayPlace(lRelayPayload);
             PWindowRelayAccept(lRelayPayload);
+            LRelayChannel.LRelayStartupCommit();
         }
         else
         {
             PWindowMediaRestore(LPreference.LPreferenceStateCurrent);
         }
 
-        LRelayChannel.LRelayTabReceive += PWindowRelayHandle;
+        LRelayChannel.LRelayAcceptSeam = PWindowRelayHandle;
         PDropHandlersAdd();
         PResizeHandlersAdd();
+        Closing += PWindowExitHandle;
         Closed += PWindowCloseHandle;
+    }
+
+    private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
+    {
+        eventArgs.Cancel = !pStrip.PStripCloseConfirm(this);
     }
 
     private void PWindowPositionRestore(LFrameState lFrame)
@@ -99,7 +106,7 @@ public partial class PWindow : Window
         }
 
         LScene.LSceneStateSave(PWindowSceneRead(LScene.LSceneActiveName));
-        LRelayChannel.LRelayTabReceive -= PWindowRelayHandle;
+        LRelayChannel.LRelayAcceptSeam = null;
         pStrip.PStripSelectChange -= PWindowTabHandle;
         pToolbar.PToolbarOptionsApply -= PWindowOptionsHandle;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
@@ -111,6 +118,7 @@ public partial class PWindow : Window
         {
             pTabRecord.PTabWorkspace.PWorkspaceClose();
         }
+        Closing -= PWindowExitHandle;
         Closed -= PWindowCloseHandle;
     }
 }

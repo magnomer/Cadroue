@@ -9,8 +9,15 @@ public sealed partial class PFlow
     private bool pFlowSectionEditable = true;
     private bool pFlowSegmentFired;
 
-    public void PFlowEditSet(bool pFlowSectionEdit) =>
+    public event Action<bool>? PFlowEditChange;
+
+    public void PFlowEditSet(bool pFlowSectionEdit)
+    {
+        if (pFlowSectionEditable == pFlowSectionEdit) return;
         pFlowSectionEditable = pFlowSectionEdit;
+        if (!pFlowSectionEditable) PFlowNameClose();
+        PFlowEditChange?.Invoke(pFlowSectionEditable);
+    }
 
     public bool PFlowEditCheck() => pFlowSectionEditable;
 
@@ -63,28 +70,57 @@ public sealed partial class PFlow
     {
         if (!pFlowSectionEditable) return;
         IReadOnlyList<int> pFlowSelected = lSegment.LSegmentSelectedRead();
+        int pFlowApproved = lSegment.LSegmentVersionRead();
         if (pFlowSelected.Count == 0) return;
         if (!PFlowDestructiveConfirm(
             LLocalization.LLocalizationTextRead("Flow.Section.DeleteConfirm"),
             LLocalization.LLocalizationTextRead("Terms.Delete"))) return;
+        if (pFlowApproved != lSegment.LSegmentVersionRead())
+        {
+            LTraceLog.LTraceWarningRecord("Section delete skipped: sections changed while confirming");
+            return;
+        }
+
         foreach (int pFlowIndex in pFlowSelected)
         {
             PFlowSectionRecord("deleted", pFlowIndex);
         }
 
-        lSegment.LSegmentDelete();
+        lSegment.LSegmentDelete(pFlowSelected, pFlowApproved);
     }
 
     public void PFlowSectionClear()
     {
         if (!pFlowSectionEditable) return;
-        if (lSegment.LSegmentListRead().Count == 0) return;
+        int pFlowCount = lSegment.LSegmentListRead().Count;
+        int pFlowApproved = lSegment.LSegmentVersionRead();
+        if (pFlowCount == 0) return;
         if (!PFlowDestructiveConfirm(
             LLocalization.LLocalizationTextRead("Flow.Section.ClearConfirm"),
             LLocalization.LLocalizationTextRead("Terms.Remove"))) return;
-        int pFlowCount = lSegment.LSegmentListRead().Count;
-        lSegment.LSegmentClear();
+        if (!lSegment.LSegmentClear(pFlowApproved))
+        {
+            LTraceLog.LTraceWarningRecord("Section clear skipped: sections changed while confirming");
+            return;
+        }
+
         LTraceLog.LTraceInfoRecord($"Sections cleared: {pFlowCount} section(s) removed");
+    }
+
+    private void PFlowFaultHandle(LSegmentFault pFlowFault, int pFlowCount)
+    {
+        string pFlowSource = string.IsNullOrWhiteSpace(lSourcePath)
+            ? "(no media)"
+            : System.IO.Path.GetFileName(lSourcePath);
+        LTraceLog.LTraceWarningRecord(pFlowFault switch
+        {
+            LSegmentFault.LSegmentFaultCeiling =>
+                $"Section change refused in '{pFlowSource}': " +
+                $"{pFlowCount} section(s) exceed the {LPiece.LPieceCeiling} limit",
+            LSegmentFault.LSegmentFaultInvalid =>
+                $"Section restore in '{pFlowSource}' dropped {pFlowCount} invalid saved section(s)",
+            _ => $"Section save failed in '{pFlowSource}': {pFlowCount} section(s) kept in memory only"
+        });
     }
 
     private void PFlowSectionRecord(string pFlowAction, int pFlowIndex)
@@ -158,15 +194,7 @@ public sealed partial class PFlow
     public IReadOnlyList<LPiece> PFlowSectionsRead() => lSegment.LSegmentListRead();
 
     public IReadOnlyList<LSplitSectionDescription> PFlowSplitRead() =>
-        lSegment.LSegmentListRead()
-            .Select(lSection => new LSplitSectionDescription(
-                lSection.LPieceOrigin,
-                lSection.LPieceEnd,
-                lSection.LPieceName,
-                lSection.LPiecePrefix,
-                lSection.LPieceSuffix,
-                lSection.LPieceHidden))
-            .ToArray();
+        lSegment.LSegmentListRead().Select(lSection => lSection.LPieceDescribe()).ToArray();
 
     public int? PFlowSelectionRead() => lSegment.LSegmentSelectionRead();
 

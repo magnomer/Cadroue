@@ -40,6 +40,7 @@ public sealed partial class PCompass : UserControl
 
     private readonly WrapPanel pCompassLinePanel;
     private readonly PFlowControl pCompassFlow;
+    private readonly List<Button> pCompassSectionButtons = new();
 
     public PCompass(PFlowControl pFlow, bool pCompassSectionShow = false)
     {
@@ -154,6 +155,11 @@ public sealed partial class PCompass : UserControl
                     pEntry.PCompassButtonLabel,
                     pEntry.PCompassButtonTooltip);
             pButton.Click += (_, _) => pEntry.PCompassButtonHandler();
+            if (pEntry.PCompassButtonSection)
+            {
+                pCompassSectionButtons.Add(pButton);
+            }
+
             pGroup.Children.Add(pButton);
             if (pEntry.PCompassButtonLast)
             {
@@ -182,6 +188,8 @@ public sealed partial class PCompass : UserControl
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
         pFlow.PFlowVolumeValue += PCompassValueHandle;
         pFlow.PFlowPlayingChange += PCompassPlayingApply;
+        pFlow.PFlowEditChange += PCompassEditApply;
+        PCompassEditApply(pFlow.PFlowEditCheck());
 
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
@@ -198,6 +206,14 @@ public sealed partial class PCompass : UserControl
             SnapsToDevicePixels = true
         };
         pCompassLinePanel.SizeChanged += PCompassSizeHandle;
+    }
+
+    private void PCompassEditApply(bool pCompassEditable)
+    {
+        foreach (Button pButton in pCompassSectionButtons)
+        {
+            pButton.IsEnabled = pCompassEditable;
+        }
     }
 
     private static StackPanel PCompassGroupBuild()

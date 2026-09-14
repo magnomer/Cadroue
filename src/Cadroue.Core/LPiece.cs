@@ -26,4 +26,32 @@ public readonly partial record struct LPiece(
         get => lPieceSuffix ?? string.Empty;
         init => lPieceSuffix = value;
     }
+
+    public static LPiece LPieceCreate(LSidecarSectionRecord lPieceRecord) =>
+        new(
+            TimeSpan.FromMilliseconds(lPieceRecord.LSidecarStartMilliseconds),
+            TimeSpan.FromMilliseconds(lPieceRecord.LSidecarEndMilliseconds),
+            lPieceRecord.LSidecarColorIndex,
+            lPieceRecord.LSidecarName ?? string.Empty)
+        {
+            LPiecePrefix = lPieceRecord.LSidecarPrefix ?? string.Empty,
+            LPieceSuffix = lPieceRecord.LSidecarSuffix ?? string.Empty,
+            LPieceHidden = lPieceRecord.LSidecarHidden,
+            LPieceDetected = lPieceRecord.LSidecarDetected
+        };
+
+    public LSidecarSectionRecord LPieceRecordCreate() => new()
+    {
+        LSidecarStartMilliseconds = (long)LPieceOrigin.TotalMilliseconds,
+        LSidecarEndMilliseconds = (long)LPieceEnd.TotalMilliseconds,
+        LSidecarColorIndex = LPieceColorIndex,
+        LSidecarName = LPieceName,
+        LSidecarPrefix = LPiecePrefix,
+        LSidecarSuffix = LPieceSuffix,
+        LSidecarHidden = LPieceHidden,
+        LSidecarDetected = LPieceDetected
+    };
+
+    public LSplitSectionDescription LPieceDescribe() =>
+        new(LPieceOrigin, LPieceEnd, LPieceName, LPiecePrefix, LPieceSuffix, LPieceHidden);
 }

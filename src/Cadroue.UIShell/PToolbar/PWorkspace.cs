@@ -17,6 +17,7 @@ public sealed class PWorkspace
 {
     private readonly LHistory lWorkspaceHistory = new();
     private string pWorkspaceLosslesscutPath = string.Empty;
+    private LRelay? pWorkspaceRelay;
 
     public PWorkspace(
         string pTabLayoutKey,
@@ -39,7 +40,7 @@ public sealed class PWorkspace
         PWorkspaceList = PWorkspaceSurface.PTabList;
         PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
-        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && !pAudioOnlyAllowed)
+        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && PWorkspaceSurface.PTabSectionVisible)
         {
             PWorkspaceViewer.PViewerMediaChange += PWorkspaceMediaHandle;
         }
@@ -106,6 +107,22 @@ public sealed class PWorkspace
 
     public void PWorkspaceClose()
     {
+        PWorkspaceStepRun("subscriptions", PWorkspaceDetach);
+        PWorkspaceStepRun("preset owner", PWorkspacePresetOwner.LPresetSelectionClose);
+        PWorkspaceStepRun("surface", PWorkspaceSurface.PTabClose);
+        if (PWorkspaceFlow is { } pFlow)
+        {
+            PWorkspaceStepRun("flow", pFlow.PFlowClose);
+        }
+
+        if (PWorkspaceViewer is { } pViewer)
+        {
+            PWorkspaceStepRun("viewer", pViewer.PViewerClose);
+        }
+    }
+
+    private void PWorkspaceDetach()
+    {
         if (PWorkspaceFlow is not null)
         {
             PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
@@ -115,14 +132,24 @@ public sealed class PWorkspace
         if (PWorkspaceViewer is not null)
         {
             PWorkspaceViewer.PViewerMediaChange -= PWorkspaceMediaHandle;
+            PWorkspaceViewer.PViewerMediaChange -= PWorkspaceRelayHandle;
         }
 
+        pWorkspaceRelay = null;
         PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
         PWorkspacePresetOwner.LPresetSelectionChange -= PWorkspacePresetHandle;
-        PWorkspacePresetOwner.LPresetSelectionClose();
-        PWorkspaceSurface.PTabClose();
-        PWorkspaceFlow?.PFlowClose();
-        PWorkspaceViewer?.PViewerClose();
+    }
+
+    private static void PWorkspaceStepRun(string pStepName, Action pStep)
+    {
+        try
+        {
+            pStep();
+        }
+        catch (Exception pStepException)
+        {
+            LTraceLog.LTraceErrorRecord($"Workspace close step '{pStepName}' failed; teardown continues", pStepException);
+        }
     }
 
     private LHistoryEntry PWorkspaceStateRead() => new(
@@ -202,54 +229,114 @@ public sealed class PWorkspace
 
     public LRelay PWorkspaceRelayCreate(PTabRecord pTabRecord, double pDropLeft, double pDropTop)
     {
-        IReadOnlyList<LPiece> lRelaySections = Array.Empty<LPiece>();
-        int? lRelaySectionIndex = null;
-        if (PWorkspaceFlow is { } pFlow)
-        {
-            LSegment lRelaySegment = pFlow.PFlowSegment;
-            lRelaySections = lRelaySegment.LSegmentListRead();
-            lRelaySectionIndex = lRelaySegment.LSegmentSelectionRead();
-        }
-
-        return LRelayPayload.LRelayCreate(
+        LRelay lRelay = LRelayPayload.LRelayCreate(
             pTabRecord.PTabLayoutKey,
             pTabRecord.PTabNameCustom,
             PWorkspaceExportState.LPresetRecordCreate(),
             PWorkspaceLayoutRead(),
-            PWorkspaceViewer?.PViewerSourcePath ?? string.Empty,
             pDropLeft,
-            pDropTop,
-            lRelaySections,
-            lRelaySectionIndex);
+            pDropTop);
+        if (PWorkspaceSurface.PTabList is { } pList)
+        {
+            lRelay.LRelayPaths.AddRange(pList.PListPathsRead());
+        }
+
+        if (PWorkspaceViewer is { } pViewer)
+        {
+            lRelay.LRelaySourcePath = pViewer.PViewerSourcePath ?? string.Empty;
+            lRelay.LRelayPositionTicks = pViewer.PViewerPositionRead().Ticks;
+            lRelay.LRelayVolume = pViewer.PViewerVolumeCurrent;
+        }
+
+        if (PWorkspaceFlow is { } pFlow)
+        {
+            LSegment lRelaySegment = pFlow.PFlowSegment;
+            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(lRelaySegment.LSegmentListRead());
+            lRelay.LRelaySectionIndex = lRelaySegment.LSegmentSelectionRead();
+            if (pFlow.PFlowRangeRead() is var (lRelayOrigin, lRelayLimit))
+            {
+                lRelay.LRelayOriginTicks = lRelayOrigin.Ticks;
+                lRelay.LRelayLimitTicks = lRelayLimit.Ticks;
+            }
+        }
+
+        return lRelay;
     }
 
-    public void PWorkspaceRelayApply(LRelay lRelay)
+    public async void PWorkspaceRelayApply(LRelay lRelay)
     {
-        if (PWorkspaceViewer is null || string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath))
+        if (PWorkspaceViewer is { } pRelayViewer && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath))
+        {
+            pRelayViewer.PViewerMediaChange += PWorkspaceRelayHandle;
+            pWorkspaceRelay = lRelay;
+        }
+
+        PList? pRelayList = PWorkspaceSurface.PTabList;
+        if (pRelayList is not null && lRelay.LRelayPaths.Count > 0)
+        {
+            await pRelayList.PListPathsAdd(lRelay.LRelayPaths);
+        }
+
+        if (string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath) || PWorkspaceViewer is null)
         {
             return;
         }
 
-        IReadOnlyList<LPiece> lRelaySections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
-        int? lRelaySectionSelect = lRelay.LRelaySectionIndex;
-        PViewer pRelayViewer = PWorkspaceViewer;
-
-        void PWorkspaceRelayHandle(LCargo lMediaStatus)
+        if (pRelayList is not null && pRelayList.PListPathsRead().Contains(lRelay.LRelaySourcePath, StringComparer.OrdinalIgnoreCase))
         {
-            pRelayViewer.PViewerMediaChange -= PWorkspaceRelayHandle;
-            if (lMediaStatus.LCargoMediaInfo is null || PWorkspaceFlow is null || lRelaySections.Count == 0)
-            {
-                return;
-            }
-
-            LSegment pRelaySegment = PWorkspaceFlow.PFlowSegment;
-            System.Windows.Application.Current?.Dispatcher.BeginInvoke(
-                System.Windows.Threading.DispatcherPriority.Background,
-                new Action(() => pRelaySegment.LSegmentSet(lRelaySections, lRelaySectionSelect)));
+            pRelayList.PListSelect(lRelay.LRelaySourcePath);
+            return;
         }
 
-        pRelayViewer.PViewerMediaChange += PWorkspaceRelayHandle;
-        pRelayViewer.PViewerSourceOpen(lRelay.LRelaySourcePath);
+        PWorkspaceViewer.PViewerSourceOpen(lRelay.LRelaySourcePath);
+    }
+
+    private void PWorkspaceRelayHandle(LCargo lMediaStatus)
+    {
+        if (pWorkspaceRelay is not { } lRelay
+            || PWorkspaceViewer is not { } pRelayViewer
+            || !string.Equals(lMediaStatus.LCargoSourcePath, lRelay.LRelaySourcePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        pRelayViewer.PViewerMediaChange -= PWorkspaceRelayHandle;
+        pWorkspaceRelay = null;
+        if (lMediaStatus.LCargoMediaInfo is not { } lRelayMedia)
+        {
+            return;
+        }
+
+        System.Windows.Application.Current?.Dispatcher.BeginInvoke(
+            System.Windows.Threading.DispatcherPriority.Background,
+            new Action(() => PWorkspaceRelayRestore(lRelay, pRelayViewer, lRelayMedia.LMediaInfoDuration)));
+    }
+
+    private void PWorkspaceRelayRestore(LRelay lRelay, PViewer pRelayViewer, TimeSpan lRelayDuration)
+    {
+        if (PWorkspaceFlow is { } pRelayFlow)
+        {
+            IReadOnlyList<LPiece> lRelaySections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
+            if (lRelaySections.Count > 0)
+            {
+                pRelayFlow.PFlowSegment.LSegmentBoundSet(lRelaySections, lRelay.LRelaySectionIndex, lRelayDuration);
+            }
+
+            if (lRelay.LRelayOriginTicks is { } lRelayOrigin && lRelay.LRelayLimitTicks is { } lRelayLimit)
+            {
+                pRelayFlow.PFlowRangeSet(TimeSpan.FromTicks(lRelayOrigin), TimeSpan.FromTicks(lRelayLimit));
+            }
+        }
+
+        if (lRelay.LRelayVolume is { } lRelayVolume)
+        {
+            pRelayViewer.PViewerVolumeSet(lRelayVolume);
+        }
+
+        if (lRelay.LRelayPositionTicks > 0)
+        {
+            pRelayViewer.PViewerSeek(TimeSpan.FromTicks(lRelay.LRelayPositionTicks));
+        }
     }
 
     private FrameworkElement PWorkspaceRootCreate()

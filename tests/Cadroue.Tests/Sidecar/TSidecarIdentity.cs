@@ -62,7 +62,7 @@ public sealed class TSidecarIdentity
         using var sidecar = new TSidecar();
         string source = sidecar.TSourceCreate("regen.mp4", "first!");
         Assert.True(sidecar.TSidecarSave(source, TimeSpan.FromSeconds(2), new long[] { 0, 700 }));
-        Assert.True(sidecar.TWaveformSave(source, 25, 2000, "AQ==", "Ag=="));
+        Assert.True(sidecar.TWaveformSave(source, 25, 2000, "AQ=="));
 
         sidecar.TSidecarSourceSet(source, "second");
         Assert.True(sidecar.TLoudnessSave(source, -5));

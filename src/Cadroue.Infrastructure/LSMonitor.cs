@@ -3,7 +3,11 @@ using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
-public readonly record struct LSMonitorEstimate(double[] LSMonitorBefore, double[] LSMonitorAfter);
+public readonly record struct LSMonitorEstimate(
+    double[] LSMonitorBefore,
+    double[] LSMonitorAfter,
+    bool LSMonitorPending,
+    bool LSMonitorFailed);
 
 public sealed class LSMonitor : IDisposable
 {
@@ -11,15 +15,15 @@ public sealed class LSMonitor : IDisposable
 
     private readonly LWaveformOrchestrator lMonitorOrchestrator = new();
     private readonly object lMonitorLock = new();
-    private byte[] lMonitorPeaks = Array.Empty<byte>();
     private string? lMonitorSourcePath;
     private TimeSpan lMonitorDuration;
     private int lMonitorRate;
     private LWorkAudio lMonitorPlan = LWorkAudio.LWorkAudioCreate();
     private double[] lMonitorBefore = Array.Empty<double>();
     private double[] lMonitorAfter = Array.Empty<double>();
+    private bool lMonitorPending;
+    private bool lMonitorFailed;
     private CancellationTokenSource? lMonitorCancelSource;
-    private bool lMonitorScanning;
     private bool lMonitorDisposed;
 
     public event Action<LSMonitorEstimate>? LSMonitorReady;
@@ -29,17 +33,12 @@ public sealed class LSMonitor : IDisposable
         lMonitorOrchestrator.LWaveformReady += LSMonitorPeaksHandle;
     }
 
-    public byte[] LSMonitorPeaks => lMonitorPeaks;
-
-    public bool LSMonitorScanning => lMonitorScanning;
-
     public void LSMonitorSourceOpen(string? lPath, TimeSpan lDuration, int lRate = 0)
     {
         lMonitorSourcePath = lPath;
         lMonitorDuration = lDuration;
         lMonitorRate = lRate;
-        lMonitorScanning = !string.IsNullOrWhiteSpace(lPath) && lDuration > TimeSpan.Zero;
-        lMonitorOrchestrator.LWaveformStart(lPath, lDuration);
+        lMonitorOrchestrator.LWaveformStart(lPath, lDuration, lRate > 0);
     }
 
     public void LSMonitorPlanApply(LWorkAudio lPlan)
@@ -53,18 +52,18 @@ public sealed class LSMonitor : IDisposable
         LSMonitorPublish();
     }
 
-    private void LSMonitorPeaksHandle(byte[] lPeaks)
+    private void LSMonitorPeaksHandle(LWaveformNotice lNotice)
     {
-        lMonitorPeaks = lPeaks;
-        lMonitorBefore = LWaveformEstimate.LWaveformEnvelopeRead(lPeaks);
-        lMonitorAfter = lMonitorBefore;
-        if (lPeaks.Length > 0)
+        lock (lMonitorLock)
         {
-            lMonitorScanning = false;
+            lMonitorBefore = LWaveform.LWaveformEnvelopeRead(lNotice.LWaveformPeaks);
+            lMonitorAfter = lMonitorBefore;
+            lMonitorPending = lNotice.LWaveformPending;
+            lMonitorFailed = !lNotice.LWaveformPending && lNotice.LWaveformPeaks.Length == 0;
         }
 
         LSMonitorPublish();
-        if (lPeaks.Length > 0)
+        if (lNotice.LWaveformPeaks.Length > 0)
         {
             LSMonitorAfterStart();
         }
@@ -78,36 +77,41 @@ public sealed class LSMonitor : IDisposable
         }
 
         CancellationTokenSource lToken;
+        string? lPath = lMonitorSourcePath;
+        TimeSpan lDuration = lMonitorDuration;
+        string lGraph = lMonitorPlan.LWorkAudioFormat(lMonitorRate);
         lock (lMonitorLock)
         {
             lMonitorCancelSource?.Cancel();
             lMonitorCancelSource?.Dispose();
             lMonitorCancelSource = new CancellationTokenSource();
             lToken = lMonitorCancelSource;
+
+            if (lMonitorBefore.Length == 0)
+            {
+                return;
+            }
+
+            lMonitorFailed = false;
+            if (string.IsNullOrEmpty(lGraph)
+                || string.IsNullOrWhiteSpace(lPath)
+                || lDuration <= TimeSpan.Zero)
+            {
+                lMonitorAfter = lMonitorBefore;
+                lMonitorPending = false;
+                lPath = null;
+            }
+            else
+            {
+                lMonitorPending = true;
+            }
         }
 
-        if (lMonitorPeaks.Length == 0)
-        {
-            return;
-        }
-
-        string? lPath = lMonitorSourcePath;
-        TimeSpan lDuration = lMonitorDuration;
-        string lGraph = lMonitorPlan.LWorkAudioFormat(lMonitorRate);
-
-        if (string.IsNullOrEmpty(lGraph)
-            || string.IsNullOrWhiteSpace(lPath)
-            || lDuration <= TimeSpan.Zero)
-        {
-            lMonitorAfter = lMonitorBefore;
-            lMonitorScanning = false;
-            LSMonitorPublish();
-            return;
-        }
-
-        lMonitorScanning = true;
         LSMonitorPublish();
-        LSMonitorAfterScan(lPath, lDuration, lGraph, lToken.Token);
+        if (lPath is not null)
+        {
+            LSMonitorAfterScan(lPath, lDuration, lGraph, lToken.Token);
+        }
     }
 
     private void LSMonitorAfterScan(string lPath, TimeSpan lDuration, string lGraph, CancellationToken lToken)
@@ -118,15 +122,18 @@ public sealed class LSMonitor : IDisposable
             {
                 await Task.Delay(LSMonitorDebounceMs, lToken).ConfigureAwait(false);
                 LWaveformScanResult lScanned = LWaveformScanner.LWaveformScan(lPath, lDuration, lToken, lGraph);
-                if (lToken.IsCancellationRequested)
+                if (!lScanned.LWaveformComplete)
                 {
-                    return;
+                    LTrace.LTraceRecord(
+                        LTraceKind.LTraceWarning,
+                        $"Monitor after-scan unavailable for {System.IO.Path.GetFileName(lPath)}",
+                        lScanned.LWaveformDetail);
                 }
 
-                double[] lAfter = LWaveformEstimate.LWaveformEnvelopeRead(lScanned.LWaveformPeaks);
-                lMonitorAfter = lAfter.Length > 0 ? lAfter : lMonitorBefore;
-                lMonitorScanning = false;
-                LSMonitorPublish();
+                LSMonitorAfterApply(
+                    lToken,
+                    LWaveform.LWaveformEnvelopeRead(lScanned.LWaveformPeaks),
+                    !lScanned.LWaveformComplete);
             }
             catch (OperationCanceledException)
             {
@@ -134,13 +141,37 @@ public sealed class LSMonitor : IDisposable
             catch (Exception lException)
             {
                 LTraceLog.LTraceErrorRecord("Monitor after-scan could not be generated", lException);
+                LSMonitorAfterApply(lToken, Array.Empty<double>(), true);
             }
         }, CancellationToken.None);
     }
 
+    private void LSMonitorAfterApply(CancellationToken lToken, double[] lAfter, bool lFailed)
+    {
+        lock (lMonitorLock)
+        {
+            if (lToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            lMonitorAfter = lAfter;
+            lMonitorFailed = lFailed;
+            lMonitorPending = false;
+        }
+
+        LSMonitorPublish();
+    }
+
     private void LSMonitorPublish()
     {
-        LSMonitorReady?.Invoke(new LSMonitorEstimate(lMonitorBefore, lMonitorAfter));
+        LSMonitorEstimate lEstimate;
+        lock (lMonitorLock)
+        {
+            lEstimate = new LSMonitorEstimate(lMonitorBefore, lMonitorAfter, lMonitorPending, lMonitorFailed);
+        }
+
+        LSMonitorReady?.Invoke(lEstimate);
     }
 
     public void Dispose()

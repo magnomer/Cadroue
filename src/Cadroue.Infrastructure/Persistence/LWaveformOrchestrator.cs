@@ -3,25 +3,26 @@ using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
+public readonly record struct LWaveformNotice(byte[] LWaveformPeaks, bool LWaveformPending);
+
 public sealed class LWaveformOrchestrator : IDisposable
 {
-    private static readonly SemaphoreSlim lWaveformScanSlot = new(1, 1);
     private readonly object lWaveformLock = new();
     private CancellationTokenSource? lWaveformCancelSource;
     private string? lWaveformSourcePath;
     private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private byte[] lWaveformRms = Array.Empty<byte>();
     private bool lWaveformDisposed;
 
-    public event Action<byte[]>? LWaveformReady;
+    public event Action<LWaveformNotice>? LWaveformReady;
 
     public byte[] LWaveformCurrent => lWaveformPeaks;
 
-    public byte[] LWaveformRmsCurrent => lWaveformRms;
-
-    public void LWaveformStart(string? lWaveformPath, TimeSpan lWaveformDuration)
+    public void LWaveformStart(string? lWaveformPath, TimeSpan lWaveformDuration, bool lWaveformAudioPresent)
     {
-        if (lWaveformDisposed || string.IsNullOrWhiteSpace(lWaveformPath) || lWaveformDuration <= TimeSpan.Zero)
+        if (lWaveformDisposed
+            || !lWaveformAudioPresent
+            || string.IsNullOrWhiteSpace(lWaveformPath)
+            || lWaveformDuration <= TimeSpan.Zero)
         {
             LWaveformClear();
             return;
@@ -33,7 +34,7 @@ public sealed class LWaveformOrchestrator : IDisposable
             if (string.Equals(lWaveformSourcePath, lWaveformPath, StringComparison.OrdinalIgnoreCase)
                 && lWaveformPeaks.Length > 0)
             {
-                LWaveformReady?.Invoke(lWaveformPeaks);
+                LWaveformReady?.Invoke(new LWaveformNotice(lWaveformPeaks, false));
                 return;
             }
 
@@ -43,18 +44,14 @@ public sealed class LWaveformOrchestrator : IDisposable
             lWaveformToken = lWaveformCancelSource;
             lWaveformSourcePath = lWaveformPath;
             lWaveformPeaks = Array.Empty<byte>();
-            lWaveformRms = Array.Empty<byte>();
         }
 
-        LWaveformReady?.Invoke(Array.Empty<byte>());
+        LWaveformReady?.Invoke(new LWaveformNotice(Array.Empty<byte>(), true));
 
         LSidecarWaveformRecord? lWaveformStored = LSidecarStore.LSidecarWaveformRead(lWaveformPath);
         if (LWaveform.LWaveformRecordMatch(lWaveformStored, lWaveformDuration))
         {
-            LWaveformApply(
-                lWaveformPath,
-                LWaveform.LWaveformPeaksRead(lWaveformStored),
-                LWaveform.LWaveformRmsRead(lWaveformStored));
+            LWaveformApply(lWaveformPath, LWaveform.LWaveformPeaksRead(lWaveformStored));
             return;
         }
 
@@ -81,10 +78,9 @@ public sealed class LWaveformOrchestrator : IDisposable
         {
             lWaveformSourcePath = null;
             lWaveformPeaks = Array.Empty<byte>();
-            lWaveformRms = Array.Empty<byte>();
         }
 
-        LWaveformReady?.Invoke(Array.Empty<byte>());
+        LWaveformReady?.Invoke(new LWaveformNotice(Array.Empty<byte>(), false));
     }
 
     private void LWaveformScanStart(string lWaveformPath, TimeSpan lWaveformDuration, CancellationToken lWaveformToken)
@@ -92,33 +88,38 @@ public sealed class LWaveformOrchestrator : IDisposable
         _ = Task.Run(() =>
         {
             var lWaveformClock = System.Diagnostics.Stopwatch.StartNew();
-            bool lWaveformSlotClaimed = false;
             try
             {
-                lWaveformScanSlot.Wait(lWaveformToken);
-                lWaveformSlotClaimed = true;
                 LWaveformScanResult lWaveformScanned = LWaveformScanner.LWaveformScan(
                     lWaveformPath,
                     lWaveformDuration,
                     lWaveformToken);
-                if (lWaveformScanned.LWaveformPeaks.Length == 0 || lWaveformToken.IsCancellationRequested)
+                if (lWaveformToken.IsCancellationRequested)
                 {
+                    return;
+                }
+
+                if (!lWaveformScanned.LWaveformComplete)
+                {
+                    LTrace.LTraceRecord(
+                        LTraceKind.LTraceWarning,
+                        $"Waveform unavailable for {System.IO.Path.GetFileName(lWaveformPath)}",
+                        lWaveformScanned.LWaveformDetail,
+                        lWaveformClock.Elapsed.TotalMilliseconds);
+                    LWaveformApply(lWaveformPath, Array.Empty<byte>());
                     return;
                 }
 
                 LSidecarStore.LSidecarWaveformSave(
                     lWaveformPath,
-                    LWaveform.LWaveformRecordCreate(
-                        lWaveformScanned.LWaveformPeaks,
-                        lWaveformScanned.LWaveformRms,
-                        lWaveformDuration));
+                    LWaveform.LWaveformRecordCreate(lWaveformScanned.LWaveformPeaks, lWaveformDuration));
                 LTrace.LTraceRecord(
                     LTraceKind.LTraceWork,
                     $"Waveform generated for {System.IO.Path.GetFileName(lWaveformPath)}",
                     $"{lWaveformScanned.LWaveformPeaks.Length} peak(s) at {LWaveform.LWaveformBucketMilliseconds} ms " +
                     "stored in the sidecar",
                     lWaveformClock.Elapsed.TotalMilliseconds);
-                LWaveformApply(lWaveformPath, lWaveformScanned.LWaveformPeaks, lWaveformScanned.LWaveformRms);
+                LWaveformApply(lWaveformPath, lWaveformScanned.LWaveformPeaks);
             }
             catch (OperationCanceledException)
             {
@@ -126,18 +127,12 @@ public sealed class LWaveformOrchestrator : IDisposable
             catch (Exception lWaveformException)
             {
                 LTraceLog.LTraceErrorRecord("Waveform could not be generated", lWaveformException);
-            }
-            finally
-            {
-                if (lWaveformSlotClaimed)
-                {
-                    lWaveformScanSlot.Release();
-                }
+                LWaveformApply(lWaveformPath, Array.Empty<byte>());
             }
         }, CancellationToken.None);
     }
 
-    private void LWaveformApply(string lWaveformPath, byte[] lWaveformScanned, byte[] lWaveformScannedRms)
+    private void LWaveformApply(string lWaveformPath, byte[] lWaveformScanned)
     {
         lock (lWaveformLock)
         {
@@ -147,10 +142,9 @@ public sealed class LWaveformOrchestrator : IDisposable
             }
 
             lWaveformPeaks = lWaveformScanned;
-            lWaveformRms = lWaveformScannedRms;
         }
 
-        LWaveformReady?.Invoke(lWaveformScanned);
+        LWaveformReady?.Invoke(new LWaveformNotice(lWaveformScanned, false));
     }
 
     public void Dispose()

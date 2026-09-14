@@ -34,7 +34,8 @@ public sealed partial class PSection
 
     private void PSectionMoveHandle(object pSender, MouseEventArgs pEvent)
     {
-        if (pSectionRowDragging is not { } pDragRow
+        if (!pSectionEditable
+            || pSectionRowDragging is not { } pDragRow
             || pSectionIndexDragging is not int pDragIndex
             || pSectionIndexEditing is not null
             || pSectionDragOrigin is not Point pStart

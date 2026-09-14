@@ -96,17 +96,26 @@ public static partial class LMessenger
             {
                 return Array.Empty<LSplitSectionDescription>();
             }
-            return lMessengerSidecar.LSidecarSections
-                .Where(lMessengerRecord =>
-                    lMessengerRecord.LSidecarEndMilliseconds > lMessengerRecord.LSidecarStartMilliseconds)
-                .Select(lMessengerRecord => new LSplitSectionDescription(
-                    TimeSpan.FromMilliseconds(lMessengerRecord.LSidecarStartMilliseconds),
-                    TimeSpan.FromMilliseconds(lMessengerRecord.LSidecarEndMilliseconds),
-                    lMessengerRecord.LSidecarName,
-                    lMessengerRecord.LSidecarPrefix,
-                    lMessengerRecord.LSidecarSuffix,
-                    lMessengerRecord.LSidecarHidden))
-                .ToArray();
+
+            TimeSpan lMessengerDuration = Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSourcePath);
+            if (lMessengerDuration <= TimeSpan.Zero)
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Split plan for '{lMessengerSourcePath}' has no known duration; sections are bounded by their own ends");
+                lMessengerDuration = TimeSpan.MaxValue;
+            }
+
+            IReadOnlyList<LPiece> lMessengerPieces = LPiece.LPieceValidSelect(
+                lMessengerSidecar.LSidecarSections.Select(LPiece.LPieceCreate).ToArray(),
+                lMessengerDuration);
+            if (lMessengerPieces.Count < lMessengerSidecar.LSidecarSections.Count)
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Split plan for '{lMessengerSourcePath}' dropped "
+                    + $"{lMessengerSidecar.LSidecarSections.Count - lMessengerPieces.Count} invalid section(s)");
+            }
+
+            return lMessengerPieces.Select(lMessengerPiece => lMessengerPiece.LPieceDescribe()).ToArray();
         }
         catch (Exception lMessengerException)
         {

@@ -17,10 +17,14 @@ public static class LRelayChannel
     private const string LRelayOkReply = "OK";
     private const string LRelayNoReply = "NO";
     private const int LRelayConnectTimeout = 1500;
+    private const int LRelayReplyTimeout = 10000;
+    private const int LRelayLaunchTimeout = 30000;
+    private const int LRelayLaunchPoll = 100;
 
     private static CancellationTokenSource? lRelayCancellation;
+    private static string? lRelayStartupPath;
 
-    public static event Action<LRelay>? LRelayTabReceive;
+    public static Func<LRelay, bool>? LRelayAcceptSeam { get; set; }
 
     public static LRelay? LRelayStartupPayload { get; private set; }
 
@@ -41,15 +45,27 @@ public static class LRelayChannel
             }
 
             string lRelayFilePath = lStartupArguments[lIndex + 1];
-            LRelayStartupPayload = LRelayStore.LRelayFileLoad(lRelayFilePath);
-            LRelayStore.LRelayFileClear(lRelayFilePath);
+            LRelayStartupPayload = LRelayPayloadLoad(lRelayFilePath);
             if (LRelayStartupPayload is { } lRelayPayload)
             {
+                lRelayStartupPath = lRelayFilePath;
                 LTraceLog.LTraceInfoRecord($"Started to receive a relayed '{lRelayPayload.LRelayLayoutKey}' tab");
             }
 
             return;
         }
+    }
+
+    public static void LRelayStartupCommit()
+    {
+        if (lRelayStartupPath is not { } lRelayFilePath)
+        {
+            return;
+        }
+
+        lRelayStartupPath = null;
+        LRelayStore.LRelayFileClear(lRelayFilePath);
+        LTraceLog.LTraceInfoRecord("Relayed tab committed; the sender may now close its copy");
     }
 
     public static void LRelayChannelStart()
@@ -109,7 +125,15 @@ public static class LRelayChannel
             var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
             var lRelayReader = new StreamReader(lRelayPipe);
             lRelayWriter.WriteLine($"{LRelayTabMessage} {lRelayFilePath}");
-            return string.Equals(lRelayReader.ReadLine(), LRelayOkReply, StringComparison.Ordinal);
+            Task<string?> lRelayReply = lRelayReader.ReadLineAsync();
+            if (!lRelayReply.Wait(LRelayReplyTimeout))
+            {
+                LTraceLog.LTraceErrorRecord(
+                    $"Relay target {lProcessId} gave no reply within {LRelayReplyTimeout} ms; tab kept", null);
+                return false;
+            }
+
+            return string.Equals(lRelayReply.Result, LRelayOkReply, StringComparison.Ordinal);
         }
         catch (Exception lException)
         {
@@ -118,11 +142,11 @@ public static class LRelayChannel
         }
     }
 
-    public static LRelayOutcome LRelayDispatch(string lRelayFilePath, double lScreenLeft, double lScreenTop)
+    public static async Task<LRelayOutcome> LRelayDispatch(string lRelayFilePath, double lScreenLeft, double lScreenTop)
     {
         if (LRelayInstanceFind(lScreenLeft, lScreenTop) is int lTargetProcessId)
         {
-            if (LRelayChannelSend(lTargetProcessId, lRelayFilePath))
+            if (await Task.Run(() => LRelayChannelSend(lTargetProcessId, lRelayFilePath)).ConfigureAwait(true))
             {
                 return LRelayOutcome.LRelayOutcomeExisting;
             }
@@ -132,7 +156,8 @@ public static class LRelayChannel
             return LRelayOutcome.LRelayOutcomeFailed;
         }
 
-        if (LRelayInstanceStart(lRelayFilePath))
+        if (LRelayInstanceStart(lRelayFilePath) is { } lRelayProcess
+            && await LRelayLaunchCheck(lRelayProcess, lRelayFilePath).ConfigureAwait(true))
         {
             return LRelayOutcome.LRelayOutcomeLaunched;
         }
@@ -141,13 +166,13 @@ public static class LRelayChannel
         return LRelayOutcome.LRelayOutcomeFailed;
     }
 
-    public static bool LRelayInstanceStart(string lRelayFilePath)
+    public static Process? LRelayInstanceStart(string lRelayFilePath)
     {
         string? pRelayProgramPath = Environment.ProcessPath;
         if (string.IsNullOrWhiteSpace(pRelayProgramPath))
         {
             LTraceLog.LTraceErrorRecord("Relay launch skipped: program path unknown", null);
-            return false;
+            return null;
         }
 
         try
@@ -155,11 +180,39 @@ public static class LRelayChannel
             var pRelayStart = new ProcessStartInfo(pRelayProgramPath) { UseShellExecute = false };
             pRelayStart.ArgumentList.Add(LRelayArgument);
             pRelayStart.ArgumentList.Add(lRelayFilePath);
-            return Process.Start(pRelayStart) is not null;
+            return Process.Start(pRelayStart);
         }
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord("Relay launch failed; tab kept", lException);
+            return null;
+        }
+    }
+
+    private static async Task<bool> LRelayLaunchCheck(Process lRelayProcess, string lRelayFilePath)
+    {
+        using (lRelayProcess)
+        {
+            var lRelayClock = Stopwatch.StartNew();
+            while (lRelayClock.ElapsedMilliseconds < LRelayLaunchTimeout)
+            {
+                if (!File.Exists(lRelayFilePath))
+                {
+                    return true;
+                }
+
+                if (lRelayProcess.HasExited)
+                {
+                    LTraceLog.LTraceErrorRecord(
+                        $"Relay instance exited with code {lRelayProcess.ExitCode} before taking the tab; tab kept", null);
+                    return false;
+                }
+
+                await Task.Delay(LRelayLaunchPoll).ConfigureAwait(true);
+            }
+
+            LTraceLog.LTraceErrorRecord(
+                $"Relay instance did not take the tab within {LRelayLaunchTimeout} ms; tab kept", null);
             return false;
         }
     }
@@ -226,16 +279,33 @@ public static class LRelayChannel
             return;
         }
 
-        LRelay? lRelay = LRelayStore.LRelayFileLoad(lRelayBody);
+        LRelay? lRelay = LRelayPayloadLoad(lRelayBody);
         if (lRelay is null)
         {
             lRelayWriter.WriteLine(LRelayNoReply);
             return;
         }
 
-        lRelayWriter.WriteLine(LRelayOkReply);
-        LRelayStore.LRelayFileClear(lRelayBody);
-        LRelayTabReceive?.Invoke(lRelay);
+        bool lRelayAccepted = LRelayAcceptSeam?.Invoke(lRelay) ?? false;
+        lRelayWriter.WriteLine(lRelayAccepted ? LRelayOkReply : LRelayNoReply);
+        if (lRelayAccepted)
+        {
+            LRelayStore.LRelayFileClear(lRelayBody);
+        }
+    }
+
+    private static LRelay? LRelayPayloadLoad(string lRelayFilePath)
+    {
+        LRelay? lRelay = LRelayStore.LRelayFileLoad(lRelayFilePath);
+        if (lRelay is null || LRelayPayload.LRelayVersionMatch(lRelay))
+        {
+            return lRelay;
+        }
+
+        LTraceLog.LTraceErrorRecord(
+            $"Relayed tab refused: sender version '{lRelay.LRelayVersion}' differs from '{LRelayPayload.LRelayVersionRead()}'",
+            null);
+        return null;
     }
 
     private static string LRelayPipeCreate(int lProcessId) => $"{LRelayPipePrefix}{lProcessId}";
