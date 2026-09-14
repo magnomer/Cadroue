@@ -156,13 +156,20 @@ internal sealed partial class PSOptions
             return;
         }
 
-        string? pLoadedName = PSectionPalette.PSectionPaletteImport(pDialog.FileName);
-        if (pLoadedName is null)
+        PSectionPalette.PSectionImportResult pResult =
+            PSectionPalette.PSectionPaletteImport(pDialog.FileName, out string? pLoadedName);
+        if (pResult != PSectionPalette.PSectionImportResult.PSectionImportLoaded || pLoadedName is null)
         {
+            string pMessageKey = pResult switch
+            {
+                PSectionPalette.PSectionImportResult.PSectionImportReserved => "Options.Timeline.ReservedPalette",
+                PSectionPalette.PSectionImportResult.PSectionImportFailed => "Options.Timeline.PaletteCopyFailed",
+                _ => "Options.Timeline.InvalidPalette"
+            };
             PSWarning.PSWarningShow(
                 this,
                 LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
-                LLocalization.LLocalizationTextRead("Options.Timeline.InvalidPalette"));
+                LLocalization.LLocalizationTextRead(pMessageKey));
             return;
         }
 

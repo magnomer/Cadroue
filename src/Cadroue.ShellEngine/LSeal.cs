@@ -16,7 +16,7 @@ public static class LSeal
 
     public static Func<IReadOnlyList<LSealNode>?>? LSealNodesSource { get; set; }
 
-    public static Action<Guid>? LSealFireSeam { get; set; }
+    public static Func<Guid, Guid, bool>? LSealFireSeam { get; set; }
 
     private static IReadOnlyList<LWorkItem> LSealScheduleRead() =>
         (IReadOnlyList<LWorkItem>?)LMessenger.LMessengerScheduleSource?.Invoke()?.LScheduleRecords
@@ -85,8 +85,12 @@ public static class LSeal
                             continue;
                         }
 
+                        if (LSealFireSeam?.Invoke(lSealNode.LSealNodeId, lSealCohort) != true)
+                        {
+                            continue;
+                        }
+
                         lSealFired.Add((lSealCohort, lSealNode.LSealNodeId));
-                        LSealFireSeam?.Invoke(lSealNode.LSealNodeId);
                         lSealFiredAny = true;
                     }
                 }

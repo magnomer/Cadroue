@@ -2,6 +2,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIShell.PPanel;
+using Cadroue.UIShell.PToolbar;
 using PFlowControl = Cadroue.UIShell.PFlow.PFlow;
 using Cadroue.ShellEngine;
 
@@ -53,6 +54,22 @@ public sealed class PMergeTab : PTabSurface
                 lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
         };
+        pAction.PActionCohortAdd += pCohort =>
+        {
+            if (!lPresetOwner.LPresetSelectionValid)
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Merge held relayed files in tab '{PStrip.PStripTitleRead(pAction.PActionSourceTab)}': "
+                    + "no valid export preset is selected");
+                return 0;
+            }
+
+            return LMessenger.LMessengerMergeDescribe(
+                LWorkPriority.LWorkPriorityNormal,
+                PMergeGroupsRead(pCohort),
+                lPresetOwner.LPresetSelectionEncoding,
+                pAction.PActionRelayTarget, pAction.PActionSourceTab, PMergeRelaysRead());
+        };
         pList.PListPathChange += PMergePathShow;
         pGroup.PGroupItemOpen += PMergePathShow;
         pGroup.PGroupSourceFiles = () => pList.PListUnlockedRead()
@@ -88,11 +105,18 @@ public sealed class PMergeTab : PTabSurface
         return pMergeRelays;
     }
 
-    private IReadOnlyList<LWorkGroup> PMergeGroupsRead()
+    private IReadOnlyList<LWorkGroup> PMergeGroupsRead(Guid pMergeCohort = default)
     {
         var pMergeGroups = new List<LWorkGroup>();
         foreach (PGroup.PGroupSelection pGroupSelection in pGroup.PGroupGroupsRead())
         {
+            if (pMergeCohort != Guid.Empty
+                && !pGroupSelection.PGroupSelectionPaths.All(pMergePath =>
+                    lDocket.LDocketItemFind(pMergePath)?.LDocketEntryBatch == pMergeCohort))
+            {
+                continue;
+            }
+
             string[] pMergeLocked = pGroupSelection.PGroupSelectionPaths
                 .Where(pList.PListLockCheck)
                 .ToArray();

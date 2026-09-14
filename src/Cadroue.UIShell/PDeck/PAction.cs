@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 using Cadroue.UIShell.PAsset;
 using Cadroue.UIShell.PToolbar;
@@ -26,6 +27,7 @@ public sealed class PAction : UserControl
 
     public event Action<LWorkPriority>? PActionRun;
     public event Action? PActionAllAdd;
+    public event Func<Guid, int>? PActionCohortAdd;
     public event Action<IReadOnlyList<string>>? PActionItemsAdd;
     public event Action<Guid>? PActionRelayChange;
 
@@ -93,10 +95,7 @@ public sealed class PAction : UserControl
 
     public static void PActionAccept(Guid pActionTargetTab, string pActionPath, Guid pActionCohort)
     {
-        if (PStrip.PStripTabFind(pActionTargetTab) is not { } pActionTarget
-            || pActionTarget.PTabWorkspace.PWorkspaceSurface is PMergeTab
-            || pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction
-                is not { PActionAutoRelay: true } pActionSurface)
+        if (PActionAutoFind(pActionTargetTab) is null)
         {
             return;
         }
@@ -106,7 +105,16 @@ public sealed class PAction : UserControl
         {
             try
             {
-                pActionSurface.PActionItemsRun(new[] { pActionPath });
+                if (PActionAutoFind(pActionTargetTab) is { } pActionSurface)
+                {
+                    pActionSurface.PActionItemsRun(new[] { pActionPath });
+                }
+                else
+                {
+                    LTraceLog.LTraceWarningRecord(
+                        $"Relay left '{System.IO.Path.GetFileName(pActionPath)}' unprocessed: "
+                        + "the destination tab closed or left Auto Relay before it ran");
+                }
             }
             finally
             {
@@ -124,6 +132,13 @@ public sealed class PAction : UserControl
             PActionAcceptRun();
         }
     }
+
+    private static PAction? PActionAutoFind(Guid pActionTargetTab) =>
+        PStrip.PStripTabFind(pActionTargetTab) is { } pActionTarget
+            && pActionTarget.PTabWorkspace.PWorkspaceSurface is not PMergeTab
+            && pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is { PActionAutoRelay: true } pActionSurface
+            ? pActionSurface
+            : null;
 
     public void PActionRelayHide()
     {
@@ -146,6 +161,9 @@ public sealed class PAction : UserControl
     }
 
     public void PActionItemsRun(IReadOnlyList<string> pActionPaths) => PActionItemsAdd?.Invoke(pActionPaths);
+
+    public bool PActionCohortRun(Guid pActionCohort) =>
+        PActionAutoRelay && PActionCohortAdd?.Invoke(pActionCohort) > 0;
 
     private void PActionHighRun()
     {

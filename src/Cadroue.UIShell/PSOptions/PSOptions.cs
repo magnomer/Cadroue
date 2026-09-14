@@ -233,6 +233,8 @@ internal sealed partial class PSOptions : Window
                 ? LPreviewEngine.LPreviewEngineMpv
                 : LPreviewEngine.LPreviewEngineFlyleaf);
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
+        PSSystemMaintenanceUpdate();
+        psOptionsRecordNotice?.Invoke();
         if (!psOptionsSaved)
         {
             PSWarning.PSWarningShow(

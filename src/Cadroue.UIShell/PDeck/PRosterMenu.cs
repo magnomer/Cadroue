@@ -154,17 +154,10 @@ public sealed partial class PRoster
         return pRelayPaths;
     }
 
-    private static string? PRosterFileRead(LWorkItem pWorkItem)
-    {
-        if (!string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && File.Exists(pWorkItem.LWorkOutputPath))
-        {
-            return pWorkItem.LWorkOutputPath;
-        }
-
-        return !string.IsNullOrWhiteSpace(pWorkItem.LWorkSourcePath) && File.Exists(pWorkItem.LWorkSourcePath)
-            ? pWorkItem.LWorkSourcePath
+    private static string? PRosterFileRead(LWorkItem pWorkItem) =>
+        !string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && File.Exists(pWorkItem.LWorkOutputPath)
+            ? pWorkItem.LWorkOutputPath
             : null;
-    }
 
     private static void PRosterRelaySend(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
     {

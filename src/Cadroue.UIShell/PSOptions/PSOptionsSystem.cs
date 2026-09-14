@@ -92,6 +92,13 @@ internal sealed partial class PSOptions
             new Thickness(0));
         pDoneClear.Click += (_, _) => PSSystemDoneClear();
         pWorkspaceClear.Click += (_, _) => PSWorkspaceClear();
+        psSystemMaintenanceButtons.Clear();
+        psSystemMaintenanceButtons.Add(pDoneClear);
+        psSystemMaintenanceButtons.Add(pWorkspaceClear);
+        psSystemMaintenanceNotice = PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Options.System.WorkspaceUnapplied"));
+        psWorkspaceBox.TextChanged += (_, _) => PSSystemMaintenanceUpdate();
+        PSSystemMaintenanceUpdate();
 
         var pWorkspaceClearRow = new StackPanel
         {
@@ -142,7 +149,8 @@ internal sealed partial class PSOptions
                 pWorkspaceOpen),
             pWorkspaceDefault,
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pWorkspaceClearRow)));
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pWorkspaceClearRow),
+            psSystemMaintenanceNotice));
         pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.WorkRecord"),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pDoneClearRow),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),

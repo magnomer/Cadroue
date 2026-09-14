@@ -6,6 +6,7 @@ namespace Cadroue.ShellEngine;
 public static partial class LMessenger
 {
     public static int LMessengerFunnelDescribe(
+        Guid lMessengerSourceTab,
         IReadOnlyList<LSceneFunnelRule> lMessengerRules,
         IReadOnlyList<Guid> lMessengerTargets,
         IReadOnlyList<(string LMessengerPath, Guid LMessengerCohort)> lMessengerItems)
@@ -13,9 +14,10 @@ public static partial class LMessenger
         var lMessengerRelayed = new List<string>();
         foreach ((string lMessengerPath, Guid lMessengerCohort) in lMessengerItems)
         {
+            string lMessengerName = System.IO.Path.GetFileName(lMessengerPath);
             int lMessengerMatch = LClassifier.LClassifierRouteRead(
                 lMessengerRules,
-                System.IO.Path.GetFileName(lMessengerPath),
+                lMessengerName,
                 lMessengerIndex => lMessengerIndex < lMessengerTargets.Count
                     && lMessengerTargets[lMessengerIndex] != Guid.Empty);
             if (lMessengerMatch < 0)
@@ -23,8 +25,15 @@ public static partial class LMessenger
                 continue;
             }
 
-            if (LMessengerDeliverSource?.Invoke(
-                    lMessengerTargets[lMessengerMatch], lMessengerPath, lMessengerCohort) == true)
+            Guid lMessengerTarget = lMessengerTargets[lMessengerMatch];
+            if (LCartographer.LCartographerCycleCheck(lMessengerSourceTab, lMessengerTarget, lMessengerName))
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Funnel refused '{lMessengerName}': its rule route loops back through automatic funnels");
+                continue;
+            }
+
+            if (LMessengerDeliverSource?.Invoke(lMessengerTarget, lMessengerPath, lMessengerCohort) == true)
             {
                 lMessengerRelayed.Add(lMessengerPath);
             }
@@ -33,7 +42,7 @@ public static partial class LMessenger
         if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty
             && lMessengerRelayed.Count > 0)
         {
-            LMessengerDrainSource?.Invoke(lMessengerRelayed);
+            LMessengerDrainSource?.Invoke(lMessengerSourceTab, lMessengerRelayed);
         }
 
         LSeal.LSealRun();

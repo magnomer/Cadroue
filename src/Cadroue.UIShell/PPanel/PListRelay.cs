@@ -8,48 +8,41 @@ namespace Cadroue.UIShell.PPanel;
 
 public sealed partial class PList
 {
-    public static bool PListDeliveredAdd(Guid pListTargetTab, string pListPath, Guid pListBatch)
+    public static bool PListDeliveredAdd(Guid pListTargetTab, string pListPath, Guid pListBatch) =>
+        PListDeliveredApply(pListTargetTab, pListPath, pListBatch, false);
+
+    public static bool PListDeliveredCommit(Guid pListOriginalTab, string pListPath, Guid pListBatch) =>
+        PListDeliveredApply(pListOriginalTab, pListPath, pListBatch, true);
+
+    private static bool PListDeliveredApply(Guid pListTab, string pListPath, Guid pListBatch, bool pListLocked)
     {
-        if (PStrip.PStripTabFind(pListTargetTab) is not { } pListTarget
+        string pListName = Path.GetFileName(pListPath);
+        if (PStrip.PStripTabFind(pListTab) is not { } pListTarget
             || pListTarget.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
         {
-            LTraceLog.LTraceWarningRecord(
-                $"Relay skipped '{Path.GetFileName(pListPath)}': the destination tab is gone");
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{pListName}': the destination tab is gone");
             return false;
         }
 
-        int pListAdded = pListOwner.LDocketPathsAdd(PListMediaScan(new[] { pListPath }), pListBatch, true);
-        bool pListAccepted = pListAdded > 0 || pListOwner.LDocketItemFind(pListPath) is not null;
-        if (!pListAccepted)
+        IReadOnlyList<string> pListScanned = PListMediaScan(new[] { pListPath });
+        if (pListScanned.Count == 0)
+        {
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{pListName}': the destination tab rejected the output");
+            return false;
+        }
+
+        bool pListListed = pListOwner.LDocketItemFind(pListPath) is not null;
+        if (pListOwner.LDocketDeliveredAdd(pListScanned, pListBatch, pListLocked) == 0)
         {
             LTraceLog.LTraceWarningRecord(
-                $"Relay skipped '{Path.GetFileName(pListPath)}': the destination tab rejected the output");
+                $"Relay skipped '{pListName}': tab '{pListTarget.PTabTitle}' still holds it for other work");
             return false;
         }
 
-        LTraceLog.LTraceInfoRecord(
-            pListAdded > 0
-                ? $"Relay added '{Path.GetFileName(pListPath)}' to tab '{pListTarget.PTabTitle}'"
-                : $"Relay left '{Path.GetFileName(pListPath)}' out of tab '{pListTarget.PTabTitle}': already listed");
+        LTraceLog.LTraceInfoRecord(pListListed
+            ? $"Relay took over '{pListName}' already listed in tab '{pListTarget.PTabTitle}'"
+            : $"Relay added '{pListName}' to tab '{pListTarget.PTabTitle}'");
         return true;
-    }
-
-    public static void PListDeliveredPlace(Guid pListOriginalTab, string pListPath, Guid pListBatch)
-    {
-        if (PStrip.PStripTabFind(pListOriginalTab)
-            ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
-        {
-            pListOwner.LDocketPathsAdd(PListMediaScan(new[] { pListPath }), pListBatch, true);
-        }
-    }
-
-    public static void PListDeliveredCommit(Guid pListOriginalTab, string pListPath, Guid pListBatch)
-    {
-        if (PStrip.PStripTabFind(pListOriginalTab)
-            ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is { } pListOwner)
-        {
-            pListOwner.LDocketDeliveredAdd(PListMediaScan(new[] { pListPath }), pListBatch);
-        }
     }
 
     public static void PListDeliveredRemove(LWorkItem lWorkItem, bool pListForce)

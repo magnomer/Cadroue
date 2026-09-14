@@ -73,7 +73,6 @@ public partial class PProgram : System.Windows.Application
         Cadroue.ShellEngine.LCartographer.LCartographerLockSeam = PPanel.PList.PListSourceClaim;
         Cadroue.ShellEngine.LCartographer.LCartographerDeliverySeam = new Cadroue.ShellEngine.LCartographerDelivery(
             PPanel.PList.PListDeliveredAdd,
-            PPanel.PList.PListDeliveredPlace,
             PPanel.PList.PListDeliveredCommit,
             PPanel.PList.PListDeliveredRemove,
             PDeck.PAction.PActionAccept,
@@ -95,11 +94,9 @@ public partial class PProgram : System.Windows.Application
             PDeck.PAction.PActionAccept(pFunnelTarget, pFunnelPath, pFunnelCohort);
             return true;
         };
-        Cadroue.ShellEngine.LMessenger.LMessengerDrainSource = pFunnelDrainPaths =>
-        {
-            PToolbar.PStrip.PStripCurrent?.PStripSelected?.PTabWorkspace.PWorkspaceSurface
-                .PTabList?.PListDocketRead()?.LDocketPathsRemove(pFunnelDrainPaths);
-        };
+        Cadroue.ShellEngine.LMessenger.LMessengerDrainSource = (pFunnelSourceTab, pFunnelDrainPaths) =>
+            PToolbar.PStrip.PStripTabFind(pFunnelSourceTab)?.PTabWorkspace.PWorkspaceSurface
+                .PTabList?.PListDocketRead().LDocketPathsRemove(pFunnelDrainPaths);
 
         Cadroue.ShellEngine.LSeal.LSealNodesSource = () =>
             PToolbar.PStrip.PStripCurrent?.PStripRecords
@@ -118,10 +115,9 @@ public partial class PProgram : System.Windows.Application
                             .ToArray());
                 })
                 .ToArray();
-        Cadroue.ShellEngine.LSeal.LSealFireSeam = lSealNodeId =>
-            PToolbar.PStrip.PStripCurrent?.PStripRecords
-                .FirstOrDefault(pTab => pTab.PTabId == lSealNodeId)
-                ?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionAllRun();
+        Cadroue.ShellEngine.LSeal.LSealFireSeam = (lSealNodeId, lSealCohort) =>
+            PToolbar.PStrip.PStripTabFind(lSealNodeId)?.PTabWorkspace.PWorkspaceSurface.PTabAction
+                ?.PActionCohortRun(lSealCohort) == true;
 
         Cadroue.Application.LPreview.LPreviewApplySeam = PPanel.PViewer.PViewerPlayerApply;
 

@@ -11,6 +11,14 @@ internal static class PSectionPalette
 {
     private sealed record PSectionSeed(string PSectionSeedName, string[] PSectionSeedHex);
 
+    internal enum PSectionImportResult
+    {
+        PSectionImportLoaded,
+        PSectionImportInvalid,
+        PSectionImportReserved,
+        PSectionImportFailed
+    }
+
     private sealed record PSectionSwatch(
         string PSectionSwatchName,
         Color[] PSectionSwatchColors,
@@ -202,23 +210,67 @@ internal static class PSectionPalette
         return true;
     }
 
-    internal static string? PSectionPaletteImport(string pSourcePath)
+    internal static PSectionImportResult PSectionPaletteImport(string pSourcePath, out string? pLoadedName)
     {
+        pLoadedName = null;
         if (PSectionFileRead(pSourcePath) is not { } pPalette)
         {
-            return null;
+            return PSectionImportResult.PSectionImportInvalid;
         }
 
-        string pTargetPath = Path.Combine(
-            Cadroue.Infrastructure.LDepot.LDepotPaletteRead(),
-            PSectionFileCreate(pPalette.PSectionSwatchName));
-        File.Copy(pSourcePath, pTargetPath, true);
+        string pFileName = PSectionFileCreate(pPalette.PSectionSwatchName);
+        if (pFileName.StartsWith('.'))
+        {
+            return PSectionImportResult.PSectionImportReserved;
+        }
+
+        string pPaletteFolder = Cadroue.Infrastructure.LDepot.LDepotPaletteRead();
+        string pSourceFull = Path.GetFullPath(pSourcePath);
+        string pTargetPath = Path.Combine(pPaletteFolder, pFileName);
+        bool pInside = string.Equals(
+            Path.GetDirectoryName(pSourceFull),
+            Path.GetFullPath(pPaletteFolder),
+            StringComparison.OrdinalIgnoreCase);
+        if (pInside)
+        {
+            pTargetPath = pSourceFull;
+        }
+        else
+        {
+            pTargetPath = PSectionVacantResolve(pTargetPath);
+            try
+            {
+                Directory.CreateDirectory(pPaletteFolder);
+                File.Copy(pSourceFull, pTargetPath);
+            }
+            catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+            {
+                return PSectionImportResult.PSectionImportFailed;
+            }
+        }
+
         PSectionPaletteLoad();
-        return PSectionAllRead()
-            .Select(pEntry => pEntry.PSectionSwatchName)
-            .LastOrDefault(pName => pName == pPalette.PSectionSwatchName
-                || pName.StartsWith(pPalette.PSectionSwatchName + " ", StringComparison.Ordinal))
-            ?? pPalette.PSectionSwatchName;
+        pLoadedName = pSectionLoaded
+            .FirstOrDefault(pEntry => string.Equals(pEntry.PSectionSwatchPath, pTargetPath, StringComparison.OrdinalIgnoreCase))
+            ?.PSectionSwatchName;
+        return pLoadedName is null
+            ? PSectionImportResult.PSectionImportInvalid
+            : PSectionImportResult.PSectionImportLoaded;
+    }
+
+    private static string PSectionVacantResolve(string pTargetPath)
+    {
+        string pFolder = Path.GetDirectoryName(pTargetPath) ?? string.Empty;
+        string pStem = Path.GetFileNameWithoutExtension(pTargetPath);
+        string pExtension = Path.GetExtension(pTargetPath);
+        string pCandidate = pTargetPath;
+        int pSuffix = 2;
+        while (File.Exists(pCandidate))
+        {
+            pCandidate = Path.Combine(pFolder, $"{pStem} {pSuffix++}{pExtension}");
+        }
+
+        return pCandidate;
     }
 
     internal static void PSectionPaletteSave(string pName, string pTargetPath)

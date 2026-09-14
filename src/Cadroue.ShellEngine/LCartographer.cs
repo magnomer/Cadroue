@@ -24,8 +24,7 @@ public sealed record LCartographerStagePlan(
 
 public sealed record LCartographerDelivery(
     Func<Guid, string, Guid, bool> LCartographerTabIntake,
-    Action<Guid, string, Guid> LCartographerTabHold,
-    Action<Guid, string, Guid> LCartographerTabTrack,
+    Func<Guid, string, Guid, bool> LCartographerTabTrack,
     Action<LWorkItem, bool> LCartographerSourceDrop,
     Action<Guid, string, Guid> LCartographerTabArrive,
     Action<IReadOnlyList<Guid>> LCartographerBatchEvict,
@@ -228,9 +227,13 @@ public static partial class LCartographer
             return true;
         }
 
-        LCartographerStageAccept(
+        if (!LCartographerStageAccept(
             lCartographerPlan, lCartographerStage, lCartographerItem.LWorkOutputPath,
-            lCartographerItem.LWorkRelaySource, lCartographerItem.LWorkBatchId, lCartographerSeam);
+            lCartographerItem.LWorkRelaySource, lCartographerItem.LWorkBatchId, lCartographerSeam))
+        {
+            return false;
+        }
+
         lCartographerPlan.LCartographerDeliveredWork.Add(lCartographerItem.LWorkId);
         return LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan);
     }

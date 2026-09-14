@@ -18,7 +18,7 @@ public static partial class LMessenger
 
     public static Func<Guid, string, Guid, bool>? LMessengerDeliverSource { get; set; }
 
-    public static Action<IReadOnlyList<string>>? LMessengerDrainSource { get; set; }
+    public static Action<Guid, IReadOnlyList<string>>? LMessengerDrainSource { get; set; }
 
     private static string LMessengerTitleRead(Guid lMessengerRelaySource) =>
         LMessengerTitleSource?.Invoke(lMessengerRelaySource) ?? string.Empty;

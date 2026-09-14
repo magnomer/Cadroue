@@ -7,7 +7,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LCartographer
 {
-    private static void LCartographerStageAccept(
+    private static bool LCartographerStageAccept(
         LCartographerPlanRecord lCartographerPlan,
         LCartographerStageRecord lCartographerStage,
         string lCartographerPath,
@@ -22,48 +22,46 @@ public static partial class LCartographer
             LTraceLog.LTraceWarningRecord(
                 $"Relay cycle terminated at stage '{lCartographerStage.LCartographerTitle}': " +
                 $"already visited this delivery");
-            return;
+            return true;
         }
 
-        lCartographerStage.LCartographerPendingInputs.Add(new LCartographerInputRecord
+        if (!lCartographerStage.LCartographerPendingInputs.Any(lCartographerInput => string.Equals(
+                lCartographerInput.LCartographerPath, lCartographerPath, StringComparison.OrdinalIgnoreCase)))
         {
-            LCartographerPath = lCartographerPath,
-            LCartographerSourceStage = lCartographerSourceStage
-        });
-        LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan);
+            lCartographerStage.LCartographerPendingInputs.Add(new LCartographerInputRecord
+            {
+                LCartographerPath = lCartographerPath,
+                LCartographerSourceStage = lCartographerSourceStage
+            });
+            LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan);
+        }
 
         if (!lCartographerStage.LCartographerLayout.LSceneAutoRelay)
         {
-            lCartographerSeam.LCartographerTabHold(
-                lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+            if (!lCartographerSeam.LCartographerTabIntake(
+                lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch))
+            {
+                return false;
+            }
+
             LTraceLog.LTraceInfoRecord(
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} paused at stage " +
                 $"'{lCartographerStage.LCartographerTitle}'");
-            return;
+            return true;
         }
 
         if (string.Equals(lCartographerStage.LCartographerLayoutKey, "Funnel", StringComparison.Ordinal))
         {
-            Guid lCartographerTargetId = LCartographerRouteRead(lCartographerStage, lCartographerPath);
-            if (lCartographerPlan.LCartographerStages.FirstOrDefault(
-                    lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId)
-                is { } lCartographerTarget)
-            {
-                LCartographerStageAccept(
-                    lCartographerPlan,
-                    lCartographerTarget,
-                    lCartographerPath,
-                    lCartographerStage.LCartographerStageId,
-                    lCartographerBatch,
-                    lCartographerSeam,
-                    lCartographerVisited);
-            }
-            lCartographerStage.LCartographerPendingInputs.Clear();
-            return;
+            return LCartographerFunnelAccept(
+                lCartographerPlan, lCartographerStage, lCartographerPath, lCartographerBatch,
+                lCartographerSeam, lCartographerVisited);
         }
 
-        lCartographerSeam.LCartographerTabTrack(
-            lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+        if (!lCartographerSeam.LCartographerTabTrack(
+            lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch))
+        {
+            return false;
+        }
 
         bool lCartographerMerge = string.Equals(
             lCartographerStage.LCartographerLayoutKey, "Merge", StringComparison.Ordinal);
@@ -71,50 +69,124 @@ public static partial class LCartographer
             && LCartographerMergeCheck(
                 lCartographerPlan, lCartographerStage, lCartographerBatch, LCartographerScheduleRead()))
         {
-            return;
+            return true;
         }
 
-        var lCartographerRepresented = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkItem lCartographerWork in LCartographerScheduleRead())
+        HashSet<string> lCartographerCleared = LCartographerRepresentedRead(
+            lCartographerBatch, lCartographerStage.LCartographerStageId);
+        var lCartographerPaths = new List<string>();
+        foreach (string lCartographerPending in lCartographerStage.LCartographerPendingInputs
+            .Select(lCartographerInput => lCartographerInput.LCartographerPath)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Where(lCartographerPending => !lCartographerCleared.Contains(lCartographerPending)))
         {
-            if (lCartographerWork.LWorkBatchId != lCartographerBatch
-                || lCartographerWork.LWorkRelaySource != lCartographerStage.LCartographerStageId)
+            if (File.Exists(lCartographerPending) && LMedia.LMediaCheck(lCartographerPending))
             {
+                lCartographerPaths.Add(lCartographerPending);
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(lCartographerWork.LWorkSourcePath))
-            {
-                lCartographerRepresented.Add(lCartographerWork.LWorkSourcePath);
-            }
-            foreach (string lCartographerMergeSource in lCartographerWork.LWorkMergeSources)
-            {
-                lCartographerRepresented.Add(lCartographerMergeSource);
-            }
+            LTraceLog.LTraceWarningRecord(
+                $"Relay dropped '{Path.GetFileName(lCartographerPending)}' at stage " +
+                $"'{lCartographerStage.LCartographerTitle}': the file is missing or unreadable");
+            lCartographerCleared.Add(lCartographerPending);
         }
 
-        string[] lCartographerPaths = lCartographerStage.LCartographerPendingInputs
-            .Select(lCartographerInput => lCartographerInput.LCartographerPath)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Where(lCartographerPath => !lCartographerRepresented.Contains(lCartographerPath)
-                && File.Exists(lCartographerPath) && LMedia.LMediaCheck(lCartographerPath))
-            .ToArray();
         LCartographerStageSet(lCartographerStage.LCartographerStageId, lCartographerStage.LCartographerTitle);
+        if (lCartographerPaths.Count > 0)
+        {
+            LCartographerStageCommit(
+                LCartographerStageRun(new LCartographerStagePlan(
+                    lCartographerStage.LCartographerLayoutKey,
+                    lCartographerStage.LCartographerExport,
+                    lCartographerStage.LCartographerLayout.LSceneTabClone(),
+                    lCartographerStage.LCartographerStageId,
+                    lCartographerStage.LCartographerNextStage,
+                    lCartographerBatch,
+                    lCartographerPaths,
+                    lCartographerMerge)),
+                lCartographerPlan.LCartographerPlanId,
+                lCartographerStage.LCartographerStageId);
+        }
 
-        IReadOnlyList<string> lCartographerAcknowledged = lCartographerPaths.Length == 0
-            ? Array.Empty<string>()
-            : LCartographerStageRun(new LCartographerStagePlan(
-                lCartographerStage.LCartographerLayoutKey,
-                lCartographerStage.LCartographerExport,
-                lCartographerStage.LCartographerLayout.LSceneTabClone(),
-                lCartographerStage.LCartographerStageId,
-                lCartographerStage.LCartographerNextStage,
-                lCartographerBatch,
-                lCartographerPaths,
-                lCartographerMerge));
+        LCartographerPendingRemove(lCartographerPlan, lCartographerStage, lCartographerCleared);
+        return true;
+    }
 
-        var lCartographerCleared = new HashSet<string>(lCartographerAcknowledged, StringComparer.OrdinalIgnoreCase);
-        lCartographerCleared.UnionWith(lCartographerRepresented);
+    private static bool LCartographerFunnelAccept(
+        LCartographerPlanRecord lCartographerPlan,
+        LCartographerStageRecord lCartographerStage,
+        string lCartographerPath,
+        Guid lCartographerBatch,
+        LCartographerDelivery lCartographerSeam,
+        HashSet<Guid> lCartographerVisited)
+    {
+        Guid lCartographerTargetId = LCartographerRouteRead(lCartographerStage, lCartographerPath);
+        if (lCartographerPlan.LCartographerStages.FirstOrDefault(
+                lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId)
+            is not { } lCartographerTarget)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Relay held '{Path.GetFileName(lCartographerPath)}' at funnel stage " +
+                $"'{lCartographerStage.LCartographerTitle}': no rule routes it onward");
+            return lCartographerSeam.LCartographerTabIntake(
+                lCartographerStage.LCartographerOriginalTab, lCartographerPath, lCartographerBatch);
+        }
+
+        if (!LCartographerStageAccept(
+            lCartographerPlan,
+            lCartographerTarget,
+            lCartographerPath,
+            lCartographerStage.LCartographerStageId,
+            lCartographerBatch,
+            lCartographerSeam,
+            lCartographerVisited))
+        {
+            return false;
+        }
+
+        LCartographerPendingRemove(
+            lCartographerPlan, lCartographerStage,
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { lCartographerPath });
+        return true;
+    }
+
+    private static async void LCartographerStageCommit(
+        Task<IReadOnlyList<string>> lCartographerRun,
+        Guid lCartographerPlanId,
+        Guid lCartographerStageId)
+    {
+        IReadOnlyList<string> lCartographerAcknowledged;
+        try
+        {
+            lCartographerAcknowledged = await lCartographerRun.ConfigureAwait(true);
+        }
+        catch (Exception lCartographerError)
+        {
+            LTraceLog.LTraceErrorRecord("Relay stage execution failed", lCartographerError);
+            return;
+        }
+
+        if (lCartographerAcknowledged.Count == 0
+            || !LCartographerPlanStore.LCartographerPlanRead(
+                lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
+            || lCartographerPlan.LCartographerStages.FirstOrDefault(
+                    lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerStageId)
+                is not { } lCartographerStage)
+        {
+            return;
+        }
+
+        LCartographerPendingRemove(
+            lCartographerPlan, lCartographerStage,
+            new HashSet<string>(lCartographerAcknowledged, StringComparer.OrdinalIgnoreCase));
+    }
+
+    private static void LCartographerPendingRemove(
+        LCartographerPlanRecord lCartographerPlan,
+        LCartographerStageRecord lCartographerStage,
+        HashSet<string> lCartographerCleared)
+    {
         int lCartographerRemoved = lCartographerStage.LCartographerPendingInputs.RemoveAll(
             lCartographerInput => lCartographerCleared.Contains(lCartographerInput.LCartographerPath));
         if (lCartographerRemoved > 0)

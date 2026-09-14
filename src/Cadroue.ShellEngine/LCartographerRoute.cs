@@ -82,6 +82,14 @@ public static partial class LCartographer
                     lCartographerItem.LWorkRelayTarget = lCartographerStableTarget;
                     lCartographerItem.LWorkRelaySource = lCartographerStableSource;
                 }
+
+                if (lCartographerSourceStage is not null)
+                {
+                    LCartographerPendingRemove(
+                        lCartographerExisting, lCartographerSourceStage,
+                        lCartographerBatch.SelectMany(LCartographerSourcesRead)
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase));
+                }
                 continue;
             }
 
@@ -117,5 +125,44 @@ public static partial class LCartographer
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured " +
                 $"{lCartographerPlan.LCartographerStages.Count} stable stage(s)");
         }
+    }
+
+    public static bool LCartographerCycleCheck(
+        Guid lCartographerSourceTab,
+        Guid lCartographerTargetTab,
+        string lCartographerName)
+    {
+        IReadOnlyList<LCartographerTab> lCartographerTabs =
+            LCartographerTabsSource?.Invoke() ?? Array.Empty<LCartographerTab>();
+        var lCartographerSeen = new HashSet<Guid> { lCartographerSourceTab };
+        Guid lCartographerCurrent = lCartographerTargetTab;
+        while (lCartographerCurrent != Guid.Empty)
+        {
+            if (!lCartographerSeen.Add(lCartographerCurrent))
+            {
+                return true;
+            }
+
+            LCartographerTab? lCartographerTab = lCartographerTabs
+                .FirstOrDefault(lCartographerItem => lCartographerItem.LCartographerTabId == lCartographerCurrent);
+            if (lCartographerTab is null
+                || !lCartographerTab.LCartographerFunnel
+                || !lCartographerTab.LCartographerLayout.LSceneAutoRelay)
+            {
+                return false;
+            }
+
+            IReadOnlyList<LSceneFunnelRule> lCartographerRules = lCartographerTab.LCartographerLayout.LSceneFunnelRules;
+            int lCartographerMatch = LClassifier.LClassifierRouteRead(
+                lCartographerRules,
+                lCartographerName,
+                lCartographerIndex => lCartographerRules[lCartographerIndex].LSceneFunnelTarget >= 0
+                    && lCartographerRules[lCartographerIndex].LSceneFunnelTarget < lCartographerTabs.Count);
+            lCartographerCurrent = lCartographerMatch < 0
+                ? Guid.Empty
+                : lCartographerTabs[lCartographerRules[lCartographerMatch].LSceneFunnelTarget].LCartographerTabId;
+        }
+
+        return false;
     }
 }

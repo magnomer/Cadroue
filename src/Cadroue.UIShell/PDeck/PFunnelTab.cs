@@ -71,7 +71,7 @@ public sealed class PFunnelTab : PTabSurface
             .Select(pItem => (pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
             .ToList();
 
-        LMessenger.LMessengerFunnelDescribe(pRules, pTargets, pDispatchItems);
+        LMessenger.LMessengerFunnelDescribe(PTabAction!.PActionSourceTab, pRules, pTargets, pDispatchItems);
     }
 
     private IReadOnlyList<PActionRelayOption> PFunnelTargetsRead()

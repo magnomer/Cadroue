@@ -34,10 +34,7 @@ public sealed class LDocket
     public bool LDocketLockCheck(string lDocketPath) =>
         LDocketItemFind(lDocketPath)?.LDocketEntryLocked == true;
 
-    public int LDocketPathsAdd(
-        IReadOnlyList<string> lDocketPaths,
-        Guid lDocketBatch = default,
-        bool lDocketDelivered = false)
+    public int LDocketPathsAdd(IReadOnlyList<string> lDocketPaths, Guid lDocketBatch = default)
     {
         if (lDocketPaths.Count == 0)
         {
@@ -57,7 +54,7 @@ public sealed class LDocket
                 continue;
             }
 
-            var lDocketEntry = new LDocketEntry(lDocketPath, lDocketBatch) { LDocketEntryDelivered = lDocketDelivered };
+            var lDocketEntry = new LDocketEntry(lDocketPath, lDocketBatch);
             lDocketEntries.Add(lDocketEntry);
             lDocketAddedItems.Add(lDocketEntry);
         }
@@ -143,35 +140,45 @@ public sealed class LDocket
         return lDocketReleased;
     }
 
-    public int LDocketDeliveredAdd(IReadOnlyList<string> lDocketPaths, Guid lDocketBatch)
+    public int LDocketDeliveredAdd(IReadOnlyList<string> lDocketPaths, Guid lDocketBatch, bool lDocketLocked)
     {
         int lDocketTracked = 0;
+        var lDocketAddedItems = new List<LDocketEntry>();
         foreach (string lDocketPath in lDocketPaths)
         {
             LDocketEntry? lDocketEntry = LDocketItemFind(lDocketPath);
             if (lDocketEntry is null)
             {
-                lDocketEntries.Add(new LDocketEntry(lDocketPath, lDocketBatch)
+                lDocketEntry = new LDocketEntry(lDocketPath, lDocketBatch)
                 {
                     LDocketEntryDelivered = true,
-                    LDocketEntryLocked = true
-                });
+                    LDocketEntryLocked = lDocketLocked
+                };
+                lDocketEntries.Add(lDocketEntry);
+                lDocketAddedItems.Add(lDocketEntry);
                 lDocketTracked++;
                 continue;
             }
 
-            if (!lDocketEntry.LDocketEntryLocked || lDocketEntry.LDocketEntryBatch != lDocketBatch)
+            if (lDocketEntry.LDocketEntryLocked && lDocketEntry.LDocketEntryBatch != lDocketBatch)
             {
-                lDocketEntry.LDocketEntryBatch = lDocketBatch;
-                lDocketEntry.LDocketEntryDelivered = true;
-                lDocketEntry.LDocketEntryLocked = true;
-                lDocketTracked++;
+                continue;
             }
+
+            lDocketEntry.LDocketEntryBatch = lDocketBatch;
+            lDocketEntry.LDocketEntryDelivered = true;
+            lDocketEntry.LDocketEntryLocked |= lDocketLocked;
+            lDocketTracked++;
         }
 
         if (lDocketTracked > 0)
         {
             LDocketRaise();
+        }
+
+        if (lDocketAddedItems.Count > 0)
+        {
+            LDocketAdded?.Invoke(lDocketAddedItems);
         }
 
         return lDocketTracked;

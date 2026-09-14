@@ -17,6 +17,8 @@ internal sealed partial class PSOptions
     private readonly Border psOptionsRecordMode;
     private Action? psOptionsRecordNotice;
     private TextBlock? psWorkspaceSize;
+    private UIElement? psSystemMaintenanceNotice;
+    private readonly List<Button> psSystemMaintenanceButtons = new();
 
     private UIElement PSSystemRecordBuild()
     {
@@ -33,14 +35,14 @@ internal sealed partial class PSOptions
         };
         pRecordButtonRow.Children.Add(pRecordClear);
 
-        string pRecordWorkspacePath = System.IO.Path.Combine(
-            LDepot.LDepotRootRead(),
-            Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
         var pRecordBesideNotice = (TextBlock)PSNoticeBuild(
             LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
         void PSSystemNoticeUpdate()
         {
             bool pWorkspace = string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
+            string pRecordWorkspacePath = System.IO.Path.Combine(
+                LDepot.LDepotRootRead(),
+                Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
             pRecordBesideNotice.Text = pWorkspace
                 ? LLocalization.LLocalizationFormat("Options.System.FileRecordWorkspace", pRecordWorkspacePath)
                 : LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside");
@@ -92,12 +94,37 @@ internal sealed partial class PSOptions
         }
     }
 
+    private void PSSystemMaintenanceUpdate()
+    {
+        bool pApplied = PSWorkspaceAppliedCheck();
+        foreach (Button pButton in psSystemMaintenanceButtons)
+        {
+            pButton.IsEnabled = pApplied;
+        }
+
+        if (psSystemMaintenanceNotice is not null)
+        {
+            psSystemMaintenanceNotice.Visibility = pApplied ? Visibility.Collapsed : Visibility.Visible;
+        }
+    }
+
+    private bool PSWorkspaceAppliedCheck() =>
+        string.Equals(
+            LDepot.LDepotRootResolve(psWorkspaceBox.Text),
+            LDepot.LDepotRootRead(),
+            StringComparison.OrdinalIgnoreCase);
+
     private void PSSystemDoneClear()
     {
+        if (!PSWorkspaceAppliedCheck())
+        {
+            return;
+        }
+
         if (!PSAlert.PSAlertConfirm(
                 this,
                 LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
-                LLocalization.LLocalizationTextRead("Options.System.ClearDoneConfirm"),
+                LLocalization.LLocalizationFormat("Options.System.ClearDoneConfirm", LDepot.LDepotRootRead()),
                 LLocalization.LLocalizationTextRead("Terms.Delete")))
         {
             return;
@@ -119,7 +146,13 @@ internal sealed partial class PSOptions
 
     private void PSWorkspaceClear()
     {
-        if (LDepot.LDepotRunningCheck(LDepot.LDepotRootRead()))
+        if (!PSWorkspaceAppliedCheck())
+        {
+            return;
+        }
+
+        string pWorkspaceRoot = LDepot.LDepotRootRead();
+        if (LDepot.LDepotRunningCheck(pWorkspaceRoot))
         {
             PSWarning.PSWarningShow(
                 this,
@@ -131,7 +164,7 @@ internal sealed partial class PSOptions
         if (!PSAlert.PSAlertConfirm(
                 this,
                 LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-                LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceConfirm"),
+                LLocalization.LLocalizationFormat("Options.System.ClearWorkspaceConfirm", pWorkspaceRoot),
                 LLocalization.LLocalizationTextRead("Terms.Reset")))
         {
             return;
