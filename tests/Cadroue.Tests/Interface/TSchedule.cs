@@ -171,7 +171,8 @@ internal sealed class TSchedule : IDisposable
     {
         IReadOnlyList<Guid> removable = tSchedule.LScheduleRemovableRead(
             work.Select(item => item.TWorkId));
-        return tSchedule.LScheduleBatchRemove(removable);
+        return tSchedule.LScheduleBatchRemove(removable).Values
+            .Count(outcome => outcome == LScheduleRemoval.LScheduleRemovalRemoved);
     }
 
     internal int TScheduleDoneClear() => tSchedule.LScheduleDoneClear();

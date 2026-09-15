@@ -60,6 +60,8 @@ public sealed class LWorkRecord
 
     public int LWorkRecoverCount { get; set; }
 
+    public int LWorkRetryCount { get; set; }
+
     public LWorkOutputRecord LWorkOutputSnapshot { get; set; } = new();
 
     public LWorkCrop LWorkCrop { get; set; } = LWorkCrop.LWorkCropCreate();
@@ -107,6 +109,7 @@ public sealed class LWorkRecord
         LWorkPhaseName = lWorkItem.LWorkPhaseCurrent.ToString(),
         LWorkAttemptCount = lWorkItem.LWorkAttemptCount,
         LWorkRecoverCount = lWorkItem.LWorkRecoverCount,
+        LWorkRetryCount = lWorkItem.LWorkRetryCount,
         LWorkOutputSnapshot = LWorkOutputRecord.LWorkSnapshotCreate(lWorkItem.LWorkOutput),
         LWorkCrop = lWorkItem.LWorkCrop,
         LWorkVideo = lWorkItem.LWorkVideo,
@@ -148,6 +151,7 @@ public sealed class LWorkRecord
         lWorkItem.LWorkPhaseCurrent = Enum.Parse<LWorkPhase>(LWorkPhaseName);
         lWorkItem.LWorkAttemptCount = LWorkAttemptCount;
         lWorkItem.LWorkRecoverCount = LWorkRecoverCount;
+        lWorkItem.LWorkRetryCount = LWorkRetryCount;
         lWorkItem.LWorkStartTime = LWorkStartTime;
         lWorkItem.LWorkFinishTime = LWorkFinishTime;
         lWorkItem.LWorkOutputBytes = LWorkOutputBytes;

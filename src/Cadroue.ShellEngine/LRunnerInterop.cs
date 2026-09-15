@@ -24,8 +24,7 @@ public sealed partial class LRunner
                 continue;
             }
 
-            lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? pWorkItem);
-            LRunnerMessageSet(pWorkItem, string.Empty);
+            LRunnerMessageSet(LRunnerItemRead(lRunnerEntry.Key), string.Empty);
         }
 
         if (lRunnerAllResumed)

@@ -8,6 +8,14 @@ public enum LScheduleNotice
     LScheduleNoticeStatus
 }
 
+public enum LScheduleRemoval
+{
+    LScheduleRemovalRemoved,
+    LScheduleRemovalHeld,
+    LScheduleRemovalBlocked,
+    LScheduleRemovalMissing
+}
+
 public interface LScheduleContract
 {
     ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
@@ -65,7 +73,7 @@ public interface LScheduleContract
 
     IReadOnlyList<Guid> LScheduleRemovableRead(IEnumerable<Guid> lWorkIds);
 
-    int LScheduleBatchRemove(IEnumerable<Guid> lWorkIds);
+    IReadOnlyDictionary<Guid, LScheduleRemoval> LScheduleBatchRemove(IEnumerable<Guid> lWorkIds);
 
     int LScheduleDoneClear();
 
@@ -84,6 +92,8 @@ public interface LScheduleContract
     int LScheduleRelease(Guid lRunnerId);
 
     bool LScheduleItemRelease(Guid lWorkId, Guid lRunnerId, string lScheduleMessage);
+
+    int LScheduleRetryRelease(Guid lWorkId, Guid lRunnerId, int lScheduleRetryMaximum, string lScheduleReason);
 
     int LScheduleStaleClaim();
 

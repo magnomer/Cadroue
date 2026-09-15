@@ -85,7 +85,8 @@ internal sealed class TSidecar : IDisposable
 
     internal double TLoudnessRead(string sourcePath) => LSidecarStore.LSidecarLoudnessRead(sourcePath);
 
-    internal void TSidecarLocationSet(bool locationMode) => LSidecarStore.LSidecarFolderSet(tSidecarRoot, !locationMode);
+    internal void TSidecarLocationSet(bool locationMode) =>
+        LSidecarStore.LSidecarFolderSet(tSidecarRoot, !locationMode);
 
     internal string TSidecarPathRead(string sourcePath) => LSidecarStore.LSidecarPathRead(sourcePath);
 

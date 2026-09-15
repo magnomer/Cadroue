@@ -10,6 +10,7 @@ internal readonly record struct LEmployerResult(int LEmployerExit, string LEmplo
 internal sealed class LEmployer
 {
     private const int LEmployerErrorLimit = 256 * 1024;
+    private static readonly TimeSpan lEmployerExitWait = TimeSpan.FromSeconds(5);
     private readonly string lEmployerProgramPath;
     private readonly string lEmployerArgumentPrefix;
 
@@ -45,11 +46,50 @@ internal sealed class LEmployer
         LEmployerPrioritySet(lEmployerProcess);
         lEmployerAttach(lEmployerProcess);
 
-        Task<string> lEmployerErrorTask = LEmployerErrorRead(lEmployerProcess, lEmployerToken, lEmployerErrorRead);
-        await LEmployerOutputRead(lEmployerProcess, lEmployerToken, lEmployerOutputRead).ConfigureAwait(false);
-        await lEmployerProcess.WaitForExitAsync(lEmployerToken).ConfigureAwait(false);
-        string lEmployerError = await lEmployerErrorTask.ConfigureAwait(false);
-        return new LEmployerResult(lEmployerProcess.ExitCode, lEmployerError);
+        try
+        {
+            Task<string> lEmployerErrorTask = LEmployerErrorRead(lEmployerProcess, lEmployerToken, lEmployerErrorRead);
+            await LEmployerOutputRead(lEmployerProcess, lEmployerToken, lEmployerOutputRead).ConfigureAwait(false);
+            await lEmployerProcess.WaitForExitAsync(lEmployerToken).ConfigureAwait(false);
+            string lEmployerError = await lEmployerErrorTask.ConfigureAwait(false);
+            return new LEmployerResult(lEmployerProcess.ExitCode, lEmployerError);
+        }
+        catch (OperationCanceledException) when (lEmployerToken.IsCancellationRequested)
+        {
+            if (!LEmployerProcessInterrupt(lEmployerProcess))
+            {
+                throw new InvalidOperationException(
+                    $"the process '{lEmployerProgramPath}' did not terminate within " +
+                    $"{lEmployerExitWait.TotalSeconds:0} s of cancellation");
+            }
+
+            throw;
+        }
+    }
+
+    private static bool LEmployerProcessInterrupt(Process lEmployerProcess)
+    {
+        try
+        {
+            if (!lEmployerProcess.HasExited)
+            {
+                lEmployerProcess.Kill(true);
+            }
+        }
+        catch (Exception lEmployerException)
+            when (lEmployerException is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+        }
+
+        try
+        {
+            return lEmployerProcess.WaitForExit(lEmployerExitWait);
+        }
+        catch (Exception lEmployerException)
+            when (lEmployerException is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            return true;
+        }
     }
 
     private static void LEmployerPrioritySet(Process lEmployerProcess)

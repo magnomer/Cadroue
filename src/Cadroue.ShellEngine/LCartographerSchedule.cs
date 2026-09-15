@@ -10,7 +10,7 @@ public static partial class LCartographer
 
     public static LScheduleContract? LCartographerScheduleContract { get; set; }
 
-    public static Action<IReadOnlyList<LWorkItem>, Guid>? LCartographerLockSeam { get; set; }
+    public static Func<IReadOnlyList<LWorkItem>, bool>? LCartographerLockSeam { get; set; }
 
     private static IReadOnlyList<LWorkItem> LCartographerScheduleRead() =>
         LCartographerScheduleContract?.LScheduleRecords ?? (IReadOnlyList<LWorkItem>)Array.Empty<LWorkItem>();
@@ -41,11 +41,59 @@ public static partial class LCartographer
             return 0;
         }
 
-        LCartographerRelaySet(lCartographerItems, lCartographerTarget, lCartographerSource, lCartographerPreparedPlan);
-
+        IReadOnlyList<Guid> lCartographerCreatedPlans = LCartographerRelaySet(
+            lCartographerItems, lCartographerTarget, lCartographerSource, lCartographerPreparedPlan);
         IReadOnlyList<LWorkItem> lCartographerAccepted = lCartographerSchedule.LScheduleAcceptedAdd(lCartographerItems);
-        LCartographerLockSeam?.Invoke(lCartographerAccepted, lCartographerSource);
+        if (lCartographerAccepted.Count > 0
+            && LCartographerLockSeam?.Invoke(lCartographerAccepted) == false)
+        {
+            lCartographerSchedule.LScheduleBatchRemove(
+                lCartographerAccepted.Select(lCartographerItem => lCartographerItem.LWorkId).ToArray());
+            LTraceLog.LTraceWarningRecord(
+                $"Work admission withdrew {lCartographerAccepted.Count} item(s): " +
+                "a source file is already held by other work");
+            lCartographerAccepted = Array.Empty<LWorkItem>();
+        }
+
+        if (lCartographerAccepted.Count == 0)
+        {
+            foreach (Guid lCartographerPlanId in lCartographerCreatedPlans)
+            {
+                LCartographerPlanStore.LCartographerPlanDelete(lCartographerPlanId);
+            }
+
+            return 0;
+        }
+
+        LCartographerPendingCommit(lCartographerAccepted);
         return lCartographerAccepted.Count;
+    }
+
+    private static void LCartographerPendingCommit(IReadOnlyList<LWorkItem> lCartographerAccepted)
+    {
+        foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerAccepted.GroupBy(
+            lCartographerItem => lCartographerItem.LWorkBatchId))
+        {
+            if (!LCartographerPlanStore.LCartographerPlanRead(
+                lCartographerBatch.Key, out LCartographerPlanRecord lCartographerPlan))
+            {
+                continue;
+            }
+
+            foreach (IGrouping<Guid, LWorkItem> lCartographerStageItems in lCartographerBatch.GroupBy(
+                lCartographerItem => lCartographerItem.LWorkRelaySource))
+            {
+                if (lCartographerPlan.LCartographerStages.FirstOrDefault(
+                        lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerStageItems.Key)
+                    is { } lCartographerSourceStage)
+                {
+                    LCartographerPendingRemove(
+                        lCartographerPlan, lCartographerSourceStage,
+                        lCartographerStageItems.SelectMany(LCartographerSourcesRead)
+                            .ToHashSet(StringComparer.OrdinalIgnoreCase));
+                }
+            }
+        }
     }
 
     public static LCartographerPlanRecord? LCartographerPlanPrepare(Guid lCartographerTarget) =>
@@ -75,8 +123,20 @@ public static partial class LCartographer
         IReadOnlyCollection<Guid> lCartographerLiveBatches)
     {
         LCartographerSourcesRelease(lCartographerSchedule);
+        LCartographerSourcesClaim(lCartographerSchedule);
         LCartographerBatchesUpdate(lCartographerSchedule, lCartographerLiveBatches);
         LCartographerDispatch(lCartographerSchedule.LScheduleRecords);
+    }
+
+    private static void LCartographerSourcesClaim(LScheduleContract lCartographerSchedule)
+    {
+        LWorkItem[] lCartographerActive = lCartographerSchedule.LScheduleRecords
+            .Where(LCartographerActiveCheck)
+            .ToArray();
+        if (lCartographerActive.Length > 0)
+        {
+            LCartographerLockSeam?.Invoke(lCartographerActive);
+        }
     }
 
     private static void LCartographerSourcesRelease(LScheduleContract lCartographerSchedule)
@@ -146,5 +206,9 @@ public static partial class LCartographer
         LCartographerDeliveredRemove(lCartographerSchedule.LScheduleRecords
             .Select(lCartographerItem => lCartographerItem.LWorkId)
             .ToHashSet());
+        foreach (Guid lCartographerBatch in lCartographerRemovedBatches)
+        {
+            LCartographerPlanStore.LCartographerPlanDelete(lCartographerBatch);
+        }
     }
 }

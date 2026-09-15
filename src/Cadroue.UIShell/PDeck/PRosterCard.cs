@@ -101,7 +101,7 @@ public sealed partial class PRoster
             return;
         }
 
-        pRosterSchedule.LScheduleBatchRemove(pRemovable);
+        PConsole.PConsoleRemovalShow(Window.GetWindow(this), pRosterSchedule.LScheduleBatchRemove(pRemovable));
     }
 
     private static bool PRosterCardConfirm(int pRemovableCount)

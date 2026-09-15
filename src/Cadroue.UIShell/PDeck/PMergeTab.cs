@@ -124,13 +124,16 @@ public sealed class PMergeTab : PTabSurface
             {
                 LTraceLog.LTraceWarningRecord(
                     $"Merge skipped group '{pGroupSelection.PGroupSelectionName}': "
-                    + $"{pMergeLocked.Length} of {pGroupSelection.PGroupSelectionPaths.Count} file(s) still in the worklist");
+                    + $"{pMergeLocked.Length} of {pGroupSelection.PGroupSelectionPaths.Count} file(s) "
+                    + "still in the worklist");
                 continue;
             }
 
             if (pGroupSelection.PGroupSelectionPaths.Count > 0)
             {
-                pMergeGroups.Add(new LWorkGroup(pGroupSelection.PGroupSelectionName, pGroupSelection.PGroupSelectionPaths));
+                pMergeGroups.Add(new LWorkGroup(
+                    pGroupSelection.PGroupSelectionName,
+                    pGroupSelection.PGroupSelectionPaths));
             }
         }
 

@@ -77,7 +77,10 @@ public static class LSidecarSource
         }
     }
 
-    public static bool LSidecarCacheMatch(LSidecarSourceRecord lSidecarSource, long lSidecarLength, string lSidecarHash) =>
+    public static bool LSidecarCacheMatch(
+        LSidecarSourceRecord lSidecarSource,
+        long lSidecarLength,
+        string lSidecarHash) =>
         lSidecarSource.LSidecarLength == lSidecarLength
         && !string.IsNullOrWhiteSpace(lSidecarHash)
         && string.Equals(lSidecarSource.LSidecarPartialHash, lSidecarHash, StringComparison.Ordinal);

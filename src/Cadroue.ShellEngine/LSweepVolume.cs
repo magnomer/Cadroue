@@ -88,7 +88,11 @@ public static partial class LSweep
         }
 
         IReadOnlyList<LSweepSample> lSweepSamples = LSweepVolumeParse(
-            await LSweepLinesRead(LSweepVolumeFormat(lSweepSource, lSweepMode), lSweepDuration, lSweepToken, lSweepProgress)
+            await LSweepLinesRead(
+                LSweepVolumeFormat(lSweepSource, lSweepMode),
+                lSweepDuration,
+                lSweepToken,
+                lSweepProgress)
                 .ConfigureAwait(false));
         return LSweepMinimumResolve(
             LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);

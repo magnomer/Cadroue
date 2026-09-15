@@ -17,12 +17,12 @@ public sealed partial class LRunner
     public bool LRunnerForeignCheck(LWorkItem lWorkItem) =>
         lRunnerSchedule.LScheduleForeignCheck(lWorkItem, lRunnerId);
 
-    public void LRunnerDispose()
+    public async Task LRunnerDispose()
     {
-        if (LRunnerRunning || !lRunnerItems.IsEmpty)
+        if (LRunnerRunning || !lRunnerJobs.IsEmpty)
         {
             LRunnerRecord($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
-            LRunnerCancel();
+            await LRunnerCancel().ConfigureAwait(false);
         }
 
         LRunnerRunning = false;

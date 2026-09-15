@@ -9,9 +9,8 @@ public sealed partial class LRunner
 {
     internal readonly LScheduleContract lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
-    internal readonly ConcurrentDictionary<Guid, LWorkItem> lRunnerItems = new();
+    internal readonly ConcurrentDictionary<Guid, LJob> lRunnerJobs = new();
     internal readonly ConcurrentDictionary<Guid, Process> lRunnerProcesses = new();
-    internal readonly ConcurrentDictionary<Guid, int> lRunnerAttempts = new();
     internal readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
 
     private readonly object lRunnerGate = new();
@@ -62,6 +61,8 @@ public sealed partial class LRunner
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
+    public bool LRunnerPaused { get; private set; }
+
     internal async Task LRunnerResume(CancellationToken lRunnerToken)
     {
         while (lRunnerSuspended)
@@ -82,6 +83,7 @@ public sealed partial class LRunner
         lock (lRunnerGate)
         {
             LRunnerRunning = true;
+            LRunnerPaused = false;
 
             if (lRunnerSuspended)
             {
@@ -105,6 +107,7 @@ public sealed partial class LRunner
         lock (lRunnerGate)
         {
             LRunnerRunning = false;
+            LRunnerPaused = true;
 
             if (!lRunnerSuspended)
             {
@@ -125,8 +128,7 @@ public sealed partial class LRunner
                     }
 
                     lRunnerSuspendedAny = true;
-                    lRunnerItems.TryGetValue(lRunnerEntry.Key, out LWorkItem? lRunnerItem);
-                    LRunnerMessageSet(lRunnerItem, "Suspended");
+                    LRunnerMessageSet(LRunnerItemRead(lRunnerEntry.Key), "Suspended");
                 }
 
                 if (lRunnerSuspendedAny || !lRunnerLiveExisted)
@@ -143,12 +145,13 @@ public sealed partial class LRunner
         lRunnerSchedule.LScheduleChangeRaise();
     }
 
-    public void LRunnerCancel()
+    public Task LRunnerCancel()
     {
+        Task[] lRunnerDraining;
         lock (lRunnerGate)
         {
             LRunnerRunning = false;
-            LWorkItem[] lRunnerStoppingItems = lRunnerItems.Values.ToArray();
+            LRunnerPaused = false;
             lRunnerBatch?.LRunnerBatchSource.Cancel();
             lRunnerBatch = null;
 
@@ -157,66 +160,39 @@ public sealed partial class LRunner
                 LRunnerProcessResume();
             }
 
-            foreach (Process lRunnerProcess in lRunnerProcesses.Values)
-            {
-                LRunnerProcessInterrupt(lRunnerProcess);
-            }
-
             lRunnerSuspended = false;
-            LRunnerLeaseClear();
-            foreach (LWorkItem lRunnerItem in lRunnerStoppingItems)
-            {
-                LRunnerPartialRemove(lRunnerItem);
-            }
+            lRunnerDraining = lRunnerJobs.Values.Select(lRunnerJob => lRunnerJob.LJobCompletion).ToArray();
         }
 
-        lRunnerSchedule.LScheduleRelease(lRunnerId);
+        lRunnerSchedule.LScheduleChangeRaise();
+        return Task.WhenAll(lRunnerDraining);
     }
 
     public void LRunnerJobCancel(Guid lWorkId)
     {
-        lRunnerCancelled[lWorkId] = 0;
-        if (lRunnerProcesses.TryGetValue(lWorkId, out Process? lRunnerProcess))
+        if (lRunnerJobs.TryGetValue(lWorkId, out LJob? lRunnerJob))
         {
-            LRunnerProcessInterrupt(lRunnerProcess);
+            lRunnerJob.LJobCancel();
+            return;
         }
+
+        lRunnerCancelled[lWorkId] = 0;
     }
 
-    internal void LRunnerProcessAttach(Guid lWorkId, Process lRunnerProcess, CancellationToken lRunnerToken)
+    internal void LRunnerProcessAttach(Guid lWorkId, Process lRunnerProcess)
     {
         lock (lRunnerGate)
         {
             lRunnerProcesses[lWorkId] = lRunnerProcess;
-            if (lRunnerToken.IsCancellationRequested || lRunnerCancelled.ContainsKey(lWorkId))
+            if (lRunnerSuspended && !lRunnerProcess.HasExited && LRunnerProcessSuspend(lRunnerProcess))
             {
-                LRunnerProcessInterrupt(lRunnerProcess);
-            }
-            else if (lRunnerSuspended && !lRunnerProcess.HasExited && LRunnerProcessSuspend(lRunnerProcess))
-            {
-                lRunnerItems.TryGetValue(lWorkId, out LWorkItem? lRunnerItem);
-                LRunnerMessageSet(lRunnerItem, "Suspended");
+                LRunnerMessageSet(LRunnerItemRead(lWorkId), "Suspended");
             }
         }
     }
 
-    private static void LRunnerProcessInterrupt(Process lRunnerProcess)
-    {
-        try
-        {
-            if (!lRunnerProcess.HasExited)
-            {
-                lRunnerProcess.Kill(true);
-            }
-
-            lRunnerProcess.WaitForExit(5000);
-        }
-        catch (Exception lRunnerException)
-            when (lRunnerException is InvalidOperationException
-                or System.ComponentModel.Win32Exception
-                or SystemException)
-        {
-        }
-    }
+    private LWorkItem? LRunnerItemRead(Guid lWorkId) =>
+        lRunnerJobs.TryGetValue(lWorkId, out LJob? lRunnerJob) ? lRunnerJob.LJobItem : null;
 
     private void LRunnerBatchStart()
     {
@@ -255,7 +231,17 @@ public sealed partial class LRunner
 
                 if (pNext is not null)
                 {
-                    await new LJob(this, pNext, lRunnerToken).LJobRun().ConfigureAwait(false);
+                    var pJob = new LJob(this, pNext, lRunnerToken);
+                    lRunnerJobs[pNext.LWorkId] = pJob;
+                    try
+                    {
+                        await pJob.LJobStart().ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        lRunnerJobs.TryRemove(pNext.LWorkId, out _);
+                    }
+
                     continue;
                 }
 
@@ -308,7 +294,6 @@ public sealed partial class LRunner
             }
         }
 
-        LRunnerLeaseClear();
         LRunnerDispatch(() =>
         {
             if (lRunnerCurrent)
@@ -329,6 +314,7 @@ public sealed partial class LRunner
         }
 
         LRunnerRunning = false;
+        LRunnerPaused = true;
         LRunnerRecord("Queue paused: a job failed and 'Pause queue on failure' is on");
     }
 
@@ -346,37 +332,5 @@ public sealed partial class LRunner
             pWorkItem.LWorkMessage = pMessage;
             lRunnerSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
         });
-    }
-
-    private static void LRunnerPartialRemove(LWorkItem? pWorkItem)
-    {
-        if (pWorkItem is null || string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath))
-        {
-            return;
-        }
-
-        string pPath = pWorkItem.LWorkOutputPath;
-        for (int pAttempt = 0; pAttempt < 5; pAttempt++)
-        {
-            try
-            {
-                if (!File.Exists(pPath))
-                {
-                    return;
-                }
-
-                File.Delete(pPath);
-                return;
-            }
-            catch (Exception pException)
-                when (pException is IOException or UnauthorizedAccessException)
-            {
-                System.Threading.Thread.Sleep(200);
-            }
-        }
-
-        LRunnerRecord(
-            $"Stop could not delete the partial output '{pPath}'; "
-            + "it may remain on disk and should be removed manually.");
     }
 }

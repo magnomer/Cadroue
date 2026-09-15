@@ -29,7 +29,8 @@ public static class LKeyframeSeeker
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        double timelineStartSeconds = LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
+        double timelineStartSeconds =
+            LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
         double intervalStartSeconds = timelineStartSeconds + normalizedStart.TotalSeconds;
         double intervalEndSeconds = timelineStartSeconds + scanEndTime.TotalSeconds + LKeyframeScanTolerance;
         string intervalStart = intervalStartSeconds > 0

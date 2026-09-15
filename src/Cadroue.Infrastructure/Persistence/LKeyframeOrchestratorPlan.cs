@@ -15,7 +15,9 @@ public sealed partial class LKeyframeOrchestrator
         int serial,
         CancellationToken cancellationToken)
     {
-        _ = Task.Run(() => LKeyframePlanRun(sourcePath, duration, cursor, serial, cancellationToken), CancellationToken.None);
+        _ = Task.Run(
+            () => LKeyframePlanRun(sourcePath, duration, cursor, serial, cancellationToken),
+            CancellationToken.None);
     }
 
     private void LKeyframePlanRun(

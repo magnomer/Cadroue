@@ -75,7 +75,7 @@ public sealed class LStation
             lStationRetired = LStationInternalRemove();
         }
 
-        lStationRetired?.LStationRunner.LRunnerDispose();
+        _ = lStationRetired?.LStationRunner.LRunnerDispose();
         LStationChange?.Invoke();
         return lStation;
     }
@@ -150,6 +150,7 @@ public sealed class LStation
     {
         if (!lStationAutoActive
             || LStationRunner.LRunnerRunning
+            || LStationRunner.LRunnerPaused
             || !LStationSchedule!.LSchedulePendingExist())
         {
             return;
@@ -180,7 +181,7 @@ public sealed class LStation
             return;
         }
 
-        LStationRunner.LRunnerDispose();
+        _ = LStationRunner.LRunnerDispose();
         LStationChange?.Invoke();
     }
 

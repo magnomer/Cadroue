@@ -110,4 +110,90 @@ public sealed partial class PViewer
         (pViewerEngineSurface.Parent as Panel)?.Children.Remove(pViewerEngineSurface);
         (pViewerEngineOverlay.Parent as Panel)?.Children.Remove(pViewerEngineOverlay);
     }
+
+    private void PViewerEngineSet(LPreviewEngine pViewerEngine)
+    {
+        if (PViewerEngineCurrent == pViewerEngine)
+        {
+            return;
+        }
+
+        PViewerEngineCurrent = pViewerEngine;
+        PViewerAudioUpdate();
+        PViewerEngineChange?.Invoke();
+    }
+
+    private LPreviewEngine PViewerEngineRead() =>
+        Cadroue.Infrastructure.LRenderer.LRendererEngineRead();
+
+    private bool PViewerEngineSelect()
+    {
+        if (!pViewerHostBuilt)
+        {
+            return false;
+        }
+
+        bool pViewerWantMpv = PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv;
+        if (pViewerWantMpv == pViewerMpvActive)
+        {
+            return false;
+        }
+
+        PPlayerStopDispose();
+        if (pViewerMpvActive)
+        {
+            PViewerMpvDispose();
+        }
+        else
+        {
+            PViewerFlyleafDispose();
+            pViewerFlyleafHost = null;
+        }
+
+        pViewerHostBuilt = false;
+        PViewerHostBuild();
+        return true;
+    }
+
+    private void PViewerEngineHandle()
+    {
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (pViewerUnloaded || !PViewerMpvEligible || !pViewerCommandActive)
+            {
+                return;
+            }
+
+            if (pViewerMpvActive == (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv))
+            {
+                return;
+            }
+
+            PViewerEngineRestore();
+        });
+    }
+
+    private bool PViewerEngineRestore()
+    {
+        PViewerIntent? pViewerPending = pViewerIntent;
+        string? pViewerSourcePath = PViewerSourcePath;
+        bool pViewerPlaying = pViewerResumeInactive || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+        TimeSpan pViewerPosition = pViewerPlayer.PPlayerReady
+            ? pViewerPlayer.PPlayerTimeRead()
+            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+        bool pViewerSwapped = PViewerEngineSelect();
+        if (pViewerPending is { } pViewerRequest)
+        {
+            PPlayerVideoLoad(pViewerRequest);
+            return true;
+        }
+
+        if (!pViewerSwapped || pViewerSourcePath is null)
+        {
+            return false;
+        }
+
+        PPlayerVideoLoad(new PViewerIntent(pViewerSourcePath, pViewerPosition, pViewerPlaying));
+        return true;
+    }
 }

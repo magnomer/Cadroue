@@ -6,7 +6,7 @@ public sealed partial class LSchedule
 {
     public bool LScheduleRemove(Guid lWorkId)
     {
-        bool lScheduleRemoved = LScheduleFileRemove(lWorkId);
+        bool lScheduleRemoved = LScheduleFileRemove(lWorkId) == LScheduleRemoval.LScheduleRemovalRemoved;
         if (lScheduleRemoved)
         {
             LScheduleLoad();
@@ -35,29 +35,35 @@ public sealed partial class LSchedule
                 && lWorkState != LWorkState.LWorkStateRunning)
             .ToArray();
 
-    public int LScheduleBatchRemove(IEnumerable<Guid> lWorkIds)
+    public IReadOnlyDictionary<Guid, LScheduleRemoval> LScheduleBatchRemove(IEnumerable<Guid> lWorkIds)
     {
-        int lScheduleRemovedCount = 0;
+        var lScheduleOutcomes = new Dictionary<Guid, LScheduleRemoval>();
         foreach (Guid lWorkId in lWorkIds)
         {
-            if (LScheduleFileRemove(lWorkId))
-            {
-                lScheduleRemovedCount++;
-            }
+            lScheduleOutcomes[lWorkId] = LScheduleFileRemove(lWorkId);
         }
 
+        int lScheduleRemovedCount = lScheduleOutcomes.Values.Count(
+            lScheduleOutcome => lScheduleOutcome == LScheduleRemoval.LScheduleRemovalRemoved);
         if (lScheduleRemovedCount > 0)
         {
             LScheduleLoad();
             LTraceLog.LTraceInfoRecord($"Schedule: removed {lScheduleRemovedCount} work item(s)");
         }
 
-        return lScheduleRemovedCount;
+        if (lScheduleRemovedCount < lScheduleOutcomes.Count)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Schedule: {lScheduleOutcomes.Count - lScheduleRemovedCount} of {lScheduleOutcomes.Count} " +
+                "requested work item(s) stayed in the worklist");
+        }
+
+        return lScheduleOutcomes;
     }
 
-    private bool LScheduleFileRemove(Guid lWorkId)
+    private LScheduleRemoval LScheduleFileRemove(Guid lWorkId)
     {
-        bool lScheduleRemoved = false;
+        LScheduleRemoval lScheduleOutcome = LScheduleRemoval.LScheduleRemovalMissing;
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
             string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkId);
@@ -66,22 +72,37 @@ public sealed partial class LSchedule
                 continue;
             }
 
+            if (lDepotFolder == LDepotFolder.LDepotFolderRunning
+                && LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord
+                && LSentinel.LSentinelOwnerCheck(
+                    lWorkRecord.LWorkOwnerProcess, lWorkRecord.LWorkOwnerStamp, lWorkRecord.LWorkOwnerRunner))
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkId)}] " +
+                    "was not removed: it is running under a live owner");
+                return LScheduleRemoval.LScheduleRemovalHeld;
+            }
+
             try
             {
                 File.Delete(lDepotFilePath);
-                lScheduleRemoved = true;
+                lScheduleOutcome = LScheduleRemoval.LScheduleRemovalRemoved;
             }
-            catch (IOException)
+            catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
             {
+                LTraceLog.LTraceWarningRecord(
+                    $"Schedule: work [{LScheduleIdShorten(lWorkId)}] could not be removed from {lDepotFolder}: " +
+                    lException.Message);
+                return LScheduleRemoval.LScheduleRemovalBlocked;
             }
         }
 
-        if (lScheduleRemoved)
+        if (lScheduleOutcome == LScheduleRemoval.LScheduleRemovalRemoved)
         {
             LDepotIndex.LDepotIndexRemove(lWorkId);
         }
 
-        return lScheduleRemoved;
+        return lScheduleOutcome;
     }
 
     public int LScheduleDoneClear()

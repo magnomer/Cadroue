@@ -163,7 +163,10 @@ public static partial class LSidecarStore
             lSidecarCore =>
             {
                 lSidecarCore.LSidecarVersion = 2;
-                lSidecarCore.LSidecarSource = LSidecarSourceCreate(lSidecarIdentity, LSidecarPathRead(lSidecarSourcePath));
+                lSidecarCore.LSidecarSource =
+                    LSidecarSourceCreate(
+                        lSidecarIdentity,
+                        LSidecarPathRead(lSidecarSourcePath));
             });
 
         bool lSidecarCacheSaved = LSidecarCacheStore.LSidecarCacheSave(
@@ -178,7 +181,8 @@ public static partial class LSidecarStore
 
     public static LSidecarCoreRecord? LSidecarCoreRead(string lSidecarSourcePath)
     {
-        LSidecarCoreResult lSidecarResult = LSidecarCoreResolve(lSidecarSourcePath, LSidecarPathRead(lSidecarSourcePath));
+        LSidecarCoreResult lSidecarResult =
+            LSidecarCoreResolve(lSidecarSourcePath, LSidecarPathRead(lSidecarSourcePath));
         return lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
             ? lSidecarResult.LSidecarCoreValue
             : null;

@@ -47,25 +47,36 @@ public sealed partial class LSchedule
 
             if (lWorkItem.LWorkLineage == Guid.Empty)
             {
-                lWorkItem.LWorkLineage = LScheduleLineage.LScheduleLineageResolve(lWorkItem, lScheduleItems);
+                lWorkItem.LWorkLineage = LScheduleLineage.LScheduleLineageResolve(
+                    lWorkItem, lScheduleItems.Concat(lScheduleAccepted));
             }
 
             var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
-            if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
+            if (LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
-                lScheduleKnownIds.Remove(lWorkItem.LWorkId);
-                LTraceLog.LTraceWarningRecord(
-                    $"Schedule: could not file work '{lWorkItem.LWorkOutputName}' " +
-                    $"[{LScheduleIdShorten(lWorkItem.LWorkId)}]");
+                lScheduleAccepted.Add(lWorkItem);
                 continue;
             }
 
-            lScheduleAccepted.Add(lWorkItem);
-            lScheduleItems.Add(lWorkItem);
+            foreach (LWorkItem lScheduleFiled in lScheduleAccepted)
+            {
+                LScheduleFileRemove(lScheduleFiled.LWorkId);
+            }
+
+            LTraceLog.LTraceWarningRecord(
+                $"Schedule: could not file work '{lWorkItem.LWorkOutputName}' " +
+                $"[{LScheduleIdShorten(lWorkItem.LWorkId)}]; the whole submission of " +
+                $"{lWorkItems.Count} item(s) was withdrawn");
+            return Array.Empty<LWorkItem>();
         }
 
         if (lScheduleAccepted.Count > 0)
         {
+            foreach (LWorkItem lWorkItem in lScheduleAccepted)
+            {
+                lScheduleItems.Add(lWorkItem);
+            }
+
             LTraceLog.LTraceInfoRecord($"Schedule: added {lScheduleAccepted.Count} work item(s)");
             LScheduleChange?.Invoke(this);
         }

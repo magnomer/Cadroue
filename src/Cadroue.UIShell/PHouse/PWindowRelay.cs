@@ -63,7 +63,9 @@ public partial class PWindow
         }
         catch (Exception pRelayException)
         {
-            LTraceLog.LTraceErrorRecord($"Relayed '{lRelay.LRelayLayoutKey}' tab could not be taken; refused", pRelayException);
+            LTraceLog.LTraceErrorRecord(
+                $"Relayed '{lRelay.LRelayLayoutKey}' tab could not be taken; refused",
+                pRelayException);
             return false;
         }
     }

@@ -52,7 +52,7 @@ public sealed partial class PConsole
     {
         LStation pStopStation = PConsoleStationRead();
         pStopStation.LStationAutoActive = false;
-        pStopStation.LStationRunner.LRunnerCancel();
+        _ = pStopStation.LStationRunner.LRunnerCancel();
     }
 
     private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments)
@@ -64,7 +64,29 @@ public sealed partial class PConsole
             return;
         }
 
-        pConsoleSchedule.LScheduleBatchRemove(pConsoleRemovable);
+        PConsoleRemovalShow(
+            Window.GetWindow(this), pConsoleSchedule.LScheduleBatchRemove(pConsoleRemovable));
+    }
+
+    internal static void PConsoleRemovalShow(Window? pOwner, IReadOnlyDictionary<Guid, LScheduleRemoval> pOutcomes)
+    {
+        int pHeld = pOutcomes.Values.Count(pOutcome => pOutcome == LScheduleRemoval.LScheduleRemovalHeld);
+        int pBlocked = pOutcomes.Values.Count(pOutcome => pOutcome == LScheduleRemoval.LScheduleRemovalBlocked);
+        if (pHeld == 0 && pBlocked == 0)
+        {
+            return;
+        }
+
+        string pDetail = pHeld > 0 && pBlocked > 0
+            ? LLocalization.LLocalizationFormat("Console.Remove.HeldAndBlocked", pHeld, pBlocked)
+            : pHeld > 0
+                ? LLocalization.LLocalizationFormat("Console.Remove.Held", pHeld)
+                : LLocalization.LLocalizationFormat("Console.Remove.Blocked", pBlocked);
+        PSWarning.PSWarningShow(
+            pOwner,
+            LLocalization.LLocalizationTextRead("Console.Remove.Title"),
+            LLocalization.LLocalizationFormat(
+                "Console.Remove.Partial", pOutcomes.Count - pHeld - pBlocked, pOutcomes.Count, pDetail));
     }
 
     private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments)
@@ -73,7 +95,7 @@ public sealed partial class PConsole
         pConsoleSchedule.LScheduleDoneClear();
     }
 
-    private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments)
+    private async void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments)
     {
         bool pConsoleProcessing = LStation.LStationActiveCheck();
         bool pConsoleConfirmed = pConsoleProcessing
@@ -84,12 +106,14 @@ public sealed partial class PConsole
             return;
         }
 
+        var pConsoleDraining = new List<Task>();
         foreach (LStation pConsoleClearStation in LStation.LStationBoardRead())
         {
             pConsoleClearStation.LStationAutoActive = false;
-            pConsoleClearStation.LStationRunner.LRunnerCancel();
+            pConsoleDraining.Add(pConsoleClearStation.LStationRunner.LRunnerCancel());
         }
 
+        await Task.WhenAll(pConsoleDraining);
         LMessenger.LMessengerMeasureCancel();
         pConsoleSchedule.LScheduleAllClear();
     }

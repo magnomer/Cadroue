@@ -149,25 +149,29 @@ public sealed partial class PList
         }
     }
 
-    public static void PListSourceClaim(IReadOnlyList<LWorkItem> pListAccepted, Guid pListSourceTab)
+    public static bool PListSourceClaim(IReadOnlyList<LWorkItem> pListAccepted)
     {
-        if (pListAccepted.Count == 0
-            || PStrip.PStripTabFind(pListSourceTab)
-                ?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
+        bool pListClaimed = true;
+        foreach (IGrouping<PTabRecord?, LWorkItem> pListGroup in pListAccepted.GroupBy(PStrip.PStripTabFind))
         {
-            return;
-        }
-
-        var pListLocks = new List<(string, Guid)>();
-        foreach (LWorkItem pListItem in pListAccepted)
-        {
-            pListLocks.Add((pListItem.LWorkSourcePath, pListItem.LWorkBatchId));
-            foreach (string pListMergeSource in pListItem.LWorkMergeSources)
+            if (pListGroup.Key?.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
             {
-                pListLocks.Add((pListMergeSource, pListItem.LWorkBatchId));
+                continue;
             }
+
+            var pListLocks = new List<(string, Guid)>();
+            foreach (LWorkItem pListItem in pListGroup)
+            {
+                pListLocks.Add((pListItem.LWorkSourcePath, pListItem.LWorkBatchId));
+                foreach (string pListMergeSource in pListItem.LWorkMergeSources)
+                {
+                    pListLocks.Add((pListMergeSource, pListItem.LWorkBatchId));
+                }
+            }
+
+            pListClaimed &= pListOwner.LDocketClaim(pListLocks.Distinct().ToArray());
         }
 
-        pListOwner.LDocketClaim(pListLocks.Distinct().ToArray());
+        return pListClaimed;
     }
 }

@@ -21,7 +21,11 @@ public static partial class LSweep
         }
 
         return LSweepOutputParse(
-            await LSweepLinesRead(LSweepArgsFormat(lSweepSource, lSweepBlank), lSweepDuration, lSweepToken, lSweepProgress)
+            await LSweepLinesRead(
+                LSweepArgsFormat(lSweepSource, lSweepBlank),
+                lSweepDuration,
+                lSweepToken,
+                lSweepProgress)
                 .ConfigureAwait(false));
     }
 
@@ -38,7 +42,11 @@ public static partial class LSweep
         }
 
         return LSweepSceneParse(
-            await LSweepLinesRead(LSweepSceneFormat(lSweepSource, lSweepThreshold), lSweepDuration, lSweepToken, lSweepProgress)
+            await LSweepLinesRead(
+                LSweepSceneFormat(lSweepSource, lSweepThreshold),
+                lSweepDuration,
+                lSweepToken,
+                lSweepProgress)
                 .ConfigureAwait(false));
     }
 
@@ -81,7 +89,11 @@ public static partial class LSweep
         }
 
         IReadOnlyList<LSweepSample> lSweepSamples = LSweepLuminanceParse(
-            await LSweepLinesRead(LSweepLuminanceFormat(lSweepSource, lSweepMode), lSweepDuration, lSweepToken, lSweepProgress)
+            await LSweepLinesRead(
+                LSweepLuminanceFormat(lSweepSource, lSweepMode),
+                lSweepDuration,
+                lSweepToken,
+                lSweepProgress)
                 .ConfigureAwait(false));
         return LSweepMinimumResolve(
             LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);

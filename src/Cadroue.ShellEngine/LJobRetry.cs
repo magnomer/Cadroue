@@ -2,29 +2,29 @@ namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
+    private const int LJobTailLimit = 240;
+
     private bool LJobRetryStart(string pJobReason)
     {
-        if (!lJobOwner.LRunnerRetryAllowed || lJobOwner.LRunnerRetryMaximum <= 0)
+        if (!lJobOwner.LRunnerRetryAllowed
+            || lJobOwner.LRunnerRetryMaximum <= 0
+            || lJobItem.LWorkRetryCount >= lJobOwner.LRunnerRetryMaximum)
         {
             return false;
         }
 
-        int pAttempt = lJobOwner.lRunnerAttempts.AddOrUpdate(lJobItem.LWorkId, 1, (_, pPrevious) => pPrevious + 1);
-        if (pAttempt > lJobOwner.LRunnerRetryMaximum)
+        LJobAttemptClear();
+        int pRetry = 0;
+        lJobOwner.LRunnerDispatch(() => pRetry = lJobOwner.lRunnerSchedule.LScheduleRetryRelease(
+            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobOwner.LRunnerRetryMaximum, pJobReason));
+        if (pRetry == 0)
         {
             return false;
         }
 
-        string pJobMessage = $"{pJobReason} Retry {pAttempt} of {lJobOwner.LRunnerRetryMaximum}.";
-        bool pReleased = false;
-        lJobOwner.LRunnerDispatch(() => pReleased = lJobOwner.lRunnerSchedule.LScheduleItemRelease(
-            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, pJobMessage));
-        if (!pReleased)
-        {
-            return false;
-        }
-
-        LRunner.LRunnerRecord($"Encode requeued '{lJobItem.LWorkOutputName}': {pJobMessage}");
+        LRunner.LRunnerRecord(
+            $"Encode requeued '{lJobItem.LWorkOutputName}': {pJobReason} " +
+            $"Retry {pRetry} of {lJobOwner.LRunnerRetryMaximum}.");
         return true;
     }
 
@@ -39,4 +39,7 @@ internal sealed partial class LJob
             .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         return string.Join(" | ", pJobLines[^Math.Min(3, pJobLines.Length)..]);
     }
+
+    private static string LJobTailShorten(string pJobTail) =>
+        pJobTail.Length <= LJobTailLimit ? pJobTail : pJobTail[..LJobTailLimit].TrimEnd() + "...";
 }

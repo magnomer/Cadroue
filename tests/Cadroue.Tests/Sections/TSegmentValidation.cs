@@ -53,7 +53,15 @@ public sealed class TSegmentValidation
     {
         var segment = TInterface.TSegmentCreate();
         Assert.True(TInterface.TSegmentBoundSet(
-            segment, new[] { TSegmentPieceCreate(-2, 1), TSegmentPieceCreate(1, 3), TSegmentPieceCreate(5, 20) }, 0, TSegmentAtCreate(10)));
+            segment,
+            new[]
+            {
+                TSegmentPieceCreate(-2, 1),
+                TSegmentPieceCreate(1, 3),
+                TSegmentPieceCreate(5, 20)
+            },
+            0,
+            TSegmentAtCreate(10)));
         var kept = Assert.Single(TInterface.TSegmentListRead(segment));
         Assert.Equal(TSegmentAtCreate(1), kept.LPieceOrigin);
     }
@@ -65,7 +73,12 @@ public sealed class TSegmentValidation
         {
             LSidecarStartMilliseconds = start, LSidecarEndMilliseconds = end, LSidecarColorIndex = color
         };
-        TInterface.TSegmentSeamSet(_ => new[] { TSidecarSectionCreate(-500, 1000, 0), TSidecarSectionCreate(1000, 2000, -7), TSidecarSectionCreate(3000, 99000, 1) });
+        TInterface.TSegmentSeamSet(_ => new[]
+        {
+            TSidecarSectionCreate(-500, 1000, 0),
+            TSidecarSectionCreate(1000, 2000, -7),
+            TSidecarSectionCreate(3000, 99000, 1)
+        });
         try
         {
             var segment = TInterface.TSegmentCreate();

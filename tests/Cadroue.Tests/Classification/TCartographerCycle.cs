@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Cartographer")]
 public sealed class TCartographerCycle
 {
     [Fact]

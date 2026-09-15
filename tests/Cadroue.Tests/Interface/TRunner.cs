@@ -124,7 +124,7 @@ internal sealed class TRunner : IDisposable
 
     internal void TRunnerPause() => tRunnerList.ForEach(runner => runner.LRunnerPause());
 
-    internal void TRunnerStop() => tRunnerList.ForEach(runner => runner.LRunnerCancel());
+    internal void TRunnerStop() => tRunnerList.ForEach(runner => _ = runner.LRunnerCancel());
 
     internal void TRunnerWorkCancel(Guid workId) => tRunnerList.ForEach(runner => runner.LRunnerJobCancel(workId));
 
@@ -239,11 +239,7 @@ internal sealed class TRunner : IDisposable
         }
 
         tRunnerDisposed = true;
-        foreach (LRunner runner in tRunnerList)
-        {
-            runner.LRunnerCancel();
-            runner.LRunnerDispose();
-        }
+        Task.WhenAll(tRunnerList.Select(runner => runner.LRunnerDispose())).Wait(TRunnerWaitMilliseconds);
         LRunner.LRunnerVerboseSource = null;
         LRunner.LRunnerReport = null;
         LRunner.LRunnerFfmpegReport = null;

@@ -204,7 +204,9 @@ public static class LRelayChannel
                 if (lRelayProcess.HasExited)
                 {
                     LTraceLog.LTraceErrorRecord(
-                        $"Relay instance exited with code {lRelayProcess.ExitCode} before taking the tab; tab kept", null);
+                        $"Relay instance exited with code {lRelayProcess.ExitCode} before taking the tab; "
+                        + "tab kept",
+                        null);
                     return false;
                 }
 
@@ -303,7 +305,8 @@ public static class LRelayChannel
         }
 
         LTraceLog.LTraceErrorRecord(
-            $"Relayed tab refused: sender version '{lRelay.LRelayVersion}' differs from '{LRelayPayload.LRelayVersionRead()}'",
+            $"Relayed tab refused: sender version '{lRelay.LRelayVersion}' "
+            + $"differs from '{LRelayPayload.LRelayVersionRead()}'",
             null);
         return null;
     }

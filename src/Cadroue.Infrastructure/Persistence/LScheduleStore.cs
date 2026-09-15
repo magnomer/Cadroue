@@ -86,9 +86,11 @@ internal static class LScheduleStore
 
         LTraceLog.LTraceWarningRecord(
             LScheduleMove(lWorkRecord.LWorkId, lDepotTo, lDepotFrom)
-                ? $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LSchedule.LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                ? $"Schedule: work '{lWorkRecord.LWorkOutputName}' " +
+                  $"[{LSchedule.LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
                   $"could not be written as {lDepotTo} and stays {lDepotFrom}"
-                : $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LSchedule.LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
+                : $"Schedule: work '{lWorkRecord.LWorkOutputName}' " +
+                  $"[{LSchedule.LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
                   $"could not be written as {lDepotTo} and could not be returned to {lDepotFrom}");
         return false;
     }

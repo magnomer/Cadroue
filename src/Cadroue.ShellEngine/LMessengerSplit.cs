@@ -97,11 +97,13 @@ public static partial class LMessenger
                 return Array.Empty<LSplitSectionDescription>();
             }
 
-            TimeSpan lMessengerDuration = Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSourcePath);
+            TimeSpan lMessengerDuration =
+                Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSourcePath);
             if (lMessengerDuration <= TimeSpan.Zero)
             {
                 LTraceLog.LTraceWarningRecord(
-                    $"Split plan for '{lMessengerSourcePath}' has no known duration; sections are bounded by their own ends");
+                    $"Split plan for '{lMessengerSourcePath}' has no known duration; " +
+                    "sections are bounded by their own ends");
                 lMessengerDuration = TimeSpan.MaxValue;
             }
 

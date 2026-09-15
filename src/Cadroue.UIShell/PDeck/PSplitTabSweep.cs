@@ -11,7 +11,9 @@ namespace Cadroue.UIShell.PDeck;
 
 public sealed partial class PSplitTab
 {
-    private delegate Task PSplitSweepStep(IProgress<double> pSplitProgress, System.Threading.CancellationToken pSplitToken);
+    private delegate Task PSplitSweepStep(
+        IProgress<double> pSplitProgress,
+        System.Threading.CancellationToken pSplitToken);
 
     private async void PSplitSweepRun()
     {

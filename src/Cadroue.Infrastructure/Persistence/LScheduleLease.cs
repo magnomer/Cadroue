@@ -240,23 +240,44 @@ public sealed partial class LSchedule
         return lScheduleReleasedCount;
     }
 
-    public bool LScheduleItemRelease(Guid lWorkId, Guid lRunnerId, string lScheduleMessage)
+    public bool LScheduleItemRelease(Guid lWorkId, Guid lRunnerId, string lScheduleMessage) =>
+        LScheduleOwnedRead(lWorkId, lRunnerId) is { } lWorkRecord
+        && LScheduleOwnedRelease(lWorkRecord, lScheduleMessage);
+
+    public int LScheduleRetryRelease(Guid lWorkId, Guid lRunnerId, int lScheduleRetryMaximum, string lScheduleReason)
     {
-        string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, lWorkId);
-        if (!File.Exists(lDepotFilePath)
-            || LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
-            || lWorkRecord.LWorkOwnerRunner != lRunnerId)
+        if (LScheduleOwnedRead(lWorkId, lRunnerId) is not { } lWorkRecord
+            || lWorkRecord.LWorkRetryCount >= lScheduleRetryMaximum)
         {
-            return false;
+            return 0;
         }
 
+        lWorkRecord.LWorkRetryCount++;
+        return LScheduleOwnedRelease(
+            lWorkRecord, $"{lScheduleReason} Retry {lWorkRecord.LWorkRetryCount} of {lScheduleRetryMaximum}.")
+            ? lWorkRecord.LWorkRetryCount
+            : 0;
+    }
+
+    private static LWorkRecord? LScheduleOwnedRead(Guid lWorkId, Guid lRunnerId)
+    {
+        string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, lWorkId);
+        return File.Exists(lDepotFilePath)
+            && LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord
+            && lWorkRecord.LWorkOwnerRunner == lRunnerId
+            ? lWorkRecord
+            : null;
+    }
+
+    private bool LScheduleOwnedRelease(LWorkRecord lWorkRecord, string lScheduleMessage)
+    {
         LSchedulePartialRemove(lWorkRecord);
         if (!LScheduleRecordRelease(lWorkRecord, lScheduleMessage))
         {
             return false;
         }
 
-        lScheduleLiveItems.Remove(lWorkId);
+        lScheduleLiveItems.Remove(lWorkRecord.LWorkId);
         LScheduleLoad();
         return true;
     }
@@ -318,7 +339,9 @@ public sealed partial class LSchedule
 
     private static void LSchedulePartialRemove(LWorkRecord lWorkRecord)
     {
-        if (string.IsNullOrWhiteSpace(lWorkRecord.LWorkOutputPath))
+        if (string.IsNullOrWhiteSpace(lWorkRecord.LWorkOutputPath)
+            || lWorkRecord.LWorkMergeSources.Prepend(lWorkRecord.LWorkSourcePath).Any(lScheduleSource =>
+                string.Equals(lScheduleSource, lWorkRecord.LWorkOutputPath, StringComparison.OrdinalIgnoreCase)))
         {
             return;
         }

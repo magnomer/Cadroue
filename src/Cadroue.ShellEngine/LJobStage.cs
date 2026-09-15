@@ -169,7 +169,7 @@ internal sealed partial class LJob
         LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
             pExecutableArguments,
             lJobToken,
-            pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess, lJobToken),
+            pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess),
             LJobOutputRead,
             LJobStderrRead).ConfigureAwait(false);
 

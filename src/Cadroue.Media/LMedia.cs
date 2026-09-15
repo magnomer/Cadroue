@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -109,7 +109,11 @@ public static partial class LMedia
 
         var lMediaOutput = new StringBuilder();
         var lMediaError = new StringBuilder();
-        Task lMediaOutputTask = LMediaStreamRead(lMediaProcess.StandardOutput, lMediaOutput, lMediaPulseSet, lMediaToken);
+        Task lMediaOutputTask = LMediaStreamRead(
+            lMediaProcess.StandardOutput,
+            lMediaOutput,
+            lMediaPulseSet,
+            lMediaToken);
         Task lMediaErrorTask = LMediaStreamRead(lMediaProcess.StandardError, lMediaError, lMediaPulseSet, lMediaToken);
 
         bool lMediaStalled = false;
@@ -147,7 +151,10 @@ public static partial class LMedia
     {
         char[] lMediaBuffer = new char[LMediaStreamChars];
         int lMediaRead;
-        while ((lMediaRead = await lMediaReader.ReadAsync(lMediaBuffer.AsMemory(), lMediaToken).ConfigureAwait(false)) > 0)
+        while ((lMediaRead = await lMediaReader.ReadAsync(
+            lMediaBuffer.AsMemory(),
+            lMediaToken)
+            .ConfigureAwait(false)) > 0)
         {
             lMediaSink.Append(lMediaBuffer, 0, lMediaRead);
             lMediaPulse();

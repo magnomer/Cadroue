@@ -120,6 +120,8 @@ public sealed class LWorkItem
 
     public int LWorkRecoverCount { get; set; }
 
+    public int LWorkRetryCount { get; set; }
+
     public LWorkState LWorkStateCurrent { get; set; } = LWorkState.LWorkStatePending;
 
     public string LWorkMessage { get; set; } = string.Empty;

@@ -8,7 +8,9 @@ internal sealed partial class LJob
 {
     private readonly LRunner lJobOwner;
     private readonly LWorkItem lJobItem;
+    private readonly CancellationTokenSource lJobSource;
     private readonly CancellationToken lJobToken;
+    private volatile bool lJobCancelled;
 
     private double lJobTotalSeconds;
     private long lJobBlockMicroseconds = -1;
@@ -23,17 +25,40 @@ internal sealed partial class LJob
     private LWorkState? lJobValidateState;
     private string lJobValidateMessage = string.Empty;
 
-    internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobCancelToken)
+    internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobStopToken)
     {
         lJobOwner = lJobRunner;
         lJobItem = lJobWorkItem;
-        lJobToken = lJobCancelToken;
+        lJobSource = CancellationTokenSource.CreateLinkedTokenSource(lJobStopToken);
+        lJobToken = lJobSource.Token;
     }
 
-    internal async Task LJobRun()
+    internal LWorkItem LJobItem => lJobItem;
+
+    internal Task LJobCompletion { get; private set; } = Task.CompletedTask;
+
+    internal Task LJobStart() => LJobCompletion = LJobRun();
+
+    internal void LJobCancel()
+    {
+        lJobCancelled = true;
+        try
+        {
+            lJobSource.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    private async Task LJobRun()
     {
         var pJobClock = Stopwatch.StartNew();
         lJobClock = pJobClock;
+        if (lJobOwner.lRunnerCancelled.TryRemove(lJobItem.LWorkId, out _))
+        {
+            LJobCancel();
+        }
 
         try
         {
@@ -49,12 +74,10 @@ internal sealed partial class LJob
                     lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobInvalid);
                     lJobOwner.lRunnerSchedule.LScheduleLoad();
                 });
-                lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
                 lJobOwner.LRunnerFailureApply();
                 return;
             }
 
-            lJobOwner.lRunnerItems[lJobItem.LWorkId] = lJobItem;
             lJobOwner.LRunnerLeaseStart(lJobItem);
             lJobOwner.LRunnerDispatch(() =>
             {
@@ -82,7 +105,6 @@ internal sealed partial class LJob
                     lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobCollision);
                     lJobOwner.lRunnerSchedule.LScheduleLoad();
                 });
-                lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
                 lJobOwner.LRunnerFailureApply();
                 return;
             }
@@ -117,21 +139,7 @@ internal sealed partial class LJob
 
             lJobRunSeconds = pTotalSeconds;
             (int pExitCode, string pJobError) = await LJobStagesRun().ConfigureAwait(false);
-
-            bool pJobCancelled = lJobOwner.lRunnerCancelled.TryRemove(lJobItem.LWorkId, out _);
-            if (pJobCancelled && pExitCode != 0)
-            {
-                LRunner.LRunnerRecord(
-                    $"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
-                    $"job kept as cancelled (restartable), continuing with the queue");
-                lJobOwner.LRunnerDispatch(() =>
-                {
-                    lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                    lJobOwner.lRunnerSchedule.LScheduleItemCancel(lJobItem);
-                });
-                lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
-                return;
-            }
+            lJobToken.ThrowIfCancellationRequested();
 
             string pFailureMessage = string.Empty;
             if (pExitCode == 0)
@@ -158,7 +166,7 @@ internal sealed partial class LJob
                     ? pAutopsy.LAutopsyResultAction is { Length: > 0 } pAutopsyAction
                         ? $"{pAutopsy.LAutopsyResultSimple} {pAutopsyAction}"
                         : pAutopsy.LAutopsyResultSimple
-                    : $"FFmpeg exited with code {pExitCode}.";
+                    : $"FFmpeg exited with code {pExitCode}. {LJobTailShorten(pTail)}";
 
                 if (LJobRetryStart(pFailureMessage))
                 {
@@ -170,6 +178,17 @@ internal sealed partial class LJob
             LWorkState pTerminalState = pExitClean
                 ? lJobValidateState ?? LWorkState.LWorkStateDone
                 : LWorkState.LWorkStateFailed;
+            long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
+            if (pTerminalState == LWorkState.LWorkStateDone && pOutputBytes is not > 0)
+            {
+                pExitClean = false;
+                pTerminalState = LWorkState.LWorkStateFailed;
+                pFailureMessage = pOutputBytes is null
+                    ? "FFmpeg reported success but the output file was not produced."
+                    : "FFmpeg reported success but the output file is empty.";
+                LRunner.LRunnerRecord($"Encode failed '{lJobItem.LWorkOutputName}': {pFailureMessage}");
+            }
+
             bool pSucceeded = pTerminalState == LWorkState.LWorkStateDone;
 
             if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && !pSucceeded)
@@ -177,7 +196,6 @@ internal sealed partial class LJob
                 LJobOutputClear();
             }
 
-            long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
             long? pSourceBytes = lJobItem.LWorkSourceBytes ?? LScout.LScoutInputRead(lJobItem, lJobToken);
             IReadOnlyList<long> pMergeBytes = lJobItem.LWorkMergeBytes.Count > 0
                 ? lJobItem.LWorkMergeBytes
@@ -213,23 +231,36 @@ internal sealed partial class LJob
                 LSubsidiary.LSubsidiaryOutputDefer(lJobItem, lJobItem.LWorkOutputPath);
             }
 
-            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
             if (pExitCode != 0)
             {
                 lJobOwner.LRunnerFailureApply();
             }
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException) when (lJobCancelled)
         {
             LRunner.LRunnerRecord(
                 $"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
+                $"job kept as cancelled (restartable), continuing with the queue");
+            lJobOwner.LRunnerDispatch(() =>
+            {
+                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
+                lJobOwner.lRunnerSchedule.LScheduleItemCancel(lJobItem);
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            LRunner.LRunnerRecord(
+                $"Encode stopped '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
                 $"returned to the queue");
+            LJobAttemptClear();
+            lJobOwner.LRunnerDispatch(() => lJobOwner.lRunnerSchedule.LScheduleItemRelease(
+                lJobItem.LWorkId, lJobOwner.LRunnerIdentity, string.Empty));
         }
         catch (Exception pException)
         {
             LRunner.LRunnerRecord(
                 $"Encode failed '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
-            if (LJobRetryStart(pException.Message))
+            if (!lJobToken.IsCancellationRequested && LJobRetryStart(pException.Message))
             {
                 return;
             }
@@ -248,17 +279,21 @@ internal sealed partial class LJob
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
             });
 
-            lJobOwner.lRunnerAttempts.TryRemove(lJobItem.LWorkId, out _);
             lJobOwner.LRunnerFailureApply();
         }
         finally
         {
-            lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
-            lJobOwner.lRunnerItems.TryRemove(lJobItem.LWorkId, out _);
-            lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
-            LJobTempClear(lJobStagesDone);
-            LJobReservedClear();
-            LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
+            LJobAttemptClear();
+            lJobSource.Dispose();
         }
+    }
+
+    private void LJobAttemptClear()
+    {
+        lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
+        lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
+        LJobTempClear(lJobStagesDone);
+        LJobReservedClear();
+        LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
     }
 }

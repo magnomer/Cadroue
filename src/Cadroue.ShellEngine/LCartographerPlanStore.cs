@@ -86,6 +86,29 @@ public static class LCartographerPlanStore
         }
     }
 
+    public static void LCartographerPlanDelete(Guid lCartographerPlanId)
+    {
+        string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
+        try
+        {
+            using (LLatch.LLatchClaim(lCartographerPath))
+            {
+                if (File.Exists(lCartographerPath))
+                {
+                    File.Delete(lCartographerPath);
+                }
+            }
+        }
+        catch (Exception lCartographerError) when (lCartographerError
+            is IOException
+            or UnauthorizedAccessException
+            or TimeoutException)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Relay plan {lCartographerPlanId:N} could not be deleted: {lCartographerError.Message}");
+        }
+    }
+
     private static string LCartographerPathRead(Guid lCartographerPlanId) =>
         Path.Combine(LDepot.LDepotRootRead(), LCartographerPlanFolder, $"{lCartographerPlanId:N}.json");
 }

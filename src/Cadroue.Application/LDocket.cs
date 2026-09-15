@@ -85,32 +85,46 @@ public sealed class LDocket
         return lDocketRemovedPaths.Length;
     }
 
-    public int LDocketClaim(IReadOnlyList<(string LDocketPath, Guid LDocketBatch)> lDocketClaims)
+    public bool LDocketClaim(IReadOnlyList<(string LDocketPath, Guid LDocketBatch)> lDocketClaims)
     {
-        int lDocketClaimed = 0;
+        var lDocketClaimable = new List<(LDocketEntry, Guid)>();
         foreach ((string lDocketPath, Guid lDocketBatch) in lDocketClaims)
         {
             LDocketEntry? lDocketEntry = LDocketItemFind(lDocketPath);
-            if (lDocketEntry is null || lDocketEntry.LDocketEntryLocked)
+            if (lDocketEntry is null)
             {
                 continue;
             }
 
+            if (lDocketEntry.LDocketEntryLocked)
+            {
+                if (lDocketEntry.LDocketEntryBatch != lDocketBatch)
+                {
+                    return false;
+                }
+
+                continue;
+            }
+
+            lDocketClaimable.Add((lDocketEntry, lDocketBatch));
+        }
+
+        foreach ((LDocketEntry lDocketEntry, Guid lDocketBatch) in lDocketClaimable)
+        {
             if (lDocketBatch != Guid.Empty)
             {
                 lDocketEntry.LDocketEntryBatch = lDocketBatch;
             }
 
             lDocketEntry.LDocketEntryLocked = true;
-            lDocketClaimed++;
         }
 
-        if (lDocketClaimed > 0)
+        if (lDocketClaimable.Count > 0)
         {
             LDocketRaise();
         }
 
-        return lDocketClaimed;
+        return true;
     }
 
     public int LDocketRelease(IReadOnlyList<(string LDocketPath, Guid LDocketBatch)> lDocketReleases)

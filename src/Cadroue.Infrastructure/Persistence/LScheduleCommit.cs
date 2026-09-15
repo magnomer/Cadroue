@@ -69,12 +69,19 @@ public sealed partial class LSchedule
                 continue;
             }
 
+            LSchedulePartialRemove(lWorkRecord);
             LScheduleOwnerClear(lWorkRecord);
             lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);
             lWorkRecord.LWorkAttemptCount = 0;
             lWorkRecord.LWorkRecoverCount = 0;
+            lWorkRecord.LWorkRetryCount = 0;
             lWorkRecord.LWorkProgress = 0;
             lWorkRecord.LWorkMessage = string.Empty;
+            lWorkRecord.LWorkCreateTime = DateTimeOffset.Now;
+            lWorkRecord.LWorkStartTime = null;
+            lWorkRecord.LWorkFinishTime = null;
+            lWorkRecord.LWorkOutputBytes = null;
+            lWorkRecord.LWorkOutputMedia = null;
             if (!LScheduleStore.LScheduleRecordMove(lWorkRecord, lDepotFolder, LDepotFolder.LDepotFolderScheduled))
             {
                 LTraceLog.LTraceWarningRecord(

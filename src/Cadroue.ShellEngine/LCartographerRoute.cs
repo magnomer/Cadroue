@@ -53,12 +53,13 @@ public static partial class LCartographer
         return lCartographerMatch < 0 ? Guid.Empty : lCartographerRules[lCartographerMatch].LCartographerTargetStage;
     }
 
-    public static void LCartographerRelaySet(
+    public static IReadOnlyList<Guid> LCartographerRelaySet(
         IReadOnlyList<LWorkItem> lCartographerItems,
         Guid lCartographerTarget,
         Guid lCartographerSource,
         LCartographerPlanRecord? lCartographerPreparedPlan)
     {
+        var lCartographerCreated = new List<Guid>();
         foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerItems.GroupBy(
             lCartographerItem => lCartographerItem.LWorkBatchId))
         {
@@ -83,13 +84,6 @@ public static partial class LCartographer
                     lCartographerItem.LWorkRelaySource = lCartographerStableSource;
                 }
 
-                if (lCartographerSourceStage is not null)
-                {
-                    LCartographerPendingRemove(
-                        lCartographerExisting, lCartographerSourceStage,
-                        lCartographerBatch.SelectMany(LCartographerSourcesRead)
-                            .ToHashSet(StringComparer.OrdinalIgnoreCase));
-                }
                 continue;
             }
 
@@ -116,6 +110,7 @@ public static partial class LCartographer
                 continue;
             }
 
+            lCartographerCreated.Add(lCartographerPlan.LCartographerPlanId);
             foreach (LWorkItem lCartographerItem in lCartographerBatch)
             {
                 lCartographerItem.LWorkRelayTarget = lCartographerPlan.LCartographerEntryStage;
@@ -125,6 +120,8 @@ public static partial class LCartographer
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured " +
                 $"{lCartographerPlan.LCartographerStages.Count} stable stage(s)");
         }
+
+        return lCartographerCreated;
     }
 
     public static bool LCartographerCycleCheck(
