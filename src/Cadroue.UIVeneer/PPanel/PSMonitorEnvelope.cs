@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -87,13 +88,13 @@ internal sealed partial class PSMonitor
             pContext.BeginFigure(new Point(PSMonitorGutter, pMid), true, true);
             for (int pColumn = 0; pColumn < pColumns; pColumn++)
             {
-                double pLevel = PSMonitorLevelRead(PSMonitorColumnRead(pEnvelope, pColumn, pColumns));
+                double pLevel = PSMonitorLevelRead(psMonitorSource.LSMonitorColumnRead(pEnvelope, pColumn, pColumns));
                 pContext.LineTo(new Point(PSMonitorGutter + pColumn, pMid - pLevel * pMid), true, false);
             }
 
             for (int pColumn = pColumns - 1; pColumn >= 0; pColumn--)
             {
-                double pLevel = PSMonitorLevelRead(PSMonitorColumnRead(pEnvelope, pColumn, pColumns));
+                double pLevel = PSMonitorLevelRead(psMonitorSource.LSMonitorColumnRead(pEnvelope, pColumn, pColumns));
                 pContext.LineTo(new Point(PSMonitorGutter + pColumn, pMid + pLevel * pMid), true, false);
             }
         }
@@ -142,26 +143,5 @@ internal sealed partial class PSMonitor
         Canvas.SetLeft(pText, 4);
         Canvas.SetTop(pText, Math.Clamp(pY - 7, 0, Math.Max(0, pCanvas.ActualHeight - 14)));
         pCanvas.Children.Add(pText);
-    }
-
-    private double PSMonitorColumnRead(double[] pEnvelope, int pColumn, int pColumns)
-    {
-        double pViewport = 1.0 / psMonitorScale;
-        int pLength = pEnvelope.Length;
-        double pFromF = (psMonitorOffset + (double)pColumn / pColumns * pViewport) * pLength;
-        double pToF = (psMonitorOffset + (double)(pColumn + 1) / pColumns * pViewport) * pLength;
-        int pFrom = Math.Clamp((int)Math.Floor(pFromF), 0, pLength - 1);
-        int pTo = Math.Clamp((int)Math.Ceiling(pToF), pFrom + 1, pLength);
-
-        double pPeak = 0;
-        for (int pIndex = pFrom; pIndex < pTo; pIndex++)
-        {
-            if (pEnvelope[pIndex] > pPeak)
-            {
-                pPeak = pEnvelope[pIndex];
-            }
-        }
-
-        return pPeak;
     }
 }

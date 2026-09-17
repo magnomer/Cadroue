@@ -14,8 +14,6 @@ internal static class PSCasement
     internal const double PSCasementButtonWidth = 48;
     internal const double PSCasementButtonStrip = PSCasementButtonWidth * 3;
 
-    private const double PSCasementButtonHeight = PSCasementBandHeight - PSCasementContentOverlap;
-
     private const int PSCasementDwmPreference = 33;
     private const int PSCasementDwmRound = 2;
     private const int PSCasementDwmCaption = 35;

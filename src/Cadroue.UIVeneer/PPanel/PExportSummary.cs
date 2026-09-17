@@ -27,7 +27,7 @@ public sealed partial class PExport : UserControl
     private Point? pExportDragOrigin;
     private Point pPresetDragOffset;
     private Border? pPresetRowDragging;
-    private double pPresetRowOpacity;
+    private double pPresetOpacityOrigin;
     private PGhost? pPresetDragGhost;
     private TextBox? pExportBoxCurrent;
 

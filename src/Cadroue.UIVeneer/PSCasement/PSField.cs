@@ -281,38 +281,4 @@ internal static class PSField
     }
 
     internal const string PSFieldCustomToken = "Custom";
-
-    internal static UIElement PSFieldCustomBuild(string pLabel, TextBox pBox)
-    {
-        UIElement pRow = PSFieldBuild(pLabel, pBox);
-        pRow.Visibility = Visibility.Collapsed;
-        return pRow;
-    }
-
-    internal static void PSFieldCustomToggle(ComboBox pCombo, UIElement? pRow)
-    {
-        if (pRow is null)
-        {
-            return;
-        }
-
-        pRow.Visibility = string.Equals(PSCombo.PSComboTextRead(pCombo), PSFieldCustomToken, StringComparison.Ordinal)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    internal static string PSFieldCustomResolve(string pValue, params string[] pTokens) =>
-        Array.IndexOf(pTokens, pValue) >= 0 ? pValue : PSFieldCustomToken;
-
-    internal static string PSFieldCustomRead(ComboBox pCombo, TextBox pBox, string pFallback)
-    {
-        string pSelected = PSCombo.PSComboTextRead(pCombo);
-        if (!string.Equals(pSelected, PSFieldCustomToken, StringComparison.Ordinal))
-        {
-            return pSelected;
-        }
-
-        string pCustom = pBox.Text.Trim();
-        return string.IsNullOrEmpty(pCustom) ? pFallback : pCustom;
-    }
 }

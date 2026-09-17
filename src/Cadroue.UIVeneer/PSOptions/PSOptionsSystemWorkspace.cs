@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSInline;
@@ -39,7 +40,9 @@ internal sealed partial class PSOptions
             LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
         void PSSystemNoticeUpdate()
         {
-            bool pWorkspace = string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
+            lsOptionsDraft.LPreferenceRecordWorkspace =
+                string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
+            bool pWorkspace = lsOptions.LSOptionsRecordCheck();
             string pRecordWorkspacePath = System.IO.Path.Combine(
                 LDepot.LDepotRootRead(),
                 Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
@@ -108,11 +111,7 @@ internal sealed partial class PSOptions
         }
     }
 
-    private bool PSWorkspaceAppliedCheck() =>
-        string.Equals(
-            LDepot.LDepotRootResolve(psWorkspaceBox.Text),
-            LDepot.LDepotRootRead(),
-            StringComparison.OrdinalIgnoreCase);
+    private bool PSWorkspaceAppliedCheck() => LSOptions.LSOptionsAppliedCheck(psWorkspaceBox.Text);
 
     private void PSSystemDoneClear()
     {

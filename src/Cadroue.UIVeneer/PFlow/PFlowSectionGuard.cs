@@ -22,18 +22,4 @@ public sealed partial class PFlow
             pFlowQuestion,
             pFlowAction);
     }
-
-    private bool PFlowInsideCheck(TimeSpan pFlowTime, int pFlowSkipIndex)
-        => LPiece.LPieceInsideCheck(lSegment.LSegmentListRead(), pFlowTime, pFlowSkipIndex, PFlowOverlapAllowed);
-
-    private TimeSpan PFlowLimitRead(TimeSpan pFlowFrom, TimeSpan pFlowCeiling, int pFlowSkipIndex)
-        => LPiece.LPieceLimitRead(
-            lSegment.LSegmentListRead(),
-            pFlowFrom,
-            pFlowCeiling,
-            pFlowSkipIndex,
-            PFlowOverlapAllowed);
-
-    private TimeSpan PFlowFloorRead(TimeSpan pFlowUntil, int pFlowSkipIndex)
-        => LPiece.LPieceFloorRead(lSegment.LSegmentListRead(), pFlowUntil, pFlowSkipIndex, PFlowOverlapAllowed);
 }

@@ -82,7 +82,7 @@ public static class LDetector
     {
         LDetectorKind.LDetectorKindBlank => new LDetectorBound(0, 60, LDetectorBlank.LDetectorBlankGap),
         LDetectorKind.LDetectorKindScene => new LDetectorBound(0, 30, 0.5),
-        LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 0.5),
+        LDetectorKind.LDetectorKindStill => new LDetectorBound(0, 60, 1.0),
         LDetectorKind.LDetectorKindLuminance => new LDetectorBound(0, 10, 0.5),
         LDetectorKind.LDetectorKindSilence => new LDetectorBound(0, 60, 0.5),
         LDetectorKind.LDetectorKindVolume => new LDetectorBound(0, 60, 0.5),

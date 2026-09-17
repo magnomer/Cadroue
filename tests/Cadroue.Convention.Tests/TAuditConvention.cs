@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -6,6 +7,22 @@ namespace Convention.Tests;
 public sealed class TAuditConvention
 {
     public const int TAuditGeneration = 8;
+
+    private static readonly Regex TAuditLiteralPattern = new(
+        @"(?<hole>\$@?""(?:[^""\\]|\\.)*"")|@?""(?:[^""\\]|\\.)*""|//.*$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex TAuditHolePattern = new(@"\{[^{}]*\}", RegexOptions.Compiled);
+
+    private static readonly Regex TAuditTypePattern = new(
+        @"^\s*(?:(?:public|internal|private|protected|sealed|static|partial|readonly|ref|abstract)\s+)*"
+        + @"(?<kind>class|struct|record\s+struct|record|interface|enum)\s+\w+",
+        RegexOptions.Compiled);
+
+    private static readonly Regex TAuditFieldPattern = new(
+        @"^\s*(?:public|internal|private|protected)\s+(?:(?:static|volatile|new)\s+)*"
+        + @"(?<type>[A-Za-z]\w*)(?:\?|\[\])*\s+(?<name>\w+)\s*(?:=(?!>)|;)",
+        RegexOptions.Compiled);
 
     private readonly ITestOutputHelper TAuditOutput;
 
@@ -19,22 +36,153 @@ public sealed class TAuditConvention
     [Fact]
     public void AuditGate_Veneer_CarriesNoIoOrProcess()
     {
-        TAuditGateCheck(
+        TAuditTokenCheck(
             TAuditGateSetting.TAuditVeneerRoot,
             TAuditGateSetting.TAuditVeneerForbidden,
-            TAuditGateSetting.TAuditVeneerKnown);
+            TAuditGateSetting.TAuditVeneerTolerated,
+            TAuditGateSetting.TAuditVeneerScoped);
     }
 
     [Fact]
-    public void AuditGate_Deportment_CarriesNoWpf()
+    public void AuditGate_Deportment_CarriesNoWpfOrIo()
     {
-        TAuditGateCheck(
+        TAuditTokenCheck(
             TAuditGateSetting.TAuditDeportmentRoot,
             TAuditGateSetting.TAuditDeportmentForbidden,
-            TAuditGateSetting.TAuditDeportmentKnown);
+            TAuditGateSetting.TAuditDeportmentTolerated,
+            []);
     }
 
-    private void TAuditGateCheck(string root, string[] forbidden, string[] known)
+    [Fact]
+    public void AuditGate_Veneer_CarriesOnlyTransientScalars()
+    {
+        TAuditScalarCheck();
+    }
+
+    private static string TAuditLineNormalize(string line) => TAuditLiteralPattern.Replace(
+        line,
+        match => match.Groups["hole"].Success
+            ? string.Concat(TAuditHolePattern.Matches(match.Value).Select(hole => hole.Value))
+            : string.Empty);
+
+    private void TAuditTokenCheck(
+        string root,
+        string[] forbidden,
+        string[] tolerated,
+        (string TAuditFile, string TAuditSpelling)[] scoped)
+    {
+        Regex[] patterns = forbidden.Select(entry => new Regex(entry, RegexOptions.Compiled)).ToArray();
+        List<string> hits = [];
+        foreach ((string relative, string[] lines) in TAuditGateRead(root))
+        {
+            string[] spellings = tolerated
+                .Concat(scoped.Where(entry => entry.TAuditFile == relative).Select(entry => entry.TAuditSpelling))
+                .ToArray();
+            for (int index = 0; index < lines.Length; index++)
+            {
+                string bare = TAuditLineNormalize(lines[index]);
+                foreach (string spelling in spellings)
+                {
+                    bare = bare.Replace(spelling, string.Empty, StringComparison.Ordinal);
+                }
+
+                Regex? hit = patterns.FirstOrDefault(pattern => pattern.IsMatch(bare));
+                if (hit is not null)
+                {
+                    hits.Add($"  {root}/{relative}:{index + 1} {hit}");
+                }
+            }
+        }
+
+        TAuditOutput.WriteLine(TAuditReportFormat("AUDITGATE", $"{root}: {hits.Count} forbidden token line(s)."));
+        Assert.True(hits.Count == 0, TAuditReportFormat(
+            "AUDITGATE",
+            $"{hits.Count} line(s) in {root} break the Veneer/Deportment gate (C-5, U-VD).\n"
+            + string.Join('\n', hits)));
+    }
+
+    private void TAuditScalarCheck()
+    {
+        string root = TAuditGateSetting.TAuditVeneerRoot;
+        Regex guard = new($"^{TAuditGateSetting.TAuditGuardPattern}$", RegexOptions.Compiled);
+        List<string> hits = [];
+        foreach ((string relative, string[] lines) in TAuditGateRead(root))
+        {
+            if (TAuditGateSetting.TAuditScalarExempt.Contains(relative, StringComparer.Ordinal))
+            {
+                continue;
+            }
+
+            Stack<(string TAuditKind, int TAuditDepth)> types = new();
+            string? pending = null;
+            int depth = 0;
+            for (int index = 0; index < lines.Length; index++)
+            {
+                string bare = TAuditLineNormalize(lines[index]);
+                if (TAuditTypePattern.Match(bare) is { Success: true } type)
+                {
+                    pending = type.Groups["kind"].Value;
+                }
+
+                if (TAuditFieldPattern.Match(bare) is { Success: true } field
+                    && !bare.Contains(" const ", StringComparison.Ordinal)
+                    && !bare.Contains(" readonly ", StringComparison.Ordinal)
+                    && types.Count > 0
+                    && !types.Peek().TAuditKind.Contains("struct", StringComparison.Ordinal))
+                {
+                    string name = field.Groups["name"].Value;
+                    bool scalar = TAuditGateSetting.TAuditScalarType.Contains(
+                        field.Groups["type"].Value, StringComparer.Ordinal);
+                    bool transient = TAuditGateSetting.TAuditScalarSuffix.Any(
+                        suffix => name.EndsWith(suffix, StringComparison.Ordinal));
+                    bool known = TAuditGateSetting.TAuditScalarKnown.Contains((relative, name));
+                    if (guard.IsMatch(name))
+                    {
+                        hits.Add($"  {root}/{relative}:{index + 1} guard field {name}");
+                    }
+                    else if (scalar && !transient && !known)
+                    {
+                        hits.Add($"  {root}/{relative}:{index + 1} scalar field {name}");
+                    }
+                }
+
+                foreach (char symbol in bare)
+                {
+                    if (symbol == '{')
+                    {
+                        depth++;
+                        if (pending is not null)
+                        {
+                            types.Push((pending, depth));
+                            pending = null;
+                        }
+                    }
+                    else if (symbol == '}')
+                    {
+                        if (types.Count > 0 && types.Peek().TAuditDepth == depth)
+                        {
+                            types.Pop();
+                        }
+
+                        depth--;
+                    }
+                }
+
+                if (pending is not null && bare.TrimEnd().EndsWith(';'))
+                {
+                    pending = null;
+                }
+            }
+        }
+
+        TAuditOutput.WriteLine(TAuditReportFormat("AUDITGATE", $"{root}: {hits.Count} scalar/guard field line(s)."));
+        Assert.True(hits.Count == 0, TAuditReportFormat(
+            "AUDITGATE",
+            $"{hits.Count} field(s) in {root} carry state outside the gesture-transient set (C-5, U-VD).\n"
+            + string.Join('\n', hits)));
+    }
+
+    private static IEnumerable<(string TAuditRelative, string[] TAuditLines)> TAuditGateRead(string root)
     {
         string repoRoot = TAuditSource.TAuditRootRead();
         TAuditScope scope = new(
@@ -45,44 +193,10 @@ public sealed class TAuditConvention
             [],
             []);
         string rootFull = Path.Combine(repoRoot, root.Replace('/', Path.DirectorySeparatorChar));
-
-        List<string> fresh = [];
-        HashSet<string> seen = new(StringComparer.Ordinal);
         foreach (string path in TAuditSource.TAuditFileRead(repoRoot, scope))
         {
-            string relative = Path.GetRelativePath(rootFull, path).Replace('\\', '/');
-            string[] lines = File.ReadAllLines(path);
-            for (int index = 0; index < lines.Length; index++)
-            {
-                string? token = forbidden.FirstOrDefault(
-                    entry => lines[index].Contains(entry, StringComparison.Ordinal));
-                if (token is null)
-                {
-                    continue;
-                }
-
-                seen.Add(relative);
-                if (!known.Contains(relative, StringComparer.Ordinal))
-                {
-                    fresh.Add($"  {root}/{relative}:{index + 1} {token}");
-                }
-            }
+            yield return (Path.GetRelativePath(rootFull, path).Replace('\\', '/'), File.ReadAllLines(path));
         }
-
-        string[] cleared = known.Where(entry => !seen.Contains(entry)).ToArray();
-        TAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
-            "AUDITGATE",
-            $"{root}: {seen.Count} known file(s) still carry {string.Join(' ', forbidden)}; "
-            + $"{cleared.Length} baseline entr(y/ies) no longer offend and may leave the list."));
-        foreach (string entry in cleared)
-        {
-            TAuditOutput.WriteLine($"  cleared {root}/{entry}");
-        }
-
-        Assert.True(fresh.Count == 0, TAuditReportFormat(
-            "AUDITGATE",
-            $"{fresh.Count} new line(s) in {root} break the Veneer/Deportment gate (C-5, U-VD).\n"
-            + string.Join('\n', fresh)));
     }
 
     [Fact]

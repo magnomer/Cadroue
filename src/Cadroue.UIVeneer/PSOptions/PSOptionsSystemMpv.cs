@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSInline;
@@ -38,7 +39,7 @@ internal sealed partial class PSOptions
 
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
-            await PSOptionsEngineUpdate();
+            await lsOptions.LSOptionsMpvUpdate();
             string pMpvTitle = LLocalization.LLocalizationTextRead("Options.System.LocalMpv");
             if (pResult.LMpvInstallSuccess)
             {
@@ -69,15 +70,6 @@ internal sealed partial class PSOptions
         return PSFieldBuild(string.Empty, pButtons);
     }
 
-    private async System.Threading.Tasks.Task PSOptionsEngineUpdate()
-    {
-        bool psEngineAvailable = await LRenderer.LRendererMpvCheck();
-        psOptionsEngineEnable("Mpv", psEngineAvailable);
-    }
-
     private static string PSSystemMpvFormat() =>
-        LLocalization.LLocalizationTextRead(
-            LMpv.LMpvInstalledCheck()
-                ? "Options.System.ReinstallMpv"
-                : "Options.System.DownloadMpv");
+        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsMpvResolve());
 }

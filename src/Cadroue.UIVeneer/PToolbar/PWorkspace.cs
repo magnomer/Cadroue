@@ -97,8 +97,6 @@ public sealed partial class PWorkspace
         return pWorkspaceCleared;
     }
 
-    public PSection? PWorkspaceSection { get; }
-
     public PSource? PWorkspaceSource { get; }
 
     public PInfo? PWorkspaceInfo { get; }

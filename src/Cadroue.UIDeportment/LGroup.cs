@@ -123,9 +123,10 @@ public sealed class LGroup
         }
 
         LGroupPathInsert(lGroupRecords[lTargetIndex].LGroupRecordPaths, lPath, lInsertAt);
+        string lGroupName = System.IO.Path.GetFileName(lPath);
         LTraceLog.LTraceInfoRecord(lSourceIndex == lTargetIndex
-            ? $"Group {lTargetIndex + 1}: reordered '{Path.GetFileName(lPath)}'"
-            : $"Group {lTargetIndex + 1}: moved in '{Path.GetFileName(lPath)}' from group {lSourceIndex + 1}");
+            ? $"Group {lTargetIndex + 1}: reordered '{lGroupName}'"
+            : $"Group {lTargetIndex + 1}: moved in '{lGroupName}' from group {lSourceIndex + 1}");
         LGroupChange?.Invoke();
         return true;
     }

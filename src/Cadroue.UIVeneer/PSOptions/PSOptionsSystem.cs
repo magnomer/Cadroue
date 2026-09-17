@@ -4,6 +4,7 @@ using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSInline;
@@ -253,10 +254,7 @@ internal sealed partial class PSOptions
     }
 
     private static string PSSystemFlyleafFormat() =>
-        LLocalization.LLocalizationTextRead(
-            LFlyleaf.LFlyleafInstalledCheck()
-                ? "Options.System.ReinstallFlyleaf"
-                : "Options.System.InstallFlyleaf");
+        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsFlyleafResolve());
 
 
     private static void PSSystemFolderRead(TextBox pPathBox, string pDialogTitle, string pFallback)
@@ -276,30 +274,6 @@ internal sealed partial class PSOptions
         LUsher.LUsherFolderOpen(string.IsNullOrWhiteSpace(pFolder) ? pFallback : pFolder);
 
 
-    private static string PSSystemFfmpegFormat(string pFolder)
-    {
-        if (string.IsNullOrWhiteSpace(pFolder))
-        {
-            return LLocalization.LLocalizationTextRead("Options.System.FFmpegBlank");
-        }
-
-        bool pProgramReady = LRendererLibrary.LRendererProgramExist(pFolder);
-        bool pLibraryReady = LRendererLibrary.LRendererFolderValidate(pFolder);
-        if (pProgramReady && pLibraryReady)
-        {
-            return LLocalization.LLocalizationTextRead("Options.System.FFmpegReady");
-        }
-
-        if (pProgramReady)
-        {
-            return LLocalization.LLocalizationTextRead("Options.System.FFmpegProgramOnly");
-        }
-
-        if (pLibraryReady)
-        {
-            return LLocalization.LLocalizationTextRead("Options.System.FFmpegLibraryOnly");
-        }
-
-        return LLocalization.LLocalizationTextRead("Options.System.FFmpegMissing");
-    }
+    private static string PSSystemFfmpegFormat(string pFolder) =>
+        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsFfmpegResolve(pFolder));
 }

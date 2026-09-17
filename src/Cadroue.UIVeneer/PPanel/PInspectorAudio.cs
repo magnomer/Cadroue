@@ -78,8 +78,6 @@ public sealed partial class PInspector
     private static LWorkAudioStep? PInspectorStepFind(LWorkAudio pPlan, LAudioKind pKind) =>
         pPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == pKind);
 
-    public void PInspectorMediaReset() => PInspectorPlanApply(PInspectorPersistentRead());
-
     public bool PInspectorPersistentCheck() =>
         LVolume.LVolumePersistent
         || LLoudness.LLoudnessPersistent

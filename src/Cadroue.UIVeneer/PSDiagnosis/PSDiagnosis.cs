@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PSCasement;
 
@@ -34,7 +35,7 @@ internal sealed partial class PSDiagnosis : Window
 
     private static PSDiagnosis? psDiagnosisCurrent;
 
-    private readonly string psDiagnosisTitle;
+    private readonly LSDiagnosis lsDiagnosis = new();
     private readonly PSGrabber psDiagnosisGrabber;
 
     internal static void PSDiagnosisShow(Window pOwner)
@@ -52,8 +53,7 @@ internal sealed partial class PSDiagnosis : Window
 
     private PSDiagnosis(Window pOwner)
     {
-        psDiagnosisTitle = LLocalization.LLocalizationTextRead("Diagnosis.Window.Title");
-        Title = psDiagnosisTitle;
+        Title = lsDiagnosis.LSDiagnosisTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;
         Width = PSDiagnosisWidthDefault;
@@ -68,11 +68,12 @@ internal sealed partial class PSDiagnosis : Window
         psDiagnosisGrabber = new PSGrabber(this);
         psDiagnosisGrabber.PSGrabberAttach();
         Closed += PSDiagnosisCloseHandle;
-        PSDiagnosisProbeStart();
+        lsDiagnosis.LSDiagnosisChange += PSDiagnosisResultApply;
+        _ = lsDiagnosis.LSDiagnosisProbeStart();
     }
 
     private UIElement PSDiagnosisBuild() =>
-        PSDialog.PSDialogBuild(this, psDiagnosisTitle, PSDiagnosisRootBuild());
+        PSDialog.PSDialogBuild(this, lsDiagnosis.LSDiagnosisTitle, PSDiagnosisRootBuild());
 
     private DockPanel PSDiagnosisRootBuild()
     {
@@ -112,7 +113,8 @@ internal sealed partial class PSDiagnosis : Window
 
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
-        psDiagnosisGeneration++;
+        lsDiagnosis.LSDiagnosisClose();
+        lsDiagnosis.LSDiagnosisChange -= PSDiagnosisResultApply;
         PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
         Closed -= PSDiagnosisCloseHandle;

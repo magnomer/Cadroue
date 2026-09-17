@@ -206,13 +206,13 @@ public sealed partial class PViewer
             }
             else
             {
-                pViewerPlayer.PPlayerFlyleafSet(player);
+                pViewerPlayer.PPlayerFlyleafSet(player, LPlayer);
             }
         }
 
         PViewerHostShow(player is not null);
         PViewerFlyleafApply();
-        pViewerPlayer.PPlayerEndSet(mediaStatus.LCargoMediaInfo?.LMediaVideoEnd);
+        LPlayer.LPlayerEndSet(mediaStatus.LCargoMediaInfo?.LMediaVideoEnd);
         LViewerIntent? pViewerRequest = PViewerCargoApply(mediaStatus);
         if (player is null)
         {

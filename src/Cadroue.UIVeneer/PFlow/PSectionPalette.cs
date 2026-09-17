@@ -9,14 +9,6 @@ internal static partial class PSectionPalette
 {
     private sealed record PSectionSeed(string PSectionSeedName, string[] PSectionSeedHex);
 
-    internal enum PSectionImportResult
-    {
-        PSectionImportLoaded,
-        PSectionImportInvalid,
-        PSectionImportReserved,
-        PSectionImportFailed
-    }
-
     private sealed record PSectionSwatch(
         string PSectionSwatchName,
         Color[] PSectionSwatchColors,
@@ -115,9 +107,6 @@ internal static partial class PSectionPalette
     internal static IReadOnlyList<string> PSectionPaletteNames =>
         PSectionAllRead().Select(pPalette => pPalette.PSectionSwatchName).ToArray();
 
-    internal static bool PSectionPaletteCheck(string pName) =>
-        PSectionAllRead().Any(pPalette => string.Equals(pPalette.PSectionSwatchName, pName, StringComparison.Ordinal));
-
     internal static int PSectionActiveCount => PSectionSetRead(pSectionBadgeBrushes).Length;
 
     internal static IReadOnlyList<Brush> PSectionBadgesRead(string pName) =>
@@ -172,76 +161,16 @@ internal static partial class PSectionPalette
         pSectionBadgeBrushes = PSectionBrushesCreate(0xFF);
     }
 
-    internal static bool PSectionPaletteRemove(string pName)
-    {
-        if (PSectionFixedCheck(pName))
-        {
-            return false;
-        }
+    internal static string? PSectionPathFind(string pName) =>
+        pSectionLoaded.FirstOrDefault(pLoaded => pLoaded.PSectionSwatchName == pName)?.PSectionSwatchPath;
 
-        if (PSectionNativeCheck(pName))
-        {
-            pSectionHidden.Add(pName);
-            LSectionPalette.LSectionHiddenSave(LDepot.LDepotPaletteRead(), pSectionHidden.ToArray());
-            PSectionPaletteLoad();
-            return true;
-        }
-
-        if (pSectionLoaded.FirstOrDefault(pLoaded => pLoaded.PSectionSwatchName == pName)
-            ?.PSectionSwatchPath
-            is not { } pEntryPath)
-        {
-            return false;
-        }
-
-        if (!LSectionPalette.LSectionPaletteDelete(pEntryPath))
-        {
-            return false;
-        }
-
-        PSectionPaletteLoad();
-        return true;
-    }
-
-    internal static PSectionImportResult PSectionPaletteImport(string pSourcePath, out string? pLoadedName)
-    {
-        pLoadedName = null;
-        if (PSectionFileRead(pSourcePath) is not { } pPalette)
-        {
-            return PSectionImportResult.PSectionImportInvalid;
-        }
-
-        switch (LSectionPalette.LSectionPaletteImport(
-            LDepot.LDepotPaletteRead(), pSourcePath, pPalette.PSectionSwatchName, out string pTargetPath))
-        {
-            case LSectionImportResult.LSectionImportReserved:
-                return PSectionImportResult.PSectionImportReserved;
-            case LSectionImportResult.LSectionImportFailed:
-                return PSectionImportResult.PSectionImportFailed;
-        }
-
-        PSectionPaletteLoad();
-        pLoadedName = pSectionLoaded
-            .FirstOrDefault(pEntry => string.Equals(
-                pEntry.PSectionSwatchPath,
-                pTargetPath,
-                StringComparison.OrdinalIgnoreCase))
+    internal static string? PSectionNameFind(string pPath) =>
+        pSectionLoaded
+            .FirstOrDefault(pEntry => string.Equals(pEntry.PSectionSwatchPath, pPath, StringComparison.OrdinalIgnoreCase))
             ?.PSectionSwatchName;
-        return pLoadedName is null
-            ? PSectionImportResult.PSectionImportInvalid
-            : PSectionImportResult.PSectionImportLoaded;
-    }
 
-    internal static void PSectionPaletteSave(string pName, string pTargetPath)
-    {
-        if (PSectionAllRead().FirstOrDefault(pEntry => pEntry.PSectionSwatchName == pName) is not { } pPalette)
-        {
-            return;
-        }
-
-        LSectionPalette.LSectionPaletteSave(
-            pTargetPath,
-            pPalette.PSectionSwatchName,
-            pPalette.PSectionSwatchColors.Select(PSectionHexFormat).ToArray());
-    }
+    internal static string[] PSectionHexRead(string pName) =>
+        PSectionAllRead().FirstOrDefault(pEntry => pEntry.PSectionSwatchName == pName) is { } pPalette
+            ? pPalette.PSectionSwatchColors.Select(PSectionHexFormat).ToArray()
+            : [];
 }

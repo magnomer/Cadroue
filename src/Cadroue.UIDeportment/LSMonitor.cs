@@ -1,7 +1,8 @@
 ﻿using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.Media;
 
-namespace Cadroue.Infrastructure;
+namespace Cadroue.UIDeportment;
 
 public readonly record struct LSMonitorEstimate(
     double[] LSMonitorBefore,
@@ -25,8 +26,81 @@ public sealed class LSMonitor : IDisposable
     private bool lMonitorFailed;
     private CancellationTokenSource? lMonitorCancelSource;
     private bool lMonitorDisposed;
+    private TimeSpan lMonitorCursor;
+    private bool lMonitorPlaying;
+    private bool lMonitorRadioProgram;
+    private double lMonitorScale = 1;
+    private double lMonitorOffset;
 
     public event Action<LSMonitorEstimate>? LSMonitorReady;
+    public event Action<TimeSpan>? LSMonitorCursorChange;
+    public event Action<bool>? LSMonitorPlayingChange;
+    public event Action? LSMonitorZoomChange;
+
+    public TimeSpan LSMonitorCursor => lMonitorCursor;
+
+    public bool LSMonitorPlaying => lMonitorPlaying;
+
+    public bool LSMonitorRadioProgram => lMonitorRadioProgram;
+
+    public double LSMonitorScale => lMonitorScale;
+
+    public double LSMonitorOffset => lMonitorOffset;
+
+    public void LSMonitorCursorSet(TimeSpan lCursor)
+    {
+        lMonitorCursor = lCursor;
+        LSMonitorCursorChange?.Invoke(lCursor);
+    }
+
+    public void LSMonitorPlayingSet(bool lPlaying)
+    {
+        lMonitorPlaying = lPlaying;
+        LSMonitorPlayingChange?.Invoke(lPlaying);
+    }
+
+    public void LSMonitorRadioSet(bool lProgram) => lMonitorRadioProgram = lProgram;
+
+    public void LSMonitorZoom(double lFactor, double lMost)
+    {
+        double lCenter = lMonitorOffset + 1.0 / lMonitorScale / 2;
+        lMonitorScale = Math.Clamp(lMonitorScale * lFactor, 1, lMost);
+        double lViewport = 1.0 / lMonitorScale;
+        lMonitorOffset = Math.Clamp(lCenter - lViewport / 2, 0, 1 - lViewport);
+        LSMonitorZoomChange?.Invoke();
+    }
+
+    public void LSMonitorOffsetSet(double lOffset)
+    {
+        lMonitorOffset = Math.Clamp(lOffset, 0, Math.Max(0, 1 - 1.0 / lMonitorScale));
+        LSMonitorZoomChange?.Invoke();
+    }
+
+    public double LSMonitorFractionResolve(double lLocal) =>
+        Math.Clamp(lMonitorOffset + Math.Clamp(lLocal, 0, 1) / lMonitorScale, 0, 1);
+
+    public double LSMonitorLocalResolve(double lFraction) => (lFraction - lMonitorOffset) * lMonitorScale;
+
+    public double LSMonitorColumnRead(double[] lEnvelope, int lColumn, int lColumns)
+    {
+        double lViewport = 1.0 / lMonitorScale;
+        int lLength = lEnvelope.Length;
+        double lFromF = (lMonitorOffset + (double)lColumn / lColumns * lViewport) * lLength;
+        double lToF = (lMonitorOffset + (double)(lColumn + 1) / lColumns * lViewport) * lLength;
+        int lFrom = Math.Clamp((int)Math.Floor(lFromF), 0, lLength - 1);
+        int lTo = Math.Clamp((int)Math.Ceiling(lToF), lFrom + 1, lLength);
+
+        double lPeak = 0;
+        for (int lIndex = lFrom; lIndex < lTo; lIndex++)
+        {
+            if (lEnvelope[lIndex] > lPeak)
+            {
+                lPeak = lEnvelope[lIndex];
+            }
+        }
+
+        return lPeak;
+    }
 
     public LSMonitor()
     {

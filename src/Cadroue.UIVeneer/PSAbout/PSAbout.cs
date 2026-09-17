@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -15,17 +14,14 @@ using static Cadroue.UIVeneer.PSCasement.PSPlate;
 
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
 internal sealed class PSAbout : Window
 {
-    private readonly record struct PSAboutCredit(string PSAboutCreditName, string PSAboutCreditUrl);
-
     internal const string PSAboutPlacementKey = "About";
 
-    private const string PSAboutProjectUrl = "https://github.com/magnomer/Cadroue";
-    private const string PSAboutNoticeName = "THIRD-PARTY-NOTICES.md";
     private const string PSAboutLogoPath = "/PAsset/PProgram/PProgramIcon.png";
 
     private const double PSAboutWidthDefault = 460;
@@ -34,19 +30,8 @@ internal sealed class PSAbout : Window
     private const double PSAboutLogoSize = 76;
     private const double PSAboutRowGap = 7;
 
-    private static readonly PSAboutCredit[] PSAboutCredits =
-    {
-        new("FFmpeg", "https://ffmpeg.org"),
-        new("FlyleafLib", "https://github.com/SuRGeoNix/Flyleaf"),
-        new("MPV", "https://mpv.io"),
-        new("Phosphor Icons", "https://phosphoricons.com/"),
-        new("SharpVectors", "https://github.com/ElinamLLC/SharpVectors")
-    };
-
+    private readonly LSAbout lsAbout = new();
     private readonly PSGrabber psAboutGrabber;
-
-    private int psAboutTapCount;
-    private DateTime psAboutTapLast;
 
     private TextBlock? psAboutDeveloper;
 
@@ -138,9 +123,7 @@ internal sealed class PSAbout : Window
             Foreground = PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
-            Visibility = Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive
-                ? Visibility.Visible
-                : Visibility.Collapsed
+            Visibility = lsAbout.LSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed
         };
         pHeader.Children.Add(psAboutDeveloper);
 
@@ -154,19 +137,19 @@ internal sealed class PSAbout : Window
         });
         pHeader.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationFormat("About.Version.Format", PSAboutVersionRead()),
+            Text = LLocalization.LLocalizationFormat("About.Version.Format", LSAbout.LSAboutVersionRead()),
             Foreground = PSFieldMuted,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 4, 0, 10)
         });
-        pHeader.Children.Add(PSAboutLinkBuild(PSAboutProjectUrl, HorizontalAlignment.Center));
+        pHeader.Children.Add(PSAboutLinkBuild(LSAbout.LSAboutProjectUrl, HorizontalAlignment.Center));
         return pHeader;
     }
 
     private UIElement PSAboutCreditBuild()
     {
-        var pRows = new List<UIElement>(PSAboutCredits.Length + 1);
-        foreach ((string pName, string pUrl) in PSAboutCredits)
+        var pRows = new List<UIElement>(LSAbout.LSAboutCredits.Count + 1);
+        foreach ((string pName, string pUrl) in LSAbout.LSAboutCredits)
         {
             pRows.Add(PSAboutRowBuild(pName, pUrl));
         }
@@ -213,7 +196,7 @@ internal sealed class PSAbout : Window
     private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
     {
         pEvent.Handled = true;
-        string pPath = System.IO.Path.Combine(AppContext.BaseDirectory, PSAboutNoticeName);
+        string pPath = System.IO.Path.Combine(AppContext.BaseDirectory, LSAbout.LSAboutNoticeName);
         if (LUsher.LUsherLinkOpen(pPath) is { } pNoticeError)
         {
             LTraceLog.LTraceErrorRecord($"Notice could not be opened: {pPath}: {pNoticeError}");
@@ -238,19 +221,9 @@ internal sealed class PSAbout : Window
 
     private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)
     {
-        DateTime pNow = DateTime.UtcNow;
-        psAboutTapCount = (pNow - psAboutTapLast).TotalSeconds > 1.5 ? 1 : psAboutTapCount + 1;
-        psAboutTapLast = pNow;
-        if (psAboutTapCount >= 10)
+        if (lsAbout.LSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
         {
-            psAboutTapCount = 0;
-            bool psAboutDeveloperNext =
-                !Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceDeveloperActive;
-            Cadroue.Application.LPreference.LPreferenceDeveloperSet(psAboutDeveloperNext);
-            if (psAboutDeveloper is not null)
-            {
-                psAboutDeveloper.Visibility = psAboutDeveloperNext ? Visibility.Visible : Visibility.Collapsed;
-            }
+            psAboutDeveloper.Visibility = lsAbout.LSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
@@ -269,16 +242,6 @@ internal sealed class PSAbout : Window
             this,
             LLocalization.LLocalizationTextRead("About.Window.Title"),
             LLocalization.LLocalizationFormat("About.Error.Open", pResource, pDetail));
-
-    private static string PSAboutVersionRead()
-    {
-        Assembly pAssembly = Assembly.GetExecutingAssembly();
-        string pVersion = pAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-            ?? pAssembly.GetName().Version?.ToString()
-            ?? string.Empty;
-        int pBuildMark = pVersion.IndexOf('+');
-        return pBuildMark < 0 ? pVersion : pVersion[..pBuildMark];
-    }
 
     private void PSAboutCloseHandle(object? pSender, EventArgs pEvent)
     {

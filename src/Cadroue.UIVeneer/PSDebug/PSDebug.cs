@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPanel;
 using Cadroue.UIVeneer.PSCasement;
@@ -169,11 +170,11 @@ internal sealed class PSDebug : Window
         PSDebugButtonAdd(pWindows, "Log", () => PLogWindow.PLogWindowShow(psDebugApplicationOwner));
         PSDebugButtonAdd(pWindows, "Diagnosis", () => PSDiagnosis.PSDiagnosisShow(this));
         PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
-        PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, "Debug verdict", new[]
+        PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, new LSVerdict("Debug verdict", new[]
         {
-            new PSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
-            new PSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
-        }));
+            new LSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
+            new LSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
+        })));
         PSDebugButtonAdd(pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new PViewer()));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(

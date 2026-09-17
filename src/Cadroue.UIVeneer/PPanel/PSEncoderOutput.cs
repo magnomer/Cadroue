@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSCombo;
@@ -74,52 +75,28 @@ internal sealed partial class PSEncoder
         return pGrid;
     }
 
-    private void PSOutputSuffixNormalize()
-    {
-        if (!string.IsNullOrEmpty(psOutputSuffixBox.Text.Trim()))
-        {
-            return;
-        }
-
-        string pMode = PSComboTextRead(psOutputCollisionCombo);
-        lsExportSpecificEdit.LPresetSuffixSet(pMode, string.Empty);
-        psOutputSuffixBox.Text = lsExportSpecificEdit.LPresetSuffixRead(pMode);
-    }
-
-    private static bool PSOutputSuffixCheck(string pPolicy) =>
-        string.Equals(pPolicy, "Rename output", StringComparison.Ordinal)
-        || string.Equals(pPolicy, "Rename existing", StringComparison.Ordinal);
+    private void PSOutputSuffixNormalize() =>
+        psOutputSuffixBox.Text = lsEncoder.LSEncoderSuffixNormalize(
+            PSComboTextRead(psOutputCollisionCombo),
+            psOutputSuffixBox.Text);
 
     private void PSOutputSuffixUpdate()
     {
         string pMode = PSComboTextRead(psOutputCollisionCombo);
-
-        if (psOutputSuffixMode is not null
-            && PSOutputSuffixCheck(psOutputSuffixMode)
-            && !string.Equals(psOutputSuffixMode, pMode, StringComparison.Ordinal))
+        string pSuffix = lsEncoder.LSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
+        bool pShown = LSEncoder.LSEncoderSuffixCheck(pMode);
+        if (pShown)
         {
-            lsExportSpecificEdit.LPresetSuffixSet(psOutputSuffixMode, psOutputSuffixBox.Text.Trim());
-        }
-
-        if (PSOutputSuffixCheck(pMode))
-        {
-            psOutputSuffixBox.Text = lsExportSpecificEdit.LPresetSuffixRead(pMode);
+            psOutputSuffixBox.Text = pSuffix;
             if (psOutputSuffixLabel is not null)
             {
-                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(
-                    string.Equals(pMode, "Rename existing", StringComparison.Ordinal)
-                        ? "Encoder.Field.Output.SuffixSource"
-                        : "Encoder.Field.Output.SuffixOutput");
+                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderSuffixResolve(pMode));
             }
         }
 
-        psOutputSuffixMode = pMode;
-
         if (psOutputSuffixRow is not null)
         {
-            psOutputSuffixRow.Visibility = PSOutputSuffixCheck(pMode)
-                ? Visibility.Visible
-                : Visibility.Collapsed;
+            psOutputSuffixRow.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 

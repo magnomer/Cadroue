@@ -19,8 +19,6 @@ public sealed partial class PInspector
     private StackPanel pEqualizerRowPanel = null!;
     private StackPanel pEqualizerBody = null!;
 
-    public LWorkAudioStep PEqualizerStepRead() => LEqualizer.LEqualizerStepRead();
-
     private StackPanel PEqualizerBodyBuild()
     {
         pEqualizerApplyBox = PInspectorSwitchBuild(

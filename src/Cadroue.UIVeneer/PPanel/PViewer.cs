@@ -38,7 +38,7 @@ public sealed partial class PViewer : PPanel
     private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
     private Rect pViewerCropOrigin;
     private Point pViewerCropGrab;
-    private bool pViewerCropDrag;
+    private bool pViewerCropPress;
     private readonly LMediaLoad pViewerMediaProbe = new();
 
     public LViewer LViewer { get; } = new();

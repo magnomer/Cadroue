@@ -44,7 +44,7 @@ public sealed partial class PViewer
             pViewerCropBox.Width,
             pViewerCropBox.Height);
         pViewerCropGrab = pGrabPoint;
-        pViewerCropDrag = true;
+        pViewerCropPress = true;
         pViewerOverlay.CaptureMouse();
     }
 
@@ -104,7 +104,7 @@ public sealed partial class PViewer
             return;
         }
 
-        if (pViewerCropDrag)
+        if (pViewerCropPress)
         {
             PCropDragApply(mouseEvent.GetPosition(pViewerOverlay));
             mouseEvent.Handled = true;
@@ -122,10 +122,10 @@ public sealed partial class PViewer
 
     private void PCropReleaseHandle(object sender, MouseButtonEventArgs mouseEvent)
     {
-        if (pViewerCropDrag)
+        if (pViewerCropPress)
         {
             PCropDragApply(mouseEvent.GetPosition(pViewerOverlay));
-            pViewerCropDrag = false;
+            pViewerCropPress = false;
             pViewerOverlay.ReleaseMouseCapture();
             PCropVideoCommit();
             mouseEvent.Handled = true;

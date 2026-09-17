@@ -3,8 +3,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PSCasement;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
@@ -15,53 +15,10 @@ namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSDiagnosis
 {
-    private enum PSDiagnosisState
-    {
-        PSDiagnosisStateChecking,
-        PSDiagnosisStateReady,
-        PSDiagnosisStateMissing
-    }
-
-    private enum PSDiagnosisMood
-    {
-        PSDiagnosisMoodChecking,
-        PSDiagnosisMoodReady,
-        PSDiagnosisMoodWarning,
-        PSDiagnosisMoodMissing,
-        PSDiagnosisMoodAbsent
-    }
-
-    private static readonly (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] PSDiagnosisVideoItems =
-    {
-        ("Diagnosis.Feature.Brightness", new[] { "eq" }),
-        ("Diagnosis.Feature.Contrast", new[] { "eq" }),
-        ("Diagnosis.Feature.Gamma", new[] { "eq" }),
-        ("Diagnosis.Feature.Saturation", new[] { "eq" }),
-        ("Diagnosis.Feature.Exposure", new[] { "exposure", "scale", "format" }),
-        ("Diagnosis.Feature.Whitebalance", new[] { "colorcorrect", "scale", "format" }),
-        ("Diagnosis.Feature.WhitebalanceManual", new[] { "colorchannelmixer", "eq", "scale", "format" }),
-        ("Diagnosis.Feature.Crop", new[] { "crop" }),
-        ("Diagnosis.Feature.Rotate", new[] { "transpose", "hflip", "vflip" }),
-        ("Diagnosis.Feature.Resize", new[] { "scale" })
-    };
-
-    private static readonly (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] PSDiagnosisAudioItems =
-    {
-        ("Diagnosis.Feature.Volume", new[] { "volume" }),
-        ("Diagnosis.Feature.Loudness", new[] { "loudnorm" }),
-        ("Diagnosis.Feature.Dynamic", new[] { "dynaudnorm" }),
-        ("Diagnosis.Feature.Equalizer", new[] { "equalizer" }),
-        ("Diagnosis.Feature.Highpass", new[] { "highpass" }),
-        ("Diagnosis.Feature.Lowpass", new[] { "lowpass" }),
-        ("Diagnosis.Feature.Noise", new[] { "afftdn" })
-    };
-
     private const double PSDiagnosisLabelWidth = 170;
 
     private readonly List<(string[] PSDiagnosisFilters, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)>
         psDiagnosisChecks = new();
-
-    private int psDiagnosisGeneration;
 
     private Ellipse psDiagnosisSummaryDot = null!;
     private TextBlock psDiagnosisSummaryText = null!;
@@ -106,11 +63,7 @@ internal sealed partial class PSDiagnosis
             110,
             new Thickness(0));
         pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
-        pRecheck.Click += (_, _) =>
-        {
-            LInventory.LInventoryReset();
-            PSDiagnosisProbeStart();
-        };
+        pRecheck.Click += (_, _) => _ = lsDiagnosis.LSDiagnosisReset();
         Grid.SetColumn(pRecheck, 1);
         pBar.Children.Add(pRecheck);
         return pBar;
@@ -120,8 +73,8 @@ internal sealed partial class PSDiagnosis
     {
         var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
         pBody.Children.Add(PSDiagnosisProgramBuild());
-        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Video", PSDiagnosisVideoItems));
-        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Audio", PSDiagnosisAudioItems));
+        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Video", LSDiagnosis.LSDiagnosisVideoItems));
+        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Audio", LSDiagnosis.LSDiagnosisAudioItems));
         return pBody;
     }
 
@@ -139,12 +92,10 @@ internal sealed partial class PSDiagnosis
         return PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion, pLocation);
     }
 
-    private UIElement PSDiagnosisGroupBuild(
-        string pTitleKey,
-        (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems)
+    private UIElement PSDiagnosisGroupBuild(string pTitleKey, IReadOnlyList<LSDiagnosisItem> pItems)
     {
         UIElement[] pRows = pItems
-            .Select(pItem => PSDiagnosisFeatureBuild(pItem.PSDiagnosisLabel, pItem.PSDiagnosisFilters))
+            .Select(pItem => PSDiagnosisFeatureBuild(pItem.LSDiagnosisLabel, pItem.LSDiagnosisFilters))
             .ToArray();
         return PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
     }
@@ -217,20 +168,20 @@ internal sealed partial class PSDiagnosis
             VerticalAlignment = VerticalAlignment.Center,
             Child = pText
         };
-        PSDiagnosisBadgeApply(pBadge, pText, PSDiagnosisState.PSDiagnosisStateChecking);
+        PSDiagnosisBadgeApply(pBadge, pText, LSDiagnosisState.LSDiagnosisStateChecking);
         return (pBadge, pText);
     }
 
-    private static void PSDiagnosisBadgeApply(Border pBadge, TextBlock pText, PSDiagnosisState pState)
+    private static void PSDiagnosisBadgeApply(Border pBadge, TextBlock pText, LSDiagnosisState pState)
     {
         switch (pState)
         {
-            case PSDiagnosisState.PSDiagnosisStateReady:
+            case LSDiagnosisState.LSDiagnosisStateReady:
                 pBadge.Background = PSDiagnosisReadyFill;
                 pText.Foreground = PSDiagnosisReadyInk;
                 pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Available");
                 break;
-            case PSDiagnosisState.PSDiagnosisStateMissing:
+            case LSDiagnosisState.LSDiagnosisStateMissing:
                 pBadge.Background = PSDiagnosisMissingFill;
                 pText.Foreground = PSDiagnosisMissingInk;
                 pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Unavailable");
@@ -243,100 +194,48 @@ internal sealed partial class PSDiagnosis
         }
     }
 
-    private async void PSDiagnosisProbeStart()
+    private void PSDiagnosisResultApply()
     {
-        PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodChecking, 0);
-        PSDiagnosisBadgeApply(
-            psDiagnosisProgramBadge,
-            psDiagnosisProgramText,
-            PSDiagnosisState.PSDiagnosisStateChecking);
-        psDiagnosisVersionValue.Text = "…";
-        psDiagnosisLocationValue.Text = "…";
-        foreach ((_, Border pBadge, TextBlock pText) in psDiagnosisChecks)
+        if (!Dispatcher.CheckAccess())
         {
-            PSDiagnosisBadgeApply(pBadge, pText, PSDiagnosisState.PSDiagnosisStateChecking);
+            Dispatcher.BeginInvoke(PSDiagnosisResultApply);
+            return;
         }
 
-        int pGeneration = ++psDiagnosisGeneration;
-        string[] pFilters = psDiagnosisChecks
-            .SelectMany(pCheck => pCheck.PSDiagnosisFilters)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-        LInventoryFeature pFeature = await LInventory.LInventoryFeatureRead(pFilters);
-        if (pGeneration == psDiagnosisGeneration)
-        {
-            PSDiagnosisResultApply(pFeature);
-        }
-    }
-
-    private void PSDiagnosisResultApply(LInventoryFeature pFeature)
-    {
-        string pVersion = pFeature.LInventoryVersion;
-        IReadOnlyDictionary<string, bool> pMap = pFeature.LInventoryMap;
-        bool pReady = !string.IsNullOrWhiteSpace(pVersion);
-        psDiagnosisVersionValue.Text = pReady ? pVersion : "—";
-        psDiagnosisLocationValue.Text = pFeature.LInventoryLocation.Length == 0
-            ? LLocalization.LLocalizationTextRead("Diagnosis.LocationPath")
-            : pFeature.LInventoryLocation;
-        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText,
-            pReady ? PSDiagnosisState.PSDiagnosisStateReady : PSDiagnosisState.PSDiagnosisStateMissing);
-
-        int pMissing = 0;
+        bool pChecking = lsDiagnosis.LSDiagnosisChecking;
+        bool pReady = lsDiagnosis.LSDiagnosisReady;
+        psDiagnosisVersionValue.Text = pChecking ? "…" : pReady ? lsDiagnosis.LSDiagnosisVersion : "—";
+        psDiagnosisLocationValue.Text = pChecking
+            ? "…"
+            : lsDiagnosis.LSDiagnosisLocation.Length == 0
+                ? LLocalization.LLocalizationTextRead("Diagnosis.LocationPath")
+                : lsDiagnosis.LSDiagnosisLocation;
+        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.LSDiagnosisProgramState);
         foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
         {
-            bool pOk = pReady && PSDiagnosisFiltersCheck(pFilters, pMap);
-            PSDiagnosisBadgeApply(pBadge, pText,
-                pOk ? PSDiagnosisState.PSDiagnosisStateReady : PSDiagnosisState.PSDiagnosisStateMissing);
-            if (!pOk)
-            {
-                pMissing++;
-            }
+            PSDiagnosisBadgeApply(pBadge, pText, lsDiagnosis.LSDiagnosisStateRead(pFilters));
         }
 
-        if (!pReady)
-        {
-            PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodAbsent, 0);
-            return;
-        }
-
-        if (pMissing == 0)
-        {
-            PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodReady, 0);
-            return;
-        }
-
-        bool pVideoAny = PSDiagnosisGroupCheck(PSDiagnosisVideoItems, pMap);
-        bool pAudioAny = PSDiagnosisGroupCheck(PSDiagnosisAudioItems, pMap);
-        PSDiagnosisSummaryApply(
-            pVideoAny && pAudioAny ? PSDiagnosisMood.PSDiagnosisMoodWarning : PSDiagnosisMood.PSDiagnosisMoodMissing,
-            pMissing);
+        PSDiagnosisSummaryApply(lsDiagnosis.LSDiagnosisMood, lsDiagnosis.LSDiagnosisMissing);
     }
 
-    private static bool PSDiagnosisGroupCheck(
-        (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems,
-        IReadOnlyDictionary<string, bool> pMap) =>
-        pItems.Any(pItem => PSDiagnosisFiltersCheck(pItem.PSDiagnosisFilters, pMap));
-
-    private static bool PSDiagnosisFiltersCheck(string[] pFilters, IReadOnlyDictionary<string, bool> pMap) =>
-        pFilters.All(pFilter => pMap.TryGetValue(pFilter, out bool pValue) && pValue);
-
-    private void PSDiagnosisSummaryApply(PSDiagnosisMood pMood, int pMissing)
+    private void PSDiagnosisSummaryApply(LSDiagnosisMood pMood, int pMissing)
     {
         switch (pMood)
         {
-            case PSDiagnosisMood.PSDiagnosisMoodReady:
+            case LSDiagnosisMood.LSDiagnosisMoodReady:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisReadyDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Ready");
                 break;
-            case PSDiagnosisMood.PSDiagnosisMoodWarning:
+            case LSDiagnosisMood.LSDiagnosisMoodWarning:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisWarnDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
                 break;
-            case PSDiagnosisMood.PSDiagnosisMoodMissing:
+            case LSDiagnosisMood.LSDiagnosisMoodMissing:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
                 break;
-            case PSDiagnosisMood.PSDiagnosisMoodAbsent:
+            case LSDiagnosisMood.LSDiagnosisMoodAbsent:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.NoProgram");
                 break;

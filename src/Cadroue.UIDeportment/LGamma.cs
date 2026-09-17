@@ -21,9 +21,6 @@ public sealed class LGamma
 
     public bool LGammaPreview => lGammaPreview;
 
-    public bool LGammaDefaultCheck() =>
-        LGammaValue == new LWorkGammaSettings(0, 0, 0, 0, 0);
-
     public void LGammaStepSet(LWorkVideoStep lStep)
     {
         LWorkGammaSettings lValue = lStep.LWorkGammaRead();

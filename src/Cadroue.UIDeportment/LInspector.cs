@@ -13,6 +13,8 @@ public sealed class LInspector
     private bool lInspectorOrientationCapable = true;
     private bool lInspectorToolArmed;
     private bool lInspectorRestoring;
+    private string? lInspectorOwnerPath;
+    private string? lInspectorFailurePath;
 
     public event Action? LInspectorChange;
 
@@ -35,6 +37,8 @@ public sealed class LInspector
     public bool LInspectorToolArmed => lInspectorToolArmed;
 
     public bool LInspectorRestoring => lInspectorRestoring;
+
+    public string? LInspectorOwnerPath => lInspectorOwnerPath;
 
     public void LInspectorRestoreSet(bool lRestoring) => lInspectorRestoring = lRestoring;
 
@@ -99,5 +103,29 @@ public sealed class LInspector
 
         lInspectorToolArmed = lToolArmed;
         LInspectorChange?.Invoke();
+    }
+
+    public bool LInspectorOwnerSet(string lOwnerPath)
+    {
+        bool lOwnerFirst = lInspectorOwnerPath is null;
+        lInspectorOwnerPath = lOwnerPath;
+        return lOwnerFirst;
+    }
+
+    public bool LInspectorFailureSet(string? lFailurePath)
+    {
+        if (lFailurePath is null)
+        {
+            lInspectorFailurePath = null;
+            return false;
+        }
+
+        if (string.Equals(lInspectorFailurePath, lFailurePath, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        lInspectorFailurePath = lFailurePath;
+        return true;
     }
 }

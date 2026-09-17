@@ -11,7 +11,7 @@ public sealed partial class PExport
     {
         if (pPresetRowDragging is not null)
         {
-            pPresetRowDragging.Opacity = pPresetRowOpacity;
+            pPresetRowDragging.Opacity = pPresetOpacityOrigin;
         }
 
         pPresetDragGhost?.PGhostClear();

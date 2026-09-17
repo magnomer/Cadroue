@@ -4,6 +4,7 @@ using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PSCasement;
 
@@ -31,7 +32,7 @@ internal sealed class PSKeymap : Window
     private const string PSSheetFlowIcon = "/PAsset/PTab/PSSheetTimeline.svg";
     private const string PSSheetSplitIcon = "/PAsset/PTab/PSplitButton.svg";
 
-    private readonly List<LBindingRecord> lsKeymapDraft;
+    private readonly LSKeymap lsKeymap;
     private readonly Action<LPreferenceState>? psKeymapCallback;
     private readonly PSGrabber psKeymapGrabber;
     private readonly Dictionary<string, PSKeymapChord> psKeymapChords = new(StringComparer.Ordinal);
@@ -44,15 +45,12 @@ internal sealed class PSKeymap : Window
 
     private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsKeymapDraft = Cadroue.Infrastructure.LBinding.LBindingNormalize(
-            Cadroue.Infrastructure.LBinding.LBindingCurrent);
+        lsKeymap = new LSKeymap();
         psKeymapCallback = pApplyCallback;
 
-        foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBinding.LBindingCatalogRead())
+        foreach (LSKeymapChord pChord in lsKeymap.LSKeymapChords)
         {
-            psKeymapChords[pCommand.LBindingCommandToken] = new PSKeymapChord(
-                Cadroue.Infrastructure.LBinding.LBindingGestureRead(lsKeymapDraft, pCommand.LBindingCommandToken),
-                PSKeymapConflictClear);
+            psKeymapChords[pChord.LSKeymapChordToken] = new PSKeymapChord(lsKeymap, pChord);
         }
 
         Title = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title");
@@ -163,37 +161,11 @@ internal sealed class PSKeymap : Window
         return pRoot;
     }
 
-    private void PSKeymapConflictClear(PSKeymapChord pSource, string pGesture)
-    {
-        foreach (PSKeymapChord pChord in psKeymapChords.Values)
-        {
-            if (!ReferenceEquals(pChord, pSource)
-                && string.Equals(pChord.PSKeymapChordGesture, pGesture, StringComparison.OrdinalIgnoreCase))
-            {
-                pChord.PSKeymapChordSet(string.Empty);
-            }
-        }
-    }
-
-    private void PSKeymapDefaultApply()
-    {
-        foreach (KeyValuePair<string, PSKeymapChord> pEntry in psKeymapChords)
-        {
-            pEntry.Value.PSKeymapChordSet(Cadroue.Infrastructure.LBinding.LBindingDefaultRead(pEntry.Key));
-        }
-    }
+    private void PSKeymapDefaultApply() => lsKeymap.LSKeymapDefaultApply();
 
     private void PSKeymapApply()
     {
-        List<LBindingRecord> psKeymapApplied = psKeymapChords
-            .Select(pEntry => new LBindingRecord
-            {
-                LBindingRecordToken = pEntry.Key,
-                LBindingRecordGesture = pEntry.Value.PSKeymapChordGesture
-            })
-            .ToList();
-
-        Cadroue.Infrastructure.LBinding.LBindingSet(psKeymapApplied);
+        lsKeymap.LSKeymapApply();
         psKeymapCallback?.Invoke(LPreference.LPreferenceStateCurrent);
     }
 

@@ -9,6 +9,7 @@ using Cadroue.UIVeneer.PFlow;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSPlate;
@@ -42,8 +43,6 @@ internal sealed partial class PSOptions
     private readonly Dictionary<string, Border> psSpectrumRows = new(StringComparer.Ordinal);
     private readonly StackPanel psSpectrumList = new() { HorizontalAlignment = HorizontalAlignment.Left };
 
-    private string psSpectrumName = PSectionPalette.PSectionPaletteDefault;
-
     private UIElement PSTimelineBuild()
     {
         var pPanel = new StackPanel();
@@ -74,8 +73,6 @@ internal sealed partial class PSOptions
 
     private UIElement PSSpectrumFieldBuild()
     {
-        psSpectrumName = lsOptionsDraft.LPreferenceSectionPalette;
-        PSectionPalette.PSectionPaletteLoad();
         PSSpectrumListBuild();
 
         var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSFieldLabelWidth };
@@ -108,21 +105,18 @@ internal sealed partial class PSOptions
 
     private void PSSpectrumListBuild()
     {
+        PSectionPalette.PSectionPaletteLoad();
         psSpectrumRows.Clear();
         psSpectrumList.Children.Clear();
-        foreach (string pName in PSectionPalette.PSectionPaletteNames)
+        IReadOnlyList<string> pNames = PSectionPalette.PSectionPaletteNames;
+        foreach (string pName in pNames)
         {
             Border pRow = PSSpectrumRowBuild(pName);
             psSpectrumRows[pName] = pRow;
             psSpectrumList.Children.Add(PSSpectrumLineBuild(pName, pRow));
         }
 
-        if (!psSpectrumRows.ContainsKey(psSpectrumName))
-        {
-            psSpectrumName = PSectionPalette.PSectionPaletteDefault;
-        }
-
-        PSSpectrumActiveApply();
+        lsSpectrum.LSSpectrumNamesSet(pNames);
     }
 
     private static Button PSSpectrumButtonBuild(string pIconPath, string pTip, Action pClick)
@@ -150,21 +144,23 @@ internal sealed partial class PSOptions
         {
             Title = LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
             Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
-            InitialDirectory = Cadroue.Infrastructure.LDepot.LDepotPaletteRead()
+            InitialDirectory = lsSpectrum.LSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() != true)
         {
             return;
         }
 
-        PSectionPalette.PSectionImportResult pResult =
-            PSectionPalette.PSectionPaletteImport(pDialog.FileName, out string? pLoadedName);
-        if (pResult != PSectionPalette.PSectionImportResult.PSectionImportLoaded || pLoadedName is null)
+        LSSpectrumResult pResult = lsSpectrum.LSSpectrumImport(pDialog.FileName, out string pTargetPath);
+        string? pLoadedName = pResult == LSSpectrumResult.LSSpectrumResultLoaded
+            ? PSectionPalette.PSectionNameFind(pTargetPath)
+            : null;
+        if (pLoadedName is null)
         {
             string pMessageKey = pResult switch
             {
-                PSectionPalette.PSectionImportResult.PSectionImportReserved => "Options.Timeline.ReservedPalette",
-                PSectionPalette.PSectionImportResult.PSectionImportFailed => "Options.Timeline.PaletteCopyFailed",
+                LSSpectrumResult.LSSpectrumResultReserved => "Options.Timeline.ReservedPalette",
+                LSSpectrumResult.LSSpectrumResultFailed => "Options.Timeline.PaletteCopyFailed",
                 _ => "Options.Timeline.InvalidPalette"
             };
             PSWarning.PSWarningShow(
@@ -174,8 +170,8 @@ internal sealed partial class PSOptions
             return;
         }
 
-        psSpectrumName = pLoadedName;
         PSSpectrumListBuild();
+        lsSpectrum.LSSpectrumSelect(pLoadedName);
     }
 
     private void PSSpectrumSave()
@@ -184,12 +180,13 @@ internal sealed partial class PSOptions
         {
             Title = LLocalization.LLocalizationTextRead("Options.Timeline.SaveTitle"),
             Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
-            FileName = $"{psSpectrumName}.json",
-            InitialDirectory = Cadroue.Infrastructure.LDepot.LDepotPaletteRead()
+            FileName = $"{lsSpectrum.LSSpectrumName}.json",
+            InitialDirectory = lsSpectrum.LSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() == true)
         {
-            PSectionPalette.PSectionPaletteSave(psSpectrumName, pDialog.FileName);
+            string pName = lsSpectrum.LSSpectrumName;
+            lsSpectrum.LSSpectrumSave(pDialog.FileName, pName, PSectionPalette.PSectionHexRead(pName));
         }
     }
 
@@ -285,28 +282,23 @@ internal sealed partial class PSOptions
                 ? LLocalization.LLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
                 : LLocalization.LLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
             LLocalization.LLocalizationTextRead("Terms.Remove"));
-        if (!pConfirmed || !PSectionPalette.PSectionPaletteRemove(pName))
+        if (!pConfirmed
+            || !lsSpectrum.LSSpectrumRemove(
+                pName,
+                PSectionPalette.PSectionNativeCheck(pName),
+                PSectionPalette.PSectionPathFind(pName)))
         {
             return;
-        }
-
-        if (psSpectrumName == pName)
-        {
-            psSpectrumName = PSectionPalette.PSectionPaletteDefault;
         }
 
         PSSpectrumListBuild();
     }
 
-    private void PSSpectrumSelect(string pName)
-    {
-        psSpectrumName = pName;
-        PSSpectrumActiveApply();
-    }
+    private void PSSpectrumSelect(string pName) => lsSpectrum.LSSpectrumSelect(pName);
 
     private void PSSpectrumHoverApply(string pName, bool pHovered)
     {
-        if (pName == psSpectrumName || !psSpectrumRows.TryGetValue(pName, out Border? pRow))
+        if (pName == lsSpectrum.LSSpectrumName || !psSpectrumRows.TryGetValue(pName, out Border? pRow))
         {
             return;
         }
@@ -319,7 +311,7 @@ internal sealed partial class PSOptions
     {
         foreach ((string pName, Border pRow) in psSpectrumRows)
         {
-            bool pChosen = pName == psSpectrumName;
+            bool pChosen = pName == lsSpectrum.LSSpectrumName;
             pRow.BorderBrush = pChosen ? PSSpectrumAccent : PSFieldLine;
             pRow.BorderThickness = new Thickness(pChosen ? 2 : 1);
             pRow.Background = pChosen ? PSSpectrumSoft : Brushes.White;

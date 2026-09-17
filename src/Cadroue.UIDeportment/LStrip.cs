@@ -54,8 +54,6 @@ public sealed class LStrip
 
     public bool LStripVertical => lStripVertical;
 
-    public string LStripTitleRead(string lKey) => lStripTitleSource(lKey);
-
     public LStripTab? LStripTabFind(Guid lId) => lStripTabs.FirstOrDefault(lTab => lTab.LStripTabId == lId);
 
     public void LStripUpdateSuspend() => lStripSuspended = true;

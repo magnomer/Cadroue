@@ -7,6 +7,7 @@ public static class LMediaProbe
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> LMediaProbeGenerations =
         new(StringComparer.OrdinalIgnoreCase);
     private static long lMediaProbeGeneration;
+    private static bool? lMediaAvailable;
 
     internal static Func<string, CancellationToken, LMediaInfo> LMediaProbeReader { get; set; } =
         LMedia.LMediaFfprobeRead;
@@ -18,6 +19,8 @@ public static class LMediaProbe
     public static event Action<LMediaLoudnessResult>? LMediaLoudnessReady;
 
     public static event Action<bool>? LMediaAvailabilityReady;
+
+    public static bool? LMediaAvailabilityCurrent => lMediaAvailable;
 
     public static void LMediaProbeDefer(string sourcePath, CancellationToken lMediaProbeToken = default)
     {
@@ -87,8 +90,9 @@ public static class LMediaProbe
     {
         Task.Run(() =>
         {
-            bool lMediaAvailable = LMedia.LMediaFfprobeExist();
-            LMediaAvailabilityReady?.Invoke(lMediaAvailable);
+            bool lMediaAvailableNow = LMedia.LMediaFfprobeExist();
+            lMediaAvailable = lMediaAvailableNow;
+            LMediaAvailabilityReady?.Invoke(lMediaAvailableNow);
         }, lMediaProbeToken);
     }
 }

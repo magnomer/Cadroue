@@ -3,6 +3,7 @@ using Cadroue.Core;
 using Cadroue.Application;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PSCasement;
 
@@ -34,8 +35,11 @@ internal sealed partial class PSOptions : Window
     private const string PSSheetTimelineIcon = "/PAsset/PTab/PSSheetTimeline.svg";
     private const string PSSheetWorkIcon = "/PAsset/PTab/PSSheetWork.svg";
 
-    private readonly LPreferenceState lsOptionsDraft;
+    private readonly LSOptions lsOptions;
+    private readonly LSSpectrum lsSpectrum;
     private readonly Action<LPreferenceState>? psOptionsCallback;
+
+    private LPreferenceState lsOptionsDraft => lsOptions.LSOptionsDraft;
     private readonly PSGrabber psOptionsGrabber;
 
     internal static void PSOptionsShow(Window pOwner, Action<LPreferenceState>? pApplyCallback)
@@ -46,7 +50,9 @@ internal sealed partial class PSOptions : Window
 
     private PSOptions(Window pOwner, Action<LPreferenceState>? pApplyCallback)
     {
-        lsOptionsDraft = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+        lsOptions = new LSOptions();
+        lsSpectrum = new LSSpectrum(lsOptions.LSOptionsDraft.LPreferenceSectionPalette);
+        lsSpectrum.LSSpectrumChange += PSSpectrumActiveApply;
         psOptionsCallback = pApplyCallback;
 
         psOptionsStartupMode = PSModeBuild(
@@ -81,16 +87,14 @@ internal sealed partial class PSOptions : Window
             PSOptionsTabsItems);
         psOptionsLanguageCombo = PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
-        bool psEngineMpvInstalled = Cadroue.Infrastructure.LMpv.LMpvAvailableCheck();
-        bool psEngineMpv = psEngineMpvInstalled
-            && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal);
         psOptionsEngineMode = PSModeBuild(
-            psEngineMpv ? "Mpv" : "Flyleaf",
+            lsOptions.LSOptionsEngineRead(),
             () => { },
             out psOptionsEngineEnable,
             PSOptionsEngineItems);
-        psOptionsEngineEnable("Mpv", psEngineMpvInstalled);
-        _ = PSOptionsEngineUpdate();
+        psOptionsEngineEnable("Mpv", lsOptions.LSOptionsMpvEnabled);
+        lsOptions.LSOptionsMpvChange += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
+        _ = lsOptions.LSOptionsMpvUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(
             LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"),
@@ -142,8 +146,9 @@ internal sealed partial class PSOptions : Window
         Closed += PSOptionsCloseHandle;
     }
 
-    private UIElement PSOptionsBuild() =>
-        PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
+    private UIElement PSOptionsBuild()
+    {
+        TabControl psSheets = PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
             PSSheet.PSSheetBuild(
                 LLocalization.LLocalizationTextRead("Options.Sheet.General"),
@@ -164,7 +169,16 @@ internal sealed partial class PSOptions : Window
             PSSheet.PSSheetBuild(
                 LLocalization.LLocalizationTextRead("Options.Sheet.Work"),
                 PSSheetWorkIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild())))));
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild()))));
+        psSheets.SelectionChanged += (_, _) =>
+        {
+            if (psSheets.SelectedIndex >= 0)
+            {
+                lsOptions.LSOptionsPageSelect((LSOptionsPage)psSheets.SelectedIndex);
+            }
+        };
+        return PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, psSheets);
+    }
 
     private UIElement PSOptionsRootBuild(UIElement pSheetContent)
     {
@@ -213,7 +227,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceTimelineOrder = PSModeTextRead(psOptionsOrderMode);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
         lsOptionsDraft.LPreferenceKeyframeDelay = psKeyframeDelaySlider.Value;
-        lsOptionsDraft.LPreferenceSectionPalette = psSpectrumName;
+        lsOptionsDraft.LPreferenceSectionPalette = lsSpectrum.LSSpectrumName;
         lsOptionsDraft.LPreferenceOverlapAllowed = psOptionsOverlapBox.IsChecked == true;
         lsOptionsDraft.LPreferenceWaveform = psWaveformBox.IsChecked == true;
 
@@ -227,11 +241,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceWorkspaceFolder = PSOptionsWorkspaceResolve(psWorkspaceBox.Text);
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
-        bool psOptionsSaved = LPreference.LPreferenceStateSet(lsOptionsDraft.LPreferenceClone());
-        Cadroue.Infrastructure.LRenderer.LRendererEngineSet(
-            string.Equals(PSModeTextRead(psOptionsEngineMode), "Mpv", StringComparison.Ordinal)
-                ? LPreviewEngine.LPreviewEngineMpv
-                : LPreviewEngine.LPreviewEngineFlyleaf);
+        bool psOptionsSaved = lsOptions.LSOptionsApply();
         psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
         PSSystemMaintenanceUpdate();
         psOptionsRecordNotice?.Invoke();
@@ -244,12 +254,7 @@ internal sealed partial class PSOptions : Window
             return;
         }
 
-        string psLanguageSelected = LLocalization.LLocalizationLanguageNormalize(
-            LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
-        if (!string.Equals(
-                psLanguageSelected,
-                LLocalization.LLocalizationLanguageRead(),
-                StringComparison.OrdinalIgnoreCase))
+        if (lsOptions.LSOptionsRestartCheck())
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,
@@ -260,23 +265,20 @@ internal sealed partial class PSOptions : Window
 
     private string PSOptionsWorkspaceResolve(string psWorkspaceFolder)
     {
-        string psWorkspaceCurrent = LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder;
-        string psWorkspaceNext = Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceFolder);
-        if (string.Equals(
-                psWorkspaceNext,
-                Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceCurrent),
-                StringComparison.OrdinalIgnoreCase)
-            || !Cadroue.Infrastructure.LDepot.LDepotOccupiedCheck(psWorkspaceNext))
+        string psWorkspaceKept = LSOptions.LSOptionsWorkspaceResolve(psWorkspaceFolder, out bool psWorkspaceOccupied);
+        if (!psWorkspaceOccupied)
         {
-            return psWorkspaceFolder;
+            return psWorkspaceKept;
         }
 
-        psWorkspaceBox.Text = psWorkspaceCurrent;
+        psWorkspaceBox.Text = psWorkspaceKept;
         PSWarning.PSWarningShow(
             this,
             LLocalization.LLocalizationTextRead("Options.System.Workspace"),
-            LLocalization.LLocalizationFormat("Options.System.WorkspaceOccupied", psWorkspaceNext));
-        return psWorkspaceCurrent;
+            LLocalization.LLocalizationFormat(
+                "Options.System.WorkspaceOccupied",
+                Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceFolder)));
+        return psWorkspaceKept;
     }
 
     private void PSOptionsCloseHandle(object? sender, EventArgs e)

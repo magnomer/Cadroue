@@ -26,8 +26,6 @@ public sealed partial class PInspector
         return pFit is { } pCropbox ? PInspectorRectResolve(pCropbox) : null;
     }
 
-    public LCropboxRatio PInspectorRatioRead() => LCropboxState.LCropboxStateRatio;
-
     private void PCropRatioHandle()
     {
         LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;

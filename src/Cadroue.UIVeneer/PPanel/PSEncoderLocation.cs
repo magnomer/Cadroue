@@ -6,6 +6,7 @@ using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSCombo;
@@ -76,16 +77,10 @@ internal sealed partial class PSEncoder
 
         if (psLocationFolderBox is not null)
         {
-            if (psLocationModeShown is not null && !string.Equals(psLocationModeShown, pMode, StringComparison.Ordinal))
-            {
-                lsExportSpecificEdit.LPresetLocationSet(psLocationModeShown, psLocationFolderBox.Text.Trim());
-                psLocationFolderBox.Text = lsExportSpecificEdit.LPresetLocationRead(pMode);
-            }
-
-            psLocationModeShown = pMode;
+            psLocationFolderBox.Text = lsEncoder.LSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
         }
 
-        bool pFolder = !string.Equals(pMode, "Same as source", StringComparison.Ordinal);
+        bool pFolder = LSEncoder.LSEncoderFolderCheck(pMode);
 
         if (psLocationFolderRow is not null)
         {
@@ -94,34 +89,19 @@ internal sealed partial class PSEncoder
 
         if (psLocationBrowse is not null)
         {
-            psLocationBrowse.Visibility = string.Equals(pMode, "Custom location", StringComparison.Ordinal)
+            psLocationBrowse.Visibility = LSEncoder.LSEncoderCustomCheck(pMode)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
 
         if (psLocationFolderLabel is not null)
         {
-            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(PSLocationFolderRead(pMode));
+            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderFolderResolve(pMode));
         }
 
         if (psLocationStatus is not null)
         {
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead(PSLocationStatusRead(pMode));
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderStatusResolve(pMode));
         }
     }
-
-    private static string PSLocationFolderRead(string pMode) => pMode switch
-    {
-        "Sibling" => "Encoder.Location.Sibling",
-        "Custom location" => "Encoder.Location.Custom",
-        _ => "Encoder.Location.Subfolder"
-    };
-
-    private static string PSLocationStatusRead(string pMode) => pMode switch
-    {
-        "Subfolder" => "Encoder.Location.SubfolderStatus",
-        "Sibling" => "Encoder.Location.SiblingStatus",
-        "Custom location" => "Encoder.Location.CustomStatus",
-        _ => "Encoder.Location.Source"
-    };
 }

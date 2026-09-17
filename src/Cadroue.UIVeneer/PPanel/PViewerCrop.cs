@@ -30,7 +30,7 @@ public sealed partial class PViewer
         if (!pCropActive)
         {
             PCropToolSet(false);
-            pViewerCropDrag = false;
+            pViewerCropPress = false;
             pViewerCropPoint = null;
             pViewerOverlay.ReleaseMouseCapture();
         }
@@ -57,7 +57,7 @@ public sealed partial class PViewer
         LCrop.LCropLockSet(pCropLocked);
         if (pCropLocked)
         {
-            pViewerCropDrag = false;
+            pViewerCropPress = false;
             pViewerCropPoint = null;
             pViewerOverlay.ReleaseMouseCapture();
             pViewerOverlay.Cursor = null;

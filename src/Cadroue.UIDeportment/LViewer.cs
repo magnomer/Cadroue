@@ -142,12 +142,6 @@ public sealed class LViewer
 
     public void LViewerIntentSet(LViewerIntent? lIntent) => lViewerIntent = lIntent;
 
-    public void LViewerSourceSet(string? lSourcePath, LMediaInfo? lMediaInfo)
-    {
-        lViewerSourcePath = lSourcePath;
-        lViewerMediaInfo = lMediaInfo;
-    }
-
     public void LViewerEngineSet(LPreviewEngine lEngine)
     {
         if (lViewerEngine == lEngine)

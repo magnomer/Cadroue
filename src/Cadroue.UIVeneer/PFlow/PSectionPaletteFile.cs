@@ -17,9 +17,6 @@ internal static partial class PSectionPalette
         }
     }
 
-    private static PSectionSwatch? PSectionFileRead(string pFilePath) =>
-        LSectionPalette.LSectionPaletteRead(pFilePath) is { } pFile ? PSectionSwatchResolve(pFile) : null;
-
     private static PSectionSwatch? PSectionSwatchResolve(LSectionPaletteFile pFile)
     {
         var pColors = new List<Color>();

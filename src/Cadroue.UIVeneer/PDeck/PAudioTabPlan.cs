@@ -97,8 +97,7 @@ public sealed partial class PAudioTab
 
     private void PAudioMediaHandle(LCargo pMediaStatus)
     {
-        bool pAudioOwnerFirst = pAudioOwnerPath is null;
-        pAudioOwnerPath = pMediaStatus.LCargoSourcePath;
+        bool pAudioOwnerFirst = pInspector.LInspector.LInspectorOwnerSet(pMediaStatus.LCargoSourcePath);
         PAudioPlanRestore(pMediaStatus.LCargoSourcePath, pAudioOwnerFirst);
         pAudioMonitor.LSMonitorSourceOpen(
             pMediaStatus.LCargoSourcePath,
@@ -146,7 +145,7 @@ public sealed partial class PAudioTab
     private void PAudioPlanSave()
     {
         if (pInspector.LInspector.LInspectorRestoring
-            || pAudioOwnerPath is not { } pSourcePath
+            || pInspector.LInspector.LInspectorOwnerPath is not { } pSourcePath
             || pList.PListLockCheck(pSourcePath))
         {
             return;
@@ -160,11 +159,10 @@ public sealed partial class PAudioTab
 
         if (LAudio.LAudioPlanSave(pSourcePath, pAudioPlan, LLibrarian.LLibrarianAudioSave))
         {
-            pAudioSaveFailure = null;
+            pInspector.LInspector.LInspectorFailureSet(null);
         }
-        else if (!string.Equals(pAudioSaveFailure, pSourcePath, StringComparison.OrdinalIgnoreCase))
+        else if (pInspector.LInspector.LInspectorFailureSet(pSourcePath))
         {
-            pAudioSaveFailure = pSourcePath;
             LTraceLog.LTraceWarningRecord(
                 $"Audio edit not saved for '{System.IO.Path.GetFileName(pSourcePath)}': " +
                     "the sidecar could not be written",

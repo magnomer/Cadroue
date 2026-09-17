@@ -97,17 +97,6 @@ internal static class PRadio
         return pTemplate;
     }
 
-    internal static void PRadioApply(RadioButton pRadioButton)
-    {
-        pRadioButton.Foreground = PRadioTextBrush;
-        pRadioButton.Background = Brushes.White;
-        pRadioButton.BorderBrush = PLineBrush;
-        pRadioButton.Cursor = System.Windows.Input.Cursors.Hand;
-        pRadioButton.FocusVisualStyle = null;
-        pRadioButton.VerticalContentAlignment = VerticalAlignment.Center;
-        pRadioButton.Template = PRadioTemplateBuild();
-    }
-
     private static ControlTemplate PRadioTemplateBuild()
     {
         var pTemplate = new ControlTemplate(typeof(RadioButton));

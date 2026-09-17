@@ -144,8 +144,6 @@ public sealed partial class PList : PPanel
 
     public IReadOnlyList<LDocketEntry> PListUnlockedRead() => pListDocket.LDocketUnlockedRead();
 
-    public string? PListCurrentRead() => LList.LListPathCurrent;
-
     public LDocketEntry? PListItemRead() =>
         LList.LListPathCurrent is { } pListCurrentPath ? pListDocket.LDocketItemFind(pListCurrentPath) : null;
 
@@ -161,7 +159,7 @@ public sealed partial class PList : PPanel
         IReadOnlyList<string> pRequested = pAddPaths as IReadOnlyList<string> ?? pAddPaths.ToArray();
         LTraceLog.LTraceInfoRecord(
             $"List add requested: {pRequested.Count} path(s)",
-            string.Join(", ", pRequested.Select(System.IO.Path.GetFileName)));
+            string.Join(", ", pRequested.Select(pPath => System.IO.Path.GetFileName(pPath))));
         try
         {
             LMediaScanResult pScanResult = await LMedia.LMediaPathScan(pRequested, pListScanSource.Token);

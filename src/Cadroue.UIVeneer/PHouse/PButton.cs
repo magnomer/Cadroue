@@ -28,21 +28,6 @@ public static class PButton
     private static readonly SolidColorBrush PButtonWhiteHover = new(Color.FromRgb(0xF8, 0xFA, 0xFC));
     private static readonly SolidColorBrush PButtonWhitePressed = new(Color.FromRgb(0xF0, 0xF4, 0xFA));
 
-    public static Style PButtonGreyCreate()
-    {
-        var pStyle = PButtonBaseCreate();
-        pStyle.Setters.Add(new Setter(Control.MinHeightProperty, 38.0));
-        pStyle.Setters.Add(new Setter(Control.BackgroundProperty, PButtonGreyFill));
-        pStyle.Setters.Add(new Setter(Control.ForegroundProperty, PButtonTextBrush));
-        pStyle.Setters.Add(new Setter(Control.BorderBrushProperty, PButtonBorderBrush));
-        pStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(1)));
-        pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(0)));
-        pStyle.Setters.Add(new Setter(
-            Control.TemplateProperty,
-            PButtonTemplateCreate(PButtonGreyHover, PButtonGreyPressed)));
-        return pStyle;
-    }
-
     public static Style PButtonSourceCreate()
     {
         var pStyle = PButtonBaseCreate();
@@ -119,11 +104,6 @@ public static class PButton
         pStyle.Setters.Add(new Setter(Control.HeightProperty, 42.0));
         pStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(12, 4, 12, 4)));
         return pStyle;
-    }
-
-    public static Style PButtonLabelCreate()
-    {
-        return PButtonWhiteCreate();
     }
 
     public static Style PButtonIconCreate()

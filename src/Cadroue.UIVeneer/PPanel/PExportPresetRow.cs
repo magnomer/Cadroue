@@ -61,7 +61,7 @@ public sealed partial class PExport
 
             LExport.LExportDragStart(lPresetName);
             pPresetRowDragging = pRowBorder;
-            pPresetRowOpacity = pRowBorder.Opacity;
+            pPresetOpacityOrigin = pRowBorder.Opacity;
             pExportDragOrigin = pEvent.GetPosition(pPresetRowPanel);
             pPresetDragOffset = pEvent.GetPosition(pRowBorder);
             pPresetRowPanel.CaptureMouse();

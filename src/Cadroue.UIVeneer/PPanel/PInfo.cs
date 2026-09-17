@@ -22,7 +22,6 @@ public sealed class PInfo : UserControl
     private static readonly SolidColorBrush PInfoPreviewBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
     private PViewer? pInfoViewer;
     private readonly StackPanel pInfoItemPanel;
-    private bool? pInfoFfmpegReady;
     private LCargo? pInfoLastStatus;
 
     public PInfo()
@@ -69,7 +68,6 @@ public sealed class PInfo : UserControl
     {
         Dispatcher.BeginInvoke(() =>
         {
-            pInfoFfmpegReady = ready;
             if (pInfoLastStatus is LCargo pStatus && string.IsNullOrEmpty(pStatus.LCargoSourcePath))
                 PInfoMediaHandle(pStatus);
         });
@@ -93,9 +91,9 @@ public sealed class PInfo : UserControl
         {
             PInfoStatusAdd(
                 LLocalization.LLocalizationTextRead(
-                    pInfoFfmpegReady == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"),
+                    LMediaProbe.LMediaAvailabilityCurrent == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"),
                 PInfoMutedBrush);
-            if (pInfoFfmpegReady is null)
+            if (LMediaProbe.LMediaAvailabilityCurrent is null)
                 LMediaProbe.LMediaAvailabilityDefer();
             return;
         }

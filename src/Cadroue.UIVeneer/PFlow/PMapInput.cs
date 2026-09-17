@@ -58,8 +58,8 @@ public sealed partial class PMap
         Rect moveHandleRect = PMapMoveResolve(bodyRect, Math.Min(PMapHandleWidth, bodyRect.Width), actualWidth);
         Point mousePoint = e.GetPosition(this);
 
-        pMapDragX = mouseX;
-        pMapPreviousX = mouseX;
+        pMapDragOrigin = mouseX;
+        pMapPreviousPoint = mouseX;
         if (leftHandleRect.Contains(mousePoint))
         {
             pMapDragMode = PMapDragMode.PMapResizeOrigin;
@@ -101,7 +101,7 @@ public sealed partial class PMap
 
         double mouseX = mousePoint.X;
         double actualWidth = ActualWidth;
-        double dragDeltaRatio = (mouseX - pMapDragX) / actualWidth;
+        double dragDeltaRatio = (mouseX - pMapDragOrigin) / actualWidth;
         TimeSpan dragDeltaTime = lSpool.LSpoolTimeResolve(dragDeltaRatio);
 
         switch (pMapDragMode)
@@ -117,9 +117,9 @@ public sealed partial class PMap
                 InvalidateVisual();
                 break;
             case PMapDragMode.PMapDragBody:
-                double moveDeltaRatio = (mouseX - pMapPreviousX) / actualWidth;
+                double moveDeltaRatio = (mouseX - pMapPreviousPoint) / actualWidth;
                 lSpool.LSpoolMove(lSpool.LSpoolTimeResolve(moveDeltaRatio));
-                pMapPreviousX = mouseX;
+                pMapPreviousPoint = mouseX;
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;

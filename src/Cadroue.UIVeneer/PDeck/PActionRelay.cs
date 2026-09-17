@@ -18,9 +18,6 @@ public sealed partial class PAction
         PActionFaceUpdate();
     }
 
-    internal void PActionPlanApply(Guid pActionRelayTarget) =>
-        PActionRelayTarget = pActionRelayTarget;
-
     private Button PActionRelayBuild()
     {
         var pChevron = new System.Windows.Shapes.Path

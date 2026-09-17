@@ -1,6 +1,8 @@
 using System;
 using FlyleafLib.MediaPlayer;
 
+using Cadroue.UIDeportment;
+
 namespace Cadroue.UIVeneer.PPanel;
 
 internal sealed class PPlayer
@@ -11,9 +13,9 @@ internal sealed class PPlayer
 
     public Player? PPlayerFlyleafPlayer => (pPlayerActive as PPlayerFlyleaf)?.PPlayerFlyleafPlayer;
 
-    public void PPlayerFlyleafSet(Player player)
+    public void PPlayerFlyleafSet(Player player, LPlayer? lPlayer = null)
     {
-        PPlayerEngineSet(new PPlayerFlyleaf(player));
+        PPlayerEngineSet(new PPlayerFlyleaf(player, lPlayer));
     }
 
     public void PPlayerMpvSet(nint hostHandle)
@@ -35,8 +37,6 @@ internal sealed class PPlayer
     public void PPlayerOpen(string sourcePath) => pPlayerActive?.PPlayerOpen(sourcePath);
 
     public void PPlayerSeek(TimeSpan playbackPosition) => pPlayerActive?.PPlayerSeek(playbackPosition);
-
-    public void PPlayerEndSet(TimeSpan? videoEnd) => (pPlayerActive as PPlayerFlyleaf)?.PPlayerEndSet(videoEnd);
 
     public void PPlayerStop() => pPlayerActive?.PPlayerStop();
 

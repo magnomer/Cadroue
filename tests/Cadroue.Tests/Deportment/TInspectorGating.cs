@@ -79,4 +79,25 @@ public sealed class TInspectorGating
         TInterface.TWhitebalanceToolSet(whitebalance, true, Cadroue.Application.LNeutralTarget.LNeutralTargetGrey);
         Assert.False(TInterface.TWhitebalanceToolRead(whitebalance));
     }
+
+    [Fact]
+    public void Owner_FirstPath_ReadsFirst()
+    {
+        LInspector inspector = TInterface.TInspectorCreate();
+
+        Assert.True(TInterface.TInspectorOwnerSet(inspector, "a.mp4"));
+        Assert.False(TInterface.TInspectorOwnerSet(inspector, "b.mp4"));
+        Assert.Equal("b.mp4", inspector.LInspectorOwnerPath);
+    }
+
+    [Fact]
+    public void Failure_SamePath_RecordsOnce()
+    {
+        LInspector inspector = TInterface.TInspectorCreate();
+
+        Assert.True(TInterface.TInspectorFailureSet(inspector, "a.mp4"));
+        Assert.False(TInterface.TInspectorFailureSet(inspector, "A.MP4"));
+        Assert.False(TInterface.TInspectorFailureSet(inspector, null));
+        Assert.True(TInterface.TInspectorFailureSet(inspector, "a.mp4"));
+    }
 }

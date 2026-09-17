@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Preset")]
 public sealed class TPresetNative
 {
     [Fact]

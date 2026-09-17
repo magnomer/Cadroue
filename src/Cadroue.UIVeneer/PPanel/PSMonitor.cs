@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PSCasement;
@@ -34,7 +35,6 @@ internal sealed partial class PSMonitor : Window
     private static readonly Brush psMonitorGridFill = new SolidColorBrush(Color.FromRgb(0xE4, 0xE9, 0xF0));
     private static readonly Brush psMonitorAxisFill = new SolidColorBrush(Color.FromRgb(0x8A, 0x95, 0xA6));
 
-    private readonly string psMonitorTitle;
     private readonly PSGrabber psMonitorGrabber;
     private readonly LSMonitor psMonitorSource;
     private readonly PFlowControl psMonitorFlow;
@@ -52,12 +52,7 @@ internal sealed partial class PSMonitor : Window
     private LSMonitorEstimate psMonitorEstimate;
     private Image psMonitorPlayImage = null!;
     private Button psMonitorPlayButton = null!;
-    private bool psMonitorPlaying;
     private ScrollBar psMonitorScrollbar = null!;
-    private TimeSpan psMonitorCursor;
-    private bool psMonitorRadioProgram;
-    private double psMonitorScale = 1;
-    private double psMonitorOffset;
 
     internal static PSMonitor PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlowControl pFlow, PViewer pViewer)
     {
@@ -73,9 +68,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource = pSource;
         psMonitorFlow = pFlow;
         psMonitorViewer = pViewer;
-        psMonitorCursor = pFlow.PFlowCursorRead();
-        psMonitorTitle = LLocalization.LLocalizationTextRead("NormalizePreview.Window.Title");
-        Title = psMonitorTitle;
+        Title = LLocalization.LLocalizationTextRead("NormalizePreview.Window.Title");
         Owner = pOwner?.Owner ?? pOwner;
         ShowInTaskbar = true;
         Width = PSMonitorWidthDefault;
@@ -94,18 +87,23 @@ internal sealed partial class PSMonitor : Window
         psMonitorGrabber = new PSGrabber(this);
         psMonitorGrabber.PSGrabberAttach();
         psMonitorSource.LSMonitorReady += PSMonitorReadyHandle;
+        psMonitorSource.LSMonitorCursorChange += PSMonitorCursorApply;
+        psMonitorSource.LSMonitorPlayingChange += PSMonitorPlayingApply;
+        psMonitorSource.LSMonitorZoomChange += PSMonitorZoomApply;
         psMonitorViewer.PViewerClockTick += PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange += PSMonitorBypassHandle;
         psMonitorViewer.PViewerPlayingChange += PSMonitorPlayingHandle;
         psMonitorFlow.PFlowCursorChange += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
         PSMonitorBypassHandle(psMonitorViewer.PViewerBypassRead());
-        PSMonitorPlayingApply(psMonitorViewer.PViewerPlayingRead());
+        psMonitorSource.LSMonitorCursorSet(pFlow.PFlowCursorRead());
+        psMonitorSource.LSMonitorPlayingSet(psMonitorViewer.PViewerPlayingRead());
         psMonitorSource.LSMonitorUpdate();
+        PSMonitorZoomApply();
     }
 
     private UIElement PSMonitorBuild() =>
-        PSDialog.PSDialogBuild(this, psMonitorTitle, PSMonitorRootBuild());
+        PSDialog.PSDialogBuild(this, Title, PSMonitorRootBuild());
 
     private DockPanel PSMonitorRootBuild()
     {
@@ -255,6 +253,9 @@ internal sealed partial class PSMonitor : Window
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
     {
         psMonitorSource.LSMonitorReady -= PSMonitorReadyHandle;
+        psMonitorSource.LSMonitorCursorChange -= PSMonitorCursorApply;
+        psMonitorSource.LSMonitorPlayingChange -= PSMonitorPlayingApply;
+        psMonitorSource.LSMonitorZoomChange -= PSMonitorZoomApply;
         psMonitorViewer.PViewerClockTick -= PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange -= PSMonitorBypassHandle;
         psMonitorViewer.PViewerPlayingChange -= PSMonitorPlayingHandle;

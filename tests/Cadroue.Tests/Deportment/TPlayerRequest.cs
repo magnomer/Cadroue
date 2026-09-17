@@ -77,4 +77,14 @@ public sealed class TPlayerRequest
         Assert.Equal(string.Empty, player.LPlayerFilterApplied);
         Assert.Null(player.LPlayerAudioApplied);
     }
+
+    [Fact]
+    public void End_Set_ReadsBack()
+    {
+        LPlayer player = TInterface.TPlayerCreate();
+
+        Assert.Null(player.LPlayerVideoEnd);
+        TInterface.TPlayerEndSet(player, TimeSpan.FromSeconds(3));
+        Assert.Equal(TimeSpan.FromSeconds(3), player.LPlayerVideoEnd);
+    }
 }

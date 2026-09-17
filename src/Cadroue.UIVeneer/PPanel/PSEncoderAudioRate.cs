@@ -16,18 +16,13 @@ internal sealed partial class PSEncoder
 {
     private void PSAudioRowsRebuild()
     {
-        if (psAudioRowsBusy)
-        {
-            return;
-        }
-
         psAudioRowsPanel.Children.Clear();
         psAudioQualityBox = null;
         psAudioSpeedCombo = null;
         psAudioExtraCombos.Clear();
 
-        LCapabilityCodec pCodec = PSAudioCapabilityRead();
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(PSComboTextRead(psAudioRateCombo));
+        LCapabilityCodec pCodec = lsEncoder.LSEncoderAudioCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.LSEncoderAudioRate);
         bool pModeStored = string.Equals(
             pMode.LCapabilityModeLabel,
             lsExportSpecificEdit.LPresetAudio.LPresetRateControl,

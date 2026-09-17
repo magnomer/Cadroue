@@ -10,8 +10,8 @@ public sealed partial class PFlow
     private const double PFlowHeightMaximum = 520;
 
     private Border? pDividerThumb;
-    private double pDividerStartY;
-    private double pDividerStartHeight;
+    private double pDividerYOrigin;
+    private double pDividerHeightOrigin;
     private bool pDividerState;
 
     private void PDividerAttach()
@@ -37,8 +37,8 @@ public sealed partial class PFlow
         Window? ownerWindow = Window.GetWindow(this);
         if (pDividerThumb is null || ownerWindow is null) return;
         pDividerState = true;
-        pDividerStartY = e.GetPosition(ownerWindow).Y;
-        pDividerStartHeight = ActualHeight;
+        pDividerYOrigin = e.GetPosition(ownerWindow).Y;
+        pDividerHeightOrigin = ActualHeight;
         pDividerThumb.CaptureMouse();
         e.Handled = true;
     }
@@ -49,7 +49,7 @@ public sealed partial class PFlow
         Window? ownerWindow = Window.GetWindow(this);
         if (ownerWindow is null) { PDividerClear(); return; }
         Height = Math.Clamp(
-            pDividerStartHeight + pDividerStartY - e.GetPosition(ownerWindow).Y,
+            pDividerHeightOrigin + pDividerYOrigin - e.GetPosition(ownerWindow).Y,
             PFlowHeightMinimum,
             PFlowHeightMaximum);
         e.Handled = true;

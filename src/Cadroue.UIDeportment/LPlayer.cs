@@ -6,6 +6,7 @@ public sealed class LPlayer
     private volatile bool lPlayerRendererPending;
     private string lPlayerFilterApplied = string.Empty;
     private string? lPlayerAudioApplied;
+    private TimeSpan? lPlayerVideoEnd;
 
     public bool LPlayerAccurateActive => lPlayerAccurateActive;
 
@@ -14,6 +15,10 @@ public sealed class LPlayer
     public string LPlayerFilterApplied => lPlayerFilterApplied;
 
     public string? LPlayerAudioApplied => lPlayerAudioApplied;
+
+    public TimeSpan? LPlayerVideoEnd => lPlayerVideoEnd;
+
+    public void LPlayerEndSet(TimeSpan? lVideoEnd) => lPlayerVideoEnd = lVideoEnd;
 
     public Task LPlayerOpenStart(string lSourcePath, Action<string> lOpen) =>
         Task.Run(() => lOpen(lSourcePath));

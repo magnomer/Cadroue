@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PSCasement;
 
@@ -11,12 +11,6 @@ using static Cadroue.UIVeneer.PSCasement.PSFooter;
 using static Cadroue.UIVeneer.PSCasement.PSPlate;
 
 namespace Cadroue.UIVeneer;
-
-internal sealed record PSVerdictRow(
-    string PSVerdictFamily,
-    string PSVerdictEncoder,
-    bool PSVerdictSuccess,
-    string PSVerdictMessage);
 
 internal sealed class PSVerdict : Window
 {
@@ -41,23 +35,21 @@ internal sealed class PSVerdict : Window
 
     private static PSVerdict? psVerdictCurrent;
 
-    private readonly IReadOnlyList<PSVerdictRow> psVerdictRows;
-    private readonly string psVerdictTitle;
+    private readonly LSVerdict lsVerdict;
     private readonly PSGrabber psVerdictGrabber;
 
-    internal static void PSVerdictShow(Window pOwner, string pTitle, IReadOnlyList<PSVerdictRow> pRows)
+    internal static void PSVerdictShow(Window pOwner, LSVerdict pVerdict)
     {
         psVerdictCurrent?.Close();
-        var psVerdict = new PSVerdict(pOwner, pTitle, pRows);
+        var psVerdict = new PSVerdict(pOwner, pVerdict);
         psVerdictCurrent = psVerdict;
         psVerdict.Show();
     }
 
-    private PSVerdict(Window pOwner, string pTitle, IReadOnlyList<PSVerdictRow> pRows)
+    private PSVerdict(Window pOwner, LSVerdict pVerdict)
     {
-        psVerdictRows = pRows;
-        psVerdictTitle = pTitle;
-        Title = pTitle;
+        lsVerdict = pVerdict;
+        Title = pVerdict.LSVerdictTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;
         Width = PSVerdictWidthDefault;
@@ -75,7 +67,7 @@ internal sealed class PSVerdict : Window
     }
 
     private UIElement PSVerdictBuild() =>
-        PSDialog.PSDialogBuild(this, psVerdictTitle, PSVerdictRootBuild());
+        PSDialog.PSDialogBuild(this, lsVerdict.LSVerdictTitle, PSVerdictRootBuild());
 
     private DockPanel PSVerdictRootBuild()
     {
@@ -107,7 +99,7 @@ internal sealed class PSVerdict : Window
 
     private UIElement PSVerdictTableBuild()
     {
-        if (psVerdictRows.Count == 0)
+        if (lsVerdict.LSVerdictRows.Count == 0)
         {
             return new TextBlock
             {
@@ -119,7 +111,7 @@ internal sealed class PSVerdict : Window
 
         var pTable = new StackPanel();
         pTable.Children.Add(PSVerdictHeaderBuild());
-        foreach (PSVerdictRow pEntry in psVerdictRows)
+        foreach (LSVerdictRow pEntry in lsVerdict.LSVerdictRows)
         {
             pTable.Children.Add(PSVerdictRowBuild(pEntry));
         }
@@ -160,18 +152,18 @@ internal sealed class PSVerdict : Window
         pGrid.Children.Add(pHeader);
     }
 
-    private UIElement PSVerdictRowBuild(PSVerdictRow pEntry)
+    private UIElement PSVerdictRowBuild(LSVerdictRow pEntry)
     {
         Grid pRowGrid = PSVerdictGridBuild();
         pRowGrid.MinHeight = PSFieldChipHeight;
         pRowGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
-        PSVerdictCellAdd(pRowGrid, 0, PSVerdictTextBuild(pEntry.PSVerdictFamily, PSFieldText));
-        PSVerdictCellAdd(pRowGrid, 1, PSVerdictTextBuild(pEntry.PSVerdictEncoder, PSFieldMuted));
-        PSVerdictCellAdd(pRowGrid, 2, PSVerdictBadgeBuild(pEntry.PSVerdictSuccess));
+        PSVerdictCellAdd(pRowGrid, 0, PSVerdictTextBuild(pEntry.LSVerdictFamily, PSFieldText));
+        PSVerdictCellAdd(pRowGrid, 1, PSVerdictTextBuild(pEntry.LSVerdictEncoder, PSFieldMuted));
+        PSVerdictCellAdd(pRowGrid, 2, PSVerdictBadgeBuild(pEntry.LSVerdictSuccess));
 
         var pRow = new StackPanel();
         pRow.Children.Add(pRowGrid);
-        if (!PSVerdictDetailCheck(pEntry))
+        if (!LSVerdict.LSVerdictDetailCheck(pEntry))
         {
             return pRow;
         }
@@ -185,7 +177,7 @@ internal sealed class PSVerdict : Window
             Visibility = Visibility.Collapsed,
             Child = new TextBlock
             {
-                Text = pEntry.PSVerdictMessage,
+                Text = pEntry.LSVerdictMessage,
                 Foreground = PSFieldMuted,
                 FontFamily = PSVerdictDetailFont,
                 TextWrapping = TextWrapping.Wrap
@@ -204,17 +196,6 @@ internal sealed class PSVerdict : Window
         PSVerdictCellAdd(pRowGrid, 3, pChip);
         pRow.Children.Add(pDetail);
         return pRow;
-    }
-
-    private static bool PSVerdictDetailCheck(PSVerdictRow pEntry)
-    {
-        string pMessage = pEntry.PSVerdictMessage.Trim();
-        if (pMessage.Length == 0)
-        {
-            return false;
-        }
-
-        return !(pEntry.PSVerdictSuccess && string.Equals(pMessage, "exit 0", StringComparison.OrdinalIgnoreCase));
     }
 
     private static void PSVerdictCellAdd(Grid pGrid, int pColumn, UIElement pCell)

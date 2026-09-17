@@ -5,6 +5,7 @@ using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 using Cadroue.Media;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PDeck;
 
@@ -24,8 +25,6 @@ public sealed partial class PAudioTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly LSMonitor pAudioMonitor = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
-    private string? pAudioOwnerPath;
-    private string? pAudioSaveFailure;
     private System.Windows.Threading.DispatcherTimer? pAudioViewerTimer;
 
     public PAudioTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)

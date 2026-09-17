@@ -98,8 +98,8 @@ public sealed partial class PMap : FrameworkElement
     private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
     private PMapDragMode pMapDragMode;
-    private double pMapDragX;
-    private double pMapPreviousX;
+    private double pMapDragOrigin;
+    private double pMapPreviousPoint;
     private int pMapGlyphCount;
     private readonly Dictionary<string, FormattedText> pMapBadgeCache = new(StringComparer.Ordinal);
     private double pMapBadgeDpi = -1;

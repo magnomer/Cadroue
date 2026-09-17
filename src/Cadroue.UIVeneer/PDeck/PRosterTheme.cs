@@ -16,8 +16,6 @@ internal static class PRosterTheme
     public const double PRosterDisabledOpacity = 0.35;
 
     public static readonly Thickness PRosterHeaderPadding = new(12, 10, 12, 10);
-    public static readonly Thickness PRosterRowPadding = new(12, 7, 12, 7);
-
     public static readonly Brush PRosterLineBrush = PRosterBrushCreate(0xD9, 0xDE, 0xE7);
     public static readonly Brush PRosterTextBrush = PRosterBrushCreate(0x1D, 0x2A, 0x3D);
     public static readonly Brush PRosterMutedBrush = PRosterBrushCreate(0x62, 0x6F, 0x83);

@@ -14,6 +14,9 @@ internal static partial class TInterface
     internal static void TInspectorStepSet(LInspector inspector, string? step) => inspector.LInspectorStepSet(step);
     internal static void TInspectorMinimizedSet(LInspector inspector, bool minimized) =>
         inspector.LInspectorMinimizedSet(minimized);
+    internal static bool TInspectorOwnerSet(LInspector inspector, string path) => inspector.LInspectorOwnerSet(path);
+    internal static bool TInspectorFailureSet(LInspector inspector, string? path) =>
+        inspector.LInspectorFailureSet(path);
 
     internal static LWorkGammaSettings TGammaSettingsCreate(
         double global, double red, double green, double blue, double highlight) =>
@@ -187,6 +190,7 @@ internal static partial class TInterface
         player.LPlayerOpenStart(path, open);
     internal static void TPlayerFilterSet(LPlayer player, string filter) => player.LPlayerFilterSet(filter);
     internal static void TPlayerAppliedReset(LPlayer player) => player.LPlayerAppliedReset();
+    internal static void TPlayerEndSet(LPlayer player, TimeSpan? end) => player.LPlayerEndSet(end);
 
     internal static LCrop TCropCreate() => new();
     internal static void TCropGripSet(LCrop crop, int edgeX, int edgeY) => crop.LCropGripSet(edgeX, edgeY);
@@ -243,7 +247,13 @@ internal static partial class TInterface
     internal static LSceneFunnelRule TFunnelRecordCreate(LFunnel funnel, LFunnelRule rule) =>
         funnel.LFunnelRecordCreate(rule);
     internal static LSceneFunnelRule TFunnelRecordCreate(int type, bool remainder, int target, string regex = "") =>
-        new() { LSceneFunnelType = type, LSceneFunnelRemainder = remainder, LSceneFunnelTarget = target, LSceneFunnelRegex = regex };
+        new()
+        {
+            LSceneFunnelType = type,
+            LSceneFunnelRemainder = remainder,
+            LSceneFunnelTarget = target,
+            LSceneFunnelRegex = regex,
+        };
     internal static bool TFunnelRemainderCheck(LFunnel funnel) => funnel.LFunnelRemainderCheck();
 
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name);
@@ -284,7 +294,8 @@ internal static partial class TInterface
     internal static void TClinicActiveSet(LClinic clinic, bool active) => clinic.LClinicActiveSet(active);
     internal static void TClinicSalvageSet(LClinic clinic, LWorkFixSalvage salvage) =>
         clinic.LClinicSalvageSet(salvage);
-    internal static LWorkFixSalvage TClinicSalvageCreate(bool active, LSalvageMode mode, LSalvageBasis basis, bool persistent) =>
+    internal static LWorkFixSalvage TClinicSalvageCreate(
+        bool active, LSalvageMode mode, LSalvageBasis basis, bool persistent) =>
         new(active, mode, basis, persistent);
     internal static LWorkFix TClinicPlanRead(LClinic clinic) => clinic.LClinicPlanRead();
     internal static void TClinicPlanApply(LClinic clinic, LWorkFix plan) => clinic.LClinicPlanApply(plan);
