@@ -54,11 +54,13 @@ public sealed partial class PAudioTab
     {
         LWorkAudio pAudioPlan = PAudioProcessingRead();
         pViewer.PViewerAudioSet(
-            pAudioPlan.LWorkAudioSkip ? string.Empty : pAudioPlan.LWorkAudioFormat(pAudioOwnerRate));
+            pAudioPlan.LWorkAudioSkip ? string.Empty : pAudioPlan.LWorkAudioFormat(PAudioRateRead()));
     }
 
     private void PAudioMonitorShow() =>
         PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), pAudioMonitor, pFlow, pViewer);
+
+    private int PAudioRateRead() => pViewer.LViewer.LViewerMediaInfo?.LMediaSampleRate ?? 0;
 
     private LWorkAudio PAudioProcessingRead()
     {

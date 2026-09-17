@@ -6,146 +6,47 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PClinic
 {
-    public void PClinicSourceSet(string? pClinicSourcePath)
-    {
-        pClinicSource = string.IsNullOrWhiteSpace(pClinicSourcePath) ? null : pClinicSourcePath;
-        PClinicResultApply();
-    }
+    public void PClinicSourceSet(string? pClinicSourcePath) => LClinic.LClinicSourceSet(pClinicSourcePath);
 
-    public void PClinicStepShow(string? pStepName)
-    {
-        pClinicSalvageShown = pStepName == "Salvage";
-        pClinicSalvage.PClinicSalvageShow(pClinicSalvageShown);
-        if (pClinicSalvageShown)
-        {
-            pClinicSalvage.PClinicSalvageUpdate(
-                pClinicStates.Values.Any(pState => pState.PClinicStateActive));
-        }
-        pClinicApplyBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
-        pClinicPersistentBox.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
-        pClinicDiagnosisButton.Visibility = pClinicSalvageShown ? Visibility.Collapsed : Visibility.Visible;
-        pClinicSalvage.PClinicSalvageActive.Visibility = pClinicSalvageShown
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        pClinicSalvage.PClinicSalvagePersistent.Visibility = pClinicSalvageShown
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        if (pClinicSalvageShown)
-        {
-            pClinicCurrentKind = null;
-            pClinicToggleRow.IsEnabled = true;
-            pClinicToggleRow.Visibility = Visibility.Visible;
-            pClinicEmptyNotice.Visibility = Visibility.Collapsed;
-            pClinicItemSimple.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Simple");
-            pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead("Clinic.Step.Salvage.Technical");
-            pClinicItemBody.Visibility = Visibility.Visible;
-            pClinicResultBody.Visibility = Visibility.Collapsed;
-            PClinicProgressSet(false);
-            pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead("Processing.Step.Salvage");
-            return;
-        }
+    public void PClinicStepShow(string? pStepName) => LClinic.LClinicStepSet(pStepName);
 
+    public LWorkFix PClinicPlanRead() => LClinic.LClinicPlanRead();
+
+    public void PClinicPlanApply(LWorkFix pClinicPlan) => LClinic.LClinicPlanApply(pClinicPlan);
+
+    private void PClinicUpdate()
+    {
+        bool pSalvage = LClinic.LClinicSalvageShown;
+        Visibility pSalvageVisible = pSalvage ? Visibility.Visible : Visibility.Collapsed;
+        Visibility pStepVisible = pSalvage ? Visibility.Collapsed : Visibility.Visible;
+        pClinicSalvage.PClinicSalvageUpdate();
+        pClinicApplyBox.Visibility = pStepVisible;
+        pClinicPersistentBox.Visibility = pStepVisible;
+        pClinicDiagnosisButton.Visibility = pStepVisible;
+        pClinicSalvage.PClinicSalvageActive.Visibility = pSalvageVisible;
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = pSalvageVisible;
         pClinicToggleRow.Visibility = Visibility.Visible;
-        LFlawKind? pKind = pClinicKinds
-            .Where(pEntry => pEntry.PClinicKindName == pStepName)
-            .Select(pEntry => (LFlawKind?)pEntry.PClinicKindValue)
-            .FirstOrDefault();
-        pClinicCurrentKind = pKind;
-        bool pKnown = pKind is not null;
+
+        string? pStepName = LClinic.LClinicStep;
+        bool pKnown = pSalvage || LClinic.LClinicKind is not null;
         pClinicEmptyNotice.Visibility = pKnown ? Visibility.Collapsed : Visibility.Visible;
         pClinicItemBody.Visibility = pKnown ? Visibility.Visible : Visibility.Collapsed;
         pClinicToggleRow.IsEnabled = pKnown;
-        pClinicPersistentBox.IsEnabled = pKnown;
+        pClinicPersistentBox.IsEnabled = pKnown && !pSalvage;
 
-        pClinicSuppress = true;
-        if (pKind is { } pShownKind && pClinicStates.TryGetValue(pShownKind, out PClinicState pState))
+        LWorkFixStep lStep = LClinic.LClinicStepRead();
+        bool pShown = LClinic.LClinicKind is not null;
+        pClinicApplyBox.IsChecked = pShown && lStep.LWorkFixRepair;
+        pClinicPersistentBox.IsChecked = pShown && lStep.LWorkFixPersistent;
+
+        PClinicResultApply(pShown);
+        pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead(pKnown
+            ? $"Processing.Step.{pStepName}"
+            : "Clinic.Header.Title");
+        if (pKnown)
         {
-            pClinicApplyBox.IsChecked = pState.PClinicStateActive;
-            pClinicPersistentBox.IsChecked = pState.PClinicStatePersistent;
+            pClinicItemSimple.Text = LLocalization.LLocalizationTextRead($"Clinic.Step.{pStepName}.Simple");
+            pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead($"Clinic.Step.{pStepName}.Technical");
         }
-        else
-        {
-            pClinicApplyBox.IsChecked = false;
-            pClinicPersistentBox.IsChecked = false;
-        }
-
-        pClinicSuppress = false;
-        PClinicResultApply();
-        if (!pKnown)
-        {
-            pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead("Clinic.Header.Title");
-            return;
-        }
-
-        pClinicTitleLabel.Text = LLocalization.LLocalizationTextRead($"Processing.Step.{pStepName}");
-        pClinicItemSimple.Text = LLocalization.LLocalizationTextRead($"Clinic.Step.{pStepName}.Simple");
-        pClinicItemTechnical.Text = LLocalization.LLocalizationTextRead($"Clinic.Step.{pStepName}.Technical");
-    }
-
-    public LWorkFix PClinicPlanRead()
-    {
-        var pSteps = new List<LWorkFixStep>();
-        foreach ((LFlawKind pKind, string _) in pClinicKinds)
-        {
-            (bool pApply, bool pPersistent) =
-                pClinicStates.TryGetValue(pKind, out PClinicState pState)
-                    ? pState
-                    : new PClinicState(false, false);
-            pSteps.Add(new LWorkFixStep(pKind, pApply, pPersistent));
-        }
-
-        return new LWorkFix(pSteps) { LWorkFixSalvage = pClinicSalvage.PClinicSalvageRead() };
-    }
-
-    public void PClinicPlanApply(LWorkFix pClinicPlan)
-    {
-        pClinicSalvage.PClinicSalvageApply(pClinicPlan.LWorkFixSalvage);
-        foreach (LWorkFixStep pStep in pClinicPlan.LWorkFixSteps)
-        {
-            pClinicStates[pStep.LWorkFixKind] =
-                new PClinicState(pStep.LWorkFixRepair, pStep.LWorkFixPersistent);
-        }
-
-        if (pClinicSalvageShown)
-        {
-            pClinicSalvage.PClinicSalvageUpdate(
-                pClinicStates.Values.Any(pState => pState.PClinicStateActive));
-        }
-
-        if (pClinicCurrentKind is { } pKind
-            && pClinicStates.TryGetValue(pKind, out PClinicState pCurrent))
-        {
-            pClinicSuppress = true;
-            pClinicApplyBox.IsChecked = pCurrent.PClinicStateActive;
-            pClinicPersistentBox.IsChecked = pCurrent.PClinicStatePersistent;
-            pClinicSuppress = false;
-            PClinicResultApply();
-        }
-    }
-
-    private void PClinicToggleHandle()
-    {
-        if (pClinicSuppress || pClinicCurrentKind is not { } pKind)
-        {
-            return;
-        }
-
-        pClinicStates[pKind] = new PClinicState(
-            pClinicApplyBox.IsChecked == true,
-            pClinicPersistentBox.IsChecked == true);
-        PClinicPlanChange?.Invoke();
-    }
-
-    private void PClinicPersistentHandle()
-    {
-        if (pClinicSuppress || pClinicCurrentKind is not { } pKind)
-        {
-            return;
-        }
-
-        pClinicStates[pKind] = new PClinicState(
-            pClinicApplyBox.IsChecked == true,
-            pClinicPersistentBox.IsChecked == true);
-        PClinicPlanChange?.Invoke();
     }
 }

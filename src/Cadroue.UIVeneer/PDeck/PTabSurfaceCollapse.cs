@@ -65,7 +65,7 @@ public abstract partial class PTabSurface : UserControl
             case PProcessing pProcessingPanel: pProcessingPanel.PProcessingMinimizeChange += pTabCollapseApply; break;
             case PInspector pInspectorPanel: pInspectorPanel.PInspectorMinimizeChange += pTabCollapseApply; break;
             case PClinic pClinicPanel: pClinicPanel.PClinicMinimizeChange += pTabCollapseApply; break;
-            case PSection pSectionPanel: pSectionPanel.PSectionMinimizeChange += pTabCollapseApply; break;
+            case PSection pSectionPanel: pSectionPanel.LSection.LSectionMinimizeChange += pTabCollapseApply; break;
         }
     }
 }

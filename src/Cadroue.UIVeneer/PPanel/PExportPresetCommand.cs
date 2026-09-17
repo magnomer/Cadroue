@@ -10,16 +10,6 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PExport
 {
-    private void PExportPresetSync()
-    {
-        if (pExportPresetBusy || pPresetNameEditing is not null || pPresetDragActive)
-        {
-            return;
-        }
-
-        PExportSummaryUpdate();
-    }
-
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
         string lPresetName = LPreset.LPresetNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
@@ -42,7 +32,7 @@ public sealed partial class PExport
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
-        if (pPresetNameSelected is not string lPresetName)
+        if (LExport.LExportSelected is not string lPresetName)
         {
             return;
         }
@@ -62,7 +52,7 @@ public sealed partial class PExport
     {
         LPresetRecord lPresetValue = lPresetOwner.LPresetSelectionValue;
         string lPresetName = string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
-            ? pPresetNameSelected ?? string.Empty
+            ? LExport.LExportSelected ?? string.Empty
             : lPresetValue.LPresetName;
 
         string pFileName = LPreset.LPresetFileFormat(lPresetName);
@@ -156,7 +146,7 @@ public sealed partial class PExport
     private void PExportModificationApply(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (pPresetNameSelected is not string lPresetName)
+        if (LExport.LExportSelected is not string lPresetName)
         {
             return;
         }
@@ -172,7 +162,7 @@ public sealed partial class PExport
     private void PExportModificationRestore(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (pPresetNameSelected is not string)
+        if (LExport.LExportSelected is not string)
         {
             return;
         }
@@ -182,15 +172,13 @@ public sealed partial class PExport
 
     private void PExportNameCommit(string lOldPresetName, string lNewPresetName)
     {
-        if (!string.Equals(pPresetNameEditing, lOldPresetName, StringComparison.OrdinalIgnoreCase))
+        if (!LExport.LExportEditingCheck(lOldPresetName))
         {
             return;
         }
 
-        pPresetNameEditing = null;
         pExportBoxCurrent = null;
-        lPresetOwner.LPresetSelectionCommit(lOldPresetName, lNewPresetName);
-        PExportPresetSync();
+        LExport.LExportNameCommit(lOldPresetName, lNewPresetName);
     }
 
     private void PExportDialogShow(object sender, RoutedEventArgs e)
@@ -200,7 +188,7 @@ public sealed partial class PExport
         var psEncoder = new PSEncoder(
             pWorking,
             () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate(),
-            pExportSmartAllowed)
+            LExport.LExportSmartAllowed)
         {
             Owner = Window.GetWindow(pButton)
         };

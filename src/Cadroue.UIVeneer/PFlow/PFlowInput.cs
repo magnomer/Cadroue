@@ -7,14 +7,12 @@ namespace Cadroue.UIVeneer.PFlow;
 
 public sealed partial class PFlow
 {
-    private bool pFlowDragPaused;
-
     public event Action<bool>? PFlowDragChange;
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         base.OnMouseWheel(e);
-        if (!pFlowCommandActive || e.Delta == 0) return;
+        if (!LFlow.LFlowCommandActive || e.Delta == 0) return;
         int pWheelSteps = e.Delta / 120;
         if (pWheelSteps == 0) pWheelSteps = e.Delta > 0 ? 1 : -1;
 
@@ -24,7 +22,7 @@ public sealed partial class PFlow
                 PFlowWheelZoom(pWheelSteps);
                 break;
             case "Volume":
-                PFlowVolumeRaise(pFlowVolumeCurrent + pWheelSteps * PFlowVolumeStep);
+                PFlowVolumeAdjust?.Invoke(pWheelSteps * PFlowVolumeStep);
                 break;
             default:
                 PFlowWheelSeek(pWheelSteps);
@@ -36,32 +34,32 @@ public sealed partial class PFlow
 
     private void PFlowWheelSeek(int pWheelSteps)
     {
-        if (lSpool is null) return;
-        PFlowCursorSeek(PFlowCursorClamp(lCursor + lSpool.LSpoolStepResolve(pWheelSteps)));
+        if (LFlow.LFlowSpool is not { } lSpool) return;
+        PFlowCursorSeek(LFlow.LFlowCursorClamp(LFlow.LFlowCursor + lSpool.LSpoolStepResolve(pWheelSteps)));
     }
 
     private void PFlowWheelZoom(int pWheelSteps)
     {
-        if (lSpool is null) return;
-        lSpool.LSpoolZoom(lCursor, pWheelSteps);
+        if (LFlow.LFlowSpool is not { } lSpool) return;
+        lSpool.LSpoolZoom(LFlow.LFlowCursor, pWheelSteps);
         PFlowSpoolHandle();
     }
 
     internal void PFlowDragSet(bool pFlowDragging)
     {
         PFlowDragChange?.Invoke(pFlowDragging);
-        if (!pFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused) return;
+        if (!LFlow.LFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused) return;
 
         if (pFlowDragging)
         {
-            if (pFlowDragPaused || PFlowPlayingSource?.Invoke() != true) return;
-            pFlowDragPaused = true;
+            if (LFlow.LFlowDragPaused || PFlowPlayingSource?.Invoke() != true) return;
+            LFlow.LFlowPausedSet(true);
             PFlowPauseRaise();
             return;
         }
 
-        if (!pFlowDragPaused) return;
-        pFlowDragPaused = false;
+        if (!LFlow.LFlowDragPaused) return;
+        LFlow.LFlowPausedSet(false);
         PFlowPlayRaise();
     }
 }

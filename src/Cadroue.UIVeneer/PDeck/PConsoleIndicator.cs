@@ -86,12 +86,11 @@ public sealed partial class PConsole
 
     private void PConsoleSpinnerSet(bool pActive)
     {
-        if (pActive == pConsoleSpinning)
+        if (!LConsole.LConsoleSpinSet(pActive))
         {
             return;
         }
 
-        pConsoleSpinning = pActive;
         if (pActive)
         {
             var pSpin = new DoubleAnimation

@@ -65,7 +65,6 @@ public sealed class PFixTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly LCheckup pFixCheckup = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
-    private bool pFixPlanLoading;
 
     public PFixTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -153,7 +152,7 @@ public sealed class PFixTab : PTabSurface
         PTabLockAttach(pList, pProcessing, pClinic, pExport);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);
@@ -231,7 +230,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPlanRestore(string pSourcePath)
     {
-        pFixPlanLoading = true;
+        pClinic.LClinic.LClinicRestoreSet(true);
         try
         {
             LWorkFix? pFixSaved = LFix.LFixPlanRead(pSourcePath, LLibrarian.LLibrarianFixLoad);
@@ -241,7 +240,7 @@ public sealed class PFixTab : PTabSurface
         }
         finally
         {
-            pFixPlanLoading = false;
+            pClinic.LClinic.LClinicRestoreSet(false);
         }
 
         PFixActiveUpdate();
@@ -249,7 +248,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPlanSave()
     {
-        if (pFixPlanLoading
+        if (pClinic.LClinic.LClinicRestoring
             || pViewer.PViewerSourcePath is not { } pSourcePath
             || pList.PListLockCheck(pSourcePath))
         {
@@ -274,7 +273,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPersistentSave()
     {
-        if (pFixPlanLoading)
+        if (pClinic.LClinic.LClinicRestoring)
         {
             return;
         }
@@ -295,7 +294,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixItemsHandle(IReadOnlyList<LDocketEntry> pFixAddedItems)
     {
-        if (pFixPlanLoading)
+        if (pClinic.LClinic.LClinicRestoring)
         {
             return;
         }
@@ -322,7 +321,7 @@ public sealed class PFixTab : PTabSurface
             return;
         }
 
-        pFixPlanLoading = true;
+        pClinic.LClinic.LClinicRestoreSet(true);
         try
         {
             LWorkFix pFixPersistentPlan = LFix.LFixPersistentRead(
@@ -331,7 +330,7 @@ public sealed class PFixTab : PTabSurface
         }
         finally
         {
-            pFixPlanLoading = false;
+            pClinic.LClinic.LClinicRestoreSet(false);
         }
     }
 

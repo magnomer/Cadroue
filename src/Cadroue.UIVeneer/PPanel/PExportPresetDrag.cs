@@ -17,21 +17,15 @@ public sealed partial class PExport
         pPresetDragGhost?.PGhostClear();
         pPresetDragGhost = null;
         pPresetRowDragging = null;
-        pPresetNameDragging = null;
         pExportDragOrigin = null;
-        bool pDragMoved = pPresetDragActive;
-        pPresetDragActive = false;
-        if (pDragMoved)
-        {
-            PExportPresetSync();
-        }
+        LExport.LExportDragClear();
     }
 
     private void PExportMoveHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
     {
-        if (pPresetNameDragging is not { } lPresetName
+        if (LExport.LExportDragging is not { } lPresetName
             || pPresetRowDragging is not { } pPresetRow
-            || pPresetNameEditing is not null
+            || LExport.LExportEditing is not null
             || pExportDragOrigin is not Point pStart
             || pEvent.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
         {
@@ -39,16 +33,15 @@ public sealed partial class PExport
         }
 
         Point pCurrent = pEvent.GetPosition(pPresetRowPanel);
-        if (!pPresetDragActive
+        if (!LExport.LExportDragActive
             && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
             && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
         {
             return;
         }
 
-        if (!pPresetDragActive)
+        if (LExport.LExportDragMove())
         {
-            pPresetDragActive = true;
             pPresetRow.Opacity = 0.42;
             pPresetDragGhost = PHouse.PGhost.PGhostShow(pPresetRow, pPresetDragOffset);
         }
@@ -60,16 +53,16 @@ public sealed partial class PExport
 
     private void PExportUpHandle(object pSender, System.Windows.Input.MouseButtonEventArgs pEvent)
     {
-        if (pPresetRowDragging is null || pPresetNameDragging is not { } lPresetName)
+        if (pPresetRowDragging is null || LExport.LExportDragging is not { } lPresetName)
         {
             return;
         }
 
-        bool pDragMoved = pPresetDragActive;
+        bool pDragMoved = LExport.LExportDragActive;
         PExportDragClear();
         pPresetRowPanel.ReleaseMouseCapture();
 
-        if (!pDragMoved && !string.Equals(pPresetNameEditing, lPresetName, StringComparison.OrdinalIgnoreCase))
+        if (!pDragMoved && !LExport.LExportEditingCheck(lPresetName))
         {
             PExportEditCommit();
             PExportPresetSelect(lPresetName);

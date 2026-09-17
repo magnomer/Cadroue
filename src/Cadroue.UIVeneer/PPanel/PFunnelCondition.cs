@@ -1,5 +1,6 @@
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -7,8 +8,6 @@ using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
-
-internal enum PFunnelKind { PFunnelKindContains, PFunnelKindPrefix, PFunnelKindEnd, PFunnelKindExtension }
 
 internal sealed class PFunnelCondition : Grid
 {
@@ -24,18 +23,23 @@ internal sealed class PFunnelCondition : Grid
     private const double PFunnelJoinWidth = 78;
     private const double PFunnelCaseWidth = 38;
 
-    private readonly PFunnelKind pFunnelKind;
+    private readonly LFunnel lFunnel;
+    private readonly LFunnelRule lFunnelRule;
+    private readonly LFunnelKind lFunnelKind;
     private readonly TextBox pFunnelField;
     private readonly Border pFunnelCaseButton;
     private readonly Border? pFunnelJoin;
-    private bool pFunnelCase;
-    private bool pFunnelAnd = true;
 
-    public event Action? PFunnelConditionChange;
-
-    public PFunnelCondition(PFunnelKind pKind, string pLabelKey, bool pHasJoin)
+    public PFunnelCondition(
+        LFunnel lFunnelOwner,
+        LFunnelRule lRule,
+        LFunnelKind lKind,
+        string pLabelKey,
+        bool pHasJoin)
     {
-        pFunnelKind = pKind;
+        lFunnel = lFunnelOwner;
+        lFunnelRule = lRule;
+        lFunnelKind = lKind;
         pFunnelField = PFunnelFieldBuild();
         pFunnelCaseButton = PFunnelCaseBuild();
         if (pHasJoin)
@@ -43,11 +47,7 @@ internal sealed class PFunnelCondition : Grid
             pFunnelJoin = PFunnelJoinBuild();
         }
 
-        PFunnelCaseApply();
-        if (pFunnelJoin is not null)
-        {
-            PFunnelJoinApply();
-        }
+        PFunnelConditionUpdate();
 
         Margin = new Thickness(0, 0, 0, 8);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -85,26 +85,16 @@ internal sealed class PFunnelCondition : Grid
         Children.Add(pLine);
     }
 
-    public PFunnelKind PFunnelConditionKind => pFunnelKind;
+    private LSceneFunnelMatch PFunnelMatchRead() => lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
 
-    public string PFunnelConditionText => pFunnelField.Text.Trim();
-
-    public LSceneFunnelMatch PFunnelConditionRead()
+    public void PFunnelConditionUpdate()
     {
-        return new LSceneFunnelMatch
+        LSceneFunnelMatch pMatch = PFunnelMatchRead();
+        if (pFunnelField.Text.Trim() != pMatch.LSceneFunnelText)
         {
-            LSceneFunnelText = PFunnelConditionText,
-            LSceneFunnelCase = pFunnelCase,
-            LSceneFunnelJoin = pFunnelAnd
-        };
-    }
+            pFunnelField.Text = pMatch.LSceneFunnelText;
+        }
 
-    public void PFunnelConditionRestore(LSceneFunnelMatch? pMatch)
-    {
-        pMatch ??= new LSceneFunnelMatch();
-        pFunnelField.Text = pMatch.LSceneFunnelText;
-        pFunnelCase = pMatch.LSceneFunnelCase;
-        pFunnelAnd = pMatch.LSceneFunnelJoin;
         PFunnelCaseApply();
         if (pFunnelJoin is not null)
         {
@@ -112,7 +102,7 @@ internal sealed class PFunnelCondition : Grid
         }
     }
 
-    private static TextBox PFunnelFieldBuild()
+    private TextBox PFunnelFieldBuild()
     {
         var pField = new TextBox
         {
@@ -121,6 +111,7 @@ internal sealed class PFunnelCondition : Grid
             FontFamily = pFunnelFontFamily
         };
         PTextbox.PTextboxApply(pField);
+        pField.TextChanged += (_, _) => lFunnel.LFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
         return pField;
     }
 
@@ -151,16 +142,12 @@ internal sealed class PFunnelCondition : Grid
         return pHost;
     }
 
-    private void PFunnelCaseToggle()
-    {
-        pFunnelCase = !pFunnelCase;
-        PFunnelCaseApply();
-        PFunnelConditionChange?.Invoke();
-    }
+    private void PFunnelCaseToggle() =>
+        lFunnel.LFunnelCaseSet(lFunnelRule, lFunnelKind, !PFunnelMatchRead().LSceneFunnelCase);
 
     private void PFunnelCaseApply()
     {
-        bool pOn = pFunnelCase;
+        bool pOn = PFunnelMatchRead().LSceneFunnelCase;
         pFunnelCaseButton.BorderBrush = pOn ? pFunnelAccentBrush : pFunnelLineBrush;
         pFunnelCaseButton.ToolTip = LLocalization.LLocalizationTextRead(
             pOn ? "Inspector.Funnel.CaseOn" : "Inspector.Funnel.CaseOff");
@@ -193,7 +180,7 @@ internal sealed class PFunnelCondition : Grid
             return;
         }
 
-        bool pAnd = pFunnelAnd;
+        bool pAnd = PFunnelMatchRead().LSceneFunnelJoin;
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition());
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -238,15 +225,5 @@ internal sealed class PFunnelCondition : Grid
         return pSegment;
     }
 
-    private void PFunnelModeSet(bool pAndMode)
-    {
-        if (pFunnelAnd == pAndMode)
-        {
-            return;
-        }
-
-        pFunnelAnd = pAndMode;
-        PFunnelJoinApply();
-        PFunnelConditionChange?.Invoke();
-    }
+    private void PFunnelModeSet(bool pAndMode) => lFunnel.LFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);
 }

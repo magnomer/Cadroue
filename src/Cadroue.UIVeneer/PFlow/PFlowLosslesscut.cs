@@ -14,12 +14,12 @@ public sealed partial class PFlow
 {
     public void PFlowLosslesscutFind()
     {
-        if (!pFlowCommandActive || !pFlowSectionEditable || lSourcePath is null || lSpool is null)
+        if (!LFlow.LFlowCommandActive || !LFlow.LFlowSectionEditable || !LFlow.LFlowSourceCheck())
         {
             return;
         }
 
-        IReadOnlyList<string> pLosslesscutPaths = LLosslesscut.LLosslesscutAdjacentRead(lSourcePath);
+        IReadOnlyList<string> pLosslesscutPaths = LLosslesscut.LLosslesscutAdjacentRead(LFlow.LFlowSourcePath!);
         if (pLosslesscutPaths.Count == 0)
         {
             return;
@@ -68,7 +68,7 @@ public sealed partial class PFlow
 
     public void PFlowLosslesscutImport(string pLosslesscutPath)
     {
-        if (!pFlowCommandActive || !pFlowSectionEditable || lSourcePath is null || lSpool is null)
+        if (!LFlow.LFlowCommandActive || !LFlow.LFlowSectionEditable || !LFlow.LFlowSourceCheck())
         {
             PSAnnouncement.PSAnnouncementShow(
                 Window.GetWindow(this),
@@ -111,8 +111,8 @@ public sealed partial class PFlow
 
         LLosslesscutResult pLosslesscutResult = LLosslesscut.LLosslesscutValidate(
             pLosslesscutProject,
-            lSourcePath,
-            lSpool.LSpoolDuration);
+            LFlow.LFlowSourcePath!,
+            LFlow.LFlowDuration);
 
         if (!pLosslesscutResult.LLosslesscutResultAgreement
             && !PSDecision.PSDecisionConfirm(
@@ -121,7 +121,7 @@ public sealed partial class PFlow
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",
                     pLosslesscutResult.LLosslesscutResultMedia,
-                    System.IO.Path.GetFileName(lSourcePath)),
+                    PFlowSourceFormat()),
                 LLocalization.LLocalizationTextRead("Terms.Import"),
                 LLocalization.LLocalizationTextRead("Terms.Cancel")))
         {

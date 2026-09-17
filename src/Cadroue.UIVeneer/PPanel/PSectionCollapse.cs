@@ -9,25 +9,18 @@ public sealed partial class PSection
 {
     public const double PSectionStripWidth = 48;
 
-    public event Action<bool>? PSectionMinimizeChange;
-
     private readonly UIElement pSectionFullBody;
     private readonly UIElement pSectionStripBody;
-    private bool pSectionMinimized;
 
-    public bool PSectionMinimizedCheck() => pSectionMinimized;
+    public bool PSectionMinimizedCheck() => LSection.LSectionMinimized;
 
-    public void PSectionMinimizeSet(bool pSectionMinimizeRequest)
+    public void PSectionMinimizeSet(bool pSectionMinimizeRequest) =>
+        LSection.LSectionMinimizedSet(pSectionMinimizeRequest);
+
+    private void PSectionMinimizeHandle(bool pSectionMinimized)
     {
-        if (pSectionMinimized == pSectionMinimizeRequest)
-        {
-            return;
-        }
-
-        pSectionMinimized = pSectionMinimizeRequest;
         pSectionFullBody.Visibility = pSectionMinimized ? Visibility.Collapsed : Visibility.Visible;
         pSectionStripBody.Visibility = pSectionMinimized ? Visibility.Visible : Visibility.Collapsed;
-        PSectionMinimizeChange?.Invoke(pSectionMinimized);
     }
 
     private UIElement PSectionHeaderBuild()

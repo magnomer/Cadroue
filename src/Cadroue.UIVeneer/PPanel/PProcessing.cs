@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -17,7 +18,6 @@ public sealed partial class PProcessing : PPanel
     private const string PProcessingDownIcon = "/PAsset/PPanel/PProcessingDown.svg";
     private const string PProcessingMonitorIcon = "/PAsset/PPanel/PProcessingViewer.svg";
     private const string PProcessingSkipIcon = "/PAsset/PPanel/PProcessingSkip.svg";
-    private const string PProcessingSkipStep = "No Processing";
 
     public const double PProcessingStripWidth = 48;
 
@@ -32,10 +32,16 @@ public sealed partial class PProcessing : PPanel
     private readonly UIElement pProcessingStripBody;
     private readonly UIElement pProcessingActionBar;
     private readonly Border pProcessingSkipRow;
-    private string? pProcessingStepCurrent;
+    private readonly Dictionary<string, Border> pProcessingRows = new(StringComparer.Ordinal);
+
+    public LProcessing LProcessing { get; } = new();
 
     public PProcessing() : base("")
     {
+        LProcessing.LProcessingChange += PProcessingUpdate;
+        LProcessing.LProcessingOrderChange += PProcessingOrderUpdate;
+        LProcessing.LProcessingMinimizeChange += PProcessingMinimizeHandle;
+        LProcessing.LProcessingStepChange += PProcessingStepHandle;
         UIElement pHeader = PProcessingHeaderBuild();
 
         pProcessingRowPanel = new StackPanel();
@@ -51,7 +57,7 @@ public sealed partial class PProcessing : PPanel
         };
 
         pProcessingActionBar = PProcessingActionBuild();
-        pProcessingActionBar.Visibility = pProcessingOrdered ? Visibility.Visible : Visibility.Collapsed;
+        pProcessingActionBar.Visibility = Visibility.Collapsed;
         pProcessingSkipRow = PProcessingSkipBuild();
 
         var pRoot = new DockPanel { LastChildFill = true };
@@ -73,5 +79,11 @@ public sealed partial class PProcessing : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
+    }
+
+    private void PProcessingStepHandle(string pStepName)
+    {
+        PProcessingStepChange?.Invoke(pStepName);
+        PProcessingStepOpen?.Invoke(pStepName);
     }
 }

@@ -6,6 +6,7 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PDeck;
 
@@ -30,7 +31,7 @@ public sealed partial class PConsole : UserControl
     private readonly Grid pConsoleRestIcon;
     private readonly Path pConsoleSpinner;
     private readonly RotateTransform pConsoleSpinnerRotate = new(0);
-    private bool pConsoleSpinning;
+    public LConsole LConsole { get; } = new();
     private readonly Button pConsoleStartButton;
     private readonly Button pConsolePauseButton;
     private readonly Button pConsoleCancelButton;

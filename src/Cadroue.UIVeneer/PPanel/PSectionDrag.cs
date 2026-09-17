@@ -6,10 +6,8 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PSection
 {
-    private int? pSectionIndexDragging;
     private Point? pSectionDragOrigin;
     private Point pSectionGrabOffset;
-    private bool pSectionDragActive;
     private Border? pSectionRowDragging;
     private PHouse.PGhost? pSectionGhost;
 
@@ -26,18 +24,16 @@ public sealed partial class PSection
 
     private void PSectionDragClear()
     {
-        pSectionIndexDragging = null;
+        LSection.LSectionDragSet(null, false);
         pSectionDragOrigin = null;
-        pSectionDragActive = false;
         pSectionRowDragging = null;
     }
 
     private void PSectionMoveHandle(object pSender, MouseEventArgs pEvent)
     {
-        if (!pSectionEditable
+        if (!LSection.LSectionDragCheck()
             || pSectionRowDragging is not { } pDragRow
-            || pSectionIndexDragging is not int pDragIndex
-            || pSectionIndexEditing is not null
+            || LSection.LSectionDragIndex is not int pDragIndex
             || pSectionDragOrigin is not Point pStart
             || pEvent.LeftButton != MouseButtonState.Pressed)
         {
@@ -45,16 +41,16 @@ public sealed partial class PSection
         }
 
         Point pCurrent = pEvent.GetPosition(pSectionRowPanel);
-        if (!pSectionDragActive
+        if (!LSection.LSectionDragActive
             && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
             && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
         {
             return;
         }
 
-        if (!pSectionDragActive)
+        if (!LSection.LSectionDragActive)
         {
-            pSectionDragActive = true;
+            LSection.LSectionDragSet(pDragIndex, true);
             pDragRow.Opacity = 0.72;
             pSectionGhost = PHouse.PGhost.PGhostShow(pDragRow, pSectionGrabOffset);
         }
@@ -71,7 +67,7 @@ public sealed partial class PSection
             return;
         }
 
-        bool pDragMoved = pSectionDragActive;
+        bool pDragMoved = LSection.LSectionDragActive;
         pDragRow.Opacity = 1;
         pSectionGhost?.PGhostClear();
         pSectionGhost = null;
@@ -88,7 +84,7 @@ public sealed partial class PSection
         int pRowIndex = pSectionRowPanel.Children.IndexOf(pDragRow);
         PSectionDragClear();
 
-        if (pRowIndex >= 0 && pSectionIndexEditing != pRowIndex)
+        if (pRowIndex >= 0 && LSection.LSectionEditIndex != pRowIndex)
         {
             PSectionEditCommit();
             ModifierKeys pSectionModifiers = Keyboard.Modifiers;
@@ -158,7 +154,7 @@ public sealed partial class PSection
 
         pSectionRowPanel.Children.RemoveAt(pSourceIndex);
         pSectionRowPanel.Children.Insert(pInsertIndex, pSectionRow);
-        pSectionIndexDragging = pInsertIndex;
+        LSection.LSectionDragSet(pInsertIndex, LSection.LSectionDragActive);
         PSectionNumberUpdate();
         return true;
     }

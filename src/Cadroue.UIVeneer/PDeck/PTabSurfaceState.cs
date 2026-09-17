@@ -16,7 +16,6 @@ public abstract partial class PTabSurface : UserControl
         private readonly UIElement? pExportPanel;
         private readonly UIElement? pExportSplitter;
         private readonly int? pExportPanelIndex;
-        private bool pExportVisible = true;
 
         private PTabGridState(
             PColumn pTabLayout,
@@ -68,9 +67,10 @@ public abstract partial class PTabSurface : UserControl
             return new PTabGridState(pTabLayout, pPanels, null, null, null, null, null);
         }
 
-        public bool PExportHidden => pExportPanelIndex is not null && !pExportVisible;
+        public bool PExportHidden =>
+            pExportPanelIndex is int pExportIndex && PTabLayout.LColumn.LColumnHiddenCheck(pExportIndex);
 
-        public void PExportToggle() => PExportSet(pExportVisible);
+        public void PExportToggle() => PExportSet(!PExportHidden);
 
         public void PExportSet(bool pExportHide)
         {
@@ -79,7 +79,7 @@ public abstract partial class PTabSurface : UserControl
                 return;
             }
 
-            if (pExportHide == !pExportVisible)
+            if (pExportHide == PExportHidden)
             {
                 return;
             }
@@ -112,8 +112,6 @@ public abstract partial class PTabSurface : UserControl
                     pExportSplitter.Visibility = Visibility.Visible;
                 }
             }
-
-            pExportVisible = !pExportHide;
         }
     }
 }

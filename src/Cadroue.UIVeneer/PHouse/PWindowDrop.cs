@@ -40,7 +40,7 @@ public partial class PWindow
                 $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
                 + $"list={(pListActive is null ? "NULL" : "present")}, "
                 + $"viewer={(pViewerActive is null ? "NULL" : "present")}, "
-                + $"audioTab={pWindowAudioAllowed}, groupAncestor={pDropGroup}");
+                + $"audioTab={PWindowAudioCheck()}, groupAncestor={pDropGroup}");
         }
 
         PDropAccept(sender, dragEvent);
@@ -211,7 +211,7 @@ public partial class PWindow
             return DragDropEffects.None;
         }
 
-        if (Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !pWindowAudioAllowed)
+        if (Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !PWindowAudioCheck())
         {
             pDropReason = "target=viewer, audio-only file on a video-only tab — "
                 + $"{System.IO.Path.GetFileName(pSourcePath)}";

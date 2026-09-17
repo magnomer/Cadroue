@@ -23,7 +23,6 @@ public sealed partial class PSplitTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private System.Threading.CancellationTokenSource? pSplitSweepSource;
-    private bool pSplitDetectorLoading;
 
     public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -130,7 +129,7 @@ public sealed partial class PSplitTab : PTabSurface
         pFlow.PFlowEditSet(!pList.PListLockCheck());
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pSection, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow, true), pAction, pFlow, lPreferenceTabLayout);
+            new PCompass(pFlow, pViewer, true), pAction, pFlow, lPreferenceTabLayout);
         if (lPreferenceTabLayout is null)
         {
             pProcessing.PProcessingMinimizeSet(true);

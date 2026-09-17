@@ -27,14 +27,12 @@ public partial class PWindow : Window
     private const double PWindowWidthFloor = 900;
     private readonly PStrip pStrip;
     private readonly PRail pRail;
-    private string? pWindowRestorePath;
     private bool pResizeActive;
     private int pResizeDirection;
     private Point pResizeStartPointer;
     private Rect pResizeStartBounds;
     private PFlowControl? pFlowActive; private PViewer? pViewerActive; private PList? pListActive;
     private PDeck.PTabSurface? pWindowSurfaceActive;
-    private bool pWindowAudioAllowed;
     public PWindow()
     {
         InitializeComponent();

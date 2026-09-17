@@ -5,6 +5,7 @@ using Cadroue.UIVeneer.PDeck;
 using Cadroue.UIVeneer.PPanel;
 using Cadroue.Application;
 using Cadroue.ShellEngine;
+using Cadroue.UIDeportment;
 
 using Cadroue.Infrastructure;
 
@@ -21,98 +22,69 @@ public sealed partial class PStrip
     private const string pStripFunnelIcon = "/PAsset/PTab/PFunnelButton.svg";
     private const string pStripWorklistIcon = "/PAsset/PTab/PWorklistButton.svg";
 
-    private PTabRecord? pStripSelected;
-    private PTabRecord? pStripHovered;
-    private bool pStripUpdateSuspended;
-
     public PStrip()
     {
         PStripRecords = new ObservableCollection<PTabRecord>();
+        LStrip = new LStrip(
+            PStripTitleRead,
+            (pStripName, pStripOrdinal) =>
+                LLocalization.LLocalizationFormat("Tab.Numbered", pStripName, pStripOrdinal));
+        LStrip.LStripChange += PStripOrderHandle;
+        LStrip.LStripTabChange += PStripTabHandle;
+        LStrip.LStripSelectChange += PStripSelectHandle;
+        LStrip.LStripTitleChange += PStripRelayUpdate;
         PStripCurrent = this;
     }
 
     public static PStrip? PStripCurrent { get; private set; }
 
+    public LStrip LStrip { get; }
+
     public ObservableCollection<PTabRecord> PStripRecords { get; }
 
     public static string PStripTitleRead(Guid pStripTabId) =>
-        PStripCurrent?.PStripRecords.FirstOrDefault(pTabItem => pTabItem.PTabId == pStripTabId)?.PTabTitle
-        ?? LCartographer.LCartographerStageRead(pStripTabId);
+        PStripTabFind(pStripTabId)?.PTabTitle ?? LCartographer.LCartographerStageRead(pStripTabId);
 
-    public PTabRecord? PStripSelected
-    {
-        get => pStripSelected;
-        private set
-        {
-            if (ReferenceEquals(pStripSelected, value))
-            {
-                return;
-            }
-
-            pStripSelected = value;
-            PStripSelectChange?.Invoke(pStripSelected);
-        }
-    }
+    public PTabRecord? PStripSelected => PStripRecordFind(LStrip.LStripSelected);
 
     public event Action<PTabRecord?>? PStripSelectChange;
 
-    public void PStripUpdateSuspend() => pStripUpdateSuspended = true;
+    private PTabRecord? PStripRecordFind(LStripTab? lStripTab) =>
+        lStripTab is null
+            ? null
+            : PStripRecords.FirstOrDefault(pTabRecord => ReferenceEquals(pTabRecord.LStripTab, lStripTab));
 
-    public void PStripUpdateResume() => pStripUpdateSuspended = false;
+    private void PStripSelectHandle(LStripTab? lStripTab) =>
+        PStripSelectChange?.Invoke(PStripRecordFind(lStripTab));
 
-    private IReadOnlyList<LTabsetSlot> PStripSlotsRead() =>
-        PStripRecords
-            .Select(pTabItem => new LTabsetSlot(
-                pTabItem.PTabId, pTabItem.PTabLayoutKey, pTabItem.PTabNameCustom))
-            .ToList();
+    private void PStripTabHandle(LStripTab lStripTab) => PStripRecordFind(lStripTab)?.PTabUpdate();
 
-    private void PStripSeparatorUpdate()
+    private void PStripOrderHandle()
     {
-        var selectedIndex = PStripSelected is null ? -1 : PStripRecords.IndexOf(PStripSelected);
-        var hoveredIndex = pStripHovered is null ? -1 : PStripRecords.IndexOf(pStripHovered);
-        for (var i = 0; i < PStripRecords.Count; i++)
+        int pStripCount = Math.Min(LStrip.LStripTabs.Count, PStripRecords.Count);
+        for (int pStripIndex = 0; pStripIndex < pStripCount; pStripIndex++)
         {
-            PStripRecords[i].PTabSeparatorState =
-                i < PStripRecords.Count - 1
-                && i != selectedIndex
-                && i != selectedIndex - 1
-                && i != hoveredIndex
-                && i != hoveredIndex - 1;
+            PTabRecord? pTabRecord = PStripRecordFind(LStrip.LStripTabs[pStripIndex]);
+            if (pTabRecord is null)
+            {
+                continue;
+            }
+
+            int pStripCurrent = PStripRecords.IndexOf(pTabRecord);
+            if (pStripCurrent != pStripIndex)
+            {
+                PStripRecords.Move(pStripCurrent, pStripIndex);
+            }
         }
     }
 
-    internal void PStripHoverSet(PTabRecord pTabRecord)
-    {
-        if (ReferenceEquals(pStripHovered, pTabRecord))
-        {
-            return;
-        }
+    public void PStripUpdateSuspend() => LStrip.LStripUpdateSuspend();
 
-        pStripHovered = pTabRecord;
-        PStripSeparatorUpdate();
-    }
+    public void PStripUpdateResume() => LStrip.LStripUpdateResume();
 
-    internal void PStripHoverClear(PTabRecord pTabRecord)
-    {
-        if (!ReferenceEquals(pStripHovered, pTabRecord))
-        {
-            return;
-        }
+    internal void PStripHoverSet(PTabRecord pTabRecord) => LStrip.LStripHoverSet(pTabRecord.LStripTab);
 
-        pStripHovered = null;
-        PStripSeparatorUpdate();
-    }
-
-    internal void PStripHoverClear()
-    {
-        if (pStripHovered is null)
-        {
-            return;
-        }
-
-        pStripHovered = null;
-        PStripSeparatorUpdate();
-    }
+    internal void PStripHoverClear(PTabRecord? pTabRecord = null) => LStrip.LStripHoverClear(pTabRecord?.LStripTab);
 
     public PTabRecord PStripAdd()
     {
@@ -124,84 +96,33 @@ public sealed partial class PStrip
         LPreset? lExportSpecificState = null,
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        return pTabLayoutKey switch
+        string pTabIconPath = pTabLayoutKey switch
         {
-            "Edit" => PStripTypedAdd("Edit", pStripEditIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Fix" => PStripTypedAdd("Fix", pStripFixIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Audio" => PStripTypedAdd("Audio", pStripAudioIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Convert" => PStripTypedAdd("Convert", pStripConvertIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Merge" => PStripTypedAdd("Merge", pStripMergeIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Funnel" => PStripTypedAdd("Funnel", pStripFunnelIcon, lExportSpecificState, lPreferenceTabLayout),
-            "Worklist" => PStripTypedAdd("Worklist", pStripWorklistIcon, lExportSpecificState, lPreferenceTabLayout),
-            _ => PStripTypedAdd("Split", pStripSplitIcon, lExportSpecificState, lPreferenceTabLayout)
+            "Edit" => pStripEditIcon,
+            "Fix" => pStripFixIcon,
+            "Audio" => pStripAudioIcon,
+            "Convert" => pStripConvertIcon,
+            "Merge" => pStripMergeIcon,
+            "Funnel" => pStripFunnelIcon,
+            "Worklist" => pStripWorklistIcon,
+            _ => pStripSplitIcon
         };
-    }
+        string pTabKey = pTabLayoutKey switch
+        {
+            "Edit" or "Fix" or "Audio" or "Convert" or "Merge" or "Funnel" or "Worklist" => pTabLayoutKey,
+            _ => "Split"
+        };
 
-    private PTabRecord PStripTypedAdd(
-        string pTabLayoutKey,
-        string pTabIconPath,
-        LPreset? lExportSpecificState,
-        LSceneTabRecord? lPreferenceTabLayout)
-    {
-        var pTabRecord = new PTabRecord(
-            PStripTitleRead(pTabLayoutKey),
-            pTabLayoutKey,
-            pTabIconPath,
-            lExportSpecificState,
-            lPreferenceTabLayout);
+        var lStripTab = new LStripTab(pTabKey);
+        var pTabRecord = new PTabRecord(lStripTab, pTabIconPath, lExportSpecificState, lPreferenceTabLayout);
         PStripRecords.Add(pTabRecord);
+        LStrip.LStripAdd(lStripTab);
         LTraceLog.LTraceInfoRecord(
-            $"Tab opened '{pTabRecord.PTabTitle}' ({pTabLayoutKey}): {PStripRecords.Count} tab(s) open");
-
-        if (pStripUpdateSuspended)
-        {
-            return pTabRecord;
-        }
-
-        PStripTitleUpdate();
-
-        if (PStripSelected is null)
-        {
-            PStripSelect(pTabRecord);
-        }
-        else
-        {
-            PStripSeparatorUpdate();
-        }
-
+            $"Tab opened '{pTabRecord.PTabTitle}' ({pTabKey}): {PStripRecords.Count} tab(s) open");
         return pTabRecord;
     }
 
-    public void PStripTitleUpdate()
-    {
-        if (pStripUpdateSuspended)
-        {
-            return;
-        }
-
-        IReadOnlyList<LTabsetTitlePlan> pStripPlans = LTabset.LTabsetTitleResolve(PStripSlotsRead());
-        Dictionary<Guid, PTabRecord> pStripById = PStripRecords.ToDictionary(pTabItem => pTabItem.PTabId);
-        foreach (LTabsetTitlePlan pStripPlan in pStripPlans)
-        {
-            if (!pStripById.TryGetValue(pStripPlan.LTabsetId, out PTabRecord? pTabRecord))
-            {
-                continue;
-            }
-
-            if (pStripPlan.LTabsetCustom)
-            {
-                pTabRecord.PTabTitle = pTabRecord.PTabNameCustom;
-                continue;
-            }
-
-            pTabRecord.PTabTitle = pStripPlan.LTabsetNumbered
-                ? LLocalization.LLocalizationFormat(
-                    "Tab.Numbered", PStripTitleRead(pTabRecord.PTabLayoutKey), pStripPlan.LTabsetOrdinal)
-                : PStripTitleRead(pTabRecord.PTabLayoutKey);
-        }
-
-        PStripRelayUpdate();
-    }
+    public void PStripTitleUpdate() => LStrip.LStripTitleUpdate();
 
     public static void PStripRelayUpdate()
     {
@@ -263,33 +184,15 @@ public sealed partial class PStrip
 
     public void PStripNameSet(PTabRecord pTabRecord, string pTabName)
     {
-        string pTabTrimmed = (pTabName ?? string.Empty).Trim();
-        if (pTabTrimmed.Length == 0
-            || string.Equals(pTabTrimmed, PStripTitleRead(pTabRecord.PTabLayoutKey), StringComparison.Ordinal))
+        bool pStripHadCustom = pTabRecord.PTabNameCustom.Length > 0;
+        if (LStrip.LStripNameSet(pTabRecord.LStripTab, pTabName))
         {
-            if (pTabRecord.PTabNameCustom.Length > 0)
-            {
-                LTraceLog.LTraceInfoRecord($"Tab name reset to the standard name for {pTabRecord.PTabLayoutKey}");
-            }
-
-            pTabRecord.PTabNameCustom = string.Empty;
-            PStripTitleUpdate();
-            return;
+            LTraceLog.LTraceInfoRecord($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
         }
-
-        var pStripTaken = PStripRecords
-            .Where(pTabItem => !ReferenceEquals(pTabItem, pTabRecord))
-            .Select(pTabItem => pTabItem.PTabTitle)
-            .ToList();
-        pTabRecord.PTabNameCustom = LTabset.LTabsetNameResolve(
-            pStripTaken,
-            pTabTrimmed,
-            (pStripName, pStripAttempt) => LLocalization.LLocalizationFormat(
-                "Tab.Numbered",
-                pStripName,
-                pStripAttempt));
-        PStripTitleUpdate();
-        LTraceLog.LTraceInfoRecord($"Tab renamed to '{pTabRecord.PTabTitle}' ({pTabRecord.PTabLayoutKey})");
+        else if (pStripHadCustom)
+        {
+            LTraceLog.LTraceInfoRecord($"Tab name reset to the standard name for {pTabRecord.PTabLayoutKey}");
+        }
     }
 
     private static string PStripTitleRead(string pTabLayoutKey) =>
@@ -305,32 +208,8 @@ public sealed partial class PStrip
             _ => "Tab.Split"
         });
 
-    public void PStripSelect(PTabRecord? pTabRecord)
-    {
-        foreach (var pTabItem in PStripRecords)
-        {
-            pTabItem.PTabSelectState = ReferenceEquals(pTabItem, pTabRecord);
-        }
+    public void PStripSelect(PTabRecord? pTabRecord) => LStrip.LStripSelect(pTabRecord?.LStripTab);
 
-        PStripSelected = pTabRecord;
-        PStripSeparatorUpdate();
-    }
-
-    public void PStripMove(PTabRecord pTabRecord, int pTabTargetIndex)
-    {
-        int pTabSourceIndex = PStripRecords.IndexOf(pTabRecord);
-        if (pTabSourceIndex < 0)
-        {
-            return;
-        }
-
-        int pTabClampedTargetIndex = Math.Clamp(pTabTargetIndex, 0, PStripRecords.Count - 1);
-        if (pTabSourceIndex == pTabClampedTargetIndex)
-        {
-            return;
-        }
-
-        PStripRecords.Move(pTabSourceIndex, pTabClampedTargetIndex);
-        PStripSeparatorUpdate();
-    }
+    public void PStripMove(PTabRecord pTabRecord, int pTabTargetIndex) =>
+        LStrip.LStripMove(pTabRecord.LStripTab, pTabTargetIndex);
 }

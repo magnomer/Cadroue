@@ -102,6 +102,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindLuminance));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindSilence));
         pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindVolume));
+        LSensor.LSensorChange += PSensorUpdate;
 
         var pScroll = new ScrollViewer
         {

@@ -7,16 +7,12 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PClinic
 {
-    public bool PClinicMinimizedCheck() => pClinicMinimized;
+    public bool PClinicMinimizedCheck() => LClinic.LClinicMinimized;
 
-    public void PClinicMinimizeSet(bool pClinicMinimizeRequest)
+    public void PClinicMinimizeSet(bool pClinicMinimizeRequest) => LClinic.LClinicMinimizedSet(pClinicMinimizeRequest);
+
+    private void PClinicMinimizeHandle(bool pClinicMinimized)
     {
-        if (pClinicMinimized == pClinicMinimizeRequest)
-        {
-            return;
-        }
-
-        pClinicMinimized = pClinicMinimizeRequest;
         pClinicFullBody.Visibility = pClinicMinimized ? Visibility.Collapsed : Visibility.Visible;
         pClinicStripBody.Visibility = pClinicMinimized ? Visibility.Visible : Visibility.Collapsed;
         PClinicMinimizeChange?.Invoke(pClinicMinimized);
@@ -27,7 +23,7 @@ public sealed partial class PClinic
         Button pMaximizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
-            () => PClinicMinimizeSet(false));
+            () => LClinic.LClinicMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

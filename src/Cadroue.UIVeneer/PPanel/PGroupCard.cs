@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -10,21 +11,22 @@ public sealed partial class PGroup
 {
     private void PGroupRebuild()
     {
+        IReadOnlyList<LGroupRecord> pRecords = LGroup.LGroupRecords;
         pGroupRowPanel.Children.Clear();
-        for (int pIndex = 0; pIndex < pGroupRecords.Count; pIndex++)
+        for (int pIndex = 0; pIndex < pRecords.Count; pIndex++)
         {
-            pGroupRowPanel.Children.Add(PGroupCardBuild(pIndex, pGroupRecords[pIndex]));
+            pGroupRowPanel.Children.Add(PGroupCardBuild(pIndex, pRecords[pIndex]));
         }
 
-        pGroupEmptyNotice.Visibility = pGroupRecords.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        pGroupEmptyNotice.Visibility = pRecords.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    private Border PGroupCardBuild(int pGroupIndex, PGroupRecord pRecord)
+    private Border PGroupCardBuild(int pGroupIndex, LGroupRecord pRecord)
     {
         var pFileRows = new StackPanel();
-        for (int pOrderIndex = 0; pOrderIndex < pRecord.PGroupRecordPaths.Count; pOrderIndex++)
+        for (int pOrderIndex = 0; pOrderIndex < pRecord.LGroupRecordPaths.Count; pOrderIndex++)
         {
-            pFileRows.Children.Add(PGroupFileBuild(pGroupIndex, pOrderIndex, pRecord.PGroupRecordPaths[pOrderIndex]));
+            pFileRows.Children.Add(PGroupFileBuild(pGroupIndex, pOrderIndex, pRecord.LGroupRecordPaths[pOrderIndex]));
         }
 
         var pCardBody = new StackPanel();
@@ -48,7 +50,7 @@ public sealed partial class PGroup
         return pCard;
     }
 
-    private UIElement PGroupCrestBuild(int pGroupIndex, PGroupRecord pRecord)
+    private UIElement PGroupCrestBuild(int pGroupIndex, LGroupRecord pRecord)
     {
         var pHeaderGrid = new Grid { Margin = new Thickness(10, 4, 4, 4) };
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -56,7 +58,7 @@ public sealed partial class PGroup
 
         var pNameLabel = new TextBlock
         {
-            Text = pRecord.PGroupRecordName,
+            Text = pRecord.LGroupRecordName,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -77,7 +79,7 @@ public sealed partial class PGroup
         Button pRemoveButton = PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("Group.Remove.Tooltip"),
-            (_, _) => PGroupRemove(pGroupIndex));
+            (_, _) => LGroup.LGroupRemove(pGroupIndex));
         pRemoveButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         Grid.SetColumn(pRemoveButton, 1);
@@ -115,7 +117,7 @@ public sealed partial class PGroup
         Button pItemRemoveButton = PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("Group.Item.RemoveTooltip"),
-            (_, _) => PGroupItemRemove(pGroupIndex, pPath));
+            (_, _) => LGroup.LGroupItemRemove(pGroupIndex, pPath));
         pItemRemoveButton.Width = 22;
         pItemRemoveButton.Height = 20;
         pItemRemoveButton.Margin = new Thickness(6, 0, 0, 0);
@@ -141,8 +143,7 @@ public sealed partial class PGroup
         {
             pGroupDragOrigin = pRowEvent.GetPosition(null);
             pGroupDragOffset = pRowEvent.GetPosition(pRowBorder);
-            pGroupSourceIndex = pGroupIndex;
-            pGroupDragPath = pPath;
+            LGroup.LGroupDragSet(pGroupIndex, pPath);
             pRowBorder.CaptureMouse();
             PGroupItemOpen?.Invoke(pPath);
         };
@@ -155,32 +156,4 @@ public sealed partial class PGroup
         return pRowBorder;
     }
 
-    private void PGroupItemRemove(int pGroupIndex, string pPath)
-    {
-        if (pGroupIndex < 0 || pGroupIndex >= pGroupRecords.Count)
-        {
-            return;
-        }
-
-        List<string> pGroupPaths = pGroupRecords[pGroupIndex].PGroupRecordPaths;
-        if (pGroupPaths.RemoveAll(
-            pExisting => string.Equals(pExisting, pPath, StringComparison.OrdinalIgnoreCase)) == 0)
-        {
-            return;
-        }
-
-        PGroupDragClear();
-        PGroupRebuild();
-    }
-
-    private void PGroupRemove(int pGroupIndex)
-    {
-        if (pGroupIndex < 0 || pGroupIndex >= pGroupRecords.Count)
-        {
-            return;
-        }
-
-        pGroupRecords.RemoveAt(pGroupIndex);
-        PGroupRebuild();
-    }
 }

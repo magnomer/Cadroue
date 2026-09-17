@@ -19,7 +19,6 @@ public sealed partial class PCompass
     private Image pCompassPlayImage = null!;
     private TextBlock pCompassPlayLabel = null!;
     private Button pCompassPlayButton = null!;
-    private bool pCompassPlaying;
 
     private Button PCompassWaveformBuild(PFlowControl pFlow)
     {
@@ -50,7 +49,7 @@ public sealed partial class PCompass
             Style = PHouse.PButton.PButtonCommandCreate(),
             ToolTip = LLocalization.LLocalizationTextRead("Compass.Waveform.Tooltip")
         };
-        pButton.Click += (_, _) => pFlow.PFlowWaveformSet(!pFlow.PFlowWaveformCheck());
+        pButton.Click += (_, _) => pFlow.PFlowWaveformSet(!pFlow.LFlow.LFlowWaveformActive);
         return pButton;
     }
 
@@ -127,7 +126,6 @@ public sealed partial class PCompass
 
     private void PCompassPlayingApply(bool pCompassPlayingNow)
     {
-        pCompassPlaying = pCompassPlayingNow;
         PCompassAction pAction = pCompassPlayingNow ? PCompassAction.PCompassStandby : PCompassAction.PCompassPlayback;
         string pIcon = pCompassPlayingNow ? "PCompassPause.svg" : "PCompassPlay.svg";
         string pLabelKey = pCompassPlayingNow ? "Compass.Pause.Label" : "Compass.Play.Label";
@@ -139,7 +137,7 @@ public sealed partial class PCompass
 
     private void PCompassPlayToggle()
     {
-        if (pCompassPlaying)
+        if (LCompass.LCompassPlaying)
         {
             pCompassFlow.PFlowPauseRaise();
         }

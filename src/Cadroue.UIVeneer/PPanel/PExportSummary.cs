@@ -4,6 +4,7 @@ using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -23,35 +24,27 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pExportSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
     private readonly LWorkKind? pExportKind;
-    private readonly bool pExportSmartAllowed;
-    private string? pPresetNameSelected;
-    private string? pPresetNameEditing;
-    private string? pPresetNameDragging;
     private Point? pExportDragOrigin;
     private Point pPresetDragOffset;
-    private bool pPresetDragActive;
     private Border? pPresetRowDragging;
     private double pPresetRowOpacity;
     private PGhost? pPresetDragGhost;
-
-    private bool pPresetRebuilding;
-
     private TextBox? pExportBoxCurrent;
 
-    private bool pExportPresetBusy;
+    public LExport LExport { get; }
 
     public PExport(LPresetSelection lPresetOwner, LWorkKind? pExportKind = null, bool pExportSmartAllowed = false)
     {
         this.lPresetOwner = lPresetOwner;
         this.pExportKind = pExportKind;
-        this.pExportSmartAllowed = pExportSmartAllowed;
+        LExport = new LExport(lPresetOwner, pExportSmartAllowed);
+        LExport.LExportPresetsChange += PExportPresetsUpdate;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();
         pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
         pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
         pPresetRowPanel.LostMouseCapture += PExportLostHandle;
-        pPresetNameSelected = lPresetOwner.LPresetSelectionName;
 
         var pPanel = new Grid();
         pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -90,20 +83,11 @@ public sealed partial class PExport : UserControl
         Grid.SetRow(pBody, 1);
         pPanel.Children.Add(pBody);
 
-        PExportSummaryUpdate();
+        PExportPresetsUpdate();
         Content = PExportFrameBuild(pPanel);
 
-        Loaded += (_, _) =>
-        {
-            LPreset.LPresetStoreChange += PExportPresetSync;
-            lPresetOwner.LPresetSelectionChange += PExportSummaryUpdate;
-            PExportPresetSync();
-        };
-        Unloaded += (_, _) =>
-        {
-            LPreset.LPresetStoreChange -= PExportPresetSync;
-            lPresetOwner.LPresetSelectionChange -= PExportSummaryUpdate;
-        };
+        Loaded += (_, _) => LExport.LExportAttach();
+        Unloaded += (_, _) => LExport.LExportDetach();
     }
 
     private LPreset PExportWorkingRead() => LPreset.LPresetStateCreate(lPresetOwner.LPresetSelectionValue);
@@ -142,22 +126,10 @@ public sealed partial class PExport : UserControl
         };
     }
 
-    private void PExportSummaryUpdate()
+    private void PExportPresetsUpdate()
     {
         LPreset lWorking = PExportWorkingRead();
-        pExportPresetBusy = true;
-        pPresetNameSelected = string.IsNullOrEmpty(lPresetOwner.LPresetSelectionName)
-            ? null
-            : lPresetOwner.LPresetSelectionName;
-        if (!string.Equals(pPresetNameEditing, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
-        {
-            pPresetNameEditing = null;
-            pExportBoxCurrent = null;
-        }
-
         PExportPresetRebuild();
-        pExportPresetBusy = false;
-
         pExportSummaryBox.Text = lWorking.LPresetContainer;
         pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
         pExportSummaryAudio.Text = lWorking.LPresetAudioSummary;

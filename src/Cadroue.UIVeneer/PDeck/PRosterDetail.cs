@@ -53,10 +53,10 @@ public sealed partial class PRoster
         pRosterDetailPanel.Children.Clear();
         pRosterRowTarget = pRosterDetailPanel;
 
-        if (pRosterCardId != Guid.Empty)
+        if (LRoster.LRosterCardId != Guid.Empty)
         {
             PSummaryAdd(pRosterSchedule.LScheduleRecords
-                .Where(pRecord => pRecord.LWorkBatchId == pRosterCardId)
+                .Where(pRecord => LRoster.LRosterCardCheck(pRecord.LWorkBatchId))
                 .ToArray());
             return;
         }

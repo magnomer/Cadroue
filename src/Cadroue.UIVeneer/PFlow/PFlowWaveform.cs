@@ -68,37 +68,28 @@ public sealed partial class PFlow
         pFlowWaveformGeometry.Freeze();
         return pFlowWaveformGeometry;
     }
-    private bool pFlowWaveformActive = LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
-    private bool pFlowWaveformAudio;
-
-    public event Action<bool>? PFlowWaveformChange;
-
-    public bool PFlowWaveformCheck() => pFlowWaveformActive;
-
     public void PFlowWaveformSet(bool pFlowWaveformRequest)
     {
-        if (pFlowWaveformActive == pFlowWaveformRequest)
+        if (!LFlow.LFlowWaveformSet(pFlowWaveformRequest))
         {
             return;
         }
 
-        pFlowWaveformActive = pFlowWaveformRequest;
         PFlowWaveformApply();
         PFlowWaveformStart();
-        PFlowWaveformChange?.Invoke(pFlowWaveformActive);
     }
 
     private void PFlowWaveformStart()
     {
-        if (pFlowUnloaded || !pFlowWaveformActive)
+        if (LFlow.LFlowUnloaded || !LFlow.LFlowWaveformActive)
         {
             return;
         }
 
         lWaveformOrchestrator.LWaveformStart(
-            lSourcePath,
-            lSpool?.LSpoolDuration ?? TimeSpan.Zero,
-            pFlowWaveformAudio);
+            LFlow.LFlowSourcePath,
+            LFlow.LFlowDuration,
+            LFlow.LFlowWaveformAudio);
     }
 
     private void PFlowWaveformClear()
@@ -114,7 +105,7 @@ public sealed partial class PFlow
 
     private void PFlowWaveformHandle(LWaveformNotice pFlowWaveformNotice)
     {
-        if (pFlowUnloaded || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+        if (LFlow.LFlowUnloaded || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
         {
             return;
         }
@@ -124,12 +115,12 @@ public sealed partial class PFlow
 
     private void PFlowWaveformApply()
     {
-        if (pFlowUnloaded)
+        if (LFlow.LFlowUnloaded)
         {
             return;
         }
 
-        byte[] pFlowWaveformPeaks = pFlowWaveformActive
+        byte[] pFlowWaveformPeaks = LFlow.LFlowWaveformActive
             ? lWaveformOrchestrator.LWaveformCurrent
             : Array.Empty<byte>();
         pViewfinder.PViewfinderWaveformUpdate(pFlowWaveformPeaks);

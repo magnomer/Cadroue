@@ -6,7 +6,7 @@ using Cadroue.Media;
 using Cadroue.Core;
 
 using Cadroue.Infrastructure;
-
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PFlow;
 
@@ -93,18 +93,13 @@ public sealed partial class PMap : FrameworkElement
         pNavigatorGripPen.Freeze();
     }
 
-    private LSpool? lSpool;
-    private TimeSpan lCursor;
-    private string? lSourcePath;
+    private readonly LFlow lFlow;
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private int? lSectionIndexActive;
     private PMapDragMode pMapDragMode;
     private double pMapDragX;
     private double pMapPreviousX;
-    private TimeSpan lMapDragTime;
-    private string pMapDrawTrigger = "attach";
     private int pMapGlyphCount;
     private readonly Dictionary<string, FormattedText> pMapBadgeCache = new(StringComparer.Ordinal);
     private double pMapBadgeDpi = -1;
@@ -113,35 +108,26 @@ public sealed partial class PMap : FrameworkElement
     public event Action? PMapSpoolChange;
     public event Action<bool>? PMapDragChange;
 
+    public PMap(LFlow lFlowState)
+    {
+        lFlow = lFlowState;
+    }
+
     private void PMapDrawDefer(string pMapTrigger)
     {
-        pMapDrawTrigger = pMapTrigger;
+        lFlow.LFlowMapSet(pMapTrigger);
         InvalidateVisual();
     }
 
-    public void PMapAttach(LSpool spool, TimeSpan cursor, string? sourcePath)
-    {
-        lSpool = spool;
-        lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        lSourcePath = sourcePath;
-        PMapDrawDefer("attach");
-    }
+    public void PMapAttach() => PMapDrawDefer("attach");
 
-    public void PMapCursorUpdate(TimeSpan cursor)
-    {
-        lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        PMapDrawDefer("cursor");
-    }
+    public void PMapCursorUpdate() => PMapDrawDefer("cursor");
 
     public void PMapClear()
     {
-        lSpool = null;
-        lCursor = TimeSpan.Zero;
-        lSourcePath = null;
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LPiece>();
         lWaveformPeaks = Array.Empty<byte>();
-        lSectionIndexActive = null;
         PMapDrawDefer("clear");
     }
 
@@ -151,10 +137,9 @@ public sealed partial class PMap : FrameworkElement
         PMapDrawDefer("waveform");
     }
 
-    public void PMapSectionsUpdate(IReadOnlyList<LPiece>? sections, int? selectedIndex)
+    public void PMapSectionsUpdate(IReadOnlyList<LPiece>? sections)
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
-        lSectionIndexActive = selectedIndex;
         PMapDrawDefer("sections");
     }
 
@@ -181,7 +166,12 @@ public sealed partial class PMap : FrameworkElement
             (System.Diagnostics.Stopwatch.GetTimestamp() - pMapStamp) * 1000d
             / System.Diagnostics.Stopwatch.Frequency;
         LTrace.LTraceTimelineAdd(
-            "Map", lCursor, lSourcePath, pMapDrawTrigger, pMapMilliseconds, pMapGlyphCount);
+            "Map",
+            lFlow.LFlowCursor,
+            lFlow.LFlowSourcePath,
+            lFlow.LFlowMapTrigger,
+            pMapMilliseconds,
+            pMapGlyphCount);
     }
 
     private void PMapContentDraw(DrawingContext drawingContext)
@@ -194,7 +184,9 @@ public sealed partial class PMap : FrameworkElement
         }
 
         drawingContext.DrawRectangle(pMapBrushBackground, null, new Rect(0, 0, actualWidth, actualHeight));
-        if (lSpool is null || lSpool.LSpoolDuration <= TimeSpan.Zero || actualHeight < PMapRenderLeast)
+        if (lFlow.LFlowSpool is not { } lSpool
+            || lSpool.LSpoolDuration <= TimeSpan.Zero
+            || actualHeight < PMapRenderLeast)
         {
             return;
         }
@@ -238,7 +230,7 @@ public sealed partial class PMap : FrameworkElement
         Rect bodyRect = new(spoolStartX, railTop, spoolBodyWidth, railHeight);
         PNavigatorDraw(drawingContext, bodyRect, actualWidth);
 
-        double cursorRatio = Math.Clamp(lSpool.LSpoolRatioResolve(lCursor), 0, 1);
+        double cursorRatio = Math.Clamp(lSpool.LSpoolRatioResolve(lFlow.LFlowCursor), 0, 1);
         double cursorX = cursorRatio * actualWidth;
         PCursor.PCursorDraw(drawingContext, cursorX, PCursor.PCursorHeadHeight, actualHeight);
     }

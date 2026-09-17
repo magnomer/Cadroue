@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
-using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
@@ -10,31 +10,12 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PClinic : PPanel
 {
-    private readonly record struct PClinicKind(LFlawKind PClinicKindValue, string PClinicKindName);
-    private readonly record struct PClinicState(bool PClinicStateActive, bool PClinicStatePersistent);
-    private readonly record struct PClinicKey(string PClinicKeyPath, LFlawKind PClinicKeyKind);
-
     private static readonly FontFamily pClinicFontFamily = new("Segoe UI");
     private static readonly Brush pClinicTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
     private static readonly Brush pClinicMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
     private static readonly Brush pClinicIconBrush = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73));
 
     public const double PClinicStripWidth = 48;
-
-    private static readonly IReadOnlyList<PClinicKind> pClinicKinds = new PClinicKind[]
-    {
-        new(LFlawKind.LFlawKindContainer, "Container"),
-        new(LFlawKind.LFlawKindTruncation, "Truncation"),
-        new(LFlawKind.LFlawKindTransport, "Transport"),
-        new(LFlawKind.LFlawKindMetadata, "Metadata"),
-        new(LFlawKind.LFlawKindIndex, "Index"),
-        new(LFlawKind.LFlawKindFraming, "Framing"),
-        new(LFlawKind.LFlawKindConfig, "Config"),
-        new(LFlawKind.LFlawKindTiming, "Timing"),
-        new(LFlawKind.LFlawKindSecondary, "Secondary"),
-        new(LFlawKind.LFlawKindCoded, "Coded"),
-        new(LFlawKind.LFlawKindFfvone, "Ffvone")
-    };
 
     public event Action<bool>? PClinicMinimizeChange;
     public event Action? PClinicPlanChange;
@@ -54,19 +35,14 @@ public sealed partial class PClinic : PPanel
     private readonly CheckBox pClinicApplyBox;
     private readonly CheckBox pClinicPersistentBox;
     private readonly Button pClinicDiagnosisButton;
-    private readonly PClinicSalvage pClinicSalvage = new();
+    private readonly PClinicSalvage pClinicSalvage;
     private readonly Border pClinicPersistentRow;
-    private bool pClinicSalvageShown;
-    private readonly Dictionary<LFlawKind, PClinicState> pClinicStates = new();
-    private readonly Dictionary<PClinicKey, LCheckupResult> pClinicResults = new();
-    private readonly Dictionary<string, double> pClinicProgress = new(StringComparer.OrdinalIgnoreCase);
-    private string? pClinicSource;
-    private LFlawKind? pClinicCurrentKind;
-    private bool pClinicSuppress;
-    private bool pClinicMinimized;
+
+    public LClinic LClinic { get; } = new();
 
     public PClinic() : base("")
     {
+        pClinicSalvage = new PClinicSalvage(LClinic);
         pClinicTitleLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Clinic.Header.Title"),
@@ -80,7 +56,7 @@ public sealed partial class PClinic : PPanel
         Button pMinimizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
-            () => PClinicMinimizeSet(true));
+            () => LClinic.LClinicMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -99,16 +75,11 @@ public sealed partial class PClinic : PPanel
             Child = pHeaderGrid
         };
 
-        foreach ((LFlawKind pKind, string _) in pClinicKinds)
-        {
-            pClinicStates[pKind] = new PClinicState(false, false);
-        }
-
         pClinicApplyBox = PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Apply"),
             LLocalization.LLocalizationTextRead("Clinic.Apply.Tooltip"));
-        pClinicApplyBox.Checked += (_, _) => PClinicToggleHandle();
-        pClinicApplyBox.Unchecked += (_, _) => PClinicToggleHandle();
+        pClinicApplyBox.Checked += (_, _) => LClinic.LClinicActiveSet(true);
+        pClinicApplyBox.Unchecked += (_, _) => LClinic.LClinicActiveSet(false);
 
         pClinicToggleRow = new StackPanel
         {
@@ -187,7 +158,6 @@ public sealed partial class PClinic : PPanel
         pBody.Children.Add(pClinicItemBody);
         pBody.Children.Add(pClinicResultBody);
         pBody.Children.Add(pClinicSalvage);
-        pClinicSalvage.PClinicSalvageChange += () => PClinicPlanChange?.Invoke();
 
         var pScroll = new ScrollViewer
         {
@@ -200,8 +170,8 @@ public sealed partial class PClinic : PPanel
             LLocalization.LLocalizationTextRead("Clinic.Persistent"),
             LLocalization.LLocalizationTextRead("Clinic.Persistent.Tooltip"));
         pClinicPersistentBox.IsEnabled = false;
-        pClinicPersistentBox.Checked += (_, _) => PClinicPersistentHandle();
-        pClinicPersistentBox.Unchecked += (_, _) => PClinicPersistentHandle();
+        pClinicPersistentBox.Checked += (_, _) => LClinic.LClinicPersistentSet(true);
+        pClinicPersistentBox.Unchecked += (_, _) => LClinic.LClinicPersistentSet(false);
         pClinicSalvage.PClinicSalvagePersistent.Visibility = Visibility.Collapsed;
         pClinicPersistentBox.VerticalAlignment = VerticalAlignment.Center;
         var pPersistentStack = new Grid { VerticalAlignment = VerticalAlignment.Center };
@@ -258,5 +228,9 @@ public sealed partial class PClinic : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
+        LClinic.LClinicChange += PClinicUpdate;
+        LClinic.LClinicPlanChange += () => PClinicPlanChange?.Invoke();
+        LClinic.LClinicMinimizeChange += PClinicMinimizeHandle;
+        PClinicUpdate();
     }
 }

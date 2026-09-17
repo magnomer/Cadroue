@@ -23,7 +23,7 @@ public partial class PWindow
             return;
         }
 
-        pWindowRestorePath = lPreferenceState.LPreferenceMediaPath;
+        string pMediaPath = lPreferenceState.LPreferenceMediaPath;
         Dispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Loaded,
             new Action(() =>
@@ -38,20 +38,11 @@ public partial class PWindow
                     }
                 }
 
-                PWindowMediaOpen();
+                pViewerActive?.PViewerSourceOpen(pMediaPath);
             }));
     }
 
-    private void PWindowMediaOpen()
-    {
-        if (pViewerActive is null || pWindowRestorePath is not { } pMediaPath)
-        {
-            return;
-        }
-
-        pWindowRestorePath = null;
-        pViewerActive.PViewerSourceOpen(pMediaPath);
-    }
+    private bool PWindowAudioCheck() => pViewerActive?.LViewer.LViewerAudioAllowed == true;
 
     private void PWindowMediaHandle(LCargo mediaStatus)
     {

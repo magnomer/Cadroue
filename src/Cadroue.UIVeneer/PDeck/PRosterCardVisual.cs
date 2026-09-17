@@ -30,7 +30,7 @@ public sealed partial class PRoster
 
     private void PRosterVisualApply(Guid pBatchId, Border pHeader)
     {
-        bool pSelected = pBatchId == pRosterCardId;
+        bool pSelected = LRoster.LRosterCardCheck(pBatchId);
         bool pCompleted = pRosterCompletedIds.Contains(pBatchId);
         pHeader.Background = pSelected
             ? PRosterTheme.PRosterSelectCard
@@ -72,7 +72,7 @@ public sealed partial class PRoster
         if (pRosterBatchControls.TryGetValue(pBatchId, out PRosterBatchControl? pControl))
         {
             pControl.PRosterBatchIcon.Source = PRosterMinimizeRead(
-                pRosterCollapsedIds.Contains(pBatchId), pControlBrush);
+                LRoster.LRosterCollapsedCheck(pBatchId), pControlBrush);
         }
 
         if (pRosterCloseGlyphs.TryGetValue(pBatchId, out TextBlock? pCloseGlyph))
@@ -82,14 +82,14 @@ public sealed partial class PRoster
     }
 
     private Brush PRosterHoverRead(Guid pBatchId) =>
-        pBatchId == pRosterCardId
+        LRoster.LRosterCardCheck(pBatchId)
             ? PRosterTheme.PRosterCardBrush
             : pRosterCompletedIds.Contains(pBatchId)
                 ? PRosterTheme.PRosterDoneHover
                 : PRosterTheme.PRosterControlHover;
 
     private Brush PRosterControlRead(Guid pBatchId) =>
-        pBatchId == pRosterCardId
+        LRoster.LRosterCardCheck(pBatchId)
             ? PRosterTheme.PRosterSelectText
             : PRosterTheme.PRosterMutedBrush;
 }

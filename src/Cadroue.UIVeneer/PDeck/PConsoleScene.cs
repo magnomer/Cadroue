@@ -18,10 +18,6 @@ namespace Cadroue.UIVeneer.PDeck;
 
 public sealed partial class PConsole
 {
-    private bool pConsoleSceneApplying;
-    private bool pConsoleCaretReady;
-    private string? pConsoleReloadName;
-    private string pConsoleSceneName = string.Empty;
     private PWindow? pConsoleSceneWindow;
     private DispatcherTimer? pConsoleSceneTimer;
 
@@ -50,13 +46,12 @@ public sealed partial class PConsole
 
     private void PConsoleLoadHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (!pConsoleCaretReady)
+        if (LConsole.LConsoleCaretSet())
         {
-            pConsoleCaretReady = true;
             PConsoleCaretAttach();
         }
 
-        pConsoleSceneName = LScene.LSceneActiveName;
+        LConsole.LConsoleSceneSet(LScene.LSceneActiveName);
         PConsoleSceneUpdate();
 
         if (pConsoleSceneWindow is null && PConsoleWindowRead() is { } pWindow)
@@ -90,7 +85,7 @@ public sealed partial class PConsole
 
     private void PConsoleTickHandle(object? pSender, EventArgs pArguments)
     {
-        if (pConsoleSceneName.Length > 0 && !pConsoleRelayCombo.IsKeyboardFocusWithin)
+        if (LConsole.LConsoleSceneName.Length > 0 && !pConsoleRelayCombo.IsKeyboardFocusWithin)
         {
             PConsoleMarkUpdate();
         }
@@ -100,7 +95,7 @@ public sealed partial class PConsole
 
     private void PConsoleOpenHandle(object? pSender, EventArgs pArguments)
     {
-        pConsoleReloadName = null;
+        LConsole.LConsoleReloadSet(null);
         PConsoleCaretSet();
         PConsoleMarkUpdate();
     }
@@ -126,7 +121,7 @@ public sealed partial class PConsole
     {
         if (pSender is ComboBoxItem { Content: string lSceneName })
         {
-            pConsoleReloadName = lSceneName;
+            LConsole.LConsoleReloadSet(lSceneName);
         }
     }
 
@@ -138,15 +133,15 @@ public sealed partial class PConsole
         }
 
         pArguments.Handled = true;
-        pConsoleReloadName = null;
+        LConsole.LConsoleReloadSet(null);
         if (!LScene.LSceneDelete(lSceneName))
         {
             return;
         }
 
-        if (string.Equals(pConsoleSceneName, lSceneName, StringComparison.OrdinalIgnoreCase))
+        if (LConsole.LConsoleSceneCheck(lSceneName))
         {
-            pConsoleSceneName = string.Empty;
+            LConsole.LConsoleSceneSet(string.Empty);
             LScene.LSceneActiveSet(string.Empty);
         }
 
@@ -156,8 +151,7 @@ public sealed partial class PConsole
 
     private void PConsoleCloseHandle(object? pSender, EventArgs pArguments)
     {
-        string? lSceneName = pConsoleReloadName;
-        pConsoleReloadName = null;
+        string? lSceneName = LConsole.LConsoleReloadRead();
         if (lSceneName is null)
         {
             PConsoleSceneUpdate();
@@ -193,26 +187,25 @@ public sealed partial class PConsole
     private void PConsoleSceneRebuild()
     {
         LScene.LSceneCatalogueLoad();
-        pConsoleSceneApplying = true;
+        LConsole.LConsoleApplySet(true);
         pConsoleRelayCombo.ItemsSource = LScene.LSceneNames;
-        pConsoleSceneApplying = false;
+        LConsole.LConsoleApplySet(false);
         PConsoleSceneUpdate();
     }
 
     private void PConsoleSceneUpdate()
     {
-        pConsoleSceneApplying = true;
-        pConsoleRelayCombo.SelectedItem = LScene.LSceneRead(pConsoleSceneName) is not null
-            ? pConsoleSceneName
-            : null;
-        pConsoleRelayCombo.Text = pConsoleSceneName;
-        pConsoleSceneApplying = false;
+        string lSceneName = LConsole.LConsoleSceneName;
+        LConsole.LConsoleApplySet(true);
+        pConsoleRelayCombo.SelectedItem = LScene.LSceneRead(lSceneName) is not null ? lSceneName : null;
+        pConsoleRelayCombo.Text = lSceneName;
+        LConsole.LConsoleApplySet(false);
         PConsoleMarkUpdate();
     }
 
     private void PConsoleSceneSet(string lSceneName)
     {
-        pConsoleSceneName = lSceneName;
+        LConsole.LConsoleSceneSet(lSceneName);
         LScene.LSceneActiveSet(lSceneName);
         PConsoleSceneUpdate();
     }
@@ -229,14 +222,15 @@ public sealed partial class PConsole
 
     private bool PConsoleDirtyCheck()
     {
-        if (pConsoleSceneName.Length == 0
-            || LScene.LSceneRead(pConsoleSceneName) is not { } lSceneStored
+        string lSceneName = LConsole.LConsoleSceneName;
+        if (lSceneName.Length == 0
+            || LScene.LSceneRead(lSceneName) is not { } lSceneStored
             || PConsoleWindowRead() is not { } pWindow)
         {
             return false;
         }
 
-        return !LScene.LSceneMatch(lSceneStored, pWindow.PWindowSceneRead(pConsoleSceneName));
+        return !LScene.LSceneMatch(lSceneStored, pWindow.PWindowSceneRead(lSceneName));
     }
 
     private void PConsoleSaveHandle(object pSender, RoutedEventArgs pArguments)
@@ -264,18 +258,18 @@ public sealed partial class PConsole
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments)
     {
-        if (pConsoleSceneApplying || pConsoleRelayCombo.SelectedItem is not string lSceneName)
+        if (LConsole.LConsoleApplying || pConsoleRelayCombo.SelectedItem is not string lSceneName)
         {
             return;
         }
 
         if (pConsoleRelayCombo.IsDropDownOpen)
         {
-            pConsoleReloadName = lSceneName;
+            LConsole.LConsoleReloadSet(lSceneName);
             return;
         }
 
-        pConsoleReloadName = null;
+        LConsole.LConsoleReloadSet(null);
         PConsoleSceneLoad(lSceneName);
     }
 

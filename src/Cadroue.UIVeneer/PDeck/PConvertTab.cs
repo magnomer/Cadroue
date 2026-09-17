@@ -77,7 +77,7 @@ public sealed class PConvertTab : PTabSurface
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pViewer, pExport },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);

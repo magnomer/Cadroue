@@ -54,6 +54,7 @@ public sealed class LViewer
     public event Action? LViewerPreviewChange;
     public event Action<bool>? LViewerBypassChange;
     public event Action<bool, LNeutralTarget>? LViewerToolChange;
+    public event Action<double>? LViewerVolumeChange;
 
     public int LViewerLoadSerial => lViewerLoadSerial;
 
@@ -180,6 +181,8 @@ public sealed class LViewer
         {
             LPreference.LPreferenceVolumeSet(lViewerVolume);
         }
+
+        LViewerVolumeChange?.Invoke(lViewerVolume);
     }
 
     public void LViewerPreviewSet(LPreviewState lPreview) => lViewerPreview = lPreview;

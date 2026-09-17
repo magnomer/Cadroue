@@ -8,6 +8,7 @@ using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PFlow;
 using Cadroue.UIVeneer.PDeck;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -29,11 +30,12 @@ public sealed partial class PSection : UserControl
     private readonly TextBlock pSectionCountLabel;
     private readonly StackPanel pSectionRowPanel;
     private readonly UIElement pSectionActionBar;
-    private bool pSectionRebuilding;
-    private bool pSectionEditable = true;
+
+    public LSection LSection { get; } = new();
 
     public PSection()
     {
+        LSection.LSectionMinimizeChange += PSectionMinimizeHandle;
         pSectionCountLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Section.Header.Title"),
@@ -84,8 +86,8 @@ public sealed partial class PSection : UserControl
         PSectionDetach();
         pFlowAttached = pFlow;
         pFlowAttached.PFlowSectionChange += PSectionUpdateHandle;
-        pFlowAttached.PFlowEditChange += PSectionEditHandle;
-        PSectionEditHandle(pFlow.PFlowEditCheck());
+        pFlowAttached.LFlow.LFlowEditChange += PSectionEditHandle;
+        PSectionEditHandle(pFlow.LFlow.LFlowSectionEditable);
         PSectionRebuild();
     }
 
@@ -93,18 +95,18 @@ public sealed partial class PSection : UserControl
     {
         if (pFlowAttached is null) return;
         pFlowAttached.PFlowSectionChange -= PSectionUpdateHandle;
-        pFlowAttached.PFlowEditChange -= PSectionEditHandle;
+        pFlowAttached.LFlow.LFlowEditChange -= PSectionEditHandle;
         pFlowAttached = null;
     }
 
     private void PSectionEditHandle(bool pSectionEdit)
     {
-        pSectionEditable = pSectionEdit;
+        LSection.LSectionEditableSet(pSectionEdit);
         pSectionActionBar.IsEnabled = pSectionEdit;
         if (pSectionEdit) return;
         pSectionRowPanel.ReleaseMouseCapture();
         PSectionDragClear();
-        if (pSectionIndexEditing is not null) PSectionEditCancel();
+        if (LSection.LSectionEditIndex is not null) PSectionEditCancel();
     }
 
     private void PSectionUpdateHandle(IReadOnlyList<LPiece> pSectionList, int? pSectionIndexSelect)
@@ -117,7 +119,7 @@ public sealed partial class PSection : UserControl
             ? new HashSet<int>()
             : new HashSet<int>(pFlowAttached.PFlowSelectedRead());
 
-        if (pSectionDragActive)
+        if (LSection.LSectionDragActive)
         {
             return;
         }
@@ -146,7 +148,7 @@ public sealed partial class PSection : UserControl
 
     private void PSectionRebuild()
     {
-        pSectionRebuilding = true;
+        LSection.LSectionRebuildSet(true);
         try
         {
             pSectionRowPanel.Children.Clear();
@@ -162,7 +164,7 @@ public sealed partial class PSection : UserControl
         }
         finally
         {
-            pSectionRebuilding = false;
+            LSection.LSectionRebuildSet(false);
         }
     }
 }

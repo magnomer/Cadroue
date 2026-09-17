@@ -1,16 +1,17 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PGroup
 {
-    private void PGroupEditStart(int pGroupIndex, Grid pHeaderGrid, PGroupRecord pRecord)
+    private void PGroupEditStart(int pGroupIndex, Grid pHeaderGrid, LGroupRecord pRecord)
     {
         var pNameBox = new TextBox
         {
-            Text = pRecord.PGroupRecordName,
+            Text = pRecord.LGroupRecordName,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -41,16 +42,7 @@ public sealed partial class PGroup
             }
 
             pNameCommitted = true;
-            if (pNameApply)
-            {
-                string pNameTrimmed = pNameBox.Text.Trim();
-                if (pNameTrimmed.Length > 0)
-                {
-                    pRecord.PGroupRecordName = pNameTrimmed;
-                }
-            }
-
-            PGroupRebuild();
+            LGroup.LGroupNameSet(pGroupIndex, pNameApply ? pNameBox.Text : string.Empty);
         }
 
         pNameBox.KeyDown += (_, pKeyEvent) =>

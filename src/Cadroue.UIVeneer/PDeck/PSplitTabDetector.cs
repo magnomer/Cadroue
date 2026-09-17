@@ -61,7 +61,7 @@ public sealed partial class PSplitTab
 
     private void PSplitDetectorSave()
     {
-        if (pSplitDetectorLoading
+        if (pInspector.LInspector.LInspectorRestoring
             || pViewer.PViewerSourcePath is not { } pSplitSourcePath
             || pList.PListLockCheck(pSplitSourcePath))
         {
@@ -84,7 +84,7 @@ public sealed partial class PSplitTab
             return;
         }
 
-        pSplitDetectorLoading = true;
+        pInspector.LInspector.LInspectorRestoreSet(true);
         try
         {
             foreach (LSidecarDetectorRecord pDetector in pSplitRecord.LSidecarSplitDetectors)
@@ -153,7 +153,7 @@ public sealed partial class PSplitTab
         }
         finally
         {
-            pSplitDetectorLoading = false;
+            pInspector.LInspector.LInspectorRestoreSet(false);
         }
     }
 

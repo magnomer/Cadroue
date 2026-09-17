@@ -41,50 +41,43 @@ public sealed partial class PExport
     private void PExportPresetRebuild()
     {
         LPreset lWorking = PExportWorkingRead();
-        pPresetRebuilding = true;
-        try
+        pExportBoxCurrent = null;
+        pPresetRowPanel.Children.Clear();
+        string? pNativeGroupCurrent = null;
+        bool pUserHeaderAdded = false;
+        foreach (string lPresetName in LPreset.LPresetNames)
         {
-            pPresetRowPanel.Children.Clear();
-            string? pNativeGroupCurrent = null;
-            bool pUserHeaderAdded = false;
-            foreach (string lPresetName in LPreset.LPresetNames)
+            bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
+            string? pGroupName = pPresetNative ? LPreset.LPresetGroupRead(lPresetName) : null;
+            if (pPresetNative
+                && pGroupName is not null
+                && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase))
             {
-                bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
-                string? pGroupName = pPresetNative ? LPreset.LPresetGroupRead(lPresetName) : null;
-                if (pPresetNative
-                    && pGroupName is not null
-                    && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase))
-                {
-                    pPresetRowPanel.Children.Add(PExportGroupBuild(
-                        pGroupName,
-                        LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName),
-                        () => PExportGroupToggle(pGroupName)));
-                    pNativeGroupCurrent = pGroupName;
-                }
-                else if (!pPresetNative && !pUserHeaderAdded)
-                {
-                    pPresetRowPanel.Children.Add(PExportGroupBuild(
-                        LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
-                        LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
-                            PExportUserGroup,
-                            false),
-                        PExportUserToggle));
-                    pUserHeaderAdded = true;
-                }
-
-                Border pRow = PExportRowBuild(lPresetName, lWorking);
-                bool pCollapsed = pPresetNative && pGroupName is not null
-                    ? LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName)
-                    : LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
-                        PExportUserGroup,
-                        false);
-                pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
-                pPresetRowPanel.Children.Add(pRow);
+                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                    pGroupName,
+                    LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName),
+                    () => PExportGroupToggle(pGroupName)));
+                pNativeGroupCurrent = pGroupName;
             }
-        }
-        finally
-        {
-            pPresetRebuilding = false;
+            else if (!pPresetNative && !pUserHeaderAdded)
+            {
+                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                    LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
+                    LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+                        PExportUserGroup,
+                        false),
+                    PExportUserToggle));
+                pUserHeaderAdded = true;
+            }
+
+            Border pRow = PExportRowBuild(lPresetName, lWorking);
+            bool pCollapsed = pPresetNative && pGroupName is not null
+                ? LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName)
+                : LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
+                    PExportUserGroup,
+                    false);
+            pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            pPresetRowPanel.Children.Add(pRow);
         }
     }
 }

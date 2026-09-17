@@ -22,13 +22,14 @@ internal sealed class PFunnelRuleFrame
     private readonly Border pFunnelTitleBar;
     private readonly UIElement pFunnelBody;
     private readonly string pFunnelTitleKey;
+    private readonly Action pFunnelFold;
     private Button? pFunnelFoldButton;
-    private bool pFunnelCollapsed;
 
-    public PFunnelRuleFrame(UIElement pBody, string pTitleKey, Action pRemove)
+    public PFunnelRuleFrame(UIElement pBody, string pTitleKey, Action pRemove, Action pFold)
     {
         pFunnelBody = pBody;
         pFunnelTitleKey = pTitleKey;
+        pFunnelFold = pFold;
         pFunnelOrderBadge = new TextBlock
         {
             FontSize = 12,
@@ -107,21 +108,20 @@ internal sealed class PFunnelRuleFrame
             Content = PFunnelGlyphCreate(false),
             ToolTip = LLocalization.LLocalizationTextRead("Inspector.Funnel.Minimize")
         };
-        pButton.Click += (_, _) => PFunnelFoldToggle();
+        pButton.Click += (_, _) => pFunnelFold();
         return pButton;
     }
 
-    private void PFunnelFoldToggle()
+    public void PFunnelCollapsedSet(bool pCollapsed)
     {
-        pFunnelCollapsed = !pFunnelCollapsed;
-        pFunnelBody.Visibility = pFunnelCollapsed ? Visibility.Collapsed : Visibility.Visible;
-        pFunnelTitleBar.BorderThickness = new Thickness(0, 0, 0, pFunnelCollapsed ? 0 : 1);
+        pFunnelBody.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        pFunnelTitleBar.BorderThickness = new Thickness(0, 0, 0, pCollapsed ? 0 : 1);
 
         if (pFunnelFoldButton is { } pFold)
         {
-            pFold.Content = PFunnelGlyphCreate(pFunnelCollapsed);
+            pFold.Content = PFunnelGlyphCreate(pCollapsed);
             pFold.ToolTip = LLocalization.LLocalizationTextRead(
-                pFunnelCollapsed ? "Inspector.Funnel.Maximize" : "Inspector.Funnel.Minimize");
+                pCollapsed ? "Inspector.Funnel.Maximize" : "Inspector.Funnel.Minimize");
         }
     }
 

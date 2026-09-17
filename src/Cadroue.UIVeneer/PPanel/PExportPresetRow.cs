@@ -14,11 +14,11 @@ public sealed partial class PExport
     private Border PExportRowBuild(string lPresetName, LPreset lWorking)
     {
         bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
-        bool pPresetSelected = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase);
+        bool pPresetSelected = LExport.LExportSelectedCheck(lPresetName);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
             && !LPreset.LPresetMatch(lPresetName, lWorking);
-        bool pPresetEditing = string.Equals(lPresetName, pPresetNameEditing, StringComparison.OrdinalIgnoreCase);
+        bool pPresetEditing = LExport.LExportEditingCheck(lPresetName);
         bool pPresetUnsupported = !PExportSupportCheck(lPresetName, lWorking);
         UIElement pNameElement = pPresetEditing
             ? PExportBoxBuild(lPresetName)
@@ -47,30 +47,23 @@ public sealed partial class PExport
             {
                 PExportDragClear();
                 pPresetRowPanel.ReleaseMouseCapture();
-                if (!string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase))
-                {
-                    PExportPresetSelect(lPresetName);
-                }
-
-                pPresetNameEditing = lPresetName;
-                PExportPresetRebuild();
+                LExport.LExportEditStart(lPresetName);
                 pEvent.Handled = true;
                 return;
             }
 
             if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
             {
-                pPresetNameDragging = null;
                 pExportDragOrigin = null;
+                LExport.LExportDragClear();
                 return;
             }
 
-            pPresetNameDragging = lPresetName;
+            LExport.LExportDragStart(lPresetName);
             pPresetRowDragging = pRowBorder;
             pPresetRowOpacity = pRowBorder.Opacity;
             pExportDragOrigin = pEvent.GetPosition(pPresetRowPanel);
             pPresetDragOffset = pEvent.GetPosition(pRowBorder);
-            pPresetDragActive = false;
             pPresetRowPanel.CaptureMouse();
         };
         pRowBorder.MouseLeftButtonUp += (_, pEvent) =>
@@ -80,7 +73,7 @@ public sealed partial class PExport
                 return;
             }
 
-            if (!string.Equals(pPresetNameEditing, lPresetName, StringComparison.OrdinalIgnoreCase))
+            if (!LExport.LExportEditingCheck(lPresetName))
             {
                 PExportEditCommit();
                 PExportPresetSelect(lPresetName);
@@ -98,7 +91,7 @@ public sealed partial class PExport
             return true;
         }
 
-        LPreset? pPresetValue = string.Equals(lPresetName, pPresetNameSelected, StringComparison.OrdinalIgnoreCase)
+        LPreset? pPresetValue = LExport.LExportSelectedCheck(lPresetName)
             ? lWorking
             : LPreset.LPresetRead(lPresetName);
         return pPresetValue is not { } pPreset

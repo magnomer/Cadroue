@@ -15,7 +15,6 @@ public sealed partial class PInspector
     private Button pSensorRunButton = null!;
     private Border pSensorRunRow = null!;
     private ProgressBar pSensorProgress = null!;
-    private bool pSensorRunning;
 
     public event Action? PSensorRun;
     public event Action? PSensorStop;
@@ -27,8 +26,14 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead("Inspector.Detect.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
         pSensorRunPersistent.VerticalAlignment = VerticalAlignment.Center;
-        pSensorRunPersistent.Checked += (_, _) => PSensorPersistentChange?.Invoke(true);
-        pSensorRunPersistent.Unchecked += (_, _) => PSensorPersistentChange?.Invoke(false);
+        PInspectorSwitchAttach(pSensorRunPersistent, LSensor.LSensorPersistentSet);
+        LSensor.LSensorPersistentChange += pPersistent =>
+        {
+            PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent, false);
+            PSensorPersistentChange?.Invoke(pPersistent);
+        };
+        LSensor.LSensorRunningChange += pRunning => pSensorRunButton.Content = LLocalization.LLocalizationTextRead(
+            pRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
 
         pSensorRunButton = new Button
         {
@@ -42,7 +47,7 @@ public sealed partial class PInspector
         };
         pSensorRunButton.Click += (_, _) =>
         {
-            if (pSensorRunning)
+            if (LSensor.LSensorRunning)
             {
                 PSensorStop?.Invoke();
             }
@@ -79,20 +84,14 @@ public sealed partial class PInspector
 
     public void PSensorRunShow() => pSensorRunRow.Visibility = Visibility.Visible;
 
-    public bool PSensorPersistentCheck() => pSensorRunPersistent.IsChecked == true;
+    public bool PSensorPersistentCheck() => LSensor.LSensorPersistent;
 
-    public void PSensorPersistentApply(bool pSensorPersistent) =>
-        pSensorRunPersistent.IsChecked = pSensorPersistent;
+    public void PSensorPersistentApply(bool pSensorPersistent) => LSensor.LSensorPersistentSet(pSensorPersistent);
 
     public void PSensorLockSet(bool pSensorLocked) =>
         pInspectorSectionsHost.IsEnabled = !pSensorLocked;
 
-    public void PSensorRunningSet(bool pSensorActive)
-    {
-        pSensorRunning = pSensorActive;
-        pSensorRunButton.Content = LLocalization.LLocalizationTextRead(
-            pSensorActive ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
-    }
+    public void PSensorRunningSet(bool pSensorActive) => LSensor.LSensorRunningSet(pSensorActive);
 
     public void PSensorProgressShow()
     {

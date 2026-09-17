@@ -20,7 +20,6 @@ public partial class PRail : UserControl
     private Point pTabDragOffset;
     private bool pTabDragActive;
     private PGhost? pTabGhost;
-    private bool pTabVertical;
 
     public PRail()
     {
@@ -36,8 +35,7 @@ public partial class PRail : UserControl
 
     public void PRailApply(bool pVertical)
     {
-        pStrip?.PStripHoverClear();
-        pTabVertical = pVertical;
+        pStrip?.LStrip.LStripVerticalSet(pVertical);
         Width = pVertical ? PRailWidth : double.NaN;
         Height = pVertical ? double.NaN : 56;
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -82,7 +80,7 @@ public partial class PRail : UserControl
         if (e.ClickCount >= 2 && PTabHitCheck(sender, e))
         {
             PTabDragClear();
-            pTabRecord.PTabNameActive = true;
+            pStrip?.LStrip.LStripEditSet(pTabRecord.LStripTab, true);
             e.Handled = true;
             return;
         }
@@ -267,7 +265,7 @@ public partial class PRail : UserControl
 
         if (e.Key == Key.Escape)
         {
-            pTabRecord.PTabNameActive = false;
+            pStrip?.LStrip.LStripEditSet(pTabRecord.LStripTab, false);
             e.Handled = true;
         }
     }
@@ -282,7 +280,7 @@ public partial class PRail : UserControl
 
     private void PTabNameCommit(PTabRecord pTabRecord, string pTabName)
     {
-        pTabRecord.PTabNameActive = false;
+        pStrip?.LStrip.LStripEditSet(pTabRecord.LStripTab, false);
         pStrip?.PStripNameSet(pTabRecord, pTabName);
     }
 
@@ -311,6 +309,7 @@ public partial class PRail : UserControl
             return 0;
         }
 
+        bool pTabVertical = pStrip.LStrip.LStripVertical;
         int pTargetIndex = 0;
         for (int index = 0; index < pStrip.PStripRecords.Count; index++)
         {

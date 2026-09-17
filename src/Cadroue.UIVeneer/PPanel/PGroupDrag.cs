@@ -2,8 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Cadroue.UIVeneer.PHouse;
-
-using Cadroue.Infrastructure;
 using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -14,14 +12,12 @@ public sealed partial class PGroup
 
     private Point? pGroupDragOrigin;
     private Point pGroupDragOffset;
-    private int? pGroupSourceIndex;
-    private string? pGroupDragPath;
 
     private void PGroupDragHandle(object pRowSender, MouseEventArgs pRowEvent)
     {
         if (pGroupDragOrigin is not { } pStart
-            || pGroupSourceIndex is not { } pSourceIndex
-            || pGroupDragPath is not { } pDragPath
+            || LGroup.LGroupSourceIndex is not { } pSourceIndex
+            || LGroup.LGroupDragPath is not { } pDragPath
             || pRowEvent.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -57,8 +53,7 @@ public sealed partial class PGroup
     private void PGroupDragClear()
     {
         pGroupDragOrigin = null;
-        pGroupSourceIndex = null;
-        pGroupDragPath = null;
+        LGroup.LGroupDragSet(null, null);
     }
 
     private static void PGroupOverHandle(object pSender, DragEventArgs pEvent)
@@ -97,47 +92,13 @@ public sealed partial class PGroup
         }
 
         int pInsertAt = PGroupInsertResolve(pFileRows, pEvent);
-        List<string> pTargetPaths = pGroupRecords[pTargetIndex].PGroupRecordPaths;
-
-        if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
-            && pMove.PGroupMoveIndex >= 0
-            && pMove.PGroupMoveIndex < pGroupRecords.Count)
+        bool pChanged = pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
+            ? LGroup.LGroupItemMove(pMove.PGroupMoveIndex, pMove.PGroupMovePath, pTargetIndex, pInsertAt)
+            : LGroup.LGroupPathsInsert(pTargetIndex, PGroupPathsRead(pEvent), pInsertAt);
+        if (pChanged)
         {
-            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveIndex].PGroupRecordPaths;
-            int pRemovedIndex = pSourcePaths.FindIndex(pPath =>
-                string.Equals(pPath, pMove.PGroupMovePath, StringComparison.OrdinalIgnoreCase));
-            if (pRemovedIndex >= 0)
-            {
-                pSourcePaths.RemoveAt(pRemovedIndex);
-                if (pMove.PGroupMoveIndex == pTargetIndex && pRemovedIndex < pInsertAt)
-                {
-                    pInsertAt--;
-                }
-            }
-
-            PGroupPathInsert(pTargetPaths, pMove.PGroupMovePath, pInsertAt);
-            LTraceLog.LTraceInfoRecord(pMove.PGroupMoveIndex == pTargetIndex
-                ? $"Group {pTargetIndex + 1}: reordered '{System.IO.Path.GetFileName(pMove.PGroupMovePath)}'"
-                : $"Group {pTargetIndex + 1}: moved in '{System.IO.Path.GetFileName(pMove.PGroupMovePath)}' "
-                    + $"from group {pMove.PGroupMoveIndex + 1}");
+            pEvent.Handled = true;
         }
-        else if (PGroupPathsRead(pEvent) is { Count: > 0 } pAddPaths)
-        {
-            foreach (string pAddPath in pAddPaths)
-            {
-                PGroupPathInsert(pTargetPaths, pAddPath, pInsertAt);
-                pInsertAt++;
-            }
-
-            LTraceLog.LTraceInfoRecord($"Group {pTargetIndex + 1}: added {pAddPaths.Count} file(s)");
-        }
-        else
-        {
-            return;
-        }
-
-        pEvent.Handled = true;
-        PGroupRebuild();
     }
 
     private void PGroupDropHandle(object pSender, DragEventArgs pEvent)
@@ -152,41 +113,14 @@ public sealed partial class PGroup
             return;
         }
 
-        var pNewPaths = new List<string>();
-        if (pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
-            && pMove.PGroupMoveIndex >= 0
-            && pMove.PGroupMoveIndex < pGroupRecords.Count)
+        string pName = LLocalization.LLocalizationFormat("Group.Default.Name", LGroup.LGroupRecords.Count + 1);
+        bool pChanged = pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
+            ? LGroup.LGroupAdd([pMove.PGroupMovePath], pName, pMove.PGroupMoveIndex)
+            : LGroup.LGroupAdd(PGroupPathsRead(pEvent), pName);
+        if (pChanged)
         {
-            List<string> pSourcePaths = pGroupRecords[pMove.PGroupMoveIndex].PGroupRecordPaths;
-            if (pSourcePaths.RemoveAll(pPath =>
-                    string.Equals(pPath, pMove.PGroupMovePath, StringComparison.OrdinalIgnoreCase)) > 0)
-            {
-                pNewPaths.Add(pMove.PGroupMovePath);
-            }
+            pEvent.Handled = true;
         }
-        else
-        {
-            pNewPaths.AddRange(PGroupPathsRead(pEvent));
-        }
-
-        if (pNewPaths.Count == 0)
-        {
-            return;
-        }
-
-        var pRecord = new PGroupRecord
-        {
-            PGroupRecordName = LLocalization.LLocalizationFormat("Group.Default.Name", pGroupRecords.Count + 1)
-        };
-        foreach (string pPath in pNewPaths)
-        {
-            PGroupPathInsert(pRecord.PGroupRecordPaths, pPath, pRecord.PGroupRecordPaths.Count);
-        }
-
-        pGroupRecords.Add(pRecord);
-        LTraceLog.LTraceInfoRecord($"Group {pGroupRecords.Count}: created with {pNewPaths.Count} file(s)");
-        pEvent.Handled = true;
-        PGroupRebuild();
     }
 
     private bool PGroupExternalAccept(DragEventArgs pEvent)
@@ -205,16 +139,6 @@ public sealed partial class PGroup
         pEvent.Data.GetData(PList.PListDragKind) is string[] pListPaths
             ? pListPaths
             : Array.Empty<string>();
-
-    private static void PGroupPathInsert(List<string> pPaths, string pPath, int pInsertAt)
-    {
-        if (pPaths.Any(pExisting => string.Equals(pExisting, pPath, StringComparison.OrdinalIgnoreCase)))
-        {
-            return;
-        }
-
-        pPaths.Insert(Math.Clamp(pInsertAt, 0, pPaths.Count), pPath);
-    }
 
     private sealed record PGroupMovePayload(int PGroupMoveIndex, string PGroupMovePath);
 }

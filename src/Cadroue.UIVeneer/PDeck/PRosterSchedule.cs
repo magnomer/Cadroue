@@ -40,16 +40,16 @@ public sealed partial class PRoster
 
     private void PRosterDetailDefer()
     {
-        if (pRosterDetailPending)
+        if (LRoster.LRosterDetailPending)
         {
             return;
         }
 
-        pRosterDetailPending = true;
+        LRoster.LRosterPendingSet(true);
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
         {
-            pRosterDetailPending = false;
-            if (!pRosterClosed)
+            LRoster.LRosterPendingSet(false);
+            if (!LRoster.LRosterClosed)
             {
                 PRosterDetailUpdate();
             }
@@ -66,12 +66,11 @@ public sealed partial class PRoster
 
     public void PRosterClose()
     {
-        if (pRosterClosed)
+        if (!LRoster.LRosterCloseSet())
         {
             return;
         }
 
-        pRosterClosed = true;
         pRosterElapsedTimer.Stop();
         pRosterElapsedTimer.Tick -= PRosterElapsedTick;
         pRosterSchedule.LScheduleChange -= PRosterScheduleHandle;

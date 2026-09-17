@@ -9,7 +9,7 @@ public sealed partial class PMap
 {
     private Cursor PMapCursorResolve(Point mousePoint)
     {
-        if (lSpool is null || ActualWidth <= 0)
+        if (lFlow.LFlowSpool is not { } lSpool || ActualWidth <= 0)
         {
             return Cursors.Arrow;
         }
@@ -38,7 +38,7 @@ public sealed partial class PMap
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        if (lSpool is null || ActualWidth <= 0)
+        if (lFlow.LFlowSpool is not { } lSpool || ActualWidth <= 0)
         {
             return;
         }
@@ -63,12 +63,12 @@ public sealed partial class PMap
         if (leftHandleRect.Contains(mousePoint))
         {
             pMapDragMode = PMapDragMode.PMapResizeOrigin;
-            lMapDragTime = lSpool.LSpoolRangeOrigin;
+            lFlow.LFlowDragSet(lSpool.LSpoolRangeOrigin);
         }
         else if (rightHandleRect.Contains(mousePoint))
         {
             pMapDragMode = PMapDragMode.PMapResizeLimit;
-            lMapDragTime = lSpool.LSpoolRangeLimit;
+            lFlow.LFlowDragSet(lSpool.LSpoolRangeLimit);
         }
         else if (moveHandleRect.Contains(mousePoint))
         {
@@ -94,7 +94,7 @@ public sealed partial class PMap
         base.OnMouseMove(e);
         Point mousePoint = e.GetPosition(this);
         Cursor = PMapCursorResolve(mousePoint);
-        if (lSpool is null || pMapDragMode == PMapDragMode.PMapDragNone || ActualWidth <= 0)
+        if (lFlow.LFlowSpool is not { } lSpool || pMapDragMode == PMapDragMode.PMapDragNone || ActualWidth <= 0)
         {
             return;
         }
@@ -107,12 +107,12 @@ public sealed partial class PMap
         switch (pMapDragMode)
         {
             case PMapDragMode.PMapResizeOrigin:
-                lSpool.LSpoolStartSet(lMapDragTime + dragDeltaTime);
+                lSpool.LSpoolStartSet(lFlow.LFlowDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
             case PMapDragMode.PMapResizeLimit:
-                lSpool.LSpoolEndSet(lMapDragTime + dragDeltaTime);
+                lSpool.LSpoolEndSet(lFlow.LFlowDragTime + dragDeltaTime);
                 PMapSpoolChange?.Invoke();
                 InvalidateVisual();
                 break;
@@ -169,5 +169,5 @@ public sealed partial class PMap
     }
 
     private TimeSpan PMapRatioResolve(double ratio)
-        => lSpool?.LSpoolTimeResolve(ratio) ?? TimeSpan.Zero;
+        => lFlow.LFlowSpool?.LSpoolTimeResolve(ratio) ?? TimeSpan.Zero;
 }

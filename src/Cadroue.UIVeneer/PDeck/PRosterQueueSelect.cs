@@ -6,45 +6,14 @@ namespace Cadroue.UIVeneer.PDeck;
 
 public sealed partial class PRoster
 {
-    private readonly HashSet<Guid> pRosterSelectedIds = new();
-    private Guid pRosterCurrentId;
-
     private void PRosterStepSelect(LWorkItem pWorkItem)
     {
-        Guid pId = pWorkItem.LWorkId;
-        pRosterCardId = Guid.Empty;
-        PRosterCardApply();
         ModifierKeys pModifiers = Keyboard.Modifiers;
-
-        if ((pModifiers & ModifierKeys.Shift) != 0 && pRosterCurrentId != Guid.Empty)
-        {
-            int pAnchor = pRosterOrderedIds.IndexOf(pRosterCurrentId);
-            int pTarget = pRosterOrderedIds.IndexOf(pId);
-            if (pAnchor >= 0 && pTarget >= 0)
-            {
-                pRosterSelectedIds.Clear();
-                for (int pIndex = Math.Min(pAnchor, pTarget); pIndex <= Math.Max(pAnchor, pTarget); pIndex++)
-                {
-                    pRosterSelectedIds.Add(pRosterOrderedIds[pIndex]);
-                }
-            }
-        }
-        else if ((pModifiers & ModifierKeys.Control) != 0)
-        {
-            if (!pRosterSelectedIds.Add(pId))
-            {
-                pRosterSelectedIds.Remove(pId);
-            }
-
-            pRosterCurrentId = pId;
-        }
-        else
-        {
-            pRosterSelectedIds.Clear();
-            pRosterSelectedIds.Add(pId);
-            pRosterCurrentId = pId;
-        }
-
+        LRoster.LRosterStepSelect(
+            pWorkItem.LWorkId,
+            (pModifiers & ModifierKeys.Shift) != 0,
+            (pModifiers & ModifierKeys.Control) != 0);
+        PRosterCardApply();
         PRosterSelectApply();
         PRosterShadeApply();
         PRosterSelectHandle();
@@ -52,7 +21,7 @@ public sealed partial class PRoster
 
     private void PRosterHoverApply(Guid pId, bool pOver)
     {
-        if (pRosterSelectedIds.Contains(pId) || !pRosterStepRows.TryGetValue(pId, out Border? pRow))
+        if (LRoster.LRosterSelectedCheck(pId) || !pRosterStepRows.TryGetValue(pId, out Border? pRow))
         {
             return;
         }
@@ -64,19 +33,20 @@ public sealed partial class PRoster
     {
         foreach ((Guid pRowId, Border pRow) in pRosterStepRows)
         {
-            pRow.Background = pRosterSelectedIds.Contains(pRowId)
+            pRow.Background = LRoster.LRosterSelectedCheck(pRowId)
                 ? PRosterTheme.PRosterSelectBrush
                 : PRosterShadeRead(pRowId);
         }
     }
 
     private LWorkItem? PRosterSelectRead() =>
-        pRosterCurrentId == Guid.Empty
+        LRoster.LRosterCurrentId == Guid.Empty
             ? null
-            : pRosterSchedule.LScheduleRecords.FirstOrDefault(pWorkItem => pWorkItem.LWorkId == pRosterCurrentId);
+            : pRosterSchedule.LScheduleRecords.FirstOrDefault(
+                pWorkItem => pWorkItem.LWorkId == LRoster.LRosterCurrentId);
 
     private IReadOnlyList<LWorkItem> PRosterSelectionRead() =>
         pRosterSchedule.LScheduleRecords
-            .Where(pWorkItem => pRosterSelectedIds.Contains(pWorkItem.LWorkId))
+            .Where(pWorkItem => LRoster.LRosterSelectedCheck(pWorkItem.LWorkId))
             .ToArray();
 }

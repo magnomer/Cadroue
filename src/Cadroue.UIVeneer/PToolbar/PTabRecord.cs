@@ -1,10 +1,10 @@
 using Cadroue.Core;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PPanel;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PToolbar;
 
@@ -19,32 +19,37 @@ public sealed class PTabRecord : INotifyPropertyChanged
         return pBrush;
     }
 
-    private string pTabTitle = string.Empty;
-    private string pTabNameCustom = string.Empty;
-    private bool pTabSelectState;
-    private bool pTabSeparatorState;
-    private bool pTabNameActive;
-
     public PTabRecord(
-        string pTabTitle,
-        string pTabLayoutKey,
+        LStripTab lStripTab,
         string pTabIconPath,
         LPreset? lExportSpecificState = null,
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        PTabId = Guid.NewGuid();
-        PTabTitle = pTabTitle;
-        PTabLayoutKey = pTabLayoutKey;
+        LStripTab = lStripTab;
         PTabIconSource = PIcon.PIconRead(pTabIconPath);
         PTabIconActive = PIcon.PIconRead(pTabIconPath, pTabActiveBrush);
-        PTabWorkspace = new PWorkspace(pTabLayoutKey, lExportSpecificState, lPreferenceTabLayout);
+        PTabWorkspace = new PWorkspace(lStripTab.LStripTabKey, lExportSpecificState, lPreferenceTabLayout);
         if (PTabWorkspace.PWorkspaceSurface.PTabAction is { } pTabAction)
         {
             pTabAction.PActionRelayAttach(PTabId);
         }
     }
 
-    public Guid PTabId { get; }
+    public LStripTab LStripTab { get; }
+
+    public Guid PTabId => LStripTab.LStripTabId;
+
+    public string PTabLayoutKey => LStripTab.LStripTabKey;
+
+    public string PTabTitle => LStripTab.LStripTabTitle;
+
+    public string PTabNameCustom => LStripTab.LStripTabCustom;
+
+    public bool PTabNameActive => LStripTab.LStripTabEditing;
+
+    public bool PTabSelectState => LStripTab.LStripTabSelected;
+
+    public bool PTabSeparatorState => LStripTab.LStripTabSeparator;
 
     public bool PTabRelayState
     {
@@ -52,94 +57,14 @@ public sealed class PTabRecord : INotifyPropertyChanged
         set => PTabWorkspace.PWorkspaceRoot.IsEnabled = !value;
     }
 
-    public string PTabTitle
-    {
-        get => pTabTitle;
-        set
-        {
-            if (pTabTitle == value)
-            {
-                return;
-            }
-
-            pTabTitle = value;
-            PTabPropertyChange();
-        }
-    }
-
-    public string PTabNameCustom
-    {
-        get => pTabNameCustom;
-        set
-        {
-            string pTabTrimmed = (value ?? string.Empty).Trim();
-            if (pTabNameCustom == pTabTrimmed)
-            {
-                return;
-            }
-
-            pTabNameCustom = pTabTrimmed;
-            PTabPropertyChange();
-        }
-    }
-
-    public bool PTabNameActive
-    {
-        get => pTabNameActive;
-        set
-        {
-            if (pTabNameActive == value)
-            {
-                return;
-            }
-
-            pTabNameActive = value;
-            PTabPropertyChange();
-        }
-    }
-
-    public string PTabLayoutKey { get; }
-
     public ImageSource PTabIconSource { get; }
 
     public ImageSource PTabIconActive { get; }
 
     public PWorkspace PTabWorkspace { get; }
 
-    public bool PTabSelectState
-    {
-        get => pTabSelectState;
-        set
-        {
-            if (pTabSelectState == value)
-            {
-                return;
-            }
-
-            pTabSelectState = value;
-            PTabPropertyChange();
-        }
-    }
-
-    public bool PTabSeparatorState
-    {
-        get => pTabSeparatorState;
-        set
-        {
-            if (pTabSeparatorState == value)
-            {
-                return;
-            }
-
-            pTabSeparatorState = value;
-            PTabPropertyChange();
-        }
-    }
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    private void PTabPropertyChange([CallerMemberName] string? pTabPropertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(pTabPropertyName));
-    }
+    internal void PTabUpdate() =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));
 }

@@ -8,16 +8,16 @@ namespace Cadroue.UIVeneer.PFlow;
 
 public sealed partial class PFlow
 {
-    public bool PFlowSweepReady => lSpool is not null;
+    public bool PFlowSweepReady => LFlow.LFlowSpool is not null;
 
-    public TimeSpan PFlowSweepDuration => lSpool?.LSpoolDuration ?? TimeSpan.Zero;
+    public TimeSpan PFlowSweepDuration => LFlow.LFlowDuration;
 
     public bool PFlowCombineApply(
         IReadOnlyList<LSweepSpan> pFlowExcluded,
         IReadOnlyList<LSweepSpan> pFlowKept,
         IReadOnlyList<LSweepBoundary> pFlowBoundaries)
     {
-        if (pFlowUnloaded || lSpool is not { } pFlowSpool)
+        if (LFlow.LFlowUnloaded || LFlow.LFlowSpool is not { } pFlowSpool)
         {
             return false;
         }

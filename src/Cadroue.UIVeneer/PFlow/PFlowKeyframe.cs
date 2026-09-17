@@ -13,15 +13,9 @@ public sealed partial class PFlow
     private readonly DispatcherTimer lKeyframeRequestTimer;
     private readonly DispatcherTimer lKeyframeResumeTimer;
 
-    private string? pFlowKeyframeStamp;
-    private int? pFlowKeyframeDirection;
-
     private void PFlowKeyframeDefer()
     {
-        if (!pFlowCommandActive
-            || pFlowUnloaded
-            || lSpool is null
-            || string.IsNullOrWhiteSpace(lSourcePath))
+        if (!LFlow.LFlowCommandActive || LFlow.LFlowUnloaded || !LFlow.LFlowSourceCheck())
         {
             lKeyframeRequestTimer.Stop();
             return;
@@ -37,7 +31,7 @@ public sealed partial class PFlow
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
         lKeyframeResumeTimer.Interval = PFlowResumeRead();
-        if (pFlowCommandActive && !pFlowUnloaded) lKeyframeResumeTimer.Start();
+        if (LFlow.LFlowCommandActive && !LFlow.LFlowUnloaded) lKeyframeResumeTimer.Start();
     }
 
     private static TimeSpan PFlowResumeRead()
@@ -47,19 +41,16 @@ public sealed partial class PFlow
     {
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
-        if (pFlowCommandActive
-            && !pFlowUnloaded
-            && lSpool is not null
-            && lMediaInfo is { } pFlowMediaInfo
-            && !string.IsNullOrWhiteSpace(lSourcePath))
+        if (LFlow.LFlowScanCheck())
         {
+            string lSourcePath = LFlow.LFlowSourcePath!;
             LTrace.LTraceRecord(
                 LTraceKind.LTraceWork,
-                $"Keyframe scan requested around {lCursor:hh\\:mm\\:ss\\.fff}",
-                $"source {System.IO.Path.GetFileName(lSourcePath)}, duration {lSpool.LSpoolDuration:hh\\:mm\\:ss}\n"
+                $"Keyframe scan requested around {LFlow.LFlowCursor:hh\\:mm\\:ss\\.fff}",
+                $"source {System.IO.Path.GetFileName(lSourcePath)}, duration {LFlow.LFlowDuration:hh\\:mm\\:ss}\n"
                 + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to "
                 + $"{LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
-            lKeyframeOrchestrator.LKeyframeStart(lSourcePath, pFlowMediaInfo, lCursor);
+            lKeyframeOrchestrator.LKeyframeStart(lSourcePath, LFlow.LFlowMediaInfo!, LFlow.LFlowCursor);
         }
     }
 
@@ -69,18 +60,18 @@ public sealed partial class PFlow
 
     private void PFlowNoticeHandle(LKeyframeNotice notice)
     {
-        if (!pFlowCommandActive
-            || pFlowUnloaded
+        if (!LFlow.LFlowCommandActive
+            || LFlow.LFlowUnloaded
             || Dispatcher.HasShutdownStarted
             || Dispatcher.HasShutdownFinished) return;
         Dispatcher.InvokeAsync(() =>
         {
-            if (!pFlowUnloaded && notice.LKeyframeSerial == lKeyframeOrchestrator.LKeyframeCurrentSerial)
+            if (!LFlow.LFlowUnloaded && notice.LKeyframeSerial == lKeyframeOrchestrator.LKeyframeCurrentSerial)
             {
                 PFlowKeyframeRecord(notice);
                 pViewfinder.PViewfinderKeyframesUpdate(notice.LKeyframeList, notice.LKeyframeRanges);
                 pMap.PMapKeyframesUpdate(notice.LKeyframeRanges);
-                if (pFlowKeyframeDirection is int direction)
+                if (LFlow.LFlowKeyframeDirection is int direction)
                 {
                     PFlowKeyframeMove(direction, false);
                 }
@@ -94,15 +85,12 @@ public sealed partial class PFlow
             pRange => (pRange.LKeyframeRangeLimit - pRange.LKeyframeRangeOrigin).TotalSeconds);
         string pFlowStamp =
             $"{notice.LKeyframeKind}/{notice.LKeyframeList.Count}/{notice.LKeyframeRanges.Count}/{pFlowScanned:0.###}";
-        if (string.Equals(pFlowStamp, pFlowKeyframeStamp, StringComparison.Ordinal))
+        if (!LFlow.LFlowStampSet(pFlowStamp))
         {
             return;
         }
 
-        pFlowKeyframeStamp = pFlowStamp;
-        string pFlowSource = string.IsNullOrWhiteSpace(lSourcePath)
-            ? "(no media)"
-            : System.IO.Path.GetFileName(lSourcePath);
+        string pFlowSource = PFlowSourceFormat();
         LTraceLog.LTraceInfoRecord(notice.LKeyframeKind switch
         {
             LKeyframeKind.LKeyframeKindIntra =>
@@ -117,12 +105,13 @@ public sealed partial class PFlow
 
     private void PFlowKeyframeMove(int direction, bool requestScan = true)
     {
-        if (lSpool is null || string.IsNullOrWhiteSpace(lSourcePath))
+        if (!LFlow.LFlowSourceCheck())
         {
             PFlowKeyframeDefer();
             return;
         }
 
+        TimeSpan lCursor = LFlow.LFlowCursor;
         LKeyframeMoveResult result = direction switch
         {
             < 0 => lKeyframeOrchestrator.LKeyframePreviousMove(lCursor),
@@ -131,16 +120,16 @@ public sealed partial class PFlow
         };
         if (result.LKeyframeFailed)
         {
-            pFlowKeyframeDirection = null;
+            LFlow.LFlowDirectionSet(null);
             LTraceLog.LTraceWarningRecord(
                 "Keyframe navigation unavailable: the scan around the cursor failed repeatedly",
-                $"source {System.IO.Path.GetFileName(lSourcePath)}, cursor {lCursor:hh\\:mm\\:ss\\.fff}");
+                $"source {PFlowSourceFormat()}, cursor {lCursor:hh\\:mm\\:ss\\.fff}");
             return;
         }
 
         if (!result.LKeyframeReady)
         {
-            pFlowKeyframeDirection = direction;
+            LFlow.LFlowDirectionSet(direction);
             if (requestScan)
             {
                 PFlowKeyframeRun();
@@ -148,7 +137,7 @@ public sealed partial class PFlow
             return;
         }
 
-        pFlowKeyframeDirection = null;
+        LFlow.LFlowDirectionSet(null);
         if (result.LKeyframeTarget is not null)
         {
             PFlowCursorPropagate(result.LKeyframeTarget.Value, true, true);

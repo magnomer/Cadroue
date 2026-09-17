@@ -7,12 +7,11 @@ namespace Cadroue.UIVeneer.PDeck;
 
 public sealed partial class PConsole
 {
-    private bool pConsoleAutoApplying;
     private LStation? pConsoleStation;
 
     private void PConsoleAutoHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (pConsoleAutoApplying)
+        if (LConsole.LConsoleAutoApplying)
         {
             return;
         }

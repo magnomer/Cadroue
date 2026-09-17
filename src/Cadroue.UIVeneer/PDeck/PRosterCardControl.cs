@@ -60,7 +60,7 @@ public sealed partial class PRoster
 
     private UIElement PRosterMinimizeBuild(Guid pBatchId, StackPanel pDetail)
     {
-        bool pCollapsed = pRosterCollapsedIds.Contains(pBatchId);
+        bool pCollapsed = LRoster.LRosterCollapsedCheck(pBatchId);
         var pIcon = new Image
         {
             Source = PRosterMinimizeRead(pCollapsed, PRosterControlRead(pBatchId)),
@@ -87,13 +87,13 @@ public sealed partial class PRoster
         {
             pButton.Background = PRosterHoverRead(pBatchId);
             pIcon.Source = PRosterMinimizeRead(
-                pRosterCollapsedIds.Contains(pBatchId), PRosterTheme.PRosterTextBrush);
+                LRoster.LRosterCollapsedCheck(pBatchId), PRosterTheme.PRosterTextBrush);
         };
         pButton.MouseLeave += (_, _) =>
         {
             pButton.Background = Brushes.Transparent;
             pIcon.Source = PRosterMinimizeRead(
-                pRosterCollapsedIds.Contains(pBatchId), PRosterControlRead(pBatchId));
+                LRoster.LRosterCollapsedCheck(pBatchId), PRosterControlRead(pBatchId));
         };
         pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
         pButton.MouseLeftButtonUp += (_, _) => PRosterMinimizeToggle(pBatchId);
@@ -104,17 +104,7 @@ public sealed partial class PRoster
 
     private void PRosterMinimizeToggle(Guid pBatchId)
     {
-        bool pCollapsed = !pRosterCollapsedIds.Contains(pBatchId);
-        if (pCollapsed)
-        {
-            pRosterCollapsedIds.Add(pBatchId);
-        }
-        else
-        {
-            pRosterCollapsedIds.Remove(pBatchId);
-        }
-
-        PRosterBatchApply(pBatchId, pCollapsed);
+        PRosterBatchApply(pBatchId, LRoster.LRosterCollapseToggle(pBatchId));
     }
 
     private void PRosterBatchApply(Guid pBatchId, bool pCollapsed)

@@ -11,80 +11,21 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PProcessing
 {
-    private readonly HashSet<string> pProcessingActiveSteps = new(StringComparer.Ordinal);
-    private readonly HashSet<string> pProcessingDisabledSteps = new(StringComparer.Ordinal);
+    public IReadOnlyList<string> PProcessingStepsRead() => LProcessing.LProcessingSteps;
 
-    public IReadOnlyList<string> PProcessingStepsRead()
-    {
-        var pStepNames = new List<string>();
-        foreach (UIElement pRow in pProcessingRowPanel.Children)
-        {
-            if (pRow is Border { Tag: string pRowName })
-            {
-                pStepNames.Add(pRowName);
-            }
-        }
-
-        return pStepNames;
-    }
-
-    public void PProcessingActiveSet(string pStepName, bool pActive)
-    {
-        if (pActive)
-        {
-            pProcessingActiveSteps.Add(pStepName);
-        }
-        else
-        {
-            pProcessingActiveSteps.Remove(pStepName);
-        }
-
-        foreach (UIElement pRow in pProcessingRowPanel.Children)
-        {
-            if (pRow is not Border { Tag: string pRowName, Child: StackPanel pRowContent } || pRowName != pStepName)
-            {
-                continue;
-            }
-
-            PProcessingRowApply(pRowContent, pActive);
-
-            return;
-        }
-    }
+    public void PProcessingActiveSet(string pStepName, bool pActive) =>
+        LProcessing.LProcessingActiveSet(pStepName, pActive);
 
     public void PProcessingEnabledSet(string pStepName, bool pEnabled, string? pDisabledTooltip = null)
     {
-        if (pEnabled)
+        if (pProcessingRows.TryGetValue(pStepName, out Border? pRowBorder))
         {
-            pProcessingDisabledSteps.Remove(pStepName);
-        }
-        else
-        {
-            pProcessingDisabledSteps.Add(pStepName);
-        }
-
-        foreach (UIElement pRow in pProcessingRowPanel.Children)
-        {
-            if (pRow is not Border { Tag: string pRowName } pRowBorder || pRowName != pStepName)
-            {
-                continue;
-            }
-
-            pRowBorder.IsEnabled = pEnabled;
-            pRowBorder.Opacity = pEnabled ? 1 : 0.4;
-            pRowBorder.Cursor = pEnabled ? Cursors.Hand : Cursors.Arrow;
             pRowBorder.ToolTip = pEnabled ? null : pDisabledTooltip;
             AutomationProperties.SetHelpText(pRowBorder, pEnabled ? string.Empty : pDisabledTooltip ?? string.Empty);
             ToolTipService.SetShowOnDisabled(pRowBorder, true);
-            if (!pEnabled && ReferenceEquals(pProcessingRowDragging, pRowBorder))
-            {
-                Mouse.Capture(null);
-                PProcessingDragClear();
-            }
-
-            PProcessingSelectApply();
-            return;
         }
+
+        LProcessing.LProcessingEnabledSet(pStepName, pEnabled);
     }
 
     private static void PProcessingRowApply(StackPanel pRowContent, bool pActive)
@@ -108,7 +49,10 @@ public sealed partial class PProcessing
 
     public void PProcessingStepAdd(string pStepName, string pStepIconPath, string pStepLabelKey)
     {
-        pProcessingRowPanel.Children.Add(PProcessingRowBuild(pStepName, pStepIconPath, pStepLabelKey));
+        Border pRow = PProcessingRowBuild(pStepName, pStepIconPath, pStepLabelKey);
+        pProcessingRows[pStepName] = pRow;
+        pProcessingRowPanel.Children.Add(pRow);
+        LProcessing.LProcessingStepAdd(pStepName);
         PProcessingNumbersUpdate();
     }
 
@@ -140,7 +84,7 @@ public sealed partial class PProcessing
     {
         string pStepLabel = LLocalization.LLocalizationTextRead(pStepLabelKey);
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
-        if (pProcessingOrdered)
+        if (LProcessing.LProcessingOrdered)
         {
             pRowContent.Children.Add(PProcessingBadgeBuild());
         }
@@ -177,13 +121,13 @@ public sealed partial class PProcessing
             Tag = pStepName
         };
         AutomationProperties.SetName(pRowBorder, pStepLabel);
-        PProcessingRowApply(pRowContent, pProcessingActiveSteps.Contains(pStepName));
+        PProcessingRowApply(pRowContent, LProcessing.LProcessingActiveCheck(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
-            PProcessingStepSelect(pStepName);
+            LProcessing.LProcessingStepSelect(pStepName);
 
             pProcessingRowDragging = pRowBorder;
-            pProcessingIndexDragging = pProcessingRowPanel.Children.IndexOf(pRowBorder);
+            LProcessing.LProcessingDragSet(pProcessingRowPanel.Children.IndexOf(pRowBorder));
             pProcessingDragOrigin = pRowEvent.GetPosition(pProcessingRowPanel);
             pProcessingDragActive = false;
 
@@ -196,7 +140,7 @@ public sealed partial class PProcessing
                 return;
             }
 
-            PProcessingStepSelect(pStepName);
+            LProcessing.LProcessingStepSelect(pStepName);
             pRowEvent.Handled = true;
         };
         return pRowBorder;

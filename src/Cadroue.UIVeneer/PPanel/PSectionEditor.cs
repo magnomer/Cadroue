@@ -11,14 +11,13 @@ public sealed partial class PSection
 {
     private const double PSectionAffixWidth = 62;
 
-    private int? pSectionIndexEditing;
     private TextBox? pSectionNameBox;
     private TextBox? pSectionPrefixBox;
     private TextBox? pSectionSuffixBox;
 
     private void PSectionEditCommit()
     {
-        if (pSectionIndexEditing is not int pEditingIndex || pSectionNameBox is not { } pEditingBox)
+        if (LSection.LSectionEditIndex is not int pEditingIndex || pSectionNameBox is not { } pEditingBox)
         {
             return;
         }
@@ -27,7 +26,7 @@ public sealed partial class PSection
         string pEditingPrefix = pSectionPrefixBox?.Text.Trim() ?? string.Empty;
         string pEditingSuffix = pSectionSuffixBox?.Text.Trim() ?? string.Empty;
 
-        pSectionIndexEditing = null;
+        LSection.LSectionEditSet(null);
         pSectionNameBox = null;
         pSectionPrefixBox = null;
         pSectionSuffixBox = null;
@@ -156,14 +155,14 @@ public sealed partial class PSection
 
     private void PSectionEditClose()
     {
-        if (pSectionRebuilding)
+        if (LSection.LSectionRebuilding)
         {
             return;
         }
 
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
         {
-            if (pSectionRebuilding || PSectionFocusCheck())
+            if (LSection.LSectionRebuilding || PSectionFocusCheck())
             {
                 return;
             }
@@ -181,7 +180,7 @@ public sealed partial class PSection
 
     private void PSectionEditCancel()
     {
-        pSectionIndexEditing = null;
+        LSection.LSectionEditSet(null);
         pSectionNameBox = null;
         pSectionPrefixBox = null;
         pSectionSuffixBox = null;

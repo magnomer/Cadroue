@@ -30,35 +30,21 @@ public sealed partial class PEditTab
 
     private void PEditCropHandle()
     {
-        if (pEditCropSyncing)
+        LRotateFlip pEditRotate = pInspector.PInspectorRotateRead();
+        if (pViewer.LViewer.LViewerPreview.LRotateFlip != pEditRotate)
         {
-            return;
+            pViewer.PViewerRotateSet(pEditRotate);
+            PEditSourceSync();
         }
 
-        pEditCropSyncing = true;
-        try
-        {
-            LRotateFlip pEditRotate = pInspector.PInspectorRotateRead();
-            if (pViewer.LViewer.LViewerPreview.LRotateFlip != pEditRotate)
-            {
-                pViewer.PViewerRotateSet(pEditRotate);
-                PEditSourceSync();
-            }
-
-            (bool pRatioFixed, _, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
-            pViewer.PCropRatioSet(pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0
-                ? new System.Windows.Size(pRatioWidth, pRatioHeight)
-                : null);
-            pViewer.PCropPersistent = pCropOwner.LCropboxStatePersistent;
-            pViewer.PCropActiveSet(pCropOwner.LCropboxStateActive);
-            pViewer.PCropVideoSet(pInspector.PInspectorRectRead());
-            PEditCropUpdate();
-        }
-        finally
-        {
-            pEditCropSyncing = false;
-        }
-
+        (bool pRatioFixed, _, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
+        pViewer.PCropRatioSet(pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0
+            ? new System.Windows.Size(pRatioWidth, pRatioHeight)
+            : null);
+        pViewer.PCropPersistent = pCropOwner.LCropboxStatePersistent;
+        pViewer.PCropActiveSet(pCropOwner.LCropboxStateActive);
+        pViewer.PCropVideoSet(pInspector.PInspectorRectRead());
+        PEditCropUpdate();
         PEditPlanSave();
     }
 
@@ -76,11 +62,6 @@ public sealed partial class PEditTab
 
     private void PEditCropShow(System.Windows.Rect? pCropVideo)
     {
-        if (pEditCropSyncing)
-        {
-            return;
-        }
-
         PEditSourceSync();
         LTraceLog.LTraceInfoRecord($"Edit crop from viewer: {PEditRectFormat(pCropVideo)}");
         (int pCropDrive, int pCropAnchorX, int pCropAnchorY) = pViewer.PCropAnchorRead();
@@ -94,7 +75,7 @@ public sealed partial class PEditTab
             : "(no media)";
 
         LEditPlan? pEditApplied = null;
-        pEditPlanLoading = true;
+        pInspector.LInspector.LInspectorRestoreSet(true);
         try
         {
             PEditSourceSync();
@@ -137,7 +118,7 @@ public sealed partial class PEditTab
         }
         finally
         {
-            pEditPlanLoading = false;
+            pInspector.LInspector.LInspectorRestoreSet(false);
         }
 
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());

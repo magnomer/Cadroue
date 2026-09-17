@@ -35,8 +35,6 @@ public sealed partial class PEditTab : PTabSurface
     {
         Interval = TimeSpan.FromMilliseconds(220)
     };
-    private bool pEditPlanLoading;
-    private bool pEditCropSyncing;
 
     public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -194,7 +192,7 @@ public sealed partial class PEditTab : PTabSurface
         };
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);

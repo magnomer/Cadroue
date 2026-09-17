@@ -121,7 +121,7 @@ public sealed partial class PGroup
         Button pSortButton = PGroupButtonBuild(
             "/PAsset/PPanel/PSort.svg",
             LLocalization.LLocalizationTextRead("Group.Sort.Tooltip"),
-            (_, _) => PGroupSort());
+            (_, _) => LGroup.LGroupSort());
         pSortButton.Margin = new Thickness(0);
         pButtons.Children.Add(pSortButton);
         return pButtons;
@@ -183,19 +183,6 @@ public sealed partial class PGroup
 
     private void PGroupLooseApply() => PGroupAutoApply(false);
 
-    private void PGroupAutoApply(bool? pGroupStrict = null)
-    {
-        IReadOnlyList<string> pFiles = PGroupSourceFiles?.Invoke() ?? Array.Empty<string>();
-        IReadOnlyList<LSeriesGroup> pGroups = lGroupOwner.LGroupResolve(pFiles, pGroupStrict);
-
-        pGroupRecords.Clear();
-        foreach (LSeriesGroup pGroupSeries in pGroups)
-        {
-            var pRecord = new PGroupRecord { PGroupRecordName = pGroupSeries.LSeriesName };
-            pRecord.PGroupRecordPaths.AddRange(pGroupSeries.LSeriesPaths);
-            pGroupRecords.Add(pRecord);
-        }
-
-        PGroupRebuild();
-    }
+    private void PGroupAutoApply(bool? pGroupStrict = null) =>
+        LGroup.LGroupAutoApply(PGroupSourceFiles?.Invoke() ?? Array.Empty<string>(), pGroupStrict);
 }

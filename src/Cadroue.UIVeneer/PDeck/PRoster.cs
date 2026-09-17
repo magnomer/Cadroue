@@ -5,6 +5,7 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PDeck;
 
@@ -18,9 +19,9 @@ public sealed partial class PRoster : UserControl
     private readonly ScrollViewer pRosterQueueScroller;
     private readonly StackPanel pRosterDetailPanel;
     private readonly TextBlock pRosterDetailTitle;
-    private bool pRosterClosed;
-    private bool pRosterDetailPending;
     private readonly System.Windows.Threading.DispatcherTimer pRosterElapsedTimer;
+
+    public LRoster LRoster { get; } = new();
 
     public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
     {
@@ -51,7 +52,7 @@ public sealed partial class PRoster : UserControl
 
     private void PRosterElapsedTick(object? pSender, EventArgs pArguments)
     {
-        if (pRosterClosed || !IsVisible)
+        if (LRoster.LRosterClosed || !IsVisible)
         {
             return;
         }
@@ -77,10 +78,10 @@ public sealed partial class PRoster : UserControl
 
     private bool PRosterMeasuringCheck()
     {
-        if (pRosterCardId != Guid.Empty)
+        if (LRoster.LRosterCardId != Guid.Empty)
         {
             return pRosterSchedule.LScheduleRecords.Any(
-                pWorkItem => pWorkItem.LWorkBatchId == pRosterCardId && !pWorkItem.LWorkSourceMeasured);
+                pWorkItem => LRoster.LRosterCardCheck(pWorkItem.LWorkBatchId) && !pWorkItem.LWorkSourceMeasured);
         }
 
         return PRosterSelectRead() is { LWorkSourceMeasured: false };

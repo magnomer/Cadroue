@@ -25,10 +25,8 @@ public partial class PWindow
         pFlowActive = pTabRecord.PTabWorkspace.PWorkspaceFlow;
         pViewerActive = pTabRecord.PTabWorkspace.PWorkspaceViewer;
         pListActive = pTabRecord.PTabWorkspace.PWorkspaceList;
-        pWindowAudioAllowed = pTabRecord.PTabLayoutKey == "Audio";
         PWindowWorkspaceAttach(pTabRecord);
         PWindowWidthAttach(pTabRecord.PTabWorkspace.PWorkspaceSurface);
-        PWindowMediaOpen();
     }
 
     private void PWindowWorkspaceAttach(PTabRecord pTabRecord)
@@ -49,8 +47,7 @@ public partial class PWindow
         pFlowActive.PFlowDragChange += pViewerActive.PViewerDragSet;
         pFlowActive.PFlowPlay += pViewerActive.PViewerPlay;
         pFlowActive.PFlowPause += pViewerActive.PViewerPause;
-        pViewerActive.PViewerPlayingChange += pFlowActive.PFlowPlayingRaise;
-        pFlowActive.PFlowVolumeChange += pViewerActive.PViewerVolumeSet;
+        pFlowActive.PFlowVolumeAdjust += pViewerActive.PViewerVolumeAdjust;
         PWindowVolumeSync(LPreference.LPreferenceStateCurrent);
     }
     private void PWindowWorkspaceDetach()
@@ -64,8 +61,7 @@ public partial class PWindow
             pViewerActive.PViewerDragSet(false);
             pFlowActive.PFlowPlay -= pViewerActive.PViewerPlay;
             pFlowActive.PFlowPause -= pViewerActive.PViewerPause;
-            pViewerActive.PViewerPlayingChange -= pFlowActive.PFlowPlayingRaise;
-            pFlowActive.PFlowVolumeChange -= pViewerActive.PViewerVolumeSet;
+            pFlowActive.PFlowVolumeAdjust -= pViewerActive.PViewerVolumeAdjust;
             pFlowActive.PFlowPlayingSource = null;
             pFlowActive.PFlowSectionShow(false);
             pFlowActive.PFlowCommandSet(false);
@@ -77,12 +73,8 @@ public partial class PWindow
 
     private void PWindowVolumeSync(LPreferenceState lPreferenceState)
     {
-        if (pFlowActive is null || pViewerActive is null) return;
-        double pVolume = lPreferenceState.LPreferenceVolumeUnified
-            ? lPreferenceState.LPreferenceVolume
-            : pViewerActive.PViewerVolumeCurrent;
-        if (lPreferenceState.LPreferenceVolumeUnified) pViewerActive.PViewerVolumeSet(pVolume);
-        pFlowActive.PFlowVolumeSet(pVolume);
+        if (pViewerActive is null || !lPreferenceState.LPreferenceVolumeUnified) return;
+        pViewerActive.PViewerVolumeSet(lPreferenceState.LPreferenceVolume);
     }
 
 }

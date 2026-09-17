@@ -97,6 +97,7 @@ public sealed partial class PViewfinder
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
+        TimeSpan lCursor = lFlow.LFlowCursor;
         if (lCursor < rangeStart || lCursor > rangeEnd)
         {
             return;
@@ -145,7 +146,7 @@ public sealed partial class PViewfinder
     {
         foreach (LKeyframeScanRange range in LKeyframeView.LKeyframeCoverageResolve(
             lKeyframeScannedRanges,
-            lSpool!,
+            lFlow.LFlowSpool!,
             false))
         {
             double scanStartX = Math.Clamp(
@@ -183,7 +184,8 @@ public sealed partial class PViewfinder
         TimeSpan rangeEnd,
         double rangeSeconds)
     {
-        IReadOnlyList<LKeyframeEntry> visible = LKeyframeView.LKeyframeVisibleResolve(lKeyframeList, lCursor, lSpool!);
+        IReadOnlyList<LKeyframeEntry> visible = LKeyframeView.LKeyframeVisibleResolve(
+            lKeyframeList, lFlow.LFlowCursor, lFlow.LFlowSpool!);
         if (visible.Count == 0)
         {
             return;

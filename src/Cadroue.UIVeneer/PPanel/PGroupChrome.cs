@@ -24,7 +24,7 @@ public sealed partial class PGroup
         Button pMinimizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Group.Panel.HideTooltip"),
-            (_, _) => PGroupMinimizeSet(true));
+            (_, _) => LGroup.LGroupMinimizedSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -50,7 +50,7 @@ public sealed partial class PGroup
         Button pMaximizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Group.Panel.ShowTooltip"),
-            (_, _) => PGroupMinimizeSet(false));
+            (_, _) => LGroup.LGroupMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

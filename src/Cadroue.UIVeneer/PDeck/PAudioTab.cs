@@ -24,9 +24,7 @@ public sealed partial class PAudioTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly LSMonitor pAudioMonitor = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
-    private bool pAudioPlanLoading;
     private string? pAudioOwnerPath;
-    private int pAudioOwnerRate;
     private string? pAudioSaveFailure;
     private System.Windows.Threading.DispatcherTimer? pAudioViewerTimer;
 
@@ -141,7 +139,7 @@ public sealed partial class PAudioTab : PTabSurface
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);

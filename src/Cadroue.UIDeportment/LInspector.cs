@@ -12,6 +12,7 @@ public sealed class LInspector
     private bool lInspectorCropCapable = true;
     private bool lInspectorOrientationCapable = true;
     private bool lInspectorToolArmed;
+    private bool lInspectorRestoring;
 
     public event Action? LInspectorChange;
 
@@ -32,6 +33,10 @@ public sealed class LInspector
     public bool LInspectorOrientationCapable => lInspectorOrientationCapable;
 
     public bool LInspectorToolArmed => lInspectorToolArmed;
+
+    public bool LInspectorRestoring => lInspectorRestoring;
+
+    public void LInspectorRestoreSet(bool lRestoring) => lInspectorRestoring = lRestoring;
 
     public void LInspectorMinimizedSet(bool lMinimized)
     {

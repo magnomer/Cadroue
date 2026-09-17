@@ -12,9 +12,8 @@ public sealed partial class PExport
 {
     private void PExportPresetSelect(string lPresetName)
     {
-        pPresetNameSelected = lPresetName;
         PExportGroupShow(lPresetName);
-        lPresetOwner.LPresetSelectionSelect(lPresetName);
+        LExport.LExportSelect(lPresetName);
     }
 
     private void PExportGroupShow(string lPresetName)

@@ -46,7 +46,7 @@ public sealed partial class PSection
             pSectionRowPanel.ReleaseMouseCapture();
             PSectionDragClear();
             PSectionEditCommit();
-            if (pSectionEditable && pRowBorderHost is { } pToggleRow)
+            if (LSection.LSectionEditable && pRowBorderHost is { } pToggleRow)
             {
                 pFlowAttached?.PFlowSectionToggle(pSectionRowPanel.Children.IndexOf(pToggleRow));
             }
@@ -80,7 +80,7 @@ public sealed partial class PSection
         }
 
         UIElement pNameHost;
-        if (pSectionIndex == pSectionIndexEditing)
+        if (pSectionIndex == LSection.LSectionEditIndex)
         {
             pNameHost = PSectionEditorBuild(pSectionEntry);
         }
@@ -89,7 +89,7 @@ public sealed partial class PSection
             TextBlock pNameText = PSectionTextBuild(pSectionIndex, pSectionEntry);
             pNameText.MouseLeftButtonDown += (_, pEvent) =>
             {
-                if (pEvent.ClickCount < 2 || !pSectionEditable)
+                if (pEvent.ClickCount < 2 || !LSection.LSectionEditable)
                 {
                     return;
                 }
@@ -108,7 +108,7 @@ public sealed partial class PSection
                 }
 
                 pFlowAttached?.PFlowSectionSelect(pRenameIndex);
-                pSectionIndexEditing = pRenameIndex;
+                LSection.LSectionEditSet(pRenameIndex);
                 PSectionRebuild();
                 pEvent.Handled = true;
             };
@@ -170,10 +170,9 @@ public sealed partial class PSection
             }
 
             pSectionRowDragging = pRowBorder;
-            pSectionIndexDragging = pSectionRowPanel.Children.IndexOf(pRowBorder);
+            LSection.LSectionDragSet(pSectionRowPanel.Children.IndexOf(pRowBorder), false);
             pSectionDragOrigin = pEvent.GetPosition(pSectionRowPanel);
             pSectionGrabOffset = pEvent.GetPosition(pRowBorder);
-            pSectionDragActive = false;
             pSectionRowPanel.CaptureMouse();
         };
         pRowBorder.MouseLeftButtonDown += (_, pEvent) => PSectionSeekHandle(false, pEvent);

@@ -4,22 +4,20 @@ namespace Cadroue.UIVeneer.PFlow;
 
 public sealed partial class PFlow
 {
-    private TimeSpan lCursor;
-
     public event Action<TimeSpan>? PFlowCursorChange;
 
-    public TimeSpan PFlowCursorRead() => lCursor;
+    public TimeSpan PFlowCursorRead() => LFlow.LFlowCursor;
 
     public void PFlowCursorUpdate(TimeSpan cursorTime)
     {
-        if (!pFlowCommandActive) return;
+        if (!LFlow.LFlowCommandActive) return;
         PFlowCursorPropagate(cursorTime, false, false);
         PFlowKeyframeDefer();
     }
 
     public void PFlowCursorSeek(TimeSpan cursorTime)
     {
-        if (!pFlowCommandActive) return;
+        if (!LFlow.LFlowCommandActive) return;
         PFlowKeyframeSuspend();
         PFlowCursorPropagate(cursorTime, true, false);
     }
@@ -30,10 +28,10 @@ public sealed partial class PFlow
 
     private void PFlowCursorPropagate(TimeSpan cursorTime, bool pFlowViewerSeekRequest, bool lKeyframeRestartRequest)
     {
-        pFlowKeyframeDirection = null;
-        lCursor = PFlowCursorClamp(cursorTime);
-        pViewfinder.PViewfinderCursorUpdate(lCursor);
-        pMap.PMapCursorUpdate(lCursor);
+        LFlow.LFlowDirectionSet(null);
+        LFlow.LFlowCursorSet(cursorTime);
+        pViewfinder.PViewfinderCursorUpdate();
+        pMap.PMapCursorUpdate();
 
         if (lKeyframeRestartRequest)
         {
@@ -42,16 +40,16 @@ public sealed partial class PFlow
 
         if (pFlowViewerSeekRequest)
         {
-            PFlowCursorChange?.Invoke(lCursor);
+            PFlowCursorChange?.Invoke(LFlow.LFlowCursor);
         }
     }
 
     public (TimeSpan, TimeSpan)? PFlowRangeRead() =>
-        lSpool is null ? null : (lSpool.LSpoolRangeOrigin, lSpool.LSpoolRangeLimit);
+        LFlow.LFlowSpool is not { } lSpool ? null : (lSpool.LSpoolRangeOrigin, lSpool.LSpoolRangeLimit);
 
     public void PFlowRangeSet(TimeSpan pFlowOrigin, TimeSpan pFlowLimit)
     {
-        if (lSpool is null) return;
+        if (LFlow.LFlowSpool is not { } lSpool) return;
         lSpool.LSpoolRangeSet(pFlowOrigin, pFlowLimit);
         PFlowSpoolHandle();
     }
@@ -66,16 +64,10 @@ public sealed partial class PFlow
     {
         pViewfinder.PViewfinderSpoolUpdate();
         pMap.PMapSpoolUpdate();
-        if (lSpool is null) return;
+        if (LFlow.LFlowSpool is not { } lSpool) return;
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolRangeOrigin);
         pViewfinderLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolRangeLimit);
         PFlowKeyframeDefer();
-    }
-
-    private TimeSpan PFlowCursorClamp(TimeSpan cursorTime)
-    {
-        if (lSpool is null || cursorTime < TimeSpan.Zero) return TimeSpan.Zero;
-        return cursorTime > lSpool.LSpoolDuration ? lSpool.LSpoolDuration : cursorTime;
     }
 
     private static string PFlowTimeFormat(TimeSpan displayTime) => displayTime.TotalHours >= 1

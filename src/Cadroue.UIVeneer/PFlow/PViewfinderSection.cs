@@ -45,7 +45,7 @@ public sealed partial class PViewfinder
                 actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
             Brush sectionBrush = PSectionPalette.PSectionPaletteRead(section.LPieceColorIndex);
-            Pen? sectionPen = index == lSectionIndexActive ? new Pen(Brushes.Black, 1.5) : null;
+            Pen? sectionPen = index == lFlow.LFlowSectionIndex ? new Pen(Brushes.Black, 1.5) : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
 
             if (section.LPieceHidden)

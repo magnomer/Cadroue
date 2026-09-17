@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIVeneer;
+using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PPanel;
 using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
 
 namespace Cadroue.UIVeneer.PDeck;
@@ -42,9 +44,12 @@ public sealed partial class PCompass : UserControl
     private readonly PFlowControl pCompassFlow;
     private readonly List<Button> pCompassSectionButtons = new();
 
-    public PCompass(PFlowControl pFlow, bool pCompassSectionShow = false)
+    public LCompass LCompass { get; }
+
+    public PCompass(PFlowControl pFlow, PViewer pViewer, bool pCompassSectionShow = false)
     {
         pCompassFlow = pFlow;
+        LCompass = new LCompass(pViewer.LViewer);
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
 
         PCompassButton[] pButtons =
@@ -185,19 +190,19 @@ public sealed partial class PCompass : UserControl
             ToolTip = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
             Style = PCompassSliderBuild()
         };
-        pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pFlow);
-        pFlow.PFlowVolumeValue += PCompassValueHandle;
-        pFlow.PFlowPlayingChange += PCompassPlayingApply;
-        pFlow.PFlowEditChange += PCompassEditApply;
-        PCompassEditApply(pFlow.PFlowEditCheck());
+        pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle(pViewer);
+        pViewer.LViewer.LViewerVolumeChange += PCompassValueHandle;
+        pViewer.LViewer.LViewerPlayingChange += PCompassPlayingApply;
+        pFlow.LFlow.LFlowEditChange += PCompassEditApply;
+        PCompassEditApply(pFlow.LFlow.LFlowSectionEditable);
 
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
         pVolumeGroup.Children.Add(PCompassWaveformBuild(pFlow));
         pCompassLinePanel.Children.Add(pVolumeGroup);
-        PCompassValueHandle(LPreference.LPreferenceStateCurrent.LPreferenceVolume);
-        pFlow.PFlowWaveformChange += PCompassWaveformApply;
-        PCompassWaveformApply(pFlow.PFlowWaveformCheck());
+        PCompassValueHandle(LCompass.LCompassVolume);
+        pFlow.LFlow.LFlowWaveformChange += PCompassWaveformApply;
+        PCompassWaveformApply(pFlow.LFlow.LFlowWaveformActive);
 
         Content = new Border
         {

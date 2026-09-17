@@ -11,7 +11,7 @@ public sealed partial class PViewfinder
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        if (lSpool is null || ActualWidth <= 0)
+        if (lFlow.LFlowSpool is not { } lSpool || ActualWidth <= 0)
         {
             return;
         }
@@ -28,7 +28,9 @@ public sealed partial class PViewfinder
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        if (pViewfinderDragMode == PViewfinderDragMode.PViewfinderDragNone || lSpool is null || ActualWidth <= 0)
+        if (pViewfinderDragMode == PViewfinderDragMode.PViewfinderDragNone
+            || lFlow.LFlowSpool is not { } lSpool
+            || ActualWidth <= 0)
         {
             return;
         }
@@ -80,7 +82,7 @@ public sealed partial class PViewfinder
 
     private TimeSpan PViewfinderPositionResolve(double mouseX)
     {
-        if (lSpool is null || ActualWidth <= 0)
+        if (lFlow.LFlowSpool is not { } lSpool || ActualWidth <= 0)
         {
             return TimeSpan.Zero;
         }

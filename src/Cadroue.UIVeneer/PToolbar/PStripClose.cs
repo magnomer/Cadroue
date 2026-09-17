@@ -47,39 +47,17 @@ public sealed partial class PStrip
 
     public void PStripClose(PTabRecord pTabRecord)
     {
-        var pTabIndex = PStripRecords.IndexOf(pTabRecord);
-        if (pTabIndex < 0)
+        if (!PStripRecords.Contains(pTabRecord))
         {
             return;
-        }
-
-        var pTabWasSelected = ReferenceEquals(PStripSelected, pTabRecord);
-        if (ReferenceEquals(pStripHovered, pTabRecord))
-        {
-            pStripHovered = null;
         }
 
         string pTabClosedTitle = pTabRecord.PTabTitle;
         pTabRecord.PTabWorkspace.PWorkspaceClose();
         LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
-        PStripRecords.RemoveAt(pTabIndex);
-        PStripTitleUpdate();
+        PStripRecords.Remove(pTabRecord);
+        LStrip.LStripRemove(pTabRecord.LStripTab);
         LTraceLog.LTraceInfoRecord($"Tab closed '{pTabClosedTitle}': {PStripRecords.Count} tab(s) open");
-
-        if (!pTabWasSelected)
-        {
-            PStripSeparatorUpdate();
-            return;
-        }
-
-        if (PStripRecords.Count == 0)
-        {
-            PStripSelected = null;
-            return;
-        }
-
-        var pTabNextIndex = LTabset.LTabsetNextResolve(PStripRecords.Count, pTabIndex);
-        PStripSelect(PStripRecords[pTabNextIndex]);
     }
 
     public void PStripAllClose()
@@ -90,9 +68,8 @@ public sealed partial class PStrip
             LCartographer.LCartographerTabRemove(pTabRecord.PTabId);
         }
 
-        pStripHovered = null;
         PStripRecords.Clear();
-        PStripSelected = null;
+        LStrip.LStripClear();
         LTraceLog.LTraceInfoRecord("All tabs closed");
     }
 }

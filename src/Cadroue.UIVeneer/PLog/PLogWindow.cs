@@ -11,6 +11,8 @@ using Cadroue.UIVeneer.PSCasement;
 
 using Cadroue.Infrastructure;
 
+using Cadroue.UIDeportment;
+
 namespace Cadroue.UIVeneer;
 
 public sealed partial class PLogWindow : Window
@@ -36,10 +38,8 @@ public sealed partial class PLogWindow : Window
     private readonly PSGrabber pLogGrabber;
 
     private Window? pLogOwnerWindow;
-    private string pLogFilePath = string.Empty;
-    private bool pLogFileLive = true;
-    private bool pLogFollowTail = true;
-    private long pLogSnapshotSequence;
+
+    public LLog LLog { get; } = new();
 
     private PLogWindow()
     {

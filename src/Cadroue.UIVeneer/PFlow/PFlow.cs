@@ -10,14 +10,14 @@ using Cadroue.Core;
 using Cadroue.Application;
 
 using Cadroue.Infrastructure;
-
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PFlow;
 
 public sealed partial class PFlow : UserControl
 {
-    private readonly PViewfinder pViewfinder = new();
-    private readonly PMap pMap = new();
+    private readonly PViewfinder pViewfinder;
+    private readonly PMap pMap;
     private readonly TextBlock pViewfinderLabelLeft = PReelLabelBuild();
     private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
     private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
@@ -30,13 +30,8 @@ public sealed partial class PFlow : UserControl
     };
     private readonly Grid pFlowViewfinderReel;
     private readonly Grid pFlowMapReel;
-    private LSpool? lSpool;
-    private string? lSourcePath;
-    private LMediaInfo? lMediaInfo;
 
-    private bool pFlowSectionActive;
-    private bool pFlowCommandActive;
-    private bool pFlowUnloaded;
+    public LFlow LFlow { get; } = new();
 
     public event Action<IReadOnlyList<LPiece>, int?>? PFlowSectionChange;
 
@@ -46,6 +41,8 @@ public sealed partial class PFlow : UserControl
     {
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         MinHeight = PFlowHeightMinimum;
+        pViewfinder = new PViewfinder(LFlow);
+        pMap = new PMap(LFlow);
         pViewfinder.PViewfinderCursorChange += PFlowViewfinderSeek;
         pViewfinder.PViewfinderSectionSelect += PFlowViewfinderSelect;
         pViewfinder.PViewfinderDragChange += PFlowDragSet;
@@ -84,25 +81,21 @@ public sealed partial class PFlow : UserControl
 
     public void PFlowAttach(LMediaInfo mediaInfo, string? sourcePath, TimeSpan cursorTime)
     {
-        if (!pFlowCommandActive) return;
+        if (!LFlow.LFlowCommandActive) return;
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
-        string? pFlowNextSource = string.IsNullOrWhiteSpace(sourcePath) ? null : sourcePath;
-        bool pFlowSameSource = pFlowNextSource is not null
-            && string.Equals(lSourcePath, pFlowNextSource, StringComparison.OrdinalIgnoreCase);
-        TimeSpan pFlowResumeAt = pFlowSameSource ? lCursor : cursorTime;
-        lSourcePath = pFlowNextSource;
-        lMediaInfo = mediaInfo;
-        lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
-        pFlowWaveformAudio = mediaInfo.LMediaAudioPresent;
-        pFlowKeyframeDirection = null;
-        lCursor = PFlowCursorClamp(pFlowResumeAt);
-        lSegment.LSegmentSourceSet(lSourcePath);
+        bool pFlowSameSource = LFlow.LFlowSourceMatch(sourcePath);
+        TimeSpan pFlowResumeAt = pFlowSameSource ? LFlow.LFlowCursor : cursorTime;
+        LFlow.LFlowSourceSet(mediaInfo, sourcePath);
+        LSpool lSpool = LFlow.LFlowSpool!;
+        LFlow.LFlowCursorSet(pFlowResumeAt);
+        lSegment.LSegmentSourceSet(LFlow.LFlowSourcePath);
         lSegment.LSegmentReset();
-        pViewfinder.PViewfinderAttach(lSpool, lCursor, lSourcePath);
-        pMap.PMapAttach(lSpool, lCursor, lSourcePath);
-        pViewfinder.PViewfinderSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
-        pMap.PMapSectionsUpdate(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
+        pViewfinder.PViewfinderAttach();
+        pMap.PMapAttach();
+        LFlow.LFlowSectionSelect(lSegment.LSegmentSelectionRead());
+        pViewfinder.PViewfinderSectionsUpdate(lSegment.LSegmentListRead());
+        pMap.PMapSectionsUpdate(lSegment.LSegmentListRead());
         pViewfinderLabelLeft.Text = PFlowTimeFormat(lSpool.LSpoolRangeOrigin);
         pViewfinderLabelRight.Text = PFlowTimeFormat(lSpool.LSpoolRangeLimit);
         pMapLabelLeft.Text = PFlowTimeFormat(TimeSpan.Zero);
@@ -114,15 +107,15 @@ public sealed partial class PFlow : UserControl
         PFlowMediaChange?.Invoke();
         PFlowKeyframeRun();
         PFlowWaveformStart();
-        if (pFlowSameSource && lCursor > TimeSpan.Zero)
+        if (pFlowSameSource && LFlow.LFlowCursor > TimeSpan.Zero)
         {
-            PFlowCursorChange?.Invoke(lCursor);
+            PFlowCursorChange?.Invoke(LFlow.LFlowCursor);
         }
     }
 
     public bool PFlowClear()
     {
-        if (lSourcePath is null && lSpool is null
+        if (LFlow.LFlowSourcePath is null && LFlow.LFlowSpool is null
             && lSegment.LSegmentListRead().Count == 0 && lSegment.LSegmentSelectionRead() is null)
         {
             return false;
@@ -131,11 +124,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
         lKeyframeOrchestrator.LKeyframeSuspend();
-        pFlowKeyframeDirection = null;
-        lSourcePath = null;
-        lMediaInfo = null;
-        lSpool = null;
-        lCursor = TimeSpan.Zero;
+        LFlow.LFlowSourceClear();
         lSegment.LSegmentSourceSet(null);
         lSegment.LSegmentReset();
         pViewfinder.PViewfinderClear();
@@ -152,8 +141,8 @@ public sealed partial class PFlow : UserControl
 
     public void PFlowCommandSet(bool pCommandActive)
     {
-        pFlowCommandActive = pCommandActive;
-        if (pFlowCommandActive)
+        LFlow.LFlowCommandSet(pCommandActive);
+        if (pCommandActive)
         {
             PFlowKeyframeDefer();
         }
@@ -162,20 +151,20 @@ public sealed partial class PFlow : UserControl
             lKeyframeRequestTimer.Stop();
             lKeyframeResumeTimer.Stop();
             lKeyframeOrchestrator.LKeyframeSuspend();
-            pFlowKeyframeDirection = null;
+            LFlow.LFlowDirectionSet(null);
         }
     }
 
     public void PFlowSectionShow(bool sectionUiActive)
     {
-        pFlowSectionActive = sectionUiActive;
+        LFlow.LFlowSectionSet(sectionUiActive);
         pFlowSectionButtons.Visibility = sectionUiActive ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public void PFlowClose()
     {
-        if (pFlowUnloaded) return;
-        pFlowUnloaded = true;
+        if (LFlow.LFlowUnloaded) return;
+        LFlow.LFlowUnloadSet();
         PFlowNameClose();
         lKeyframeRequestTimer.Stop();
         lKeyframeRequestTimer.Tick -= PFlowTimerHandle;
@@ -189,17 +178,18 @@ public sealed partial class PFlow : UserControl
 
     public bool PFlowShortcutDispatch(string pFlowShortcutCode)
     {
-        if (!pFlowCommandActive || lSpool is null) return false;
+        if (!LFlow.LFlowCommandActive || LFlow.LFlowSpool is not { } lSpool) return false;
+        bool pFlowEditable = LFlow.LFlowEditCheck();
         switch (pFlowShortcutCode)
         {
-            case "zoomIn": lSpool.LSpoolZoom(lCursor, 1); PFlowSpoolUpdate(); return true;
-            case "zoomOut": lSpool.LSpoolZoom(lCursor, -1); PFlowSpoolUpdate(); return true;
-            case "addSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionAdd(); return true;
-            case "setStart" when pFlowSectionActive && pFlowSectionEditable: PFlowStartSet(); return true;
-            case "splitSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionDivide(); return true;
-            case "setEnd" when pFlowSectionActive && pFlowSectionEditable: PFlowEndSet(); return true;
-            case "deleteSection" when pFlowSectionActive && pFlowSectionEditable: PFlowSectionDelete(); return true;
-            case "nameSection" when pFlowSectionActive && pFlowSectionEditable: return PFlowNameShow();
+            case "zoomIn": lSpool.LSpoolZoom(LFlow.LFlowCursor, 1); PFlowSpoolUpdate(); return true;
+            case "zoomOut": lSpool.LSpoolZoom(LFlow.LFlowCursor, -1); PFlowSpoolUpdate(); return true;
+            case "addSection" when pFlowEditable: PFlowSectionAdd(); return true;
+            case "setStart" when pFlowEditable: PFlowStartSet(); return true;
+            case "splitSection" when pFlowEditable: PFlowSectionDivide(); return true;
+            case "setEnd" when pFlowEditable: PFlowEndSet(); return true;
+            case "deleteSection" when pFlowEditable: PFlowSectionDelete(); return true;
+            case "nameSection" when pFlowEditable: return PFlowNameShow();
             case "previousKey": PFlowKeyframeMove(-1); return true;
             case "nearestKey": PFlowKeyframeMove(0); return true;
             case "nextKey": PFlowKeyframeMove(1); return true;

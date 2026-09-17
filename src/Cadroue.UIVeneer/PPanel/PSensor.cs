@@ -1,8 +1,8 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -22,24 +22,32 @@ public sealed partial class PInspector
 
     private readonly Dictionary<LDetectorKind, PSensorSection> pSensorSections = new();
 
+    public LSensor LSensor { get; } = new();
+
+    public LBlank LBlank { get; } = new();
+
     private sealed class PSensorSection
     {
         public required LDetectorKind PSensorKind { get; init; }
         public required CheckBox PSensorApplyBox { get; init; }
         public required StackPanel PSensorStack { get; init; }
         public required StackPanel PSensorBody { get; init; }
+        public Slider? PSensorThresholdSlider { get; init; }
         public TextBox? PSensorThreshold { get; init; }
+        public TextBlock? PSensorUnit { get; init; }
+        public Slider? PSensorMinimumSlider { get; init; }
         public TextBox? PSensorMinimum { get; init; }
+        public Slider? PSensorWindowSlider { get; init; }
         public TextBox? PSensorWindow { get; init; }
-        public RadioButton? PSensorMode { get; init; }
+        public RadioButton? PSensorDiscard { get; init; }
+        public RadioButton? PSensorTreat { get; init; }
         public RadioButton? PSensorFast { get; init; }
         public RadioButton? PSensorNormal { get; init; }
         public RadioButton? PSensorFull { get; init; }
-        public RadioButton? PSensorMetric { get; init; }
-        public bool PSensorSuppress { get; set; }
+        public RadioButton? PSensorLufs { get; init; }
+        public RadioButton? PSensorRms { get; init; }
+        public ComboBox? PSensorPreset { get; init; }
     }
-
-    private void PSensorRaise() => PSensorChange?.Invoke();
 
     public static string PSensorNameRead(LDetectorKind pDetectorKind) => pDetectorKind switch
     {
@@ -92,28 +100,10 @@ public sealed partial class PInspector
             return PBlankBuild();
         }
 
-        PSensorSection pSection = null!;
-        void pSensorRaise()
-        {
-            if (pSection.PSensorSuppress)
-            {
-                return;
-            }
-
-            if (pDetectorKind is LDetectorKind.LDetectorKindVolume
-                or LDetectorKind.LDetectorKindScene
-                or LDetectorKind.LDetectorKindStill
-                or LDetectorKind.LDetectorKindLuminance)
-            {
-                PSensorPresetCheck(pDetectorKind);
-            }
-
-            PSensorRaise();
-        }
-
         CheckBox pApply = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
+        PInspectorSwitchAttach(pApply, pEnabled => LSensor.LSensorEnabledSet(pDetectorKind, pEnabled));
         var pStack = new StackPanel();
         var pBody = new StackPanel
         {
@@ -121,29 +111,15 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
 
-        TextBox? pThresholdValue = null;
-        TextBox? pMinimumValue = null;
-        TextBox? pWindowValue = null;
-        RadioButton? pModeTreat = null;
-        RadioButton? pLuminanceFast = null;
-        RadioButton? pLuminanceNormal = null;
-        RadioButton? pLuminanceFull = null;
-        RadioButton? pMetricRms = null;
-        LDetectorBound pThresholdBound = LDetector.LDetectorThresholdRead(pDetectorKind);
         (string pLabelKey, string pUnit, string pFormat) = PSensorShapeRead(pDetectorKind);
-        pThresholdValue = PSensorDecimalBuild(pThresholdBound.LDetectorBoundDefault, pFormat);
-
-        LDetectorBound pMinimumBound = LDetector.LDetectorMinimumRead(pDetectorKind);
-        pMinimumValue = PSensorDecimalBuild(pMinimumBound.LDetectorBoundDefault, "0.0");
-
-        Slider pThresholdSlider = PInspectorSliderBuild(
-            pThresholdValue, pThresholdBound.LDetectorBoundLeast, pThresholdBound.LDetectorBoundMost,
-            pThresholdBound.LDetectorBoundDefault, pFormat,
-            () => pThresholdBound.LDetectorBoundDefault, pSensorRaise);
-        Slider pMinimumSlider = PInspectorSliderBuild(
-            pMinimumValue, pMinimumBound.LDetectorBoundLeast, pMinimumBound.LDetectorBoundMost,
-            pMinimumBound.LDetectorBoundDefault, "0.0",
-            () => pMinimumBound.LDetectorBoundDefault, pSensorRaise);
+        (Slider pThresholdSlider, TextBox pThresholdValue) = PSensorValueBuild(
+            LDetector.LDetectorThresholdRead(pDetectorKind),
+            () => LSensor.LSensorStepRead(pDetectorKind).LDetectorStepThreshold,
+            pNumber => LSensor.LSensorThresholdSet(pDetectorKind, pNumber));
+        (Slider pMinimumSlider, TextBox pMinimumValue) = PSensorValueBuild(
+            LDetector.LDetectorMinimumRead(pDetectorKind),
+            () => LSensor.LSensorStepRead(pDetectorKind).LDetectorStepMinimum,
+            pNumber => LSensor.LSensorMinimumSet(pDetectorKind, pNumber));
 
         string pMinimumKey = pDetectorKind switch
         {
@@ -159,15 +135,14 @@ public sealed partial class PInspector
             ? pThresholdRow.Children[2] as TextBlock
             : null;
 
-        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance
-            || pDetectorKind == LDetectorKind.LDetectorKindVolume)
+        Slider? pWindowSlider = null;
+        TextBox? pWindowValue = null;
+        if (pDetectorKind is LDetectorKind.LDetectorKindLuminance or LDetectorKind.LDetectorKindVolume)
         {
-            LDetectorBound pWindowBound = LDetector.LDetectorWindowRead(pDetectorKind);
-            pWindowValue = PSensorDecimalBuild(pWindowBound.LDetectorBoundDefault, "0.0");
-            Slider pWindowSlider = PInspectorSliderBuild(
-                pWindowValue, pWindowBound.LDetectorBoundLeast, pWindowBound.LDetectorBoundMost,
-                pWindowBound.LDetectorBoundDefault, "0.0",
-                () => pWindowBound.LDetectorBoundDefault, pSensorRaise);
+            (pWindowSlider, pWindowValue) = PSensorValueBuild(
+                LDetector.LDetectorWindowRead(pDetectorKind),
+                () => LSensor.LSensorStepRead(pDetectorKind).LDetectorStepWindow,
+                pNumber => LSensor.LSensorWindowSet(pDetectorKind, pNumber));
             pStack.Children.Add(PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Detector.Window"), pWindowSlider, "s", pWindowValue));
         }
@@ -175,178 +150,180 @@ public sealed partial class PInspector
         pStack.Children.Add(PFilterSliderBuild(
             LLocalization.LLocalizationTextRead(pMinimumKey), pMinimumSlider, "s", pMinimumValue));
 
-        if (pDetectorKind == LDetectorKind.LDetectorKindStill)
-        {
-            pModeTreat = PSensorModeBuild(pStack, pSensorRaise);
-        }
+        (RadioButton? pDiscard, RadioButton? pTreat) = pDetectorKind == LDetectorKind.LDetectorKindStill
+            ? PSensorModeBuild(pStack)
+            : (null, null);
+        (RadioButton? pFast, RadioButton? pNormal, RadioButton? pFull) =
+            pDetectorKind == LDetectorKind.LDetectorKindLuminance
+                ? PSensorSpeedBuild(pStack)
+                : (null, null, null);
+        (RadioButton? pLufs, RadioButton? pRms) = pDetectorKind == LDetectorKind.LDetectorKindVolume
+            ? PSensorMetricBuild(pStack)
+            : (null, null);
+        ComboBox? pPreset = LSensor.LSensorPresetCheck(pDetectorKind)
+            ? PSensorPresetBuild(pStack, pDetectorKind, pDetectorKind == LDetectorKind.LDetectorKindVolume ? 1 : 0)
+            : null;
 
-        if (pDetectorKind == LDetectorKind.LDetectorKindLuminance)
-        {
-            (pLuminanceFast, pLuminanceNormal, pLuminanceFull) =
-                PSensorSpeedBuild(pStack, pSensorRaise);
-        }
-
-        if (pDetectorKind is LDetectorKind.LDetectorKindScene
-            or LDetectorKind.LDetectorKindStill
-            or LDetectorKind.LDetectorKindLuminance)
-        {
-            PSensorPresetBuild(pStack, pDetectorKind, 0);
-        }
-
-        if (pDetectorKind == LDetectorKind.LDetectorKindVolume)
-        {
-            pMetricRms = PSensorMetricBuild(pStack, pSensorRaise, pThresholdUnit);
-            PSensorPresetBuild(pStack, pDetectorKind, 1);
-        }
-
-        pSection = new PSensorSection
+        var pSection = new PSensorSection
         {
             PSensorKind = pDetectorKind,
             PSensorApplyBox = pApply,
             PSensorStack = pStack,
             PSensorBody = pBody,
+            PSensorThresholdSlider = pThresholdSlider,
             PSensorThreshold = pThresholdValue,
+            PSensorUnit = pThresholdUnit,
+            PSensorMinimumSlider = pMinimumSlider,
             PSensorMinimum = pMinimumValue,
+            PSensorWindowSlider = pWindowSlider,
             PSensorWindow = pWindowValue,
-            PSensorMode = pModeTreat,
-            PSensorFast = pLuminanceFast,
-            PSensorNormal = pLuminanceNormal,
-            PSensorFull = pLuminanceFull,
-            PSensorMetric = pMetricRms
+            PSensorDiscard = pDiscard,
+            PSensorTreat = pTreat,
+            PSensorFast = pFast,
+            PSensorNormal = pNormal,
+            PSensorFull = pFull,
+            PSensorLufs = pLufs,
+            PSensorRms = pRms,
+            PSensorPreset = pPreset
         };
-
-        pApply.Checked += (_, _) => PSensorApplyHandle(pSection);
-        pApply.Unchecked += (_, _) => PSensorApplyHandle(pSection);
 
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
         pBody.Children.Add(pStack);
-        PSensorStackUpdate(pSection);
-
         pSensorSections[pDetectorKind] = pSection;
+        PSensorSectionUpdate(pSection);
         return pBody;
     }
 
-    private void PSensorApplyHandle(PSensorSection pSection)
+    private (Slider, TextBox) PSensorValueBuild(LDetectorBound pBound, Func<double> pRead, Action<double> pSet)
     {
-        PSensorStackUpdate(pSection);
-        if (!pSection.PSensorSuppress)
+        var pSlider = new Slider
         {
-            PSensorRaise();
+            Minimum = pBound.LDetectorBoundLeast,
+            Maximum = pBound.LDetectorBoundMost,
+            Value = Math.Clamp(pRead(), pBound.LDetectorBoundLeast, pBound.LDetectorBoundMost),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        PSlider.PSliderResetApply(pSlider, () => pBound.LDetectorBoundDefault);
+        TextBox pValue = PInspectorDecimalBuild();
+        PInspectorValueAttach(pSlider, pValue, pBound.LDetectorBoundLeast, pBound.LDetectorBoundMost, pRead, pSet);
+        return (pSlider, pValue);
+    }
+
+    private void PSensorUpdate()
+    {
+        foreach (PSensorSection pSection in pSensorSections.Values)
+        {
+            if (pSection.PSensorKind != LDetectorKind.LDetectorKindBlank)
+            {
+                PSensorSectionUpdate(pSection);
+            }
+        }
+
+        PSensorChange?.Invoke();
+    }
+
+    private void PSensorSectionUpdate(PSensorSection pSection)
+    {
+        LDetectorKind pKind = pSection.PSensorKind;
+        LDetectorStep pStep = LSensor.LSensorStepRead(pKind);
+        string pFormat = PSensorShapeRead(pKind).PSensorPattern;
+        PInspectorSwitchUpdate(pSection.PSensorApplyBox, pStep.LDetectorStepEnabled, false);
+        if (pSection.PSensorThresholdSlider is { } pThresholdSlider && pSection.PSensorThreshold is { } pThreshold)
+        {
+            PInspectorValueUpdate(pThresholdSlider, pThreshold, pStep.LDetectorStepThreshold, pFormat);
+        }
+
+        if (pSection.PSensorMinimumSlider is { } pMinimumSlider && pSection.PSensorMinimum is { } pMinimum)
+        {
+            PInspectorValueUpdate(pMinimumSlider, pMinimum, pStep.LDetectorStepMinimum, "0.0");
+        }
+
+        if (pSection.PSensorWindowSlider is { } pWindowSlider && pSection.PSensorWindow is { } pWindow)
+        {
+            PInspectorValueUpdate(pWindowSlider, pWindow, pStep.LDetectorStepWindow, "0.0");
+        }
+
+        PSensorRadioUpdate(pSection.PSensorTreat, LSensor.LSensorMode == LDetectorStillMode.LDetectorStillTreat);
+        PSensorRadioUpdate(pSection.PSensorDiscard, LSensor.LSensorMode == LDetectorStillMode.LDetectorStillDiscard);
+        PSensorRadioUpdate(pSection.PSensorFast, LSensor.LSensorSpeed == LDetectorLuminanceMode.LDetectorLuminanceFast);
+        PSensorRadioUpdate(pSection.PSensorFull, LSensor.LSensorSpeed == LDetectorLuminanceMode.LDetectorLuminanceFull);
+        PSensorRadioUpdate(
+            pSection.PSensorNormal, LSensor.LSensorSpeed == LDetectorLuminanceMode.LDetectorLuminanceNormal);
+        PSensorRadioUpdate(pSection.PSensorRms, LSensor.LSensorMetric == LDetectorMetricMode.LDetectorMetricRms);
+        PSensorRadioUpdate(pSection.PSensorLufs, LSensor.LSensorMetric == LDetectorMetricMode.LDetectorMetricLufs);
+        if (pSection.PSensorUnit is { } pUnit && pKind == LDetectorKind.LDetectorKindVolume)
+        {
+            pUnit.Text = LSensor.LSensorMetric == LDetectorMetricMode.LDetectorMetricRms ? "dB" : "LU";
+        }
+
+        if (pSection.PSensorPreset is { } pPreset)
+        {
+            PInspectorPresetUpdate(
+                pPreset, LSensor.LSensorMatchRead(pKind), LSensor.LSensorTokenRead(pKind), PSensorKeyRead);
+        }
+
+        PInspectorSectionUpdate(pSection.PSensorStack, pStep.LDetectorStepEnabled);
+    }
+
+    private static void PSensorRadioUpdate(RadioButton? pRadio, bool pChecked)
+    {
+        if (pRadio is not null && pChecked && pRadio.IsChecked != true)
+        {
+            pRadio.IsChecked = true;
         }
     }
 
-    private static void PSensorStackUpdate(PSensorSection pSection)
+    private RadioButton PSensorRadioBuild(string pTextKey, string pGroup, Action pSelect)
     {
-        bool pActive = pSection.PSensorApplyBox.IsChecked == true;
-        pSection.PSensorStack.IsEnabled = pActive;
-        pSection.PSensorStack.Opacity = pActive ? 1 : 0.4;
-    }
-
-    private RadioButton PSensorModeBuild(StackPanel pStack, Action pSensorRaise)
-    {
-        string pModeGroup = "PSensorStillMode_" + System.Guid.NewGuid().ToString("N");
-        var pModeDiscard = new RadioButton
-        {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Discard"),
-            GroupName = pModeGroup,
-            IsChecked = true,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        var pModeTreat = new RadioButton
-        {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode.Treat"),
-            GroupName = pModeGroup,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        pModeDiscard.Checked += (_, _) => pSensorRaise();
-        pModeTreat.Checked += (_, _) => pSensorRaise();
-
-        Border pModeRow = PRadio.PRadioSegmentBuild(pModeDiscard, pModeTreat);
-        pStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode"), pModeRow, true));
-        return pModeTreat;
-    }
-
-
-    private (RadioButton, RadioButton, RadioButton) PSensorSpeedBuild(
-        StackPanel pStack, Action pSensorRaise)
-    {
-        string pModeGroup = "PSensorLuminanceMode_" + System.Guid.NewGuid().ToString("N");
-        RadioButton pModeButtonBuild(string pTextKey, bool pChecked) => new()
+        var pRadio = new RadioButton
         {
             Content = LLocalization.LLocalizationTextRead(pTextKey),
-            GroupName = pModeGroup,
-            IsChecked = pChecked,
+            GroupName = pGroup,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             VerticalContentAlignment = VerticalAlignment.Center
         };
+        pRadio.Checked += (_, _) => pSelect();
+        return pRadio;
+    }
 
-        RadioButton pFast = pModeButtonBuild("Inspector.Detector.LuminanceMode.Fast", false);
-        RadioButton pNormal = pModeButtonBuild("Inspector.Detector.LuminanceMode.Normal", true);
-        RadioButton pFull = pModeButtonBuild("Inspector.Detector.LuminanceMode.Full", false);
-        pFast.Checked += (_, _) => pSensorRaise();
-        pNormal.Checked += (_, _) => pSensorRaise();
-        pFull.Checked += (_, _) => pSensorRaise();
+    private (RadioButton, RadioButton) PSensorModeBuild(StackPanel pStack)
+    {
+        string pGroup = "PSensorStillMode_" + Guid.NewGuid().ToString("N");
+        RadioButton pDiscard = PSensorRadioBuild(
+            "Inspector.Detector.StillMode.Discard",
+            pGroup,
+            () => LSensor.LSensorModeSet(LDetectorStillMode.LDetectorStillDiscard));
+        RadioButton pTreat = PSensorRadioBuild(
+            "Inspector.Detector.StillMode.Treat",
+            pGroup,
+            () => LSensor.LSensorModeSet(LDetectorStillMode.LDetectorStillTreat));
+        Border pModeRow = PRadio.PRadioSegmentBuild(pDiscard, pTreat);
+        pStack.Children.Add(PInspectorFieldBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Detector.StillMode"), pModeRow, true));
+        return (pDiscard, pTreat);
+    }
 
+    private (RadioButton, RadioButton, RadioButton) PSensorSpeedBuild(StackPanel pStack)
+    {
+        string pGroup = "PSensorLuminanceMode_" + Guid.NewGuid().ToString("N");
+        RadioButton pFast = PSensorRadioBuild(
+            "Inspector.Detector.LuminanceMode.Fast",
+            pGroup,
+            () => LSensor.LSensorSpeedSet(LDetectorLuminanceMode.LDetectorLuminanceFast));
+        RadioButton pNormal = PSensorRadioBuild(
+            "Inspector.Detector.LuminanceMode.Normal",
+            pGroup,
+            () => LSensor.LSensorSpeedSet(LDetectorLuminanceMode.LDetectorLuminanceNormal));
+        RadioButton pFull = PSensorRadioBuild(
+            "Inspector.Detector.LuminanceMode.Full",
+            pGroup,
+            () => LSensor.LSensorSpeedSet(LDetectorLuminanceMode.LDetectorLuminanceFull));
         Border pModeRow = PRadio.PRadioSegmentBuild(pFast, pNormal, pFull);
         pStack.Children.Insert(0, PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Detector.LuminanceMode"), pModeRow, true));
         return (pFast, pNormal, pFull);
-    }
-
-
-    private static TextBox PSensorDecimalBuild(double pDefault, string pFormat)
-    {
-        TextBox pDecimalBox = PInspectorDecimalBuild();
-        pDecimalBox.Text = pDefault.ToString(pFormat, CultureInfo.InvariantCulture);
-        return pDecimalBox;
-    }
-
-    private static Slider PInspectorSliderBuild(
-        TextBox pValueBox,
-        double pMin,
-        double pMax,
-        double pFallback,
-        string pFormat,
-        Func<double>? pResetRead,
-        Action pChanged)
-    {
-        var pSlider = new Slider
-        {
-            Minimum = pMin,
-            Maximum = pMax,
-            Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        PSlider.PSliderApply(pSlider);
-        if (pResetRead is not null)
-        {
-            PSlider.PSliderResetApply(pSlider, pResetRead);
-        }
-
-        bool[] pSuppress = { false };
-        pSlider.ValueChanged += (_, _) =>
-        {
-            if (pSuppress[0]) { return; }
-            pSuppress[0] = true;
-            pValueBox.Text = pSlider.Value.ToString(pFormat, CultureInfo.InvariantCulture);
-            pSuppress[0] = false;
-            pChanged();
-        };
-        pValueBox.TextChanged += (_, _) =>
-        {
-            if (pSuppress[0]) { return; }
-            pSuppress[0] = true;
-            pSlider.Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax);
-            pSuppress[0] = false;
-            pChanged();
-        };
-        return pSlider;
     }
 }

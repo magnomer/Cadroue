@@ -1,9 +1,10 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 using Cadroue.Infrastructure;
@@ -29,12 +30,10 @@ public sealed partial class PList : PPanel
     private readonly Dictionary<string, Border> pListRows = new(StringComparer.OrdinalIgnoreCase);
     private readonly UIElement pListFullBody;
     private readonly UIElement pListStripBody;
-    private string? pListPathCurrent;
-    private string? pListPathSuccessor;
-    private bool pListMinimized;
     private Point? pListDragOrigin;
     private Point pListDragOffset;
-    private string? pListDragPath;
+
+    public LList LList { get; }
 
     public event Action<string?>? PListPathChange;
     public event Action<bool>? PListMinimizeChange;
@@ -47,6 +46,7 @@ public sealed partial class PList : PPanel
     public PList(LDocket pListOwner) : base("")
     {
         pListDocket = pListOwner;
+        LList = new LList(pListOwner);
         pListRowPanel = new StackPanel();
 
         pListEmptyNotice = new TextBlock
@@ -93,6 +93,8 @@ public sealed partial class PList : PPanel
         Focusable = true;
         KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
+        LList.LListPathChange += PListPathHandle;
+        LList.LListMinimizeChange += PListMinimizeHandle;
         pListDocket.LDocketChange += PListDocketHandle;
         pListDocket.LDocketAdded += PListAddHandle;
         pListDocket.LDocketRemoved += PListRemoveHandle;
@@ -111,40 +113,28 @@ public sealed partial class PList : PPanel
         LTraceLog.LTraceInfoRecord(
             $"List add handled: {pListAdded.Count} entry(ies), "
             + $"selecting '{System.IO.Path.GetFileName(pListAdded[0].LDocketEntryPath)}' and notifying subscribers");
-        PListSelectApply(pListAdded[0].LDocketEntryPath);
+        LList.LListSelect(pListAdded[0].LDocketEntryPath);
         PListItemsAdd?.Invoke(pListAdded);
         LTraceLog.LTraceInfoRecord("List add subscribers notified");
     }
 
     private void PListRemoveHandle(IReadOnlyList<string> pListRemoved)
     {
-        pListPathsSelected.ExceptWith(pListRemoved);
-        if (PListIndexRead(pListPathAnchor) < 0)
-        {
-            pListPathAnchor = null;
-        }
-
+        LList.LListRemovedApply(pListRemoved);
         PListClearChange?.Invoke(pListRemoved);
-        if (pListPathCurrent is { } pListCurrentPath && pListDocket.LDocketItemFind(pListCurrentPath) is null)
-        {
-            PListSelectApply(pListPathSuccessor);
-        }
+        LList.LListSuccessorSelect();
     }
 
-    public bool PListMinimizedCheck() => pListMinimized;
-
-    public void PListMinimizeSet(bool pListMinimizeRequest)
+    private void PListMinimizeHandle(bool pListMinimized)
     {
-        if (pListMinimized == pListMinimizeRequest)
-        {
-            return;
-        }
-
-        pListMinimized = pListMinimizeRequest;
         pListFullBody.Visibility = pListMinimized ? Visibility.Collapsed : Visibility.Visible;
         pListStripBody.Visibility = pListMinimized ? Visibility.Visible : Visibility.Collapsed;
         PListMinimizeChange?.Invoke(pListMinimized);
     }
+
+    public bool PListMinimizedCheck() => LList.LListMinimized;
+
+    public void PListMinimizeSet(bool pListMinimizeRequest) => LList.LListMinimizedSet(pListMinimizeRequest);
 
     public LDocket PListDocketRead() => pListDocket;
 
@@ -154,10 +144,10 @@ public sealed partial class PList : PPanel
 
     public IReadOnlyList<LDocketEntry> PListUnlockedRead() => pListDocket.LDocketUnlockedRead();
 
-    public string? PListCurrentRead() => pListPathCurrent;
+    public string? PListCurrentRead() => LList.LListPathCurrent;
 
     public LDocketEntry? PListItemRead() =>
-        pListPathCurrent is { } pListCurrentPath ? pListDocket.LDocketItemFind(pListCurrentPath) : null;
+        LList.LListPathCurrent is { } pListCurrentPath ? pListDocket.LDocketItemFind(pListCurrentPath) : null;
 
     public LDocketEntry? PListEditableRead() =>
         PListItemRead() is { LDocketEntryLocked: false } pListItem ? pListItem : null;
@@ -211,33 +201,9 @@ public sealed partial class PList : PPanel
             return;
         }
 
-        pListPathSuccessor = PListSuccessorResolve(pRemovedPaths);
+        LList.LListSuccessorSet(pRemovedPaths);
         pListDocket.LDocketPathsRemove(pRemovedPaths);
-        pListPathSuccessor = null;
-    }
-
-    private string? PListSuccessorResolve(IReadOnlyList<string> pRemovedPaths)
-    {
-        var pRemovedSet = new HashSet<string>(pRemovedPaths, StringComparer.OrdinalIgnoreCase);
-        IReadOnlyList<string> pPaths = pListDocket.LDocketPathsRead();
-        int pRemovedIndex = PListIndexRead(pRemovedPaths[0]);
-        for (int pIndex = pRemovedIndex; pIndex < pPaths.Count; pIndex++)
-        {
-            if (!pRemovedSet.Contains(pPaths[pIndex]))
-            {
-                return pPaths[pIndex];
-            }
-        }
-
-        for (int pIndex = pRemovedIndex - 1; pIndex >= 0; pIndex--)
-        {
-            if (!pRemovedSet.Contains(pPaths[pIndex]))
-            {
-                return pPaths[pIndex];
-            }
-        }
-
-        return null;
+        LList.LListSuccessorReset();
     }
 
     public void PListClear()

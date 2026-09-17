@@ -2,8 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -17,13 +16,13 @@ public sealed partial class PGroup : PPanel
     private static readonly Brush pGroupCardBrush = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFB));
     private static readonly Brush pGroupIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
 
-    private readonly List<PGroupRecord> pGroupRecords = [];
     private readonly LGroupSelection lGroupOwner;
     private readonly StackPanel pGroupRowPanel;
     private readonly TextBlock pGroupEmptyNotice;
     private readonly UIElement pGroupFullBody;
     private readonly UIElement pGroupStripBody;
-    private bool pGroupMinimized;
+
+    public LGroup LGroup { get; }
 
     public Action<IReadOnlyList<string>>? PGroupFileRequest { get; set; }
 
@@ -34,6 +33,9 @@ public sealed partial class PGroup : PPanel
     public PGroup(LGroupSelection lGroupOwner) : base("")
     {
         this.lGroupOwner = lGroupOwner;
+        LGroup = new LGroup(lGroupOwner);
+        LGroup.LGroupChange += PGroupRebuild;
+        LGroup.LGroupMinimizeChange += PGroupMinimizeHandle;
         UIElement pHeader = PGroupHeaderBuild();
 
         pGroupRowPanel = new StackPanel();
@@ -93,66 +95,13 @@ public sealed partial class PGroup : PPanel
         Unloaded += (_, _) => lGroupOwner.LGroupSelectionChange -= PGroupSelectionUpdate;
     }
 
-    private void PGroupSort()
+    public void PGroupPathsRemove(IReadOnlyList<string> pGroupPaths) => LGroup.LGroupPathsRemove(pGroupPaths);
+
+    public IReadOnlyList<LGroupRecord> PGroupGroupsRead() => LGroup.LGroupRecords;
+
+    private void PGroupMinimizeHandle(bool pGroupMinimized)
     {
-        if (pGroupRecords.Count == 0)
-        {
-            return;
-        }
-
-        foreach (PGroupRecord pRecord in pGroupRecords)
-        {
-            IReadOnlyList<string> pGroupSorted = LSeries.LSeriesPathsSort(pRecord.PGroupRecordPaths);
-            pRecord.PGroupRecordPaths.Clear();
-            pRecord.PGroupRecordPaths.AddRange(pGroupSorted);
-        }
-
-        PGroupRebuild();
-    }
-
-    public void PGroupPathsRemove(IReadOnlyList<string> pGroupPaths)
-    {
-        var pGroupTargetSet = new HashSet<string>(pGroupPaths, StringComparer.OrdinalIgnoreCase);
-        int pGroupRemovedCount = 0;
-        foreach (PGroupRecord pRecord in pGroupRecords)
-        {
-            pGroupRemovedCount += pRecord.PGroupRecordPaths.RemoveAll(pGroupTargetSet.Contains);
-        }
-
-        if (pGroupRemovedCount == 0)
-        {
-            return;
-        }
-
-        int pGroupEmptied = pGroupRecords.RemoveAll(pRecord => pRecord.PGroupRecordPaths.Count == 0);
-        LTraceLog.LTraceInfoRecord(
-            $"Group: removed {pGroupRemovedCount} unloaded file(s) from groups, {pGroupEmptied} group(s) emptied");
-        PGroupRebuild();
-    }
-
-    public IReadOnlyList<PGroupSelection> PGroupGroupsRead() =>
-        pGroupRecords
-            .Select(pRecord => new PGroupSelection(pRecord.PGroupRecordName, pRecord.PGroupRecordPaths.ToArray()))
-            .ToArray();
-
-    private void PGroupMinimizeSet(bool pGroupMinimizeRequest)
-    {
-        if (pGroupMinimized == pGroupMinimizeRequest)
-        {
-            return;
-        }
-
-        pGroupMinimized = pGroupMinimizeRequest;
         pGroupFullBody.Visibility = pGroupMinimized ? Visibility.Collapsed : Visibility.Visible;
         pGroupStripBody.Visibility = pGroupMinimized ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    private sealed class PGroupRecord
-    {
-        public string PGroupRecordName { get; set; } = string.Empty;
-
-        public List<string> PGroupRecordPaths { get; } = [];
-    }
-
-    public sealed record PGroupSelection(string PGroupSelectionName, IReadOnlyList<string> PGroupSelectionPaths);
 }

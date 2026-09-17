@@ -129,6 +129,8 @@ public sealed partial class PViewer
 
     public void PViewerDragSet(bool pViewerDragging) => LViewer.LViewerDragSet(pViewerDragging);
 
+    public void PViewerVolumeAdjust(double pViewerDelta) => PViewerVolumeSet(LViewer.LViewerVolume + pViewerDelta);
+
     public void PViewerVolumeSet(double volume)
     {
         if (pViewerLoupe is not null)

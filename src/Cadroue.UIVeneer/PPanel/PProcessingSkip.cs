@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
@@ -10,20 +11,7 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PProcessing
 {
-    private bool pProcessingSkipActive;
-
-    public void PProcessingSkipSet(bool pProcessingSkipApplied)
-    {
-        pProcessingSkipActive = pProcessingSkipApplied;
-        if (pProcessingSkipRow.Child is StackPanel pProcessingSkipContent)
-        {
-            PProcessingRowApply(pProcessingSkipContent, pProcessingSkipApplied);
-        }
-
-        pProcessingRowPanel.Opacity = pProcessingSkipApplied ? 0.4 : 1;
-        pProcessingActionBar.IsEnabled = !pProcessingSkipApplied;
-        pProcessingActionBar.Opacity = pProcessingSkipApplied ? 0.4 : 1;
-    }
+    public void PProcessingSkipSet(bool pProcessingSkipApplied) => LProcessing.LProcessingSkipSet(pProcessingSkipApplied);
 
     private Border PProcessingSkipBuild()
     {
@@ -58,13 +46,7 @@ public sealed partial class PProcessing
             ToolTip = LLocalization.LLocalizationTextRead("Processing.Skip.Tooltip"),
             Child = pRowContent
         };
-        pRowBorder.MouseLeftButtonUp += (_, _) =>
-        {
-            pProcessingStepCurrent = PProcessingSkipStep;
-            PProcessingSelectApply();
-            PProcessingStepChange?.Invoke(PProcessingSkipStep);
-            PProcessingStepOpen?.Invoke(PProcessingSkipStep);
-        };
+        pRowBorder.MouseLeftButtonUp += (_, _) => LProcessing.LProcessingStepSelect(LProcessing.LProcessingSkipStep);
         return pRowBorder;
     }
 }

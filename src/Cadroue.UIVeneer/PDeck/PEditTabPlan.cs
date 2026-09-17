@@ -16,7 +16,7 @@ public sealed partial class PEditTab
             return;
         }
 
-        pEditPlanLoading = true;
+        pInspector.LInspector.LInspectorRestoreSet(true);
         try
         {
             LEditPlan pEditPlan = LEdit.LEditPersistentRead(pEditRecord);
@@ -38,7 +38,7 @@ public sealed partial class PEditTab
         }
         finally
         {
-            pEditPlanLoading = false;
+            pInspector.LInspector.LInspectorRestoreSet(false);
         }
     }
 
@@ -50,7 +50,7 @@ public sealed partial class PEditTab
 
     private void PEditPersistentSave(IEnumerable<string> pEditPaths)
     {
-        if (pEditPlanLoading || PEditCarriedRead() is not { } pEditCarried)
+        if (pInspector.LInspector.LInspectorRestoring || PEditCarriedRead() is not { } pEditCarried)
         {
             return;
         }
@@ -129,7 +129,7 @@ public sealed partial class PEditTab
 
     private void PEditPlanSave(LEditPlan pEditPlan)
     {
-        if (pEditPlanLoading
+        if (pInspector.LInspector.LInspectorRestoring
             || pViewer.PViewerSourcePath is not { } pEditSourcePath
             || pList.PListLockCheck(pEditSourcePath))
         {

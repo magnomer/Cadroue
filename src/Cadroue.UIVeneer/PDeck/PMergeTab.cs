@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIVeneer.PPanel;
@@ -87,7 +88,7 @@ public sealed class PMergeTab : PTabSurface
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);
@@ -108,32 +109,32 @@ public sealed class PMergeTab : PTabSurface
     private IReadOnlyList<LWorkGroup> PMergeGroupsRead(Guid pMergeCohort = default)
     {
         var pMergeGroups = new List<LWorkGroup>();
-        foreach (PGroup.PGroupSelection pGroupSelection in pGroup.PGroupGroupsRead())
+        foreach (LGroupRecord pGroupSelection in pGroup.PGroupGroupsRead())
         {
             if (pMergeCohort != Guid.Empty
-                && !pGroupSelection.PGroupSelectionPaths.All(pMergePath =>
+                && !pGroupSelection.LGroupRecordPaths.All(pMergePath =>
                     lDocket.LDocketItemFind(pMergePath)?.LDocketEntryBatch == pMergeCohort))
             {
                 continue;
             }
 
-            string[] pMergeLocked = pGroupSelection.PGroupSelectionPaths
+            string[] pMergeLocked = pGroupSelection.LGroupRecordPaths
                 .Where(pList.PListLockCheck)
                 .ToArray();
             if (pMergeLocked.Length > 0)
             {
                 LTraceLog.LTraceWarningRecord(
-                    $"Merge skipped group '{pGroupSelection.PGroupSelectionName}': "
-                    + $"{pMergeLocked.Length} of {pGroupSelection.PGroupSelectionPaths.Count} file(s) "
+                    $"Merge skipped group '{pGroupSelection.LGroupRecordName}': "
+                    + $"{pMergeLocked.Length} of {pGroupSelection.LGroupRecordPaths.Count} file(s) "
                     + "still in the worklist");
                 continue;
             }
 
-            if (pGroupSelection.PGroupSelectionPaths.Count > 0)
+            if (pGroupSelection.LGroupRecordPaths.Count > 0)
             {
                 pMergeGroups.Add(new LWorkGroup(
-                    pGroupSelection.PGroupSelectionName,
-                    pGroupSelection.PGroupSelectionPaths));
+                    pGroupSelection.LGroupRecordName,
+                    pGroupSelection.LGroupRecordPaths));
             }
         }
 

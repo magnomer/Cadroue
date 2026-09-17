@@ -12,7 +12,7 @@ public sealed partial class PExport
 {
     private void PExportEditCommit()
     {
-        if (pPresetNameEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
+        if (LExport.LExportEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
         {
             return;
         }
@@ -128,7 +128,8 @@ public sealed partial class PExport
         Window? pEditWindow = null;
         MouseButtonEventHandler pOutsideHandle = (_, pDownEvent) =>
         {
-            if (pPresetRebuilding || PExportInsideCheck(pDownEvent.OriginalSource as DependencyObject, pNameBox))
+            if (!ReferenceEquals(pExportBoxCurrent, pNameBox)
+                || PExportInsideCheck(pDownEvent.OriginalSource as DependencyObject, pNameBox))
             {
                 return;
             }
@@ -154,7 +155,7 @@ public sealed partial class PExport
         };
         pNameBox.LostKeyboardFocus += (_, _) =>
         {
-            if (pPresetRebuilding)
+            if (!ReferenceEquals(pExportBoxCurrent, pNameBox))
             {
                 return;
             }
@@ -170,9 +171,8 @@ public sealed partial class PExport
             }
             else if (pEvent.Key == Key.Escape)
             {
-                pPresetNameEditing = null;
                 pExportBoxCurrent = null;
-                PExportPresetSync();
+                LExport.LExportEditCancel();
                 pEvent.Handled = true;
             }
         };

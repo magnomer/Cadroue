@@ -8,18 +8,13 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PProcessing
 {
-    private bool pProcessingMinimized;
+    public bool PProcessingMinimizedCheck() => LProcessing.LProcessingMinimized;
 
-    public bool PProcessingMinimizedCheck() => pProcessingMinimized;
+    public void PProcessingMinimizeSet(bool pProcessingMinimizeRequest) =>
+        LProcessing.LProcessingMinimizedSet(pProcessingMinimizeRequest);
 
-    public void PProcessingMinimizeSet(bool pProcessingMinimizeRequest)
+    private void PProcessingMinimizeHandle(bool pProcessingMinimized)
     {
-        if (pProcessingMinimized == pProcessingMinimizeRequest)
-        {
-            return;
-        }
-
-        pProcessingMinimized = pProcessingMinimizeRequest;
         pProcessingFullBody.Visibility = pProcessingMinimized ? Visibility.Collapsed : Visibility.Visible;
         pProcessingStripBody.Visibility = pProcessingMinimized ? Visibility.Visible : Visibility.Collapsed;
         PProcessingMinimizeChange?.Invoke(pProcessingMinimized);

@@ -31,7 +31,7 @@ public sealed partial class PRoster
                 : LLocalization.LLocalizationFormat("Roster.Card.Many", pTitle, pInitialCount),
             FontSize = PRosterTheme.PRosterRowSize,
             FontWeight = FontWeights.SemiBold,
-            Foreground = pBatchId == pRosterCardId
+            Foreground = LRoster.LRosterCardCheck(pBatchId)
                 ? PRosterTheme.PRosterSelectText
                 : pRosterCompletedIds.Contains(pBatchId)
                     ? PRosterTheme.PRosterMutedBrush
@@ -54,12 +54,12 @@ public sealed partial class PRoster
         var pHeader = new Border
         {
             Padding = new Thickness(12, 6, 6, 6),
-            Background = pBatchId == pRosterCardId
+            Background = LRoster.LRosterCardCheck(pBatchId)
                 ? PRosterTheme.PRosterSelectCard
                 : pRosterCompletedIds.Contains(pBatchId)
                     ? PRosterTheme.PRosterDoneCard
                     : PRosterTheme.PRosterCardBrush,
-            BorderBrush = pBatchId == pRosterCardId
+            BorderBrush = LRoster.LRosterCardCheck(pBatchId)
                 ? PRosterTheme.PRosterSelectLine
                 : pRosterCompletedIds.Contains(pBatchId)
                     ? PRosterTheme.PRosterDoneLine
@@ -68,7 +68,7 @@ public sealed partial class PRoster
         };
         pHeader.MouseEnter += (_, _) =>
         {
-            if (pBatchId != pRosterCardId)
+            if (!LRoster.LRosterCardCheck(pBatchId))
             {
                 pHeader.Background = pRosterCompletedIds.Contains(pBatchId)
                     ? PRosterTheme.PRosterDoneHover
@@ -77,15 +77,13 @@ public sealed partial class PRoster
         };
         pHeader.MouseLeave += (_, _) => PRosterVisualApply(pBatchId, pHeader);
         pRosterCardHeaders[pBatchId] = pHeader;
-        PRosterCollapseApply(pHeader, pRosterCollapsedIds.Contains(pBatchId));
+        PRosterCollapseApply(pHeader, LRoster.LRosterCollapsedCheck(pBatchId));
         return pHeader;
     }
 
     private void PRosterCardSelect(Guid pBatchId)
     {
-        pRosterCardId = pBatchId;
-        pRosterSelectedIds.Clear();
-        pRosterCurrentId = Guid.Empty;
+        LRoster.LRosterCardSelect(pBatchId);
         PRosterSelectApply();
         PRosterShadeApply();
         PRosterCardApply();

@@ -37,47 +37,10 @@ internal sealed partial class PColumn
         }
 
         double[] pWidths = PColumnCurrentRead(pAvailableWidth);
-        double[] pMinimumWidths = PColumnMinimumRead(pAvailableWidth);
-        PColumnBudgetResolve(pLeftPanelIndex, out int pReceiverIndex, out int pDonorIndex, out double pReceiverSign);
-        double pReceiverDelta = pReceiverSign * pDelta;
-        double pClampedDelta = Math.Clamp(
-            pReceiverDelta,
-            pMinimumWidths[pReceiverIndex] - pWidths[pReceiverIndex],
-            pWidths[pDonorIndex] - pMinimumWidths[pDonorIndex]);
-        if (Math.Abs(pClampedDelta) <= 0)
+        double[] pMinimumWidths = LColumn.LColumnMinimumRead(pAvailableWidth);
+        if (LColumn.LColumnDragResolve(pLeftPanelIndex, pDelta, pWidths, pMinimumWidths))
         {
-            return;
-        }
-
-        pWidths[pReceiverIndex] += pClampedDelta;
-        pWidths[pDonorIndex] -= pClampedDelta;
-        PColumnWeightsCommit(pWidths);
-    }
-
-    private void PColumnBudgetResolve(
-        int pLeftPanelIndex,
-        out int pReceiverIndex,
-        out int pDonorIndex,
-        out double pReceiverSign)
-    {
-        if (!PColumnFlexCheck())
-        {
-            pReceiverIndex = pLeftPanelIndex;
-            pDonorIndex = pLeftPanelIndex + 1;
-            pReceiverSign = 1;
-            return;
-        }
-
-        pDonorIndex = pColumnFlexIndex;
-        if (pColumnFlexIndex > pLeftPanelIndex)
-        {
-            pReceiverIndex = pLeftPanelIndex;
-            pReceiverSign = 1;
-        }
-        else
-        {
-            pReceiverIndex = pLeftPanelIndex + 1;
-            pReceiverSign = -1;
+            PColumnWeightsCommit(pWidths);
         }
     }
 

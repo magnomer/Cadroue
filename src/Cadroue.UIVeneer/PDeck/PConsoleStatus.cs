@@ -14,21 +14,15 @@ public sealed partial class PConsole
     private static readonly Duration PConsoleProgressGlide =
         new(TimeSpan.FromSeconds(LEncode.LEncodeStatsPeriod));
 
-    private bool pConsoleProgressPending;
-    private double pConsoleProgressShown;
-
     private void PConsoleProgressSet(double pConsoleTarget)
     {
-        double pConsoleClamped = Math.Clamp(pConsoleTarget, 0, 1);
-        if (pConsoleClamped.Equals(pConsoleProgressShown))
+        if (!LConsole.LConsoleProgressSet(pConsoleTarget))
         {
             return;
         }
 
-        bool pConsoleBackward = pConsoleClamped < pConsoleProgressShown;
-        pConsoleProgressShown = pConsoleClamped;
-
-        if (pConsoleClamped <= 0 || pConsoleBackward)
+        double pConsoleClamped = LConsole.LConsoleProgress;
+        if (pConsoleClamped <= 0 || LConsole.LConsoleBackward)
         {
             pConsoleProgress.BeginAnimation(RangeBase.ValueProperty, null);
             pConsoleProgress.Value = pConsoleClamped;
@@ -47,15 +41,15 @@ public sealed partial class PConsole
 
     private void PConsoleProgressDefer()
     {
-        if (pConsoleProgressPending)
+        if (LConsole.LConsoleProgressPending)
         {
             return;
         }
 
-        pConsoleProgressPending = true;
+        LConsole.LConsolePendingSet(true);
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
         {
-            pConsoleProgressPending = false;
+            LConsole.LConsolePendingSet(false);
             PConsoleProgressUpdate();
         }));
     }
@@ -97,9 +91,9 @@ public sealed partial class PConsole
         pConsoleRestIcon.Visibility = pRunningState ? Visibility.Collapsed : Visibility.Visible;
         PConsoleSpinnerSet(pRunningState);
 
-        pConsoleAutoApplying = true;
+        LConsole.LConsoleAutoSet(true);
         pConsoleAutoBox.IsChecked = pStation.LStationAutoActive;
-        pConsoleAutoApplying = false;
+        LConsole.LConsoleAutoSet(false);
 
         bool pPausedState = !pRunner.LRunnerRunning && !pRunner.LRunnerSuspended;
         string pRunState = LLocalization.LLocalizationTextRead(

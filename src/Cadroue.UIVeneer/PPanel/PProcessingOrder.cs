@@ -5,59 +5,40 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PProcessing
 {
-    private bool pProcessingOrdered;
-
-    public void PProcessingOrderedSet(bool pOrderedRequest)
-    {
-        pProcessingOrdered = pOrderedRequest;
-        pProcessingActionBar.Visibility = pOrderedRequest ? Visibility.Visible : Visibility.Collapsed;
-    }
+    public void PProcessingOrderedSet(bool pOrderedRequest) => LProcessing.LProcessingOrderedSet(pOrderedRequest);
 
     private void PProcessingStepMove(int pStepDelta)
     {
-        if (pProcessingStepCurrent is null || pProcessingDisabledSteps.Contains(pProcessingStepCurrent))
+        if (LProcessing.LProcessingStepMove(pStepDelta))
         {
-            return;
+            PProcessingOrderChange?.Invoke();
         }
+    }
 
-        int pStepIndex = -1;
-        for (int pIndex = 0; pIndex < pProcessingRowPanel.Children.Count; pIndex++)
+    private void PProcessingOrderUpdate()
+    {
+        IReadOnlyList<string> pSteps = LProcessing.LProcessingSteps;
+        for (int pIndex = 0; pIndex < pSteps.Count; pIndex++)
         {
-            if (pProcessingRowPanel.Children[pIndex] is Border { Tag: string pRowName }
-                && pRowName == pProcessingStepCurrent)
+            if (!pProcessingRows.TryGetValue(pSteps[pIndex], out Border? pRow))
             {
-                pStepIndex = pIndex;
-                break;
+                continue;
+            }
+
+            int pCurrent = pProcessingRowPanel.Children.IndexOf(pRow);
+            if (pCurrent != pIndex)
+            {
+                pProcessingRowPanel.Children.RemoveAt(pCurrent);
+                pProcessingRowPanel.Children.Insert(pIndex, pRow);
             }
         }
 
-        if (pStepIndex < 0)
-        {
-            return;
-        }
-
-        int pTargetIndex = pStepIndex + pStepDelta;
-        if (pTargetIndex < 0 || pTargetIndex >= pProcessingRowPanel.Children.Count)
-        {
-            return;
-        }
-
-        if (pProcessingRowPanel.Children[pTargetIndex] is Border { Tag: string pTargetName }
-            && pProcessingDisabledSteps.Contains(pTargetName))
-        {
-            return;
-        }
-
-        UIElement pStepRow = pProcessingRowPanel.Children[pStepIndex];
-        pProcessingRowPanel.Children.RemoveAt(pStepIndex);
-        pProcessingRowPanel.Children.Insert(pTargetIndex, pStepRow);
         PProcessingNumbersUpdate();
-        PProcessingOrderChange?.Invoke();
     }
 
     private void PProcessingNumbersUpdate()
     {
-        if (!pProcessingOrdered)
+        if (!LProcessing.LProcessingOrdered)
         {
             return;
         }

@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
+using Cadroue.UIVeneer.PPanel;
 
 namespace Cadroue.UIVeneer.PDeck;
 
@@ -15,7 +15,6 @@ public sealed partial class PCompass
     private readonly TextBlock pCompassVolumeText;
     private Border pCompassTrackFill = null!;
     private Grid pCompassSliderHost = null!;
-    private bool pCompassProgramValue;
 
     private Border PCompassVolumeBuild()
     {
@@ -74,21 +73,21 @@ public sealed partial class PCompass
 
     private void PCompassValueHandle(double pVolume)
     {
-        pCompassProgramValue = true;
+        LCompass.LCompassProgramSet(true);
         double pVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pVolume);
         pCompassVolumeSlider.Value = pVolumeClamp;
         pCompassVolumeText.Text = Math.Round(pVolumeClamp).ToString("0");
         PCompassTrackUpdate();
-        pCompassProgramValue = false;
+        LCompass.LCompassProgramSet(false);
     }
 
-    private void PCompassVolumeHandle(PFlowControl pFlow)
+    private void PCompassVolumeHandle(PViewer pViewer)
     {
-        if (pCompassProgramValue) return;
+        if (LCompass.LCompassProgramValue) return;
         double pVolume = LPreferenceState.LPreferenceVolumeClamp(pCompassVolumeSlider.Value);
         pCompassVolumeText.Text = Math.Round(pVolume).ToString("0");
         PCompassTrackUpdate();
-        pFlow.PFlowVolumeRaise(pVolume);
+        pViewer.PViewerVolumeSet(pVolume);
     }
 
     private void PCompassTrackUpdate()

@@ -136,6 +136,5 @@ public sealed partial class PViewer
         LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(null));
         PCropOverlayUpdate();
         PViewerMpvUpdate();
-        PCropVideoChange?.Invoke(null);
     }
 }

@@ -77,12 +77,12 @@ public sealed partial class PList
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {
             Focus();
-            PListPressHandle(pRowPath, pRowEvent);
+            PListPressHandle(pRowPath);
             if (!pListItem.LDocketEntryLocked)
             {
                 pListDragOrigin = pRowEvent.GetPosition(null);
                 pListDragOffset = pRowEvent.GetPosition(pRowBorder);
-                pListDragPath = pRowPath;
+                LList.LListDragSet(pRowPath);
                 pRowBorder.CaptureMouse();
             }
             pRowEvent.Handled = true;
@@ -92,8 +92,8 @@ public sealed partial class PList
         {
             pRowBorder.ReleaseMouseCapture();
             pListDragOrigin = null;
-            pListDragPath = null;
-            PListReleaseHandle();
+            LList.LListDragSet(null);
+            LList.LListReleaseSelect();
         };
         pListRows[pRowPath] = pRowBorder;
         return pRowBorder;
@@ -147,14 +147,14 @@ public sealed partial class PList
     }
 
     private Brush PListBackgroundRead(LDocketEntry pListItem) =>
-        PListSelectionCheck(pListItem.LDocketEntryPath)
+        LList.LListSelectionCheck(pListItem.LDocketEntryPath)
             ? pListItem.LDocketEntryLocked ? pListLockedAccent : pListSelectBrush
             : pListItem.LDocketEntryLocked ? Brushes.Transparent : Brushes.White;
 
     private void PListDragHandle(object pRowSender, MouseEventArgs pRowEvent)
     {
         if (pListDragOrigin is not { } pStart
-            || pListDragPath is not { } pDragPath
+            || LList.LListDragPath is not { } pDragPath
             || pRowEvent.LeftButton != MouseButtonState.Pressed)
         {
             return;
@@ -167,7 +167,7 @@ public sealed partial class PList
             return;
         }
 
-        string[] pDragPaths = PListSelectionCheck(pDragPath)
+        string[] pDragPaths = LList.LListSelectionCheck(pDragPath)
             ? PListSelectionRead()
                 .Where(pListPath => !PListLockCheck(pListPath))
                 .ToArray()
@@ -179,8 +179,8 @@ public sealed partial class PList
         var pDragData = new DataObject(PListDragKind, pDragPaths);
         Point pGrabOffset = pListDragOffset;
         pListDragOrigin = null;
-        pListDragPath = null;
-        pListPressPath = null;
+        LList.LListDragSet(null);
+        LList.LListPressReset();
         if (pRowSender is UIElement pRowElement)
         {
             pRowElement.ReleaseMouseCapture();

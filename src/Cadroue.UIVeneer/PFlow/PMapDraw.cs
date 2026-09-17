@@ -23,7 +23,9 @@ public sealed partial class PMap
             null,
             new Rect(0, coverageTop, actualWidth, coverageHeight));
 
-        if (lSpool is null || lSpool.LSpoolDuration <= TimeSpan.Zero || lKeyframeScannedRanges.Count == 0)
+        if (lFlow.LFlowSpool is not { } lSpool
+            || lSpool.LSpoolDuration <= TimeSpan.Zero
+            || lKeyframeScannedRanges.Count == 0)
         {
             return;
         }
@@ -66,7 +68,7 @@ public sealed partial class PMap
         double railTop,
         double railHeight)
     {
-        if (lSpool is null || lSpool.LSpoolDuration <= TimeSpan.Zero)
+        if (lFlow.LFlowSpool is not { } lSpool || lSpool.LSpoolDuration <= TimeSpan.Zero)
         {
             return;
         }
@@ -81,7 +83,7 @@ public sealed partial class PMap
 
     private void PMapSectionsDraw(DrawingContext drawingContext, double actualWidth, double railTop, double railHeight)
     {
-        if (lSpool is null || lSectionList.Count == 0)
+        if (lFlow.LFlowSpool is not { } lSpool || lSectionList.Count == 0)
         {
             return;
         }
@@ -111,7 +113,7 @@ public sealed partial class PMap
                 0,
                 actualWidth);
             double sectionWidth = Math.Max(1, sectionEndX - sectionStartX);
-            Pen? sectionPen = index == lSectionIndexActive ? pMapSectionPen : null;
+            Pen? sectionPen = index == lFlow.LFlowSectionIndex ? pMapSectionPen : null;
             var sectionRect = new Rect(sectionStartX, sectionTop, sectionWidth, sectionHeight);
 
             if (section.LPieceHidden)

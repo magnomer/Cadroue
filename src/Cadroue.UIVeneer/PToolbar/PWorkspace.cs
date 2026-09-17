@@ -16,7 +16,6 @@ namespace Cadroue.UIVeneer.PToolbar;
 public sealed partial class PWorkspace
 {
     private readonly LHistory lWorkspaceHistory = new();
-    private string pWorkspaceLosslesscutPath = string.Empty;
 
     public PWorkspace(
         string pTabLayoutKey,
@@ -160,21 +159,22 @@ public sealed partial class PWorkspace
 
     private void PWorkspaceMediaHandle(LCargo pMediaStatus)
     {
-        if (PWorkspaceFlow is null
-            || pMediaStatus.LCargoMediaInfo is null
-            || string.IsNullOrWhiteSpace(pMediaStatus.LCargoSourcePath))
-        {
-            pWorkspaceLosslesscutPath = string.Empty;
-            return;
-        }
-
-        string pMediaPath = System.IO.Path.GetFullPath(pMediaStatus.LCargoSourcePath);
-        if (string.Equals(pWorkspaceLosslesscutPath, pMediaPath, StringComparison.OrdinalIgnoreCase))
+        if (PWorkspaceFlow is null)
         {
             return;
         }
 
-        pWorkspaceLosslesscutPath = pMediaPath;
+        if (pMediaStatus.LCargoMediaInfo is null || string.IsNullOrWhiteSpace(pMediaStatus.LCargoSourcePath))
+        {
+            PWorkspaceFlow.LFlow.LFlowLosslesscutSet(string.Empty);
+            return;
+        }
+
+        if (!PWorkspaceFlow.LFlow.LFlowLosslesscutSet(System.IO.Path.GetFullPath(pMediaStatus.LCargoSourcePath)))
+        {
+            return;
+        }
+
         PFlowControl pLosslesscutFlow = PWorkspaceFlow;
         System.Windows.Application.Current?.Dispatcher.BeginInvoke(
             System.Windows.Threading.DispatcherPriority.Background,
@@ -196,7 +196,7 @@ public sealed partial class PWorkspace
         => lWorkspaceHistory.LHistoryReset(PWorkspaceStateRead());
 
     private bool PWorkspaceHistoryCheck()
-        => PWorkspaceFlow is null || PWorkspaceFlow.PFlowEditCheck();
+        => PWorkspaceFlow is null || PWorkspaceFlow.LFlow.LFlowSectionEditable;
 
     public bool PWorkspaceUndo()
         => PWorkspaceHistoryCheck() && PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());

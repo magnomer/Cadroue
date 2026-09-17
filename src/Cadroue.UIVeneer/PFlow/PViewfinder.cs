@@ -6,6 +6,7 @@ using Cadroue.Media;
 using Cadroue.Core;
 
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 
 namespace Cadroue.UIVeneer.PFlow;
@@ -75,16 +76,12 @@ public sealed partial class PViewfinder : FrameworkElement
         pViewfinderBadgeBrush.Freeze();
     }
 
-    private LSpool? lSpool;
-    private TimeSpan lCursor;
-    private string? lSourcePath;
+    private readonly LFlow lFlow;
     private IReadOnlyList<LKeyframeEntry> lKeyframeList = Array.Empty<LKeyframeEntry>();
     private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
     private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
     private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private int? lSectionIndexActive;
     private PViewfinderDragMode pViewfinderDragMode;
-    private string pViewfinderDrawTrigger = "attach";
     private int pViewfinderGlyphCount;
     private readonly Dictionary<PViewfinderTextKey, FormattedText> pViewfinderTextCache = new();
     private double pViewfinderTextDpi = -1;
@@ -93,36 +90,27 @@ public sealed partial class PViewfinder : FrameworkElement
     public event Action<int>? PViewfinderSectionSelect;
     public event Action<bool>? PViewfinderDragChange;
 
+    public PViewfinder(LFlow lFlowState)
+    {
+        lFlow = lFlowState;
+    }
+
     private void PViewfinderDrawDefer(string pViewfinderTrigger)
     {
-        pViewfinderDrawTrigger = pViewfinderTrigger;
+        lFlow.LFlowViewfinderSet(pViewfinderTrigger);
         InvalidateVisual();
     }
 
-    public void PViewfinderAttach(LSpool spool, TimeSpan cursor, string? sourcePath)
-    {
-        lSpool = spool ?? throw new ArgumentNullException(nameof(spool));
-        lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        lSourcePath = sourcePath;
-        PViewfinderDrawDefer("attach");
-    }
+    public void PViewfinderAttach() => PViewfinderDrawDefer("attach");
 
-    public void PViewfinderCursorUpdate(TimeSpan cursor)
-    {
-        lCursor = cursor < TimeSpan.Zero ? TimeSpan.Zero : cursor;
-        PViewfinderDrawDefer("cursor");
-    }
+    public void PViewfinderCursorUpdate() => PViewfinderDrawDefer("cursor");
 
     public void PViewfinderClear()
     {
-        lSpool = null;
-        lCursor = TimeSpan.Zero;
-        lSourcePath = null;
         lKeyframeList = Array.Empty<LKeyframeEntry>();
         lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
         lSectionList = Array.Empty<LPiece>();
         lWaveformPeaks = Array.Empty<byte>();
-        lSectionIndexActive = null;
         PViewfinderDrawDefer("clear");
     }
 
@@ -152,7 +140,7 @@ public sealed partial class PViewfinder : FrameworkElement
 
     internal Rect PViewfinderSectionRead(int pSectionIndex)
     {
-        if (lSpool is null || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
+        if (lFlow.LFlowSpool is not { } lSpool || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
         {
             return Rect.Empty;
         }
@@ -185,10 +173,9 @@ public sealed partial class PViewfinder : FrameworkElement
         return new Rect(pLeft, pRailTop, Math.Max(1, pRight - pLeft), pRailBottom - pRailTop);
     }
 
-    public void PViewfinderSectionsUpdate(IReadOnlyList<LPiece>? sections, int? selectedIndex)
+    public void PViewfinderSectionsUpdate(IReadOnlyList<LPiece>? sections)
     {
         lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
-        lSectionIndexActive = selectedIndex;
         PViewfinderDrawDefer("sections");
     }
 
@@ -207,7 +194,12 @@ public sealed partial class PViewfinder : FrameworkElement
             (System.Diagnostics.Stopwatch.GetTimestamp() - pViewfinderStamp) * 1000d
             / System.Diagnostics.Stopwatch.Frequency;
         LTrace.LTraceTimelineAdd(
-            "Viewfinder", lCursor, lSourcePath, pViewfinderDrawTrigger, pViewfinderMilliseconds, pViewfinderGlyphCount);
+            "Viewfinder",
+            lFlow.LFlowCursor,
+            lFlow.LFlowSourcePath,
+            lFlow.LFlowViewfinderTrigger,
+            pViewfinderMilliseconds,
+            pViewfinderGlyphCount);
     }
 
     private void PViewfinderContentDraw(DrawingContext drawingContext)
@@ -216,7 +208,7 @@ public sealed partial class PViewfinder : FrameworkElement
         double actualHeight = ActualHeight;
         drawingContext.DrawRectangle(pViewfinderBrushBackground, null, new Rect(0, 0, actualWidth, actualHeight));
 
-        if (lSpool is null || actualWidth <= 0 || actualHeight < PViewfinderRenderLeast)
+        if (lFlow.LFlowSpool is not { } lSpool || actualWidth <= 0 || actualHeight < PViewfinderRenderLeast)
         {
             return;
         }

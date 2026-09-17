@@ -18,7 +18,7 @@ public sealed partial class PAudioTab
             return;
         }
 
-        pAudioPlanLoading = true;
+        pInspector.LInspector.LInspectorRestoreSet(true);
         try
         {
             LWorkAudio pAudioPersistentPlan = LAudio.LAudioPersistentRead(pAudioPersistentRecord);
@@ -28,7 +28,7 @@ public sealed partial class PAudioTab
         }
         finally
         {
-            pAudioPlanLoading = false;
+            pInspector.LInspector.LInspectorRestoreSet(false);
         }
     }
 
@@ -40,7 +40,7 @@ public sealed partial class PAudioTab
 
     private void PAudioPersistentSave()
     {
-        if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
+        if (pInspector.LInspector.LInspectorRestoring || !pInspector.PInspectorPersistentCheck())
         {
             return;
         }
@@ -78,7 +78,7 @@ public sealed partial class PAudioTab
 
     private void PAudioItemsHandle(IReadOnlyList<LDocketEntry> pAudioAddedItems)
     {
-        if (pAudioPlanLoading || !pInspector.PInspectorPersistentCheck())
+        if (pInspector.LInspector.LInspectorRestoring || !pInspector.PInspectorPersistentCheck())
         {
             return;
         }
@@ -99,19 +99,18 @@ public sealed partial class PAudioTab
     {
         bool pAudioOwnerFirst = pAudioOwnerPath is null;
         pAudioOwnerPath = pMediaStatus.LCargoSourcePath;
-        pAudioOwnerRate = pMediaStatus.LCargoMediaInfo?.LMediaSampleRate ?? 0;
         PAudioPlanRestore(pMediaStatus.LCargoSourcePath, pAudioOwnerFirst);
         pAudioMonitor.LSMonitorSourceOpen(
             pMediaStatus.LCargoSourcePath,
             pMediaStatus.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero,
-            pAudioOwnerRate);
+            PAudioRateRead());
         pAudioMonitor.LSMonitorPlanApply(PAudioProcessingRead());
     }
 
     private void PAudioPlanRestore(string pSourcePath, bool pAudioOwnerFirst)
     {
         bool pAudioAdopted = false;
-        pAudioPlanLoading = true;
+        pInspector.LInspector.LInspectorRestoreSet(true);
         try
         {
             LWorkAudio? pSaved = LAudio.LAudioPlanRead(pSourcePath, LLibrarian.LLibrarianAudioLoad);
@@ -132,7 +131,7 @@ public sealed partial class PAudioTab
         }
         finally
         {
-            pAudioPlanLoading = false;
+            pInspector.LInspector.LInspectorRestoreSet(false);
         }
 
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());
@@ -146,7 +145,7 @@ public sealed partial class PAudioTab
 
     private void PAudioPlanSave()
     {
-        if (pAudioPlanLoading
+        if (pInspector.LInspector.LInspectorRestoring
             || pAudioOwnerPath is not { } pSourcePath
             || pList.PListLockCheck(pSourcePath))
         {

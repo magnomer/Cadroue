@@ -118,11 +118,10 @@ public sealed partial class PLogWindow
             return;
         }
 
-        pLogFilePath = pLogPath;
-        pLogFileLive = string.Equals(pLogPath, LTraceWriter.LTracePathRead(), StringComparison.OrdinalIgnoreCase);
+        LLog.LLogFileSet(pLogPath, LTraceWriter.LTracePathRead());
         LTraceReadResult<string> pLogRead;
-        long pLogCommitted = pLogSnapshotSequence;
-        if (pLogFileLive)
+        long pLogCommitted = LLog.LLogSnapshot;
+        if (LLog.LLogFileLive)
         {
             pLogRead = LTraceWriter.LTraceWriterRead(out pLogCommitted);
         }
@@ -137,12 +136,12 @@ public sealed partial class PLogWindow
             return;
         }
 
-        if (pLogFileLive)
+        if (LLog.LLogFileLive)
         {
-            pLogSnapshotSequence = pLogCommitted;
+            LLog.LLogSnapshotSet(pLogCommitted);
             lock (pLogPendingLock)
             {
-                pLogPending.RemoveAll(pLogItem => pLogItem.PLogSequence <= pLogSnapshotSequence);
+                pLogPending.RemoveAll(pLogItem => LLog.LLogSnapshotCheck(pLogItem.PLogSequence));
             }
         }
 
@@ -190,7 +189,7 @@ public sealed partial class PLogWindow
 
     private void PLogFeedScroll()
     {
-        if (pLogFollowTail && pLogRowsShown.Count > 0)
+        if (LLog.LLogFollowTail && pLogRowsShown.Count > 0)
         {
             pLogFeed.ScrollIntoView(pLogRowsShown[^1]);
         }
@@ -209,7 +208,7 @@ public sealed partial class PLogWindow
             return;
         }
 
-        pLogFollowTail = pLogViewer.ScrollableHeight - pLogViewer.VerticalOffset <= PLogRow.PLogRowHeight;
+        LLog.LLogFollowSet(pLogViewer.ScrollableHeight - pLogViewer.VerticalOffset <= PLogRow.PLogRowHeight);
     }
 
     private void PLogAppendHandle(long pLogSequence, LTraceEntry pLogEntry)
@@ -223,11 +222,10 @@ public sealed partial class PLogWindow
     private void PLogFlushHandle(object? sender, EventArgs e)
     {
         string pLogCurrentPath = LTraceWriter.LTracePathRead();
-        if (pLogFileLive
-            && !string.Equals(pLogFilePath, pLogCurrentPath, StringComparison.OrdinalIgnoreCase))
+        if (LLog.LLogFileLive && !LLog.LLogFileCheck(pLogCurrentPath))
         {
             PLogFilesUpdate(pLogFollowCurrent: true);
-            if (!string.Equals(pLogFilePath, pLogCurrentPath, StringComparison.OrdinalIgnoreCase))
+            if (!LLog.LLogFileCheck(pLogCurrentPath))
             {
                 PLogFileLoad();
             }
@@ -245,11 +243,7 @@ public sealed partial class PLogWindow
             pLogPending.Clear();
         }
 
-        pLogFileLive = string.Equals(
-            pLogFilePath,
-            LTraceWriter.LTracePathRead(),
-            StringComparison.OrdinalIgnoreCase);
-        if (!pLogFileLive)
+        if (!LLog.LLogLiveSet(LTraceWriter.LTracePathRead()))
         {
             return;
         }
@@ -257,7 +251,7 @@ public sealed partial class PLogWindow
         HashSet<LTraceKind> pLogCategories = PLogCategoryRead();
         foreach ((long pLogSequence, LTraceEntry pLogEntry) in pLogBatch)
         {
-            if (pLogSequence <= pLogSnapshotSequence)
+            if (LLog.LLogSnapshotCheck(pLogSequence))
             {
                 continue;
             }
@@ -282,14 +276,15 @@ public sealed partial class PLogWindow
     {
         if (e.OriginalSource is FrameworkElement pLogElement && pLogElement.DataContext is PLogRow pLogRow)
         {
-            pLogRow.PLogRowExpanded = !pLogRow.PLogRowExpanded;
+            LLog.LLogExpandToggle(pLogRow.LLogRow);
+            pLogRow.PLogRowUpdate();
             e.Handled = true;
         }
     }
 
     private void PLogTextCopy()
     {
-        LTraceReadResult<string> pLogRead = LTraceWriter.LTraceFileRead(pLogFilePath);
+        LTraceReadResult<string> pLogRead = LTraceWriter.LTraceFileRead(LLog.LLogFilePath);
         if (!pLogRead.LTraceReadSuccess)
         {
             PLogErrorShow("Log.Error.Read", pLogRead.LTraceReadError);
@@ -308,7 +303,7 @@ public sealed partial class PLogWindow
 
     private void PLogFolderOpen()
     {
-        if (LUsher.LUsherPathOpen(pLogFilePath, LTraceWriter.LTraceFolderRead()) is { } pLogError)
+        if (LUsher.LUsherPathOpen(LLog.LLogFilePath, LTraceWriter.LTraceFolderRead()) is { } pLogError)
         {
             PLogErrorShow("Log.Error.Open", pLogError);
         }

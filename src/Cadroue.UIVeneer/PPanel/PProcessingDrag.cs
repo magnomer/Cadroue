@@ -6,20 +6,19 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PProcessing
 {
-    private int? pProcessingIndexDragging;
     private Point? pProcessingDragOrigin;
     private bool pProcessingDragActive;
     private Border? pProcessingRowDragging;
 
     private void PProcessingMoveHandle(object pSender, MouseEventArgs pEvent)
     {
-        if (!pProcessingOrdered)
+        if (!LProcessing.LProcessingOrdered)
         {
             return;
         }
 
         if (pProcessingRowDragging is not { } pDragRow
-            || pProcessingIndexDragging is not int pDragIndex
+            || LProcessing.LProcessingDragIndex is not int pDragIndex
             || pProcessingDragOrigin is not Point pStart
             || pEvent.LeftButton != MouseButtonState.Pressed)
         {
@@ -36,32 +35,12 @@ public sealed partial class PProcessing
 
         pProcessingDragActive = true;
         pDragRow.Opacity = 0.72;
-
-        int pTargetIndex = PProcessingIndexResolve(pCurrent);
-        if (pProcessingRowPanel.Children[pTargetIndex] is Border { Tag: string pTargetName }
-            && pProcessingDisabledSteps.Contains(pTargetName))
-        {
-            return;
-        }
-
-        if (pTargetIndex != pDragIndex)
-        {
-            pProcessingRowPanel.Children.Remove(pDragRow);
-            pTargetIndex = Math.Clamp(pTargetIndex, 0, pProcessingRowPanel.Children.Count);
-            pProcessingRowPanel.Children.Insert(pTargetIndex, pDragRow);
-            pProcessingIndexDragging = pTargetIndex;
-            PProcessingNumbersUpdate();
-        }
+        LProcessing.LProcessingIndexMove(pDragIndex, PProcessingIndexResolve(pCurrent));
     }
 
     private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         bool pReordered = pProcessingDragActive;
-        if (pProcessingRowDragging is { } pDragRow)
-        {
-            pDragRow.Opacity = 1;
-        }
-
         PProcessingDragClear();
         if (pReordered)
         {
@@ -69,19 +48,16 @@ public sealed partial class PProcessing
         }
     }
 
-    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent)
+    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent) => PProcessingDragClear();
+
+    private void PProcessingDragClear()
     {
         if (pProcessingRowDragging is { } pDragRow)
         {
             pDragRow.Opacity = 1;
         }
 
-        PProcessingDragClear();
-    }
-
-    private void PProcessingDragClear()
-    {
-        pProcessingIndexDragging = null;
+        LProcessing.LProcessingDragSet(null);
         pProcessingDragOrigin = null;
         pProcessingDragActive = false;
         pProcessingRowDragging = null;

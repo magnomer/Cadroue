@@ -1,21 +1,17 @@
-using System;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-
-using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.UIVeneer.PAsset;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PInspector
 {
+    private Canvas pBlankWheelCanvas = null!;
+    private Image pBlankWheelImage = null!;
+    private Ellipse pBlankWheelDot = null!;
+
     private UIElement PBlankWheelBuild()
     {
         pBlankWheelCanvas = new Canvas
@@ -63,21 +59,12 @@ public sealed partial class PInspector
         };
     }
 
-    private void PBlankBrightnessChange()
-    {
-        PBlankWheelUpdate();
-        PBlankRaise();
-    }
-
     private void PBlankWheelUpdate()
     {
-        if (pBlankWheelImage is null)
+        if (pBlankWheelImage is not null)
         {
-            return;
+            pBlankWheelImage.Source = PWhitebalanceWheelDraw(Math.Clamp(pBlankBrightnessSlider.Value, 0, 1));
         }
-
-        double pBlankValue = Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, 1), 0, 1);
-        pBlankWheelImage.Source = PWhitebalanceWheelDraw(pBlankValue);
     }
 
     private void PBlankWheelHandle(object sender, MouseEventArgs pBlankMouse)
@@ -93,29 +80,9 @@ public sealed partial class PInspector
         }
 
         Point pBlankPoint = pBlankMouse.GetPosition(pBlankWheelCanvas);
-        double pBlankX = (pBlankPoint.X - (PWhitebalanceWheelSize / 2.0)) / PWhitebalanceWheelRadius;
-        double pBlankY = ((PWhitebalanceWheelSize / 2.0) - pBlankPoint.Y) / PWhitebalanceWheelRadius;
-        double pBlankReach = Math.Sqrt((pBlankX * pBlankX) + (pBlankY * pBlankY));
-        if (pBlankReach > 1)
-        {
-            pBlankX /= pBlankReach;
-            pBlankY /= pBlankReach;
-        }
-
-        pBlankWheelX = pBlankX;
-        pBlankWheelY = pBlankY;
-        pBlankWheelPresent = true;
-        pBlankColor.IsChecked = true;
-        if (Math.Clamp(PInspectorDecimalRead(pBlankBrightnessValue, LDetectorBlank.LDetectorBlankValue), 0, 1)
-            <= 0.0001)
-        {
-            pBlankBrightnessValue.Text = LDetectorBlank.LDetectorBlankValue.ToString(
-                "0.00",
-                CultureInfo.InvariantCulture);
-        }
-
-        PBlankWheelPlace();
-        PBlankRaise();
+        LBlank.LBlankWheelSet(
+            (pBlankPoint.X - (PWhitebalanceWheelSize / 2.0)) / PWhitebalanceWheelRadius,
+            ((PWhitebalanceWheelSize / 2.0) - pBlankPoint.Y) / PWhitebalanceWheelRadius);
     }
 
     private void PBlankWheelPlace()
@@ -125,36 +92,16 @@ public sealed partial class PInspector
             return;
         }
 
-        if (!pBlankWheelPresent)
+        if (!LBlank.LBlankWheelPresent)
         {
             pBlankWheelDot.Visibility = Visibility.Collapsed;
             return;
         }
 
-        double pBlankCenterX = (PWhitebalanceWheelSize / 2.0) + (pBlankWheelX * PWhitebalanceWheelRadius);
-        double pBlankCenterY = (PWhitebalanceWheelSize / 2.0) - (pBlankWheelY * PWhitebalanceWheelRadius);
+        double pBlankCenterX = (PWhitebalanceWheelSize / 2.0) + (LBlank.LBlankWheelX * PWhitebalanceWheelRadius);
+        double pBlankCenterY = (PWhitebalanceWheelSize / 2.0) - (LBlank.LBlankWheelY * PWhitebalanceWheelRadius);
         Canvas.SetLeft(pBlankWheelDot, pBlankCenterX - (pBlankWheelDot.Width / 2));
         Canvas.SetTop(pBlankWheelDot, pBlankCenterY - (pBlankWheelDot.Height / 2));
         pBlankWheelDot.Visibility = Visibility.Visible;
-    }
-
-    public void PBlankSampleApply(int pBlankRed, int pBlankGreen, int pBlankBlue)
-    {
-        if (pBlankPicker is { })
-        {
-            pBlankPicker.IsChecked = false;
-        }
-
-        LNeutralWheel pBlankWheel = LNeutral.LNeutralWheelResolve(pBlankRed, pBlankGreen, pBlankBlue);
-        pBlankWheelX = pBlankWheel.LNeutralWheelX;
-        pBlankWheelY = pBlankWheel.LNeutralWheelY;
-        pBlankWheelPresent = true;
-        pBlankColor.IsChecked = true;
-        double pBlankBrightness = Math.Max(pBlankRed, Math.Max(pBlankGreen, pBlankBlue)) / 255.0;
-        pBlankSuppress = true;
-        pBlankBrightnessValue.Text = pBlankBrightness.ToString("0.00", CultureInfo.InvariantCulture);
-        pBlankSuppress = false;
-        PBlankWheelPlace();
-        PBlankRaise();
     }
 }

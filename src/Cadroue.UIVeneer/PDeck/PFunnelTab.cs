@@ -2,6 +2,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIVeneer.PToolbar;
 using Cadroue.UIVeneer.PPanel;
+using Cadroue.UIDeportment;
 using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
 
 using Cadroue.ShellEngine;
@@ -21,7 +22,7 @@ public sealed class PFunnelTab : PTabSurface
         pFunnelRules.PFunnelOptionsSet(PFunnelTargetsRead);
         if (lPreferenceTabLayout?.LSceneFunnelRules is { Count: > 0 } pRuleRecords)
         {
-            pFunnelRules.PFunnelRulesRestore(pRuleRecords);
+            pFunnelRules.LFunnel.LFunnelRulesRestore(pRuleRecords);
         }
 
         var pAction = new PAction();
@@ -44,7 +45,7 @@ public sealed class PFunnelTab : PTabSurface
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
-            new PCompass(pFlow),
+            new PCompass(pFlow, pViewer),
             pAction,
             pFlow,
             lPreferenceTabLayout);
@@ -52,7 +53,7 @@ public sealed class PFunnelTab : PTabSurface
     }
 
     public void PFunnelTargetsResolve(IReadOnlyList<PTabRecord> pTabRecords) =>
-        pFunnelRules.PFunnelTargetsResolve(pTabRecords);
+        pFunnelRules.LFunnel.LFunnelTargetsResolve(pTabRecords.Select(pRecord => pRecord.PTabId).ToArray());
 
     private void PFunnelDispatch(IReadOnlyList<LDocketEntry> pItems)
     {
@@ -61,11 +62,12 @@ public sealed class PFunnelTab : PTabSurface
             return;
         }
 
-        IReadOnlyList<PFunnelRuleRow> pRows = pFunnelRules.PFunnelRulesRead();
-        var pRules = pRows.Select(pRow => pRow.PFunnelRecordCreate()).ToList();
+        LFunnel lFunnel = pFunnelRules.LFunnel;
+        IReadOnlyList<LFunnelRule> lRows = lFunnel.LFunnelRules;
+        var pRules = lRows.Select(lFunnel.LFunnelRecordCreate).ToList();
         var pLiveTargets = PFunnelTargetsRead().Select(pOption => pOption.PActionRelayId).ToHashSet();
-        var pTargets = pRows
-            .Select(pRow => pLiveTargets.Contains(pRow.PFunnelTargetId) ? pRow.PFunnelTargetId : Guid.Empty)
+        var pTargets = lRows
+            .Select(lRule => pLiveTargets.Contains(lRule.LFunnelRuleTarget) ? lRule.LFunnelRuleTarget : Guid.Empty)
             .ToList();
         var pDispatchItems = pItems
             .Select(pItem => (pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -111,11 +113,11 @@ public sealed class PFunnelTab : PTabSurface
     public override LSceneTabRecord PTabLayoutRead()
     {
         LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
-        lPreferenceTabLayout.LSceneFunnelRules = pFunnelRules.PFunnelRulesRead()
-            .Select(pRow =>
+        lPreferenceTabLayout.LSceneFunnelRules = pFunnelRules.LFunnel.LFunnelRules
+            .Select(lRule =>
             {
-                LSceneFunnelRule pRecord = pRow.PFunnelRecordCreate();
-                pRecord.LSceneFunnelTarget = PFunnelTargetRead(pRow.PFunnelTargetId);
+                LSceneFunnelRule pRecord = pFunnelRules.LFunnel.LFunnelRecordCreate(lRule);
+                pRecord.LSceneFunnelTarget = PFunnelTargetRead(lRule.LFunnelRuleTarget);
                 return pRecord;
             })
             .ToList();

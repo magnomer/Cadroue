@@ -8,6 +8,7 @@ using Cadroue.UIVeneer.PHouse;
 
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -19,8 +20,6 @@ internal sealed class PLogRow : INotifyPropertyChanged
     internal const double PLogBadgeWidth = 78;
     internal const double PLogRowHeight = 26;
     internal const double PLogChipHeight = 22;
-
-    private bool pLogRowExpanded;
 
     internal PLogRow(LTraceEntry pLogEntry)
     {
@@ -60,29 +59,20 @@ internal sealed class PLogRow : INotifyPropertyChanged
 
     internal LTraceKind PLogRowCategory { get; }
 
-    public bool PLogRowExpanded
-    {
-        get => pLogRowExpanded;
-        set
-        {
-            if (pLogRowExpanded == value)
-            {
-                return;
-            }
+    internal LLogRow LLogRow { get; } = new();
 
-            pLogRowExpanded = value;
-            PLogChangeRaise(nameof(PLogRowExpanded));
-            PLogChangeRaise(nameof(PLogDetailShown));
-            PLogChangeRaise(nameof(PLogChipText));
-        }
+    internal void PLogRowUpdate()
+    {
+        PLogChangeRaise(nameof(PLogDetailShown));
+        PLogChangeRaise(nameof(PLogChipText));
     }
 
-    public Visibility PLogDetailShown => pLogRowExpanded ? Visibility.Visible : Visibility.Collapsed;
+    public Visibility PLogDetailShown => LLogRow.LLogRowExpanded ? Visibility.Visible : Visibility.Collapsed;
 
     public Visibility PLogChipShown => PLogRowDetailed ? Visibility.Visible : Visibility.Collapsed;
 
     public string PLogChipText =>
-        LLocalization.LLocalizationTextRead("Log.Button.Details") + (pLogRowExpanded ? "  ▴" : "  ▾");
+        LLocalization.LLocalizationTextRead("Log.Button.Details") + (LLogRow.LLogRowExpanded ? "  ▴" : "  ▾");
 
     internal static void PLogRowApply(ListBox pLogFeed)
     {

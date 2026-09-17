@@ -14,16 +14,13 @@ public sealed partial class PRoster
     private readonly Dictionary<Guid, PRosterRowCell> pRosterRowCells = new();
     private readonly Dictionary<Guid, Border> pRosterStepRows = new();
     private readonly Dictionary<Guid, PRosterRowPlace> pRosterRowPlaces = new();
-    private readonly List<Guid> pRosterOrderedIds = new();
     private readonly Dictionary<Guid, Border> pRosterCards = new();
     private readonly Dictionary<Guid, Border> pRosterCardHeaders = new();
     private readonly Dictionary<Guid, TextBlock> pRosterCardTitles = new();
     private readonly Dictionary<Guid, TextBlock> pRosterCloseGlyphs = new();
     private readonly Dictionary<Guid, PRosterBatchControl> pRosterBatchControls = new();
     private readonly HashSet<Guid> pRosterStageIds = new();
-    private readonly HashSet<Guid> pRosterCollapsedIds = new();
     private readonly HashSet<Guid> pRosterCompletedIds = new();
-    private Guid pRosterCardId;
 
     private sealed class PRosterRowCell
     {
@@ -91,7 +88,7 @@ public sealed partial class PRoster
             .SelectMany(pLineage => pLineage.PRosterLineageItems)
             .Select(pWorkItem => pWorkItem.LWorkId)
             .ToArray();
-        if (pRosterOrderedIds.SequenceEqual(pNextIds))
+        if (LRoster.LRosterOrderMatch(pNextIds))
         {
             foreach (PRosterLineageEntry pLineage in pLineages)
             {
@@ -135,7 +132,7 @@ public sealed partial class PRoster
         pRosterStepRows.Clear();
         pRosterRowBatch.Clear();
         pRosterFileShades.Clear();
-        pRosterOrderedIds.Clear();
+        LRoster.LRosterOrderClear();
         pRosterCards.Clear();
         pRosterCardHeaders.Clear();
         pRosterCardTitles.Clear();
@@ -149,20 +146,7 @@ public sealed partial class PRoster
             pRosterQueuePanel.Children.Add(PRosterBatchBuild(pBatchMap[pBatchId]));
         }
 
-        var pPresent = pRosterOrderedIds.ToHashSet();
-        pRosterSelectedIds.RemoveWhere(pRosterId => !pPresent.Contains(pRosterId));
-        if (!pPresent.Contains(pRosterCurrentId))
-        {
-            pRosterCurrentId = Guid.Empty;
-        }
-
-        if (pRosterCardId != Guid.Empty && !pBatchOrder.Contains(pRosterCardId))
-        {
-            pRosterCardId = Guid.Empty;
-        }
-
-        var pBatchPresent = pBatchOrder.ToHashSet();
-        pRosterCollapsedIds.RemoveWhere(pBatchId => !pBatchPresent.Contains(pBatchId));
+        LRoster.LRosterStaleRemove(pBatchOrder.ToHashSet());
         PRosterShadeApply();
     }
 
@@ -190,17 +174,10 @@ public sealed partial class PRoster
 
             if (pCollapseCompleted)
             {
-                if (pCompleted)
-                {
-                    pRosterCollapsedIds.Add(pBatch.Key);
-                }
-                else
-                {
-                    pRosterCollapsedIds.Remove(pBatch.Key);
-                }
+                LRoster.LRosterCollapseSet(pBatch.Key, pCompleted);
             }
 
-            PRosterBatchApply(pBatch.Key, pRosterCollapsedIds.Contains(pBatch.Key));
+            PRosterBatchApply(pBatch.Key, LRoster.LRosterCollapsedCheck(pBatch.Key));
         }
     }
 
@@ -213,7 +190,7 @@ public sealed partial class PRoster
         var pDetail = new StackPanel
         {
             Margin = new Thickness(0, 0, 0, 6),
-            Visibility = pRosterCollapsedIds.Contains(pBatchId) ? Visibility.Collapsed : Visibility.Visible
+            Visibility = LRoster.LRosterCollapsedCheck(pBatchId) ? Visibility.Collapsed : Visibility.Visible
         };
         pStack.Children.Add(PRosterCardBuild(pBatchItems, pDetail));
 
@@ -246,7 +223,7 @@ public sealed partial class PRoster
                     pLast);
 
                 pRosterRowBatch[pWorkItem.LWorkId] = pBatchId;
-                pRosterOrderedIds.Add(pWorkItem.LWorkId);
+                LRoster.LRosterOrderAdd(pWorkItem.LWorkId);
                 pDetail.Children.Add(PRosterRowBuild(pWorkItem));
             }
         }
@@ -258,12 +235,12 @@ public sealed partial class PRoster
             CornerRadius = new CornerRadius(PRosterTheme.PRosterCorner),
             Background = pRosterCompletedIds.Contains(pBatchId)
                 ? PRosterTheme.PRosterDoneBody
-                : pBatchId == pRosterCardId
+                : LRoster.LRosterCardCheck(pBatchId)
                     ? PRosterTheme.PRosterSelectBody
                     : PRosterTheme.PRosterBodyBrush,
             BorderBrush = pRosterCompletedIds.Contains(pBatchId)
                 ? PRosterTheme.PRosterDoneLine
-                : pBatchId == pRosterCardId
+                : LRoster.LRosterCardCheck(pBatchId)
                     ? PRosterTheme.PRosterOuterLine
                     : PRosterTheme.PRosterCardLine,
             BorderThickness = new Thickness(1),

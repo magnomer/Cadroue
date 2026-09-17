@@ -29,7 +29,7 @@ public sealed partial class PRoster
     };
 
     private Brush PRosterShadeRead(Guid pRowId) =>
-        pRosterRowBatch.TryGetValue(pRowId, out Guid pBatch) && pBatch == pRosterCardId
+        pRosterRowBatch.TryGetValue(pRowId, out Guid pBatch) && LRoster.LRosterCardCheck(pBatch)
             ? Brushes.Transparent
             : pRosterStageIds.Contains(pRowId)
                 ? PRosterTheme.PRosterStageBrush
@@ -39,7 +39,7 @@ public sealed partial class PRoster
     {
         foreach (PRosterShade pShade in pRosterFileShades)
         {
-            pShade.PRosterShadeBorder.Background = pShade.PRosterShadeBatch == pRosterCardId
+            pShade.PRosterShadeBorder.Background = LRoster.LRosterCardCheck(pShade.PRosterShadeBatch)
                 ? Brushes.Transparent
                 : pShade.PRosterShadeStage
                     ? PRosterTheme.PRosterStageBrush
@@ -104,7 +104,7 @@ public sealed partial class PRoster
         pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuOpen(pRow, pArgs);
 
         pRosterStepRows[pRowId] = pRow;
-        pRow.Background = pRosterSelectedIds.Contains(pRowId)
+        pRow.Background = LRoster.LRosterSelectedCheck(pRowId)
             ? PRosterTheme.PRosterSelectBrush
             : PRosterShadeRead(pRowId);
         return pRow;
