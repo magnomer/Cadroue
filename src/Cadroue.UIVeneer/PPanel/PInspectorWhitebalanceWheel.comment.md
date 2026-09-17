@@ -1,7 +1,7 @@
 # PInspectorWhitebalanceWheel.cs
 
-## `private void PWhitebalanceWheelUpdate()`
+## `private void PWhitebalanceWheelPlace()`
 
 Manual mode owns the dot from its sample.
 Automatic modes leave it to the frame-analysis estimate.
-Either way, redraw at the stored coordinates.
+`LWhitebalance` resolves which one applies and this only places the dot.

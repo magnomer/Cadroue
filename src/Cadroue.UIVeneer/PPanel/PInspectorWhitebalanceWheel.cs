@@ -21,11 +21,6 @@ public sealed partial class PInspector
     private Image pWhitebalanceWheelImage = null!;
     private Slider pWhitebalanceWheelBrightness = null!;
     private Ellipse pWhitebalanceWheelDot = null!;
-    private double pWhitebalanceWheelX;
-    private double pWhitebalanceWheelY;
-    private bool pWhitebalanceWheelPresent;
-
-    public event Action<LWhitebalanceMethod>? PWhitebalanceEstimateChange;
 
     private UIElement PWhitebalanceWheelBuild()
     {
@@ -89,7 +84,6 @@ public sealed partial class PInspector
         pWhitebalanceWheelBrightness.ValueChanged += (_, _) =>
             pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
 
-        PWhitebalanceWheelPlace();
         return new StackPanel
         {
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -100,7 +94,7 @@ public sealed partial class PInspector
 
     private void PWhitebalanceWheelHandle(object sender, MouseEventArgs pWheelMouse)
     {
-        if (pWheelMouse.LeftButton != MouseButtonState.Pressed || !pWhitebalanceCapable)
+        if (pWheelMouse.LeftButton != MouseButtonState.Pressed || !LWhitebalance.LWhitebalanceCapable)
         {
             return;
         }
@@ -120,23 +114,7 @@ public sealed partial class PInspector
             pWheelY /= pWheelReach;
         }
 
-        PToneNeutralApply(LNeutral.LNeutralColorResolve(pWheelX, pWheelY));
-    }
-
-    private void PWhitebalanceWheelUpdate()
-    {
-        if (pWhitebalanceManual)
-        {
-            LNeutralWheel pWheel = LNeutral.LNeutralWheelResolve(
-                pWhitebalanceSampleRed,
-                pWhitebalanceSampleGreen,
-                pWhitebalanceSampleBlue);
-            pWhitebalanceWheelX = pWheel.LNeutralWheelX;
-            pWhitebalanceWheelY = pWheel.LNeutralWheelY;
-            pWhitebalanceWheelPresent = pWheel.LNeutralWheelPresent;
-        }
-
-        PWhitebalanceWheelPlace();
+        LWhitebalance.LWhitebalanceSampleSet(LNeutral.LNeutralColorResolve(pWheelX, pWheelY));
     }
 
     private void PWhitebalanceWheelPlace()
@@ -146,40 +124,22 @@ public sealed partial class PInspector
             return;
         }
 
-        if (!pWhitebalanceWheelPresent)
+        LNeutralWheel pWheel = LWhitebalance.LWhitebalanceWheelRead();
+        if (!pWheel.LNeutralWheelPresent)
         {
             pWhitebalanceWheelDot.Visibility = Visibility.Collapsed;
             return;
         }
 
-        double pWheelCenterX = (PWhitebalanceWheelSize / 2.0) + (pWhitebalanceWheelX * PWhitebalanceWheelRadius);
-        double pWheelCenterY = (PWhitebalanceWheelSize / 2.0) - (pWhitebalanceWheelY * PWhitebalanceWheelRadius);
+        double pWheelCenterX = (PWhitebalanceWheelSize / 2.0) + (pWheel.LNeutralWheelX * PWhitebalanceWheelRadius);
+        double pWheelCenterY = (PWhitebalanceWheelSize / 2.0) - (pWheel.LNeutralWheelY * PWhitebalanceWheelRadius);
         Canvas.SetLeft(pWhitebalanceWheelDot, pWheelCenterX - (pWhitebalanceWheelDot.Width / 2));
         Canvas.SetTop(pWhitebalanceWheelDot, pWheelCenterY - (pWhitebalanceWheelDot.Height / 2));
         pWhitebalanceWheelDot.Visibility = Visibility.Visible;
     }
 
-    private void PWhitebalanceEstimateRaise()
-    {
-        LWhitebalanceMethod pWheelMethod = PWhitebalanceMethodRead();
-        if (pWheelMethod != LWhitebalanceMethod.LWhitebalanceMethodManual)
-        {
-            PWhitebalanceEstimateChange?.Invoke(pWheelMethod);
-        }
-    }
-
-    public void PWhitebalanceEstimateApply(LNeutralWheel pWheelEstimate)
-    {
-        if (pWhitebalanceManual)
-        {
-            return;
-        }
-
-        pWhitebalanceWheelX = pWheelEstimate.LNeutralWheelX;
-        pWhitebalanceWheelY = pWheelEstimate.LNeutralWheelY;
-        pWhitebalanceWheelPresent = pWheelEstimate.LNeutralWheelPresent;
-        PWhitebalanceWheelPlace();
-    }
+    public void PWhitebalanceEstimateApply(LNeutralWheel pWheelEstimate) =>
+        LWhitebalance.LWhitebalanceEstimateSet(pWheelEstimate);
 
     private static ImageSource PWhitebalanceWheelDraw() =>
         PWhitebalanceWheelDraw(PWhitebalanceWheelValue);

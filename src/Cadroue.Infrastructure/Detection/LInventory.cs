@@ -16,6 +16,11 @@ public sealed record LInventoryEncoder(
     bool LInventoryEncoderExperimental,
     string LInventoryEncoderSummary);
 
+public sealed record LInventoryFeature(
+    string LInventoryVersion,
+    string LInventoryLocation,
+    IReadOnlyDictionary<string, bool> LInventoryMap);
+
 public enum LInventoryStatus
 {
     LInventoryStatusPending,
@@ -39,6 +44,38 @@ public static partial class LInventory
     {
         LInventoryInstalledRead();
         LInventoryFilterRead();
+    }
+
+    public static void LInventoryPrepareStart() =>
+        _ = System.Threading.Tasks.Task.Run(LInventoryPrepare);
+
+    public static Task<LInventoryFeature> LInventoryFeatureRead(IReadOnlyList<string> lInventoryFilters) =>
+        System.Threading.Tasks.Task.Run(() =>
+        {
+            string lInventoryVersion = LInventoryVersionRead();
+            string lInventoryLocation = LInventoryLocationResolve();
+            var lInventoryMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+            if (!string.IsNullOrWhiteSpace(lInventoryVersion))
+            {
+                foreach (string lInventoryFilter in lInventoryFilters)
+                {
+                    lInventoryMap[lInventoryFilter] = LInventoryFilterConfirm(lInventoryFilter);
+                }
+            }
+
+            return new LInventoryFeature(lInventoryVersion, lInventoryLocation, lInventoryMap);
+        });
+
+    private static string LInventoryLocationResolve()
+    {
+        string lInventoryExe = Cadroue.Media.LTool.LToolFfmpegRead();
+        if (!Path.IsPathRooted(lInventoryExe))
+        {
+            return string.Empty;
+        }
+
+        string? lInventoryFolder = Path.GetDirectoryName(lInventoryExe);
+        return string.IsNullOrEmpty(lInventoryFolder) ? lInventoryExe : lInventoryFolder;
     }
 
     public static bool LInventoryFilterExist(string lInventoryFilter)

@@ -38,26 +38,6 @@ internal static class TAuditGateSetting
 
     public static readonly string[] TAuditVeneerKnown =
     [
-        "App.xaml.cs",
-        "PAsset/PIcon.cs",
-        "PDeck/PConsoleScene.cs",
-        "PDeck/PConsoleSceneFile.cs",
-        "PDeck/PRosterFormat.cs",
-        "PDeck/PRosterLineage.cs",
-        "PDeck/PRosterMenu.cs",
-        "PFlow/PFlowLosslesscut.cs",
-        "PPanel/PGroupCard.cs",
-        "PPanel/PGroupDrag.cs",
-        "PPanel/PListRelay.cs",
-        "PPanel/PListRow.cs",
-        "PPanel/PSEncoderCodec.cs",
-        "PPanel/PSEncoderName.cs",
-        "PPanel/PSEncoderOutput.cs",
-        "PPanel/PViewerLoad.cs",
-        "PPanel/PViewerMpv.cs",
-        "PPanel/PViewerNeutral.cs",
-        "PSDiagnosis/PSDiagnosisContent.cs",
-        "PSLoupe/PSLoupePlayback.cs",
     ];
 
     public static readonly string[] TAuditDeportmentKnown =

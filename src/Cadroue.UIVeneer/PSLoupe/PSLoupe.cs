@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -9,6 +9,7 @@ using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPanel;
 using Cadroue.UIVeneer.PSCasement;
+using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSCasement.PSField;
 using static Cadroue.UIVeneer.PSCasement.PSCasement;
@@ -49,9 +50,9 @@ internal sealed partial class PSLoupe : Window
     private Image? psLoupePlayImage;
     private Button[]? psLoupeFloatButtons;
     private PSLoupeFloat psLoupeFloat = PSLoupeFloat.PSLoupeFloatOwner;
-    private bool psLoupePlaying;
-    private bool psLoupeEnded;
-    private bool psLoupeClosed;
+
+    public LSLoupe LSLoupe { get; } = new();
+    public LPlayer LPlayer { get; } = new();
 
     internal static void PSLoupeShow(Window pOwner, PViewer pSource)
     {
@@ -76,6 +77,7 @@ internal sealed partial class PSLoupe : Window
         PScrollbar.PScrollbarApply(this);
         Content = PSLoupeBuild();
         psLoupeClock.Tick += PSLoupeClockHandle;
+        LSLoupe.LSLoupePlayingChange += PSLoupePlayingHandle;
         psLoupeSource.PViewerPreviewChange += PSLoupePreviewHandle;
         Loaded += PSLoupeLoadedHandle;
         psLoupeGrabber = new PSGrabber(this);
@@ -140,7 +142,7 @@ internal sealed partial class PSLoupe : Window
 
     private void PSLoupeCloseHandle(object? pSender, EventArgs pEvent)
     {
-        psLoupeClosed = true;
+        LSLoupe.LSLoupeClose();
         Loaded -= PSLoupeLoadedHandle;
         psLoupeClock.Stop();
         psLoupeClock.Tick -= PSLoupeClockHandle;
@@ -149,7 +151,7 @@ internal sealed partial class PSLoupe : Window
         psLoupeGrabber.PSGrabberDetach();
 
         TimeSpan pFinal = psLoupePlayer.PPlayerReady ? psLoupePlayer.PPlayerTimeRead() : TimeSpan.Zero;
-        bool pPlaying = psLoupePlaying && !psLoupeEnded;
+        bool pPlaying = LSLoupe.LSLoupeResumeCheck();
 
         PSLoupePlaybackDispose();
         psLoupeSource.PViewerLoupeDetach(pFinal, pPlaying);

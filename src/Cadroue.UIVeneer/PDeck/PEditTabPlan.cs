@@ -29,14 +29,6 @@ public sealed partial class PEditTab
                     pEditPlan.LEditRatioWidth,
                     pEditPlan.LEditRatioHeight);
                 pInspector.PCropPersistentApply(true);
-                pCropOwner.LCropboxStateSet(
-                    pEditPlan.LEditCrop,
-                    pEditPlan.LEditCropActive,
-                    pEditPlan.LEditRatioFixed,
-                    pEditPlan.LEditRatioLenient,
-                    pEditPlan.LEditRatioWidth,
-                    pEditPlan.LEditRatioHeight);
-                pCropOwner.LCropboxPersistentSet(true);
             }
 
             pInspector.PTonePlanApply(pEditPlan.LEditVideo);
@@ -100,7 +92,7 @@ public sealed partial class PEditTab
 
         bool pCropApply = pCropPersistent && pCropOwner.LCropboxStateActive;
         LWorkCrop pCrop = pCropPersistent
-            ? pCropOwner.LCropboxStateCrop
+            ? pInspector.PInspectorCropRead()
             : LWorkCrop.LWorkCropCreate();
         LWorkVideo pVideo = pVideoPersistent
             ? pInspector.PTonePersistentRead()
@@ -121,7 +113,7 @@ public sealed partial class PEditTab
     {
         (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
         return new LEditPlan(
-            pCropOwner.LCropboxStateCrop,
+            pInspector.PInspectorCropRead(),
             PEditVideoRead(),
             pCropOwner.LCropboxStateActive)
         {

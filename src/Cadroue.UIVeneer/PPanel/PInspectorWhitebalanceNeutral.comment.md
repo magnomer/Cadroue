@@ -1,18 +1,12 @@
 # PInspectorWhitebalanceNeutral.cs
 
-## `private ToggleButton PWhitebalancePickerBuild(`
+## `private ToggleButton PWhitebalancePickerBuild(LNeutralTarget pTarget, Image pPickerIcon, string pTooltipKey)`
 
 One eyedropper toggle.
 Grey samples a neutral point (strict).
 White samples any point on the black-to-white axis (lenient).
 Both feed one correction pipeline, differing only in the target they hand the viewer's sampler.
 
-## `private void PWhitebalancePickerSelect(LNeutralTarget pTarget)`
+## `private void PWhitebalanceToolUpdate()`
 
-Make this picker the active one: deactivate its peer and the crop tool without firing their disarm side effects.
-
-## Inline notes
-
-### `if (PWhitebalancePeerRead(pTarget).IsChecked == true)`
-
-Switching to the other picker: it will arm the tool itself.
+Writes both toggles from `LWhitebalance` and raises the viewer notice only when the armed state or target changed.

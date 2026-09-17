@@ -6,6 +6,7 @@ using Cadroue.Core;
 using Cadroue.Application;
 
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -13,20 +14,17 @@ public sealed partial class PViewer
 {
     private static readonly System.Windows.Media.Color PViewerBackColor = System.Windows.Media.Colors.White;
 
-    public bool PViewerColorPreview { get; set; }
-
     private void PPlayerAccurateSeek(TimeSpan playbackPosition)
     {
-        if (pViewerMpvActive)
+        if (LViewer.LViewerMpvActive)
         {
-            PViewerSeekRecord(playbackPosition, "mpv engine seeks directly");
+            LViewer.LViewerSeekRecord(playbackPosition, "mpv engine seeks directly");
             pViewerPlayer.PPlayerSeek(playbackPosition);
             return;
         }
 
-        bool pPlayerWasRunning = pPlayerAccurateActive;
-        pPlayerAccurateActive = true;
-        PViewerSeekRecord(
+        bool pPlayerWasRunning = LPlayer.LPlayerAccurateSet();
+        LViewer.LViewerSeekRecord(
             playbackPosition,
             pPlayerWasRunning
                 ? "a seek was still running; queued for Flyleaf to conflate"
@@ -36,10 +34,8 @@ public sealed partial class PViewer
 
     private void PPlayerSeekHandle(object? sender, int seekMilliseconds)
     {
-        pPlayerAccurateActive = false;
-        if (pPlayerRendererPending && seekMilliseconds >= 0 && sender is Player pPlayerSeeked)
+        if (LPlayer.LPlayerSeekCommit(seekMilliseconds) && sender is Player pPlayerSeeked)
         {
-            pPlayerRendererPending = false;
             PPlayerRendererRecord(pPlayerSeeked);
         }
     }
@@ -48,7 +44,7 @@ public sealed partial class PViewer
     {
         var player = new Player(new Config());
         player.Config.Player.KeyBindings.Keys.Clear();
-        if (PViewerColorPreview && LFlyleaf.LFlyleafActive)
+        if (LViewer.LViewerColorPreview && LFlyleaf.LFlyleafActive)
         {
             player.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
             player.Config.Video.SyncVPFilters = false;
@@ -127,9 +123,9 @@ public sealed partial class PViewer
     private void PPlayerStopDispose()
     {
         pViewerClockTimer.Stop();
-        pPlayerAccurateActive = false;
-        pViewerResumeInactive = false;
-        PViewerPlaybackUpdate(false, null);
+        LPlayer.LPlayerAccurateReset();
+        LViewer.LViewerResumeSet(false);
+        LViewer.LViewerPlaybackUpdate(false, null);
         Player? pPlayerPrevious = pViewerPlayer.PPlayerFlyleafPlayer;
         if (pPlayerPrevious is not null)
         {

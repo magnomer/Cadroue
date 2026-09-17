@@ -6,6 +6,20 @@ namespace Cadroue.Infrastructure;
 
 public static class LRetentionSweep
 {
+    public static void LRetentionSweepStart(bool lRetentionActive, int lRetentionDays)
+    {
+        if (!lRetentionActive)
+        {
+            return;
+        }
+
+        _ = System.Threading.Tasks.Task.Run(() =>
+        {
+            int lRetentionRemoved = LRetentionRun(lRetentionDays);
+            LTraceLog.LTraceInfoRecord($"Retention sweep removed {lRetentionRemoved} old records");
+        });
+    }
+
     public static int LRetentionRun(int lRetentionDays)
     {
         string lRetentionRoot = LDepot.LDepotRootRead();

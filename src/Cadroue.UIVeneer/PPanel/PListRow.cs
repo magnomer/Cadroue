@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -55,7 +54,7 @@ public sealed partial class PList
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = Path.GetFileName(pRowPath),
+            Text = System.IO.Path.GetFileName(pRowPath),
             FontSize = 12,
             FontFamily = pListFontFamily,
             Foreground = pListItem.LDocketEntryLocked ? pListMutedBrush : pListRowBrush,

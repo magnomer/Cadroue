@@ -1,4 +1,3 @@
-using System.IO;
 using Cadroue.Core;
 using Cadroue.Application;
 
@@ -8,7 +7,7 @@ public sealed partial class PRoster
 {
     private static string PRosterContainerFormat(string pMediaPath)
     {
-        string pExtension = Path.GetExtension(pMediaPath).TrimStart('.');
+        string pExtension = System.IO.Path.GetExtension(pMediaPath).TrimStart('.');
         return pExtension.Length == 0
             ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
             : pExtension.ToUpperInvariant();

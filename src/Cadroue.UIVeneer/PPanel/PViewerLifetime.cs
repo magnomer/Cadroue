@@ -10,13 +10,12 @@ using Cadroue.Core;
 using Cadroue.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PViewer
 {
-    private int pViewerHostStamp;
-
     internal void PViewerLoupeAttach(PSLoupe pViewerLoupeWindow)
     {
         pViewerLoupe = pViewerLoupeWindow;
@@ -27,7 +26,7 @@ public sealed partial class PViewer
     internal void PViewerLoupeDetach(TimeSpan pViewerPosition, bool pViewerPlaying)
     {
         pViewerLoupe = null;
-        pViewerResumeInactive = pViewerPlaying;
+        LViewer.LViewerResumeSet(pViewerPlaying);
         PViewerCommandSet(true);
         PViewerHostShow(true);
         PViewerSeek(pViewerPosition);
@@ -43,12 +42,12 @@ public sealed partial class PViewer
 
     private void PViewerHostBuild()
     {
-        if (pViewerHostBuilt) return;
+        if (LViewer.LViewerHostBuilt) return;
 
-        if (PViewerMpvEligible && !pViewerEngineSubscribed)
+        if (PViewerMpvEligible && !LViewer.LViewerEngineSubscribed)
         {
             Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineHandle;
-            pViewerEngineSubscribed = true;
+            LViewer.LViewerSubscribedSet(true);
         }
 
         if (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv)
@@ -60,7 +59,7 @@ public sealed partial class PViewer
             PViewerFlyleafBuild();
         }
 
-        pViewerHostBuilt = true;
+        LViewer.LViewerHostSet(true);
     }
 
     private void PViewerFlyleafBuild()
@@ -121,7 +120,7 @@ public sealed partial class PViewer
 
     private void PViewerHostShow(bool pViewerHostVisible)
     {
-        if (pViewerMpvActive)
+        if (LViewer.LViewerMpvActive)
         {
             if (pViewerMpvHost is null) return;
 
@@ -154,7 +153,7 @@ public sealed partial class PViewer
     {
         if (pViewerFlyleafHost is null || !LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
-            pViewerHostStamp++;
+            LViewer.LViewerStampChange();
             return;
         }
 
@@ -182,9 +181,9 @@ public sealed partial class PViewer
                 + "(software-composited layer over the video)";
         LTrace.LTraceRecord(
             LTraceKind.LTraceUi,
-            $"Viewer host [{++pViewerHostStamp}] {pViewerStage}",
+            $"Viewer host [{LViewer.LViewerStampChange()}] {pViewerStage}",
             $"panel visible {IsVisible}, host visible {pViewerFlyleafHost.IsVisible}, "
-            + $"command {(pViewerCommandActive ? "on" : "off")}\n"
+            + $"command {(LViewer.LViewerCommandActive ? "on" : "off")}\n"
             + $"surface {pViewerSurfaceState}, "
             + $"handle {(pViewerHostHandle == IntPtr.Zero ? "none" : "set")}, disposed {pViewerHostDisposed}\n"
             + $"overlay {pViewerOverlayState}\n"
@@ -194,18 +193,18 @@ public sealed partial class PViewer
 
     public void PViewerClose()
     {
-        if (pViewerUnloaded)
+        if (LViewer.LViewerUnloaded)
         {
             return;
         }
 
-        pViewerUnloaded = true;
-        pViewerLoadSerial++;
+        LViewer.LViewerUnloadSet();
+        LViewer.LViewerSerialChange();
         Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
-        if (pViewerEngineSubscribed)
+        if (LViewer.LViewerEngineSubscribed)
         {
             Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
-            pViewerEngineSubscribed = false;
+            LViewer.LViewerSubscribedSet(false);
         }
 
         pViewerMediaProbe.LMediaLoadCompleted -= PViewerLoadHandle;
@@ -236,7 +235,7 @@ public sealed partial class PViewer
 
     public bool PViewerMediaClose(bool pViewerForce = false)
     {
-        if (pViewerUnloaded || (!pViewerForce && !pViewerCommandActive))
+        if (LViewer.LViewerUnloaded || (!pViewerForce && !LViewer.LViewerCommandActive))
         {
             return false;
         }
@@ -247,22 +246,15 @@ public sealed partial class PViewer
         }
 
         bool pViewerLoadClosed = pViewerMediaProbe.LMediaLoadClose();
-        if (!pViewerLoadClosed && string.IsNullOrWhiteSpace(PViewerSourcePath) && pViewerMediaInfo is null)
+        if (!pViewerLoadClosed && string.IsNullOrWhiteSpace(PViewerSourcePath) && LViewer.LViewerMediaInfo is null)
         {
             return false;
         }
 
         string pViewerClosedPath = PViewerSourcePath ?? string.Empty;
-        pViewerLoadSerial++;
-        pViewerIntent = null;
+        LViewer.LViewerMediaClose();
         PViewerHostShow(false);
         PPlayerStopDispose();
-        PViewerSourcePath = null;
-        pViewerMediaInfo = null;
-        PCropVideo = null;
-        LPreviewStateCurrent = LPreviewStateCurrent
-            .LCropboxChange(null)
-            .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
         PCropHide();
         PViewerPreviewApply();
 
@@ -270,29 +262,29 @@ public sealed partial class PViewer
             ? "Media closed"
             : $"Media closed '{System.IO.Path.GetFileName(pViewerClosedPath)}' [{pViewerClosedPath}]");
 
-        PViewerMediaRaise(new LCargo(string.Empty, null, false, false, null, null));
+        LViewer.LViewerMediaRaise(new LCargo(string.Empty, null, false, false, null, null));
         return true;
     }
 
     public bool PViewerLoadCancel()
     {
-        if (pViewerIntent is null)
+        if (LViewer.LViewerIntent is null)
         {
             return false;
         }
 
-        pViewerIntent = null;
-        pViewerLoadSerial++;
+        LViewer.LViewerIntentSet(null);
+        LViewer.LViewerSerialChange();
         return true;
     }
 
     public bool PViewerProtectedCheck(IReadOnlySet<string> pProtectedPaths) =>
         (PViewerSourcePath is { } pViewerSource && pProtectedPaths.Contains(pViewerSource))
-        || (pViewerIntent is { } pViewerPending && pProtectedPaths.Contains(pViewerPending.PViewerIntentPath));
+        || (LViewer.LViewerIntent is { } pViewerPending && pProtectedPaths.Contains(pViewerPending.LViewerIntentPath));
 
     private void PViewerFlyleafDispose()
     {
-        if (!pViewerHostBuilt || pViewerFlyleafHost is null || pViewerSurface is null) return;
+        if (!LViewer.LViewerHostBuilt || pViewerFlyleafHost is null || pViewerSurface is null) return;
 
         try
         {

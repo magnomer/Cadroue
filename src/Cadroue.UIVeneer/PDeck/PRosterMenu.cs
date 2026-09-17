@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -156,7 +155,7 @@ public sealed partial class PRoster
     }
 
     private static string? PRosterFileRead(LWorkItem pWorkItem) =>
-        !string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && File.Exists(pWorkItem.LWorkOutputPath)
+        !string.IsNullOrWhiteSpace(pWorkItem.LWorkOutputPath) && LUsher.LUsherFileExist(pWorkItem.LWorkOutputPath)
             ? pWorkItem.LWorkOutputPath
             : null;
 

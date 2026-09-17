@@ -37,4 +37,18 @@ internal static partial class TInterface
     internal static string? TLevelingDynamicMatch(double frame, double gauss, double maxGain, double compress) =>
         LLevelingCatalog.LLevelingDynamicMatch(frame, gauss, maxGain, compress);
     internal static LLevelingDefault TLevelingDefaultRead() => LLevelingCatalog.LLevelingDefaultRead();
+
+    internal static IReadOnlyList<LRepertoireAudio> TRepertoireAudioRead() =>
+        LRepertoireCatalog.LRepertoireAudioCandidates;
+    internal static string? TRepertoireAudioResolve(string text) => LRepertoireCatalog.LRepertoireAudioResolve(text);
+    internal static string TRepertoireAudioFind(string codecName) => LRepertoireCatalog.LRepertoireAudioFind(codecName);
+    internal static IReadOnlyList<LRepertoireEncoder> TRepertoireEncodersRead() =>
+        LRepertoireCatalog.LRepertoireEncodersRead();
+
+    internal static LTrialResult TTrialResultCreate(bool success, string message) => new(success, message);
+    internal static Task TTrialSetStart(Func<string, Task<LTrialResult>> trial) => LTrialSet.LTrialSetStart(trial);
+    internal static IReadOnlySet<string>? TTrialSetRead() => LTrialSet.LTrialSetRead();
+    internal static void TTrialSetApply(IEnumerable<string> available) => LTrialSet.LTrialSetApply(available);
+    internal static void TTrialSetReset() => LTrialSet.LTrialSetReset();
+    internal static bool TTrialSetCheck(LRepertoireEncoder candidate) => LTrialSet.LTrialSetCheck(candidate);
 }

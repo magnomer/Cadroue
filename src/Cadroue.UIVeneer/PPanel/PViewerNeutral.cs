@@ -1,10 +1,10 @@
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -17,65 +17,61 @@ public sealed partial class PViewer
     {
         if (pNeutralArmed)
         {
-            if (pViewerTool == PViewerTool.PViewerToolNeutral)
+            if (!LViewer.LViewerNeutralSet(pNeutralTarget))
             {
-                pViewerNeutralTarget = pNeutralTarget;
                 return;
             }
 
-            pViewerNeutralSerial++;
-            pViewerNeutralTarget = pNeutralTarget;
-            pViewerNeutralPlaying = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
-            if (pViewerNeutralPlaying)
+            if (LViewer.LViewerNeutralPlaying)
             {
                 PViewerPause();
             }
 
-            pViewerTool = PViewerTool.PViewerToolNeutral;
-            pViewerOverlay.Cursor = Cursors.Cross;
-            pViewerCropBox.Cursor = null;
             pViewerOverlay.Focus();
-            PCropOverlayUpdate();
-            PViewerToolChange?.Invoke(true, pNeutralTarget);
+            LViewer.LViewerNeutralRaise(true);
             return;
         }
 
-        if (pViewerTool != PViewerTool.PViewerToolNeutral)
+        if (LViewer.LViewerNeutralCancel())
         {
-            return;
+            PViewerNeutralReset();
         }
-
-        pViewerNeutralSerial++;
-        PViewerNeutralReset();
     }
 
-    public void PViewerNeutralCancel() => PViewerNeutralSet(false, pViewerNeutralTarget);
+    public void PViewerNeutralCancel() => PViewerNeutralSet(false, LViewer.LViewerNeutralTarget);
 
     private void PViewerNeutralReset()
     {
-        pViewerTool = PViewerTool.PViewerToolNone;
-        pViewerOverlay.Cursor = null;
         if (pViewerOverlay.IsMouseCaptured)
         {
             pViewerOverlay.ReleaseMouseCapture();
         }
 
-        bool pViewerResume = pViewerNeutralPlaying;
-        pViewerNeutralPlaying = false;
-        if (pViewerResume)
+        if (LViewer.LViewerNeutralReset())
         {
             PViewerPlay();
         }
 
+        LViewer.LViewerNeutralRaise(false);
+    }
+
+    private void PViewerToolHandle(bool pNeutralArmed, LNeutralTarget pNeutralTarget)
+    {
+        pViewerOverlay.Cursor = pNeutralArmed ? Cursors.Cross : null;
+        if (pNeutralArmed)
+        {
+            pViewerCropBox.Cursor = null;
+        }
+
         PCropOverlayUpdate();
-        PViewerToolChange?.Invoke(false, pViewerNeutralTarget);
+        PViewerToolChange?.Invoke(pNeutralArmed, pNeutralTarget);
     }
 
     private void PViewerKeyHandle(object sender, KeyEventArgs keyEvent)
     {
-        if (pViewerTool == PViewerTool.PViewerToolNeutral && keyEvent.Key == Key.Escape)
+        if (LViewer.LViewerTool == LViewerTool.LViewerToolNeutral && keyEvent.Key == Key.Escape)
         {
-            PViewerNeutralSet(false, pViewerNeutralTarget);
+            PViewerNeutralCancel();
             keyEvent.Handled = true;
         }
     }
@@ -83,7 +79,7 @@ public sealed partial class PViewer
     private void PViewerPressHandle(MouseButtonEventArgs mouseEvent)
     {
         mouseEvent.Handled = true;
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (LViewer.LViewerMediaInfo is not { LMediaVideoPresent: true } pViewerMediaInfo)
         {
             return;
         }
@@ -97,7 +93,7 @@ public sealed partial class PViewer
 
         Point pViewerClick = mouseEvent.GetPosition(pViewerOverlay);
         (Rect pViewerDisplay, Rect pViewerShown) = PViewerGeometryRead();
-        LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
+        LRotateFlip pViewerRotate = LViewer.LViewerPreview.LRotateFlip;
         LNeutralPoint pViewerPoint = LNeutral.LNeutralPointResolve(
             pViewerClick.X, pViewerClick.Y,
             pViewerDisplay.X, pViewerDisplay.Y, pViewerDisplay.Width, pViewerDisplay.Height,
@@ -118,14 +114,12 @@ public sealed partial class PViewer
             return;
         }
 
-        TimeSpan pViewerTime = pViewerPlayer.PPlayerReady
-            ? pViewerPlayer.PPlayerTimeRead()
-            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
-        int pViewerLoadClaim = pViewerLoadSerial;
-        int pViewerNeutralClaim = pViewerNeutralSerial;
+        TimeSpan pViewerTime = PViewerTimeRead();
+        int pViewerLoadClaim = LViewer.LViewerLoadSerial;
+        int pViewerNeutralClaim = LViewer.LViewerNeutralSerial;
         int pViewerPixelX = pViewerPoint.LNeutralPointX;
         int pViewerPixelY = pViewerPoint.LNeutralPointY;
-        LNeutralTarget pViewerTarget = pViewerNeutralTarget;
+        LNeutralTarget pViewerTarget = LViewer.LViewerNeutralTarget;
 
         PViewerNeutralReset();
         PViewerNeutralRead(
@@ -144,12 +138,11 @@ public sealed partial class PViewer
         int neutralSerial,
         LNeutralTarget target)
     {
-        LMediaFrame? pViewerFrame = await Task.Run(
-            () => LMedia.LMediaFrameRead(sourcePath, position, width, height));
+        LMediaFrame? pViewerFrame = await LMedia.LMediaFrameStart(sourcePath, position, width, height);
 
-        if (pViewerUnloaded
-            || loadSerial != pViewerLoadSerial
-            || neutralSerial != pViewerNeutralSerial)
+        if (LViewer.LViewerUnloaded
+            || loadSerial != LViewer.LViewerLoadSerial
+            || neutralSerial != LViewer.LViewerNeutralSerial)
         {
             return;
         }
@@ -171,7 +164,7 @@ public sealed partial class PViewer
 
     public async void PViewerEstimateRead(LWhitebalanceMethod pMethod, Action<LNeutralWheel> pEstimate)
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (LViewer.LViewerMediaInfo is not { LMediaVideoPresent: true } pViewerMediaInfo)
         {
             pEstimate(new LNeutralWheel(0, 0, false));
             return;
@@ -186,15 +179,13 @@ public sealed partial class PViewer
             return;
         }
 
-        TimeSpan pViewerTime = pViewerPlayer.PPlayerReady
-            ? pViewerPlayer.PPlayerTimeRead()
-            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
-        int pViewerLoadClaim = pViewerLoadSerial;
+        TimeSpan pViewerTime = PViewerTimeRead();
+        int pViewerLoadClaim = LViewer.LViewerLoadSerial;
 
-        LMediaFrame? pViewerFrame = await Task.Run(
-            () => LMedia.LMediaFrameRead(pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight));
+        LMediaFrame? pViewerFrame = await LMedia.LMediaFrameStart(
+            pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight);
 
-        if (pViewerUnloaded || pViewerLoadClaim != pViewerLoadSerial)
+        if (LViewer.LViewerUnloaded || pViewerLoadClaim != LViewer.LViewerLoadSerial)
         {
             return;
         }
@@ -210,7 +201,7 @@ public sealed partial class PViewer
 
     public async void PViewerFrameRead(Action<LMediaFrame?> pFrameReady)
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (LViewer.LViewerMediaInfo is not { LMediaVideoPresent: true } pViewerMediaInfo)
         {
             pFrameReady(null);
             return;
@@ -225,21 +216,22 @@ public sealed partial class PViewer
             return;
         }
 
-        TimeSpan pViewerTime = pViewerPlayer.PPlayerReady
-            ? pViewerPlayer.PPlayerTimeRead()
-            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
-        int pViewerLoadClaim = pViewerLoadSerial;
+        TimeSpan pViewerTime = PViewerTimeRead();
+        int pViewerLoadClaim = LViewer.LViewerLoadSerial;
 
-        LMediaFrame? pViewerFrame = await Task.Run(
-            () => LMedia.LMediaFrameRead(pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight));
+        LMediaFrame? pViewerFrame = await LMedia.LMediaFrameStart(
+            pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight);
 
-        if (pViewerUnloaded || pViewerLoadClaim != pViewerLoadSerial)
+        if (LViewer.LViewerUnloaded || pViewerLoadClaim != LViewer.LViewerLoadSerial)
         {
             return;
         }
 
         pFrameReady(pViewerFrame);
     }
+
+    private TimeSpan PViewerTimeRead() =>
+        pViewerPlayer.PPlayerReady ? pViewerPlayer.PPlayerTimeRead() : LViewer.LViewerPosition;
 
     private (Rect, Rect) PViewerGeometryRead()
     {

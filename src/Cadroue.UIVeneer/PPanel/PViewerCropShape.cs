@@ -109,7 +109,7 @@ public sealed partial class PViewer
         Point clampedEnd = PCropPointClamp(endPoint);
         LCropbox pCropDrawn = LCropbox.LCropboxDrawResolve(
             clampedStart.X, clampedStart.Y, clampedEnd.X, clampedEnd.Y,
-            pViewerCropRatio?.Width ?? 0, pViewerCropRatio?.Height ?? 0);
+            LCrop.LCropRatioWidth, LCrop.LCropRatioHeight);
         Canvas.SetLeft(pViewerCropBox, pCropDrawn.LCropboxX);
         Canvas.SetTop(pViewerCropBox, pCropDrawn.LCropboxY);
         pViewerCropBox.Width = pCropDrawn.LCropboxWidth;
@@ -119,8 +119,7 @@ public sealed partial class PViewer
 
     private void PCropBoxRestore()
     {
-        if (PCropVideo is null || pViewerMediaInfo is null
-            || !pViewerMediaInfo.LMediaVideoPresent)
+        if (PCropVideo is not { } pCropVideo || !LViewer.LViewerVideoPresent)
         {
             return;
         }
@@ -133,7 +132,7 @@ public sealed partial class PViewer
         }
 
         LCropbox pCropOverlay = LCropbox.LCropboxOverlayResolve(
-            PCropboxResolve(PCropVideo.Value), PCropboxResolve(videoRect), displaySize.Width, displaySize.Height);
+            PCropboxResolve(pCropVideo), PCropboxResolve(videoRect), displaySize.Width, displaySize.Height);
         Canvas.SetLeft(pViewerCropBox, pCropOverlay.LCropboxX);
         Canvas.SetTop(pViewerCropBox, pCropOverlay.LCropboxY);
         pViewerCropBox.Width = pCropOverlay.LCropboxWidth;

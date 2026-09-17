@@ -1,4 +1,3 @@
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -105,7 +104,7 @@ public sealed partial class PGroup
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = Path.GetFileName(pPath),
+            Text = System.IO.Path.GetFileName(pPath),
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             Foreground = pGroupRowBrush,

@@ -308,4 +308,45 @@ public sealed partial class PInspector
         return pDecimalBox;
     }
 
+    private static Slider PInspectorSliderBuild(
+        TextBox pValueBox,
+        double pMin,
+        double pMax,
+        double pFallback,
+        string pFormat,
+        Func<double>? pResetRead,
+        Action pChanged)
+    {
+        var pSlider = new Slider
+        {
+            Minimum = pMin,
+            Maximum = pMax,
+            Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pSlider);
+        if (pResetRead is not null)
+        {
+            PSlider.PSliderResetApply(pSlider, pResetRead);
+        }
+
+        bool[] pSuppress = { false };
+        pSlider.ValueChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pValueBox.Text = pSlider.Value.ToString(pFormat, CultureInfo.InvariantCulture);
+            pSuppress[0] = false;
+            pChanged();
+        };
+        pValueBox.TextChanged += (_, _) =>
+        {
+            if (pSuppress[0]) { return; }
+            pSuppress[0] = true;
+            pSlider.Value = Math.Clamp(PInspectorDecimalRead(pValueBox, pFallback), pMin, pMax);
+            pSuppress[0] = false;
+            pChanged();
+        };
+        return pSlider;
+    }
 }

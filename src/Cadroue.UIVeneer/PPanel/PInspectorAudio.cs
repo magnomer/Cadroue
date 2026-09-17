@@ -1,6 +1,6 @@
-using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -8,95 +8,86 @@ public sealed partial class PInspector
 {
     public event Action? PInspectorAudioChange;
 
+    public LVolume LVolume { get; } = new();
+
+    public LLoudness LLoudness { get; } = new();
+
+    public LNoise LNoise { get; } = new();
+
+    public LFilter LFilterHigh { get; } = new(true);
+
+    public LFilter LFilterLow { get; } = new(false);
+
+    public LEqualizer LEqualizer { get; } = new();
+
+    public LSkip LSkip { get; } = new();
+
+    private void PInspectorAudioAttach()
+    {
+        LVolume.LVolumeChange += PVolumeUpdate;
+        LVolume.LVolumeChange += PInspectorActiveRaise;
+        LLoudness.LLoudnessChange += PLoudnessUpdate;
+        LLoudness.LLoudnessChange += PInspectorActiveRaise;
+        LNoise.LNoiseChange += PNoiseUpdate;
+        LNoise.LNoiseChange += PInspectorActiveRaise;
+        LFilterHigh.LFilterChange += () => PFilterUpdate(pInspectorHighPass);
+        LFilterHigh.LFilterChange += PInspectorActiveRaise;
+        LFilterLow.LFilterChange += () => PFilterUpdate(pInspectorLowPass);
+        LFilterLow.LFilterChange += PInspectorActiveRaise;
+        LEqualizer.LEqualizerChange += PEqualizerUpdate;
+        LEqualizer.LEqualizerChange += PInspectorActiveRaise;
+        LSkip.LSkipChange += PSkipUpdate;
+        PVolumeUpdate();
+        PLoudnessUpdate();
+        PNoiseUpdate();
+        PFilterUpdate(pInspectorHighPass);
+        PFilterUpdate(pInspectorLowPass);
+        PEqualizerUpdate();
+        PSkipUpdate();
+    }
+
     private void PInspectorActiveRaise() => PInspectorAudioChange?.Invoke();
 
     public LWorkAudioStep PInspectorStepRead(LAudioKind pStepKind) => pStepKind switch
     {
-        LAudioKind.LAudioKindLeveling => LWorkAudioStep.LWorkNormalizeCreate(
-            pLoudnessApplyBox.IsChecked == true,
-            PLoudnessModeRead(),
-            PInspectorDecimalRead(pLoudnessTarget, -16),
-            PInspectorDecimalRead(pLoudnessPeak, -1.5),
-            PInspectorDecimalRead(pLoudnessRange, 11),
-            pLoudnessTwoPass.IsChecked == true,
-            PInspectorDecimalRead(pDynamicFrame, LLevelingCatalog.LLevelingDefaultRead().LLevelingFrame),
-            PInspectorDecimalRead(pDynamicGauss, LLevelingCatalog.LLevelingDefaultRead().LLevelingGauss),
-            PInspectorDecimalRead(pDynamicMaxGain, LLevelingCatalog.LLevelingDefaultRead().LLevelingMaxGain),
-            PInspectorDecimalRead(pDynamicCompress, LLevelingCatalog.LLevelingDefaultRead().LLevelingCompress)),
-        LAudioKind.LAudioKindDenoise => LWorkAudioStep.LWorkNoiseCreate(
-            pNoiseApplyBox.IsChecked == true,
-            Math.Clamp(
-                PInspectorDecimalRead(pNoiseReductionValue, 12),
-                LGrainCatalog.LGrainReductionLeast,
-                LGrainCatalog.LGrainReductionMost),
-            PInspectorDecimalRead(pNoiseFloor, -50),
-            pNoiseTrack.IsChecked == true,
-            PNoiseTypeRead(),
-            Math.Clamp(
-                PInspectorDecimalRead(pNoiseSmoothValue, 6),
-                LGrainCatalog.LGrainSmoothLeast,
-                LGrainCatalog.LGrainSmoothMost),
-            Math.Clamp(PInspectorDecimalRead(pNoiseAdaptivity, 0.5), 0, 1),
-            PInspectorDecimalRead(pNoiseResidual, -38)),
-        LAudioKind.LAudioKindHighpass => LWorkAudioStep.LWorkHighCreate(
-            pInspectorHighPass.PFilterApplyBox.IsChecked == true,
-            PInspectorPassRead(pInspectorHighPass),
-            PFilterStagesRead(pInspectorHighPass),
-            PFilterPolesRead(pInspectorHighPass),
-            PFilterResonanceRead(pInspectorHighPass)),
-        LAudioKind.LAudioKindLowpass => LWorkAudioStep.LWorkLowCreate(
-            pInspectorLowPass.PFilterApplyBox.IsChecked == true,
-            PInspectorPassRead(pInspectorLowPass),
-            PFilterStagesRead(pInspectorLowPass),
-            PFilterPolesRead(pInspectorLowPass),
-            PFilterResonanceRead(pInspectorLowPass)),
-        LAudioKind.LAudioKindEqualizer => PEqualizerStepRead(),
-        _ => LWorkAudioStep.LWorkVolumeCreate(
-            pVolumeApplyBox.IsChecked == true,
-            Math.Clamp(
-                PInspectorDecimalRead(pInspectorVolumeValue, 0),
-                LWorkAudio.LWorkGainLeast,
-                LWorkAudio.LWorkGainMost))
+        LAudioKind.LAudioKindLeveling => LLoudness.LLoudnessStep,
+        LAudioKind.LAudioKindDenoise => LNoise.LNoiseStep,
+        LAudioKind.LAudioKindHighpass => LFilterHigh.LFilterStep,
+        LAudioKind.LAudioKindLowpass => LFilterLow.LFilterStep,
+        LAudioKind.LAudioKindEqualizer => LEqualizer.LEqualizerStepRead(),
+        _ => LVolume.LVolumeStep
     };
 
     public void PInspectorPlanApply(LWorkAudio pInspectorPlan)
     {
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindHighpass)
-                ?? LPassband.LPassbandStepCreate(true, false));
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindLowpass)
-                ?? LPassband.LPassbandStepCreate(false, false));
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindDenoise)
-                ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38));
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(
-                pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindEqualizer)
-                ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()));
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindVolume)
-                ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
-        PInspectorStepApply(
-            pInspectorPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == LAudioKind.LAudioKindLeveling)
-                ?? LAudio.LAudioNormalizeCreate());
+        LFilterHigh.LFilterStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindHighpass)
+            ?? LPassband.LPassbandStepCreate(true, false));
+        LFilterLow.LFilterStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindLowpass)
+            ?? LPassband.LPassbandStepCreate(false, false));
+        LNoise.LNoiseStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindDenoise)
+            ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38));
+        LEqualizer.LEqualizerStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindEqualizer)
+            ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()));
+        LVolume.LVolumeStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindVolume)
+            ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
+        LLoudness.LLoudnessStepSet(PInspectorStepFind(pInspectorPlan, LAudioKind.LAudioKindLeveling)
+            ?? LAudio.LAudioNormalizeCreate());
         PInspectorActiveRaise();
     }
 
-    public void PInspectorMediaReset()
-    {
-        LWorkAudio pCurrent = PInspectorPersistentRead();
-        PInspectorPlanApply(pCurrent);
-    }
+    private static LWorkAudioStep? PInspectorStepFind(LWorkAudio pPlan, LAudioKind pKind) =>
+        pPlan.LWorkAudioSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == pKind);
+
+    public void PInspectorMediaReset() => PInspectorPlanApply(PInspectorPersistentRead());
 
     public bool PInspectorPersistentCheck() =>
-        pInspectorVolumePersistent.IsChecked == true
-        || pLoudnessPersistent.IsChecked == true
-        || pNoisePersistent.IsChecked == true
-        || pInspectorHighPass.PInspectorPassPersistent.IsChecked == true
-        || pInspectorLowPass.PInspectorPassPersistent.IsChecked == true
-        || pEqualizerPersistent.IsChecked == true
-        || pSkipPersistentBox.IsChecked == true;
+        LVolume.LVolumePersistent
+        || LLoudness.LLoudnessPersistent
+        || LNoise.LNoisePersistent
+        || LFilterHigh.LFilterPersistent
+        || LFilterLow.LFilterPersistent
+        || LEqualizer.LEqualizerPersistent
+        || LSkip.LSkipPersistent;
 
     public void PInspectorPersistentApply(LWorkAudio pInspectorPlan, bool pSkipPersistent)
     {
@@ -105,112 +96,65 @@ public sealed partial class PInspector
             switch (pStep.LWorkStepKind)
             {
                 case LAudioKind.LAudioKindHighpass:
-                    pInspectorHighPass.PInspectorPassPersistent.IsChecked = true;
+                    LFilterHigh.LFilterPersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindLowpass:
-                    pInspectorLowPass.PInspectorPassPersistent.IsChecked = true;
+                    LFilterLow.LFilterPersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindDenoise:
-                    pNoisePersistent.IsChecked = true;
+                    LNoise.LNoisePersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindVolume:
-                    pInspectorVolumePersistent.IsChecked = true;
+                    LVolume.LVolumePersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindLeveling:
-                    pLoudnessPersistent.IsChecked = true;
+                    LLoudness.LLoudnessPersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindEqualizer:
-                    pEqualizerPersistent.IsChecked = true;
+                    LEqualizer.LEqualizerPersistentSet(true);
                     break;
             }
         }
 
-        pSkipPersistentBox.IsChecked = pSkipPersistent;
+        LSkip.LSkipPersistentSet(pSkipPersistent);
     }
 
     public LWorkAudio PInspectorPersistentRead()
     {
         var pSteps = new List<LWorkAudioStep>();
-        if (pInspectorHighPass.PInspectorPassPersistent.IsChecked == true)
+        if (LFilterHigh.LFilterPersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindHighpass));
+            pSteps.Add(LFilterHigh.LFilterStep);
         }
 
-        if (pInspectorLowPass.PInspectorPassPersistent.IsChecked == true)
+        if (LFilterLow.LFilterPersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindLowpass));
+            pSteps.Add(LFilterLow.LFilterStep);
         }
 
-        if (pNoisePersistent.IsChecked == true)
+        if (LNoise.LNoisePersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindDenoise));
+            pSteps.Add(LNoise.LNoiseStep);
         }
 
-        if (pInspectorVolumePersistent.IsChecked == true)
+        if (LVolume.LVolumePersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindVolume));
+            pSteps.Add(LVolume.LVolumeStep);
         }
 
-        if (pLoudnessPersistent.IsChecked == true)
+        if (LLoudness.LLoudnessPersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindLeveling));
+            pSteps.Add(LLoudness.LLoudnessStep);
         }
 
-        if (pEqualizerPersistent.IsChecked == true)
+        if (LEqualizer.LEqualizerPersistent)
         {
-            pSteps.Add(PInspectorStepRead(LAudioKind.LAudioKindEqualizer));
+            pSteps.Add(LEqualizer.LEqualizerStepRead());
         }
 
         return new LWorkAudio(pSteps)
         {
-            LWorkAudioSkip = pSkipPersistentBox.IsChecked == true && pSkipApplyBox.IsChecked == true
+            LWorkAudioSkip = LSkip.LSkipPersistent && LSkip.LSkipActive
         };
-    }
-
-    private void PInspectorStepApply(LWorkAudioStep pStep)
-    {
-        switch (pStep)
-        {
-            case LWorkNormalizeStep pNormalize:
-                pLoudnessApplyBox.IsChecked = pNormalize.LWorkStepActive;
-                pLoudnessPresetSuppress = true;
-                pLoudnessMode.SelectedIndex = pNormalize.LWorkNormalizeMode == LLeveling.LLevelingDynamic ? 1 : 0;
-                pLoudnessTarget.Text = pNormalize.LWorkNormalizeTarget.ToString("0.###", CultureInfo.InvariantCulture);
-                pLoudnessPeak.Text = pNormalize.LWorkNormalizePeak.ToString("0.###", CultureInfo.InvariantCulture);
-                pLoudnessRange.Text = pNormalize.LWorkNormalizeRange.ToString("0.###", CultureInfo.InvariantCulture);
-                pLoudnessTwoPass.IsChecked = pNormalize.LWorkTwoPass;
-                pDynamicFrame.Text = pNormalize.LWorkNormalizeFrame.ToString("0.###", CultureInfo.InvariantCulture);
-                pDynamicGauss.Text = pNormalize.LWorkNormalizeGauss.ToString("0.###", CultureInfo.InvariantCulture);
-                pDynamicMaxGain.Text = pNormalize.LWorkNormalizeGain.ToString("0.###", CultureInfo.InvariantCulture);
-                pDynamicCompress.Text = pNormalize.LWorkNormalizeCompress.ToString(
-                    "0.###",
-                    CultureInfo.InvariantCulture);
-                pLoudnessPresetSuppress = false;
-                PLoudnessApplyUpdate();
-                PLoudnessModeUpdate();
-                break;
-            case LWorkNoiseStep pNoise:
-                pNoiseApplyBox.IsChecked = pNoise.LWorkStepActive;
-                PNoiseValueSet(pNoise);
-                pNoiseTrack.IsChecked = pNoise.LWorkNoiseTrack;
-                PNoiseApplyUpdate();
-                break;
-            case LWorkPassStep pPass:
-                PFilterActiveSet(pPass.LWorkPassHigh ? pInspectorHighPass : pInspectorLowPass, pPass);
-                break;
-            case LWorkEqualizerStep pEqualizer:
-                PEqualizerActiveSet(pEqualizer);
-                break;
-            case LWorkVolumeStep pVolume:
-                pVolumeApplyBox.IsChecked = pVolume.LWorkStepActive;
-                pInspectorVolumeValue.Text = pVolume.LWorkVolumeGain.ToString("0.#", CultureInfo.InvariantCulture);
-                pInspectorVolumeSlider.Value = Math.Clamp(
-                    pVolume.LWorkVolumeGain,
-                    LWorkAudio.LWorkGainLeast,
-                    LWorkAudio.LWorkGainMost);
-                PVolumeWarnUpdate();
-                PVolumeApplyUpdate();
-                break;
-        }
     }
 }

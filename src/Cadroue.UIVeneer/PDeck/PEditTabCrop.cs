@@ -9,20 +9,6 @@ namespace Cadroue.UIVeneer.PDeck;
 
 public sealed partial class PEditTab
 {
-    private void PEditCropSet() => pCropOwner.LCropboxCropSet(pInspector.PInspectorCropRead());
-
-    private void PEditRatioSet()
-    {
-        (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pInspector.PInspectorRatioRead();
-        pCropOwner.LCropboxRatioSet(pRatioFixed, pRatioLenient, pRatioWidth, pRatioHeight);
-    }
-
-    private void PEditActiveSet()
-    {
-        pCropOwner.LCropboxApplySet(pInspector.PCropActiveCheck());
-        pViewer.PCropActiveSet(pInspector.PCropActiveCheck());
-    }
-
     private void PEditCropUpdate() =>
         pProcessing.PProcessingActiveSet("Crop", pCropOwner.LCropboxStateActive);
 
@@ -42,7 +28,7 @@ public sealed partial class PEditTab
         pViewer.PViewerSourceOpen(pSourcePath);
     }
 
-    private void PEditCropSync(System.Windows.Rect? pCropVideo)
+    private void PEditCropHandle()
     {
         if (pEditCropSyncing)
         {
@@ -52,13 +38,39 @@ public sealed partial class PEditTab
         pEditCropSyncing = true;
         try
         {
-            pViewer.PCropVideoSet(pCropVideo);
-            PEditCropSet();
-            PEditPlanSave();
+            LRotateFlip pEditRotate = pInspector.PInspectorRotateRead();
+            if (pViewer.LViewer.LViewerPreview.LRotateFlip != pEditRotate)
+            {
+                pViewer.PViewerRotateSet(pEditRotate);
+                PEditSourceSync();
+            }
+
+            (bool pRatioFixed, _, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
+            pViewer.PCropRatioSet(pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0
+                ? new System.Windows.Size(pRatioWidth, pRatioHeight)
+                : null);
+            pViewer.PCropPersistent = pCropOwner.LCropboxStatePersistent;
+            pViewer.PCropActiveSet(pCropOwner.LCropboxStateActive);
+            pViewer.PCropVideoSet(pInspector.PInspectorRectRead());
+            PEditCropUpdate();
         }
         finally
         {
             pEditCropSyncing = false;
+        }
+
+        PEditPlanSave();
+    }
+
+    private void PEditSourceSync()
+    {
+        if (pViewer.PCropSourceRead() is System.Windows.Size pCropSource)
+        {
+            pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
+        }
+        else
+        {
+            pInspector.PInspectorSourceSet(0, 0);
         }
     }
 
@@ -69,15 +81,7 @@ public sealed partial class PEditTab
             return;
         }
 
-        if (pViewer.PCropSourceRead() is System.Windows.Size pCropSource)
-        {
-            pInspector.PInspectorSourceSet(pCropSource.Width, pCropSource.Height);
-        }
-        else
-        {
-            pInspector.PInspectorSourceSet(0, 0);
-        }
-
+        PEditSourceSync();
         LTraceLog.LTraceInfoRecord($"Edit crop from viewer: {PEditRectFormat(pCropVideo)}");
         (int pCropDrive, int pCropAnchorX, int pCropAnchorY) = pViewer.PCropAnchorRead();
         pInspector.PInspectorCropSet(pCropVideo, pCropDrive, pCropAnchorX, pCropAnchorY);
@@ -91,20 +95,9 @@ public sealed partial class PEditTab
 
         LEditPlan? pEditApplied = null;
         pEditPlanLoading = true;
-        pInspector.PInspectorCropChange -= PEditCropSync;
-        pInspector.PInspectorRotateChange -= PEditRotateHandle;
         try
         {
-            System.Windows.Size? pCropSource = pViewer.PCropSourceRead();
-            if (pCropSource is { } pCropSize)
-            {
-                pInspector.PInspectorSourceSet(pCropSize.Width, pCropSize.Height);
-            }
-            else
-            {
-                pInspector.PInspectorSourceSet(0, 0);
-            }
-
+            PEditSourceSync();
             LEditPlan? pEditPersistent = PEditCarriedRead();
             LEditPlan? pEditSaved = pViewer.PViewerSourcePath is { } pEditSourcePath
                 ? LEdit.LEditPlanRead(pEditSourcePath, LLibrarian.LLibrarianEditLoad)
@@ -112,7 +105,7 @@ public sealed partial class PEditTab
 
             LTraceLog.LTraceInfoRecord(
                 $"Edit media ready '{pEditName}': "
-                + $"display {(pCropSource is { } pLogSize ? $"{pLogSize.Width:0}x{pLogSize.Height:0}" : "unknown")}, "
+                + $"display {(pViewer.PCropSourceRead() is { } pLogSize ? $"{pLogSize.Width:0}x{pLogSize.Height:0}" : "unknown")}, "
                 + $"persistent {(pEditPersistent is null ? "off" : "on")}, "
                 + $"carried {PEditPlanFormat(pEditPersistent)}, "
                 + $"sidecar {PEditPlanFormat(pEditSaved)}");
@@ -129,11 +122,8 @@ public sealed partial class PEditTab
             LTraceLog.LTraceInfoRecord(
                 $"Edit applying {(pEditCarryWins ? "persistent" : "sidecar")} plan to '{pEditName}': "
                 + $"{PEditPlanFormat(pEditPlan)}");
-            pViewer.PViewerRotateSet(PEditRotateResolve(pEditPlan.LEditCrop));
-            if (pViewer.PCropSourceRead() is { } pEditRotatedSource)
-            {
-                pInspector.PInspectorSourceSet(pEditRotatedSource.Width, pEditRotatedSource.Height);
-            }
+            pViewer.PViewerRotateSet(PInspector.PInspectorRotateResolve(pEditPlan.LEditCrop));
+            PEditSourceSync();
 
             pEditApplied = pEditCarryWins ? pEditPlan : null;
             pInspector.PCropPlanApply(pEditPlan.LEditCrop, pEditPlan.LEditCropActive);
@@ -144,18 +134,9 @@ public sealed partial class PEditTab
                 pEditPlan.LEditRatioHeight);
             pInspector.PTonePlanApply(pEditPlan.LEditVideo);
             pInspector.PSkipApply(pEditPlan.LEditSkip);
-            pCropOwner.LCropboxStateSet(
-                pEditPlan.LEditCrop,
-                pEditPlan.LEditCropActive,
-                pEditPlan.LEditRatioFixed,
-                pEditPlan.LEditRatioLenient,
-                pEditPlan.LEditRatioWidth,
-                pEditPlan.LEditRatioHeight);
         }
         finally
         {
-            pInspector.PInspectorCropChange += PEditCropSync;
-            pInspector.PInspectorRotateChange += PEditRotateHandle;
             pEditPlanLoading = false;
         }
 
@@ -183,27 +164,4 @@ public sealed partial class PEditTab
         pViewer.PCropVideoSet(pEditRect);
         PEditColorApply();
     }
-
-    private void PEditRotateHandle(LRotateFlip pRotateFlip)
-    {
-        LRotateFlip pEditOldRotate = pViewer.LPreviewStateCurrent.LRotateFlip;
-        pViewer.PViewerRotateSet(pRotateFlip);
-        if (pViewer.PCropSourceRead() is { } pRotatedSource)
-        {
-            pInspector.PInspectorSourceSet(pRotatedSource.Width, pRotatedSource.Height);
-        }
-
-        pInspector.PInspectorOrientationApply(pEditOldRotate);
-    }
-
-    private static LRotateFlip PEditRotateResolve(LWorkCrop pEditCrop) => new(
-        pEditCrop.LWorkCropRotation switch
-        {
-            90 => LRotateKind.LRotate90,
-            180 => LRotateKind.LRotate180,
-            270 => LRotateKind.LRotate270,
-            _ => LRotateKind.LRotateNone
-        },
-        pEditCrop.LWorkFlipHorizontal,
-        pEditCrop.LWorkFlipVertical);
 }

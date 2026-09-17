@@ -13,6 +13,9 @@ public sealed partial class PViewer
     private static Rect PCropRectResolve(LCropbox pCropbox) =>
         new Rect(pCropbox.LCropboxX, pCropbox.LCropboxY, pCropbox.LCropboxWidth, pCropbox.LCropboxHeight);
 
+    private static Rect? PCropVideoResolve(LCropbox? pCropbox) =>
+        pCropbox is { } pCropRect ? PCropRectResolve(pCropRect) : null;
+
     private static LCropbox? PViewerCropboxRead(Rect? pViewerCropRect)
     {
         if (pViewerCropRect is not Rect pViewerRect || pViewerRect.Width <= 0 || pViewerRect.Height <= 0)
@@ -23,22 +26,14 @@ public sealed partial class PViewer
         return new LCropbox(pViewerRect.X, pViewerRect.Y, pViewerRect.Width, pViewerRect.Height);
     }
 
-    public Size? PCropSourceRead()
-    {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
-        {
-            return null;
-        }
-
-        return PCropDisplayRead();
-    }
+    public Size? PCropSourceRead() => LViewer.LViewerVideoPresent ? PCropDisplayRead() : null;
 
     private bool PCropRotatedCheck() =>
-        LPreviewStateCurrent.LRotateFlip.LRotateKind is LRotateKind.LRotate90 or LRotateKind.LRotate270;
+        LViewer.LViewerPreview.LRotateFlip.LRotateKind is LRotateKind.LRotate90 or LRotateKind.LRotate270;
 
     private Size PCropDisplayRead()
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent)
+        if (LViewer.LViewerMediaInfo is not { LMediaVideoPresent: true } pViewerMediaInfo)
         {
             return new Size(0, 0);
         }
@@ -57,7 +52,7 @@ public sealed partial class PViewer
 
     private Rect? PCropVideoRead()
     {
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent
+        if (!LViewer.LViewerVideoPresent
             || pViewerCropBox.Visibility != Visibility.Visible)
         {
             return null;
@@ -82,7 +77,7 @@ public sealed partial class PViewer
     {
         double overlayWidth = Math.Max(0, pViewerOverlay.ActualWidth);
         double overlayHeight = Math.Max(0, pViewerOverlay.ActualHeight);
-        if (pViewerMediaInfo is null || !pViewerMediaInfo.LMediaVideoPresent
+        if (!LViewer.LViewerVideoPresent
             || overlayWidth <= 0 || overlayHeight <= 0)
         {
             return new Rect(0, 0, overlayWidth, overlayHeight);

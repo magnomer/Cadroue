@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -18,20 +17,6 @@ public sealed partial class PInspector
     private TextBox pCurveOutputValue = null!;
     private StackPanel pCurveStack = null!;
     private StackPanel pCurveBody = null!;
-    private bool pCurveCapable;
-    private bool pCurvePreview;
-    private string pCurvePreviewKey = "Inspector.Video.CurvePreviewMpv";
-    private int pCurveSelected = 1;
-    private readonly List<LWorkCurvePoint>[] pCurveChannels =
-    {
-        PCurveIdentityCreate(),
-        PCurveIdentityCreate(),
-        PCurveIdentityCreate(),
-        PCurveIdentityCreate()
-    };
-
-    private static List<LWorkCurvePoint> PCurveIdentityCreate() =>
-        new() { new LWorkCurvePoint(0, 0), new LWorkCurvePoint(1, 1) };
 
     private StackPanel PCurveBuild()
     {
@@ -41,6 +26,8 @@ public sealed partial class PInspector
         pCurvePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistCurve"));
+        PInspectorSwitchAttach(pCurveBox, LCurve.LCurveActiveSet);
+        PInspectorSwitchAttach(pCurvePersistent, LCurve.LCurvePersistentSet);
 
         pCurveChannel = new ComboBox
         {
@@ -62,8 +49,10 @@ public sealed partial class PInspector
         pCurveChannel.SelectedIndex = 0;
         pCurveChannel.SelectionChanged += (_, _) =>
         {
-            pCurveSelected = Math.Clamp(pCurveSelected, 0, PCurveActiveRead().Count - 1);
-            PCurveBoxesUpdate();
+            if (pCurveChannel.SelectedIndex >= 0)
+            {
+                LCurve.LCurveChannelSelect(pCurveChannel.SelectedIndex);
+            }
         };
 
         pCurveCanvasHost = new Border
@@ -77,16 +66,16 @@ public sealed partial class PInspector
         };
 
         pCurveInputValue = PInspectorDecimalBuild();
-        pCurveInputValue.TextChanged += (_, _) => PCurveInputCommit();
+        pCurveInputValue.TextChanged += (_, _) => PCurvePointCommit();
         pCurveOutputValue = PInspectorDecimalBuild();
-        pCurveOutputValue.TextChanged += (_, _) => PCurveOutputCommit();
+        pCurveOutputValue.TextChanged += (_, _) => PCurvePointCommit();
 
         var pCurveDeletePoint = PCurveActionBuild(
-            "Inspector.Video.CurveDeletePoint", PCurvePointDelete);
+            "Inspector.Video.CurveDeletePoint", LCurve.LCurvePointDelete);
         var pCurveResetChannel = PCurveActionBuild(
-            "Inspector.Video.CurveResetChannel", PCurveChannelReset);
+            "Inspector.Video.CurveResetChannel", LCurve.LCurveChannelReset);
         var pCurveResetAll = PCurveActionBuild(
-            "Inspector.Video.CurveResetAll", PCurveAllReset);
+            "Inspector.Video.CurveResetAll", LCurve.LCurveReset);
         var pCurveButtons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -108,13 +97,8 @@ public sealed partial class PInspector
         pCurveStack.Children.Add(PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.CurveOutput"), pCurveOutputValue));
         pCurveStack.Children.Add(pCurveButtons);
-        PCurveBoxesUpdate();
-
-        pCurveBox.Checked += (_, _) => PToneApplyUpdate(pCurveBox, pCurveStack);
-        pCurveBox.Unchecked += (_, _) => PToneApplyUpdate(pCurveBox, pCurveStack);
 
         pCurveBody = PToneBodyBuild(pCurveBox, pCurveStack);
-        PToneApplyUpdate(pCurveBox, pCurveStack);
         return pCurveBody;
     }
 
@@ -134,122 +118,33 @@ public sealed partial class PInspector
         return pButton;
     }
 
-    public void PCurveCapabilitySet(bool pCurveCapable, bool pCurvePreview, string pCurvePreviewKey)
+    public void PCurveHistogramApply(LHistogramCounts? pHistogram) => LCurve.LCurveHistogramSet(pHistogram);
+
+    private void PCurvePointCommit()
     {
-        this.pCurveCapable = pCurveCapable;
-        this.pCurvePreview = pCurvePreview;
-        this.pCurvePreviewKey = pCurvePreviewKey;
+        LWorkCurvePoint pPoint = LCurve.LCurvePointRead();
+        double pInput = PInspectorDecimalRead(pCurveInputValue, pPoint.LWorkCurveInput * 100) / 100;
+        double pOutput = PInspectorDecimalRead(pCurveOutputValue, pPoint.LWorkCurveOutput * 100) / 100;
+        LCurve.LCurvePointSet(pInput, pOutput);
+    }
+
+    private void PCurveUpdate()
+    {
+        PInspectorSwitchUpdate(pCurveBox, LCurve.LCurveActive, false);
+        PInspectorSwitchUpdate(pCurvePersistent, LCurve.LCurvePersistent, true);
+        if (pCurveChannel.SelectedIndex != LCurve.LCurveChannel)
+        {
+            pCurveChannel.SelectedIndex = LCurve.LCurveChannel;
+        }
+
+        LWorkCurvePoint pPoint = LCurve.LCurvePointRead();
+        PInspectorTextSet(pCurveInputValue, pPoint.LWorkCurveInput * 100, "0.#");
+        PInspectorTextSet(pCurveOutputValue, pPoint.LWorkCurveOutput * 100, "0.#");
         PInspectorSectionApply(
-            pCurveBox, pCurvePersistent, pCurveStack, pCurveBody,
-            pCurveCapable, pCurvePreview, "Inspector.Video.CurveRequiresEq", pCurvePreviewKey,
+            pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, LCurve.LCurveActive,
+            LCurve.LCurveCapable, LCurve.LCurvePreview,
+            "Inspector.Video.CurveRequiresEq", "Inspector.Video.CurvePreviewMpv",
             "Inspector.Video.ApplyCurve", "Inspector.Video.PersistCurve");
-    }
-
-    private List<LWorkCurvePoint> PCurveActiveRead() =>
-        pCurveChannels[Math.Clamp(pCurveChannel.SelectedIndex, 0, pCurveChannels.Length - 1)];
-
-    private void PCurveBoxesUpdate()
-    {
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        pCurveSelected = Math.Clamp(pCurveSelected, 0, pPoints.Count - 1);
-        LWorkCurvePoint pPoint = pPoints[pCurveSelected];
-        bool pPrevious = pInspectorVideoSuppress;
-        pInspectorVideoSuppress = true;
-        pCurveInputValue.Text = (pPoint.LWorkCurveInput * 100).ToString("0.#", CultureInfo.InvariantCulture);
-        pCurveOutputValue.Text = (pPoint.LWorkCurveOutput * 100).ToString("0.#", CultureInfo.InvariantCulture);
-        pInspectorVideoSuppress = pPrevious;
         PCurveRebuild();
-    }
-
-    private void PCurveInputCommit()
-    {
-        if (pInspectorVideoSuppress)
-        {
-            return;
-        }
-
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        if (pCurveSelected < 0 || pCurveSelected >= pPoints.Count)
-        {
-            return;
-        }
-
-        double pTyped = Math.Clamp(
-            PInspectorDecimalRead(pCurveInputValue, pPoints[pCurveSelected].LWorkCurveInput * 100) / 100, 0, 1);
-        double pInput;
-        if (pCurveSelected == 0)
-        {
-            pInput = 0;
-        }
-        else if (pCurveSelected == pPoints.Count - 1)
-        {
-            pInput = 1;
-        }
-        else
-        {
-            pInput = Math.Clamp(
-                pTyped,
-                pPoints[pCurveSelected - 1].LWorkCurveInput + PCurveMinGap,
-                pPoints[pCurveSelected + 1].LWorkCurveInput - PCurveMinGap);
-        }
-
-        pPoints[pCurveSelected] = new LWorkCurvePoint(pInput, pPoints[pCurveSelected].LWorkCurveOutput);
-        PCurveBoxesUpdate();
-        PInspectorVideoChange?.Invoke();
-    }
-
-    private void PCurveOutputCommit()
-    {
-        if (pInspectorVideoSuppress)
-        {
-            return;
-        }
-
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        if (pCurveSelected < 0 || pCurveSelected >= pPoints.Count)
-        {
-            return;
-        }
-
-        double pOutput = Math.Clamp(
-            PInspectorDecimalRead(pCurveOutputValue, pPoints[pCurveSelected].LWorkCurveOutput * 100) / 100, 0, 1);
-        pPoints[pCurveSelected] = new LWorkCurvePoint(pPoints[pCurveSelected].LWorkCurveInput, pOutput);
-        PCurveRebuild();
-        PInspectorVideoChange?.Invoke();
-    }
-
-    private void PCurvePointDelete()
-    {
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        if (pPoints.Count <= 2 || pCurveSelected <= 0 || pCurveSelected >= pPoints.Count - 1)
-        {
-            return;
-        }
-
-        pPoints.RemoveAt(pCurveSelected);
-        pCurveSelected = Math.Clamp(pCurveSelected, 0, pPoints.Count - 1);
-        PCurveBoxesUpdate();
-        PInspectorVideoChange?.Invoke();
-    }
-
-    private void PCurveChannelReset()
-    {
-        pCurveChannels[Math.Clamp(pCurveChannel.SelectedIndex, 0, pCurveChannels.Length - 1)] =
-            PCurveIdentityCreate();
-        pCurveSelected = 1;
-        PCurveBoxesUpdate();
-        PInspectorVideoChange?.Invoke();
-    }
-
-    private void PCurveAllReset()
-    {
-        for (int pIndex = 0; pIndex < pCurveChannels.Length; pIndex++)
-        {
-            pCurveChannels[pIndex] = PCurveIdentityCreate();
-        }
-
-        pCurveSelected = 1;
-        PCurveBoxesUpdate();
-        PInspectorVideoChange?.Invoke();
     }
 }

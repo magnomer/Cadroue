@@ -29,8 +29,6 @@ public sealed partial class PInspector
     private StackPanel pInspectorSaturationStack = null!;
     private StackPanel pInspectorSaturationBody = null!;
 
-    private bool pToneCapable = true;
-
     private const double PToneBrightnessLeast = -100;
     private const double PToneBrightnessMost = 100;
 
@@ -49,14 +47,14 @@ public sealed partial class PInspector
         pInspectorBrightnessValue = PInspectorDecimalBuild();
         pInspectorBrightnessValue.Text = "0";
         pInspectorBrightnessStack = new StackPanel();
-        PInspectorVideoAttach(
+        PToneAttach(
+            LColorKind.LColorKindBrightness,
             pToneBrightnessBox,
-            pInspectorBrightnessStack,
+            pInspectorBrightnessPersistent,
             pInspectorBrightnessSlider,
             pInspectorBrightnessValue,
             null,
-            null,
-            "0.#");
+            null);
         pInspectorBrightnessStack.Children.Add(
             PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
@@ -64,7 +62,6 @@ public sealed partial class PInspector
                 string.Empty,
                 pInspectorBrightnessValue));
         pInspectorBrightnessBody = PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
-        PToneApplyUpdate(pToneBrightnessBox, pInspectorBrightnessStack);
         return pInspectorBrightnessBody;
     }
 
@@ -80,14 +77,14 @@ public sealed partial class PInspector
         pInspectorContrastValue = PInspectorDecimalBuild();
         pInspectorContrastValue.Text = "100";
         pInspectorContrastStack = new StackPanel();
-        PInspectorVideoAttach(
+        PToneAttach(
+            LColorKind.LColorKindContrast,
             pToneContrastBox,
-            pInspectorContrastStack,
+            pInspectorContrastPersistent,
             pInspectorContrastSlider,
             pInspectorContrastValue,
             0,
-            200,
-            "0.#");
+            200);
         pInspectorContrastStack.Children.Add(
             PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
@@ -109,7 +106,6 @@ public sealed partial class PInspector
         }
 
         pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
-        PToneApplyUpdate(pToneContrastBox, pInspectorContrastStack);
         return pInspectorContrastBody;
     }
 
@@ -125,14 +121,14 @@ public sealed partial class PInspector
         pInspectorSaturationValue = PInspectorDecimalBuild();
         pInspectorSaturationValue.Text = "100";
         pInspectorSaturationStack = new StackPanel();
-        PInspectorVideoAttach(
+        PToneAttach(
+            LColorKind.LColorKindSaturation,
             pToneSaturationBox,
-            pInspectorSaturationStack,
+            pInspectorSaturationPersistent,
             pInspectorSaturationSlider,
             pInspectorSaturationValue,
             0,
-            200,
-            "0.#");
+            200);
         pInspectorSaturationStack.Children.Add(
             PFilterSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
@@ -140,24 +136,69 @@ public sealed partial class PInspector
                 "%",
                 pInspectorSaturationValue));
         pInspectorSaturationBody = PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
-        PToneApplyUpdate(pToneSaturationBox, pInspectorSaturationStack);
         return pInspectorSaturationBody;
     }
 
-    public void PToneCapabilitySet(bool pCapable)
+    private void PToneAttach(
+        LColorKind pKind,
+        CheckBox pApply,
+        CheckBox pPersistent,
+        Slider pSlider,
+        TextBox pValue,
+        double? pMinimum,
+        double? pMaximum)
     {
-        this.pToneCapable = pCapable;
-        PInspectorSectionApply(
-            pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessStack, pInspectorBrightnessBody,
-            pToneCapable, true, "Inspector.Video.BrightnessRequiresEq", string.Empty,
+        PInspectorSwitchAttach(pApply, pActive => LTone.LToneActiveSet(pKind, pActive));
+        PInspectorSwitchAttach(pPersistent, pFlag => LTone.LTonePersistentSet(pKind, pFlag));
+        PInspectorValueAttach(
+            pSlider,
+            pValue,
+            pMinimum,
+            pMaximum,
+            () => LTone.LToneStepRead(pKind).LWorkStepValue,
+            pNumber => LTone.LToneValueSet(pKind, pNumber));
+    }
+
+    private void PToneUpdate()
+    {
+        PToneSectionUpdate(
+            LColorKind.LColorKindBrightness,
+            pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessSlider,
+            pInspectorBrightnessValue, pInspectorBrightnessStack, pInspectorBrightnessBody,
+            "Inspector.Video.BrightnessRequiresEq",
             "Inspector.Video.ApplyBrightness", "Inspector.Video.PersistBrightness");
-        PInspectorSectionApply(
-            pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastStack, pInspectorContrastBody,
-            pToneCapable, true, "Inspector.Video.ContrastRequiresEq", string.Empty,
+        PToneSectionUpdate(
+            LColorKind.LColorKindContrast,
+            pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastSlider,
+            pInspectorContrastValue, pInspectorContrastStack, pInspectorContrastBody,
+            "Inspector.Video.ContrastRequiresEq",
             "Inspector.Video.ApplyContrast", "Inspector.Video.PersistContrast");
-        PInspectorSectionApply(
-            pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationStack, pInspectorSaturationBody,
-            pToneCapable, true, "Inspector.Video.SaturationRequiresEq", string.Empty,
+        PToneSectionUpdate(
+            LColorKind.LColorKindSaturation,
+            pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationSlider,
+            pInspectorSaturationValue, pInspectorSaturationStack, pInspectorSaturationBody,
+            "Inspector.Video.SaturationRequiresEq",
             "Inspector.Video.ApplySaturation", "Inspector.Video.PersistSaturation");
+    }
+
+    private void PToneSectionUpdate(
+        LColorKind pKind,
+        CheckBox pApply,
+        CheckBox pPersistent,
+        Slider pSlider,
+        TextBox pValue,
+        StackPanel pStack,
+        StackPanel pBody,
+        string pDisabledKey,
+        string pApplyKey,
+        string pPersistKey)
+    {
+        LWorkVideoStep pStep = LTone.LToneStepRead(pKind);
+        PInspectorSwitchUpdate(pApply, pStep.LWorkStepActive, false);
+        PInspectorSwitchUpdate(pPersistent, LTone.LTonePersistentRead(pKind), true);
+        PInspectorValueUpdate(pSlider, pValue, pStep.LWorkStepValue, "0.#");
+        PInspectorSectionApply(
+            pApply, pPersistent, pStack, pBody, pStep.LWorkStepActive,
+            LTone.LToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey);
     }
 }

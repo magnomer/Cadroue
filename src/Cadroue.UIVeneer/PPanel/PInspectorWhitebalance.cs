@@ -1,10 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -20,9 +18,6 @@ public sealed partial class PInspector
     private StackPanel pWhitebalanceBody = null!;
     private UIElement pWhitebalanceMethodField = null!;
     private UIElement pWhitebalanceSaturationField = null!;
-    private bool pWhitebalanceCapable;
-    private bool pWhitebalancePreview;
-    private bool pWhitebalanceManual;
 
     private StackPanel PWhitebalanceBuild()
     {
@@ -32,6 +27,8 @@ public sealed partial class PInspector
         pWhitebalancePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
+        PInspectorSwitchAttach(pWhitebalanceBox, LWhitebalance.LWhitebalanceActiveSet);
+        PInspectorSwitchAttach(pWhitebalancePersistent, LWhitebalance.LWhitebalancePersistentSet);
         pWhitebalanceMethod = new ComboBox
         {
             Height = PInspectorFieldHeight,
@@ -52,36 +49,23 @@ public sealed partial class PInspector
         pWhitebalanceMethod.SelectedIndex = 2;
         pWhitebalanceMethod.SelectionChanged += (_, _) =>
         {
-            pWhitebalanceManual = pWhitebalanceMethod.SelectedIndex == 3;
-            PWhitebalanceReadoutUpdate();
-            PWhitebalanceWheelUpdate();
-            if (pInspectorVideoSuppress)
+            if (pWhitebalanceMethod.SelectedIndex >= 0)
             {
-                return;
+                LWhitebalance.LWhitebalanceMethodSet(PWhitebalanceMethodResolve(pWhitebalanceMethod.SelectedIndex));
             }
-
-            if (!pWhitebalanceManual)
-            {
-                pWhitebalanceWheelPresent = false;
-                PWhitebalanceWheelPlace();
-                PWhitebalanceEstimateRaise();
-            }
-
-            PInspectorVideoChange?.Invoke();
         };
 
         pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
         pWhitebalanceSaturationValue = PInspectorDecimalBuild();
         pWhitebalanceSaturationValue.Text = "100";
-        pWhitebalanceStack = new StackPanel();
-        PInspectorVideoAttach(
-            pWhitebalanceBox,
-            pWhitebalanceStack,
+        PInspectorValueAttach(
             pWhitebalanceSaturationSlider,
             pWhitebalanceSaturationValue,
             0,
             300,
-            "0.#");
+            () => LWhitebalance.LWhitebalanceValue.LWorkWhitebalanceSaturation,
+            LWhitebalance.LWhitebalanceSaturationSet);
+        pWhitebalanceStack = new StackPanel();
         pWhitebalanceMethodField = PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
             pWhitebalanceMethod);
@@ -114,22 +98,21 @@ public sealed partial class PInspector
             Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pWhitebalanceReset.Click += (_, _) => PWhitebalanceReset();
+        pWhitebalanceReset.Click += (_, _) => LWhitebalance.LWhitebalanceReset();
         pWhitebalanceStack.Children.Add(pWhitebalanceReset);
         pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
-        PToneApplyUpdate(pWhitebalanceBox, pWhitebalanceStack);
-        PWhitebalanceManualUpdate();
         return pWhitebalanceBody;
     }
 
-    public LWhitebalanceMethod PWhitebalanceMethodRead() =>
-        pWhitebalanceMethod.SelectedIndex switch
-        {
-            0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
-            1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
-            3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
-            _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
-        };
+    public LWhitebalanceMethod PWhitebalanceMethodRead() => LWhitebalance.LWhitebalanceMethod;
+
+    private static LWhitebalanceMethod PWhitebalanceMethodResolve(int pIndex) => pIndex switch
+    {
+        0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
+        1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+        3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
+        _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
+    };
 
     private static int PWhitebalanceIndexRead(LWhitebalanceMethod pMethod) => pMethod switch
     {
@@ -139,94 +122,39 @@ public sealed partial class PInspector
         _ => 2
     };
 
-    private void PWhitebalanceManualUpdate()
+    private void PWhitebalanceUpdate()
     {
-        int pWhitebalanceTarget = pWhitebalanceManual ? 3 : pWhitebalanceMethod.SelectedIndex;
-        if (pWhitebalanceTarget == 3 && pWhitebalanceMethod.SelectedIndex != 3)
+        bool pActive = LWhitebalance.LWhitebalanceStep.LWorkStepActive;
+        bool pCapable = LWhitebalance.LWhitebalanceCapable;
+        PInspectorSwitchUpdate(pWhitebalanceBox, pActive, false);
+        PInspectorSwitchUpdate(pWhitebalancePersistent, LWhitebalance.LWhitebalancePersistent, true);
+        int pIndex = PWhitebalanceIndexRead(LWhitebalance.LWhitebalanceMethod);
+        if (pWhitebalanceMethod.SelectedIndex != pIndex)
         {
-            pWhitebalanceMethod.SelectedIndex = 3;
-        }
-    }
-
-    private void PWhitebalanceReset()
-    {
-        bool pPrevious = pInspectorVideoSuppress;
-        bool pChanged = PWhitebalanceMethodRead() != LWhitebalanceMethod.LWhitebalanceMethodMedian
-            || PInspectorDecimalRead(
-                pWhitebalanceSaturationValue,
-                pWhitebalanceSaturationSlider.Value) != 100
-            || pWhitebalanceSampleRed != 0
-            || pWhitebalanceSampleGreen != 0
-            || pWhitebalanceSampleBlue != 0
-            || pWhitebalanceRedGain != 1
-            || pWhitebalanceGreenGain != 1
-            || pWhitebalanceBlueGain != 1;
-        pInspectorVideoSuppress = true;
-        try
-        {
-            PWhitebalanceToolReset();
-            pWhitebalanceManual = false;
-            pWhitebalanceMethod.SelectedIndex = 2;
-            PInspectorValueSet(
-                pWhitebalanceSaturationSlider,
-                pWhitebalanceSaturationValue,
-                100);
-            PToneNeutralReset();
-            PWhitebalanceReadoutUpdate();
-            PWhitebalanceManualUpdate();
-            pWhitebalanceWheelPresent = false;
-            PWhitebalanceWheelPlace();
-        }
-        finally
-        {
-            pInspectorVideoSuppress = pPrevious;
+            pWhitebalanceMethod.SelectedIndex = pIndex;
         }
 
-        if (!pPrevious)
-        {
-            PWhitebalanceEstimateRaise();
-        }
-
-        if (!pPrevious && pChanged)
-        {
-            PInspectorVideoChange?.Invoke();
-        }
-    }
-
-    public void PWhitebalanceCapabilitySet(bool pWhitebalanceCapable, bool pWhitebalancePreview)
-    {
-        this.pWhitebalanceCapable = pWhitebalanceCapable;
-        this.pWhitebalancePreview = pWhitebalancePreview;
-        pWhitebalanceBox.IsEnabled = pWhitebalanceCapable;
-        pWhitebalancePersistent.IsEnabled = pWhitebalanceCapable;
-        pWhitebalanceStack.IsEnabled =
-            pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true;
-        pWhitebalanceStack.Opacity =
-            pWhitebalanceCapable && pWhitebalanceBox.IsChecked == true ? 1 : 0.4;
-        string? pNotice = !pWhitebalanceCapable
-            ? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq")
-            : !pWhitebalancePreview
-                ? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePreviewMpv")
-                : null;
-        pWhitebalanceBody.ToolTip = pNotice;
-        pWhitebalanceBox.ToolTip = pNotice
-            ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance");
-        pWhitebalancePersistent.ToolTip = pNotice
-            ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance");
-        pInspectorNeutralTool.IsEnabled = pWhitebalanceCapable;
+        PInspectorValueUpdate(
+            pWhitebalanceSaturationSlider,
+            pWhitebalanceSaturationValue,
+            LWhitebalance.LWhitebalanceValue.LWorkWhitebalanceSaturation,
+            "0.#");
+        PInspectorSectionApply(
+            pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pActive,
+            pCapable, LWhitebalance.LWhitebalancePreview,
+            "Inspector.Video.WhitebalanceRequiresEq", "Inspector.Video.WhitebalancePreviewMpv",
+            "Inspector.Video.ApplyWhitebalance", "Inspector.Video.PersistWhitebalance");
+        string? pNotice = pWhitebalanceBody.ToolTip as string;
+        pInspectorNeutralTool.IsEnabled = pCapable;
         pInspectorNeutralTool.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
-        pInspectorWhiteTool.IsEnabled = pWhitebalanceCapable;
+        pInspectorWhiteTool.IsEnabled = pCapable;
         pInspectorWhiteTool.ToolTip = pNotice
             ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickWhiteTooltip");
-        ToolTipService.SetShowOnDisabled(pWhitebalanceBody, true);
-        ToolTipService.SetShowOnDisabled(pWhitebalanceBox, true);
-        ToolTipService.SetShowOnDisabled(pWhitebalancePersistent, true);
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
         ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
-        if (!pWhitebalanceCapable)
-        {
-            PWhitebalanceToolReset();
-        }
+        PWhitebalanceToolUpdate();
+        PWhitebalanceReadoutUpdate();
+        PWhitebalanceWheelPlace();
     }
 }

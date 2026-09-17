@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
@@ -23,13 +24,14 @@ public sealed partial class PInspector : PPanel
     public event Action<bool>? PInspectorMinimizeChange;
     public event Action? PInspectorPlanChange;
 
+    public LInspector LInspector { get; } = new();
+
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
     private readonly UIElement pInspectorPersistentRow;
     private readonly UIElement pInspectorFullBody;
     private readonly UIElement pInspectorStripBody;
     private readonly ScrollViewer pInspectorSectionsHost;
-    private bool pInspectorMinimized;
 
     public PInspector() : base("")
     {
@@ -46,7 +48,7 @@ public sealed partial class PInspector : PPanel
         Button pMinimizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
-            () => PInspectorMinimizeSet(true));
+            () => LInspector.LInspectorMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -132,35 +134,123 @@ public sealed partial class PInspector : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
-        PInspectorRatioUpdate();
+        LInspector.LInspectorChange += PInspectorUpdate;
+        PInspectorAttach();
+        PInspectorUpdate();
     }
 
-    public bool PInspectorMinimizedCheck() => pInspectorMinimized;
-
-    public void PInspectorMinimizeSet(bool pInspectorMinimizeRequest)
+    private void PInspectorAttach()
     {
-        if (pInspectorMinimized == pInspectorMinimizeRequest)
-        {
-            return;
-        }
-
-        pInspectorMinimized = pInspectorMinimizeRequest;
-        if (pInspectorMinimized)
-        {
-            PWhitebalanceToolReset();
-        }
-
-        pInspectorFullBody.Visibility = pInspectorMinimized ? Visibility.Collapsed : Visibility.Visible;
-        pInspectorStripBody.Visibility = pInspectorMinimized ? Visibility.Visible : Visibility.Collapsed;
-        PInspectorMinimizeChange?.Invoke(pInspectorMinimized);
+        PInspectorVideoAttach();
+        PInspectorAudioAttach();
+        PInspectorCropAttach();
     }
+
+    public bool PInspectorMinimizedCheck() => LInspector.LInspectorMinimized;
+
+    public void PInspectorMinimizeSet(bool pInspectorMinimizeRequest) =>
+        LInspector.LInspectorMinimizedSet(pInspectorMinimizeRequest);
+
+    public void PInspectorStepShow(string? pStepName) => LInspector.LInspectorStepSet(pStepName);
+
+    private void PInspectorUpdate()
+    {
+        bool pMinimized = LInspector.LInspectorMinimized;
+        bool pFlipped = pInspectorFullBody.Visibility != (pMinimized ? Visibility.Collapsed : Visibility.Visible);
+        pInspectorFullBody.Visibility = pMinimized ? Visibility.Collapsed : Visibility.Visible;
+        pInspectorStripBody.Visibility = pMinimized ? Visibility.Visible : Visibility.Collapsed;
+        PInspectorSectionsUpdate();
+        PInspectorCropUpdate();
+        if (pMinimized || LInspector.LInspectorStep != "Whitebalance")
+        {
+            LWhitebalance.LWhitebalanceToolSet(false, LWhitebalance.LWhitebalanceTarget);
+        }
+
+        if (LInspector.LInspectorStep != "Crop")
+        {
+            LInspector.LInspectorToolSet(false);
+        }
+
+        if (pFlipped)
+        {
+            PInspectorMinimizeChange?.Invoke(pMinimized);
+        }
+    }
+
+    private void PInspectorSectionsUpdate()
+    {
+        string? pStepName = LInspector.LInspectorStep;
+        LDetectorKind? pDetectorKind = PSensorKindRead(pStepName);
+        foreach (KeyValuePair<LDetectorKind, PSensorSection> pSensorEntry in pSensorSections)
+        {
+            pSensorEntry.Value.PSensorBody.Visibility =
+                pSensorEntry.Key == pDetectorKind ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        bool pDetectorSelected = pDetectorKind is not null;
+        bool pKnownSelected = false;
+        foreach ((string pKey, StackPanel pSection, CheckBox pPersistent) in PInspectorSectionsRead())
+        {
+            bool pSelected = pStepName == pKey && !(pKey == "Volume" && pDetectorSelected);
+            pKnownSelected |= pSelected;
+            pSection.Visibility = pSelected ? Visibility.Visible : Visibility.Collapsed;
+            pPersistent.Visibility = pSelected ? Visibility.Visible : Visibility.Collapsed;
+        }
+
+        pInspectorTitleLabel.Text = pDetectorKind is { } pDetectorTitleKind
+            ? LLocalization.LLocalizationTextRead(PSensorTitleRead(pDetectorTitleKind))
+            : LLocalization.LLocalizationTextRead(PInspectorTitleRead(pStepName));
+        pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorEmptyNotice.Visibility = pKnownSelected || pDetectorSelected
+            ? Visibility.Collapsed
+            : Visibility.Visible;
+    }
+
+    private IEnumerable<(string, StackPanel, CheckBox)> PInspectorSectionsRead()
+    {
+        yield return ("Crop", pInspectorCropBody, pInspectorPersistentBox);
+        yield return ("Brightness", pInspectorBrightnessBody, pInspectorBrightnessPersistent);
+        yield return ("Contrast", pInspectorContrastBody, pInspectorContrastPersistent);
+        yield return ("Saturation", pInspectorSaturationBody, pInspectorSaturationPersistent);
+        yield return ("Gamma", pGammaBody, pGammaPersistent);
+        yield return ("Exposure", pExposureBody, pExposurePersistent);
+        yield return ("Curve", pCurveBody, pCurvePersistent);
+        yield return ("Whitebalance", pWhitebalanceBody, pWhitebalancePersistent);
+        yield return ("Volume", pInspectorVolumeBody, pInspectorVolumePersistent);
+        yield return ("Normalize", pLoudnessBody, pLoudnessPersistent);
+        yield return ("Noise Reduction", pNoiseBody, pNoisePersistent);
+        yield return ("High Pass", pInspectorHighPass.PInspectorPassBody, pInspectorHighPass.PInspectorPassPersistent);
+        yield return ("Low Pass", pInspectorLowPass.PInspectorPassBody, pInspectorLowPass.PInspectorPassPersistent);
+        yield return ("Equalizer", pEqualizerBody, pEqualizerPersistent);
+        yield return ("No Processing", pSkipBody, pSkipPersistentBox);
+    }
+
+    private static string PInspectorTitleRead(string? pStepName) => pStepName switch
+    {
+        "Crop" => "Inspector.Step.Crop",
+        "Brightness" => "Inspector.Step.Brightness",
+        "Contrast" => "Inspector.Step.Contrast",
+        "Saturation" => "Inspector.Step.Saturation",
+        "Gamma" => "Inspector.Step.Gamma",
+        "Exposure" => "Inspector.Step.Exposure",
+        "Curve" => "Inspector.Step.Curve",
+        "Whitebalance" => "Inspector.Step.Whitebalance",
+        "Volume" => "Inspector.Step.Volume",
+        "Normalize" => "Inspector.Step.Normalize",
+        "Noise Reduction" => "Inspector.Step.NoiseReduction",
+        "High Pass" => "Inspector.Step.HighPass",
+        "Low Pass" => "Inspector.Step.LowPass",
+        "Equalizer" => "Inspector.Step.Equalizer",
+        "No Processing" => "Inspector.Step.NoProcessing",
+        _ => "Inspector.Header.Title"
+    };
 
     private UIElement PInspectorStripBuild()
     {
         Button pMaximizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
-            () => PInspectorMinimizeSet(false));
+            () => LInspector.LInspectorMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -187,122 +277,6 @@ public sealed partial class PInspector : PPanel
         };
         pButton.Click += (_, _) => pClick();
         return pButton;
-    }
-
-    public void PInspectorStepShow(string? pStepName)
-    {
-        LDetectorKind? pDetectorKind = PSensorKindRead(pStepName);
-        foreach (KeyValuePair<LDetectorKind, PSensorSection> pSensorEntry in pSensorSections)
-        {
-            pSensorEntry.Value.PSensorBody.Visibility =
-                pSensorEntry.Key == pDetectorKind ? Visibility.Visible : Visibility.Collapsed;
-        }
-
-        bool pDetectorSelected = pDetectorKind is not null;
-        bool pCropSelected = pStepName == "Crop";
-        bool pBrightnessSelected = pStepName == "Brightness";
-        bool pContrastSelected = pStepName == "Contrast";
-        bool pSaturationSelected = pStepName == "Saturation";
-        bool pGammaSelected = pStepName == "Gamma";
-        bool pExposureSelected = pStepName == "Exposure";
-        bool pCurveSelected = pStepName == "Curve";
-        bool pWhitebalanceSelected = pStepName == "Whitebalance";
-        bool pVolumeSelected = pStepName == "Volume" && !pDetectorSelected;
-        bool pNormalizeSelected = pStepName == "Normalize";
-        bool pNoiseSelected = pStepName == "Noise Reduction";
-        bool pHighPassSelected = pStepName == "High Pass";
-        bool pLowPassSelected = pStepName == "Low Pass";
-        bool pEqualizerSelected = pStepName == "Equalizer";
-        bool pSkipSelected = pStepName == "No Processing";
-        bool pKnownSelected = pCropSelected
-            || pBrightnessSelected
-            || pContrastSelected
-            || pSaturationSelected
-            || pGammaSelected
-            || pExposureSelected
-            || pCurveSelected
-            || pWhitebalanceSelected
-            || pVolumeSelected
-            || pNormalizeSelected
-            || pNoiseSelected
-            || pHighPassSelected
-            || pLowPassSelected
-            || pEqualizerSelected
-            || pSkipSelected;
-
-        pInspectorTitleLabel.Text = pDetectorKind is { } pDetectorTitleKind
-            ? LLocalization.LLocalizationTextRead(PSensorTitleRead(pDetectorTitleKind))
-            : pStepName switch
-        {
-            "Crop" => LLocalization.LLocalizationTextRead("Inspector.Step.Crop"),
-            "Brightness" => LLocalization.LLocalizationTextRead("Inspector.Step.Brightness"),
-            "Contrast" => LLocalization.LLocalizationTextRead("Inspector.Step.Contrast"),
-            "Saturation" => LLocalization.LLocalizationTextRead("Inspector.Step.Saturation"),
-            "Gamma" => LLocalization.LLocalizationTextRead("Inspector.Step.Gamma"),
-            "Exposure" => LLocalization.LLocalizationTextRead("Inspector.Step.Exposure"),
-            "Curve" => LLocalization.LLocalizationTextRead("Inspector.Step.Curve"),
-            "Whitebalance" => LLocalization.LLocalizationTextRead("Inspector.Step.Whitebalance"),
-            "Volume" => LLocalization.LLocalizationTextRead("Inspector.Step.Volume"),
-            "Normalize" => LLocalization.LLocalizationTextRead("Inspector.Step.Normalize"),
-            "Noise Reduction" => LLocalization.LLocalizationTextRead("Inspector.Step.NoiseReduction"),
-            "High Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.HighPass"),
-            "Low Pass" => LLocalization.LLocalizationTextRead("Inspector.Step.LowPass"),
-            "Equalizer" => LLocalization.LLocalizationTextRead("Inspector.Step.Equalizer"),
-            "No Processing" => LLocalization.LLocalizationTextRead("Inspector.Step.NoProcessing"),
-            _ => LLocalization.LLocalizationTextRead("Inspector.Header.Title")
-        };
-        pInspectorCropBody.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorBrightnessBody.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorContrastBody.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorSaturationBody.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
-        pGammaBody.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
-        pExposureBody.Visibility = pExposureSelected ? Visibility.Visible : Visibility.Collapsed;
-        pCurveBody.Visibility = pCurveSelected ? Visibility.Visible : Visibility.Collapsed;
-        pWhitebalanceBody.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorVolumeBody.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
-        pLoudnessBody.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
-        pNoiseBody.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorHighPass.PInspectorPassBody.Visibility = pHighPassSelected
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        pInspectorLowPass.PInspectorPassBody.Visibility = pLowPassSelected
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        pEqualizerBody.Visibility = pEqualizerSelected ? Visibility.Visible : Visibility.Collapsed;
-        pSkipBody.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorPersistentRow.Visibility = pKnownSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorPersistentBox.Visibility = pCropSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorBrightnessPersistent.Visibility = pBrightnessSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorContrastPersistent.Visibility = pContrastSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorSaturationPersistent.Visibility = pSaturationSelected ? Visibility.Visible : Visibility.Collapsed;
-        pGammaPersistent.Visibility = pGammaSelected ? Visibility.Visible : Visibility.Collapsed;
-        pExposurePersistent.Visibility = pExposureSelected ? Visibility.Visible : Visibility.Collapsed;
-        pCurvePersistent.Visibility = pCurveSelected ? Visibility.Visible : Visibility.Collapsed;
-        pWhitebalancePersistent.Visibility = pWhitebalanceSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorVolumePersistent.Visibility = pVolumeSelected ? Visibility.Visible : Visibility.Collapsed;
-        pLoudnessPersistent.Visibility = pNormalizeSelected ? Visibility.Visible : Visibility.Collapsed;
-        pNoisePersistent.Visibility = pNoiseSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorHighPass.PInspectorPassPersistent.Visibility = pHighPassSelected
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        pInspectorLowPass.PInspectorPassPersistent.Visibility = pLowPassSelected
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-        pEqualizerPersistent.Visibility = pEqualizerSelected ? Visibility.Visible : Visibility.Collapsed;
-        pSkipPersistentBox.Visibility = pSkipSelected ? Visibility.Visible : Visibility.Collapsed;
-        pInspectorEmptyNotice.Visibility = pKnownSelected || pDetectorSelected
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-
-        if (!pCropSelected && pInspectorCropTool.IsChecked == true)
-        {
-            PInspectorToolReset();
-        }
-
-        if (!pWhitebalanceSelected)
-        {
-            PWhitebalanceToolReset();
-        }
     }
 
     private static UIElement PInspectorFieldBuild(string pFieldLabel, UIElement pFieldContent)

@@ -12,31 +12,25 @@ public sealed partial class PInspector
 
     public event Action? PSkipActiveChange;
 
-    public bool PSkipActiveCheck() => pSkipApplyBox.IsChecked == true;
+    public bool PSkipActiveCheck() => LSkip.LSkipActive;
 
-    public bool PSkipPersistentCheck() => pSkipPersistentBox.IsChecked == true;
+    public bool PSkipPersistentCheck() => LSkip.LSkipPersistent;
 
-    public void PSkipApply(bool pSkipActive)
-    {
-        pSkipApplyBox.IsChecked = pSkipActive;
-    }
+    public void PSkipApply(bool pSkipActive) => LSkip.LSkipActiveSet(pSkipActive);
 
-    public void PSkipPersistentApply(bool pSkipPersistent)
-    {
-        pSkipPersistentBox.IsChecked = pSkipPersistent;
-    }
+    public void PSkipPersistentApply(bool pSkipPersistent) => LSkip.LSkipPersistentSet(pSkipPersistent);
 
     private StackPanel PSkipBodyBuild()
     {
         pSkipApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Skip.ApplyTooltip"));
-        pSkipApplyBox.Checked += (_, _) => PSkipActiveChange?.Invoke();
-        pSkipApplyBox.Unchecked += (_, _) => PSkipActiveChange?.Invoke();
+        PInspectorSwitchAttach(pSkipApplyBox, LSkip.LSkipActiveSet);
 
         pSkipPersistentBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
+        PInspectorSwitchAttach(pSkipPersistentBox, LSkip.LSkipPersistentSet);
 
         var pSkipNote = new TextBlock
         {
@@ -57,5 +51,16 @@ public sealed partial class PInspector
         pSkipBody.Children.Add(PInspectorSeparatorBuild());
         pSkipBody.Children.Add(pSkipNote);
         return pSkipBody;
+    }
+
+    private void PSkipUpdate()
+    {
+        bool pFlipped = (pSkipApplyBox.IsChecked == true) != LSkip.LSkipActive;
+        PInspectorSwitchUpdate(pSkipApplyBox, LSkip.LSkipActive, false);
+        PInspectorSwitchUpdate(pSkipPersistentBox, LSkip.LSkipPersistent, true);
+        if (pFlipped)
+        {
+            PSkipActiveChange?.Invoke();
+        }
     }
 }

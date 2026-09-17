@@ -1,9 +1,6 @@
-using System.Globalization;
-using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -33,6 +30,7 @@ public sealed partial class PInspector
 
     private sealed class PInspectorPass
     {
+        public required LFilter PFilterOwner { get; init; }
         public required CheckBox PFilterApplyBox { get; init; }
         public required CheckBox PInspectorPassPersistent { get; init; }
         public required ComboBox PInspectorPassPreset { get; init; }
@@ -41,18 +39,12 @@ public sealed partial class PInspector
         public required Slider PInspectorPassStages { get; init; }
         public required TextBox PFilterStageValue { get; init; }
         public required ComboBox PInspectorPassPoles { get; init; }
+        public required Slider PFilterResonanceSlider { get; init; }
         public required TextBox PInspectorPassResonance { get; init; }
+        public required Grid PFilterResonanceRow { get; init; }
         public required StackPanel PInspectorPassStack { get; init; }
         public required StackPanel PInspectorPassBody { get; init; }
         public required IReadOnlyList<PInspectorPassChoice> PInspectorPassPresets { get; init; }
-        public bool PInspectorPassHigh { get; init; }
-        public double PInspectorPassMin { get; init; }
-        public double PInspectorPassMax { get; init; }
-        public double PInspectorPassDefault { get; init; }
-        public bool PInspectorPassSuppress { get; set; }
-        public bool PFilterStageSuppress { get; set; }
-        public bool PInspectorPresetSuppress { get; set; }
-        public string? PInspectorPassBase { get; set; }
     }
 
     private PInspectorPass pInspectorHighPass = null!;
@@ -60,29 +52,19 @@ public sealed partial class PInspector
 
     private StackPanel PFilterHighBuild()
     {
-        LPassbandPreset pHighDefault = LPassband.LPassbandRead(true, LPassband.LPassbandHighDefault)!;
         pInspectorHighPass = PInspectorPassBuild(
-            pHighDefault.LPassbandCutoff,
-            LPassband.LPassbandHighFloor,
-            LPassband.LPassbandHighCeiling,
+            LFilterHigh,
             LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"),
-            pFilterHighChoices,
-            true,
-            LPassband.LPassbandHighDefault);
+            pFilterHighChoices);
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PFilterLowBuild()
     {
-        LPassbandPreset pLowDefault = LPassband.LPassbandRead(false, LPassband.LPassbandLowDefault)!;
         pInspectorLowPass = PInspectorPassBuild(
-            pLowDefault.LPassbandCutoff,
-            LPassband.LPassbandLowFloor,
-            LPassband.LPassbandLowCeiling,
+            LFilterLow,
             LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"),
-            pFilterLowChoices,
-            false,
-            LPassband.LPassbandLowDefault);
+            pFilterLowChoices);
         return pInspectorLowPass.PInspectorPassBody;
     }
 }

@@ -12,7 +12,6 @@ public sealed partial class PInspector
     private const double PCurveCanvasSize = 150;
     private const int PCurveSampleCount = 96;
     private const double PCurveHitRadius = 9;
-    private const double PCurveMinGap = 1.0 / PCurveCanvasSize;
 
     private Canvas pCurveCanvas = null!;
     private bool pCurveDragActive;
@@ -51,18 +50,19 @@ public sealed partial class PInspector
     private void PCurvePressHandle(object pSender, MouseButtonEventArgs pArgs)
     {
         Point pPixel = pArgs.GetPosition(pCurveCanvas);
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        int pHit = PCurveHitFind(pPixel, pPoints);
+        int pHit = PCurveHitFind(pPixel, LCurve.LCurvePoints);
         if (pHit < 0)
         {
-            pHit = PCurvePointAdd(pPixel, pPoints);
-            PInspectorVideoChange?.Invoke();
+            LWorkCurvePoint pClicked = PCurveValueResolve(pPixel);
+            LCurve.LCurvePointAdd(pClicked.LWorkCurveInput, pClicked.LWorkCurveOutput);
+        }
+        else
+        {
+            LCurve.LCurvePointSelect(pHit);
         }
 
-        pCurveSelected = pHit;
         pCurveDragActive = true;
         pCurveCanvas.CaptureMouse();
-        PCurveBoxesUpdate();
         pArgs.Handled = true;
     }
 
@@ -73,33 +73,8 @@ public sealed partial class PInspector
             return;
         }
 
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        if (pCurveSelected < 0 || pCurveSelected >= pPoints.Count)
-        {
-            return;
-        }
-
         LWorkCurvePoint pValue = PCurveValueResolve(pArgs.GetPosition(pCurveCanvas));
-        double pInput;
-        if (pCurveSelected == 0)
-        {
-            pInput = 0;
-        }
-        else if (pCurveSelected == pPoints.Count - 1)
-        {
-            pInput = 1;
-        }
-        else
-        {
-            pInput = Math.Clamp(
-                pValue.LWorkCurveInput,
-                pPoints[pCurveSelected - 1].LWorkCurveInput + PCurveMinGap,
-                pPoints[pCurveSelected + 1].LWorkCurveInput - PCurveMinGap);
-        }
-
-        pPoints[pCurveSelected] = new LWorkCurvePoint(pInput, pValue.LWorkCurveOutput);
-        PCurveBoxesUpdate();
-        PInspectorVideoChange?.Invoke();
+        LCurve.LCurvePointSet(pValue.LWorkCurveInput, pValue.LWorkCurveOutput);
         pArgs.Handled = true;
     }
 
@@ -135,17 +110,6 @@ public sealed partial class PInspector
         return pBest;
     }
 
-    private static int PCurvePointAdd(Point pPixel, List<LWorkCurvePoint> pPoints)
-    {
-        LWorkCurvePoint pClicked = PCurveValueResolve(pPixel);
-        var pPoint = new LWorkCurvePoint(
-            Math.Clamp(pClicked.LWorkCurveInput, PCurveMinGap, 1 - PCurveMinGap),
-            pClicked.LWorkCurveOutput);
-        pPoints.Add(pPoint);
-        pPoints.Sort((pLeft, pRight) => pLeft.LWorkCurveInput.CompareTo(pRight.LWorkCurveInput));
-        return pPoints.IndexOf(pPoint);
-    }
-
     private static Point PCurvePointResolve(double pInput, double pOutput) =>
         new(
             Math.Clamp(pInput, 0, 1) * PCurveCanvasSize,
@@ -167,8 +131,8 @@ public sealed partial class PInspector
         PCurveHistogramDraw();
         PCurveGridDraw();
 
-        List<LWorkCurvePoint> pPoints = PCurveActiveRead();
-        int pChannel = Math.Clamp(pCurveChannel.SelectedIndex, 0, PCurveChannelBrush.Length - 1);
+        IReadOnlyList<LWorkCurvePoint> pPoints = LCurve.LCurvePoints;
+        int pChannel = Math.Clamp(LCurve.LCurveChannel, 0, PCurveChannelBrush.Length - 1);
         bool pIdentity = LWorkCurveSettings.LWorkIdentityCheck(pPoints);
 
         if (pIdentity)
@@ -228,12 +192,12 @@ public sealed partial class PInspector
 
         double[] pXs = pPoints.Select(pPoint => pPoint.LWorkCurveInput).ToArray();
         double[] pYs = pPoints.Select(pPoint => pPoint.LWorkCurveOutput).ToArray();
-        double[] pSlopes = PCurveTangentResolve(pXs, pYs);
+        double[] pSlopes = LColorCurve.LColorSlopeResolve(pXs, pYs);
 
         for (int pSample = 0; pSample <= PCurveSampleCount; pSample++)
         {
             double pInput = (double)pSample / PCurveSampleCount;
-            double pOutput = PCurveSampleResolve(pXs, pYs, pSlopes, pInput);
+            double pOutput = LColorCurve.LColorCurveResolve(pXs, pYs, pSlopes, pInput);
             pTrack.Points.Add(PCurvePointResolve(pInput, pOutput));
         }
 
@@ -244,7 +208,7 @@ public sealed partial class PInspector
     {
         for (int pIndex = 0; pIndex < pPoints.Count; pIndex++)
         {
-            bool pSelected = pIndex == pCurveSelected;
+            bool pSelected = pIndex == LCurve.LCurveSelected;
             bool pEndpoint = pIndex == 0 || pIndex == pPoints.Count - 1;
             double pSize = pSelected ? 11 : 8;
             Point pCenter = PCurvePointResolve(
@@ -262,90 +226,5 @@ public sealed partial class PInspector
             Canvas.SetTop(pDot, pCenter.Y - (pSize / 2));
             pCurveCanvas.Children.Add(pDot);
         }
-    }
-
-    private static double[] PCurveTangentResolve(double[] pXs, double[] pYs)
-    {
-        int pCount = pXs.Length;
-        var pSlopes = new double[pCount];
-        if (pCount < 2)
-        {
-            return pSlopes;
-        }
-
-        var pDeltas = new double[pCount - 1];
-        for (int pIndex = 0; pIndex < pCount - 1; pIndex++)
-        {
-            double pRun = pXs[pIndex + 1] - pXs[pIndex];
-            pDeltas[pIndex] = pRun <= 0 ? 0 : (pYs[pIndex + 1] - pYs[pIndex]) / pRun;
-        }
-
-        pSlopes[0] = pDeltas[0];
-        pSlopes[pCount - 1] = pDeltas[pCount - 2];
-        for (int pIndex = 1; pIndex < pCount - 1; pIndex++)
-        {
-            double pLeft = pDeltas[pIndex - 1];
-            double pRight = pDeltas[pIndex];
-            if (pLeft * pRight <= 0)
-            {
-                pSlopes[pIndex] = 0;
-                continue;
-            }
-
-            double pSpanLeft = pXs[pIndex] - pXs[pIndex - 1];
-            double pSpanRight = pXs[pIndex + 1] - pXs[pIndex];
-            double pWeightLeft = (2 * pSpanRight) + pSpanLeft;
-            double pWeightRight = pSpanRight + (2 * pSpanLeft);
-            pSlopes[pIndex] =
-                (pWeightLeft + pWeightRight) / ((pWeightLeft / pLeft) + (pWeightRight / pRight));
-        }
-
-        return pSlopes;
-    }
-
-    private static double PCurveSampleResolve(
-        double[] pXs, double[] pYs, double[] pSlopes, double pInput)
-    {
-        int pCount = pXs.Length;
-        if (pCount == 0)
-        {
-            return pInput;
-        }
-
-        if (pInput <= pXs[0])
-        {
-            return pYs[0];
-        }
-
-        if (pInput >= pXs[pCount - 1])
-        {
-            return pYs[pCount - 1];
-        }
-
-        int pSegment = 0;
-        while (pSegment < pCount - 2 && pInput > pXs[pSegment + 1])
-        {
-            pSegment++;
-        }
-
-        double pSpan = pXs[pSegment + 1] - pXs[pSegment];
-        if (pSpan <= 0)
-        {
-            return pYs[pSegment];
-        }
-
-        double pStep = (pInput - pXs[pSegment]) / pSpan;
-        double pStepSquare = pStep * pStep;
-        double pStepCube = pStepSquare * pStep;
-        double pHermite00 = (2 * pStepCube) - (3 * pStepSquare) + 1;
-        double pHermite10 = pStepCube - (2 * pStepSquare) + pStep;
-        double pHermite01 = (-2 * pStepCube) + (3 * pStepSquare);
-        double pHermite11 = pStepCube - pStepSquare;
-        return Math.Clamp(
-            (pHermite00 * pYs[pSegment])
-            + (pHermite10 * pSpan * pSlopes[pSegment])
-            + (pHermite01 * pYs[pSegment + 1])
-            + (pHermite11 * pSpan * pSlopes[pSegment + 1]),
-            0, 1);
     }
 }

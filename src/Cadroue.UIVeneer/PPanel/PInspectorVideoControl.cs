@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
@@ -13,6 +12,7 @@ public sealed partial class PInspector
         CheckBox pPersistent,
         StackPanel pStack,
         StackPanel pBody,
+        bool pActive,
         bool pCapable,
         bool pPreviewAvailable,
         string pDisabledKey,
@@ -22,11 +22,10 @@ public sealed partial class PInspector
     {
         pBox.IsEnabled = pCapable;
         pPersistent.IsEnabled = pCapable;
-        pStack.IsEnabled = pCapable && pBox.IsChecked == true;
-        pStack.Opacity = pCapable && pBox.IsChecked == true ? 1 : 0.4;
+        PInspectorSectionUpdate(pStack, pCapable && pActive);
         string? pNotice = !pCapable
             ? LLocalization.LLocalizationTextRead(pDisabledKey)
-            : !pPreviewAvailable
+            : !pPreviewAvailable && pPreviewKey.Length > 0
                 ? LLocalization.LLocalizationTextRead(pPreviewKey)
                 : null;
         pBody.ToolTip = pNotice;
@@ -37,10 +36,24 @@ public sealed partial class PInspector
         ToolTipService.SetShowOnDisabled(pPersistent, true);
     }
 
-    private static void PInspectorValueSet(Slider pSlider, TextBox pValue, double pNumber)
+    private static void PInspectorValueUpdate(Slider pSlider, TextBox pValue, double pNumber, string pFormat)
     {
-        pSlider.Value = pNumber;
-        pValue.Text = pNumber.ToString("0.#", CultureInfo.InvariantCulture);
+        pSlider.Value = Math.Clamp(pNumber, pSlider.Minimum, pSlider.Maximum);
+        PInspectorTextSet(pValue, pNumber, pFormat);
+    }
+
+    private void PInspectorSwitchUpdate(CheckBox pBox, bool pChecked, bool pPlan)
+    {
+        if ((pBox.IsChecked == true) == pChecked)
+        {
+            return;
+        }
+
+        pBox.IsChecked = pChecked;
+        if (pPlan)
+        {
+            PInspectorPlanChange?.Invoke();
+        }
     }
 
     private static Slider PToneSliderBuild(double pMinimum, double pMaximum, double pValue)
@@ -70,72 +83,36 @@ public sealed partial class PInspector
         return pBody;
     }
 
-    private void PInspectorVideoAttach(
-        CheckBox pApply,
-        StackPanel pStack,
-        Slider pSlider,
-        TextBox pValue,
-        double? pMinimum,
-        double? pMaximum,
-        string pFormat)
+    private static void PInspectorSwitchAttach(CheckBox pBox, Action<bool> pSet)
     {
-        pApply.Checked += (_, _) => PToneApplyUpdate(pApply, pStack);
-        pApply.Unchecked += (_, _) => PToneApplyUpdate(pApply, pStack);
-        PInspectorValueAttach(pSlider, pValue, pMinimum, pMaximum, pFormat);
+        pBox.Checked += (_, _) => pSet(true);
+        pBox.Unchecked += (_, _) => pSet(false);
     }
 
-    private void PInspectorValueAttach(
+    private static void PInspectorValueAttach(
         Slider pSlider,
         TextBox pValue,
         double? pMinimum,
         double? pMaximum,
-        string pFormat)
+        Func<double> pRead,
+        Action<double> pSet)
     {
         pSlider.ValueChanged += (_, _) =>
         {
-            if (pInspectorVideoSuppress)
+            if (pSlider.Value != Math.Clamp(pRead(), pSlider.Minimum, pSlider.Maximum))
             {
-                return;
+                pSet(pSlider.Value);
             }
-
-            pInspectorVideoSuppress = true;
-            pValue.Text = pSlider.Value.ToString(pFormat, CultureInfo.InvariantCulture);
-            pInspectorVideoSuppress = false;
-            PInspectorVideoChange?.Invoke();
         };
         pValue.TextChanged += (_, _) =>
         {
-            if (pInspectorVideoSuppress)
-            {
-                return;
-            }
-
-            pInspectorVideoSuppress = true;
-            double pParsed = PInspectorDecimalRead(pValue, pSlider.Value);
+            double pParsed = PInspectorDecimalRead(pValue, pRead());
             if (pMinimum is double pMin && pMaximum is double pMax)
             {
                 pParsed = Math.Clamp(pParsed, pMin, pMax);
             }
 
-            pSlider.Value = Math.Clamp(pParsed, pSlider.Minimum, pSlider.Maximum);
-            pInspectorVideoSuppress = false;
-            PInspectorVideoChange?.Invoke();
+            pSet(pParsed);
         };
-    }
-
-    private void PToneApplyUpdate(CheckBox pApply, StackPanel pStack)
-    {
-        bool pActive = pApply.IsChecked == true;
-        pStack.IsEnabled = pActive;
-        pStack.Opacity = pActive ? 1 : 0.4;
-        if (!pActive && ReferenceEquals(pApply, pWhitebalanceBox))
-        {
-            PWhitebalanceToolReset();
-        }
-
-        if (!pInspectorVideoSuppress)
-        {
-            PInspectorVideoChange?.Invoke();
-        }
     }
 }

@@ -3,6 +3,7 @@ using System.Windows.Input;
 
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -10,9 +11,13 @@ public readonly record struct PCropAnchor(int PCropAnchorDrive, int PCropAnchorX
 
 public sealed partial class PViewer
 {
-    public bool PCropPersistent { get; set; }
+    public bool PCropPersistent
+    {
+        get => LCrop.LCropPersistent;
+        set => LCrop.LCropPersistentSet(value);
+    }
 
-    public bool PCropActive { get; private set; } = true;
+    public bool PCropActive => LCrop.LCropActive;
 
     public void PCropActiveSet(bool pCropActive)
     {
@@ -21,7 +26,7 @@ public sealed partial class PViewer
             return;
         }
 
-        PCropActive = pCropActive;
+        LCrop.LCropActiveSet(pCropActive);
         if (!pCropActive)
         {
             PCropToolSet(false);
@@ -44,12 +49,12 @@ public sealed partial class PViewer
 
     public void PCropLockSet(bool pCropLocked)
     {
-        if (pViewerCropLocked == pCropLocked)
+        if (LCrop.LCropLocked == pCropLocked)
         {
             return;
         }
 
-        pViewerCropLocked = pCropLocked;
+        LCrop.LCropLockSet(pCropLocked);
         if (pCropLocked)
         {
             pViewerCropDrag = false;
@@ -63,30 +68,28 @@ public sealed partial class PViewer
     }
 
     private bool PCropEditableCheck() =>
-        PCropActive && !pViewerCropLocked && pViewerTool != PViewerTool.PViewerToolNeutral;
+        PCropActive && !LCrop.LCropLocked && LViewer.LViewerTool != LViewerTool.LViewerToolNeutral;
 
     public void PCropToolSet(bool pCropArmed)
     {
-        if (pCropArmed && pViewerTool == PViewerTool.PViewerToolNeutral)
+        if (pCropArmed && LViewer.LViewerTool == LViewerTool.LViewerToolNeutral)
         {
             PViewerNeutralCancel();
         }
 
-        pViewerTool = pCropArmed
-            ? PViewerTool.PViewerToolCrop
-            : pViewerTool == PViewerTool.PViewerToolCrop ? PViewerTool.PViewerToolNone : pViewerTool;
-        pViewerOverlay.Cursor = pCropArmed && !pViewerCropLocked ? Cursors.Cross : null;
+        LViewer.LViewerToolSet(pCropArmed
+            ? LViewerTool.LViewerToolCrop
+            : LViewer.LViewerTool == LViewerTool.LViewerToolCrop ? LViewerTool.LViewerToolNone : LViewer.LViewerTool);
+        pViewerOverlay.Cursor = pCropArmed && !LCrop.LCropLocked ? Cursors.Cross : null;
         pViewerCropBox.Cursor = PCropEditableCheck() ? Cursors.SizeAll : null;
         PCropOverlayUpdate();
     }
 
-    public void PCropRatioSet(Size? pCropRatio)
-    {
-        pViewerCropRatio = pCropRatio is { Width: > 0, Height: > 0 } ? pCropRatio : null;
-    }
+    public void PCropRatioSet(Size? pCropRatio) =>
+        LCrop.LCropRatioSet(pCropRatio?.Width ?? 0, pCropRatio?.Height ?? 0);
 
     public PCropAnchor PCropAnchorRead() =>
-        new(pViewerCropDrive, pViewerAnchorX, pViewerAnchorY);
+        new(LCrop.LCropDrive, LCrop.LCropAnchorX, LCrop.LCropAnchorY);
 
     public void PCropVideoSet(Rect? pCropVideo)
     {
@@ -107,8 +110,7 @@ public sealed partial class PViewer
                 ? " (full frame)"
                 : string.Empty));
 
-        PCropVideo = pCropVideo;
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(PViewerCropboxRead(PCropVideo));
+        LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(PViewerCropboxRead(pCropVideo)));
         PCropBoxSet();
         PCropBoxRestore();
         PViewerMpvUpdate();
@@ -131,8 +133,7 @@ public sealed partial class PViewer
         pViewerCropBox.Visibility = Visibility.Collapsed;
         pViewerCropBox.Width = 0;
         pViewerCropBox.Height = 0;
-        PCropVideo = null;
-        LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
+        LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(null));
         PCropOverlayUpdate();
         PViewerMpvUpdate();
         PCropVideoChange?.Invoke(null);

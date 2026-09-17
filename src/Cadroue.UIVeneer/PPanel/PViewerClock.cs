@@ -1,6 +1,7 @@
 using System;
 
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -11,12 +12,12 @@ public sealed partial class PViewer
         pViewerClockTimer.Stop();
         if (!pViewerPlayer.PPlayerReady)
         {
-            pViewerResumeInactive = false;
+            LViewer.LViewerResumeSet(false);
             return;
         }
 
-        pViewerResumeInactive = LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
-        if (!pViewerResumeInactive)
+        LViewer.LViewerResumeSet(LViewer.LViewerPlaying);
+        if (!LViewer.LViewerResumeInactive)
         {
             return;
         }
@@ -26,59 +27,46 @@ public sealed partial class PViewer
 
     private void PPlayerResume()
     {
-        if (!pViewerResumeInactive || !pViewerPlayer.PPlayerReady)
+        if (!LViewer.LViewerResumeInactive || !pViewerPlayer.PPlayerReady)
         {
-            pViewerResumeInactive = false;
-            if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+            LViewer.LViewerResumeSet(false);
+            if (LViewer.LViewerPlaying)
             {
                 pViewerClockTimer.Start();
             }
             return;
         }
 
-        pViewerResumeInactive = false;
+        LViewer.LViewerResumeSet(false);
         pViewerPlayer.PPlayerPlay();
-        PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
+        LViewer.LViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Start();
     }
 
     private void PViewerClockHandle(object? sender, EventArgs eventArgs)
     {
-        if (!pViewerCommandActive || !pViewerPlayer.PPlayerReady)
+        if (!LViewer.LViewerCommandActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        if (LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying && pViewerPlayer.PPlayerEndedRead())
+        if (LViewer.LViewerPlaying && pViewerPlayer.PPlayerEndedRead())
         {
             PViewerEndStop();
             return;
         }
 
         TimeSpan playbackPosition = pViewerPlayer.PPlayerTimeRead();
-        PViewerPlaybackUpdate(null, playbackPosition);
+        LViewer.LViewerPlaybackUpdate(null, playbackPosition);
         PViewerClockTick?.Invoke(playbackPosition);
     }
 
     private void PViewerEndStop()
     {
-        pViewerResumeInactive = false;
-        pViewerEndReached = true;
+        LViewer.LViewerResumeSet(false);
+        LViewer.LViewerEndSet(true);
         pViewerClockTimer.Stop();
         pViewerPlayer.PPlayerPause();
-        PViewerPlaybackUpdate(false, null);
-    }
-
-    private void PViewerPlaybackUpdate(bool? playing, TimeSpan? playbackPosition)
-    {
-        LPlaybackState playbackState = LPreviewStateCurrent.LPlaybackState;
-        bool pViewerPlayingNow = playing ?? playbackState.LPlaybackStatePlaying;
-        LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(new LPlaybackState(
-            pViewerPlayingNow,
-            playbackPosition ?? playbackState.LPlaybackPosition));
-        if (pViewerPlayingNow != playbackState.LPlaybackStatePlaying)
-        {
-            PViewerPlayingChange?.Invoke(pViewerPlayingNow);
-        }
+        LViewer.LViewerPlaybackUpdate(false, null);
     }
 }

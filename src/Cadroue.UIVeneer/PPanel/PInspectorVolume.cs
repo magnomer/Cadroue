@@ -1,7 +1,5 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
@@ -17,19 +15,18 @@ public sealed partial class PInspector
     private StackPanel pInspectorVolumeStack = null!;
     private TextBlock pInspectorVolumeWarn = null!;
     private StackPanel pInspectorVolumeBody = null!;
-    private bool pInspectorVolumeSuppress;
 
     private StackPanel PVolumeBodyBuild()
     {
         pVolumeApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Volume.ApplyTooltip"));
-        pVolumeApplyBox.Checked += (_, _) => PVolumeApplyUpdate();
-        pVolumeApplyBox.Unchecked += (_, _) => PVolumeApplyUpdate();
+        PInspectorSwitchAttach(pVolumeApplyBox, LVolume.LVolumeActiveSet);
 
         pInspectorVolumePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Volume.PersistentTooltip"));
+        PInspectorSwitchAttach(pInspectorVolumePersistent, LVolume.LVolumePersistentSet);
 
         pInspectorVolumeSlider = new Slider
         {
@@ -43,34 +40,13 @@ public sealed partial class PInspector
 
         pInspectorVolumeValue = PInspectorDecimalBuild();
         pInspectorVolumeValue.Text = "0";
-
-        pInspectorVolumeSlider.ValueChanged += (_, _) =>
-        {
-            if (pInspectorVolumeSuppress)
-            {
-                return;
-            }
-
-            pInspectorVolumeSuppress = true;
-            pInspectorVolumeValue.Text = pInspectorVolumeSlider.Value.ToString("0.#", CultureInfo.InvariantCulture);
-            pInspectorVolumeSuppress = false;
-            PVolumeWarnUpdate();
-            PInspectorActiveRaise();
-        };
-        pInspectorVolumeValue.TextChanged += (_, _) =>
-        {
-            if (pInspectorVolumeSuppress)
-            {
-                return;
-            }
-
-            pInspectorVolumeSuppress = true;
-            pInspectorVolumeSlider.Value = Math.Clamp(
-                PInspectorDecimalRead(pInspectorVolumeValue, 0), LWorkAudio.LWorkGainLeast, LWorkAudio.LWorkGainMost);
-            pInspectorVolumeSuppress = false;
-            PVolumeWarnUpdate();
-            PInspectorActiveRaise();
-        };
+        PInspectorValueAttach(
+            pInspectorVolumeSlider,
+            pInspectorVolumeValue,
+            LWorkAudio.LWorkGainLeast,
+            LWorkAudio.LWorkGainMost,
+            () => LVolume.LVolumeGain,
+            LVolume.LVolumeGainSet);
 
         var pGainRow = new Grid();
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -121,23 +97,15 @@ public sealed partial class PInspector
         pInspectorVolumeBody.Children.Add(pVolumeApplyBox);
         pInspectorVolumeBody.Children.Add(PInspectorSeparatorBuild());
         pInspectorVolumeBody.Children.Add(pInspectorVolumeStack);
-
-        PVolumeApplyUpdate();
         return pInspectorVolumeBody;
     }
 
-    private void PVolumeApplyUpdate()
+    private void PVolumeUpdate()
     {
-        bool pVolumeActive = pVolumeApplyBox.IsChecked == true;
-        pInspectorVolumeStack.IsEnabled = pVolumeActive;
-        pInspectorVolumeStack.Opacity = pVolumeActive ? 1 : 0.4;
-        PInspectorActiveRaise();
-    }
-
-    private void PVolumeWarnUpdate()
-    {
-        pInspectorVolumeWarn.Visibility = PInspectorDecimalRead(pInspectorVolumeValue, 0) > 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        PInspectorSwitchUpdate(pVolumeApplyBox, LVolume.LVolumeStep.LWorkStepActive, false);
+        PInspectorSwitchUpdate(pInspectorVolumePersistent, LVolume.LVolumePersistent, true);
+        PInspectorValueUpdate(pInspectorVolumeSlider, pInspectorVolumeValue, LVolume.LVolumeGain, "0.#");
+        PInspectorSectionUpdate(pInspectorVolumeStack, LVolume.LVolumeStep.LWorkStepActive);
+        pInspectorVolumeWarn.Visibility = LVolume.LVolumeGain > 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 }

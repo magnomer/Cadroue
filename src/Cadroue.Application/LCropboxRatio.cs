@@ -2,6 +2,52 @@ namespace Cadroue.Application;
 
 public sealed partial record LCropbox
 {
+    public const double LCropboxTolerance = 0.01;
+
+    public static LCropbox? LCropboxFitResolve(
+        LCropbox lCropboxDesired,
+        LCropbox lCropboxBounds,
+        LCropboxRatio lCropboxRatio,
+        int lCropboxDriveAxis,
+        int lCropboxAnchorX,
+        int lCropboxAnchorY)
+    {
+        if (!lCropboxRatio.LCropboxRatioFixed
+            || lCropboxDesired.LCropboxWidth <= 0 || lCropboxDesired.LCropboxHeight <= 0
+            || lCropboxBounds.LCropboxWidth <= 0 || lCropboxBounds.LCropboxHeight <= 0
+            || lCropboxRatio.LCropboxRatioWidth <= 0 || lCropboxRatio.LCropboxRatioHeight <= 0)
+        {
+            return null;
+        }
+
+        return lCropboxRatio.LCropboxRatioLenient
+            ? LCropboxLenientResolve(
+                lCropboxDesired,
+                lCropboxBounds,
+                lCropboxRatio.LCropboxRatioWidth,
+                lCropboxRatio.LCropboxRatioHeight,
+                lCropboxDriveAxis,
+                lCropboxAnchorX,
+                lCropboxAnchorY,
+                LCropboxTolerance)
+            : LCropboxAnchorResolve(
+                lCropboxDesired,
+                lCropboxBounds,
+                lCropboxRatio.LCropboxRatioWidth,
+                lCropboxRatio.LCropboxRatioHeight,
+                lCropboxDriveAxis,
+                lCropboxAnchorX,
+                lCropboxAnchorY);
+    }
+
+    public static bool LCropboxToleranceCheck(
+        double lCropboxCropWidth,
+        double lCropboxCropHeight,
+        double lCropboxRatioWidth,
+        double lCropboxRatioHeight) =>
+        LCropboxErrorResolve(lCropboxCropWidth, lCropboxCropHeight, lCropboxRatioWidth, lCropboxRatioHeight)
+            <= LCropboxTolerance;
+
     public static LCropbox? LCropboxRatioResolve(
         LCropbox lCropboxBounds,
         int lCropboxRatioWidth,

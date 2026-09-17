@@ -1,7 +1,6 @@
 using Cadroue.Core;
 using Cadroue.UIVeneer.PSCasement;
 using System;
-using System.IO;
 using System.Linq;
 using System.Windows;
 using Microsoft.Win32;
@@ -87,7 +86,7 @@ public sealed partial class PConsole
         string lSceneName = lScene.LSceneName.Trim();
         if (lSceneName.Length == 0)
         {
-            lSceneName = Path.GetFileNameWithoutExtension(pDialog.FileName).Trim();
+            lSceneName = System.IO.Path.GetFileNameWithoutExtension(pDialog.FileName).Trim();
         }
 
         lScene.LSceneName = PConsoleNameCreate(
@@ -105,16 +104,8 @@ public sealed partial class PConsole
                 ? LLocalization.LLocalizationFormat(lSceneMessageKey, lSceneDetail)
                 : LLocalization.LLocalizationTextRead(lSceneMessageKey));
 
-    private static string PConsoleFileResolve(string lSceneName)
-    {
-        char[] pInvalid = Path.GetInvalidFileNameChars();
-        string pClean = new string(lSceneName.Trim()
-            .Select(pCharacter => pInvalid.Contains(pCharacter) ? '_' : pCharacter)
-            .ToArray());
-        return string.IsNullOrWhiteSpace(pClean)
-            ? $"{LLocalization.LLocalizationTextRead("Console.Scene.DefaultName")}.json"
-            : $"{pClean}.json";
-    }
+    private static string PConsoleFileResolve(string lSceneName) =>
+        LScene.LSceneFileResolve(lSceneName, LLocalization.LLocalizationTextRead("Console.Scene.DefaultName"));
 
     private static string PConsoleNameCreate(string lSceneBaseName)
     {

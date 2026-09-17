@@ -33,6 +33,9 @@ public static class LLosslesscut
     public const string LLosslesscutExtension = ".llc";
     private const int LLosslesscutVersionSupported = 1;
 
+    public static DateTime LLosslesscutStampRead(string lLosslesscutPath) =>
+        File.GetLastWriteTime(lLosslesscutPath);
+
     public static LLosslesscutProject LLosslesscutRead(string lLosslesscutPath)
     {
         string lLosslesscutText = File.ReadAllText(lLosslesscutPath);

@@ -5,6 +5,7 @@ using Cadroue.Media;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -14,12 +15,12 @@ public sealed partial class PViewer
     {
         LTraceLog.LTraceInfoRecord(
             $"Viewer source open requested '{System.IO.Path.GetFileName(sourcePath)}'",
-            $"command={(pViewerCommandActive ? "active" : "INACTIVE")}, unloaded={pViewerUnloaded}, "
+            $"command={(LViewer.LViewerCommandActive ? "active" : "INACTIVE")}, unloaded={LViewer.LViewerUnloaded}, "
             + $"engine={PViewerEngineCurrent}, path={sourcePath}");
 
-        if (!pViewerCommandActive || string.IsNullOrWhiteSpace(sourcePath))
+        if (!LViewer.LViewerCommandActive || string.IsNullOrWhiteSpace(sourcePath))
         {
-            string pViewerRefusal = pViewerCommandActive
+            string pViewerRefusal = LViewer.LViewerCommandActive
                 ? "empty path"
                 : "viewer command inactive (tab not the front workspace)";
             LTraceLog.LTraceWarningRecord($"Viewer source open refused: {pViewerRefusal}");
@@ -41,10 +42,10 @@ public sealed partial class PViewer
         LPreference.LPreferenceMediaSet(sourcePath);
         if (!PCropPersistent)
         {
-            LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate());
+            LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate()));
         }
 
-        PPlayerVideoLoad(new PViewerIntent(sourcePath, TimeSpan.Zero, null));
+        PPlayerVideoLoad(new LViewerIntent(sourcePath, TimeSpan.Zero, null));
     }
 
     private string? PViewerSidecarResolve(string pSidecarPath)

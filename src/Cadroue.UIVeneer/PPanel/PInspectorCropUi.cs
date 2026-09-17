@@ -36,8 +36,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioFixed);
-        pInspectorRatioFixed.Checked += (_, _) => PInspectorRatioCommit();
-        pInspectorRatioFixed.Unchecked += (_, _) => PInspectorRatioCommit();
+        PInspectorSwitchAttach(pInspectorRatioFixed, pFixed => PInspectorRatioCommit(pFixed, null));
 
         pInspectorRatioLenient = new CheckBox
         {
@@ -51,8 +50,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioLenient);
-        pInspectorRatioLenient.Checked += (_, _) => PInspectorRatioCommit();
-        pInspectorRatioLenient.Unchecked += (_, _) => PInspectorRatioCommit();
+        PInspectorSwitchAttach(pInspectorRatioLenient, pLenient => PInspectorRatioCommit(null, pLenient));
 
         pInspectorRatioNotice = new TextBlock
         {
@@ -66,24 +64,19 @@ public sealed partial class PInspector
 
         pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
         pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
-        pInspectorFlipHorizontal.Checked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipHorizontal.Unchecked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipVertical.Checked += (_, _) => PInspectorRotateRaise();
-        pInspectorFlipVertical.Unchecked += (_, _) => PInspectorRotateRaise();
+        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => PInspectorFlipChange(true, pFlipped));
+        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => PInspectorFlipChange(false, pFlipped));
         pInspectorRotateCombo = PInspectorRotateBuild();
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
-        pInspectorApplyBox.Checked += (_, _) => PInspectorApplyUpdate();
+        pInspectorApplyBox.Checked += (_, _) => LCropboxState.LCropboxApplySet(true);
         pInspectorApplyBox.Unchecked += (_, _) =>
         {
-            PInspectorApplyUpdate();
-            if (!pInspectorCropSuppress)
-            {
-                PInspectorRatioReset();
-            }
+            LCropboxState.LCropboxApplySet(false);
+            PInspectorRatioReset();
         };
 
         pInspectorCropStack = new StackPanel();
@@ -107,8 +100,6 @@ public sealed partial class PInspector
         pInspectorCropBody.Children.Add(pInspectorApplyBox);
         pInspectorCropBody.Children.Add(PInspectorSeparatorBuild());
         pInspectorCropBody.Children.Add(pInspectorCropStack);
-        PInspectorToolUpdate();
-        PInspectorApplyUpdate();
         return pInspectorCropBody;
     }
 

@@ -16,218 +16,159 @@ public sealed partial class PInspector
 
     private Rect? PInspectorRatioResolve(Rect pDesired, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
-        if (pInspectorRatioFixed.IsChecked != true
-            || pDesired.Width <= 0 || pDesired.Height <= 0
-            || pInspectorSourceWidth <= 0 || pInspectorSourceHeight <= 0)
-        {
-            return null;
-        }
-
-        int pRatioWidth = (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth));
-        int pRatioHeight = (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight));
-        if (pRatioWidth <= 0 || pRatioHeight <= 0)
-        {
-            return null;
-        }
-
-        LCropbox pBounds = new LCropbox(0, 0, pInspectorSourceWidth, pInspectorSourceHeight);
-        LCropbox? pFit = pInspectorRatioLenient.IsChecked == true
-            ? LCropbox.LCropboxLenientResolve(
-                PInspectorCropboxResolve(pDesired),
-                pBounds,
-                pRatioWidth,
-                pRatioHeight,
-                pDriveAxis,
-                pAnchorX,
-                pAnchorY,
-                PInspectorRatioTolerance)
-            : LCropbox.LCropboxAnchorResolve(
-                PInspectorCropboxResolve(pDesired),
-                pBounds,
-                pRatioWidth,
-                pRatioHeight,
-                pDriveAxis,
-                pAnchorX,
-                pAnchorY);
+        LCropbox? pFit = LCropbox.LCropboxFitResolve(
+            PInspectorCropboxResolve(pDesired),
+            new LCropbox(0, 0, LInspector.LInspectorSourceWidth, LInspector.LInspectorSourceHeight),
+            LCropboxState.LCropboxStateRatio,
+            pDriveAxis,
+            pAnchorX,
+            pAnchorY);
         return pFit is { } pCropbox ? PInspectorRectResolve(pCropbox) : null;
     }
 
+    public LCropboxRatio PInspectorRatioRead() => LCropboxState.LCropboxStateRatio;
+
     private void PCropRatioHandle()
     {
-        if (pInspectorCropSuppress || pInspectorRatioSuppress)
-        {
-            return;
-        }
-
-        pInspectorRatioSuppress = true;
-        try
-        {
-            PInspectorCropClear();
-            PInspectorRatioRaise();
-            PInspectorRatioUpdate();
-        }
-        finally
-        {
-            pInspectorRatioSuppress = false;
-        }
+        LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;
+        LCropboxState.LCropboxRatioSet(
+            pRatio.LCropboxRatioFixed,
+            pRatio.LCropboxRatioLenient,
+            PInspectorWholeRead(pInspectorRatioWidth),
+            PInspectorWholeRead(pInspectorRatioHeight));
     }
 
-    private void PInspectorRatioResolve(int pEdge)
-    {
-        LCropboxEdges? pFit = LCropbox.LCropboxLockResolve(
-            pInspectorSourceWidth,
-            pInspectorSourceHeight,
-            Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft)),
-            Math.Max(0, PInspectorNumberRead(pInspectorInsetTop)),
-            Math.Max(0, PInspectorNumberRead(pInspectorInsetRight)),
-            Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom)),
-            pInspectorEdgeLocked[0],
-            pInspectorEdgeLocked[1],
-            pInspectorEdgeLocked[2],
-            pInspectorEdgeLocked[3],
-            PInspectorNumberRead(pInspectorRatioWidth),
-            PInspectorNumberRead(pInspectorRatioHeight),
-            pEdge is 0 or 2);
-        if (pFit is not { } pEdges)
-        {
-            return;
-        }
+    private static int PInspectorWholeRead(System.Windows.Controls.TextBox pBox) =>
+        (int)Math.Round(PInspectorNumberRead(pBox));
 
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        try
-        {
-            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pEdges.LCropboxLeft);
-            pInspectorInsetTop.Text = PInspectorEdgeFormat(pEdges.LCropboxTop);
-            pInspectorInsetRight.Text = PInspectorEdgeFormat(pEdges.LCropboxRight);
-            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pEdges.LCropboxBottom);
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-    }
-
-    private void PInspectorRatioCommit()
+    private void PInspectorRatioCommit(bool? pFixed, bool? pLenient)
     {
-        pInspectorRatioLenient.IsEnabled = pInspectorRatioFixed.IsChecked == true;
-        PInspectorEdgeClear();
-        PInspectorRatioUpdate();
-        PInspectorRatioRaise();
+        LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;
+        bool pRatioFixed = pFixed ?? pRatio.LCropboxRatioFixed;
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        LCropboxState.LCropboxRatioSet(
+            pRatioFixed,
+            pRatioFixed && (pLenient ?? pRatio.LCropboxRatioLenient),
+            pRatio.LCropboxRatioWidth,
+            pRatio.LCropboxRatioHeight);
     }
 
     private void PInspectorRatioHandle()
     {
-        if (pInspectorRatioSuppress || pInspectorRatioPreset.SelectedIndex < 0)
+        int pIndex = pInspectorRatioPreset.SelectedIndex;
+        if (pIndex < 0)
         {
             return;
         }
 
-        bool pCustom = pInspectorRatioPreset.SelectedIndex == 0;
-        pInspectorCustomPanel.Visibility = pCustom ? Visibility.Visible : Visibility.Collapsed;
-        if (pCustom)
+        LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;
+        if (pIndex == 0)
         {
-            PInspectorRatioReset();
+            if (pRatio.LCropboxRatioFixed
+                && PInspectorPresetResolve(pRatio.LCropboxRatioWidth, pRatio.LCropboxRatioHeight) != 0)
+            {
+                PInspectorRatioReset();
+            }
+
             return;
         }
 
-        (int pRatioWidth, int pRatioHeight) = pInspectorRatioPreset.SelectedIndex switch
-        {
-            1 => (16, 9),
-            2 => (9, 16),
-            3 => (4, 3),
-            4 => (3, 4),
-            5 => (1, 1),
-            6 => (21, 9),
-            _ => (0, 0)
-        };
-        if (!pInspectorSourcePresent || pRatioWidth <= 0 || pRatioHeight <= 0)
+        (int pRatioWidth, int pRatioHeight) = PCropPresetRead(pIndex);
+        if (pRatioWidth == pRatio.LCropboxRatioWidth && pRatioHeight == pRatio.LCropboxRatioHeight
+            && pRatio.LCropboxRatioFixed)
         {
             return;
         }
 
-        double pLeft = Math.Max(0, PInspectorNumberRead(pInspectorInsetLeft));
-        double pTop = Math.Max(0, PInspectorNumberRead(pInspectorInsetTop));
-        double pRight = Math.Max(0, PInspectorNumberRead(pInspectorInsetRight));
-        double pBottom = Math.Max(0, PInspectorNumberRead(pInspectorInsetBottom));
-        double pBoundsWidth = pInspectorSourceWidth - pLeft - pRight;
-        double pBoundsHeight = pInspectorSourceHeight - pTop - pBottom;
-        if (pBoundsWidth <= 0 || pBoundsHeight <= 0)
+        if (!LInspector.LInspectorSourcePresent || pRatioWidth <= 0 || pRatioHeight <= 0)
         {
-            PInspectorRatioUpdate();
             return;
         }
 
-        LCropbox? pPresetCrop = LCropbox.LCropboxRatioResolve(
-            new LCropbox(pLeft, pTop, pBoundsWidth, pBoundsHeight),
+        LWorkCrop pCrop = LCropboxState.LCropboxStateCrop;
+        double pBoundsWidth = LInspector.LInspectorSourceWidth - pCrop.LWorkCropLeft - pCrop.LWorkCropRight;
+        double pBoundsHeight = LInspector.LInspectorSourceHeight - pCrop.LWorkCropTop - pCrop.LWorkCropBottom;
+        LCropbox? pPresetCrop = pBoundsWidth > 0 && pBoundsHeight > 0
+            ? LCropbox.LCropboxRatioResolve(
+                new LCropbox(pCrop.LWorkCropLeft, pCrop.LWorkCropTop, pBoundsWidth, pBoundsHeight),
+                pRatioWidth,
+                pRatioHeight)
+            : null;
+        LWorkCrop pFitted = pPresetCrop is { } pCropbox
+            ? pCrop with
+            {
+                LWorkCropLeft = PInspectorEdgeResolve(pCropbox.LCropboxX),
+                LWorkCropTop = PInspectorEdgeResolve(pCropbox.LCropboxY),
+                LWorkCropRight = PInspectorEdgeResolve(LInspector.LInspectorSourceWidth - pCropbox.LCropboxRight),
+                LWorkCropBottom = PInspectorEdgeResolve(LInspector.LInspectorSourceHeight - pCropbox.LCropboxBottom)
+            }
+            : pCrop;
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        LCropboxState.LCropboxStateSet(
+            pFitted,
+            LCropboxState.LCropboxStateActive,
+            true,
+            pRatio.LCropboxRatioLenient,
             pRatioWidth,
             pRatioHeight);
-        if (pPresetCrop is not { } pCropbox)
-        {
-            PInspectorRatioUpdate();
-            return;
-        }
-
-        Rect pCrop = PInspectorRectResolve(pCropbox);
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        pInspectorRatioSuppress = true;
-        try
-        {
-            pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
-            pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
-            pInspectorRatioFixed.IsChecked = true;
-            pInspectorInsetLeft.Text = PInspectorEdgeFormat(pCrop.X);
-            pInspectorInsetTop.Text = PInspectorEdgeFormat(pCrop.Y);
-            pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pCrop.Right);
-            pInspectorInsetBottom.Text = PInspectorEdgeFormat(pInspectorSourceHeight - pCrop.Bottom);
-        }
-        finally
-        {
-            pInspectorRatioSuppress = false;
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorRatioRaise();
-        PInspectorCropRaise();
-        PInspectorRatioUpdate();
     }
 
-    private void PInspectorRatioRaise()
+    private static (int, int) PCropPresetRead(int pIndex) => pIndex switch
     {
-        if (pInspectorCropSuppress)
-        {
-            return;
-        }
-
-        if (pInspectorRatioFixed.IsChecked != true)
-        {
-            PInspectorRatioChange?.Invoke(null);
-            return;
-        }
-
-        double pRatioWidth = PInspectorNumberRead(pInspectorRatioWidth);
-        double pRatioHeight = PInspectorNumberRead(pInspectorRatioHeight);
-        PInspectorRatioChange?.Invoke(pRatioWidth > 0 && pRatioHeight > 0
-            ? new Size(pRatioWidth, pRatioHeight)
-            : null);
-    }
+        1 => (16, 9),
+        2 => (9, 16),
+        3 => (4, 3),
+        4 => (3, 4),
+        5 => (1, 1),
+        6 => (21, 9),
+        _ => (0, 0)
+    };
 
     private void PInspectorRatioUpdate()
     {
-        PInspectorResolutionUpdate();
-        if (!pInspectorSourcePresent)
+        LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;
+        int pPresetIndex = PInspectorPresetResolve(pRatio.LCropboxRatioWidth, pRatio.LCropboxRatioHeight);
+        if (!pRatio.LCropboxRatioFixed)
         {
+            pPresetIndex = 0;
+        }
+
+        if (pInspectorRatioPreset.SelectedIndex != pPresetIndex)
+        {
+            pInspectorRatioPreset.SelectedIndex = pPresetIndex;
+        }
+
+        pInspectorCustomPanel.Visibility = pPresetIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
+        PInspectorSwitchUpdate(pInspectorRatioFixed, pRatio.LCropboxRatioFixed, false);
+        PInspectorSwitchUpdate(pInspectorRatioLenient, pRatio.LCropboxRatioLenient, false);
+        pInspectorRatioLenient.IsEnabled = pRatio.LCropboxRatioFixed;
+        PInspectorResolutionUpdate();
+        if (!LInspector.LInspectorSourcePresent)
+        {
+            PInspectorWholeSet(pInspectorRatioWidth, pRatio.LCropboxRatioWidth);
+            PInspectorWholeSet(pInspectorRatioHeight, pRatio.LCropboxRatioHeight);
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
         }
 
-        double pCropWidth = pInspectorSourceWidth
-            - PInspectorNumberRead(pInspectorInsetLeft)
-            - PInspectorNumberRead(pInspectorInsetRight);
-        double pCropHeight = pInspectorSourceHeight
-            - PInspectorNumberRead(pInspectorInsetTop)
-            - PInspectorNumberRead(pInspectorInsetBottom);
+        LWorkCrop pCrop = LCropboxState.LCropboxStateCrop;
+        double pCropWidth = LInspector.LInspectorSourceWidth - pCrop.LWorkCropLeft - pCrop.LWorkCropRight;
+        double pCropHeight = LInspector.LInspectorSourceHeight - pCrop.LWorkCropTop - pCrop.LWorkCropBottom;
+
+        if (!pRatio.LCropboxRatioFixed && pRatio.LCropboxRatioWidth == 0 && pRatio.LCropboxRatioHeight == 0
+            && PInspectorRectRead() is not null)
+        {
+            (int pShownWidth, int pShownHeight) = LCropbox.LCropboxRatioNormalize(
+                (int)Math.Round(pCropWidth),
+                (int)Math.Round(pCropHeight));
+            PInspectorWholeSet(pInspectorRatioWidth, pShownWidth);
+            PInspectorWholeSet(pInspectorRatioHeight, pShownHeight);
+        }
+        else
+        {
+            PInspectorWholeSet(pInspectorRatioWidth, pRatio.LCropboxRatioWidth);
+            PInspectorWholeSet(pInspectorRatioHeight, pRatio.LCropboxRatioHeight);
+        }
 
         if (pCropWidth <= 0 || pCropHeight <= 0)
         {
@@ -235,28 +176,21 @@ public sealed partial class PInspector
             return;
         }
 
-        if (pInspectorRatioFixed.IsChecked != true)
+        if (!pRatio.LCropboxRatioFixed)
         {
-            if (pInspectorCropPresent && !pInspectorRatioSuppress)
-            {
-                PInspectorRatioFormat(pCropWidth, pCropHeight);
-            }
-
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
         }
 
-        double pRatioWidth = PInspectorNumberRead(pInspectorRatioWidth);
-        double pRatioHeight = PInspectorNumberRead(pInspectorRatioHeight);
-        if (pRatioWidth <= 0 || pRatioHeight <= 0)
+        if (pRatio.LCropboxRatioWidth <= 0 || pRatio.LCropboxRatioHeight <= 0)
         {
             PInspectorNoticeShow(LLocalization.LLocalizationTextRead("Inspector.Crop.RatioError"));
             return;
         }
 
-        if (pInspectorRatioLenient.IsChecked == true
-            && LCropbox.LCropboxErrorResolve(pCropWidth, pCropHeight, pRatioWidth, pRatioHeight)
-                <= PInspectorRatioTolerance)
+        if (pRatio.LCropboxRatioLenient
+            && LCropbox.LCropboxToleranceCheck(
+                pCropWidth, pCropHeight, pRatio.LCropboxRatioWidth, pRatio.LCropboxRatioHeight))
         {
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
             return;
@@ -265,8 +199,8 @@ public sealed partial class PInspector
         (int pExcessPixels, bool pWide) = LCropbox.LCropboxExcessResolve(
             pCropWidth,
             pCropHeight,
-            pRatioWidth,
-            pRatioHeight);
+            pRatio.LCropboxRatioWidth,
+            pRatio.LCropboxRatioHeight);
         if (pExcessPixels <= 0)
         {
             pInspectorRatioNotice.Visibility = Visibility.Collapsed;
@@ -280,28 +214,19 @@ public sealed partial class PInspector
 
     private void PInspectorResolutionUpdate()
     {
-        if (!pInspectorSourcePresent)
+        if (!LInspector.LInspectorSourcePresent)
         {
             pInspectorResolution.Text = "—";
             return;
         }
 
-        LWorkCrop pCropCanonical = PInspectorCanonicalRead();
-        double pWidth = pInspectorSourceWidth - pCropCanonical.LWorkCropLeft - pCropCanonical.LWorkCropRight;
-        double pHeight = pInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
+        LWorkCrop pCropCanonical = PInspectorCropRead();
+        double pWidth = LInspector.LInspectorSourceWidth - pCropCanonical.LWorkCropLeft - pCropCanonical.LWorkCropRight;
+        double pHeight = LInspector.LInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
         pInspectorResolution.Text = pWidth > 0 && pHeight > 0
             ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × "
                 + $"{Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"
             : "—";
-    }
-
-    private void PInspectorRatioFormat(double pCropWidth, double pCropHeight)
-    {
-        (int pRatioWidth, int pRatioHeight) = LCropbox.LCropboxRatioNormalize(
-            (int)Math.Round(pCropWidth),
-            (int)Math.Round(pCropHeight));
-        pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
-        pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
     }
 
     private void PInspectorNoticeShow(string pNoticeText)
@@ -310,64 +235,20 @@ public sealed partial class PInspector
         pInspectorRatioNotice.Visibility = Visibility.Visible;
     }
 
-    public LCropboxRatio PInspectorRatioRead() => new(
-        pInspectorRatioFixed.IsChecked == true,
-        pInspectorRatioFixed.IsChecked == true && pInspectorRatioLenient.IsChecked == true,
-        (int)Math.Round(PInspectorNumberRead(pInspectorRatioWidth)),
-        (int)Math.Round(PInspectorNumberRead(pInspectorRatioHeight)));
-
     public void PInspectorRatioApply(bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight)
     {
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        bool pRatioSuppressPrevious = pInspectorRatioSuppress;
-        pInspectorCropSuppress = true;
-        pInspectorRatioSuppress = true;
-        try
-        {
-            int pPresetIndex = PInspectorPresetResolve(pRatioWidth, pRatioHeight);
-            pInspectorRatioPreset.SelectedIndex = pPresetIndex;
-            pInspectorCustomPanel.Visibility = pPresetIndex == 0 ? Visibility.Visible : Visibility.Collapsed;
-            pInspectorRatioWidth.Text = pRatioWidth.ToString(CultureInfo.InvariantCulture);
-            pInspectorRatioHeight.Text = pRatioHeight.ToString(CultureInfo.InvariantCulture);
-            pInspectorRatioFixed.IsChecked = pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
-            pInspectorRatioLenient.IsChecked = pRatioLenient && pRatioFixed && pRatioWidth > 0 && pRatioHeight > 0;
-            pInspectorRatioLenient.IsEnabled = pInspectorRatioFixed.IsChecked == true;
-        }
-        finally
-        {
-            pInspectorRatioSuppress = pRatioSuppressPrevious;
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorRatioRaise();
-        PInspectorRatioUpdate();
+        bool pValid = pRatioWidth > 0 && pRatioHeight > 0;
+        LCropboxState.LCropboxRatioSet(
+            pRatioFixed && pValid,
+            pRatioLenient && pRatioFixed && pValid,
+            pRatioWidth,
+            pRatioHeight);
     }
 
     public void PInspectorRatioReset()
     {
-        PInspectorEdgeClear();
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        bool pRatioSuppressPrevious = pInspectorRatioSuppress;
-        pInspectorCropSuppress = true;
-        pInspectorRatioSuppress = true;
-        try
-        {
-            pInspectorRatioFixed.IsChecked = false;
-            pInspectorRatioLenient.IsChecked = false;
-            pInspectorRatioLenient.IsEnabled = false;
-            pInspectorRatioPreset.SelectedIndex = 0;
-            pInspectorCustomPanel.Visibility = Visibility.Visible;
-            pInspectorRatioWidth.Text = "0";
-            pInspectorRatioHeight.Text = "0";
-        }
-        finally
-        {
-            pInspectorRatioSuppress = pRatioSuppressPrevious;
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorRatioChange?.Invoke(null);
-        PInspectorRatioUpdate();
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        LCropboxState.LCropboxRatioSet(false, false, 0, 0);
     }
 
     private static int PInspectorPresetResolve(int pRatioWidth, int pRatioHeight) =>

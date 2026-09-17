@@ -8,36 +8,32 @@ using Cadroue.Core;
 using Cadroue.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PViewer
 {
     private PViewerMpvHost? pViewerMpvHost;
-    private bool pViewerMpvActive;
-    private bool pViewerEngineSubscribed;
-    private string pViewerMpvFilter = string.Empty;
-
-    public bool PViewerEditEligible { get; set; }
 
     private bool PViewerMpvEligible => true;
 
     private void PViewerMpvUpdate()
     {
-        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
+        if (!LViewer.LViewerMpvActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
         LPreviewState pViewerRender = PViewerRenderRead();
         string pViewerFilter = LPreview.LPreviewFilterResolve(pViewerRender);
-        bool pViewerChanged = pViewerFilter != pViewerMpvFilter;
+        bool pViewerChanged = pViewerFilter != LPlayer.LPlayerFilterApplied;
         if (!PViewerFilterSet(pViewerFilter) || !pViewerChanged)
         {
             return;
         }
 
-        if (!LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        if (!LViewer.LViewerPlaying)
         {
             try
             {
@@ -53,7 +49,7 @@ public sealed partial class PViewer
 
     private bool PViewerFilterSet(string pViewerFilter)
     {
-        if (pViewerFilter == pViewerMpvFilter)
+        if (pViewerFilter == LPlayer.LPlayerFilterApplied)
         {
             return true;
         }
@@ -61,7 +57,7 @@ public sealed partial class PViewer
         try
         {
             pViewerPlayer.PPlayerFilterSet(pViewerFilter);
-            pViewerMpvFilter = pViewerFilter;
+            LPlayer.LPlayerFilterSet(pViewerFilter);
             return true;
         }
         catch (Exception pViewerFilterException)
@@ -80,7 +76,7 @@ public sealed partial class PViewer
         try
         {
             pViewerPlayer.PPlayerFilterSet(string.Empty);
-            pViewerMpvFilter = string.Empty;
+            LPlayer.LPlayerFilterSet(string.Empty);
         }
         catch (Exception pViewerClearException)
         {
@@ -129,14 +125,14 @@ public sealed partial class PViewer
         };
 
         Content = pViewerSurface;
-        pViewerMpvActive = true;
-        pViewerMpvFilter = string.Empty;
+        LViewer.LViewerMpvSet(true);
+        LPlayer.LPlayerFilterSet(string.Empty);
         PViewerEngineSet(LPreviewEngine.LPreviewEngineMpv);
     }
 
     private async void PViewerMpvApply(string sourcePath, LMediaInfo? mediaInfo, string? ffmpegError, int loadSerial)
     {
-        if (mediaInfo is { LMediaAudioOnly: true } && !pViewerAudioAllowed)
+        if (mediaInfo is { LMediaAudioOnly: true } && !LViewer.LViewerAudioAllowed)
         {
             string pViewerAudioError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
             PViewerMpvCommit(new LCargo(sourcePath, null, false, false, pViewerAudioError, pViewerAudioError));
@@ -161,12 +157,11 @@ public sealed partial class PViewer
                 }
 
                 pViewerPlayer.PPlayerMpvSet(pViewerHandle);
-                pViewerMpvFilter = string.Empty;
-                pViewerAudioApplied = null;
+                LPlayer.LPlayerAppliedReset();
             }
 
-            pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
-            if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
+            pViewerPlayer.PPlayerVolumeSet(LViewer.LViewerVolume);
+            if (!LViewer.LViewerSerialCheck(loadSerial))
             {
                 return;
             }
@@ -176,14 +171,14 @@ public sealed partial class PViewer
                 PViewerFilterSet(LPreview.LPreviewFilterResolve(PViewerRenderRead()));
             }
 
-            await System.Threading.Tasks.Task.Run(() => pViewerPlayer.PPlayerOpen(sourcePath));
+            await LPlayer.LPlayerOpenStart(sourcePath, pViewerPlayer.PPlayerOpen);
         }
         catch (Exception pViewerException)
         {
             pViewerPreviewError = pViewerException.Message;
         }
 
-        if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
+        if (!LViewer.LViewerSerialCheck(loadSerial))
         {
             PViewerMpvRestore();
             return;
@@ -208,24 +203,21 @@ public sealed partial class PViewer
 
     private void PViewerMpvRestore()
     {
-        if (pViewerUnloaded || !pViewerMpvActive || pViewerIntent is not null)
+        if (LViewer.LViewerUnloaded || !LViewer.LViewerMpvActive || LViewer.LViewerIntent is not null)
         {
             return;
         }
 
         if (PViewerSourcePath is { } pViewerKeptPath)
         {
-            var pViewerRequest = new PViewerIntent(
-                pViewerKeptPath,
-                LPreviewStateCurrent.LPlaybackState.LPlaybackPosition,
-                false);
-            if (pViewerCommandActive)
+            var pViewerRequest = new LViewerIntent(pViewerKeptPath, LViewer.LViewerPosition, false);
+            if (LViewer.LViewerCommandActive)
             {
                 PPlayerVideoLoad(pViewerRequest);
             }
             else
             {
-                pViewerIntent = pViewerRequest;
+                LViewer.LViewerIntentSet(pViewerRequest);
             }
 
             return;
@@ -258,26 +250,13 @@ public sealed partial class PViewer
                 + $"[{pViewerPath}]");
         }
 
-        pPlayerAccurateActive = false;
+        LPlayer.LPlayerAccurateReset();
         PViewerHostShow(pViewerHasPreview);
-        pViewerMediaInfo = pViewerStatus.LCargoMediaInfo;
-        PViewerSourcePath = pViewerStatus.LCargoSourcePath;
-        LPreviewStateCurrent = LPreviewStateCurrent.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
-        pViewerEndReached = false;
-        if (!PCropPersistent)
-        {
-            PCropVideo = null;
-            LPreviewStateCurrent = LPreviewStateCurrent.LCropboxChange(null);
-            PCropHide();
-        }
-
-        PViewerIntent? pViewerRequest = pViewerIntent;
-        pViewerIntent = null;
-        PViewerMediaRaise(pViewerStatus);
+        LViewerIntent? pViewerRequest = PViewerCargoApply(pViewerStatus);
         if (!pViewerHasPreview)
         {
             pViewerPlayer.PPlayerDispose();
-            PViewerPlaybackUpdate(false, TimeSpan.Zero);
+            LViewer.LViewerPlaybackUpdate(false, TimeSpan.Zero);
             return;
         }
 
@@ -295,7 +274,7 @@ public sealed partial class PViewer
     {
         string pViewerRebuildName = System.IO.Path.GetFileName(sourcePath);
 
-        if (PViewerEditEligible)
+        if (LViewer.LViewerEditEligible)
         {
             LTraceLog.LTraceErrorRecord(
                 $"mpv could not open '{pViewerRebuildName}': {mpvReason}; preview unavailable "
@@ -310,11 +289,11 @@ public sealed partial class PViewer
             + $"falling back to the existing engine for this file [{sourcePath}]");
 
         PViewerMpvDispose();
-        pViewerHostBuilt = false;
+        LViewer.LViewerHostSet(false);
         PViewerFlyleafBuild();
-        pViewerHostBuilt = true;
+        LViewer.LViewerHostSet(true);
 
-        if (loadSerial != pViewerLoadSerial || pViewerUnloaded || !pViewerCommandActive)
+        if (!LViewer.LViewerSerialCheck(loadSerial))
         {
             return;
         }
@@ -334,12 +313,10 @@ public sealed partial class PViewer
         }
 
         PViewerOverlayDetach();
-
+        LViewer.LViewerMpvSet(false);
+        LPlayer.LPlayerAppliedReset();
         if (pViewerMpvHost is null)
         {
-            pViewerMpvActive = false;
-            pViewerMpvFilter = string.Empty;
-            pViewerAudioApplied = null;
             return;
         }
 
@@ -355,8 +332,5 @@ public sealed partial class PViewer
         }
 
         pViewerMpvHost = null;
-        pViewerMpvActive = false;
-        pViewerMpvFilter = string.Empty;
-        pViewerAudioApplied = null;
     }
 }

@@ -12,40 +12,8 @@ namespace Cadroue.UIVeneer.PPanel;
 
 internal sealed partial class PSEncoder
 {
-    private static HashSet<string>? psCodecAvailable;
-    private static Task? psCodecProbeTask;
-
-    internal static void PSCodecProbeStart() => psCodecProbeTask = Task.Run(PSCodecProbeRun);
-
-    private static async Task PSCodecProbeRun()
-    {
-        var pAvailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var pCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
-        {
-            foreach (string pEncoder in pCandidate.LRepertoireTokens)
-            {
-                if ((await LTrial.LTrialRun(pEncoder, LTrialKind.LTrialKindVideo)).LTrialSuccess)
-                {
-                    pAvailable.Add(pEncoder);
-                }
-            }
-        }
-
-        if (pAvailable.Count > 0)
-        {
-            psCodecAvailable = pAvailable;
-        }
-    }
-
-    private void PSCodecProbeDefer()
-    {
-        if (psCodecProbeTask is { IsCompleted: false } pTask)
-        {
-            pTask.ContinueWith(
-                _ => Dispatcher.BeginInvoke(() => { if (IsLoaded) PSCodecContainerHandle(); }),
-                TaskScheduler.Default);
-        }
-    }
+    private void PSCodecProbeDefer() =>
+        LTrialSet.LTrialSetDefer(() => Dispatcher.BeginInvoke(() => { if (IsLoaded) PSCodecContainerHandle(); }));
 
     private static string[] PSCodecItemsRead() =>
         LRepertoireCatalog.LRepertoireEncodersRead()
@@ -68,7 +36,7 @@ internal sealed partial class PSEncoder
     }
 
     private static bool PSCodecAvailableCheck(LRepertoireEncoder pCandidate) =>
-        psCodecAvailable is not { } pSet || pCandidate.LRepertoireTokens.Any(pSet.Contains);
+        LTrialSet.LTrialSetCheck(pCandidate);
 
     private static bool PSCodecAvailableCheck(string pText)
     {
@@ -163,7 +131,7 @@ internal sealed partial class PSEncoder
             }
         }
 
-        psCodecAvailable = pAvailableNames.Count > 0 ? pAvailableNames : psCodecAvailable;
+        LTrialSet.LTrialSetApply(pAvailableNames);
         if (!pAvailable.Contains(pSelected)
             && LRepertoireCatalog.LRepertoireEncodersRead().Any(pCandidate => string.Equals(
                 pCandidate.LRepertoireText,

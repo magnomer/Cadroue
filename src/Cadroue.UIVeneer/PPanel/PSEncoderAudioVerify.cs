@@ -15,19 +15,19 @@ internal sealed partial class PSEncoder
         LInventory.LInventoryReset();
         var pAvailable = new List<string>();
         var pRows = new List<PSVerdictRow>();
-        int pTotal = PSAudioCandidates.Length;
+        int pTotal = LRepertoireCatalog.LRepertoireAudioCandidates.Count;
         int pDone = 0;
-        foreach (var pCandidate in PSAudioCandidates)
+        foreach (LRepertoireAudio pCandidate in LRepertoireCatalog.LRepertoireAudioCandidates)
         {
-            LTrialResult pResult = await LTrial.LTrialRun(pCandidate.PSAudioName, LTrialKind.LTrialKindAudio);
+            LTrialResult pResult = await LTrial.LTrialRun(pCandidate.LRepertoireName, LTrialKind.LTrialKindAudio);
             pRows.Add(new PSVerdictRow(
-                pCandidate.PSAudioText,
-                pCandidate.PSAudioName,
+                pCandidate.LRepertoireText,
+                pCandidate.LRepertoireName,
                 pResult.LTrialSuccess,
                 pResult.LTrialMessage));
             if (pResult.LTrialSuccess)
             {
-                pAvailable.Add(pCandidate.PSAudioText);
+                pAvailable.Add(pCandidate.LRepertoireText);
             }
 
             pDone++;
@@ -35,10 +35,7 @@ internal sealed partial class PSEncoder
         }
 
         if (!pAvailable.Contains(pSelected)
-            && PSAudioCandidates.Any(pCandidate => string.Equals(
-                pCandidate.PSAudioText,
-                pSelected,
-                StringComparison.Ordinal)))
+            && LRepertoireCatalog.LRepertoireAudioResolve(pSelected) is not null)
         {
             pAvailable.Insert(0, pSelected);
         }

@@ -177,7 +177,7 @@ public partial class PWindow
             return false;
         }
 
-        if (pViewerActive.LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        if (pViewerActive.LViewer.LViewerPlaying)
         {
             pViewerActive.PViewerPause();
         }

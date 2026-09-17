@@ -1,4 +1,3 @@
-using System.IO;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -16,7 +15,7 @@ public sealed partial class PList
 
     private static bool PListDeliveredApply(Guid pListTab, string pListPath, Guid pListBatch, bool pListLocked)
     {
-        string pListName = Path.GetFileName(pListPath);
+        string pListName = System.IO.Path.GetFileName(pListPath);
         if (PStrip.PStripTabFind(pListTab) is not { } pListTarget
             || pListTarget.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pListOwner)
         {

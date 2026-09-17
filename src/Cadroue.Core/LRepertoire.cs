@@ -9,7 +9,7 @@ public sealed record LRepertoireEncoder(
     string LRepertoireText,
     IReadOnlyList<string> LRepertoireTokens);
 
-public static class LRepertoireCatalog
+public static partial class LRepertoireCatalog
 {
     private sealed record LRepertoireFamily(
         string LRepertoireName,

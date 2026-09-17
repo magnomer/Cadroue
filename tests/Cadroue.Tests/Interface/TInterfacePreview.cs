@@ -87,4 +87,27 @@ internal static partial class TInterface
                 }
             }
         };
+
+    internal static LCropboxRatio TCropboxRatioCreate(bool fixedRatio, bool lenient, int width, int height) =>
+        new(fixedRatio, lenient, width, height);
+    internal static LCropbox? TCropboxFitResolve(
+        LCropbox desired, LCropbox bounds, LCropboxRatio ratio, int driveAxis, int anchorX, int anchorY) =>
+        LCropbox.LCropboxFitResolve(desired, bounds, ratio, driveAxis, anchorX, anchorY);
+    internal static bool TCropboxToleranceCheck(
+        double cropWidth, double cropHeight, double ratioWidth, double ratioHeight) =>
+        LCropbox.LCropboxToleranceCheck(cropWidth, cropHeight, ratioWidth, ratioHeight);
+    internal static LCropboxEdgeLock TCropboxLockCreate() => new();
+    internal static void TCropboxEdgeSet(LCropboxEdgeLock edgeLock, int edge, bool locked) =>
+        edgeLock.LCropboxEdgeSet(edge, locked);
+    internal static LCropboxEdges TCropboxEdgesCreate(double left, double top, double right, double bottom) =>
+        new(left, top, right, bottom);
+    internal static LCropboxEdges? TCropboxEdgeResolve(
+        LCropboxEdgeLock edgeLock,
+        double sourceWidth,
+        double sourceHeight,
+        LCropboxEdges insets,
+        double ratioWidth,
+        double ratioHeight,
+        bool horizontal) =>
+        edgeLock.LCropboxEdgeResolve(sourceWidth, sourceHeight, insets, ratioWidth, ratioHeight, horizontal);
 }

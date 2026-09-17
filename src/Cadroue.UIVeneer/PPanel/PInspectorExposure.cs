@@ -1,7 +1,5 @@
-using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -13,8 +11,6 @@ public sealed partial class PInspector
     private TextBox pExposureValue = null!;
     private StackPanel pExposureStack = null!;
     private StackPanel pExposureBody = null!;
-    private bool pExposureCapable;
-    private bool pExposurePreview;
 
     private StackPanel PExposureBuild()
     {
@@ -24,46 +20,37 @@ public sealed partial class PInspector
         pExposurePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure"));
+        PInspectorSwitchAttach(pExposureBox, LExposure.LExposureActiveSet);
+        PInspectorSwitchAttach(pExposurePersistent, LExposure.LExposurePersistentSet);
         pExposureSlider = PToneSliderBuild(-3, 3, 0);
         pExposureValue = PInspectorDecimalBuild();
         pExposureValue.Text = "0";
-        pExposureStack = new StackPanel();
-        PInspectorVideoAttach(
-            pExposureBox,
-            pExposureStack,
+        PInspectorValueAttach(
             pExposureSlider,
             pExposureValue,
             -3,
             3,
-            "0.#");
+            () => LExposure.LExposureStep.LWorkStepValue,
+            LExposure.LExposureValueSet);
+        pExposureStack = new StackPanel();
         pExposureStack.Children.Add(PFilterSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
             pExposureSlider,
             "EV",
             pExposureValue));
         pExposureBody = PToneBodyBuild(pExposureBox, pExposureStack);
-        PToneApplyUpdate(pExposureBox, pExposureStack);
         return pExposureBody;
     }
 
-    public void PExposureCapabilitySet(bool pExposureCapable, bool pExposurePreview)
+    private void PExposureUpdate()
     {
-        this.pExposureCapable = pExposureCapable;
-        this.pExposurePreview = pExposurePreview;
-        pExposureBox.IsEnabled = pExposureCapable;
-        pExposurePersistent.IsEnabled = pExposureCapable;
-        pExposureStack.IsEnabled = pExposureCapable && pExposureBox.IsChecked == true;
-        pExposureStack.Opacity = pExposureCapable && pExposureBox.IsChecked == true ? 1 : 0.4;
-        string? pNotice = !pExposureCapable
-            ? LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresEq")
-            : !pExposurePreview
-                ? LLocalization.LLocalizationTextRead("Inspector.Video.ExposurePreviewMpv")
-                : null;
-        pExposureBody.ToolTip = pNotice;
-        pExposureBox.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead("Inspector.Video.ApplyExposure");
-        pExposurePersistent.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure");
-        ToolTipService.SetShowOnDisabled(pExposureBody, true);
-        ToolTipService.SetShowOnDisabled(pExposureBox, true);
-        ToolTipService.SetShowOnDisabled(pExposurePersistent, true);
+        PInspectorSwitchUpdate(pExposureBox, LExposure.LExposureStep.LWorkStepActive, false);
+        PInspectorSwitchUpdate(pExposurePersistent, LExposure.LExposurePersistent, true);
+        PInspectorValueUpdate(pExposureSlider, pExposureValue, LExposure.LExposureStep.LWorkStepValue, "0.#");
+        PInspectorSectionApply(
+            pExposureBox, pExposurePersistent, pExposureStack, pExposureBody,
+            LExposure.LExposureStep.LWorkStepActive, LExposure.LExposureCapable, LExposure.LExposurePreview,
+            "Inspector.Video.ExposureRequiresEq", "Inspector.Video.ExposurePreviewMpv",
+            "Inspector.Video.ApplyExposure", "Inspector.Video.PersistExposure");
     }
 }

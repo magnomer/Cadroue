@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Resources;
-using System.IO;
 using System.Collections.Concurrent;
 using SharpVectors.Converters;
 using SharpVectors.Renderers.Wpf;
@@ -49,7 +48,7 @@ public static class PIcon
 
     private static ImageSource PIconSvgRead(Uri pIconUri, Brush? pTintBrush)
     {
-        using Stream pIconStream = PIconStreamRead(pIconUri);
+        using var pIconStream = PIconStreamRead(pIconUri);
         using var pIconReader = new FileSvgReader(pIconSettings);
         DrawingGroup? pIconDrawing = pIconReader.Read(pIconStream);
         if (pIconDrawing is null)
@@ -74,7 +73,7 @@ public static class PIcon
     private static Uri PIconUriCreate(string pIconPath) =>
         new("pack://application:,,,/" + pIconPath.TrimStart('/'), UriKind.Absolute);
 
-    private static Stream PIconStreamRead(Uri pIconUri)
+    private static System.IO.Stream PIconStreamRead(Uri pIconUri)
     {
         StreamResourceInfo? pIconResource = System.Windows.Application.GetResourceStream(pIconUri);
         if (pIconResource is null)

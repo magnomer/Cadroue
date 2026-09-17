@@ -2,21 +2,14 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PInspector
 {
-    private static int PInspectorWholeRead(TextBox pNumberBox) =>
-        (int)Math.Round(PInspectorNumberRead(pNumberBox));
-
     private void PInspectorInsetChange(int pEdge)
     {
-        if (pInspectorCropSuppress)
-        {
-            return;
-        }
-
         TextBox pEdgeBox = pEdge switch
         {
             0 => pInspectorInsetLeft,
@@ -24,114 +17,80 @@ public sealed partial class PInspector
             1 => pInspectorInsetTop,
             _ => pInspectorInsetBottom
         };
-        pInspectorEdgeLocked[pEdge] = !string.IsNullOrWhiteSpace(pEdgeBox.Text);
+        LInspector.LInspectorEdgeLock.LCropboxEdgeSet(pEdge, !string.IsNullOrWhiteSpace(pEdgeBox.Text));
 
-        if (pInspectorRatioFixed.IsChecked == true && pInspectorSourcePresent && !pInspectorRatioSuppress)
+        var pInsets = new LCropboxEdges(
+            PInspectorInsetRead(pInspectorInsetLeft),
+            PInspectorInsetRead(pInspectorInsetTop),
+            PInspectorInsetRead(pInspectorInsetRight),
+            PInspectorInsetRead(pInspectorInsetBottom));
+        LCropboxRatio pRatio = LCropboxState.LCropboxStateRatio;
+        if (pRatio.LCropboxRatioFixed && LInspector.LInspectorSourcePresent)
         {
-            PInspectorRatioResolve(pEdge);
+            LCropboxEdges? pFit = LInspector.LInspectorEdgeLock.LCropboxEdgeResolve(
+                LInspector.LInspectorSourceWidth,
+                LInspector.LInspectorSourceHeight,
+                pInsets,
+                pRatio.LCropboxRatioWidth,
+                pRatio.LCropboxRatioHeight,
+                pEdge is 0 or 2);
+            if (pFit is { } pEdges)
+            {
+                pInsets = pEdges;
+            }
         }
 
-        PInspectorRatioUpdate();
-        PInspectorCropRaise();
+        PInspectorEdgesSet(pInsets);
     }
 
-    private void PInspectorEdgeClear() => Array.Clear(pInspectorEdgeLocked);
+    private void PInspectorEdgesSet(LCropboxEdges pInsets)
+    {
+        LWorkCrop pCrop = LCropboxState.LCropboxStateCrop with
+        {
+            LWorkCropLeft = PInspectorEdgeResolve(pInsets.LCropboxLeft),
+            LWorkCropTop = PInspectorEdgeResolve(pInsets.LCropboxTop),
+            LWorkCropRight = PInspectorEdgeResolve(pInsets.LCropboxRight),
+            LWorkCropBottom = PInspectorEdgeResolve(pInsets.LCropboxBottom)
+        };
+        if (LCropboxState.LCropboxStateRatio.LCropboxRatioFixed)
+        {
+            LCropboxState.LCropboxCropSet(pCrop);
+            return;
+        }
+
+        LCropboxState.LCropboxStateSet(pCrop, LCropboxState.LCropboxStateActive, false, false, 0, 0);
+    }
 
     public void PInspectorCropSet(Rect? pCropVideo, int pDriveAxis, int pAnchorX, int pAnchorY)
     {
-        PInspectorEdgeClear();
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
         Rect? pCropSnapped = pCropVideo is { Width: > 0, Height: > 0 } pCropDrawn
             ? PInspectorRatioResolve(pCropDrawn, pDriveAxis, pAnchorX, pAnchorY) ?? pCropDrawn
             : pCropVideo;
 
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        pInspectorCropPresent = pCropSnapped is { Width: > 0, Height: > 0 };
-        PInspectorToolUpdate();
-        try
+        if (pCropSnapped is not { Width: > 0, Height: > 0 } pCropRect)
         {
-            if (pCropSnapped is not { Width: > 0, Height: > 0 } pCropRect)
-            {
-                pInspectorInsetLeft.Text = "0";
-                pInspectorInsetTop.Text = "0";
-                pInspectorInsetRight.Text = "0";
-                pInspectorInsetBottom.Text = "0";
-            }
-            else
-            {
-                pInspectorInsetLeft.Text = PInspectorEdgeFormat(pCropRect.X);
-                pInspectorInsetTop.Text = PInspectorEdgeFormat(pCropRect.Y);
-                pInspectorInsetRight.Text = PInspectorEdgeFormat(pInspectorSourceWidth - pCropRect.X - pCropRect.Width);
-                pInspectorInsetBottom.Text = PInspectorEdgeFormat(
-                    pInspectorSourceHeight - pCropRect.Y - pCropRect.Height);
-            }
-
-            PInspectorRatioUpdate();
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorCropRaise();
-    }
-
-    public Rect? PInspectorRectRead() => PInspectorRectResolve();
-
-    private Rect? PInspectorRectResolve() =>
-        LCropbox.LCropboxRectResolve(PInspectorCanonicalRead(), pInspectorSourceWidth, pInspectorSourceHeight)
-            is { } pCropBox
-            ? new Rect(pCropBox.LCropboxX, pCropBox.LCropboxY, pCropBox.LCropboxWidth, pCropBox.LCropboxHeight)
-            : null;
-
-    private void PInspectorCropClear()
-    {
-        if (pInspectorCropSuppress || !pInspectorCropPresent)
-        {
+            PInspectorEdgesSet(new LCropboxEdges(0, 0, 0, 0));
             return;
         }
 
-        PInspectorCropChange?.Invoke(null);
+        PInspectorEdgesSet(new LCropboxEdges(
+            pCropRect.X,
+            pCropRect.Y,
+            LInspector.LInspectorSourceWidth - pCropRect.X - pCropRect.Width,
+            LInspector.LInspectorSourceHeight - pCropRect.Y - pCropRect.Height));
     }
 
     private void PInspectorEdgesReset()
     {
-        PInspectorEdgeClear();
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        try
-        {
-            pInspectorInsetLeft.Text = "0";
-            pInspectorInsetTop.Text = "0";
-            pInspectorInsetRight.Text = "0";
-            pInspectorInsetBottom.Text = "0";
-            pInspectorCropPresent = false;
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorCropChange?.Invoke(null);
-        PInspectorRatioUpdate();
-        PInspectorToolUpdate();
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        PInspectorEdgesSet(new LCropboxEdges(0, 0, 0, 0));
     }
 
-    private void PInspectorCropRaise()
-    {
-        if (pInspectorCropSuppress)
-        {
-            return;
-        }
+    private static int PInspectorEdgeResolve(double pEdgeValue) =>
+        (int)Math.Max(0, Math.Round(pEdgeValue));
 
-        Rect? pCropRect = PInspectorRectResolve();
-        pInspectorCropPresent = pCropRect is not null;
-        PInspectorToolUpdate();
-        PInspectorCropChange?.Invoke(pCropRect);
-    }
-
-    private static string PInspectorEdgeFormat(double pEdgeValue) =>
-        Math.Max(0, Math.Round(pEdgeValue)).ToString(CultureInfo.InvariantCulture);
+    private static double PInspectorInsetRead(TextBox pInsetBox) => Math.Max(0, PInspectorNumberRead(pInsetBox));
 
     private static double PInspectorNumberRead(TextBox pNumberBox) =>
         double.TryParse(pNumberBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out double pNumber)

@@ -25,8 +25,10 @@ public sealed partial class PInspector
         pRotateCombo.SelectedIndex = 0;
         pRotateCombo.SelectionChanged += (_, _) =>
         {
-            PInspectorRatioUpdate();
-            PInspectorRotateRaise();
+            if (pRotateCombo.SelectedIndex >= 0)
+            {
+                PInspectorRotateChange(pRotateCombo.SelectedIndex);
+            }
         };
         return pRotateCombo;
     }

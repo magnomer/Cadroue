@@ -30,18 +30,10 @@ public sealed partial class PInspector
         };
         pToolButton.Checked += (_, _) =>
         {
-            if (pInspectorNeutralTool is not null)
-            {
-                pInspectorNeutralTool.IsChecked = false;
-            }
-            PInspectorToolChange?.Invoke(true);
-            PInspectorToolUpdate();
+            LWhitebalance.LWhitebalanceToolSet(false, LWhitebalance.LWhitebalanceTarget);
+            LInspector.LInspectorToolSet(true);
         };
-        pToolButton.Unchecked += (_, _) =>
-        {
-            PInspectorToolChange?.Invoke(false);
-            PInspectorToolUpdate();
-        };
+        pToolButton.Unchecked += (_, _) => LInspector.LInspectorToolSet(false);
         return pToolButton;
     }
 

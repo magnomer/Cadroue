@@ -8,6 +8,7 @@ using Cadroue.Core;
 using Cadroue.UIVeneer;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -111,14 +112,10 @@ public sealed partial class PViewer
         (pViewerEngineOverlay.Parent as Panel)?.Children.Remove(pViewerEngineOverlay);
     }
 
-    private void PViewerEngineSet(LPreviewEngine pViewerEngine)
-    {
-        if (PViewerEngineCurrent == pViewerEngine)
-        {
-            return;
-        }
+    private void PViewerEngineSet(LPreviewEngine pViewerEngine) => LViewer.LViewerEngineSet(pViewerEngine);
 
-        PViewerEngineCurrent = pViewerEngine;
+    private void PViewerEngineUpdate()
+    {
         PViewerAudioUpdate();
         PViewerEngineChange?.Invoke();
     }
@@ -128,19 +125,19 @@ public sealed partial class PViewer
 
     private bool PViewerEngineSelect()
     {
-        if (!pViewerHostBuilt)
+        if (!LViewer.LViewerHostBuilt)
         {
             return false;
         }
 
         bool pViewerWantMpv = PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv;
-        if (pViewerWantMpv == pViewerMpvActive)
+        if (pViewerWantMpv == LViewer.LViewerMpvActive)
         {
             return false;
         }
 
         PPlayerStopDispose();
-        if (pViewerMpvActive)
+        if (LViewer.LViewerMpvActive)
         {
             PViewerMpvDispose();
         }
@@ -150,7 +147,7 @@ public sealed partial class PViewer
             pViewerFlyleafHost = null;
         }
 
-        pViewerHostBuilt = false;
+        LViewer.LViewerHostSet(false);
         PViewerHostBuild();
         return true;
     }
@@ -159,12 +156,12 @@ public sealed partial class PViewer
     {
         Dispatcher.BeginInvoke(() =>
         {
-            if (pViewerUnloaded || !PViewerMpvEligible || !pViewerCommandActive)
+            if (LViewer.LViewerUnloaded || !PViewerMpvEligible || !LViewer.LViewerCommandActive)
             {
                 return;
             }
 
-            if (pViewerMpvActive == (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv))
+            if (LViewer.LViewerMpvActive == (PViewerEngineRead() == LPreviewEngine.LPreviewEngineMpv))
             {
                 return;
             }
@@ -175,12 +172,12 @@ public sealed partial class PViewer
 
     private bool PViewerEngineRestore()
     {
-        PViewerIntent? pViewerPending = pViewerIntent;
+        LViewerIntent? pViewerPending = LViewer.LViewerIntent;
         string? pViewerSourcePath = PViewerSourcePath;
-        bool pViewerPlaying = pViewerResumeInactive || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+        bool pViewerPlaying = LViewer.LViewerResumeInactive || LViewer.LViewerPlaying;
         TimeSpan pViewerPosition = pViewerPlayer.PPlayerReady
             ? pViewerPlayer.PPlayerTimeRead()
-            : LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+            : LViewer.LViewerPosition;
         bool pViewerSwapped = PViewerEngineSelect();
         if (pViewerPending is { } pViewerRequest)
         {
@@ -193,7 +190,7 @@ public sealed partial class PViewer
             return false;
         }
 
-        PPlayerVideoLoad(new PViewerIntent(pViewerSourcePath, pViewerPosition, pViewerPlaying));
+        PPlayerVideoLoad(new LViewerIntent(pViewerSourcePath, pViewerPosition, pViewerPlaying));
         return true;
     }
 }

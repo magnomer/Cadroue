@@ -1,4 +1,3 @@
-using System.IO;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -150,10 +149,10 @@ public sealed partial class PRoster
 
         try
         {
-            return Path.GetFullPath(pPath);
+            return System.IO.Path.GetFullPath(pPath);
         }
         catch (Exception pPathError) when (
-            pPathError is ArgumentException or IOException or NotSupportedException)
+            pPathError is ArgumentException or System.IO.IOException or NotSupportedException)
         {
             return pPath;
         }
@@ -177,7 +176,7 @@ public sealed partial class PRoster
 
         try
         {
-            return Path.GetFileName(pFilePath);
+            return System.IO.Path.GetFileName(pFilePath);
         }
         catch (ArgumentException)
         {

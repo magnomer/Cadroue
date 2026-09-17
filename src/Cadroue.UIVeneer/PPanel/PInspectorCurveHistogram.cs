@@ -18,22 +18,14 @@ public sealed partial class PInspector
         new SolidColorBrush(Color.FromArgb(0x30, 0x2B, 0x6C, 0xB0))
     };
 
-    private LHistogramCounts? pCurveHistogram;
-
-    public void PCurveHistogramApply(LHistogramCounts? pHistogram)
-    {
-        pCurveHistogram = pHistogram;
-        PCurveRebuild();
-    }
-
     private void PCurveHistogramDraw()
     {
-        if (pCurveHistogram is not { } pHistogram)
+        if (LCurve.LCurveHistogram is not { } pHistogram)
         {
             return;
         }
 
-        int pChannel = Math.Clamp(pCurveChannel.SelectedIndex, 0, PCurveHistogramBrush.Length - 1);
+        int pChannel = Math.Clamp(LCurve.LCurveChannel, 0, PCurveHistogramBrush.Length - 1);
         int[] pBins = pChannel switch
         {
             1 => pHistogram.LHistogramRed,

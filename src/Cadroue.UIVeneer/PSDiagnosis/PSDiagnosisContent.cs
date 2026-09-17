@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -244,7 +243,7 @@ internal sealed partial class PSDiagnosis
         }
     }
 
-    private void PSDiagnosisProbeStart()
+    private async void PSDiagnosisProbeStart()
     {
         PSDiagnosisSummaryApply(PSDiagnosisMood.PSDiagnosisMoodChecking, 0);
         PSDiagnosisBadgeApply(
@@ -263,34 +262,22 @@ internal sealed partial class PSDiagnosis
             .SelectMany(pCheck => pCheck.PSDiagnosisFilters)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        Task.Run(() =>
+        LInventoryFeature pFeature = await LInventory.LInventoryFeatureRead(pFilters);
+        if (pGeneration == psDiagnosisGeneration)
         {
-            string pVersion = LInventory.LInventoryVersionRead();
-            string pLocation = PSDiagnosisLocationResolve();
-            var pMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            if (!string.IsNullOrWhiteSpace(pVersion))
-            {
-                foreach (string pFilter in pFilters)
-                {
-                    pMap[pFilter] = LInventory.LInventoryFilterConfirm(pFilter);
-                }
-            }
-
-            Dispatcher.BeginInvoke(() =>
-            {
-                if (pGeneration == psDiagnosisGeneration)
-                {
-                    PSDiagnosisResultApply(pVersion, pLocation, pMap);
-                }
-            });
-        });
+            PSDiagnosisResultApply(pFeature);
+        }
     }
 
-    private void PSDiagnosisResultApply(string pVersion, string pLocation, Dictionary<string, bool> pMap)
+    private void PSDiagnosisResultApply(LInventoryFeature pFeature)
     {
+        string pVersion = pFeature.LInventoryVersion;
+        IReadOnlyDictionary<string, bool> pMap = pFeature.LInventoryMap;
         bool pReady = !string.IsNullOrWhiteSpace(pVersion);
         psDiagnosisVersionValue.Text = pReady ? pVersion : "—";
-        psDiagnosisLocationValue.Text = pLocation;
+        psDiagnosisLocationValue.Text = pFeature.LInventoryLocation.Length == 0
+            ? LLocalization.LLocalizationTextRead("Diagnosis.LocationPath")
+            : pFeature.LInventoryLocation;
         PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText,
             pReady ? PSDiagnosisState.PSDiagnosisStateReady : PSDiagnosisState.PSDiagnosisStateMissing);
 
@@ -327,10 +314,10 @@ internal sealed partial class PSDiagnosis
 
     private static bool PSDiagnosisGroupCheck(
         (string PSDiagnosisLabel, string[] PSDiagnosisFilters)[] pItems,
-        Dictionary<string, bool> pMap) =>
+        IReadOnlyDictionary<string, bool> pMap) =>
         pItems.Any(pItem => PSDiagnosisFiltersCheck(pItem.PSDiagnosisFilters, pMap));
 
-    private static bool PSDiagnosisFiltersCheck(string[] pFilters, Dictionary<string, bool> pMap) =>
+    private static bool PSDiagnosisFiltersCheck(string[] pFilters, IReadOnlyDictionary<string, bool> pMap) =>
         pFilters.All(pFilter => pMap.TryGetValue(pFilter, out bool pValue) && pValue);
 
     private void PSDiagnosisSummaryApply(PSDiagnosisMood pMood, int pMissing)
@@ -358,17 +345,5 @@ internal sealed partial class PSDiagnosis
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Checking");
                 break;
         }
-    }
-
-    private static string PSDiagnosisLocationResolve()
-    {
-        string pExe = Cadroue.Media.LTool.LToolFfmpegRead();
-        if (!System.IO.Path.IsPathRooted(pExe))
-        {
-            return LLocalization.LLocalizationTextRead("Diagnosis.LocationPath");
-        }
-
-        string? pFolder = System.IO.Path.GetDirectoryName(pExe);
-        return string.IsNullOrEmpty(pFolder) ? pExe : pFolder;
     }
 }

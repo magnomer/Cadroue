@@ -11,6 +11,13 @@ public sealed record LMediaFrame(int LMediaFrameWidth, int LMediaFrameHeight, by
 
 public static partial class LMedia
 {
+    public static Task<LMediaFrame?> LMediaFrameStart(
+        string sourcePath,
+        TimeSpan position,
+        int width,
+        int height) =>
+        Task.Run(() => LMediaFrameRead(sourcePath, position, width, height));
+
     public static LMediaFrame? LMediaFrameRead(
         string sourcePath,
         TimeSpan position,

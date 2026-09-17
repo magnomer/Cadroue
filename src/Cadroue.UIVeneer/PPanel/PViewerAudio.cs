@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -6,62 +6,46 @@ using Cadroue.Core;
 using Cadroue.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PViewer
 {
-    private string pViewerAudioFilter = string.Empty;
-    private string? pViewerAudioApplied;
-    private bool pViewerBypass;
-    private bool pViewerAudioAllowed;
-
     public event Action<bool>? PViewerBypassChange;
 
-    public bool PViewerAudioEligible { get; set; }
-
-    public void PViewerAudioSet(bool pAudioOnlyAllowed)
-    {
-        pViewerAudioAllowed = pAudioOnlyAllowed;
-    }
+    public void PViewerAudioSet(bool pAudioOnlyAllowed) => LViewer.LViewerAllowSet(pAudioOnlyAllowed);
 
     public void PViewerAudioSet(string pViewerGraph)
     {
-        pViewerAudioFilter = pViewerGraph ?? string.Empty;
+        LViewer.LViewerFilterSet(pViewerGraph);
         PViewerAudioApply();
-        PViewerPreviewChange?.Invoke();
+        LViewer.LViewerPreviewRaise();
     }
 
-    public bool PViewerBypassRead() => pViewerBypass;
+    public bool PViewerBypassRead() => LViewer.LViewerBypass;
 
-    public void PViewerBypassSet(bool pBypass)
+    public void PViewerBypassSet(bool pBypass) => LViewer.LViewerBypassSet(pBypass);
+
+    private void PViewerBypassHandle(bool pBypass)
     {
-        if (pViewerBypass == pBypass)
-        {
-            return;
-        }
-
-        pViewerBypass = pBypass;
         PViewerAudioUpdate();
         PViewerAudioApply();
-        PViewerBypassChange?.Invoke(pViewerBypass);
-        PViewerPreviewChange?.Invoke();
+        PViewerBypassChange?.Invoke(pBypass);
+        LViewer.LViewerPreviewRaise();
     }
 
-    private string PViewerAudioResolve() =>
-        pViewerBypass ? string.Empty : pViewerAudioFilter;
-
-    private void PViewerAudioToggle() => PViewerBypassSet(!pViewerBypass);
+    private void PViewerAudioToggle() => PViewerBypassSet(!LViewer.LViewerBypass);
 
     private void PViewerAudioApply()
     {
-        if (!pViewerMpvActive || !pViewerPlayer.PPlayerReady)
+        if (!LViewer.LViewerMpvActive || !pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        string pViewerEffective = PViewerAudioResolve();
-        if (pViewerEffective == pViewerAudioApplied)
+        string pViewerEffective = LViewer.LViewerAudioResolve();
+        if (pViewerEffective == LPlayer.LPlayerAudioApplied)
         {
             return;
         }
@@ -69,7 +53,7 @@ public sealed partial class PViewer
         try
         {
             pViewerPlayer.PPlayerAudioSet(pViewerEffective);
-            pViewerAudioApplied = pViewerEffective;
+            LPlayer.LPlayerAudioSet(pViewerEffective);
         }
         catch (Exception pViewerAudioException)
         {
@@ -101,17 +85,17 @@ public sealed partial class PViewer
         bool pViewerAudioCapable = PViewerEngineCurrent == LPreviewEngine.LPreviewEngineMpv;
         pViewerAudioSwitch.IsEnabled = pViewerAudioCapable;
         pViewerAudioSwitch.Content = LLocalization.LLocalizationTextRead(
-            pViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered");
+            LViewer.LViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered");
         pViewerAudioSwitch.ToolTip = LLocalization.LLocalizationTextRead(
             pViewerAudioCapable ? "Viewer.Audio.SwitchTooltip" : "Viewer.Audio.MpvRequired");
     }
 
     private void PViewerAudioShow(bool pViewerAudioVisible)
     {
-        pViewerAudioSwitch.Visibility = pViewerAudioVisible && PViewerAudioEligible
+        pViewerAudioSwitch.Visibility = pViewerAudioVisible && LViewer.LViewerAudioEligible
             ? Visibility.Visible
             : Visibility.Collapsed;
-        if (pViewerAudioVisible && PViewerAudioEligible)
+        if (pViewerAudioVisible && LViewer.LViewerAudioEligible)
         {
             PViewerAudioUpdate();
         }

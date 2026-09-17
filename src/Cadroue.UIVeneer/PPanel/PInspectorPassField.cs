@@ -1,8 +1,8 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PPanel;
@@ -10,13 +10,9 @@ namespace Cadroue.UIVeneer.PPanel;
 public sealed partial class PInspector
 {
     private PInspectorPass PInspectorPassBuild(
-        double pDefault,
-        double pMin,
-        double pMax,
+        LFilter pOwner,
         string pApplyTip,
-        IReadOnlyList<PInspectorPassChoice> pPresets,
-        bool pHigh,
-        string pDefaultToken)
+        IReadOnlyList<PInspectorPassChoice> pPresets)
     {
         CheckBox pApply = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
@@ -24,6 +20,8 @@ public sealed partial class PInspector
         CheckBox pPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
+        PInspectorSwitchAttach(pApply, pOwner.LFilterActiveSet);
+        PInspectorSwitchAttach(pPersistent, pOwner.LFilterPersistentSet);
 
         var pPreset = new ComboBox
         {
@@ -39,29 +37,35 @@ public sealed partial class PInspector
             pPreset.Items.Add(
                 new LLocalizationChoice(pPresetEntry.PInspectorPassToken, pPresetEntry.PInspectorPassKey));
         }
-        pPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        int pDefaultIndex = pPreset.Items.Count - 1;
-        for (int pIndex = 0; pIndex < pPresets.Count; pIndex++)
-        {
-            if (pPresets[pIndex].PInspectorPassToken == pDefaultToken)
-            {
-                pDefaultIndex = pIndex;
-                break;
-            }
-        }
 
-        pPreset.SelectedIndex = pDefaultIndex;
+        pPreset.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
+        pPreset.SelectionChanged += (_, _) =>
+        {
+            if (PInspectorPresetRead(pPreset, pOwner.LFilterToken, pOwner.LFilterMatchRead()) is { } pToken)
+            {
+                pOwner.LFilterPresetSelect(pToken);
+            }
+        };
 
         var pFrequency = new Slider
         {
-            Minimum = pMin,
-            Maximum = pMax,
-            Value = pDefault,
+            Minimum = pOwner.LFilterFloor,
+            Maximum = pOwner.LFilterCeiling,
+            Value = pOwner.LFilterStep.LWorkPassFrequency,
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pFrequency);
+        PSlider.PSliderResetApply(
+            pFrequency,
+            () => pOwner.LFilterPresetRead()?.LPassbandCutoff ?? pOwner.LFilterStep.LWorkPassFrequency);
         TextBox pValue = PInspectorDecimalBuild();
-        pValue.Text = pDefault.ToString("0", CultureInfo.InvariantCulture);
+        PInspectorValueAttach(
+            pFrequency,
+            pValue,
+            pOwner.LFilterFloor,
+            pOwner.LFilterCeiling,
+            () => pOwner.LFilterStep.LWorkPassFrequency,
+            pOwner.LFilterFrequencySet);
 
         var pStages = new Slider
         {
@@ -73,8 +77,15 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pStages);
+        PSlider.PSliderResetApply(pStages, () => pOwner.LFilterPresetRead()?.LPassbandStages ?? 1);
         TextBox pStageValue = PInspectorDecimalBuild();
-        pStageValue.Text = "1";
+        PInspectorValueAttach(
+            pStages,
+            pStageValue,
+            LPassband.LPassbandStagesLeast,
+            LPassband.LPassbandStagesMost,
+            () => pOwner.LFilterStep.LWorkPassStages,
+            pNumber => pOwner.LFilterStagesSet((int)Math.Round(pNumber)));
 
         var pPoles = new ComboBox
         {
@@ -88,82 +99,36 @@ public sealed partial class PInspector
         pPoles.Items.Add("1 (6 dB)");
         pPoles.Items.Add("2 (12 dB)");
         pPoles.SelectedIndex = 1;
+        pPoles.SelectionChanged += (_, _) =>
+        {
+            if (pPoles.SelectedIndex >= 0)
+            {
+                pOwner.LFilterPolesSet(pPoles.SelectedIndex == 0 ? 1 : 2);
+            }
+        };
 
+        var pResonanceSlider = new Slider
+        {
+            Minimum = LPassband.LPassbandResonanceLeast,
+            Maximum = LPassband.LPassbandResonanceMost,
+            Value = pOwner.LFilterStep.LWorkPassResonance,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSlider.PSliderApply(pResonanceSlider);
+        PSlider.PSliderResetApply(
+            pResonanceSlider,
+            () => pOwner.LFilterPresetRead()?.LPassbandResonance ?? 0.707);
         TextBox pResonance = PInspectorDecimalBuild();
-        pResonance.Text = "0.707";
+        PInspectorValueAttach(
+            pResonanceSlider,
+            pResonance,
+            LPassband.LPassbandResonanceLeast,
+            LPassband.LPassbandResonanceMost,
+            () => pOwner.LFilterStep.LWorkPassResonance,
+            pOwner.LFilterResonanceSet);
 
         var pStack = new StackPanel();
         var pBody = new StackPanel { Margin = new Thickness(12, 12, 12, 12), Visibility = Visibility.Collapsed };
-        var pPass = new PInspectorPass
-        {
-            PFilterApplyBox = pApply,
-            PInspectorPassPersistent = pPersistent,
-            PInspectorPassPreset = pPreset,
-            PInspectorPassFrequency = pFrequency,
-            PInspectorPassValue = pValue,
-            PInspectorPassStages = pStages,
-            PFilterStageValue = pStageValue,
-            PInspectorPassPoles = pPoles,
-            PInspectorPassResonance = pResonance,
-            PInspectorPassStack = pStack,
-            PInspectorPassBody = pBody,
-            PInspectorPassPresets = pPresets,
-            PInspectorPassHigh = pHigh,
-            PInspectorPassMin = pMin,
-            PInspectorPassMax = pMax,
-            PInspectorPassDefault = pDefault
-        };
-
-        PSlider.PSliderResetApply(
-            pFrequency,
-            () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandCutoff : pDefault);
-        PSlider.PSliderResetApply(pStages, () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandStages : 1);
-
-        pApply.Checked += (_, _) => PFilterApplyUpdate(pPass);
-        pApply.Unchecked += (_, _) => PFilterApplyUpdate(pPass);
-        pPreset.SelectionChanged += (_, _) => PFilterPresetApply(pPass);
-
-        pFrequency.ValueChanged += (_, _) =>
-        {
-            if (pPass.PInspectorPassSuppress) { return; }
-            pPass.PInspectorPassSuppress = true;
-            pValue.Text = pFrequency.Value.ToString("0", CultureInfo.InvariantCulture);
-            pPass.PInspectorPassSuppress = false;
-            PFilterDeviationCheck(pPass);
-        };
-        pValue.TextChanged += (_, _) =>
-        {
-            if (pPass.PInspectorPassSuppress) { return; }
-            pPass.PInspectorPassSuppress = true;
-            pFrequency.Value = Math.Clamp(PInspectorDecimalRead(pValue, pDefault), pMin, pMax);
-            pPass.PInspectorPassSuppress = false;
-            PFilterDeviationCheck(pPass);
-        };
-        pStages.ValueChanged += (_, _) =>
-        {
-            if (pPass.PFilterStageSuppress) { return; }
-            pPass.PFilterStageSuppress = true;
-            pStageValue.Text = pStages.Value.ToString("0", CultureInfo.InvariantCulture);
-            pPass.PFilterStageSuppress = false;
-            PFilterDeviationCheck(pPass);
-        };
-        pStageValue.TextChanged += (_, _) =>
-        {
-            if (pPass.PFilterStageSuppress) { return; }
-            pPass.PFilterStageSuppress = true;
-            pStages.Value = Math.Clamp(
-                Math.Round(PInspectorDecimalRead(pStageValue, 1)),
-                LPassband.LPassbandStagesLeast,
-                LPassband.LPassbandStagesMost);
-            pPass.PFilterStageSuppress = false;
-            PFilterDeviationCheck(pPass);
-        };
-        pPoles.SelectionChanged += (_, _) => PFilterDeviationCheck(pPass);
-        Slider pResonanceSlider = PInspectorSliderBuild(
-            pResonance, LPassband.LPassbandResonanceLeast, LPassband.LPassbandResonanceMost, 0.707, "0.###",
-            () => PFilterPresetRead(pPass) is { } pEntry ? pEntry.LPassbandResonance : 0.707,
-            () => PFilterDeviationCheck(pPass));
-
         pStack.Children.Add(
             PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
         pStack.Children.Add(
@@ -182,23 +147,28 @@ public sealed partial class PInspector
         pStack.Children.Add(pResonanceRow);
         pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Poles"), pPoles));
 
-        void PFilterResonanceUpdate()
-        {
-            bool pResonanceOn = PFilterPolesRead(pPass) == 2;
-            pResonanceRow.IsEnabled = pResonanceOn;
-            pResonanceRow.Opacity = pResonanceOn ? 1 : 0.4;
-        }
-
-        pPoles.SelectionChanged += (_, _) => PFilterResonanceUpdate();
-        PFilterResonanceUpdate();
-
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
         pBody.Children.Add(pStack);
 
-        PFilterApplyUpdate(pPass);
-        PFilterPresetApply(pPass);
-        return pPass;
+        return new PInspectorPass
+        {
+            PFilterOwner = pOwner,
+            PFilterApplyBox = pApply,
+            PInspectorPassPersistent = pPersistent,
+            PInspectorPassPreset = pPreset,
+            PInspectorPassFrequency = pFrequency,
+            PInspectorPassValue = pValue,
+            PInspectorPassStages = pStages,
+            PFilterStageValue = pStageValue,
+            PInspectorPassPoles = pPoles,
+            PFilterResonanceSlider = pResonanceSlider,
+            PInspectorPassResonance = pResonance,
+            PFilterResonanceRow = pResonanceRow,
+            PInspectorPassStack = pStack,
+            PInspectorPassBody = pBody,
+            PInspectorPassPresets = pPresets
+        };
     }
 
     private Grid PFilterSliderBuild(string pLabel, Slider pSlider, string pUnit, TextBox pValue)

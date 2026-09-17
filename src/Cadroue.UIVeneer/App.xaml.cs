@@ -214,8 +214,8 @@ public partial class PProgram : System.Windows.Application
         LPreset.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
         LPreset.LPresetPrepare();
         LStationSeamApply();
-        _ = System.Threading.Tasks.Task.Run(Cadroue.Infrastructure.LInventory.LInventoryPrepare);
-        PPanel.PSEncoder.PSCodecProbeStart();
+        Cadroue.Infrastructure.LInventory.LInventoryPrepareStart();
+        Cadroue.Infrastructure.LTrialSet.LTrialSetStart();
         Cadroue.ShellEngine.LRunner.LRunnerReport = LRunnerReportHandle;
         Cadroue.ShellEngine.LRunner.LRunnerFfmpegReport = LRunnerFfmpegHandle;
         Cadroue.ShellEngine.LRunner.LRunnerVerboseSource = () => LTrace.LTraceVerbose;
@@ -225,7 +225,9 @@ public partial class PProgram : System.Windows.Application
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
         _ = LDepotRootApply();
-        LRetentionSweepStart();
+        Cadroue.Infrastructure.LRetentionSweep.LRetentionSweepStart(
+            LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive,
+            LPreference.LPreferenceStateCurrent.LPreferenceCleanupDays);
         LScheduleRecoverRun();
         Cadroue.Infrastructure.LRenderer.LRendererFlyleafSeam = LRendererFlyleafStart;
         Cadroue.Infrastructure.LRenderer.LRendererDispatchSeam = lAction => Dispatcher.BeginInvoke(lAction);
@@ -296,21 +298,6 @@ public partial class PProgram : System.Windows.Application
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
             return false;
         }
-    }
-
-    private static void LRetentionSweepStart()
-    {
-        if (!LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive)
-        {
-            return;
-        }
-
-        int lRetentionDays = LPreference.LPreferenceStateCurrent.LPreferenceCleanupDays;
-        _ = System.Threading.Tasks.Task.Run(() =>
-        {
-            int lRetentionRemoved = Cadroue.Infrastructure.LRetentionSweep.LRetentionRun(lRetentionDays);
-            LTraceLog.LTraceInfoRecord($"Retention sweep removed {lRetentionRemoved} old records");
-        });
     }
 
     private static void LLibrarianSeamApply()

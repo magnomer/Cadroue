@@ -1,4 +1,3 @@
-using System.IO;
 using Cadroue.UIVeneer.PSCasement;
 using System.Windows;
 using Cadroue.Core;
@@ -35,7 +34,7 @@ public sealed partial class PFlow
                 pLosslesscutProject = LLosslesscut.LLosslesscutRead(pLosslesscutPath);
             }
             catch (Exception pLosslesscutException) when (
-                pLosslesscutException is IOException
+                pLosslesscutException is System.IO.IOException
                     or UnauthorizedAccessException
                     or JsonException
                     or ArgumentException)
@@ -52,8 +51,8 @@ public sealed partial class PFlow
                     "Flow.LosslessCut.Detect.Message",
                     pLosslesscutIndex + 1,
                     pLosslesscutPaths.Count,
-                    Path.GetFileName(pLosslesscutPath),
-                    File.GetLastWriteTime(pLosslesscutPath),
+                    System.IO.Path.GetFileName(pLosslesscutPath),
+                    LLosslesscut.LLosslesscutStampRead(pLosslesscutPath),
                     pLosslesscutProject.LLosslesscutProjectVersion?.ToString() ?? pLosslesscutUnspecified,
                     pLosslesscutProject.LLosslesscutProjectSegments.Count,
                     pLosslesscutProject.LLosslesscutProjectMedia.PFlowFallbackRead(pLosslesscutUnspecified)),
@@ -84,7 +83,7 @@ public sealed partial class PFlow
             pLosslesscutProject = LLosslesscut.LLosslesscutRead(pLosslesscutPath);
         }
         catch (Exception pLosslesscutException) when (
-            pLosslesscutException is IOException
+            pLosslesscutException is System.IO.IOException
                 or UnauthorizedAccessException
                 or JsonException
                 or ArgumentException)
@@ -122,7 +121,7 @@ public sealed partial class PFlow
                 LLocalization.LLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",
                     pLosslesscutResult.LLosslesscutResultMedia,
-                    Path.GetFileName(lSourcePath)),
+                    System.IO.Path.GetFileName(lSourcePath)),
                 LLocalization.LLocalizationTextRead("Terms.Import"),
                 LLocalization.LLocalizationTextRead("Terms.Cancel")))
         {
@@ -179,7 +178,7 @@ public sealed partial class PFlow
         string pLosslesscutUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
         var pLosslesscutLines = new List<string>
         {
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", Path.GetFileName(pLosslesscutPath)),
+            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", System.IO.Path.GetFileName(pLosslesscutPath)),
             LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Version",
                 pLosslesscutResult.LLosslesscutResultVersion?.ToString() ?? pLosslesscutUnspecified),

@@ -1,4 +1,4 @@
-﻿using System.Windows;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -15,24 +15,12 @@ using Cadroue.Core;
 using Cadroue.Application;
 
 using Cadroue.Infrastructure;
-
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PViewer : PPanel
 {
-    private enum PViewerTool
-    {
-        PViewerToolNone,
-        PViewerToolCrop,
-        PViewerToolNeutral
-    }
-
-    private readonly record struct PViewerIntent(
-        string PViewerIntentPath,
-        TimeSpan PViewerIntentPosition,
-        bool? PViewerIntentPlaying);
-
     private Border? pViewerSurface;
     private readonly Button pViewerCloseButton;
     private readonly Button pViewerPreviewButton;
@@ -41,43 +29,21 @@ public sealed partial class PViewer : PPanel
     private readonly Border pViewerEngineSurface;
     private readonly Border pViewerEngineOverlay;
     private FlyleafHost? pViewerFlyleafHost;
-    private bool pViewerHostBuilt;
     private readonly Canvas pViewerOverlay;
     private readonly Rectangle pViewerCropBox;
     private readonly DispatcherTimer pViewerClockTimer;
-    private volatile bool pPlayerAccurateActive;
-    private volatile bool pPlayerRendererPending;
     private readonly PPlayer pViewerPlayer = new();
-    private LMediaInfo? pViewerMediaInfo;
     private Point? pViewerCropPoint;
-    private PViewerTool pViewerTool;
-    private LNeutralTarget pViewerNeutralTarget;
-    private int pViewerNeutralSerial;
-    private bool pViewerNeutralPlaying;
-    private Size? pViewerCropRatio;
     private readonly Path pViewerCropShade;
     private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
     private Rect pViewerCropOrigin;
     private Point pViewerCropGrab;
     private bool pViewerCropDrag;
-    private bool pViewerCropLocked;
-    private int pViewerEdgeX;
-    private int pViewerEdgeY;
-    private int pViewerCropDrive = -1;
-    private int pViewerAnchorX = -1;
-    private int pViewerAnchorY = -1;
-    private int pViewerLoadSerial;
-    private PViewerIntent? pViewerIntent;
     private readonly LMediaLoad pViewerMediaProbe = new();
-    private double pViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
-    private bool pViewerCommandActive;
-    private bool pViewerResumeInactive;
-    private bool pViewerEndReached;
-    private bool pViewerUnloaded;
-    private bool pViewerDragActive;
-    private readonly List<string> pViewerSeekTrace = [];
-    private int pViewerTraceCount;
-    private TimeSpan pViewerTraceFinal;
+
+    public LViewer LViewer { get; } = new();
+    public LCrop LCrop { get; } = new();
+    public LPlayer LPlayer { get; } = new();
 
     public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
@@ -104,18 +70,18 @@ public sealed partial class PViewer : PPanel
     private static nint PViewerWindowHandle(Window? pViewerWindow) =>
         pViewerWindow is null ? nint.Zero : new System.Windows.Interop.WindowInteropHelper(pViewerWindow).Handle;
 
-    public string? PViewerSourcePath { get; private set; }
-    public string? PViewerPendingPath => pViewerIntent?.PViewerIntentPath;
-    public Rect? PCropVideo { get; private set; }
-    public double PViewerVolumeCurrent => pViewerVolume;
-    public LPreviewEngine PViewerEngineCurrent { get; private set; } = LPreviewEngine.LPreviewEngineFlyleaf;
+    public string? PViewerSourcePath => LViewer.LViewerSourcePath;
+    public string? PViewerPendingPath => LViewer.LViewerIntent?.LViewerIntentPath;
+    public Rect? PCropVideo => PCropVideoResolve(LViewer.LViewerPreview.LCropbox);
+    public double PViewerVolumeCurrent => LViewer.LViewerVolume;
+    public LPreviewEngine PViewerEngineCurrent => LViewer.LViewerEngine;
     public event Action? PViewerEngineChange;
     public event Action<bool>? PViewerPlayingChange;
     public event Action? PViewerPreviewChange;
-    public LPreviewState LPreviewStateCurrent { get; private set; } = LPreviewState.LPreviewDefaultCreate();
 
-    public PViewer() : base("")
+    public PViewer(bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false) : base("")
     {
+        LViewer.LViewerEligibleSet(pAudioEligible, pEditEligible, pColorPreview);
         AllowDrop = true;
         Focusable = true;
         FocusVisualStyle = null;
@@ -175,6 +141,12 @@ public sealed partial class PViewer : PPanel
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
         pViewerMediaProbe.LMediaLoadCompleted += PViewerLoadHandle;
+        LViewer.LViewerMediaChange += pCargo => PViewerMediaChange?.Invoke(pCargo);
+        LViewer.LViewerPlayingChange += pPlaying => PViewerPlayingChange?.Invoke(pPlaying);
+        LViewer.LViewerPreviewChange += () => PViewerPreviewChange?.Invoke();
+        LViewer.LViewerEngineChange += PViewerEngineUpdate;
+        LViewer.LViewerBypassChange += PViewerBypassHandle;
+        LViewer.LViewerToolChange += PViewerToolHandle;
     }
 
     private Button PViewerCloseBuild()
@@ -247,7 +219,7 @@ public sealed partial class PViewer : PPanel
 
     public void PViewerCommandSet(bool pCommandActive)
     {
-        if (pViewerUnloaded || pViewerCommandActive == pCommandActive)
+        if (LViewer.LViewerUnloaded || LViewer.LViewerCommandActive == pCommandActive)
         {
             return;
         }
@@ -256,14 +228,14 @@ public sealed partial class PViewer : PPanel
         if (!pCommandActive)
         {
             PPlayerSuspend();
-            pViewerCommandActive = false;
-            pViewerLoadSerial++;
+            LViewer.LViewerCommandSet(false);
+            LViewer.LViewerSerialChange();
             pViewerClockTimer.Stop();
             return;
         }
 
         PViewerHostBuild();
-        pViewerCommandActive = true;
+        LViewer.LViewerCommandSet(true);
         if (PViewerEngineRestore())
         {
             return;

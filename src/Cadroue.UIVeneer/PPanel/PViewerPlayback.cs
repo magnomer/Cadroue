@@ -4,6 +4,7 @@ using System.Windows;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPanel;
 
@@ -11,13 +12,13 @@ public sealed partial class PViewer
 {
     internal void PViewerLoupeSync(TimeSpan pViewerPosition, bool pViewerPlaying)
     {
-        PViewerPlaybackUpdate(pViewerPlaying, pViewerPosition);
+        LViewer.LViewerPlaybackUpdate(pViewerPlaying, pViewerPosition);
         PViewerClockTick?.Invoke(pViewerPosition);
     }
 
-    public bool PViewerPlayingRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying;
+    public bool PViewerPlayingRead() => LViewer.LViewerPlaying;
 
-    public TimeSpan PViewerPositionRead() => LPreviewStateCurrent.LPlaybackState.LPlaybackPosition;
+    public TimeSpan PViewerPositionRead() => LViewer.LViewerPosition;
 
     public void PViewerPlay()
     {
@@ -27,31 +28,31 @@ public sealed partial class PViewer
             return;
         }
 
-        if (!pViewerCommandActive)
+        if (!LViewer.LViewerCommandActive)
         {
             return;
         }
 
-        if (pViewerIntent is { } pViewerPending)
+        if (LViewer.LViewerIntent is { } pViewerPending)
         {
-            pViewerIntent = pViewerPending with { PViewerIntentPlaying = true };
+            LViewer.LViewerIntentSet(pViewerPending with { LViewerIntentPlaying = true });
             return;
         }
 
-        if (!pViewerPlayer.PPlayerReady || LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying)
+        if (!pViewerPlayer.PPlayerReady || LViewer.LViewerPlaying)
         {
             return;
         }
 
-        if (pViewerEndReached)
+        if (LViewer.LViewerEndReached)
         {
-            pViewerEndReached = false;
+            LViewer.LViewerEndSet(false);
             pViewerPlayer.PPlayerSeek(TimeSpan.Zero);
         }
 
-        pViewerResumeInactive = false;
+        LViewer.LViewerResumeSet(false);
         pViewerPlayer.PPlayerPlay();
-        PViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
+        LViewer.LViewerPlaybackUpdate(true, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Start();
     }
 
@@ -63,14 +64,14 @@ public sealed partial class PViewer
             return;
         }
 
-        if (!pViewerCommandActive)
+        if (!LViewer.LViewerCommandActive)
         {
             return;
         }
 
-        if (pViewerIntent is { } pViewerPending)
+        if (LViewer.LViewerIntent is { } pViewerPending)
         {
-            pViewerIntent = pViewerPending with { PViewerIntentPlaying = false };
+            LViewer.LViewerIntentSet(pViewerPending with { LViewerIntentPlaying = false });
             return;
         }
 
@@ -79,9 +80,9 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerResumeInactive = false;
+        LViewer.LViewerResumeSet(false);
         pViewerPlayer.PPlayerPause();
-        PViewerPlaybackUpdate(false, pViewerPlayer.PPlayerTimeRead());
+        LViewer.LViewerPlaybackUpdate(false, pViewerPlayer.PPlayerTimeRead());
         pViewerClockTimer.Stop();
     }
 
@@ -90,19 +91,19 @@ public sealed partial class PViewer
         if (pViewerLoupe is not null)
         {
             pViewerLoupe.PSLoupeSeek(playbackPosition);
-            PViewerLoupeSync(playbackPosition, LPreviewStateCurrent.LPlaybackState.LPlaybackStatePlaying);
+            PViewerLoupeSync(playbackPosition, LViewer.LViewerPlaying);
             return;
         }
 
-        if (!pViewerCommandActive)
+        if (!LViewer.LViewerCommandActive)
         {
             return;
         }
 
-        if (pViewerIntent is { } pViewerPending)
+        if (LViewer.LViewerIntent is { } pViewerPending)
         {
-            pViewerIntent = pViewerPending with { PViewerIntentPosition = playbackPosition };
-            PViewerPlaybackUpdate(null, playbackPosition);
+            LViewer.LViewerIntentSet(pViewerPending with { LViewerIntentPosition = playbackPosition });
+            LViewer.LViewerPlaybackUpdate(null, playbackPosition);
             return;
         }
 
@@ -111,7 +112,7 @@ public sealed partial class PViewer
             return;
         }
 
-        pViewerEndReached = false;
+        LViewer.LViewerEndSet(false);
         try
         {
             PPlayerAccurateSeek(playbackPosition);
@@ -123,83 +124,27 @@ public sealed partial class PViewer
             return;
         }
 
-        PViewerPlaybackUpdate(null, playbackPosition);
+        LViewer.LViewerPlaybackUpdate(null, playbackPosition);
     }
 
-    public void PViewerDragSet(bool pViewerDragging)
-    {
-        if (pViewerDragging)
-        {
-            if (!pViewerDragActive)
-            {
-                pViewerSeekTrace.Clear();
-                pViewerTraceCount = 0;
-            }
-
-            pViewerDragActive = true;
-            return;
-        }
-
-        pViewerDragActive = false;
-        if (pViewerTraceCount == 0)
-        {
-            return;
-        }
-
-        string pViewerSummary = pViewerTraceCount == 1
-            ? $"Seek accurate to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff}"
-            : $"Seek accurate while dragging to {pViewerTraceFinal:hh\\:mm\\:ss\\.fff} ({pViewerTraceCount} requests)";
-        LTrace.LTraceRecord(
-            LTraceKind.LTraceUi,
-            pViewerSummary,
-            string.Join(Environment.NewLine, pViewerSeekTrace));
-        pViewerSeekTrace.Clear();
-        pViewerTraceCount = 0;
-    }
-
-    private void PViewerSeekRecord(TimeSpan pViewerPosition, string pViewerDetail)
-    {
-        string pViewerSummary = $"Seek accurate to {pViewerPosition:hh\\:mm\\:ss\\.fff}";
-        if (!pViewerDragActive)
-        {
-            LTrace.LTraceRecord(LTraceKind.LTraceUi, pViewerSummary, pViewerDetail);
-            return;
-        }
-
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
-        {
-            return;
-        }
-
-        string pViewerTime = DateTimeOffset.Now.ToString(
-            "HH:mm:ss.fff",
-            System.Globalization.CultureInfo.InvariantCulture);
-        pViewerSeekTrace.Add($"{pViewerTime}  {pViewerSummary}");
-        pViewerSeekTrace.Add($"{new string(' ', 14)}{pViewerDetail}");
-        pViewerTraceCount++;
-        pViewerTraceFinal = pViewerPosition;
-    }
+    public void PViewerDragSet(bool pViewerDragging) => LViewer.LViewerDragSet(pViewerDragging);
 
     public void PViewerVolumeSet(double volume)
     {
         if (pViewerLoupe is not null)
         {
-            pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-            if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-                LPreference.LPreferenceVolumeSet(pViewerVolume);
-            pViewerLoupe.PSLoupeVolumeSet(pViewerVolume);
+            LViewer.LViewerVolumeSet(volume);
+            pViewerLoupe.PSLoupeVolumeSet(LViewer.LViewerVolume);
             return;
         }
 
-        if (!pViewerCommandActive) return;
-        pViewerVolume = LPreferenceState.LPreferenceVolumeClamp(volume);
-        if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-            LPreference.LPreferenceVolumeSet(pViewerVolume);
+        if (!LViewer.LViewerCommandActive) return;
+        LViewer.LViewerVolumeSet(volume);
         if (!pViewerPlayer.PPlayerReady)
         {
             return;
         }
 
-        pViewerPlayer.PPlayerVolumeSet(pViewerVolume);
+        pViewerPlayer.PPlayerVolumeSet(LViewer.LViewerVolume);
     }
 }

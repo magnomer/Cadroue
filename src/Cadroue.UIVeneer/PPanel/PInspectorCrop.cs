@@ -12,7 +12,6 @@ public sealed partial class PInspector
 {
     private const string PCropIcon = "/PAsset/PPanel/PProcessingCrop.svg";
     private const double PInspectorInsetWidth = 68;
-    private const double PInspectorRatioTolerance = 0.01;
 
     private static readonly Brush pInspectorWarnBrush = new SolidColorBrush(Color.FromRgb(0xC2, 0x5A, 0x1E));
     private static readonly Brush pInspectorIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
@@ -42,143 +41,83 @@ public sealed partial class PInspector
     private CheckBox pInspectorPersistentBox = null!;
     private Image pInspectorToolIcon = null!;
 
-    private double pInspectorSourceWidth = 1920;
-    private double pInspectorSourceHeight = 1080;
-    private bool pInspectorSourcePresent;
-    private bool pInspectorCropSuppress;
-    private bool pInspectorRatioSuppress;
-    private bool pInspectorCropPresent;
-    private bool pInspectorCropCapable = true;
-    private readonly bool[] pInspectorEdgeLocked = new bool[4];
+    public LCropboxState LCropboxState { get; } = new();
 
     public event Action<bool>? PInspectorToolChange;
-
-    public bool PInspectorToolCheck() => pInspectorCropTool.IsChecked == true;
-    public event Action<Size?>? PInspectorRatioChange;
-    public event Action<Rect?>? PInspectorCropChange;
-    public event Action<LRotateFlip>? PInspectorRotateChange;
-    public event Action<bool>? PInspectorPersistentChange;
     public event Action? PCropActiveChange;
 
-    public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight)
+    private void PInspectorCropAttach()
     {
-        pInspectorSourcePresent = pSourceWidth > 0 && pSourceHeight > 0;
-        pInspectorSourceWidth = pInspectorSourcePresent ? pSourceWidth : 0;
-        pInspectorSourceHeight = pInspectorSourcePresent ? pSourceHeight : 0;
-        PInspectorRatioUpdate();
+        LCropboxState.LCropboxStateChange += PInspectorCropUpdate;
+        PInspectorCropUpdate();
     }
 
-    public LWorkCrop PInspectorCropRead() => PInspectorCanonicalRead();
+    public bool PInspectorToolCheck() => LInspector.LInspectorToolArmed;
 
-    private LWorkCrop PInspectorCanonicalRead() => LCropbox.LCropboxEdgeNormalize(
-        new LWorkCrop(
-            PInspectorWholeRead(pInspectorInsetLeft),
-            PInspectorWholeRead(pInspectorInsetTop),
-            PInspectorWholeRead(pInspectorInsetRight),
-            PInspectorWholeRead(pInspectorInsetBottom),
-            PInspectorAngleResolve(PInspectorKindRead()),
-            pInspectorFlipHorizontal.IsChecked == true,
-            pInspectorFlipVertical.IsChecked == true),
-        pInspectorSourceWidth,
-        pInspectorSourceHeight);
+    public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight) =>
+        LInspector.LInspectorSourceSet(pSourceWidth, pSourceHeight);
+
+    public LWorkCrop PInspectorCropRead() => LCropbox.LCropboxEdgeNormalize(
+        LCropboxState.LCropboxStateCrop,
+        LInspector.LInspectorSourceWidth,
+        LInspector.LInspectorSourceHeight);
+
+    public Rect? PInspectorRectRead() =>
+        LCropbox.LCropboxRectResolve(
+            LCropboxState.LCropboxStateCrop, LInspector.LInspectorSourceWidth, LInspector.LInspectorSourceHeight)
+            is { } pCropBox
+            ? new Rect(pCropBox.LCropboxX, pCropBox.LCropboxY, pCropBox.LCropboxWidth, pCropBox.LCropboxHeight)
+            : null;
 
     public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
     {
-        PInspectorEdgeClear();
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        try
-        {
-            pInspectorApplyBox.IsChecked = pInspectorApply;
-            pInspectorInsetLeft.Text = pInspectorPlan.LWorkCropLeft.ToString();
-            pInspectorInsetTop.Text = pInspectorPlan.LWorkCropTop.ToString();
-            pInspectorInsetRight.Text = pInspectorPlan.LWorkCropRight.ToString();
-            pInspectorInsetBottom.Text = pInspectorPlan.LWorkCropBottom.ToString();
-            pInspectorFlipHorizontal.IsChecked = pInspectorPlan.LWorkFlipHorizontal;
-            pInspectorFlipVertical.IsChecked = pInspectorPlan.LWorkFlipVertical;
-            pInspectorRotateCombo.SelectedIndex = pInspectorPlan.LWorkCropRotation switch
-            {
-                90 => 1,
-                180 => 2,
-                270 => 3,
-                _ => 0
-            };
-            pInspectorCropPresent = pInspectorPlan.LWorkEdgeActive;
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
-        }
-
-        PInspectorRotateRaise();
-        PInspectorCropRaise();
-        PInspectorRatioUpdate();
-        PInspectorToolUpdate();
-        PInspectorApplyUpdate();
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        LCropboxState.LCropboxCropSet(pInspectorPlan);
+        LCropboxState.LCropboxApplySet(pInspectorApply);
     }
 
-    public bool PCropPersistentCheck() => pInspectorPersistentBox.IsChecked == true;
+    public bool PCropPersistentCheck() => LCropboxState.LCropboxStatePersistent;
 
-    public bool PCropActiveCheck() => pInspectorApplyBox.IsChecked == true;
+    public bool PCropActiveCheck() => LCropboxState.LCropboxStateActive;
 
     public void PCropMediaReset()
     {
-        if (pInspectorPersistentBox.IsChecked == true)
+        if (LCropboxState.LCropboxStatePersistent)
         {
             return;
         }
 
-        PInspectorCropReset();
+        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
+        LInspector.LInspectorToolSet(false);
+        LCropboxState.LCropboxStateReset();
     }
 
-    private void PInspectorCropReset()
+    public void PCropCapabilitySet(bool pCropCapable, bool pOrientationCapable) =>
+        LInspector.LInspectorCapableSet(pCropCapable, pOrientationCapable);
+
+    private void PInspectorCropUpdate()
     {
-        PInspectorEdgeClear();
-        bool pCropSuppressPrevious = pInspectorCropSuppress;
-        pInspectorCropSuppress = true;
-        try
+        LWorkCrop pCrop = LCropboxState.LCropboxStateCrop;
+        bool pActive = LCropboxState.LCropboxStateActive;
+        bool pCapable = LInspector.LInspectorCropCapable;
+        bool pOrientationCapable = LInspector.LInspectorOrientationCapable;
+        bool pFlipped = (pInspectorApplyBox.IsChecked == true) != pActive;
+        PInspectorSwitchUpdate(pInspectorApplyBox, pActive, false);
+        PInspectorSwitchUpdate(pInspectorPersistentBox, LCropboxState.LCropboxStatePersistent, true);
+        PInspectorWholeSet(pInspectorInsetLeft, pCrop.LWorkCropLeft);
+        PInspectorWholeSet(pInspectorInsetTop, pCrop.LWorkCropTop);
+        PInspectorWholeSet(pInspectorInsetRight, pCrop.LWorkCropRight);
+        PInspectorWholeSet(pInspectorInsetBottom, pCrop.LWorkCropBottom);
+        PInspectorSwitchUpdate(pInspectorFlipHorizontal, pCrop.LWorkFlipHorizontal, false);
+        PInspectorSwitchUpdate(pInspectorFlipVertical, pCrop.LWorkFlipVertical, false);
+        int pRotateIndex = pCrop.LWorkCropRotation switch { 90 => 1, 180 => 2, 270 => 3, _ => 0 };
+        if (pInspectorRotateCombo.SelectedIndex != pRotateIndex)
         {
-            pInspectorApplyBox.IsChecked = false;
-            pInspectorCropTool.IsChecked = false;
-            pInspectorFlipHorizontal.IsChecked = false;
-            pInspectorFlipVertical.IsChecked = false;
-            pInspectorRotateCombo.SelectedIndex = 0;
-            pInspectorRatioFixed.IsChecked = false;
-            pInspectorRatioLenient.IsChecked = false;
-            pInspectorRatioLenient.IsEnabled = false;
-            pInspectorRatioPreset.SelectedIndex = 0;
-            pInspectorInsetLeft.Text = "0";
-            pInspectorInsetTop.Text = "0";
-            pInspectorInsetRight.Text = "0";
-            pInspectorInsetBottom.Text = "0";
-            pInspectorRatioWidth.Text = "0";
-            pInspectorRatioHeight.Text = "0";
-            pInspectorCropPresent = false;
-        }
-        finally
-        {
-            pInspectorCropSuppress = pCropSuppressPrevious;
+            pInspectorRotateCombo.SelectedIndex = pRotateIndex;
         }
 
-        PInspectorToolChange?.Invoke(false);
-        PInspectorRatioChange?.Invoke(null);
-        PInspectorRotateRaise();
-        PInspectorCropChange?.Invoke(null);
-        PInspectorRatioUpdate();
-        PInspectorToolUpdate();
-        PInspectorApplyUpdate();
-    }
-
-    private void PInspectorPersistentRaise()
-    {
-        PInspectorPersistentChange?.Invoke(pInspectorPersistentBox.IsChecked == true);
-    }
-
-    public void PCropCapabilitySet(bool pCropCapable, bool pOrientationCapable)
-    {
-        pInspectorCropCapable = pCropCapable;
-        pInspectorApplyBox.IsEnabled = pCropCapable;
-        pInspectorApplyBox.ToolTip = pCropCapable
+        pInspectorApplyBox.IsEnabled = pCapable;
+        pInspectorApplyBox.ToolTip = pCapable
             ? LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip")
             : LLocalization.LLocalizationTextRead("Inspector.Crop.RequiresCrop");
         pInspectorRotateCombo.IsEnabled = pOrientationCapable;
@@ -190,32 +129,26 @@ public sealed partial class PInspector
         pInspectorRotateCombo.ToolTip = pOrientationNotice;
         pInspectorFlipHorizontal.ToolTip = pOrientationNotice;
         pInspectorFlipVertical.ToolTip = pOrientationNotice;
-        PCropEnableApply();
-    }
-
-    private void PCropEnableApply()
-    {
-        bool pApplyActive = pInspectorApplyBox.IsChecked == true && pInspectorCropCapable;
-        pInspectorCropStack.IsEnabled = pApplyActive;
-        pInspectorCropStack.Opacity = pApplyActive ? 1 : 0.4;
-    }
-
-    private void PInspectorApplyUpdate()
-    {
-        if (pInspectorApplyBox.IsChecked != true && pInspectorCropTool.IsChecked == true)
+        PInspectorSectionUpdate(pInspectorCropStack, pActive && pCapable);
+        if (!pActive)
         {
-            pInspectorCropTool.IsChecked = false;
+            LInspector.LInspectorToolSet(false);
         }
 
-        PCropEnableApply();
-        PCropActiveChange?.Invoke();
+        PInspectorRatioUpdate();
+        PInspectorToolUpdate();
+        if (pFlipped)
+        {
+            PCropActiveChange?.Invoke();
+        }
     }
 
     private void PInspectorToolUpdate()
     {
-        bool pToolArmed = pInspectorCropTool.IsChecked == true;
-        bool pToolActive = pToolArmed && pInspectorCropPresent;
-
+        bool pToolArmed = LInspector.LInspectorToolArmed;
+        bool pToolActive = pToolArmed && PInspectorRectRead() is not null;
+        bool pWasArmed = pInspectorCropTool.IsChecked == true;
+        pInspectorCropTool.IsChecked = pToolArmed;
         pInspectorCropTool.Background = pToolActive
             ? pInspectorActiveBrush
             : pToolArmed ? pInspectorArmedBrush : Brushes.Transparent;
@@ -223,18 +156,9 @@ public sealed partial class PInspector
         pInspectorToolIcon.Source = PIcon.PIconRead(
             PCropIcon,
             pToolActive ? pInspectorAccentBrush : pInspectorIconBrush);
-    }
-
-    private void PInspectorToolReset()
-    {
-        pInspectorCropSuppress = true;
-        try
+        if (pWasArmed != pToolArmed)
         {
-            pInspectorCropTool.IsChecked = false;
-        }
-        finally
-        {
-            pInspectorCropSuppress = false;
+            PInspectorToolChange?.Invoke(pToolArmed);
         }
     }
 }

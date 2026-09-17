@@ -145,7 +145,7 @@ public sealed partial class PEditTab
 
         pProcessing.PProcessingEnabledSet(
             "Curve", pCurveCapable, LLocalization.LLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
-        pInspector.PCurveCapabilitySet(pCurveCapable, pPreviewMpv, "Inspector.Video.CurvePreviewMpv");
+        pInspector.PCurveCapabilitySet(pCurveCapable, pPreviewMpv);
 
         pProcessing.PProcessingEnabledSet(
             "Whitebalance",
@@ -155,7 +155,7 @@ public sealed partial class PEditTab
 
         string pGammaTooltip = LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresEq");
         pProcessing.PProcessingEnabledSet("Gamma", pEqCapable, pGammaTooltip);
-        pInspector.PGammaCapabilitySet(pEqCapable, pEqCapable && pPreviewMpv, "Inspector.Video.GammaRequiresEq");
+        pInspector.PGammaCapabilitySet(pEqCapable, pEqCapable && pPreviewMpv);
 
         PEditColorUpdate();
         PEditColorApply();

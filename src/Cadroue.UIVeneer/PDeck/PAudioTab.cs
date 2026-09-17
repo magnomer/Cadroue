@@ -1,4 +1,4 @@
-﻿using Cadroue.Core;
+using Cadroue.Core;
 using Cadroue.UIVeneer.PPanel;
 using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
 using Cadroue.Application;
@@ -18,7 +18,7 @@ public sealed partial class PAudioTab : PTabSurface
     private const string PAudioEqualizerIcon = "/PAsset/PPanel/PProcessingEqualizer.svg";
 
     private readonly PFlowControl pFlow = new();
-    private readonly PViewer pViewer = new() { PViewerAudioEligible = true };
+    private readonly PViewer pViewer = new(pAudioEligible: true);
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();

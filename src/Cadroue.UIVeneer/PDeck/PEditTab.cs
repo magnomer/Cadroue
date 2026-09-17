@@ -1,4 +1,4 @@
-﻿using Cadroue.Core;
+using Cadroue.Core;
 using Cadroue.UIVeneer.PPanel;
 using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
 using Cadroue.Application;
@@ -21,11 +21,11 @@ public sealed partial class PEditTab : PTabSurface
     private const string PEditWhitebalanceIcon = "/PAsset/PPanel/PProcessingWhitebalance.svg";
 
     private readonly PFlowControl pFlow = new();
-    private readonly PViewer pViewer = new() { PViewerColorPreview = true, PViewerEditEligible = true };
+    private readonly PViewer pViewer = new(pEditEligible: true, pColorPreview: true);
     private readonly PInspector pInspector = new();
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
-    private readonly LCropboxState pCropOwner = new();
+    private readonly LCropboxState pCropOwner;
     private readonly System.Windows.Controls.Grid pTabGrid;
     private readonly System.Windows.Threading.DispatcherTimer pEditColorTimer = new()
     {
@@ -40,6 +40,7 @@ public sealed partial class PEditTab : PTabSurface
 
     public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
+        pCropOwner = pInspector.LCropboxState;
         var pAction = new PAction();
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
@@ -149,23 +150,12 @@ public sealed partial class PEditTab : PTabSurface
         pInspector.PInspectorPlanChange += PEditPersistentSave;
 
         pInspector.PInspectorToolChange += pViewer.PCropToolSet;
-        pInspector.PInspectorRatioChange += pViewer.PCropRatioSet;
-        pInspector.PInspectorRatioChange += _ => PEditRatioSet();
-        pInspector.PInspectorRatioChange += _ => PEditPlanSave();
-        pInspector.PInspectorCropChange += PEditCropSync;
-        pInspector.PInspectorRotateChange += PEditRotateHandle;
-        pInspector.PInspectorRotateChange += _ => PEditCropSet();
-        pInspector.PInspectorRotateChange += _ => PEditPlanSave();
-        pInspector.PInspectorPersistentChange += pPersistent => pViewer.PCropPersistent = pPersistent;
-        pInspector.PInspectorPersistentChange += pCropOwner.LCropboxPersistentSet;
-        pInspector.PCropActiveChange += PEditActiveSet;
-        pInspector.PCropActiveChange += PEditCropUpdate;
-        pInspector.PCropActiveChange += PEditPlanSave;
+        pCropOwner.LCropboxStateChange += PEditCropHandle;
         pInspector.PInspectorVideoChange += PEditChangeHandle;
         pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
         pViewer.PViewerToolChange += pInspector.PWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += PEditNeutralHandle;
-        pInspector.PWhitebalanceEstimateChange += PEditEstimateHandle;
+        pInspector.LWhitebalance.LWhitebalanceEstimateChange += PEditEstimateHandle;
         pViewer.PViewerMediaChange += _ =>
             PEditEstimateHandle(pInspector.PWhitebalanceMethodRead());
         pViewer.PViewerMediaChange += _ => PEditHistogramDefer();
@@ -242,7 +232,7 @@ public sealed partial class PEditTab : PTabSurface
         {
             (bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) = pCropOwner.LCropboxStateRatio;
             var pEditCarried = new LEditPlan(
-                pCropPersistent ? pCropOwner.LCropboxStateCrop : LWorkCrop.LWorkCropCreate(),
+                pCropPersistent ? pInspector.PInspectorCropRead() : LWorkCrop.LWorkCropCreate(),
                 pInspector.PTonePersistentRead(),
                 pCropPersistent && pCropOwner.LCropboxStateActive)
             {

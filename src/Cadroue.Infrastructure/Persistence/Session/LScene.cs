@@ -111,6 +111,15 @@ public static partial class LScene
             return true;
         });
 
+    public static string LSceneFileResolve(string lSceneName, string lSceneDefault)
+    {
+        char[] lInvalid = Path.GetInvalidFileNameChars();
+        string lClean = new string(lSceneName.Trim()
+            .Select(lCharacter => lInvalid.Contains(lCharacter) ? '_' : lCharacter)
+            .ToArray());
+        return string.IsNullOrWhiteSpace(lClean) ? $"{lSceneDefault}.json" : $"{lClean}.json";
+    }
+
     public static void LSceneFileSave(LSceneRecord lScene, string lScenePath)
     {
         string lSceneJson = JsonSerializer.Serialize(lScene, new JsonSerializerOptions { WriteIndented = true });

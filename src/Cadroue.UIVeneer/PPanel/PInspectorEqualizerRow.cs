@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -11,8 +10,6 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PInspector
 {
-    private readonly record struct PEqualizerCurrent(double[] PEqualizerFrequencies, double[] PEqualizerGains);
-
     private const string pEqualizerRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
 
     private sealed class PInspectorBand
@@ -21,22 +18,48 @@ public sealed partial class PInspector
         public required TextBox PInspectorBandFrequency { get; init; }
         public required Slider PInspectorBandSlider { get; init; }
         public required TextBox PInspectorBandValue { get; init; }
-        public bool PInspectorBandSuppress { get; set; }
     }
 
     private readonly List<PInspectorBand> pEqualizerRows = new();
 
-    private void PEqualizerRowAdd(double pFrequency, double pGain, bool pRaise)
+    private void PEqualizerRowsUpdate()
+    {
+        IReadOnlyList<LWorkBand> pBands = LEqualizer.LEqualizerBands;
+        while (pEqualizerRows.Count > pBands.Count)
+        {
+            PInspectorBand pLast = pEqualizerRows[^1];
+            pEqualizerRows.RemoveAt(pEqualizerRows.Count - 1);
+            pEqualizerRowPanel.Children.Remove(pLast.PInspectorBandRow);
+        }
+
+        while (pEqualizerRows.Count < pBands.Count)
+        {
+            PEqualizerRowAdd(pEqualizerRows.Count);
+        }
+
+        for (int pIndex = 0; pIndex < pBands.Count; pIndex++)
+        {
+            PInspectorBand pRow = pEqualizerRows[pIndex];
+            PInspectorTextSet(pRow.PInspectorBandFrequency, pBands[pIndex].LWorkBandFrequency, "0.###");
+            PInspectorValueUpdate(pRow.PInspectorBandSlider, pRow.PInspectorBandValue, pBands[pIndex].LWorkBandGain, "0.#");
+        }
+    }
+
+    private LWorkBand PEqualizerBandRead(int pIndex) =>
+        pIndex < LEqualizer.LEqualizerBands.Count
+            ? LEqualizer.LEqualizerBands[pIndex]
+            : new LWorkBand(LContourCatalog.LContourFrequencyDefault, 0);
+
+    private void PEqualizerRowAdd(int pIndex)
     {
         var pFrequencyBox = PInspectorDecimalBuild();
         pFrequencyBox.Width = 56;
-        pFrequencyBox.Text = pFrequency.ToString("0.###", CultureInfo.InvariantCulture);
 
         var pSlider = new Slider
         {
             Minimum = LContourCatalog.LContourGainLeast,
             Maximum = LContourCatalog.LContourGainMost,
-            Value = Math.Clamp(pGain, LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost),
+            Value = 0,
             VerticalAlignment = VerticalAlignment.Center
         };
         PSlider.PSliderApply(pSlider);
@@ -44,7 +67,6 @@ public sealed partial class PInspector
 
         var pValueBox = PInspectorDecimalBuild();
         pValueBox.Width = PInspectorInsetWidth / 2;
-        pValueBox.Text = pGain.ToString("0.#", CultureInfo.InvariantCulture);
 
         var pRemoveButton = new Button
         {
@@ -107,80 +129,34 @@ public sealed partial class PInspector
             PInspectorBandValue = pValueBox
         };
 
-        pSlider.ValueChanged += (_, _) =>
-        {
-            if (pBand.PInspectorBandSuppress)
-            {
-                return;
-            }
-
-            pBand.PInspectorBandSuppress = true;
-            pValueBox.Text = pSlider.Value.ToString("0.#", CultureInfo.InvariantCulture);
-            pBand.PInspectorBandSuppress = false;
-            PInspectorActiveRaise();
-            PEqualizerDeviationCheck();
-        };
-        pValueBox.TextChanged += (_, _) =>
-        {
-            if (pBand.PInspectorBandSuppress)
-            {
-                return;
-            }
-
-            pBand.PInspectorBandSuppress = true;
-            pSlider.Value = Math.Clamp(
-                PInspectorDecimalRead(pValueBox, 0),
-                LContourCatalog.LContourGainLeast, LContourCatalog.LContourGainMost);
-            pBand.PInspectorBandSuppress = false;
-            PInspectorActiveRaise();
-            PEqualizerDeviationCheck();
-        };
+        PInspectorValueAttach(
+            pSlider,
+            pValueBox,
+            LContourCatalog.LContourGainLeast,
+            LContourCatalog.LContourGainMost,
+            () => PEqualizerBandRead(pEqualizerRows.IndexOf(pBand)).LWorkBandGain,
+            pGain => PEqualizerBandSet(pBand, pFrequencyBox, pGain));
         pFrequencyBox.TextChanged += (_, _) =>
         {
-            PInspectorActiveRaise();
-            PEqualizerDeviationCheck();
+            int pSlot = pEqualizerRows.IndexOf(pBand);
+            LWorkBand pCurrent = PEqualizerBandRead(pSlot);
+            LEqualizer.LEqualizerBandSet(
+                pSlot,
+                PInspectorDecimalRead(pFrequencyBox, pCurrent.LWorkBandFrequency),
+                pCurrent.LWorkBandGain);
         };
-        pRemoveButton.Click += (_, _) => PEqualizerRowRemove(pBand);
+        pRemoveButton.Click += (_, _) => LEqualizer.LEqualizerBandRemove(pEqualizerRows.IndexOf(pBand));
 
-        pEqualizerRows.Add(pBand);
-        pEqualizerRowPanel.Children.Add(pLine);
-
-        if (pRaise)
-        {
-            PInspectorActiveRaise();
-        }
+        pEqualizerRows.Insert(pIndex, pBand);
+        pEqualizerRowPanel.Children.Insert(pIndex, pLine);
     }
 
-    private void PEqualizerRowRemove(PInspectorBand pBand)
+    private void PEqualizerBandSet(PInspectorBand pBand, TextBox pFrequencyBox, double pGain)
     {
-        pEqualizerRows.Remove(pBand);
-        pEqualizerRowPanel.Children.Remove(pBand.PInspectorBandRow);
-        PInspectorActiveRaise();
-        PEqualizerDeviationCheck();
-    }
-
-    private void PEqualizerRowsApply(double[] pGains)
-    {
-        double[] pGrid = LContourCatalog.LContourBandGrid;
-        pEqualizerRows.Clear();
-        pEqualizerRowPanel.Children.Clear();
-        for (int pIndex = 0; pIndex < pGrid.Length; pIndex++)
-        {
-            PEqualizerRowAdd(pGrid[pIndex], pGains[pIndex], false);
-        }
-    }
-
-    private PEqualizerCurrent PEqualizerCurrentRead()
-    {
-        var pFrequencies = new double[pEqualizerRows.Count];
-        var pGains = new double[pEqualizerRows.Count];
-        for (int pIndex = 0; pIndex < pEqualizerRows.Count; pIndex++)
-        {
-            pFrequencies[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandFrequency, 0);
-            pGains[pIndex] = PInspectorDecimalRead(pEqualizerRows[pIndex].PInspectorBandValue, 0);
-        }
-
-        return new PEqualizerCurrent(pFrequencies, pGains);
+        int pSlot = pEqualizerRows.IndexOf(pBand);
+        LWorkBand pCurrent = PEqualizerBandRead(pSlot);
+        LEqualizer.LEqualizerBandSet(
+            pSlot, PInspectorDecimalRead(pFrequencyBox, pCurrent.LWorkBandFrequency), pGain);
     }
 
     private static TextBlock PEqualizerUnitBuild(string pUnit) => new()
