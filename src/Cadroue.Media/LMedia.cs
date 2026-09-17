@@ -39,6 +39,28 @@ public static partial class LMedia
     private const int LMediaPollMs = 200;
     private const int LMediaStreamChars = 4096;
     private static readonly TimeSpan lMediaIdleLimit = TimeSpan.FromSeconds(30);
+    private static readonly SemaphoreSlim lMediaScanSlot = new(1, 1);
+    private static int lMediaScanWaiters;
+
+    public static void LMediaScanClaim(CancellationToken lMediaToken = default)
+    {
+        if (Volatile.Read(ref lMediaScanWaiters) > 0)
+        {
+            Thread.Sleep(1);
+        }
+
+        Interlocked.Increment(ref lMediaScanWaiters);
+        try
+        {
+            lMediaScanSlot.Wait(lMediaToken);
+        }
+        finally
+        {
+            Interlocked.Decrement(ref lMediaScanWaiters);
+        }
+    }
+
+    public static void LMediaScanRelease() => lMediaScanSlot.Release();
 
     public static LMediaInfo LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default)
     {

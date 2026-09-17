@@ -144,7 +144,11 @@ public static partial class LSweep
             {
             }
         });
-        LEmployerResult lSweepResult = await lSweepEmployer.LEmployerRun(
+        LEmployerResult lSweepResult;
+        LMedia.LMediaScanClaim(lSweepToken);
+        try
+        {
+            lSweepResult = await lSweepEmployer.LEmployerRun(
             lSweepArguments,
             lSweepToken,
             lSweepAttach => lSweepProcess = lSweepAttach,
@@ -159,6 +163,11 @@ public static partial class LSweep
                     lSweepProgress.Report(Math.Clamp(lSweepElapsed / lSweepDuration.TotalSeconds, 0, 1));
                 }
             }).ConfigureAwait(false);
+        }
+        finally
+        {
+            LMedia.LMediaScanRelease();
+        }
 
         lSweepToken.ThrowIfCancellationRequested();
         if (lSweepResult.LEmployerExit != 0)

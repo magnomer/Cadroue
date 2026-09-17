@@ -96,6 +96,7 @@ public static partial class LMedia
         lMediaProcessInfo.ArgumentList.Add("-i");
         lMediaProcessInfo.ArgumentList.Add(lMediaSourcePath);
 
+        LMediaScanClaim(lMediaToken);
         try
         {
             LMediaProcessResult lMediaResult = LMediaProcessRun(lMediaProcessInfo, lMediaToken);
@@ -107,6 +108,10 @@ public static partial class LMedia
             lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
         {
             return null;
+        }
+        finally
+        {
+            LMediaScanRelease();
         }
     }
 

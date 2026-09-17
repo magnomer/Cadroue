@@ -32,6 +32,7 @@ public sealed partial class PFlow : UserControl
     private readonly Grid pFlowMapReel;
     private LSpool? lSpool;
     private string? lSourcePath;
+    private LMediaInfo? lMediaInfo;
 
     private bool pFlowSectionActive;
     private bool pFlowCommandActive;
@@ -91,6 +92,7 @@ public sealed partial class PFlow : UserControl
             && string.Equals(lSourcePath, pFlowNextSource, StringComparison.OrdinalIgnoreCase);
         TimeSpan pFlowResumeAt = pFlowSameSource ? lCursor : cursorTime;
         lSourcePath = pFlowNextSource;
+        lMediaInfo = mediaInfo;
         lSpool = new LSpool(mediaInfo.LMediaInfoDuration);
         pFlowWaveformAudio = mediaInfo.LMediaAudioPresent;
         pFlowKeyframeDirection = null;
@@ -131,6 +133,7 @@ public sealed partial class PFlow : UserControl
         lKeyframeOrchestrator.LKeyframeSuspend();
         pFlowKeyframeDirection = null;
         lSourcePath = null;
+        lMediaInfo = null;
         lSpool = null;
         lCursor = TimeSpan.Zero;
         lSegment.LSegmentSourceSet(null);

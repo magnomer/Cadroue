@@ -18,18 +18,31 @@ public sealed partial class LKeyframeOrchestrator
                 return;
             }
 
-            var keyframes = lKeyframeStorage
-                .Select(ms => new LKeyframeEntry(TimeSpan.FromMilliseconds(ms)))
-                .ToArray();
-            var scanned = lKeyframeScannedSpans
-                .OrderBy(index => index)
-                .Select(index => new LKeyframeScanRange(
-                    TimeSpan.FromMilliseconds(index * LKeyframeGridMilliseconds),
-                    TimeSpan.FromMilliseconds(Math.Min(
-                        lKeyframeDuration.TotalMilliseconds,
-                        (index + 1) * LKeyframeGridMilliseconds))))
-                .ToArray();
-            notice = new LKeyframeNotice(serial, keyframes, scanned);
+            LKeyframeEntry[] keyframes;
+            LKeyframeScanRange[] scanned;
+            if (lKeyframeKind == LKeyframeKind.LKeyframeKindInter)
+            {
+                keyframes = lKeyframeStorage
+                    .Select(ms => new LKeyframeEntry(TimeSpan.FromMilliseconds(ms)))
+                    .ToArray();
+                scanned = lKeyframeScannedSpans
+                    .OrderBy(index => index)
+                    .Select(index => new LKeyframeScanRange(
+                        TimeSpan.FromMilliseconds(index * LKeyframeGridMilliseconds),
+                        TimeSpan.FromMilliseconds(Math.Min(
+                            lKeyframeDuration.TotalMilliseconds,
+                            (index + 1) * LKeyframeGridMilliseconds))))
+                    .ToArray();
+            }
+            else
+            {
+                keyframes = Array.Empty<LKeyframeEntry>();
+                scanned = lKeyframeDuration > TimeSpan.Zero
+                    ? new[] { new LKeyframeScanRange(TimeSpan.Zero, lKeyframeDuration) }
+                    : Array.Empty<LKeyframeScanRange>();
+            }
+
+            notice = new LKeyframeNotice(serial, keyframes, scanned, lKeyframeKind);
             lKeyframeStamp = ++lKeyframeNoticeSerial;
         }
         LKeyframeNoticeDispatch(notice, lKeyframeStamp);
@@ -56,6 +69,11 @@ public sealed partial class LKeyframeOrchestrator
         lKeyframeStorage.Clear();
         lKeyframeScannedSpans.Clear();
         lKeyframeFailedCounts.Clear();
+        lKeyframeAttempts.Clear();
+        lKeyframeWorkerActive = false;
+        lKeyframeKind = LKeyframeKind.LKeyframeKindInter;
+        lKeyframeRate = 0;
+        lKeyframeStartSeconds = 0;
         lKeyframeUnsavedCount = 0;
         lKeyframeSavedSignature = new LKeyframeSignature(-1, -1);
         lKeyframeSourceIdentity = null;
@@ -138,7 +156,7 @@ public sealed partial class LKeyframeOrchestrator
         lock (lKeyframeLock)
         {
             identity = lKeyframeSourceIdentity;
-            if (identity is null)
+            if (identity is null || lKeyframeKind != LKeyframeKind.LKeyframeKindInter)
             {
                 return;
             }

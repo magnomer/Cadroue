@@ -55,14 +55,20 @@ internal static class LScout
 
     internal static double? LScoutIntervalRead(
         string lScoutMediaPath,
-        TimeSpan lScoutMediaDuration,
+        LWorkMedia lScoutMedia,
         CancellationToken lScoutToken = default)
     {
+        TimeSpan lScoutMediaDuration = lScoutMedia.LWorkMediaDuration;
         if (string.IsNullOrWhiteSpace(lScoutMediaPath)
             || !File.Exists(lScoutMediaPath)
             || lScoutMediaDuration <= TimeSpan.Zero)
         {
             return null;
+        }
+
+        if (LKeyframeCodec.LKeyframeKindResolve(lScoutMedia.LWorkMediaCodec) == LKeyframeKind.LKeyframeKindIntra)
+        {
+            return lScoutMedia.LWorkMediaFramerate > 0 ? 1000d / lScoutMedia.LWorkMediaFramerate : null;
         }
 
         try
@@ -160,7 +166,7 @@ internal static class LScout
         }
 
         if (lScoutMedia.LWorkMediaVideo
-            && LScoutIntervalRead(lScoutSourcePath, lScoutMedia.LWorkMediaDuration, lScoutToken) is { } lScoutInterval)
+            && LScoutIntervalRead(lScoutSourcePath, lScoutMedia, lScoutToken) is { } lScoutInterval)
         {
             lScoutMedia = lScoutMedia with { LWorkKeyframeInterval = lScoutInterval };
         }

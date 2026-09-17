@@ -12,7 +12,8 @@ internal sealed record TKeyframeRange(long TKeyframeStartMilliseconds, long TKey
 internal sealed record TKeyframeState(
     int TKeyframeSerial,
     IReadOnlyList<long> TKeyframeList,
-    IReadOnlyList<TKeyframeRange> TKeyframeCoverage);
+    IReadOnlyList<TKeyframeRange> TKeyframeCoverage,
+    LKeyframeKind TKeyframeKind);
 
 internal sealed record TKeyframeCacheData(
     IReadOnlyList<long> TKeyframeList,
@@ -35,6 +36,7 @@ internal sealed class TKeyframe : IDisposable
     private readonly ConcurrentDictionary<string, TKeyframeControl> tKeyframeControls =
         new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, int> tKeyframeFailures = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, bool> tKeyframeIntra = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentQueue<TKeyframeRange> tKeyframeScans = new();
     private readonly ConcurrentQueue<TKeyframeState> tKeyframeNotices = new();
     private LKeyframeOrchestrator tKeyframeOrchestrator;
@@ -68,6 +70,8 @@ internal sealed class TKeyframe : IDisposable
     internal void TKeyframeSourceDelete(string sourcePath) => File.Delete(sourcePath);
 
     internal void TKeyframeFailureSet(string sourcePath, int count) => tKeyframeFailures[sourcePath] = count;
+
+    internal void TKeyframeIntraSet(string sourcePath) => tKeyframeIntra[sourcePath] = true;
 
     internal LKeyframeMoveResult TKeyframeMoveRead(TimeSpan cursor, int direction) => direction switch
     {
@@ -112,8 +116,14 @@ internal sealed class TKeyframe : IDisposable
         }
     }
 
-    internal void TKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor) =>
-        tKeyframeOrchestrator.LKeyframeStart(sourcePath, duration, cursor);
+    internal void TKeyframeStart(
+        string sourcePath, TimeSpan duration, TimeSpan cursor, string codec = "h264", bool video = true) =>
+        tKeyframeOrchestrator.LKeyframeStart(
+            sourcePath,
+            video
+                ? new LMediaInfo(duration, 16, 16, 25, codec, false, "", 0, 0)
+                : new LMediaInfo(duration, 0, 0, 0, "", true, "aac", 48000, 2),
+            cursor);
 
     internal void TKeyframeSuspend() => tKeyframeOrchestrator.LKeyframeSuspend();
 
@@ -168,8 +178,9 @@ internal sealed class TKeyframe : IDisposable
         return orchestrator;
     }
 
-    private IReadOnlyList<LKeyframeEntry> TKeyframeScan(
+    private LKeyframeSpanResult TKeyframeScan(
         string sourcePath,
+        double startSeconds,
         TimeSpan start,
         TimeSpan end,
         CancellationToken cancellationToken)
@@ -202,11 +213,13 @@ internal sealed class TKeyframe : IDisposable
             tKeyframeFailures[sourcePath] = failures - 1;
             throw new InvalidOperationException("ffprobe packet scan failed with exit code 1.");
         }
-        return tKeyframeResults.GetValueOrDefault(sourcePath, Array.Empty<long>())
-            .Where(milliseconds => milliseconds >= start.TotalMilliseconds
-                && milliseconds <= end.TotalMilliseconds)
-            .Select(milliseconds => new LKeyframeEntry(TimeSpan.FromMilliseconds(milliseconds)))
-            .ToArray();
+        return new LKeyframeSpanResult(
+            tKeyframeResults.GetValueOrDefault(sourcePath, Array.Empty<long>())
+                .Where(milliseconds => milliseconds >= start.TotalMilliseconds
+                    && milliseconds <= end.TotalMilliseconds)
+                .Select(milliseconds => new LKeyframeEntry(TimeSpan.FromMilliseconds(milliseconds)))
+                .ToArray(),
+            tKeyframeIntra.ContainsKey(sourcePath));
     }
 
     private void TKeyframeNoticeRead(LKeyframeNotice notice) =>
@@ -219,7 +232,8 @@ internal sealed class TKeyframe : IDisposable
                 .Select(range => new TKeyframeRange(
                     (long)range.LKeyframeRangeOrigin.TotalMilliseconds,
                     (long)range.LKeyframeRangeLimit.TotalMilliseconds))
-                .ToArray()));
+                .ToArray(),
+            notice.LKeyframeKind));
 
     private static async Task TKeyframeWaitRead(Func<bool> condition, Func<string> failure)
     {

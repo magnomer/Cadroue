@@ -10,7 +10,11 @@ namespace Cadroue.ShellEngine;
 internal static class LScoutBridge
 {
     internal static IReadOnlyList<LKeyframeEntry> LScoutBridgeRead(
-        string lScoutSourcePath, TimeSpan lScoutOrigin, TimeSpan lScoutEnd, CancellationToken lScoutToken = default)
+        string lScoutSourcePath,
+        TimeSpan lScoutOrigin,
+        TimeSpan lScoutEnd,
+        CancellationToken lScoutToken = default,
+        LBridgeStream? lScoutStream = null)
     {
         if (string.IsNullOrWhiteSpace(lScoutSourcePath) || !File.Exists(lScoutSourcePath) || lScoutEnd <= lScoutOrigin)
         {
@@ -19,9 +23,15 @@ internal static class LScoutBridge
 
         try
         {
+            lScoutStream ??= LScoutStream.LScoutStreamRead(lScoutSourcePath, lScoutToken);
+            if (lScoutStream is not null
+                && LKeyframeCodec.LKeyframeKindResolve(lScoutStream.LBridgeCodec) == LKeyframeKind.LKeyframeKindIntra)
+            {
+                return new[] { new LKeyframeEntry(lScoutOrigin), new LKeyframeEntry(lScoutEnd) };
+            }
+
             IReadOnlyList<LKeyframeEntry> lScoutKeyframes = LKeyframeSeeker.LKeyframeRangeScan(
                 lScoutSourcePath, lScoutOrigin, lScoutEnd, lScoutToken);
-            LBridgeStream? lScoutStream = LScoutStream.LScoutStreamRead(lScoutSourcePath, lScoutToken);
             if (lScoutStream is null)
             {
                 return lScoutKeyframes;

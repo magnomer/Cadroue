@@ -7,10 +7,13 @@ namespace Cadroue.Media;
 
 public sealed record LKeyframePacket(double LKeyframePresentation, double? LKeyframeDecode);
 
+public sealed record LKeyframeSpanResult(IReadOnlyList<LKeyframeEntry> LKeyframeSpanEntries, bool LKeyframeSpanIntra);
+
 public static class LKeyframeSeeker
 {
     private const double LKeyframeScanTolerance = 1d;
     private const double LKeyframeRangeTolerance = 0.001d;
+    private const int LKeyframeIntraMinimum = 10;
 
     public static IReadOnlyList<LKeyframeEntry> LKeyframeRangeScan(
         string sourcePath,
@@ -22,15 +25,52 @@ public static class LKeyframeSeeker
             throw new ArgumentException("Source path is required.", nameof(sourcePath));
         if (!File.Exists(sourcePath))
             throw new FileNotFoundException("Source file does not exist.", sourcePath);
-
-        TimeSpan normalizedStart = scanStartTime < TimeSpan.Zero ? TimeSpan.Zero : scanStartTime;
-        if (scanEndTime <= normalizedStart)
+        if (scanEndTime <= (scanStartTime < TimeSpan.Zero ? TimeSpan.Zero : scanStartTime))
             return Array.Empty<LKeyframeEntry>();
 
         cancellationToken.ThrowIfCancellationRequested();
-
         double timelineStartSeconds =
             LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
+        return LKeyframeSpanScan(sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken)
+            .LKeyframeSpanEntries;
+    }
+
+    public static LKeyframeSpanResult LKeyframeLaneScan(
+        string sourcePath,
+        double timelineStartSeconds,
+        TimeSpan scanStartTime,
+        TimeSpan scanEndTime,
+        CancellationToken cancellationToken = default)
+    {
+        LMedia.LMediaScanClaim(cancellationToken);
+        try
+        {
+            return LKeyframeSpanScan(sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken);
+        }
+        finally
+        {
+            LMedia.LMediaScanRelease();
+        }
+    }
+
+    public static LKeyframeSpanResult LKeyframeSpanScan(
+        string sourcePath,
+        double timelineStartSeconds,
+        TimeSpan scanStartTime,
+        TimeSpan scanEndTime,
+        CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(sourcePath))
+            throw new ArgumentException("Source path is required.", nameof(sourcePath));
+        if (!File.Exists(sourcePath))
+            throw new FileNotFoundException("Source file does not exist.", sourcePath);
+
+        TimeSpan normalizedStart = scanStartTime < TimeSpan.Zero ? TimeSpan.Zero : scanStartTime;
+        if (scanEndTime <= normalizedStart)
+            return new LKeyframeSpanResult(Array.Empty<LKeyframeEntry>(), false);
+
+        cancellationToken.ThrowIfCancellationRequested();
+
         double intervalStartSeconds = timelineStartSeconds + normalizedStart.TotalSeconds;
         double intervalEndSeconds = timelineStartSeconds + scanEndTime.TotalSeconds + LKeyframeScanTolerance;
         string intervalStart = intervalStartSeconds > 0
@@ -50,37 +90,43 @@ public static class LKeyframeSeeker
         };
 
         var keyframePackets = new List<LKeyframePacket>();
-        using var process = Process.Start(psi) ?? throw new InvalidOperationException("ffprobe could not be started.");
-        try
+        int packetCount = 0;
         {
-            LCustody.LCustodyAttach(process);
-            LKeyframePrioritySet(process);
-            using var killOnCancel = cancellationToken.Register(
-                static p => { try { ((Process)p!).Kill(); } catch { } }, process);
-
-            Task<string> errorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
-            string? line;
-            while ((line = process.StandardOutput.ReadLine()) is not null)
+            using var process = Process.Start(psi)
+                ?? throw new InvalidOperationException("ffprobe could not be started.");
+            try
             {
-                LKeyframeLineParse(line, keyframePackets);
+                LCustody.LCustodyAttach(process);
+                LKeyframePrioritySet(process);
+                using var killOnCancel = cancellationToken.Register(
+                    static p => { try { ((Process)p!).Kill(); } catch { } }, process);
+
+                Task<string> errorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
+                string? line;
+                while ((line = process.StandardOutput.ReadLine()) is not null)
+                {
+                    packetCount += LKeyframeLineParse(line, keyframePackets);
+                }
+
+                process.WaitForExit();
+                cancellationToken.ThrowIfCancellationRequested();
+                if (process.ExitCode != 0)
+                {
+                    throw new InvalidOperationException(
+                        LKeyframeFailureFormat(process.ExitCode, errorTask.GetAwaiter().GetResult()));
+                }
             }
-
-            process.WaitForExit();
-            cancellationToken.ThrowIfCancellationRequested();
-            if (process.ExitCode != 0)
+            finally
             {
-                throw new InvalidOperationException(
-                    LKeyframeFailureFormat(process.ExitCode, errorTask.GetAwaiter().GetResult()));
+                if (!process.HasExited)
+                    try { process.Kill(); } catch { }
             }
         }
-        finally
-        {
-            if (!process.HasExited)
-                try { process.Kill(); } catch { }
-        }
 
-        return LKeyframeEntriesResolve(
-            keyframePackets, timelineStartSeconds, normalizedStart.TotalSeconds, scanEndTime.TotalSeconds);
+        return new LKeyframeSpanResult(
+            LKeyframeEntriesResolve(
+                keyframePackets, timelineStartSeconds, normalizedStart.TotalSeconds, scanEndTime.TotalSeconds),
+            packetCount >= LKeyframeIntraMinimum && packetCount == keyframePackets.Count);
     }
 
     private static IReadOnlyList<LKeyframeEntry> LKeyframeEntriesResolve(
@@ -133,14 +179,14 @@ public static class LKeyframeSeeker
         }
     }
 
-    private static void LKeyframeLineParse(
+    private static int LKeyframeLineParse(
         string line,
         List<LKeyframePacket> result)
     {
         string[] parts = line.Split(',');
-        if (parts.Length < 4) return;
-        if (!string.Equals(parts[0], "packet", StringComparison.Ordinal)) return;
-        if (!parts[3].Contains('K')) return;
+        if (parts.Length < 4) return 0;
+        if (!string.Equals(parts[0], "packet", StringComparison.Ordinal)) return 0;
+        if (!parts[3].Contains('K')) return 1;
 
         bool hasPts = double.TryParse(
             parts[1],
@@ -152,8 +198,8 @@ public static class LKeyframeSeeker
             NumberStyles.Float,
             CultureInfo.InvariantCulture,
             out double dtsSeconds);
-        if (!hasPts && !hasDts) return;
+        if (!hasPts && !hasDts) return 1;
         result.Add(new LKeyframePacket(hasPts ? ptsSeconds : dtsSeconds, hasDts ? dtsSeconds : null));
+        return 1;
     }
-
 }

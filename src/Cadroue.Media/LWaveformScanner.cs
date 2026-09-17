@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 
 using Cadroue.Core;
 
@@ -22,7 +23,7 @@ public static class LWaveformScanner
 
     private const int LWaveformDetailLimit = 400;
 
-    private static readonly SemaphoreSlim lWaveformScanSlot = new(1, 1);
+    private const int LWaveformChunkMilliseconds = 20_000;
 
     public static LWaveformScanResult LWaveformScan(
         string lWaveformSourcePath,
@@ -42,27 +43,54 @@ public static class LWaveformScanner
             return LWaveformScanResult.LWaveformFailureCreate("duration outside the scannable range");
         }
 
-        lWaveformScanSlot.Wait(lWaveformCancelSource);
-        try
+        if (lWaveformFilterGraph is not null)
         {
             return LWaveformProcessRun(
                 lWaveformSourcePath,
                 lWaveformBucketExpected,
                 lWaveformCancelSource,
-                lWaveformFilterGraph);
+                lWaveformFilterGraph,
+                null);
         }
-        finally
+
+        var lWaveformPeaks = new List<byte>(lWaveformBucketExpected);
+        long lWaveformMilliseconds = LWaveform.LWaveformMillisecondsResolve(lWaveformDuration);
+        for (long lWaveformChunkStart = 0; lWaveformChunkStart < lWaveformMilliseconds;
+             lWaveformChunkStart += LWaveformChunkMilliseconds)
         {
-            lWaveformScanSlot.Release();
+            long lWaveformChunkLength = Math.Min(LWaveformChunkMilliseconds, lWaveformMilliseconds - lWaveformChunkStart);
+            LWaveformScanResult lWaveformChunk = LWaveformProcessRun(
+                lWaveformSourcePath,
+                LWaveform.LWaveformBucketsResolve(lWaveformChunkLength),
+                lWaveformCancelSource,
+                null,
+                (lWaveformChunkStart, lWaveformChunkLength));
+            if (!lWaveformChunk.LWaveformComplete)
+            {
+                return lWaveformChunk;
+            }
+
+            lWaveformPeaks.AddRange(lWaveformChunk.LWaveformPeaks);
         }
+
+        return new LWaveformScanResult(
+            true,
+            LWaveformPeaksNormalize(lWaveformPeaks, lWaveformBucketExpected),
+            string.Empty);
     }
 
     private static LWaveformScanResult LWaveformProcessRun(
         string lWaveformSourcePath,
         int lWaveformBucketExpected,
         CancellationToken lWaveformCancelSource,
-        string? lWaveformFilterGraph)
+        string? lWaveformFilterGraph,
+        (long LWaveformOrigin, long LWaveformLength)? lWaveformChunk)
     {
+        string lWaveformWindow = lWaveformChunk is { } lWaveformRange
+            ? "-ss " + (lWaveformRange.LWaveformOrigin / 1000d).ToString("0.###", CultureInfo.InvariantCulture)
+                + " -t " + (lWaveformRange.LWaveformLength / 1000d).ToString("0.###", CultureInfo.InvariantCulture)
+                + " "
+            : string.Empty;
         int lWaveformBucketSamples =
             LWaveform.LWaveformSampleRate * LWaveform.LWaveformBucketMilliseconds / 1000 * LWaveformChannelCount;
         string lWaveformGraph = "aresample=async=1:first_pts=0"
@@ -70,7 +98,7 @@ public static class LWaveformScanner
         var lWaveformStart = new ProcessStartInfo(LTool.LToolFfmpegRead())
         {
             Arguments =
-                "-v error -nostdin -i \"" + lWaveformSourcePath + "\""
+                "-v error -nostdin " + lWaveformWindow + "-i \"" + lWaveformSourcePath + "\""
                 + " -vn -sn -dn -af \"" + lWaveformGraph + "\""
                 + " -ac " + LWaveformChannelCount + " -ar " + LWaveform.LWaveformSampleRate
                 + " -f s16le -",
@@ -85,6 +113,7 @@ public static class LWaveformScanner
         Task<string> lWaveformDetail = Task.FromResult(string.Empty);
         int lWaveformExitCode;
 
+        LMedia.LMediaScanClaim(lWaveformCancelSource);
         try
         {
             lWaveformProcess = Process.Start(lWaveformStart);
@@ -130,6 +159,7 @@ public static class LWaveformScanner
             }
 
             lWaveformProcess?.Dispose();
+            LMedia.LMediaScanRelease();
         }
 
         lWaveformCancelSource.ThrowIfCancellationRequested();
@@ -139,7 +169,7 @@ public static class LWaveformScanner
                 $"ffmpeg exit code {lWaveformExitCode}: {LWaveformDetailRead(lWaveformDetail)}");
         }
 
-        if (lWaveformPeaks.Count == 0)
+        if (lWaveformPeaks.Count == 0 && lWaveformChunk is not { LWaveformOrigin: > 0 })
         {
             return LWaveformScanResult.LWaveformFailureCreate("no audio samples were decoded");
         }

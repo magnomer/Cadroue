@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
@@ -200,13 +201,22 @@ public sealed class LCheckup : IDisposable
 
         try
         {
-            IReadOnlyList<LDossier> lCheckupScanned =
-                LCheckupScannerSeam?.Invoke(
-                    lCheckupPath,
-                    Array.Empty<LFlawKind>(),
-                    lCheckupToken,
-                    new LCheckupFeed(lCheckupValue => LCheckupProgress?.Invoke(lCheckupPath, lCheckupValue)))
-                ?? Array.Empty<LDossier>();
+            IReadOnlyList<LDossier> lCheckupScanned;
+            LMedia.LMediaScanClaim(lCheckupToken);
+            try
+            {
+                lCheckupScanned = LCheckupScannerSeam?.Invoke(
+                        lCheckupPath,
+                        Array.Empty<LFlawKind>(),
+                        lCheckupToken,
+                        new LCheckupFeed(lCheckupValue => LCheckupProgress?.Invoke(lCheckupPath, lCheckupValue)))
+                    ?? Array.Empty<LDossier>();
+            }
+            finally
+            {
+                LMedia.LMediaScanRelease();
+            }
+
             if (lCheckupToken.IsCancellationRequested)
             {
                 return;

@@ -47,7 +47,11 @@ public sealed partial class PFlow
     {
         lKeyframeRequestTimer.Stop();
         lKeyframeResumeTimer.Stop();
-        if (pFlowCommandActive && !pFlowUnloaded && lSpool is not null && !string.IsNullOrWhiteSpace(lSourcePath))
+        if (pFlowCommandActive
+            && !pFlowUnloaded
+            && lSpool is not null
+            && lMediaInfo is { } pFlowMediaInfo
+            && !string.IsNullOrWhiteSpace(lSourcePath))
         {
             LTrace.LTraceRecord(
                 LTraceKind.LTraceWork,
@@ -55,7 +59,7 @@ public sealed partial class PFlow
                 $"source {System.IO.Path.GetFileName(lSourcePath)}, duration {lSpool.LSpoolDuration:hh\\:mm\\:ss}\n"
                 + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to "
                 + $"{LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
-            lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lSpool.LSpoolDuration, lCursor);
+            lKeyframeOrchestrator.LKeyframeStart(lSourcePath, pFlowMediaInfo, lCursor);
         }
     }
 
@@ -88,7 +92,8 @@ public sealed partial class PFlow
     {
         double pFlowScanned = notice.LKeyframeRanges.Sum(
             pRange => (pRange.LKeyframeRangeLimit - pRange.LKeyframeRangeOrigin).TotalSeconds);
-        string pFlowStamp = $"{notice.LKeyframeList.Count}/{notice.LKeyframeRanges.Count}/{pFlowScanned:0.###}";
+        string pFlowStamp =
+            $"{notice.LKeyframeKind}/{notice.LKeyframeList.Count}/{notice.LKeyframeRanges.Count}/{pFlowScanned:0.###}";
         if (string.Equals(pFlowStamp, pFlowKeyframeStamp, StringComparison.Ordinal))
         {
             return;
@@ -98,10 +103,16 @@ public sealed partial class PFlow
         string pFlowSource = string.IsNullOrWhiteSpace(lSourcePath)
             ? "(no media)"
             : System.IO.Path.GetFileName(lSourcePath);
-        LTraceLog.LTraceInfoRecord(
-            $"Keyframe scan '{pFlowSource}': {notice.LKeyframeList.Count} keyframe(s) known, " +
-            $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across " +
-            $"{notice.LKeyframeRanges.Count} range(s)");
+        LTraceLog.LTraceInfoRecord(notice.LKeyframeKind switch
+        {
+            LKeyframeKind.LKeyframeKindIntra =>
+                $"Keyframe scan '{pFlowSource}': every frame is a keyframe, no scan needed",
+            LKeyframeKind.LKeyframeKindNone =>
+                $"Keyframe scan '{pFlowSource}': no video stream, no scan needed",
+            _ => $"Keyframe scan '{pFlowSource}': {notice.LKeyframeList.Count} keyframe(s) known, "
+                + $"{TimeSpan.FromSeconds(pFlowScanned):hh\\:mm\\:ss} scanned across "
+                + $"{notice.LKeyframeRanges.Count} range(s)"
+        });
     }
 
     private void PFlowKeyframeMove(int direction, bool requestScan = true)

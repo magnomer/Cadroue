@@ -33,7 +33,7 @@ internal sealed partial class LJob
         if (pMeasured.LWorkMediaVideo && pMeasured.LWorkKeyframeInterval is null)
         {
             double? pInterval = pVideoEncoded
-                ? LScout.LScoutIntervalRead(pOutputPath, pMeasured.LWorkMediaDuration, lJobToken)
+                ? LScout.LScoutIntervalRead(pOutputPath, pMeasured, lJobToken)
                 : pSourceMedia?.LWorkKeyframeInterval;
             if (pInterval is { } pValue)
             {

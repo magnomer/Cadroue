@@ -21,23 +21,31 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private int lKeyframeUnsavedCount;
     private LKeyframeSignature lKeyframeSavedSignature = new(-1, -1);
     private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
+    private readonly Dictionary<int, int> lKeyframeAttempts = new();
     private CancellationTokenSource? lKeyframeCancelSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
     private TimeSpan lKeyframeDuration;
+    private LKeyframeKind lKeyframeKind;
+    private double lKeyframeRate;
+    private double lKeyframeStartSeconds;
+    private TimeSpan lKeyframeCursor;
+    private bool lKeyframePaused;
+    private bool lKeyframeWorkerActive;
+    private int lKeyframeWorkerSerial;
     private int lKeyframeRequestSerial;
     private long lKeyframeNoticeSerial;
     private long lKeyframeNoticeCeiling = -1;
     private bool lKeyframeDisposed;
-    private readonly Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>>
+    private readonly Func<string, double, TimeSpan, TimeSpan, CancellationToken, LKeyframeSpanResult>
         lKeyframeScanner;
 
     public LKeyframeOrchestrator()
-        : this(LKeyframeSeeker.LKeyframeRangeScan)
+        : this(LKeyframeSeeker.LKeyframeLaneScan)
     {
     }
 
     internal LKeyframeOrchestrator(
-        Func<string, TimeSpan, TimeSpan, CancellationToken, IReadOnlyList<LKeyframeEntry>> scanner)
+        Func<string, double, TimeSpan, TimeSpan, CancellationToken, LKeyframeSpanResult> scanner)
     {
         lKeyframeScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
     }
@@ -49,8 +57,9 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     public static TimeSpan LKeyframeSearchDuration =>
         LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
 
-    public void LKeyframeStart(string sourcePath, TimeSpan duration, TimeSpan cursor)
+    public void LKeyframeStart(string sourcePath, LMediaInfo mediaInfo, TimeSpan cursor)
     {
+        TimeSpan duration = mediaInfo.LMediaInfoDuration;
         if (lKeyframeDisposed || string.IsNullOrWhiteSpace(sourcePath) || duration <= TimeSpan.Zero)
         {
             return;
@@ -61,45 +70,42 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         LKeyframeSourceIdentity? identity;
         lock (lKeyframeLock)
         {
-            lKeyframeCancelSource?.Cancel();
-            lKeyframeCancelSource?.Dispose();
-            lKeyframeCancelSource = new CancellationTokenSource();
-            cancel = lKeyframeCancelSource;
             serial = ++lKeyframeRequestSerial;
+            lKeyframeCursor = cursor;
+            lKeyframePaused = false;
 
             identity = lKeyframeSourceIdentity;
             if (LKeyframeSourceCheck(sourcePath, duration))
             {
+                lKeyframeCancelSource?.Cancel();
+                lKeyframeCancelSource?.Dispose();
+                lKeyframeCancelSource = new CancellationTokenSource();
                 identity = null;
                 LKeyframeStateClear();
                 lKeyframeDuration = duration;
+                lKeyframeKind = LKeyframeCodec.LKeyframeKindResolve(mediaInfo);
+                lKeyframeRate = mediaInfo.LMediaVideoRate;
+                lKeyframeStartSeconds = mediaInfo.LMediaStartTime.TotalSeconds;
             }
+
+            lKeyframeCancelSource ??= new CancellationTokenSource();
+            cancel = lKeyframeCancelSource;
         }
 
         identity ??= LKeyframeIdentityLoad(sourcePath, duration, serial);
         LKeyframeNoticePublish(serial);
         if (identity is not null)
         {
-            LKeyframePlanStart(identity.LKeyframeSourcePath, duration, cursor, serial, cancel.Token);
+            LKeyframePlanStart(identity.LKeyframeSourcePath, cancel.Token);
         }
     }
 
     public void LKeyframeSuspend()
     {
-        CancellationTokenSource? lKeyframeCancelPrevious;
         lock (lKeyframeLock)
         {
-            if (lKeyframeDisposed)
-            {
-                return;
-            }
-
-            lKeyframeCancelPrevious = lKeyframeCancelSource;
-            lKeyframeCancelSource = null;
+            lKeyframePaused = true;
         }
-
-        lKeyframeCancelPrevious?.Cancel();
-        lKeyframeCancelPrevious?.Dispose();
     }
 
     public LKeyframeMoveResult LKeyframePreviousMove(TimeSpan cursor)
@@ -137,7 +143,9 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 lKeyframeDuration,
                 cursor,
                 direction,
-                LKeyframeFailureRead());
+                LKeyframeFailureRead(),
+                lKeyframeKind,
+                lKeyframeRate);
         }
     }
 
@@ -153,8 +161,16 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         TimeSpan duration,
         TimeSpan cursor,
         int direction,
-        IReadOnlySet<int>? failedSpans = null)
+        IReadOnlySet<int>? failedSpans = null,
+        LKeyframeKind kind = LKeyframeKind.LKeyframeKindInter,
+        double rate = 0)
     {
+        if (kind != LKeyframeKind.LKeyframeKindInter)
+        {
+            return LKeyframeMoveResult.LKeyframeReadyCreate(
+                LKeyframeFrameResolve(duration, cursor, direction, kind, rate));
+        }
+
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
         long searchRangeMs = (long)(direction < 0
@@ -191,5 +207,23 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
             ? LKeyframeMoveResult.LKeyframePending
             : LKeyframeMoveResult.LKeyframeReadyCreate(
                 target is null ? null : TimeSpan.FromMilliseconds(target.Value));
+    }
+
+    private static TimeSpan? LKeyframeFrameResolve(
+        TimeSpan duration, TimeSpan cursor, int direction, LKeyframeKind kind, double rate)
+    {
+        TimeSpan frame = LKeyframeCodec.LKeyframeFrameResolve(rate);
+        if (kind != LKeyframeKind.LKeyframeKindIntra || frame <= TimeSpan.Zero)
+        {
+            return null;
+        }
+
+        TimeSpan target = direction < 0 ? cursor - frame : cursor + frame;
+        if (target < TimeSpan.Zero || target > duration)
+        {
+            return null;
+        }
+
+        return target;
     }
 }

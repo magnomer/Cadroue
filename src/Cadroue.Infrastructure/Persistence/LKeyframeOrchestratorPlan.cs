@@ -8,35 +8,50 @@ public sealed partial class LKeyframeOrchestrator
 {
     private sealed record LKeyframeBounds(int LKeyframeBoundsFirst, int LKeyframeBoundsCenter, int LKeyframeBoundsLast);
 
-    private void LKeyframePlanStart(
-        string sourcePath,
-        TimeSpan duration,
-        TimeSpan cursor,
-        int serial,
-        CancellationToken cancellationToken)
+    private void LKeyframePlanStart(string sourcePath, CancellationToken cancellationToken)
     {
+        int worker;
+        lock (lKeyframeLock)
+        {
+            if (lKeyframeWorkerActive
+                || lKeyframeKind != LKeyframeKind.LKeyframeKindInter
+                || cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
+            lKeyframeWorkerActive = true;
+            worker = ++lKeyframeWorkerSerial;
+        }
+
         _ = Task.Run(
-            () => LKeyframePlanRun(sourcePath, duration, cursor, serial, cancellationToken),
+            () => LKeyframePlanRun(sourcePath, worker, cancellationToken),
             CancellationToken.None);
     }
 
-    private void LKeyframePlanRun(
-        string sourcePath,
-        TimeSpan duration,
-        TimeSpan cursor,
-        int serial,
-        CancellationToken cancellationToken)
+    private void LKeyframePlanRun(string sourcePath, int worker, CancellationToken cancellationToken)
     {
         try
         {
-            (int first, int center, int last) = LKeyframeBoundsCreate(duration, cursor);
-            if (center >= first && center <= last)
+            while (true)
             {
-                LKeyframeSpanRun(sourcePath, duration, center, serial, cancellationToken);
-            }
+                int spanIndex;
+                lock (lKeyframeLock)
+                {
+                    spanIndex = lKeyframePaused
+                        || cancellationToken.IsCancellationRequested
+                        || lKeyframeKind != LKeyframeKind.LKeyframeKindInter
+                        ? -1
+                        : LKeyframeSpanFind(lKeyframeDuration, lKeyframeCursor);
+                    if (spanIndex < 0)
+                    {
+                        LKeyframeWorkerStop(worker);
+                        break;
+                    }
+                }
 
-            LKeyframeDirectionRun(sourcePath, duration, center - 1, first, -1, serial, cancellationToken);
-            LKeyframeDirectionRun(sourcePath, duration, center + 1, last, 1, serial, cancellationToken);
+                LKeyframeSpanRun(sourcePath, spanIndex, cancellationToken);
+            }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -47,46 +62,67 @@ public sealed partial class LKeyframeOrchestrator
         }
         finally
         {
-            if (serial == lKeyframeRequestSerial)
+            lock (lKeyframeLock)
+            {
+                LKeyframeWorkerStop(worker);
+            }
+
+            if (!cancellationToken.IsCancellationRequested)
             {
                 LKeyframeSidecarPersist();
             }
         }
     }
 
-    private void LKeyframeDirectionRun(
-        string sourcePath,
-        TimeSpan duration,
-        int startSpanIndex,
-        int endSpanIndex,
-        int direction,
-        int serial,
-        CancellationToken cancellationToken)
+    private void LKeyframeWorkerStop(int worker)
     {
-        for (int spanIndex = startSpanIndex;
-             direction < 0 ? spanIndex >= endSpanIndex : spanIndex <= endSpanIndex;
-             spanIndex += direction)
+        if (worker == lKeyframeWorkerSerial)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            LKeyframeSpanRun(sourcePath, duration, spanIndex, serial, cancellationToken);
+            lKeyframeWorkerActive = false;
         }
     }
 
-    private void LKeyframeSpanRun(
-        string sourcePath,
-        TimeSpan duration,
-        int spanIndex,
-        int serial,
-        CancellationToken cancellationToken)
+    private int LKeyframeSpanFind(TimeSpan duration, TimeSpan cursor)
     {
+        (int first, int center, int last) = LKeyframeBoundsCreate(duration, cursor);
+        if (center >= first && center <= last && LKeyframeSpanCheck(center))
+        {
+            return center;
+        }
+
+        for (int spanIndex = center - 1; spanIndex >= first; spanIndex--)
+        {
+            if (LKeyframeSpanCheck(spanIndex))
+            {
+                return spanIndex;
+            }
+        }
+
+        for (int spanIndex = center + 1; spanIndex <= last; spanIndex++)
+        {
+            if (LKeyframeSpanCheck(spanIndex))
+            {
+                return spanIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    private bool LKeyframeSpanCheck(int spanIndex) =>
+        !lKeyframeScannedSpans.Contains(spanIndex)
+        && !LKeyframeRetryCheck(spanIndex)
+        && !(lKeyframeAttempts.TryGetValue(spanIndex, out int attempted) && attempted == lKeyframeRequestSerial);
+
+    private void LKeyframeSpanRun(string sourcePath, int spanIndex, CancellationToken cancellationToken)
+    {
+        TimeSpan duration;
+        double startSeconds;
         lock (lKeyframeLock)
         {
-            if (serial != lKeyframeRequestSerial
-                || lKeyframeScannedSpans.Contains(spanIndex)
-                || LKeyframeRetryCheck(spanIndex))
-            {
-                return;
-            }
+            duration = lKeyframeDuration;
+            startSeconds = lKeyframeStartSeconds;
+            lKeyframeAttempts[spanIndex] = lKeyframeRequestSerial;
         }
 
         var start = TimeSpan.FromMilliseconds(spanIndex * LKeyframeGridMilliseconds);
@@ -101,35 +137,52 @@ public sealed partial class LKeyframeOrchestrator
         {
             using var lKeyframeLimit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             lKeyframeLimit.CancelAfter(LKeyframeScanLimit);
-            var entries = lKeyframeScanner(sourcePath, start, end, lKeyframeLimit.Token);
+            LKeyframeSpanResult result = lKeyframeScanner(sourcePath, startSeconds, start, end, lKeyframeLimit.Token);
             cancellationToken.ThrowIfCancellationRequested();
+            IReadOnlyList<LKeyframeEntry> entries = result.LKeyframeSpanEntries;
             int lKeyframeNewCount = 0;
+            bool lKeyframePromoted;
             lock (lKeyframeLock)
             {
-                if (serial != lKeyframeRequestSerial)
+                if (cancellationToken.IsCancellationRequested)
                 {
                     return;
                 }
 
-                foreach (var entry in entries)
+                lKeyframePromoted = result.LKeyframeSpanIntra && lKeyframeKind == LKeyframeKind.LKeyframeKindInter;
+                if (lKeyframePromoted)
                 {
-                    if (lKeyframeStorage.Add((long)Math.Round(entry.LKeyframePresentationTime.TotalMilliseconds)))
-                    {
-                        lKeyframeNewCount++;
-                    }
+                    lKeyframeKind = LKeyframeKind.LKeyframeKindIntra;
+                    lKeyframeStorage.Clear();
+                    lKeyframeScannedSpans.Clear();
+                    lKeyframeFailedCounts.Clear();
                 }
+                else
+                {
+                    foreach (var entry in entries)
+                    {
+                        if (lKeyframeStorage.Add((long)Math.Round(entry.LKeyframePresentationTime.TotalMilliseconds)))
+                        {
+                            lKeyframeNewCount++;
+                        }
+                    }
 
-                lKeyframeScannedSpans.Add(spanIndex);
-                lKeyframeFailedCounts.Remove(spanIndex);
+                    lKeyframeScannedSpans.Add(spanIndex);
+                    lKeyframeFailedCounts.Remove(spanIndex);
+                }
             }
 
             LTrace.LTraceRecord(
                 LTraceKind.LTraceWork,
-                $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
-                $"{lKeyframeNewCount} new keyframe(s) of {entries.Count} found by ffprobe",
+                lKeyframePromoted
+                    ? $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss}); every frame is a keyframe"
+                    : $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
+                lKeyframePromoted
+                    ? $"{entries.Count} packet(s) all flagged keyframe by ffprobe; scan stopped for this source"
+                    : $"{lKeyframeNewCount} new keyframe(s) of {entries.Count} found by ffprobe",
                 lKeyframeClock.Elapsed.TotalMilliseconds);
 
-            if (LKeyframeSaveCheck(lKeyframeNewCount))
+            if (!lKeyframePromoted && LKeyframeSaveCheck(lKeyframeNewCount))
             {
                 LKeyframeCacheSave();
             }
@@ -140,21 +193,22 @@ public sealed partial class LKeyframeOrchestrator
         }
         catch (Exception exception)
         {
-            if (!LKeyframeFailureRecord(spanIndex, serial, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
+            if (!LKeyframeFailureRecord(spanIndex, cancellationToken, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
             {
                 return;
             }
         }
 
-        LKeyframeNoticePublish(serial);
+        LKeyframeNoticePublish(LKeyframeCurrentSerial);
     }
 
-    private bool LKeyframeFailureRecord(int spanIndex, int serial, Exception exception, double milliseconds)
+    private bool LKeyframeFailureRecord(
+        int spanIndex, CancellationToken cancellationToken, Exception exception, double milliseconds)
     {
         int lFailedSpanCount;
         lock (lKeyframeLock)
         {
-            if (serial != lKeyframeRequestSerial)
+            if (cancellationToken.IsCancellationRequested)
             {
                 return false;
             }
