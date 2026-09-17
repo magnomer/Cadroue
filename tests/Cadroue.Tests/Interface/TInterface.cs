@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
@@ -163,4 +164,36 @@ internal static partial class TInterface
     internal static bool TJobCollisionCheck(string output, IReadOnlyList<string> sources) =>
         LJob.LJobCollisionCheck(output, sources);
     internal static IReadOnlyList<string> TEncodeGeometryRead(LWorkCrop crop) => LEncodeVideo.LEncodeGeometryRead(crop);
+
+    internal static IReadOnlyList<LSectionPaletteFile> TSectionPaletteLoad(string folder) =>
+        LSectionPalette.LSectionPaletteLoad(folder);
+    internal static LSectionPaletteFile? TSectionPaletteRead(string path) => LSectionPalette.LSectionPaletteRead(path);
+    internal static bool TSectionPaletteSave(string path, string name, string[] colors) =>
+        LSectionPalette.LSectionPaletteSave(path, name, colors);
+    internal static bool TSectionPaletteDelete(string path) => LSectionPalette.LSectionPaletteDelete(path);
+    internal static LSectionImportResult TSectionPaletteImport(
+        string folder, string source, string name, out string target) =>
+        LSectionPalette.LSectionPaletteImport(folder, source, name, out target);
+    internal static IReadOnlyList<string> TSectionHiddenLoad(string folder) => LSectionPalette.LSectionHiddenLoad(folder);
+    internal static bool TSectionHiddenSave(string folder, IReadOnlyList<string> hidden) =>
+        LSectionPalette.LSectionHiddenSave(folder, hidden);
+
+    internal static Task<LMediaScanResult> TMediaPathScan(IReadOnlyList<string> paths, CancellationToken token = default) =>
+        LMedia.LMediaPathScan(paths, token);
+
+    internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);
+    internal static bool TUsherFolderExist(string? path) => LUsher.LUsherFolderExist(path);
+
+    internal static void TLocalizationSeamSet(
+        Func<IEnumerable<string>>? names, Func<string, string?>? text, Action<string, Exception?>? trace)
+    {
+        LLocalization.LLocalizationNamesSeam = names;
+        LLocalization.LLocalizationTextSeam = text;
+        LLocalization.LLocalizationTraceSeam = trace;
+    }
+    internal static void TLocalizationLoad(string? language) => LLocalization.LLocalizationLoad(language);
+    internal static string TLocalizationTextRead(string key) => LLocalization.LLocalizationTextRead(key);
+    internal static string TLocalizationLanguageRead() => LLocalization.LLocalizationLanguageRead();
+    internal static IReadOnlyDictionary<string, string> TLocalizationLanguagesRead() =>
+        LLocalization.LLocalizationLanguagesRead();
 }

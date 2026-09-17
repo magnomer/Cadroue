@@ -39,6 +39,13 @@ public static class LRenderer
 
     public static LPreviewEngine LRendererEngineRead() => lRendererEnginePreview;
 
+    public static string LRendererLogCreate()
+    {
+        string lRendererLogFolder = LFlyleaf.LFlyleafRootRead();
+        Directory.CreateDirectory(lRendererLogFolder);
+        return lRendererLogFolder;
+    }
+
     public static void LRendererEngineStart()
     {
         LRendererFlyleafSeam?.Invoke();

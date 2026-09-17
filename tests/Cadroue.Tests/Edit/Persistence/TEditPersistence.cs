@@ -322,4 +322,24 @@ public sealed class TEditPersistence
         LWorkVideoStep step = Assert.Single(plan.LEditVideo.LWorkVideoSteps);
         Assert.Equal(LColorKind.LColorKindBrightness, step.LWorkStepKind);
     }
+
+    [Fact]
+    public void PlanActive_CropApplyOnWithNoGeometry_IsActiveAndNotEmpty()
+    {
+        LEditPlan plan = TInterface.TEditPlanCreate(
+            TInterface.TWorkCropCreate(), TInterface.TWorkVideoCreate(System.Array.Empty<LWorkVideoStep>()), true);
+
+        Assert.True(plan.LEditPlanActive);
+        Assert.False(plan.LEditPlanEmpty);
+    }
+
+    [Fact]
+    public void PlanActive_CropApplyOffWithNoGeometry_IsInactiveAndEmpty()
+    {
+        LEditPlan plan = TInterface.TEditPlanCreate(
+            TInterface.TWorkCropCreate(), TInterface.TWorkVideoCreate(System.Array.Empty<LWorkVideoStep>()), false);
+
+        Assert.False(plan.LEditPlanActive);
+        Assert.True(plan.LEditPlanEmpty);
+    }
 }

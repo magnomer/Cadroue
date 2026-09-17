@@ -1,0 +1,91 @@
+using System;
+using FlyleafLib.MediaPlayer;
+
+using Cadroue.Application;
+
+namespace Cadroue.UIVeneer.PPanel;
+
+internal sealed class PPlayerFlyleaf : PPlayerEngine
+{
+    private TimeSpan? pPlayerVideoEnd;
+
+    public PPlayerFlyleaf(Player player)
+    {
+        PPlayerFlyleafPlayer = player;
+    }
+
+    public Player PPlayerFlyleafPlayer { get; }
+
+    public override void PPlayerOpen(string sourcePath)
+    {
+        var openResult = PPlayerFlyleafPlayer.Open(sourcePath);
+        if (!openResult.Success)
+        {
+            throw new InvalidOperationException(
+                openResult.Error ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen"));
+        }
+    }
+
+    public override void PPlayerSeek(TimeSpan playbackPosition)
+    {
+        playbackPosition = LPreview.LPreviewPositionResolve(playbackPosition, pPlayerVideoEnd);
+        PPlayerFlyleafPlayer.SeekAccurate((int)playbackPosition.TotalMilliseconds);
+    }
+
+    public void PPlayerEndSet(TimeSpan? pVideoEnd) => pPlayerVideoEnd = pVideoEnd;
+
+    public override void PPlayerStop()
+    {
+        PPlayerFlyleafPlayer.Stop();
+    }
+
+    public override void PPlayerPlay()
+    {
+        PPlayerFlyleafPlayer.Play();
+    }
+
+    public override void PPlayerPause()
+    {
+        PPlayerFlyleafPlayer.Pause();
+    }
+
+    public override void PPlayerVolumeSet(double volume)
+    {
+        PPlayerFlyleafPlayer.Audio.Volume = (int)Math.Round(volume);
+    }
+
+    public override void PPlayerFilterSet(string filterChain)
+    {
+    }
+
+    public override void PPlayerAudioSet(string filterChain)
+    {
+    }
+
+    public override void PPlayerDecodeInterrupt()
+    {
+        PPlayerFlyleafPlayer.Stop();
+    }
+
+    public override TimeSpan PPlayerTimeRead()
+    {
+        return TimeSpan.FromTicks(PPlayerFlyleafPlayer.CurTime);
+    }
+
+    public override bool PPlayerEndedRead()
+    {
+        return PPlayerFlyleafPlayer.Status == Status.Ended;
+    }
+
+    public override void Dispose()
+    {
+        try
+        {
+            PPlayerFlyleafPlayer.Stop();
+            PPlayerFlyleafPlayer.Dispose();
+        }
+        catch
+        {
+        }
+    }
+}

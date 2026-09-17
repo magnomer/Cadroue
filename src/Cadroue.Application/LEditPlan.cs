@@ -15,13 +15,12 @@ public sealed record LEditPlan(LWorkCrop LEditCrop, LWorkVideo LEditVideo, bool 
 
     public bool LEditPlanActive =>
         LEditSkip
-        || LEditVideo.LWorkVideoActive
-        || (LEditCropActive && (LEditCrop.LWorkCropActive || LEditRatioFixed));
+        || LEditCropActive
+        || LEditVideo.LWorkVideoActive;
 
     public bool LEditPlanEmpty =>
-        !LEditSkip
+        !LEditPlanActive
         && !LEditCrop.LWorkCropActive
-        && !LEditVideo.LWorkVideoActive
         && !LEditRatioFixed;
 }
 

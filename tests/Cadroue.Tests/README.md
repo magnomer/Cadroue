@@ -10,6 +10,10 @@ An adapter may translate, invoke, observe, and clean up. It must not repair the 
 
 `InterfaceBoundaryTests` enforces this boundary for future test changes.
 
+## UI assemblies
+
+`Cadroue.UIDeportment` holds no WPF reference and is testable through `/Interface` adapters like any logic assembly. `Cadroue.UIVeneer` is WPF and stays untested; the convention suite gates what each may contain (`TAuditGateSetting`).
+
 ## Naming rule
 
 Name test files and classes after behaviour, not production type. Name test methods after observable behaviour (`SectionPastMediaDuration_IsRejected`), not the production method that ran.

@@ -214,6 +214,7 @@ internal static class TAuditNameRegistry
         "Toolbar",
         "Trace",
         "Trial",
+        "Usher",
         "Vault",
         "Verdict",
         "Video",

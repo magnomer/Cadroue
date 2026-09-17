@@ -9,7 +9,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Infrastructure", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.ShellEngine", "src\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj", "{1C5F17BA-EF8E-46DB-9773-1CC7FD77D320}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.UIShell", "src\Cadroue.UIShell\Cadroue.UIShell.csproj", "{8C7C255E-8014-4F5A-895C-9820897A5F80}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.UIVeneer", "src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj", "{8C7C255E-8014-4F5A-895C-9820897A5F80}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Media", "src\Cadroue.Media\Cadroue.Media.csproj", "{1ECE4190-3733-470D-B42D-2E915DB695DD}"
 EndProject
@@ -20,6 +20,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.Convention.Tests", "tests\Cadroue.Convention.Tests\Cadroue.Convention.Tests.csproj", "{4CB6FC37-809C-409E-828F-64040CDED4EE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cadroue.UIDeportment", "src\Cadroue.UIDeportment\Cadroue.UIDeportment.csproj", "{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +129,18 @@ Global
 		{4CB6FC37-809C-409E-828F-64040CDED4EE}.Release|x64.Build.0 = Release|Any CPU
 		{4CB6FC37-809C-409E-828F-64040CDED4EE}.Release|x86.ActiveCfg = Release|Any CPU
 		{4CB6FC37-809C-409E-828F-64040CDED4EE}.Release|x86.Build.0 = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|x64.Build.0 = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Debug|x86.Build.0 = Debug|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|x64.ActiveCfg = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|x64.Build.0 = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|x86.ActiveCfg = Release|Any CPU
+		{5A5E8B31-24DD-4F16-B9F6-D8058F2E5AD2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

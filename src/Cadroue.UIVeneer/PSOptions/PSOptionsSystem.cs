@@ -1,0 +1,305 @@
+using Cadroue.UIVeneer.PSCasement;
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.Core;
+using Cadroue.Infrastructure;
+using Cadroue.Application;
+
+using static Cadroue.UIVeneer.PSCasement.PSField;
+using static Cadroue.UIVeneer.PSCasement.PSInline;
+using static Cadroue.UIVeneer.PSCasement.PSNotice;
+using static Cadroue.UIVeneer.PSCasement.PSPlate;
+
+namespace Cadroue.UIVeneer;
+
+internal sealed partial class PSOptions
+{
+    private static readonly LLocalizationChoice[] PSOptionsRecordItems =
+    {
+        new("FileLocation", "Options.Record.FileLocation"),
+        new("Workspace", "Options.Record.Workspace")
+    };
+
+    private readonly CheckBox psOptionsCleanupBox;
+    private readonly Slider psOptionsCleanupSlider;
+
+    private const string PSOptionsBrowseIcon = "/PAsset/PPanel/PBrowse.svg";
+    private const string PSOptionsOpenIcon = "/PAsset/PPanel/POpen.svg";
+    private const string PSOptionsDiagnosisIcon = "/PAsset/PPanel/PDiagnosis.svg";
+
+    private readonly TextBox psWorkspaceBox;
+    private readonly TextBox psSystemFfmpegBox;
+
+    private UIElement PSSystemBuild()
+    {
+        psWorkspaceSize = new TextBlock
+        {
+            Foreground = PSFieldMuted,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        PSWorkspaceSizeUpdate();
+
+        var pFfmpegState = new TextBlock
+        {
+            Foreground = PSFieldMuted,
+            TextWrapping = TextWrapping.Wrap,
+            Margin = PSNoticeMargin,
+            Text = PSSystemFfmpegFormat(psSystemFfmpegBox.Text)
+        };
+        psSystemFfmpegBox.TextChanged += (_, _) => pFfmpegState.Text = PSSystemFfmpegFormat(psSystemFfmpegBox.Text);
+
+        Button pWorkspaceBrowse = PSInlineIconBuild(
+            PSOptionsBrowseIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Browse"),
+            new Thickness(8, 0, 0, 0));
+        Button pWorkspaceOpen = PSInlineIconBuild(
+            PSOptionsOpenIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            new Thickness(6, 0, 0, 0));
+        pWorkspaceBrowse.Click += (_, _) => PSSystemFolderRead(
+            psWorkspaceBox,
+            LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"),
+            LDepot.LDepotDefaultRead());
+        pWorkspaceOpen.Click += (_, _) => PSSystemFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRead());
+
+        Button pFfmpegBrowse = PSInlineIconBuild(
+            PSOptionsBrowseIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Browse"),
+            new Thickness(8, 0, 0, 0));
+        Button pFfmpegOpen = PSInlineIconBuild(
+            PSOptionsOpenIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            new Thickness(6, 0, 0, 0));
+        Button pFfmpegDiagnosis = PSInlineIconBuild(
+            PSOptionsDiagnosisIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Diagnosis"),
+            new Thickness(6, 0, 0, 0));
+        pFfmpegBrowse.Click += (_, _) => PSSystemFolderRead(
+            psSystemFfmpegBox,
+            LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"),
+            psSystemFfmpegBox.Text);
+        pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
+        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this);
+
+        Button pDoneClear = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Options.System.ClearDone"),
+            190,
+            new Thickness(0));
+        Button pWorkspaceClear = PSInlineButtonBuild(
+            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"),
+            190,
+            new Thickness(0));
+        pDoneClear.Click += (_, _) => PSSystemDoneClear();
+        pWorkspaceClear.Click += (_, _) => PSWorkspaceClear();
+        psSystemMaintenanceButtons.Clear();
+        psSystemMaintenanceButtons.Add(pDoneClear);
+        psSystemMaintenanceButtons.Add(pWorkspaceClear);
+        psSystemMaintenanceNotice = PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Options.System.WorkspaceUnapplied"));
+        psWorkspaceBox.TextChanged += (_, _) => PSSystemMaintenanceUpdate();
+        PSSystemMaintenanceUpdate();
+
+        var pWorkspaceClearRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pWorkspaceClearRow.Children.Add(pWorkspaceClear);
+
+        var pDoneClearRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pDoneClearRow.Children.Add(pDoneClear);
+
+        UIElement pCleanupRow = PSOptionsFieldBuild(
+            LLocalization.LLocalizationTextRead("Options.System.CleanupDays"),
+            psOptionsCleanupSlider,
+            LLocalization.LLocalizationTextRead("Options.System.CleanupUnit"));
+        pCleanupRow.Visibility = psOptionsCleanupBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        psOptionsCleanupBox.Checked += (_, _) => pCleanupRow.Visibility = Visibility.Visible;
+        psOptionsCleanupBox.Unchecked += (_, _) => pCleanupRow.Visibility = Visibility.Collapsed;
+
+        UIElement pWorkspaceDefault = PSNoticeBuild(
+            LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead()));
+        pWorkspaceDefault.Visibility = string.IsNullOrWhiteSpace(psWorkspaceBox.Text)
+            ? Visibility.Visible
+            : Visibility.Collapsed;
+        psWorkspaceBox.TextChanged += (_, _) => pWorkspaceDefault.Visibility =
+            string.IsNullOrWhiteSpace(psWorkspaceBox.Text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+
+        var pPanel = new StackPanel();
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
+            PSFieldButtonBuild(
+                LLocalization.LLocalizationTextRead("Options.System.Location"),
+                psSystemFfmpegBox,
+                pFfmpegBrowse,
+                pFfmpegOpen,
+                pFfmpegDiagnosis),
+            pFfmpegState));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
+            PSFieldButtonBuild(
+                LLocalization.LLocalizationTextRead("Options.System.Location"),
+                psWorkspaceBox,
+                pWorkspaceBrowse,
+                pWorkspaceOpen),
+            pWorkspaceDefault,
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pWorkspaceClearRow),
+            psSystemMaintenanceNotice));
+        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.WorkRecord"),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pDoneClearRow),
+            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),
+            pCleanupRow,
+            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupNotice"))));
+        pPanel.Children.Add(PSSystemRecordBuild());
+        return pPanel;
+    }
+
+    private UIElement PSSystemFlyleafBuild()
+    {
+        Button pInstall = PSInlineButtonBuild(PSSystemFlyleafFormat(), 160, new Thickness(0, 0, 8, 0));
+        Button pBrowse = PSInlineIconBuild(
+            PSOptionsOpenIcon,
+            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            new Thickness(0));
+        ProgressBar pProgress = PSSystemProgressBuild();
+        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
+        pInstall.Click += async (_, _) =>
+        {
+            pInstall.IsEnabled = false;
+            pProgress.Value = 0;
+            pProgress.Visibility = Visibility.Visible;
+            LFlyleafInstallResult pResult;
+            try
+            {
+                pResult = await LFlyleaf.LFlyleafInstallStart(pFeed);
+            }
+            finally
+            {
+                pProgress.Visibility = Visibility.Collapsed;
+            }
+
+            pInstall.Content = PSSystemFlyleafFormat();
+            pInstall.IsEnabled = true;
+            string pFlyleafTitle = LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf");
+            if (pResult.LFlyleafInstallSuccess)
+            {
+                PSAnnouncement.PSAnnouncementShow(
+                    this,
+                    pFlyleafTitle,
+                    LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed"));
+            }
+            else
+            {
+                PSWarning.PSWarningShow(
+                    this,
+                    pFlyleafTitle,
+                    LLocalization.LLocalizationFormat(
+                        "Flyleaf.Local.Install.Failed",
+                        pResult.LFlyleafInstallMessage));
+            }
+        };
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
+
+        var pButtons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pButtons.Children.Add(pInstall);
+        pButtons.Children.Add(pBrowse);
+        pButtons.Children.Add(pProgress);
+
+        return PSFieldBuild(string.Empty, pButtons);
+    }
+
+    private static ProgressBar PSSystemProgressBuild() =>
+        new()
+        {
+            Minimum = 0,
+            Maximum = 1,
+            Width = 220,
+            Height = 8,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(16, 0, 0, 0),
+            Foreground = null,
+            Background = null,
+            BorderThickness = new Thickness(0),
+            Template = PSSystemTemplateBuild(),
+            Visibility = Visibility.Collapsed
+        };
+
+    private static System.Windows.Controls.ControlTemplate PSSystemTemplateBuild()
+    {
+        const string pXaml = @"
+<ControlTemplate xmlns=""http://schemas.microsoft.com/winfx/2006/xaml/presentation""
+                 xmlns:x=""http://schemas.microsoft.com/winfx/2006/xaml""
+                 TargetType=""{x:Type ProgressBar}"">
+    <Border CornerRadius=""4"" Background=""#E4E9F0"" ClipToBounds=""True"">
+        <Grid>
+            <Rectangle x:Name=""PART_Track"" />
+            <Border x:Name=""PART_Indicator""
+                    HorizontalAlignment=""Left""
+                    CornerRadius=""4""
+                    Background=""#4C86F7"" />
+        </Grid>
+    </Border>
+</ControlTemplate>";
+        return (System.Windows.Controls.ControlTemplate)System.Windows.Markup.XamlReader.Parse(pXaml);
+    }
+
+    private static string PSSystemFlyleafFormat() =>
+        LLocalization.LLocalizationTextRead(
+            LFlyleaf.LFlyleafInstalledCheck()
+                ? "Options.System.ReinstallFlyleaf"
+                : "Options.System.InstallFlyleaf");
+
+
+    private static void PSSystemFolderRead(TextBox pPathBox, string pDialogTitle, string pFallback)
+    {
+        var pDialog = new Microsoft.Win32.OpenFolderDialog
+        {
+            Title = pDialogTitle,
+            InitialDirectory = string.IsNullOrWhiteSpace(pPathBox.Text) ? pFallback : pPathBox.Text
+        };
+        if (pDialog.ShowDialog() == true)
+        {
+            pPathBox.Text = pDialog.FolderName;
+        }
+    }
+
+    private static void PSSystemFolderOpen(string pFolder, string pFallback) =>
+        LUsher.LUsherFolderOpen(string.IsNullOrWhiteSpace(pFolder) ? pFallback : pFolder);
+
+
+    private static string PSSystemFfmpegFormat(string pFolder)
+    {
+        if (string.IsNullOrWhiteSpace(pFolder))
+        {
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegBlank");
+        }
+
+        bool pProgramReady = LRendererLibrary.LRendererProgramExist(pFolder);
+        bool pLibraryReady = LRendererLibrary.LRendererFolderValidate(pFolder);
+        if (pProgramReady && pLibraryReady)
+        {
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegReady");
+        }
+
+        if (pProgramReady)
+        {
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegProgramOnly");
+        }
+
+        if (pLibraryReady)
+        {
+            return LLocalization.LLocalizationTextRead("Options.System.FFmpegLibraryOnly");
+        }
+
+        return LLocalization.LLocalizationTextRead("Options.System.FFmpegMissing");
+    }
+}

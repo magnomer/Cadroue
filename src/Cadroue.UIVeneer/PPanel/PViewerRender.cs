@@ -1,0 +1,61 @@
+using System;
+
+using Cadroue.Core;
+using Cadroue.Application;
+using Cadroue.Infrastructure;
+
+namespace Cadroue.UIVeneer.PPanel;
+
+public sealed partial class PViewer
+{
+    private void PViewerPreviewApply()
+    {
+        if (pViewerMpvActive)
+        {
+            PViewerMpvUpdate();
+            PViewerPreviewChange?.Invoke();
+            return;
+        }
+
+        LPreview.LPreviewApply(pViewerPlayer.PPlayerFlyleafPlayer, PViewerRenderRead());
+        PPlayerColorRecord(pViewerPlayer.PPlayerFlyleafPlayer);
+        PViewerPreviewChange?.Invoke();
+    }
+
+    public LPreviewState PViewerRenderRead() =>
+        PCropActive
+            ? LPreviewStateCurrent
+            : LPreviewStateCurrent
+                .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
+                .LCropboxChange(null);
+
+    public string PViewerAudioRead() => PViewerAudioResolve();
+
+    private void PViewerPreviewRestore()
+    {
+        LRotateFlip pViewerRotate = LPreviewStateCurrent.LRotateFlip;
+        LTraceLog.LTraceInfoRecord(
+            $"Viewer preview restored: rotate {pViewerRotate.LRotateKind}, "
+            + $"H {pViewerRotate.LRotateFlipHorizontal}, V {pViewerRotate.LRotateFlipVertical}");
+        LPreview.LPreviewRestore(pViewerPlayer.PPlayerFlyleafPlayer, LPreviewStateCurrent);
+    }
+
+    public TimeSpan PViewerDurationRead() => pViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
+
+    public void PViewerRotateSet(LRotateFlip pRotateFlip)
+    {
+        LPreviewStateCurrent = LPreviewStateCurrent.LRotateFlipChange(pRotateFlip);
+        LTraceLog.LTraceInfoRecord(
+            $"Viewer rotate/flip set: rotate {pRotateFlip.LRotateKind}, "
+            + $"H {pRotateFlip.LRotateFlipHorizontal}, V {pRotateFlip.LRotateFlipVertical}, "
+            + $"player {(pViewerPlayer.PPlayerReady ? "ready" : "none")}, overlay remapped");
+        PViewerPreviewApply();
+        PCropOverlayUpdate();
+    }
+
+    public void PViewerColorSet(LColor pColor)
+    {
+        LPreviewStateCurrent = LPreviewStateCurrent.LColorChange(pColor);
+        PViewerPreviewApply();
+    }
+}
