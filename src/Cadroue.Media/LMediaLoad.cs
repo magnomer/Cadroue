@@ -43,6 +43,8 @@ public sealed class LMediaLoad : IDisposable
         this.lMediaLoadReader = lMediaLoadReader ?? throw new ArgumentNullException(nameof(lMediaLoadReader));
     }
 
+    public static Action<string, Exception?>? LMediaTraceSeam { get; set; }
+
     public event Action<LMediaLoadOutcome>? LMediaLoadCompleted;
 
     public string? LMediaCurrentPath
@@ -280,8 +282,9 @@ public sealed class LMediaLoad : IDisposable
             {
                 lMediaLoadHandler(lMediaLoadOutcome);
             }
-            catch
+            catch (Exception lMediaLoadException)
             {
+                LMediaTraceSeam?.Invoke("Media load notice handler failed", lMediaLoadException);
             }
         }
     }

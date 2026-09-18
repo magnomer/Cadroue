@@ -56,7 +56,13 @@ public sealed class TAuditConvention
     [Fact]
     public void AuditGate_Veneer_CarriesOnlyTransientScalars()
     {
-        TAuditScalarCheck();
+        TAuditScalarCheck(TAuditGateSetting.TAuditVeneerRoot, true);
+    }
+
+    [Fact]
+    public void AuditGate_Deportment_CarriesNoGuardField()
+    {
+        TAuditScalarCheck(TAuditGateSetting.TAuditDeportmentRoot, false);
     }
 
     private static string TAuditLineNormalize(string line) => TAuditLiteralPattern.Replace(
@@ -101,9 +107,8 @@ public sealed class TAuditConvention
             + string.Join('\n', hits)));
     }
 
-    private void TAuditScalarCheck()
+    private void TAuditScalarCheck(string root, bool transientOnly)
     {
-        string root = TAuditGateSetting.TAuditVeneerRoot;
         Regex guard = new($"^{TAuditGateSetting.TAuditGuardPattern}$", RegexOptions.Compiled);
         List<string> hits = [];
         foreach ((string relative, string[] lines) in TAuditGateRead(root))
@@ -140,7 +145,7 @@ public sealed class TAuditConvention
                     {
                         hits.Add($"  {root}/{relative}:{index + 1} guard field {name}");
                     }
-                    else if (scalar && !transient && !known)
+                    else if (transientOnly && scalar && !transient && !known)
                     {
                         hits.Add($"  {root}/{relative}:{index + 1} scalar field {name}");
                     }

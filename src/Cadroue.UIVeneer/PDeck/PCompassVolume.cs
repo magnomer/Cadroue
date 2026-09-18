@@ -73,18 +73,16 @@ public sealed partial class PCompass
 
     private void PCompassValueHandle(double pVolume)
     {
-        LCompass.LCompassProgramSet(true);
         double pVolumeClamp = LPreferenceState.LPreferenceVolumeClamp(pVolume);
         pCompassVolumeSlider.Value = pVolumeClamp;
         pCompassVolumeText.Text = Math.Round(pVolumeClamp).ToString("0");
         PCompassTrackUpdate();
-        LCompass.LCompassProgramSet(false);
     }
 
     private void PCompassVolumeHandle(PViewer pViewer)
     {
-        if (LCompass.LCompassProgramValue) return;
         double pVolume = LPreferenceState.LPreferenceVolumeClamp(pCompassVolumeSlider.Value);
+        if (pVolume == LCompass.LCompassVolume) return;
         pCompassVolumeText.Text = Math.Round(pVolume).ToString("0");
         PCompassTrackUpdate();
         pViewer.PViewerVolumeSet(pVolume);

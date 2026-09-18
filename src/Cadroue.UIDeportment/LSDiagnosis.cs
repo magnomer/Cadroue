@@ -126,7 +126,17 @@ public sealed class LSDiagnosis
             .SelectMany(lItem => lItem.LSDiagnosisFilters)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        LInventoryFeature lFeature = await LInventory.LInventoryFeatureRead(lFilters);
+        LInventoryFeature lFeature;
+        try
+        {
+            lFeature = await LInventory.LInventoryFeatureRead(lFilters);
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord("Diagnosis probe failed", lException);
+            lFeature = new LInventoryFeature(string.Empty, string.Empty, new Dictionary<string, bool>());
+        }
+
         if (lGeneration == lsDiagnosisGeneration)
         {
             LSDiagnosisFeatureSet(lFeature);

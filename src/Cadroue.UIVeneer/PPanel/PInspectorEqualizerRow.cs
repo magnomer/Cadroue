@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
@@ -136,19 +137,32 @@ public sealed partial class PInspector
             LContourCatalog.LContourGainMost,
             () => PEqualizerBandRead(pEqualizerRows.IndexOf(pBand)).LWorkBandGain,
             pGain => PEqualizerBandSet(pBand, pFrequencyBox, pGain));
-        pFrequencyBox.TextChanged += (_, _) =>
+        pFrequencyBox.LostFocus += (_, _) => PEqualizerFrequencyCommit(pBand, pFrequencyBox);
+        pFrequencyBox.KeyDown += (_, pKeyEvent) =>
         {
-            int pSlot = pEqualizerRows.IndexOf(pBand);
-            LWorkBand pCurrent = PEqualizerBandRead(pSlot);
-            LEqualizer.LEqualizerBandSet(
-                pSlot,
-                PInspectorDecimalRead(pFrequencyBox, pCurrent.LWorkBandFrequency),
-                pCurrent.LWorkBandGain);
+            if (pKeyEvent.Key != Key.Enter)
+            {
+                return;
+            }
+
+            pKeyEvent.Handled = true;
+            PEqualizerFrequencyCommit(pBand, pFrequencyBox);
         };
         pRemoveButton.Click += (_, _) => LEqualizer.LEqualizerBandRemove(pEqualizerRows.IndexOf(pBand));
 
         pEqualizerRows.Insert(pIndex, pBand);
         pEqualizerRowPanel.Children.Insert(pIndex, pLine);
+    }
+
+    private void PEqualizerFrequencyCommit(PInspectorBand pBand, TextBox pFrequencyBox)
+    {
+        int pSlot = pEqualizerRows.IndexOf(pBand);
+        LWorkBand pCurrent = PEqualizerBandRead(pSlot);
+        LEqualizer.LEqualizerBandSet(
+            pSlot,
+            PInspectorDecimalRead(pFrequencyBox, pCurrent.LWorkBandFrequency),
+            pCurrent.LWorkBandGain);
+        PInspectorTextSet(pFrequencyBox, PEqualizerBandRead(pSlot).LWorkBandFrequency, "0.###");
     }
 
     private void PEqualizerBandSet(PInspectorBand pBand, TextBox pFrequencyBox, double pGain)

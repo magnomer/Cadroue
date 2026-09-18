@@ -45,7 +45,6 @@ public sealed partial class PViewer : PPanel
     public LCrop LCrop { get; } = new();
     public LPlayer LPlayer { get; } = new();
 
-    public event Action<LCargo>? PViewerMediaChange;
     public event Action<TimeSpan>? PViewerClockTick;
     public event Action<Rect?>? PCropVideoChange;
 
@@ -141,7 +140,6 @@ public sealed partial class PViewer : PPanel
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
         pViewerMediaProbe.LMediaLoadCompleted += PViewerLoadHandle;
-        LViewer.LViewerMediaChange += pCargo => PViewerMediaChange?.Invoke(pCargo);
         LViewer.LViewerPlayingChange += pPlaying => PViewerPlayingChange?.Invoke(pPlaying);
         LViewer.LViewerPreviewChange += () => PViewerPreviewChange?.Invoke();
         LViewer.LViewerEngineChange += PViewerEngineUpdate;

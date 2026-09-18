@@ -26,7 +26,8 @@ public sealed partial class PInspector
 
     public void PSensorApply(LDetectorStep pDetectorStep) => LSensor.LSensorStepSet(pDetectorStep);
 
-    public string PSensorPresetRead(LDetectorKind pDetectorKind) => LSensor.LSensorPresetRead(pDetectorKind);
+    public string PSensorPresetRead(LDetectorKind pDetectorKind) =>
+        LSensor.LSensorTokenRead(pDetectorKind) ?? string.Empty;
 
     public void PSensorPresetApply(LDetectorKind pDetectorKind, string pToken) =>
         LSensor.LSensorTokenSet(pDetectorKind, pToken);

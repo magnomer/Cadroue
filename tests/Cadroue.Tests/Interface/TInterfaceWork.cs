@@ -14,6 +14,7 @@ internal static partial class TInterface
     internal static LWorkVideo TWorkVideoCreate() => LWorkVideo.LWorkVideoCreate();
     internal static LWorkVideo TWorkVideoCreate(IReadOnlyList<LWorkVideoStep> steps) => new(steps);
     internal static LWorkBand TWorkBandCreate(double frequency, double gain) => new(frequency, gain);
+    internal static IReadOnlyList<LWorkBand> TWorkBandsCreate() => LWorkEqualizerStep.LWorkBandsCreate();
     internal static LWorkAudio TWorkAudioCreate(IReadOnlyList<LWorkAudioStep> steps) => new(steps);
     internal static LWorkMedia TWorkMediaCreate(int width, int height, double rate, long durationMs, bool audio) =>
         new(width, height, rate, durationMs, audio);

@@ -32,7 +32,7 @@ public sealed class LStrip
     private readonly Func<string, int, string> lStripNumberSource;
     private LStripTab? lStripSelected;
     private LStripTab? lStripHovered;
-    private bool lStripSuspended;
+    private int lStripSuspendDepth;
     private bool lStripVertical;
 
     public LStrip(Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
@@ -50,15 +50,15 @@ public sealed class LStrip
 
     public LStripTab? LStripSelected => lStripSelected;
 
-    public bool LStripSuspended => lStripSuspended;
+    public bool LStripSuspended => lStripSuspendDepth > 0;
 
     public bool LStripVertical => lStripVertical;
 
     public LStripTab? LStripTabFind(Guid lId) => lStripTabs.FirstOrDefault(lTab => lTab.LStripTabId == lId);
 
-    public void LStripUpdateSuspend() => lStripSuspended = true;
+    public void LStripUpdateSuspend() => lStripSuspendDepth++;
 
-    public void LStripUpdateResume() => lStripSuspended = false;
+    public void LStripUpdateResume() => lStripSuspendDepth = Math.Max(0, lStripSuspendDepth - 1);
 
     public void LStripVerticalSet(bool lVertical)
     {
@@ -76,7 +76,7 @@ public sealed class LStrip
         lStripTabs.Add(lTab);
         LStripChange?.Invoke();
         LStripTitleSet(lTab, lStripTitleSource(lTab.LStripTabKey));
-        if (lStripSuspended)
+        if (LStripSuspended)
         {
             return;
         }
@@ -94,7 +94,7 @@ public sealed class LStrip
 
     public void LStripTitleUpdate()
     {
-        if (lStripSuspended)
+        if (LStripSuspended)
         {
             return;
         }

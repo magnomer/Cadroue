@@ -35,6 +35,7 @@ public sealed class LViewer
     private bool lViewerBypass;
     private string lViewerAudioFilter = string.Empty;
     private LViewerIntent? lViewerIntent;
+    private string? lViewerRequestPath;
     private string? lViewerSourcePath;
     private LMediaInfo? lViewerMediaInfo;
     private double lViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
@@ -142,6 +143,12 @@ public sealed class LViewer
 
     public void LViewerIntentSet(LViewerIntent? lIntent) => lViewerIntent = lIntent;
 
+    public void LViewerRequestSet(string lRequestPath) => lViewerRequestPath = lRequestPath;
+
+    public bool LViewerSourceMatch(string lRequestPath) =>
+        string.Equals(lViewerRequestPath, lRequestPath, StringComparison.OrdinalIgnoreCase)
+        && (lViewerMediaInfo is not null || lViewerIntent is not null);
+
     public void LViewerEngineSet(LPreviewEngine lEngine)
     {
         if (lViewerEngine == lEngine)
@@ -185,12 +192,17 @@ public sealed class LViewer
 
     public void LViewerMediaRaise(LCargo lCargo)
     {
-        try
+        Delegate[] lHandlers = LViewerMediaChange?.GetInvocationList() ?? Array.Empty<Delegate>();
+        foreach (Action<LCargo> lHandler in lHandlers.Cast<Action<LCargo>>())
         {
-            LViewerMediaChange?.Invoke(lCargo);
-        }
-        catch
-        {
+            try
+            {
+                lHandler(lCargo);
+            }
+            catch (Exception lException)
+            {
+                LTraceLog.LTraceErrorRecord("Viewer media notice handler failed", lException);
+            }
         }
     }
 
@@ -222,6 +234,7 @@ public sealed class LViewer
     {
         lViewerLoadSerial++;
         lViewerIntent = null;
+        lViewerRequestPath = null;
         lViewerSourcePath = null;
         lViewerMediaInfo = null;
         lViewerPreview = lViewerPreview

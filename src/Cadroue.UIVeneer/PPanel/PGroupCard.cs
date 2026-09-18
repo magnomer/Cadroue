@@ -56,6 +56,24 @@ public sealed partial class PGroup
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
+        UIElement pNameElement = LGroup.LGroupEditingIndex == pGroupIndex
+            ? PGroupEditBuild(pRecord)
+            : PGroupLabelBuild(pGroupIndex, pRecord);
+
+        Button pRemoveButton = PGroupButtonBuild(
+            "/PAsset/PPanel/PExportMinus.svg",
+            LLocalization.LLocalizationTextRead("Group.Remove.Tooltip"),
+            (_, _) => LGroup.LGroupRemove(pGroupIndex));
+        pRemoveButton.HorizontalAlignment = HorizontalAlignment.Right;
+
+        Grid.SetColumn(pRemoveButton, 1);
+        pHeaderGrid.Children.Add(pNameElement);
+        pHeaderGrid.Children.Add(pRemoveButton);
+        return pHeaderGrid;
+    }
+
+    private TextBlock PGroupLabelBuild(int pGroupIndex, LGroupRecord pRecord)
+    {
         var pNameLabel = new TextBlock
         {
             Text = pRecord.LGroupRecordName,
@@ -71,23 +89,12 @@ public sealed partial class PGroup
         {
             if (pNameEvent.ClickCount == 2)
             {
-                PGroupEditStart(pGroupIndex, pHeaderGrid, pRecord);
+                LGroup.LGroupEditStart(pGroupIndex);
                 pNameEvent.Handled = true;
             }
         };
-
-        Button pRemoveButton = PGroupButtonBuild(
-            "/PAsset/PPanel/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("Group.Remove.Tooltip"),
-            (_, _) => LGroup.LGroupRemove(pGroupIndex));
-        pRemoveButton.HorizontalAlignment = HorizontalAlignment.Right;
-
-        Grid.SetColumn(pRemoveButton, 1);
-        pHeaderGrid.Children.Add(pNameLabel);
-        pHeaderGrid.Children.Add(pRemoveButton);
-        return pHeaderGrid;
+        return pNameLabel;
     }
-
 
     private Border PGroupFileBuild(int pGroupIndex, int pOrderIndex, string pPath)
     {

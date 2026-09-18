@@ -109,15 +109,23 @@ public sealed class LSMonitor : IDisposable
 
     public void LSMonitorSourceOpen(string? lPath, TimeSpan lDuration, int lRate = 0)
     {
-        lMonitorSourcePath = lPath;
-        lMonitorDuration = lDuration;
-        lMonitorRate = lRate;
+        lock (lMonitorLock)
+        {
+            lMonitorSourcePath = lPath;
+            lMonitorDuration = lDuration;
+            lMonitorRate = lRate;
+        }
+
         lMonitorOrchestrator.LWaveformStart(lPath, lDuration, lRate > 0);
     }
 
     public void LSMonitorPlanApply(LWorkAudio lPlan)
     {
-        lMonitorPlan = lPlan;
+        lock (lMonitorLock)
+        {
+            lMonitorPlan = lPlan;
+        }
+
         LSMonitorAfterStart();
     }
 
@@ -145,27 +153,30 @@ public sealed class LSMonitor : IDisposable
 
     private void LSMonitorAfterStart()
     {
-        if (lMonitorDisposed)
-        {
-            return;
-        }
-
-        CancellationTokenSource lToken;
-        string? lPath = lMonitorSourcePath;
-        TimeSpan lDuration = lMonitorDuration;
-        string lGraph = lMonitorPlan.LWorkAudioFormat(lMonitorRate);
+        CancellationToken lToken;
+        string? lPath;
+        TimeSpan lDuration;
+        string lGraph;
         lock (lMonitorLock)
         {
+            if (lMonitorDisposed)
+            {
+                return;
+            }
+
             lMonitorCancelSource?.Cancel();
             lMonitorCancelSource?.Dispose();
             lMonitorCancelSource = new CancellationTokenSource();
-            lToken = lMonitorCancelSource;
+            lToken = lMonitorCancelSource.Token;
 
             if (lMonitorBefore.Length == 0)
             {
                 return;
             }
 
+            lPath = lMonitorSourcePath;
+            lDuration = lMonitorDuration;
+            lGraph = lMonitorPlan.LWorkAudioFormat(lMonitorRate);
             lMonitorFailed = false;
             if (string.IsNullOrEmpty(lGraph)
                 || string.IsNullOrWhiteSpace(lPath)
@@ -184,7 +195,7 @@ public sealed class LSMonitor : IDisposable
         LSMonitorPublish();
         if (lPath is not null)
         {
-            LSMonitorAfterScan(lPath, lDuration, lGraph, lToken.Token);
+            LSMonitorAfterScan(lPath, lDuration, lGraph, lToken);
         }
     }
 
@@ -250,19 +261,20 @@ public sealed class LSMonitor : IDisposable
 
     public void Dispose()
     {
-        if (lMonitorDisposed)
-        {
-            return;
-        }
-
-        lMonitorDisposed = true;
-        lMonitorOrchestrator.LWaveformReady -= LSMonitorPeaksHandle;
-        lMonitorOrchestrator.Dispose();
         lock (lMonitorLock)
         {
+            if (lMonitorDisposed)
+            {
+                return;
+            }
+
+            lMonitorDisposed = true;
             lMonitorCancelSource?.Cancel();
             lMonitorCancelSource?.Dispose();
             lMonitorCancelSource = null;
         }
+
+        lMonitorOrchestrator.LWaveformReady -= LSMonitorPeaksHandle;
+        lMonitorOrchestrator.Dispose();
     }
 }

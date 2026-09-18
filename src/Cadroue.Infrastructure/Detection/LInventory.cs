@@ -39,6 +39,7 @@ public static partial class LInventory
         new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, IReadOnlyList<string>> lInventoryLayoutCache =
         new(StringComparer.OrdinalIgnoreCase);
+    private static readonly object lInventoryGate = new();
 
     public static void LInventoryPrepare()
     {
@@ -86,12 +87,23 @@ public static partial class LInventory
 
     public static bool LInventoryFilterConfirm(string lInventoryFilter)
     {
-        IReadOnlyCollection<string> lInventoryFilters = LInventoryFilterRead();
-        return lInventoryFilterStatus == LInventoryStatus.LInventoryStatusPresent
-            && lInventoryFilters.Contains(lInventoryFilter);
+        lock (lInventoryGate)
+        {
+            IReadOnlyCollection<string> lInventoryFilters = LInventoryFilterRead();
+            return lInventoryFilterStatus == LInventoryStatus.LInventoryStatusPresent
+                && lInventoryFilters.Contains(lInventoryFilter);
+        }
     }
 
     public static IReadOnlyCollection<string> LInventoryFilterRead()
+    {
+        lock (lInventoryGate)
+        {
+            return LInventoryFilterResolve();
+        }
+    }
+
+    private static IReadOnlyCollection<string> LInventoryFilterResolve()
     {
         if (lInventoryFilterNames is not null)
         {
@@ -120,6 +132,14 @@ public static partial class LInventory
     }
 
     public static IReadOnlyCollection<string> LInventoryInstalledRead()
+    {
+        lock (lInventoryGate)
+        {
+            return LInventoryInstalledResolve();
+        }
+    }
+
+    private static IReadOnlyCollection<string> LInventoryInstalledResolve()
     {
         if (lInventoryInstalledNames is not null)
         {
@@ -156,12 +176,15 @@ public static partial class LInventory
 
     public static void LInventoryReset()
     {
-        lInventoryInstalledNames = null;
-        lInventoryFilterNames = null;
-        lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusPending;
-        lInventoryFilterStatus = LInventoryStatus.LInventoryStatusPending;
-        lInventorySampleCache.Clear();
-        lInventoryLayoutCache.Clear();
+        lock (lInventoryGate)
+        {
+            lInventoryInstalledNames = null;
+            lInventoryFilterNames = null;
+            lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusPending;
+            lInventoryFilterStatus = LInventoryStatus.LInventoryStatusPending;
+            lInventorySampleCache.Clear();
+            lInventoryLayoutCache.Clear();
+        }
     }
 
     public static IReadOnlyList<string> LInventoryLayoutRead(string lInventoryEncoder)
@@ -171,17 +194,20 @@ public static partial class LInventory
             return Array.Empty<string>();
         }
 
-        if (lInventoryLayoutCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<string>? lInventoryCached))
+        lock (lInventoryGate)
         {
-            return lInventoryCached;
-        }
+            if (lInventoryLayoutCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<string>? lInventoryCached))
+            {
+                return lInventoryCached;
+            }
 
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
-        IReadOnlyList<string> lInventoryLayouts = lInventoryProcess.LInventoryProcessSuccess
-            ? LInventoryLayoutParse(lInventoryProcess.LInventoryProcessOut)
-            : Array.Empty<string>();
-        lInventoryLayoutCache[lInventoryEncoder] = lInventoryLayouts;
-        return lInventoryLayouts;
+            LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
+            IReadOnlyList<string> lInventoryLayouts = lInventoryProcess.LInventoryProcessSuccess
+                ? LInventoryLayoutParse(lInventoryProcess.LInventoryProcessOut)
+                : Array.Empty<string>();
+            lInventoryLayoutCache[lInventoryEncoder] = lInventoryLayouts;
+            return lInventoryLayouts;
+        }
     }
 
     public static IReadOnlyList<int> LInventorySampleRead(string lInventoryEncoder)
@@ -191,17 +217,20 @@ public static partial class LInventory
             return Array.Empty<int>();
         }
 
-        if (lInventorySampleCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<int>? lInventoryCached))
+        lock (lInventoryGate)
         {
-            return lInventoryCached;
-        }
+            if (lInventorySampleCache.TryGetValue(lInventoryEncoder, out IReadOnlyList<int>? lInventoryCached))
+            {
+                return lInventoryCached;
+            }
 
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
-        IReadOnlyList<int> lInventoryRates = lInventoryProcess.LInventoryProcessSuccess
-            ? LInventorySampleParse(lInventoryProcess.LInventoryProcessOut)
-            : Array.Empty<int>();
-        lInventorySampleCache[lInventoryEncoder] = lInventoryRates;
-        return lInventoryRates;
+            LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
+            IReadOnlyList<int> lInventoryRates = lInventoryProcess.LInventoryProcessSuccess
+                ? LInventorySampleParse(lInventoryProcess.LInventoryProcessOut)
+                : Array.Empty<int>();
+            lInventorySampleCache[lInventoryEncoder] = lInventoryRates;
+            return lInventoryRates;
+        }
     }
 
 

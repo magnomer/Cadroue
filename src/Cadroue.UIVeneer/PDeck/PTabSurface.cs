@@ -37,6 +37,14 @@ public abstract partial class PTabSurface : UserControl
 
     protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
 
+    protected static void PTabSourceOpen(PViewer pViewer, string? pSourcePath)
+    {
+        if (!string.IsNullOrWhiteSpace(pSourcePath) && !pViewer.LViewer.LViewerSourceMatch(pSourcePath))
+        {
+            pViewer.PViewerSourceOpen(pSourcePath);
+        }
+    }
+
     protected static void PTabViewerAttach(PList pList, PViewer pViewer, PFlowControl pFlow)
     {
         void pTabViewerDetach()

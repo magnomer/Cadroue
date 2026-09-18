@@ -91,9 +91,7 @@ public sealed partial class PConsole
         pConsoleRestIcon.Visibility = pRunningState ? Visibility.Collapsed : Visibility.Visible;
         PConsoleSpinnerSet(pRunningState);
 
-        LConsole.LConsoleAutoSet(true);
         pConsoleAutoBox.IsChecked = pStation.LStationAutoActive;
-        LConsole.LConsoleAutoSet(false);
 
         bool pPausedState = !pRunner.LRunnerRunning && !pRunner.LRunnerSuspended;
         string pRunState = LLocalization.LLocalizationTextRead(

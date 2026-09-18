@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LMessenger
 {
-    private static Task LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
+    private static void LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
         if (LMessengerScheduleSource?.Invoke() is { } lMessengerSchedule)
         {
@@ -16,7 +16,6 @@ public static partial class LMessenger
         }
 
         LSubsidiary.LSubsidiarySourceDefer(lMessengerItems);
-        return Task.CompletedTask;
     }
 
     private static void LMessengerBytesSet(LScheduleContract lMessengerSchedule, LWorkItem lMessengerItem)

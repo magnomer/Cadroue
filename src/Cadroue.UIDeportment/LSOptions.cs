@@ -51,7 +51,21 @@ public sealed class LSOptions
         LSOptionsMpvChange?.Invoke(lEnabled);
     }
 
-    public async Task LSOptionsMpvUpdate() => LSOptionsMpvSet(await LRenderer.LRendererMpvCheck());
+    public async Task LSOptionsMpvUpdate()
+    {
+        bool lUsable;
+        try
+        {
+            lUsable = await LRenderer.LRendererMpvCheck();
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord("Options mpv check failed", lException);
+            lUsable = false;
+        }
+
+        LSOptionsMpvSet(lUsable);
+    }
 
     public static string LSOptionsMpvResolve() =>
         LMpv.LMpvInstalledCheck() ? "Options.System.ReinstallMpv" : "Options.System.DownloadMpv";

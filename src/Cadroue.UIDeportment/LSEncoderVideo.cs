@@ -116,6 +116,7 @@ public sealed partial class LSEncoder
 
     public async Task<IReadOnlyList<string>> LSEncoderVideoScan(IProgress<double> lFeed)
     {
+        CancellationToken lToken = LSEncoderScanStart(LTrialKind.LTrialKindVideo);
         var lAvailable = new List<string>();
         var lNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lRows = new List<LSVerdictRow>();
@@ -127,7 +128,7 @@ public sealed partial class LSEncoder
             bool lCandidateAvailable = false;
             foreach (string lEncoder in lCandidate.LRepertoireTokens)
             {
-                LTrialResult lResult = await LTrial.LTrialRun(lEncoder, LTrialKind.LTrialKindVideo);
+                LTrialResult lResult = await LTrial.LTrialRun(lEncoder, LTrialKind.LTrialKindVideo, lToken);
                 lCandidateAvailable |= lResult.LTrialSuccess;
                 if (lResult.LTrialSuccess)
                 {
@@ -146,6 +147,7 @@ public sealed partial class LSEncoder
             }
         }
 
+        lToken.ThrowIfCancellationRequested();
         LTrialSet.LTrialSetApply(lNames);
         if (!lAvailable.Contains(lsEncoderVideoEncoder)
             && lCandidates.Any(lCandidate => string.Equals(

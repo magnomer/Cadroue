@@ -67,7 +67,7 @@ public sealed partial class PAudioTab : PTabSurface
             }
 
             PAudioPlanSave();
-            _ = LMessenger.LMessengerAudioDescribe(
+            LMessenger.LMessengerAudioDescribe(
                 lPriority,
                 pAudioSelected.LDocketEntryPath,
                 PAudioProcessingRead(),
@@ -91,7 +91,7 @@ public sealed partial class PAudioTab : PTabSurface
             }
 
             PAudioPlanSave();
-            _ = LMessenger.LMessengerAudioDescribe(
+            LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -115,7 +115,7 @@ public sealed partial class PAudioTab : PTabSurface
             }
 
             PAudioPlanSave();
-            _ = LMessenger.LMessengerAudioDescribe(
+            LMessenger.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pAudioPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
@@ -132,7 +132,7 @@ public sealed partial class PAudioTab : PTabSurface
         pList.PListPathChange += PAudioPathShow;
         pList.PListItemsAdd += PAudioItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
-        pViewer.PViewerMediaChange += PAudioMediaHandle;
+        pViewer.LViewer.LViewerMediaChange += PAudioMediaHandle;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);

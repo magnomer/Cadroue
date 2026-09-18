@@ -5,7 +5,8 @@ namespace Cadroue.Infrastructure;
 
 public static class LTrialSet
 {
-    private static HashSet<string>? lTrialSetAvailable;
+    private static HashSet<string>? lTrialSetVideo;
+    private static HashSet<string>? lTrialSetAudio;
     private static Task? lTrialSetTask;
 
     public static void LTrialSetStart() =>
@@ -35,20 +36,31 @@ public static class LTrialSet
         LTrialSetApply(lAvailable);
     }
 
-    public static IReadOnlySet<string>? LTrialSetRead() => lTrialSetAvailable;
+    public static IReadOnlySet<string>? LTrialSetRead(LTrialKind lKind = LTrialKind.LTrialKindVideo) =>
+        lKind == LTrialKind.LTrialKindAudio ? lTrialSetAudio : lTrialSetVideo;
 
-    public static void LTrialSetApply(IEnumerable<string> lAvailable)
+    public static void LTrialSetApply(IEnumerable<string> lAvailable, LTrialKind lKind = LTrialKind.LTrialKindVideo)
     {
         var lSet = new HashSet<string>(lAvailable, StringComparer.OrdinalIgnoreCase);
-        if (lSet.Count > 0)
+        if (lSet.Count == 0)
         {
-            lTrialSetAvailable = lSet;
+            return;
+        }
+
+        if (lKind == LTrialKind.LTrialKindAudio)
+        {
+            lTrialSetAudio = lSet;
+        }
+        else
+        {
+            lTrialSetVideo = lSet;
         }
     }
 
     public static void LTrialSetReset()
     {
-        lTrialSetAvailable = null;
+        lTrialSetVideo = null;
+        lTrialSetAudio = null;
         lTrialSetTask = null;
     }
 
@@ -61,5 +73,8 @@ public static class LTrialSet
     }
 
     public static bool LTrialSetCheck(LRepertoireEncoder lCandidate) =>
-        lTrialSetAvailable is not { } lSet || lCandidate.LRepertoireTokens.Any(lSet.Contains);
+        lTrialSetVideo is not { } lSet || lCandidate.LRepertoireTokens.Any(lSet.Contains);
+
+    public static bool LTrialSetCheck(string lEncoder, LTrialKind lKind) =>
+        LTrialSetRead(lKind) is not { } lSet || lSet.Contains(lEncoder);
 }

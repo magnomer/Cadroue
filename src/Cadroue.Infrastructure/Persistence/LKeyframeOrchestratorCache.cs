@@ -234,7 +234,7 @@ public sealed partial class LKeyframeOrchestrator
                 }
                 catch (Exception ex)
                 {
-                    System.Diagnostics.Debug.WriteLine(ex);
+                    LTraceLog.LTraceErrorRecord("Keyframe notice handler failed", ex);
                 }
             }
         }

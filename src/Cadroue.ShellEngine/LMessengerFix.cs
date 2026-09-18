@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LMessenger
 {
-    public static async Task<int> LMessengerFixDescribe(
+    public static int LMessengerFixDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         LEncoding? lMessengerEncoding,
@@ -48,7 +48,7 @@ public static partial class LMessenger
             $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"{lMessengerSourcePaths.Length} listed file(s)");
 
-        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

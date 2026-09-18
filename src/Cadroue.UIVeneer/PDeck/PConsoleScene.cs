@@ -187,19 +187,15 @@ public sealed partial class PConsole
     private void PConsoleSceneRebuild()
     {
         LScene.LSceneCatalogueLoad();
-        LConsole.LConsoleApplySet(true);
         pConsoleRelayCombo.ItemsSource = LScene.LSceneNames;
-        LConsole.LConsoleApplySet(false);
         PConsoleSceneUpdate();
     }
 
     private void PConsoleSceneUpdate()
     {
         string lSceneName = LConsole.LConsoleSceneName;
-        LConsole.LConsoleApplySet(true);
         pConsoleRelayCombo.SelectedItem = LScene.LSceneRead(lSceneName) is not null ? lSceneName : null;
         pConsoleRelayCombo.Text = lSceneName;
-        LConsole.LConsoleApplySet(false);
         PConsoleMarkUpdate();
     }
 
@@ -258,7 +254,7 @@ public sealed partial class PConsole
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments)
     {
-        if (LConsole.LConsoleApplying || pConsoleRelayCombo.SelectedItem is not string lSceneName)
+        if (pConsoleRelayCombo.SelectedItem is not string lSceneName || LConsole.LConsoleSceneCheck(lSceneName))
         {
             return;
         }

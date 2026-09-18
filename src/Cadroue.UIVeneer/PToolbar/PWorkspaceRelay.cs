@@ -49,7 +49,7 @@ public sealed partial class PWorkspace
     {
         if (PWorkspaceViewer is { } pRelayViewer && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath))
         {
-            pRelayViewer.PViewerMediaChange += PWorkspaceRelayHandle;
+            pRelayViewer.LViewer.LViewerMediaChange += PWorkspaceRelayHandle;
             pWorkspaceRelay = lRelay;
         }
 
@@ -101,7 +101,7 @@ public sealed partial class PWorkspace
     {
         if (PWorkspaceViewer is not null)
         {
-            PWorkspaceViewer.PViewerMediaChange -= PWorkspaceRelayHandle;
+            PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceRelayHandle;
         }
 
         pWorkspaceRelay = null;

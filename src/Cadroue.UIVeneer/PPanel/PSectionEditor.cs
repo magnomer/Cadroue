@@ -89,7 +89,7 @@ public sealed partial class PSection
             pFieldBox.Width = pFieldWidth;
         }
 
-        pFieldBox.LostFocus += (_, _) => PSectionEditClose();
+        pFieldBox.LostFocus += (_, _) => PSectionEditClose(pFieldBox);
         pFieldBox.KeyDown += (_, pEvent) =>
         {
             if (pEvent.Key == Key.Return)
@@ -153,16 +153,11 @@ public sealed partial class PSection
         };
     }
 
-    private void PSectionEditClose()
+    private void PSectionEditClose(TextBox pFieldBox)
     {
-        if (LSection.LSectionRebuilding)
-        {
-            return;
-        }
-
         Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Input, new Action(() =>
         {
-            if (LSection.LSectionRebuilding || PSectionFocusCheck())
+            if (!PSectionFieldCheck(pFieldBox) || PSectionFocusCheck())
             {
                 return;
             }
@@ -170,6 +165,11 @@ public sealed partial class PSection
             PSectionEditCommit();
         }));
     }
+
+    private bool PSectionFieldCheck(TextBox pFieldBox) =>
+        ReferenceEquals(pFieldBox, pSectionNameBox)
+        || ReferenceEquals(pFieldBox, pSectionPrefixBox)
+        || ReferenceEquals(pFieldBox, pSectionSuffixBox);
 
     private bool PSectionFocusCheck()
     {

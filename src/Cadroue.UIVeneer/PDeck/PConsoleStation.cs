@@ -11,13 +11,14 @@ public sealed partial class PConsole
 
     private void PConsoleAutoHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (LConsole.LConsoleAutoApplying)
+        bool pConsoleAutoResume = pConsoleAutoBox.IsChecked == true;
+        LStation pStation = PConsoleStationRead();
+        if (pStation.LStationAutoActive == pConsoleAutoResume)
         {
             return;
         }
 
-        bool pConsoleAutoResume = pConsoleAutoBox.IsChecked == true;
-        PConsoleStationRead().LStationAutoActive = pConsoleAutoResume;
+        pStation.LStationAutoActive = pConsoleAutoResume;
         LPreference.LPreferenceAutoSet(pConsoleAutoResume);
         PConsoleProgressUpdate();
     }

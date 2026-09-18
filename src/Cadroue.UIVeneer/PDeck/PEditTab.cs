@@ -88,7 +88,7 @@ public sealed partial class PEditTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerEditDescribe(
+            LMessenger.LMessengerEditDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -111,7 +111,7 @@ public sealed partial class PEditTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerEditDescribe(
+            LMessenger.LMessengerEditDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pEditPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
@@ -154,9 +154,9 @@ public sealed partial class PEditTab : PTabSurface
         pViewer.PViewerToolChange += pInspector.PWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += PEditNeutralHandle;
         pInspector.LWhitebalance.LWhitebalanceEstimateChange += PEditEstimateHandle;
-        pViewer.PViewerMediaChange += _ =>
+        pViewer.LViewer.LViewerMediaChange += _ =>
             PEditEstimateHandle(pInspector.PWhitebalanceMethodRead());
-        pViewer.PViewerMediaChange += _ => PEditHistogramDefer();
+        pViewer.LViewer.LViewerMediaChange += _ => PEditHistogramDefer();
         pViewer.PViewerClockTick += _ => PEditHistogramDefer();
         pEditColorTimer.Tick += (_, _) =>
         {
@@ -172,7 +172,7 @@ public sealed partial class PEditTab : PTabSurface
         pViewer.PViewerEngineChange += PEditCapabilityHandle;
         pViewer.PViewerEngineChange += pViewer.PViewerNeutralCancel;
         pViewer.PCropVideoChange += PEditCropShow;
-        pViewer.PViewerMediaChange += _ => PEditCropRestore();
+        pViewer.LViewer.LViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
         pList.PListItemsAdd += PEditItemsHandle;
         PTabViewerAttach(pList, pViewer, pFlow);

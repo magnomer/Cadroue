@@ -40,7 +40,7 @@ public sealed partial class PWorkspace
         PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
         if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && PWorkspaceSurface.PTabSectionVisible)
         {
-            PWorkspaceViewer.PViewerMediaChange += PWorkspaceMediaHandle;
+            PWorkspaceViewer.LViewer.LViewerMediaChange += PWorkspaceMediaHandle;
         }
         PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
         PWorkspaceRoot = PWorkspaceRootCreate();
@@ -127,7 +127,7 @@ public sealed partial class PWorkspace
 
         if (PWorkspaceViewer is not null)
         {
-            PWorkspaceViewer.PViewerMediaChange -= PWorkspaceMediaHandle;
+            PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceMediaHandle;
         }
 
         PWorkspaceRelayDetach();

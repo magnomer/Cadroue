@@ -4,7 +4,6 @@ public sealed class LSection
 {
     private bool lSectionEditable = true;
     private bool lSectionMinimized;
-    private bool lSectionRebuilding;
     private bool lSectionDragActive;
     private int? lSectionEditIndex;
     private int? lSectionDragIndex;
@@ -14,8 +13,6 @@ public sealed class LSection
     public bool LSectionEditable => lSectionEditable;
 
     public bool LSectionMinimized => lSectionMinimized;
-
-    public bool LSectionRebuilding => lSectionRebuilding;
 
     public bool LSectionDragActive => lSectionDragActive;
 
@@ -36,8 +33,6 @@ public sealed class LSection
         LSectionMinimizeChange?.Invoke(lMinimized);
         return true;
     }
-
-    public void LSectionRebuildSet(bool lRebuilding) => lSectionRebuilding = lRebuilding;
 
     public void LSectionEditSet(int? lEditIndex) => lSectionEditIndex = lEditIndex;
 

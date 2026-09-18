@@ -66,7 +66,7 @@ public sealed class LCheckup : IDisposable
         _ = Task.Run(LCheckupQueueRun, CancellationToken.None);
     }
 
-    public void LCheckupCancel(string lCheckupSource, LFlawKind lCheckupKind)
+    public void LCheckupSourceCancel(string lCheckupSource)
     {
         lock (lCheckupLock)
         {
@@ -75,67 +75,22 @@ public sealed class LCheckup : IDisposable
                 return;
             }
 
-            var lCheckupRetained = new Queue<LCheckupRequest>();
-            while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
-            {
-                if (!string.Equals(lCheckupQueued.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
-                {
-                    lCheckupRetained.Enqueue(lCheckupQueued);
-                    continue;
-                }
-
-                LFlawKind[] lCheckupTargets = lCheckupQueued.LCheckupTargets
-                    .Where(lCheckupTarget => lCheckupTarget != lCheckupKind)
-                    .ToArray();
-                if (lCheckupTargets.Length > 0)
-                {
-                    lCheckupRetained.Enqueue(
-                        new LCheckupRequest(
-                            lCheckupQueued.LCheckupPath,
-                            lCheckupTargets,
-                            lCheckupQueued.LCheckupForce));
-                }
-            }
-
-            while (lCheckupRetained.TryDequeue(out LCheckupRequest lCheckupQueued))
+            LCheckupRequest[] lCheckupRetained = lCheckupQueue
+                .Where(lCheckupQueued =>
+                    !string.Equals(lCheckupQueued.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            lCheckupQueue.Clear();
+            foreach (LCheckupRequest lCheckupQueued in lCheckupRetained)
             {
                 lCheckupQueue.Enqueue(lCheckupQueued);
             }
 
-            if (lCheckupActive is not { } lCheckupActiveRequest
-                || !string.Equals(
-                    lCheckupActiveRequest.LCheckupPath,
-                    lCheckupSource,
-                    StringComparison.OrdinalIgnoreCase)
-                || !lCheckupActiveRequest.LCheckupTargets.Contains(lCheckupKind))
+            if (lCheckupActive is { } lCheckupActiveRequest
+                && string.Equals(lCheckupActiveRequest.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
             {
-                return;
+                lCheckupActive = null;
+                lCheckupCancellationSource?.Cancel();
             }
-
-            LFlawKind[] lCheckupRemaining = lCheckupActiveRequest.LCheckupTargets
-                .Where(lCheckupTarget => lCheckupTarget != lCheckupKind)
-                .ToArray();
-            if (lCheckupRemaining.Length > 0)
-            {
-                var lCheckupRestart = new Queue<LCheckupRequest>();
-                lCheckupRestart.Enqueue(
-                    new LCheckupRequest(
-                        lCheckupActiveRequest.LCheckupPath,
-                        lCheckupRemaining,
-                        lCheckupActiveRequest.LCheckupForce));
-                while (lCheckupQueue.TryDequeue(out LCheckupRequest lCheckupQueued))
-                {
-                    lCheckupRestart.Enqueue(lCheckupQueued);
-                }
-
-                while (lCheckupRestart.TryDequeue(out LCheckupRequest lCheckupQueued))
-                {
-                    lCheckupQueue.Enqueue(lCheckupQueued);
-                }
-            }
-
-            lCheckupActive = null;
-            lCheckupCancellationSource?.Cancel();
         }
     }
 

@@ -7,7 +7,7 @@ namespace Cadroue.UIVeneer.PPanel;
 
 public sealed partial class PGroup
 {
-    private void PGroupEditStart(int pGroupIndex, Grid pHeaderGrid, LGroupRecord pRecord)
+    private TextBox PGroupEditBuild(LGroupRecord pRecord)
     {
         var pNameBox = new TextBox
         {
@@ -19,45 +19,25 @@ public sealed partial class PGroup
             Padding = new Thickness(2, 0, 2, 0),
             Margin = new Thickness(0, 0, 6, 0)
         };
-        Grid.SetColumn(pNameBox, 0);
-
-        if (pHeaderGrid.Children.Count > 0 && pHeaderGrid.Children[0] is TextBlock pNameLabel)
-        {
-            pHeaderGrid.Children.Remove(pNameLabel);
-        }
-
-        pHeaderGrid.Children.Add(pNameBox);
         pNameBox.Loaded += (_, _) =>
         {
             pNameBox.Focus();
             pNameBox.SelectAll();
         };
-
-        bool pNameCommitted = false;
-        void PGroupNameCommit(bool pNameApply)
-        {
-            if (pNameCommitted)
-            {
-                return;
-            }
-
-            pNameCommitted = true;
-            LGroup.LGroupNameSet(pGroupIndex, pNameApply ? pNameBox.Text : string.Empty);
-        }
-
         pNameBox.KeyDown += (_, pKeyEvent) =>
         {
             if (pKeyEvent.Key == Key.Enter)
             {
-                PGroupNameCommit(true);
+                LGroup.LGroupNameCommit(pNameBox.Text);
                 pKeyEvent.Handled = true;
             }
             else if (pKeyEvent.Key == Key.Escape)
             {
-                PGroupNameCommit(false);
+                LGroup.LGroupEditCancel();
                 pKeyEvent.Handled = true;
             }
         };
-        pNameBox.LostKeyboardFocus += (_, _) => PGroupNameCommit(true);
+        pNameBox.LostKeyboardFocus += (_, _) => LGroup.LGroupNameCommit(pNameBox.Text);
+        return pNameBox;
     }
 }

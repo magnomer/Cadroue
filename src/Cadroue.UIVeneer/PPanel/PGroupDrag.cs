@@ -92,10 +92,10 @@ public sealed partial class PGroup
         }
 
         int pInsertAt = PGroupInsertResolve(pFileRows, pEvent);
-        bool pChanged = pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
+        bool pAccepted = pEvent.Data.GetData(PGroupMoveKind) is PGroupMovePayload pMove
             ? LGroup.LGroupItemMove(pMove.PGroupMoveIndex, pMove.PGroupMovePath, pTargetIndex, pInsertAt)
             : LGroup.LGroupPathsInsert(pTargetIndex, PGroupPathsRead(pEvent), pInsertAt);
-        if (pChanged)
+        if (pAccepted)
         {
             pEvent.Handled = true;
         }

@@ -45,6 +45,16 @@ internal static partial class TInterface
     internal static IReadOnlyList<LRepertoireEncoder> TRepertoireEncodersRead() =>
         LRepertoireCatalog.LRepertoireEncodersRead();
 
+    internal static LCapabilityCodec TCapabilityRead(string? encoder) => LCapability.LCapabilityRead(encoder);
+    internal static LCapabilityCodec TCapabilityAudioRead(string? encoder) => LCapability.LCapabilityAudioRead(encoder);
+    internal static LCapabilityMode TCapabilityModeFind(LCapabilityCodec codec, string? label) =>
+        codec.LCapabilityModeFind(label);
+    internal static IEnumerable<LCapabilityCodec> TCapabilityTableRead() =>
+        LCapabilityTable.LCapabilityMap.Values
+            .Concat(LCapabilityTable.LCapabilityAudioMap.Values)
+            .Append(LCapabilityTable.LCapabilityFallback)
+            .Append(LCapabilityTable.LCapabilityAudioFallback);
+
     internal static LTrialResult TTrialResultCreate(bool success, string message) => new(success, message);
     internal static Task TTrialSetStart(Func<string, Task<LTrialResult>> trial) => LTrialSet.LTrialSetStart(trial);
     internal static IReadOnlySet<string>? TTrialSetRead() => LTrialSet.LTrialSetRead();

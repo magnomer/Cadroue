@@ -167,6 +167,7 @@ public partial class PProgram : System.Windows.Application
         LLocalization.LLocalizationNamesSeam = typeof(PProgram).Assembly.GetManifestResourceNames;
         LLocalization.LLocalizationTextSeam = PProgramResourceRead;
         LLocalization.LLocalizationTraceSeam = LTraceLog.LTraceErrorRecord;
+        Cadroue.Media.LMediaLoad.LMediaTraceSeam = LTraceLog.LTraceErrorRecord;
         LPreference.LPreferenceLanguageSeam = LLocalization.LLocalizationLanguageNormalize;
         LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
         LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;

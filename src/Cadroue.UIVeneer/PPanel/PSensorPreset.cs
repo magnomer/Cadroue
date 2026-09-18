@@ -19,11 +19,14 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily
         };
         PDropdown.PDropdownApply(pBox);
-        pBox.Items.Add(new LLocalizationChoice("Conservative", "Inspector.Detector.Conservative"));
-        pBox.Items.Add(new LLocalizationChoice("Normal", "Inspector.Detector.Normal"));
-        pBox.Items.Add(new LLocalizationChoice("Sensitive", "Inspector.Detector.Sensitive"));
+        IReadOnlyList<string> pTokens = LDetector.LDetectorTokensRead(pDetectorKind);
+        foreach (string pItem in pTokens)
+        {
+            pBox.Items.Add(new LLocalizationChoice(pItem, PSensorKeyRead(pDetectorKind, pItem)));
+        }
+
         pBox.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        pBox.SelectedIndex = 1;
+        pBox.SelectedIndex = Math.Max(0, pTokens.ToList().IndexOf(LSensor.LSensorTokenRead(pDetectorKind) ?? string.Empty));
         pBox.SelectionChanged += (_, _) =>
         {
             if (PInspectorPresetRead(
@@ -39,11 +42,8 @@ public sealed partial class PInspector
         return pBox;
     }
 
-    private static string PSensorKeyRead(string pToken) => pToken switch
-    {
-        "Conservative" => "Inspector.Detector.Conservative",
-        "Normal" => "Inspector.Detector.Normal",
-        "Sensitive" => "Inspector.Detector.Sensitive",
-        _ => "Inspector.Common.Custom"
-    };
+    private static string PSensorKeyRead(LDetectorKind pDetectorKind, string pToken) =>
+        LDetector.LDetectorTokensRead(pDetectorKind).Contains(pToken)
+            ? "Inspector.Detector." + pToken
+            : "Inspector.Common.Custom";
 }

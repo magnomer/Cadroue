@@ -123,7 +123,7 @@ public sealed class LList
     public void LListAllSelect()
     {
         IReadOnlyList<string> lPaths = lListDocket.LDocketPathsRead();
-        if (lListSelected.Count == 0 || lPaths.Count == 0)
+        if (lPaths.Count == 0)
         {
             return;
         }

@@ -119,7 +119,7 @@ internal sealed class TCheckupJob : IDisposable
         tCheckup.LCheckupStart(new[] { path }, new[] { LFlawKind.LFlawKindContainer });
 
     internal void TCheckupCancel(string path) =>
-        tCheckup.LCheckupCancel(path, LFlawKind.LFlawKindContainer);
+        tCheckup.LCheckupSourceCancel(path);
 
     internal IReadOnlyList<TCheckupJobResult> TScoutResultsRead() => tCheckupResults.ToArray();
 

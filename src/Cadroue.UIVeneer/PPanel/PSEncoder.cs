@@ -239,6 +239,7 @@ internal sealed partial class PSEncoder : Window
 
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
+        lsEncoder.LSEncoderScanCancel();
         PSGrabber.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
         psEncoderGrabber.PSGrabberDetach();
         Closed -= PSEncoderCloseHandle;

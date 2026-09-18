@@ -57,6 +57,19 @@ internal static partial class TInterface
     internal static int TCurveSelectedRead(LCurve curve) => curve.LCurveSelected;
     internal static IReadOnlyList<LWorkCurvePoint> TCurvePointsRead(LCurve curve) => curve.LCurvePoints;
     internal static LWorkVideoStep TCurveStepRead(LCurve curve) => curve.LCurveStepRead();
+    internal static void TCurveStepSet(LCurve curve, LWorkVideoStep step) => curve.LCurveStepSet(step);
+    internal static void TCurvePointSelect(LCurve curve, int index) => curve.LCurvePointSelect(index);
+
+    internal static LBlank TBlankCreate() => new();
+    internal static void TBlankStepSet(LBlank blank, LDetectorBlank step) => blank.LBlankStepSet(step);
+    internal static void TBlankTypeSet(LBlank blank, LDetectorType type) => blank.LBlankTypeSet(type);
+    internal static void TBlankWheelSet(LBlank blank, double x, double y) => blank.LBlankWheelSet(x, y);
+    internal static void TBlankSampleSet(LBlank blank, int red, int green, int blue) =>
+        blank.LBlankSampleSet(red, green, blue);
+    internal static bool TBlankPresentRead(LBlank blank) => blank.LBlankWheelPresent;
+    internal static LDetectorBlank TBlankStepRead(LBlank blank) => blank.LBlankStep;
+    internal static LDetectorBlank TBlankStepCreate(LDetectorType type) =>
+        LDetectorBlank.LDetectorBlankCreate() with { LDetectorBlankType = type };
 
     internal static LWhitebalance TWhitebalanceCreate() => new();
     internal static void TWhitebalanceAttach(LWhitebalance whitebalance, Action handler) =>
@@ -92,6 +105,20 @@ internal static partial class TInterface
     internal static string? TNoiseMatchRead(LNoise noise) => noise.LNoiseMatchRead();
     internal static LWorkNoiseStep TNoiseStepRead(LNoise noise) => noise.LNoiseStep;
 
+    internal static LSensor TSensorCreate() => new();
+    internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) => LDetector.LDetectorTokensRead(kind);
+    internal static void TSensorPresetSelect(LSensor sensor, LDetectorKind kind, string token) =>
+        sensor.LSensorPresetSelect(kind, token);
+    internal static void TSensorTokenSet(LSensor sensor, LDetectorKind kind, string token) =>
+        sensor.LSensorTokenSet(kind, token);
+    internal static void TSensorStepSet(LSensor sensor, LDetectorStep step) => sensor.LSensorStepSet(step);
+    internal static void TSensorThresholdSet(LSensor sensor, LDetectorKind kind, double threshold) =>
+        sensor.LSensorThresholdSet(kind, threshold);
+    internal static void TSensorMetricSet(LSensor sensor, LDetectorMetricMode metric) => sensor.LSensorMetricSet(metric);
+    internal static string? TSensorTokenRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorTokenRead(kind);
+    internal static string? TSensorMatchRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorMatchRead(kind);
+    internal static LDetectorStep TSensorStepRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorStepRead(kind);
+
     internal static LLoudness TLoudnessCreate() => new();
     internal static void TLoudnessAttach(LLoudness loudness, Action handler) => loudness.LLoudnessChange += handler;
     internal static void TLoudnessPresetSelect(LLoudness loudness, string token) =>
@@ -125,6 +152,7 @@ internal static partial class TInterface
     internal static string? TEqualizerTokenRead(LEqualizer equalizer) => equalizer.LEqualizerToken;
     internal static string? TEqualizerMatchRead(LEqualizer equalizer) => equalizer.LEqualizerMatchRead();
     internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(LEqualizer equalizer) => equalizer.LEqualizerBands;
+    internal static LWorkAudioStep TEqualizerStepRead(LEqualizer equalizer) => equalizer.LEqualizerStepRead();
 
     internal static LVolume TVolumeCreate() => new();
     internal static void TVolumeAttach(LVolume volume, Action handler) => volume.LVolumeChange += handler;
@@ -164,6 +192,9 @@ internal static partial class TInterface
     internal static void TViewerEngineSet(LViewer viewer, LPreviewEngine engine) => viewer.LViewerEngineSet(engine);
     internal static void TViewerIntentSet(LViewer viewer, string path, TimeSpan position, bool? playing) =>
         viewer.LViewerIntentSet(new LViewerIntent(path, position, playing));
+    internal static void TViewerIntentReset(LViewer viewer) => viewer.LViewerIntentSet(null);
+    internal static void TViewerRequestSet(LViewer viewer, string path) => viewer.LViewerRequestSet(path);
+    internal static bool TViewerSourceMatch(LViewer viewer, string path) => viewer.LViewerSourceMatch(path);
     internal static void TViewerPreviewSet(LViewer viewer, LPreviewState preview) => viewer.LViewerPreviewSet(preview);
     internal static void TViewerPlaybackUpdate(LViewer viewer, bool? playing, TimeSpan? position) =>
         viewer.LViewerPlaybackUpdate(playing, position);
@@ -256,6 +287,18 @@ internal static partial class TInterface
         };
     internal static bool TFunnelRemainderCheck(LFunnel funnel) => funnel.LFunnelRemainderCheck();
 
+    internal static LGroup TGroupCreate(LGroupSelection selection) => new(selection);
+    internal static void TGroupAttach(LGroup group, Action handler) => group.LGroupChange += handler;
+    internal static bool TGroupAdd(LGroup group, IReadOnlyList<string> paths, string name) =>
+        group.LGroupAdd(paths, name);
+    internal static bool TGroupPathsInsert(LGroup group, int index, IReadOnlyList<string> paths, int insertAt) =>
+        group.LGroupPathsInsert(index, paths, insertAt);
+    internal static void TGroupRemove(LGroup group, int index) => group.LGroupRemove(index);
+    internal static void TGroupEditStart(LGroup group, int index) => group.LGroupEditStart(index);
+    internal static void TGroupEditCancel(LGroup group) => group.LGroupEditCancel();
+    internal static bool TGroupNameCommit(LGroup group, string name) => group.LGroupNameCommit(name);
+    internal static bool TGroupNameSet(LGroup group, int index, string name) => group.LGroupNameSet(index, name);
+
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name);
     internal static LExport TExportCreate(LPresetSelection selection, bool smart) => new(selection, smart);
     internal static void TExportAttach(LExport export, Action handler) => export.LExportPresetsChange += handler;
@@ -300,6 +343,16 @@ internal static partial class TInterface
     internal static LWorkFix TClinicPlanRead(LClinic clinic) => clinic.LClinicPlanRead();
     internal static void TClinicPlanApply(LClinic clinic, LWorkFix plan) => clinic.LClinicPlanApply(plan);
     internal static bool TClinicRepairCheck(LClinic clinic) => clinic.LClinicRepairCheck();
+    internal static void TClinicChangeAttach(LClinic clinic, Action handler) => clinic.LClinicChange += handler;
+    internal static void TClinicSourceSet(LClinic clinic, string? path) => clinic.LClinicSourceSet(path);
+    internal static void TClinicResultSet(LClinic clinic, string path, LFlawKind kind, LCheckupOutcome outcome) =>
+        clinic.LClinicResultSet(path, kind, new LCheckupResult(path, kind, outcome));
+    internal static void TClinicProgressSet(LClinic clinic, string path, double value) =>
+        clinic.LClinicProgressSet(path, value);
+    internal static void TClinicResultsRemove(LClinic clinic, params string[] paths) =>
+        clinic.LClinicResultsRemove(paths);
+    internal static LCheckupOutcome TClinicOutcomeRead(LClinic clinic) => clinic.LClinicResultRead().LCheckupOutcome;
+    internal static double TClinicProgressRead(LClinic clinic) => clinic.LClinicProgressRead();
 
     internal static LStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(title, number);

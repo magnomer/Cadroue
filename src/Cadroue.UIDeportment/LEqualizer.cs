@@ -57,7 +57,7 @@ public sealed class LEqualizer
             return;
         }
 
-        var lBand = new LWorkBand(lFrequency, lGain);
+        LWorkBand lBand = LEqualizerNormalize(lFrequency, lGain);
         if (lEqualizerBands[lIndex] == lBand)
         {
             return;
@@ -114,6 +114,10 @@ public sealed class LEqualizer
         lEqualizerPersistent = lPersistent;
         LEqualizerChange?.Invoke();
     }
+
+    private static LWorkBand LEqualizerNormalize(double lFrequency, double lGain) =>
+        ((LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(false, new[] { new LWorkBand(lFrequency, lGain) }))
+            .LWorkEqualizerBands[0];
 
     private void LEqualizerBandsApply(bool lActive, List<LWorkBand> lBands, string? lFallback)
     {

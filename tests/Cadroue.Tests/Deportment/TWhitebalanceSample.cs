@@ -100,4 +100,37 @@ public sealed class TWhitebalanceSample
         TInterface.TCurveChannelReset(curve);
         Assert.Equal(1, TInterface.TCurveSelectedRead(curve));
     }
+
+    [Fact]
+    public void CurveStepSet_ActiveOnly_KeepsSelection()
+    {
+        LCurve curve = TInterface.TCurveCreate();
+        TInterface.TCurvePointAdd(curve, 0.5, 0.6);
+        TInterface.TCurvePointSelect(curve, 0);
+        int notices = 0;
+        TInterface.TCurveAttach(curve, () => notices++);
+
+        TInterface.TCurveStepSet(curve, TInterface.TWorkCurveCreate(
+            true, TInterface.TCurvePointsRead(curve).ToArray()));
+
+        Assert.Equal(1, notices);
+        Assert.Equal(0, TInterface.TCurveSelectedRead(curve));
+        Assert.True(TInterface.TCurveStepRead(curve).LWorkStepActive);
+        Assert.Equal(3, TInterface.TCurvePointsRead(curve).Count);
+    }
+
+    [Fact]
+    public void CurveStepSet_PointsChanged_ClampsSelection()
+    {
+        LCurve curve = TInterface.TCurveCreate();
+        TInterface.TCurvePointAdd(curve, 0.3, 0.3);
+        TInterface.TCurvePointAdd(curve, 0.6, 0.6);
+        TInterface.TCurvePointSelect(curve, 3);
+
+        TInterface.TCurveStepSet(curve, TInterface.TWorkCurveCreate(false));
+
+        Assert.Equal(1, TInterface.TCurveSelectedRead(curve));
+        Assert.Equal(2, TInterface.TCurvePointsRead(curve).Count);
+        Assert.False(TInterface.TCurveStepRead(curve).LWorkStepActive);
+    }
 }

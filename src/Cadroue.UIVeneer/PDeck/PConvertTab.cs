@@ -84,13 +84,7 @@ public sealed class PConvertTab : PTabSurface
         Content = pTabGrid;
     }
 
-    private void PConvertPathShow(string? pSourcePath)
-    {
-        if (!string.IsNullOrWhiteSpace(pSourcePath))
-        {
-            pViewer.PViewerSourceOpen(pSourcePath);
-        }
-    }
+    private void PConvertPathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;

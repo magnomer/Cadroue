@@ -145,12 +145,26 @@ public static class LDetector
         return Math.Clamp(lDetectorValue, lDetectorBound.LDetectorBoundLeast, lDetectorBound.LDetectorBoundMost);
     }
 
+    public const string LDetectorTokenDefault = "Normal";
+
+    public static IReadOnlyList<string> LDetectorTokensRead(LDetectorKind lDetectorKind) => lDetectorKind switch
+    {
+        LDetectorKind.LDetectorKindScene => LDetectorScenePresets,
+        LDetectorKind.LDetectorKindStill => LDetectorStillPresets,
+        LDetectorKind.LDetectorKindLuminance => LDetectorLuminancePresets,
+        LDetectorKind.LDetectorKindVolume => LDetectorVolumePresets,
+        _ => Array.Empty<string>()
+    };
+
     public static readonly IReadOnlyList<LDetectorPreset> LDetectorPresets = new[]
     {
         new LDetectorPreset("Conservative", 24, 21, 2, 0.5),
         new LDetectorPreset("Normal", 20, 19, 2, 0.5),
         new LDetectorPreset("Sensitive", 16, 16, 2, 0.5)
     };
+
+    private static readonly IReadOnlyList<string> LDetectorVolumePresets =
+        LDetectorPresets.Select(lDetectorPreset => lDetectorPreset.LDetectorPresetToken).ToArray();
 
     public static LDetectorPreset? LDetectorPresetRead(string lDetectorToken)
     {

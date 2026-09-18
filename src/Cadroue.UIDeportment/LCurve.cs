@@ -51,22 +51,25 @@ public sealed class LCurve
     public void LCurveStepSet(LWorkVideoStep lStep)
     {
         LWorkCurveSettings lCurve = lStep.LWorkCurveRead();
-        bool lChanged = lCurveActive != lStep.LWorkStepActive
-            || !lCurveChannels[0].SequenceEqual(lCurve.LWorkCurveMaster)
+        bool lPointsChanged = !lCurveChannels[0].SequenceEqual(lCurve.LWorkCurveMaster)
             || !lCurveChannels[1].SequenceEqual(lCurve.LWorkCurveRed)
             || !lCurveChannels[2].SequenceEqual(lCurve.LWorkCurveGreen)
             || !lCurveChannels[3].SequenceEqual(lCurve.LWorkCurveBlue);
-        if (!lChanged)
+        if (!lPointsChanged && lCurveActive == lStep.LWorkStepActive)
         {
             return;
         }
 
         lCurveActive = lStep.LWorkStepActive;
-        lCurveChannels[0] = lCurve.LWorkCurveMaster.ToList();
-        lCurveChannels[1] = lCurve.LWorkCurveRed.ToList();
-        lCurveChannels[2] = lCurve.LWorkCurveGreen.ToList();
-        lCurveChannels[3] = lCurve.LWorkCurveBlue.ToList();
-        lCurveSelected = LCurvePoints.Count - 1;
+        if (lPointsChanged)
+        {
+            lCurveChannels[0] = lCurve.LWorkCurveMaster.ToList();
+            lCurveChannels[1] = lCurve.LWorkCurveRed.ToList();
+            lCurveChannels[2] = lCurve.LWorkCurveGreen.ToList();
+            lCurveChannels[3] = lCurve.LWorkCurveBlue.ToList();
+            LCurveSelectedClamp();
+        }
+
         LCurveChange?.Invoke();
     }
 
@@ -90,7 +93,7 @@ public sealed class LCurve
         }
 
         lCurveChannel = lClamped;
-        lCurveSelected = Math.Clamp(lCurveSelected, 0, LCurvePoints.Count - 1);
+        LCurveSelectedClamp();
         LCurveChange?.Invoke();
     }
 
@@ -136,14 +139,14 @@ public sealed class LCurve
         }
 
         lPoints.RemoveAt(lCurveSelected);
-        lCurveSelected = Math.Clamp(lCurveSelected, 0, lPoints.Count - 1);
+        LCurveSelectedClamp();
         LCurveChange?.Invoke();
     }
 
     public void LCurveChannelReset()
     {
         lCurveChannels[lCurveChannel] = LCurveIdentityCreate();
-        lCurveSelected = 1;
+        LCurveSelectedClamp();
         LCurveChange?.Invoke();
     }
 
@@ -154,7 +157,7 @@ public sealed class LCurve
             lCurveChannels[lIndex] = LCurveIdentityCreate();
         }
 
-        lCurveSelected = 1;
+        LCurveSelectedClamp();
         LCurveChange?.Invoke();
     }
 
@@ -192,6 +195,9 @@ public sealed class LCurve
         lCurvePreview = lPreviewShown;
         LCurveChange?.Invoke();
     }
+
+    private void LCurveSelectedClamp() =>
+        lCurveSelected = Math.Clamp(lCurveSelected, 0, LCurvePoints.Count - 1);
 
     private static List<LWorkCurvePoint> LCurveIdentityCreate() =>
         new() { new LWorkCurvePoint(0, 0), new LWorkCurvePoint(1, 1) };

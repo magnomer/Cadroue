@@ -17,14 +17,32 @@ public static class LTrial
 {
     private const int LTrialTimeoutSeconds = 6;
 
-    public static async Task<LTrialResult> LTrialRun(string lEncoder, LTrialKind lKind)
+    public static Task<LTrialResult> LTrialRun(string lEncoder, LTrialKind lKind, CancellationToken lToken = default) =>
+        Task.Run(() => LTrialLaneRun(lEncoder, lKind, lToken), CancellationToken.None);
+
+    private static async Task<LTrialResult> LTrialLaneRun(string lEncoder, LTrialKind lKind, CancellationToken lToken)
     {
+        lToken.ThrowIfCancellationRequested();
         string lFfmpeg = LTool.LToolFfmpegRead();
         if (string.IsNullOrWhiteSpace(lFfmpeg))
         {
             return new LTrialResult(false, "ffmpeg not resolved");
         }
 
+        LMedia.LMediaScanClaim(lToken);
+        try
+        {
+            return await LTrialProcessRun(lFfmpeg, lEncoder, lKind, lToken);
+        }
+        finally
+        {
+            LMedia.LMediaScanRelease();
+        }
+    }
+
+    private static async Task<LTrialResult> LTrialProcessRun(
+        string lFfmpeg, string lEncoder, LTrialKind lKind, CancellationToken lToken)
+    {
         using var lProcess = new Process
         {
             StartInfo = new ProcessStartInfo
@@ -44,19 +62,36 @@ public static class LTrial
             LCustody.LCustodyAttach(lProcess);
             Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
             Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
-            Task lExitTask = lProcess.WaitForExitAsync();
-            if (await Task.WhenAny(lExitTask, Task.Delay(TimeSpan.FromSeconds(LTrialTimeoutSeconds))) != lExitTask)
+            using var lTimeout = CancellationTokenSource.CreateLinkedTokenSource(lToken);
+            lTimeout.CancelAfter(TimeSpan.FromSeconds(LTrialTimeoutSeconds));
+            try
             {
-                lProcess.Kill(true);
+                await lProcess.WaitForExitAsync(lTimeout.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                LTrialProcessInterrupt(lProcess);
+                lToken.ThrowIfCancellationRequested();
                 return new LTrialResult(false, $"timeout after {LTrialTimeoutSeconds}s");
             }
 
             string lMessage = LTrialMessageShorten(await lErrorTask, await lOutputTask);
             return new LTrialResult(lProcess.ExitCode == 0, $"exit {lProcess.ExitCode}{lMessage}");
         }
-        catch (Exception lException)
+        catch (Exception lException) when (lException is not OperationCanceledException)
         {
             return new LTrialResult(false, lException.Message);
+        }
+    }
+
+    private static void LTrialProcessInterrupt(Process lProcess)
+    {
+        try
+        {
+            lProcess.Kill(true);
+        }
+        catch (InvalidOperationException)
+        {
         }
     }
 

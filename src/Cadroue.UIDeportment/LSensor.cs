@@ -26,7 +26,7 @@ public sealed class LSensor
             }
 
             lSensorSteps[lKind] = LDetector.LDetectorCreate(lKind);
-            lSensorTokens[lKind] = LSensorPresetCheck(lKind) ? "Normal" : null;
+            lSensorTokens[lKind] = LSensorPresetCheck(lKind) ? LDetector.LDetectorTokenDefault : null;
         }
     }
 
@@ -40,17 +40,12 @@ public sealed class LSensor
 
     public bool LSensorPersistent => lSensorPersistent;
 
-    public static bool LSensorPresetCheck(LDetectorKind lKind) => lKind is LDetectorKind.LDetectorKindScene
-        or LDetectorKind.LDetectorKindStill
-        or LDetectorKind.LDetectorKindLuminance
-        or LDetectorKind.LDetectorKindVolume;
+    public static bool LSensorPresetCheck(LDetectorKind lKind) => LDetector.LDetectorTokensRead(lKind).Count > 0;
 
     public LDetectorStep LSensorStepRead(LDetectorKind lKind) =>
         lSensorSteps.TryGetValue(lKind, out LDetectorStep lStep) ? lStep : LDetector.LDetectorCreate(lKind);
 
     public string? LSensorTokenRead(LDetectorKind lKind) => lSensorTokens.GetValueOrDefault(lKind);
-
-    public string LSensorPresetRead(LDetectorKind lKind) => LSensorMatchRead(lKind) ?? string.Empty;
 
     public string? LSensorMatchRead(LDetectorKind lKind)
     {
@@ -119,9 +114,9 @@ public sealed class LSensor
             return;
         }
 
+        string? lMatch = LSensorMatchRead(LDetectorKind.LDetectorKindVolume);
         lSensorMetric = lMetric;
-        if (lSensorTokens.GetValueOrDefault(LDetectorKind.LDetectorKindVolume) is { } lToken
-            && LDetector.LDetectorPresetRead(lToken) is { } lPreset)
+        if (lMatch is { } lToken && LDetector.LDetectorPresetRead(lToken) is { } lPreset)
         {
             LDetectorStep lStep = LSensorStepRead(LDetectorKind.LDetectorKindVolume);
             lSensorSteps[LDetectorKind.LDetectorKindVolume] = LSensorNormalize(lStep with
@@ -193,7 +188,7 @@ public sealed class LSensor
             return;
         }
 
-        string? lNormal = lToken is "Conservative" or "Normal" or "Sensitive" ? lToken : null;
+        string? lNormal = LDetector.LDetectorTokensRead(lKind).Contains(lToken) ? lToken : null;
         if (lSensorTokens[lKind] == lNormal)
         {
             return;

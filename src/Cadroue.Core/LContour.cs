@@ -56,12 +56,13 @@ public static class LContourCatalog
     public static bool LContourMatch(
         IReadOnlyList<double> lFrequencies, IReadOnlyList<double> lGains, double[] lPresetGains)
     {
-        if (lFrequencies.Count != 10 || lGains.Count != 10 || lPresetGains.Length != 10)
+        int lCount = LContourBandGrid.Length;
+        if (lFrequencies.Count != lCount || lGains.Count != lCount || lPresetGains.Length != lCount)
         {
             return false;
         }
 
-        for (int i = 0; i < 10; i++)
+        for (int i = 0; i < lCount; i++)
         {
             if (Math.Abs(lFrequencies[i] - LContourBandGrid[i]) > 0.5
                 || Math.Abs(lGains[i] - lPresetGains[i]) > 0.05)

@@ -39,10 +39,10 @@ public static partial class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        _ = LMessengerSourceResolve(lMessengerItems);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
-    public static async Task<int> LMessengerEditDescribe(
+    public static int LMessengerEditDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         LEncoding? lMessengerEncoding,
@@ -97,7 +97,7 @@ public static partial class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued from saved plans");
 
-        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

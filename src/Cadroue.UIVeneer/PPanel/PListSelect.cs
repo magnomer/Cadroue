@@ -42,9 +42,7 @@ public sealed partial class PList
 
     private void PListKeyHandle(object pKeySender, KeyEventArgs pKeyEvent)
     {
-        if (pKeyEvent.Key != Key.A
-            || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control
-            || LList.LListSelectionRead().Count == 0)
+        if (pKeyEvent.Key != Key.A || (Keyboard.Modifiers & ModifierKeys.Control) != ModifierKeys.Control)
         {
             return;
         }

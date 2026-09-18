@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 public static partial class LMessenger
 {
-    public static async Task<int> LMessengerAudioDescribe(
+    public static int LMessengerAudioDescribe(
         LWorkPriority lMessengerPriority,
         string? lMessengerSourcePath,
         LWorkAudio lMessengerProcessing,
@@ -38,10 +38,10 @@ public static partial class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        await LMessengerSourceResolve(new[] { lMessengerItem }).ConfigureAwait(false);
+        LMessengerSourceResolve(new[] { lMessengerItem });
         return lMessengerAdded;
     }
-    public static async Task<int> LMessengerAudioDescribe(
+    public static int LMessengerAudioDescribe(
         LWorkPriority lMessengerPriority,
         IReadOnlyList<LWorkSource> lMessengerSources,
         LEncoding? lMessengerEncoding,
@@ -83,7 +83,7 @@ public static partial class LMessenger
         }
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        await LMessengerSourceResolve(lMessengerItems).ConfigureAwait(false);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

@@ -5,6 +5,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Logging")]
 public sealed class TViewerMediaStatus
 {
     [Fact]
@@ -27,6 +28,32 @@ public sealed class TViewerMediaStatus
     }
 
     [Fact]
+    public void SourceMatch_RequestedPath_WhilePendingOrLoaded_NotAfterFailureOrClose()
+    {
+        LViewer viewer = TInterface.TViewerCreate();
+        LMediaInfo info = TInterface.TViewerInfoCreate(TimeSpan.FromSeconds(90), 1920, 1080);
+
+        Assert.False(TInterface.TViewerSourceMatch(viewer, @"C:\clip.cad"));
+
+        TInterface.TViewerRequestSet(viewer, @"C:\clip.cad");
+        Assert.False(TInterface.TViewerSourceMatch(viewer, @"C:\clip.cad"));
+
+        TInterface.TViewerIntentSet(viewer, @"C:\clip.mp4", TimeSpan.Zero, null);
+        Assert.True(TInterface.TViewerSourceMatch(viewer, @"C:\CLIP.CAD"));
+        Assert.False(TInterface.TViewerSourceMatch(viewer, @"C:\clip.mp4"));
+
+        TInterface.TViewerIntentReset(viewer);
+        TInterface.TViewerMediaCommit(viewer, TInterface.TCargoCreate(@"C:\clip.mp4", null, false), false);
+        Assert.False(TInterface.TViewerSourceMatch(viewer, @"C:\clip.cad"));
+
+        TInterface.TViewerMediaCommit(viewer, TInterface.TCargoCreate(@"C:\clip.mp4", info, true), false);
+        Assert.True(TInterface.TViewerSourceMatch(viewer, @"C:\clip.cad"));
+
+        TInterface.TViewerMediaClose(viewer);
+        Assert.False(TInterface.TViewerSourceMatch(viewer, @"C:\clip.cad"));
+    }
+
+    [Fact]
     public void MediaCommit_CropPersistent_KeepsCropbox()
     {
         LViewer viewer = TInterface.TViewerCreate();
@@ -41,17 +68,21 @@ public sealed class TViewerMediaStatus
     }
 
     [Fact]
-    public void MediaRaise_ReachesSubscriber_SwallowsThrow()
+    public void MediaRaise_ThrowingSubscriber_RecordsAndContinues()
     {
         LViewer viewer = TInterface.TViewerCreate();
         LCargo? seen = null;
+        TInterface.TViewerMediaAttach(viewer, _ => throw new InvalidOperationException("boom"));
         TInterface.TViewerMediaAttach(viewer, cargo => seen = cargo);
-        TInterface.TViewerMediaAttach(viewer, _ => throw new InvalidOperationException());
         LCargo cargo = TInterface.TCargoCreate("clip.mp4", null, false);
+        using var logging = new TTrace();
 
         TInterface.TViewerMediaRaise(viewer, cargo);
 
         Assert.Same(cargo, seen);
+        TTraceEntry entry = Assert.Single(logging.TTraceEntries);
+        Assert.Equal("Viewer media notice handler failed", entry.TTraceSummary);
+        Assert.Contains("boom", entry.TTraceDetail);
     }
 
     [Fact]

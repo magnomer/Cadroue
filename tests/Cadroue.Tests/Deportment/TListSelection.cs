@@ -77,18 +77,20 @@ public sealed class TListSelection
     }
 
     [Fact]
-    public void SelectAll_NeedsExistingSelection()
+    public void SelectAll_WithoutSelection_CurrentIsLast_KeepsCurrentOtherwise()
     {
         (_, LList list) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
 
         TInterface.TListAllSelect(list);
-        Assert.Empty(TInterface.TListSelectionRead(list));
-
-        TInterface.TListSelect(list, @"C:\b.mp4");
-        TInterface.TListAllSelect(list);
 
         Assert.Equal([@"C:\a.mp4", @"C:\b.mp4"], TInterface.TListSelectionRead(list));
         Assert.Equal(@"C:\b.mp4", list.LListPathCurrent);
+
+        TInterface.TListSelect(list, @"C:\a.mp4");
+        TInterface.TListAllSelect(list);
+
+        Assert.Equal([@"C:\a.mp4", @"C:\b.mp4"], TInterface.TListSelectionRead(list));
+        Assert.Equal(@"C:\a.mp4", list.LListPathCurrent);
     }
 
     [Fact]

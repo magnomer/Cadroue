@@ -18,6 +18,7 @@ public sealed class LGroup
     private bool lGroupMinimized;
     private int? lGroupSourceIndex;
     private string? lGroupDragPath;
+    private int? lGroupEditingIndex;
 
     public event Action? LGroupChange;
     public event Action<bool>? LGroupMinimizeChange;
@@ -34,6 +35,8 @@ public sealed class LGroup
     public int? LGroupSourceIndex => lGroupSourceIndex;
 
     public string? LGroupDragPath => lGroupDragPath;
+
+    public int? LGroupEditingIndex => lGroupEditingIndex;
 
     public void LGroupMinimizedSet(bool lMinimized)
     {
@@ -66,7 +69,7 @@ public sealed class LGroup
             lRecord.LGroupRecordPaths.AddRange(lSorted);
         }
 
-        LGroupChange?.Invoke();
+        LGroupRecordsRaise();
     }
 
     public void LGroupPathsRemove(IReadOnlyList<string> lPaths)
@@ -86,7 +89,7 @@ public sealed class LGroup
         int lEmptied = lGroupRecords.RemoveAll(lRecord => lRecord.LGroupRecordPaths.Count == 0);
         LTraceLog.LTraceInfoRecord(
             $"Group: removed {lRemovedCount} unloaded file(s) from groups, {lEmptied} group(s) emptied");
-        LGroupChange?.Invoke();
+        LGroupRecordsRaise();
     }
 
     public void LGroupAutoApply(IReadOnlyList<string> lFiles, bool? lStrict = null)
@@ -100,7 +103,7 @@ public sealed class LGroup
             lGroupRecords.Add(lRecord);
         }
 
-        LGroupChange?.Invoke();
+        LGroupRecordsRaise();
     }
 
     public bool LGroupItemMove(int lSourceIndex, string lPath, int lTargetIndex, int lInsertAt)
@@ -122,12 +125,14 @@ public sealed class LGroup
             }
         }
 
-        LGroupPathInsert(lGroupRecords[lTargetIndex].LGroupRecordPaths, lPath, lInsertAt);
+        bool lInserted = LGroupPathInsert(lGroupRecords[lTargetIndex].LGroupRecordPaths, lPath, lInsertAt);
         string lGroupName = System.IO.Path.GetFileName(lPath);
         LTraceLog.LTraceInfoRecord(lSourceIndex == lTargetIndex
             ? $"Group {lTargetIndex + 1}: reordered '{lGroupName}'"
-            : $"Group {lTargetIndex + 1}: moved in '{lGroupName}' from group {lSourceIndex + 1}");
-        LGroupChange?.Invoke();
+            : lInserted
+                ? $"Group {lTargetIndex + 1}: moved in '{lGroupName}' from group {lSourceIndex + 1}"
+                : $"Group {lTargetIndex + 1}: already holds '{lGroupName}', removed from group {lSourceIndex + 1}");
+        LGroupRecordsRaise();
         return true;
     }
 
@@ -139,14 +144,22 @@ public sealed class LGroup
         }
 
         List<string> lTargetPaths = lGroupRecords[lTargetIndex].LGroupRecordPaths;
+        int lInsertedCount = 0;
         foreach (string lPath in lPaths)
         {
-            LGroupPathInsert(lTargetPaths, lPath, lInsertAt);
-            lInsertAt++;
+            if (LGroupPathInsert(lTargetPaths, lPath, lInsertAt + lInsertedCount))
+            {
+                lInsertedCount++;
+            }
         }
 
-        LTraceLog.LTraceInfoRecord($"Group {lTargetIndex + 1}: added {lPaths.Count} file(s)");
-        LGroupChange?.Invoke();
+        if (lInsertedCount == 0)
+        {
+            return true;
+        }
+
+        LTraceLog.LTraceInfoRecord($"Group {lTargetIndex + 1}: added {lInsertedCount} file(s)");
+        LGroupRecordsRaise();
         return true;
     }
 
@@ -178,8 +191,9 @@ public sealed class LGroup
         }
 
         lGroupRecords.Add(lRecord);
-        LTraceLog.LTraceInfoRecord($"Group {lGroupRecords.Count}: created with {lNewPaths.Count} file(s)");
-        LGroupChange?.Invoke();
+        LTraceLog.LTraceInfoRecord(
+            $"Group {lGroupRecords.Count}: created with {lRecord.LGroupRecordPaths.Count} file(s)");
+        LGroupRecordsRaise();
         return true;
     }
 
@@ -193,7 +207,7 @@ public sealed class LGroup
         }
 
         LGroupDragSet(null, null);
-        LGroupChange?.Invoke();
+        LGroupRecordsRaise();
     }
 
     public void LGroupRemove(int lIndex)
@@ -204,29 +218,85 @@ public sealed class LGroup
         }
 
         lGroupRecords.RemoveAt(lIndex);
+        LGroupRecordsRaise();
+    }
+
+    public void LGroupEditStart(int lIndex)
+    {
+        if (!LGroupIndexCheck(lIndex) || lGroupEditingIndex == lIndex)
+        {
+            return;
+        }
+
+        lGroupEditingIndex = lIndex;
         LGroupChange?.Invoke();
     }
 
-    public void LGroupNameSet(int lIndex, string lName)
+    public void LGroupEditCancel()
     {
-        string lTrimmed = lName.Trim();
-        if (LGroupIndexCheck(lIndex) && lTrimmed.Length > 0)
+        if (lGroupEditingIndex is null)
         {
-            lGroupRecords[lIndex].LGroupRecordName = lTrimmed;
+            return;
         }
 
+        lGroupEditingIndex = null;
+        LGroupChange?.Invoke();
+    }
+
+    public bool LGroupNameCommit(string lName)
+    {
+        if (lGroupEditingIndex is not { } lIndex)
+        {
+            return false;
+        }
+
+        lGroupEditingIndex = null;
+        bool lApplied = LGroupNameApply(lIndex, lName);
+        LGroupChange?.Invoke();
+        return lApplied;
+    }
+
+    public bool LGroupNameSet(int lIndex, string lName)
+    {
+        if (!LGroupNameApply(lIndex, lName))
+        {
+            return false;
+        }
+
+        LGroupChange?.Invoke();
+        return true;
+    }
+
+    private bool LGroupNameApply(int lIndex, string lName)
+    {
+        string lTrimmed = lName.Trim();
+        if (!LGroupIndexCheck(lIndex)
+            || lTrimmed.Length == 0
+            || string.Equals(lTrimmed, lGroupRecords[lIndex].LGroupRecordName, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        lGroupRecords[lIndex].LGroupRecordName = lTrimmed;
+        return true;
+    }
+
+    private void LGroupRecordsRaise()
+    {
+        lGroupEditingIndex = null;
         LGroupChange?.Invoke();
     }
 
     private bool LGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < lGroupRecords.Count;
 
-    private static void LGroupPathInsert(List<string> lPaths, string lPath, int lInsertAt)
+    private static bool LGroupPathInsert(List<string> lPaths, string lPath, int lInsertAt)
     {
         if (lPaths.Any(lExisting => string.Equals(lExisting, lPath, StringComparison.OrdinalIgnoreCase)))
         {
-            return;
+            return false;
         }
 
         lPaths.Insert(Math.Clamp(lInsertAt, 0, lPaths.Count), lPath);
+        return true;
     }
 }

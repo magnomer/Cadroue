@@ -27,6 +27,7 @@ public sealed partial class PViewer
             return;
         }
 
+        LViewer.LViewerRequestSet(sourcePath);
         if (LLibrarian.LLibrarianFileCheck(sourcePath))
         {
             if (PViewerSidecarResolve(sourcePath) is not { } pResolvedPath)

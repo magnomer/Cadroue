@@ -65,6 +65,29 @@ public sealed class TFunnelRule
     }
 
     [Fact]
+    public void RestoreTwice_ReplacesRules_EmptyRestoreClears()
+    {
+        LFunnel funnel = TInterface.TFunnelCreate();
+        TInterface.TFunnelRuleAdd(funnel, LFunnelForm.LFunnelFormRegex);
+        LSceneFunnelRule[] records =
+        [
+            TInterface.TFunnelRecordCreate((int)LFunnelForm.LFunnelFormFilename, false, 0),
+            TInterface.TFunnelRecordCreate((int)LFunnelForm.LFunnelFormFilename, true, 1),
+        ];
+
+        TInterface.TFunnelRulesRestore(funnel, records);
+        TInterface.TFunnelRulesRestore(funnel, records);
+
+        Assert.Equal(2, funnel.LFunnelRules.Count);
+        Assert.Same(funnel.LFunnelRules[1], funnel.LFunnelSelected);
+
+        TInterface.TFunnelRulesRestore(funnel);
+
+        Assert.Empty(funnel.LFunnelRules);
+        Assert.Null(funnel.LFunnelSelected);
+    }
+
+    [Fact]
     public void TargetChoice_ClearsPending_NotifiesRuleOnly()
     {
         LFunnel funnel = TInterface.TFunnelCreate();

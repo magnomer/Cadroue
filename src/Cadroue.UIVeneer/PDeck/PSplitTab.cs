@@ -148,13 +148,15 @@ public sealed partial class PSplitTab : PTabSurface
 
     private void PSplitPathShow(string? pSourcePath)
     {
-        if (!string.IsNullOrWhiteSpace(pSourcePath))
+        if (string.IsNullOrWhiteSpace(pSourcePath) || pViewer.LViewer.LViewerSourceMatch(pSourcePath))
         {
-            pViewer.PViewerSourceOpen(pSourcePath);
-            if (!pInspector.PSensorPersistentCheck())
-            {
-                PSplitDetectorLoad(pSourcePath);
-            }
+            return;
+        }
+
+        pViewer.PViewerSourceOpen(pSourcePath);
+        if (!pInspector.PSensorPersistentCheck())
+        {
+            PSplitDetectorLoad(pSourcePath);
         }
     }
 

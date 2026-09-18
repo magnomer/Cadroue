@@ -11,7 +11,16 @@ internal sealed partial class PSEncoder
     {
         pButton.IsEnabled = false;
         pButton.Content = LLocalization.LLocalizationTextRead("Encoder.Verification.Checking");
-        IReadOnlyList<string> pAvailable = await lsEncoder.LSEncoderAudioScan(pFeed);
+        IReadOnlyList<string> pAvailable;
+        try
+        {
+            pAvailable = await lsEncoder.LSEncoderAudioScan(pFeed);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
         string pSelected = lsEncoder.LSEncoderAudioEncoder;
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();

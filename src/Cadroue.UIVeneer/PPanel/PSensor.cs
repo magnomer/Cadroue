@@ -261,7 +261,10 @@ public sealed partial class PInspector
         if (pSection.PSensorPreset is { } pPreset)
         {
             PInspectorPresetUpdate(
-                pPreset, LSensor.LSensorMatchRead(pKind), LSensor.LSensorTokenRead(pKind), PSensorKeyRead);
+                pPreset,
+                LSensor.LSensorMatchRead(pKind),
+                LSensor.LSensorTokenRead(pKind),
+                pToken => PSensorKeyRead(pKind, pToken));
         }
 
         PInspectorSectionUpdate(pSection.PSensorStack, pStep.LDetectorStepEnabled);

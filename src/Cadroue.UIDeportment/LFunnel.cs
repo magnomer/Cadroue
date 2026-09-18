@@ -111,6 +111,8 @@ public sealed class LFunnel
 
     public void LFunnelRulesRestore(IReadOnlyList<LSceneFunnelRule> lRecords)
     {
+        lFunnelRules.Clear();
+        lFunnelSelected = null;
         foreach (LSceneFunnelRule lRecord in lRecords)
         {
             LFunnelForm lForm = lRecord.LSceneFunnelRemainder

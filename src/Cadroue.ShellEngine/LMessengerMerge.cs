@@ -31,7 +31,7 @@ public static partial class LMessenger
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
-        _ = LMessengerSourceResolve(lMessengerItems);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

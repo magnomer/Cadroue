@@ -21,6 +21,11 @@ public sealed partial class PEditTab
             return;
         }
 
+        if (pViewer.LViewer.LViewerSourceMatch(pSourcePath))
+        {
+            return;
+        }
+
         LTraceLog.LTraceInfoRecord(
             $"Edit click '{System.IO.Path.GetFileName(pSourcePath)}': "
             + $"persistent {(pInspector.PCropPersistentCheck() ? "on" : "off")}, "
@@ -75,7 +80,7 @@ public sealed partial class PEditTab
             : "(no media)";
 
         LEditPlan? pEditApplied = null;
-        pInspector.LInspector.LInspectorRestoreSet(true);
+        pInspector.LInspector.LInspectorSaveSuspend();
         try
         {
             PEditSourceSync();
@@ -118,7 +123,7 @@ public sealed partial class PEditTab
         }
         finally
         {
-            pInspector.LInspector.LInspectorRestoreSet(false);
+            pInspector.LInspector.LInspectorSaveResume();
         }
 
         pProcessing.PProcessingSkipSet(pInspector.PSkipActiveCheck());

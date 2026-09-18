@@ -25,14 +25,15 @@ public sealed class LClinic
     };
 
     private readonly Dictionary<LFlawKind, LWorkFixStep> lClinicSteps = new();
-    private readonly Dictionary<(string, LFlawKind), LCheckupResult> lClinicResults = new();
+    private readonly Dictionary<string, Dictionary<LFlawKind, LCheckupResult>> lClinicResults =
+        new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, double> lClinicProgress = new(StringComparer.OrdinalIgnoreCase);
     private LWorkFixSalvage lClinicSalvage = LWorkFixSalvage.LWorkSalvageCreate();
     private string? lClinicSource;
     private string? lClinicStep;
     private LFlawKind? lClinicKind;
     private bool lClinicMinimized;
-    private bool lClinicRestoring;
+    private int lClinicSaveDepth;
 
     public event Action? LClinicChange;
     public event Action? LClinicPlanChange;
@@ -56,9 +57,11 @@ public sealed class LClinic
 
     public bool LClinicMinimized => lClinicMinimized;
 
-    public bool LClinicRestoring => lClinicRestoring;
+    public bool LClinicSaveSuspended => lClinicSaveDepth > 0;
 
-    public void LClinicRestoreSet(bool lRestoring) => lClinicRestoring = lRestoring;
+    public void LClinicSaveSuspend() => lClinicSaveDepth++;
+
+    public void LClinicSaveResume() => lClinicSaveDepth = Math.Max(0, lClinicSaveDepth - 1);
 
     public LWorkFixSalvage LClinicSalvage => lClinicSalvage;
 
@@ -80,7 +83,9 @@ public sealed class LClinic
             return new LCheckupResult(lClinicSource ?? string.Empty, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeUntested);
         }
 
-        return lClinicSource is { } lSource && lClinicResults.TryGetValue((lSource, lKind), out LCheckupResult lStored)
+        return lClinicSource is { } lSource
+            && lClinicResults.TryGetValue(lSource, out Dictionary<LFlawKind, LCheckupResult>? lKinds)
+            && lKinds.TryGetValue(lKind, out LCheckupResult lStored)
             ? lStored
             : new LCheckupResult(lClinicSource ?? string.Empty, lKind, LCheckupOutcome.LCheckupOutcomeUntested);
     }
@@ -174,7 +179,13 @@ public sealed class LClinic
 
     public void LClinicResultSet(string lPath, LFlawKind lKind, LCheckupResult lResult)
     {
-        lClinicResults[(lPath, lKind)] = lResult;
+        if (!lClinicResults.TryGetValue(lPath, out Dictionary<LFlawKind, LCheckupResult>? lKinds))
+        {
+            lKinds = new Dictionary<LFlawKind, LCheckupResult>();
+            lClinicResults[lPath] = lKinds;
+        }
+
+        lKinds[lKind] = lResult;
         if (lResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning)
         {
             lClinicProgress[lPath] = 0;
@@ -184,7 +195,7 @@ public sealed class LClinic
             lClinicProgress.Remove(lPath);
         }
 
-        if (lPath == lClinicSource && lClinicKind == lKind)
+        if (LClinicSourceMatch(lPath) && lClinicKind == lKind)
         {
             LClinicChange?.Invoke();
         }
@@ -192,23 +203,30 @@ public sealed class LClinic
 
     public void LClinicResultsRemove(IReadOnlyList<string> lPaths)
     {
+        bool lShown = false;
         foreach (string lPath in lPaths)
         {
-            foreach ((LFlawKind lKind, string _) in LClinicKinds)
-            {
-                lClinicResults.Remove((lPath, lKind));
-            }
+            lShown |= lClinicResults.Remove(lPath) && LClinicSourceMatch(lPath);
+            lClinicProgress.Remove(lPath);
+        }
+
+        if (lShown)
+        {
+            LClinicChange?.Invoke();
         }
     }
 
     public void LClinicProgressSet(string lPath, double lValue)
     {
         lClinicProgress[lPath] = Math.Clamp(lValue, 0, 1);
-        if (string.Equals(lPath, lClinicSource, StringComparison.OrdinalIgnoreCase))
+        if (LClinicSourceMatch(lPath))
         {
             LClinicChange?.Invoke();
         }
     }
+
+    private bool LClinicSourceMatch(string lPath) =>
+        string.Equals(lPath, lClinicSource, StringComparison.OrdinalIgnoreCase);
 
     private LWorkFixSalvage LClinicSalvageNormalize(LWorkFixSalvage lSalvage) =>
         LClinicRepairCheck() ? lSalvage : lSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisSource };

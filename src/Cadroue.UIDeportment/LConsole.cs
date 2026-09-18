@@ -3,9 +3,7 @@ namespace Cadroue.UIDeportment;
 public sealed class LConsole
 {
     private bool lConsoleSpinning;
-    private bool lConsoleApplying;
     private bool lConsoleCaretReady;
-    private bool lConsoleAutoApplying;
     private bool lConsoleProgressPending;
     private bool lConsoleBackward;
     private double lConsoleProgress;
@@ -14,11 +12,7 @@ public sealed class LConsole
 
     public bool LConsoleSpinning => lConsoleSpinning;
 
-    public bool LConsoleApplying => lConsoleApplying;
-
     public bool LConsoleCaretReady => lConsoleCaretReady;
-
-    public bool LConsoleAutoApplying => lConsoleAutoApplying;
 
     public bool LConsoleProgressPending => lConsoleProgressPending;
 
@@ -41,8 +35,6 @@ public sealed class LConsole
         return true;
     }
 
-    public void LConsoleApplySet(bool lApplying) => lConsoleApplying = lApplying;
-
     public bool LConsoleCaretSet()
     {
         if (lConsoleCaretReady)
@@ -53,8 +45,6 @@ public sealed class LConsole
         lConsoleCaretReady = true;
         return true;
     }
-
-    public void LConsoleAutoSet(bool lAutoApplying) => lConsoleAutoApplying = lAutoApplying;
 
     public void LConsolePendingSet(bool lProgressPending) => lConsoleProgressPending = lProgressPending;
 

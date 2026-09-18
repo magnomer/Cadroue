@@ -26,12 +26,12 @@ public static partial class LCartographer
             "Edit" => Task.FromResult(LCartographerEditRun(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch)),
-            "Fix" => LCartographerFixRun(
+            "Fix" => Task.FromResult(LCartographerFixRun(
                 lCartographerPaths, lCartographerOutput,
-                lCartographerTarget, lCartographerSource, lCartographerBatch),
-            "Audio" => LCartographerAudioRun(
+                lCartographerTarget, lCartographerSource, lCartographerBatch)),
+            "Audio" => Task.FromResult(LCartographerAudioRun(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
-                lCartographerTarget, lCartographerSource, lCartographerBatch),
+                lCartographerTarget, lCartographerSource, lCartographerBatch)),
             _ => Task.FromResult(LCartographerSplitRun(
                 lCartographerPaths, lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch))
         };
@@ -162,7 +162,7 @@ public static partial class LCartographer
         return lCartographerAcknowledged;
     }
 
-    private static async Task<IReadOnlyList<string>> LCartographerFixRun(
+    private static IReadOnlyList<string> LCartographerFixRun(
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
         Guid lCartographerTarget,
@@ -172,13 +172,13 @@ public static partial class LCartographer
         LWorkSource[] lCartographerSources = lCartographerPaths
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
-        await LMessenger.LMessengerFixDescribe(
+        LMessenger.LMessengerFixDescribe(
             LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOutput,
-            lCartographerTarget, lCartographerSource).ConfigureAwait(true);
+            lCartographerTarget, lCartographerSource);
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
 
-    private static async Task<IReadOnlyList<string>> LCartographerAudioRun(
+    private static IReadOnlyList<string> LCartographerAudioRun(
         LSceneTabRecord lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
@@ -191,9 +191,13 @@ public static partial class LCartographer
                 ? LAudio.LAudioPersistentRead(lCartographerRecord)
                 : LWorkAudio.LWorkAudioCreate();
 
-        await Task.WhenAll(lCartographerPaths.Select(lCartographerPath => LMessenger.LMessengerAudioDescribe(
-            LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
-            lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch))).ConfigureAwait(true);
+        foreach (string lCartographerPath in lCartographerPaths)
+        {
+            LMessenger.LMessengerAudioDescribe(
+                LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
+                lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch);
+        }
+
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
 

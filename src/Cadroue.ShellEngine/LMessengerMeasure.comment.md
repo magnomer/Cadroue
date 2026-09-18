@@ -1,6 +1,6 @@
 # LMessengerMeasure.cs
 
-## `private static Task LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)`
+## `private static void LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)`
 
 Each added item's byte size is read natively and recorded the instant it is added.
 That is a cheap Windows file-length read that never waits on anything.

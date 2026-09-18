@@ -12,7 +12,7 @@ public sealed class LInspector
     private bool lInspectorCropCapable = true;
     private bool lInspectorOrientationCapable = true;
     private bool lInspectorToolArmed;
-    private bool lInspectorRestoring;
+    private int lInspectorSaveDepth;
     private string? lInspectorOwnerPath;
     private string? lInspectorFailurePath;
 
@@ -36,11 +36,13 @@ public sealed class LInspector
 
     public bool LInspectorToolArmed => lInspectorToolArmed;
 
-    public bool LInspectorRestoring => lInspectorRestoring;
+    public bool LInspectorSaveSuspended => lInspectorSaveDepth > 0;
 
     public string? LInspectorOwnerPath => lInspectorOwnerPath;
 
-    public void LInspectorRestoreSet(bool lRestoring) => lInspectorRestoring = lRestoring;
+    public void LInspectorSaveSuspend() => lInspectorSaveDepth++;
+
+    public void LInspectorSaveResume() => lInspectorSaveDepth = Math.Max(0, lInspectorSaveDepth - 1);
 
     public void LInspectorMinimizedSet(bool lMinimized)
     {

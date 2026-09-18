@@ -38,7 +38,7 @@ public static partial class LMessenger
         LTraceLog.LTraceInfoRecord(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
             $"from '{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        _ = LMessengerSourceResolve(lMessengerItems);
+        LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
     public static async Task<int> LMessengerSplitDescribe(
@@ -48,30 +48,38 @@ public static partial class LMessenger
         Guid lMessengerRelayTarget = default,
         Guid lMessengerRelaySource = default)
     {
-        var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkSource lMessengerSource in lMessengerSources)
+        try
         {
-            lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
-        }
-        string[] lMessengerSourcePaths = lMessengerSources
-            .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
-            .ToArray();
-
-        IReadOnlyList<LSplitPlanRecord> lMessengerPlans =
-            await Task.Run(() => LMessengerSplitCreate(lMessengerSourcePaths)).ConfigureAwait(false);
-
-        int lMessengerAdded = 0;
-        LMessengerDefer(() =>
-        {
-            foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
+            var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+            foreach (LWorkSource lMessengerSource in lMessengerSources)
             {
-                lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
-                lMessengerAdded += LMessengerSplitDescribe(
-                    lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
-                    lMessengerEncoding, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch);
+                lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
             }
-        });
-        return lMessengerAdded;
+            string[] lMessengerSourcePaths = lMessengerSources
+                .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
+                .ToArray();
+
+            IReadOnlyList<LSplitPlanRecord> lMessengerPlans =
+                await Task.Run(() => LMessengerSplitCreate(lMessengerSourcePaths)).ConfigureAwait(false);
+
+            int lMessengerAdded = 0;
+            LMessengerDefer(() =>
+            {
+                foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
+                {
+                    lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
+                    lMessengerAdded += LMessengerSplitDescribe(
+                        lMessengerPriority, lMessengerPlan.LSplitSourcePath, lMessengerPlan.LSplitPlanSections,
+                        lMessengerEncoding, lMessengerRelayTarget, lMessengerRelaySource, lMessengerBatch);
+                }
+            });
+            return lMessengerAdded;
+        }
+        catch (Exception lMessengerException)
+        {
+            LTraceLog.LTraceErrorRecord("Split could not be queued", lMessengerException);
+            return 0;
+        }
     }
 
     private static IReadOnlyList<LSplitPlanRecord> LMessengerSplitCreate(IReadOnlyList<string> lMessengerSourcePaths)

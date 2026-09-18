@@ -149,13 +149,7 @@ public sealed class PMergeTab : PTabSurface
         }
     }
 
-    private void PMergePathShow(string? pSourcePath)
-    {
-        if (!string.IsNullOrWhiteSpace(pSourcePath))
-        {
-            pViewer.PViewerSourceOpen(pSourcePath);
-        }
-    }
+    private void PMergePathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;

@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
@@ -12,6 +13,8 @@ public sealed partial class LSEncoder
     private readonly bool lsEncoderSmart;
     private string? lsEncoderSuffixMode;
     private string? lsEncoderLocationMode;
+    private CancellationTokenSource? lsEncoderVideoTrial;
+    private CancellationTokenSource? lsEncoderAudioTrial;
 
     public LSEncoder(LPreset lSource, bool lSmart)
     {
@@ -23,6 +26,22 @@ public sealed partial class LSEncoder
     }
 
     public LPreset LSEncoderDraft => lsEncoderDraft;
+
+    private CancellationToken LSEncoderScanStart(LTrialKind lKind)
+    {
+        ref CancellationTokenSource? lSlot = ref lKind == LTrialKind.LTrialKindAudio
+            ? ref lsEncoderAudioTrial
+            : ref lsEncoderVideoTrial;
+        lSlot?.Cancel();
+        lSlot = new CancellationTokenSource();
+        return lSlot.Token;
+    }
+
+    public void LSEncoderScanCancel()
+    {
+        lsEncoderVideoTrial?.Cancel();
+        lsEncoderAudioTrial?.Cancel();
+    }
 
     public bool LSEncoderSmart => lsEncoderSmart;
 

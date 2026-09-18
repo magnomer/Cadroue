@@ -41,7 +41,7 @@ public partial class PWindow
         pFlowActive.PFlowOrderApply();
         pFlowActive.PFlowPlayingSource = pViewerActive.PViewerPlayingRead;
         pViewerActive.PViewerCommandSet(true);
-        pViewerActive.PViewerMediaChange += PWindowMediaHandle;
+        pViewerActive.LViewer.LViewerMediaChange += PWindowMediaHandle;
         pViewerActive.PViewerClockTick += PWindowClockHandle;
         pFlowActive.PFlowCursorChange += pViewerActive.PViewerSeek;
         pFlowActive.PFlowDragChange += pViewerActive.PViewerDragSet;
@@ -54,7 +54,7 @@ public partial class PWindow
     {
         if (pFlowActive is not null && pViewerActive is not null)
         {
-            pViewerActive.PViewerMediaChange -= PWindowMediaHandle;
+            pViewerActive.LViewer.LViewerMediaChange -= PWindowMediaHandle;
             pViewerActive.PViewerClockTick -= PWindowClockHandle;
             pFlowActive.PFlowCursorChange -= pViewerActive.PViewerSeek;
             pFlowActive.PFlowDragChange -= pViewerActive.PViewerDragSet;

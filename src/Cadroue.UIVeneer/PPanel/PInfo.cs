@@ -76,10 +76,10 @@ public sealed class PInfo : UserControl
     public void PInfoAttach(PViewer? pViewer)
     {
         if (pInfoViewer is not null)
-            pInfoViewer.PViewerMediaChange -= PInfoMediaHandle;
+            pInfoViewer.LViewer.LViewerMediaChange -= PInfoMediaHandle;
         pInfoViewer = pViewer;
         if (pInfoViewer is not null)
-            pInfoViewer.PViewerMediaChange += PInfoMediaHandle;
+            pInfoViewer.LViewer.LViewerMediaChange += PInfoMediaHandle;
     }
 
     private void PInfoMediaHandle(LCargo pMediaStatus)

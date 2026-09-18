@@ -99,10 +99,10 @@ public sealed class PSource : UserControl
     public void PSourceAttach(PViewer? pViewer)
     {
         if (pSourceViewer is not null)
-            pSourceViewer.PViewerMediaChange -= PSourceMediaHandle;
+            pSourceViewer.LViewer.LViewerMediaChange -= PSourceMediaHandle;
         pSourceViewer = pViewer;
         if (pSourceViewer is not null)
-            pSourceViewer.PViewerMediaChange += PSourceMediaHandle;
+            pSourceViewer.LViewer.LViewerMediaChange += PSourceMediaHandle;
     }
 
     private void PSourceMediaHandle(LCargo pMediaStatus)

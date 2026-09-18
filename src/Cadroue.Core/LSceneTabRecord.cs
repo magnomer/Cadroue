@@ -99,7 +99,7 @@ public sealed class LSceneDetector
 
     public double LSceneDetectorCoverage { get; set; } = LDetector.LDetectorCoverageRead().LDetectorBoundDefault;
 
-    public string LSceneDetectorPreset { get; set; } = "Normal";
+    public string LSceneDetectorPreset { get; set; } = LDetector.LDetectorTokenDefault;
 
     public LSceneDetector LSceneDetectorClone()
     {

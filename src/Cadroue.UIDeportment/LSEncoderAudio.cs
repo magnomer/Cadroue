@@ -48,7 +48,7 @@ public sealed partial class LSEncoder
     {
         bool lKnown = LRepertoireCatalog.LRepertoireContainerNames.Contains(lContainer);
         string[] lItems = LRepertoireCatalog.LRepertoireAudioCandidates
-            .Where(lCandidate => LInventory.LInventoryInstalledCheck(lCandidate.LRepertoireName)
+            .Where(lCandidate => LSEncoderAudioCheck(lCandidate.LRepertoireText)
                 && (!lKnown || LRepertoireCatalog.LRepertoireAudioCheck(lCandidate.LRepertoireName, lContainer)))
             .Select(lCandidate => lCandidate.LRepertoireText)
             .ToArray();
@@ -63,31 +63,44 @@ public sealed partial class LSEncoder
         return lFits ? [lKeep, .. lItems] : lItems;
     }
 
-    public static bool LSEncoderAudioCheck(string lText) =>
-        LRepertoireCatalog.LRepertoireAudioResolve(lText) is not { } lName
-            || LInventory.LInventoryInstalledCheck(lName);
+    public static bool LSEncoderAudioCheck(string lText)
+    {
+        if (LRepertoireCatalog.LRepertoireAudioResolve(lText) is not { } lName)
+        {
+            return true;
+        }
+
+        return LTrialSet.LTrialSetRead(LTrialKind.LTrialKindAudio) is { } lSet
+            ? lSet.Contains(lName)
+            : LInventory.LInventoryInstalledCheck(lName);
+    }
 
     public async Task<IReadOnlyList<string>> LSEncoderAudioScan(IProgress<double> lFeed)
     {
-        LInventory.LInventoryReset();
+        CancellationToken lToken = LSEncoderScanStart(LTrialKind.LTrialKindAudio);
         var lAvailable = new List<string>();
+        var lNames = new List<string>();
         var lRows = new List<LSVerdictRow>();
         IReadOnlyList<LRepertoireAudio> lCandidates = LRepertoireCatalog.LRepertoireAudioCandidates;
         int lDone = 0;
         foreach (LRepertoireAudio lCandidate in lCandidates)
         {
-            LTrialResult lResult = await LTrial.LTrialRun(lCandidate.LRepertoireName, LTrialKind.LTrialKindAudio);
+            LTrialResult lResult = await LTrial.LTrialRun(
+                lCandidate.LRepertoireName, LTrialKind.LTrialKindAudio, lToken);
             lRows.Add(new LSVerdictRow(
                 lCandidate.LRepertoireText, lCandidate.LRepertoireName, lResult.LTrialSuccess, lResult.LTrialMessage));
             if (lResult.LTrialSuccess)
             {
                 lAvailable.Add(lCandidate.LRepertoireText);
+                lNames.Add(lCandidate.LRepertoireName);
             }
 
             lDone++;
             lFeed.Report(lCandidates.Count == 0 ? 1 : (double)lDone / lCandidates.Count);
         }
 
+        lToken.ThrowIfCancellationRequested();
+        LTrialSet.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
         if (!lAvailable.Contains(lsEncoderAudioEncoder)
             && LRepertoireCatalog.LRepertoireAudioResolve(lsEncoderAudioEncoder) is not null)
         {

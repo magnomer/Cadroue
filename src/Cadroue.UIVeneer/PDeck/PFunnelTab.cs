@@ -20,9 +20,9 @@ public sealed class PFunnelTab : PTabSurface
     public PFunnelTab(LSceneTabRecord? lPreferenceTabLayout = null)
     {
         pFunnelRules.PFunnelOptionsSet(PFunnelTargetsRead);
-        if (lPreferenceTabLayout?.LSceneFunnelRules is { Count: > 0 } pRuleRecords)
+        if (lPreferenceTabLayout is { } pLayout)
         {
-            pFunnelRules.LFunnel.LFunnelRulesRestore(pRuleRecords);
+            pFunnelRules.LFunnel.LFunnelRulesRestore(pLayout.LSceneFunnelRules);
         }
 
         var pAction = new PAction();
@@ -98,13 +98,7 @@ public sealed class PFunnelTab : PTabSurface
         return pOptions;
     }
 
-    private void PFunnelPathShow(string? pSourcePath)
-    {
-        if (!string.IsNullOrWhiteSpace(pSourcePath))
-        {
-            pViewer.PViewerSourceOpen(pSourcePath);
-        }
-    }
+    private void PFunnelPathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
 
     public override PFlowControl PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;

@@ -30,6 +30,24 @@ public sealed class TContourPreset
     }
 
     [Fact]
+    public void EqualizerPreset_EveryCatalogPreset_HasOneGainPerGridBand()
+    {
+        foreach (string token in TInterface.TContourTokensRead())
+        {
+            Assert.Equal(LContourCatalog.LContourBandGrid.Length, TInterface.TContourGainsRead(token)!.Length);
+        }
+    }
+
+    [Fact]
+    public void EqualizerDefaultBands_FollowGrid_WithZeroGain()
+    {
+        IReadOnlyList<LWorkBand> bands = TInterface.TWorkBandsCreate();
+
+        Assert.Equal(LContourCatalog.LContourBandGrid, bands.Select(band => band.LWorkBandFrequency));
+        Assert.All(bands, band => Assert.Equal(0, band.LWorkBandGain));
+    }
+
+    [Fact]
     public void EqualizerPreset_UnknownToken_ReturnsNoGains()
     {
         Assert.Null(TInterface.TContourGainsRead("Custom"));

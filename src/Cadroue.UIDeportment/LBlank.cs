@@ -6,7 +6,6 @@ namespace Cadroue.UIDeportment;
 public sealed class LBlank
 {
     private LDetectorBlank lBlankStep = LDetectorBlank.LDetectorBlankCreate();
-    private bool lBlankWheelPresent;
     private bool lBlankPicking;
 
     public event Action? LBlankChange;
@@ -14,7 +13,7 @@ public sealed class LBlank
 
     public LDetectorBlank LBlankStep => lBlankStep;
 
-    public bool LBlankWheelPresent => lBlankWheelPresent;
+    public bool LBlankWheelPresent => lBlankStep.LDetectorBlankType == LDetectorType.LDetectorTypeColor;
 
     public bool LBlankPicking => lBlankPicking;
 
@@ -27,34 +26,32 @@ public sealed class LBlank
     public void LBlankStepSet(LDetectorBlank lStep)
     {
         LDetectorBlank lNormal = LDetectorBlank.LDetectorBlankClamp(lStep);
-        bool lPresent = lNormal.LDetectorBlankType == LDetectorType.LDetectorTypeColor;
-        if (lBlankStep == lNormal && lBlankWheelPresent == lPresent)
+        if (lBlankStep == lNormal)
         {
             return;
         }
 
         lBlankStep = lNormal;
-        lBlankWheelPresent = lPresent;
         LBlankChange?.Invoke();
     }
 
     public void LBlankEnabledSet(bool lEnabled) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankEnabled = lEnabled });
+        LBlankStepSet(lBlankStep with { LDetectorBlankEnabled = lEnabled });
 
     public void LBlankTypeSet(LDetectorType lType) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankType = lType });
+        LBlankStepSet(lBlankStep with { LDetectorBlankType = lType });
 
     public void LBlankBrightnessSet(double lBrightness) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankBrightness = lBrightness });
+        LBlankStepSet(lBlankStep with { LDetectorBlankBrightness = lBrightness });
 
     public void LBlankToleranceSet(double lTolerance) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankTolerance = lTolerance });
+        LBlankStepSet(lBlankStep with { LDetectorBlankTolerance = lTolerance });
 
     public void LBlankCoverageSet(double lCoverage) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankCoverage = lCoverage });
+        LBlankStepSet(lBlankStep with { LDetectorBlankCoverage = lCoverage });
 
     public void LBlankMinimumSet(double lMinimum) =>
-        LBlankStepApply(lBlankStep with { LDetectorBlankMinimum = lMinimum });
+        LBlankStepSet(lBlankStep with { LDetectorBlankMinimum = lMinimum });
 
     public void LBlankWheelSet(double lX, double lY)
     {
@@ -97,27 +94,12 @@ public sealed class LBlank
             lHue += 360;
         }
 
-        lBlankWheelPresent = true;
-        LDetectorBlank lNormal = LDetectorBlank.LDetectorBlankClamp(lBlankStep with
+        LBlankStepSet(lBlankStep with
         {
             LDetectorBlankType = LDetectorType.LDetectorTypeColor,
             LDetectorBlankHue = lHue,
             LDetectorBlankSaturation = Math.Clamp(Math.Sqrt((lX * lX) + (lY * lY)), 0, 1),
             LDetectorBlankBrightness = lBrightness
         });
-        lBlankStep = lNormal;
-        LBlankChange?.Invoke();
-    }
-
-    private void LBlankStepApply(LDetectorBlank lStep)
-    {
-        LDetectorBlank lNormal = LDetectorBlank.LDetectorBlankClamp(lStep);
-        if (lBlankStep == lNormal)
-        {
-            return;
-        }
-
-        lBlankStep = lNormal;
-        LBlankChange?.Invoke();
     }
 }

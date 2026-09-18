@@ -78,7 +78,7 @@ public sealed class PFixTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerFixDescribe(
+            LMessenger.LMessengerFixDescribe(
                 lPriority,
                 pList.PListEditableRead() is { } pFixSelected
                     ? new[] { new LWorkSource(pFixSelected.LDocketEntryPath, pFixSelected.LDocketEntryBatch) }
@@ -95,7 +95,7 @@ public sealed class PFixTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerFixDescribe(
+            LMessenger.LMessengerFixDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
@@ -112,7 +112,7 @@ public sealed class PFixTab : PTabSurface
                 return;
             }
 
-            _ = LMessenger.LMessengerFixDescribe(
+            LMessenger.LMessengerFixDescribe(
                 LWorkPriority.LWorkPriorityNormal,
                 pList.PListUnlockedRead()
                     .Where(pItem => pFixPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
@@ -144,7 +144,7 @@ public sealed class PFixTab : PTabSurface
 
         pList.PListPathChange += PFixPathShow;
         pList.PListItemsAdd += PFixItemsHandle;
-        pList.PListClearChange += pClinic.PClinicResultsRemove;
+        pList.PListClearChange += PFixClearHandle;
         PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
@@ -197,13 +197,15 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPathShow(string? pSourcePath)
     {
-        if (!string.IsNullOrWhiteSpace(pSourcePath))
+        if (string.IsNullOrWhiteSpace(pSourcePath) || pViewer.LViewer.LViewerSourceMatch(pSourcePath))
         {
-            PFixPlanSave();
-            pClinic.PClinicSourceSet(pSourcePath);
-            pViewer.PViewerSourceOpen(pSourcePath);
-            PFixPlanRestore(pSourcePath);
+            return;
         }
+
+        PFixPlanSave();
+        pClinic.PClinicSourceSet(pSourcePath);
+        pViewer.PViewerSourceOpen(pSourcePath);
+        PFixPlanRestore(pSourcePath);
     }
 
     private void PFixDiagnosisRun()
@@ -217,20 +219,43 @@ public sealed class PFixTab : PTabSurface
         pFixCheckup.LCheckupStart(new[] { pFixSelected.LDocketEntryPath }, pFixKinds, lCheckupForce: true);
     }
 
+    private void PFixClearHandle(IReadOnlyList<string> pFixRemoved)
+    {
+        foreach (string pFixPath in pFixRemoved)
+        {
+            pFixCheckup.LCheckupSourceCancel(pFixPath);
+        }
+
+        pClinic.PClinicResultsRemove(pFixRemoved);
+    }
+
     private void PFixCheckupHandle(LCheckupResult pFixResult)
     {
         Dispatcher.BeginInvoke(() =>
-            pClinic.PClinicResultShow(pFixResult.LCheckupSource, pFixResult.LCheckupKind, pFixResult));
+        {
+            if (PFixListedCheck(pFixResult.LCheckupSource))
+            {
+                pClinic.PClinicResultShow(pFixResult.LCheckupSource, pFixResult.LCheckupKind, pFixResult);
+            }
+        });
     }
 
     private void PFixProgressHandle(string pFixPath, double pFixProgress)
     {
-        Dispatcher.BeginInvoke(() => pClinic.PClinicProgressShow(pFixPath, pFixProgress));
+        Dispatcher.BeginInvoke(() =>
+        {
+            if (PFixListedCheck(pFixPath))
+            {
+                pClinic.PClinicProgressShow(pFixPath, pFixProgress);
+            }
+        });
     }
+
+    private bool PFixListedCheck(string pFixPath) => pList.PListDocketRead().LDocketItemFind(pFixPath) is not null;
 
     private void PFixPlanRestore(string pSourcePath)
     {
-        pClinic.LClinic.LClinicRestoreSet(true);
+        pClinic.LClinic.LClinicSaveSuspend();
         try
         {
             LWorkFix? pFixSaved = LFix.LFixPlanRead(pSourcePath, LLibrarian.LLibrarianFixLoad);
@@ -240,7 +265,7 @@ public sealed class PFixTab : PTabSurface
         }
         finally
         {
-            pClinic.LClinic.LClinicRestoreSet(false);
+            pClinic.LClinic.LClinicSaveResume();
         }
 
         PFixActiveUpdate();
@@ -248,7 +273,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPlanSave()
     {
-        if (pClinic.LClinic.LClinicRestoring
+        if (pClinic.LClinic.LClinicSaveSuspended
             || pViewer.PViewerSourcePath is not { } pSourcePath
             || pList.PListLockCheck(pSourcePath))
         {
@@ -273,7 +298,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixPersistentSave()
     {
-        if (pClinic.LClinic.LClinicRestoring)
+        if (pClinic.LClinic.LClinicSaveSuspended)
         {
             return;
         }
@@ -294,7 +319,7 @@ public sealed class PFixTab : PTabSurface
 
     private void PFixItemsHandle(IReadOnlyList<LDocketEntry> pFixAddedItems)
     {
-        if (pClinic.LClinic.LClinicRestoring)
+        if (pClinic.LClinic.LClinicSaveSuspended)
         {
             return;
         }
@@ -321,7 +346,7 @@ public sealed class PFixTab : PTabSurface
             return;
         }
 
-        pClinic.LClinic.LClinicRestoreSet(true);
+        pClinic.LClinic.LClinicSaveSuspend();
         try
         {
             LWorkFix pFixPersistentPlan = LFix.LFixPersistentRead(
@@ -330,7 +355,7 @@ public sealed class PFixTab : PTabSurface
         }
         finally
         {
-            pClinic.LClinic.LClinicRestoreSet(false);
+            pClinic.LClinic.LClinicSaveResume();
         }
     }
 
