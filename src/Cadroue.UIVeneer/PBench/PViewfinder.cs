@@ -1,265 +1,236 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Media;
-
-using Cadroue.Core;
-
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
-
+using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PBench;
 
-public sealed partial class PViewfinder : FrameworkElement
+public sealed class PViewfinder : FrameworkElement
 {
-    private readonly record struct PViewfinderTextKey(
-        int PViewfinderKind,
-        string PViewfinderText,
-        double PViewfinderRoom);
-
-    private enum PViewfinderDragMode
-    {
-        PViewfinderDragNone,
-        PViewfinderDragCursor
-    }
-
-    private const double PViewfinderRenderLeast = 28;
-    private const double PTimecodeLaneHeight = 20;
-    private const double PViewfinderCoverageHeight = 4;
-    private const double PViewfinderRailGap = 2;
-    private const double PTimecodePaddingHorizontal = 4;
-    private const double PTimecodePaddingVertical = 2;
-    private const double PViewfinderTickPixels = 100;
-    private const double PViewfinderSectionInset = 1;
-    private const double PViewfinderSectionPadding = 5;
-    private const double PViewfinderSectionLeast = 18;
-    private const double PViewfinderHeightLeast = 16;
-    private const double PViewfinderBadgeHorizontal = 6;
-    private const double PViewfinderBadgeVertical = 1;
-    private const double PViewfinderBadgeGap = 6;
-    private const double PViewfinderKeyframeWidth = 1;
-
-    private static readonly Brush pViewfinderSectionBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
-    private static readonly Brush pViewfinderBadgeBrush = new SolidColorBrush(Colors.White);
+    private static readonly Brush pViewfinderSectionBrush = PViewfinderBrushBuild(0xFF, 0x11, 0x18, 0x27);
+    private static readonly Brush pViewfinderBadgeBrush = PViewfinderBrushBuild(0xFF, 0xFF, 0xFF, 0xFF);
+    private static readonly Brush pViewfinderBrushBackground = PViewfinderBrushBuild(0xFF, 0xF3, 0xF3, 0xF3);
+    private static readonly Brush pViewfinderBrushRail = PViewfinderBrushBuild(0xFF, 0xD1, 0xD1, 0xD1);
+    private static readonly Brush pViewfinderWaveformBrush = PViewfinderBrushBuild(0xFF, 0xE6, 0xEA, 0xEF);
+    private static readonly Brush pViewfinderBrushWaveform = PViewfinderBrushBuild(0xFF, 0x8C, 0x9B, 0xAD);
+    private static readonly Brush pViewfinderBrushKeyframe = PViewfinderBrushBuild(0xFF, 0x6B, 0x74, 0x80);
+    private static readonly Brush pViewfinderTickBrush = PViewfinderBrushBuild(0xFF, 0x88, 0x88, 0x88);
+    private static readonly Brush pViewfinderCoverageBrush = PViewfinderBrushBuild(0xFF, 0x2F, 0x9E, 0x64);
+    private static readonly Brush pViewfinderCursorBrush = PViewfinderBrushBuild(0xFF, 0x1A, 0x1A, 0x1A);
+    private static readonly Brush pTimecodeBackgroundBrush = PViewfinderBrushBuild(0xE0, 0xFF, 0xFF, 0xFF);
+    private static readonly Pen pViewfinderTickPen =
+        PViewfinderPenBuild(PViewfinderBrushBuild(0xFF, 0xB0, 0xB0, 0xB0), 1.0);
+    private static readonly Pen pTimecodeBorderPen = PViewfinderPenBuild(pViewfinderBrushRail, 1.0);
+    private static readonly Pen pViewfinderSectionPen = PViewfinderPenBuild(Brushes.Black, 1.5);
     private static readonly Typeface pViewfinderBadgeTypeface =
         new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
-
-    private static readonly Brush pViewfinderBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
-    private static readonly Brush pViewfinderBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
-    private static readonly Brush pViewfinderWaveformBrush = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
-    private static readonly Brush pViewfinderBrushWaveform = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xAD));
-    private static readonly Brush pViewfinderBrushKeyframe = new SolidColorBrush(Color.FromRgb(0x6B, 0x74, 0x80));
-    private static readonly Pen pViewfinderTickPen = new(new SolidColorBrush(Color.FromRgb(0xB0, 0xB0, 0xB0)), 1.0);
-    private static readonly Brush pViewfinderTickBrush = new SolidColorBrush(Color.FromRgb(0x88, 0x88, 0x88));
-    private static readonly Brush pTimecodeBackgroundBrush =
-        new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-    private static readonly Brush pViewfinderCoverageBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
-    private static readonly Pen pTimecodeBorderPen = new(new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1)), 1.0);
-    private static readonly Brush pViewfinderCursorBrush = new SolidColorBrush(Color.FromRgb(0x1A, 0x1A, 0x1A));
     private static readonly Typeface pViewfinderTickTypeface = new("Segoe UI");
 
-    static PViewfinder()
+    private static readonly IReadOnlyDictionary<bool, Pen?> pViewfinderSelectedPens = new Dictionary<bool, Pen?>
     {
-        pViewfinderBrushBackground.Freeze();
-        pViewfinderBrushRail.Freeze();
-        pViewfinderWaveformBrush.Freeze();
-        pViewfinderBrushWaveform.Freeze();
-        pViewfinderBrushKeyframe.Freeze();
-        pViewfinderTickPen.Freeze();
-        pViewfinderTickBrush.Freeze();
-        pTimecodeBackgroundBrush.Freeze();
-        pTimecodeBorderPen.Freeze();
-        pViewfinderCursorBrush.Freeze();
-        pViewfinderCoverageBrush.Freeze();
-        pViewfinderSectionBrush.Freeze();
-        pViewfinderBadgeBrush.Freeze();
-    }
+        [true] = pViewfinderSectionPen,
+        [false] = null,
+    };
 
-    private readonly LFlow lFlow;
-    private IReadOnlyList<LKeyframeEntry> lKeyframeList = Array.Empty<LKeyframeEntry>();
-    private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-    private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
-    private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private PViewfinderDragMode pViewfinderDragMode;
-    private int pViewfinderGlyphCount;
-    private readonly Dictionary<PViewfinderTextKey, FormattedText> pViewfinderTextCache = new();
-    private double pViewfinderTextDpi = -1;
-
-    public event Action<TimeSpan>? PViewfinderCursorChange;
-    public event Action<int>? PViewfinderSectionSelect;
-    public event Action<bool>? PViewfinderDragChange;
-
-    public PViewfinder(LFlow lFlowState)
-    {
-        lFlow = lFlowState;
-    }
-
-    private void PViewfinderDrawDefer(string pViewfinderTrigger)
-    {
-        lFlow.LFlowViewfinderSet(pViewfinderTrigger);
-        InvalidateVisual();
-    }
-
-    public void PViewfinderAttach() => PViewfinderDrawDefer("attach");
-
-    public void PViewfinderCursorUpdate() => PViewfinderDrawDefer("cursor");
-
-    public void PViewfinderClear()
-    {
-        lKeyframeList = Array.Empty<LKeyframeEntry>();
-        lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-        lSectionList = Array.Empty<LPiece>();
-        lWaveformPeaks = Array.Empty<byte>();
-        PViewfinderDrawDefer("clear");
-    }
-
-    public void PViewfinderWaveformUpdate(byte[] waveformPeaks)
-    {
-        lWaveformPeaks = waveformPeaks;
-        PViewfinderDrawDefer("waveform");
-    }
-
-    public void PViewfinderSpoolUpdate() => PViewfinderDrawDefer("spool");
-
-    public void PViewfinderKeyframesUpdate(
-        IReadOnlyList<LKeyframeEntry>? keyframes,
-        IReadOnlyList<LKeyframeScanRange>? scannedRanges)
-    {
-        lKeyframeList = keyframes ?? Array.Empty<LKeyframeEntry>();
-        lKeyframeScannedRanges = scannedRanges ?? Array.Empty<LKeyframeScanRange>();
-        PViewfinderDrawDefer("keyframes");
-    }
-
-    private static (double, double) PViewfinderRailRead(double actualHeight)
-    {
-        double pRailTop = PTimecodeLaneHeight + PViewfinderRailGap;
-        double pCoverageTop = Math.Max(0, Math.Max(0, actualHeight - 1) - PViewfinderCoverageHeight);
-        return (pRailTop, Math.Max(pRailTop, pCoverageTop - PViewfinderRailGap));
-    }
-
-    internal Rect PViewfinderSectionRead(int pSectionIndex)
-    {
-        if (lFlow.LFlowSpool is not { } lSpool || pSectionIndex < 0 || pSectionIndex >= lSectionList.Count)
+    private static readonly IReadOnlyDictionary<LViewfinderShapeKind, Brush> pViewfinderBrushes =
+        new Dictionary<LViewfinderShapeKind, Brush>
         {
-            return Rect.Empty;
-        }
+            [LViewfinderShapeKind.LViewfinderShapeBackground] = pViewfinderBrushBackground,
+            [LViewfinderShapeKind.LViewfinderShapeRail] = pViewfinderBrushRail,
+            [LViewfinderShapeKind.LViewfinderShapeWaveform] = pViewfinderWaveformBrush,
+            [LViewfinderShapeKind.LViewfinderShapeCoverage] = pViewfinderBrushRail,
+            [LViewfinderShapeKind.LViewfinderShapeScanned] = pViewfinderCoverageBrush,
+            [LViewfinderShapeKind.LViewfinderShapeKeyframe] = pViewfinderBrushKeyframe,
+        };
 
-        double pWidth = ActualWidth;
-        if (pWidth <= 0 || ActualHeight <= 0)
+    private static readonly IReadOnlyDictionary<LViewfinderShapeKind, double> pViewfinderRadii =
+        new Dictionary<LViewfinderShapeKind, double>
         {
-            return Rect.Empty;
-        }
+            [LViewfinderShapeKind.LViewfinderShapeBackground] = 0,
+            [LViewfinderShapeKind.LViewfinderShapeRail] = 3,
+            [LViewfinderShapeKind.LViewfinderShapeWaveform] = 3,
+            [LViewfinderShapeKind.LViewfinderShapeCoverage] = 0,
+            [LViewfinderShapeKind.LViewfinderShapeScanned] = 0,
+            [LViewfinderShapeKind.LViewfinderShapeKeyframe] = 0,
+        };
 
-        (double pRailTop, double pRailBottom) = PViewfinderRailRead(ActualHeight);
-        TimeSpan pRangeStart = lSpool.LSpoolRangeOrigin;
-        TimeSpan pRangeEnd = lSpool.LSpoolRangeLimit;
-        double pRangeSeconds = (pRangeEnd - pRangeStart).TotalSeconds;
-        if (pRailBottom <= pRailTop || pRangeSeconds <= 0)
-        {
-            return Rect.Empty;
-        }
+    public LViewfinder LViewfinder { get; }
 
-        LPiece pSection = lSectionList[pSectionIndex];
-        TimeSpan pStart = pSection.LPieceOrigin < pRangeStart ? pRangeStart : pSection.LPieceOrigin;
-        TimeSpan pEnd = pSection.LPieceEnd > pRangeEnd ? pRangeEnd : pSection.LPieceEnd;
-        if (pEnd <= pStart)
-        {
-            return Rect.Empty;
-        }
-
-        double pLeft = Math.Clamp((pStart - pRangeStart).TotalSeconds / pRangeSeconds * pWidth, 0, pWidth);
-        double pRight = Math.Clamp((pEnd - pRangeStart).TotalSeconds / pRangeSeconds * pWidth, 0, pWidth);
-        return new Rect(pLeft, pRailTop, Math.Max(1, pRight - pLeft), pRailBottom - pRailTop);
-    }
-
-    public void PViewfinderSectionsUpdate(IReadOnlyList<LPiece>? sections)
+    public PViewfinder(LFlow lFlow)
     {
-        lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
-        PViewfinderDrawDefer("sections");
+        LViewfinder = new LViewfinder(lFlow);
+        LViewfinder.LViewfinderFrameApply += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        if (!LTrace.LTraceVerbose)
-        {
-            PViewfinderContentDraw(drawingContext);
-            return;
-        }
-
-        pViewfinderGlyphCount = 0;
-        long pViewfinderStamp = System.Diagnostics.Stopwatch.GetTimestamp();
-        PViewfinderContentDraw(drawingContext);
-        double pViewfinderMilliseconds =
-            (System.Diagnostics.Stopwatch.GetTimestamp() - pViewfinderStamp) * 1000d
-            / System.Diagnostics.Stopwatch.Frequency;
-        LTrace.LTraceTimelineAdd(
-            "Viewfinder",
-            lFlow.LFlowCursor,
-            lFlow.LFlowSourcePath,
-            lFlow.LFlowViewfinderTrigger,
-            pViewfinderMilliseconds,
-            pViewfinderGlyphCount);
+        long pStamp = LViewfinder.LViewfinderDrawStart();
+        LViewfinderFrame lFrame = LViewfinder.LViewfinderFrameResolve(ActualWidth, ActualHeight);
+        lFrame.LViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
+        drawingContext.DrawGeometry(
+            pViewfinderBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.LViewfinderFrameWaveform));
+        lFrame.LViewfinderFrameTicks.ToList().ForEach(lTick => PViewfinderTickDraw(drawingContext, lTick));
+        lFrame.LViewfinderFrameBands.ToList().ForEach(lBand => PViewfinderBandDraw(drawingContext, lBand));
+        lFrame.LViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
+        PViewfinderKeyframesDraw(drawingContext, lFrame.LViewfinderFrameKeyframes);
+        lFrame.LViewfinderFrameCursor.ToList().ForEach(lCursor => PViewfinderCursorDraw(drawingContext, lCursor));
+        LViewfinder.LViewfinderDrawRecord(pStamp);
     }
 
-    private void PViewfinderContentDraw(DrawingContext drawingContext)
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
-        double actualWidth = ActualWidth;
-        double actualHeight = ActualHeight;
-        drawingContext.DrawRectangle(pViewfinderBrushBackground, null, new Rect(0, 0, actualWidth, actualHeight));
+        base.OnMouseLeftButtonDown(e);
+        e.Handled = LViewfinder.LViewfinderPressHandle(e.GetPosition(this).X, ActualWidth);
+        CaptureMouse();
+    }
 
-        if (lFlow.LFlowSpool is not { } lSpool || actualWidth <= 0 || actualHeight < PViewfinderRenderLeast)
-        {
-            return;
-        }
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        e.Handled = LViewfinder.LViewfinderMoveHandle(e.GetPosition(this).X, ActualWidth);
+    }
 
-        double coverageBottom = Math.Max(0, actualHeight - 1);
-        double coverageTop = Math.Max(0, coverageBottom - PViewfinderCoverageHeight);
-        (double railTop, double railBottom) = PViewfinderRailRead(actualHeight);
-        double railHeight = railBottom - railTop;
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonUp(e);
+        LViewfinder.LViewfinderDragClear();
+        ReleaseMouseCapture();
+        e.Handled = true;
+    }
 
-        if (railHeight <= 0)
-        {
-            return;
-        }
+    protected override void OnLostMouseCapture(MouseEventArgs e)
+    {
+        base.OnLostMouseCapture(e);
+        LViewfinder.LViewfinderDragClear();
+    }
 
-        bool waveformActive = lWaveformPeaks.Length > 0;
+    private static void PViewfinderShapeDraw(DrawingContext drawingContext, LViewfinderShape lShape) =>
         drawingContext.DrawRoundedRectangle(
-            waveformActive ? pViewfinderWaveformBrush : pViewfinderBrushRail,
+            pViewfinderBrushes[lShape.LViewfinderShapeKind],
             null,
-            new Rect(0, railTop, actualWidth, railHeight),
+            PViewfinderRectRead(lShape),
+            pViewfinderRadii[lShape.LViewfinderShapeKind],
+            pViewfinderRadii[lShape.LViewfinderShapeKind]);
+
+    private static void PViewfinderKeyframesDraw(DrawingContext drawingContext, IReadOnlyList<LViewfinderShape> lMarks)
+    {
+        var pGuidelines = new GuidelineSet();
+        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.LViewfinderShapeLeft));
+        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.LViewfinderShapeRight));
+        pGuidelines.Freeze();
+        drawingContext.PushGuidelineSet(pGuidelines);
+        lMarks.ToList().ForEach(lMark => PViewfinderShapeDraw(drawingContext, lMark));
+        drawingContext.Pop();
+    }
+
+    private void PViewfinderTickDraw(DrawingContext drawingContext, LViewfinderTick lTick)
+    {
+        drawingContext.DrawLine(
+            pViewfinderTickPen,
+            new Point(lTick.LViewfinderTickX, lTick.LViewfinderTickTop),
+            new Point(lTick.LViewfinderTickX, lTick.LViewfinderTickBottom));
+        FormattedText pLabel = PViewfinderTextBuild(
+            lTick.LViewfinderTickLabel, pViewfinderTickTypeface, 9, pViewfinderTickBrush);
+        LViewfinderPoint lPoint = LViewfinderText.LViewfinderTickResolve(lTick, pLabel.Height);
+        drawingContext.DrawText(pLabel, new Point(lPoint.LViewfinderPointX, lPoint.LViewfinderPointY));
+    }
+
+    private void PViewfinderBandDraw(DrawingContext drawingContext, LViewfinderBand lBand)
+    {
+        FormattedText pBadgeText = PViewfinderTextBuild(
+            lBand.LViewfinderBandBadge, pViewfinderBadgeTypeface, PSection.PSectionNameSize, pViewfinderBadgeBrush);
+        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.LViewfinderBandShown]);
+        drawingContext.DrawRoundedRectangle(
+            PSectionPalette.PSectionBandRead(lBand.LViewfinderBandColor),
+            pViewfinderSelectedPens[lBand.LViewfinderBandSelected],
+            new Rect(
+                new Point(lBand.LViewfinderBandLeft, lBand.LViewfinderBandTop),
+                new Point(lBand.LViewfinderBandRight, lBand.LViewfinderBandBottom)),
             3,
             3);
-        drawingContext.DrawRectangle(
-            pViewfinderBrushRail,
-            null,
-            new Rect(0, coverageTop, actualWidth, PViewfinderCoverageHeight));
-
-        TimeSpan rangeStart = lSpool.LSpoolRangeOrigin;
-        TimeSpan rangeEnd = lSpool.LSpoolRangeLimit;
-        double rangeSeconds = (rangeEnd - rangeStart).TotalSeconds;
-        if (rangeSeconds <= 0)
-        {
-            return;
-        }
-
-        if (waveformActive)
-        {
-            PViewfinderWaveformDraw(drawingContext, actualWidth, railTop, railHeight, rangeStart, rangeEnd);
-        }
-
-        PViewfinderTicksDraw(drawingContext, actualWidth, rangeStart, rangeSeconds);
-        PViewfinderSectionsDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
-        PViewfinderCoverageDraw(
-            drawingContext,
-            actualWidth,
-            coverageTop,
-            PViewfinderCoverageHeight,
-            rangeStart,
-            rangeEnd,
-            rangeSeconds);
-        PViewfinderKeyframesDraw(drawingContext, actualWidth, railTop, railBottom, rangeStart, rangeEnd, rangeSeconds);
-        PViewfinderCursorDraw(drawingContext, actualWidth, actualHeight, rangeStart, rangeEnd, rangeSeconds);
+        LViewfinderText.LViewfinderLabelResolve(lBand, pBadgeText.Width, pBadgeText.Height)
+            .ToList()
+            .ForEach(lLabel => PViewfinderLabelDraw(drawingContext, lBand, lLabel, pBadgeText));
+        drawingContext.Pop();
     }
 
+    private void PViewfinderLabelDraw(
+        DrawingContext drawingContext, LViewfinderBand lBand, LViewfinderLabel lLabel, FormattedText pBadgeText)
+    {
+        FormattedText pNameText = PViewfinderNameBuild(lLabel.LViewfinderLabelName, lLabel.LViewfinderLabelRoom);
+        LViewfinderBadge lBadge = LViewfinderText.LViewfinderBadgeResolve(
+            lBand, lLabel, pBadgeText.Width, pBadgeText.Height, pNameText.Width, pNameText.Height);
+        drawingContext.DrawRoundedRectangle(
+            PSectionPalette.PSectionBadgeRead(lBand.LViewfinderBandColor),
+            null,
+            new Rect(
+                new Point(lBadge.LViewfinderBadgeLeft, lBadge.LViewfinderBadgeTop),
+                new Point(lBadge.LViewfinderBadgeRight, lBadge.LViewfinderBadgeBottom)),
+            lBadge.LViewfinderBadgeRadius,
+            lBadge.LViewfinderBadgeRadius);
+        drawingContext.DrawText(pBadgeText, PViewfinderPointRead(lBadge.LViewfinderBadgeText));
+        drawingContext.DrawText(pNameText, PViewfinderPointRead(lBadge.LViewfinderBadgeName));
+    }
+
+    private void PViewfinderCursorDraw(DrawingContext drawingContext, LViewfinderCursor lCursor)
+    {
+        FormattedText pTimeText = PViewfinderTextBuild(
+            lCursor.LViewfinderCursorText, pViewfinderTickTypeface, 10, pViewfinderCursorBrush);
+        LViewfinderChip lChip = LViewfinderText.LViewfinderChipResolve(
+            lCursor, pTimeText.Width, pTimeText.Height, ActualWidth, ActualHeight);
+        var pChipRect = new Rect(
+            new Point(lChip.LViewfinderChipLeft, lChip.LViewfinderChipTop),
+            new Point(lChip.LViewfinderChipRight, lChip.LViewfinderChipBottom));
+        PCursor.PCursorDraw(
+            drawingContext, lCursor.LViewfinderCursorX, LViewfinder.LViewfinderLaneHeight, ActualHeight, pChipRect);
+        drawingContext.DrawRoundedRectangle(pTimecodeBackgroundBrush, pTimecodeBorderPen, pChipRect, 3, 3);
+        drawingContext.DrawText(pTimeText, PViewfinderPointRead(lChip.LViewfinderChipText));
+    }
+
+    private FormattedText PViewfinderTextBuild(string pText, Typeface pTypeface, double pSize, Brush pBrush) => new(
+        pText,
+        CultureInfo.CurrentCulture,
+        FlowDirection.LeftToRight,
+        pTypeface,
+        pSize,
+        pBrush,
+        VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+    private FormattedText PViewfinderNameBuild(string pName, double pRoom) => new(
+        pName,
+        CultureInfo.CurrentCulture,
+        FlowDirection.LeftToRight,
+        pViewfinderTickTypeface,
+        PSection.PSectionNameSize,
+        pViewfinderSectionBrush,
+        VisualTreeHelper.GetDpi(this).PixelsPerDip)
+    {
+        MaxTextWidth = pRoom,
+        MaxLineCount = 1,
+        Trimming = TextTrimming.CharacterEllipsis
+    };
+
+    private static Rect PViewfinderRectRead(LViewfinderShape lShape) => new(
+        new Point(lShape.LViewfinderShapeLeft, lShape.LViewfinderShapeTop),
+        new Point(lShape.LViewfinderShapeRight, lShape.LViewfinderShapeBottom));
+
+    private static Point PViewfinderPointRead(LViewfinderPoint lPoint) =>
+        new(lPoint.LViewfinderPointX, lPoint.LViewfinderPointY);
+
+    private static Brush PViewfinderBrushBuild(byte pAlpha, byte pRed, byte pGreen, byte pBlue)
+    {
+        var pBrush = new SolidColorBrush(Color.FromArgb(pAlpha, pRed, pGreen, pBlue));
+        pBrush.Freeze();
+        return pBrush;
+    }
+
+    private static Pen PViewfinderPenBuild(Brush pBrush, double pThickness)
+    {
+        var pPen = new Pen(pBrush, pThickness);
+        pPen.Freeze();
+        return pPen;
+    }
 }

@@ -1,3 +1,5 @@
+using Cadroue.Infrastructure;
+
 namespace Cadroue.UIDeportment;
 
 public sealed class LSection
@@ -19,6 +21,12 @@ public sealed class LSection
     public int? LSectionEditIndex => lSectionEditIndex;
 
     public int? LSectionDragIndex => lSectionDragIndex;
+
+    public static int LSectionCountRead() => LSectionPalette.LSectionActiveCount;
+
+    public static string LSectionHexRead(int lColorIndex) => LSectionPalette.LSectionColorRead(lColorIndex);
+
+    public static IReadOnlyList<string> LSectionPaletteRead(string lName) => LSectionPalette.LSectionColorsRead(lName);
 
     public void LSectionEditableSet(bool lEditable) => lSectionEditable = lEditable;
 

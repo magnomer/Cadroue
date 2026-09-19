@@ -8,7 +8,7 @@ Every production operation used by a test is relayed through a `T`-prefixed adap
 
 An adapter may translate, invoke, observe, and clean up. It must not repair the behaviour under test: each operation transparently delegates to the production path, never reimplements production logic, fakes notifications, or returns success the production path did not produce.
 
-`InterfaceBoundaryTests` enforces this boundary for future test changes.
+`TInterfaceBoundary` enforces this boundary for future test changes.
 
 ## UI assemblies
 

@@ -63,6 +63,7 @@ public sealed class LProgram
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
         _ = LProgramDepotApply();
+        LSectionPalette.LSectionRegistryLoad();
         LRetentionSweep.LRetentionSweepStart(
             LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive,
             LPreference.LPreferenceStateCurrent.LPreferenceCleanupDays);

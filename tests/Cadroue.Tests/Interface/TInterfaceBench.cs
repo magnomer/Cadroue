@@ -166,6 +166,50 @@ internal static partial class TInterface
         double top, double bottom, bool empty, double chipTop, double chipBottom, double chipHeight) =>
         LCursor.LCursorLinesResolve(top, bottom, empty, chipTop, chipBottom, chipHeight);
 
+    internal static LMap TMapCreate(LFlow flow) => new(flow);
+    internal static void TMapFrameAttach(LMap map, Action handler) => map.LMapFrameApply += handler;
+    internal static LMapFrame TMapFrameResolve(LMap map, double width, double height) =>
+        map.LMapFrameResolve(width, height);
+    internal static IReadOnlyList<LMapBadge> TMapBadgeResolve(LMap map, LMapBand band, double width, double height) =>
+        map.LMapBadgeResolve(band, width, height);
+    internal static LMapHitKind TMapHoverResolve(LMap map, double x, double y, double width, double height) =>
+        map.LMapHoverResolve(x, y, width, height);
+    internal static LMapHitKind TMapLeaveResolve(LMap map) => map.LMapLeaveResolve();
+    internal static bool TMapPressHandle(LMap map, double x, double y, double width, double height) =>
+        map.LMapPressHandle(x, y, width, height);
+    internal static bool TMapMoveHandle(LMap map, double x, double width) => map.LMapMoveHandle(x, width);
+    internal static void TMapDragClear(LMap map) => map.LMapDragClear();
+
+    internal static LViewfinder TViewfinderCreate(LFlow flow) => new(flow);
+    internal static void TViewfinderFrameAttach(LViewfinder viewfinder, Action handler) =>
+        viewfinder.LViewfinderFrameApply += handler;
+    internal static LViewfinderFrame TViewfinderFrameResolve(LViewfinder viewfinder, double width, double height) =>
+        viewfinder.LViewfinderFrameResolve(width, height);
+    internal static LViewfinderPoint TViewfinderTickResolve(LViewfinderTick tick, double textHeight) =>
+        LViewfinderText.LViewfinderTickResolve(tick, textHeight);
+    internal static IReadOnlyList<LViewfinderLabel> TViewfinderLabelResolve(
+        LViewfinderBand band, double badgeWidth, double badgeHeight) =>
+        LViewfinderText.LViewfinderLabelResolve(band, badgeWidth, badgeHeight);
+    internal static LViewfinderBadge TViewfinderBadgeResolve(
+        LViewfinderBand band,
+        LViewfinderLabel label,
+        double badgeWidth,
+        double badgeHeight,
+        double nameWidth,
+        double nameHeight) =>
+        LViewfinderText.LViewfinderBadgeResolve(band, label, badgeWidth, badgeHeight, nameWidth, nameHeight);
+    internal static LViewfinderChip TViewfinderChipResolve(
+        LViewfinderCursor cursor, double textWidth, double textHeight, double width, double height) =>
+        LViewfinderText.LViewfinderChipResolve(cursor, textWidth, textHeight, width, height);
+    internal static LViewfinderPoint TViewfinderPopupResolve(
+        LViewfinder viewfinder, int index, double width, double height) =>
+        viewfinder.LViewfinderPopupResolve(index, width, height);
+    internal static bool TViewfinderPressHandle(LViewfinder viewfinder, double x, double width) =>
+        viewfinder.LViewfinderPressHandle(x, width);
+    internal static bool TViewfinderMoveHandle(LViewfinder viewfinder, double x, double width) =>
+        viewfinder.LViewfinderMoveHandle(x, width);
+    internal static void TViewfinderDragClear(LViewfinder viewfinder) => viewfinder.LViewfinderDragClear();
+
     internal static void TTraceAttach(Action<LTraceEntry> handler) => LTrace.LTraceAppend += handler;
     internal static void TTraceDetach(Action<LTraceEntry> handler) => LTrace.LTraceAppend -= handler;
 }

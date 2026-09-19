@@ -9,6 +9,8 @@ public sealed class LFlowKeyframe
     private readonly LFlow lFlow;
     private readonly LKeyframeOrchestrator lKeyframeOrchestrator = new();
     private bool lFlowResumePending;
+    private IReadOnlyList<LKeyframeEntry> lFlowEntries = [];
+    private IReadOnlyList<LKeyframeScanRange> lFlowRanges = [];
 
     public LFlowKeyframe(LFlow lOwner)
     {
@@ -23,6 +25,10 @@ public sealed class LFlowKeyframe
     public event Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>>? LFlowKeyframeChange;
 
     public bool LFlowResumePending => lFlowResumePending;
+
+    public IReadOnlyList<LKeyframeEntry> LFlowKeyframeEntries => lFlowEntries;
+
+    public IReadOnlyList<LKeyframeScanRange> LFlowKeyframeRanges => lFlowRanges;
 
     public static TimeSpan LFlowRequestDelay => TimeSpan.FromMilliseconds(250);
 
@@ -82,6 +88,12 @@ public sealed class LFlowKeyframe
 
     public void LFlowKeyframeTick() => LFlowKeyframeRun();
 
+    public void LFlowKeyframeClear()
+    {
+        lFlowEntries = [];
+        lFlowRanges = [];
+    }
+
     public void LFlowKeyframeClose()
     {
         LFlowKeyframeReset();
@@ -107,6 +119,8 @@ public sealed class LFlowKeyframe
         }
 
         LFlowKeyframeRecord(lNotice);
+        lFlowEntries = lNotice.LKeyframeList;
+        lFlowRanges = lNotice.LKeyframeRanges;
         LFlowKeyframeChange?.Invoke(lNotice.LKeyframeList, lNotice.LKeyframeRanges);
         if (lFlow.LFlowKeyframeDirection is int lDirection)
         {

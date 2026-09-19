@@ -8,6 +8,7 @@ using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 using static Cadroue.UIVeneer.PSField;
@@ -104,10 +105,10 @@ internal sealed partial class PSOptions
 
     private void PSSpectrumListBuild()
     {
-        PSectionPalette.PSectionPaletteLoad();
+        LSectionPalette.LSectionRegistryLoad();
         psSpectrumRows.Clear();
         psSpectrumList.Children.Clear();
-        IReadOnlyList<string> pNames = PSectionPalette.PSectionPaletteNames;
+        IReadOnlyList<string> pNames = LSectionPalette.LSectionNamesRead();
         foreach (string pName in pNames)
         {
             Border pRow = PSSpectrumRowBuild(pName);
@@ -152,7 +153,7 @@ internal sealed partial class PSOptions
 
         LSSpectrumResult pResult = lsSpectrum.LSSpectrumImport(pDialog.FileName, out string pTargetPath);
         string? pLoadedName = pResult == LSSpectrumResult.LSSpectrumResultLoaded
-            ? PSectionPalette.PSectionNameFind(pTargetPath)
+            ? LSectionPalette.LSectionNameFind(pTargetPath)
             : null;
         if (pLoadedName is null)
         {
@@ -185,7 +186,7 @@ internal sealed partial class PSOptions
         if (pDialog.ShowDialog() == true)
         {
             string pName = lsSpectrum.LSSpectrumName;
-            lsSpectrum.LSSpectrumSave(pDialog.FileName, pName, PSectionPalette.PSectionHexRead(pName));
+            lsSpectrum.LSSpectrumSave(pDialog.FileName, pName, LSectionPalette.LSectionHexRead(pName));
         }
     }
 
@@ -241,7 +242,7 @@ internal sealed partial class PSOptions
     {
         var pLine = new StackPanel { Orientation = Orientation.Horizontal };
         pLine.Children.Add(pRow);
-        if (!PSectionPalette.PSectionFixedCheck(pName))
+        if (!LSSpectrum.LSSpectrumFixedCheck(pName))
         {
             pLine.Children.Add(PSSpectrumRemoveBuild(pName));
         }
@@ -277,15 +278,15 @@ internal sealed partial class PSOptions
         bool pConfirmed = PSAlert.PSAlertConfirm(
             this,
             LLocalization.LLocalizationTextRead("Options.Timeline.RemoveTitle"),
-            PSectionPalette.PSectionNativeCheck(pName)
+            LSectionPalette.LSectionNativeCheck(pName)
                 ? LLocalization.LLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
                 : LLocalization.LLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
             LLocalization.LLocalizationTextRead("Terms.Remove"));
         if (!pConfirmed
             || !lsSpectrum.LSSpectrumRemove(
                 pName,
-                PSectionPalette.PSectionNativeCheck(pName),
-                PSectionPalette.PSectionPathFind(pName)))
+                LSectionPalette.LSectionNativeCheck(pName),
+                LSectionPalette.LSectionPathFind(pName)))
         {
             return;
         }

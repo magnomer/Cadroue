@@ -1,238 +1,247 @@
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Media;
-
-using Cadroue.Core;
-
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PBench;
 
-public sealed partial class PMap : FrameworkElement
+public sealed class PMap : FrameworkElement
 {
-    private enum PMapDragMode
-    {
-        PMapDragNone,
-        PMapResizeOrigin,
-        PMapResizeLimit,
-        PMapDragBody,
-        PMapDragCursor,
-    }
-
-    private static readonly Brush pMapBrushBackground = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
-    private static readonly Brush pMapBrushRail = new SolidColorBrush(Color.FromRgb(0xD1, 0xD1, 0xD1));
-    private static readonly Brush pMapWaveformBrush = new SolidColorBrush(Color.FromRgb(0xE6, 0xEA, 0xEF));
-    private static readonly Brush pMapBrushWaveform = new SolidColorBrush(Color.FromRgb(0x8C, 0x9B, 0xAD));
-    private static readonly Brush pMapCoverageBrush = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64));
-    private static readonly Brush pNavigatorShadowBrush = new SolidColorBrush(Color.FromArgb(0x34, 0x00, 0x00, 0x00));
     private const byte PNavigatorAlpha = 0x33;
-
-    private static readonly Brush pNavigatorFrameBrush =
-        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
-    private static readonly Brush pNavigatorFillBrush =
-        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
-    private static readonly Brush pNavigatorBodyBrush =
-        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x3A, 0x8B, 0xE0));
-    private static readonly Brush pNavigatorSideBrush =
-        new SolidColorBrush(Color.FromArgb(PNavigatorAlpha, 0x2D, 0x7D, 0xD2));
-    private static readonly Brush pNavigatorGripBrush = new SolidColorBrush(Color.FromArgb(0xE0, 0xFF, 0xFF, 0xFF));
-    private static readonly Pen pNavigatorBorderPen =
-        new(new SolidColorBrush(Color.FromArgb(0x8C, 0x0D, 0x47, 0xA1)), 1.2);
-    private static readonly Pen pNavigatorBodyPen =
-        new(new SolidColorBrush(Color.FromArgb(0x4D, 0x0D, 0x47, 0xA1)), 1.0);
-    private static readonly Pen pNavigatorShinePen =
-        new(new SolidColorBrush(Color.FromArgb(0x42, 0xFF, 0xFF, 0xFF)), 1.0);
-    private static readonly Pen pNavigatorGripPen = new(pNavigatorGripBrush, 1.6);
-
     private const double PNavigatorRim = 3.5;
-    private static readonly Pen pNavigatorRimPen = new(pNavigatorFrameBrush, PNavigatorRim);
-    private static readonly Pen pNavigatorShadowPen = new(pNavigatorShadowBrush, PNavigatorRim);
-    private const double PMapHandleWidth = 12;
 
-    private const double PGripWidth = 7;
-
-    private const double PGripMoveRate = 0.5;
-
-    private const double PGripMoveInset = 2.5;
-
-    private const double PMapShadowDrop = 1.5;
-
-    private const double PMapSectionInset = 1;
-    private const double PMapBadgeHorizontal = 6;
-    private const double PMapBadgeVertical = 1;
-    private const double PMapBadgeMargin = 2;
-
-    private static readonly Brush pMapBadgeBrush = new SolidColorBrush(Colors.White);
+    private static readonly Brush pMapBrushBackground = PMapBrushBuild(0xFF, 0xF3, 0xF3, 0xF3);
+    private static readonly Brush pMapBrushRail = PMapBrushBuild(0xFF, 0xD1, 0xD1, 0xD1);
+    private static readonly Brush pMapWaveformBrush = PMapBrushBuild(0xFF, 0xE6, 0xEA, 0xEF);
+    private static readonly Brush pMapBrushWaveform = PMapBrushBuild(0xFF, 0x8C, 0x9B, 0xAD);
+    private static readonly Brush pMapCoverageBrush = PMapBrushBuild(0xFF, 0x2F, 0x9E, 0x64);
+    private static readonly Brush pNavigatorFrameBrush = PMapBrushBuild(PNavigatorAlpha, 0x2D, 0x7D, 0xD2);
+    private static readonly Brush pNavigatorBodyBrush = PMapBrushBuild(PNavigatorAlpha, 0x3A, 0x8B, 0xE0);
+    private static readonly Brush pNavigatorGripBrush = PMapBrushBuild(0xE0, 0xFF, 0xFF, 0xFF);
+    private static readonly Brush pMapBadgeBrush = PMapBrushBuild(0xFF, 0xFF, 0xFF, 0xFF);
+    private static readonly Pen pNavigatorBorderPen = PMapPenBuild(PMapBrushBuild(0x8C, 0x0D, 0x47, 0xA1), 1.2);
+    private static readonly Pen pNavigatorBodyPen = PMapPenBuild(PMapBrushBuild(0x4D, 0x0D, 0x47, 0xA1), 1.0);
+    private static readonly Pen pNavigatorShinePen = PMapPenBuild(PMapBrushBuild(0x42, 0xFF, 0xFF, 0xFF), 1.0);
+    private static readonly Pen pNavigatorGripPen = PMapPenBuild(pNavigatorGripBrush, 1.6);
+    private static readonly Pen pNavigatorRimPen = PMapPenBuild(pNavigatorFrameBrush, PNavigatorRim);
+    private static readonly Pen pNavigatorShadowPen =
+        PMapPenBuild(PMapBrushBuild(0x34, 0x00, 0x00, 0x00), PNavigatorRim);
+    private static readonly Pen pMapSectionPen = PMapPenBuild(PMapBrushBuild(0xFF, 0x1F, 0x27, 0x33), 1.4);
     private static readonly Typeface pMapBadgeTypeface =
         new(new FontFamily("Segoe UI"), FontStyles.Normal, FontWeights.SemiBold, FontStretches.Normal);
-    private static readonly Pen pMapSectionPen = new(new SolidColorBrush(Color.FromRgb(0x1F, 0x27, 0x33)), 1.4);
-    private const double PMapRenderLeast = 12;
 
-    static PMap()
+    private static readonly IReadOnlyDictionary<bool, Pen?> pMapSelectedPens = new Dictionary<bool, Pen?>
     {
-        pMapBrushBackground.Freeze();
-        pMapBrushRail.Freeze();
-        pMapWaveformBrush.Freeze();
-        pMapBrushWaveform.Freeze();
-        pMapCoverageBrush.Freeze();
-        pNavigatorShadowBrush.Freeze();
-        pNavigatorFrameBrush.Freeze();
-        pNavigatorFillBrush.Freeze();
-        pNavigatorBodyBrush.Freeze();
-        pNavigatorRimPen.Freeze();
-        pNavigatorShadowPen.Freeze();
-        pNavigatorSideBrush.Freeze();
-        pNavigatorGripBrush.Freeze();
-        pMapSectionPen.Freeze();
-        pMapBadgeBrush.Freeze();
-        pNavigatorBorderPen.Freeze();
-        pNavigatorBodyPen.Freeze();
-        pNavigatorShinePen.Freeze();
-        pNavigatorGripPen.Freeze();
-    }
+        [true] = pMapSectionPen,
+        [false] = null,
+    };
 
-    private readonly LFlow lFlow;
-    private IReadOnlyList<LKeyframeScanRange> lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-    private IReadOnlyList<LPiece> lSectionList = Array.Empty<LPiece>();
-    private byte[] lWaveformPeaks = Array.Empty<byte>();
-    private PMapDragMode pMapDragMode;
-    private double pMapDragOrigin;
-    private double pMapPreviousPoint;
-    private int pMapGlyphCount;
-    private readonly Dictionary<string, FormattedText> pMapBadgeCache = new(StringComparer.Ordinal);
-    private double pMapBadgeDpi = -1;
-
-    public event Action<TimeSpan>? PMapCursorChange;
-    public event Action? PMapSpoolChange;
-    public event Action<bool>? PMapDragChange;
-
-    public PMap(LFlow lFlowState)
+    private static readonly IReadOnlyDictionary<LMapHitKind, Cursor> pMapCursors = new Dictionary<LMapHitKind, Cursor>
     {
-        lFlow = lFlowState;
-    }
+        [LMapHitKind.LMapHitNone] = Cursors.Arrow,
+        [LMapHitKind.LMapHitOrigin] = Cursors.SizeWE,
+        [LMapHitKind.LMapHitLimit] = Cursors.SizeWE,
+        [LMapHitKind.LMapHitBody] = Cursors.SizeAll,
+        [LMapHitKind.LMapHitCursor] = Cursors.Hand,
+    };
 
-    private void PMapDrawDefer(string pMapTrigger)
+    private static readonly IReadOnlyDictionary<LMapShapeKind, Action<DrawingContext, LMapShape>> pMapDraws =
+        new Dictionary<LMapShapeKind, Action<DrawingContext, LMapShape>>
+        {
+            [LMapShapeKind.LMapShapeBackground] = PMapBackgroundDraw,
+            [LMapShapeKind.LMapShapeRail] = PMapRailDraw,
+            [LMapShapeKind.LMapShapeWaveform] = PMapWaveformDraw,
+            [LMapShapeKind.LMapShapeCoverage] = PMapCoverageDraw,
+            [LMapShapeKind.LMapShapeScanned] = PMapScanDraw,
+            [LMapShapeKind.LMapShapeFill] = PNavigatorFillDraw,
+            [LMapShapeKind.LMapShapeShadow] = PNavigatorShadowDraw,
+            [LMapShapeKind.LMapShapeRim] = PNavigatorRimDraw,
+            [LMapShapeKind.LMapShapeSide] = PNavigatorSideDraw,
+            [LMapShapeKind.LMapShapeGrip] = PGripSideDraw,
+            [LMapShapeKind.LMapShapeBody] = PGripBodyDraw,
+            [LMapShapeKind.LMapShapeDot] = PGripDotDraw,
+            [LMapShapeKind.LMapShapeShine] = PNavigatorShineDraw,
+            [LMapShapeKind.LMapShapeBorder] = PNavigatorBorderDraw,
+        };
+
+    public LMap LMap { get; }
+
+    public PMap(LFlow lFlow)
     {
-        lFlow.LFlowMapSet(pMapTrigger);
-        InvalidateVisual();
-    }
-
-    public void PMapAttach() => PMapDrawDefer("attach");
-
-    public void PMapCursorUpdate() => PMapDrawDefer("cursor");
-
-    public void PMapClear()
-    {
-        lKeyframeScannedRanges = Array.Empty<LKeyframeScanRange>();
-        lSectionList = Array.Empty<LPiece>();
-        lWaveformPeaks = Array.Empty<byte>();
-        PMapDrawDefer("clear");
-    }
-
-    public void PMapWaveformUpdate(byte[] waveformPeaks)
-    {
-        lWaveformPeaks = waveformPeaks;
-        PMapDrawDefer("waveform");
-    }
-
-    public void PMapSectionsUpdate(IReadOnlyList<LPiece>? sections)
-    {
-        lSectionList = sections?.ToArray() ?? Array.Empty<LPiece>();
-        PMapDrawDefer("sections");
-    }
-
-    public void PMapSpoolUpdate() => PMapDrawDefer("spool");
-
-    public void PMapKeyframesUpdate(IReadOnlyList<LKeyframeScanRange>? scannedRanges)
-    {
-        lKeyframeScannedRanges = scannedRanges ?? Array.Empty<LKeyframeScanRange>();
-        PMapDrawDefer("keyframes");
+        LMap = new LMap(lFlow);
+        LMap.LMapFrameApply += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        if (!LTrace.LTraceVerbose)
-        {
-            PMapContentDraw(drawingContext);
-            return;
-        }
-
-        pMapGlyphCount = 0;
-        long pMapStamp = System.Diagnostics.Stopwatch.GetTimestamp();
-        PMapContentDraw(drawingContext);
-        double pMapMilliseconds =
-            (System.Diagnostics.Stopwatch.GetTimestamp() - pMapStamp) * 1000d
-            / System.Diagnostics.Stopwatch.Frequency;
-        LTrace.LTraceTimelineAdd(
-            "Map",
-            lFlow.LFlowCursor,
-            lFlow.LFlowSourcePath,
-            lFlow.LFlowMapTrigger,
-            pMapMilliseconds,
-            pMapGlyphCount);
+        long pStamp = LMap.LMapDrawStart();
+        LMapFrame lFrame = LMap.LMapFrameResolve(ActualWidth, ActualHeight);
+        lFrame.LMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
+        drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.LMapFrameWaveform));
+        lFrame.LMapFrameBands.ToList().ForEach(lBand => PMapBandDraw(drawingContext, lBand));
+        lFrame.LMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
+        lFrame.LMapFrameCursor.ToList().ForEach(lCursorX =>
+            PCursor.PCursorDraw(drawingContext, lCursorX, PCursor.PCursorHeadHeight, ActualHeight));
+        LMap.LMapDrawRecord(pStamp);
     }
 
-    private void PMapContentDraw(DrawingContext drawingContext)
+    protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
-        double actualWidth = ActualWidth;
-        double actualHeight = ActualHeight;
-        if (actualWidth <= 0 || actualHeight <= 0)
-        {
-            return;
-        }
+        base.OnMouseLeftButtonDown(e);
+        Point pPoint = e.GetPosition(this);
+        e.Handled = LMap.LMapPressHandle(pPoint.X, pPoint.Y, ActualWidth, ActualHeight);
+        CaptureMouse();
+    }
 
-        drawingContext.DrawRectangle(pMapBrushBackground, null, new Rect(0, 0, actualWidth, actualHeight));
-        if (lFlow.LFlowSpool is not { } lSpool
-            || lSpool.LSpoolDuration <= TimeSpan.Zero
-            || actualHeight < PMapRenderLeast)
-        {
-            return;
-        }
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        base.OnMouseMove(e);
+        Point pPoint = e.GetPosition(this);
+        Cursor = pMapCursors[LMap.LMapHoverResolve(pPoint.X, pPoint.Y, ActualWidth, ActualHeight)];
+        e.Handled = LMap.LMapMoveHandle(pPoint.X, ActualWidth);
+    }
 
-        double coverageHeight = 3;
-        double coverageBottom = Math.Max(0, actualHeight - 1);
-        double coverageTop = Math.Max(0, coverageBottom - coverageHeight);
-        double railTop = 3;
-        double railBottom = Math.Max(railTop, coverageTop - 2);
-        double railHeight = Math.Max(0, railBottom - railTop);
-        if (railHeight <= 0)
-        {
-            return;
-        }
+    protected override void OnMouseLeave(MouseEventArgs e)
+    {
+        base.OnMouseLeave(e);
+        Cursor = pMapCursors[LMap.LMapLeaveResolve()];
+    }
 
-        bool waveformActive = lWaveformPeaks.Length > 0;
+    protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
+    {
+        base.OnMouseLeftButtonUp(e);
+        PMapDragClear();
+        e.Handled = true;
+    }
+
+    protected override void OnLostMouseCapture(MouseEventArgs e)
+    {
+        base.OnLostMouseCapture(e);
+        PMapDragClear();
+    }
+
+    private void PMapDragClear()
+    {
+        LMap.LMapDragClear();
+        ReleaseMouseCapture();
+    }
+
+    private void PMapBandDraw(DrawingContext drawingContext, LMapBand lBand)
+    {
+        var pRect = new Rect(
+            new Point(lBand.LMapBandLeft, lBand.LMapBandTop),
+            new Point(lBand.LMapBandRight, lBand.LMapBandBottom));
+        FormattedText pBadgeText = PMapTextBuild(lBand.LMapBandBadge);
+        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.LMapBandShown]);
         drawingContext.DrawRoundedRectangle(
-            waveformActive ? pMapWaveformBrush : pMapBrushRail,
-            null,
-            new Rect(0, railTop, actualWidth, railHeight),
+            PSectionPalette.PSectionBandRead(lBand.LMapBandColor),
+            pMapSelectedPens[lBand.LMapBandSelected],
+            pRect,
             3,
             3);
-        if (waveformActive)
-        {
-            PMapWaveformDraw(drawingContext, actualWidth, railTop, railHeight);
-        }
-
-        PMapSectionsDraw(drawingContext, actualWidth, railTop, railHeight);
-        PMapCoverageDraw(drawingContext, actualWidth, coverageTop, coverageHeight);
-
-        double startRatio = Math.Clamp(lSpool.LSpoolRatioResolve(lSpool.LSpoolRangeOrigin), 0, 1);
-        double endRatio = Math.Clamp(lSpool.LSpoolRatioResolve(lSpool.LSpoolRangeLimit), 0, 1);
-        double spoolStartX = Math.Min(startRatio, endRatio) * actualWidth;
-        double spoolEndX = Math.Max(startRatio, endRatio) * actualWidth;
-        double spoolBodyWidth = Math.Max(0, spoolEndX - spoolStartX);
-        if (spoolBodyWidth <= 0)
-        {
-            return;
-        }
-
-        Rect bodyRect = new(spoolStartX, railTop, spoolBodyWidth, railHeight);
-        PNavigatorDraw(drawingContext, bodyRect, actualWidth);
-
-        double cursorRatio = Math.Clamp(lSpool.LSpoolRatioResolve(lFlow.LFlowCursor), 0, 1);
-        double cursorX = cursorRatio * actualWidth;
-        PCursor.PCursorDraw(drawingContext, cursorX, PCursor.PCursorHeadHeight, actualHeight);
+        LMap.LMapBadgeResolve(lBand, pBadgeText.Width, pBadgeText.Height)
+            .ToList()
+            .ForEach(lBadge => PMapBadgeDraw(drawingContext, lBand, lBadge, pBadgeText));
+        drawingContext.Pop();
     }
 
+    private static void PMapBadgeDraw(
+        DrawingContext drawingContext, LMapBand lBand, LMapBadge lBadge, FormattedText pBadgeText)
+    {
+        drawingContext.DrawRoundedRectangle(
+            PSectionPalette.PSectionBadgeRead(lBand.LMapBandColor),
+            null,
+            new Rect(
+                new Point(lBadge.LMapBadgeLeft, lBadge.LMapBadgeTop),
+                new Point(lBadge.LMapBadgeRight, lBadge.LMapBadgeBottom)),
+            lBadge.LMapBadgeRadius,
+            lBadge.LMapBadgeRadius);
+        drawingContext.DrawText(pBadgeText, new Point(lBadge.LMapBadgeX, lBadge.LMapBadgeY));
+    }
+
+    private FormattedText PMapTextBuild(string pText) => new(
+        pText,
+        System.Globalization.CultureInfo.CurrentCulture,
+        FlowDirection.LeftToRight,
+        pMapBadgeTypeface,
+        PSection.PSectionNameSize,
+        pMapBadgeBrush,
+        VisualTreeHelper.GetDpi(this).PixelsPerDip);
+
+    private static Rect PMapRectRead(LMapShape lShape) => new(
+        new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
+        new Point(lShape.LMapShapeRight, lShape.LMapShapeBottom));
+
+    private static void PMapBackgroundDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        drawingContext.DrawRectangle(pMapBrushBackground, null, PMapRectRead(lShape));
+
+    private static void PMapRailDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, pMapBrushRail, null, lShape);
+
+    private static void PMapWaveformDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, pMapWaveformBrush, null, lShape);
+
+    private static void PMapCoverageDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        drawingContext.DrawRectangle(pMapBrushRail, null, PMapRectRead(lShape));
+
+    private static void PMapScanDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        drawingContext.DrawRectangle(pMapCoverageBrush, null, PMapRectRead(lShape));
+
+    private static void PNavigatorFillDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, pNavigatorFrameBrush, null, lShape);
+
+    private static void PNavigatorShadowDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, null, pNavigatorShadowPen, lShape);
+
+    private static void PNavigatorRimDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, null, pNavigatorRimPen, lShape);
+
+    private static void PNavigatorSideDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, pNavigatorFrameBrush, null, lShape);
+
+    private static void PGripSideDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapLineDraw(drawingContext, pNavigatorGripPen, lShape);
+
+    private static void PGripBodyDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, pNavigatorBodyBrush, pNavigatorBodyPen, lShape);
+
+    private static void PGripDotDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        drawingContext.DrawEllipse(
+            pNavigatorGripBrush,
+            null,
+            new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
+            lShape.LMapShapeRadius,
+            lShape.LMapShapeRadius);
+
+    private static void PNavigatorShineDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapLineDraw(drawingContext, pNavigatorShinePen, lShape);
+
+    private static void PNavigatorBorderDraw(DrawingContext drawingContext, LMapShape lShape) =>
+        PMapRoundedDraw(drawingContext, null, pNavigatorBorderPen, lShape);
+
+    private static void PMapRoundedDraw(DrawingContext drawingContext, Brush? pBrush, Pen? pPen, LMapShape lShape) =>
+        drawingContext.DrawRoundedRectangle(
+            pBrush, pPen, PMapRectRead(lShape), lShape.LMapShapeRadius, lShape.LMapShapeRadius);
+
+    private static void PMapLineDraw(DrawingContext drawingContext, Pen pPen, LMapShape lShape) =>
+        drawingContext.DrawLine(
+            pPen,
+            new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
+            new Point(lShape.LMapShapeRight, lShape.LMapShapeBottom));
+
+    private static Brush PMapBrushBuild(byte pAlpha, byte pRed, byte pGreen, byte pBlue)
+    {
+        var pBrush = new SolidColorBrush(Color.FromArgb(pAlpha, pRed, pGreen, pBlue));
+        pBrush.Freeze();
+        return pBrush;
+    }
+
+    private static Pen PMapPenBuild(Brush pBrush, double pThickness)
+    {
+        var pPen = new Pen(pBrush, pThickness);
+        pPen.Freeze();
+        return pPen;
+    }
 }

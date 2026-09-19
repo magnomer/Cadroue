@@ -178,6 +178,12 @@ internal static partial class TInterface
         LSectionPalette.LSectionHiddenLoad(folder);
     internal static bool TSectionHiddenSave(string folder, IReadOnlyList<string> hidden) =>
         LSectionPalette.LSectionHiddenSave(folder, hidden);
+    internal static string? TSectionHexNormalize(string hex) => LSectionPalette.LSectionHexNormalize(hex);
+    internal static string TSectionColorRead(int index) => LSectionPalette.LSectionColorRead(index);
+    internal static IReadOnlyList<string> TSectionColorsRead(string name) => LSectionPalette.LSectionColorsRead(name);
+    internal static IReadOnlyList<string> TSectionNamesRead() => LSectionPalette.LSectionNamesRead();
+    internal static bool TSectionNativeCheck(string name) => LSectionPalette.LSectionNativeCheck(name);
+    internal static int TSectionCountRead() => LSectionPalette.LSectionActiveCount;
 
     internal static Task<LMediaScanResult> TMediaPathScan(
         IReadOnlyList<string> paths, CancellationToken token = default) =>

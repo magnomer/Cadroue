@@ -98,11 +98,10 @@ internal sealed class PFlowName
         pFlowSuffixBox.Text = lPrompt.LFlowNameSuffix;
         PFlowAffixShow(pFlowPrefixBox, pFlowPrefixSeparator, lPrompt.LFlowPrefixShown);
         PFlowAffixShow(pFlowSuffixBox, pFlowSuffixSeparator, lPrompt.LFlowSuffixShown);
-        Rect pSectionRect = pViewfinder.PViewfinderSectionRead(lPrompt.LFlowNameIndex);
-        pFlowNamePopup.HorizontalOffset = LFlowName.LFlowOffsetResolve(
-            pSectionRect.IsEmpty, pSectionRect.Left, pSectionRect.Width, pViewfinder.ActualWidth);
-        pFlowNamePopup.VerticalOffset = LFlowName.LFlowOffsetResolve(
-            pSectionRect.IsEmpty, pSectionRect.Top, pSectionRect.Height, pViewfinder.ActualHeight);
+        LViewfinderPoint lOffset = pViewfinder.LViewfinder.LViewfinderPopupResolve(
+            lPrompt.LFlowNameIndex, pViewfinder.ActualWidth, pViewfinder.ActualHeight);
+        pFlowNamePopup.HorizontalOffset = lOffset.LViewfinderPointX;
+        pFlowNamePopup.VerticalOffset = lOffset.LViewfinderPointY;
         pFlowNamePopup.IsOpen = true;
         PFlowFieldSelect(pFlowNameBox);
     }

@@ -58,25 +58,15 @@ public sealed class PFlow : UserControl
         pMap = new PMap(LFlow);
         pDivider = new PDivider(this);
         pFlowName = new PFlowName(LFlow, pViewfinder);
-        LFlow.LFlowPaletteApply(PSectionPalette.PSectionActiveCount);
-        pViewfinder.PViewfinderCursorChange += LFlow.LFlowCursorSeek;
-        pViewfinder.PViewfinderSectionSelect += LFlow.LFlowSection.LFlowSectionSelect;
-        pViewfinder.PViewfinderDragChange += LFlow.LFlowDragHandle;
-        pMap.PMapCursorChange += LFlow.LFlowCursorSeek;
-        pMap.PMapSpoolChange += LFlow.LFlowSpoolHandle;
-        pMap.PMapDragChange += LFlow.LFlowDragHandle;
-        LFlow.LFlowAttachApply += PFlowAttachApply;
-        LFlow.LFlowClearApply += PFlowClearApply;
-        LFlow.LFlowCursorApply += PFlowCursorApply;
-        LFlow.LFlowSpoolApply += PFlowSpoolApply;
-        LFlow.LFlowSection.LFlowSectionChange += PFlowSectionApply;
+        LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
+        LFlow.LFlowAttachApply += PFlowLabelsApply;
+        LFlow.LFlowClearApply += PFlowLabelsApply;
+        LFlow.LFlowSpoolApply += PFlowLabelsApply;
         LFlow.LFlowKeyframe.LFlowTimerDefer += PFlowTimerDefer;
         LFlow.LFlowKeyframe.LFlowTimerResume += PFlowTimerResume;
         LFlow.LFlowKeyframe.LFlowTimerReset += PFlowTimerReset;
         LFlow.LFlowKeyframe.LFlowKeyframeReady += PFlowKeyframeHandle;
-        LFlow.LFlowKeyframe.LFlowKeyframeChange += PFlowKeyframeApply;
         LFlow.LFlowWaveform.LFlowWaveformReady += PFlowWaveformHandle;
-        LFlow.LFlowWaveform.LFlowWaveformUpdate += PFlowWaveformApply;
         LFlow.LFlowLosslesscut.LFlowLosslesscutAsk += PFlowLosslesscutHandle;
         pKeyframeRequestTimer.Tick += PFlowTimerHandle;
         pKeyframeResumeTimer.Tick += PFlowTimerHandle;
@@ -126,25 +116,12 @@ public sealed class PFlow : UserControl
 
     public void PFlowPaletteApply()
     {
-        LFlow.LFlowPaletteApply(PSectionPalette.PSectionActiveCount);
+        LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
         LFlow.LFlowSection.LFlowSectionRaise();
     }
 
-    public static Geometry PFlowWaveformBuild(
-        byte[] pFlowWaveformPeaks,
-        double pFlowWaveformWidth,
-        double pFlowWaveformRailTop,
-        double pFlowWaveformRailHeight,
-        TimeSpan pFlowWaveformRangeStart,
-        TimeSpan pFlowWaveformRangeEnd)
+    public static Geometry PFlowWaveformBuild(LFlowWaveformOutline lOutline)
     {
-        LFlowWaveformOutline lOutline = LFlowWaveform.LFlowOutlineResolve(
-            pFlowWaveformPeaks,
-            pFlowWaveformWidth,
-            pFlowWaveformRailTop,
-            pFlowWaveformRailHeight,
-            pFlowWaveformRangeStart,
-            pFlowWaveformRangeEnd);
         var pFlowWaveformGeometry = new StreamGeometry();
         using (StreamGeometryContext pFlowWaveformContext = pFlowWaveformGeometry.Open())
         {
@@ -163,48 +140,12 @@ public sealed class PFlow : UserControl
         e.Handled = LFlow.LFlowWheelHandle(e.Delta);
     }
 
-    private void PFlowAttachApply()
-    {
-        pViewfinder.PViewfinderAttach();
-        pMap.PMapAttach();
-        PFlowSectionApply(LFlow.LFlowSection.LFlowSectionsRead(), LFlow.LFlowSection.LFlowSelectionRead());
-        PFlowLabelsApply();
-        pViewfinder.PViewfinderKeyframesUpdate(Array.Empty<LKeyframeEntry>(), Array.Empty<LKeyframeScanRange>());
-        pMap.PMapKeyframesUpdate(Array.Empty<LKeyframeScanRange>());
-    }
-
-    private void PFlowClearApply()
-    {
-        pViewfinder.PViewfinderClear();
-        pMap.PMapClear();
-        PFlowLabelsApply();
-    }
-
-    private void PFlowCursorApply()
-    {
-        pViewfinder.PViewfinderCursorUpdate();
-        pMap.PMapCursorUpdate();
-    }
-
-    private void PFlowSpoolApply()
-    {
-        pViewfinder.PViewfinderSpoolUpdate();
-        pMap.PMapSpoolUpdate();
-        PFlowLabelsApply();
-    }
-
     private void PFlowLabelsApply()
     {
         pViewfinderLabelLeft.Text = LFlow.LFlowLabelOrigin;
         pViewfinderLabelRight.Text = LFlow.LFlowLabelLimit;
         pMapLabelLeft.Text = LFlow.LFlowLabelZero;
         pMapLabelRight.Text = LFlow.LFlowLabelDuration;
-    }
-
-    private void PFlowSectionApply(IReadOnlyList<LPiece> lSections, int? lActive)
-    {
-        pViewfinder.PViewfinderSectionsUpdate(lSections);
-        pMap.PMapSectionsUpdate(lSections);
     }
 
     private void PFlowTimerDefer()
@@ -230,20 +171,8 @@ public sealed class PFlow : UserControl
     private void PFlowKeyframeHandle(LKeyframeNotice lNotice) =>
         Dispatcher.InvokeAsync(() => LFlow.LFlowKeyframe.LFlowKeyframeApply(lNotice), DispatcherPriority.Background);
 
-    private void PFlowKeyframeApply(IReadOnlyList<LKeyframeEntry> lEntries, IReadOnlyList<LKeyframeScanRange> lRanges)
-    {
-        pViewfinder.PViewfinderKeyframesUpdate(lEntries, lRanges);
-        pMap.PMapKeyframesUpdate(lRanges);
-    }
-
     private void PFlowWaveformHandle() =>
         Dispatcher.InvokeAsync(LFlow.LFlowWaveform.LFlowWaveformApply, DispatcherPriority.Background);
-
-    private void PFlowWaveformApply(byte[] lPeaks)
-    {
-        pViewfinder.PViewfinderWaveformUpdate(lPeaks);
-        pMap.PMapWaveformUpdate(lPeaks);
-    }
 
     private void PFlowLosslesscutHandle(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
         pFlowLosslesscutShows[lPrompt.LFlowPromptKind](lPrompt, lAnswer);

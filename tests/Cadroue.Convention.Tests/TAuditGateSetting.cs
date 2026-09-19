@@ -94,13 +94,7 @@ internal static class TAuditGateSetting
         "Gone",
     ];
 
-    public static readonly (string TAuditFile, string TAuditField)[] TAuditScalarKnown =
-    [
-        ("PBench/PMap.cs", "pMapGlyphCount"),
-        ("PBench/PMap.cs", "pMapBadgeDpi"),
-        ("PBench/PViewfinder.cs", "pViewfinderGlyphCount"),
-        ("PBench/PViewfinder.cs", "pViewfinderTextDpi"),
-    ];
+    public static readonly (string TAuditFile, string TAuditField)[] TAuditScalarKnown = [];
 
     public static readonly string[] TAuditScalarExempt = [];
 

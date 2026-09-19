@@ -23,8 +23,6 @@ public sealed class LFlow
     private string? lFlowKeyframeStamp;
     private int? lFlowKeyframeDirection;
     private string lFlowLosslesscutPath = string.Empty;
-    private string lFlowMapTrigger = "attach";
-    private string lFlowViewfinderTrigger = "attach";
     private int lFlowPaletteCount = 1;
     private Func<bool>? lFlowPlayingSource;
 
@@ -94,10 +92,6 @@ public sealed class LFlow
 
     public string LFlowLosslesscutPath => lFlowLosslesscutPath;
 
-    public string LFlowMapTrigger => lFlowMapTrigger;
-
-    public string LFlowViewfinderTrigger => lFlowViewfinderTrigger;
-
     public int LFlowPaletteCount => lFlowPaletteCount;
 
     public TimeSpan LFlowDuration => lFlowSpool?.LSpoolDuration ?? TimeSpan.Zero;
@@ -138,6 +132,7 @@ public sealed class LFlow
         }
 
         LFlowKeyframe.LFlowKeyframeReset();
+        LFlowKeyframe.LFlowKeyframeClear();
         bool lSameSource = LFlowSourceMatch(lSourcePath);
         TimeSpan lResumeAt = lSameSource ? lFlowCursor : lCursorTime;
         LFlowSourceSet(lMediaInfo, lSourcePath);
@@ -163,6 +158,7 @@ public sealed class LFlow
 
         LFlowKeyframe.LFlowKeyframeReset();
         LFlowKeyframe.LFlowKeyframeSuspend(false);
+        LFlowKeyframe.LFlowKeyframeClear();
         LFlowSourceClear();
         LFlowSection.LFlowSectionReset();
         LFlowWaveform.LFlowWaveformClear();
@@ -481,10 +477,6 @@ public sealed class LFlow
         lFlowLosslesscutPath = lLosslesscutPath;
         return true;
     }
-
-    public void LFlowMapSet(string lTrigger) => lFlowMapTrigger = lTrigger;
-
-    public void LFlowViewfinderSet(string lTrigger) => lFlowViewfinderTrigger = lTrigger;
 
     private static bool LFlowOrderCheck() =>
         LPreference.LPreferenceStateCurrent.LPreferenceTimelineOrder != "ViewfinderFirst";
