@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.ShellEngine;
@@ -29,7 +30,7 @@ public sealed partial class PRoster
             });
         }
 
-        long? pSourceBytes = PRosterSourceRead(pWorkItem);
+        long? pSourceBytes = LLineage.LLineageSourceRead(pWorkItem);
         long? pOutputBytes = PRosterBytesRead(pWorkItem);
         if (pSourceBytes is { } pSourceWhole
             && pSourceWhole > 0

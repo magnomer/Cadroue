@@ -14,6 +14,19 @@ public static class LUsher
 
     public static string LUsherStemRead(string lUsherPath) => Path.GetFileNameWithoutExtension(lUsherPath);
 
+    public static string LUsherPathResolve(string lUsherPath)
+    {
+        try
+        {
+            return Path.GetFullPath(lUsherPath);
+        }
+        catch (Exception lPathError) when (
+            lPathError is ArgumentException or IOException or NotSupportedException)
+        {
+            return lUsherPath;
+        }
+    }
+
     public static string? LUsherPathOpen(string lUsherPath, string? lUsherFallback = null)
     {
         try

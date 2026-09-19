@@ -1,4 +1,6 @@
+using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests;
@@ -35,4 +37,65 @@ internal static partial class TInterface
         LConsoleScene.LConsoleStemResolve(name, path);
     internal static string TConsoleNameCreate(string baseName, IReadOnlyList<string> names) =>
         LConsoleScene.LConsoleNameCreate(baseName, names);
+
+    internal static LStation TStationCreate(LScheduleContract schedule)
+    {
+        LStation.LStationSchedule = schedule;
+        LStation.LStationPost = action => action();
+        LStation.LStationProgramSource = () => "ffmpeg";
+        LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
+        return LStation.LStationCreate("Test worklist");
+    }
+
+    internal static LRoster TRosterCreate(LScheduleContract schedule, LStation station) => new(schedule, station);
+    internal static void TRosterClose(LRoster roster) => roster.LRosterClose();
+    internal static void TRosterRebuild(LRoster roster) => roster.LRosterRebuild();
+    internal static void TRosterStepSelect(LRoster roster, Guid id, bool range, bool toggle) =>
+        roster.LRosterStepSelect(id, range, toggle);
+    internal static void TRosterCardSelect(LRoster roster, Guid batchId) => roster.LRosterCardSelect(batchId);
+    internal static bool TRosterSelectedCheck(LRoster roster, Guid id) => roster.LRosterSelectedCheck(id);
+    internal static bool TRosterCollapseToggle(LRoster roster, Guid batchId) => roster.LRosterCollapseToggle(batchId);
+    internal static bool TRosterCollapsedCheck(LRoster roster, Guid batchId) => roster.LRosterCollapsedCheck(batchId);
+    internal static void TRosterCardsAttach(LRoster roster, Action handler) => roster.LRosterCardsApply += handler;
+    internal static void TRosterCardAttach(LRoster roster, Action<int, LRosterCard> handler) =>
+        roster.LRosterCardApply += handler;
+    internal static void TRosterDetailAttach(LRoster roster, Action handler) => roster.LRosterDetailApply += handler;
+    internal static void TRosterDeferAttach(LRoster roster, Action handler) => roster.LRosterDetailDefer += handler;
+    internal static void TRosterWarningAttach(LRoster roster, Action<string, string> handler) =>
+        roster.LRosterWarningShow += handler;
+    internal static void TRosterRemove(LRoster roster, Guid batchId) => roster.LRosterRemove(batchId);
+    internal static IReadOnlyList<LRosterItem> TRosterMenuRead(LRoster roster, Guid id, LStrip? strip) =>
+        roster.LRosterMenu.LRosterMenuRead(id, strip);
+    internal static void TRosterItemRun(LRosterItem item) => item.LRosterItemAction();
+    internal static bool TRosterDoneSet(LRoster roster, bool? isChecked) => roster.LRosterDoneSet(isChecked);
+    internal static bool TRosterSharedSet(LRoster roster, bool? isChecked) => roster.LRosterSharedSet(isChecked);
+    internal static LWorkItem? TRosterSelectRead(LRoster roster) => roster.LRosterSelectRead();
+    internal static IReadOnlyList<LWorkItem> TRosterSelectionRead(LRoster roster) => roster.LRosterSelectionRead();
+    internal static void TRosterElapsedTick(LRoster roster, bool visible) => roster.LRosterElapsedTick(visible);
+    internal static void TRosterDetailRun(LRoster roster) => roster.LRosterDetailRun();
+    internal static string TRosterOwnerFormat(LWorkItem work, bool owned) => LRosterRow.LRosterOwnerFormat(work, owned);
+    internal static string TRosterProgressFormat(LWorkItem work) => LRosterRow.LRosterProgressFormat(work);
+    internal static string TRosterPriorityFormat(LWorkPriority priority) => LRosterRow.LRosterPriorityFormat(priority);
+    internal static string TRosterStateFormat(LWorkState state) => LRosterRow.LRosterStateFormat(state);
+    internal static string TRosterKeyRead(LWorkState state) => LRosterRow.LRosterKeyRead(state);
+    internal static string TRosterPhaseFormat(LWorkState state, LWorkPhase phase) =>
+        LRosterRow.LRosterPhaseFormat(state, phase);
+    internal static string TRosterSpanFormat(TimeSpan span) => LRosterRow.LRosterSpanFormat(span);
+    internal static string TRosterShadeResolve(bool selected, bool cardSelected, bool stage) =>
+        LRosterRow.LRosterShadeResolve(selected, cardSelected, stage);
+    internal static LRosterRow TRosterRowCreate(
+        LWorkItem work, LLineageEntry lineage, bool last, bool stage, bool owned, string shade) =>
+        LRosterRow.LRosterRowCreate(work, lineage, last, stage, owned, shade);
+    internal static string TRosterTitleFormat(IReadOnlyList<LWorkItem> items) => LRosterCard.LRosterTitleFormat(items);
+    internal static IReadOnlyList<LLineageEntry> TLineageRead(
+        IReadOnlyList<LWorkItem> items, Func<LWorkItem, Guid> read) => LLineage.LLineageRead(items, read);
+    internal static string TLineageStepFormat(LWorkItem work, string subject) =>
+        LLineage.LLineageStepFormat(work, subject);
+    internal static string TLineageRatioFormat(LWorkItem work, string subject, long? origin) =>
+        LLineage.LLineageRatioFormat(work, subject, origin);
+    internal static string TLineageTitleFormat(LLineageEntry entry) => LLineage.LLineageTitleFormat(entry);
+    internal static HashSet<Guid> TLineageStageRead(IReadOnlyList<LWorkItem> items) => LLineage.LLineageStageRead(items);
+    internal static int TLineageInitialRead(IReadOnlyList<LWorkItem> items) => LLineage.LLineageInitialRead(items);
+    internal static long? TLineageSourceRead(LWorkItem work) => LLineage.LLineageSourceRead(work);
+    internal static string? TLineagePathRead(string path) => LLineage.LLineagePathRead(path);
 }

@@ -46,6 +46,8 @@ internal sealed class TSchedule : IDisposable
         tSchedule.LScheduleLoad();
     }
 
+    internal LScheduleContract TScheduleRead() => tSchedule;
+
     internal TScheduleWork TWorkCreate(
         Guid batchId,
         string name,

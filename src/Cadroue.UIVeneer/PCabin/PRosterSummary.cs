@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -160,7 +161,7 @@ public sealed partial class PRoster
         var pOutputKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
-            if (PLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey)
+            if (LLineage.LLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey)
             {
                 pOutputKeys.Add(pOutputKey);
             }
@@ -176,7 +177,7 @@ public sealed partial class PRoster
                 : new[] { pWorkItem.LWorkSourcePath };
             foreach (string pInput in pInputs)
             {
-                if (PLineagePathRead(pInput) is not { } pInputKey)
+                if (LLineage.LLineagePathRead(pInput) is not { } pInputKey)
                 {
                     continue;
                 }
@@ -193,7 +194,7 @@ public sealed partial class PRoster
         var pOutputs = new List<string>();
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
-            if (PLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey
+            if (LLineage.LLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey
                 && !pConsumed.Contains(pOutputKey)
                 && pSeenOutputs.Add(pOutputKey))
             {
@@ -209,7 +210,7 @@ public sealed partial class PRoster
         var pOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
-            if (PLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey)
+            if (LLineage.LLineagePathRead(pWorkItem.LWorkOutputPath) is { } pOutputKey)
             {
                 pOutputs.Add(pOutputKey);
             }
@@ -226,7 +227,7 @@ public sealed partial class PRoster
             for (int pIndex = 0; pIndex < pInputs.Count; pIndex++)
             {
                 string pInput = pInputs[pIndex];
-                if (PLineagePathRead(pInput) is not { } pInputKey)
+                if (LLineage.LLineagePathRead(pInput) is not { } pInputKey)
                 {
                     continue;
                 }
@@ -270,7 +271,7 @@ public sealed partial class PRoster
         foreach (LWorkItem pWorkItem in pBatchItems)
         {
             if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-                || PLineagePathRead(pWorkItem.LWorkOutputPath) is not { } pOutputKey
+                || LLineage.LLineagePathRead(pWorkItem.LWorkOutputPath) is not { } pOutputKey
                 || pConsumed.Contains(pOutputKey)
                 || !pSeenOutputs.Add(pOutputKey)
                 || PRosterBytesRead(pWorkItem) is not { } pOutputWhole)

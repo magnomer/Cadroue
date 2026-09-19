@@ -117,6 +117,8 @@ public sealed class LWorkspace
         LWorkspacePresetOwner.LPresetSelectionClose();
     }
 
+    public LStation? LWorkspaceStation => lWorkspaceStation;
+
     public bool LWorkspaceBusyCheck() => lWorkspaceStation?.LStationBusyCheck() == true;
 
     public LSceneTabRecord LWorkspaceLayoutRead() => lWorkspaceLayoutSource?.Invoke() ?? new LSceneTabRecord();

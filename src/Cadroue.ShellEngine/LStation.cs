@@ -115,6 +115,8 @@ public sealed class LStation
         return new[] { LStationInternalRead() };
     }
 
+    public void LStationSelectionRaise() => LStationChange?.Invoke();
+
     public IReadOnlyList<LWorkItem> LStationSelectionRead()
     {
         try

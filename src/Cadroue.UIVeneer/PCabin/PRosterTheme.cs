@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
-using Cadroue.Core;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -50,15 +50,123 @@ internal static class PRosterTheme
     public static readonly Brush PRosterPartialBrush = PRosterBrushCreate(0xC7, 0x9A, 0x22);
     public static readonly Brush PRosterBlockedBrush = PRosterBrushCreate(0x7A, 0x5A, 0x9E);
 
-    public static Brush PRosterStateRead(LWorkState pWorkState) => pWorkState switch
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterStateBrushes = new Dictionary<string, Brush>
     {
-        LWorkState.LWorkStateRunning => PRosterRunBrush,
-        LWorkState.LWorkStateDone => PRosterDoneBrush,
-        LWorkState.LWorkStateFailed => PRosterFailBrush,
-        LWorkState.LWorkStateUnresolved => PRosterUnresolvedBrush,
-        LWorkState.LWorkStatePartial => PRosterPartialBrush,
-        LWorkState.LWorkStateBlocked => PRosterBlockedBrush,
-        _ => PRosterMutedBrush
+        ["Pending"] = PRosterMutedBrush,
+        ["Running"] = PRosterRunBrush,
+        ["Done"] = PRosterDoneBrush,
+        ["Failed"] = PRosterFailBrush,
+        ["Unresolved"] = PRosterUnresolvedBrush,
+        ["Partial"] = PRosterPartialBrush,
+        ["Blocked"] = PRosterBlockedBrush,
+        ["Cancelled"] = PRosterMutedBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterRowShades = new Dictionary<string, Brush>
+    {
+        [LRosterRow.LRosterShadeSelected] = PRosterSelectBrush,
+        [LRosterRow.LRosterShadeStage] = PRosterStageBrush,
+        [LRosterRow.LRosterShadePlain] = Brushes.Transparent,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterRowHovers = new Dictionary<string, Brush>
+    {
+        [LRosterRow.LRosterShadeSelected] = PRosterSelectBrush,
+        [LRosterRow.LRosterShadeStage] = PRosterHeaderBrush,
+        [LRosterRow.LRosterShadePlain] = PRosterHeaderBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterCardFills = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectCard,
+        [LRosterCard.LRosterCardDone] = PRosterDoneCard,
+        [LRosterCard.LRosterCardPlain] = PRosterCardBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterCardHovers = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectCard,
+        [LRosterCard.LRosterCardDone] = PRosterDoneHover,
+        [LRosterCard.LRosterCardPlain] = PRosterHoverBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterCardLines = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectLine,
+        [LRosterCard.LRosterCardDone] = PRosterDoneLine,
+        [LRosterCard.LRosterCardPlain] = PRosterCardLine,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterBodyFills = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectBody,
+        [LRosterCard.LRosterCardDone] = PRosterDoneBody,
+        [LRosterCard.LRosterCardPlain] = PRosterBodyBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterBodyLines = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterOuterLine,
+        [LRosterCard.LRosterCardDone] = PRosterDoneLine,
+        [LRosterCard.LRosterCardPlain] = PRosterCardLine,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterTitleBrushes = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectText,
+        [LRosterCard.LRosterCardDone] = PRosterMutedBrush,
+        [LRosterCard.LRosterCardPlain] = PRosterTitleBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterControlBrushes = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterSelectText,
+        [LRosterCard.LRosterCardDone] = PRosterMutedBrush,
+        [LRosterCard.LRosterCardPlain] = PRosterMutedBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterControlHovers = new Dictionary<string, Brush>
+    {
+        [LRosterCard.LRosterCardSelected] = PRosterCardBrush,
+        [LRosterCard.LRosterCardDone] = PRosterDoneHover,
+        [LRosterCard.LRosterCardPlain] = PRosterControlHover,
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Thickness> PRosterHeaderBorders = new Dictionary<bool, Thickness>
+    {
+        [true] = new Thickness(0),
+        [false] = new Thickness(0, 0, 0, 1),
+    };
+
+    public static readonly IReadOnlyDictionary<bool, CornerRadius> PRosterHeaderCorners =
+        new Dictionary<bool, CornerRadius>
+        {
+            [true] = new CornerRadius(PRosterCorner),
+            [false] = new CornerRadius(PRosterCorner, PRosterCorner, 0, 0),
+        };
+
+    public static readonly IReadOnlyDictionary<bool, string> PRosterToggleIcons = new Dictionary<bool, string>
+    {
+        [true] = "/PAsset/PPanel/PRosterBatchMaximize.svg",
+        [false] = "/PAsset/PPanel/PRosterBatchMinimize.svg",
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Brush> PRosterSpineBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PRosterMutedBrush,
+        [false] = PRosterTrunkBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Brush> PRosterNodeFills = new Dictionary<bool, Brush>
+    {
+        [true] = PRosterTextBrush,
+        [false] = Brushes.White,
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Brush> PRosterNodeLines = new Dictionary<bool, Brush>
+    {
+        [true] = PRosterTextBrush,
+        [false] = PRosterAccentBrush,
     };
 
     private static Brush PRosterBrushCreate(byte pRed, byte pGreen, byte pBlue)

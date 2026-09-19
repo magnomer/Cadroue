@@ -63,7 +63,16 @@ public sealed class LConsole
     public void LConsoleWindowAttach(LWindow lWindow, LStrip lStripOwner)
     {
         lStrip = lStripOwner;
+        lStripOwner.LStripSelectChange += LConsoleTabHandle;
         LConsoleScene.LConsoleWindowAttach(lWindow, lStripOwner);
+    }
+
+    private void LConsoleTabHandle(LStripTab? lTab)
+    {
+        if (lTab?.LStripTabWorkspace?.LWorkspaceStation is { } lStation)
+        {
+            LConsoleStation.LConsoleStationSet(lStation);
+        }
     }
 
     public void LConsoleClose()
@@ -73,6 +82,10 @@ public sealed class LConsole
         LStation.LStationChange -= LConsoleUpdate;
         LConsoleStation.LConsoleStationChange -= LConsoleUpdate;
         LConsoleStation.LConsoleWatchStop();
+        if (lStrip is not null)
+        {
+            lStrip.LStripSelectChange -= LConsoleTabHandle;
+        }
     }
 
     public void LConsoleScheduleLoad() => lSchedule.LScheduleLoad();

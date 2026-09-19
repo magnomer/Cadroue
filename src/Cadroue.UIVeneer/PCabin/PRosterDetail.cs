@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
@@ -55,13 +56,11 @@ public sealed partial class PRoster
 
         if (LRoster.LRosterCardId != Guid.Empty)
         {
-            PSummaryAdd(pRosterSchedule.LScheduleRecords
-                .Where(pRecord => LRoster.LRosterCardCheck(pRecord.LWorkBatchId))
-                .ToArray());
+            PSummaryAdd(LRoster.LRosterBatchRead());
             return;
         }
 
-        if (PRosterSelectRead() is not { } pWorkItem)
+        if (LRoster.LRosterSelectRead() is not { } pWorkItem)
         {
             pRosterDetailPanel.Children.Add(new TextBlock
             {
@@ -111,13 +110,13 @@ public sealed partial class PRoster
         PRosterRowAdd(
             LLocalization.LLocalizationTextRead("Roster.Field.Attempts"),
             pWorkItem.LWorkAttemptCount.ToString());
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), PRosterOwnerFormat(pWorkItem));
+        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), LRoster.LRosterOwnerFormat(pWorkItem));
         PRosterRowAdd(
             LLocalization.LLocalizationTextRead("Roster.Field.State"),
-            PRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
+            LRosterRow.LRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
         PRosterRowAdd(
             LLocalization.LLocalizationTextRead("Roster.Field.Priority"),
-            PRosterPriorityFormat(pWorkItem.LWorkPriority));
+            LRosterRow.LRosterPriorityFormat(pWorkItem.LWorkPriority));
 
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateFailed
             && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))

@@ -4,10 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
-[CollectionDefinition("Ask", DisableParallelization = true)]
-public sealed class TAskCollection;
-
-[Collection("Ask")]
+[Collection("Schedule")]
 public sealed class TAskNotice
 {
     [Fact]

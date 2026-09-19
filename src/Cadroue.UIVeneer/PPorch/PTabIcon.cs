@@ -28,6 +28,8 @@ public sealed class PTabIcon : IValueConverter
 
     public static ImageSource PTabIconRead(string pKey) => pTabIcons[pKey];
 
+    public static ImageSource? PTabIconFind(string pKey) => pTabIcons.GetValueOrDefault(pKey);
+
     public static string PTabPathRead(string pKey) => $"/PAsset/PTab/P{pKey}Button.svg";
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture) =>

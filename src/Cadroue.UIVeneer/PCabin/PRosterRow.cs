@@ -2,130 +2,91 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Core;
+using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PRoster
+internal static class PRosterRow
 {
-    private sealed record PRosterShade(Border PRosterShadeBorder, Guid PRosterShadeBatch, bool PRosterShadeStage);
-
-    private readonly Dictionary<Guid, Guid> pRosterRowBatch = new();
-    private readonly List<PRosterShade> pRosterFileShades = new();
-
-    private static Border PRosterFileBuild(PRosterLineageEntry pLineage, bool pStage) => new()
+    public static Grid PRosterColumnsCreate()
     {
-        Background = pStage ? PRosterTheme.PRosterStageBrush : Brushes.Transparent,
-        Padding = new Thickness(12, 5, 12, 3),
-        Child = new TextBlock
-        {
-            Text = PLineageTitleRead(pLineage),
-            FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PRosterTheme.PRosterTitleBrush,
-            TextTrimming = TextTrimming.CharacterEllipsis
-        }
-    };
-
-    private Brush PRosterShadeRead(Guid pRowId) =>
-        pRosterRowBatch.TryGetValue(pRowId, out Guid pBatch) && LRoster.LRosterCardCheck(pBatch)
-            ? Brushes.Transparent
-            : pRosterStageIds.Contains(pRowId)
-                ? PRosterTheme.PRosterStageBrush
-                : Brushes.Transparent;
-
-    private void PRosterShadeApply()
-    {
-        foreach (PRosterShade pShade in pRosterFileShades)
-        {
-            pShade.PRosterShadeBorder.Background = LRoster.LRosterCardCheck(pShade.PRosterShadeBatch)
-                ? Brushes.Transparent
-                : pShade.PRosterShadeStage
-                    ? PRosterTheme.PRosterStageBrush
-                    : Brushes.Transparent;
-        }
+        var pGrid = new Grid();
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 90 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 58 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 60 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 62 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 80 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 68 });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 84 });
+        return pGrid;
     }
 
-    private Border PRosterRowBuild(LWorkItem pWorkItem)
+    public static Border PRosterRowBuild(LRoster lRoster, LRosterRow lRow)
     {
-        var pGrid = PRosterColumnsCreate();
+        Grid pGrid = PRosterColumnsCreate();
         pGrid.MinHeight = 29;
+        pGrid.Children.Add(PRosterStepBuild(lRow));
+        PRosterCellAdd(pGrid, 1, lRow.LRosterRowPriority, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 2, lRow.LRosterRowLength, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 3, lRow.LRosterRowProgress, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 4, lRow.LRosterRowRatio, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 5, lRow.LRosterRowState, PRosterTheme.PRosterStateBrushes[lRow.LRosterRowKey]);
+        PRosterCellAdd(pGrid, 6, lRow.LRosterRowOwner, PRosterTheme.PRosterMutedBrush);
 
-        TextBlock pStepCell = PRosterStepAdd(pGrid, pWorkItem);
-        PRosterCellAdd(pGrid, 1, PRosterPriorityFormat(pWorkItem.LWorkPriority), PRosterTheme.PRosterMutedBrush);
-        TextBlock pDurationCell = PRosterCellAdd(
-            pGrid,
-            2,
-            PRosterSpanFormat(pWorkItem.LWorkDuration),
-            PRosterTheme.PRosterMutedBrush);
-
-        TextBlock pProgressCell = PRosterCellAdd(
-            pGrid,
-            3,
-            PRosterProgressFormat(pWorkItem),
-            PRosterTheme.PRosterMutedBrush);
-        TextBlock pPercentCell = PRosterCellAdd(
-            pGrid,
-            4,
-            PRosterPlaceFormat(pWorkItem),
-            PRosterTheme.PRosterMutedBrush);
-        TextBlock pStateCell = PRosterCellAdd(
-            pGrid,
-            5,
-            PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent),
-            PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent));
-        TextBlock pOwnerCell = PRosterCellAdd(pGrid, 6, PRosterOwnerFormat(pWorkItem), PRosterTheme.PRosterMutedBrush);
-
-        pRosterRowCells[pWorkItem.LWorkId] = new PRosterRowCell
-        {
-            PRosterCellStep = pStepCell,
-            PRosterCellDuration = pDurationCell,
-            PRosterCellProgress = pProgressCell,
-            PRosterCellPercent = pPercentCell,
-            PRosterCellState = pStateCell,
-            PRosterCellOwner = pOwnerCell
-        };
-
+        ContextMenu pMenu = PMenu.PMenuContextCreate();
         var pRow = new Border
         {
             Padding = new Thickness(12, 0, 12, 0),
-            Background = Brushes.Transparent,
+            Background = PRosterTheme.PRosterRowShades[lRow.LRosterRowShade],
             Cursor = Cursors.Hand,
             Child = pGrid,
-            Tag = pWorkItem,
-            ContextMenu = PMenu.PMenuContextCreate()
+            ContextMenu = pMenu
         };
-
-        Guid pRowId = pWorkItem.LWorkId;
-        pRow.PreviewMouseLeftButtonDown += (_, _) => PRosterStepSelect(pWorkItem);
-        pRow.MouseEnter += (_, _) => PRosterHoverApply(pRowId, true);
-        pRow.MouseLeave += (_, _) => PRosterHoverApply(pRowId, false);
-        pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuOpen(pRow, pArgs);
-
-        pRosterStepRows[pRowId] = pRow;
-        pRow.Background = LRoster.LRosterSelectedCheck(pRowId)
-            ? PRosterTheme.PRosterSelectBrush
-            : PRosterShadeRead(pRowId);
+        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.LRosterStepSelect(
+            lRow.LRosterRowId,
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
+        pRow.MouseEnter += (_, _) => pRow.Background = PRosterTheme.PRosterRowHovers[lRow.LRosterRowShade];
+        pRow.MouseLeave += (_, _) => pRow.Background = PRosterTheme.PRosterRowShades[lRow.LRosterRowShade];
+        pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuApply(
+            pMenu, lRoster.LRosterMenu.LRosterMenuRead(lRow.LRosterRowId, PWindow.PWindowStripRead()?.LStrip), pArgs);
         return pRow;
     }
 
-    private TextBlock PRosterStepAdd(Grid pGrid, LWorkItem pWorkItem)
+    private static void PRosterMenuApply(
+        ContextMenu pMenu,
+        IReadOnlyList<LRosterItem> lItems,
+        ContextMenuEventArgs pArgs)
     {
-        bool pLast = !pRosterRowPlaces.TryGetValue(pWorkItem.LWorkId, out PRosterRowPlace? pPlace)
-            || pPlace.PRosterPlaceLast;
+        pMenu.Items.Clear();
+        lItems.ToList().ForEach(lItem => pMenu.Items.Add(PRosterItemBuild(lItem)));
+        pArgs.Handled = pMenu.Items.IsEmpty;
+    }
 
+    private static MenuItem PRosterItemBuild(LRosterItem lItem)
+    {
+        MenuItem pItem = PMenu.PMenuItemCreate(lItem.LRosterItemText, PTabIcon.PTabIconFind(lItem.LRosterItemIcon));
+        pItem.IsEnabled = lItem.LRosterItemEnabled;
+        pItem.Click += (_, _) => lItem.LRosterItemAction();
+        return pItem;
+    }
+
+    private static Grid PRosterStepBuild(LRosterRow lRow)
+    {
         var pStepGrid = new Grid();
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        UIElement pConnector = PRosterConnectorBuild(pLast, pRosterStageIds.Contains(pWorkItem.LWorkId));
+        Grid pConnector = PRosterConnectorBuild(lRow.LRosterRowLast, lRow.LRosterRowStage);
         Grid.SetColumn(pConnector, 0);
         pStepGrid.Children.Add(pConnector);
 
         var pStepCell = new TextBlock
         {
-            Text = PRosterStepRead(pWorkItem),
+            Text = lRow.LRosterRowStep,
             FontSize = PRosterTheme.PRosterRowSize,
             Foreground = PRosterTheme.PRosterTextBrush,
             VerticalAlignment = VerticalAlignment.Center,
@@ -134,37 +95,33 @@ public sealed partial class PRoster
         };
         Grid.SetColumn(pStepCell, 1);
         pStepGrid.Children.Add(pStepCell);
-
         Grid.SetColumn(pStepGrid, 0);
-        pGrid.Children.Add(pStepGrid);
-        return pStepCell;
+        return pStepGrid;
     }
 
-    private static UIElement PRosterConnectorBuild(bool pLast, bool pStage)
+    private static Grid PRosterConnectorBuild(bool pLast, bool pStage)
     {
-        Brush pSpineBrush = pStage ? PRosterTheme.PRosterMutedBrush : PRosterTheme.PRosterTrunkBrush;
+        Brush pSpineBrush = PRosterTheme.PRosterSpineBrushes[pStage];
         var pGrid = new Grid { Width = 18, UseLayoutRounding = true };
         pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         pGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-        var pSpineUpper = PRosterSpineBuild(pSpineBrush);
+        Border pSpineUpper = PRosterSpineBuild(pSpineBrush);
         Grid.SetRow(pSpineUpper, 0);
         pGrid.Children.Add(pSpineUpper);
 
-        if (!pLast)
-        {
-            var pSpineLower = PRosterSpineBuild(pSpineBrush);
-            Grid.SetRow(pSpineLower, 1);
-            pGrid.Children.Add(pSpineLower);
-        }
+        Border pSpineLower = PRosterSpineBuild(pSpineBrush);
+        pSpineLower.Visibility = PLook.PLookVisible[!pLast];
+        Grid.SetRow(pSpineLower, 1);
+        pGrid.Children.Add(pSpineLower);
 
         var pNode = new Border
         {
             Width = 8,
             Height = 8,
             CornerRadius = new CornerRadius(4),
-            Background = pStage ? PRosterTheme.PRosterTextBrush : Brushes.White,
-            BorderBrush = pStage ? PRosterTheme.PRosterTextBrush : PRosterTheme.PRosterAccentBrush,
+            Background = PRosterTheme.PRosterNodeFills[pStage],
+            BorderBrush = PRosterTheme.PRosterNodeLines[pStage],
             BorderThickness = new Thickness(2),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Center,
@@ -172,7 +129,6 @@ public sealed partial class PRoster
         };
         Grid.SetRowSpan(pNode, 2);
         pGrid.Children.Add(pNode);
-
         return pGrid;
     }
 
@@ -185,7 +141,7 @@ public sealed partial class PRoster
         Margin = new Thickness(7, 0, 0, 0)
     };
 
-    private static TextBlock PRosterCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)
+    public static void PRosterCellAdd(Grid pGrid, int pColumn, string pText, Brush pBrush)
     {
         var pCell = new TextBlock
         {
@@ -198,22 +154,5 @@ public sealed partial class PRoster
         };
         Grid.SetColumn(pCell, pColumn);
         pGrid.Children.Add(pCell);
-        return pCell;
-    }
-
-    private void PRosterRowUpdate(LWorkItem pWorkItem)
-    {
-        if (!pRosterRowCells.TryGetValue(pWorkItem.LWorkId, out PRosterRowCell? pCell))
-        {
-            return;
-        }
-
-        pCell.PRosterCellStep.Text = PRosterStepRead(pWorkItem);
-        pCell.PRosterCellDuration.Text = PRosterSpanFormat(pWorkItem.LWorkDuration);
-        pCell.PRosterCellProgress.Text = PRosterProgressFormat(pWorkItem);
-        pCell.PRosterCellPercent.Text = PRosterPlaceFormat(pWorkItem);
-        pCell.PRosterCellState.Text = PRosterStateLabel.PRosterStateFormat(pWorkItem.LWorkStateCurrent);
-        pCell.PRosterCellState.Foreground = PRosterTheme.PRosterStateRead(pWorkItem.LWorkStateCurrent);
-        pCell.PRosterCellOwner.Text = PRosterOwnerFormat(pWorkItem);
     }
 }

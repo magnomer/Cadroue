@@ -374,20 +374,6 @@ internal static partial class TInterface
     internal static void TStripUpdateResume(LStrip strip) => strip.LStripUpdateResume();
     internal static void TStripTitleUpdate(LStrip strip) => strip.LStripTitleUpdate();
 
-    internal static LRoster TRosterCreate() => new();
-    internal static void TRosterOrderAdd(LRoster roster, Guid id) => roster.LRosterOrderAdd(id);
-    internal static void TRosterOrderClear(LRoster roster) => roster.LRosterOrderClear();
-    internal static bool TRosterOrderMatch(LRoster roster, IReadOnlyList<Guid> ids) => roster.LRosterOrderMatch(ids);
-    internal static void TRosterStepSelect(LRoster roster, Guid id, bool range, bool toggle) =>
-        roster.LRosterStepSelect(id, range, toggle);
-    internal static void TRosterCardSelect(LRoster roster, Guid batchId) => roster.LRosterCardSelect(batchId);
-    internal static bool TRosterSelectedCheck(LRoster roster, Guid id) => roster.LRosterSelectedCheck(id);
-    internal static bool TRosterCollapseToggle(LRoster roster, Guid batchId) => roster.LRosterCollapseToggle(batchId);
-    internal static bool TRosterCollapsedCheck(LRoster roster, Guid batchId) => roster.LRosterCollapsedCheck(batchId);
-    internal static void TRosterStaleRemove(LRoster roster, IReadOnlyCollection<Guid> batchIds) =>
-        roster.LRosterStaleRemove(batchIds);
-    internal static bool TRosterCloseSet(LRoster roster) => roster.LRosterCloseSet();
-
     internal static LColumn TColumnCreate(
         IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>
         new(minimums, stored, compact, flex);

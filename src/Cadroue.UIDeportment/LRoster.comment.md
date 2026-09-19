@@ -1,6 +1,6 @@
-# PRoster.cs
+# LRoster.cs
 
-## `private void PRosterElapsedTick(object? pSender, EventArgs pArguments)`
+## `public void LRosterElapsedTick(bool lVisible)`
 
 A running job has no finish time yet, so its elapsed figure is measured against the clock.
 The shown item's source figures land later, from the low-priority background measurement.
