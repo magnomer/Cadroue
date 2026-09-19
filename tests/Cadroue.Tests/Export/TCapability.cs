@@ -15,7 +15,8 @@ public sealed class TCapability
         LCapabilityCodec codec = TInterface.TCapabilityRead(encoder);
 
         Assert.NotEmpty(codec.LCapabilityModeLabels);
-        Assert.Equal(codec.LCapabilityModeLabels[0], TInterface.TCapabilityModeFind(codec, "missing").LCapabilityModeLabel);
+        Assert.Equal(
+            codec.LCapabilityModeLabels[0], TInterface.TCapabilityModeFind(codec, "missing").LCapabilityModeLabel);
     }
 
     [Theory]
@@ -27,7 +28,8 @@ public sealed class TCapability
         LCapabilityCodec codec = TInterface.TCapabilityAudioRead(encoder);
 
         Assert.NotEmpty(codec.LCapabilityModeLabels);
-        Assert.Equal(codec.LCapabilityModeLabels[0], TInterface.TCapabilityModeFind(codec, "missing").LCapabilityModeLabel);
+        Assert.Equal(
+            codec.LCapabilityModeLabels[0], TInterface.TCapabilityModeFind(codec, "missing").LCapabilityModeLabel);
     }
 
     [Fact]

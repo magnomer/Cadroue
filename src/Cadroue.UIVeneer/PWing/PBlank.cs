@@ -82,7 +82,10 @@ public sealed partial class PInspector
             () => LBlank.LBlankStep.LDetectorBlankMinimum,
             LBlank.LBlankMinimumSet);
         pStack.Children.Add(PFilterSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"), pBlankMinimumSlider, "s", pBlankMinimumValue));
+            LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"),
+            pBlankMinimumSlider,
+            "s",
+            pBlankMinimumValue));
 
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
@@ -103,7 +106,8 @@ public sealed partial class PInspector
                 pBlankPicker.IsChecked = pPicking;
             }
 
-            pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, pPicking ? pInspectorAccentBrush : pInspectorIconBrush);
+            pBlankPickerIcon.Source = PIcon.PIconRead(
+                PPickerIcon, pPicking ? pInspectorAccentBrush : pInspectorIconBrush);
             PBlankPickChange?.Invoke(pPicking);
         };
         PBlankUpdate();

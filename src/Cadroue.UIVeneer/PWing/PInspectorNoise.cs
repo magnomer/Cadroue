@@ -208,7 +208,8 @@ public sealed partial class PInspector
         PInspectorSwitchUpdate(pNoiseTrack, pStep.LWorkNoiseTrack, false);
         for (int pSlot = 0; pSlot < pNoiseSliders.Length; pSlot++)
         {
-            PInspectorValueUpdate(pNoiseSliders[pSlot], pNoiseValues[pSlot], PNoiseValueRead(pSlot), PNoiseFormats[pSlot]);
+            PInspectorValueUpdate(
+                pNoiseSliders[pSlot], pNoiseValues[pSlot], PNoiseValueRead(pSlot), PNoiseFormats[pSlot]);
         }
 
         PInspectorChoiceUpdate(pNoiseType, LGrainCatalog.LGrainFormat(pStep.LWorkNoiseType));

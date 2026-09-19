@@ -7,6 +7,7 @@ using Cadroue.ShellEngine;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -85,7 +86,7 @@ public sealed partial class PAction : UserControl
         lStripTab.LStripActionAttach(PActionAutoCheck, PActionCohortRun);
         LCartographer.LCartographerStart();
         PActionSourceTab = pActionSourceTab;
-        PActionRelaySource = () => PStrip.PStripRelayRead(pActionSourceTab);
+        PActionRelaySource = () => PActionOptionsRead(pActionSourceTab);
         PActionRelayChange += pActionTarget =>
         {
             LCartographer.LCartographerTargetSet(pActionSourceTab, pActionTarget);
@@ -134,10 +135,21 @@ public sealed partial class PAction : UserControl
         }
     }
 
+    private static IReadOnlyList<PActionRelayOption> PActionOptionsRead(Guid pActionSourceTab) =>
+        PWindow.PWindowStripRead()?.LStrip.LStripRelayRead(pActionSourceTab)
+            .Select(PActionOptionCreate)
+            .ToArray()
+        ?? Array.Empty<PActionRelayOption>();
+
+    private static PActionRelayOption PActionOptionCreate(LStripTab lStripTab) =>
+        new(lStripTab.LStripTabId, lStripTab.LStripTabTitle, PTabIcon.PTabIconRead(lStripTab.LStripTabKey));
+
     private static PAction? PActionAutoFind(Guid pActionTargetTab) =>
-        PStrip.PStripTabFind(pActionTargetTab) is { } pActionTarget
-            && pActionTarget.PTabWorkspace.PWorkspaceSurface is not PMergeTab
-            && pActionTarget.PTabWorkspace.PWorkspaceSurface.PTabAction is { PActionAutoRelay: true } pActionSurface
+        PWindow.PWindowStripRead() is { } pActionStrip
+            && pActionStrip.PStripWorkspaceRead(pActionStrip.LStrip.LStripTabFind(pActionTargetTab))
+                is { } pActionTarget
+            && pActionTarget.PWorkspaceSurface is not PMergeTab
+            && pActionTarget.PWorkspaceSurface.PTabAction is { PActionAutoRelay: true } pActionSurface
             ? pActionSurface
             : null;
 

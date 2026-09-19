@@ -8,11 +8,11 @@ internal static class TAuditStrictSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditStrictCeiling = new Dictionary<string, int>
     {
-        ["Storage"] = 141,
-        ["Flow"] = 1069,
-        ["Treat"] = 731,
+        ["Storage"] = 129,
+        ["Flow"] = 983,
+        ["Treat"] = 712,
         ["Reach"] = 0,
-        ["Taint"] = 653,
+        ["Taint"] = 637,
     };
 
     public static readonly string[] TAuditVeneerInclude =
@@ -25,6 +25,8 @@ internal static class TAuditStrictSetting
         "src/Cadroue.UIVeneer/*.xaml",
         "src/Cadroue.UIShell/*.xaml",
     ];
+
+    public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";
 
     public static readonly string[] TAuditReachNamespaces =
     [

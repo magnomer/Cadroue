@@ -11,7 +11,8 @@ namespace Cadroue.UIVeneer.PWing;
 
 public sealed partial class PProcessing
 {
-    public void PProcessingSkipSet(bool pProcessingSkipApplied) => LProcessing.LProcessingSkipSet(pProcessingSkipApplied);
+    public void PProcessingSkipSet(bool pProcessingSkipApplied) =>
+        LProcessing.LProcessingSkipSet(pProcessingSkipApplied);
 
     private Border PProcessingSkipBuild()
     {

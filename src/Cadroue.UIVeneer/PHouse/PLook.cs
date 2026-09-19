@@ -116,4 +116,45 @@ public static class PLook
         [true] = new GridLength(PPorch.PRail.PRailWidth),
         [false] = new GridLength(0),
     };
+
+    public static readonly IReadOnlyDictionary<WindowState, WindowState> PLookMaximizeOpposite =
+        new Dictionary<WindowState, WindowState>
+        {
+            [WindowState.Maximized] = WindowState.Normal,
+            [WindowState.Normal] = WindowState.Maximized,
+            [WindowState.Minimized] = WindowState.Maximized,
+        };
+
+    public static readonly IReadOnlyDictionary<bool, GridLength> PLookRailHeader = new Dictionary<bool, GridLength>
+    {
+        [true] = new GridLength(PPorch.PRail.PRailWidth - 56),
+        [false] = new GridLength(0),
+    };
+
+    public static readonly IReadOnlyDictionary<bool, GridLength> PLookSplitterWidth = new Dictionary<bool, GridLength>
+    {
+        [true] = new GridLength(0),
+        [false] = new GridLength(6),
+    };
+
+    public static readonly IReadOnlyDictionary<bool, System.Windows.Media.Brush> PLookWhite =
+        new Dictionary<bool, System.Windows.Media.Brush>
+        {
+            [true] = System.Windows.Media.Brushes.White,
+            [false] = System.Windows.Media.Brushes.Transparent,
+        };
+
+    public static readonly IReadOnlyDictionary<WindowState, bool> PLookMinimized = new Dictionary<WindowState, bool>
+    {
+        [WindowState.Minimized] = true,
+        [WindowState.Normal] = false,
+        [WindowState.Maximized] = false,
+    };
+
+    public static readonly IReadOnlyDictionary<MouseButtonState, bool> PLookPressed =
+        new Dictionary<MouseButtonState, bool>
+        {
+        [MouseButtonState.Pressed] = true,
+        [MouseButtonState.Released] = false,
+    };
 }

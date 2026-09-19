@@ -174,11 +174,13 @@ internal static partial class TInterface
     internal static LSectionImportResult TSectionPaletteImport(
         string folder, string source, string name, out string target) =>
         LSectionPalette.LSectionPaletteImport(folder, source, name, out target);
-    internal static IReadOnlyList<string> TSectionHiddenLoad(string folder) => LSectionPalette.LSectionHiddenLoad(folder);
+    internal static IReadOnlyList<string> TSectionHiddenLoad(string folder) =>
+        LSectionPalette.LSectionHiddenLoad(folder);
     internal static bool TSectionHiddenSave(string folder, IReadOnlyList<string> hidden) =>
         LSectionPalette.LSectionHiddenSave(folder, hidden);
 
-    internal static Task<LMediaScanResult> TMediaPathScan(IReadOnlyList<string> paths, CancellationToken token = default) =>
+    internal static Task<LMediaScanResult> TMediaPathScan(
+        IReadOnlyList<string> paths, CancellationToken token = default) =>
         LMedia.LMediaPathScan(paths, token);
 
     internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);

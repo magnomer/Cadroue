@@ -121,7 +121,6 @@ public sealed partial class PSplitTab : PTabSurface
         pFlow.PFlowSectionShow(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
@@ -173,10 +172,9 @@ public sealed partial class PSplitTab : PTabSurface
     public override PFlow PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override bool PTabSectionVisible => true;
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         lPreferenceTabLayout.LSceneDetectors = PSplitDetectorRead();
         lPreferenceTabLayout.LSceneDetectPersistent = pInspector.PSensorPersistentCheck();
         return lPreferenceTabLayout;

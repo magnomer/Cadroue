@@ -91,7 +91,9 @@ public sealed partial class PEditTab
 
             LTraceLog.LTraceInfoRecord(
                 $"Edit media ready '{pEditName}': "
-                + $"display {(pViewer.PCropSourceRead() is { } pLogSize ? $"{pLogSize.Width:0}x{pLogSize.Height:0}" : "unknown")}, "
+                + $"display {(pViewer.PCropSourceRead() is { } pLogSize
+                    ? $"{pLogSize.Width:0}x{pLogSize.Height:0}"
+                    : "unknown")}, "
                 + $"persistent {(pEditPersistent is null ? "off" : "on")}, "
                 + $"carried {PEditPlanFormat(pEditPersistent)}, "
                 + $"sidecar {PEditPlanFormat(pEditSaved)}");

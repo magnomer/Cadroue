@@ -133,7 +133,8 @@ public sealed partial class PInspector
     public void PWhitebalanceToolSet(bool pNeutralArmed, LNeutralTarget pTarget) =>
         LWhitebalance.LWhitebalanceToolSet(pNeutralArmed, pTarget);
 
-    public void PToneNeutralApply(LNeutralSample pNeutralSample) => LWhitebalance.LWhitebalanceSampleSet(pNeutralSample);
+    public void PToneNeutralApply(LNeutralSample pNeutralSample) =>
+        LWhitebalance.LWhitebalanceSampleSet(pNeutralSample);
 
     private void PWhitebalanceToolUpdate()
     {
@@ -145,7 +146,8 @@ public sealed partial class PInspector
         bool pWhite = pArmed && pTarget == LNeutralTarget.LNeutralTargetWhite;
         pInspectorNeutralTool.IsChecked = pGrey;
         pInspectorWhiteTool.IsChecked = pWhite;
-        pInspectorNeutralIcon.Source = PIcon.PIconRead(PPickerIcon, pGrey ? pInspectorAccentBrush : pInspectorIconBrush);
+        pInspectorNeutralIcon.Source = PIcon.PIconRead(
+            PPickerIcon, pGrey ? pInspectorAccentBrush : pInspectorIconBrush);
         pInspectorWhiteIcon.Source = PIcon.PIconRead(PPickerIcon, pWhite ? pInspectorAccentBrush : pInspectorIconBrush);
         if (pArmed)
         {

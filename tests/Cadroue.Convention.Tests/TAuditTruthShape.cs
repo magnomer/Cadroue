@@ -93,7 +93,8 @@ internal static partial class TAuditTruthWalker
     {
         return TAuditRequestCheck(handler)
                || handler.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
-                   .Any(name => TAuditSemantic.TAuditSymbolRead(name) is { } symbol && TAuditRelayNames.Contains(symbol));
+                   .Any(name =>
+                       TAuditSemantic.TAuditSymbolRead(name) is { } symbol && TAuditRelayNames.Contains(symbol));
     }
 
     private static string? TAuditDeafRead(MethodDeclarationSyntax handler)

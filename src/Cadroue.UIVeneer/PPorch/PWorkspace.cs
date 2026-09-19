@@ -1,85 +1,107 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Media;
+using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 using Cadroue.UIVeneer.PCabin;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
 using Cadroue.UIVeneer.PBench;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIVeneer.PPorch;
 
-public sealed partial class PWorkspace
+public sealed class PWorkspace
 {
-    private readonly LHistory lWorkspaceHistory = new();
+    private static readonly IReadOnlyDictionary<string, Func<LPresetSelection, LSceneTabRecord?, PTabSurface>>
+        pWorkspaceSurfaces = new Dictionary<string, Func<LPresetSelection, LSceneTabRecord?, PTabSurface>>
+        {
+            ["Split"] = (lOwner, lLayout) => new PSplitTab(lOwner, lLayout),
+            ["Edit"] = (lOwner, lLayout) => new PEditTab(lOwner, lLayout),
+            ["Fix"] = (lOwner, lLayout) => new PFixTab(lOwner, lLayout),
+            ["Audio"] = (lOwner, lLayout) => new PAudioTab(lOwner, lLayout),
+            ["Convert"] = (lOwner, lLayout) => new PConvertTab(lOwner, lLayout),
+            ["Merge"] = (lOwner, lLayout) => new PMergeTab(lOwner, lLayout),
+            ["Funnel"] = (lOwner, lLayout) => new PFunnelTab(lLayout),
+            ["Worklist"] = (lOwner, lLayout) => new PWorklistTab(lLayout),
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, FrameworkElement>> pWorkspaceRoots =
+        new Dictionary<bool, Func<PWorkspace, FrameworkElement>>
+        {
+            [true] = PWorkspaceGridBuild,
+            [false] = pWorkspace => pWorkspace.PWorkspaceSurface,
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairs =
+        new Dictionary<bool, Action<PWorkspace>>
+        {
+            [true] = PWorkspacePairAttach,
+            [false] = pWorkspace => { },
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairCloses =
+        new Dictionary<bool, Action<PWorkspace>>
+        {
+            [true] = PWorkspacePairClose,
+            [false] = pWorkspace => { },
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspaceLists =
+        new Dictionary<bool, Action<PWorkspace>>
+        {
+            [true] = PWorkspaceListAttach,
+            [false] = pWorkspace => { },
+        };
 
     public PWorkspace(
-        string pTabLayoutKey,
+        LStripTab lStripTab,
         LPreset? lExportSpecificState = null,
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        PWorkspaceExportState = lExportSpecificState ?? LPreset.LPresetInitialCreate(pTabLayoutKey);
-        PWorkspacePresetOwner = new LPresetSelection(
-            PWorkspaceExportState.LPresetRecordCreate(), PWorkspaceExportState.LPresetName);
-        PWorkspacePresetOwner.LPresetSelectionChange += PWorkspacePresetHandle;
-        PWorkspacePresetHandle();
-        PWorkspaceSurface = PWorkspaceSurfaceCreate(
-            pTabLayoutKey, PWorkspacePresetOwner, lPreferenceTabLayout);
-        bool pHasSourceInfo = pTabLayoutKey is not ("Merge" or "Worklist");
-        bool pAudioOnlyAllowed = pTabLayoutKey == "Audio";
-        PWorkspaceSource = pHasSourceInfo ? new PSource(pAudioOnlyAllowed) : null;
-        PWorkspaceInfo = pHasSourceInfo ? new PInfo() : null;
+        PWorkspaceTab = lStripTab;
+        LWorkspace = new LWorkspace(lStripTab.LStripTabKey, lExportSpecificState);
+        lStripTab.LStripWorkspaceAttach(LWorkspace);
+        PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.LStripTabKey](
+            LWorkspace.LWorkspacePresetOwner, lPreferenceTabLayout);
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
         PWorkspaceList = PWorkspaceSurface.PTabList;
-        PWorkspaceViewer?.PViewerAudioSet(pAudioOnlyAllowed);
-        PWorkspaceSource?.PSourceAttach(PWorkspaceViewer);
-        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null && PWorkspaceSurface.PTabSectionVisible)
-        {
-            PWorkspaceViewer.LViewer.LViewerMediaChange += PWorkspaceMediaHandle;
-        }
-
-        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null)
-        {
-            PWorkspaceFlow.PFlowPlayingSource = PWorkspaceViewer.PViewerPlayingRead;
-            PWorkspaceViewer.LViewer.LViewerMediaChange += PWorkspaceFlowHandle;
-            PWorkspaceViewer.PViewerClockTick += PWorkspaceFlow.PFlowCursorUpdate;
-            PWorkspaceFlow.PFlowCursorChange += PWorkspaceViewer.PViewerSeek;
-            PWorkspaceFlow.PFlowDragChange += PWorkspaceViewer.PViewerDragSet;
-            PWorkspaceFlow.PFlowPlay += PWorkspaceViewer.PViewerPlay;
-            PWorkspaceFlow.PFlowPause += PWorkspaceViewer.PViewerPause;
-            PWorkspaceFlow.PFlowVolumeAdjust += PWorkspaceViewer.PViewerVolumeAdjust;
-        }
-
+        PWorkspaceViewer?.PViewerAudioSet(LWorkspace.LWorkspaceAudioOnly);
+        LWorkspace.LWorkspaceAttach(
+            PWorkspaceList?.PListDocketRead(),
+            PWorkspaceFlow?.PFlowSegment,
+            PWorkspaceFlow?.LFlow,
+            PWorkspaceViewer?.LViewer,
+            PWorkspaceSurface.PTabStation,
+            PWorkspaceSurface.PTabLayoutRead);
+        PWorkspaceSurface.PTabAction?.PActionRelayAttach(lStripTab);
+        LWorkspace.LWorkspaceFlowAttach += PWorkspaceFlowAttach;
+        LWorkspace.LWorkspaceFlowClear += PWorkspaceFlowClear;
+        LWorkspace.LWorkspaceMediaClose += PWorkspaceMediaClose;
+        LWorkspace.LWorkspaceLosslesscutFind += PWorkspaceLosslesscutDefer;
+        LWorkspace.LWorkspaceRelayDefer += PWorkspaceRelayDefer;
+        LWorkspace.LWorkspaceRangeApply += PWorkspaceRangeApply;
+        LWorkspace.LWorkspaceVolumeApply += PWorkspaceVolumeApply;
+        LWorkspace.LWorkspaceSeekApply += PWorkspaceSeekApply;
+        LWorkspace.LWorkspacePathsAdd += PWorkspacePathsAdd;
+        LWorkspace.LWorkspaceSourceSelect += PWorkspaceSourceSelect;
+        LWorkspace.LWorkspaceSourceOpen += PWorkspaceSourceOpen;
+        pWorkspacePairs[LWorkspace.LWorkspaceFlowPresent](this);
+        pWorkspaceLists[LWorkspace.LWorkspaceListPresent](this);
         PWorkspaceSurface.PTabWidthChange += PWorkspaceWidthRaise;
-        if (PWorkspaceList is not null)
-        {
-            PWorkspaceList.PListMinimizeChange += PWorkspaceMinimizeHandle;
-        }
-        PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
-        PWorkspaceRoot = PWorkspaceRootCreate();
-
-        lWorkspaceHistory.LHistoryReset(PWorkspaceStateRead());
-        if (PWorkspaceFlow is not null)
-        {
-            PWorkspaceFlow.PFlowSectionChange += PWorkspaceSectionHandle;
-            PWorkspaceFlow.PFlowMediaChange += PWorkspaceHistoryReset;
-        }
-
-        PWorkspaceExportState.LPresetChange += PWorkspaceExportHandle;
+        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.LWorkspaceSourcePresent](this);
     }
+
+    public LStripTab PWorkspaceTab { get; }
+
+    public LWorkspace LWorkspace { get; }
 
     public FrameworkElement PWorkspaceRoot { get; }
 
     public PTabSurface PWorkspaceSurface { get; }
-
-    internal LPreset PWorkspaceExportState { get; }
-
-    internal LPresetSelection PWorkspacePresetOwner { get; }
 
     public PFlow? PWorkspaceFlow { get; }
 
@@ -95,12 +117,10 @@ public sealed partial class PWorkspace
 
     private void PWorkspaceWidthRaise() => PWorkspaceWidthChange?.Invoke();
 
-    private void PWorkspaceMinimizeHandle(bool pMinimized) => PWorkspaceWidthRaise();
-
     public void PWorkspaceCommandApply(double pFlowHeight)
     {
         PWorkspaceFlow?.PFlowCommandSet(true);
-        PWorkspaceFlow?.PFlowSectionShow(PWorkspaceSurface.PTabSectionVisible);
+        PWorkspaceFlow?.PFlowSectionShow(LWorkspace.LWorkspaceSectionVisible);
         PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
         PWorkspaceFlow?.PFlowOrderApply();
         PWorkspaceViewer?.PViewerCommandSet(true);
@@ -121,99 +141,67 @@ public sealed partial class PWorkspace
         PWorkspaceFlow?.PFlowPaletteApply();
     }
 
-    private void PWorkspaceFlowHandle(LCargo pMediaStatus)
-    {
-        if (pMediaStatus.LCargoMediaInfo is LMediaInfo pMediaInfo)
-        {
-            PWorkspaceFlow?.PFlowAttach(pMediaInfo, pMediaStatus.LCargoSourcePath, TimeSpan.Zero);
-            return;
-        }
-
-        PWorkspaceFlow?.PFlowClear();
-    }
-
-    public bool PWorkspaceMediaClear(IReadOnlySet<Guid> pWorkspaceActiveBatches)
-    {
-        IReadOnlySet<string> pWorkspaceProtectedPaths = PWorkspaceList?.PListProtectedRead(pWorkspaceActiveBatches)
-            ?? (IReadOnlySet<string>)new HashSet<string>();
-
-        bool pWorkspaceViewerProtected =
-            PWorkspaceViewer?.PViewerProtectedCheck(pWorkspaceProtectedPaths) == true;
-
-        bool pWorkspaceCleared = false;
-        if (!pWorkspaceViewerProtected)
-        {
-            pWorkspaceCleared |= PWorkspaceViewer?.PViewerMediaClose(true) == true;
-            pWorkspaceCleared |= PWorkspaceFlow?.PFlowClear() == true;
-        }
-        else if (PWorkspaceViewer!.PViewerPendingPath is { } pWorkspacePending
-            && !pWorkspaceProtectedPaths.Contains(pWorkspacePending))
-        {
-            pWorkspaceCleared |= PWorkspaceViewer.PViewerLoadCancel();
-        }
-
-        if (PWorkspaceList is { } pList && pList.PListPathsRead().Count > 0)
-        {
-            pWorkspaceCleared |= pList.PListStaleClear(pWorkspaceActiveBatches) > 0;
-        }
-
-        return pWorkspaceCleared;
-    }
-
-    public PSource? PWorkspaceSource { get; }
-
-    public PInfo? PWorkspaceInfo { get; }
-
     public void PWorkspaceClose()
     {
         PWorkspaceStepRun("subscriptions", PWorkspaceDetach);
-        PWorkspaceStepRun("preset owner", PWorkspacePresetOwner.LPresetSelectionClose);
+        PWorkspaceStepRun("deportment", LWorkspace.LWorkspaceClose);
         PWorkspaceStepRun("surface", PWorkspaceSurface.PTabClose);
-        if (PWorkspaceFlow is { } pFlow)
-        {
-            PWorkspaceStepRun("flow", pFlow.PFlowClose);
-        }
-
-        if (PWorkspaceViewer is { } pViewer)
-        {
-            PWorkspaceStepRun("viewer", pViewer.PViewerClose);
-        }
+        pWorkspacePairCloses[LWorkspace.LWorkspaceFlowPresent](this);
     }
 
     private void PWorkspaceDetach()
     {
-        if (PWorkspaceFlow is not null)
-        {
-            PWorkspaceFlow.PFlowSectionChange -= PWorkspaceSectionHandle;
-            PWorkspaceFlow.PFlowMediaChange -= PWorkspaceHistoryReset;
-        }
-
-        if (PWorkspaceViewer is not null)
-        {
-            PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceMediaHandle;
-            PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceFlowHandle;
-        }
-
-        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null)
-        {
-            PWorkspaceViewer.PViewerClockTick -= PWorkspaceFlow.PFlowCursorUpdate;
-            PWorkspaceFlow.PFlowCursorChange -= PWorkspaceViewer.PViewerSeek;
-            PWorkspaceFlow.PFlowDragChange -= PWorkspaceViewer.PViewerDragSet;
-            PWorkspaceFlow.PFlowPlay -= PWorkspaceViewer.PViewerPlay;
-            PWorkspaceFlow.PFlowPause -= PWorkspaceViewer.PViewerPause;
-            PWorkspaceFlow.PFlowVolumeAdjust -= PWorkspaceViewer.PViewerVolumeAdjust;
-            PWorkspaceFlow.PFlowPlayingSource = null;
-        }
-
+        LWorkspace.LWorkspaceFlowAttach -= PWorkspaceFlowAttach;
+        LWorkspace.LWorkspaceFlowClear -= PWorkspaceFlowClear;
+        LWorkspace.LWorkspaceMediaClose -= PWorkspaceMediaClose;
+        LWorkspace.LWorkspaceLosslesscutFind -= PWorkspaceLosslesscutDefer;
+        LWorkspace.LWorkspaceRelayDefer -= PWorkspaceRelayDefer;
+        LWorkspace.LWorkspaceRangeApply -= PWorkspaceRangeApply;
+        LWorkspace.LWorkspaceVolumeApply -= PWorkspaceVolumeApply;
+        LWorkspace.LWorkspaceSeekApply -= PWorkspaceSeekApply;
+        LWorkspace.LWorkspacePathsAdd -= PWorkspacePathsAdd;
+        LWorkspace.LWorkspaceSourceSelect -= PWorkspaceSourceSelect;
+        LWorkspace.LWorkspaceSourceOpen -= PWorkspaceSourceOpen;
         PWorkspaceSurface.PTabWidthChange -= PWorkspaceWidthRaise;
-        if (PWorkspaceList is not null)
-        {
-            PWorkspaceList.PListMinimizeChange -= PWorkspaceMinimizeHandle;
-        }
+    }
 
-        PWorkspaceRelayDetach();
-        PWorkspaceExportState.LPresetChange -= PWorkspaceExportHandle;
-        PWorkspacePresetOwner.LPresetSelectionChange -= PWorkspacePresetHandle;
+    private static void PWorkspacePairAttach(PWorkspace pWorkspace)
+    {
+        PFlow pFlow = pWorkspace.PWorkspaceFlow!;
+        PViewer pViewer = pWorkspace.PWorkspaceViewer!;
+        pFlow.PFlowPlayingSource = pViewer.PViewerPlayingRead;
+        pViewer.PViewerClockTick += pFlow.PFlowCursorUpdate;
+        pFlow.PFlowCursorChange += pViewer.PViewerSeek;
+        pFlow.PFlowDragChange += pViewer.PViewerDragSet;
+        pFlow.PFlowPlay += pViewer.PViewerPlay;
+        pFlow.PFlowPause += pViewer.PViewerPause;
+        pFlow.PFlowVolumeAdjust += pViewer.PViewerVolumeAdjust;
+        pFlow.PFlowSectionChange += pWorkspace.LWorkspace.LWorkspaceSectionHandle;
+        pFlow.PFlowMediaChange += pWorkspace.LWorkspace.LWorkspaceHistoryReset;
+    }
+
+    private static void PWorkspacePairClose(PWorkspace pWorkspace)
+    {
+        PFlow pFlow = pWorkspace.PWorkspaceFlow!;
+        PViewer pViewer = pWorkspace.PWorkspaceViewer!;
+        pFlow.PFlowSectionChange -= pWorkspace.LWorkspace.LWorkspaceSectionHandle;
+        pFlow.PFlowMediaChange -= pWorkspace.LWorkspace.LWorkspaceHistoryReset;
+        pViewer.PViewerClockTick -= pFlow.PFlowCursorUpdate;
+        pFlow.PFlowCursorChange -= pViewer.PViewerSeek;
+        pFlow.PFlowDragChange -= pViewer.PViewerDragSet;
+        pFlow.PFlowPlay -= pViewer.PViewerPlay;
+        pFlow.PFlowPause -= pViewer.PViewerPause;
+        pFlow.PFlowVolumeAdjust -= pViewer.PViewerVolumeAdjust;
+        pFlow.PFlowPlayingSource = null;
+        PWorkspaceStepRun("flow", pFlow.PFlowClose);
+        PWorkspaceStepRun("viewer", pViewer.PViewerClose);
+    }
+
+    private static void PWorkspaceListAttach(PWorkspace pWorkspace)
+    {
+        PList pList = pWorkspace.PWorkspaceList!;
+        pList.PListPathChange += pWorkspace.LWorkspace.LWorkspacePathHandle;
+        pList.PListClearChange += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
     }
 
     private static void PWorkspaceStepRun(string pStepName, Action pStep)
@@ -230,89 +218,50 @@ public sealed partial class PWorkspace
         }
     }
 
-    private LHistoryEntry PWorkspaceStateRead() => new(
-        PWorkspaceFlow?.PFlowSectionsRead() ?? Array.Empty<LPiece>(),
-        PWorkspaceFlow?.PFlowSelectionRead(),
-        PWorkspaceExportState.LPresetRecordCreate());
+    private void PWorkspaceFlowAttach(LMediaInfo lMediaInfo, string lSourcePath) =>
+        PWorkspaceFlow?.PFlowAttach(lMediaInfo, lSourcePath, TimeSpan.Zero);
 
+    private void PWorkspaceFlowClear() => PWorkspaceFlow?.PFlowClear();
 
-    private void PWorkspaceMediaHandle(LCargo pMediaStatus)
+    private void PWorkspaceMediaClose()
     {
-        if (PWorkspaceFlow is null)
-        {
-            return;
-        }
-
-        if (pMediaStatus.LCargoMediaInfo is null || string.IsNullOrWhiteSpace(pMediaStatus.LCargoSourcePath))
-        {
-            PWorkspaceFlow.LFlow.LFlowLosslesscutSet(string.Empty);
-            return;
-        }
-
-        if (!PWorkspaceFlow.LFlow.LFlowLosslesscutSet(System.IO.Path.GetFullPath(pMediaStatus.LCargoSourcePath)))
-        {
-            return;
-        }
-
-        PFlow pLosslesscutFlow = PWorkspaceFlow;
-        System.Windows.Application.Current?.Dispatcher.BeginInvoke(
-            System.Windows.Threading.DispatcherPriority.Background,
-            new Action(pLosslesscutFlow.PFlowLosslesscutFind));
+        PWorkspaceViewer?.PViewerMediaClose(true);
+        PWorkspaceFlow?.PFlowClear();
     }
 
-    private void PWorkspaceSectionHandle(IReadOnlyList<LPiece> pSections, int? pSectionSelect)
-        => PWorkspaceHistoryAdd();
+    private void PWorkspaceLosslesscutDefer() =>
+        PWorkspaceSurface.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PWorkspaceLosslesscutFind));
 
-    private void PWorkspaceExportHandle() => PWorkspaceHistoryAdd();
+    private void PWorkspaceLosslesscutFind() => PWorkspaceFlow?.PFlowLosslesscutFind();
 
-    private void PWorkspacePresetHandle()
-        => PWorkspaceExportState.LPresetCopy(LPreset.LPresetStateCreate(PWorkspacePresetOwner.LPresetSelectionValue));
+    private void PWorkspaceRelayDefer(LRelay lRelay, TimeSpan lDuration) =>
+        PWorkspaceSurface.Dispatcher.BeginInvoke(
+            DispatcherPriority.Background,
+            new Action(() => LWorkspace.LWorkspaceRelayRestore(lRelay, lDuration)));
 
-    private void PWorkspaceHistoryAdd()
-        => lWorkspaceHistory.LHistoryAdd(PWorkspaceStateRead());
+    private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
+        PWorkspaceFlow?.PFlowRangeSet(lOrigin, lLimit);
 
-    private void PWorkspaceHistoryReset()
-        => lWorkspaceHistory.LHistoryReset(PWorkspaceStateRead());
+    private void PWorkspaceVolumeApply(double lVolume) => PWorkspaceViewer?.PViewerVolumeSet(lVolume);
 
-    private bool PWorkspaceHistoryCheck()
-        => PWorkspaceFlow is null || PWorkspaceFlow.LFlow.LFlowSectionEditable;
+    private void PWorkspaceSeekApply(TimeSpan lPosition) => PWorkspaceViewer?.PViewerSeek(lPosition);
 
-    public bool PWorkspaceUndo()
-        => PWorkspaceHistoryCheck() && PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryUndo());
-
-    public bool PWorkspaceRedo()
-        => PWorkspaceHistoryCheck() && PWorkspaceHistoryApply(lWorkspaceHistory.LHistoryRedo());
-
-    private bool PWorkspaceHistoryApply(LHistoryEntry? lHistoryEntry)
+    private async void PWorkspacePathsAdd(IReadOnlyList<string> lPaths)
     {
-        if (lHistoryEntry is null)
-        {
-            return false;
-        }
-
-        lWorkspaceHistory.LHistoryApplying = true;
-        try
-        {
-            PWorkspaceFlow?.PFlowSectionsSet(lHistoryEntry.LHistorySections, lHistoryEntry.LHistorySectionIndex);
-            PWorkspacePresetOwner.LPresetSelectionValue = lHistoryEntry.LHistoryExport;
-        }
-        finally
-        {
-            lWorkspaceHistory.LHistoryApplying = false;
-        }
-
-        return true;
+        await PWorkspaceList!.PListPathsAdd(lPaths);
+        LWorkspace.LWorkspaceSourceRun();
     }
 
-    public LSceneTabRecord PWorkspaceLayoutRead() => PWorkspaceSurface.PTabLayoutRead();
+    private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.PListSelect(lPath);
 
-    private FrameworkElement PWorkspaceRootCreate()
+    private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.PViewerSourceOpen(lPath);
+
+    private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
     {
-        if (PWorkspaceSource is null || PWorkspaceInfo is null)
-        {
-            return PWorkspaceSurface;
-        }
-
+        var pSource = new PSource(pWorkspace.LWorkspace.LWorkspaceAudioOnly);
+        var pInfo = new PInfo();
+        pSource.PSourceAttach(pWorkspace.PWorkspaceViewer);
+        pInfo.PInfoAttach(pWorkspace.PWorkspaceViewer);
         var pRoot = new Grid
         {
             ClipToBounds = true,
@@ -322,13 +271,13 @@ public sealed partial class PWorkspace
         pRoot.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         pRoot.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
-        Grid.SetRow(PWorkspaceSource, 0);
-        UIElement pInfoRow = PWorkspaceInfoBuild(PWorkspaceInfo);
+        Grid.SetRow(pSource, 0);
+        UIElement pInfoRow = pWorkspace.PWorkspaceInfoBuild(pInfo);
         Grid.SetRow(pInfoRow, 1);
-        Grid.SetRow(PWorkspaceSurface, 2);
-        pRoot.Children.Add(PWorkspaceSource);
+        Grid.SetRow(pWorkspace.PWorkspaceSurface, 2);
+        pRoot.Children.Add(pSource);
         pRoot.Children.Add(pInfoRow);
-        pRoot.Children.Add(PWorkspaceSurface);
+        pRoot.Children.Add(pWorkspace.PWorkspaceSurface);
         return pRoot;
     }
 
@@ -360,22 +309,4 @@ public sealed partial class PWorkspace
         Stretch = System.Windows.Media.Stretch.Uniform,
         Source = PIcon.PIconRead("/PAsset/PPanel/PExportToggle.svg")
     };
-
-    private static PTabSurface PWorkspaceSurfaceCreate(
-        string pTabLayoutKey,
-        LPresetSelection lPresetOwner,
-        LSceneTabRecord? lPreferenceTabLayout)
-    {
-        return pTabLayoutKey switch
-        {
-            "Edit" => new PEditTab(lPresetOwner, lPreferenceTabLayout),
-            "Fix" => new PFixTab(lPresetOwner, lPreferenceTabLayout),
-            "Audio" => new PAudioTab(lPresetOwner, lPreferenceTabLayout),
-            "Convert" => new PConvertTab(lPresetOwner, lPreferenceTabLayout),
-            "Merge" => new PMergeTab(lPresetOwner, lPreferenceTabLayout),
-            "Funnel" => new PFunnelTab(lPreferenceTabLayout),
-            "Worklist" => new PWorklistTab(lPreferenceTabLayout),
-            _ => new PSplitTab(lPresetOwner, lPreferenceTabLayout)
-        };
-    }
 }

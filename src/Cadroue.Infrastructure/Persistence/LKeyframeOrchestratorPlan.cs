@@ -175,7 +175,8 @@ public sealed partial class LKeyframeOrchestrator
             LTrace.LTraceRecord(
                 LTraceKind.LTraceWork,
                 lKeyframePromoted
-                    ? $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss}); every frame is a keyframe"
+                    ? $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss}); "
+                        + "every frame is a keyframe"
                     : $"Keyframe span {spanIndex} scanned ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
                 lKeyframePromoted
                     ? $"{entries.Count} packet(s) all flagged keyframe by ffprobe; scan stopped for this source"
@@ -193,7 +194,8 @@ public sealed partial class LKeyframeOrchestrator
         }
         catch (Exception exception)
         {
-            if (!LKeyframeFailureRecord(spanIndex, cancellationToken, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
+            if (!LKeyframeFailureRecord(
+                    spanIndex, cancellationToken, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
             {
                 return;
             }

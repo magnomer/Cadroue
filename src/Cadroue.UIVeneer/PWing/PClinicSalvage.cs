@@ -29,8 +29,10 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvageActive = PClinic.PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply"),
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply.Tooltip"));
-        pClinicSalvageActive.Checked += (_, _) => PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = true });
-        pClinicSalvageActive.Unchecked += (_, _) => PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = false });
+        pClinicSalvageActive.Checked += (_, _) =>
+            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = true });
+        pClinicSalvageActive.Unchecked += (_, _) =>
+            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = false });
 
         var pModeLabel = new TextBlock
         {

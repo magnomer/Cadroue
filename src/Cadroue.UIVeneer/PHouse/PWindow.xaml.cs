@@ -24,10 +24,10 @@ public partial class PWindow : Window
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         FontSize = PWindowFontSize;
         pStrip = new PStrip();
-        pRail = new PRail();
-        pRail.PRailAttach(pStrip);
+        pRail = new PRail(pStrip);
         lWindow = new LWindow(pStrip.LStrip, PWindowDispatch);
         PWindowNoticesAttach();
+        pDeck.PDeckAttach(pStrip);
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         lWindow.LWindowTabsStart();
@@ -35,9 +35,8 @@ public partial class PWindow : Window
         pToolbar.PToolbarOptionsApply += lWindow.LWindowOptionsHandle;
         lWindow.LWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
-        pDeck.PDeckTabsetSet(pStrip);
-        pStrip.PStripSelectChange += PWindowTabHandle;
-        PWindowTabHandle(pStrip.PStripSelected);
+        pStrip.LStrip.LStripSelectChange += PWindowTabHandle;
+        PWindowTabHandle(pStrip.LStrip.LStripSelected);
         lWindow.LWindowRelayStart(
             SystemParameters.VirtualScreenLeft,
             SystemParameters.VirtualScreenTop,
@@ -50,6 +49,11 @@ public partial class PWindow : Window
     }
 
     public LWindow LWindow => lWindow;
+
+    public PStrip PStrip => pStrip;
+
+    public static PStrip? PWindowStripRead() =>
+        System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.PStrip;
 
     private void PWindowNoticesAttach()
     {
@@ -76,9 +80,10 @@ public partial class PWindow : Window
             pToolbar.PToolbarShortcutShow,
             PWindowUndo,
             PWindowRedo,
-            pStrip.PStripContentClear,
+            pStrip.LStrip.LStripContentClear,
             PWindowMediaClear,
             PWindowFlowDispatch);
+        LAskNotice.LAskRaise += PWindowAskHandle;
         lSash.LSashCaptureStart += PResizeCaptureStart;
         lSash.LSashCaptureStop += PResizeCaptureStop;
         lSash.LSashActiveChange += PResizeRenderApply;
@@ -87,24 +92,28 @@ public partial class PWindow : Window
 
     private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);
 
-    private void PWindowTabHandle(PTabRecord? pTabRecord) =>
-        lWindow.LWindowTabSet(pTabRecord?.LStripTab, pTabRecord?.PTabWorkspace.PWorkspaceViewer?.LViewer);
+    private void PWindowAskHandle(LAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);
+
+    private void PWindowTabHandle(LStripTab? lStripTab) =>
+        lWindow.LWindowTabSet(lStripTab, lStripTab?.LStripTabWorkspace?.LWorkspaceViewer);
 
     private void PWindowAddHandle(LWindowTab lTab) =>
-        pStrip.PStripNameSet(
+        pStrip.LStrip.LStripNameSet(
             pStrip.PStripAdd(lTab.LWindowTabKey, lTab.LWindowTabPreset, lTab.LWindowTabLayout),
             lTab.LWindowTabName);
 
-    private static void PWindowTargetHandle(Guid lSource, Guid lTarget) =>
-        PStrip.PStripTabFind(lSource)?.PTabWorkspace.PWorkspaceSurface.PTabAction?.PActionRelayApply(lTarget);
+    private void PWindowTargetHandle(Guid lSource, Guid lTarget) =>
+        pStrip.PStripWorkspaceRead(pStrip.LStrip.LStripTabFind(lSource))?
+            .PWorkspaceSurface.PTabAction?.PActionRelayApply(lTarget);
 
-    private void PWindowFunnelUpdate() => pStrip.PStripRecords.ToList().ForEach(PWindowFunnelResolve);
+    private void PWindowFunnelUpdate() => pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowFunnelResolve);
 
-    private void PWindowFunnelResolve(PTabRecord pTabRecord) =>
-        (pTabRecord.PTabWorkspace.PWorkspaceSurface as PFunnelTab)?.PFunnelTargetsResolve(pStrip.PStripRecords);
+    private void PWindowFunnelResolve(LStripTab lStripTab) =>
+        (pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface as PFunnelTab)?
+            .PFunnelTargetsResolve(pStrip.LStrip.LStripTabs);
 
     private void PWindowRelayHandle(LRelay lRelay) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceRelayApply(lRelay);
+        pStrip.PStripSelected?.LWorkspace.LWorkspaceRelayApply(lRelay);
 
     private void PWindowPlace(double pLeft, double pTop)
     {
@@ -123,11 +132,11 @@ public partial class PWindow : Window
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => lWindow.LWindowMediaRun(pPath)));
 
     private void PWindowMediaOpen(string pPath) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceViewer?.PViewerSourceOpen(pPath);
+        pStrip.PStripSelected?.PWorkspaceViewer?.PViewerSourceOpen(pPath);
 
     private void PWindowTabAttach(LStripTab lTab, double pFlowHeight)
     {
-        PWorkspace? pWorkspace = PStrip.PStripTabFind(lTab.LStripTabId)?.PTabWorkspace;
+        PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
         pWorkspace?.PWorkspaceCommandApply(pFlowHeight);
         pWorkspace?.PWorkspaceWidthAttach(PWindowWidthApply);
         PWindowWidthApply();
@@ -135,7 +144,7 @@ public partial class PWindow : Window
 
     private void PWindowTabDetach(LStripTab lTab)
     {
-        PWorkspace? pWorkspace = PStrip.PStripTabFind(lTab.LStripTabId)?.PTabWorkspace;
+        PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
         pWorkspace?.PWorkspaceWidthDetach(PWindowWidthApply);
         pWorkspace?.PWorkspaceCommandReset();
     }
@@ -166,46 +175,46 @@ public partial class PWindow : Window
     }
 
     private void PWindowFlowApply(double pFlowHeight) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceFlowApply(pFlowHeight);
+        pStrip.PStripSelected?.PWorkspaceFlowApply(pFlowHeight);
 
     private void PWindowVolumeSet(double pVolume) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceViewer?.PViewerVolumeSet(pVolume);
+        pStrip.PStripSelected?.PWorkspaceViewer?.PViewerVolumeSet(pVolume);
 
     private void PWindowWidthApply()
     {
         (MinWidth, Width) = lWindow.LWindowWidthResolve(
-            pStrip.PStripSelected?.PTabWorkspace.PWorkspaceSurface.PTabWidthRead(),
+            pStrip.PStripSelected?.PWorkspaceSurface.PTabWidthRead(),
             pTabRailColumn.Width.Value,
             Width);
     }
 
     private void PWindowListAdd(IReadOnlyList<string> pPaths) =>
-        _ = pStrip.PStripSelected?.PTabWorkspace.PWorkspaceList?.PListPathsAdd(pPaths);
+        _ = pStrip.PStripSelected?.PWorkspaceList?.PListPathsAdd(pPaths);
 
     private void PWindowViewerOpen(string pPath) => PWindowMediaOpen(pPath);
 
-    private void PWindowPlay() => pStrip.PStripSelected?.PTabWorkspace.PWorkspaceViewer?.PViewerPlay();
+    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.PViewerPlay();
 
-    private void PWindowPause() => pStrip.PStripSelected?.PTabWorkspace.PWorkspaceViewer?.PViewerPause();
+    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.PViewerPause();
 
-    private bool? PWindowUndo() => pStrip.PStripSelected?.PTabWorkspace.PWorkspaceUndo();
+    private bool? PWindowUndo() => pStrip.PStripSelected?.LWorkspace.LWorkspaceUndo();
 
-    private bool? PWindowRedo() => pStrip.PStripSelected?.PTabWorkspace.PWorkspaceRedo();
+    private bool? PWindowRedo() => pStrip.PStripSelected?.LWorkspace.LWorkspaceRedo();
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceMediaClear(lCohorts);
+        pStrip.PStripSelected?.LWorkspace.LWorkspaceMediaClear(lCohorts);
 
     private bool? PWindowFlowDispatch(string pCode) =>
-        pStrip.PStripSelected?.PTabWorkspace.PWorkspaceFlow?.PFlowShortcutDispatch(pCode);
+        pStrip.PStripSelected?.PWorkspaceFlow?.PFlowShortcutDispatch(pCode);
 
     public LSceneRecord PWindowSceneRead(string lSceneName) => lWindow.LWindowSceneRead(lSceneName);
 
     public bool PWindowSceneApply(LSceneRecord lScene) =>
-        lWindow.LWindowSceneApply(lScene, pStrip.PStripCloseConfirm(this), pStrip.PStripAllClose);
+        lWindow.LWindowSceneApply(lScene, pStrip.LStrip.LStripCloseConfirm(), pStrip.LStrip.LStripAllClose);
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {
-        eventArgs.Cancel = !pStrip.PStripCloseConfirm(this);
+        eventArgs.Cancel = !pStrip.LStrip.LStripCloseConfirm();
     }
 
     private void PWindowPositionRestore(LFrameState lFrame)
@@ -225,16 +234,17 @@ public partial class PWindow : Window
             new LSashBounds(Left, Top, Width, Height),
             new LSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
         lWindow.LWindowClose();
-        pStrip.PStripSelectChange -= PWindowTabHandle;
+        LAskNotice.LAskRaise -= PWindowAskHandle;
+        pStrip.LStrip.LStripSelectChange -= PWindowTabHandle;
         pToolbar.PToolbarOptionsApply -= lWindow.LWindowOptionsHandle;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();
         lWindow.LWindowTabSet(null, null);
-        pStrip.PStripRecords.ToList().ForEach(PWindowWorkspaceClose);
+        pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowWorkspaceClose);
         Closing -= PWindowExitHandle;
         Closed -= PWindowCloseHandle;
     }
 
-    private static void PWindowWorkspaceClose(PTabRecord pTabRecord) => pTabRecord.PTabWorkspace.PWorkspaceClose();
+    private void PWindowWorkspaceClose(LStripTab lStripTab) => pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
 }

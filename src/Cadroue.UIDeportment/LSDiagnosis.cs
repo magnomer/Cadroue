@@ -108,7 +108,9 @@ public sealed class LSDiagnosis
 
             bool lVideoAny = lsDiagnosisVideoItems.Any(lItem => LSDiagnosisFiltersCheck(lItem.LSDiagnosisFilters));
             bool lAudioAny = lsDiagnosisAudioItems.Any(lItem => LSDiagnosisFiltersCheck(lItem.LSDiagnosisFilters));
-            return lVideoAny && lAudioAny ? LSDiagnosisMood.LSDiagnosisMoodWarning : LSDiagnosisMood.LSDiagnosisMoodMissing;
+            return lVideoAny && lAudioAny
+                ? LSDiagnosisMood.LSDiagnosisMoodWarning
+                : LSDiagnosisMood.LSDiagnosisMoodMissing;
         }
     }
 

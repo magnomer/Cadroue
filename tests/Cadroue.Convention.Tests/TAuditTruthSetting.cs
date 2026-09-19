@@ -115,11 +115,11 @@ internal static class TAuditTruthSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditTruthCeiling = new Dictionary<string, int>
     {
-        ["Argument"] = 543,
-        ["Guard"] = 293,
+        ["Argument"] = 532,
+        ["Guard"] = 281,
         ["Fork"] = 9,
-        ["Mirror"] = 28,
-        ["Mutation"] = 126,
-        ["Shape"] = 95,
+        ["Mirror"] = 26,
+        ["Mutation"] = 112,
+        ["Shape"] = 85,
     };
 }

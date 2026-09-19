@@ -220,7 +220,8 @@ public sealed partial class PInspector
 
         LWorkCrop pCropCanonical = PInspectorCropRead();
         double pWidth = LInspector.LInspectorSourceWidth - pCropCanonical.LWorkCropLeft - pCropCanonical.LWorkCropRight;
-        double pHeight = LInspector.LInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
+        double pHeight =
+            LInspector.LInspectorSourceHeight - pCropCanonical.LWorkCropTop - pCropCanonical.LWorkCropBottom;
         pInspectorResolution.Text = pWidth > 0 && pHeight > 0
             ? $"{Math.Round(pWidth).ToString(CultureInfo.InvariantCulture)} × "
                 + $"{Math.Round(pHeight).ToString(CultureInfo.InvariantCulture)}"

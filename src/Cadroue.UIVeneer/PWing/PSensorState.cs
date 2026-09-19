@@ -21,7 +21,10 @@ public sealed partial class PInspector
 
     public LDetectorStep PSensorStepRead(LDetectorKind pDetectorKind) =>
         pDetectorKind == LDetectorKind.LDetectorKindBlank
-            ? LDetector.LDetectorCreate(pDetectorKind) with { LDetectorStepEnabled = LBlank.LBlankStep.LDetectorBlankEnabled }
+            ? LDetector.LDetectorCreate(pDetectorKind) with
+            {
+                LDetectorStepEnabled = LBlank.LBlankStep.LDetectorBlankEnabled
+            }
             : LSensor.LSensorStepRead(pDetectorKind);
 
     public void PSensorApply(LDetectorStep pDetectorStep) => LSensor.LSensorStepSet(pDetectorStep);

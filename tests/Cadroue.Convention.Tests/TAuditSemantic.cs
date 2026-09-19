@@ -68,7 +68,10 @@ internal static class TAuditSemantic
         foreach (string root in TAuditRootRead(TAuditTruthSetting.TAuditShellInclude))
         {
             string folder = Path.Combine(
-                repoRoot, root.Replace('/', Path.DirectorySeparatorChar), "obj", TAuditTruthSetting.TAuditConfiguration);
+                repoRoot,
+                root.Replace('/', Path.DirectorySeparatorChar),
+                "obj",
+                TAuditTruthSetting.TAuditConfiguration);
             if (!Directory.Exists(folder))
             {
                 continue;
@@ -99,7 +102,8 @@ internal static class TAuditSemantic
         {
             string folder = Path.Combine(shared, pack, Path.GetFileName(runtime));
             Assert.True(Directory.Exists(folder), TAuditConvention.TAuditReportFormat(
-                "AUDITSEMANTIC", $"The shared framework '{pack}' is not installed beside the test runtime at {folder}."));
+                "AUDITSEMANTIC",
+                $"The shared framework '{pack}' is not installed beside the test runtime at {folder}."));
             foreach (string path in Directory.EnumerateFiles(folder, "*.dll"))
             {
                 chosen.TryAdd(Path.GetFileNameWithoutExtension(path), path);
@@ -142,6 +146,28 @@ internal static class TAuditSemantic
             .Select(pattern => pattern[..pattern.IndexOf('*')].TrimEnd('/'))
             .Distinct(StringComparer.Ordinal)
             .ToList();
+    }
+
+    public static IReadOnlySet<string> TAuditDeportmentRead()
+    {
+        lock (TAuditGate)
+        {
+            HashSet<string> names = new(StringComparer.Ordinal);
+            INamespaceSymbol? space = TAuditCompilation?.Assembly.GlobalNamespace;
+            foreach (string part in TAuditStrictSetting.TAuditDeportmentNamespace.Split('.'))
+            {
+                space = space?.GetNamespaceMembers()
+                    .FirstOrDefault(member => string.Equals(member.Name, part, StringComparison.Ordinal));
+            }
+
+            foreach (INamedTypeSymbol type in space?.GetTypeMembers() ?? [])
+            {
+                names.Add(type.Name);
+                names.UnionWith(type.GetMembers().Select(member => member.Name));
+            }
+
+            return names;
+        }
     }
 
     public static bool TAuditWalkCheck(SyntaxNode root)

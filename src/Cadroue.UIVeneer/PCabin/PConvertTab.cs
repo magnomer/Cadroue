@@ -71,7 +71,6 @@ public sealed class PConvertTab : PTabSurface
         };
         pAction.PActionListAttach(pList);
         pList.PListPathChange += PConvertPathShow;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
@@ -84,10 +83,10 @@ public sealed class PConvertTab : PTabSurface
         Content = pTabGrid;
     }
 
-    private void PConvertPathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
+    private void PConvertPathShow(string? pSourcePath) => pViewer.LViewer.LViewerPathHandle(pSourcePath);
 
     public override PFlow PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
     public override PList? PTabList => pList;
-    public override LSceneTabRecord PTabLayoutRead() => PTabLayoutRead(pTabGrid);
+    public override LSceneTabRecord PTabLayoutRead() => PTabLayoutCreate();
 }

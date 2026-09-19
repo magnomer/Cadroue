@@ -183,7 +183,9 @@ public static class LLocalization
         return Path.GetFileNameWithoutExtension(lLocalizationValue);
     }
 
-    public static void LLocalizationTraceRecord(string lLocalizationMessage, Exception? lLocalizationException = null) =>
+    public static void LLocalizationTraceRecord(
+        string lLocalizationMessage,
+        Exception? lLocalizationException = null) =>
         LLocalizationTraceSeam?.Invoke(lLocalizationMessage, lLocalizationException);
 
     public static string? LLocalizationResourceRead(string lLocalizationName) =>

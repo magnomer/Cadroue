@@ -149,7 +149,8 @@ internal sealed partial class PSEncoder : Window
             LSEncoder.LSEncoderVideoRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.LSEncoderVideoEncoder));
         psVideoEncoderCombo.ItemTemplate = psEncoderChipTemplate;
         psVideoEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-        psVideoRateCombo = PSComboBuild(lsEncoder.LSEncoderVideoRate, lsEncoder.LSEncoderVideoCodec.LCapabilityModeLabels);
+        psVideoRateCombo = PSComboBuild(
+            lsEncoder.LSEncoderVideoRate, lsEncoder.LSEncoderVideoCodec.LCapabilityModeLabels);
         psVideoRowsPanel = new StackPanel();
         psAudioRowsPanel = new StackPanel();
         psVideoEncodePanel = new StackPanel();
@@ -187,7 +188,8 @@ internal sealed partial class PSEncoder : Window
             LSEncoder.LSEncoderAudioRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.LSEncoderAudioEncoder));
         psAudioEncoderCombo.ItemTemplate = psEncoderChipTemplate;
         psAudioEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
-        psAudioRateCombo = PSComboBuild(lsEncoder.LSEncoderAudioRate, lsEncoder.LSEncoderAudioCodec.LCapabilityModeLabels);
+        psAudioRateCombo = PSComboBuild(
+            lsEncoder.LSEncoderAudioRate, lsEncoder.LSEncoderAudioCodec.LCapabilityModeLabels);
         Title = LLocalization.LLocalizationTextRead("Encoder.Window.Title");
         Width = PSEncoderWidthDefault;
         Height = PSEncoderHeightDefault;

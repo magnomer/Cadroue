@@ -21,7 +21,8 @@ public sealed class TClinicResult
         TInterface.TClinicStepSet(clinic, "Container");
         changes = 0;
 
-        TInterface.TClinicResultSet(clinic, TClinicResultRecased, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
+        TInterface.TClinicResultSet(
+            clinic, TClinicResultRecased, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
         TInterface.TClinicProgressSet(clinic, TClinicResultRecased, 0.5);
 
         Assert.Equal(LCheckupOutcome.LCheckupOutcomeScanning, TInterface.TClinicOutcomeRead(clinic));
@@ -35,7 +36,8 @@ public sealed class TClinicResult
         LClinic clinic = TInterface.TClinicCreate();
         TInterface.TClinicSourceSet(clinic, TClinicResultPath);
         TInterface.TClinicStepSet(clinic, "Container");
-        TInterface.TClinicResultSet(clinic, TClinicResultPath, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
+        TInterface.TClinicResultSet(
+            clinic, TClinicResultPath, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
         TInterface.TClinicProgressSet(clinic, TClinicResultPath, 0.5);
         int changes = 0;
         TInterface.TClinicChangeAttach(clinic, () => changes++);
@@ -57,7 +59,8 @@ public sealed class TClinicResult
         LClinic clinic = TInterface.TClinicCreate();
         TInterface.TClinicSourceSet(clinic, TClinicResultPath);
         TInterface.TClinicStepSet(clinic, "Container");
-        TInterface.TClinicResultSet(clinic, TClinicResultPath, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
+        TInterface.TClinicResultSet(
+            clinic, TClinicResultPath, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
         int changes = 0;
         TInterface.TClinicChangeAttach(clinic, () => changes++);
 

@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PWing;
 
@@ -18,7 +19,7 @@ public sealed class PWorklistTab : PTabSurface
 
     public override PFlow? PTabFlow => null;
     public override PViewer? PTabViewer => null;
-    public override bool PTabBusyCheck() => pRoster.PRosterBusyCheck();
+    public override LStation? PTabStation => pRoster.PRosterStation;
     public override double PTabWidthRead() => pRoster.PRosterWidthRead();
     public override LSceneTabRecord PTabLayoutRead() => pRoster.PRosterLayoutRead();
 }

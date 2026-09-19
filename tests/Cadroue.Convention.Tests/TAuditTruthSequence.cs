@@ -41,7 +41,8 @@ internal static partial class TAuditTruthWalker
                        && built.Name.StartsWith(TAuditTruthSetting.TAuditRequestPrefix, StringComparison.Ordinal),
                 _ => false
             };
-            if (send && node.Ancestors().OfType<InvocationExpressionSyntax>().Any(call => TAuditSendCheck(call, direct)))
+            if (send
+                && node.Ancestors().OfType<InvocationExpressionSyntax>().Any(call => TAuditSendCheck(call, direct)))
             {
                 continue;
             }

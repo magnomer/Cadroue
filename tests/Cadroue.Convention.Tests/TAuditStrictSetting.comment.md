@@ -29,6 +29,10 @@ Every class under these roots is a veneer, as is any class deriving from a contr
 
 The `git ls-files` patterns of the shell markup.
 
+## `public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";`
+
+The namespace whose types and members a markup binding may name, since Deportment is shell state, not logic.
+
 ## `public static readonly string[] TAuditReachNamespaces`
 
 Namespaces a markup file may not map, since mapping one lets a binding reach logic.

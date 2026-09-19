@@ -42,6 +42,7 @@ public sealed class TLocalizationSeam : IDisposable
 
         Assert.Equal("en", TInterface.TLocalizationLanguageRead());
         Assert.Equal("Hello", TInterface.TLocalizationTextRead("Sample.Greeting"));
-        Assert.Contains(tLocalizationTraced, message => message.Contains("'zz' is unavailable", StringComparison.Ordinal));
+        Assert.Contains(
+            tLocalizationTraced, message => message.Contains("'zz' is unavailable", StringComparison.Ordinal));
     }
 }

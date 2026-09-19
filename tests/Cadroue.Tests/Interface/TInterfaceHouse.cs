@@ -21,8 +21,12 @@ internal static partial class TInterface
     internal static (double, double) TWindowWidthResolve(
         LWindow window, double? required, double reserved, double width) =>
         window.LWindowWidthResolve(required, reserved, width);
-    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset, LDocket? docket) =>
-        tab.LStripWorkspaceAttach(preset, docket, () => new LSceneTabRecord());
+    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset, LDocket? docket)
+    {
+        var workspace = new LWorkspace(tab.LStripTabKey, preset);
+        workspace.LWorkspaceAttach(docket, null, null, null, null, () => new LSceneTabRecord());
+        tab.LStripWorkspaceAttach(workspace);
+    }
     internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
 
     internal static LWindowDrag TWindowDragCreate(

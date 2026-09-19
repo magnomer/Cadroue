@@ -86,7 +86,8 @@ public sealed class LCheckup : IDisposable
             }
 
             if (lCheckupActive is { } lCheckupActiveRequest
-                && string.Equals(lCheckupActiveRequest.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
+                && string.Equals(
+                    lCheckupActiveRequest.LCheckupPath, lCheckupSource, StringComparison.OrdinalIgnoreCase))
             {
                 lCheckupActive = null;
                 lCheckupCancellationSource?.Cancel();

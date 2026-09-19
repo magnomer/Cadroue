@@ -58,7 +58,8 @@ public static class LWaveformScanner
         for (long lWaveformChunkStart = 0; lWaveformChunkStart < lWaveformMilliseconds;
              lWaveformChunkStart += LWaveformChunkMilliseconds)
         {
-            long lWaveformChunkLength = Math.Min(LWaveformChunkMilliseconds, lWaveformMilliseconds - lWaveformChunkStart);
+            long lWaveformChunkLength = Math.Min(
+                LWaveformChunkMilliseconds, lWaveformMilliseconds - lWaveformChunkStart);
             LWaveformScanResult lWaveformChunk = LWaveformProcessRun(
                 lWaveformSourcePath,
                 LWaveform.LWaveformBucketsResolve(lWaveformChunkLength),

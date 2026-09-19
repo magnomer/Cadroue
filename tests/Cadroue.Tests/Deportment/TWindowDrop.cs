@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Preset")]
 public sealed class TWindowDrop
 {
     private static LWindow TWindowBuild(out LStrip strip)

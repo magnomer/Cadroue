@@ -26,7 +26,8 @@ public sealed partial class PInspector
         }
 
         pBox.Items.Add(new LLocalizationChoice("Custom", "Inspector.Common.Custom"));
-        pBox.SelectedIndex = Math.Max(0, pTokens.ToList().IndexOf(LSensor.LSensorTokenRead(pDetectorKind) ?? string.Empty));
+        pBox.SelectedIndex = Math.Max(
+            0, pTokens.ToList().IndexOf(LSensor.LSensorTokenRead(pDetectorKind) ?? string.Empty));
         pBox.SelectionChanged += (_, _) =>
         {
             if (PInspectorPresetRead(

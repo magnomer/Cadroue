@@ -27,6 +27,9 @@ public static class PWalk
     public static bool PWalkParentCheck(DependencyObject? pStart, Func<DependencyObject, bool> pTest) =>
         PWalkParentFind(pStart, pTest) is not null;
 
+    public static bool PWalkItemCheck<PWalkItem>(DependencyObject pNode) where PWalkItem : class =>
+        PSender.PSenderItemRead<PWalkItem>(pNode) is not null;
+
     public static bool PWalkTypeCheck(DependencyObject pNode, IReadOnlyList<Type> pTypes) =>
         pTypes.Any(pNode.GetType().IsAssignableTo);
 }

@@ -177,7 +177,8 @@ public sealed partial class PFlow
         string pLosslesscutUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
         var pLosslesscutLines = new List<string>
         {
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", System.IO.Path.GetFileName(pLosslesscutPath)),
+            LLocalization.LLocalizationFormat(
+                "Flow.LosslessCut.Summary.Project", System.IO.Path.GetFileName(pLosslesscutPath)),
             LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Version",
                 pLosslesscutResult.LLosslesscutResultVersion?.ToString() ?? pLosslesscutUnspecified),

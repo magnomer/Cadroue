@@ -189,7 +189,8 @@ public sealed class TInspectorPreset
 
         Assert.Equal("Sensitive", TInterface.TSensorTokenRead(restored, LDetectorKind.LDetectorKindStill));
         Assert.Null(TInterface.TSensorMatchRead(restored, LDetectorKind.LDetectorKindStill));
-        Assert.Equal(0.3, TInterface.TSensorStepRead(restored, LDetectorKind.LDetectorKindStill).LDetectorStepThreshold);
+        Assert.Equal(
+            0.3, TInterface.TSensorStepRead(restored, LDetectorKind.LDetectorKindStill).LDetectorStepThreshold);
     }
 
     [Fact]

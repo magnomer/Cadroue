@@ -166,7 +166,8 @@ internal static partial class PSectionPalette
 
     internal static string? PSectionNameFind(string pPath) =>
         pSectionLoaded
-            .FirstOrDefault(pEntry => string.Equals(pEntry.PSectionSwatchPath, pPath, StringComparison.OrdinalIgnoreCase))
+            .FirstOrDefault(pEntry =>
+                string.Equals(pEntry.PSectionSwatchPath, pPath, StringComparison.OrdinalIgnoreCase))
             ?.PSectionSwatchName;
 
     internal static string[] PSectionHexRead(string pName) =>

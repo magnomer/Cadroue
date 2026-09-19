@@ -14,8 +14,9 @@ public sealed class LHistory
     private readonly List<LHistoryEntry> lHistoryPast = new();
     private readonly List<LHistoryEntry> lHistoryFuture = new();
     private LHistoryEntry? lHistoryPresent;
+    private int lHistorySuspendDepth;
 
-    public bool LHistoryApplying { get; set; }
+    public bool LHistorySuspended => lHistorySuspendDepth > 0;
 
     public bool LHistoryUndoReady => lHistoryPast.Count > 0;
 
@@ -28,9 +29,13 @@ public sealed class LHistory
         lHistoryPresent = lHistoryEntry;
     }
 
+    public void LHistorySuspend() => lHistorySuspendDepth++;
+
+    public void LHistoryResume() => lHistorySuspendDepth = Math.Max(0, lHistorySuspendDepth - 1);
+
     public void LHistoryAdd(LHistoryEntry lHistoryEntry)
     {
-        if (LHistoryApplying)
+        if (LHistorySuspended)
         {
             return;
         }

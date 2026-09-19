@@ -115,7 +115,7 @@ internal static class PSash
     private static void PSashHookApply(Window pWindow) =>
         HwndSource.FromHwnd(PSashHandleRead(pWindow))?.AddHook(PSashMessageHandle);
 
-    private static Matrix PSashDipRead(Window pWindow) =>
+    internal static Matrix PSashDipRead(Window pWindow) =>
         (PresentationSource.FromVisual(pWindow) as HwndSource)!.CompositionTarget.TransformFromDevice;
 
     private static Matrix PSashDeviceRead(Window pWindow) =>

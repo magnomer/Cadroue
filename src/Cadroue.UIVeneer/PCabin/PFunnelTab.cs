@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIVeneer.PBench;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 using Cadroue.UIVeneer.PWing;
 using Cadroue.UIDeportment;
@@ -41,7 +42,6 @@ public sealed class PFunnelTab : PTabSurface
         pAction.PActionRelayHide();
 
         pList.PListPathChange += PFunnelPathShow;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
@@ -52,8 +52,8 @@ public sealed class PFunnelTab : PTabSurface
         Content = pTabGrid;
     }
 
-    public void PFunnelTargetsResolve(IReadOnlyList<PTabRecord> pTabRecords) =>
-        pFunnelRules.LFunnel.LFunnelTargetsResolve(pTabRecords.Select(pRecord => pRecord.PTabId).ToArray());
+    public void PFunnelTargetsResolve(IReadOnlyList<LStripTab> lStripTabs) =>
+        pFunnelRules.LFunnel.LFunnelTargetsResolve(lStripTabs.Select(lTab => lTab.LStripTabId).ToArray());
 
     private void PFunnelDispatch(IReadOnlyList<LDocketEntry> pItems)
     {
@@ -79,26 +79,27 @@ public sealed class PFunnelTab : PTabSurface
     private IReadOnlyList<PActionRelayOption> PFunnelTargetsRead()
     {
         var pOptions = new List<PActionRelayOption>();
-        if (PStrip.PStripCurrent is not { } pStrip)
+        if (PWindow.PWindowStripRead() is not { } pStrip)
         {
             return pOptions;
         }
 
-        foreach (PTabRecord pRecord in pStrip.PStripRecords)
+        foreach (LStripTab lTab in pStrip.LStrip.LStripTabs)
         {
-            if (ReferenceEquals(pRecord.PTabWorkspace.PWorkspaceSurface, this)
-                || pRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
+            if (ReferenceEquals(pStrip.PStripWorkspaceRead(lTab)?.PWorkspaceSurface, this)
+                || lTab.LStripTabDocket is null)
             {
                 continue;
             }
 
-            pOptions.Add(new PActionRelayOption(pRecord.PTabId, pRecord.PTabTitle, pRecord.PTabIconSource));
+            pOptions.Add(new PActionRelayOption(
+                lTab.LStripTabId, lTab.LStripTabTitle, PTabIcon.PTabIconRead(lTab.LStripTabKey)));
         }
 
         return pOptions;
     }
 
-    private void PFunnelPathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
+    private void PFunnelPathShow(string? pSourcePath) => pViewer.LViewer.LViewerPathHandle(pSourcePath);
 
     public override PFlow PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
@@ -106,7 +107,7 @@ public sealed class PFunnelTab : PTabSurface
 
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         lPreferenceTabLayout.LSceneFunnelRules = pFunnelRules.LFunnel.LFunnelRules
             .Select(lRule =>
             {
@@ -120,14 +121,15 @@ public sealed class PFunnelTab : PTabSurface
 
     private static int PFunnelTargetRead(Guid pTargetId)
     {
-        if (pTargetId == Guid.Empty || PStrip.PStripCurrent is not { } pStrip)
+        if (pTargetId == Guid.Empty || PWindow.PWindowStripRead() is not { } pStrip)
         {
             return -1;
         }
 
-        for (int pIndex = 0; pIndex < pStrip.PStripRecords.Count; pIndex++)
+        IReadOnlyList<LStripTab> lTabs = pStrip.LStrip.LStripTabs;
+        for (int pIndex = 0; pIndex < lTabs.Count; pIndex++)
         {
-            if (pStrip.PStripRecords[pIndex].PTabId == pTargetId)
+            if (lTabs[pIndex].LStripTabId == pTargetId)
             {
                 return pIndex;
             }

@@ -42,7 +42,8 @@ public sealed partial class PInspector
         {
             PInspectorBand pRow = pEqualizerRows[pIndex];
             PInspectorTextSet(pRow.PInspectorBandFrequency, pBands[pIndex].LWorkBandFrequency, "0.###");
-            PInspectorValueUpdate(pRow.PInspectorBandSlider, pRow.PInspectorBandValue, pBands[pIndex].LWorkBandGain, "0.#");
+            PInspectorValueUpdate(
+                pRow.PInspectorBandSlider, pRow.PInspectorBandValue, pBands[pIndex].LWorkBandGain, "0.#");
         }
     }
 

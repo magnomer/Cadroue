@@ -4,6 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Preset")]
 public sealed class TStripTab
 {
     private static LStrip TStripBuild() =>
@@ -131,5 +132,75 @@ public sealed class TStripTab
 
         Assert.Equal("Split 1", first.LStripTabTitle);
         Assert.Equal("Split 2", second.LStripTabTitle);
+    }
+
+    [Fact]
+    public void KeyResolve_FallsBackToSplit()
+    {
+        Assert.Equal("Edit", TInterface.TStripKeyResolve("Edit"));
+        Assert.Equal("Split", TInterface.TStripKeyResolve("Unknown"));
+        Assert.Equal("Split", TInterface.TStripKeyCreate("Bogus").LStripTabKey);
+        Assert.Equal("Worklist", TInterface.TStripKeyCreate("Worklist").LStripTabKey);
+    }
+
+    [Fact]
+    public void Close_RaisesCloseNotice_ThenRemovesTab()
+    {
+        LStrip strip = TStripBuild();
+        LStripTab first = TStripTabAdd(strip, "Split");
+        LStripTab second = TStripTabAdd(strip, "Edit");
+        List<LStripTab> added = [];
+        List<LStripTab> closed = [];
+        TInterface.TStripAddAttach(strip, added.Add);
+        TInterface.TStripCloseAttach(strip, closed.Add);
+
+        Assert.True(TInterface.TStripCloseConfirm(strip, second));
+        Assert.True(TInterface.TStripCloseConfirm(strip, null));
+        TInterface.TStripClose(strip, second);
+        TInterface.TStripClose(strip, second);
+
+        Assert.Equal([second], closed);
+        Assert.Equal([first], strip.LStripTabs);
+
+        LStripTab third = TStripTabAdd(strip, "Fix");
+        Assert.Equal([third], added);
+        TInterface.TStripAllClose(strip);
+        Assert.Equal([second, first, third], closed);
+        Assert.Empty(strip.LStripTabs);
+        Assert.Null(strip.LStripSelected);
+    }
+
+    [Fact]
+    public void RelayRead_SkipsSourceAndTabsWithoutList()
+    {
+        LStrip strip = TStripBuild();
+        LStripTab source = TStripTabAdd(strip, "Split");
+        LStripTab listed = TStripTabAdd(strip, "Convert");
+        LStripTab bare = TStripTabAdd(strip, "Worklist");
+        TInterface.TStripWorkspaceAttach(source, TInterface.TPresetInitialCreate("Split"), TInterface.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(
+            listed, TInterface.TPresetInitialCreate("Convert"), TInterface.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(bare, TInterface.TPresetInitialCreate("Worklist"), null);
+
+        Assert.Equal([listed], TInterface.TStripRelayRead(strip, source.LStripTabId));
+        Assert.False(bare.LStripTabBusy);
+    }
+
+    [Fact]
+    public void PendingSet_RaisesTabChangeOnce()
+    {
+        LStrip strip = TStripBuild();
+        LStripTab tab = TStripTabAdd(strip, "Split");
+        List<LStripTab> changes = [];
+        TInterface.TStripTabAttach(strip, changes.Add);
+
+        TInterface.TStripPendingSet(strip, tab, true);
+        TInterface.TStripPendingSet(strip, tab, true);
+        Assert.True(tab.LStripTabPending);
+        Assert.Equal([tab], changes);
+
+        TInterface.TStripPendingSet(strip, tab, false);
+        Assert.False(tab.LStripTabPending);
+        Assert.Equal(2, changes.Count);
     }
 }

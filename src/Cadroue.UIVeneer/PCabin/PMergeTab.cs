@@ -60,7 +60,8 @@ public sealed class PMergeTab : PTabSurface
             if (!lPresetOwner.LPresetSelectionValid)
             {
                 LTraceLog.LTraceWarningRecord(
-                    $"Merge held relayed files in tab '{PStrip.PStripTitleRead(pAction.PActionSourceTab)}': "
+                    "Merge held relayed files in tab "
+                    + $"'{PHouse.PWindow.PWindowStripRead()?.LStrip.LStripTitleRead(pAction.PActionSourceTab)}': "
                     + "no valid export preset is selected");
                 return 0;
             }
@@ -82,7 +83,6 @@ public sealed class PMergeTab : PTabSurface
             .ToArray();
         lDocket.LDocketChange += PMergeDocketHandle;
         pList.PListClearChange += pGroup.PGroupPathsRemove;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
@@ -149,7 +149,7 @@ public sealed class PMergeTab : PTabSurface
         }
     }
 
-    private void PMergePathShow(string? pSourcePath) => PTabSourceOpen(pViewer, pSourcePath);
+    private void PMergePathShow(string? pSourcePath) => pViewer.LViewer.LViewerPathHandle(pSourcePath);
 
     public override PFlow PTabFlow => pFlow;
     public override PViewer? PTabViewer => pViewer;
@@ -158,7 +158,7 @@ public sealed class PMergeTab : PTabSurface
 
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         lPreferenceTabLayout.LSceneGroupAuto = lGroupOwner.LGroupAuto;
         lPreferenceTabLayout.LSceneGroupStrict = lGroupOwner.LGroupStrict;
         lPreferenceTabLayout.LSceneGroupMode = lGroupOwner.LGroupNameMode;

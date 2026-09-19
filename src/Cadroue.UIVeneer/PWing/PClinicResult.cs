@@ -8,7 +8,10 @@ public sealed partial class PClinic
 {
     public void PClinicResultsRemove(IReadOnlyList<string> pClinicPaths) => LClinic.LClinicResultsRemove(pClinicPaths);
 
-    public void PClinicResultShow(string pClinicResultPath, LFlawKind pClinicResultKind, LCheckupResult pClinicResult) =>
+    public void PClinicResultShow(
+        string pClinicResultPath,
+        LFlawKind pClinicResultKind,
+        LCheckupResult pClinicResult) =>
         LClinic.LClinicResultSet(pClinicResultPath, pClinicResultKind, pClinicResult);
 
     public void PClinicProgressShow(string pClinicProgressPath, double pClinicProgressValue) =>
@@ -23,7 +26,8 @@ public sealed partial class PClinic
         pClinicDiagnosisProgress.Visibility = pScanning ? Visibility.Visible : Visibility.Collapsed;
         if (pVisible)
         {
-            pClinicResultText.Text = LCheckupFormat.LCheckupBodyFormat(LClinic.LClinicResultRead(), PClinicStringsRead());
+            pClinicResultText.Text = LCheckupFormat.LCheckupBodyFormat(
+                LClinic.LClinicResultRead(), PClinicStringsRead());
         }
     }
 

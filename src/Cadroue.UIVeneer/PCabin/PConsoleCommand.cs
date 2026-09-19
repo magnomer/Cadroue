@@ -120,7 +120,7 @@ public sealed partial class PConsole
     private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments)
     {
         if (!PConsoleDestructiveConfirm(LLocalization.LLocalizationTextRead("Console.ClearTabs.Confirm"))) return;
-        PPorch.PStrip.PStripCurrent?.PStripContentClear();
+        PHouse.PWindow.PWindowStripRead()?.LStrip.LStripContentClear();
     }
 
     private bool PConsoleProcessingConfirm(string pConsoleQuestion) =>

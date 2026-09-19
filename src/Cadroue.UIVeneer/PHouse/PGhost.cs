@@ -33,6 +33,7 @@ public sealed class PGhost
         var lGhost = new LGhost(pGrabOffset.X, pGrabOffset.Y);
         var pAdorner = new PGhostAdorner(
             pRoot,
+            pSourceElement,
             PGhostImageCreate(pSourceElement),
             pSourceElement.ActualWidth,
             pSourceElement.ActualHeight,
@@ -60,6 +61,20 @@ public sealed class PGhost
     {
         _ = lGhost.LGhostClear();
         pGhostLayer.Remove(pGhostAdorner);
+    }
+
+    public static void PGhostSync(FrameworkElement? pSourceElement) =>
+        PGhostAdornerFind(pSourceElement)?.PGhostAdornerSync();
+
+    public static void PGhostClear(FrameworkElement? pSourceElement) =>
+        PGhostAdornerFind(pSourceElement)?.PGhostAdornerRemove();
+
+    private static PGhostAdorner? PGhostAdornerFind(FrameworkElement? pSourceElement)
+    {
+        var pDecorator = PWalk.PWalkParentFind(pSourceElement, PGhostDecoratorMatch) as AdornerDecorator;
+        return pDecorator?.AdornerLayer?.GetAdorners(pDecorator!.Child)?
+            .OfType<PGhostAdorner>()
+            .FirstOrDefault(pAdorner => ReferenceEquals(pAdorner.PGhostSource, pSourceElement));
     }
 
     public static DragDropEffects PGhostDragRun(
@@ -132,6 +147,7 @@ public sealed class PGhost
 
         internal PGhostAdorner(
             UIElement pAdornedElement,
+            FrameworkElement pSource,
             ImageSource pImage,
             double pWidth,
             double pHeight,
@@ -139,6 +155,7 @@ public sealed class PGhost
             : base(pAdornedElement)
         {
             lGhost = lOwner;
+            PGhostSource = pSource;
             pGhostImage = new System.Windows.Shapes.Rectangle
             {
                 Width = pWidth,
@@ -151,10 +168,26 @@ public sealed class PGhost
             IsHitTestVisible = false;
         }
 
+        internal FrameworkElement PGhostSource { get; }
+
         internal void PGhostAdornerUpdate()
         {
             InvalidateArrange();
             (Parent as AdornerLayer)?.Update(AdornedElement);
+        }
+
+        internal void PGhostAdornerSync()
+        {
+            _ = PGhostCursorRead(out PGhostPoint pCursor);
+            Point pRootPoint = AdornedElement.PointFromScreen(new Point(pCursor.PGhostX, pCursor.PGhostY));
+            lGhost.LGhostPointSet(pRootPoint.X, pRootPoint.Y);
+            PGhostAdornerUpdate();
+        }
+
+        internal void PGhostAdornerRemove()
+        {
+            _ = lGhost.LGhostClear();
+            (Parent as AdornerLayer)?.Remove(this);
         }
 
         protected override int VisualChildrenCount => pGhostVisuals.Count;

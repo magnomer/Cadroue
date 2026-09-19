@@ -53,23 +53,15 @@ internal sealed partial class PColumn
         }
     }
 
-    public void PColumnHide(int pPanelIndex)
+    public void PColumnHiddenSet(int pPanelIndex, bool pPanelHidden)
     {
-        if (!LColumn.LColumnHiddenSet(pPanelIndex, true))
+        if (!LColumn.LColumnHiddenSet(pPanelIndex, pPanelHidden))
         {
             return;
         }
 
         pColumnItems[pPanelIndex].MinWidth = 0;
         PColumnWeightsApply();
-    }
-
-    public void PColumnShow(int pPanelIndex)
-    {
-        if (LColumn.LColumnHiddenSet(pPanelIndex, false))
-        {
-            PColumnWeightsApply();
-        }
     }
 
     public IReadOnlyList<double> PColumnWeightsRead() => LColumn.LColumnWeightsRead();

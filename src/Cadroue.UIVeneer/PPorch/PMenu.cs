@@ -46,26 +46,26 @@ internal static class PMenu
     internal static ImageSource PMenuIconRead(string pMenuIconPath)
         => PAsset.PIcon.PIconRead(pMenuIconPath, pMenuTextBrush);
 
-    internal static MenuItem PMenuItemCreate(string pMenuText, ImageSource? pMenuIcon)
+    internal static MenuItem PMenuItemCreate(string pMenuText) => new()
     {
-        var pMenuItem = new MenuItem
-        {
-            Header = pMenuText,
-            Style = PMenuStyleCreate()
-        };
-        if (pMenuIcon is not null)
-        {
-            pMenuItem.Icon = new Image
-            {
-                Source = pMenuIcon,
-                Width = PMenuIconSize,
-                Height = PMenuIconSize,
-                Stretch = Stretch.Uniform
-            };
-        }
+        Header = pMenuText,
+        Style = PMenuStyleCreate()
+    };
 
-        return pMenuItem;
-    }
+    internal static MenuItem PMenuItemCreate(string pMenuText, ImageSource? pMenuIcon) => new()
+    {
+        Header = pMenuText,
+        Style = PMenuStyleCreate(),
+        Icon = pMenuIcon?.PMenuImageBuild()
+    };
+
+    internal static Image PMenuImageBuild(this ImageSource pMenuIcon) => new()
+    {
+        Source = pMenuIcon,
+        Width = PMenuIconSize,
+        Height = PMenuIconSize,
+        Stretch = Stretch.Uniform
+    };
 
     private static ControlTemplate PMenuTemplateCreate()
     {

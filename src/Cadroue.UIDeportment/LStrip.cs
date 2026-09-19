@@ -1,77 +1,28 @@
+using System.Collections.ObjectModel;
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
-public sealed class LStripTab
-{
-    public LStripTab(string lKey)
-    {
-        LStripTabId = Guid.NewGuid();
-        LStripTabKey = lKey;
-    }
-
-    public Guid LStripTabId { get; }
-
-    public string LStripTabKey { get; }
-
-    public string LStripTabTitle { get; internal set; } = string.Empty;
-
-    public string LStripTabCustom { get; internal set; } = string.Empty;
-
-    public bool LStripTabSelected { get; internal set; }
-
-    public bool LStripTabSeparator { get; internal set; }
-
-    public bool LStripTabEditing { get; internal set; }
-
-    public LPreset? LStripTabPreset { get; private set; }
-
-    public LDocket? LStripTabDocket { get; private set; }
-
-    public bool LStripTabFunnel => string.Equals(LStripTabKey, LStripFunnelKey, StringComparison.Ordinal);
-
-    public bool LStripTabMerge => string.Equals(LStripTabKey, LStripMergeKey, StringComparison.Ordinal);
-
-    public bool LStripTabWorklist => string.Equals(LStripTabKey, LStripWorklistKey, StringComparison.Ordinal);
-
-    public void LStripWorkspaceAttach(LPreset lPreset, LDocket? lDocket, Func<LSceneTabRecord> lLayoutSource)
-    {
-        LStripTabPreset = lPreset;
-        LStripTabDocket = lDocket;
-        lStripLayoutSource = lLayoutSource;
-    }
-
-    public void LStripActionAttach(Func<bool> lRelaySource, Func<Guid, bool> lCohortSource)
-    {
-        lStripRelaySource = lRelaySource;
-        lStripCohortSource = lCohortSource;
-    }
-
-    public LSceneTabRecord? LStripLayoutRead() => lStripLayoutSource?.Invoke();
-
-    public bool LStripRelayCheck() => lStripRelaySource?.Invoke() ?? false;
-
-    public bool LStripCohortRun(Guid lCohort) => lStripCohortSource?.Invoke(lCohort) ?? false;
-
-    private const string LStripFunnelKey = "Funnel";
-    private const string LStripMergeKey = "Merge";
-    private const string LStripWorklistKey = "Worklist";
-    private Func<LSceneTabRecord>? lStripLayoutSource;
-    private Func<bool>? lStripRelaySource;
-    private Func<Guid, bool>? lStripCohortSource;
-}
-
 public sealed class LStrip
 {
-    private readonly List<LStripTab> lStripTabs = [];
+    private const string LStripDefaultKey = "Split";
+    private static readonly string[] LStripKeys =
+        ["Split", "Edit", "Fix", "Audio", "Convert", "Merge", "Funnel", "Worklist"];
+    private readonly ObservableCollection<LStripTab> lStripTabs = [];
     private readonly Func<string, string> lStripTitleSource;
     private readonly Func<string, int, string> lStripNumberSource;
     private LStripTab? lStripSelected;
     private LStripTab? lStripHovered;
     private int lStripSuspendDepth;
     private bool lStripVertical;
+
+    public LStrip()
+        : this(LStripTitleResolve, LStripNumberResolve)
+    {
+    }
 
     public LStrip(Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
     {
@@ -82,6 +33,8 @@ public sealed class LStrip
     public event Action? LStripChange;
     public event Action<LStripTab?>? LStripSelectChange;
     public event Action<LStripTab>? LStripTabChange;
+    public event Action<LStripTab>? LStripTabAdd;
+    public event Action<LStripTab>? LStripTabClose;
     public event Action? LStripTitleChange;
 
     public IReadOnlyList<LStripTab> LStripTabs => lStripTabs;
@@ -92,7 +45,32 @@ public sealed class LStrip
 
     public bool LStripVertical => lStripVertical;
 
+    public static IReadOnlyList<string> LStripKeysRead() => LStripKeys;
+
+    public static string LStripKeyResolve(string lKey) =>
+        LStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : LStripDefaultKey;
+
+    public static LStripTab LStripTabCreate(string lKey) => new(LStripKeyResolve(lKey));
+
     public LStripTab? LStripTabFind(Guid lId) => lStripTabs.FirstOrDefault(lTab => lTab.LStripTabId == lId);
+
+    public LStripTab? LStripTabFind(LWorkItem lWorkItem)
+    {
+        Guid lSourceTab = lWorkItem.LWorkRelaySource;
+        if (lSourceTab == Guid.Empty)
+        {
+            return null;
+        }
+
+        if (LCartographerPlanStore.LCartographerPlanRead(lWorkItem.LWorkBatchId, out LCartographerPlanRecord lPlan)
+            && lPlan.LCartographerStages.FirstOrDefault(lStage => lStage.LCartographerStageId == lSourceTab)
+                is { } lSourceStage)
+        {
+            lSourceTab = lSourceStage.LCartographerOriginalTab;
+        }
+
+        return LStripTabFind(lSourceTab);
+    }
 
     public void LStripRelayAttach()
     {
@@ -106,6 +84,13 @@ public sealed class LStrip
 
     public string LStripTitleRead(Guid lId) =>
         LStripTabFind(lId)?.LStripTabTitle ?? LCartographer.LCartographerStageRead(lId);
+
+    public static Guid LStripTargetRead(Guid lId) => LCartographer.LCartographerTargetRead(lId);
+
+    public IReadOnlyList<LStripTab> LStripRelayRead(Guid lSourceTab) =>
+        lStripTabs
+            .Where(lTab => lTab.LStripTabId != lSourceTab && lTab.LStripTabDocket is not null)
+            .ToArray();
 
     public IReadOnlyList<LCartographerTab> LStripCartographerRead() =>
         lStripTabs
@@ -159,6 +144,9 @@ public sealed class LStrip
         lStripTabs.Add(lTab);
         LStripChange?.Invoke();
         LStripTitleSet(lTab, lStripTitleSource(lTab.LStripTabKey));
+        LStripTabAdd?.Invoke(lTab);
+        LTraceLog.LTraceInfoRecord(
+            $"Tab opened '{lTab.LStripTabTitle}' ({lTab.LStripTabKey}): {lStripTabs.Count} tab(s) open");
         if (LStripSuspended)
         {
             return;
@@ -203,25 +191,20 @@ public sealed class LStrip
         LStripTitleChange?.Invoke();
     }
 
-    private void LStripTitleSet(LStripTab lTab, string lTitle)
-    {
-        if (lTab.LStripTabTitle == lTitle)
-        {
-            return;
-        }
-
-        lTab.LStripTabTitle = lTitle;
-        LStripTabChange?.Invoke(lTab);
-    }
-
     public bool LStripNameSet(LStripTab lTab, string? lName)
     {
+        bool lHadCustom = lTab.LStripTabCustom.Length > 0;
         string lTrimmed = (lName ?? string.Empty).Trim();
         if (lTrimmed.Length == 0
             || string.Equals(lTrimmed, lStripTitleSource(lTab.LStripTabKey), StringComparison.Ordinal))
         {
             lTab.LStripTabCustom = string.Empty;
             LStripTitleUpdate();
+            if (lHadCustom)
+            {
+                LTraceLog.LTraceInfoRecord($"Tab name reset to the standard name for {lTab.LStripTabKey}");
+            }
+
             return false;
         }
 
@@ -231,6 +214,7 @@ public sealed class LStrip
             .ToList();
         lTab.LStripTabCustom = LTabset.LTabsetNameResolve(lTaken, lTrimmed, lStripNumberSource);
         LStripTitleUpdate();
+        LTraceLog.LTraceInfoRecord($"Tab renamed to '{lTab.LStripTabTitle}' ({lTab.LStripTabKey})");
         return true;
     }
 
@@ -242,7 +226,18 @@ public sealed class LStrip
         }
 
         lTab.LStripTabEditing = lEditing;
-        LStripTabChange?.Invoke(lTab);
+        LStripTabRaise(lTab);
+    }
+
+    public void LStripPendingSet(LStripTab lTab, bool lPending)
+    {
+        if (lTab.LStripTabPending == lPending)
+        {
+            return;
+        }
+
+        lTab.LStripTabPending = lPending;
+        LStripTabRaise(lTab);
     }
 
     public void LStripHoverSet(LStripTab lTab)
@@ -275,23 +270,12 @@ public sealed class LStrip
             if (lItem.LStripTabSelected != lSelected)
             {
                 lItem.LStripTabSelected = lSelected;
-                LStripTabChange?.Invoke(lItem);
+                LStripTabRaise(lItem);
             }
         }
 
         LStripSelectedSet(lTab);
         LStripSeparatorUpdate();
-    }
-
-    private void LStripSelectedSet(LStripTab? lTab)
-    {
-        if (ReferenceEquals(lStripSelected, lTab))
-        {
-            return;
-        }
-
-        lStripSelected = lTab;
-        LStripSelectChange?.Invoke(lTab);
     }
 
     public bool LStripMove(LStripTab lTab, int lTargetIndex)
@@ -308,8 +292,7 @@ public sealed class LStrip
             return false;
         }
 
-        lStripTabs.RemoveAt(lSourceIndex);
-        lStripTabs.Insert(lClamped, lTab);
+        lStripTabs.Move(lSourceIndex, lClamped);
         LStripChange?.Invoke();
         LStripSeparatorUpdate();
         return true;
@@ -355,6 +338,104 @@ public sealed class LStrip
         LStripSelectedSet(null);
     }
 
+    public bool LStripBusyCheck(LStripTab? lTab = null) =>
+        lTab is null ? lStripTabs.Any(lItem => lItem.LStripTabBusy) : lTab.LStripTabBusy;
+
+    public LAsk? LStripCloseResolve(LStripTab? lTab = null) =>
+        LStripBusyCheck(lTab)
+            ? new LAsk(
+                LLocalization.LLocalizationTextRead(
+                    lTab is null ? "Tab.Close.BusyAllMessage" : "Tab.Close.BusyMessage"),
+                LLocalization.LLocalizationTextRead("Terms.Stop"))
+            {
+                LAskTitle = LLocalization.LLocalizationTextRead("Tab.Close.BusyTitle")
+            }
+            : null;
+
+    public bool LStripCloseConfirm(LStripTab? lTab = null)
+    {
+        bool lConfirmed = false;
+        LAskNotice.LAskPublish(LStripCloseResolve(lTab), lAnswer => lConfirmed = lAnswer);
+        if (!lConfirmed)
+        {
+            LTraceLog.LTraceInfoRecord("Close declined: a worklist is still working");
+        }
+
+        return lConfirmed;
+    }
+
+    public void LStripClose(LStripTab lTab)
+    {
+        if (!lStripTabs.Contains(lTab))
+        {
+            return;
+        }
+
+        string lClosedTitle = lTab.LStripTabTitle;
+        LStripTabClose?.Invoke(lTab);
+        LCartographer.LCartographerTabRemove(lTab.LStripTabId);
+        LStripRemove(lTab);
+        LTraceLog.LTraceInfoRecord($"Tab closed '{lClosedTitle}': {lStripTabs.Count} tab(s) open");
+    }
+
+    public void LStripAllClose()
+    {
+        foreach (LStripTab lTab in lStripTabs.ToArray())
+        {
+            LStripTabClose?.Invoke(lTab);
+            LCartographer.LCartographerTabRemove(lTab.LStripTabId);
+        }
+
+        LStripClear();
+        LTraceLog.LTraceInfoRecord("All tabs closed");
+    }
+
+    public bool LStripContentClear()
+    {
+        bool lCleared = false;
+        IReadOnlySet<Guid> lActiveBatches = LBastion.LBastionCohortsRead();
+        foreach (LStripTab lTab in lStripTabs)
+        {
+            lCleared |= lTab.LStripTabWorkspace?.LWorkspaceMediaClear(lActiveBatches) == true;
+        }
+
+        LTraceLog.LTraceInfoRecord($"Tabs cleared across {lStripTabs.Count} tab(s)");
+        return lCleared;
+    }
+
+    public static string LStripTitleResolve(string lKey) => LLocalization.LLocalizationTextRead("Tab." + lKey);
+
+    private static string LStripNumberResolve(string lName, int lOrdinal) =>
+        LLocalization.LLocalizationFormat("Tab.Numbered", lName, lOrdinal);
+
+    private void LStripTabRaise(LStripTab lTab)
+    {
+        lTab.LStripTabUpdate();
+        LStripTabChange?.Invoke(lTab);
+    }
+
+    private void LStripTitleSet(LStripTab lTab, string lTitle)
+    {
+        if (lTab.LStripTabTitle == lTitle)
+        {
+            return;
+        }
+
+        lTab.LStripTabTitle = lTitle;
+        LStripTabRaise(lTab);
+    }
+
+    private void LStripSelectedSet(LStripTab? lTab)
+    {
+        if (ReferenceEquals(lStripSelected, lTab))
+        {
+            return;
+        }
+
+        lStripSelected = lTab;
+        LStripSelectChange?.Invoke(lTab);
+    }
+
     private void LStripSeparatorUpdate()
     {
         int lSelectedIndex = lStripSelected is null ? -1 : lStripTabs.IndexOf(lStripSelected);
@@ -372,7 +453,7 @@ public sealed class LStrip
             }
 
             lStripTabs[lIndex].LStripTabSeparator = lSeparator;
-            LStripTabChange?.Invoke(lStripTabs[lIndex]);
+            LStripTabRaise(lStripTabs[lIndex]);
         }
     }
 }

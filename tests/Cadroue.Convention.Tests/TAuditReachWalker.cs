@@ -15,6 +15,7 @@ internal static class TAuditReachWalker
     public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> markupPaths)
     {
         List<TViolation> violations = [];
+        IReadOnlySet<string> deportment = TAuditSemantic.TAuditDeportmentRead();
         foreach (string path in markupPaths)
         {
             XDocument document;
@@ -30,7 +31,7 @@ internal static class TAuditReachWalker
 
             foreach (XElement element in document.Descendants())
             {
-                TAuditElementScan(path, element, violations);
+                TAuditElementScan(path, element, deportment, violations);
             }
         }
 
@@ -61,7 +62,11 @@ internal static class TAuditReachWalker
         return names;
     }
 
-    private static void TAuditElementScan(string path, XElement element, List<TViolation> violations)
+    private static void TAuditElementScan(
+        string path,
+        XElement element,
+        IReadOnlySet<string> deportment,
+        List<TViolation> violations)
     {
         foreach (XAttribute attribute in element.Attributes())
         {
@@ -77,12 +82,12 @@ internal static class TAuditReachWalker
                 continue;
             }
 
-            TAuditValueScan(path, line, attribute.Name.LocalName, attribute.Value, violations);
+            TAuditValueScan(path, line, attribute.Name.LocalName, attribute.Value, deportment, violations);
         }
 
         foreach (XText text in element.Nodes().OfType<XText>())
         {
-            TAuditValueScan(path, ((IXmlLineInfo)text).LineNumber, "text", text.Value, violations);
+            TAuditValueScan(path, ((IXmlLineInfo)text).LineNumber, "text", text.Value, deportment, violations);
         }
     }
 
@@ -103,19 +108,29 @@ internal static class TAuditReachWalker
         }
     }
 
-    private static void TAuditValueScan(string path, int line, string slot, string value, List<TViolation> violations)
+    private static void TAuditValueScan(
+        string path,
+        int line,
+        string slot,
+        string value,
+        IReadOnlySet<string> deportment,
+        List<TViolation> violations)
     {
         HashSet<string> named = new(StringComparer.Ordinal);
         foreach (Match match in TAuditStaticPattern.Matches(value))
         {
-            named.Add(match.Groups[1].Value);
-            violations.Add(new TViolation(path, line, match.Groups[1].Value, "Reach", "reads a logic constant"));
+            string name = match.Groups[1].Value;
+            named.Add(name);
+            if (!deportment.Contains(name))
+            {
+                violations.Add(new TViolation(path, line, name, "Reach", "reads a logic constant"));
+            }
         }
 
         foreach (Match match in TAuditLogicPattern.Matches(value))
         {
             string name = match.Groups[1].Value;
-            if (named.Add(name))
+            if (named.Add(name) && !deportment.Contains(name))
             {
                 violations.Add(new TViolation(path, line, name, "Reach", $"names logic in {slot}"));
             }

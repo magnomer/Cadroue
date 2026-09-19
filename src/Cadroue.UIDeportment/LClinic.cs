@@ -80,7 +80,8 @@ public sealed class LClinic
     {
         if (lClinicKind is not { } lKind)
         {
-            return new LCheckupResult(lClinicSource ?? string.Empty, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeUntested);
+            return new LCheckupResult(
+                lClinicSource ?? string.Empty, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeUntested);
         }
 
         return lClinicSource is { } lSource

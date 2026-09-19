@@ -87,7 +87,7 @@ public sealed partial class PRoster : UserControl
         return PRosterSelectRead() is { LWorkSourceMeasured: false };
     }
 
-    public bool PRosterBusyCheck() => pRosterStation.LStationBusyCheck();
+    public LStation PRosterStation => pRosterStation;
 
     private void PRosterVisibleHandle(object pSender, DependencyPropertyChangedEventArgs pArguments)
     {

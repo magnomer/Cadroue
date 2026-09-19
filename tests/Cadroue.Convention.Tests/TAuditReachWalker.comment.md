@@ -4,6 +4,7 @@
 
 Parses the shell markup as XML and looks at every attribute and text node for a reach into logic.
 A name that starts with `L` and a capital is a logic name, wherever it stands in a value.
+A name the Deportment namespace declares is the shell's own state and is not a reach.
 
 ## `private static readonly Regex TAuditLogicPattern`
 
@@ -23,7 +24,7 @@ A file that does not parse is itself a hit, since a walk that cannot read it see
 Every `x:Name` the markup declares, so the code walkers know which identifier is a control.
 A file that does not parse is skipped here and reported by the reach walk.
 
-## `private static void TAuditElementScan(string path, XElement element, List<TViolation> violations)`
+## `private static void TAuditElementScan(string path, XElement element, IReadOnlySet<string> deportment, List<TViolation> violations)`
 
 Every attribute but `x:Class` and every text node of one element.
 A namespace declaration goes to the namespace scan, the rest to the value scan.
@@ -32,6 +33,7 @@ A namespace declaration goes to the namespace scan, the rest to the value scan.
 
 One hit per `xmlns` mapping a logic namespace.
 
-## `private static void TAuditValueScan(string path, int line, string slot, string value, List<TViolation> violations)`
+## `private static void TAuditValueScan(string path, int line, string slot, string value, IReadOnlySet<string> deportment, List<TViolation> violations)`
 
 One hit per logic constant read and one per other logic name in the value, with the slot named.
+A name found in the Deportment set is skipped.

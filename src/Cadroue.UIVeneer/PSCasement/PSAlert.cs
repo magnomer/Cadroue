@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
@@ -38,6 +39,9 @@ internal sealed class PSAlert : Window
         string pAction,
         string? pCancel = null) =>
         new PSAlert(pOwner, pTitle, pQuestion, pAction, pCancel).ShowDialog() == true;
+
+    internal static void PSAlertConfirm(Window? pOwner, LAsk lAsk, Action<bool> lAnswer) =>
+        lAnswer(PSAlertConfirm(pOwner, lAsk.LAskTitle, lAsk.LAskQuestion, lAsk.LAskAction));
 
     private UIElement PSAlertBuild(string pTitle, string pQuestion, string pAction, string? pCancel) =>
         PSDialog.PSDialogBuild(

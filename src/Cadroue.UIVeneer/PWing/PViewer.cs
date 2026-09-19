@@ -81,6 +81,7 @@ public sealed partial class PViewer : PPanel
     public PViewer(bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false) : base("")
     {
         LViewer.LViewerEligibleSet(pAudioEligible, pEditEligible, pColorPreview);
+        LViewer.LViewerOpenRequest += PViewerSourceOpen;
         AllowDrop = true;
         Focusable = true;
         FocusVisualStyle = null;

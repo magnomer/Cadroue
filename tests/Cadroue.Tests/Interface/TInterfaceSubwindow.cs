@@ -73,9 +73,11 @@ internal static partial class TInterface
     internal static LSMonitor TMonitorCreate() => new();
     internal static void TMonitorCursorAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
         monitor.LSMonitorCursorChange += handler;
-    internal static void TMonitorZoomAttach(LSMonitor monitor, Action handler) => monitor.LSMonitorZoomChange += handler;
+    internal static void TMonitorZoomAttach(LSMonitor monitor, Action handler) =>
+        monitor.LSMonitorZoomChange += handler;
     internal static void TMonitorCursorSet(LSMonitor monitor, TimeSpan cursor) => monitor.LSMonitorCursorSet(cursor);
-    internal static void TMonitorZoom(LSMonitor monitor, double factor, double most) => monitor.LSMonitorZoom(factor, most);
+    internal static void TMonitorZoom(LSMonitor monitor, double factor, double most) =>
+        monitor.LSMonitorZoom(factor, most);
     internal static void TMonitorOffsetSet(LSMonitor monitor, double offset) => monitor.LSMonitorOffsetSet(offset);
     internal static double TMonitorFractionResolve(LSMonitor monitor, double local) =>
         monitor.LSMonitorFractionResolve(local);

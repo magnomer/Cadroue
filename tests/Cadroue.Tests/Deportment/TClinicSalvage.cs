@@ -24,7 +24,8 @@ public sealed class TClinicSalvage
 
         TInterface.TClinicStepSet(clinic, "Container");
         TInterface.TClinicActiveSet(clinic, true);
-        TInterface.TClinicSalvageSet(clinic, clinic.LClinicSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisFixed });
+        TInterface.TClinicSalvageSet(
+            clinic, clinic.LClinicSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisFixed });
 
         Assert.Equal(LSalvageBasis.LSalvageBasisFixed, clinic.LClinicSalvage.LWorkSalvageBasis);
         Assert.Equal(3, plans);
@@ -66,7 +67,8 @@ public sealed class TClinicSalvage
         Assert.True(TInterface.TClinicRepairCheck(restored));
         Assert.Equal(plan.LWorkFixSalvage, read.LWorkFixSalvage);
         Assert.Equal(plan.LWorkFixSteps, read.LWorkFixSteps);
-        Assert.Contains(read.LWorkFixSteps, step => step.LWorkFixKind == LFlawKind.LFlawKindTiming && step.LWorkFixRepair);
+        Assert.Contains(
+            read.LWorkFixSteps, step => step.LWorkFixKind == LFlawKind.LFlawKindTiming && step.LWorkFixRepair);
         Assert.Equal(1, plans);
     }
 }

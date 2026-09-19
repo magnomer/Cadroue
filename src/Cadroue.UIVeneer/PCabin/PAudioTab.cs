@@ -131,7 +131,6 @@ public sealed partial class PAudioTab : PTabSurface
             LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
         pList.PListPathChange += PAudioPathShow;
         pList.PListItemsAdd += PAudioItemsHandle;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.LViewer.LViewerMediaChange += PAudioMediaHandle;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
@@ -158,7 +157,7 @@ public sealed partial class PAudioTab : PTabSurface
     public override PList? PTabList => pList;
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         if (pInspector.PInspectorPersistentCheck())
         {
             lPreferenceTabLayout.LSceneInspector = new LSceneInspectorRecord

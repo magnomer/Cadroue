@@ -86,7 +86,8 @@ public sealed partial class LSEncoder
     {
         bool lKnown = LRepertoireCatalog.LRepertoireContainerNames.Contains(lContainer);
         string[] lItems = LRepertoireCatalog.LRepertoireEncodersRead()
-            .Where(lCandidate => (!lKnown || LRepertoireCatalog.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
+            .Where(lCandidate =>
+                (!lKnown || LRepertoireCatalog.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
                 && LTrialSet.LTrialSetCheck(lCandidate))
             .Select(lCandidate => lCandidate.LRepertoireText)
             .ToArray();
@@ -194,7 +195,9 @@ public sealed partial class LSEncoder
     {
         lWidth = Math.Max(0, lWidth);
         lHeight = Math.Max(0, lHeight);
-        int lTier = lWidth == 0 && lHeight == 0 ? 0 : lWidth > 0 && lHeight > 0 ? LSEncoderTierResolve(lWidth, lHeight) : -1;
+        int lTier = lWidth == 0 && lHeight == 0
+            ? 0
+            : lWidth > 0 && lHeight > 0 ? LSEncoderTierResolve(lWidth, lHeight) : -1;
         if (lWidth == lsEncoderWidth && lHeight == lsEncoderHeight && lTier == lsEncoderSizeTier)
         {
             return false;

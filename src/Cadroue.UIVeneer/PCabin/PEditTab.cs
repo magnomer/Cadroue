@@ -175,7 +175,6 @@ public sealed partial class PEditTab : PTabSurface
         pViewer.LViewer.LViewerMediaChange += _ => PEditCropRestore();
         pList.PListPathChange += PEditPathShow;
         pList.PListItemsAdd += PEditItemsHandle;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindEdit);
@@ -222,7 +221,7 @@ public sealed partial class PEditTab : PTabSurface
     public override PList? PTabList => pList;
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         bool pCropPersistent = pCropOwner.LCropboxStatePersistent;
         bool pVideoPersistent = pInspector.PTonePersistentCheck();
         bool pSkipPersistent = pInspector.PSkipPersistentCheck();

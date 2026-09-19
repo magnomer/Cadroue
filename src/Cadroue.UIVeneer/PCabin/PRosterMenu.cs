@@ -3,6 +3,7 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 using Cadroue.UIVeneer.PWing;
 
@@ -33,7 +34,7 @@ public sealed partial class PRoster
         IReadOnlyList<string> pRelayPaths = PRosterPathsRead(pWorkItem);
         if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || pRelayPaths.Count == 0
-            || PStrip.PStripCurrent is not { } pTabset)
+            || PWindow.PWindowStripRead() is not { } pTabset)
         {
             pArgs.Handled = true;
             return;
@@ -43,22 +44,23 @@ public sealed partial class PRoster
         MenuItem pHeader = PMenu.PMenuItemCreate(
             pRelayPaths.Count > 1
                 ? LLocalization.LLocalizationFormat("Roster.Relay.Many", pRelayPaths.Count)
-                : LLocalization.LLocalizationTextRead("Roster.Relay.One"), null);
+                : LLocalization.LLocalizationTextRead("Roster.Relay.One"));
         pHeader.IsEnabled = false;
         pMenu.Items.Add(pHeader);
 
         bool pAnyTarget = false;
-        foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
+        foreach (LStripTab lStripTab in pTabset.LStrip.LStripTabs)
         {
-            if (pTabRecord.PTabWorkspace.PWorkspaceSurface.PTabList is null)
+            if (lStripTab.LStripTabDocket is null)
             {
                 continue;
             }
 
             pAnyTarget = true;
-            PTabRecord pTargetRecord = pTabRecord;
-            MenuItem pItem = PMenu.PMenuItemCreate(pTabRecord.PTabTitle, pTabRecord.PTabIconSource);
-            pItem.Click += (_, _) => PRosterRelaySend(pTargetRecord, pRelayPaths);
+            LStripTab lTargetTab = lStripTab;
+            MenuItem pItem = PMenu.PMenuItemCreate(
+                lStripTab.LStripTabTitle, PTabIcon.PTabIconRead(lStripTab.LStripTabKey));
+            pItem.Click += (_, _) => PRosterRelaySend(lTargetTab, pRelayPaths);
             pMenu.Items.Add(pItem);
         }
 
@@ -82,8 +84,7 @@ public sealed partial class PRoster
         MenuItem pRestart = PMenu.PMenuItemCreate(
             pRestartItems.Length > 1
                 ? LLocalization.LLocalizationFormat("Roster.Menu.RestartMany", pRestartItems.Length)
-                : LLocalization.LLocalizationTextRead("Roster.Menu.Restart"),
-            null);
+                : LLocalization.LLocalizationTextRead("Roster.Menu.Restart"));
         LWorkItem[] pRestartTargets = pRestartItems;
         pRestart.Click += (_, _) =>
         {
@@ -109,8 +110,7 @@ public sealed partial class PRoster
         MenuItem pCancel = PMenu.PMenuItemCreate(
             pCancelItems.Length > 1
                 ? LLocalization.LLocalizationFormat("Roster.Menu.CancelMany", pCancelItems.Length)
-                : LLocalization.LLocalizationTextRead("Roster.Menu.Cancel"),
-            null);
+                : LLocalization.LLocalizationTextRead("Roster.Menu.Cancel"));
         LWorkItem[] pCancelTargets = pCancelItems;
         pCancel.Click += (_, _) =>
         {
@@ -160,14 +160,14 @@ public sealed partial class PRoster
             ? pWorkItem.LWorkOutputPath
             : null;
 
-    private static void PRosterRelaySend(PTabRecord pTargetRecord, IReadOnlyList<string> pRelayPaths)
+    private static void PRosterRelaySend(LStripTab lTargetTab, IReadOnlyList<string> pRelayPaths)
     {
-        if (pTargetRecord.PTabWorkspace.PWorkspaceSurface.PTabList?.PListDocketRead() is not { } pTargetOwner)
+        if (lTargetTab.LStripTabDocket is not { } pTargetOwner)
         {
             return;
         }
 
-        PStrip.PStripCurrent?.PStripSelect(pTargetRecord);
+        PWindow.PWindowStripRead()?.LStrip.LStripSelect(lTargetTab);
         pTargetOwner.LDocketPathsAdd(
             Cadroue.Media.LMedia.LMediaPathScan(pRelayPaths).GetAwaiter().GetResult().LMediaScanPaths,
             Cadroue.Application.LGate.LGateBatchCreate());

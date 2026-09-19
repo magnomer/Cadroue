@@ -145,6 +145,18 @@ public sealed class LViewer
 
     public void LViewerRequestSet(string lRequestPath) => lViewerRequestPath = lRequestPath;
 
+    public event Action<string>? LViewerOpenRequest;
+
+    public void LViewerPathHandle(string? lPath)
+    {
+        if (string.IsNullOrWhiteSpace(lPath) || LViewerSourceMatch(lPath))
+        {
+            return;
+        }
+
+        LViewerOpenRequest?.Invoke(lPath);
+    }
+
     public bool LViewerSourceMatch(string lRequestPath) =>
         string.Equals(lViewerRequestPath, lRequestPath, StringComparison.OrdinalIgnoreCase)
         && (lViewerMediaInfo is not null || lViewerIntent is not null);

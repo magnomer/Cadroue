@@ -145,7 +145,6 @@ public sealed class PFixTab : PTabSurface
         pList.PListPathChange += PFixPathShow;
         pList.PListItemsAdd += PFixItemsHandle;
         pList.PListClearChange += PFixClearHandle;
-        PTabViewerAttach(pList, pViewer, pFlow);
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
@@ -179,7 +178,7 @@ public sealed class PFixTab : PTabSurface
     public override PList? PTabList => pList;
     public override LSceneTabRecord PTabLayoutRead()
     {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutRead(pTabGrid);
+        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
         LWorkFix pFixPlan = pClinic.PClinicPlanRead();
         LWorkFix pFixPersistent = LFix.LFixPersistentResolve(pFixPlan);
         bool pFixSalvagePersistent = pFixPlan.LWorkFixSalvage.LWorkSalvagePersistent;

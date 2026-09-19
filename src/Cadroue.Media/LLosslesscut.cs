@@ -225,6 +225,9 @@ public static class LLosslesscut
     public static bool LLosslesscutVersionCheck(int? lLosslesscutVersion) =>
         lLosslesscutVersion is null or LLosslesscutVersionSupported;
 
+    public static string LLosslesscutPathNormalize(string lLosslesscutSourcePath) =>
+        Path.GetFullPath(lLosslesscutSourcePath);
+
     public static IReadOnlyList<string> LLosslesscutAdjacentRead(string lLosslesscutSourcePath)
     {
         string lLosslesscutFullPath = Path.GetFullPath(lLosslesscutSourcePath);

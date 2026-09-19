@@ -32,6 +32,12 @@ A missing logic assembly fails the audit with a build hint rather than passing w
 
 The folder each `git ls-files` pattern names, without its wildcard.
 
+## `public static IReadOnlySet<string> TAuditDeportmentRead()`
+
+Every type name and member name declared in the Deportment namespace of the compilation.
+The reach walk reads it so a markup binding to Deportment state is not mistaken for a reach into logic.
+Empty before the compilation exists.
+
 ## `public static bool TAuditWalkCheck(SyntaxNode root)`
 
 True for a file under a walked root, so Deportment sources compile but are not audited for custody or strictness.

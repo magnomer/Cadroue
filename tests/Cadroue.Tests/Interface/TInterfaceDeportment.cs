@@ -107,7 +107,8 @@ internal static partial class TInterface
     internal static LWorkNoiseStep TNoiseStepRead(LNoise noise) => noise.LNoiseStep;
 
     internal static LSensor TSensorCreate() => new();
-    internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) => LDetector.LDetectorTokensRead(kind);
+    internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) =>
+        LDetector.LDetectorTokensRead(kind);
     internal static void TSensorPresetSelect(LSensor sensor, LDetectorKind kind, string token) =>
         sensor.LSensorPresetSelect(kind, token);
     internal static void TSensorTokenSet(LSensor sensor, LDetectorKind kind, string token) =>
@@ -115,7 +116,8 @@ internal static partial class TInterface
     internal static void TSensorStepSet(LSensor sensor, LDetectorStep step) => sensor.LSensorStepSet(step);
     internal static void TSensorThresholdSet(LSensor sensor, LDetectorKind kind, double threshold) =>
         sensor.LSensorThresholdSet(kind, threshold);
-    internal static void TSensorMetricSet(LSensor sensor, LDetectorMetricMode metric) => sensor.LSensorMetricSet(metric);
+    internal static void TSensorMetricSet(LSensor sensor, LDetectorMetricMode metric) =>
+        sensor.LSensorMetricSet(metric);
     internal static string? TSensorTokenRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorTokenRead(kind);
     internal static string? TSensorMatchRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorMatchRead(kind);
     internal static LDetectorStep TSensorStepRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorStepRead(kind);

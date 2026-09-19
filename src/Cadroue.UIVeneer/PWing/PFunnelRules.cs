@@ -301,15 +301,15 @@ public sealed class PFunnelRules : PPanel
     private void PFunnelMenuShow(UIElement pTarget)
     {
         MenuItem pFilenameItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"), null);
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"));
         pFilenameItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormFilename);
 
         MenuItem pRegexItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"), null);
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"));
         pRegexItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRegex);
 
         MenuItem pRemainderItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"), null);
+            LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"));
         pRemainderItem.IsEnabled = !LFunnel.LFunnelRemainderCheck();
         pRemainderItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRemainder);
 
