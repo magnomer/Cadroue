@@ -436,16 +436,6 @@ internal static partial class TInterface
     internal static double TColumnFixedRead(LColumn column, int index) => column.LColumnFixedRead(index);
     internal static double TColumnPixelRead(LColumn column, int index) => column.LColumnPixelRead(index);
 
-    internal static LLog TLogCreate() => new();
-    internal static LLogRow TLogRowCreate() => new();
-    internal static void TLogFileSet(LLog log, string path, string livePath) => log.LLogFileSet(path, livePath);
-    internal static bool TLogLiveSet(LLog log, string livePath) => log.LLogLiveSet(livePath);
-    internal static bool TLogFileCheck(LLog log, string path) => log.LLogFileCheck(path);
-    internal static void TLogFollowSet(LLog log, bool follow) => log.LLogFollowSet(follow);
-    internal static void TLogSnapshotSet(LLog log, long sequence) => log.LLogSnapshotSet(sequence);
-    internal static bool TLogSnapshotCheck(LLog log, long sequence) => log.LLogSnapshotCheck(sequence);
-    internal static bool TLogExpandToggle(LLog log, LLogRow row) => log.LLogExpandToggle(row);
-
     internal static LAsk TAskCreate(string question, string action) => new(question, action);
     internal static void TAskAttach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise += handler;
     internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise -= handler;

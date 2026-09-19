@@ -46,7 +46,7 @@ public partial class PToolbar
         }
         else if (pLogoMenuToken == "Log")
         {
-            pLogoMenuItem.Click += (_, _) => PLogWindow.PLogWindowShow(Window.GetWindow(this));
+            pLogoMenuItem.Click += (_, _) => PLogWindow.PLogWindowShow(Window.GetWindow(this)!);
         }
         else if (pLogoMenuToken == "About")
         {

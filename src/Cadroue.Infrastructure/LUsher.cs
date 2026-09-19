@@ -10,6 +10,10 @@ public static class LUsher
     public static bool LUsherFolderExist(string? lUsherFolder) =>
         !string.IsNullOrWhiteSpace(lUsherFolder) && Directory.Exists(lUsherFolder);
 
+    public static string LUsherNameRead(string lUsherPath) => Path.GetFileName(lUsherPath);
+
+    public static string LUsherStemRead(string lUsherPath) => Path.GetFileNameWithoutExtension(lUsherPath);
+
     public static string? LUsherPathOpen(string lUsherPath, string? lUsherFallback = null)
     {
         try

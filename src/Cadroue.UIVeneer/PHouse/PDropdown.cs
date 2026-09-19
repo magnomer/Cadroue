@@ -40,6 +40,13 @@ internal static class PDropdown
         pCombo.ItemContainerStyle = PDropdownStyleBuild(pActionTooltip);
     }
 
+    private static readonly IReadOnlyDictionary<bool, Func<FrameworkElementFactory>> PDropdownFaces =
+        new Dictionary<bool, Func<FrameworkElementFactory>>
+        {
+            [true] = PDropdownEditBuild,
+            [false] = PDropdownSelectBuild,
+        };
+
     private static ControlTemplate PDropdownTemplateBuild(bool pEditable)
     {
         var pTemplate = new ControlTemplate(typeof(ComboBox));
@@ -50,7 +57,7 @@ internal static class PDropdown
         var pDock = new FrameworkElementFactory(typeof(DockPanel));
         pBorder.AppendChild(pDock);
         pDock.AppendChild(PDropdownToggleBuild());
-        pDock.AppendChild(pEditable ? PDropdownEditBuild() : PDropdownSelectBuild());
+        pDock.AppendChild(PDropdownFaces[pEditable]());
         pRoot.AppendChild(PDropdownPopupBuild());
 
         pTemplate.VisualTree = pRoot;

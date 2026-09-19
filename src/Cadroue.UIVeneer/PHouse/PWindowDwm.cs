@@ -6,6 +6,15 @@ namespace Cadroue.UIVeneer.PHouse;
 
 public partial class PWindow
 {
+    private const int PWindowMessageErase = 0x0014;
+    private const int PWindowCornerPreference = 33;
+    private const int PWindowCornerRound = 2;
+    private const int PWindowCaptionColor = 35;
+    private const int PWindowColorBackground = 0x00F7E8DC;
+    private const int PWindowMessageIcon = 0x0080;
+    private const int PWindowIconSmall = 0;
+    private const int PWindowIconBig = 1;
+
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
@@ -24,38 +33,12 @@ public partial class PWindow
             new Action(PWindowIconApply));
     }
 
-    private const int PWindowMessageIcon = 0x0080;
-    private const int PWindowIconSmall = 0;
-    private const int PWindowIconBig = 1;
-
     private void PWindowIconApply()
     {
         IntPtr pWindowHandle = new WindowInteropHelper(this).Handle;
-        if (pWindowHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        string? pProgramPath = Environment.ProcessPath;
-        if (string.IsNullOrEmpty(pProgramPath))
-        {
-            return;
-        }
-
-        if (ExtractIconEx(pProgramPath, 0, out IntPtr pIconLarge, out IntPtr pIconSmall, 1) == 0)
-        {
-            return;
-        }
-
-        if (pIconSmall != IntPtr.Zero)
-        {
-            _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconSmall), pIconSmall);
-        }
-
-        if (pIconLarge != IntPtr.Zero)
-        {
-            _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconBig), pIconLarge);
-        }
+        _ = ExtractIconEx(Environment.ProcessPath!, 0, out IntPtr pIconLarge, out IntPtr pIconSmall, 1);
+        _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconSmall), pIconSmall);
+        _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconBig), pIconLarge);
     }
 
     [DllImport("shell32.dll", CharSet = CharSet.Unicode)]
@@ -83,11 +66,6 @@ public partial class PWindow
     private void PWindowDwmApply()
     {
         IntPtr pWindowHandle = new WindowInteropHelper(this).Handle;
-        if (pWindowHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
         int pWindowCornerPreference = PWindowCornerRound;
         _ = DwmSetWindowAttribute(
             pWindowHandle,

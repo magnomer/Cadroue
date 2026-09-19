@@ -228,6 +228,7 @@ internal static class TAuditNameRegistry
         "Viewfinder",
         "Violation",
         "Volume",
+        "Walk",
         "Warning",
         "Waveform",
         "Whitebalance",

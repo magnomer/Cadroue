@@ -1,263 +1,57 @@
-using System.Globalization;
 using System.Windows;
-using System.Windows.Media;
-using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PHouse;
 
 public partial class PWindow
 {
-    private DragDropEffects? pDropLastEffect;
-    private object? pDropTraceData;
-    private readonly List<string> pDropTrace = [];
+    private static readonly Type[] PDropGroupTypes = [typeof(PGroup)];
+
     private void PDropHandlersAdd()
     {
         AddHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnterHandle), true);
-        AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept), true);
+        AddHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropOverHandle), true);
         AddHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle), true);
     }
 
     private void PDropHandlersRemove()
     {
         RemoveHandler(DragDrop.PreviewDragEnterEvent, new DragEventHandler(PDropEnterHandle));
-        RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropAccept));
+        RemoveHandler(DragDrop.PreviewDragOverEvent, new DragEventHandler(PDropOverHandle));
         RemoveHandler(DragDrop.PreviewDropEvent, new DragEventHandler(PDropHandle));
     }
 
     private void PDropEnterHandle(object sender, DragEventArgs dragEvent)
     {
-        bool pDropGroup = PDropGroupCheck(dragEvent);
-        DragDropEffects pDropEffect = pDropGroup ? DragDropEffects.None : PDropEffectRead(dragEvent, out _);
-        if (!pDropGroup)
-        {
-            PDropTraceAppend(
-                dragEvent,
-                "Drag entered window: "
-                + (pDropEffect == DragDropEffects.None
-                    ? "will REFUSE (forbidden cursor)"
-                    : $"will accept ({pDropEffect})"),
-                $"originalSource={dragEvent.OriginalSource?.GetType().Name ?? "null"}, "
-                + $"list={(pListActive is null ? "NULL" : "present")}, "
-                + $"viewer={(pViewerActive is null ? "NULL" : "present")}, "
-                + $"audioTab={PWindowAudioCheck()}, groupAncestor={pDropGroup}");
-        }
-
-        PDropAccept(sender, dragEvent);
+        lWindow.LWindowDrop.LWindowEnterHandle(PDropDragRead(dragEvent));
+        PDropResultApply(dragEvent);
     }
 
-    private void PDropAccept(object sender, DragEventArgs dragEvent)
+    private void PDropOverHandle(object sender, DragEventArgs dragEvent)
     {
-        if (PDropGroupCheck(dragEvent))
-        {
-            pDropLastEffect = null;
-            return;
-        }
-
-        PDropTraceStart(dragEvent);
-        DragDropEffects dropEffect = PDropEffectRead(dragEvent, out string dropReason);
-        if (dropEffect != pDropLastEffect)
-        {
-            pDropLastEffect = dropEffect;
-            PDropTraceAppend(
-                dragEvent,
-                "Drag over: "
-                + $"{(dropEffect == DragDropEffects.None ? "REFUSED (forbidden cursor)" : dropEffect.ToString())}",
-                dropReason);
-        }
-
-        dragEvent.Effects = dropEffect;
-        dragEvent.Handled = true;
+        lWindow.LWindowDrop.LWindowOverHandle(PDropDragRead(dragEvent));
+        PDropResultApply(dragEvent);
     }
 
     private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
-        if (PDropGroupCheck(dragEvent))
-        {
-            return;
-        }
-
-        pDropLastEffect = null;
-        DragDropEffects dropEffect = PDropEffectRead(dragEvent, out string dropReason);
-        dragEvent.Effects = dropEffect;
-        dragEvent.Handled = true;
-
-        string dropTarget = pListActive is not null ? "list" : pViewerActive is not null ? "viewer" : "none";
-        PDropTraceAppend(
-            dragEvent,
-            $"Drop released: {(dropEffect == DragDropEffects.None ? "REFUSED" : "accepted")} onto {dropTarget}",
-            dropReason);
-
-        if (dropEffect == DragDropEffects.None)
-        {
-            PDropTraceRecord($"File drag refused onto {dropTarget}");
-            return;
-        }
-
-        if (pListActive is not null)
-        {
-            IReadOnlyList<string> dropPaths = PDropPathsRead(dragEvent);
-            _ = pListActive.PListPathsAdd(dropPaths);
-            PDropTraceAppend(dragEvent, $"Drop into list: {dropPaths.Count} path(s) handed to the list scan");
-            PDropTraceRecord($"File drag accepted onto list ({dropEffect})");
-            return;
-        }
-
-        if (pViewerActive is null)
-        {
-            PDropTraceRecord($"File drag accepted onto {dropTarget} ({dropEffect})");
-            return;
-        }
-
-        string? sourcePath = PDropPathRead(dragEvent);
-        if (sourcePath is null)
-        {
-            dragEvent.Effects = DragDropEffects.None;
-            PDropTraceAppend(dragEvent, "Drop into viewer refused: no existing file in payload");
-            PDropTraceRecord("File drag refused onto viewer", warning: true);
-            return;
-        }
-
-        pViewerActive.PViewerSourceOpen(sourcePath);
-        PDropTraceAppend(dragEvent, $"Drop into viewer: opened {System.IO.Path.GetFileName(sourcePath)}");
-        PDropTraceRecord($"File drag accepted onto viewer ({dropEffect})");
+        lWindow.LWindowDrop.LWindowDropHandle(PDropDragRead(dragEvent));
+        PDropResultApply(dragEvent);
     }
 
-    private void PDropTraceAppend(DragEventArgs dragEvent, string pDropSummary, string? pDropDetail = null)
+    private void PDropResultApply(DragEventArgs dragEvent)
     {
-        PDropTraceStart(dragEvent);
-
-        string pDropTime = DateTimeOffset.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
-        pDropTrace.Add($"{pDropTime}  {pDropSummary}");
-        if (!string.IsNullOrWhiteSpace(pDropDetail))
-        {
-            pDropTrace.Add($"{new string(' ', 14)}{pDropDetail}");
-        }
+        dragEvent.Effects = PLook.PLookDropEffect[lWindow.LWindowDrop.LWindowDropEffect];
+        dragEvent.Handled = lWindow.LWindowDrop.LWindowDropHandled;
     }
 
-    private void PDropTraceStart(DragEventArgs dragEvent)
-    {
-        if (!ReferenceEquals(pDropTraceData, dragEvent.Data))
-        {
-            pDropTraceData = dragEvent.Data;
-            pDropTrace.Clear();
-            pDropLastEffect = null;
-        }
-    }
+    private static LWindowDrag PDropDragRead(DragEventArgs dragEvent) => new(
+        dragEvent.Data.GetData(DataFormats.FileDrop) as string[],
+        PWalk.PWalkParentCheck(dragEvent.OriginalSource as DependencyObject, PDropGroupMatch),
+        dragEvent.OriginalSource?.GetType().Name,
+        dragEvent.AllowedEffects.HasFlag(DragDropEffects.Copy),
+        dragEvent.Data);
 
-    private void PDropTraceRecord(string pDropSummary, bool warning = false)
-    {
-        string? pDropDetail = pDropTrace.Count == 0
-            ? null
-            : string.Join(Environment.NewLine, pDropTrace);
-        if (warning)
-        {
-            LTraceLog.LTraceWarningRecord(pDropSummary, pDropDetail);
-        }
-        else
-        {
-            LTraceLog.LTraceInfoRecord(pDropSummary, pDropDetail);
-        }
-
-        pDropTraceData = null;
-        pDropTrace.Clear();
-        pDropLastEffect = null;
-    }
-
-    private static bool PDropGroupCheck(DragEventArgs dragEvent)
-    {
-        DependencyObject? pNode = dragEvent.OriginalSource as DependencyObject;
-        while (pNode is not null)
-        {
-            if (pNode is PGroup)
-            {
-                return true;
-            }
-
-            pNode = pNode is Visual pVisual ? VisualTreeHelper.GetParent(pVisual) : LogicalTreeHelper.GetParent(pNode);
-        }
-
-        return false;
-    }
-
-    private DragDropEffects PDropEffectRead(DragEventArgs dragEvent, out string pDropReason)
-    {
-        IReadOnlyList<string> pDropPaths = PDropPathsRead(dragEvent);
-        string pDropPayload = pDropPaths.Count == 0
-            ? "no FileDrop payload"
-            : $"{pDropPaths.Count} path(s): {string.Join(", ", pDropPaths.Select(System.IO.Path.GetFileName))}";
-
-        if (pListActive is not null)
-        {
-            bool pDropListMatch = pDropPaths
-                .Any(pDropPath =>
-                    LUsher.LUsherFolderExist(pDropPath) || Cadroue.Media.LMedia.LMediaCheck(pDropPath));
-            pDropReason = pDropListMatch
-                ? $"target=list, {pDropPayload}"
-                : $"target=list, none are media/folders — {pDropPayload}";
-            return pDropListMatch ? PDropAllowedRead(dragEvent) : DragDropEffects.None;
-        }
-
-        if (pViewerActive is null)
-        {
-            pDropReason = $"no active list or viewer (active tab has no drop target); {pDropPayload}";
-            return DragDropEffects.None;
-        }
-
-        string? pSourcePath = PDropPathRead(dragEvent);
-        if (pSourcePath is null)
-        {
-            pDropReason = $"target=viewer, no existing file in payload — {pDropPayload}";
-            return DragDropEffects.None;
-        }
-
-        if (Cadroue.Media.LMedia.LMediaAudioCheck(pSourcePath) && !PWindowAudioCheck())
-        {
-            pDropReason = "target=viewer, audio-only file on a video-only tab — "
-                + $"{System.IO.Path.GetFileName(pSourcePath)}";
-            return DragDropEffects.None;
-        }
-
-        pDropReason = $"target=viewer, {System.IO.Path.GetFileName(pSourcePath)}";
-        return PDropAllowedRead(dragEvent);
-    }
-
-    internal static DragDropEffects PDropAllowedRead(DragEventArgs dragEvent) =>
-        (dragEvent.AllowedEffects & DragDropEffects.Copy) == DragDropEffects.Copy
-            ? DragDropEffects.Copy
-            : DragDropEffects.None;
-
-    private static IReadOnlyList<string> PDropPathsRead(DragEventArgs dragEvent)
-    {
-        if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop)
-            || dragEvent.Data.GetData(DataFormats.FileDrop) is not string[] dropPaths)
-        {
-            return [];
-        }
-
-        return dropPaths;
-    }
-
-    private static string? PDropPathRead(DragEventArgs dragEvent)
-    {
-        if (!dragEvent.Data.GetDataPresent(DataFormats.FileDrop))
-        {
-            return null;
-        }
-
-        if (dragEvent.Data.GetData(DataFormats.FileDrop) is not string[] sourcePaths)
-        {
-            return null;
-        }
-
-        foreach (string sourcePath in sourcePaths)
-        {
-            if (LUsher.LUsherFileExist(sourcePath))
-            {
-                return sourcePath;
-            }
-        }
-
-        return null;
-    }
+    private static bool PDropGroupMatch(DependencyObject pNode) => PWalk.PWalkTypeCheck(pNode, PDropGroupTypes);
 }

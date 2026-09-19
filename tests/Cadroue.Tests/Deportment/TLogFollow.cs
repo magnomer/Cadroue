@@ -1,3 +1,4 @@
+using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 using Xunit;
@@ -44,10 +45,13 @@ public sealed class TLogFollow
     public void Expand_TogglesRow()
     {
         LLog log = TInterface.TLogCreate();
-        LLogRow row = TInterface.TLogRowCreate();
+        LLogRow row = TInterface.TLogRowCreate(
+            TInterface.TTraceEntryCreate(LTraceKind.LTraceInfo, "hello", null, null));
 
         Assert.True(TInterface.TLogExpandToggle(log, row));
         Assert.True(row.LLogRowExpanded);
-        Assert.False(TInterface.TLogExpandToggle(log, row));
+        Assert.True(TInterface.TLogExpandToggle(log, row));
+        Assert.False(row.LLogRowExpanded);
+        Assert.False(TInterface.TLogExpandToggle(log, null));
     }
 }

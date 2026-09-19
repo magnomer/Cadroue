@@ -75,7 +75,7 @@ public sealed partial class PViewer
                 return DragDropEffects.None;
             }
 
-            return PHouse.PWindow.PDropAllowedRead(dragEvent);
+            return PHouse.PLook.PLookCopyEffect[dragEvent.AllowedEffects.HasFlag(DragDropEffects.Copy)];
         }
 
         string? pSourcePath = PDropPathRead(dragEvent);
@@ -84,7 +84,7 @@ public sealed partial class PViewer
             return DragDropEffects.None;
         }
 
-        return PHouse.PWindow.PDropAllowedRead(dragEvent);
+        return PHouse.PLook.PLookCopyEffect[dragEvent.AllowedEffects.HasFlag(DragDropEffects.Copy)];
     }
 
     private static string? PDropPathRead(DragEventArgs dragEvent)

@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -6,7 +6,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using System.Windows.Media.Media3D;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PHouse;
 
@@ -15,47 +15,26 @@ internal static class PSash
     private const int PSashLimitMessage = 0x0024;
     private const uint PSashMonitorNearest = 0x00000002;
 
-    internal static bool PSashInteractiveCheck(DependencyObject? pSource)
-    {
-        while (pSource is not null)
-        {
-            if (pSource is ButtonBase
-                or TextBoxBase
-                or PasswordBox
-                or Selector
-                or RangeBase
-                or Thumb
-                or MenuItem
-                or Hyperlink)
-            {
-                return true;
-            }
+    private static readonly Type[] PSashInteractiveTypes =
+    [
+        typeof(ButtonBase),
+        typeof(TextBoxBase),
+        typeof(PasswordBox),
+        typeof(Selector),
+        typeof(RangeBase),
+        typeof(Thumb),
+        typeof(MenuItem),
+        typeof(Hyperlink),
+    ];
 
-            pSource = pSource is Visual or Visual3D
-                ? VisualTreeHelper.GetParent(pSource)
-                : LogicalTreeHelper.GetParent(pSource);
-        }
+    internal static bool PSashInteractiveCheck(DependencyObject? pSource) =>
+        PWalk.PWalkParentCheck(pSource, PSashInteractiveMatch);
 
-        return false;
-    }
+    private static bool PSashInteractiveMatch(DependencyObject pNode) =>
+        PWalk.PWalkTypeCheck(pNode, PSashInteractiveTypes);
 
-    internal static void PSashAttach(Window pWindow)
-    {
-        IntPtr pWindowHandle = new WindowInteropHelper(pWindow).Handle;
-        if (pWindowHandle == IntPtr.Zero)
-        {
-            EventHandler? pSourceHandle = null;
-            pSourceHandle = (_, _) =>
-            {
-                pWindow.SourceInitialized -= pSourceHandle;
-                PSashAttach(pWindow);
-            };
-            pWindow.SourceInitialized += pSourceHandle;
-            return;
-        }
-
-        HwndSource.FromHwnd(pWindowHandle)?.AddHook(PSashMessageHandle);
-    }
+    internal static void PSashAttach(Window pWindow) =>
+        PSashSourceRun(pWindow, PSashHookApply);
 
     internal static void PSashPlacementRestore(
         Window pWindow,
@@ -65,43 +44,82 @@ internal static class PSash
         double pHeight)
     {
         PSashAttach(pWindow);
-        if (new WindowInteropHelper(pWindow).Handle != IntPtr.Zero)
-        {
-            PSashPlacementApply(pWindow, pLeft, pTop, pWidth, pHeight);
-            return;
-        }
-
-        EventHandler? pSourceHandle = null;
-        pSourceHandle = (_, _) =>
-        {
-            pWindow.SourceInitialized -= pSourceHandle;
-            PSashPlacementApply(pWindow, pLeft, pTop, pWidth, pHeight);
-        };
-        pWindow.SourceInitialized += pSourceHandle;
+        PSashSourceRun(pWindow, pTarget => PSashPlacementApply(pTarget, pLeft, pTop, pWidth, pHeight));
     }
 
     internal static void PSashDragMove(Window pWindow, MouseEventArgs pEvent, double pBandHeight)
     {
-        if (pWindow.WindowState == WindowState.Maximized)
-        {
-            Point pPointer = pEvent.GetPosition(pWindow);
-            Point pPointerScreen = pWindow.PointToScreen(pPointer);
-            Rect pRestoreBounds = pWindow.RestoreBounds;
-            double pHorizontalRatio = pWindow.ActualWidth > 0
-                ? Math.Clamp(pPointer.X / pWindow.ActualWidth, 0, 1)
-                : 0.5;
-            Matrix pFromDevice = PresentationSource.FromVisual(pWindow)?.CompositionTarget?.TransformFromDevice
-                ?? Matrix.Identity;
-            Point pPointerDip = pFromDevice.Transform(pPointerScreen);
-
-            pWindow.WindowState = WindowState.Normal;
-            double pRestoreWidth = pRestoreBounds.Width > 0 ? pRestoreBounds.Width : pWindow.Width;
-            pWindow.Left = pPointerDip.X - (pRestoreWidth * pHorizontalRatio);
-            pWindow.Top = pPointerDip.Y - Math.Min(pPointer.Y, pBandHeight / 2);
-        }
-
+        Point pPointer = pEvent.GetPosition(pWindow);
+        Point pPointerDip = PSashPointerRead(pWindow, pPointer);
+        Rect pRestoreBounds = pWindow.RestoreBounds;
+        double pActualWidth = pWindow.ActualWidth;
+        bool pMaximized = PLook.PLookMaximized[pWindow.WindowState];
+        pWindow.WindowState = PLook.PLookUnmaximized[pWindow.WindowState];
+        (pWindow.Left, pWindow.Top) = LSash.LSashDragResolve(
+            pMaximized,
+            pWindow.Left,
+            pWindow.Top,
+            pPointer.X,
+            pPointer.Y,
+            pPointerDip.X,
+            pPointerDip.Y,
+            pActualWidth,
+            pRestoreBounds.Width,
+            pWindow.Width,
+            pBandHeight);
         pWindow.DragMove();
     }
+
+    internal static Point PSashPointerRead(Window pWindow, Point pWindowPoint)
+    {
+        Point pScreenPoint = pWindow.PointToScreen(pWindowPoint);
+        Matrix pFromDevice = PSashDipRead(pWindow);
+        return pFromDevice.Transform(pScreenPoint);
+    }
+
+    internal static LSashBounds PSashBoundsRead(Window pWindow) =>
+        new(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight);
+
+    internal static void PSashBoundsApply(Window pWindow, LSashBounds lBounds)
+    {
+        pWindow.Left = lBounds.LSashLeft;
+        pWindow.Top = lBounds.LSashTop;
+        pWindow.Width = lBounds.LSashWidth;
+        pWindow.Height = lBounds.LSashHeight;
+    }
+
+    private static void PSashSourceRun(Window pWindow, Action<Window> pStep)
+    {
+        if (PSashHandleRead(pWindow) == IntPtr.Zero)
+        {
+            PSashSourceDefer(pWindow, pStep);
+            return;
+        }
+
+        pStep(pWindow);
+    }
+
+    private static void PSashSourceDefer(Window pWindow, Action<Window> pStep)
+    {
+        EventHandler? pSourceHandle = null;
+        pSourceHandle = (_, _) =>
+        {
+            pWindow.SourceInitialized -= pSourceHandle;
+            pStep(pWindow);
+        };
+        pWindow.SourceInitialized += pSourceHandle;
+    }
+
+    private static IntPtr PSashHandleRead(Window pWindow) => new WindowInteropHelper(pWindow).Handle;
+
+    private static void PSashHookApply(Window pWindow) =>
+        HwndSource.FromHwnd(PSashHandleRead(pWindow))?.AddHook(PSashMessageHandle);
+
+    private static Matrix PSashDipRead(Window pWindow) =>
+        (PresentationSource.FromVisual(pWindow) as HwndSource)!.CompositionTarget.TransformFromDevice;
+
+    private static Matrix PSashDeviceRead(Window pWindow) =>
+        (PresentationSource.FromVisual(pWindow) as HwndSource)!.CompositionTarget.TransformToDevice;
 
     private static void PSashPlacementApply(
         Window pWindow,
@@ -110,74 +128,36 @@ internal static class PSash
         double pWidth,
         double pHeight)
     {
-        HwndSource? pSource = PresentationSource.FromVisual(pWindow) as HwndSource;
-        if (pSource?.CompositionTarget is not { } pCompositionTarget)
-        {
-            return;
-        }
-
-        double pDesiredLeft = pLeft is double pSavedLeft && double.IsFinite(pSavedLeft)
-            ? pSavedLeft
-            : double.IsFinite(pWindow.Left) ? pWindow.Left : SystemParameters.WorkArea.Left;
-        double pDesiredTop = pTop is double pSavedTop && double.IsFinite(pSavedTop)
-            ? pSavedTop
-            : double.IsFinite(pWindow.Top) ? pWindow.Top : SystemParameters.WorkArea.Top;
-        double pDesiredWidth = double.IsFinite(pWidth) && pWidth > 0
-            ? pWidth
-            : Math.Max(pWindow.ActualWidth, pWindow.MinWidth);
-        double pDesiredHeight = double.IsFinite(pHeight) && pHeight > 0
-            ? pHeight
-            : Math.Max(pWindow.ActualHeight, pWindow.MinHeight);
-        var pDesiredBounds = new Rect(pDesiredLeft, pDesiredTop, pDesiredWidth, pDesiredHeight);
-        Rect pWorkArea = PSashAreaRead(
-            pSource.Handle,
-            pDesiredBounds,
-            pCompositionTarget.TransformToDevice,
-            pCompositionTarget.TransformFromDevice);
-        Rect pBounds = PSashBoundsClamp(
-            pDesiredBounds,
-            pWorkArea,
+        LSashBounds lDesired = LSash.LSashPlacementResolve(
+            pLeft,
+            pTop,
+            pWidth,
+            pHeight,
+            PSashBoundsRead(pWindow),
+            pWindow.MinWidth,
+            pWindow.MinHeight,
+            SystemParameters.WorkArea.Left,
+            SystemParameters.WorkArea.Top);
+        LSashBounds lBounds = LSash.LSashBoundsClamp(
+            lDesired,
+            PSashAreaRead(pWindow, lDesired),
             pWindow.MinWidth,
             pWindow.MinHeight,
             pWindow.MaxWidth,
             pWindow.MaxHeight);
 
         pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-        pWindow.Width = pBounds.Width;
-        pWindow.Height = pBounds.Height;
-        pWindow.Left = pBounds.Left;
-        pWindow.Top = pBounds.Top;
+        pWindow.Width = lBounds.LSashWidth;
+        pWindow.Height = lBounds.LSashHeight;
+        pWindow.Left = lBounds.LSashLeft;
+        pWindow.Top = lBounds.LSashTop;
     }
 
-    private static Rect PSashBoundsClamp(
-        Rect pBounds,
-        Rect pWorkArea,
-        double pMinimumWidth,
-        double pMinimumHeight,
-        double pMaximumWidth,
-        double pMaximumHeight)
+    private static LSashBounds PSashAreaRead(Window pWindow, LSashBounds lBounds)
     {
-        double pWidthLimit = double.IsFinite(pMaximumWidth)
-            ? Math.Min(pMaximumWidth, pWorkArea.Width)
-            : pWorkArea.Width;
-        double pHeightLimit = double.IsFinite(pMaximumHeight)
-            ? Math.Min(pMaximumHeight, pWorkArea.Height)
-            : pWorkArea.Height;
-        double pWidth = Math.Min(Math.Max(pBounds.Width, pMinimumWidth), pWidthLimit);
-        double pHeight = Math.Min(Math.Max(pBounds.Height, pMinimumHeight), pHeightLimit);
-        double pLeft = Math.Clamp(pBounds.Left, pWorkArea.Left, pWorkArea.Right - pWidth);
-        double pTop = Math.Clamp(pBounds.Top, pWorkArea.Top, pWorkArea.Bottom - pHeight);
-        return new Rect(pLeft, pTop, pWidth, pHeight);
-    }
-
-    private static Rect PSashAreaRead(
-        IntPtr pWindowHandle,
-        Rect pBounds,
-        Matrix pToDevice,
-        Matrix pFromDevice)
-    {
-        Point pTopLeft = pToDevice.Transform(pBounds.TopLeft);
-        Point pBottomRight = pToDevice.Transform(pBounds.BottomRight);
+        Matrix pToDevice = PSashDeviceRead(pWindow);
+        Point pTopLeft = pToDevice.Transform(new Point(lBounds.LSashLeft, lBounds.LSashTop));
+        Point pBottomRight = pToDevice.Transform(new Point(lBounds.LSashRight, lBounds.LSashBottom));
         var pNativeBounds = new PSashRect
         {
             PSashLeft = (int)Math.Floor(pTopLeft.X),
@@ -188,20 +168,26 @@ internal static class PSash
         IntPtr pMonitor = MonitorFromRect(ref pNativeBounds, PSashMonitorNearest);
         if (pMonitor == IntPtr.Zero)
         {
-            pMonitor = MonitorFromWindow(pWindowHandle, PSashMonitorNearest);
+            pMonitor = MonitorFromWindow(PSashHandleRead(pWindow), PSashMonitorNearest);
         }
 
         var pMonitorInfo = new PSashMonitor { PSashSize = Marshal.SizeOf<PSashMonitor>() };
         if (pMonitor == IntPtr.Zero || !GetMonitorInfo(pMonitor, ref pMonitorInfo))
         {
-            return SystemParameters.WorkArea;
+            Rect pWorkArea = SystemParameters.WorkArea;
+            return new LSashBounds(pWorkArea.Left, pWorkArea.Top, pWorkArea.Width, pWorkArea.Height);
         }
 
+        Matrix pFromDevice = PSashDipRead(pWindow);
         Point pWorkTopLeft = pFromDevice.Transform(
             new Point(pMonitorInfo.PSashWork.PSashLeft, pMonitorInfo.PSashWork.PSashTop));
         Point pWorkBottomRight = pFromDevice.Transform(
             new Point(pMonitorInfo.PSashWork.PSashRight, pMonitorInfo.PSashWork.PSashBottom));
-        return new Rect(pWorkTopLeft, pWorkBottomRight);
+        return LSashBounds.LSashCornersCreate(
+            pWorkTopLeft.X,
+            pWorkTopLeft.Y,
+            pWorkBottomRight.X,
+            pWorkBottomRight.Y);
     }
 
     private static IntPtr PSashMessageHandle(
@@ -223,15 +209,18 @@ internal static class PSash
             return IntPtr.Zero;
         }
 
+        LSashLimits lLimits = LSash.LSashLimitsResolve(
+            pMonitorInfo.PSashBounds.PSashLeft,
+            pMonitorInfo.PSashBounds.PSashTop,
+            pMonitorInfo.PSashWork.PSashLeft,
+            pMonitorInfo.PSashWork.PSashTop,
+            pMonitorInfo.PSashWork.PSashRight,
+            pMonitorInfo.PSashWork.PSashBottom);
         PSashLimits pWindowLimits = Marshal.PtrToStructure<PSashLimits>(pLParam);
-        pWindowLimits.PSashPosition.PSashX =
-            pMonitorInfo.PSashWork.PSashLeft - pMonitorInfo.PSashBounds.PSashLeft;
-        pWindowLimits.PSashPosition.PSashY =
-            pMonitorInfo.PSashWork.PSashTop - pMonitorInfo.PSashBounds.PSashTop;
-        pWindowLimits.PSashSize.PSashX =
-            pMonitorInfo.PSashWork.PSashRight - pMonitorInfo.PSashWork.PSashLeft;
-        pWindowLimits.PSashSize.PSashY =
-            pMonitorInfo.PSashWork.PSashBottom - pMonitorInfo.PSashWork.PSashTop;
+        pWindowLimits.PSashPosition.PSashX = (int)lLimits.LSashX;
+        pWindowLimits.PSashPosition.PSashY = (int)lLimits.LSashY;
+        pWindowLimits.PSashSize.PSashX = (int)lLimits.LSashWidth;
+        pWindowLimits.PSashSize.PSashY = (int)lLimits.LSashHeight;
         Marshal.StructureToPtr(pWindowLimits, pLParam, false);
         pHandled = true;
         return IntPtr.Zero;

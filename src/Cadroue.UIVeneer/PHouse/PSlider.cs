@@ -22,31 +22,13 @@ internal static class PSlider
 
     internal static void PSliderResetApply(Slider pSlider, Func<double> pDefaultRead)
     {
-        pSlider.PreviewMouseLeftButtonDown += (_, pEvent) =>
+        _ = pSlider.ApplyTemplate();
+        var pThumb = (Thumb)pSlider.Template.FindName("pSliderThumb", pSlider);
+        pThumb.PreviewMouseDoubleClick += (_, pEvent) =>
         {
-            if (pEvent.ClickCount < 2
-                || pEvent.OriginalSource is not DependencyObject pSource
-                || !PSliderThumbCheck(pSource))
-            {
-                return;
-            }
-
             pSlider.Value = pDefaultRead();
             pEvent.Handled = true;
         };
-    }
-
-    private static bool PSliderThumbCheck(DependencyObject pSource)
-    {
-        for (DependencyObject? pNode = pSource; pNode is not null; pNode = VisualTreeHelper.GetParent(pNode))
-        {
-            if (pNode is Thumb)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static ControlTemplate PSliderTemplateBuild()

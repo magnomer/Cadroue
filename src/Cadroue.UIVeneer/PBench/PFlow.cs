@@ -155,6 +155,8 @@ public sealed partial class PFlow : UserControl
         }
     }
 
+    public void PFlowHeightSet(double pFlowHeight) => Height = pFlowHeight;
+
     public void PFlowSectionShow(bool sectionUiActive)
     {
         LFlow.LFlowSectionSet(sectionUiActive);

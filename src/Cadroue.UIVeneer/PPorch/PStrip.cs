@@ -183,7 +183,7 @@ public sealed partial class PStrip
     public static PTabRecord? PStripTabFind(Guid pStripTabId) =>
         PStripCurrent?.PStripRecords.FirstOrDefault(pTabRecord => pTabRecord.PTabId == pStripTabId);
 
-    public void PStripNameSet(PTabRecord pTabRecord, string pTabName)
+    public void PStripNameSet(PTabRecord pTabRecord, string? pTabName)
     {
         bool pStripHadCustom = pTabRecord.PTabNameCustom.Length > 0;
         if (LStrip.LStripNameSet(pTabRecord.LStripTab, pTabName))

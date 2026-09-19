@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIVeneer.PCabin;
@@ -41,6 +42,24 @@ public sealed partial class PWorkspace
         {
             PWorkspaceViewer.LViewer.LViewerMediaChange += PWorkspaceMediaHandle;
         }
+
+        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null)
+        {
+            PWorkspaceFlow.PFlowPlayingSource = PWorkspaceViewer.PViewerPlayingRead;
+            PWorkspaceViewer.LViewer.LViewerMediaChange += PWorkspaceFlowHandle;
+            PWorkspaceViewer.PViewerClockTick += PWorkspaceFlow.PFlowCursorUpdate;
+            PWorkspaceFlow.PFlowCursorChange += PWorkspaceViewer.PViewerSeek;
+            PWorkspaceFlow.PFlowDragChange += PWorkspaceViewer.PViewerDragSet;
+            PWorkspaceFlow.PFlowPlay += PWorkspaceViewer.PViewerPlay;
+            PWorkspaceFlow.PFlowPause += PWorkspaceViewer.PViewerPause;
+            PWorkspaceFlow.PFlowVolumeAdjust += PWorkspaceViewer.PViewerVolumeAdjust;
+        }
+
+        PWorkspaceSurface.PTabWidthChange += PWorkspaceWidthRaise;
+        if (PWorkspaceList is not null)
+        {
+            PWorkspaceList.PListMinimizeChange += PWorkspaceMinimizeHandle;
+        }
         PWorkspaceInfo?.PInfoAttach(PWorkspaceViewer);
         PWorkspaceRoot = PWorkspaceRootCreate();
 
@@ -67,6 +86,51 @@ public sealed partial class PWorkspace
     public PViewer? PWorkspaceViewer { get; }
 
     public PList? PWorkspaceList { get; }
+
+    private event Action? PWorkspaceWidthChange;
+
+    public void PWorkspaceWidthAttach(Action pHandler) => PWorkspaceWidthChange += pHandler;
+
+    public void PWorkspaceWidthDetach(Action pHandler) => PWorkspaceWidthChange -= pHandler;
+
+    private void PWorkspaceWidthRaise() => PWorkspaceWidthChange?.Invoke();
+
+    private void PWorkspaceMinimizeHandle(bool pMinimized) => PWorkspaceWidthRaise();
+
+    public void PWorkspaceCommandApply(double pFlowHeight)
+    {
+        PWorkspaceFlow?.PFlowCommandSet(true);
+        PWorkspaceFlow?.PFlowSectionShow(PWorkspaceSurface.PTabSectionVisible);
+        PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
+        PWorkspaceFlow?.PFlowOrderApply();
+        PWorkspaceViewer?.PViewerCommandSet(true);
+    }
+
+    public void PWorkspaceCommandReset()
+    {
+        PWorkspaceViewer?.PViewerDragSet(false);
+        PWorkspaceFlow?.PFlowSectionShow(false);
+        PWorkspaceFlow?.PFlowCommandSet(false);
+        PWorkspaceViewer?.PViewerCommandSet(false);
+    }
+
+    public void PWorkspaceFlowApply(double pFlowHeight)
+    {
+        PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
+        PWorkspaceFlow?.PFlowOrderApply();
+        PWorkspaceFlow?.PFlowPaletteApply();
+    }
+
+    private void PWorkspaceFlowHandle(LCargo pMediaStatus)
+    {
+        if (pMediaStatus.LCargoMediaInfo is LMediaInfo pMediaInfo)
+        {
+            PWorkspaceFlow?.PFlowAttach(pMediaInfo, pMediaStatus.LCargoSourcePath, TimeSpan.Zero);
+            return;
+        }
+
+        PWorkspaceFlow?.PFlowClear();
+    }
 
     public bool PWorkspaceMediaClear(IReadOnlySet<Guid> pWorkspaceActiveBatches)
     {
@@ -127,6 +191,24 @@ public sealed partial class PWorkspace
         if (PWorkspaceViewer is not null)
         {
             PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceMediaHandle;
+            PWorkspaceViewer.LViewer.LViewerMediaChange -= PWorkspaceFlowHandle;
+        }
+
+        if (PWorkspaceViewer is not null && PWorkspaceFlow is not null)
+        {
+            PWorkspaceViewer.PViewerClockTick -= PWorkspaceFlow.PFlowCursorUpdate;
+            PWorkspaceFlow.PFlowCursorChange -= PWorkspaceViewer.PViewerSeek;
+            PWorkspaceFlow.PFlowDragChange -= PWorkspaceViewer.PViewerDragSet;
+            PWorkspaceFlow.PFlowPlay -= PWorkspaceViewer.PViewerPlay;
+            PWorkspaceFlow.PFlowPause -= PWorkspaceViewer.PViewerPause;
+            PWorkspaceFlow.PFlowVolumeAdjust -= PWorkspaceViewer.PViewerVolumeAdjust;
+            PWorkspaceFlow.PFlowPlayingSource = null;
+        }
+
+        PWorkspaceSurface.PTabWidthChange -= PWorkspaceWidthRaise;
+        if (PWorkspaceList is not null)
+        {
+            PWorkspaceList.PListMinimizeChange -= PWorkspaceMinimizeHandle;
         }
 
         PWorkspaceRelayDetach();

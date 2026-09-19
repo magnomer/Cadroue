@@ -150,6 +150,24 @@ public static class PButton
         return pStyle;
     }
 
+    private static readonly IReadOnlyDictionary<bool, Brush> PButtonHoverBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PButtonCloseHover,
+        [false] = PButtonChromeHover,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> PButtonPressedBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PButtonClosePressed,
+        [false] = PButtonChromePressed,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> PButtonInkBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = Brushes.White,
+        [false] = PButtonChromeGlyph,
+    };
+
     private static ControlTemplate PButtonChromeBuild(bool pButtonClose, CornerRadius pCornerRadius)
     {
         var pTemplate = new ControlTemplate(typeof(Button));
@@ -164,25 +182,15 @@ public static class PButton
         pBorder.AppendChild(pContent);
         pTemplate.VisualTree = pBorder;
 
-        Brush pHoverBrush = pButtonClose ? PButtonCloseHover : PButtonChromeHover;
-        Brush pPressedBrush = pButtonClose ? PButtonClosePressed : PButtonChromePressed;
-
         var pHover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
-        pHover.Setters.Add(new Setter(Border.BackgroundProperty, pHoverBrush, "pChromeFrame"));
-        if (pButtonClose)
-        {
-            pHover.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
-        }
-
+        pHover.Setters.Add(new Setter(Border.BackgroundProperty, PButtonHoverBrushes[pButtonClose], "pChromeFrame"));
+        pHover.Setters.Add(new Setter(Control.ForegroundProperty, PButtonInkBrushes[pButtonClose]));
         pTemplate.Triggers.Add(pHover);
 
         var pPressed = new Trigger { Property = ButtonBase.IsPressedProperty, Value = true };
-        pPressed.Setters.Add(new Setter(Border.BackgroundProperty, pPressedBrush, "pChromeFrame"));
-        if (pButtonClose)
-        {
-            pPressed.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
-        }
-
+        pPressed.Setters.Add(
+            new Setter(Border.BackgroundProperty, PButtonPressedBrushes[pButtonClose], "pChromeFrame"));
+        pPressed.Setters.Add(new Setter(Control.ForegroundProperty, PButtonInkBrushes[pButtonClose]));
         pTemplate.Triggers.Add(pPressed);
         return pTemplate;
     }

@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PHouse;
 
@@ -20,9 +21,21 @@ internal sealed class PPicker : UserControl
     private static readonly Brush PPickerAccentBrush = new SolidColorBrush(Color.FromRgb(0x4C, 0x86, 0xF7));
     private static readonly Brush PPickerMutedBrush = new SolidColorBrush(Color.FromRgb(0x9A, 0xA5, 0xB4));
 
-    private readonly string[] pPickerItems;
-    private readonly IReadOnlyDictionary<string, string> pPickerLabels;
+    private static readonly IReadOnlyDictionary<bool, Brush> PPickerSummaryBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PPickerMutedBrush,
+        [false] = PPickerTextBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> PPickerFrameBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PPickerAccentBrush,
+        [false] = PLineBrush,
+    };
+
+    private readonly IReadOnlyList<LPickerItem> lPickerItems;
     private readonly Dictionary<string, CheckBox> pPickerBoxes = new(StringComparer.Ordinal);
+    private readonly StackPanel pPickerList = new() { Margin = new Thickness(6) };
     private readonly TextBlock pPickerSummary;
     private readonly Border pPickerFrame;
     private readonly Popup pPickerPopup;
@@ -30,30 +43,18 @@ internal sealed class PPicker : UserControl
     internal event Action? PPickerChange;
 
     internal PPicker(IReadOnlyList<string> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
-        : this(pItems, pSelected, pEmptyText, new Dictionary<string, string>(StringComparer.Ordinal))
+        : this(LPicker.LPickerItemsCreate(pItems, pSelected), pEmptyText)
     {
     }
 
     internal PPicker(IReadOnlyList<LLocalizationChoice> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
-        : this(
-            pItems.Select(pItem => pItem.LLocalizationChoiceToken).ToArray(),
-            pSelected,
-            pEmptyText,
-            pItems.ToDictionary(
-                pItem => pItem.LLocalizationChoiceToken,
-                pItem => pItem.ToString(),
-                StringComparer.Ordinal))
+        : this(LPicker.LPickerItemsCreate(pItems, pSelected), pEmptyText)
     {
     }
 
-    private PPicker(
-        IReadOnlyList<string> pItems,
-        IReadOnlyList<string> pSelected,
-        string pEmptyText,
-        IReadOnlyDictionary<string, string> pLabels)
+    private PPicker(IReadOnlyList<LPickerItem> lItems, string pEmptyText)
     {
-        pPickerItems = pItems.ToArray();
-        pPickerLabels = pLabels;
+        lPickerItems = lItems;
         PPickerEmptyText = pEmptyText;
         PScrollbar.PScrollbarApply(this);
 
@@ -66,7 +67,8 @@ internal sealed class PPicker : UserControl
         };
 
         ToggleButton pArrow = PPickerArrowBuild();
-        pPickerPopup = PPickerPopupBuild(pArrow, pSelected);
+        lPickerItems.ToList().ForEach(PPickerRowAdd);
+        pPickerPopup = PPickerPopupBuild(pArrow);
 
         var pDock = new DockPanel();
         DockPanel.SetDock(pArrow, Dock.Right);
@@ -93,7 +95,12 @@ internal sealed class PPicker : UserControl
     internal string PPickerEmptyText { get; }
 
     internal IReadOnlyList<string> PPickerSelectionRead() =>
-        pPickerItems.Where(pItem => pPickerBoxes[pItem].IsChecked == true).ToArray();
+        PPickerCheckedRead().Select(lItem => lItem.LPickerItemToken).ToArray();
+
+    private IEnumerable<LPickerItem> PPickerCheckedRead() => lPickerItems.Where(PPickerCheckedMatch);
+
+    private bool PPickerCheckedMatch(LPickerItem lItem) =>
+        pPickerBoxes[lItem.LPickerItemToken].IsChecked.GetValueOrDefault();
 
     private ToggleButton PPickerArrowBuild()
     {
@@ -113,24 +120,23 @@ internal sealed class PPicker : UserControl
         return pArrow;
     }
 
-    private Popup PPickerPopupBuild(ToggleButton pArrow, IReadOnlyList<string> pSelected)
+    private void PPickerRowAdd(LPickerItem lItem)
     {
-        var pList = new StackPanel { Margin = new Thickness(6) };
-        foreach (string pItem in pPickerItems)
+        var pBox = new CheckBox
         {
-            var pBox = new CheckBox
-            {
-                Content = PPickerLabelRead(pItem),
-                IsChecked = pSelected.Contains(pItem, StringComparer.Ordinal),
-                Margin = new Thickness(8, 6, 8, 6)
-            };
-            PCheckbox.PCheckboxApply(pBox);
-            pBox.Checked += (_, _) => PPickerChangeHandle();
-            pBox.Unchecked += (_, _) => PPickerChangeHandle();
-            pPickerBoxes[pItem] = pBox;
-            pList.Children.Add(pBox);
-        }
+            Content = lItem.LPickerItemLabel,
+            IsChecked = PLook.PLookChecked[lItem.LPickerItemChecked],
+            Margin = new Thickness(8, 6, 8, 6)
+        };
+        PCheckbox.PCheckboxApply(pBox);
+        pBox.Checked += (_, _) => PPickerChangeHandle();
+        pBox.Unchecked += (_, _) => PPickerChangeHandle();
+        pPickerBoxes[lItem.LPickerItemToken] = pBox;
+        pPickerList.Children.Add(pBox);
+    }
 
+    private Popup PPickerPopupBuild(ToggleButton pArrow)
+    {
         var pCard = new Border
         {
             Background = Brushes.White,
@@ -142,7 +148,7 @@ internal sealed class PPicker : UserControl
             {
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 MaxHeight = PPickerPopupHeight,
-                Content = pList
+                Content = pPickerList
             }
         };
         pCard.SetBinding(MinWidthProperty, new System.Windows.Data.Binding("ActualWidth") { Source = this });
@@ -166,7 +172,7 @@ internal sealed class PPicker : UserControl
     private void PPickerOpenSet(bool pOpen)
     {
         pPickerPopup.IsOpen = pOpen;
-        pPickerFrame.BorderBrush = pOpen ? PPickerAccentBrush : PLineBrush;
+        pPickerFrame.BorderBrush = PPickerFrameBrushes[pOpen];
     }
 
     private void PPickerChangeHandle()
@@ -177,15 +183,12 @@ internal sealed class PPicker : UserControl
 
     private void PPickerSummaryUpdate()
     {
-        IReadOnlyList<string> pSelection = PPickerSelectionRead();
-        pPickerSummary.Text = pSelection.Count == 0
-            ? PPickerEmptyText
-            : string.Join(", ", pSelection.Select(PPickerLabelRead));
-        pPickerSummary.Foreground = pSelection.Count == 0 ? PPickerMutedBrush : PPickerTextBrush;
+        (string lText, bool lEmpty) = LPicker.LPickerSummaryResolve(
+            PPickerCheckedRead().Select(lItem => lItem.LPickerItemLabel).ToArray(),
+            PPickerEmptyText);
+        pPickerSummary.Text = lText;
+        pPickerSummary.Foreground = PPickerSummaryBrushes[lEmpty];
     }
-
-    private string PPickerLabelRead(string pItem) =>
-        pPickerLabels.TryGetValue(pItem, out string? pLabel) ? pLabel : pItem;
 
     private static ControlTemplate PPickerTemplateBuild()
     {

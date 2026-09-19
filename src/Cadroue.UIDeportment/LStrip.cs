@@ -34,6 +34,8 @@ public sealed class LStripTab
 
     public bool LStripTabMerge => string.Equals(LStripTabKey, LStripMergeKey, StringComparison.Ordinal);
 
+    public bool LStripTabWorklist => string.Equals(LStripTabKey, LStripWorklistKey, StringComparison.Ordinal);
+
     public void LStripWorkspaceAttach(LPreset lPreset, LDocket? lDocket, Func<LSceneTabRecord> lLayoutSource)
     {
         LStripTabPreset = lPreset;
@@ -55,6 +57,7 @@ public sealed class LStripTab
 
     private const string LStripFunnelKey = "Funnel";
     private const string LStripMergeKey = "Merge";
+    private const string LStripWorklistKey = "Worklist";
     private Func<LSceneTabRecord>? lStripLayoutSource;
     private Func<bool>? lStripRelaySource;
     private Func<Guid, bool>? lStripCohortSource;

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PHouse;
 
@@ -10,84 +11,54 @@ public sealed class PGhost
 {
     private const double PGhostOpacity = 0.72;
 
+    private static readonly Type[] PGhostDecoratorTypes = [typeof(AdornerDecorator)];
+
     private readonly AdornerLayer pGhostLayer;
     private readonly PGhostAdorner pGhostAdorner;
     private readonly UIElement pGhostRoot;
-    private bool pGhostGone;
+    private readonly LGhost lGhost;
 
-    private PGhost(AdornerLayer pLayer, PGhostAdorner pAdorner, UIElement pRoot)
+    private PGhost(AdornerLayer pLayer, PGhostAdorner pAdorner, UIElement pRoot, LGhost lOwner)
     {
         pGhostLayer = pLayer;
         pGhostAdorner = pAdorner;
         pGhostRoot = pRoot;
+        lGhost = lOwner;
     }
 
-    public static PGhost? PGhostShow(FrameworkElement pSourceElement, Point pGrabOffset)
+    public static PGhost PGhostShow(FrameworkElement pSourceElement, Point pGrabOffset)
     {
-        if (pSourceElement.ActualWidth <= 0 || pSourceElement.ActualHeight <= 0)
-        {
-            return null;
-        }
-
-        UIElement? pRoot = PGhostRootRead(pSourceElement);
-        if (pRoot is null)
-        {
-            return null;
-        }
-
-        AdornerLayer? pLayer = AdornerLayer.GetAdornerLayer(pRoot);
-        if (pLayer is null)
-        {
-            return null;
-        }
-
-        ImageSource? pImage = PGhostImageCreate(pSourceElement);
-        if (pImage is null)
-        {
-            return null;
-        }
-
+        UIElement pRoot = PGhostRootRead(pSourceElement);
+        AdornerLayer pLayer = AdornerLayer.GetAdornerLayer(pRoot)!;
+        var lGhost = new LGhost(pGrabOffset.X, pGrabOffset.Y);
         var pAdorner = new PGhostAdorner(
             pRoot,
-            pImage,
+            PGhostImageCreate(pSourceElement),
             pSourceElement.ActualWidth,
             pSourceElement.ActualHeight,
-            pGrabOffset);
+            lGhost);
         pLayer.Add(pAdorner);
 
-        var pGhost = new PGhost(pLayer, pAdorner, pRoot);
+        var pGhost = new PGhost(pLayer, pAdorner, pRoot, lGhost);
         pGhost.PGhostCursorSync();
         return pGhost;
     }
 
     public void PGhostPointSet(Point pRootPoint)
     {
-        if (pGhostGone)
-        {
-            return;
-        }
-
-        pGhostAdorner.PGhostAdornerSet(pRootPoint);
+        lGhost.LGhostPointSet(pRootPoint.X, pRootPoint.Y);
+        pGhostAdorner.PGhostAdornerUpdate();
     }
 
     public void PGhostCursorSync()
     {
-        if (pGhostGone || !PGhostCursorRead(out PGhostPoint pCursor))
-        {
-            return;
-        }
-
+        _ = PGhostCursorRead(out PGhostPoint pCursor);
         PGhostPointSet(pGhostRoot.PointFromScreen(new Point(pCursor.PGhostX, pCursor.PGhostY)));
     }
 
     public void PGhostClear()
     {
-        if (pGhostGone)
-        {
-            return;
-        }
-
-        pGhostGone = true;
+        _ = lGhost.LGhostClear();
         pGhostLayer.Remove(pGhostAdorner);
     }
 
@@ -96,68 +67,46 @@ public sealed class PGhost
         Point pGrabOffset,
         Func<DragDropEffects> pDragBody)
     {
-        PGhost? pGhost = PGhostShow(pSourceElement, pGrabOffset);
-
-        void PGhostFeedbackHandle(object pFeedbackSender, GiveFeedbackEventArgs pFeedbackEvent)
-        {
-            pGhost?.PGhostCursorSync();
-            pFeedbackEvent.UseDefaultCursors = true;
-            pFeedbackEvent.Handled = true;
-        }
-
-        if (pGhost is not null)
-        {
-            pSourceElement.GiveFeedback += PGhostFeedbackHandle;
-        }
-
+        PGhost pGhost = PGhostShow(pSourceElement, pGrabOffset);
+        GiveFeedbackEventHandler pFeedbackHandle = pGhost.PGhostFeedbackHandle;
+        pSourceElement.GiveFeedback += pFeedbackHandle;
         try
         {
             return pDragBody();
         }
         finally
         {
-            if (pGhost is not null)
-            {
-                pSourceElement.GiveFeedback -= PGhostFeedbackHandle;
-                pGhost.PGhostClear();
-            }
+            pSourceElement.GiveFeedback -= pFeedbackHandle;
+            pGhost.PGhostClear();
         }
     }
 
-    private static UIElement? PGhostRootRead(FrameworkElement pSourceElement)
+    private void PGhostFeedbackHandle(object pFeedbackSender, GiveFeedbackEventArgs pFeedbackEvent)
     {
-        if (AdornerLayer.GetAdornerLayer(pSourceElement) is not null)
-        {
-            DependencyObject? pWalk = pSourceElement;
-            while (pWalk is not null)
-            {
-                if (pWalk is AdornerDecorator { Child: UIElement pDecorated })
-                {
-                    return pDecorated;
-                }
-
-                pWalk = VisualTreeHelper.GetParent(pWalk);
-            }
-        }
-
-        return Window.GetWindow(pSourceElement)?.Content as UIElement;
+        PGhostCursorSync();
+        pFeedbackEvent.UseDefaultCursors = true;
+        pFeedbackEvent.Handled = true;
     }
 
-    private static ImageSource? PGhostImageCreate(FrameworkElement pSourceElement)
+    private static UIElement PGhostRootRead(FrameworkElement pSourceElement) =>
+        ((AdornerDecorator)PWalk.PWalkParentFind(pSourceElement, PGhostDecoratorMatch)!).Child;
+
+    private static bool PGhostDecoratorMatch(DependencyObject pNode) =>
+        PWalk.PWalkTypeCheck(pNode, PGhostDecoratorTypes);
+
+    private static ImageSource PGhostImageCreate(FrameworkElement pSourceElement)
     {
         DpiScale pDpi = VisualTreeHelper.GetDpi(pSourceElement);
-        int pPixelWidth = (int)Math.Ceiling(pSourceElement.ActualWidth * pDpi.DpiScaleX);
-        int pPixelHeight = (int)Math.Ceiling(pSourceElement.ActualHeight * pDpi.DpiScaleY);
-        if (pPixelWidth <= 0 || pPixelHeight <= 0)
-        {
-            return null;
-        }
-
+        LGhostSize lSize = LGhost.LGhostSizeResolve(
+            pSourceElement.ActualWidth,
+            pSourceElement.ActualHeight,
+            pDpi.DpiScaleX,
+            pDpi.DpiScaleY);
         var pBitmap = new RenderTargetBitmap(
-            pPixelWidth,
-            pPixelHeight,
-            96 * pDpi.DpiScaleX,
-            96 * pDpi.DpiScaleY,
+            lSize.LGhostPixelWidth,
+            lSize.LGhostPixelHeight,
+            lSize.LGhostDpiX,
+            lSize.LGhostDpiY,
             PixelFormats.Pbgra32);
         pBitmap.Render(pSourceElement);
         pBitmap.Freeze();
@@ -179,18 +128,17 @@ public sealed class PGhost
     {
         private readonly VisualCollection pGhostVisuals;
         private readonly System.Windows.Shapes.Rectangle pGhostImage;
-        private readonly Point pGhostGrabOffset;
-        private Point pGhostPoint;
+        private readonly LGhost lGhost;
 
         internal PGhostAdorner(
             UIElement pAdornedElement,
             ImageSource pImage,
             double pWidth,
             double pHeight,
-            Point pGrabOffset)
+            LGhost lOwner)
             : base(pAdornedElement)
         {
-            pGhostGrabOffset = pGrabOffset;
+            lGhost = lOwner;
             pGhostImage = new System.Windows.Shapes.Rectangle
             {
                 Width = pWidth,
@@ -203,9 +151,8 @@ public sealed class PGhost
             IsHitTestVisible = false;
         }
 
-        internal void PGhostAdornerSet(Point pPoint)
+        internal void PGhostAdornerUpdate()
         {
-            pGhostPoint = pPoint;
             InvalidateArrange();
             (Parent as AdornerLayer)?.Update(AdornedElement);
         }
@@ -222,11 +169,7 @@ public sealed class PGhost
 
         protected override Size ArrangeOverride(Size pFinalSize)
         {
-            pGhostImage.Arrange(new Rect(
-                pGhostPoint.X - pGhostGrabOffset.X,
-                pGhostPoint.Y - pGhostGrabOffset.Y,
-                pGhostImage.Width,
-                pGhostImage.Height));
+            pGhostImage.Arrange(new Rect(lGhost.LGhostLeft, lGhost.LGhostTop, pGhostImage.Width, pGhostImage.Height));
             return pFinalSize;
         }
     }
