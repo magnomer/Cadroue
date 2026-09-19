@@ -26,6 +26,9 @@ public partial class PWindow : Window
         pStrip = new PStrip();
         pRail = new PRail(pStrip);
         lWindow = new LWindow(pStrip.LStrip, PWindowDispatch);
+        pConsole.LConsole.LConsoleWindowAttach(lWindow, pStrip.LStrip);
+        PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
+        Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
         PWindowNoticesAttach();
         pDeck.PDeckAttach(pStrip);
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
@@ -54,6 +57,9 @@ public partial class PWindow : Window
 
     public static PStrip? PWindowStripRead() =>
         System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.PStrip;
+
+    public static PConsole? PWindowConsoleRead() =>
+        System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.pConsole;
 
     private void PWindowNoticesAttach()
     {
@@ -152,7 +158,7 @@ public partial class PWindow : Window
     {
         pToolbar.PToolbarTabSet(null);
         pTabRailHost.Content = null;
-        pConsole.PConsoleSceneSet(null);
+        pConsole.PConsoleSceneSet(false);
         pToolbar.PToolbarSceneSet(null);
         pRail.PRailApply(pVertical);
         pToolbar.PToolbarVerticalSet(pVertical);
@@ -169,7 +175,7 @@ public partial class PWindow : Window
     private void PWindowHorizontalApply()
     {
         pToolbar.PToolbarTabSet(pRail);
-        pConsole.PConsoleSceneSet(pConsole.PConsoleSceneRead());
+        pConsole.PConsoleSceneSet(true);
         PWindowWidthApply();
     }
 
@@ -202,11 +208,6 @@ public partial class PWindow : Window
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
         pStrip.PStripSelected?.LWorkspace.LWorkspaceMediaClear(lCohorts);
-
-    public LSceneRecord PWindowSceneRead(string lSceneName) => lWindow.LWindowSceneRead(lSceneName);
-
-    public bool PWindowSceneApply(LSceneRecord lScene) =>
-        lWindow.LWindowSceneApply(lScene, pStrip.LStrip.LStripCloseConfirm(), pStrip.LStrip.LStripAllClose);
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {

@@ -93,7 +93,7 @@ public sealed partial class PRoster : UserControl
     {
         if (IsVisible)
         {
-            PConsole.PConsoleCurrent?.PConsoleStationSet(pRosterStation);
+            PWindow.PWindowConsoleRead()?.LConsole.LConsoleStationSet(pRosterStation);
             if (pRosterSharedBox is { } pToggle)
             {
                 pToggle.IsChecked = LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
@@ -109,7 +109,7 @@ public sealed partial class PRoster : UserControl
     private void PRosterConsoleAttach()
     {
         pRosterStation.LStationSelectionSource = PRosterSelectionRead;
-        PConsole.PConsoleCurrent?.PConsoleStationSet(pRosterStation);
+        PWindow.PWindowConsoleRead()?.LConsole.LConsoleStationSet(pRosterStation);
     }
 
     private static TextBlock PRosterTitleBuild(string pTitle) => new()

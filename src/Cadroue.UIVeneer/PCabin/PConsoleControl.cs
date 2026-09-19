@@ -1,16 +1,20 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PConsole
+public static class PConsoleControl
 {
-    private CheckBox PConsoleAutoBuild()
+    internal const double PConsoleStatusSize = 13;
+    internal const double PConsoleStationSize = 12;
+    internal const double PConsoleSwitchWidth = 34;
+    internal const double PConsoleSwitchSize = 18;
+
+    internal static CheckBox PConsoleAutoBuild(RoutedEventHandler pChange)
     {
         var pAutoBox = new CheckBox
         {
@@ -24,12 +28,12 @@ public sealed partial class PConsole
             ToolTip = LLocalization.LLocalizationTextRead("Console.AutoResume.Tooltip")
         };
         PCheckbox.PCheckboxApply(pAutoBox);
-        pAutoBox.Checked += PConsoleAutoHandle;
-        pAutoBox.Unchecked += PConsoleAutoHandle;
+        pAutoBox.Checked += pChange;
+        pAutoBox.Unchecked += pChange;
         return pAutoBox;
     }
 
-    private static ComboBox PConsoleComboBuild()
+    internal static ComboBox PConsoleComboBuild()
     {
         var pRelayCombo = new ComboBox
         {
@@ -38,11 +42,14 @@ public sealed partial class PConsole
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
-        PDropdown.PDropdownEditableApply(pRelayCombo);
+        PDropdown.PDropdownActionApply(
+            pRelayCombo,
+            LLocalization.LLocalizationTextRead("Console.Scene.DeleteTooltip"));
+        pRelayCombo.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ComboTooltip");
         return pRelayCombo;
     }
 
-    private static Border PConsoleSeparatorBuild() => new()
+    internal static Border PConsoleSeparatorBuild() => new()
     {
         Width = 1,
         Margin = new Thickness(6, 2, 12, 2),
@@ -50,9 +57,9 @@ public sealed partial class PConsole
         Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7))
     };
 
-    private static Button PConsoleInlineBuild(string pIconName)
+    internal static Button PConsoleInlineBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)
     {
-        return new Button
+        var pButton = new Button
         {
             Content = new Image
             {
@@ -66,11 +73,14 @@ public sealed partial class PConsole
             Padding = new Thickness(0),
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonWhiteCreate()
+            Style = PButton.PButtonWhiteCreate(),
+            ToolTip = pTooltip
         };
+        pButton.Click += pClick;
+        return pButton;
     }
 
-    private static Button PConsoleSwitchBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)
+    internal static Button PConsoleSwitchBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)
     {
         var pButton = new Button
         {
@@ -91,19 +101,16 @@ public sealed partial class PConsole
         return pButton;
     }
 
-    private static Button PConsoleButtonBuild(
-        string pLabel,
+    internal static Button PConsoleButtonBuild(
+        string pLabelKey,
         string pIconName,
-        string pTooltip,
-        Brush? pAccentBrush,
+        Brush pAccentBrush,
         RoutedEventHandler pClick)
     {
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead(
-                $"/PAsset/PPanel/{pIconName}",
-                pAccentBrush ?? PRosterTheme.PRosterTextBrush),
+            Source = PIcon.PIconRead($"/PAsset/PPanel/{pIconName}", pAccentBrush),
             Width = PRosterTheme.PRosterIconSize,
             Height = PRosterTheme.PRosterIconSize,
             Stretch = Stretch.Uniform,
@@ -112,7 +119,7 @@ public sealed partial class PConsole
         pStack.Children.Add(new Border { Height = 2 });
         pStack.Children.Add(new TextBlock
         {
-            Text = pLabel,
+            Text = LLocalization.LLocalizationTextRead($"Console.Button.{pLabelKey}"),
             FontSize = PRosterTheme.PRosterRowSize,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
@@ -126,7 +133,7 @@ public sealed partial class PConsole
             Margin = new Thickness(0, 0, 4, 0),
             Content = pStack,
             Style = PConsoleButtonCreate(),
-            ToolTip = pTooltip
+            ToolTip = LLocalization.LLocalizationTextRead($"Console.Button.{pLabelKey}Tooltip")
         };
         pButton.Click += pClick;
         return pButton;
@@ -141,7 +148,7 @@ public sealed partial class PConsole
         return pStyle;
     }
 
-    private static TextBlock PConsoleLabelBuild(Brush pBrush, double pFontSize) => new()
+    internal static TextBlock PConsoleLabelBuild(Brush pBrush, double pFontSize) => new()
     {
         FontSize = pFontSize,
         Foreground = pBrush,

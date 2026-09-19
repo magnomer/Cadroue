@@ -374,15 +374,6 @@ internal static partial class TInterface
     internal static void TStripUpdateResume(LStrip strip) => strip.LStripUpdateResume();
     internal static void TStripTitleUpdate(LStrip strip) => strip.LStripTitleUpdate();
 
-    internal static LConsole TConsoleCreate() => new();
-    internal static bool TConsoleSpinSet(LConsole console, bool spinning) => console.LConsoleSpinSet(spinning);
-    internal static bool TConsoleCaretSet(LConsole console) => console.LConsoleCaretSet();
-    internal static bool TConsoleProgressSet(LConsole console, double target) => console.LConsoleProgressSet(target);
-    internal static void TConsoleReloadSet(LConsole console, string? name) => console.LConsoleReloadSet(name);
-    internal static string? TConsoleReloadRead(LConsole console) => console.LConsoleReloadRead();
-    internal static void TConsoleSceneSet(LConsole console, string name) => console.LConsoleSceneSet(name);
-    internal static bool TConsoleSceneCheck(LConsole console, string name) => console.LConsoleSceneCheck(name);
-
     internal static LRoster TRosterCreate() => new();
     internal static void TRosterOrderAdd(LRoster roster, Guid id) => roster.LRosterOrderAdd(id);
     internal static void TRosterOrderClear(LRoster roster) => roster.LRosterOrderClear();

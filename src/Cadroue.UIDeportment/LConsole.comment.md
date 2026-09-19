@@ -1,14 +1,12 @@
-# PConsoleCommand.cs
+# LConsole.cs
 
-## `private bool PConsoleProcessingConfirm(string pConsoleQuestion)`
+## `public void LConsoleAll()`
 
 Aborting a live encode (and deleting its half-written output) is severe enough that the confirm is unconditional here.
-It ignores the "confirm destructive" preference that `PConsoleDestructiveConfirm` honours.
+It ignores the "confirm destructive" preference that `LConsoleAskResolve` honours.
 So a running Clear all is never silent.
 
-## Inline notes
-
-### `foreach (LStation pConsoleClearStation in LStation.LStationBoardRead())`
+## `private async Task LConsoleAllRun(bool lAnswer)`
 
 Kill first, clear second.
 Cancelling each runner interrupts its ffmpeg and releases the running item back to the queue.

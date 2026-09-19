@@ -126,6 +126,12 @@ public static partial class LScene
         File.WriteAllText(lScenePath, lSceneJson);
     }
 
+    public static string LSceneStemResolve(string lSceneName, string lScenePath)
+    {
+        string lSceneTrimmed = lSceneName.Trim();
+        return lSceneTrimmed.Length > 0 ? lSceneTrimmed : Path.GetFileNameWithoutExtension(lScenePath).Trim();
+    }
+
     public static LSceneRecord? LSceneFileLoad(string lScenePath)
     {
         string lSceneJson = File.ReadAllText(lScenePath);

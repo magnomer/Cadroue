@@ -8,11 +8,11 @@ internal static class TAuditStrictSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditStrictCeiling = new Dictionary<string, int>
     {
-        ["Storage"] = 107,
-        ["Flow"] = 863,
-        ["Treat"] = 601,
+        ["Storage"] = 103,
+        ["Flow"] = 815,
+        ["Treat"] = 549,
         ["Reach"] = 0,
-        ["Taint"] = 495,
+        ["Taint"] = 455,
     };
 
     public static readonly string[] TAuditVeneerInclude =

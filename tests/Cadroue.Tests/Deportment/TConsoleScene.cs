@@ -9,48 +9,81 @@ public sealed class TConsoleScene
     [Fact]
     public void Reload_IsConsumedOnce()
     {
-        LConsole console = TInterface.TConsoleCreate();
-        TInterface.TConsoleReloadSet(console, "Night");
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        TInterface.TConsoleReloadSet(scene, "Night");
 
-        Assert.Equal("Night", console.LConsoleReloadName);
-        Assert.Equal("Night", TInterface.TConsoleReloadRead(console));
-        Assert.Null(TInterface.TConsoleReloadRead(console));
+        Assert.Equal("Night", scene.LConsoleReloadName);
+        Assert.Equal("Night", TInterface.TConsoleReloadRead(scene));
+        Assert.Null(TInterface.TConsoleReloadRead(scene));
+    }
+
+    [Fact]
+    public void Row_KeepsTheReloadName_WhenTheSenderCarriesNone()
+    {
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        TInterface.TConsoleRowHandle(scene, "Night");
+        TInterface.TConsoleRowHandle(scene, null);
+
+        Assert.Equal("Night", scene.LConsoleReloadName);
     }
 
     [Fact]
     public void Scene_MatchesIgnoringCase()
     {
-        LConsole console = TInterface.TConsoleCreate();
-        Assert.False(TInterface.TConsoleSceneCheck(console, string.Empty) && console.LConsoleSceneName.Length > 0);
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        Assert.False(TInterface.TConsoleSceneCheck(scene, string.Empty) && scene.LConsoleSceneName.Length > 0);
 
-        TInterface.TConsoleSceneSet(console, "Daily");
-        Assert.True(TInterface.TConsoleSceneCheck(console, "daily"));
-        Assert.False(TInterface.TConsoleSceneCheck(console, "Weekly"));
+        TInterface.TConsoleSceneSet(scene, "Daily");
+        Assert.True(TInterface.TConsoleSceneCheck(scene, "daily"));
+        Assert.False(TInterface.TConsoleSceneCheck(scene, "Weekly"));
     }
 
     [Fact]
-    public void Progress_ClampsAndReportsBackward()
+    public void Dirty_IsFalse_WithoutANameOrAWindow()
     {
-        LConsole console = TInterface.TConsoleCreate();
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        Assert.False(TInterface.TConsoleDirtyCheck(scene));
 
-        Assert.True(TInterface.TConsoleProgressSet(console, 0.5));
-        Assert.False(console.LConsoleBackward);
-        Assert.False(TInterface.TConsoleProgressSet(console, 0.5));
-        Assert.True(TInterface.TConsoleProgressSet(console, 2));
-        Assert.Equal(1, console.LConsoleProgress);
-        Assert.True(TInterface.TConsoleProgressSet(console, 0.25));
-        Assert.True(console.LConsoleBackward);
+        TInterface.TConsoleSceneSet(scene, "Unknown scene");
+        Assert.False(TInterface.TConsoleDirtyCheck(scene));
     }
 
     [Fact]
-    public void Latches_FireOnce()
+    public void Delete_IsNotHandled_WhenTheSourceIsNoSceneButton()
     {
-        LConsole console = TInterface.TConsoleCreate();
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        Assert.False(TInterface.TConsoleDeleteHandle(scene, null));
+    }
 
-        Assert.True(TInterface.TConsoleCaretSet(console));
-        Assert.False(TInterface.TConsoleCaretSet(console));
-        Assert.True(TInterface.TConsoleSpinSet(console, true));
-        Assert.False(TInterface.TConsoleSpinSet(console, true));
-        Assert.True(TInterface.TConsoleSpinSet(console, false));
+    [Fact]
+    public void Press_ClearsFocus_OnlyOutsideTheOpenCombo()
+    {
+        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        int cleared = 0;
+        TInterface.TConsoleFocusAttach(scene, () => cleared++);
+
+        TInterface.TConsolePressHandle(scene, true, true, false);
+        TInterface.TConsolePressHandle(scene, false, false, false);
+        TInterface.TConsolePressHandle(scene, false, true, true);
+        Assert.Equal(0, cleared);
+
+        TInterface.TConsolePressHandle(scene, false, true, false);
+        Assert.Equal(1, cleared);
+    }
+
+    [Fact]
+    public void ImportName_FallsBackToTheFileStem()
+    {
+        Assert.Equal("Night", TInterface.TConsoleStemResolve("  Night ", "C:/scenes/other.json"));
+        Assert.Equal("other", TInterface.TConsoleStemResolve("   ", "C:/scenes/other.json"));
+        Assert.NotEmpty(TInterface.TConsoleStemResolve(string.Empty, "C:/scenes/.json"));
+    }
+
+    [Fact]
+    public void NameCreate_NumbersDuplicatesIgnoringCase()
+    {
+        string[] names = ["Night", "night 2"];
+        Assert.Equal("Day", TInterface.TConsoleNameCreate("Day", names));
+        Assert.Equal("NIGHT 3", TInterface.TConsoleNameCreate("NIGHT", names));
     }
 }

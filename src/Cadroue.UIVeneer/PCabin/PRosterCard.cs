@@ -5,6 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PAsset;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -98,7 +99,7 @@ public sealed partial class PRoster
             return;
         }
 
-        PConsole.PConsoleRemovalShow(Window.GetWindow(this), pRosterSchedule.LScheduleBatchRemove(pRemovable));
+        PWindow.PWindowConsoleRead()?.LConsole.LConsoleRemovalRaise(pRosterSchedule.LScheduleBatchRemove(pRemovable));
     }
 
     private static bool PRosterCardConfirm(int pRemovableCount)

@@ -1,279 +1,199 @@
-using Cadroue.Core;
-using System;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Threading;
+using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Microsoft.Win32;
 
-using Cadroue.Infrastructure;
-using Cadroue.Application;
-
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PConsole
+public sealed class PConsoleScene : UserControl
 {
-    private PWindow? pConsoleSceneWindow;
-    private DispatcherTimer? pConsoleSceneTimer;
+    private const string PConsoleEditablePart = "PART_EditableTextBox";
 
-    private void PConsoleSceneAttach()
+    private static readonly IReadOnlyDictionary<bool, FontStyle> pConsoleMarkStyles =
+        new Dictionary<bool, FontStyle>
+        {
+            [true] = FontStyles.Italic,
+            [false] = FontStyles.Normal,
+        };
+
+    private readonly LConsoleScene lScene;
+    private readonly ComboBox pConsoleRelayCombo;
+    private readonly DispatcherTimer pConsoleSceneTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
+
+    public PConsoleScene(LConsoleScene lSceneOwner)
     {
-        PDropdown.PDropdownActionApply(
-            pConsoleRelayCombo,
-            LLocalization.LLocalizationTextRead("Console.Scene.DeleteTooltip"));
+        lScene = lSceneOwner;
+        pConsoleRelayCombo = PConsoleControl.PConsoleComboBuild();
+        var pControls = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pControls.Children.Add(pConsoleRelayCombo);
+        pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
+            "PConsoleSave.svg",
+            LLocalization.LLocalizationTextRead("Console.Scene.SaveTooltip"),
+            PConsoleSaveHandle));
+        pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
+            "PExportExport.svg",
+            LLocalization.LLocalizationTextRead("Console.Scene.ExportTooltip"),
+            PConsoleExportHandle));
+        pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
+            "PExportImport.svg",
+            LLocalization.LLocalizationTextRead("Console.Scene.ImportTooltip"),
+            PConsoleImportHandle));
+        Content = pControls;
+
         pConsoleRelayCombo.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PConsoleDeleteHandle));
-        pConsoleRelayCombo.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ComboTooltip");
-        pConsoleSaveButton.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.SaveTooltip");
-        pConsoleExportButton.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ExportTooltip");
-        pConsoleImportButton.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ImportTooltip");
-        pConsoleSaveButton.Click += PConsoleSaveHandle;
-        pConsoleExportButton.Click += PConsoleExportHandle;
-        pConsoleImportButton.Click += PConsoleImportHandle;
         pConsoleRelayCombo.SelectionChanged += PConsoleSelectHandle;
         pConsoleRelayCombo.DropDownOpened += PConsoleOpenHandle;
         pConsoleRelayCombo.DropDownClosed += PConsoleCloseHandle;
         pConsoleRelayCombo.MouseEnter += PConsoleDropHandle;
         pConsoleRelayCombo.ItemContainerGenerator.StatusChanged += PConsoleRowsHandle;
+        pConsoleSceneTimer.Tick += PConsoleTickHandle;
+        lScene.LConsoleNamesApply += PConsoleListApply;
+        lScene.LConsoleSceneApply += PConsoleSceneApply;
+        lScene.LConsoleMarkApply += PConsoleMarkApply;
+        lScene.LConsoleFocusClear += PConsoleFocusClear;
+        lScene.LConsoleNoticeShow += PConsoleNoticeShow;
+        lScene.LConsoleWarningShow += PConsoleWarningShow;
+        Loaded += PConsoleCaretAttach;
         Loaded += PConsoleLoadHandle;
-        Unloaded += PConsoleSceneClose;
-        PConsoleSceneRebuild();
+        Unloaded += PConsoleUnloadHandle;
+        lScene.LConsoleSceneRebuild();
     }
 
     private void PConsoleLoadHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (LConsole.LConsoleCaretSet())
-        {
-            PConsoleCaretAttach();
-        }
-
-        LConsole.LConsoleSceneSet(LScene.LSceneActiveName);
-        PConsoleSceneUpdate();
-
-        if (pConsoleSceneWindow is null && PConsoleWindowRead() is { } pWindow)
-        {
-            pConsoleSceneWindow = pWindow;
-            pWindow.PreviewMouseDown += PConsolePressHandle;
-            pWindow.Deactivated += PConsoleDeactivateHandle;
-        }
-
-        pConsoleSceneTimer ??= PConsoleTimerCreate();
+        lScene.LConsoleSceneStart();
         pConsoleSceneTimer.Start();
     }
 
-    private void PConsoleSceneClose(object pSender, RoutedEventArgs pArguments)
-    {
-        pConsoleSceneTimer?.Stop();
-        if (pConsoleSceneWindow is { } pWindow)
-        {
-            pWindow.PreviewMouseDown -= PConsolePressHandle;
-            pWindow.Deactivated -= PConsoleDeactivateHandle;
-            pConsoleSceneWindow = null;
-        }
-    }
+    private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments) => pConsoleSceneTimer.Stop();
 
-    private DispatcherTimer PConsoleTimerCreate()
-    {
-        var pTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
-        pTimer.Tick += PConsoleTickHandle;
-        return pTimer;
-    }
+    private void PConsoleTickHandle(object? pSender, EventArgs pArguments) =>
+        lScene.LConsoleTickHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
 
-    private void PConsoleTickHandle(object? pSender, EventArgs pArguments)
-    {
-        if (LConsole.LConsoleSceneName.Length > 0 && !pConsoleRelayCombo.IsKeyboardFocusWithin)
-        {
-            PConsoleMarkUpdate();
-        }
-    }
-
-    private void PConsoleDropHandle(object? pSender, EventArgs pArguments) => PConsoleMarkUpdate();
+    private void PConsoleDropHandle(object? pSender, EventArgs pArguments) => lScene.LConsoleMarkUpdate();
 
     private void PConsoleOpenHandle(object? pSender, EventArgs pArguments)
     {
-        LConsole.LConsoleReloadSet(null);
-        PConsoleCaretSet();
-        PConsoleMarkUpdate();
+        lScene.LConsoleReloadSet(null);
+        PConsoleBoxRead()?.SetValue(TextBoxBase.IsReadOnlyProperty, true);
+        lScene.LConsoleMarkUpdate();
     }
 
-    private void PConsoleRowsHandle(object? pSender, EventArgs pArguments)
-    {
-        if (pConsoleRelayCombo.ItemContainerGenerator.Status != GeneratorStatus.ContainersGenerated)
-        {
-            return;
-        }
+    private void PConsoleCloseHandle(object? pSender, EventArgs pArguments) => lScene.LConsoleCloseHandle();
 
-        foreach (object pItem in pConsoleRelayCombo.Items)
-        {
-            if (pConsoleRelayCombo.ItemContainerGenerator.ContainerFromItem(pItem) is ComboBoxItem pRow)
-            {
-                pRow.PreviewMouseLeftButtonUp -= PConsoleRowHandle;
-                pRow.PreviewMouseLeftButtonUp += PConsoleRowHandle;
-            }
-        }
+    private void PConsoleRowsHandle(object? pSender, EventArgs pArguments) =>
+        pConsoleRelayCombo.Items.Cast<object>()
+            .Select(pConsoleRelayCombo.ItemContainerGenerator.ContainerFromItem)
+            .OfType<ComboBoxItem>()
+            .ToList()
+            .ForEach(PConsoleRowAttach);
+
+    private void PConsoleRowAttach(ComboBoxItem pRow)
+    {
+        pRow.PreviewMouseLeftButtonUp -= PConsoleRowHandle;
+        pRow.PreviewMouseLeftButtonUp += PConsoleRowHandle;
     }
 
-    private void PConsoleRowHandle(object pSender, MouseButtonEventArgs pArguments)
+    private void PConsoleRowHandle(object pSender, MouseButtonEventArgs pArguments) =>
+        lScene.LConsoleRowHandle(PSender.PSenderItemRead<string>(pSender));
+
+    private void PConsoleDeleteHandle(object pSender, RoutedEventArgs pArguments) =>
+        pArguments.Handled = lScene.LConsoleDeleteHandle(PSender.PSenderItemRead<string>(pArguments.OriginalSource));
+
+    private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments) =>
+        lScene.LConsoleSelectHandle(pConsoleRelayCombo.SelectedItem, pConsoleRelayCombo.IsDropDownOpen);
+
+    private void PConsoleSaveHandle(object pSender, RoutedEventArgs pArguments) =>
+        lScene.LConsoleSceneSave(pConsoleRelayCombo.Text);
+
+    private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (pSender is ComboBoxItem { Content: string lSceneName })
+        var pDialog = new SaveFileDialog
         {
-            LConsole.LConsoleReloadSet(lSceneName);
-        }
+            Title = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Export"),
+            Filter = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Filter"),
+            DefaultExt = "json",
+            AddExtension = true,
+            FileName = lScene.LConsoleFileResolve(pConsoleRelayCombo.Text)
+        };
+        lScene.LConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
     }
 
-    private void PConsoleDeleteHandle(object pSender, RoutedEventArgs pArguments)
+    private void PConsoleImportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        if (pArguments.OriginalSource is not Button { DataContext: string lSceneName })
+        var pDialog = new OpenFileDialog
         {
-            return;
-        }
-
-        pArguments.Handled = true;
-        LConsole.LConsoleReloadSet(null);
-        if (!LScene.LSceneDelete(lSceneName))
-        {
-            return;
-        }
-
-        if (LConsole.LConsoleSceneCheck(lSceneName))
-        {
-            LConsole.LConsoleSceneSet(string.Empty);
-            LScene.LSceneActiveSet(string.Empty);
-        }
-
-        PConsoleSceneRebuild();
-        LTraceLog.LTraceInfoRecord($"Scene deleted '{lSceneName}'");
+            Title = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Import"),
+            Filter = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Filter"),
+            DefaultExt = "json",
+            CheckFileExists = true
+        };
+        lScene.LConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
     }
 
-    private void PConsoleCloseHandle(object? pSender, EventArgs pArguments)
-    {
-        string? lSceneName = LConsole.LConsoleReloadRead();
-        if (lSceneName is null)
-        {
-            PConsoleSceneUpdate();
-            return;
-        }
+    private void PConsoleListApply(IReadOnlyList<string> pNames) => pConsoleRelayCombo.ItemsSource = pNames;
 
-        PConsoleSceneLoad(lSceneName);
+    private void PConsoleSceneApply(string? pSelected, string pText, bool pDirty)
+    {
+        pConsoleRelayCombo.SelectedItem = pSelected;
+        pConsoleRelayCombo.Text = pText;
+        PConsoleMarkApply(pDirty);
     }
 
-    private void PConsoleSceneLoad(string lSceneName)
+    private void PConsoleMarkApply(bool pDirty)
     {
-        if (LScene.LSceneRead(lSceneName) is not { } lScene)
-        {
-            PConsoleSceneUpdate();
-            return;
-        }
-
-        if (!PConsoleSceneConfirm(lSceneName) || PConsoleWindowRead() is not { } pWindow)
-        {
-            PConsoleSceneUpdate();
-            return;
-        }
-
-        if (pWindow.PWindowSceneApply(lScene))
-        {
-            PConsoleSceneSet(lSceneName);
-            return;
-        }
-
-        PConsoleSceneUpdate();
-    }
-
-    private void PConsoleSceneRebuild()
-    {
-        LScene.LSceneCatalogueLoad();
-        pConsoleRelayCombo.ItemsSource = LScene.LSceneNames;
-        PConsoleSceneUpdate();
-    }
-
-    private void PConsoleSceneUpdate()
-    {
-        string lSceneName = LConsole.LConsoleSceneName;
-        pConsoleRelayCombo.SelectedItem = LScene.LSceneRead(lSceneName) is not null ? lSceneName : null;
-        pConsoleRelayCombo.Text = lSceneName;
-        PConsoleMarkUpdate();
-    }
-
-    private void PConsoleSceneSet(string lSceneName)
-    {
-        LConsole.LConsoleSceneSet(lSceneName);
-        LScene.LSceneActiveSet(lSceneName);
-        PConsoleSceneUpdate();
-    }
-
-    private void PConsoleMarkUpdate()
-    {
-        FontStyle pStyle = PConsoleDirtyCheck() ? FontStyles.Italic : FontStyles.Normal;
         pConsoleRelayCombo.ApplyTemplate();
-        if (pConsoleRelayCombo.Template?.FindName("PART_EditableTextBox", pConsoleRelayCombo) is TextBox pEditableBox)
-        {
-            pEditableBox.FontStyle = pStyle;
-        }
+        PConsoleBoxRead()?.SetValue(FontStyleProperty, pConsoleMarkStyles[pDirty]);
     }
 
-    private bool PConsoleDirtyCheck()
+    private TextBox? PConsoleBoxRead() =>
+        pConsoleRelayCombo.Template.FindName(PConsoleEditablePart, pConsoleRelayCombo) as TextBox;
+
+    private void PConsoleCaretAttach(object pSender, RoutedEventArgs pArguments)
     {
-        string lSceneName = LConsole.LConsoleSceneName;
-        if (lSceneName.Length == 0
-            || LScene.LSceneRead(lSceneName) is not { } lSceneStored
-            || PConsoleWindowRead() is not { } pWindow)
-        {
-            return false;
-        }
-
-        return !LScene.LSceneMatch(lSceneStored, pWindow.PWindowSceneRead(lSceneName));
+        Loaded -= PConsoleCaretAttach;
+        pConsoleRelayCombo.ApplyTemplate();
+        TextBox? pEditableBox = PConsoleBoxRead();
+        pEditableBox?.SetValue(TextBoxBase.IsReadOnlyProperty, true);
+        pEditableBox?.AddHandler(
+            PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler(PConsoleReadonlyClear));
+        pEditableBox?.AddHandler(
+            LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(PConsoleReadonlySet));
     }
 
-    private void PConsoleSaveHandle(object pSender, RoutedEventArgs pArguments)
+    private void PConsoleReadonlyClear(object pSender, MouseButtonEventArgs pArguments) =>
+        PConsoleBoxRead()?.SetValue(TextBoxBase.IsReadOnlyProperty, false);
+
+    private void PConsoleReadonlySet(object pSender, KeyboardFocusChangedEventArgs pArguments) =>
+        PConsoleBoxRead()?.SetValue(TextBoxBase.IsReadOnlyProperty, true);
+
+    public void PConsolePressHandle(object pSender, MouseButtonEventArgs pArguments) =>
+        lScene.LConsolePressHandle(
+            pConsoleRelayCombo.IsDropDownOpen,
+            pConsoleRelayCombo.IsKeyboardFocusWithin,
+            PWalk.PWalkParentCheck(pArguments.OriginalSource as DependencyObject, pConsoleRelayCombo.Equals));
+
+    public void PConsoleDeactivateHandle(object? pSender, EventArgs pArguments) =>
+        lScene.LConsoleDeactivateHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
+
+    private void PConsoleFocusClear()
     {
-        string lSceneName = (pConsoleRelayCombo.Text ?? string.Empty).Trim();
-        if (lSceneName.Length == 0)
-        {
-            PSAnnouncement.PSAnnouncementShow(
-                PConsoleWindowRead(),
-                LLocalization.LLocalizationTextRead("Console.Scene.SaveTitle"),
-                LLocalization.LLocalizationTextRead("Console.Scene.NameRequired"));
-            return;
-        }
-
-        if (PConsoleWindowRead() is not { } pWindow)
-        {
-            return;
-        }
-
-        LScene.LSceneSave(pWindow.PWindowSceneRead(lSceneName));
-        PConsoleSceneRebuild();
-        PConsoleSceneSet(lSceneName);
-        LTraceLog.LTraceInfoRecord($"Scene saved '{lSceneName}'");
+        pConsoleRelayCombo.IsDropDownOpen = false;
+        Keyboard.ClearFocus();
     }
 
-    private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments)
-    {
-        if (pConsoleRelayCombo.SelectedItem is not string lSceneName || LConsole.LConsoleSceneCheck(lSceneName))
-        {
-            return;
-        }
+    private void PConsoleNoticeShow(string pTitle, string pMessage) =>
+        PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), pTitle, pMessage);
 
-        if (pConsoleRelayCombo.IsDropDownOpen)
-        {
-            LConsole.LConsoleReloadSet(lSceneName);
-            return;
-        }
-
-        LConsole.LConsoleReloadSet(null);
-        PConsoleSceneLoad(lSceneName);
-    }
-
-    private static bool PConsoleSceneConfirm(string lSceneName) =>
-        PSAlert.PSAlertConfirm(
-            null,
-            LLocalization.LLocalizationTextRead("Console.Scene.LoadTitle"),
-            LLocalization.LLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
-            LLocalization.LLocalizationTextRead("Terms.Load"));
-
-    private PWindow? PConsoleWindowRead() => Window.GetWindow(this) as PWindow;
+    private void PConsoleWarningShow(string pTitle, string pMessage) =>
+        PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
 }

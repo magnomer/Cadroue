@@ -1,6 +1,7 @@
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -59,7 +60,7 @@ public sealed partial class PRoster
     private void PRosterSelectHandle()
     {
         PRosterDetailUpdate();
-        PConsole.PConsoleCurrent?.PConsoleUpdate();
+        PWindow.PWindowConsoleRead()?.LConsole.LConsoleUpdate();
     }
 
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments) => PRosterClose();

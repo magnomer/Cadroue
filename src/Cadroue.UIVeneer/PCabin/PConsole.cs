@@ -1,37 +1,48 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Shapes;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.ShellEngine;
+using System.Windows.Threading;
 using Cadroue.Application;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PConsole : UserControl
+public sealed class PConsole : UserControl
 {
-    private const double PConsoleStatusSize = 13;
-    private const double PConsoleStationSize = 12;
-    private const double PConsoleSwitchWidth = 34;
-    private const double PConsoleSwitchSize = 18;
+    private static readonly Duration pConsoleProgressGlide =
+        new(TimeSpan.FromSeconds(LEncode.LEncodeStatsPeriod));
 
-    private readonly LScheduleContract pConsoleSchedule = LProgram.LScheduleCurrent;
+    private static readonly IReadOnlyDictionary<bool, Brush> pConsoleRunBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PRosterTheme.PRosterDoneBrush,
+        [false] = PRosterTheme.PRosterTextBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, FontWeight> pConsoleRunWeights =
+        new Dictionary<bool, FontWeight>
+        {
+            [true] = FontWeights.Bold,
+            [false] = FontWeights.Normal,
+        };
+
+    private readonly IReadOnlyDictionary<bool, Action<double>> pConsoleProgressWrites;
+    private readonly IReadOnlyDictionary<bool, Action> pConsoleSpinWrites;
+    private readonly IReadOnlyDictionary<bool, UIElement?> pConsoleSceneContents;
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
-    private readonly ComboBox pConsoleRelayCombo;
-    private readonly Button pConsoleSaveButton;
-    private readonly Button pConsoleExportButton;
-    private readonly Button pConsoleImportButton;
     private readonly TextBlock pConsoleStationLabel;
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
     private readonly Grid pConsoleRestIcon;
     private readonly Path pConsoleSpinner;
     private readonly RotateTransform pConsoleSpinnerRotate = new(0);
-    public LConsole LConsole { get; } = new();
     private readonly Button pConsoleStartButton;
     private readonly Button pConsolePauseButton;
     private readonly Button pConsoleCancelButton;
@@ -40,116 +51,185 @@ public sealed partial class PConsole : UserControl
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
     private readonly Button pConsoleTabsButton;
-    private readonly StackPanel pConsoleSceneControls;
+    private readonly PConsoleScene pConsoleScene;
     private readonly ContentControl pConsoleSceneHost;
     private readonly Border pConsoleSceneSeparator;
 
     public PConsole()
     {
         FocusVisualStyle = null;
-        pConsoleProgress = PConsoleProgressBuild();
-        pConsoleStatus = PConsoleLabelBuild(PRosterTheme.PRosterTextBrush, PConsoleStatusSize);
-        pConsoleRestIcon = PConsoleRestBuild();
-        pConsoleSpinner = PConsoleSpinnerBuild();
-        pConsoleStationLabel = PConsoleLabelBuild(PRosterTheme.PRosterMutedBrush, PConsoleStationSize);
-        pConsoleStartButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Start"),
-            "PRosterStart.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.StartTooltip"),
-            PRosterTheme.PRosterDoneBrush,
-            PConsoleStartHandle);
-        pConsolePauseButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Pause"),
-            "PRosterPause.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.PauseTooltip"),
-            null,
-            PConsolePauseHandle);
-        pConsoleCancelButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Cancel"),
-            "PRosterCancel.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.CancelTooltip"),
-            null,
-            PConsoleCancelHandle);
-        pConsoleStopButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Stop"),
-            "PRosterStop.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.StopTooltip"),
-            PRosterTheme.PRosterFailBrush,
-            PConsoleStopHandle);
-        pConsoleRemoveButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.Remove"),
-            "PRosterRemove.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.RemoveTooltip"),
-            null,
-            PConsoleRemoveHandle);
-        pConsoleClearButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearDone"),
-            "PRosterClearDone.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.ClearDoneTooltip"),
-            null,
-            PConsoleDoneHandle);
-        pConsoleEmptyButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearAll"),
-            "PRosterClearAll.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.ClearAllTooltip"),
-            null,
-            PConsoleAllHandle);
-        pConsoleTabsButton = PConsoleButtonBuild(
-            LLocalization.LLocalizationTextRead("Console.Button.ClearTabs"),
-            "PConsoleClearTabs.svg",
-            LLocalization.LLocalizationTextRead("Console.Button.ClearTabsTooltip"),
-            null,
-            PConsoleTabsHandle);
-        pConsoleAutoBox = PConsoleAutoBuild();
-        pConsoleRelayCombo = PConsoleComboBuild();
-        pConsoleSaveButton = PConsoleInlineBuild("PConsoleSave.svg");
-        pConsoleExportButton = PConsoleInlineBuild("PExportExport.svg");
-        pConsoleImportButton = PConsoleInlineBuild("PExportImport.svg");
-        pConsoleSceneControls = new StackPanel
+        pConsoleProgressWrites = new Dictionary<bool, Action<double>>
         {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center
+            [true] = PConsoleGlideApply,
+            [false] = PConsoleProgressSet,
         };
-        pConsoleSceneControls.Children.Add(pConsoleRelayCombo);
-        pConsoleSceneControls.Children.Add(pConsoleSaveButton);
-        pConsoleSceneControls.Children.Add(pConsoleExportButton);
-        pConsoleSceneControls.Children.Add(pConsoleImportButton);
-        pConsoleSceneHost = new ContentControl { Content = pConsoleSceneControls };
-        pConsoleSceneSeparator = PConsoleSeparatorBuild();
-        pConsolePreviousButton = PConsoleSwitchBuild(
+        pConsoleSpinWrites = new Dictionary<bool, Action>
+        {
+            [true] = PConsoleSpinStart,
+            [false] = PConsoleSpinStop,
+        };
+        pConsoleProgress = PConsoleIndicator.PConsoleProgressBuild();
+        pConsoleStatus = PConsoleControl.PConsoleLabelBuild(
+            PRosterTheme.PRosterTextBrush, PConsoleControl.PConsoleStatusSize);
+        pConsoleRestIcon = PConsoleIndicator.PConsoleRestBuild();
+        pConsoleSpinner = PConsoleIndicator.PConsoleSpinnerBuild(pConsoleSpinnerRotate);
+        pConsoleStationLabel = PConsoleControl.PConsoleLabelBuild(
+            PRosterTheme.PRosterMutedBrush, PConsoleControl.PConsoleStationSize);
+        pConsoleStartButton = PConsoleControl.PConsoleButtonBuild(
+            "Start", "PRosterStart.svg", PRosterTheme.PRosterDoneBrush, PConsoleStartHandle);
+        pConsolePauseButton = PConsoleControl.PConsoleButtonBuild(
+            "Pause", "PRosterPause.svg", PRosterTheme.PRosterTextBrush, PConsolePauseHandle);
+        pConsoleCancelButton = PConsoleControl.PConsoleButtonBuild(
+            "Cancel", "PRosterCancel.svg", PRosterTheme.PRosterTextBrush, PConsoleCancelHandle);
+        pConsoleStopButton = PConsoleControl.PConsoleButtonBuild(
+            "Stop", "PRosterStop.svg", PRosterTheme.PRosterFailBrush, PConsoleStopHandle);
+        pConsoleRemoveButton = PConsoleControl.PConsoleButtonBuild(
+            "Remove", "PRosterRemove.svg", PRosterTheme.PRosterTextBrush, PConsoleRemoveHandle);
+        pConsoleClearButton = PConsoleControl.PConsoleButtonBuild(
+            "ClearDone", "PRosterClearDone.svg", PRosterTheme.PRosterTextBrush, PConsoleDoneHandle);
+        pConsoleEmptyButton = PConsoleControl.PConsoleButtonBuild(
+            "ClearAll", "PRosterClearAll.svg", PRosterTheme.PRosterTextBrush, PConsoleAllHandle);
+        pConsoleTabsButton = PConsoleControl.PConsoleButtonBuild(
+            "ClearTabs", "PConsoleClearTabs.svg", PRosterTheme.PRosterTextBrush, PConsoleTabsHandle);
+        pConsoleAutoBox = PConsoleControl.PConsoleAutoBuild(PConsoleAutoHandle);
+        pConsoleScene = new PConsoleScene(LConsole.LConsoleScene);
+        pConsoleSceneHost = new ContentControl { Content = pConsoleScene };
+        pConsoleSceneContents = new Dictionary<bool, UIElement?>
+        {
+            [true] = pConsoleScene,
+            [false] = null,
+        };
+        pConsoleSceneSeparator = PConsoleControl.PConsoleSeparatorBuild();
+        pConsolePreviousButton = PConsoleControl.PConsoleSwitchBuild(
             "PConsolePrevious.svg",
             LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"),
             PConsolePreviousHandle);
-        pConsoleNextButton = PConsoleSwitchBuild(
+        pConsoleNextButton = PConsoleControl.PConsoleSwitchBuild(
             "PConsoleNext.svg",
             LLocalization.LLocalizationTextRead("Console.Next.Tooltip"),
             PConsoleNextHandle);
 
         Content = PConsoleBuild();
-        PConsoleCurrent = this;
-        PConsoleSceneAttach();
-
-        pConsoleSchedule.LScheduleChange += PConsoleScheduleHandle;
-        pConsoleSchedule.LScheduleItemChange += PConsoleItemHandle;
-        LStation.LStationChange += PConsoleStationHandle;
-        PConsoleDepotAttach();
+        LConsole.LConsoleStatusApply += PConsoleStatusApply;
+        LConsole.LConsoleProgressApply += PConsoleProgressApply;
+        LConsole.LConsoleSpinApply += PConsoleSpinApply;
+        LConsole.LConsoleUpdateDefer += PConsoleUpdateDefer;
+        LConsole.LConsoleWarningShow += PConsoleWarningShow;
+        LConsole.LConsoleStation.LConsoleWatchChange += PConsoleWatchHandle;
+        LConsole.LConsoleStation.LConsoleWatchStart();
         Unloaded += PConsoleUnloadHandle;
 
-        PConsoleScheduleHandle(pConsoleSchedule);
-        Dispatcher.BeginInvoke(new Action(() => pConsoleSchedule.LScheduleLoad()));
+        LConsole.LConsoleUpdate();
+        Dispatcher.BeginInvoke(new Action(LConsole.LConsoleScheduleLoad));
     }
 
-    public static PConsole? PConsoleCurrent { get; private set; }
+    public LConsole LConsole { get; } = new();
 
-    public void PConsoleUpdate() => PConsoleProgressUpdate();
+    public PConsoleScene PConsoleSceneRead() => pConsoleScene;
 
-    public UIElement PConsoleSceneRead() => pConsoleSceneControls;
-
-    public void PConsoleSceneSet(UIElement? pSceneControls)
+    public void PConsoleSceneSet(bool pShown)
     {
-        pConsoleSceneHost.Content = pSceneControls;
-        pConsoleSceneSeparator.Visibility = pSceneControls is null ? Visibility.Collapsed : Visibility.Visible;
+        pConsoleSceneHost.Content = pConsoleSceneContents[pShown];
+        pConsoleSceneSeparator.Visibility = PLook.PLookVisible[pShown];
     }
+
+    private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleStart();
+
+    private void PConsolePauseHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsolePause();
+
+    private void PConsoleCancelHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleCancel();
+
+    private void PConsoleStopHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleStop();
+
+    private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleRemove();
+
+    private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleDoneClear();
+
+    private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleAllClear();
+
+    private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleTabsClear();
+
+    private void PConsoleAutoHandle(object pSender, RoutedEventArgs pArguments) =>
+        LConsole.LConsoleAutoSet(pConsoleAutoBox.IsChecked);
+
+    private void PConsolePreviousHandle(object pSender, RoutedEventArgs pArguments) =>
+        LConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepBack);
+
+    private void PConsoleNextHandle(object pSender, RoutedEventArgs pArguments) =>
+        LConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepForward);
+
+    private void PConsoleWatchHandle() => Dispatcher.BeginInvoke(new Action(LConsole.LConsoleScheduleLoad));
+
+    private void PConsoleUpdateDefer() =>
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LConsole.LConsoleUpdate));
+
+    private void PConsoleWarningShow(string pTitle, string pMessage) =>
+        PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
+
+    private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments)
+    {
+        LConsole.LConsoleClose();
+        Unloaded -= PConsoleUnloadHandle;
+    }
+
+    private void PConsoleStatusApply(LConsoleStatus lStatus)
+    {
+        pConsoleStatus.Inlines.Clear();
+        lStatus.LConsoleStatusRuns.ToList().ForEach(PConsoleRunAdd);
+        pConsoleStartButton.Visibility = PLook.PLookVisible[!lStatus.LConsoleStatusRunning];
+        pConsoleStartButton.IsEnabled = lStatus.LConsoleStatusLoaded;
+        pConsolePauseButton.Visibility = PLook.PLookVisible[lStatus.LConsoleStatusRunning];
+        pConsolePauseButton.IsEnabled = true;
+        pConsoleCancelButton.IsEnabled = lStatus.LConsoleStatusBusy;
+        pConsoleStopButton.IsEnabled = lStatus.LConsoleStatusActive;
+        pConsoleRemoveButton.IsEnabled = lStatus.LConsoleStatusRemovable;
+        pConsoleClearButton.IsEnabled = lStatus.LConsoleStatusDone;
+        pConsoleEmptyButton.IsEnabled = lStatus.LConsoleStatusClearable;
+        pConsolePreviousButton.Visibility = PLook.PLookVisible[lStatus.LConsoleStatusBoard];
+        pConsoleNextButton.Visibility = PLook.PLookVisible[lStatus.LConsoleStatusBoard];
+        pConsoleSpinner.Visibility = PLook.PLookVisible[lStatus.LConsoleStatusRunning];
+        pConsoleRestIcon.Visibility = PLook.PLookVisible[!lStatus.LConsoleStatusRunning];
+        pConsoleAutoBox.IsChecked = PLook.PLookChecked[lStatus.LConsoleStatusAuto];
+        pConsoleStationLabel.Text = lStatus.LConsoleStatusStation;
+    }
+
+    private void PConsoleRunAdd(LConsoleRun lRun) =>
+        pConsoleStatus.Inlines.Add(new Run(lRun.LConsoleRunText)
+        {
+            Foreground = pConsoleRunBrushes[lRun.LConsoleRunAccent],
+            FontWeight = pConsoleRunWeights[lRun.LConsoleRunAccent]
+        });
+
+    private void PConsoleProgressApply(double pValue, bool pGlide) => pConsoleProgressWrites[pGlide](pValue);
+
+    private void PConsoleProgressSet(double pValue)
+    {
+        pConsoleProgress.BeginAnimation(RangeBase.ValueProperty, null);
+        pConsoleProgress.Value = pValue;
+    }
+
+    private void PConsoleGlideApply(double pValue) =>
+        pConsoleProgress.BeginAnimation(
+            RangeBase.ValueProperty,
+            new DoubleAnimation
+            {
+                To = pValue,
+                Duration = pConsoleProgressGlide,
+                FillBehavior = FillBehavior.HoldEnd
+            });
+
+    private void PConsoleSpinApply(bool pActive) => pConsoleSpinWrites[pActive]();
+
+    private void PConsoleSpinStart() =>
+        pConsoleSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation
+        {
+            From = 0,
+            To = 360,
+            Duration = new Duration(TimeSpan.FromSeconds(1.1)),
+            RepeatBehavior = RepeatBehavior.Forever
+        });
+
+    private void PConsoleSpinStop() => pConsoleSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, null);
 
     private UIElement PConsoleBuild()
     {
@@ -218,9 +298,10 @@ public sealed partial class PConsole : UserControl
 
         Background = Brushes.White;
         var pRoot = new Grid();
-        pRoot.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PConsoleSwitchWidth) });
+        var pSwitchWidth = new GridLength(PConsoleControl.PConsoleSwitchWidth);
+        pRoot.ColumnDefinitions.Add(new ColumnDefinition { Width = pSwitchWidth });
         pRoot.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pRoot.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PConsoleSwitchWidth) });
+        pRoot.ColumnDefinitions.Add(new ColumnDefinition { Width = pSwitchWidth });
         Grid.SetColumn(pConsolePreviousButton, 0);
         Grid.SetColumn(pCard, 1);
         Grid.SetColumn(pConsoleNextButton, 2);

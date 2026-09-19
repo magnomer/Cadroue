@@ -3,6 +3,8 @@ namespace Cadroue.UIDeportment;
 public sealed record LAsk(string LAskQuestion, string LAskAction)
 {
     public string LAskTitle { get; init; } = string.Empty;
+
+    public string? LAskDismiss { get; init; }
 }
 
 public static class LAskNotice
