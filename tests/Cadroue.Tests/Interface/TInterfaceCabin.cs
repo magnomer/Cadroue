@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Media;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 
@@ -125,4 +126,60 @@ internal static partial class TInterface
     internal static string? TSummaryMeterFormat(IReadOnlyList<LWorkItem> items, long? output) =>
         LSummary.LSummaryMeterFormat(items, output);
     internal static string TSummaryFilesFormat(int count) => LSummary.LSummaryFilesFormat(count);
+
+    internal static LEditTab TEditTabCreate(
+        LPresetSelection preset,
+        LInspector inspector,
+        LViewer viewer,
+        LCrop crop,
+        LList list,
+        LDocket docket,
+        LProcessing processing) => new(preset, inspector, viewer, crop, list, docket, processing);
+    internal static void TEditClose(LEditTab tab) => tab.LEditClose();
+    internal static void TEditStart(LEditTab tab) => tab.LEditStart();
+    internal static LSceneTabRecord TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabRecord());
+    internal static void TEditLayoutApply(LEditTab tab, LSceneTabRecord? layout) => tab.LEditLayoutApply(layout);
+    internal static void TEditCropHandle(LEditTab tab) => tab.LEditCropHandle();
+    internal static void TEditSkipHandle(LEditTab tab) => tab.LEditSkipHandle();
+    internal static void TEditLockHandle(LEditTab tab, bool locked) => tab.LEditLockHandle(locked);
+    internal static void TEditPathHandle(LEditTab tab, string? path) => tab.LEditPathHandle(path);
+    internal static void TEditRotateAttach(LEditTab tab, Action<LRotateFlip> handler) =>
+        tab.LEditRotateApply += handler;
+    internal static void TEditRectAttach(LEditTab tab, Action<LCropbox?> handler) => tab.LEditRectApply += handler;
+    internal static void TEditActiveAttach(LEditTab tab, Action<bool> handler) => tab.LEditActiveApply += handler;
+    internal static void TEditLockAttach(LEditTab tab, Action<bool> handler) => tab.LEditLockApply += handler;
+    internal static void TEditToolAttach(LEditTab tab, Action<bool> handler) => tab.LEditToolApply += handler;
+    internal static void TEditNeutralAttach(LEditTab tab, Action handler) => tab.LEditNeutralCancel += handler;
+    internal static void TEditHistogramAttach(LEditTab tab, Action handler) => tab.LEditHistogramDefer += handler;
+    internal static void TEditMissingAttach(LEditTab tab, Action handler) => tab.LEditPresetMissing += handler;
+    internal static void TEditRun(LEditTab tab, LWorkPriority priority) => tab.LEditRun(priority, default, default);
+    internal static LEditPlan TEditStateRead(LEditTab tab) => tab.LEditStore.LEditStateRead();
+    internal static LEditPlan? TEditCarriedRead(LEditTab tab) => tab.LEditStore.LEditCarriedRead();
+    internal static void TEditStateSave(LEditTab tab) => tab.LEditStore.LEditStateSave();
+    internal static void TEditPersistentSave(LEditTab tab) => tab.LEditStore.LEditPersistentSave();
+    internal static string TEditPlanFormat(LEditPlan? plan) => LEditTabPlan.LEditPlanFormat(plan);
+    internal static string TEditCropFormat(LWorkCrop? crop) => LEditTabPlan.LEditCropFormat(crop);
+    internal static string TEditRectFormat(LCropbox? rect) => LEditTabPlan.LEditRectFormat(rect);
+    internal static LWorkVideo TEditVideoRead(LEditTab tab, bool mpvOnlyCapable) =>
+        tab.LEditColor.LEditVideoRead(mpvOnlyCapable);
+    internal static void TEditColorUpdate(LEditTab tab) => tab.LEditColor.LEditColorUpdate();
+    internal static void TEditPreviewAttach(LEditTab tab, Action<LColor> handler) =>
+        tab.LEditColor.LEditPreviewApply += handler;
+    internal static void TEditEstimateAttach(LEditTab tab, Action<LWhitebalanceMethod> handler) =>
+        tab.LEditColor.LEditEstimateRead += handler;
+    internal static void TEditColorApply(LEditTab tab) => tab.LEditColor.LEditColorApply();
+    internal static void TEditNeutralHandle(LEditTab tab, LNeutralSample sample) =>
+        tab.LEditColor.LEditNeutralHandle(sample);
+    internal static void TEditEstimateHandle(LEditTab tab, LWhitebalanceMethod method) =>
+        tab.LEditColor.LEditEstimateHandle(method);
+    internal static void TEditEstimateApply(LEditTab tab, double x, double y, bool present) =>
+        tab.LEditColor.LEditEstimateApply(new LNeutralWheel(x, y, present));
+    internal static void TEditHistogramApply(LEditTab tab, int width, int height, byte[]? pixels) =>
+        tab.LEditColor.LEditHistogramApply(pixels is null ? null : new LMediaFrame(width, height, pixels));
+    internal static void TEditLibrarianAttach(
+        Func<string, LSidecarEditRecord?>? reader, Func<string, LSidecarEditRecord?, bool>? writer)
+    {
+        LLibrarian.LLibrarianEditReader = reader;
+        LLibrarian.LLibrarianEditWriter = writer;
+    }
 }

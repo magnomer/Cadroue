@@ -5,18 +5,7 @@ namespace Cadroue.UIVeneer.PWing;
 
 public sealed partial class PInspector
 {
-    public LRotateFlip PInspectorRotateRead() => PInspectorRotateResolve(LCropboxState.LCropboxStateCrop);
-
-    public static LRotateFlip PInspectorRotateResolve(LWorkCrop pCrop) => new(
-        pCrop.LWorkCropRotation switch
-        {
-            90 => LRotateKind.LRotate90,
-            180 => LRotateKind.LRotate180,
-            270 => LRotateKind.LRotate270,
-            _ => LRotateKind.LRotateNone
-        },
-        pCrop.LWorkFlipHorizontal,
-        pCrop.LWorkFlipVertical);
+    public LRotateFlip PInspectorRotateRead() => LInspector.LInspectorRotateRead();
 
     private void PInspectorOrientationSet(int pRotation, bool pFlipHorizontal, bool pFlipVertical)
     {

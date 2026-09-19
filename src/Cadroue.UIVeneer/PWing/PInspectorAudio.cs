@@ -20,7 +20,7 @@ public sealed partial class PInspector
 
     public LEqualizer LEqualizer { get; } = new();
 
-    public LSkip LSkip { get; } = new();
+    public LSkip LSkip => LInspector.LInspectorSkip;
 
     private void PInspectorAudioAttach()
     {

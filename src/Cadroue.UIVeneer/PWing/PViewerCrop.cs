@@ -91,6 +91,8 @@ public sealed partial class PViewer
     public PCropAnchor PCropAnchorRead() =>
         new(LCrop.LCropDrive, LCrop.LCropAnchorX, LCrop.LCropAnchorY);
 
+    public void PCropboxSet(LCropbox? pCropbox) => PCropVideoSet(PCropVideoResolve(pCropbox));
+
     public void PCropVideoSet(Rect? pCropVideo)
     {
         pCropVideo = PCropSourceClamp(pCropVideo);

@@ -1,3 +1,4 @@
+using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
@@ -16,17 +17,8 @@ public sealed partial class PProcessing
     public void PProcessingActiveSet(string pStepName, bool pActive) =>
         LProcessing.LProcessingActiveSet(pStepName, pActive);
 
-    public void PProcessingEnabledSet(string pStepName, bool pEnabled, string? pDisabledTooltip = null)
-    {
-        if (pProcessingRows.TryGetValue(pStepName, out Border? pRowBorder))
-        {
-            pRowBorder.ToolTip = pEnabled ? null : pDisabledTooltip;
-            AutomationProperties.SetHelpText(pRowBorder, pEnabled ? string.Empty : pDisabledTooltip ?? string.Empty);
-            ToolTipService.SetShowOnDisabled(pRowBorder, true);
-        }
-
-        LProcessing.LProcessingEnabledSet(pStepName, pEnabled);
-    }
+    public void PProcessingRowAdd(LProcessingRow pRow) =>
+        PProcessingStepAdd(pRow.LProcessingRowKey, pRow.LProcessingRowIcon, pRow.LProcessingRowLabel);
 
     private static void PProcessingRowApply(StackPanel pRowContent, bool pActive)
     {
@@ -121,6 +113,7 @@ public sealed partial class PProcessing
             Tag = pStepName
         };
         AutomationProperties.SetName(pRowBorder, pStepLabel);
+        ToolTipService.SetShowOnDisabled(pRowBorder, true);
         PProcessingRowApply(pRowContent, LProcessing.LProcessingActiveCheck(pStepName));
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
         {

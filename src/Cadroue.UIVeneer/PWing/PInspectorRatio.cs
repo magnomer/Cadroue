@@ -234,15 +234,8 @@ public sealed partial class PInspector
         pInspectorRatioNotice.Visibility = Visibility.Visible;
     }
 
-    public void PInspectorRatioApply(bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight)
-    {
-        bool pValid = pRatioWidth > 0 && pRatioHeight > 0;
-        LCropboxState.LCropboxRatioSet(
-            pRatioFixed && pValid,
-            pRatioLenient && pRatioFixed && pValid,
-            pRatioWidth,
-            pRatioHeight);
-    }
+    public void PInspectorRatioApply(bool pRatioFixed, bool pRatioLenient, int pRatioWidth, int pRatioHeight) =>
+        LInspector.LInspectorRatioApply(pRatioFixed, pRatioLenient, pRatioWidth, pRatioHeight);
 
     public void PInspectorRatioReset()
     {

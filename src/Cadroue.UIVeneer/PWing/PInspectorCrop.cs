@@ -41,7 +41,7 @@ public sealed partial class PInspector
     private CheckBox pInspectorPersistentBox = null!;
     private Image pInspectorToolIcon = null!;
 
-    public LCropboxState LCropboxState { get; } = new();
+    public LCropboxState LCropboxState => LInspector.LInspectorCropbox;
 
     public event Action<bool>? PInspectorToolChange;
     public event Action? PCropActiveChange;
@@ -57,40 +57,21 @@ public sealed partial class PInspector
     public void PInspectorSourceSet(double pSourceWidth, double pSourceHeight) =>
         LInspector.LInspectorSourceSet(pSourceWidth, pSourceHeight);
 
-    public LWorkCrop PInspectorCropRead() => LCropbox.LCropboxEdgeNormalize(
-        LCropboxState.LCropboxStateCrop,
-        LInspector.LInspectorSourceWidth,
-        LInspector.LInspectorSourceHeight);
+    public LWorkCrop PInspectorCropRead() => LInspector.LInspectorCropRead();
 
     public Rect? PInspectorRectRead() =>
-        LCropbox.LCropboxRectResolve(
-            LCropboxState.LCropboxStateCrop, LInspector.LInspectorSourceWidth, LInspector.LInspectorSourceHeight)
-            is { } pCropBox
+        LInspector.LInspectorRectRead() is { } pCropBox
             ? new Rect(pCropBox.LCropboxX, pCropBox.LCropboxY, pCropBox.LCropboxWidth, pCropBox.LCropboxHeight)
             : null;
 
-    public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply)
-    {
-        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
-        LCropboxState.LCropboxCropSet(pInspectorPlan);
-        LCropboxState.LCropboxApplySet(pInspectorApply);
-    }
+    public void PCropPlanApply(LWorkCrop pInspectorPlan, bool pInspectorApply) =>
+        LInspector.LInspectorCropApply(pInspectorPlan, pInspectorApply);
 
     public bool PCropPersistentCheck() => LCropboxState.LCropboxStatePersistent;
 
     public bool PCropActiveCheck() => LCropboxState.LCropboxStateActive;
 
-    public void PCropMediaReset()
-    {
-        if (LCropboxState.LCropboxStatePersistent)
-        {
-            return;
-        }
-
-        LInspector.LInspectorEdgeLock.LCropboxEdgeClear();
-        LInspector.LInspectorToolSet(false);
-        LCropboxState.LCropboxStateReset();
-    }
+    public void PCropMediaReset() => LInspector.LInspectorCropReset();
 
     public void PCropCapabilitySet(bool pCropCapable, bool pOrientationCapable) =>
         LInspector.LInspectorCapableSet(pCropCapable, pOrientationCapable);

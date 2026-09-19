@@ -7,15 +7,15 @@ public sealed partial class PInspector
 {
     public event Action? PInspectorVideoChange;
 
-    public LTone LTone { get; } = new();
+    public LTone LTone => LInspector.LInspectorTone;
 
-    public LGamma LGamma { get; } = new();
+    public LGamma LGamma => LInspector.LInspectorGamma;
 
-    public LExposure LExposure { get; } = new();
+    public LExposure LExposure => LInspector.LInspectorExposure;
 
-    public LCurve LCurve { get; } = new();
+    public LCurve LCurve => LInspector.LInspectorCurve;
 
-    public LWhitebalance LWhitebalance { get; } = new();
+    public LWhitebalance LWhitebalance => LInspector.LInspectorWhitebalance;
 
     private void PInspectorVideoAttach()
     {
@@ -38,36 +38,13 @@ public sealed partial class PInspector
 
     private void PInspectorVideoRaise() => PInspectorVideoChange?.Invoke();
 
-    public LWorkVideoStep PToneStepRead(LColorKind pStepKind) => pStepKind switch
-    {
-        LColorKind.LColorKindGamma => LGamma.LGammaStep,
-        LColorKind.LColorKindWhitebalance => LWhitebalance.LWhitebalanceStep,
-        LColorKind.LColorKindExposure => LExposure.LExposureStep,
-        LColorKind.LColorKindCurve => LCurve.LCurveStepRead(),
-        _ => LTone.LToneStepRead(pStepKind)
-    };
+    public LWorkVideoStep PToneStepRead(LColorKind pStepKind) => LInspector.LInspectorStepRead(pStepKind);
 
     public void PTonePlanApply(LWorkVideo pVideo)
     {
-        LTone.LToneStepSet(PToneStepFind(pVideo, LColorKind.LColorKindBrightness)
-            ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
-        LTone.LToneStepSet(PToneStepFind(pVideo, LColorKind.LColorKindContrast)
-            ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
-        LTone.LToneStepSet(PToneStepFind(pVideo, LColorKind.LColorKindSaturation)
-            ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
-        LGamma.LGammaStepSet(PToneStepFind(pVideo, LColorKind.LColorKindGamma)
-            ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
-        LWhitebalance.LWhitebalanceStepSet(PToneStepFind(pVideo, LColorKind.LColorKindWhitebalance)
-            ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
-        LExposure.LExposureStepSet(PToneStepFind(pVideo, LColorKind.LColorKindExposure)
-            ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
-        LCurve.LCurveStepSet(PToneStepFind(pVideo, LColorKind.LColorKindCurve)
-            ?? LWorkVideoStep.LWorkCurveCreate(false));
+        LInspector.LInspectorVideoApply(pVideo);
         PInspectorVideoRaise();
     }
-
-    private static LWorkVideoStep? PToneStepFind(LWorkVideo pVideo, LColorKind pKind) =>
-        pVideo.LWorkVideoSteps.FirstOrDefault(pStep => pStep.LWorkStepKind == pKind);
 
     public void PToneCapabilitySet(bool pCapable) => LTone.LToneCapableSet(pCapable);
 

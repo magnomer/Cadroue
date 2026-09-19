@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -17,6 +18,8 @@ public sealed partial class PProcessing
             pRowBorder.IsEnabled = pEnabled;
             pRowBorder.Opacity = pEnabled ? 1 : 0.4;
             pRowBorder.Cursor = pEnabled ? Cursors.Hand : Cursors.Arrow;
+            pRowBorder.ToolTip = LProcessing.LProcessingNoticeRead(pRowName);
+            AutomationProperties.SetHelpText(pRowBorder, LProcessing.LProcessingNoticeRead(pRowName) ?? string.Empty);
             pRowBorder.Background = LProcessing.LProcessingSelectedCheck(pRowName)
                 ? pProcessingSelectBrush
                 : Brushes.White;

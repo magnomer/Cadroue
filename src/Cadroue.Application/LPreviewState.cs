@@ -67,6 +67,17 @@ public sealed record LRotateFlip(LRotateKind LRotateKind, bool LRotateFlipHorizo
     {
         return new LRotateFlip(LRotateKind.LRotateNone, false, false);
     }
+
+    public static LRotateFlip LRotateCropResolve(LWorkCrop lCrop) => new(
+        lCrop.LWorkCropRotation switch
+        {
+            90 => LRotateKind.LRotate90,
+            180 => LRotateKind.LRotate180,
+            270 => LRotateKind.LRotate270,
+            _ => LRotateKind.LRotateNone
+        },
+        lCrop.LWorkFlipHorizontal,
+        lCrop.LWorkFlipVertical);
 }
 
 public sealed record LPlaybackState(bool LPlaybackStatePlaying, TimeSpan LPlaybackPosition)

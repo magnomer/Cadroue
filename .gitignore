@@ -94,6 +94,7 @@ $RECYCLE.BIN/
 
 # Build-lifecycle helper scripts
 /*.ps1
+/scripts
 
 # Root JSON files configure the local scripts; only the one the convention tests read is tracked
 /*.json

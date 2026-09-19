@@ -1,12 +1,14 @@
 namespace Cadroue.UIDeportment;
 
+public sealed record LProcessingRow(string LProcessingRowKey, string LProcessingRowIcon, string LProcessingRowLabel);
+
 public sealed class LProcessing
 {
     public const string LProcessingSkipStep = "No Processing";
 
     private readonly List<string> lProcessingSteps = [];
     private readonly HashSet<string> lProcessingActive = new(StringComparer.Ordinal);
-    private readonly HashSet<string> lProcessingDisabled = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string?> lProcessingNotices = new(StringComparer.Ordinal);
     private string? lProcessingStep;
     private bool lProcessingMinimized;
     private bool lProcessingOrdered;
@@ -32,7 +34,9 @@ public sealed class LProcessing
 
     public bool LProcessingActiveCheck(string lStep) => lProcessingActive.Contains(lStep);
 
-    public bool LProcessingEnabledCheck(string lStep) => !lProcessingDisabled.Contains(lStep);
+    public bool LProcessingEnabledCheck(string lStep) => !lProcessingNotices.ContainsKey(lStep);
+
+    public string? LProcessingNoticeRead(string lStep) => lProcessingNotices.GetValueOrDefault(lStep);
 
     public bool LProcessingSelectedCheck(string lStep) => lStep == lProcessingStep && LProcessingEnabledCheck(lStep);
 
@@ -47,9 +51,16 @@ public sealed class LProcessing
         }
     }
 
-    public void LProcessingEnabledSet(string lStep, bool lEnabled)
+    public void LProcessingEnabledSet(string lStep, bool lEnabled, string? lNotice = null)
     {
-        bool lChanged = lEnabled ? lProcessingDisabled.Remove(lStep) : lProcessingDisabled.Add(lStep);
+        bool lChanged = lEnabled
+            ? lProcessingNotices.Remove(lStep)
+            : !lProcessingNotices.TryGetValue(lStep, out string? lPrevious) || lPrevious != lNotice;
+        if (!lEnabled)
+        {
+            lProcessingNotices[lStep] = lNotice;
+        }
+
         if (lChanged)
         {
             LProcessingChange?.Invoke();

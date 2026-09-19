@@ -18,6 +18,31 @@ internal static partial class TInterface
     internal static bool TInspectorOwnerSet(LInspector inspector, string path) => inspector.LInspectorOwnerSet(path);
     internal static bool TInspectorFailureSet(LInspector inspector, string? path) =>
         inspector.LInspectorFailureSet(path);
+    internal static LWorkCrop TInspectorCropRead(LInspector inspector) => inspector.LInspectorCropRead();
+    internal static LCropbox? TInspectorRectRead(LInspector inspector) => inspector.LInspectorRectRead();
+    internal static LRotateFlip TInspectorRotateRead(LInspector inspector) => inspector.LInspectorRotateRead();
+    internal static void TInspectorCropApply(LInspector inspector, LWorkCrop crop, bool apply) =>
+        inspector.LInspectorCropApply(crop, apply);
+    internal static void TInspectorRatioApply(
+        LInspector inspector, bool fixedRatio, bool lenient, int width, int height) =>
+        inspector.LInspectorRatioApply(fixedRatio, lenient, width, height);
+    internal static void TInspectorCropReset(LInspector inspector) => inspector.LInspectorCropReset();
+    internal static LWorkVideoStep TInspectorStepRead(LInspector inspector, LColorKind kind) =>
+        inspector.LInspectorStepRead(kind);
+    internal static void TInspectorVideoApply(LInspector inspector, LWorkVideo video) =>
+        inspector.LInspectorVideoApply(video);
+    internal static bool TInspectorPersistentCheck(LInspector inspector) => inspector.LInspectorPersistentCheck();
+    internal static bool TInspectorPersistentCheck(LInspector inspector, LColorKind kind) =>
+        inspector.LInspectorPersistentCheck(kind);
+    internal static void TInspectorPersistentSet(LInspector inspector, LColorKind kind, bool persistent) =>
+        inspector.LInspectorPersistentSet(kind, persistent);
+    internal static void TInspectorPersistentApply(LInspector inspector, LWorkVideo video) =>
+        inspector.LInspectorPersistentApply(video);
+    internal static LWorkVideo TInspectorPersistentRead(LInspector inspector) => inspector.LInspectorPersistentRead();
+    internal static LRotateFlip TRotateCropResolve(LWorkCrop crop) => LRotateFlip.LRotateCropResolve(crop);
+    internal static void TInspectorToolSet(LInspector inspector, bool armed) => inspector.LInspectorToolSet(armed);
+    internal static void TInspectorCapableSet(LInspector inspector, bool crop, bool orientation) =>
+        inspector.LInspectorCapableSet(crop, orientation);
 
     internal static LWorkGammaSettings TGammaSettingsCreate(
         double global, double red, double green, double blue, double highlight) =>
@@ -172,6 +197,9 @@ internal static partial class TInterface
     internal static void TCropboxStateAttach(LCropboxState state, Action handler) =>
         state.LCropboxStateChange += handler;
     internal static void TCropboxCropSet(LCropboxState state, LWorkCrop crop) => state.LCropboxCropSet(crop);
+    internal static void TCropboxApplySet(LCropboxState state, bool apply) => state.LCropboxApplySet(apply);
+    internal static void TCropboxPersistentSet(LCropboxState state, bool persistent) =>
+        state.LCropboxPersistentSet(persistent);
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
@@ -199,6 +227,8 @@ internal static partial class TInterface
     internal static void TViewerRequestSet(LViewer viewer, string path) => viewer.LViewerRequestSet(path);
     internal static bool TViewerSourceMatch(LViewer viewer, string path) => viewer.LViewerSourceMatch(path);
     internal static void TViewerPreviewSet(LViewer viewer, LPreviewState preview) => viewer.LViewerPreviewSet(preview);
+    internal static void TViewerRotateSet(LViewer viewer, LRotateFlip rotate) =>
+        viewer.LViewerPreviewSet(viewer.LViewerPreview.LRotateFlipChange(rotate));
     internal static void TViewerPlaybackUpdate(LViewer viewer, bool? playing, TimeSpan? position) =>
         viewer.LViewerPlaybackUpdate(playing, position);
     internal static void TViewerMediaCommit(LViewer viewer, LCargo cargo, bool persistent) =>
@@ -317,6 +347,12 @@ internal static partial class TInterface
     internal static void TExportSync(LExport export) => export.LExportSync();
 
     internal static LProcessing TProcessingCreate() => new();
+    internal static void TProcessingAttach(LProcessing processing, Action handler) =>
+        processing.LProcessingChange += handler;
+    internal static bool TProcessingActiveCheck(LProcessing processing, string step) =>
+        processing.LProcessingActiveCheck(step);
+    internal static bool TProcessingEnabledCheck(LProcessing processing, string step) =>
+        processing.LProcessingEnabledCheck(step);
     internal static void TProcessingOrderAttach(LProcessing processing, Action handler) =>
         processing.LProcessingOrderChange += handler;
     internal static void TProcessingStepAttach(LProcessing processing, Action<string> handler) =>
@@ -326,6 +362,10 @@ internal static partial class TInterface
         processing.LProcessingOrderedSet(ordered);
     internal static void TProcessingEnabledSet(LProcessing processing, string step, bool enabled) =>
         processing.LProcessingEnabledSet(step, enabled);
+    internal static void TProcessingEnabledSet(LProcessing processing, string step, bool enabled, string? notice) =>
+        processing.LProcessingEnabledSet(step, enabled, notice);
+    internal static string? TProcessingNoticeRead(LProcessing processing, string step) =>
+        processing.LProcessingNoticeRead(step);
     internal static bool TProcessingStepSelect(LProcessing processing, string step) =>
         processing.LProcessingStepSelect(step);
     internal static bool TProcessingStepMove(LProcessing processing, int delta) =>
