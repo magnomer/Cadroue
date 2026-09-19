@@ -169,6 +169,62 @@ internal static class PRosterTheme
         [false] = PRosterAccentBrush,
     };
 
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterLineBrushes = new Dictionary<string, Brush>
+    {
+        [LRosterDetail.LRosterLineHead] = PRosterMutedBrush,
+        [LRosterDetail.LRosterLinePlain] = PRosterTextBrush,
+        [LRosterDetail.LRosterLineChanged] = PRosterAccentBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, double> PRosterLineSizes = new Dictionary<string, double>
+    {
+        [LRosterDetail.LRosterLineHead] = PRosterRowSize - 1,
+        [LRosterDetail.LRosterLinePlain] = PRosterRowSize,
+        [LRosterDetail.LRosterLineChanged] = PRosterRowSize,
+    };
+
+    public static readonly IReadOnlyDictionary<string, FontWeight> PRosterLineWeights =
+        new Dictionary<string, FontWeight>
+        {
+            [LRosterDetail.LRosterLineHead] = FontWeights.SemiBold,
+            [LRosterDetail.LRosterLinePlain] = FontWeights.Normal,
+            [LRosterDetail.LRosterLineChanged] = FontWeights.SemiBold,
+        };
+
+    public static readonly IReadOnlyDictionary<string, Thickness> PRosterLineMargins =
+        new Dictionary<string, Thickness>
+        {
+            [LRosterDetail.LRosterLineHead] = new Thickness(0, 0, 0, 3),
+            [LRosterDetail.LRosterLinePlain] = new Thickness(0, 1, 0, 1),
+            [LRosterDetail.LRosterLineChanged] = new Thickness(0, 1, 0, 1),
+        };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterValueBrushes = new Dictionary<string, Brush>
+    {
+        [LRosterDetail.LRosterValuePlain] = PRosterTextBrush,
+        [LRosterDetail.LRosterValueFail] = PRosterFailBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, FontWeight> PRosterValueWeights =
+        new Dictionary<string, FontWeight>
+        {
+            [LRosterDetail.LRosterValuePlain] = FontWeights.Normal,
+            [LRosterDetail.LRosterValueFail] = FontWeights.SemiBold,
+        };
+
+    public static readonly IReadOnlyDictionary<bool, Brush> PRosterMarkBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = PRosterFailBrush,
+        [false] = PRosterAccentBrush,
+    };
+
+    public static readonly IReadOnlyDictionary<string, Brush> PRosterPercentBrushes = new Dictionary<string, Brush>
+    {
+        [LRosterDetail.LRosterPercentOver] = PRosterFailBrush,
+        [LRosterDetail.LRosterPercentUnder] = PRosterAccentBrush,
+        [LRosterDetail.LRosterPercentEqual] = PRosterTextBrush,
+    };
+
     private static Brush PRosterBrushCreate(byte pRed, byte pGreen, byte pBlue)
     {
         var pBrush = new SolidColorBrush(Color.FromRgb(pRed, pGreen, pBlue));

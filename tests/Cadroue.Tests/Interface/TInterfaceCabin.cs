@@ -94,8 +94,35 @@ internal static partial class TInterface
     internal static string TLineageRatioFormat(LWorkItem work, string subject, long? origin) =>
         LLineage.LLineageRatioFormat(work, subject, origin);
     internal static string TLineageTitleFormat(LLineageEntry entry) => LLineage.LLineageTitleFormat(entry);
-    internal static HashSet<Guid> TLineageStageRead(IReadOnlyList<LWorkItem> items) => LLineage.LLineageStageRead(items);
+    internal static HashSet<Guid> TLineageStageRead(IReadOnlyList<LWorkItem> items) =>
+        LLineage.LLineageStageRead(items);
     internal static int TLineageInitialRead(IReadOnlyList<LWorkItem> items) => LLineage.LLineageInitialRead(items);
     internal static long? TLineageSourceRead(LWorkItem work) => LLineage.LLineageSourceRead(work);
     internal static string? TLineagePathRead(string path) => LLineage.LLineagePathRead(path);
+    internal static LRosterDetailKind TRosterKindRead(LRoster roster) =>
+        LRosterDetail.LRosterKindRead(roster);
+    internal static LRosterDetail TRosterDetailRead(LRoster roster) => LRosterDetail.LRosterDetailRead(roster);
+    internal static LRosterDetail TRosterDetailCreate(LWorkItem? work, string owner) =>
+        LRosterDetail.LRosterDetailCreate(work, owner);
+    internal static IReadOnlyList<LRosterBar> TRosterBarsCreate(long? source, long? output) =>
+        LRosterDetail.LRosterBarsCreate(source, output);
+    internal static LRosterCompareRow TRosterCompareCreate(string source, string output) =>
+        LRosterDetail.LRosterCompareCreate(source, output);
+    internal static string TRosterMebiFormat(long? bytes) => LRosterFormat.LRosterMebiFormat(bytes);
+    internal static string TRosterSpentFormat(LWorkItem work) => LRosterFormat.LRosterSpentFormat(work);
+    internal static string TRosterSpeedFormat(LWorkItem work) => LRosterFormat.LRosterSpeedFormat(work);
+    internal static string TRosterElapsedFormat(TimeSpan spent) =>
+        LRosterFormat.LRosterElapsedFormat(spent);
+    internal static string TRosterClockFormat(TimeSpan span) => LRosterFormat.LRosterClockFormat(span);
+    internal static string TRosterStampFormat(DateTimeOffset? stamp) => LRosterFormat.LRosterStampFormat(stamp);
+    internal static string TRosterContainerFormat(string path) => LRosterFormat.LRosterContainerFormat(path);
+    internal static bool TRosterReencodeCheck(string mode) => LRosterFormat.LRosterReencodeCheck(mode);
+    internal static LSummary TSummaryRead(IReadOnlyList<LWorkItem> items) => LSummary.LSummaryRead(items);
+    internal static (long?, long?) TSummarySizeRead(IReadOnlyList<LWorkItem> items) =>
+        LSummary.LSummarySizeRead(items);
+    internal static (IReadOnlyList<string>, IReadOnlyList<string>) TSummaryPathsRead(
+        IReadOnlyList<LWorkItem> items) => LSummary.LSummaryPathsRead(items);
+    internal static string? TSummaryMeterFormat(IReadOnlyList<LWorkItem> items, long? output) =>
+        LSummary.LSummaryMeterFormat(items, output);
+    internal static string TSummaryFilesFormat(int count) => LSummary.LSummaryFilesFormat(count);
 }

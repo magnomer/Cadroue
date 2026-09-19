@@ -11,7 +11,7 @@ using static Cadroue.UIVeneer.PWing.PPanel;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PRoster : UserControl
+public sealed class PRoster : UserControl
 {
     private readonly Grid pRosterBody = new();
     private readonly PColumn pRosterLayout;
@@ -97,6 +97,8 @@ public sealed partial class PRoster : UserControl
         pRosterQueuePanel.Children.Insert(pIndex, PRosterCard.PRosterCardBuild(LRoster, lCard));
     }
 
+    private void PRosterDetailUpdate() => PRosterDetail.PRosterDetailUpdate(pRosterDetailPanel, LRoster);
+
     private void PRosterDetailDefer() =>
         Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LRoster.LRosterDetailRun));
 
@@ -122,7 +124,7 @@ public sealed partial class PRoster : UserControl
         Grid.SetColumn(pSplitter, 1);
         pRosterBody.Children.Add(pSplitter);
 
-        UIElement pDetail = PRosterDetailBuild();
+        UIElement pDetail = PRosterDetail.PRosterDetailBuild(pRosterDetailTitle, pRosterDetailPanel);
         Grid.SetColumn(pDetail, 2);
         pRosterBody.Children.Add(pDetail);
         return pLayout;

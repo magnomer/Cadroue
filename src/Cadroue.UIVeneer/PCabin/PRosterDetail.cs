@@ -1,26 +1,23 @@
-﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using Cadroue.Core;
-using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PWing;
-using static Cadroue.UIVeneer.PWing.PPanel;
-
-using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
+using static Cadroue.UIVeneer.PCabin.PRosterOverview;
+using static Cadroue.UIVeneer.PWing.PPanel;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PRoster
+internal static class PRosterDetail
 {
-    private const string PRosterOpenIcon = "/PAsset/PPanel/PRosterOpen.svg";
+    private static readonly IReadOnlyDictionary<LRosterDetailKind, Action<StackPanel, LRoster>> PRosterFillers =
+        new Dictionary<LRosterDetailKind, Action<StackPanel, LRoster>>
+        {
+            [LRosterDetailKind.LRosterDetailNone] = PRosterEmptyAdd,
+            [LRosterDetailKind.LRosterDetailJob] = PRosterJobAdd,
+            [LRosterDetailKind.LRosterDetailCard] = PRosterCardAdd,
+        };
 
-    private StackPanel pRosterRowTarget = null!;
-
-    private UIElement PRosterDetailBuild()
+    public static UIElement PRosterDetailBuild(TextBlock pTitle, StackPanel pPanel)
     {
         var pHeader = new Border
         {
@@ -28,7 +25,7 @@ public sealed partial class PRoster
             Background = PRosterTheme.PRosterHeaderBrush,
             BorderBrush = PRosterTheme.PRosterLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
-            Child = pRosterDetailTitle
+            Child = pTitle
         };
 
         var pScroll = new ScrollViewer
@@ -37,227 +34,66 @@ public sealed partial class PRoster
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
             FocusVisualStyle = null,
             Padding = new Thickness(12, 10, 12, 12),
-            Content = pRosterDetailPanel
+            Content = pPanel
         };
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pScroll);
-
-        PRosterDetailUpdate();
         return PPanelBorderBuild(pRoot);
     }
 
-    private void PRosterDetailUpdate()
+    public static void PRosterDetailUpdate(StackPanel pPanel, LRoster lRoster)
     {
-        pRosterDetailPanel.Children.Clear();
-        pRosterRowTarget = pRosterDetailPanel;
-
-        if (LRoster.LRosterCardId != Guid.Empty)
-        {
-            PSummaryAdd(LRoster.LRosterBatchRead());
-            return;
-        }
-
-        if (LRoster.LRosterSelectRead() is not { } pWorkItem)
-        {
-            pRosterDetailPanel.Children.Add(new TextBlock
-            {
-                Text = LLocalization.LLocalizationTextRead("Roster.Empty.Notice"),
-                Foreground = PRosterTheme.PRosterMutedBrush,
-                FontSize = PRosterTheme.PRosterRowSize,
-                TextWrapping = TextWrapping.Wrap
-            });
-            return;
-        }
-
-        if (pWorkItem.LWorkStateCurrent == LWorkState.LWorkStateFailed
-            && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
-        {
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.FailureReason"),
-                pWorkItem.LWorkMessage,
-                pValueBold: true,
-                pValueBrush: PRosterTheme.PRosterFailBrush);
-        }
-
-        LWorkMedia? pSourceInfo = pWorkItem.LWorkSourceMedia;
-        PRosterOverviewAdd(pWorkItem, pSourceInfo);
-        PRosterRecordAdd(pWorkItem);
-
-        pRosterRowTarget.Children.Add(new Border
-        {
-            Height = 1,
-            Background = PRosterTheme.PRosterLineBrush,
-            Margin = new Thickness(0, 12, 0, 10)
-        });
-        PRosterEncodingAdd(pWorkItem);
+        pPanel.Children.Clear();
+        PRosterFillers[LRosterDetail.LRosterKindRead(lRoster)](pPanel, lRoster);
     }
 
-    private void PRosterRecordAdd(LWorkItem pWorkItem)
-    {
-        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.Record"), false);
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Queued"),
-            pWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Started"),
-            PRosterStampFormat(pWorkItem.LWorkStartTime));
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Finished"),
-            PRosterStampFormat(pWorkItem.LWorkFinishTime));
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Attempts"),
-            pWorkItem.LWorkAttemptCount.ToString());
-        PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Owner"), LRoster.LRosterOwnerFormat(pWorkItem));
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.State"),
-            LRosterRow.LRosterPhaseFormat(pWorkItem.LWorkStateCurrent, pWorkItem.LWorkPhaseCurrent));
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Priority"),
-            LRosterRow.LRosterPriorityFormat(pWorkItem.LWorkPriority));
+    private static void PRosterEmptyAdd(StackPanel pPanel, LRoster lRoster) =>
+        pPanel.Children.Add(
+            PRosterNoteBuild(LLocalization.LLocalizationTextRead("Roster.Empty.Notice"), new Thickness(0)));
 
-        if (pWorkItem.LWorkStateCurrent != LWorkState.LWorkStateFailed
-            && !string.IsNullOrWhiteSpace(pWorkItem.LWorkMessage))
-        {
-            PRosterRowAdd(LLocalization.LLocalizationTextRead("Roster.Field.Message"), pWorkItem.LWorkMessage);
-        }
-    }
+    private static void PRosterCardAdd(StackPanel pPanel, LRoster lRoster) =>
+        PRosterSummary.PRosterSummaryAdd(pPanel, LSummary.LSummaryRead(lRoster.LRosterBatchRead()));
 
-    private void PRosterEncodingAdd(LWorkItem pWorkItem)
+    private static void PRosterJobAdd(StackPanel pPanel, LRoster lRoster)
     {
-        LEncoding pOutput = pWorkItem.LWorkOutput;
+        LRosterDetail lDetail = LRosterDetail.LRosterDetailRead(lRoster);
+        lDetail.LRosterDetailFailures.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
+
+        pPanel.Children.Add(PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
+        lDetail.LRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterTabBuild(lTab)));
+        lDetail.LRosterDetailMeters.ToList().ForEach(lMeter => pPanel.Children.Add(PRosterMeterBuild(lMeter)));
+        lDetail.LRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterBarBuild(lBar)));
+        pPanel.Children.Add(PRosterComparisonBuild(lDetail));
+        pPanel.Children.Add(PRosterRuleBuild());
+
+        pPanel.Children.Add(PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Record")));
+        lDetail.LRosterDetailRecords.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
+        pPanel.Children.Add(PRosterRuleBuild());
+
         var pVideoPanel = new StackPanel();
+        pVideoPanel.Children.Add(
+            PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo")));
+        lDetail.LRosterDetailVideos.ToList().ForEach(lRow => pVideoPanel.Children.Add(PRosterRowBuild(lRow)));
+
         var pAudioPanel = new StackPanel { Margin = new Thickness(14, 0, 0, 0) };
+        pAudioPanel.Children.Add(
+            PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio")));
+        lDetail.LRosterDetailAudios.ToList().ForEach(lRow => pAudioPanel.Children.Add(PRosterRowBuild(lRow)));
 
-        StackPanel pPreviousTarget = pRosterRowTarget;
-        pRosterRowTarget = pVideoPanel;
-        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo"), false);
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Mode"),
-            $"{pOutput.LEncodingVideo.LEncodingMode} ({pOutput.LEncodingVideo.LEncodingStream})");
-        if (PRosterReencodeCheck(pOutput.LEncodingVideo.LEncodingMode))
-        {
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.Encoder"),
-                pOutput.LEncodingVideo.LEncodingEncoder);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.RateControl"),
-                pOutput.LEncodingVideo.LEncodingRateControl);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.Quality"),
-                pOutput.LEncodingVideo.LEncodingQuality);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"),
-                pOutput.LEncodingVideo.LEncodingSpeedPreset);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.PixelFormat"),
-                pOutput.LEncodingVideo.LEncodingPixel);
-
-            if (pOutput.LEncodingVideo.LEncodingExtras.Count > 0)
-            {
-                PRosterRowAdd(
-                    LLocalization.LLocalizationTextRead("Roster.Field.Extras"),
-                    string.Join(
-                        "  ",
-                        pOutput.LEncodingVideo.LEncodingExtras
-                            .Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
-            }
-        }
-
-        pRosterRowTarget = pAudioPanel;
-        PRosterSectionAdd(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio"), false);
-        PRosterRowAdd(
-            LLocalization.LLocalizationTextRead("Roster.Field.Mode"),
-            $"{pOutput.LEncodingAudio.LEncodingMode} ({pOutput.LEncodingAudio.LEncodingStream})");
-        if (PRosterReencodeCheck(pOutput.LEncodingAudio.LEncodingMode))
-        {
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.Encoder"),
-                pOutput.LEncodingAudio.LEncodingEncoder);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.RateControl"),
-                pOutput.LEncodingAudio.LEncodingRateControl);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.Quality"),
-                pOutput.LEncodingAudio.LEncodingQuality);
-            if (!string.IsNullOrWhiteSpace(pOutput.LEncodingAudio.LEncodingSpeed))
-            {
-                PRosterRowAdd(
-                    LLocalization.LLocalizationTextRead("Roster.Field.SpeedPreset"),
-                    pOutput.LEncodingAudio.LEncodingSpeed);
-            }
-
-            if (pOutput.LEncodingAudio.LEncodingExtras.Count > 0)
-            {
-                PRosterRowAdd(
-                    LLocalization.LLocalizationTextRead("Roster.Field.Extras"),
-                    string.Join(
-                        "  ",
-                        pOutput.LEncodingAudio.LEncodingExtras
-                            .Select(pExtra => $"{pExtra.Key} {pExtra.Value}")));
-            }
-
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.SampleRate"),
-                pOutput.LEncodingAudio.LEncodingSampleRate);
-            PRosterRowAdd(
-                LLocalization.LLocalizationTextRead("Roster.Field.Channels"),
-                pOutput.LEncodingAudio.LEncodingChannels);
-        }
-
-        pRosterRowTarget = pPreviousTarget;
-
-        var pColumnGrid = new Grid();
-        pColumnGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pColumnGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        Grid.SetColumn(pAudioPanel, 1);
-        pColumnGrid.Children.Add(pVideoPanel);
-        pColumnGrid.Children.Add(pAudioPanel);
-        pRosterRowTarget.Children.Add(pColumnGrid);
+        pPanel.Children.Add(PRosterHalvesBuild(pVideoPanel, pAudioPanel));
     }
 
-    private static bool PRosterReencodeCheck(string pMode) =>
-        !string.Equals(pMode, "Copy", StringComparison.OrdinalIgnoreCase)
-        && !string.Equals(pMode, "Exclude", StringComparison.OrdinalIgnoreCase);
-
-    private void PRosterSectionAdd(string pSectionName, bool pSectionRule)
+    private static Grid PRosterRowBuild(LRosterDetailRow lRow)
     {
-        if (pSectionRule)
-        {
-            pRosterRowTarget.Children.Add(new Border
-            {
-                Height = 1,
-                Background = PRosterTheme.PRosterLineBrush,
-                Margin = new Thickness(0, 12, 0, 10)
-            });
-        }
-
-        pRosterRowTarget.Children.Add(new TextBlock
-        {
-            Text = pSectionName,
-            Foreground = PRosterTheme.PRosterTextBrush,
-            FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = FontWeights.SemiBold,
-            Margin = new Thickness(0, 0, 0, 6)
-        });
-    }
-
-    private void PRosterRowAdd(
-        string pLabel,
-        string pValue,
-        double pIndent = 0,
-        bool pValueBold = false,
-        Brush? pValueBrush = null)
-    {
-        var pGrid = new Grid { Margin = new Thickness(pIndent, 0, 0, 5) };
-        pGrid.ColumnDefinitions.Add(
-            new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth - pIndent) });
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 5) };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(new TextBlock
         {
-            Text = pLabel,
+            Text = lRow.LRosterDetailLabel,
             Foreground = PRosterTheme.PRosterMutedBrush,
             FontSize = PRosterTheme.PRosterRowSize,
             VerticalAlignment = VerticalAlignment.Top
@@ -265,23 +101,14 @@ public sealed partial class PRoster
 
         var pValueBlock = new TextBlock
         {
-            Text = pValue,
-            Foreground = pValueBrush ?? PRosterTheme.PRosterTextBrush,
+            Text = lRow.LRosterDetailValue,
+            Foreground = PRosterTheme.PRosterValueBrushes[lRow.LRosterDetailKey],
             FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = pValueBold ? FontWeights.SemiBold : FontWeights.Normal,
+            FontWeight = PRosterTheme.PRosterValueWeights[lRow.LRosterDetailKey],
             TextWrapping = TextWrapping.Wrap
         };
         Grid.SetColumn(pValueBlock, 1);
         pGrid.Children.Add(pValueBlock);
-        pRosterRowTarget.Children.Add(pGrid);
+        return pGrid;
     }
-
-    private static void PRosterPathOpen(string pPath)
-    {
-        if (LUsher.LUsherPathOpen(pPath) is { } pOpenError)
-        {
-            LTraceLog.LTraceErrorRecord($"Could not open '{pPath}': {pOpenError}");
-        }
-    }
-
 }

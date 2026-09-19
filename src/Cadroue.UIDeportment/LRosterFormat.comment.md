@@ -1,8 +1,6 @@
-# PRosterOverview.cs
+# LRosterFormat.cs
 
-## Inline notes
-
-### `string pSourceUnknown = LLocalization.LLocalizationTextRead(`
+## `public static string LRosterUnknownFormat(LWorkItem lWorkItem)`
 
 Any source figure still absent is "Measuring" until measurement has actually been attempted for this item.
 Only then does a missing figure mean "Unknown" (unreadable).

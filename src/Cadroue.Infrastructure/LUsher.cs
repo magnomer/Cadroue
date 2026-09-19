@@ -14,6 +14,8 @@ public static class LUsher
 
     public static string LUsherStemRead(string lUsherPath) => Path.GetFileNameWithoutExtension(lUsherPath);
 
+    public static string LUsherExtensionRead(string lUsherPath) => Path.GetExtension(lUsherPath).TrimStart('.');
+
     public static string LUsherPathResolve(string lUsherPath)
     {
         try
