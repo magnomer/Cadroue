@@ -333,4 +333,25 @@ public sealed partial class LRunner
             lRunnerSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
         });
     }
+
+    public static void LRunnerTraceAttach()
+    {
+        LRunnerReport = LRunnerReportHandle;
+        LRunnerFfmpegReport = LRunnerFfmpegHandle;
+        LRunnerVerboseSource = () => LTrace.LTraceVerbose;
+    }
+
+    private static void LRunnerReportHandle(string lRunnerMessage, Exception? lRunnerException)
+    {
+        if (lRunnerException is null)
+        {
+            LTraceLog.LTraceInfoRecord(lRunnerMessage);
+            return;
+        }
+
+        LTraceLog.LTraceErrorRecord(lRunnerMessage, lRunnerException);
+    }
+
+    private static void LRunnerFfmpegHandle(string lRunnerSummary, string? lRunnerDetail) =>
+        LTrace.LTraceRecord(LTraceKind.LTraceFfmpeg, lRunnerSummary, lRunnerDetail);
 }

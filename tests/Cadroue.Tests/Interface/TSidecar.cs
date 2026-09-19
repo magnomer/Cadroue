@@ -192,4 +192,10 @@ internal sealed class TSidecar : IDisposable
         {
         }
     }
+
+    internal LSidecarSourceResult? TSourceResolve(string sourcePath) =>
+        LSidecarStore.LSidecarSourceResolve(LSidecarStore.LSidecarPathRead(sourcePath));
+
+    internal bool TSourceMatch(string mediaPath, string sourcePath) =>
+        LSidecarStore.LSidecarSourceMatch(mediaPath, LSidecarStore.LSidecarPathRead(sourcePath));
 }

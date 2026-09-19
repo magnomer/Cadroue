@@ -2,8 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSPlate;
 
 namespace Cadroue.UIVeneer;
 

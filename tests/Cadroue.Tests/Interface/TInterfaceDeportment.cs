@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests;
@@ -444,4 +445,18 @@ internal static partial class TInterface
     internal static void TLogSnapshotSet(LLog log, long sequence) => log.LLogSnapshotSet(sequence);
     internal static bool TLogSnapshotCheck(LLog log, long sequence) => log.LLogSnapshotCheck(sequence);
     internal static bool TLogExpandToggle(LLog log, LLogRow row) => log.LLogExpandToggle(row);
+
+    internal static LAsk TAskCreate(string question, string action) => new(question, action);
+    internal static void TAskAttach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise += handler;
+    internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise -= handler;
+    internal static void TAskPublish(LAsk? ask, Action<bool> answer) => LAskNotice.LAskPublish(ask, answer);
+
+    internal static LProgram TProgramCreate() => new();
+    internal static bool TProgramDepotApply(LProgram program) => program.LProgramDepotApply();
+    internal static string? TProgramDepotRead(LProgram program) => program.LProgramDepotRoot;
+    internal static bool TProgramLanguageNormalize() => LProgram.LProgramLanguageNormalize();
+    internal static string TDepotRootRead() => LDepot.LDepotRootRead();
+    internal static void TDepotRootSet(string? root) => LDepot.LDepotRootSet(root);
+    internal static void TDepotIndexRelease() => LDepotIndex.LDepotIndexRelease();
+    internal static string TDepotIndexFind() => LDepot.LDepotIndexFind();
 }

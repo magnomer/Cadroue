@@ -5,7 +5,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal static partial class PSFader
 {

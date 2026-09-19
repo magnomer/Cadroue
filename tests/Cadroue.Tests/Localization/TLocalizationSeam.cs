@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Localization")]
 public sealed class TLocalizationSeam : IDisposable
 {
     private readonly List<string> tLocalizationTraced = [];

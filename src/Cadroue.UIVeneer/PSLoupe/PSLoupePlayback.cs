@@ -9,7 +9,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PPanel;
+using Cadroue.UIVeneer.PWing;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 

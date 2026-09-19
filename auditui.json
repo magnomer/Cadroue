@@ -1,0 +1,26 @@
+{
+  "generation": 10,
+  "project": "Cadroue",
+  "test": {
+    "project": "tests/Cadroue.Convention.Tests",
+    "configuration": "Debug",
+    "filter": "FullyQualifiedName~TAuditTruth|FullyQualifiedName~TAuditStrict"
+  },
+  "sources": {
+    "custody": "temp/audit/Custody-{version}.md",
+    "strict": "temp/audit/Truth-{version}.md"
+  },
+  "custody": {
+    "kinds": [ "Argument", "Guard", "Fork", "Mirror", "Mutation", "Shape" ]
+  },
+  "strict": {
+    "kinds": [ "Storage", "Flow", "Treat", "Reach", "Taint" ]
+  },
+  "report": {
+    "directory": "docs-work/audit",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "UI-",
+    "consoleLimit": 40
+  }
+}

@@ -4,11 +4,10 @@ using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PSCasement;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSFooter;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSFooter;
+using static Cadroue.UIVeneer.PSPlate;
 
 namespace Cadroue.UIVeneer;
 

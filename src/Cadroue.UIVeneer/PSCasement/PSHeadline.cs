@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Media;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal static class PSHeadline
 {

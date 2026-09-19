@@ -189,6 +189,17 @@ public static class LLocalization
     public static string? LLocalizationResourceRead(string lLocalizationName) =>
         LLocalizationTextSeam?.Invoke(lLocalizationName);
 
+    public static string? LLocalizationStreamRead(Stream? lLocalizationStream)
+    {
+        if (lLocalizationStream is null)
+        {
+            return null;
+        }
+
+        using var lLocalizationReader = new StreamReader(lLocalizationStream);
+        return lLocalizationReader.ReadToEnd();
+    }
+
     private static IEnumerable<string> LLocalizationCodesRead() =>
         (LLocalizationNamesSeam?.Invoke() ?? Array.Empty<string>())
             .Where(lLocalizationName =>

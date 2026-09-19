@@ -6,7 +6,7 @@ namespace Convention.Tests;
 
 public sealed class TAuditConvention
 {
-    public const int TAuditGeneration = 8;
+    public const int TAuditGeneration = 10;
 
     private static readonly Regex TAuditLiteralPattern = new(
         @"(?<hole>\$@?""(?:[^""\\]|\\.)*"")|@?""(?:[^""\\]|\\.)*""|//.*$",
@@ -214,6 +214,8 @@ public sealed class TAuditConvention
             (nameof(TAuditLineSetting), TAuditLineSetting.TAuditGeneration),
             (nameof(TAuditCommentSetting), TAuditCommentSetting.TAuditGeneration),
             (nameof(TAuditGateSetting), TAuditGateSetting.TAuditGeneration),
+            (nameof(TAuditTruthSetting), TAuditTruthSetting.TAuditGeneration),
+            (nameof(TAuditStrictSetting), TAuditStrictSetting.TAuditGeneration),
         ];
 
         string[] stale = sidecars

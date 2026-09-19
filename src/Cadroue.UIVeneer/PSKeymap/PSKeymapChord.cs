@@ -4,7 +4,6 @@ using System.Windows.Input;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PSCasement;
 
 namespace Cadroue.UIVeneer;
 

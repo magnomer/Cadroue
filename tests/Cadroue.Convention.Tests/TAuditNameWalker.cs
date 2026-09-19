@@ -1,9 +1,20 @@
 using System.Text.RegularExpressions;
+using System.Xml;
+using System.Xml.Linq;
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Convention.Tests;
 
 internal static class TAuditNameWalker
 {
+    private static readonly CSharpParseOptions TAuditSyntaxOptions = new(
+        languageVersion: LanguageVersion.Preview,
+        documentationMode: DocumentationMode.None,
+        kind: SourceCodeKind.Regular);
+
     private static readonly Regex TAuditComponentPattern = new(
         TAuditNameSetting.TAuditComponentPattern,
         RegexOptions.Compiled | RegexOptions.CultureInvariant);
@@ -21,18 +32,18 @@ internal static class TAuditNameWalker
         {
             if (path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
             {
-                TSpecimenWalker.TSpecimenCodeRead(path, candidates);
+                TSpecimenCodeRead(path, candidates);
             }
             else if (path.EndsWith(".xaml", StringComparison.OrdinalIgnoreCase))
             {
-                TSpecimenWalker.TSpecimenMarkupRead(path, candidates);
+                TSpecimenMarkupRead(path, candidates);
             }
         }
 
         bool anyTestPrefixed = candidates.Any(candidate =>
             string.Equals(candidate.TSpecimenKind, "TestMethod", StringComparison.Ordinal) &&
             string.Equals(
-                TAuditPrefixRead(candidate.TSpecimenName.TrimStart('_')),
+                TAuditNameFilter.TAuditPrefixRead(candidate.TSpecimenName.TrimStart('_')),
                 TAuditNameSetting.TAuditTestPrefix,
                 StringComparison.OrdinalIgnoreCase));
 
@@ -60,6 +71,194 @@ internal static class TAuditNameWalker
         return violations;
     }
 
+    private static void TSpecimenCodeRead(string path, List<TSpecimen> candidates)
+    {
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(File.ReadAllText(path), TAuditSyntaxOptions, path);
+        SyntaxNode root = tree.GetRoot();
+
+        foreach (SyntaxNode node in root.DescendantNodesAndSelf())
+        {
+            (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? candidate = node switch
+            {
+                BaseTypeDeclarationSyntax type when !TAuditNameFilter.TAuditGeneratedCheck(type.AttributeLists)
+                    => (type.Identifier, type.Kind().ToString()),
+                ParameterSyntax parameter
+                    when parameter.Parent?.Parent is RecordDeclarationSyntax record &&
+                         !TAuditNameFilter.TAuditGeneratedCheck(record.AttributeLists)
+                    => (parameter.Identifier, "RecordProperty"),
+                DelegateDeclarationSyntax del when !TAuditNameFilter.TAuditGeneratedCheck(del.AttributeLists)
+                    => (del.Identifier, "Delegate"),
+                MethodDeclarationSyntax method
+                    when !TAuditNameFilter.TAuditExternalCheck(
+                             method.Modifiers, method.ExplicitInterfaceSpecifier, method.AttributeLists) &&
+                         !TAuditNameFilter.TAuditContractCheck(method, method.Identifier.ValueText)
+                    => (method.Identifier,
+                        TAuditNameFilter.TAuditAttributesCheck(
+                            method.AttributeLists, TAuditNameSetting.TAuditTestAttributes)
+                            ? "TestMethod"
+                            : "Method"),
+                LocalFunctionStatementSyntax local => (local.Identifier, "LocalFunction"),
+                PropertyDeclarationSyntax property
+                    when !TAuditNameFilter.TAuditExternalCheck(
+                             property.Modifiers, property.ExplicitInterfaceSpecifier, property.AttributeLists) &&
+                         !TAuditNameFilter.TAuditContractCheck(property, property.Identifier.ValueText)
+                    => (property.Identifier, "Property"),
+                EventDeclarationSyntax evt
+                    when !TAuditNameFilter.TAuditExternalCheck(
+                             evt.Modifiers, evt.ExplicitInterfaceSpecifier, evt.AttributeLists) &&
+                         !TAuditNameFilter.TAuditContractCheck(evt, evt.Identifier.ValueText)
+                    => (evt.Identifier, "Event"),
+                TupleElementSyntax tupleElement => (tupleElement.Identifier, "TupleElement"),
+                TypeParameterSyntax typeParameter => (typeParameter.Identifier, "TypeParameter"),
+                AnonymousObjectMemberDeclaratorSyntax anonymousMember => TSpecimenAnonymousRead(anonymousMember),
+                VariableDeclaratorSyntax variable => TSpecimenVariableRead(variable),
+                EnumMemberDeclarationSyntax enumMember => (enumMember.Identifier, "EnumMember"),
+                _ => null
+            };
+
+            if (candidate is null)
+            {
+                continue;
+            }
+
+            string name = candidate.Value.TSpecimenIdentifier.ValueText;
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                continue;
+            }
+
+            int line = tree.GetLineSpan(candidate.Value.TSpecimenIdentifier.Span).StartLinePosition.Line + 1;
+            candidates.Add(new TSpecimen(path, line, name, candidate.Value.TSpecimenKind));
+
+            if (node is MethodDeclarationSyntax commandMethod)
+            {
+                TSpecimenCommandRead(path, line, commandMethod, candidates);
+            }
+        }
+    }
+
+    private static void TSpecimenCommandRead(
+        string path,
+        int line,
+        MethodDeclarationSyntax method,
+        ICollection<TSpecimen> candidates)
+    {
+        AttributeSyntax? relayCommand = null;
+        foreach (AttributeSyntax attribute in method.AttributeLists.SelectMany(list => list.Attributes))
+        {
+            string attributeName = attribute.Name.ToString();
+            int separator = attributeName.LastIndexOf('.');
+            if (separator >= 0)
+            {
+                attributeName = attributeName[(separator + 1)..];
+            }
+
+            if (attributeName.EndsWith("Attribute", StringComparison.Ordinal))
+            {
+                attributeName = attributeName[..^"Attribute".Length];
+            }
+
+            if (TAuditNameSetting.TAuditCommandAttributes.Contains(attributeName, StringComparer.Ordinal))
+            {
+                relayCommand = attribute;
+                break;
+            }
+        }
+
+        if (relayCommand is null)
+        {
+            return;
+        }
+
+        string stem = method.Identifier.ValueText;
+        string asyncSuffix = TAuditNameSetting.TAuditAsyncSuffix;
+        if (stem.EndsWith(asyncSuffix, StringComparison.Ordinal) && stem.Length > asyncSuffix.Length)
+        {
+            stem = stem[..^asyncSuffix.Length];
+        }
+
+        candidates.Add(new TSpecimen(path, line, stem + TAuditNameSetting.TAuditCommandSuffix, "GeneratedCommand"));
+
+        foreach (AttributeArgumentSyntax argument in relayCommand.ArgumentList?.Arguments ?? default)
+        {
+            if (argument.NameEquals?.Name.Identifier.ValueText == TAuditNameSetting.TAuditCancelArgument &&
+                argument.Expression.IsKind(SyntaxKind.TrueLiteralExpression))
+            {
+                candidates.Add(new TSpecimen(
+                    path, line, stem + TAuditNameSetting.TAuditCancelSuffix, "GeneratedCommand"));
+            }
+        }
+    }
+
+    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenAnonymousRead(
+        AnonymousObjectMemberDeclaratorSyntax member)
+    {
+        if (member.NameEquals is not null)
+        {
+            return (member.NameEquals.Name.Identifier, "AnonymousMember");
+        }
+
+        return member.Expression switch
+        {
+            IdentifierNameSyntax identifier => (identifier.Identifier, "AnonymousMember"),
+            MemberAccessExpressionSyntax memberAccess => (memberAccess.Name.Identifier, "AnonymousMember"),
+            _ => null
+        };
+    }
+
+    private static (SyntaxToken TSpecimenIdentifier, string TSpecimenKind)? TSpecimenVariableRead(
+        VariableDeclaratorSyntax variable)
+    {
+        if (variable.Parent is not VariableDeclarationSyntax declaration)
+        {
+            return null;
+        }
+
+        return declaration.Parent switch
+        {
+            EventFieldDeclarationSyntax eventField
+                when !TAuditNameFilter.TAuditGeneratedCheck(eventField.AttributeLists) &&
+                     !TAuditNameFilter.TAuditContractCheck(eventField, variable.Identifier.ValueText)
+                => (variable.Identifier, "EventField"),
+            FieldDeclarationSyntax field when !TAuditNameFilter.TAuditGeneratedCheck(field.AttributeLists)
+                => (variable.Identifier, "Field"),
+            _ => null
+        };
+    }
+
+    private static void TSpecimenMarkupRead(string path, List<TSpecimen> candidates)
+    {
+        using FileStream stream = File.OpenRead(path);
+        using XmlReader reader = XmlReader.Create(stream, new XmlReaderSettings
+        {
+            DtdProcessing = DtdProcessing.Prohibit,
+            IgnoreComments = false,
+            IgnoreWhitespace = false
+        });
+
+        XDocument document = XDocument.Load(reader, LoadOptions.SetLineInfo | LoadOptions.PreserveWhitespace);
+        if (document.Root is null)
+        {
+            return;
+        }
+
+        foreach (XElement element in document.Root.DescendantsAndSelf())
+        {
+            XAttribute? nameAttribute = element.Attributes().FirstOrDefault(attribute =>
+                attribute.Name.LocalName == "Name" &&
+                (string.IsNullOrEmpty(attribute.Name.NamespaceName) ||
+                 attribute.Name.NamespaceName == TAuditNameSetting.TAuditXamlNamespace));
+
+            if (nameAttribute is null || string.IsNullOrWhiteSpace(nameAttribute.Value))
+            {
+                continue;
+            }
+
+            int line = nameAttribute is IXmlLineInfo info && info.HasLineInfo() ? info.LineNumber : 0;
+            candidates.Add(new TSpecimen(path, line, nameAttribute.Value, "XamlName"));
+        }
+    }
+
     private static string? TViolationResolve(string name, string kind, TAuditRegistry registry, bool anyTestPrefixed)
     {
         if (string.Equals(kind, "TestMethod", StringComparison.Ordinal))
@@ -69,7 +268,7 @@ internal static class TAuditNameWalker
                 return null;
             }
 
-            string? testPrefix = TAuditPrefixRead(name.TrimStart('_'));
+            string? testPrefix = TAuditNameFilter.TAuditPrefixRead(name.TrimStart('_'));
             if (testPrefix is null)
             {
                 return "test method carries no prefix while other test methods use the " +
@@ -85,7 +284,7 @@ internal static class TAuditNameWalker
         }
 
         string working = name.TrimStart('_');
-        string? prefix = TAuditPrefixRead(working);
+        string? prefix = TAuditNameFilter.TAuditPrefixRead(working);
         if (prefix is null)
         {
             return "missing required prefix";
@@ -142,25 +341,6 @@ internal static class TAuditNameWalker
         {
             return $"{components.Count} components after the prefix " +
                    $"(limit is {TAuditNameSetting.TAuditComponentLimit})";
-        }
-
-        return null;
-    }
-
-    private static string? TAuditPrefixRead(string name)
-    {
-        foreach (string prefix in TAuditNameSetting.TAuditPrefixes)
-        {
-            if (!name.StartsWith(prefix, StringComparison.Ordinal) || name.Length == prefix.Length)
-            {
-                continue;
-            }
-
-            char next = name[prefix.Length];
-            if (char.IsUpper(next) || char.IsDigit(next) || next == '_')
-            {
-                return prefix;
-            }
         }
 
         return null;

@@ -1,3 +1,9 @@
+using System.Reflection;
+
+using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.Media;
+
 namespace Cadroue.Infrastructure;
 
 public static class LTraceLog
@@ -44,5 +50,23 @@ public static class LTraceLog
     {
         LTraceWriter.LTraceWriterClear();
         LTrace.LTraceReset();
+    }
+
+    public static void LTraceSeamAttach()
+    {
+        LLocalization.LLocalizationTraceSeam = LTraceErrorRecord;
+        LMediaLoad.LMediaTraceSeam = LTraceErrorRecord;
+        LClassifier.LClassifierFaultSource = lClassifierFault => LTraceWarningRecord(lClassifierFault);
+        LPreset.LPresetTraceSeam = lPresetMessage => LTraceWarningRecord(lPresetMessage);
+    }
+
+    public static string LTraceVersionRead()
+    {
+        Assembly lAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+        string lVersion = lAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? lAssembly.GetName().Version?.ToString()
+            ?? string.Empty;
+        int lBuildMark = lVersion.IndexOf('+');
+        return lBuildMark < 0 ? lVersion : lVersion[..lBuildMark];
     }
 }

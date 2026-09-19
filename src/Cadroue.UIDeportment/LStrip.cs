@@ -1,4 +1,6 @@
 using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -23,6 +25,39 @@ public sealed class LStripTab
     public bool LStripTabSeparator { get; internal set; }
 
     public bool LStripTabEditing { get; internal set; }
+
+    public LPreset? LStripTabPreset { get; private set; }
+
+    public LDocket? LStripTabDocket { get; private set; }
+
+    public bool LStripTabFunnel => string.Equals(LStripTabKey, LStripFunnelKey, StringComparison.Ordinal);
+
+    public bool LStripTabMerge => string.Equals(LStripTabKey, LStripMergeKey, StringComparison.Ordinal);
+
+    public void LStripWorkspaceAttach(LPreset lPreset, LDocket? lDocket, Func<LSceneTabRecord> lLayoutSource)
+    {
+        LStripTabPreset = lPreset;
+        LStripTabDocket = lDocket;
+        lStripLayoutSource = lLayoutSource;
+    }
+
+    public void LStripActionAttach(Func<bool> lRelaySource, Func<Guid, bool> lCohortSource)
+    {
+        lStripRelaySource = lRelaySource;
+        lStripCohortSource = lCohortSource;
+    }
+
+    public LSceneTabRecord? LStripLayoutRead() => lStripLayoutSource?.Invoke();
+
+    public bool LStripRelayCheck() => lStripRelaySource?.Invoke() ?? false;
+
+    public bool LStripCohortRun(Guid lCohort) => lStripCohortSource?.Invoke(lCohort) ?? false;
+
+    private const string LStripFunnelKey = "Funnel";
+    private const string LStripMergeKey = "Merge";
+    private Func<LSceneTabRecord>? lStripLayoutSource;
+    private Func<bool>? lStripRelaySource;
+    private Func<Guid, bool>? lStripCohortSource;
 }
 
 public sealed class LStrip
@@ -55,6 +90,51 @@ public sealed class LStrip
     public bool LStripVertical => lStripVertical;
 
     public LStripTab? LStripTabFind(Guid lId) => lStripTabs.FirstOrDefault(lTab => lTab.LStripTabId == lId);
+
+    public void LStripRelayAttach()
+    {
+        LCartographer.LCartographerTabsSource = LStripCartographerRead;
+        LCartographer.LCartographerTitleSource = LStripTitleRead;
+        LMessenger.LMessengerTitleSource = LStripTitleRead;
+        LMessenger.LMessengerDrainSource = LStripPathsRemove;
+        LSeal.LSealNodesSource = LStripSealRead;
+        LSeal.LSealFireSeam = LStripNodeRun;
+    }
+
+    public string LStripTitleRead(Guid lId) =>
+        LStripTabFind(lId)?.LStripTabTitle ?? LCartographer.LCartographerStageRead(lId);
+
+    public IReadOnlyList<LCartographerTab> LStripCartographerRead() =>
+        lStripTabs
+            .Select(lTab => (lTab, lLayout: lTab.LStripLayoutRead()))
+            .Where(lPair => lPair.lTab.LStripTabPreset is not null && lPair.lLayout is not null)
+            .Select(lPair => new LCartographerTab(
+                lPair.lTab.LStripTabId,
+                lPair.lTab.LStripTabKey,
+                lPair.lTab.LStripTabTitle,
+                lPair.lTab.LStripTabPreset!.LPresetRecordCreate(),
+                lPair.lLayout!.LSceneTabClone(),
+                lPair.lTab.LStripTabFunnel))
+            .ToArray();
+
+    public IReadOnlyList<LSealNode> LStripSealRead() =>
+        lStripTabs
+            .Where(lTab => lTab.LStripTabDocket is not null)
+            .Select(lTab => new LSealNode(
+                lTab.LStripTabId,
+                lTab.LStripTabMerge,
+                lTab.LStripRelayCheck(),
+                lTab.LStripTabDocket!.LDocketItemsRead()
+                    .Where(lItem => lItem.LDocketEntryDelivered && lItem.LDocketEntryBatch != Guid.Empty)
+                    .Select(lItem => lItem.LDocketEntryBatch)
+                    .Distinct()
+                    .ToArray()))
+            .ToArray();
+
+    public void LStripPathsRemove(Guid lId, IReadOnlyList<string> lPaths) =>
+        LStripTabFind(lId)?.LStripTabDocket?.LDocketPathsRemove(lPaths);
+
+    public bool LStripNodeRun(Guid lId, Guid lCohort) => LStripTabFind(lId)?.LStripCohortRun(lCohort) ?? false;
 
     public void LStripUpdateSuspend() => lStripSuspendDepth++;
 

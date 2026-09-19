@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal static class PSInline
 {

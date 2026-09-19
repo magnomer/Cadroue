@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Cadroue.Media;
-using Cadroue.UIVeneer.PToolbar;
-using Cadroue.UIVeneer.PPanel;
-using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
+using Cadroue.UIVeneer.PBench;
+using Cadroue.UIVeneer.PPorch;
+using Cadroue.UIVeneer.PWing;
 using Cadroue.Core;
 using Cadroue.Application;
 
@@ -94,7 +94,7 @@ public partial class PWindow
         pTabset.PStripTitleUpdate();
         foreach (PTabRecord pTabRecord in pTabset.PStripRecords)
         {
-            if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PDeck.PFunnelTab pFunnelSurface)
+            if (pTabRecord.PTabWorkspace.PWorkspaceSurface is PCabin.PFunnelTab pFunnelSurface)
             {
                 pFunnelSurface.PFunnelTargetsResolve(pTabset.PStripRecords);
             }

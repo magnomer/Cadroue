@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PSCasement;
 
 using Cadroue.Infrastructure;
 

@@ -2,17 +2,17 @@ namespace Convention.Tests;
 
 internal static class TAuditNameSetting
 {
-    public const int TAuditGeneration = 8;
+    public const int TAuditGeneration = 10;
     public const string TAuditProject = "Cadroue";
     public const string TAuditTestPrefix = "T";
     public const string TAuditComponentPattern = "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+";
     public const int TAuditComponentLimit = 3;
     public const int TAuditComponentReview = 3;
     public const string TAuditXamlNamespace = "http://schemas.microsoft.com/winfx/2006/xaml";
-    public const string TAuditCommandCancelArgument = "IncludeCancelCommand";
-    public const string TAuditCommandAsyncSuffix = "Async";
+    public const string TAuditCancelArgument = "IncludeCancelCommand";
+    public const string TAuditAsyncSuffix = "Async";
     public const string TAuditCommandSuffix = "Command";
-    public const string TAuditCommandCancelSuffix = "CancelCommand";
+    public const string TAuditCancelSuffix = "CancelCommand";
 
     public static readonly string[] TAuditPrefixes =
     [
@@ -59,24 +59,6 @@ internal static class TAuditNameSetting
     [
         "TemporaryGeneratedFile_",
         "GeneratedInternalTypeHelper",
-    ];
-
-    public static readonly string[] TAuditSelfExcluded =
-    [
-        "TAuditComment.cs",
-        "TAuditCommentSetting.cs",
-        "TAuditConvention.cs",
-        "TAuditLine.cs",
-        "TAuditLineSetting.cs",
-        "TAuditName.cs",
-        "TAuditNameRegistry.cs",
-        "TAuditNameSetting.cs",
-        "TAuditNameWalker.cs",
-        "TAuditRegistry.cs",
-        "TAuditScope.cs",
-        "TAuditSource.cs",
-        "TSpecimen.cs",
-        "TViolation.cs",
     ];
 
     public static readonly string[] TAuditMethodKinds =

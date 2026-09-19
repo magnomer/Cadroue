@@ -1,9 +1,12 @@
 using System.Diagnostics;
+using System.Text.Json;
 
 namespace Convention.Tests;
 
 internal static class TAuditSource
 {
+    private const string TAuditVersionFile = "version.json";
+
     public static string TAuditRootRead()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
@@ -20,6 +23,13 @@ internal static class TAuditSource
 
         throw new InvalidOperationException(
             $"No Git working tree was found above '{AppContext.BaseDirectory}'.");
+    }
+
+    public static string TAuditVersionRead(string repoRoot)
+    {
+        using JsonDocument document = JsonDocument.Parse(
+            File.ReadAllText(Path.Combine(repoRoot, TAuditVersionFile)));
+        return document.RootElement.GetProperty("current-version").GetString() ?? "unknown";
     }
 
     public static IReadOnlyList<string> TAuditFileRead(string repoRoot, TAuditScope scope)
@@ -81,8 +91,8 @@ internal static class TAuditSource
     {
         string normalized = relativePath.Replace('\\', '/');
         if (scope.TAuditScopeRoots.Count > 0
-            && !scope.TAuditScopeRoots.Any(
-                root => normalized.StartsWith(root.Trim('/') + "/", StringComparison.OrdinalIgnoreCase)))
+            && !scope.TAuditScopeRoots.Any(root =>
+                normalized.StartsWith(root.Trim('/') + "/", StringComparison.OrdinalIgnoreCase)))
         {
             return true;
         }

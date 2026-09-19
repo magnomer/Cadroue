@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
+using static Cadroue.UIVeneer.PSField;
 
 namespace Cadroue.UIVeneer;
 

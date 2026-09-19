@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -36,5 +37,13 @@ public static class LPreferenceStateStore
     {
         string lPreferenceApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(lPreferenceApplicationDataFolder, LPreferenceFolderName, LPreferenceFileName);
+    }
+
+    public static void LPreferenceSeamAttach()
+    {
+        LPreference.LPreferenceLanguageSeam = LLocalization.LLocalizationLanguageNormalize;
+        LPreference.LPreferenceLoadSeam = LPreferenceStateLoad;
+        LPreference.LPreferenceSaveSeam = LPreferenceStateSave;
+        LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
     }
 }

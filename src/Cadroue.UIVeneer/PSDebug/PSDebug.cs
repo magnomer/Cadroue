@@ -4,10 +4,9 @@ using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PPanel;
-using Cadroue.UIVeneer.PSCasement;
-using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer;
 
@@ -254,7 +253,7 @@ internal sealed class PSDebug : Window
     private void PSDebugMonitorShow()
     {
         var pSource = new LSMonitor();
-        var pFlow = new PFlowControl();
+        var pFlow = new PFlow();
         var pViewer = new PViewer();
         Window pMonitor = PSMonitor.PSMonitorShow(this, pSource, pFlow, pViewer);
         pMonitor.Closed += (_, _) => pSource.Dispose();

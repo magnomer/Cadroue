@@ -5,14 +5,13 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PSCasement;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSCombo;
-using static Cadroue.UIVeneer.PSCasement.PSEntry;
-using static Cadroue.UIVeneer.PSCasement.PSFooter;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
-using static Cadroue.UIVeneer.PSCasement.PSNotice;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSCombo;
+using static Cadroue.UIVeneer.PSEntry;
+using static Cadroue.UIVeneer.PSFooter;
+using static Cadroue.UIVeneer.PSPlate;
+using static Cadroue.UIVeneer.PSNotice;
 
 namespace Cadroue.UIVeneer;
 

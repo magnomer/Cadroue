@@ -2,7 +2,6 @@
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PSCasement;
 
 namespace Cadroue.UIVeneer.PHouse;
 

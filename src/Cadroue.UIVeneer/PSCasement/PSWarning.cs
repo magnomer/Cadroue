@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal sealed class PSWarning : Window
 {

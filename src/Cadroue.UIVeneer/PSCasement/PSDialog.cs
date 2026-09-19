@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal readonly record struct PSDialogTheme(Brush PSDialogBandFill, int PSDialogDwmCaption)
 {

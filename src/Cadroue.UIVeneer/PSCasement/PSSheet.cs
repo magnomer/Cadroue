@@ -5,7 +5,7 @@ using System.Windows.Markup;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PAsset;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal static class PSSheet
 {

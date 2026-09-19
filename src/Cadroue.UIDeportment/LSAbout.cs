@@ -1,4 +1,4 @@
-using System.Reflection;
+using Cadroue.Infrastructure;
 using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
@@ -45,13 +45,5 @@ public sealed class LSAbout
         return true;
     }
 
-    public static string LSAboutVersionRead()
-    {
-        Assembly lAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-        string lVersion = lAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-            ?? lAssembly.GetName().Version?.ToString()
-            ?? string.Empty;
-        int lBuildMark = lVersion.IndexOf('+');
-        return lBuildMark < 0 ? lVersion : lVersion[..lBuildMark];
-    }
+    public static string LSAboutVersionRead() => LTraceLog.LTraceVersionRead();
 }

@@ -5,10 +5,9 @@ using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PSCasement;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSFooter;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSFooter;
 
 namespace Cadroue.UIVeneer;
 

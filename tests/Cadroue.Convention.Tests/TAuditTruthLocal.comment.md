@@ -1,0 +1,45 @@
+# TAuditTruthLocal.cs
+
+## `internal static partial class TAuditTruthWalker`
+
+The local half of the truth walker: what a member may not do with an engine answer it briefly holds.
+
+## `private static void TAuditToggleCheck(`
+
+A field written before and again after a request in one member is a guard the shell runs itself.
+A call to a method writing the field counts as a write, so a hold split into relays still toggles.
+A fill of a collection is a refresh rather than a hold and does not count.
+The hit lands on the last write and names the relay it went through.
+
+## `private static HashSet<ISymbol> TAuditWriterRead(TAuditTruthField field, IReadOnlyList<TypeDeclarationSyntax> type)`
+
+The methods of the class that write this field and request nothing themselves.
+A method that requests is a relay and is audited on its own.
+
+## `private static void TAuditBaseCheck(IReadOnlyList<TypeDeclarationSyntax> type, List<TViolation> violations)`
+
+A shell type deriving from a logic type holds logic by inheritance.
+
+## `private static void TAuditLocalScan(IReadOnlyList<TypeDeclarationSyntax> type, List<TViolation> violations)`
+
+Locals initialised from an engine answer are followed to the sinks a field would be.
+A member read off the answer is followed as the answer itself, so an id lifted from a draft counts.
+An answer carried into the next request, or deciding one, is a value the engine should have kept.
+A hit is reported once per line, local and kind, and named by member and local.
+
+## `private static HashSet<ISymbol> TAuditAnsweredRead(MemberDeclarationSyntax scope)`
+
+The locals a member fills from an engine answer, by whatever syntax.
+An initialiser, an assignment, a deconstruction, a loop variable, a pattern, an `out` and a lambda parameter all count.
+
+## `private static void TAuditDesignationAdd(SyntaxNode node, HashSet<ISymbol> answered)`
+
+Every name a designation or a tuple on the left side introduces.
+
+## `private static string TAuditMemberRead(MemberDeclarationSyntax scope)`
+
+The member's own name, for the hit.
+
+## `private static bool TAuditAnswerCheck(ExpressionSyntax value)`
+
+True when the initialiser requests logic, calls a relay, or reads a logic member.

@@ -2,6 +2,7 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -167,5 +168,19 @@ public static class LPresetStore
     {
         string lAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(lAppData, LPresetFolderName, LPresetFileName);
+    }
+
+    public static void LPresetSeamAttach()
+    {
+        LPreset.LPresetNativeSeam = LPresetNativeLoad;
+        LPreset.LPresetLoadSeam = LPresetLoad;
+        LPreset.LPresetSaveSeam = LPresetSave;
+        LPresetSelection.LPresetLoadSeam = lName => LPreset.LPresetRead(lName)?.LPresetRecordCreate();
+        LPresetSelection.LPresetSaveSeam = (lName, lRecord) =>
+            LPreset.LPresetSave(lName, LPreset.LPresetStateCreate(lRecord));
+        LPresetSelection.LPresetRenameSeam = (lOldName, lNewName, lRecord) =>
+            LPreset.LPresetNameSet(lOldName, lNewName, LPreset.LPresetStateCreate(lRecord));
+        LPresetSelection.LPresetOutputSeam = lRecord =>
+            LPreset.LPresetStateCreate(lRecord).LPresetOutputCreate();
     }
 }

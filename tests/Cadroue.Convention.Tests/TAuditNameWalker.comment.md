@@ -1,0 +1,68 @@
+# TAuditNameWalker.cs
+
+## Generation
+
+AUDITNAMES GENERATION 9.
+
+A generation is not a revision count.
+It names functionality, not edits.
+Editing this file is never on its own a reason to raise it.
+Raise it only when the audited outcome changes.
+A generation names the set of checks the audit applies.
+Two projects on the same generation audit the same things.
+Their reports compare directly, whatever else differs between the files.
+A check added, removed, or changed in what it reports is a new generation.
+Wording, plumbing, and refactoring leave the generation alone.
+
+This project is one of two implementations that investigate the same names.
+Neither shares code with the other, and that is the design.
+Both must be at the same generation, so both carry the number.
+A disagreement between them is a defect in one, for a person to read.
+
+Generation 8 holds every naming value in `TAuditNameSetting.cs`.
+That generated sidecar is one of three here that name a project, one per audit.
+Every other file in this project is identical in every project at this generation.
+Each sidecar is generated and committed, so this project builds on its own.
+
+Generation 8 checks missing prefix, component count, base registration, and verb ending.
+It exempts descriptive test methods under an all-or-nothing test-prefix consistency gate.
+It audits a generated name at the declaration it is built from.
+It clears a name only through a scoped row of the exempt block.
+
+Generation 9 changes nothing the name audit reports.
+The number rises with the custody and strict audits, which share it.
+Sources reach it through a `TAuditScope`, and what says a specimen lies outside the audit lives in `TAuditNameFilter.cs`.
+
+Generation 10 audits the tooling's own files like any other, since a self-exclusion is an exemption.
+The custody and strict walks move from names to symbols, and the number rises with them.
+
+## Inline notes
+
+### `if (registry.TAuditExemptValidate(candidate.TSpecimenName, candidate.TSpecimenPath))`
+
+A row of the `AUDIT:EXEMPT` block grants its name only inside the files that row lists.
+The same word stays a violation in every other file.
+A control template part such as `PART_Track` is registered there with the `*` scope.
+Only the user adds a row, and working a report never grants one.
+
+### `if (node is MethodDeclarationSyntax commandMethod)`
+
+A source generator emits a name the source never spells, so the audit builds it here.
+A `[RelayCommand]` method yields the `{Name}Command` property that actually exists.
+The generated name is a data member and is governed as one.
+
+### `bool anyTestPrefixed = candidates.Any(candidate =>`
+
+The test suite either names every test method descriptively without a prefix.
+Otherwise it commits to the T prefix on every one.
+A single T-prefixed test method flips the whole suite into the prefix-required mode.
+
+### `if (!anyTestPrefixed)`
+
+A test method carries a free-form scenario description, never an object base or verb.
+While no test method uses the T prefix the whole suite is descriptive and exempt.
+Once any test method adopts T, every test method must carry it.
+
+### `return "missing required prefix";`
+
+A codebase-owned name that survived the external/generated/framework-contract filters but carries no prefix is a violation, not something to skip.

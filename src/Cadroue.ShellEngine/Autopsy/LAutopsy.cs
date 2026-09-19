@@ -1,3 +1,5 @@
+using Cadroue.Application;
+
 namespace Cadroue.ShellEngine;
 
 public delegate bool LAutopsyProseReader(string lAutopsyProseKey, out string lAutopsyProseValue);
@@ -65,4 +67,6 @@ public static class LAutopsy
 
         return null;
     }
+
+    public static void LAutopsyProseAttach() => LAutopsyProse = LLocalizationAutopsy.LLocalizationAutopsyRead;
 }

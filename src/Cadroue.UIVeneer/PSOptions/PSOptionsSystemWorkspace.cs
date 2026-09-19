@@ -1,4 +1,3 @@
-using Cadroue.UIVeneer.PSCasement;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
@@ -6,10 +5,10 @@ using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSInline;
-using static Cadroue.UIVeneer.PSCasement.PSNotice;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSInline;
+using static Cadroue.UIVeneer.PSNotice;
+using static Cadroue.UIVeneer.PSPlate;
 
 namespace Cadroue.UIVeneer;
 

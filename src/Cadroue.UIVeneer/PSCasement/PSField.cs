@@ -5,7 +5,7 @@ using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal static class PSField
 {

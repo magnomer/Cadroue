@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditGateSetting
 {
-    public const int TAuditGeneration = 8;
+    public const int TAuditGeneration = 10;
     public const string TAuditVeneerRoot = "src/Cadroue.UIVeneer";
     public const string TAuditDeportmentRoot = "src/Cadroue.UIDeportment";
 
@@ -47,7 +47,6 @@ internal static class TAuditGateSetting
 
     public static readonly (string TAuditFile, string TAuditSpelling)[] TAuditVeneerScoped =
     [
-        ("App.xaml.cs", "System.IO.StreamReader"),
         ("PAsset/PIcon.cs", "System.IO.Stream "),
     ];
 
@@ -97,16 +96,13 @@ internal static class TAuditGateSetting
 
     public static readonly (string TAuditFile, string TAuditField)[] TAuditScalarKnown =
     [
-        ("PFlow/PMap.cs", "pMapGlyphCount"),
-        ("PFlow/PMap.cs", "pMapBadgeDpi"),
-        ("PFlow/PViewfinder.cs", "pViewfinderGlyphCount"),
-        ("PFlow/PViewfinder.cs", "pViewfinderTextDpi"),
+        ("PBench/PMap.cs", "pMapGlyphCount"),
+        ("PBench/PMap.cs", "pMapBadgeDpi"),
+        ("PBench/PViewfinder.cs", "pViewfinderGlyphCount"),
+        ("PBench/PViewfinder.cs", "pViewfinderTextDpi"),
     ];
 
-    public static readonly string[] TAuditScalarExempt =
-    [
-        "App.xaml.cs",
-    ];
+    public static readonly string[] TAuditScalarExempt = [];
 
     public const string TAuditGuardPattern =
         @"\w*(Suppress|Busy|Loading|Rebuilding|Syncing|Applying|Restoring)\w*";

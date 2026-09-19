@@ -4,10 +4,10 @@ using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSCombo;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
-using static Cadroue.UIVeneer.PSCasement.PSNotice;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSCombo;
+using static Cadroue.UIVeneer.PSPlate;
+using static Cadroue.UIVeneer.PSNotice;
 
 namespace Cadroue.UIVeneer;
 

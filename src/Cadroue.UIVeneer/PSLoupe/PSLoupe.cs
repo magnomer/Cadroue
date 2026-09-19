@@ -7,12 +7,11 @@ using FlyleafLib.Controls.WPF;
 using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PPanel;
-using Cadroue.UIVeneer.PSCasement;
+using Cadroue.UIVeneer.PWing;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSCasement;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSCasement;
 
 namespace Cadroue.UIVeneer;
 

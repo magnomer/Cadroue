@@ -5,11 +5,10 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PSCasement;
 
-using static Cadroue.UIVeneer.PSCasement.PSField;
-using static Cadroue.UIVeneer.PSCasement.PSPlate;
-using static Cadroue.UIVeneer.PSCasement.PSInline;
+using static Cadroue.UIVeneer.PSField;
+using static Cadroue.UIVeneer.PSPlate;
+using static Cadroue.UIVeneer.PSInline;
 
 namespace Cadroue.UIVeneer;
 

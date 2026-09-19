@@ -1,4 +1,6 @@
 using Cadroue.Application;
+using Cadroue.Core;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -227,5 +229,34 @@ public sealed class LList
     {
         lListPathCurrent = lListPath;
         LListPathChange?.Invoke(lListPath);
+    }
+
+    public static void LListRelayAttach(
+        Func<Guid, string, Guid, bool> lDeliveredAdd,
+        Func<Guid, string, Guid, bool> lDeliveredCommit,
+        Action<LWorkItem, bool> lDeliveredRemove,
+        Action<Guid, string, Guid> lAccept,
+        Action<IReadOnlyList<Guid>> lBatchRemove,
+        Action<IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>> lSourceRelease,
+        Func<IReadOnlyList<LWorkItem>, bool> lSourceClaim)
+    {
+        LCartographer.LCartographerLockSeam = lSourceClaim;
+        LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
+            lDeliveredAdd,
+            lDeliveredCommit,
+            lDeliveredRemove,
+            lAccept,
+            lBatchRemove,
+            lSourceRelease);
+        LMessenger.LMessengerDeliverSource = (lTarget, lPath, lCohort) =>
+        {
+            if (!lDeliveredAdd(lTarget, lPath, lCohort))
+            {
+                return false;
+            }
+
+            lAccept(lTarget, lPath, lCohort);
+            return true;
+        };
     }
 }

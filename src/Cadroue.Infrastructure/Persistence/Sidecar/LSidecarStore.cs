@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
 
@@ -22,6 +23,9 @@ public static partial class LSidecarStore
     }
 
     public static string LSidecarFolderRead() => lSidecarRecordFolder ?? string.Empty;
+
+    public static void LSidecarFolderApply(bool lSidecarActive) =>
+        LSidecarFolderSet(Path.Combine(LDepot.LDepotRootRead(), LSidecarRecordFolder), lSidecarActive);
 
     public static bool LSidecarFolderCheck() => lSidecarRecordActive;
 
@@ -305,5 +309,62 @@ public static partial class LSidecarStore
         {
             return string.Empty;
         }
+    }
+
+    public static void LSidecarLibrarianAttach()
+    {
+        LLibrarian.LLibrarianCoreReader = LSidecarCoreRead;
+        LLibrarian.LLibrarianKeyframesSeam = LSidecarKeyframesRead;
+        LLibrarian.LLibrarianWaveformReader = LSidecarWaveformRead;
+        LLibrarian.LLibrarianEditReader = LSidecarEditRead;
+        LLibrarian.LLibrarianAudioReader = LSidecarAudioRead;
+        LLibrarian.LLibrarianSplitReader = LSidecarSplitRead;
+        LLibrarian.LLibrarianFixReader = LSidecarFixRead;
+        LLibrarian.LLibrarianDiagnosisReader = LSidecarDiagnosisRead;
+        LLibrarian.LLibrarianLoudnessReader = LSidecarLoudnessRead;
+        LLibrarian.LLibrarianDurationReader = LSidecarDurationRead;
+        LLibrarian.LLibrarianDurationResolver = LSidecarDurationResolve;
+        LLibrarian.LLibrarianEditWriter = LSidecarEditSave;
+        LLibrarian.LLibrarianAudioWriter = LSidecarAudioSave;
+        LLibrarian.LLibrarianSplitWriter = LSidecarSplitSave;
+        LLibrarian.LLibrarianFixWriter = LSidecarFixSave;
+        LLibrarian.LLibrarianDiagnosisWriter = LSidecarDiagnosisSave;
+        LLibrarian.LLibrarianLoudnessWriter = LSidecarLoudnessSave;
+        LLibrarian.LLibrarianWaveformWriter = LSidecarWaveformSave;
+        LLibrarian.LLibrarianFileChecker = LSidecarFileCheck;
+        LLibrarian.LLibrarianSourceResolver = LSidecarSourceResolve;
+        LLibrarian.LLibrarianSourceMatcher = LSidecarSourceMatch;
+    }
+
+    public static void LSidecarSegmentAttach()
+    {
+        LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
+        LSegment.LSegmentSaveSeam = LSidecarSectionsSave;
+    }
+
+    public static LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>
+        LSidecarRead(lSidecarPath) is { } lSidecar
+            ? LSidecarSource.LSidecarSourceResolve(lSidecarPath, lSidecar)
+            : null;
+
+    public static bool LSidecarSourceMatch(string lSidecarMediaPath, string lSidecarPath) =>
+        LSidecarRead(lSidecarPath) is { } lSidecar
+        && LSidecarSource.LSidecarSourceMatch(lSidecarMediaPath, lSidecar.LSidecarSource);
+
+    public static IReadOnlyList<LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
+    {
+        try
+        {
+            if (LLibrarian.LLibrarianLoad(lSidecarSourcePath) is { } lSidecarCore)
+            {
+                return lSidecarCore.LSidecarSections;
+            }
+        }
+        catch (Exception lSidecarException)
+        {
+            LTraceLog.LTraceErrorRecord("Sidecar sections could not be restored", lSidecarException);
+        }
+
+        return Array.Empty<LSidecarSectionRecord>();
     }
 }

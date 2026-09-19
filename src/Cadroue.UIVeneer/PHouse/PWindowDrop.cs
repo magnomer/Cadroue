@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
 using Cadroue.Infrastructure;
-using Cadroue.UIVeneer.PPanel;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PHouse;
 

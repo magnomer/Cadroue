@@ -330,4 +330,41 @@ public sealed class LViewer
         lViewerTraceCount++;
         lViewerTraceFinal = lPosition;
     }
+
+    public static void LViewerMediaRecord(LCargo lCargo, bool lPlayerReady)
+    {
+        string lSourcePath = lCargo.LCargoSourcePath ?? "(no path)";
+        string lFileName = System.IO.Path.GetFileName(lSourcePath);
+
+        if (lCargo.LCargoMediaInfo is not LMediaInfo lMediaInfo)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"Media rejected '{lFileName}': {lCargo.LCargoFfmpegError ?? "unreadable"} [{lSourcePath}]");
+            return;
+        }
+
+        string lStreams = lMediaInfo.LMediaVideoPresent
+            ? $"video {lMediaInfo.LMediaVideoWidth}x{lMediaInfo.LMediaVideoHeight} "
+                + $"{lMediaInfo.LMediaVideoCodec} {lMediaInfo.LMediaVideoRate:0.###}fps"
+            : "no video";
+        if (lMediaInfo.LMediaAudioPresent)
+        {
+            lStreams += $", audio {lMediaInfo.LMediaAudioCodec} "
+                + $"{lMediaInfo.LMediaSampleRate}Hz {lMediaInfo.LMediaAudioChannels}ch";
+        }
+
+        LTraceLog.LTraceInfoRecord(
+            $"Media opened '{lFileName}': {lMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, "
+            + $"{lStreams} [{lSourcePath}]");
+
+        if (!lPlayerReady)
+        {
+            LTraceLog.LTraceErrorRecord(
+                $"Preview unavailable for '{lFileName}': "
+                + $"{lCargo.LCargoPreviewError ?? "the player did not start"}");
+        }
+    }
+
+    public static void LViewerPlayerAttach(Action<object, LPreviewApplication> lPlayerApply) =>
+        LPreview.LPreviewApplySeam = lPlayerApply;
 }

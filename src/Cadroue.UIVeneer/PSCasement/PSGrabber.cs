@@ -2,7 +2,7 @@
 using Cadroue.UIVeneer.PHouse;
 using System.Windows.Input;
 
-namespace Cadroue.UIVeneer.PSCasement;
+namespace Cadroue.UIVeneer;
 
 internal sealed class PSGrabber
 {

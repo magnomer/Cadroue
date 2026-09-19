@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
@@ -335,4 +336,6 @@ public static class LFlawScan
         double lFlawFraction = lFlawMicroseconds / 1_000_000d / lFlawDuration.TotalSeconds;
         lFlawProgress.Report(lFlawStart + (lFlawEnd - lFlawStart) * Math.Clamp(lFlawFraction, 0, 1));
     }
+
+    public static void LFlawCheckupAttach() => LCheckup.LCheckupScannerSeam = LFlawScanRun;
 }

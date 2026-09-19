@@ -4,9 +4,9 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Cadroue.Media;
-using Cadroue.UIVeneer.PToolbar;
-using Cadroue.UIVeneer.PPanel;
-using PFlowControl = Cadroue.UIVeneer.PFlow.PFlow;
+using Cadroue.UIVeneer.PBench;
+using Cadroue.UIVeneer.PPorch;
+using Cadroue.UIVeneer.PWing;
 using Cadroue.Core;
 using Cadroue.Application;
 
@@ -31,8 +31,8 @@ public partial class PWindow : Window
     private int pResizeDirection;
     private Point pResizeStartPointer;
     private Rect pResizeStartBounds;
-    private PFlowControl? pFlowActive; private PViewer? pViewerActive; private PList? pListActive;
-    private PDeck.PTabSurface? pWindowSurfaceActive;
+    private PFlow? pFlowActive; private PViewer? pViewerActive; private PList? pListActive;
+    private PCabin.PTabSurface? pWindowSurfaceActive;
     public PWindow()
     {
         InitializeComponent();
