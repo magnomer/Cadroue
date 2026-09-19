@@ -72,7 +72,7 @@ public sealed class PWorkspace
         PWorkspaceViewer?.PViewerAudioSet(LWorkspace.LWorkspaceAudioOnly);
         LWorkspace.LWorkspaceAttach(
             PWorkspaceList?.PListDocketRead(),
-            PWorkspaceFlow?.PFlowSegment,
+            PWorkspaceFlow?.LFlow.LFlowSection.LFlowSegment,
             PWorkspaceFlow?.LFlow,
             PWorkspaceViewer?.LViewer,
             PWorkspaceSurface.PTabStation,
@@ -119,8 +119,8 @@ public sealed class PWorkspace
 
     public void PWorkspaceCommandApply(double pFlowHeight)
     {
-        PWorkspaceFlow?.PFlowCommandSet(true);
-        PWorkspaceFlow?.PFlowSectionShow(LWorkspace.LWorkspaceSectionVisible);
+        PWorkspaceFlow?.LFlow.LFlowCommandSet(true);
+        PWorkspaceFlow?.LFlow.LFlowSectionSet(LWorkspace.LWorkspaceSectionVisible);
         PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
         PWorkspaceFlow?.PFlowOrderApply();
         PWorkspaceViewer?.PViewerCommandSet(true);
@@ -129,8 +129,8 @@ public sealed class PWorkspace
     public void PWorkspaceCommandReset()
     {
         PWorkspaceViewer?.PViewerDragSet(false);
-        PWorkspaceFlow?.PFlowSectionShow(false);
-        PWorkspaceFlow?.PFlowCommandSet(false);
+        PWorkspaceFlow?.LFlow.LFlowSectionSet(false);
+        PWorkspaceFlow?.LFlow.LFlowCommandSet(false);
         PWorkspaceViewer?.PViewerCommandSet(false);
     }
 
@@ -169,30 +169,26 @@ public sealed class PWorkspace
     {
         PFlow pFlow = pWorkspace.PWorkspaceFlow!;
         PViewer pViewer = pWorkspace.PWorkspaceViewer!;
-        pFlow.PFlowPlayingSource = pViewer.PViewerPlayingRead;
-        pViewer.PViewerClockTick += pFlow.PFlowCursorUpdate;
-        pFlow.PFlowCursorChange += pViewer.PViewerSeek;
-        pFlow.PFlowDragChange += pViewer.PViewerDragSet;
-        pFlow.PFlowPlay += pViewer.PViewerPlay;
-        pFlow.PFlowPause += pViewer.PViewerPause;
-        pFlow.PFlowVolumeAdjust += pViewer.PViewerVolumeAdjust;
-        pFlow.PFlowSectionChange += pWorkspace.LWorkspace.LWorkspaceSectionHandle;
-        pFlow.PFlowMediaChange += pWorkspace.LWorkspace.LWorkspaceHistoryReset;
+        pFlow.LFlow.LFlowPlayingAttach(pViewer.PViewerPlayingRead);
+        pViewer.PViewerClockTick += pFlow.LFlow.LFlowCursorUpdate;
+        pFlow.LFlow.LFlowCursorChange += pViewer.PViewerSeek;
+        pFlow.LFlow.LFlowDragChange += pViewer.PViewerDragSet;
+        pFlow.LFlow.LFlowPlay += pViewer.PViewerPlay;
+        pFlow.LFlow.LFlowPause += pViewer.PViewerPause;
+        pFlow.LFlow.LFlowVolumeAdjust += pViewer.PViewerVolumeAdjust;
     }
 
     private static void PWorkspacePairClose(PWorkspace pWorkspace)
     {
         PFlow pFlow = pWorkspace.PWorkspaceFlow!;
         PViewer pViewer = pWorkspace.PWorkspaceViewer!;
-        pFlow.PFlowSectionChange -= pWorkspace.LWorkspace.LWorkspaceSectionHandle;
-        pFlow.PFlowMediaChange -= pWorkspace.LWorkspace.LWorkspaceHistoryReset;
-        pViewer.PViewerClockTick -= pFlow.PFlowCursorUpdate;
-        pFlow.PFlowCursorChange -= pViewer.PViewerSeek;
-        pFlow.PFlowDragChange -= pViewer.PViewerDragSet;
-        pFlow.PFlowPlay -= pViewer.PViewerPlay;
-        pFlow.PFlowPause -= pViewer.PViewerPause;
-        pFlow.PFlowVolumeAdjust -= pViewer.PViewerVolumeAdjust;
-        pFlow.PFlowPlayingSource = null;
+        pViewer.PViewerClockTick -= pFlow.LFlow.LFlowCursorUpdate;
+        pFlow.LFlow.LFlowCursorChange -= pViewer.PViewerSeek;
+        pFlow.LFlow.LFlowDragChange -= pViewer.PViewerDragSet;
+        pFlow.LFlow.LFlowPlay -= pViewer.PViewerPlay;
+        pFlow.LFlow.LFlowPause -= pViewer.PViewerPause;
+        pFlow.LFlow.LFlowVolumeAdjust -= pViewer.PViewerVolumeAdjust;
+        pFlow.LFlow.LFlowPlayingAttach(null);
         PWorkspaceStepRun("flow", pFlow.PFlowClose);
         PWorkspaceStepRun("viewer", pViewer.PViewerClose);
     }
@@ -232,7 +228,7 @@ public sealed class PWorkspace
     private void PWorkspaceLosslesscutDefer() =>
         PWorkspaceSurface.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PWorkspaceLosslesscutFind));
 
-    private void PWorkspaceLosslesscutFind() => PWorkspaceFlow?.PFlowLosslesscutFind();
+    private void PWorkspaceLosslesscutFind() => PWorkspaceFlow?.LFlow.LFlowLosslesscut.LFlowLosslesscutFind();
 
     private void PWorkspaceRelayDefer(LRelay lRelay, TimeSpan lDuration) =>
         PWorkspaceSurface.Dispatcher.BeginInvoke(
@@ -240,7 +236,7 @@ public sealed class PWorkspace
             new Action(() => LWorkspace.LWorkspaceRelayRestore(lRelay, lDuration)));
 
     private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
-        PWorkspaceFlow?.PFlowRangeSet(lOrigin, lLimit);
+        PWorkspaceFlow?.LFlow.LFlowRangeSet(lOrigin, lLimit);
 
     private void PWorkspaceVolumeApply(double lVolume) => PWorkspaceViewer?.PViewerVolumeSet(lVolume);
 

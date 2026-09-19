@@ -374,22 +374,6 @@ internal static partial class TInterface
     internal static void TStripUpdateResume(LStrip strip) => strip.LStripUpdateResume();
     internal static void TStripTitleUpdate(LStrip strip) => strip.LStripTitleUpdate();
 
-    internal static LFlow TFlowCreate() => new();
-    internal static void TFlowEditAttach(LFlow flow, Action<bool> handler) => flow.LFlowEditChange += handler;
-    internal static void TFlowSourceSet(LFlow flow, LMediaInfo media, string? path) => flow.LFlowSourceSet(media, path);
-    internal static bool TFlowSourceMatch(LFlow flow, string? path) => flow.LFlowSourceMatch(path);
-    internal static void TFlowSourceClear(LFlow flow) => flow.LFlowSourceClear();
-    internal static void TFlowCursorSet(LFlow flow, TimeSpan cursor) => flow.LFlowCursorSet(cursor);
-    internal static void TFlowSectionSet(LFlow flow, bool active) => flow.LFlowSectionSet(active);
-    internal static void TFlowCommandSet(LFlow flow, bool active) => flow.LFlowCommandSet(active);
-    internal static void TFlowUnloadSet(LFlow flow) => flow.LFlowUnloadSet();
-    internal static bool TFlowEditSet(LFlow flow, bool editable) => flow.LFlowEditSet(editable);
-    internal static bool TFlowEditCheck(LFlow flow) => flow.LFlowEditCheck();
-    internal static bool TFlowSourceCheck(LFlow flow) => flow.LFlowSourceCheck();
-    internal static bool TFlowScanCheck(LFlow flow) => flow.LFlowScanCheck();
-    internal static bool TFlowStampSet(LFlow flow, string stamp) => flow.LFlowStampSet(stamp);
-    internal static bool TFlowLosslesscutSet(LFlow flow, string path) => flow.LFlowLosslesscutSet(path);
-
     internal static LConsole TConsoleCreate() => new();
     internal static bool TConsoleSpinSet(LConsole console, bool spinning) => console.LConsoleSpinSet(spinning);
     internal static bool TConsoleCaretSet(LConsole console) => console.LConsoleCaretSet();

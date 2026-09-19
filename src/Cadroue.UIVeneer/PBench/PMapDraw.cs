@@ -73,12 +73,9 @@ public sealed partial class PMap
             return;
         }
 
-        Geometry? waveformGeometry = PFlow.PFlowWaveformBuild(
+        Geometry waveformGeometry = PFlow.PFlowWaveformBuild(
             lWaveformPeaks, actualWidth, railTop, railHeight, TimeSpan.Zero, lSpool.LSpoolDuration);
-        if (waveformGeometry is not null)
-        {
-            drawingContext.DrawGeometry(pMapBrushWaveform, null, waveformGeometry);
-        }
+        drawingContext.DrawGeometry(pMapBrushWaveform, null, waveformGeometry);
     }
 
     private void PMapSectionsDraw(DrawingContext drawingContext, double actualWidth, double railTop, double railHeight)

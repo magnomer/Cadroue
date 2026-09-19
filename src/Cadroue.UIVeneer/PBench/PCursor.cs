@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PBench;
 
@@ -9,8 +10,7 @@ internal static class PCursor
     internal const double PCursorHeadHeight = 14;
 
     private const double PCursorHeadTip = 5;
-
-    private const double PCursorChipGap = 2;
+    private const double PCursorHeadHalf = PCursorHeadWidth / 2;
 
     private static readonly Brush pCursorBrush = new SolidColorBrush(Color.FromRgb(0x1F, 0x27, 0x33));
     private static readonly Pen pCursorPen = new(pCursorBrush, 1.0);
@@ -25,15 +25,14 @@ internal static class PCursor
 
     private static StreamGeometry PCursorHeadCreate()
     {
-        const double pHalfWidth = PCursorHeadWidth / 2;
         var pGeometry = new StreamGeometry();
         using (StreamGeometryContext pContext = pGeometry.Open())
         {
             pContext.BeginFigure(new Point(0, 0), true, true);
-            pContext.LineTo(new Point(pHalfWidth, -PCursorHeadTip), true, false);
-            pContext.LineTo(new Point(pHalfWidth, -PCursorHeadHeight), true, false);
-            pContext.LineTo(new Point(-pHalfWidth, -PCursorHeadHeight), true, false);
-            pContext.LineTo(new Point(-pHalfWidth, -PCursorHeadTip), true, false);
+            pContext.LineTo(new Point(PCursorHeadHalf, -PCursorHeadTip), true, false);
+            pContext.LineTo(new Point(PCursorHeadHalf, -PCursorHeadHeight), true, false);
+            pContext.LineTo(new Point(-PCursorHeadHalf, -PCursorHeadHeight), true, false);
+            pContext.LineTo(new Point(-PCursorHeadHalf, -PCursorHeadTip), true, false);
         }
 
         pGeometry.Freeze();
@@ -50,20 +49,16 @@ internal static class PCursor
         double lineBottom,
         Rect chipRect)
     {
+        (double pGuideLeft, double pGuideRight) = LCursor.LCursorGuideResolve(cursorX, pCursorPen.Thickness);
         var pGuidelines = new GuidelineSet();
-        pGuidelines.GuidelinesX.Add(cursorX - pCursorPen.Thickness / 2);
-        pGuidelines.GuidelinesX.Add(cursorX + pCursorPen.Thickness / 2);
+        pGuidelines.GuidelinesX.Add(pGuideLeft);
+        pGuidelines.GuidelinesX.Add(pGuideRight);
         drawingContext.PushGuidelineSet(pGuidelines);
 
-        if (chipRect.IsEmpty || chipRect.Height <= 0)
-        {
-            PCursorLineDraw(drawingContext, cursorX, lineTop, lineBottom);
-        }
-        else
-        {
-            PCursorLineDraw(drawingContext, cursorX, lineTop, chipRect.Top - PCursorChipGap);
-            PCursorLineDraw(drawingContext, cursorX, chipRect.Bottom + PCursorChipGap, lineBottom);
-        }
+        LCursor
+            .LCursorLinesResolve(lineTop, lineBottom, chipRect.IsEmpty, chipRect.Top, chipRect.Bottom, chipRect.Height)
+            .ToList()
+            .ForEach(pLine => PCursorLineDraw(drawingContext, cursorX, pLine));
 
         drawingContext.PushTransform(new TranslateTransform(cursorX, lineTop));
         drawingContext.DrawGeometry(pCursorBrush, null, pCursorHeadGeometry);
@@ -72,15 +67,11 @@ internal static class PCursor
         drawingContext.Pop();
     }
 
-    private static void PCursorLineDraw(DrawingContext drawingContext, double cursorX, double top, double bottom)
-    {
-        if (bottom <= top)
-        {
-            return;
-        }
-
-        drawingContext.DrawLine(pCursorPen, new Point(cursorX, top), new Point(cursorX, bottom));
-    }
+    private static void PCursorLineDraw(DrawingContext drawingContext, double cursorX, LCursorLine pLine) =>
+        drawingContext.DrawLine(
+            pCursorPen,
+            new Point(cursorX, pLine.LCursorLineTop),
+            new Point(cursorX, pLine.LCursorLineBottom));
 
     internal static Rect PCursorChipResolve(
         double cursorX,
@@ -90,8 +81,8 @@ internal static class PCursor
         double lineBottom,
         double actualWidth)
     {
-        double pChipLeft = Math.Clamp(cursorX - chipWidth / 2, 0, Math.Max(0, actualWidth - chipWidth));
-        double pChipTop = (lineTop + lineBottom) / 2 - chipHeight / 2;
+        (double pChipLeft, double pChipTop) = LCursor.LCursorChipResolve(
+            cursorX, chipWidth, chipHeight, lineTop, lineBottom, actualWidth);
         return new Rect(pChipLeft, pChipTop, chipWidth, chipHeight);
     }
 }

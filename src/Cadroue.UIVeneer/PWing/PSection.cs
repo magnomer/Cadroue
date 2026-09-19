@@ -84,7 +84,7 @@ public sealed partial class PSection : UserControl
     {
         PSectionDetach();
         pFlowAttached = pFlow;
-        pFlowAttached.PFlowSectionChange += PSectionUpdateHandle;
+        pFlowAttached.LFlow.LFlowSection.LFlowSectionChange += PSectionUpdateHandle;
         pFlowAttached.LFlow.LFlowEditChange += PSectionEditHandle;
         PSectionEditHandle(pFlow.LFlow.LFlowSectionEditable);
         PSectionRebuild();
@@ -93,7 +93,7 @@ public sealed partial class PSection : UserControl
     private void PSectionDetach()
     {
         if (pFlowAttached is null) return;
-        pFlowAttached.PFlowSectionChange -= PSectionUpdateHandle;
+        pFlowAttached.LFlow.LFlowSection.LFlowSectionChange -= PSectionUpdateHandle;
         pFlowAttached.LFlow.LFlowEditChange -= PSectionEditHandle;
         pFlowAttached = null;
     }
@@ -116,7 +116,7 @@ public sealed partial class PSection : UserControl
         pSectionListCurrent = pSectionListNext;
         pSectionSelectedCurrent = pFlowAttached is null
             ? new HashSet<int>()
-            : new HashSet<int>(pFlowAttached.PFlowSelectedRead());
+            : new HashSet<int>(pFlowAttached.LFlow.LFlowSection.LFlowSelectedRead());
 
         if (LSection.LSectionDragActive)
         {

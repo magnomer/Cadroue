@@ -92,10 +92,10 @@ internal sealed partial class PSMonitor : Window
         psMonitorViewer.PViewerClockTick += PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange += PSMonitorBypassHandle;
         psMonitorViewer.PViewerPlayingChange += PSMonitorPlayingHandle;
-        psMonitorFlow.PFlowCursorChange += PSMonitorCursorHandle;
+        psMonitorFlow.LFlow.LFlowCursorChange += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
         PSMonitorBypassHandle(psMonitorViewer.PViewerBypassRead());
-        psMonitorSource.LSMonitorCursorSet(pFlow.PFlowCursorRead());
+        psMonitorSource.LSMonitorCursorSet(pFlow.LFlow.LFlowCursor);
         psMonitorSource.LSMonitorPlayingSet(psMonitorViewer.PViewerPlayingRead());
         psMonitorSource.LSMonitorUpdate();
         PSMonitorZoomApply();
@@ -258,7 +258,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorViewer.PViewerClockTick -= PSMonitorCursorHandle;
         psMonitorViewer.PViewerBypassChange -= PSMonitorBypassHandle;
         psMonitorViewer.PViewerPlayingChange -= PSMonitorPlayingHandle;
-        psMonitorFlow.PFlowCursorChange -= PSMonitorCursorHandle;
+        psMonitorFlow.LFlow.LFlowCursorChange -= PSMonitorCursorHandle;
         psMonitorTimer.Stop();
         psMonitorTimer.Tick -= PSMonitorTickHandle;
         PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);

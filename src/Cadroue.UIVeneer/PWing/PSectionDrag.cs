@@ -90,15 +90,15 @@ public sealed partial class PSection
             ModifierKeys pSectionModifiers = Keyboard.Modifiers;
             if (pSectionModifiers.HasFlag(ModifierKeys.Shift))
             {
-                pFlowAttached?.PFlowRangeSelect(pRowIndex);
+                pFlowAttached?.LFlow.LFlowSection.LFlowRangeSelect(pRowIndex);
             }
             else if (pSectionModifiers.HasFlag(ModifierKeys.Control))
             {
-                pFlowAttached?.PFlowSelectToggle(pRowIndex);
+                pFlowAttached?.LFlow.LFlowSection.LFlowSelectToggle(pRowIndex);
             }
             else
             {
-                pFlowAttached?.PFlowSectionSelect(pRowIndex);
+                pFlowAttached?.LFlow.LFlowSection.LFlowSectionSelect(pRowIndex);
             }
         }
 
@@ -147,7 +147,8 @@ public sealed partial class PSection
 
         pTargetIndex = Math.Clamp(pTargetIndex, 0, pSectionRowPanel.Children.Count);
         int pInsertIndex = pSourceIndex < pTargetIndex ? pTargetIndex - 1 : pTargetIndex;
-        if (pSourceIndex == pInsertIndex || !pFlowAttached.PFlowSectionMove(pSectionIndex, pTargetIndex))
+        if (pSourceIndex == pInsertIndex
+            || !pFlowAttached.LFlow.LFlowSection.LFlowSectionMove(pSectionIndex, pTargetIndex))
         {
             return false;
         }

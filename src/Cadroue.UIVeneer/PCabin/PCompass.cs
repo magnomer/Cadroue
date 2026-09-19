@@ -59,7 +59,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassZoomIncrease.svg",
                 "Compass.ZoomIn.Label",
                 "Compass.ZoomIn.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("zoomIn"),
+                () => pFlow.LFlow.LFlowShortcutRun("ZoomIn"),
                 false,
                 false),
             new(
@@ -67,7 +67,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassZoomDecrease.svg",
                 "Compass.ZoomOut.Label",
                 "Compass.ZoomOut.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("zoomOut"),
+                () => pFlow.LFlow.LFlowShortcutRun("ZoomOut"),
                 true,
                 false),
             new(
@@ -83,7 +83,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassSectionAdd.svg",
                 "Compass.SectionAdd.Label",
                 "Compass.SectionAdd.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("addSection"),
+                () => pFlow.LFlow.LFlowShortcutRun("SectionAdd"),
                 false,
                 true),
             new(
@@ -91,7 +91,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassRemove.svg",
                 "Compass.SectionDelete.Label",
                 "Compass.SectionDelete.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("deleteSection"),
+                () => pFlow.LFlow.LFlowShortcutRun("SectionDelete"),
                 true,
                 true),
             new(
@@ -99,7 +99,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassStart.svg",
                 "Compass.SectionStart.Label",
                 "Compass.SectionStart.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("setStart"),
+                () => pFlow.LFlow.LFlowShortcutRun("SectionStart"),
                 false,
                 true),
             new(
@@ -107,7 +107,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassSplit.svg",
                 "Compass.SectionSplit.Label",
                 "Compass.SectionSplit.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("splitSection"),
+                () => pFlow.LFlow.LFlowShortcutRun("SectionSplit"),
                 false,
                 true),
             new(
@@ -115,7 +115,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassEnd.svg",
                 "Compass.SectionEnd.Label",
                 "Compass.SectionEnd.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("setEnd"),
+                () => pFlow.LFlow.LFlowShortcutRun("SectionEnd"),
                 true,
                 true),
             new(
@@ -123,7 +123,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassKeyframePrevious.svg",
                 "Compass.KeyframePrevious.Label",
                 "Compass.KeyframePrevious.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("previousKey"),
+                () => pFlow.LFlow.LFlowShortcutRun("KeyframePrevious"),
                 false,
                 false),
             new(
@@ -131,7 +131,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassKeyframeNear.svg",
                 "Compass.KeyframeNearest.Label",
                 "Compass.KeyframeNearest.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("nearestKey"),
+                () => pFlow.LFlow.LFlowShortcutRun("KeyframeNearest"),
                 false,
                 false),
             new(
@@ -139,7 +139,7 @@ public sealed partial class PCompass : UserControl
                 "PCompassKeyframeNext.svg",
                 "Compass.KeyframeNext.Label",
                 "Compass.KeyframeNext.Tooltip",
-                () => pFlow.PFlowShortcutDispatch("nextKey"),
+                () => pFlow.LFlow.LFlowShortcutRun("KeyframeNext"),
                 true,
                 false)
         };

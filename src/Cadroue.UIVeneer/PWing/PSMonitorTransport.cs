@@ -56,11 +56,11 @@ internal sealed partial class PSMonitor
     {
         if (psMonitorSource.LSMonitorPlaying)
         {
-            psMonitorFlow.PFlowPauseRaise();
+            psMonitorFlow.LFlow.LFlowPauseRaise();
         }
         else
         {
-            psMonitorFlow.PFlowPlayRaise();
+            psMonitorFlow.LFlow.LFlowPlayRaise();
         }
     }
 
@@ -185,7 +185,7 @@ internal sealed partial class PSMonitor
         }
 
         double pFraction = psMonitorSource.LSMonitorFractionResolve((pX - PSMonitorGutter) / pPlot);
-        psMonitorFlow.PFlowCursorSeek(TimeSpan.FromSeconds(pFraction * pDuration));
+        psMonitorFlow.LFlow.LFlowCursorSeek(TimeSpan.FromSeconds(pFraction * pDuration));
     }
 
     private void PSMonitorCursorHandle(TimeSpan pCursor)

@@ -48,7 +48,7 @@ public sealed partial class PSection
             PSectionEditCommit();
             if (LSection.LSectionEditable && pRowBorderHost is { } pToggleRow)
             {
-                pFlowAttached?.PFlowSectionToggle(pSectionRowPanel.Children.IndexOf(pToggleRow));
+                pFlowAttached?.LFlow.LFlowSection.LFlowSectionToggle(pSectionRowPanel.Children.IndexOf(pToggleRow));
             }
 
             pEvent.Handled = true;
@@ -75,7 +75,7 @@ public sealed partial class PSection
             }
 
             PSectionEditCommit();
-            pFlowAttached?.PFlowSectionSeek(pSeekIndex, pSeekEnd);
+            pFlowAttached?.LFlow.LFlowSection.LFlowSectionSeek(pSeekIndex, pSeekEnd);
             pEvent.Handled = true;
         }
 
@@ -107,7 +107,7 @@ public sealed partial class PSection
                     return;
                 }
 
-                pFlowAttached?.PFlowSectionSelect(pRenameIndex);
+                pFlowAttached?.LFlow.LFlowSection.LFlowSectionSelect(pRenameIndex);
                 LSection.LSectionEditSet(pRenameIndex);
                 PSectionRebuild();
                 pEvent.Handled = true;

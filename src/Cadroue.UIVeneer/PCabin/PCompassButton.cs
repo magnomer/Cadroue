@@ -49,7 +49,7 @@ public sealed partial class PCompass
             Style = PHouse.PButton.PButtonCommandCreate(),
             ToolTip = LLocalization.LLocalizationTextRead("Compass.Waveform.Tooltip")
         };
-        pButton.Click += (_, _) => pFlow.PFlowWaveformSet(!pFlow.LFlow.LFlowWaveformActive);
+        pButton.Click += (_, _) => pFlow.LFlow.LFlowWaveformSet(!pFlow.LFlow.LFlowWaveformActive);
         return pButton;
     }
 
@@ -139,11 +139,11 @@ public sealed partial class PCompass
     {
         if (LCompass.LCompassPlaying)
         {
-            pCompassFlow.PFlowPauseRaise();
+            pCompassFlow.LFlow.LFlowPauseRaise();
         }
         else
         {
-            pCompassFlow.PFlowPlayRaise();
+            pCompassFlow.LFlow.LFlowPlayRaise();
         }
     }
 }

@@ -44,7 +44,7 @@ public sealed partial class PSplitTab : PTabSurface
             LMessenger.LMessengerSplitDescribe(
                 lPriority,
                 pSplitSelected.LDocketEntryPath,
-                pFlow.PFlowSplitRead(),
+                pFlow.LFlow.LFlowSection.LFlowSplitRead(),
                 lPresetOwner.LPresetSelectionEncoding,
                 pAction.PActionRelayTarget,
                 pAction.PActionSourceTab,
@@ -118,14 +118,14 @@ public sealed partial class PSplitTab : PTabSurface
         pViewer.PViewerNeutralChange += pSample =>
             pInspector.PBlankSampleApply(pSample.LNeutralRed, pSample.LNeutralGreen, pSample.LNeutralBlue);
 
-        pFlow.PFlowSectionShow(true);
+        pFlow.LFlow.LFlowSectionSet(true);
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += PSplitPathShow;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
-        pList.PListLockChange += pLocked => pFlow.PFlowEditSet(!pLocked);
-        pFlow.PFlowEditSet(!pList.PListLockCheck());
+        pList.PListLockChange += pLocked => pFlow.LFlow.LFlowEditSet(!pLocked);
+        pFlow.LFlow.LFlowEditSet(!pList.PListLockCheck());
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pSection, pProcessing, pInspector, pViewer, pExport },
             new PCompass(pFlow, pViewer, true), pAction, pFlow, lPreferenceTabLayout);

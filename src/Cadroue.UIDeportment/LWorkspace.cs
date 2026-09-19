@@ -88,6 +88,12 @@ public sealed class LWorkspace
             lViewer.LViewerMediaChange += LWorkspaceMediaHandle;
         }
 
+        if (lFlow is not null)
+        {
+            lFlow.LFlowSection.LFlowSectionChange += LWorkspaceSectionHandle;
+            lFlow.LFlowMediaChange += LWorkspaceHistoryReset;
+        }
+
         lWorkspaceHistory.LHistoryReset(LWorkspaceSnapshotRead());
         LWorkspacePreset.LPresetChange += LWorkspaceHistoryAdd;
     }
@@ -97,6 +103,12 @@ public sealed class LWorkspace
         if (lWorkspaceViewer is not null)
         {
             lWorkspaceViewer.LViewerMediaChange -= LWorkspaceMediaHandle;
+        }
+
+        if (lWorkspaceFlow is not null)
+        {
+            lWorkspaceFlow.LFlowSection.LFlowSectionChange -= LWorkspaceSectionHandle;
+            lWorkspaceFlow.LFlowMediaChange -= LWorkspaceHistoryReset;
         }
 
         lWorkspaceRelay = null;

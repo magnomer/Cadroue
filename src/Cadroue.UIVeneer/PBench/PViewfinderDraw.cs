@@ -81,12 +81,9 @@ public sealed partial class PViewfinder
         TimeSpan rangeStart,
         TimeSpan rangeEnd)
     {
-        Geometry? waveformGeometry = PFlow.PFlowWaveformBuild(
+        Geometry waveformGeometry = PFlow.PFlowWaveformBuild(
             lWaveformPeaks, actualWidth, railTop, railHeight, rangeStart, rangeEnd);
-        if (waveformGeometry is not null)
-        {
-            drawingContext.DrawGeometry(pViewfinderBrushWaveform, null, waveformGeometry);
-        }
+        drawingContext.DrawGeometry(pViewfinderBrushWaveform, null, waveformGeometry);
     }
 
     private void PViewfinderCursorDraw(

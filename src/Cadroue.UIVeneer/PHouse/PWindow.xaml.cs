@@ -81,8 +81,7 @@ public partial class PWindow : Window
             PWindowUndo,
             PWindowRedo,
             pStrip.LStrip.LStripContentClear,
-            PWindowMediaClear,
-            PWindowFlowDispatch);
+            PWindowMediaClear);
         LAskNotice.LAskRaise += PWindowAskHandle;
         lSash.LSashCaptureStart += PResizeCaptureStart;
         lSash.LSashCaptureStop += PResizeCaptureStop;
@@ -203,9 +202,6 @@ public partial class PWindow : Window
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
         pStrip.PStripSelected?.LWorkspace.LWorkspaceMediaClear(lCohorts);
-
-    private bool? PWindowFlowDispatch(string pCode) =>
-        pStrip.PStripSelected?.PWorkspaceFlow?.PFlowShortcutDispatch(pCode);
 
     public LSceneRecord PWindowSceneRead(string lSceneName) => lWindow.LWindowSceneRead(lSceneName);
 

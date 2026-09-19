@@ -16,6 +16,17 @@ public sealed class TWindowShortcut
         return TInterface.TWindowCreate(strip, body => body());
     }
 
+    private static LFlow TWindowFlowAttach(LWindow window)
+    {
+        LFlow flow = TInterface.TFlowCreate();
+        TInterface.TFlowCommandSet(flow, true);
+        TInterface.TFlowSourceSet(flow, TInterface.TViewerInfoCreate(TimeSpan.FromSeconds(60), 640, 360), "C:\\a.mp4");
+        LStripTab tab = TInterface.TStripTabCreate("Split");
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"), null, flow);
+        TInterface.TWindowTabSet(window, tab, null);
+        return flow;
+    }
+
     private static LWindowPress TWindowPressBuild(
         LWindow window,
         bool handled,
@@ -49,17 +60,21 @@ public sealed class TWindowShortcut
             () => { calls.Add("undo"); return true; },
             () => { calls.Add("redo"); return null; },
             () => { calls.Add("unload"); return false; },
-            cohorts => { calls.Add("clear"); return true; },
-            code => { calls.Add("flow:" + code); return code.Length > 0; });
+            cohorts => { calls.Add("clear"); return true; });
 
         Assert.True(TInterface.TWindowShortcutRun(window, "Show"));
         Assert.True(TInterface.TWindowShortcutRun(window, "Undo"));
         Assert.False(TInterface.TWindowShortcutRun(window, "Redo"));
         Assert.False(TInterface.TWindowShortcutRun(window, "UnloadAll"));
         Assert.True(TInterface.TWindowShortcutRun(window, "Unload"));
+        Assert.False(TInterface.TWindowShortcutRun(window, "ZoomIn"));
+        Assert.Equal(["show", "undo", "redo", "unload", "clear"], calls);
+
+        LFlow flow = TWindowFlowAttach(window);
+        TInterface.TFlowSpoolAttach(flow, () => calls.Add("spool"));
         Assert.True(TInterface.TWindowShortcutRun(window, "ZoomIn"));
         Assert.False(TInterface.TWindowShortcutRun(window, "Nothing"));
-        Assert.Equal(["show", "undo", "redo", "unload", "clear", "flow:zoomIn", "flow:"], calls);
+        Assert.Equal(["show", "undo", "redo", "unload", "clear", "spool"], calls);
     }
 
     [Fact]
@@ -107,8 +122,9 @@ public sealed class TWindowShortcut
             () => null,
             () => null,
             () => false,
-            _ => null,
-            code => { calls.Add(code); return true; });
+            _ => null);
+        LFlow flow = TWindowFlowAttach(window);
+        TInterface.TFlowSpoolAttach(flow, () => calls.Add("spool"));
 
         Assert.True(TInterface.TWindowShortcutHandle(
             window, TWindowPressBuild(window, false, TWindowKeydown, false, 100, false, "C", 0)));
@@ -120,6 +136,6 @@ public sealed class TWindowShortcut
             window,
             TWindowPressBuild(
                 window, false, TWindowKeydown, false, 300, false, "V", 0, foreground => foreground == 300)));
-        Assert.Equal(["zoomIn", "zoomOut"], calls);
+        Assert.Equal(["spool", "spool"], calls);
     }
 }

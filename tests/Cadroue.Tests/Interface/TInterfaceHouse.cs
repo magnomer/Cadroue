@@ -21,10 +21,11 @@ internal static partial class TInterface
     internal static (double, double) TWindowWidthResolve(
         LWindow window, double? required, double reserved, double width) =>
         window.LWindowWidthResolve(required, reserved, width);
-    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset, LDocket? docket)
+    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset, LDocket? docket, LFlow? flow = null)
     {
         var workspace = new LWorkspace(tab.LStripTabKey, preset);
-        workspace.LWorkspaceAttach(docket, null, null, null, null, () => new LSceneTabRecord());
+        workspace.LWorkspaceAttach(
+            docket, flow?.LFlowSection.LFlowSegment, flow, null, null, () => new LSceneTabRecord());
         tab.LStripWorkspaceAttach(workspace);
     }
     internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
@@ -50,9 +51,8 @@ internal static partial class TInterface
         Func<bool?> undo,
         Func<bool?> redo,
         Func<bool> unload,
-        Func<IReadOnlySet<Guid>, bool?> clear,
-        Func<string, bool?> flow) =>
-        window.LWindowShortcut.LWindowShortcutAttach(show, undo, redo, unload, clear, flow);
+        Func<IReadOnlySet<Guid>, bool?> clear) =>
+        window.LWindowShortcut.LWindowShortcutAttach(show, undo, redo, unload, clear);
     internal static bool TWindowShortcutRun(LWindow window, string token) =>
         window.LWindowShortcut.LWindowShortcutRun(token);
     internal static void TWindowPlayAttach(LWindow window, Action play, Action pause)

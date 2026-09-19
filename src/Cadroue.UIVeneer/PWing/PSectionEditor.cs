@@ -30,39 +30,39 @@ public sealed partial class PSection
         pSectionNameBox = null;
         pSectionPrefixBox = null;
         pSectionSuffixBox = null;
-        pFlowAttached?.PFlowNameSet(pEditingIndex, pEditingName, pEditingPrefix, pEditingSuffix);
+        pFlowAttached?.LFlow.LFlowSection.LFlowNameSet(pEditingIndex, pEditingName, pEditingPrefix, pEditingSuffix);
         PSectionRebuild();
     }
 
     private UIElement PSectionEditorBuild(LPiece pSectionEntry)
     {
-        TextBox pNameBox = PSectionFieldBuild(pSectionEntry.LPieceName, 0);
-        TextBox pPrefixBox = PSectionFieldBuild(pSectionEntry.LPiecePrefix, PSectionAffixWidth);
-        TextBox pSuffixBox = PSectionFieldBuild(pSectionEntry.LPieceSuffix, PSectionAffixWidth);
-        pSectionNameBox = pNameBox;
-        pSectionPrefixBox = pPrefixBox;
-        pSectionSuffixBox = pSuffixBox;
+        TextBox pFlowNameBox = PSectionFieldBuild(pSectionEntry.LPieceName, 0);
+        TextBox pFlowPrefixBox = PSectionFieldBuild(pSectionEntry.LPiecePrefix, PSectionAffixWidth);
+        TextBox pFlowSuffixBox = PSectionFieldBuild(pSectionEntry.LPieceSuffix, PSectionAffixWidth);
+        pSectionNameBox = pFlowNameBox;
+        pSectionPrefixBox = pFlowPrefixBox;
+        pSectionSuffixBox = pFlowSuffixBox;
 
-        UIElement pPrefixMark = PSectionMarkBuild(pPrefixBox);
-        UIElement pSuffixMark = PSectionMarkBuild(pSuffixBox);
-        PSectionAffixShow(pPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LPiecePrefix));
-        PSectionAffixShow(pSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LPieceSuffix));
+        UIElement pPrefixMark = PSectionMarkBuild(pFlowPrefixBox);
+        UIElement pSuffixMark = PSectionMarkBuild(pFlowSuffixBox);
+        PSectionAffixShow(pFlowPrefixBox, !string.IsNullOrEmpty(pSectionEntry.LPiecePrefix));
+        PSectionAffixShow(pFlowSuffixBox, !string.IsNullOrEmpty(pSectionEntry.LPieceSuffix));
 
-        PSectionStepAttach(pNameBox, pPrefixBox);
-        PSectionStepAttach(pPrefixBox, pSuffixBox);
-        PSectionStepAttach(pSuffixBox, null);
+        PSectionStepAttach(pFlowNameBox, pFlowPrefixBox);
+        PSectionStepAttach(pFlowPrefixBox, pFlowSuffixBox);
+        PSectionStepAttach(pFlowSuffixBox, null);
 
         var pEditorPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pEditorPanel.Children.Add(pNameBox);
+        pEditorPanel.Children.Add(pFlowNameBox);
         pEditorPanel.Children.Add(pPrefixMark);
-        pEditorPanel.Children.Add(pPrefixBox);
+        pEditorPanel.Children.Add(pFlowPrefixBox);
         pEditorPanel.Children.Add(pSuffixMark);
-        pEditorPanel.Children.Add(pSuffixBox);
+        pEditorPanel.Children.Add(pFlowSuffixBox);
 
-        pNameBox.Loaded += (_, _) =>
+        pFlowNameBox.Loaded += (_, _) =>
         {
-            pNameBox.Focus();
-            pNameBox.SelectAll();
+            pFlowNameBox.Focus();
+            pFlowNameBox.SelectAll();
         };
         return pEditorPanel;
     }

@@ -21,7 +21,7 @@ public sealed partial class PSplitTab
             return;
         }
 
-        if (pList.PListEditableRead() is not { } pSplitSelected || !pFlow.PFlowSweepReady)
+        if (pList.PListEditableRead() is not { } pSplitSelected || pFlow.LFlow.LFlowSpool is null)
         {
             return;
         }
@@ -40,7 +40,7 @@ public sealed partial class PSplitTab
         pSplitSweepSource = pSplitSource;
         pInspector.PSensorRunningSet(true);
         pInspector.PSensorLockSet(true);
-        pFlow.PFlowEditSet(false);
+        pFlow.LFlow.LFlowEditSet(false);
         pProcessing.IsEnabled = false;
         pInspector.PSensorProgressShow();
         try
@@ -53,7 +53,7 @@ public sealed partial class PSplitTab
                 await pSplitSteps[pSplitStage](pSplitProgress, pSplitSource.Token);
             }
 
-            if (!pFlow.PFlowCombineApply(pSplitExcluded, pSplitKept, pSplitBoundaries))
+            if (!pFlow.LFlow.LFlowSection.LFlowCombineApply(pSplitExcluded, pSplitKept, pSplitBoundaries))
             {
                 PSWarning.PSWarningShow(
                     Window.GetWindow(this),
@@ -77,7 +77,7 @@ public sealed partial class PSplitTab
         finally
         {
             pInspector.PSensorProgressHide();
-            pFlow.PFlowEditSet(!pList.PListLockCheck());
+            pFlow.LFlow.LFlowEditSet(!pList.PListLockCheck());
             pInspector.PSensorLockSet(false);
             pInspector.PSensorRunningSet(false);
             pProcessing.IsEnabled = true;
@@ -92,7 +92,7 @@ public sealed partial class PSplitTab
         List<LSweepSpan> pSplitKept,
         List<LSweepBoundary> pSplitBoundaries)
     {
-        TimeSpan pSplitDuration = pFlow.PFlowSweepDuration;
+        TimeSpan pSplitDuration = pFlow.LFlow.LFlowDuration;
         var pSplitSteps = new List<PSplitSweepStep>();
 
         LDetectorBlank pSplitBlank = pInspector.PBlankRead();

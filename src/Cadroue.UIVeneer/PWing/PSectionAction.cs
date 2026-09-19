@@ -73,18 +73,18 @@ public sealed partial class PSection
     private void PSectionDeleteHandle(object pSender, RoutedEventArgs pEvent)
     {
         PSectionEditCommit();
-        pFlowAttached?.PFlowSectionDelete();
+        pFlowAttached?.LFlow.LFlowSection.LFlowSectionDelete();
     }
 
     private void PSectionSortHandle(object pSender, RoutedEventArgs pEvent)
     {
         PSectionEditCommit();
-        pFlowAttached?.PFlowSectionSort();
+        pFlowAttached?.LFlow.LFlowSection.LFlowSectionSort();
     }
 
     private void PSectionClearHandle(object pSender, RoutedEventArgs pEvent)
     {
         PSectionEditCommit();
-        pFlowAttached?.PFlowSectionClear();
+        pFlowAttached?.LFlow.LFlowSection.LFlowSectionClear();
     }
 }

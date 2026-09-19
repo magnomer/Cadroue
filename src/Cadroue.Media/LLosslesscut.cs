@@ -42,6 +42,26 @@ public static class LLosslesscut
         return LLosslesscutParse(lLosslesscutText);
     }
 
+    public static LLosslesscutProject? LLosslesscutProjectRead(
+        string lLosslesscutPath,
+        out Exception? lLosslesscutFault)
+    {
+        try
+        {
+            lLosslesscutFault = null;
+            return LLosslesscutRead(lLosslesscutPath);
+        }
+        catch (Exception lLosslesscutException) when (
+            lLosslesscutException is IOException
+                or UnauthorizedAccessException
+                or JsonException
+                or ArgumentException)
+        {
+            lLosslesscutFault = lLosslesscutException;
+            return null;
+        }
+    }
+
     public static LLosslesscutProject LLosslesscutParse(string lLosslesscutText)
     {
         using var lLosslesscutStringReader = new StringReader(lLosslesscutText);

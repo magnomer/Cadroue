@@ -26,28 +26,12 @@ public sealed class LWindowShortcut
     private const int LWindowLeftWin = 0x5B;
     private const int LWindowRightWin = 0x5C;
 
-    private static readonly IReadOnlyDictionary<string, string> LWindowShortcutCodes = new Dictionary<string, string>
-    {
-        ["ZoomIn"] = "zoomIn",
-        ["ZoomOut"] = "zoomOut",
-        ["SectionAdd"] = "addSection",
-        ["SectionStart"] = "setStart",
-        ["SectionSplit"] = "splitSection",
-        ["SectionEnd"] = "setEnd",
-        ["SectionDelete"] = "deleteSection",
-        ["SectionRename"] = "nameSection",
-        ["KeyframePrevious"] = "previousKey",
-        ["KeyframeNearest"] = "nearestKey",
-        ["KeyframeNext"] = "nextKey",
-    };
-
     private readonly LWindow lWindow;
     private Action? lWindowShowSeam;
     private Func<bool?>? lWindowUndoSeam;
     private Func<bool?>? lWindowRedoSeam;
     private Func<bool>? lWindowUnloadSeam;
     private Func<IReadOnlySet<Guid>, bool?>? lWindowClearSeam;
-    private Func<string, bool?>? lWindowFlowSeam;
 
     public LWindowShortcut(LWindow lOwner)
     {
@@ -62,15 +46,13 @@ public sealed class LWindowShortcut
         Func<bool?> lUndo,
         Func<bool?> lRedo,
         Func<bool> lUnload,
-        Func<IReadOnlySet<Guid>, bool?> lClear,
-        Func<string, bool?> lFlow)
+        Func<IReadOnlySet<Guid>, bool?> lClear)
     {
         lWindowShowSeam = lShow;
         lWindowUndoSeam = lUndo;
         lWindowRedoSeam = lRedo;
         lWindowUnloadSeam = lUnload;
         lWindowClearSeam = lClear;
-        lWindowFlowSeam = lFlow;
     }
 
     public bool LWindowShortcutHandle(LWindowPress lPress)
@@ -120,8 +102,7 @@ public sealed class LWindowShortcut
             case "Unload":
                 return lWindowClearSeam?.Invoke(LBastion.LBastionCohortsRead()) ?? false;
             default:
-                return lWindowFlowSeam?.Invoke(LWindowShortcutCodes.GetValueOrDefault(lToken, string.Empty))
-                    ?? false;
+                return lWindow.LWindowTab?.LStripTabWorkspace?.LWorkspaceFlow?.LFlowShortcutRun(lToken) ?? false;
         }
     }
 
