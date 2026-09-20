@@ -67,6 +67,14 @@ public abstract class PTabSurface : UserControl
     public PAction? PTabAction { get; protected set; }
     public LSurface LSurface { get; private set; } = null!;
     public virtual void PTabClose() => PTabList?.PListClose();
+    public virtual void PTabStripAttach(LStrip lStrip, LStripTab lStripTab)
+    {
+    }
+
+    public virtual void PTabTargetsResolve()
+    {
+    }
+
     public abstract LSceneTabRecord PTabLayoutRead();
 
     private PColumn PTabColumn { get; set; } = null!;
@@ -154,7 +162,7 @@ public abstract class PTabSurface : UserControl
         Grid.SetRow(pPanelGrid, 0);
         pGrid.Children.Add(pPanelGrid);
         LSurface = new LSurface(PTabColumn.LColumn, pPanels.Count, pExportIndex);
-        LSurface.LSurfaceActionAttach(() => pAction.PActionAutoRelay);
+        LSurface.LSurfaceActionAttach(pAction.LAction);
         PTabPanels = pPanels;
         PTabAction = pAction;
         PTabExportPanel = pPanels.ElementAtOrDefault(pExportIndex);

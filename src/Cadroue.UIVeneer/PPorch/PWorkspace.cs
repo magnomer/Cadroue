@@ -57,6 +57,7 @@ public sealed class PWorkspace
         };
 
     public PWorkspace(
+        LStrip lStrip,
         LStripTab lStripTab,
         LPreset? lExportSpecificState = null,
         LSceneTabRecord? lPreferenceTabLayout = null)
@@ -77,7 +78,8 @@ public sealed class PWorkspace
             PWorkspaceViewer?.LViewer,
             PWorkspaceSurface.PTabStation,
             PWorkspaceSurface.PTabLayoutRead);
-        PWorkspaceSurface.PTabAction?.PActionRelayAttach(lStripTab);
+        PWorkspaceSurface.PTabAction?.LAction.LActionRelayAttach(lStrip, lStripTab);
+        PWorkspaceSurface.PTabStripAttach(lStrip, lStripTab);
         LWorkspace.LWorkspaceFlowAttach += PWorkspaceFlowAttach;
         LWorkspace.LWorkspaceFlowClear += PWorkspaceFlowClear;
         LWorkspace.LWorkspaceMediaClose += PWorkspaceMediaClose;

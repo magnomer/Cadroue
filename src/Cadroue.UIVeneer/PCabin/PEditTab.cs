@@ -36,11 +36,12 @@ public sealed class PEditTab : PTabSurface
             pProcessing.LProcessing);
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority =>
-            LEditTab.LEditRun(lPriority, pAction.PActionRelayTarget, pAction.PActionSourceTab);
-        pAction.PActionAllAdd += () => LEditTab.LEditAllRun(pAction.PActionRelayTarget, pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pEditPaths =>
-            LEditTab.LEditItemsRun(pEditPaths, pAction.PActionRelayTarget, pAction.PActionSourceTab);
+        LAction lAction = pAction.LAction;
+        lAction.LActionRun += lPriority =>
+            LEditTab.LEditRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionAllAdd += () => LEditTab.LEditAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdd += pEditPaths =>
+            LEditTab.LEditItemsRun(pEditPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 

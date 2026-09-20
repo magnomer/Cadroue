@@ -9,8 +9,6 @@ public sealed class LStripTab : INotifyPropertyChanged
     private const string LStripFunnelKey = "Funnel";
     private const string LStripMergeKey = "Merge";
     private const string LStripWorklistKey = "Worklist";
-    private Func<bool>? lStripRelaySource;
-    private Func<Guid, bool>? lStripCohortSource;
 
     public LStripTab(string lKey)
     {
@@ -38,6 +36,8 @@ public sealed class LStripTab : INotifyPropertyChanged
 
     public LWorkspace? LStripTabWorkspace { get; private set; }
 
+    public LAction? LStripTabAction { get; private set; }
+
     public LPreset? LStripTabPreset => LStripTabWorkspace?.LWorkspacePreset;
 
     public LDocket? LStripTabDocket => LStripTabWorkspace?.LWorkspaceDocket;
@@ -52,17 +52,13 @@ public sealed class LStripTab : INotifyPropertyChanged
 
     public void LStripWorkspaceAttach(LWorkspace lWorkspace) => LStripTabWorkspace = lWorkspace;
 
-    public void LStripActionAttach(Func<bool> lRelaySource, Func<Guid, bool> lCohortSource)
-    {
-        lStripRelaySource = lRelaySource;
-        lStripCohortSource = lCohortSource;
-    }
+    public void LStripActionAttach(LAction lAction) => LStripTabAction = lAction;
 
     public LSceneTabRecord? LStripLayoutRead() => LStripTabWorkspace?.LWorkspaceLayoutRead();
 
-    public bool LStripRelayCheck() => lStripRelaySource?.Invoke() ?? false;
+    public bool LStripRelayCheck() => LStripTabAction?.LActionAutoRelay ?? false;
 
-    public bool LStripCohortRun(Guid lCohort) => lStripCohortSource?.Invoke(lCohort) ?? false;
+    public bool LStripCohortRun(Guid lCohort) => LStripTabAction?.LActionCohortRun(lCohort) ?? false;
 
     internal void LStripTabUpdate() =>
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(string.Empty));

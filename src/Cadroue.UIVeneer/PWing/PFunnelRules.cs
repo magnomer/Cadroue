@@ -1,12 +1,11 @@
-using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
-using Cadroue.UIVeneer.PCabin;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -20,27 +19,37 @@ public sealed class PFunnelRules : PPanel
     private static readonly Brush pFunnelMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
     private static readonly Brush pFunnelIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
 
-    private readonly StackPanel pFunnelRowPanel;
+    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow, MouseEventArgs>>
+        pFunnelMoves = new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow, MouseEventArgs>>
+        {
+            [true] = (pRules, pRow, pEvent) => pRules.PFunnelMoveRun(pRow, pEvent),
+            [false] = (pRules, pRow, pEvent) => { },
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow>> pFunnelGhosts =
+        new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow>>
+        {
+            [true] = (pRules, pRow) => pRules.PFunnelGhostShow(pRow),
+            [false] = (pRules, pRow) => { },
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Action<PFunnelRules, PFunnelRuleRow>> pFunnelReleases =
+        new Dictionary<bool, Action<PFunnelRules, PFunnelRuleRow>>
+        {
+            [true] = (pRules, pRow) => pRules.PFunnelDragClear(pRow),
+            [false] = (pRules, pRow) => { },
+        };
+
+    private readonly LFunnel lFunnel;
+    private readonly Grid pFunnelRowGrid;
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly Dictionary<LFunnelRule, PFunnelRuleRow> pFunnelRows = new();
-    private Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource =
-        static () => Array.Empty<PActionRelayOption>();
-    private PFunnelRuleRow? pFunnelRowDragging;
-    private Point? pFunnelDragOrigin;
-    private Point pFunnelGrabOffset;
-    private bool pFunnelDragActive;
-    private PHouse.PGhost? pFunnelGhost;
 
-    public LFunnel LFunnel { get; } = new();
-
-    public PFunnelRules() : base("")
+    public PFunnelRules(LFunnel lFunnelOwner) : base("")
     {
+        lFunnel = lFunnelOwner;
         MinWidth = 300;
-        LFunnel.LFunnelChange += PFunnelRowsUpdate;
-        LFunnel.LFunnelRuleChange += PFunnelRuleHandle;
-
-        pFunnelRowPanel = new StackPanel { Margin = new Thickness(12, 12, 12, 12) };
-
+        pFunnelRowGrid = new Grid { Margin = new Thickness(12, 12, 12, 12) };
         pFunnelEmptyNotice = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Empty"),
@@ -56,7 +65,7 @@ public sealed class PFunnelRules : PPanel
 
         var pBody = new Grid();
         pBody.Children.Add(pFunnelEmptyNotice);
-        pBody.Children.Add(pFunnelRowPanel);
+        pBody.Children.Add(pFunnelRowGrid);
 
         var pScroll = new ScrollViewer
         {
@@ -75,153 +84,107 @@ public sealed class PFunnelRules : PPanel
         pRoot.Children.Add(pScroll);
 
         Content = PPanelBorderBuild(pRoot);
-        PFunnelEmptyUpdate();
+        lFunnel.LFunnelRuleCreate += PFunnelRowAdd;
+        lFunnel.LFunnelRuleDelete += PFunnelRowRemove;
+        lFunnel.LFunnelChange += PFunnelRowsUpdate;
+        lFunnel.LFunnelRuleChange += PFunnelRuleHandle;
+        lFunnel.LFunnelRules.ToList().ForEach(PFunnelRowAdd);
+        PFunnelRowsUpdate();
     }
 
-    public void PFunnelOptionsSet(Func<IReadOnlyList<PActionRelayOption>> pOptionsRead)
-    {
-        pFunnelOptionsSource = pOptionsRead;
-    }
+    public LFunnel LFunnel => lFunnel;
 
-    private PFunnelRuleRow PFunnelRowBuild(LFunnelRule lRule)
+    private void PFunnelRowAdd(LFunnelRule lRule)
     {
-        var pRow = new PFunnelRuleRow(LFunnel, lRule, pFunnelOptionsSource);
+        var pRow = new PFunnelRuleRow(lFunnel, lRule);
         pRow.PFunnelHeader.MouseLeftButtonDown += (_, pEvent) => PFunnelPressHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseMove += (_, pEvent) => PFunnelMoveHandle(pRow, pEvent);
         pRow.PFunnelHeader.MouseLeftButtonUp += (_, pEvent) => PFunnelUpHandle(pRow, pEvent);
-        pRow.PFunnelHeader.LostMouseCapture += (_, _) => PFunnelDragReset(pRow);
-        pRow.PreviewMouseLeftButtonDown += (_, _) => LFunnel.LFunnelRuleSelect(lRule);
-        pRow.GotKeyboardFocus += (_, _) => LFunnel.LFunnelRuleSelect(lRule);
-        return pRow;
+        pRow.PFunnelHeader.LostMouseCapture += (_, _) => PFunnelReleaseHandle(pRow);
+        pRow.PreviewMouseLeftButtonDown += (_, _) => lFunnel.LFunnelRuleSelect(lRule);
+        pRow.GotKeyboardFocus += (_, _) => lFunnel.LFunnelRuleSelect(lRule);
+        pFunnelRows.Add(lRule, pRow);
+        pFunnelRowGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        pFunnelRowGrid.Children.Add(pRow);
     }
 
-    private void PFunnelRuleHandle(LFunnelRule lRule)
+    private void PFunnelRowRemove(LFunnelRule lRule)
     {
-        if (pFunnelRows.TryGetValue(lRule, out PFunnelRuleRow? pRow))
-        {
-            pRow.PFunnelRowUpdate();
-        }
+        pFunnelRowGrid.Children.Remove(pFunnelRows[lRule]);
+        pFunnelRows.Remove(lRule);
     }
+
+    private void PFunnelRuleHandle(LFunnelRule lRule) => pFunnelRows[lRule].PFunnelRowUpdate();
 
     private void PFunnelRowsUpdate()
     {
-        IReadOnlyList<LFunnelRule> lRules = LFunnel.LFunnelRules;
-        foreach (LFunnelRule lGone in pFunnelRows.Keys.Where(lRule => !lRules.Contains(lRule)).ToArray())
-        {
-            pFunnelRowPanel.Children.Remove(pFunnelRows[lGone]);
-            pFunnelRows.Remove(lGone);
-        }
+        lFunnel.LFunnelSlotsRead().ToList().ForEach(PFunnelSlotApply);
+        pFunnelEmptyNotice.Visibility = PLook.PLookVisible[lFunnel.LFunnelEmpty];
+    }
 
-        for (int pIndex = 0; pIndex < lRules.Count; pIndex++)
-        {
-            LFunnelRule lRule = lRules[pIndex];
-            if (!pFunnelRows.TryGetValue(lRule, out PFunnelRuleRow? pRow))
-            {
-                pRow = PFunnelRowBuild(lRule);
-                pFunnelRows[lRule] = pRow;
-                pFunnelRowPanel.Children.Insert(pIndex, pRow);
-            }
-            else if (pFunnelRowPanel.Children.IndexOf(pRow) != pIndex)
-            {
-                pFunnelRowPanel.Children.Remove(pRow);
-                pFunnelRowPanel.Children.Insert(pIndex, pRow);
-            }
-
-            pRow.PFunnelOrderSet(pIndex + 1);
-            pRow.PFunnelSelectSet(ReferenceEquals(LFunnel.LFunnelSelected, lRule));
-        }
-
-        PFunnelEmptyUpdate();
+    private void PFunnelSlotApply(LFunnelSlot lSlot)
+    {
+        PFunnelRuleRow pRow = pFunnelRows[lSlot.LFunnelSlotRule];
+        Grid.SetRow(pRow, lSlot.LFunnelSlotIndex);
+        pRow.PFunnelOrderSet(lSlot.LFunnelSlotOrder);
+        pRow.PFunnelSelectSet(lSlot.LFunnelSlotSelected);
     }
 
     private void PFunnelPressHandle(PFunnelRuleRow pRow, MouseButtonEventArgs pEvent)
     {
-        pFunnelRowDragging = pRow;
-        pFunnelDragOrigin = pEvent.GetPosition(pFunnelRowPanel);
-        pFunnelGrabOffset = pEvent.GetPosition(pRow);
-        pFunnelDragActive = false;
+        Point pGridPoint = pEvent.GetPosition(pFunnelRowGrid);
+        Point pOffset = pEvent.GetPosition(pRow);
+        lFunnel.LFunnelDrag.LFunnelPressHandle(pRow.PFunnelRule, pGridPoint.X, pGridPoint.Y, pOffset.X, pOffset.Y);
         pRow.PFunnelHeader.CaptureMouse();
     }
 
-    private void PFunnelMoveHandle(PFunnelRuleRow pRow, MouseEventArgs pEvent)
+    private void PFunnelMoveHandle(PFunnelRuleRow pRow, MouseEventArgs pEvent) =>
+        pFunnelMoves[lFunnel.LFunnelDrag.LFunnelMoveCheck(pRow.PFunnelRule, PLook.PLookPressed[pEvent.LeftButton])](
+            this, pRow, pEvent);
+
+    private void PFunnelMoveRun(PFunnelRuleRow pRow, MouseEventArgs pEvent)
     {
-        if (!ReferenceEquals(pFunnelRowDragging, pRow)
-            || pFunnelDragOrigin is not Point pStart
-            || pEvent.LeftButton != MouseButtonState.Pressed)
-        {
-            return;
-        }
-
-        Point pCurrent = pEvent.GetPosition(pFunnelRowPanel);
-        if (!pFunnelDragActive
-            && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
-            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
-        {
-            return;
-        }
-
-        if (!pFunnelDragActive)
-        {
-            pFunnelDragActive = true;
-            pRow.Opacity = 0.72;
-            pFunnelGhost = PHouse.PGhost.PGhostShow(pRow, pFunnelGrabOffset);
-        }
-
-        pFunnelGhost?.PGhostCursorSync();
-        LFunnel.LFunnelRuleMove(pRow.PFunnelRule, PFunnelIndexResolve(pCurrent));
+        Point pCurrent = pEvent.GetPosition(pFunnelRowGrid);
+        bool pStart = lFunnel.LFunnelDrag.LFunnelDragResolve(
+            pCurrent.X,
+            pCurrent.Y,
+            SystemParameters.MinimumHorizontalDragDistance,
+            SystemParameters.MinimumVerticalDragDistance);
+        pFunnelGhosts[pStart](this, pRow);
+        PGhost.PGhostSync(pRow);
+        lFunnel.LFunnelDrag.LFunnelDragMove(pCurrent.Y, lFunnel.LFunnelRules.Select(PFunnelCenterRead).ToList());
         pEvent.Handled = true;
+    }
+
+    private void PFunnelGhostShow(PFunnelRuleRow pRow)
+    {
+        pRow.Opacity = 0.72;
+        PGhost.PGhostShow(pRow, new Point(lFunnel.LFunnelDrag.LFunnelOffsetX, lFunnel.LFunnelDrag.LFunnelOffsetY));
+    }
+
+    private double PFunnelCenterRead(LFunnelRule lRule)
+    {
+        PFunnelRuleRow pRow = pFunnelRows[lRule];
+        Point pRowPoint = pRow.TransformToAncestor(pFunnelRowGrid).Transform(new Point(0, 0));
+        return LFunnelDrag.LFunnelCenterResolve(pRowPoint.Y, pRow.ActualHeight);
     }
 
     private void PFunnelUpHandle(PFunnelRuleRow pRow, MouseButtonEventArgs pEvent)
     {
-        if (!ReferenceEquals(pFunnelRowDragging, pRow))
-        {
-            return;
-        }
-
+        bool pReleased = lFunnel.LFunnelDrag.LFunnelReleaseCheck(pRow.PFunnelRule);
+        pFunnelReleases[pReleased](this, pRow);
         pRow.PFunnelHeader.ReleaseMouseCapture();
-        PFunnelDragReset(pRow);
-        pEvent.Handled = true;
+        pEvent.Handled = pReleased;
     }
 
-    private void PFunnelDragReset(PFunnelRuleRow pRow)
-    {
-        if (!ReferenceEquals(pFunnelRowDragging, pRow))
-        {
-            return;
-        }
+    private void PFunnelReleaseHandle(PFunnelRuleRow pRow) =>
+        pFunnelReleases[lFunnel.LFunnelDrag.LFunnelReleaseCheck(pRow.PFunnelRule)](this, pRow);
 
+    private void PFunnelDragClear(PFunnelRuleRow pRow)
+    {
         pRow.Opacity = 1;
-        pFunnelGhost?.PGhostClear();
-        pFunnelGhost = null;
-        pFunnelRowDragging = null;
-        pFunnelDragOrigin = null;
-        pFunnelDragActive = false;
-    }
-
-    private int PFunnelIndexResolve(Point pMousePoint)
-    {
-        int pTargetIndex = 0;
-        for (int pIndex = 0; pIndex < pFunnelRowPanel.Children.Count; pIndex++)
-        {
-            if (pFunnelRowPanel.Children[pIndex] is not FrameworkElement pRow)
-            {
-                continue;
-            }
-
-            Point pRowPoint = pRow.TransformToAncestor(pFunnelRowPanel).Transform(new Point(0, 0));
-            if (pMousePoint.Y > pRowPoint.Y + pRow.ActualHeight / 2)
-            {
-                pTargetIndex = pIndex + 1;
-            }
-        }
-
-        return Math.Clamp(pTargetIndex, 0, pFunnelRowPanel.Children.Count);
-    }
-
-    private void PFunnelEmptyUpdate()
-    {
-        pFunnelEmptyNotice.Visibility = pFunnelRows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+        PGhost.PGhostClear(pRow);
+        lFunnel.LFunnelDrag.LFunnelDragClear();
     }
 
     private static Border PFunnelHeaderBuild()
@@ -260,13 +223,7 @@ public sealed class PFunnelRules : PPanel
         pButtonPanel.Children.Add(pAddButton);
 
         Button pRemoveButton = PFunnelButtonBuild(pFunnelRemoveIcon, "Inspector.Funnel.Remove");
-        pRemoveButton.Click += (_, _) =>
-        {
-            if (LFunnel.LFunnelSelected is { } lSelected)
-            {
-                LFunnel.LFunnelRuleRemove(lSelected);
-            }
-        };
+        pRemoveButton.Click += (_, _) => lFunnel.LFunnelSelectedRemove();
         pButtonPanel.Children.Add(pRemoveButton);
 
         return new Border
@@ -293,7 +250,7 @@ public sealed class PFunnelRules : PPanel
             Width = 28,
             Height = 26,
             Margin = new Thickness(0, 0, 2, 0),
-            Style = PHouse.PButton.PButtonPanelCreate(),
+            Style = PButton.PButtonPanelCreate(),
             ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey)
         };
     }
@@ -302,16 +259,16 @@ public sealed class PFunnelRules : PPanel
     {
         MenuItem pFilenameItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"));
-        pFilenameItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormFilename);
+        pFilenameItem.Click += (_, _) => lFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormFilename);
 
         MenuItem pRegexItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"));
-        pRegexItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRegex);
+        pRegexItem.Click += (_, _) => lFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRegex);
 
         MenuItem pRemainderItem = PMenu.PMenuItemCreate(
             LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"));
-        pRemainderItem.IsEnabled = !LFunnel.LFunnelRemainderCheck();
-        pRemainderItem.Click += (_, _) => LFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRemainder);
+        pRemainderItem.IsEnabled = !lFunnel.LFunnelRemainderCheck();
+        pRemainderItem.Click += (_, _) => lFunnel.LFunnelRuleAdd(LFunnelForm.LFunnelFormRemainder);
 
         var pAddMenu = PMenu.PMenuContextCreate();
         pAddMenu.PlacementTarget = pTarget;

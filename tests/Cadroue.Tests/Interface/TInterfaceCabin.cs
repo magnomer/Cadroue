@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 using Cadroue.Media;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
@@ -259,4 +260,236 @@ internal static partial class TInterface
         LDetectorSet.LDetectorSceneFormat(set);
     internal static LDetectorSet TDetectorSceneParse(IReadOnlyList<LSceneDetector> detectors) =>
         LDetectorSet.LDetectorSceneParse(detectors);
+
+    internal static LFixTab TFixTabCreate(
+        LPresetSelection preset,
+        LClinic clinic,
+        LViewer viewer,
+        LList list,
+        LDocket docket,
+        LProcessing processing) => new(preset, clinic, viewer, list, docket, processing);
+    internal static IReadOnlyList<LProcessingRow> TFixRowsRead() => LFixTab.LFixRows;
+    internal static IReadOnlyList<LFixRow> TFixKindsRead() => LFixTab.LFixKinds;
+    internal static void TFixClose(LFixTab tab) => tab.LFixClose();
+    internal static LSceneTabRecord TFixLayoutRead(LFixTab tab) => tab.LFixLayoutRead(new LSceneTabRecord());
+    internal static void TFixLayoutApply(LFixTab tab, LSceneTabRecord? layout) => tab.LFixLayoutApply(layout);
+    internal static void TFixPathHandle(LFixTab tab, string? path) => tab.LFixPathHandle(path);
+    internal static void TFixDiagnosisRun(LFixTab tab) => tab.LFixDiagnosisRun();
+    internal static void TFixCheckupHandle(LFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
+        tab.LFixCheckupHandle(new LCheckupResult(path, kind, outcome));
+    internal static void TFixProgressHandle(LFixTab tab, string path, double progress) =>
+        tab.LFixProgressHandle(path, progress);
+    internal static void TFixClearHandle(LFixTab tab, params string[] removed) => tab.LFixClearHandle(removed);
+    internal static void TFixItemsHandle(LFixTab tab, IReadOnlyList<LDocketEntry> added) => tab.LFixItemsHandle(added);
+    internal static void TFixChangeHandle(LFixTab tab) => tab.LFixChangeHandle();
+    internal static void TFixStateSave(LFixTab tab) => tab.LFixStateSave();
+    internal static void TFixPlanRestore(LFixTab tab, string path) => tab.LFixPlanRestore(path);
+    internal static void TFixMissingAttach(LFixTab tab, Action handler) => tab.LFixPresetMissing += handler;
+    internal static void TFixRun(LFixTab tab, LWorkPriority priority) => tab.LFixRun(priority, default, default);
+    internal static void TFixAllRun(LFixTab tab) => tab.LFixAllRun(default, default);
+    internal static void TFixCheckupAttach(LFixTab tab, Action<LCheckupResult> handler) =>
+        tab.LFixCheckup.LCheckupReady += handler;
+    internal static void TClinicSaveSuspend(LClinic clinic) => clinic.LClinicSaveSuspend();
+    internal static void TClinicSaveResume(LClinic clinic) => clinic.LClinicSaveResume();
+    internal static void TFixScannerAttach(Action<string>? scanner)
+    {
+        LLibrarian.LLibrarianDiagnosisReader = scanner is null ? null : _ => null;
+        LCheckup.LCheckupScannerSeam = scanner is null
+            ? null
+            : (path, _, _, _) =>
+            {
+                scanner(path);
+                return Array.Empty<LDossier>();
+            };
+    }
+    internal static void TFixLibrarianAttach(
+        Func<string, LSidecarFixRecord?>? reader, Func<string, LSidecarFixRecord?, bool>? writer)
+    {
+        LLibrarian.LLibrarianFixReader = reader;
+        LLibrarian.LLibrarianFixWriter = writer;
+    }
+
+    internal static LAudioTab TAudioTabCreate(
+        LPresetSelection preset,
+        LInspector inspector,
+        LViewer viewer,
+        LList list,
+        LDocket docket,
+        LProcessing processing) => new(preset, inspector, viewer, list, docket, processing);
+    internal static IReadOnlyList<LProcessingRow> TAudioRowsRead() => LAudioTab.LAudioRows;
+    internal static LAudioKind? TAudioKindRead(string step) => LAudioTab.LAudioKindRead(step);
+    internal static void TAudioClose(LAudioTab tab) => tab.LAudioClose();
+    internal static LSceneTabRecord TAudioLayoutRead(LAudioTab tab) => tab.LAudioLayoutRead(new LSceneTabRecord());
+    internal static void TAudioLayoutApply(LAudioTab tab, LSceneTabRecord? layout) => tab.LAudioLayoutApply(layout);
+    internal static void TAudioPathHandle(LAudioTab tab, string? path) => tab.LAudioPathHandle(path);
+    internal static void TAudioSkipHandle(LAudioTab tab) => tab.LAudioSkipHandle();
+    internal static void TAudioChangeHandle(LAudioTab tab) => tab.LAudioChangeHandle();
+    internal static void TAudioItemsHandle(LAudioTab tab, IReadOnlyList<LDocketEntry> added) =>
+        tab.LAudioItemsHandle(added);
+    internal static void TAudioPersistentSave(LAudioTab tab) => tab.LAudioPersistentSave();
+    internal static void TAudioViewerApply(LAudioTab tab) => tab.LAudioViewerApply();
+    internal static LWorkAudio TAudioPlanRead(LAudioTab tab) => tab.LAudioPlanRead();
+    internal static void TAudioStateSave(LAudioTab tab) => tab.LAudioStateSave();
+    internal static void TAudioPlanRestore(LAudioTab tab, string path, bool ownerFirst) =>
+        tab.LAudioPlanRestore(path, ownerFirst);
+    internal static void TAudioFilterAttach(LAudioTab tab, Action<string> handler) => tab.LAudioFilterApply += handler;
+    internal static void TAudioDeferAttach(LAudioTab tab, Action handler) => tab.LAudioViewerDefer += handler;
+    internal static void TAudioMissingAttach(LAudioTab tab, Action handler) => tab.LAudioPresetMissing += handler;
+    internal static void TAudioIncompatibleAttach(LAudioTab tab, Action handler) =>
+        tab.LAudioPresetIncompatible += handler;
+    internal static void TAudioRun(LAudioTab tab, LWorkPriority priority) => tab.LAudioRun(priority, default, default);
+    internal static void TAudioAllRun(LAudioTab tab) => tab.LAudioAllRun(default, default);
+    internal static void TAudioLibrarianAttach(
+        Func<string, LSidecarAudioRecord?>? reader, Func<string, LSidecarAudioRecord?, bool>? writer)
+    {
+        LLibrarian.LLibrarianAudioReader = reader;
+        LLibrarian.LLibrarianAudioWriter = writer;
+    }
+
+    internal static LWorkAudioStep TInspectorStepRead(LInspectorAudio audio, LAudioKind kind) =>
+        audio.LInspectorStepRead(kind);
+    internal static void TInspectorAudioApply(LInspectorAudio audio, LWorkAudio plan) =>
+        audio.LInspectorAudioApply(plan);
+    internal static bool TInspectorPersistentCheck(LInspectorAudio audio) => audio.LInspectorPersistentCheck();
+    internal static void TInspectorPersistentApply(LInspectorAudio audio, LWorkAudio plan, bool skipPersistent) =>
+        audio.LInspectorPersistentApply(plan, skipPersistent);
+    internal static LWorkAudio TInspectorPersistentRead(LInspectorAudio audio) => audio.LInspectorPersistentRead();
+    internal static void TInspectorAudioAttach(LInspectorAudio audio, Action handler) =>
+        audio.LInspectorAudioChange += handler;
+    internal static void TVolumePersistentSet(LVolume volume, bool persistent) =>
+        volume.LVolumePersistentSet(persistent);
+
+    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LDocket docket, LSceneTabRecord? layout) =>
+        new(preset, docket, layout);
+    internal static void TMergeClose(LMergeTab tab) => tab.LMergeClose();
+    internal static LSceneTabRecord TMergeLayoutRead(LMergeTab tab) => tab.LMergeLayoutRead(new LSceneTabRecord());
+    internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(LMergeTab tab, Guid cohort = default) =>
+        tab.LMergeGroupsRead(cohort);
+    internal static IReadOnlyDictionary<string, Guid> TMergeRelaysRead(LMergeTab tab) => tab.LMergeRelaysRead();
+    internal static IReadOnlyList<string> TMergePathsRead(LMergeTab tab) => tab.LMergePathsRead();
+    internal static IReadOnlyList<string> TMergeEligibleRead(LMergeTab tab) => tab.LMergeEligibleRead();
+    internal static void TMergeMissingAttach(LMergeTab tab, Action handler) => tab.LMergePresetMissing += handler;
+    internal static void TMergeRun(LMergeTab tab, LWorkPriority priority) => tab.LMergeRun(priority, default, default);
+    internal static int TMergeCohortRun(LMergeTab tab, Guid cohort) => tab.LMergeCohortRun(cohort, default, default);
+
+    internal static void TGroupAutoChange(LGroupSelection selection, bool auto) => selection.LGroupAutoChange(auto);
+    internal static void TGroupStrictChange(LGroupSelection selection, bool strict) =>
+        selection.LGroupStrictChange(strict);
+
+    internal static LConvertTab TConvertTabCreate(LPresetSelection preset, LList list, LDocket docket) =>
+        new(preset, list, docket);
+    internal static void TConvertMissingAttach(LConvertTab tab, Action handler) => tab.LConvertPresetMissing += handler;
+    internal static void TConvertRun(LConvertTab tab, LWorkPriority priority) =>
+        tab.LConvertRun(priority, default, default);
+    internal static void TConvertAllRun(LConvertTab tab) => tab.LConvertAllRun(default, default);
+    internal static void TConvertItemsRun(LConvertTab tab, params string[] paths) =>
+        tab.LConvertItemsRun(paths, default, default);
+
+    internal static LFunnelTab TFunnelTabCreate(LList list, LDocket docket) => new(list, docket);
+    internal static void TFunnelClose(LFunnelTab tab) => tab.LFunnelClose();
+    internal static void TFunnelLayoutApply(LFunnelTab tab, LSceneTabRecord? layout) => tab.LFunnelLayoutApply(layout);
+    internal static LSceneTabRecord TFunnelLayoutRead(LFunnelTab tab) => tab.LFunnelLayoutRead(new LSceneTabRecord());
+    internal static IReadOnlyList<string> TFunnelEligibleRead(LFunnelTab tab) => tab.LFunnelEligibleRead();
+    internal static void TFunnelRun(LFunnelTab tab) => tab.LFunnelRun();
+    internal static void TFunnelAllRun(LFunnelTab tab) => tab.LFunnelAllRun();
+    internal static void TFunnelItemsRun(LFunnelTab tab, params string[] paths) => tab.LFunnelItemsRun(paths);
+    internal static void TFunnelStripAttach(LFunnel funnel, LStrip strip, Guid self) =>
+        funnel.LFunnelStripAttach(strip, self);
+    internal static void TFunnelStripDetach(LFunnel funnel) => funnel.LFunnelStripDetach();
+    internal static void TFunnelTargetsResolve(LFunnel funnel) => funnel.LFunnelTargetsResolve();
+    internal static IReadOnlyList<LFunnelTarget> TFunnelTargetsRead(LFunnel funnel) => funnel.LFunnelTargetsRead();
+    internal static IReadOnlyList<LFunnelTarget> TFunnelOptionsRead(LFunnel funnel) => funnel.LFunnelOptionsRead();
+    internal static IReadOnlyList<LFunnelSlot> TFunnelSlotsRead(LFunnel funnel) => funnel.LFunnelSlotsRead();
+    internal static int TFunnelIndexRead(LFunnel funnel, Guid target) => funnel.LFunnelIndexRead(target);
+    internal static void TFunnelSelectedRemove(LFunnel funnel) => funnel.LFunnelSelectedRemove();
+    internal static void TFunnelTargetSelect(LFunnel funnel, LFunnelRule rule, int index) =>
+        funnel.LFunnelTargetSelect(rule, index);
+    internal static string TFunnelTextResolve(LFunnel funnel, LFunnelRule rule, LFunnelKind kind, string shown) =>
+        funnel.LFunnelTextResolve(rule, kind, shown);
+    internal static string TFunnelRegexResolve(LFunnel funnel, LFunnelRule rule, string shown) =>
+        funnel.LFunnelRegexResolve(rule, shown);
+    internal static void TFunnelRegexSet(LFunnel funnel, LFunnelRule rule, string regex) =>
+        funnel.LFunnelRegexSet(rule, regex);
+    internal static void TFunnelCaseToggle(LFunnel funnel, LFunnelRule rule, LFunnelKind kind) =>
+        funnel.LFunnelCaseToggle(rule, kind);
+    internal static void TFunnelCollapsedToggle(LFunnel funnel, LFunnelRule rule) =>
+        funnel.LFunnelCollapsedToggle(rule);
+    internal static void TFunnelCreateAttach(LFunnel funnel, Action<LFunnelRule> handler) =>
+        funnel.LFunnelRuleCreate += handler;
+    internal static void TFunnelDeleteAttach(LFunnel funnel, Action<LFunnelRule> handler) =>
+        funnel.LFunnelRuleDelete += handler;
+    internal static IReadOnlyList<LFunnelCondition> TFunnelConditionsRead() => LFunnel.LFunnelConditions;
+    internal static void TFunnelPressHandle(LFunnel funnel, LFunnelRule rule, double x, double y) =>
+        funnel.LFunnelDrag.LFunnelPressHandle(rule, x, y, 0, 0);
+    internal static bool TFunnelMoveCheck(LFunnel funnel, LFunnelRule rule, bool pressed) =>
+        funnel.LFunnelDrag.LFunnelMoveCheck(rule, pressed);
+    internal static bool TFunnelDragResolve(LFunnel funnel, double x, double y, double minimumX, double minimumY) =>
+        funnel.LFunnelDrag.LFunnelDragResolve(x, y, minimumX, minimumY);
+    internal static void TFunnelDragMove(LFunnel funnel, double pointer, params double[] centers) =>
+        funnel.LFunnelDrag.LFunnelDragMove(pointer, centers);
+    internal static bool TFunnelReleaseCheck(LFunnel funnel, LFunnelRule rule) =>
+        funnel.LFunnelDrag.LFunnelReleaseCheck(rule);
+    internal static void TFunnelDragClear(LFunnel funnel) => funnel.LFunnelDrag.LFunnelDragClear();
+    internal static bool TFunnelDragCheck(LFunnel funnel) => funnel.LFunnelDrag.LFunnelDragActive;
+    internal static int TFunnelIndexResolve(double pointer, params double[] centers) =>
+        LFunnelDrag.LFunnelIndexResolve(pointer, centers);
+    internal static double TFunnelCenterResolve(double top, double height) =>
+        LFunnelDrag.LFunnelCenterResolve(top, height);
+    internal static void TMessengerDeliverAttach(Func<Guid, string, Guid, bool>? deliver) =>
+        LMessenger.LMessengerDeliverSource = deliver;
+
+    internal static LWorkFixStep TFixStepCreate(LFlawKind kind, bool repair, bool persistent) =>
+        new(kind, repair, persistent);
+    internal static LWorkFix TFixPlanCreate(IReadOnlyList<LWorkFixStep> steps, LWorkFixSalvage? salvage = null) =>
+        new(steps) { LWorkFixSalvage = salvage ?? LWorkFixSalvage.LWorkSalvageCreate() };
+    internal static LSidecarFixRecord TFixRecordCreate(LWorkFix plan) => LFix.LFixPersistentCreate(plan);
+    internal static LWorkAudio TWorkAudioCreate(bool skip, params LWorkAudioStep[] steps) =>
+        new(steps) { LWorkAudioSkip = skip };
+    internal static LSidecarAudioRecord TAudioRecordCreate(LWorkAudio plan) => LAudio.LAudioPersistentCreate(plan);
+
+    internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
+    internal static LAction TActionCreate() => new();
+    internal static void TActionDocketAttach(LAction action, LDocket docket) => action.LActionDocketAttach(docket);
+    internal static void TActionEligibleAttach(LAction action, Func<IReadOnlyList<string>> source) =>
+        action.LActionEligibleAttach(source);
+    internal static bool TActionEligibleCheck(LAction action, params string[] chosen) =>
+        action.LActionEligibleCheck(chosen);
+    internal static void TActionStripAttach(LStrip strip) => LAction.LActionStripAttach(strip);
+    internal static void TActionListAttach(LAction action, LList list) => action.LActionListAttach(list);
+    internal static void TActionRelayAttach(LAction action, LStrip strip, LStripTab tab) =>
+        action.LActionRelayAttach(strip, tab);
+    internal static void TActionAutoSet(LAction action, bool? state) => action.LActionAutoSet(state);
+    internal static void TActionRelaySelect(LAction action, Guid target) => action.LActionRelaySelect(target);
+    internal static void TActionRelayApply(LAction action, Guid target) => action.LActionRelayApply(target);
+    internal static IReadOnlyList<LActionOption> TActionOptionsRead(LAction action) => action.LActionOptionsRead();
+    internal static IReadOnlyList<LActionOption> TActionMenuRead(LAction action) => action.LActionMenuRead();
+    internal static void TActionRunAttach(LAction action, Action<LWorkPriority> handler) =>
+        action.LActionRun += handler;
+    internal static void TActionAllAttach(LAction action, Action handler) => action.LActionAllAdd += handler;
+    internal static void TActionItemsAttach(LAction action, Action<IReadOnlyList<string>> handler) =>
+        action.LActionItemsAdd += handler;
+    internal static void TActionCohortAttach(LAction action, Func<Guid, int> handler) =>
+        action.LActionCohortAdd += handler;
+    internal static void TActionEmptyAttach(LAction action, Action handler) => action.LActionEmptyRaise += handler;
+    internal static void TActionFaceAttach(LAction action, Action handler) => action.LActionFaceChange += handler;
+    internal static void TActionAllRun(LAction action) => action.LActionAllRun();
+    internal static void TActionHighRun(LAction action) => action.LActionHighRun();
+    internal static void TActionListRun(LAction action) => action.LActionListRun();
+    internal static bool TActionCohortRun(LAction action, Guid cohort) => action.LActionCohortRun(cohort);
+    internal static void TActionAccept(Guid target, string path, Guid cohort) =>
+        LAction.LActionAccept(target, path, cohort);
+
+    internal static LCompass TCompassCreate(LFlow flow, LViewer viewer, bool sections) => new(flow, viewer, sections);
+    internal static IReadOnlyList<LCompassGroup> TCompassGroupsRead(LCompass compass) => compass.LCompassGroupsRead();
+    internal static IReadOnlyList<int> TCompassSectionRead(LCompass compass) => compass.LCompassSectionRead();
+    internal static LCompassButton TCompassPlayRead(bool playing) => LCompass.LCompassPlayRead(playing);
+    internal static void TCompassRun(LCompass compass, string key) => compass.LCompassRun(key);
+    internal static void TCompassWaveformToggle(LCompass compass) => compass.LCompassWaveformToggle();
+    internal static void TCompassVolumeSet(LCompass compass, double raw) => compass.LCompassVolumeSet(raw);
+    internal static void TCompassVolumeAttach(LCompass compass, Action<double> handler) =>
+        compass.LCompassVolumeApply += handler;
+    internal static string TCompassVolumeFormat(double raw) => LCompass.LCompassVolumeFormat(raw);
+    internal static double TCompassFillResolve(double host, double raw) => LCompass.LCompassFillResolve(host, raw);
+    internal static IReadOnlyList<double> TCompassSeparatorsResolve(params double[] tops) =>
+        LCompass.LCompassSeparatorsResolve(tops);
 }

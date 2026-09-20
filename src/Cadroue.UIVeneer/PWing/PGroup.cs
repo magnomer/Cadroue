@@ -30,10 +30,10 @@ public sealed partial class PGroup : PPanel
 
     public event Action<string>? PGroupItemOpen;
 
-    public PGroup(LGroupSelection lGroupOwner) : base("")
+    public PGroup(LGroup lGroup) : base("")
     {
-        this.lGroupOwner = lGroupOwner;
-        LGroup = new LGroup(lGroupOwner);
+        lGroupOwner = lGroup.LGroupSelection;
+        LGroup = lGroup;
         LGroup.LGroupChange += PGroupRebuild;
         LGroup.LGroupMinimizeChange += PGroupMinimizeHandle;
         UIElement pHeader = PGroupHeaderBuild();

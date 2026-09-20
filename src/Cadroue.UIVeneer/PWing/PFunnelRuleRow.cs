@@ -4,79 +4,53 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PPorch;
 using Cadroue.UIVeneer.PCabin;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIVeneer.PPorch;
 
 namespace Cadroue.UIVeneer.PWing;
 
 public sealed class PFunnelRuleRow : Border
 {
-    private readonly record struct PFunnelSpec(
-        LFunnelKind PFunnelSpecKind,
-        string PFunnelSpecLabel,
-        bool PFunnelSpecJoin);
-
     private static readonly FontFamily pFunnelFontFamily = new("Segoe UI");
     private static readonly Brush pFunnelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush pFunnelTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
-    private static readonly PFunnelSpec[] pFunnelSpecs =
-    {
-        new(LFunnelKind.LFunnelKindContains, "Inspector.Funnel.Contains", false),
-        new(LFunnelKind.LFunnelKindPrefix, "Inspector.Funnel.StartsWith", true),
-        new(LFunnelKind.LFunnelKindEnd, "Inspector.Funnel.EndsWith", true),
-        new(LFunnelKind.LFunnelKindExtension, "Inspector.Funnel.Extension", true)
-    };
-
     private const double PFunnelFieldHeight = 30;
 
     private readonly LFunnel lFunnel;
-    private readonly List<PFunnelCondition> pFunnelConditions = new();
+    private readonly List<PFunnelCondition> pFunnelConditions;
     private readonly ComboBox pFunnelRelayCombo;
-    private readonly Func<IReadOnlyList<PActionRelayOption>> pFunnelOptionsSource;
     private readonly PFunnelRuleFrame pFunnelFrame;
-    private TextBox? pFunnelRegexField;
-    private CheckBox? pFunnelWholeBox;
+    private readonly StackPanel pFunnelRegexStack;
+    private readonly TextBox pFunnelRegexField;
+    private readonly CheckBox pFunnelWholeBox;
 
-    public PFunnelRuleRow(
-        LFunnel lFunnelOwner,
-        LFunnelRule lFunnelRule,
-        Func<IReadOnlyList<PActionRelayOption>> pOptionsRead)
+    public PFunnelRuleRow(LFunnel lFunnelOwner, LFunnelRule lFunnelRule)
     {
         lFunnel = lFunnelOwner;
         PFunnelRule = lFunnelRule;
-        pFunnelOptionsSource = pOptionsRead;
         pFunnelRelayCombo = PFunnelRelayBuild();
+        pFunnelRegexField = PFunnelRegexBuild();
+        pFunnelWholeBox = PFunnelWholeBuild();
+        pFunnelRegexStack = new StackPanel
+        {
+            Visibility = PLook.PLookVisible[lFunnelRule.LFunnelRulePattern]
+        };
+        pFunnelRegexStack.Children.Add(pFunnelRegexField);
+        pFunnelRegexStack.Children.Add(pFunnelWholeBox);
+        pFunnelConditions = LFunnel.LFunnelConditions.Select(PFunnelConditionBuild).ToList();
 
         var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        if (lFunnelRule.LFunnelRuleForm == LFunnelForm.LFunnelFormRegex)
-        {
-            pBody.Children.Add(PFunnelRegexBuild());
-        }
-        else if (lFunnelRule.LFunnelRuleForm == LFunnelForm.LFunnelFormFilename)
-        {
-            foreach ((LFunnelKind pKind, string pLabelKey, bool pHasJoin) in pFunnelSpecs)
-            {
-                var pCondition = new PFunnelCondition(lFunnelOwner, lFunnelRule, pKind, pLabelKey, pHasJoin);
-                pFunnelConditions.Add(pCondition);
-                pBody.Children.Add(pCondition);
-            }
-        }
-
+        pBody.Children.Add(pFunnelRegexStack);
+        pFunnelConditions.ForEach(pCondition => pBody.Children.Add(pCondition));
         pBody.Children.Add(PFunnelTargetBuild());
 
-        string pTitleKey = lFunnelRule.LFunnelRuleForm switch
-        {
-            LFunnelForm.LFunnelFormRegex => "Inspector.Funnel.Regex",
-            LFunnelForm.LFunnelFormRemainder => "Inspector.Funnel.Remainder",
-            _ => "Inspector.Funnel.Filename"
-        };
         pFunnelFrame = new PFunnelRuleFrame(
             pBody,
-            pTitleKey,
+            lFunnelRule.LFunnelRuleTitle,
             () => lFunnelOwner.LFunnelRuleRemove(lFunnelRule),
-            () => lFunnelOwner.LFunnelCollapsedSet(lFunnelRule, !lFunnelRule.LFunnelRuleCollapsed));
+            () => lFunnelOwner.LFunnelCollapsedToggle(lFunnelRule));
 
         var pCard = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pFunnelFrame.PFunnelHeader, Dock.Top);
@@ -105,39 +79,37 @@ public sealed class PFunnelRuleRow : Border
     public void PFunnelRowUpdate()
     {
         pFunnelFrame.PFunnelCollapsedSet(PFunnelRule.LFunnelRuleCollapsed);
-        if (pFunnelRegexField is not null && pFunnelRegexField.Text.Trim() != PFunnelRule.LFunnelRuleRegex)
-        {
-            pFunnelRegexField.Text = PFunnelRule.LFunnelRuleRegex;
-        }
-
-        if (pFunnelWholeBox is not null)
-        {
-            pFunnelWholeBox.IsChecked = PFunnelRule.LFunnelRuleWhole;
-        }
-
-        foreach (PFunnelCondition pCondition in pFunnelConditions)
-        {
-            pCondition.PFunnelConditionUpdate();
-        }
-
-        PFunnelRelayRebuild(false);
+        pFunnelRegexField.Text = lFunnel.LFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
+        pFunnelWholeBox.IsChecked = PFunnelRule.LFunnelRuleWhole;
+        pFunnelConditions.ForEach(PFunnelConditionApply);
+        PFunnelRelayUpdate();
     }
 
-    private UIElement PFunnelRegexBuild()
-    {
-        var pStack = new StackPanel();
+    private static void PFunnelConditionApply(PFunnelCondition pCondition) => pCondition.PFunnelConditionUpdate();
 
-        pFunnelRegexField = new TextBox
+    private PFunnelCondition PFunnelConditionBuild(LFunnelCondition lCondition) =>
+        new(lFunnel, PFunnelRule, lCondition)
+        {
+            Visibility = PLook.PLookVisible[PFunnelRule.LFunnelRuleFields]
+        };
+
+    private TextBox PFunnelRegexBuild()
+    {
+        var pField = new TextBox
         {
             Height = PFunnelFieldHeight,
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             Margin = new Thickness(0, 0, 0, 8)
         };
-        PTextbox.PTextboxApply(pFunnelRegexField);
-        pFunnelRegexField.TextChanged += (_, _) => lFunnel.LFunnelRegexSet(PFunnelRule, pFunnelRegexField.Text);
+        PTextbox.PTextboxApply(pField);
+        pField.TextChanged += (_, _) => lFunnel.LFunnelRegexSet(PFunnelRule, pField.Text);
+        return pField;
+    }
 
-        pFunnelWholeBox = new CheckBox
+    private CheckBox PFunnelWholeBuild()
+    {
+        var pBox = new CheckBox
         {
             Content = LLocalization.LLocalizationTextRead("Inspector.Funnel.Whole"),
             FontSize = 12,
@@ -145,13 +117,10 @@ public sealed class PFunnelRuleRow : Border
             Foreground = pFunnelTitleBrush,
             Margin = new Thickness(2, 0, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pFunnelWholeBox);
-        pFunnelWholeBox.Checked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, true);
-        pFunnelWholeBox.Unchecked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, false);
-
-        pStack.Children.Add(pFunnelRegexField);
-        pStack.Children.Add(pFunnelWholeBox);
-        return pStack;
+        PCheckbox.PCheckboxApply(pBox);
+        pBox.Checked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, true);
+        pBox.Unchecked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, false);
+        return pBox;
     }
 
     private ComboBox PFunnelRelayBuild()
@@ -169,46 +138,24 @@ public sealed class PFunnelRuleRow : Border
             ItemTemplate = PFunnelTemplateBuild()
         };
         PDropdown.PDropdownApply(pCombo);
-        pCombo.DropDownOpened += (_, _) => PFunnelRelayRebuild(true);
+        pCombo.DropDownOpened += (_, _) => PFunnelRelayUpdate();
         pCombo.SelectionChanged += PFunnelRelayHandle;
         return pCombo;
     }
 
-    private void PFunnelRelayRebuild(bool pForce)
+    private void PFunnelRelayUpdate()
     {
-        if (!pForce
-            && pFunnelRelayCombo.ItemsSource is not null
-            && pFunnelRelayCombo.SelectedValue is Guid pShown
-            && pShown == PFunnelRule.LFunnelRuleTarget)
-        {
-            return;
-        }
-
-        var pOptions = new List<PActionRelayOption>
-        {
-            new(Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), null)
-        };
-        pOptions.AddRange(pFunnelOptionsSource());
-        Guid pTargetId = PFunnelRule.LFunnelRuleTarget;
-        if (pTargetId != Guid.Empty && pOptions.All(pOption => pOption.PActionRelayId != pTargetId))
-        {
-            lFunnel.LFunnelTargetSet(PFunnelRule, Guid.Empty);
-            pTargetId = Guid.Empty;
-        }
-
         pFunnelRelayCombo.SelectionChanged -= PFunnelRelayHandle;
-        pFunnelRelayCombo.ItemsSource = pOptions;
-        pFunnelRelayCombo.SelectedValue = pTargetId;
+        pFunnelRelayCombo.ItemsSource = lFunnel.LFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
+        pFunnelRelayCombo.SelectedValue = PFunnelRule.LFunnelRuleTarget;
         pFunnelRelayCombo.SelectionChanged += PFunnelRelayHandle;
     }
 
-    private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs)
-    {
-        if (pFunnelRelayCombo.SelectedValue is Guid pTargetId)
-        {
-            lFunnel.LFunnelTargetSet(PFunnelRule, pTargetId);
-        }
-    }
+    private static PActionRelayOption PFunnelOptionBuild(LFunnelTarget lTarget) =>
+        new(lTarget.LFunnelTargetId, lTarget.LFunnelTargetTitle, PTabIcon.PTabIconFind(lTarget.LFunnelTargetKey));
+
+    private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs) =>
+        lFunnel.LFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);
 
     private static DataTemplate PFunnelTemplateBuild()
     {

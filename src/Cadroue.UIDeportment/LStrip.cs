@@ -80,6 +80,7 @@ public sealed class LStrip
         LMessenger.LMessengerDrainSource = LStripPathsRemove;
         LSeal.LSealNodesSource = LStripSealRead;
         LSeal.LSealFireSeam = LStripNodeRun;
+        LAction.LActionStripAttach(this);
     }
 
     public string LStripTitleRead(Guid lId) =>

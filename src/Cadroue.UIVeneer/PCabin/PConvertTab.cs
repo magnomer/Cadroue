@@ -1,8 +1,8 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PWing;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -15,62 +15,19 @@ public sealed class PConvertTab : PTabSurface
 
     public PConvertTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
+        LConvertTab = new LConvertTab(lPresetOwner, pList.LList, pList.PListDocketRead());
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            _ = LMessenger.LMessengerConvertDescribe(
-                lPriority,
-                pList.PListEditableRead() is { } pConvertSelected
-                    ? new[] { new LWorkSource(pConvertSelected.LDocketEntryPath, pConvertSelected.LDocketEntryBatch) }
-                    : Array.Empty<LWorkSource>(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab);
-        };
-        pAction.PActionAllAdd += () =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            _ = LMessenger.LMessengerConvertDescribe(
-                LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedRead()
-                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                    .ToArray(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab);
-        };
-        pAction.PActionItemsAdd += pConvertPaths =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            _ = LMessenger.LMessengerConvertDescribe(
-                LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedRead()
-                    .Where(pItem => pConvertPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                    .ToArray(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab);
-        };
+        LAction lAction = pAction.LAction;
+        lAction.LActionRun += lPriority =>
+            LConvertTab.LConvertRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionAllAdd += () =>
+            LConvertTab.LConvertAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdd += pConvertPaths =>
+            LConvertTab.LConvertItemsRun(pConvertPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
-        pList.PListPathChange += PConvertPathShow;
+        LConvertTab.LConvertPresetMissing += PExport.PExportMissingShow;
+        pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
@@ -83,10 +40,13 @@ public sealed class PConvertTab : PTabSurface
         Content = pTabGrid;
     }
 
-    private void PConvertPathShow(string? pSourcePath) => pViewer.LViewer.LViewerPathHandle(pSourcePath);
+    public LConvertTab LConvertTab { get; }
 
     public override PFlow PTabFlow => pFlow;
+
     public override PViewer? PTabViewer => pViewer;
+
     public override PList? PTabList => pList;
+
     public override LSceneTabRecord PTabLayoutRead() => PTabLayoutCreate();
 }

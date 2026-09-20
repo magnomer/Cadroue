@@ -1,5 +1,5 @@
-using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.Core;
 using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,6 +19,49 @@ internal sealed class PFunnelCondition : Grid
     private static readonly Brush pFunnelAccentBrush = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
     private static readonly Brush pFunnelActiveBrush = new SolidColorBrush(Color.FromRgb(0xCE, 0xE1, 0xFB));
 
+    private static readonly IReadOnlyDictionary<bool, Brush> pFunnelCaseBorders = new Dictionary<bool, Brush>
+    {
+        [true] = pFunnelAccentBrush,
+        [false] = pFunnelLineBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pFunnelCaseForegrounds = new Dictionary<bool, Brush>
+    {
+        [true] = pFunnelAccentBrush,
+        [false] = pFunnelMutedBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, string> pFunnelCaseTexts = new Dictionary<bool, string>
+    {
+        [true] = "ABC",
+        [false] = "abc",
+    };
+
+    private static readonly IReadOnlyDictionary<bool, string> pFunnelCaseTooltips = new Dictionary<bool, string>
+    {
+        [true] = "Inspector.Funnel.CaseOn",
+        [false] = "Inspector.Funnel.CaseOff",
+    };
+
+    private static readonly IReadOnlyDictionary<bool, FontWeight> pFunnelSegmentWeights =
+        new Dictionary<bool, FontWeight>
+        {
+            [true] = FontWeights.SemiBold,
+            [false] = FontWeights.Normal,
+        };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pFunnelSegmentForegrounds = new Dictionary<bool, Brush>
+    {
+        [true] = pFunnelTitleBrush,
+        [false] = pFunnelMutedBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pFunnelSegmentBackgrounds = new Dictionary<bool, Brush>
+    {
+        [true] = pFunnelActiveBrush,
+        [false] = Brushes.Transparent,
+    };
+
     private const double PFunnelFieldHeight = 30;
     private const double PFunnelJoinWidth = 78;
     private const double PFunnelCaseWidth = 38;
@@ -27,27 +70,28 @@ internal sealed class PFunnelCondition : Grid
     private readonly LFunnelRule lFunnelRule;
     private readonly LFunnelKind lFunnelKind;
     private readonly TextBox pFunnelField;
+    private readonly TextBlock pFunnelCaseLabel;
     private readonly Border pFunnelCaseButton;
-    private readonly Border? pFunnelJoin;
+    private readonly Border pFunnelJoin;
+    private readonly TextBlock pFunnelAndLabel;
+    private readonly Border pFunnelAndSegment;
+    private readonly TextBlock pFunnelOrLabel;
+    private readonly Border pFunnelOrSegment;
 
-    public PFunnelCondition(
-        LFunnel lFunnelOwner,
-        LFunnelRule lRule,
-        LFunnelKind lKind,
-        string pLabelKey,
-        bool pHasJoin)
+    public PFunnelCondition(LFunnel lFunnelOwner, LFunnelRule lRule, LFunnelCondition lCondition)
     {
         lFunnel = lFunnelOwner;
         lFunnelRule = lRule;
-        lFunnelKind = lKind;
+        lFunnelKind = lCondition.LFunnelConditionKind;
         pFunnelField = PFunnelFieldBuild();
-        pFunnelCaseButton = PFunnelCaseBuild();
-        if (pHasJoin)
-        {
-            pFunnelJoin = PFunnelJoinBuild();
-        }
-
-        PFunnelConditionUpdate();
+        pFunnelCaseLabel = PFunnelMonoBuild();
+        pFunnelCaseButton = PFunnelCaseBuild(pFunnelCaseLabel);
+        pFunnelAndLabel = PFunnelLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Funnel.And"));
+        pFunnelOrLabel = PFunnelLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Funnel.Or"));
+        pFunnelAndSegment = PFunnelSegmentBuild(pFunnelAndLabel, () => PFunnelModeSet(true));
+        pFunnelOrSegment = PFunnelSegmentBuild(pFunnelOrLabel, () => PFunnelModeSet(false));
+        pFunnelJoin = PFunnelJoinBuild();
+        pFunnelJoin.Visibility = PLook.PLookVisible[lCondition.LFunnelConditionJoin];
 
         Margin = new Thickness(0, 0, 0, 8);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -55,7 +99,7 @@ internal sealed class PFunnelCondition : Grid
 
         var pLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(pLabelKey),
+            Text = LLocalization.LLocalizationTextRead(lCondition.LFunnelConditionLabel),
             FontSize = 11,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelMutedBrush,
@@ -69,37 +113,24 @@ internal sealed class PFunnelCondition : Grid
         pLine.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pLine.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        if (pFunnelJoin is { } pJoin)
-        {
-            SetColumn(pJoin, 0);
-            pLine.Children.Add(pJoin);
-        }
-
+        SetColumn(pFunnelJoin, 0);
+        pLine.Children.Add(pFunnelJoin);
         SetColumn(pFunnelField, 1);
         pLine.Children.Add(pFunnelField);
-
         SetColumn(pFunnelCaseButton, 2);
         pLine.Children.Add(pFunnelCaseButton);
 
         SetRow(pLine, 1);
         Children.Add(pLine);
+        PFunnelConditionUpdate();
     }
-
-    private LSceneFunnelMatch PFunnelMatchRead() => lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
 
     public void PFunnelConditionUpdate()
     {
-        LSceneFunnelMatch pMatch = PFunnelMatchRead();
-        if (pFunnelField.Text.Trim() != pMatch.LSceneFunnelText)
-        {
-            pFunnelField.Text = pMatch.LSceneFunnelText;
-        }
-
-        PFunnelCaseApply();
-        if (pFunnelJoin is not null)
-        {
-            PFunnelJoinApply();
-        }
+        LSceneFunnelMatch lMatch = lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
+        pFunnelField.Text = lFunnel.LFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
+        PFunnelCaseApply(lMatch.LSceneFunnelCase);
+        PFunnelJoinApply(lMatch.LSceneFunnelJoin);
     }
 
     private TextBox PFunnelFieldBuild()
@@ -115,17 +146,17 @@ internal sealed class PFunnelCondition : Grid
         return pField;
     }
 
-    private Border PFunnelCaseBuild()
+    private static TextBlock PFunnelMonoBuild() => new()
     {
-        var pLabel = new TextBlock
-        {
-            FontFamily = pFunnelMonoFamily,
-            FontSize = 12,
-            FontWeight = FontWeights.SemiBold,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
+        FontFamily = pFunnelMonoFamily,
+        FontSize = 12,
+        FontWeight = FontWeights.SemiBold,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
 
+    private Border PFunnelCaseBuild(TextBlock pLabel)
+    {
         var pHost = new Border
         {
             Width = PFunnelCaseWidth,
@@ -138,29 +169,32 @@ internal sealed class PFunnelCondition : Grid
             SnapsToDevicePixels = true,
             Child = pLabel
         };
-        pHost.MouseLeftButtonUp += (_, _) => PFunnelCaseToggle();
+        pHost.MouseLeftButtonUp += (_, _) => lFunnel.LFunnelCaseToggle(lFunnelRule, lFunnelKind);
         return pHost;
     }
 
-    private void PFunnelCaseToggle() =>
-        lFunnel.LFunnelCaseSet(lFunnelRule, lFunnelKind, !PFunnelMatchRead().LSceneFunnelCase);
-
-    private void PFunnelCaseApply()
+    private void PFunnelCaseApply(bool pOn)
     {
-        bool pOn = PFunnelMatchRead().LSceneFunnelCase;
-        pFunnelCaseButton.BorderBrush = pOn ? pFunnelAccentBrush : pFunnelLineBrush;
-        pFunnelCaseButton.ToolTip = LLocalization.LLocalizationTextRead(
-            pOn ? "Inspector.Funnel.CaseOn" : "Inspector.Funnel.CaseOff");
-
-        if (pFunnelCaseButton.Child is TextBlock pLabel)
-        {
-            pLabel.Text = pOn ? "ABC" : "abc";
-            pLabel.Foreground = pOn ? pFunnelAccentBrush : pFunnelMutedBrush;
-        }
+        pFunnelCaseButton.BorderBrush = pFunnelCaseBorders[pOn];
+        pFunnelCaseButton.ToolTip = LLocalization.LLocalizationTextRead(pFunnelCaseTooltips[pOn]);
+        pFunnelCaseLabel.Text = pFunnelCaseTexts[pOn];
+        pFunnelCaseLabel.Foreground = pFunnelCaseForegrounds[pOn];
     }
 
     private Border PFunnelJoinBuild()
     {
+        var pGrid = new Grid();
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition());
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition());
+        var pDivider = new Border { Width = 1, Background = pFunnelLineBrush };
+        SetColumn(pFunnelAndSegment, 0);
+        SetColumn(pDivider, 1);
+        SetColumn(pFunnelOrSegment, 2);
+        pGrid.Children.Add(pFunnelAndSegment);
+        pGrid.Children.Add(pDivider);
+        pGrid.Children.Add(pFunnelOrSegment);
+
         return new Border
         {
             Height = PFunnelFieldHeight,
@@ -169,60 +203,43 @@ internal sealed class PFunnelCondition : Grid
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(6),
             Background = Brushes.White,
-            SnapsToDevicePixels = true
+            SnapsToDevicePixels = true,
+            Child = pGrid
         };
     }
 
-    private void PFunnelJoinApply()
+    private void PFunnelJoinApply(bool pAnd)
     {
-        if (pFunnelJoin is not { } pHost)
-        {
-            return;
-        }
-
-        bool pAnd = PFunnelMatchRead().LSceneFunnelJoin;
-        var pGrid = new Grid();
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition());
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition());
-
-        Border pAndSegment = PFunnelSegmentBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.And"), pAnd, () => PFunnelModeSet(true));
-        var pDivider = new Border { Width = 1, Background = pFunnelLineBrush };
-        Border pOrSegment = PFunnelSegmentBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Or"), !pAnd, () => PFunnelModeSet(false));
-
-        Grid.SetColumn(pAndSegment, 0);
-        Grid.SetColumn(pDivider, 1);
-        Grid.SetColumn(pOrSegment, 2);
-        pGrid.Children.Add(pAndSegment);
-        pGrid.Children.Add(pDivider);
-        pGrid.Children.Add(pOrSegment);
-        pHost.Child = pGrid;
+        PFunnelSegmentApply(pFunnelAndSegment, pFunnelAndLabel, pAnd);
+        PFunnelSegmentApply(pFunnelOrSegment, pFunnelOrLabel, !pAnd);
     }
 
-    private static Border PFunnelSegmentBuild(string pText, bool pActive, Action pClick)
+    private static TextBlock PFunnelLabelBuild(string pText) => new()
     {
-        var pLabel = new TextBlock
-        {
-            Text = pText,
-            FontSize = 11,
-            FontFamily = pFunnelFontFamily,
-            FontWeight = pActive ? FontWeights.SemiBold : FontWeights.Normal,
-            Foreground = pActive ? pFunnelTitleBrush : pFunnelMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
+        Text = pText,
+        FontSize = 11,
+        FontFamily = pFunnelFontFamily,
+        VerticalAlignment = VerticalAlignment.Center,
+        HorizontalAlignment = HorizontalAlignment.Center
+    };
 
+    private static Border PFunnelSegmentBuild(TextBlock pLabel, Action pClick)
+    {
         var pSegment = new Border
         {
-            Background = pActive ? pFunnelActiveBrush : Brushes.Transparent,
             Padding = new Thickness(4, 3, 4, 3),
             Cursor = Cursors.Hand,
             Child = pLabel
         };
         pSegment.MouseLeftButtonUp += (_, _) => pClick();
         return pSegment;
+    }
+
+    private static void PFunnelSegmentApply(Border pSegment, TextBlock pLabel, bool pActive)
+    {
+        pLabel.FontWeight = pFunnelSegmentWeights[pActive];
+        pLabel.Foreground = pFunnelSegmentForegrounds[pActive];
+        pSegment.Background = pFunnelSegmentBackgrounds[pActive];
     }
 
     private void PFunnelModeSet(bool pAndMode) => lFunnel.LFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);

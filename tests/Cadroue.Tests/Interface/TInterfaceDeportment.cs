@@ -346,57 +346,6 @@ internal static partial class TInterface
     internal static bool TExportDragClear(LExport export) => export.LExportDragClear();
     internal static void TExportSync(LExport export) => export.LExportSync();
 
-    internal static LProcessing TProcessingCreate() => new();
-    internal static void TProcessingAttach(LProcessing processing, Action handler) =>
-        processing.LProcessingChange += handler;
-    internal static bool TProcessingActiveCheck(LProcessing processing, string step) =>
-        processing.LProcessingActiveCheck(step);
-    internal static bool TProcessingEnabledCheck(LProcessing processing, string step) =>
-        processing.LProcessingEnabledCheck(step);
-    internal static void TProcessingOrderAttach(LProcessing processing, Action handler) =>
-        processing.LProcessingOrderChange += handler;
-    internal static void TProcessingStepAttach(LProcessing processing, Action<string> handler) =>
-        processing.LProcessingStepChange += handler;
-    internal static void TProcessingStepAdd(LProcessing processing, string step) => processing.LProcessingStepAdd(step);
-    internal static void TProcessingOrderedSet(LProcessing processing, bool ordered) =>
-        processing.LProcessingOrderedSet(ordered);
-    internal static void TProcessingEnabledSet(LProcessing processing, string step, bool enabled) =>
-        processing.LProcessingEnabledSet(step, enabled);
-    internal static void TProcessingEnabledSet(LProcessing processing, string step, bool enabled, string? notice) =>
-        processing.LProcessingEnabledSet(step, enabled, notice);
-    internal static string? TProcessingNoticeRead(LProcessing processing, string step) =>
-        processing.LProcessingNoticeRead(step);
-    internal static bool TProcessingStepSelect(LProcessing processing, string step) =>
-        processing.LProcessingStepSelect(step);
-    internal static bool TProcessingStepMove(LProcessing processing, int delta) =>
-        processing.LProcessingStepMove(delta);
-    internal static bool TProcessingIndexMove(LProcessing processing, int from, int to) =>
-        processing.LProcessingIndexMove(from, to);
-    internal static void TProcessingDragSet(LProcessing processing, int? index) => processing.LProcessingDragSet(index);
-
-    internal static LClinic TClinicCreate() => new();
-    internal static void TClinicPlanAttach(LClinic clinic, Action handler) => clinic.LClinicPlanChange += handler;
-    internal static void TClinicStepSet(LClinic clinic, string? step) => clinic.LClinicStepSet(step);
-    internal static void TClinicActiveSet(LClinic clinic, bool active) => clinic.LClinicActiveSet(active);
-    internal static void TClinicSalvageSet(LClinic clinic, LWorkFixSalvage salvage) =>
-        clinic.LClinicSalvageSet(salvage);
-    internal static LWorkFixSalvage TClinicSalvageCreate(
-        bool active, LSalvageMode mode, LSalvageBasis basis, bool persistent) =>
-        new(active, mode, basis, persistent);
-    internal static LWorkFix TClinicPlanRead(LClinic clinic) => clinic.LClinicPlanRead();
-    internal static void TClinicPlanApply(LClinic clinic, LWorkFix plan) => clinic.LClinicPlanApply(plan);
-    internal static bool TClinicRepairCheck(LClinic clinic) => clinic.LClinicRepairCheck();
-    internal static void TClinicChangeAttach(LClinic clinic, Action handler) => clinic.LClinicChange += handler;
-    internal static void TClinicSourceSet(LClinic clinic, string? path) => clinic.LClinicSourceSet(path);
-    internal static void TClinicResultSet(LClinic clinic, string path, LFlawKind kind, LCheckupOutcome outcome) =>
-        clinic.LClinicResultSet(path, kind, new LCheckupResult(path, kind, outcome));
-    internal static void TClinicProgressSet(LClinic clinic, string path, double value) =>
-        clinic.LClinicProgressSet(path, value);
-    internal static void TClinicResultsRemove(LClinic clinic, params string[] paths) =>
-        clinic.LClinicResultsRemove(paths);
-    internal static LCheckupOutcome TClinicOutcomeRead(LClinic clinic) => clinic.LClinicResultRead().LCheckupOutcome;
-    internal static double TClinicProgressRead(LClinic clinic) => clinic.LClinicProgressRead();
-
     internal static LStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(title, number);
     internal static LStripTab TStripTabCreate(string key) => new(key);
@@ -411,6 +360,8 @@ internal static partial class TInterface
     internal static void TStripHoverSet(LStrip strip, LStripTab tab) => strip.LStripHoverSet(tab);
     internal static void TStripHoverClear(LStrip strip, LStripTab? tab) => strip.LStripHoverClear(tab);
     internal static void TStripUpdateSuspend(LStrip strip) => strip.LStripUpdateSuspend();
+    internal static bool TStripRelayCheck(LStripTab tab) => tab.LStripRelayCheck();
+    internal static bool TStripCohortRun(LStripTab tab, Guid cohort) => tab.LStripCohortRun(cohort);
     internal static void TStripUpdateResume(LStrip strip) => strip.LStripUpdateResume();
     internal static void TStripTitleUpdate(LStrip strip) => strip.LStripTitleUpdate();
 
@@ -433,6 +384,25 @@ internal static partial class TInterface
         LColumn column, int left, double delta, double[] widths, IReadOnlyList<double> minimums) =>
         column.LColumnDragResolve(left, delta, widths, minimums);
     internal static bool TColumnDefaultsRead(LColumn column) => column.LColumnDefaultsRead();
+    internal static LColumnPlan TColumnPlanCreate(
+        IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>
+        new(minimums, stored, compact, flex);
+    internal static LColumn TColumnOwnerRead(LColumnPlan plan) => plan.LColumn;
+    internal static void TColumnPlanAttach(LColumnPlan plan, Action handler) => plan.LColumnPlanChange += handler;
+    internal static void TColumnWidthAttach(LColumnPlan plan, Action handler) => plan.LColumnWidthChange += handler;
+    internal static IReadOnlyList<LColumnSlot> TColumnSlotsResolve(LColumnPlan plan) => plan.LColumnSlotsResolve();
+    internal static void TColumnWidthSet(LColumnPlan plan, int index, double width) =>
+        plan.LColumnWidthSet(index, width);
+    internal static void TColumnHiddenSet(LColumnPlan plan, int index, bool hidden) =>
+        plan.LColumnHiddenSet(index, hidden);
+    internal static void TColumnLayoutHandle(LColumnPlan plan, double slot, double actual) =>
+        plan.LColumnLayoutHandle(slot, actual);
+    internal static void TColumnDragHandle(
+        LColumnPlan plan, int left, double delta, double slot, double actual, IReadOnlyList<double> widths) =>
+        plan.LColumnDragHandle(left, delta, slot, actual, widths);
+    internal static double TColumnGridResolve(double slot, double actual) =>
+        LColumnPlan.LColumnGridResolve(slot, actual);
+    internal static double TColumnTotalRead(LColumnPlan plan) => plan.LColumnTotalRead();
     internal static bool TColumnAppliedSet(LColumn column, double available) => column.LColumnAppliedSet(available);
     internal static bool TColumnHiddenCheck(LColumn column, int index) => column.LColumnHiddenCheck(index);
     internal static double TColumnWeightRead(LColumn column, int index) => column.LColumnWeightRead(index);

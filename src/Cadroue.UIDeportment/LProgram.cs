@@ -8,6 +8,7 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LProgram
 {
+    private static Action<Action>? lProgramDeferSeam;
     private string? lDepotRootApplied;
 
     public static LScheduleContract LScheduleCurrent { get; } = new LSchedule();
@@ -71,6 +72,7 @@ public sealed class LProgram
         LRenderer.LRendererFlyleafSeam = lFlyleafStart;
         LRenderer.LRendererVerboseSeam = lFlyleafVerbose;
         LRenderer.LRendererDispatchSeam = lDefer;
+        lProgramDeferSeam = lDefer;
         LRenderer.LRendererEngineStart();
         LRelayStore.LRelayStaleClear();
         LRelayChannel.LRelayChannelStart();
@@ -85,6 +87,17 @@ public sealed class LProgram
     }
 
     public void LProgramDebounceTick() => LPreference.LPreferenceSaveCommit();
+
+    public static void LProgramDefer(Action lAction)
+    {
+        if (lProgramDeferSeam is { } lDefer)
+        {
+            lDefer(lAction);
+            return;
+        }
+
+        lAction();
+    }
 
     private static void LProgramStationAttach(Action<Action> lDispatch)
     {

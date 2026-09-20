@@ -71,4 +71,60 @@ public sealed class TClinicSalvage
             read.LWorkFixSteps, step => step.LWorkFixKind == LFlawKind.LFlawKindTiming && step.LWorkFixRepair);
         Assert.Equal(1, plans);
     }
+
+    [Fact]
+    public void FieldSetters_ChangeOneField_NormalizeBasis()
+    {
+        LClinic clinic = TInterface.TClinicCreate();
+        int plans = 0;
+        TInterface.TClinicPlanAttach(clinic, () => plans++);
+
+        TInterface.TSalvageActiveSet(clinic, true);
+        TInterface.TSalvageModeSet(clinic, LSalvageMode.LSalvageModeSeparate);
+        TInterface.TSalvagePersistentSet(clinic, true);
+        TInterface.TSalvageBasisSet(clinic, LSalvageBasis.LSalvageBasisFixed);
+
+        Assert.True(clinic.LClinicSalvageActive);
+        Assert.True(clinic.LClinicSalvageSeparate);
+        Assert.False(clinic.LClinicSalvageRejoin);
+        Assert.True(clinic.LClinicSalvagePersistent);
+        Assert.True(clinic.LClinicSalvageSource);
+        Assert.Equal(3, plans);
+
+        TInterface.TClinicStepSet(clinic, "Container");
+        TInterface.TClinicActiveSet(clinic, true);
+        TInterface.TSalvageBasisSet(clinic, LSalvageBasis.LSalvageBasisFixed);
+
+        Assert.True(clinic.LClinicSalvageFixed);
+        Assert.Equal(5, plans);
+    }
+
+    [Fact]
+    public void FaceReads_FollowStepAndSalvage()
+    {
+        LClinic clinic = TInterface.TClinicCreate();
+
+        Assert.False(clinic.LClinicKnown);
+        Assert.False(clinic.LClinicStepShown);
+        Assert.False(clinic.LClinicPersistentAllowed);
+        Assert.False(clinic.LClinicResultShown);
+        Assert.Equal(string.Empty, TInterface.TClinicSimpleRead(clinic));
+
+        TInterface.TClinicStepSet(clinic, LClinic.LClinicSalvageStep);
+        Assert.True(clinic.LClinicKnown);
+        Assert.False(clinic.LClinicStepShown);
+        Assert.False(clinic.LClinicPersistentAllowed);
+        Assert.False(clinic.LClinicResultShown);
+
+        TInterface.TClinicStepSet(clinic, "Timing");
+        TInterface.TClinicActiveSet(clinic, true);
+        Assert.True(clinic.LClinicStepShown);
+        Assert.True(clinic.LClinicPersistentAllowed);
+        Assert.True(clinic.LClinicRepairChecked);
+        Assert.False(clinic.LClinicPersistentChecked);
+        Assert.True(clinic.LClinicResultShown);
+        Assert.False(clinic.LClinicScanShown);
+        Assert.Equal(0, clinic.LClinicProgressValue);
+        Assert.Equal("Processing.Step.Timing", TInterface.TClinicTitleRead(clinic));
+    }
 }

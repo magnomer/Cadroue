@@ -1,61 +1,103 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
-public enum LFunnelForm { LFunnelFormFilename, LFunnelFormRegex, LFunnelFormRemainder }
-
-public enum LFunnelKind { LFunnelKindContains, LFunnelKindPrefix, LFunnelKindEnd, LFunnelKindExtension }
-
-public sealed class LFunnelRule
-{
-    public LFunnelRule(LFunnelForm lForm)
-    {
-        LFunnelRuleForm = lForm;
-    }
-
-    public LFunnelForm LFunnelRuleForm { get; }
-
-    public LSceneFunnelMatch LFunnelRuleContains { get; internal set; } = new();
-
-    public LSceneFunnelMatch LFunnelRulePrefix { get; internal set; } = new();
-
-    public LSceneFunnelMatch LFunnelRuleEnd { get; internal set; } = new();
-
-    public LSceneFunnelMatch LFunnelRuleExtension { get; internal set; } = new();
-
-    public string LFunnelRuleRegex { get; internal set; } = string.Empty;
-
-    public bool LFunnelRuleWhole { get; internal set; }
-
-    public Guid LFunnelRuleTarget { get; internal set; }
-
-    public int LFunnelRulePending { get; internal set; } = -1;
-
-    public bool LFunnelRuleCollapsed { get; internal set; }
-}
-
 public sealed class LFunnel
 {
+    public static readonly IReadOnlyList<LFunnelCondition> LFunnelConditions =
+    [
+        new(LFunnelKind.LFunnelKindContains, "Inspector.Funnel.Contains", false),
+        new(LFunnelKind.LFunnelKindPrefix, "Inspector.Funnel.StartsWith", true),
+        new(LFunnelKind.LFunnelKindEnd, "Inspector.Funnel.EndsWith", true),
+        new(LFunnelKind.LFunnelKindExtension, "Inspector.Funnel.Extension", true),
+    ];
+
     private readonly List<LFunnelRule> lFunnelRules = [];
     private LFunnelRule? lFunnelSelected;
+    private LStrip? lFunnelStrip;
+    private Guid lFunnelSelf;
+
+    public LFunnel()
+    {
+        LFunnelDrag = new LFunnelDrag(this);
+    }
 
     public event Action? LFunnelChange;
     public event Action<LFunnelRule>? LFunnelRuleChange;
+    public event Action<LFunnelRule>? LFunnelRuleCreate;
+    public event Action<LFunnelRule>? LFunnelRuleDelete;
+
+    public LFunnelDrag LFunnelDrag { get; }
 
     public IReadOnlyList<LFunnelRule> LFunnelRules => lFunnelRules;
 
     public LFunnelRule? LFunnelSelected => lFunnelSelected;
 
+    public bool LFunnelEmpty => lFunnelRules.Count == 0;
+
+    public Guid LFunnelSelf => lFunnelSelf;
+
     public bool LFunnelRemainderCheck() =>
         lFunnelRules.Any(lRule => lRule.LFunnelRuleForm == LFunnelForm.LFunnelFormRemainder);
+
+    public void LFunnelStripAttach(LStrip lStrip, Guid lSelf)
+    {
+        if (lFunnelStrip is { } lPrevious)
+        {
+            lPrevious.LStripChange -= LFunnelTargetsNormalize;
+        }
+
+        lFunnelStrip = lStrip;
+        lFunnelSelf = lSelf;
+        lStrip.LStripChange += LFunnelTargetsNormalize;
+        LFunnelTargetsNormalize();
+    }
+
+    public void LFunnelStripDetach()
+    {
+        if (lFunnelStrip is { } lStrip)
+        {
+            lStrip.LStripChange -= LFunnelTargetsNormalize;
+        }
+
+        lFunnelStrip = null;
+    }
+
+    public IReadOnlyList<LFunnelTarget> LFunnelTargetsRead() =>
+        lFunnelStrip?.LStripRelayRead(lFunnelSelf)
+            .Select(lTab => new LFunnelTarget(lTab.LStripTabId, lTab.LStripTabTitle, lTab.LStripTabKey))
+            .ToArray()
+        ?? [];
+
+    public IReadOnlyList<LFunnelTarget> LFunnelOptionsRead() =>
+        LFunnelTargetsRead()
+            .Prepend(new LFunnelTarget(
+                Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), string.Empty))
+            .ToArray();
+
+    public IReadOnlyList<LFunnelSlot> LFunnelSlotsRead() =>
+        lFunnelRules
+            .Select((lRule, lIndex) =>
+                new LFunnelSlot(lRule, lIndex, lIndex + 1, ReferenceEquals(lFunnelSelected, lRule)))
+            .ToArray();
 
     public LFunnelRule LFunnelRuleAdd(LFunnelForm lForm)
     {
         var lRule = new LFunnelRule(lForm);
         lFunnelRules.Add(lRule);
         lFunnelSelected = lRule;
+        LFunnelRuleCreate?.Invoke(lRule);
         LFunnelChange?.Invoke();
         return lRule;
+    }
+
+    public void LFunnelSelectedRemove()
+    {
+        if (lFunnelSelected is { } lSelected)
+        {
+            LFunnelRuleRemove(lSelected);
+        }
     }
 
     public void LFunnelRuleRemove(LFunnelRule lRule)
@@ -74,6 +116,7 @@ public sealed class LFunnel
                 : lFunnelRules[Math.Clamp(lIndex, 0, lFunnelRules.Count - 1)];
         }
 
+        LFunnelRuleDelete?.Invoke(lRule);
         LFunnelChange?.Invoke();
     }
 
@@ -111,7 +154,12 @@ public sealed class LFunnel
 
     public void LFunnelRulesRestore(IReadOnlyList<LSceneFunnelRule> lRecords)
     {
-        lFunnelRules.Clear();
+        foreach (LFunnelRule lGone in lFunnelRules.ToArray())
+        {
+            lFunnelRules.Remove(lGone);
+            LFunnelRuleDelete?.Invoke(lGone);
+        }
+
         lFunnelSelected = null;
         foreach (LSceneFunnelRule lRecord in lRecords)
         {
@@ -132,10 +180,14 @@ public sealed class LFunnel
             };
             lFunnelRules.Add(lRule);
             lFunnelSelected = lRule;
+            LFunnelRuleCreate?.Invoke(lRule);
         }
 
         LFunnelChange?.Invoke();
     }
+
+    public void LFunnelTargetsResolve() =>
+        LFunnelTargetsResolve(lFunnelStrip?.LStripTabs.Select(lTab => lTab.LStripTabId).ToArray() ?? []);
 
     public void LFunnelTargetsResolve(IReadOnlyList<Guid> lTabIds)
     {
@@ -143,6 +195,15 @@ public sealed class LFunnel
         {
             int lPending = lRule.LFunnelRulePending;
             LFunnelTargetSet(lRule, lPending >= 0 && lPending < lTabIds.Count ? lTabIds[lPending] : Guid.Empty);
+        }
+    }
+
+    public void LFunnelTargetSelect(LFunnelRule lRule, int lIndex)
+    {
+        IReadOnlyList<LFunnelTarget> lOptions = LFunnelOptionsRead();
+        if (lIndex >= 0 && lIndex < lOptions.Count)
+        {
+            LFunnelTargetSet(lRule, lOptions[lIndex].LFunnelTargetId);
         }
     }
 
@@ -165,6 +226,12 @@ public sealed class LFunnel
         LFunnelKind.LFunnelKindExtension => lRule.LFunnelRuleExtension,
         _ => lRule.LFunnelRuleContains
     };
+
+    public string LFunnelTextResolve(LFunnelRule lRule, LFunnelKind lKind, string lShown) =>
+        LFunnelEchoResolve(LFunnelMatchRead(lRule, lKind).LSceneFunnelText, lShown);
+
+    public string LFunnelRegexResolve(LFunnelRule lRule, string lShown) =>
+        LFunnelEchoResolve(lRule.LFunnelRuleRegex, lShown);
 
     public void LFunnelTextSet(LFunnelRule lRule, LFunnelKind lKind, string lText)
     {
@@ -190,6 +257,9 @@ public sealed class LFunnel
         lMatch.LSceneFunnelCase = lCase;
         LFunnelRuleChange?.Invoke(lRule);
     }
+
+    public void LFunnelCaseToggle(LFunnelRule lRule, LFunnelKind lKind) =>
+        LFunnelCaseSet(lRule, lKind, !LFunnelMatchRead(lRule, lKind).LSceneFunnelCase);
 
     public void LFunnelJoinSet(LFunnelRule lRule, LFunnelKind lKind, bool lAnd)
     {
@@ -237,6 +307,8 @@ public sealed class LFunnel
         LFunnelRuleChange?.Invoke(lRule);
     }
 
+    public void LFunnelCollapsedToggle(LFunnelRule lRule) => LFunnelCollapsedSet(lRule, !lRule.LFunnelRuleCollapsed);
+
     public LSceneFunnelRule LFunnelRecordCreate(LFunnelRule lRule) => lRule.LFunnelRuleForm switch
     {
         LFunnelForm.LFunnelFormRemainder => new LSceneFunnelRule
@@ -259,4 +331,33 @@ public sealed class LFunnel
             LSceneFunnelExtension = lRule.LFunnelRuleExtension.LSceneFunnelClone()
         }
     };
+
+    public int LFunnelIndexRead(Guid lTargetId)
+    {
+        if (lTargetId == Guid.Empty || lFunnelStrip is not { } lStrip)
+        {
+            return -1;
+        }
+
+        return lStrip.LStripTabs.ToList().FindIndex(lTab => lTab.LStripTabId == lTargetId);
+    }
+
+    private void LFunnelTargetsNormalize()
+    {
+        var lLive = LFunnelTargetsRead().Select(lTarget => lTarget.LFunnelTargetId).Append(Guid.Empty).ToHashSet();
+        foreach (LFunnelRule lRule in lFunnelRules)
+        {
+            if (lRule.LFunnelRulePending < 0 && !lLive.Contains(lRule.LFunnelRuleTarget))
+            {
+                LFunnelTargetSet(lRule, Guid.Empty);
+            }
+            else
+            {
+                LFunnelRuleChange?.Invoke(lRule);
+            }
+        }
+    }
+
+    private static string LFunnelEchoResolve(string lStored, string lShown) =>
+        lShown.Trim() == lStored ? lShown : lStored;
 }

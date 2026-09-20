@@ -14,7 +14,6 @@ public sealed class PStrip
         LStrip.LStripChange += PStripStaleRemove;
         LStrip.LStripTabChange += PStripTabHandle;
         LStrip.LStripTabClose += PStripCloseHandle;
-        LStrip.LStripTitleChange += PStripRelayUpdate;
         LStrip.LStripRelayAttach();
     }
 
@@ -31,17 +30,11 @@ public sealed class PStrip
         LSceneTabRecord? lPreferenceTabLayout = null)
     {
         LStripTab lStripTab = LStrip.LStripTabCreate(pTabLayoutKey);
-        var pWorkspace = new PWorkspace(lStripTab, lExportSpecificState, lPreferenceTabLayout);
+        var pWorkspace = new PWorkspace(LStrip, lStripTab, lExportSpecificState, lPreferenceTabLayout);
         pStripWorkspaces.Add(pWorkspace);
         LStrip.LStripAdd(lStripTab);
         return lStripTab;
     }
-
-    public void PStripRelayUpdate() => LStrip.LStripTabs.ToList().ForEach(PStripRelayApply);
-
-    private void PStripRelayApply(LStripTab lStripTab) =>
-        PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface.PTabAction?.PActionRelayApply(
-            LStrip.LStripTargetRead(lStripTab.LStripTabId));
 
     private void PStripTabHandle(LStripTab lStripTab) =>
         PStripWorkspaceRead(lStripTab)?.PWorkspaceRoot.SetValue(

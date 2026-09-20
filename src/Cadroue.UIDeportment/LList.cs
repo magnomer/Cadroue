@@ -23,6 +23,8 @@ public sealed class LList
         lListDocket = lListOwner;
     }
 
+    public LDocket LListDocket => lListDocket;
+
     public string? LListPathCurrent => lListPathCurrent;
 
     public string? LListPathAnchor => lListPathAnchor;

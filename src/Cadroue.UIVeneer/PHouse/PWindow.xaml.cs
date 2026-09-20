@@ -64,7 +64,6 @@ public partial class PWindow : Window
     private void PWindowNoticesAttach()
     {
         lWindow.LWindowTabAdd += PWindowAddHandle;
-        lWindow.LWindowTargetApply += PWindowTargetHandle;
         lWindow.LWindowFunnelUpdate += PWindowFunnelUpdate;
         lWindow.LWindowRelayApply += PWindowRelayHandle;
         lWindow.LWindowPlace += PWindowPlace;
@@ -107,15 +106,10 @@ public partial class PWindow : Window
             pStrip.PStripAdd(lTab.LWindowTabKey, lTab.LWindowTabPreset, lTab.LWindowTabLayout),
             lTab.LWindowTabName);
 
-    private void PWindowTargetHandle(Guid lSource, Guid lTarget) =>
-        pStrip.PStripWorkspaceRead(pStrip.LStrip.LStripTabFind(lSource))?
-            .PWorkspaceSurface.PTabAction?.PActionRelayApply(lTarget);
-
     private void PWindowFunnelUpdate() => pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowFunnelResolve);
 
     private void PWindowFunnelResolve(LStripTab lStripTab) =>
-        (pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface as PFunnelTab)?
-            .PFunnelTargetsResolve(pStrip.LStrip.LStripTabs);
+        pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface.PTabTargetsResolve();
 
     private void PWindowRelayHandle(LRelay lRelay) =>
         pStrip.PStripSelected?.LWorkspace.LWorkspaceRelayApply(lRelay);

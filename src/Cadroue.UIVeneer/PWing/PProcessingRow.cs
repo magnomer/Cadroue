@@ -1,66 +1,70 @@
-using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PProcessing
+public sealed class PProcessingRow
 {
-    public IReadOnlyList<string> PProcessingStepsRead() => LProcessing.LProcessingSteps;
+    private static readonly FontFamily pProcessingRowFont = new("Segoe UI");
+    private static readonly Brush pProcessingRowLine = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
+    private static readonly Brush pProcessingRowActive = new SolidColorBrush(Color.FromRgb(0x2C, 0x6C, 0xCE));
 
-    public void PProcessingActiveSet(string pStepName, bool pActive) =>
-        LProcessing.LProcessingActiveSet(pStepName, pActive);
-
-    public void PProcessingRowAdd(LProcessingRow pRow) =>
-        PProcessingStepAdd(pRow.LProcessingRowKey, pRow.LProcessingRowIcon, pRow.LProcessingRowLabel);
-
-    private static void PProcessingRowApply(StackPanel pRowContent, bool pActive)
+    private static readonly IReadOnlyDictionary<bool, Brush> pProcessingIconBrushes = new Dictionary<bool, Brush>
     {
-        Brush pTextBrush = pActive ? pProcessingActiveBrush : pProcessingTextBrush;
-        Brush pIconBrush = pActive ? pProcessingActiveBrush : pProcessingIconBrush;
-        foreach (UIElement pPiece in pRowContent.Children)
+        [true] = pProcessingRowActive,
+        [false] = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D)),
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pProcessingTextBrushes = new Dictionary<bool, Brush>
+    {
+        [true] = pProcessingRowActive,
+        [false] = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27)),
+    };
+
+    private static readonly IReadOnlyDictionary<bool, FontWeight> pProcessingRowWeights =
+        new Dictionary<bool, FontWeight>
         {
-            switch (pPiece)
-            {
-                case Image { Tag: string pIconPath } pIcon:
-                    pIcon.Source = PIcon.PIconRead(pIconPath, pIconBrush);
-                    break;
-                case TextBlock { Tag: "Label" } pText:
-                    pText.Foreground = pTextBrush;
-                    pText.FontWeight = pActive ? FontWeights.SemiBold : FontWeights.Normal;
-                    break;
-            }
-        }
-    }
+            [true] = FontWeights.SemiBold,
+            [false] = FontWeights.Normal,
+        };
 
-    public void PProcessingStepAdd(string pStepName, string pStepIconPath, string pStepLabelKey)
+    private static readonly IReadOnlyDictionary<bool, Brush> pProcessingRowBackgrounds = new Dictionary<bool, Brush>
     {
-        Border pRow = PProcessingRowBuild(pStepName, pStepIconPath, pStepLabelKey);
-        pProcessingRows[pStepName] = pRow;
-        pProcessingRowPanel.Children.Add(pRow);
-        LProcessing.LProcessingStepAdd(pStepName);
-        PProcessingNumbersUpdate();
-    }
+        [true] = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)),
+        [false] = Brushes.White,
+    };
 
-    private static Border PProcessingBadgeBuild()
+    private static readonly IReadOnlyDictionary<bool, Cursor> pProcessingRowCursors = new Dictionary<bool, Cursor>
     {
-        var pNumber = new TextBlock
+        [true] = Cursors.Hand,
+        [false] = Cursors.Arrow,
+    };
+
+    private readonly Border pProcessingRowBorder;
+    private readonly Border pProcessingRowBadge;
+    private readonly TextBlock pProcessingRowNumber;
+    private readonly Image pProcessingRowIcon;
+    private readonly TextBlock pProcessingRowLabel;
+    private readonly string pProcessingIconPath;
+
+    public PProcessingRow(string pIconPath, string pLabelText, Thickness pPadding, Thickness pLine)
+    {
+        pProcessingIconPath = pIconPath;
+        pProcessingRowNumber = new TextBlock
         {
             FontSize = 10,
-            FontFamily = pProcessingFontFamily,
+            FontFamily = pProcessingRowFont,
             FontWeight = FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-
-        return new Border
+        pProcessingRowBadge = new Border
         {
             Width = 18,
             Height = 18,
@@ -68,74 +72,67 @@ public sealed partial class PProcessing
             Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xEE, 0xF6)),
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Child = pNumber
+            Visibility = Visibility.Collapsed,
+            Child = pProcessingRowNumber
         };
-    }
-
-    private Border PProcessingRowBuild(string pStepName, string pStepIconPath, string pStepLabelKey)
-    {
-        string pStepLabel = LLocalization.LLocalizationTextRead(pStepLabelKey);
-        var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
-        if (LProcessing.LProcessingOrdered)
-        {
-            pRowContent.Children.Add(PProcessingBadgeBuild());
-        }
-
-        pRowContent.Children.Add(new Image
+        pProcessingRowIcon = new Image
         {
             Width = 14,
             Height = 14,
-            Source = PIcon.PIconRead(pStepIconPath, pProcessingIconBrush),
+            Source = PIcon.PIconRead(pIconPath, pProcessingIconBrushes[false]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0),
-            Tag = pStepIconPath
-        });
-        pRowContent.Children.Add(new TextBlock
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        pProcessingRowLabel = new TextBlock
         {
-            Text = pStepLabel,
+            Text = pLabelText,
             FontSize = 12,
-            FontFamily = pProcessingFontFamily,
-            Foreground = pProcessingTextBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            Tag = "Label"
-        });
+            FontFamily = pProcessingRowFont,
+            Foreground = pProcessingTextBrushes[false],
+            VerticalAlignment = VerticalAlignment.Center
+        };
 
-        var pRowBorder = new Border
+        var pContent = new StackPanel { Orientation = Orientation.Horizontal };
+        pContent.Children.Add(pProcessingRowBadge);
+        pContent.Children.Add(pProcessingRowIcon);
+        pContent.Children.Add(pProcessingRowLabel);
+        pProcessingRowBorder = new Border
         {
-            Padding = new Thickness(12, 7, 12, 7),
+            Padding = pPadding,
             Background = Brushes.White,
-            BorderBrush = pProcessingLineBrush,
-            BorderThickness = new Thickness(0, 0, 0, 1),
+            BorderBrush = pProcessingRowLine,
+            BorderThickness = pLine,
             Cursor = Cursors.Hand,
-            Focusable = true,
-            Child = pRowContent,
-            Tag = pStepName
+            Child = pContent
         };
-        AutomationProperties.SetName(pRowBorder, pStepLabel);
-        ToolTipService.SetShowOnDisabled(pRowBorder, true);
-        PProcessingRowApply(pRowContent, LProcessing.LProcessingActiveCheck(pStepName));
-        pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
-        {
-            LProcessing.LProcessingStepSelect(pStepName);
+        AutomationProperties.SetName(pProcessingRowBorder, pLabelText);
+    }
 
-            pProcessingRowDragging = pRowBorder;
-            LProcessing.LProcessingDragSet(pProcessingRowPanel.Children.IndexOf(pRowBorder));
-            pProcessingDragOrigin = pRowEvent.GetPosition(pProcessingRowPanel);
-            pProcessingDragActive = false;
+    public Border PProcessingRowBorder => pProcessingRowBorder;
 
-            pRowEvent.Handled = true;
-        };
-        pRowBorder.KeyDown += (_, pRowEvent) =>
-        {
-            if (pRowEvent.Key is not (Key.Enter or Key.Space))
-            {
-                return;
-            }
+    public void PProcessingActiveApply(bool pActive)
+    {
+        pProcessingRowIcon.Source = PIcon.PIconRead(pProcessingIconPath, pProcessingIconBrushes[pActive]);
+        pProcessingRowLabel.Foreground = pProcessingTextBrushes[pActive];
+        pProcessingRowLabel.FontWeight = pProcessingRowWeights[pActive];
+    }
 
-            LProcessing.LProcessingStepSelect(pStepName);
-            pRowEvent.Handled = true;
-        };
-        return pRowBorder;
+    public void PProcessingNumberApply(string pNumber, bool pShown)
+    {
+        pProcessingRowNumber.Text = pNumber;
+        pProcessingRowBadge.Visibility = PLook.PLookVisible[pShown];
+    }
+
+    public void PProcessingSelectApply(bool pSelected) =>
+        pProcessingRowBorder.Background = pProcessingRowBackgrounds[pSelected];
+
+    public void PProcessingStateApply(bool pEnabled, double pOpacity, string? pNotice, string pHelp)
+    {
+        pProcessingRowBorder.IsEnabled = pEnabled;
+        pProcessingRowBorder.Opacity = pOpacity;
+        pProcessingRowBorder.Cursor = pProcessingRowCursors[pEnabled];
+        pProcessingRowBorder.ToolTip = pNotice;
+        AutomationProperties.SetHelpText(pProcessingRowBorder, pHelp);
     }
 }

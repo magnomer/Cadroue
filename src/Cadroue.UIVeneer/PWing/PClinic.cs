@@ -8,7 +8,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PClinic : PPanel
+public sealed class PClinic : PPanel
 {
     private static readonly FontFamily pClinicFontFamily = new("Segoe UI");
     private static readonly Brush pClinicTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
@@ -18,7 +18,6 @@ public sealed partial class PClinic : PPanel
     public const double PClinicStripWidth = 48;
 
     public event Action<bool>? PClinicMinimizeChange;
-    public event Action? PClinicPlanChange;
     public event Action? PClinicDiagnosisRun;
 
     private readonly UIElement pClinicFullBody;
@@ -36,7 +35,6 @@ public sealed partial class PClinic : PPanel
     private readonly CheckBox pClinicPersistentBox;
     private readonly Button pClinicDiagnosisButton;
     private readonly PClinicSalvage pClinicSalvage;
-    private readonly Border pClinicPersistentRow;
 
     public LClinic LClinic { get; } = new();
 
@@ -202,7 +200,7 @@ public sealed partial class PClinic : PPanel
         pRunStack.Children.Add(pClinicDiagnosisProgress);
         pRunStack.Children.Add(pRunGrid);
 
-        pClinicPersistentRow = new Border
+        var pPersistentRow = new Border
         {
             Padding = new Thickness(12, 6, 12, 8),
             BorderBrush = PPanelLineBrush,
@@ -214,8 +212,8 @@ public sealed partial class PClinic : PPanel
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
-        DockPanel.SetDock(pClinicPersistentRow, Dock.Bottom);
-        pRoot.Children.Add(pClinicPersistentRow);
+        DockPanel.SetDock(pPersistentRow, Dock.Bottom);
+        pRoot.Children.Add(pPersistentRow);
         pRoot.Children.Add(pScroll);
 
         pClinicFullBody = pRoot;
@@ -229,8 +227,100 @@ public sealed partial class PClinic : PPanel
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
         LClinic.LClinicChange += PClinicUpdate;
-        LClinic.LClinicPlanChange += () => PClinicPlanChange?.Invoke();
         LClinic.LClinicMinimizeChange += PClinicMinimizeHandle;
         PClinicUpdate();
+    }
+
+    public bool PClinicMinimizedCheck() => LClinic.LClinicMinimized;
+
+    public void PClinicMinimizeSet(bool pClinicMinimizeRequest) => LClinic.LClinicMinimizedSet(pClinicMinimizeRequest);
+
+    public void PClinicStepShow(string? pStepName) => LClinic.LClinicStepSet(pStepName);
+
+    internal static CheckBox PClinicSwitchBuild(string pSwitchLabel, string pSwitchTip)
+    {
+        var pSwitch = new CheckBox
+        {
+            Content = pSwitchLabel,
+            ToolTip = pSwitchTip,
+            FontSize = 12,
+            FontFamily = pClinicFontFamily,
+            Foreground = PPanelTextBrush,
+            VerticalContentAlignment = VerticalAlignment.Center
+        };
+        PCheckbox.PCheckboxApply(pSwitch);
+        return pSwitch;
+    }
+
+    private void PClinicMinimizeHandle(bool pClinicMinimized)
+    {
+        pClinicFullBody.Visibility = PLook.PLookVisible[!pClinicMinimized];
+        pClinicStripBody.Visibility = PLook.PLookVisible[pClinicMinimized];
+        PClinicMinimizeChange?.Invoke(pClinicMinimized);
+    }
+
+    private void PClinicUpdate()
+    {
+        pClinicSalvage.PClinicSalvageUpdate();
+        pClinicApplyBox.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
+        pClinicPersistentBox.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
+        pClinicDiagnosisButton.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
+        pClinicSalvage.PClinicSalvageActive.Visibility = PLook.PLookVisible[LClinic.LClinicSalvageShown];
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = PLook.PLookVisible[LClinic.LClinicSalvageShown];
+        pClinicToggleRow.Visibility = Visibility.Visible;
+        pClinicEmptyNotice.Visibility = PLook.PLookVisible[!LClinic.LClinicKnown];
+        pClinicItemBody.Visibility = PLook.PLookVisible[LClinic.LClinicKnown];
+        pClinicToggleRow.IsEnabled = LClinic.LClinicKnown;
+        pClinicPersistentBox.IsEnabled = LClinic.LClinicPersistentAllowed;
+        pClinicApplyBox.IsChecked = LClinic.LClinicRepairChecked;
+        pClinicPersistentBox.IsChecked = LClinic.LClinicPersistentChecked;
+        pClinicResultBody.Visibility = PLook.PLookVisible[LClinic.LClinicResultShown];
+        pClinicDiagnosisProgress.Value = LClinic.LClinicProgressValue;
+        pClinicDiagnosisProgress.Visibility = PLook.PLookVisible[LClinic.LClinicScanShown];
+        pClinicResultText.Text = LClinic.LClinicResultFormat();
+        pClinicTitleLabel.Text = LClinic.LClinicTitleRead();
+        pClinicItemSimple.Text = LClinic.LClinicSimpleRead();
+        pClinicItemTechnical.Text = LClinic.LClinicTechnicalRead();
+    }
+
+    private UIElement PClinicStripBuild()
+    {
+        Button pMaximizeButton = PClinicButtonBuild(
+            "/PAsset/PPanel/PListMaximize.svg",
+            LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
+            () => LClinic.LClinicMinimizedSet(false));
+        pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
+        pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
+
+        var pStrip = new StackPanel { Background = Brushes.White };
+        pStrip.Children.Add(pMaximizeButton);
+        return pStrip;
+    }
+
+    private static UIElement PClinicSeparatorBuild() => new Border
+    {
+        Height = 1,
+        Background = PPanelLineBrush,
+        Margin = new Thickness(0, 10, 0, 10)
+    };
+
+    private static Button PClinicButtonBuild(string pIconPath, string pTooltip, Action pClick)
+    {
+        var pButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 14,
+                Height = 14,
+                Source = PIcon.PIconRead(pIconPath, pClinicIconBrush),
+                Stretch = Stretch.Uniform
+            },
+            ToolTip = pTooltip,
+            Width = 28,
+            Height = 26,
+            Style = PButton.PButtonPanelCreate()
+        };
+        pButton.Click += (_, _) => pClick();
+        return pButton;
     }
 }

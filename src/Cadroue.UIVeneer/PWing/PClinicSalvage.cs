@@ -29,10 +29,8 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvageActive = PClinic.PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply"),
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply.Tooltip"));
-        pClinicSalvageActive.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = true });
-        pClinicSalvageActive.Unchecked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageActive = false });
+        pClinicSalvageActive.Checked += (_, _) => lClinic.LSalvageActiveSet(true);
+        pClinicSalvageActive.Unchecked += (_, _) => lClinic.LSalvageActiveSet(false);
 
         var pModeLabel = new TextBlock
         {
@@ -46,10 +44,8 @@ public sealed class PClinicSalvage : StackPanel
 
         pClinicSalvageRejoin = PClinicRadioBuild("Clinic.Salvage.Mode.Rejoin");
         pClinicSalvageSeparate = PClinicRadioBuild("Clinic.Salvage.Mode.Separate");
-        pClinicSalvageRejoin.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageMode = LSalvageMode.LSalvageModeRejoin });
-        pClinicSalvageSeparate.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageMode = LSalvageMode.LSalvageModeSeparate });
+        pClinicSalvageRejoin.Checked += (_, _) => lClinic.LSalvageModeSet(LSalvageMode.LSalvageModeRejoin);
+        pClinicSalvageSeparate.Checked += (_, _) => lClinic.LSalvageModeSet(LSalvageMode.LSalvageModeSeparate);
         Border pModeSegment = PRadio.PRadioSegmentBuild(pClinicSalvageRejoin, pClinicSalvageSeparate);
         pModeSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -65,10 +61,8 @@ public sealed class PClinicSalvage : StackPanel
 
         pClinicSalvageSource = PClinicRadioBuild("Clinic.Salvage.Basis.Source");
         pClinicSalvageFixed = PClinicRadioBuild("Clinic.Salvage.Basis.Fixed");
-        pClinicSalvageSource.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisSource });
-        pClinicSalvageFixed.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisFixed });
+        pClinicSalvageSource.Checked += (_, _) => lClinic.LSalvageBasisSet(LSalvageBasis.LSalvageBasisSource);
+        pClinicSalvageFixed.Checked += (_, _) => lClinic.LSalvageBasisSet(LSalvageBasis.LSalvageBasisFixed);
         Border pBasisSegment = PRadio.PRadioSegmentBuild(pClinicSalvageSource, pClinicSalvageFixed);
         pBasisSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -84,10 +78,8 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvagePersistent = PClinic.PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent"),
             LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent.Tooltip"));
-        pClinicSalvagePersistent.Checked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvagePersistent = true });
-        pClinicSalvagePersistent.Unchecked += (_, _) =>
-            PClinicSalvageSet(lClinic.LClinicSalvage with { LWorkSalvagePersistent = false });
+        pClinicSalvagePersistent.Checked += (_, _) => lClinic.LSalvagePersistentSet(true);
+        pClinicSalvagePersistent.Unchecked += (_, _) => lClinic.LSalvagePersistentSet(false);
 
         Children.Add(pModeLabel);
         Children.Add(pModeSegment);
@@ -103,24 +95,16 @@ public sealed class PClinicSalvage : StackPanel
 
     public void PClinicSalvageUpdate()
     {
-        LWorkFixSalvage lSalvage = lClinic.LClinicSalvage;
-        bool pRepair = lClinic.LClinicRepairCheck();
-        Visibility = lClinic.LClinicSalvageShown ? Visibility.Visible : Visibility.Collapsed;
-        pClinicSalvageActive.IsChecked = lSalvage.LWorkSalvageActive;
-        pClinicSalvagePersistent.IsChecked = lSalvage.LWorkSalvagePersistent;
-        pClinicSalvageSeparate.IsChecked = lSalvage.LWorkSalvageMode == LSalvageMode.LSalvageModeSeparate;
-        pClinicSalvageRejoin.IsChecked = lSalvage.LWorkSalvageMode != LSalvageMode.LSalvageModeSeparate;
-        pClinicSalvageFixed.IsEnabled = pRepair;
-        pClinicSalvageFixed.IsChecked = lSalvage.LWorkSalvageBasis == LSalvageBasis.LSalvageBasisFixed;
-        pClinicSalvageSource.IsChecked = lSalvage.LWorkSalvageBasis != LSalvageBasis.LSalvageBasisFixed;
-        pClinicSalvageDescription.Text = LLocalization.LLocalizationTextRead(!pRepair
-            ? "Clinic.Salvage.Basis.None"
-            : lSalvage.LWorkSalvageBasis == LSalvageBasis.LSalvageBasisFixed
-                ? "Clinic.Salvage.Basis.Fixed.Description"
-                : "Clinic.Salvage.Basis.Source.Description");
+        Visibility = PLook.PLookVisible[lClinic.LClinicSalvageShown];
+        pClinicSalvageActive.IsChecked = lClinic.LClinicSalvageActive;
+        pClinicSalvagePersistent.IsChecked = lClinic.LClinicSalvagePersistent;
+        pClinicSalvageSeparate.IsChecked = lClinic.LClinicSalvageSeparate;
+        pClinicSalvageRejoin.IsChecked = lClinic.LClinicSalvageRejoin;
+        pClinicSalvageFixed.IsEnabled = lClinic.LClinicRepairCheck();
+        pClinicSalvageFixed.IsChecked = lClinic.LClinicSalvageFixed;
+        pClinicSalvageSource.IsChecked = lClinic.LClinicSalvageSource;
+        pClinicSalvageDescription.Text = lClinic.LClinicSalvageText;
     }
-
-    private void PClinicSalvageSet(LWorkFixSalvage lSalvage) => lClinic.LClinicSalvageSet(lSalvage);
 
     private static RadioButton PClinicRadioBuild(string pKey) => new()
     {

@@ -31,7 +31,6 @@ public sealed class LWindow
     }
 
     public event Action<LWindowTab>? LWindowTabAdd;
-    public event Action<Guid, Guid>? LWindowTargetApply;
     public event Action? LWindowFunnelUpdate;
     public event Action<LRelay>? LWindowRelayApply;
     public event Action<double, double>? LWindowPlace;
@@ -331,7 +330,7 @@ public sealed class LWindow
             }
 
             LCartographer.LCartographerTargetSet(lSource, lTarget);
-            LWindowTargetApply?.Invoke(lSource, lTarget);
+            lStrip.LStripTabFind(lSource)?.LStripTabAction?.LActionRelayApply(lTarget);
         }
     }
 

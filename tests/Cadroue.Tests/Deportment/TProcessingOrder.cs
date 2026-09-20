@@ -54,7 +54,7 @@ public sealed class TProcessingOrder
     public void DragMove_TracksDragIndex()
     {
         LProcessing processing = TProcessingBuild("A", "B", "C");
-        TInterface.TProcessingDragSet(processing, 0);
+        TInterface.TProcessingDragStart(processing, "A", 0, 0);
 
         Assert.True(TInterface.TProcessingIndexMove(processing, 0, 2));
 
@@ -75,5 +75,75 @@ public sealed class TProcessingOrder
 
         Assert.Equal(LProcessing.LProcessingSkipStep, processing.LProcessingStep);
         Assert.Equal([LProcessing.LProcessingSkipStep], notices);
+    }
+
+    [Fact]
+    public void DragMove_ArmsAfterThreshold_ReordersByRowMiddles()
+    {
+        LProcessing processing = TProcessingBuild("A", "B", "C");
+        int changes = 0;
+        TInterface.TProcessingAttach(processing, () => changes++);
+        TInterface.TProcessingDragStart(processing, "A", 10, 10);
+        int baseline = changes;
+
+        TInterface.TProcessingDragMove(processing, 12, 12, true, [0, 20, 40], [20, 20, 20]);
+        Assert.False(processing.LProcessingDragActive);
+        Assert.Equal(baseline, changes);
+
+        TInterface.TProcessingDragMove(processing, 12, 55, false, [0, 20, 40], [20, 20, 20]);
+        Assert.False(processing.LProcessingDragActive);
+
+        TInterface.TProcessingDragMove(processing, 12, 55, true, [0, 20, 40], [20, 20, 20]);
+        Assert.True(processing.LProcessingDragActive);
+        Assert.Equal(["B", "C", "A"], processing.LProcessingSteps);
+        Assert.Equal(0.72, TInterface.TProcessingOpacityRead(processing, "A"));
+        Assert.Equal(1, TInterface.TProcessingOpacityRead(processing, "B"));
+        Assert.Equal("3", TInterface.TProcessingNumberRead(processing, "A"));
+
+        TInterface.TProcessingDragClear(processing);
+        Assert.False(processing.LProcessingDragActive);
+        Assert.Null(processing.LProcessingDragIndex);
+        Assert.Equal(1, TInterface.TProcessingOpacityRead(processing, "A"));
+    }
+
+    [Fact]
+    public void DragMove_IgnoredWhenUnordered_CancelledWhenDisabled()
+    {
+        LProcessing processing = TProcessingBuild("A", "B");
+        TInterface.TProcessingOrderedSet(processing, false);
+        TInterface.TProcessingDragStart(processing, "A", 0, 0);
+
+        TInterface.TProcessingDragMove(processing, 0, 100, true, [0, 20], [20, 20]);
+        Assert.Equal(["A", "B"], processing.LProcessingSteps);
+
+        TInterface.TProcessingOrderedSet(processing, true);
+        int cancels = 0;
+        TInterface.TProcessingCancelAttach(processing, () => cancels++);
+        TInterface.TProcessingEnabledSet(processing, "A", false, "busy");
+
+        Assert.Equal(1, cancels);
+        Assert.Null(processing.LProcessingDragIndex);
+        Assert.Equal(0.4, TInterface.TProcessingOpacityRead(processing, "A"));
+        Assert.Equal(2, TInterface.TProcessingIndexResolve(100, [0, 20, 40], [20, 20, 20]));
+        Assert.Equal(1, TInterface.TProcessingIndexResolve(25, [0, 20, 40], [20, 20, 20]));
+    }
+
+    [Fact]
+    public void RowAdd_RecordsRowAndStep_KeyHandleSelectsOnActivate()
+    {
+        LProcessing processing = TInterface.TProcessingCreate();
+        List<string> notices = [];
+        TInterface.TProcessingStepAttach(processing, notices.Add);
+
+        TInterface.TProcessingRowAdd(processing, "Crop");
+
+        Assert.Equal(["Crop"], processing.LProcessingSteps);
+        Assert.Equal(["Crop"], processing.LProcessingRows.Select(row => row.LProcessingRowKey));
+
+        TInterface.TProcessingKeyHandle(processing, "Crop", false);
+        Assert.Empty(notices);
+
+        TInterface.TProcessingKeyHandle(processing, "Crop", true);
+        Assert.Equal(["Crop"], notices);
     }
 }

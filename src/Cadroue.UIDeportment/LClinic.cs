@@ -55,6 +55,60 @@ public sealed class LClinic
 
     public bool LClinicSalvageShown => lClinicStep == LClinicSalvageStep;
 
+    public bool LClinicStepShown => lClinicKind is not null;
+
+    public bool LClinicKnown => LClinicSalvageShown || LClinicStepShown;
+
+    public bool LClinicPersistentAllowed => LClinicKnown && !LClinicSalvageShown;
+
+    public bool LClinicRepairChecked => LClinicStepShown && LClinicStepRead().LWorkFixRepair;
+
+    public bool LClinicPersistentChecked => LClinicStepShown && LClinicStepRead().LWorkFixPersistent;
+
+    public bool LClinicResultShown => !LClinicSalvageShown && LClinicStepShown;
+
+    public bool LClinicScanShown => LClinicResultShown && LClinicScanCheck();
+
+    public double LClinicProgressValue => LClinicScanShown ? LClinicProgressRead() : 0;
+
+    public bool LClinicSalvageActive => lClinicSalvage.LWorkSalvageActive;
+
+    public bool LClinicSalvagePersistent => lClinicSalvage.LWorkSalvagePersistent;
+
+    public bool LClinicSalvageSeparate => lClinicSalvage.LWorkSalvageMode == LSalvageMode.LSalvageModeSeparate;
+
+    public bool LClinicSalvageRejoin => !LClinicSalvageSeparate;
+
+    public bool LClinicSalvageFixed => lClinicSalvage.LWorkSalvageBasis == LSalvageBasis.LSalvageBasisFixed;
+
+    public bool LClinicSalvageSource => !LClinicSalvageFixed;
+
+    public string LClinicSalvageText => LLocalization.LLocalizationTextRead(!LClinicRepairCheck()
+        ? "Clinic.Salvage.Basis.None"
+        : LClinicSalvageFixed
+            ? "Clinic.Salvage.Basis.Fixed.Description"
+            : "Clinic.Salvage.Basis.Source.Description");
+
+    public string LClinicTitleRead() =>
+        LLocalization.LLocalizationTextRead(LClinicKnown ? $"Processing.Step.{lClinicStep}" : "Clinic.Header.Title");
+
+    public string LClinicSimpleRead() =>
+        LClinicKnown ? LLocalization.LLocalizationTextRead($"Clinic.Step.{lClinicStep}.Simple") : string.Empty;
+
+    public string LClinicTechnicalRead() =>
+        LClinicKnown ? LLocalization.LLocalizationTextRead($"Clinic.Step.{lClinicStep}.Technical") : string.Empty;
+
+    public string LClinicResultFormat() => LCheckupFormat.LCheckupBodyFormat(
+        LClinicResultRead(),
+        new LCheckupStrings(
+            LLocalization.LLocalizationTextRead("Clinic.Result.Empty"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Scanning"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Clean"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Failed"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Defect"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Evidence"),
+            LLocalization.LLocalizationTextRead("Clinic.Result.Repair")));
+
     public bool LClinicMinimized => lClinicMinimized;
 
     public bool LClinicSaveSuspended => lClinicSaveDepth > 0;
@@ -142,6 +196,18 @@ public sealed class LClinic
         LClinicChange?.Invoke();
         LClinicPlanChange?.Invoke();
     }
+
+    public void LSalvageActiveSet(bool lActive) =>
+        LClinicSalvageSet(lClinicSalvage with { LWorkSalvageActive = lActive });
+
+    public void LSalvagePersistentSet(bool lPersistent) =>
+        LClinicSalvageSet(lClinicSalvage with { LWorkSalvagePersistent = lPersistent });
+
+    public void LSalvageModeSet(LSalvageMode lMode) =>
+        LClinicSalvageSet(lClinicSalvage with { LWorkSalvageMode = lMode });
+
+    public void LSalvageBasisSet(LSalvageBasis lBasis) =>
+        LClinicSalvageSet(lClinicSalvage with { LWorkSalvageBasis = lBasis });
 
     public void LClinicSalvageSet(LWorkFixSalvage lSalvage)
     {

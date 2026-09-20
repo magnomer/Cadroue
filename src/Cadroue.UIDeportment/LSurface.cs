@@ -8,7 +8,7 @@ public sealed class LSurface
     private readonly LColumn lSurfaceColumn;
     private readonly int lSurfaceCount;
     private readonly int lSurfaceExportIndex;
-    private Func<bool>? lSurfaceAutoSource;
+    private LAction? lSurfaceAction;
 
     public LSurface(LColumn lColumn, int lCount, int lExportIndex)
     {
@@ -22,9 +22,9 @@ public sealed class LSurface
     public bool LSurfaceExportHidden =>
         lSurfaceExportIndex >= 0 && lSurfaceColumn.LColumnHiddenCheck(lSurfaceExportIndex);
 
-    public bool LSurfaceAutoRelay => lSurfaceAutoSource?.Invoke() ?? false;
+    public bool LSurfaceAutoRelay => lSurfaceAction?.LActionAutoRelay ?? false;
 
-    public void LSurfaceActionAttach(Func<bool> lAutoSource) => lSurfaceAutoSource = lAutoSource;
+    public void LSurfaceActionAttach(LAction lAction) => lSurfaceAction = lAction;
 
     public bool LSurfaceCollapsedCheck(int lIndex) => lSurfaceColumn.LColumnFixedRead(lIndex) > 0;
 

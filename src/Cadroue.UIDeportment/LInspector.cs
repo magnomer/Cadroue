@@ -28,6 +28,11 @@ public sealed class LInspector
     private string? lInspectorOwnerPath;
     private string? lInspectorFailurePath;
 
+    public LInspector()
+    {
+        LInspectorAudio = new LInspectorAudio(LInspectorSkip);
+    }
+
     public event Action? LInspectorChange;
 
     public LCropboxEdgeLock LInspectorEdgeLock { get; } = new();
@@ -45,6 +50,8 @@ public sealed class LInspector
     public LWhitebalance LInspectorWhitebalance { get; } = new();
 
     public LSkip LInspectorSkip { get; } = new();
+
+    public LInspectorAudio LInspectorAudio { get; }
 
     public LSensor LInspectorSensor { get; } = new();
 

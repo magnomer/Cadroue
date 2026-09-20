@@ -28,11 +28,12 @@ public sealed class PSplitTab : PTabSurface
             pFlow.LFlow);
         var pAction = new PAction();
         PTabAction = pAction;
-        pAction.PActionRun += lPriority =>
-            LSplitTab.LSplitRun(lPriority, pAction.PActionRelayTarget, pAction.PActionSourceTab);
-        pAction.PActionAllAdd += () => LSplitTab.LSplitAllRun(pAction.PActionRelayTarget, pAction.PActionSourceTab);
-        pAction.PActionItemsAdd += pSplitPaths =>
-            LSplitTab.LSplitItemsRun(pSplitPaths, pAction.PActionRelayTarget, pAction.PActionSourceTab);
+        LAction lAction = pAction.LAction;
+        lAction.LActionRun += lPriority =>
+            LSplitTab.LSplitRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionAllAdd += () => LSplitTab.LSplitAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdd += pSplitPaths =>
+            LSplitTab.LSplitItemsRun(pSplitPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
 

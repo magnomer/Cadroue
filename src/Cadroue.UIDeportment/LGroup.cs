@@ -28,6 +28,8 @@ public sealed class LGroup
         lGroupOwner = lGroupSelection;
     }
 
+    public LGroupSelection LGroupSelection => lGroupOwner;
+
     public IReadOnlyList<LGroupRecord> LGroupRecords => lGroupRecords;
 
     public bool LGroupMinimized => lGroupMinimized;

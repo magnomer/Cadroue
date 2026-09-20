@@ -45,7 +45,7 @@ public partial class PProgram : System.Windows.Application
             PWing.PList.PListDeliveredAdd,
             PWing.PList.PListDeliveredCommit,
             PWing.PList.PListDeliveredRemove,
-            PCabin.PAction.PActionAccept,
+            LAction.LActionAccept,
             PWing.PList.PListBatchRemove,
             PWing.PList.PListSourceRelease,
             PWing.PList.PListSourceClaim);
