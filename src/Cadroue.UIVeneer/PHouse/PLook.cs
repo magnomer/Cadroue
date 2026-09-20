@@ -157,4 +157,16 @@ public static class PLook
         [MouseButtonState.Pressed] = true,
         [MouseButtonState.Released] = false,
     };
+
+    public static readonly IReadOnlyDictionary<bool, FontWeight> PLookWeight = new Dictionary<bool, FontWeight>
+    {
+        [true] = FontWeights.SemiBold,
+        [false] = FontWeights.Normal,
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Cursor> PLookHand = new Dictionary<bool, Cursor>
+    {
+        [true] = Cursors.Hand,
+        [false] = Cursors.Arrow,
+    };
 }

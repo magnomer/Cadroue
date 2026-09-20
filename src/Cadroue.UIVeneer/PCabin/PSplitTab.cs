@@ -42,8 +42,8 @@ public sealed class PSplitTab : PTabSurface
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
 
         pInspector.PSensorRunShow();
-        pInspector.PSensorRun += PSplitSweepStart;
-        pInspector.PSensorStop += LSplitTab.LSplitSweep.LSplitSweepCancel;
+        pInspector.LSensor.LSensorRunApply += PSplitSweepStart;
+        pInspector.LSensor.LSensorStopApply += LSplitTab.LSplitSweep.LSplitSweepCancel;
         pInspector.LBlank.LBlankPickChange += PSplitPickHandle;
         pViewer.PViewerNeutralChange += LSplitTab.LSplitSampleHandle;
         LSplitTab.LSplitPresetMissing += PExport.PExportMissingShow;
@@ -54,7 +54,7 @@ public sealed class PSplitTab : PTabSurface
         pSection.PSectionAttach(pFlow);
         pList.PListPathChange += LSplitTab.LSplitPathHandle;
         pList.PListLockChange += LSplitTab.LSplitLockHandle;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(

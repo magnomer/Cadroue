@@ -33,7 +33,7 @@ public sealed class PMergeTab : PTabSurface
         pGroup.PGroupSourceFiles = LMergeTab.LMergePathsRead;
         pGroup.PGroupFileRequest = pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pList.PListClearChange += pGroup.PGroupPathsRemove;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(

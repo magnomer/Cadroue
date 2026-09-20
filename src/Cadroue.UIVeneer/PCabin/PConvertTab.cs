@@ -28,7 +28,7 @@ public sealed class PConvertTab : PTabSurface
         pAction.PActionListAttach(pList);
         LConvertTab.LConvertPresetMissing += PExport.PExportMissingShow;
         pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(

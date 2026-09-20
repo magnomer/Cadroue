@@ -63,8 +63,6 @@ public sealed class LCompass
     private readonly LViewer lCompassViewer;
     private readonly bool lCompassSectionShown;
 
-    public event Action<double>? LCompassVolumeApply;
-
     public LCompass(LFlow lFlow, LViewer lViewer, bool lSectionShown)
     {
         lCompassFlow = lFlow;
@@ -139,7 +137,7 @@ public sealed class LCompass
             return;
         }
 
-        LCompassVolumeApply?.Invoke(lVolume);
+        lCompassViewer.LViewerPlayback.LViewerVolumeSet(lVolume);
     }
 
     public static string LCompassVolumeFormat(double lRaw) =>

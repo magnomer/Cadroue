@@ -131,7 +131,7 @@ public partial class PWindow : Window
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => lWindow.LWindowMediaRun(pPath)));
 
     private void PWindowMediaOpen(string pPath) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.PViewerSourceOpen(pPath);
+        pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pPath);
 
     private void PWindowTabAttach(LStripTab lTab, double pFlowHeight)
     {
@@ -177,7 +177,7 @@ public partial class PWindow : Window
         pStrip.PStripSelected?.PWorkspaceFlowApply(pFlowHeight);
 
     private void PWindowVolumeSet(double pVolume) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.PViewerVolumeSet(pVolume);
+        pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerVolumeSet(pVolume);
 
     private void PWindowWidthApply()
     {
@@ -192,9 +192,9 @@ public partial class PWindow : Window
 
     private void PWindowViewerOpen(string pPath) => PWindowMediaOpen(pPath);
 
-    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.PViewerPlay();
+    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerPlay();
 
-    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.PViewerPause();
+    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerPause();
 
     private bool? PWindowUndo() => pStrip.PStripSelected?.LWorkspace.LWorkspaceUndo();
 

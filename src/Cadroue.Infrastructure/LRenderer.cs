@@ -73,6 +73,23 @@ public static class LRenderer
     private static LPreviewEngine lRendererEnginePreview = LPreviewEngine.LPreviewEngineFlyleaf;
     private static bool lRendererMpvAvailable;
 
+    public static string LRendererErrorResolve(string? lError) =>
+        lError ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen");
+
+    public static void LRendererProcessorRecord(string lProcessorWas, string lReason)
+    {
+        if (string.Equals(lProcessorWas, LRendererFlyleafToken, StringComparison.Ordinal))
+        {
+            return;
+        }
+
+        LTrace.LTraceRecord(
+            LTraceKind.LTraceUi,
+            $"Video processor forced from {lProcessorWas} to Flyleaf",
+            "FLVP runs custom pixel shaders per frame; D3D11VP would use the driver's video processor\n"
+            + $"caused by: {lReason}");
+    }
+
     private static readonly object lRendererCheckGate = new();
     private static Task<LMpvProbe>? lRendererCheckTask;
 

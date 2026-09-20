@@ -255,7 +255,7 @@ internal sealed class PSDebug : Window
         var pSource = new LSMonitor();
         var pFlow = new PFlow();
         var pViewer = new PViewer();
-        Window pMonitor = PSMonitor.PSMonitorShow(this, pSource, pFlow, pViewer);
+        Window pMonitor = PSMonitor.PSMonitorShow(Owner, pSource, pFlow, pViewer);
         pMonitor.Closed += (_, _) => pSource.Dispose();
     }
 

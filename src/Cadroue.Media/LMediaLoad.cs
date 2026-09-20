@@ -73,14 +73,7 @@ public sealed class LMediaLoad : IDisposable
         string lMediaLoadPath,
         CancellationToken lMediaLoadToken = default)
     {
-        string lMediaLoadResolvedPath;
-        try
-        {
-            lMediaLoadResolvedPath = string.IsNullOrWhiteSpace(lMediaLoadPath)
-                ? string.Empty
-                : Path.GetFullPath(lMediaLoadPath);
-        }
-        catch (Exception lMediaLoadException) when (lMediaLoadException is ArgumentException or NotSupportedException)
+        if (LMediaPathResolve(lMediaLoadPath) is not { } lMediaLoadResolvedPath)
         {
             return LMediaLoadCancel(lMediaLoadPath ?? string.Empty, "The media path is invalid.");
         }
@@ -188,6 +181,18 @@ public sealed class LMediaLoad : IDisposable
                 lMediaLoadRequestGeneration,
                 lMediaLoadResolvedPath,
                 lMediaLoadException.Message);
+        }
+    }
+
+    public static string? LMediaPathResolve(string lMediaPath)
+    {
+        try
+        {
+            return string.IsNullOrWhiteSpace(lMediaPath) ? string.Empty : Path.GetFullPath(lMediaPath);
+        }
+        catch (Exception lMediaPathException) when (lMediaPathException is ArgumentException or NotSupportedException)
+        {
+            return null;
         }
     }
 

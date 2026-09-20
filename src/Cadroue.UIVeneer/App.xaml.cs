@@ -40,7 +40,6 @@ public partial class PProgram : System.Windows.Application
             PProgramVerboseApply);
         PNameplate.PNameplateAttach();
         base.OnStartup(e);
-        LViewer.LViewerPlayerAttach(PWing.PViewer.PViewerPlayerApply);
         LList.LListRelayAttach(
             PWing.PList.PListDeliveredAdd,
             PWing.PList.PListDeliveredCommit,

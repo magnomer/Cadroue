@@ -9,16 +9,16 @@ public sealed class LEditTabColor
 {
     private readonly LInspector lEditInspector;
     private readonly LProcessing lEditProcessing;
+    private readonly LViewer lEditViewer;
 
-    public LEditTabColor(LInspector lInspector, LProcessing lProcessing)
+    public LEditTabColor(LInspector lInspector, LProcessing lProcessing, LViewer lViewer)
     {
         lEditInspector = lInspector;
         lEditProcessing = lProcessing;
+        lEditViewer = lViewer;
     }
 
-    public event Action<LColor>? LEditPreviewApply;
     public event Action<LWhitebalanceMethod>? LEditEstimateRead;
-    public event Action? LEditHistogramRead;
 
     public void LEditColorUpdate()
     {
@@ -36,7 +36,7 @@ public sealed class LEditTabColor
         LWorkVideo lVideo = lEditInspector.LInspectorSkip.LSkipActive
             ? LWorkVideo.LWorkVideoCreate()
             : LEditVideoRead(LEditMpvCheck());
-        LEditPreviewApply?.Invoke(LPreview.LPreviewColorResolve(lVideo));
+        lEditViewer.LViewerColorSet(LPreview.LPreviewColorResolve(lVideo));
     }
 
     public LWorkVideo LEditVideoRead(bool lMpvOnlyCapable = true)
@@ -127,7 +127,7 @@ public sealed class LEditTabColor
         LEditEstimateRead?.Invoke(lMethod);
     }
 
-    public void LEditHistogramRun() => LEditHistogramRead?.Invoke();
+    public void LEditHistogramRun() => lEditViewer.LViewerFrameRead(LEditHistogramApply);
 
     public void LEditEstimateApply(LNeutralWheel lEstimate) =>
         lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateSet(lEstimate);

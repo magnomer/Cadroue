@@ -252,59 +252,6 @@ internal static partial class TInterface
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
-    internal static LViewer TViewerCreate() => new();
-    internal static void TViewerMediaAttach(LViewer viewer, Action<LCargo> handler) =>
-        viewer.LViewerMediaChange += handler;
-    internal static void TViewerPlayingAttach(LViewer viewer, Action<bool> handler) =>
-        viewer.LViewerPlayingChange += handler;
-    internal static void TViewerBypassAttach(LViewer viewer, Action<bool> handler) =>
-        viewer.LViewerBypassChange += handler;
-    internal static void TViewerEngineAttach(LViewer viewer, Action handler) => viewer.LViewerEngineChange += handler;
-    internal static int TViewerSerialChange(LViewer viewer) => viewer.LViewerSerialChange();
-    internal static bool TViewerSerialCheck(LViewer viewer, int serial) => viewer.LViewerSerialCheck(serial);
-    internal static void TViewerCommandSet(LViewer viewer, bool active) => viewer.LViewerCommandSet(active);
-    internal static void TViewerUnloadSet(LViewer viewer) => viewer.LViewerUnloadSet();
-    internal static void TViewerEndSet(LViewer viewer, bool reached) => viewer.LViewerEndSet(reached);
-    internal static void TViewerAllowSet(LViewer viewer, bool allowed) => viewer.LViewerAllowSet(allowed);
-    internal static void TViewerFilterSet(LViewer viewer, string? filter) => viewer.LViewerFilterSet(filter);
-    internal static void TViewerBypassSet(LViewer viewer, bool bypass) => viewer.LViewerBypassSet(bypass);
-    internal static string TViewerAudioResolve(LViewer viewer) => viewer.LViewerAudioResolve();
-    internal static void TViewerEngineSet(LViewer viewer, LPreviewEngine engine) => viewer.LViewerEngineSet(engine);
-    internal static void TViewerIntentSet(LViewer viewer, string path, TimeSpan position, bool? playing) =>
-        viewer.LViewerIntentSet(new LViewerIntent(path, position, playing));
-    internal static void TViewerIntentReset(LViewer viewer) => viewer.LViewerIntentSet(null);
-    internal static void TViewerRequestSet(LViewer viewer, string path) => viewer.LViewerRequestSet(path);
-    internal static bool TViewerSourceMatch(LViewer viewer, string path) => viewer.LViewerSourceMatch(path);
-    internal static void TViewerPreviewSet(LViewer viewer, LPreviewState preview) => viewer.LViewerPreviewSet(preview);
-    internal static void TViewerRotateSet(LViewer viewer, LRotateFlip rotate) =>
-        viewer.LViewerPreviewSet(viewer.LViewerPreview.LRotateFlipChange(rotate));
-    internal static void TViewerPlaybackUpdate(LViewer viewer, bool? playing, TimeSpan? position) =>
-        viewer.LViewerPlaybackUpdate(playing, position);
-    internal static void TViewerMediaCommit(LViewer viewer, LCargo cargo, bool persistent) =>
-        viewer.LViewerMediaCommit(cargo, persistent);
-    internal static void TViewerMediaRaise(LViewer viewer, LCargo cargo) => viewer.LViewerMediaRaise(cargo);
-    internal static void TViewerMediaClose(LViewer viewer) => viewer.LViewerMediaClose();
-    internal static bool TViewerNeutralSet(LViewer viewer, LNeutralTarget target) => viewer.LViewerNeutralSet(target);
-    internal static bool TViewerNeutralCancel(LViewer viewer) => viewer.LViewerNeutralCancel();
-    internal static bool TViewerNeutralReset(LViewer viewer) => viewer.LViewerNeutralReset();
-    internal static LCargo TCargoCreate(string path, LMediaInfo? info, bool preview) =>
-        new(path, info, info is not null, preview, null, null);
-    internal static LMediaInfo TViewerInfoCreate(TimeSpan duration, int width, int height) =>
-        new(duration, width, height, 25, "h264", false, "", 0, 0);
-    internal static LPreviewState TPreviewCropCreate(double x, double y, double width, double height) =>
-        LPreviewState.LPreviewDefaultCreate().LCropboxChange(new LCropbox(x, y, width, height));
-
-    internal static LPlayer TPlayerCreate() => new();
-    internal static bool TPlayerAccurateSet(LPlayer player) => player.LPlayerAccurateSet();
-    internal static void TPlayerAccurateReset(LPlayer player) => player.LPlayerAccurateReset();
-    internal static void TPlayerRendererSet(LPlayer player, bool pending) => player.LPlayerRendererSet(pending);
-    internal static bool TPlayerSeekCommit(LPlayer player, int milliseconds) => player.LPlayerSeekCommit(milliseconds);
-    internal static Task TPlayerOpenStart(LPlayer player, string path, Action<string> open) =>
-        player.LPlayerOpenStart(path, open);
-    internal static void TPlayerFilterSet(LPlayer player, string filter) => player.LPlayerFilterSet(filter);
-    internal static void TPlayerAppliedReset(LPlayer player) => player.LPlayerAppliedReset();
-    internal static void TPlayerEndSet(LPlayer player, TimeSpan? end) => player.LPlayerEndSet(end);
-
     internal static LCrop TCropCreate() => new();
     internal static void TCropGripSet(LCrop crop, int edgeX, int edgeY) => crop.LCropGripSet(edgeX, edgeY);
     internal static void TCropBodySet(LCrop crop) => crop.LCropBodySet();

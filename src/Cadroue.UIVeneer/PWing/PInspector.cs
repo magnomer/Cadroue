@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
@@ -101,12 +100,9 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PFilterLowBuild());
         pBody.Children.Add(PEqualizerBodyBuild());
         pBody.Children.Add(PSkipBodyBuild());
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindBlank));
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindScene));
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindStill));
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindLuminance));
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindSilence));
-        pBody.Children.Add(PSensorBuild(LDetectorKind.LDetectorKindVolume));
+        pBody.Children.Add(PBlankBuild());
+        pSensorSections = LSensor.LSensorPlans.Select(PSensorBuild).ToList();
+        pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
         LSensor.LSensorChange += PSensorUpdate;
         pInspectorSections = PInspectorSectionsCreate();
 
@@ -210,7 +206,8 @@ public sealed partial class PInspector : PPanel
     {
         pInspectorFullBody.Visibility = PLook.PLookVisible[!LInspector.LInspectorMinimized];
         pInspectorStripBody.Visibility = PLook.PLookVisible[LInspector.LInspectorMinimized];
-        pSensorSections.ToList().ForEach(PSensorSectionShow);
+        pSensorSections.ForEach(PSensorSectionShow);
+        pBlankBody.Visibility = PLook.PLookVisible[LInspector.LInspectorSensorCheck(LBlank.LBlankKind)];
         pInspectorSections.ForEach(PInspectorSectionShow);
         pInspectorTitleLabel.Text = LInspector.LInspectorTitleRead();
         pInspectorPersistentRow.Visibility = PLook.PLookVisible[LInspector.LInspectorPersistentShown];
@@ -218,9 +215,8 @@ public sealed partial class PInspector : PPanel
         PInspectorCropUpdate();
     }
 
-    private void PSensorSectionShow(KeyValuePair<LDetectorKind, PSensorSection> pSensorEntry) =>
-        pSensorEntry.Value.PSensorBody.Visibility =
-            PLook.PLookVisible[LInspector.LInspectorSensorCheck(pSensorEntry.Key)];
+    private void PSensorSectionShow(PSensorSection pSection) => pSection.PSensorBody.Visibility =
+        PLook.PLookVisible[LInspector.LInspectorSensorCheck(pSection.PSensorPlan.LSensorPlanKind)];
 
     private void PInspectorSectionShow(PInspectorSection pSection)
     {

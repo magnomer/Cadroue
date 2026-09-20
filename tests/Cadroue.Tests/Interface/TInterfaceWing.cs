@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Media;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests;
@@ -131,4 +132,229 @@ internal static partial class TInterface
     internal static LNeutralDot TBlankDotRead(LBlank blank, double size, double dot) => blank.LBlankDotRead(size, dot);
     internal static LNeutralBitmap TNeutralBitmapResolve(int size, double value) =>
         LNeutral.LNeutralBitmapResolve(size, value);
+
+    internal static IReadOnlyList<LSensorPlan> TSensorPlansRead(LSensor sensor) => sensor.LSensorPlans;
+    internal static bool TSensorEnabledRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorEnabledRead(kind);
+    internal static double TSensorValueRead(LSensor sensor, LDetectorKind kind, int row) =>
+        sensor.LSensorValueRead(kind, row);
+    internal static double TSensorDefaultRead(LSensor sensor, LDetectorKind kind, int row) =>
+        sensor.LSensorDefaultRead(kind, row);
+    internal static string TSensorUnitRead(LSensor sensor, LDetectorKind kind, int row) =>
+        sensor.LSensorUnitRead(kind, row);
+    internal static void TSensorValueSet(LSensor sensor, LDetectorKind kind, int row, double value) =>
+        sensor.LSensorValueSet(kind, row, value);
+    internal static void TSensorModeSelect(LSensor sensor, int index) => sensor.LSensorModeSelect(index);
+    internal static void TSensorSpeedSelect(LSensor sensor, int index) => sensor.LSensorSpeedSelect(index);
+    internal static void TSensorMetricSelect(LSensor sensor, int index) => sensor.LSensorMetricSelect(index);
+    internal static LInspectorChoice TSensorChoiceRead(LSensor sensor, LDetectorKind kind) =>
+        sensor.LSensorChoiceRead(kind);
+    internal static void TSensorChoiceSelect(LSensor sensor, LDetectorKind kind, int index) =>
+        sensor.LSensorChoiceSelect(kind, index);
+    internal static void TSensorRunningSet(LSensor sensor, bool running) => sensor.LSensorRunningSet(running);
+    internal static void TSensorRunHandle(LSensor sensor) => sensor.LSensorRunHandle();
+    internal static void TSensorRunAttach(LSensor sensor, Action run, Action stop)
+    {
+        sensor.LSensorRunApply += run;
+        sensor.LSensorStopApply += stop;
+    }
+
+    internal static IReadOnlyList<LInspectorRow> TLoudnessRowsRead(LLoudness loudness, bool dynamic) =>
+        loudness.LLoudnessRowsRead(dynamic);
+    internal static double TLoudnessValueRead(LLoudness loudness, bool dynamic, int index) =>
+        loudness.LLoudnessValueRead(dynamic, index);
+    internal static double TLoudnessDefaultRead(LLoudness loudness, bool dynamic, int index) =>
+        loudness.LLoudnessDefaultRead(dynamic, index);
+    internal static void TLoudnessValueSet(LLoudness loudness, bool dynamic, int index, double value) =>
+        loudness.LLoudnessValueSet(dynamic, index, value);
+    internal static void TLoudnessModeSelect(LLoudness loudness, int index) => loudness.LLoudnessModeSelect(index);
+    internal static LInspectorChoice TLoudnessChoiceRead(LLoudness loudness, bool dynamic) =>
+        loudness.LLoudnessChoiceRead(dynamic);
+    internal static void TLoudnessChoiceSelect(LLoudness loudness, bool dynamic, int index) =>
+        loudness.LLoudnessChoiceSelect(dynamic, index);
+
+    internal static double TNoiseValueRead(LNoise noise, int index) => noise.LNoiseValueRead(index);
+    internal static double TNoiseDefaultRead(LNoise noise, int index) => noise.LNoiseDefaultRead(index);
+    internal static void TNoiseTypeSelect(LNoise noise, int index) => noise.LNoiseTypeSelect(index);
+    internal static LInspectorChoice TNoiseChoiceRead(LNoise noise) => noise.LNoiseChoiceRead();
+    internal static void TNoiseChoiceSelect(LNoise noise, int index) => noise.LNoiseChoiceSelect(index);
+
+    internal static LInspectorChoice TFilterChoiceRead(LFilter filter) => filter.LFilterChoiceRead();
+    internal static void TFilterChoiceSelect(LFilter filter, int index) => filter.LFilterChoiceSelect(index);
+    internal static void TFilterPolesSelect(LFilter filter, int index) => filter.LFilterPolesSelect(index);
+
+    internal static void TEqualizerRowsAttach(LEqualizer equalizer, Action handler) =>
+        equalizer.LEqualizerRowsChange += handler;
+    internal static string TEqualizerFrequencyCommit(LEqualizer equalizer, int index, string text) =>
+        equalizer.LEqualizerFrequencyCommit(index, text);
+    internal static string TEqualizerFrequencyRead(LEqualizer equalizer, int index) =>
+        equalizer.LEqualizerFrequencyRead(index);
+    internal static double TEqualizerGainRead(LEqualizer equalizer, int index) => equalizer.LEqualizerGainRead(index);
+    internal static void TEqualizerGainSet(LEqualizer equalizer, int index, double gain) =>
+        equalizer.LEqualizerGainSet(index, gain);
+    internal static LInspectorChoice TEqualizerChoiceRead(LEqualizer equalizer) => equalizer.LEqualizerChoiceRead();
+    internal static void TEqualizerChoiceSelect(LEqualizer equalizer, int index) =>
+        equalizer.LEqualizerChoiceSelect(index);
+
+    internal static LDetectorBound TDetectorThresholdRead(LDetectorKind kind) => LDetector.LDetectorThresholdRead(kind);
+    internal static LInspectorChoice TInspectorChoiceRead(
+        IReadOnlyList<string> tokens, Func<string, string> keyRead, string? token, string? match) =>
+        LInspectorPlan.LInspectorChoiceRead(tokens, keyRead, token, match);
+    internal static string? TInspectorChoiceResolve(
+        IReadOnlyList<string> tokens, int index, string? token, string? match) =>
+        LInspectorPlan.LInspectorChoiceResolve(tokens, index, token, match);
+
+    internal static LViewer TViewerCreate() => new();
+    internal static void TViewerMediaAttach(LViewer viewer, Action<LCargo> handler) =>
+        viewer.LViewerMediaChange += handler;
+    internal static void TViewerPlayingAttach(LViewer viewer, Action<bool> handler) =>
+        viewer.LViewerPlayingChange += handler;
+    internal static void TViewerBypassAttach(LViewer viewer, Action<bool> handler) =>
+        viewer.LViewerBypassChange += handler;
+    internal static void TViewerEngineAttach(LViewer viewer, Action handler) => viewer.LViewerEngineChange += handler;
+    internal static int TViewerSerialChange(LViewer viewer) => viewer.LViewerSerialChange();
+    internal static bool TViewerSerialCheck(LViewer viewer, int serial) => viewer.LViewerSerialCheck(serial);
+    internal static void TViewerCommandSet(LViewer viewer, bool active) => viewer.LViewerCommandSet(active);
+    internal static void TViewerUnloadSet(LViewer viewer) => viewer.LViewerUnloadSet();
+    internal static void TViewerEndSet(LViewer viewer, bool reached) => viewer.LViewerEndSet(reached);
+    internal static void TViewerAllowSet(LViewer viewer, bool allowed) => viewer.LViewerAllowSet(allowed);
+    internal static void TViewerFilterSet(LViewer viewer, string? filter) => viewer.LViewerFilterSet(filter);
+    internal static void TViewerBypassSet(LViewer viewer, bool bypass) => viewer.LViewerBypassSet(bypass);
+    internal static string TViewerAudioResolve(LViewer viewer) => viewer.LViewerAudioResolve();
+    internal static void TViewerEngineSet(LViewer viewer, LPreviewEngine engine) => viewer.LViewerEngineSet(engine);
+    internal static void TViewerIntentSet(LViewer viewer, string path, TimeSpan position, bool? playing) =>
+        viewer.LViewerIntentSet(new LViewerIntent(path, position, playing));
+    internal static void TViewerIntentReset(LViewer viewer) => viewer.LViewerIntentSet(null);
+    internal static void TViewerRequestSet(LViewer viewer, string path) => viewer.LViewerRequestSet(path);
+    internal static bool TViewerSourceMatch(LViewer viewer, string path) => viewer.LViewerSourceMatch(path);
+    internal static void TViewerPreviewSet(LViewer viewer, LPreviewState preview) => viewer.LViewerPreviewSet(preview);
+    internal static void TViewerRotateSet(LViewer viewer, LRotateFlip rotate) =>
+        viewer.LViewerPreviewSet(viewer.LViewerPreview.LRotateFlipChange(rotate));
+    internal static void TViewerPlaybackUpdate(LViewer viewer, bool? playing, TimeSpan? position) =>
+        viewer.LViewerPlaybackUpdate(playing, position);
+    internal static void TViewerMediaCommit(LViewer viewer, LCargo cargo, bool persistent) =>
+        viewer.LViewerMediaCommit(cargo, persistent);
+    internal static void TViewerMediaRaise(LViewer viewer, LCargo cargo) => viewer.LViewerMediaRaise(cargo);
+    internal static void TViewerMediaClose(LViewer viewer) => viewer.LViewerMediaClose();
+    internal static bool TViewerNeutralSet(LViewer viewer, LNeutralTarget target) => viewer.LViewerNeutralSet(target);
+    internal static bool TViewerNeutralCancel(LViewer viewer) => viewer.LViewerNeutralCancel();
+    internal static bool TViewerNeutralReset(LViewer viewer) => viewer.LViewerNeutralReset();
+    internal static LCargo TCargoCreate(string path, LMediaInfo? info, bool preview) =>
+        new(path, info, info is not null, preview, null, null);
+    internal static LMediaInfo TViewerInfoCreate(TimeSpan duration, int width, int height) =>
+        new(duration, width, height, 25, "h264", false, "", 0, 0);
+    internal static LMediaInfo TViewerAudioCreate(TimeSpan duration) =>
+        new(duration, 0, 0, 0, "", true, "aac", 48000, 2);
+    internal static LPreviewState TPreviewCropCreate(double x, double y, double width, double height) =>
+        LPreviewState.LPreviewDefaultCreate().LCropboxChange(new LCropbox(x, y, width, height));
+
+    internal static LPlayer TPlayerCreate() => new();
+    internal static bool TPlayerAccurateSet(LPlayer player) => player.LPlayerAccurateSet();
+    internal static void TPlayerAccurateReset(LPlayer player) => player.LPlayerAccurateReset();
+    internal static void TPlayerRendererSet(LPlayer player, bool pending) => player.LPlayerRendererSet(pending);
+    internal static bool TPlayerSeekCommit(LPlayer player, int milliseconds) => player.LPlayerSeekCommit(milliseconds);
+    internal static Task TPlayerOpenStart(LPlayer player, string path) => player.LPlayerOpenStart(path);
+    internal static bool TPlayerFilterApply(LPlayer player, string filter) => player.LPlayerFilterApply(filter);
+    internal static void TPlayerEngineSet(LPlayer player, LPlayerSeam? seam) => player.LPlayerEngineSet(seam);
+    internal static LPlayerSeam TPlayerSeamCreate(
+        Action<string>? open = null,
+        Action<string>? filter = null,
+        Action<TimeSpan>? seek = null,
+        Func<TimeSpan>? time = null,
+        Func<bool>? ended = null,
+        Action? dispose = null,
+        Action<LPreviewApplication>? preview = null) => new(
+            open ?? (_ => { }),
+            () => { },
+            () => { },
+            () => { },
+            seek ?? (_ => { }),
+            _ => { },
+            filter ?? (_ => { }),
+            _ => { },
+            preview ?? (_ => { }),
+            () => { },
+            time ?? (() => TimeSpan.Zero),
+            ended ?? (() => false),
+            (_, _) => { },
+            dispose ?? (() => { }));
+    internal static void TPlayerAppliedReset(LPlayer player) => player.LPlayerAppliedReset();
+    internal static void TPlayerEndSet(LPlayer player, TimeSpan? end) => player.LPlayerEndSet(end);
+
+    internal static LViewerMedia TViewerMediaRead(LViewer viewer) => viewer.LViewerMedia;
+    internal static LViewerPlayback TViewerPlaybackRead(LViewer viewer) => viewer.LViewerPlayback;
+    internal static LViewerSource TViewerSourceRead(LViewer viewer) => viewer.LViewerSource;
+    internal static LViewerRenderer TViewerRendererRead(LViewer viewer) => viewer.LViewerRenderer;
+    internal static void TViewerLoupeSet(LViewer viewer, bool active) => viewer.LViewerLoupeSet(active);
+    internal static void TViewerMpvSet(LViewer viewer, bool mpv) => viewer.LViewerMpvSet(mpv);
+    internal static void TViewerHostSet(LViewer viewer, bool visible) => viewer.LViewerHostSet(visible);
+    internal static LViewerSwitch TViewerSwitchRead(LViewer viewer) => viewer.LViewerSwitchRead();
+    internal static bool TViewerSurfaceMatch(LViewer viewer, nint foreground, nint surface, nint overlay) =>
+        viewer.LViewerSurfaceMatch(foreground, surface, overlay);
+    internal static void TViewerPlayerAttach(LViewerMedia media, Action handler) =>
+        media.LViewerPlayerCreate += handler;
+    internal static void TViewerHostAttach(LViewerRenderer renderer, Action handler) =>
+        renderer.LViewerHostApply += handler;
+    internal static void TViewerCropAttach(LViewerMedia media, Action handler) => media.LViewerCropReset += handler;
+    internal static Task TViewerLoadStart(LViewerMedia media, string path, TimeSpan position, bool? playing) =>
+        media.LViewerLoadStart(new LViewerIntent(path, position, playing));
+    internal static Task TViewerFlyleafApply(
+        LViewerMedia media, string path, LMediaInfo? info, string? error, int serial) =>
+        media.LViewerFlyleafApply(path, info, error, serial);
+    internal static bool TViewerLoadCancel(LViewerMedia media) => media.LViewerLoadCancel();
+    internal static bool TViewerMediaClose(LViewerMedia media, bool force) => media.LViewerMediaClose(force);
+    internal static void TViewerCommandApply(LViewerMedia media, bool active) => media.LViewerCommandApply(active);
+    internal static void TViewerClose(LViewerMedia media) => media.LViewerClose();
+    internal static void TViewerClockAttach(LViewerPlayback playback, Action start, Action stop)
+    {
+        playback.LViewerClockStart += start;
+        playback.LViewerClockStop += stop;
+    }
+    internal static void TViewerTickAttach(LViewerPlayback playback, Action<TimeSpan> handler) =>
+        playback.LViewerClockTick += handler;
+    internal static void TViewerLoupeAttach(LViewerPlayback playback, Action play, Action pause, Action<TimeSpan> seek)
+    {
+        playback.LViewerLoupePlay += play;
+        playback.LViewerLoupePause += pause;
+        playback.LViewerLoupeSeek += seek;
+    }
+    internal static void TViewerPlay(LViewerPlayback playback) => playback.LViewerPlay();
+    internal static void TViewerPause(LViewerPlayback playback) => playback.LViewerPause();
+    internal static void TViewerSeek(LViewerPlayback playback, TimeSpan position) => playback.LViewerSeek(position);
+    internal static void TViewerVolumeSet(LViewerPlayback playback, double volume) => playback.LViewerVolumeSet(volume);
+    internal static void TViewerSuspend(LViewerPlayback playback) => playback.LViewerSuspend();
+    internal static void TViewerResume(LViewerPlayback playback) => playback.LViewerResume();
+    internal static void TViewerTick(LViewerPlayback playback) => playback.LViewerTick();
+    internal static void TViewerSourceOpen(LViewerSource source, string path) => source.LViewerSourceOpen(path);
+    internal static void TViewerPathHandle(LViewer viewer, string? path) => viewer.LViewerPathHandle(path);
+    internal static void TViewerAskAttach(LViewerSource source, Action<LViewerAsk, Action<bool>> handler) =>
+        source.LViewerSourceAsk += handler;
+    internal static void TViewerDropAttach(LViewerSource source, Action<IReadOnlyList<string>> handler) =>
+        source.LViewerPathsDrop += handler;
+    internal static LWindowDropEffect TViewerDropResolve(LViewerSource source, string[]? paths, bool copyable) =>
+        source.LViewerDropResolve(paths, copyable);
+    internal static LWindowDropEffect TViewerDropHandle(LViewerSource source, string[]? paths, bool copyable) =>
+        source.LViewerDropHandle(paths, copyable);
+    internal static LViewerEnginePlan TViewerEngineRead(LViewerRenderer renderer) => renderer.LViewerEngineRead();
+    internal static string TPreferenceEngineRead() => LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine;
+    internal static void TViewerEngineSelect(LViewerRenderer renderer, string key) => renderer.LViewerEngineSelect(key);
+    internal static bool TViewerEngineUpdate(LViewerRenderer renderer) => renderer.LViewerEngineUpdate();
+    internal static bool TViewerOverlayHandle(LViewerRenderer renderer, bool visible, double width, double height) =>
+        renderer.LViewerOverlayHandle(visible, width, height);
+    internal static void TPlayerSeek(LPlayer player, TimeSpan position) => player.LPlayerSeek(position);
+    internal static TimeSpan TPlayerTimeRead(LPlayer player) => player.LPlayerTimeRead();
+    internal static bool TPlayerEndedRead(LPlayer player) => player.LPlayerEndedRead();
+    internal static LSidecarSourceResult TSidecarSourceCreate(string path, LSidecarSourceKind kind) =>
+        new(path, kind, false, Path.GetFileName(path));
+    internal static void TViewerLibrarianAttach(
+        Func<string, bool>? checker,
+        Func<string, LSidecarSourceResult?>? resolver,
+        Func<string, string, bool>? matcher)
+    {
+        LLibrarian.LLibrarianFileChecker = checker;
+        LLibrarian.LLibrarianSourceResolver = resolver;
+        LLibrarian.LLibrarianSourceMatcher = matcher;
+    }
+    internal static void TPlayerPreviewApply(LPlayer player, LPreviewState state) =>
+        player.LPlayerPreviewApply(state, "test");
+    internal static void TPlayerAudioApply(LPlayer player, string audio) => player.LPlayerAudioApply(audio);
 }

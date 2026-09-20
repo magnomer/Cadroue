@@ -44,7 +44,7 @@ public sealed class LEditTab
         lEditList = lList;
         lEditDocket = lDocket;
         lEditProcessing = lProcessing;
-        LEditColor = new LEditTabColor(lInspector, lProcessing);
+        LEditColor = new LEditTabColor(lInspector, lProcessing, lViewer);
         LEditStore = new LEditTabPlan(lInspector, lViewer, lDocket, LEditColor);
         lProcessing.LProcessingOrderedSet(false);
         lInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChange += LEditCropHandle;
@@ -54,6 +54,7 @@ public sealed class LEditTab
         lInspector.LInspectorSkip.LSkipActiveChange += LEditSkipHandle;
         lInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange += LEditColor.LEditEstimateHandle;
         lViewer.LViewerMediaChange += LEditMediaHandle;
+        lViewer.LViewerEngineChange += LEditColor.LEditCapableHandle;
         lProcessing.LProcessingStepChange += LEditStepHandle;
     }
 
@@ -81,6 +82,7 @@ public sealed class LEditTab
         lEditInspector.LInspectorSkip.LSkipActiveChange -= LEditSkipHandle;
         lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange -= LEditColor.LEditEstimateHandle;
         lEditViewer.LViewerMediaChange -= LEditMediaHandle;
+        lEditViewer.LViewerEngineChange -= LEditColor.LEditCapableHandle;
         lEditProcessing.LProcessingStepChange -= LEditStepHandle;
     }
 

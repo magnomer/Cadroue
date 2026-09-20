@@ -64,7 +64,7 @@ public sealed partial class PInspector
         pWhitebalanceMethodField = PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
             pWhitebalanceMethod);
-        pWhitebalanceSaturationField = PFilterSliderBuild(
+        pWhitebalanceSaturationField = PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
             pWhitebalanceSaturationSlider,
             "%",
@@ -120,7 +120,8 @@ public sealed partial class PInspector
         PInspectorSectionApply(
             pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pTip);
         pInspectorNeutralTool.IsEnabled = LWhitebalance.LWhitebalanceCapable;
-        pInspectorNeutralTool.ToolTip = LInspector.LInspectorNoticeRead(pTip, "Inspector.Video.WhitebalancePickTooltip");
+        pInspectorNeutralTool.ToolTip = LInspector.LInspectorNoticeRead(
+            pTip, "Inspector.Video.WhitebalancePickTooltip");
         pInspectorWhiteTool.IsEnabled = LWhitebalance.LWhitebalanceCapable;
         pInspectorWhiteTool.ToolTip = LInspector.LInspectorNoticeRead(
             pTip, "Inspector.Video.WhitebalancePickWhiteTooltip");

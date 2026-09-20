@@ -151,7 +151,7 @@ public sealed class LWindowDrop
 
         if (lWindow.LWindowListPresent)
         {
-            bool lListMatch = lPaths.Any(lPath => LUsher.LUsherFolderExist(lPath) || LMedia.LMediaCheck(lPath));
+            bool lListMatch = LWindowMediaCheck(lPaths);
             lReason = lListMatch
                 ? $"target=list, {lPayload}"
                 : $"target=list, none are media/folders — {lPayload}";
@@ -188,8 +188,13 @@ public sealed class LWindowDrop
     private static IReadOnlyList<string> LWindowPathsRead(LWindowDrag lDrag) =>
         lDrag.LWindowDragPaths ?? [];
 
-    private static string? LWindowPathRead(LWindowDrag lDrag) =>
-        LWindowPathsRead(lDrag).FirstOrDefault(LUsher.LUsherFileExist);
+    private static string? LWindowPathRead(LWindowDrag lDrag) => LWindowFileFind(LWindowPathsRead(lDrag));
+
+    internal static string? LWindowFileFind(IReadOnlyList<string> lPaths) =>
+        lPaths.FirstOrDefault(LUsher.LUsherFileExist);
+
+    internal static bool LWindowMediaCheck(IReadOnlyList<string> lPaths) =>
+        lPaths.Any(lPath => LUsher.LUsherFolderExist(lPath) || LMedia.LMediaCheck(lPath));
 
     private void LWindowDropAppend(LWindowDrag lDrag, string lSummary, string? lDetail = null)
     {

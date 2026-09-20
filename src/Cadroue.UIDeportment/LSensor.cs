@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -19,9 +20,28 @@ public sealed class LSensor
     private bool lSensorRunning;
     private bool lSensorPersistent;
 
+    private static readonly LDetectorStillMode[] LSensorModes =
+    {
+        LDetectorStillMode.LDetectorStillDiscard, LDetectorStillMode.LDetectorStillTreat
+    };
+
+    private static readonly LDetectorLuminanceMode[] LSensorSpeeds =
+    {
+        LDetectorLuminanceMode.LDetectorLuminanceFast,
+        LDetectorLuminanceMode.LDetectorLuminanceNormal,
+        LDetectorLuminanceMode.LDetectorLuminanceFull
+    };
+
+    private static readonly LDetectorMetricMode[] LSensorMetrics =
+    {
+        LDetectorMetricMode.LDetectorMetricLufs, LDetectorMetricMode.LDetectorMetricRms
+    };
+
     public event Action? LSensorChange;
     public event Action<bool>? LSensorRunningChange;
     public event Action<bool>? LSensorPersistentChange;
+    public event Action? LSensorRunApply;
+    public event Action? LSensorStopApply;
 
     public LSensor()
     {
@@ -35,7 +55,20 @@ public sealed class LSensor
             lSensorSteps[lKind] = LDetector.LDetectorCreate(lKind);
             lSensorTokens[lKind] = LSensorPresetCheck(lKind) ? LDetector.LDetectorTokenDefault : null;
         }
+
+        LSensorPlans = lSensorSteps.Keys.Select(LSensorPlan.LSensorPlanCreate).ToList();
     }
+
+    public IReadOnlyList<LSensorPlan> LSensorPlans { get; }
+
+    public int LSensorModeIndex => Array.IndexOf(LSensorModes, lSensorMode);
+
+    public int LSensorSpeedIndex => Array.IndexOf(LSensorSpeeds, lSensorSpeed);
+
+    public int LSensorMetricIndex => Array.IndexOf(LSensorMetrics, lSensorMetric);
+
+    public string LSensorRunText =>
+        LLocalization.LLocalizationTextRead(lSensorRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
 
     public LDetectorStillMode LSensorMode => lSensorMode;
 
@@ -75,6 +108,100 @@ public sealed class LSensor
         lSensorSteps.TryGetValue(lKind, out LDetectorStep lStep) ? lStep : LDetector.LDetectorCreate(lKind);
 
     public string? LSensorTokenRead(LDetectorKind lKind) => lSensorTokens.GetValueOrDefault(lKind);
+
+    public bool LSensorEnabledRead(LDetectorKind lKind) => LSensorStepRead(lKind).LDetectorStepEnabled;
+
+    public double LSensorValueRead(LDetectorKind lKind, int lRow)
+    {
+        LDetectorStep lStep = LSensorStepRead(lKind);
+        return lRow switch
+        {
+            LSensorPlan.LSensorPlanWindow => lStep.LDetectorStepWindow,
+            LSensorPlan.LSensorPlanMinimum => lStep.LDetectorStepMinimum,
+            _ => lStep.LDetectorStepThreshold
+        };
+    }
+
+    public double LSensorDefaultRead(LDetectorKind lKind, int lRow) => lRow switch
+    {
+        LSensorPlan.LSensorPlanWindow => LDetector.LDetectorWindowRead(lKind).LDetectorBoundDefault,
+        LSensorPlan.LSensorPlanMinimum => LDetector.LDetectorMinimumRead(lKind).LDetectorBoundDefault,
+        _ => LDetector.LDetectorThresholdRead(lKind).LDetectorBoundDefault
+    };
+
+    public string LSensorUnitRead(LDetectorKind lKind, int lRow) =>
+        lKind == LDetectorKind.LDetectorKindVolume && lRow == LSensorPlan.LSensorPlanThreshold
+            ? (lSensorMetric == LDetectorMetricMode.LDetectorMetricRms ? "dB" : "LU")
+            : LSensorPlans.First(lPlan => lPlan.LSensorPlanKind == lKind)
+                .LSensorPlanRows.First(lEntry => lEntry.LInspectorRowIndex == lRow).LInspectorRowUnit;
+
+    public LInspectorChoice LSensorChoiceRead(LDetectorKind lKind) => LInspectorPlan.LInspectorChoiceRead(
+        LDetector.LDetectorTokensRead(lKind),
+        lToken => LSensorPlan.LSensorKeyRead(lKind, lToken),
+        LSensorTokenRead(lKind),
+        LSensorMatchRead(lKind));
+
+    public void LSensorValueSet(LDetectorKind lKind, int lRow, double lValue)
+    {
+        switch (lRow)
+        {
+            case LSensorPlan.LSensorPlanWindow:
+                LSensorWindowSet(lKind, lValue);
+                break;
+            case LSensorPlan.LSensorPlanMinimum:
+                LSensorMinimumSet(lKind, lValue);
+                break;
+            default:
+                LSensorThresholdSet(lKind, lValue);
+                break;
+        }
+    }
+
+    public void LSensorModeSelect(int lIndex)
+    {
+        if (lIndex >= 0 && lIndex < LSensorModes.Length)
+        {
+            LSensorModeSet(LSensorModes[lIndex]);
+        }
+    }
+
+    public void LSensorSpeedSelect(int lIndex)
+    {
+        if (lIndex >= 0 && lIndex < LSensorSpeeds.Length)
+        {
+            LSensorSpeedSet(LSensorSpeeds[lIndex]);
+        }
+    }
+
+    public void LSensorMetricSelect(int lIndex)
+    {
+        if (lIndex >= 0 && lIndex < LSensorMetrics.Length)
+        {
+            LSensorMetricSet(LSensorMetrics[lIndex]);
+        }
+    }
+
+    public void LSensorChoiceSelect(LDetectorKind lKind, int lIndex)
+    {
+        string? lToken = LInspectorPlan.LInspectorChoiceResolve(
+            LDetector.LDetectorTokensRead(lKind), lIndex, LSensorTokenRead(lKind), LSensorMatchRead(lKind));
+        if (lToken is not null)
+        {
+            LSensorPresetSelect(lKind, lToken);
+        }
+    }
+
+    public void LSensorRunHandle()
+    {
+        if (lSensorRunning)
+        {
+            LSensorStopApply?.Invoke();
+        }
+        else
+        {
+            LSensorRunApply?.Invoke();
+        }
+    }
 
     public string? LSensorMatchRead(LDetectorKind lKind)
     {

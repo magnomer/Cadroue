@@ -1,6 +1,7 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
 
@@ -16,13 +17,14 @@ public sealed record LViewerIntent(
     TimeSpan LViewerIntentPosition,
     bool? LViewerIntentPlaying);
 
+public sealed record LViewerSwitch(string LViewerSwitchText, string LViewerSwitchTip, bool LViewerSwitchEnabled);
+
 public sealed class LViewer
 {
     private int lViewerLoadSerial;
-    private int lViewerHostStamp;
-    private bool lViewerHostBuilt;
     private bool lViewerMpvActive;
-    private bool lViewerEngineSubscribed;
+    private bool lViewerHostVisible;
+    private bool lViewerLoupeActive;
     private LPreviewEngine lViewerEngine = LPreviewEngine.LPreviewEngineFlyleaf;
     private bool lViewerCommandActive;
     private bool lViewerUnloaded;
@@ -44,10 +46,29 @@ public sealed class LViewer
     private LNeutralTarget lViewerNeutralTarget;
     private int lViewerNeutralSerial;
     private bool lViewerNeutralPlaying;
-    private bool lViewerDragActive;
-    private readonly List<string> lViewerSeekTrace = [];
-    private int lViewerTraceCount;
-    private TimeSpan lViewerTraceFinal;
+
+    public LViewer()
+    {
+        LViewerPlayback = new LViewerPlayback(this);
+        LViewerMedia = new LViewerMedia(this);
+        LViewerSource = new LViewerSource(this);
+        LViewerRenderer = new LViewerRenderer(this);
+        LViewerMpv = new LViewerMpv(this);
+    }
+
+    public LPlayer LPlayer { get; } = new();
+
+    public LViewerPlayback LViewerPlayback { get; }
+
+    public LViewerMedia LViewerMedia { get; }
+
+    public LViewerSource LViewerSource { get; }
+
+    public LViewerRenderer LViewerRenderer { get; }
+
+    public LViewerMpv LViewerMpv { get; }
+
+    public LCrop LCrop { get; } = new();
 
     public event Action<LCargo>? LViewerMediaChange;
     public event Action<bool>? LViewerPlayingChange;
@@ -56,14 +77,23 @@ public sealed class LViewer
     public event Action<bool>? LViewerBypassChange;
     public event Action<bool, LNeutralTarget>? LViewerToolChange;
     public event Action<double>? LViewerVolumeChange;
+    public event Action<string>? LViewerOpenRequest;
 
     public int LViewerLoadSerial => lViewerLoadSerial;
 
-    public bool LViewerHostBuilt => lViewerHostBuilt;
-
     public bool LViewerMpvActive => lViewerMpvActive;
 
-    public bool LViewerEngineSubscribed => lViewerEngineSubscribed;
+    public bool LViewerHostVisible => lViewerHostVisible;
+
+    public bool LViewerMpvShown => lViewerHostVisible && lViewerMpvActive;
+
+    public bool LViewerFlyleafShown => lViewerHostVisible && !lViewerMpvActive;
+
+    public bool LViewerAudioShown => lViewerHostVisible && lViewerAudioEligible;
+
+    public bool LViewerAudioCapable => lViewerEngine == LPreviewEngine.LPreviewEngineMpv;
+
+    public bool LViewerLoupeActive => lViewerLoupeActive;
 
     public LPreviewEngine LViewerEngine => lViewerEngine;
 
@@ -82,6 +112,8 @@ public sealed class LViewer
     public bool LViewerEditEligible => lViewerEditEligible;
 
     public bool LViewerColorPreview => lViewerColorPreview;
+
+    public bool LViewerProcessorForced => lViewerColorPreview && LFlyleaf.LFlyleafActive;
 
     public bool LViewerBypass => lViewerBypass;
 
@@ -111,18 +143,22 @@ public sealed class LViewer
 
     public bool LViewerVideoPresent => lViewerMediaInfo is { LMediaVideoPresent: true };
 
-    public int LViewerSerialChange() => ++lViewerLoadSerial;
+    public LViewerSwitch LViewerSwitchRead() => new(
+        LLocalization.LLocalizationTextRead(lViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered"),
+        LLocalization.LLocalizationTextRead(
+            LViewerAudioCapable ? "Viewer.Audio.SwitchTooltip" : "Viewer.Audio.MpvRequired"),
+        LViewerAudioCapable);
 
-    public int LViewerStampChange() => ++lViewerHostStamp;
+    public int LViewerSerialChange() => ++lViewerLoadSerial;
 
     public bool LViewerSerialCheck(int lSerial) =>
         !lViewerUnloaded && lSerial == lViewerLoadSerial && lViewerCommandActive;
 
-    public void LViewerHostSet(bool lHostBuilt) => lViewerHostBuilt = lHostBuilt;
-
     public void LViewerMpvSet(bool lMpvActive) => lViewerMpvActive = lMpvActive;
 
-    public void LViewerSubscribedSet(bool lSubscribed) => lViewerEngineSubscribed = lSubscribed;
+    public void LViewerHostSet(bool lHostVisible) => lViewerHostVisible = lHostVisible;
+
+    public void LViewerLoupeSet(bool lLoupeActive) => lViewerLoupeActive = lLoupeActive;
 
     public void LViewerCommandSet(bool lCommandActive) => lViewerCommandActive = lCommandActive;
 
@@ -145,8 +181,6 @@ public sealed class LViewer
 
     public void LViewerRequestSet(string lRequestPath) => lViewerRequestPath = lRequestPath;
 
-    public event Action<string>? LViewerOpenRequest;
-
     public void LViewerPathHandle(string? lPath)
     {
         if (string.IsNullOrWhiteSpace(lPath) || LViewerSourceMatch(lPath))
@@ -160,6 +194,9 @@ public sealed class LViewer
     public bool LViewerSourceMatch(string lRequestPath) =>
         string.Equals(lViewerRequestPath, lRequestPath, StringComparison.OrdinalIgnoreCase)
         && (lViewerMediaInfo is not null || lViewerIntent is not null);
+
+    public bool LViewerSurfaceMatch(nint lForeground, nint lSurface, nint lOverlay) =>
+        lForeground != nint.Zero && (lForeground == lSurface || lForeground == lOverlay);
 
     public void LViewerEngineSet(LPreviewEngine lEngine)
     {
@@ -176,6 +213,13 @@ public sealed class LViewer
 
     public string LViewerAudioResolve() => lViewerBypass ? string.Empty : lViewerAudioFilter;
 
+    public void LViewerGraphSet(string lGraph)
+    {
+        LViewerFilterSet(lGraph);
+        LViewerAudioApply();
+        LViewerPreviewRaise();
+    }
+
     public void LViewerBypassSet(bool lBypass)
     {
         if (lViewerBypass == lBypass)
@@ -185,9 +229,23 @@ public sealed class LViewer
 
         lViewerBypass = lBypass;
         LViewerBypassChange?.Invoke(lBypass);
+        LViewerAudioApply();
+        LViewerPreviewRaise();
     }
 
-    public void LViewerVolumeSet(double lVolume)
+    public void LViewerBypassToggle() => LViewerBypassSet(!lViewerBypass);
+
+    public void LViewerAudioApply()
+    {
+        if (!lViewerMpvActive || !LPlayer.LPlayerReady)
+        {
+            return;
+        }
+
+        LPlayer.LPlayerAudioApply(LViewerAudioResolve());
+    }
+
+    public void LViewerVolumeApply(double lVolume)
     {
         lViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
         if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
@@ -201,6 +259,72 @@ public sealed class LViewer
     public void LViewerPreviewSet(LPreviewState lPreview) => lViewerPreview = lPreview;
 
     public void LViewerPreviewRaise() => LViewerPreviewChange?.Invoke();
+
+    public LPreviewState LViewerRenderRead() =>
+        LCrop.LCropActive
+            ? lViewerPreview
+            : lViewerPreview
+                .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
+                .LCropboxChange(null);
+
+    public void LViewerFilterUpdate()
+    {
+        if (!lViewerMpvActive || !LPlayer.LPlayerReady)
+        {
+            return;
+        }
+
+        string lFilter = LPreview.LPreviewFilterResolve(LViewerRenderRead());
+        bool lChanged = lFilter != LPlayer.LPlayerFilterApplied;
+        if (!LPlayer.LPlayerFilterApply(lFilter) || !lChanged)
+        {
+            return;
+        }
+
+        if (LViewerPlaying)
+        {
+            return;
+        }
+
+        try
+        {
+            LPlayer.LPlayerUpdate();
+        }
+        catch (Exception lRefreshException)
+        {
+            LTraceLog.LTraceErrorRecord($"mpv rejected paused preview refresh: {lRefreshException.Message}");
+        }
+    }
+
+    public void LViewerPreviewApply()
+    {
+        if (lViewerMpvActive)
+        {
+            LViewerFilterUpdate();
+            LViewerPreviewRaise();
+            return;
+        }
+
+        LPlayer.LPlayerPreviewApply(LViewerRenderRead(), "preview color/geometry");
+        LPlayer.LPlayerFactsRecord("Preview color applied");
+        LViewerPreviewRaise();
+    }
+
+    public void LViewerRotateSet(LRotateFlip lRotateFlip)
+    {
+        lViewerPreview = lViewerPreview.LRotateFlipChange(lRotateFlip);
+        LTraceLog.LTraceInfoRecord(
+            $"Viewer rotate/flip set: rotate {lRotateFlip.LRotateKind}, "
+            + $"H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}, "
+            + $"player {(LPlayer.LPlayerReady ? "ready" : "none")}, overlay remapped");
+        LViewerPreviewApply();
+    }
+
+    public void LViewerColorSet(LColor lColor)
+    {
+        lViewerPreview = lViewerPreview.LColorChange(lColor);
+        LViewerPreviewApply();
+    }
 
     public void LViewerMediaRaise(LCargo lCargo)
     {
@@ -254,6 +378,36 @@ public sealed class LViewer
             .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
     }
 
+    public TimeSpan LViewerTimeRead() => LPlayer.LPlayerReady ? LPlayer.LPlayerTimeRead() : LViewerPosition;
+
+    public async void LViewerFrameRead(Action<LMediaFrame?> lFrameApply)
+    {
+        if (lViewerMediaInfo is not { LMediaVideoPresent: true } lMediaInfo)
+        {
+            lFrameApply(null);
+            return;
+        }
+
+        int lWidth = lMediaInfo.LMediaVideoWidth;
+        int lHeight = lMediaInfo.LMediaVideoHeight;
+        string? lPath = lViewerSourcePath;
+        if (lWidth <= 0 || lHeight <= 0 || string.IsNullOrWhiteSpace(lPath))
+        {
+            lFrameApply(null);
+            return;
+        }
+
+        TimeSpan lTime = LViewerTimeRead();
+        int lClaim = lViewerLoadSerial;
+        LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lTime, lWidth, lHeight);
+        if (lViewerUnloaded || lClaim != lViewerLoadSerial)
+        {
+            return;
+        }
+
+        lFrameApply(lFrame);
+    }
+
     public void LViewerToolSet(LViewerTool lTool) => lViewerTool = lTool;
 
     public bool LViewerNeutralSet(LNeutralTarget lTarget)
@@ -291,92 +445,4 @@ public sealed class LViewer
         lViewerNeutralPlaying = false;
         return lResume;
     }
-
-    public void LViewerDragSet(bool lDragging)
-    {
-        if (lDragging)
-        {
-            if (!lViewerDragActive)
-            {
-                lViewerSeekTrace.Clear();
-                lViewerTraceCount = 0;
-            }
-
-            lViewerDragActive = true;
-            return;
-        }
-
-        lViewerDragActive = false;
-        if (lViewerTraceCount == 0)
-        {
-            return;
-        }
-
-        string lSummary = lViewerTraceCount == 1
-            ? $"Seek accurate to {lViewerTraceFinal:hh\\:mm\\:ss\\.fff}"
-            : $"Seek accurate while dragging to {lViewerTraceFinal:hh\\:mm\\:ss\\.fff} ({lViewerTraceCount} requests)";
-        LTrace.LTraceRecord(LTraceKind.LTraceUi, lSummary, string.Join(Environment.NewLine, lViewerSeekTrace));
-        lViewerSeekTrace.Clear();
-        lViewerTraceCount = 0;
-    }
-
-    public void LViewerSeekRecord(TimeSpan lPosition, string lDetail)
-    {
-        string lSummary = $"Seek accurate to {lPosition:hh\\:mm\\:ss\\.fff}";
-        if (!lViewerDragActive)
-        {
-            LTrace.LTraceRecord(LTraceKind.LTraceUi, lSummary, lDetail);
-            return;
-        }
-
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
-        {
-            return;
-        }
-
-        string lTime = DateTimeOffset.Now.ToString(
-            "HH:mm:ss.fff",
-            System.Globalization.CultureInfo.InvariantCulture);
-        lViewerSeekTrace.Add($"{lTime}  {lSummary}");
-        lViewerSeekTrace.Add($"{new string(' ', 14)}{lDetail}");
-        lViewerTraceCount++;
-        lViewerTraceFinal = lPosition;
-    }
-
-    public static void LViewerMediaRecord(LCargo lCargo, bool lPlayerReady)
-    {
-        string lSourcePath = lCargo.LCargoSourcePath ?? "(no path)";
-        string lFileName = System.IO.Path.GetFileName(lSourcePath);
-
-        if (lCargo.LCargoMediaInfo is not LMediaInfo lMediaInfo)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Media rejected '{lFileName}': {lCargo.LCargoFfmpegError ?? "unreadable"} [{lSourcePath}]");
-            return;
-        }
-
-        string lStreams = lMediaInfo.LMediaVideoPresent
-            ? $"video {lMediaInfo.LMediaVideoWidth}x{lMediaInfo.LMediaVideoHeight} "
-                + $"{lMediaInfo.LMediaVideoCodec} {lMediaInfo.LMediaVideoRate:0.###}fps"
-            : "no video";
-        if (lMediaInfo.LMediaAudioPresent)
-        {
-            lStreams += $", audio {lMediaInfo.LMediaAudioCodec} "
-                + $"{lMediaInfo.LMediaSampleRate}Hz {lMediaInfo.LMediaAudioChannels}ch";
-        }
-
-        LTraceLog.LTraceInfoRecord(
-            $"Media opened '{lFileName}': {lMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, "
-            + $"{lStreams} [{lSourcePath}]");
-
-        if (!lPlayerReady)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Preview unavailable for '{lFileName}': "
-                + $"{lCargo.LCargoPreviewError ?? "the player did not start"}");
-        }
-    }
-
-    public static void LViewerPlayerAttach(Action<object, LPreviewApplication> lPlayerApply) =>
-        LPreview.LPreviewApplySeam = lPlayerApply;
 }

@@ -9,7 +9,9 @@ namespace Cadroue.Tests;
 [Collection("Preset")]
 public sealed class TEditTabColor
 {
-    private static (LEditTab, LInspector) TEditBuild()
+    private static (LEditTab, LInspector) TEditBuild() => TEditBuild(TInterface.TViewerCreate());
+
+    private static (LEditTab, LInspector) TEditBuild(LViewer viewer)
     {
         LInspector inspector = TInterface.TInspectorCreate();
         LDocket docket = TInterface.TDocketCreate();
@@ -22,8 +24,8 @@ public sealed class TEditTabColor
         LEditTab tab = TInterface.TEditTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
-            TInterface.TViewerCreate(),
-            TInterface.TCropCreate(),
+            viewer,
+            viewer.LCrop,
             TInterface.TListCreate(docket),
             docket,
             processing);
@@ -96,11 +98,12 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector) = TEditBuild();
+        LViewer viewer = TInterface.TViewerCreate();
+        (LEditTab tab, LInspector inspector) = TEditBuild(viewer);
         TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, 40);
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
         var colors = new List<LColor>();
-        TInterface.TEditPreviewAttach(tab, colors.Add);
+        TInterface.TEditPreviewAttach(viewer, colors.Add);
 
         TInterface.TEditColorApply(tab);
         TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);

@@ -132,7 +132,7 @@ public sealed class PSource : UserControl
             return;
         }
 
-        pSourceViewer?.PViewerSourceOpen(pDialog.FileName);
+        pSourceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pDialog.FileName);
     }
 
     private string PSourceFilterRead()
@@ -166,7 +166,7 @@ public sealed class PSource : UserControl
             return;
         }
 
-        pSourceViewer?.PViewerSourceOpen(pPath);
+        pSourceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pPath);
         e.Handled = true;
     }
 

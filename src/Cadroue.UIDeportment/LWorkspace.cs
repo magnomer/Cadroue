@@ -94,6 +94,17 @@ public sealed class LWorkspace
             lFlow.LFlowMediaChange += LWorkspaceHistoryReset;
         }
 
+        if (lFlow is not null && lViewer is not null)
+        {
+            lFlow.LFlowPlayingAttach(() => lViewer.LViewerPlaying);
+            lViewer.LViewerPlayback.LViewerClockTick += lFlow.LFlowCursorUpdate;
+            lFlow.LFlowCursorChange += lViewer.LViewerPlayback.LViewerSeek;
+            lFlow.LFlowDragChange += lViewer.LViewerPlayback.LViewerDragSet;
+            lFlow.LFlowPlay += lViewer.LViewerPlayback.LViewerPlay;
+            lFlow.LFlowPause += lViewer.LViewerPlayback.LViewerPause;
+            lFlow.LFlowVolumeAdjust += lViewer.LViewerPlayback.LViewerVolumeAdjust;
+        }
+
         lWorkspaceHistory.LHistoryReset(LWorkspaceSnapshotRead());
         LWorkspacePreset.LPresetChange += LWorkspaceHistoryAdd;
     }
@@ -109,6 +120,17 @@ public sealed class LWorkspace
         {
             lWorkspaceFlow.LFlowSection.LFlowSectionChange -= LWorkspaceSectionHandle;
             lWorkspaceFlow.LFlowMediaChange -= LWorkspaceHistoryReset;
+        }
+
+        if (lWorkspaceFlow is { } lFlow && lWorkspaceViewer is { } lViewer)
+        {
+            lViewer.LViewerPlayback.LViewerClockTick -= lFlow.LFlowCursorUpdate;
+            lFlow.LFlowCursorChange -= lViewer.LViewerPlayback.LViewerSeek;
+            lFlow.LFlowDragChange -= lViewer.LViewerPlayback.LViewerDragSet;
+            lFlow.LFlowPlay -= lViewer.LViewerPlayback.LViewerPlay;
+            lFlow.LFlowPause -= lViewer.LViewerPlayback.LViewerPause;
+            lFlow.LFlowVolumeAdjust -= lViewer.LViewerPlayback.LViewerVolumeAdjust;
+            lFlow.LFlowPlayingAttach(null);
         }
 
         lWorkspaceRelay = null;
@@ -402,9 +424,5 @@ public sealed class LWorkspace
             || lViewer.LViewerMediaInfo is not null
             || lViewer.LViewerIntent is not null);
 
-    private void LWorkspaceLoadCancel()
-    {
-        lWorkspaceViewer?.LViewerIntentSet(null);
-        lWorkspaceViewer?.LViewerSerialChange();
-    }
+    private void LWorkspaceLoadCancel() => lWorkspaceViewer?.LViewerMedia.LViewerLoadCancel();
 }

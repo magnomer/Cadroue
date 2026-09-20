@@ -24,7 +24,7 @@ public sealed partial class PViewer
 
             if (LViewer.LViewerNeutralPlaying)
             {
-                PViewerPause();
+                LViewer.LViewerPlayback.LViewerPause();
             }
 
             pViewerOverlay.Focus();
@@ -49,7 +49,7 @@ public sealed partial class PViewer
 
         if (LViewer.LViewerNeutralReset())
         {
-            PViewerPlay();
+            LViewer.LViewerPlayback.LViewerPlay();
         }
 
         LViewer.LViewerNeutralRaise(false);
@@ -114,7 +114,7 @@ public sealed partial class PViewer
             return;
         }
 
-        TimeSpan pViewerTime = PViewerTimeRead();
+        TimeSpan pViewerTime = LViewer.LViewerTimeRead();
         int pViewerLoadClaim = LViewer.LViewerLoadSerial;
         int pViewerNeutralClaim = LViewer.LViewerNeutralSerial;
         int pViewerPixelX = pViewerPoint.LNeutralPointX;
@@ -179,7 +179,7 @@ public sealed partial class PViewer
             return;
         }
 
-        TimeSpan pViewerTime = PViewerTimeRead();
+        TimeSpan pViewerTime = LViewer.LViewerTimeRead();
         int pViewerLoadClaim = LViewer.LViewerLoadSerial;
 
         LMediaFrame? pViewerFrame = await LMedia.LMediaFrameStart(
@@ -198,40 +198,6 @@ public sealed partial class PViewer
                 pViewerFrame.LMediaFrameHeight,
                 pMethod));
     }
-
-    public async void PViewerFrameRead(Action<LMediaFrame?> pFrameReady)
-    {
-        if (LViewer.LViewerMediaInfo is not { LMediaVideoPresent: true } pViewerMediaInfo)
-        {
-            pFrameReady(null);
-            return;
-        }
-
-        int pViewerSourceWidth = pViewerMediaInfo.LMediaVideoWidth;
-        int pViewerSourceHeight = pViewerMediaInfo.LMediaVideoHeight;
-        string? pViewerPath = PViewerSourcePath;
-        if (pViewerSourceWidth <= 0 || pViewerSourceHeight <= 0 || string.IsNullOrWhiteSpace(pViewerPath))
-        {
-            pFrameReady(null);
-            return;
-        }
-
-        TimeSpan pViewerTime = PViewerTimeRead();
-        int pViewerLoadClaim = LViewer.LViewerLoadSerial;
-
-        LMediaFrame? pViewerFrame = await LMedia.LMediaFrameStart(
-            pViewerPath, pViewerTime, pViewerSourceWidth, pViewerSourceHeight);
-
-        if (LViewer.LViewerUnloaded || pViewerLoadClaim != LViewer.LViewerLoadSerial)
-        {
-            return;
-        }
-
-        pFrameReady(pViewerFrame);
-    }
-
-    private TimeSpan PViewerTimeRead() =>
-        pViewerPlayer.PPlayerReady ? pViewerPlayer.PPlayerTimeRead() : LViewer.LViewerPosition;
 
     private (Rect, Rect) PViewerGeometryRead()
     {

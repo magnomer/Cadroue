@@ -46,7 +46,7 @@ public sealed class PFixTab : PTabSurface
         pList.PListPathChange += LFixTab.LFixPathHandle;
         pList.PListItemsAdd += LFixTab.LFixItemsHandle;
         pList.PListClearChange += LFixTab.LFixClearHandle;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);

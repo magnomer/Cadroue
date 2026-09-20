@@ -56,7 +56,7 @@ public sealed partial class PInspector
             null,
             null);
         pInspectorBrightnessStack.Children.Add(
-            PFilterSliderBuild(
+            PInspectorSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
                 pInspectorBrightnessSlider,
                 string.Empty,
@@ -86,7 +86,7 @@ public sealed partial class PInspector
             0,
             200);
         pInspectorContrastStack.Children.Add(
-            PFilterSliderBuild(
+            PInspectorSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
                 pInspectorContrastSlider,
                 "%",
@@ -126,7 +126,7 @@ public sealed partial class PInspector
             0,
             200);
         pInspectorSaturationStack.Children.Add(
-            PFilterSliderBuild(
+            PInspectorSliderBuild(
                 LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
                 pInspectorSaturationSlider,
                 "%",

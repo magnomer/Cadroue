@@ -61,7 +61,6 @@ public sealed class LAudioTab
 
     public event Action? LAudioPresetMissing;
     public event Action? LAudioPresetIncompatible;
-    public event Action<string>? LAudioFilterApply;
     public event Action? LAudioViewerDefer;
 
     public LSMonitor LAudioMonitor { get; } = new();
@@ -201,7 +200,7 @@ public sealed class LAudioTab
     public void LAudioViewerApply()
     {
         LWorkAudio lPlan = LAudioPlanRead();
-        LAudioFilterApply?.Invoke(lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(LAudioRateRead()));
+        lAudioViewer.LViewerGraphSet(lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(LAudioRateRead()));
     }
 
     public LWorkAudio LAudioPlanRead() =>

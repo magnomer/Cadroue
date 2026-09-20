@@ -46,11 +46,10 @@ public sealed class PAudioTab : PTabSurface
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
         pList.PListPathChange += LAudioTab.LAudioPathHandle;
         pList.PListItemsAdd += LAudioTab.LAudioItemsHandle;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
 
         LAudioTab.LAudioPresetMissing += PExport.PExportMissingShow;
         LAudioTab.LAudioPresetIncompatible += PExport.PExportIncompatibleShow;
-        LAudioTab.LAudioFilterApply += pViewer.PViewerAudioSet;
         LAudioTab.LAudioViewerDefer += PAudioViewerDefer;
         pAudioViewerTimer.Tick += PAudioViewerTick;
 

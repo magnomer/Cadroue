@@ -51,11 +51,10 @@ public sealed class PEditTab : PTabSurface
         pInspector.LWhitebalance.LWhitebalanceToolChange += pViewer.PViewerNeutralSet;
         pViewer.PViewerToolChange += pInspector.LWhitebalance.LWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += LEditTab.LEditColor.LEditNeutralHandle;
-        pViewer.PViewerClockTick += _ => PEditHistogramDefer();
-        pViewer.PViewerEngineChange += LEditTab.LEditColor.LEditCapableHandle;
-        pViewer.PViewerEngineChange += pViewer.PViewerNeutralCancel;
+        pViewer.LViewer.LViewerPlayback.LViewerClockTick += PEditHistogramDefer;
+        pViewer.LViewer.LViewerEngineChange += pViewer.PViewerNeutralCancel;
         pViewer.PCropVideoChange += LEditTab.LEditCropShow;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pList.PListPathChange += LEditTab.LEditPathHandle;
         pList.PListItemsAdd += LEditTab.LEditStore.LEditItemsHandle;
         pList.PListLockChange += LEditTab.LEditLockHandle;
@@ -70,9 +69,7 @@ public sealed class PEditTab : PTabSurface
         LEditTab.LEditNeutralCancel += pViewer.PViewerNeutralCancel;
         LEditTab.LEditHistogramDefer += PEditHistogramDefer;
         LEditTab.LEditColorDefer += PEditColorDefer;
-        LEditTab.LEditColor.LEditPreviewApply += pViewer.PViewerColorSet;
         LEditTab.LEditColor.LEditEstimateRead += PEditEstimateRead;
-        LEditTab.LEditColor.LEditHistogramRead += PEditHistogramRead;
         pEditColorTimer.Tick += PEditColorTick;
         pEditHistogramTimer.Tick += PEditHistogramTick;
         LEditTab.LEditColor.LEditCapableHandle();
@@ -102,8 +99,7 @@ public sealed class PEditTab : PTabSurface
     {
         pEditColorTimer.Stop();
         pEditHistogramTimer.Stop();
-        pViewer.PViewerEngineChange -= LEditTab.LEditColor.LEditCapableHandle;
-        pViewer.PViewerEngineChange -= pViewer.PViewerNeutralCancel;
+        pViewer.LViewer.LViewerEngineChange -= pViewer.PViewerNeutralCancel;
         LEditTab.LEditClose();
         base.PTabClose();
     }
@@ -113,7 +109,7 @@ public sealed class PEditTab : PTabSurface
     private void PEditEstimateRead(LWhitebalanceMethod pMethod) =>
         pViewer.PViewerEstimateRead(pMethod, LEditTab.LEditColor.LEditEstimateApply);
 
-    private void PEditHistogramRead() => pViewer.PViewerFrameRead(LEditTab.LEditColor.LEditHistogramApply);
+    private void PEditHistogramDefer(TimeSpan lPosition) => PEditHistogramDefer();
 
     private void PEditHistogramDefer()
     {

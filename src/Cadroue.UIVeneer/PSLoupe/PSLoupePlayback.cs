@@ -43,7 +43,7 @@ internal sealed partial class PSLoupe
 
     private async void PSLoupePlaybackStart()
     {
-        LSLoupe.LSLoupeSourceSet(psLoupeSource.PViewerSourcePath);
+        LSLoupe.LSLoupeSourceSet(psLoupeSource.LViewer.LViewerSourcePath);
         if (psLoupeMediaHost is null || LSLoupe.LSLoupeSource is not { } pSource || string.IsNullOrWhiteSpace(pSource))
         {
             return;
@@ -62,29 +62,29 @@ internal sealed partial class PSLoupe
                 PSLoupeFlyleafBuild();
             }
 
-            await LPlayer.LPlayerOpenStart(pSource, psLoupePlayer.PPlayerOpen);
+            await LPlayer.LPlayerOpenStart(pSource);
             if (LSLoupe.LSLoupeClosed)
             {
                 return;
             }
 
             PSLoupePreviewApply();
-            psLoupePlayer.PPlayerVolumeSet(psLoupeSource.PViewerVolumeCurrent);
+            LPlayer.LPlayerVolumeSet(psLoupeSource.LViewer.LViewerVolume);
 
-            TimeSpan pInherit = psLoupeSource.PViewerPositionRead();
+            TimeSpan pInherit = psLoupeSource.LViewer.LViewerPosition;
             if (pInherit > TimeSpan.Zero)
             {
-                psLoupePlayer.PPlayerSeek(pInherit);
+                LPlayer.LPlayerSeek(pInherit);
             }
 
-            if (psLoupeSource.PViewerPlayingRead())
+            if (psLoupeSource.LViewer.LViewerPlaying)
             {
-                psLoupePlayer.PPlayerPlay();
+                LPlayer.LPlayerPlay();
                 LSLoupe.LSLoupePlayingSet(true);
             }
             else
             {
-                psLoupePlayer.PPlayerPause();
+                LPlayer.LPlayerPause();
                 LSLoupe.LSLoupePlayingSet(false);
             }
         }
@@ -96,7 +96,7 @@ internal sealed partial class PSLoupe
 
     private void PSLoupePreviewHandle()
     {
-        if (LSLoupe.LSLoupeClosed || !psLoupePlayer.PPlayerReady)
+        if (LSLoupe.LSLoupeClosed || !LPlayer.LPlayerReady)
         {
             return;
         }
@@ -106,37 +106,24 @@ internal sealed partial class PSLoupe
 
     private void PSLoupePreviewApply()
     {
-        LPreviewState pState = psLoupeSource.PViewerRenderRead();
-        try
-        {
-            if (psLoupeMpvHost is not null)
-            {
-                psLoupePlayer.PPlayerFilterSet(LPreview.LPreviewFilterResolve(pState));
-                psLoupePlayer.PPlayerAudioSet(psLoupeSource.PViewerAudioRead());
-            }
-            else
-            {
-                LPreview.LPreviewApply(psLoupePlayer.PPlayerFlyleafPlayer, pState);
-            }
-        }
-        catch
-        {
-        }
+        LPreviewState pState = psLoupeSource.LViewer.LViewerRenderRead();
+        LPlayer.LPlayerFilterApply(LPreview.LPreviewFilterResolve(pState));
+        LPlayer.LPlayerAudioApply(psLoupeSource.LViewer.LViewerAudioResolve());
+        LPlayer.LPlayerPreviewApply(pState, "preview color/geometry");
     }
 
     private void PSLoupeFlyleafBuild()
     {
-        var pLoupeFlyleafPlayer = new Player(new Config());
-        pLoupeFlyleafPlayer.Config.Player.KeyBindings.Keys.Clear();
+        var pLoupeConfig = new Config();
+        pLoupeConfig.Player.KeyBindings.Keys.Clear();
         psLoupeFlyleafHost = new FlyleafHost
         {
-            Player = pLoupeFlyleafPlayer,
             VideoBackground = Brushes.Black,
             ToggleFullScreenOnDoubleClick = AvailableWindows.None,
             AttachedDragMove = AttachedDragMoveOptions.None
         };
         psLoupeMediaHost!.Child = psLoupeFlyleafHost;
-        psLoupePlayer.PPlayerFlyleafSet(pLoupeFlyleafPlayer);
+        LPlayer.LPlayerEngineSet(new PPlayerFlyleaf(psLoupeFlyleafHost, LPlayer, pLoupeConfig).PPlayerSeamRead());
     }
 
     private void PSLoupeMpvBuild()
@@ -154,68 +141,68 @@ internal sealed partial class PSLoupe
             throw new InvalidOperationException("mpv host handle not realized");
         }
 
-        psLoupePlayer.PPlayerMpvSet(pLoupeHandle);
+        LPlayer.LPlayerEngineSet(new LPlayerMpv(pLoupeHandle).LPlayerSeamRead());
     }
 
     private void PSLoupePlayHandle(object pSender, RoutedEventArgs pEvent)
     {
         if (LSLoupe.LSLoupePlaying)
         {
-            psLoupeSource.PViewerPause();
+            psLoupeSource.LViewer.LViewerPlayback.LViewerPause();
         }
         else
         {
-            psLoupeSource.PViewerPlay();
+            psLoupeSource.LViewer.LViewerPlayback.LViewerPlay();
         }
     }
 
     internal void PSLoupePlay()
     {
-        if (LSLoupe.LSLoupeClosed || !psLoupePlayer.PPlayerReady)
+        if (LSLoupe.LSLoupeClosed || !LPlayer.LPlayerReady)
         {
             return;
         }
 
         if (LSLoupe.LSLoupeEnded)
         {
-            psLoupePlayer.PPlayerSeek(TimeSpan.Zero);
+            LPlayer.LPlayerSeek(TimeSpan.Zero);
             LSLoupe.LSLoupeEndSet(false);
         }
 
-        psLoupePlayer.PPlayerPlay();
+        LPlayer.LPlayerPlay();
         LSLoupe.LSLoupePlayingSet(true);
     }
 
     internal void PSLoupePause()
     {
-        if (LSLoupe.LSLoupeClosed || !psLoupePlayer.PPlayerReady)
+        if (LSLoupe.LSLoupeClosed || !LPlayer.LPlayerReady)
         {
             return;
         }
 
-        psLoupePlayer.PPlayerPause();
+        LPlayer.LPlayerPause();
         LSLoupe.LSLoupePlayingSet(false);
     }
 
     internal void PSLoupeSeek(TimeSpan pPosition)
     {
-        if (LSLoupe.LSLoupeClosed || !psLoupePlayer.PPlayerReady)
+        if (LSLoupe.LSLoupeClosed || !LPlayer.LPlayerReady)
         {
             return;
         }
 
         LSLoupe.LSLoupeEndSet(false);
-        psLoupePlayer.PPlayerSeek(pPosition);
+        LPlayer.LPlayerSeek(pPosition);
     }
 
     internal void PSLoupeVolumeSet(double pVolume)
     {
-        if (LSLoupe.LSLoupeClosed || !psLoupePlayer.PPlayerReady)
+        if (LSLoupe.LSLoupeClosed || !LPlayer.LPlayerReady)
         {
             return;
         }
 
-        psLoupePlayer.PPlayerVolumeSet(pVolume);
+        LPlayer.LPlayerVolumeSet(pVolume);
     }
 
     private void PSLoupeClockHandle(object? pSender, EventArgs pEvent)
@@ -225,16 +212,16 @@ internal sealed partial class PSLoupe
             return;
         }
 
-        if (psLoupePlayer.PPlayerEndedRead())
+        if (LPlayer.LPlayerEndedRead())
         {
             LSLoupe.LSLoupeEndSet(true);
             LSLoupe.LSLoupePlayingSet(false);
             return;
         }
 
-        if (psLoupePlayer.PPlayerReady)
+        if (LPlayer.LPlayerReady)
         {
-            psLoupeSource.PViewerLoupeSync(psLoupePlayer.PPlayerTimeRead(), true);
+            psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeSync(LPlayer.LPlayerTimeRead(), true);
         }
     }
 
@@ -251,8 +238,7 @@ internal sealed partial class PSLoupe
 
         if (!LSLoupe.LSLoupeClosed)
         {
-            TimeSpan pPosition = psLoupePlayer.PPlayerReady ? psLoupePlayer.PPlayerTimeRead() : TimeSpan.Zero;
-            psLoupeSource.PViewerLoupeSync(pPosition, pPlaying);
+            psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeSync(LPlayer.LPlayerTimeRead(), pPlaying);
         }
 
         if (psLoupePlayImage is not null)
@@ -271,7 +257,7 @@ internal sealed partial class PSLoupe
 
     private void PSLoupePlaybackDispose()
     {
-        psLoupePlayer.PPlayerDispose();
+        LPlayer.LPlayerDispose();
         PSLoupeFlyleafDispose();
         if (psLoupeMpvHost is not null)
         {
@@ -294,7 +280,6 @@ internal sealed partial class PSLoupe
 
         try
         {
-            psLoupeFlyleafHost.Player = null;
             ((IDisposable)psLoupeFlyleafHost).Dispose();
         }
         catch

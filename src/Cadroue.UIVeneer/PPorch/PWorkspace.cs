@@ -35,13 +35,6 @@ public sealed class PWorkspace
             [false] = pWorkspace => pWorkspace.PWorkspaceSurface,
         };
 
-    private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairs =
-        new Dictionary<bool, Action<PWorkspace>>
-        {
-            [true] = PWorkspacePairAttach,
-            [false] = pWorkspace => { },
-        };
-
     private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairCloses =
         new Dictionary<bool, Action<PWorkspace>>
         {
@@ -70,7 +63,7 @@ public sealed class PWorkspace
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
         PWorkspaceList = PWorkspaceSurface.PTabList;
-        PWorkspaceViewer?.PViewerAudioSet(LWorkspace.LWorkspaceAudioOnly);
+        PWorkspaceViewer?.LViewer.LViewerAllowSet(LWorkspace.LWorkspaceAudioOnly);
         LWorkspace.LWorkspaceAttach(
             PWorkspaceList?.PListDocketRead(),
             PWorkspaceFlow?.LFlow.LFlowSection.LFlowSegment,
@@ -91,7 +84,6 @@ public sealed class PWorkspace
         LWorkspace.LWorkspacePathsAdd += PWorkspacePathsAdd;
         LWorkspace.LWorkspaceSourceSelect += PWorkspaceSourceSelect;
         LWorkspace.LWorkspaceSourceOpen += PWorkspaceSourceOpen;
-        pWorkspacePairs[LWorkspace.LWorkspaceFlowPresent](this);
         pWorkspaceLists[LWorkspace.LWorkspaceListPresent](this);
         PWorkspaceSurface.PTabWidthChange += PWorkspaceWidthRaise;
         PWorkspaceRoot = pWorkspaceRoots[LWorkspace.LWorkspaceSourcePresent](this);
@@ -125,15 +117,15 @@ public sealed class PWorkspace
         PWorkspaceFlow?.LFlow.LFlowSectionSet(LWorkspace.LWorkspaceSectionVisible);
         PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
         PWorkspaceFlow?.PFlowOrderApply();
-        PWorkspaceViewer?.PViewerCommandSet(true);
+        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerCommandApply(true);
     }
 
     public void PWorkspaceCommandReset()
     {
-        PWorkspaceViewer?.PViewerDragSet(false);
+        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerDragSet(false);
         PWorkspaceFlow?.LFlow.LFlowSectionSet(false);
         PWorkspaceFlow?.LFlow.LFlowCommandSet(false);
-        PWorkspaceViewer?.PViewerCommandSet(false);
+        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerCommandApply(false);
     }
 
     public void PWorkspaceFlowApply(double pFlowHeight)
@@ -167,32 +159,10 @@ public sealed class PWorkspace
         PWorkspaceSurface.PTabWidthChange -= PWorkspaceWidthRaise;
     }
 
-    private static void PWorkspacePairAttach(PWorkspace pWorkspace)
-    {
-        PFlow pFlow = pWorkspace.PWorkspaceFlow!;
-        PViewer pViewer = pWorkspace.PWorkspaceViewer!;
-        pFlow.LFlow.LFlowPlayingAttach(pViewer.PViewerPlayingRead);
-        pViewer.PViewerClockTick += pFlow.LFlow.LFlowCursorUpdate;
-        pFlow.LFlow.LFlowCursorChange += pViewer.PViewerSeek;
-        pFlow.LFlow.LFlowDragChange += pViewer.PViewerDragSet;
-        pFlow.LFlow.LFlowPlay += pViewer.PViewerPlay;
-        pFlow.LFlow.LFlowPause += pViewer.PViewerPause;
-        pFlow.LFlow.LFlowVolumeAdjust += pViewer.PViewerVolumeAdjust;
-    }
-
     private static void PWorkspacePairClose(PWorkspace pWorkspace)
     {
-        PFlow pFlow = pWorkspace.PWorkspaceFlow!;
-        PViewer pViewer = pWorkspace.PWorkspaceViewer!;
-        pViewer.PViewerClockTick -= pFlow.LFlow.LFlowCursorUpdate;
-        pFlow.LFlow.LFlowCursorChange -= pViewer.PViewerSeek;
-        pFlow.LFlow.LFlowDragChange -= pViewer.PViewerDragSet;
-        pFlow.LFlow.LFlowPlay -= pViewer.PViewerPlay;
-        pFlow.LFlow.LFlowPause -= pViewer.PViewerPause;
-        pFlow.LFlow.LFlowVolumeAdjust -= pViewer.PViewerVolumeAdjust;
-        pFlow.LFlow.LFlowPlayingAttach(null);
-        PWorkspaceStepRun("flow", pFlow.PFlowClose);
-        PWorkspaceStepRun("viewer", pViewer.PViewerClose);
+        PWorkspaceStepRun("flow", pWorkspace.PWorkspaceFlow!.PFlowClose);
+        PWorkspaceStepRun("viewer", pWorkspace.PWorkspaceViewer!.PViewerClose);
     }
 
     private static void PWorkspaceListAttach(PWorkspace pWorkspace)
@@ -223,7 +193,7 @@ public sealed class PWorkspace
 
     private void PWorkspaceMediaClose()
     {
-        PWorkspaceViewer?.PViewerMediaClose(true);
+        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerMediaClose(true);
         PWorkspaceFlow?.PFlowClear();
     }
 
@@ -240,9 +210,11 @@ public sealed class PWorkspace
     private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
         PWorkspaceFlow?.LFlow.LFlowRangeSet(lOrigin, lLimit);
 
-    private void PWorkspaceVolumeApply(double lVolume) => PWorkspaceViewer?.PViewerVolumeSet(lVolume);
+    private void PWorkspaceVolumeApply(double lVolume) =>
+        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerVolumeSet(lVolume);
 
-    private void PWorkspaceSeekApply(TimeSpan lPosition) => PWorkspaceViewer?.PViewerSeek(lPosition);
+    private void PWorkspaceSeekApply(TimeSpan lPosition) =>
+        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerSeek(lPosition);
 
     private async void PWorkspacePathsAdd(IReadOnlyList<string> lPaths)
     {
@@ -252,7 +224,7 @@ public sealed class PWorkspace
 
     private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.PListSelect(lPath);
 
-    private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.PViewerSourceOpen(lPath);
+    private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(lPath);
 
     private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
     {

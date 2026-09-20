@@ -36,7 +36,6 @@ internal sealed partial class PSLoupe : Window
     private readonly PSGrabber psLoupeGrabber;
     private readonly Window psLoupeOwner;
     private readonly PViewer psLoupeSource;
-    private readonly PPlayer psLoupePlayer = new();
     private readonly DispatcherTimer psLoupeClock = new() { Interval = TimeSpan.FromMilliseconds(200) };
 
     private Border? psLoupeMediaHost;
@@ -56,7 +55,7 @@ internal sealed partial class PSLoupe : Window
     internal static void PSLoupeShow(Window pOwner, PViewer pSource)
     {
         var psLoupe = new PSLoupe(pOwner, pSource);
-        pSource.PViewerLoupeAttach(psLoupe);
+        pSource.LViewer.LViewerMedia.LViewerLoupeAttach();
         psLoupe.Show();
     }
 
@@ -77,7 +76,12 @@ internal sealed partial class PSLoupe : Window
         Content = PSLoupeBuild();
         psLoupeClock.Tick += PSLoupeClockHandle;
         LSLoupe.LSLoupePlayingChange += PSLoupePlayingHandle;
-        psLoupeSource.PViewerPreviewChange += PSLoupePreviewHandle;
+        psLoupeSource.LViewer.LViewerPreviewChange += PSLoupePreviewHandle;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupePlay += PSLoupePlay;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupePause += PSLoupePause;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeSeek += PSLoupeSeek;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeVolume += PSLoupeVolumeSet;
+        psLoupeSource.LViewer.LViewerMedia.LViewerLoupeClose += Close;
         Loaded += PSLoupeLoadedHandle;
         psLoupeGrabber = new PSGrabber(this);
         psLoupeGrabber.PSGrabberAttach();
@@ -145,15 +149,20 @@ internal sealed partial class PSLoupe : Window
         Loaded -= PSLoupeLoadedHandle;
         psLoupeClock.Stop();
         psLoupeClock.Tick -= PSLoupeClockHandle;
-        psLoupeSource.PViewerPreviewChange -= PSLoupePreviewHandle;
+        psLoupeSource.LViewer.LViewerPreviewChange -= PSLoupePreviewHandle;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupePlay -= PSLoupePlay;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupePause -= PSLoupePause;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeSeek -= PSLoupeSeek;
+        psLoupeSource.LViewer.LViewerPlayback.LViewerLoupeVolume -= PSLoupeVolumeSet;
+        psLoupeSource.LViewer.LViewerMedia.LViewerLoupeClose -= Close;
         PSGrabber.PSGrabberPlacementSave(this, PSLoupePlacementKey);
         psLoupeGrabber.PSGrabberDetach();
 
-        TimeSpan pFinal = psLoupePlayer.PPlayerReady ? psLoupePlayer.PPlayerTimeRead() : TimeSpan.Zero;
+        TimeSpan pFinal = LPlayer.LPlayerTimeRead();
         bool pPlaying = LSLoupe.LSLoupeResumeCheck();
 
         PSLoupePlaybackDispose();
-        psLoupeSource.PViewerLoupeDetach(pFinal, pPlaying);
+        psLoupeSource.LViewer.LViewerMedia.LViewerLoupeDetach(pFinal, pPlaying);
         Closed -= PSLoupeCloseHandle;
     }
 

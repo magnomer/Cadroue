@@ -164,8 +164,8 @@ internal static partial class TInterface
     internal static LWorkVideo TEditVideoRead(LEditTab tab, bool mpvOnlyCapable) =>
         tab.LEditColor.LEditVideoRead(mpvOnlyCapable);
     internal static void TEditColorUpdate(LEditTab tab) => tab.LEditColor.LEditColorUpdate();
-    internal static void TEditPreviewAttach(LEditTab tab, Action<LColor> handler) =>
-        tab.LEditColor.LEditPreviewApply += handler;
+    internal static void TEditPreviewAttach(LViewer viewer, Action<LColor> handler) =>
+        viewer.LViewerPreviewChange += () => handler(viewer.LViewerPreview.LColor);
     internal static void TEditEstimateAttach(LEditTab tab, Action<LWhitebalanceMethod> handler) =>
         tab.LEditColor.LEditEstimateRead += handler;
     internal static void TEditColorApply(LEditTab tab) => tab.LEditColor.LEditColorApply();
@@ -332,7 +332,8 @@ internal static partial class TInterface
     internal static void TAudioStateSave(LAudioTab tab) => tab.LAudioStateSave();
     internal static void TAudioPlanRestore(LAudioTab tab, string path, bool ownerFirst) =>
         tab.LAudioPlanRestore(path, ownerFirst);
-    internal static void TAudioFilterAttach(LAudioTab tab, Action<string> handler) => tab.LAudioFilterApply += handler;
+    internal static void TAudioFilterAttach(LViewer viewer, Action<string> handler) =>
+        viewer.LViewerPreviewChange += () => handler(viewer.LViewerAudioResolve());
     internal static void TAudioDeferAttach(LAudioTab tab, Action handler) => tab.LAudioViewerDefer += handler;
     internal static void TAudioMissingAttach(LAudioTab tab, Action handler) => tab.LAudioPresetMissing += handler;
     internal static void TAudioIncompatibleAttach(LAudioTab tab, Action handler) =>
@@ -486,8 +487,8 @@ internal static partial class TInterface
     internal static void TCompassRun(LCompass compass, string key) => compass.LCompassRun(key);
     internal static void TCompassWaveformToggle(LCompass compass) => compass.LCompassWaveformToggle();
     internal static void TCompassVolumeSet(LCompass compass, double raw) => compass.LCompassVolumeSet(raw);
-    internal static void TCompassVolumeAttach(LCompass compass, Action<double> handler) =>
-        compass.LCompassVolumeApply += handler;
+    internal static void TCompassVolumeAttach(LViewer viewer, Action<double> handler) =>
+        viewer.LViewerVolumeChange += handler;
     internal static string TCompassVolumeFormat(double raw) => LCompass.LCompassVolumeFormat(raw);
     internal static double TCompassFillResolve(double host, double raw) => LCompass.LCompassFillResolve(host, raw);
     internal static IReadOnlyList<double> TCompassSeparatorsResolve(params double[] tops) =>

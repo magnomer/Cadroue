@@ -148,7 +148,7 @@ public sealed partial class PViewer
     private void PCropVideoCommit()
     {
         LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(PViewerCropboxRead(PCropVideoRead())));
-        PViewerMpvUpdate();
+        LViewer.LViewerFilterUpdate();
         PCropVideoChange?.Invoke();
     }
 

@@ -70,7 +70,7 @@ public sealed partial class PInspector
             () => LGamma.LGammaValueRead(pSlot),
             pNumber => LGamma.LGammaValueSet(pSlot, pNumber));
         pGammaStack.Children.Add(
-            PFilterSliderBuild(
+            PInspectorSliderBuild(
                 LLocalization.LLocalizationTextRead(PGammaLabelKeys[pSlot]),
                 pGammaSliders[pSlot],
                 PGammaUnits[pSlot],

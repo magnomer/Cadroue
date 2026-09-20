@@ -29,6 +29,17 @@ internal sealed class PViewerMpvHost : HwndHost
 
     public nint PViewerMpvHwnd { get; private set; }
 
+    public nint PViewerHandleRead()
+    {
+        if (PViewerMpvHwnd == nint.Zero)
+        {
+            Visibility = System.Windows.Visibility.Visible;
+            UpdateLayout();
+        }
+
+        return PViewerMpvHwnd;
+    }
+
     protected override HandleRef BuildWindowCore(HandleRef lParent)
     {
         PViewerMpvHwnd = CreateWindowExW(

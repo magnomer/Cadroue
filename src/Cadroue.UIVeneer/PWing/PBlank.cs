@@ -30,19 +30,23 @@ public sealed partial class PInspector
     private Canvas pBlankWheelCanvas = null!;
     private Image pBlankWheelImage = null!;
     private Ellipse pBlankWheelDot = null!;
+    private CheckBox pBlankSwitch = null!;
+    private StackPanel pBlankStack = null!;
+    private StackPanel pBlankBody = null!;
 
-    private PSensorSection PBlankBuild()
+    private StackPanel PBlankBuild()
     {
-        CheckBox pApply = PInspectorSwitchBuild(
+        pBlankSwitch = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
-        PInspectorSwitchAttach(pApply, LBlank.LBlankEnabledSet);
-        var pStack = new StackPanel();
-        var pBody = new StackPanel
+        PInspectorSwitchAttach(pBlankSwitch, LBlank.LBlankEnabledSet);
+        pBlankStack = new StackPanel();
+        pBlankBody = new StackPanel
         {
             Margin = new Thickness(12, 12, 12, 12),
             Visibility = Visibility.Collapsed
         };
+        StackPanel pStack = pBlankStack;
 
         (pBlankBrightnessSlider, pBlankBrightnessValue) = PSensorValueBuild(
             LBlank.LBlankBrightnessBound,
@@ -64,7 +68,7 @@ public sealed partial class PInspector
             LDetector.LDetectorToleranceRead(),
             () => LBlank.LBlankStep.LDetectorBlankTolerance,
             LBlank.LBlankToleranceSet);
-        pStack.Children.Add(PFilterSliderBuild(
+        pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Tolerance"),
             pBlankToleranceSlider,
             string.Empty,
@@ -74,7 +78,7 @@ public sealed partial class PInspector
             LDetector.LDetectorCoverageRead(),
             () => LBlank.LBlankStep.LDetectorBlankCoverage,
             LBlank.LBlankCoverageSet);
-        pStack.Children.Add(PFilterSliderBuild(
+        pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Coverage"),
             pBlankCoverageSlider,
             string.Empty,
@@ -84,35 +88,32 @@ public sealed partial class PInspector
             LBlank.LBlankMinimumBound,
             () => LBlank.LBlankStep.LDetectorBlankMinimum,
             LBlank.LBlankMinimumSet);
-        pStack.Children.Add(PFilterSliderBuild(
+        pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"),
             pBlankMinimumSlider,
             "s",
             pBlankMinimumValue));
 
-        pBody.Children.Add(pApply);
-        pBody.Children.Add(PInspectorSeparatorBuild());
-        pBody.Children.Add(pStack);
+        pBlankBody.Children.Add(pBlankSwitch);
+        pBlankBody.Children.Add(PInspectorSeparatorBuild());
+        pBlankBody.Children.Add(pStack);
 
-        var pSection = new PSensorSection
-        {
-            PSensorKind = LDetectorKind.LDetectorKindBlank,
-            PSensorApplyBox = pApply,
-            PSensorStack = pStack,
-            PSensorBody = pBody
-        };
-        LBlank.LBlankChange += () => PBlankUpdate(pSection);
+        LBlank.LBlankChange += PBlankUpdate;
         LBlank.LBlankPickChange += PBlankPickUpdate;
-        PBlankUpdate(pSection);
-        return pSection;
+        PBlankUpdate();
+        return pBlankBody;
     }
 
     private UIElement PBlankTypeBuild()
     {
         pBlankBlack = PSensorRadioBuild(
-            "Inspector.Blank.Black", "PBlankType", () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeBlack));
+            LLocalization.LLocalizationTextRead("Inspector.Blank.Black"),
+            "PBlankType",
+            () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeBlack));
         pBlankColor = PSensorRadioBuild(
-            "Inspector.Blank.Color", "PBlankType", () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeColor));
+            LLocalization.LLocalizationTextRead("Inspector.Blank.Color"),
+            "PBlankType",
+            () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeColor));
         Border pBlankType = PRadio.PRadioSegmentBuild(pBlankBlack, pBlankColor);
         pBlankType.Margin = new Thickness(0, 0, 0, 10);
         return pBlankType;
@@ -216,10 +217,10 @@ public sealed partial class PInspector
         pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
     }
 
-    private void PBlankUpdate(PSensorSection pSection)
+    private void PBlankUpdate()
     {
         LDetectorBlank pBlank = LBlank.LBlankStep;
-        PInspectorSwitchUpdate(pSection.PSensorApplyBox, pBlank.LDetectorBlankEnabled);
+        PInspectorSwitchUpdate(pBlankSwitch, pBlank.LDetectorBlankEnabled);
         pBlankColor.IsChecked = PLook.PLookChecked[LBlank.LBlankWheelPresent];
         pBlankBlack.IsChecked = PLook.PLookChecked[!LBlank.LBlankWheelPresent];
         pBlankColorArea.Visibility = PLook.PLookVisible[LBlank.LBlankWheelPresent];
@@ -228,7 +229,6 @@ public sealed partial class PInspector
         PInspectorValueUpdate(pBlankCoverageSlider, pBlankCoverageValue, pBlank.LDetectorBlankCoverage, "0.00");
         PInspectorValueUpdate(pBlankMinimumSlider, pBlankMinimumValue, pBlank.LDetectorBlankMinimum, "0.0");
         PBlankWheelPlace();
-        PInspectorSectionUpdate(pSection.PSensorStack, pBlank.LDetectorBlankEnabled);
-        PSensorChange?.Invoke();
+        PInspectorSectionUpdate(pBlankStack, pBlank.LDetectorBlankEnabled);
     }
 }

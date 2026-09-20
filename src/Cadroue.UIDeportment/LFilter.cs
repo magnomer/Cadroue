@@ -4,7 +4,10 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LFilter
 {
+    private static readonly IReadOnlyList<string> LFilterPoleNames = new[] { "1 (6 dB)", "2 (12 dB)" };
+
     private readonly bool lFilterHigh;
+    private readonly IReadOnlyList<string> lFilterTokens;
     private LWorkPassStep lFilterStep;
     private string? lFilterToken;
     private bool lFilterPersistent;
@@ -12,6 +15,9 @@ public sealed class LFilter
     public LFilter(bool lHigh)
     {
         lFilterHigh = lHigh;
+        lFilterTokens = (lHigh ? LPassband.LPassbandHighPresets : LPassband.LPassbandLowPresets)
+            .Select(lPreset => lPreset.LPassbandToken)
+            .ToList();
         lFilterStep = (LWorkPassStep)LPassband.LPassbandStepCreate(lHigh, false);
         lFilterToken = LFilterMatchRead();
     }
@@ -29,6 +35,41 @@ public sealed class LFilter
     public double LFilterFloor => lFilterHigh ? LPassband.LPassbandHighFloor : LPassband.LPassbandLowFloor;
 
     public double LFilterCeiling => lFilterHigh ? LPassband.LPassbandHighCeiling : LPassband.LPassbandLowCeiling;
+
+    public double LFilterDefaultRead(int lIndex)
+    {
+        LPassbandPreset? lPreset = LFilterPresetRead();
+        return lIndex switch
+        {
+            1 => lPreset?.LPassbandStages ?? 1,
+            2 => lPreset?.LPassbandResonance ?? 0.707,
+            _ => lPreset?.LPassbandCutoff ?? lFilterStep.LWorkPassFrequency
+        };
+    }
+
+    public IReadOnlyList<string> LFilterPoles => LFilterPoleNames;
+
+    public int LFilterPolesIndex => lFilterStep.LWorkPassPoles == 1 ? 0 : 1;
+
+    public bool LFilterResonanceActive => lFilterStep.LWorkPassPoles == 2;
+
+    public LInspectorChoice LFilterChoiceRead() =>
+        LInspectorPlan.LInspectorChoiceRead(lFilterTokens, LFilterKeyRead, lFilterToken, LFilterMatchRead());
+
+    public static string LFilterKeyRead(string lToken) => lToken switch
+    {
+        "Rumble" => "Inspector.Pass.Preset.Rumble",
+        "Wind" => "Inspector.Pass.Preset.Wind",
+        "Voice" => "Inspector.Pass.Preset.Voice",
+        "Speech (tight)" => "Inspector.Pass.Preset.SpeechTight",
+        "Tighten" => "Inspector.Pass.Preset.Tighten",
+        "Air tame" => "Inspector.Pass.Preset.Airtame",
+        "Soften" => "Inspector.Pass.Preset.Soften",
+        "Warm" => "Inspector.Pass.Preset.Warm",
+        "AM radio" => "Inspector.Pass.Preset.AmRadio",
+        "Telephone" => "Inspector.Pass.Preset.Telephone",
+        _ => "Inspector.Common.Custom"
+    };
 
     public LPassbandPreset? LFilterPresetRead() =>
         lFilterToken is { } lToken ? LPassband.LPassbandRead(lFilterHigh, lToken) : null;
@@ -90,6 +131,24 @@ public sealed class LFilter
                 lPoles,
                 lFilterStep.LWorkPassResonance),
             lFilterToken);
+
+    public void LFilterPolesSelect(int lIndex)
+    {
+        if (lIndex >= 0 && lIndex < LFilterPoleNames.Count)
+        {
+            LFilterPolesSet(lIndex == 0 ? 1 : 2);
+        }
+    }
+
+    public void LFilterChoiceSelect(int lIndex)
+    {
+        string? lToken = LInspectorPlan.LInspectorChoiceResolve(
+            lFilterTokens, lIndex, lFilterToken, LFilterMatchRead());
+        if (lToken is not null)
+        {
+            LFilterPresetSelect(lToken);
+        }
+    }
 
     public void LFilterResonanceSet(double lResonance) =>
         LFilterStepApply(

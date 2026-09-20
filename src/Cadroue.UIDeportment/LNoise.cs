@@ -1,9 +1,53 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class LNoise
 {
+    private static readonly string[] LNoiseLabelKeys =
+    {
+        "Inspector.Common.Amount",
+        "Inspector.Noise.Floor",
+        "Inspector.Noise.Smoothing",
+        "Inspector.Noise.Adaptivity",
+        "Inspector.Noise.Residual"
+    };
+
+    private static readonly string[] LNoiseUnits = { "dB", "dB", "gs", "0-1", "dB" };
+
+    private static readonly string[] LNoiseFormats = { "0.#", "0.#", "0.#", "0.###", "0.#" };
+
+    private static readonly double[] LNoiseLeast =
+    {
+        LGrainCatalog.LGrainReductionLeast,
+        LGrainCatalog.LGrainFloorLeast,
+        LGrainCatalog.LGrainSmoothLeast,
+        LGrainCatalog.LGrainAdaptivityLeast,
+        LGrainCatalog.LGrainFloorLeast
+    };
+
+    private static readonly double[] LNoiseMost =
+    {
+        LGrainCatalog.LGrainReductionMost,
+        LGrainCatalog.LGrainFloorMost,
+        LGrainCatalog.LGrainSmoothMost,
+        LGrainCatalog.LGrainAdaptivityMost,
+        LGrainCatalog.LGrainFloorMost
+    };
+
+    private static readonly int[] LNoiseOrder = { 0, 2, 1, 4, 3 };
+
+    private static readonly LGrain[] LNoiseTypes = { LGrain.LGrainWhite, LGrain.LGrainVinyl, LGrain.LGrainShellac };
+
+    private static readonly string[] LNoiseTypeKeys =
+    {
+        "Inspector.Noise.White", "Inspector.Noise.Vinyl", "Inspector.Noise.Shellac"
+    };
+
+    private static readonly IReadOnlyList<string> LNoiseTokens =
+        LGrainCatalog.LGrainPresets.Select(lPreset => lPreset.LGrainToken).ToList();
+
     private LWorkNoiseStep lNoiseStep = LNoiseDefaultCreate(false);
     private string? lNoiseToken = "Medium";
     private bool lNoisePersistent;
@@ -15,6 +59,56 @@ public sealed class LNoise
     public string? LNoiseToken => lNoiseToken;
 
     public bool LNoisePersistent => lNoisePersistent;
+
+    public int LNoiseTypeIndex => Array.IndexOf(LNoiseTypes, lNoiseStep.LWorkNoiseType);
+
+    public IReadOnlyList<string> LNoiseTypeNames => LNoiseTypeKeys.Select(LLocalization.LLocalizationTextRead).ToList();
+
+    public IReadOnlyList<LInspectorRow> LNoiseRows => LNoiseOrder
+        .Select(lIndex => LInspectorPlan.LInspectorRowCreate(
+            lIndex,
+            LNoiseLabelKeys[lIndex],
+            LNoiseUnits[lIndex],
+            LNoiseFormats[lIndex],
+            LNoiseLeast[lIndex],
+            LNoiseMost[lIndex]))
+        .ToList();
+
+    public double LNoiseValueRead(int lIndex) => lIndex switch
+    {
+        1 => lNoiseStep.LWorkNoiseFloor,
+        2 => lNoiseStep.LWorkNoiseSmooth,
+        3 => lNoiseStep.LWorkNoiseAdaptivity,
+        4 => lNoiseStep.LWorkNoiseResidual,
+        _ => lNoiseStep.LWorkNoiseReduction
+    };
+
+    public double LNoiseDefaultRead(int lIndex)
+    {
+        LGrainPreset? lPreset = LNoisePresetRead();
+        return lIndex switch
+        {
+            1 => lPreset?.LGrainFloor ?? -50,
+            2 => lPreset?.LGrainSmooth ?? 6,
+            3 => lPreset?.LGrainAdaptivity ?? 0.5,
+            4 => lPreset?.LGrainResidual ?? -38,
+            _ => lPreset?.LGrainReduction ?? 12
+        };
+    }
+
+    public LInspectorChoice LNoiseChoiceRead() =>
+        LInspectorPlan.LInspectorChoiceRead(LNoiseTokens, LNoiseKeyRead, lNoiseToken, LNoiseMatchRead());
+
+    public static string LNoiseKeyRead(string lToken) => lToken switch
+    {
+        "Light" => "Inspector.Noise.Light",
+        "Medium" => "Inspector.Noise.Medium",
+        "Strong" => "Inspector.Noise.Strong",
+        "Dialogue" => "Inspector.Noise.Dialogue",
+        "Vinyl" => "Inspector.Noise.Vinyl",
+        "Shellac" => "Inspector.Noise.Shellac",
+        _ => "Inspector.Common.Custom"
+    };
 
     public LGrainPreset? LNoisePresetRead() =>
         lNoiseToken is { } lToken ? LGrainCatalog.LGrainRead(lToken) : null;
@@ -72,6 +166,23 @@ public sealed class LNoise
 
     public void LNoiseTypeSet(LGrain lType) =>
         LNoiseStepApply(lNoiseStep with { LWorkNoiseType = lType });
+
+    public void LNoiseTypeSelect(int lIndex)
+    {
+        if (lIndex >= 0 && lIndex < LNoiseTypes.Length)
+        {
+            LNoiseTypeSet(LNoiseTypes[lIndex]);
+        }
+    }
+
+    public void LNoiseChoiceSelect(int lIndex)
+    {
+        string? lToken = LInspectorPlan.LInspectorChoiceResolve(LNoiseTokens, lIndex, lNoiseToken, LNoiseMatchRead());
+        if (lToken is not null)
+        {
+            LNoisePresetSelect(lToken);
+        }
+    }
 
     public void LNoiseTrackSet(bool lTrack) =>
         LNoiseStepApply(lNoiseStep with { LWorkNoiseTrack = lTrack });

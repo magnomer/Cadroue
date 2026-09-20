@@ -33,7 +33,7 @@ public sealed partial class PInspector
             () => LExposure.LExposureStep.LWorkStepValue,
             LExposure.LExposureValueSet);
         pExposureStack = new StackPanel();
-        pExposureStack.Children.Add(PFilterSliderBuild(
+        pExposureStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
             pExposureSlider,
             "EV",

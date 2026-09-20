@@ -89,9 +89,9 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, _, _) = TAudioBuild();
+        (LAudioTab tab, LInspector inspector, LViewer viewer, _, _) = TAudioBuild();
         var graphs = new List<string>();
-        TInterface.TAudioFilterAttach(tab, graphs.Add);
+        TInterface.TAudioFilterAttach(viewer, graphs.Add);
         TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
         TInterface.TVolumeGainSet(inspector.LInspectorAudio.LInspectorVolume, 3);
 

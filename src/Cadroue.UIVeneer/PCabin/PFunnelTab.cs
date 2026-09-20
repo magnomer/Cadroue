@@ -30,7 +30,7 @@ public sealed class PFunnelTab : PTabSurface
         pAction.PActionRelayHide();
 
         pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
             new PCompass(pFlow, pViewer),

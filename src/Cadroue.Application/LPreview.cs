@@ -16,8 +16,6 @@ public static class LPreview
 {
     public const double LPreviewBrightnessFactor = 2.5;
 
-    public static Action<object, LPreviewApplication>? LPreviewApplySeam;
-
     public static TimeSpan LPreviewPositionResolve(
         TimeSpan lPreviewPosition,
         TimeSpan? lPreviewVideoEnd)
@@ -69,26 +67,6 @@ public static class LPreview
             LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead(),
             LColorCurve = lCurveStep?.LWorkCurveRead()
         };
-    }
-
-    public static void LPreviewApply(object? lPreviewTarget, LPreviewState lPreviewState)
-    {
-        if (lPreviewTarget is null)
-        {
-            return;
-        }
-
-        LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview color/geometry"));
-    }
-
-    public static void LPreviewRestore(object? lPreviewTarget, LPreviewState lPreviewState)
-    {
-        if (lPreviewTarget is null)
-        {
-            return;
-        }
-
-        LPreviewApplySeam?.Invoke(lPreviewTarget, LPreviewApplicationResolve(lPreviewState, "preview restored"));
     }
 
     public static string LPreviewFilterResolve(LPreviewState lPreviewState)
@@ -190,7 +168,7 @@ public static class LPreview
         return lFilters.Count > 0 ? "lavfi=[" + string.Join(',', lFilters) + "]" : string.Empty;
     }
 
-    private static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
+    public static LPreviewApplication LPreviewApplicationResolve(LPreviewState lPreviewState, string lPreviewReason)
     {
         LColor lColor = lPreviewState.LColor;
         LRotateFlip lRotateFlip = lPreviewState.LRotateFlip;

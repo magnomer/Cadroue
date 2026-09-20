@@ -69,9 +69,10 @@ public sealed class TCompassButtons
     [Fact]
     public void VolumeSet_ClampsAndSkipsEqual()
     {
-        (LCompass compass, _, _) = TCompassBuild(false);
+        (LCompass compass, _, LViewer viewer) = TCompassBuild(false);
+        TInterface.TViewerCommandSet(viewer, true);
         List<double> applied = [];
-        TInterface.TCompassVolumeAttach(compass, applied.Add);
+        TInterface.TCompassVolumeAttach(viewer, applied.Add);
         double current = compass.LCompassVolume;
 
         TInterface.TCompassVolumeSet(compass, current);

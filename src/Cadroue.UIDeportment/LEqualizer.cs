@@ -1,9 +1,15 @@
+using System.Globalization;
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
+public sealed record LEqualizerBand(int LEqualizerBandIndex, string LEqualizerBandFrequency, double LEqualizerBandGain);
+
 public sealed class LEqualizer
 {
+    private const string LEqualizerFrequencyPattern = "0.###";
+
     private bool lEqualizerActive;
     private List<LWorkBand> lEqualizerBands = LWorkEqualizerStep.LWorkBandsCreate().ToList();
     private string? lEqualizerToken;
@@ -15,6 +21,7 @@ public sealed class LEqualizer
     }
 
     public event Action? LEqualizerChange;
+    public event Action? LEqualizerRowsChange;
 
     public bool LEqualizerActive => lEqualizerActive;
 
@@ -23,6 +30,63 @@ public sealed class LEqualizer
     public string? LEqualizerToken => lEqualizerToken;
 
     public bool LEqualizerPersistent => lEqualizerPersistent;
+
+    public double LEqualizerGainLeast => LContourCatalog.LContourGainLeast;
+
+    public double LEqualizerGainMost => LContourCatalog.LContourGainMost;
+
+    public string LEqualizerRemoveTip => LLocalization.LLocalizationTextRead("Inspector.Equalizer.Remove");
+
+    public IReadOnlyList<LEqualizerBand> LEqualizerRows => lEqualizerBands
+        .Select((lBand, lIndex) => new LEqualizerBand(
+            lIndex,
+            lBand.LWorkBandFrequency.ToString(LEqualizerFrequencyPattern, CultureInfo.InvariantCulture),
+            lBand.LWorkBandGain))
+        .ToList();
+
+    public LInspectorChoice LEqualizerChoiceRead() => LInspectorPlan.LInspectorChoiceRead(
+        LContourCatalog.LContourTokensRead(), LEqualizerKeyRead, lEqualizerToken, LEqualizerMatchRead());
+
+    public static string LEqualizerKeyRead(string lToken) => lToken switch
+    {
+        "Flat" => "Inspector.Equalizer.Preset.Flat",
+        "Bass boost" => "Inspector.Equalizer.Preset.BassBoost",
+        "Bright" => "Inspector.Equalizer.Preset.Bright",
+        "Warm" => "Inspector.Equalizer.Preset.Warm",
+        "Loudness" => "Inspector.Equalizer.Preset.Loudness",
+        "Vocal" => "Inspector.Equalizer.Preset.Vocal",
+        "De-ess" => "Inspector.Equalizer.Preset.Deess",
+        "Podcast" => "Inspector.Equalizer.Preset.Podcast",
+        "Telephone" => "Inspector.Equalizer.Preset.Telephone",
+        _ => "Inspector.Common.Custom"
+    };
+
+    public double LEqualizerGainRead(int lIndex) =>
+        lIndex >= 0 && lIndex < lEqualizerBands.Count ? lEqualizerBands[lIndex].LWorkBandGain : 0;
+
+    public string LEqualizerFrequencyRead(int lIndex) =>
+        LEqualizerFrequencyResolve(lIndex).ToString(LEqualizerFrequencyPattern, CultureInfo.InvariantCulture);
+
+    public string LEqualizerFrequencyCommit(int lIndex, string lText)
+    {
+        double lCurrent = LEqualizerFrequencyResolve(lIndex);
+        double lFrequency = LInspector.LInspectorValueCommit(lText, lCurrent, null, null);
+        LEqualizerBandSet(lIndex, lFrequency, LEqualizerGainRead(lIndex));
+        return LInspector.LInspectorValueFormat(lText, LEqualizerFrequencyResolve(lIndex), LEqualizerFrequencyPattern);
+    }
+
+    public void LEqualizerGainSet(int lIndex, double lGain) =>
+        LEqualizerBandSet(lIndex, LEqualizerFrequencyResolve(lIndex), lGain);
+
+    public void LEqualizerChoiceSelect(int lIndex)
+    {
+        string? lToken = LInspectorPlan.LInspectorChoiceResolve(
+            LContourCatalog.LContourTokensRead(), lIndex, lEqualizerToken, LEqualizerMatchRead());
+        if (lToken is not null)
+        {
+            LEqualizerPresetSelect(lToken);
+        }
+    }
 
     public LWorkAudioStep LEqualizerStepRead() =>
         LWorkAudioStep.LWorkEqualizerCreate(lEqualizerActive, lEqualizerBands.ToArray());
@@ -115,6 +179,11 @@ public sealed class LEqualizer
         LEqualizerChange?.Invoke();
     }
 
+    private double LEqualizerFrequencyResolve(int lIndex) =>
+        lIndex >= 0 && lIndex < lEqualizerBands.Count
+            ? lEqualizerBands[lIndex].LWorkBandFrequency
+            : LContourCatalog.LContourFrequencyDefault;
+
     private static LWorkBand LEqualizerNormalize(double lFrequency, double lGain) =>
         ((LWorkEqualizerStep)LWorkAudioStep.LWorkEqualizerCreate(false, new[] { new LWorkBand(lFrequency, lGain) }))
             .LWorkEqualizerBands[0];
@@ -129,9 +198,15 @@ public sealed class LEqualizer
             return;
         }
 
+        bool lRows = lEqualizerBands.Count != lBands.Count;
         lEqualizerActive = lActive;
         lEqualizerBands = lBands;
         lEqualizerToken = lToken;
+        if (lRows)
+        {
+            LEqualizerRowsChange?.Invoke();
+        }
+
         LEqualizerChange?.Invoke();
     }
 }

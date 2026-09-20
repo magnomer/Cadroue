@@ -37,7 +37,7 @@ public sealed partial class PViewer
 
         PCropBoxSet();
         PCropOverlayUpdate();
-        PViewerPreviewApply();
+        LViewer.LViewerPreviewApply();
     }
 
     private void PCropBoxSet()
@@ -115,7 +115,7 @@ public sealed partial class PViewer
         LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(PViewerCropboxRead(pCropVideo)));
         PCropBoxSet();
         PCropBoxRestore();
-        PViewerMpvUpdate();
+        LViewer.LViewerFilterUpdate();
     }
 
     private Rect? PCropSourceClamp(Rect? pCropVideo)
@@ -137,6 +137,6 @@ public sealed partial class PViewer
         pViewerCropBox.Height = 0;
         LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(null));
         PCropOverlayUpdate();
-        PViewerMpvUpdate();
+        LViewer.LViewerFilterUpdate();
     }
 }

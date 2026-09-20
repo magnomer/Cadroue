@@ -13,6 +13,8 @@ public sealed class LBlank
 
     public LDetectorBlank LBlankStep => lBlankStep;
 
+    public LDetectorKind LBlankKind => LDetectorKind.LDetectorKindBlank;
+
     public bool LBlankWheelPresent => lBlankStep.LDetectorBlankType == LDetectorType.LDetectorTypeColor;
 
     public bool LBlankPicking => lBlankPicking;

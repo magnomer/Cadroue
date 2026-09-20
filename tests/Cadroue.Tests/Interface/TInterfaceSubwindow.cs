@@ -85,6 +85,35 @@ internal static partial class TInterface
         monitor.LSMonitorLocalResolve(fraction);
     internal static double TMonitorColumnRead(LSMonitor monitor, double[] envelope, int column, int columns) =>
         monitor.LSMonitorColumnRead(envelope, column, columns);
+    internal static void TMonitorIncreaseZoom(LSMonitor monitor) => monitor.LSMonitorIncreaseZoom();
+    internal static void TMonitorDecreaseZoom(LSMonitor monitor) => monitor.LSMonitorDecreaseZoom();
+    internal static LSMonitorScroll TMonitorScrollRead(LSMonitor monitor) => monitor.LSMonitorScrollRead();
+    internal static LSMonitorHead TMonitorHeadResolve(LSMonitor monitor, double width, TimeSpan duration) =>
+        monitor.LSMonitorHeadResolve(width, duration);
+    internal static void TMonitorSeekAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
+        monitor.LSMonitorSeekApply += handler;
+    internal static void TMonitorSeekHandle(
+        LSMonitor monitor, bool pressed, double x, double width, TimeSpan duration) =>
+        monitor.LSMonitorSeekHandle(pressed, x, width, duration);
+    internal static void TMonitorPlayAttach(LSMonitor monitor, Action play, Action pause)
+    {
+        monitor.LSMonitorPlayApply += play;
+        monitor.LSMonitorPauseApply += pause;
+    }
+
+    internal static void TMonitorPlayingSet(LSMonitor monitor, bool playing) => monitor.LSMonitorPlayingSet(playing);
+    internal static void TMonitorPlayHandle(LSMonitor monitor) => monitor.LSMonitorPlayHandle();
+    internal static LSMonitorFace TMonitorFaceRead(LSMonitor monitor) => monitor.LSMonitorFaceRead();
+    internal static void TMonitorBypassAttach(LSMonitor monitor, Action<bool> handler) =>
+        monitor.LSMonitorBypassApply += handler;
+    internal static void TMonitorBypassSet(LSMonitor monitor, bool bypass) => monitor.LSMonitorBypassSet(bypass);
+    internal static void TMonitorRadioHandle(LSMonitor monitor, bool bypass) => monitor.LSMonitorRadioHandle(bypass);
+    internal static string TMonitorStatusRead(LSMonitor monitor, bool after) => monitor.LSMonitorStatusRead(after);
+    internal static LSMonitorFrame TMonitorFrameResolve(LSMonitor monitor, bool after, double width, double height) =>
+        monitor.LSMonitorFrameResolve(after, width, height);
+    internal static LFlowWaveformOutline TMonitorOutlineResolve(
+        double[] envelope, double width, double height, double scale, double offset) =>
+        LSMonitorPlan.LSMonitorOutlineResolve(envelope, width, height, scale, offset);
 
     internal static LSVerdict TVerdictCreate(string title, IReadOnlyList<LSVerdictRow> rows) => new(title, rows);
     internal static bool TVerdictDetailCheck(LSVerdictRow row) => LSVerdict.LSVerdictDetailCheck(row);
