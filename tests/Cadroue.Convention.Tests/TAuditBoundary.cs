@@ -5,27 +5,32 @@ namespace Convention.Tests;
 
 public sealed class TAuditBoundary
 {
-    private static readonly string[] TAuditBoundaryHidden =
-    [
-        @"^\s*#\s*if\b",
-        @"\bdynamic\b",
-        @"\bType\.GetType\s*\(",
-        @"\bActivator\.",
-        @"\.GetMethods?\s*\(",
-        @"\.GetPropert(y|ies)\s*\(",
-        @"\.GetFields?\s*\(",
-        @"<x:Code\b",
-        @"\bEnum\.(Try)?Parse\b",
-        @"^\s*(global\s+)?using\s+\w+\s*=",
-        @"^\s*extern\s+alias\b",
-    ];
+    [Fact]
+    public void AuditBoundary_ShellSources_BuildNoStateValue()
+    {
+        List<string> hits = TAuditBoundaryScan(static _ => true, TAuditBoundarySetting.TAuditBoundaryForbidden);
 
-    private const string TAuditBoundaryReflection = @"\bSystem\.Reflection\b";
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITBOUNDARY",
+            $"{hits.Count} shell line(s) resolve a state the engine owns:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
+    public void AuditBoundary_Veneer_ComparesNoState()
+    {
+        List<string> hits = TAuditBoundaryScan(
+            static name => !TAuditBoundarySetting.TAuditBoundaryConverter.Contains(name, StringComparer.Ordinal),
+            TAuditBoundarySetting.TAuditBoundaryState);
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITBOUNDARY",
+            $"{hits.Count} shell line(s) compare a state outside the converters:\n{string.Join('\n', hits)}"));
+    }
 
     [Fact]
     public void AuditBoundary_ShellSources_HideNothing()
     {
-        List<string> hits = TAuditBoundaryScan(static _ => true, TAuditBoundaryHidden);
+        List<string> hits = TAuditBoundaryScan(static _ => true, TAuditBoundarySetting.TAuditBoundaryHidden);
 
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITBOUNDARY",
@@ -35,11 +40,13 @@ public sealed class TAuditBoundary
     [Fact]
     public void AuditBoundary_PanelSources_ReflectNothing()
     {
-        List<string> hits = TAuditBoundaryScan(static _ => true, [TAuditBoundaryReflection]);
+        List<string> hits = TAuditBoundaryScan(
+            static name => !TAuditBoundarySetting.TAuditBoundaryLoader.Contains(name, StringComparer.Ordinal),
+            [TAuditBoundarySetting.TAuditBoundaryReflection]);
 
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITBOUNDARY",
-            $"{hits.Count} shell line(s) reflect:\n{string.Join('\n', hits)}"));
+            $"{hits.Count} shell line(s) reflect outside the loaders:\n{string.Join('\n', hits)}"));
     }
 
     [Fact]
@@ -81,7 +88,7 @@ public sealed class TAuditBoundary
             string[] lines = File.ReadAllLines(path);
             for (int index = 0; index < lines.Length; index++)
             {
-                if (Regex.IsMatch(lines[index], @"\b(class|struct|record)\s+PS?[A-Z]"))
+                if (Regex.IsMatch(lines[index], TAuditBoundarySetting.TAuditBoundaryPanel))
                 {
                     hits.Add($"  {Path.GetRelativePath(repoRoot, path).Replace('\\', '/')}:{index + 1}");
                 }
@@ -91,6 +98,18 @@ public sealed class TAuditBoundary
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITBOUNDARY",
             $"{hits.Count} panel type(s) declared outside the shell:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
+    public void AuditBoundary_HoldSources_KeepNoTimer()
+    {
+        List<string> hits = TAuditBoundaryScan(
+            static name => TAuditBoundarySetting.TAuditBoundaryHold.Any(pattern => Regex.IsMatch(name, pattern)),
+            [TAuditBoundarySetting.TAuditBoundaryTimer]);
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITBOUNDARY",
+            $"{hits.Count} hold line(s) keep a timer the tenure owns:\n{string.Join('\n', hits)}"));
     }
 
     private static List<string> TAuditBoundaryScan(Func<string, bool> chosen, IReadOnlyList<string> forbidden)
@@ -134,7 +153,9 @@ public sealed class TAuditBoundary
 
     private static IReadOnlyList<string> TAuditShellRead(string repoRoot)
     {
-        return TAuditSemantic.TAuditRootRead(TAuditTruthSetting.TAuditShellInclude)
+        return TAuditTruthSetting.TAuditShellInclude
+            .Select(pattern => pattern[..pattern.IndexOf('*')].TrimEnd('/'))
+            .Distinct(StringComparer.Ordinal)
             .Select(root => Path.Combine(repoRoot, root.Replace('/', Path.DirectorySeparatorChar))
                             + Path.DirectorySeparatorChar)
             .ToList();

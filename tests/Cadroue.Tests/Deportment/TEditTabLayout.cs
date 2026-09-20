@@ -17,7 +17,6 @@ public sealed class TEditTabLayout
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
             TInterface.TViewerCreate(),
-            TInterface.TCropCreate(),
             TInterface.TListCreate(docket),
             docket,
             TInterface.TProcessingCreate());

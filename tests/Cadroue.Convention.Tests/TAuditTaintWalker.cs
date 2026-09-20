@@ -16,7 +16,7 @@ internal static class TAuditTaintWalker
     {
         TAuditReaderNames = readers;
         List<TViolation> violations = [];
-        foreach (SyntaxNode root in TAuditSemantic.TAuditModelCreate(sourcePaths).Where(TAuditSemantic.TAuditWalkCheck))
+        foreach (SyntaxNode root in TAuditBinder.TAuditWalkRead(sourcePaths).Where(TAuditBinder.TAuditWalkCheck))
         {
             foreach (MemberDeclarationSyntax member in root.DescendantNodes().OfType<MemberDeclarationSyntax>())
             {
@@ -89,8 +89,8 @@ internal static class TAuditTaintWalker
         Dictionary<ISymbol, string> tainted = new(SymbolEqualityComparer.Default);
         foreach (ParameterSyntax parameter in member.DescendantNodesAndSelf().OfType<ParameterSyntax>())
         {
-            if (TAuditSemantic.TAuditSymbolRead(parameter) is IParameterSymbol symbol
-                && TAuditSemantic.TAuditLogicCheck(symbol.Type))
+            if (TAuditBinder.TAuditSymbolRead(parameter) is IParameterSymbol symbol
+                && TAuditBinder.TAuditLogicCheck(symbol.Type))
             {
                 tainted[symbol] = TAuditLogicColour;
             }
@@ -105,7 +105,7 @@ internal static class TAuditTaintWalker
                     TAuditColourAdd(declarator, colour, tainted);
                     break;
                 case AssignmentExpressionSyntax { Left: IdentifierNameSyntax local } assignment
-                    when TAuditSemantic.TAuditSymbolRead(local) is ILocalSymbol
+                    when TAuditBinder.TAuditSymbolRead(local) is ILocalSymbol
                          && TAuditColourRead(assignment.Right, tainted) is string colour:
                     TAuditColourAdd(local, colour, tainted);
                     break;
@@ -129,7 +129,7 @@ internal static class TAuditTaintWalker
 
     private static void TAuditColourAdd(SyntaxNode node, string colour, Dictionary<ISymbol, string> tainted)
     {
-        if (TAuditSemantic.TAuditSymbolRead(node) is { } symbol)
+        if (TAuditBinder.TAuditSymbolRead(node) is { } symbol)
         {
             tainted[symbol] = colour;
         }
@@ -148,19 +148,19 @@ internal static class TAuditTaintWalker
             switch (child)
             {
                 case IdentifierNameSyntax name
-                    when TAuditSemantic.TAuditSymbolRead(name) is { } symbol
+                    when TAuditBinder.TAuditSymbolRead(name) is { } symbol
                          && tainted.TryGetValue(symbol, out string? colour):
                     return (name.Identifier.ValueText, colour);
                 case IdentifierNameSyntax or MemberBindingExpressionSyntax
-                    when TAuditSemantic.TAuditLogicCheck(child):
+                    when TAuditBinder.TAuditLogicCheck(child):
                     return (child.ToString(), TAuditLogicColour);
                 case IdentifierNameSyntax name
-                    when TAuditSemantic.TAuditSymbolRead(name) is { } symbol && TAuditReaderNames.Contains(symbol):
+                    when TAuditBinder.TAuditSymbolRead(name) is { } symbol && TAuditReaderNames.Contains(symbol):
                     return (name.Identifier.ValueText, TAuditLogicColour);
                 case MemberAccessExpressionSyntax input
                     when TAuditTruthSetting.TAuditInputMembers.Contains(
                              input.Name.Identifier.ValueText, StringComparer.Ordinal)
-                         && TAuditSemantic.TAuditControlCheck(TAuditSemantic.TAuditTypeRead(input.Expression)):
+                         && TAuditBinder.TAuditControlCheck(TAuditBinder.TAuditTypeRead(input.Expression)):
                     return (input.Expression.ToString(), TAuditTextColour);
             }
         }
@@ -190,12 +190,12 @@ internal static class TAuditTaintWalker
     {
         ExpressionSyntax core = TAuditStrictWalker.TAuditCoreRead(condition);
         if (core is not (InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax)
-            || TAuditSemantic.TAuditSymbolRead(core) is not { } symbol)
+            || TAuditBinder.TAuditSymbolRead(core) is not { } symbol)
         {
             return false;
         }
 
-        return TAuditSemantic.TAuditLogicCheck(symbol) || TAuditReaderNames.Contains(symbol);
+        return TAuditBinder.TAuditLogicCheck(symbol) || TAuditReaderNames.Contains(symbol);
     }
 
     private static int TAuditLineRead(SyntaxNode node)

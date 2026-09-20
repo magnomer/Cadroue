@@ -15,14 +15,13 @@ public sealed class TEditTabCrop
     {
         LInspector inspector = TInterface.TInspectorCreate();
         LViewer viewer = TInterface.TViewerCreate();
-        LCrop crop = TInterface.TCropCreate();
+        LCrop crop = TInterface.TCropRead(viewer);
         LDocket docket = TInterface.TDocketCreate();
         LProcessing processing = TInterface.TProcessingCreate();
         LEditTab tab = TInterface.TEditTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
             viewer,
-            crop,
             TInterface.TListCreate(docket),
             docket,
             processing);
@@ -47,14 +46,6 @@ public sealed class TEditTabCrop
             TInterface.TWorkCropCreate(100, 50, 100, 50, rotation, false, false),
             TInterface.TWorkVideoCreate(),
             true);
-        var rotates = new List<LRotateFlip>();
-        var rects = new List<LCropbox?>();
-        TInterface.TEditRotateAttach(tab, rotate =>
-        {
-            rotates.Add(rotate);
-            TInterface.TViewerRotateSet(viewer, rotate);
-        });
-        TInterface.TEditRectAttach(tab, rects.Add);
         TInterface.TEditLibrarianAttach(_ => TInterface.TEditPersistentCreate(saved), (_, _) => true);
         try
         {
@@ -67,13 +58,13 @@ public sealed class TEditTabCrop
             TInterface.TEditLibrarianAttach(null, null);
         }
 
-        Assert.Equal(expected, rotates[^1].LRotateKind);
         Assert.Equal(expected, viewer.LViewerPreview.LRotateFlip.LRotateKind);
         Assert.Equal((width, height), (inspector.LInspectorSourceWidth, inspector.LInspectorSourceHeight));
-        Assert.NotNull(rects[^1]);
-        Assert.Equal(100, rects[^1]!.LCropboxX);
-        Assert.Equal(width - 200, rects[^1]!.LCropboxWidth);
-        Assert.Equal(height - 100, rects[^1]!.LCropboxHeight);
+        LCropbox? rect = viewer.LViewerPreview.LCropbox;
+        Assert.NotNull(rect);
+        Assert.Equal(100, rect!.LCropboxX);
+        Assert.Equal(width - 200, rect.LCropboxWidth);
+        Assert.Equal(height - 100, rect.LCropboxHeight);
         Assert.True(inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
     }
 
@@ -86,10 +77,6 @@ public sealed class TEditTabCrop
         LEditPlan saved = TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(10, 10, 10, 10, 90, true, false), TInterface.TWorkVideoCreate(), true)
             with { LEditSkip = true };
-        LRotateFlip? last = null;
-        LCropbox? rect = TInterface.TCropboxCreate(1, 1, 1, 1);
-        TInterface.TEditRotateAttach(tab, rotate => last = rotate);
-        TInterface.TEditRectAttach(tab, value => rect = value);
         TInterface.TEditLibrarianAttach(_ => TInterface.TEditPersistentCreate(saved), (_, _) => true);
         try
         {
@@ -102,8 +89,8 @@ public sealed class TEditTabCrop
             TInterface.TEditLibrarianAttach(null, null);
         }
 
-        Assert.Equal(LRotateKind.LRotateNone, last!.LRotateKind);
-        Assert.Null(rect);
+        Assert.Equal(LRotateKind.LRotateNone, viewer.LViewerPreview.LRotateFlip.LRotateKind);
+        Assert.Null(viewer.LViewerPreview.LCropbox);
         Assert.True(processing.LProcessingSkipActive);
     }
 
@@ -112,9 +99,7 @@ public sealed class TEditTabCrop
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, LCrop crop, LProcessing processing) = TEditBuild();
-        var actives = new List<bool>();
-        TInterface.TEditActiveAttach(tab, actives.Add);
+        (_, LInspector inspector, _, LCrop crop, LProcessing processing) = TEditBuild();
         TInterface.TInspectorSourceSet(inspector, 1920, 1080);
 
         TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, true, false, 16, 9);
@@ -123,7 +108,7 @@ public sealed class TEditTabCrop
 
         Assert.Equal((16, 9), (crop.LCropRatioWidth, crop.LCropRatioHeight));
         Assert.True(crop.LCropPersistent);
-        Assert.True(actives[^1]);
+        Assert.True(crop.LCropActive);
         Assert.True(TInterface.TProcessingActiveCheck(processing, "Crop"));
 
         TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, false, false, 16, 9);
@@ -136,21 +121,23 @@ public sealed class TEditTabCrop
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, _, _) = TEditBuild();
-        int cancels = 0;
-        var locks = new List<bool>();
-        var tools = new List<bool>();
-        TInterface.TEditNeutralAttach(tab, () => cancels++);
-        TInterface.TEditLockAttach(tab, locks.Add);
-        TInterface.TEditToolAttach(tab, tools.Add);
+        (LEditTab tab, LInspector inspector, LViewer viewer, LCrop crop, _) = TEditBuild();
+        LViewerNeutral neutral = TInterface.TViewerNeutralRead(viewer);
+        var tools = new List<LViewerTool>();
+        TInterface.TCropAttach(crop, () => tools.Add(neutral.LViewerTool));
         TInterface.TInspectorToolSet(inspector, true);
+        TInterface.TViewerToolSet(neutral, true, LNeutralTarget.LNeutralTargetGrey);
+        tools.Clear();
 
         TInterface.TEditLockHandle(tab, true);
+        bool locked = crop.LCropLocked;
         TInterface.TEditLockHandle(tab, false);
 
-        Assert.Equal(1, cancels);
-        Assert.Equal(new[] { true, false }, locks);
-        Assert.Equal(new[] { true, false, true }, tools);
+        Assert.True(locked);
+        Assert.False(crop.LCropLocked);
+        Assert.Equal(LViewerTool.LViewerToolCrop, neutral.LViewerTool);
+        Assert.Equal(LViewerTool.LViewerToolNone, tools[0]);
+        Assert.Contains(LViewerTool.LViewerToolCrop, tools);
     }
 
     [Fact]

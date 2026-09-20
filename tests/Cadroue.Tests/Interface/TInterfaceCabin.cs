@@ -132,10 +132,9 @@ internal static partial class TInterface
         LPresetSelection preset,
         LInspector inspector,
         LViewer viewer,
-        LCrop crop,
         LList list,
         LDocket docket,
-        LProcessing processing) => new(preset, inspector, viewer, crop, list, docket, processing);
+        LProcessing processing) => new(preset, inspector, viewer, list, docket, processing);
     internal static void TEditClose(LEditTab tab) => tab.LEditClose();
     internal static void TEditStart(LEditTab tab) => tab.LEditStart();
     internal static LSceneTabRecord TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabRecord());
@@ -144,13 +143,6 @@ internal static partial class TInterface
     internal static void TEditSkipHandle(LEditTab tab) => tab.LEditSkipHandle();
     internal static void TEditLockHandle(LEditTab tab, bool locked) => tab.LEditLockHandle(locked);
     internal static void TEditPathHandle(LEditTab tab, string? path) => tab.LEditPathHandle(path);
-    internal static void TEditRotateAttach(LEditTab tab, Action<LRotateFlip> handler) =>
-        tab.LEditRotateApply += handler;
-    internal static void TEditRectAttach(LEditTab tab, Action<LCropbox?> handler) => tab.LEditRectApply += handler;
-    internal static void TEditActiveAttach(LEditTab tab, Action<bool> handler) => tab.LEditActiveApply += handler;
-    internal static void TEditLockAttach(LEditTab tab, Action<bool> handler) => tab.LEditLockApply += handler;
-    internal static void TEditToolAttach(LEditTab tab, Action<bool> handler) => tab.LEditToolApply += handler;
-    internal static void TEditNeutralAttach(LEditTab tab, Action handler) => tab.LEditNeutralCancel += handler;
     internal static void TEditHistogramAttach(LEditTab tab, Action handler) => tab.LEditHistogramDefer += handler;
     internal static void TEditMissingAttach(LEditTab tab, Action handler) => tab.LEditPresetMissing += handler;
     internal static void TEditRun(LEditTab tab, LWorkPriority priority) => tab.LEditRun(priority, default, default);
@@ -166,8 +158,6 @@ internal static partial class TInterface
     internal static void TEditColorUpdate(LEditTab tab) => tab.LEditColor.LEditColorUpdate();
     internal static void TEditPreviewAttach(LViewer viewer, Action<LColor> handler) =>
         viewer.LViewerPreviewChange += () => handler(viewer.LViewerPreview.LColor);
-    internal static void TEditEstimateAttach(LEditTab tab, Action<LWhitebalanceMethod> handler) =>
-        tab.LEditColor.LEditEstimateRead += handler;
     internal static void TEditColorApply(LEditTab tab) => tab.LEditColor.LEditColorApply();
     internal static void TEditNeutralHandle(LEditTab tab, LNeutralSample sample) =>
         tab.LEditColor.LEditNeutralHandle(sample);

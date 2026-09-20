@@ -4,7 +4,7 @@
 
 Compiles the shell sources and follows each mutable field to where its value goes, by symbol.
 A settable property and a positional record parameter are followed the same way.
-Logic is what `TAuditSemantic` says is logic: a symbol from a logic assembly or a value of such a type.
+Logic is what `TAuditBinder` says is logic: a symbol from a logic assembly or a value of such a type.
 Partial classes are joined by their type symbol, and a nested type is audited as part of its outermost class.
 
 ## `private static readonly object TAuditGate = new();`
@@ -44,6 +44,7 @@ The mutable fields, the settable properties and the positional record parameters
 A `readonly` or `const` field is a fixture only while nothing writes into it.
 A `static` field is shared and its writes are read in every file.
 A field or property initialised to `null!` is wired once after construction and is skipped as identity.
+A field or parameter typed as a listed handle grips the engine rather than holding a value, and is skipped.
 
 ## `private static bool TAuditFillCheck(HashSet<ISymbol> symbols, IReadOnlyList<TypeDeclarationSyntax> type)`
 
@@ -56,6 +57,10 @@ Every identifier resolving to one of the symbols, from the index.
 ## `private static bool TAuditInsideCheck(SyntaxNode node, IReadOnlyList<TypeDeclarationSyntax> type)`
 
 True when the node sits inside one of the class parts.
+
+## `private static bool TAuditHandleCheck(ITypeSymbol type)`
+
+True when the type, shown minimally and with any nullable mark dropped, is a listed handle.
 
 ## `private static bool TAuditFieldCheck(IdentifierNameSyntax identifier, HashSet<ISymbol> symbols)`
 

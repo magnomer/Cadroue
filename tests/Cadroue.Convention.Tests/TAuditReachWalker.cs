@@ -15,7 +15,7 @@ internal static class TAuditReachWalker
     public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> markupPaths)
     {
         List<TViolation> violations = [];
-        IReadOnlySet<string> deportment = TAuditSemantic.TAuditDeportmentRead();
+        IReadOnlySet<string> deportment = TAuditBinder.TAuditDeportmentRead();
         foreach (string path in markupPaths)
         {
             XDocument document;

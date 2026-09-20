@@ -8,11 +8,11 @@ internal static class TAuditStrictSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditStrictCeiling = new Dictionary<string, int>
     {
-        ["Storage"] = 76,
-        ["Flow"] = 339,
-        ["Treat"] = 95,
+        ["Storage"] = 63,
+        ["Flow"] = 290,
+        ["Treat"] = 88,
         ["Reach"] = 0,
-        ["Taint"] = 186,
+        ["Taint"] = 169,
     };
 
     public static readonly string[] TAuditVeneerInclude =
@@ -26,7 +26,59 @@ internal static class TAuditStrictSetting
         "src/Cadroue.UIShell/*.xaml",
     ];
 
+    public static readonly string[] TAuditDeportmentInclude =
+    [
+        "src/Cadroue.UIDeportment/*.cs",
+    ];
+
     public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";
+
+    public static readonly string[] TAuditCatalogPatterns =
+    [
+        @"^\s*using\s+System\.IO\s*;",
+        @"^\s*using\s+System\.Text\.Json",
+        @"^\s*using\s+System\.Text\.RegularExpressions",
+        @"^\s*using\s+System\.Diagnostics\s*;",
+        @"\bJsonSerializer\b",
+        @"\bJsonDocument\b",
+        @"\bRegex\b",
+        @"\bProcess\.Start\b",
+        @"\bProcessStartInfo\b",
+        @"\bTask\.Run\b",
+        @"\bFile\.\w+\(",
+        @"\bDirectory\.\w+\(",
+        @"\bPath\.\w+\(",
+    ];
+
+    public static readonly string[] TAuditCatalogExempt =
+    [
+        "PGroupCard.cs",
+        "PIcon.cs",
+        "PList.cs",
+        "PListRelay.cs",
+        "PListRow.cs",
+        "PLogWindow.cs",
+        "PPlayerFlyleaf.cs",
+        "PSAbout.cs",
+        "PSOptionsSystemWorkspace.cs",
+    ];
+
+    public static readonly string[] TAuditMarkupPatterns =
+    [
+        @"\bSystem\.Windows\b",
+        @"\bDispatcher\b",
+        @"\bSystem\.IO\b",
+    ];
+
+    public static readonly string[] TAuditMarkupExempt =
+    [
+        "LAction.cs",
+        "LGroup.cs",
+        "LSMonitor.cs",
+        "LViewerMedia.cs",
+        "LViewerMpv.cs",
+        "LViewerSource.cs",
+    ];
 
     public static readonly string[] TAuditReachNamespaces =
     [

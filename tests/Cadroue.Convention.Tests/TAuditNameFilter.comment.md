@@ -1,4 +1,4 @@
-﻿# TAuditNameFilter.cs
+# TAuditNameFilter.cs
 
 ## `internal static class TAuditNameFilter`
 

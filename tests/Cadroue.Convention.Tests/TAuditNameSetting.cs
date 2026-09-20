@@ -61,6 +61,8 @@ internal static class TAuditNameSetting
         "GeneratedInternalTypeHelper",
     ];
 
+    public static readonly string[] TAuditSelfExcluded = [];
+
     public static readonly string[] TAuditMethodKinds =
     [
         "Method",

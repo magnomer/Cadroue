@@ -33,7 +33,7 @@ internal static partial class TAuditTruthWalker
 
             if (assignment.Parent is InitializerExpressionSyntax { Parent: WithExpressionSyntax }
                 && assignment.Left is IdentifierNameSyntax field
-                && TAuditSemantic.TAuditLogicCheck(TAuditSemantic.TAuditSymbolRead(field)))
+                && TAuditBinder.TAuditLogicCheck(TAuditBinder.TAuditSymbolRead(field)))
             {
                 violations.Add(new TViolation(
                     root.SyntaxTree.FilePath,
@@ -58,7 +58,7 @@ internal static partial class TAuditTruthWalker
 
             if (assignment.Parent is InitializerExpressionSyntax
                 || assignment.Left is not MemberAccessExpressionSyntax target
-                || !TAuditSemantic.TAuditLogicCheck(TAuditSemantic.TAuditSymbolRead(target)))
+                || !TAuditBinder.TAuditLogicCheck(TAuditBinder.TAuditSymbolRead(target)))
             {
                 continue;
             }
@@ -92,7 +92,7 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditStoreCheck(ExpressionSyntax rows)
     {
-        ITypeSymbol? type = TAuditSemantic.TAuditTypeRead(rows);
+        ITypeSymbol? type = TAuditBinder.TAuditTypeRead(rows);
         if (type is null || type.TypeKind == TypeKind.Error)
         {
             return true;
@@ -104,8 +104,8 @@ internal static partial class TAuditTruthWalker
             INamedTypeSymbol named => named.TypeArguments,
             _ => []
         };
-        return held.Any(part => TAuditSemantic.TAuditLogicCheck(part)
-                                || TAuditSemantic.TAuditShellCheck(part)
+        return held.Any(part => TAuditBinder.TAuditLogicCheck(part)
+                                || TAuditBinder.TAuditShellCheck(part)
                                 || part.SpecialType == SpecialType.System_Object);
     }
 }

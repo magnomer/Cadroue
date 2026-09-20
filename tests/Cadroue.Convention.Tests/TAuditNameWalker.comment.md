@@ -2,7 +2,7 @@
 
 ## Generation
 
-AUDITNAMES GENERATION 9.
+AUDITNAMES GENERATION 10.
 
 A generation is not a revision count.
 It names functionality, not edits.
@@ -31,10 +31,8 @@ It clears a name only through a scoped row of the exempt block.
 
 Generation 9 changes nothing the name audit reports.
 The number rises with the custody and strict audits, which share it.
-Sources reach it through a `TAuditScope`, and what says a specimen lies outside the audit lives in `TAuditNameFilter.cs`.
-
-Generation 10 audits the tooling's own files like any other, since a self-exclusion is an exemption.
-The custody and strict walks move from names to symbols, and the number rises with them.
+It does not audit the tooling's own files, and sources reach it through a `TAuditScope`.
+What says a specimen lies outside the audit lives in `TAuditNameFilter.cs`.
 
 ## Inline notes
 

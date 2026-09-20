@@ -174,7 +174,7 @@ internal sealed class PSDebug : Window
             new LSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
             new LSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
         })));
-        PSDebugButtonAdd(pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new PViewer()));
+        PSDebugButtonAdd(pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new LViewer()));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(
             this,

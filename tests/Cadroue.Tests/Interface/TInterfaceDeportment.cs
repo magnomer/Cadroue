@@ -252,7 +252,7 @@ internal static partial class TInterface
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
-    internal static LCrop TCropCreate() => new();
+    internal static LCrop TCropCreate() => new LViewer().LCrop;
     internal static void TCropGripSet(LCrop crop, int edgeX, int edgeY) => crop.LCropGripSet(edgeX, edgeY);
     internal static void TCropBodySet(LCrop crop) => crop.LCropBodySet();
     internal static void TCropDrawSet(LCrop crop) => crop.LCropDrawSet();
@@ -268,6 +268,18 @@ internal static partial class TInterface
     internal static void TLoupeEndSet(LSLoupe loupe, bool ended) => loupe.LSLoupeEndSet(ended);
     internal static void TLoupeClose(LSLoupe loupe) => loupe.LSLoupeClose();
     internal static bool TLoupeResumeCheck(LSLoupe loupe) => loupe.LSLoupeResumeCheck();
+    internal static void TLoupeViewerAttach(LSLoupe loupe, LViewer viewer) => loupe.LSLoupeViewerAttach(viewer);
+    internal static void TLoupeDetach(LSLoupe loupe) => loupe.LSLoupeDetach();
+    internal static Task TLoupeStart(LSLoupe loupe) => loupe.LSLoupeStart();
+    internal static void TLoupePlayToggle(LSLoupe loupe) => loupe.LSLoupePlayToggle();
+    internal static void TLoupeSeek(LSLoupe loupe, TimeSpan position) => loupe.LSLoupeSeek(position);
+    internal static void TLoupeTick(LSLoupe loupe) => loupe.LSLoupeTick();
+    internal static void TLoupeFloatSet(LSLoupe loupe, LSLoupeFloat mode) => loupe.LSLoupeFloatSet(mode);
+    internal static void TLoupeFloatRestore(LSLoupe loupe) => loupe.LSLoupeFloatRestore();
+    internal static IReadOnlyList<LSLoupeButton> TLoupeButtonsRead(LSLoupe loupe) => loupe.LSLoupeButtonsRead();
+    internal static void TLoupeFloatAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeFloatChange += handler;
+    internal static void TLoupeEngineAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeEngineCreate += handler;
+    internal static void TLoupeCloseAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeCloseApply += handler;
 
     internal static LDocket TDocketCreate() => new();
     internal static int TDocketPathsAdd(LDocket docket, params string[] paths) => docket.LDocketPathsAdd(paths);

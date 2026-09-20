@@ -29,9 +29,34 @@ Every class under these roots is a veneer, as is any class deriving from a contr
 
 The `git ls-files` patterns of the shell markup.
 
+## `public static readonly string[] TAuditDeportmentInclude`
+
+The `git ls-files` patterns of the deportment sources, scanned for a reach into the framework.
+
 ## `public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";`
 
 The namespace whose types and members a markup binding may name, since Deportment is shell state, not logic.
+
+## `public static readonly string[] TAuditCatalogPatterns`
+
+A line matching one of these does file, JSON, regex or process work, or starts a task, in the veneer.
+
+## `public static readonly string[] TAuditCatalogExempt`
+
+The veneer files exempt from the catalog scan by name, each a debt a plan removes.
+The list rows and the group card cut a file name the deportment should hand them.
+The about and workspace pages join a path the usher should build.
+The icon reader picks its reader by extension.
+The log window prints through `Debug` and the Flyleaf wrapper times its open with a `Stopwatch`.
+
+## `public static readonly string[] TAuditMarkupPatterns`
+
+A deportment line matching one of these names WPF, the dispatcher or the file system.
+
+## `public static readonly string[] TAuditMarkupExempt`
+
+The deportment files exempt from the framework scan by name, each a debt a plan removes.
+Every one cuts a file name into a trace message, work the trace writer should do below the shell.
 
 ## `public static readonly string[] TAuditReachNamespaces`
 

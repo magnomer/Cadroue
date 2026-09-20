@@ -2,18 +2,21 @@
 
 ## `public sealed class TAuditBoundary`
 
-Keeps the shell where the Roslyn walkers can see it.
-A construct the walkers cannot follow would let a hit hide, so the shell may not use one.
+Keeps the shell on its side of the state rule.
+The shell sends what was written and shows what the engine holds.
+It never turns text or a chosen id into a stored state itself.
+Every name and file the facts hold to lives in `TAuditBoundarySetting`.
 
-## `private static readonly string[] TAuditBoundaryHidden =`
+## `public void AuditBoundary_ShellSources_BuildNoStateValue()`
 
-The constructs that keep code out of a syntax walk: a preprocessor branch, reflection, `dynamic`, inline markup code.
-Also an enum parsed from text and a `using` alias, which each give a name a second spelling.
-The walkers parse without symbols, so a branch would be skipped, and reflection names nothing the walk can follow.
+Scans every shell source for the calls that read text or an id into a state.
+Any hit names the file and line.
+The request that should carry the raw field instead is easy to find.
 
-## `private const string TAuditBoundaryReflection = @"\bSystem\.Reflection\b";`
+## `public void AuditBoundary_Veneer_ComparesNoState()`
 
-The namespace that reaches a member by its name as text.
+Scans every shell source and markup but the two converters for a state name.
+A panel that needs to know whether a value is unknown asks the converter rather than reading the state.
 
 ## `public void AuditBoundary_ShellSources_HideNothing()`
 
@@ -21,8 +24,7 @@ Scans every shell source and markup for a construct that hides code from the wal
 
 ## `public void AuditBoundary_PanelSources_ReflectNothing()`
 
-Scans every shell source for the reflection namespace.
-The version and the embedded catalogs are read below the shell, so no shell file needs it.
+Scans every shell source but the loaders for the reflection namespace.
 
 ## `public void AuditBoundary_Tracked_SkipNoSource()`
 
@@ -33,6 +35,11 @@ A source named like a generated file would otherwise never be walked.
 
 Scans every source outside the shell roots for a `P` or `PS` type.
 A panel declared in another project would sit outside every shell audit.
+
+## `public void AuditBoundary_HoldSources_KeepNoTimer()`
+
+Scans every `P*Hold.cs` and `PEditor*.cs` file for a timer of its own.
+The tenure waits out the typing, so a second wait in the panel would write twice or out of order.
 
 ## `private static List<string> TAuditBoundaryScan(Func<string, bool> chosen, IReadOnlyList<string> forbidden)`
 

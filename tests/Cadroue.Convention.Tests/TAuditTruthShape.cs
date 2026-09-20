@@ -51,7 +51,7 @@ internal static partial class TAuditTruthWalker
         foreach (MemberAccessExpressionSyntax access in condition.DescendantNodesAndSelf()
                      .OfType<MemberAccessExpressionSyntax>())
         {
-            if (TAuditSemantic.TAuditControlCheck(TAuditSemantic.TAuditTypeRead(access.Expression)))
+            if (TAuditBinder.TAuditControlCheck(TAuditBinder.TAuditTypeRead(access.Expression)))
             {
                 return access.Expression.ToString();
             }
@@ -62,14 +62,14 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditClockCheck(ExpressionSyntax clock)
     {
-        return TAuditSemantic.TAuditNamedCheck(
-            TAuditSemantic.TAuditTypeRead(clock), TAuditTruthSetting.TAuditClockTypes);
+        return TAuditBinder.TAuditNamedCheck(
+            TAuditBinder.TAuditTypeRead(clock), TAuditTruthSetting.TAuditClockTypes);
     }
 
     private static bool TAuditLambdaCheck(LambdaExpressionSyntax lambda)
     {
         if (lambda.Parent is not ArgumentSyntax { Parent.Parent: ObjectCreationExpressionSyntax creation }
-            || TAuditSemantic.TAuditTypeRead(creation.Type)?.Name != TAuditTruthSetting.TAuditObserverType)
+            || TAuditBinder.TAuditTypeRead(creation.Type)?.Name != TAuditTruthSetting.TAuditObserverType)
         {
             return false;
         }
@@ -80,7 +80,7 @@ internal static partial class TAuditTruthWalker
             ParenthesizedLambdaExpressionSyntax full => full.ParameterList.Parameters.FirstOrDefault(),
             _ => null
         };
-        if (parameter is null || TAuditSemantic.TAuditSymbolRead(parameter) is not { } symbol)
+        if (parameter is null || TAuditBinder.TAuditSymbolRead(parameter) is not { } symbol)
         {
             return false;
         }
@@ -94,7 +94,7 @@ internal static partial class TAuditTruthWalker
         return TAuditRequestCheck(handler)
                || handler.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>()
                    .Any(name =>
-                       TAuditSemantic.TAuditSymbolRead(name) is { } symbol && TAuditRelayNames.Contains(symbol));
+                       TAuditBinder.TAuditSymbolRead(name) is { } symbol && TAuditRelayNames.Contains(symbol));
     }
 
     private static string? TAuditDeafRead(MethodDeclarationSyntax handler)
@@ -102,8 +102,8 @@ internal static partial class TAuditTruthWalker
         foreach (ParameterSyntax parameter in handler.ParameterList.Parameters)
         {
             if (parameter.Type is null
-                || TAuditSemantic.TAuditTypeRead(parameter.Type)?.Name != TAuditTruthSetting.TAuditBulletinType
-                || TAuditSemantic.TAuditSymbolRead(parameter) is not { } symbol)
+                || TAuditBinder.TAuditTypeRead(parameter.Type)?.Name != TAuditTruthSetting.TAuditBulletinType
+                || TAuditBinder.TAuditSymbolRead(parameter) is not { } symbol)
             {
                 continue;
             }

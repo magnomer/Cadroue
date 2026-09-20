@@ -32,7 +32,6 @@ public sealed class LEditTab
         LPresetSelection lPreset,
         LInspector lInspector,
         LViewer lViewer,
-        LCrop lCrop,
         LList lList,
         LDocket lDocket,
         LProcessing lProcessing)
@@ -40,7 +39,7 @@ public sealed class LEditTab
         lEditPreset = lPreset;
         lEditInspector = lInspector;
         lEditViewer = lViewer;
-        lEditCrop = lCrop;
+        lEditCrop = lViewer.LCrop;
         lEditList = lList;
         lEditDocket = lDocket;
         lEditProcessing = lProcessing;
@@ -55,17 +54,17 @@ public sealed class LEditTab
         lInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange += LEditColor.LEditEstimateHandle;
         lViewer.LViewerMediaChange += LEditMediaHandle;
         lViewer.LViewerEngineChange += LEditColor.LEditCapableHandle;
+        lViewer.LViewerEngineChange += lViewer.LViewerNeutral.LViewerNeutralCancel;
+        lViewer.LViewerNeutral.LViewerToolChange += lInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
+        lViewer.LViewerNeutral.LViewerNeutralChange += LEditColor.LEditNeutralHandle;
+        lViewer.LViewerNeutral.LViewerEstimateChange += LEditColor.LEditEstimateApply;
+        lInspector.LInspectorWhitebalance.LWhitebalanceToolChange += lViewer.LViewerNeutral.LViewerToolSet;
+        lViewer.LCrop.LCropVideoChange += LEditCropShow;
         lProcessing.LProcessingStepChange += LEditStepHandle;
     }
 
     public event Action? LEditPresetMissing;
     public event Action? LEditPresetIncompatible;
-    public event Action<LRotateFlip>? LEditRotateApply;
-    public event Action<LCropbox?>? LEditRectApply;
-    public event Action<bool>? LEditActiveApply;
-    public event Action<bool>? LEditLockApply;
-    public event Action<bool>? LEditToolApply;
-    public event Action? LEditNeutralCancel;
     public event Action? LEditHistogramDefer;
     public event Action? LEditColorDefer;
 
@@ -83,6 +82,12 @@ public sealed class LEditTab
         lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange -= LEditColor.LEditEstimateHandle;
         lEditViewer.LViewerMediaChange -= LEditMediaHandle;
         lEditViewer.LViewerEngineChange -= LEditColor.LEditCapableHandle;
+        lEditViewer.LViewerEngineChange -= lEditViewer.LViewerNeutral.LViewerNeutralCancel;
+        lEditViewer.LViewerNeutral.LViewerToolChange -= lEditInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
+        lEditViewer.LViewerNeutral.LViewerNeutralChange -= LEditColor.LEditNeutralHandle;
+        lEditViewer.LViewerNeutral.LViewerEstimateChange -= LEditColor.LEditEstimateApply;
+        lEditInspector.LInspectorWhitebalance.LWhitebalanceToolChange -= lEditViewer.LViewerNeutral.LViewerToolSet;
+        lEditCrop.LCropVideoChange -= LEditCropShow;
         lEditProcessing.LProcessingStepChange -= LEditStepHandle;
     }
 
@@ -90,7 +95,7 @@ public sealed class LEditTab
     {
         LEditCropUpdate();
         LEditColor.LEditColorUpdate();
-        LEditActiveApply?.Invoke(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
+        lEditCrop.LCropActiveSet(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
     }
 
     public LSceneTabRecord LEditLayoutRead(LSceneTabRecord lLayout)
@@ -197,7 +202,7 @@ public sealed class LEditTab
 
     public void LEditPathHandle(string? lPath)
     {
-        LEditNeutralCancel?.Invoke();
+        lEditViewer.LViewerNeutral.LViewerNeutralCancel();
         if (string.IsNullOrWhiteSpace(lPath))
         {
             LTraceLog.LTraceInfoRecord("Edit click: no file selected");
@@ -221,7 +226,7 @@ public sealed class LEditTab
         LRotateFlip lRotate = lEditInspector.LInspectorCrop.LInspectorRotateRead();
         if (lEditViewer.LViewerPreview.LRotateFlip != lRotate)
         {
-            LEditRotateApply?.Invoke(lRotate);
+            lEditViewer.LViewerRotateSet(lRotate);
             LEditSourceSync();
         }
 
@@ -229,8 +234,8 @@ public sealed class LEditTab
             lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateRatio;
         lEditCrop.LCropRatioSet(lRatioFixed ? lRatioWidth : 0, lRatioFixed ? lRatioHeight : 0);
         lEditCrop.LCropPersistentSet(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent);
-        LEditActiveApply?.Invoke(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
-        LEditRectApply?.Invoke(lEditInspector.LInspectorCrop.LInspectorRectRead());
+        lEditCrop.LCropActiveSet(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
+        lEditCrop.LCropRectSet(lEditInspector.LInspectorCrop.LInspectorRectRead());
         LEditCropUpdate();
         LEditStore.LEditStateSave();
     }
@@ -258,17 +263,17 @@ public sealed class LEditTab
         LEditStore.LEditStateSave();
     }
 
-    private void LEditToolHandle(bool lArmed) => LEditToolApply?.Invoke(lArmed);
+    private void LEditToolHandle(bool lArmed) => lEditCrop.LCropToolSet(lArmed);
 
     public void LEditLockHandle(bool lLocked)
     {
         if (lLocked)
         {
-            LEditNeutralCancel?.Invoke();
+            lEditViewer.LViewerNeutral.LViewerNeutralCancel();
         }
 
-        LEditLockApply?.Invoke(lLocked);
-        LEditToolApply?.Invoke(!lLocked && lEditInspector.LInspectorToolArmed);
+        lEditCrop.LCropLockSet(lLocked);
+        lEditCrop.LCropToolSet(!lLocked && lEditInspector.LInspectorToolArmed);
     }
 
     private void LEditMediaHandle(LCargo lCargo)
@@ -312,7 +317,7 @@ public sealed class LEditTab
             LTraceLog.LTraceInfoRecord(
                 $"Edit applying {(lCarryWins ? "persistent" : "sidecar")} plan to '{lName}': "
                 + $"{LEditTabPlan.LEditPlanFormat(lPlan)}");
-            LEditRotateApply?.Invoke(LRotateFlip.LRotateCropResolve(lPlan.LEditCrop));
+            lEditViewer.LViewerRotateSet(LRotateFlip.LRotateCropResolve(lPlan.LEditCrop));
             LEditSourceSync();
 
             lApplied = lCarryWins ? lPlan : null;
@@ -349,8 +354,8 @@ public sealed class LEditTab
             $"Edit viewer push: rotate {lRotate.LRotateKind}, "
             + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}, "
             + $"{LEditTabPlan.LEditRectFormat(lRect)}");
-        LEditRotateApply?.Invoke(lRotate);
-        LEditRectApply?.Invoke(lRect);
+        lEditViewer.LViewerRotateSet(lRotate);
+        lEditCrop.LCropRectSet(lRect);
         LEditColor.LEditColorApply();
     }
 

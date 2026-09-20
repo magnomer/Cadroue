@@ -235,9 +235,47 @@ internal static partial class TInterface
         viewer.LViewerMediaCommit(cargo, persistent);
     internal static void TViewerMediaRaise(LViewer viewer, LCargo cargo) => viewer.LViewerMediaRaise(cargo);
     internal static void TViewerMediaClose(LViewer viewer) => viewer.LViewerMediaClose();
-    internal static bool TViewerNeutralSet(LViewer viewer, LNeutralTarget target) => viewer.LViewerNeutralSet(target);
-    internal static bool TViewerNeutralCancel(LViewer viewer) => viewer.LViewerNeutralCancel();
-    internal static bool TViewerNeutralReset(LViewer viewer) => viewer.LViewerNeutralReset();
+    internal static LViewerNeutral TViewerNeutralRead(LViewer viewer) => viewer.LViewerNeutral;
+    internal static void TViewerToolSet(LViewerNeutral neutral, bool armed, LNeutralTarget target) =>
+        neutral.LViewerToolSet(armed, target);
+    internal static void TViewerToolApply(LViewerNeutral neutral, LViewerTool tool) => neutral.LViewerToolApply(tool);
+    internal static void TViewerNeutralCancel(LViewerNeutral neutral) => neutral.LViewerNeutralCancel();
+    internal static bool TViewerKeyHandle(LViewerNeutral neutral, string key) => neutral.LViewerKeyHandle(key);
+    internal static void TViewerPressHandle(LViewerNeutral neutral, double x, double y) =>
+        neutral.LViewerPressHandle(x, y);
+    internal static void TViewerEstimateStart(LViewerNeutral neutral, LWhitebalanceMethod method) =>
+        neutral.LViewerEstimateStart(method);
+    internal static void TViewerToolAttach(LViewerNeutral neutral, Action<bool, LNeutralTarget> handler) =>
+        neutral.LViewerToolChange += handler;
+    internal static void TViewerNeutralAttach(LViewerNeutral neutral, Action<LNeutralSample> handler) =>
+        neutral.LViewerNeutralChange += handler;
+    internal static void TViewerEstimateAttach(LViewerNeutral neutral, Action<LNeutralWheel> handler) =>
+        neutral.LViewerEstimateChange += handler;
+    internal static void TViewerFocusAttach(LViewerNeutral neutral, Action handler) =>
+        neutral.LViewerFocusApply += handler;
+    internal static LCrop TCropRead(LViewer viewer) => viewer.LCrop;
+    internal static LCropDrag TCropDragRead(LViewer viewer) => viewer.LCropDrag;
+    internal static void TCropAttach(LCrop crop, Action handler) => crop.LCropApply += handler;
+    internal static void TCropVideoAttach(LCrop crop, Action handler) => crop.LCropVideoChange += handler;
+    internal static void TCropCaptureAttach(LCropDrag drag, Action<bool> handler) => drag.LCropCaptureApply += handler;
+    internal static void TCropSizeHandle(LCrop crop, double width, double height) =>
+        crop.LCropSizeHandle(width, height);
+    internal static void TCropActiveSet(LCrop crop, bool active) => crop.LCropActiveSet(active);
+    internal static void TCropToolSet(LCrop crop, bool armed) => crop.LCropToolSet(armed);
+    internal static void TCropRectSet(LCrop crop, LCropbox? rect) => crop.LCropRectSet(rect);
+    internal static void TCropHide(LCrop crop) => crop.LCropHide();
+    internal static LCropBox TCropBoxRead(LCrop crop) => crop.LCropBoxRead();
+    internal static IReadOnlyList<LCropHandle> TCropHandlesRead(LCrop crop) => crop.LCropHandlesRead();
+    internal static LCropShade TCropShadeRead(LCrop crop) => crop.LCropShadeRead();
+    internal static LCropbox TCropVideoRead(LCrop crop) => crop.LCropVideoRead();
+    internal static LCropbox? TCropPixelRead(LCrop crop) => crop.LCropPixelRead();
+    internal static bool TCropGripHandle(LCropDrag drag, int index, double x, double y) =>
+        drag.LCropGripHandle(index, x, y);
+    internal static bool TCropBodyHandle(LCropDrag drag, double x, double y) => drag.LCropBodyHandle(x, y);
+    internal static bool TCropPressHandle(LCropDrag drag, double x, double y) => drag.LCropPressHandle(x, y);
+    internal static bool TCropMoveHandle(LCropDrag drag, bool pressed, double x, double y) =>
+        drag.LCropMoveHandle(pressed, x, y);
+    internal static bool TCropReleaseHandle(LCropDrag drag, double x, double y) => drag.LCropReleaseHandle(x, y);
     internal static LCargo TCargoCreate(string path, LMediaInfo? info, bool preview) =>
         new(path, info, info is not null, preview, null, null);
     internal static LMediaInfo TViewerInfoCreate(TimeSpan duration, int width, int height) =>
@@ -294,7 +332,6 @@ internal static partial class TInterface
         media.LViewerPlayerCreate += handler;
     internal static void TViewerHostAttach(LViewerRenderer renderer, Action handler) =>
         renderer.LViewerHostApply += handler;
-    internal static void TViewerCropAttach(LViewerMedia media, Action handler) => media.LViewerCropReset += handler;
     internal static Task TViewerLoadStart(LViewerMedia media, string path, TimeSpan position, bool? playing) =>
         media.LViewerLoadStart(new LViewerIntent(path, position, playing));
     internal static Task TViewerFlyleafApply(

@@ -144,6 +144,18 @@ public static class PLook
             [false] = System.Windows.Media.Brushes.Transparent,
         };
 
+    public static readonly IReadOnlyDictionary<bool, Cursor?> PLookCross = new Dictionary<bool, Cursor?>
+    {
+        [true] = Cursors.Cross,
+        [false] = null,
+    };
+
+    public static readonly IReadOnlyDictionary<bool, Cursor?> PLookSizeAll = new Dictionary<bool, Cursor?>
+    {
+        [true] = Cursors.SizeAll,
+        [false] = null,
+    };
+
     public static readonly IReadOnlyDictionary<WindowState, bool> PLookMinimized = new Dictionary<WindowState, bool>
     {
         [WindowState.Minimized] = true,

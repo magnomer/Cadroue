@@ -1,20 +1,23 @@
 # TAuditConvention.cs
 
+## `public sealed class TAuditConvention`
+
+Holds the generation this checkout of the convention tests applies.
+A generation names the set of checks the audits apply, not a count of edits.
+Every audit and every settings sidecar share one number, so a report from any of them compares across projects.
+
+## `public static string TAuditReportFormat(string audit, string report)`
+
+Puts the audit name and the generation on the first line of every audit report.
+The stamp matches the generation the registry and each setting file carry, so reports compare by one grep.
+
+## `public const int TAuditGeneration`
+
+The generation of this tooling.
+Raise it only when a check is added, removed, or changed in what it reports.
+
 ## `public void AuditConvention_SettingGenerations_MatchTheTooling()`
 
-The generated registry and the four hand-written settings each carry the generation they were written for.
+Reads the generation the generated registry and each hand-written setting carry and compares it with this one.
 A mismatch means the tooling moved on while a file did not.
 The registry is fixed by running syncnames, and a setting file is fixed by editing it.
-
-## `private void TAuditTokenCheck(string root, string[] forbidden, string[] tolerated, (string TAuditFile, string TAuditSpelling)[] scoped)`
-
-One token rule: every tracked .cs under the root is scanned line by line, literals and comments stripped.
-Tolerated spellings are blanked before the forbidden patterns run.
-A fully qualified display call therefore passes and a bare one fails.
-Any remaining hit fails the run with its file and line, with no baseline to shrink.
-
-## `private void TAuditScalarCheck()`
-
-The Veneer field rule: a mutable scalar field must end in a transient suffix or be a listed draw cache.
-A field whose name reads as a guard (Suppress, Busy, Restoring and peers) fails regardless of type.
-Struct members, constants, readonly fields, and the composition root are skipped.

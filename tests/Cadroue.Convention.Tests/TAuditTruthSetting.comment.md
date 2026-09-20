@@ -2,8 +2,8 @@
 
 ## `internal static partial class TAuditTruthSetting`
 
-Hand-written and tracked: the truth-audit scope, the compilation inputs and the ceilings live here.
-There is no waiver and no handle list, since the compiler says what is logic.
+Hand-written and tracked: the truth-audit scope, the binder inputs and the ceilings live here.
+There is no waiver and no handle list, since the binder says what is logic.
 A ceiling is the only tolerance.
 No script writes this file.
 
@@ -30,39 +30,27 @@ No such type exists here yet, so the deaf-handler shape reports nothing until on
 
 The shell's subscription type, so a lambda handed to one that ignores its bulletin is deaf too.
 
-## `public const string TAuditShellAssembly = "Cadroue.Shell";`
-
-The name of the one compilation the shell sources are joined into.
-
 ## `public const string TAuditConfiguration = "Debug";`
 
-The build configuration whose output and generated files the compilation reads.
+The build configuration whose output and generated files the binder reads.
 
 ## `public const string TAuditReferenceRoot = "src/Cadroue.UIVeneer";`
 
-The project whose build output carries every library the shell references.
+The project whose build output carries every package the source references.
 
 ## `public static readonly string[] TAuditShellInclude`
 
-The `git ls-files` patterns of every shell source, all of which enter the compilation.
+The `git ls-files` patterns of every shell source.
+A type declared under one of these is shell, and a type declared under any other source is logic.
 
 ## `public static readonly string[] TAuditTruthInclude`
 
 The patterns of the sources the custody walk audits, the Veneer alone.
 The Deportment owns UI state by design, so holding or passing a logic value there is not a custody hit.
 
-## `public static readonly string[] TAuditLogicAssemblies`
-
-The assemblies whose symbols are logic.
-A value is logic when its type or its declaring member comes from one of these.
-
 ## `public static readonly string[] TAuditFrameworkPacks`
 
 The shared frameworks referenced beside the test runtime, so framework types resolve.
-
-## `public static readonly string[] TAuditReferenceSkip`
-
-Libraries in the build output that are not referenced, since their sources are in the compilation.
 
 ## `public static readonly string[] TAuditControlBases`
 
@@ -93,6 +81,11 @@ The types whose events fire on time rather than on a user act.
 ## `public static readonly string[] TAuditInputMembers`
 
 The members of a control that carry what the user typed or chose.
+
+## `public static readonly string[] TAuditTruthHandles`
+
+Types a shell field may hold as a handle to the engine rather than as a value.
+Empty here: the shell holds no engine port, and every logic value it keeps is a mirror.
 
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditTruthCeiling`
 

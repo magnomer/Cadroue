@@ -146,7 +146,7 @@ public sealed class TViewerLoad
         List<LCargo> cargos = [];
         int cropResets = 0;
         TInterface.TViewerMediaAttach(viewer, cargos.Add);
-        TInterface.TViewerCropAttach(media, () => cropResets++);
+        TInterface.TCropAttach(TInterface.TCropRead(viewer), () => cropResets++);
         LMediaInfo info = TInterface.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         TInterface.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, false);
         await TInterface.TViewerFlyleafApply(media, "clip.mp4", info, null, TInterface.TViewerSerialChange(viewer));

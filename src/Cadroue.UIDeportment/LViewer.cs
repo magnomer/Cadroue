@@ -5,13 +5,6 @@ using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
 
-public enum LViewerTool
-{
-    LViewerToolNone,
-    LViewerToolCrop,
-    LViewerToolNeutral
-}
-
 public sealed record LViewerIntent(
     string LViewerIntentPath,
     TimeSpan LViewerIntentPosition,
@@ -42,10 +35,6 @@ public sealed class LViewer
     private LMediaInfo? lViewerMediaInfo;
     private double lViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private LPreviewState lViewerPreview = LPreviewState.LPreviewDefaultCreate();
-    private LViewerTool lViewerTool;
-    private LNeutralTarget lViewerNeutralTarget;
-    private int lViewerNeutralSerial;
-    private bool lViewerNeutralPlaying;
 
     public LViewer()
     {
@@ -54,6 +43,9 @@ public sealed class LViewer
         LViewerSource = new LViewerSource(this);
         LViewerRenderer = new LViewerRenderer(this);
         LViewerMpv = new LViewerMpv(this);
+        LViewerNeutral = new LViewerNeutral(this);
+        LCrop = new LCrop(this);
+        LCropDrag = new LCropDrag(this);
     }
 
     public LPlayer LPlayer { get; } = new();
@@ -68,14 +60,17 @@ public sealed class LViewer
 
     public LViewerMpv LViewerMpv { get; }
 
-    public LCrop LCrop { get; } = new();
+    public LViewerNeutral LViewerNeutral { get; }
+
+    public LCrop LCrop { get; }
+
+    public LCropDrag LCropDrag { get; }
 
     public event Action<LCargo>? LViewerMediaChange;
     public event Action<bool>? LViewerPlayingChange;
     public event Action? LViewerEngineChange;
     public event Action? LViewerPreviewChange;
     public event Action<bool>? LViewerBypassChange;
-    public event Action<bool, LNeutralTarget>? LViewerToolChange;
     public event Action<double>? LViewerVolumeChange;
     public event Action<string>? LViewerOpenRequest;
 
@@ -126,14 +121,6 @@ public sealed class LViewer
     public double LViewerVolume => lViewerVolume;
 
     public LPreviewState LViewerPreview => lViewerPreview;
-
-    public LViewerTool LViewerTool => lViewerTool;
-
-    public LNeutralTarget LViewerNeutralTarget => lViewerNeutralTarget;
-
-    public int LViewerNeutralSerial => lViewerNeutralSerial;
-
-    public bool LViewerNeutralPlaying => lViewerNeutralPlaying;
 
     public bool LViewerPlaying => lViewerPreview.LPlaybackState.LPlaybackStatePlaying;
 
@@ -318,6 +305,7 @@ public sealed class LViewer
             + $"H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}, "
             + $"player {(LPlayer.LPlayerReady ? "ready" : "none")}, overlay remapped");
         LViewerPreviewApply();
+        LCrop.LCropOverlayUpdate();
     }
 
     public void LViewerColorSet(LColor lColor)
@@ -406,43 +394,5 @@ public sealed class LViewer
         }
 
         lFrameApply(lFrame);
-    }
-
-    public void LViewerToolSet(LViewerTool lTool) => lViewerTool = lTool;
-
-    public bool LViewerNeutralSet(LNeutralTarget lTarget)
-    {
-        if (lViewerTool == LViewerTool.LViewerToolNeutral)
-        {
-            lViewerNeutralTarget = lTarget;
-            return false;
-        }
-
-        lViewerNeutralSerial++;
-        lViewerNeutralTarget = lTarget;
-        lViewerNeutralPlaying = LViewerPlaying;
-        lViewerTool = LViewerTool.LViewerToolNeutral;
-        return true;
-    }
-
-    public void LViewerNeutralRaise(bool lArmed) => LViewerToolChange?.Invoke(lArmed, lViewerNeutralTarget);
-
-    public bool LViewerNeutralCancel()
-    {
-        if (lViewerTool != LViewerTool.LViewerToolNeutral)
-        {
-            return false;
-        }
-
-        lViewerNeutralSerial++;
-        return true;
-    }
-
-    public bool LViewerNeutralReset()
-    {
-        lViewerTool = LViewerTool.LViewerToolNone;
-        bool lResume = lViewerNeutralPlaying;
-        lViewerNeutralPlaying = false;
-        return lResume;
     }
 }

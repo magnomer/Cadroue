@@ -39,13 +39,13 @@ internal static class TAuditStrictWalker
     {
         List<TViolation> violations = [];
         Dictionary<INamedTypeSymbol, List<ClassDeclarationSyntax>> parts = new(SymbolEqualityComparer.Default);
-        foreach (SyntaxNode root in TAuditSemantic.TAuditModelCreate(sourcePaths).Where(TAuditSemantic.TAuditWalkCheck))
+        foreach (SyntaxNode root in TAuditBinder.TAuditWalkRead(sourcePaths).Where(TAuditBinder.TAuditWalkCheck))
         {
             TAuditTreatScan(root, violations);
             TAuditGlyphScan(root, violations);
             foreach (ClassDeclarationSyntax type in root.DescendantNodes().OfType<ClassDeclarationSyntax>())
             {
-                if (TAuditSemantic.TAuditSymbolRead(type) is not INamedTypeSymbol key)
+                if (TAuditBinder.TAuditSymbolRead(type) is not INamedTypeSymbol key)
                 {
                     continue;
                 }
@@ -84,13 +84,13 @@ internal static class TAuditStrictWalker
 
     private static bool TAuditVeneerCheck(INamedTypeSymbol symbol, IReadOnlyList<ClassDeclarationSyntax> type)
     {
-        if (TAuditSemantic.TAuditControlCheck(symbol))
+        if (TAuditBinder.TAuditControlCheck(symbol))
         {
             return true;
         }
 
         string repoRoot = TAuditSource.TAuditRootRead();
-        IReadOnlyList<string> roots = TAuditSemantic.TAuditRootRead(TAuditStrictSetting.TAuditVeneerInclude);
+        IReadOnlyList<string> roots = TAuditBinder.TAuditRootRead(TAuditStrictSetting.TAuditVeneerInclude);
         return type.Any(part =>
         {
             string relative = Path.GetRelativePath(repoRoot, part.SyntaxTree.FilePath).Replace('\\', '/');
@@ -188,7 +188,7 @@ internal static class TAuditStrictWalker
                     => $"logic value queried by {access.Name.Identifier.ValueText}",
                 CastExpressionSyntax cast when TAuditDataCheck(cast.Expression)
                     => $"logic value cast to {cast.Type}",
-                TypeOfExpressionSyntax reflected when TAuditSemantic.TAuditLogicCheck(reflected.Type)
+                TypeOfExpressionSyntax reflected when TAuditBinder.TAuditLogicCheck(reflected.Type)
                     => "logic type taken by typeof",
                 AttributeArgumentSyntax argument when TAuditDataCheck(argument.Expression)
                     => "logic value in an attribute",
@@ -257,7 +257,7 @@ internal static class TAuditStrictWalker
     {
         ExpressionSyntax core = TAuditCoreRead(condition);
         return core is InvocationExpressionSyntax or MemberAccessExpressionSyntax or IdentifierNameSyntax
-               && TAuditSemantic.TAuditLogicCheck(TAuditSemantic.TAuditSymbolRead(core));
+               && TAuditBinder.TAuditLogicCheck(TAuditBinder.TAuditSymbolRead(core));
     }
 
     public static bool TAuditPatternCheck(PatternSyntax pattern)
@@ -287,7 +287,7 @@ internal static class TAuditStrictWalker
         {
             bool logic = child switch
             {
-                IdentifierNameSyntax or MemberBindingExpressionSyntax => TAuditSemantic.TAuditLogicCheck(child),
+                IdentifierNameSyntax or MemberBindingExpressionSyntax => TAuditBinder.TAuditLogicCheck(child),
                 _ => false
             };
             if (logic)

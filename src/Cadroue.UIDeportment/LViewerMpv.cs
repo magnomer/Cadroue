@@ -14,7 +14,6 @@ public sealed class LViewerMpv
         lViewer = lOwner;
     }
 
-    public event Action? LViewerToolCancel;
 
     private LPlayer LPlayer => lViewer.LPlayer;
 
@@ -107,7 +106,7 @@ public sealed class LViewerMpv
 
     public void LViewerMpvCommit(LCargo lCargo)
     {
-        LViewerToolCancel?.Invoke();
+        lViewer.LViewerNeutral.LViewerNeutralCancel();
         bool lHasPreview = LPlayer.LPlayerReady && lCargo.LCargoPreviewAvailable;
         string lPath = lCargo.LCargoSourcePath ?? "(no path)";
         string lFileName = System.IO.Path.GetFileName(lPath);

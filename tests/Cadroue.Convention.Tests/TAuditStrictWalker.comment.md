@@ -3,7 +3,7 @@
 ## `internal static class TAuditStrictWalker`
 
 Compiles the shell sources and applies the strict rules by symbol.
-Logic is what `TAuditSemantic` says is logic, and a class is a veneer by its folder or its base type.
+Logic is what `TAuditBinder` says is logic, and a class is a veneer by its folder or its base type.
 Partial classes are joined by type symbol, and one veneer part makes the whole class a veneer.
 
 ## `private static readonly SyntaxKind[] TAuditFlowKinds =`

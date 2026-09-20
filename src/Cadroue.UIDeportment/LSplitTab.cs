@@ -45,6 +45,8 @@ public sealed class LSplitTab
         lInspector.LInspectorSensor.LSensorChange += LSplitChangeHandle;
         lInspector.LInspectorBlank.LBlankChange += LSplitChangeHandle;
         lInspector.LInspectorSensor.LSensorPersistentChange += LSplitPersistentHandle;
+        lInspector.LInspectorBlank.LBlankPickChange += LSplitPickHandle;
+        lViewer.LViewerNeutral.LViewerNeutralChange += LSplitSampleHandle;
     }
 
     public event Action? LSplitPresetMissing;
@@ -57,6 +59,8 @@ public sealed class LSplitTab
         lSplitInspector.LInspectorSensor.LSensorChange -= LSplitChangeHandle;
         lSplitInspector.LInspectorBlank.LBlankChange -= LSplitChangeHandle;
         lSplitInspector.LInspectorSensor.LSensorPersistentChange -= LSplitPersistentHandle;
+        lSplitInspector.LInspectorBlank.LBlankPickChange -= LSplitPickHandle;
+        lSplitViewer.LViewerNeutral.LViewerNeutralChange -= LSplitSampleHandle;
     }
 
     public void LSplitStart() => lSplitFlow.LFlowEditSet(!LSplitLockedCheck());
@@ -147,6 +151,9 @@ public sealed class LSplitTab
     }
 
     public void LSplitLockHandle(bool lLocked) => lSplitFlow.LFlowEditSet(!lLocked);
+
+    public void LSplitPickHandle(bool lArmed) =>
+        lSplitViewer.LViewerNeutral.LViewerToolSet(lArmed, LNeutralTarget.LNeutralTargetGrey);
 
     public void LSplitSampleHandle(LNeutralSample lSample) =>
         lSplitInspector.LInspectorBlank.LBlankSampleSet(

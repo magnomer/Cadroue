@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using FlyleafLib;
 using FlyleafLib.Controls.WPF;
@@ -18,7 +17,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PViewer : PPanel
+public sealed class PViewer : PPanel
 {
     private static readonly IReadOnlyDictionary<bool, Action<Config>> pViewerProcessors =
         new Dictionary<bool, Action<Config>>
@@ -57,7 +56,7 @@ public sealed partial class PViewer : PPanel
         new Dictionary<bool, Action<PViewer>>
         {
             [true] = _ => System.Windows.Application.Current.Windows.OfType<PSLoupe>().FirstOrDefault()?.Activate(),
-            [false] = pViewer => PSLoupe.PSLoupeShow(System.Windows.Application.Current.MainWindow, pViewer),
+            [false] = pViewer => PSLoupe.PSLoupeShow(System.Windows.Application.Current.MainWindow, pViewer.LViewer),
         };
 
     private static readonly IReadOnlyDictionary<LViewerAskKind, Action<PViewer, LViewerAsk, Action<bool>>> pViewerAsks =
@@ -93,27 +92,12 @@ public sealed partial class PViewer : PPanel
     private readonly PViewerMpvHost pViewerMpvHost;
     private readonly PViewerOverlay pViewerMpvOverlay;
     private readonly IReadOnlyDictionary<bool, FrameworkElement> pViewerHosts;
-    private readonly Canvas pViewerOverlay;
-    private readonly Rectangle pViewerCropBox;
+    private readonly PCrop pViewerOverlay;
     private readonly DispatcherTimer pViewerClockTimer;
-    private Point? pViewerCropPoint;
-    private readonly Path pViewerCropShade;
-    private readonly Rectangle[] pViewerCropHandles = new Rectangle[8];
-    private Rect pViewerCropOrigin;
-    private Point pViewerCropGrab;
-    private bool pViewerCropPress;
 
     public LViewer LViewer { get; } = new();
 
-    public LCrop LCrop => LViewer.LCrop;
-
     public LPlayer LPlayer => LViewer.LPlayer;
-
-    public event Action? PCropVideoChange;
-
-    public string? PViewerSourcePath => LViewer.LViewerSourcePath;
-
-    public Rect? PCropVideo => PCropVideoResolve(LViewer.LViewerPreview.LCropbox);
 
     public PViewer(bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false) : base("")
     {
@@ -122,37 +106,7 @@ public sealed partial class PViewer : PPanel
         Focusable = true;
         FocusVisualStyle = null;
 
-        pViewerCropBox = new Rectangle
-        {
-            Stroke = Brushes.White,
-            StrokeThickness = 2,
-            StrokeDashArray = new DoubleCollection { 4, 3 },
-            Fill = Brushes.Transparent,
-            Visibility = Visibility.Collapsed
-        };
-
-        pViewerOverlay = new Canvas
-        {
-            Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0)),
-            Focusable = true,
-            AllowDrop = true
-        };
-        pViewerCropShade = new Path
-        {
-            Fill = new SolidColorBrush(Color.FromArgb(0x66, 0x00, 0x00, 0x00)),
-            IsHitTestVisible = false,
-            Visibility = Visibility.Collapsed
-        };
-
-        pViewerOverlay.Children.Add(pViewerCropShade);
-        pViewerOverlay.Children.Add(pViewerCropBox);
-        PCropHandlesBuild();
-        pViewerCropBox.MouseLeftButtonDown += PCropBodyHandle;
-        pViewerOverlay.MouseLeftButtonDown += PCropPressHandle;
-        pViewerOverlay.MouseMove += PCropMoveHandle;
-        pViewerOverlay.MouseLeftButtonUp += PCropReleaseHandle;
-        pViewerOverlay.SizeChanged += PCropSizeHandle;
-        pViewerOverlay.KeyDown += PViewerKeyHandle;
+        pViewerOverlay = new PCrop(LViewer);
         pViewerOverlay.DragEnter += PViewerDragAccept;
         pViewerOverlay.DragOver += PViewerDragAccept;
         pViewerOverlay.Drop += PViewerDropHandle;
@@ -212,11 +166,8 @@ public sealed partial class PViewer : PPanel
         LViewer.LViewerPlayback.LViewerClockStop += pViewerClockTimer.Stop;
         LViewer.LViewerEngineChange += PViewerAudioUpdate;
         LViewer.LViewerBypassChange += PViewerBypassHandle;
-        LViewer.LViewerToolChange += PViewerToolHandle;
         LViewer.LViewerRenderer.LViewerHostApply += PViewerHostApply;
         LViewer.LViewerMedia.LViewerPlayerCreate += PViewerPlayerCreate;
-        LViewer.LViewerMedia.LViewerCropReset += PCropHide;
-        LViewer.LViewerMpv.LViewerToolCancel += PViewerNeutralCancel;
         LViewer.LViewerSource.LViewerSourceAsk += PViewerAskHandle;
         LViewer.LViewerSource.LViewerSourceLocate += PViewerLocateHandle;
         LViewer.LViewerMedia.LViewerFactsAttach(PViewerFactsRead);
@@ -415,22 +366,13 @@ public sealed partial class PViewer : PPanel
         }
     }
 
-    public void PViewerRotateSet(LRotateFlip pRotateFlip)
-    {
-        LViewer.LViewerRotateSet(pRotateFlip);
-        PCropOverlayUpdate();
-    }
-
     public void PViewerClose()
     {
         LViewer.LViewerMedia.LViewerClose();
         Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
         pViewerClockTimer.Tick -= PViewerClockHandle;
-        pViewerOverlay.MouseLeftButtonDown -= PCropPressHandle;
-        pViewerOverlay.MouseMove -= PCropMoveHandle;
-        pViewerOverlay.MouseLeftButtonUp -= PCropReleaseHandle;
-        pViewerOverlay.SizeChanged -= PCropSizeHandle;
+        pViewerOverlay.PCropClose();
         pViewerOverlay.DragEnter -= PViewerDragAccept;
         pViewerOverlay.DragOver -= PViewerDragAccept;
         pViewerOverlay.Drop -= PViewerDropHandle;

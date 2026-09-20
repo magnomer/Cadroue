@@ -18,8 +18,6 @@ public sealed class LEditTabColor
         lEditViewer = lViewer;
     }
 
-    public event Action<LWhitebalanceMethod>? LEditEstimateRead;
-
     public void LEditColorUpdate()
     {
         LEditActiveSet("Brightness", LColorKind.LColorKindBrightness);
@@ -124,7 +122,7 @@ public sealed class LEditTabColor
             return;
         }
 
-        LEditEstimateRead?.Invoke(lMethod);
+        lEditViewer.LViewerNeutral.LViewerEstimateStart(lMethod);
     }
 
     public void LEditHistogramRun() => lEditViewer.LViewerFrameRead(LEditHistogramApply);

@@ -23,7 +23,6 @@ public sealed class TEditTabRows
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
             TInterface.TViewerCreate(),
-            TInterface.TCropCreate(),
             TInterface.TListCreate(docket),
             docket,
             processing);

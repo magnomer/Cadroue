@@ -8,7 +8,6 @@ internal static class TAuditTruthSetting
     public const string TAuditStateSuffix = "State";
     public const string TAuditBulletinType = "LNotice";
     public const string TAuditObserverType = "PObserver";
-    public const string TAuditShellAssembly = "Cadroue.Shell";
     public const string TAuditConfiguration = "Debug";
     public const string TAuditReferenceRoot = "src/Cadroue.UIVeneer";
 
@@ -25,26 +24,10 @@ internal static class TAuditTruthSetting
         "src/Cadroue.UIShell/*.cs",
     ];
 
-    public static readonly string[] TAuditLogicAssemblies =
-    [
-        "Cadroue.Application",
-        "Cadroue.Core",
-        "Cadroue.Infrastructure",
-        "Cadroue.Media",
-        "Cadroue.ShellEngine",
-    ];
-
     public static readonly string[] TAuditFrameworkPacks =
     [
         "Microsoft.NETCore.App",
         "Microsoft.WindowsDesktop.App",
-    ];
-
-    public static readonly string[] TAuditReferenceSkip =
-    [
-        "Cadroue",
-        "Cadroue.UIDeportment",
-        "Cadroue.UIVeneer",
     ];
 
     public static readonly string[] TAuditControlBases =
@@ -113,13 +96,15 @@ internal static class TAuditTruthSetting
         "Value",
     ];
 
+    public static readonly string[] TAuditTruthHandles = [];
+
     public static readonly IReadOnlyDictionary<string, int> TAuditTruthCeiling = new Dictionary<string, int>
     {
-        ["Argument"] = 157,
-        ["Guard"] = 107,
-        ["Fork"] = 1,
+        ["Argument"] = 110,
+        ["Guard"] = 91,
+        ["Fork"] = 0,
         ["Mirror"] = 9,
-        ["Mutation"] = 54,
-        ["Shape"] = 14,
+        ["Mutation"] = 53,
+        ["Shape"] = 11,
     };
 }

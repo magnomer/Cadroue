@@ -15,7 +15,7 @@ internal static partial class TAuditTruthWalker
                      .SelectMany(part => part.Members))
         {
             if (member is not (MethodDeclarationSyntax or PropertyDeclarationSyntax)
-                || TAuditSemantic.TAuditSymbolRead(member) is not { } symbol)
+                || TAuditBinder.TAuditSymbolRead(member) is not { } symbol)
             {
                 continue;
             }
@@ -36,8 +36,8 @@ internal static partial class TAuditTruthWalker
             {
                 InvocationExpressionSyntax call => TAuditSendCheck(call, direct),
                 ObjectCreationExpressionSyntax creation
-                    => TAuditSemantic.TAuditTypeRead(creation.Type) is { } built
-                       && TAuditSemantic.TAuditLogicCheck(built)
+                    => TAuditBinder.TAuditTypeRead(creation.Type) is { } built
+                       && TAuditBinder.TAuditLogicCheck(built)
                        && built.Name.StartsWith(TAuditTruthSetting.TAuditRequestPrefix, StringComparison.Ordinal),
                 _ => false
             };
@@ -58,12 +58,12 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditSendCheck(InvocationExpressionSyntax call, bool direct)
     {
-        if (TAuditSemantic.TAuditSymbolRead(call) is not { } callee)
+        if (TAuditBinder.TAuditSymbolRead(call) is not { } callee)
         {
             return false;
         }
 
-        return (TAuditSemantic.TAuditLogicCheck(callee)
+        return (TAuditBinder.TAuditLogicCheck(callee)
                 && TAuditTruthSetting.TAuditSendRoots.Contains(callee.Name, StringComparer.Ordinal))
                || (!direct && TAuditSendNames.Contains(callee));
     }

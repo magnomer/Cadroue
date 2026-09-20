@@ -70,7 +70,7 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditHotCheck(ISymbol callee, ArgumentSyntax argument)
     {
-        if (TAuditSemantic.TAuditLogicCheck(callee))
+        if (TAuditBinder.TAuditLogicCheck(callee))
         {
             return true;
         }
@@ -87,11 +87,11 @@ internal static partial class TAuditTruthWalker
     private static ISymbol? TAuditCallRead(ExpressionSyntax call)
     {
         if (call is not (InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax)
-            || TAuditSemantic.TAuditSymbolRead(call) is not { } callee)
+            || TAuditBinder.TAuditSymbolRead(call) is not { } callee)
         {
             return null;
         }
 
-        return TAuditSemantic.TAuditLogicCheck(callee) || TAuditRelayNames.Contains(callee) ? callee : null;
+        return TAuditBinder.TAuditLogicCheck(callee) || TAuditRelayNames.Contains(callee) ? callee : null;
     }
 }

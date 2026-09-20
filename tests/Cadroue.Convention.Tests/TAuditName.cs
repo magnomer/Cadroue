@@ -15,7 +15,7 @@ public sealed class TAuditName
             TAuditNameSetting.TAuditExcludedSegments,
             TAuditNameSetting.TAuditExcludedSuffixes,
             TAuditNameSetting.TAuditExcludedPrefixes,
-            []);
+            TAuditNameSetting.TAuditSelfExcluded);
         IReadOnlyList<string> sources = TAuditSource.TAuditFileRead(repoRoot, scope);
 
         Assert.True(sources.Count > 0, TAuditConvention.TAuditReportFormat(

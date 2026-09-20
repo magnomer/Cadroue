@@ -47,22 +47,22 @@ public static class LWaveform
         }
     }
 
-    public static double[] LWaveformEnvelopeRead(byte[] lWaveformPeaks)
-    {
-        if (lWaveformPeaks.Length == 0)
-        {
-            return Array.Empty<double>();
-        }
-
-        var lWaveformEnvelope = new double[lWaveformPeaks.Length];
-        for (int lWaveformIndex = 0; lWaveformIndex < lWaveformPeaks.Length; lWaveformIndex++)
-        {
-            lWaveformEnvelope[lWaveformIndex] = lWaveformPeaks[lWaveformIndex] / (double)LWaveformPeakMaximum;
-        }
-
-        return lWaveformEnvelope;
-    }
-
+    public static double[] LWaveformEnvelopeRead(byte[] lWaveformPeaks)
+    {
+        if (lWaveformPeaks.Length == 0)
+        {
+            return Array.Empty<double>();
+        }
+
+        var lWaveformEnvelope = new double[lWaveformPeaks.Length];
+        for (int lWaveformIndex = 0; lWaveformIndex < lWaveformPeaks.Length; lWaveformIndex++)
+        {
+            lWaveformEnvelope[lWaveformIndex] = lWaveformPeaks[lWaveformIndex] / (double)LWaveformPeakMaximum;
+        }
+
+        return lWaveformEnvelope;
+    }
+
     public static bool LWaveformRecordMatch(LSidecarWaveformRecord? lWaveformRecord, TimeSpan lWaveformDuration)
     {
         if (lWaveformRecord is null

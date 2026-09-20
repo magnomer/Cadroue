@@ -16,11 +16,11 @@ internal static partial class TAuditTruthWalker
         TAuditRelayNames = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         TAuditReaderNames = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
         TAuditHotNames = new Dictionary<ISymbol, HashSet<int>>(SymbolEqualityComparer.Default);
-        List<(ISymbol TRelaySymbol, MemberDeclarationSyntax TRelayMember)> members = type
+        List<(ISymbol TAuditRelaySymbol, MemberDeclarationSyntax TAuditRelayMember)> members = type
             .SelectMany(part => part.DescendantNodesAndSelf().OfType<TypeDeclarationSyntax>())
             .SelectMany(part => part.Members)
             .Where(member => member is MethodDeclarationSyntax or PropertyDeclarationSyntax)
-            .Select(member => (TAuditSemantic.TAuditSymbolRead(member), member))
+            .Select(member => (TAuditBinder.TAuditSymbolRead(member), member))
             .Where(pair => pair.Item1 is not null)
             .Select(pair => (pair.Item1!, pair.member))
             .ToList();
@@ -59,7 +59,7 @@ internal static partial class TAuditTruthWalker
         }
 
         List<ISymbol?> parameters = method.ParameterList.Parameters
-            .Select(parameter => TAuditSemantic.TAuditSymbolRead(parameter))
+            .Select(parameter => TAuditBinder.TAuditSymbolRead(parameter))
             .ToList();
         bool grown = false;
         foreach (ArgumentSyntax argument in method.DescendantNodes().OfType<ArgumentSyntax>())
@@ -74,7 +74,7 @@ internal static partial class TAuditTruthWalker
             foreach (IdentifierNameSyntax used in argument.Expression.DescendantNodesAndSelf()
                          .OfType<IdentifierNameSyntax>())
             {
-                ISymbol? usedSymbol = TAuditSemantic.TAuditSymbolRead(used);
+                ISymbol? usedSymbol = TAuditBinder.TAuditSymbolRead(used);
                 int index = usedSymbol is null
                     ? -1
                     : parameters.FindIndex(parameter => SymbolEqualityComparer.Default.Equals(parameter, usedSymbol));
@@ -93,9 +93,9 @@ internal static partial class TAuditTruthWalker
         return member.DescendantNodes().Any(node => node switch
         {
             MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
-                => TAuditSemantic.TAuditLogicCheck(TAuditSemantic.TAuditSymbolRead(node)),
+                => TAuditBinder.TAuditLogicCheck(TAuditBinder.TAuditSymbolRead(node)),
             InvocationExpressionSyntax call
-                => TAuditSemantic.TAuditSymbolRead(call) is { } callee && TAuditReaderNames.Contains(callee),
+                => TAuditBinder.TAuditSymbolRead(call) is { } callee && TAuditReaderNames.Contains(callee),
             _ => false
         });
     }

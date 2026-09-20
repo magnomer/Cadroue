@@ -44,8 +44,6 @@ public sealed class PSplitTab : PTabSurface
         pInspector.PSensorRunShow();
         pInspector.LSensor.LSensorRunApply += PSplitSweepStart;
         pInspector.LSensor.LSensorStopApply += LSplitTab.LSplitSweep.LSplitSweepCancel;
-        pInspector.LBlank.LBlankPickChange += PSplitPickHandle;
-        pViewer.PViewerNeutralChange += LSplitTab.LSplitSampleHandle;
         LSplitTab.LSplitPresetMissing += PExport.PExportMissingShow;
         LSplitTab.LSplitSweep.LSplitBusyApply += PSplitBusyApply;
         LSplitTab.LSplitSweep.LSplitProgressApply += pInspector.PSensorProgressApply;
@@ -82,8 +80,6 @@ public sealed class PSplitTab : PTabSurface
     public override LSceneTabRecord PTabLayoutRead() => LSplitTab.LSplitLayoutRead(PTabLayoutCreate());
 
     private void PSplitSweepStart() => _ = LSplitTab.LSplitSweep.LSplitSweepStart();
-
-    private void PSplitPickHandle(bool pArmed) => pViewer.PViewerNeutralSet(pArmed, LNeutralTarget.LNeutralTargetGrey);
 
     private void PSplitBusyApply(bool pBusy)
     {

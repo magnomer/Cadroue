@@ -25,7 +25,6 @@ public sealed class TEditTabColor
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
             viewer,
-            viewer.LCrop,
             TInterface.TListCreate(docket),
             docket,
             processing);
@@ -79,15 +78,17 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector) = TEditBuild();
-        var asked = new List<LWhitebalanceMethod>();
-        TInterface.TEditEstimateAttach(tab, asked.Add);
+        LViewer viewer = TInterface.TViewerCreate();
+        (LEditTab tab, LInspector inspector) = TEditBuild(viewer);
+        var asked = new List<LNeutralWheel>();
+        TInterface.TViewerEstimateAttach(TInterface.TViewerNeutralRead(viewer), asked.Add);
 
         TInterface.TEditEstimateHandle(tab, LWhitebalanceMethod.LWhitebalanceMethodManual);
         TInterface.TEditEstimateHandle(tab, LWhitebalanceMethod.LWhitebalanceMethodMedian);
         TInterface.TEditEstimateApply(tab, 0.25, -0.5, true);
 
-        Assert.Equal(new[] { LWhitebalanceMethod.LWhitebalanceMethodMedian }, asked);
+        Assert.Single(asked);
+        Assert.False(asked[0].LNeutralWheelPresent);
         LNeutralWheel wheel = TInterface.TWhitebalanceWheelRead(inspector.LInspectorWhitebalance);
         Assert.True(wheel.LNeutralWheelPresent);
         Assert.Equal(0.25, wheel.LNeutralWheelX);
@@ -108,8 +109,8 @@ public sealed class TEditTabColor
         TInterface.TEditColorApply(tab);
         TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
 
-        Assert.Equal(2, colors.Count);
+        Assert.Equal(3, colors.Count);
         Assert.NotEqual(0, colors[0].LColorBrightness);
-        Assert.Equal(TInterface.TPreviewColorResolve(TInterface.TWorkVideoCreate()), colors[1]);
+        Assert.Equal(TInterface.TPreviewColorResolve(TInterface.TWorkVideoCreate()), colors[^1]);
     }
 }

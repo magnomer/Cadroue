@@ -63,26 +63,4 @@ public sealed class TViewerLoadSerial
         Assert.Null(viewer.LViewerSourcePath);
         Assert.False(TInterface.TViewerSerialCheck(viewer, serial));
     }
-
-    [Fact]
-    public void Neutral_ArmOnce_SerialMovesOnCancel()
-    {
-        LViewer viewer = TInterface.TViewerCreate();
-        TInterface.TViewerPlaybackUpdate(viewer, true, TimeSpan.Zero);
-
-        Assert.True(TInterface.TViewerNeutralSet(viewer, Cadroue.Application.LNeutralTarget.LNeutralTargetGrey));
-        int armed = viewer.LViewerNeutralSerial;
-        Assert.False(TInterface.TViewerNeutralSet(viewer, Cadroue.Application.LNeutralTarget.LNeutralTargetWhite));
-
-        Assert.Equal(armed, viewer.LViewerNeutralSerial);
-        Assert.Equal(Cadroue.Application.LNeutralTarget.LNeutralTargetWhite, viewer.LViewerNeutralTarget);
-        Assert.Equal(LViewerTool.LViewerToolNeutral, viewer.LViewerTool);
-        Assert.True(viewer.LViewerNeutralPlaying);
-
-        Assert.True(TInterface.TViewerNeutralCancel(viewer));
-        Assert.Equal(armed + 1, viewer.LViewerNeutralSerial);
-        Assert.True(TInterface.TViewerNeutralReset(viewer));
-        Assert.Equal(LViewerTool.LViewerToolNone, viewer.LViewerTool);
-        Assert.False(TInterface.TViewerNeutralCancel(viewer));
-    }
 }

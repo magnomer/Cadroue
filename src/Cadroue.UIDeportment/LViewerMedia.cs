@@ -29,7 +29,6 @@ public sealed class LViewerMedia
     }
 
     public event Action? LViewerPlayerCreate;
-    public event Action? LViewerCropReset;
 
     private LPlayer LPlayer => lViewer.LPlayer;
 
@@ -176,7 +175,7 @@ public sealed class LViewerMedia
         lViewer.LViewerMediaClose();
         LViewerHostShow(false);
         LViewerPlayerStop();
-        LViewerCropReset?.Invoke();
+        lViewer.LCrop.LCropHide();
         lViewer.LViewerPreviewApply();
 
         LTraceLog.LTraceInfoRecord(string.IsNullOrWhiteSpace(lClosedPath)
@@ -391,7 +390,7 @@ public sealed class LViewerMedia
         lViewer.LViewerMediaCommit(lCargo, LViewerCropPersistent);
         if (!LViewerCropPersistent)
         {
-            LViewerCropReset?.Invoke();
+            lViewer.LCrop.LCropHide();
         }
 
         LViewerIntent? lRequest = lViewer.LViewerIntent;

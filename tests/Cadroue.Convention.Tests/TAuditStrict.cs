@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
@@ -13,6 +14,10 @@ public sealed class TAuditStrict
     private static readonly Lazy<string> TAuditStrictWritten = new(TAuditReportSave);
 
     private static readonly string[] TAuditStrictKinds = ["Storage", "Flow", "Treat", "Reach", "Taint"];
+
+    private static readonly Regex TAuditLiteralPattern = new(
+        @"@?""(?:[^""\\]|\\.)*""|//.*$",
+        RegexOptions.Compiled);
 
     private readonly ITestOutputHelper _tAuditOutput;
 
@@ -52,6 +57,32 @@ public sealed class TAuditStrict
     }
 
     [Fact]
+    public void AuditStrict_DeportmentSources_ReachNoMarkup()
+    {
+        List<string> hits = TAuditSourceScan(
+            TAuditStrictSetting.TAuditDeportmentInclude,
+            TAuditStrictSetting.TAuditMarkupPatterns,
+            TAuditStrictSetting.TAuditMarkupExempt);
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITSTRICT",
+            $"{hits.Count} deportment line(s) reach the framework or the file system:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
+    public void AuditStrict_VeneerSources_HoldNoCatalog()
+    {
+        List<string> hits = TAuditSourceScan(
+            TAuditStrictSetting.TAuditVeneerInclude,
+            TAuditStrictSetting.TAuditCatalogPatterns,
+            TAuditStrictSetting.TAuditCatalogExempt);
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITSTRICT",
+            $"{hits.Count} veneer line(s) do file, JSON, regex, process or task work:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
     public void AuditStrict_Ceiling_MatchesHits()
     {
         List<string> stale = [];
@@ -83,6 +114,43 @@ public sealed class TAuditStrict
         Assert.True(held, TAuditConvention.TAuditReportFormat(
             "AUDITSTRICT",
             $"{hits.Count} {summary}, above the ceiling of {ceiling}. See {report}"));
+    }
+
+    private static List<string> TAuditSourceScan(
+        IReadOnlyList<string> include, IReadOnlyList<string> forbidden, IReadOnlyList<string> exempt)
+    {
+        string repoRoot = TAuditSource.TAuditRootRead();
+        TAuditScope scope = new(
+            [],
+            include,
+            TAuditNameSetting.TAuditExcludedSegments,
+            TAuditNameSetting.TAuditExcludedSuffixes,
+            TAuditNameSetting.TAuditExcludedPrefixes,
+            []);
+        List<string> hits = [];
+        foreach (string path in TAuditSource.TAuditFileRead(repoRoot, scope))
+        {
+            if (exempt.Contains(Path.GetFileName(path), StringComparer.Ordinal))
+            {
+                continue;
+            }
+
+            string[] lines = File.ReadAllLines(path);
+            for (int index = 0; index < lines.Length; index++)
+            {
+                string bare = TAuditLiteralPattern.Replace(lines[index], string.Empty);
+                foreach (string pattern in forbidden)
+                {
+                    if (Regex.IsMatch(bare, pattern))
+                    {
+                        string relative = Path.GetRelativePath(repoRoot, path).Replace('\\', '/');
+                        hits.Add($"  {relative}:{index + 1} {pattern}");
+                    }
+                }
+            }
+        }
+
+        return hits;
     }
 
     private static (IReadOnlyList<TViolation> TAuditHits, IReadOnlyList<string> TAuditVeneers) TAuditStrictRead()

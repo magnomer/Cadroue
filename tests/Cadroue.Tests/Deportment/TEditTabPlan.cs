@@ -20,7 +20,6 @@ public sealed class TEditTabPlan
             TInterface.TPresetSelectionCreate("Alpha"),
             inspector,
             viewer,
-            TInterface.TCropCreate(),
             TInterface.TListCreate(docket),
             docket,
             TInterface.TProcessingCreate());
