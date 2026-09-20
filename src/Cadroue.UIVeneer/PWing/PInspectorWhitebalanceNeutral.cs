@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -6,7 +5,9 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -22,8 +23,6 @@ public sealed partial class PInspector
     private Rectangle pInspectorNeutralSwatch = null!;
     private TextBlock pInspectorNeutralReadout = null!;
     private TextBlock pInspectorNeutralStatus = null!;
-
-    public event Action<bool, LNeutralTarget>? PWhitebalanceToolChange;
 
     private UIElement PToneNeutralBuild()
     {
@@ -117,88 +116,31 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PInspectorToolCreate(typeof(ToggleButton))
         };
-        pPickerTool.Checked += (_, _) => LWhitebalance.LWhitebalanceToolSet(true, pTarget);
-        pPickerTool.Unchecked += (_, _) =>
-        {
-            if (LWhitebalance.LWhitebalanceToolArmed && LWhitebalance.LWhitebalanceTarget == pTarget)
-            {
-                LWhitebalance.LWhitebalanceToolSet(false, pTarget);
-            }
-        };
+        pPickerTool.Checked += (_, _) => LWhitebalance.LWhitebalanceToolToggle(pTarget, true);
+        pPickerTool.Unchecked += (_, _) => LWhitebalance.LWhitebalanceToolToggle(pTarget, false);
         return pPickerTool;
     }
 
-    public void PInspectorNeutralShow(string pNeutralStatus) => LWhitebalance.LWhitebalanceStatusSet(pNeutralStatus);
-
-    public void PWhitebalanceToolSet(bool pNeutralArmed, LNeutralTarget pTarget) =>
-        LWhitebalance.LWhitebalanceToolSet(pNeutralArmed, pTarget);
-
-    public void PToneNeutralApply(LNeutralSample pNeutralSample) =>
-        LWhitebalance.LWhitebalanceSampleSet(pNeutralSample);
-
     private void PWhitebalanceToolUpdate()
     {
-        bool pArmed = LWhitebalance.LWhitebalanceToolArmed;
-        LNeutralTarget pTarget = LWhitebalance.LWhitebalanceTarget;
-        bool pGreyWas = pInspectorNeutralTool.IsChecked == true;
-        bool pWhiteWas = pInspectorWhiteTool.IsChecked == true;
-        bool pGrey = pArmed && pTarget == LNeutralTarget.LNeutralTargetGrey;
-        bool pWhite = pArmed && pTarget == LNeutralTarget.LNeutralTargetWhite;
-        pInspectorNeutralTool.IsChecked = pGrey;
-        pInspectorWhiteTool.IsChecked = pWhite;
+        pInspectorNeutralTool.IsChecked = PLook.PLookChecked[LWhitebalance.LWhitebalanceGreyArmed];
+        pInspectorWhiteTool.IsChecked = PLook.PLookChecked[LWhitebalance.LWhitebalanceWhiteArmed];
         pInspectorNeutralIcon.Source = PIcon.PIconRead(
-            PPickerIcon, pGrey ? pInspectorAccentBrush : pInspectorIconBrush);
-        pInspectorWhiteIcon.Source = PIcon.PIconRead(PPickerIcon, pWhite ? pInspectorAccentBrush : pInspectorIconBrush);
-        if (pArmed)
-        {
-            LInspector.LInspectorToolSet(false);
-        }
-
-        string pStatus = pArmed
-            ? LLocalization.LLocalizationTextRead(pTarget == LNeutralTarget.LNeutralTargetWhite
-                ? "Inspector.Video.WhitebalanceGuideWhite"
-                : "Inspector.Video.WhitebalanceGuide")
-            : LWhitebalance.LWhitebalanceStatus;
-        pInspectorNeutralStatus.Text = pStatus;
-        pInspectorNeutralStatus.Visibility = string.IsNullOrEmpty(pStatus)
-            ? Visibility.Collapsed
-            : Visibility.Visible;
-
-        bool pWasArmed = pGreyWas || pWhiteWas;
-        if (pArmed && (!pWasArmed || pGrey != pGreyWas))
-        {
-            PWhitebalanceToolChange?.Invoke(true, pTarget);
-        }
-        else if (!pArmed && pWasArmed)
-        {
-            PWhitebalanceToolChange?.Invoke(false, pTarget);
-        }
+            PPickerIcon, PInspectorPickBrush[LWhitebalance.LWhitebalanceGreyArmed]);
+        pInspectorWhiteIcon.Source = PIcon.PIconRead(
+            PPickerIcon, PInspectorPickBrush[LWhitebalance.LWhitebalanceWhiteArmed]);
+        pInspectorNeutralStatus.Text = LWhitebalance.LWhitebalanceGuideRead();
+        pInspectorNeutralStatus.Visibility = PLook.PLookVisible[LWhitebalance.LWhitebalanceGuideShown];
     }
 
     private void PWhitebalanceReadoutUpdate()
     {
-        LNeutralDisplay pNeutralDisplay = LWhitebalance.LWhitebalanceDisplayRead();
-
-        pInspectorNeutralGroup.Visibility = pNeutralDisplay.LNeutralDisplaySampled
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-
-        if (!pNeutralDisplay.LNeutralDisplaySampled)
-        {
-            pInspectorNeutralSwatch.Fill = Brushes.Transparent;
-            pInspectorNeutralReadout.Text = string.Empty;
-            return;
-        }
-
+        LWhitebalanceReadout pReadout = LWhitebalance.LWhitebalanceReadoutRead();
+        pInspectorNeutralGroup.Visibility = PLook.PLookVisible[pReadout.LWhitebalanceReadoutSampled];
         pInspectorNeutralSwatch.Fill = new SolidColorBrush(Color.FromRgb(
-            (byte)pNeutralDisplay.LNeutralDisplayRed,
-            (byte)pNeutralDisplay.LNeutralDisplayGreen,
-            (byte)pNeutralDisplay.LNeutralDisplayBlue));
-        pInspectorNeutralReadout.Text = string.Format(
-            CultureInfo.InvariantCulture,
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
-            pNeutralDisplay.LNeutralDisplayRed,
-            pNeutralDisplay.LNeutralDisplayGreen,
-            pNeutralDisplay.LNeutralDisplayBlue);
+            pReadout.LWhitebalanceReadoutRed,
+            pReadout.LWhitebalanceReadoutGreen,
+            pReadout.LWhitebalanceReadoutBlue));
+        pInspectorNeutralReadout.Text = pReadout.LWhitebalanceReadoutText;
     }
 }

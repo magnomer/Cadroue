@@ -31,7 +31,7 @@ public sealed class TEditTabLayout
         presets.TPresetSeedCreate("Alpha");
         (LEditTab tab, LInspector inspector) = TEditBuild();
         TInterface.TCropboxCropSet(
-            inspector.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 90, false, false));
+            inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 90, false, false));
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
 
         LSceneTabRecord layout = TInterface.TEditLayoutRead(tab);
@@ -47,10 +47,10 @@ public sealed class TEditTabLayout
         (LEditTab source, LInspector inspector) = TEditBuild();
         TInterface.TInspectorSourceSet(inspector, 1920, 1080);
         TInterface.TCropboxCropSet(
-            inspector.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 90, true, false));
-        TInterface.TCropboxApplySet(inspector.LInspectorCropbox, true);
-        TInterface.TCropboxPersistentSet(inspector.LInspectorCropbox, true);
-        TInterface.TCropboxRatioSet(inspector.LInspectorCropbox, true, false, 16, 9);
+            inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 90, true, false));
+        TInterface.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterface.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, true, false, 16, 9);
         TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, 20);
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
         TInterface.TInspectorPersistentSet(inspector, LColorKind.LColorKindBrightness, true);
@@ -66,9 +66,11 @@ public sealed class TEditTabLayout
         Assert.True(layout.LSceneInspector!.LSceneInspectorCrop);
         Assert.True(layout.LSceneInspector.LSceneInspectorSkip);
         Assert.Equal(TInterface.TInspectorCropRead(inspector), TInterface.TInspectorCropRead(restored));
-        Assert.True(restored.LInspectorCropbox.LCropboxStateActive);
-        Assert.True(restored.LInspectorCropbox.LCropboxStatePersistent);
-        Assert.Equal(inspector.LInspectorCropbox.LCropboxStateRatio, restored.LInspectorCropbox.LCropboxStateRatio);
+        Assert.True(restored.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
+        Assert.True(restored.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent);
+        Assert.Equal(
+            inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateRatio,
+            restored.LInspectorCrop.LInspectorCropbox.LCropboxStateRatio);
         Assert.Equal(
             TInterface.TToneStepRead(inspector.LInspectorTone, LColorKind.LColorKindBrightness),
             TInterface.TToneStepRead(restored.LInspectorTone, LColorKind.LColorKindBrightness));
@@ -86,7 +88,7 @@ public sealed class TEditTabLayout
         presets.TPresetSeedCreate("Alpha");
         (LEditTab source, LInspector inspector) = TEditBuild();
         TInterface.TCropboxCropSet(
-            inspector.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 0, false, false));
+            inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 0, false, false));
         TInterface.TSkipPersistentSet(inspector.LInspectorSkip, true);
 
         LSceneTabRecord layout = TInterface.TEditLayoutRead(source);
@@ -94,7 +96,7 @@ public sealed class TEditTabLayout
         TInterface.TEditLayoutApply(target, layout);
 
         Assert.False(layout.LSceneInspector!.LSceneInspectorCrop);
-        Assert.Equal(TInterface.TWorkCropCreate(), restored.LInspectorCropbox.LCropboxStateCrop);
+        Assert.Equal(TInterface.TWorkCropCreate(), restored.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop);
         Assert.True(restored.LInspectorSkip.LSkipPersistent);
     }
 

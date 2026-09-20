@@ -93,8 +93,8 @@ public sealed partial class PInspector
 
     private void PEqualizerUpdate()
     {
-        PInspectorSwitchUpdate(pEqualizerApplyBox, LEqualizer.LEqualizerActive, false);
-        PInspectorSwitchUpdate(pEqualizerPersistent, LEqualizer.LEqualizerPersistent, true);
+        PInspectorSwitchUpdate(pEqualizerApplyBox, LEqualizer.LEqualizerActive);
+        PInspectorSwitchUpdate(pEqualizerPersistent, LEqualizer.LEqualizerPersistent);
         PEqualizerRowsUpdate();
         PInspectorPresetUpdate(
             pEqualizerPreset, LEqualizer.LEqualizerMatchRead(), LEqualizer.LEqualizerToken, PEqualizerKeyRead);

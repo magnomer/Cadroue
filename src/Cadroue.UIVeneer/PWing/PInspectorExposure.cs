@@ -44,13 +44,18 @@ public sealed partial class PInspector
 
     private void PExposureUpdate()
     {
-        PInspectorSwitchUpdate(pExposureBox, LExposure.LExposureStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pExposurePersistent, LExposure.LExposurePersistent, true);
+        PInspectorSwitchUpdate(pExposureBox, LExposure.LExposureStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pExposurePersistent, LExposure.LExposurePersistent);
         PInspectorValueUpdate(pExposureSlider, pExposureValue, LExposure.LExposureStep.LWorkStepValue, "0.#");
         PInspectorSectionApply(
             pExposureBox, pExposurePersistent, pExposureStack, pExposureBody,
-            LExposure.LExposureStep.LWorkStepActive, LExposure.LExposureCapable, LExposure.LExposurePreview,
-            "Inspector.Video.ExposureRequiresEq", "Inspector.Video.ExposurePreviewMpv",
-            "Inspector.Video.ApplyExposure", "Inspector.Video.PersistExposure");
+            LInspector.LInspectorTipResolve(
+                LExposure.LExposureStep.LWorkStepActive,
+                LExposure.LExposureCapable,
+                LExposure.LExposurePreview,
+                "Inspector.Video.ExposureRequiresEq",
+                "Inspector.Video.ExposurePreviewMpv",
+                "Inspector.Video.ApplyExposure",
+                "Inspector.Video.PersistExposure"));
     }
 }

@@ -4,6 +4,8 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LGamma
 {
+    private static readonly double[] lGammaLeast = { -100, -100, -100, -100, 0 };
+
     private LWorkVideoStep lGammaStep = LWorkVideoStep.LWorkGammaCreate(false, 0);
     private bool lGammaPersistent;
     private bool lGammaCapable;
@@ -20,6 +22,17 @@ public sealed class LGamma
     public bool LGammaCapable => lGammaCapable;
 
     public bool LGammaPreview => lGammaPreview;
+
+    public double LGammaLeastRead(int lIndex) => lGammaLeast[lIndex];
+
+    public double LGammaValueRead(int lIndex) => lIndex switch
+    {
+        1 => LGammaValue.LWorkGammaRed,
+        2 => LGammaValue.LWorkGammaGreen,
+        3 => LGammaValue.LWorkGammaBlue,
+        4 => LGammaValue.LWorkGammaHighlight,
+        _ => LGammaValue.LWorkGammaGlobal
+    };
 
     public void LGammaStepSet(LWorkVideoStep lStep)
     {

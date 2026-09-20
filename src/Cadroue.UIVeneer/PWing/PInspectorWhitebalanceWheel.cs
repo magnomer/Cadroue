@@ -6,7 +6,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 using Cadroue.Application;
-using Cadroue.Core;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -14,7 +13,6 @@ namespace Cadroue.UIVeneer.PWing;
 public sealed partial class PInspector
 {
     private const int PWhitebalanceWheelSize = 120;
-    private const double PWhitebalanceWheelRadius = 54;
     private const double PWhitebalanceWheelValue = 0.9;
 
     private Canvas pWhitebalanceWheelCanvas = null!;
@@ -60,15 +58,9 @@ public sealed partial class PInspector
         };
         pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelDot);
 
-        pWhitebalanceWheelCanvas.MouseLeftButtonDown += PWhitebalanceWheelHandle;
+        pWhitebalanceWheelCanvas.MouseLeftButtonDown += PWhitebalancePressHandle;
         pWhitebalanceWheelCanvas.MouseMove += PWhitebalanceWheelHandle;
-        pWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) =>
-        {
-            if (pWhitebalanceWheelCanvas.IsMouseCaptured)
-            {
-                pWhitebalanceWheelCanvas.ReleaseMouseCapture();
-            }
-        };
+        pWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) => pWhitebalanceWheelCanvas.ReleaseMouseCapture();
 
         pWhitebalanceWheelBrightness = new Slider
         {
@@ -92,97 +84,39 @@ public sealed partial class PInspector
         };
     }
 
-    private void PWhitebalanceWheelHandle(object sender, MouseEventArgs pWheelMouse)
+    private void PWhitebalancePressHandle(object pSender, MouseButtonEventArgs pWheelMouse)
     {
-        if (pWheelMouse.LeftButton != MouseButtonState.Pressed || !LWhitebalance.LWhitebalanceCapable)
-        {
-            return;
-        }
+        pWhitebalanceWheelCanvas.CaptureMouse();
+        PWhitebalanceWheelHandle(pSender, pWheelMouse);
+    }
 
-        if (!pWhitebalanceWheelCanvas.IsMouseCaptured)
-        {
-            pWhitebalanceWheelCanvas.CaptureMouse();
-        }
-
+    private void PWhitebalanceWheelHandle(object pSender, MouseEventArgs pWheelMouse)
+    {
         Point pWheelPoint = pWheelMouse.GetPosition(pWhitebalanceWheelCanvas);
-        double pWheelX = (pWheelPoint.X - (PWhitebalanceWheelSize / 2.0)) / PWhitebalanceWheelRadius;
-        double pWheelY = ((PWhitebalanceWheelSize / 2.0) - pWheelPoint.Y) / PWhitebalanceWheelRadius;
-        double pWheelReach = Math.Sqrt((pWheelX * pWheelX) + (pWheelY * pWheelY));
-        if (pWheelReach > 1)
-        {
-            pWheelX /= pWheelReach;
-            pWheelY /= pWheelReach;
-        }
-
-        LWhitebalance.LWhitebalanceSampleSet(LNeutral.LNeutralColorResolve(pWheelX, pWheelY));
+        LWhitebalance.LWhitebalanceWheelHandle(
+            PLook.PLookPressed[pWheelMouse.LeftButton], pWheelPoint.X, pWheelPoint.Y, PWhitebalanceWheelSize);
     }
 
     private void PWhitebalanceWheelPlace()
     {
-        if (pWhitebalanceWheelDot is null)
-        {
-            return;
-        }
-
-        LNeutralWheel pWheel = LWhitebalance.LWhitebalanceWheelRead();
-        if (!pWheel.LNeutralWheelPresent)
-        {
-            pWhitebalanceWheelDot.Visibility = Visibility.Collapsed;
-            return;
-        }
-
-        double pWheelCenterX = (PWhitebalanceWheelSize / 2.0) + (pWheel.LNeutralWheelX * PWhitebalanceWheelRadius);
-        double pWheelCenterY = (PWhitebalanceWheelSize / 2.0) - (pWheel.LNeutralWheelY * PWhitebalanceWheelRadius);
-        Canvas.SetLeft(pWhitebalanceWheelDot, pWheelCenterX - (pWhitebalanceWheelDot.Width / 2));
-        Canvas.SetTop(pWhitebalanceWheelDot, pWheelCenterY - (pWhitebalanceWheelDot.Height / 2));
-        pWhitebalanceWheelDot.Visibility = Visibility.Visible;
+        LNeutralDot pDot = LWhitebalance.LWhitebalanceDotRead(PWhitebalanceWheelSize, pWhitebalanceWheelDot.Width);
+        Canvas.SetLeft(pWhitebalanceWheelDot, pDot.LNeutralDotLeft);
+        Canvas.SetTop(pWhitebalanceWheelDot, pDot.LNeutralDotTop);
+        pWhitebalanceWheelDot.Visibility = PLook.PLookVisible[pDot.LNeutralDotPresent];
     }
-
-    public void PWhitebalanceEstimateApply(LNeutralWheel pWheelEstimate) =>
-        LWhitebalance.LWhitebalanceEstimateSet(pWheelEstimate);
 
     private static ImageSource PWhitebalanceWheelDraw() =>
         PWhitebalanceWheelDraw(PWhitebalanceWheelValue);
 
     private static ImageSource PWhitebalanceWheelDraw(double pWheelValue)
     {
-        int pWheelSize = PWhitebalanceWheelSize;
-        double pWheelCenter = pWheelSize / 2.0;
-        var pWheelPixels = new byte[pWheelSize * pWheelSize * 4];
-        for (int pWheelRow = 0; pWheelRow < pWheelSize; pWheelRow++)
-        {
-            for (int pWheelColumn = 0; pWheelColumn < pWheelSize; pWheelColumn++)
-            {
-                double pWheelX = (pWheelColumn + 0.5 - pWheelCenter) / PWhitebalanceWheelRadius;
-                double pWheelY = (pWheelCenter - (pWheelRow + 0.5)) / PWhitebalanceWheelRadius;
-                double pWheelReach = Math.Sqrt((pWheelX * pWheelX) + (pWheelY * pWheelY));
-                if (pWheelReach > 1)
-                {
-                    continue;
-                }
-
-                double pWheelHue = Math.Atan2(pWheelY, pWheelX) * (180.0 / Math.PI);
-                if (pWheelHue < 0)
-                {
-                    pWheelHue += 360;
-                }
-
-                (int pWheelRed, int pWheelGreen, int pWheelBlue) =
-                    LNeutral.LNeutralRgbResolve(pWheelHue, pWheelReach, pWheelValue);
-                double pWheelEdge = Math.Clamp((1 - pWheelReach) * PWhitebalanceWheelRadius, 0, 1);
-                int pWheelOffset = ((pWheelRow * pWheelSize) + pWheelColumn) * 4;
-                pWheelPixels[pWheelOffset] = (byte)pWheelBlue;
-                pWheelPixels[pWheelOffset + 1] = (byte)pWheelGreen;
-                pWheelPixels[pWheelOffset + 2] = (byte)pWheelRed;
-                pWheelPixels[pWheelOffset + 3] = (byte)Math.Round(pWheelEdge * 255);
-            }
-        }
-
-        var pWheelBitmap = new WriteableBitmap(pWheelSize, pWheelSize, 96, 96, PixelFormats.Bgra32, null);
+        LNeutralBitmap pWheel = LNeutral.LNeutralBitmapResolve(PWhitebalanceWheelSize, pWheelValue);
+        var pWheelBitmap = new WriteableBitmap(
+            pWheel.LNeutralBitmapSize, pWheel.LNeutralBitmapSize, 96, 96, PixelFormats.Bgra32, null);
         pWheelBitmap.WritePixels(
-            new Int32Rect(0, 0, pWheelSize, pWheelSize),
-            pWheelPixels,
-            pWheelSize * 4,
+            new Int32Rect(0, 0, pWheel.LNeutralBitmapSize, pWheel.LNeutralBitmapSize),
+            pWheel.LNeutralBitmapPixels,
+            pWheel.LNeutralBitmapStride,
             0);
         pWheelBitmap.Freeze();
         return pWheelBitmap;

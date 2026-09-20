@@ -40,7 +40,7 @@ public sealed class TEditTabPlan
         presets.TPresetSeedCreate("Alpha");
         (LEditTab tab, LInspector inspector, _, _) = TEditBuild();
         TInterface.TCropboxCropSet(
-            inspector.LInspectorCropbox, TInterface.TWorkCropCreate(1, 2, 3, 4, 0, false, false));
+            inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(1, 2, 3, 4, 0, false, false));
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, true);
 
         Assert.Null(TInterface.TEditCarriedRead(tab));
@@ -54,10 +54,10 @@ public sealed class TEditTabPlan
         (LEditTab tab, LInspector inspector, _, _) = TEditBuild();
         TInterface.TInspectorSourceSet(inspector, 1920, 1080);
         TInterface.TCropboxCropSet(
-            inspector.LInspectorCropbox, TInterface.TWorkCropCreate(10, 0, 0, 0, 0, false, false));
-        TInterface.TCropboxApplySet(inspector.LInspectorCropbox, true);
-        TInterface.TCropboxPersistentSet(inspector.LInspectorCropbox, true);
-        TInterface.TCropboxRatioSet(inspector.LInspectorCropbox, true, true, 4, 3);
+            inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 0, 0, 0, 0, false, false));
+        TInterface.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterface.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, true, true, 4, 3);
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, true);
         TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
 
@@ -109,8 +109,9 @@ public sealed class TEditTabPlan
             TEditSourceSet(viewer);
             TInterface.TInspectorSourceSet(inspector, 1920, 1080);
             TInterface.TCropboxCropSet(
-                inspector.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 180, false, true));
-            TInterface.TCropboxApplySet(inspector.LInspectorCropbox, true);
+                inspector.LInspectorCrop.LInspectorCropbox,
+                TInterface.TWorkCropCreate(10, 20, 30, 40, 180, false, true));
+            TInterface.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
             written.Clear();
 
             TInterface.TEditStateSave(tab);
@@ -170,7 +171,7 @@ public sealed class TEditTabPlan
         try
         {
             TInterface.TDocketPathsAdd(docket, @"C:\a.mp4", @"C:\b.mp4");
-            TInterface.TCropboxPersistentSet(inspector.LInspectorCropbox, true);
+            TInterface.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
             written.Clear();
 
             TInterface.TEditPersistentSave(tab);

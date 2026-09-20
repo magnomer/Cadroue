@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Core;
 
@@ -5,12 +6,21 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LWhitebalance
 {
+    private static readonly LWhitebalanceMethod[] lWhitebalanceMethods =
+    {
+        LWhitebalanceMethod.LWhitebalanceMethodAverage,
+        LWhitebalanceMethod.LWhitebalanceMethodMinmax,
+        LWhitebalanceMethod.LWhitebalanceMethodMedian,
+        LWhitebalanceMethod.LWhitebalanceMethodManual
+    };
+
     private LWorkVideoStep lWhitebalanceStep = LWorkVideoStep.LWorkWhitebalanceCreate(false);
     private bool lWhitebalancePersistent;
     private bool lWhitebalanceCapable;
     private bool lWhitebalancePreview;
     private LNeutralWheel lWhitebalanceEstimate = new(0, 0, false);
     private bool lWhitebalanceToolArmed;
+    private bool lWhitebalanceToolPending;
     private LNeutralTarget lWhitebalanceTarget = LNeutralTarget.LNeutralTargetGrey;
     private string lWhitebalanceStatus = string.Empty;
 
@@ -18,11 +28,15 @@ public sealed class LWhitebalance
 
     public event Action<LWhitebalanceMethod>? LWhitebalanceEstimateChange;
 
+    public event Action<bool, LNeutralTarget>? LWhitebalanceToolChange;
+
     public LWorkVideoStep LWhitebalanceStep => lWhitebalanceStep;
 
     public LWorkWhitebalanceSettings LWhitebalanceValue => lWhitebalanceStep.LWorkWhitebalanceRead();
 
     public LWhitebalanceMethod LWhitebalanceMethod => LWhitebalanceValue.LWorkWhitebalanceMethod;
+
+    public int LWhitebalanceMethodIndex => Array.IndexOf(lWhitebalanceMethods, LWhitebalanceMethod);
 
     public bool LWhitebalanceManual =>
         LWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual;
@@ -35,9 +49,23 @@ public sealed class LWhitebalance
 
     public bool LWhitebalanceToolArmed => lWhitebalanceToolArmed;
 
+    public bool LWhitebalanceGreyArmed =>
+        lWhitebalanceToolArmed && lWhitebalanceTarget == LNeutralTarget.LNeutralTargetGrey;
+
+    public bool LWhitebalanceWhiteArmed =>
+        lWhitebalanceToolArmed && lWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite;
+
     public LNeutralTarget LWhitebalanceTarget => lWhitebalanceTarget;
 
     public string LWhitebalanceStatus => lWhitebalanceStatus;
+
+    public bool LWhitebalanceGuideShown => LWhitebalanceGuideRead().Length > 0;
+
+    public string LWhitebalanceGuideRead() => lWhitebalanceToolArmed
+        ? LLocalization.LLocalizationTextRead(lWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite
+            ? "Inspector.Video.WhitebalanceGuideWhite"
+            : "Inspector.Video.WhitebalanceGuide")
+        : lWhitebalanceStatus;
 
     public LNeutralWheel LWhitebalanceWheelRead()
     {
@@ -47,11 +75,27 @@ public sealed class LWhitebalance
             : lWhitebalanceEstimate;
     }
 
-    public LNeutralDisplay LWhitebalanceDisplayRead()
+    public LNeutralDot LWhitebalanceDotRead(double lSize, double lDot) =>
+        LNeutral.LNeutralDotResolve(LWhitebalanceWheelRead(), lSize, lDot);
+
+    public LWhitebalanceReadout LWhitebalanceReadoutRead()
     {
         LWorkWhitebalanceSettings lValue = LWhitebalanceValue;
-        return LNeutral.LNeutralDisplayResolve(
+        LNeutralDisplay lDisplay = LNeutral.LNeutralDisplayResolve(
             LWhitebalanceManual, lValue.LWorkSampleRed, lValue.LWorkSampleGreen, lValue.LWorkSampleBlue);
+        return new LWhitebalanceReadout(
+            lDisplay.LNeutralDisplaySampled,
+            (byte)lDisplay.LNeutralDisplayRed,
+            (byte)lDisplay.LNeutralDisplayGreen,
+            (byte)lDisplay.LNeutralDisplayBlue,
+            lDisplay.LNeutralDisplaySampled
+                ? string.Format(
+                    CultureInfo.InvariantCulture,
+                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
+                    lDisplay.LNeutralDisplayRed,
+                    lDisplay.LNeutralDisplayGreen,
+                    lDisplay.LNeutralDisplayBlue)
+                : string.Empty);
     }
 
     public void LWhitebalanceStepSet(LWorkVideoStep lStep)
@@ -78,6 +122,16 @@ public sealed class LWhitebalance
         }
 
         LWhitebalanceRaise(lChanged);
+    }
+
+    public void LWhitebalanceMethodSelect(int lIndex)
+    {
+        if (lIndex < 0 || lIndex >= lWhitebalanceMethods.Length)
+        {
+            return;
+        }
+
+        LWhitebalanceMethodSet(lWhitebalanceMethods[lIndex]);
     }
 
     public void LWhitebalanceMethodSet(LWhitebalanceMethod lMethod)
@@ -151,6 +205,27 @@ public sealed class LWhitebalance
         LWhitebalanceRaise(lChanged);
     }
 
+    public void LWhitebalanceToolToggle(LNeutralTarget lTarget, bool lChecked)
+    {
+        if (!lChecked && !(lWhitebalanceToolArmed && lWhitebalanceTarget == lTarget))
+        {
+            return;
+        }
+
+        LWhitebalanceToolSet(lChecked, lTarget);
+    }
+
+    public void LWhitebalanceWheelHandle(bool lPressed, double lX, double lY, double lSize)
+    {
+        if (!lPressed || !lWhitebalanceCapable)
+        {
+            return;
+        }
+
+        LNeutralWheel lWheel = LNeutral.LNeutralCanvasResolve(lX, lY, lSize);
+        LWhitebalanceSampleSet(LNeutral.LNeutralColorResolve(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY));
+    }
+
     public void LWhitebalanceStatusSet(string lStatus) => LWhitebalanceRaise(LWhitebalanceStatusApply(lStatus));
 
     public void LWhitebalancePersistentSet(bool lPersistent)
@@ -206,6 +281,7 @@ public sealed class LWhitebalance
 
         lWhitebalanceToolArmed = lArmed;
         lWhitebalanceTarget = lNext;
+        lWhitebalanceToolPending = true;
         if (!lArmed)
         {
             lWhitebalanceStatus = string.Empty;
@@ -231,5 +307,20 @@ public sealed class LWhitebalance
         {
             LWhitebalanceChange?.Invoke();
         }
+
+        if (!lWhitebalanceToolPending)
+        {
+            return;
+        }
+
+        lWhitebalanceToolPending = false;
+        LWhitebalanceToolChange?.Invoke(lWhitebalanceToolArmed, lWhitebalanceTarget);
     }
 }
+
+public sealed record LWhitebalanceReadout(
+    bool LWhitebalanceReadoutSampled,
+    byte LWhitebalanceReadoutRed,
+    byte LWhitebalanceReadoutGreen,
+    byte LWhitebalanceReadoutBlue,
+    string LWhitebalanceReadoutText);

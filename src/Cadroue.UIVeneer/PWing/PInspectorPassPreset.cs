@@ -21,8 +21,8 @@ public sealed partial class PInspector
     private void PFilterUpdate(PInspectorPass pPass)
     {
         LWorkPassStep pStep = pPass.PFilterOwner.LFilterStep;
-        PInspectorSwitchUpdate(pPass.PFilterApplyBox, pStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pPass.PInspectorPassPersistent, pPass.PFilterOwner.LFilterPersistent, true);
+        PInspectorSwitchUpdate(pPass.PFilterApplyBox, pStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pPass.PInspectorPassPersistent, pPass.PFilterOwner.LFilterPersistent);
         PInspectorValueUpdate(pPass.PInspectorPassFrequency, pPass.PInspectorPassValue, pStep.LWorkPassFrequency, "0");
         PInspectorValueUpdate(pPass.PInspectorPassStages, pPass.PFilterStageValue, pStep.LWorkPassStages, "0");
         PInspectorValueUpdate(

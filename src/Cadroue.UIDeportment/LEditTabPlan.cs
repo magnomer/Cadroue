@@ -22,11 +22,11 @@ public sealed class LEditTabPlan
     public LEditPlan LEditStateRead()
     {
         (bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight) =
-            lEditInspector.LInspectorCropbox.LCropboxStateRatio;
+            lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateRatio;
         return new LEditPlan(
-            lEditInspector.LInspectorCropRead(),
+            lEditInspector.LInspectorCrop.LInspectorCropRead(),
             lEditColor.LEditVideoRead(),
-            lEditInspector.LInspectorCropbox.LCropboxStateActive)
+            lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive)
         {
             LEditSkip = lEditInspector.LInspectorSkip.LSkipActive,
             LEditRatioFixed = lRatioFixed,
@@ -38,7 +38,7 @@ public sealed class LEditTabPlan
 
     public LEditPlan? LEditCarriedRead()
     {
-        bool lCropPersistent = lEditInspector.LInspectorCropbox.LCropboxStatePersistent;
+        bool lCropPersistent = lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent;
         bool lVideoPersistent = lEditInspector.LInspectorPersistentCheck();
         bool lSkipPersistent = lEditInspector.LInspectorSkip.LSkipPersistent;
         if (!lCropPersistent && !lVideoPersistent && !lSkipPersistent)
@@ -47,12 +47,14 @@ public sealed class LEditTabPlan
         }
 
         (bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight) =
-            lEditInspector.LInspectorCropbox.LCropboxStateRatio;
-        LWorkCrop lCrop = lCropPersistent ? lEditInspector.LInspectorCropRead() : LWorkCrop.LWorkCropCreate();
+            lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateRatio;
+        LWorkCrop lCrop = lCropPersistent
+            ? lEditInspector.LInspectorCrop.LInspectorCropRead()
+            : LWorkCrop.LWorkCropCreate();
         LWorkVideo lVideo = lVideoPersistent
             ? lEditInspector.LInspectorPersistentRead()
             : LWorkVideo.LWorkVideoCreate();
-        return new LEditPlan(lCrop, lVideo, lCropPersistent && lEditInspector.LInspectorCropbox.LCropboxStateActive)
+        return new LEditPlan(lCrop, lVideo, lCropPersistent && lEditInspector.LInspectorCrop.LInspectorActive)
         {
             LEditSkip = lSkipPersistent && lEditInspector.LInspectorSkip.LSkipActive,
             LEditRatioFixed = lCropPersistent && lRatioFixed,
@@ -108,7 +110,7 @@ public sealed class LEditTabPlan
             return;
         }
 
-        bool lCropPersistent = lEditInspector.LInspectorCropbox.LCropboxStatePersistent;
+        bool lCropPersistent = lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent;
         bool lSkipPersistent = lEditInspector.LInspectorSkip.LSkipPersistent;
         var lFailed = new List<string>();
         foreach (string lPath in lPaths)

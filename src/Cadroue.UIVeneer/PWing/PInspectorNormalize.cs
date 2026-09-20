@@ -210,9 +210,9 @@ public sealed partial class PInspector
     {
         LWorkNormalizeStep pStep = LLoudness.LLoudnessStep;
         bool pDynamic = LLoudness.LLoudnessDynamic;
-        PInspectorSwitchUpdate(pLoudnessApplyBox, pStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pLoudnessPersistent, LLoudness.LLoudnessPersistent, true);
-        PInspectorSwitchUpdate(pLoudnessTwoPass, pStep.LWorkTwoPass, false);
+        PInspectorSwitchUpdate(pLoudnessApplyBox, pStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pLoudnessPersistent, LLoudness.LLoudnessPersistent);
+        PInspectorSwitchUpdate(pLoudnessTwoPass, pStep.LWorkTwoPass);
         if (pLoudnessMode.SelectedIndex != (pDynamic ? 1 : 0))
         {
             pLoudnessMode.SelectedIndex = pDynamic ? 1 : 0;

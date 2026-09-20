@@ -74,7 +74,7 @@ public sealed class TEditTabCrop
         Assert.Equal(100, rects[^1]!.LCropboxX);
         Assert.Equal(width - 200, rects[^1]!.LCropboxWidth);
         Assert.Equal(height - 100, rects[^1]!.LCropboxHeight);
-        Assert.True(inspector.LInspectorCropbox.LCropboxStateActive);
+        Assert.True(inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
     }
 
     [Fact]
@@ -117,16 +117,16 @@ public sealed class TEditTabCrop
         TInterface.TEditActiveAttach(tab, actives.Add);
         TInterface.TInspectorSourceSet(inspector, 1920, 1080);
 
-        TInterface.TCropboxRatioSet(inspector.LInspectorCropbox, true, false, 16, 9);
-        TInterface.TCropboxPersistentSet(inspector.LInspectorCropbox, true);
-        TInterface.TCropboxApplySet(inspector.LInspectorCropbox, true);
+        TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, true, false, 16, 9);
+        TInterface.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterface.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
 
         Assert.Equal((16, 9), (crop.LCropRatioWidth, crop.LCropRatioHeight));
         Assert.True(crop.LCropPersistent);
         Assert.True(actives[^1]);
         Assert.True(TInterface.TProcessingActiveCheck(processing, "Crop"));
 
-        TInterface.TCropboxRatioSet(inspector.LInspectorCropbox, false, false, 16, 9);
+        TInterface.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, false, false, 16, 9);
 
         Assert.Equal((0, 0), (crop.LCropRatioWidth, crop.LCropRatioHeight));
     }
@@ -150,7 +150,7 @@ public sealed class TEditTabCrop
 
         Assert.Equal(1, cancels);
         Assert.Equal(new[] { true, false }, locks);
-        Assert.Equal(new[] { false, true }, tools);
+        Assert.Equal(new[] { true, false, true }, tools);
     }
 
     [Fact]

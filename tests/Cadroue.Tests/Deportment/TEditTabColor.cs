@@ -104,7 +104,6 @@ public sealed class TEditTabColor
 
         TInterface.TEditColorApply(tab);
         TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
-        TInterface.TEditColorApply(tab);
 
         Assert.Equal(2, colors.Count);
         Assert.NotEqual(0, colors[0].LColorBrightness);

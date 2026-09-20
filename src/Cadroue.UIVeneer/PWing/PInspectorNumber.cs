@@ -1,27 +1,13 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
 public sealed partial class PInspector
 {
-    private TextBox PCropFieldBuild()
-    {
-        TextBox pRatioBox = PInspectorNumberBuild();
-        pRatioBox.TextChanged += (_, _) => PCropRatioHandle();
-        return pRatioBox;
-    }
-
-    private TextBox PInspectorInsetBuild(int pEdge)
-    {
-        TextBox pInsetBox = PInspectorNumberBuild();
-        pInsetBox.TextChanged += (_, _) => PInspectorInsetChange(pEdge);
-        return pInsetBox;
-    }
-
     private static TextBox PInspectorNumberBuild()
     {
         var pNumberBox = new TextBox
@@ -36,7 +22,7 @@ public sealed partial class PInspector
         pNumberBox.TextAlignment = TextAlignment.Center;
         pNumberBox.Padding = new Thickness(4, 0, 4, 0);
         pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
-            pNumberEvent.Handled = !pNumberEvent.Text.All(char.IsDigit);
+            pNumberEvent.Handled = !LInspector.LInspectorDigitCheck(pNumberEvent.Text);
         return pNumberBox;
     }
 
@@ -53,45 +39,20 @@ public sealed partial class PInspector
         pDecimalBox.TextAlignment = TextAlignment.Center;
         pDecimalBox.Padding = new Thickness(4, 0, 4, 0);
         pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
-            pDecimalEvent.Handled = !pDecimalEvent.Text.All(
-                pChar => char.IsDigit(pChar) || pChar == '.' || pChar == '-');
+            pDecimalEvent.Handled = !LInspector.LInspectorDecimalCheck(pDecimalEvent.Text);
         return pDecimalBox;
     }
 
     private static double PInspectorDecimalRead(TextBox pDecimalBox, double pFallback) =>
-        double.TryParse(pDecimalBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue)
-            ? pValue
-            : pFallback;
+        LInspector.LInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
 
-    private static void PInspectorTextSet(TextBox pValueBox, double pNumber, string pFormat)
-    {
-        string pText = pNumber.ToString(pFormat, CultureInfo.InvariantCulture);
-        if (pValueBox.Text == pText
-            || (double.TryParse(pValueBox.Text, NumberStyles.Float, CultureInfo.InvariantCulture, out double pShown)
-                && pShown == pNumber))
-        {
-            return;
-        }
-
-        pValueBox.Text = pText;
-    }
-
-    private static void PInspectorWholeSet(TextBox pValueBox, double pNumber)
-    {
-        if ((string.IsNullOrWhiteSpace(pValueBox.Text) && pNumber == 0)
-            || (double.TryParse(pValueBox.Text, NumberStyles.Integer, CultureInfo.InvariantCulture, out double pShown)
-                && pShown == pNumber))
-        {
-            return;
-        }
-
-        pValueBox.Text = Math.Max(0, Math.Round(pNumber)).ToString(CultureInfo.InvariantCulture);
-    }
+    private static void PInspectorTextSet(TextBox pValueBox, double pNumber, string pFormat) =>
+        pValueBox.Text = LInspector.LInspectorValueFormat(pValueBox.Text, pNumber, pFormat);
 
     private static void PInspectorSectionUpdate(FrameworkElement pStack, bool pEnabled)
     {
         pStack.IsEnabled = pEnabled;
-        pStack.Opacity = pEnabled ? 1 : 0.4;
+        pStack.Opacity = PLook.PLookOpacity[pEnabled];
     }
 
     private static void PInspectorPresetUpdate(

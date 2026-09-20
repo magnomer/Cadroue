@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Core;
 
@@ -16,6 +17,36 @@ public sealed class LInspector
         LColorKind.LColorKindCurve
     };
 
+    private static readonly IReadOnlyDictionary<string, string> lInspectorTitles = new Dictionary<string, string>
+    {
+        ["Crop"] = "Inspector.Step.Crop",
+        ["Brightness"] = "Inspector.Step.Brightness",
+        ["Contrast"] = "Inspector.Step.Contrast",
+        ["Saturation"] = "Inspector.Step.Saturation",
+        ["Gamma"] = "Inspector.Step.Gamma",
+        ["Exposure"] = "Inspector.Step.Exposure",
+        ["Curve"] = "Inspector.Step.Curve",
+        ["Whitebalance"] = "Inspector.Step.Whitebalance",
+        ["Volume"] = "Inspector.Step.Volume",
+        ["Normalize"] = "Inspector.Step.Normalize",
+        ["Noise Reduction"] = "Inspector.Step.NoiseReduction",
+        ["High Pass"] = "Inspector.Step.HighPass",
+        ["Low Pass"] = "Inspector.Step.LowPass",
+        ["Equalizer"] = "Inspector.Step.Equalizer",
+        ["No Processing"] = "Inspector.Step.NoProcessing"
+    };
+
+    private static readonly IReadOnlyDictionary<LDetectorKind, string> lInspectorSensorTitles =
+        new Dictionary<LDetectorKind, string>
+        {
+            [LDetectorKind.LDetectorKindBlank] = "Inspector.Step.Blank",
+            [LDetectorKind.LDetectorKindScene] = "Inspector.Step.Scene",
+            [LDetectorKind.LDetectorKindStill] = "Inspector.Step.Still",
+            [LDetectorKind.LDetectorKindLuminance] = "Inspector.Step.Luminance",
+            [LDetectorKind.LDetectorKindSilence] = "Inspector.Step.Silence",
+            [LDetectorKind.LDetectorKindVolume] = "Inspector.Step.Volume"
+        };
+
     private bool lInspectorMinimized;
     private string? lInspectorStep;
     private double lInspectorSourceWidth = 1920;
@@ -25,19 +56,35 @@ public sealed class LInspector
     private bool lInspectorOrientationCapable = true;
     private bool lInspectorToolArmed;
     private int lInspectorSaveDepth;
+    private int lInspectorVideoDepth;
+    private bool lInspectorVideoPending;
+    private int lInspectorPersistentMask;
     private string? lInspectorOwnerPath;
     private string? lInspectorFailurePath;
 
     public LInspector()
     {
+        LInspectorCrop = new LInspectorCrop(this);
         LInspectorAudio = new LInspectorAudio(LInspectorSkip);
+        LInspectorTone.LToneChange += LInspectorVideoHandle;
+        LInspectorGamma.LGammaChange += LInspectorVideoHandle;
+        LInspectorExposure.LExposureChange += LInspectorVideoHandle;
+        LInspectorCurve.LCurveChange += LInspectorVideoHandle;
+        LInspectorWhitebalance.LWhitebalanceChange += LInspectorVideoHandle;
+        LInspectorWhitebalance.LWhitebalanceToolChange += LInspectorNeutralHandle;
+        LInspectorCrop.LInspectorCropbox.LCropboxStateChange += LInspectorPersistentHandle;
+        LInspectorAudio.LInspectorAudioChange += LInspectorPersistentHandle;
+        LInspectorSkip.LSkipChange += LInspectorPersistentHandle;
+        lInspectorPersistentMask = LInspectorPersistentResolve();
     }
 
     public event Action? LInspectorChange;
+    public event Action? LInspectorVideoChange;
+    public event Action? LInspectorPersistentChange;
+    public event Action<bool>? LInspectorToolChange;
+    public event Action<bool>? LInspectorMinimizeChange;
 
-    public LCropboxEdgeLock LInspectorEdgeLock { get; } = new();
-
-    public LCropboxState LInspectorCropbox { get; } = new();
+    public LInspectorCrop LInspectorCrop { get; }
 
     public LTone LInspectorTone { get; } = new();
 
@@ -77,6 +124,20 @@ public sealed class LInspector
 
     public string? LInspectorOwnerPath => lInspectorOwnerPath;
 
+    public bool LInspectorPersistentShown => lInspectorTitles.Keys.Any(LInspectorSectionCheck);
+
+    public bool LInspectorEmptyShown => !LInspectorPersistentShown && LSensor.LSensorKindRead(lInspectorStep) is null;
+
+    public bool LInspectorSectionCheck(string lKey) =>
+        lInspectorStep == lKey && !(lKey == "Volume" && LSensor.LSensorKindRead(lInspectorStep) is not null);
+
+    public bool LInspectorSensorCheck(LDetectorKind lKind) => LSensor.LSensorKindRead(lInspectorStep) == lKind;
+
+    public string LInspectorTitleRead() => LLocalization.LLocalizationTextRead(
+        LSensor.LSensorKindRead(lInspectorStep) is { } lKind
+            ? lInspectorSensorTitles[lKind]
+            : lInspectorTitles.GetValueOrDefault(lInspectorStep ?? string.Empty, "Inspector.Header.Title"));
+
     public void LInspectorSaveSuspend() => lInspectorSaveDepth++;
 
     public void LInspectorSaveResume() => lInspectorSaveDepth = Math.Max(0, lInspectorSaveDepth - 1);
@@ -89,7 +150,9 @@ public sealed class LInspector
         }
 
         lInspectorMinimized = lMinimized;
+        LInspectorToolsNormalize();
         LInspectorChange?.Invoke();
+        LInspectorMinimizeChange?.Invoke(lMinimized);
     }
 
     public void LInspectorStepSet(string? lStep)
@@ -100,6 +163,7 @@ public sealed class LInspector
         }
 
         lInspectorStep = lStep;
+        LInspectorToolsNormalize();
         LInspectorChange?.Invoke();
     }
 
@@ -142,6 +206,7 @@ public sealed class LInspector
 
         lInspectorToolArmed = lToolArmed;
         LInspectorChange?.Invoke();
+        LInspectorToolChange?.Invoke(lToolArmed);
     }
 
     public bool LInspectorOwnerSet(string lOwnerPath)
@@ -168,40 +233,6 @@ public sealed class LInspector
         return true;
     }
 
-    public LWorkCrop LInspectorCropRead() => LCropbox.LCropboxEdgeNormalize(
-        LInspectorCropbox.LCropboxStateCrop, lInspectorSourceWidth, lInspectorSourceHeight);
-
-    public LCropbox? LInspectorRectRead() => LCropbox.LCropboxRectResolve(
-        LInspectorCropbox.LCropboxStateCrop, lInspectorSourceWidth, lInspectorSourceHeight);
-
-    public LRotateFlip LInspectorRotateRead() => LRotateFlip.LRotateCropResolve(LInspectorCropbox.LCropboxStateCrop);
-
-    public void LInspectorCropApply(LWorkCrop lCrop, bool lApply)
-    {
-        LInspectorEdgeLock.LCropboxEdgeClear();
-        LInspectorCropbox.LCropboxCropSet(lCrop);
-        LInspectorCropbox.LCropboxApplySet(lApply);
-    }
-
-    public void LInspectorRatioApply(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
-    {
-        bool lValid = lRatioWidth > 0 && lRatioHeight > 0;
-        LInspectorCropbox.LCropboxRatioSet(
-            lRatioFixed && lValid, lRatioLenient && lRatioFixed && lValid, lRatioWidth, lRatioHeight);
-    }
-
-    public void LInspectorCropReset()
-    {
-        if (LInspectorCropbox.LCropboxStatePersistent)
-        {
-            return;
-        }
-
-        LInspectorEdgeLock.LCropboxEdgeClear();
-        LInspectorToolSet(false);
-        LInspectorCropbox.LCropboxStateReset();
-    }
-
     public LWorkVideoStep LInspectorStepRead(LColorKind lKind) => lKind switch
     {
         LColorKind.LColorKindGamma => LInspectorGamma.LGammaStep,
@@ -211,22 +242,48 @@ public sealed class LInspector
         _ => LInspectorTone.LToneStepRead(lKind)
     };
 
+    public void LInspectorPlanApply(LEditPlan lPlan)
+    {
+        lInspectorVideoDepth++;
+        try
+        {
+            LInspectorCrop.LInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
+            LInspectorCrop.LInspectorRatioApply(
+                lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
+            LInspectorVideoApply(lPlan.LEditVideo);
+            LInspectorSkip.LSkipActiveSet(lPlan.LEditSkip);
+        }
+        finally
+        {
+            LInspectorVideoRelease();
+        }
+    }
+
     public void LInspectorVideoApply(LWorkVideo lVideo)
     {
-        LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindBrightness)
-            ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
-        LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindContrast)
-            ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
-        LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindSaturation)
-            ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
-        LInspectorGamma.LGammaStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
-            ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
-        LInspectorWhitebalance.LWhitebalanceStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindWhitebalance)
-            ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
-        LInspectorExposure.LExposureStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindExposure)
-            ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
-        LInspectorCurve.LCurveStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindCurve)
-            ?? LWorkVideoStep.LWorkCurveCreate(false));
+        lInspectorVideoDepth++;
+        try
+        {
+            LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindBrightness)
+                ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
+            LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindContrast)
+                ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
+            LInspectorTone.LToneStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindSaturation)
+                ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
+            LInspectorGamma.LGammaStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
+                ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
+            LInspectorWhitebalance.LWhitebalanceStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindWhitebalance)
+                ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
+            LInspectorExposure.LExposureStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindExposure)
+                ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
+            LInspectorCurve.LCurveStepSet(LInspectorStepFind(lVideo, LColorKind.LColorKindCurve)
+                ?? LWorkVideoStep.LWorkCurveCreate(false));
+            lInspectorVideoPending = true;
+        }
+        finally
+        {
+            LInspectorVideoRelease();
+        }
     }
 
     public bool LInspectorPersistentCheck() => lInspectorKinds.Any(LInspectorPersistentCheck);
@@ -273,6 +330,147 @@ public sealed class LInspector
     public LWorkVideo LInspectorPersistentRead() =>
         new(lInspectorKinds.Where(LInspectorPersistentCheck).Select(LInspectorStepRead).ToList());
 
+    public LInspectorTip LInspectorTipResolve(
+        bool lActive,
+        bool lCapable,
+        bool lPreviewAvailable,
+        string lDisabledKey,
+        string lPreviewKey,
+        string lApplyKey,
+        string lPersistKey)
+    {
+        string? lNotice = !lCapable
+            ? LLocalization.LLocalizationTextRead(lDisabledKey)
+            : !lPreviewAvailable && lPreviewKey.Length > 0
+                ? LLocalization.LLocalizationTextRead(lPreviewKey)
+                : null;
+        return new LInspectorTip(
+            lCapable && lActive,
+            lNotice,
+            lNotice ?? LLocalization.LLocalizationTextRead(lApplyKey),
+            lNotice ?? LLocalization.LLocalizationTextRead(lPersistKey));
+    }
+
+    public string LInspectorNoticeRead(LInspectorTip lTip, string lKey) =>
+        lTip.LInspectorTipNotice ?? LLocalization.LLocalizationTextRead(lKey);
+
+    public static bool LInspectorDigitCheck(string lText) => lText.All(char.IsDigit);
+
+    public static bool LInspectorDecimalCheck(string lText) =>
+        lText.All(lChar => char.IsDigit(lChar) || lChar == '.' || lChar == '-');
+
+    public static double LInspectorValueCommit(string lText, double lCurrent, double? lLeast, double? lMost)
+    {
+        double lParsed = double.TryParse(lText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lValue)
+            ? lValue
+            : lCurrent;
+        return lLeast is double lMin && lMost is double lMax ? Math.Clamp(lParsed, lMin, lMax) : lParsed;
+    }
+
+    public static string LInspectorValueFormat(string lText, double lNumber, string lFormat)
+    {
+        string lShown = lNumber.ToString(lFormat, CultureInfo.InvariantCulture);
+        bool lSame = lText == lShown
+            || (double.TryParse(lText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lParsed)
+                && lParsed == lNumber);
+        return lSame ? lText : lShown;
+    }
+
+    public static void LInspectorSlideCommit(
+        double lSlider, double lCurrent, double lLeast, double lMost, Action<double> lSet)
+    {
+        if (lSlider != Math.Clamp(lCurrent, lLeast, lMost))
+        {
+            lSet(lSlider);
+        }
+    }
+
+    private void LInspectorToolsNormalize()
+    {
+        if (lInspectorMinimized || lInspectorStep != "Whitebalance")
+        {
+            LInspectorWhitebalance.LWhitebalanceToolSet(false, LInspectorWhitebalance.LWhitebalanceTarget);
+        }
+
+        if (lInspectorStep != "Crop")
+        {
+            LInspectorToolSet(false);
+        }
+    }
+
+    private void LInspectorNeutralHandle(bool lArmed, LNeutralTarget lTarget)
+    {
+        if (lArmed)
+        {
+            LInspectorToolSet(false);
+        }
+    }
+
+    private void LInspectorVideoHandle()
+    {
+        LInspectorPersistentHandle();
+        if (lInspectorVideoDepth > 0)
+        {
+            lInspectorVideoPending = true;
+            return;
+        }
+
+        LInspectorVideoChange?.Invoke();
+    }
+
+    private void LInspectorVideoRelease()
+    {
+        lInspectorVideoDepth--;
+        if (lInspectorVideoDepth > 0 || !lInspectorVideoPending)
+        {
+            return;
+        }
+
+        lInspectorVideoPending = false;
+        LInspectorVideoChange?.Invoke();
+    }
+
+    private void LInspectorPersistentHandle()
+    {
+        int lMask = LInspectorPersistentResolve();
+        if (lMask == lInspectorPersistentMask)
+        {
+            return;
+        }
+
+        lInspectorPersistentMask = lMask;
+        LInspectorPersistentChange?.Invoke();
+    }
+
+    private int LInspectorPersistentResolve()
+    {
+        bool[] lFlags =
+        {
+            LInspectorCrop.LInspectorPersistent,
+            LInspectorTone.LTonePersistentRead(LColorKind.LColorKindBrightness),
+            LInspectorTone.LTonePersistentRead(LColorKind.LColorKindContrast),
+            LInspectorTone.LTonePersistentRead(LColorKind.LColorKindSaturation),
+            LInspectorGamma.LGammaPersistent,
+            LInspectorExposure.LExposurePersistent,
+            LInspectorCurve.LCurvePersistent,
+            LInspectorWhitebalance.LWhitebalancePersistent,
+            LInspectorAudio.LInspectorVolume.LVolumePersistent,
+            LInspectorAudio.LInspectorLoudness.LLoudnessPersistent,
+            LInspectorAudio.LInspectorNoise.LNoisePersistent,
+            LInspectorAudio.LInspectorHighpass.LFilterPersistent,
+            LInspectorAudio.LInspectorLowpass.LFilterPersistent,
+            LInspectorAudio.LInspectorEqualizer.LEqualizerPersistent,
+            LInspectorSkip.LSkipPersistent
+        };
+        return lFlags.Select((lFlag, lIndex) => lFlag ? 1 << lIndex : 0).Sum();
+    }
+
     private static LWorkVideoStep? LInspectorStepFind(LWorkVideo lVideo, LColorKind lKind) =>
         lVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
 }
+
+public sealed record LInspectorTip(
+    bool LInspectorTipEnabled,
+    string? LInspectorTipNotice,
+    string LInspectorTipBox,
+    string LInspectorTipPersistent);

@@ -46,7 +46,7 @@ public sealed partial class PViewer : PPanel
     public LPlayer LPlayer { get; } = new();
 
     public event Action<TimeSpan>? PViewerClockTick;
-    public event Action<Rect?>? PCropVideoChange;
+    public event Action? PCropVideoChange;
 
     internal bool PViewerSurfaceMatch(nint pViewerHandle)
     {

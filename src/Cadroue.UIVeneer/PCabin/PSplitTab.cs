@@ -44,7 +44,7 @@ public sealed class PSplitTab : PTabSurface
         pInspector.PSensorRunShow();
         pInspector.PSensorRun += PSplitSweepStart;
         pInspector.PSensorStop += LSplitTab.LSplitSweep.LSplitSweepCancel;
-        pInspector.PBlankPickChange += PSplitPickHandle;
+        pInspector.LBlank.LBlankPickChange += PSplitPickHandle;
         pViewer.PViewerNeutralChange += LSplitTab.LSplitSampleHandle;
         LSplitTab.LSplitPresetMissing += PExport.PExportMissingShow;
         LSplitTab.LSplitSweep.LSplitBusyApply += PSplitBusyApply;

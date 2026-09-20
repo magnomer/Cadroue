@@ -47,6 +47,9 @@ public sealed class LAudioTab
         lAudioPreset = lPreset;
         lAudioInspector = lInspector;
         lAudioSections = lInspector.LInspectorAudio;
+        lInspector.LInspectorPersistentChange += LAudioPersistentSave;
+        lAudioSections.LInspectorAudioChange += LAudioChangeHandle;
+        lInspector.LInspectorSkip.LSkipActiveChange += LAudioSkipHandle;
         lAudioViewer = lViewer;
         lAudioList = lList;
         lAudioDocket = lDocket;
@@ -68,6 +71,9 @@ public sealed class LAudioTab
 
     public void LAudioClose()
     {
+        lAudioInspector.LInspectorPersistentChange -= LAudioPersistentSave;
+        lAudioSections.LInspectorAudioChange -= LAudioChangeHandle;
+        lAudioInspector.LInspectorSkip.LSkipActiveChange -= LAudioSkipHandle;
         lAudioProcessing.LProcessingOrderChange -= LAudioStateSave;
         lAudioViewer.LViewerMediaChange -= LAudioMediaHandle;
         LAudioMonitor.Dispose();

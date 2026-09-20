@@ -102,10 +102,10 @@ public sealed partial class PInspector
 
     private void PVolumeUpdate()
     {
-        PInspectorSwitchUpdate(pVolumeApplyBox, LVolume.LVolumeStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pInspectorVolumePersistent, LVolume.LVolumePersistent, true);
+        PInspectorSwitchUpdate(pVolumeApplyBox, LVolume.LVolumeStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pInspectorVolumePersistent, LVolume.LVolumePersistent);
         PInspectorValueUpdate(pInspectorVolumeSlider, pInspectorVolumeValue, LVolume.LVolumeGain, "0.#");
         PInspectorSectionUpdate(pInspectorVolumeStack, LVolume.LVolumeStep.LWorkStepActive);
-        pInspectorVolumeWarn.Visibility = LVolume.LVolumeGain > 0 ? Visibility.Visible : Visibility.Collapsed;
+        pInspectorVolumeWarn.Visibility = PLook.PLookVisible[LVolume.LVolumeClipShown];
     }
 }

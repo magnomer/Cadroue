@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
@@ -14,6 +13,7 @@ public sealed partial class PInspector
     private StackPanel pGammaBody = null!;
     private readonly Slider[] pGammaSliders = new Slider[5];
     private readonly TextBox[] pGammaValues = new TextBox[5];
+    private readonly List<int> pGammaSlots = [0, 1, 2, 3, 4];
 
     private static readonly string[] PGammaLabelKeys =
     {
@@ -23,6 +23,8 @@ public sealed partial class PInspector
         "Inspector.Video.BlueGamma",
         "Inspector.Video.HighlightProtection"
     };
+
+    private static readonly string[] PGammaUnits = { "", "", "", "", "%" };
 
     private StackPanel PGammaBuild()
     {
@@ -35,27 +37,7 @@ public sealed partial class PInspector
         PInspectorSwitchAttach(pGammaBox, LGamma.LGammaActiveSet);
         PInspectorSwitchAttach(pGammaPersistent, LGamma.LGammaPersistentSet);
         pGammaStack = new StackPanel();
-        for (int pIndex = 0; pIndex < pGammaSliders.Length; pIndex++)
-        {
-            int pSlot = pIndex;
-            double pLeast = pSlot == 4 ? 0 : -100;
-            pGammaSliders[pSlot] = PToneSliderBuild(pLeast, 100, 0);
-            pGammaValues[pSlot] = PInspectorDecimalBuild();
-            pGammaValues[pSlot].Text = "0";
-            PInspectorValueAttach(
-                pGammaSliders[pSlot],
-                pGammaValues[pSlot],
-                pLeast,
-                100,
-                () => PGammaValueRead(pSlot),
-                pNumber => LGamma.LGammaValueSet(pSlot, pNumber));
-            pGammaStack.Children.Add(
-                PFilterSliderBuild(
-                    LLocalization.LLocalizationTextRead(PGammaLabelKeys[pSlot]),
-                    pGammaSliders[pSlot],
-                    pSlot == 4 ? "%" : "",
-                    pGammaValues[pSlot]));
-        }
+        pGammaSlots.ForEach(PGammaRowBuild);
 
         var pGammaReset = new Button
         {
@@ -75,32 +57,41 @@ public sealed partial class PInspector
         return pGammaBody;
     }
 
-    private double PGammaValueRead(int pSlot)
+    private void PGammaRowBuild(int pSlot)
     {
-        LWorkGammaSettings pGamma = LGamma.LGammaValue;
-        return pSlot switch
-        {
-            1 => pGamma.LWorkGammaRed,
-            2 => pGamma.LWorkGammaGreen,
-            3 => pGamma.LWorkGammaBlue,
-            4 => pGamma.LWorkGammaHighlight,
-            _ => pGamma.LWorkGammaGlobal
-        };
+        pGammaSliders[pSlot] = PToneSliderBuild(LGamma.LGammaLeastRead(pSlot), 100, 0);
+        pGammaValues[pSlot] = PInspectorDecimalBuild();
+        pGammaValues[pSlot].Text = "0";
+        PInspectorValueAttach(
+            pGammaSliders[pSlot],
+            pGammaValues[pSlot],
+            LGamma.LGammaLeastRead(pSlot),
+            100,
+            () => LGamma.LGammaValueRead(pSlot),
+            pNumber => LGamma.LGammaValueSet(pSlot, pNumber));
+        pGammaStack.Children.Add(
+            PFilterSliderBuild(
+                LLocalization.LLocalizationTextRead(PGammaLabelKeys[pSlot]),
+                pGammaSliders[pSlot],
+                PGammaUnits[pSlot],
+                pGammaValues[pSlot]));
     }
+
+    private void PGammaSlotUpdate(int pSlot) =>
+        PInspectorValueUpdate(pGammaSliders[pSlot], pGammaValues[pSlot], LGamma.LGammaValueRead(pSlot), "0.#");
 
     private void PGammaUpdate()
     {
-        PInspectorSwitchUpdate(pGammaBox, LGamma.LGammaStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pGammaPersistent, LGamma.LGammaPersistent, true);
-        for (int pSlot = 0; pSlot < pGammaSliders.Length; pSlot++)
-        {
-            PInspectorValueUpdate(pGammaSliders[pSlot], pGammaValues[pSlot], PGammaValueRead(pSlot), "0.#");
-        }
-
-        PInspectorSectionApply(
-            pGammaBox, pGammaPersistent, pGammaStack, pGammaBody, LGamma.LGammaStep.LWorkStepActive,
-            LGamma.LGammaCapable, LGamma.LGammaPreview,
-            "Inspector.Video.GammaRequiresEq", "Inspector.Video.GammaPreviewMpv",
-            "Inspector.Video.ApplyGamma", "Inspector.Video.PersistGamma");
+        PInspectorSwitchUpdate(pGammaBox, LGamma.LGammaStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pGammaPersistent, LGamma.LGammaPersistent);
+        pGammaSlots.ForEach(PGammaSlotUpdate);
+        PInspectorSectionApply(pGammaBox, pGammaPersistent, pGammaStack, pGammaBody, LInspector.LInspectorTipResolve(
+            LGamma.LGammaStep.LWorkStepActive,
+            LGamma.LGammaCapable,
+            LGamma.LGammaPreview,
+            "Inspector.Video.GammaRequiresEq",
+            "Inspector.Video.GammaPreviewMpv",
+            "Inspector.Video.ApplyGamma",
+            "Inspector.Video.PersistGamma"));
     }
 }

@@ -11,15 +11,12 @@ public sealed partial class PInspector
     private UIElement PInspectorEdgeBuild()
     {
         var pCropGrid = new Grid { Margin = new Thickness(0, 14, 0, 4) };
-        for (int pColumn = 0; pColumn < 3; pColumn++)
-        {
-            pCropGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        }
-
-        for (int pRow = 0; pRow < 3; pRow++)
-        {
-            pCropGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        }
+        pCropGrid.ColumnDefinitions.Add(PInspectorColumnBuild());
+        pCropGrid.ColumnDefinitions.Add(PInspectorColumnBuild());
+        pCropGrid.ColumnDefinitions.Add(PInspectorColumnBuild());
+        pCropGrid.RowDefinitions.Add(PInspectorRowBuild());
+        pCropGrid.RowDefinitions.Add(PInspectorRowBuild());
+        pCropGrid.RowDefinitions.Add(PInspectorRowBuild());
 
         PInspectorCellAdd(
             pCropGrid,
@@ -45,6 +42,10 @@ public sealed partial class PInspector
         PInspectorCellAdd(pCropGrid, PInspectorResetBuild(), 2, 2);
         return pCropGrid;
     }
+
+    private static ColumnDefinition PInspectorColumnBuild() => new() { Width = new GridLength(1, GridUnitType.Star) };
+
+    private static RowDefinition PInspectorRowBuild() => new() { Height = GridLength.Auto };
 
     private UIElement PInspectorResolutionBuild() => new Border
     {
@@ -78,7 +79,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(3)
         };
-        pResetButton.Click += (_, _) => PInspectorEdgesReset();
+        pResetButton.Click += (_, _) => LInspectorCrop.LInspectorEdgeReset();
         return pResetButton;
     }
 

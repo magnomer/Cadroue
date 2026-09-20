@@ -253,7 +253,7 @@ public abstract class PTabSurface : UserControl
         new(
             pPanel.PInspectorMinimizedCheck,
             pPanel.PInspectorMinimizeSet,
-            pHandler => pPanel.PInspectorMinimizeChange += pHandler);
+            pHandler => pPanel.LInspector.LInspectorMinimizeChange += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PClinic pPanel) =>
         new(

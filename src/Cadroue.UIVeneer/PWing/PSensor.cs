@@ -72,7 +72,9 @@ public sealed partial class PInspector
     {
         if (pDetectorKind == LDetectorKind.LDetectorKindBlank)
         {
-            return PBlankBuild();
+            PSensorSection pBlank = PBlankBuild();
+            pSensorSections[pDetectorKind] = pBlank;
+            return pBlank.PSensorBody;
         }
 
         CheckBox pApply = PInspectorSwitchBuild(
@@ -204,7 +206,7 @@ public sealed partial class PInspector
         LDetectorKind pKind = pSection.PSensorKind;
         LDetectorStep pStep = LSensor.LSensorStepRead(pKind);
         string pFormat = PSensorShapeRead(pKind).PSensorPattern;
-        PInspectorSwitchUpdate(pSection.PSensorApplyBox, pStep.LDetectorStepEnabled, false);
+        PInspectorSwitchUpdate(pSection.PSensorApplyBox, pStep.LDetectorStepEnabled);
         if (pSection.PSensorThresholdSlider is { } pThresholdSlider && pSection.PSensorThreshold is { } pThreshold)
         {
             PInspectorValueUpdate(pThresholdSlider, pThreshold, pStep.LDetectorStepThreshold, pFormat);

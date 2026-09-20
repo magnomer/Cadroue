@@ -1,36 +1,31 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
+using System.Windows.Input;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
 public sealed partial class PInspector
 {
+    private static readonly IReadOnlyDictionary<Key, bool> pInspectorValueHandled = new Dictionary<Key, bool>
+    {
+        [Key.Enter] = true,
+    };
+
     private static void PInspectorSectionApply(
         CheckBox pBox,
         CheckBox pPersistent,
         StackPanel pStack,
         StackPanel pBody,
-        bool pActive,
-        bool pCapable,
-        bool pPreviewAvailable,
-        string pDisabledKey,
-        string pPreviewKey,
-        string pApplyKey,
-        string pPersistKey)
+        LInspectorTip pTip)
     {
-        pBox.IsEnabled = pCapable;
-        pPersistent.IsEnabled = pCapable;
-        PInspectorSectionUpdate(pStack, pCapable && pActive);
-        string? pNotice = !pCapable
-            ? LLocalization.LLocalizationTextRead(pDisabledKey)
-            : !pPreviewAvailable && pPreviewKey.Length > 0
-                ? LLocalization.LLocalizationTextRead(pPreviewKey)
-                : null;
-        pBody.ToolTip = pNotice;
-        pBox.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead(pApplyKey);
-        pPersistent.ToolTip = pNotice ?? LLocalization.LLocalizationTextRead(pPersistKey);
+        pBox.IsEnabled = pTip.LInspectorTipEnabled;
+        pPersistent.IsEnabled = pTip.LInspectorTipEnabled;
+        PInspectorSectionUpdate(pStack, pTip.LInspectorTipEnabled);
+        pBody.ToolTip = pTip.LInspectorTipNotice;
+        pBox.ToolTip = pTip.LInspectorTipBox;
+        pPersistent.ToolTip = pTip.LInspectorTipPersistent;
         ToolTipService.SetShowOnDisabled(pBody, true);
         ToolTipService.SetShowOnDisabled(pBox, true);
         ToolTipService.SetShowOnDisabled(pPersistent, true);
@@ -42,19 +37,8 @@ public sealed partial class PInspector
         PInspectorTextSet(pValue, pNumber, pFormat);
     }
 
-    private void PInspectorSwitchUpdate(CheckBox pBox, bool pChecked, bool pPlan)
-    {
-        if ((pBox.IsChecked == true) == pChecked)
-        {
-            return;
-        }
-
-        pBox.IsChecked = pChecked;
-        if (pPlan)
-        {
-            PInspectorPlanChange?.Invoke();
-        }
-    }
+    private static void PInspectorSwitchUpdate(CheckBox pBox, bool pChecked) =>
+        pBox.IsChecked = PLook.PLookChecked[pChecked];
 
     private static Slider PToneSliderBuild(double pMinimum, double pMaximum, double pValue)
     {
@@ -97,22 +81,26 @@ public sealed partial class PInspector
         Func<double> pRead,
         Action<double> pSet)
     {
-        pSlider.ValueChanged += (_, _) =>
+        var pValueKeys = new Dictionary<Key, Action>
         {
-            if (pSlider.Value != Math.Clamp(pRead(), pSlider.Minimum, pSlider.Maximum))
-            {
-                pSet(pSlider.Value);
-            }
+            [Key.Enter] = () => PInspectorValueCommit(pValue, pMinimum, pMaximum, pRead, pSet),
         };
-        pValue.TextChanged += (_, _) =>
+        pSlider.ValueChanged += (_, _) => PInspectorSlideCommit(pSlider, pRead, pSet);
+        pValue.LostFocus += (_, _) => PInspectorValueCommit(pValue, pMinimum, pMaximum, pRead, pSet);
+        pValue.KeyDown += (_, pKeyEvent) =>
         {
-            double pParsed = PInspectorDecimalRead(pValue, pRead());
-            if (pMinimum is double pMin && pMaximum is double pMax)
-            {
-                pParsed = Math.Clamp(pParsed, pMin, pMax);
-            }
+            pValueKeys.GetValueOrDefault(pKeyEvent.Key)?.Invoke();
+            pKeyEvent.Handled = pInspectorValueHandled.GetValueOrDefault(pKeyEvent.Key);
+        };
+    }
 
-            pSet(pParsed);
-        };
+    private static void PInspectorSlideCommit(Slider pSlider, Func<double> pRead, Action<double> pSet) =>
+        LInspector.LInspectorSlideCommit(pSlider.Value, pRead(), pSlider.Minimum, pSlider.Maximum, pSet);
+
+    private static void PInspectorValueCommit(
+        TextBox pValue, double? pMinimum, double? pMaximum, Func<double> pRead, Action<double> pSet)
+    {
+        pSet(LInspector.LInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
+        pValue.CaretIndex = pValue.Text.Length;
     }
 }

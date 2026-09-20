@@ -163,7 +163,6 @@ public sealed class TAudioTabPlan
             Assert.Empty(written);
 
             TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
-            TInterface.TAudioStateSave(tab);
 
             Assert.Equal([TAudioSource], written);
         }
@@ -239,6 +238,7 @@ public sealed class TAudioTabPlan
             Assert.Empty(written);
 
             TInterface.TVolumePersistentSet(inspector.LInspectorAudio.LInspectorVolume, true);
+            written.Clear();
             TInterface.TAudioItemsHandle(tab, TInterface.TDocketItemsRead(docket));
 
             Assert.Equal([TAudioSource, TAudioOther], written);

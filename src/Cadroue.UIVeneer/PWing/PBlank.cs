@@ -1,9 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
@@ -24,10 +27,11 @@ public sealed partial class PInspector
     private TextBox pBlankCoverageValue = null!;
     private Slider pBlankMinimumSlider = null!;
     private TextBox pBlankMinimumValue = null!;
+    private Canvas pBlankWheelCanvas = null!;
+    private Image pBlankWheelImage = null!;
+    private Ellipse pBlankWheelDot = null!;
 
-    public event Action<bool>? PBlankPickChange;
-
-    private StackPanel PBlankBuild()
+    private PSensorSection PBlankBuild()
     {
         CheckBox pApply = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
@@ -41,18 +45,18 @@ public sealed partial class PInspector
         };
 
         (pBlankBrightnessSlider, pBlankBrightnessValue) = PSensorValueBuild(
-            LDetector.LDetectorBrightnessRead() with { LDetectorBoundDefault = LDetectorBlank.LDetectorBlankValue },
+            LBlank.LBlankBrightnessBound,
             () => LBlank.LBlankStep.LDetectorBlankBrightness,
             LBlank.LBlankBrightnessSet);
         pBlankBrightnessSlider.Width = PWhitebalanceWheelSize;
         pBlankBrightnessSlider.HorizontalAlignment = HorizontalAlignment.Center;
         pBlankBrightnessSlider.Margin = new Thickness(0, 6, 0, 0);
-        pBlankBrightnessSlider.ValueChanged += (_, _) => PBlankWheelUpdate();
 
         pBlankColorArea = new StackPanel
         {
             Children = { PBlankPickerBuild(), PBlankWheelBuild() }
         };
+        pBlankBrightnessSlider.ValueChanged += (_, _) => PBlankWheelUpdate();
         pStack.Children.Add(PBlankTypeBuild());
         pStack.Children.Add(pBlankColorArea);
 
@@ -77,8 +81,7 @@ public sealed partial class PInspector
             pBlankCoverageValue));
 
         (pBlankMinimumSlider, pBlankMinimumValue) = PSensorValueBuild(
-            LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindBlank)
-                with { LDetectorBoundDefault = LDetectorBlank.LDetectorBlankGap },
+            LBlank.LBlankMinimumBound,
             () => LBlank.LBlankStep.LDetectorBlankMinimum,
             LBlank.LBlankMinimumSet);
         pStack.Children.Add(PFilterSliderBuild(
@@ -91,27 +94,17 @@ public sealed partial class PInspector
         pBody.Children.Add(PInspectorSeparatorBuild());
         pBody.Children.Add(pStack);
 
-        pSensorSections[LDetectorKind.LDetectorKindBlank] = new PSensorSection
+        var pSection = new PSensorSection
         {
             PSensorKind = LDetectorKind.LDetectorKindBlank,
             PSensorApplyBox = pApply,
             PSensorStack = pStack,
             PSensorBody = pBody
         };
-        LBlank.LBlankChange += PBlankUpdate;
-        LBlank.LBlankPickChange += pPicking =>
-        {
-            if ((pBlankPicker.IsChecked == true) != pPicking)
-            {
-                pBlankPicker.IsChecked = pPicking;
-            }
-
-            pBlankPickerIcon.Source = PIcon.PIconRead(
-                PPickerIcon, pPicking ? pInspectorAccentBrush : pInspectorIconBrush);
-            PBlankPickChange?.Invoke(pPicking);
-        };
-        PBlankUpdate();
-        return pBody;
+        LBlank.LBlankChange += () => PBlankUpdate(pSection);
+        LBlank.LBlankPickChange += PBlankPickUpdate;
+        PBlankUpdate(pSection);
+        return pSection;
     }
 
     private UIElement PBlankTypeBuild()
@@ -150,5 +143,92 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead("Inspector.Blank.Picker"),
             pBlankPicker,
             true);
+    }
+
+    private UIElement PBlankWheelBuild()
+    {
+        pBlankWheelCanvas = new Canvas
+        {
+            Width = PWhitebalanceWheelSize,
+            Height = PWhitebalanceWheelSize,
+            Background = Brushes.Transparent,
+            Cursor = Cursors.Cross
+        };
+        pBlankWheelImage = new Image
+        {
+            Width = PWhitebalanceWheelSize,
+            Height = PWhitebalanceWheelSize,
+            IsHitTestVisible = false
+        };
+        pBlankWheelCanvas.Children.Add(pBlankWheelImage);
+        PBlankWheelUpdate();
+        pBlankWheelDot = new Ellipse
+        {
+            Width = 11,
+            Height = 11,
+            Stroke = Brushes.White,
+            StrokeThickness = 2,
+            Fill = Brushes.Transparent,
+            IsHitTestVisible = false,
+            Visibility = Visibility.Collapsed
+        };
+        pBlankWheelCanvas.Children.Add(pBlankWheelDot);
+
+        pBlankWheelCanvas.MouseLeftButtonDown += PBlankPressHandle;
+        pBlankWheelCanvas.MouseMove += PBlankWheelHandle;
+        pBlankWheelCanvas.MouseLeftButtonUp += (_, _) => pBlankWheelCanvas.ReleaseMouseCapture();
+
+        return new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            Margin = new Thickness(0, 0, 0, 10),
+            Children = { pBlankWheelCanvas, pBlankBrightnessSlider }
+        };
+    }
+
+    private void PBlankWheelUpdate() =>
+        pBlankWheelImage.Source = PWhitebalanceWheelDraw(pBlankBrightnessSlider.Value);
+
+    private void PBlankPressHandle(object pSender, MouseButtonEventArgs pBlankMouse)
+    {
+        pBlankWheelCanvas.CaptureMouse();
+        PBlankWheelHandle(pSender, pBlankMouse);
+    }
+
+    private void PBlankWheelHandle(object pSender, MouseEventArgs pBlankMouse)
+    {
+        Point pBlankPoint = pBlankMouse.GetPosition(pBlankWheelCanvas);
+        LBlank.LBlankWheelHandle(
+            PLook.PLookPressed[pBlankMouse.LeftButton], pBlankPoint.X, pBlankPoint.Y, PWhitebalanceWheelSize);
+    }
+
+    private void PBlankWheelPlace()
+    {
+        LNeutralDot pDot = LBlank.LBlankDotRead(PWhitebalanceWheelSize, pBlankWheelDot.Width);
+        Canvas.SetLeft(pBlankWheelDot, pDot.LNeutralDotLeft);
+        Canvas.SetTop(pBlankWheelDot, pDot.LNeutralDotTop);
+        pBlankWheelDot.Visibility = PLook.PLookVisible[pDot.LNeutralDotPresent];
+    }
+
+    private void PBlankPickUpdate(bool pPicking)
+    {
+        pBlankPicker.IsChecked = PLook.PLookChecked[pPicking];
+        pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
+    }
+
+    private void PBlankUpdate(PSensorSection pSection)
+    {
+        LDetectorBlank pBlank = LBlank.LBlankStep;
+        PInspectorSwitchUpdate(pSection.PSensorApplyBox, pBlank.LDetectorBlankEnabled);
+        pBlankColor.IsChecked = PLook.PLookChecked[LBlank.LBlankWheelPresent];
+        pBlankBlack.IsChecked = PLook.PLookChecked[!LBlank.LBlankWheelPresent];
+        pBlankColorArea.Visibility = PLook.PLookVisible[LBlank.LBlankWheelPresent];
+        PInspectorValueUpdate(pBlankBrightnessSlider, pBlankBrightnessValue, pBlank.LDetectorBlankBrightness, "0.00");
+        PInspectorValueUpdate(pBlankToleranceSlider, pBlankToleranceValue, pBlank.LDetectorBlankTolerance, "0.00");
+        PInspectorValueUpdate(pBlankCoverageSlider, pBlankCoverageValue, pBlank.LDetectorBlankCoverage, "0.00");
+        PInspectorValueUpdate(pBlankMinimumSlider, pBlankMinimumValue, pBlank.LDetectorBlankMinimum, "0.0");
+        PBlankWheelPlace();
+        PInspectorSectionUpdate(pSection.PSensorStack, pBlank.LDetectorBlankEnabled);
+        PSensorChange?.Invoke();
     }
 }

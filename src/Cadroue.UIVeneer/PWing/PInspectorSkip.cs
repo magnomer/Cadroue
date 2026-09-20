@@ -10,16 +10,6 @@ public sealed partial class PInspector
     private CheckBox pSkipPersistentBox = null!;
     private StackPanel pSkipBody = null!;
 
-    public event Action? PSkipActiveChange;
-
-    public bool PSkipActiveCheck() => LSkip.LSkipActive;
-
-    public bool PSkipPersistentCheck() => LSkip.LSkipPersistent;
-
-    public void PSkipApply(bool pSkipActive) => LSkip.LSkipActiveSet(pSkipActive);
-
-    public void PSkipPersistentApply(bool pSkipPersistent) => LSkip.LSkipPersistentSet(pSkipPersistent);
-
     private StackPanel PSkipBodyBuild()
     {
         pSkipApplyBox = PInspectorSwitchBuild(
@@ -55,12 +45,7 @@ public sealed partial class PInspector
 
     private void PSkipUpdate()
     {
-        bool pFlipped = (pSkipApplyBox.IsChecked == true) != LSkip.LSkipActive;
-        PInspectorSwitchUpdate(pSkipApplyBox, LSkip.LSkipActive, false);
-        PInspectorSwitchUpdate(pSkipPersistentBox, LSkip.LSkipPersistent, true);
-        if (pFlipped)
-        {
-            PSkipActiveChange?.Invoke();
-        }
+        PInspectorSwitchUpdate(pSkipApplyBox, LSkip.LSkipActive);
+        PInspectorSwitchUpdate(pSkipPersistentBox, LSkip.LSkipPersistent);
     }
 }

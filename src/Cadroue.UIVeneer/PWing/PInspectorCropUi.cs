@@ -13,8 +13,10 @@ public sealed partial class PInspector
         pInspectorInsetRight = PInspectorInsetBuild(2);
         pInspectorInsetTop = PInspectorInsetBuild(1);
         pInspectorInsetBottom = PInspectorInsetBuild(3);
-        pInspectorRatioWidth = PCropFieldBuild();
-        pInspectorRatioHeight = PCropFieldBuild();
+        pInspectorRatioWidth = PInspectorNumberBuild();
+        pInspectorRatioHeight = PInspectorNumberBuild();
+        pInspectorRatioWidth.TextChanged += (_, _) => PInspectorRatioCommit();
+        pInspectorRatioHeight.TextChanged += (_, _) => PInspectorRatioCommit();
         pInspectorRatioPreset = PInspectorRatioBuild();
         pInspectorResolution = new TextBlock
         {
@@ -36,7 +38,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioFixed);
-        PInspectorSwitchAttach(pInspectorRatioFixed, pFixed => PInspectorRatioCommit(pFixed, null));
+        PInspectorSwitchAttach(pInspectorRatioFixed, LInspectorCrop.LInspectorFixedSet);
 
         pInspectorRatioLenient = new CheckBox
         {
@@ -50,7 +52,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioLenient);
-        PInspectorSwitchAttach(pInspectorRatioLenient, pLenient => PInspectorRatioCommit(null, pLenient));
+        PInspectorSwitchAttach(pInspectorRatioLenient, LInspectorCrop.LInspectorLenientSet);
 
         pInspectorRatioNotice = new TextBlock
         {
@@ -64,20 +66,19 @@ public sealed partial class PInspector
 
         pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
         pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
-        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => PInspectorFlipChange(true, pFlipped));
-        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => PInspectorFlipChange(false, pFlipped));
+        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => LInspectorCrop.LInspectorFlipSet(true, pFlipped));
+        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => LInspectorCrop.LInspectorFlipSet(false, pFlipped));
         pInspectorRotateCombo = PInspectorRotateBuild();
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
-        pInspectorApplyBox.Checked += (_, _) => LCropboxState.LCropboxApplySet(true);
-        pInspectorApplyBox.Unchecked += (_, _) =>
-        {
-            LCropboxState.LCropboxApplySet(false);
-            PInspectorRatioReset();
-        };
+        PInspectorSwitchAttach(pInspectorApplyBox, LInspectorCrop.LInspectorApplySet);
+        pInspectorPersistentBox = PInspectorSwitchBuild(
+            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
+            LLocalization.LLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
+        PInspectorSwitchAttach(pInspectorPersistentBox, LInspectorCrop.LInspectorPersistentSet);
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(
@@ -103,6 +104,16 @@ public sealed partial class PInspector
         return pInspectorCropBody;
     }
 
+    private void PInspectorRatioCommit() =>
+        LInspectorCrop.LInspectorRatioCommit(pInspectorRatioWidth.Text, pInspectorRatioHeight.Text);
+
+    private TextBox PInspectorInsetBuild(int pEdge)
+    {
+        TextBox pInsetBox = PInspectorNumberBuild();
+        pInsetBox.TextChanged += (_, _) => LInspectorCrop.LInspectorEdgeCommit(pEdge, pInsetBox.Text);
+        return pInsetBox;
+    }
+
     private UIElement PCropFlipBuild()
     {
         var pFlipPanel = new StackPanel { Orientation = Orientation.Horizontal };
@@ -125,5 +136,46 @@ public sealed partial class PInspector
         };
         PCheckbox.PCheckboxApply(pFlip);
         return pFlip;
+    }
+
+    private ComboBox PInspectorRotateBuild()
+    {
+        ComboBox pRotateCombo = PInspectorComboBuild();
+        pRotateCombo.Items.Add(new LLocalizationChoice("None", "Inspector.Crop.None"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise90", "Inspector.Crop.Clockwise90"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Degrees180", "Inspector.Crop.Degrees180"));
+        pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise270", "Inspector.Crop.Clockwise270"));
+        pRotateCombo.SelectedIndex = 0;
+        pRotateCombo.SelectionChanged += (_, _) => LInspectorCrop.LInspectorRotateSelect(pRotateCombo.SelectedIndex);
+        return pRotateCombo;
+    }
+
+    private ComboBox PInspectorRatioBuild()
+    {
+        ComboBox pPresetCombo = PInspectorComboBuild();
+        pPresetCombo.Items.Add(new LLocalizationChoice("Custom", "Inspector.Crop.RatioCustom"));
+        pPresetCombo.Items.Add("16:9");
+        pPresetCombo.Items.Add("9:16");
+        pPresetCombo.Items.Add("4:3");
+        pPresetCombo.Items.Add("3:4");
+        pPresetCombo.Items.Add("1:1");
+        pPresetCombo.Items.Add("21:9");
+        pPresetCombo.SelectedIndex = 0;
+        pPresetCombo.SelectionChanged += (_, _) => LInspectorCrop.LInspectorPresetSelect(pPresetCombo.SelectedIndex);
+        return pPresetCombo;
+    }
+
+    private static ComboBox PInspectorComboBuild()
+    {
+        var pCombo = new ComboBox
+        {
+            Height = PInspectorFieldHeight,
+            Width = 140,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            FontSize = 12,
+            FontFamily = pInspectorFontFamily
+        };
+        PDropdown.PDropdownApply(pCombo);
+        return pCombo;
     }
 }

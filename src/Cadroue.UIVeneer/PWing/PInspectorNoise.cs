@@ -203,9 +203,9 @@ public sealed partial class PInspector
     private void PNoiseUpdate()
     {
         LWorkNoiseStep pStep = LNoise.LNoiseStep;
-        PInspectorSwitchUpdate(pNoiseApplyBox, pStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pNoisePersistent, LNoise.LNoisePersistent, true);
-        PInspectorSwitchUpdate(pNoiseTrack, pStep.LWorkNoiseTrack, false);
+        PInspectorSwitchUpdate(pNoiseApplyBox, pStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pNoisePersistent, LNoise.LNoisePersistent);
+        PInspectorSwitchUpdate(pNoiseTrack, pStep.LWorkNoiseTrack);
         for (int pSlot = 0; pSlot < pNoiseSliders.Length; pSlot++)
         {
             PInspectorValueUpdate(

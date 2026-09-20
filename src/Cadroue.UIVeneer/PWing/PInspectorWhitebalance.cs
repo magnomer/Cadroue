@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using Cadroue.Application;
-using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -48,12 +48,7 @@ public sealed partial class PInspector
             "Custom", "Inspector.Video.WhitebalanceMethodCustom"));
         pWhitebalanceMethod.SelectedIndex = 2;
         pWhitebalanceMethod.SelectionChanged += (_, _) =>
-        {
-            if (pWhitebalanceMethod.SelectedIndex >= 0)
-            {
-                LWhitebalance.LWhitebalanceMethodSet(PWhitebalanceMethodResolve(pWhitebalanceMethod.SelectedIndex));
-            }
-        };
+            LWhitebalance.LWhitebalanceMethodSelect(pWhitebalanceMethod.SelectedIndex);
 
         pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
         pWhitebalanceSaturationValue = PInspectorDecimalBuild();
@@ -104,53 +99,31 @@ public sealed partial class PInspector
         return pWhitebalanceBody;
     }
 
-    public LWhitebalanceMethod PWhitebalanceMethodRead() => LWhitebalance.LWhitebalanceMethod;
-
-    private static LWhitebalanceMethod PWhitebalanceMethodResolve(int pIndex) => pIndex switch
-    {
-        0 => LWhitebalanceMethod.LWhitebalanceMethodAverage,
-        1 => LWhitebalanceMethod.LWhitebalanceMethodMinmax,
-        3 => LWhitebalanceMethod.LWhitebalanceMethodManual,
-        _ => LWhitebalanceMethod.LWhitebalanceMethodMedian
-    };
-
-    private static int PWhitebalanceIndexRead(LWhitebalanceMethod pMethod) => pMethod switch
-    {
-        LWhitebalanceMethod.LWhitebalanceMethodAverage => 0,
-        LWhitebalanceMethod.LWhitebalanceMethodMinmax => 1,
-        LWhitebalanceMethod.LWhitebalanceMethodManual => 3,
-        _ => 2
-    };
-
     private void PWhitebalanceUpdate()
     {
-        bool pActive = LWhitebalance.LWhitebalanceStep.LWorkStepActive;
-        bool pCapable = LWhitebalance.LWhitebalanceCapable;
-        PInspectorSwitchUpdate(pWhitebalanceBox, pActive, false);
-        PInspectorSwitchUpdate(pWhitebalancePersistent, LWhitebalance.LWhitebalancePersistent, true);
-        int pIndex = PWhitebalanceIndexRead(LWhitebalance.LWhitebalanceMethod);
-        if (pWhitebalanceMethod.SelectedIndex != pIndex)
-        {
-            pWhitebalanceMethod.SelectedIndex = pIndex;
-        }
-
+        PInspectorSwitchUpdate(pWhitebalanceBox, LWhitebalance.LWhitebalanceStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pWhitebalancePersistent, LWhitebalance.LWhitebalancePersistent);
+        pWhitebalanceMethod.SelectedIndex = LWhitebalance.LWhitebalanceMethodIndex;
         PInspectorValueUpdate(
             pWhitebalanceSaturationSlider,
             pWhitebalanceSaturationValue,
             LWhitebalance.LWhitebalanceValue.LWorkWhitebalanceSaturation,
             "0.#");
+        LInspectorTip pTip = LInspector.LInspectorTipResolve(
+            LWhitebalance.LWhitebalanceStep.LWorkStepActive,
+            LWhitebalance.LWhitebalanceCapable,
+            LWhitebalance.LWhitebalancePreview,
+            "Inspector.Video.WhitebalanceRequiresEq",
+            "Inspector.Video.WhitebalancePreviewMpv",
+            "Inspector.Video.ApplyWhitebalance",
+            "Inspector.Video.PersistWhitebalance");
         PInspectorSectionApply(
-            pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pActive,
-            pCapable, LWhitebalance.LWhitebalancePreview,
-            "Inspector.Video.WhitebalanceRequiresEq", "Inspector.Video.WhitebalancePreviewMpv",
-            "Inspector.Video.ApplyWhitebalance", "Inspector.Video.PersistWhitebalance");
-        string? pNotice = pWhitebalanceBody.ToolTip as string;
-        pInspectorNeutralTool.IsEnabled = pCapable;
-        pInspectorNeutralTool.ToolTip = pNotice
-            ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickTooltip");
-        pInspectorWhiteTool.IsEnabled = pCapable;
-        pInspectorWhiteTool.ToolTip = pNotice
-            ?? LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePickWhiteTooltip");
+            pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pTip);
+        pInspectorNeutralTool.IsEnabled = LWhitebalance.LWhitebalanceCapable;
+        pInspectorNeutralTool.ToolTip = LInspector.LInspectorNoticeRead(pTip, "Inspector.Video.WhitebalancePickTooltip");
+        pInspectorWhiteTool.IsEnabled = LWhitebalance.LWhitebalanceCapable;
+        pInspectorWhiteTool.ToolTip = LInspector.LInspectorNoticeRead(
+            pTip, "Inspector.Video.WhitebalancePickWhiteTooltip");
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
         ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
         PWhitebalanceToolUpdate();

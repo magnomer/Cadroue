@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
@@ -47,13 +46,7 @@ public sealed partial class PInspector
         pCurveChannel.Items.Add(new LLocalizationChoice(
             "Blue", "Inspector.Video.CurveChannelBlue"));
         pCurveChannel.SelectedIndex = 0;
-        pCurveChannel.SelectionChanged += (_, _) =>
-        {
-            if (pCurveChannel.SelectedIndex >= 0)
-            {
-                LCurve.LCurveChannelSelect(pCurveChannel.SelectedIndex);
-            }
-        };
+        pCurveChannel.SelectionChanged += (_, _) => LCurve.LCurveChannelSelect(pCurveChannel.SelectedIndex);
 
         pCurveCanvasHost = new Border
         {
@@ -118,33 +111,23 @@ public sealed partial class PInspector
         return pButton;
     }
 
-    public void PCurveHistogramApply(LHistogramCounts? pHistogram) => LCurve.LCurveHistogramSet(pHistogram);
-
-    private void PCurvePointCommit()
-    {
-        LWorkCurvePoint pPoint = LCurve.LCurvePointRead();
-        double pInput = PInspectorDecimalRead(pCurveInputValue, pPoint.LWorkCurveInput * 100) / 100;
-        double pOutput = PInspectorDecimalRead(pCurveOutputValue, pPoint.LWorkCurveOutput * 100) / 100;
-        LCurve.LCurvePointSet(pInput, pOutput);
-    }
+    private void PCurvePointCommit() => LCurve.LCurvePointCommit(pCurveInputValue.Text, pCurveOutputValue.Text);
 
     private void PCurveUpdate()
     {
-        PInspectorSwitchUpdate(pCurveBox, LCurve.LCurveActive, false);
-        PInspectorSwitchUpdate(pCurvePersistent, LCurve.LCurvePersistent, true);
-        if (pCurveChannel.SelectedIndex != LCurve.LCurveChannel)
-        {
-            pCurveChannel.SelectedIndex = LCurve.LCurveChannel;
-        }
-
-        LWorkCurvePoint pPoint = LCurve.LCurvePointRead();
-        PInspectorTextSet(pCurveInputValue, pPoint.LWorkCurveInput * 100, "0.#");
-        PInspectorTextSet(pCurveOutputValue, pPoint.LWorkCurveOutput * 100, "0.#");
-        PInspectorSectionApply(
-            pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, LCurve.LCurveActive,
-            LCurve.LCurveCapable, LCurve.LCurvePreview,
-            "Inspector.Video.CurveRequiresEq", "Inspector.Video.CurvePreviewMpv",
-            "Inspector.Video.ApplyCurve", "Inspector.Video.PersistCurve");
+        PInspectorSwitchUpdate(pCurveBox, LCurve.LCurveActive);
+        PInspectorSwitchUpdate(pCurvePersistent, LCurve.LCurvePersistent);
+        pCurveChannel.SelectedIndex = LCurve.LCurveChannel;
+        PInspectorTextSet(pCurveInputValue, LCurve.LCurveInputPercent, "0.#");
+        PInspectorTextSet(pCurveOutputValue, LCurve.LCurveOutputPercent, "0.#");
+        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, LInspector.LInspectorTipResolve(
+            LCurve.LCurveActive,
+            LCurve.LCurveCapable,
+            LCurve.LCurvePreview,
+            "Inspector.Video.CurveRequiresEq",
+            "Inspector.Video.CurvePreviewMpv",
+            "Inspector.Video.ApplyCurve",
+            "Inspector.Video.PersistCurve"));
         PCurveRebuild();
     }
 }

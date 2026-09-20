@@ -1,8 +1,8 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Infrastructure;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -91,19 +91,15 @@ public sealed partial class PInspector
                 pInspectorContrastSlider,
                 "%",
                 pInspectorContrastValue));
-        bool pContrastPreview = LFlyleaf.LFlyleafActive
-            || LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
-        if (!pContrastPreview)
+        pInspectorContrastStack.Children.Add(new TextBlock
         {
-            pInspectorContrastStack.Children.Add(new TextBlock
-            {
-                Text = LLocalization.LLocalizationTextRead("Inspector.Video.ContrastPreview"),
-                Foreground = new System.Windows.Media.SolidColorBrush(
-                    System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
-                TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, 2, 0, 0)
-            });
-        }
+            Text = LLocalization.LLocalizationTextRead("Inspector.Video.ContrastPreview"),
+            Foreground = new System.Windows.Media.SolidColorBrush(
+                System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 2, 0, 0),
+            Visibility = PLook.PLookVisible[LTone.LToneNoticeShown]
+        });
 
         pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
         return pInspectorContrastBody;
@@ -194,11 +190,10 @@ public sealed partial class PInspector
         string pPersistKey)
     {
         LWorkVideoStep pStep = LTone.LToneStepRead(pKind);
-        PInspectorSwitchUpdate(pApply, pStep.LWorkStepActive, false);
-        PInspectorSwitchUpdate(pPersistent, LTone.LTonePersistentRead(pKind), true);
+        PInspectorSwitchUpdate(pApply, pStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pPersistent, LTone.LTonePersistentRead(pKind));
         PInspectorValueUpdate(pSlider, pValue, pStep.LWorkStepValue, "0.#");
-        PInspectorSectionApply(
-            pApply, pPersistent, pStack, pBody, pStep.LWorkStepActive,
-            LTone.LToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey);
+        PInspectorSectionApply(pApply, pPersistent, pStack, pBody, LInspector.LInspectorTipResolve(
+            pStep.LWorkStepActive, LTone.LToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey));
     }
 }

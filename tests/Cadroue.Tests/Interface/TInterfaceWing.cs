@@ -85,4 +85,50 @@ internal static partial class TInterface
     internal static double TClinicProgressRead(LClinic clinic) => clinic.LClinicProgressRead();
     internal static string TClinicSimpleRead(LClinic clinic) => clinic.LClinicSimpleRead();
     internal static string TClinicTitleRead(LClinic clinic) => clinic.LClinicTitleRead();
+
+    internal static void TCurvePressHandle(LCurve curve, double x, double y, double size) =>
+        curve.LCurvePressHandle(x, y, size);
+    internal static bool TCurveMoveHandle(LCurve curve, double x, double y, double size) =>
+        curve.LCurveMoveHandle(x, y, size);
+    internal static bool TCurveReleaseHandle(LCurve curve) => curve.LCurveReleaseHandle();
+    internal static bool TCurveDragRead(LCurve curve) => curve.LCurveDragActive;
+    internal static void TCurvePointCommit(LCurve curve, string input, string output) =>
+        curve.LCurvePointCommit(input, output);
+    internal static double TCurveInputRead(LCurve curve) => curve.LCurveInputPercent;
+    internal static void TCurveHistogramSet(LCurve curve, LHistogramCounts? histogram) =>
+        curve.LCurveHistogramSet(histogram);
+    internal static IReadOnlyList<LCurveLine> TCurveGridRead(LCurve curve, double size) =>
+        curve.LCurveCanvas.LCurveGridRead(size);
+    internal static IReadOnlyList<LCurvePoint> TCurveTrackRead(LCurve curve, double size) =>
+        curve.LCurveCanvas.LCurveTrackRead(size);
+    internal static IReadOnlyList<LCurveDot> TCurveDotsRead(LCurve curve, double size) =>
+        curve.LCurveCanvas.LCurveDotsRead(size);
+    internal static IReadOnlyList<LCurvePoint> TCurveHistogramRead(LCurve curve, double size) =>
+        curve.LCurveCanvas.LCurveHistogramRead(size);
+
+    internal static void TWhitebalanceToolAttach(LWhitebalance whitebalance, Action<bool, LNeutralTarget> handler) =>
+        whitebalance.LWhitebalanceToolChange += handler;
+    internal static void TWhitebalanceToolToggle(LWhitebalance whitebalance, LNeutralTarget target, bool state) =>
+        whitebalance.LWhitebalanceToolToggle(target, state);
+    internal static bool TWhitebalanceGreyRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceGreyArmed;
+    internal static bool TWhitebalanceWhiteRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceWhiteArmed;
+    internal static string TWhitebalanceGuideRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceGuideRead();
+    internal static void TWhitebalanceStatusSet(LWhitebalance whitebalance, string status) =>
+        whitebalance.LWhitebalanceStatusSet(status);
+    internal static LWhitebalanceReadout TWhitebalanceReadoutRead(LWhitebalance whitebalance) =>
+        whitebalance.LWhitebalanceReadoutRead();
+    internal static void TWhitebalanceMethodSelect(LWhitebalance whitebalance, int index) =>
+        whitebalance.LWhitebalanceMethodSelect(index);
+    internal static int TWhitebalanceIndexRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceMethodIndex;
+    internal static void TWhitebalanceWheelHandle(
+        LWhitebalance whitebalance, bool pressed, double x, double y, double size) =>
+        whitebalance.LWhitebalanceWheelHandle(pressed, x, y, size);
+    internal static LNeutralDot TWhitebalanceDotRead(LWhitebalance whitebalance, double size, double dot) =>
+        whitebalance.LWhitebalanceDotRead(size, dot);
+
+    internal static void TBlankWheelHandle(LBlank blank, bool pressed, double x, double y, double size) =>
+        blank.LBlankWheelHandle(pressed, x, y, size);
+    internal static LNeutralDot TBlankDotRead(LBlank blank, double size, double dot) => blank.LBlankDotRead(size, dot);
+    internal static LNeutralBitmap TNeutralBitmapResolve(int size, double value) =>
+        LNeutral.LNeutralBitmapResolve(size, value);
 }

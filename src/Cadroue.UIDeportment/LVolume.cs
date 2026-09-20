@@ -15,6 +15,8 @@ public sealed class LVolume
 
     public bool LVolumePersistent => lVolumePersistent;
 
+    public bool LVolumeClipShown => LVolumeGain > 0;
+
     public void LVolumeStepSet(LWorkAudioStep lStep)
     {
         double lGain = lStep is LWorkVolumeStep lVolume ? lVolume.LWorkVolumeGain : 0;

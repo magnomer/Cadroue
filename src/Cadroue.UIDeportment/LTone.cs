@@ -1,4 +1,5 @@
 using Cadroue.Core;
+using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
@@ -15,6 +16,9 @@ public sealed class LTone
     public event Action? LToneChange;
 
     public bool LToneCapable => lToneCapable;
+
+    public bool LToneNoticeShown =>
+        !LFlyleaf.LFlyleafActive && LRenderer.LRendererEngineRead() != LPreviewEngine.LPreviewEngineMpv;
 
     public LWorkVideoStep LToneStepRead(LColorKind lKind) => lKind switch
     {

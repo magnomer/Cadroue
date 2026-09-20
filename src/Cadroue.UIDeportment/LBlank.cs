@@ -17,6 +17,13 @@ public sealed class LBlank
 
     public bool LBlankPicking => lBlankPicking;
 
+    public static LDetectorBound LBlankBrightnessBound =>
+        LDetector.LDetectorBrightnessRead() with { LDetectorBoundDefault = LDetectorBlank.LDetectorBlankValue };
+
+    public static LDetectorBound LBlankMinimumBound =>
+        LDetector.LDetectorMinimumRead(LDetectorKind.LDetectorKindBlank)
+            with { LDetectorBoundDefault = LDetectorBlank.LDetectorBlankGap };
+
     public double LBlankWheelX =>
         lBlankStep.LDetectorBlankSaturation * Math.Cos(lBlankStep.LDetectorBlankHue * (Math.PI / 180.0));
 
@@ -52,6 +59,20 @@ public sealed class LBlank
 
     public void LBlankMinimumSet(double lMinimum) =>
         LBlankStepSet(lBlankStep with { LDetectorBlankMinimum = lMinimum });
+
+    public LNeutralDot LBlankDotRead(double lSize, double lDot) =>
+        LNeutral.LNeutralDotResolve(new LNeutralWheel(LBlankWheelX, LBlankWheelY, LBlankWheelPresent), lSize, lDot);
+
+    public void LBlankWheelHandle(bool lPressed, double lX, double lY, double lSize)
+    {
+        if (!lPressed)
+        {
+            return;
+        }
+
+        LNeutralWheel lWheel = LNeutral.LNeutralCanvasResolve(lX, lY, lSize);
+        LBlankWheelSet(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY);
+    }
 
     public void LBlankWheelSet(double lX, double lY)
     {

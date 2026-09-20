@@ -29,7 +29,7 @@ public sealed partial class PInspector
         PInspectorSwitchAttach(pSensorRunPersistent, LSensor.LSensorPersistentSet);
         LSensor.LSensorPersistentChange += pPersistent =>
         {
-            PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent, false);
+            PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
             PSensorPersistentChange?.Invoke(pPersistent);
         };
         LSensor.LSensorRunningChange += pRunning => pSensorRunButton.Content = LLocalization.LLocalizationTextRead(

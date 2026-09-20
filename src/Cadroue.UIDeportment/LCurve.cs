@@ -20,8 +20,16 @@ public sealed class LCurve
     private bool lCurveCapable;
     private bool lCurvePreview;
     private LHistogramCounts? lCurveHistogram;
+    private bool lCurveDragActive;
+
+    public LCurve()
+    {
+        LCurveCanvas = new LCurveCanvas(this);
+    }
 
     public event Action? LCurveChange;
+
+    public LCurveCanvas LCurveCanvas { get; }
 
     public bool LCurveActive => lCurveActive;
 
@@ -37,9 +45,15 @@ public sealed class LCurve
 
     public LHistogramCounts? LCurveHistogram => lCurveHistogram;
 
+    public bool LCurveDragActive => lCurveDragActive;
+
     public IReadOnlyList<LWorkCurvePoint> LCurvePoints => lCurveChannels[lCurveChannel];
 
     public LWorkCurvePoint LCurvePointRead() => lCurveChannels[lCurveChannel][lCurveSelected];
+
+    public double LCurveInputPercent => LCurvePointRead().LWorkCurveInput * 100;
+
+    public double LCurveOutputPercent => LCurvePointRead().LWorkCurveOutput * 100;
 
     public LWorkVideoStep LCurveStepRead() => LWorkVideoStep.LWorkCurveCreate(
         lCurveActive,
@@ -86,6 +100,11 @@ public sealed class LCurve
 
     public void LCurveChannelSelect(int lChannel)
     {
+        if (lChannel < 0)
+        {
+            return;
+        }
+
         int lClamped = Math.Clamp(lChannel, 0, lCurveChannels.Length - 1);
         if (lCurveChannel == lClamped)
         {
@@ -121,6 +140,53 @@ public sealed class LCurve
 
         lPoints[lCurveSelected] = lPoint;
         LCurveChange?.Invoke();
+    }
+
+    public void LCurvePointCommit(string lInputText, string lOutputText)
+    {
+        LWorkCurvePoint lPoint = LCurvePointRead();
+        double lInput = LInspector.LInspectorValueCommit(lInputText, lPoint.LWorkCurveInput * 100, null, null) / 100;
+        double lOutput = LInspector.LInspectorValueCommit(lOutputText, lPoint.LWorkCurveOutput * 100, null, null) / 100;
+        LCurvePointSet(lInput, lOutput);
+    }
+
+    public void LCurvePressHandle(double lX, double lY, double lSize)
+    {
+        int lHit = LCurveCanvas.LCurveHitFind(lX, lY, lSize);
+        if (lHit < 0)
+        {
+            (double lInput, double lOutput) = LCurveCanvas.LCurveValueResolve(lX, lY, lSize);
+            LCurvePointAdd(lInput, lOutput);
+        }
+        else
+        {
+            LCurvePointSelect(lHit);
+        }
+
+        lCurveDragActive = true;
+    }
+
+    public bool LCurveMoveHandle(double lX, double lY, double lSize)
+    {
+        if (!lCurveDragActive)
+        {
+            return false;
+        }
+
+        (double lInput, double lOutput) = LCurveCanvas.LCurveValueResolve(lX, lY, lSize);
+        LCurvePointSet(lInput, lOutput);
+        return true;
+    }
+
+    public bool LCurveReleaseHandle()
+    {
+        if (!lCurveDragActive)
+        {
+            return false;
+        }
+
+        lCurveDragActive = false;
+        return true;
     }
 
     public void LCurvePointAdd(double lInput, double lOutput)

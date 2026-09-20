@@ -149,7 +149,7 @@ public sealed partial class PViewer
     {
         LViewer.LViewerPreviewSet(LViewer.LViewerPreview.LCropboxChange(PViewerCropboxRead(PCropVideoRead())));
         PViewerMpvUpdate();
-        PCropVideoChange?.Invoke(PCropVideo);
+        PCropVideoChange?.Invoke();
     }
 
     private void PCropSizeHandle(object sender, SizeChangedEventArgs sizeChangedEventArgs)

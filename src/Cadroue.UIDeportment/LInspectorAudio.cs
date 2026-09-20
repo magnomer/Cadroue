@@ -6,6 +6,7 @@ namespace Cadroue.UIDeportment;
 public sealed class LInspectorAudio
 {
     private readonly LSkip lInspectorSkip;
+    private int lInspectorAudioDepth;
 
     public LInspectorAudio(LSkip lSkip)
     {
@@ -47,6 +48,7 @@ public sealed class LInspectorAudio
 
     public void LInspectorAudioApply(LWorkAudio lPlan)
     {
+        lInspectorAudioDepth++;
         LInspectorHighpass.LFilterStepSet(LInspectorStepFind(lPlan, LAudioKind.LAudioKindHighpass)
             ?? LPassband.LPassbandStepCreate(true, false));
         LInspectorLowpass.LFilterStepSet(LInspectorStepFind(lPlan, LAudioKind.LAudioKindLowpass)
@@ -59,7 +61,8 @@ public sealed class LInspectorAudio
             ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
         LInspectorLoudness.LLoudnessStepSet(LInspectorStepFind(lPlan, LAudioKind.LAudioKindLeveling)
             ?? LAudio.LAudioNormalizeCreate());
-        LInspectorAudioRaise();
+        lInspectorAudioDepth--;
+        LInspectorAudioChange?.Invoke();
     }
 
     public bool LInspectorPersistentCheck() =>
@@ -140,7 +143,15 @@ public sealed class LInspectorAudio
         };
     }
 
-    private void LInspectorAudioRaise() => LInspectorAudioChange?.Invoke();
+    private void LInspectorAudioRaise()
+    {
+        if (lInspectorAudioDepth > 0)
+        {
+            return;
+        }
+
+        LInspectorAudioChange?.Invoke();
+    }
 
     private static LWorkAudioStep? LInspectorStepFind(LWorkAudio lPlan, LAudioKind lKind) =>
         lPlan.LWorkAudioSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

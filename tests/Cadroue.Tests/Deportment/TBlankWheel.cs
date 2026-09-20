@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -50,5 +51,22 @@ public sealed class TBlankWheel
 
         Assert.True(TInterface.TBlankPresentRead(blank));
         Assert.Equal(LDetectorType.LDetectorTypeColor, TInterface.TBlankStepRead(blank).LDetectorBlankType);
+    }
+    [Fact]
+    public void DotRead_AbsentWhileBlack_PlacedAfterPress()
+    {
+        LBlank blank = TInterface.TBlankCreate();
+        Assert.False(TInterface.TBlankDotRead(blank, 120, 11).LNeutralDotPresent);
+
+        TInterface.TBlankWheelHandle(blank, false, 114, 60, 120);
+        Assert.False(TInterface.TBlankPresentRead(blank));
+
+        TInterface.TBlankWheelHandle(blank, true, 114, 60, 120);
+        LNeutralDot dot = TInterface.TBlankDotRead(blank, 120, 11);
+
+        Assert.True(dot.LNeutralDotPresent);
+        Assert.Equal(60 + 54 - 5.5, dot.LNeutralDotLeft, 1);
+        Assert.Equal(60 - 5.5, dot.LNeutralDotTop, 1);
+        Assert.Equal(0, TInterface.TBlankStepRead(blank).LDetectorBlankHue, 3);
     }
 }

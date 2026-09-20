@@ -48,17 +48,13 @@ public sealed class PEditTab : PTabSurface
         LEditTab.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pInspector.PSkipActiveChange += LEditTab.LEditSkipHandle;
-        pInspector.PInspectorPlanChange += LEditTab.LEditStore.LEditPersistentSave;
-        pInspector.PInspectorToolChange += pViewer.PCropToolSet;
-        pInspector.PInspectorVideoChange += LEditTab.LEditChangeHandle;
-        pInspector.PWhitebalanceToolChange += pViewer.PViewerNeutralSet;
-        pViewer.PViewerToolChange += pInspector.PWhitebalanceToolSet;
+        pInspector.LWhitebalance.LWhitebalanceToolChange += pViewer.PViewerNeutralSet;
+        pViewer.PViewerToolChange += pInspector.LWhitebalance.LWhitebalanceToolSet;
         pViewer.PViewerNeutralChange += LEditTab.LEditColor.LEditNeutralHandle;
         pViewer.PViewerClockTick += _ => PEditHistogramDefer();
         pViewer.PViewerEngineChange += LEditTab.LEditColor.LEditCapableHandle;
         pViewer.PViewerEngineChange += pViewer.PViewerNeutralCancel;
-        pViewer.PCropVideoChange += PEditCropShow;
+        pViewer.PCropVideoChange += LEditTab.LEditCropShow;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         pList.PListPathChange += LEditTab.LEditPathHandle;
         pList.PListItemsAdd += LEditTab.LEditStore.LEditItemsHandle;
@@ -113,13 +109,6 @@ public sealed class PEditTab : PTabSurface
     }
 
     public override LSceneTabRecord PTabLayoutRead() => LEditTab.LEditLayoutRead(PTabLayoutCreate());
-
-    private void PEditCropShow(System.Windows.Rect? pCropVideo)
-    {
-        LEditTab.LEditCropShow();
-        pInspector.PInspectorCropSet(
-            pCropVideo, pViewer.LCrop.LCropDrive, pViewer.LCrop.LCropAnchorX, pViewer.LCrop.LCropAnchorY);
-    }
 
     private void PEditEstimateRead(LWhitebalanceMethod pMethod) =>
         pViewer.PViewerEstimateRead(pMethod, LEditTab.LEditColor.LEditEstimateApply);
