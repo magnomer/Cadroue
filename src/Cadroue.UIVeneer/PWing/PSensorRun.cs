@@ -93,16 +93,11 @@ public sealed partial class PInspector
 
     public void PSensorRunningSet(bool pSensorActive) => LSensor.LSensorRunningSet(pSensorActive);
 
-    public void PSensorProgressShow()
-    {
-        pSensorProgress.Value = 0;
-        pSensorProgress.Visibility = Visibility.Visible;
-    }
+    public void PSensorProgressSet(bool pSensorShown) =>
+        pSensorProgress.Visibility = PLook.PLookVisible[pSensorShown];
 
     public void PSensorProgressApply(double pSensorProgressValue) =>
         pSensorProgress.Value = pSensorProgressValue;
-
-    public void PSensorProgressHide() => pSensorProgress.Visibility = Visibility.Collapsed;
 
     internal static ProgressBar PSensorProgressBuild() =>
         new()

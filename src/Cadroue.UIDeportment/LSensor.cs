@@ -4,6 +4,13 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LSensor
 {
+    private const string LSensorBlank = "Blank";
+    private const string LSensorScene = "Scene";
+    private const string LSensorStill = "Still Image";
+    private const string LSensorLuminance = "Luminance";
+    private const string LSensorSilence = "Silence";
+    private const string LSensorVolume = "Volume";
+
     private readonly Dictionary<LDetectorKind, LDetectorStep> lSensorSteps = new();
     private readonly Dictionary<LDetectorKind, string?> lSensorTokens = new();
     private LDetectorStillMode lSensorMode = LDetectorStillMode.LDetectorStillDiscard;
@@ -41,6 +48,28 @@ public sealed class LSensor
     public bool LSensorPersistent => lSensorPersistent;
 
     public static bool LSensorPresetCheck(LDetectorKind lKind) => LDetector.LDetectorTokensRead(lKind).Count > 0;
+
+    public static string LSensorNameRead(LDetectorKind lKind) => lKind switch
+    {
+        LDetectorKind.LDetectorKindBlank => LSensorBlank,
+        LDetectorKind.LDetectorKindScene => LSensorScene,
+        LDetectorKind.LDetectorKindStill => LSensorStill,
+        LDetectorKind.LDetectorKindLuminance => LSensorLuminance,
+        LDetectorKind.LDetectorKindSilence => LSensorSilence,
+        LDetectorKind.LDetectorKindVolume => LSensorVolume,
+        _ => string.Empty
+    };
+
+    public static LDetectorKind? LSensorKindRead(string? lName) => lName switch
+    {
+        LSensorBlank => LDetectorKind.LDetectorKindBlank,
+        LSensorScene => LDetectorKind.LDetectorKindScene,
+        LSensorStill => LDetectorKind.LDetectorKindStill,
+        LSensorLuminance => LDetectorKind.LDetectorKindLuminance,
+        LSensorSilence => LDetectorKind.LDetectorKindSilence,
+        LSensorVolume => LDetectorKind.LDetectorKindVolume,
+        _ => null
+    };
 
     public LDetectorStep LSensorStepRead(LDetectorKind lKind) =>
         lSensorSteps.TryGetValue(lKind, out LDetectorStep lStep) ? lStep : LDetector.LDetectorCreate(lKind);

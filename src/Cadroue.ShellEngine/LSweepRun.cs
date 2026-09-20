@@ -179,6 +179,9 @@ public static partial class LSweep
         return lSweepLines;
     }
 
+    public static bool LSweepFaultCheck(Exception lSweepException) =>
+        lSweepException is System.ComponentModel.Win32Exception or System.IO.IOException or InvalidOperationException;
+
     private static string LSweepFaultFormat(LEmployerResult lSweepResult)
     {
         string[] lSweepTail = lSweepResult.LEmployerError

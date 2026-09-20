@@ -46,6 +46,10 @@ public sealed class LInspector
 
     public LSkip LInspectorSkip { get; } = new();
 
+    public LSensor LInspectorSensor { get; } = new();
+
+    public LBlank LInspectorBlank { get; } = new();
+
     public bool LInspectorMinimized => lInspectorMinimized;
 
     public string? LInspectorStep => lInspectorStep;

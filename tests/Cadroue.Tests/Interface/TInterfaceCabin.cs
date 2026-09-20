@@ -182,4 +182,81 @@ internal static partial class TInterface
         LLibrarian.LLibrarianEditReader = reader;
         LLibrarian.LLibrarianEditWriter = writer;
     }
+
+    internal static LSplitTab TSplitTabCreate(
+        LPresetSelection preset,
+        LInspector inspector,
+        LViewer viewer,
+        LList list,
+        LDocket docket,
+        LProcessing processing,
+        LFlow flow) => new(preset, inspector, viewer, list, docket, processing, flow);
+    internal static IReadOnlyList<LProcessingRow> TSplitRowsRead() => LSplitTab.LSplitRows;
+    internal static void TSplitClose(LSplitTab tab) => tab.LSplitClose();
+    internal static void TSplitStart(LSplitTab tab) => tab.LSplitStart();
+    internal static LSceneTabRecord TSplitLayoutRead(LSplitTab tab) => tab.LSplitLayoutRead(new LSceneTabRecord());
+    internal static void TSplitLayoutApply(LSplitTab tab, LSceneTabRecord? layout) => tab.LSplitLayoutApply(layout);
+    internal static void TSplitPathHandle(LSplitTab tab, string? path) => tab.LSplitPathHandle(path);
+    internal static void TSplitLockHandle(LSplitTab tab, bool locked) => tab.LSplitLockHandle(locked);
+    internal static void TSplitPersistentHandle(LSplitTab tab, bool persistent) =>
+        tab.LSplitPersistentHandle(persistent);
+    internal static void TSplitStateSave(LSplitTab tab) => tab.LSplitStateSave();
+    internal static void TSplitStateLoad(LSplitTab tab, string path) => tab.LSplitStateLoad(path);
+    internal static LDetectorSet TSplitStateRead(LSplitTab tab) => tab.LSplitStateRead();
+    internal static void TSplitMissingAttach(LSplitTab tab, Action handler) => tab.LSplitPresetMissing += handler;
+    internal static void TSplitRun(LSplitTab tab, LWorkPriority priority) => tab.LSplitRun(priority, default, default);
+    internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(LSplitTab tab) => tab.LSplitSweep.LSplitStepsRead();
+    internal static Task TSplitSweepStart(LSplitTab tab) => tab.LSplitSweep.LSplitSweepStart();
+    internal static void TSplitSweepCancel(LSplitTab tab) => tab.LSplitSweep.LSplitSweepCancel();
+    internal static bool TSplitSweepCheck(LSplitTab tab) => tab.LSplitSweep.LSplitSweepRunning;
+    internal static void TSplitBusyAttach(LSplitTab tab, Action<bool> handler) =>
+        tab.LSplitSweep.LSplitBusyApply += handler;
+    internal static void TSplitFailAttach(LSplitTab tab, Action<string, string> handler) =>
+        tab.LSplitSweep.LSplitFailRaise += handler;
+    internal static void TSplitLibrarianAttach(
+        Func<string, LSidecarSplitRecord?>? reader, Func<string, LSidecarSplitRecord?, bool>? writer)
+    {
+        LLibrarian.LLibrarianSplitReader = reader;
+        LLibrarian.LLibrarianSplitWriter = writer;
+    }
+
+    internal static void TInspectorSaveSuspend(LInspector inspector) => inspector.LInspectorSaveSuspend();
+    internal static void TInspectorSaveResume(LInspector inspector) => inspector.LInspectorSaveResume();
+    internal static int TDocketDeliveredAdd(LDocket docket, string path, bool locked) =>
+        docket.LDocketDeliveredAdd([path], Guid.NewGuid(), locked);
+    internal static LDetectorStep TDetectorStepCreate(
+        LDetectorKind kind, bool enabled, double threshold, double minimum, double window) =>
+        new(kind, enabled, threshold, minimum, window);
+    internal static LDetectorBlank TDetectorBlankCreate(
+        bool enabled,
+        LDetectorType type,
+        double hue,
+        double saturation,
+        double brightness,
+        double tolerance,
+        double coverage,
+        double minimum) => new(enabled, type, hue, saturation, brightness, tolerance, coverage, minimum);
+    internal static void TSensorEnabledSet(LSensor sensor, LDetectorKind kind, bool enabled) =>
+        sensor.LSensorEnabledSet(kind, enabled);
+    internal static void TSensorModeSet(LSensor sensor, LDetectorStillMode mode) => sensor.LSensorModeSet(mode);
+    internal static void TSensorSpeedSet(LSensor sensor, LDetectorLuminanceMode speed) => sensor.LSensorSpeedSet(speed);
+    internal static void TSensorPersistentSet(LSensor sensor, bool persistent) =>
+        sensor.LSensorPersistentSet(persistent);
+    internal static string TSensorNameRead(LDetectorKind kind) => LSensor.LSensorNameRead(kind);
+    internal static LDetectorKind? TSensorKindRead(string? name) => LSensor.LSensorKindRead(name);
+    internal static LDetectorSet TDetectorSetCreate(
+        IReadOnlyList<LDetectorStep> steps,
+        LDetectorBlank? blank,
+        LDetectorStillMode? still,
+        LDetectorLuminanceMode? luminance,
+        LDetectorMetricMode? metric,
+        IReadOnlyDictionary<LDetectorKind, string> presets) => new(steps, blank, still, luminance, metric, presets);
+    internal static LSidecarSplitRecord TDetectorSidecarFormat(LDetectorSet set) =>
+        LDetectorSet.LDetectorSidecarFormat(set);
+    internal static LDetectorSet TDetectorSidecarParse(LSidecarSplitRecord record) =>
+        LDetectorSet.LDetectorSidecarParse(record);
+    internal static List<LSceneDetector> TDetectorSceneFormat(LDetectorSet set) =>
+        LDetectorSet.LDetectorSceneFormat(set);
+    internal static LDetectorSet TDetectorSceneParse(IReadOnlyList<LSceneDetector> detectors) =>
+        LDetectorSet.LDetectorSceneParse(detectors);
 }

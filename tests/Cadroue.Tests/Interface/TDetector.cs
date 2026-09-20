@@ -227,4 +227,117 @@ public sealed class TDetector
         Assert.Equal(0.5, lClamped.LDetectorBlankCoverage);
         Assert.Equal(60, lClamped.LDetectorBlankMinimum);
     }
+
+    private static LDetectorSet TDetectorSetBuild() => TInterface.TDetectorSetCreate(
+        [
+            new LDetectorStep(LDetectorKind.LDetectorKindScene, true, 75, 0.5, 0),
+            new LDetectorStep(LDetectorKind.LDetectorKindStill, false, 0.05, 2.0, 0),
+            new LDetectorStep(LDetectorKind.LDetectorKindLuminance, true, 4.0, 0.3, 0.3),
+            new LDetectorStep(LDetectorKind.LDetectorKindSilence, true, -40, 1.5, 0),
+            new LDetectorStep(LDetectorKind.LDetectorKindVolume, false, 16, 0.5, 2)
+        ],
+        new LDetectorBlank(true, LDetectorType.LDetectorTypeColor, 120, 0.5, 0.8, 0.1, 0.9, 1.0),
+        LDetectorStillMode.LDetectorStillTreat,
+        LDetectorLuminanceMode.LDetectorLuminanceFast,
+        LDetectorMetricMode.LDetectorMetricRms,
+        new Dictionary<LDetectorKind, string>
+        {
+            [LDetectorKind.LDetectorKindScene] = "Sensitive",
+            [LDetectorKind.LDetectorKindStill] = "Conservative",
+            [LDetectorKind.LDetectorKindLuminance] = "Sensitive",
+            [LDetectorKind.LDetectorKindSilence] = string.Empty,
+            [LDetectorKind.LDetectorKindVolume] = "Sensitive"
+        });
+
+    [Fact]
+    public void LDetectorSidecarFormat_RoundTripsEveryKind()
+    {
+        LDetectorSet lSet = TDetectorSetBuild();
+
+        LSidecarSplitRecord lRecord = TInterface.TDetectorSidecarFormat(lSet);
+        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+
+        Assert.Equal(6, lRecord.LSidecarSplitDetectors.Count);
+        Assert.True(lRecord.LSidecarSplitActive);
+        Assert.Equal(lSet.LDetectorSetSteps, lParsed.LDetectorSetSteps);
+        Assert.Equal(lSet.LDetectorSetBlank, lParsed.LDetectorSetBlank);
+        Assert.Equal(lSet.LDetectorSetStill, lParsed.LDetectorSetStill);
+        Assert.Equal(lSet.LDetectorSetLuminance, lParsed.LDetectorSetLuminance);
+        Assert.Equal(lSet.LDetectorSetMetric, lParsed.LDetectorSetMetric);
+        Assert.Equal(lSet.LDetectorSetPresets, lParsed.LDetectorSetPresets);
+    }
+
+    [Fact]
+    public void LDetectorSceneFormat_RoundTripsEveryKind()
+    {
+        LDetectorSet lSet = TDetectorSetBuild();
+
+        List<LSceneDetector> lDetectors = TInterface.TDetectorSceneFormat(lSet);
+        LDetectorSet lParsed = TInterface.TDetectorSceneParse(lDetectors);
+
+        Assert.Equal(6, lDetectors.Count);
+        Assert.Equal((int)LDetectorStillMode.LDetectorStillTreat, lDetectors[2].LSceneDetectorType);
+        Assert.Equal((int)LDetectorMetricMode.LDetectorMetricRms, lDetectors[5].LSceneDetectorType);
+        Assert.Equal(lSet.LDetectorSetSteps, lParsed.LDetectorSetSteps);
+        Assert.Equal(lSet.LDetectorSetBlank, lParsed.LDetectorSetBlank);
+        Assert.Equal(lSet.LDetectorSetPresets, lParsed.LDetectorSetPresets);
+    }
+
+    [Fact]
+    public void LDetectorSidecarParse_UnknownKindSkipped()
+    {
+        var lRecord = new LSidecarSplitRecord
+        {
+            LSidecarSplitDetectors =
+            [
+                new LSidecarDetectorRecord { LSidecarDetectorKind = 99, LSidecarDetectorEnabled = true },
+                new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindSilence, LSidecarDetectorThreshold = -20
+                }
+            ]
+        };
+
+        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+
+        Assert.Single(lParsed.LDetectorSetSteps);
+        Assert.Equal(LDetectorKind.LDetectorKindSilence, lParsed.LDetectorSetSteps[0].LDetectorStepKind);
+        Assert.Null(lParsed.LDetectorSetBlank);
+        Assert.Null(lParsed.LDetectorSetStill);
+        Assert.Null(lParsed.LDetectorSetMetric);
+    }
+
+    [Fact]
+    public void LDetectorSidecarParse_UndefinedTypeFallsBack()
+    {
+        var lRecord = new LSidecarSplitRecord
+        {
+            LSidecarSplitDetectors =
+            [
+                new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindBlank, LSidecarDetectorType = 7
+                },
+                new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindStill, LSidecarDetectorType = 7
+                },
+                new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindLuminance, LSidecarDetectorType = 7
+                },
+                new LSidecarDetectorRecord
+                {
+                    LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindVolume, LSidecarDetectorType = 7
+                }
+            ]
+        };
+
+        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+
+        Assert.Equal(LDetectorType.LDetectorTypeBlack, lParsed.LDetectorSetBlank!.Value.LDetectorBlankType);
+        Assert.Equal(LDetectorStillMode.LDetectorStillDiscard, lParsed.LDetectorSetStill);
+        Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceNormal, lParsed.LDetectorSetLuminance);
+        Assert.Equal(LDetectorMetricMode.LDetectorMetricLufs, lParsed.LDetectorSetMetric);
+    }
 }

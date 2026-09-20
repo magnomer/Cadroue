@@ -1,20 +1,13 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PWing;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIVeneer.PCabin;
 
-public sealed partial class PSplitTab : PTabSurface
+public sealed class PSplitTab : PTabSurface
 {
-    private const string PSplitBlankIcon = "/PAsset/PPanel/PProcessingBlank.svg";
-    private const string PSplitSceneIcon = "/PAsset/PPanel/PProcessingScene.svg";
-    private const string PSplitStillIcon = "/PAsset/PPanel/PProcessingStill.svg";
-    private const string PSplitLuminanceIcon = "/PAsset/PPanel/PProcessingLuminance.svg";
-    private const string PSplitSilenceIcon = "/PAsset/PPanel/PProcessingSilence.svg";
-    private const string PSplitVolumeIcon = "/PAsset/PPanel/PProcessingReducedVolume.svg";
-
     private readonly PFlow pFlow = new();
     private readonly PViewer pViewer = new();
     private readonly PSection pSection = new();
@@ -22,161 +15,82 @@ public sealed partial class PSplitTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
-    private System.Threading.CancellationTokenSource? pSplitSweepSource;
 
     public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
+        LSplitTab = new LSplitTab(
+            lPresetOwner,
+            pInspector.LInspector,
+            pViewer.LViewer,
+            pList.LList,
+            pList.PListDocketRead(),
+            pProcessing.LProcessing,
+            pFlow.LFlow);
         var pAction = new PAction();
         PTabAction = pAction;
         pAction.PActionRun += lPriority =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            if (pList.PListEditableRead() is not { } pSplitSelected)
-            {
-                return;
-            }
-
-            LMessenger.LMessengerSplitDescribe(
-                lPriority,
-                pSplitSelected.LDocketEntryPath,
-                pFlow.LFlow.LFlowSection.LFlowSplitRead(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab,
-                pSplitSelected.LDocketEntryBatch);
-        };
-        pAction.PActionAllAdd += () =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            _ = LMessenger.LMessengerSplitDescribe(
-                LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedRead()
-                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                    .ToArray(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab);
-        };
+            LSplitTab.LSplitRun(lPriority, pAction.PActionRelayTarget, pAction.PActionSourceTab);
+        pAction.PActionAllAdd += () => LSplitTab.LSplitAllRun(pAction.PActionRelayTarget, pAction.PActionSourceTab);
         pAction.PActionItemsAdd += pSplitPaths =>
-        {
-            if (!lPresetOwner.LPresetSelectionValid)
-            {
-                PExport.PExportMissingShow();
-                return;
-            }
-
-            _ = LMessenger.LMessengerSplitDescribe(
-                LWorkPriority.LWorkPriorityNormal,
-                pList.PListUnlockedRead()
-                    .Where(pItem => pSplitPaths.Contains(pItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                    .Select(pItem => new LWorkSource(pItem.LDocketEntryPath, pItem.LDocketEntryBatch))
-                    .ToArray(),
-                lPresetOwner.LPresetSelectionEncoding,
-                pAction.PActionRelayTarget,
-                pAction.PActionSourceTab);
-        };
+            LSplitTab.LSplitItemsRun(pSplitPaths, pAction.PActionRelayTarget, pAction.PActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindBlank), PSplitBlankIcon, "Processing.Step.Blank");
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindScene), PSplitSceneIcon, "Processing.Step.Scene");
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindStill), PSplitStillIcon, "Processing.Step.Still");
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindLuminance),
-            PSplitLuminanceIcon,
-            "Processing.Step.Luminance");
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindSilence),
-            PSplitSilenceIcon,
-            "Processing.Step.Silence");
-        pProcessing.PProcessingStepAdd(
-            PInspector.PSensorNameRead(LDetectorKind.LDetectorKindVolume), PSplitVolumeIcon, "Processing.Step.Volume");
+        LSplitTab.LSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pInspector.PSensorChange += PSplitActiveUpdate;
-        pInspector.PSensorChange += PSplitDetectorSave;
 
         pInspector.PSensorRunShow();
-        pInspector.PSensorRun += PSplitSweepRun;
-        pInspector.PSensorStop += () => pSplitSweepSource?.Cancel();
-        pInspector.PSensorPersistentChange += PSplitPersistentHandle;
-        pInspector.PBlankPickChange += pArmed =>
-            pViewer.PViewerNeutralSet(pArmed, LNeutralTarget.LNeutralTargetGrey);
-        pViewer.PViewerNeutralChange += pSample =>
-            pInspector.PBlankSampleApply(pSample.LNeutralRed, pSample.LNeutralGreen, pSample.LNeutralBlue);
+        pInspector.PSensorRun += PSplitSweepStart;
+        pInspector.PSensorStop += LSplitTab.LSplitSweep.LSplitSweepCancel;
+        pInspector.PBlankPickChange += PSplitPickHandle;
+        pViewer.PViewerNeutralChange += LSplitTab.LSplitSampleHandle;
+        LSplitTab.LSplitPresetMissing += PExport.PExportMissingShow;
+        LSplitTab.LSplitSweep.LSplitBusyApply += PSplitBusyApply;
+        LSplitTab.LSplitSweep.LSplitProgressApply += pInspector.PSensorProgressApply;
+        LSplitTab.LSplitSweep.LSplitFailRaise += PSplitFailShow;
 
-        pFlow.LFlow.LFlowSectionSet(true);
         pSection.PSectionAttach(pFlow);
-        pList.PListPathChange += PSplitPathShow;
+        pList.PListPathChange += LSplitTab.LSplitPathHandle;
+        pList.PListLockChange += LSplitTab.LSplitLockHandle;
         pViewer.PDropPathsChange += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
-        pList.PListLockChange += pLocked => pFlow.LFlow.LFlowEditSet(!pLocked);
-        pFlow.LFlow.LFlowEditSet(!pList.PListLockCheck());
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pSection, pProcessing, pInspector, pViewer, pExport },
             new PCompass(pFlow, pViewer, true), pAction, pFlow, lPreferenceTabLayout);
-        if (lPreferenceTabLayout is null)
-        {
-            pProcessing.PProcessingMinimizeSet(true);
-            pInspector.PInspectorMinimizeSet(true);
-        }
-
         Content = pTabGrid;
-        PSplitDetectorRestore(lPreferenceTabLayout);
+        LSplitTab.LSplitLayoutApply(lPreferenceTabLayout);
+        LSplitTab.LSplitStart();
     }
+
+    public LSplitTab LSplitTab { get; }
+
+    public override PFlow PTabFlow => pFlow;
+
+    public override PViewer? PTabViewer => pViewer;
+
+    public override PList? PTabList => pList;
 
     public override void PTabClose()
     {
-        pSplitSweepSource?.Cancel();
+        LSplitTab.LSplitClose();
         base.PTabClose();
     }
 
-    private void PSplitPathShow(string? pSourcePath)
-    {
-        if (string.IsNullOrWhiteSpace(pSourcePath) || pViewer.LViewer.LViewerSourceMatch(pSourcePath))
-        {
-            return;
-        }
+    public override LSceneTabRecord PTabLayoutRead() => LSplitTab.LSplitLayoutRead(PTabLayoutCreate());
 
-        pViewer.PViewerSourceOpen(pSourcePath);
-        if (!pInspector.PSensorPersistentCheck())
-        {
-            PSplitDetectorLoad(pSourcePath);
-        }
+    private void PSplitSweepStart() => _ = LSplitTab.LSplitSweep.LSplitSweepStart();
+
+    private void PSplitPickHandle(bool pArmed) => pViewer.PViewerNeutralSet(pArmed, LNeutralTarget.LNeutralTargetGrey);
+
+    private void PSplitBusyApply(bool pBusy)
+    {
+        pInspector.PSensorLockSet(pBusy);
+        pInspector.PSensorProgressSet(pBusy);
+        pProcessing.IsEnabled = !pBusy;
     }
 
-    private void PSplitActiveUpdate()
-    {
-        foreach (LDetectorKind pDetectorKind in LDetector.LDetectorKinds)
-        {
-            pProcessing.PProcessingActiveSet(
-                PInspector.PSensorNameRead(pDetectorKind),
-                pInspector.PSensorStepRead(pDetectorKind).LDetectorStepEnabled);
-        }
-    }
-
-    public override PFlow PTabFlow => pFlow;
-    public override PViewer? PTabViewer => pViewer;
-    public override PList? PTabList => pList;
-    public override LSceneTabRecord PTabLayoutRead()
-    {
-        LSceneTabRecord lPreferenceTabLayout = PTabLayoutCreate();
-        lPreferenceTabLayout.LSceneDetectors = PSplitDetectorRead();
-        lPreferenceTabLayout.LSceneDetectPersistent = pInspector.PSensorPersistentCheck();
-        return lPreferenceTabLayout;
-    }
+    private void PSplitFailShow(string pTitle, string pMessage) =>
+        PSWarning.PSWarningShow(System.Windows.Window.GetWindow(this), pTitle, pMessage);
 }

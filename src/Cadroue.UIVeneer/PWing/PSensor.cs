@@ -13,18 +13,11 @@ public sealed partial class PInspector
 {
     public event Action? PSensorChange;
 
-    private const string PSensorBlank = "Blank";
-    private const string PSensorScene = "Scene";
-    private const string PSensorStill = "Still Image";
-    private const string PSensorLuminance = "Luminance";
-    private const string PSensorSilence = "Silence";
-    private const string PSensorVolume = "Volume";
-
     private readonly Dictionary<LDetectorKind, PSensorSection> pSensorSections = new();
 
-    public LSensor LSensor { get; } = new();
+    public LSensor LSensor => LInspector.LInspectorSensor;
 
-    public LBlank LBlank { get; } = new();
+    public LBlank LBlank => LInspector.LInspectorBlank;
 
     private sealed class PSensorSection
     {
@@ -49,27 +42,9 @@ public sealed partial class PInspector
         public ComboBox? PSensorPreset { get; init; }
     }
 
-    public static string PSensorNameRead(LDetectorKind pDetectorKind) => pDetectorKind switch
-    {
-        LDetectorKind.LDetectorKindBlank => PSensorBlank,
-        LDetectorKind.LDetectorKindScene => PSensorScene,
-        LDetectorKind.LDetectorKindStill => PSensorStill,
-        LDetectorKind.LDetectorKindLuminance => PSensorLuminance,
-        LDetectorKind.LDetectorKindSilence => PSensorSilence,
-        LDetectorKind.LDetectorKindVolume => PSensorVolume,
-        _ => string.Empty
-    };
+    public static string PSensorNameRead(LDetectorKind pDetectorKind) => LSensor.LSensorNameRead(pDetectorKind);
 
-    private static LDetectorKind? PSensorKindRead(string? pStepName) => pStepName switch
-    {
-        PSensorBlank => LDetectorKind.LDetectorKindBlank,
-        PSensorScene => LDetectorKind.LDetectorKindScene,
-        PSensorStill => LDetectorKind.LDetectorKindStill,
-        PSensorLuminance => LDetectorKind.LDetectorKindLuminance,
-        PSensorSilence => LDetectorKind.LDetectorKindSilence,
-        PSensorVolume => LDetectorKind.LDetectorKindVolume,
-        _ => null
-    };
+    private static LDetectorKind? PSensorKindRead(string? pStepName) => LSensor.LSensorKindRead(pStepName);
 
     private static string PSensorTitleRead(LDetectorKind pDetectorKind) => pDetectorKind switch
     {
