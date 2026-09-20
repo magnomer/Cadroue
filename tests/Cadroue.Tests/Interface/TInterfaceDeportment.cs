@@ -296,6 +296,27 @@ internal static partial class TInterface
     internal static void TListSuccessorReset(LList list) => list.LListSuccessorReset();
     internal static void TListRemovedApply(LList list, params string[] removed) => list.LListRemovedApply(removed);
     internal static void TListSuccessorSelect(LList list) => list.LListSuccessorSelect();
+    internal static void TListChangeAttach(LList list, Action handler) => list.LListChange += handler;
+    internal static void TListClearAttach(LList list, Action<IReadOnlyList<string>> handler) =>
+        list.LListClearChange += handler;
+    internal static void TListItemsAttach(LList list, Action<IReadOnlyList<LDocketEntry>> handler) =>
+        list.LListItemsAdd += handler;
+    internal static void TListLockAttach(LList list, Action<bool> handler) => list.LListLockChange += handler;
+    internal static Task<int> TListPathsAdd(LList list, params string[] paths) => list.LListPathsAdd(paths);
+    internal static void TListDialogAdd(LList list, bool? confirmed, IReadOnlyList<string> paths) =>
+        list.LListDialogAdd(confirmed, paths, "file");
+    internal static void TListRemove(LList list) => list.LListRemove();
+    internal static void TListClear(LList list) => list.LListClear();
+    internal static bool TListLockCheck(LList list) => list.LListLockCheck();
+    internal static IReadOnlyList<LListCard> TListCardsRead(LList list) => list.LListFace.LListCardsRead();
+    internal static string TListStateRead(LList list, string path) => list.LListFace.LListStateRead(path);
+    internal static bool TListPressHandle(
+        LList list, string path, bool shift, bool control, double x, double y, double grabX, double grabY) =>
+        list.LListDrag.LListPressHandle(path, shift, control, x, y, grabX, grabY);
+    internal static bool TListDragResolve(LList list, double x, double y, double minimum, bool pressed) =>
+        list.LListDrag.LListDragResolve(x, y, minimum, minimum, pressed);
+    internal static void TListReleaseHandle(LList list) => list.LListDrag.LListReleaseHandle();
+    internal static bool TListKeyRun(LList list, string key, bool control) => list.LListKeyRun(key, control);
 
     internal static LFunnel TFunnelCreate() => new();
     internal static void TFunnelAttach(LFunnel funnel, Action handler) => funnel.LFunnelChange += handler;
@@ -339,6 +360,36 @@ internal static partial class TInterface
     internal static void TGroupEditCancel(LGroup group) => group.LGroupEditCancel();
     internal static bool TGroupNameCommit(LGroup group, string name) => group.LGroupNameCommit(name);
     internal static bool TGroupNameSet(LGroup group, int index, string name) => group.LGroupNameSet(index, name);
+    internal static void TGroupFaceAttach(LGroup group, Action handler) => group.LGroupFaceChange += handler;
+    internal static void TGroupRequestAttach(LGroup group, Action<IReadOnlyList<string>> handler) =>
+        group.LGroupDrag.LGroupPathsRequest += handler;
+    internal static void TGroupOpenAttach(LGroup group, Action<string> handler) =>
+        group.LGroupDrag.LGroupItemOpen += handler;
+    internal static void TGroupSourceAttach(LGroup group, Func<IReadOnlyList<string>> source) =>
+        group.LGroupSourceAttach(source);
+    internal static void TGroupAutoUpdate(LGroup group) => group.LGroupAutoUpdate();
+    internal static IReadOnlyList<LGroupCard> TGroupCardsRead(LGroup group) => group.LGroupFace.LGroupCardsRead();
+    internal static LGroupToggle TGroupModeRead(LGroup group) => group.LGroupFace.LGroupModeRead();
+    internal static IReadOnlyList<LGroupToggle> TGroupSwitchesRead(LGroup group) =>
+        group.LGroupFace.LGroupSwitchesRead();
+    internal static void TGroupToggleRun(LGroup group, string key, bool right) =>
+        group.LGroupFace.LGroupToggleRun(key, right);
+    internal static bool TGroupLabelHandle(LGroup group, int index, int clicks) =>
+        group.LGroupLabelHandle(index, clicks);
+    internal static bool TGroupKeyRun(LGroup group, string key, string text) => group.LGroupKeyRun(key, text);
+    internal static bool TGroupCardAccept(
+        LGroup group, int target, int insertAt, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
+        group.LGroupDrag.LGroupCardAccept(target, insertAt, files, moveIndex, movePath, paths);
+    internal static bool TGroupPanelAccept(
+        LGroup group, bool handled, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
+        group.LGroupDrag.LGroupPanelAccept(handled, files, moveIndex, movePath, paths);
+    internal static void TGroupPressHandle(LGroup group, int index, string path, double x, double y) =>
+        group.LGroupDrag.LGroupPressHandle(index, path, x, y, 0, 0);
+    internal static bool TGroupDragResolve(LGroup group, double x, double y, double minimum, bool pressed) =>
+        group.LGroupDrag.LGroupDragResolve(x, y, minimum, minimum, pressed);
+    internal static void TGroupDragClear(LGroup group) => group.LGroupDrag.LGroupDragClear();
+    internal static int TGroupInsertResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
+        LGroupDrag.LGroupInsertResolve(y, tops, heights);
 
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name);
     internal static LExport TExportCreate(LPresetSelection selection, bool smart) => new(selection, smart);

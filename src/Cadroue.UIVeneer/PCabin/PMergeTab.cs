@@ -17,7 +17,7 @@ public sealed class PMergeTab : PTabSurface
 
     public PMergeTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        LMergeTab = new LMergeTab(lPresetOwner, pList.PListDocketRead(), lPreferenceTabLayout);
+        LMergeTab = new LMergeTab(lPresetOwner, pList.LList.LListDocket, lPreferenceTabLayout);
         pGroup = new PGroup(LMergeTab.LMergeGroup);
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
@@ -28,12 +28,10 @@ public sealed class PMergeTab : PTabSurface
             LMergeTab.LMergeCohortRun(lCohort, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         lAction.LActionEligibleAttach(LMergeTab.LMergeEligibleRead);
         LMergeTab.LMergePresetMissing += PExport.PExportMissingShow;
-        pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pGroup.PGroupItemOpen += pViewer.LViewer.LViewerPathHandle;
-        pGroup.PGroupSourceFiles = LMergeTab.LMergePathsRead;
-        pGroup.PGroupFileRequest = pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
-        pList.PListClearChange += pGroup.PGroupPathsRemove;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += pViewer.LViewer.LViewerPathHandle;
+        pGroup.LGroup.LGroupDrag.LGroupItemOpen += pViewer.LViewer.LViewerPathHandle;
+        pGroup.LGroup.LGroupDrag.LGroupPathsRequest += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(

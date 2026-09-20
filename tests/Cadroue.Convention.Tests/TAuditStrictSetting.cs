@@ -8,11 +8,11 @@ internal static class TAuditStrictSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditStrictCeiling = new Dictionary<string, int>
     {
-        ["Storage"] = 63,
-        ["Flow"] = 290,
-        ["Treat"] = 88,
+        ["Storage"] = 46,
+        ["Flow"] = 205,
+        ["Treat"] = 39,
         ["Reach"] = 0,
-        ["Taint"] = 169,
+        ["Taint"] = 126,
     };
 
     public static readonly string[] TAuditVeneerInclude =
@@ -52,11 +52,7 @@ internal static class TAuditStrictSetting
 
     public static readonly string[] TAuditCatalogExempt =
     [
-        "PGroupCard.cs",
         "PIcon.cs",
-        "PList.cs",
-        "PListRelay.cs",
-        "PListRow.cs",
         "PLogWindow.cs",
         "PPlayerFlyleaf.cs",
         "PSAbout.cs",
@@ -73,7 +69,6 @@ internal static class TAuditStrictSetting
     public static readonly string[] TAuditMarkupExempt =
     [
         "LAction.cs",
-        "LGroup.cs",
         "LSMonitor.cs",
         "LViewerMedia.cs",
         "LViewerMpv.cs",

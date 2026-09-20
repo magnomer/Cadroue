@@ -65,7 +65,7 @@ public sealed class PWorkspace
         PWorkspaceList = PWorkspaceSurface.PTabList;
         PWorkspaceViewer?.LViewer.LViewerAllowSet(LWorkspace.LWorkspaceAudioOnly);
         LWorkspace.LWorkspaceAttach(
-            PWorkspaceList?.PListDocketRead(),
+            PWorkspaceList?.LList.LListDocket,
             PWorkspaceFlow?.LFlow.LFlowSection.LFlowSegment,
             PWorkspaceFlow?.LFlow,
             PWorkspaceViewer?.LViewer,
@@ -167,9 +167,9 @@ public sealed class PWorkspace
 
     private static void PWorkspaceListAttach(PWorkspace pWorkspace)
     {
-        PList pList = pWorkspace.PWorkspaceList!;
-        pList.PListPathChange += pWorkspace.LWorkspace.LWorkspacePathHandle;
-        pList.PListClearChange += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
+        LList lList = pWorkspace.PWorkspaceList!.LList;
+        lList.LListPathChange += pWorkspace.LWorkspace.LWorkspacePathHandle;
+        lList.LListClearChange += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
     }
 
     private static void PWorkspaceStepRun(string pStepName, Action pStep)
@@ -218,20 +218,19 @@ public sealed class PWorkspace
 
     private async void PWorkspacePathsAdd(IReadOnlyList<string> lPaths)
     {
-        await PWorkspaceList!.PListPathsAdd(lPaths);
+        await PWorkspaceList!.LList.LListPathsAdd(lPaths);
         LWorkspace.LWorkspaceSourceRun();
     }
 
-    private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.PListSelect(lPath);
+    private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.LList.LListListedSelect(lPath);
 
     private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(lPath);
 
     private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
     {
-        var pSource = new PSource(pWorkspace.LWorkspace.LWorkspaceAudioOnly);
-        var pInfo = new PInfo();
-        pSource.PSourceAttach(pWorkspace.PWorkspaceViewer);
-        pInfo.PInfoAttach(pWorkspace.PWorkspaceViewer);
+        LViewer lViewer = pWorkspace.PWorkspaceViewer!.LViewer;
+        var pSource = new PSource(new LSource(lViewer, pWorkspace.LWorkspace.LWorkspaceAudioOnly));
+        var pInfo = new PInfo(new LInfo(lViewer));
         var pRoot = new Grid
         {
             ClipToBounds = true,

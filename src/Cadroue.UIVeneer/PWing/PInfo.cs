@@ -1,12 +1,9 @@
-using Cadroue.Media;
-using Cadroue.UIVeneer.PAsset;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-
-using Cadroue.Core;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PAsset;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -16,16 +13,27 @@ public sealed class PInfo : UserControl
     private static readonly SolidColorBrush PInfoMutedBrush = new(Color.FromRgb(0x9C, 0xA3, 0xAF));
     private static readonly SolidColorBrush PInfoBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly SolidColorBrush PInfoSeparatorBrush = new(Color.FromRgb(0xE5, 0xE7, 0xEB));
-    private static readonly SolidColorBrush PInfoFfmpegGood = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoFfmpegBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
-    private static readonly SolidColorBrush PInfoPreviewGood = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
-    private static readonly SolidColorBrush PInfoPreviewBad = new(Color.FromRgb(0xE0, 0x53, 0x53));
-    private PViewer? pInfoViewer;
-    private readonly StackPanel pInfoItemPanel;
-    private LCargo? pInfoLastStatus;
+    private static readonly SolidColorBrush PInfoGoodBrush = new(Color.FromRgb(0x3A, 0x8B, 0xE0));
+    private static readonly SolidColorBrush PInfoBadBrush = new(Color.FromRgb(0xE0, 0x53, 0x53));
 
-    public PInfo()
+    private static readonly IReadOnlyDictionary<string, Func<string, UIElement>> pInfoBuilders =
+        new Dictionary<string, Func<string, UIElement>>
+        {
+            [LInfo.LInfoKindMuted] = pText => PInfoTextBuild(pText, PInfoMutedBrush),
+            [LInfo.LInfoKindText] = pText => PInfoTextBuild(pText, PInfoTextBrush),
+            [LInfo.LInfoKindGrey] = pText => PInfoStatusBuild(pText, PInfoMutedBrush),
+            [LInfo.LInfoKindGood] = pText => PInfoStatusBuild(pText, PInfoGoodBrush),
+            [LInfo.LInfoKindBad] = pText => PInfoStatusBuild(pText, PInfoBadBrush),
+            [LInfo.LInfoKindSeparator] = pText => PInfoSeparatorBuild(),
+        };
+
+    private readonly StackPanel pInfoItemPanel;
+
+    public LInfo LInfo { get; }
+
+    public PInfo(LInfo lInfo)
     {
+        LInfo = lInfo;
         MinHeight = 38;
 
         pInfoItemPanel = new StackPanel
@@ -42,7 +50,7 @@ public sealed class PInfo : UserControl
         pContentRow.Children.Add(PInfoIconCreate());
         pContentRow.Children.Add(pInfoItemPanel);
 
-        var pRoot = new Border
+        Content = new Border
         {
             Padding = new Thickness(14, 4, 14, 4),
             BorderBrush = PInfoBorderBrush,
@@ -51,135 +59,34 @@ public sealed class PInfo : UserControl
             CornerRadius = new CornerRadius(8),
             Child = pContentRow
         };
-        Content = pRoot;
 
-        PInfoClear();
-
-        LMediaProbe.LMediaAvailabilityReady += PInfoAvailabilityHandle;
+        PInfoUpdate();
+        LInfo.LInfoChange += PInfoChangeHandle;
         Unloaded += PInfoUnloadedHandle;
     }
 
-    private void PInfoUnloadedHandle(object sender, RoutedEventArgs e)
-    {
-        LMediaProbe.LMediaAvailabilityReady -= PInfoAvailabilityHandle;
-    }
+    private void PInfoUnloadedHandle(object pSender, RoutedEventArgs pEvent) => LInfo.LInfoDetach();
 
-    private void PInfoAvailabilityHandle(bool ready)
-    {
-        Dispatcher.BeginInvoke(() =>
-        {
-            if (pInfoLastStatus is LCargo pStatus && string.IsNullOrEmpty(pStatus.LCargoSourcePath))
-                PInfoMediaHandle(pStatus);
-        });
-    }
+    private void PInfoChangeHandle() => Dispatcher.BeginInvoke(PInfoUpdate);
 
-    public void PInfoAttach(PViewer? pViewer)
-    {
-        if (pInfoViewer is not null)
-            pInfoViewer.LViewer.LViewerMediaChange -= PInfoMediaHandle;
-        pInfoViewer = pViewer;
-        if (pInfoViewer is not null)
-            pInfoViewer.LViewer.LViewerMediaChange += PInfoMediaHandle;
-    }
-
-    private void PInfoMediaHandle(LCargo pMediaStatus)
-    {
-        pInfoLastStatus = pMediaStatus;
-        pInfoItemPanel.Children.Clear();
-
-        if (string.IsNullOrEmpty(pMediaStatus.LCargoSourcePath))
-        {
-            PInfoStatusAdd(
-                LLocalization.LLocalizationTextRead(
-                    LMediaProbe.LMediaAvailabilityCurrent == true ? "Info.FFmpeg.Ready" : "Info.FFmpeg.Missing"),
-                PInfoMutedBrush);
-            if (LMediaProbe.LMediaAvailabilityCurrent is null)
-                LMediaProbe.LMediaAvailabilityDefer();
-            return;
-        }
-
-        PInfoStatusAdd(
-            LLocalization.LLocalizationTextRead(
-                pMediaStatus.LCargoProcessable ? "Info.FFmpeg.Processable" : "Info.FFmpeg.Unprocessable"),
-            pMediaStatus.LCargoProcessable ? PInfoFfmpegGood : PInfoFfmpegBad);
-        PInfoStatusAdd(
-            LLocalization.LLocalizationTextRead(
-                pMediaStatus.LCargoPreviewAvailable ? "Info.Preview.Available" : "Info.Preview.Unavailable"),
-            pMediaStatus.LCargoPreviewAvailable ? PInfoPreviewGood : PInfoPreviewBad);
-
-        if (pMediaStatus.LCargoMediaInfo is not LMediaInfo pMediaInfo)
-        {
-            PInfoErrorAdd(pMediaStatus);
-            return;
-        }
-
-        PInfoTextAdd(PInfoDurationFormat(pMediaInfo.LMediaInfoDuration));
-        if (pMediaInfo.LMediaVideoPresent)
-        {
-            PInfoTextAdd($"{pMediaInfo.LMediaVideoWidth}×{pMediaInfo.LMediaVideoHeight}");
-            if (pMediaInfo.LMediaVideoRate > 0)
-                PInfoTextAdd($"{pMediaInfo.LMediaVideoRate:0.##} fps");
-            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaVideoCodec));
-        }
-        else
-        {
-            PInfoTextAdd(LLocalization.LLocalizationTextRead("Info.Audio.Only"));
-        }
-
-        if (pMediaInfo.LMediaAudioPresent)
-        {
-            string pKHz = (pMediaInfo.LMediaSampleRate / 1000.0).ToString("0.#");
-            PInfoTextAdd(PInfoCodecFormat(pMediaInfo.LMediaAudioCodec));
-            PInfoTextAdd($"{pKHz} kHz");
-            PInfoTextAdd(PInfoChannelFormat(pMediaInfo.LMediaAudioChannels));
-        }
-        else
-        {
-            PInfoTextAdd(LLocalization.LLocalizationTextRead("Info.Audio.None"));
-        }
-    }
-
-    private void PInfoErrorAdd(LCargo pMediaStatus)
-    {
-        if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoFfmpegError))
-            PInfoTextAdd(
-                PInfoTextShorten(
-                    LLocalization.LLocalizationFormat("Info.Error.FFmpeg", pMediaStatus.LCargoFfmpegError)),
-                true);
-        if (!string.IsNullOrWhiteSpace(pMediaStatus.LCargoPreviewError))
-            PInfoTextAdd(
-                PInfoTextShorten(
-                    LLocalization.LLocalizationFormat("Info.Error.Preview", pMediaStatus.LCargoPreviewError)),
-                true);
-    }
-
-    private void PInfoClear()
+    private void PInfoUpdate()
     {
         pInfoItemPanel.Children.Clear();
-        pInfoItemPanel.Children.Add(new TextBlock
-        {
-            Text = LLocalization.LLocalizationTextRead("Source.Empty.Notice"),
-            FontSize = 11,
-            Foreground = PInfoMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center
-        });
+        LInfo.LInfoRowsRead().Select(PInfoRowBuild).ToList().ForEach(pItem => pInfoItemPanel.Children.Add(pItem));
     }
 
-    private void PInfoTextAdd(string pText, bool pMuted = false)
-    {
-        PInfoSeparatorAdd();
-        pInfoItemPanel.Children.Add(new TextBlock
-        {
-            Text = pText,
-            FontSize = 11,
-            Foreground = pMuted ? PInfoMutedBrush : PInfoTextBrush,
-            VerticalAlignment = VerticalAlignment.Center
-        });
-    }
+    private static UIElement PInfoRowBuild(LInfoRow lRow) => pInfoBuilders[lRow.LInfoRowKind](lRow.LInfoRowText);
 
-    private void PInfoStatusAdd(string pText, Brush pDotBrush)
+    private static TextBlock PInfoTextBuild(string pText, Brush pForeground) => new()
     {
-        PInfoSeparatorAdd();
+        Text = pText,
+        FontSize = 11,
+        Foreground = pForeground,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static StackPanel PInfoStatusBuild(string pText, Brush pDotBrush)
+    {
         var pRow = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -193,68 +100,25 @@ public sealed class PInfo : UserControl
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center
         });
-        pRow.Children.Add(new TextBlock
-        {
-            Text = pText,
-            FontSize = 11,
-            Foreground = PInfoTextBrush,
-            VerticalAlignment = VerticalAlignment.Center
-        });
-        pInfoItemPanel.Children.Add(pRow);
+        pRow.Children.Add(PInfoTextBuild(pText, PInfoTextBrush));
+        return pRow;
     }
 
-    private void PInfoSeparatorAdd()
+    private static Border PInfoSeparatorBuild() => new()
     {
-        if (pInfoItemPanel.Children.Count <= 0) return;
-        pInfoItemPanel.Children.Add(new Border
-        {
-            Width = 1,
-            Height = 12,
-            Background = PInfoSeparatorBrush,
-            Margin = new Thickness(14, 0, 14, 0),
-            VerticalAlignment = VerticalAlignment.Center
-        });
-    }
+        Width = 1,
+        Height = 12,
+        Background = PInfoSeparatorBrush,
+        Margin = new Thickness(14, 0, 14, 0),
+        VerticalAlignment = VerticalAlignment.Center
+    };
 
-    private static Image PInfoIconCreate()
+    private static Image PInfoIconCreate() => new()
     {
-        return new Image
-        {
-            Width = 20,
-            Height = 20,
-            Margin = new Thickness(0, 0, 10, 0),
-            Stretch = Stretch.Uniform,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PInfo.svg")
-        };
-    }
-
-    private static string PInfoTextShorten(string pText) =>
-        pText.Length <= 80 ? pText : pText[..80] + "…";
-
-    private static string PInfoDurationFormat(TimeSpan pDuration) =>
-        pDuration.TotalHours >= 1
-            ? $"{(int)pDuration.TotalHours:D2}:{pDuration.Minutes:D2}:{pDuration.Seconds:D2}"
-            : $"{pDuration.Minutes:D2}:{pDuration.Seconds:D2}";
-
-    private static string PInfoCodecFormat(string pCodecName)
-    {
-        if (string.IsNullOrWhiteSpace(pCodecName)) return string.Empty;
-        return pCodecName.Trim().ToLowerInvariant() switch
-        {
-            "h264" or "avc" => "H.264",
-            "hevc" or "h265" => "H.265",
-            "aac" => "AAC",
-            "mp3" => "MP3",
-            "flac" => "FLAC",
-            "pcm_s16le" => "PCM",
-            _ => pCodecName.ToUpperInvariant()
-        };
-    }
-
-    private static string PInfoChannelFormat(int pChannelCount) => pChannelCount switch
-    {
-        1 => LLocalization.LLocalizationTextRead("Encoder.Value.Mono"),
-        2 => LLocalization.LLocalizationTextRead("Encoder.Value.Stereo"),
-        _ => $"{pChannelCount}ch"
+        Width = 20,
+        Height = 20,
+        Margin = new Thickness(0, 0, 10, 0),
+        Stretch = Stretch.Uniform,
+        Source = PIcon.PIconRead("/PAsset/PPanel/PInfo.svg")
     };
 }

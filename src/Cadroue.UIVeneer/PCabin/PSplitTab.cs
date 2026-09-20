@@ -10,7 +10,7 @@ public sealed class PSplitTab : PTabSurface
 {
     private readonly PFlow pFlow = new();
     private readonly PViewer pViewer = new();
-    private readonly PSection pSection = new();
+    private readonly PSection pSection;
     private readonly PList pList = new(new LDocket());
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
@@ -23,9 +23,10 @@ public sealed class PSplitTab : PTabSurface
             pInspector.LInspector,
             pViewer.LViewer,
             pList.LList,
-            pList.PListDocketRead(),
+            pList.LList.LListDocket,
             pProcessing.LProcessing,
             pFlow.LFlow);
+        pSection = new PSection(new LSection(pFlow.LFlow));
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
@@ -49,10 +50,9 @@ public sealed class PSplitTab : PTabSurface
         LSplitTab.LSplitSweep.LSplitProgressApply += pInspector.PSensorProgressApply;
         LSplitTab.LSplitSweep.LSplitFailRaise += PSplitFailShow;
 
-        pSection.PSectionAttach(pFlow);
-        pList.PListPathChange += LSplitTab.LSplitPathHandle;
-        pList.PListLockChange += LSplitTab.LSplitLockHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += LSplitTab.LSplitPathHandle;
+        pList.LList.LListLockChange += LSplitTab.LSplitLockHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(

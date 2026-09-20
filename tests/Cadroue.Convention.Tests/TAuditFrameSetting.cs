@@ -67,7 +67,7 @@ internal static class TAuditFrameSetting
         ["ambient:Cadroue.UIDeportment>System.Diagnostics.Stopwatch"] = 3,
         ["ambient:Cadroue.UIDeportment>System.Environment"] = 7,
         ["ambient:Cadroue.UIDeportment>System.Guid.NewGuid"] = 1,
-        ["ambient:Cadroue.UIDeportment>System.IO.Path"] = 6,
+        ["ambient:Cadroue.UIDeportment>System.IO.Path"] = 5,
         ["frame:Cadroue.Application>System.Buffers.Binary"] = 1,
         ["frame:Cadroue.Application>System.Collections.ObjectModel"] = 2,
         ["frame:Cadroue.Application>System.IO"] = 12,
@@ -94,7 +94,7 @@ internal static class TAuditFrameSetting
         ["frame:Cadroue.UIDeportment>System.Collections.ObjectModel"] = 2,
         ["frame:Cadroue.UIDeportment>System.ComponentModel"] = 1,
         ["frame:Cadroue.UIDeportment>System.Diagnostics"] = 3,
-        ["frame:Cadroue.UIDeportment>System.IO"] = 6,
+        ["frame:Cadroue.UIDeportment>System.IO"] = 5,
     };
 
     public static readonly string[] TAuditFrameWaiver = [];

@@ -23,7 +23,7 @@ public sealed class PFixTab : PTabSurface
             pClinic.LClinic,
             pViewer.LViewer,
             pList.LList,
-            pList.PListDocketRead(),
+            pList.LList.LListDocket,
             pProcessing.LProcessing);
         var pAction = new PAction();
         PTabAction = pAction;
@@ -43,10 +43,10 @@ public sealed class PFixTab : PTabSurface
         LFixTab.LFixCheckup.LCheckupProgress += PFixProgressHandle;
         LFixTab.LFixPresetMissing += PExport.PExportMissingShow;
 
-        pList.PListPathChange += LFixTab.LFixPathHandle;
-        pList.PListItemsAdd += LFixTab.LFixItemsHandle;
-        pList.PListClearChange += LFixTab.LFixClearHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += LFixTab.LFixPathHandle;
+        pList.LList.LListItemsAdd += LFixTab.LFixItemsHandle;
+        pList.LList.LListClearChange += LFixTab.LFixClearHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);

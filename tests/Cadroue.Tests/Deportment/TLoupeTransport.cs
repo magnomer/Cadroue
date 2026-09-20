@@ -5,6 +5,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Preference")]
 public sealed class TLoupeTransport
 {
     private static (LSLoupe, LViewer) TLoupeBuild(Func<bool>? ended = null)

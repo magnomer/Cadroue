@@ -16,7 +16,7 @@ public sealed class PFunnelTab : PTabSurface
 
     public PFunnelTab(LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        LFunnelTab = new LFunnelTab(pList.LList, pList.PListDocketRead());
+        LFunnelTab = new LFunnelTab(pList.LList, pList.LList.LListDocket);
         pFunnelRules = new PFunnelRules(LFunnelTab.LFunnel);
         var pAction = new PAction();
         PTabAction = pAction;
@@ -29,8 +29,8 @@ public sealed class PFunnelTab : PTabSurface
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
 
-        pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += pViewer.LViewer.LViewerPathHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
             new PCompass(pFlow, pViewer),

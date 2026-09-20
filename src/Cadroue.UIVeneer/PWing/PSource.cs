@@ -1,14 +1,11 @@
-using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PAsset;
-using Cadroue.Media;
-using Cadroue.Application;
-using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIVeneer.PHouse;
+using Microsoft.Win32;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -19,14 +16,14 @@ public sealed class PSource : UserControl
     private static readonly SolidColorBrush PSourceBorderBrush = new(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private const double PSourceRowHeight = 38;
     private const double PSourceBrowseSize = 18;
-    private PViewer? pSourceViewer;
-    private readonly bool pSourceAudioAllowed;
     private readonly TextBox pSourcePathBox;
     private readonly TextBlock pSourcePlaceholderText;
 
-    public PSource(bool pAudioOnlyAllowed)
+    public LSource LSource { get; }
+
+    public PSource(LSource lSource)
     {
-        pSourceAudioAllowed = pAudioOnlyAllowed;
+        LSource = lSource;
         MinHeight = PSourceRowHeight;
 
         pSourcePathBox = new TextBox
@@ -44,14 +41,14 @@ public sealed class PSource : UserControl
 
         pSourcePlaceholderText = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Source.Empty.Notice"),
+            Text = LSource.LSourcePlaceholderRead(),
             FontSize = 11,
             Foreground = PSourceMutedBrush,
             VerticalAlignment = VerticalAlignment.Center,
             IsHitTestVisible = false
         };
 
-        var pPathIcon = PSourceIconCreate();
+        Image pPathIcon = PSourceIconCreate();
         var pPathContent = new Grid();
         pPathContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pPathContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -93,111 +90,47 @@ public sealed class PSource : UserControl
         Content = pRow;
 
         PSourcePlaceholderSync();
+        LSource.LSourcePathApply += PSourcePathApply;
+        LSource.LSourceRefuse += PSourceRefuseShow;
     }
 
-    public void PSourceAttach(PViewer? pViewer)
-    {
-        if (pSourceViewer is not null)
-            pSourceViewer.LViewer.LViewerMediaChange -= PSourceMediaHandle;
-        pSourceViewer = pViewer;
-        if (pSourceViewer is not null)
-            pSourceViewer.LViewer.LViewerMediaChange += PSourceMediaHandle;
-    }
+    private void PSourcePathApply(string lPath) => pSourcePathBox.Text = lPath;
 
-    private void PSourceMediaHandle(LCargo pMediaStatus)
-    {
-        pSourcePathBox.Text = pMediaStatus.LCargoSourcePath;
-    }
+    private void PSourceTextHandle(object pSender, TextChangedEventArgs pEvent) => PSourcePlaceholderSync();
 
-    private void PSourceTextHandle(object sender, TextChangedEventArgs e)
-    {
-        PSourcePlaceholderSync();
-    }
-
-
-    private void PSourceOpenHandle(object sender, RoutedEventArgs e)
+    private void PSourceOpenHandle(object pSender, RoutedEventArgs pEvent)
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Source.Dialog.Open"),
-            Filter = PSourceFilterRead()
+            Title = LSource.LSourceTitleRead(),
+            Filter = LSource.LSourceFilterRead()
         };
-        if (pDialog.ShowDialog() != true) return;
-        if (Cadroue.Media.LMedia.LMediaAudioCheck(pDialog.FileName) && !pSourceAudioAllowed)
-        {
-            PSAnnouncement.PSAnnouncementShow(
-                Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
-            return;
-        }
-
-        pSourceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pDialog.FileName);
+        LSource.LSourceDialogOpen(pDialog.ShowDialog(), pDialog.FileName);
     }
 
-    private string PSourceFilterRead()
+    private void PSourceRefuseShow(string lTitle, string lMessage) =>
+        PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), lTitle, lMessage);
+
+    private void PSourceKeyHandle(object pSender, KeyEventArgs pEvent) =>
+        pEvent.Handled = LSource.LSourceKeyRun(pEvent.Key.ToString(), pSourcePathBox.Text);
+
+    private void PSourcePlaceholderSync() =>
+        pSourcePlaceholderText.Visibility = PLook.PLookVisible[LSource.LSourcePlaceholderCheck(pSourcePathBox.Text)];
+
+    private static Image PSourceIconCreate() => new()
     {
-        string pVideoPattern = PSourcePatternRead(Cadroue.Media.LMedia.LMediaVideoExtensions);
-        string pAudioPattern = PSourcePatternRead(Cadroue.Media.LMedia.LMediaAudioExtensions);
-        const string pSidecarPattern = "*.cad";
-        return pSourceAudioAllowed
-            ? LLocalization.LLocalizationFormat(
-                "Source.Dialog.MediaProjectFilter",
-                pVideoPattern,
-                pAudioPattern,
-                pSidecarPattern)
-            : LLocalization.LLocalizationFormat("Source.Dialog.VideoProjectFilter", pVideoPattern, pSidecarPattern);
-    }
+        Width = 20,
+        Height = 20,
+        Margin = new Thickness(0, 0, 10, 0),
+        Stretch = Stretch.Uniform,
+        Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg")
+    };
 
-    private static string PSourcePatternRead(IReadOnlyList<string> pSourceExtensions) =>
-        string.Join(";", pSourceExtensions.Select(pSourceExtension => $"*{pSourceExtension}"));
-
-    private void PSourceKeyHandle(object sender, KeyEventArgs e)
+    private static Image PSourceBrowseCreate() => new()
     {
-        if (e.Key != Key.Return) return;
-        string pPath = pSourcePathBox.Text.Trim();
-        if (!LUsher.LUsherFileExist(pPath)) return;
-        if (Cadroue.Media.LMedia.LMediaAudioCheck(pPath) && !pSourceAudioAllowed)
-        {
-            PSAnnouncement.PSAnnouncementShow(
-                Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
-            return;
-        }
-
-        pSourceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pPath);
-        e.Handled = true;
-    }
-
-    private void PSourcePlaceholderSync()
-    {
-        pSourcePlaceholderText.Visibility = string.IsNullOrWhiteSpace(pSourcePathBox.Text)
-            ? Visibility.Visible
-            : Visibility.Collapsed;
-    }
-
-    private static Image PSourceIconCreate()
-    {
-        return new Image
-        {
-            Width = 20,
-            Height = 20,
-            Margin = new Thickness(0, 0, 10, 0),
-            Stretch = Stretch.Uniform,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg")
-        };
-    }
-
-    private static Image PSourceBrowseCreate()
-    {
-        return new Image
-        {
-            Width = PSourceBrowseSize,
-            Height = PSourceBrowseSize,
-            Stretch = Stretch.Uniform,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PFolder.svg")
-        };
-    }
-
+        Width = PSourceBrowseSize,
+        Height = PSourceBrowseSize,
+        Stretch = Stretch.Uniform,
+        Source = PIcon.PIconRead("/PAsset/PPanel/PFolder.svg")
+    };
 }

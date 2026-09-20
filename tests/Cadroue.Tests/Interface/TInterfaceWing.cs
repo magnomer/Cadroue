@@ -278,6 +278,8 @@ internal static partial class TInterface
     internal static bool TCropReleaseHandle(LCropDrag drag, double x, double y) => drag.LCropReleaseHandle(x, y);
     internal static LCargo TCargoCreate(string path, LMediaInfo? info, bool preview) =>
         new(path, info, info is not null, preview, null, null);
+    internal static LCargo TCargoErrorCreate(string path, string? ffmpeg, string? preview) =>
+        new(path, null, false, false, ffmpeg, preview);
     internal static LMediaInfo TViewerInfoCreate(TimeSpan duration, int width, int height) =>
         new(duration, width, height, 25, "h264", false, "", 0, 0);
     internal static LMediaInfo TViewerAudioCreate(TimeSpan duration) =>
@@ -394,4 +396,81 @@ internal static partial class TInterface
     internal static void TPlayerPreviewApply(LPlayer player, LPreviewState state) =>
         player.LPlayerPreviewApply(state, "test");
     internal static void TPlayerAudioApply(LPlayer player, string audio) => player.LPlayerAudioApply(audio);
+    internal static void TListRelayAttach(LStrip strip) => LListRelay.LListRelayAttach(strip);
+    internal static bool TListDeliveredAdd(Guid tab, string path, Guid batch) =>
+        LListRelay.LListDeliveredAdd(tab, path, batch);
+    internal static bool TListDeliveredCommit(Guid tab, string path, Guid batch) =>
+        LListRelay.LListDeliveredCommit(tab, path, batch);
+    internal static void TListDeliveredRemove(LWorkItem work, bool force) =>
+        LListRelay.LListDeliveredRemove(work, force);
+    internal static void TListBatchRemove(params Guid[] batches) => LListRelay.LListBatchRemove(batches);
+    internal static bool TListSourceClaim(params LWorkItem[] accepted) => LListRelay.LListSourceClaim(accepted);
+    internal static void TListSourceRelease(
+        IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> unlocks) =>
+        LListRelay.LListSourceRelease(unlocks);
+
+    internal static int TDocketDeliveredAdd(LDocket docket, string path, Guid batch, bool locked) =>
+        docket.LDocketDeliveredAdd([path], batch, locked);
+    internal static LWorkItem TWorkRelayCreate(string source, Guid batch, Guid relaySource) =>
+        new(
+            batch, LWorkKind.LWorkKindConvert, LWorkPriority.LWorkPriorityNormal, source,
+            TimeSpan.Zero, TimeSpan.Zero, "x.mp4", @"C:\out\x.mp4", TEncodeCommand.TOutputCreate())
+        {
+            LWorkRelaySource = relaySource
+        };
+
+    internal static LInfo TInfoCreate(LViewer viewer) => new(viewer);
+    internal static void TInfoAttach(LInfo info, Action handler) => info.LInfoChange += handler;
+    internal static void TInfoDetach(LInfo info) => info.LInfoDetach();
+    internal static IReadOnlyList<LInfoRow> TInfoRowsRead(LInfo info) => info.LInfoRowsRead();
+
+    internal static LSource TSourceCreate(LViewer viewer, bool audioAllowed) => new(viewer, audioAllowed);
+    internal static void TSourcePathAttach(LSource source, Action<string> handler) =>
+        source.LSourcePathApply += handler;
+    internal static void TSourceRefuseAttach(LSource source, Action<string, string> handler) =>
+        source.LSourceRefuse += handler;
+    internal static string TSourceFilterRead(LSource source) => source.LSourceFilterRead();
+    internal static bool TSourcePlaceholderCheck(string text) => LSource.LSourcePlaceholderCheck(text);
+    internal static bool TSourceKeyRun(LSource source, string key, string text) => source.LSourceKeyRun(key, text);
+    internal static bool TSourceOpen(LSource source, string path) => source.LSourceOpen(path);
+    internal static void TSourceDialogOpen(LSource source, bool? confirmed, string path) =>
+        source.LSourceDialogOpen(confirmed, path);
+
+    internal static LSection TSectionCreate(LFlow flow) => new(flow);
+    internal static void TSectionAttach(LSection section, Action change, Action select)
+    {
+        section.LSectionChange += change;
+        section.LSectionSelectApply += select;
+    }
+    internal static void TSectionDragAttach(LSection section, Action<int> start, Action<int> end, Action<int, int> move)
+    {
+        section.LSectionDrag.LSectionDragStart += start;
+        section.LSectionDrag.LSectionDragEnd += end;
+        section.LSectionDrag.LSectionRowMove += move;
+    }
+    internal static void TSectionEnabledAttach(LSection section, Action<bool> handler) =>
+        section.LSectionEnabledApply += handler;
+    internal static IReadOnlyList<LSectionRow> TSectionRowsRead(LSection section) => section.LSectionRowsRead();
+    internal static string TSectionTitleRead(LSection section) => section.LSectionTitleRead();
+    internal static bool TSectionPressHandle(LSection section, int index, int clicks, double x, double y) =>
+        section.LSectionDrag.LSectionPressHandle(index, clicks, x, y, 0, 0);
+    internal static bool TSectionMoveHandle(
+        LSection section, double x, double y, double minimum, bool pressed, double[] tops, double[] heights) =>
+        section.LSectionDrag.LSectionMoveHandle(x, y, minimum, minimum, pressed, tops, heights);
+    internal static bool TSectionReleaseHandle(LSection section, bool shift, bool control) =>
+        section.LSectionDrag.LSectionReleaseHandle(shift, control);
+    internal static void TSectionLostHandle(LSection section) => section.LSectionDrag.LSectionLostHandle();
+    internal static void TSectionToggleHandle(LSection section, int index) => section.LSectionToggleHandle(index);
+    internal static bool TSectionSeekHandle(LSection section, int index, int clicks, bool end) =>
+        section.LSectionSeekHandle(index, clicks, end);
+    internal static bool TSectionRenameHandle(LSection section, int index, int clicks) =>
+        section.LSectionRenameHandle(index, clicks);
+    internal static void TSectionTextSet(LSection section, string name, string prefix, string suffix) =>
+        section.LSectionTextSet(name, prefix, suffix);
+    internal static void TSectionEditCommit(LSection section) => section.LSectionEditCommit();
+    internal static void TSectionEditCancel(LSection section) => section.LSectionEditCancel();
+    internal static bool TSectionKeyRun(LSection section, string key) => section.LSectionKeyRun(key);
+    internal static void TSectionBlurHandle(LSection section, int serial, bool inside) =>
+        section.LSectionBlurHandle(serial, inside);
+    internal static bool TSectionStepCheck(string text) => LSection.LSectionStepCheck(text);
 }

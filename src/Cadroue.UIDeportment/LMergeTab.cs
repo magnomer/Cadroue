@@ -19,7 +19,9 @@ public sealed class LMergeTab
             lLayout?.LSceneGroupStrict ?? true,
             lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
         LMergeGroup = new LGroup(LMergeSelection);
+        LMergeGroup.LGroupSourceAttach(LMergePathsRead);
         lDocket.LDocketChange += LMergeDocketHandle;
+        lDocket.LDocketRemoved += LMergeGroup.LGroupPathsRemove;
     }
 
     public event Action? LMergePresetMissing;
@@ -28,7 +30,11 @@ public sealed class LMergeTab
 
     public LGroup LMergeGroup { get; }
 
-    public void LMergeClose() => lMergeDocket.LDocketChange -= LMergeDocketHandle;
+    public void LMergeClose()
+    {
+        lMergeDocket.LDocketChange -= LMergeDocketHandle;
+        lMergeDocket.LDocketRemoved -= LMergeGroup.LGroupPathsRemove;
+    }
 
     public LSceneTabRecord LMergeLayoutRead(LSceneTabRecord lLayout)
     {

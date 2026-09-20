@@ -15,7 +15,7 @@ public sealed class PConvertTab : PTabSurface
 
     public PConvertTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
     {
-        LConvertTab = new LConvertTab(lPresetOwner, pList.LList, pList.PListDocketRead());
+        LConvertTab = new LConvertTab(lPresetOwner, pList.LList, pList.LList.LListDocket);
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
@@ -27,8 +27,8 @@ public sealed class PConvertTab : PTabSurface
             LConvertTab.LConvertItemsRun(pConvertPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         LConvertTab.LConvertPresetMissing += PExport.PExportMissingShow;
-        pList.PListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += pViewer.LViewer.LViewerPathHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(

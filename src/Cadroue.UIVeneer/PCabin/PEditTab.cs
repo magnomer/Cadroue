@@ -31,7 +31,7 @@ public sealed class PEditTab : PTabSurface
             pInspector.LInspector,
             pViewer.LViewer,
             pList.LList,
-            pList.PListDocketRead(),
+            pList.LList.LListDocket,
             pProcessing.LProcessing);
         var pAction = new PAction();
         PTabAction = pAction;
@@ -48,10 +48,10 @@ public sealed class PEditTab : PTabSurface
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
         pViewer.LViewer.LViewerPlayback.LViewerClockTick += PEditHistogramDefer;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
-        pList.PListPathChange += LEditTab.LEditPathHandle;
-        pList.PListItemsAdd += LEditTab.LEditStore.LEditItemsHandle;
-        pList.PListLockChange += LEditTab.LEditLockHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += LEditTab.LEditPathHandle;
+        pList.LList.LListItemsAdd += LEditTab.LEditStore.LEditItemsHandle;
+        pList.LList.LListLockChange += LEditTab.LEditLockHandle;
 
         LEditTab.LEditPresetMissing += PExport.PExportMissingShow;
         LEditTab.LEditPresetIncompatible += PExport.PExportIncompatibleShow;

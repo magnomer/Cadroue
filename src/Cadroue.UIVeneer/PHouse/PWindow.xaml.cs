@@ -188,7 +188,7 @@ public partial class PWindow : Window
     }
 
     private void PWindowListAdd(IReadOnlyList<string> pPaths) =>
-        _ = pStrip.PStripSelected?.PWorkspaceList?.PListPathsAdd(pPaths);
+        _ = pStrip.PStripSelected?.PWorkspaceList?.LList.LListPathsAdd(pPaths);
 
     private void PWindowViewerOpen(string pPath) => PWindowMediaOpen(pPath);
 

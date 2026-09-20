@@ -100,8 +100,8 @@ public abstract class PTabSurface : UserControl
     protected static void PTabLockAttach(PList pList, params UIElement[] pEditors)
     {
         Action<bool> pTabLockApply = pLocked => pEditors.ToList().ForEach(pEditor => pEditor.IsEnabled = !pLocked);
-        pList.PListLockChange += pTabLockApply;
-        pTabLockApply(pList.PListLockCheck());
+        pList.LList.LListLockChange += pTabLockApply;
+        pTabLockApply(pList.LList.LListLockCheck());
     }
 
     protected Grid PTabGridBuild(
@@ -241,7 +241,10 @@ public abstract class PTabSurface : UserControl
     private static ColumnDefinition PTabGutterBuild(UIElement pPanel) => new() { Width = new GridLength(6) };
 
     private static PTabCollapse PTabCollapseCreate(PList pPanel) =>
-        new(pPanel.PListMinimizedCheck, pPanel.PListMinimizeSet, pHandler => pPanel.PListMinimizeChange += pHandler);
+        new(
+            pPanel.PListMinimizedCheck,
+            pPanel.PListMinimizeSet,
+            pHandler => pPanel.LList.LListMinimizeChange += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PProcessing pPanel) =>
         new(

@@ -13,32 +13,48 @@ public sealed class LGroupRecord
 
 public sealed class LGroup
 {
+    private const string LGroupReturnKey = "Return";
+    private const string LGroupEscapeKey = "Escape";
+
     private readonly LGroupSelection lGroupOwner;
     private readonly List<LGroupRecord> lGroupRecords = [];
+    private Func<IReadOnlyList<string>> lGroupSource = () => [];
     private bool lGroupMinimized;
     private int? lGroupSourceIndex;
     private string? lGroupDragPath;
     private int? lGroupEditingIndex;
 
     public event Action? LGroupChange;
+    public event Action? LGroupFaceChange;
     public event Action<bool>? LGroupMinimizeChange;
 
     public LGroup(LGroupSelection lGroupSelection)
     {
         lGroupOwner = lGroupSelection;
+        LGroupDrag = new LGroupDrag(this);
+        LGroupFace = new LGroupFace(this);
+        lGroupOwner.LGroupSelectionChange += LGroupSelectionHandle;
     }
 
     public LGroupSelection LGroupSelection => lGroupOwner;
 
+    public LGroupDrag LGroupDrag { get; }
+
+    public LGroupFace LGroupFace { get; }
+
     public IReadOnlyList<LGroupRecord> LGroupRecords => lGroupRecords;
+
+    public bool LGroupAuto => lGroupOwner.LGroupAuto;
+
+    public int? LGroupEditingIndex => lGroupEditingIndex;
+
+    public bool LGroupEmpty => lGroupRecords.Count == 0;
 
     public bool LGroupMinimized => lGroupMinimized;
 
     public int? LGroupSourceIndex => lGroupSourceIndex;
 
     public string? LGroupDragPath => lGroupDragPath;
-
-    public int? LGroupEditingIndex => lGroupEditingIndex;
 
     public void LGroupMinimizedSet(bool lMinimized)
     {
@@ -128,7 +144,7 @@ public sealed class LGroup
         }
 
         bool lInserted = LGroupPathInsert(lGroupRecords[lTargetIndex].LGroupRecordPaths, lPath, lInsertAt);
-        string lGroupName = System.IO.Path.GetFileName(lPath);
+        string lGroupName = LUsher.LUsherNameRead(lPath);
         LTraceLog.LTraceInfoRecord(lSourceIndex == lTargetIndex
             ? $"Group {lTargetIndex + 1}: reordered '{lGroupName}'"
             : lInserted
@@ -281,6 +297,56 @@ public sealed class LGroup
 
         lGroupRecords[lIndex].LGroupRecordName = lTrimmed;
         return true;
+    }
+
+    public void LGroupSourceAttach(Func<IReadOnlyList<string>> lSource) => lGroupSource = lSource;
+
+    public void LGroupAutoUpdate()
+    {
+        if (lGroupOwner.LGroupAuto)
+        {
+            LGroupSourceApply(null);
+        }
+    }
+
+    public void LGroupStrictApply() => LGroupSourceApply(true);
+
+    public void LGroupLooseApply() => LGroupSourceApply(false);
+
+    public bool LGroupLabelHandle(int lIndex, int lClickCount)
+    {
+        if (lClickCount != 2)
+        {
+            return false;
+        }
+
+        LGroupEditStart(lIndex);
+        return true;
+    }
+
+    public bool LGroupKeyRun(string lKey, string lText)
+    {
+        if (string.Equals(lKey, LGroupReturnKey, StringComparison.Ordinal))
+        {
+            LGroupNameCommit(lText);
+            return true;
+        }
+
+        if (string.Equals(lKey, LGroupEscapeKey, StringComparison.Ordinal))
+        {
+            LGroupEditCancel();
+            return true;
+        }
+
+        return false;
+    }
+
+    private void LGroupSourceApply(bool? lStrict) => LGroupAutoApply(lGroupSource(), lStrict);
+
+    private void LGroupSelectionHandle()
+    {
+        LGroupFaceChange?.Invoke();
+        LGroupAutoUpdate();
     }
 
     private void LGroupRecordsRaise()

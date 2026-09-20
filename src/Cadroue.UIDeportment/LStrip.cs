@@ -81,6 +81,7 @@ public sealed class LStrip
         LSeal.LSealNodesSource = LStripSealRead;
         LSeal.LSealFireSeam = LStripNodeRun;
         LAction.LActionStripAttach(this);
+        LListRelay.LListRelayAttach(this);
     }
 
     public string LStripTitleRead(Guid lId) =>

@@ -1,6 +1,6 @@
-# PGroupAuto.cs
+# LGroup.cs
 
-## `public void PGroupAutoUpdate()`
+## `public void LGroupAutoUpdate()`
 
 Auto grouping takes the order `LSeries.LSeriesResolve` produced, which is numeric within a series.
 It must not be followed by a filename sort.

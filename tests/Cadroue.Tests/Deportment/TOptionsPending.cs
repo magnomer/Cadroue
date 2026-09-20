@@ -5,6 +5,10 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[CollectionDefinition("Preference", DisableParallelization = true)]
+public sealed class TPreferenceCollection;
+
+[Collection("Preference")]
 public sealed class TOptionsPending
 {
     [Fact]

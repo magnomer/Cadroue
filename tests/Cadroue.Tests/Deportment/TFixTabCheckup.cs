@@ -84,7 +84,8 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, _, _, _) = TFixBuild();
+        (LFixTab tab, _, LList list, _) = TFixBuild();
+        TInterface.TListSelect(list, null);
         var scanned = new System.Collections.Concurrent.ConcurrentBag<string>();
         TInterface.TFixScannerAttach(scanned.Add);
         try

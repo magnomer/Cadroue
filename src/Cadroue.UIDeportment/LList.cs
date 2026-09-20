@@ -1,6 +1,6 @@
 using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.ShellEngine;
+using Cadroue.Infrastructure;
+using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
 
@@ -8,22 +8,35 @@ public sealed class LList
 {
     private readonly LDocket lListDocket;
     private readonly HashSet<string> lListSelected = new(StringComparer.OrdinalIgnoreCase);
+    private readonly CancellationTokenSource lListScanSource = new();
     private string? lListPathCurrent;
     private string? lListPathAnchor;
     private string? lListPathSuccessor;
     private string? lListPressPath;
-    private string? lListDragPath;
     private bool lListMinimized;
 
+    public event Action? LListChange;
     public event Action<string?>? LListPathChange;
     public event Action<bool>? LListMinimizeChange;
+    public event Action<IReadOnlyList<string>>? LListClearChange;
+    public event Action<IReadOnlyList<LDocketEntry>>? LListItemsAdd;
+    public event Action<bool>? LListLockChange;
 
     public LList(LDocket lListOwner)
     {
         lListDocket = lListOwner;
+        LListDrag = new LListDrag(this);
+        LListFace = new LListFace(this);
+        lListDocket.LDocketChange += LListDocketHandle;
+        lListDocket.LDocketAdded += LListAddHandle;
+        lListDocket.LDocketRemoved += LListRemoveHandle;
     }
 
     public LDocket LListDocket => lListDocket;
+
+    public LListDrag LListDrag { get; }
+
+    public LListFace LListFace { get; }
 
     public string? LListPathCurrent => lListPathCurrent;
 
@@ -31,9 +44,9 @@ public sealed class LList
 
     public string? LListPressPath => lListPressPath;
 
-    public string? LListDragPath => lListDragPath;
-
     public bool LListMinimized => lListMinimized;
+
+    public bool LListEmpty => lListDocket.LDocketItemsRead().Count == 0;
 
     public IReadOnlyList<string> LListSelectionRead() =>
         lListDocket.LDocketPathsRead()
@@ -41,6 +54,16 @@ public sealed class LList
             .ToArray();
 
     public bool LListSelectionCheck(string lListPath) => lListSelected.Contains(lListPath);
+
+    public LDocketEntry? LListItemRead() =>
+        lListPathCurrent is { } lListCurrentPath ? lListDocket.LDocketItemFind(lListCurrentPath) : null;
+
+    public LDocketEntry? LListEditableRead() =>
+        LListItemRead() is { LDocketEntryLocked: false } lListItem ? lListItem : null;
+
+    public bool LListLockCheck() => LListItemRead()?.LDocketEntryLocked == true;
+
+    public bool LListLockCheck(string lListPath) => lListDocket.LDocketLockCheck(lListPath);
 
     public int LListIndexRead(string? lListPath)
     {
@@ -61,6 +84,78 @@ public sealed class LList
         return -1;
     }
 
+    public async Task<int> LListPathsAdd(IEnumerable<string> lAddPaths)
+    {
+        IReadOnlyList<string> lRequested = lAddPaths as IReadOnlyList<string> ?? lAddPaths.ToArray();
+        LTraceLog.LTraceInfoRecord(
+            $"List add requested: {lRequested.Count} path(s)",
+            string.Join(", ", lRequested.Select(LUsher.LUsherNameRead)));
+        try
+        {
+            LMediaScanResult lScanResult = await LMedia.LMediaPathScan(lRequested, lListScanSource.Token);
+            foreach (LMediaScanNotice lScanNotice in lScanResult.LMediaScanNotices)
+            {
+                LTraceLog.LTraceWarningRecord(
+                    $"List skipped folder '{lScanNotice.LMediaScanFolder}': {lScanNotice.LMediaScanReason}");
+            }
+
+            IReadOnlyList<string> lScannedPaths = lScanResult.LMediaScanPaths;
+            LTraceLog.LTraceInfoRecord($"List scan resolved {lScannedPaths.Count} media path(s); adding to docket");
+            int lAdded = lScannedPaths.Count == 0 ? 0 : lListDocket.LDocketPathsAdd(lScannedPaths);
+            LTraceLog.LTraceInfoRecord($"List add committed: {lAdded} entry(ies)");
+            return lAdded;
+        }
+        catch (OperationCanceledException)
+        {
+            LTraceLog.LTraceInfoRecord("List add cancelled: the tab closed during the folder scan");
+            return 0;
+        }
+        catch (Exception lAddException)
+        {
+            LTraceLog.LTraceErrorRecord("List add failed", lAddException);
+            return 0;
+        }
+    }
+
+    public void LListDialogAdd(bool? lConfirmed, IReadOnlyList<string> lPaths, string lKind)
+    {
+        if (lConfirmed != true)
+        {
+            return;
+        }
+
+        LTraceLog.LTraceInfoRecord($"List manual {lKind} dialog confirmed: {lPaths.Count} {lKind}(s)");
+        _ = LListPathsAdd(lPaths);
+    }
+
+    public void LListRemove()
+    {
+        IReadOnlyList<string> lRemovedPaths = LListSelectionRead()
+            .Where(lListPath => !LListLockCheck(lListPath))
+            .ToArray();
+        if (lRemovedPaths.Count == 0)
+        {
+            return;
+        }
+
+        LListSuccessorSet(lRemovedPaths);
+        lListDocket.LDocketPathsRemove(lRemovedPaths);
+        LListSuccessorReset();
+    }
+
+    public void LListClear()
+    {
+        string[] lRemovedPaths = lListDocket.LDocketUnlockedRead()
+            .Select(lListItem => lListItem.LDocketEntryPath)
+            .ToArray();
+        if (lRemovedPaths.Length > 0)
+        {
+            lListDocket.LDocketPathsRemove(lRemovedPaths);
+        }
+    }
+
+    public void LListClose() => lListScanSource.Cancel();
+
     public void LListMinimizedSet(bool lMinimized)
     {
         if (lListMinimized == lMinimized)
@@ -72,7 +167,16 @@ public sealed class LList
         LListMinimizeChange?.Invoke(lMinimized);
     }
 
-    public void LListDragSet(string? lListPath) => lListDragPath = lListPath;
+    public bool LListKeyRun(string lKey, bool lControl)
+    {
+        if (!string.Equals(lKey, "A", StringComparison.Ordinal) || !lControl)
+        {
+            return false;
+        }
+
+        LListAllSelect();
+        return true;
+    }
 
     public void LListSelect(string? lListPath)
     {
@@ -84,6 +188,14 @@ public sealed class LList
 
         lListPathAnchor = lListPath;
         LListCurrentApply(lListPath);
+    }
+
+    public void LListListedSelect(string lListPath)
+    {
+        if (lListDocket.LDocketItemFind(lListPath) is not null)
+        {
+            LListSelect(lListPath);
+        }
     }
 
     public void LListPressSelect(string lListPath, bool lShift, bool lControl)
@@ -185,6 +297,29 @@ public sealed class LList
         }
     }
 
+    private void LListDocketHandle(IReadOnlyList<LDocketEntry> lEntries)
+    {
+        LListChange?.Invoke();
+        LListLockChange?.Invoke(LListLockCheck());
+    }
+
+    private void LListAddHandle(IReadOnlyList<LDocketEntry> lAdded)
+    {
+        LTraceLog.LTraceInfoRecord(
+            $"List add handled: {lAdded.Count} entry(ies), "
+            + $"selecting '{LUsher.LUsherNameRead(lAdded[0].LDocketEntryPath)}' and notifying subscribers");
+        LListSelect(lAdded[0].LDocketEntryPath);
+        LListItemsAdd?.Invoke(lAdded);
+        LTraceLog.LTraceInfoRecord("List add subscribers notified");
+    }
+
+    private void LListRemoveHandle(IReadOnlyList<string> lRemoved)
+    {
+        LListRemovedApply(lRemoved);
+        LListClearChange?.Invoke(lRemoved);
+        LListSuccessorSelect();
+    }
+
     private void LListSelectionToggle(string lListPath)
     {
         lListPathAnchor = lListPath;
@@ -231,34 +366,6 @@ public sealed class LList
     {
         lListPathCurrent = lListPath;
         LListPathChange?.Invoke(lListPath);
-    }
-
-    public static void LListRelayAttach(
-        Func<Guid, string, Guid, bool> lDeliveredAdd,
-        Func<Guid, string, Guid, bool> lDeliveredCommit,
-        Action<LWorkItem, bool> lDeliveredRemove,
-        Action<Guid, string, Guid> lAccept,
-        Action<IReadOnlyList<Guid>> lBatchRemove,
-        Action<IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>> lSourceRelease,
-        Func<IReadOnlyList<LWorkItem>, bool> lSourceClaim)
-    {
-        LCartographer.LCartographerLockSeam = lSourceClaim;
-        LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
-            lDeliveredAdd,
-            lDeliveredCommit,
-            lDeliveredRemove,
-            lAccept,
-            lBatchRemove,
-            lSourceRelease);
-        LMessenger.LMessengerDeliverSource = (lTarget, lPath, lCohort) =>
-        {
-            if (!lDeliveredAdd(lTarget, lPath, lCohort))
-            {
-                return false;
-            }
-
-            lAccept(lTarget, lPath, lCohort);
-            return true;
-        };
+        LListLockChange?.Invoke(LListLockCheck());
     }
 }

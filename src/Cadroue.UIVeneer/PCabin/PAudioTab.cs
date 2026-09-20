@@ -26,7 +26,7 @@ public sealed class PAudioTab : PTabSurface
             pInspector.LInspector,
             pViewer.LViewer,
             pList.LList,
-            pList.PListDocketRead(),
+            pList.LList.LListDocket,
             pProcessing.LProcessing);
         LAudioTab.LAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
@@ -44,9 +44,9 @@ public sealed class PAudioTab : PTabSurface
             LAudioTab.LAudioItemsRun(pAudioPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
-        pList.PListPathChange += LAudioTab.LAudioPathHandle;
-        pList.PListItemsAdd += LAudioTab.LAudioItemsHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.PListPathsAdd(pDropPaths);
+        pList.LList.LListPathChange += LAudioTab.LAudioPathHandle;
+        pList.LList.LListItemsAdd += LAudioTab.LAudioItemsHandle;
+        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
 
         LAudioTab.LAudioPresetMissing += PExport.PExportMissingShow;
         LAudioTab.LAudioPresetIncompatible += PExport.PExportIncompatibleShow;

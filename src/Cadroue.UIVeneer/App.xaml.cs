@@ -40,14 +40,6 @@ public partial class PProgram : System.Windows.Application
             PProgramVerboseApply);
         PNameplate.PNameplateAttach();
         base.OnStartup(e);
-        LList.LListRelayAttach(
-            PWing.PList.PListDeliveredAdd,
-            PWing.PList.PListDeliveredCommit,
-            PWing.PList.PListDeliveredRemove,
-            LAction.LActionAccept,
-            PWing.PList.PListBatchRemove,
-            PWing.PList.PListSourceRelease,
-            PWing.PList.PListSourceClaim);
 
         MainWindow = new PWindow();
         MainWindow.Show();

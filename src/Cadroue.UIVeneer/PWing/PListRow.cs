@@ -2,206 +2,155 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed partial class PList
+public sealed class PListRow
 {
-    private void PListRowsRebuild()
+    private static readonly FontFamily pListFontFamily = new("Segoe UI");
+    private static readonly Brush pListLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
+    private static readonly Brush pListSelectBrush = new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB));
+    private static readonly Brush pListRowBrush = new SolidColorBrush(Color.FromRgb(0x11, 0x18, 0x27));
+    private static readonly Brush pListMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
+    private static readonly Brush pListIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
+    private static readonly Brush pListLockedAccent = new SolidColorBrush(Color.FromRgb(0xE4, 0xEB, 0xF3));
+
+    private static readonly IReadOnlyDictionary<string, Brush> pListBackgrounds = new Dictionary<string, Brush>
     {
-        pListRowPanel.Children.Clear();
-        pListRows.Clear();
-        var pListGroupsShown = new HashSet<Guid>();
-        IReadOnlyList<LDocketEntry> pListEntries = pListDocket.LDocketItemsRead();
-        foreach (LDocketEntry pListItem in pListEntries)
+        ["Plain"] = Brushes.White,
+        ["Selected"] = pListSelectBrush,
+        ["Locked"] = Brushes.Transparent,
+        ["LockedSelected"] = pListLockedAccent,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pListForegrounds = new Dictionary<bool, Brush>
+    {
+        [true] = pListMutedBrush,
+        [false] = pListRowBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Brush> pListIcons = new Dictionary<bool, Brush>
+    {
+        [true] = pListMutedBrush,
+        [false] = pListIconBrush,
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Thickness> pListBorders = new Dictionary<bool, Thickness>
+    {
+        [true] = new Thickness(0, 0, 0, 1),
+        [false] = new Thickness(0),
+    };
+
+    private static readonly IReadOnlyDictionary<bool, Func<Border, IInputElement?>> pListCaptures =
+        new Dictionary<bool, Func<Border, IInputElement?>>
         {
-            if (!pListItem.LDocketEntryLocked)
-            {
-                pListRowPanel.Children.Add(PListRowBuild(pListItem));
-                continue;
-            }
+            [true] = pBorder => pBorder,
+            [false] = pBorder => null,
+        };
 
-            if (pListGroupsShown.Add(pListItem.LDocketEntryBatch))
-            {
-                LDocketEntry[] pListGroupItems = pListEntries
-                    .Where(pCandidate => pCandidate.LDocketEntryLocked
-                        && pCandidate.LDocketEntryBatch == pListItem.LDocketEntryBatch)
-                    .ToArray();
-                pListRowPanel.Children.Add(PListCardBuild(pListGroupItems));
-            }
-        }
+    private static readonly IReadOnlyDictionary<bool, Action<PListRow>> pListDrags =
+        new Dictionary<bool, Action<PListRow>>
+        {
+            [true] = pRow => pRow.PListDragRun(),
+            [false] = pRow => { },
+        };
 
-        PListEmptyUpdate();
-    }
+    private readonly PList pListPanel;
+    private readonly LList lList;
 
-    private Border PListRowBuild(LDocketEntry pListItem, bool pListBottomBorder = true)
+    public PListRow(PList pPanel, LListRow lRow)
     {
-        string pRowPath = pListItem.LDocketEntryPath;
+        pListPanel = pPanel;
+        lList = pPanel.LList;
+        PListRowPath = lRow.LListRowPath;
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new Image
         {
             Width = 14,
             Height = 14,
-            Source = PIcon.PIconRead(
-                "/PAsset/PPanel/PVideo.svg",
-                pListItem.LDocketEntryLocked ? pListMutedBrush : pListIconBrush),
+            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.LListRowLocked]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = System.IO.Path.GetFileName(pRowPath),
+            Text = lRow.LListRowName,
             FontSize = 12,
             FontFamily = pListFontFamily,
-            Foreground = pListItem.LDocketEntryLocked ? pListMutedBrush : pListRowBrush,
+            Foreground = pListForegrounds[lRow.LListRowLocked],
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         });
 
-        var pRowBorder = new Border
+        PListRowBorder = new Border
         {
             Padding = new Thickness(12, 7, 12, 7),
-            Background = PListBackgroundRead(pListItem),
+            Background = pListBackgrounds[lRow.LListRowState],
             BorderBrush = pListLineBrush,
-            BorderThickness = new Thickness(0, 0, 0, pListBottomBorder ? 1 : 0),
+            BorderThickness = pListBorders[lRow.LListRowLast],
             Cursor = Cursors.Hand,
-            ToolTip = pListItem.LDocketEntryLocked
-                ? $"{pRowPath}\n{LLocalization.LLocalizationTextRead("List.Locked.Tooltip")}" : pRowPath,
+            ToolTip = lRow.LListRowTip,
             Child = pRowContent,
-            Tag = pRowPath
+            Tag = lRow.LListRowPath
         };
-        pRowBorder.MouseLeftButtonDown += (_, pRowEvent) =>
-        {
-            Focus();
-            PListPressHandle(pRowPath);
-            if (!pListItem.LDocketEntryLocked)
-            {
-                pListDragOrigin = pRowEvent.GetPosition(null);
-                pListDragOffset = pRowEvent.GetPosition(pRowBorder);
-                LList.LListDragSet(pRowPath);
-                pRowBorder.CaptureMouse();
-            }
-            pRowEvent.Handled = true;
-        };
-        pRowBorder.MouseMove += (pRowSender, pRowEvent) => PListDragHandle(pRowSender, pRowEvent);
-        pRowBorder.MouseLeftButtonUp += (_, _) =>
-        {
-            pRowBorder.ReleaseMouseCapture();
-            pListDragOrigin = null;
-            LList.LListDragSet(null);
-            LList.LListReleaseSelect();
-        };
-        pListRows[pRowPath] = pRowBorder;
-        return pRowBorder;
+        PListRowBorder.MouseLeftButtonDown += PListPressHandle;
+        PListRowBorder.MouseMove += PListMoveHandle;
+        PListRowBorder.MouseLeftButtonUp += PListReleaseHandle;
     }
 
-    private UIElement PListCardBuild(IReadOnlyList<LDocketEntry> pListLockedItems)
-    {
-        var pListCardRows = new StackPanel();
-        var pListHeader = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(10, 7, 10, 5)
-        };
-        pListHeader.Children.Add(new TextBlock
-        {
-            Text = "",
-            FontSize = 11,
-            FontFamily = new FontFamily("Segoe MDL2 Assets"),
-            Foreground = pListMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 6, 0)
-        });
-        pListHeader.Children.Add(new TextBlock
-        {
-            Text = pListLockedItems.Count == 1
-                ? LLocalization.LLocalizationTextRead("List.Locked.SummaryOne")
-                : LLocalization.LLocalizationFormat("List.Locked.SummaryMany", pListLockedItems.Count),
-            FontSize = 11,
-            FontFamily = pListFontFamily,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = pListMutedBrush,
-            VerticalAlignment = VerticalAlignment.Center
-        });
-        pListCardRows.Children.Add(pListHeader);
-        for (int pListIndex = 0; pListIndex < pListLockedItems.Count; pListIndex++)
-        {
-            pListCardRows.Children.Add(PListRowBuild(
-                pListLockedItems[pListIndex], pListIndex < pListLockedItems.Count - 1));
-        }
+    public string PListRowPath { get; }
 
-        return new Border
-        {
-            Margin = new Thickness(6, 6, 6, 0),
-            Background = pListLockedBrush,
-            BorderBrush = pListLineBrush,
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(7),
-            Padding = new Thickness(0, 0, 0, 4),
-            Child = pListCardRows
-        };
+    public Border PListRowBorder { get; }
+
+    public void PListStateApply(string lState) => PListRowBorder.Background = pListBackgrounds[lState];
+
+    private void PListPressHandle(object pSender, MouseButtonEventArgs pEvent)
+    {
+        pListPanel.Focus();
+        Point pOrigin = pEvent.GetPosition(null);
+        Point pGrab = pEvent.GetPosition(PListRowBorder);
+        bool pCapture = lList.LListDrag.LListPressHandle(
+            PListRowPath,
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
+            Keyboard.Modifiers.HasFlag(ModifierKeys.Control),
+            pOrigin.X,
+            pOrigin.Y,
+            pGrab.X,
+            pGrab.Y);
+        Mouse.Capture(pListCaptures[pCapture](PListRowBorder));
+        pEvent.Handled = true;
     }
 
-    private Brush PListBackgroundRead(LDocketEntry pListItem) =>
-        LList.LListSelectionCheck(pListItem.LDocketEntryPath)
-            ? pListItem.LDocketEntryLocked ? pListLockedAccent : pListSelectBrush
-            : pListItem.LDocketEntryLocked ? Brushes.Transparent : Brushes.White;
-
-    private void PListDragHandle(object pRowSender, MouseEventArgs pRowEvent)
+    private void PListMoveHandle(object pSender, MouseEventArgs pEvent)
     {
-        if (pListDragOrigin is not { } pStart
-            || LList.LListDragPath is not { } pDragPath
-            || pRowEvent.LeftButton != MouseButtonState.Pressed)
-        {
-            return;
-        }
-
-        Point pCurrent = pRowEvent.GetPosition(null);
-        if (Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
-            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
-        {
-            return;
-        }
-
-        string[] pDragPaths = LList.LListSelectionCheck(pDragPath)
-            ? PListSelectionRead()
-                .Where(pListPath => !PListLockCheck(pListPath))
-                .ToArray()
-            : [pDragPath];
-        if (pDragPaths.Length == 0)
-        {
-            return;
-        }
-        var pDragData = new DataObject(PListDragKind, pDragPaths);
-        Point pGrabOffset = pListDragOffset;
-        pListDragOrigin = null;
-        LList.LListDragSet(null);
-        LList.LListPressReset();
-        if (pRowSender is UIElement pRowElement)
-        {
-            pRowElement.ReleaseMouseCapture();
-        }
-
-        if (pRowSender is FrameworkElement pRowVisual)
-        {
-            PGhost.PGhostDragRun(
-                pRowVisual,
-                pGrabOffset,
-                () => DragDrop.DoDragDrop(pRowVisual, pDragData, DragDropEffects.Copy));
-            return;
-        }
-
-        DragDrop.DoDragDrop((DependencyObject)pRowSender, pDragData, DragDropEffects.Copy);
+        Point pCurrent = pEvent.GetPosition(null);
+        bool pStart = lList.LListDrag.LListDragResolve(
+            pCurrent.X,
+            pCurrent.Y,
+            SystemParameters.MinimumHorizontalDragDistance,
+            SystemParameters.MinimumVerticalDragDistance,
+            PLook.PLookPressed[pEvent.LeftButton]);
+        pListDrags[pStart](this);
     }
 
-    private void PListEmptyUpdate()
+    private void PListDragRun()
     {
-        pListEmptyNotice.Visibility = pListDocket.LDocketItemsRead().Count == 0
-            ? Visibility.Visible
-            : Visibility.Collapsed;
+        var pDragData = new DataObject(PList.PListDragKind, lList.LListDrag.LListDragPaths.ToArray());
+        var pGrabOffset = new Point(lList.LListDrag.LListGrabX, lList.LListDrag.LListGrabY);
+        PListRowBorder.ReleaseMouseCapture();
+        PGhost.PGhostDragRun(
+            PListRowBorder,
+            pGrabOffset,
+            () => DragDrop.DoDragDrop(PListRowBorder, pDragData, DragDropEffects.Copy));
+    }
+
+    private void PListReleaseHandle(object pSender, MouseButtonEventArgs pEvent)
+    {
+        PListRowBorder.ReleaseMouseCapture();
+        lList.LListDrag.LListReleaseHandle();
     }
 }
