@@ -6,7 +6,8 @@ namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
 {
-    private sealed record LKeyframeBounds(int LKeyframeBoundsFirst, int LKeyframeBoundsCenter, int LKeyframeBoundsLast);
+    private sealed record LKeyframeBounds(
+        int LKeyframeBoundsFirst, long LKeyframeBoundsCursor, int LKeyframeBoundsLast);
 
     private void LKeyframePlanStart(string sourcePath, CancellationToken cancellationToken)
     {
@@ -84,29 +85,27 @@ public sealed partial class LKeyframeOrchestrator
 
     private int LKeyframeSpanFind(TimeSpan duration, TimeSpan cursor)
     {
-        (int first, int center, int last) = LKeyframeBoundsCreate(duration, cursor);
-        if (center >= first && center <= last && LKeyframeSpanCheck(center))
+        (int first, long cursorMs, int last) = LKeyframeBoundsCreate(duration, cursor);
+        int found = -1;
+        long foundDistance = long.MaxValue;
+        for (int spanIndex = first; spanIndex <= last; spanIndex++)
         {
-            return center;
-        }
-
-        for (int spanIndex = center - 1; spanIndex >= first; spanIndex--)
-        {
-            if (LKeyframeSpanCheck(spanIndex))
+            long distance = LKeyframeDistanceResolve(spanIndex, cursorMs);
+            if (distance < foundDistance && LKeyframeSpanCheck(spanIndex))
             {
-                return spanIndex;
+                found = spanIndex;
+                foundDistance = distance;
             }
         }
 
-        for (int spanIndex = center + 1; spanIndex <= last; spanIndex++)
-        {
-            if (LKeyframeSpanCheck(spanIndex))
-            {
-                return spanIndex;
-            }
-        }
+        return found;
+    }
 
-        return -1;
+    private static long LKeyframeDistanceResolve(int spanIndex, long cursorMs)
+    {
+        long spanStartMs = (long)spanIndex * LKeyframeGridMilliseconds;
+        long spanLastMs = spanStartMs + LKeyframeGridMilliseconds - 1;
+        return Math.Max(0, Math.Max(spanStartMs - cursorMs, cursorMs - spanLastMs));
     }
 
     private bool LKeyframeSpanCheck(int spanIndex) =>
@@ -239,7 +238,7 @@ public sealed partial class LKeyframeOrchestrator
         long endMs = Math.Min(durationMs, (long)(cursor + LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds);
         int first = (int)(startMs / LKeyframeGridMilliseconds);
         int last = (int)(Math.Max(0, endMs - 1) / LKeyframeGridMilliseconds);
-        int center = (int)(Math.Clamp(cursor.TotalMilliseconds, 0d, (double)durationMs) / LKeyframeGridMilliseconds);
-        return new LKeyframeBounds(first, center, last);
+        long cursorMs = (long)Math.Clamp(cursor.TotalMilliseconds, 0d, (double)durationMs);
+        return new LKeyframeBounds(first, cursorMs, last);
     }
 }

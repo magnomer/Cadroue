@@ -92,6 +92,38 @@ public static partial class LEdit
         return new[] { lEditWorkItem };
     }
 
+    public static IReadOnlyList<LWorkItem> LEditSourcesCreate(
+        LWorkPriority lWorkPriority,
+        IReadOnlyList<LWorkSource> lEditSources,
+        LEncoding lEditOutput,
+        Func<string, LSidecarEditRecord?> lSidecarRead,
+        Func<string, TimeSpan> lDurationRead,
+        bool lEditEqCapable,
+        Guid lEditLooseBatch)
+    {
+        var lEditItems = new List<LWorkItem>();
+        foreach (LWorkSource lEditSource in lEditSources)
+        {
+            string lEditSourcePath = lEditSource.LWorkSourcePath;
+            LEditPlan lEditPlan = LEditPlanRead(lEditSourcePath, lSidecarRead) ?? LEditPlan.LEditEmptyCreate();
+            (LWorkCrop lEditCrop, LWorkVideo lEditVideo) = LEditWorkResolve(lEditPlan, lEditEqCapable);
+            if (LEditWorkCreate(
+                    lWorkPriority,
+                    lEditSourcePath,
+                    lDurationRead(lEditSourcePath),
+                    lEditCrop,
+                    lEditVideo,
+                    lEditOutput,
+                    lEditSource.LWorkSourceBatch != Guid.Empty ? lEditSource.LWorkSourceBatch : lEditLooseBatch)
+                is { } lEditItem)
+            {
+                lEditItems.Add(lEditItem);
+            }
+        }
+
+        return lEditItems;
+    }
+
 
     private static string LEditNameCreate(
         LEncoding lEditOutput,

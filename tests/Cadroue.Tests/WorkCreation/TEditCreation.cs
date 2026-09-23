@@ -62,6 +62,62 @@ public sealed class TEditCreation
         Assert.Same(output, item.LWorkOutput);
     }
 
+    [Fact]
+    public void ListSourceWithoutSavedPlan_QueuesPlainEdit()
+    {
+        Guid looseBatch = Guid.NewGuid();
+
+        LWorkItem item = Assert.Single(TInterface.TEditSourcesCreate(
+            new[] { ("media/plain.mov", Guid.Empty) },
+            TEditOutputCreate(),
+            _ => null,
+            looseBatch));
+
+        Assert.Equal("media/plain.mov", item.LWorkSourcePath);
+        Assert.False(item.LWorkCrop.LWorkCropActive);
+        Assert.False(item.LWorkVideo.LWorkVideoActive);
+        Assert.Equal(looseBatch, item.LWorkBatchId);
+    }
+
+    [Fact]
+    public void ListSourceWithApplyOnButNoSettings_QueuesPlainEdit()
+    {
+        LEditPlan plan = TInterface.TEditPlanCreate(
+            TInterface.TWorkCropCreate(),
+            TInterface.TWorkVideoCreate(new[] { TInterface.TWorkBrightnessCreate(true, 0) }),
+            true);
+        LSidecarEditRecord record = TInterface.TEditPersistentCreate(plan);
+        Guid sourceBatch = Guid.NewGuid();
+
+        LWorkItem item = Assert.Single(TInterface.TEditSourcesCreate(
+            new[] { ("media/apply.mov", sourceBatch) },
+            TEditOutputCreate(),
+            _ => record,
+            Guid.NewGuid()));
+
+        Assert.False(item.LWorkCrop.LWorkCropActive);
+        Assert.Equal(sourceBatch, item.LWorkBatchId);
+    }
+
+    [Fact]
+    public void ListSources_EachQueuedWhetherPlanIsSavedOrNot()
+    {
+        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+            TInterface.TWorkCropCreate(10, 0, 0, 0, 0, false, false),
+            TInterface.TWorkVideoCreate(),
+            true));
+
+        IReadOnlyList<LWorkItem> work = TInterface.TEditSourcesCreate(
+            new[] { ("media/cropped.mov", Guid.Empty), ("media/untouched.mov", Guid.Empty) },
+            TEditOutputCreate(),
+            path => path == "media/cropped.mov" ? record : null,
+            Guid.NewGuid());
+
+        Assert.Equal(2, work.Count);
+        Assert.True(work[0].LWorkCrop.LWorkCropActive);
+        Assert.False(work[1].LWorkCrop.LWorkCropActive);
+    }
+
     private static IReadOnlyList<LWorkItem> TEditCreate(
         string? source,
         LWorkCrop crop,

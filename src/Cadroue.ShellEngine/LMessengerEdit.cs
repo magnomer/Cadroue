@@ -54,38 +54,14 @@ public static partial class LMessenger
             return 0;
         }
 
-        var lMessengerItems = new List<LWorkItem>();
-        Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
-        bool lMessengerEqCapable = Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq");
-
-        foreach (LWorkSource lMessengerSource in lMessengerSources)
-        {
-            string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LEdit.LEditPlanRead(
-                lMessengerSourcePath,
-                Cadroue.Application.LLibrarian.LLibrarianEditLoad)
-                is not { LEditPlanActive: true } lMessengerPlan)
-            {
-                continue;
-            }
-
-            Guid lMessengerBatch = lMessengerSource.LWorkSourceBatch != Guid.Empty
-                ? lMessengerSource.LWorkSourceBatch
-                : lMessengerLooseBatch;
-            (LWorkCrop lMessengerCrop, LWorkVideo lMessengerVideo) =
-                Cadroue.Application.LEdit.LEditWorkResolve(lMessengerPlan, lMessengerEqCapable);
-            if (Cadroue.Application.LEdit.LEditWorkCreate(
-                    lMessengerPriority,
-                    lMessengerSourcePath,
-                    Cadroue.Application.LLibrarian.LLibrarianDurationRead(lMessengerSourcePath),
-                    lMessengerCrop,
-                    lMessengerVideo,
-                    lMessengerOutput,
-                    lMessengerBatch) is { } lMessengerEditItem)
-            {
-                lMessengerItems.Add(lMessengerEditItem);
-            }
-        }
+        IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LEdit.LEditSourcesCreate(
+            lMessengerPriority,
+            lMessengerSources,
+            lMessengerOutput,
+            Cadroue.Application.LLibrarian.LLibrarianEditLoad,
+            Cadroue.Application.LLibrarian.LLibrarianDurationRead,
+            Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq"),
+            Cadroue.Application.LGate.LGateBatchCreate());
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         foreach (LWorkItem lMessengerItem in lMessengerItems)
@@ -95,7 +71,7 @@ public static partial class LMessenger
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceLog.LTraceInfoRecord(
-            $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued from saved plans");
+            $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued");
 
         LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;

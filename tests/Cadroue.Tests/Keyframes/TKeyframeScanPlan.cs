@@ -145,4 +145,18 @@ public sealed class TKeyframeScanPlan
         Assert.Equal(new TKeyframeRange(20_000, 40_000), keyframes.TKeyframeScans[0]);
         Assert.Equal(new TKeyframeRange(60_000, 80_000), keyframes.TKeyframeScans[1]);
     }
+
+    [Fact]
+    public async Task ScanOrder_AlternatesBackwardAndForward_ByDistanceFromCursor()
+    {
+        using var keyframes = new TKeyframe();
+        string source = keyframes.TSourceCreate("alternate.mp4", "alternate source");
+
+        keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(200), TimeSpan.FromSeconds(105));
+        await keyframes.TKeyframeCoverageRead(10);
+
+        Assert.Equal(
+            new[] { 5, 4, 6, 3, 7, 2, 8, 1, 9, 0 },
+            keyframes.TKeyframeScans.Select(scan => (int)(scan.TKeyframeStartMilliseconds / 20_000)));
+    }
 }

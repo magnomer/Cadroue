@@ -22,6 +22,18 @@ internal static partial class TInterface
         Action<string> infoLog, Action<string> errorLog, Guid batchId = default) =>
         LEdit.LEditItemsCreate(priority, description, tab, infoLog, errorLog, batchId);
 
+    internal static IReadOnlyList<LWorkItem> TEditSourcesCreate(
+        IReadOnlyList<(string, Guid)> sources, LEncoding output,
+        Func<string, LSidecarEditRecord?> sidecarRead, Guid looseBatch) =>
+        LEdit.LEditSourcesCreate(
+            LWorkPriority.LWorkPriorityNormal,
+            sources.Select(source => new LWorkSource(source.Item1, source.Item2)).ToArray(),
+            output,
+            sidecarRead,
+            _ => TimeSpan.FromMinutes(3),
+            true,
+            looseBatch);
+
     internal static IReadOnlyList<LWorkItem> TFixItemsCreate(
         LWorkPriority priority, LFixWorkDescription description, string tab,
         Action<string> errorLog, Func<string, TimeSpan> durationRead) =>
