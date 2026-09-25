@@ -26,7 +26,7 @@ public sealed partial class PExport
 
         var pRowBorder = new Border
         {
-            Padding = new Thickness(12, 7, 12, 7),
+            Padding = new Thickness(12, 5, 12, 5),
             Background = pPresetSelected ? new SolidColorBrush(Color.FromRgb(0xEE, 0xF4, 0xFB)) : Brushes.White,
             BorderBrush = Brushes.Transparent,
             BorderThickness = new Thickness(0),

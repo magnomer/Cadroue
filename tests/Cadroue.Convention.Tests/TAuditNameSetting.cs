@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditNameSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
     public const string TAuditProject = "Cadroue";
     public const string TAuditTestPrefix = "T";
     public const string TAuditComponentPattern = "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+";

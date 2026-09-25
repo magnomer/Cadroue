@@ -45,7 +45,8 @@ internal static partial class TAuditTruthWalker
             }
 
             if (assignment.Left is ElementAccessExpressionSyntax { Expression: var rows }
-                && TAuditStoreCheck(rows))
+                && TAuditStoreCheck(rows)
+                && !TAuditFreshCheck(rows))
             {
                 violations.Add(new TViolation(
                     root.SyntaxTree.FilePath,
@@ -88,6 +89,21 @@ internal static partial class TAuditTruthWalker
                 "Mutation",
                 $"reorders a collection with {access.Name.Identifier.ValueText}"));
         }
+    }
+
+    private static bool TAuditFreshCheck(ExpressionSyntax rows)
+    {
+        if (TAuditBinder.TAuditSymbolRead(rows) is not ILocalSymbol local)
+        {
+            return false;
+        }
+
+        return local.DeclaringSyntaxReferences
+            .Select(reference => reference.GetSyntax())
+            .OfType<VariableDeclaratorSyntax>()
+            .Any(declarator => declarator.Initializer?.Value
+                is CollectionExpressionSyntax { Elements.Count: 0 }
+                or BaseObjectCreationExpressionSyntax { ArgumentList.Arguments.Count: 0, Initializer: null });
     }
 
     private static bool TAuditStoreCheck(ExpressionSyntax rows)

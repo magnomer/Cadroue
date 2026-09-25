@@ -100,8 +100,8 @@ internal static class PRosterCard
         var pIcon = new Image
         {
             Source = PIcon.PIconRead(pIconPath, pControlBrush),
-            Width = 14,
-            Height = 14,
+            Width = 20,
+            Height = 20,
             Stretch = Stretch.Uniform,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center

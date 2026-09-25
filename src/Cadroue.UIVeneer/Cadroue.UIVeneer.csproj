@@ -37,6 +37,8 @@
     <Resource Include="PAsset\PPanel\*.svg" />
     <Resource Include="PAsset\PMenu\*.svg" />
     <Resource Include="PAsset\PSDialog\*.svg" />
+    <Resource Include="PAsset\P32\**\*.png" />
+    <Resource Include="PAsset\P256\**\*.png" />
     <Resource Include="PAsset\PProgram\*.png" />
     <Resource Include="PAsset\PProgram\*.ico" />
   </ItemGroup>

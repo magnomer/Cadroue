@@ -30,7 +30,11 @@ public sealed class TAuditComment
             [],
             [],
             []);
-        foreach (string path in TAuditSource.TAuditFileRead(repoRoot, scope))
+        IEnumerable<string> comments = TAuditSource.TAuditFileRead(repoRoot, scope).Concat(
+            TAuditCommentSetting.TAuditCommentFiles
+                .Select(file => TAuditCommentRead(Path.Combine(repoRoot, file)))
+                .Where(File.Exists));
+        foreach (string path in comments)
         {
             string[] lines = File.ReadAllLines(path);
             for (int index = 0; index < lines.Length; index++)
@@ -63,7 +67,8 @@ public sealed class TAuditComment
             TAuditCommentSetting.TAuditCommentSuffixes,
             [],
             TAuditCommentSetting.TAuditCommentExempt);
-        IReadOnlyList<string> sources = TAuditSource.TAuditFileRead(repoRoot, scope);
+        IEnumerable<string> sources = TAuditSource.TAuditFileRead(repoRoot, scope).Concat(
+            TAuditCommentSetting.TAuditCommentFiles.Select(file => Path.Combine(repoRoot, file)));
 
         List<string> hits = [];
         foreach (string path in sources)
@@ -93,6 +98,36 @@ public sealed class TAuditComment
             $"{hits.Count} in-code comment(s) found. "
             + $"Prose belongs in the {TAuditCommentSetting.TAuditCommentPattern} file beside the source.\n"
             + string.Join('\n', hits)));
+    }
+
+    [Fact]
+    public void AuditComment_Sources_CarryCommentFile()
+    {
+        string repoRoot = TAuditSource.TAuditRootRead();
+        TAuditScope scope = new(
+            TAuditCommentSetting.TAuditCommentRoots,
+            TAuditCommentSetting.TAuditCommentSources,
+            TAuditCommentSetting.TAuditCommentSegments,
+            TAuditCommentSetting.TAuditCommentSuffixes,
+            [],
+            []);
+        List<string> hits = TAuditSource.TAuditFileRead(repoRoot, scope)
+            .Concat(TAuditCommentSetting.TAuditCommentFiles.Select(file => Path.Combine(repoRoot, file)))
+            .Where(path => !File.Exists(TAuditCommentRead(path)))
+            .Select(path => "  " + Path.GetRelativePath(repoRoot, path).Replace('\\', '/'))
+            .ToList();
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            "AUDITCOMMENTS",
+            $"{hits.Count} source(s) have no comment file beside them.\n" + string.Join('\n', hits)));
+    }
+
+    private static string TAuditCommentRead(string path)
+    {
+        string trimmed = path.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase)
+            ? path[..^3]
+            : Path.ChangeExtension(path, null);
+        return trimmed + ".comment.md";
     }
 
     private static string[] TAuditSourceRead(string path, bool code)

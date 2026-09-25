@@ -40,6 +40,10 @@ The Git working tree the sources are read from.
 
 Every parsed tracked source, in path order.
 
+## `public static CSharpCompilation TAuditCompilation`
+
+The whole compilation, generated markup classes included, for a walk that must see every reader.
+
 ## `public static SemanticModel TAuditModelRead(SyntaxTree tree)`
 
 The semantic model of one tree, safe to read from many threads.

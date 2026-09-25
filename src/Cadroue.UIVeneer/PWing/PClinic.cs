@@ -310,8 +310,8 @@ public sealed class PClinic : PPanel
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PIcon.PIconRead(pIconPath, pClinicIconBrush),
                 Stretch = Stretch.Uniform
             },

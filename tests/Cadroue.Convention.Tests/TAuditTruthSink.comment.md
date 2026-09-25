@@ -11,10 +11,17 @@ A reference that is only the receiver of a member access is not a sink.
 The owner of that member audits its own field.
 An argument of a logic call, a record copy or a logic construction is an argument sink.
 The condition of an if, ternary or switch whose branch requests is a guard sink.
+A condition that only tests for null or for a type is not a guard sink.
 
 ## `private static bool TAuditGuardCheck(IfStatementSyntax branch)`
 
-True when a branch requests, or when the branch jumps out and the member requests anywhere.
+True when a branch requests, or when the branch jumps out and the member requests from its condition on.
+A request before the branch runs whatever the branch decides, so it is not guarded.
+A condition that only tests presence decides nothing the engine holds and is never a guard.
+
+## `private static bool TAuditPresenceCheck(ExpressionSyntax condition)`
+
+True when the condition, past parentheses and negation, only tests for null or matches a type.
 
 ## `private static bool TAuditRequestCheck(SyntaxNode node)`
 

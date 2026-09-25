@@ -284,8 +284,8 @@ public sealed partial class PInspector : PPanel
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PIcon.PIconRead(pIconPath, pInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },

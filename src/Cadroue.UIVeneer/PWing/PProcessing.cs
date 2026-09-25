@@ -14,9 +14,9 @@ public sealed class PProcessing : PPanel
     private static readonly FontFamily pProcessingFontFamily = new("Segoe UI");
     private static readonly Brush pProcessingIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush pProcessingLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    private static readonly Thickness pProcessingStepPadding = new(12, 7, 12, 7);
+    private static readonly Thickness pProcessingStepPadding = new(12, 5, 12, 5);
     private static readonly Thickness pProcessingStepLine = new(0, 0, 0, 1);
-    private static readonly Thickness pProcessingSkipPadding = new(12, 9, 12, 9);
+    private static readonly Thickness pProcessingSkipPadding = new(12, 5, 12, 5);
     private static readonly Thickness pProcessingSkipLine = new(0, 1, 0, 0);
 
     private static readonly IReadOnlyDictionary<Key, bool> pProcessingActivateKeys = new Dictionary<Key, bool>
@@ -315,8 +315,8 @@ public sealed class PProcessing : PPanel
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PIcon.PIconRead(pIconPath, pProcessingIconBrush),
                 Stretch = Stretch.Uniform
             },

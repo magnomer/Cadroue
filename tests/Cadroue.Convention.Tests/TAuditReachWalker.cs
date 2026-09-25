@@ -12,6 +12,9 @@ internal static class TAuditReachWalker
     private static readonly Regex TAuditStaticPattern = new(
         @"x:Static\s+(?:[A-Za-z0-9_]+:)?(L[A-Z][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
+    private static readonly Regex TAuditSlotPattern = new(
+        $@"\b({string.Join('|', TAuditStrictSetting.TAuditTriggerSlots)})\s*=", RegexOptions.Compiled);
+
     public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> markupPaths)
     {
         List<TViolation> violations = [];
@@ -68,6 +71,7 @@ internal static class TAuditReachWalker
         IReadOnlySet<string> deportment,
         List<TViolation> violations)
     {
+        TAuditTriggerScan(path, element, violations);
         foreach (XAttribute attribute in element.Attributes())
         {
             int line = ((IXmlLineInfo)attribute).LineNumber;
@@ -88,6 +92,32 @@ internal static class TAuditReachWalker
         foreach (XText text in element.Nodes().OfType<XText>())
         {
             TAuditValueScan(path, ((IXmlLineInfo)text).LineNumber, "text", text.Value, deportment, violations);
+        }
+    }
+
+    private static void TAuditTriggerScan(string path, XElement element, List<TViolation> violations)
+    {
+        string name = element.Name.LocalName;
+        if (TAuditStrictSetting.TAuditTriggerElements.Contains(name, StringComparer.Ordinal))
+        {
+            violations.Add(new TViolation(
+                path, ((IXmlLineInfo)element).LineNumber, name, "Trigger", "markup branches on a condition"));
+        }
+
+        foreach (XAttribute attribute in element.Attributes().Where(attribute => !attribute.IsNamespaceDeclaration))
+        {
+            int line = ((IXmlLineInfo)attribute).LineNumber;
+            string slot = attribute.Name.LocalName;
+            if (TAuditStrictSetting.TAuditTriggerSlots.Contains(slot, StringComparer.Ordinal))
+            {
+                violations.Add(new TViolation(path, line, slot, "Trigger", $"binding {slot} computes in markup"));
+            }
+
+            foreach (Match match in TAuditSlotPattern.Matches(attribute.Value))
+            {
+                string found = match.Groups[1].Value;
+                violations.Add(new TViolation(path, line, found, "Trigger", $"binding {found} computes in markup"));
+            }
         }
     }
 

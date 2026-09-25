@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditChainSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditChainReach = new Dictionary<string, string[]>
     {
@@ -45,7 +45,7 @@ internal static class TAuditChainSetting
         ["reach:Cadroue.UIDeportment>Cadroue.Application"] = 76,
         ["reach:Cadroue.UIDeportment>Cadroue.Core"] = 58,
         ["reach:Cadroue.UIVeneer>Cadroue.Application"] = 106,
-        ["reach:Cadroue.UIVeneer>Cadroue.Core"] = 27,
+        ["reach:Cadroue.UIVeneer>Cadroue.Core"] = 25,
         ["reach:Cadroue.UIVeneer>Cadroue.ShellEngine"] = 4,
     };
 

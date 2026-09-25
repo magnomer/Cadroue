@@ -21,8 +21,8 @@ internal static class PSInline
         Content = new Image
         {
             Source = PAsset.PIcon.PIconRead(pIconPath, PSField.PSFieldText),
-            Width = 16,
-            Height = 16,
+            Width = 22,
+            Height = 22,
             Stretch = Stretch.Uniform
         },
         Width = 40,

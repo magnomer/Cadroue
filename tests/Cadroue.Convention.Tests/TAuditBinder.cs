@@ -26,6 +26,8 @@ internal static class TAuditBinder
 
     public static IReadOnlyList<SyntaxTree> TAuditTrees => TAuditTracked.Value;
 
+    public static CSharpCompilation TAuditCompilation => TAuditBinderCompilation.Value;
+
     public static SemanticModel TAuditModelRead(SyntaxTree tree)
     {
         lock (TAuditModels)
@@ -342,7 +344,7 @@ internal static class TAuditBinder
                 continue;
             }
 
-            files.AddRange(Directory.EnumerateFiles(target, "*.cs", SearchOption.TopDirectoryOnly)
+            files.AddRange(Directory.EnumerateFiles(target, "*.cs", SearchOption.AllDirectories)
                 .Where(path => !Path.GetFileName(path).Contains("_wpftmp", StringComparison.Ordinal))
                 .Where(path => !path.EndsWith(".g.i.cs", StringComparison.OrdinalIgnoreCase)));
         }

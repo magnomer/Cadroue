@@ -106,7 +106,7 @@ internal sealed class PSAbout : Window
 
         var pLogo = new Image
         {
-            Source = PIcon.PIconRead(PSAboutLogoPath),
+            Source = PIcon.PIconRead(PSAboutLogoPath, PSAboutLogoSize),
             Width = PSAboutLogoSize,
             Height = PSAboutLogoSize,
             Stretch = Stretch.Uniform,

@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditTruthSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
     public const bool TAuditTruthEnforced = true;
     public const string TAuditTruthReport = "temp/audit/Custody-{0}.md";
     public const string TAuditStateSuffix = "State";
@@ -15,13 +15,11 @@ internal static class TAuditTruthSetting
     [
         "src/Cadroue.UIVeneer/*.cs",
         "src/Cadroue.UIDeportment/*.cs",
-        "src/Cadroue.UIShell/*.cs",
     ];
 
     public static readonly string[] TAuditTruthInclude =
     [
-        "src/Cadroue.UIVeneer/*.cs",
-        "src/Cadroue.UIShell/*.cs",
+        "src/Cadroue.UIDeportment/*.cs",
     ];
 
     public static readonly string[] TAuditFrameworkPacks =
@@ -96,15 +94,73 @@ internal static class TAuditTruthSetting
         "Value",
     ];
 
-    public static readonly string[] TAuditTruthHandles = [];
+    public static readonly string[] TAuditTruthHandles =
+    [
+        "LDocket",
+        "LGroupSelection",
+        "LMpv",
+        "LPresetSelection",
+        "LRelay",
+        "LScheduleContract",
+        "LSegment",
+        "LStation",
+    ];
 
     public static readonly IReadOnlyDictionary<string, int> TAuditTruthCeiling = new Dictionary<string, int>
     {
-        ["Argument"] = 81,
-        ["Guard"] = 57,
-        ["Fork"] = 0,
-        ["Mirror"] = 5,
-        ["Mutation"] = 53,
-        ["Shape"] = 6,
+        ["Argument"] = 720,
+        ["Guard"] = 294,
+        ["Fork"] = 45,
+        ["Mirror"] = 64,
+        ["Mutation"] = 171,
+        ["Shape"] = 1,
+        ["Treat"] = 828,
+        ["Taint"] = 411,
     };
+
+    public static readonly string[] TAuditTreatVerbs =
+    [
+        "Aggregate",
+        "All",
+        "Any",
+        "Average",
+        "Concat",
+        "Contains",
+        "Count",
+        "Distinct",
+        "DistinctBy",
+        "Except",
+        "First",
+        "FirstOrDefault",
+        "GroupBy",
+        "GroupJoin",
+        "Intersect",
+        "Join",
+        "Last",
+        "LastOrDefault",
+        "Max",
+        "MaxBy",
+        "Min",
+        "MinBy",
+        "OrderBy",
+        "OrderByDescending",
+        "Reverse",
+        "Select",
+        "SelectMany",
+        "Single",
+        "SingleOrDefault",
+        "Skip",
+        "SkipWhile",
+        "Sum",
+        "Take",
+        "TakeWhile",
+        "ThenBy",
+        "ThenByDescending",
+        "ToDictionary",
+        "ToHashSet",
+        "ToLookup",
+        "Union",
+        "Where",
+        "Zip",
+    ];
 }

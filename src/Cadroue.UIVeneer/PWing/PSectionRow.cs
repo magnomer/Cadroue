@@ -135,7 +135,7 @@ public sealed class PSectionRow
 
         PSectionRowBorder = new Border
         {
-            Padding = new Thickness(12, 7, 12, 7),
+            Padding = new Thickness(12, 5, 12, 5),
             Background = pSectionBackgrounds[lRow.LSectionRowSelected],
             BorderBrush = pSectionLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),

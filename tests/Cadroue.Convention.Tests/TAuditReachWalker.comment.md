@@ -2,7 +2,8 @@
 
 ## `internal static class TAuditReachWalker`
 
-Parses the shell markup as XML and looks at every attribute and text node for a reach into logic.
+Parses the veneer markup as XML and looks at every element, attribute and text node.
+A reach into logic is a Reach hit, and a trigger or a computing binding is a Trigger hit.
 A name that starts with `L` and a capital is a logic name, wherever it stands in a value.
 A name the Deportment namespace declares is the shell's own state and is not a reach.
 
@@ -13,6 +14,10 @@ A logic name standing alone inside a value, whether a binding path, a parameter 
 ## `private static readonly Regex TAuditStaticPattern`
 
 The logic type an `x:Static` reads.
+
+## `private static readonly Regex TAuditSlotPattern`
+
+A computing slot set inside a markup extension, such as a binding's `StringFormat=`.
 
 ## `public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> markupPaths)`
 
@@ -26,8 +31,12 @@ A file that does not parse is skipped here and reported by the reach walk.
 
 ## `private static void TAuditElementScan(string path, XElement element, IReadOnlySet<string> deportment, List<TViolation> violations)`
 
-Every attribute but `x:Class` and every text node of one element.
+The trigger scan first, then every attribute but `x:Class` and every text node of one element.
 A namespace declaration goes to the namespace scan, the rest to the value scan.
+
+## `private static void TAuditTriggerScan(string path, XElement element, List<TViolation> violations)`
+
+One hit for a trigger element, and one per computing slot in an attribute or a value.
 
 ## `private static void TAuditNamespaceScan(string path, int line, string value, List<TViolation> violations)`
 

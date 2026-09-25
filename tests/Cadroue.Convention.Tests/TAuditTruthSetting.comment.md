@@ -1,9 +1,9 @@
 # TAuditTruthSetting.cs
 
-## `internal static partial class TAuditTruthSetting`
+## `internal static class TAuditTruthSetting`
 
-Hand-written and tracked: the truth-audit scope, the binder inputs and the ceilings live here.
-There is no waiver and no handle list, since the binder says what is logic.
+Hand-written and tracked: the deportment-audit scope, the binder inputs and the ceilings live here.
+There is no waiver, since the binder says what is logic.
 A ceiling is the only tolerance.
 No script writes this file.
 
@@ -40,13 +40,13 @@ The project whose build output carries every package the source references.
 
 ## `public static readonly string[] TAuditShellInclude`
 
-The `git ls-files` patterns of every shell source.
-A type declared under one of these is shell, and a type declared under any other source is logic.
+The `git ls-files` patterns of every UI source, the veneer and the deportment both.
+A type declared under one of these is UI, and a type declared under any other source is logic.
 
 ## `public static readonly string[] TAuditTruthInclude`
 
-The patterns of the sources the custody walk audits, the Veneer alone.
-The Deportment owns UI state by design, so holding or passing a logic value there is not a custody hit.
+The patterns of the sources the deportment walks audit.
+The veneer is left to the veneer audit, where holding anything is already a hit.
 
 ## `public static readonly string[] TAuditFrameworkPacks`
 
@@ -84,13 +84,20 @@ The members of a control that carry what the user typed or chose.
 
 ## `public static readonly string[] TAuditTruthHandles`
 
-Types a shell field may hold as a handle to the engine rather than as a value.
-Empty here: the shell holds no engine port, and every logic value it keeps is a mirror.
+Types a deportment field may hold as a handle to the engine rather than as a value.
+A handle is called on and passed back, so the field is skipped before any rule reads it.
+Each is a live logic owner a tab hands its deportment: docket, selections, schedule, station, segment.
+`LMpv` is the embedded player library and `LRelay` the cross-instance channel.
+A type is matched as the binder shows it, with any nullable mark dropped.
 
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditTruthCeiling`
 
 The hit count each kind may reach.
 A count above fails the fact, a ceiling above the count is stale and fails too.
-Lower a ceiling when the shell sheds a hit, never raise one to admit a new one.
+Lower a ceiling when the deportment sheds a hit, never raise one to admit a new one.
+
+## `public static readonly string[] TAuditTreatVerbs`
+
+Query methods that, applied to a logic value, are data treatment.
 
 

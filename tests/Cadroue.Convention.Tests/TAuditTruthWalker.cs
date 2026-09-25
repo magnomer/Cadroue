@@ -328,12 +328,15 @@ internal static partial class TAuditTruthWalker
 
         if (engineWrite is not null && plainWrite is not null)
         {
+            string where = engineWrite.SyntaxTree == plainWrite.SyntaxTree
+                ? $"line {TAuditLineRead(engineWrite)}"
+                : $"{Path.GetFileName(engineWrite.SyntaxTree.FilePath)}:{TAuditLineRead(engineWrite)}";
             violations.Add(new TViolation(
                 plainWrite.SyntaxTree.FilePath,
                 TAuditLineRead(plainWrite),
                 field.TFieldName,
                 "Fork",
-                $"written by the engine at line {TAuditLineRead(engineWrite)} and by the shell here"));
+                $"written by the engine at {where} and by the shell here"));
         }
     }
 

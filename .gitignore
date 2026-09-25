@@ -80,11 +80,8 @@ Thumbs.db
 ehthumbs.db
 $RECYCLE.BIN/
 
-# AI / local project state
-.agents/
-.claude/
-.codegraph/
-.codex/
+# Ignore all dot-prefixed directories at any depth
+**/.*/
 
 # Project-internal material
 /docs-internal/
@@ -92,15 +89,31 @@ $RECYCLE.BIN/
 /snapshots/
 /import/
 
-# Build-lifecycle helper scripts
-/*.ps1
+# Local maintenance helper scripts
 /scripts
-
-# Root JSON files configure the local scripts; only the one the convention tests read is tracked
-/*.json
-!/version.json
 
 # Temporary gitignore
 /docs/
 /sample/local/
 
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Ignore root-level files and folders by default.
+/*
+
+# Keep the root build inputs and their project companion files.
+!/.gitignore
+!/Directory.Build.props
+!/Directory.Build.comment.md
+!/Cadroue.slnx
+!/Cadroue.comment.md
+!/version.json
+!/version.comment.md
+!/assets/
+!/languages/
+!/localization/
+!/src/
+!/tests/
+!/themes/

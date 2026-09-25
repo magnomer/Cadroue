@@ -264,8 +264,8 @@ internal sealed partial class PSOptions
             Content = new Image
             {
                 Source = PIcon.PIconRead(PSSpectrumRemoveIcon, PSFieldText),
-                Width = 12,
-                Height = 12,
+                Width = 18,
+                Height = 18,
                 Stretch = Stretch.Uniform
             }
         };

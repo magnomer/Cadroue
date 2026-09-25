@@ -36,18 +36,18 @@ internal sealed partial class PSOptions : Window
 
     private readonly LSOptions lsOptions;
     private readonly LSSpectrum lsSpectrum;
-    private readonly Action<LPreferenceState>? psOptionsCallback;
+    private readonly Action? psOptionsCallback;
 
     private LPreferenceState lsOptionsDraft => lsOptions.LSOptionsDraft;
     private readonly PSGrabber psOptionsGrabber;
 
-    internal static void PSOptionsShow(Window pOwner, Action<LPreferenceState>? pApplyCallback)
+    internal static void PSOptionsShow(Window pOwner, Action? pApplyCallback)
     {
         var psOptions = new PSOptions(pOwner, pApplyCallback);
         psOptions.ShowDialog();
     }
 
-    private PSOptions(Window pOwner, Action<LPreferenceState>? pApplyCallback)
+    private PSOptions(Window pOwner, Action? pApplyCallback)
     {
         lsOptions = new LSOptions();
         lsSpectrum = new LSSpectrum(lsOptions.LSOptionsDraft.LPreferenceSectionPalette);
@@ -241,7 +241,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
         bool psOptionsSaved = lsOptions.LSOptionsApply();
-        psOptionsCallback?.Invoke(LPreference.LPreferenceStateCurrent);
+        psOptionsCallback?.Invoke();
         PSSystemMaintenanceUpdate();
         psOptionsRecordNotice?.Invoke();
         if (!psOptionsSaved)

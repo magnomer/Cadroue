@@ -79,6 +79,7 @@ A `??=` whose right side requests caches the answer and is a mirror.
 Visits every reference to the field, outside its class only when the field is shared.
 A write is sorted by its writer.
 A field with an engine writer and a shell writer is a fork.
+The hit names the engine write by file when that write lies in another file.
 A read is checked once per member scope.
 
 ## `private static void TAuditScopeCheck(`

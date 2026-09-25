@@ -151,7 +151,7 @@
                         MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <Image Width="17" Height="17" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
+                        <Image Width="22" Height="22" Style="{StaticResource pTabIconStyle}" Margin="0,0,5,0" />
                         <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
@@ -186,7 +186,7 @@
                         MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <Image Width="17" Height="17" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
+                        <Image Width="22" Height="22" Style="{StaticResource pTabIconStyle}" Margin="0,0,5,0" />
                         <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">

@@ -32,17 +32,17 @@ internal sealed class PSKeymap : Window
     private const string PSSheetSplitIcon = "/PAsset/PTab/PSplitButton.svg";
 
     private readonly LSKeymap lsKeymap;
-    private readonly Action<LPreferenceState>? psKeymapCallback;
+    private readonly Action? psKeymapCallback;
     private readonly PSGrabber psKeymapGrabber;
     private readonly Dictionary<string, PSKeymapChord> psKeymapChords = new(StringComparer.Ordinal);
 
-    internal static void PSKeymapShow(Window pOwner, Action<LPreferenceState>? pApplyCallback)
+    internal static void PSKeymapShow(Window pOwner, Action? pApplyCallback)
     {
         var psKeymap = new PSKeymap(pOwner, pApplyCallback);
         psKeymap.ShowDialog();
     }
 
-    private PSKeymap(Window pOwner, Action<LPreferenceState>? pApplyCallback)
+    private PSKeymap(Window pOwner, Action? pApplyCallback)
     {
         lsKeymap = new LSKeymap();
         psKeymapCallback = pApplyCallback;
@@ -165,7 +165,7 @@ internal sealed class PSKeymap : Window
     private void PSKeymapApply()
     {
         lsKeymap.LSKeymapApply();
-        psKeymapCallback?.Invoke(LPreference.LPreferenceStateCurrent);
+        psKeymapCallback?.Invoke();
     }
 
     private void PSKeymapCloseHandle(object? sender, EventArgs e)

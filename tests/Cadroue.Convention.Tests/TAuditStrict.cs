@@ -1,6 +1,5 @@
 using System.Text;
 using System.Text.RegularExpressions;
-using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -13,7 +12,7 @@ public sealed class TAuditStrict
 
     private static readonly Lazy<string> TAuditStrictWritten = new(TAuditReportSave);
 
-    private static readonly string[] TAuditStrictKinds = ["Storage", "Flow", "Treat", "Reach", "Taint"];
+    private static readonly string[] TAuditStrictKinds = ["Storage", "Call", "Engine", "Reach", "Trigger"];
 
     private static readonly Regex TAuditLiteralPattern = new(
         @"@?""(?:[^""\\]|\\.)*""|//.*$",
@@ -29,31 +28,31 @@ public sealed class TAuditStrict
     [Fact]
     public void AuditStrict_VeneerFields_HoldNothing()
     {
-        TAuditStrictCheck("Storage", "veneer field(s) hold state");
+        TAuditStrictCheck("Storage", "veneer field(s), property(ies) or parameter(s) hold state");
     }
 
     [Fact]
-    public void AuditStrict_VeneerMembers_BranchNever()
+    public void AuditStrict_VeneerMembers_CallOnly()
     {
-        TAuditStrictCheck("Flow", "veneer member(s) branch or compute");
+        TAuditStrictCheck("Call", "veneer line(s) do more than call a function");
     }
 
     [Fact]
-    public void AuditStrict_ShellSources_TreatNoData()
+    public void AuditStrict_VeneerSources_ReachNoEngine()
     {
-        TAuditStrictCheck("Treat", "shell line(s) compute over logic values");
+        TAuditStrictCheck("Engine", "veneer line(s) reach the engine");
     }
 
     [Fact]
-    public void AuditStrict_ShellMarkup_ReachNoLogic()
+    public void AuditStrict_VeneerMarkup_ReachNoEngine()
     {
-        TAuditStrictCheck("Reach", "markup line(s) reach into logic");
+        TAuditStrictCheck("Reach", "markup line(s) reach the engine");
     }
 
     [Fact]
-    public void AuditStrict_ShellLocals_CarryNoLogic()
+    public void AuditStrict_VeneerMarkup_BranchNever()
     {
-        TAuditStrictCheck("Taint", "shell line(s) compute over a carried logic value or control text");
+        TAuditStrictCheck("Trigger", "markup line(s) branch or compute");
     }
 
     [Fact]
@@ -66,7 +65,7 @@ public sealed class TAuditStrict
 
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITSTRICT",
-            $"{hits.Count} deportment line(s) reach the framework or the file system:\n{string.Join('\n', hits)}"));
+            $"{hits.Count} deportment line(s) reach the file system:\n{string.Join('\n', hits)}"));
     }
 
     [Fact]
@@ -172,10 +171,8 @@ public sealed class TAuditStrict
             TAuditNameSetting.TAuditExcludedPrefixes,
             []);
         IReadOnlyList<string> markups = TAuditSource.TAuditFileRead(repoRoot, markup);
-        IReadOnlySet<ISymbol> readers = TAuditTruthWalker.TAuditReaderRead(sources);
         IReadOnlyList<TViolation> hits = TAuditStrictWalker.TAuditRun(sources, out List<string> veneers)
             .Concat(TAuditReachWalker.TAuditRun(markups))
-            .Concat(TAuditTaintWalker.TAuditRun(sources, readers))
             .Select(hit => hit with
             {
                 TViolationPath = Path.GetRelativePath(repoRoot, hit.TViolationPath).Replace('\\', '/')
@@ -196,11 +193,11 @@ public sealed class TAuditStrict
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
         StringBuilder text = new();
-        text.AppendLine($"# Strict shell audit {version}");
+        text.AppendLine($"# Veneer audit {version}");
         text.AppendLine();
         text.AppendLine($"- Generation: {TAuditConvention.TAuditGeneration}");
         text.AppendLine($"- Enforced: {TAuditStrictSetting.TAuditStrictEnforced}");
-        text.AppendLine($"- Veneer classes: {veneers.Count}");
+        text.AppendLine($"- Veneer types: {veneers.Count}");
         foreach (string kind in TAuditStrictKinds)
         {
             int count = hits.Count(hit => string.Equals(hit.TViolationKind, kind, StringComparison.Ordinal));
@@ -208,17 +205,16 @@ public sealed class TAuditStrict
         }
 
         text.AppendLine();
-        text.AppendLine("## Veneer classes by member");
+        text.AppendLine("## Veneer types by member");
         text.AppendLine();
-        text.AppendLine("| Class | Storage | Flow | Treat |");
+        text.AppendLine("| Class | Storage | Call | Engine |");
         text.AppendLine("|---|---|---|---|");
         foreach (string veneer in veneers)
         {
             int storage = TAuditClassRead(hits, veneer, "Storage");
-            int flow = TAuditClassRead(hits, veneer, "Flow");
-            int treat = hits.Count(hit => string.Equals(hit.TViolationKind, "Treat", StringComparison.Ordinal)
-                && Path.GetFileName(hit.TViolationPath).StartsWith(veneer, StringComparison.Ordinal));
-            text.AppendLine($"| {veneer} | {storage} | {flow} | {treat} |");
+            int call = TAuditClassRead(hits, veneer, "Call");
+            int engine = TAuditClassRead(hits, veneer, "Engine");
+            text.AppendLine($"| {veneer} | {storage} | {call} | {engine} |");
         }
 
         foreach (string kind in TAuditStrictKinds)

@@ -280,8 +280,8 @@ public sealed class PSection : UserControl
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PIcon.PIconRead(pIconPath, pSectionIconBrush),
                 Stretch = Stretch.Uniform
             },

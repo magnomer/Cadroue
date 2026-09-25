@@ -2,7 +2,7 @@
 
 ## `internal static class TAuditStrictSetting`
 
-Hand-written and tracked: the strict-audit switch, the report path and the classifiers live here.
+Hand-written and tracked: the veneer-audit switch, the report path and the classifiers live here.
 No script writes this file.
 
 ## `public const bool TAuditStrictEnforced = true;`
@@ -10,7 +10,7 @@ No script writes this file.
 False makes every strict fact a warning that passes.
 True fails a fact when a kind counts above its ceiling.
 
-## `public const string TAuditStrictReport = "temp/audit/Truth-{0}.md";`
+## `public const string TAuditStrictReport = "temp/audit/Strict-{0}.md";`
 
 Where the report lands, with the version in the name.
 `temp` is ignored by Git, so a run never dirties the tree.
@@ -19,15 +19,16 @@ Where the report lands, with the version in the name.
 
 The hit count each kind may reach.
 A count above fails the fact, a ceiling above the count is stale and fails too.
-Lower a ceiling when the shell sheds a hit, never raise one to admit a new one.
+Lower a ceiling when the veneer sheds a hit, never raise one to admit a new one.
 
 ## `public static readonly string[] TAuditVeneerInclude`
 
-Every class under these roots is a veneer, as is any class deriving from a control base.
+The `git ls-files` patterns of the veneer sources.
+A type declared under one of these is a veneer type, whatever its base.
 
 ## `public static readonly string[] TAuditReachInclude`
 
-The `git ls-files` patterns of the shell markup.
+The `git ls-files` patterns of the veneer markup.
 
 ## `public static readonly string[] TAuditDeportmentInclude`
 
@@ -62,6 +63,10 @@ Every one cuts a file name into a trace message, work the trace writer should do
 
 Namespaces a markup file may not map, since mapping one lets a binding reach logic.
 
-## `public static readonly string[] TAuditTreatVerbs`
+## `public static readonly string[] TAuditTriggerElements`
 
-Query methods that, applied to a logic value, are data treatment.
+The markup elements that branch on a condition.
+
+## `public static readonly string[] TAuditTriggerSlots`
+
+The binding slots that convert, format or fall back, each a computation in the markup.

@@ -10,6 +10,8 @@ namespace Cadroue.UIVeneer.PAsset;
 
 public static class PIcon
 {
+    private const double PIconLargeThreshold = 60;
+
     private static readonly ConcurrentDictionary<string, ImageSource> pIconCache =
         new(StringComparer.Ordinal);
 
@@ -47,14 +49,54 @@ public static class PIcon
 
     public static ImageSource PIconRead(string pIconPath)
     {
-        return PIconRead(pIconPath, null);
+        return PIconRead(pIconPath, 32, null);
     }
 
     public static ImageSource PIconRead(string pIconPath, Brush? pTintBrush)
     {
-        Uri pIconUri = PIconUriCreate(pIconPath);
+        return PIconRead(pIconPath, 32, pTintBrush);
+    }
+
+    public static ImageSource PIconRead(string pIconPath, double pIconWidth)
+    {
+        return PIconRead(pIconPath, pIconWidth, null);
+    }
+
+    public static ImageSource PIconRead(string pIconPath, double pIconWidth, Brush? pTintBrush)
+    {
+        string pResolvedIconPath = PIconPathResolve(pIconPath, pIconWidth);
+        Uri pIconUri = PIconUriCreate(pResolvedIconPath);
         string pIconCacheKey = $"{pIconUri.AbsoluteUri}|{pTintBrush}";
-        return pIconCache.GetOrAdd(pIconCacheKey, _ => PIconCreate(pIconPath, pIconUri, pTintBrush));
+        return pIconCache.GetOrAdd(pIconCacheKey, _ => PIconCreate(pResolvedIconPath, pIconUri, pTintBrush));
+    }
+
+    private static string PIconPathResolve(string pIconPath, double pIconWidth)
+    {
+        if (!string.Equals(System.IO.Path.GetExtension(pIconPath), ".svg", StringComparison.OrdinalIgnoreCase))
+        {
+            return pIconPath;
+        }
+
+        string pNormalizedPath = pIconPath.Replace('\\', '/');
+        int pAssetStart = pNormalizedPath.IndexOf("/PAsset/", StringComparison.OrdinalIgnoreCase);
+        int pFileStart = pNormalizedPath.LastIndexOf('/') + 1;
+        if (pAssetStart < 0 || pFileStart <= pAssetStart + "/PAsset/".Length)
+        {
+            return pIconPath;
+        }
+
+        string pIconFolder = pNormalizedPath[(pAssetStart + "/PAsset/".Length)..(pFileStart - 1)];
+        string pIconName = System.IO.Path.GetFileNameWithoutExtension(pNormalizedPath);
+        if (pIconName.StartsWith('P'))
+        {
+            pIconName = pIconName.Substring(1);
+        }
+
+        string pResolution = pIconWidth < PIconLargeThreshold ? "P32" : "P256";
+        string pBitmapPath = $"/PAsset/{pResolution}/{pIconFolder}/{pIconName}.png";
+        var pBitmapResource = System.Windows.Application.GetResourceStream(PIconUriCreate(pBitmapPath));
+        using var pBitmapStream = pBitmapResource?.Stream;
+        return pBitmapResource is null ? pIconPath : pBitmapPath;
     }
 
     private static ImageSource PIconCreate(string pIconPath, Uri pIconUri, Brush? pTintBrush) =>
@@ -64,7 +106,54 @@ public static class PIcon
     {
         var pIconBitmap = new BitmapImage(pIconUri);
         pIconBitmap.Freeze();
-        return pIconBitmap;
+        return PIconBitmapResolve(pIconUri, pIconBitmap);
+    }
+
+    private static BitmapSource PIconBitmapResolve(Uri pIconUri, BitmapSource pIconBitmap)
+    {
+        string pIconAssetPath = pIconUri.AbsolutePath;
+        if (!pIconAssetPath.Contains("/P32/", StringComparison.OrdinalIgnoreCase)
+            && !pIconAssetPath.Contains("/P256/", StringComparison.OrdinalIgnoreCase))
+        {
+            return pIconBitmap;
+        }
+
+        int pWidth = pIconBitmap.PixelWidth;
+        int pHeight = pIconBitmap.PixelHeight;
+        var pPixels = new byte[pWidth * pHeight * 4];
+        var pBgraBitmap = new FormatConvertedBitmap(pIconBitmap, PixelFormats.Bgra32, null, 0);
+        pBgraBitmap.CopyPixels(pPixels, pWidth * 4, 0);
+
+        int pLeft = pWidth;
+        int pTop = pHeight;
+        int pRight = -1;
+        int pBottom = -1;
+        for (int pY = 0; pY < pHeight; pY++)
+        {
+            for (int pX = 0; pX < pWidth; pX++)
+            {
+                if (pPixels[(pY * pWidth + pX) * 4 + 3] == 0)
+                {
+                    continue;
+                }
+
+                pLeft = Math.Min(pLeft, pX);
+                pTop = Math.Min(pTop, pY);
+                pRight = Math.Max(pRight, pX);
+                pBottom = Math.Max(pBottom, pY);
+            }
+        }
+
+        if (pRight < pLeft || (pRight - pLeft + 1) * (pBottom - pTop + 1) == pWidth * pHeight)
+        {
+            return pIconBitmap;
+        }
+
+        var pIconCropped = new CroppedBitmap(
+            pIconBitmap,
+            new Int32Rect(pLeft, pTop, pRight - pLeft + 1, pBottom - pTop + 1));
+        pIconCropped.Freeze();
+        return pIconCropped;
     }
 
     private static ImageSource PIconSvgRead(Uri pIconUri, Brush? pTintBrush)

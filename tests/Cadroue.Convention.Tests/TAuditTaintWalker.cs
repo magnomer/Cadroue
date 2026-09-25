@@ -53,7 +53,7 @@ internal static class TAuditTaintWalker
                          && !TAuditStrictWalker.TAuditNullCheck(binary.Right)
                     => (binary, $"in {binary.OperatorToken.ValueText}"),
                 InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax access } query
-                    when TAuditStrictSetting.TAuditTreatVerbs.Contains(
+                    when TAuditTruthSetting.TAuditTreatVerbs.Contains(
                         access.Name.Identifier.ValueText, StringComparer.Ordinal)
                     => (query, $"queried by {access.Name.Identifier.ValueText}"),
                 IfStatementSyntax branch when TAuditConditionCheck(branch.Condition)

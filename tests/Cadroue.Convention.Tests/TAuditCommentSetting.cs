@@ -2,14 +2,22 @@ namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
     public const int TAuditCommentWords = 20;
     public const string TAuditCommentPattern = "*.comment.md";
 
     public static readonly string[] TAuditCommentRoots =
     [
+        "localization",
         "src",
         "tests",
+    ];
+
+    public static readonly string[] TAuditCommentFiles =
+    [
+        "Directory.Build.props",
+        "Cadroue.sln",
+        "version.json",
     ];
 
     public static readonly string[] TAuditCommentForbidden =
@@ -36,6 +44,12 @@ internal static class TAuditCommentSetting
         "publish",
     ];
 
+    public static readonly string[] TAuditCommentSources =
+    [
+        "*.csproj",
+        "*.json",
+    ];
+
     public static readonly string[] TAuditCommentSuffixes =
     [
         ".g.cs",
@@ -54,5 +68,6 @@ internal static class TAuditCommentSetting
     {
         [".cs"] = ["//", "/*"],
         [".xaml"] = ["<!--"],
+        [".props"] = ["<!--"],
     };
 }

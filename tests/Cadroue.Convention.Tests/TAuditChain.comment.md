@@ -26,6 +26,10 @@ No ring reaches more than one ring, and every ring reached is declared.
 
 No pair holds more files reaching behaviour past the neighbour than its ceiling.
 
+## `public void AuditChain_ShellEngine_OpensNoVaultSession()`
+
+Opening a vault session belongs to a clerk, and this fact fails the build if shell code does it.
+
 ## `public void AuditChain_Sources_NameNoOuterRing()`
 
 No pair holds more files naming an outer ring than its ceiling.

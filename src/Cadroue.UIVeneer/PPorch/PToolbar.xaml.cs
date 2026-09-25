@@ -47,7 +47,7 @@ public partial class PToolbar : UserControl
 
     private readonly LChrome lChrome = new();
 
-    public event Action<LPreferenceState>? PToolbarOptionsApply;
+    public event Action? PToolbarOptionsApply;
 
     public PToolbar()
     {

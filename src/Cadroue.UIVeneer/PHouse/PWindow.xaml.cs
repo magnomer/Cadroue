@@ -35,8 +35,8 @@ public partial class PWindow : Window
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         lWindow.LWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
-        pToolbar.PToolbarOptionsApply += lWindow.LWindowOptionsHandle;
-        lWindow.LWindowOptionsHandle(LPreference.LPreferenceStateCurrent);
+        pToolbar.PToolbarOptionsApply += lWindow.LWindowOptionsApply;
+        lWindow.LWindowOptionsApply();
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
         pStrip.LStrip.LStripSelectChange += PWindowTabHandle;
         PWindowTabHandle(pStrip.LStrip.LStripSelected);
@@ -227,7 +227,7 @@ public partial class PWindow : Window
         lWindow.LWindowClose();
         LAskNotice.LAskRaise -= PWindowAskHandle;
         pStrip.LStrip.LStripSelectChange -= PWindowTabHandle;
-        pToolbar.PToolbarOptionsApply -= lWindow.LWindowOptionsHandle;
+        pToolbar.PToolbarOptionsApply -= lWindow.LWindowOptionsApply;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();

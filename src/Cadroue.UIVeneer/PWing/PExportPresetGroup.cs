@@ -29,8 +29,8 @@ public sealed partial class PExport
         {
             Content = new Image
             {
-                Width = 12,
-                Height = 12,
+                Width = 16,
+                Height = 16,
                 Source = PIcon.PIconRead(pCollapsed ? PExportExpandIcon : PExportCollapseIcon, PExportMutedBrush),
                 Stretch = Stretch.Uniform
             },

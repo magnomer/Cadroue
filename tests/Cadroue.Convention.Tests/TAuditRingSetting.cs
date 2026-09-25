@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditRingSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditRingEdges = new Dictionary<string, string[]>
     {

@@ -242,8 +242,8 @@ public sealed class PFunnelRules : PPanel
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PAsset.PIcon.PIconRead(pIconPath, pFunnelIconBrush),
                 Stretch = Stretch.Uniform
             },

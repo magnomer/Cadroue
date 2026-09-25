@@ -45,6 +45,30 @@ public sealed class TAuditChain
     }
 
     [Fact]
+    public void AuditChain_ShellEngine_OpensNoVaultSession()
+    {
+        string repoRoot = TAuditSource.TAuditRootRead();
+        TAuditScope scope = new(["src/Cadroue.ShellEngine"], ["*.cs"], ["bin", "obj"], [], [], []);
+        List<string> hits = [];
+        foreach (string path in TAuditSource.TAuditFileRead(repoRoot, scope))
+        {
+            string[] lines = File.ReadAllLines(path);
+            for (int index = 0; index < lines.Length; index++)
+            {
+                if (lines[index].Contains("LVaultSessionStart", StringComparison.Ordinal))
+                {
+                    string relative = Path.GetRelativePath(repoRoot, path).Replace('\\', '/');
+                    hits.Add($"  {relative}:{index + 1}");
+                }
+            }
+        }
+
+        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+            TAuditChainAudit,
+            $"{hits.Count} shell line(s) open a vault session, which belongs to a clerk:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
     public void AuditChain_Sources_NameNoOuterRing()
     {
         TAuditPair.TAuditPairCheck(

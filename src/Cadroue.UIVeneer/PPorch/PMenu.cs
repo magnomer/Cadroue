@@ -14,7 +14,7 @@ internal static class PMenu
     private static readonly Brush pMenuTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush pMenuHighlightBrush = new SolidColorBrush(Color.FromRgb(0xEC, 0xF3, 0xFF));
 
-    private const double PMenuIconSize = 16;
+    private const double PMenuIconSize = 20;
 
     static PMenu()
     {
@@ -120,7 +120,7 @@ internal static class PMenu
             new Binding("Icon") { RelativeSource = RelativeSource.TemplatedParent });
         pIcon.SetValue(DockPanel.DockProperty, Dock.Left);
         pIcon.SetValue(FrameworkElement.WidthProperty, PMenuIconSize);
-        pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 10, 0));
+        pIcon.SetValue(FrameworkElement.MarginProperty, new Thickness(0, 0, 6, 0));
         pIcon.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pRowContent.AppendChild(pIcon);
 

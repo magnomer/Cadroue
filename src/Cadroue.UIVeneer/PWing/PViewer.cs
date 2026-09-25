@@ -192,8 +192,8 @@ public sealed class PViewer : PPanel
         {
             Content = new Image
             {
-                Width = 12,
-                Height = 12,
+                Width = 16,
+                Height = 16,
                 Source = PIcon.PIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
                 Stretch = Stretch.Uniform
             },

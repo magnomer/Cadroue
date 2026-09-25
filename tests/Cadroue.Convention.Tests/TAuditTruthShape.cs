@@ -51,7 +51,8 @@ internal static partial class TAuditTruthWalker
         foreach (MemberAccessExpressionSyntax access in condition.DescendantNodesAndSelf()
                      .OfType<MemberAccessExpressionSyntax>())
         {
-            if (TAuditBinder.TAuditControlCheck(TAuditBinder.TAuditTypeRead(access.Expression)))
+            if (TAuditBinder.TAuditControlCheck(TAuditBinder.TAuditTypeRead(access.Expression))
+                && !TAuditBinder.TAuditLogicCheck(access))
             {
                 return access.Expression.ToString();
             }

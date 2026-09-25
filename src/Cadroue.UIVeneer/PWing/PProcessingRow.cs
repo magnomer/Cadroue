@@ -70,19 +70,19 @@ public sealed class PProcessingRow
             Height = 18,
             CornerRadius = new CornerRadius(9),
             Background = new SolidColorBrush(Color.FromRgb(0xE8, 0xEE, 0xF6)),
-            Margin = new Thickness(0, 0, 8, 0),
+            Margin = new Thickness(0, 0, 4, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Visibility = Visibility.Collapsed,
             Child = pProcessingRowNumber
         };
         pProcessingRowIcon = new Image
         {
-            Width = 14,
-            Height = 14,
+            Width = 18,
+            Height = 18,
             Source = PIcon.PIconRead(pIconPath, pProcessingIconBrushes[false]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 4, 0)
         };
         pProcessingRowLabel = new TextBlock
         {

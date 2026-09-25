@@ -117,8 +117,9 @@ public sealed class LWindow
         }
     }
 
-    public void LWindowOptionsHandle(LPreferenceState lPreference)
+    public void LWindowOptionsApply()
     {
+        LPreferenceState lPreference = LPreference.LPreferenceStateCurrent;
         LWindowLayoutChange?.Invoke(lPreference.LPreferenceVerticalTabs);
         if (lPreference.LPreferenceVerticalTabs)
         {

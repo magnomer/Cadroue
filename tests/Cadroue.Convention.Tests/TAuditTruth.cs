@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.CodeAnalysis;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -10,7 +11,10 @@ public sealed class TAuditTruth
 
     private static readonly Lazy<string> TAuditTruthWritten = new(TAuditReportSave);
 
-    private static readonly string[] TAuditTruthKinds = ["Argument", "Guard", "Fork", "Mirror", "Mutation", "Shape"];
+    private static readonly string[] TAuditTruthKinds =
+        ["Argument", "Guard", "Fork", "Mirror", "Mutation", "Shape", "Treat", "Taint"];
+
+    private static readonly string[] TAuditLineKinds = ["Mutation", "Treat", "Taint"];
 
     private readonly ITestOutputHelper _tAuditOutput;
 
@@ -20,34 +24,46 @@ public sealed class TAuditTruth
     }
 
     [Fact]
-    public void AuditTruth_ShellFields_ReachNoRequest()
+    public void AuditTruth_DeportmentFields_ReachNoRequest()
     {
-        TAuditTruthCheck("Argument", "shell field(s) carry a value into an engine request");
-        TAuditTruthCheck("Guard", "shell field(s) decide an engine request");
+        TAuditTruthCheck("Argument", "deportment field(s) carry a value into an engine request");
+        TAuditTruthCheck("Guard", "deportment field(s) decide an engine request");
     }
 
     [Fact]
-    public void AuditTruth_ShellFields_KeepOneWriter()
+    public void AuditTruth_DeportmentFields_KeepOneWriter()
     {
-        TAuditTruthCheck("Fork", "shell field(s) are written by the engine and by the shell");
+        TAuditTruthCheck("Fork", "deportment field(s) are written by the engine and by the deportment");
     }
 
     [Fact]
-    public void AuditTruth_ShellFields_HoldNoLogic()
+    public void AuditTruth_DeportmentFields_HoldNoLogic()
     {
-        TAuditTruthCheck("Mirror", "shell field(s) hold a logic value");
+        TAuditTruthCheck("Mirror", "deportment field(s) hold a logic value");
     }
 
     [Fact]
-    public void AuditTruth_ShellSources_MutateNoLogic()
+    public void AuditTruth_DeportmentSources_MutateNoLogic()
     {
-        TAuditTruthCheck("Mutation", "shell line(s) assign a logic member");
+        TAuditTruthCheck("Mutation", "deportment line(s) assign a logic member");
     }
 
     [Fact]
-    public void AuditTruth_ShellShape_DrivesNoRequest()
+    public void AuditTruth_DeportmentShape_DrivesNoRequest()
     {
-        TAuditTruthCheck("Shape", "shell control(s), timer(s) or handler(s) drive a request");
+        TAuditTruthCheck("Shape", "deportment control(s), timer(s) or handler(s) drive a request");
+    }
+
+    [Fact]
+    public void AuditTruth_DeportmentSources_TreatNoData()
+    {
+        TAuditTruthCheck("Treat", "deportment line(s) compute over logic values");
+    }
+
+    [Fact]
+    public void AuditTruth_DeportmentLocals_CarryNoData()
+    {
+        TAuditTruthCheck("Taint", "deportment line(s) compute over a carried logic value or control text");
     }
 
     [Fact]
@@ -94,7 +110,7 @@ public sealed class TAuditTruth
         IReadOnlyList<TViolation> hits = TAuditTruthHits.Value;
 
         StringBuilder text = new();
-        text.AppendLine($"# Custody audit {version}");
+        text.AppendLine($"# Deportment audit {version}");
         text.AppendLine();
         text.AppendLine($"- Generation: {TAuditConvention.TAuditGeneration}");
         text.AppendLine($"- Enforced: {TAuditTruthSetting.TAuditTruthEnforced}");
@@ -109,7 +125,7 @@ public sealed class TAuditTruth
         text.AppendLine("| Field | Hits |");
         text.AppendLine("|---|---|");
         IEnumerable<IGrouping<string, TViolation>> fields = hits
-            .Where(hit => !string.Equals(hit.TViolationKind, "Mutation", StringComparison.Ordinal))
+            .Where(hit => !TAuditLineKinds.Contains(hit.TViolationKind, StringComparer.Ordinal))
             .GroupBy(hit => hit.TViolationName, StringComparer.Ordinal)
             .OrderByDescending(group => group.Count())
             .ThenBy(group => group.Key, StringComparer.Ordinal);
@@ -155,7 +171,10 @@ public sealed class TAuditTruth
         Assert.True(sources.Count > 0, TAuditConvention.TAuditReportFormat(
             "AUDITTRUTH", $"No tracked file matches {string.Join(' ', TAuditTruthSetting.TAuditShellInclude)}."));
 
+        IReadOnlySet<ISymbol> readers = TAuditTruthWalker.TAuditReaderRead(sources);
         return TAuditTruthWalker.TAuditRun(sources)
+            .Concat(TAuditTreatWalker.TAuditRun(sources))
+            .Concat(TAuditTaintWalker.TAuditRun(sources, readers))
             .Select(hit => hit with
             {
                 TViolationPath = Path.GetRelativePath(repoRoot, hit.TViolationPath).Replace('\\', '/')

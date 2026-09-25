@@ -26,8 +26,11 @@ internal static partial class TAuditTruthWalker
         bool toggled = scope.DescendantNodes()
             .Where(node => node is InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax)
             .Where(node => TAuditCallRead((ExpressionSyntax)node) is not null)
-            .Any(request => writes.Any(write => write.SpanStart < request.SpanStart)
-                            && writes.Any(write => write.SpanStart > request.SpanStart));
+            .Any(request => writes.Any(write => write.SpanStart < request.SpanStart
+                                                && write.FirstAncestorOrSelf<BlockSyntax>()?.Span
+                                                    .Contains(request.Span) == true)
+                            && writes.Any(write => write.SpanStart > request.SpanStart
+                                                   && TAuditBlockRead(write)?.Span.Contains(request.Span) == true));
         if (toggled)
         {
             SyntaxNode last = writes[^1];
@@ -41,6 +44,17 @@ internal static partial class TAuditTruthWalker
                 "Guard",
                 $"toggled around a request{through}"));
         }
+    }
+
+    private static BlockSyntax? TAuditBlockRead(SyntaxNode write)
+    {
+        BlockSyntax? block = write.FirstAncestorOrSelf<BlockSyntax>();
+        while (block?.Parent is FinallyClauseSyntax or CatchClauseSyntax)
+        {
+            block = block.Parent.Parent?.FirstAncestorOrSelf<BlockSyntax>();
+        }
+
+        return block;
     }
 
     private static HashSet<ISymbol> TAuditWriterRead(TAuditTruthField field, IReadOnlyList<TypeDeclarationSyntax> type)

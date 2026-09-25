@@ -1,11 +1,5 @@
 <Project>
 
-  <!--
-    version.json (repo root) is the single source of truth for all version info.
-    Bump it with version.ps1. These properties flow into every project's
-    assembly metadata at compile time, so runtime code can read the version via
-    reflection (e.g. Assembly.GetEntryAssembly().GetName().Version).
-  -->
   <PropertyGroup>
     <VersionJsonPath>$(MSBuildThisFileDirectory)version.json</VersionJsonPath>
     <VersionJsonContent Condition="Exists('$(VersionJsonPath)')">$([System.IO.File]::ReadAllText('$(VersionJsonPath)'))</VersionJsonContent>

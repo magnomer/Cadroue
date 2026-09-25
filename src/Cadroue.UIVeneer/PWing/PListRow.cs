@@ -69,12 +69,12 @@ public sealed class PListRow
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new Image
         {
-            Width = 14,
-            Height = 14,
+            Width = 18,
+            Height = 18,
             Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.LListRowLocked]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
+            Margin = new Thickness(0, 0, 4, 0)
         });
         pRowContent.Children.Add(new TextBlock
         {
@@ -88,7 +88,7 @@ public sealed class PListRow
 
         PListRowBorder = new Border
         {
-            Padding = new Thickness(12, 7, 12, 7),
+            Padding = new Thickness(12, 5, 12, 5),
             Background = pListBackgrounds[lRow.LListRowState],
             BorderBrush = pListLineBrush,
             BorderThickness = pListBorders[lRow.LListRowLast],

@@ -1,4 +1,5 @@
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Convention.Tests;
@@ -32,6 +33,7 @@ internal static partial class TAuditTruthWalker
                     return ("Guard", "decides a request in an if");
                 case ConditionalExpressionSyntax choice
                     when choice.Condition.Span.Contains(reference.Span)
+                         && !TAuditPresenceCheck(choice.Condition)
                          && (TAuditRequestCheck(choice.WhenTrue) || TAuditRequestCheck(choice.WhenFalse)):
                     return ("Guard", "decides a request in a ternary");
                 case SwitchStatementSyntax select
@@ -48,6 +50,11 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditGuardCheck(IfStatementSyntax branch)
     {
+        if (TAuditPresenceCheck(branch.Condition))
+        {
+            return false;
+        }
+
         if (TAuditRequestCheck(branch.Statement)
             || (branch.Else is not null && TAuditRequestCheck(branch.Else)))
         {
@@ -57,7 +64,24 @@ internal static partial class TAuditTruthWalker
         bool jump = branch.Statement.DescendantNodesAndSelf().Any(node =>
             node is ReturnStatementSyntax or ThrowStatementSyntax or ContinueStatementSyntax or BreakStatementSyntax);
         MemberDeclarationSyntax? scope = branch.FirstAncestorOrSelf<MemberDeclarationSyntax>();
-        return jump && scope is not null && TAuditRequestCheck(scope);
+        return jump && scope is not null && scope.DescendantNodes()
+            .Where(node => node.SpanStart >= branch.SpanStart)
+            .Any(node => node is ExpressionSyntax call
+                         && (call is InvocationExpressionSyntax || call is BaseObjectCreationExpressionSyntax)
+                         && TAuditCallRead(call) is not null);
+    }
+
+    private static bool TAuditPresenceCheck(ExpressionSyntax condition)
+    {
+        ExpressionSyntax core = TAuditStrictWalker.TAuditCoreRead(condition);
+        return core switch
+        {
+            IsPatternExpressionSyntax { Pattern: var pattern } => TAuditStrictWalker.TAuditPatternCheck(pattern),
+            BinaryExpressionSyntax binary
+                when binary.IsKind(SyntaxKind.EqualsExpression) || binary.IsKind(SyntaxKind.NotEqualsExpression)
+                => TAuditStrictWalker.TAuditNullCheck(binary.Left) || TAuditStrictWalker.TAuditNullCheck(binary.Right),
+            _ => false
+        };
     }
 
     private static bool TAuditRequestCheck(SyntaxNode node)

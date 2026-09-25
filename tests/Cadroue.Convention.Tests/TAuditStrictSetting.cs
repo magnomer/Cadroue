@@ -2,17 +2,17 @@ namespace Convention.Tests;
 
 internal static class TAuditStrictSetting
 {
-    public const int TAuditGeneration = 10;
+    public const int TAuditGeneration = 11;
     public const bool TAuditStrictEnforced = true;
-    public const string TAuditStrictReport = "temp/audit/Truth-{0}.md";
+    public const string TAuditStrictReport = "temp/audit/Strict-{0}.md";
 
     public static readonly IReadOnlyDictionary<string, int> TAuditStrictCeiling = new Dictionary<string, int>
     {
-        ["Storage"] = 46,
-        ["Flow"] = 205,
-        ["Treat"] = 39,
+        ["Storage"] = 1482,
+        ["Call"] = 5383,
+        ["Engine"] = 1313,
         ["Reach"] = 0,
-        ["Taint"] = 126,
+        ["Trigger"] = 14,
     };
 
     public static readonly string[] TAuditVeneerInclude =
@@ -84,49 +84,19 @@ internal static class TAuditStrictSetting
         "Cadroue.ShellEngine",
     ];
 
-    public static readonly string[] TAuditTreatVerbs =
+    public static readonly string[] TAuditTriggerElements =
     [
-        "Aggregate",
-        "All",
-        "Any",
-        "Average",
-        "Concat",
-        "Contains",
-        "Count",
-        "Distinct",
-        "DistinctBy",
-        "Except",
-        "First",
-        "FirstOrDefault",
-        "GroupBy",
-        "GroupJoin",
-        "Intersect",
-        "Join",
-        "Last",
-        "LastOrDefault",
-        "Max",
-        "MaxBy",
-        "Min",
-        "MinBy",
-        "OrderBy",
-        "OrderByDescending",
-        "Reverse",
-        "Select",
-        "SelectMany",
-        "Single",
-        "SingleOrDefault",
-        "Skip",
-        "SkipWhile",
-        "Sum",
-        "Take",
-        "TakeWhile",
-        "ThenBy",
-        "ThenByDescending",
-        "ToDictionary",
-        "ToHashSet",
-        "ToLookup",
-        "Union",
-        "Where",
-        "Zip",
+        "DataTrigger",
+        "MultiDataTrigger",
+        "MultiTrigger",
+        "Trigger",
+    ];
+
+    public static readonly string[] TAuditTriggerSlots =
+    [
+        "Converter",
+        "FallbackValue",
+        "StringFormat",
+        "TargetNullValue",
     ];
 }

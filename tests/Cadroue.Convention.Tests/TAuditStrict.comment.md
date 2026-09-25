@@ -2,9 +2,9 @@
 
 ## `public sealed class TAuditStrict`
 
-The strict shell rules, ahead of the split into a veneer and a deportment.
-A veneer class holds no state and never branches, it only shows and calls.
-A deportment class may hold logic for the UI itself but never computes over logic values.
+The veneer rules: the veneer is what the user sees, and a veneer member only calls a function.
+A veneer holds no state, never branches or computes, and never reaches the engine.
+The deportment drives the veneer and is its only path to the engine.
 While `TAuditStrictEnforced` is false every fact passes and reports as a warning.
 Enforced, a kind fails when it counts above its ceiling.
 
@@ -22,35 +22,33 @@ Keeps the runner's output so a passing fact can still print its count.
 
 ## `public void AuditStrict_VeneerFields_HoldNothing()`
 
-A mutable field in a veneer class, or a mutable static anywhere.
+A field, event field, auto-property or primary constructor parameter in a veneer type, or a mutable static anywhere.
 
-## `public void AuditStrict_VeneerMembers_BranchNever()`
+## `public void AuditStrict_VeneerMembers_CallOnly()`
 
-A veneer member containing a branch, a loop, an operator or a pattern.
+A veneer line that is not a plain call: a branch, a loop, an operator, an assignment or a declaration.
 
-## `public void AuditStrict_ShellSources_TreatNoData()`
+## `public void AuditStrict_VeneerSources_ReachNoEngine()`
 
-A shell line that compares, computes or queries over a logic value.
-A bare logic verdict deciding a branch is asking the engine and is not treatment.
+A veneer line that names an engine symbol or holds a value of an engine type.
 
-## `public void AuditStrict_ShellLocals_CarryNoLogic()`
+## `public void AuditStrict_VeneerMarkup_ReachNoEngine()`
 
-A shell line that computes over a carried logic value, or over the input of a control.
-The value reached the line one hop from logic, so the treat rule alone did not see it.
+A markup line that maps an engine namespace, reads an engine constant, or names an engine member.
 
-## `public void AuditStrict_ShellMarkup_ReachNoLogic()`
+## `public void AuditStrict_VeneerMarkup_BranchNever()`
 
-A markup line that maps a logic namespace, reads a logic constant, or binds through a logic member.
-The markup asked logic directly instead of showing what the shell was given.
+A markup trigger, or a binding that converts, formats or falls back.
+Each is a branch or a computation standing in the veneer.
 
-## `private static readonly string[] TAuditStrictKinds = ["Storage", "Flow", "Treat", "Reach", "Taint"];`
+## `private static readonly string[] TAuditStrictKinds = ["Storage", "Call", "Engine", "Reach", "Trigger"];`
 
 The hit kinds in report order.
 
 ## `public void AuditStrict_DeportmentSources_ReachNoMarkup()`
 
-A deportment line that names WPF, the dispatcher or the file system, outside the exempt files.
-The deportment holds panel state for the veneer and must build without a window.
+A deportment line that names the file system, outside the exempt files.
+Deportment uses WPF freely, but disk work stays behind the engine's ports.
 
 ## `public void AuditStrict_VeneerSources_HoldNoCatalog()`
 
@@ -79,7 +77,7 @@ No hit count is kept for these, since both start at zero and stay there.
 
 ## `private static (IReadOnlyList<TViolation> TAuditHits, IReadOnlyList<string> TAuditVeneers) TAuditStrictRead()`
 
-Enumerates the shell sources and markup with Git and runs both walkers once, with paths made repo-relative.
+Enumerates the UI sources and the veneer markup with Git and runs both walkers once, with paths made repo-relative.
 
 ## `private static string TAuditReportSave()`
 
@@ -88,4 +86,4 @@ The report opens with the counts, then a per-veneer table, then every hit by kin
 
 ## `private static int TAuditClassRead(IReadOnlyList<TViolation> hits, string type, string kind)`
 
-The hits of one kind whose name starts with the class.
+The hits of one kind whose name starts with the type.

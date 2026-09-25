@@ -52,8 +52,8 @@ public sealed partial class PInspector
         {
             Content = new Image
             {
-                Width = 14,
-                Height = 14,
+                Width = 20,
+                Height = 20,
                 Source = PIcon.PIconRead(pEqualizerAddIcon, pInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },
@@ -128,8 +128,8 @@ public sealed partial class PInspector
         {
             Content = new Image
             {
-                Width = 12,
-                Height = 12,
+                Width = 16,
+                Height = 16,
                 Source = PIcon.PIconRead(pEqualizerRemoveIcon, pInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },

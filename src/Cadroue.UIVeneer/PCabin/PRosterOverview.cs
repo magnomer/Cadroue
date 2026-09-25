@@ -199,8 +199,8 @@ internal static class PRosterOverview
         {
             Content = new Image
             {
-                Width = 12,
-                Height = 12,
+                Width = 16,
+                Height = 16,
                 Source = PIcon.PIconRead(PRosterOpenIcon, PRosterTheme.PRosterTextBrush),
                 Stretch = Stretch.Uniform
             },

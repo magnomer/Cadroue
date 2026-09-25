@@ -17,6 +17,7 @@ An observer built on a lambda that ignores its bulletin is the same silence.
 
 The first control a condition reads a member of, or null.
 A control is any expression whose type derives from a listed control base.
+A member of a control that is itself logic is the path to the engine, not the control's state.
 
 ## `private static bool TAuditClockCheck(ExpressionSyntax clock)`
 
