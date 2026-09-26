@@ -155,12 +155,13 @@ public static partial class LConvert
             return LLibrarian.LLibrarianDurationRead;
         }
 
-        Dictionary<string, TimeSpan> lConvertDurations = await Task.Run(() =>
+        Dictionary<string, TimeSpan> lConvertDurations = await Task.Run(async () =>
         {
             var lConvertMap = new Dictionary<string, TimeSpan>(StringComparer.OrdinalIgnoreCase);
             foreach (string lConvertSourcePath in lConvertSourcePaths)
             {
-                lConvertMap[lConvertSourcePath] = LLibrarian.LLibrarianDurationResolve(lConvertSourcePath);
+                lConvertMap[lConvertSourcePath] =
+                    await LLibrarian.LLibrarianDurationResolve(lConvertSourcePath).ConfigureAwait(false);
             }
 
             return lConvertMap;

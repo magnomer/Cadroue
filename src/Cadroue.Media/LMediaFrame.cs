@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using System.IO;
 using System.Threading;
 
@@ -18,7 +17,7 @@ public static partial class LMedia
         int height) =>
         Task.Run(() => LMediaFrameRead(sourcePath, position, width, height));
 
-    public static LMediaFrame? LMediaFrameRead(
+    public static async Task<LMediaFrame?> LMediaFrameRead(
         string sourcePath,
         TimeSpan position,
         int width,
@@ -35,105 +34,52 @@ public static partial class LMedia
             return null;
         }
 
-        double lMediaSeconds = Math.Max(0, position.TotalSeconds);
-        var psi = new ProcessStartInfo(LTool.LToolFfmpegRead())
+        long lMediaExpectedLong = (long)width * height * 4;
+        if (lMediaExpectedLong > int.MaxValue)
         {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        psi.ArgumentList.Add("-hide_banner");
-        psi.ArgumentList.Add("-nostats");
-        psi.ArgumentList.Add("-ss");
-        psi.ArgumentList.Add(lMediaSeconds.ToString("0.###", CultureInfo.InvariantCulture));
-        psi.ArgumentList.Add("-i");
-        psi.ArgumentList.Add(sourcePath);
-        psi.ArgumentList.Add("-map");
-        psi.ArgumentList.Add("0:v:0");
-        psi.ArgumentList.Add("-frames:v");
-        psi.ArgumentList.Add("1");
-        psi.ArgumentList.Add("-pix_fmt");
-        psi.ArgumentList.Add("rgba");
-        psi.ArgumentList.Add("-f");
-        psi.ArgumentList.Add("rawvideo");
-        psi.ArgumentList.Add("-");
+            return null;
+        }
 
+        double lMediaSeconds = Math.Max(0, position.TotalSeconds);
+        string[] lMediaArguments =
+        [
+            "-hide_banner", "-nostats",
+            "-ss", lMediaSeconds.ToString("0.###", CultureInfo.InvariantCulture),
+            "-i", sourcePath,
+            "-map", "0:v:0",
+            "-frames:v", "1",
+            "-pix_fmt", "rgba",
+            "-f", "rawvideo",
+            "-"
+        ];
+
+        byte[] lMediaPixels = new byte[(int)lMediaExpectedLong];
+        int lMediaRead = 0;
         try
         {
-            using var process = Process.Start(psi);
-            if (process is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(process);
-            LFramePrioritySet(process);
-            long lMediaExpectedLong = (long)width * height * 4;
-            if (lMediaExpectedLong > int.MaxValue)
-            {
-                process.Kill(entireProcessTree: true);
-                return null;
-            }
-
-            int lMediaExpected = (int)lMediaExpectedLong;
-            byte[] lMediaPixels = new byte[lMediaExpected];
-            int lMediaRead = 0;
-            Task<string> lMediaError = process.StandardError.ReadToEndAsync(lMediaToken);
-            try
-            {
-                while (lMediaRead < lMediaExpected)
+            var lMediaEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            LEmployerResult lMediaResult = await lMediaEmployer.LEmployerStreamRun(
+                lMediaArguments,
+                lMediaToken,
+                async (lMediaStream, lMediaCancel) =>
                 {
-                    int lMediaChunk = process.StandardOutput.BaseStream
-                        .ReadAsync(lMediaPixels.AsMemory(lMediaRead), lMediaToken)
-                        .AsTask()
-                        .GetAwaiter()
-                        .GetResult();
-                    if (lMediaChunk == 0)
+                    int lMediaChunk;
+                    while (lMediaRead < lMediaPixels.Length
+                        && (lMediaChunk = await lMediaStream
+                            .ReadAsync(lMediaPixels.AsMemory(lMediaRead), lMediaCancel)
+                            .ConfigureAwait(false)) > 0)
                     {
-                        break;
+                        lMediaRead += lMediaChunk;
                     }
-
-                    lMediaRead += lMediaChunk;
-                }
-
-                process.WaitForExitAsync(lMediaToken).GetAwaiter().GetResult();
-            }
-            catch (OperationCanceledException)
-            {
-                process.Kill(entireProcessTree: true);
-                throw;
-            }
-
-            _ = lMediaError.GetAwaiter().GetResult();
-            if (process.ExitCode != 0)
-            {
-                return null;
-            }
-
-            if (lMediaRead < lMediaExpected)
-            {
-                return null;
-            }
-
-            return new LMediaFrame(width, height, lMediaPixels);
+                }).ConfigureAwait(false);
+            return lMediaResult.LEmployerExit == 0 && lMediaRead == lMediaPixels.Length
+                ? new LMediaFrame(width, height, lMediaPixels)
+                : null;
         }
         catch (Exception lMediaException) when (
             lMediaException is System.ComponentModel.Win32Exception or InvalidOperationException or IOException)
         {
             return null;
-        }
-    }
-
-    private static void LFramePrioritySet(Process process)
-    {
-        try
-        {
-            process.PriorityClass = ProcessPriorityClass.BelowNormal;
-        }
-        catch (Exception exception)
-            when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
         }
     }
 }

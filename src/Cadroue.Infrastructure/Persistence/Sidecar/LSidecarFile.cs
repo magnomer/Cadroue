@@ -62,12 +62,10 @@ internal static class LSidecarFile
             }
             catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
             {
-                if (lSidecarAttempt >= 2)
+                if (lSidecarAttempt >= 4)
                 {
                     return null;
                 }
-
-                Thread.Sleep(15);
             }
         }
     }

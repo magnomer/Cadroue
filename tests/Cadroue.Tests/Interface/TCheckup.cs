@@ -84,7 +84,7 @@ internal sealed class TCheckupJob : IDisposable
         IReadOnlyCollection<LFlawKind>,
         CancellationToken,
         IProgress<double>?,
-        IReadOnlyList<LDossier>>? tCheckupScanner;
+        Task<IReadOnlyList<LDossier>>>? tCheckupScanner;
     private readonly Func<string, IReadOnlyList<LSidecarDossier>?>? tCheckupReader;
     private readonly LCheckup tCheckup = new();
     private readonly System.Collections.Concurrent.ConcurrentQueue<TCheckupJobResult> tCheckupResults = new();
@@ -103,7 +103,7 @@ internal sealed class TCheckupJob : IDisposable
         LCheckup.LCheckupScannerSeam = (path, _, token, progress) =>
         {
             scanner(path, token, progress);
-            return Array.Empty<LDossier>();
+            return Task.FromResult<IReadOnlyList<LDossier>>(Array.Empty<LDossier>());
         };
         tCheckup.LCheckupReady += result => tCheckupResults.Enqueue(new TCheckupJobResult(
             result.LCheckupSource,

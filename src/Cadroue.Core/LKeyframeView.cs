@@ -2,8 +2,8 @@ namespace Cadroue.Core;
 
 public static class LKeyframeView
 {
-    public static readonly TimeSpan LKeyframeRangeBefore = TimeSpan.FromMinutes(10);
-    public static readonly TimeSpan LKeyframeRangeAfter = TimeSpan.FromMinutes(10);
+    public static readonly TimeSpan LKeyframeRangeBefore = TimeSpan.FromMinutes(2);
+    public static readonly TimeSpan LKeyframeRangeAfter = TimeSpan.FromMinutes(2);
 
     public static IReadOnlyList<LKeyframeEntry> LKeyframeVisibleResolve(
         IReadOnlyList<LKeyframeEntry> keyframes,

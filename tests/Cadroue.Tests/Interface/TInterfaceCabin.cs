@@ -289,7 +289,7 @@ internal static partial class TInterface
             : (path, _, _, _) =>
             {
                 scanner(path);
-                return Array.Empty<LDossier>();
+                return Task.FromResult<IReadOnlyList<LDossier>>(Array.Empty<LDossier>());
             };
     }
     internal static void TFixLibrarianAttach(

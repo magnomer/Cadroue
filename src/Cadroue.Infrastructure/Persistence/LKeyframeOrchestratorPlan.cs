@@ -6,9 +6,6 @@ namespace Cadroue.Infrastructure;
 
 public sealed partial class LKeyframeOrchestrator
 {
-    private sealed record LKeyframeBounds(
-        int LKeyframeBoundsFirst, long LKeyframeBoundsCursor, int LKeyframeBoundsLast);
-
     private void LKeyframePlanStart(string sourcePath, CancellationToken cancellationToken)
     {
         int worker;
@@ -30,7 +27,7 @@ public sealed partial class LKeyframeOrchestrator
             CancellationToken.None);
     }
 
-    private void LKeyframePlanRun(string sourcePath, int worker, CancellationToken cancellationToken)
+    private async Task LKeyframePlanRun(string sourcePath, int worker, CancellationToken cancellationToken)
     {
         try
         {
@@ -51,7 +48,7 @@ public sealed partial class LKeyframeOrchestrator
                     }
                 }
 
-                LKeyframeSpanRun(sourcePath, spanIndex, cancellationToken);
+                await LKeyframeSpanRun(sourcePath, spanIndex, cancellationToken).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -85,27 +82,39 @@ public sealed partial class LKeyframeOrchestrator
 
     private int LKeyframeSpanFind(TimeSpan duration, TimeSpan cursor)
     {
-        (int first, long cursorMs, int last) = LKeyframeBoundsCreate(duration, cursor);
-        int found = -1;
-        long foundDistance = long.MaxValue;
-        for (int spanIndex = first; spanIndex <= last; spanIndex++)
+        int last = (int)(Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds) - 1) / LKeyframeGridMilliseconds);
+        int center = (int)Math.Clamp((long)cursor.TotalMilliseconds / LKeyframeGridMilliseconds, 0, last);
+        int steps = (int)Math.Max(
+            LKeyframeView.LKeyframeRangeBefore.TotalMilliseconds,
+            LKeyframeView.LKeyframeRangeAfter.TotalMilliseconds) / LKeyframeGridMilliseconds;
+        for (int step = 1; step <= steps; step++)
         {
-            long distance = LKeyframeDistanceResolve(spanIndex, cursorMs);
-            if (distance < foundDistance && LKeyframeSpanCheck(spanIndex))
+            int before = center - step;
+            int after = center + step - 1;
+            foreach (int spanIndex in lKeyframeLead < 0 ? new[] { before, after } : new[] { after, before })
             {
-                found = spanIndex;
-                foundDistance = distance;
+                if (spanIndex >= 0 && spanIndex <= last && LKeyframeSpanCheck(spanIndex))
+                {
+                    return spanIndex;
+                }
             }
         }
 
-        return found;
+        int found = lKeyframeReachAfter ? LKeyframeReachFind(center, 1, last) : -1;
+        return found < 0 && lKeyframeReachBefore ? LKeyframeReachFind(center, -1, last) : found;
     }
 
-    private static long LKeyframeDistanceResolve(int spanIndex, long cursorMs)
+    private int LKeyframeReachFind(int spanIndex, int direction, int last)
     {
-        long spanStartMs = (long)spanIndex * LKeyframeGridMilliseconds;
-        long spanLastMs = spanStartMs + LKeyframeGridMilliseconds - 1;
-        return Math.Max(0, Math.Max(spanStartMs - cursorMs, cursorMs - spanLastMs));
+        for (; spanIndex >= 0 && spanIndex <= last; spanIndex += direction)
+        {
+            if (!lKeyframeScannedSpans.Contains(spanIndex))
+            {
+                return LKeyframeSpanCheck(spanIndex) ? spanIndex : -1;
+            }
+        }
+
+        return -1;
     }
 
     private bool LKeyframeSpanCheck(int spanIndex) =>
@@ -113,15 +122,23 @@ public sealed partial class LKeyframeOrchestrator
         && !LKeyframeRetryCheck(spanIndex)
         && !(lKeyframeAttempts.TryGetValue(spanIndex, out int attempted) && attempted == lKeyframeRequestSerial);
 
-    private void LKeyframeSpanRun(string sourcePath, int spanIndex, CancellationToken cancellationToken)
+    private async Task LKeyframeSpanRun(string sourcePath, int spanIndex, CancellationToken cancellationToken)
     {
         TimeSpan duration;
         double startSeconds;
+        var lKeyframeHalt = new CancellationTokenSource();
         lock (lKeyframeLock)
         {
+            if (lKeyframePaused)
+            {
+                lKeyframeHalt.Dispose();
+                return;
+            }
+
             duration = lKeyframeDuration;
             startSeconds = lKeyframeStartSeconds;
             lKeyframeAttempts[spanIndex] = lKeyframeRequestSerial;
+            lKeyframeSpanSource = lKeyframeHalt;
         }
 
         var start = TimeSpan.FromMilliseconds(spanIndex * LKeyframeGridMilliseconds);
@@ -134,9 +151,11 @@ public sealed partial class LKeyframeOrchestrator
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            using var lKeyframeLimit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var lKeyframeLimit =
+                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lKeyframeHalt.Token);
             lKeyframeLimit.CancelAfter(LKeyframeScanLimit);
-            LKeyframeSpanResult result = lKeyframeScanner(sourcePath, startSeconds, start, end, lKeyframeLimit.Token);
+            LKeyframeSpanResult result = await lKeyframeScanner(
+                sourcePath, startSeconds, start, end, lKeyframeLimit.Token).ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
             IReadOnlyList<LKeyframeEntry> entries = result.LKeyframeSpanEntries;
             int lKeyframeNewCount = 0;
@@ -191,12 +210,38 @@ public sealed partial class LKeyframeOrchestrator
         {
             return;
         }
+        catch (Exception) when (lKeyframeHalt.IsCancellationRequested)
+        {
+            lock (lKeyframeLock)
+            {
+                lKeyframeAttempts.Remove(spanIndex);
+            }
+
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceWork,
+                $"Keyframe span {spanIndex} interrupted ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
+                "The cursor moved or playback started; the span stays unscanned.",
+                lKeyframeClock.Elapsed.TotalMilliseconds);
+            return;
+        }
         catch (Exception exception)
         {
             if (!LKeyframeFailureRecord(
                     spanIndex, cancellationToken, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
             {
                 return;
+            }
+        }
+        finally
+        {
+            lock (lKeyframeLock)
+            {
+                if (ReferenceEquals(lKeyframeSpanSource, lKeyframeHalt))
+                {
+                    lKeyframeSpanSource = null;
+                }
+
+                lKeyframeHalt.Dispose();
             }
         }
 
@@ -229,16 +274,5 @@ public sealed partial class LKeyframeOrchestrator
             + exception.Message,
             milliseconds);
         return true;
-    }
-
-    private static LKeyframeBounds LKeyframeBoundsCreate(TimeSpan duration, TimeSpan cursor)
-    {
-        long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
-        long startMs = Math.Max(0, (long)(cursor - LKeyframeView.LKeyframeRangeBefore).TotalMilliseconds);
-        long endMs = Math.Min(durationMs, (long)(cursor + LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds);
-        int first = (int)(startMs / LKeyframeGridMilliseconds);
-        int last = (int)(Math.Max(0, endMs - 1) / LKeyframeGridMilliseconds);
-        long cursorMs = (long)Math.Clamp(cursor.TotalMilliseconds, 0d, (double)durationMs);
-        return new LKeyframeBounds(first, cursorMs, last);
     }
 }

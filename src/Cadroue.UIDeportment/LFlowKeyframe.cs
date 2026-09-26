@@ -88,6 +88,8 @@ public sealed class LFlowKeyframe
 
     public void LFlowKeyframeTick() => LFlowKeyframeRun();
 
+    public void LFlowKeyframeSync(TimeSpan lCursor) => lKeyframeOrchestrator.LKeyframeSync(lCursor);
+
     public void LFlowKeyframeClear()
     {
         lFlowEntries = [];

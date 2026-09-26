@@ -152,8 +152,11 @@ public static partial class LSidecarStore
 
     public static bool LSidecarSectionsSave(
         string lSidecarSourcePath,
-        IReadOnlyList<LSidecarSectionRecord> lSidecarSections) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSections = lSidecarSections.ToList());
+        IReadOnlyList<LSidecarSectionRecord> lSidecarSections)
+    {
+        List<LSidecarSectionRecord> lSidecarCopy = lSidecarSections.ToList();
+        return LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSections = lSidecarCopy);
+    }
 
     public static bool LSidecarSave(
         LKeyframeSourceIdentity lSidecarIdentity,
@@ -187,9 +190,10 @@ public static partial class LSidecarStore
     {
         LSidecarCoreResult lSidecarResult =
             LSidecarCoreResolve(lSidecarSourcePath, LSidecarPathRead(lSidecarSourcePath));
-        return lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
+        LSidecarCoreRecord? lSidecarCore = lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
             ? lSidecarResult.LSidecarCoreValue
             : null;
+        return LSidecarPendingApply(lSidecarSourcePath, lSidecarCore);
     }
 
     public static IReadOnlyList<long> LSidecarKeyframesRead(string lSidecarSourcePath) =>

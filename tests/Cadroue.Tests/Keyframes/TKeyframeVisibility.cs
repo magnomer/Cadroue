@@ -47,7 +47,7 @@ public sealed class TKeyframeVisibility
     public void VisibleKeyframes_IncludeBoundaryEntries()
     {
         var spool = TKeyframeSpoolCreate(0, 3600);
-        var keyframes = new[] { TKeyframeEntryCreate(600), TKeyframeEntryCreate(1600) };
+        var keyframes = new[] { TKeyframeEntryCreate(880), TKeyframeEntryCreate(1120) };
 
         var result = TInterface.TKeyframeVisibleResolve(keyframes, TKeyframeAtCreate(1000), spool);
 

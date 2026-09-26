@@ -28,7 +28,7 @@ public sealed class LCheckup : IDisposable
         IReadOnlyCollection<LFlawKind>,
         CancellationToken,
         IProgress<double>?,
-        IReadOnlyList<LDossier>>? LCheckupScannerSeam;
+        Task<IReadOnlyList<LDossier>>>? LCheckupScannerSeam;
 
     public event Action<LCheckupResult>? LCheckupReady;
     public event Action<string, double>? LCheckupProgress;
@@ -95,7 +95,7 @@ public sealed class LCheckup : IDisposable
         }
     }
 
-    private void LCheckupQueueRun()
+    private async Task LCheckupQueueRun()
     {
         while (true)
         {
@@ -115,11 +115,11 @@ public sealed class LCheckup : IDisposable
                 lCheckupActive = lCheckupRequest;
             }
 
-            LCheckupSourceRun(
+            await LCheckupSourceRun(
                 lCheckupRequest.LCheckupPath,
                 lCheckupRequest.LCheckupTargets,
                 lCheckupRequest.LCheckupForce,
-                lCheckupToken);
+                lCheckupToken).ConfigureAwait(false);
             lock (lCheckupLock)
             {
                 lCheckupActive = null;
@@ -129,7 +129,7 @@ public sealed class LCheckup : IDisposable
         }
     }
 
-    private void LCheckupSourceRun(
+    private async Task LCheckupSourceRun(
         string lCheckupPath,
         IReadOnlyList<LFlawKind> lCheckupTargets,
         bool lCheckupForce,
@@ -158,15 +158,17 @@ public sealed class LCheckup : IDisposable
         try
         {
             IReadOnlyList<LDossier> lCheckupScanned;
-            LMedia.LMediaScanClaim(lCheckupToken);
+            await LMedia.LMediaScanClaim(lCheckupToken).ConfigureAwait(false);
             try
             {
-                lCheckupScanned = LCheckupScannerSeam?.Invoke(
+                lCheckupScanned = LCheckupScannerSeam is { } lCheckupScanner
+                    ? await lCheckupScanner(
                         lCheckupPath,
                         Array.Empty<LFlawKind>(),
                         lCheckupToken,
                         new LCheckupFeed(lCheckupValue => LCheckupProgress?.Invoke(lCheckupPath, lCheckupValue)))
-                    ?? Array.Empty<LDossier>();
+                        .ConfigureAwait(false)
+                    : Array.Empty<LDossier>();
             }
             finally
             {
@@ -178,7 +180,7 @@ public sealed class LCheckup : IDisposable
                 return;
             }
 
-            LCheckupCachedSave(lCheckupPath, lCheckupScanned);
+            await LCheckupCachedSave(lCheckupPath, lCheckupScanned).ConfigureAwait(false);
             LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupScanned, lCheckupToken);
         }
         catch (OperationCanceledException)
@@ -218,9 +220,9 @@ public sealed class LCheckup : IDisposable
         return lCheckupDossiers;
     }
 
-    public static void LCheckupCachedSave(string lCheckupPath, IReadOnlyList<LDossier> lCheckupDossiers)
+    public static async Task LCheckupCachedSave(string lCheckupPath, IReadOnlyList<LDossier> lCheckupDossiers)
     {
-        TimeSpan lCheckupDuration = LLibrarian.LLibrarianDurationResolve(lCheckupPath);
+        TimeSpan lCheckupDuration = await LLibrarian.LLibrarianDurationResolve(lCheckupPath).ConfigureAwait(false);
         LKeyframeSourceIdentity lCheckupIdentity;
         try
         {

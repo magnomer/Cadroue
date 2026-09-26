@@ -6,7 +6,7 @@ namespace Cadroue.ShellEngine;
 
 internal sealed partial class LJob
 {
-    private string LJobValidate()
+    private async Task<string> LJobValidate()
     {
         if (lJobItem.LWorkKind == LWorkKind.LWorkKindMerge)
         {
@@ -41,10 +41,10 @@ internal sealed partial class LJob
             return "the output path is the same as an input file; the source will not be overwritten";
         }
 
-        return LJobStreamValidate();
+        return await LJobStreamValidate().ConfigureAwait(false);
     }
 
-    private string LJobStreamValidate()
+    private async Task<string> LJobStreamValidate()
     {
         if (lJobItem.LWorkKind == LWorkKind.LWorkKindMerge)
         {
@@ -63,7 +63,8 @@ internal sealed partial class LJob
             return string.Empty;
         }
 
-        lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+        lJobItem.LWorkSourceMedia ??=
+            await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
         if (lJobItem.LWorkSourceMedia is not { } pSource)
         {
             return string.Empty;

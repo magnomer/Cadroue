@@ -11,6 +11,8 @@ public sealed partial class LSEncoder
 
     public event Action? LSEncoderAudioChange;
 
+    private Action? lsEncoderHelpHandler;
+
     public string LSEncoderAudioEncoder => lsEncoderAudioEncoder;
 
     public string LSEncoderAudioRate => lsEncoderAudioRate;
@@ -19,6 +21,10 @@ public sealed partial class LSEncoder
         LCapability.LCapabilityAudioRead(LCapability.LCapabilityNameRead(lsEncoderAudioEncoder));
 
     public IReadOnlyList<LSVerdictRow> LSEncoderAudioResults => lsEncoderAudioResults;
+
+    public void LSEncoderHelpAttach(Action lHandler) => lsEncoderHelpHandler = lHandler;
+
+    private void LSEncoderHelpHandle(string lEncoder) => lsEncoderHelpHandler?.Invoke();
 
     private void LSEncoderAudioPrepare()
     {

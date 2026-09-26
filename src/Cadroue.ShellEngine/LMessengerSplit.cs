@@ -60,7 +60,7 @@ public static partial class LMessenger
                 .ToArray();
 
             IReadOnlyList<LSplitPlanRecord> lMessengerPlans =
-                await Task.Run(() => LMessengerSplitCreate(lMessengerSourcePaths)).ConfigureAwait(false);
+                await LMessengerSplitCreate(lMessengerSourcePaths).ConfigureAwait(false);
 
             int lMessengerAdded = 0;
             LMessengerDefer(() =>
@@ -82,12 +82,14 @@ public static partial class LMessenger
         }
     }
 
-    private static IReadOnlyList<LSplitPlanRecord> LMessengerSplitCreate(IReadOnlyList<string> lMessengerSourcePaths)
+    private static async Task<IReadOnlyList<LSplitPlanRecord>> LMessengerSplitCreate(
+        IReadOnlyList<string> lMessengerSourcePaths)
     {
         var lMessengerPlans = new List<LSplitPlanRecord>();
         foreach (string lMessengerSourcePath in lMessengerSourcePaths)
         {
-            IReadOnlyList<LSplitSectionDescription> lMessengerSections = LMessengerSplitRead(lMessengerSourcePath);
+            IReadOnlyList<LSplitSectionDescription> lMessengerSections =
+                await LMessengerSplitRead(lMessengerSourcePath).ConfigureAwait(false);
             if (lMessengerSections.Count > 0)
             {
                 lMessengerPlans.Add(new LSplitPlanRecord(lMessengerSourcePath, lMessengerSections));
@@ -96,17 +98,19 @@ public static partial class LMessenger
         return lMessengerPlans;
     }
 
-    internal static IReadOnlyList<LSplitSectionDescription> LMessengerSplitRead(string lMessengerSourcePath)
+    internal static async Task<IReadOnlyList<LSplitSectionDescription>> LMessengerSplitRead(
+        string lMessengerSourcePath)
     {
         try
         {
-            if (Cadroue.Application.LLibrarian.LLibrarianLoad(lMessengerSourcePath) is not { } lMessengerSidecar)
+            if (await Task.Run(() => Cadroue.Application.LLibrarian.LLibrarianLoad(lMessengerSourcePath))
+                    .ConfigureAwait(false) is not { } lMessengerSidecar)
             {
                 return Array.Empty<LSplitSectionDescription>();
             }
 
-            TimeSpan lMessengerDuration =
-                Cadroue.Application.LLibrarian.LLibrarianDurationResolve(lMessengerSourcePath);
+            TimeSpan lMessengerDuration = await Cadroue.Application.LLibrarian
+                .LLibrarianDurationResolve(lMessengerSourcePath).ConfigureAwait(false);
             if (lMessengerDuration <= TimeSpan.Zero)
             {
                 LTraceLog.LTraceWarningRecord(

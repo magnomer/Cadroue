@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using System.Text;
 using System.Threading.Tasks;
 using Cadroue.Core;
 using Cadroue.Media;
@@ -29,10 +29,10 @@ public static class LTrial
             return new LTrialResult(false, "ffmpeg not resolved");
         }
 
-        LMedia.LMediaScanClaim(lToken);
+        await LMedia.LMediaScanClaim(lToken).ConfigureAwait(false);
         try
         {
-            return await LTrialProcessRun(lFfmpeg, lEncoder, lKind, lToken);
+            return await LTrialProcessRun(lFfmpeg, lEncoder, lKind, lToken).ConfigureAwait(false);
         }
         finally
         {
@@ -43,55 +43,27 @@ public static class LTrial
     private static async Task<LTrialResult> LTrialProcessRun(
         string lFfmpeg, string lEncoder, LTrialKind lKind, CancellationToken lToken)
     {
-        using var lProcess = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = lFfmpeg,
-                Arguments = LTrialArgumentsRead(lEncoder, lKind),
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                RedirectStandardError = true,
-                RedirectStandardOutput = true
-            }
-        };
-
+        var lOutput = new StringBuilder();
+        using var lTimeout = CancellationTokenSource.CreateLinkedTokenSource(lToken);
+        lTimeout.CancelAfter(TimeSpan.FromSeconds(LTrialTimeoutSeconds));
         try
         {
-            lProcess.Start();
-            LCustody.LCustodyAttach(lProcess);
-            Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
-            Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
-            using var lTimeout = CancellationTokenSource.CreateLinkedTokenSource(lToken);
-            lTimeout.CancelAfter(TimeSpan.FromSeconds(LTrialTimeoutSeconds));
-            try
-            {
-                await lProcess.WaitForExitAsync(lTimeout.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                LTrialProcessInterrupt(lProcess);
-                lToken.ThrowIfCancellationRequested();
-                return new LTrialResult(false, $"timeout after {LTrialTimeoutSeconds}s");
-            }
-
-            string lMessage = LTrialMessageShorten(await lErrorTask, await lOutputTask);
-            return new LTrialResult(lProcess.ExitCode == 0, $"exit {lProcess.ExitCode}{lMessage}");
+            LEmployerResult lResult = await new LEmployer(lFfmpeg).LEmployerRun(
+                LTrialArgumentsRead(lEncoder, lKind),
+                lTimeout.Token,
+                _ => { },
+                lLine => lOutput.AppendLine(lLine),
+                _ => { }).ConfigureAwait(false);
+            string lMessage = LTrialMessageShorten(lResult.LEmployerError, lOutput.ToString());
+            return new LTrialResult(lResult.LEmployerExit == 0, $"exit {lResult.LEmployerExit}{lMessage}");
+        }
+        catch (OperationCanceledException) when (!lToken.IsCancellationRequested)
+        {
+            return new LTrialResult(false, $"timeout after {LTrialTimeoutSeconds}s");
         }
         catch (Exception lException) when (lException is not OperationCanceledException)
         {
             return new LTrialResult(false, lException.Message);
-        }
-    }
-
-    private static void LTrialProcessInterrupt(Process lProcess)
-    {
-        try
-        {
-            lProcess.Kill(true);
-        }
-        catch (InvalidOperationException)
-        {
         }
     }
 

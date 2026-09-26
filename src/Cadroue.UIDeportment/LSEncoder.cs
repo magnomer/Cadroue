@@ -23,6 +23,7 @@ public sealed partial class LSEncoder
         lsEncoderSmart = lSmart;
         LSEncoderVideoPrepare();
         LSEncoderAudioPrepare();
+        LInventory.LInventoryHelpReady += LSEncoderHelpHandle;
     }
 
     public LPreset LSEncoderDraft => lsEncoderDraft;
@@ -37,8 +38,10 @@ public sealed partial class LSEncoder
         return lSlot.Token;
     }
 
-    public void LSEncoderScanCancel()
+    public void LSEncoderClose()
     {
+        LInventory.LInventoryHelpReady -= LSEncoderHelpHandle;
+        lsEncoderHelpHandler = null;
         lsEncoderVideoTrial?.Cancel();
         lsEncoderAudioTrial?.Cancel();
     }

@@ -73,14 +73,14 @@ internal static class LSalvageExtract
         }
         catch (OperationCanceledException)
         {
-            LSalvageTempClear(lSalvageTemp);
+            await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
             throw;
         }
 
         if (lSalvageResult.LEmployerExit == 0
             && File.Exists(lSalvageTemp)
             && new FileInfo(lSalvageTemp).Length > 0
-            && LScout.LScoutMediaRead(lSalvageTemp, lSalvageToken) is not null)
+            && await LScout.LScoutMediaRead(lSalvageTemp, lSalvageToken).ConfigureAwait(false) is not null)
         {
             try
             {
@@ -96,7 +96,7 @@ internal static class LSalvageExtract
                 LRunner.LRunnerRecord(
                     $"Salvage could not place the recovered output '{Path.GetFileName(lSalvageOutputPath)}'",
                     lSalvageException);
-                LSalvageTempClear(lSalvageTemp);
+                await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
                 return false;
             }
         }
@@ -104,7 +104,7 @@ internal static class LSalvageExtract
         LRunner.LRunnerRecord(
             $"Salvage discarded an unreadable span for '{Path.GetFileName(lSalvageOutputPath)}' " +
             $"(exit {lSalvageResult.LEmployerExit})");
-        LSalvageTempClear(lSalvageTemp);
+        await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
         return false;
     }
 
@@ -141,7 +141,7 @@ internal static class LSalvageExtract
         }
     }
 
-    private static void LSalvageTempClear(string lSalvageTemp)
+    private static async Task LSalvageTempClear(string lSalvageTemp)
     {
         for (int lSalvageAttempt = 0; lSalvageAttempt < 5; lSalvageAttempt++)
         {
@@ -157,7 +157,7 @@ internal static class LSalvageExtract
             }
             catch (Exception lSalvageException) when (lSalvageException is IOException or UnauthorizedAccessException)
             {
-                System.Threading.Thread.Sleep(200);
+                await Task.Delay(200).ConfigureAwait(false);
             }
         }
 

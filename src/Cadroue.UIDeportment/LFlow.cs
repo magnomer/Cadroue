@@ -224,6 +224,7 @@ public sealed class LFlow
         }
 
         LFlowCursorPropagate(lCursor, false, false);
+        LFlowKeyframe.LFlowKeyframeSync(lCursor);
         LFlowKeyframe.LFlowKeyframeDefer();
     }
 

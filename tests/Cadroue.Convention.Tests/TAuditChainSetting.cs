@@ -41,7 +41,7 @@ internal static class TAuditChainSetting
         ["outward:Cadroue.UIDeportment>Cadroue.Media"] = 15,
         ["outward:Cadroue.UIVeneer>Cadroue.Infrastructure"] = 23,
         ["outward:Cadroue.UIVeneer>Cadroue.Media"] = 0,
-        ["reach:Cadroue.ShellEngine>Cadroue.Core"] = 49,
+        ["reach:Cadroue.ShellEngine>Cadroue.Core"] = 46,
         ["reach:Cadroue.UIDeportment>Cadroue.Application"] = 76,
         ["reach:Cadroue.UIDeportment>Cadroue.Core"] = 58,
         ["reach:Cadroue.UIVeneer>Cadroue.Application"] = 106,

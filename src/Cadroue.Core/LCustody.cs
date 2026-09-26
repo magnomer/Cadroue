@@ -36,6 +36,24 @@ public static class LCustody
         }
     }
 
+    public static void LCustodyPriorityApply(Process lCustodyProcess)
+    {
+        try
+        {
+            lCustodyProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+            if (OperatingSystem.IsWindows())
+            {
+                int lCustodyLevel = LCustodyPriorityLow;
+                _ = NtSetInformationProcess(
+                    lCustodyProcess.Handle, LCustodyPriorityClass, ref lCustodyLevel, sizeof(int));
+            }
+        }
+        catch (Exception lCustodyException)
+            when (lCustodyException is InvalidOperationException or Win32Exception)
+        {
+        }
+    }
+
     private static IntPtr LCustodyJobRead()
     {
         if (lCustodyJob != IntPtr.Zero)
@@ -96,6 +114,8 @@ public static class LCustody
 
     private const int LCustodyInfoClass = 9;
     private const uint LCustodyKillFlag = 0x2000;
+    private const int LCustodyPriorityClass = 33;
+    private const int LCustodyPriorityLow = 0;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);
@@ -109,6 +129,10 @@ public static class LCustody
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool CloseHandle(IntPtr hObject);
+
+    [DllImport("ntdll.dll")]
+    private static extern int NtSetInformationProcess(
+        IntPtr processHandle, int processInformationClass, ref int processInformation, int processInformationLength);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct LCustodyBasicLimit

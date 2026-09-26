@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
@@ -8,20 +6,22 @@ namespace Cadroue.ShellEngine;
 
 internal static class LScout
 {
-    internal static double LScoutMergeRead(
+    internal static async Task<double> LScoutMergeRead(
         IReadOnlyList<string> lScoutMergeSources,
         CancellationToken lScoutToken = default)
     {
         double lScoutTotalSeconds = 0;
         foreach (string lScoutMergeSource in lScoutMergeSources)
         {
-            lScoutTotalSeconds += LScoutMediaRead(lScoutMergeSource, lScoutToken)?.LWorkMediaDuration.TotalSeconds ?? 0;
+            LWorkMedia? lScoutMedia = await LScoutMediaRead(lScoutMergeSource, lScoutToken).ConfigureAwait(false);
+            lScoutTotalSeconds += lScoutMedia?.LWorkMediaDuration.TotalSeconds ?? 0;
         }
 
         return lScoutTotalSeconds;
     }
 
-    internal static LWorkMedia? LScoutMediaRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
+    internal static async Task<LWorkMedia?> LScoutMediaRead(
+        string lScoutMediaPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
         {
@@ -30,7 +30,7 @@ internal static class LScout
 
         try
         {
-            LMediaInfo lScoutMedia = LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken);
+            LMediaInfo lScoutMedia = await LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken).ConfigureAwait(false);
             return new LWorkMedia(
                 lScoutMedia.LMediaVideoWidth,
                 lScoutMedia.LMediaVideoHeight,
@@ -53,7 +53,7 @@ internal static class LScout
         }
     }
 
-    internal static double? LScoutIntervalRead(
+    internal static async Task<double?> LScoutIntervalRead(
         string lScoutMediaPath,
         LWorkMedia lScoutMedia,
         CancellationToken lScoutToken = default)
@@ -73,8 +73,8 @@ internal static class LScout
 
         try
         {
-            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = LKeyframeSeeker.LKeyframeRangeScan(
-                lScoutMediaPath, TimeSpan.Zero, lScoutMediaDuration, lScoutToken);
+            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeSeeker.LKeyframeRangeScan(
+                lScoutMediaPath, TimeSpan.Zero, lScoutMediaDuration, lScoutToken).ConfigureAwait(false);
             if (lScoutKeyframes.Count < 2)
             {
                 return null;
@@ -114,8 +114,7 @@ internal static class LScout
             LEmployerResult lScoutResult = await lScoutEmployer.LEmployerRun(
                 lScoutArguments,
                 lScoutToken,
-                lScoutProcess => lScoutToken.Register(
-                    static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess),
+                static _ => { },
                 static _ => { },
                 static _ => { }).ConfigureAwait(false);
             lScoutToken.ThrowIfCancellationRequested();
@@ -158,21 +157,23 @@ internal static class LScout
         return lScoutWorkItem.LWorkSourceBytes ?? LScoutBytesRead(lScoutWorkItem.LWorkSourcePath);
     }
 
-    internal static LWorkMedia? LScoutSourceRead(string lScoutSourcePath, CancellationToken lScoutToken = default)
+    internal static async Task<LWorkMedia?> LScoutSourceRead(
+        string lScoutSourcePath, CancellationToken lScoutToken = default)
     {
-        if (LScoutMediaRead(lScoutSourcePath, lScoutToken) is not { } lScoutMedia)
+        if (await LScoutMediaRead(lScoutSourcePath, lScoutToken).ConfigureAwait(false) is not { } lScoutMedia)
         {
             return null;
         }
 
         if (lScoutMedia.LWorkMediaVideo
-            && LScoutIntervalRead(lScoutSourcePath, lScoutMedia, lScoutToken) is { } lScoutInterval)
+            && await LScoutIntervalRead(lScoutSourcePath, lScoutMedia, lScoutToken).ConfigureAwait(false)
+                is { } lScoutInterval)
         {
             lScoutMedia = lScoutMedia with { LWorkKeyframeInterval = lScoutInterval };
         }
 
         if (lScoutMedia.LWorkMediaSamplerate > 0
-            && LScoutLoudnessRead(lScoutSourcePath, lScoutToken) is { } lScoutLoudness)
+            && await LScoutLoudnessRead(lScoutSourcePath, lScoutToken).ConfigureAwait(false) is { } lScoutLoudness)
         {
             lScoutMedia = lScoutMedia with { LWorkMediaLoudness = lScoutLoudness };
         }
@@ -180,7 +181,8 @@ internal static class LScout
         return lScoutMedia;
     }
 
-    internal static double? LScoutLoudnessRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
+    internal static async Task<double?> LScoutLoudnessRead(
+        string lScoutMediaPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
         {
@@ -189,7 +191,7 @@ internal static class LScout
 
         try
         {
-            return LMedia.LMediaLoudnessRead(lScoutMediaPath, lScoutToken);
+            return await LMedia.LMediaLoudnessRead(lScoutMediaPath, lScoutToken).ConfigureAwait(false);
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {

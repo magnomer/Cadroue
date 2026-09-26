@@ -1,5 +1,5 @@
-using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 
 using Cadroue.Core;
@@ -11,45 +11,24 @@ public static partial class LInventory
 {
     private const int LInventoryTimeout = 20000;
 
-    private static LInventoryProcess LInventoryProcessRead(params string[] lInventoryArguments)
+    private static async Task<LInventoryProcess> LInventoryProcessRead(params string[] lInventoryArguments)
     {
         try
         {
-            var lInventoryStart = new ProcessStartInfo(LTool.LToolFfmpegRead())
-            {
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            lInventoryStart.ArgumentList.Add("-hide_banner");
-            foreach (string lInventoryArgument in lInventoryArguments)
-            {
-                lInventoryStart.ArgumentList.Add(lInventoryArgument);
-            }
-
-            using var lInventoryProcess = Process.Start(lInventoryStart);
-            if (lInventoryProcess is null)
-            {
-                return LInventoryProcess.LInventoryProcessFailure;
-            }
-
-            LCustody.LCustodyAttach(lInventoryProcess);
-            Task<string> lInventoryOutputTask = lInventoryProcess.StandardOutput.ReadToEndAsync();
-            Task<string> lInventoryErrorTask = lInventoryProcess.StandardError.ReadToEndAsync();
-            if (!lInventoryProcess.WaitForExit(LInventoryTimeout))
-            {
-                LInventoryProcessInterrupt(lInventoryProcess);
-                return LInventoryProcess.LInventoryProcessFailure;
-            }
-
-            string lInventoryError = lInventoryErrorTask.GetAwaiter().GetResult();
-            string lInventoryOutput = lInventoryOutputTask.GetAwaiter().GetResult();
-            return new LInventoryProcess(lInventoryProcess.ExitCode == 0, lInventoryOutput, lInventoryError);
+            var lInventoryOutput = new StringBuilder();
+            using var lInventoryLimit = new CancellationTokenSource(LInventoryTimeout);
+            var lInventoryEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            LEmployerResult lInventoryResult = await lInventoryEmployer.LEmployerRun(
+                ["-hide_banner", .. lInventoryArguments],
+                lInventoryLimit.Token,
+                lInventoryLine => lInventoryOutput.AppendLine(lInventoryLine)).ConfigureAwait(false);
+            return new LInventoryProcess(
+                lInventoryResult.LEmployerExit == 0, lInventoryOutput.ToString(), lInventoryResult.LEmployerError);
         }
         catch (Exception lInventoryException)
             when (lInventoryException is System.ComponentModel.Win32Exception
                 or InvalidOperationException
+                or OperationCanceledException
                 or IOException)
         {
             return LInventoryProcess.LInventoryProcessFailure;
@@ -62,19 +41,5 @@ public static partial class LInventory
         string LInventoryProcessError)
     {
         public static readonly LInventoryProcess LInventoryProcessFailure = new(false, string.Empty, string.Empty);
-    }
-
-    private static void LInventoryProcessInterrupt(Process lInventoryProcess)
-    {
-        try
-        {
-            lInventoryProcess.Kill(true);
-        }
-        catch (Exception lInventoryException)
-            when (lInventoryException is System.ComponentModel.Win32Exception
-                or InvalidOperationException
-                or NotSupportedException)
-        {
-        }
     }
 }

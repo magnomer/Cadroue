@@ -33,39 +33,73 @@ public static partial class LInventory
 {
     private static IReadOnlyCollection<string>? lInventoryInstalledNames;
     private static IReadOnlyCollection<string>? lInventoryFilterNames;
-    private static LInventoryStatus lInventoryInstalledStatus;
     private static LInventoryStatus lInventoryFilterStatus;
+    private static Task? lInventoryPrepareTask;
     private static readonly Dictionary<string, IReadOnlyList<int>> lInventorySampleCache =
         new(StringComparer.OrdinalIgnoreCase);
     private static readonly Dictionary<string, IReadOnlyList<string>> lInventoryLayoutCache =
         new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, Task> lInventoryHelpTasks = new(StringComparer.OrdinalIgnoreCase);
     private static readonly object lInventoryGate = new();
 
-    public static void LInventoryPrepare()
+    public static event Action<string>? LInventoryHelpReady;
+
+    public static Task LInventoryPrepare()
     {
-        LInventoryInstalledRead();
-        LInventoryFilterRead();
+        lock (lInventoryGate)
+        {
+            return lInventoryPrepareTask ??= Task.Run(LInventoryLoadRun);
+        }
     }
 
-    public static void LInventoryPrepareStart() =>
-        _ = System.Threading.Tasks.Task.Run(LInventoryPrepare);
+    public static void LInventoryPrepareStart() => _ = LInventoryPrepare();
 
-    public static Task<LInventoryFeature> LInventoryFeatureRead(IReadOnlyList<string> lInventoryFilters) =>
-        System.Threading.Tasks.Task.Run(() =>
+    private static async Task LInventoryLoadRun()
+    {
+        LInventoryProcess lInventoryEncoders = await LInventoryProcessRead("-encoders").ConfigureAwait(false);
+        LInventoryProcess lInventoryFilters = await LInventoryProcessRead("-filters").ConfigureAwait(false);
+        lock (lInventoryGate)
         {
-            string lInventoryVersion = LInventoryVersionRead();
-            string lInventoryLocation = LInventoryLocationResolve();
-            var lInventoryMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
-            if (!string.IsNullOrWhiteSpace(lInventoryVersion))
+            if (lInventoryEncoders.LInventoryProcessSuccess)
             {
-                foreach (string lInventoryFilter in lInventoryFilters)
-                {
-                    lInventoryMap[lInventoryFilter] = LInventoryFilterConfirm(lInventoryFilter);
-                }
+                var lInventoryNames = LInventoryEncodersParse(lInventoryEncoders.LInventoryProcessOut)
+                    .Select(lInventoryEncoder => lInventoryEncoder.LInventoryEncoderName)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                lInventoryInstalledNames = lInventoryNames;
             }
 
-            return new LInventoryFeature(lInventoryVersion, lInventoryLocation, lInventoryMap);
-        });
+            if (lInventoryFilters.LInventoryProcessSuccess)
+            {
+                var lInventoryNames = LInventoryFiltersParse(lInventoryFilters.LInventoryProcessOut)
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase);
+                lInventoryFilterNames = lInventoryNames;
+                lInventoryFilterStatus = lInventoryNames.Count > 0
+                    ? LInventoryStatus.LInventoryStatusPresent
+                    : LInventoryStatus.LInventoryStatusEmpty;
+            }
+            else
+            {
+                lInventoryFilterStatus = LInventoryStatus.LInventoryStatusFailed;
+            }
+        }
+    }
+
+    public static async Task<LInventoryFeature> LInventoryFeatureRead(IReadOnlyList<string> lInventoryFilters)
+    {
+        await LInventoryPrepare().ConfigureAwait(false);
+        string lInventoryVersion = await LInventoryVersionRead().ConfigureAwait(false);
+        string lInventoryLocation = LInventoryLocationResolve();
+        var lInventoryMap = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+        if (!string.IsNullOrWhiteSpace(lInventoryVersion))
+        {
+            foreach (string lInventoryFilter in lInventoryFilters)
+            {
+                lInventoryMap[lInventoryFilter] = LInventoryFilterConfirm(lInventoryFilter);
+            }
+        }
+
+        return new LInventoryFeature(lInventoryVersion, lInventoryLocation, lInventoryMap);
+    }
 
     private static string LInventoryLocationResolve()
     {
@@ -89,83 +123,28 @@ public static partial class LInventory
     {
         lock (lInventoryGate)
         {
-            IReadOnlyCollection<string> lInventoryFilters = LInventoryFilterRead();
             return lInventoryFilterStatus == LInventoryStatus.LInventoryStatusPresent
-                && lInventoryFilters.Contains(lInventoryFilter);
+                && lInventoryFilterNames is not null
+                && lInventoryFilterNames.Contains(lInventoryFilter);
         }
     }
 
     public static IReadOnlyCollection<string> LInventoryFilterRead()
     {
+        LInventoryPrepareStart();
         lock (lInventoryGate)
         {
-            return LInventoryFilterResolve();
+            return lInventoryFilterNames ?? Array.Empty<string>();
         }
-    }
-
-    private static IReadOnlyCollection<string> LInventoryFilterResolve()
-    {
-        if (lInventoryFilterNames is not null)
-        {
-            return lInventoryFilterNames;
-        }
-
-        if (lInventoryFilterStatus == LInventoryStatus.LInventoryStatusFailed)
-        {
-            return Array.Empty<string>();
-        }
-
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-filters");
-        if (!lInventoryProcess.LInventoryProcessSuccess)
-        {
-            lInventoryFilterStatus = LInventoryStatus.LInventoryStatusFailed;
-            return Array.Empty<string>();
-        }
-
-        var lInventoryNames = LInventoryFiltersParse(lInventoryProcess.LInventoryProcessOut)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        lInventoryFilterNames = lInventoryNames;
-        lInventoryFilterStatus = lInventoryNames.Count > 0
-            ? LInventoryStatus.LInventoryStatusPresent
-            : LInventoryStatus.LInventoryStatusEmpty;
-        return lInventoryNames;
     }
 
     public static IReadOnlyCollection<string> LInventoryInstalledRead()
     {
+        LInventoryPrepareStart();
         lock (lInventoryGate)
         {
-            return LInventoryInstalledResolve();
+            return lInventoryInstalledNames ?? Array.Empty<string>();
         }
-    }
-
-    private static IReadOnlyCollection<string> LInventoryInstalledResolve()
-    {
-        if (lInventoryInstalledNames is not null)
-        {
-            return lInventoryInstalledNames;
-        }
-
-        if (lInventoryInstalledStatus == LInventoryStatus.LInventoryStatusFailed)
-        {
-            return Array.Empty<string>();
-        }
-
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-encoders");
-        if (!lInventoryProcess.LInventoryProcessSuccess)
-        {
-            lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusFailed;
-            return Array.Empty<string>();
-        }
-
-        var lInventoryNames = LInventoryEncodersParse(lInventoryProcess.LInventoryProcessOut)
-            .Select(lInventoryEncoder => lInventoryEncoder.LInventoryEncoderName)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        lInventoryInstalledNames = lInventoryNames;
-        lInventoryInstalledStatus = lInventoryNames.Count > 0
-            ? LInventoryStatus.LInventoryStatusPresent
-            : LInventoryStatus.LInventoryStatusEmpty;
-        return lInventoryNames;
     }
 
     public static bool LInventoryInstalledCheck(string lInventoryName)
@@ -180,10 +159,11 @@ public static partial class LInventory
         {
             lInventoryInstalledNames = null;
             lInventoryFilterNames = null;
-            lInventoryInstalledStatus = LInventoryStatus.LInventoryStatusPending;
+            lInventoryPrepareTask = null;
             lInventoryFilterStatus = LInventoryStatus.LInventoryStatusPending;
             lInventorySampleCache.Clear();
             lInventoryLayoutCache.Clear();
+            lInventoryHelpTasks.Clear();
         }
     }
 
@@ -200,14 +180,10 @@ public static partial class LInventory
             {
                 return lInventoryCached;
             }
-
-            LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
-            IReadOnlyList<string> lInventoryLayouts = lInventoryProcess.LInventoryProcessSuccess
-                ? LInventoryLayoutParse(lInventoryProcess.LInventoryProcessOut)
-                : Array.Empty<string>();
-            lInventoryLayoutCache[lInventoryEncoder] = lInventoryLayouts;
-            return lInventoryLayouts;
         }
+
+        LInventoryHelpStart(lInventoryEncoder);
+        return Array.Empty<string>();
     }
 
     public static IReadOnlyList<int> LInventorySampleRead(string lInventoryEncoder)
@@ -223,36 +199,60 @@ public static partial class LInventory
             {
                 return lInventoryCached;
             }
+        }
 
-            LInventoryProcess lInventoryProcess = LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder);
-            IReadOnlyList<int> lInventoryRates = lInventoryProcess.LInventoryProcessSuccess
-                ? LInventorySampleParse(lInventoryProcess.LInventoryProcessOut)
-                : Array.Empty<int>();
-            lInventorySampleCache[lInventoryEncoder] = lInventoryRates;
-            return lInventoryRates;
+        LInventoryHelpStart(lInventoryEncoder);
+        return Array.Empty<int>();
+    }
+
+    private static void LInventoryHelpStart(string lInventoryEncoder)
+    {
+        lock (lInventoryGate)
+        {
+            if (lInventoryHelpTasks.ContainsKey(lInventoryEncoder))
+            {
+                return;
+            }
+
+            lInventoryHelpTasks[lInventoryEncoder] = Task.Run(() => LInventoryHelpLoad(lInventoryEncoder));
         }
     }
 
-
-    public static IReadOnlyList<LInventoryEncoder> LInventoryEncodersRead()
+    private static async Task LInventoryHelpLoad(string lInventoryEncoder)
     {
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-encoders");
+        LInventoryProcess lInventoryProcess =
+            await LInventoryProcessRead("-h", "encoder=" + lInventoryEncoder).ConfigureAwait(false);
+        lock (lInventoryGate)
+        {
+            lInventoryLayoutCache[lInventoryEncoder] = lInventoryProcess.LInventoryProcessSuccess
+                ? LInventoryLayoutParse(lInventoryProcess.LInventoryProcessOut)
+                : Array.Empty<string>();
+            lInventorySampleCache[lInventoryEncoder] = lInventoryProcess.LInventoryProcessSuccess
+                ? LInventorySampleParse(lInventoryProcess.LInventoryProcessOut)
+                : Array.Empty<int>();
+        }
+
+        LInventoryHelpReady?.Invoke(lInventoryEncoder);
+    }
+
+    public static async Task<IReadOnlyList<LInventoryEncoder>> LInventoryEncodersRead()
+    {
+        LInventoryProcess lInventoryProcess = await LInventoryProcessRead("-encoders").ConfigureAwait(false);
         return lInventoryProcess.LInventoryProcessSuccess
             ? LInventoryEncodersParse(lInventoryProcess.LInventoryProcessOut)
             : Array.Empty<LInventoryEncoder>();
     }
 
-    public static string LInventoryVersionRead()
+    public static async Task<string> LInventoryVersionRead()
     {
-        LInventoryProcess lInventoryProcess = LInventoryProcessRead("-version");
+        LInventoryProcess lInventoryProcess = await LInventoryProcessRead("-version").ConfigureAwait(false);
         return lInventoryProcess.LInventoryProcessSuccess
             ? LInventoryVersionParse(lInventoryProcess.LInventoryProcessOut)
             : string.Empty;
     }
 
-
-    public static IReadOnlyList<LInventoryEncoder> LInventoryAudioRead() =>
-        LInventoryEncodersRead()
+    public static async Task<IReadOnlyList<LInventoryEncoder>> LInventoryAudioRead() =>
+        (await LInventoryEncodersRead().ConfigureAwait(false))
             .Where(lInventoryEncoder => lInventoryEncoder.LInventoryEncoderKind == LInventoryKind.LInventoryKindAudio)
             .ToList();
 }

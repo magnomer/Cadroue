@@ -4,7 +4,7 @@ internal sealed partial class LJob
 {
     private const int LJobTailLimit = 240;
 
-    private bool LJobRetryStart(string pJobReason)
+    private async Task<bool> LJobRetryStart(string pJobReason)
     {
         if (!lJobOwner.LRunnerRetryAllowed
             || lJobOwner.LRunnerRetryMaximum <= 0
@@ -13,7 +13,7 @@ internal sealed partial class LJob
             return false;
         }
 
-        LJobAttemptClear();
+        await LJobAttemptClear().ConfigureAwait(false);
         int pRetry = 0;
         lJobOwner.LRunnerDispatch(() => pRetry = lJobOwner.lRunnerSchedule.LScheduleRetryRelease(
             lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobOwner.LRunnerRetryMaximum, pJobReason));

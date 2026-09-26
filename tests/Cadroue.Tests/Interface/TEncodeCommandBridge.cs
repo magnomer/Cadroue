@@ -61,7 +61,7 @@ internal sealed partial class TEncodeCommand
         LBridgeSpan? tail,
         LBridgeStream? source = null,
         string? intermediateExtension = null) =>
-        LEncode.LEncodeSmartBuild(
+        TBridgeSmartBuild(
             work,
             new LBridgePlan(
                 outcome,
@@ -80,7 +80,7 @@ internal sealed partial class TEncodeCommand
         LBridgeSpan? middle,
         LBridgeSpan? tail,
         LBridgeStream? source = null) =>
-        LEncode.LEncodeSmartResolve(
+        TBridgeSmartResolve(
             work,
             new LBridgePlan(
                 outcome,
@@ -95,7 +95,7 @@ internal sealed partial class TEncodeCommand
         LBridgePlan plan,
         LBridgeStream? source = null,
         string? intermediateExtension = null) =>
-        LEncode.LEncodeSmartBuild(
+        TBridgeSmartBuild(
             work,
             plan,
             source ?? TSourceStreamCreate(work.LWorkSourceMedia?.LWorkMediaCodec ?? "h264"),
@@ -121,15 +121,32 @@ internal sealed partial class TEncodeCommand
     internal static IReadOnlyList<LEncodeStage> TBridgeResolve(
         LWorkItem work, params double[] keyframes) =>
         LEncode.LEncodeBridgeResolve(
-            work, keyframes.Select(TimeSpan.FromSeconds).ToArray());
+            work, keyframes.Select(TimeSpan.FromSeconds).ToArray()).GetAwaiter().GetResult();
 
     internal static bool? TAudioIntervalRead(string source, double origin, double end) =>
         LScoutAudio.LScoutAudioRead(
-            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
+            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end)).GetAwaiter().GetResult();
 
     internal static IReadOnlyList<LKeyframeEntry> TKeyframeRead(string source, double origin, double end) =>
         LKeyframeSeeker.LKeyframeRangeScan(
-            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end));
+            source, TimeSpan.FromSeconds(origin), TimeSpan.FromSeconds(end)).GetAwaiter().GetResult();
+
+    private static IReadOnlyList<LEncodeStage> TBridgeSmartBuild(
+        LWorkItem work, LBridgePlan plan, LBridgeStream? source, string? intermediateExtension = null) =>
+        LEncode.LEncodeSmartBuild(
+            work,
+            plan,
+            source,
+            intermediateExtension,
+            LEncode.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
+
+    private static IReadOnlyList<LEncodeStage> TBridgeSmartResolve(
+        LWorkItem work, LBridgePlan plan, LBridgeStream? source) =>
+        LEncode.LEncodeSmartResolve(
+            work,
+            plan,
+            source,
+            LEncode.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
 
     internal static string TToolFfmpegRead() => LTool.LToolFfmpegRead();
 
@@ -196,18 +213,19 @@ internal sealed partial class TEncodeCommand
     internal static IReadOnlyList<LEncodeStage> TBridgeSourceBuild(LWorkItem work)
     {
         IReadOnlyList<LKeyframeEntry> keyframes = LScoutBridge.LScoutBridgeRead(
-            work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd);
-        LWorkMedia? media = LScout.LScoutMediaRead(work.LWorkSourcePath);
+            work.LWorkSourcePath, work.LWorkOrigin, work.LWorkEnd).GetAwaiter().GetResult();
+        LWorkMedia? media = LScout.LScoutMediaRead(work.LWorkSourcePath).GetAwaiter().GetResult();
         bool openEnd = LBridge.LBridgeEndCheck(
             work.LWorkEnd,
             media?.LWorkMediaDuration ?? TimeSpan.Zero,
             media?.LWorkMediaFramerate ?? 0);
         LBridgePlan plan = LBridge.LBridgeRegionResolve(keyframes, work.LWorkOrigin, work.LWorkEnd, openEnd);
-        return LEncode.LEncodeSmartBuild(work, plan, LScoutStream.LScoutStreamRead(work.LWorkSourcePath));
+        return TBridgeSmartBuild(
+            work, plan, LScoutStream.LScoutStreamRead(work.LWorkSourcePath).GetAwaiter().GetResult());
     }
 
     internal static IReadOnlyList<LEncodeStage> TBridgeMissingBuild(LWorkItem work) =>
-        LEncode.LEncodeSmartBuild(
+        TBridgeSmartBuild(
             work,
             new LBridgePlan(
                 LBridgeOutcome.LBridgeOutcomeSmart,

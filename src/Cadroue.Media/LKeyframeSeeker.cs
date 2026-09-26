@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Core;
@@ -15,7 +14,7 @@ public static class LKeyframeSeeker
     private const double LKeyframeRangeTolerance = 0.001d;
     private const int LKeyframeIntraMinimum = 10;
 
-    public static IReadOnlyList<LKeyframeEntry> LKeyframeRangeScan(
+    public static async Task<IReadOnlyList<LKeyframeEntry>> LKeyframeRangeScan(
         string sourcePath,
         TimeSpan scanStartTime,
         TimeSpan scanEndTime,
@@ -29,23 +28,26 @@ public static class LKeyframeSeeker
             return Array.Empty<LKeyframeEntry>();
 
         cancellationToken.ThrowIfCancellationRequested();
-        double timelineStartSeconds =
-            LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).LMediaStartTime.TotalSeconds;
-        return LKeyframeSpanScan(sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken)
-            .LKeyframeSpanEntries;
+        LMediaInfo mediaInfo = await LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).ConfigureAwait(false);
+        LKeyframeSpanResult result = await LKeyframeSpanScan(
+            sourcePath, mediaInfo.LMediaStartTime.TotalSeconds, scanStartTime, scanEndTime, cancellationToken)
+            .ConfigureAwait(false);
+        return result.LKeyframeSpanEntries;
     }
 
-    public static LKeyframeSpanResult LKeyframeLaneScan(
+    public static async Task<LKeyframeSpanResult> LKeyframeLaneScan(
         string sourcePath,
         double timelineStartSeconds,
         TimeSpan scanStartTime,
         TimeSpan scanEndTime,
         CancellationToken cancellationToken = default)
     {
-        LMedia.LMediaScanClaim(cancellationToken);
+        await LMedia.LMediaScanClaim(cancellationToken).ConfigureAwait(false);
         try
         {
-            return LKeyframeSpanScan(sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken);
+            return await LKeyframeSpanScan(
+                sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken, true)
+                .ConfigureAwait(false);
         }
         finally
         {
@@ -53,12 +55,13 @@ public static class LKeyframeSeeker
         }
     }
 
-    public static LKeyframeSpanResult LKeyframeSpanScan(
+    public static async Task<LKeyframeSpanResult> LKeyframeSpanScan(
         string sourcePath,
         double timelineStartSeconds,
         TimeSpan scanStartTime,
         TimeSpan scanEndTime,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        bool background = false)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
             throw new ArgumentException("Source path is required.", nameof(sourcePath));
@@ -78,49 +81,28 @@ public static class LKeyframeSeeker
             : string.Empty;
         string readIntervals = FormattableString.Invariant(
             $"{intervalStart}%{intervalEndSeconds.ToString("0.#######", CultureInfo.InvariantCulture)}");
-
-        var psi = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            Arguments = $"-v error -select_streams v:0 -show_packets -read_intervals \"{readIntervals}\" "
-                + $"-print_format csv -show_entries packet=pts_time,dts_time,flags -i \"{sourcePath}\"",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        string[] arguments =
+        [
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_packets",
+            "-read_intervals", readIntervals,
+            "-print_format", "csv",
+            "-show_entries", "packet=pts_time,dts_time,flags",
+            "-i", sourcePath
+        ];
 
         var keyframePackets = new List<LKeyframePacket>();
         int packetCount = 0;
+        var employer = new LEmployer(LTool.LToolFfprobeRead()) { LEmployerBackground = background };
+        LEmployerResult result = await employer.LEmployerRun(
+            arguments,
+            cancellationToken,
+            line => packetCount += LKeyframeLineParse(line, keyframePackets)).ConfigureAwait(false);
+        cancellationToken.ThrowIfCancellationRequested();
+        if (result.LEmployerExit != 0)
         {
-            using var process = Process.Start(psi)
-                ?? throw new InvalidOperationException("ffprobe could not be started.");
-            try
-            {
-                LCustody.LCustodyAttach(process);
-                LKeyframePrioritySet(process);
-                using var killOnCancel = cancellationToken.Register(
-                    static p => { try { ((Process)p!).Kill(); } catch { } }, process);
-
-                Task<string> errorTask = process.StandardError.ReadToEndAsync(CancellationToken.None);
-                string? line;
-                while ((line = process.StandardOutput.ReadLine()) is not null)
-                {
-                    packetCount += LKeyframeLineParse(line, keyframePackets);
-                }
-
-                process.WaitForExit();
-                cancellationToken.ThrowIfCancellationRequested();
-                if (process.ExitCode != 0)
-                {
-                    throw new InvalidOperationException(
-                        LKeyframeFailureFormat(process.ExitCode, errorTask.GetAwaiter().GetResult()));
-                }
-            }
-            finally
-            {
-                if (!process.HasExited)
-                    try { process.Kill(); } catch { }
-            }
+            throw new InvalidOperationException(LKeyframeFailureFormat(result.LEmployerExit, result.LEmployerError));
         }
 
         return new LKeyframeSpanResult(
@@ -165,18 +147,6 @@ public static class LKeyframeSeeker
             : errorText.Trim();
         return $"ffprobe packet scan failed with exit code {exitCode}. "
             + (diagnostic.Length <= 2000 ? diagnostic : diagnostic[..2000]);
-    }
-
-    private static void LKeyframePrioritySet(Process process)
-    {
-        try
-        {
-            process.PriorityClass = ProcessPriorityClass.BelowNormal;
-        }
-        catch (Exception exception)
-            when (exception is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-        }
     }
 
     private static int LKeyframeLineParse(

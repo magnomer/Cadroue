@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Core;
@@ -19,13 +18,11 @@ public static class LWaveformScanner
 
     private const int LWaveformBucketLimit = 4_000_000;
 
-    private const int LWaveformExitMilliseconds = 5_000;
-
     private const int LWaveformDetailLimit = 400;
 
     private const int LWaveformChunkMilliseconds = 20_000;
 
-    public static LWaveformScanResult LWaveformScan(
+    public static async Task<LWaveformScanResult> LWaveformScan(
         string lWaveformSourcePath,
         TimeSpan lWaveformDuration,
         CancellationToken lWaveformCancelSource = default,
@@ -45,12 +42,12 @@ public static class LWaveformScanner
 
         if (lWaveformFilterGraph is not null)
         {
-            return LWaveformProcessRun(
+            return await LWaveformProcessRun(
                 lWaveformSourcePath,
                 lWaveformBucketExpected,
                 lWaveformCancelSource,
                 lWaveformFilterGraph,
-                null);
+                null).ConfigureAwait(false);
         }
 
         var lWaveformPeaks = new List<byte>(lWaveformBucketExpected);
@@ -60,12 +57,12 @@ public static class LWaveformScanner
         {
             long lWaveformChunkLength = Math.Min(
                 LWaveformChunkMilliseconds, lWaveformMilliseconds - lWaveformChunkStart);
-            LWaveformScanResult lWaveformChunk = LWaveformProcessRun(
+            LWaveformScanResult lWaveformChunk = await LWaveformProcessRun(
                 lWaveformSourcePath,
                 LWaveform.LWaveformBucketsResolve(lWaveformChunkLength),
                 lWaveformCancelSource,
                 null,
-                (lWaveformChunkStart, lWaveformChunkLength));
+                (lWaveformChunkStart, lWaveformChunkLength)).ConfigureAwait(false);
             if (!lWaveformChunk.LWaveformComplete)
             {
                 return lWaveformChunk;
@@ -80,68 +77,48 @@ public static class LWaveformScanner
             string.Empty);
     }
 
-    private static LWaveformScanResult LWaveformProcessRun(
+    private static async Task<LWaveformScanResult> LWaveformProcessRun(
         string lWaveformSourcePath,
         int lWaveformBucketExpected,
         CancellationToken lWaveformCancelSource,
         string? lWaveformFilterGraph,
         (long LWaveformOrigin, long LWaveformLength)? lWaveformChunk)
     {
-        string lWaveformWindow = lWaveformChunk is { } lWaveformRange
-            ? "-ss " + (lWaveformRange.LWaveformOrigin / 1000d).ToString("0.###", CultureInfo.InvariantCulture)
-                + " -t " + (lWaveformRange.LWaveformLength / 1000d).ToString("0.###", CultureInfo.InvariantCulture)
-                + " "
-            : string.Empty;
         int lWaveformBucketSamples =
             LWaveform.LWaveformSampleRate * LWaveform.LWaveformBucketMilliseconds / 1000 * LWaveformChannelCount;
         string lWaveformGraph = "aresample=async=1:first_pts=0"
             + (string.IsNullOrWhiteSpace(lWaveformFilterGraph) ? string.Empty : "," + lWaveformFilterGraph);
-        var lWaveformStart = new ProcessStartInfo(LTool.LToolFfmpegRead())
+        var lWaveformArguments = new List<string> { "-v", "error", "-nostdin" };
+        if (lWaveformChunk is { } lWaveformRange)
         {
-            Arguments =
-                "-v error -nostdin " + lWaveformWindow + "-i \"" + lWaveformSourcePath + "\""
-                + " -vn -sn -dn -af \"" + lWaveformGraph + "\""
-                + " -ac " + LWaveformChannelCount + " -ar " + LWaveform.LWaveformSampleRate
-                + " -f s16le -",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+            lWaveformArguments.AddRange(
+            [
+                "-ss", (lWaveformRange.LWaveformOrigin / 1000d).ToString("0.###", CultureInfo.InvariantCulture),
+                "-t", (lWaveformRange.LWaveformLength / 1000d).ToString("0.###", CultureInfo.InvariantCulture)
+            ]);
+        }
+
+        lWaveformArguments.AddRange(
+        [
+            "-i", lWaveformSourcePath,
+            "-vn", "-sn", "-dn",
+            "-af", lWaveformGraph,
+            "-ac", LWaveformChannelCount.ToString(CultureInfo.InvariantCulture),
+            "-ar", LWaveform.LWaveformSampleRate.ToString(CultureInfo.InvariantCulture),
+            "-f", "s16le", "-"
+        ]);
 
         var lWaveformPeaks = new List<byte>(lWaveformBucketExpected);
-        Process? lWaveformProcess = null;
-        Task<string> lWaveformDetail = Task.FromResult(string.Empty);
-        int lWaveformExitCode;
-
-        LMedia.LMediaScanClaim(lWaveformCancelSource);
+        LEmployerResult lWaveformResult;
+        await LMedia.LMediaScanClaim(lWaveformCancelSource).ConfigureAwait(false);
         try
         {
-            lWaveformProcess = Process.Start(lWaveformStart);
-            if (lWaveformProcess is null)
-            {
-                return LWaveformScanResult.LWaveformFailureCreate("ffmpeg could not be started");
-            }
-
-            LCustody.LCustodyAttach(lWaveformProcess);
-            LWaveformPrioritySet(lWaveformProcess);
-            using var lWaveformKill = lWaveformCancelSource.Register(
-                static lProcess => { try { ((Process)lProcess!).Kill(); } catch { } }, lWaveformProcess);
-
-            lWaveformDetail = lWaveformProcess.StandardError.ReadToEndAsync();
-            LWaveformStreamRead(
-                lWaveformProcess.StandardOutput.BaseStream,
-                lWaveformBucketSamples,
-                lWaveformPeaks,
-                lWaveformCancelSource);
-            if (!lWaveformProcess.WaitForExit(LWaveformExitMilliseconds))
-            {
-                try { lWaveformProcess.Kill(); } catch { }
-                lWaveformCancelSource.ThrowIfCancellationRequested();
-                return LWaveformScanResult.LWaveformFailureCreate("ffmpeg did not exit after its output ended");
-            }
-
-            lWaveformExitCode = lWaveformProcess.ExitCode;
+            var lWaveformEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            lWaveformResult = await lWaveformEmployer.LEmployerStreamRun(
+                lWaveformArguments,
+                lWaveformCancelSource,
+                (lWaveformStream, lWaveformCancel) => LWaveformStreamRead(
+                    lWaveformStream, lWaveformBucketSamples, lWaveformPeaks, lWaveformCancel)).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -154,20 +131,15 @@ public static class LWaveformScanner
         }
         finally
         {
-            if (lWaveformProcess is not null && !lWaveformProcess.HasExited)
-            {
-                try { lWaveformProcess.Kill(); } catch { }
-            }
-
-            lWaveformProcess?.Dispose();
             LMedia.LMediaScanRelease();
         }
 
         lWaveformCancelSource.ThrowIfCancellationRequested();
-        if (lWaveformExitCode != 0)
+        if (lWaveformResult.LEmployerExit != 0)
         {
+            string lWaveformDetail = LWaveformDetailRead(lWaveformResult.LEmployerError);
             return LWaveformScanResult.LWaveformFailureCreate(
-                $"ffmpeg exit code {lWaveformExitCode}: {LWaveformDetailRead(lWaveformDetail)}");
+                $"ffmpeg exit code {lWaveformResult.LEmployerExit}: {lWaveformDetail}");
         }
 
         if (lWaveformPeaks.Count == 0 && lWaveformChunk is not { LWaveformOrigin: > 0 })
@@ -181,18 +153,9 @@ public static class LWaveformScanner
             string.Empty);
     }
 
-    private static string LWaveformDetailRead(Task<string> lWaveformDetail)
+    private static string LWaveformDetailRead(string lWaveformDetail)
     {
-        string lWaveformText;
-        try
-        {
-            lWaveformText = lWaveformDetail.GetAwaiter().GetResult().Trim();
-        }
-        catch
-        {
-            return string.Empty;
-        }
-
+        string lWaveformText = lWaveformDetail.Trim();
         return lWaveformText.Length <= LWaveformDetailLimit
             ? lWaveformText
             : lWaveformText[^LWaveformDetailLimit..];
@@ -205,19 +168,7 @@ public static class LWaveformScanner
         return lWaveformFitted;
     }
 
-    private static void LWaveformPrioritySet(Process lWaveformProcess)
-    {
-        try
-        {
-            lWaveformProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
-        }
-        catch (Exception lWaveformException)
-            when (lWaveformException is System.ComponentModel.Win32Exception or InvalidOperationException)
-        {
-        }
-    }
-
-    private static void LWaveformStreamRead(
+    private static async Task LWaveformStreamRead(
         Stream lWaveformStream,
         int lWaveformBucketSamples,
         List<byte> lWaveformPeaks,
@@ -229,7 +180,9 @@ public static class LWaveformScanner
         int lWaveformBucketPeak = 0;
         int lWaveformRead;
 
-        while ((lWaveformRead = lWaveformStream.Read(lWaveformBuffer, 0, lWaveformBuffer.Length)) > 0)
+        while ((lWaveformRead = await lWaveformStream
+            .ReadAsync(lWaveformBuffer.AsMemory(), lWaveformCancelSource)
+            .ConfigureAwait(false)) > 0)
         {
             lWaveformCancelSource.ThrowIfCancellationRequested();
             int lWaveformOffset = 0;

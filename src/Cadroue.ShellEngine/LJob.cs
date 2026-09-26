@@ -62,7 +62,7 @@ internal sealed partial class LJob
 
         try
         {
-            string pJobInvalid = LJobValidate();
+            string pJobInvalid = await LJobValidate().ConfigureAwait(false);
             if (pJobInvalid.Length > 0)
             {
                 LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
@@ -112,7 +112,8 @@ internal sealed partial class LJob
             lJobOwner.lRunnerSchedule.LScheduleOutputCommit(
                 lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
 
-            lJobItem.LWorkSourceMedia ??= LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+            lJobItem.LWorkSourceMedia ??=
+                await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
 
             lJobDirectory = pDirectory;
             lJobItem.LWorkStartTime = DateTimeOffset.Now;
@@ -124,16 +125,18 @@ internal sealed partial class LJob
 
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
-                LWorkKind.LWorkKindAudio => LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken)
-                    ?.LWorkMediaDuration.TotalSeconds ?? 0,
-                LWorkKind.LWorkKindMerge => LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken),
+                LWorkKind.LWorkKindAudio =>
+                    (await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false))
+                        ?.LWorkMediaDuration.TotalSeconds ?? 0,
+                LWorkKind.LWorkKindMerge =>
+                    await LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken).ConfigureAwait(false),
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
 
             if (pTotalSeconds <= 0 && lJobItem.LWorkKind != LWorkKind.LWorkKindMerge)
             {
                 pTotalSeconds = (lJobItem.LWorkSourceMedia
-                    ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken))
+                    ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false))
                     ?.LWorkMediaDuration.TotalSeconds ?? 0;
             }
 
@@ -168,7 +171,7 @@ internal sealed partial class LJob
                         : pAutopsy.LAutopsyResultSimple
                     : $"FFmpeg exited with code {pExitCode}. {LJobTailShorten(pTail)}";
 
-                if (LJobRetryStart(pFailureMessage))
+                if (await LJobRetryStart(pFailureMessage).ConfigureAwait(false))
                 {
                     return;
                 }
@@ -193,7 +196,7 @@ internal sealed partial class LJob
 
             if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && !pSucceeded)
             {
-                LJobOutputClear();
+                await LJobOutputClear().ConfigureAwait(false);
             }
 
             long? pSourceBytes = lJobItem.LWorkSourceBytes ?? LScout.LScoutInputRead(lJobItem, lJobToken);
@@ -201,11 +204,11 @@ internal sealed partial class LJob
                 ? lJobItem.LWorkMergeBytes
                 : LJobMergeRead();
             LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia
-                ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
-            LWorkMedia? pOutputMedia = LJobOutputResolve(
-                LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken),
+                ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+            LWorkMedia? pOutputMedia = await LJobOutputResolve(
+                await LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken).ConfigureAwait(false),
                 lJobItem.LWorkOutputPath,
-                pSourceMedia);
+                pSourceMedia).ConfigureAwait(false);
             lJobOwner.LRunnerDispatch(() =>
             {
                 lJobItem.LWorkFinishTime = DateTimeOffset.Now;
@@ -252,7 +255,7 @@ internal sealed partial class LJob
             LRunner.LRunnerRecord(
                 $"Encode stopped '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
                 $"returned to the queue");
-            LJobAttemptClear();
+            await LJobAttemptClear().ConfigureAwait(false);
             lJobOwner.LRunnerDispatch(() => lJobOwner.lRunnerSchedule.LScheduleItemRelease(
                 lJobItem.LWorkId, lJobOwner.LRunnerIdentity, string.Empty));
         }
@@ -260,14 +263,15 @@ internal sealed partial class LJob
         {
             LRunner.LRunnerRecord(
                 $"Encode failed '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
-            if (!lJobToken.IsCancellationRequested && LJobRetryStart(pException.Message))
+            if (!lJobToken.IsCancellationRequested
+                && await LJobRetryStart(pException.Message).ConfigureAwait(false))
             {
                 return;
             }
 
             if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
             {
-                LJobOutputClear();
+                await LJobOutputClear().ConfigureAwait(false);
             }
 
             lJobOwner.LRunnerDispatch(() =>
@@ -283,16 +287,16 @@ internal sealed partial class LJob
         }
         finally
         {
-            LJobAttemptClear();
+            await LJobAttemptClear().ConfigureAwait(false);
             lJobSource.Dispose();
         }
     }
 
-    private void LJobAttemptClear()
+    private async Task LJobAttemptClear()
     {
         lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
         lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
-        LJobTempClear(lJobStagesDone);
+        await LJobTempClear(lJobStagesDone).ConfigureAwait(false);
         LJobReservedClear();
         LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
     }

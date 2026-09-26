@@ -5,6 +5,12 @@ namespace Cadroue.Infrastructure;
 
 public static partial class LSidecarStore
 {
+    private static readonly object lSidecarPendingGate = new();
+    private static readonly object lSidecarWriteGate = new();
+    private static readonly Dictionary<string, List<Action<LSidecarCoreRecord>>> lSidecarPending =
+        new(StringComparer.OrdinalIgnoreCase);
+    private static Task lSidecarWriter = Task.CompletedTask;
+
     public static LSidecarEditRecord? LSidecarEditRead(string lSidecarSourcePath)
     {
         try
@@ -21,7 +27,7 @@ public static partial class LSidecarStore
     }
 
     public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditRecord? lSidecarEdit) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarEdit = lSidecarEdit);
+        LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarEdit = lSidecarEdit);
 
     public static LSidecarAudioRecord? LSidecarAudioRead(string lSidecarSourcePath)
     {
@@ -39,7 +45,7 @@ public static partial class LSidecarStore
     }
 
     public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarAudio = lSidecarAudio);
+        LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarAudio = lSidecarAudio);
 
     public static LSidecarSplitRecord? LSidecarSplitRead(string lSidecarSourcePath)
     {
@@ -57,7 +63,7 @@ public static partial class LSidecarStore
     }
 
     public static bool LSidecarSplitSave(string lSidecarSourcePath, LSidecarSplitRecord? lSidecarSplit) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSplit = lSidecarSplit);
+        LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSplit = lSidecarSplit);
 
     public static LSidecarFixRecord? LSidecarFixRead(string lSidecarSourcePath)
     {
@@ -75,7 +81,7 @@ public static partial class LSidecarStore
     }
 
     public static bool LSidecarFixSave(string lSidecarSourcePath, LSidecarFixRecord? lSidecarFix) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarFix = lSidecarFix);
+        LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarFix = lSidecarFix);
 
     public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
     {
@@ -143,7 +149,7 @@ public static partial class LSidecarStore
     }
 
     public static bool LSidecarLoudnessSave(string lSidecarSourcePath, double lSidecarLoudness) =>
-        LSidecarCoreSave(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarLoudness = lSidecarLoudness);
+        LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarLoudness = lSidecarLoudness);
 
     public static TimeSpan LSidecarDurationRead(string lSidecarSourcePath)
     {
@@ -163,7 +169,7 @@ public static partial class LSidecarStore
         }
     }
 
-    public static TimeSpan LSidecarDurationResolve(string lSidecarSourcePath)
+    public static async Task<TimeSpan> LSidecarDurationResolve(string lSidecarSourcePath)
     {
         try
         {
@@ -182,7 +188,8 @@ public static partial class LSidecarStore
             TimeSpan lSidecarProbed;
             try
             {
-                lSidecarProbed = LMedia.LMediaFfprobeRead(lSidecarSourcePath).LMediaInfoDuration;
+                lSidecarProbed = (await LMedia.LMediaFfprobeRead(lSidecarSourcePath).ConfigureAwait(false))
+                    .LMediaInfoDuration;
             }
             catch (Exception)
             {
@@ -208,6 +215,132 @@ public static partial class LSidecarStore
                 or TimeoutException)
         {
             return TimeSpan.Zero;
+        }
+    }
+
+    private static LSidecarCoreRecord? LSidecarPendingApply(string lSidecarSourcePath, LSidecarCoreRecord? lSidecarCore)
+    {
+        Action<LSidecarCoreRecord>[] lSidecarMutations;
+        lock (lSidecarPendingGate)
+        {
+            if (!lSidecarPending.TryGetValue(LSidecarFullResolve(lSidecarSourcePath), out var lSidecarQueued))
+            {
+                return lSidecarCore;
+            }
+
+            lSidecarMutations = lSidecarQueued.ToArray();
+        }
+
+        LSidecarCoreRecord lSidecarOverlay = lSidecarCore ?? new LSidecarCoreRecord();
+        foreach (Action<LSidecarCoreRecord> lSidecarMutation in lSidecarMutations)
+        {
+            lSidecarMutation(lSidecarOverlay);
+        }
+
+        return lSidecarOverlay;
+    }
+
+    private static bool LSidecarCoreDefer(string lSidecarSourcePath, Action<LSidecarCoreRecord> lSidecarMutate)
+    {
+        string lSidecarKey = LSidecarFullResolve(lSidecarSourcePath);
+        lock (lSidecarPendingGate)
+        {
+            if (!lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
+            {
+                lSidecarQueued = new List<Action<LSidecarCoreRecord>>();
+                lSidecarPending[lSidecarKey] = lSidecarQueued;
+            }
+
+            lSidecarQueued.Add(lSidecarMutate);
+            lSidecarWriter = lSidecarWriter.ContinueWith(
+                _ => { LSidecarPendingPersist(lSidecarKey); },
+                CancellationToken.None,
+                TaskContinuationOptions.None,
+                TaskScheduler.Default);
+        }
+
+        return true;
+    }
+
+    private static bool LSidecarPendingPersist(string lSidecarKey)
+    {
+        lock (lSidecarWriteGate)
+        {
+            return LSidecarPendingSave(lSidecarKey);
+        }
+    }
+
+    private static bool LSidecarPendingSave(string lSidecarKey)
+    {
+        Action<LSidecarCoreRecord>[] lSidecarMutations;
+        lock (lSidecarPendingGate)
+        {
+            if (!lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
+            {
+                return true;
+            }
+
+            lSidecarMutations = lSidecarQueued.ToArray();
+        }
+
+        bool lSidecarSaved = LSidecarCoreSave(lSidecarKey, lSidecarCore =>
+        {
+            foreach (Action<LSidecarCoreRecord> lSidecarMutation in lSidecarMutations)
+            {
+                lSidecarMutation(lSidecarCore);
+            }
+        });
+
+        lock (lSidecarPendingGate)
+        {
+            if (lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
+            {
+                var lSidecarWritten = new HashSet<Action<LSidecarCoreRecord>>(
+                    lSidecarMutations, ReferenceEqualityComparer.Instance);
+                lSidecarQueued.RemoveAll(lSidecarWritten.Contains);
+                if (lSidecarQueued.Count == 0)
+                {
+                    lSidecarPending.Remove(lSidecarKey);
+                }
+            }
+        }
+
+        if (!lSidecarSaved)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Sidecar could not be written for '{Path.GetFileName(lSidecarKey)}'",
+                $"{lSidecarMutations.Length} change(s) were not saved to {LSidecarPathRead(lSidecarKey)}");
+        }
+
+        return lSidecarSaved;
+    }
+
+    public static bool LSidecarPersist()
+    {
+        string[] lSidecarKeys;
+        lock (lSidecarPendingGate)
+        {
+            lSidecarKeys = lSidecarPending.Keys.ToArray();
+        }
+
+        bool lSidecarSaved = true;
+        foreach (string lSidecarKey in lSidecarKeys)
+        {
+            lSidecarSaved &= LSidecarPendingPersist(lSidecarKey);
+        }
+
+        return lSidecarSaved;
+    }
+
+    private static string LSidecarFullResolve(string lSidecarSourcePath)
+    {
+        try
+        {
+            return Path.GetFullPath(lSidecarSourcePath);
+        }
+        catch (Exception lException) when (lException is ArgumentException or NotSupportedException or IOException)
+        {
+            return lSidecarSourcePath;
         }
     }
 }

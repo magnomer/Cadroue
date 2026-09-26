@@ -13,7 +13,7 @@ internal sealed partial class LJob
 
     private async Task<(int, string)> LJobFixRun()
     {
-        LJobDossiersCreate();
+        await LJobDossiersCreate().ConfigureAwait(false);
 
         (int pFixExit, string pFixError) = await LJobPassRun().ConfigureAwait(false);
 
@@ -74,7 +74,8 @@ internal sealed partial class LJob
             }
 
             IReadOnlyList<LDossier> pRescan =
-                LFlawScan.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken);
+                await LFlawScan.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken)
+                    .ConfigureAwait(false);
             var pRemaining = LFix.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
                 .Where(pDossier => pDossier.LDossierRepair != LFlawFfvone.LFlawReport)
                 .ToList();
@@ -99,7 +100,7 @@ internal sealed partial class LJob
         return (pExit, pError);
     }
 
-    private void LJobDossiersCreate()
+    private async Task LJobDossiersCreate()
     {
         if (lJobItem.LWorkDossiers.Count > 0)
         {
@@ -113,8 +114,8 @@ internal sealed partial class LJob
             return;
         }
 
-        IReadOnlyList<LDossier> pScanned = LFlawScan.LFlawScanRun(lJobItem, lJobToken);
-        LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, pScanned);
+        IReadOnlyList<LDossier> pScanned = await LFlawScan.LFlawScanRun(lJobItem, lJobToken).ConfigureAwait(false);
+        await LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, pScanned).ConfigureAwait(false);
         lJobItem.LWorkDossiers = pScanned;
     }
 
@@ -162,7 +163,7 @@ internal sealed partial class LJob
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
 
-        LWorkMedia? pOutputMedia = LScout.LScoutMediaRead(pOutput, lJobToken);
+        LWorkMedia? pOutputMedia = await LScout.LScoutMediaRead(pOutput, lJobToken).ConfigureAwait(false);
         if (pOutputMedia is null)
         {
             lJobValidateState = LWorkState.LWorkStateUnresolved;

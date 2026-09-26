@@ -101,7 +101,7 @@ internal sealed partial class LJob
         lJobReserved.Clear();
     }
 
-    private void LJobOutputClear()
+    private async Task LJobOutputClear()
     {
         string pOutput = lJobItem.LWorkOutputPath;
         if (string.IsNullOrWhiteSpace(pOutput))
@@ -137,14 +137,14 @@ internal sealed partial class LJob
             }
             catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
             {
-                System.Threading.Thread.Sleep(200);
+                await Task.Delay(200).ConfigureAwait(false);
             }
         }
 
         LRunner.LRunnerRecord($"Could not delete the unresolved Fix output '{pOutput}'; it may remain on disk.", null);
     }
 
-    private static void LJobTempClear(IReadOnlyList<LEncodeStage> pStages)
+    private static async Task LJobTempClear(IReadOnlyList<LEncodeStage> pStages)
     {
         foreach (LEncodeStage pStage in pStages)
         {
@@ -178,7 +178,7 @@ internal sealed partial class LJob
                 catch (Exception pException)
                     when (pException is IOException or UnauthorizedAccessException)
                 {
-                    System.Threading.Thread.Sleep(200);
+                    await Task.Delay(200).ConfigureAwait(false);
                 }
             }
 

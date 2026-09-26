@@ -63,7 +63,7 @@ public sealed class LRosterMenu
                 lStripTab.LStripTabTitle,
                 lStripTab.LStripTabKey,
                 true,
-                () => LRosterRelayRun(lStrip, lStripTab, lRelayPaths)))
+                () => _ = LRosterRelayRun(lStrip, lStripTab, lRelayPaths)))
             .ToArray();
         if (lTargetItems.Length == 0)
         {
@@ -151,7 +151,8 @@ public sealed class LRosterMenu
             ? lWorkItem.LWorkOutputPath
             : null;
 
-    private static void LRosterRelayRun(LStrip lStrip, LStripTab lTargetTab, IReadOnlyList<string> lRelayPaths)
+    private static async Task LRosterRelayRun(
+        LStrip lStrip, LStripTab lTargetTab, IReadOnlyList<string> lRelayPaths)
     {
         if (lTargetTab.LStripTabDocket is not { } lTargetOwner)
         {
@@ -160,7 +161,7 @@ public sealed class LRosterMenu
 
         lStrip.LStripSelect(lTargetTab);
         lTargetOwner.LDocketPathsAdd(
-            LMedia.LMediaPathScan(lRelayPaths).GetAwaiter().GetResult().LMediaScanPaths,
+            (await LMedia.LMediaPathScan(lRelayPaths).ConfigureAwait(true)).LMediaScanPaths,
             LGate.LGateBatchCreate());
     }
 }

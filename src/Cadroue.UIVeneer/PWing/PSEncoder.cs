@@ -108,6 +108,7 @@ internal sealed partial class PSEncoder : Window
         lsEncoder = new LSEncoder(lsExportSpecificState, psSmartAllowed);
         lsEncoder.LSEncoderVideoChange += PSVideoRowsApply;
         lsEncoder.LSEncoderAudioChange += PSAudioRowsApply;
+        lsEncoder.LSEncoderHelpAttach(PSEncoderHelpHandle);
         lsEncoder.LSEncoderSizeChange += PSVideoSizeApply;
         psEncoderSummary = pRefresh;
         psNameBox = new PToken { PTokenText = lsExportSpecificEdit.LPresetDisplay, MinWidth = 320 };
@@ -238,9 +239,11 @@ internal sealed partial class PSEncoder : Window
         psEncoderSummary();
     }
 
+    private void PSEncoderHelpHandle() => Dispatcher.InvokeAsync(PSAudioRowsApply);
+
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
-        lsEncoder.LSEncoderScanCancel();
+        lsEncoder.LSEncoderClose();
         PSGrabber.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
         psEncoderGrabber.PSGrabberDetach();
         Closed -= PSEncoderCloseHandle;

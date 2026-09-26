@@ -229,9 +229,11 @@ public sealed partial class LMpv
         };
 
         lProcess.Start();
-        string lOutput = await lProcess.StandardOutput.ReadToEndAsync();
-        string lError = await lProcess.StandardError.ReadToEndAsync();
+        Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
+        Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
         await lProcess.WaitForExitAsync();
+        string lOutput = await lOutputTask;
+        string lError = await lErrorTask;
         if (lProcess.ExitCode != 0)
         {
             throw new InvalidOperationException(

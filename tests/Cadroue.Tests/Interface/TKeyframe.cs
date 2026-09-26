@@ -21,7 +21,7 @@ internal sealed record TKeyframeCacheData(
 
 internal sealed class TKeyframe : IDisposable
 {
-    internal const int TKeyframeSpanMilliseconds = 20_000;
+    internal const int TKeyframeSpanMilliseconds = 10_000;
 
     private sealed class TKeyframeControl
     {
@@ -84,12 +84,13 @@ internal sealed class TKeyframe : IDisposable
         string sourcePath,
         TimeSpan duration,
         IReadOnlyCollection<long> keyframes,
-        IReadOnlyCollection<int> scannedSpans) =>
+        IReadOnlyCollection<int> scannedSpans,
+        int spanMilliseconds = TKeyframeSpanMilliseconds) =>
         LSidecarStore.LSidecarSave(
             LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration),
             keyframes,
             scannedSpans,
-            TKeyframeSpanMilliseconds);
+            spanMilliseconds);
 
     internal TKeyframeCacheData? TKeyframeCacheLoad(string sourcePath, TimeSpan duration)
     {
@@ -126,6 +127,8 @@ internal sealed class TKeyframe : IDisposable
             cursor);
 
     internal void TKeyframeSuspend() => tKeyframeOrchestrator.LKeyframeSuspend();
+
+    internal void TKeyframeSync(TimeSpan cursor) => tKeyframeOrchestrator.LKeyframeSync(cursor);
 
     internal async Task TKeyframeScanRead(int count) =>
         await TKeyframeWaitRead(
@@ -178,7 +181,7 @@ internal sealed class TKeyframe : IDisposable
         return orchestrator;
     }
 
-    private LKeyframeSpanResult TKeyframeScan(
+    private Task<LKeyframeSpanResult> TKeyframeScan(
         string sourcePath,
         double startSeconds,
         TimeSpan start,
@@ -213,13 +216,13 @@ internal sealed class TKeyframe : IDisposable
             tKeyframeFailures[sourcePath] = failures - 1;
             throw new InvalidOperationException("ffprobe packet scan failed with exit code 1.");
         }
-        return new LKeyframeSpanResult(
+        return Task.FromResult(new LKeyframeSpanResult(
             tKeyframeResults.GetValueOrDefault(sourcePath, Array.Empty<long>())
                 .Where(milliseconds => milliseconds >= start.TotalMilliseconds
                     && milliseconds <= end.TotalMilliseconds)
                 .Select(milliseconds => new LKeyframeEntry(TimeSpan.FromMilliseconds(milliseconds)))
                 .ToArray(),
-            tKeyframeIntra.ContainsKey(sourcePath));
+            tKeyframeIntra.ContainsKey(sourcePath)));
     }
 
     private void TKeyframeNoticeRead(LKeyframeNotice notice) =>

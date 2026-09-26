@@ -81,7 +81,7 @@ internal sealed class TSidecar : IDisposable
     }
 
     internal bool TLoudnessSave(string sourcePath, double loudness) =>
-        LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness);
+        LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarStore.LSidecarPersist();
 
     internal double TLoudnessRead(string sourcePath) => LSidecarStore.LSidecarLoudnessRead(sourcePath);
 
@@ -113,7 +113,7 @@ internal sealed class TSidecar : IDisposable
                 LSidecarBucketMilliseconds = bucketMilliseconds,
                 LSidecarDurationMilliseconds = durationMilliseconds,
                 LSidecarPeaks = peaks
-            });
+            }) && LSidecarStore.LSidecarPersist();
 
     internal void TSidecarPersistCopy(string sourcePath, string destinationPath)
     {

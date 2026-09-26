@@ -13,7 +13,7 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             new long[] { 90_000 },
-            new HashSet<int> { 3, 4 },
+            new HashSet<int> { 9, 10 },
             TKeyframeAtCreate(600),
             TKeyframeAtCreate(180),
             -1);
@@ -27,7 +27,7 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             new long[] { 90_000 },
-            new HashSet<int> { 4, 5, 6, 7, 8 },
+            new HashSet<int> { 9, 10, 11, 12, 13, 14, 15, 16, 17 },
             TKeyframeAtCreate(600),
             TKeyframeAtCreate(180),
             -1);
@@ -41,7 +41,7 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             new long[] { 270_000 },
-            new HashSet<int> { 13 },
+            new HashSet<int> { 18 },
             TKeyframeAtCreate(600),
             TKeyframeAtCreate(180),
             1);
@@ -54,7 +54,7 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             Array.Empty<long>(),
-            new HashSet<int> { 0, 1, 2 },
+            new HashSet<int> { 0, 1, 2, 3, 4, 5 },
             TKeyframeAtCreate(60),
             TKeyframeAtCreate(60),
             -1);
@@ -68,11 +68,11 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             new long[] { 270_000 },
-            new HashSet<int> { 9, 10, 11, 12 },
+            new HashSet<int> { 18, 19, 20, 21, 22, 23, 24, 25 },
             TKeyframeAtCreate(600),
             TKeyframeAtCreate(180),
             1,
-            new HashSet<int> { 13 });
+            new HashSet<int> { 26 });
 
         Assert.True(result.LKeyframeFailed);
         Assert.False(result.LKeyframeReady);
@@ -84,14 +84,28 @@ public sealed class TKeyframeNavigation
     {
         var result = TInterface.TKeyframeMoveResolve(
             new long[] { 190_000 },
-            new HashSet<int> { 9 },
+            new HashSet<int> { 18, 19 },
             TKeyframeAtCreate(600),
             TKeyframeAtCreate(180),
             1,
-            new HashSet<int> { 13 });
+            new HashSet<int> { 26 });
 
         Assert.False(result.LKeyframeFailed);
         Assert.True(result.LKeyframeReady);
         Assert.Equal(TKeyframeAtCreate(190), result.LKeyframeTarget);
+    }
+
+    [Fact]
+    public void NextKeyframe_BeyondScanWindow_WithContiguousCoverage_ReturnsCandidate()
+    {
+        var result = TInterface.TKeyframeMoveResolve(
+            new long[] { 450_000 },
+            Enumerable.Range(18, 28).ToHashSet(),
+            TKeyframeAtCreate(600),
+            TKeyframeAtCreate(180),
+            1);
+
+        Assert.True(result.LKeyframeReady);
+        Assert.Equal(TKeyframeAtCreate(450), result.LKeyframeTarget);
     }
 }

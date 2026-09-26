@@ -37,7 +37,7 @@ internal static class LSalvageScan
                 return lSalvageSpans;
             }
 
-            return LSalvageWholeResolve(lSalvageSource, lSalvageToken);
+            return await LSalvageWholeResolve(lSalvageSource, lSalvageToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -127,11 +127,12 @@ internal static class LSalvageScan
             : null;
     }
 
-    private static IReadOnlyList<LSalvageSpan> LSalvageWholeResolve(
+    private static async Task<IReadOnlyList<LSalvageSpan>> LSalvageWholeResolve(
         string lSalvageSource,
         CancellationToken lSalvageToken)
     {
-        TimeSpan lSalvageDuration = LScout.LScoutMediaRead(lSalvageSource, lSalvageToken)?.LWorkMediaDuration
+        TimeSpan lSalvageDuration =
+            (await LScout.LScoutMediaRead(lSalvageSource, lSalvageToken).ConfigureAwait(false))?.LWorkMediaDuration
             ?? TimeSpan.Zero;
         return lSalvageDuration > TimeSpan.Zero
             ? new[] { new LSalvageSpan(TimeSpan.Zero, lSalvageDuration) }

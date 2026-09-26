@@ -9,7 +9,7 @@ public static class LMediaProbe
     private static long lMediaProbeGeneration;
     private static bool? lMediaAvailable;
 
-    internal static Func<string, CancellationToken, LMediaInfo> LMediaProbeReader { get; set; } =
+    internal static Func<string, CancellationToken, Task<LMediaInfo>> LMediaProbeReader { get; set; } =
         LMedia.LMediaFfprobeRead;
 
     internal static int LMediaProbeCount => LMediaProbeGenerations.Count;
@@ -27,7 +27,7 @@ public static class LMediaProbe
         long lMediaProbeCurrentGeneration = Interlocked.Increment(ref lMediaProbeGeneration);
         LMediaProbeGenerations[sourcePath] = lMediaProbeCurrentGeneration;
 
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             try
             {
@@ -35,7 +35,7 @@ public static class LMediaProbe
                 string? lMediaProbeError = null;
                 try
                 {
-                    lMediaProbeInfo = LMediaProbeReader(sourcePath, lMediaProbeToken);
+                    lMediaProbeInfo = await LMediaProbeReader(sourcePath, lMediaProbeToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -65,13 +65,14 @@ public static class LMediaProbe
 
     public static void LMediaLoudnessDefer(string sourcePath, CancellationToken lMediaProbeToken = default)
     {
-        Task.Run(() =>
+        Task.Run(async () =>
         {
             double? lMediaLoudnessValue = null;
             string? lMediaLoudnessError = null;
             try
             {
-                lMediaLoudnessValue = LMedia.LMediaLoudnessRead(sourcePath, lMediaProbeToken);
+                lMediaLoudnessValue = await LMedia.LMediaLoudnessRead(sourcePath, lMediaProbeToken)
+                    .ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -88,9 +89,9 @@ public static class LMediaProbe
 
     public static void LMediaAvailabilityDefer(CancellationToken lMediaProbeToken = default)
     {
-        Task.Run(() =>
+        Task.Run(async () =>
         {
-            bool lMediaAvailableNow = LMedia.LMediaFfprobeExist();
+            bool lMediaAvailableNow = await LMedia.LMediaFfprobeExist().ConfigureAwait(false);
             lMediaAvailable = lMediaAvailableNow;
             LMediaAvailabilityReady?.Invoke(lMediaAvailableNow);
         }, lMediaProbeToken);

@@ -326,7 +326,8 @@ public sealed class LSMonitor : IDisposable
             try
             {
                 await Task.Delay(LSMonitorDebounceMs, lToken).ConfigureAwait(false);
-                LWaveformScanResult lScanned = LWaveformScanner.LWaveformScan(lPath, lDuration, lToken, lGraph);
+                LWaveformScanResult lScanned = await LWaveformScanner.LWaveformScan(lPath, lDuration, lToken, lGraph)
+                    .ConfigureAwait(false);
                 if (!lScanned.LWaveformComplete)
                 {
                     LTrace.LTraceRecord(

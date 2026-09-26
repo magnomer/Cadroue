@@ -83,6 +83,7 @@ public sealed class LProgram
         LTraceLog.LTraceInfoRecord($"Application exiting with code {lExitCode}");
         LPreference.LPreferenceSaveCommit();
         LRelayChannel.LRelayChannelStop();
+        LSidecarStore.LSidecarPersist();
         LTraceWriter.LTraceWriterPersist();
     }
 

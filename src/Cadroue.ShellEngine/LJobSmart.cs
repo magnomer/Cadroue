@@ -32,7 +32,8 @@ internal sealed partial class LJob
 
     private async Task<(int, string)> LJobSmartRun()
     {
-        LBridgeStream? pSource = LScoutStream.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken);
+        LBridgeStream? pSource =
+            await LScoutStream.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
         if (pSource is null)
         {
             LRunner.LRunnerRecord(
@@ -40,10 +41,11 @@ internal sealed partial class LJob
             return (1, "source stream unreadable");
         }
 
-        IReadOnlyList<LKeyframeEntry> pKeyframes = LScoutBridge.LScoutBridgeRead(
-            lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken, pSource);
+        IReadOnlyList<LKeyframeEntry> pKeyframes = await LScoutBridge.LScoutBridgeRead(
+            lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken, pSource)
+            .ConfigureAwait(false);
         LWorkMedia? pMedia = lJobItem.LWorkSourceMedia
-            ?? LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken);
+            ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
         bool pOpenEnd = LBridge.LBridgeEndCheck(
             lJobItem.LWorkEnd,
             pMedia?.LWorkMediaDuration ?? TimeSpan.Zero,
@@ -58,7 +60,10 @@ internal sealed partial class LJob
             return await LJobBatchRun(LEncode.LEncodeWholeBuild(lJobItem), 0, 1).ConfigureAwait(false);
         }
 
-        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeSmartBuild(lJobItem, pPlan, pSource);
+        LScoutAudioInterval? pAudio =
+            await LEncode.LEncodeIntervalRead(lJobItem, pPlan, lJobToken).ConfigureAwait(false);
+        IReadOnlyList<LEncodeStage> pStages =
+            LEncode.LEncodeSmartBuild(lJobItem, pPlan, pSource, lAudioInterval: pAudio);
         if (pStages.Count == 0)
         {
             return (1, $"smart encoding unsupported for source codec '{pSource.LBridgeCodec}'");

@@ -25,6 +25,28 @@ public sealed class TKeyframeOrchestration
     }
 
     [Fact]
+    public async Task PlaybackCursorMove_InterruptsSpan_AndPausesUntilNextStart()
+    {
+        using var keyframes = new TKeyframe();
+        string source = keyframes.TSourceCreate("playing.mp4", "playing source");
+        keyframes.TKeyframeScanSuspend(source, honorCancellation: true);
+
+        keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
+        await keyframes.TKeyframeScanRead(1);
+        keyframes.TKeyframeSync(TimeSpan.FromSeconds(30));
+        keyframes.TKeyframeSync(TimeSpan.FromSeconds(31));
+        keyframes.TKeyframeScanRelease(source);
+        await TKeyframe.TKeyframeSettleRun();
+
+        Assert.Equal(1, keyframes.TKeyframeScanCount);
+        Assert.DoesNotContain(keyframes.TKeyframeNotices, notice => notice.TKeyframeCoverage.Count > 0);
+
+        keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(31));
+        await keyframes.TKeyframeCoverageRead(6);
+        Assert.Equal(2, keyframes.TKeyframeScans.Count(scan => scan.TKeyframeStartMilliseconds == 30_000));
+    }
+
+    [Fact]
     public async Task PreviousMediaResult_CannotOverwriteCurrentMediaKeyframes()
     {
         using var keyframes = new TKeyframe();
@@ -78,15 +100,15 @@ public sealed class TKeyframeOrchestration
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("transient.mp4", "transient source");
         keyframes.TKeyframeResultSet(source, 5_000, 25_000, 45_000);
-        keyframes.TKeyframeFailureSet(source, 3);
+        keyframes.TKeyframeFailureSet(source, 6);
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
-        await keyframes.TKeyframeScanRead(3);
+        await keyframes.TKeyframeScanRead(6);
         await TKeyframe.TKeyframeSettleRun();
         Assert.Empty(keyframes.TKeyframeLatest!.TKeyframeCoverage);
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(30));
-        await keyframes.TKeyframeCoverageRead(3);
+        await keyframes.TKeyframeCoverageRead(6);
 
         Assert.Equal(new long[] { 5_000, 25_000, 45_000 }, keyframes.TKeyframeLatest!.TKeyframeList);
         Assert.True(keyframes.TKeyframeMoveRead(TimeSpan.FromSeconds(30), 0).LKeyframeReady);

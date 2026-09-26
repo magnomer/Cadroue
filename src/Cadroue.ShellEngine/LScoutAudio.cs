@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Application;
@@ -7,19 +6,19 @@ using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed record LScoutAudioInterval(bool LScoutAudioPresent, TimeSpan LScoutAudioOffset);
+public sealed record LScoutAudioInterval(bool LScoutAudioPresent, TimeSpan LScoutAudioOffset);
 
 internal static class LScoutAudio
 {
-    internal static bool? LScoutAudioRead(
+    internal static async Task<bool?> LScoutAudioRead(
         string lScoutSourcePath,
         TimeSpan lScoutOrigin,
         TimeSpan lScoutEnd,
         CancellationToken lScoutToken = default) =>
-        LScoutAudioResolve(
-            lScoutSourcePath, lScoutOrigin, lScoutEnd, true, lScoutToken)?.LScoutAudioPresent;
+        (await LScoutAudioResolve(
+            lScoutSourcePath, lScoutOrigin, lScoutEnd, true, lScoutToken).ConfigureAwait(false))?.LScoutAudioPresent;
 
-    internal static LScoutAudioInterval? LScoutAudioResolve(
+    internal static async Task<LScoutAudioInterval?> LScoutAudioResolve(
         string lScoutSourcePath,
         TimeSpan lScoutOrigin,
         TimeSpan lScoutEnd,
@@ -36,51 +35,35 @@ internal static class LScoutAudio
         double lScoutDuration = (lScoutEnd - lScoutOrigin).TotalSeconds + 1;
         string lScoutInterval = FormattableString.Invariant(
             $"{lScoutOrigin.TotalSeconds:F6}%+{lScoutDuration:F6}");
-        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            Arguments = $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -show_format " +
-                $"-read_intervals \"+{lScoutInterval}\" " +
-                "-show_entries packet=pts_time,dts_time,duration_time:format=start_time -of csv " +
-                $"-i {LEncode.LEncodeFormat(lScoutSourcePath)}",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        string lScoutArguments =
+            $"-v quiet -select_streams {(lScoutAllTracks ? "a" : "a:0")} -show_packets -show_format " +
+            $"-read_intervals \"+{lScoutInterval}\" " +
+            "-show_entries packet=pts_time,dts_time,duration_time:format=start_time -of csv " +
+            $"-i {LEncode.LEncodeFormat(lScoutSourcePath)}";
 
-        Process? lScoutProcess = null;
         try
         {
-            lScoutProcess = Process.Start(lScoutStartInfo);
-            if (lScoutProcess is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(lScoutProcess);
-            using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
-                static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
-            Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
-
             var lScoutPackets = new List<(double, double)>();
             double lScoutTimelineStart = 0;
-            string? lScoutLine;
-            while ((lScoutLine = lScoutProcess.StandardOutput.ReadLine()) is not null)
-            {
-                if (LScoutFormatRead(lScoutLine, out double lScoutFormatStart))
+            LEmployerResult lScoutResult = await new LEmployer(LTool.LToolFfprobeRead()).LEmployerRun(
+                lScoutArguments,
+                lScoutToken,
+                _ => { },
+                lScoutLine =>
                 {
-                    lScoutTimelineStart = lScoutFormatStart;
-                }
-                else if (LScoutPacketRead(lScoutLine, out double lScoutPacketStart, out double lScoutPacketDuration))
-                {
-                    lScoutPackets.Add((lScoutPacketStart, lScoutPacketDuration));
-                }
-            }
-
-            lScoutProcess.WaitForExit();
-            lScoutError.Wait(CancellationToken.None);
+                    if (LScoutFormatRead(lScoutLine, out double lScoutFormatStart))
+                    {
+                        lScoutTimelineStart = lScoutFormatStart;
+                    }
+                    else if (LScoutPacketRead(
+                        lScoutLine, out double lScoutPacketStart, out double lScoutPacketDuration))
+                    {
+                        lScoutPackets.Add((lScoutPacketStart, lScoutPacketDuration));
+                    }
+                },
+                _ => { }).ConfigureAwait(false);
             lScoutToken.ThrowIfCancellationRequested();
-            if (lScoutProcess.ExitCode != 0)
+            if (lScoutResult.LEmployerExit != 0)
             {
                 return null;
             }
@@ -112,12 +95,6 @@ internal static class LScoutAudio
         {
             lScoutToken.ThrowIfCancellationRequested();
             return null;
-        }
-        finally
-        {
-            if (lScoutProcess is not null && !lScoutProcess.HasExited)
-                try { lScoutProcess.Kill(); } catch { }
-            lScoutProcess?.Dispose();
         }
     }
 

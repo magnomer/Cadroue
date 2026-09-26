@@ -6,7 +6,7 @@ internal static class LSubsidiary
 {
     private const int LSubsidiaryIdleMilliseconds = 500;
 
-    private sealed record LSubsidiaryTask(Action<CancellationToken> LSubsidiaryWork);
+    private sealed record LSubsidiaryTask(Func<CancellationToken, Task> LSubsidiaryWork);
 
     private sealed record LSubsidiarySample(LWorkMedia? LSubsidiaryMedia, long? LSubsidiaryBytes)
     {
@@ -75,16 +75,10 @@ internal static class LSubsidiary
             lSubsidiaryBusy = true;
         }
 
-        var lSubsidiaryThread = new System.Threading.Thread(LSubsidiaryRun)
-        {
-            IsBackground = true,
-            Priority = System.Threading.ThreadPriority.Lowest,
-            Name = "Cadroue subsidiary measure"
-        };
-        lSubsidiaryThread.Start();
+        _ = Task.Run(LSubsidiaryRun, CancellationToken.None);
     }
 
-    private static void LSubsidiaryRun()
+    private static async Task LSubsidiaryRun()
     {
         try
         {
@@ -94,10 +88,10 @@ internal static class LSubsidiary
                 while (LStation.LStationActiveCheck())
                 {
                     lSubsidiaryToken.ThrowIfCancellationRequested();
-                    System.Threading.Thread.Sleep(LSubsidiaryIdleMilliseconds);
+                    await Task.Delay(LSubsidiaryIdleMilliseconds, lSubsidiaryToken).ConfigureAwait(false);
                 }
 
-                lSubsidiaryTask.LSubsidiaryWork(lSubsidiaryCancellation.Token);
+                await lSubsidiaryTask.LSubsidiaryWork(lSubsidiaryCancellation.Token).ConfigureAwait(false);
             }
         }
         catch (OperationCanceledException)
@@ -127,10 +121,11 @@ internal static class LSubsidiary
         return lSubsidiaryLow.TryDequeue(out LSubsidiaryTask? lSubsidiaryLowTask) ? lSubsidiaryLowTask : null;
     }
 
-    private static void LSubsidiaryOutputRun(
+    private static async Task LSubsidiaryOutputRun(
         LWorkItem lSubsidiaryItem, string lSubsidiaryOutputPath, CancellationToken lSubsidiaryToken)
     {
-        if (LScout.LScoutLoudnessRead(lSubsidiaryOutputPath, lSubsidiaryToken) is not { } lSubsidiaryLoudness)
+        if (await LScout.LScoutLoudnessRead(lSubsidiaryOutputPath, lSubsidiaryToken).ConfigureAwait(false)
+            is not { } lSubsidiaryLoudness)
         {
             return;
         }
@@ -144,7 +139,7 @@ internal static class LSubsidiary
             lSubsidiaryItem.LWorkId, lSubsidiaryLoudness));
     }
 
-    private static void LSubsidiarySourceRun(LWorkItem lSubsidiaryItem, CancellationToken lSubsidiaryToken)
+    private static async Task LSubsidiarySourceRun(LWorkItem lSubsidiaryItem, CancellationToken lSubsidiaryToken)
     {
         bool lSubsidiaryMerge = lSubsidiaryItem.LWorkMergeSources.Count > 1;
         LWorkMedia? lSubsidiaryMedia = null;
@@ -154,7 +149,8 @@ internal static class LSubsidiary
 
         foreach (string lSubsidiarySource in LSubsidiarySourcesRead(lSubsidiaryItem))
         {
-            LSubsidiarySample lSubsidiarySample = LSubsidiarySampleRead(lSubsidiarySource, lSubsidiaryToken);
+            LSubsidiarySample lSubsidiarySample =
+                await LSubsidiarySampleRead(lSubsidiarySource, lSubsidiaryToken).ConfigureAwait(false);
             if (lSubsidiaryMerge)
             {
                 lSubsidiaryMergeBytes.Add(lSubsidiarySample.LSubsidiaryBytes ?? 0);
@@ -187,7 +183,7 @@ internal static class LSubsidiary
             lSubsidiaryMerge ? lSubsidiaryMergeBytes : Array.Empty<long>()));
     }
 
-    private static LSubsidiarySample LSubsidiarySampleRead(
+    private static async Task<LSubsidiarySample> LSubsidiarySampleRead(
         string lSubsidiarySource, CancellationToken lSubsidiaryToken)
     {
         if (string.IsNullOrWhiteSpace(lSubsidiarySource))
@@ -203,7 +199,8 @@ internal static class LSubsidiary
         }
 
         var lSubsidiarySample = new LSubsidiarySample(
-            LScout.LScoutSourceRead(lSubsidiarySource, lSubsidiaryToken), LScout.LScoutBytesRead(lSubsidiarySource));
+            await LScout.LScoutSourceRead(lSubsidiarySource, lSubsidiaryToken).ConfigureAwait(false),
+            LScout.LScoutBytesRead(lSubsidiarySource));
         if (lSubsidiaryKey is not null)
         {
             lSubsidiaryCache[lSubsidiaryKey] = lSubsidiarySample;

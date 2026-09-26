@@ -11,6 +11,7 @@ public static class LKeyframeCacheStore
 
     public static bool LKeyframeCacheLoad(
         LKeyframeSourceIdentity identity,
+        int spanGridMilliseconds,
         out IReadOnlyList<long> keyframeMilliseconds,
         out IReadOnlyList<int> scannedSpanIndexes)
     {
@@ -36,7 +37,9 @@ public static class LKeyframeCacheStore
                 .Distinct()
                 .OrderBy(ms => ms)
                 .ToArray();
-            scannedSpanIndexes = (record.LKeyframeSpanIndexes ?? Array.Empty<int>())
+            scannedSpanIndexes = (record.LKeyframeSpanGrid == spanGridMilliseconds
+                    ? record.LKeyframeSpanIndexes ?? Array.Empty<int>()
+                    : Array.Empty<int>())
                 .Where(index => index >= 0)
                 .Distinct()
                 .OrderBy(index => index)
@@ -52,7 +55,8 @@ public static class LKeyframeCacheStore
     public static bool LKeyframeCacheSave(
         LKeyframeSourceIdentity identity,
         IReadOnlyCollection<long> keyframeMilliseconds,
-        IReadOnlyCollection<int> scannedSpanIndexes)
+        IReadOnlyCollection<int> scannedSpanIndexes,
+        int spanGridMilliseconds)
     {
         string cachePath = LKeyframePathCreate(identity);
         var record = new LKeyframeCacheRecord
@@ -63,7 +67,8 @@ public static class LKeyframeCacheStore
             LSourceDurationMilliseconds = identity.LKeyframeSourceDuration,
             LSourcePartialHash = identity.LKeyframePartialHash,
             LKeyframeMilliseconds = keyframeMilliseconds.OrderBy(ms => ms).ToArray(),
-            LKeyframeSpanIndexes = scannedSpanIndexes.OrderBy(index => index).ToArray()
+            LKeyframeSpanIndexes = scannedSpanIndexes.OrderBy(index => index).ToArray(),
+            LKeyframeSpanGrid = spanGridMilliseconds
         };
 
         string json = JsonSerializer.Serialize(record, new JsonSerializerOptions { WriteIndented = true });
@@ -131,5 +136,7 @@ public static class LKeyframeCacheStore
         public long[]? LKeyframeMilliseconds { get; set; }
 
         public int[]? LKeyframeSpanIndexes { get; set; }
+
+        public int LKeyframeSpanGrid { get; set; }
     }
 }

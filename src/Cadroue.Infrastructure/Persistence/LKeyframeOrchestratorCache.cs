@@ -117,10 +117,15 @@ public sealed partial class LKeyframeOrchestrator
         {
             return (
                 lSidecar.LSidecarKeyframesRead().ToArray(),
-                lSidecar.LSidecarSpansRead(LKeyframeGridMilliseconds).ToArray());
+                lSidecar.LSidecarSpansRead(LKeyframeGridMilliseconds)
+                    .Concat(lSidecar.LSidecarSpansRead(LKeyframeLegacyMilliseconds)
+                        .SelectMany(index => new[] { index * 2, index * 2 + 1 }))
+                    .Distinct()
+                    .ToArray());
         }
 
-        return LKeyframeCacheStore.LKeyframeCacheLoad(identity, out var keyframes, out var scannedSpans)
+        return LKeyframeCacheStore.LKeyframeCacheLoad(
+                identity, LKeyframeGridMilliseconds, out var keyframes, out var scannedSpans)
             ? (keyframes.ToArray(), scannedSpans.ToArray())
             : (Array.Empty<long>(), Array.Empty<int>());
     }
@@ -172,7 +177,7 @@ public sealed partial class LKeyframeOrchestrator
             scannedSpans,
             LKeyframeGridMilliseconds);
         bool lKeyframePersisted = lKeyframeSidecarWritten
-            || LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans);
+            || LKeyframeCacheStore.LKeyframeCacheSave(identity, keyframes, scannedSpans, LKeyframeGridMilliseconds);
 
         if (lKeyframePersisted)
         {

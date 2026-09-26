@@ -72,7 +72,8 @@ internal sealed class TWaveform : IDisposable
     {
         LKeyframeSourceIdentity identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
         if (!LSidecarStore.LSidecarSave(identity, Array.Empty<long>(), Array.Empty<int>(), 1_000)
-            || !LSidecarStore.LSidecarWaveformSave(sourcePath, LWaveform.LWaveformRecordCreate(peaks, duration)))
+            || !LSidecarStore.LSidecarWaveformSave(sourcePath, LWaveform.LWaveformRecordCreate(peaks, duration))
+            || !LSidecarStore.LSidecarPersist())
         {
             return null;
         }
@@ -127,7 +128,8 @@ internal sealed class TWaveform : IDisposable
 
     internal static TWaveformScanData TWaveformScan(string sourcePath, TimeSpan duration, string? filterGraph = null)
     {
-        LWaveformScanResult result = LWaveformScanner.LWaveformScan(sourcePath, duration, default, filterGraph);
+        LWaveformScanResult result = LWaveformScanner.LWaveformScan(sourcePath, duration, default, filterGraph)
+            .GetAwaiter().GetResult();
         return new TWaveformScanData(result.LWaveformComplete, result.LWaveformPeaks, result.LWaveformDetail);
     }
 

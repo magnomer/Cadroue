@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -11,79 +10,49 @@ namespace Cadroue.ShellEngine;
 
 internal static class LScoutStream
 {
-    internal static LBridgeStream? LScoutStreamRead(string lScoutMediaPath, CancellationToken lScoutToken = default)
+    internal static async Task<LBridgeStream?> LScoutStreamRead(
+        string lScoutMediaPath, CancellationToken lScoutToken = default)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
         {
             return null;
         }
 
-        ProcessStartInfo lScoutStartInfo = LScoutStreamStart(lScoutMediaPath);
-
-        Process? lScoutProcess = null;
         try
         {
-            lScoutProcess = Process.Start(lScoutStartInfo);
-            if (lScoutProcess is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(lScoutProcess);
-            using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
-                static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
-
-            Task<string> lScoutError = lScoutProcess.StandardError.ReadToEndAsync();
-            string lScoutJson = lScoutProcess.StandardOutput.ReadToEnd();
-            lScoutProcess.WaitForExit();
-            lScoutError.Wait(CancellationToken.None);
+            var lScoutJson = new StringBuilder();
+            await new LEmployer(LTool.LToolFfprobeRead())
+                .LEmployerRun(
+                    LScoutStreamCreate(lScoutMediaPath),
+                    lScoutToken,
+                    lScoutLine => lScoutJson.AppendLine(lScoutLine))
+                .ConfigureAwait(false);
             lScoutToken.ThrowIfCancellationRequested();
-            return LScoutStreamParse(lScoutJson);
+            return LScoutStreamParse(lScoutJson.ToString());
         }
         catch (OperationCanceledException)
         {
             throw;
         }
-        catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
+        catch (Exception lScoutException)
         {
             LRunner.LRunnerRecord(
                 $"Stream properties could not be read '{Path.GetFileName(lScoutMediaPath)}'",
                 lScoutException);
             return null;
         }
-        finally
-        {
-            if (lScoutProcess is not null && !lScoutProcess.HasExited)
-                try { lScoutProcess.Kill(); } catch { }
-            lScoutProcess?.Dispose();
-        }
     }
 
-    internal static ProcessStartInfo LScoutStreamStart(string lScoutMediaPath)
-    {
-        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        lScoutStartInfo.ArgumentList.Add("-v");
-        lScoutStartInfo.ArgumentList.Add("quiet");
-        lScoutStartInfo.ArgumentList.Add("-select_streams");
-        lScoutStartInfo.ArgumentList.Add("v:0");
-        lScoutStartInfo.ArgumentList.Add("-show_entries");
-        lScoutStartInfo.ArgumentList.Add(
-            "stream=codec_name,profile,pix_fmt,color_space,color_primaries,color_transfer,color_range," +
-            "r_frame_rate,bit_rate,time_base");
-        lScoutStartInfo.ArgumentList.Add("-print_format");
-        lScoutStartInfo.ArgumentList.Add("json");
-        lScoutStartInfo.ArgumentList.Add("-i");
-        lScoutStartInfo.ArgumentList.Add(lScoutMediaPath);
-        return lScoutStartInfo;
-    }
+    internal static IReadOnlyList<string> LScoutStreamCreate(string lScoutMediaPath) =>
+    [
+        "-v", "quiet",
+        "-select_streams", "v:0",
+        "-show_entries",
+        "stream=codec_name,profile,pix_fmt,color_space,color_primaries,color_transfer,color_range," +
+            "r_frame_rate,bit_rate,time_base",
+        "-print_format", "json",
+        "-i", lScoutMediaPath
+    ];
 
     private static LBridgeStream? LScoutStreamParse(string lScoutJson)
     {

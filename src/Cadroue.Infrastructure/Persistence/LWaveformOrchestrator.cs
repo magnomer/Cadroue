@@ -85,15 +85,15 @@ public sealed class LWaveformOrchestrator : IDisposable
 
     private void LWaveformScanStart(string lWaveformPath, TimeSpan lWaveformDuration, CancellationToken lWaveformToken)
     {
-        _ = Task.Run(() =>
+        _ = Task.Run(async () =>
         {
             var lWaveformClock = System.Diagnostics.Stopwatch.StartNew();
             try
             {
-                LWaveformScanResult lWaveformScanned = LWaveformScanner.LWaveformScan(
+                LWaveformScanResult lWaveformScanned = await LWaveformScanner.LWaveformScan(
                     lWaveformPath,
                     lWaveformDuration,
-                    lWaveformToken);
+                    lWaveformToken).ConfigureAwait(false);
                 if (lWaveformToken.IsCancellationRequested)
                 {
                     return;

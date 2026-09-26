@@ -76,12 +76,8 @@ public static class LRelayChannel
         }
 
         lRelayCancellation = new CancellationTokenSource();
-        var lRelayThread = new Thread(() => LRelayListenRun(lRelayCancellation.Token))
-        {
-            IsBackground = true,
-            Name = "CadroueRelay"
-        };
-        lRelayThread.Start();
+        CancellationToken lRelayToken = lRelayCancellation.Token;
+        _ = Task.Run(() => LRelayListenRun(lRelayToken), CancellationToken.None);
         LTraceLog.LTraceInfoRecord($"Relay channel listening on {LRelayPipeCreate(Environment.ProcessId)}");
     }
 
@@ -91,7 +87,7 @@ public static class LRelayChannel
         lRelayCancellation = null;
     }
 
-    public static int? LRelayInstanceFind(double lScreenLeft, double lScreenTop)
+    public static async Task<int?> LRelayInstanceFind(double lScreenLeft, double lScreenTop)
     {
         IntPtr lWindowHandle = WindowFromPoint(new LRelayPoint((int)lScreenLeft, (int)lScreenTop));
         if (lWindowHandle == IntPtr.Zero)
@@ -111,29 +107,32 @@ public static class LRelayChannel
             return null;
         }
 
-        return LRelayPipeCheck(lProcessId) ? lProcessId : null;
+        return await LRelayPipeCheck(lProcessId).ConfigureAwait(false) ? lProcessId : null;
     }
 
-    public static bool LRelayChannelSend(int lProcessId, string lRelayFilePath)
+    public static async Task<bool> LRelayChannelSend(int lProcessId, string lRelayFilePath)
     {
         try
         {
-            using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
-            lRelayPipe.Connect(LRelayConnectTimeout);
+            await using var lRelayPipe = new NamedPipeClientStream(
+                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut, PipeOptions.Asynchronous);
+            await lRelayPipe.ConnectAsync(LRelayConnectTimeout).ConfigureAwait(false);
 
             var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
             var lRelayReader = new StreamReader(lRelayPipe);
-            lRelayWriter.WriteLine($"{LRelayTabMessage} {lRelayFilePath}");
-            Task<string?> lRelayReply = lRelayReader.ReadLineAsync();
-            if (!lRelayReply.Wait(LRelayReplyTimeout))
+            await lRelayWriter.WriteLineAsync($"{LRelayTabMessage} {lRelayFilePath}").ConfigureAwait(false);
+            using var lRelayLimit = new CancellationTokenSource(LRelayReplyTimeout);
+            try
+            {
+                string? lRelayReply = await lRelayReader.ReadLineAsync(lRelayLimit.Token).ConfigureAwait(false);
+                return string.Equals(lRelayReply, LRelayOkReply, StringComparison.Ordinal);
+            }
+            catch (OperationCanceledException)
             {
                 LTraceLog.LTraceErrorRecord(
                     $"Relay target {lProcessId} gave no reply within {LRelayReplyTimeout} ms; tab kept", null);
                 return false;
             }
-
-            return string.Equals(lRelayReply.Result, LRelayOkReply, StringComparison.Ordinal);
         }
         catch (Exception lException)
         {
@@ -144,9 +143,9 @@ public static class LRelayChannel
 
     public static async Task<LRelayOutcome> LRelayDispatch(string lRelayFilePath, double lScreenLeft, double lScreenTop)
     {
-        if (LRelayInstanceFind(lScreenLeft, lScreenTop) is int lTargetProcessId)
+        if (await LRelayInstanceFind(lScreenLeft, lScreenTop).ConfigureAwait(true) is int lTargetProcessId)
         {
-            if (await Task.Run(() => LRelayChannelSend(lTargetProcessId, lRelayFilePath)).ConfigureAwait(true))
+            if (await LRelayChannelSend(lTargetProcessId, lRelayFilePath).ConfigureAwait(true))
             {
                 return LRelayOutcome.LRelayOutcomeExisting;
             }
@@ -219,13 +218,13 @@ public static class LRelayChannel
         }
     }
 
-    private static bool LRelayPipeCheck(int lProcessId)
+    private static async Task<bool> LRelayPipeCheck(int lProcessId)
     {
         try
         {
-            using var lRelayPipe = new NamedPipeClientStream(
-                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut);
-            lRelayPipe.Connect(200);
+            await using var lRelayPipe = new NamedPipeClientStream(
+                ".", LRelayPipeCreate(lProcessId), PipeDirection.InOut, PipeOptions.Asynchronous);
+            await lRelayPipe.ConnectAsync(200).ConfigureAwait(false);
             return true;
         }
         catch
@@ -234,20 +233,25 @@ public static class LRelayChannel
         }
     }
 
-    private static void LRelayListenRun(CancellationToken lRelayToken)
+    private static async Task LRelayListenRun(CancellationToken lRelayToken)
     {
         string lRelayPipeName = LRelayPipeCreate(Environment.ProcessId);
         while (!lRelayToken.IsCancellationRequested)
         {
             try
             {
-                using var lRelayPipe = new NamedPipeServerStream(
+                await using var lRelayPipe = new NamedPipeServerStream(
                     lRelayPipeName, PipeDirection.InOut, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
-                lRelayPipe.WaitForConnectionAsync(lRelayToken).GetAwaiter().GetResult();
+                await lRelayPipe.WaitForConnectionAsync(lRelayToken).ConfigureAwait(false);
 
                 using var lRelayReader = new StreamReader(lRelayPipe);
-                using var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
-                LRelayMessageHandle(lRelayReader.ReadLine(), lRelayWriter);
+                await using var lRelayWriter = new StreamWriter(lRelayPipe) { AutoFlush = true };
+                string? lRelayMessage = await lRelayReader.ReadLineAsync(lRelayToken).ConfigureAwait(false);
+                string? lRelayReply = LRelayMessageHandle(lRelayMessage);
+                if (lRelayReply is not null)
+                {
+                    await lRelayWriter.WriteLineAsync(lRelayReply).ConfigureAwait(false);
+                }
             }
             catch (OperationCanceledException)
             {
@@ -260,17 +264,17 @@ public static class LRelayChannel
         }
     }
 
-    private static void LRelayMessageHandle(string? lRelayMessage, StreamWriter lRelayWriter)
+    private static string? LRelayMessageHandle(string? lRelayMessage)
     {
         if (string.IsNullOrWhiteSpace(lRelayMessage))
         {
-            return;
+            return null;
         }
 
         int lRelaySplitIndex = lRelayMessage.IndexOf(' ');
         if (lRelaySplitIndex <= 0)
         {
-            return;
+            return null;
         }
 
         string lRelayVerb = lRelayMessage[..lRelaySplitIndex];
@@ -278,22 +282,22 @@ public static class LRelayChannel
 
         if (!string.Equals(lRelayVerb, LRelayTabMessage, StringComparison.Ordinal))
         {
-            return;
+            return null;
         }
 
         LRelay? lRelay = LRelayPayloadLoad(lRelayBody);
         if (lRelay is null)
         {
-            lRelayWriter.WriteLine(LRelayNoReply);
-            return;
+            return LRelayNoReply;
         }
 
         bool lRelayAccepted = LRelayAcceptSeam?.Invoke(lRelay) ?? false;
-        lRelayWriter.WriteLine(lRelayAccepted ? LRelayOkReply : LRelayNoReply);
         if (lRelayAccepted)
         {
             LRelayStore.LRelayFileClear(lRelayBody);
         }
+
+        return lRelayAccepted ? LRelayOkReply : LRelayNoReply;
     }
 
     private static LRelay? LRelayPayloadLoad(string lRelayFilePath)

@@ -24,15 +24,15 @@ internal sealed class TScout : IDisposable
     internal static LMediaInfo TScoutProbeParse(string output) => LMedia.LMediaFfprobeParse(output);
 
     internal static ProcessStartInfo TScoutProbeCreate(string sourcePath) =>
-        LMedia.LMediaFfprobeStart(sourcePath);
+        new LEmployer(LTool.LToolFfprobeRead()).LEmployerInfoCreate(null, LMedia.LMediaFfprobeCreate(sourcePath));
 
     internal static ProcessStartInfo TScoutStreamCreate(string sourcePath) =>
-        LScoutStream.LScoutStreamStart(sourcePath);
+        new LEmployer(LTool.LToolFfprobeRead()).LEmployerInfoCreate(null, LScoutStream.LScoutStreamCreate(sourcePath));
 
     internal static TimeSpan? TScoutEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
 
     internal LWorkMedia? TMediaRead(string path, CancellationToken cancellationToken = default) =>
-        LScout.LScoutMediaRead(path, cancellationToken);
+        LScout.LScoutMediaRead(path, cancellationToken).GetAwaiter().GetResult();
 
     internal long? TScoutInputRead(string sourcePath, string outputPath)
     {
@@ -71,7 +71,7 @@ internal sealed class TScoutProbe : IDisposable
 {
     private readonly ConcurrentQueue<LMediaProbeResult> tScoutResults = new();
     private readonly ManualResetEventSlim tScoutIdle = new(initialState: true);
-    private readonly Func<string, CancellationToken, LMediaInfo> tScoutPreviousReader;
+    private readonly Func<string, CancellationToken, Task<LMediaInfo>> tScoutPreviousReader;
     private readonly Func<string, CancellationToken, string> tScoutReader;
     private int tScoutActive;
     private bool tScoutDisposed;
@@ -121,14 +121,14 @@ internal sealed class TScoutProbe : IDisposable
 
     internal IReadOnlyList<LMediaProbeResult> TScoutResultsRead() => tScoutResults.ToArray();
 
-    private LMediaInfo TScoutProbeRead(string sourcePath, CancellationToken cancellationToken)
+    private Task<LMediaInfo> TScoutProbeRead(string sourcePath, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref tScoutActive);
         tScoutIdle.Reset();
         try
         {
             string output = tScoutReader(sourcePath, cancellationToken);
-            return LMedia.LMediaFfprobeParse(output);
+            return Task.FromResult(LMedia.LMediaFfprobeParse(output));
         }
         finally
         {

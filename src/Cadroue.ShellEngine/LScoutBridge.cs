@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Application;
@@ -9,7 +8,7 @@ namespace Cadroue.ShellEngine;
 
 internal static class LScoutBridge
 {
-    internal static IReadOnlyList<LKeyframeEntry> LScoutBridgeRead(
+    internal static async Task<IReadOnlyList<LKeyframeEntry>> LScoutBridgeRead(
         string lScoutSourcePath,
         TimeSpan lScoutOrigin,
         TimeSpan lScoutEnd,
@@ -23,15 +22,15 @@ internal static class LScoutBridge
 
         try
         {
-            lScoutStream ??= LScoutStream.LScoutStreamRead(lScoutSourcePath, lScoutToken);
+            lScoutStream ??= await LScoutStream.LScoutStreamRead(lScoutSourcePath, lScoutToken).ConfigureAwait(false);
             if (lScoutStream is not null
                 && LKeyframeCodec.LKeyframeKindResolve(lScoutStream.LBridgeCodec) == LKeyframeKind.LKeyframeKindIntra)
             {
                 return new[] { new LKeyframeEntry(lScoutOrigin), new LKeyframeEntry(lScoutEnd) };
             }
 
-            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = LKeyframeSeeker.LKeyframeRangeScan(
-                lScoutSourcePath, lScoutOrigin, lScoutEnd, lScoutToken);
+            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeSeeker.LKeyframeRangeScan(
+                lScoutSourcePath, lScoutOrigin, lScoutEnd, lScoutToken).ConfigureAwait(false);
             if (lScoutStream is null)
             {
                 return lScoutKeyframes;
@@ -40,12 +39,12 @@ internal static class LScoutBridge
             bool lScoutHevc = lScoutStream.LBridgeCodec.ToLowerInvariant() is "hevc" or "h265";
             var lScoutCandidates = lScoutKeyframes.ToList();
             while (lScoutCandidates.Count > 0
-                && !LScoutBoundaryCheck(
+                && !await LScoutBoundaryCheck(
                     lScoutSourcePath,
                     lScoutStream.LBridgeCodec,
                     lScoutHevc,
                     lScoutCandidates[0].LKeyframePresentationTime,
-                    lScoutToken))
+                    lScoutToken).ConfigureAwait(false))
             {
                 lScoutCandidates.RemoveAt(0);
             }
@@ -55,12 +54,12 @@ internal static class LScoutBridge
                     <= TimeSpan.FromMilliseconds(1);
             while (!lScoutEndKeyed
                 && lScoutCandidates.Count > 1
-                && !LScoutBoundaryCheck(
+                && !await LScoutBoundaryCheck(
                     lScoutSourcePath,
                     lScoutStream.LBridgeCodec,
                     lScoutHevc,
                     lScoutCandidates[^1].LKeyframePresentationTime,
-                    lScoutToken))
+                    lScoutToken).ConfigureAwait(false))
             {
                 lScoutCandidates.RemoveAt(lScoutCandidates.Count - 1);
             }
@@ -76,18 +75,19 @@ internal static class LScoutBridge
         }
     }
 
-    private static bool LScoutBoundaryCheck(
+    private static async Task<bool> LScoutBoundaryCheck(
         string lScoutSourcePath,
         string lScoutCodec,
         bool lScoutHevc,
         TimeSpan lScoutKeyframe,
         CancellationToken lScoutToken)
     {
-        bool? lScoutRefresh = LScoutRefreshRead(lScoutSourcePath, lScoutCodec, lScoutKeyframe, lScoutToken);
+        bool? lScoutRefresh = await LScoutRefreshRead(lScoutSourcePath, lScoutCodec, lScoutKeyframe, lScoutToken)
+            .ConfigureAwait(false);
         return lScoutHevc ? lScoutRefresh != false : lScoutRefresh == true;
     }
 
-    internal static bool? LScoutRefreshRead(
+    internal static async Task<bool?> LScoutRefreshRead(
         string lScoutSourcePath,
         string lScoutCodec,
         TimeSpan lScoutKeyframe,
@@ -110,79 +110,61 @@ internal static class LScoutBridge
             ? lScoutKeyframe - TimeSpan.FromSeconds(1)
             : TimeSpan.Zero;
         TimeSpan lScoutDuration = lScoutKeyframe - lScoutSeek + TimeSpan.FromMilliseconds(1);
-        var lScoutStartInfo = new ProcessStartInfo(LTool.LToolFfmpegRead())
-        {
-            Arguments = FormattableString.Invariant(
-                $"-hide_banner -loglevel info -ss {lScoutSeek.TotalSeconds:0.######} ")
-                + $"-i {LEncode.LEncodeFormat(lScoutSourcePath)} "
-                + FormattableString.Invariant($"-t {lScoutDuration.TotalSeconds:0.######} -map 0:v:0 ")
-                + "-c:v copy -bsf:v trace_headers -f null -",
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
+        string lScoutArguments = FormattableString.Invariant(
+            $"-hide_banner -loglevel info -ss {lScoutSeek.TotalSeconds:0.######} ")
+            + $"-i {LEncode.LEncodeFormat(lScoutSourcePath)} "
+            + FormattableString.Invariant($"-t {lScoutDuration.TotalSeconds:0.######} -map 0:v:0 ")
+            + "-c:v copy -bsf:v trace_headers -f null -";
 
-        Process? lScoutProcess = null;
         try
         {
-            lScoutProcess = Process.Start(lScoutStartInfo);
-            if (lScoutProcess is null)
-            {
-                return null;
-            }
-
-            LCustody.LCustodyAttach(lScoutProcess);
-            using CancellationTokenRegistration lScoutKill = lScoutToken.Register(
-                static p => { try { ((Process)p!).Kill(); } catch { } }, lScoutProcess);
-            Task<string> lScoutOutput = lScoutProcess.StandardOutput.ReadToEndAsync();
             bool lScoutKeyPacket = false;
             bool? lScoutPacketIndependent = null;
             bool? lScoutLastIndependent = null;
-            string? lScoutLine;
-            while ((lScoutLine = lScoutProcess.StandardError.ReadLine()) is not null)
-            {
-                if (lScoutLine.Contains("] Packet:", StringComparison.Ordinal))
+            LEmployerResult lScoutResult = await new LEmployer(LTool.LToolFfmpegRead()).LEmployerRun(
+                lScoutArguments,
+                lScoutToken,
+                _ => { },
+                _ => { },
+                lScoutLine =>
                 {
-                    if (lScoutKeyPacket && lScoutPacketIndependent is bool lScoutIndependent)
+                    if (lScoutLine.Contains("] Packet:", StringComparison.Ordinal))
                     {
-                        lScoutLastIndependent = lScoutIndependent;
+                        if (lScoutKeyPacket && lScoutPacketIndependent is bool lScoutIndependent)
+                        {
+                            lScoutLastIndependent = lScoutIndependent;
+                        }
+
+                        lScoutKeyPacket = lScoutLine.Contains("key frame", StringComparison.Ordinal);
+                        lScoutPacketIndependent = null;
+                        return;
                     }
 
-                    lScoutKeyPacket = lScoutLine.Contains("key frame", StringComparison.Ordinal);
-                    lScoutPacketIndependent = null;
-                    continue;
-                }
+                    if (!lScoutKeyPacket
+                        || lScoutPacketIndependent is not null
+                        || !LScoutNalRead(lScoutLine, out int lScoutNalType))
+                    {
+                        return;
+                    }
 
-                if (!lScoutKeyPacket
-                    || lScoutPacketIndependent is not null
-                    || !LScoutNalRead(lScoutLine, out int lScoutNalType))
-                {
-                    continue;
-                }
-
-                bool lScoutVcl = lScoutH264
-                    ? lScoutNalType is >= 1 and <= 5
-                    : lScoutNalType is >= 0 and <= 31;
-                if (!lScoutVcl)
-                {
-                    continue;
-                }
-
-                lScoutPacketIndependent = lScoutH264
-                    ? lScoutNalType == 5
-                    : lScoutNalType is >= 16 and <= 20;
-            }
+                    bool lScoutVcl = lScoutH264
+                        ? lScoutNalType is >= 1 and <= 5
+                        : lScoutNalType is >= 0 and <= 31;
+                    if (lScoutVcl)
+                    {
+                        lScoutPacketIndependent = lScoutH264
+                            ? lScoutNalType == 5
+                            : lScoutNalType is >= 16 and <= 20;
+                    }
+                }).ConfigureAwait(false);
 
             if (lScoutKeyPacket && lScoutPacketIndependent is bool lScoutIndependentLast)
             {
                 lScoutLastIndependent = lScoutIndependentLast;
             }
 
-            lScoutProcess.WaitForExit();
-            lScoutOutput.Wait(CancellationToken.None);
             lScoutToken.ThrowIfCancellationRequested();
-            return lScoutProcess.ExitCode == 0 ? lScoutLastIndependent : null;
+            return lScoutResult.LEmployerExit == 0 ? lScoutLastIndependent : null;
         }
         catch (OperationCanceledException)
         {
@@ -192,12 +174,6 @@ internal static class LScoutBridge
         {
             lScoutToken.ThrowIfCancellationRequested();
             return null;
-        }
-        finally
-        {
-            if (lScoutProcess is not null && !lScoutProcess.HasExited)
-                try { lScoutProcess.Kill(); } catch { }
-            lScoutProcess?.Dispose();
         }
     }
 

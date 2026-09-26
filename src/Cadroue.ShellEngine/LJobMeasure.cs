@@ -20,7 +20,8 @@ internal sealed partial class LJob
         return pMergeBytes;
     }
 
-    private LWorkMedia? LJobOutputResolve(LWorkMedia? pOutputMedia, string pOutputPath, LWorkMedia? pSourceMedia)
+    private async Task<LWorkMedia?> LJobOutputResolve(
+        LWorkMedia? pOutputMedia, string pOutputPath, LWorkMedia? pSourceMedia)
     {
         if (pOutputMedia is null)
         {
@@ -33,7 +34,7 @@ internal sealed partial class LJob
         if (pMeasured.LWorkMediaVideo && pMeasured.LWorkKeyframeInterval is null)
         {
             double? pInterval = pVideoEncoded
-                ? LScout.LScoutIntervalRead(pOutputPath, pMeasured, lJobToken)
+                ? await LScout.LScoutIntervalRead(pOutputPath, pMeasured, lJobToken).ConfigureAwait(false)
                 : pSourceMedia?.LWorkKeyframeInterval;
             if (pInterval is { } pValue)
             {

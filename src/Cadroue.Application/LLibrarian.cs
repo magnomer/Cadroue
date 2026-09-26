@@ -17,7 +17,7 @@ public static class LLibrarian
     public static Func<string, IReadOnlyList<LSidecarDossier>?>? LLibrarianDiagnosisReader;
     public static Func<string, double>? LLibrarianLoudnessReader;
     public static Func<string, TimeSpan>? LLibrarianDurationReader;
-    public static Func<string, TimeSpan>? LLibrarianDurationResolver;
+    public static Func<string, Task<TimeSpan>>? LLibrarianDurationResolver;
 
     public static Func<string, bool>? LLibrarianFileChecker;
     public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolver;
@@ -62,8 +62,8 @@ public static class LLibrarian
     public static TimeSpan LLibrarianDurationRead(string lLibrarianSourcePath) =>
         LLibrarianDurationReader?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
 
-    public static TimeSpan LLibrarianDurationResolve(string lLibrarianSourcePath) =>
-        LLibrarianDurationResolver?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
+    public static Task<TimeSpan> LLibrarianDurationResolve(string lLibrarianSourcePath) =>
+        LLibrarianDurationResolver?.Invoke(lLibrarianSourcePath) ?? Task.FromResult(TimeSpan.Zero);
 
     public static bool LLibrarianFileCheck(string lLibrarianPath) =>
         LLibrarianFileChecker?.Invoke(lLibrarianPath) ?? false;

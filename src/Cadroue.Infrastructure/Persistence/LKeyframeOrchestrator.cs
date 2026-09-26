@@ -8,7 +8,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 {
     private sealed record LKeyframeSignature(int LKeyframeSignatureCount, int LKeyframeSignatureSpans);
 
-    private const int LKeyframeGridMilliseconds = 20000;
+    private const int LKeyframeGridMilliseconds = 10000;
+    private const int LKeyframeLegacyMilliseconds = 20000;
     private readonly object lKeyframeLock = new();
     private readonly object lKeyframeDispatchGate = new();
     private readonly SortedSet<long> lKeyframeStorage = new();
@@ -23,6 +24,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
     private readonly Dictionary<int, int> lKeyframeAttempts = new();
     private CancellationTokenSource? lKeyframeCancelSource;
+    private CancellationTokenSource? lKeyframeSpanSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
     private TimeSpan lKeyframeDuration;
     private LKeyframeKind lKeyframeKind;
@@ -30,13 +32,16 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private double lKeyframeStartSeconds;
     private TimeSpan lKeyframeCursor;
     private bool lKeyframePaused;
+    private int lKeyframeLead = 1;
+    private bool lKeyframeReachBefore;
+    private bool lKeyframeReachAfter;
     private bool lKeyframeWorkerActive;
     private int lKeyframeWorkerSerial;
     private int lKeyframeRequestSerial;
     private long lKeyframeNoticeSerial;
     private long lKeyframeNoticeCeiling = -1;
     private bool lKeyframeDisposed;
-    private readonly Func<string, double, TimeSpan, TimeSpan, CancellationToken, LKeyframeSpanResult>
+    private readonly Func<string, double, TimeSpan, TimeSpan, CancellationToken, Task<LKeyframeSpanResult>>
         lKeyframeScanner;
 
     public LKeyframeOrchestrator()
@@ -45,7 +50,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     }
 
     internal LKeyframeOrchestrator(
-        Func<string, double, TimeSpan, TimeSpan, CancellationToken, LKeyframeSpanResult> scanner)
+        Func<string, double, TimeSpan, TimeSpan, CancellationToken, Task<LKeyframeSpanResult>> scanner)
     {
         lKeyframeScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
     }
@@ -71,6 +76,13 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         lock (lKeyframeLock)
         {
             serial = ++lKeyframeRequestSerial;
+            if (cursor != lKeyframeCursor)
+            {
+                lKeyframeSpanSource?.Cancel();
+                lKeyframeReachBefore = false;
+                lKeyframeReachAfter = false;
+            }
+
             lKeyframeCursor = cursor;
             lKeyframePaused = false;
 
@@ -105,6 +117,24 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         lock (lKeyframeLock)
         {
             lKeyframePaused = true;
+            lKeyframeSpanSource?.Cancel();
+        }
+    }
+
+    public void LKeyframeSync(TimeSpan cursor)
+    {
+        lock (lKeyframeLock)
+        {
+            if (cursor == lKeyframeCursor)
+            {
+                return;
+            }
+
+            lKeyframeCursor = cursor;
+            lKeyframePaused = true;
+            lKeyframeSpanSource?.Cancel();
+            lKeyframeReachBefore = false;
+            lKeyframeReachAfter = false;
         }
     }
 
@@ -137,7 +167,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         lock (lKeyframeLock)
         {
-            return LKeyframeMoveResolve(
+            LKeyframeMoveResult result = LKeyframeMoveResolve(
                 lKeyframeStorage,
                 lKeyframeScannedSpans,
                 lKeyframeDuration,
@@ -146,6 +176,18 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
                 LKeyframeFailureRead(),
                 lKeyframeKind,
                 lKeyframeRate);
+            bool reach = !result.LKeyframeReady && !result.LKeyframeFailed;
+            lKeyframeLead = direction;
+            if (direction < 0)
+            {
+                lKeyframeReachBefore = reach;
+            }
+            else
+            {
+                lKeyframeReachAfter = reach;
+            }
+
+            return result;
         }
     }
 
@@ -173,11 +215,8 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
         long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
         long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
-        long searchRangeMs = (long)(direction < 0
-            ? LKeyframeView.LKeyframeRangeBefore
-            : LKeyframeView.LKeyframeRangeAfter).TotalMilliseconds;
-        long rangeStartMs = direction < 0 ? Math.Max(0, cursorMs - searchRangeMs) : cursorMs;
-        long rangeEndMs = direction < 0 ? cursorMs : Math.Min(durationMs, cursorMs + searchRangeMs);
+        long rangeStartMs = direction < 0 ? 0 : cursorMs;
+        long rangeEndMs = direction < 0 ? cursorMs : durationMs;
 
         if (rangeEndMs <= rangeStartMs)
         {

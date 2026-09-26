@@ -185,10 +185,7 @@ public static class LListRelay
             return false;
         }
 
-        IReadOnlyList<string> lScanned = LMedia.LMediaPathScan(new[] { lPath })
-            .GetAwaiter()
-            .GetResult()
-            .LMediaScanPaths;
+        IReadOnlyList<string> lScanned = LMedia.LMediaFileRead(lPath);
         if (lScanned.Count == 0)
         {
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lName}': the destination tab rejected the output");

@@ -23,7 +23,7 @@ public static partial class LFlyleaf
         try
         {
             lProgress?.Report(0);
-            if (LFlyleafRepositoryCheck(lSource))
+            if (await LFlyleafRepositoryCheck(lSource))
             {
                 await LFlyleafCommandRun("git", "reset --hard", lSource);
                 await LFlyleafCommandRun("git", "pull --ff-only", lSource);
@@ -83,7 +83,7 @@ public static partial class LFlyleaf
         Directory.Delete(lFolder, true);
     }
 
-    private static bool LFlyleafRepositoryCheck(string lSource)
+    private static async Task<bool> LFlyleafRepositoryCheck(string lSource)
     {
         if (!Directory.Exists(Path.Combine(lSource, ".git")))
         {
@@ -105,9 +105,10 @@ public static partial class LFlyleaf
             };
 
             lProcess.Start();
-            lProcess.StandardOutput.ReadToEnd();
-            lProcess.StandardError.ReadToEnd();
-            lProcess.WaitForExit();
+            Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
+            Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
+            await lProcess.WaitForExitAsync();
+            await Task.WhenAll(lOutputTask, lErrorTask);
             return lProcess.ExitCode == 0;
         }
         catch
@@ -222,9 +223,11 @@ public static partial class LFlyleaf
         };
 
         lProcess.Start();
-        string lOutput = await lProcess.StandardOutput.ReadToEndAsync();
-        string lError = await lProcess.StandardError.ReadToEndAsync();
+        Task<string> lOutputTask = lProcess.StandardOutput.ReadToEndAsync();
+        Task<string> lErrorTask = lProcess.StandardError.ReadToEndAsync();
         await lProcess.WaitForExitAsync();
+        string lOutput = await lOutputTask;
+        string lError = await lErrorTask;
         if (lProcess.ExitCode != 0)
         {
             throw new InvalidOperationException(

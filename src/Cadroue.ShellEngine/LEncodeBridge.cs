@@ -14,19 +14,23 @@ internal sealed record LEncodeSmartProduction(
 
 public static partial class LEncode
 {
-    public static IReadOnlyList<LEncodeStage> LEncodeBridgeResolve(
+    public static async Task<IReadOnlyList<LEncodeStage>> LEncodeBridgeResolve(
         LWorkItem lWorkItem, IReadOnlyList<TimeSpan> lBridgeKeyframes)
     {
         LBridgePlan lBridgePlan = LBridge.LBridgeRegionResolve(
             lBridgeKeyframes, lWorkItem.LWorkOrigin, lWorkItem.LWorkEnd);
-        LBridgeStream? lBridgeSource = LScoutStream.LScoutStreamRead(lWorkItem.LWorkSourcePath);
-        return LEncodeSmartResolve(lWorkItem, lBridgePlan, lBridgeSource);
+        LBridgeStream? lBridgeSource =
+            await LScoutStream.LScoutStreamRead(lWorkItem.LWorkSourcePath).ConfigureAwait(false);
+        LScoutAudioInterval? lAudioInterval =
+            await LEncodeIntervalRead(lWorkItem, lBridgePlan).ConfigureAwait(false);
+        return LEncodeSmartResolve(lWorkItem, lBridgePlan, lBridgeSource, lAudioInterval);
     }
 
     public static IReadOnlyList<LEncodeStage> LEncodeSmartResolve(
         LWorkItem lWorkItem,
         LBridgePlan lBridgePlan,
-        LBridgeStream? lBridgeSource)
+        LBridgeStream? lBridgeSource,
+        LScoutAudioInterval? lAudioInterval = null)
     {
         if (LEncodeSmartCheck(lWorkItem))
         {
@@ -40,7 +44,41 @@ public static partial class LEncode
             ? $"Smart encoding applied for '{lWorkItem.LWorkOutputName}': {LEncodeRegionFormat(lBridgePlan)}"
             : $"Smart encoding not usable for '{lWorkItem.LWorkOutputName}': encoding the requested interval");
 
-        return LEncodeSmartBuild(lWorkItem, lBridgePlan, lBridgeSource);
+        return LEncodeSmartBuild(lWorkItem, lBridgePlan, lBridgeSource, lAudioInterval: lAudioInterval);
+    }
+
+    public static async Task<LScoutAudioInterval?> LEncodeIntervalRead(
+        LWorkItem lWorkItem, LBridgePlan lBridgePlan, CancellationToken lWorkToken = default)
+    {
+        LEncodingAudio lAudio = lWorkItem.LWorkOutput.LEncodingAudio;
+        if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
+            || lBridgePlan.LBridgeMiddle is null
+            || (lBridgePlan.LBridgeHead is null && lBridgePlan.LBridgeTail is null)
+            || !LEncodeAudioCheck(lWorkItem)
+            || !File.Exists(lWorkItem.LWorkSourcePath))
+        {
+            return null;
+        }
+
+        bool lAudioAllTracks = string.Equals(
+            lAudio.LEncodingStream,
+            "Include all audio tracks",
+            StringComparison.OrdinalIgnoreCase);
+        return await LScoutAudio.LScoutAudioResolve(
+            lWorkItem.LWorkSourcePath,
+            lWorkItem.LWorkOrigin,
+            lWorkItem.LWorkEnd,
+            lAudioAllTracks,
+            lWorkToken).ConfigureAwait(false);
+    }
+
+    private static bool LEncodeAudioCheck(LWorkItem lWorkItem)
+    {
+        LEncodingAudio lAudio = lWorkItem.LWorkOutput.LEncodingAudio;
+        bool lAudioExcluded =
+            string.Equals(lAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(lAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
+        return !lAudioExcluded && !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
     }
 
     private static string LEncodeRegionFormat(LBridgePlan lBridgePlan)
@@ -102,7 +140,8 @@ public static partial class LEncode
         LWorkItem lWorkItem,
         LBridgePlan lBridgePlan,
         LBridgeStream? lBridgeSource,
-        string? lIntermediateExtension = null)
+        string? lIntermediateExtension = null,
+        LScoutAudioInterval? lAudioInterval = null)
     {
         if (lBridgePlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart
             || lBridgePlan.LBridgeMiddle is null)
@@ -110,12 +149,7 @@ public static partial class LEncode
             return LEncodeWholeBuild(lWorkItem, lBridgeSource);
         }
 
-        LEncodingAudio lAudio = lWorkItem.LWorkOutput.LEncodingAudio;
-        bool lAudioExcluded =
-            string.Equals(lAudio.LEncodingStream, "Exclude", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(lAudio.LEncodingMode, "Exclude", StringComparison.OrdinalIgnoreCase);
-        bool lAudioPresent = !string.IsNullOrWhiteSpace(lWorkItem.LWorkSourceMedia?.LWorkAudioCodec);
-        bool lAudioActive = !lAudioExcluded && lAudioPresent;
+        bool lAudioActive = LEncodeAudioCheck(lWorkItem);
         bool lVideoWholeCopyable = lBridgePlan.LBridgeHead is null && lBridgePlan.LBridgeTail is null;
         if (lVideoWholeCopyable)
         {
@@ -126,15 +160,6 @@ public static partial class LEncode
         if (lAudioActive
             && File.Exists(lWorkItem.LWorkSourcePath))
         {
-            bool lAudioAllTracks = string.Equals(
-                lAudio.LEncodingStream,
-                "Include all audio tracks",
-                StringComparison.OrdinalIgnoreCase);
-            LScoutAudioInterval? lAudioInterval = LScoutAudio.LScoutAudioResolve(
-                lWorkItem.LWorkSourcePath,
-                lWorkItem.LWorkOrigin,
-                lWorkItem.LWorkEnd,
-                lAudioAllTracks);
             if (lAudioInterval is null)
             {
                 LRunner.LRunnerRecord(

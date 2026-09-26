@@ -129,7 +129,7 @@ public static partial class LSweep
         IProgress<double>? lSweepProgress)
     {
         var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead());
+        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
         Process? lSweepProcess = null;
         using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
         {
@@ -145,7 +145,7 @@ public static partial class LSweep
             }
         });
         LEmployerResult lSweepResult;
-        LMedia.LMediaScanClaim(lSweepToken);
+        await LMedia.LMediaScanClaim(lSweepToken).ConfigureAwait(false);
         try
         {
             lSweepResult = await lSweepEmployer.LEmployerRun(

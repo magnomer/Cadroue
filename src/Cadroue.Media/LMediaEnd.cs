@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Threading;
@@ -11,12 +10,12 @@ public static partial class LMedia
 {
     private static readonly TimeSpan lMediaEndWindow = TimeSpan.FromMinutes(5);
 
-    public static LMediaInfo LMediaPreviewRead(
+    public static async Task<LMediaInfo> LMediaPreviewRead(
         string lMediaSourcePath,
         CancellationToken lMediaToken = default,
         bool lMediaEndScan = true)
     {
-        LMediaInfo lMediaInfo = LMediaFfprobeRead(lMediaSourcePath, lMediaToken);
+        LMediaInfo lMediaInfo = await LMediaFfprobeRead(lMediaSourcePath, lMediaToken).ConfigureAwait(false);
         if (!lMediaEndScan || !lMediaInfo.LMediaVideoPresent)
         {
             return lMediaInfo;
@@ -31,11 +30,11 @@ public static partial class LMedia
         TimeSpan lMediaScanDuration = lMediaInfo.LMediaVideoDuration > TimeSpan.Zero
             ? lMediaInfo.LMediaVideoDuration
             : lMediaInfo.LMediaInfoDuration;
-        TimeSpan? lMediaVideoEnd = LMediaEndRead(
+        TimeSpan? lMediaVideoEnd = await LMediaEndRead(
             lMediaSourcePath,
             lMediaScanDuration,
             lMediaInfo.LMediaStartTime,
-            lMediaToken);
+            lMediaToken).ConfigureAwait(false);
         if (lMediaIdentity is not null)
         {
             LMediaEndCache.LMediaEndSave(lMediaIdentity, lMediaVideoEnd);
@@ -60,7 +59,7 @@ public static partial class LMedia
         }
     }
 
-    private static TimeSpan? LMediaEndRead(
+    private static async Task<TimeSpan?> LMediaEndRead(
         string lMediaSourcePath,
         TimeSpan lMediaDuration,
         TimeSpan lMediaStart,
@@ -74,32 +73,22 @@ public static partial class LMedia
         double lMediaScanOrigin = Math.Max(
             0,
             (lMediaStart + lMediaDuration - lMediaEndWindow).TotalSeconds);
-        var lMediaProcessInfo = new ProcessStartInfo(LTool.LToolFfprobeRead())
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true
-        };
-        lMediaProcessInfo.ArgumentList.Add("-v");
-        lMediaProcessInfo.ArgumentList.Add("error");
-        lMediaProcessInfo.ArgumentList.Add("-select_streams");
-        lMediaProcessInfo.ArgumentList.Add("v:0");
-        lMediaProcessInfo.ArgumentList.Add("-read_intervals");
-        lMediaProcessInfo.ArgumentList.Add(
-            lMediaScanOrigin.ToString("0.###", CultureInfo.InvariantCulture) + "%");
-        lMediaProcessInfo.ArgumentList.Add("-show_packets");
-        lMediaProcessInfo.ArgumentList.Add("-show_entries");
-        lMediaProcessInfo.ArgumentList.Add("packet=pts_time");
-        lMediaProcessInfo.ArgumentList.Add("-of");
-        lMediaProcessInfo.ArgumentList.Add("default=noprint_wrappers=1:nokey=1");
-        lMediaProcessInfo.ArgumentList.Add("-i");
-        lMediaProcessInfo.ArgumentList.Add(lMediaSourcePath);
+        string[] lMediaArguments =
+        [
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-read_intervals", lMediaScanOrigin.ToString("0.###", CultureInfo.InvariantCulture) + "%",
+            "-show_packets",
+            "-show_entries", "packet=pts_time",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            "-i", lMediaSourcePath
+        ];
 
-        LMediaScanClaim(lMediaToken);
+        await LMediaScanClaim(lMediaToken).ConfigureAwait(false);
         try
         {
-            LMediaProcessResult lMediaResult = LMediaProcessRun(lMediaProcessInfo, lMediaToken);
+            LMediaProcessResult lMediaResult = await LMediaProcessRun(
+                LTool.LToolFfprobeRead(), lMediaArguments, lMediaToken, true).ConfigureAwait(false);
             return !lMediaResult.LMediaProcessStalled && lMediaResult.LMediaProcessExit == 0
                 ? LMediaEndParse(lMediaResult.LMediaProcessOutput, lMediaStart)
                 : null;

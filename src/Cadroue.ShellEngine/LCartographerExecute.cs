@@ -32,8 +32,8 @@ public static partial class LCartographer
             "Audio" => Task.FromResult(LCartographerAudioRun(
                 lCartographerPlan.LCartographerLayout, lCartographerPaths, lCartographerOutput,
                 lCartographerTarget, lCartographerSource, lCartographerBatch)),
-            _ => Task.FromResult(LCartographerSplitRun(
-                lCartographerPaths, lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch))
+            _ => LCartographerSplitRun(
+                lCartographerPaths, lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch)
         };
     }
 
@@ -53,7 +53,7 @@ public static partial class LCartographer
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
     }
 
-    private static IReadOnlyList<string> LCartographerSplitRun(
+    private static async Task<IReadOnlyList<string>> LCartographerSplitRun(
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
         Guid lCartographerTarget,
@@ -64,7 +64,7 @@ public static partial class LCartographer
         foreach (string lCartographerPath in lCartographerPaths)
         {
             IReadOnlyList<LSplitSectionDescription> lCartographerSections =
-                LMessenger.LMessengerSplitRead(lCartographerPath);
+                await LMessenger.LMessengerSplitRead(lCartographerPath).ConfigureAwait(true);
             if (lCartographerSections.Count == 0)
             {
                 continue;

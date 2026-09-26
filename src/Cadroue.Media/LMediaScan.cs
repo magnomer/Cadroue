@@ -18,6 +18,9 @@ public static partial class LMedia
             ? Task.Run(() => LMediaListScan(lMediaPaths, lMediaToken), lMediaToken)
             : Task.FromResult(LMediaListScan(lMediaPaths, lMediaToken));
 
+    public static IReadOnlyList<string> LMediaFileRead(string lMediaPath) =>
+        File.Exists(lMediaPath) && LMediaCheck(lMediaPath) ? [lMediaPath] : [];
+
     private static LMediaScanResult LMediaListScan(
         IReadOnlyList<string> lMediaPaths,
         CancellationToken lMediaToken)
