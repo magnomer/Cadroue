@@ -119,7 +119,7 @@ public sealed partial class LSchedule : LScheduleContract
     public bool LSchedulePendingExist() =>
         LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled)
             .Select(LScheduleStore.LScheduleRecordRead)
-            .Any(lWorkRecord => lWorkRecord is { } lScheduleRecord && LScheduleScopeMatch(lScheduleRecord));
+            .Any(lWorkRecord => lWorkRecord is { } lScheduleRecord && LScheduleClaimMatch(lScheduleRecord));
 
     private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>
         lDepotFolder switch

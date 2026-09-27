@@ -22,6 +22,8 @@ public sealed class LWorkRecord
     public List<string> LWorkMergeSources { get; set; } = [];
     public Guid LWorkRelayTarget { get; set; }
     public Guid LWorkRelaySource { get; set; }
+    public int LWorkRelayProcess { get; set; }
+    public long LWorkRelayStamp { get; set; }
     public Guid LWorkLineage { get; set; }
     public string LWorkTab { get; set; } = string.Empty;
     public string LWorkMessage { get; set; } = string.Empty;
@@ -89,6 +91,8 @@ public sealed class LWorkRecord
         LWorkMergeSources = lWorkItem.LWorkMergeSources.ToList(),
         LWorkRelayTarget = lWorkItem.LWorkRelayTarget,
         LWorkRelaySource = lWorkItem.LWorkRelaySource,
+        LWorkRelayProcess = lWorkItem.LWorkRelayProcess,
+        LWorkRelayStamp = lWorkItem.LWorkRelayStamp,
         LWorkLineage = lWorkItem.LWorkLineage,
         LWorkTab = lWorkItem.LWorkTab,
         LWorkMessage = lWorkItem.LWorkMessage,
@@ -139,6 +143,8 @@ public sealed class LWorkRecord
 
         lWorkItem.LWorkRelayTarget = LWorkRelayTarget;
         lWorkItem.LWorkRelaySource = LWorkRelaySource;
+        lWorkItem.LWorkRelayProcess = LWorkRelayProcess;
+        lWorkItem.LWorkRelayStamp = LWorkRelayStamp;
         lWorkItem.LWorkLineage = LWorkLineage;
         lWorkItem.LWorkTab = LWorkTab;
         lWorkItem.LWorkStateCurrent = Enum.Parse<LWorkState>(LWorkStateName);

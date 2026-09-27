@@ -148,7 +148,7 @@ public sealed class TKeyframeScanPlan
     }
 
     [Fact]
-    public async Task CursorMoveDuringScan_InterruptsSpan_AndRestartsFromNewCursor()
+    public async Task CursorMoveDuringScan_WaitsForSpan_ThenContinuesFromLatestCursor()
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("moving.mp4", "moving source");
@@ -156,15 +156,19 @@ public sealed class TKeyframeScanPlan
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(80), TimeSpan.FromSeconds(30));
         await keyframes.TKeyframeScanRead(1);
-        keyframes.TKeyframeSuspend();
+        keyframes.TKeyframeSync(TimeSpan.FromSeconds(50));
+        keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(80), TimeSpan.FromSeconds(50));
+        keyframes.TKeyframeSync(TimeSpan.FromSeconds(70));
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(80), TimeSpan.FromSeconds(70));
-        await keyframes.TKeyframeScanRead(2);
+        await TKeyframe.TKeyframeSettleRun();
+        Assert.Equal(1, keyframes.TKeyframeScanCount);
+
         keyframes.TKeyframeScanRelease(source);
         await keyframes.TKeyframeCoverageRead(8);
 
         Assert.Equal(new TKeyframeRange(30_000, 40_000), keyframes.TKeyframeScans[0]);
         Assert.Equal(new TKeyframeRange(70_000, 80_000), keyframes.TKeyframeScans[1]);
-        Assert.Equal(2, keyframes.TKeyframeScans.Count(scan => scan.TKeyframeStartMilliseconds == 30_000));
+        Assert.Equal(1, keyframes.TKeyframeScans.Count(scan => scan.TKeyframeStartMilliseconds == 30_000));
     }
 
     [Fact]

@@ -11,12 +11,6 @@ public static class PConsoleIndicator
     private const double PConsoleIndicatorSize = PRosterTheme.PRosterIconSize;
     private const double PConsoleProgressHeight = 14;
     private const double PConsoleProgressRadius = 7;
-    private const double PConsoleSpinnerStroke = 3;
-    private const double PConsoleSpinnerRadius = 10.5;
-    private const double PConsoleSpinnerCenter = 12;
-    private const double PConsoleSpinnerTop = 1.5;
-
-    private static readonly Brush pConsoleSpinnerBrush = PConsoleSpinnerCreate();
     private static readonly Brush pConsoleProgressBrush = PConsoleProgressCreate();
     private static readonly Brush pConsoleProgressGloss = PConsoleGlossCreate();
 
@@ -45,44 +39,12 @@ public static class PConsoleIndicator
         return pRest;
     }
 
-    private static Brush PConsoleSpinnerCreate()
+    internal static Image PConsoleSpinnerBuild(RotateTransform pRotate)
     {
-        var pBrush = new LinearGradientBrush
+        return new Image
         {
-            StartPoint = new System.Windows.Point(0, 0),
-            EndPoint = new System.Windows.Point(1, 1)
-        };
-        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x1E, 0x59, 0xBE), 0));
-        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x3E, 0x92, 0xE4), 0.5));
-        pBrush.GradientStops.Add(new GradientStop(Color.FromRgb(0x74, 0xCB, 0xF7), 1));
-        pBrush.Freeze();
-        return pBrush;
-    }
-
-    internal static Path PConsoleSpinnerBuild(RotateTransform pRotate)
-    {
-        var pStart = new System.Windows.Point(PConsoleSpinnerCenter, PConsoleSpinnerTop);
-        var pEnd = new System.Windows.Point(PConsoleSpinnerTop, PConsoleSpinnerCenter);
-
-        var pFigure = new PathFigure { StartPoint = pStart };
-        pFigure.Segments.Add(new ArcSegment(
-            pEnd,
-            new System.Windows.Size(PConsoleSpinnerRadius, PConsoleSpinnerRadius),
-            0,
-            true,
-            SweepDirection.Clockwise,
-            true));
-        var pGeometry = new PathGeometry();
-        pGeometry.Figures.Add(pFigure);
-        pGeometry.Freeze();
-
-        return new Path
-        {
-            Data = pGeometry,
-            Stroke = pConsoleSpinnerBrush,
-            StrokeThickness = PConsoleSpinnerStroke,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round,
+            Source = PIcon.PIconRead("/PAsset/P32/PPanel/ConsoleSpinner.png"),
+            Stretch = Stretch.Uniform,
             Width = PConsoleIndicatorSize,
             Height = PConsoleIndicatorSize,
             VerticalAlignment = VerticalAlignment.Center,

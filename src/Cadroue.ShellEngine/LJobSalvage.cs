@@ -44,6 +44,8 @@ internal sealed partial class LJob
             LWorkLineage = pLineage,
             LWorkRelayTarget = lJobItem.LWorkRelayTarget,
             LWorkRelaySource = lJobItem.LWorkRelaySource,
+            LWorkRelayProcess = lJobItem.LWorkRelayProcess,
+            LWorkRelayStamp = lJobItem.LWorkRelayStamp,
             LWorkTab = lJobItem.LWorkTab,
             LWorkSignet = lJobItem.LWorkSignet,
             LWorkOwnerProcess = Environment.ProcessId,

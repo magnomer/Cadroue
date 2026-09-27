@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -101,4 +102,52 @@ public sealed class TScheduleIsolation
         Assert.Contains(legacyId, displayed);
         Assert.DoesNotContain(foreignId, displayed);
     }
+
+    [Fact]
+    public void RelayOwnProcess_IsClaimed()
+    {
+        using var schedule = new TScheduleSignet();
+        schedule.TSignetSharedSet(true);
+        Guid workId = schedule.TRelayWorkCreate("own", Environment.ProcessId);
+
+        Assert.Equal(workId, schedule.TSignetClaimRead());
+    }
+
+    [Fact]
+    public void RelayForeignLiveProcess_IsNotClaimed()
+    {
+        using var schedule = new TScheduleSignet();
+        using Process home = TRelayHomeStart("/c pause");
+        try
+        {
+            schedule.TSignetSharedSet(true);
+            schedule.TRelayWorkCreate("foreign", home.Id);
+
+            Assert.False(schedule.TSignetClaimCheck());
+        }
+        finally
+        {
+            home.Kill();
+        }
+    }
+
+    [Fact]
+    public void RelayForeignDeadProcess_IsClaimed()
+    {
+        using var schedule = new TScheduleSignet();
+        using Process home = TRelayHomeStart("/c exit");
+        home.WaitForExit();
+        schedule.TSignetSharedSet(true);
+        Guid workId = schedule.TRelayWorkCreate("orphan", home.Id);
+
+        Assert.Equal(workId, schedule.TSignetClaimRead());
+    }
+
+    private static Process TRelayHomeStart(string arguments) =>
+        Process.Start(new ProcessStartInfo("cmd.exe", arguments)
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardInput = true
+        })!;
 }

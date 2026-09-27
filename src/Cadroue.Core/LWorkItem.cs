@@ -82,6 +82,10 @@ public sealed class LWorkItem
 
     public Guid LWorkRelaySource { get; set; }
 
+    public int LWorkRelayProcess { get; set; }
+
+    public long LWorkRelayStamp { get; set; }
+
     public Guid LWorkLineage { get; set; }
 
     public string LWorkTab { get; set; } = string.Empty;

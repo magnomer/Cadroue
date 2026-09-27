@@ -9,13 +9,15 @@
         <pToolbar:PTabIcon x:Key="pTabIcon" />
         <pToolbar:PTabIcon x:Key="pTabIconActive" PTabIconActive="True" />
         <Style x:Key="pTabTextStyle" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="Foreground" Value="#2B3443" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="Margin" Value="0,0,0,2" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
             <Style.Triggers>
                 <DataTrigger Binding="{Binding LStripTabSelected}" Value="True">
-                    <Setter Property="Foreground" Value="#4C86F7" />
+                    <Setter Property="Foreground" Value="#0349DC" />
                     <Setter Property="FontWeight" Value="SemiBold" />
                 </DataTrigger>
             </Style.Triggers>
@@ -37,7 +39,8 @@
         </Style>
         <Style x:Key="pTabNameBoxStyle" TargetType="TextBox">
             <Setter Property="Visibility" Value="Collapsed" />
-            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13.5" />
             <Setter Property="Padding" Value="3,0" />
             <Setter Property="Background" Value="#FFFFFF" />
             <Setter Property="Foreground" Value="#111827" />
@@ -151,7 +154,7 @@
                         MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <Image Width="22" Height="22" Style="{StaticResource pTabIconStyle}" Margin="0,0,5,0" />
+                        <Image Width="26" Height="26" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
                         <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
@@ -186,7 +189,7 @@
                         MouseLeftButtonUp="PTabReleaseHandle">
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
-                        <Image Width="22" Height="22" Style="{StaticResource pTabIconStyle}" Margin="0,0,5,0" />
+                        <Image Width="26" Height="26" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
                         <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">

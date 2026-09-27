@@ -24,7 +24,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
     private readonly Dictionary<int, int> lKeyframeAttempts = new();
     private CancellationTokenSource? lKeyframeCancelSource;
-    private CancellationTokenSource? lKeyframeSpanSource;
     private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
     private TimeSpan lKeyframeDuration;
     private LKeyframeKind lKeyframeKind;
@@ -78,7 +77,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
             serial = ++lKeyframeRequestSerial;
             if (cursor != lKeyframeCursor)
             {
-                lKeyframeSpanSource?.Cancel();
                 lKeyframeReachBefore = false;
                 lKeyframeReachAfter = false;
             }
@@ -117,7 +115,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         lock (lKeyframeLock)
         {
             lKeyframePaused = true;
-            lKeyframeSpanSource?.Cancel();
         }
     }
 
@@ -132,7 +129,6 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
 
             lKeyframeCursor = cursor;
             lKeyframePaused = true;
-            lKeyframeSpanSource?.Cancel();
             lKeyframeReachBefore = false;
             lKeyframeReachAfter = false;
         }

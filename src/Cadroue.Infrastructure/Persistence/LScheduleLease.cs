@@ -17,6 +17,14 @@ public sealed partial class LSchedule
         Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
         || LScheduleSignetMatch(lWorkRecord);
 
+    internal static bool LScheduleRelayMatch(LWorkRecord lWorkRecord) =>
+        lWorkRecord.LWorkRelayProcess == 0
+        || lWorkRecord.LWorkRelayProcess == Environment.ProcessId
+        || !LSentinel.LSentinelOwnerCheck(lWorkRecord.LWorkRelayProcess, lWorkRecord.LWorkRelayStamp);
+
+    internal static bool LScheduleClaimMatch(LWorkRecord lWorkRecord) =>
+        LScheduleScopeMatch(lWorkRecord) && LScheduleRelayMatch(lWorkRecord);
+
     public LWorkItem? LScheduleClaim(Guid lRunnerId)
     {
         LDepotIndex.LDepotIndexCreate();
@@ -36,7 +44,7 @@ public sealed partial class LSchedule
         }
 
         IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
-            .Where(LScheduleScopeMatch)
+            .Where(LScheduleClaimMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
             .ThenBy(lWorkRecord => Cadroue.Application.LGate.LGateTimeRead(lWorkRecord.LWorkBatchId))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);

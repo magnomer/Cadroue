@@ -43,6 +43,12 @@ public sealed partial class LSchedule
                 lWorkItem.LWorkRelaySource = lScheduleRelaySource;
             }
 
+            if (lWorkItem.LWorkRelayTarget != Guid.Empty)
+            {
+                lWorkItem.LWorkRelayProcess = Environment.ProcessId;
+                lWorkItem.LWorkRelayStamp = LSentinel.LSentinelStampRead();
+            }
+
             lWorkItem.LWorkSignet = LSignet.LSignetCurrent;
 
             if (lWorkItem.LWorkLineage == Guid.Empty)

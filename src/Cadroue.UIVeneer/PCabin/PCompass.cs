@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PBench;
@@ -290,29 +289,14 @@ public sealed class PCompass : UserControl
 
     private static FrameworkElement PCompassIconBuild()
     {
-        var pCanvas = new Canvas { Width = 24, Height = 24 };
-        Brush pBrush = new SolidColorBrush(Color.FromRgb(0x3E, 0x4A, 0x5E));
-        var pSpeaker = new Path { Fill = pBrush, Data = Geometry.Parse("M3,9 L7,9 L12,4 L12,20 L7,15 L3,15 Z") };
-        var pWaveSmall = new Path
+        return new Image
         {
-            Stroke = pBrush,
-            StrokeThickness = 1.8,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round,
-            Data = Geometry.Parse("M15,8 C17,10 17,14 15,16")
+            Source = PIcon.PIconRead("/PAsset/P32/PCompass/CompassVolume.png"),
+            Width = 22,
+            Height = 22,
+            Stretch = Stretch.Uniform,
+            VerticalAlignment = VerticalAlignment.Center
         };
-        var pWaveLarge = new Path
-        {
-            Stroke = pBrush,
-            StrokeThickness = 1.8,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round,
-            Data = Geometry.Parse("M17,5 C21,9 21,15 17,19")
-        };
-        pCanvas.Children.Add(pSpeaker);
-        pCanvas.Children.Add(pWaveSmall);
-        pCanvas.Children.Add(pWaveLarge);
-        return new Viewbox { Width = 22, Height = 22, VerticalAlignment = VerticalAlignment.Center, Child = pCanvas };
     }
 
     private static Style PCompassSliderBuild()

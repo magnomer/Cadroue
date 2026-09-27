@@ -4,7 +4,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using Cadroue.Application;
 using Cadroue.ShellEngine;
@@ -41,7 +40,7 @@ public sealed class PConsole : UserControl
     private readonly ProgressBar pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
     private readonly Grid pConsoleRestIcon;
-    private readonly Path pConsoleSpinner;
+    private readonly Image pConsoleSpinner;
     private readonly RotateTransform pConsoleSpinnerRotate = new(0);
     private readonly Button pConsoleStartButton;
     private readonly Button pConsolePauseButton;

@@ -53,6 +53,29 @@ internal sealed class TScheduleSignet : IDisposable
         return workItem.LWorkId;
     }
 
+    internal Guid TRelayWorkCreate(string name, int relayProcess)
+    {
+        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
+        var workItem = new LWorkItem(
+            Guid.NewGuid(),
+            LWorkKind.LWorkKindAudio,
+            LWorkPriority.LWorkPriorityNormal,
+            Path.Combine(tScheduleRoot, name + ".source"),
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(1),
+            name,
+            Path.Combine(tScheduleRoot, name + ".output"),
+            TWorkOutput.TWorkOutputCreate(),
+            lWorkCreateTime: created);
+        tSchedule.LScheduleAdd(new[] { workItem }, Guid.NewGuid());
+        string filePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, workItem.LWorkId);
+        LWorkRecord record = LScheduleStore.LScheduleRecordRead(filePath)!;
+        record.LWorkRelayProcess = relayProcess;
+        record.LWorkRelayStamp = 0;
+        LScheduleStore.LScheduleRecordSave(record, LDepotFolder.LDepotFolderScheduled);
+        return workItem.LWorkId;
+    }
+
     internal bool TSignetClaimCheck() => tSchedule.LScheduleClaim(Guid.NewGuid()) is not null;
 
     internal Guid? TSignetClaimRead() => tSchedule.LScheduleClaim(Guid.NewGuid())?.LWorkId;

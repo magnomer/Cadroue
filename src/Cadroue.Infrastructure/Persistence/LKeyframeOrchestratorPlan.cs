@@ -126,19 +126,16 @@ public sealed partial class LKeyframeOrchestrator
     {
         TimeSpan duration;
         double startSeconds;
-        var lKeyframeHalt = new CancellationTokenSource();
         lock (lKeyframeLock)
         {
             if (lKeyframePaused)
             {
-                lKeyframeHalt.Dispose();
                 return;
             }
 
             duration = lKeyframeDuration;
             startSeconds = lKeyframeStartSeconds;
             lKeyframeAttempts[spanIndex] = lKeyframeRequestSerial;
-            lKeyframeSpanSource = lKeyframeHalt;
         }
 
         var start = TimeSpan.FromMilliseconds(spanIndex * LKeyframeGridMilliseconds);
@@ -151,8 +148,7 @@ public sealed partial class LKeyframeOrchestrator
         var lKeyframeClock = System.Diagnostics.Stopwatch.StartNew();
         try
         {
-            using var lKeyframeLimit =
-                CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, lKeyframeHalt.Token);
+            using var lKeyframeLimit = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             lKeyframeLimit.CancelAfter(LKeyframeScanLimit);
             LKeyframeSpanResult result = await lKeyframeScanner(
                 sourcePath, startSeconds, start, end, lKeyframeLimit.Token).ConfigureAwait(false);
@@ -210,38 +206,12 @@ public sealed partial class LKeyframeOrchestrator
         {
             return;
         }
-        catch (Exception) when (lKeyframeHalt.IsCancellationRequested)
-        {
-            lock (lKeyframeLock)
-            {
-                lKeyframeAttempts.Remove(spanIndex);
-            }
-
-            LTrace.LTraceRecord(
-                LTraceKind.LTraceWork,
-                $"Keyframe span {spanIndex} interrupted ({start:hh\\:mm\\:ss}-{end:hh\\:mm\\:ss})",
-                "The cursor moved or playback started; the span stays unscanned.",
-                lKeyframeClock.Elapsed.TotalMilliseconds);
-            return;
-        }
         catch (Exception exception)
         {
             if (!LKeyframeFailureRecord(
                     spanIndex, cancellationToken, exception, lKeyframeClock.Elapsed.TotalMilliseconds))
             {
                 return;
-            }
-        }
-        finally
-        {
-            lock (lKeyframeLock)
-            {
-                if (ReferenceEquals(lKeyframeSpanSource, lKeyframeHalt))
-                {
-                    lKeyframeSpanSource = null;
-                }
-
-                lKeyframeHalt.Dispose();
             }
         }
 

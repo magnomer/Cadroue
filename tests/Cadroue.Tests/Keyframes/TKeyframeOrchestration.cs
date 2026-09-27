@@ -8,7 +8,7 @@ namespace Cadroue.Tests;
 public sealed class TKeyframeOrchestration
 {
     [Fact]
-    public async Task CancelledScanning_DoesNotPublishSuccessfulCompleteResult()
+    public async Task SuspendedScanning_FinishesSpan_AndStopsBeforeCompleteResult()
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("cancel.mp4", "cancel source");
@@ -21,11 +21,13 @@ public sealed class TKeyframeOrchestration
         keyframes.TKeyframeScanRelease(source);
         await TKeyframe.TKeyframeSettleRun();
 
+        Assert.Equal(1, keyframes.TKeyframeScanCount);
+        Assert.Single(keyframes.TKeyframeLatest!.TKeyframeCoverage);
         Assert.DoesNotContain(keyframes.TKeyframeNotices, notice => notice.TKeyframeCoverage.Count == 3);
     }
 
     [Fact]
-    public async Task PlaybackCursorMove_InterruptsSpan_AndPausesUntilNextStart()
+    public async Task PlaybackCursorMove_FinishesSpan_AndPausesUntilNextStart()
     {
         using var keyframes = new TKeyframe();
         string source = keyframes.TSourceCreate("playing.mp4", "playing source");
@@ -39,11 +41,11 @@ public sealed class TKeyframeOrchestration
         await TKeyframe.TKeyframeSettleRun();
 
         Assert.Equal(1, keyframes.TKeyframeScanCount);
-        Assert.DoesNotContain(keyframes.TKeyframeNotices, notice => notice.TKeyframeCoverage.Count > 0);
+        Assert.Single(keyframes.TKeyframeLatest!.TKeyframeCoverage);
 
         keyframes.TKeyframeStart(source, TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(31));
         await keyframes.TKeyframeCoverageRead(6);
-        Assert.Equal(2, keyframes.TKeyframeScans.Count(scan => scan.TKeyframeStartMilliseconds == 30_000));
+        Assert.Equal(1, keyframes.TKeyframeScans.Count(scan => scan.TKeyframeStartMilliseconds == 30_000));
     }
 
     [Fact]
