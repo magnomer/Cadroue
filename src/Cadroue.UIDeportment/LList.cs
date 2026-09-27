@@ -29,6 +29,7 @@ public sealed class LList
         LListFace = new LListFace(this);
         lListDocket.LDocketChange += LListDocketHandle;
         lListDocket.LDocketAdded += LListAddHandle;
+        lListDocket.LDocketDelivered += LListDeliveredHandle;
         lListDocket.LDocketRemoved += LListRemoveHandle;
     }
 
@@ -312,6 +313,8 @@ public sealed class LList
         LListItemsAdd?.Invoke(lAdded);
         LTraceLog.LTraceInfoRecord("List add subscribers notified");
     }
+
+    private void LListDeliveredHandle(IReadOnlyList<LDocketEntry> lAdded) => LListItemsAdd?.Invoke(lAdded);
 
     private void LListRemoveHandle(IReadOnlyList<string> lRemoved)
     {

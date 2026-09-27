@@ -6,6 +6,7 @@ namespace Cadroue.ShellEngine;
 public static partial class LCartographer
 {
     private static readonly HashSet<Guid> lCartographerScheduledBatches = new();
+    private static readonly HashSet<Guid> lCartographerReleased = new();
     private static bool lCartographerWatching;
 
     public static LScheduleContract? LCartographerScheduleContract { get; set; }
@@ -162,18 +163,34 @@ public static partial class LCartographer
         var lCartographerUnlocks = new List<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>();
         foreach (LWorkItem lCartographerItem in lCartographerRecords)
         {
+            if (LCartographerActiveCheck(lCartographerItem))
+            {
+                lCartographerReleased.Remove(lCartographerItem.LWorkId);
+                continue;
+            }
+
             bool lCartographerBatchActive = lCartographerHeld.TryGetValue(
                 lCartographerItem.LWorkBatchId, out HashSet<string>? lCartographerBatchPaths);
-            if (LCartographerActiveCheck(lCartographerItem)
+            if (lCartographerReleased.Contains(lCartographerItem.LWorkId)
                 || (lCartographerBatchActive && lCartographerItem.LWorkRelayTarget != Guid.Empty))
             {
                 continue;
             }
 
-            lCartographerUnlocks.AddRange(LCartographerSourcesRead(lCartographerItem)
+            string[] lCartographerSources = LCartographerSourcesRead(lCartographerItem).ToArray();
+            string[] lCartographerFree = lCartographerSources
                 .Where(lCartographerPath => lCartographerBatchPaths?.Contains(lCartographerPath) != true)
+                .ToArray();
+            lCartographerUnlocks.AddRange(lCartographerFree
                 .Select(lCartographerPath => (lCartographerPath, lCartographerItem.LWorkBatchId, lCartographerItem)));
+            if (lCartographerFree.Length == lCartographerSources.Length)
+            {
+                lCartographerReleased.Add(lCartographerItem.LWorkId);
+            }
         }
+
+        lCartographerReleased.IntersectWith(
+            lCartographerRecords.Select(lCartographerItem => lCartographerItem.LWorkId));
 
         if (lCartographerUnlocks.Count > 0)
         {

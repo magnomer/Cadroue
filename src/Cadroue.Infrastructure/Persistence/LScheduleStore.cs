@@ -98,6 +98,7 @@ internal static class LScheduleStore
     private static bool LScheduleFileSave(string lDepotFilePath, string lDepotContent)
     {
         string lDepotTempPath = lDepotFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        LDepotWatch.LDepotOwnAdd(lDepotFilePath);
         try
         {
             File.WriteAllText(lDepotTempPath, lDepotContent);
@@ -125,6 +126,8 @@ internal static class LScheduleStore
     {
         string lDepotFromPath = LDepot.LDepotFileRead(lDepotFrom, lWorkId);
         string lDepotToPath = LDepot.LDepotFileRead(lDepotTo, lWorkId);
+        LDepotWatch.LDepotOwnAdd(lDepotFromPath);
+        LDepotWatch.LDepotOwnAdd(lDepotToPath);
 
         try
         {

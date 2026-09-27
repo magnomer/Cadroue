@@ -39,7 +39,7 @@ public static class PConsoleIndicator
         return pRest;
     }
 
-    internal static Image PConsoleSpinnerBuild(RotateTransform pRotate)
+    internal static Image PConsoleSpinnerBuild()
     {
         return new Image
         {
@@ -49,8 +49,6 @@ public static class PConsoleIndicator
             Height = PConsoleIndicatorSize,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 10, 0),
-            RenderTransformOrigin = new System.Windows.Point(0.5, 0.5),
-            RenderTransform = pRotate,
             Visibility = Visibility.Collapsed
         };
     }

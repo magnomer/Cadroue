@@ -8,6 +8,8 @@ public sealed class LDocket
 
     public event Action<IReadOnlyList<LDocketEntry>>? LDocketAdded;
 
+    public event Action<IReadOnlyList<LDocketEntry>>? LDocketDelivered;
+
     public event Action<IReadOnlyList<string>>? LDocketRemoved;
 
     public IReadOnlyList<LDocketEntry> LDocketItemsRead() => lDocketEntries.ToArray();
@@ -192,7 +194,7 @@ public sealed class LDocket
 
         if (lDocketAddedItems.Count > 0)
         {
-            LDocketAdded?.Invoke(lDocketAddedItems);
+            LDocketDelivered?.Invoke(lDocketAddedItems);
         }
 
         return lDocketTracked;

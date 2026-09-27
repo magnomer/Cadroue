@@ -285,7 +285,8 @@ public static class LDepotIndex
 
         using (SqliteCommand lDepotPragma = lDepotConnection.CreateCommand())
         {
-            lDepotPragma.CommandText = $"PRAGMA busy_timeout = {LDepotBusyTimeout * 1000}; PRAGMA journal_mode = WAL;";
+            lDepotPragma.CommandText = $"PRAGMA busy_timeout = {LDepotBusyTimeout * 1000}; "
+                + "PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;";
             lDepotPragma.ExecuteNonQuery();
         }
 

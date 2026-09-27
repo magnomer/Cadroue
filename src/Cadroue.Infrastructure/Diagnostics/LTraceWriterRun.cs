@@ -136,7 +136,7 @@ public static partial class LTraceWriter
 
                 string lTraceText = string.Concat(lTraceBatch.Select(lTraceEntry => lTraceEntry.LTraceWriteText));
                 lTraceStream.Write(Encoding.UTF8.GetBytes(lTraceText));
-                lTraceStream.Flush(flushToDisk: true);
+                lTraceStream.Flush();
                 return true;
             }
             catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)

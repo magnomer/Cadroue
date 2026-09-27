@@ -9,36 +9,34 @@ public static class LCartographerPlanStore
 {
     private const string LCartographerPlanFolder = "relayplans";
     private static readonly JsonSerializerOptions lCartographerPlanJson = new() { WriteIndented = true };
+    private static readonly Dictionary<Guid, LCartographerPlanText> lCartographerPlanCache = new();
+
+    private sealed record LCartographerPlanText(
+        DateTime LCartographerPlanStamp, long LCartographerPlanLength, string LCartographerPlanJson);
 
     public static bool LCartographerPlanRead(Guid lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
     {
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
         try
         {
+            var lCartographerFile = new FileInfo(lCartographerPath);
+            if (!lCartographerFile.Exists)
+            {
+                LCartographerTextRemove(lCartographerPlanId);
+                lCartographerPlan = new LCartographerPlanRecord();
+                return false;
+            }
+
+            if (LCartographerTextRead(lCartographerPlanId, lCartographerFile) is { } lCartographerCached)
+            {
+                return LCartographerTextParse(lCartographerCached, out lCartographerPlan);
+            }
+
             using (LLatch.LLatchClaim(lCartographerPath))
             {
-                LCartographerPlanRecord? lCartographerRead = File.Exists(lCartographerPath)
-                    ? JsonSerializer.Deserialize<LCartographerPlanRecord>(
-                        File.ReadAllText(lCartographerPath), lCartographerPlanJson)
-                    : null;
-                if (lCartographerRead is null)
-                {
-                    lCartographerPlan = new LCartographerPlanRecord();
-                    return false;
-                }
-
-                lCartographerRead.LCartographerStages ??= new();
-                lCartographerRead.LCartographerDeliveredWork ??= new();
-                foreach (LCartographerStageRecord lCartographerStage in lCartographerRead.LCartographerStages)
-                {
-                    lCartographerStage.LCartographerLayout ??= new();
-                    lCartographerStage.LCartographerExport ??= new();
-                    lCartographerStage.LCartographerFunnelRules ??= new();
-                    lCartographerStage.LCartographerPendingInputs ??= new();
-                }
-
-                lCartographerPlan = lCartographerRead;
-                return true;
+                string lCartographerJson = File.ReadAllText(lCartographerPath);
+                LCartographerTextSet(lCartographerPlanId, lCartographerPath, lCartographerJson);
+                return LCartographerTextParse(lCartographerJson, out lCartographerPlan);
             }
         }
         catch (Exception lCartographerError) when (lCartographerError
@@ -63,9 +61,10 @@ public static class LCartographerPlanStore
             using (LLatch.LLatchClaim(lCartographerPath))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(lCartographerPath)!);
-                File.WriteAllText(
-                    lCartographerTemporary, JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson));
+                string lCartographerJson = JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson);
+                File.WriteAllText(lCartographerTemporary, lCartographerJson);
                 File.Move(lCartographerTemporary, lCartographerPath, true);
+                LCartographerTextSet(lCartographerPlan.LCartographerPlanId, lCartographerPath, lCartographerJson);
                 return true;
             }
         }
@@ -89,6 +88,7 @@ public static class LCartographerPlanStore
     public static void LCartographerPlanDelete(Guid lCartographerPlanId)
     {
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
+        LCartographerTextRemove(lCartographerPlanId);
         try
         {
             using (LLatch.LLatchClaim(lCartographerPath))
@@ -107,6 +107,61 @@ public static class LCartographerPlanStore
             LTraceLog.LTraceWarningRecord(
                 $"Relay plan {lCartographerPlanId:N} could not be deleted: {lCartographerError.Message}");
         }
+    }
+
+    private static string? LCartographerTextRead(Guid lCartographerPlanId, FileInfo lCartographerFile)
+    {
+        lock (lCartographerPlanCache)
+        {
+            return lCartographerPlanCache.TryGetValue(lCartographerPlanId, out LCartographerPlanText? lCartographerText)
+                && lCartographerText.LCartographerPlanStamp == lCartographerFile.LastWriteTimeUtc
+                && lCartographerText.LCartographerPlanLength == lCartographerFile.Length
+                    ? lCartographerText.LCartographerPlanJson
+                    : null;
+        }
+    }
+
+    private static void LCartographerTextSet(
+        Guid lCartographerPlanId, string lCartographerPath, string lCartographerJson)
+    {
+        var lCartographerFile = new FileInfo(lCartographerPath);
+        lock (lCartographerPlanCache)
+        {
+            lCartographerPlanCache[lCartographerPlanId] = new LCartographerPlanText(
+                lCartographerFile.LastWriteTimeUtc, lCartographerFile.Length, lCartographerJson);
+        }
+    }
+
+    private static void LCartographerTextRemove(Guid lCartographerPlanId)
+    {
+        lock (lCartographerPlanCache)
+        {
+            lCartographerPlanCache.Remove(lCartographerPlanId);
+        }
+    }
+
+    private static bool LCartographerTextParse(string lCartographerJson, out LCartographerPlanRecord lCartographerPlan)
+    {
+        LCartographerPlanRecord? lCartographerRead =
+            JsonSerializer.Deserialize<LCartographerPlanRecord>(lCartographerJson, lCartographerPlanJson);
+        if (lCartographerRead is null)
+        {
+            lCartographerPlan = new LCartographerPlanRecord();
+            return false;
+        }
+
+        lCartographerRead.LCartographerStages ??= new();
+        lCartographerRead.LCartographerDeliveredWork ??= new();
+        foreach (LCartographerStageRecord lCartographerStage in lCartographerRead.LCartographerStages)
+        {
+            lCartographerStage.LCartographerLayout ??= new();
+            lCartographerStage.LCartographerExport ??= new();
+            lCartographerStage.LCartographerFunnelRules ??= new();
+            lCartographerStage.LCartographerPendingInputs ??= new();
+        }
+
+        lCartographerPlan = lCartographerRead;
+        return true;
     }
 
     private static string LCartographerPathRead(Guid lCartographerPlanId) =>

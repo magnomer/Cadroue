@@ -107,9 +107,8 @@ public static partial class LCartographer
             return false;
         }
 
-        bool lCartographerPlanOwned = LCartographerOwnershipCheck(lCartographerItem);
         return lCartographerItem.LWorkOwnerProcess == Environment.ProcessId
-            || lCartographerPlanOwned && !LSentinel.LSentinelOwnerCheck(
+            || LCartographerOwnershipCheck(lCartographerItem) && !LSentinel.LSentinelOwnerCheck(
                 lCartographerItem.LWorkOwnerProcess, lCartographerItem.LWorkOwnerStamp);
     }
 

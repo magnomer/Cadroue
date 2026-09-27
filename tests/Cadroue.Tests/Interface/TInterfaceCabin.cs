@@ -10,12 +10,9 @@ namespace Cadroue.Tests;
 internal static partial class TInterface
 {
     internal static LConsole TConsoleCreate() => new();
-    internal static bool TConsoleSpinSet(LConsole console, bool spinning) => console.LConsoleSpinSet(spinning);
     internal static bool TConsoleProgressSet(LConsole console, double target) => console.LConsoleProgressSet(target);
     internal static void TConsoleProgressAttach(LConsole console, Action<double, bool> handler) =>
         console.LConsoleProgressApply += handler;
-    internal static void TConsoleSpinAttach(LConsole console, Action<bool> handler) =>
-        console.LConsoleSpinApply += handler;
     internal static IReadOnlyList<LConsoleRun> TConsoleRunsResolve(string line, string? accent) =>
         LConsole.LConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>

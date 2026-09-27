@@ -22,7 +22,6 @@ public sealed record LConsoleStatus(
 public sealed class LConsole
 {
     private readonly LScheduleContract lSchedule = LProgram.LScheduleCurrent;
-    private bool lConsoleSpinning;
     private bool lConsoleProgressPending;
     private bool lConsoleBackward;
     private double lConsoleProgress;
@@ -42,8 +41,6 @@ public sealed class LConsole
 
     public LConsoleScene LConsoleScene { get; }
 
-    public bool LConsoleSpinning => lConsoleSpinning;
-
     public bool LConsoleProgressPending => lConsoleProgressPending;
 
     public bool LConsoleBackward => lConsoleBackward;
@@ -53,8 +50,6 @@ public sealed class LConsole
     public event Action<LConsoleStatus>? LConsoleStatusApply;
 
     public event Action<double, bool>? LConsoleProgressApply;
-
-    public event Action<bool>? LConsoleSpinApply;
 
     public event Action? LConsoleUpdateDefer;
 
@@ -121,18 +116,6 @@ public sealed class LConsole
 
     public void LConsolePendingSet(bool lProgressPending) => lConsoleProgressPending = lProgressPending;
 
-    public bool LConsoleSpinSet(bool lSpinning)
-    {
-        if (lConsoleSpinning == lSpinning)
-        {
-            return false;
-        }
-
-        lConsoleSpinning = lSpinning;
-        LConsoleSpinApply?.Invoke(lSpinning);
-        return true;
-    }
-
     public bool LConsoleProgressSet(double lTarget)
     {
         double lClamped = Math.Clamp(lTarget, 0, 1);
@@ -154,7 +137,6 @@ public sealed class LConsole
         LConsoleProgressSet(
             lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress));
         bool lRunning = LConsoleStation.LConsoleRunning;
-        LConsoleSpinSet(lRunning);
         LConsoleStatusApply?.Invoke(LConsoleStatusResolve(lRunningItems, lRunning));
     }
 

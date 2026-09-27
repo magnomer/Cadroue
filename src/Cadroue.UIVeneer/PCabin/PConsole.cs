@@ -31,7 +31,6 @@ public sealed class PConsole : UserControl
         };
 
     private readonly IReadOnlyDictionary<bool, Action<double>> pConsoleProgressWrites;
-    private readonly IReadOnlyDictionary<bool, Action> pConsoleSpinWrites;
     private readonly IReadOnlyDictionary<bool, UIElement?> pConsoleSceneContents;
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
@@ -41,7 +40,6 @@ public sealed class PConsole : UserControl
     private readonly TextBlock pConsoleStatus;
     private readonly Grid pConsoleRestIcon;
     private readonly Image pConsoleSpinner;
-    private readonly RotateTransform pConsoleSpinnerRotate = new(0);
     private readonly Button pConsoleStartButton;
     private readonly Button pConsolePauseButton;
     private readonly Button pConsoleCancelButton;
@@ -62,16 +60,11 @@ public sealed class PConsole : UserControl
             [true] = PConsoleGlideApply,
             [false] = PConsoleProgressSet,
         };
-        pConsoleSpinWrites = new Dictionary<bool, Action>
-        {
-            [true] = PConsoleSpinStart,
-            [false] = PConsoleSpinStop,
-        };
         pConsoleProgress = PConsoleIndicator.PConsoleProgressBuild();
         pConsoleStatus = PConsoleControl.PConsoleLabelBuild(
             PRosterTheme.PRosterTextBrush, PConsoleControl.PConsoleStatusSize);
         pConsoleRestIcon = PConsoleIndicator.PConsoleRestBuild();
-        pConsoleSpinner = PConsoleIndicator.PConsoleSpinnerBuild(pConsoleSpinnerRotate);
+        pConsoleSpinner = PConsoleIndicator.PConsoleSpinnerBuild();
         pConsoleStationLabel = PConsoleControl.PConsoleLabelBuild(
             PRosterTheme.PRosterMutedBrush, PConsoleControl.PConsoleStationSize);
         pConsoleStartButton = PConsoleControl.PConsoleButtonBuild(
@@ -111,7 +104,6 @@ public sealed class PConsole : UserControl
         Content = PConsoleBuild();
         LConsole.LConsoleStatusApply += PConsoleStatusApply;
         LConsole.LConsoleProgressApply += PConsoleProgressApply;
-        LConsole.LConsoleSpinApply += PConsoleSpinApply;
         LConsole.LConsoleUpdateDefer += PConsoleUpdateDefer;
         LConsole.LConsoleWarningShow += PConsoleWarningShow;
         LConsole.LConsoleStation.LConsoleWatchChange += PConsoleWatchHandle;
@@ -216,19 +208,6 @@ public sealed class PConsole : UserControl
                 Duration = pConsoleProgressGlide,
                 FillBehavior = FillBehavior.HoldEnd
             });
-
-    private void PConsoleSpinApply(bool pActive) => pConsoleSpinWrites[pActive]();
-
-    private void PConsoleSpinStart() =>
-        pConsoleSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, new DoubleAnimation
-        {
-            From = 0,
-            To = 360,
-            Duration = new Duration(TimeSpan.FromSeconds(1.1)),
-            RepeatBehavior = RepeatBehavior.Forever
-        });
-
-    private void PConsoleSpinStop() => pConsoleSpinnerRotate.BeginAnimation(RotateTransform.AngleProperty, null);
 
     private UIElement PConsoleBuild()
     {

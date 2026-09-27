@@ -55,19 +55,6 @@ public sealed class TConsoleStatus
     }
 
     [Fact]
-    public void Spin_RaisesOnlyOnChange()
-    {
-        LConsole console = TInterface.TConsoleCreate();
-        var applied = new List<bool>();
-        TInterface.TConsoleSpinAttach(console, applied.Add);
-
-        Assert.True(TInterface.TConsoleSpinSet(console, true));
-        Assert.False(TInterface.TConsoleSpinSet(console, true));
-        Assert.True(TInterface.TConsoleSpinSet(console, false));
-        Assert.Equal([true, false], applied);
-    }
-
-    [Fact]
     public void Removal_IsSilent_WhenEveryItemWasRemoved()
     {
         var outcomes = new Dictionary<Guid, LScheduleRemoval>

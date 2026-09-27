@@ -5,6 +5,9 @@ namespace Cadroue.Infrastructure;
 public sealed class LDepotWatch : IDisposable
 {
     private const int LDepotSettleMilliseconds = 250;
+    private const long LDepotOwnMilliseconds = 3000;
+
+    private static readonly Dictionary<string, long> lDepotOwnPaths = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly List<FileSystemWatcher> lDepotWatchers = new();
     private readonly System.Timers.Timer lDepotSettleTimer;
@@ -29,6 +32,34 @@ public sealed class LDepotWatch : IDisposable
     }
 
     public event Action? LDepotChange;
+
+    public static void LDepotOwnAdd(string lDepotFilePath)
+    {
+        lock (lDepotOwnPaths)
+        {
+            lDepotOwnPaths[Path.GetFullPath(lDepotFilePath)] = Environment.TickCount64;
+        }
+    }
+
+    private static bool LDepotOwnCheck(FileSystemEventArgs lDepotEvent)
+    {
+        long lDepotNow = Environment.TickCount64;
+        lock (lDepotOwnPaths)
+        {
+            foreach (string lDepotStale in lDepotOwnPaths
+                .Where(lDepotEntry => lDepotNow - lDepotEntry.Value > LDepotOwnMilliseconds)
+                .Select(lDepotEntry => lDepotEntry.Key)
+                .ToArray())
+            {
+                lDepotOwnPaths.Remove(lDepotStale);
+            }
+
+            return lDepotOwnPaths.ContainsKey(lDepotEvent.FullPath)
+                && (lDepotEvent is not RenamedEventArgs lDepotRename
+                    || !lDepotRename.OldFullPath.EndsWith(".json", StringComparison.OrdinalIgnoreCase)
+                    || lDepotOwnPaths.ContainsKey(lDepotRename.OldFullPath));
+        }
+    }
 
     public void LDepotWatchStart()
     {
@@ -92,6 +123,11 @@ public sealed class LDepotWatch : IDisposable
 
     private void LDepotChangeHandle(object lDepotSender, FileSystemEventArgs lDepotEvent)
     {
+        if (LDepotOwnCheck(lDepotEvent))
+        {
+            return;
+        }
+
         lock (lDepotTimerLock)
         {
             if (lDepotDisposed)
