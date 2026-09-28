@@ -1,4 +1,4 @@
-﻿using Cadroue.Core;
+using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 

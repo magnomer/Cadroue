@@ -6,7 +6,7 @@ using Xunit;
 namespace Cadroue.Tests;
 
 [CollectionDefinition("Schedule", DisableParallelization = true)]
-public sealed class LScheduleCollection { }
+public sealed class TScheduleCollection { }
 
 internal sealed record TScheduleItem(
     Guid TWorkId,

@@ -199,13 +199,13 @@ internal sealed class PPicker : UserControl
         pBorder.SetValue(Border.BackgroundProperty, PPickerSoftBrush);
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(0, PPickerCorner, PPickerCorner, 0));
 
-        var pArrow = new FrameworkElementFactory(typeof(Path));
+        var pArrow = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
         pArrow.SetValue(Shape.StrokeProperty, PPickerTextBrush);
         pArrow.SetValue(Shape.StrokeThicknessProperty, 1.3);
         pArrow.SetValue(Shape.StrokeStartLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Shape.StrokeEndLineCapProperty, PenLineCap.Round);
         pArrow.SetValue(Shape.StrokeLineJoinProperty, PenLineJoin.Round);
-        pArrow.SetValue(Path.DataProperty, Geometry.Parse("M 3 4 L 6 7 L 9 4"));
+        pArrow.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 3 4 L 6 7 L 9 4"));
         pArrow.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
         pArrow.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pBorder.AppendChild(pArrow);

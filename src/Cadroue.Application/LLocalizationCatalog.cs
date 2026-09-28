@@ -3,11 +3,19 @@ using System.Text.RegularExpressions;
 
 namespace Cadroue.Application;
 
-public sealed partial class LLocalizationCatalog
+public sealed class LLocalizationCatalog
 {
-    private static readonly Regex lLocalizationKeyPattern = LLocalizationKeyCreate();
-    private static readonly Regex lLocalizationTermPattern = LLocalizationTermCreate();
-    private static readonly Regex lLocalizationMeaninglessPattern = LLocalizationMeaninglessCreate();
+    private static readonly Regex lLocalizationKeyPattern = new(
+        @"^(?:Terms|[A-Z][A-Za-z0-9]*)(?:\.[A-Z][A-Za-z0-9]*)+$",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex lLocalizationTermPattern = new(
+        @"\{([Tt])erms\.([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)\}",
+        RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
+    private static readonly Regex lLocalizationMeaninglessPattern = new(
+        @"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
     private readonly IReadOnlyDictionary<string, string> lLocalizationCatalogValues;
 
@@ -162,19 +170,10 @@ public sealed partial class LLocalizationCatalog
         }
     }
 
-    [GeneratedRegex(@"^(?:Terms|[A-Z][A-Za-z0-9]*)(?:\.[A-Z][A-Za-z0-9]*)+$", RegexOptions.CultureInvariant)]
-    private static partial Regex LLocalizationKeyCreate();
 
     private static string LLocalizationFirstNormalize(string lLocalizationText) =>
         string.IsNullOrEmpty(lLocalizationText) || char.IsLower(lLocalizationText[0])
             ? lLocalizationText
             : char.ToLowerInvariant(lLocalizationText[0]) + lLocalizationText[1..];
 
-    [GeneratedRegex(@"\{([Tt])erms\.([A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)*)\}", RegexOptions.CultureInvariant)]
-    private static partial Regex LLocalizationTermCreate();
-
-    [GeneratedRegex(
-        @"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)",
-        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
-    private static partial Regex LLocalizationMeaninglessCreate();
 }

@@ -1,4 +1,4 @@
-﻿BSD 3-Clause License
+BSD 3-Clause License
 
 Copyright (c) 2010 - 2024, Elinam LLC
 All rights reserved.

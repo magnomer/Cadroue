@@ -9,7 +9,7 @@ namespace Cadroue.Tests;
 internal sealed record TPresetSelectionResult(bool TPresetSelectionOk, string TPresetSelectionName);
 
 [CollectionDefinition("Preset")]
-public sealed class LPresetCollection { }
+public sealed class TPresetCollection { }
 
 public sealed class TPreset : IDisposable
 {

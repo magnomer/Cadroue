@@ -221,18 +221,18 @@ internal static class PDropdown
         pBorder.SetValue(Border.BackgroundProperty, PDropdownSoftBrush);
         pBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(0, 10, 10, 0));
 
-        var pArrow = new FrameworkElementFactory(typeof(Path));
-        pArrow.SetValue(Path.StrokeProperty, PDropdownTextBrush);
-        pArrow.SetValue(Path.StrokeThicknessProperty, 1.3);
-        pArrow.SetValue(Path.StrokeStartLineCapProperty, PenLineCap.Round);
-        pArrow.SetValue(Path.StrokeEndLineCapProperty, PenLineCap.Round);
-        pArrow.SetValue(Path.StrokeLineJoinProperty, PenLineJoin.Round);
-        pArrow.SetValue(Path.DataProperty, Geometry.Parse("M 3 4 L 6 7 L 9 4"));
-        pArrow.SetValue(Path.WidthProperty, 9.0);
-        pArrow.SetValue(Path.HeightProperty, 6.0);
-        pArrow.SetValue(Path.StretchProperty, Stretch.Uniform);
-        pArrow.SetValue(Path.HorizontalAlignmentProperty, HorizontalAlignment.Center);
-        pArrow.SetValue(Path.VerticalAlignmentProperty, VerticalAlignment.Center);
+        var pArrow = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
+        pArrow.SetValue(System.Windows.Shapes.Path.StrokeProperty, PDropdownTextBrush);
+        pArrow.SetValue(System.Windows.Shapes.Path.StrokeThicknessProperty, 1.3);
+        pArrow.SetValue(System.Windows.Shapes.Path.StrokeStartLineCapProperty, PenLineCap.Round);
+        pArrow.SetValue(System.Windows.Shapes.Path.StrokeEndLineCapProperty, PenLineCap.Round);
+        pArrow.SetValue(System.Windows.Shapes.Path.StrokeLineJoinProperty, PenLineJoin.Round);
+        pArrow.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 3 4 L 6 7 L 9 4"));
+        pArrow.SetValue(System.Windows.Shapes.Path.WidthProperty, 9.0);
+        pArrow.SetValue(System.Windows.Shapes.Path.HeightProperty, 6.0);
+        pArrow.SetValue(System.Windows.Shapes.Path.StretchProperty, Stretch.Uniform);
+        pArrow.SetValue(System.Windows.Shapes.Path.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        pArrow.SetValue(System.Windows.Shapes.Path.VerticalAlignmentProperty, VerticalAlignment.Center);
         pBorder.AppendChild(pArrow);
 
         pTemplate.VisualTree = pBorder;
@@ -332,17 +332,17 @@ internal static class PDropdown
 
     private static FrameworkElementFactory PDropdownCheckBuild()
     {
-        var pCheck = new FrameworkElementFactory(typeof(Path));
+        var pCheck = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
         pCheck.Name = "CheckPath";
         pCheck.SetValue(DockPanel.DockProperty, Dock.Right);
-        pCheck.SetValue(Path.StrokeProperty, PDropdownAccentBrush);
-        pCheck.SetValue(Path.StrokeThicknessProperty, 1.8);
-        pCheck.SetValue(Path.StrokeStartLineCapProperty, PenLineCap.Round);
-        pCheck.SetValue(Path.StrokeEndLineCapProperty, PenLineCap.Round);
-        pCheck.SetValue(Path.DataProperty, Geometry.Parse("M 3 7 L 6 10 L 11 4"));
-        pCheck.SetValue(Path.WidthProperty, 12.0);
-        pCheck.SetValue(Path.HeightProperty, 12.0);
-        pCheck.SetValue(Path.StretchProperty, Stretch.Fill);
+        pCheck.SetValue(System.Windows.Shapes.Path.StrokeProperty, PDropdownAccentBrush);
+        pCheck.SetValue(System.Windows.Shapes.Path.StrokeThicknessProperty, 1.8);
+        pCheck.SetValue(System.Windows.Shapes.Path.StrokeStartLineCapProperty, PenLineCap.Round);
+        pCheck.SetValue(System.Windows.Shapes.Path.StrokeEndLineCapProperty, PenLineCap.Round);
+        pCheck.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 3 7 L 6 10 L 11 4"));
+        pCheck.SetValue(System.Windows.Shapes.Path.WidthProperty, 12.0);
+        pCheck.SetValue(System.Windows.Shapes.Path.HeightProperty, 12.0);
+        pCheck.SetValue(System.Windows.Shapes.Path.StretchProperty, Stretch.Fill);
         pCheck.SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);
         pCheck.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         return pCheck;

@@ -29,7 +29,7 @@ public sealed class PCrop : Canvas
         };
 
     private readonly Rectangle pCropBox;
-    private readonly Path pCropShade;
+    private readonly System.Windows.Shapes.Path pCropShade;
     private readonly Rectangle[] pCropHandles;
 
     public PCrop(LViewer lViewer)
@@ -39,7 +39,7 @@ public sealed class PCrop : Canvas
         Focusable = true;
         AllowDrop = true;
 
-        pCropShade = new Path
+        pCropShade = new System.Windows.Shapes.Path
         {
             Fill = new SolidColorBrush(Color.FromArgb(0x66, 0x00, 0x00, 0x00)),
             IsHitTestVisible = false,

@@ -43,7 +43,7 @@ public sealed partial class PInspector
             LSensor.LSensorChoiceRead(lPlan.LSensorPlanKind).LInspectorChoiceNames,
             pIndex => LSensor.LSensorChoiceSelect(lPlan.LSensorPlanKind, pIndex));
         UIElement pPresetRow = PInspectorFieldBuild(lPlan.LSensorPlanChoice, pPreset);
-        pPresetRow.Visibility = PLook.PLookVisible[lPlan.LSensorPlanChoice__B];
+        pPresetRow.Visibility = PLook.PLookVisible[lPlan.LSensorPlanPreset];
         pStack.Children.Add(pPresetRow);
         List<RadioButton> pSpeeds = PSensorRadiosBuild(pStack, lPlan.LSensorPlanSpeed, LSensor.LSensorSpeedSelect);
         List<PInspectorRow> pRows = lPlan.LSensorPlanRows.Select(lRow => PSensorRowBuild(lPlan, lRow)).ToList();

@@ -17,7 +17,7 @@ public sealed record LSensorPlan(
     LSensorGroup LSensorPlanSpeed,
     LSensorGroup LSensorPlanMetric,
     string LSensorPlanChoice,
-    bool LSensorPlanChoice__B)
+    bool LSensorPlanPreset)
 {
     public const int LSensorPlanThreshold = 0;
     public const int LSensorPlanWindow = 1;

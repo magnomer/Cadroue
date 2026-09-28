@@ -9,7 +9,7 @@ using Xunit;
 namespace Cadroue.Tests;
 
 [CollectionDefinition("Scene", DisableParallelization = true)]
-public sealed class LSceneCollection { }
+public sealed class TSceneCollection { }
 
 internal sealed class TSceneValue
 {

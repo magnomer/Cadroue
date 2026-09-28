@@ -22,7 +22,7 @@ public sealed class TSensorPlan
         Assert.Equal(3, luminance.LSensorPlanSpeed.LSensorGroupNames.Count);
         LSensorPlan scene = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindScene);
         Assert.Equal(2, scene.LSensorPlanRows.Count);
-        Assert.True(scene.LSensorPlanChoice__B);
+        Assert.True(scene.LSensorPlanPreset);
         LSensorPlan still = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindStill);
         Assert.True(still.LSensorPlanMode.LSensorGroupShown);
         LSensorPlan volume = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindVolume);

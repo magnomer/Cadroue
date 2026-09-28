@@ -1,6 +1,6 @@
 # LConsole.cs
 
-## `public void LConsoleAll()`
+## `public void LConsoleAllClear()`
 
 Aborting a live encode (and deleting its half-written output) is severe enough that the confirm is unconditional here.
 It ignores the "confirm destructive" preference that `LConsoleAskResolve` honours.

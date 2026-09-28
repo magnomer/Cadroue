@@ -52,9 +52,9 @@ internal static class PCheckbox
         pBox.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pBox.SetValue(UIElement.SnapsToDevicePixelsProperty, true);
 
-        var pTick = new FrameworkElementFactory(typeof(Path));
+        var pTick = new FrameworkElementFactory(typeof(System.Windows.Shapes.Path));
         pTick.Name = "PCheckboxTick";
-        pTick.SetValue(Path.DataProperty, Geometry.Parse("M 0,4.2 L 3.2,7.4 L 8.6,1.2"));
+        pTick.SetValue(System.Windows.Shapes.Path.DataProperty, Geometry.Parse("M 0,4.2 L 3.2,7.4 L 8.6,1.2"));
         pTick.SetValue(Shape.StrokeProperty, Brushes.White);
         pTick.SetValue(Shape.StrokeThicknessProperty, 1.9);
         pTick.SetValue(Shape.StrokeStartLineCapProperty, PenLineCap.Round);

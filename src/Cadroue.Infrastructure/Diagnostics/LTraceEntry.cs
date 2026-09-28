@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial record LTraceEntry(
+public sealed record LTraceEntry(
     string LTraceEntryTime,
     string LTraceEntryDelta,
     LTraceKind LTraceEntryKind,
@@ -17,6 +17,13 @@ public sealed partial record LTraceEntry(
 
     private const int LTraceDeltaWidth = 7;
     private const int LTraceKindWidth = 11;
+
+    private static readonly Regex lTraceHeaderPattern = new(
+        @"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+"
+        + @"(Info|Loading|Warning|Error|Interaction|UI|Draw|View|Work|Ffmpeg)\s+(.*)$",
+        RegexOptions.Compiled);
+
+    private static readonly Regex lTraceSpanPattern = new(@"^(\d+(?:\.\d+)?)(ms|s)$", RegexOptions.Compiled);
 
     public bool LTraceEntryDetailed => !string.IsNullOrWhiteSpace(LTraceEntryDetail);
 
@@ -91,7 +98,7 @@ public sealed partial record LTraceEntry(
                 continue;
             }
 
-            Match lTraceMatch = LTraceHeaderRead().Match(lTraceLine);
+            Match lTraceMatch = lTraceHeaderPattern.Match(lTraceLine);
             if (!lTraceMatch.Success)
             {
                 if (lTraceOpen is not null)
@@ -148,7 +155,7 @@ public sealed partial record LTraceEntry(
             return (lTraceTail, null);
         }
 
-        Match lTraceSpanMatch = LTraceSpanRead().Match(lTraceTail[(lTraceMark + 3)..]);
+        Match lTraceSpanMatch = lTraceSpanPattern.Match(lTraceTail[(lTraceMark + 3)..]);
         if (!lTraceSpanMatch.Success)
         {
             return (lTraceTail, null);
@@ -181,10 +188,4 @@ public sealed partial record LTraceEntry(
         }
     }
 
-    [GeneratedRegex(@"^(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\S+)\s+" +
-        @"(Info|Loading|Warning|Error|Interaction|UI|Draw|View|Work|Ffmpeg)\s+(.*)$")]
-    private static partial Regex LTraceHeaderRead();
-
-    [GeneratedRegex(@"^(\d+(?:\.\d+)?)(ms|s)$")]
-    private static partial Regex LTraceSpanRead();
 }

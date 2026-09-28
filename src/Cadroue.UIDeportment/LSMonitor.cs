@@ -1,4 +1,4 @@
-﻿using Cadroue.Application;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;

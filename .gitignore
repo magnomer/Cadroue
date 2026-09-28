@@ -105,6 +105,8 @@ $RECYCLE.BIN/
 
 # Keep the root build inputs and their project companion files.
 !/.gitignore
+!/.gitattributes
+!/.editorconfig
 !/Directory.Build.props
 !/Directory.Build.comment.md
 !/Cadroue.slnx

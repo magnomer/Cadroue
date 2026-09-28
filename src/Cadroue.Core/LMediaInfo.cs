@@ -1,4 +1,4 @@
-﻿namespace Cadroue.Core;
+namespace Cadroue.Core;
 
 public sealed record LMediaInfo
 {

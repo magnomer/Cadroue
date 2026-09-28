@@ -260,7 +260,7 @@ localization/
 
 tests/
 ├─ Cadroue.Tests/           Unit and integration tests, reaching production through one test facade
-└─ Cadroue.Convention.Tests/ Roslyn-based naming, structure, comment, and UI-layer convention audits
+└─ Cadroue.Tests.Convention/ Roslyn-based naming, structure, comment, and UI-layer convention audits
 ```
 
 The user interface is split in two: `Cadroue.UIVeneer` only builds, draws, and forwards input, while `Cadroue.UIDeportment` owns every UI decision as plain C#, so that behaviour is covered by ordinary unit tests.
@@ -542,7 +542,7 @@ localization/
 
 tests/
 ├─ Cadroue.Tests/           단위 테스트와 통합 테스트, 하나의 테스트 파사드를 통해 제품 코드에 접근
-└─ Cadroue.Convention.Tests/ Roslyn 기반 명명·구조·주석·UI 계층 규칙 감사
+└─ Cadroue.Tests.Convention/ Roslyn 기반 명명·구조·주석·UI 계층 규칙 감사
 ```
 
 UI는 둘로 나뉩니다. `Cadroue.UIVeneer`는 화면을 만들고 그리고 입력을 전달하는 일만 하고, `Cadroue.UIDeportment`가 모든 UI 판단을 일반 C# 코드로 맡기 때문에 그 동작을 보통의 단위 테스트로 검증할 수 있습니다.
