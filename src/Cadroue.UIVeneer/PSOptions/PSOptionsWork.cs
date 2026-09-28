@@ -1,7 +1,9 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
+using static Cadroue.UIVeneer.PSCombo;
 using static Cadroue.UIVeneer.PSField;
 using static Cadroue.UIVeneer.PSPlate;
 
@@ -28,6 +30,14 @@ internal sealed partial class PSOptions
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
             PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
             pRetryRow));
+        pPanel.Children.Add(PSPlateBuild(
+            LSOptions.LSOptionsLevelTitle,
+            lsOptions.LSOptionsLevelsRead().Select(PSOptionsLevelBuild).ToArray()));
         return pPanel;
     }
+
+    private static UIElement PSOptionsLevelBuild(LSOptionsLevel pLevel) =>
+        PSFieldBuild(
+            pLevel.LSOptionsLevelText,
+            PSComboBuild(pLevel.LSOptionsLevelIndex, pLevel.LSOptionsLevelChoice, LSOptions.LSOptionsLevelNames));
 }

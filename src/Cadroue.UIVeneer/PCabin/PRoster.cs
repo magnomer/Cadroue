@@ -147,8 +147,11 @@ public sealed class PRoster : UserControl
             Content = pRosterQueuePanel
         };
         PScrollbar.PScrollbarApply(pScroll);
+        pScroll.ScrollChanged += (_, _) =>
+            pColumnHeader.Padding = new Thickness(21, 10, 5 + pScroll.ActualWidth - pScroll.ViewportWidth, 10);
 
         var pRoot = new DockPanel { LastChildFill = true };
+        Grid.SetIsSharedSizeScope(pRoot, true);
         DockPanel.SetDock(pOptionRow, Dock.Top);
         DockPanel.SetDock(pColumnHeader, Dock.Top);
         pRoot.Children.Add(pOptionRow);

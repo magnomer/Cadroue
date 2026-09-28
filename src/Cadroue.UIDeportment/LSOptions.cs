@@ -13,6 +13,11 @@ public enum LSOptionsPage
     LSOptionsPageWork
 }
 
+public sealed record LSOptionsLevel(
+    string LSOptionsLevelText,
+    int LSOptionsLevelIndex,
+    Action<int> LSOptionsLevelChoice);
+
 public sealed class LSOptions
 {
     private readonly LPreferenceState lsOptionsDraft;
@@ -106,6 +111,28 @@ public sealed class LSOptions
             && LDepot.LDepotOccupiedCheck(lNext);
         return lOccupied ? lCurrent : lFolder;
     }
+
+    public static string LSOptionsLevelTitle => LLocalization.LLocalizationTextRead("Options.Work.Priority");
+
+    public static string[] LSOptionsLevelNames =>
+    [
+        LLocalization.LLocalizationTextRead("Options.Work.PriorityLow"),
+        LLocalization.LLocalizationTextRead("Options.Work.PriorityNormal"),
+        LLocalization.LLocalizationTextRead("Options.Work.PriorityHigh")
+    ];
+
+    public IReadOnlyList<LSOptionsLevel> LSOptionsLevelsRead() =>
+    [
+        LSOptionsLevelCreate(LCustodyFamily.LCustodyFamilyEncode, "Options.Work.PriorityEncode"),
+        LSOptionsLevelCreate(LCustodyFamily.LCustodyFamilyKeyframe, "Options.Work.PriorityKeyframe"),
+        LSOptionsLevelCreate(LCustodyFamily.LCustodyFamilyWaveform, "Options.Work.PriorityWaveform")
+    ];
+
+    private LSOptionsLevel LSOptionsLevelCreate(LCustodyFamily lFamily, string lKey) =>
+        new(
+            LLocalization.LLocalizationTextRead(lKey),
+            lsOptionsDraft.LPreferenceLevelRead(lFamily),
+            lLevel => lsOptionsDraft.LPreferenceLevelSet(lFamily, lLevel));
 
     public bool LSOptionsRecordCheck() => lsOptionsDraft.LPreferenceRecordWorkspace;
 

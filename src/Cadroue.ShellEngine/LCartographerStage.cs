@@ -1,7 +1,6 @@
 using System.IO;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -80,7 +79,7 @@ public static partial class LCartographer
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .Where(lCartographerPending => !lCartographerCleared.Contains(lCartographerPending)))
         {
-            if (File.Exists(lCartographerPending) && LMedia.LMediaCheck(lCartographerPending))
+            if (File.Exists(lCartographerPending) && lCartographerSeam.LCartographerMediaValid(lCartographerPending))
             {
                 lCartographerPaths.Add(lCartographerPending);
                 continue;

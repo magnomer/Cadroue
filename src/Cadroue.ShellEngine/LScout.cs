@@ -110,7 +110,10 @@ internal static class LScout
         try
         {
             var lScoutEmployer = new LEmployer(
-                lScoutRunner.LRunnerProgramPath, lScoutRunner.LRunnerArgumentPrefix);
+                lScoutRunner.LRunnerProgramPath, lScoutRunner.LRunnerArgumentPrefix)
+            {
+                LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
+            };
             LEmployerResult lScoutResult = await lScoutEmployer.LEmployerRun(
                 lScoutArguments,
                 lScoutToken,

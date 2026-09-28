@@ -113,7 +113,10 @@ public static class LWaveformScanner
         await LMedia.LMediaScanClaim(lWaveformCancelSource).ConfigureAwait(false);
         try
         {
-            var lWaveformEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            var lWaveformEmployer = new LEmployer(LTool.LToolFfmpegRead())
+            {
+                LEmployerFamily = LCustodyFamily.LCustodyFamilyWaveform
+            };
             lWaveformResult = await lWaveformEmployer.LEmployerStreamRun(
                 lWaveformArguments,
                 lWaveformCancelSource,

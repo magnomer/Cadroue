@@ -54,6 +54,12 @@ public sealed class LWorkItem
 
     public TimeSpan LWorkDuration => LWorkEnd - LWorkOrigin;
 
+    public TimeSpan LWorkLength =>
+        LWorkDuration > TimeSpan.Zero
+            ? LWorkDuration
+            : (LWorkOutputMedia ?? (LWorkMergeSources.Count > 1 ? null : LWorkSourceMedia))?.LWorkMediaDuration
+                ?? TimeSpan.Zero;
+
     public string LWorkOutputName { get; private set; }
 
     public string LWorkOutputPath { get; private set; }

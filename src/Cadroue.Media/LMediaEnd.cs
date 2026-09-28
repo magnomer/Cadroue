@@ -88,7 +88,10 @@ public static partial class LMedia
         try
         {
             LMediaProcessResult lMediaResult = await LMediaProcessRun(
-                LTool.LToolFfprobeRead(), lMediaArguments, lMediaToken, true).ConfigureAwait(false);
+                LTool.LToolFfprobeRead(),
+                lMediaArguments,
+                lMediaToken,
+                LCustodyFamily.LCustodyFamilyBackground).ConfigureAwait(false);
             return !lMediaResult.LMediaProcessStalled && lMediaResult.LMediaProcessExit == 0
                 ? LMediaEndParse(lMediaResult.LMediaProcessOutput, lMediaStart)
                 : null;

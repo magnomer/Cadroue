@@ -20,7 +20,8 @@ public static class LListRelay
             LListDeliveredRemove,
             LAction.LActionAccept,
             LListBatchRemove,
-            LListSourceRelease);
+            LListSourceRelease,
+            LMedia.LMediaCheck);
         LMessenger.LMessengerDeliverSource = LListDeliverRun;
     }
 

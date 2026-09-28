@@ -15,12 +15,18 @@ internal static class PRosterRow
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(
             new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 90 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 58 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 60 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 62 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 80 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 68 });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 84 });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 58, SharedSizeGroup = "RosterPriority" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 60, SharedSizeGroup = "RosterLength" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 62, SharedSizeGroup = "RosterProgress" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 80, SharedSizeGroup = "RosterRatio" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 68, SharedSizeGroup = "RosterState" });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, MinWidth = 84, SharedSizeGroup = "RosterOwner" });
         return pGrid;
     }
 

@@ -38,6 +38,9 @@ public sealed class LPreferenceState
     public bool LPreferenceFailurePaused { get; set; }
     public bool LPreferenceRetryAllowed { get; set; }
     public double LPreferenceRetryMaximum { get; set; }
+    public string LPreferenceEncodeLevel { get; set; } = "Low";
+    public string LPreferenceKeyframeLevel { get; set; } = "Normal";
+    public string LPreferenceWaveformLevel { get; set; } = "Low";
     public bool LPreferenceAutoActive { get; set; }
     public bool LPreferenceWorklistShared { get; set; }
     public bool LPreferenceCollapseDone { get; set; }
@@ -80,6 +83,9 @@ public sealed class LPreferenceState
             LPreferenceFailurePaused = false,
             LPreferenceRetryAllowed = false,
             LPreferenceRetryMaximum = 3,
+            LPreferenceEncodeLevel = "Low",
+            LPreferenceKeyframeLevel = "Normal",
+            LPreferenceWaveformLevel = "Low",
             LPreferenceAutoActive = false,
             LPreferenceWorklistShared = false,
             LPreferenceCollapseDone = false,
@@ -131,6 +137,9 @@ public sealed class LPreferenceState
             LPreferenceFailurePaused = LPreferenceFailurePaused,
             LPreferenceRetryAllowed = LPreferenceRetryAllowed,
             LPreferenceRetryMaximum = LPreferenceRetryMaximum,
+            LPreferenceEncodeLevel = LPreferenceEncodeLevel,
+            LPreferenceKeyframeLevel = LPreferenceKeyframeLevel,
+            LPreferenceWaveformLevel = LPreferenceWaveformLevel,
             LPreferenceAutoActive = LPreferenceAutoActive,
             LPreferenceWorklistShared = LPreferenceWorklistShared,
             LPreferenceCollapseDone = LPreferenceCollapseDone,
@@ -178,6 +187,9 @@ public sealed class LPreferenceState
             ("Pause queue on failure", lPreferenceOther.LPreferenceFailurePaused, LPreferenceFailurePaused),
             ("Retry", lPreferenceOther.LPreferenceRetryAllowed, LPreferenceRetryAllowed),
             ("Retry limit", lPreferenceOther.LPreferenceRetryMaximum, LPreferenceRetryMaximum),
+            ("Encoding priority", lPreferenceOther.LPreferenceEncodeLevel, LPreferenceEncodeLevel),
+            ("Keyframe priority", lPreferenceOther.LPreferenceKeyframeLevel, LPreferenceKeyframeLevel),
+            ("Waveform priority", lPreferenceOther.LPreferenceWaveformLevel, LPreferenceWaveformLevel),
             ("Workspace folder", lPreferenceOther.LPreferenceWorkspaceFolder, LPreferenceWorkspaceFolder),
             ("FFmpeg folder", lPreferenceOther.LPreferenceFfmpegFolder, LPreferenceFfmpegFolder),
             ("Resume queue at launch", lPreferenceOther.LPreferenceAutoActive, LPreferenceAutoActive),
@@ -229,11 +241,31 @@ public sealed class LPreferenceState
         LPreferenceKeyframePixels = LPreferenceNumberClamp(LPreferenceKeyframePixels, 1, 50, 5);
         LPreferenceKeyframeDelay = LPreferenceNumberClamp(LPreferenceKeyframeDelay, 0, 5000, 1000);
         LPreferenceRetryMaximum = Math.Round(LPreferenceNumberClamp(LPreferenceRetryMaximum, 0, 10, 3));
+        foreach (LCustodyFamily lPreferenceFamily in Enum.GetValues<LCustodyFamily>())
+        {
+            LPreferenceLevelSet(lPreferenceFamily, LPreferenceLevelRead(lPreferenceFamily));
+        }
         LPreferenceCleanupDays = (int)Math.Round(LPreferenceNumberClamp(LPreferenceCleanupDays, 1, 365, 30));
 
         LPreferenceWorkspaceFolder = (LPreferenceWorkspaceFolder ?? string.Empty).Trim();
         LPreferenceFfmpegFolder = (LPreferenceFfmpegFolder ?? string.Empty).Trim();
         LPreferenceMediaPath = (LPreferenceMediaPath ?? string.Empty).Trim();
+    }
+
+    public int LPreferenceLevelRead(LCustodyFamily lPreferenceFamily) => lPreferenceFamily switch
+    {
+        LCustodyFamily.LCustodyFamilyEncode => LCustody.LCustodyLevelResolve(LPreferenceEncodeLevel, 0),
+        LCustodyFamily.LCustodyFamilyKeyframe => LCustody.LCustodyLevelResolve(LPreferenceKeyframeLevel, 1),
+        LCustodyFamily.LCustodyFamilyWaveform => LCustody.LCustodyLevelResolve(LPreferenceWaveformLevel, 0),
+        _ => 0
+    };
+
+    public void LPreferenceLevelSet(LCustodyFamily lPreferenceFamily, int lPreferenceLevel)
+    {
+        string lPreferenceToken = LCustody.LCustodyLevelFormat(lPreferenceLevel);
+        if (lPreferenceFamily == LCustodyFamily.LCustodyFamilyEncode) LPreferenceEncodeLevel = lPreferenceToken;
+        if (lPreferenceFamily == LCustodyFamily.LCustodyFamilyKeyframe) LPreferenceKeyframeLevel = lPreferenceToken;
+        if (lPreferenceFamily == LCustodyFamily.LCustodyFamilyWaveform) LPreferenceWaveformLevel = lPreferenceToken;
     }
 
     [JsonIgnore]

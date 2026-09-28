@@ -1,7 +1,7 @@
 <div>
 
 <p align="center">
-  <img src="src/Cadroue.UIShell/PAssets/PProgram/PProgramIcon.png" width="112" alt="Cadroue icon">
+  <img src="src/Cadroue.UIVeneer/PAsset/PProgram/PProgramIcon.png" width="112" alt="Cadroue icon">
 </p>
 
 # Cadroue
@@ -35,7 +35,7 @@
 > **Development status**  
 > Cadroue is under active development. Common workflows and operation combinations have been tested, but unusual inputs or complex processing chains may still expose bugs.
 
-> **Documentation version:** 2.12.14900
+> **Documentation version:** 2.13.20240
 
 ### Screenshots (2.9.10600)
 
@@ -59,7 +59,8 @@ Each processing tab prepares a particular kind of job. The Worklist executes tho
 - Set, split, rename, enable, disable, reorder, and delete sections.
 - Scan a source for blank frames, scene changes, still images, luminance changes, silence, and reduced-volume regions.
 - Tune detection with conservative, normal, sensitive, or custom thresholds, then review and combine the detected boundaries before applying them as sections.
-- Navigate to the previous, nearest, or next keyframe.
+- Navigate to the previous, nearest, or next keyframe. Keyframes are scanned in the background outward from the cursor, one low-priority FFprobe at a time; intra-only codecs skip the scan and step frame by frame.
+- Double-click a section's start or end time to seek to that edge, double-click its name to rename it, and click its colour dot to enable or disable it.
 - Zoom and seek on the timeline, optionally display an audio waveform, and choose whether sections may overlap.
 - Save section plans and scanned keyframe data in the file's `.cad` record.
 - Import recognized segments from LosslessCut `.llc` projects.
@@ -74,15 +75,19 @@ Each processing tab prepares a particular kind of job. The Worklist executes tho
 - Build an ordered color pipeline from white balance, exposure, brightness, contrast, gamma, saturation, and RGB/master curves.
 - Pick a neutral color from the preview or use automatic and manual white-balance methods.
 - Edit curves by channel with a live histogram overlay.
-- Save a separate edit plan for each source file or keep selected settings persistent while loading other files.
+- Exposure, gamma, white balance, and curves always apply at export; their live preview needs the mpv engine, and a notice says so under Flyleaf instead of disabling the controls.
+- Each video adjustment is offered only when the selected FFmpeg build lists the filter it needs.
+- Save a separate edit plan for each source file or keep selected settings persistent while loading other files. **Add List** queues every unlocked file; a file without a saved plan becomes a plain job using the selected export preset.
 
 #### Fix
 
 - Inspect media for container damage, truncation, transport-stream faults, malformed metadata, broken indexes, packet framing, codec configuration, timestamp problems, damaged secondary data, coded-media decode errors, and FFV1 integrity failures.
-- Select repair and diagnosis intent independently for each defect class, with a technical description of what each check covers.
-- Save the plan per source in its `.cad` record or keep selected choices persistent across files and sessions.
-- Preserve the source container and stream layout when possible: each job begins from a duplicate, applies only remedies supported by the detected defect, and validates the result by probing and decoding it again.
+- Choose which defect classes to repair, with a plain and a technical description of what each check covers.
+- Press **Diagnosis** to scan every defect class of the selected file in one pass, with live progress and per-file cancel. Results are cached in the disposable `.cadcache` record and reused by Fix jobs while the source is unchanged; pressing Diagnosis again always rescans.
+- Save the plan per source in its `.cad` record, or keep it **Persistent** across files and sessions.
+- Preserve the source container and stream layout when possible: each job begins from a duplicate, applies only remedies supported by the detected defect, and validates the result by probing and decoding it again. A repaired file is rescanned and repaired once more when an earlier repair exposed further defects.
 - Report repaired output as done, partial, blocked, or unresolved according to validation. FFV1 slice-CRC damage is detection-only and remains unresolved rather than being silently re-encoded.
+- **Salvage** recovers the readable spans of a file that cannot be fully repaired, either rejoined into one output or separated into one file per non-continuous span, taken from the original source or from the repaired result. Recovered files appear under their source job in the Worklist and relay like any other output.
 - Queue one file, selected files, or all eligible files and relay completed outputs into the next tab like other processing workflows.
 
 #### Audio
@@ -111,7 +116,7 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 - First-audio-track or all-audio-track selection.
 - A bundled preset catalog for general H.264/H.265/AV1 delivery, hardware encoding, Matroska, FFV1 preservation, and ProRes, plus importable and exportable custom presets.
 - Encoder verification before work is added to the queue.
-- Configurable behavior when an output path already exists.
+- Configurable behavior when an output path already exists. Output names are reserved atomically, so two jobs or two Cadroue instances never write to the same path, and a failed rename of an existing file stops the job instead of overwriting it.
 
 #### Merge
 
@@ -128,7 +133,7 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 - Match filenames by contained text, starting text, ending text, or extension.
 - Combine filename conditions with AND or OR and choose case-sensitive or case-insensitive matching.
 - Use regular expressions against the filename with or without its extension.
-- Send each file to the destination assigned to the first matching rule.
+- Send each file to the destination assigned to the first matching rule; a catch-all card at the end receives files no rule matched. Rules whose destination tab is closed are skipped.
 - Preserve Funnel rules in the current session and in saved window presets.
 
 #### Worklist
@@ -136,12 +141,14 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 - Persistent, file-backed queue records.
 - Normal-priority and high-priority work.
 - Configurable parallel processing.
-- Start, pause, resume, cancel, stop, remove, clear-done, and clear-all controls.
+- One Start/Pause toggle per Worklist, plus cancel, stop, remove, clear-done, and clear-all controls. Right-click a queued or running job to cancel it. Clear all stops running jobs and their FFmpeg processes before emptying the queue, and always asks first while work is running.
 - Optional automatic resume, retry limits, and pause-on-failure behavior.
 - Recovery of work left running after an unexpected shutdown.
-- Detailed source, output, encoding, progress, speed, attempt, ownership, and relay information.
-- Related jobs grouped by source lineage, including split outputs and relayed work.
-- Multiple Worklist tabs, each providing a processing station over the shared queue.
+- Detailed source, output, encoding, progress, speed, attempt, ownership, and relay information. Source and output figures (size, dimensions, frame rate, duration, keyframe interval, loudness) are recorded with the job and stay visible after the files are deleted.
+- Sources are measured once on a single low-priority background worker that yields to running jobs; unchanged files reuse their earlier measurement.
+- Failed FFmpeg runs report a plain cause and a suggested action derived from the exit code; the Log keeps the technical detail and stderr tail.
+- Related jobs grouped by source lineage into batch cards, including split outputs, salvage outputs, and relayed work. Completed batches can collapse automatically.
+- Multiple Worklist tabs, each providing a processing station over the shared queue. With **Show other worklists** on, a Worklist also claims unowned jobs from other Worklists and clears across all of them.
 
 #### Relay, windows, and sessions
 
@@ -149,7 +156,8 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 - Optionally add relayed inputs to the destination tab's Worklist automatically.
 - Keep the destination tab reviewable; ordinary relay does not start it unless automatic relay is enabled there.
 - By default, remove each source file from the tab it came from after relay while leaving the destination tab untouched. This behavior can be disabled.
-- Prevent a tab from relaying into itself.
+- Prevent a tab from relaying into itself; cyclic relay routes are cut instead of looping.
+- Relayed files are added to the destination list without being opened, so they do not start previews or keyframe scans on their own.
 - Create multiple tabs of the same type and double-click a tab name to assign a distinct workflow name.
 - Drag a tab outside the current window to move it into another Cadroue window or open it in a new Cadroue instance.
 - Save, load, import, and export named window presets containing the complete tab arrangement and tab settings.
@@ -163,17 +171,21 @@ Steps can be enabled, disabled, reordered, inspected, and saved per file. A norm
 - Configure timeline strip order, keyframe spacing and scan delay, section overlap, and map/viewfinder placement.
 - Select, import, export, and remove JSON section-colour palettes.
 - Keep `.cad` records beside their media or centrally in the workspace.
+- Set the process priority (low, normal, or high) separately for FFmpeg encoding, keyframe search, and waveform scanning under **Options → Work**.
+- Confirmations and notices use Cadroue's own dialogs instead of the native Windows message box.
 - Inspect workspace use, clear completed work records, clear workspace records, and automatically remove old completed records while preserving scheduled and running work.
 
 ### Preview and processing
 
 Cadroue separates **preview availability** from **FFmpeg processability**. A file may still be processable even when the preview engine cannot display it, and the interface reports these states separately.
 
-Flyleaf is the default preview engine. A local mpv runtime can be installed and selected under **Options → System**; mpv supports the Edit filter preview and processed/original audio switching. A locally built Flyleaf variant can also be installed to add contrast preview to Flyleaf. FFmpeg remains authoritative for exported output, so a preview may differ slightly from the final encode.
+Flyleaf is the default preview engine. A local mpv runtime can be installed and selected under **Options → System**; mpv supports the Edit filter preview and processed/original audio switching. Play and Pause share one button; reaching the end of the media stops playback, and pressing Play again starts from the beginning. A locally built Flyleaf variant can also be installed to add contrast preview to Flyleaf. FFmpeg remains authoritative for exported output, so a preview may differ slightly from the final encode.
 
 Enabled edit and audio steps are compiled into ordered FFmpeg filter chains. Ordinary combinations are processed in a single FFmpeg export operation rather than being repeatedly rendered through separate intermediate files. Two-pass loudness normalization is the intentional exception because it performs an analysis pass before the final encode.
 
 Fix jobs use a different pipeline: Cadroue collects evidence with FFprobe and guarded FFmpeg reads, creates a defect dossier, applies only the selected remedies that match detected faults, and validates the produced file. The original source is not modified in place.
+
+Every FFmpeg and FFprobe child process runs asynchronously under one owner and is contained in a job object, so no helper process outlives Cadroue. Preview-side analysis (keyframes, waveforms, detection sweeps, diagnosis) shares one low-priority lane per window, while Worklist jobs run independently.
 
 ### Requirements
 
@@ -218,14 +230,14 @@ dotnet build .\Cadroue.sln --configuration Release
 Run the application or test suite with:
 
 ```shell
-dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
+dotnet run --project .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj
 dotnet test .\Cadroue.sln
 ```
 
 Create a self-contained Windows publish with:
 
 ```shell
-dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 For another supported Windows architecture, replace `win-x64` with `win-arm64`.
@@ -235,20 +247,23 @@ For another supported Windows architecture, replace `win-x64` with `win-arm64`.
 ```text
 src/
 ├─ Cadroue.Core/            Work records, media capabilities, defect models, presets, and shared contracts
-├─ Cadroue.Application/     Work-item planning, persistent plans, and repair selection
-├─ Cadroue.Media/           Media inspection, keyframes, .cad sidecars, and LosslessCut import
+├─ Cadroue.Application/     Work-item planning, persistent plans, repair selection, and localization
+├─ Cadroue.Media/           Media inspection, keyframes, waveforms, .cad sidecars, and FFmpeg process execution
 ├─ Cadroue.Infrastructure/  Persistence, queue storage, interprocess relay, and diagnostics
-├─ Cadroue.ShellEngine/     FFmpeg command construction, defect scanning, recovery, and process execution
-└─ Cadroue.UIShell/         WPF application, tabs, panels, preview, options, and localization
+├─ Cadroue.ShellEngine/     FFmpeg command construction, job running, defect scanning, recovery, and relay routing
+├─ Cadroue.UIDeportment/    UI state and decisions without WPF: selection, enablement, ordering, and what each gesture asks for
+└─ Cadroue.UIVeneer/        WPF application (builds Cadroue.exe): windows, controls, drawing, and gestures
 
 localization/
 ├─ en.json
 └─ ko.json
 
 tests/
-├─ Cadroue.Tests/           Unit and integration tests
-└─ Cadroue.Convention.Tests/ Roslyn-based source and naming convention tests
+├─ Cadroue.Tests/           Unit and integration tests, reaching production through one test facade
+└─ Cadroue.Convention.Tests/ Roslyn-based naming, structure, comment, and UI-layer convention audits
 ```
+
+The user interface is split in two: `Cadroue.UIVeneer` only builds, draws, and forwards input, while `Cadroue.UIDeportment` owns every UI decision as plain C#, so that behaviour is covered by ordinary unit tests.
 
 ### Current limitations
 
@@ -272,7 +287,7 @@ When reporting a bug, include:
 - Whether the problem occurred during preview, queue preparation, relay, or FFmpeg processing
 - Relevant entries from the Log window
 
-A small reproducible source file or a redacted `.cad` record is especially useful when the problem depends on a particular operation sequence.
+A small reproducible source file or a redacted `.cad` record is especially useful when the problem depends on a particular operation sequence. See [Contributing](.github/CONTRIBUTING.md) and the [issue reporting policy](.github/ISSUE_REPORTING_POLICY.md) before opening an issue.
 
 ### Technologies
 
@@ -301,7 +316,7 @@ Licenses and attribution for bundled libraries and assets, including Flyleaf and
 > **개발 상태**  
 > Cadroue는 현재도 기능 개선 중입니다. 대체적인 작업 및 기능은 확인되었으나, 문제나 버그가 있을 수 있습니다.
 >
-> 이 문서는 **2.12.14900** 버전을 기준으로 작성했습니다.
+> 이 문서는 **2.13.20240** 버전을 기준으로 작성했습니다.
 
 ### 스크린샷
 
@@ -328,7 +343,8 @@ Cadroue의 핵심 단위는 파일이 아니라 **파일에 연결된 작업 계
 - 구간을 새로 만들거나 다시 나누고, 순서를 바꾸고, 필요 없는 구간을 끄거나 삭제할 수 있습니다.
 - 빈 화면, 장면 전환, 정지 화면, 휘도 변화, 무음, 작은 음량 구간을 FFmpeg로 탐지할 수 있습니다.
 - 보수적·보통·민감 프리셋이나 사용자 지정 임계값으로 탐지를 조정하고, 탐지 경계를 검토·결합한 뒤 분할 구간으로 적용할 수 있습니다.
-- 이전 키프레임, 현재 위치에서 가장 가까운 키프레임, 다음 키프레임으로 이동할 수 있습니다.
+- 이전 키프레임, 현재 위치에서 가장 가까운 키프레임, 다음 키프레임으로 이동할 수 있습니다. 키프레임은 커서 주변에서 바깥쪽으로 넓혀 가며 백그라운드에서 한 번에 하나의 낮은 우선순위 FFprobe로 찾습니다. 인트라 전용 코덱은 검색을 건너뛰고 한 프레임씩 이동합니다.
+- 구간의 시작·끝 시간을 두 번 클릭하면 그 지점으로 이동하고, 이름을 두 번 클릭하면 이름을 바꾸며, 색상 점을 클릭하면 구간을 켜거나 끕니다.
 - 타임라인을 확대해 세밀하게 탐색할 수 있으며, 오디오 파형 표시와 구간 겹침 허용 여부를 상황에 맞게 바꿀 수 있습니다.
 - 찾아낸 키프레임과 분할 계획을 `.cad` 기록에 저장합니다.
 - LosslessCut의 `.llc` 프로젝트에 들어 있는 구간을 가져올 수 있습니다.
@@ -342,17 +358,21 @@ Cadroue의 핵심 단위는 파일이 아니라 **파일에 연결된 작업 계
 - 화이트 밸런스, 노출, 밝기, 대비, 감마, 채도, RGB·마스터 커브를 원하는 순서로 구성할 수 있습니다.
 - 미리보기에서 중성색을 직접 고르거나 자동·수동 화이트 밸런스 방식을 사용할 수 있습니다.
 - 채널별 커브를 라이브 히스토그램과 함께 편집할 수 있습니다.
-- 파일마다 별도의 편집 계획을 저장할 수도 있고, 선택한 값을 유지한 채 다른 파일을 불러와 같은 설정을 연속해서 적용할 수도 있습니다.
+- 노출, 감마, 화이트 밸런스, 커브는 미리보기 엔진과 관계없이 항상 출력에 적용됩니다. 실시간 미리보기에는 mpv가 필요하며, Flyleaf에서는 조절기를 막는 대신 안내 문구를 표시합니다.
+- 각 영상 보정은 선택한 FFmpeg 빌드가 필요한 필터를 제공할 때만 사용할 수 있습니다.
+- 파일마다 별도의 편집 계획을 저장할 수도 있고, 선택한 값을 유지한 채 다른 파일을 불러와 같은 설정을 연속해서 적용할 수도 있습니다. **목록 추가**는 잠기지 않은 모든 파일을 대기열에 넣으며, 저장된 계획이 없는 파일은 선택한 출력 프리셋만 적용하는 작업이 됩니다.
 
 #### 손상 진단과 복구 — Fix
 
 Fix 탭은 재생 실패를 무조건 재인코딩으로 덮는 기능이 아닙니다. 먼저 FFprobe와 FFmpeg로 파일을 읽어 결함 근거를 수집하고, 사용자가 선택한 범위 안에서만 복구 단계를 구성합니다. 대상은 컨테이너 구조, 파일 잘림, MPEG 전송 스트림, 메타데이터, 탐색 인덱스, 프레임 경계, 코덱 초기화 정보, PTS/DTS, 자막·챕터·첨부 데이터, 디코딩 오류, FFV1 CRC입니다.
 
-- 결함 종류별로 적용 여부와 진단 의도를 따로 기록할 수 있으며, 각 항목의 검사 범위와 기술적 처리 내용을 화면에서 확인할 수 있습니다.
-- 설정은 현재 파일의 `.cad` 기록에 남기거나 여러 파일과 다음 세션에 이어 쓰도록 유지할 수 있습니다.
-- 실행 시 원본을 새 출력으로 복제한 뒤 탐지 결과와 일치하는 복구만 순서대로 적용합니다. 원본 파일을 제자리에서 덮어쓰지 않습니다.
+- 결함 종류별로 복구 여부를 고를 수 있으며, 각 항목의 검사 범위를 쉬운 설명과 기술적 설명으로 확인할 수 있습니다.
+- **진단(Diagnosis)** 버튼을 누르면 선택한 파일의 모든 결함 종류를 한 번에 검사하며, 진행률을 보면서 파일별로 취소할 수 있습니다. 결과는 다시 만들 수 있는 `.cadcache` 기록에 저장되고, 원본이 바뀌지 않았다면 복구 작업에서 그대로 재사용됩니다. 진단 버튼을 다시 누르면 항상 새로 검사합니다.
+- 설정은 현재 파일의 `.cad` 기록에 남기거나 **항상 적용(Persistent)**을 켜서 여러 파일과 다음 세션에 이어 쓸 수 있습니다.
+- 실행 시 원본을 새 출력으로 복제한 뒤 탐지 결과와 일치하는 복구만 순서대로 적용합니다. 원본 파일을 제자리에서 덮어쓰지 않습니다. 앞선 복구로 새 결함이 드러나면 복구한 파일을 다시 검사해 한 번 더 복구합니다.
 - 처리 후에는 다시 프로브하고 디코딩해 결과를 검증합니다. 결과 상태는 완료뿐 아니라 부분 복구, 차단, 미해결로도 구분됩니다.
 - FFV1 슬라이스 CRC 오류는 검출과 보고만 지원합니다. 수정할 수 없는 손상을 성공으로 표시하거나 임의 재인코딩하지 않습니다.
+- **복구 추출(Salvage)**은 완전히 복구할 수 없는 파일에서 읽을 수 있는 구간만 건져 냅니다. 건진 구간은 하나로 다시 잇거나, 이어지지 않는 구간마다 따로 저장할 수 있으며, 원본과 복구 결과 중 어느 쪽에서 건질지 고를 수 있습니다. 건진 파일은 작업 목록에서 원래 작업 아래에 표시되고 다른 출력처럼 릴레이됩니다.
 
 #### 음향 체인 — Audio
 
@@ -382,7 +402,7 @@ Fix 탭은 재생 실패를 무조건 재인코딩으로 덮는 기능이 아닙
 - 첫 번째 오디오 트랙만 넣거나 모든 오디오 트랙을 포함할 수 있습니다.
 - H.264·H.265·AV1 일반 출력, 하드웨어 인코딩, Matroska, FFV1 보존, ProRes 용도의 기본 프리셋을 제공하며 사용자 프리셋도 가져오거나 내보낼 수 있습니다.
 - 작업을 대기열에 넣기 전에 선택한 인코더를 사용할 수 있는지 확인합니다.
-- 같은 경로에 출력 파일이 이미 있을 때 어떻게 처리할지도 설정할 수 있습니다.
+- 같은 경로에 출력 파일이 이미 있을 때 어떻게 처리할지도 설정할 수 있습니다. 출력 이름은 원자적으로 예약되므로 두 작업이나 두 Cadroue 인스턴스가 같은 경로에 쓰지 않으며, 기존 파일의 이름 변경이 실패하면 덮어쓰지 않고 작업을 멈춥니다.
 
 #### 묶음 병합 — Merge
 
@@ -400,7 +420,7 @@ Fix 탭은 재생 실패를 무조건 재인코딩으로 덮는 기능이 아닙
 - 파일 이름에 특정 글자가 들어가는지, 특정 글자로 시작하거나 끝나는지, 확장자가 무엇인지에 따라 규칙을 만들 수 있습니다.
 - 여러 조건을 AND 또는 OR로 묶을 수 있으며 대소문자 구분 여부도 선택할 수 있습니다.
 - 확장자를 포함한 전체 파일 이름 또는 확장자를 뺀 이름에 정규식을 적용할 수 있습니다.
-- 파일은 위에서부터 처음 일치한 규칙의 대상 탭으로 전달됩니다.
+- 파일은 위에서부터 처음 일치한 규칙의 대상 탭으로 전달됩니다. 어느 규칙에도 맞지 않는 파일은 맨 아래의 나머지 카드가 받으며, 대상 탭이 닫힌 규칙은 건너뜁니다.
 - 규칙은 현재 세션과 창 프리셋에 함께 저장됩니다.
 
 ### 대기열 운용
@@ -408,18 +428,20 @@ Fix 탭은 재생 실패를 무조건 재인코딩으로 덮는 기능이 아닙
 - 대기열은 파일에 저장되므로 프로그램을 닫았다가 다시 열어도 남아 있습니다.
 - 일반 우선순위와 높은 우선순위를 구분합니다.
 - 동시에 실행할 작업 수를 설정할 수 있습니다.
-- 시작, 일시 정지, 재개, 취소, 중지, 선택 항목 제거, 완료 항목 비우기, 전체 비우기를 지원합니다.
+- 작업 목록마다 하나의 시작/일시 정지 전환 버튼이 있으며, 취소, 중지, 선택 항목 제거, 완료 항목 비우기, 전체 비우기를 지원합니다. 대기 중이거나 실행 중인 작업을 오른쪽 클릭해 바로 취소할 수 있습니다. 전체 비우기는 실행 중인 작업과 그 FFmpeg 프로세스를 먼저 멈춘 뒤 대기열을 비우며, 실행 중인 작업이 있으면 항상 확인을 받습니다.
 - 자동 재개, 실패 작업 재시도 횟수, 실패 시 대기열 일시 정지를 설정할 수 있습니다.
 - 프로그램이 예기치 않게 종료되었을 때 실행 중으로 남은 기록을 복구합니다.
-- 원본과 출력 경로, 인코딩 설정, 진행률, 처리 속도, 시도 횟수, 어느 탭에서 만든 작업인지, 어디로 전달되는지를 자세히 볼 수 있습니다.
-- 분할 결과와 릴레이로 이어진 후속 작업을 같은 원본 기준으로 묶어 보여 줍니다.
-- 작업 목록 탭을 여러 개 열 수 있으며, 각 탭은 같은 대기열을 대상으로 별도의 처리 창구처럼 사용할 수 있습니다.
+- 원본과 출력 경로, 인코딩 설정, 진행률, 처리 속도, 시도 횟수, 어느 탭에서 만든 작업인지, 어디로 전달되는지를 자세히 볼 수 있습니다. 원본과 출력의 크기, 해상도, 프레임 레이트, 길이, 키프레임 간격, 라우드니스는 작업 기록에 저장되므로 파일을 지운 뒤에도 계속 보입니다.
+- 원본 측정은 실행 중인 작업에 양보하는 낮은 우선순위의 백그라운드 작업자 하나가 파일마다 한 번만 수행하며, 바뀌지 않은 파일은 이전 측정값을 재사용합니다.
+- FFmpeg 실행이 실패하면 종료 코드를 바탕으로 쉬운 원인과 권장 조치를 보여 주고, 기술적 세부 내용과 stderr 끝부분은 로그에 남깁니다.
+- 분할 결과, 복구 추출 결과, 릴레이로 이어진 후속 작업을 같은 원본 기준의 배치 카드로 묶어 보여 줍니다. 완료된 배치는 자동으로 접을 수 있습니다.
+- 작업 목록 탭을 여러 개 열 수 있으며, 각 탭은 같은 대기열을 대상으로 별도의 처리 창구처럼 사용할 수 있습니다. **다른 작업 목록 표시**를 켜면 다른 작업 목록에서 주인이 없는 작업도 가져와 처리하고, 비우기도 모든 작업 목록에 적용됩니다.
 
 ### 파이프라인과 창 구성
 
 Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일로 바로 보낼 수 있습니다. 예를 들어 분할된 파일을 오디오 탭으로 넘긴 뒤, 오디오 처리가 끝난 결과를 병합 탭으로 이어 보낼 수 있습니다.
 
-일반 전달은 대상 탭에 파일을 넣어 검토할 수 있는 상태까지만 준비합니다. 대상 탭에서 **자동 릴레이**를 켜 두면 전달받은 파일을 해당 탭의 작업 목록에 바로 등록할 수 있습니다. 기본 설정에서는 전달이 끝난 원본 파일을 출발 탭의 파일 목록에서 제거하지만, 대상 탭의 기존 파일은 건드리지 않습니다. 이 동작은 옵션에서 끌 수 있으며, 탭이 자기 자신을 전달 대상으로 삼는 것은 허용되지 않습니다.
+일반 전달은 대상 탭에 파일을 넣어 검토할 수 있는 상태까지만 준비합니다. 대상 탭에서 **자동 릴레이**를 켜 두면 전달받은 파일을 해당 탭의 작업 목록에 바로 등록할 수 있습니다. 기본 설정에서는 전달이 끝난 원본 파일을 출발 탭의 파일 목록에서 제거하지만, 대상 탭의 기존 파일은 건드리지 않습니다. 이 동작은 옵션에서 끌 수 있으며, 탭이 자기 자신을 전달 대상으로 삼는 것은 허용되지 않습니다. 순환하는 릴레이 경로는 무한히 반복되지 않도록 끊깁니다. 전달된 파일은 대상 목록에 추가될 뿐 자동으로 열리지 않으므로, 미리보기나 키프레임 검색을 스스로 시작하지 않습니다.
 
 같은 종류의 탭을 여러 개 만들어 서로 다른 용도로 사용할 수 있습니다. 탭 이름을 두 번 클릭하면 작업 흐름에 맞는 이름을 붙일 수 있습니다. 탭을 창 밖으로 끌어내면 다른 Cadroue 창으로 옮기거나 새 Cadroue 인스턴스에서 열 수 있습니다.
 
@@ -433,15 +455,19 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 
 작업 공간에는 대기열 기록과 파일별 `.cad` 기록이 쌓입니다. 옵션 화면에서 사용량을 확인하고, 완료·실패 기록만 골라 정리하거나 작업 공간 기록을 비울 수 있습니다. 오래된 기록을 자동으로 삭제하도록 설정해 두어도 예약되었거나 실행 중인 작업은 정리 대상에서 제외됩니다.
 
+**옵션 → 작업**에서 FFmpeg 인코딩, 키프레임 검색, 파형 분석의 프로세스 우선순위를 각각 낮음·보통·높음으로 지정할 수 있습니다. 확인 창과 알림은 Windows 기본 메시지 상자 대신 Cadroue 전용 대화 상자로 표시됩니다.
+
 ### 미리보기의 책임 범위
 
 미리보기가 되지 않는 파일이라고 해서 반드시 FFmpeg 처리까지 불가능한 것은 아닙니다. Cadroue는 **화면에서 재생할 수 있는지**와 **FFmpeg로 작업할 수 있는지**를 별개의 상태로 판단해 표시합니다.
 
-기본 미리보기 엔진은 Flyleaf입니다. **옵션 → 시스템**에서 로컬 mpv 런타임을 설치해 두 번째 미리보기 엔진으로 선택할 수 있으며, mpv에서는 편집 필터 미리보기와 처리 전·후 오디오 전환을 지원합니다. 로컬 Flyleaf 빌드를 설치하면 Flyleaf에서도 대비 조정 미리보기를 추가로 사용할 수 있습니다. 다만 최종 출력은 항상 FFmpeg의 처리 결과를 기준으로 하므로, 미리보기와 완성 파일 사이에는 약간의 차이가 생길 수 있습니다.
+기본 미리보기 엔진은 Flyleaf입니다. **옵션 → 시스템**에서 로컬 mpv 런타임을 설치해 두 번째 미리보기 엔진으로 선택할 수 있으며, mpv에서는 편집 필터 미리보기와 처리 전·후 오디오 전환을 지원합니다. 재생과 일시 정지는 하나의 버튼을 공유하며, 미디어 끝에 도달하면 재생이 멈추고 다시 재생하면 처음부터 시작합니다. 로컬 Flyleaf 빌드를 설치하면 Flyleaf에서도 대비 조정 미리보기를 추가로 사용할 수 있습니다. 다만 최종 출력은 항상 FFmpeg의 처리 결과를 기준으로 하므로, 미리보기와 완성 파일 사이에는 약간의 차이가 생길 수 있습니다.
 
 활성화된 편집 단계와 오디오 단계는 적용 순서에 맞춰 하나의 FFmpeg 필터 체인으로 구성됩니다. 보통의 조합은 중간 파일을 단계마다 다시 만드는 대신 한 번의 FFmpeg 출력 과정에서 함께 처리합니다. 2패스 라우드니스 정규화만은 먼저 분석한 뒤 최종 출력을 만들어야 하므로 의도적으로 두 번의 패스를 사용합니다.
 
 복구 작업은 이 필터 체인과 별도로 동작합니다. 입력 파일에서 결함 보고서를 만든 뒤 필요한 복구만 출력 사본에 적용하고, 마지막에 재검증하는 단계형 파이프라인을 사용합니다. 따라서 복구 대상이 아닌 스트림을 최대한 보존하면서도 결과가 실제로 열리고 디코딩되는지 확인할 수 있습니다.
+
+모든 FFmpeg·FFprobe 하위 프로세스는 하나의 소유자 아래에서 비동기로 실행되고 작업 개체에 묶이므로, Cadroue가 종료된 뒤 남는 프로세스가 없습니다. 키프레임, 파형, 탐지, 진단 같은 미리보기 쪽 분석은 창마다 하나의 낮은 우선순위 통로를 공유하고, 작업 목록의 작업은 이와 별개로 실행됩니다.
 
 ### 지원 환경
 
@@ -486,14 +512,14 @@ dotnet build .\Cadroue.sln --configuration Release
 애플리케이션 실행과 테스트에는 다음 명령을 사용합니다.
 
 ```shell
-dotnet run --project .\src\Cadroue.UIShell\Cadroue.UIShell.csproj
+dotnet run --project .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj
 dotnet test .\Cadroue.sln
 ```
 
 자체 포함 Windows 배포본은 다음 명령으로 만들 수 있습니다.
 
 ```shell
-dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+dotnet publish .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj --configuration Release --runtime win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
 ```
 
 다른 지원 Windows 아키텍처를 대상으로 하려면 `win-x64`를 `win-arm64`로 바꾸면 됩니다.
@@ -503,20 +529,23 @@ dotnet publish .\src\Cadroue.UIShell\Cadroue.UIShell.csproj --configuration Rele
 ```text
 src/
 ├─ Cadroue.Core/            작업·미디어 규격·결함·프리셋 모델과 공용 계약
-├─ Cadroue.Application/     작업 계획, 파일별 설정, 복구 선택 로직
-├─ Cadroue.Media/           미디어 분석, 키프레임, .cad 기록, LosslessCut 가져오기
+├─ Cadroue.Application/     작업 계획, 파일별 설정, 복구 선택 로직, 현지화
+├─ Cadroue.Media/           미디어 분석, 키프레임, 파형, .cad 기록, FFmpeg 프로세스 실행
 ├─ Cadroue.Infrastructure/  영속화, 대기열 저장, 프로세스 간 전달, 진단
-├─ Cadroue.ShellEngine/     FFmpeg 명령, 결함 검사, 복구, 프로세스 실행
-└─ Cadroue.UIShell/         WPF 화면, 탭과 패널, 미리보기, 옵션, 현지화
+├─ Cadroue.ShellEngine/     FFmpeg 명령, 작업 실행, 결함 검사, 복구, 릴레이 경로
+├─ Cadroue.UIDeportment/    WPF 없는 UI 상태와 판단: 선택, 활성화, 순서, 각 조작이 요청하는 동작
+└─ Cadroue.UIVeneer/        WPF 애플리케이션(Cadroue.exe 생성): 창, 컨트롤, 그리기, 입력 전달
 
 localization/
 ├─ en.json
 └─ ko.json
 
 tests/
-├─ Cadroue.Tests/           단위 테스트와 통합 테스트
-└─ Cadroue.Convention.Tests/ Roslyn 기반 소스·명명 규칙 테스트
+├─ Cadroue.Tests/           단위 테스트와 통합 테스트, 하나의 테스트 파사드를 통해 제품 코드에 접근
+└─ Cadroue.Convention.Tests/ Roslyn 기반 명명·구조·주석·UI 계층 규칙 감사
 ```
+
+UI는 둘로 나뉩니다. `Cadroue.UIVeneer`는 화면을 만들고 그리고 입력을 전달하는 일만 하고, `Cadroue.UIDeportment`가 모든 UI 판단을 일반 C# 코드로 맡기 때문에 그 동작을 보통의 단위 테스트로 검증할 수 있습니다.
 
 ### 운영 전에 알아둘 점
 
@@ -540,7 +569,7 @@ tests/
 - 문제가 미리보기, 대기열 준비, 릴레이, FFmpeg 실행 중 어느 단계에서 발생했는지
 - 로그 창에서 확인되는 관련 항목
 
-특정 파일이나 작업 순서에서만 문제가 생긴다면, 재현 가능한 작은 미디어 파일이나 개인 정보를 제거한 `.cad` 기록을 함께 제공하는 것이 가장 유용합니다.
+특정 파일이나 작업 순서에서만 문제가 생긴다면, 재현 가능한 작은 미디어 파일이나 개인 정보를 제거한 `.cad` 기록을 함께 제공하는 것이 가장 유용합니다. 이슈를 열기 전에 [기여 안내](.github/CONTRIBUTING.md)와 [이슈 보고 정책](.github/ISSUE_REPORTING_POLICY.md)을 확인해 주세요.
 
 ### 기술 구성
 

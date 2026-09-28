@@ -6,8 +6,17 @@ namespace Cadroue.Application;
 
 public static class LPreference
 {
-    public static LPreferenceState LPreferenceStateCurrent { get; private set; } =
-        LPreferenceState.LPreferenceDefaultCreate();
+    private static LPreferenceState lPreferenceCurrent = LPreferenceState.LPreferenceDefaultCreate();
+
+    public static LPreferenceState LPreferenceStateCurrent
+    {
+        get => lPreferenceCurrent;
+        private set
+        {
+            lPreferenceCurrent = value;
+            LCustody.LCustodyPreferenceApply(value);
+        }
+    }
 
     public static Func<bool>? LPreferenceDepotCallback { get; set; }
 

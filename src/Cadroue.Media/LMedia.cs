@@ -114,12 +114,12 @@ public static partial class LMedia
         string lMediaProgram,
         IReadOnlyList<string> lMediaArguments,
         CancellationToken lMediaToken,
-        bool lMediaBackground = false)
+        LCustodyFamily? lMediaFamily = null)
     {
         var lMediaOutput = new StringBuilder();
         var lMediaEmployer = new LEmployer(lMediaProgram)
         {
-            LEmployerBackground = lMediaBackground,
+            LEmployerFamily = lMediaFamily,
             LEmployerIdleLimit = lMediaIdleLimit
         };
         LEmployerResult lMediaResult = await lMediaEmployer

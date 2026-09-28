@@ -17,7 +17,10 @@ public static partial class LInventory
         {
             var lInventoryOutput = new StringBuilder();
             using var lInventoryLimit = new CancellationTokenSource(LInventoryTimeout);
-            var lInventoryEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            var lInventoryEmployer = new LEmployer(LTool.LToolFfmpegRead())
+            {
+                LEmployerFamily = LCustodyFamily.LCustodyFamilyBackground
+            };
             LEmployerResult lInventoryResult = await lInventoryEmployer.LEmployerRun(
                 ["-hide_banner", .. lInventoryArguments],
                 lInventoryLimit.Token,

@@ -46,7 +46,12 @@ public static class LKeyframeSeeker
         try
         {
             return await LKeyframeSpanScan(
-                sourcePath, timelineStartSeconds, scanStartTime, scanEndTime, cancellationToken, true)
+                sourcePath,
+                timelineStartSeconds,
+                scanStartTime,
+                scanEndTime,
+                cancellationToken,
+                LCustodyFamily.LCustodyFamilyKeyframe)
                 .ConfigureAwait(false);
         }
         finally
@@ -61,7 +66,7 @@ public static class LKeyframeSeeker
         TimeSpan scanStartTime,
         TimeSpan scanEndTime,
         CancellationToken cancellationToken = default,
-        bool background = false)
+        LCustodyFamily? scanFamily = null)
     {
         if (string.IsNullOrWhiteSpace(sourcePath))
             throw new ArgumentException("Source path is required.", nameof(sourcePath));
@@ -94,7 +99,7 @@ public static class LKeyframeSeeker
 
         var keyframePackets = new List<LKeyframePacket>();
         int packetCount = 0;
-        var employer = new LEmployer(LTool.LToolFfprobeRead()) { LEmployerBackground = background };
+        var employer = new LEmployer(LTool.LToolFfprobeRead()) { LEmployerFamily = scanFamily };
         LEmployerResult result = await employer.LEmployerRun(
             arguments,
             cancellationToken,

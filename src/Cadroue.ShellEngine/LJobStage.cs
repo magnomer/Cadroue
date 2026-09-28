@@ -166,7 +166,10 @@ internal sealed partial class LJob
 
         var pJobEmployer = new LEmployer(
             lJobOwner.LRunnerProgramPath,
-            lJobOwner.LRunnerArgumentPrefix);
+            lJobOwner.LRunnerArgumentPrefix)
+        {
+            LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
+        };
         LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
             pExecutableArguments,
             lJobToken,

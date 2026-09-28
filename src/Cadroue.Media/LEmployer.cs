@@ -21,7 +21,7 @@ public sealed class LEmployer
         this.lEmployerArgumentPrefix = lEmployerArgumentPrefix;
     }
 
-    public bool LEmployerBackground { get; init; }
+    public LCustodyFamily? LEmployerFamily { get; init; }
 
     public TimeSpan? LEmployerIdleLimit { get; init; }
 
@@ -161,9 +161,9 @@ public sealed class LEmployer
 
     private void LEmployerPriorityApply(Process lEmployerProcess)
     {
-        if (LEmployerBackground)
+        if (LEmployerFamily is LCustodyFamily lEmployerFamily)
         {
-            LCustody.LCustodyPriorityApply(lEmployerProcess);
+            LCustody.LCustodyPriorityApply(lEmployerProcess, lEmployerFamily);
             return;
         }
 

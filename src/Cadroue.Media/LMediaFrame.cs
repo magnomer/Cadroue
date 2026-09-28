@@ -57,7 +57,10 @@ public static partial class LMedia
         int lMediaRead = 0;
         try
         {
-            var lMediaEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+            var lMediaEmployer = new LEmployer(LTool.LToolFfmpegRead())
+            {
+                LEmployerFamily = LCustodyFamily.LCustodyFamilyBackground
+            };
             LEmployerResult lMediaResult = await lMediaEmployer.LEmployerStreamRun(
                 lMediaArguments,
                 lMediaToken,

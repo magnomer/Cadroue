@@ -44,7 +44,7 @@ public sealed class LRosterRow
         LRosterRowId = lWorkItem.LWorkId,
         LRosterRowStep = LLineage.LLineageStepFormat(lWorkItem, lLineage.LLineageEntrySubject),
         LRosterRowPriority = LRosterPriorityFormat(lWorkItem.LWorkPriority),
-        LRosterRowLength = LRosterSpanFormat(lWorkItem.LWorkDuration),
+        LRosterRowLength = LRosterSpanFormat(lWorkItem.LWorkLength),
         LRosterRowProgress = LRosterProgressFormat(lWorkItem),
         LRosterRowRatio = LLineage.LLineageRatioFormat(
             lWorkItem, lLineage.LLineageEntrySubject, lLineage.LLineageEntryOrigin),

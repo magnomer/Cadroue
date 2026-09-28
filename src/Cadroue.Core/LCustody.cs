@@ -4,8 +4,25 @@ using System.Runtime.InteropServices;
 
 namespace Cadroue.Core;
 
+public enum LCustodyFamily
+{
+    LCustodyFamilyBackground,
+    LCustodyFamilyEncode,
+    LCustodyFamilyKeyframe,
+    LCustodyFamilyWaveform
+}
+
 public static class LCustody
 {
+    private static readonly string[] lCustodyTokens = ["Low", "Normal", "High"];
+
+    private static readonly ProcessPriorityClass[] lCustodyClasses =
+        [ProcessPriorityClass.BelowNormal, ProcessPriorityClass.Normal, ProcessPriorityClass.AboveNormal];
+
+    private static readonly int[] lCustodyDiskLevels = [0, 2, 2];
+
+    private static readonly int[] lCustodyFamilyLevels = [0, 0, 1, 0];
+
     private static readonly object lCustodyGate = new();
     private static IntPtr lCustodyJob = IntPtr.Zero;
     private static bool lCustodyUnavailable;
@@ -36,16 +53,34 @@ public static class LCustody
         }
     }
 
-    public static void LCustodyPriorityApply(Process lCustodyProcess)
+    public static int LCustodyLevelResolve(string lCustodyToken, int lCustodyFallback)
     {
+        int lCustodyIndex = Array.IndexOf(lCustodyTokens, lCustodyToken);
+        return lCustodyIndex < 0 ? lCustodyFallback : lCustodyIndex;
+    }
+
+    public static string LCustodyLevelFormat(int lCustodyLevel) =>
+        lCustodyTokens[Math.Clamp(lCustodyLevel, 0, lCustodyTokens.Length - 1)];
+
+    public static void LCustodyPreferenceApply(LPreferenceState lCustodyPreference)
+    {
+        foreach (LCustodyFamily lCustodyFamily in Enum.GetValues<LCustodyFamily>())
+        {
+            lCustodyFamilyLevels[(int)lCustodyFamily] = lCustodyPreference.LPreferenceLevelRead(lCustodyFamily);
+        }
+    }
+
+    public static void LCustodyPriorityApply(Process lCustodyProcess, LCustodyFamily lCustodyFamily)
+    {
+        int lCustodyLevel = lCustodyFamilyLevels[(int)lCustodyFamily];
         try
         {
-            lCustodyProcess.PriorityClass = ProcessPriorityClass.BelowNormal;
+            lCustodyProcess.PriorityClass = lCustodyClasses[lCustodyLevel];
             if (OperatingSystem.IsWindows())
             {
-                int lCustodyLevel = LCustodyPriorityLow;
+                int lCustodyDisk = lCustodyDiskLevels[lCustodyLevel];
                 _ = NtSetInformationProcess(
-                    lCustodyProcess.Handle, LCustodyPriorityClass, ref lCustodyLevel, sizeof(int));
+                    lCustodyProcess.Handle, LCustodyPriorityClass, ref lCustodyDisk, sizeof(int));
             }
         }
         catch (Exception lCustodyException)
@@ -115,7 +150,6 @@ public static class LCustody
     private const int LCustodyInfoClass = 9;
     private const uint LCustodyKillFlag = 0x2000;
     private const int LCustodyPriorityClass = 33;
-    private const int LCustodyPriorityLow = 0;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     private static extern IntPtr CreateJobObject(IntPtr lpJobAttributes, string? lpName);

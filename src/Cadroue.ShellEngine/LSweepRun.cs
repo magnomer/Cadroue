@@ -129,7 +129,10 @@ public static partial class LSweep
         IProgress<double>? lSweepProgress)
     {
         var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead()) { LEmployerBackground = true };
+        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead())
+        {
+            LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
+        };
         Process? lSweepProcess = null;
         using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
         {
