@@ -50,7 +50,7 @@ public sealed class TRosterRemove
         Assert.Equal(0, asked);
         TScheduleItem left = Assert.Single(schedule.TScheduleRecordsRead());
         Assert.NotEqual(batch, left.TScheduleBatchId);
-        Assert.Single(roster.LRosterCards);
+        Assert.Single(TInterface.TRosterCardsRead(roster));
         TInterface.TRosterClose(roster);
     }
 

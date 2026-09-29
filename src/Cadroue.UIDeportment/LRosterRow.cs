@@ -3,7 +3,7 @@ using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
-public sealed class LRosterRow
+public sealed record LRosterRow
 {
     public const string LRosterShadeSelected = "Select";
     public const string LRosterShadeStage = "Stage";

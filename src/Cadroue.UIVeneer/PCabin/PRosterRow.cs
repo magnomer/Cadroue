@@ -30,7 +30,7 @@ internal static class PRosterRow
         return pGrid;
     }
 
-    public static Border PRosterRowBuild(LRoster lRoster, LRosterRow lRow)
+    public static Border PRosterRowBuild(LRoster lRoster, LRosterRow lRow, ContextMenu pMenu)
     {
         Grid pGrid = PRosterColumnsCreate();
         pGrid.MinHeight = 29;
@@ -42,7 +42,6 @@ internal static class PRosterRow
         PRosterCellAdd(pGrid, 5, lRow.LRosterRowState, PRosterTheme.PRosterStateBrushes[lRow.LRosterRowKey]);
         PRosterCellAdd(pGrid, 6, lRow.LRosterRowOwner, PRosterTheme.PRosterMutedBrush);
 
-        ContextMenu pMenu = PMenu.PMenuContextCreate();
         var pRow = new Border
         {
             Padding = new Thickness(12, 0, 12, 0),

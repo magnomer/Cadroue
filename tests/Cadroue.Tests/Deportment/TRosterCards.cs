@@ -29,8 +29,8 @@ public sealed class TRosterCards
         schedule.TScheduleAdd(one, two, three);
         LRoster roster = TRosterOpen(schedule);
 
-        Assert.Equal(2, roster.LRosterCards.Count);
-        LRosterCard card = roster.LRosterCards[0];
+        Assert.Equal(2, TInterface.TRosterCardsRead(roster).Count);
+        LRosterCard card = TInterface.TRosterCardsRead(roster)[0];
         Assert.Equal(first, card.LRosterCardBatch);
         Assert.Equal(LRosterCard.LRosterCardPlain, card.LRosterCardKey);
         Assert.Equal(LRosterCard.LRosterCardPlain, card.LRosterCardBody);
@@ -59,7 +59,7 @@ public sealed class TRosterCards
         LPreferenceState before = LPreference.LPreferenceStateCurrent;
         try
         {
-            LRosterCard done = Assert.Single(roster.LRosterCards);
+            LRosterCard done = Assert.Single(TInterface.TRosterCardsRead(roster));
             Assert.Equal(LRosterCard.LRosterCardDone, done.LRosterCardKey);
             Assert.Equal(LRosterCard.LRosterCardDone, done.LRosterCardBody);
             Assert.False(done.LRosterCardCollapsed);
@@ -69,10 +69,10 @@ public sealed class TRosterCards
             Assert.False(TInterface.TRosterDoneSet(roster, true));
             Assert.True(roster.LRosterCollapseDone);
             Assert.True(TInterface.TRosterCollapsedCheck(roster, batch));
-            Assert.True(Assert.Single(roster.LRosterCards).LRosterCardCollapsed);
+            Assert.True(Assert.Single(TInterface.TRosterCardsRead(roster)).LRosterCardCollapsed);
 
             TInterface.TRosterCardSelect(roster, batch);
-            LRosterCard selected = Assert.Single(roster.LRosterCards);
+            LRosterCard selected = Assert.Single(TInterface.TRosterCardsRead(roster));
             Assert.Equal(LRosterCard.LRosterCardSelected, selected.LRosterCardKey);
             Assert.Equal(LRosterCard.LRosterCardDone, selected.LRosterCardBody);
         }
@@ -91,20 +91,35 @@ public sealed class TRosterCards
         Guid second = Guid.NewGuid();
         schedule.TScheduleAdd(schedule.TWorkCreate(first, "one"), schedule.TWorkCreate(second, "two"));
         LRoster roster = TRosterOpen(schedule);
-        var applied = new List<(int, LRosterCard)>();
-        int cardsApplied = 0;
-        TInterface.TRosterCardAttach(roster, (index, card) => applied.Add((index, card)));
-        TInterface.TRosterCardsAttach(roster, () => cardsApplied++);
+        LRosterEntry firstHead = TInterface.TRosterEntriesRead(roster)[0];
 
         Assert.True(TInterface.TRosterCollapseToggle(roster, second));
 
-        (int index, LRosterCard card) = Assert.Single(applied);
-        Assert.Equal(1, index);
-        Assert.True(card.LRosterCardCollapsed);
-        Assert.Same(card, roster.LRosterCards[1]);
-        Assert.Equal(0, cardsApplied);
+        IReadOnlyList<LRosterEntry> entries = TInterface.TRosterEntriesRead(roster);
+        Assert.Same(firstHead, entries[0]);
+        Assert.True(TInterface.TRosterCardsRead(roster)[1].LRosterCardCollapsed);
+        Assert.Equal(LRosterEntry.LRosterFrameWhole, entries[^1].LRosterEntryFrame);
         Assert.False(TInterface.TRosterCollapseToggle(roster, second));
-        Assert.False(roster.LRosterCards[1].LRosterCardCollapsed);
+        Assert.False(TInterface.TRosterCardsRead(roster)[1].LRosterCardCollapsed);
+        Assert.Equal(LRosterEntry.LRosterFrameBottom, TInterface.TRosterEntriesRead(roster)[^1].LRosterEntryFrame);
+        TInterface.TRosterClose(roster);
+    }
+
+    [Fact]
+    public void Rebuild_KeepsUnchangedCardEntries()
+    {
+        using var schedule = new TSchedule();
+        Guid first = Guid.NewGuid();
+        schedule.TScheduleAdd(schedule.TWorkCreate(first, "one"));
+        LRoster roster = TRosterOpen(schedule);
+        LRosterEntry[] before = TInterface.TRosterEntriesRead(roster).ToArray();
+
+        schedule.TScheduleAdd(schedule.TWorkCreate(Guid.NewGuid(), "two"));
+
+        IReadOnlyList<LRosterEntry> after = TInterface.TRosterEntriesRead(roster);
+        Assert.Equal(2, TInterface.TRosterCardsRead(roster).Count);
+        Assert.Equal(before.Length * 2, after.Count);
+        Assert.All(before, entry => Assert.Contains(after, kept => ReferenceEquals(kept, entry)));
         TInterface.TRosterClose(roster);
     }
 

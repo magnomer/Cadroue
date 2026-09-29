@@ -31,8 +31,6 @@ public sealed class TRosterSelection
         using var schedule = new TSchedule();
         Guid[] ids = TRosterQueueAdd(schedule, Guid.NewGuid(), 3);
         LRoster roster = TRosterOpen(schedule);
-        int cardsApplied = 0;
-        TInterface.TRosterCardsAttach(roster, () => cardsApplied++);
 
         TInterface.TRosterStepSelect(roster, ids[0], false, false);
         TInterface.TRosterStepSelect(roster, ids[2], false, false);
@@ -41,8 +39,7 @@ public sealed class TRosterSelection
         Assert.True(TInterface.TRosterSelectedCheck(roster, ids[2]));
         Assert.Equal(ids[2], roster.LRosterCurrentId);
         Assert.Equal(ids[2], TInterface.TRosterSelectRead(roster)?.LWorkId);
-        Assert.Equal(2, cardsApplied);
-        LRosterRow third = roster.LRosterCards[0].LRosterCardFiles[2].LRosterFileRows[0];
+        LRosterRow third = TInterface.TRosterCardsRead(roster)[0].LRosterCardFiles[2].LRosterFileRows[0];
         Assert.Equal(LRosterRow.LRosterShadeSelected, third.LRosterRowShade);
         TInterface.TRosterClose(roster);
     }
@@ -80,12 +77,12 @@ public sealed class TRosterSelection
         Assert.Equal(batch, roster.LRosterCardId);
         Assert.Empty(roster.LRosterSelectedIds);
         Assert.Equal(Guid.Empty, roster.LRosterCurrentId);
-        Assert.Equal(LRosterCard.LRosterCardSelected, roster.LRosterCards[0].LRosterCardKey);
+        Assert.Equal(LRosterCard.LRosterCardSelected, TInterface.TRosterCardsRead(roster)[0].LRosterCardKey);
         Assert.Null(TInterface.TRosterSelectRead(roster));
 
         TInterface.TRosterStepSelect(roster, ids[1], false, false);
         Assert.Equal(Guid.Empty, roster.LRosterCardId);
-        Assert.Equal(LRosterCard.LRosterCardPlain, roster.LRosterCards[0].LRosterCardKey);
+        Assert.Equal(LRosterCard.LRosterCardPlain, TInterface.TRosterCardsRead(roster)[0].LRosterCardKey);
         TInterface.TRosterClose(roster);
     }
 
@@ -103,7 +100,7 @@ public sealed class TRosterSelection
         schedule.TScheduleAllClear();
         TInterface.TRosterRebuild(roster);
 
-        Assert.Empty(roster.LRosterCards);
+        Assert.Empty(TInterface.TRosterCardsRead(roster));
         Assert.Equal(Guid.Empty, roster.LRosterCardId);
         Assert.Equal(Guid.Empty, roster.LRosterCurrentId);
         Assert.Empty(roster.LRosterSelectedIds);

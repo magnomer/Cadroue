@@ -6,6 +6,7 @@ using Cadroue.Core;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIVeneer.PPorch;
 using Cadroue.UIVeneer.PWing;
 using static Cadroue.UIVeneer.PWing.PPanel;
 
@@ -15,7 +16,7 @@ public sealed class PRoster : UserControl
 {
     private readonly Grid pRosterBody = new();
     private readonly PColumn pRosterLayout;
-    private readonly StackPanel pRosterQueuePanel = new();
+    private readonly PRosterQueue pRosterQueuePanel;
     private readonly StackPanel pRosterDetailPanel = new();
     private readonly TextBlock pRosterDetailTitle;
     private readonly CheckBox pRosterSharedBox;
@@ -28,6 +29,11 @@ public sealed class PRoster : UserControl
     {
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
+        ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
+        pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(LRoster, lEntry, pRosterMenu))
+        {
+            ItemsSource = LRoster.LRosterEntries
+        };
         pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterSharedBox = PRosterOptionBuild(
             LLocalization.LLocalizationTextRead("Roster.Queue.Shared"), LRoster.LRosterShared, 0);
@@ -40,8 +46,6 @@ public sealed class PRoster : UserControl
         pRosterSharedBox.Unchecked += PRosterSharedHandle;
         pRosterCompletedBox.Checked += PRosterCompletedHandle;
         pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
-        LRoster.LRosterCardsApply += PRosterCardsApply;
-        LRoster.LRosterCardApply += PRosterCardApply;
         LRoster.LRosterDetailApply += PRosterDetailUpdate;
         LRoster.LRosterDetailDefer += PRosterDetailDefer;
         LRoster.LRosterWarningShow += PRosterWarningShow;
@@ -81,21 +85,6 @@ public sealed class PRoster : UserControl
 
     private void PRosterCompletedHandle(object pSender, RoutedEventArgs pArguments) =>
         LRoster.LRosterDoneSet(pRosterCompletedBox.IsChecked);
-
-    private void PRosterCardsApply()
-    {
-        pRosterQueuePanel.Children.Clear();
-        LRoster.LRosterCards.ToList().ForEach(PRosterCardAdd);
-    }
-
-    private void PRosterCardAdd(LRosterCard lCard) =>
-        pRosterQueuePanel.Children.Add(PRosterCard.PRosterCardBuild(LRoster, lCard));
-
-    private void PRosterCardApply(int pIndex, LRosterCard lCard)
-    {
-        pRosterQueuePanel.Children.RemoveAt(pIndex);
-        pRosterQueuePanel.Children.Insert(pIndex, PRosterCard.PRosterCardBuild(LRoster, lCard));
-    }
 
     private void PRosterDetailUpdate() => PRosterDetail.PRosterDetailUpdate(pRosterDetailPanel, LRoster);
 
@@ -138,17 +127,11 @@ public sealed class PRoster : UserControl
         Border pOptionRow = PRosterBandBuild(pOptions);
         Border pColumnHeader = PRosterBandBuild(PRosterHeaderBuild());
 
-        var pScroll = new ScrollViewer
-        {
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
-            FocusVisualStyle = null,
-            Padding = new Thickness(8, 8, 8, 8),
-            Content = pRosterQueuePanel
-        };
-        PScrollbar.PScrollbarApply(pScroll);
-        pScroll.ScrollChanged += (_, _) =>
-            pColumnHeader.Padding = new Thickness(21, 10, 5 + pScroll.ActualWidth - pScroll.ViewportWidth, 10);
+        PScrollbar.PScrollbarApply(pRosterQueuePanel);
+        pRosterQueuePanel.AddHandler(
+            ScrollViewer.ScrollChangedEvent,
+            new ScrollChangedEventHandler((pSender, pArgs) => pColumnHeader.Padding = new Thickness(
+                21, 10, 5 + ((ScrollViewer)pArgs.OriginalSource).ActualWidth - pArgs.ViewportWidth, 10)));
 
         var pRoot = new DockPanel { LastChildFill = true };
         Grid.SetIsSharedSizeScope(pRoot, true);
@@ -156,7 +139,7 @@ public sealed class PRoster : UserControl
         DockPanel.SetDock(pColumnHeader, Dock.Top);
         pRoot.Children.Add(pOptionRow);
         pRoot.Children.Add(pColumnHeader);
-        pRoot.Children.Add(pScroll);
+        pRoot.Children.Add(pRosterQueuePanel);
         return PPanelBorderBuild(pRoot);
     }
 

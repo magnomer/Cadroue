@@ -183,9 +183,10 @@ public static class LDepotIndex
         return lDepotRows;
     }
 
-    public static void LDepotIndexRebuild()
+    public static IReadOnlyList<LScheduleEntry> LDepotIndexRebuild()
     {
         LDepotIndexCreate();
+        var lDepotEntries = new List<LScheduleEntry>();
         try
         {
             using SqliteConnection lDepotConnection = LDepotConnectionOpen();
@@ -208,6 +209,7 @@ public static class LDepotIndex
                         continue;
                     }
 
+                    lDepotEntries.Add(new LScheduleEntry(lDepotFolder, lWorkRecord));
                     using SqliteCommand lDepotInsert = lDepotConnection.CreateCommand();
                     lDepotInsert.Transaction = lDepotTransaction;
                     lDepotInsert.CommandText = """
@@ -235,6 +237,8 @@ public static class LDepotIndex
             LDepotDirtySet();
             LDepotIndexRecord("rebuild failed", lDepotException);
         }
+
+        return lDepotEntries;
     }
 
     public static void LDepotIndexRelease()

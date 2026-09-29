@@ -55,7 +55,7 @@ internal static class TAuditChainSetting
         ["outward:Cadroue.UIDeportment>Cadroue.Infrastructure"] = 534,
         ["outward:Cadroue.UIDeportment>Cadroue.Media"] = 110,
         ["outward:Cadroue.UIVeneer>Cadroue.Infrastructure"] = 137,
-        ["reach:Cadroue.ShellEngine>Cadroue.Core"] = 836,
+        ["reach:Cadroue.ShellEngine>Cadroue.Core"] = 837,
     };
 
     public static readonly string[] TAuditChainWaiver = [];

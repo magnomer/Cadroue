@@ -132,6 +132,42 @@ internal static class PRosterTheme
         [LRosterCard.LRosterCardPlain] = PRosterControlHover,
     };
 
+    public static readonly IReadOnlyDictionary<string, Thickness> PRosterFrameBorders =
+        new Dictionary<string, Thickness>
+        {
+            [LRosterEntry.LRosterFrameWhole] = new Thickness(1),
+            [LRosterEntry.LRosterFrameTop] = new Thickness(1, 1, 1, 0),
+            [LRosterEntry.LRosterFrameMiddle] = new Thickness(1, 0, 1, 0),
+            [LRosterEntry.LRosterFrameBottom] = new Thickness(1, 0, 1, 1),
+        };
+
+    public static readonly IReadOnlyDictionary<string, CornerRadius> PRosterFrameCorners =
+        new Dictionary<string, CornerRadius>
+        {
+            [LRosterEntry.LRosterFrameWhole] = new CornerRadius(PRosterCorner),
+            [LRosterEntry.LRosterFrameTop] = new CornerRadius(PRosterCorner, PRosterCorner, 0, 0),
+            [LRosterEntry.LRosterFrameMiddle] = new CornerRadius(0),
+            [LRosterEntry.LRosterFrameBottom] = new CornerRadius(0, 0, PRosterCorner, PRosterCorner),
+        };
+
+    public static readonly IReadOnlyDictionary<string, Thickness> PRosterFramePaddings =
+        new Dictionary<string, Thickness>
+        {
+            [LRosterEntry.LRosterFrameWhole] = new Thickness(0),
+            [LRosterEntry.LRosterFrameTop] = new Thickness(0),
+            [LRosterEntry.LRosterFrameMiddle] = new Thickness(0),
+            [LRosterEntry.LRosterFrameBottom] = new Thickness(0, 0, 0, 6),
+        };
+
+    public static readonly IReadOnlyDictionary<string, Thickness> PRosterFrameMargins =
+        new Dictionary<string, Thickness>
+        {
+            [LRosterEntry.LRosterFrameWhole] = new Thickness(0, 0, 0, 8),
+            [LRosterEntry.LRosterFrameTop] = new Thickness(0),
+            [LRosterEntry.LRosterFrameMiddle] = new Thickness(0),
+            [LRosterEntry.LRosterFrameBottom] = new Thickness(0, 0, 0, 8),
+        };
+
     public static readonly IReadOnlyDictionary<bool, Thickness> PRosterHeaderBorders = new Dictionary<bool, Thickness>
     {
         [true] = new Thickness(0),

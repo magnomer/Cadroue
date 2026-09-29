@@ -9,34 +9,40 @@ public static class LCartographerPlanStore
 {
     private const string LCartographerPlanFolder = "relayplans";
     private static readonly JsonSerializerOptions lCartographerPlanJson = new() { WriteIndented = true };
-    private static readonly Dictionary<Guid, LCartographerPlanText> lCartographerPlanCache = new();
+    private static readonly Dictionary<Guid, LCartographerPlanEntry> lCartographerPlanCache = new();
 
-    private sealed record LCartographerPlanText(
-        DateTime LCartographerPlanStamp, long LCartographerPlanLength, string LCartographerPlanJson);
+    private sealed record LCartographerPlanEntry(
+        DateTime LCartographerPlanStamp, long LCartographerPlanLength, LCartographerPlanRecord LCartographerPlanParsed);
 
     public static bool LCartographerPlanRead(Guid lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
     {
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
+        lCartographerPlan = new LCartographerPlanRecord();
         try
         {
             var lCartographerFile = new FileInfo(lCartographerPath);
             if (!lCartographerFile.Exists)
             {
-                LCartographerTextRemove(lCartographerPlanId);
-                lCartographerPlan = new LCartographerPlanRecord();
+                LCartographerCacheRemove(lCartographerPlanId);
                 return false;
             }
 
-            if (LCartographerTextRead(lCartographerPlanId, lCartographerFile) is { } lCartographerCached)
+            if (LCartographerCacheRead(lCartographerPlanId, lCartographerFile) is { } lCartographerCached)
             {
-                return LCartographerTextParse(lCartographerCached, out lCartographerPlan);
+                lCartographerPlan = lCartographerCached.LCartographerPlanParsed;
+                return true;
             }
 
             using (LLatch.LLatchClaim(lCartographerPath))
             {
                 string lCartographerJson = File.ReadAllText(lCartographerPath);
-                LCartographerTextSet(lCartographerPlanId, lCartographerPath, lCartographerJson);
-                return LCartographerTextParse(lCartographerJson, out lCartographerPlan);
+                if (!LCartographerTextParse(lCartographerJson, out lCartographerPlan))
+                {
+                    return false;
+                }
+
+                LCartographerCacheSet(lCartographerPlanId, lCartographerPath, lCartographerPlan);
+                return true;
             }
         }
         catch (Exception lCartographerError) when (lCartographerError
@@ -47,14 +53,14 @@ public static class LCartographerPlanStore
         {
             LTraceLog.LTraceWarningRecord(
                 $"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
-            lCartographerPlan = new LCartographerPlanRecord();
             return false;
         }
     }
 
     public static bool LCartographerPlanSave(LCartographerPlanRecord lCartographerPlan)
     {
-        string lCartographerPath = LCartographerPathRead(lCartographerPlan.LCartographerPlanId);
+        Guid lCartographerPlanId = lCartographerPlan.LCartographerPlanId;
+        string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
         string lCartographerTemporary = lCartographerPath + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try
         {
@@ -64,7 +70,7 @@ public static class LCartographerPlanStore
                 string lCartographerJson = JsonSerializer.Serialize(lCartographerPlan, lCartographerPlanJson);
                 File.WriteAllText(lCartographerTemporary, lCartographerJson);
                 File.Move(lCartographerTemporary, lCartographerPath, true);
-                LCartographerTextSet(lCartographerPlan.LCartographerPlanId, lCartographerPath, lCartographerJson);
+                LCartographerCacheSet(lCartographerPlanId, lCartographerPath, lCartographerPlan);
                 return true;
             }
         }
@@ -73,13 +79,14 @@ public static class LCartographerPlanStore
             or UnauthorizedAccessException
             or TimeoutException)
         {
+            LCartographerCacheRemove(lCartographerPlanId);
             try
             {
                 if (File.Exists(lCartographerTemporary)) File.Delete(lCartographerTemporary);
             }
             catch (Exception) { }
             LTraceLog.LTraceWarningRecord(
-                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} could not be saved: " +
+                $"Relay plan {lCartographerPlanId:N} could not be saved: " +
                 $"{lCartographerError.Message}");
             return false;
         }
@@ -88,7 +95,7 @@ public static class LCartographerPlanStore
     public static void LCartographerPlanDelete(Guid lCartographerPlanId)
     {
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
-        LCartographerTextRemove(lCartographerPlanId);
+        LCartographerCacheRemove(lCartographerPlanId);
         try
         {
             using (LLatch.LLatchClaim(lCartographerPath))
@@ -109,30 +116,32 @@ public static class LCartographerPlanStore
         }
     }
 
-    private static string? LCartographerTextRead(Guid lCartographerPlanId, FileInfo lCartographerFile)
+    private static LCartographerPlanEntry? LCartographerCacheRead(
+        Guid lCartographerPlanId, FileInfo lCartographerFile)
     {
         lock (lCartographerPlanCache)
         {
-            return lCartographerPlanCache.TryGetValue(lCartographerPlanId, out LCartographerPlanText? lCartographerText)
-                && lCartographerText.LCartographerPlanStamp == lCartographerFile.LastWriteTimeUtc
-                && lCartographerText.LCartographerPlanLength == lCartographerFile.Length
-                    ? lCartographerText.LCartographerPlanJson
+            return lCartographerPlanCache.TryGetValue(
+                    lCartographerPlanId, out LCartographerPlanEntry? lCartographerEntry)
+                && lCartographerEntry.LCartographerPlanStamp == lCartographerFile.LastWriteTimeUtc
+                && lCartographerEntry.LCartographerPlanLength == lCartographerFile.Length
+                    ? lCartographerEntry
                     : null;
         }
     }
 
-    private static void LCartographerTextSet(
-        Guid lCartographerPlanId, string lCartographerPath, string lCartographerJson)
+    private static void LCartographerCacheSet(
+        Guid lCartographerPlanId, string lCartographerPath, LCartographerPlanRecord lCartographerPlan)
     {
         var lCartographerFile = new FileInfo(lCartographerPath);
         lock (lCartographerPlanCache)
         {
-            lCartographerPlanCache[lCartographerPlanId] = new LCartographerPlanText(
-                lCartographerFile.LastWriteTimeUtc, lCartographerFile.Length, lCartographerJson);
+            lCartographerPlanCache[lCartographerPlanId] = new LCartographerPlanEntry(
+                lCartographerFile.LastWriteTimeUtc, lCartographerFile.Length, lCartographerPlan);
         }
     }
 
-    private static void LCartographerTextRemove(Guid lCartographerPlanId)
+    private static void LCartographerCacheRemove(Guid lCartographerPlanId)
     {
         lock (lCartographerPlanCache)
         {

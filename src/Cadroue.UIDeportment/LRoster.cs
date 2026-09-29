@@ -23,6 +23,8 @@ public sealed class LRoster
     private readonly List<LRosterBatch> lRosterBatches = [];
     private readonly List<LRosterCard> lRosterCards = [];
     private bool lRosterClosed;
+    private readonly IList<LRosterEntry> lRosterEntries;
+    private readonly List<int> lRosterEntryCounts = [];
     private bool lRosterDetailPending;
     private Guid lRosterCurrentId;
     private Guid lRosterCardId;
@@ -35,15 +37,14 @@ public sealed class LRoster
         lSchedule.LScheduleChange += LRosterScheduleHandle;
         lSchedule.LScheduleItemChange += LRosterItemHandle;
         LRosterMenu = new LRosterMenu(lSchedule, lStation, LRosterSelectionRead);
+        System.Collections.ObjectModel.ObservableCollection<LRosterEntry> lEntries = [];
+        lRosterEntries = lEntries;
+        LRosterEntries = lEntries;
     }
 
     public static LRoster LRosterCreate() => new(
         LProgram.LScheduleCurrent,
         LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist")));
-
-    public event Action? LRosterCardsApply;
-
-    public event Action<int, LRosterCard>? LRosterCardApply;
 
     public event Action? LRosterDetailApply;
 
@@ -55,7 +56,7 @@ public sealed class LRoster
 
     public LStation LRosterStation => lStation;
 
-    public IReadOnlyList<LRosterCard> LRosterCards => lRosterCards;
+    public IReadOnlyList<LRosterEntry> LRosterEntries { get; }
 
     public bool LRosterClosed => lRosterClosed;
 
@@ -221,9 +222,10 @@ public sealed class LRoster
 
     private void LRosterCardsUpdate()
     {
+        LRosterCard[] lNext = LRosterCard.LRosterReuseResolve(lRosterCards, lRosterBatches.Select(LRosterCardCreate));
+        LRosterCard.LRosterStepsResolve(lRosterCards.ToArray(), lNext).ToList().ForEach(LRosterEntriesApply);
         lRosterCards.Clear();
-        lRosterCards.AddRange(lRosterBatches.Select(LRosterCardCreate));
-        LRosterCardsApply?.Invoke();
+        lRosterCards.AddRange(lNext);
     }
 
     private void LRosterCardUpdate(Guid lBatchId)
@@ -235,7 +237,42 @@ public sealed class LRoster
         }
 
         lRosterCards[lIndex] = LRosterCardCreate(lRosterBatches[lIndex]);
-        LRosterCardApply?.Invoke(lIndex, lRosterCards[lIndex]);
+        LRosterEntriesRemove(lIndex);
+        LRosterEntriesInsert(lIndex, lRosterCards[lIndex]);
+    }
+
+    private void LRosterEntriesApply(LRosterCardStep lStep)
+    {
+        if (lStep.LRosterStepCard is { } lCard)
+        {
+            LRosterEntriesInsert(lStep.LRosterStepIndex, lCard);
+            return;
+        }
+
+        LRosterEntriesRemove(lStep.LRosterStepIndex);
+    }
+
+    private void LRosterEntriesInsert(int lCardIndex, LRosterCard lCard)
+    {
+        int lOffset = lRosterEntryCounts.Take(lCardIndex).Sum();
+        IReadOnlyList<LRosterEntry> lEntries = LRosterEntry.LRosterEntriesCreate(lCard);
+        for (int lIndex = 0; lIndex < lEntries.Count; lIndex++)
+        {
+            lRosterEntries.Insert(lOffset + lIndex, lEntries[lIndex]);
+        }
+
+        lRosterEntryCounts.Insert(lCardIndex, lEntries.Count);
+    }
+
+    private void LRosterEntriesRemove(int lCardIndex)
+    {
+        int lOffset = lRosterEntryCounts.Take(lCardIndex).Sum();
+        for (int lIndex = 0; lIndex < lRosterEntryCounts[lCardIndex]; lIndex++)
+        {
+            lRosterEntries.RemoveAt(lOffset);
+        }
+
+        lRosterEntryCounts.RemoveAt(lCardIndex);
     }
 
     private LRosterCard LRosterCardCreate(LRosterBatch lBatch) => LRosterCard.LRosterCardCreate(

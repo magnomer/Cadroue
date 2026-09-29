@@ -11,47 +11,40 @@ namespace Cadroue.UIVeneer.PCabin;
 
 internal static class PRosterCard
 {
-    public static Border PRosterCardBuild(LRoster lRoster, LRosterCard lCard)
-    {
-        var pDetail = new StackPanel
+    private static readonly IReadOnlyDictionary<string, Func<LRoster, LRosterEntry, ContextMenu, UIElement>>
+        PRosterEntryBuilders = new Dictionary<string, Func<LRoster, LRosterEntry, ContextMenu, UIElement>>
         {
-            Margin = new Thickness(0, 0, 0, 6),
-            Visibility = PLook.PLookVisible[!lCard.LRosterCardCollapsed]
+            [LRosterEntry.LRosterKindHead] = (lRoster, lEntry, _) =>
+                PRosterHeaderBuild(lRoster, lEntry.LRosterEntryCard),
+            [LRosterEntry.LRosterKindFile] = (_, lEntry, _) => PRosterFileBuild(lEntry.LRosterEntryFile!),
+            [LRosterEntry.LRosterKindRow] = (lRoster, lEntry, pMenu) =>
+                PRosterRow.PRosterRowBuild(lRoster, lEntry.LRosterEntryRow!, pMenu)
         };
-        lCard.LRosterCardFiles.ToList().ForEach(lFile => PRosterFileAdd(pDetail, lRoster, lFile));
 
-        var pStack = new StackPanel();
-        pStack.Children.Add(PRosterHeaderBuild(lRoster, lCard));
-        pStack.Children.Add(pDetail);
-
-        return new Border
-        {
-            CornerRadius = new CornerRadius(PRosterTheme.PRosterCorner),
-            Background = PRosterTheme.PRosterBodyFills[lCard.LRosterCardBody],
-            BorderBrush = PRosterTheme.PRosterBodyLines[lCard.LRosterCardBody],
-            BorderThickness = new Thickness(1),
-            Margin = new Thickness(0, 0, 0, 8),
-            Child = pStack
-        };
-    }
-
-    private static void PRosterFileAdd(StackPanel pDetail, LRoster lRoster, LRosterFile lFile)
+    public static Border PRosterEntryBuild(LRoster lRoster, LRosterEntry lEntry, ContextMenu pMenu) => new()
     {
-        pDetail.Children.Add(new Border
+        Background = PRosterTheme.PRosterBodyFills[lEntry.LRosterEntryCard.LRosterCardBody],
+        BorderBrush = PRosterTheme.PRosterBodyLines[lEntry.LRosterEntryCard.LRosterCardBody],
+        BorderThickness = PRosterTheme.PRosterFrameBorders[lEntry.LRosterEntryFrame],
+        CornerRadius = PRosterTheme.PRosterFrameCorners[lEntry.LRosterEntryFrame],
+        Padding = PRosterTheme.PRosterFramePaddings[lEntry.LRosterEntryFrame],
+        Margin = PRosterTheme.PRosterFrameMargins[lEntry.LRosterEntryFrame],
+        Child = PRosterEntryBuilders[lEntry.LRosterEntryKind](lRoster, lEntry, pMenu)
+    };
+
+    private static Border PRosterFileBuild(LRosterFile lFile) => new()
+    {
+        Background = PRosterTheme.PRosterRowShades[lFile.LRosterFileShade],
+        Padding = new Thickness(12, 5, 12, 3),
+        Child = new TextBlock
         {
-            Background = PRosterTheme.PRosterRowShades[lFile.LRosterFileShade],
-            Padding = new Thickness(12, 5, 12, 3),
-            Child = new TextBlock
-            {
-                Text = lFile.LRosterFileTitle,
-                FontSize = PRosterTheme.PRosterRowSize,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = PRosterTheme.PRosterTitleBrush,
-                TextTrimming = TextTrimming.CharacterEllipsis
-            }
-        });
-        lFile.LRosterFileRows.ToList().ForEach(lRow => pDetail.Children.Add(PRosterRow.PRosterRowBuild(lRoster, lRow)));
-    }
+            Text = lFile.LRosterFileTitle,
+            FontSize = PRosterTheme.PRosterRowSize,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = PRosterTheme.PRosterTitleBrush,
+            TextTrimming = TextTrimming.CharacterEllipsis
+        }
+    };
 
     private static Border PRosterHeaderBuild(LRoster lRoster, LRosterCard lCard)
     {

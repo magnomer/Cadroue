@@ -7,9 +7,49 @@ namespace Cadroue.UIDeportment;
 public sealed record LRosterFile(
     string LRosterFileTitle,
     string LRosterFileShade,
-    IReadOnlyList<LRosterRow> LRosterFileRows);
+    IReadOnlyList<LRosterRow> LRosterFileRows)
+{
+    public bool LRosterFileMatch(LRosterFile lOther) =>
+        LRosterFileTitle == lOther.LRosterFileTitle
+        && LRosterFileShade == lOther.LRosterFileShade
+        && LRosterFileRows.SequenceEqual(lOther.LRosterFileRows);
+}
 
-public sealed class LRosterCard
+public sealed record LRosterCardStep(int LRosterStepIndex, LRosterCard? LRosterStepCard);
+
+public sealed record LRosterEntry(
+    LRosterCard LRosterEntryCard,
+    string LRosterEntryKind,
+    string LRosterEntryFrame,
+    LRosterFile? LRosterEntryFile,
+    LRosterRow? LRosterEntryRow)
+{
+    public const string LRosterKindHead = "Head";
+    public const string LRosterKindFile = "File";
+    public const string LRosterKindRow = "Row";
+    public const string LRosterFrameWhole = "Whole";
+    public const string LRosterFrameTop = "Top";
+    public const string LRosterFrameMiddle = "Middle";
+    public const string LRosterFrameBottom = "Bottom";
+
+    public static IReadOnlyList<LRosterEntry> LRosterEntriesCreate(LRosterCard lCard)
+    {
+        LRosterEntry[] lBody = lCard.LRosterCardCollapsed
+            ? []
+            : lCard.LRosterCardFiles
+                .SelectMany(lFile => lFile.LRosterFileRows
+                    .Select(lRow => new LRosterEntry(lCard, LRosterKindRow, LRosterFrameMiddle, lFile, lRow))
+                    .Prepend(new LRosterEntry(lCard, LRosterKindFile, LRosterFrameMiddle, lFile, null)))
+                .ToArray();
+        var lHead = new LRosterEntry(
+            lCard, LRosterKindHead, lBody.Length == 0 ? LRosterFrameWhole : LRosterFrameTop, null, null);
+        return lBody.Length == 0
+            ? [lHead]
+            : [lHead, .. lBody[..^1], lBody[^1] with { LRosterEntryFrame = LRosterFrameBottom }];
+    }
+}
+
+public sealed record LRosterCard
 {
     public const string LRosterCardSelected = "Select";
     public const string LRosterCardDone = "Done";
@@ -28,6 +68,58 @@ public sealed class LRosterCard
     public required string LRosterCardTooltip { get; init; }
 
     public required IReadOnlyList<LRosterFile> LRosterCardFiles { get; init; }
+
+    public bool LRosterCardMatch(LRosterCard lOther) =>
+        LRosterCardBatch == lOther.LRosterCardBatch
+        && LRosterCardTitle == lOther.LRosterCardTitle
+        && LRosterCardKey == lOther.LRosterCardKey
+        && LRosterCardBody == lOther.LRosterCardBody
+        && LRosterCardCollapsed == lOther.LRosterCardCollapsed
+        && LRosterCardTooltip == lOther.LRosterCardTooltip
+        && LRosterCardFiles.Count == lOther.LRosterCardFiles.Count
+        && LRosterCardFiles.Zip(lOther.LRosterCardFiles).All(lPair => lPair.First.LRosterFileMatch(lPair.Second));
+
+    public static LRosterCard[] LRosterReuseResolve(
+        IReadOnlyList<LRosterCard> lPrevious, IEnumerable<LRosterCard> lNext)
+    {
+        Dictionary<Guid, LRosterCard> lKept = lPrevious.ToDictionary(lCard => lCard.LRosterCardBatch);
+        return lNext
+            .Select(lCard => lKept.GetValueOrDefault(lCard.LRosterCardBatch) is { } lOld && lOld.LRosterCardMatch(lCard)
+                ? lOld
+                : lCard)
+            .ToArray();
+    }
+
+    public static IReadOnlyList<LRosterCardStep> LRosterStepsResolve(
+        IReadOnlyList<LRosterCard> lPrevious,
+        IReadOnlyList<LRosterCard> lNext)
+    {
+        var lSteps = new List<LRosterCardStep>();
+        var lKept = new HashSet<LRosterCard>(lNext, ReferenceEqualityComparer.Instance);
+        int lOld = 0;
+        int lNew = 0;
+        while (lNew < lNext.Count)
+        {
+            if (lOld < lPrevious.Count && ReferenceEquals(lPrevious[lOld], lNext[lNew]))
+            {
+                lOld++;
+                lNew++;
+            }
+            else if (lOld < lPrevious.Count && !lKept.Contains(lPrevious[lOld]))
+            {
+                lSteps.Add(new LRosterCardStep(lNew, null));
+                lOld++;
+            }
+            else
+            {
+                lSteps.Add(new LRosterCardStep(lNew, lNext[lNew]));
+                lNew++;
+            }
+        }
+
+        lSteps.AddRange(Enumerable.Range(lOld, lPrevious.Count - lOld).Select(_ => new LRosterCardStep(lNew, null)));
+        return lSteps;
+    }
 
     public static LRosterCard LRosterCardCreate(
         Guid lBatchId,

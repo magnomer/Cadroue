@@ -55,9 +55,12 @@ internal static partial class TInterface
     internal static bool TRosterSelectedCheck(LRoster roster, Guid id) => roster.LRosterSelectedCheck(id);
     internal static bool TRosterCollapseToggle(LRoster roster, Guid batchId) => roster.LRosterCollapseToggle(batchId);
     internal static bool TRosterCollapsedCheck(LRoster roster, Guid batchId) => roster.LRosterCollapsedCheck(batchId);
-    internal static void TRosterCardsAttach(LRoster roster, Action handler) => roster.LRosterCardsApply += handler;
-    internal static void TRosterCardAttach(LRoster roster, Action<int, LRosterCard> handler) =>
-        roster.LRosterCardApply += handler;
+    internal static IReadOnlyList<LRosterEntry> TRosterEntriesRead(LRoster roster) => roster.LRosterEntries;
+    internal static IReadOnlyList<LRosterCard> TRosterCardsRead(LRoster roster) =>
+        roster.LRosterEntries
+            .Where(entry => entry.LRosterEntryKind == LRosterEntry.LRosterKindHead)
+            .Select(entry => entry.LRosterEntryCard)
+            .ToArray();
     internal static void TRosterDetailAttach(LRoster roster, Action handler) => roster.LRosterDetailApply += handler;
     internal static void TRosterDeferAttach(LRoster roster, Action handler) => roster.LRosterDetailDefer += handler;
     internal static void TRosterWarningAttach(LRoster roster, Action<string, string> handler) =>

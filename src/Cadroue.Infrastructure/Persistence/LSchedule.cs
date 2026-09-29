@@ -35,14 +35,13 @@ public sealed partial class LSchedule : LScheduleContract
     {
         LDepotIndex.LDepotIndexCreate();
         LScheduleStaleClaim();
-        if (LDepotIndex.LDepotDirty)
-        {
-            LDepotIndex.LDepotIndexRebuild();
-        }
+        IReadOnlyList<LScheduleEntry>? lScheduleRebuilt = LDepotIndex.LDepotDirty
+            ? LDepotIndex.LDepotIndexRebuild()
+            : null;
 
         LScheduleItemsBuild(LDepotIndex.LDepotDirty
             ? LScheduleFolderRead()
-            : LScheduleIndexRead());
+            : lScheduleRebuilt ?? LScheduleIndexRead());
     }
 
     private void LScheduleItemsBuild(IEnumerable<LScheduleEntry> lScheduleEntries)

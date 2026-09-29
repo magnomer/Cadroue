@@ -36,6 +36,7 @@ public static partial class LCartographer
     public static readonly Guid LCartographerFinishTarget = new("feed0000-0000-0000-0000-0000000ffff0");
 
     private static readonly HashSet<Guid> lCartographerDelivered = new();
+    private static readonly HashSet<Guid> lCartographerMissing = new();
     private static bool lCartographerDispatching;
     private static bool lCartographerDispatchPending;
 
@@ -50,8 +51,11 @@ public static partial class LCartographer
     public static bool LCartographerDeliveredCheck(Guid lCartographerWorkId) =>
         lCartographerDelivered.Contains(lCartographerWorkId);
 
-    public static void LCartographerDeliveredRemove(IReadOnlySet<Guid> lCartographerLiveWork) =>
+    public static void LCartographerDeliveredRemove(IReadOnlySet<Guid> lCartographerLiveWork)
+    {
         lCartographerDelivered.RemoveWhere(lCartographerWorkId => !lCartographerLiveWork.Contains(lCartographerWorkId));
+        lCartographerMissing.RemoveWhere(lCartographerWorkId => !lCartographerLiveWork.Contains(lCartographerWorkId));
+    }
 
     public static void LCartographerDispatch(IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
@@ -103,7 +107,8 @@ public static partial class LCartographer
     {
         if (lCartographerItem.LWorkStateCurrent != LWorkState.LWorkStateDone
             || lCartographerItem.LWorkRelayTarget == Guid.Empty
-            || lCartographerDelivered.Contains(lCartographerItem.LWorkId))
+            || lCartographerDelivered.Contains(lCartographerItem.LWorkId)
+            || lCartographerMissing.Contains(lCartographerItem.LWorkId))
         {
             return false;
         }
@@ -139,6 +144,7 @@ public static partial class LCartographer
         if (string.IsNullOrWhiteSpace(lCartographerItem.LWorkOutputPath)
             || !File.Exists(lCartographerItem.LWorkOutputPath))
         {
+            lCartographerMissing.Add(lCartographerItem.LWorkId);
             LTraceLog.LTraceWarningRecord(
                 $"Relay skipped '{lCartographerItem.LWorkOutputName}': the output file is missing");
             return false;

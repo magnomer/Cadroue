@@ -94,7 +94,7 @@ internal static class TAuditFrameSetting
         ["frame:Cadroue.ShellEngine>System.Runtime.InteropServices"] = 3,
         ["frame:Cadroue.ShellEngine>System.Text.Json"] = 43,
         ["frame:Cadroue.ShellEngine>System.Timers"] = 6,
-        ["frame:Cadroue.UIDeportment>System.Collections.ObjectModel"] = 20,
+        ["frame:Cadroue.UIDeportment>System.Collections.ObjectModel"] = 21,
         ["frame:Cadroue.UIDeportment>System.ComponentModel"] = 4,
         ["frame:Cadroue.UIDeportment>System.Diagnostics"] = 10,
         ["frame:Cadroue.UIDeportment>System.IO"] = 10,

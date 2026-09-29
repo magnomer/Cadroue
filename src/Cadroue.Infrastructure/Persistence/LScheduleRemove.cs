@@ -85,6 +85,7 @@ public sealed partial class LSchedule
 
             try
             {
+                LDepotWatch.LDepotOwnAdd(lDepotFilePath);
                 File.Delete(lDepotFilePath);
                 lScheduleOutcome = LScheduleRemoval.LScheduleRemovalRemoved;
             }
@@ -139,6 +140,7 @@ public sealed partial class LSchedule
 
             try
             {
+                LDepotWatch.LDepotOwnAdd(lDepotFilePath);
                 File.Delete(lDepotFilePath);
                 lScheduleClearedCount++;
             }
@@ -165,7 +167,8 @@ public sealed partial class LSchedule
 
                 try
                 {
-                    File.Delete(lDepotFilePath);
+                    LDepotWatch.LDepotOwnAdd(lDepotFilePath);
+                File.Delete(lDepotFilePath);
                     lScheduleClearedCount++;
                 }
                 catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
