@@ -11,4 +11,4 @@ So the export writer refuses that path outright, before any file is touched.
 The vault moves damaged storage aside as ".corrupt" before reporting it unreadable.
 So a file that is gone afterwards was preserved and the catalogue may start fresh.
 One that is still there could not be quarantined (locked or denied) and stays unreadable.
-That blocks every later write so a temporarily unavailable catalogue is never replaced by a fresh one.
+That unreadable outcome lets the save resolver refuse replacement of a temporarily unavailable catalogue.

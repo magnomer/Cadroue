@@ -25,12 +25,13 @@ public static class LDepotIndex
 
     public static void LDepotDirtySet() => LDepotDirty = true;
 
-    public static void LDepotIndexCreate()
+    public static void LDepotIndexCreate(string? lDepotRoot = null)
     {
+        lDepotRoot ??= LDepot.LDepotRootRead();
         try
         {
-            LDepot.LDepotCreate();
-            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            LDepot.LDepotCreate(lDepotRoot);
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen(lDepotRoot);
             using (SqliteCommand lDepotCommand = lDepotConnection.CreateCommand())
             {
                 lDepotCommand.CommandText = """
@@ -71,7 +72,7 @@ public static class LDepotIndex
         }
     }
 
-    public static void LDepotIndexSet(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
+    public static void LDepotIndexSet(LWorkDocument lWorkRecord, LDepotFolder lDepotFolder)
     {
         try
         {
@@ -183,13 +184,14 @@ public static class LDepotIndex
         return lDepotRows;
     }
 
-    public static IReadOnlyList<LScheduleEntry> LDepotIndexRebuild()
+    public static IReadOnlyList<LScheduleEntry> LDepotIndexRebuild(string? lDepotRoot = null)
     {
-        LDepotIndexCreate();
+        lDepotRoot ??= LDepot.LDepotRootRead();
+        LDepotIndexCreate(lDepotRoot);
         var lDepotEntries = new List<LScheduleEntry>();
         try
         {
-            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen(lDepotRoot);
             using SqliteTransaction lDepotTransaction = lDepotConnection.BeginTransaction();
 
             using (SqliteCommand lDepotClear = lDepotConnection.CreateCommand())
@@ -201,9 +203,9 @@ public static class LDepotIndex
 
             foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
             {
-                foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
+                foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder, lDepotRoot))
                 {
-                    LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
+                    LWorkDocument? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
                     if (lWorkRecord is null)
                     {
                         continue;
@@ -260,11 +262,11 @@ public static class LDepotIndex
         SqliteConnection.ClearAllPools();
     }
 
-    public static void LDepotIndexCompact()
+    public static void LDepotIndexCompact(string? lDepotRoot = null)
     {
         try
         {
-            using SqliteConnection lDepotConnection = LDepotConnectionOpen();
+            using SqliteConnection lDepotConnection = LDepotConnectionOpen(lDepotRoot);
             using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
             lDepotCommand.CommandText = "PRAGMA wal_checkpoint(TRUNCATE); VACUUM;";
             lDepotCommand.ExecuteNonQuery();
@@ -275,11 +277,11 @@ public static class LDepotIndex
         }
     }
 
-    private static SqliteConnection LDepotConnectionOpen()
+    private static SqliteConnection LDepotConnectionOpen(string? lDepotRoot = null)
     {
         var lDepotBuilder = new SqliteConnectionStringBuilder
         {
-            DataSource = LDepot.LDepotIndexFind(),
+            DataSource = LDepot.LDepotIndexFind(lDepotRoot),
             Mode = SqliteOpenMode.ReadWriteCreate,
             Cache = SqliteCacheMode.Private
         };

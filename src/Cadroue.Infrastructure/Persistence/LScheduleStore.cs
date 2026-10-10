@@ -6,11 +6,11 @@ internal static class LScheduleStore
 {
     private static readonly HashSet<string> lScheduleRejectedPaths = new(StringComparer.OrdinalIgnoreCase);
 
-    internal static LWorkRecord? LScheduleRecordParse(string lScheduleRecordJson)
+    internal static LWorkDocument? LScheduleRecordParse(string lScheduleRecordJson)
     {
         try
         {
-            return LWorkRecord.LWorkRecordParse(lScheduleRecordJson);
+            return LWorkDocument.LWorkRecordParse(lScheduleRecordJson);
         }
         catch (Exception)
         {
@@ -18,12 +18,12 @@ internal static class LScheduleStore
         }
     }
 
-    internal static LWorkRecord? LScheduleRecordRead(string lDepotFilePath)
+    internal static LWorkDocument? LScheduleRecordRead(string lDepotFilePath)
     {
-        LWorkRecord? lWorkRecord;
+        LWorkDocument? lWorkRecord;
         try
         {
-            lWorkRecord = LWorkRecord.LWorkRecordParse(File.ReadAllText(lDepotFilePath));
+            lWorkRecord = LWorkDocument.LWorkRecordParse(File.ReadAllText(lDepotFilePath));
         }
         catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
         {
@@ -59,7 +59,7 @@ internal static class LScheduleStore
         LTraceLog.LTraceWarningRecord($"Schedule: record '{Path.GetFileName(lDepotFilePath)}' {lScheduleReason}");
     }
 
-    internal static bool LScheduleRecordSave(LWorkRecord lWorkRecord, LDepotFolder lDepotFolder)
+    internal static bool LScheduleRecordSave(LWorkDocument lWorkRecord, LDepotFolder lDepotFolder)
     {
         string lDepotFilePath = LDepot.LDepotFileRead(lDepotFolder, lWorkRecord.LWorkId);
         if (!LScheduleFileSave(lDepotFilePath, lWorkRecord.LWorkJsonCreate()))
@@ -72,7 +72,7 @@ internal static class LScheduleStore
         return true;
     }
 
-    internal static bool LScheduleRecordMove(LWorkRecord lWorkRecord, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
+    internal static bool LScheduleRecordMove(LWorkDocument lWorkRecord, LDepotFolder lDepotFrom, LDepotFolder lDepotTo)
     {
         if (!LScheduleMove(lWorkRecord.LWorkId, lDepotFrom, lDepotTo))
         {

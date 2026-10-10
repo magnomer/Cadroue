@@ -12,8 +12,8 @@ internal static partial class TInterface
     internal static LConsole TConsoleCreate() => new();
     internal static bool TConsoleProgressSet(LConsole console, double target) => console.LConsoleProgressSet(target);
     internal static void TConsoleProgressAttach(LConsole console, Action<double, bool> handler) =>
-        console.LConsoleProgressApply += handler;
-    internal static IReadOnlyList<LConsoleRun> TConsoleRunsResolve(string line, string? accent) =>
+        console.LConsoleProgressApplied += handler;
+    internal static IReadOnlyList<LConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
         LConsole.LConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
         LConsole.LConsoleRemovalFormat(outcomes);
@@ -29,7 +29,7 @@ internal static partial class TInterface
     internal static bool TConsoleDirtyCheck(LConsoleScene scene) => scene.LConsoleDirtyCheck();
     internal static bool TConsoleDeleteHandle(LConsoleScene scene, string? name) => scene.LConsoleDeleteHandle(name);
     internal static void TConsoleFocusAttach(LConsoleScene scene, Action handler) =>
-        scene.LConsoleFocusClear += handler;
+        scene.LConsoleFocusCleared += handler;
     internal static void TConsolePressHandle(LConsoleScene scene, bool dropOpen, bool focusWithin, bool inside) =>
         scene.LConsolePressHandle(dropOpen, focusWithin, inside);
     internal static string TConsoleStemResolve(string name, string path) =>
@@ -61,10 +61,10 @@ internal static partial class TInterface
             .Where(entry => entry.LRosterEntryKind == LRosterEntry.LRosterKindHead)
             .Select(entry => entry.LRosterEntryCard)
             .ToArray();
-    internal static void TRosterDetailAttach(LRoster roster, Action handler) => roster.LRosterDetailApply += handler;
-    internal static void TRosterDeferAttach(LRoster roster, Action handler) => roster.LRosterDetailDefer += handler;
+    internal static void TRosterDetailAttach(LRoster roster, Action handler) => roster.LRosterDetailApplied += handler;
+    internal static void TRosterDeferAttach(LRoster roster, Action handler) => roster.LRosterDetailDeferred += handler;
     internal static void TRosterWarningAttach(LRoster roster, Action<string, string> handler) =>
-        roster.LRosterWarningShow += handler;
+        roster.LRosterWarningShown += handler;
     internal static void TRosterRemove(LRoster roster, Guid batchId) => roster.LRosterRemove(batchId);
     internal static IReadOnlyList<LRosterItem> TRosterMenuRead(LRoster roster, Guid id, LStrip? strip) =>
         roster.LRosterMenu.LRosterMenuRead(id, strip);
@@ -110,15 +110,15 @@ internal static partial class TInterface
         LRosterDetail.LRosterBarsCreate(source, output);
     internal static LRosterCompareRow TRosterCompareCreate(string source, string output) =>
         LRosterDetail.LRosterCompareCreate(source, output);
-    internal static string TRosterMebiFormat(long? bytes) => LRosterFormat.LRosterMebiFormat(bytes);
-    internal static string TRosterSpentFormat(LWorkItem work) => LRosterFormat.LRosterSpentFormat(work);
-    internal static string TRosterSpeedFormat(LWorkItem work) => LRosterFormat.LRosterSpeedFormat(work);
+    internal static string TRosterMebiFormat(long? bytes) => LRosterFormatter.LRosterMebiFormat(bytes);
+    internal static string TRosterSpentFormat(LWorkItem work) => LRosterFormatter.LRosterSpentFormat(work);
+    internal static string TRosterSpeedFormat(LWorkItem work) => LRosterFormatter.LRosterSpeedFormat(work);
     internal static string TRosterElapsedFormat(TimeSpan spent) =>
-        LRosterFormat.LRosterElapsedFormat(spent);
-    internal static string TRosterClockFormat(TimeSpan span) => LRosterFormat.LRosterClockFormat(span);
-    internal static string TRosterStampFormat(DateTimeOffset? stamp) => LRosterFormat.LRosterStampFormat(stamp);
-    internal static string TRosterContainerFormat(string path) => LRosterFormat.LRosterContainerFormat(path);
-    internal static bool TRosterReencodeCheck(string mode) => LRosterFormat.LRosterReencodeCheck(mode);
+        LRosterFormatter.LRosterElapsedFormat(spent);
+    internal static string TRosterClockFormat(TimeSpan span) => LRosterFormatter.LRosterClockFormat(span);
+    internal static string TRosterStampFormat(DateTimeOffset? stamp) => LRosterFormatter.LRosterStampFormat(stamp);
+    internal static string TRosterContainerFormat(string path) => LRosterFormatter.LRosterContainerFormat(path);
+    internal static bool TRosterReencodeCheck(string mode) => LRosterFormatter.LRosterReencodeCheck(mode);
     internal static LSummary TSummaryRead(IReadOnlyList<LWorkItem> items) => LSummary.LSummaryRead(items);
     internal static (long?, long?) TSummarySizeRead(IReadOnlyList<LWorkItem> items) =>
         LSummary.LSummarySizeRead(items);
@@ -137,13 +137,13 @@ internal static partial class TInterface
         LProcessing processing) => new(preset, inspector, viewer, list, docket, processing);
     internal static void TEditClose(LEditTab tab) => tab.LEditClose();
     internal static void TEditStart(LEditTab tab) => tab.LEditStart();
-    internal static LSceneTabRecord TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabRecord());
-    internal static void TEditLayoutApply(LEditTab tab, LSceneTabRecord? layout) => tab.LEditLayoutApply(layout);
+    internal static LSceneTabEntry TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabEntry());
+    internal static void TEditLayoutApply(LEditTab tab, LSceneTabEntry? layout) => tab.LEditLayoutApply(layout);
     internal static void TEditCropHandle(LEditTab tab) => tab.LEditCropHandle();
     internal static void TEditSkipHandle(LEditTab tab) => tab.LEditSkipHandle();
     internal static void TEditLockHandle(LEditTab tab, bool locked) => tab.LEditLockHandle(locked);
     internal static void TEditPathHandle(LEditTab tab, string? path) => tab.LEditPathHandle(path);
-    internal static void TEditHistogramAttach(LEditTab tab, Action handler) => tab.LEditHistogramDefer += handler;
+    internal static void TEditHistogramAttach(LEditTab tab, Action handler) => tab.LEditHistogramDeferred += handler;
     internal static void TEditMissingAttach(LEditTab tab, Action handler) => tab.LEditPresetMissing += handler;
     internal static void TEditRun(LEditTab tab, LWorkPriority priority) => tab.LEditRun(priority, default, default);
     internal static LEditPlan TEditStateRead(LEditTab tab) => tab.LEditStore.LEditStateRead();
@@ -157,7 +157,7 @@ internal static partial class TInterface
         tab.LEditColor.LEditVideoRead(mpvOnlyCapable);
     internal static void TEditColorUpdate(LEditTab tab) => tab.LEditColor.LEditColorUpdate();
     internal static void TEditPreviewAttach(LViewer viewer, Action<LColor> handler) =>
-        viewer.LViewerPreviewChange += () => handler(viewer.LViewerPreview.LColor);
+        viewer.LViewerPreviewChanged += () => handler(viewer.LViewerPreview.LColor);
     internal static void TEditColorApply(LEditTab tab) => tab.LEditColor.LEditColorApply();
     internal static void TEditNeutralHandle(LEditTab tab, LNeutralSample sample) =>
         tab.LEditColor.LEditNeutralHandle(sample);
@@ -168,7 +168,7 @@ internal static partial class TInterface
     internal static void TEditHistogramApply(LEditTab tab, int width, int height, byte[]? pixels) =>
         tab.LEditColor.LEditHistogramApply(pixels is null ? null : new LMediaFrame(width, height, pixels));
     internal static void TEditLibrarianAttach(
-        Func<string, LSidecarEditRecord?>? reader, Func<string, LSidecarEditRecord?, bool>? writer)
+        Func<string, LSidecarEditEntry?>? reader, Func<string, LSidecarEditEntry?, bool>? writer)
     {
         LLibrarian.LLibrarianEditReader = reader;
         LLibrarian.LLibrarianEditWriter = writer;
@@ -185,15 +185,15 @@ internal static partial class TInterface
     internal static IReadOnlyList<LProcessingRow> TSplitRowsRead() => LSplitTab.LSplitRows;
     internal static void TSplitClose(LSplitTab tab) => tab.LSplitClose();
     internal static void TSplitStart(LSplitTab tab) => tab.LSplitStart();
-    internal static LSceneTabRecord TSplitLayoutRead(LSplitTab tab) => tab.LSplitLayoutRead(new LSceneTabRecord());
-    internal static void TSplitLayoutApply(LSplitTab tab, LSceneTabRecord? layout) => tab.LSplitLayoutApply(layout);
+    internal static LSceneTabEntry TSplitLayoutRead(LSplitTab tab) => tab.LSplitLayoutRead(new LSceneTabEntry());
+    internal static void TSplitLayoutApply(LSplitTab tab, LSceneTabEntry? layout) => tab.LSplitLayoutApply(layout);
     internal static void TSplitPathHandle(LSplitTab tab, string? path) => tab.LSplitPathHandle(path);
     internal static void TSplitLockHandle(LSplitTab tab, bool locked) => tab.LSplitLockHandle(locked);
     internal static void TSplitPersistentHandle(LSplitTab tab, bool persistent) =>
         tab.LSplitPersistentHandle(persistent);
     internal static void TSplitStateSave(LSplitTab tab) => tab.LSplitStateSave();
     internal static void TSplitStateLoad(LSplitTab tab, string path) => tab.LSplitStateLoad(path);
-    internal static LDetectorSet TSplitStateRead(LSplitTab tab) => tab.LSplitStateRead();
+    internal static LDetectorBundle TSplitStateRead(LSplitTab tab) => tab.LSplitStateRead();
     internal static void TSplitMissingAttach(LSplitTab tab, Action handler) => tab.LSplitPresetMissing += handler;
     internal static void TSplitRun(LSplitTab tab, LWorkPriority priority) => tab.LSplitRun(priority, default, default);
     internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(LSplitTab tab) => tab.LSplitSweep.LSplitStepsRead();
@@ -201,11 +201,11 @@ internal static partial class TInterface
     internal static void TSplitSweepCancel(LSplitTab tab) => tab.LSplitSweep.LSplitSweepCancel();
     internal static bool TSplitSweepCheck(LSplitTab tab) => tab.LSplitSweep.LSplitSweepRunning;
     internal static void TSplitBusyAttach(LSplitTab tab, Action<bool> handler) =>
-        tab.LSplitSweep.LSplitBusyApply += handler;
+        tab.LSplitSweep.LSplitBusyApplied += handler;
     internal static void TSplitFailAttach(LSplitTab tab, Action<string, string> handler) =>
-        tab.LSplitSweep.LSplitFailRaise += handler;
+        tab.LSplitSweep.LSplitFailRaised += handler;
     internal static void TSplitLibrarianAttach(
-        Func<string, LSidecarSplitRecord?>? reader, Func<string, LSidecarSplitRecord?, bool>? writer)
+        Func<string, LSidecarSplitEntry?>? reader, Func<string, LSidecarSplitEntry?, bool>? writer)
     {
         LLibrarian.LLibrarianSplitReader = reader;
         LLibrarian.LLibrarianSplitWriter = writer;
@@ -235,21 +235,21 @@ internal static partial class TInterface
         sensor.LSensorPersistentSet(persistent);
     internal static string TSensorNameRead(LDetectorKind kind) => LSensor.LSensorNameRead(kind);
     internal static LDetectorKind? TSensorKindRead(string? name) => LSensor.LSensorKindRead(name);
-    internal static LDetectorSet TDetectorSetCreate(
+    internal static LDetectorBundle TDetectorSetCreate(
         IReadOnlyList<LDetectorStep> steps,
         LDetectorBlank? blank,
         LDetectorStillMode? still,
         LDetectorLuminanceMode? luminance,
         LDetectorMetricMode? metric,
         IReadOnlyDictionary<LDetectorKind, string> presets) => new(steps, blank, still, luminance, metric, presets);
-    internal static LSidecarSplitRecord TDetectorSidecarFormat(LDetectorSet set) =>
-        LDetectorSet.LDetectorSidecarFormat(set);
-    internal static LDetectorSet TDetectorSidecarParse(LSidecarSplitRecord record) =>
-        LDetectorSet.LDetectorSidecarParse(record);
-    internal static List<LSceneDetector> TDetectorSceneFormat(LDetectorSet set) =>
-        LDetectorSet.LDetectorSceneFormat(set);
-    internal static LDetectorSet TDetectorSceneParse(IReadOnlyList<LSceneDetector> detectors) =>
-        LDetectorSet.LDetectorSceneParse(detectors);
+    internal static LSidecarSplitEntry TDetectorSidecarFormat(LDetectorBundle set) =>
+        LDetectorBundle.LDetectorSidecarFormat(set);
+    internal static LDetectorBundle TDetectorSidecarParse(LSidecarSplitEntry record) =>
+        LDetectorBundle.LDetectorSidecarParse(record);
+    internal static List<LSceneDetector> TDetectorSceneFormat(LDetectorBundle set) =>
+        LDetectorBundle.LDetectorSceneFormat(set);
+    internal static LDetectorBundle TDetectorSceneParse(IReadOnlyList<LSceneDetector> detectors) =>
+        LDetectorBundle.LDetectorSceneParse(detectors);
 
     internal static LFixTab TFixTabCreate(
         LPresetSelection preset,
@@ -261,8 +261,8 @@ internal static partial class TInterface
     internal static IReadOnlyList<LProcessingRow> TFixRowsRead() => LFixTab.LFixRows;
     internal static IReadOnlyList<LFixRow> TFixKindsRead() => LFixTab.LFixKinds;
     internal static void TFixClose(LFixTab tab) => tab.LFixClose();
-    internal static LSceneTabRecord TFixLayoutRead(LFixTab tab) => tab.LFixLayoutRead(new LSceneTabRecord());
-    internal static void TFixLayoutApply(LFixTab tab, LSceneTabRecord? layout) => tab.LFixLayoutApply(layout);
+    internal static LSceneTabEntry TFixLayoutRead(LFixTab tab) => tab.LFixLayoutRead(new LSceneTabEntry());
+    internal static void TFixLayoutApply(LFixTab tab, LSceneTabEntry? layout) => tab.LFixLayoutApply(layout);
     internal static void TFixPathHandle(LFixTab tab, string? path) => tab.LFixPathHandle(path);
     internal static void TFixDiagnosisRun(LFixTab tab) => tab.LFixDiagnosisRun();
     internal static void TFixCheckupHandle(LFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
@@ -293,7 +293,7 @@ internal static partial class TInterface
             };
     }
     internal static void TFixLibrarianAttach(
-        Func<string, LSidecarFixRecord?>? reader, Func<string, LSidecarFixRecord?, bool>? writer)
+        Func<string, LSidecarFixEntry?>? reader, Func<string, LSidecarFixEntry?, bool>? writer)
     {
         LLibrarian.LLibrarianFixReader = reader;
         LLibrarian.LLibrarianFixWriter = writer;
@@ -309,8 +309,8 @@ internal static partial class TInterface
     internal static IReadOnlyList<LProcessingRow> TAudioRowsRead() => LAudioTab.LAudioRows;
     internal static LAudioKind? TAudioKindRead(string step) => LAudioTab.LAudioKindRead(step);
     internal static void TAudioClose(LAudioTab tab) => tab.LAudioClose();
-    internal static LSceneTabRecord TAudioLayoutRead(LAudioTab tab) => tab.LAudioLayoutRead(new LSceneTabRecord());
-    internal static void TAudioLayoutApply(LAudioTab tab, LSceneTabRecord? layout) => tab.LAudioLayoutApply(layout);
+    internal static LSceneTabEntry TAudioLayoutRead(LAudioTab tab) => tab.LAudioLayoutRead(new LSceneTabEntry());
+    internal static void TAudioLayoutApply(LAudioTab tab, LSceneTabEntry? layout) => tab.LAudioLayoutApply(layout);
     internal static void TAudioPathHandle(LAudioTab tab, string? path) => tab.LAudioPathHandle(path);
     internal static void TAudioSkipHandle(LAudioTab tab) => tab.LAudioSkipHandle();
     internal static void TAudioChangeHandle(LAudioTab tab) => tab.LAudioChangeHandle();
@@ -323,15 +323,15 @@ internal static partial class TInterface
     internal static void TAudioPlanRestore(LAudioTab tab, string path, bool ownerFirst) =>
         tab.LAudioPlanRestore(path, ownerFirst);
     internal static void TAudioFilterAttach(LViewer viewer, Action<string> handler) =>
-        viewer.LViewerPreviewChange += () => handler(viewer.LViewerAudioResolve());
-    internal static void TAudioDeferAttach(LAudioTab tab, Action handler) => tab.LAudioViewerDefer += handler;
+        viewer.LViewerPreviewChanged += () => handler(viewer.LViewerAudioResolve());
+    internal static void TAudioDeferAttach(LAudioTab tab, Action handler) => tab.LAudioViewerDeferred += handler;
     internal static void TAudioMissingAttach(LAudioTab tab, Action handler) => tab.LAudioPresetMissing += handler;
     internal static void TAudioIncompatibleAttach(LAudioTab tab, Action handler) =>
         tab.LAudioPresetIncompatible += handler;
     internal static void TAudioRun(LAudioTab tab, LWorkPriority priority) => tab.LAudioRun(priority, default, default);
     internal static void TAudioAllRun(LAudioTab tab) => tab.LAudioAllRun(default, default);
     internal static void TAudioLibrarianAttach(
-        Func<string, LSidecarAudioRecord?>? reader, Func<string, LSidecarAudioRecord?, bool>? writer)
+        Func<string, LSidecarAudioEntry?>? reader, Func<string, LSidecarAudioEntry?, bool>? writer)
     {
         LLibrarian.LLibrarianAudioReader = reader;
         LLibrarian.LLibrarianAudioWriter = writer;
@@ -346,14 +346,14 @@ internal static partial class TInterface
         audio.LInspectorPersistentApply(plan, skipPersistent);
     internal static LWorkAudio TInspectorPersistentRead(LInspectorAudio audio) => audio.LInspectorPersistentRead();
     internal static void TInspectorAudioAttach(LInspectorAudio audio, Action handler) =>
-        audio.LInspectorAudioChange += handler;
+        audio.LInspectorAudioChanged += handler;
     internal static void TVolumePersistentSet(LVolume volume, bool persistent) =>
         volume.LVolumePersistentSet(persistent);
 
-    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LDocket docket, LSceneTabRecord? layout) =>
+    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LDocket docket, LSceneTabEntry? layout) =>
         new(preset, docket, layout);
     internal static void TMergeClose(LMergeTab tab) => tab.LMergeClose();
-    internal static LSceneTabRecord TMergeLayoutRead(LMergeTab tab) => tab.LMergeLayoutRead(new LSceneTabRecord());
+    internal static LSceneTabEntry TMergeLayoutRead(LMergeTab tab) => tab.LMergeLayoutRead(new LSceneTabEntry());
     internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(LMergeTab tab, Guid cohort = default) =>
         tab.LMergeGroupsRead(cohort);
     internal static IReadOnlyDictionary<string, Guid> TMergeRelaysRead(LMergeTab tab) => tab.LMergeRelaysRead();
@@ -378,8 +378,8 @@ internal static partial class TInterface
 
     internal static LFunnelTab TFunnelTabCreate(LList list, LDocket docket) => new(list, docket);
     internal static void TFunnelClose(LFunnelTab tab) => tab.LFunnelClose();
-    internal static void TFunnelLayoutApply(LFunnelTab tab, LSceneTabRecord? layout) => tab.LFunnelLayoutApply(layout);
-    internal static LSceneTabRecord TFunnelLayoutRead(LFunnelTab tab) => tab.LFunnelLayoutRead(new LSceneTabRecord());
+    internal static void TFunnelLayoutApply(LFunnelTab tab, LSceneTabEntry? layout) => tab.LFunnelLayoutApply(layout);
+    internal static LSceneTabEntry TFunnelLayoutRead(LFunnelTab tab) => tab.LFunnelLayoutRead(new LSceneTabEntry());
     internal static IReadOnlyList<string> TFunnelEligibleRead(LFunnelTab tab) => tab.LFunnelEligibleRead();
     internal static void TFunnelRun(LFunnelTab tab) => tab.LFunnelRun();
     internal static void TFunnelAllRun(LFunnelTab tab) => tab.LFunnelAllRun();
@@ -406,9 +406,9 @@ internal static partial class TInterface
     internal static void TFunnelCollapsedToggle(LFunnel funnel, LFunnelRule rule) =>
         funnel.LFunnelCollapsedToggle(rule);
     internal static void TFunnelCreateAttach(LFunnel funnel, Action<LFunnelRule> handler) =>
-        funnel.LFunnelRuleCreate += handler;
+        funnel.LFunnelRuleCreated += handler;
     internal static void TFunnelDeleteAttach(LFunnel funnel, Action<LFunnelRule> handler) =>
-        funnel.LFunnelRuleDelete += handler;
+        funnel.LFunnelRuleDeleted += handler;
     internal static IReadOnlyList<LFunnelCondition> TFunnelConditionsRead() => LFunnel.LFunnelConditions;
     internal static void TFunnelPressHandle(LFunnel funnel, LFunnelRule rule, double x, double y) =>
         funnel.LFunnelDrag.LFunnelPressHandle(rule, x, y, 0, 0);
@@ -433,10 +433,10 @@ internal static partial class TInterface
         new(kind, repair, persistent);
     internal static LWorkFix TFixPlanCreate(IReadOnlyList<LWorkFixStep> steps, LWorkFixSalvage? salvage = null) =>
         new(steps) { LWorkFixSalvage = salvage ?? LWorkFixSalvage.LWorkSalvageCreate() };
-    internal static LSidecarFixRecord TFixRecordCreate(LWorkFix plan) => LFix.LFixPersistentCreate(plan);
+    internal static LSidecarFixEntry TFixRecordCreate(LWorkFix plan) => LFix.LFixPersistentCreate(plan);
     internal static LWorkAudio TWorkAudioCreate(bool skip, params LWorkAudioStep[] steps) =>
         new(steps) { LWorkAudioSkip = skip };
-    internal static LSidecarAudioRecord TAudioRecordCreate(LWorkAudio plan) => LAudio.LAudioPersistentCreate(plan);
+    internal static LSidecarAudioEntry TAudioRecordCreate(LWorkAudio plan) => LAudio.LAudioPersistentCreate(plan);
 
     internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
     internal static LAction TActionCreate() => new();
@@ -455,14 +455,14 @@ internal static partial class TInterface
     internal static IReadOnlyList<LActionOption> TActionOptionsRead(LAction action) => action.LActionOptionsRead();
     internal static IReadOnlyList<LActionOption> TActionMenuRead(LAction action) => action.LActionMenuRead();
     internal static void TActionRunAttach(LAction action, Action<LWorkPriority> handler) =>
-        action.LActionRun += handler;
-    internal static void TActionAllAttach(LAction action, Action handler) => action.LActionAllAdd += handler;
+        action.LActionExecuted += handler;
+    internal static void TActionAllAttach(LAction action, Action handler) => action.LActionAllAdded += handler;
     internal static void TActionItemsAttach(LAction action, Action<IReadOnlyList<string>> handler) =>
-        action.LActionItemsAdd += handler;
+        action.LActionItemsAdded += handler;
     internal static void TActionCohortAttach(LAction action, Func<Guid, int> handler) =>
-        action.LActionCohortAdd += handler;
-    internal static void TActionEmptyAttach(LAction action, Action handler) => action.LActionEmptyRaise += handler;
-    internal static void TActionFaceAttach(LAction action, Action handler) => action.LActionFaceChange += handler;
+        action.LActionCohortAdded += handler;
+    internal static void TActionEmptyAttach(LAction action, Action handler) => action.LActionEmptyRaised += handler;
+    internal static void TActionFaceAttach(LAction action, Action handler) => action.LActionFaceChanged += handler;
     internal static void TActionAllRun(LAction action) => action.LActionAllRun();
     internal static void TActionHighRun(LAction action) => action.LActionHighRun();
     internal static void TActionListRun(LAction action) => action.LActionListRun();
@@ -478,7 +478,7 @@ internal static partial class TInterface
     internal static void TCompassWaveformToggle(LCompass compass) => compass.LCompassWaveformToggle();
     internal static void TCompassVolumeSet(LCompass compass, double raw) => compass.LCompassVolumeSet(raw);
     internal static void TCompassVolumeAttach(LViewer viewer, Action<double> handler) =>
-        viewer.LViewerVolumeChange += handler;
+        viewer.LViewerVolumeChanged += handler;
     internal static string TCompassVolumeFormat(double raw) => LCompass.LCompassVolumeFormat(raw);
     internal static double TCompassFillResolve(double host, double raw) => LCompass.LCompassFillResolve(host, raw);
     internal static IReadOnlyList<double> TCompassSeparatorsResolve(params double[] tops) =>

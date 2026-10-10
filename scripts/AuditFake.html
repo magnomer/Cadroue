@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ fake audit</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.warn { background: var(--warn-wash); color: var(--warn); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.bars { position: relative; display: grid; grid-template-columns: minmax(120px, max-content) 1fr max-content; gap: 4px 12px; align-items: center; font-size: 13px; }
+.bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
+.bars .fill.root { background: var(--tally); }
+.bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; max-width: 420px; display: none; z-index: 5; }
+.tip .head { font-weight: 600; overflow-wrap: anywhere; }
+.tip .meta { color: var(--ink-3); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row .num { margin-left: auto; font-variant-numeric: tabular-nums; padding-left: 12px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+th.group { text-align: center; }
+thead th { vertical-align: bottom; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.path { white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+td.path .dir { color: var(--ink-3); }
+td.wrap { white-space: normal; text-align: left; }
+#gates a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+.code { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre; text-align: left; max-width: 520px; overflow: hidden; text-overflow: ellipsis; }
+.subhead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; scroll-margin-top: 12px; }
+.subhead.first { margin-top: 4px; }
+.subhead .count { color: var(--ink-3); font-weight: 400; }
+.subhead.warn { color: var(--warn); }
+.subhead.fail { color: var(--fail); }
+.subhead.ok { color: var(--ink-1); }
+.lead { color: var(--ink-3); font-size: 13px; margin: 0 0 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+button.more { font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px dashed var(--ring); border-radius: 8px; padding: 6px 12px; cursor: pointer; margin-top: 8px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+.list { margin: 0; padding-left: 18px; }
+.list li { overflow-wrap: anywhere; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+.bars .track.stack { display: flex; }
+.bars .track.stack .fill { border-radius: 0; }
+.bars .fill.k1, .swatch.k1 { background: var(--series-2); }
+.bars .fill.k2, .swatch.k2 { background: var(--series-3); }
+.swatch.k0 { background: var(--series-1); }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: minmax(80px, 40%) 1fr max-content; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ fake audit</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="gates"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Ceilings</h2>
+    <p class="lead" id="enforced"></p>
+    <div class="tablewrap"><table id="ceilings"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <section class="panel">
+    <h2>Findings</h2>
+    <p class="lead">A member is live when a live reader, a constructor, an override, generated code, markup or the serializer reads it. Orphan is read by nothing live. Tested is read only by tests.</p>
+    <div id="findings"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Hits by place</h2>
+        <div class="muted">Fake members counted per project or per folder, split by kind.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Grouping" id="grouping"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="bars" id="placebars"></div>
+    <div class="empty" id="placeempty" style="display:none">None.</div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2 id="alltitle"></h2>
+        <div class="muted">Every fake member the audit found. Click a column heading to sort.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Kind" id="kindfilter"></div>
+    </div>
+    <div class="toolbar"><input type="search" id="filter" placeholder="Filter by member, path or reason" aria-label="Filter hits by member, path or reason"></div>
+    <div class="tablewrap"><table id="alltable"></table></div>
+    <div class="empty" id="allempty" style="display:none">None.</div>
+    <button type="button" class="more" id="allmore"></button>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var LQ = '\u201c', RQ = '\u201d';
+  var LIMIT = 100;
+  var GROUPINGS = [{ key: 'project', label: 'Project' }, { key: 'folder', label: 'Folder' }];
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pathHtml(path) {
+    var cut = path.lastIndexOf('/');
+    return cut < 0 ? esc(path) : '<span class="dir">' + esc(path.slice(0, cut + 1)) + '</span>' + esc(path.slice(cut + 1));
+  }
+  function slug(text) { return 'sec-' + String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function statusClass(s) { return s === 'FAIL' ? 'fail' : s === 'WARN' ? 'warn' : 'ok'; }
+  function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+  function load(key, fallback, allowed) {
+    try { var v = localStorage.getItem('auditfake.' + key); if (v !== null && (!allowed || allowed.indexOf(v) >= 0)) return v; } catch (e) { }
+    return fallback;
+  }
+  function save(key, value) { try { localStorage.setItem('auditfake.' + key, value); } catch (e) { } }
+  function segmented(box, options, current, onPick) {
+    box.innerHTML = '';
+    options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = o.label;
+      b.setAttribute('aria-pressed', String(o.key === current));
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+        onPick(o.key);
+      });
+      box.appendChild(b);
+    });
+  }
+  function ceilingClass(c) { return c.state === 'STALE' || c.state === 'ABOVE' ? 'fail' : c.state === 'OVER' ? 'warn' : 'ok'; }
+  var kinds = d.ceilings.map(function (c) { return c.kind; });
+  function kindClass(kind) { return 'k' + (Math.max(0, kinds.indexOf(kind)) % 3); }
+
+  // Header, verdict and result.
+  document.getElementById('subtitle').textContent = 'Version ' + d.version + DOT + d.generated + DOT + fmt(d.scanned.sources) + ' source files' + DOT +
+    fmt(d.scanned.tests) + ' test files' + DOT + fmt(d.scanned.markup) + ' markup files' + DOT + 'Generation ' + d.generation;
+  document.getElementById('links').innerHTML = '<a href="' + esc(d.report) + '">' + esc(d.report) + '</a>';
+
+  var failed = d.gates.filter(function (g) { return g.status === 'FAIL'; });
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + d.gates.length + ' gates at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + d.gates.length + ' gates above 0.<span class="note">See ' +
+      failed.map(function (g) { return '<a href="#' + slug(g.gate) + '">' + LQ + esc(g.gate) + RQ + '</a>'; }).join(', ') + '.</span>';
+  }
+
+  document.getElementById('gates').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+    d.gates.map(function (g) {
+      return '<tr><td class="l"><span class="status ' + statusClass(g.status) + '">' + g.status + '</span></td><td>' + fmt(g.count) +
+        '</td><td class="l"><a href="#' + slug(g.gate) + '">' + esc(g.gate) + '</a></td><td class="l muted">' + esc(g.meaning) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  var tiles = [];
+  d.ceilings.forEach(function (c) {
+    var cls = ceilingClass(c);
+    var note = c.state === 'STALE' ? 'Stale: ceiling above its count' : c.state === 'ABOVE' ? 'Above the ceiling' :
+      c.state === 'OVER' ? 'Above the ceiling, not enforced' : 'Hits against the ceiling';
+    tiles.push('<div class="tile ' + (cls === 'ok' ? '' : cls) + '"><div class="label">' + esc(c.kind) + '</div><div class="value">' + fmt(c.count) +
+      ' <small>/ ' + fmt(c.ceiling) + '</small></div><div class="note">' + note + '</div></div>');
+  });
+  tiles.push('<div class="tile"><div class="label">Members tracked</div><div class="value">' + fmt(d.scanned.members) + '</div><div class="note">' +
+    fmt(d.scanned.types) + ' classes tracked as well</div></div>');
+  tiles.push('<div class="tile"><div class="label">Files scanned</div><div class="value">' + fmt(d.scanned.sources + d.scanned.tests + d.scanned.markup) +
+    '</div><div class="note">' + fmt(d.scanned.sources) + ' source' + DOT + fmt(d.scanned.tests) + ' test' + DOT + fmt(d.scanned.markup) + ' markup</div></div>');
+  document.getElementById('tiles').innerHTML = tiles.join('');
+
+  // Ceilings.
+  document.getElementById('enforced').textContent = d.enforced ? 'Ceilings are enforced: a kind above its ceiling fails. A stale ceiling always fails.' :
+    'Ceilings are not enforced: a kind above its ceiling does not fail. A stale ceiling always fails.';
+  document.getElementById('ceilings').innerHTML =
+    '<thead><tr><th class="l">Key</th><th>Count</th><th>Ceiling</th><th class="l">Enforced</th><th class="l">State</th></tr></thead><tbody>' +
+    d.ceilings.map(function (c) {
+      return '<tr><td class="l"><code>ceilings.' + esc(c.kind) + '</code></td><td>' + fmt(c.count) + '</td><td>' + fmt(c.ceiling) + '</td><td class="l">' +
+        (d.enforced ? 'Yes' : 'No') + '</td><td class="l"><span class="status ' + ceilingClass(c) + '">' + c.state + '</span></td></tr>';
+    }).join('') + '</tbody>';
+
+  // Scope.
+  function codes(list) { return list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
+  var scopeRows = [
+    ['Source roots', codes(d.scope.roots)],
+    ['Tests', codes(d.scope.tests)],
+    ['Source extensions', codes(d.scope.extensions)],
+    ['Markup', codes(d.scope.markup)],
+    ['Excluded folders', codes(d.scope.excludeSegments)],
+    ['Excluded suffixes', codes(d.scope.excludeSuffixes)],
+    ['Excluded prefixes', codes(d.scope.excludePrefixes)],
+    ['Implicit usings', codes(d.scope.implicitUsings)],
+    ['Helper framework', codes([d.scope.framework])],
+    ['Console rows', fmt(d.scope.top) + ' per kind']
+  ];
+  document.getElementById('scope').innerHTML = scopeRows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  // Findings, in the console order.
+  var findingBox = document.getElementById('findings');
+  function gateStatus(name) { var g = d.gates.filter(function (x) { return x.gate === name; })[0]; return g ? g.status : 'OK'; }
+  function block(spec, index) {
+    var wrap = document.createElement('div');
+    findingBox.appendChild(wrap);
+    var shown = LIMIT;
+    function draw() {
+      var items = spec.items;
+      var html = '<div class="subhead ' + statusClass(spec.status) + (index === 0 ? ' first' : '') + '" id="' + slug(spec.title) + '">' +
+        '<span class="status ' + statusClass(spec.status) + '">' + spec.status + '</span>' + esc(spec.title) + ' <span class="count">(' + fmt(items.length) +
+        (spec.extra ? ', ' + spec.extra : '') + ')</span></div>';
+      if (!items.length) html += '<div class="empty">None.</div>';
+      else if (spec.list) html += '<ul class="list">' + items.slice(0, shown).map(function (x) { return '<li>' + spec.list(x) + '</li>'; }).join('') + '</ul>';
+      else html += '<div class="tablewrap"><table>' + spec.head + '<tbody>' + items.slice(0, shown).map(spec.row).join('') + '</tbody></table></div>';
+      wrap.innerHTML = html;
+      if (items.length > shown) {
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'more';
+        more.textContent = 'Show all ' + fmt(items.length) + ' (' + fmt(items.length - shown) + ' hidden)';
+        more.addEventListener('click', function () { shown = Infinity; draw(); });
+        wrap.appendChild(more);
+      }
+    }
+    draw();
+  }
+  var hitHead = '<thead><tr><th class="l">Member</th><th class="l">File</th><th>Line</th><th class="l">Reason</th></tr></thead>';
+  function hitRow(h) {
+    return '<tr><td class="l"><code>' + esc(h.name) + '</code></td><td class="path">' + pathHtml(h.path) + '</td><td>' + fmt(h.line) +
+      '</td><td class="wrap">' + esc(h.reason) + '</td></tr>';
+  }
+  var specs = d.ceilings.map(function (c) {
+    return {
+      title: c.kind, items: d.hits.filter(function (h) { return h.kind === c.kind; }), head: hitHead, row: hitRow,
+      status: ceilingClass(c) === 'fail' ? 'FAIL' : c.count > 0 ? 'WARN' : 'OK', extra: 'ceiling ' + fmt(c.ceiling)
+    };
+  });
+  specs.push({ title: 'Above ceiling', items: d.above, status: gateStatus('Above ceiling'), list: function (x) { return esc(x); } });
+  specs.push({ title: 'Stale ceilings', items: d.stale, status: gateStatus('Stale ceilings'), list: function (x) { return esc(x); } });
+  specs.forEach(block);
+
+  // Hits by place.
+  document.getElementById('legend').innerHTML = kinds.map(function (k) { return '<span><i class="swatch ' + kindClass(k) + '"></i>' + esc(k) + '</span>'; }).join('');
+  function placeOf(path, by) {
+    var parts = path.split('/');
+    if (parts.length < 2) return '(root)';
+    return by === 'project' ? parts.slice(0, Math.min(2, parts.length - 1)).join('/') : parts.slice(0, -1).join('/');
+  }
+  var grouping = load('grouping', 'project', GROUPINGS.map(function (g) { return g.key; }));
+  segmented(document.getElementById('grouping'), GROUPINGS, grouping, function (k) { grouping = k; save('grouping', k); drawPlaces(); });
+  function drawPlaces() {
+    var map = {};
+    d.hits.forEach(function (h) {
+      var name = placeOf(h.path, grouping);
+      var entry = map[name] || (map[name] = { name: name, total: 0, byKind: {} });
+      entry.total += 1;
+      entry.byKind[h.kind] = (entry.byKind[h.kind] || 0) + 1;
+    });
+    var list = Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return b.total - a.total || compare(a.name, b.name); });
+    var peak = list.reduce(function (m, p) { return Math.max(m, p.total); }, 0) || 1;
+    document.getElementById('placebars').innerHTML = list.map(function (p) {
+      var present = kinds.filter(function (k) { return p.byKind[k]; });
+      var title = present.map(function (k) { return k + ' ' + fmt(p.byKind[k]); }).join(DOT);
+      var fills = present.map(function (k) {
+        return '<div class="fill ' + kindClass(k) + '" style="width:' + (p.byKind[k] / peak * 100).toFixed(2) + '%"></div>';
+      }).join('');
+      return '<div class="name" title="' + esc(p.name) + '">' + esc(p.name) + '</div><div class="track stack" title="' + esc(title) + '">' + fills +
+        '</div><div class="num">' + fmt(p.total) + '</div>';
+    }).join('');
+    document.getElementById('placeempty').style.display = list.length ? 'none' : '';
+  }
+
+  // Every hit.
+  var COLUMNS = [
+    { key: 'kind', label: 'Kind', num: false }, { key: 'name', label: 'Member', num: false }, { key: 'path', label: 'File', num: false },
+    { key: 'line', label: 'Line', num: true }, { key: 'reason', label: 'Reason', num: false }
+  ];
+  var kindCounts = {};
+  d.hits.forEach(function (h) { kindCounts[h.kind] = (kindCounts[h.kind] || 0) + 1; });
+  var sortKey = load('sort', 'path', COLUMNS.map(function (c) { return c.key; }));
+  var sortDown = load('down', 'false', ['true', 'false']) === 'true';
+  var kindKey = load('kind', 'all', ['all'].concat(kinds));
+  var shownAll = LIMIT;
+  segmented(document.getElementById('kindfilter'), [{ key: 'all', label: 'All ' + fmt(d.hits.length) }].concat(kinds.map(function (k) {
+    return { key: k, label: k + ' ' + fmt(kindCounts[k] || 0) };
+  })), kindKey, function (k) { kindKey = k; save('kind', k); shownAll = LIMIT; drawAll(); });
+  var filterBox = document.getElementById('filter');
+  filterBox.addEventListener('input', function () { shownAll = LIMIT; drawAll(); });
+  document.getElementById('allmore').addEventListener('click', function () { shownAll = Infinity; drawAll(); });
+  function drawAll() {
+    var q = filterBox.value.trim().toLowerCase();
+    var list = d.hits.filter(function (h) {
+      return (kindKey === 'all' || h.kind === kindKey) &&
+        (!q || h.name.toLowerCase().indexOf(q) >= 0 || h.path.toLowerCase().indexOf(q) >= 0 || h.reason.toLowerCase().indexOf(q) >= 0);
+    });
+    var col = COLUMNS.filter(function (c) { return c.key === sortKey; })[0];
+    list.sort(function (a, b) {
+      var r = col.num ? a[sortKey] - b[sortKey] : compare(a[sortKey], b[sortKey]);
+      if (r === 0) r = compare(a.path, b.path) || a.line - b.line;
+      return sortDown ? -r : r;
+    });
+    document.getElementById('alltitle').textContent = 'Every hit (' + fmt(d.hits.length) + ')';
+    var head = '<thead><tr>' + COLUMNS.map(function (c) {
+      return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + c.label + '</th>';
+    }).join('') + '</tr></thead>';
+    var body = list.slice(0, shownAll).map(function (h) {
+      return '<tr><td class="l"><span class="status ' + (h.kind === 'Orphan' ? 'fail' : 'warn') + '">' + esc(h.kind) + '</span></td><td class="l"><code>' + esc(h.name) +
+        '</code></td><td class="path">' + pathHtml(h.path) + '</td><td>' + fmt(h.line) + '</td><td class="wrap">' + esc(h.reason) + '</td></tr>';
+    }).join('');
+    var table = document.getElementById('alltable');
+    table.innerHTML = head + '<tbody>' + body + '</tbody>';
+    Array.prototype.forEach.call(table.querySelectorAll('th.sort'), function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-key');
+        if (k === sortKey) sortDown = !sortDown;
+        else { sortKey = k; sortDown = COLUMNS.filter(function (c) { return c.key === k; })[0].num; }
+        save('sort', sortKey); save('down', String(sortDown));
+        drawAll();
+      });
+    });
+    document.getElementById('allempty').style.display = list.length ? 'none' : '';
+    var more = document.getElementById('allmore');
+    more.style.display = list.length > shownAll ? '' : 'none';
+    more.textContent = 'Show all ' + fmt(list.length) + ' (' + fmt(list.length - Math.min(shownAll, list.length)) + ' hidden)';
+  }
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>' + fmt(d.scanned.sources) + ' source files' + DOT + fmt(d.scanned.tests) + ' test files' + DOT + fmt(d.scanned.markup) + ' markup files</span>';
+
+  drawPlaces();
+  drawAll();
+})();
+</script>
+</body>
+</html>

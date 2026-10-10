@@ -65,7 +65,7 @@ public static class LSentinel
         }
     }
 
-    internal static bool LSentinelStaleCheck(LWorkRecord lWorkRecord)
+    internal static bool LSentinelStaleCheck(LWorkDocument lWorkRecord)
     {
         bool lSentinelOwnerAlive = LSentinelOwnerCheck(
             lWorkRecord.LWorkOwnerProcess, lWorkRecord.LWorkOwnerStamp, lWorkRecord.LWorkOwnerRunner);

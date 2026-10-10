@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ syntax statistics</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --pass: #138a5f;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --pass: #3ccf95;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --pass: #3ccf95;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+h2 .count { color: var(--ink-3); font-weight: 400; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.bars { display: grid; grid-template-columns: minmax(160px, max-content) 1fr; gap: 10px 16px; align-items: center; margin: 8px 0 12px; }
+.bars .name { color: var(--ink-2); font-size: 13px; }
+.bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; background: var(--grid); }
+.bar i { display: block; height: 100%; }
+.barlabels { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; color: var(--ink-2); font-size: 12px; margin-top: 3px; }
+.barlabels span { display: inline-flex; align-items: center; gap: 6px; }
+.heat { display: block; margin: -6px -10px; padding: 6px 10px; }
+.tablewrap { overflow: auto; max-height: 560px; border-top: 1px solid var(--ring); }
+.tablewrap.short { max-height: none; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; box-shadow: inset 0 -1px 0 var(--ring); }
+th.l, td.l { text-align: left; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.loc { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+.rowcount { color: var(--ink-3); font-size: 13px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: 1fr; gap: 2px 0; }
+  .bars .name { margin-top: 8px; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ syntax statistics</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <div id="sections"></div>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var PF = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var FILTER_MIN = 20;
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function ratio(n) { return n === null || n === undefined ? DASH : PF.format(n); }
+  function pct(n) { return n === null || n === undefined ? DASH : PF.format(n) + ' %'; }
+  function flag(b) { return b ? '<span class="status ok">yes</span>' : '<span class="status plain">no</span>'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function baseName(p) { return String(p).replace(/^.*[\\\/]/, ''); }
+  function codes(list) { return list && list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : '<span class="muted">none</span>'; }
+  function code(v) { return v ? '<code>' + esc(v) + '</code>' : ''; }
+  function text(v) { return esc(v === null || v === undefined ? '' : v); }
+  // Shallow copies: table() stamps each row with its index, and some rows sit in two tables.
+  function copies(list) { return (list || []).map(function (r) { var o = {}; for (var k in r) o[k] = r[k]; return o; }); }
+
+  // Header, links and scope.
+  var s = d.scope;
+  document.getElementById('subtitle').textContent = d.version + DOT + 'Generated ' + d.generated + DOT + fmt(s.files) + ' files' + DOT +
+    fmt(s.projects) + ' projects' + DOT + fmt(s.lines) + ' lines' + DOT + 'Roots ' + s.roots.join(', ');
+  document.getElementById('links').innerHTML = d.reports.map(function (r) { return '<a href="' + esc(baseName(r.path)) + '">' + esc(baseName(r.path)) + '</a>'; }).join(DOT);
+  document.getElementById('scope').innerHTML = [
+    ['Source roots', codes(s.roots)], ['Root-level files', codes(s.rootFiles)], ['Project segments', esc(s.segments)],
+    ['Excluded directories', codes(s.excluded)], ['Excluded suffixes', codes(s.excludedSuffixes)], ['Roslyn', codes([s.roslyn])],
+    ['Language version', codes([s.languageVersion])], ['Helper framework', codes([s.framework])], ['Helper SDK', codes([s.sdk])],
+    ['Helper built this run', flag(s.helperBuilt)], ['Console rows', esc(d.top)]
+  ].map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  var host = document.getElementById('sections');
+  function panel(title, count) {
+    var sec = document.createElement('section');
+    sec.className = 'panel';
+    sec.innerHTML = '<h2>' + esc(title) + (count === undefined ? '' : ' <span class="count">(' + fmt(count) + ')</span>') + '</h2>';
+    host.appendChild(sec);
+    return sec;
+  }
+
+  // One full table: sortable by any column, filtered by text when long, the row count kept current.
+  function table(spec) {
+    var sec = panel(spec.title, spec.count ? spec.rows.length : undefined);
+    var rows = spec.rows.map(function (r, i) { r.__i = i; return r; });
+    if (!rows.length) { sec.insertAdjacentHTML('beforeend', '<div class="empty">None.</div>'); return; }
+    var textKeys = spec.columns.filter(function (c) { return !c.num; }).map(function (c) { return c.key; });
+    var bar = document.createElement('div');
+    bar.className = 'toolbar';
+    var input = null;
+    if (rows.length > FILTER_MIN) {
+      input = document.createElement('input');
+      input.type = 'search';
+      input.placeholder = 'Filter ' + spec.title.toLowerCase();
+      input.setAttribute('aria-label', 'Filter ' + spec.title);
+      bar.appendChild(input);
+    }
+    var counter = document.createElement('span');
+    counter.className = 'rowcount';
+    bar.appendChild(counter);
+    sec.appendChild(bar);
+    var wrap = document.createElement('div');
+    wrap.className = 'tablewrap' + (rows.length > FILTER_MIN ? '' : ' short');
+    var tbl = document.createElement('table');
+    wrap.appendChild(tbl);
+    sec.appendChild(wrap);
+    var sortKey = null, sortDown = false;
+
+    function cell(c, r) {
+      var v = r[c.key];
+      var html = c.render ? c.render(v) : c.num ? fmt(v) : esc(v === null || v === undefined ? '' : v);
+      return '<td class="' + (c.loc ? 'loc' : c.num ? '' : 'l') + '">' + html + '</td>';
+    }
+    function draw() {
+      var q = input ? input.value.trim().toLowerCase() : '';
+      var list = rows.filter(function (r) {
+        if (!q) return true;
+        for (var k = 0; k < textKeys.length; k++) { if (String(r[textKeys[k]]).toLowerCase().indexOf(q) >= 0) return true; }
+        return false;
+      });
+      if (sortKey !== null) {
+        var col = spec.columns.filter(function (c) { return c.key === sortKey; })[0];
+        list.sort(function (a, b) {
+          var x = a[sortKey], y = b[sortKey], r;
+          if (col.num || col.bool) r = (Number(x) || 0) - (Number(y) || 0);
+          else { x = String(x).toLowerCase(); y = String(y).toLowerCase(); r = x < y ? -1 : x > y ? 1 : 0; }
+          if (r === 0) r = a.__i - b.__i;
+          return sortDown ? -r : r;
+        });
+      }
+      var head = '<thead><tr>' + spec.columns.map(function (c) {
+        return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + esc(c.label) + '</th>';
+      }).join('') + '</tr></thead>';
+      var body = list.map(function (r) { return '<tr>' + spec.columns.map(function (c) { return cell(c, r); }).join('') + '</tr>'; }).join('');
+      var foot = spec.total ? '<tr class="total">' + spec.columns.map(function (c) { return cell(c, spec.total); }).join('') + '</tr>' : '';
+      tbl.innerHTML = head + '<tbody>' + body + foot + '</tbody>';
+      Array.prototype.forEach.call(tbl.querySelectorAll('th.sort'), function (th) {
+        th.addEventListener('click', function () {
+          var k = th.getAttribute('data-key');
+          var c = spec.columns.filter(function (x) { return x.key === k; })[0];
+          if (k === sortKey) sortDown = !sortDown;
+          else { sortKey = k; sortDown = !!(c.num || c.bool); }
+          draw();
+        });
+      });
+      counter.textContent = (list.length === rows.length ? fmt(rows.length) : fmt(list.length) + ' of ' + fmt(rows.length)) + (rows.length === 1 ? ' row' : ' rows');
+    }
+    if (input) input.addEventListener('input', draw);
+    draw();
+  }
+
+  // Style bars: A share and B share of each pair, placed under the Styles heading.
+  function styleBars(sec) {
+    var html = d.styles.map(function (r) {
+      var sum = r.a.count + r.b.count;
+      var name = '<div class="name">' + esc(r.label) + '</div>';
+      if (sum === 0) return name + '<div><div class="bar" title="no uses"></div><div class="barlabels"><span class="muted">no uses</span></div></div>';
+      var shareA = 100 * r.a.count / sum, shareB = 100 - shareA;
+      var tipA = r.a.label + ': ' + fmt(r.a.count) + ' (' + pct(shareA) + ')', tipB = r.b.label + ': ' + fmt(r.b.count) + ' (' + pct(shareB) + ')';
+      return name + '<div><div class="bar" role="img" aria-label="' + esc(tipA + ', ' + tipB) + '">' +
+        '<i style="width:' + shareA.toFixed(3) + '%;background:var(--series-1)" title="' + esc(tipA) + '"></i>' +
+        '<i style="width:' + shareB.toFixed(3) + '%;background:var(--series-2)" title="' + esc(tipB) + '"></i></div>' +
+        '<div class="barlabels"><span><i class="swatch" style="background:var(--series-1)"></i>' + esc(r.a.label) + ' ' + fmt(r.a.count) + '</span>' +
+        '<span>' + esc(r.b.label) + ' ' + fmt(r.b.count) + '<i class="swatch" style="background:var(--series-2)"></i></span></div></div>';
+    }).join('');
+    sec.querySelector('h2').insertAdjacentHTML('afterend', '<div class="bars">' + html + '</div>');
+  }
+
+  // A heat cell sorts as its count (valueOf) and carries its row maximum for the shade.
+  function Heat(n, max) { this.n = n; this.max = max; }
+  Heat.prototype.valueOf = function () { return this.n; };
+  function heat(v) {
+    if (!v || !v.n) return '';
+    // The shade rises with the count against the row maximum; strong shades take white text.
+    var level = v.max > 0 ? v.n / v.max : 0;
+    var mix = Math.round(12 + 73 * level);
+    return '<span class="heat" style="background:color-mix(in srgb, var(--series-1) ' + mix + '%, transparent)' + (mix >= 55 ? ';color:#ffffff' : '') + '">' + fmt(v.n) + '</span>';
+  }
+  function heatTable() {
+    var names = d.projects.map(function (p) { return p.project; });
+    var rows = d.ranked.map(function (f) {
+      var counts = {};
+      (f.projects || []).forEach(function (p) { counts[p.project] = p.count; });
+      var max = 0;
+      names.forEach(function (n) { if ((counts[n] || 0) > max) max = counts[n]; });
+      var row = { label: f.label, family: f.family };
+      names.forEach(function (n, i) { row['p' + i] = new Heat(counts[n] || 0, max); });
+      return row;
+    });
+    table({ title: 'Features by project', rows: rows, columns: [{ key: 'label', label: 'Feature' }, { key: 'family', label: 'Family' }].concat(names.map(function (n, i) {
+      return { key: 'p' + i, label: n, num: true, render: heat };
+    })) });
+  }
+
+  var FEATURE = { key: 'label', label: 'Feature' };
+  var FAMILY = { key: 'family', label: 'Family' };
+  // A C# version sorts as a number but shows as the catalog text.
+  var CSHARP = { key: 'version', label: 'C#', num: true, render: text };
+  var COUNT = { key: 'count', label: 'Count', num: true };
+  var FILES = { key: 'files', label: 'Files', num: true };
+  var PER_K = { key: 'perThousand', label: 'Per 1k lines', num: true, render: ratio };
+
+  var m = d.summary;
+  table({ title: 'Summary', rows: [
+    { measure: 'Files', value: m.files }, { measure: 'Lines', value: m.lines }, { measure: 'Nodes', value: m.nodes },
+    { measure: 'Syntax kinds used', value: m.kindsUsed }, { measure: 'Features used', value: fmt(m.featuresUsed) + ' of ' + fmt(m.featuresTotal) },
+    { measure: 'Minimum C# version', value: m.minimumVersion }, { measure: 'Parse errors', value: m.parseErrors }
+  ], columns: [
+    { key: 'measure', label: 'Measure' }, { key: 'value', label: 'Value', num: true, render: function (v) { return typeof v === 'number' ? fmt(v) : esc(v); } }
+  ] });
+  var tf = d.totals.families;
+  table({ title: 'Families', rows: copies(d.families), total: { family: 'Total', features: tf.features, used: tf.used, count: tf.count, perThousand: tf.perThousand }, columns: [
+    FAMILY, { key: 'features', label: 'Features', num: true }, { key: 'used', label: 'Used', num: true }, COUNT, PER_K
+  ] });
+  var tp = d.totals.projects;
+  table({ title: 'Projects', rows: copies(d.projects), total: { project: 'Total', files: tp.files, lines: tp.lines, nodes: tp.nodes, featuresUsed: tp.featuresUsed, newestVersion: tp.newestVersion }, columns: [
+    { key: 'project', label: 'Project' }, FILES, { key: 'lines', label: 'Lines', num: true }, { key: 'nodes', label: 'Nodes', num: true },
+    { key: 'featuresUsed', label: 'Features used', num: true }, { key: 'newestVersion', label: 'Newest C#', num: true, render: text }
+  ] });
+  table({ title: 'Versions', rows: copies(d.versions), columns: [
+    { key: 'version', label: 'C# version', num: true, render: text }, { key: 'features', label: 'Features', num: true }, { key: 'used', label: 'Used', num: true }, COUNT
+  ] });
+  table({ title: 'Features', rows: copies(d.ranked.concat(d.unused)), columns: [
+    FEATURE, FAMILY, CSHARP, COUNT, PER_K, FILES, { key: 'first', label: 'First', loc: true, render: code }
+  ] });
+  table({ title: 'Styles', rows: d.styles.map(function (r) { return { label: r.label, aLabel: r.a.label, aCount: r.a.count, bLabel: r.b.label, bCount: r.b.count, shareA: r.shareA }; }), columns: [
+    { key: 'label', label: 'Style' }, { key: 'aLabel', label: 'A' }, { key: 'aCount', label: 'A count', num: true },
+    { key: 'bLabel', label: 'B' }, { key: 'bCount', label: 'B count', num: true }, { key: 'shareA', label: 'A share', num: true, render: pct }
+  ] });
+  if (d.styles.length) styleBars(host.lastElementChild);
+  table({ title: 'Features unused', count: true, rows: copies(d.unused), columns: [FEATURE, FAMILY, CSHARP] });
+  table({ title: 'Syntax kinds', rows: copies(d.kinds), columns: [{ key: 'kind', label: 'Kind' }, COUNT, FILES] });
+  table({ title: 'Attributes', rows: copies(d.attributes), columns: [{ key: 'name', label: 'Attribute' }, COUNT, FILES] });
+  table({ title: 'Parse errors', count: true, rows: copies(d.diagnostics), columns: [
+    { key: 'location', label: 'Location', loc: true }, { key: 'id', label: 'Id' }, { key: 'message', label: 'Message' }
+  ] });
+  heatTable();
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>Statistics generation ' + esc(d.generation) + '</span>';
+})();
+</script>
+</body>
+</html>

@@ -118,7 +118,7 @@ public sealed class TAudioTabPlan
         TInterface.TSkipActiveSet(sourceInspector.LInspectorSkip, true);
         TInterface.TSkipPersistentSet(sourceInspector.LInspectorSkip, true);
 
-        LSceneTabRecord layout = TInterface.TAudioLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TAudioLayoutRead(source);
         (LAudioTab target, LInspector targetInspector, _, _, LProcessing processing) = TAudioBuild();
         TInterface.TAudioLayoutApply(target, layout);
         LInspectorAudio targetSections = targetInspector.LInspectorAudio;
@@ -206,7 +206,7 @@ public sealed class TAudioTabPlan
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LAudioTab tab, LInspector inspector, _, _, LProcessing processing) = TAudioBuild();
-        LSidecarAudioRecord saved = TInterface.TAudioRecordCreate(
+        LSidecarAudioEntry saved = TInterface.TAudioRecordCreate(
             TInterface.TWorkAudioCreate(false, TInterface.TWorkVolumeCreate(true, 6)));
         TInterface.TAudioLibrarianAttach(_ => saved, (_, _) => true);
         try

@@ -48,19 +48,19 @@ public sealed class LSurface
 
     public static double LSurfaceCollapseResolve(bool lCollapsed, double lStripWidth) => lCollapsed ? lStripWidth : 0;
 
-    public static bool LSurfaceExportResolve(LSceneTabRecord? lLayout) => lLayout?.LSceneExportHidden == true;
+    public static bool LSurfaceExportResolve(LSceneTabEntry? lLayout) => lLayout?.LSceneExportHidden == true;
 
-    public static bool LSurfaceAutoResolve(LSceneTabRecord? lLayout) => lLayout?.LSceneAutoRelay ?? false;
+    public static bool LSurfaceAutoResolve(LSceneTabEntry? lLayout) => lLayout?.LSceneAutoRelay ?? false;
 
-    public IReadOnlyList<int> LSurfaceCollapsedResolve(LSceneTabRecord? lLayout) =>
+    public IReadOnlyList<int> LSurfaceCollapsedResolve(LSceneTabEntry? lLayout) =>
         lLayout?.LScenePanelsCollapsed
             .Where(lIndex => lIndex >= 0 && lIndex < lSurfaceCount)
             .ToArray()
         ?? Array.Empty<int>();
 
-    public LSceneTabRecord LSurfaceLayoutRead()
+    public LSceneTabEntry LSurfaceLayoutRead()
     {
-        var lLayout = new LSceneTabRecord
+        var lLayout = new LSceneTabEntry
         {
             LSceneExportHidden = LSurfaceExportHidden,
             LSceneAutoRelay = LSurfaceAutoRelay

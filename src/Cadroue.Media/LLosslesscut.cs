@@ -25,7 +25,7 @@ public sealed record LLosslesscutResult(
     int? LLosslesscutResultVersion,
     string LLosslesscutResultMedia,
     bool LLosslesscutResultAgreement,
-    IReadOnlyList<LSidecarSectionRecord> LLosslesscutResultSections,
+    IReadOnlyList<LSidecarSectionEntry> LLosslesscutResultSections,
     IReadOnlyList<LLosslesscutIssue> LLosslesscutResultIssues);
 
 public static class LLosslesscut
@@ -135,7 +135,7 @@ public static class LLosslesscut
                 lLosslesscutProject.LLosslesscutProjectMedia);
 
         long lLosslesscutDurationMilliseconds = Math.Max(0, (long)Math.Round(lLosslesscutDuration.TotalMilliseconds));
-        var lLosslesscutSections = new List<LSidecarSectionRecord>();
+        var lLosslesscutSections = new List<LSidecarSectionEntry>();
         var lLosslesscutIssues = new List<LLosslesscutIssue>();
 
         foreach (LClip lLosslesscutSegment in lLosslesscutProject.LLosslesscutProjectSegments)
@@ -223,7 +223,7 @@ public static class LLosslesscut
                 continue;
             }
 
-            lLosslesscutSections.Add(new LSidecarSectionRecord
+            lLosslesscutSections.Add(new LSidecarSectionEntry
             {
                 LSidecarStartMilliseconds = lLosslesscutStartMilliseconds,
                 LSidecarEndMilliseconds = lLosslesscutEndMilliseconds,

@@ -27,7 +27,7 @@ internal sealed class TPlacement : IDisposable
     internal bool TPlacementSave(string key, double marker) =>
         LPlacement.LPlacementSave(key, marker, marker + 1, marker + 100, marker + 200);
 
-    internal LPlacementRecord? TPlacementRead(string key) => LPlacement.LPlacementRead(key);
+    internal LPlacementEntry? TPlacementRead(string key) => LPlacement.LPlacementRead(key);
 
     internal void TPlacementMalformSave() => File.WriteAllText(TPlacementPath, "{ invalid placement json");
 

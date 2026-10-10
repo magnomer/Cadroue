@@ -11,15 +11,15 @@ public sealed class LInspectorAudio
     public LInspectorAudio(LSkip lSkip)
     {
         lInspectorSkip = lSkip;
-        LInspectorVolume.LVolumeChange += LInspectorAudioRaise;
-        LInspectorLoudness.LLoudnessChange += LInspectorAudioRaise;
-        LInspectorNoise.LNoiseChange += LInspectorAudioRaise;
-        LInspectorHighpass.LFilterChange += LInspectorAudioRaise;
-        LInspectorLowpass.LFilterChange += LInspectorAudioRaise;
-        LInspectorEqualizer.LEqualizerChange += LInspectorAudioRaise;
+        LInspectorVolume.LVolumeChanged += LInspectorAudioRaise;
+        LInspectorLoudness.LLoudnessChanged += LInspectorAudioRaise;
+        LInspectorNoise.LNoiseChanged += LInspectorAudioRaise;
+        LInspectorHighpass.LFilterChanged += LInspectorAudioRaise;
+        LInspectorLowpass.LFilterChanged += LInspectorAudioRaise;
+        LInspectorEqualizer.LEqualizerChanged += LInspectorAudioRaise;
     }
 
-    public event Action? LInspectorAudioChange;
+    public event Action? LInspectorAudioChanged;
 
     public LVolume LInspectorVolume { get; } = new();
 
@@ -62,7 +62,7 @@ public sealed class LInspectorAudio
         LInspectorLoudness.LLoudnessStepSet(LInspectorStepFind(lPlan, LAudioKind.LAudioKindLeveling)
             ?? LAudio.LAudioNormalizeCreate());
         lInspectorAudioDepth--;
-        LInspectorAudioChange?.Invoke();
+        LInspectorAudioChanged?.Invoke();
     }
 
     public bool LInspectorPersistentCheck() =>
@@ -150,7 +150,7 @@ public sealed class LInspectorAudio
             return;
         }
 
-        LInspectorAudioChange?.Invoke();
+        LInspectorAudioChanged?.Invoke();
     }
 
     private static LWorkAudioStep? LInspectorStepFind(LWorkAudio lPlan, LAudioKind lKind) =>

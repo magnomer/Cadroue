@@ -2,14 +2,17 @@ namespace Convention.Tests;
 
 internal sealed record TAuditObjectRow(
     string TAuditObjectName,
-    IReadOnlyList<string> TAuditObjectParts,
+    int TAuditObjectParts,
     int TAuditObjectLines,
     int TAuditObjectMembers,
-    int TAuditObjectState,
+    int TAuditObjectMutable,
+    int TAuditObjectOutgoing,
+    int TAuditObjectIncoming,
     IReadOnlyList<string> TAuditObjectHubs,
-    int TAuditObjectCross,
-    double TAuditObjectWeave,
-    double TAuditObjectFree,
+    int TAuditObjectShared,
+    int TAuditObjectCrossings,
+    double TAuditObjectGlued,
+    double TAuditObjectFused,
     double TAuditObjectDensity,
-    bool TAuditObjectMonolith,
-    bool TAuditObjectLarge);
+    IReadOnlyList<string> TAuditObjectFlags,
+    string TAuditObjectVerdict);

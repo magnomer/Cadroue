@@ -2,7 +2,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
-using static Cadroue.UIDeportment.LRosterFormat;
+using static Cadroue.UIDeportment.LRosterFormatter;
 
 namespace Cadroue.UIDeportment;
 

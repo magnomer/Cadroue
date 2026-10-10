@@ -9,7 +9,7 @@ namespace Cadroue.Tests;
 internal static partial class TInterface
 {
     internal static LFlow TFlowCreate() => new();
-    internal static void TFlowEditAttach(LFlow flow, Action<bool> handler) => flow.LFlowEditChange += handler;
+    internal static void TFlowEditAttach(LFlow flow, Action<bool> handler) => flow.LFlowEditChanged += handler;
     internal static void TFlowSourceSet(LFlow flow, LMediaInfo media, string? path) => flow.LFlowSourceSet(media, path);
     internal static bool TFlowSourceMatch(LFlow flow, string? path) => flow.LFlowSourceMatch(path);
     internal static void TFlowSourceClear(LFlow flow) => flow.LFlowSourceClear();
@@ -29,30 +29,30 @@ internal static partial class TInterface
     internal static void TFlowClose(LFlow flow) => flow.LFlowClose();
     internal static void TFlowPaletteApply(LFlow flow, int count) => flow.LFlowPaletteApply(count);
     internal static void TFlowPlayingAttach(LFlow flow, Func<bool>? source) => flow.LFlowPlayingAttach(source);
-    internal static void TFlowSpoolAttach(LFlow flow, Action handler) => flow.LFlowSpoolApply += handler;
+    internal static void TFlowSpoolAttach(LFlow flow, Action handler) => flow.LFlowSpoolApplied += handler;
     internal static void TFlowCursorAttach(LFlow flow, Action apply, Action<TimeSpan> change)
     {
-        flow.LFlowCursorApply += apply;
-        flow.LFlowCursorChange += change;
+        flow.LFlowCursorApplied += apply;
+        flow.LFlowCursorChanged += change;
     }
     internal static void TFlowStripAttach(LFlow flow, Action attach, Action clear)
     {
-        flow.LFlowAttachApply += attach;
-        flow.LFlowClearApply += clear;
+        flow.LFlowAttachApplied += attach;
+        flow.LFlowClearApplied += clear;
     }
-    internal static void TFlowMediaAttach(LFlow flow, Action handler) => flow.LFlowMediaChange += handler;
+    internal static void TFlowMediaAttach(LFlow flow, Action handler) => flow.LFlowMediaChanged += handler;
     internal static void TFlowPlayAttach(
         LFlow flow, Action play, Action pause, Action<bool> drag, Action<double> volume)
     {
-        flow.LFlowPlay += play;
-        flow.LFlowPause += pause;
-        flow.LFlowDragChange += drag;
-        flow.LFlowVolumeAdjust += volume;
+        flow.LFlowPlayed += play;
+        flow.LFlowPaused += pause;
+        flow.LFlowDragChanged += drag;
+        flow.LFlowVolumeAdjusted += volume;
     }
     internal static void TFlowNameAttach(LFlow flow, Action<LFlowNamePrompt> show, Action close)
     {
-        flow.LFlowName.LFlowNameShow += show;
-        flow.LFlowName.LFlowNameClose += close;
+        flow.LFlowName.LFlowNameShown += show;
+        flow.LFlowName.LFlowNameClosed += close;
     }
     internal static bool TFlowShortcutRun(LFlow flow, string token) => flow.LFlowShortcutRun(token);
     internal static bool TFlowWheelHandle(LFlow flow, int delta) => flow.LFlowWheelHandle(delta);
@@ -69,7 +69,7 @@ internal static partial class TInterface
         LFlowName.LFlowOffsetResolve(empty, origin, size, host);
 
     internal static void TFlowSectionAttach(LFlow flow, Action<IReadOnlyList<LPiece>, int?> handler) =>
-        flow.LFlowSection.LFlowSectionChange += handler;
+        flow.LFlowSection.LFlowSectionChanged += handler;
     internal static IReadOnlyList<LPiece> TFlowSectionsRead(LFlow flow) => flow.LFlowSection.LFlowSectionsRead();
     internal static int? TFlowSelectionRead(LFlow flow) => flow.LFlowSection.LFlowSelectionRead();
     internal static IReadOnlyList<int> TFlowSelectedRead(LFlow flow) => flow.LFlowSection.LFlowSelectedRead();
@@ -110,9 +110,9 @@ internal static partial class TInterface
 
     internal static void TFlowTimerAttach(LFlow flow, Action defer, Action<TimeSpan> resume, Action reset)
     {
-        flow.LFlowKeyframe.LFlowTimerDefer += defer;
-        flow.LFlowKeyframe.LFlowTimerResume += resume;
-        flow.LFlowKeyframe.LFlowTimerReset += reset;
+        flow.LFlowKeyframe.LFlowTimerDeferred += defer;
+        flow.LFlowKeyframe.LFlowTimerResumed += resume;
+        flow.LFlowKeyframe.LFlowTimerStopped += reset;
     }
     internal static void TFlowKeyframeAttach(
         LFlow flow,
@@ -120,7 +120,7 @@ internal static partial class TInterface
         Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>> change)
     {
         flow.LFlowKeyframe.LFlowKeyframeReady += ready;
-        flow.LFlowKeyframe.LFlowKeyframeChange += change;
+        flow.LFlowKeyframe.LFlowKeyframeChanged += change;
     }
     internal static bool TFlowResumeCheck(LFlow flow) => flow.LFlowKeyframe.LFlowResumePending;
     internal static void TFlowKeyframeDefer(LFlow flow) => flow.LFlowKeyframe.LFlowKeyframeDefer();
@@ -139,7 +139,7 @@ internal static partial class TInterface
     internal static void TFlowWaveformAttach(LFlow flow, Action ready, Action<byte[]> update)
     {
         flow.LFlowWaveform.LFlowWaveformReady += ready;
-        flow.LFlowWaveform.LFlowWaveformUpdate += update;
+        flow.LFlowWaveform.LFlowWaveformUpdated += update;
     }
     internal static bool TFlowWaveformSet(LFlow flow, bool active) => flow.LFlowWaveformSet(active);
     internal static void TFlowWaveformApply(LFlow flow) => flow.LFlowWaveform.LFlowWaveformApply();
@@ -167,7 +167,7 @@ internal static partial class TInterface
         LCursor.LCursorLinesResolve(top, bottom, empty, chipTop, chipBottom, chipHeight);
 
     internal static LMap TMapCreate(LFlow flow) => new(flow);
-    internal static void TMapFrameAttach(LMap map, Action handler) => map.LMapFrameApply += handler;
+    internal static void TMapFrameAttach(LMap map, Action handler) => map.LMapFrameApplied += handler;
     internal static LMapFrame TMapFrameResolve(LMap map, double width, double height) =>
         map.LMapFrameResolve(width, height);
     internal static IReadOnlyList<LMapBadge> TMapBadgeResolve(LMap map, LMapBand band, double width, double height) =>
@@ -182,10 +182,10 @@ internal static partial class TInterface
 
     internal static LViewfinder TViewfinderCreate(LFlow flow) => new(flow);
     internal static void TViewfinderFrameAttach(LViewfinder viewfinder, Action handler) =>
-        viewfinder.LViewfinderFrameApply += handler;
+        viewfinder.LViewfinderFrameApplied += handler;
     internal static LViewfinderFrame TViewfinderFrameResolve(LViewfinder viewfinder, double width, double height) =>
         viewfinder.LViewfinderFrameResolve(width, height);
-    internal static LViewfinderPoint TViewfinderTickResolve(LViewfinderTick tick, double textHeight) =>
+    internal static LViewfinderPoint TViewfinderTickResolve(LViewfinderGraduation tick, double textHeight) =>
         LViewfinderText.LViewfinderTickResolve(tick, textHeight);
     internal static IReadOnlyList<LViewfinderLabel> TViewfinderLabelResolve(
         LViewfinderBand band, double badgeWidth, double badgeHeight) =>
@@ -210,6 +210,7 @@ internal static partial class TInterface
         viewfinder.LViewfinderMoveHandle(x, width);
     internal static void TViewfinderDragClear(LViewfinder viewfinder) => viewfinder.LViewfinderDragClear();
 
-    internal static void TTraceAttach(Action<LTraceEntry> handler) => LTrace.LTraceAppend += handler;
-    internal static void TTraceDetach(Action<LTraceEntry> handler) => LTrace.LTraceAppend -= handler;
+    internal static void TTraceAttach(Action<LTraceEntry> handler) => LTrace.LTraceAppended += handler;
+
+    internal static void TTraceDetach(Action<LTraceEntry> handler) => LTrace.LTraceAppended -= handler;
 }

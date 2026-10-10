@@ -5,7 +5,6 @@ namespace Cadroue.Infrastructure;
 
 public static class LRelayStore
 {
-    private const string LRelayFolderName = "Cadroue";
     private const string LRelaySubfolderName = "relay";
 
     private static readonly TimeSpan LRelayStaleAge = TimeSpan.FromHours(12);
@@ -109,7 +108,6 @@ public static class LRelayStore
 
     private static string LRelayFolderCreate()
     {
-        string lLocalAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.Combine(lLocalAppData, LRelayFolderName, LRelaySubfolderName);
+        return Path.Combine(LDepot.LDepotLocalRead(), LRelaySubfolderName);
     }
 }

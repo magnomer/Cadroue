@@ -1,12 +1,14 @@
 # TAuditStrict.cs
+Hash: `bec8aee286d94f66`
 
 ## `public sealed class TAuditStrict`
 
-The surface rules: a surface is what the user sees, and a surface member only calls a function.
+These are the surface rules.
+A surface is what the user sees, and a surface member only calls a function.
 A surface holds no state, never branches or computes, and names only its driver.
 The rules hold the Veneer and UITerminal alike, and Host is held to construction and wiring.
 A surface type holds no member but a constructor, and its markup holds no hook into logic.
-The Veneer audit is the `Surface` facts, and it gates every batch of the Great Purge.
+Each fact holds one hit kind against the ledger.
 While `TAuditStrictEnforced` is false every fact passes and reports as a warning.
 Enforced, a kind fails in any file whose count stands above its ledger ceiling.
 The ledger keys each ceiling by file, so each medium's lag is its own.
@@ -46,7 +48,7 @@ A `DependencyProperty` or `RoutedEvent` static counts, since the surface allows 
 
 A mutable static field in a driver type, state shared past any one gate.
 
-## `public void AuditStrict_SurfaceMembers_CallOnly()`
+## `public void AuditStrict_SurfaceMembers_HoldNoMeddling()`
 
 A surface line that is not a plain call: a branch, a loop, an operator, an assignment or a declaration.
 A LINQ query is a breach too, since a filter decides what is drawn.
@@ -55,7 +57,7 @@ Every line inside a breaching statement counts, so logic added inside one moves 
 ## `public void AuditStrict_SurfaceSources_NameOnlyDriver()`
 
 A surface line naming a type from below the driver, Conduct's included.
-It overlaps the chain audit's `cross` count, which counts the same names per ring pair.
+It overlaps the border audit's `Undercutting` count, which counts the same names per ring pair.
 
 ## `public void AuditStrict_SurfaceMarkup_NameOnlyDriver()`
 
@@ -66,47 +68,47 @@ A markup line that maps a namespace below the driver, reads a constant from ther
 A markup trigger or visual state, or a binding slot that converts, formats, selects or validates.
 Each is a branch or a computation standing in the surface.
 
-## `public void AuditStrict_SurfaceMarkup_HookNever()`
+## `public void AuditStrict_SurfaceMarkup_HoldNoTethering()`
 
 A markup line through which logic reaches the markup: a binding, a command, an input binding or a code reach.
 A code reach is `x:Static` or a markup extension whose prefix maps a code namespace.
-A command parameter or target, a display member path or a selected value path is a hook too.
+A command parameter or target, a display member path or a selected value path is tethering too.
 So is a literal `Tag`, since code reads it as a value to branch on.
 Each counts as an attribute or as the property a `Setter` names.
-A converter or a template or style selector declared in the markup is a hook too.
-Each line counts once, however many hooks it holds.
+A converter or a template or style selector declared in the markup is tethering too.
+Each line counts once, however many markers it holds.
 `{StaticResource}`, `{DynamicResource}` and `{x:Type}` stay allowed.
 
-## `public void AuditStrict_SurfaceTypes_ShellOnly()`
+## `public void AuditStrict_SurfaceTypes_HoldNoFreelancing()`
 
 A surface member that is not a constructor: a method, property, event, indexer or operator.
 The shell only constructs, so every handler or helper belongs in Deportment.
 An event attribute in markup therefore shows as the missing handler it needs.
 Generated code is left out, as for every surface fact.
 
-## `public void AuditStrict_SurfaceNames_HoldNoGlyph()`
+## `public void AuditStrict_SurfaceNames_HoldNoHomoglyph()`
 
 A surface identifier holding a character outside ASCII.
 A look-alike glyph would let a name pass every prefix rule while reading as another.
 
-## `public void AuditStrict_HostSources_WireOnly()`
+## `public void AuditStrict_HostSources_HoldNoOverworking()`
 
 A Host line that does more than construct and wire: a branch, a choice, an operator or an early return.
 Host holds no behaviour, so each such line belongs in the layer that owns the decision.
 
-## `public void AuditStrict_DriverSource_PackNever()`
+## `public void AuditStrict_DriverSource_HoldNoHardwiring()`
 
 A driver line holding a pack URI or naming the Veneer assembly.
 Deportment pulls every part by contract ID and never names the Veneer.
 The line counts once, under the first marker it holds.
 
-## `public void AuditStrict_DriverTypes_ScaffoldNever()`
+## `public void AuditStrict_DriverTypes_HoldNoMasquerading()`
 
 A driver type deriving from a scaffold type, such as a window, a page or a resource dictionary.
 The Veneer holds the scaffold, so a driver type deriving from one is scaffold standing in the wrong layer.
 Each partial part counts in its own file.
 
-## `public void AuditStrict_SurfaceMarkup_ContractHeld()`
+## `public void AuditStrict_SurfaceMarkup_HoldNoDangling()`
 
 A contract ID passed to `QContract` that no `x:Name` or `x:Key` in the surface markup declares.
 An ID that is not a constant counts too, since no markup can be checked against it.
@@ -124,6 +126,18 @@ A surface line that reads a file, parses JSON, runs a regex, starts a process or
 Each of those is work the engine or `LUsher` does, and the surface only asks for the answer.
 A file whose stream use is the framework's own may be exempt by name.
 
+## `public async Task AuditStrict_CoreRead_UserPrefixOperatorReturns()`
+
+The core read of `-flag` returns within five seconds instead of looping on the operator.
+
+## `public void AuditStrict_BreachRead_ExpressionIndexerBranchFlags()`
+
+A branch in an expression-bodied indexer is a host breach.
+
+## `public void AuditStrict_BreachRead_ExpressionLocalFunctionBranchFlags()`
+
+A branch in an expression-bodied local function is a host breach.
+
 ## `public void AuditStrict_Exempt_MatchesSource()`
 
 Every exempt file still holds a line its exemption spares, so a stale exemption is removed.
@@ -135,26 +149,26 @@ The lowered ledger is written under `temp/audit` to copy over the tracked one.
 
 ## `public void AuditStrict_Sources_WalkEveryFile()`
 
-Every tracked surface, driver and host source reached the walkers.
-An empty surface passes, but a file the binder dropped does not pass unseen.
+Every tracked surface and host source reached the walkers.
+A file the binder dropped does not pass unseen.
 
 ## `private void TAuditStrictCheck(string kind, string summary)`
 
 Holds one kind against the ledger and prints the count and the report path.
 
-## `private static IEnumerable<string> TAuditExemptRead(`
+## `private static IEnumerable<string> TAuditExemptRead(IReadOnlyList<string> include, IReadOnlyList<string> forbidden, IReadOnlyList<string> exempt)`
 
 The exempt file names that hold no line the forbidden patterns match.
 
-## `private static List<string> TAuditSourceScan(`
+## `private static List<string> TAuditSourceScan(IReadOnlyList<string> include, IReadOnlyList<string> forbidden, IReadOnlyList<string> exempt)`
 
 Every line of every included source that matches a forbidden pattern, outside the exempt files.
 A string literal and a line comment are blanked first, so a word inside a message is not a hit.
-No hit count is kept for these, since both start at zero and stay there.
+These facts assert zero hits and keep no ledger.
 
 ## `private static (IReadOnlyList<TViolation> TAuditHits, IReadOnlyList<string> TAuditVeneers,`
 
-Enumerates the UI sources, the host sources and the surface markup with Git.
+Enumerates the UI sources, host sources, surface markup and driver sources with Git.
 It fails when the UI or host set is empty, since the audit would then pass vacuously.
 An empty markup set passes, since the Veneer gets its markup back one batch at a time.
 It then runs the four walkers once, with paths made repo-relative.
@@ -166,7 +180,7 @@ The tracked files matching the patterns, with the usual exclusions.
 
 ## `private static string TAuditReportSave()`
 
-Writes the markdown report under `temp/audit` and returns its repo-relative path.
+Writes the markdown report at the path the strict setting names and returns it repo-relative.
 The report opens with the counts, then a per-type table, then every hit by kind.
 
 ## `private static int TAuditClassRead(IReadOnlyList<TViolation> hits, string type, string kind)`

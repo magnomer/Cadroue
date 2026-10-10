@@ -1,0 +1,9 @@
+{
+  "project": "Cadroue",
+  "report": { "directory": "docs-analysis", "versionFile": "version.json", "versionKey": "current-version", "prefix": "Audit-", "keep": ["records"] },
+  "audits": [
+    "AuditLines", "AuditLinesHistory", "AuditComments", "AuditFake", "AuditFault", "AuditNames",
+    "AuditObject", "AuditObjectHistory", "AuditPlatform", "AuditStructure", "AuditUI",
+    "AuditEncoding"
+  ]
+}

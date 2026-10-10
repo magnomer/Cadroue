@@ -167,7 +167,7 @@ public static class PIcon
     }
 
     private static Uri PIconUriCreate(string pIconPath) =>
-        new(string.Concat("pack://application:,,,/", pIconPath.TrimStart('/')), UriKind.Absolute);
+        new(string.Concat("pack://application:,,,/Cadroue.UIVeneer;component/", pIconPath.TrimStart('/')), UriKind.Absolute);
 
     private static System.IO.Stream PIconStreamRead(Uri pIconUri) =>
         System.Windows.Application.GetResourceStream(pIconUri)!.Stream;

@@ -8,7 +8,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-internal sealed class LFlyleafRecord
+internal sealed class LFlyleafDocument
 {
     public string LFlyleafAssemblyFolder { get; set; } = string.Empty;
 
@@ -195,7 +195,7 @@ public static partial class LFlyleaf
                 return null;
             }
 
-            LFlyleafRecord? lRecord = JsonSerializer.Deserialize<LFlyleafRecord>(File.ReadAllText(lRecordPath));
+            LFlyleafDocument? lRecord = JsonSerializer.Deserialize<LFlyleafDocument>(File.ReadAllText(lRecordPath));
             if (LFlyleafFolderValidate(lRecord?.LFlyleafAssemblyFolder))
             {
                 return lRecord!.LFlyleafAssemblyFolder;
@@ -240,7 +240,7 @@ public static partial class LFlyleaf
     private static string LFlyleafRecordFind() =>
         Path.Combine(LFlyleafRootRead(), LFlyleafRecordName);
 
-    private static void LFlyleafRecordSave(LFlyleafRecord lRecord)
+    private static void LFlyleafRecordSave(LFlyleafDocument lRecord)
     {
         File.WriteAllText(
             LFlyleafRecordFind(),

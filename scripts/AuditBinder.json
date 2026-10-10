@@ -1,0 +1,32 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "source": "src/",
+  "configuration": "Debug",
+  "reference": "src/Cadroue.Host",
+  "packs": [
+    "Microsoft.NETCore.App",
+    "Microsoft.WindowsDesktop.App"
+  ],
+  "excludeSegments": [
+    ".git",
+    "bin",
+    "obj",
+    "out",
+    "publish",
+    "snapshots",
+    "TestResults"
+  ],
+  "excludeSuffixes": [
+    ".md",
+    ".g.cs",
+    ".g.i.cs",
+    ".AssemblyInfo.cs",
+    ".GlobalUsings.g.cs",
+    ".Designer.cs"
+  ],
+  "excludePrefixes": [
+    "TemporaryGeneratedFile_",
+    "GeneratedInternalTypeHelper"
+  ]
+}

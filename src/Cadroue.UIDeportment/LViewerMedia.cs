@@ -19,7 +19,7 @@ public sealed record LViewerHostFacts(
 public sealed class LViewerMedia
 {
     private readonly LViewer lViewer;
-    private readonly LMediaLoad lViewerProbe = new();
+    private readonly LMediaLoader lViewerProbe = new();
     private Func<LViewerHostFacts>? lViewerFactsSource;
     private int lViewerHostStamp;
 
@@ -28,7 +28,7 @@ public sealed class LViewerMedia
         lViewer = lOwner;
     }
 
-    public event Action? LViewerPlayerCreate;
+    public event Action? LViewerPlayerCreated;
 
     private LPlayer LPlayer => lViewer.LPlayer;
 
@@ -36,7 +36,7 @@ public sealed class LViewerMedia
 
     private LViewerRenderer LViewerRenderer => lViewer.LViewerRenderer;
 
-    public void LViewerPlayerRaise() => LViewerPlayerCreate?.Invoke();
+    public void LViewerPlayerRaise() => LViewerPlayerCreated?.Invoke();
 
     public void LViewerFactsAttach(Func<LViewerHostFacts> lFactsSource) => lViewerFactsSource = lFactsSource;
 
@@ -151,7 +151,7 @@ public sealed class LViewerMedia
         }
     }
 
-    public event Action? LViewerLoupeClose;
+    public event Action? LViewerLoupeClosed;
 
     public bool LViewerMediaClose(bool lForce)
     {
@@ -162,7 +162,7 @@ public sealed class LViewerMedia
 
         if (lViewer.LViewerLoupeActive)
         {
-            LViewerLoupeClose?.Invoke();
+            LViewerLoupeClosed?.Invoke();
         }
 
         bool lLoadClosed = lViewerProbe.LMediaLoadClose();
@@ -232,7 +232,7 @@ public sealed class LViewerMedia
         }
 
         string lSourcePath = lRequest.LViewerIntentPath;
-        string lLoadPath = LMediaLoad.LMediaPathResolve(lSourcePath) ?? lSourcePath;
+        string lLoadPath = LMediaLoader.LMediaPathResolve(lSourcePath) ?? lSourcePath;
         lViewer.LViewerIntentSet(lRequest with { LViewerIntentPath = lLoadPath });
         lViewerProbe.LMediaLoadTail = !lViewer.LViewerMpvActive;
         LTraceLog.LTraceInfoRecord(
@@ -308,7 +308,7 @@ public sealed class LViewerMedia
         {
             if (lCreated)
             {
-                LViewerPlayerCreate?.Invoke();
+                LViewerPlayerCreated?.Invoke();
             }
 
             LPlayer.LPlayerVolumeSet(lViewer.LViewerVolume);

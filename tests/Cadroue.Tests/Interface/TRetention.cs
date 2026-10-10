@@ -5,9 +5,11 @@ namespace Cadroue.Tests;
 public sealed class TRetention : IDisposable
 {
     private readonly string tRetentionRoot;
+    private readonly string tRetentionPrevious;
 
     public TRetention()
     {
+        tRetentionPrevious = LDepot.LDepotRootRead();
         tRetentionRoot = Path.Combine(Path.GetTempPath(), "cadroue-retention-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tRetentionRoot);
         LDepot.LDepotRootSet(tRetentionRoot);
@@ -27,9 +29,11 @@ public sealed class TRetention : IDisposable
 
     public bool TRetentionExist(string path) => File.Exists(path);
 
+    public string TRetentionFolderResolve(string folder) => Path.Combine(tRetentionRoot, folder);
+
     public void Dispose()
     {
-        LDepot.LDepotRootSet(null);
+        LDepot.LDepotRootSet(tRetentionPrevious);
         try
         {
             Directory.Delete(tRetentionRoot, true);

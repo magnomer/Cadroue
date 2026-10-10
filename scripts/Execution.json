@@ -1,0 +1,41 @@
+{
+  "generation": 2,
+  "project": "Cadroue",
+  "source": {
+    "project": "src/Cadroue.UIVeneer/Cadroue.UIVeneer.csproj",
+    "executable": "Cadroue.exe",
+    "historicalProjects": [
+      "Cadroue.UIVeneer",
+      "Cadroue.UIShell"
+    ]
+  },
+  "publish": {
+    "runtime": "win-x64",
+    "selfContained": true,
+    "properties": [
+      "PublishSingleFile=true",
+      "IncludeNativeLibrariesForSelfExtract=true"
+    ]
+  },
+  "layout": {
+    "run": "run",
+    "build": "build",
+    "debug": "debug",
+    "snapshots": "snapshots",
+    "temp": "temp",
+    "ledger": "run/launched.json"
+  },
+  "git": {
+    "remote": "origin",
+    "subjectPattern": "^(?<version>[0-9]+\\.[0-9]+\\.[0-9]+)\\b"
+  },
+  "version": {
+    "file": "version.json",
+    "currentKey": "current-version",
+    "stableKey": "stable-version"
+  },
+  "record": {
+    "directory": "docs-analysis",
+    "filePattern": "Execution-{version}.md"
+  }
+}

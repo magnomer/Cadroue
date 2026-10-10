@@ -41,12 +41,12 @@ internal sealed class TSidecar : IDisposable
 
     internal static TSidecarData? TSidecarCoreParse(string json)
     {
-        LSidecarCoreRecord? core = LSidecarParse.LSidecarCoreParse(json);
-        return core is null ? null : TSidecarDataCreate(LSidecarParse.LSidecarCreate(core, null));
+        LSidecarCoreDocument? core = LSidecarSerializer.LSidecarCoreParse(json);
+        return core is null ? null : TSidecarDataCreate(LSidecarSerializer.LSidecarCreate(core, null));
     }
 
     internal static int TSectionCountParse(string json) =>
-        LSidecarParse.LSidecarCoreParse(json)?.LSidecarSections.Count ?? 0;
+        LSidecarSerializer.LSidecarCoreParse(json)?.LSidecarSections.Count ?? 0;
 
     internal string TSourceCreate(string name, string content)
     {
@@ -108,7 +108,7 @@ internal sealed class TSidecar : IDisposable
         string peaks) =>
         LSidecarStore.LSidecarWaveformSave(
             sourcePath,
-            new LSidecarWaveformRecord
+            new LSidecarWaveformEntry
             {
                 LSidecarBucketMilliseconds = bucketMilliseconds,
                 LSidecarDurationMilliseconds = durationMilliseconds,

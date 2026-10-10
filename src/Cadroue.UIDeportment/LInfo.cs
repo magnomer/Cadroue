@@ -19,11 +19,11 @@ public sealed class LInfo
 
     private LCargo? lInfoCargo;
 
-    public event Action? LInfoChange;
+    public event Action? LInfoChanged;
 
     public LInfo(LViewer lViewer)
     {
-        lViewer.LViewerMediaChange += LInfoMediaHandle;
+        lViewer.LViewerMediaChanged += LInfoMediaHandle;
         LMediaProbe.LMediaAvailabilityReady += LInfoAvailabilityHandle;
     }
 
@@ -104,14 +104,14 @@ public sealed class LInfo
             LMediaProbe.LMediaAvailabilityDefer();
         }
 
-        LInfoChange?.Invoke();
+        LInfoChanged?.Invoke();
     }
 
     private void LInfoAvailabilityHandle(bool lReady)
     {
         if (lInfoCargo is { } lCargo && string.IsNullOrEmpty(lCargo.LCargoSourcePath))
         {
-            LInfoChange?.Invoke();
+            LInfoChanged?.Invoke();
         }
     }
 

@@ -2,14 +2,14 @@ namespace Convention.Tests;
 
 internal static class TAuditPlatformSetting
 {
-    public const int TAuditGeneration = 16;
-    public const bool TAuditPlatformEnforced = false;
+    public const int TAuditGeneration = 21;
+    public const bool TAuditPlatformEnforced = true;
     public const string TAuditPlatformRoot = "src/";
     public const string TAuditPlatformPortable = "net10.0";
     public const string TAuditPlatformTwin = "net10.0-windows";
     public const string TAuditPlatformRule = "CA1416";
 
-    public static readonly string[] TAuditPlatformShell = ["Cadroue.UIVeneer"];
+    public static readonly string[] TAuditPlatformShell = ["Cadroue.Conduct"];
 
     public static readonly string[] TAuditPlatformKinds =
     [
@@ -30,15 +30,23 @@ internal static class TAuditPlatformSetting
     public static readonly IReadOnlyDictionary<string, string> TAuditPlatformColumn = new Dictionary<string, string>
     {
         ["Cadroue.Core"] = "Cadroue.Core",
+        ["Cadroue.Core.Windows"] = "Cadroue.Core",
         ["Cadroue.Application"] = "Cadroue.Application",
         ["Cadroue.Infrastructure"] = "Cadroue.Infrastructure",
-        ["Cadroue.Media"] = "Cadroue.Media",
         ["Cadroue.ShellEngine"] = "Cadroue.ShellEngine",
-        ["Cadroue.UIDeportment"] = "Cadroue.UIDeportment",
-        ["Cadroue.UIVeneer"] = "Cadroue.UIVeneer",
+        ["Cadroue.Conduct"] = "Cadroue.Conduct",
+        ["Cadroue.UIDeportment"] = "Cadroue.Conduct",
+        ["Cadroue.UIDeportment.Capsule"] = "Cadroue.UIDeportment.Capsule",
+        ["Cadroue.UIVeneer"] = "Cadroue.Conduct",
+        ["Cadroue.UIDemeanor"] = "Cadroue.UIDemeanor",
+        ["Cadroue.UITerminal"] = "Cadroue.UITerminal",
+        ["Cadroue.Host"] = "",
     };
 
-    public static readonly IReadOnlyDictionary<string, string> TAuditPlatformCapsule = new Dictionary<string, string>();
+    public static readonly IReadOnlyDictionary<string, string> TAuditPlatformCapsule = new Dictionary<string, string>
+    {
+        ["Cadroue.UIDeportment"] = "Cadroue.UIDeportment.Capsule",
+    };
 
     public static readonly string[] TAuditPlatformProperties = ["UseWPF", "UseWindowsForms", "UseWinUI"];
 
@@ -60,5 +68,10 @@ internal static class TAuditPlatformSetting
         @"\bRuntimeInformation\.IsOSPlatform\b",
     ];
 
-    public static readonly IReadOnlyDictionary<string, int> TAuditPlatformCeiling = new Dictionary<string, int>();
+    public static readonly IReadOnlyDictionary<string, int> TAuditPlatformCeiling = new Dictionary<string, int>
+    {
+        ["Unmapped"] = 0,
+        ["Absent"] = 0,
+        ["Column"] = 0,
+    };
 }

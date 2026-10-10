@@ -1,0 +1,1100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ object history</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --over: #d03b3b;
+  --c-hydra: #2a78d6;
+  --c-kraken: #eb6834;
+  --c-spider: #1baf7a;
+  --c-chameleon: #eda100;
+  --c-octopus: #e87ba4;
+  --c-centipede: #008300;
+  --c-serpent: #4a3aa7;
+  --c-hub: #e34948;
+  --c-colony: #52514e;
+  --c-hermit: #898781;
+  --c-hydra-ink: #0b0b0b;
+  --c-kraken-ink: #0b0b0b;
+  --c-spider-ink: #0b0b0b;
+  --c-chameleon-ink: #0b0b0b;
+  --c-octopus-ink: #0b0b0b;
+  --c-centipede-ink: #ffffff;
+  --c-serpent-ink: #ffffff;
+  --c-hub-ink: #0b0b0b;
+  --c-colony-ink: #ffffff;
+  --c-hermit-ink: #0b0b0b;
+  --cmp-1: #2a78d6;
+  --cmp-2: #eb6834;
+  --cmp-3: #1baf7a;
+  --cmp-4: #eda100;
+  --cmp-5: #e87ba4;
+  --cmp-6: #008300;
+  --cmp-7: #4a3aa7;
+  --cmp-8: #e34948;
+  --cmp-9: #184f95;
+  --cmp-10: #a8431a;
+  --cmp-11: #00805a;
+  --cmp-12: #8f6400;
+  --cmp-13: #a8305f;
+  --cmp-14: #1d6b1d;
+  --cmp-15: #3d2a9e;
+  --cmp-16: #9e2a2a;
+  --cmp-17: #6ea8f2;
+  --cmp-18: #f59268;
+  --cmp-19: #43c995;
+  --cmp-20: #f0b83a;
+  --cmp-21: #f296bb;
+  --cmp-22: #56b856;
+  --cmp-23: #9486e8;
+  --cmp-24: #f08080;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --over: #ff7a70;
+    --c-hydra: #3987e5;
+    --c-kraken: #d95926;
+    --c-spider: #199e70;
+    --c-chameleon: #c98500;
+    --c-octopus: #d55181;
+    --c-centipede: #008300;
+    --c-serpent: #9085e9;
+    --c-hub: #e66767;
+    --c-colony: #c3c2b7;
+    --c-hermit: #898781;
+    --c-hydra-ink: #0b0b0b;
+    --c-kraken-ink: #0b0b0b;
+    --c-spider-ink: #0b0b0b;
+    --c-chameleon-ink: #0b0b0b;
+    --c-octopus-ink: #0b0b0b;
+    --c-centipede-ink: #ffffff;
+    --c-serpent-ink: #0b0b0b;
+    --c-hub-ink: #0b0b0b;
+    --c-colony-ink: #0b0b0b;
+    --c-hermit-ink: #0b0b0b;
+    --cmp-1: #3987e5;
+    --cmp-2: #d95926;
+    --cmp-3: #199e70;
+    --cmp-4: #c98500;
+    --cmp-5: #d55181;
+    --cmp-6: #008300;
+    --cmp-7: #9085e9;
+    --cmp-8: #e66767;
+    --cmp-9: #78aef7;
+    --cmp-10: #f7a078;
+    --cmp-11: #58d6a5;
+    --cmp-12: #f2c440;
+    --cmp-13: #f59cc0;
+    --cmp-14: #5ccc5c;
+    --cmp-15: #ab9dfa;
+    --cmp-16: #ff9a8f;
+    --cmp-17: #2466b8;
+    --cmp-18: #b04a1e;
+    --cmp-19: #0e8058;
+    --cmp-20: #9a6800;
+    --cmp-21: #b03a6a;
+    --cmp-22: #127312;
+    --cmp-23: #6655cc;
+    --cmp-24: #bb4040;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --over: #ff7a70;
+  --c-hydra: #3987e5;
+  --c-kraken: #d95926;
+  --c-spider: #199e70;
+  --c-chameleon: #c98500;
+  --c-octopus: #d55181;
+  --c-centipede: #008300;
+  --c-serpent: #9085e9;
+  --c-hub: #e66767;
+  --c-colony: #c3c2b7;
+  --c-hermit: #898781;
+  --c-hydra-ink: #0b0b0b;
+  --c-kraken-ink: #0b0b0b;
+  --c-spider-ink: #0b0b0b;
+  --c-chameleon-ink: #0b0b0b;
+  --c-octopus-ink: #0b0b0b;
+  --c-centipede-ink: #ffffff;
+  --c-serpent-ink: #0b0b0b;
+  --c-hub-ink: #0b0b0b;
+  --c-colony-ink: #0b0b0b;
+  --c-hermit-ink: #0b0b0b;
+  --cmp-1: #3987e5;
+  --cmp-2: #d95926;
+  --cmp-3: #199e70;
+  --cmp-4: #c98500;
+  --cmp-5: #d55181;
+  --cmp-6: #008300;
+  --cmp-7: #9085e9;
+  --cmp-8: #e66767;
+  --cmp-9: #78aef7;
+  --cmp-10: #f7a078;
+  --cmp-11: #58d6a5;
+  --cmp-12: #f2c440;
+  --cmp-13: #f59cc0;
+  --cmp-14: #5ccc5c;
+  --cmp-15: #ab9dfa;
+  --cmp-16: #ff9a8f;
+  --cmp-17: #2466b8;
+  --cmp-18: #b04a1e;
+  --cmp-19: #0e8058;
+  --cmp-20: #9a6800;
+  --cmp-21: #b03a6a;
+  --cmp-22: #127312;
+  --cmp-23: #6655cc;
+  --cmp-24: #bb4040;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+a { color: var(--c-hydra); }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.swatch { width: 16px; height: 16px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex: none;
+  font-size: 10px; font-weight: 700; line-height: 1; font-style: normal; font-variant-numeric: tabular-nums; }
+.chart { position: relative; }
+.chart > svg { display: block; width: 100%; overflow: visible; }
+.chart:focus-visible { outline: 2px solid var(--c-hydra); outline-offset: 4px; border-radius: 6px; }
+svg text { font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; max-width: 420px; display: none; z-index: 5; }
+.tip .head { font-weight: 600; }
+.tip .meta { color: var(--ink-3); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tip .row .name { overflow: hidden; text-overflow: ellipsis; }
+.tip .row .num { margin-left: auto; font-variant-numeric: tabular-nums; padding-left: 12px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-top: 12px; }
+.card { border: 1px solid var(--ring); border-radius: 8px; padding: 10px 12px 8px; }
+.card .top { display: flex; align-items: baseline; gap: 8px; }
+.card .name { font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.card .val { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card .meta { margin-top: 2px; }
+.plain { color: var(--ink-2); font-size: 12px; }
+.tech { color: var(--ink-3); font-size: 11px; }
+.card .plot svg { display: block; width: 100%; height: 110px; margin-top: 6px; cursor: crosshair; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.switches { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0; }
+.picker .count { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
+.picker .group { flex-basis: 100%; color: var(--ink-3); font-size: 12px; margin-top: 4px; }
+.picker button { font: inherit; font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--ring); border-radius: 999px;
+  padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.picker button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.picker button:disabled { cursor: not-allowed; opacity: 0.4; }
+.picker button.action { border-style: dashed; }
+.stroke { display: inline-block; flex: none; vertical-align: middle; }
+.empty { color: var(--ink-3); padding: 48px 0; text-align: center; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+tr.gone td { color: var(--ink-3); }
+td.over { color: var(--over); font-weight: 600; }
+.lineage { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; cursor: pointer; padding: 6px 0; }
+.lineage input { margin: 0; accent-color: var(--ink-2); cursor: pointer; }
+.chip { font-size: 11px; color: var(--ink-2); border: 1px solid var(--ring); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
+.verdict { display: inline-flex; align-items: center; gap: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ object history</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div class="sub"><a href="__AUDITPAGE__">Object audit</a></div>
+  </header>
+
+  <section class="tiles" id="tiles" aria-live="polite"></section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Counts over time</h2>
+        <div class="muted" id="overnote"></div>
+      </div>
+      <div class="switches">
+        <span class="muted">Count by</span>
+        <div class="segmented" role="group" aria-label="Count by" id="overkind"></div>
+        <div class="segmented" role="group" aria-label="Chart layout" id="overmode"></div>
+      </div>
+    </div>
+    <div class="picker" id="overpicker"></div>
+    <div class="chart" id="overchart" tabindex="0" role="img"></div>
+    <div class="cards" id="overcards"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>By type</h2>
+        <div class="muted">Picked types on one chart, one scale fitted to them. A gap means the type was then a Hermit with no hub, or did not exist. Click a version to select it; arrow keys step. With Lineage, types linked by renamed files share one color, and kin picked together take solid, dashed and dotted lines.</div>
+      </div>
+      <label class="lineage" title="Types linked by renamed files share one color"><input type="checkbox" id="lineage">Lineage</label>
+      <div class="segmented" role="group" aria-label="Metric" id="metric"></div>
+    </div>
+    <div class="picker" id="picker"></div>
+    <div class="chart" id="compare" tabindex="0" role="img"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="tabletitle"></h2>
+    <div class="muted" id="tablenote"></div>
+    <div class="tablewrap" style="margin-top: 8px"><table id="table"></table></div>
+  </section>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var raw = JSON.parse(document.getElementById('data').textContent);
+  var versions = raw.versions;
+  var V = versions.length;
+  var limit = raw.thresholds || {};
+  var partsCeilings = raw.parts || {};
+  var NF = new Intl.NumberFormat('en-US');
+  var MINUS = '\u2212';
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var AT = ' \u2265 ';
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function lim(group, key) { return limit[group] && limit[group][key] !== undefined ? limit[group][key] : '?'; }
+  var CREATURES = {
+    hydra: { label: 'Hydra', plain: 'One class cut into many files whose parts still lean on each other.',
+      tech: 'parts' + AT + lim('hydra', 'parts') + ', lines' + AT + lim('hydra', 'lines') + ', fused' + AT + lim('hydra', 'fused') + ' or density' + AT + lim('hydra', 'density') },
+    kraken: { label: 'Kraken', plain: 'Too big and too tangled with other classes at once.', tech: 'Serpent or Centipede, and Octopus or Spider' },
+    spider: { label: 'Spider', plain: 'Uses many classes and is used by many, so every change ripples both ways.',
+      tech: 'outgoing' + AT + lim('spider', 'outgoing') + ' and incoming' + AT + lim('spider', 'incoming') },
+    chameleon: { label: 'Chameleon', plain: 'Holds many values that can change after it is created.', tech: 'mutable' + AT + lim('chameleon', 'mutable') },
+    octopus: { label: 'Octopus', plain: 'Depends on too many other classes.', tech: 'outgoing' + AT + lim('octopus', 'outgoing') },
+    centipede: { label: 'Centipede', plain: 'Has too many members.', tech: 'members' + AT + lim('centipede', 'members') },
+    serpent: { label: 'Serpent', plain: 'Has too many lines.', tech: 'lines' + AT + lim('serpent', 'lines') },
+    hub: { label: 'Hub', plain: 'One field touched from many files of the same class.', tech: 'slot reached from' + AT + lim('hub', 'parts') + ' parts' },
+    colony: { label: 'Colony', plain: 'Split into files, but nothing else is wrong.', tech: 'several parts, no flag' },
+    hermit: { label: 'Hermit', plain: 'One file, nothing wrong.', tech: 'one part, no flag' }
+  };
+  var LADDER = ['hydra', 'kraken', 'spider', 'chameleon', 'octopus', 'centipede', 'serpent'];
+  var TERMS = LADDER.concat(['hub', 'colony']);
+  function item(key) {
+    var c = CREATURES[key];
+    return { key: key, label: c.label, plain: c.plain, tech: c.tech, color: 'var(--c-' + key + ')' };
+  }
+  function digit(key) { var n = TERMS.indexOf(key); return n < 0 ? '' : String(n + 1); }
+  var FLAGS = LADDER.concat(['hub']).map(item);
+  var VERDICTS = LADDER.concat(['colony', 'hermit']).map(item);
+  var METRICS = [
+    { key: 'parts', label: 'Parts' }, { key: 'lines', label: 'Lines' }, { key: 'members', label: 'Members' }, { key: 'mutable', label: 'Mutable' },
+    { key: 'outgoing', label: 'Outgoing' }, { key: 'incoming', label: 'Incoming' }, { key: 'shared', label: 'Shared' }, { key: 'crossings', label: 'Crossings' },
+    { key: 'glued', label: 'Glued', frac: true }, { key: 'fused', label: 'Fused', frac: true }, { key: 'density', label: 'Density', frac: true }
+  ];
+  var FIELDS = METRICS.map(function (m) { return m.key; });
+
+  var types = new Map();
+  versions.forEach(function (ver, i) {
+    (ver.measure.list || []).forEach(function (t) {
+      var entry = types.get(t.name);
+      if (!entry) {
+        entry = { id: t.name, name: t.name, first: i, last: i, verdict: new Array(V).fill(null), v: {} };
+        FIELDS.forEach(function (k) { entry.v[k] = new Array(V).fill(null); });
+        types.set(t.name, entry);
+      }
+      entry.verdict[i] = t.verdict;
+      FIELDS.forEach(function (k) { entry.v[k][i] = t[k]; });
+      entry.last = i;
+    });
+  });
+  var typeList = Array.from(types.values());
+
+  var lineage = raw.lineage || { links: [] };
+  var parent = new Map();
+  function head(id) {
+    while (parent.has(id) && parent.get(id) !== id) id = parent.get(id);
+    return id;
+  }
+  lineage.links.forEach(function (link) {
+    if (!types.has(link.from) || !types.has(link.to)) return;
+    var a = head(link.from), b = head(link.to);
+    if (!parent.has(a)) parent.set(a, a);
+    if (a !== b) parent.set(b, a);
+  });
+  var families = [];
+  typeList.forEach(function (t) { t.family = -1; });
+  typeList.slice().sort(function (a, b) { return a.first - b.first || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); }).forEach(function (t) {
+    if (!parent.has(t.id)) return;
+    var top = head(t.id), at = families.indexOf(top);
+    if (at < 0) { at = families.length; families.push(top); }
+    t.family = at;
+  });
+  var familyNames = families.map(function (top, k) {
+    return typeList.filter(function (t) { return t.family === k; }).sort(function (a, b) { return a.first - b.first; }).map(function (t) { return shortName(t.name); });
+  });
+
+  function fmt(n, frac) { return n === null || n === undefined ? DASH : frac ? n.toFixed(2) : NF.format(n); }
+  function brief(n, frac) {
+    if (frac) return (Math.round(n * 100) / 100).toString();
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e5) return Math.round(n / 1e3) + 'k';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+  function delta(n) { return n > 0 ? '+' + NF.format(n) : n < 0 ? MINUS + NF.format(-n) : '0'; }
+  function when(ver) { return String(ver.date).slice(0, 16); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function shortName(name) { var cut = name.lastIndexOf('.'); return cut < 0 ? name : name.slice(cut + 1); }
+  function nice(max, n) {
+    if (!(max > 0)) return { max: 1, step: 1 };
+    var r = max / n, mag = Math.pow(10, Math.floor(Math.log10(r))), norm = r / mag;
+    var step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+    return { max: Math.ceil(max / step - 1e-9) * step, step: step };
+  }
+  function niceCount(max, n) {
+    var s = nice(max, n);
+    if (s.step < 1) { s.step = 1; s.max = Math.max(1, Math.ceil(max)); }
+    return s;
+  }
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function minorOf(v) { return v.slice(0, v.lastIndexOf('.')); }
+  function metricOf(key) { return METRICS.filter(function (m) { return m.key === key; })[0]; }
+  function load(key) { try { return localStorage.getItem('auditobjecthistory.' + key); } catch (e) { return null; } }
+  function store(key, value) { try { localStorage.setItem('auditobjecthistory.' + key, value); } catch (e) { } }
+  function label(key) { return CREATURES[key] ? CREATURES[key].label : key; }
+  function numbered(key) { return (digit(key) ? '(' + digit(key) + ') ' : '') + label(key); }
+  function noteHtml(x) { return '<div class="plain">' + esc(x.plain) + '</div><div class="tech">' + esc(x.tech) + '</div>'; }
+  function swatch(key) {
+    return '<i class="swatch" style="background:var(--c-' + esc(key) + ');color:#ffffff" aria-hidden="true">' + digit(key) + '</i>';
+  }
+  function swatchOff(key) { return '<i class="swatch" style="border:1px solid var(--ink-3);color:var(--ink-3)" aria-hidden="true">' + digit(key) + '</i>'; }
+
+  var view = { metric: 'lines', sel: V - 1, hover: null };
+  if (METRICS.some(function (m) { return m.key === load('metric'); })) view.metric = load('metric');
+
+  document.getElementById('subtitle').textContent =
+    V + ' versions' + DOT + versions[0].version + ' (' + when(versions[0]).slice(0, 10) + ') to ' +
+    versions[V - 1].version + ' (' + when(versions[V - 1]).slice(0, 10) + ')' + DOT + typeList.length + ' types ever flagged, a Colony or holding a hub' + DOT +
+    'graded by the current auditobject.json, bound from source without a build, so Outgoing and Incoming of old versions are best-effort';
+
+  var tip = document.createElement('div');
+  tip.className = 'tip';
+
+  function axisX(svg, X, y0, minGap) {
+    var lastX = -1e9;
+    for (var i = 0; i < V; i++) {
+      if (i > 0 && minorOf(versions[i].version) === minorOf(versions[i - 1].version)) continue;
+      var x = X(i);
+      svg.appendChild(el('line', { x1: x, x2: x, y1: y0, y2: y0 + 4, stroke: 'var(--axis)' }));
+      if (x - lastX >= minGap) {
+        var tl = el('text', { x: x, y: y0 + 16, 'text-anchor': 'middle', fill: 'var(--ink-3)' });
+        tl.textContent = minorOf(versions[i].version);
+        svg.appendChild(tl);
+        lastX = x;
+      }
+    }
+  }
+
+  function gridY(svg, left, right, scale, Y, frac) {
+    for (var v = 0; v <= scale.max + 1e-9; v += scale.step) {
+      svg.appendChild(el('line', { x1: left, x2: right, y1: Y(v), y2: Y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }));
+      var lab = el('text', { x: left - 6, y: Y(v) + 4, 'text-anchor': 'end', fill: 'var(--ink-3)' });
+      lab.textContent = brief(v, frac);
+      svg.appendChild(lab);
+    }
+  }
+
+  function indexer(svg, W, left, pw) {
+    return function (evt) {
+      var r = svg.getBoundingClientRect();
+      var px = (evt.clientX - r.left) * W / r.width;
+      return Math.max(0, Math.min(V - 1, Math.round((px - left) / (V === 1 ? 1 : pw / (V - 1)))));
+    };
+  }
+
+  function placeTip(evt, host) {
+    if (tip.parentNode !== host) host.appendChild(tip);
+    var box = host.getBoundingClientRect();
+    tip.style.display = 'block';
+    var x = evt.clientX - box.left + 14, y = evt.clientY - box.top + 14;
+    if (x + tip.offsetWidth > box.width) x = evt.clientX - box.left - tip.offsetWidth - 14;
+    tip.style.left = Math.max(0, x) + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  function spreadLabels(labels, bottom) {
+    labels.sort(function (a, c) { return a.y - c.y; });
+    for (var k = 1; k < labels.length; k++) labels[k].y = Math.max(labels[k].y, labels[k - 1].y + 16);
+    var n = labels.length;
+    if (n && labels[n - 1].y > bottom) {
+      labels[n - 1].y = bottom;
+      for (var j = n - 2; j >= 0; j--) labels[j].y = Math.min(labels[j].y, labels[j + 1].y - 16);
+    }
+  }
+
+  function swatchLine(color, dash) {
+    return '<svg class="stroke" width="18" height="10" aria-hidden="true"><line x1="1" y1="5" x2="17" y2="5" stroke="' + color +
+      '" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="' + (dash || '') + '"/></svg>';
+  }
+
+  var MODES = [{ key: 'each', label: 'Each' }, { key: 'together', label: 'Together' }];
+
+  var KINDS = [
+    {
+      key: 'flag', label: 'Flag', source: 'flags', items: FLAGS, hidden: ['centipede'],
+      eachNote: 'How many types carry each flag. A type with several flags counts once under each of them, and Hub counts fields, not types. Each chart has its own scale.',
+      togetherNote: 'How many types carry each flag, all on one scale. A type with several flags counts once under each of them, and Hub counts fields, not types. Centipede starts hidden, since its count dwarfs the rest.'
+    },
+    {
+      key: 'verdict', label: 'Verdict', source: 'verdicts', items: VERDICTS, hidden: ['hermit'],
+      eachNote: 'How many types end up under each verdict. Every type counts once, under its worst flag, or as a Colony or Hermit when it has none. Each chart has its own scale.',
+      togetherNote: 'How many types end up under each verdict, all on one scale. Every type counts once, under its worst flag, or as a Colony or Hermit when it has none. Hermit starts hidden, since its count dwarfs the rest.'
+    }
+  ];
+
+  function makeOver() {
+    var g = { cards: [], chart: {}, shown: {} };
+    var kindBox = document.getElementById('overkind');
+    var modeBox = document.getElementById('overmode');
+    var chartBox = document.getElementById('overchart');
+    var cardBox = document.getElementById('overcards');
+    var pickBox = document.getElementById('overpicker');
+    function kindOf(key) { return KINDS.filter(function (k) { return k.key === key; })[0]; }
+    function value(i, key) { return versions[i].measure[g.kind.source][key]; }
+    g.kind = kindOf(load('overkind')) || KINDS[0];
+    g.mode = MODES.some(function (x) { return x.key === load('overmode'); }) ? load('overmode') : 'each';
+    KINDS.forEach(function (kind) {
+      var shown = {};
+      kind.items.forEach(function (x) { shown[x.key] = kind.hidden.indexOf(x.key) < 0; });
+      try {
+        var saved = JSON.parse(load(kind.source + 'shown'));
+        if (saved && typeof saved === 'object') kind.items.forEach(function (x) { if (typeof saved[x.key] === 'boolean') shown[x.key] = saved[x.key]; });
+      } catch (e) { }
+      g.shown[kind.key] = shown;
+    });
+    function switchButton(box, text, key, run) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = text;
+      b.dataset.key = key;
+      b.addEventListener('click', function () {
+        run();
+        g.render();
+        setSel(view.sel);
+      });
+      box.appendChild(b);
+    }
+    KINDS.forEach(function (kind) {
+      switchButton(kindBox, kind.label, kind.key, function () { g.kind = kind; store('overkind', kind.key); });
+    });
+    MODES.forEach(function (x) {
+      switchButton(modeBox, x.label, x.key, function () { g.mode = x.key; store('overmode', x.key); });
+    });
+
+    function drawCard(ref) {
+      var W = Math.max(200, ref.holder.clientWidth), H = 110, left = 34, right = 6, top = 8, bottom = 22;
+      var pw = W - left - right, ph = H - top - bottom, key = ref.x.key;
+      var values = versions.map(function (v, i) { return value(i, key); });
+      var scale = niceCount(Math.max.apply(null, values), 2);
+      var X = function (i) { return left + (V === 1 ? pw / 2 : i * pw / (V - 1)); };
+      var Y = function (v) { return top + ph - v / scale.max * ph; };
+      var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'none' });
+      gridY(svg, left, W - right, scale, Y, false);
+      axisX(svg, X, top + ph, 40);
+      var path = values.map(function (v, i) { return X(i).toFixed(1) + ',' + Y(v).toFixed(1); }).join('L');
+      svg.appendChild(el('path', { d: 'M' + X(0).toFixed(1) + ',' + Y(0) + 'L' + path + 'L' + X(V - 1).toFixed(1) + ',' + Y(0) + 'Z', fill: ref.x.color, 'fill-opacity': 0.12 }));
+      svg.appendChild(el('path', { d: 'M' + path, fill: 'none', stroke: ref.x.color, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      ref.selMark = el('line', { y1: top, y2: top + ph, stroke: 'var(--ink-2)', 'stroke-dasharray': '2 2' });
+      ref.hov = el('line', { y1: top, y2: top + ph, stroke: 'var(--ink-1)', visibility: 'hidden' });
+      ref.dot = el('circle', { r: 3.5, fill: ref.x.color, stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' });
+      svg.appendChild(ref.selMark);
+      svg.appendChild(ref.hov);
+      svg.appendChild(ref.dot);
+      var at = indexer(svg, W, left, pw);
+      svg.addEventListener('mousemove', function (evt) { setHover(at(evt)); });
+      svg.addEventListener('mouseleave', function () { setHover(null); });
+      svg.addEventListener('click', function (evt) { setSel(at(evt)); });
+      ref.X = X;
+      ref.Y = Y;
+      ref.holder.innerHTML = '';
+      ref.holder.appendChild(svg);
+    }
+
+    function updateCard(ref) {
+      var i = view.hover === null ? view.sel : view.hover, n = value(i, ref.x.key);
+      ref.val.textContent = fmt(n) + (view.hover === null ? '' : ' @ ' + versions[i].version);
+      ref.val.className = 'val' + (view.hover === null ? '' : ' muted');
+      ref.selMark.setAttribute('x1', ref.X(view.sel));
+      ref.selMark.setAttribute('x2', ref.X(view.sel));
+      if (view.hover === null) {
+        ref.hov.setAttribute('visibility', 'hidden');
+        ref.dot.setAttribute('visibility', 'hidden');
+      }
+      else {
+        ref.hov.setAttribute('x1', ref.X(view.hover));
+        ref.hov.setAttribute('x2', ref.X(view.hover));
+        ref.hov.setAttribute('visibility', 'visible');
+        ref.dot.setAttribute('cx', ref.X(view.hover));
+        ref.dot.setAttribute('cy', ref.Y(n));
+        ref.dot.setAttribute('visibility', 'visible');
+      }
+    }
+
+    function renderCards() {
+      cardBox.innerHTML = '';
+      g.cards = [];
+      g.kind.items.forEach(function (x) {
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = '<div class="top"><span class="name">' + swatch(x.key) + esc(x.label) +
+          '</span><span class="val"></span></div><div class="meta">' + noteHtml(x) + '</div>';
+        var holder = document.createElement('div');
+        holder.className = 'plot';
+        card.appendChild(holder);
+        cardBox.appendChild(card);
+        g.cards.push({ x: x, holder: holder, val: card.querySelector('.val') });
+      });
+      g.cards.forEach(drawCard);
+    }
+
+    function renderPicker() {
+      pickBox.innerHTML = '';
+      var shownMap = g.shown[g.kind.key], source = g.kind.source;
+      g.kind.items.forEach(function (x, k) {
+        var on = shownMap[x.key];
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-pressed', String(on));
+        b.title = (on ? 'Hide ' : 'Show ') + numbered(x.key) + '\n' + x.plain + '\n' + x.tech;
+        b.innerHTML = (on ? swatch(x.key) : swatchOff(x.key)) + esc(x.label);
+        b.addEventListener('click', function () {
+          shownMap[x.key] = !shownMap[x.key];
+          store(source + 'shown', JSON.stringify(shownMap));
+          renderPicker();
+          renderChart();
+          setSel(view.sel);
+          pickBox.children[k].focus();
+        });
+        pickBox.appendChild(b);
+      });
+    }
+
+    function renderChart() {
+      var shown = g.kind.items.filter(function (x) { return g.shown[g.kind.key][x.key]; });
+      chartBox.innerHTML = '';
+      g.chart = {};
+      if (!shown.length) {
+        chartBox.innerHTML = '<div class="empty">Show one above to plot it.</div>';
+        chartBox.setAttribute('aria-label', 'Nothing shown');
+        return;
+      }
+      var W = Math.max(320, chartBox.clientWidth);
+      var m = { l: 52, r: 140, t: 16, b: 30 }, H = 320;
+      if (W < 560) m.r = 16;
+      var pw = W - m.l - m.r, ph = H - m.t - m.b;
+      var X = function (i) { return m.l + (V === 1 ? pw / 2 : i * pw / (V - 1)); };
+      var top = 0;
+      shown.forEach(function (x) {
+        versions.forEach(function (v, i) { top = Math.max(top, value(i, x.key)); });
+      });
+      var scale = niceCount(top, 5);
+      var Y = function (v) { return m.t + ph - v / scale.max * ph; };
+      var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, height: H });
+      gridY(svg, m.l, m.l + pw, scale, Y, false);
+      axisX(svg, X, m.t + ph, 34);
+      shown.forEach(function (x) {
+        var path = versions.map(function (v, i) { return X(i).toFixed(1) + ',' + Y(value(i, x.key)).toFixed(1); }).join('L');
+        svg.appendChild(el('path', { d: 'M' + path, fill: 'none', stroke: x.color, 'stroke-width': 2, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+      });
+      if (m.r > 40) {
+        var labels = shown.map(function (x) { return { x: x, y: Y(value(V - 1, x.key)) }; });
+        spreadLabels(labels, m.t + ph);
+        labels.forEach(function (L) {
+          svg.appendChild(el('line', { x1: m.l + pw + 6, x2: m.l + pw + 20, y1: L.y, y2: L.y, stroke: L.x.color, 'stroke-width': 2.5, 'stroke-linecap': 'round' }));
+          var text = el('text', { x: m.l + pw + 26, y: L.y + 4, fill: 'var(--ink-2)' });
+          text.textContent = numbered(L.x.key) + ' ' + fmt(value(V - 1, L.x.key));
+          svg.appendChild(text);
+        });
+      }
+      var selMark = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-2)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+      var hoverMark = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-1)', 'stroke-width': 1, visibility: 'hidden' });
+      svg.appendChild(selMark);
+      svg.appendChild(hoverMark);
+      var dots = shown.map(function (x) {
+        var c = el('circle', { r: 4, fill: x.color, stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' });
+        svg.appendChild(c);
+        return c;
+      });
+      var hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' });
+      svg.appendChild(hit);
+      var at = indexer(svg, W, m.l, pw);
+      hit.addEventListener('mousemove', function (evt) { setHover(at(evt), evt); });
+      hit.addEventListener('mouseleave', function () { setHover(null); });
+      hit.addEventListener('click', function (evt) { setSel(at(evt)); });
+      chartBox.appendChild(svg);
+      chartBox.setAttribute('aria-label', 'Line chart of ' + g.kind.key + ' counts over ' + V + ' versions: ' + shown.map(function (x) { return numbered(x.key); }).join(', '));
+      g.chart = { X: X, Y: Y, shown: shown, selMark: selMark, hoverMark: hoverMark, dots: dots };
+    }
+
+    g.render = function () {
+      var together = g.mode === 'together';
+      Array.prototype.forEach.call(kindBox.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === g.kind.key)); });
+      Array.prototype.forEach.call(modeBox.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === g.mode)); });
+      document.getElementById('overnote').textContent = together ? g.kind.togetherNote : g.kind.eachNote;
+      pickBox.style.display = together ? '' : 'none';
+      chartBox.style.display = together ? '' : 'none';
+      cardBox.style.display = together ? 'none' : '';
+      if (together) {
+        cardBox.innerHTML = '';
+        g.cards = [];
+        renderPicker();
+        renderChart();
+      }
+      else {
+        chartBox.innerHTML = '';
+        g.chart = {};
+        renderCards();
+      }
+    };
+
+    g.update = function () {
+      g.cards.forEach(updateCard);
+      if (!g.chart.shown) return;
+      var x = g.chart.X(view.sel), i = view.hover;
+      g.chart.selMark.setAttribute('x1', x);
+      g.chart.selMark.setAttribute('x2', x);
+      g.chart.hoverMark.setAttribute('visibility', i === null ? 'hidden' : 'visible');
+      g.chart.shown.forEach(function (v, k) {
+        var d = g.chart.dots[k];
+        if (i === null) { d.setAttribute('visibility', 'hidden'); return; }
+        d.setAttribute('cx', g.chart.X(i));
+        d.setAttribute('cy', g.chart.Y(value(i, v.key)));
+        d.setAttribute('visibility', 'visible');
+      });
+      if (i !== null) {
+        g.chart.hoverMark.setAttribute('x1', g.chart.X(i));
+        g.chart.hoverMark.setAttribute('x2', g.chart.X(i));
+      }
+    };
+
+    g.owns = function (target) { return !!g.chart.shown && chartBox.contains(target); };
+
+    g.showTip = function (i, evt) {
+      var ver = versions[i];
+      var html = '<div class="head">' + esc(ver.version) + '</div><div class="meta">' + esc(when(ver)) + DOT + esc(String(ver.commit).slice(0, 8)) + '</div>';
+      g.chart.shown.forEach(function (x) {
+        html += '<div class="row">' + swatch(x.key) + '<span class="name">' + esc(x.label) + '</span><span class="num">' + fmt(value(i, x.key)) + '</span></div>';
+      });
+      tip.innerHTML = html;
+      placeTip(evt, chartBox);
+    };
+
+    chartBox.addEventListener('keydown', stepKeys);
+    return g;
+  }
+
+  var over = makeOver();
+
+  function renderTiles() {
+    var s = view.sel;
+    var tiles = FLAGS.map(function (x) {
+      var n = versions[s].measure.flags[x.key];
+      var change = s > 0 ? delta(n - versions[s - 1].measure.flags[x.key]) + ' vs ' + versions[s - 1].version : 'first version';
+      return '<div class="tile"><div class="label">' + swatch(x.key) + esc(x.label) + ' at ' + esc(versions[s].version) +
+        '</div><div class="value">' + fmt(n) + '</div><div class="note">' + esc(change) + '</div></div>';
+    });
+    document.getElementById('tiles').innerHTML = tiles.join('');
+  }
+
+  var compareBox = document.getElementById('compare');
+  var cmp = {};
+  var SLOTS = typeList.length;
+  var PAINTS = 24;
+  var DASHES = ['', '6 3', '1.5 3'];
+
+  function ordered() {
+    var s = V - 1;
+    return {
+      active: typeList.filter(function (t) { return t.verdict[s] !== null; }).sort(function (a, b) { return b.v.lines[s] - a.v.lines[s]; }),
+      gone: typeList.filter(function (t) { return t.verdict[s] === null; }).sort(function (a, b) { return b.last - a.last; })
+    };
+  }
+
+  view.picks = new Array(SLOTS).fill(null);
+  var savedPicks = null;
+  try { savedPicks = JSON.parse(load('compare')); } catch (e) { }
+  if (Array.isArray(savedPicks)) savedPicks.forEach(function (id, k) { if (k < SLOTS && types.has(id) && view.picks.indexOf(id) < 0) view.picks[k] = id; });
+  else ordered().active.slice(0, 5).forEach(function (t, k) { view.picks[k] = t.id; });
+
+  view.lineage = load('lineage') === 'on';
+  function kinOf(slot) {
+    var t = types.get(view.picks[slot]);
+    return view.lineage && t.family >= 0 ? t : null;
+  }
+  function groupOf(id) { var t = types.get(id); return t.family >= 0 ? 'family ' + t.family : 'type ' + id; }
+  function pickColor(slot) {
+    if (!view.lineage) return 'var(--cmp-' + (slot % PAINTS + 1) + ')';
+    var groups = [];
+    view.picks.forEach(function (id) { if (id !== null && groups.indexOf(groupOf(id)) < 0) groups.push(groupOf(id)); });
+    return 'var(--cmp-' + (groups.indexOf(groupOf(view.picks[slot])) % PAINTS + 1) + ')';
+  }
+  function pickDash(slot) {
+    var kin = kinOf(slot);
+    if (!kin) return view.lineage ? '' : DASHES[Math.floor(slot % PAINTS / 8)];
+    var rank = 0;
+    for (var k = 0; k < slot; k++) if (view.picks[k] !== null && types.get(view.picks[k]).family === kin.family) rank++;
+    return DASHES[rank % DASHES.length];
+  }
+  function pickSwatch(slot) { return swatchLine(pickColor(slot), pickDash(slot)); }
+  function pickedList() {
+    var list = [];
+    view.picks.forEach(function (id, slot) { if (id !== null) list.push({ t: types.get(id), slot: slot }); });
+    return list;
+  }
+  function savePicks() { store('compare', JSON.stringify(view.picks)); }
+  function togglePick(id) {
+    var k = view.picks.indexOf(id);
+    if (k >= 0) view.picks[k] = null;
+    else {
+      var open = view.picks.indexOf(null);
+      if (open < 0) return;
+      view.picks[open] = id;
+    }
+    savePicks();
+  }
+
+  var lineageBox = document.getElementById('lineage');
+  lineageBox.checked = view.lineage;
+  lineageBox.disabled = families.length === 0;
+  lineageBox.addEventListener('change', function () {
+    view.lineage = lineageBox.checked;
+    store('lineage', view.lineage ? 'on' : 'off');
+    renderCompareView();
+  });
+
+  var metricBox = document.getElementById('metric');
+  METRICS.forEach(function (m) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = m.label;
+    b.dataset.key = m.key;
+    b.addEventListener('click', function () {
+      view.metric = m.key;
+      store('metric', m.key);
+      renderCompareView();
+      renderTable();
+    });
+    metricBox.appendChild(b);
+  });
+
+  function renderPicker() {
+    var box = document.getElementById('picker');
+    var sets = ordered(), n = pickedList().length;
+    box.innerHTML = '';
+    var note = document.createElement('span');
+    note.className = 'count';
+    note.textContent = n + ' of ' + SLOTS + ' picked';
+    box.appendChild(note);
+    var action = function (text, run, disabled) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'action';
+      b.textContent = text;
+      b.disabled = disabled;
+      b.addEventListener('click', function () { run(); savePicks(); renderCompareView(); });
+      box.appendChild(b);
+    };
+    action('Clear', function () { view.picks.fill(null); }, n === 0);
+    action('Longest five', function () {
+      view.picks.fill(null);
+      sets.active.slice(0, 5).forEach(function (t, k) { view.picks[k] = t.id; });
+    }, false);
+    var everHydra = typeList.filter(function (t) { return t.verdict.indexOf('hydra') >= 0; });
+    action('Hydras ever', function () {
+      view.picks.fill(null);
+      everHydra.forEach(function (t, k) { view.picks[k] = t.id; });
+    }, everHydra.length === 0);
+    var add = function (t) {
+      var slot = view.picks.indexOf(t.id);
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(slot >= 0));
+      b.title = t.name + DOT + versions[t.first].version + ' \u2013 ' + (t.last === V - 1 ? 'now' : versions[t.last].version) +
+        (view.lineage && t.family >= 0 ? DOT + 'lineage: ' + familyNames[t.family].join(', ') : '');
+      b.innerHTML = (slot >= 0 ? pickSwatch(slot) : '<i class="swatch" style="border:1px solid var(--ink-3)"></i>') + esc(shortName(t.name));
+      b.dataset.id = t.id;
+      b.addEventListener('click', function () {
+        togglePick(t.id);
+        renderCompareView();
+        var again = Array.prototype.filter.call(box.querySelectorAll('button'), function (x) { return x.dataset.id === t.id; })[0];
+        if (again) again.focus();
+      });
+      box.appendChild(b);
+    };
+    sets.active.forEach(add);
+    if (sets.gone.length) {
+      var d = document.createElement('div');
+      d.className = 'group';
+      d.textContent = 'Hermit now, renamed or removed';
+      box.appendChild(d);
+      sets.gone.forEach(add);
+    }
+  }
+
+  function runsOf(values) {
+    var runs = [], run = null;
+    for (var i = 0; i < V; i++) {
+      if (values[i] === null) { run = null; continue; }
+      if (!run) { run = []; runs.push(run); }
+      run.push(i);
+    }
+    return runs;
+  }
+
+  function renderCompare() {
+    var picked = pickedList(), key = view.metric, frac = !!metricOf(key).frac;
+    Array.prototype.forEach.call(metricBox.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === key)); });
+    compareBox.innerHTML = '';
+    cmp = {};
+    if (!picked.length) {
+      compareBox.innerHTML = '<div class="empty">Pick types above to compare them on one chart.</div>';
+      compareBox.setAttribute('aria-label', 'No types picked');
+      return;
+    }
+    var W = Math.max(320, compareBox.clientWidth);
+    var m = { l: 52, r: 210, t: 16, b: 30 };
+    var H = Math.max(360, m.t + m.b + picked.length * 16 + 8);
+    if (W < 640) m.r = 16;
+    var pw = W - m.l - m.r, ph = H - m.t - m.b;
+    var X = function (i) { return m.l + (V === 1 ? pw / 2 : i * pw / (V - 1)); };
+    var top = 0;
+    picked.forEach(function (p) { p.t.v[key].forEach(function (x) { if (x !== null && x > top) top = x; }); });
+    var scale = frac ? nice(Math.max(top, 0.01), 5) : niceCount(top, 5);
+    var Y = function (v) { return m.t + ph - v / scale.max * ph; };
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, height: H });
+    gridY(svg, m.l, m.l + pw, scale, Y, frac);
+    axisX(svg, X, m.t + ph, 34);
+    picked.forEach(function (p) {
+      var vals = p.t.v[key], c = pickColor(p.slot), dash = pickDash(p.slot);
+      runsOf(vals).forEach(function (r) {
+        var path = r.map(function (i) { return X(i).toFixed(1) + ',' + Y(vals[i]).toFixed(1); }).join('L');
+        svg.appendChild(el('path', { d: 'M' + path, fill: 'none', stroke: c, 'stroke-width': 2, 'stroke-dasharray': dash, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        if (r.length === 1) svg.appendChild(el('circle', { cx: X(r[0]), cy: Y(vals[r[0]]), r: 4, fill: c }));
+      });
+    });
+
+    if (m.r > 40) {
+      var labels = picked.map(function (p) { return { p: p, y: Y(p.t.v[key][p.t.last]) }; });
+      spreadLabels(labels, m.t + ph);
+      labels.forEach(function (L) {
+        var t = L.p.t, gone = t.last < V - 1;
+        svg.appendChild(el('line', { x1: m.l + pw + 6, x2: m.l + pw + 20, y1: L.y, y2: L.y, stroke: pickColor(L.p.slot), 'stroke-width': 2.5, 'stroke-linecap': 'round', 'stroke-dasharray': pickDash(L.p.slot) }));
+        var text = el('text', { x: m.l + pw + 26, y: L.y + 4, fill: gone ? 'var(--ink-3)' : 'var(--ink-2)' });
+        var name = shortName(t.name);
+        if (name.length > 22) name = name.slice(0, 21) + '\u2026';
+        text.textContent = name + ' ' + brief(t.v[key][t.last], frac) + (gone ? ' (' + versions[t.last].version + ')' : '');
+        svg.appendChild(text);
+      });
+    }
+
+    var selMark = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-2)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+    var hoverMark = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-1)', 'stroke-width': 1, visibility: 'hidden' });
+    svg.appendChild(selMark);
+    svg.appendChild(hoverMark);
+    var dots = picked.map(function (p) {
+      var c = el('circle', { r: 4, fill: pickColor(p.slot), stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' });
+      svg.appendChild(c);
+      return c;
+    });
+    var hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' });
+    svg.appendChild(hit);
+    var at = indexer(svg, W, m.l, pw);
+    hit.addEventListener('mousemove', function (evt) { setHover(at(evt), evt); });
+    hit.addEventListener('mouseleave', function () { setHover(null); });
+    hit.addEventListener('click', function (evt) { setSel(at(evt)); });
+
+    compareBox.appendChild(svg);
+    compareBox.setAttribute('aria-label', 'Line chart of ' + metricOf(key).label.toLowerCase() + ' for ' + picked.length + ' types over ' + V + ' versions: ' +
+      picked.map(function (p) { return shortName(p.t.name); }).join(', '));
+    cmp = { X: X, Y: Y, picked: picked, selMark: selMark, hoverMark: hoverMark, dots: dots };
+  }
+
+  function showCompareTip(i, evt) {
+    var ver = versions[i], key = view.metric, frac = !!metricOf(key).frac;
+    var val = function (p) { var v = p.t.v[key][i]; return v === null ? -1 : v; };
+    var rows = cmp.picked.slice().sort(function (a, b) { return val(b) - val(a); });
+    var html = '<div class="head">' + esc(ver.version) + DOT + esc(metricOf(key).label) + '</div><div class="meta">' + esc(when(ver)) + DOT + esc(String(ver.commit).slice(0, 8)) + '</div>';
+    rows.forEach(function (p) {
+      var v = p.t.v[key][i];
+      html += '<div class="row' + (v === null ? ' muted' : '') + '">' + pickSwatch(p.slot) + '<span class="name">' + esc(shortName(p.t.name)) + '</span>' +
+        '<span class="num">' + (v === null ? 'hermit or absent' : fmt(v, frac)) + '</span></div>';
+    });
+    tip.innerHTML = html;
+    placeTip(evt, compareBox);
+  }
+
+  function updateCompare() {
+    if (!cmp.picked) return;
+    var key = view.metric, x = cmp.X(view.sel), i = view.hover;
+    cmp.selMark.setAttribute('x1', x);
+    cmp.selMark.setAttribute('x2', x);
+    cmp.hoverMark.setAttribute('visibility', i === null ? 'hidden' : 'visible');
+    if (i !== null) {
+      cmp.hoverMark.setAttribute('x1', cmp.X(i));
+      cmp.hoverMark.setAttribute('x2', cmp.X(i));
+    }
+    cmp.picked.forEach(function (p, k) {
+      var d = cmp.dots[k], v = i === null ? null : p.t.v[key][i];
+      if (v === null) { d.setAttribute('visibility', 'hidden'); return; }
+      d.setAttribute('cx', cmp.X(i));
+      d.setAttribute('cy', cmp.Y(v));
+      d.setAttribute('visibility', 'visible');
+    });
+  }
+
+  function renderCompareView() {
+    renderPicker();
+    renderCompare();
+    updateCompare();
+  }
+
+  function setHover(i, evt) {
+    view.hover = i;
+    if (i !== null && evt && cmp.picked && compareBox.contains(evt.target)) showCompareTip(i, evt);
+    else if (i !== null && evt && over.owns(evt.target)) over.showTip(i, evt);
+    else tip.style.display = 'none';
+    over.update();
+    updateCompare();
+  }
+
+  function setSel(i) {
+    view.sel = Math.max(0, Math.min(V - 1, i));
+    renderTiles();
+    renderTable();
+    over.update();
+    updateCompare();
+  }
+
+  function verdictCell(v) {
+    return '<span class="verdict">' + swatch(v) + esc(label(v)) + '</span>';
+  }
+
+  function renderTable() {
+    var s = view.sel, p = s - 1, ver = versions[s], key = view.metric;
+    document.getElementById('tabletitle').textContent = 'Flagged types, Colonies and hub holders at ' + ver.version;
+    document.getElementById('tablenote').textContent = when(ver) + DOT + 'commit ' + String(ver.commit).slice(0, 8) + DOT + 'from ' + ver.source + DOT +
+      ver.measure.files + ' source files, ' + ver.measure.types + ' types' + (p >= 0 ? DOT + 'changes against ' + versions[p].version : '') + DOT + 'sorted by ' + metricOf(key).label.toLowerCase();
+    var rows = typeList.filter(function (t) { return t.verdict[s] !== null || (p >= 0 && t.verdict[p] !== null); });
+    rows.sort(function (a, b) {
+      var ga = a.verdict[s] === null, gb = b.verdict[s] === null;
+      if (ga !== gb) return ga ? 1 : -1;
+      var at = ga ? p : s;
+      return (b.v[key][at] || 0) - (a.v[key][at] || 0) || (b.v.lines[at] || 0) - (a.v.lines[at] || 0);
+    });
+    var body = rows.map(function (t) {
+      var gone = t.verdict[s] === null;
+      var isNew = !gone && p >= 0 && t.verdict[p] === null;
+      var at = gone ? p : s;
+      var parts = t.v.parts[at], cap = partsCeilings[t.name] === undefined ? 1 : partsCeilings[t.name];
+      var partsOver = !gone && parts > cap;
+      var chip = gone ? '<span class="chip">gone</span>' : isNew ? '<span class="chip">new</span>' :
+        (p >= 0 && t.verdict[p] !== t.verdict[s] ? '<span class="chip">was ' + esc(numbered(t.verdict[p])) + '</span>' : '');
+      return '<tr' + (gone ? ' class="gone"' : '') + '><td class="l" title="' + esc(t.name) + '">' + esc(shortName(t.name)) + chip + '</td>' +
+        '<td class="l">' + (gone ? 'Hermit or absent' : verdictCell(t.verdict[s])) + '</td>' +
+        '<td' + (partsOver ? ' class="over"' : '') + '>' + fmt(parts) + '</td><td>' + fmt(cap) + '</td>' +
+        ['lines', 'members', 'mutable', 'outgoing', 'incoming', 'shared', 'crossings'].map(function (k) { return '<td>' + fmt(t.v[k][at]) + '</td>'; }).join('') +
+        ['glued', 'fused', 'density'].map(function (k) { return '<td>' + fmt(t.v[k][at], true) + '</td>'; }).join('') + '</tr>';
+    }).join('');
+    document.getElementById('table').innerHTML =
+      '<thead><tr><th class="l">Type</th><th class="l">Verdict</th><th>Parts</th><th>Ceiling</th><th>Lines</th><th>Members</th>' +
+      '<th>Mutable</th><th>Outgoing</th><th>Incoming</th><th>Shared</th><th>Crossings</th><th>Glued</th><th>Fused</th><th>Density</th></tr></thead><tbody>' +
+      (body || '<tr><td class="l muted" colspan="14">No flagged type, Colony or hub.</td></tr>') + '</tbody>';
+  }
+
+  function renderAll() {
+    renderTiles();
+    over.render();
+    renderCompareView();
+    setSel(view.sel);
+  }
+
+  function stepKeys(evt) {
+    var step = { ArrowLeft: -1, ArrowRight: 1, PageUp: -10, PageDown: 10 }[evt.key];
+    if (evt.key === 'Home') setSel(0);
+    else if (evt.key === 'End') setSel(V - 1);
+    else if (step) setSel(view.sel + step);
+    else return;
+    evt.preventDefault();
+  }
+  compareBox.addEventListener('keydown', stepKeys);
+
+  var timer = null, lastWidth = document.body.clientWidth;
+  window.addEventListener('resize', function () {
+    if (document.body.clientWidth === lastWidth) return;
+    lastWidth = document.body.clientWidth;
+    clearTimeout(timer);
+    timer = setTimeout(renderAll, 120);
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

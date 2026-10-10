@@ -55,7 +55,7 @@ public static class LTraceLog
     public static void LTraceSeamAttach()
     {
         LLocalization.LLocalizationTraceSeam = LTraceErrorRecord;
-        LMediaLoad.LMediaTraceSeam = LTraceErrorRecord;
+        LMediaLoader.LMediaTraceSeam = LTraceErrorRecord;
         LClassifier.LClassifierFaultSource = lClassifierFault => LTraceWarningRecord(lClassifierFault);
         LPreset.LPresetTraceSeam = lPresetMessage => LTraceWarningRecord(lPresetMessage);
     }

@@ -5,7 +5,6 @@ namespace Cadroue.Infrastructure;
 
 public static class LPreferenceStateStore
 {
-    private const string LPreferenceFolderName = "Cadroue";
     private const string LPreferenceFileName = "LPreferenceState.json";
 
     private static LVaultOutcome lPreferenceOutcome = LVaultOutcome.LVaultMissing;
@@ -33,11 +32,7 @@ public static class LPreferenceStateStore
 
     public static string LPreferencePathRead() => LPreferencePathCreate();
 
-    private static string LPreferencePathCreate()
-    {
-        string lPreferenceApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lPreferenceApplicationDataFolder, LPreferenceFolderName, LPreferenceFileName);
-    }
+    private static string LPreferencePathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LPreferenceFileName);
 
     public static void LPreferenceSeamAttach()
     {

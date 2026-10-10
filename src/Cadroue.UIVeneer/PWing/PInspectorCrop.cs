@@ -64,7 +64,7 @@ public sealed partial class PInspector
 
     private void PInspectorCropAttach()
     {
-        LInspectorCrop.LInspectorCropbox.LCropboxStateChange += PInspectorCropUpdate;
+        LInspectorCrop.LInspectorCropbox.LCropboxStateChanged += PInspectorCropUpdate;
         PInspectorCropUpdate();
     }
 

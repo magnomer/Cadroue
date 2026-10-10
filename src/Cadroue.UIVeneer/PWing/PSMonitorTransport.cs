@@ -97,7 +97,7 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorZoomApply()
     {
-        LSMonitorScroll lScroll = psMonitorSource.LSMonitorScrollRead();
+        LSMonitorScrollbar lScroll = psMonitorSource.LSMonitorScrollRead();
         psMonitorScrollbar.ViewportSize = lScroll.LSMonitorScrollViewport;
         psMonitorScrollbar.Maximum = lScroll.LSMonitorScrollMaximum;
         psMonitorScrollbar.Value = lScroll.LSMonitorScrollValue;

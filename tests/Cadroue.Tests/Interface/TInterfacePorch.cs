@@ -43,16 +43,16 @@ internal static partial class TInterface
     internal static LWorkspace TWorkspaceCreate(string key, LPreset? preset) => new(key, preset);
     internal static void TWorkspaceAttach(
         LWorkspace workspace, LDocket? docket, LSegment? segment, LFlow? flow, LViewer? viewer) =>
-        workspace.LWorkspaceAttach(docket, segment, flow, viewer, null, () => new LSceneTabRecord());
+        workspace.LWorkspaceAttach(docket, segment, flow, viewer, null, () => new LSceneTabEntry());
     internal static void TWorkspaceClose(LWorkspace workspace) => workspace.LWorkspaceClose();
     internal static bool TWorkspaceBusyCheck(LWorkspace workspace) => workspace.LWorkspaceBusyCheck();
     internal static IReadOnlyList<string> TDocketPathsRead(LDocket docket) => docket.LDocketPathsRead();
     internal static LHistoryEntry TWorkspaceSnapshotRead(LWorkspace workspace) => workspace.LWorkspaceSnapshotRead();
     internal static bool TWorkspaceUndo(LWorkspace workspace) => workspace.LWorkspaceUndo();
     internal static bool TWorkspaceRedo(LWorkspace workspace) => workspace.LWorkspaceRedo();
-    internal static void TWorkspacePresetSelect(LWorkspace workspace, LPresetRecord record) =>
+    internal static void TWorkspacePresetSelect(LWorkspace workspace, LPresetDocument record) =>
         workspace.LWorkspacePresetOwner.LPresetSelectionValue = record;
-    internal static LPresetRecord TPresetRecordCreate(string display) => new() { LPresetDisplay = display };
+    internal static LPresetDocument TPresetRecordCreate(string display) => new() { LPresetDisplay = display };
     internal static LRelay TWorkspaceRelayCreate(LWorkspace workspace, string custom, double left, double top) =>
         workspace.LWorkspaceRelayCreate(custom, left, top);
     internal static void TWorkspaceRelayApply(LWorkspace workspace, LRelay relay) =>
@@ -65,24 +65,24 @@ internal static partial class TInterface
     internal static void TWorkspacePathHandle(LWorkspace workspace, string? path) =>
         workspace.LWorkspacePathHandle(path);
     internal static void TWorkspacePathsAttach(LWorkspace workspace, Action<IReadOnlyList<string>> handler) =>
-        workspace.LWorkspacePathsAdd += handler;
+        workspace.LWorkspacePathsAdded += handler;
     internal static void TWorkspaceSelectAttach(LWorkspace workspace, Action<string> handler) =>
-        workspace.LWorkspaceSourceSelect += handler;
+        workspace.LWorkspaceSourceSelected += handler;
     internal static void TWorkspaceOpenAttach(LWorkspace workspace, Action<string> handler) =>
-        workspace.LWorkspaceSourceOpen += handler;
+        workspace.LWorkspaceSourceOpened += handler;
     internal static void TWorkspaceCloseAttach(LWorkspace workspace, Action handler) =>
-        workspace.LWorkspaceMediaClose += handler;
+        workspace.LWorkspaceMediaClosed += handler;
     internal static void TWorkspaceVolumeAttach(LWorkspace workspace, Action<double> handler) =>
-        workspace.LWorkspaceVolumeApply += handler;
+        workspace.LWorkspaceVolumeApplied += handler;
     internal static void TWorkspaceSeekAttach(LWorkspace workspace, Action<TimeSpan> handler) =>
-        workspace.LWorkspaceSeekApply += handler;
+        workspace.LWorkspaceSeekApplied += handler;
     internal static void TWorkspaceRangeAttach(LWorkspace workspace, Action<TimeSpan, TimeSpan> handler) =>
-        workspace.LWorkspaceRangeApply += handler;
+        workspace.LWorkspaceRangeApplied += handler;
 
     internal static LSurface TSurfaceCreate(LColumn column, int count, int exportIndex) =>
         new(column, count, exportIndex);
-    internal static LSceneTabRecord TSurfaceLayoutRead(LSurface surface) => surface.LSurfaceLayoutRead();
-    internal static IReadOnlyList<int> TSurfaceCollapsedResolve(LSurface surface, LSceneTabRecord? layout) =>
+    internal static LSceneTabEntry TSurfaceLayoutRead(LSurface surface) => surface.LSurfaceLayoutRead();
+    internal static IReadOnlyList<int> TSurfaceCollapsedResolve(LSurface surface, LSceneTabEntry? layout) =>
         surface.LSurfaceCollapsedResolve(layout);
     internal static bool TSurfaceToggleResolve(LSurface surface) => surface.LSurfaceToggleResolve();
     internal static bool TSurfaceCollapsedCheck(LSurface surface, int index) => surface.LSurfaceCollapsedCheck(index);
@@ -91,7 +91,7 @@ internal static partial class TInterface
         LSurface.LSurfaceMinimumResolve(element, table);
     internal static IReadOnlyList<int> TSurfaceSplittersResolve(int count) => LSurface.LSurfaceSplittersResolve(count);
     internal static int TSurfaceGutterResolve(int index) => LSurface.LSurfaceGutterResolve(index);
-    internal static LSceneTabRecord TSceneTabCreate(bool exportHidden, bool autoRelay, params int[] collapsed) => new()
+    internal static LSceneTabEntry TSceneTabCreate(bool exportHidden, bool autoRelay, params int[] collapsed) => new()
     {
         LSceneExportHidden = exportHidden,
         LSceneAutoRelay = autoRelay,
@@ -103,9 +103,9 @@ internal static partial class TInterface
     internal static LDeck TDeckCreate(LStrip strip) => new(strip);
     internal static void TDeckAttach(LDeck deck, Action<LStripTab> hide, Action<LStripTab> show, Action empty)
     {
-        deck.LDeckHide += hide;
-        deck.LDeckShow += show;
-        deck.LDeckEmptyChange += empty;
+        deck.LDeckHidden += hide;
+        deck.LDeckRevealed += show;
+        deck.LDeckEmptyChanged += empty;
     }
     internal static void TDeckClose(LDeck deck) => deck.LDeckClose();
 
@@ -114,8 +114,8 @@ internal static partial class TInterface
     internal static bool TStripCloseConfirm(LStrip strip, LStripTab? tab) => strip.LStripCloseConfirm(tab);
     internal static void TStripClose(LStrip strip, LStripTab tab) => strip.LStripClose(tab);
     internal static void TStripAllClose(LStrip strip) => strip.LStripAllClose();
-    internal static void TStripCloseAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabClose += handler;
-    internal static void TStripAddAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabAdd += handler;
+    internal static void TStripCloseAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabClosed += handler;
+    internal static void TStripAddAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabAdded += handler;
     internal static IReadOnlyList<LStripTab> TStripRelayRead(LStrip strip, Guid source) =>
         strip.LStripRelayRead(source);
     internal static void TStripPendingSet(LStrip strip, LStripTab tab, bool pending) =>

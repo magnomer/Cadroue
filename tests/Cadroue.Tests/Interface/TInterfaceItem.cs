@@ -24,7 +24,7 @@ internal static partial class TInterface
 
     internal static IReadOnlyList<LWorkItem> TEditSourcesCreate(
         IReadOnlyList<(string, Guid)> sources, LEncoding output,
-        Func<string, LSidecarEditRecord?> sidecarRead, Guid looseBatch) =>
+        Func<string, LSidecarEditEntry?> sidecarRead, Guid looseBatch) =>
         LEdit.LEditSourcesCreate(
             LWorkPriority.LWorkPriorityNormal,
             sources.Select(source => new LWorkSource(source.Item1, source.Item2)).ToArray(),

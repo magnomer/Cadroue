@@ -79,7 +79,7 @@ public sealed partial class PInspector
         pEqualizerBody.Children.Add(pEqualizerApplyBox);
         pEqualizerBody.Children.Add(PInspectorSeparatorBuild());
         pEqualizerBody.Children.Add(pEqualizerStack);
-        LEqualizer.LEqualizerRowsChange += PEqualizerRowsRebuild;
+        LEqualizer.LEqualizerRowsChanged += PEqualizerRowsRebuild;
         PEqualizerRowsRebuild();
         return pEqualizerBody;
     }

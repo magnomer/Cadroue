@@ -11,7 +11,7 @@ public sealed class LGamma
     private bool lGammaCapable;
     private bool lGammaPreview;
 
-    public event Action? LGammaChange;
+    public event Action? LGammaChanged;
 
     public LWorkVideoStep LGammaStep => lGammaStep;
 
@@ -50,7 +50,7 @@ public sealed class LGamma
         }
 
         lGammaStep = lNormal;
-        LGammaChange?.Invoke();
+        LGammaChanged?.Invoke();
     }
 
     public void LGammaActiveSet(bool lActive) =>
@@ -79,7 +79,7 @@ public sealed class LGamma
         }
 
         lGammaPersistent = lPersistent;
-        LGammaChange?.Invoke();
+        LGammaChanged?.Invoke();
     }
 
     public void LGammaCapableSet(bool lCapable, bool lPreview)
@@ -92,6 +92,6 @@ public sealed class LGamma
 
         lGammaCapable = lCapable;
         lGammaPreview = lPreviewShown;
-        LGammaChange?.Invoke();
+        LGammaChanged?.Invoke();
     }
 }

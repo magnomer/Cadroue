@@ -1,4 +1,5 @@
 # TViolation.cs
+Hash: `9173679d3acf4860`
 
 ## `internal sealed record TViolation`
 

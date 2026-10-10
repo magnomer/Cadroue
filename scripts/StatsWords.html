@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ word statistics</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --pass: #138a5f;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --pass: #3ccf95;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --pass: #3ccf95;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+h2 .count { color: var(--ink-3); font-weight: 400; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 0 16px; }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { fill: var(--ink-3); font-size: 11px; }
+.chart .label { fill: var(--ink-2); font-size: 12px; }
+.chart .gridline { stroke: var(--grid); stroke-width: 1; }
+.chart .axisline { stroke: var(--axis); stroke-width: 1; }
+.chart .line { fill: none; stroke-width: 1.75; stroke-linejoin: round; }
+.tablewrap { overflow: auto; max-height: 560px; border-top: 1px solid var(--ring); }
+.tablewrap.short { max-height: none; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+thead th { position: sticky; top: 0; background: var(--surface); z-index: 1; box-shadow: inset 0 -1px 0 var(--ring); }
+th.l, td.l { text-align: left; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.loc { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+.rowcount { color: var(--ink-3); font-size: 13px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 640px) {
+  .grid2 { grid-template-columns: 1fr; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ word statistics</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <div id="sections"></div>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var PF = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var FILTER_MIN = 20;
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function ratio(n) { return n === null || n === undefined ? DASH : PF.format(n); }
+  function pct(n) { return n === null || n === undefined ? DASH : PF.format(n) + ' %'; }
+  function flag(b) { return b ? '<span class="status ok">yes</span>' : '<span class="status plain">no</span>'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function baseName(p) { return String(p).replace(/^.*[\\\/]/, ''); }
+  function codes(list) { return list && list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : '<span class="muted">none</span>'; }
+  function words(list, key) { return (list || []).map(function (x) { var o = {}; o[key] = x; return o; }); }
+
+  // Header, links and scope.
+  var s = d.scope;
+  document.getElementById('subtitle').textContent = d.version + DOT + 'Generated ' + d.generated + DOT + fmt(s.codeFiles) + ' code files' + DOT +
+    fmt(s.commentFiles) + ' comment files' + DOT + fmt(s.projects) + ' projects' + DOT + 'Roots ' + s.roots.join(', ');
+  document.getElementById('links').innerHTML = d.reports.map(function (r) { return '<a href="' + esc(baseName(r.path)) + '">' + esc(baseName(r.path)) + '</a>'; }).join(DOT);
+  document.getElementById('scope').innerHTML = [
+    ['Source roots', codes(s.roots)], ['Root-level files', codes(s.files)], ['Code extensions', codes(s.codeExtensions)],
+    ['Comment pattern', codes([s.commentPattern])], ['Owned prefixes', codes(s.prefixes)], ['Name registry', codes([s.registry])],
+    ['Project segments', esc(s.segments)], ['Excluded directories', codes(s.excluded)], ['Excluded suffixes', codes(s.excludedSuffixes)],
+    ['Console rows', esc(d.top)]
+  ].map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  var host = document.getElementById('sections');
+  function panel(title, count) {
+    var sec = document.createElement('section');
+    sec.className = 'panel';
+    sec.innerHTML = '<h2>' + esc(title) + (count === undefined ? '' : ' <span class="count">(' + fmt(count) + ')</span>') + '</h2>';
+    host.appendChild(sec);
+    return sec;
+  }
+
+  // One full table: sortable by any column, filtered by text when long, the row count kept current.
+  function table(spec) {
+    var sec = panel(spec.title, spec.count ? spec.rows.length : undefined);
+    var rows = spec.rows.map(function (r, i) { r.__i = i; return r; });
+    if (!rows.length) { sec.insertAdjacentHTML('beforeend', '<div class="empty">None.</div>'); return; }
+    var textKeys = spec.columns.filter(function (c) { return !c.num; }).map(function (c) { return c.key; });
+    var bar = document.createElement('div');
+    bar.className = 'toolbar';
+    var input = null;
+    if (rows.length > FILTER_MIN) {
+      input = document.createElement('input');
+      input.type = 'search';
+      input.placeholder = 'Filter ' + spec.title.toLowerCase();
+      input.setAttribute('aria-label', 'Filter ' + spec.title);
+      bar.appendChild(input);
+    }
+    var counter = document.createElement('span');
+    counter.className = 'rowcount';
+    bar.appendChild(counter);
+    sec.appendChild(bar);
+    var wrap = document.createElement('div');
+    wrap.className = 'tablewrap' + (rows.length > FILTER_MIN ? '' : ' short');
+    var tbl = document.createElement('table');
+    wrap.appendChild(tbl);
+    sec.appendChild(wrap);
+    var sortKey = null, sortDown = false;
+
+    function cell(c, r) {
+      var v = r[c.key];
+      var html = c.render ? c.render(v) : c.num ? fmt(v) : esc(v === null || v === undefined ? '' : v);
+      return '<td class="' + (c.loc ? 'loc' : c.num ? '' : 'l') + '">' + html + '</td>';
+    }
+    function draw() {
+      var q = input ? input.value.trim().toLowerCase() : '';
+      var list = rows.filter(function (r) {
+        if (!q) return true;
+        for (var k = 0; k < textKeys.length; k++) { if (String(r[textKeys[k]]).toLowerCase().indexOf(q) >= 0) return true; }
+        return false;
+      });
+      if (sortKey !== null) {
+        var col = spec.columns.filter(function (c) { return c.key === sortKey; })[0];
+        list.sort(function (a, b) {
+          var x = a[sortKey], y = b[sortKey], r;
+          if (col.num || col.bool) r = (Number(x) || 0) - (Number(y) || 0);
+          else { x = String(x).toLowerCase(); y = String(y).toLowerCase(); r = x < y ? -1 : x > y ? 1 : 0; }
+          if (r === 0) r = a.__i - b.__i;
+          return sortDown ? -r : r;
+        });
+      }
+      var head = '<thead><tr>' + spec.columns.map(function (c) {
+        return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + esc(c.label) + '</th>';
+      }).join('') + '</tr></thead>';
+      var body = list.map(function (r) { return '<tr>' + spec.columns.map(function (c) { return cell(c, r); }).join('') + '</tr>'; }).join('');
+      var foot = spec.total ? '<tr class="total">' + spec.columns.map(function (c) { return cell(c, spec.total); }).join('') + '</tr>' : '';
+      tbl.innerHTML = head + '<tbody>' + body + foot + '</tbody>';
+      Array.prototype.forEach.call(tbl.querySelectorAll('th.sort'), function (th) {
+        th.addEventListener('click', function () {
+          var k = th.getAttribute('data-key');
+          var c = spec.columns.filter(function (x) { return x.key === k; })[0];
+          if (k === sortKey) sortDown = !sortDown;
+          else { sortKey = k; sortDown = !!(c.num || c.bool); }
+          draw();
+        });
+      });
+      counter.textContent = (list.length === rows.length ? fmt(rows.length) : fmt(list.length) + ' of ' + fmt(rows.length)) + (rows.length === 1 ? ' row' : ' rows');
+    }
+    if (input) input.addEventListener('input', draw);
+    draw();
+  }
+
+  // Rank-frequency chart: log-log, one line per corpus.
+  function chart() {
+    var series = [
+      { label: 'Code all', color: 'var(--series-1)', counts: d.codeWords.map(function (r) { return r.count; }) },
+      { label: 'Code owned', color: 'var(--series-2)', counts: d.codeWords.map(function (r) { return r.owned; }).filter(function (n) { return n > 0; }).sort(function (a, b) { return b - a; }) },
+      { label: 'Comments', color: 'var(--series-3)', counts: d.commentWords.map(function (r) { return r.count; }) }
+    ].filter(function (x) { return x.counts.length; });
+    var sec = panel('Rank and frequency');
+    if (!series.length) { sec.insertAdjacentHTML('beforeend', '<div class="empty">None.</div>'); return; }
+    sec.insertAdjacentHTML('beforeend', '<div class="legend">' + series.map(function (x) {
+      return '<span><i class="swatch" style="background:' + x.color + '"></i>' + esc(x.label) + ' ' + DOT.trim() + ' ' + fmt(x.counts.length) + ' words</span>';
+    }).join('') + '</div>');
+    var W = 880, H = 380, L = 64, R = 16, T = 12, B = 48;
+    var maxRank = Math.max.apply(null, series.map(function (x) { return x.counts.length; }));
+    var maxCount = Math.max.apply(null, series.map(function (x) { return x.counts[0]; }));
+    var xMax = Math.ceil(Math.log10(Math.max(maxRank, 10)));
+    var yMax = Math.ceil(Math.log10(Math.max(maxCount, 10)));
+    function px(rank) { return L + Math.log10(rank) / xMax * (W - L - R); }
+    function py(count) { return T + (1 - Math.log10(count) / yMax) * (H - T - B); }
+    var svg = '';
+    for (var e = 0; e <= xMax; e++) {
+      var x = px(Math.pow(10, e)).toFixed(1);
+      svg += '<line class="gridline" x1="' + x + '" x2="' + x + '" y1="' + T + '" y2="' + (H - B) + '"/>';
+      svg += '<text x="' + x + '" y="' + (H - B + 16) + '" text-anchor="middle">' + fmt(Math.pow(10, e)) + '</text>';
+    }
+    for (e = 0; e <= yMax; e++) {
+      var y = py(Math.pow(10, e)).toFixed(1);
+      svg += '<line class="gridline" x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '"/>';
+      svg += '<text x="' + (L - 6) + '" y="' + y + '" dy="0.32em" text-anchor="end">' + fmt(Math.pow(10, e)) + '</text>';
+    }
+    svg += '<line class="axisline" x1="' + L + '" x2="' + (W - R) + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
+    svg += '<line class="axisline" x1="' + L + '" x2="' + L + '" y1="' + T + '" y2="' + (H - B) + '"/>';
+    svg += '<text class="label" x="' + ((L + W - R) / 2) + '" y="' + (H - 8) + '" text-anchor="middle">Rank (log scale)</text>';
+    svg += '<text class="label" transform="translate(14 ' + ((T + H - B) / 2) + ') rotate(-90)" text-anchor="middle">Occurrences (log scale)</text>';
+    series.forEach(function (x) {
+      var pts = [], lastX = -1, lastY = -1;
+      x.counts.forEach(function (n, i) {
+        var a = px(i + 1), b = py(n);
+        if (i === x.counts.length - 1 || Math.abs(a - lastX) >= 0.5 || Math.abs(b - lastY) >= 0.5) { pts.push(a.toFixed(1) + ',' + b.toFixed(1)); lastX = a; lastY = b; }
+      });
+      svg += '<polyline class="line" style="stroke:' + x.color + '" points="' + pts.join(' ') + '"><title>' + esc(x.label) + '</title></polyline>';
+    });
+    sec.insertAdjacentHTML('beforeend', '<div class="chart"><svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Rank-frequency chart, log-log">' + svg + '</svg></div>');
+  }
+
+  var WORD = { key: 'word', label: 'Word' };
+  var COUNT = { key: 'count', label: 'Count', num: true };
+  var LOCATION = { key: 'location', label: 'Location', loc: true };
+  var REGISTERED = { key: 'registered', label: 'Registered', bool: true, render: flag };
+
+  table({ title: 'Summary', rows: d.summary, columns: [
+    { key: 'corpus', label: 'Corpus' }, { key: 'files', label: 'Files', num: true }, { key: 'tokens', label: 'Tokens', num: true },
+    { key: 'vocabulary', label: 'Vocabulary', num: true }, { key: 'typeToken', label: 'Type/token', num: true, render: ratio }, { key: 'hapax', label: 'Hapax', num: true }
+  ] });
+  chart();
+  table({ title: 'Projects', rows: d.projects.filter(function (r) { return r.project !== 'Total'; }), total: d.projects.filter(function (r) { return r.project === 'Total'; })[0], columns: [
+    { key: 'project', label: 'Project' }, { key: 'codeFiles', label: 'Code files', num: true }, { key: 'codeTokens', label: 'Code tokens', num: true },
+    { key: 'commentFiles', label: 'Comment files', num: true }, { key: 'commentTokens', label: 'Comment tokens', num: true }, { key: 'ratio', label: 'Ratio', num: true, render: ratio }
+  ] });
+  table({ title: 'Code words', rows: d.codeWords, columns: [
+    { key: 'rank', label: 'Rank', num: true }, WORD, COUNT, { key: 'share', label: 'Share', num: true, render: pct }, { key: 'owned', label: 'Owned', num: true }
+  ] });
+  table({ title: 'Comment words', rows: d.commentWords, columns: [
+    { key: 'rank', label: 'Rank', num: true }, WORD, COUNT, { key: 'share', label: 'Share', num: true, render: pct }
+  ] });
+  table({ title: 'Verbs', rows: d.verbs, columns: [{ key: 'verb', label: 'Verb' }, { key: 'methods', label: 'Methods', num: true }, REGISTERED] });
+  table({ title: 'Verbs unused', count: true, rows: words(d.verbsUnused, 'verb'), columns: [{ key: 'verb', label: 'Verb' }] });
+  table({ title: 'Bases', rows: d.bases, columns: [
+    { key: 'base', label: 'Base' }, { key: 'types', label: 'Types', num: true }, { key: 'methods', label: 'Methods', num: true }, REGISTERED
+  ] });
+  table({ title: 'Bases unused', count: true, rows: words(d.basesUnused, 'base'), columns: [{ key: 'base', label: 'Base' }] });
+  table({ title: 'Comment-only words', count: true, rows: d.commentOnly, columns: [WORD, COUNT] });
+  table({ title: 'Uncited types', count: true, rows: d.uncited, columns: [{ key: 'type', label: 'Type' }, { key: 'location', label: 'Declared', loc: true }] });
+  table({ title: 'Code hapax', count: true, rows: d.codeHapax, columns: [WORD, LOCATION] });
+  table({ title: 'Comment hapax', count: true, rows: d.commentHapax, columns: [WORD, LOCATION] });
+  if (d.unreadable.length) table({ title: 'Unreadable files', count: true, rows: words(d.unreadable, 'file'), columns: [{ key: 'file', label: 'File', loc: true }] });
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>Statistics generation ' + esc(d.generation) + '</span>';
+})();
+</script>
+</body>
+</html>

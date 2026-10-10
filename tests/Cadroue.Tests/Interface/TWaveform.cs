@@ -9,7 +9,7 @@ namespace Cadroue.Tests;
 
 internal sealed record TWaveformScanData(bool TWaveformComplete, byte[] TWaveformPeaks, string TWaveformDetail);
 
-internal sealed record TWaveformRecord(
+internal sealed record TWaveformData(
     int TWaveformBucketMilliseconds,
     long TWaveformDurationMilliseconds,
     string TWaveformPeaks);
@@ -49,13 +49,13 @@ internal sealed class TWaveform : IDisposable
         int columnCount) =>
         LWaveform.LWaveformRangeRead(peaks, rangeStart, rangeEnd, columnCount);
 
-    internal static TWaveformRecord TWaveformRecordCreate(IReadOnlyCollection<byte> peaks, TimeSpan duration) =>
+    internal static TWaveformData TWaveformRecordCreate(IReadOnlyCollection<byte> peaks, TimeSpan duration) =>
         TWaveformSnapshotCreate(LWaveform.LWaveformRecordCreate(peaks, duration));
 
-    internal static byte[] TWaveformPeaksRead(TWaveformRecord? record) =>
+    internal static byte[] TWaveformPeaksRead(TWaveformData? record) =>
         LWaveform.LWaveformPeaksRead(TWaveformProductionCreate(record));
 
-    internal static bool TWaveformRecordMatch(TWaveformRecord? record, TimeSpan duration) =>
+    internal static bool TWaveformRecordMatch(TWaveformData? record, TimeSpan duration) =>
         LWaveform.LWaveformRecordMatch(TWaveformProductionCreate(record), duration);
 
     internal string TSourceCreate(string name, string content)
@@ -160,16 +160,16 @@ internal sealed class TWaveform : IDisposable
         }
     }
 
-    private static TWaveformRecord TWaveformSnapshotCreate(LSidecarWaveformRecord record) =>
+    private static TWaveformData TWaveformSnapshotCreate(LSidecarWaveformEntry record) =>
         new(
             record.LSidecarBucketMilliseconds,
             record.LSidecarDurationMilliseconds,
             record.LSidecarPeaks);
 
-    private static LSidecarWaveformRecord? TWaveformProductionCreate(TWaveformRecord? record) =>
+    private static LSidecarWaveformEntry? TWaveformProductionCreate(TWaveformData? record) =>
         record is null
             ? null
-            : new LSidecarWaveformRecord
+            : new LSidecarWaveformEntry
             {
                 LSidecarBucketMilliseconds = record.TWaveformBucketMilliseconds,
                 LSidecarDurationMilliseconds = record.TWaveformDurationMilliseconds,

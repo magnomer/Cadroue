@@ -1,7 +1,6 @@
 namespace Convention.Tests;
 
-internal sealed class TAuditObjectPart(string path, int lines)
+internal sealed class TAuditObjectPart(int lines)
 {
-    public string TAuditPartPath { get; } = path;
     public int TAuditPartLines { get; } = lines;
 }

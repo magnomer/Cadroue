@@ -54,7 +54,7 @@ public sealed class LFixTab
         lFixDocket = lDocket;
         lFixProcessing = lProcessing;
         lProcessing.LProcessingOrderedSet(false);
-        lClinic.LClinicPlanChange += LFixChangeHandle;
+        lClinic.LClinicPlanChanged += LFixChangeHandle;
     }
 
     public event Action? LFixPresetMissing;
@@ -63,18 +63,18 @@ public sealed class LFixTab
 
     public void LFixClose()
     {
-        lFixClinic.LClinicPlanChange -= LFixChangeHandle;
+        lFixClinic.LClinicPlanChanged -= LFixChangeHandle;
         LFixCheckup.Dispose();
     }
 
-    public LSceneTabRecord LFixLayoutRead(LSceneTabRecord lLayout)
+    public LSceneTabEntry LFixLayoutRead(LSceneTabEntry lLayout)
     {
         LWorkFix lPlan = lFixClinic.LClinicPlanRead();
         LWorkFix lPersistent = LFix.LFixPersistentResolve(lPlan);
         bool lSalvagePersistent = lPlan.LWorkFixSalvage.LWorkSalvagePersistent;
         if (lPersistent.LWorkFixSteps.Any() || lSalvagePersistent)
         {
-            lLayout.LSceneInspector = new LSceneInspectorRecord
+            lLayout.LSceneInspector = new LSceneInspectorEntry
             {
                 LSceneInspectorFix = LFix.LFixPersistentCreate(lPersistent),
                 LSceneInspectorSalvage = lSalvagePersistent
@@ -84,7 +84,7 @@ public sealed class LFixTab
         return lLayout;
     }
 
-    public void LFixLayoutApply(LSceneTabRecord? lLayout)
+    public void LFixLayoutApply(LSceneTabEntry? lLayout)
     {
         if (lLayout is null)
         {

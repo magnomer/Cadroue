@@ -54,7 +54,7 @@ public sealed class TCropOverlay
         Assert.Equal((200, 112.5, 400, 225), (box.LCropBoxX, box.LCropBoxY, box.LCropBoxWidth, box.LCropBoxHeight));
         Assert.Equal(1, applies);
 
-        IReadOnlyList<LCropHandle> handles = TInterface.TCropHandlesRead(crop);
+        IReadOnlyList<LCropGrip> handles = TInterface.TCropHandlesRead(crop);
         Assert.Equal(LCrop.LCropHandleCount, handles.Count);
         Assert.All(handles, handle => Assert.True(handle.LCropHandleShown));
         Assert.Equal((195, 107.5), (handles[0].LCropHandleX, handles[0].LCropHandleY));

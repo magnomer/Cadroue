@@ -15,21 +15,21 @@ public sealed class PMergeTab : PTabSurface
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PMergeTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         LMergeTab = new LMergeTab(lPresetOwner, pList.LList.LListDocket, lPreferenceTabLayout);
         pGroup = new PGroup(LMergeTab.LMergeGroup);
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
-        lAction.LActionRun += lPriority =>
+        lAction.LActionExecuted += lPriority =>
             LMergeTab.LMergeRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdd += () => LMergeTab.LMergeAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionCohortAdd += lCohort =>
+        lAction.LActionAllAdded += () => LMergeTab.LMergeAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionCohortAdded += lCohort =>
             LMergeTab.LMergeCohortRun(lCohort, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         lAction.LActionEligibleAttach(LMergeTab.LMergeEligibleRead);
         LMergeTab.LMergePresetMissing += PExport.PExportMissingShow;
-        pList.LList.LListPathChange += pViewer.LViewer.LViewerPathHandle;
-        pGroup.LGroup.LGroupDrag.LGroupItemOpen += pViewer.LViewer.LViewerPathHandle;
+        pList.LList.LListPathChanged += pViewer.LViewer.LViewerPathHandle;
+        pGroup.LGroup.LGroupDrag.LGroupItemOpened += pViewer.LViewer.LViewerPathHandle;
         pGroup.LGroup.LGroupDrag.LGroupPathsRequest += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner);
@@ -59,5 +59,5 @@ public sealed class PMergeTab : PTabSurface
         base.PTabClose();
     }
 
-    public override LSceneTabRecord PTabLayoutRead() => LMergeTab.LMergeLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => LMergeTab.LMergeLayoutRead(PTabLayoutCreate());
 }

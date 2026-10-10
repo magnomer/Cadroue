@@ -80,14 +80,14 @@ internal sealed partial class PSMonitor : Window
         psMonitorGrabber = new PSGrabber(this);
         psMonitorGrabber.PSGrabberAttach();
         psMonitorSource.LSMonitorReady += PSMonitorReadyHandle;
-        psMonitorSource.LSMonitorCursorChange += PSMonitorCursorApply;
-        psMonitorSource.LSMonitorPlayingChange += PSMonitorPlayingApply;
-        psMonitorSource.LSMonitorZoomChange += PSMonitorZoomApply;
-        psMonitorSource.LSMonitorBypassChange += PSMonitorBypassApply;
-        psMonitorSource.LSMonitorSeekApply += psMonitorFlow.LFlow.LFlowCursorSeek;
-        psMonitorSource.LSMonitorPlayApply += psMonitorFlow.LFlow.LFlowPlayRaise;
-        psMonitorSource.LSMonitorPauseApply += psMonitorFlow.LFlow.LFlowPauseRaise;
-        psMonitorFlow.LFlow.LFlowCursorChange += PSMonitorCursorHandle;
+        psMonitorSource.LSMonitorCursorChanged += PSMonitorCursorApply;
+        psMonitorSource.LSMonitorPlayingChanged += PSMonitorPlayingApply;
+        psMonitorSource.LSMonitorZoomChanged += PSMonitorZoomApply;
+        psMonitorSource.LSMonitorBypassChanged += PSMonitorBypassApply;
+        psMonitorSource.LSMonitorSeekApplied += psMonitorFlow.LFlow.LFlowCursorSeek;
+        psMonitorSource.LSMonitorPlayApplied += psMonitorFlow.LFlow.LFlowPlayRaise;
+        psMonitorSource.LSMonitorPauseApplied += psMonitorFlow.LFlow.LFlowPauseRaise;
+        psMonitorFlow.LFlow.LFlowCursorChanged += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
         psMonitorSource.LSMonitorViewerAttach(psMonitorViewer.LViewer);
         psMonitorSource.LSMonitorCursorSet(pFlow.LFlow.LFlowCursor);
@@ -297,15 +297,15 @@ internal sealed partial class PSMonitor : Window
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
     {
         psMonitorSource.LSMonitorReady -= PSMonitorReadyHandle;
-        psMonitorSource.LSMonitorCursorChange -= PSMonitorCursorApply;
-        psMonitorSource.LSMonitorPlayingChange -= PSMonitorPlayingApply;
-        psMonitorSource.LSMonitorZoomChange -= PSMonitorZoomApply;
-        psMonitorSource.LSMonitorBypassChange -= PSMonitorBypassApply;
-        psMonitorSource.LSMonitorSeekApply -= psMonitorFlow.LFlow.LFlowCursorSeek;
-        psMonitorSource.LSMonitorPlayApply -= psMonitorFlow.LFlow.LFlowPlayRaise;
-        psMonitorSource.LSMonitorPauseApply -= psMonitorFlow.LFlow.LFlowPauseRaise;
+        psMonitorSource.LSMonitorCursorChanged -= PSMonitorCursorApply;
+        psMonitorSource.LSMonitorPlayingChanged -= PSMonitorPlayingApply;
+        psMonitorSource.LSMonitorZoomChanged -= PSMonitorZoomApply;
+        psMonitorSource.LSMonitorBypassChanged -= PSMonitorBypassApply;
+        psMonitorSource.LSMonitorSeekApplied -= psMonitorFlow.LFlow.LFlowCursorSeek;
+        psMonitorSource.LSMonitorPlayApplied -= psMonitorFlow.LFlow.LFlowPlayRaise;
+        psMonitorSource.LSMonitorPauseApplied -= psMonitorFlow.LFlow.LFlowPauseRaise;
         psMonitorSource.LSMonitorViewerDetach();
-        psMonitorFlow.LFlow.LFlowCursorChange -= PSMonitorCursorHandle;
+        psMonitorFlow.LFlow.LFlowCursorChanged -= PSMonitorCursorHandle;
         psMonitorTimer.Stop();
         psMonitorTimer.Tick -= PSMonitorTickHandle;
         PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);

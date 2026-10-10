@@ -21,7 +21,7 @@ public sealed class TSurfaceLayout
         TInterface.TColumnHiddenSet(column, 2, true);
         TInterface.TColumnWidthSet(column, 0, 48);
 
-        LSceneTabRecord layout = TInterface.TSurfaceLayoutRead(surface);
+        LSceneTabEntry layout = TInterface.TSurfaceLayoutRead(surface);
 
         Assert.True(surface.LSurfaceExportHidden);
         Assert.False(TInterface.TSurfaceToggleResolve(surface));

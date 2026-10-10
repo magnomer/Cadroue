@@ -1,6 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using static Cadroue.UIDeportment.LRosterFormat;
+using static Cadroue.UIDeportment.LRosterFormatter;
 
 namespace Cadroue.UIDeportment;
 

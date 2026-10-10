@@ -2,21 +2,23 @@ namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
     public const int TAuditCommentWords = 20;
     public const string TAuditCommentPattern = "*.comment.md";
 
     public static readonly string[] TAuditCommentRoots =
     [
+        "languages",
         "localization",
         "src",
         "tests",
+        "themes",
     ];
 
     public static readonly string[] TAuditCommentFiles =
     [
         "Directory.Build.props",
-        "Cadroue.sln",
+        "Cadroue.slnx",
         "version.json",
     ];
 
@@ -46,14 +48,12 @@ internal static class TAuditCommentSetting
 
     public static readonly string[] TAuditCommentSources =
     [
-        "*.csproj",
-        "*.json",
-    ];
-
-    public static readonly string[] TAuditCommentOptional =
-    [
         "*.cs",
         "*.xaml",
+        "*.csproj",
+        "*.json",
+        "*.props",
+        "*.slnx",
     ];
 
     public static readonly string[] TAuditCommentSuffixes =
@@ -68,6 +68,12 @@ internal static class TAuditCommentSetting
     public static readonly string[] TAuditCommentExempt =
     [
         "TAuditNameRegistry.cs",
+        "TAuditVerbRegistry.cs",
+    ];
+
+    public static readonly string[] TAuditCommentReserved =
+    [
+        "version.comment.md",
     ];
 
     public static readonly string[] TAuditCommentAbbreviations =
@@ -84,6 +90,13 @@ internal static class TAuditCommentSetting
         [".cs"] = ["//", "/*"],
         [".xaml"] = ["<!--"],
         [".props"] = ["<!--"],
+        [".csproj"] = ["<!--"],
+        [".slnx"] = ["<!--"],
+    };
+
+    public static readonly IReadOnlyDictionary<string, int> TAuditCommentCeiling = new Dictionary<string, int>
+    {
+        ["Unstamped"] = 0,
     };
 
     public static readonly Dictionary<string, string> TAuditCommentClosers = new(StringComparer.Ordinal)

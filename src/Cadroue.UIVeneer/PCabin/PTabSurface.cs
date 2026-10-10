@@ -75,7 +75,7 @@ public abstract class PTabSurface : UserControl
     {
     }
 
-    public abstract LSceneTabRecord PTabLayoutRead();
+    public abstract LSceneTabEntry PTabLayoutRead();
 
     private PColumn PTabColumn { get; set; } = null!;
     private IReadOnlyList<UIElement> PTabPanels { get; set; } = Array.Empty<UIElement>();
@@ -83,7 +83,7 @@ public abstract class PTabSurface : UserControl
     private UIElement? PTabExportSplitter { get; set; }
     private ColumnDefinition? PTabExportColumn { get; set; }
 
-    public event Action? PTabWidthChange;
+    public event Action? PTabWidthChanged;
 
     public void PTabExportToggle()
     {
@@ -93,14 +93,14 @@ public abstract class PTabSurface : UserControl
 
     public virtual double PTabWidthRead() => LSurface.LSurfaceWidthResolve(PTabColumn.PColumnTotalRead());
 
-    protected void PTabWidthRaise() => PTabWidthChange?.Invoke();
+    protected void PTabWidthRaise() => PTabWidthChanged?.Invoke();
 
-    protected LSceneTabRecord PTabLayoutCreate() => LSurface.LSurfaceLayoutRead();
+    protected LSceneTabEntry PTabLayoutCreate() => LSurface.LSurfaceLayoutRead();
 
     protected static void PTabLockAttach(PList pList, params UIElement[] pEditors)
     {
         Action<bool> pTabLockApply = pLocked => pEditors.ToList().ForEach(pEditor => pEditor.IsEnabled = !pLocked);
-        pList.LList.LListLockChange += pTabLockApply;
+        pList.LList.LListLockChanged += pTabLockApply;
         pTabLockApply(pList.LList.LListLockCheck());
     }
 
@@ -109,7 +109,7 @@ public abstract class PTabSurface : UserControl
         UIElement pCompass,
         PAction pAction,
         UIElement pFlow,
-        LSceneTabRecord? lPreferenceTabLayout)
+        LSceneTabEntry? lPreferenceTabLayout)
     {
         var pGrid = new Grid
         {
@@ -244,29 +244,29 @@ public abstract class PTabSurface : UserControl
         new(
             pPanel.PListMinimizedCheck,
             pPanel.PListMinimizeSet,
-            pHandler => pPanel.LList.LListMinimizeChange += pHandler);
+            pHandler => pPanel.LList.LListMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PProcessing pPanel) =>
         new(
             pPanel.PProcessingMinimizedCheck,
             pPanel.PProcessingMinimizeSet,
-            pHandler => pPanel.PProcessingMinimizeChange += pHandler);
+            pHandler => pPanel.PProcessingMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PInspector pPanel) =>
         new(
             pPanel.PInspectorMinimizedCheck,
             pPanel.PInspectorMinimizeSet,
-            pHandler => pPanel.LInspector.LInspectorMinimizeChange += pHandler);
+            pHandler => pPanel.LInspector.LInspectorMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PClinic pPanel) =>
         new(
             pPanel.PClinicMinimizedCheck,
             pPanel.PClinicMinimizeSet,
-            pHandler => pPanel.PClinicMinimizeChange += pHandler);
+            pHandler => pPanel.PClinicMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PSection pPanel) =>
         new(
             pPanel.PSectionMinimizedCheck,
             pPanel.PSectionMinimizeSet,
-            pHandler => pPanel.LSection.LSectionMinimizeChange += pHandler);
+            pHandler => pPanel.LSection.LSectionMinimizeChanged += pHandler);
 }

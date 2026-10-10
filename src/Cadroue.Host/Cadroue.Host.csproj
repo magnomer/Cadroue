@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Cadroue</AssemblyName>
+    <ApplicationIcon>..\Cadroue.UIVeneer\PAsset\PProgram\PProgramIcon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishReadyToRun>true</PublishReadyToRun>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cadroue.Core\Cadroue.Core.csproj" />
+    <ProjectReference Include="..\Cadroue.Application\Cadroue.Application.csproj" />
+    <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
+    <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
+    <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
+    <ProjectReference Include="..\Cadroue.Conduct\Cadroue.Conduct.csproj" />
+    <ProjectReference Include="..\Cadroue.UIDeportment\Cadroue.UIDeportment.csproj" />
+    <ProjectReference Include="..\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+    <Content Include="..\..\LICENSE" Link="LICENSE.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="ExcludeFlyleafFromSingleFile" BeforeTargets="_ComputeFilesToBundle">
+    <ItemGroup>
+      <ResolvedFileToPublish Update="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(FileName)').StartsWith('Flyleaf'))">
+        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      </ResolvedFileToPublish>
+    </ItemGroup>
+  </Target>
+</Project>

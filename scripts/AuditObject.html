@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ object audit</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #8f5bd1;
+  --series-5: #c2477f;
+  --series-6: #7c8a20;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+  --c-hydra: #2a78d6;
+  --c-kraken: #eb6834;
+  --c-spider: #1baf7a;
+  --c-chameleon: #eda100;
+  --c-octopus: #e87ba4;
+  --c-centipede: #008300;
+  --c-serpent: #4a3aa7;
+  --c-hub: #e34948;
+  --c-colony: #52514e;
+  --c-hermit: #898781;
+  --c-hydra-ink: #0b0b0b;
+  --c-kraken-ink: #0b0b0b;
+  --c-spider-ink: #0b0b0b;
+  --c-chameleon-ink: #0b0b0b;
+  --c-octopus-ink: #0b0b0b;
+  --c-centipede-ink: #ffffff;
+  --c-serpent-ink: #ffffff;
+  --c-hub-ink: #0b0b0b;
+  --c-colony-ink: #ffffff;
+  --c-hermit-ink: #0b0b0b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #a67ae6;
+    --series-5: #db5f97;
+    --series-6: #9aa83a;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+    --c-hydra: #3987e5;
+    --c-kraken: #d95926;
+    --c-spider: #199e70;
+    --c-chameleon: #c98500;
+    --c-octopus: #d55181;
+    --c-centipede: #008300;
+    --c-serpent: #9085e9;
+    --c-hub: #e66767;
+    --c-colony: #c3c2b7;
+    --c-hermit: #898781;
+    --c-hydra-ink: #0b0b0b;
+    --c-kraken-ink: #0b0b0b;
+    --c-spider-ink: #0b0b0b;
+    --c-chameleon-ink: #0b0b0b;
+    --c-octopus-ink: #0b0b0b;
+    --c-centipede-ink: #ffffff;
+    --c-serpent-ink: #0b0b0b;
+    --c-hub-ink: #0b0b0b;
+    --c-colony-ink: #0b0b0b;
+    --c-hermit-ink: #0b0b0b;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #a67ae6;
+  --series-5: #db5f97;
+  --series-6: #9aa83a;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+  --c-hydra: #3987e5;
+  --c-kraken: #d95926;
+  --c-spider: #199e70;
+  --c-chameleon: #c98500;
+  --c-octopus: #d55181;
+  --c-centipede: #008300;
+  --c-serpent: #9085e9;
+  --c-hub: #e66767;
+  --c-colony: #c3c2b7;
+  --c-hermit: #898781;
+  --c-hydra-ink: #0b0b0b;
+  --c-kraken-ink: #0b0b0b;
+  --c-spider-ink: #0b0b0b;
+  --c-chameleon-ink: #0b0b0b;
+  --c-octopus-ink: #0b0b0b;
+  --c-centipede-ink: #ffffff;
+  --c-serpent-ink: #0b0b0b;
+  --c-hub-ink: #0b0b0b;
+  --c-colony-ink: #0b0b0b;
+  --c-hermit-ink: #0b0b0b;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.warn { background: var(--warn-wash); color: var(--warn); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile .since { color: var(--ink-3); font-size: 12px; }
+.up { color: var(--series-2); }
+.down { color: var(--series-3); }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code, .list code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 16px; height: 16px; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; flex: none;
+  font-size: 10px; font-weight: 700; line-height: 1; font-style: normal; font-variant-numeric: tabular-nums; }
+.verdictcell { display: inline-flex; align-items: center; gap: 6px; }
+.bars { position: relative; display: grid; grid-template-columns: minmax(120px, max-content) 1fr max-content; gap: 4px 12px; align-items: center; font-size: 13px; }
+.bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
+.bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+th.group { text-align: center; }
+thead th { vertical-align: bottom; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+td.wrap { white-space: normal; text-align: left; }
+td.name { white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+td.name .ns { color: var(--ink-3); }
+#gates a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+.subhead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; scroll-margin-top: 12px; }
+.subhead.first { margin-top: 4px; }
+.subhead .count { color: var(--ink-3); font-weight: 400; }
+.subhead.warn { color: var(--warn); }
+.subhead.fail { color: var(--fail); }
+.subhead.ok { color: var(--ink-1); }
+.lead { color: var(--ink-3); font-size: 13px; margin: 0 0 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+button.more { font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px dashed var(--ring); border-radius: 8px; padding: 6px 12px; cursor: pointer; margin-top: 8px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+.list { margin: 0; padding-left: 18px; }
+.list li { overflow-wrap: anywhere; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+.bars .track.stack { display: flex; }
+.bars .track.stack .fill { border-radius: 0; }
+.creature { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.plain { color: var(--ink-2); font-size: 12px; }
+.tech { color: var(--ink-3); font-size: 11px; }
+.subnote { margin: -2px 0 6px; }
+.tile .label .swatch { margin-right: 6px; vertical-align: middle; }
+.subhead .swatch { margin-right: -2px; }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: minmax(80px, 40%) 1fr max-content; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ object audit</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="gates"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Verdicts by project</h2>
+        <div class="muted">Types counted per project, the first two segments of the type name, split by verdict.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Types" id="barscope"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="bars" id="projectbars"></div>
+    <div class="empty" id="projectempty" style="display:none">None.</div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2 id="alltitle"></h2>
+        <div class="muted">Every measured type with its size, rebinding, coupling and glue. Click a column heading to sort.</div>
+      </div>
+    </div>
+    <div class="toolbar"><input type="search" id="filter" placeholder="Filter by type or hub" aria-label="Filter types by name or hub"></div>
+    <div class="toolbar"><div class="segmented" role="group" aria-label="Verdict" id="verdictfilter"></div></div>
+    <div class="tablewrap"><table id="alltable"></table></div>
+    <div class="empty" id="allempty" style="display:none">None.</div>
+    <button type="button" class="more" id="allmore"></button>
+  </section>
+
+  <section class="panel">
+    <h2>Ceilings</h2>
+    <p class="lead" id="enforced"></p>
+    <div class="tablewrap"><table id="ceilings"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Findings</h2>
+    <p class="lead">Every flag is measured on the merged type, at the limit or above. A type's verdict is its worst flag, else Colony for several parts and Hermit for one. A hub is a finding on a state slot, never a verdict.</p>
+    <div id="findings"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script type="application/json" id="history">/*__HISTORY__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var hist = JSON.parse(document.getElementById('history').textContent);
+  var prev = hist.previous;
+  var MINUS = '\u2212';
+  function delta(n) { return n > 0 ? '+' + NF.format(n) : n < 0 ? MINUS + NF.format(-n) : '0'; }
+  function deltaNote(now, before) {
+    if (!prev || before === undefined || before === null) return '';
+    var n = now - before;
+    return '<div class="since"><span class="' + (n > 0 ? 'up' : n < 0 ? 'down' : 'muted') + '">' + delta(n) + '</span> since ' + esc(prev.version) + '</div>';
+  }
+  var NF = new Intl.NumberFormat('en-US');
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var LQ = '\u201c', RQ = '\u201d';
+  var LIMIT = 100;
+  var SCOPES = [{ key: 'flagged', label: 'Without Hermit' }, { key: 'all', label: 'All types' }];
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function dec(n) { return Number(n).toFixed(2); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function ticks(s) { return esc(s).replace(/`([^`]*)`/g, '<code>$1</code>'); }
+  function nameHtml(name) {
+    var cut = name.lastIndexOf('.');
+    return cut < 0 ? esc(name) : '<span class="ns">' + esc(name.slice(0, cut + 1)) + '</span>' + esc(name.slice(cut + 1));
+  }
+  function slug(text) { return 'sec-' + String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function statusClass(s) { return s === 'FAIL' ? 'fail' : s === 'WARN' ? 'warn' : 'ok'; }
+  function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+  function load(key, fallback, allowed) {
+    try { var v = localStorage.getItem('auditobject.' + key); if (v !== null && (!allowed || allowed.indexOf(v) >= 0)) return v; } catch (e) { }
+    return fallback;
+  }
+  function save(key, value) { try { localStorage.setItem('auditobject.' + key, value); } catch (e) { } }
+  function segmented(box, options, current, onPick) {
+    box.innerHTML = '';
+    options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      if (o.html) b.innerHTML = o.html; else b.textContent = o.label;
+      b.setAttribute('aria-pressed', String(o.key === current));
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+        onPick(o.key);
+      });
+      box.appendChild(b);
+    });
+  }
+  function ceilingClass(c) { return c.state === 'STALE' || c.state === 'ABOVE' ? 'fail' : c.state === 'OVER' ? 'warn' : 'ok'; }
+  var verdictNames = d.verdicts.map(function (v) { return v.verdict; });
+  var HERMIT = verdictNames[verdictNames.length - 1];
+  function verdictIndex(v) { return Math.max(0, verdictNames.indexOf(v)); }
+  var AT = ' \u2265 ';
+  var L = d.limits;
+  var CREATURES = {
+    hydra: { label: 'Hydra', plain: 'One class cut into many files whose parts still lean on each other.',
+      tech: 'parts' + AT + fmt(L.HydraParts) + ', lines' + AT + fmt(L.HydraLines) + ', fused' + AT + dec(L.HydraFused) + ' or density' + AT + dec(L.HydraDensity) },
+    kraken: { label: 'Kraken', plain: 'Too big and too tangled with other classes at once.', tech: 'Serpent or Centipede, and Octopus or Spider' },
+    spider: { label: 'Spider', plain: 'Uses many classes and is used by many, so every change ripples both ways.',
+      tech: 'outgoing' + AT + fmt(L.SpiderOutgoing) + ' and incoming' + AT + fmt(L.SpiderIncoming) },
+    chameleon: { label: 'Chameleon', plain: 'Holds many values that can change after it is created.', tech: 'mutable' + AT + fmt(L.ChameleonMutable) },
+    octopus: { label: 'Octopus', plain: 'Depends on too many other classes.', tech: 'outgoing' + AT + fmt(L.OctopusOutgoing) },
+    centipede: { label: 'Centipede', plain: 'Has too many members.', tech: 'members' + AT + fmt(L.CentipedeMembers) },
+    serpent: { label: 'Serpent', plain: 'Has too many lines.', tech: 'lines' + AT + fmt(L.SerpentLines) },
+    hub: { label: 'Hub', plain: 'One field touched from many files of the same class.', tech: 'slot reached from' + AT + fmt(L.HubParts) + ' parts' },
+    colony: { label: 'Colony', plain: 'Split into files, but nothing else is wrong.', tech: 'several parts, no flag' },
+    hermit: { label: 'Hermit', plain: 'One file, nothing wrong.', tech: 'one part, no flag' }
+  };
+  function creatureKey(term) { var k = keyOf(term); return CREATURES.hasOwnProperty(k) ? k : ''; }
+  var LADDER = ['hydra', 'kraken', 'spider', 'chameleon', 'octopus', 'centipede', 'serpent'];
+  var TERMS = LADDER.concat(['hub', 'colony']);
+  function digit(key) { var n = TERMS.indexOf(key); return n < 0 ? '' : String(n + 1); }
+  function keyOf(text) { return String(text).replace(/^\(\d+\)\s*/, '').toLowerCase(); }
+  function label(key) { return CREATURES[key] ? CREATURES[key].label : key; }
+  function plainName(text) { var k = creatureKey(text); return k ? label(k) : String(text).replace(/^\(\d+\)\s*/, ''); }
+  function swatch(key) {
+    return '<i class="swatch" style="background:var(--c-' + esc(key) + ');color:#ffffff" aria-hidden="true">' + digit(key) + '</i>';
+  }
+  function swatchOff(key) { return '<i class="swatch" style="border:1px solid var(--ink-3);color:var(--ink-3)" aria-hidden="true">' + digit(key) + '</i>'; }
+  function creatureTip(key) { var c = CREATURES[key]; return c ? c.plain + '\n' + c.tech : ''; }
+  function verdictPill(v) {
+    var k = creatureKey(v);
+    if (!k) return '<span class="status plain">' + esc(v) + '</span>';
+    return '<span class="verdictcell" title="' + esc(creatureTip(k)) + '">' + swatch(k) + esc(label(k)) + '</span>';
+  }
+  var kinds = d.ceilings.filter(function (c) { return c.key.indexOf('ceiling.') === 0; });
+  var parts = d.ceilings.filter(function (c) { return c.key.indexOf('parts.') === 0; });
+
+  // Header, verdict and result.
+  document.getElementById('subtitle').textContent = 'Version ' + d.version + DOT + d.generated + DOT + fmt(d.scanned.sources) + ' source files' + DOT +
+    fmt(d.scanned.types) + ' types' + DOT + fmt(d.scanned.split) + ' split' + DOT + 'Generation ' + d.generation;
+  var links = [];
+  if (hist.page) links.push('<a href="' + esc(hist.page) + '">Object history</a>');
+  links.push('<a href="' + esc(d.report) + '">' + esc(d.report) + '</a>');
+  document.getElementById('links').innerHTML = links.join(DOT);
+
+  var failed = d.gates.filter(function (g) { return g.status === 'FAIL'; });
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + d.gates.length + ' gates at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + d.gates.length + ' gates above 0.<span class="note">See ' +
+      failed.map(function (g) { return '<a href="#' + slug(g.gate) + '">' + LQ + esc(g.gate) + RQ + '</a>'; }).join(', ') + '.</span>';
+  }
+
+  document.getElementById('gates').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+    d.gates.map(function (g) {
+      return '<tr><td class="l"><span class="status ' + statusClass(g.status) + '">' + g.status + '</span></td><td>' + fmt(g.count) +
+        '</td><td class="l"><a href="#' + slug(g.gate) + '">' + esc(g.gate) + '</a></td><td class="l muted">' + esc(g.meaning) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  function tileText(key) {
+    var c = CREATURES[key];
+    return '<div class="plain">' + esc(c.plain) + '</div><div class="tech">' + esc(c.tech) + '</div>';
+  }
+  var tiles = [];
+  var tiled = {};
+  kinds.forEach(function (c) {
+    var cls = ceilingClass(c);
+    var note = c.state === 'STALE' ? 'Stale: ceiling above its count' : c.state === 'ABOVE' ? 'Above the ceiling' :
+      c.state === 'OVER' ? 'Above the ceiling, not enforced' : 'Hits';
+    var ck = creatureKey(c.kind);
+    var since = ck && prev ? deltaNote(c.count, prev.flags[ck]) : '';
+    if (ck) tiled[ck] = true;
+    tiles.push('<div class="tile ' + (cls === 'ok' ? '' : cls) + '"' + (ck ? ' title="' + esc(creatureTip(ck)) + '"' : '') + '><div class="label">' +
+      (ck ? swatch(ck) : '') + esc(plainName(c.kind)) + '</div><div class="value">' + fmt(c.count) +
+      ' <small>/ ' + fmt(c.ceiling) + '</small></div><div class="note">' + note + '</div>' + since + (ck ? tileText(ck) : '') + '</div>');
+  });
+  d.verdicts.forEach(function (v) {
+    var k = creatureKey(v.verdict);
+    if (!k || tiled[k]) return;
+    tiled[k] = true;
+    tiles.push('<div class="tile" title="' + esc(creatureTip(k)) + '"><div class="label">' + swatch(k) + esc(label(k)) + '</div><div class="value">' + fmt(v.count) +
+      '</div><div class="note">Types</div>' + deltaNote(v.count, prev ? prev.verdicts[k] : null) + tileText(k) + '</div>');
+  });
+  tiles.push('<div class="tile"><div class="label">Types measured</div><div class="value">' + fmt(d.scanned.types) + '</div><div class="note">' +
+    fmt(d.scanned.split) + ' split' + DOT + fmt(d.scanned.flagged) + ' flagged or with hubs</div>' + deltaNote(d.scanned.types, prev ? prev.types : null) + '</div>');
+  document.getElementById('tiles').innerHTML = tiles.join('');
+
+  // Ceilings.
+  document.getElementById('enforced').textContent = d.enforced ?
+    'Ceilings are enforced: a flag, the hubs or a split type above its ceiling fails. A type missing from parts holds one part. A stale ceiling always fails.' :
+    'Ceilings are not enforced: a count above its ceiling does not fail. A stale ceiling always fails.';
+  function ceilingRow(c) {
+    return '<tr><td class="l"><code>' + esc(c.key) + '</code></td><td>' + fmt(c.count) + '</td><td>' + fmt(c.ceiling) + '</td><td class="l">' +
+      (d.enforced ? 'Yes' : 'No') + '</td><td class="l"><span class="status ' + ceilingClass(c) + '">' + c.state + '</span></td></tr>';
+  }
+  document.getElementById('ceilings').innerHTML =
+    '<thead><tr><th class="l">Key</th><th>Count</th><th>Ceiling</th><th class="l">Enforced</th><th class="l">State</th></tr></thead><tbody>' +
+    kinds.map(ceilingRow).join('') + parts.map(ceilingRow).join('') + '</tbody>';
+
+  // Scope.
+  function codes(list) { return list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
+  var scopeRows = [
+    ['Source roots', codes(d.scope.roots)],
+    ['Source extensions', codes(d.scope.extensions)],
+    ['Excluded folders', codes(d.scope.excludeSegments)],
+    ['Excluded suffixes', codes(d.scope.excludeSuffixes)],
+    ['Excluded prefixes', codes(d.scope.excludePrefixes)],
+    ['Helper framework', codes([d.scope.framework])],
+    ['Console rows', fmt(d.scope.top) + ' per list'],
+    ['Hydra', 'Parts ' + fmt(L.HydraParts) + ' and Lines ' + fmt(L.HydraLines) + ', and Fused ' + dec(L.HydraFused) + ' or Density ' + dec(L.HydraDensity)],
+    ['Kraken', 'a Serpent or Centipede that is also an Octopus or Spider'],
+    ['Spider', 'Outgoing ' + fmt(L.SpiderOutgoing) + ' and Incoming ' + fmt(L.SpiderIncoming)],
+    ['Chameleon', 'Mutable ' + fmt(L.ChameleonMutable)],
+    ['Octopus', 'Outgoing ' + fmt(L.OctopusOutgoing)],
+    ['Centipede', 'Members ' + fmt(L.CentipedeMembers)],
+    ['Serpent', 'Lines ' + fmt(L.SerpentLines)],
+    ['Hub', 'a state slot reached from ' + fmt(L.HubParts) + ' or more parts']
+  ];
+  document.getElementById('scope').innerHTML = scopeRows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  // Findings, in the console order.
+  var findingBox = document.getElementById('findings');
+  function gateStatus(name) { var g = d.gates.filter(function (x) { return x.gate === name; })[0]; return g ? g.status : 'OK'; }
+  function capital(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function findingTable(f) {
+    if (f.gate) {
+      return {
+        columns: [{ label: 'Term', num: false }, { label: 'Line', num: false }],
+        rows: f.cited.map(function (r, i) { return { order: i, cells: [{ value: r.term, kind: 'term' }, { value: r.line, kind: 'line' }] }; })
+      };
+    }
+    var first = f.cited[0];
+    var columns = [{ label: 'Type', num: false }].concat((first ? first.measures : []).map(function (m) {
+      return { label: capital(m.name), num: typeof m.value === 'number' };
+    }));
+    return {
+      columns: columns,
+      rows: f.cited.map(function (r, i) {
+        return {
+          order: i, cells: [{ value: r.type, kind: 'type' }].concat(r.measures.map(function (m) {
+            return { value: m.value, places: m.places, kind: typeof m.value === 'number' ? 'num' : 'slot' };
+          }))
+        };
+      })
+    };
+  }
+  function cellHtml(c) {
+    if (c.kind === 'num') return '<td>' + (c.places === 2 ? dec(c.value) : fmt(c.value)) + '</td>';
+    if (c.kind === 'type') return '<td class="name">' + nameHtml(c.value) + '</td>';
+    if (c.kind === 'slot') return '<td class="l"><code>' + esc(c.value) + '</code></td>';
+    if (c.kind === 'line') return '<td class="wrap">' + ticks(c.value) + '</td>';
+    return '<td class="l">' + esc(c.value) + '</td>';
+  }
+  function block(spec, index) {
+    var wrap = document.createElement('div');
+    findingBox.appendChild(wrap);
+    var shown = LIMIT;
+    var sortAt = -1, sortDown = false;
+    function draw() {
+      var items = spec.table.rows.slice();
+      var columns = spec.table.columns;
+      if (sortAt >= 0) {
+        items.sort(function (a, b) {
+          var x = a.cells[sortAt].value, y = b.cells[sortAt].value;
+          var r = typeof x === 'number' ? x - y : compare(String(x), String(y));
+          if (sortDown) r = -r;
+          return r === 0 ? a.order - b.order : r;
+        });
+      }
+      var html = '<div class="subhead ' + statusClass(spec.status) + (index === 0 ? ' first' : '') + '" id="' + slug(spec.title) + '">' +
+        '<span class="status ' + statusClass(spec.status) + '">' + spec.status + '</span>' + (spec.key ? swatch(spec.key) : '') + esc(plainName(spec.title)) +
+        ' <span class="count">(' + fmt(items.length) + (spec.extra ? ', ' + spec.extra : '') + ')</span></div>';
+      if (spec.key) {
+        html += '<div class="subnote" title="' + esc(creatureTip(spec.key)) + '"><span class="plain">' + esc(CREATURES[spec.key].plain) + '</span> <span class="tech">' +
+          esc(CREATURES[spec.key].tech) + '</span></div>';
+      }
+      if (!items.length) html += '<div class="empty">None.</div>';
+      else {
+        html += '<div class="tablewrap"><table><thead><tr>' + columns.map(function (c, i) {
+          return '<th class="sort' + (c.num ? '' : ' l') + '" data-at="' + i + '"' + (i === sortAt ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' +
+            esc(c.label) + '</th>';
+        }).join('') + '</tr></thead><tbody>' + items.slice(0, shown).map(function (r) {
+          return '<tr>' + r.cells.map(cellHtml).join('') + '</tr>';
+        }).join('') + '</tbody></table></div>';
+      }
+      wrap.innerHTML = html;
+      Array.prototype.forEach.call(wrap.querySelectorAll('th.sort'), function (th) {
+        th.addEventListener('click', function () {
+          var at = Number(th.getAttribute('data-at'));
+          if (at === sortAt) sortDown = !sortDown;
+          else { sortAt = at; sortDown = columns[at].num; }
+          draw();
+        });
+      });
+      if (items.length > shown) {
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'more';
+        more.textContent = 'Show all ' + fmt(items.length) + ' (' + fmt(items.length - shown) + ' hidden)';
+        more.addEventListener('click', function () { shown = Infinity; draw(); });
+        wrap.appendChild(more);
+      }
+    }
+    draw();
+  }
+  d.findings.map(function (f) {
+    if (f.gate) return { title: f.title, table: findingTable(f), status: gateStatus(f.title) };
+    var c = kinds.filter(function (k) { return k.kind === f.title; })[0];
+    return {
+      title: f.title, key: creatureKey(f.title), table: findingTable(f), extra: c ? 'ceiling ' + fmt(c.ceiling) : '',
+      status: c && ceilingClass(c) === 'fail' ? 'FAIL' : f.rows.length > 0 ? 'WARN' : 'OK'
+    };
+  }).forEach(block);
+
+  // Verdicts by project.
+  document.getElementById('legend').innerHTML = d.verdicts.map(function (v) {
+    var k = creatureKey(v.verdict);
+    return '<span title="' + esc(creatureTip(k)) + '">' + swatch(k) + esc(plainName(v.verdict)) + ' ' + fmt(v.count) + '</span>';
+  }).join('');
+  function projectOf(name) { var bits = name.split('.'); return bits.length < 3 ? bits[0] : bits[0] + '.' + bits[1]; }
+  var barScope = load('bars', 'flagged', SCOPES.map(function (s) { return s.key; }));
+  segmented(document.getElementById('barscope'), SCOPES, barScope, function (k) { barScope = k; save('bars', k); drawProjects(); });
+  function drawProjects() {
+    var map = {};
+    d.types.forEach(function (t) {
+      if (barScope === 'flagged' && t.verdict === HERMIT) return;
+      var name = projectOf(t.name);
+      var entry = map[name] || (map[name] = { name: name, total: 0, byVerdict: {} });
+      entry.total += 1;
+      entry.byVerdict[t.verdict] = (entry.byVerdict[t.verdict] || 0) + 1;
+    });
+    var list = Object.keys(map).map(function (k) { return map[k]; }).sort(function (a, b) { return b.total - a.total || compare(a.name, b.name); });
+    var peak = list.reduce(function (m, p) { return Math.max(m, p.total); }, 0) || 1;
+    document.getElementById('projectbars').innerHTML = list.map(function (p) {
+      var present = verdictNames.filter(function (v) { return p.byVerdict[v]; });
+      var title = present.map(function (v) { return plainName(v) + ' ' + fmt(p.byVerdict[v]); }).join(DOT);
+      var fills = present.map(function (v) {
+        return '<div class="fill" style="background:var(--c-' + creatureKey(v) + ');width:' + (p.byVerdict[v] / peak * 100).toFixed(2) + '%"></div>';
+      }).join('');
+      return '<div class="name" title="' + esc(p.name) + '">' + esc(p.name) + '</div><div class="track stack" title="' + esc(title) + '">' + fills +
+        '</div><div class="num">' + fmt(p.total) + '</div>';
+    }).join('');
+    document.getElementById('projectempty').style.display = list.length ? 'none' : '';
+  }
+
+  // Every measured type.
+  var GROUPS = [
+    { label: '', span: 2 }, { label: 'Size', span: 3 }, { label: 'Rebinding', span: 1 }, { label: 'Coupling', span: 2 }, { label: 'Glue', span: 5 }
+  ];
+  var COLUMNS = [
+    { key: 'name', label: 'Type', num: false }, { key: 'verdict', label: 'Verdict', num: false },
+    { key: 'parts', label: 'Parts', num: true }, { key: 'lines', label: 'Lines', num: true }, { key: 'members', label: 'Members', num: true },
+    { key: 'mutable', label: 'Mutable', num: true },
+    { key: 'outgoing', label: 'Outgoing', num: true }, { key: 'incoming', label: 'Incoming', num: true },
+    { key: 'shared', label: 'Shared', num: true }, { key: 'crossings', label: 'Crossings', num: true },
+    { key: 'glued', label: 'Glued', num: true, dec: true }, { key: 'fused', label: 'Fused', num: true, dec: true }, { key: 'density', label: 'Density', num: true, dec: true }
+  ];
+  function sortValue(t, key) {
+    if (key === 'verdict') return verdictIndex(t.verdict);
+    return t[key];
+  }
+  var verdictCounts = {};
+  d.types.forEach(function (t) { verdictCounts[t.verdict] = (verdictCounts[t.verdict] || 0) + 1; });
+  var sortKey = load('sort', 'lines', COLUMNS.map(function (c) { return c.key; }));
+  var sortDown = load('down', 'true', ['true', 'false']) === 'true';
+  var verdictKey = load('verdict', 'all', ['all'].concat(verdictNames));
+  var shownAll = LIMIT;
+  segmented(document.getElementById('verdictfilter'), [{ key: 'all', label: 'All ' + fmt(d.types.length) }].concat(verdictNames.filter(function (v) {
+    return verdictCounts[v];
+  }).map(function (v) {
+    return { key: v, html: swatch(creatureKey(v)) + esc(plainName(v)) + ' ' + fmt(verdictCounts[v]) };
+  })), verdictKey, function (k) { verdictKey = k; save('verdict', k); shownAll = LIMIT; drawAll(); });
+  var filterBox = document.getElementById('filter');
+  filterBox.addEventListener('input', function () { shownAll = LIMIT; drawAll(); });
+  document.getElementById('allmore').addEventListener('click', function () { shownAll = Infinity; drawAll(); });
+  function drawAll() {
+    var q = filterBox.value.trim().toLowerCase();
+    var list = d.types.filter(function (t) {
+      return (verdictKey === 'all' || t.verdict === verdictKey) &&
+        (!q || t.name.toLowerCase().indexOf(q) >= 0 || t.hubs.join(' ').toLowerCase().indexOf(q) >= 0);
+    });
+    var col = COLUMNS.filter(function (c) { return c.key === sortKey; })[0];
+    list.sort(function (a, b) {
+      var x = sortValue(a, sortKey), y = sortValue(b, sortKey);
+      var r = typeof x === 'number' ? x - y : compare(x, y);
+      if (r === 0) r = sortDown ? -compare(a.name, b.name) : compare(a.name, b.name);
+      return sortDown ? -r : r;
+    });
+    document.getElementById('alltitle').textContent = 'Every measured type (' + fmt(d.types.length) + ')';
+    var head = '<thead><tr>' + GROUPS.map(function (g) {
+      return '<th class="group" colspan="' + g.span + '">' + g.label + '</th>';
+    }).join('') + '</tr><tr>' + COLUMNS.map(function (c) {
+      return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + c.label + '</th>';
+    }).join('') + '</tr></thead>';
+    var body = list.slice(0, shownAll).map(function (t) {
+      var hubTitle = t.hubs.length ? ' title="' + esc(t.hubs.join('\n').replace(/`/g, '')) + '"' : '';
+      return '<tr><td class="name">' + nameHtml(t.name) + '</td><td class="l">' + verdictPill(t.verdict) + '</td>' +
+        COLUMNS.slice(2).map(function (c) {
+          return '<td' + (c.key === 'shared' ? hubTitle : '') + '>' + (c.dec ? dec(t[c.key]) : fmt(t[c.key])) + '</td>';
+        }).join('') + '</tr>';
+    }).join('');
+    var table = document.getElementById('alltable');
+    table.innerHTML = head + '<tbody>' + body + '</tbody>';
+    Array.prototype.forEach.call(table.querySelectorAll('th.sort'), function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-key');
+        if (k === sortKey) sortDown = !sortDown;
+        else { sortKey = k; sortDown = COLUMNS.filter(function (c) { return c.key === k; })[0].num; }
+        save('sort', sortKey); save('down', String(sortDown));
+        drawAll();
+      });
+    });
+    document.getElementById('allempty').style.display = list.length ? 'none' : '';
+    var more = document.getElementById('allmore');
+    more.style.display = list.length > shownAll ? '' : 'none';
+    more.textContent = 'Show all ' + fmt(list.length) + ' (' + fmt(list.length - Math.min(shownAll, list.length)) + ' hidden)';
+  }
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>' + fmt(d.scanned.sources) + ' source files' + DOT + fmt(d.scanned.types) + ' types</span>';
+
+  drawProjects();
+  drawAll();
+})();
+</script>
+</body>
+</html>

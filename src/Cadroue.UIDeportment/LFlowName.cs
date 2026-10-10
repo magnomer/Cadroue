@@ -20,8 +20,8 @@ public sealed class LFlowName
         lFlow = lOwner;
     }
 
-    public event Action<LFlowNamePrompt>? LFlowNameShow;
-    public event Action? LFlowNameClose;
+    public event Action<LFlowNamePrompt>? LFlowNameShown;
+    public event Action? LFlowNameClosed;
 
     public int? LFlowNameIndex => lFlowNameIndex;
 
@@ -36,7 +36,7 @@ public sealed class LFlowName
         LFlowNameHide();
         lFlowNameIndex = lIndex;
         LPiece lPiece = lSections[lIndex];
-        LFlowNameShow?.Invoke(new LFlowNamePrompt(
+        LFlowNameShown?.Invoke(new LFlowNamePrompt(
             lIndex,
             lPiece.LPieceName,
             lPiece.LPiecePrefix,
@@ -54,7 +54,7 @@ public sealed class LFlowName
         }
 
         lFlowNameIndex = null;
-        LFlowNameClose?.Invoke();
+        LFlowNameClosed?.Invoke();
     }
 
     public void LFlowNameCommit(string lName, string lPrefix, string lSuffix)

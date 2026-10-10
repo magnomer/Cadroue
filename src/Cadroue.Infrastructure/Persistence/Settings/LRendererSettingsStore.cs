@@ -8,7 +8,6 @@ namespace Cadroue.Infrastructure;
 
 public static class LRendererSettingsStore
 {
-    private const string LRendererSettingsFolder = "Cadroue";
     private const string LRendererSettingsFile = "LRendererSettings.json";
 
     public static LRendererSettings LRendererSettingsLoad()
@@ -52,9 +51,5 @@ public static class LRendererSettingsStore
         }
     }
 
-    private static string LRendererPathCreate()
-    {
-        string lRendererApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lRendererApplicationDataFolder, LRendererSettingsFolder, LRendererSettingsFile);
-    }
+    private static string LRendererPathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LRendererSettingsFile);
 }

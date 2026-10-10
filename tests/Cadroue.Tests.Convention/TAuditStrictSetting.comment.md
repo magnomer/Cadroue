@@ -1,8 +1,10 @@
 # TAuditStrictSetting.cs
+Hash: `65b4ee8b61ef8c89`
 
 ## `internal static class TAuditStrictSetting`
 
-Hand-written and tracked: the veneer-audit switch, the report path and the classifiers live here.
+Hand-written and tracked.
+The surface-audit switch, the report path and the classifiers live here.
 The per-file ceilings live in the ledger named by `TAuditLedgerFile`.
 No script writes this file.
 
@@ -18,51 +20,50 @@ Where the report lands, with the version in the name.
 
 ## `public const string TAuditLedgerFile = "TAuditStrictLedger";`
 
-The ledger holding the ceiling of every kind in every veneer, deportment and host file.
-The ledger stood at the generation 16 counts on the day the suite came from Llyn.
-
-## `public static readonly string[] TAuditVeneerInclude`
-
-The `git ls-files` patterns of the veneer sources.
-A type declared under one of these is a veneer type, whatever its base.
+The ledger holding the ceiling of every kind in every surface, driver and host file.
 
 ## `public static readonly string[] TAuditReachInclude`
 
-The `git ls-files` patterns of the veneer markup.
+The `git ls-files` patterns of the surface markup.
+
+## `public static readonly string[] TAuditVeneerInclude`
+
+The `git ls-files` patterns of the surface sources, the Veneer and UITerminal both.
+A type declared under one of these is a surface type, whatever its base.
 
 ## `public static readonly string[] TAuditDeportmentInclude`
 
-The `git ls-files` patterns of the deportment sources, scanned for a reach into the file system.
+The `git ls-files` patterns of the driver sources, scanned for a reach into the file system.
 
 ## `public static readonly string[] TAuditHostInclude`
 
 The `git ls-files` patterns of the host sources, held to construction and wiring.
-There is no host project, so the composition root `App.xaml.cs` stands in.
 
 ## `public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";`
 
-The namespace whose types and members a markup binding may name, since Deportment is shell state, not logic.
+The namespace whose types and members a markup binding may name, since the driver is the surface's path.
+A name a type below the cut also declares is left out.
+So a deeper binding cannot pass by coincidence.
 
 ## `public const string TAuditVeneerNamespace = "Cadroue.UIVeneer";`
 
-The namespace of the veneer types.
-An `x:Class` in the veneer markup naming a type outside it is a hook.
+The namespace of the surface types.
+An `x:Class` in the surface markup naming a type outside it is tethering.
 
 ## `public const string TAuditContractType = "QContract";`
 
-The name of the deportment's only door to the scaffold.
+The name of Deportment's only door to the scaffold.
 Every string argument of a call on it is a contract ID.
-No such type exists here yet, so no call is read as a contract.
 
-## `public static readonly string[] TAuditPackMarkers`
+## `public static readonly string[] TAuditHardwiringMarkers`
 
-A deportment line holding one of these texts names the Veneer.
+A driver line holding one of these texts names the Veneer.
 They match as plain text, string literals included, since a pack URI is a literal.
 
-## `public static readonly string[] TAuditScaffoldTypes`
+## `public static readonly string[] TAuditMasqueradingTypes`
 
 The WPF types the scaffold derives from.
-A deportment type with one of them among its base types is scaffold.
+A driver type with one of them among its base types is masquerading.
 
 ## `public static readonly string[] TAuditContractIds`
 
@@ -71,57 +72,65 @@ The markup attributes that declare a contract ID, in any XML namespace.
 
 ## `public static readonly string[] TAuditQueryTypes`
 
-The types whose extension methods are queries, each a decision the veneer may not make.
+The types whose extension methods are queries, each a decision a surface may not make.
 
 ## `public static readonly string[] TAuditCatalogPatterns`
 
-A line matching one of these does file, JSON, regex or process work, or starts a task, in the veneer.
+A line matching one of these does file, JSON, regex or process work, or starts a task, in the surface.
+That work belongs below the UI, in the engine or in an `LUsher` adapter.
 
 ## `public static readonly string[] TAuditCatalogExempt`
 
-The veneer files exempt from the catalog scan by name, each a debt a plan removes.
-The list rows and the group card cut a file name the deportment should hand them.
-The about and workspace pages join a path the usher should build.
-The icon reader picks its reader by extension.
-The log window prints through `Debug` and the Flyleaf wrapper times its open with a `Stopwatch`.
+The surface files whose stream use is the framework's own: a resource stream, a bitmap decode, a browser page.
+It is empty.
+The exempt files moved to Deportment in the Great Purge.
 
 ## `public static readonly string[] TAuditDiskPatterns`
 
-A deportment line matching one of these names a file system type.
+A driver line matching one of these names a file system type.
+The patterns name the types, so the console's `TextReader` and `TextWriter` pass.
 
 ## `public static readonly string[] TAuditDiskExempt`
 
-The deportment files exempt from the disk scan by name, each a debt a plan removes.
-Both cut a file name with `Path` into a trace message, work the trace writer should do below the shell.
+The driver files exempt from the disk scan by name.
+It is empty.
+No driver file names the file system.
 
-## `public static readonly string[] TAuditReachNamespaces`
+## `public static readonly string[] TAuditOverreachingNamespaces`
 
-Namespaces a markup file may not map, since mapping one lets a binding reach logic.
+The namespaces below the driver that a markup file may not map, since a mapping lets a binding reach them.
 
-## `public static readonly string[] TAuditTriggerElements`
+## `public static readonly string[] TAuditBranchingElements`
 
-The markup elements that branch on a condition.
+The markup elements that branch on a condition or switch between visual states.
 
-## `public static readonly string[] TAuditTriggerSlots`
+## `public static readonly string[] TAuditBranchingSlots`
 
-The binding slots that convert, format or fall back, each a computation in the markup.
+The binding slots that convert, format, fall back, select a template or validate.
+Each is a computation in the markup, whether set as an attribute, inside an extension or as a property element.
 
-## `public static readonly string[] TAuditHookElements`
+## `public static readonly string[] TAuditTetheringElements`
 
-The markup elements that hook code into the view: bindings, command and input bindings.
+The markup elements that bind a value, a command or an input to logic.
 
-## `public static readonly string[] TAuditHookSlots`
+## `public static readonly string[] TAuditTetheringSlots`
 
-The attributes that name a command or a member path, each a hook in the markup.
+The attributes that tether logic, whether set as an attribute, as a property element or through a `Setter`.
+The command slots, `DisplayMemberPath` and `SelectedValuePath` all name what code reads.
 
-## `public static readonly string[] TAuditHookLiterals`
+## `public static readonly string[] TAuditTetheringLiterals`
 
-The attributes whose literal value code reads back, so a literal there is a hook.
+The attributes that tether only when set to a plain literal, directly or through a `Setter`.
+`Tag` is one, since code branches on a literal tag.
+A value opening a markup extension is left to the extension rules.
+The script reads the same list from `tetheringLiterals` in `AuditUI.json`.
 
-## `public static readonly string[] TAuditHookExtensions`
+## `public static readonly string[] TAuditTetheringExtensions`
 
-The markup extensions that reach code from an attribute value.
+The markup extensions that bind to logic or read a code member.
+A markup extension whose prefix maps a code namespace is tethering without being listed.
 
-## `public static readonly string[] TAuditHookTypes`
+## `public static readonly string[] TAuditTetheringTypes`
 
-The types whose subclasses run code the markup selects: selectors and converters.
+The converter and selector types a markup element may not be.
+An element is one when its type or a base type is listed or implements a listed interface.

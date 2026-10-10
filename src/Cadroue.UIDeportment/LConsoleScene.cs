@@ -15,17 +15,17 @@ public sealed class LConsoleScene
 
     public string LConsoleSceneName => lConsoleSceneName;
 
-    public event Action<IReadOnlyList<string>>? LConsoleNamesApply;
+    public event Action<IReadOnlyList<string>>? LConsoleNamesApplied;
 
-    public event Action<string?, string, bool>? LConsoleSceneApply;
+    public event Action<string?, string, bool>? LConsoleSceneApplied;
 
-    public event Action<bool>? LConsoleMarkApply;
+    public event Action<bool>? LConsoleMarkApplied;
 
-    public event Action? LConsoleFocusClear;
+    public event Action? LConsoleFocusCleared;
 
-    public event Action<string, string>? LConsoleNoticeShow;
+    public event Action<string, string>? LConsoleNoticeShown;
 
-    public event Action<string, string>? LConsoleWarningShow;
+    public event Action<string, string>? LConsoleWarningShown;
 
     public void LConsoleWindowAttach(LWindow lWindowOwner, LStrip lStripOwner)
     {
@@ -56,17 +56,17 @@ public sealed class LConsoleScene
     public void LConsoleSceneRebuild()
     {
         LScene.LSceneCatalogueLoad();
-        LConsoleNamesApply?.Invoke(LScene.LSceneNames);
+        LConsoleNamesApplied?.Invoke(LScene.LSceneNames);
         LConsoleSceneUpdate();
     }
 
     public void LConsoleSceneUpdate() =>
-        LConsoleSceneApply?.Invoke(
+        LConsoleSceneApplied?.Invoke(
             LScene.LSceneRead(lConsoleSceneName) is not null ? lConsoleSceneName : null,
             lConsoleSceneName,
             LConsoleDirtyCheck());
 
-    public void LConsoleMarkUpdate() => LConsoleMarkApply?.Invoke(LConsoleDirtyCheck());
+    public void LConsoleMarkUpdate() => LConsoleMarkApplied?.Invoke(LConsoleDirtyCheck());
 
     public void LConsoleTickHandle(bool lFocusWithin)
     {
@@ -141,7 +141,7 @@ public sealed class LConsoleScene
         LAskNotice.LAskPublish(lAsk, lAnswer => LConsoleSceneRun(lAnswer, lSceneName, lScene));
     }
 
-    private void LConsoleSceneRun(bool lAnswer, string lSceneName, LSceneRecord lScene)
+    private void LConsoleSceneRun(bool lAnswer, string lSceneName, LSceneDocument lScene)
     {
         if (lAnswer && lWindow is { } lWindowOwner && lStrip is { } lStripOwner
             && lWindowOwner.LWindowSceneApply(lScene, lStripOwner.LStripCloseConfirm(), lStripOwner.LStripAllClose))
@@ -189,7 +189,7 @@ public sealed class LConsoleScene
         string lSceneName = (lText ?? string.Empty).Trim();
         if (lSceneName.Length == 0)
         {
-            LConsoleNoticeShow?.Invoke(
+            LConsoleNoticeShown?.Invoke(
                 LLocalization.LLocalizationTextRead("Console.Scene.SaveTitle"),
                 LLocalization.LLocalizationTextRead("Console.Scene.NameRequired"));
             return;
@@ -213,21 +213,21 @@ public sealed class LConsoleScene
             return;
         }
 
-        LConsoleFocusClear?.Invoke();
+        LConsoleFocusCleared?.Invoke();
     }
 
     public void LConsoleDeactivateHandle(bool lFocusWithin)
     {
         if (lFocusWithin)
         {
-            LConsoleFocusClear?.Invoke();
+            LConsoleFocusCleared?.Invoke();
         }
     }
 
-    private LSceneRecord? LConsoleExportResolve(string? lText)
+    private LSceneDocument? LConsoleExportResolve(string? lText)
     {
         string lSceneName = (lText ?? string.Empty).Trim();
-        LSceneRecord? lScene = lSceneName.Length > 0 ? LScene.LSceneRead(lSceneName) : null;
+        LSceneDocument? lScene = lSceneName.Length > 0 ? LScene.LSceneRead(lSceneName) : null;
         if (lScene is not null)
         {
             return lScene;
@@ -266,7 +266,7 @@ public sealed class LConsoleScene
             return;
         }
 
-        LSceneRecord? lScene;
+        LSceneDocument? lScene;
         try
         {
             lScene = LScene.LSceneFileLoad(lPath);
@@ -313,7 +313,7 @@ public sealed class LConsoleScene
     }
 
     private void LConsoleErrorRaise(string lMessageKey, string lDetail, string lTitleKey) =>
-        LConsoleWarningShow?.Invoke(
+        LConsoleWarningShown?.Invoke(
             LLocalization.LLocalizationTextRead(lTitleKey),
             lDetail.Length > 0
                 ? LLocalization.LLocalizationFormat(lMessageKey, lDetail)

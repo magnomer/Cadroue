@@ -103,7 +103,7 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PBlankBuild());
         pSensorSections = LSensor.LSensorPlans.Select(PSensorBuild).ToList();
         pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
-        LSensor.LSensorChange += PSensorUpdate;
+        LSensor.LSensorChanged += PSensorUpdate;
         pInspectorSections = PInspectorSectionsCreate();
 
         var pScroll = new ScrollViewer
@@ -137,7 +137,7 @@ public sealed partial class PInspector : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
-        LInspector.LInspectorChange += PInspectorUpdate;
+        LInspector.LInspectorChanged += PInspectorUpdate;
         PInspectorAttach();
         PInspectorUpdate();
     }
@@ -168,18 +168,18 @@ public sealed partial class PInspector : PPanel
 
     private void PInspectorAttach()
     {
-        LTone.LToneChange += PToneUpdate;
-        LGamma.LGammaChange += PGammaUpdate;
-        LExposure.LExposureChange += PExposureUpdate;
-        LCurve.LCurveChange += PCurveUpdate;
-        LWhitebalance.LWhitebalanceChange += PWhitebalanceUpdate;
-        LVolume.LVolumeChange += PVolumeUpdate;
-        LLoudness.LLoudnessChange += PLoudnessUpdate;
-        LNoise.LNoiseChange += PNoiseUpdate;
-        LFilterHigh.LFilterChange += () => PFilterUpdate(pInspectorHighPass);
-        LFilterLow.LFilterChange += () => PFilterUpdate(pInspectorLowPass);
-        LEqualizer.LEqualizerChange += PEqualizerUpdate;
-        LSkip.LSkipChange += PSkipUpdate;
+        LTone.LToneChanged += PToneUpdate;
+        LGamma.LGammaChanged += PGammaUpdate;
+        LExposure.LExposureChanged += PExposureUpdate;
+        LCurve.LCurveChanged += PCurveUpdate;
+        LWhitebalance.LWhitebalanceChanged += PWhitebalanceUpdate;
+        LVolume.LVolumeChanged += PVolumeUpdate;
+        LLoudness.LLoudnessChanged += PLoudnessUpdate;
+        LNoise.LNoiseChanged += PNoiseUpdate;
+        LFilterHigh.LFilterChanged += () => PFilterUpdate(pInspectorHighPass);
+        LFilterLow.LFilterChanged += () => PFilterUpdate(pInspectorLowPass);
+        LEqualizer.LEqualizerChanged += PEqualizerUpdate;
+        LSkip.LSkipChanged += PSkipUpdate;
         PToneUpdate();
         PGammaUpdate();
         PExposureUpdate();

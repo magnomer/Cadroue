@@ -1,16 +1,21 @@
 # TAuditTruthSetting.cs
+Hash: `d2c4c53e746f402a`
 
 ## `internal static class TAuditTruthSetting`
 
-Hand-written and tracked: the deportment-audit scope, the binder inputs and the ceilings live here.
-There is no waiver, since the binder says what is logic.
-A ceiling is the only tolerance.
+Hand-written and tracked.
+The driver-audit scope, the binder inputs and the handle list live here.
+The per-file ceilings live in the ledger named by `TAuditLedgerFile`.
 No script writes this file.
+
+## `public const int TAuditGeneration = 21;`
+
+Numbers the revision of the driver-audit settings this file holds.
 
 ## `public const bool TAuditTruthEnforced = true;`
 
-False makes every custody fact a warning that passes.
-True fails a fact on any hit that is not waived and on any kind above its ceiling.
+False makes every driver fact a warning that passes.
+True fails a fact on any file whose count of a kind stands above its ledger ceiling.
 
 ## `public const string TAuditTruthReport = "temp/audit/Custody-{0}.md";`
 
@@ -21,37 +26,59 @@ Where the report lands, with the version in the name.
 
 A field or property whose name ends in this is a state the engine should own.
 
-## `public const string TAuditBulletinType = "LNotice";`
+## `public const string TAuditBulletinType = "LBulletin";`
 
-The engine's notice type, so a handler taking one and never reading it is a deaf handler.
-No such type exists here yet, so the deaf-handler shape reports nothing until one does.
+The engine's notice type.
+A handler or lambda taking one and never reading it is a deaf observer, in either medium.
 
 ## `public const string TAuditConfiguration = "Debug";`
 
 The build configuration whose output and generated files the binder reads.
 
-## `public const string TAuditReferenceRoot = "src/Cadroue.UIVeneer";`
+## `public const string TAuditReferenceRoot = "src/Cadroue.Host";`
 
-The project whose build output carries every package the source references.
+The project whose build output carries every package any source references.
+Host names every project, so its output holds the packages of both media and of Infrastructure.
 
 ## `public const string TAuditConductRoot = "src/Cadroue.Conduct";`
 
-The folder whose types are Conduct's, which a deportment may hold and reshape.
-No Conduct project exists here, so every type below the UI counts as the engine's.
+The folder whose types are Conduct's.
+A driver may hold, implement and reshape them, since Conduct's types stop at the driver.
 
 ## `public const string TAuditLedgerFile = "TAuditTruthLedger";`
 
-The ledger holding the ceiling of every kind in every deportment file.
-The ledger stood at the generation 16 counts on the day the suite came from Llyn.
+The ledger holding the ceiling of every kind in every driver file.
+
+## `public static readonly string[] TAuditCapsuleInclude`
+
+The `git ls-files` patterns of the Capsule project, which stores Deportment's own state.
+A call into it answers a shell value, so Contesting does not search its arguments.
+Every reader of `TAuditShellInclude` joins this list to it, so each path is written once.
+
 ## `public static readonly string[] TAuditShellInclude`
 
-The `git ls-files` patterns of every UI source, the veneer and the deportment both.
-A type declared under one of these is UI, and a type declared under any other source is logic.
+The `git ls-files` patterns of every UI source, both surfaces and both drivers.
+A type declared under one of these, or under `TAuditCapsuleInclude`, is UI.
+A type declared in Conduct is a gate type, and a type declared under any other source is engine.
 
 ## `public static readonly string[] TAuditTruthInclude`
 
-The patterns of the sources the deportment walks audit.
-The veneer is left to the veneer audit, where holding anything is already a hit.
+The patterns of the driver sources the driver walks audit, Deportment and Demeanor alike.
+The surfaces are left to the surface audit, where holding anything is already a hit.
+
+## `public static readonly Dictionary<string, string[]> TAuditTruthInformative`
+
+The kinds that only inform, each with the driver folders it waits on.
+Such a kind gates nothing while a listed folder holds no tracked source.
+Once every listed folder holds one, the kind fails like any other.
+Mismatching waits on Demeanor, since every Deportment reach mismatches while the CUI has no code.
+
+## `public static readonly Dictionary<string, string> TAuditControlPrefix`
+
+The control prefix of each driver ring, keyed by the ring's folder.
+A driver type whose name starts with its ring's prefix is a control type.
+A control shows what it is handed and may not request logic, so puppeteering names any request inside one.
+`AuditUI.json` holds the same rows as `truth.controlPrefixes`, copied by hand.
 
 ## `public static readonly string[] TAuditFrameworkPacks`
 
@@ -59,7 +86,7 @@ The shared frameworks referenced beside the test runtime, so framework types res
 
 ## `public static readonly string[] TAuditControlBases`
 
-A type deriving from one of these is a control, whose state may not decide a request.
+A type deriving from one of these is a GUI control, whose state may not decide a request.
 
 ## `public static readonly string[] TAuditOrderVerbs`
 
@@ -70,46 +97,61 @@ The collection calls that change an order, which only the engine may decide.
 The calls that write into a collection in place.
 A `readonly` field filled through one is not a fixture.
 
-## `public const string TAuditRequestPrefix`
+## `public const string TAuditRequestPrefix = "LRequest";`
 
 The prefix every request record carries.
 
 ## `public static readonly string[] TAuditSendRoots`
 
-The messenger calls a request finally goes through.
-A member that reaches one, or builds a request, is a sender.
+The tenure calls a request finally goes through.
+A member that reaches one, calls a Conduct method or builds a request is a sender.
 
 ## `public static readonly string[] TAuditClockTypes`
 
-The types whose events fire on time rather than on a user act.
+The types that fire on time rather than on a user act.
+A clock drives a request through an event, a callback it is built with or a loop waiting on it.
 
 ## `public static readonly string[] TAuditConsoleInput`
 
-The console calls that carry what the user typed.
+The console calls that carry what the user typed, the CUI's control input.
 Each is written as the full name of its declaring type and member.
 
 ## `public static readonly string[] TAuditDialogTypes`
 
 The types whose answer confirms a request.
-A dialog answer deciding a request is a guard.
+A confirm belongs in the gate behind a port, so a dialog answer deciding a request is gatekeeping.
 
 ## `public static readonly string[] TAuditDelayMembers`
 
 The waits that turn a loop into a clock.
+
+## `public const string TAuditInputBase = "System.Windows.Controls.Control";`
+
+The base type of every control that takes user input.
+The laundering walk colours an input member only on a receiver deriving from it.
+`TextBox`, `ComboBox` and `ToggleButton` derive from it, while `TextBlock` and `Run` do not.
+`AuditUI.json` holds the same name as `truth.inputBase`, copied by hand.
+
 ## `public static readonly string[] TAuditInputMembers`
 
-The members of a control that carry what the user typed or chose.
+The members of a GUI control that carry what the user typed or chose.
+Caret and selection positions stay off the list, since a driver keeps caret, focus and placement work.
+`AuditUI.json` holds the same list as `truth.inputMembers`, copied by hand.
+
+## `public static readonly string[] TAuditFocusMembers`
+
+The members of a GUI control that tell whether the user is at it.
+A guard on one of them only asks whose event it is, so the misfiring scan exempts it.
 
 ## `public static readonly string[] TAuditTruthHandles`
 
-Types a deportment field may hold as a handle to the engine rather than as a value.
-A handle is called on and passed back, so the field is skipped before any rule reads it.
-Each is a live logic owner a tab hands its deportment: docket, selections, schedule, station, segment.
-`LMpv` is the embedded player library and `LRelay` the cross-instance channel.
+Driver types a driver field may hold as a handle rather than as a value.
+A handle is called on and passed on, so the field is skipped before any rule reads it.
+A Conduct type is a handle by rule and is never listed.
+A type from below Conduct is never a handle, so holding one is a duplicating hit counted in the ledger.
+The list is empty now that the veneer helpers take Conduct's atelier, which is a handle by rule.
 A type is matched as the binder shows it, with any nullable mark dropped.
 
-## `public static readonly string[] TAuditTreatVerbs`
+## `public static readonly string[] TAuditMoonlightingVerbs`
 
-Query methods that, applied to a logic value, are data treatment.
-
-
+Query methods that, applied to a value from below Conduct, are moonlighting.

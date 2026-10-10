@@ -1,0 +1,1048 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ line history</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --retired: #b4b2aa;
+  --cmp-1: #2a78d6;
+  --cmp-2: #eb6834;
+  --cmp-3: #1baf7a;
+  --cmp-4: #eda100;
+  --cmp-5: #e87ba4;
+  --cmp-6: #008300;
+  --cmp-7: #4a3aa7;
+  --cmp-8: #e34948;
+  --cmp-9: #184f95;
+  --cmp-10: #a8431a;
+  --cmp-11: #00805a;
+  --cmp-12: #8f6400;
+  --cmp-13: #a8305f;
+  --cmp-14: #1d6b1d;
+  --cmp-15: #3d2a9e;
+  --cmp-16: #9e2a2a;
+  --cmp-17: #6ea8f2;
+  --cmp-18: #f59268;
+  --cmp-19: #43c995;
+  --cmp-20: #f0b83a;
+  --cmp-21: #f296bb;
+  --cmp-22: #56b856;
+  --cmp-23: #9486e8;
+  --cmp-24: #f08080;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --retired: #5a5955;
+    --cmp-1: #3987e5;
+    --cmp-2: #d95926;
+    --cmp-3: #199e70;
+    --cmp-4: #c98500;
+    --cmp-5: #d55181;
+    --cmp-6: #008300;
+    --cmp-7: #9085e9;
+    --cmp-8: #e66767;
+    --cmp-9: #78aef7;
+    --cmp-10: #f7a078;
+    --cmp-11: #58d6a5;
+    --cmp-12: #f2c440;
+    --cmp-13: #f59cc0;
+    --cmp-14: #5ccc5c;
+    --cmp-15: #ab9dfa;
+    --cmp-16: #ff9a8f;
+    --cmp-17: #2466b8;
+    --cmp-18: #b04a1e;
+    --cmp-19: #0e8058;
+    --cmp-20: #9a6800;
+    --cmp-21: #b03a6a;
+    --cmp-22: #127312;
+    --cmp-23: #6655cc;
+    --cmp-24: #bb4040;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --retired: #5a5955;
+  --cmp-1: #3987e5;
+  --cmp-2: #d95926;
+  --cmp-3: #199e70;
+  --cmp-4: #c98500;
+  --cmp-5: #d55181;
+  --cmp-6: #008300;
+  --cmp-7: #9085e9;
+  --cmp-8: #e66767;
+  --cmp-9: #78aef7;
+  --cmp-10: #f7a078;
+  --cmp-11: #58d6a5;
+  --cmp-12: #f2c440;
+  --cmp-13: #f59cc0;
+  --cmp-14: #5ccc5c;
+  --cmp-15: #ab9dfa;
+  --cmp-16: #ff9a8f;
+  --cmp-17: #2466b8;
+  --cmp-18: #b04a1e;
+  --cmp-19: #0e8058;
+  --cmp-20: #9a6800;
+  --cmp-21: #b03a6a;
+  --cmp-22: #127312;
+  --cmp-23: #6655cc;
+  --cmp-24: #bb4040;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+a { color: var(--series-1); }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.segmented { display: inline-flex; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.chart { position: relative; }
+.chart > svg { display: block; width: 100%; overflow: visible; }
+.chart:focus-visible { outline: 2px solid var(--series-1); outline-offset: 4px; border-radius: 6px; }
+svg text { font: 11px system-ui, -apple-system, "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; display: none; z-index: 5; }
+.tip .head { font-weight: 600; }
+.tip .meta { color: var(--ink-3); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row .num { margin-left: auto; font-variant-numeric: tabular-nums; padding-left: 12px; }
+.tip .row.total { border-top: 1px solid var(--ring); margin-top: 4px; padding-top: 4px; font-weight: 600; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.card { border: 1px solid var(--ring); border-radius: 8px; padding: 10px 12px 8px; }
+.card.retired .name { color: var(--ink-2); }
+.card .top { display: flex; align-items: baseline; gap: 8px; }
+.card .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .val { margin-left: auto; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card .meta { color: var(--ink-3); font-size: 12px; display: flex; align-items: center; gap: 6px; }
+.card .plot svg { display: block; width: 100%; height: 96px; margin-top: 6px; cursor: crosshair; }
+.divider { grid-column: 1 / -1; color: var(--ink-3); font-size: 12px; border-top: 1px solid var(--ring); padding-top: 8px; margin-top: 4px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+th.group { text-align: center; }
+thead th { vertical-align: bottom; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+tr.gone td { color: var(--ink-3); }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.card .pick { font: inherit; font-size: 12px; line-height: 1; color: var(--ink-2); background: none; border: 1px solid var(--ring); border-radius: 6px;
+  width: 22px; height: 22px; padding: 0; cursor: pointer; flex: none; display: inline-flex; align-items: center; justify-content: center; }
+.card .pick[aria-pressed="true"] { background: var(--wash); }
+.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 12px 0; }
+.picker .count { color: var(--ink-3); font-size: 12px; margin-right: 4px; }
+.picker .group { flex-basis: 100%; color: var(--ink-3); font-size: 12px; margin-top: 4px; }
+.picker button { font: inherit; font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--ring); border-radius: 999px;
+  padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.picker button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.picker button:disabled { cursor: not-allowed; opacity: 0.4; }
+.stroke { display: inline-block; flex: none; vertical-align: middle; }
+.picker button.action { border-style: dashed; }
+.empty { color: var(--ink-3); padding: 48px 0; text-align: center; }
+.lineage { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 12px; cursor: pointer; padding: 6px 0; }
+.lineage input { margin: 0; accent-color: var(--ink-2); cursor: pointer; }
+.chip { font-size: 11px; color: var(--ink-2); border: 1px solid var(--ring); border-radius: 999px; padding: 0 6px; margin-left: 6px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ line history</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div class="segmented" role="group" aria-label="Measure" id="metric"></div>
+    <div class="sub"><a href="__AUDITPAGE__">Line audit</a></div>
+  </header>
+
+  <section class="tiles" id="tiles" aria-live="polite"></section>
+
+  <section class="panel">
+    <h2>Total by root</h2>
+    <div class="muted">Stacked by source root. X is version order. Diamonds mark versions where folders appear or disappear. Click a version to select it; arrow keys step.</div>
+    <div class="legend" id="legend"></div>
+    <div class="chart" id="main" tabindex="0" role="img"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>By folder</h2>
+        <div class="muted" id="foldernote"></div>
+      </div>
+      <label class="lineage" title="Folders linked by renamed files share one color"><input type="checkbox" id="lineage">Lineage</label>
+      <div class="segmented" role="group" aria-label="Folder view" id="foldermode"></div>
+    </div>
+    <div class="picker" id="picker"></div>
+    <div class="chart" id="compare" tabindex="0" role="img"></div>
+    <div class="cards" id="cards" style="margin-top: 12px"></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="tabletitle"></h2>
+    <div class="muted" id="tablenote"></div>
+    <div class="tablewrap" style="margin-top: 8px"><table id="table"></table></div>
+  </section>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var raw = JSON.parse(document.getElementById('data').textContent);
+  var versions = raw.versions;
+  var V = versions.length;
+  var METRICS = [{ key: 'lines', label: 'Lines' }, { key: 'nonBlank', label: 'Non-blank' }, { key: 'files', label: 'Files' }, { key: 'bytes', label: 'Sizes' }];
+  var NF = new Intl.NumberFormat('en-US');
+  var MINUS = '\u2212';
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  var roots = [];
+  var folders = new Map();
+  versions.forEach(function (ver, i) {
+    ver.folders.forEach(function (f) {
+      var root = f.root || '';
+      if (roots.indexOf(root) < 0) roots.push(root);
+      var id = root + '|' + f.name;
+      var entry = folders.get(id);
+      if (!entry) {
+        entry = { id: id, name: f.name, root: root, first: i, last: i, v: {} };
+        METRICS.forEach(function (m) { entry.v[m.key] = new Array(V).fill(null); });
+        folders.set(id, entry);
+      }
+      METRICS.forEach(function (m) { entry.v[m.key][i] = f[m.key]; });
+      entry.last = i;
+    });
+  });
+  var folderList = Array.from(folders.values());
+
+  var lineage = raw.lineage || { share: 0, links: [] };
+  var parent = new Map();
+  function head(id) {
+    while (parent.has(id) && parent.get(id) !== id) id = parent.get(id);
+    return id;
+  }
+  lineage.links.forEach(function (link) {
+    if (!folders.has(link.from) || !folders.has(link.to)) return;
+    var a = head(link.from), b = head(link.to);
+    if (!parent.has(a)) parent.set(a, a);
+    if (a !== b) parent.set(b, a);
+  });
+  var families = [];
+  folderList.slice().sort(function (a, b) { return a.first - b.first || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0); }).forEach(function (f) {
+    if (!parent.has(f.id)) { f.family = -1; return; }
+    var top = head(f.id), at = families.indexOf(top);
+    if (at < 0) { at = families.length; families.push(top); }
+    f.family = at;
+  });
+  folderList.forEach(function (f) { if (f.family === undefined) f.family = -1; });
+  var familyNames = families.map(function (top, k) {
+    return folderList.filter(function (f) { return f.family === k; }).sort(function (a, b) { return a.first - b.first; }).map(function (f) { return f.name; });
+  });
+
+  var totals = {};
+  METRICS.forEach(function (m) {
+    var byRoot = {};
+    roots.forEach(function (r) { byRoot[r] = new Array(V).fill(0); });
+    var all = new Array(V).fill(0);
+    folderList.forEach(function (f) {
+      for (var i = 0; i < V; i++) {
+        var x = f.v[m.key][i];
+        if (x !== null) { byRoot[f.root][i] += x; all[i] += x; }
+      }
+    });
+    totals[m.key] = { byRoot: byRoot, all: all };
+  });
+
+  var events = [];
+  for (var i = 1; i < V; i++) {
+    var added = [], removed = [];
+    folderList.forEach(function (f) {
+      var now = f.v.lines[i] !== null, before = f.v.lines[i - 1] !== null;
+      if (now && !before) added.push(f.name);
+      if (!now && before) removed.push(f.name);
+    });
+    if (added.length || removed.length) events.push({ i: i, added: added, removed: removed });
+  }
+
+  function color(root) { return 'var(--series-' + (roots.indexOf(root) % 3 + 1) + ')'; }
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function short(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+    if (n >= 1e5) return Math.round(n / 1e3) + 'k';
+    if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+    return String(n);
+  }
+  function delta(n) { return n > 0 ? '+' + NF.format(n) : n < 0 ? MINUS + NF.format(-n) : '0'; }
+  function when(ver) { return String(ver.date).slice(0, 16); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function nice(max, n) {
+    if (!(max > 0)) return { max: 1, step: 1 };
+    var raw = max / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), norm = raw / mag;
+    var step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 2.5 ? 2.5 : norm <= 5 ? 5 : 10) * mag;
+    return { max: Math.ceil(max / step) * step, step: step };
+  }
+  function el(tag, attrs) {
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+  function minorOf(v) { return v.split('.').slice(0, 2).join('.'); }
+
+  var state = { metric: 'lines', sel: V - 1, hover: null, lineage: false };
+  try { state.lineage = localStorage.getItem('linehistory.lineage') === 'on'; } catch (e) { }
+  try { var saved = localStorage.getItem('linehistory.metric'); if (saved && METRICS.some(function (m) { return m.key === saved; })) state.metric = saved; } catch (e) { }
+
+  var metricBox = document.getElementById('metric');
+  METRICS.forEach(function (m) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = m.label;
+    b.addEventListener('click', function () {
+      state.metric = m.key;
+      try { localStorage.setItem('linehistory.metric', m.key); } catch (e) { }
+      renderAll();
+    });
+    b.dataset.key = m.key;
+    metricBox.appendChild(b);
+  });
+
+  document.getElementById('subtitle').textContent =
+    V + ' versions' + DOT + versions[0].version + ' (' + when(versions[0]).slice(0, 10) + ') to ' +
+    versions[V - 1].version + ' (' + when(versions[V - 1]).slice(0, 10) + ')' + DOT + folderList.length + ' folders over time';
+
+  var legend = document.getElementById('legend');
+  roots.forEach(function (r) {
+    var s = document.createElement('span');
+    s.innerHTML = '<i class="swatch" style="background:' + color(r) + '"></i>' + esc(r);
+    legend.appendChild(s);
+  });
+
+  var mainBox = document.getElementById('main');
+  var tip = document.createElement('div');
+  tip.className = 'tip';
+  var main = {};
+  var cardRefs = [];
+  var compareBox = document.getElementById('compare');
+  var cmp = {};
+  var SLOTS = folderList.length;
+  var PAINTS = 24;
+  var DASHES = ['', '6 3', '1.5 3'];
+  var MODES = [{ key: 'each', label: 'Each folder' }, { key: 'compare', label: 'Compare' }];
+
+  state.mode = 'each';
+  try { var savedMode = localStorage.getItem('linehistory.foldermode'); if (MODES.some(function (x) { return x.key === savedMode; })) state.mode = savedMode; } catch (e) { }
+  state.picks = null;
+  try {
+    var savedPicks = JSON.parse(localStorage.getItem('linehistory.compare'));
+    if (Array.isArray(savedPicks)) {
+      state.picks = new Array(SLOTS).fill(null);
+      savedPicks.forEach(function (id, k) { if (k < SLOTS && folders.has(id) && state.picks.indexOf(id) < 0) state.picks[k] = id; });
+    }
+  } catch (e) { }
+  if (!state.picks) {
+    state.picks = new Array(SLOTS).fill(null);
+    ordered('lines').active.slice(0, 5).forEach(function (f, k) { state.picks[k] = f.id; });
+  }
+
+  function familyColor(f) { return 'var(--cmp-' + (f.family % PAINTS + 1) + ')'; }
+  function folderColor(f, isRetired) { return state.lineage && f.family >= 0 ? familyColor(f) : isRetired ? 'var(--retired)' : color(f.root); }
+  function kinOf(slot) {
+    var f = folders.get(state.picks[slot]);
+    return state.lineage && f.family >= 0 ? f : null;
+  }
+  function groupOf(id) { var f = folders.get(id); return f.family >= 0 ? 'family ' + f.family : 'folder ' + id; }
+  function pickColor(slot) {
+    if (!state.lineage) return 'var(--cmp-' + (slot % PAINTS + 1) + ')';
+    var groups = [];
+    state.picks.forEach(function (id) { if (id !== null && groups.indexOf(groupOf(id)) < 0) groups.push(groupOf(id)); });
+    return 'var(--cmp-' + (groups.indexOf(groupOf(state.picks[slot])) % PAINTS + 1) + ')';
+  }
+  function pickDash(slot) {
+    var kin = kinOf(slot);
+    if (!kin) return state.lineage ? '' : DASHES[Math.floor(slot % PAINTS / 8)];
+    var rank = 0;
+    for (var k = 0; k < slot; k++) if (state.picks[k] !== null && folders.get(state.picks[k]).family === kin.family) rank++;
+    return DASHES[rank % DASHES.length];
+  }
+  function pickSwatch(slot) {
+    return '<svg class="stroke" width="18" height="10" aria-hidden="true"><line x1="1" y1="5" x2="17" y2="5" stroke="' + pickColor(slot) +
+      '" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="' + pickDash(slot) + '"/></svg>';
+  }
+  function pickedList() {
+    var list = [];
+    state.picks.forEach(function (id, slot) { if (id !== null) list.push({ f: folders.get(id), slot: slot }); });
+    return list;
+  }
+  function savePicks() { try { localStorage.setItem('linehistory.compare', JSON.stringify(state.picks)); } catch (e) { } }
+  function togglePick(id) {
+    var k = state.picks.indexOf(id);
+    if (k >= 0) state.picks[k] = null;
+    else {
+      var free = state.picks.indexOf(null);
+      if (free < 0) return;
+      state.picks[free] = id;
+    }
+    savePicks();
+  }
+  function ordered(key) {
+    var s = V - 1;
+    return {
+      active: folderList.filter(function (f) { return f.v.lines[s] !== null; }).sort(function (a, b) { return b.v[key][s] - a.v[key][s]; }),
+      retired: folderList.filter(function (f) { return f.v.lines[s] === null; }).sort(function (a, b) { return b.last - a.last; })
+    };
+  }
+
+  var lineageBox = document.getElementById('lineage');
+  lineageBox.checked = state.lineage;
+  lineageBox.disabled = families.length === 0;
+  lineageBox.addEventListener('change', function () {
+    state.lineage = lineageBox.checked;
+    try { localStorage.setItem('linehistory.lineage', state.lineage ? 'on' : 'off'); } catch (e) { }
+    renderFolders();
+    setSel(state.sel);
+  });
+
+  var modeBox = document.getElementById('foldermode');
+  MODES.forEach(function (x) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = x.label;
+    b.dataset.key = x.key;
+    b.addEventListener('click', function () {
+      if (state.mode === x.key) return;
+      state.mode = x.key;
+      try { localStorage.setItem('linehistory.foldermode', x.key); } catch (e) { }
+      renderFolders();
+      setSel(state.sel);
+    });
+    modeBox.appendChild(b);
+  });
+
+  function renderTiles() {
+    var t = totals[state.metric].all, s = state.sel;
+    var label = METRICS.filter(function (m) { return m.key === state.metric; })[0].label.toLowerCase();
+    var present = folderList.filter(function (f) { return f.v.lines[s] !== null; }).length;
+    var tiles = [
+      { label: 'Total ' + label + ' at ' + versions[s].version, value: fmt(t[s]), note: when(versions[s]) },
+      { label: 'Change from previous version', value: s > 0 ? delta(t[s] - t[s - 1]) : DASH, note: s > 0 ? 'vs ' + versions[s - 1].version : 'first version' },
+      { label: 'Change since ' + versions[0].version, value: delta(t[s] - t[0]), note: t[0] > 0 ? (t[s] / t[0]).toFixed(1) + '\u00d7 the first version' : '' },
+      { label: 'Folders at ' + versions[s].version, value: String(present), note: folderList.length + ' over the whole history' }
+    ];
+    document.getElementById('tiles').innerHTML = tiles.map(function (x) {
+      return '<div class="tile"><div class="label">' + esc(x.label) + '</div><div class="value">' + esc(x.value) +
+        '</div><div class="note">' + esc(x.note) + '</div></div>';
+    }).join('');
+  }
+
+  function frame(svg, m, pw, ph, scale, X, Y) {
+    for (var v = 0; v <= scale.max + 1e-9; v += scale.step) {
+      svg.appendChild(el('line', { x1: m.l, x2: m.l + pw, y1: Y(v), y2: Y(v), stroke: v === 0 ? 'var(--axis)' : 'var(--grid)', 'stroke-width': 1 }));
+      var lab = el('text', { x: m.l - 8, y: Y(v) + 4, 'text-anchor': 'end', fill: 'var(--ink-3)' });
+      lab.textContent = short(v);
+      svg.appendChild(lab);
+    }
+    var lastX = -1e9;
+    for (var i = 0; i < V; i++) {
+      if (i > 0 && minorOf(versions[i].version) === minorOf(versions[i - 1].version)) continue;
+      var x = X(i);
+      svg.appendChild(el('line', { x1: x, x2: x, y1: m.t + ph, y2: m.t + ph + 4, stroke: 'var(--axis)' }));
+      if (x - lastX >= 34) {
+        var tl = el('text', { x: x, y: m.t + ph + 18, 'text-anchor': 'middle', fill: 'var(--ink-3)' });
+        tl.textContent = minorOf(versions[i].version);
+        svg.appendChild(tl);
+        lastX = x;
+      }
+    }
+  }
+
+  function hitLayer(svg, m, pw, ph, W) {
+    var hit = el('rect', { x: m.l, y: m.t, width: pw, height: ph, fill: 'transparent' });
+    svg.appendChild(hit);
+    var indexAt = function (evt) {
+      var r = svg.getBoundingClientRect();
+      var px = (evt.clientX - r.left) * W / r.width;
+      return Math.max(0, Math.min(V - 1, Math.round((px - m.l) / (V === 1 ? 1 : pw / (V - 1)))));
+    };
+    hit.addEventListener('mousemove', function (evt) { setHover(indexAt(evt), evt); });
+    hit.addEventListener('mouseleave', function () { setHover(null); });
+    hit.addEventListener('click', function (evt) { setSel(indexAt(evt)); });
+  }
+
+  function runsOf(values) {
+    var runs = [], run = null;
+    for (var i = 0; i < V; i++) {
+      if (values[i] === null) { run = null; continue; }
+      if (!run) { run = []; runs.push(run); }
+      run.push(i);
+    }
+    return runs;
+  }
+
+  function spread(labels, bottom) {
+    labels.sort(function (a, c) { return a.y - c.y; });
+    for (var k = 1; k < labels.length; k++) labels[k].y = Math.max(labels[k].y, labels[k - 1].y + 16);
+    var n = labels.length;
+    if (n && labels[n - 1].y > bottom) {
+      labels[n - 1].y = bottom;
+      for (var j = n - 2; j >= 0; j--) labels[j].y = Math.min(labels[j].y, labels[j + 1].y - 16);
+    }
+  }
+
+  function renderMain() {
+    var W = Math.max(320, mainBox.clientWidth), H = 320;
+    var m = { l: 52, r: 96, t: 28, b: 30 };
+    if (W < 560) m.r = 16;
+    var pw = W - m.l - m.r, ph = H - m.t - m.b;
+    var X = function (i) { return m.l + (V === 1 ? pw / 2 : i * pw / (V - 1)); };
+    var tot = totals[state.metric];
+    var scale = nice(Math.max.apply(null, tot.all), 5);
+    var Y = function (v) { return m.t + ph - v / scale.max * ph; };
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, height: H });
+    frame(svg, m, pw, ph, scale, X, Y);
+
+    var cum = new Array(V).fill(0);
+    var bands = [];
+    roots.forEach(function (r) {
+      var lower = cum.slice(), upper = cum.map(function (c, i) { return c + tot.byRoot[r][i]; });
+      cum = upper;
+      bands.push({ root: r, lower: lower, upper: upper });
+    });
+    bands.forEach(function (b) {
+      var d = 'M' + b.upper.map(function (u, i) { return X(i).toFixed(1) + ',' + Y(u).toFixed(1); }).join('L');
+      for (var i = V - 1; i >= 0; i--) d += 'L' + X(i).toFixed(1) + ',' + Y(b.lower[i]).toFixed(1);
+      svg.appendChild(el('path', { d: d + 'Z', fill: color(b.root) }));
+    });
+    bands.slice(0, -1).forEach(function (b) {
+      var d = 'M' + b.upper.map(function (u, i) { return X(i).toFixed(1) + ',' + Y(u).toFixed(1); }).join('L');
+      svg.appendChild(el('path', { d: d, fill: 'none', stroke: 'var(--surface)', 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+    });
+
+    if (m.r > 40) {
+      var labels = bands.filter(function (b) { return b.upper[V - 1] > b.lower[V - 1]; }).map(function (b) {
+        return { b: b, y: Y((b.upper[V - 1] + b.lower[V - 1]) / 2) };
+      });
+      spread(labels, m.t + ph);
+      labels.forEach(function (L) {
+        svg.appendChild(el('rect', { x: m.l + pw + 8, y: L.y - 5, width: 10, height: 10, rx: 3, fill: color(L.b.root) }));
+        var t = el('text', { x: m.l + pw + 22, y: L.y + 4, fill: 'var(--ink-2)' });
+        t.textContent = L.b.root + ' ' + short(L.b.upper[V - 1] - L.b.lower[V - 1]);
+        svg.appendChild(t);
+      });
+    }
+
+    var selLine = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-2)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+    svg.appendChild(selLine);
+    var hoverLine = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-1)', 'stroke-width': 1, visibility: 'hidden' });
+    svg.appendChild(hoverLine);
+    var dots = bands.map(function (b) {
+      var c = el('circle', { r: 4, fill: color(b.root), stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' });
+      svg.appendChild(c);
+      return c;
+    });
+
+    hitLayer(svg, m, pw, ph, W);
+
+    events.forEach(function (ev) {
+      var x = X(ev.i), y = m.t - 12;
+      svg.appendChild(el('path', { d: 'M' + x + ',' + (y - 5) + 'L' + (x + 5) + ',' + y + 'L' + x + ',' + (y + 5) + 'L' + (x - 5) + ',' + y + 'Z', fill: 'var(--ink-3)' }));
+      var h = el('rect', { x: x - 7, y: y - 9, width: 14, height: 18, fill: 'transparent', style: 'cursor:pointer' });
+      h.addEventListener('mouseenter', function (evt) { showEventTip(ev, evt); });
+      h.addEventListener('mousemove', function (evt) { showEventTip(ev, evt); });
+      h.addEventListener('mouseleave', function () { tip.style.display = 'none'; });
+      h.addEventListener('click', function () { setSel(ev.i); });
+      svg.appendChild(h);
+    });
+
+    mainBox.innerHTML = '';
+    mainBox.appendChild(svg);
+    mainBox.appendChild(tip);
+    mainBox.setAttribute('aria-label', 'Stacked area chart of ' + state.metric + ' by root across ' + V + ' versions');
+    main = { X: X, Y: Y, bands: bands, selLine: selLine, hoverLine: hoverLine, dots: dots, W: W };
+  }
+
+  function placeTip(evt, host) {
+    if (tip.parentNode !== host) host.appendChild(tip);
+    var box = host.getBoundingClientRect();
+    tip.style.display = 'block';
+    var x = evt.clientX - box.left + 14, y = evt.clientY - box.top + 14;
+    if (x + tip.offsetWidth > box.width) x = evt.clientX - box.left - tip.offsetWidth - 14;
+    tip.style.left = Math.max(0, x) + 'px';
+    tip.style.top = y + 'px';
+  }
+
+  function showEventTip(ev, evt) {
+    var ver = versions[ev.i];
+    var html = '<div class="head">' + esc(ver.version) + '</div><div class="meta">' + esc(when(ver)) + '</div>';
+    ev.added.forEach(function (n) { html += '<div class="row">+ ' + esc(n) + '</div>'; });
+    ev.removed.forEach(function (n) { html += '<div class="row muted">' + MINUS + ' ' + esc(n) + '</div>'; });
+    tip.innerHTML = html;
+    placeTip(evt, mainBox);
+  }
+
+  function showCompareTip(i, evt) {
+    var ver = versions[i], key = state.metric;
+    var rows = cmp.picked.slice().sort(function (a, b) { return (b.f.v[key][i] === null ? -1 : b.f.v[key][i]) - (a.f.v[key][i] === null ? -1 : a.f.v[key][i]); });
+    var html = '<div class="head">' + esc(ver.version) + '</div><div class="meta">' + esc(when(ver)) + DOT + esc(String(ver.commit).slice(0, 8)) + '</div>';
+    rows.forEach(function (p) {
+      var v = p.f.v[key][i];
+      html += '<div class="row' + (v === null ? ' muted' : '') + '">' + pickSwatch(p.slot) + esc(p.f.name) +
+        '<span class="num">' + fmt(v) + '</span></div>';
+    });
+    tip.innerHTML = html;
+    placeTip(evt, compareBox);
+  }
+
+  function setHover(i, evt) {
+    state.hover = i;
+    if (i === null) {
+      main.hoverLine.setAttribute('visibility', 'hidden');
+      main.dots.forEach(function (d) { d.setAttribute('visibility', 'hidden'); });
+      tip.style.display = 'none';
+    }
+    else {
+      var x = main.X(i);
+      main.hoverLine.setAttribute('x1', x);
+      main.hoverLine.setAttribute('x2', x);
+      main.hoverLine.setAttribute('visibility', 'visible');
+      main.bands.forEach(function (b, k) {
+        var d = main.dots[k];
+        if (b.upper[i] > b.lower[i]) {
+          d.setAttribute('cx', x);
+          d.setAttribute('cy', main.Y(b.upper[i]));
+          d.setAttribute('visibility', 'visible');
+        }
+        else d.setAttribute('visibility', 'hidden');
+      });
+      if (evt && mainBox.contains(evt.target)) {
+        var ver = versions[i], tot = totals[state.metric];
+        var html = '<div class="head">' + esc(ver.version) + '</div><div class="meta">' + esc(when(ver)) + DOT + esc(String(ver.commit).slice(0, 8)) + '</div>';
+        roots.slice().reverse().forEach(function (r) {
+          if (tot.byRoot[r][i] > 0) html += '<div class="row"><i class="swatch" style="background:' + color(r) + '"></i>' + esc(r) + '<span class="num">' + fmt(tot.byRoot[r][i]) + '</span></div>';
+        });
+        html += '<div class="row total">Total<span class="num">' + fmt(tot.all[i]) + '</span></div>';
+        tip.innerHTML = html;
+        placeTip(evt, mainBox);
+      }
+      else if (evt && cmp.picked && compareBox.contains(evt.target)) showCompareTip(i, evt);
+      else tip.style.display = 'none';
+    }
+    cardRefs.forEach(updateCard);
+    updateCompare();
+  }
+
+  function setSel(i) {
+    state.sel = Math.max(0, Math.min(V - 1, i));
+    var x = main.X(state.sel);
+    main.selLine.setAttribute('x1', x);
+    main.selLine.setAttribute('x2', x);
+    renderTiles();
+    renderTable();
+    cardRefs.forEach(updateCard);
+    updateCompare();
+  }
+
+  function renderCards() {
+    var box = document.getElementById('cards');
+    var key = state.metric;
+    var groups = ordered(key), active = groups.active, retired = groups.retired;
+    var top = 0;
+    folderList.forEach(function (f) { f.v[key].forEach(function (x) { if (x !== null && x > top) top = x; }); });
+    var scale = nice(top, 2);
+    box.innerHTML = '';
+    cardRefs = [];
+    var add = function (f, isRetired) {
+      var card = document.createElement('div');
+      card.className = 'card' + (isRetired ? ' retired' : '');
+      var peak = 0, peakAt = f.first;
+      for (var i = 0; i < V; i++) if (f.v[key][i] !== null && f.v[key][i] > peak) { peak = f.v[key][i]; peakAt = i; }
+      card.innerHTML = '<div class="top"><span class="name" title="' + esc(f.name) + '">' + esc(f.name) + '</span><span class="val"></span>' +
+        '<button type="button" class="pick"></button></div>' +
+        '<div class="meta"' + (state.lineage && f.family >= 0 ? ' title="Lineage: ' + esc(familyNames[f.family].join(', ')) + '"' : '') +
+        '><i class="swatch" style="background:' + folderColor(f, isRetired) + '"></i>' + esc(f.root) + DOT +
+        esc(versions[f.first].version) + ' \u2013 ' + (isRetired ? esc(versions[f.last].version) : 'now') + '</div>';
+      var holder = document.createElement('div');
+      holder.className = 'plot';
+      card.appendChild(holder);
+      box.appendChild(card);
+      var pick = card.querySelector('.pick');
+      pick.addEventListener('click', function () {
+        togglePick(f.id);
+        cardRefs.forEach(updatePick);
+      });
+      cardRefs.push({ f: f, card: card, holder: holder, val: card.querySelector('.val'), pick: pick, peak: peak, peakAt: peakAt, retired: isRetired, scale: scale });
+    };
+    active.forEach(function (f) { add(f, false); });
+    if (retired.length) {
+      var d = document.createElement('div');
+      d.className = 'divider';
+      d.textContent = 'Retired or renamed';
+      box.appendChild(d);
+      retired.forEach(function (f) { add(f, true); });
+    }
+    cardRefs.forEach(drawCard);
+    cardRefs.forEach(updatePick);
+  }
+
+  function updatePick(ref) {
+    var slot = state.picks.indexOf(ref.f.id);
+    ref.pick.setAttribute('aria-pressed', String(slot >= 0));
+    ref.pick.innerHTML = slot >= 0 ? pickSwatch(slot) : '+';
+    ref.pick.title = slot >= 0 ? 'Remove from Compare' : 'Add to Compare';
+    ref.pick.setAttribute('aria-label', ref.pick.title + ': ' + ref.f.name);
+  }
+
+  function renderPicker() {
+    var box = document.getElementById('picker');
+    var groups = ordered(state.metric), count = pickedList().length;
+    box.innerHTML = '';
+    var note = document.createElement('span');
+    note.className = 'count';
+    note.textContent = count + ' of ' + SLOTS + ' picked';
+    box.appendChild(note);
+    var action = function (label, run, disabled) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'action';
+      b.textContent = label;
+      b.disabled = disabled;
+      b.addEventListener('click', function () { run(); savePicks(); renderCompareView(); });
+      box.appendChild(b);
+    };
+    action('Clear', function () { state.picks.fill(null); }, count === 0);
+    action('Largest ' + Math.min(5, groups.active.length), function () {
+      state.picks.fill(null);
+      groups.active.slice(0, 5).forEach(function (f, k) { state.picks[k] = f.id; });
+    }, false);
+    action('All active', function () {
+      state.picks.fill(null);
+      groups.active.forEach(function (f, k) { state.picks[k] = f.id; });
+    }, false);
+    var add = function (f) {
+      var slot = state.picks.indexOf(f.id);
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('aria-pressed', String(slot >= 0));
+      b.title = f.root + DOT + versions[f.first].version + ' \u2013 ' + (f.last === V - 1 ? 'now' : versions[f.last].version);
+      b.innerHTML = (slot >= 0 ? pickSwatch(slot) : '<i class="swatch" style="border:1px solid var(--ink-3)"></i>') + esc(f.name);
+      b.dataset.id = f.id;
+      b.addEventListener('click', function () {
+        togglePick(f.id);
+        renderCompareView();
+        var again = Array.prototype.filter.call(box.querySelectorAll('button'), function (x) { return x.dataset.id === f.id; })[0];
+        if (again) again.focus();
+      });
+      box.appendChild(b);
+    };
+    groups.active.forEach(add);
+    if (groups.retired.length) {
+      var d = document.createElement('div');
+      d.className = 'group';
+      d.textContent = 'Retired or renamed';
+      box.appendChild(d);
+      groups.retired.forEach(add);
+    }
+  }
+
+  function renderCompare() {
+    var picked = pickedList(), key = state.metric;
+    compareBox.innerHTML = '';
+    cmp = {};
+    if (!picked.length) {
+      compareBox.innerHTML = '<div class="empty">Pick folders above to compare them on one chart.</div>';
+      compareBox.setAttribute('aria-label', 'No folders picked');
+      return;
+    }
+    var W = Math.max(320, compareBox.clientWidth);
+    var m = { l: 52, r: 190, t: 16, b: 30 };
+    var H = Math.max(360, m.t + m.b + picked.length * 16 + 8);
+    if (W < 640) m.r = 16;
+    var pw = W - m.l - m.r, ph = H - m.t - m.b;
+    var X = function (i) { return m.l + (V === 1 ? pw / 2 : i * pw / (V - 1)); };
+    var top = 0;
+    picked.forEach(function (p) { p.f.v[key].forEach(function (x) { if (x !== null && x > top) top = x; }); });
+    var scale = nice(top, 5);
+    var Y = function (v) { return m.t + ph - v / scale.max * ph; };
+
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, height: H });
+    frame(svg, m, pw, ph, scale, X, Y);
+    picked.forEach(function (p) {
+      var vals = p.f.v[key], c = pickColor(p.slot), dash = pickDash(p.slot);
+      runsOf(vals).forEach(function (r) {
+        var line = r.map(function (i) { return X(i).toFixed(1) + ',' + Y(vals[i]).toFixed(1); }).join('L');
+        svg.appendChild(el('path', { d: 'M' + line, fill: 'none', stroke: c, 'stroke-width': 2, 'stroke-dasharray': dash, 'stroke-linejoin': 'round', 'stroke-linecap': 'round' }));
+        if (r.length === 1) svg.appendChild(el('circle', { cx: X(r[0]), cy: Y(vals[r[0]]), r: 4, fill: c }));
+      });
+    });
+
+    if (m.r > 40) {
+      var labels = picked.map(function (p) { return { p: p, y: Y(p.f.v[key][p.f.last]) }; });
+      spread(labels, m.t + ph);
+      labels.forEach(function (L) {
+        var f = L.p.f, gone = f.last < V - 1;
+        svg.appendChild(el('line', { x1: m.l + pw + 6, x2: m.l + pw + 20, y1: L.y, y2: L.y, stroke: pickColor(L.p.slot), 'stroke-width': 2.5, 'stroke-linecap': 'round', 'stroke-dasharray': pickDash(L.p.slot) }));
+        var t = el('text', { x: m.l + pw + 26, y: L.y + 4, fill: gone ? 'var(--ink-3)' : 'var(--ink-2)' });
+        var name = f.name.length > 22 ? f.name.slice(0, 21) + '\u2026' : f.name;
+        t.textContent = name + ' ' + short(f.v[key][f.last]) + (gone ? ' (' + versions[f.last].version + ')' : '');
+        svg.appendChild(t);
+      });
+    }
+
+    var selLine = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-2)', 'stroke-width': 1, 'stroke-dasharray': '3 3' });
+    svg.appendChild(selLine);
+    var hoverLine = el('line', { y1: m.t, y2: m.t + ph, stroke: 'var(--ink-1)', 'stroke-width': 1, visibility: 'hidden' });
+    svg.appendChild(hoverLine);
+    var dots = picked.map(function (p) {
+      var c = el('circle', { r: 4, fill: pickColor(p.slot), stroke: 'var(--surface)', 'stroke-width': 2, visibility: 'hidden' });
+      svg.appendChild(c);
+      return c;
+    });
+    hitLayer(svg, m, pw, ph, W);
+
+    compareBox.appendChild(svg);
+    compareBox.setAttribute('aria-label', 'Line chart of ' + state.metric + ' for ' + picked.length + ' folders across ' + V + ' versions: ' +
+      picked.map(function (p) { return p.f.name; }).join(', '));
+    cmp = { X: X, Y: Y, picked: picked, selLine: selLine, hoverLine: hoverLine, dots: dots };
+  }
+
+  function updateCompare() {
+    if (!cmp.picked) return;
+    var key = state.metric, x = cmp.X(state.sel);
+    cmp.selLine.setAttribute('x1', x);
+    cmp.selLine.setAttribute('x2', x);
+    var i = state.hover;
+    cmp.hoverLine.setAttribute('visibility', i === null ? 'hidden' : 'visible');
+    if (i !== null) {
+      cmp.hoverLine.setAttribute('x1', cmp.X(i));
+      cmp.hoverLine.setAttribute('x2', cmp.X(i));
+    }
+    cmp.picked.forEach(function (p, k) {
+      var d = cmp.dots[k], v = i === null ? null : p.f.v[key][i];
+      if (v === null) { d.setAttribute('visibility', 'hidden'); return; }
+      d.setAttribute('cx', cmp.X(i));
+      d.setAttribute('cy', cmp.Y(v));
+      d.setAttribute('visibility', 'visible');
+    });
+  }
+
+  function renderCompareView() {
+    renderPicker();
+    renderCompare();
+    updateCompare();
+  }
+
+  function renderFolders() {
+    var compare = state.mode === 'compare';
+    Array.prototype.forEach.call(modeBox.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === state.mode)); });
+    document.getElementById('foldernote').textContent = (compare
+      ? 'Picked folders on one chart, one scale fitted to them. A folder keeps its color while picked. Past eight, deeper and paler shades take dashed and dotted lines.'
+      : 'One chart per folder. All share the same axes: every version on x, one scale on y, so heights compare directly. Active folders first, largest first. + adds a folder to Compare.') +
+      (state.lineage ? ' Lineage: folders linked by renamed files share one color, when the renamed files reach ' + Math.round(lineage.share * 100) +
+        ' % of either folder' + (compare ? '; kin picked together take solid, dashed and dotted lines.' : '.') : '');
+    document.getElementById('picker').style.display = compare ? '' : 'none';
+    compareBox.style.display = compare ? '' : 'none';
+    document.getElementById('cards').style.display = compare ? 'none' : '';
+    if (compare) {
+      document.getElementById('cards').innerHTML = '';
+      cardRefs = [];
+      renderCompareView();
+    }
+    else {
+      compareBox.innerHTML = '';
+      cmp = {};
+      renderCards();
+    }
+  }
+
+  function drawCard(ref) {
+    var W = Math.max(120, ref.holder.clientWidth), H = 96, pad = 3, top = 14, left = 30;
+    var key = state.metric, f = ref.f;
+    var X = function (i) { return left + (V === 1 ? (W - left - pad) / 2 : i * (W - left - pad) / (V - 1)); };
+    var Y = function (v) { return H - pad - v / ref.scale.max * (H - pad - top); };
+    var svg = el('svg', { viewBox: '0 0 ' + W + ' ' + H, preserveAspectRatio: 'none' });
+    for (var g = 0; g <= ref.scale.max + 1e-9; g += ref.scale.step) {
+      svg.appendChild(el('line', { x1: left, x2: W - pad, y1: Y(g), y2: Y(g), stroke: g === 0 ? 'var(--axis)' : 'var(--grid)' }));
+      var gl = el('text', { x: left - 4, y: Y(g) + 3, 'text-anchor': 'end', fill: 'var(--ink-3)', style: 'font-size:10px' });
+      gl.textContent = short(g);
+      svg.appendChild(gl);
+    }
+    var stroke = folderColor(f, ref.retired);
+    runsOf(f.v[key]).forEach(function (r) {
+      var line = r.map(function (i) { return X(i).toFixed(1) + ',' + Y(f.v[key][i]).toFixed(1); }).join('L');
+      var area = 'M' + X(r[0]).toFixed(1) + ',' + (H - pad) + 'L' + line + 'L' + X(r[r.length - 1]).toFixed(1) + ',' + (H - pad) + 'Z';
+      svg.appendChild(el('path', { d: area, fill: stroke, 'fill-opacity': 0.14 }));
+      svg.appendChild(el('path', { d: 'M' + line, fill: 'none', stroke: stroke, 'stroke-width': 2, 'stroke-linejoin': 'round' }));
+      if (r.length === 1) svg.appendChild(el('circle', { cx: X(r[0]), cy: Y(f.v[key][r[0]]), r: 4, fill: stroke }));
+    });
+    var px = X(ref.peakAt);
+    var pl = el('text', { x: Math.min(Math.max(px, left + 24), W - 24), y: Math.max(10, Y(ref.peak) - 5), 'text-anchor': 'middle', fill: 'var(--ink-3)', style: 'font-size:10px' });
+    pl.textContent = 'peak ' + short(ref.peak);
+    svg.appendChild(pl);
+    ref.sel = el('line', { y1: top - 2, y2: H - pad, stroke: 'var(--ink-2)', 'stroke-dasharray': '2 2' });
+    ref.hov = el('line', { y1: top - 2, y2: H - pad, stroke: 'var(--ink-1)', visibility: 'hidden' });
+    svg.appendChild(ref.sel);
+    svg.appendChild(ref.hov);
+    var indexAt = function (evt) {
+      var r = svg.getBoundingClientRect();
+      var x = (evt.clientX - r.left) * W / r.width;
+      return Math.max(0, Math.min(V - 1, Math.round((x - left) / (V === 1 ? 1 : (W - left - pad) / (V - 1)))));
+    };
+    svg.addEventListener('mousemove', function (evt) { setHover(indexAt(evt), evt); });
+    svg.addEventListener('mouseleave', function () { setHover(null); });
+    svg.addEventListener('click', function (evt) { setSel(indexAt(evt)); });
+    ref.X = X;
+    ref.holder.innerHTML = '';
+    ref.holder.appendChild(svg);
+    updateCard(ref);
+  }
+
+  function updateCard(ref) {
+    var key = state.metric;
+    var i = state.hover === null ? state.sel : state.hover;
+    var v = ref.f.v[key][i];
+    ref.val.textContent = (v === null ? DASH : fmt(v)) + (state.hover === null ? '' : ' @ ' + versions[i].version);
+    ref.val.className = 'val' + (state.hover === null ? '' : ' muted');
+    ref.sel.setAttribute('x1', ref.X(state.sel));
+    ref.sel.setAttribute('x2', ref.X(state.sel));
+    if (state.hover === null) ref.hov.setAttribute('visibility', 'hidden');
+    else {
+      ref.hov.setAttribute('x1', ref.X(state.hover));
+      ref.hov.setAttribute('x2', ref.X(state.hover));
+      ref.hov.setAttribute('visibility', 'visible');
+    }
+  }
+
+  function renderTable() {
+    var s = state.sel, p = s - 1, ver = versions[s];
+    document.getElementById('tabletitle').textContent = 'Folders at ' + ver.version;
+    document.getElementById('tablenote').textContent = when(ver) + DOT + 'commit ' + String(ver.commit).slice(0, 8) + DOT + 'from ' + ver.source +
+      (p >= 0 ? DOT + 'changes against ' + versions[p].version : '');
+    var rows = folderList.filter(function (f) { return f.v.lines[s] !== null || (p >= 0 && f.v.lines[p] !== null); });
+    var val = function (f, k, i) { return i < 0 ? null : f.v[k][i]; };
+    var mean = function (amount, files) { return amount === null ? DASH : fmt(files > 0 ? Math.round(amount / files) : 0); };
+    var share = function (amount, total) { return amount === null ? DASH : (total > 0 ? amount / total * 100 : 0).toFixed(1) + ' %'; };
+    rows.sort(function (a, b) {
+      var ga = a.v.lines[s] === null, gb = b.v.lines[s] === null;
+      if (ga !== gb) return ga ? 1 : -1;
+      return (val(b, 'lines', ga ? p : s) || 0) - (val(a, 'lines', ga ? p : s) || 0);
+    });
+    var totalLines = totals.lines.all[s], totalBytes = totals.bytes.all[s];
+    var cells = function (c) {
+      return '<td>' + fmt(c.files) + '</td><td>' + fmt(c.lines) + '</td><td>' + fmt(c.nonBlank) + '</td><td>' +
+        (c.lines === null ? DASH : fmt(c.lines - c.nonBlank)) + '</td><td>' + share(c.lines, totalLines) + '</td><td>' + mean(c.lines, c.files) +
+        '</td><td>' + fmt(c.bytes) + '</td><td>' + share(c.bytes, totalBytes) + '</td><td>' + mean(c.bytes, c.files) + '</td>';
+    };
+    var sum = { files: 0, lines: 0, nonBlank: 0, bytes: 0, prev: 0 };
+    var body = rows.map(function (f) {
+      var gone = f.v.lines[s] === null;
+      var isNew = !gone && p >= 0 && f.v.lines[p] === null;
+      var cur = { files: val(f, 'files', s), lines: val(f, 'lines', s), nonBlank: val(f, 'nonBlank', s), bytes: val(f, 'bytes', s) };
+      var prevLines = p >= 0 ? f.v.lines[p] : null;
+      var d = (cur.lines || 0) - (prevLines || 0);
+      if (!gone) { sum.files += cur.files; sum.lines += cur.lines; sum.nonBlank += cur.nonBlank; sum.bytes += cur.bytes; }
+      sum.prev += prevLines || 0;
+      return '<tr' + (gone ? ' class="gone"' : '') + '><td class="l">' + esc(f.name) + (isNew ? '<span class="chip">new</span>' : '') + (gone ? '<span class="chip">gone</span>' : '') +
+        '</td><td class="l">' + esc(f.root) + '</td>' + cells(cur) + '<td>' + (p >= 0 ? delta(d) : DASH) + '</td></tr>';
+    }).join('');
+    document.getElementById('table').innerHTML =
+      '<thead><tr><th class="l" rowspan="2">Folder</th><th class="l" rowspan="2">Root</th><th rowspan="2">Files</th>' +
+      '<th class="group" colspan="5">Lines</th><th class="group" colspan="3">Sizes</th><th rowspan="2">Change in lines</th></tr>' +
+      '<tr><th>Raw</th><th>Non-blank</th><th>Blank</th><th>Share</th><th>Average</th><th>Total</th><th>Share</th><th>Average</th></tr></thead><tbody>' + body +
+      '<tr class="total"><td class="l">Total</td><td class="l"></td>' + cells(sum) + '<td>' + (p >= 0 ? delta(sum.lines - sum.prev) : DASH) + '</td></tr></tbody>';
+  }
+
+  function renderAll() {
+    Array.prototype.forEach.call(metricBox.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.key === state.metric)); });
+    renderTiles();
+    renderMain();
+    renderFolders();
+    renderTable();
+    setSel(state.sel);
+  }
+
+  function stepKeys(evt) {
+    var step = { ArrowLeft: -1, ArrowRight: 1, PageUp: -10, PageDown: 10 }[evt.key];
+    if (evt.key === 'Home') setSel(0);
+    else if (evt.key === 'End') setSel(V - 1);
+    else if (step) setSel(state.sel + step);
+    else return;
+    evt.preventDefault();
+  }
+  mainBox.addEventListener('keydown', stepKeys);
+  compareBox.addEventListener('keydown', stepKeys);
+
+  var timer = null, lastWidth = document.body.clientWidth;
+  window.addEventListener('resize', function () {
+    if (document.body.clientWidth === lastWidth) return;
+    lastWidth = document.body.clientWidth;
+    clearTimeout(timer);
+    timer = setTimeout(renderAll, 120);
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

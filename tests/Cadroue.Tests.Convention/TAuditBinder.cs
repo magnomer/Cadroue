@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
 
 namespace Convention.Tests;
@@ -9,14 +8,6 @@ internal static class TAuditBinder
 {
     private const string TAuditBinderSource = "src/";
 
-    private const string TAuditShellSide = "shell";
-
-    private const string TAuditConductSide = "conduct";
-
-    private const string TAuditEngineSide = "engine";
-
-    private static readonly string[] TAuditLogicSides = [TAuditConductSide, TAuditEngineSide];
-
     private static readonly CSharpParseOptions TAuditSyntaxOptions = new(
         languageVersion: LanguageVersion.Preview,
         documentationMode: DocumentationMode.None,
@@ -24,17 +15,54 @@ internal static class TAuditBinder
 
     private static readonly Lazy<CSharpCompilation> TAuditBinderCompilation = new(TAuditCompilationRead);
 
-    private static readonly Lazy<IReadOnlyList<SyntaxTree>> TAuditTracked = new(TAuditTrackedRead);
+    private static readonly Lazy<IReadOnlyList<SyntaxTree>> TAuditTracked =
+        new(() => TAuditTrackedRead(TAuditBinderCompilation.Value));
+
+    private static readonly AsyncLocal<CSharpCompilation?> TAuditAssayCompilation = new();
+
+    private static readonly AsyncLocal<IReadOnlyDictionary<string, string>?> TAuditAssayMarkup = new();
 
     private static readonly Dictionary<SyntaxTree, SemanticModel> TAuditModels = [];
 
-    private static readonly Dictionary<SyntaxNode, ISymbol?> TAuditSymbols = [];
-
     public static string TAuditRoot { get; } = TAuditSource.TAuditRootRead();
 
-    public static IReadOnlyList<SyntaxTree> TAuditTrees => TAuditTracked.Value;
+    public static IReadOnlyList<SyntaxTree> TAuditTrees => TAuditAssayCompilation.Value is { } assay
+        ? TAuditTrackedRead(assay)
+        : TAuditTracked.Value;
 
-    public static CSharpCompilation TAuditCompilation => TAuditBinderCompilation.Value;
+    public static CSharpCompilation TAuditCompilation =>
+        TAuditAssayCompilation.Value ?? TAuditBinderCompilation.Value;
+
+    public static TAuditAssayResult TAuditAssayRun<TAuditAssayResult>(
+        IReadOnlyDictionary<string, string> sources, Func<TAuditAssayResult> walk)
+    {
+        ILookup<bool, KeyValuePair<string, string>> parts = sources.ToLookup(source =>
+            string.Equals(Path.GetExtension(source.Key), ".xaml", StringComparison.OrdinalIgnoreCase));
+        List<SyntaxTree> trees = parts[false]
+            .Select(source => CSharpSyntaxTree.ParseText(
+                source.Value, TAuditSyntaxOptions, Path.GetFullPath(Path.Combine(TAuditRoot, source.Key))))
+            .ToList();
+        TAuditAssayCompilation.Value = TAuditCompilationCreate(trees, OutputKind.DynamicallyLinkedLibrary);
+        TAuditAssayMarkup.Value = parts[true].ToDictionary(
+            source => Path.GetFullPath(Path.Combine(TAuditRoot, source.Key)), source => source.Value,
+            StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            return walk();
+        }
+        finally
+        {
+            TAuditAssayCompilation.Value = null;
+            TAuditAssayMarkup.Value = null;
+        }
+    }
+
+    public static string TAuditMarkupRead(string path)
+    {
+        return TAuditAssayMarkup.Value is { } markups
+            ? markups[Path.GetFullPath(path)]
+            : File.ReadAllText(path);
+    }
 
     public static SemanticModel TAuditModelRead(SyntaxTree tree)
     {
@@ -42,7 +70,7 @@ internal static class TAuditBinder
         {
             if (!TAuditModels.TryGetValue(tree, out SemanticModel? model))
             {
-                model = TAuditBinderCompilation.Value.GetSemanticModel(tree, true);
+                model = TAuditCompilation.GetSemanticModel(tree, true);
                 TAuditModels[tree] = model;
             }
 
@@ -104,256 +132,10 @@ internal static class TAuditBinder
         return null;
     }
 
-    public static bool TAuditHeaderCheck(SimpleNameSyntax name)
-    {
-        SyntaxNode? parent = name.Parent;
-        if (parent is QualifiedNameSyntax qualified)
-        {
-            parent = qualified.Parent;
-        }
-
-        return parent is UsingDirectiveSyntax or NamespaceDeclarationSyntax or FileScopedNamespaceDeclarationSyntax;
-    }
-
-    public static bool TAuditDataCheck(INamedTypeSymbol type) =>
-        type.TypeKind is TypeKind.Enum or TypeKind.Struct or TypeKind.Delegate || type.IsRecord;
-
-    public static INamedTypeSymbol? TAuditTypeRead(ISymbol symbol) => symbol switch
-    {
-        IAliasSymbol alias => TAuditTypeRead(alias.Target),
-        INamedTypeSymbol named => named.IsTupleType || named.IsAnonymousType ? null : named.OriginalDefinition,
-        IArrayTypeSymbol array => TAuditTypeRead(array.ElementType),
-        INamespaceSymbol or ITypeParameterSymbol or ILocalSymbol or IParameterSymbol => null,
-        IRangeVariableSymbol or IDiscardSymbol or ILabelSymbol or IPreprocessingSymbol => null,
-        _ => symbol.ContainingType?.OriginalDefinition,
-    };
-
-    public static ISymbol? TAuditSymbolRead(SemanticModel model, SimpleNameSyntax name)
-    {
-        SymbolInfo info = model.GetSymbolInfo(name);
-        return info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
-    }
-
-    public static ISymbol? TAuditSymbolRead(SyntaxNode node)
-    {
-        if (node is ArgumentSyntax argument)
-        {
-            node = argument.Expression;
-        }
-
-        lock (TAuditSymbols)
-        {
-            if (TAuditSymbols.TryGetValue(node, out ISymbol? known))
-            {
-                return known;
-            }
-        }
-
-        ISymbol? resolved = TAuditSymbolResolve(node);
-        lock (TAuditSymbols)
-        {
-            TAuditSymbols[node] = resolved;
-        }
-
-        return resolved;
-    }
-
-    public static ITypeSymbol? TAuditTypeRead(SyntaxNode node)
-    {
-        SemanticModel model = TAuditModelRead(node);
-        if (node is ArgumentSyntax argument)
-        {
-            node = argument.Expression;
-        }
-
-        if (node is ExpressionSyntax expression)
-        {
-            ITypeSymbol? type = model.GetTypeInfo(expression).Type;
-            if (type is not null && type.TypeKind != TypeKind.Error)
-            {
-                return type;
-            }
-        }
-
-        return TAuditSymbolRead(node) switch
-        {
-            ILocalSymbol local => local.Type,
-            IParameterSymbol parameter => parameter.Type,
-            IFieldSymbol field => field.Type,
-            IPropertySymbol property => property.Type,
-            IMethodSymbol method => method.ReturnType,
-            ITypeSymbol type => type,
-            _ => null
-        };
-    }
-
-    public static string? TAuditSourceRead(INamedTypeSymbol type)
-    {
-        Location? source = type.Locations.FirstOrDefault(location => location.IsInSource);
-        return source?.SourceTree is null ? null : TAuditRelativeRead(source.SourceTree.FilePath);
-    }
-
-    public static bool TAuditLogicCheck(SyntaxNode node)
-    {
-        ISymbol? symbol = TAuditSymbolRead(node);
-        return TAuditLogicCheck(symbol) || TAuditLogicCheck(TAuditTypeRead(node));
-    }
-
-    public static bool TAuditLogicCheck(ISymbol? symbol) => TAuditDepthCheck(symbol, TAuditLogicSides);
-
-    public static bool TAuditLogicCheck(ITypeSymbol? type) => TAuditDepthCheck(type, TAuditLogicSides);
-
-    public static bool TAuditEngineCheck(SyntaxNode node)
-    {
-        return TAuditDepthCheck(TAuditSymbolRead(node), [TAuditEngineSide])
-               || TAuditDepthCheck(TAuditTypeRead(node), [TAuditEngineSide]);
-    }
-
-    public static bool TAuditEngineCheck(ISymbol? symbol) => TAuditDepthCheck(symbol, [TAuditEngineSide]);
-
-    public static bool TAuditEngineCheck(ITypeSymbol? type) => TAuditDepthCheck(type, [TAuditEngineSide]);
-
-    public static bool TAuditConductCheck(ITypeSymbol? type)
-    {
-        return type is INamedTypeSymbol named && TAuditSideRead(named) == TAuditConductSide
-               && named.TypeArguments.All(TAuditConductCheck);
-    }
-
-    public static bool TAuditShellCheck(ITypeSymbol? type) => TAuditDepthCheck(type, [TAuditShellSide]);
-
-    public static bool TAuditSurfaceCheck(ITypeSymbol? type)
-    {
-        string? source = type is INamedTypeSymbol named ? TAuditSourceRead(named.OriginalDefinition) : null;
-        return source is not null && TAuditRootRead(TAuditStrictSetting.TAuditVeneerInclude)
-            .Any(folder => source.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static bool TAuditDepthCheck(ISymbol? symbol, string[] sides)
-    {
-        return symbol switch
-        {
-            null => false,
-            ILocalSymbol local => TAuditDepthCheck(local.Type, sides),
-            IParameterSymbol parameter => TAuditDepthCheck(parameter.Type, sides),
-            ITypeSymbol type => TAuditDepthCheck(type, sides),
-            _ => sides.Contains(TAuditSideRead(symbol.ContainingType))
-        };
-    }
-
-    private static bool TAuditDepthCheck(ITypeSymbol? type, string[] sides)
-    {
-        return type switch
-        {
-            null => false,
-            IArrayTypeSymbol array => TAuditDepthCheck(array.ElementType, sides),
-            INamedTypeSymbol named => sides.Contains(TAuditSideRead(named))
-                                      || named.TypeArguments.Any(argument => TAuditDepthCheck(argument, sides)),
-            _ => false
-        };
-    }
-
-    public static bool TAuditControlCheck(ITypeSymbol? type)
-    {
-        for (ITypeSymbol? current = type; current is not null; current = current.BaseType)
-        {
-            if (TAuditTruthSetting.TAuditControlBases.Contains(current.ToDisplayString(), StringComparer.Ordinal))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static bool TAuditMemberCheck(ISymbol? symbol, IReadOnlyList<string> members)
-    {
-        return symbol?.ContainingType is { } owner
-               && members.Contains(
-                   $"{owner.OriginalDefinition.ToDisplayString()}.{symbol.Name}", StringComparer.Ordinal);
-    }
-
-    public static bool TAuditNamedCheck(ITypeSymbol? type, IReadOnlyList<string> names)
-    {
-        return type is not null && names.Contains(type.Name, StringComparer.Ordinal);
-    }
-
-    public static string TAuditLabelRead(ISymbol symbol)
-    {
-        return symbol.ContainingType is null
-            ? symbol.Name
-            : $"{symbol.ContainingType.Name}.{symbol.Name}";
-    }
-
-    public static IReadOnlySet<string> TAuditDeportmentRead()
-    {
-        HashSet<string> names = new(StringComparer.Ordinal);
-        INamespaceSymbol? space = TAuditBinderCompilation.Value.Assembly.GlobalNamespace;
-        foreach (string part in TAuditStrictSetting.TAuditDeportmentNamespace.Split('.'))
-        {
-            space = space?.GetNamespaceMembers()
-                .FirstOrDefault(member => string.Equals(member.Name, part, StringComparison.Ordinal));
-        }
-
-        foreach (INamedTypeSymbol type in space?.GetTypeMembers() ?? [])
-        {
-            names.Add(type.Name);
-            names.UnionWith(type.GetMembers().Select(member => member.Name));
-        }
-
-        Stack<INamespaceOrTypeSymbol> pending = new([TAuditBinderCompilation.Value.Assembly.GlobalNamespace]);
-        while (pending.TryPop(out INamespaceOrTypeSymbol? current))
-        {
-            foreach (INamespaceOrTypeSymbol child in current.GetMembers().OfType<INamespaceOrTypeSymbol>())
-            {
-                pending.Push(child);
-            }
-
-            if (current is INamedTypeSymbol deeper && TAuditLogicSides.Contains(TAuditSideRead(deeper)))
-            {
-                names.Remove(deeper.Name);
-                names.ExceptWith(deeper.GetMembers().Select(member => member.Name));
-            }
-        }
-
-        return names;
-    }
-
-    private static string? TAuditSideRead(INamedTypeSymbol? type)
-    {
-        string? source = type is null ? null : TAuditSourceRead(type.OriginalDefinition);
-        if (source is null)
-        {
-            return null;
-        }
-
-        if (TAuditRootRead(TAuditTruthSetting.TAuditShellInclude)
-            .Any(folder => source.StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase)))
-        {
-            return TAuditShellSide;
-        }
-
-        return source.StartsWith(TAuditTruthSetting.TAuditConductRoot + "/", StringComparison.OrdinalIgnoreCase)
-            ? TAuditConductSide
-            : TAuditEngineSide;
-    }
-
-    private static ISymbol? TAuditSymbolResolve(SyntaxNode node)
-    {
-        SemanticModel model = TAuditModelRead(node);
-        ISymbol? symbol = node is ExpressionSyntax ? null : model.GetDeclaredSymbol(node);
-        if (symbol is null)
-        {
-            SymbolInfo info = model.GetSymbolInfo(node);
-            symbol = info.Symbol ?? info.CandidateSymbols.FirstOrDefault();
-        }
-
-        return symbol?.OriginalDefinition;
-    }
-
-    private static IReadOnlyList<SyntaxTree> TAuditTrackedRead()
+    private static IReadOnlyList<SyntaxTree> TAuditTrackedRead(CSharpCompilation compilation)
     {
         string prefix = Path.Combine(TAuditRoot, TAuditBinderSource.TrimEnd('/')) + Path.DirectorySeparatorChar;
-        return TAuditBinderCompilation.Value.SyntaxTrees
+        return compilation.SyntaxTrees
             .Where(tree => !TAuditRelativeRead(tree.FilePath).Split('/').Contains("obj", StringComparer.Ordinal))
             .Where(tree => Path.GetFullPath(tree.FilePath).StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
             .ToList();
@@ -378,12 +160,17 @@ internal static class TAuditBinder
             .AsOrdered()
             .Select(path => CSharpSyntaxTree.ParseText(File.ReadAllText(path), TAuditSyntaxOptions, path))
             .ToList();
+        return TAuditCompilationCreate(trees, OutputKind.ConsoleApplication);
+    }
+
+    private static CSharpCompilation TAuditCompilationCreate(IReadOnlyList<SyntaxTree> trees, OutputKind kind)
+    {
         CSharpCompilation compilation = CSharpCompilation.Create(
             "AuditBinder",
             trees,
             TAuditReference.TAuditReferenceRead(),
             new CSharpCompilationOptions(
-                OutputKind.ConsoleApplication,
+                kind,
                 allowUnsafe: true,
                 nullableContextOptions: NullableContextOptions.Enable));
         List<string> errors = compilation.GetDiagnostics()

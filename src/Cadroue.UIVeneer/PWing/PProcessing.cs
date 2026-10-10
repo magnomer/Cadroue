@@ -32,10 +32,10 @@ public sealed class PProcessing : PPanel
 
     public const double PProcessingStripWidth = 48;
 
-    public event Action<string?>? PProcessingStepChange;
-    public event Action<string>? PProcessingStepOpen;
-    public event Action<bool>? PProcessingMinimizeChange;
-    public event Action? PProcessingMonitorShow;
+    public event Action<string?>? PProcessingStepChanged;
+    public event Action<string>? PProcessingStepOpened;
+    public event Action<bool>? PProcessingMinimizeChanged;
+    public event Action? PProcessingMonitorShown;
 
     private readonly StackPanel pProcessingRowPanel;
     private readonly UIElement pProcessingFullBody;
@@ -49,11 +49,11 @@ public sealed class PProcessing : PPanel
 
     public PProcessing() : base("")
     {
-        LProcessing.LProcessingChange += PProcessingUpdate;
-        LProcessing.LProcessingOrderChange += PProcessingOrderUpdate;
-        LProcessing.LProcessingMinimizeChange += PProcessingMinimizeHandle;
-        LProcessing.LProcessingStepChange += PProcessingStepHandle;
-        LProcessing.LProcessingDragCancel += PProcessingCaptureClear;
+        LProcessing.LProcessingChanged += PProcessingUpdate;
+        LProcessing.LProcessingOrderChanged += PProcessingOrderUpdate;
+        LProcessing.LProcessingMinimizeChanged += PProcessingMinimizeHandle;
+        LProcessing.LProcessingStepChanged += PProcessingStepHandle;
+        LProcessing.LProcessingDragCanceled += PProcessingCaptureClear;
         UIElement pHeader = PProcessingHeaderBuild();
 
         pProcessingRowPanel = new StackPanel();
@@ -71,7 +71,7 @@ public sealed class PProcessing : PPanel
         pProcessingMonitorButton = PProcessingButtonBuild(
             PProcessingMonitorIcon,
             LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"),
-            () => PProcessingMonitorShow?.Invoke());
+            () => PProcessingMonitorShown?.Invoke());
         pProcessingMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
         pProcessingMonitorButton.Visibility = Visibility.Collapsed;
         pProcessingActionBar = PProcessingActionBuild();
@@ -186,15 +186,15 @@ public sealed class PProcessing : PPanel
 
     private void PProcessingStepHandle(string pStepName)
     {
-        PProcessingStepChange?.Invoke(pStepName);
-        PProcessingStepOpen?.Invoke(pStepName);
+        PProcessingStepChanged?.Invoke(pStepName);
+        PProcessingStepOpened?.Invoke(pStepName);
     }
 
     private void PProcessingMinimizeHandle(bool pProcessingMinimized)
     {
         pProcessingFullBody.Visibility = PLook.PLookVisible[!pProcessingMinimized];
         pProcessingStripBody.Visibility = PLook.PLookVisible[pProcessingMinimized];
-        PProcessingMinimizeChange?.Invoke(pProcessingMinimized);
+        PProcessingMinimizeChanged?.Invoke(pProcessingMinimized);
     }
 
     private void PProcessingOrderUpdate()

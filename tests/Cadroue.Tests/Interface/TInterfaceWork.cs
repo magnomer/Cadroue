@@ -105,11 +105,11 @@ internal static partial class TInterface
     internal static string TWorkDiagnosticRead(LWorkVideoStep step) => step.LWorkDiagnosticRead();
     internal static LWorkItem? TWorkRecordMatch(LWorkItem work)
     {
-        string json = LWorkRecord.LWorkRecordCreate(work).LWorkJsonCreate();
-        return LWorkRecord.LWorkRecordParse(json)?.LWorkItemCreate();
+        string json = LWorkDocument.LWorkRecordCreate(work).LWorkJsonCreate();
+        return LWorkDocument.LWorkRecordParse(json)?.LWorkItemCreate();
     }
-    internal static LSidecarEditRecord TSidecarEditMatch(LSidecarEditRecord record) =>
-        System.Text.Json.JsonSerializer.Deserialize<LSidecarEditRecord>(
+    internal static LSidecarEditEntry TSidecarEditMatch(LSidecarEditEntry record) =>
+        System.Text.Json.JsonSerializer.Deserialize<LSidecarEditEntry>(
             System.Text.Json.JsonSerializer.Serialize(record))!;
     internal static LWorkAudioStep TWorkVolumeCreate(bool active, double gain) =>
         LWorkAudioStep.LWorkVolumeCreate(active, gain);

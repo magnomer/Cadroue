@@ -69,7 +69,7 @@ public sealed class TSegmentValidation
     [Fact]
     public void Load_DropsInvalidSavedSections_AndRaisesInvalidFault()
     {
-        LSidecarSectionRecord TSidecarSectionCreate(long start, long end, int color) => new()
+        LSidecarSectionEntry TSidecarSectionCreate(long start, long end, int color) => new()
         {
             LSidecarStartMilliseconds = start, LSidecarEndMilliseconds = end, LSidecarColorIndex = color
         };

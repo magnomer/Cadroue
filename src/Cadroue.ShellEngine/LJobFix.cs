@@ -33,7 +33,7 @@ internal sealed partial class LJob
                     ? lJobItem.LWorkOutputPath
                     : lJobItem.LWorkSourcePath;
                 IReadOnlyList<LSalvageSpan> pSpans =
-                    await LSalvageScan.LSalvageScanRun(pInput, lJobToken).ConfigureAwait(false);
+                    await LSalvageScanner.LSalvageScanRun(pInput, lJobToken).ConfigureAwait(false);
                 IReadOnlyList<string> pSalvaged =
                     await LSalvageExtract.LSalvageExtractRun(lJobItem, pInput, pSpans, lJobToken).ConfigureAwait(false);
                 if (pSalvaged.Count > 0)
@@ -74,7 +74,7 @@ internal sealed partial class LJob
             }
 
             IReadOnlyList<LDossier> pRescan =
-                await LFlawScan.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken)
+                await LFlawScanner.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken)
                     .ConfigureAwait(false);
             var pRemaining = LFix.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
                 .Where(pDossier => pDossier.LDossierRepair != LFlawFfvone.LFlawReport)
@@ -114,7 +114,7 @@ internal sealed partial class LJob
             return;
         }
 
-        IReadOnlyList<LDossier> pScanned = await LFlawScan.LFlawScanRun(lJobItem, lJobToken).ConfigureAwait(false);
+        IReadOnlyList<LDossier> pScanned = await LFlawScanner.LFlawScanRun(lJobItem, lJobToken).ConfigureAwait(false);
         await LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, pScanned).ConfigureAwait(false);
         lJobItem.LWorkDossiers = pScanned;
     }
@@ -163,7 +163,8 @@ internal sealed partial class LJob
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
         });
 
-        LWorkMedia? pOutputMedia = await LScout.LScoutMediaRead(pOutput, lJobToken).ConfigureAwait(false);
+        LWorkMedia? pOutputMedia = await LScout.LScoutMediaRead(pOutput, lJobToken, lJobOwner.LRunnerLevel)
+            .ConfigureAwait(false);
         if (pOutputMedia is null)
         {
             lJobValidateState = LWorkState.LWorkStateUnresolved;

@@ -166,7 +166,7 @@ public sealed class TGroupEdit
         Assert.True(TInterface.TGroupModeRead(group).LGroupToggleRight.LGroupSideActive);
         Assert.Equal(1, faces);
 
-        IReadOnlyList<LGroupToggle> switches = TInterface.TGroupSwitchesRead(group);
+        IReadOnlyList<LGroupSwitch> switches = TInterface.TGroupSwitchesRead(group);
         Assert.Equal(2, switches.Count);
         TInterface.TGroupToggleRun(group, "Strict", true);
         Assert.False(selection.LGroupStrict);

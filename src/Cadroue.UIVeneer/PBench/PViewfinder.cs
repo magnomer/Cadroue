@@ -62,7 +62,7 @@ public sealed class PViewfinder : FrameworkElement
     public PViewfinder(LFlow lFlow)
     {
         LViewfinder = new LViewfinder(lFlow);
-        LViewfinder.LViewfinderFrameApply += InvalidateVisual;
+        LViewfinder.LViewfinderFrameApplied += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
@@ -126,7 +126,7 @@ public sealed class PViewfinder : FrameworkElement
         drawingContext.Pop();
     }
 
-    private void PViewfinderTickDraw(DrawingContext drawingContext, LViewfinderTick lTick)
+    private void PViewfinderTickDraw(DrawingContext drawingContext, LViewfinderGraduation lTick)
     {
         drawingContext.DrawLine(
             pViewfinderTickPen,

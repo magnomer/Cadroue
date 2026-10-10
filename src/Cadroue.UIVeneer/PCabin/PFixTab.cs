@@ -16,7 +16,7 @@ public sealed class PFixTab : PTabSurface
     private readonly PProcessing pProcessing = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFixTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PFixTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         LFixTab = new LFixTab(
             lPresetOwner,
@@ -28,24 +28,24 @@ public sealed class PFixTab : PTabSurface
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
-        lAction.LActionRun += lPriority =>
+        lAction.LActionExecuted += lPriority =>
             LFixTab.LFixRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdd += () => LFixTab.LFixAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdd += pFixPaths =>
+        lAction.LActionAllAdded += () => LFixTab.LFixAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdded += pFixPaths =>
             LFixTab.LFixItemsRun(pFixPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
         LFixTab.LFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChange += pClinic.PClinicStepShow;
-        pClinic.PClinicDiagnosisRun += LFixTab.LFixDiagnosisRun;
+        pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;
+        pClinic.PClinicDiagnosisExecuted += LFixTab.LFixDiagnosisRun;
         LFixTab.LFixCheckup.LCheckupReady += PFixCheckupHandle;
         LFixTab.LFixCheckup.LCheckupProgress += PFixProgressHandle;
         LFixTab.LFixPresetMissing += PExport.PExportMissingShow;
 
-        pList.LList.LListPathChange += LFixTab.LFixPathHandle;
-        pList.LList.LListItemsAdd += LFixTab.LFixItemsHandle;
-        pList.LList.LListClearChange += LFixTab.LFixClearHandle;
+        pList.LList.LListPathChanged += LFixTab.LFixPathHandle;
+        pList.LList.LListItemsAdded += LFixTab.LFixItemsHandle;
+        pList.LList.LListClearChanged += LFixTab.LFixClearHandle;
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
 
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
@@ -76,7 +76,7 @@ public sealed class PFixTab : PTabSurface
         LFixTab.LFixClose();
     }
 
-    public override LSceneTabRecord PTabLayoutRead() => LFixTab.LFixLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => LFixTab.LFixLayoutRead(PTabLayoutCreate());
 
     private void PFixCheckupHandle(LCheckupResult lResult) =>
         Dispatcher.BeginInvoke(() => LFixTab.LFixCheckupHandle(lResult));

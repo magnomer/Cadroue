@@ -1,0 +1,63 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "enforced": true,
+  "ceilings": {
+    "Length": 0,
+    "Width": 0
+  },
+  "sources": {
+    "roots": [
+      "src",
+      "tests"
+    ],
+    "extensions": [
+      ".cs",
+      ".xaml",
+      ".csproj"
+    ],
+    "excludeSegments": [
+      ".git",
+      ".vs",
+      "bin",
+      "obj",
+      "artifacts",
+      "packages",
+      "node_modules",
+      "publish"
+    ]
+  },
+  "thresholds": {
+    "limit": 400,
+    "warning": 350,
+    "band": 5
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditLines-",
+    "segments": 1
+  },
+  "history": {
+    "records": "docs-analysis/records/AuditLinesHistory",
+    "pagePrefix": "AuditLinesHistory-"
+  },
+  "width": {
+    ".cs": 120,
+    ".xaml": 200
+  },
+  "hotspot": {
+    "commits": 30,
+    "top": 15
+  },
+  "tally": {
+    "roots": [
+      "scripts"
+    ],
+    "extensions": [
+      ".ps1",
+      ".cs"
+    ]
+  }
+}

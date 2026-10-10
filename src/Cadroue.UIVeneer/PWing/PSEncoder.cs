@@ -106,10 +106,10 @@ internal sealed partial class PSEncoder : Window
     public PSEncoder(LPreset lsExportSpecificState, System.Action pRefresh, bool psSmartAllowed = false)
     {
         lsEncoder = new LSEncoder(lsExportSpecificState, psSmartAllowed);
-        lsEncoder.LSEncoderVideoChange += PSVideoRowsApply;
-        lsEncoder.LSEncoderAudioChange += PSAudioRowsApply;
+        lsEncoder.LSEncoderVideoChanged += PSVideoRowsApply;
+        lsEncoder.LSEncoderAudioChanged += PSAudioRowsApply;
         lsEncoder.LSEncoderHelpAttach(PSEncoderHelpHandle);
-        lsEncoder.LSEncoderSizeChange += PSVideoSizeApply;
+        lsEncoder.LSEncoderSizeChanged += PSVideoSizeApply;
         psEncoderSummary = pRefresh;
         psNameBox = new PToken { PTokenText = lsExportSpecificEdit.LPresetDisplay, MinWidth = 320 };
         psOutputContainerCombo = PSListBuild(lsExportSpecificEdit.LPresetContainer,

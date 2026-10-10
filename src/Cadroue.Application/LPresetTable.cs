@@ -12,7 +12,7 @@ public sealed partial class LPreset
 
     public static ObservableCollection<string> LPresetNames { get; } = new();
 
-    public static event Action? LPresetStoreChange;
+    public static event Action? LPresetStoreChanged;
 
     public static LPreset LPresetInitialCreate(string lPresetTabKey)
     {

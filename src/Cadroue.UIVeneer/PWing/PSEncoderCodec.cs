@@ -13,7 +13,7 @@ namespace Cadroue.UIVeneer.PWing;
 internal sealed partial class PSEncoder
 {
     private void PSCodecProbeDefer() =>
-        LTrialSet.LTrialSetDefer(() => Dispatcher.BeginInvoke(() => { if (IsLoaded) PSCodecContainerHandle(); }));
+        LTrialCatalog.LTrialSetDefer(() => Dispatcher.BeginInvoke(() => { if (IsLoaded) PSCodecContainerHandle(); }));
 
     private void PSVideoEncoderUpdate()
     {

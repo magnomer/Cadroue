@@ -81,7 +81,7 @@ public sealed class TFixTabPlan
                 TInterface.TClinicSalvageCreate(
                     true, LSalvageMode.LSalvageModeSeparate, LSalvageBasis.LSalvageBasisSource, true)));
 
-        LSceneTabRecord layout = TInterface.TFixLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TFixLayoutRead(source);
         (LFixTab target, LClinic targetClinic, _, _, LProcessing processing) = TFixBuild();
         TInterface.TFixLayoutApply(target, layout);
         LWorkFix plan = TInterface.TClinicPlanRead(targetClinic);
@@ -171,7 +171,7 @@ public sealed class TFixTabPlan
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LFixTab tab, LClinic clinic, _, _, LProcessing processing) = TFixBuild();
-        LSidecarFixRecord saved = TInterface.TFixRecordCreate(TFixPlanCreate(LFlawKind.LFlawKindIndex, true, false));
+        LSidecarFixEntry saved = TInterface.TFixRecordCreate(TFixPlanCreate(LFlawKind.LFlawKindIndex, true, false));
         TInterface.TFixLibrarianAttach(_ => saved, (_, _) => true);
         try
         {

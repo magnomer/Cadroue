@@ -17,8 +17,8 @@ public sealed class PClinic : PPanel
 
     public const double PClinicStripWidth = 48;
 
-    public event Action<bool>? PClinicMinimizeChange;
-    public event Action? PClinicDiagnosisRun;
+    public event Action<bool>? PClinicMinimizeChanged;
+    public event Action? PClinicDiagnosisExecuted;
 
     private readonly UIElement pClinicFullBody;
     private readonly UIElement pClinicStripBody;
@@ -187,7 +187,7 @@ public sealed class PClinic : PPanel
             VerticalAlignment = VerticalAlignment.Center,
             Style = PButton.PButtonWhiteCreate()
         };
-        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisRun?.Invoke();
+        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisExecuted?.Invoke();
 
         var pRunGrid = new Grid();
         pRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -226,8 +226,8 @@ public sealed class PClinic : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
-        LClinic.LClinicChange += PClinicUpdate;
-        LClinic.LClinicMinimizeChange += PClinicMinimizeHandle;
+        LClinic.LClinicChanged += PClinicUpdate;
+        LClinic.LClinicMinimizeChanged += PClinicMinimizeHandle;
         PClinicUpdate();
     }
 
@@ -256,7 +256,7 @@ public sealed class PClinic : PPanel
     {
         pClinicFullBody.Visibility = PLook.PLookVisible[!pClinicMinimized];
         pClinicStripBody.Visibility = PLook.PLookVisible[pClinicMinimized];
-        PClinicMinimizeChange?.Invoke(pClinicMinimized);
+        PClinicMinimizeChanged?.Invoke(pClinicMinimized);
     }
 
     private void PClinicUpdate()

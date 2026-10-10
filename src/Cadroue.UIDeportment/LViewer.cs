@@ -66,12 +66,12 @@ public sealed class LViewer
 
     public LCropDrag LCropDrag { get; }
 
-    public event Action<LCargo>? LViewerMediaChange;
-    public event Action<bool>? LViewerPlayingChange;
-    public event Action? LViewerEngineChange;
-    public event Action? LViewerPreviewChange;
-    public event Action<bool>? LViewerBypassChange;
-    public event Action<double>? LViewerVolumeChange;
+    public event Action<LCargo>? LViewerMediaChanged;
+    public event Action<bool>? LViewerPlayingChanged;
+    public event Action? LViewerEngineChanged;
+    public event Action? LViewerPreviewChanged;
+    public event Action<bool>? LViewerBypassChanged;
+    public event Action<double>? LViewerVolumeChanged;
     public event Action<string>? LViewerOpenRequest;
 
     public int LViewerLoadSerial => lViewerLoadSerial;
@@ -193,7 +193,7 @@ public sealed class LViewer
         }
 
         lViewerEngine = lEngine;
-        LViewerEngineChange?.Invoke();
+        LViewerEngineChanged?.Invoke();
     }
 
     public void LViewerFilterSet(string? lFilter) => lViewerAudioFilter = lFilter ?? string.Empty;
@@ -215,7 +215,7 @@ public sealed class LViewer
         }
 
         lViewerBypass = lBypass;
-        LViewerBypassChange?.Invoke(lBypass);
+        LViewerBypassChanged?.Invoke(lBypass);
         LViewerAudioApply();
         LViewerPreviewRaise();
     }
@@ -240,12 +240,12 @@ public sealed class LViewer
             LPreference.LPreferenceVolumeSet(lViewerVolume);
         }
 
-        LViewerVolumeChange?.Invoke(lViewerVolume);
+        LViewerVolumeChanged?.Invoke(lViewerVolume);
     }
 
     public void LViewerPreviewSet(LPreviewState lPreview) => lViewerPreview = lPreview;
 
-    public void LViewerPreviewRaise() => LViewerPreviewChange?.Invoke();
+    public void LViewerPreviewRaise() => LViewerPreviewChanged?.Invoke();
 
     public LPreviewState LViewerRenderRead() =>
         LCrop.LCropActive
@@ -316,7 +316,7 @@ public sealed class LViewer
 
     public void LViewerMediaRaise(LCargo lCargo)
     {
-        Delegate[] lHandlers = LViewerMediaChange?.GetInvocationList() ?? Array.Empty<Delegate>();
+        Delegate[] lHandlers = LViewerMediaChanged?.GetInvocationList() ?? Array.Empty<Delegate>();
         foreach (Action<LCargo> lHandler in lHandlers.Cast<Action<LCargo>>())
         {
             try
@@ -338,7 +338,7 @@ public sealed class LViewer
             new LPlaybackState(lPlayingNow, lPosition ?? lState.LPlaybackPosition));
         if (lPlayingNow != lState.LPlaybackStatePlaying)
         {
-            LViewerPlayingChange?.Invoke(lPlayingNow);
+            LViewerPlayingChanged?.Invoke(lPlayingNow);
         }
     }
 

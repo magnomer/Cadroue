@@ -7,8 +7,8 @@ namespace Cadroue.ShellEngine;
 public static partial class LCartographer
 {
     private static bool LCartographerStageAccept(
-        LCartographerPlanRecord lCartographerPlan,
-        LCartographerStageRecord lCartographerStage,
+        LCartographerPlanDocument lCartographerPlan,
+        LCartographerStageEntry lCartographerStage,
         string lCartographerPath,
         Guid lCartographerSourceStage,
         Guid lCartographerBatch,
@@ -27,7 +27,7 @@ public static partial class LCartographer
         if (!lCartographerStage.LCartographerPendingInputs.Any(lCartographerInput => string.Equals(
                 lCartographerInput.LCartographerPath, lCartographerPath, StringComparison.OrdinalIgnoreCase)))
         {
-            lCartographerStage.LCartographerPendingInputs.Add(new LCartographerInputRecord
+            lCartographerStage.LCartographerPendingInputs.Add(new LCartographerInputEntry
             {
                 LCartographerPath = lCartographerPath,
                 LCartographerSourceStage = lCartographerSourceStage
@@ -113,8 +113,8 @@ public static partial class LCartographer
     }
 
     private static bool LCartographerFunnelAccept(
-        LCartographerPlanRecord lCartographerPlan,
-        LCartographerStageRecord lCartographerStage,
+        LCartographerPlanDocument lCartographerPlan,
+        LCartographerStageEntry lCartographerStage,
         string lCartographerPath,
         Guid lCartographerBatch,
         LCartographerDelivery lCartographerSeam,
@@ -168,7 +168,7 @@ public static partial class LCartographer
 
         if (lCartographerAcknowledged.Count == 0
             || !LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
+                lCartographerPlanId, out LCartographerPlanDocument lCartographerPlan)
             || lCartographerPlan.LCartographerStages.FirstOrDefault(
                     lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerStageId)
                 is not { } lCartographerStage)
@@ -182,8 +182,8 @@ public static partial class LCartographer
     }
 
     private static void LCartographerPendingRemove(
-        LCartographerPlanRecord lCartographerPlan,
-        LCartographerStageRecord lCartographerStage,
+        LCartographerPlanDocument lCartographerPlan,
+        LCartographerStageEntry lCartographerStage,
         HashSet<string> lCartographerCleared)
     {
         int lCartographerRemoved = lCartographerStage.LCartographerPendingInputs.RemoveAll(
@@ -195,8 +195,8 @@ public static partial class LCartographer
     }
 
     public static bool LCartographerMergeCheck(
-        LCartographerPlanRecord lCartographerPlan,
-        LCartographerStageRecord lCartographerMerge,
+        LCartographerPlanDocument lCartographerPlan,
+        LCartographerStageEntry lCartographerMerge,
         Guid lCartographerBatch,
         IReadOnlyList<LWorkItem> lCartographerSchedule)
     {
@@ -229,7 +229,7 @@ public static partial class LCartographer
     }
 
     private static bool LCartographerReachCheck(
-        LCartographerPlanRecord lCartographerPlan,
+        LCartographerPlanDocument lCartographerPlan,
         Guid lCartographerFrom,
         Guid lCartographerTarget)
     {

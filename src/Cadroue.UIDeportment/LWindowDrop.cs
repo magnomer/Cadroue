@@ -32,8 +32,8 @@ public sealed class LWindowDrop
         lWindow = lOwner;
     }
 
-    public event Action<IReadOnlyList<string>>? LWindowListAdd;
-    public event Action<string>? LWindowViewerOpen;
+    public event Action<IReadOnlyList<string>>? LWindowListAdded;
+    public event Action<string>? LWindowViewerOpened;
 
     public LWindowDropEffect LWindowDropEffect => lWindowDropEffect;
 
@@ -110,7 +110,7 @@ public sealed class LWindowDrop
         IReadOnlyList<string> lPaths = LWindowPathsRead(lDrag);
         if (lWindow.LWindowListPresent)
         {
-            LWindowListAdd?.Invoke(lPaths);
+            LWindowListAdded?.Invoke(lPaths);
             LWindowDropAppend(lDrag, $"Drop into list: {lPaths.Count} path(s) handed to the list scan");
             LWindowDropRecord($"File drag accepted onto list ({lEffect})");
             return;
@@ -131,7 +131,7 @@ public sealed class LWindowDrop
             return;
         }
 
-        LWindowViewerOpen?.Invoke(lSourcePath);
+        LWindowViewerOpened?.Invoke(lSourcePath);
         LWindowDropAppend(lDrag, $"Drop into viewer: opened {LUsher.LUsherNameRead(lSourcePath)}");
         LWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
     }

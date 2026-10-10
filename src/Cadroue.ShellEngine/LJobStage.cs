@@ -164,13 +164,7 @@ internal sealed partial class LJob
         lJobBlockMicroseconds = -1;
         lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
 
-        var pJobEmployer = new LEmployer(
-            lJobOwner.LRunnerProgramPath,
-            lJobOwner.LRunnerArgumentPrefix)
-        {
-            LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
-        };
-        LEmployerResult pJobResult = await pJobEmployer.LEmployerRun(
+        LEmployerResult pJobResult = await lJobOwner.LRunnerEmployerCreate().LEmployerRun(
             pExecutableArguments,
             lJobToken,
             pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess),

@@ -119,7 +119,7 @@ public sealed partial class LPreset
         LPresetAudio = LPresetAudio.LPresetAudioClone()
     };
 
-    public event Action? LPresetChange;
+    public event Action? LPresetChanged;
 
     public void LPresetCopy(LPreset lSource)
     {
@@ -136,10 +136,10 @@ public sealed partial class LPreset
         LPresetLocationCustom = lSource.LPresetLocationCustom;
         LPresetVideo = lSource.LPresetVideo.LPresetVideoClone();
         LPresetAudio = lSource.LPresetAudio.LPresetAudioClone();
-        LPresetChange?.Invoke();
+        LPresetChanged?.Invoke();
     }
 
-    public LPresetRecord LPresetRecordCreate() => new()
+    public LPresetDocument LPresetRecordCreate() => new()
     {
         LPresetName = LPresetName,
         LPresetDisplay = LPresetDisplay,
@@ -152,7 +152,7 @@ public sealed partial class LPreset
         LPresetLocationSubfolder = LPresetLocationSubfolder,
         LPresetLocationSibling = LPresetLocationSibling,
         LPresetLocationCustom = LPresetLocationCustom,
-        LPresetVideo = new LPresetVideoRecord
+        LPresetVideo = new LPresetVideoEntry
         {
             LPresetStream = LPresetVideo.LPresetStream,
             LPresetMode = LPresetVideo.LPresetMode,
@@ -166,7 +166,7 @@ public sealed partial class LPreset
             LPresetPixelLayout = LPresetVideo.LPresetPixelLayout,
             LPresetExtras = new Dictionary<string, string>(LPresetVideo.LPresetExtras)
         },
-        LPresetAudio = new LPresetAudioRecord
+        LPresetAudio = new LPresetAudioEntry
         {
             LPresetStream = LPresetAudio.LPresetStream,
             LPresetMode = LPresetAudio.LPresetMode,
@@ -180,7 +180,7 @@ public sealed partial class LPreset
         }
     };
 
-    public static LPreset LPresetStateCreate(LPresetRecord lRecord)
+    public static LPreset LPresetStateCreate(LPresetDocument lRecord)
     {
         string lLocation = string.Equals(lRecord.LPresetLocation, "Custom folder", StringComparison.Ordinal)
             ? "Custom location"

@@ -39,7 +39,7 @@ public sealed class LToken
             ["Delete"] = ("Token.Delete.Label", LTokenDeleteIcon),
         };
 
-    public event Action<string>? LTokenInsert;
+    public event Action<string>? LTokenInserted;
 
     public bool LTokenDropHandle(string? lToken)
     {
@@ -48,7 +48,7 @@ public sealed class LToken
             return false;
         }
 
-        LTokenInsert?.Invoke(lToken);
+        LTokenInserted?.Invoke(lToken);
         return true;
     }
 

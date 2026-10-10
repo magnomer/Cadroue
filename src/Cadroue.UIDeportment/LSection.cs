@@ -41,10 +41,10 @@ public sealed class LSection
     private string lSectionEditPrefix = string.Empty;
     private string lSectionEditSuffix = string.Empty;
 
-    public event Action? LSectionChange;
-    public event Action? LSectionSelectApply;
-    public event Action<bool>? LSectionEnabledApply;
-    public event Action<bool>? LSectionMinimizeChange;
+    public event Action? LSectionChanged;
+    public event Action? LSectionSelectApplied;
+    public event Action<bool>? LSectionEnabledApplied;
+    public event Action<bool>? LSectionMinimizeChanged;
 
     public LSection(LFlow lOwner)
     {
@@ -54,8 +54,8 @@ public sealed class LSection
         lSectionRowCount = lSectionPieces.Count;
         lSectionEditable = lFlow.LFlowSectionEditable;
         LSectionDrag = new LSectionDrag(this, lFlow);
-        lFlow.LFlowSection.LFlowSectionChange += LSectionUpdateHandle;
-        lFlow.LFlowEditChange += LSectionEditHandle;
+        lFlow.LFlowSection.LFlowSectionChanged += LSectionUpdateHandle;
+        lFlow.LFlowEditChanged += LSectionEditHandle;
     }
 
     public LSectionDrag LSectionDrag { get; }
@@ -101,7 +101,7 @@ public sealed class LSection
         }
 
         lSectionMinimized = lMinimized;
-        LSectionMinimizeChange?.Invoke(lMinimized);
+        LSectionMinimizeChanged?.Invoke(lMinimized);
         return true;
     }
 
@@ -246,7 +246,7 @@ public sealed class LSection
 
         if (lSame)
         {
-            LSectionSelectApply?.Invoke();
+            LSectionSelectApplied?.Invoke();
             return;
         }
 
@@ -256,7 +256,7 @@ public sealed class LSection
     private void LSectionEditHandle(bool lEditable)
     {
         lSectionEditable = lEditable;
-        LSectionEnabledApply?.Invoke(lEditable);
+        LSectionEnabledApplied?.Invoke(lEditable);
         if (lEditable)
         {
             return;
@@ -272,7 +272,7 @@ public sealed class LSection
     public void LSectionRebuildRaise()
     {
         lSectionRowCount = lSectionPieces.Count;
-        LSectionChange?.Invoke();
+        LSectionChanged?.Invoke();
     }
 
     private LSectionRow LSectionRowCreate(LPiece lPiece, int lIndex)

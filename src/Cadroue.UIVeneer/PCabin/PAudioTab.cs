@@ -19,7 +19,7 @@ public sealed class PAudioTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(150)
     };
 
-    public PAudioTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PAudioTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         LAudioTab = new LAudioTab(
             lPresetOwner,
@@ -29,28 +29,28 @@ public sealed class PAudioTab : PTabSurface
             pList.LList.LListDocket,
             pProcessing.LProcessing);
         LAudioTab.LAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pProcessing.PProcessingMonitorShow += PAudioMonitorShow;
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingMonitorShown += PAudioMonitorShow;
         pProcessing.PProcessingMonitorSet();
 
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
-        lAction.LActionRun += lPriority =>
+        lAction.LActionExecuted += lPriority =>
             LAudioTab.LAudioRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdd += () => LAudioTab.LAudioAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdd += pAudioPaths =>
+        lAction.LActionAllAdded += () => LAudioTab.LAudioAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdded += pAudioPaths =>
             LAudioTab.LAudioItemsRun(pAudioPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
-        pList.LList.LListPathChange += LAudioTab.LAudioPathHandle;
-        pList.LList.LListItemsAdd += LAudioTab.LAudioItemsHandle;
+        pList.LList.LListPathChanged += LAudioTab.LAudioPathHandle;
+        pList.LList.LListItemsAdded += LAudioTab.LAudioItemsHandle;
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
 
         LAudioTab.LAudioPresetMissing += PExport.PExportMissingShow;
         LAudioTab.LAudioPresetIncompatible += PExport.PExportIncompatibleShow;
-        LAudioTab.LAudioViewerDefer += PAudioViewerDefer;
+        LAudioTab.LAudioViewerDeferred += PAudioViewerDefer;
         pAudioViewerTimer.Tick += PAudioViewerTick;
 
         var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindAudio);
@@ -80,7 +80,7 @@ public sealed class PAudioTab : PTabSurface
         LAudioTab.LAudioClose();
     }
 
-    public override LSceneTabRecord PTabLayoutRead() => LAudioTab.LAudioLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => LAudioTab.LAudioLayoutRead(PTabLayoutCreate());
 
     private void PAudioMonitorShow() =>
         PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), LAudioTab.LAudioMonitor, pFlow, pViewer);

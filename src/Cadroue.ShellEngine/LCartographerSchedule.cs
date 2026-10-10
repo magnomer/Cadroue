@@ -27,7 +27,7 @@ public static partial class LCartographer
         lCartographerScheduledBatches.UnionWith(lCartographerSchedule.LScheduleRecords
             .Select(lCartographerItem => lCartographerItem.LWorkBatchId)
             .Where(lCartographerBatch => lCartographerBatch != Guid.Empty));
-        lCartographerSchedule.LScheduleChange += LCartographerScheduleHandle;
+        lCartographerSchedule.LScheduleChanged += LCartographerScheduleHandle;
         LCartographerDispatch(lCartographerSchedule.LScheduleRecords);
     }
 
@@ -35,7 +35,7 @@ public static partial class LCartographer
         IReadOnlyList<LWorkItem> lCartographerItems,
         Guid lCartographerTarget = default,
         Guid lCartographerSource = default,
-        LCartographerPlanRecord? lCartographerPreparedPlan = null)
+        LCartographerPlanDocument? lCartographerPreparedPlan = null)
     {
         if (lCartographerItems.Count == 0 || LCartographerScheduleContract is not { } lCartographerSchedule)
         {
@@ -76,7 +76,7 @@ public static partial class LCartographer
             lCartographerItem => lCartographerItem.LWorkBatchId))
         {
             if (!LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerBatch.Key, out LCartographerPlanRecord lCartographerPlan))
+                lCartographerBatch.Key, out LCartographerPlanDocument lCartographerPlan))
             {
                 continue;
             }
@@ -97,7 +97,7 @@ public static partial class LCartographer
         }
     }
 
-    public static LCartographerPlanRecord? LCartographerPlanPrepare(Guid lCartographerTarget) =>
+    public static LCartographerPlanDocument? LCartographerPlanPrepare(Guid lCartographerTarget) =>
         lCartographerTarget == Guid.Empty || lCartographerTarget == LCartographerFinishTarget
             ? null
             : LCartographerPlanCreate(Guid.Empty, lCartographerTarget);

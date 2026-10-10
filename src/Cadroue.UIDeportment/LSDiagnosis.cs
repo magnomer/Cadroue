@@ -51,7 +51,7 @@ public sealed class LSDiagnosis
     private int lsDiagnosisGeneration;
     private LInventoryFeature? lsDiagnosisFeature;
 
-    public event Action? LSDiagnosisChange;
+    public event Action? LSDiagnosisChanged;
 
     public static IReadOnlyList<LSDiagnosisItem> LSDiagnosisVideoItems => lsDiagnosisVideoItems;
 
@@ -117,7 +117,7 @@ public sealed class LSDiagnosis
     public void LSDiagnosisFeatureSet(LInventoryFeature? lFeature)
     {
         lsDiagnosisFeature = lFeature;
-        LSDiagnosisChange?.Invoke();
+        LSDiagnosisChanged?.Invoke();
     }
 
     public async Task LSDiagnosisProbeStart()

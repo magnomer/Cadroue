@@ -27,9 +27,9 @@ public sealed class LSplitTabSweep
         lSplitFlow = lFlow;
     }
 
-    public event Action<bool>? LSplitBusyApply;
-    public event Action<double>? LSplitProgressApply;
-    public event Action<string, string>? LSplitFailRaise;
+    public event Action<bool>? LSplitBusyApplied;
+    public event Action<double>? LSplitProgressApplied;
+    public event Action<string, string>? LSplitFailRaised;
 
     public bool LSplitSweepRunning => lSplitSweepSource is not null;
 
@@ -68,21 +68,21 @@ public sealed class LSplitTabSweep
         lSplitSweepSource = lSource;
         lSplitInspector.LInspectorSensor.LSensorRunningSet(true);
         lSplitFlow.LFlowEditSet(false);
-        LSplitBusyApply?.Invoke(true);
-        LSplitProgressApply?.Invoke(0);
+        LSplitBusyApplied?.Invoke(true);
+        LSplitProgressApplied?.Invoke(0);
         try
         {
             for (int lStage = 0; lStage < lSteps.Count; lStage++)
             {
                 double lOffset = lStage;
                 var lProgress = new Progress<double>(
-                    lValue => LSplitProgressApply?.Invoke((lOffset + lValue) / lSteps.Count));
+                    lValue => LSplitProgressApplied?.Invoke((lOffset + lValue) / lSteps.Count));
                 await lSteps[lStage](lProgress, lSource.Token);
             }
 
             if (!lSplitFlow.LFlowSection.LFlowCombineApply(lExcluded, lKept, lBoundaries))
             {
-                LSplitFailRaise?.Invoke(
+                LSplitFailRaised?.Invoke(
                     LLocalization.LLocalizationTextRead("Inspector.Detect.FailTitle"),
                     LLocalization.LLocalizationFormat("Inspector.Detect.CeilingMessage", LPiece.LPieceCeiling));
             }
@@ -93,13 +93,13 @@ public sealed class LSplitTabSweep
         catch (Exception lException) when (LSweep.LSweepFaultCheck(lException))
         {
             LTraceLog.LTraceErrorRecord($"Detection failed for '{lSelected.LDocketEntryPath}'", lException);
-            LSplitFailRaise?.Invoke(
+            LSplitFailRaised?.Invoke(
                 LLocalization.LLocalizationTextRead("Inspector.Detect.FailTitle"),
                 LLocalization.LLocalizationFormat("Inspector.Detect.FailMessage", lException.Message));
         }
         finally
         {
-            LSplitBusyApply?.Invoke(false);
+            LSplitBusyApplied?.Invoke(false);
             lSplitFlow.LFlowEditSet(!LSplitLockedCheck());
             lSplitInspector.LInspectorSensor.LSensorRunningSet(false);
             lSplitSweepSource = null;

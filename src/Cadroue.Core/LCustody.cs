@@ -70,9 +70,12 @@ public static class LCustody
         }
     }
 
-    public static void LCustodyPriorityApply(Process lCustodyProcess, LCustodyFamily lCustodyFamily)
+    public static int LCustodyLevelRead(LCustodyFamily lCustodyFamily) =>
+        lCustodyFamilyLevels[(int)lCustodyFamily];
+
+    public static void LCustodyPriorityApply(Process lCustodyProcess, int lCustodyLevel)
     {
-        int lCustodyLevel = lCustodyFamilyLevels[(int)lCustodyFamily];
+        lCustodyLevel = Math.Clamp(lCustodyLevel, 0, lCustodyClasses.Length - 1);
         try
         {
             lCustodyProcess.PriorityClass = lCustodyClasses[lCustodyLevel];

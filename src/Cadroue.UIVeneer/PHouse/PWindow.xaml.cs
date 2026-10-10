@@ -35,10 +35,10 @@ public partial class PWindow : Window
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         lWindow.LWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
-        pToolbar.PToolbarOptionsApply += lWindow.LWindowOptionsApply;
+        pToolbar.PToolbarOptionsApplied += lWindow.LWindowOptionsApply;
         lWindow.LWindowOptionsApply();
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
-        pStrip.LStrip.LStripSelectChange += PWindowTabHandle;
+        pStrip.LStrip.LStripSelectChanged += PWindowTabHandle;
         PWindowTabHandle(pStrip.LStrip.LStripSelected);
         lWindow.LWindowRelayStart(
             SystemParameters.VirtualScreenLeft,
@@ -63,35 +63,35 @@ public partial class PWindow : Window
 
     private void PWindowNoticesAttach()
     {
-        lWindow.LWindowTabAdd += PWindowAddHandle;
-        lWindow.LWindowFunnelUpdate += PWindowFunnelUpdate;
-        lWindow.LWindowRelayApply += PWindowRelayHandle;
-        lWindow.LWindowPlace += PWindowPlace;
-        lWindow.LWindowShow += PWindowShowHandle;
-        lWindow.LWindowMediaDefer += PWindowMediaDefer;
-        lWindow.LWindowMediaOpen += PWindowMediaOpen;
-        lWindow.LWindowTabAttach += PWindowTabAttach;
-        lWindow.LWindowTabDetach += PWindowTabDetach;
-        lWindow.LWindowLayoutChange += PWindowLayoutApply;
-        lWindow.LWindowVerticalApply += PWindowVerticalApply;
-        lWindow.LWindowHorizontalApply += PWindowHorizontalApply;
-        lWindow.LWindowFlowApply += PWindowFlowApply;
-        lWindow.LWindowVolumeSet += PWindowVolumeSet;
-        lWindow.LWindowDrop.LWindowListAdd += PWindowListAdd;
-        lWindow.LWindowDrop.LWindowViewerOpen += PWindowViewerOpen;
-        lWindow.LWindowShortcut.LWindowShortcutPlay += PWindowPlay;
-        lWindow.LWindowShortcut.LWindowShortcutPause += PWindowPause;
+        lWindow.LWindowTabAdded += PWindowAddHandle;
+        lWindow.LWindowFunnelUpdated += PWindowFunnelUpdate;
+        lWindow.LWindowRelayApplied += PWindowRelayHandle;
+        lWindow.LWindowPlaced += PWindowPlace;
+        lWindow.LWindowShown += PWindowShowHandle;
+        lWindow.LWindowMediaDeferred += PWindowMediaDefer;
+        lWindow.LWindowMediaOpened += PWindowMediaOpen;
+        lWindow.LWindowTabAttached += PWindowTabAttach;
+        lWindow.LWindowTabDetached += PWindowTabDetach;
+        lWindow.LWindowLayoutChanged += PWindowLayoutApply;
+        lWindow.LWindowVerticalApplied += PWindowVerticalApply;
+        lWindow.LWindowHorizontalApplied += PWindowHorizontalApply;
+        lWindow.LWindowFlowApplied += PWindowFlowApply;
+        lWindow.LWindowVolumeSynced += PWindowVolumeSet;
+        lWindow.LWindowDrop.LWindowListAdded += PWindowListAdd;
+        lWindow.LWindowDrop.LWindowViewerOpened += PWindowViewerOpen;
+        lWindow.LWindowShortcut.LWindowShortcutPlayed += PWindowPlay;
+        lWindow.LWindowShortcut.LWindowShortcutPaused += PWindowPause;
         lWindow.LWindowShortcut.LWindowShortcutAttach(
             pToolbar.PToolbarShortcutShow,
             PWindowUndo,
             PWindowRedo,
             pStrip.LStrip.LStripContentClear,
             PWindowMediaClear);
-        LAskNotice.LAskRaise += PWindowAskHandle;
-        lSash.LSashCaptureStart += PResizeCaptureStart;
-        lSash.LSashCaptureStop += PResizeCaptureStop;
-        lSash.LSashActiveChange += PResizeRenderApply;
-        lSash.LSashBoundsChange += PResizeBoundsApply;
+        LAskNotice.LAskRaised += PWindowAskHandle;
+        lSash.LSashCaptureStarted += PResizeCaptureStart;
+        lSash.LSashCaptureStopped += PResizeCaptureStop;
+        lSash.LSashActiveChanged += PResizeRenderApply;
+        lSash.LSashBoundsChanged += PResizeBoundsApply;
     }
 
     private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);
@@ -225,9 +225,9 @@ public partial class PWindow : Window
             new LSashBounds(Left, Top, Width, Height),
             new LSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
         lWindow.LWindowClose();
-        LAskNotice.LAskRaise -= PWindowAskHandle;
-        pStrip.LStrip.LStripSelectChange -= PWindowTabHandle;
-        pToolbar.PToolbarOptionsApply -= lWindow.LWindowOptionsApply;
+        LAskNotice.LAskRaised -= PWindowAskHandle;
+        pStrip.LStrip.LStripSelectChanged -= PWindowTabHandle;
+        pToolbar.PToolbarOptionsApplied -= lWindow.LWindowOptionsApply;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();

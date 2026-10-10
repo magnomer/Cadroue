@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ UI audit</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.warn { background: var(--warn-wash); color: var(--warn); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.bars { position: relative; display: grid; grid-template-columns: minmax(120px, max-content) 1fr max-content; gap: 4px 12px; align-items: center; font-size: 13px; }
+.bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
+.bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bars .track.stack { display: flex; }
+.bars .track.stack .fill { border-radius: 0; }
+.bars .fill.k1, .swatch.k1 { background: var(--series-2); }
+.bars .fill.k2, .swatch.k2 { background: var(--series-3); }
+.swatch.k0 { background: var(--series-1); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+thead th { vertical-align: bottom; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.path { white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+td.path .dir { color: var(--ink-3); }
+td.wrap { white-space: normal; text-align: left; }
+#gates a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+.subhead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; scroll-margin-top: 12px; }
+.subhead.first { margin-top: 4px; }
+.subhead .count { color: var(--ink-3); font-weight: 400; }
+.subhead.warn { color: var(--warn); }
+.subhead.fail { color: var(--fail); }
+.subhead.ok { color: var(--ink-1); }
+.lead { color: var(--ink-3); font-size: 13px; margin: 0 0 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+button.more { font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px dashed var(--ring); border-radius: 8px; padding: 6px 12px; cursor: pointer; margin-top: 8px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: minmax(80px, 40%) 1fr max-content; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ UI audit</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="gates"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Hits by kind</h2>
+    <p class="lead" id="enforced"></p>
+    <div id="kinds"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Ledger</h2>
+    <p class="lead" id="ledgerlead"></p>
+    <div id="ledger"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <section class="panel">
+    <h2>Findings</h2>
+    <p class="lead">A hit the ledger holds passes. A file above its ceiling fails, and so does a ceiling above its count.</p>
+    <div id="findings"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Findings by place</h2>
+        <div class="muted">Hits and boundary findings counted per audit or per project, split by audit.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Grouping" id="grouping"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="bars" id="placebars"></div>
+    <div class="empty" id="placeempty" style="display:none">None.</div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2 id="alltitle"></h2>
+        <div class="muted">Every Strict and Truth hit and every boundary finding. Click a column heading to sort.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Audit" id="auditfilter"></div>
+    </div>
+    <div class="toolbar"><input type="search" id="filter" placeholder="Filter by kind, name, file or reason" aria-label="Filter hits by kind, name, file or reason"></div>
+    <div id="alltable"></div>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var LQ = '\u201c', RQ = '\u201d';
+  var LIMIT = 100;
+  var AUDITS = ['Strict', 'Truth', 'Boundary'];
+  var GROUPINGS = [{ key: 'audit', label: 'Audit' }, { key: 'project', label: 'Project' }];
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pathHtml(path) {
+    if (path === null || path === undefined || path === '') return '<span class="muted">' + DASH + '</span>';
+    var cut = path.lastIndexOf('/');
+    return cut < 0 ? esc(path) : '<span class="dir">' + esc(path.slice(0, cut + 1)) + '</span>' + esc(path.slice(cut + 1));
+  }
+  function text(v) { return v === null || v === undefined ? '' : String(v); }
+  function slug(t) { return 'sec-' + String(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function statusClass(s) { return s === 'FAIL' || s === 'ABOVE' || s === 'STALE' ? 'fail' : s === 'WARN' || s === 'OVER' ? 'warn' : s === 'INFORMATIVE' ? 'plain' : 'ok'; }
+  function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+  function auditClass(a) { return 'k' + Math.max(0, AUDITS.indexOf(a)); }
+  function load(key, fallback, allowed) {
+    try { var v = localStorage.getItem('auditui.' + key); if (v !== null && (!allowed || allowed.indexOf(v) >= 0)) return v; } catch (e) { }
+    return fallback;
+  }
+  function save(key, value) { try { localStorage.setItem('auditui.' + key, value); } catch (e) { } }
+  function segmented(box, options, current, onPick) {
+    box.innerHTML = '';
+    options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = o.label;
+      b.setAttribute('aria-pressed', String(o.key === current));
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+        onPick(o.key);
+      });
+      box.appendChild(b);
+    });
+  }
+
+  // A sortable table: one column per field, numbers right-aligned, the first LIMIT rows until "Show all".
+  // spec: { columns: [{ key, label, num, cell }], rows, sort, down, total, limit, store }
+  function sortable(box, spec) {
+    var sortKey = spec.store ? load(spec.store + '.sort', spec.sort, spec.columns.map(function (c) { return c.key; })) : spec.sort;
+    var sortDown = spec.store ? load(spec.store + '.down', String(!!spec.down), ['true', 'false']) === 'true' : !!spec.down;
+    var shown = spec.limit === undefined ? LIMIT : spec.limit;
+    var self = { rows: spec.rows, reset: function () { shown = spec.limit === undefined ? LIMIT : spec.limit; draw(); } };
+    function value(row, col) { var v = row[col.key]; return col.num ? (v === null || v === undefined ? -Infinity : v) : text(v).toLowerCase(); }
+    function draw() {
+      var rows = self.rows.slice();
+      var col = spec.columns.filter(function (c) { return c.key === sortKey; })[0];
+      if (col) {
+        rows.sort(function (a, b) {
+          var r = col.num ? value(a, col) - value(b, col) : compare(value(a, col), value(b, col));
+          if (r === 0) r = compare(text(a.file), text(b.file)) || (a.line || 0) - (b.line || 0);
+          return sortDown ? -r : r;
+        });
+      }
+      if (!rows.length) { box.innerHTML = '<div class="empty">None.</div>'; return; }
+      var head = '<thead><tr>' + spec.columns.map(function (c) {
+        return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' +
+          (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + esc(c.label) + '</th>';
+      }).join('') + '</tr></thead>';
+      var body = rows.slice(0, shown).map(function (r) {
+        return '<tr>' + spec.columns.map(function (c) {
+          if (c.cell) return c.cell(r);
+          if (c.num) return '<td>' + fmt(r[c.key]) + '</td>';
+          return '<td class="wrap">' + esc(text(r[c.key])) + '</td>';
+        }).join('') + '</tr>';
+      }).join('');
+      var foot = spec.total ? '<tfoot>' + spec.total(self.rows) + '</tfoot>' : '';
+      box.innerHTML = '<div class="tablewrap"><table>' + head + '<tbody>' + body + '</tbody>' + foot + '</table></div>';
+      Array.prototype.forEach.call(box.querySelectorAll('th.sort'), function (th) {
+        th.addEventListener('click', function () {
+          var k = th.getAttribute('data-key');
+          if (k === sortKey) sortDown = !sortDown;
+          else { sortKey = k; sortDown = spec.columns.filter(function (c) { return c.key === k; })[0].num; }
+          if (spec.store) { save(spec.store + '.sort', sortKey); save(spec.store + '.down', String(sortDown)); }
+          draw();
+        });
+      });
+      if (rows.length > shown) {
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'more';
+        more.textContent = 'Show all ' + fmt(rows.length) + ' (' + fmt(rows.length - shown) + ' hidden)';
+        more.addEventListener('click', function () { shown = Infinity; draw(); });
+        box.appendChild(more);
+      }
+    }
+    self.draw = draw;
+    draw();
+    return self;
+  }
+  function pathCell(key) { return function (r) { return '<td class="path">' + pathHtml(r[key]) + '</td>'; }; }
+  function codeCell(key) { return function (r) { var v = text(r[key]); return '<td class="l">' + (v ? '<code>' + esc(v) + '</code>' : '') + '</td>'; }; }
+  function chipCell(key, cls) { return function (r) { return '<td class="l"><span class="status ' + cls(r) + '">' + esc(text(r[key])) + '</span></td>'; }; }
+
+  // Header, verdict and result.
+  var s = d.scanned;
+  document.getElementById('subtitle').textContent = 'Version ' + d.version + DOT + d.generated + DOT + fmt(s.surface) + ' shell' + DOT + fmt(s.host) + ' host' + DOT +
+    fmt(s.markup) + ' markup' + DOT + fmt(s.driver) + ' driver files' + DOT + fmt(s.strict) + ' strict and ' + fmt(s.truth) + ' truth hits' + DOT + 'Generation ' + d.generation;
+  document.getElementById('links').innerHTML = '<a href="' + esc(d.report) + '">' + esc(d.report) + '</a>';
+
+  var failed = d.gates.filter(function (g) { return g.count > 0; });
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + d.gates.length + ' gates at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + d.gates.length + ' gates above 0.<span class="note">See ' +
+      failed.map(function (g) { return '<a href="#' + slug(g.gate) + '">' + LQ + esc(g.gate) + RQ + '</a>'; }).join(', ') + '.</span>';
+  }
+
+  document.getElementById('gates').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+    d.gates.map(function (g) {
+      var gate = g.count > 0 ? '<a href="#' + slug(g.gate) + '">' + esc(g.gate) + '</a>' : esc(g.gate);
+      return '<tr><td class="l"><span class="status ' + statusClass(g.status) + '">' + g.status + '</span></td><td>' + fmt(g.count) +
+        '</td><td class="l">' + gate + '</td><td class="l muted">' + esc(g.meaning) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  function sum(list, key) { return list.reduce(function (t, x) { return t + x[key]; }, 0); }
+  function auditHits(audit) { return d.hits.filter(function (h) { return h.audit === audit; }).length; }
+  var aboveFiles = d.ledger.filter(function (p) { return p.enforced && p.hits > p.ceiling; }).length;
+  var informativeFiles = d.ledger.filter(function (p) { return !p.enforced && p.hits > p.ceiling; }).length;
+  var informativeKinds = d.kinds.filter(function (k) { return !k.enforced; }).map(function (k) { return k.audit + ' ' + k.kind; });
+  var belowFiles = d.ledger.filter(function (p) { return p.hits < p.ceiling; }).length;
+  var tiles = [
+    { label: 'Gates', value: fmt(d.gates.length - failed.length) + ' <small>/ ' + fmt(d.gates.length) + '</small>', note: failed.length ? fmt(failed.length) + ' above 0' : 'All at 0', cls: failed.length ? 'fail' : '' },
+    { label: 'Strict hits', value: fmt(s.strict), note: fmt(sum(d.kinds.filter(function (k) { return k.audit === 'Strict'; }), 'ceiling')) + ' held by the ledger', cls: '' },
+    { label: 'Truth hits', value: fmt(s.truth), note: fmt(sum(d.kinds.filter(function (k) { return k.audit === 'Truth'; }), 'ceiling')) + ' held by the ledger', cls: '' },
+    { label: 'Boundary findings', value: fmt(auditHits('Boundary')), note: 'Guards that keep the walkers sound', cls: auditHits('Boundary') ? 'fail' : '' },
+    { label: 'Files over ceiling', value: fmt(aboveFiles), note: fmt(belowFiles) + ' below their ceiling' + (informativeFiles ? DOT + fmt(informativeFiles) + ' informative' : ''), cls: aboveFiles || belowFiles ? 'fail' : '' },
+    { label: 'Files scanned', value: fmt(s.surface + s.host + s.markup + s.driver), note: fmt(s.surface) + ' shell' + DOT + fmt(s.host) + ' host' + DOT + fmt(s.markup) + ' markup' + DOT + fmt(s.driver) + ' driver', cls: '' },
+    { label: 'Surface types', value: fmt(d.surfaceTypes), note: 'Veneer and terminal types walked', cls: '' }
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(function (t) {
+    return '<div class="tile ' + t.cls + '"><div class="label">' + esc(t.label) + '</div><div class="value">' + t.value + '</div><div class="note">' + t.note + '</div></div>';
+  }).join('');
+
+  // Hits by kind.
+  document.getElementById('enforced').textContent = 'Strict ' + (d.strictEnforced ? 'enforced' : 'not enforced') + DOT + 'Truth ' +
+    (d.truthEnforced ? 'enforced' : 'not enforced') + (informativeKinds.length ? DOT + 'Informative, gating nothing yet: ' + informativeKinds.join(', ') : '') +
+    '. A file above the ceiling of its kind fails while its audit is enforced.';
+  sortable(document.getElementById('kinds'), {
+    columns: [
+      { key: 'audit', label: 'Audit' }, { key: 'kind', label: 'Kind' }, { key: 'hits', label: 'Hits', num: true },
+      { key: 'files', label: 'Files', num: true }, { key: 'ceiling', label: 'Ceiling', num: true },
+      { key: 'over', label: 'Over', num: true, cell: function (r) { return '<td>' + (r.over > 0 ? '<span class="status fail">' + fmt(r.over) + '</span>' : fmt(r.over)) + '</td>'; } }
+    ],
+    rows: d.kinds, sort: null, limit: Infinity,
+    total: function (rows) {
+      return '<tr class="total"><td class="l">Total</td><td class="l"></td><td>' + fmt(sum(rows, 'hits')) + '</td><td>' + fmt(sum(rows, 'files')) + '</td><td>' +
+        fmt(sum(rows, 'ceiling')) + '</td><td>' + fmt(sum(rows, 'over')) + '</td></tr>';
+    }
+  });
+
+  // Ledger.
+  d.ledger.forEach(function (p) { p.state = p.hits > p.ceiling ? (p.enforced ? 'ABOVE' : 'INFORMATIVE') : p.hits < p.ceiling ? 'STALE' : 'OK'; });
+  var staleRows = [];
+  d.gates.forEach(function (g) { if (/stale ceilings$/.test(g.gate)) staleRows = staleRows.concat(g.rows); });
+  document.getElementById('ledgerlead').textContent = fmt(d.ledger.length) + ' file ceilings' + DOT + fmt(aboveFiles) + ' above their ceiling' + DOT +
+    (informativeFiles ? fmt(informativeFiles) + ' above but informative' + DOT : '') + fmt(belowFiles) + ' below their ceiling (stale)' + DOT + fmt(staleRows.length) + ' stale ceiling rows. A ceiling only walks down.';
+  sortable(document.getElementById('ledger'), {
+    columns: [
+      { key: 'state', label: 'State', cell: chipCell('state', function (r) { return statusClass(r.state); }) },
+      { key: 'audit', label: 'Audit' }, { key: 'kind', label: 'Kind' }, { key: 'file', label: 'File', cell: pathCell('file') },
+      { key: 'hits', label: 'Hits', num: true }, { key: 'ceiling', label: 'Ceiling', num: true }
+    ],
+    rows: d.ledger, sort: 'state', down: false, store: 'ledger'
+  });
+
+  // Scope.
+  function codes(list) { return list && list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
+  var sc = d.scope;
+  var scopeRows = [
+    ['Surface markup', codes(sc.reach)],
+    ['Surfaces', codes(sc.veneer)],
+    ['Drivers', codes(sc.deportment)],
+    ['Host', codes(sc.host)],
+    ['Shell', codes(sc.shell)],
+    ['Capsule', codes(sc.capsule)],
+    ['Truth drivers', codes(sc.truth)],
+    ['Boundary tracked', codes(sc.tracked)],
+    ['Boundary logic', codes(sc.logic)],
+    ['Excluded folders', codes(sc.excludeSegments)],
+    ['Excluded suffixes', codes(sc.excludeSuffixes)],
+    ['Excluded prefixes', codes(sc.excludePrefixes)],
+    ['Helper framework', codes([sc.framework])],
+    ['Console rows', fmt(sc.consoleItems) + ' per section']
+  ];
+  document.getElementById('scope').innerHTML = scopeRows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  // Findings, in the console order: every gate above 0, then the hits above a ceiling and the report tables.
+  var findingBox = document.getElementById('findings');
+  var ROWFIELDS = [
+    { key: 'kind', label: 'Kind' }, { key: 'entry', label: 'Entry', cell: codeCell('entry') }, { key: 'file', label: 'File', cell: pathCell('file') },
+    { key: 'line', label: 'Line', num: true }, { key: 'hits', label: 'Hits', num: true }, { key: 'ceiling', label: 'Ceiling', num: true },
+    { key: 'detail', label: 'Detail' }
+  ];
+  function section(title, status, count, lead, spec, first) {
+    var head = document.createElement('div');
+    head.className = 'subhead ' + statusClass(status) + (first ? ' first' : '');
+    head.id = slug(title);
+    head.innerHTML = '<span class="status ' + statusClass(status) + '">' + status + '</span>' + esc(title) + ' <span class="count">(' + fmt(count) + ')</span>';
+    findingBox.appendChild(head);
+    if (lead) {
+      var p = document.createElement('p');
+      p.className = 'lead';
+      p.textContent = lead;
+      findingBox.appendChild(p);
+    }
+    var box = document.createElement('div');
+    findingBox.appendChild(box);
+    sortable(box, spec);
+  }
+  var sections = 0;
+  d.gates.forEach(function (g) {
+    if (g.count === 0) return;
+    var columns = ROWFIELDS.filter(function (c) { return g.rows.some(function (r) { return r[c.key] !== null && r[c.key] !== undefined; }); });
+    section(g.gate, g.status, g.count, g.meaning, { columns: columns, rows: g.rows, sort: null }, sections === 0);
+    sections += 1;
+  });
+  if (d.above.length) {
+    section('Hits above a ceiling', 'FAIL', d.above.length, 'Every hit in a file above the ceiling of its kind.', {
+      columns: [
+        { key: 'audit', label: 'Audit' }, { key: 'kind', label: 'Kind' }, { key: 'file', label: 'File', cell: pathCell('file') },
+        { key: 'line', label: 'Line', num: true }, { key: 'name', label: 'Name', cell: codeCell('name') }, { key: 'reason', label: 'Reason' }
+      ],
+      rows: d.above, sort: null
+    }, sections === 0);
+    sections += 1;
+  }
+  if (sections === 0) {
+    var none = document.createElement('div');
+    none.className = 'empty';
+    none.textContent = 'No gate has a finding.';
+    findingBox.appendChild(none);
+  }
+  section('Surface types by member', 'OK', d.surfaces.length, 'Strict Hoarding, Meddling and Prying hits per surface type.', {
+    columns: [
+      { key: 'type', label: 'Class', cell: codeCell('type') }, { key: 'hoarding', label: 'Hoarding', num: true },
+      { key: 'meddling', label: 'Meddling', num: true }, { key: 'prying', label: 'Prying', num: true }
+    ],
+    rows: d.surfaces, sort: null
+  }, false);
+  section('Driver fields by hit count', 'OK', d.fields.length, 'Truth hits per driver field, line kinds left out.', {
+    columns: [{ key: 'field', label: 'Field', cell: codeCell('field') }, { key: 'hits', label: 'Hits', num: true }],
+    rows: d.fields, sort: null
+  }, false);
+
+  // Findings by place.
+  document.getElementById('legend').innerHTML = AUDITS.map(function (a) { return '<span><i class="swatch ' + auditClass(a) + '"></i>' + esc(a) + '</span>'; }).join('');
+  function projectOf(path) {
+    if (!path) return '(no file)';
+    var parts = path.split('/');
+    return parts.length < 2 ? '(root)' : parts.slice(0, Math.min(2, parts.length - 1)).join('/');
+  }
+  var grouping = load('grouping', 'audit', GROUPINGS.map(function (g) { return g.key; }));
+  segmented(document.getElementById('grouping'), GROUPINGS, grouping, function (k) { grouping = k; save('grouping', k); drawPlaces(); });
+  function drawPlaces() {
+    var map = {};
+    if (grouping === 'audit') AUDITS.forEach(function (a) { map[a] = { name: a, total: 0, byAudit: {} }; });
+    d.hits.forEach(function (h) {
+      var name = grouping === 'audit' ? h.audit : projectOf(h.file);
+      var entry = map[name] || (map[name] = { name: name, total: 0, byAudit: {} });
+      entry.total += 1;
+      entry.byAudit[h.audit] = (entry.byAudit[h.audit] || 0) + 1;
+    });
+    var list = Object.keys(map).map(function (k) { return map[k]; });
+    if (grouping !== 'audit') list.sort(function (a, b) { return b.total - a.total || compare(a.name, b.name); });
+    var peak = list.reduce(function (m, p) { return Math.max(m, p.total); }, 0) || 1;
+    document.getElementById('placebars').innerHTML = list.map(function (p) {
+      var present = AUDITS.filter(function (a) { return p.byAudit[a]; });
+      var title = present.map(function (a) { return a + ' ' + fmt(p.byAudit[a]); }).join(DOT);
+      var fills = present.map(function (a) {
+        return '<div class="fill ' + auditClass(a) + '" style="width:' + (p.byAudit[a] / peak * 100).toFixed(2) + '%"></div>';
+      }).join('');
+      return '<div class="name" title="' + esc(p.name) + '">' + esc(p.name) + '</div><div class="track stack" title="' + esc(title) + '">' + fills +
+        '</div><div class="num">' + fmt(p.total) + '</div>';
+    }).join('');
+    document.getElementById('placeempty').style.display = list.length ? 'none' : '';
+  }
+
+  // Every hit.
+  var auditCounts = {};
+  d.hits.forEach(function (h) { auditCounts[h.audit] = (auditCounts[h.audit] || 0) + 1; });
+  var auditKey = load('audit', 'all', ['all'].concat(AUDITS));
+  var filterBox = document.getElementById('filter');
+  document.getElementById('alltitle').textContent = 'Every hit (' + fmt(d.hits.length) + ')';
+  var allTable = sortable(document.getElementById('alltable'), {
+    columns: [
+      { key: 'audit', label: 'Audit' },
+      { key: 'kind', label: 'Kind', cell: chipCell('kind', function (r) { return r.audit === 'Boundary' ? 'fail' : 'warn'; }) },
+      { key: 'file', label: 'File', cell: pathCell('file') }, { key: 'line', label: 'Line', num: true },
+      { key: 'name', label: 'Name', cell: codeCell('name') }, { key: 'reason', label: 'Reason' }
+    ],
+    rows: [], sort: 'file', down: false, store: 'all'
+  });
+  function drawAll() {
+    var q = filterBox.value.trim().toLowerCase();
+    allTable.rows = d.hits.filter(function (h) {
+      return (auditKey === 'all' || h.audit === auditKey) && (!q || [h.kind, h.name, h.file, h.reason].some(function (v) { return text(v).toLowerCase().indexOf(q) >= 0; }));
+    });
+    allTable.reset();
+  }
+  segmented(document.getElementById('auditfilter'), [{ key: 'all', label: 'All ' + fmt(d.hits.length) }].concat(AUDITS.map(function (a) {
+    return { key: a, label: a + ' ' + fmt(auditCounts[a] || 0) };
+  })), auditKey, function (k) { auditKey = k; save('audit', k); drawAll(); });
+  filterBox.addEventListener('input', drawAll);
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>Generation ' + esc(d.generation) + '</span><span>' + esc(d.report) + '</span>';
+
+  drawPlaces();
+  drawAll();
+})();
+</script>
+</body>
+</html>

@@ -21,7 +21,7 @@ public sealed class LFunnelTab
 
     public IReadOnlyList<string> LFunnelEligibleRead() => lFunnelDocket.LDocketPathsRead();
 
-    public void LFunnelLayoutApply(LSceneTabRecord? lLayout)
+    public void LFunnelLayoutApply(LSceneTabEntry? lLayout)
     {
         if (lLayout is { } lRecord)
         {
@@ -29,7 +29,7 @@ public sealed class LFunnelTab
         }
     }
 
-    public LSceneTabRecord LFunnelLayoutRead(LSceneTabRecord lLayout)
+    public LSceneTabEntry LFunnelLayoutRead(LSceneTabEntry lLayout)
     {
         lLayout.LSceneFunnelRules = LFunnel.LFunnelRules.Select(LFunnelLayoutCreate).ToList();
         return lLayout;

@@ -1,0 +1,21 @@
+{
+  "graph": "../graft/.graph/wiring.json",
+  "library": "vendor/3d-force-graph.min.js",
+  "projectRoots": ["src", "tests", "performance"],
+  "layers": [
+    { "project": "Cadroue.UIVeneer", "short": "Veneer", "rank": 7, "names": ["Deportment"] },
+    { "project": "Cadroue.UIDeportment", "short": "Deportment", "rank": 6, "names": ["Conduct"] },
+    { "project": "Cadroue.Conduct", "short": "Conduct", "rank": 5, "names": ["ShellEngine"] },
+    { "project": "Cadroue.ShellEngine", "short": "ShellEngine", "rank": 4, "names": ["Application"] },
+    { "project": "Cadroue.Application", "short": "Application", "rank": 3, "names": ["Core"] },
+    { "project": "Cadroue.Infrastructure", "short": "Infrastructure", "rank": 2, "names": ["Core"] },
+    { "project": "Cadroue.Media", "short": "Media", "rank": 2, "names": ["Core"] },
+    { "project": "Cadroue.Core", "short": "Core", "rank": 1, "names": [] }
+  ],
+  "report": {
+    "directory": "../docs-analysis",
+    "versionFile": "../version.json",
+    "versionKey": "current-version",
+    "prefix": "MapMethod-"
+  }
+}

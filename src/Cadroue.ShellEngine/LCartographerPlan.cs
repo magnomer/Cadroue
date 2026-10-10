@@ -8,7 +8,7 @@ public static partial class LCartographer
 {
     public static Func<IReadOnlyList<LCartographerTab>>? LCartographerTabsSource { get; set; }
 
-    public static LCartographerPlanRecord? LCartographerPlanCreate(Guid lCartographerPlanId, Guid lCartographerTarget)
+    public static LCartographerPlanDocument? LCartographerPlanCreate(Guid lCartographerPlanId, Guid lCartographerTarget)
     {
         IReadOnlyList<LCartographerTab> lCartographerTabs =
             LCartographerTabsSource?.Invoke() ?? Array.Empty<LCartographerTab>();
@@ -17,8 +17,8 @@ public static partial class LCartographer
             return null;
         }
 
-        var lCartographerPlan = new LCartographerPlanRecord { LCartographerPlanId = lCartographerPlanId };
-        var lCartographerStages = new Dictionary<Guid, LCartographerStageRecord>();
+        var lCartographerPlan = new LCartographerPlanDocument { LCartographerPlanId = lCartographerPlanId };
+        var lCartographerStages = new Dictionary<Guid, LCartographerStageEntry>();
         var lCartographerActive = new HashSet<Guid>();
 
         Guid LCartographerStageCreate(Guid lCartographerTabId)
@@ -36,7 +36,7 @@ public static partial class LCartographer
             }
 
             if (lCartographerStages.TryGetValue(
-                lCartographerTabId, out LCartographerStageRecord? lCartographerExisting))
+                lCartographerTabId, out LCartographerStageEntry? lCartographerExisting))
             {
                 return lCartographerExisting.LCartographerStageId;
             }
@@ -48,7 +48,7 @@ public static partial class LCartographer
                 return Guid.Empty;
             }
 
-            var lCartographerStage = new LCartographerStageRecord
+            var lCartographerStage = new LCartographerStageEntry
             {
                 LCartographerStageId = Guid.NewGuid(),
                 LCartographerOriginalTab = lCartographerTab.LCartographerTabId,
@@ -91,17 +91,17 @@ public static partial class LCartographer
         return lCartographerPlan.LCartographerEntryStage == Guid.Empty ? null : lCartographerPlan;
     }
 
-    public static LCartographerPlanRecord LCartographerPlanCopy(
-        LCartographerPlanRecord lCartographerTemplate,
+    public static LCartographerPlanDocument LCartographerPlanCopy(
+        LCartographerPlanDocument lCartographerTemplate,
         Guid lCartographerPlanId)
     {
         string lCartographerJson = JsonSerializer.Serialize(lCartographerTemplate);
-        LCartographerPlanRecord lCartographerCopy =
-            JsonSerializer.Deserialize<LCartographerPlanRecord>(lCartographerJson)!;
+        LCartographerPlanDocument lCartographerCopy =
+            JsonSerializer.Deserialize<LCartographerPlanDocument>(lCartographerJson)!;
         lCartographerCopy.LCartographerPlanId = lCartographerPlanId;
         lCartographerCopy.LCartographerCreated = DateTimeOffset.Now;
         lCartographerCopy.LCartographerDeliveredWork.Clear();
-        foreach (LCartographerStageRecord lCartographerStage in lCartographerCopy.LCartographerStages)
+        foreach (LCartographerStageEntry lCartographerStage in lCartographerCopy.LCartographerStages)
         {
             lCartographerStage.LCartographerPendingInputs.Clear();
         }

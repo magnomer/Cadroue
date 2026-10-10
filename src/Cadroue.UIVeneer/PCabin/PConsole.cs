@@ -102,11 +102,11 @@ public sealed class PConsole : UserControl
             PConsoleNextHandle);
 
         Content = PConsoleBuild();
-        LConsole.LConsoleStatusApply += PConsoleStatusApply;
-        LConsole.LConsoleProgressApply += PConsoleProgressApply;
-        LConsole.LConsoleUpdateDefer += PConsoleUpdateDefer;
-        LConsole.LConsoleWarningShow += PConsoleWarningShow;
-        LConsole.LConsoleStation.LConsoleWatchChange += PConsoleWatchHandle;
+        LConsole.LConsoleStatusApplied += PConsoleStatusApply;
+        LConsole.LConsoleProgressApplied += PConsoleProgressApply;
+        LConsole.LConsoleUpdateDeferred += PConsoleUpdateDefer;
+        LConsole.LConsoleWarningShown += PConsoleWarningShow;
+        LConsole.LConsoleStation.LConsoleWatchChanged += PConsoleWatchHandle;
         LConsole.LConsoleStation.LConsoleWatchStart();
         Unloaded += PConsoleUnloadHandle;
 
@@ -184,7 +184,7 @@ public sealed class PConsole : UserControl
         pConsoleStationLabel.Text = lStatus.LConsoleStatusStation;
     }
 
-    private void PConsoleRunAdd(LConsoleRun lRun) =>
+    private void PConsoleRunAdd(LConsoleSpan lRun) =>
         pConsoleStatus.Inlines.Add(new Run(lRun.LConsoleRunText)
         {
             Foreground = pConsoleRunBrushes[lRun.LConsoleRunAccent],

@@ -16,7 +16,7 @@ public sealed class LCompass
 {
     private sealed record LCompassEntry(string LCompassEntryKey, string LCompassEntryIcon, string LCompassEntryAccent);
 
-    private sealed record LCompassSet(IReadOnlyList<LCompassEntry> LCompassSetEntries, bool LCompassSetSection);
+    private sealed record LCompassCluster(IReadOnlyList<LCompassEntry> LCompassSetEntries, bool LCompassSetSection);
 
     public const string LCompassPlayKey = "Play";
     public const string LCompassAccentPositive = "Positive";
@@ -28,7 +28,7 @@ public sealed class LCompass
     private static readonly LCompassEntry LCompassPlayEntry =
         new(LCompassPlayKey, "PCompassPlay.svg", LCompassAccentPositive);
 
-    private static readonly IReadOnlyList<LCompassSet> LCompassSets =
+    private static readonly IReadOnlyList<LCompassCluster> LCompassSets =
     [
         new(
             [

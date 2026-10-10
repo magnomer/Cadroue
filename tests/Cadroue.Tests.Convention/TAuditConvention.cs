@@ -4,11 +4,11 @@ namespace Convention.Tests;
 
 public sealed class TAuditConvention
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
 
     public static string TAuditReportFormat(string audit, string report)
     {
-        return $"{audit} GENERATION {TAuditGeneration}\n{report}";
+        return $"{audit} - AUDIT GENERATION {TAuditGeneration}\n{report}";
     }
 
     [Fact]
@@ -20,16 +20,17 @@ public sealed class TAuditConvention
             (nameof(TAuditNameSetting), TAuditNameSetting.TAuditGeneration),
             (nameof(TAuditLineSetting), TAuditLineSetting.TAuditGeneration),
             (nameof(TAuditCommentSetting), TAuditCommentSetting.TAuditGeneration),
-            (nameof(TAuditDraftSetting), TAuditDraftSetting.TAuditGeneration),
             (nameof(TAuditTruthSetting), TAuditTruthSetting.TAuditGeneration),
             (nameof(TAuditStrictSetting), TAuditStrictSetting.TAuditGeneration),
-            (nameof(TAuditRingSetting), TAuditRingSetting.TAuditGeneration),
+            (nameof(TAuditCharterSetting), TAuditCharterSetting.TAuditGeneration),
             (nameof(TAuditObjectSetting), TAuditObjectSetting.TAuditGeneration),
-            (nameof(TAuditChainSetting), TAuditChainSetting.TAuditGeneration),
-            (nameof(TAuditFrameSetting), TAuditFrameSetting.TAuditGeneration),
+            (nameof(TAuditBorderSetting), TAuditBorderSetting.TAuditGeneration),
+            (nameof(TAuditCensusSetting), TAuditCensusSetting.TAuditGeneration),
+            (nameof(TAuditPuritySetting), TAuditPuritySetting.TAuditGeneration),
             (nameof(TAuditBoundarySetting), TAuditBoundarySetting.TAuditGeneration),
             (nameof(TAuditEncodingSetting), TAuditEncodingSetting.TAuditGeneration),
             (nameof(TAuditFakeSetting), TAuditFakeSetting.TAuditGeneration),
+            (nameof(TAuditFaultSetting), TAuditFaultSetting.TAuditGeneration),
             (nameof(TAuditPlatformSetting), TAuditPlatformSetting.TAuditGeneration),
         ];
 

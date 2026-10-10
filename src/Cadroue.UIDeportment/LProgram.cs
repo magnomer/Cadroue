@@ -50,13 +50,13 @@ public sealed class LProgram
         LRenderer.LRendererToolAttach();
         LSidecarStore.LSidecarLibrarianAttach();
         LSidecarStore.LSidecarSegmentAttach();
-        LFlawScan.LFlawCheckupAttach();
+        LFlawScanner.LFlawCheckupAttach();
         LPresetStore.LPresetSeamAttach();
         LPreset.LPresetPrepare();
         LProgramStationAttach(lDispatch);
         LAutopsy.LAutopsyProseAttach();
         LInventory.LInventoryPrepareStart();
-        LTrialSet.LTrialSetStart();
+        LTrialCatalog.LTrialSetStart();
         LRunner.LRunnerTraceAttach();
         LTraceLog.LTraceLoadingRecord(
             $"Application started: version {LTraceLog.LTraceVersionRead()}, process {Environment.ProcessId}");

@@ -35,9 +35,9 @@ public sealed class LClinic
     private bool lClinicMinimized;
     private int lClinicSaveDepth;
 
-    public event Action? LClinicChange;
-    public event Action? LClinicPlanChange;
-    public event Action<bool>? LClinicMinimizeChange;
+    public event Action? LClinicChanged;
+    public event Action? LClinicPlanChanged;
+    public event Action<bool>? LClinicMinimizeChanged;
 
     public LClinic()
     {
@@ -98,7 +98,7 @@ public sealed class LClinic
     public string LClinicTechnicalRead() =>
         LClinicKnown ? LLocalization.LLocalizationTextRead($"Clinic.Step.{lClinicStep}.Technical") : string.Empty;
 
-    public string LClinicResultFormat() => LCheckupFormat.LCheckupBodyFormat(
+    public string LClinicResultFormat() => LCheckupFormatter.LCheckupBodyFormat(
         LClinicResultRead(),
         new LCheckupStrings(
             LLocalization.LLocalizationTextRead("Clinic.Result.Empty"),
@@ -153,13 +153,13 @@ public sealed class LClinic
         }
 
         lClinicMinimized = lMinimized;
-        LClinicMinimizeChange?.Invoke(lMinimized);
+        LClinicMinimizeChanged?.Invoke(lMinimized);
     }
 
     public void LClinicSourceSet(string? lSourcePath)
     {
         lClinicSource = string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
-        LClinicChange?.Invoke();
+        LClinicChanged?.Invoke();
     }
 
     public void LClinicStepSet(string? lStepName)
@@ -169,7 +169,7 @@ public sealed class LClinic
             .Where(lEntry => lEntry.LClinicKindName == lStepName)
             .Select(lEntry => (LFlawKind?)lEntry.LClinicKindValue)
             .FirstOrDefault();
-        LClinicChange?.Invoke();
+        LClinicChanged?.Invoke();
     }
 
     public void LClinicActiveSet(bool lActive)
@@ -181,8 +181,8 @@ public sealed class LClinic
 
         lClinicSteps[lKind] = lClinicSteps[lKind] with { LWorkFixRepair = lActive };
         lClinicSalvage = LClinicSalvageNormalize(lClinicSalvage);
-        LClinicChange?.Invoke();
-        LClinicPlanChange?.Invoke();
+        LClinicChanged?.Invoke();
+        LClinicPlanChanged?.Invoke();
     }
 
     public void LClinicPersistentSet(bool lPersistent)
@@ -193,8 +193,8 @@ public sealed class LClinic
         }
 
         lClinicSteps[lKind] = lClinicSteps[lKind] with { LWorkFixPersistent = lPersistent };
-        LClinicChange?.Invoke();
-        LClinicPlanChange?.Invoke();
+        LClinicChanged?.Invoke();
+        LClinicPlanChanged?.Invoke();
     }
 
     public void LSalvageActiveSet(bool lActive) =>
@@ -218,8 +218,8 @@ public sealed class LClinic
         }
 
         lClinicSalvage = lNormal;
-        LClinicChange?.Invoke();
-        LClinicPlanChange?.Invoke();
+        LClinicChanged?.Invoke();
+        LClinicPlanChanged?.Invoke();
     }
 
     public LWorkFix LClinicPlanRead()
@@ -241,7 +241,7 @@ public sealed class LClinic
         }
 
         lClinicSalvage = LClinicSalvageNormalize(lPlan.LWorkFixSalvage);
-        LClinicChange?.Invoke();
+        LClinicChanged?.Invoke();
     }
 
     public void LClinicResultSet(string lPath, LFlawKind lKind, LCheckupResult lResult)
@@ -264,7 +264,7 @@ public sealed class LClinic
 
         if (LClinicSourceMatch(lPath) && lClinicKind == lKind)
         {
-            LClinicChange?.Invoke();
+            LClinicChanged?.Invoke();
         }
     }
 
@@ -279,7 +279,7 @@ public sealed class LClinic
 
         if (lShown)
         {
-            LClinicChange?.Invoke();
+            LClinicChanged?.Invoke();
         }
     }
 
@@ -288,7 +288,7 @@ public sealed class LClinic
         lClinicProgress[lPath] = Math.Clamp(lValue, 0, 1);
         if (LClinicSourceMatch(lPath))
         {
-            LClinicChange?.Invoke();
+            LClinicChanged?.Invoke();
         }
     }
 

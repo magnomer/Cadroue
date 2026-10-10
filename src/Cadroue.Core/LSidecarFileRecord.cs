@@ -2,15 +2,15 @@ using System.Collections.Generic;
 
 namespace Cadroue.Core;
 
-public sealed class LSidecarCoreRecord
+public sealed class LSidecarCoreDocument
 {
     public int LSidecarVersion { get; set; } = 2;
-    public LSidecarSourceRecord LSidecarSource { get; set; } = new();
-    public List<LSidecarSectionRecord> LSidecarSections { get; set; } = new();
-    public LSidecarEditRecord? LSidecarEdit { get; set; }
-    public LSidecarAudioRecord? LSidecarAudio { get; set; }
-    public LSidecarSplitRecord? LSidecarSplit { get; set; }
-    public LSidecarFixRecord? LSidecarFix { get; set; }
+    public LSidecarSourceEntry LSidecarSource { get; set; } = new();
+    public List<LSidecarSectionEntry> LSidecarSections { get; set; } = new();
+    public LSidecarEditEntry? LSidecarEdit { get; set; }
+    public LSidecarAudioEntry? LSidecarAudio { get; set; }
+    public LSidecarSplitEntry? LSidecarSplit { get; set; }
+    public LSidecarFixEntry? LSidecarFix { get; set; }
     public double LSidecarLoudness { get; set; }
 }
 
@@ -25,7 +25,7 @@ public enum LSidecarReadKind
 
 public sealed record LSidecarCoreResult(
     LSidecarReadKind LSidecarCoreState,
-    LSidecarCoreRecord? LSidecarCoreValue,
+    LSidecarCoreDocument? LSidecarCoreValue,
     string? LSidecarCoreJson);
 
 public enum LSidecarSourceKind
@@ -42,7 +42,7 @@ public sealed record LSidecarSourceResult(
     bool LSidecarResultVerified,
     string LSidecarResultName);
 
-public sealed class LSidecarCacheRecord
+public sealed class LSidecarCacheDocument
 {
     public int LSidecarVersion { get; set; } = 2;
     public long LSidecarLength { get; set; }
@@ -52,11 +52,11 @@ public sealed class LSidecarCacheRecord
     public long LSidecarKeyframeLast { get; set; }
     public List<int> LSidecarScannedSpans { get; set; } = new();
     public List<long> LSidecarKeyframeDeltas { get; set; } = new();
-    public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
-    public LSidecarDiagnosisRecord? LSidecarDiagnosis { get; set; }
+    public LSidecarWaveformEntry? LSidecarWaveform { get; set; }
+    public LSidecarDiagnosisEntry? LSidecarDiagnosis { get; set; }
 }
 
-public sealed class LSidecarDiagnosisRecord
+public sealed class LSidecarDiagnosisEntry
 {
     public long LSidecarLength { get; set; }
     public string LSidecarPartialHash { get; set; } = string.Empty;

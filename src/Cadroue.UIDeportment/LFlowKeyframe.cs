@@ -18,11 +18,11 @@ public sealed class LFlowKeyframe
         lKeyframeOrchestrator.LKeyframeNoticeReady += LFlowKeyframeHandle;
     }
 
-    public event Action? LFlowTimerDefer;
-    public event Action<TimeSpan>? LFlowTimerResume;
-    public event Action? LFlowTimerReset;
+    public event Action? LFlowTimerDeferred;
+    public event Action<TimeSpan>? LFlowTimerResumed;
+    public event Action? LFlowTimerStopped;
     public event Action<LKeyframeNotice>? LFlowKeyframeReady;
-    public event Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>>? LFlowKeyframeChange;
+    public event Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>>? LFlowKeyframeChanged;
 
     public bool LFlowResumePending => lFlowResumePending;
 
@@ -39,7 +39,7 @@ public sealed class LFlowKeyframe
     {
         if (!lFlow.LFlowCommandActive || lFlow.LFlowUnloaded || !lFlow.LFlowSourceCheck())
         {
-            LFlowTimerReset?.Invoke();
+            LFlowTimerStopped?.Invoke();
             return;
         }
 
@@ -48,7 +48,7 @@ public sealed class LFlowKeyframe
             return;
         }
 
-        LFlowTimerDefer?.Invoke();
+        LFlowTimerDeferred?.Invoke();
     }
 
     public void LFlowKeyframeSuspend(bool lResume)
@@ -58,14 +58,14 @@ public sealed class LFlowKeyframe
         if (lResume && lFlow.LFlowCommandActive && !lFlow.LFlowUnloaded)
         {
             lFlowResumePending = true;
-            LFlowTimerResume?.Invoke(LFlowResumeDelay);
+            LFlowTimerResumed?.Invoke(LFlowResumeDelay);
         }
     }
 
     public void LFlowKeyframeReset()
     {
         lFlowResumePending = false;
-        LFlowTimerReset?.Invoke();
+        LFlowTimerStopped?.Invoke();
     }
 
     public void LFlowKeyframeRun()
@@ -123,7 +123,7 @@ public sealed class LFlowKeyframe
         LFlowKeyframeRecord(lNotice);
         lFlowEntries = lNotice.LKeyframeList;
         lFlowRanges = lNotice.LKeyframeRanges;
-        LFlowKeyframeChange?.Invoke(lNotice.LKeyframeList, lNotice.LKeyframeRanges);
+        LFlowKeyframeChanged?.Invoke(lNotice.LKeyframeList, lNotice.LKeyframeRanges);
         if (lFlow.LFlowKeyframeDirection is int lDirection)
         {
             LFlowKeyframeMove(lDirection, false);

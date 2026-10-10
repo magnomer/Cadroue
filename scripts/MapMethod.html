@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ method map</title>
+<style>
+  :root { --bg:#0b0d12; --panel:rgba(20,23,31,.94); --line:#2a2f3c; --text:#d8dce6; --mute:#8a90a0; --accent:#7aa2ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--text); font:13px/1.4 system-ui,Segoe UI,sans-serif; overflow:hidden; }
+  #graph { position:fixed; inset:0; }
+  .panel { position:fixed; background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:10px 12px; }
+  #controls { top:12px; left:12px; width:280px; max-height:calc(100% - 24px); overflow:auto; }
+  #info { top:12px; right:12px; width:340px; max-height:calc(100% - 24px); overflow:auto; display:none; }
+  #empty { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; color:var(--mute); pointer-events:none; font-size:15px; text-align:center; }
+  h1 { font-size:14px; margin:0 0 6px; }
+  h2 { font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--mute); margin:12px 0 4px; }
+  label { display:flex; align-items:center; gap:6px; cursor:pointer; padding:1px 0; }
+  .sw { width:10px; height:10px; border-radius:50%; flex:none; }
+  .cnt { margin-left:auto; color:var(--mute); font-variant-numeric:tabular-nums; }
+  input[type=text] { width:100%; background:#10131a; color:var(--text); border:1px solid var(--line); border-radius:5px; padding:6px 8px; font-size:13px; }
+  input[type=range] { width:100%; }
+  select { background:#10131a; color:var(--text); border:1px solid var(--line); border-radius:5px; padding:3px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:3px 0; }
+  .btn { background:#1a1f2b; color:var(--text); border:1px solid var(--line); border-radius:5px; padding:3px 8px; cursor:pointer; }
+  .btn:hover { border-color:var(--accent); }
+  .btn:disabled { opacity:.4; cursor:default; }
+  #stats { color:var(--mute); margin-top:8px; font-variant-numeric:tabular-nums; }
+  #matches { max-height:260px; overflow:auto; }
+  #matches div, .lnk { cursor:pointer; padding:2px 4px; border-radius:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #matches div:hover, #matches div.sel, .lnk:hover { background:#1a1f2b; color:var(--accent); }
+  .sig { font-family:Consolas,monospace; font-size:11.5px; background:#10131a; border:1px solid var(--line); border-radius:5px; padding:6px; white-space:pre-wrap; word-break:break-all; margin:6px 0; }
+  .kin { color:#63e6be; } .kout { color:#74c0fc; } .k2 { color:#ffa94d; } .k3 { color:#ff6b6b; } .k4 { color:#b197fc; }
+  .mute { color:var(--mute); }
+  .links { display:flex; gap:6px; }
+  .links a { color:var(--accent); cursor:pointer; text-decoration:none; font-size:12px; }
+  #nametags { position:fixed; inset:0; pointer-events:none; overflow:hidden; }
+  #nametags div { position:absolute; transform:translate(-50%, 8px); font-size:11px; white-space:nowrap; color:#d8dce6; background:rgba(11,13,18,.6); padding:0 3px; border-radius:3px; }
+  #nametags div.root { font-size:13px; font-weight:600; color:#fff; }
+</style>
+</head>
+<body>
+<div id="graph"></div>
+<div id="empty">Search a method on the left,<br>or switch projects on for an overview.</div>
+
+<div id="controls" class="panel">
+  <h1>__TITLE__ method map</h1>
+  <div class="mute">__STAMP__</div>
+  <input id="search" type="text" placeholder="Search a method or class…" autocomplete="off">
+  <div id="matches"></div>
+
+  <h2>Focus</h2>
+  <div class="row">Callers <select id="up"><option>0</option><option selected>1</option><option>2</option><option>3</option><option>4</option></select>
+    Callees <select id="down"><option>0</option><option selected>1</option><option>2</option><option>3</option><option>4</option></select></div>
+  <label><input type="checkbox" id="tiers" checked> Callers above, callees below</label>
+  <label><input type="checkbox" id="labels" checked> Name labels</label>
+  <label><input type="checkbox" id="flow" checked> Flow particles</label>
+  <div class="row"><button class="btn" id="back" disabled>← Back</button><button class="btn" id="clear">Close focus</button></div>
+
+  <h2>Edges</h2>
+  <div class="row"><select id="level"><option value="method">Methods</option><option value="class">Classes</option></select>
+    <select id="size"><option value="deg">Size: degree</option><option value="in">Size: fan-in</option><option value="out">Size: fan-out</option></select></div>
+  <label><input type="checkbox" id="inferred" checked> Include inferred edges</label>
+  <label><input type="checkbox" id="intra" checked> Include same-project edges</label>
+  <label><input type="checkbox" id="viol"> Only off-chain edges</label>
+  <div><span class="kin">■ caller</span> · <span class="kout">■ callee</span> · <span class="k2">■ skips a layer</span> · <span class="k3">■ against chain</span> · <span class="k4">■ tests/scripts</span></div>
+
+  <h2>Overview (no focus)</h2>
+  <div class="row"><span>Min degree <span id="mindegv">0</span></span></div>
+  <input type="range" id="mindeg" min="0" max="30" value="0">
+  <div class="links"><a id="allon">all on</a><a id="srcon">source only</a><a id="alloff">all off</a></div>
+  <div id="projects"></div>
+  <div id="stats"></div>
+</div>
+
+<div id="info" class="panel"></div>
+
+<div id="nametags"></div>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>/*__LIBRARY__*/</script>
+<script>
+const D = JSON.parse(document.getElementById('data').textContent);
+const P = D.projects, C = D.classes, M = D.methods, E = D.edges;
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// Palette: source projects by rank (top layer first); others muted.
+const PAL = ['#ff8787','#f783ac','#da77f2','#9775fa','#748ffc','#4dabf7','#3bc9db','#38d9a9','#69db7c','#a9e34b','#ffd43b','#ffa94d'];
+const order = P.map((p, i) => i).sort((a, b) => (P[b].src - P[a].src) || (P[b].rank - P[a].rank));
+let pi = 0;
+order.forEach(i => { P[i].color = P[i].src ? PAL[pi++ % PAL.length] : '#868e96'; });
+
+// ---------- level graph: aggregated edges + adjacency, rebuilt on edge-filter change ----------
+let L = null; // { key[], name(), proj(), out: Map, in: Map, links[] }
+const opt = () => ({
+  level: $('level').value, size: $('size').value, inferred: $('inferred').checked,
+  intra: $('intra').checked, viol: $('viol').checked, mindeg: +$('mindeg').value,
+  up: +$('up').value, down: +$('down').value, tiers: $('tiers').checked,
+  labels: $('labels').checked, flow: $('flow').checked,
+});
+
+function buildLevel() {
+  const o = opt();
+  const isM = o.level === 'method';
+  const keyOf = isM ? (i => 'm' + i) : (i => 'c' + M[i][2]);
+  const agg = new Map();
+  for (const [s, t, inf, k] of E) {
+    if (inf && !o.inferred) continue;
+    if (k === 0 && !o.intra) continue;
+    if (o.viol && k !== 2 && k !== 3) continue;
+    const a = keyOf(s), b = keyOf(t);
+    if (a === b) continue;
+    const id = a + '>' + b, l = agg.get(id);
+    if (l) { l.w++; l.k = Math.max(l.k, k); } else agg.set(id, { s: a, t: b, w: 1, k });
+  }
+  const out = new Map(), inn = new Map();
+  for (const l of agg.values()) {
+    (out.get(l.s) || out.set(l.s, []).get(l.s)).push(l);
+    (inn.get(l.t) || inn.set(l.t, []).get(l.t)).push(l);
+  }
+  const keys = isM ? M.map((m, i) => 'm' + i) : C.map((c, i) => 'c' + i);
+  L = { isM, keys, links: [...agg.values()], out, inn };
+}
+const nameOf = id => id[0] === 'm' ? M[+id.slice(1)][0] : C[+id.slice(1)][0];
+const fullName = id => id[0] === 'm' ? `${C[M[+id.slice(1)][2]][0]}.${M[+id.slice(1)][0]}` : C[+id.slice(1)][0];
+const projOf = id => id[0] === 'm' ? M[+id.slice(1)][1] : C[+id.slice(1)][1];
+const degIn = id => (L.inn.get(id) || []).reduce((a, l) => a + l.w, 0);
+const degOut = id => (L.out.get(id) || []).reduce((a, l) => a + l.w, 0);
+
+// ---------- graph ----------
+const LC = { 2: '#ffa94d', 3: '#ff6b6b', 4: '#b197fc' };
+const OV = ['rgba(150,160,180,0.12)', 'rgba(150,160,180,0.22)', 'rgba(255,169,77,0.9)', 'rgba(255,107,107,0.95)', 'rgba(177,151,252,0.25)'];
+let mode = 'empty', focus = null, history = [];
+
+const G = ForceGraph3D({ controlType: 'orbit' })($('graph'))
+  .backgroundColor('#0b0d12')
+  .nodeRelSize(3)
+  .showNavInfo(false)
+  .nodeLabel(n => `<b>${esc(fullName(n.id))}</b><br><span style="color:#aab">${esc(P[n.proj].short)} · in ${n.din} · out ${n.dout}</span>`)
+  .onNodeClick((n, ev) => focusOn(n.id, true))
+  .onEngineStop(() => { if (pendingFit) { pendingFit = false; G.zoomToFit(700, 60); } });
+let pendingFit = false, fitTimer = 0;
+// Fit once the layout has spread out, and again when it settles.
+function fitSoon() {
+  pendingFit = true;
+  clearTimeout(fitTimer);
+  fitTimer = setTimeout(() => G.zoomToFit(700, 60), 1200);
+}
+function forcesSet(charge, distance) {
+  G.d3Force('charge').strength(charge);
+  G.d3Force('link').distance(distance);
+}
+
+function sizeVal(o, id) {
+  const i = degIn(id), u = degOut(id);
+  return 1 + (o.size === 'in' ? i : o.size === 'out' ? u : i + u);
+}
+
+function showOverview() {
+  const o = opt();
+  mode = 'overview'; focus = null; $('info').style.display = 'none';
+  const on = new Set([...document.querySelectorAll('#projects input')].filter(x => x.checked).map(x => +x.dataset.p));
+  const nodes = [], live = new Set();
+  for (const id of L.keys) {
+    if (!on.has(projOf(id))) continue;
+    const din = degIn(id), dout = degOut(id);
+    if (din + dout < o.mindeg || (o.viol && din + dout === 0)) continue;
+    nodes.push({ id, proj: projOf(id), din, dout, val: sizeVal(o, id) });
+    live.add(id);
+  }
+  const links = L.links.filter(l => live.has(l.s) && live.has(l.t)).map(l => ({ source: l.s, target: l.t, k: l.k }));
+  $('empty').style.display = nodes.length ? 'none' : 'flex';
+  labelsSet([], null);
+  G.nodeResolution(nodes.length > 2000 ? 4 : 8)
+    .nodeColor(n => P[n.proj].color)
+    .linkColor(l => OV[l.k])
+    .linkWidth(0)                       // plain GL lines: cheap
+    .linkDirectionalArrowLength(0)
+    .linkDirectionalParticles(0)
+    .dagMode(null)
+    .cooldownTicks(nodes.length > 2000 ? 120 : 300)
+    .d3VelocityDecay(0.4);
+  forcesSet(-30, 30);
+  fitSoon();
+  G.graphData({ nodes, links });
+  stats(nodes.length, links);
+}
+
+// Name labels: HTML tags that follow their nodes on screen, used only for the small focus graph.
+let labelNodes = [], labelFrame = 0;
+function labelsSet(nodes, root) {
+  const box = $('nametags');
+  box.innerHTML = '';
+  labelNodes = nodes.map(n => {
+    const el = document.createElement('div');
+    el.textContent = nameOf(n.id);
+    if (n.id === root) el.className = 'root';
+    box.appendChild(el);
+    return { n, el };
+  });
+  cancelAnimationFrame(labelFrame);
+  if (labelNodes.length) labelFrame = requestAnimationFrame(labelsMove);
+}
+function labelsMove() {
+  const cam = G.camera(), w = innerWidth, h = innerHeight;
+  for (const { n, el } of labelNodes) {
+    if (n.x === undefined) { el.style.display = 'none'; continue; }
+    const p = G.graph2ScreenCoords(n.x, n.y, n.z);
+    const e = cam.matrixWorld.elements;          // the camera looks down its local -Z
+    const ahead = -(e[8] * (n.x - e[12]) + e[9] * (n.y - e[13]) + e[10] * (n.z - e[14])) > 0;
+    const visible = ahead && Number.isFinite(p.x) && p.x > -50 && p.x < w + 50 && p.y > -20 && p.y < h + 20;
+    el.style.display = visible ? '' : 'none';
+    if (visible) { el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; }
+  }
+  labelFrame = requestAnimationFrame(labelsMove);
+}
+
+// Directed neighbourhood: callers walk up the in-edges, callees walk down the out-edges.
+function ego(root, up, down) {
+  const tier = new Map([[root, 0]]);
+  const walk = (dir, depth, sign) => {
+    let frontier = [root];
+    for (let d = 1; d <= depth && frontier.length; d++) {
+      const next = [];
+      for (const id of frontier) for (const l of (dir.get(id) || [])) {
+        const o = sign < 0 ? l.s : l.t;
+        if (!tier.has(o)) { tier.set(o, sign * d); next.push(o); }
+      }
+      frontier = next;
+    }
+  };
+  walk(L.inn, up, -1);
+  walk(L.out, down, +1);
+  return tier;
+}
+
+function focusOn(id, push) {
+  if (push && focus && focus !== id) history.push(focus);
+  $('back').disabled = !history.length;
+  focus = id; mode = 'focus';
+  const o = opt();
+  const tier = ego(id, o.up, o.down);
+  const nodes = [...tier].map(([nid, t]) => {
+    const n = { id: nid, proj: projOf(nid), din: degIn(nid), dout: degOut(nid), tier: t };
+    n.val = nid === id ? 1 + Math.max(8, sizeVal(o, nid)) : sizeVal(o, nid);
+    if (o.tiers) n.fy = -t * 45;
+    return n;
+  });
+  // Edges among shown nodes that follow the walk: caller side points toward root, callee side away.
+  const links = [];
+  for (const l of L.links) {
+    const ts = tier.get(l.s), tt = tier.get(l.t);
+    if (ts === undefined || tt === undefined) continue;
+    if (tt !== ts + 1 && !(l.s === id || l.t === id)) continue;   // keep the call chain readable
+    const side = (tt <= 0) ? 'in' : 'out';
+    links.push({ source: l.s, target: l.t, k: l.k, w: l.w, side });
+  }
+  $('empty').style.display = 'none';
+  const col = l => LC[l.k] || (l.side === 'in' ? '#63e6be' : '#74c0fc');
+  G.nodeResolution(16)
+    .nodeColor(n => n.id === id ? '#ffffff' : P[n.proj].color)
+    .linkColor(col)
+    .linkWidth(l => (l.k === 2 || l.k === 3) ? 2 : 1.2)
+    .linkOpacity(0.9)
+    .linkDirectionalArrowLength(5)
+    .linkDirectionalArrowRelPos(0.92)
+    .linkDirectionalArrowColor(col)
+    .linkDirectionalParticles(o.flow ? 2 : 0)
+    .linkDirectionalParticleWidth(1.6)
+    .linkDirectionalParticleSpeed(0.008)
+    .linkDirectionalParticleColor(col)
+    .cooldownTicks(200)
+    .d3VelocityDecay(0.3);
+  forcesSet(-220, 70);
+  fitSoon();
+  G.graphData({ nodes, links });
+  labelsSet(o.labels ? nodes : [], id);
+  info(id);
+  stats(nodes.length, links);
+}
+
+function stats(n, links) {
+  const kc = [0, 0, 0, 0, 0];
+  links.forEach(l => kc[l.k]++);
+  $('stats').innerHTML = `${mode}: ${n} nodes · ${links.length} edges<br>` +
+    `<span class="k2">${kc[2]} skip</span> · <span class="k3">${kc[3]} against</span> · <span class="k4">${kc[4]} tests/scripts</span>`;
+}
+
+function info(id) {
+  const box = $('info');
+  const row = (l, end, cls) => {
+    const o = l[end];
+    return `<div class="lnk ${l.k >= 2 ? 'k' + l.k : cls}" data-id="${o}">${esc(fullName(o))} <span class="mute">${esc(P[projOf(o)].short)}${l.w > 1 ? ' ×' + l.w : ''}</span></div>`;
+  };
+  const list = (ls, end, cls) => ls.slice().sort((x, y) => y.k - x.k || y.w - x.w).slice(0, 80).map(l => row(l, end, cls)).join('') +
+    (ls.length > 80 ? `<div class="mute">… ${ls.length - 80} more</div>` : '') || '<div class="mute">none</div>';
+  const ins = L.inn.get(id) || [], outs = L.out.get(id) || [];
+  let head;
+  if (id[0] === 'm') {
+    const m = M[+id.slice(1)];
+    head = `<h1>${esc(m[0])}</h1><div class="mute">${esc(C[m[2]][0])} · ${esc(P[m[1]].short)}</div>` +
+      `<div class="mute">${esc(m[3])}:${m[4]}</div><div class="sig">${esc(m[5])}</div>`;
+  } else {
+    head = `<h1>${esc(C[+id.slice(1)][0])}</h1><div class="mute">${esc(P[projOf(id)].short)}</div>`;
+  }
+  box.innerHTML = head + `<h2 class="kin">Called by (${ins.length})</h2>${list(ins, 's', 'kin')}<h2 class="kout">Calls (${outs.length})</h2>${list(outs, 't', 'kout')}`;
+  box.style.display = 'block';
+  box.querySelectorAll('.lnk').forEach(d => d.onclick = () => focusOn(d.dataset.id, true));
+}
+
+function closeFocus() { history = []; $('back').disabled = true; showOverview(); }
+
+// ---------- search over everything at the current level ----------
+let hits = [], sel = 0;
+function search() {
+  const q = $('search').value.trim().toLowerCase();
+  if (!q) { $('matches').innerHTML = ''; hits = []; return; }
+  hits = [];
+  for (const id of L.keys) {
+    const f = fullName(id).toLowerCase();
+    const at = f.indexOf(q);
+    if (at < 0) continue;
+    const exact = nameOf(id).toLowerCase() === q ? 0 : 1;
+    hits.push([exact, at, -(degIn(id) + degOut(id)), id]);
+  }
+  hits.sort((a, b) => a[0] - b[0] || a[2] - b[2] || a[1] - b[1]);
+  const total = hits.length;
+  hits = hits.slice(0, 40).map(h => h[3]);
+  sel = 0;
+  $('matches').innerHTML = hits.map((id, i) =>
+    `<div data-id="${id}" class="${i === 0 ? 'sel' : ''}">${esc(fullName(id))} <span class="mute">${esc(P[projOf(id)].short)} · ${degIn(id) + degOut(id)}</span></div>`).join('') +
+    (total > 40 ? `<div class="mute">… ${total - 40} more</div>` : '') + (total ? '' : '<div class="mute">no match</div>');
+  $('matches').querySelectorAll('div[data-id]').forEach(d => d.onclick = () => focusOn(d.dataset.id, true));
+}
+$('search').addEventListener('input', search);
+$('search').addEventListener('keydown', ev => {
+  const items = $('matches').querySelectorAll('div[data-id]');
+  if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+    ev.preventDefault();
+    if (!items.length) return;
+    items[sel].classList.remove('sel');
+    sel = (sel + (ev.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length;
+    items[sel].classList.add('sel'); items[sel].scrollIntoView({ block: 'nearest' });
+  } else if (ev.key === 'Enter' && hits[sel]) {
+    focusOn(hits[sel], true);
+  }
+});
+
+// ---------- project toggles (all off by default) ----------
+const pcount = new Int32Array(P.length);
+M.forEach(m => pcount[m[1]]++);
+order.forEach(i => {
+  const l = document.createElement('label');
+  l.innerHTML = `<input type="checkbox" data-p="${i}"><span class="sw" style="background:${P[i].color}"></span>${esc(P[i].short)}<span class="cnt">${pcount[i]}</span>`;
+  l.querySelector('input').onchange = () => { if (mode !== 'focus') showOverview(); };
+  $('projects').appendChild(l);
+});
+const setProjects = f => { document.querySelectorAll('#projects input').forEach(x => x.checked = f(+x.dataset.p)); if (mode !== 'focus') showOverview(); };
+$('allon').onclick = () => setProjects(() => true);
+$('srcon').onclick = () => setProjects(p => P[p].src);
+$('alloff').onclick = () => setProjects(() => false);
+
+// ---------- wiring ----------
+const refocus = () => mode === 'focus' ? focusOn(focus, false) : showOverview();
+['up', 'down', 'tiers', 'labels', 'flow', 'size'].forEach(id => $(id).onchange = refocus);
+['inferred', 'intra', 'viol'].forEach(id => $(id).onchange = () => { buildLevel(); refocus(); search(); });
+$('level').onchange = () => { buildLevel(); history = []; $('back').disabled = true; showOverview(); search(); };
+$('mindeg').oninput = ev => { $('mindegv').textContent = ev.target.value; };
+$('mindeg').onchange = () => { if (mode !== 'focus') showOverview(); };
+$('back').onclick = () => { if (history.length) focusOn(history.pop(), false); $('back').disabled = !history.length; };
+$('clear').onclick = closeFocus;
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && document.activeElement !== $('search')) closeFocus(); });
+window.addEventListener('resize', () => G.width(innerWidth).height(innerHeight));
+
+buildLevel();
+showOverview();
+$('search').focus();
+</script>
+</body>
+</html>

@@ -98,8 +98,8 @@ public sealed partial class PInspector
         pBlankBody.Children.Add(PInspectorSeparatorBuild());
         pBlankBody.Children.Add(pStack);
 
-        LBlank.LBlankChange += PBlankUpdate;
-        LBlank.LBlankPickChange += PBlankPickUpdate;
+        LBlank.LBlankChanged += PBlankUpdate;
+        LBlank.LBlankPickChanged += PBlankPickUpdate;
         PBlankUpdate();
         return pBlankBody;
     }

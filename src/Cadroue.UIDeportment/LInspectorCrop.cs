@@ -19,7 +19,7 @@ public sealed class LInspectorCrop
     public LInspectorCrop(LInspector lOwner)
     {
         lInspector = lOwner;
-        LInspectorCropbox.LCropboxStateChange += LInspectorCropHandle;
+        LInspectorCropbox.LCropboxStateChanged += LInspectorCropHandle;
     }
 
     public LCropboxState LInspectorCropbox { get; } = new();
@@ -114,8 +114,13 @@ public sealed class LInspectorCrop
         return LInspectorWholeFormat(lText, lShown);
     }
 
-    public void LInspectorEdgeCommit(int lSide, string lText)
+    public void LInspectorEdgeCommit(int lSide, string lText, bool lTyped)
     {
+        if (!lTyped)
+        {
+            return;
+        }
+
         lInspectorEdgeLock.LCropboxEdgeSet(lSide, !string.IsNullOrWhiteSpace(lText));
         LWorkCrop lCrop = LInspectorCropbox.LCropboxStateCrop;
         double[] lEdges = { lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lCrop.LWorkCropRight, lCrop.LWorkCropBottom };
@@ -142,8 +147,13 @@ public sealed class LInspectorCrop
         LInspectorEdgesSet(new LCropboxEdges(0, 0, 0, 0));
     }
 
-    public void LInspectorRatioCommit(string lWidthText, string lHeightText)
+    public void LInspectorRatioCommit(string lWidthText, string lHeightText, bool lTyped)
     {
+        if (!lTyped)
+        {
+            return;
+        }
+
         LCropboxRatio lRatio = LInspectorCropbox.LCropboxStateRatio;
         LInspectorCropbox.LCropboxRatioSet(
             lRatio.LCropboxRatioFixed,

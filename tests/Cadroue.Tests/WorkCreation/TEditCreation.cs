@@ -86,7 +86,7 @@ public sealed class TEditCreation
             TInterface.TWorkCropCreate(),
             TInterface.TWorkVideoCreate(new[] { TInterface.TWorkBrightnessCreate(true, 0) }),
             true);
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(plan);
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(plan);
         Guid sourceBatch = Guid.NewGuid();
 
         LWorkItem item = Assert.Single(TInterface.TEditSourcesCreate(
@@ -102,7 +102,7 @@ public sealed class TEditCreation
     [Fact]
     public void ListSources_EachQueuedWhetherPlanIsSavedOrNot()
     {
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(10, 0, 0, 0, 0, false, false),
             TInterface.TWorkVideoCreate(),
             true));

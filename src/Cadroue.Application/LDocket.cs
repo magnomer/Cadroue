@@ -4,7 +4,7 @@ public sealed class LDocket
 {
     private readonly List<LDocketEntry> lDocketEntries = new();
 
-    public event Action<IReadOnlyList<LDocketEntry>>? LDocketChange;
+    public event Action<IReadOnlyList<LDocketEntry>>? LDocketChanged;
 
     public event Action<IReadOnlyList<LDocketEntry>>? LDocketAdded;
 
@@ -200,5 +200,5 @@ public sealed class LDocket
         return lDocketTracked;
     }
 
-    private void LDocketRaise() => LDocketChange?.Invoke(LDocketItemsRead());
+    private void LDocketRaise() => LDocketChanged?.Invoke(LDocketItemsRead());
 }

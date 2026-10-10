@@ -70,13 +70,13 @@ internal static class TLogIntegrity
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(root);
-            LTrace.LTraceAppend += TLogCaptureRead;
+            LTrace.LTraceAppended += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("durable notification");
             return new TLogCommitResult(observed.Wait(TimeSpan.FromSeconds(5)), observedText);
         }
         finally
         {
-            LTrace.LTraceAppend -= TLogCaptureRead;
+            LTrace.LTraceAppended -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             Directory.Delete(root, recursive: true);
@@ -96,14 +96,14 @@ internal static class TLogIntegrity
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(root);
-            LTrace.LTraceAppend += TLogCaptureRead;
+            LTrace.LTraceAppended += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("callback persistence");
             bool observed = completion.Task.Wait(TimeSpan.FromSeconds(5));
             return new TLogCallbackResult(observed, observed && completion.Task.Result);
         }
         finally
         {
-            LTrace.LTraceAppend -= TLogCaptureRead;
+            LTrace.LTraceAppended -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             if (Directory.Exists(root))
@@ -280,7 +280,7 @@ internal static class TLogIntegrity
         {
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(blockedRoot);
-            LTrace.LTraceAppend += TLogCaptureRead;
+            LTrace.LTraceAppended += TLogCaptureRead;
             LTraceLog.LTraceInfoRecord("entry that cannot be saved");
             LTraceWriter.LTraceWriterPersist();
 
@@ -291,7 +291,7 @@ internal static class TLogIntegrity
         }
         finally
         {
-            LTrace.LTraceAppend -= TLogCaptureRead;
+            LTrace.LTraceAppended -= TLogCaptureRead;
             LTraceWriter.LTraceWriterPersist();
             LDepot.LDepotRootSet(previousRoot);
             if (Directory.Exists(parent))

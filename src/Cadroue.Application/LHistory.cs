@@ -5,7 +5,7 @@ namespace Cadroue.Application;
 public sealed record LHistoryEntry(
     IReadOnlyList<LPiece> LHistorySections,
     int? LHistorySectionIndex,
-    LPresetRecord LHistoryExport);
+    LPresetDocument LHistoryExport);
 
 public sealed class LHistory
 {

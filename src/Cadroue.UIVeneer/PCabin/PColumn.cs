@@ -34,8 +34,8 @@ internal sealed class PColumn
             pStoredWidths,
             pCompactPanels,
             pFlexPanelIndex);
-        lColumnPlan.LColumnPlanChange += PColumnPlanApply;
-        lColumnPlan.LColumnWidthChange += pWidthNotify;
+        lColumnPlan.LColumnPlanChanged += PColumnPlanApply;
+        lColumnPlan.LColumnWidthChanged += pWidthNotify;
         pColumnGrid.LayoutUpdated += PColumnLayoutHandle;
         PColumnPlanApply();
     }

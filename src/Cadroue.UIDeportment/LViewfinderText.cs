@@ -29,7 +29,7 @@ public static class LViewfinderText
     private const double LViewfinderBadgeVertical = 1;
     private const double LViewfinderBadgeGap = 6;
 
-    public static LViewfinderPoint LViewfinderTickResolve(LViewfinderTick lTick, double lTextHeight) =>
+    public static LViewfinderPoint LViewfinderTickResolve(LViewfinderGraduation lTick, double lTextHeight) =>
         new(lTick.LViewfinderTickX + 2, LViewfinder.LViewfinderLaneHeight * 0.5 - lTextHeight / 2);
 
     public static IReadOnlyList<LViewfinderLabel> LViewfinderLabelResolve(

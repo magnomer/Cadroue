@@ -72,13 +72,13 @@ public sealed class LLog
     private long lLogSnapshot;
     private int lLogFileIndex;
 
-    public event Action? LLogFilesChange;
-    public event Action? LLogRowsReset;
-    public event Action<LLogRow>? LLogRowAppend;
-    public event Action<int>? LLogRowsRemove;
-    public event Action? LLogScroll;
-    public event Action<string>? LLogErrorShow;
-    public event Action<string>? LLogCopy;
+    public event Action? LLogFilesChanged;
+    public event Action? LLogRowsRebuilt;
+    public event Action<LLogRow>? LLogRowAppended;
+    public event Action<int>? LLogRowsRemoved;
+    public event Action? LLogScrolled;
+    public event Action<string>? LLogErrorShown;
+    public event Action<string>? LLogCopied;
 
     public string LLogFilePath => lLogFilePath;
 
@@ -101,11 +101,11 @@ public sealed class LLog
 
     public void LLogAttach()
     {
-        LTrace.LTraceCommittedAppend += LLogAppendHandle;
+        LTrace.LTraceCommittedAppended += LLogAppendHandle;
         LLogFilesUpdate();
     }
 
-    public void LLogDetach() => LTrace.LTraceCommittedAppend -= LLogAppendHandle;
+    public void LLogDetach() => LTrace.LTraceCommittedAppended -= LLogAppendHandle;
 
     public bool LLogFileCheck(string lPath) =>
         string.Equals(lLogFilePath, lPath, StringComparison.OrdinalIgnoreCase);
@@ -223,7 +223,7 @@ public sealed class LLog
                     : LUsher.LUsherStemRead(lFile)));
         }
 
-        LLogFilesChange?.Invoke();
+        LLogFilesChanged?.Invoke();
     }
 
     public void LLogFileSelect(int lIndex)
@@ -308,7 +308,7 @@ public sealed class LLog
             if (LLogCategoryCheck(lRow))
             {
                 lLogRowsShown.Add(lRow);
-                LLogRowAppend?.Invoke(lRow);
+                LLogRowAppended?.Invoke(lRow);
             }
         }
 
@@ -329,7 +329,7 @@ public sealed class LLog
             return;
         }
 
-        LLogCopy?.Invoke(lRead.LTraceReadValue);
+        LLogCopied?.Invoke(lRead.LTraceReadValue);
     }
 
     public void LLogFolderOpen()
@@ -341,7 +341,7 @@ public sealed class LLog
     }
 
     public void LLogErrorRaise(string lMessageKey, string lDetail) =>
-        LLogErrorShow?.Invoke(LLocalization.LLocalizationFormat(lMessageKey, lDetail));
+        LLogErrorShown?.Invoke(LLocalization.LLocalizationFormat(lMessageKey, lDetail));
 
     private void LLogAppendHandle(long lSequence, LTraceEntry lEntry)
     {
@@ -358,7 +358,7 @@ public sealed class LLog
     {
         lLogRowsShown.Clear();
         lLogRowsShown.AddRange(lLogRowsAll.Where(LLogCategoryCheck));
-        LLogRowsReset?.Invoke();
+        LLogRowsRebuilt?.Invoke();
         LLogScrollRaise();
     }
 
@@ -374,14 +374,14 @@ public sealed class LLog
         lLogRowsAll.RemoveRange(0, lExcess);
         int lShownExcess = lLogRowsShown.TakeWhile(lRemoved.Contains).Count();
         lLogRowsShown.RemoveRange(0, lShownExcess);
-        LLogRowsRemove?.Invoke(lShownExcess);
+        LLogRowsRemoved?.Invoke(lShownExcess);
     }
 
     private void LLogScrollRaise()
     {
         if (lLogFollowTail && lLogRowsShown.Count > 0)
         {
-            LLogScroll?.Invoke();
+            LLogScrolled?.Invoke();
         }
     }
 }

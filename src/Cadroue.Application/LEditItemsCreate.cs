@@ -96,7 +96,7 @@ public static partial class LEdit
         LWorkPriority lWorkPriority,
         IReadOnlyList<LWorkSource> lEditSources,
         LEncoding lEditOutput,
-        Func<string, LSidecarEditRecord?> lSidecarRead,
+        Func<string, LSidecarEditEntry?> lSidecarRead,
         Func<string, TimeSpan> lDurationRead,
         bool lEditEqCapable,
         Guid lEditLooseBatch)

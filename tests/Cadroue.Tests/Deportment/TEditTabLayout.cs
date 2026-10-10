@@ -33,7 +33,7 @@ public sealed class TEditTabLayout
             inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 90, false, false));
         TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
 
-        LSceneTabRecord layout = TInterface.TEditLayoutRead(tab);
+        LSceneTabEntry layout = TInterface.TEditLayoutRead(tab);
 
         Assert.Null(layout.LSceneInspector);
     }
@@ -56,7 +56,7 @@ public sealed class TEditTabLayout
         TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
         TInterface.TSkipPersistentSet(inspector.LInspectorSkip, true);
 
-        LSceneTabRecord layout = TInterface.TEditLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TEditLayoutRead(source);
         (LEditTab target, LInspector restored) = TEditBuild();
         TInterface.TInspectorSourceSet(restored, 1920, 1080);
         TInterface.TEditLayoutApply(target, layout);
@@ -90,7 +90,7 @@ public sealed class TEditTabLayout
             inspector.LInspectorCrop.LInspectorCropbox, TInterface.TWorkCropCreate(10, 20, 30, 40, 0, false, false));
         TInterface.TSkipPersistentSet(inspector.LInspectorSkip, true);
 
-        LSceneTabRecord layout = TInterface.TEditLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TEditLayoutRead(source);
         (LEditTab target, LInspector restored) = TEditBuild();
         TInterface.TEditLayoutApply(target, layout);
 

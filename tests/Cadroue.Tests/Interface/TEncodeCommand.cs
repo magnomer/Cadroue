@@ -15,10 +15,12 @@ internal sealed partial class TEncodeCommand : IDisposable
 {
     private readonly string tDepotRoot = Path.Combine(
         Path.GetTempPath(), "Cadroue.Tests", "EncodeCommand", Guid.NewGuid().ToString("N"));
+    private readonly string _tEncodePrevious;
     private bool tEncodeDisposed;
 
     internal TEncodeCommand()
     {
+        _tEncodePrevious = LDepot.LDepotRootRead();
         LDepot.LDepotRootSet(tDepotRoot);
     }
 
@@ -96,7 +98,7 @@ internal sealed partial class TEncodeCommand : IDisposable
             return;
         }
 
-        LDepot.LDepotRootSet(null);
+        LDepot.LDepotRootSet(_tEncodePrevious);
         try
         {
             if (Directory.Exists(tDepotRoot))

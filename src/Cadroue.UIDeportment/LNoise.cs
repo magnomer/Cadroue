@@ -52,7 +52,7 @@ public sealed class LNoise
     private string? lNoiseToken = "Medium";
     private bool lNoisePersistent;
 
-    public event Action? LNoiseChange;
+    public event Action? LNoiseChanged;
 
     public LWorkNoiseStep LNoiseStep => lNoiseStep;
 
@@ -147,7 +147,7 @@ public sealed class LNoise
 
         lNoiseStep = lNormal;
         lNoiseToken = lToken;
-        LNoiseChange?.Invoke();
+        LNoiseChanged?.Invoke();
     }
 
     public void LNoiseActiveSet(bool lActive) =>
@@ -210,7 +210,7 @@ public sealed class LNoise
 
         lNoiseStep = lNormal;
         lNoiseToken = lToken;
-        LNoiseChange?.Invoke();
+        LNoiseChanged?.Invoke();
     }
 
     public void LNoisePersistentSet(bool lPersistent)
@@ -221,7 +221,7 @@ public sealed class LNoise
         }
 
         lNoisePersistent = lPersistent;
-        LNoiseChange?.Invoke();
+        LNoiseChanged?.Invoke();
     }
 
     private void LNoiseStepApply(LWorkNoiseStep lNormal)
@@ -232,7 +232,7 @@ public sealed class LNoise
         }
 
         lNoiseStep = lNormal;
-        LNoiseChange?.Invoke();
+        LNoiseChanged?.Invoke();
     }
 
     private static LWorkNoiseStep LNoiseDefaultCreate(bool lActive) =>

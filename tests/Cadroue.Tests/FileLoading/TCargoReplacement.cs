@@ -8,7 +8,7 @@ public sealed class TCargoReplacement
     [Fact]
     public async Task SuccessfulReplacement_RemovesPreviousIdentity()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string previous = media.TSourceCreate("previous.mp4");
         string replacement = media.TSourceCreate("replacement.mp4");
 
@@ -22,7 +22,7 @@ public sealed class TCargoReplacement
     [Fact]
     public async Task FailedReplacement_PreservesCompletePreviousState()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string previous = media.TSourceCreate("previous.mp4", 3_000);
         string replacement = media.TMediaFailCreate("broken.mp4");
         await media.TMediaLoadRun(previous);
@@ -37,7 +37,7 @@ public sealed class TCargoReplacement
     [Fact]
     public async Task ObsoleteEarlierCompletion_CannotReplaceNewerSource()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string earlier = media.TMediaGatedCreate("earlier.mp4", 1_000, observeCancellation: false);
         string newer = media.TSourceCreate("newer.mp4", 8_000);
 

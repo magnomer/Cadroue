@@ -7,11 +7,10 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LPresetEntry(string LPresetEntryPath, LPresetRecord LPresetEntryValue);
+public sealed record LPresetEntry(string LPresetEntryPath, LPresetDocument LPresetEntryValue);
 
 public static class LPresetStore
 {
-    private const string LPresetFolderName = "Cadroue";
     private const string LPresetFileName = "LExportSpecificPresets.json";
     private const string LPresetResourcePrefix = "presets/";
 
@@ -29,7 +28,7 @@ public static class LPresetStore
             {
                 using Stream lStream = lAssembly.GetManifestResourceStream(lResourceName)
                     ?? throw new InvalidDataException($"Native preset resource is unavailable: {lResourceName}");
-                return JsonSerializer.Deserialize<LPresetRecord>(lStream);
+                return JsonSerializer.Deserialize<LPresetDocument>(lStream);
             });
     }
 
@@ -48,7 +47,7 @@ public static class LPresetStore
     private static IReadOnlyList<LPresetGroup> LPresetGroupsLoad(
         IEnumerable<string> lSources,
         Func<string, string> lRelativeRead,
-        Func<string, LPresetRecord?> lPresetRead)
+        Func<string, LPresetDocument?> lPresetRead)
     {
         var lGroups = new SortedDictionary<string, List<LPresetEntry>>(StringComparer.OrdinalIgnoreCase);
         foreach (string lSource in lSources)
@@ -61,7 +60,7 @@ public static class LPresetStore
             }
 
             string lGroupName = lRelativePath[..lSeparatorIndex];
-            LPresetRecord lRecord = lPresetRead(lSource)?.LPresetRecordNormalize()
+            LPresetDocument lRecord = lPresetRead(lSource)?.LPresetRecordNormalize()
                 ?? throw new InvalidDataException($"Native preset is invalid: {lSource}");
             if (!lGroups.TryGetValue(lGroupName, out List<LPresetEntry>? lGroupRecords))
             {
@@ -99,7 +98,7 @@ public static class LPresetStore
         }
     }
 
-    public static bool LPresetSave(Func<LPresetCatalog, IReadOnlyList<LPresetRecord>?> lPresetResolve)
+    public static bool LPresetSave(Func<LPresetCatalog, IReadOnlyList<LPresetDocument>?> lPresetResolve)
     {
         string lPresetPath = LPresetPathCreate();
         try
@@ -120,7 +119,7 @@ public static class LPresetStore
 
     private static LPresetCatalog LPresetCatalogRead(string lPresetPath)
     {
-        LVaultResult<List<LPresetRecord>> lPresetResult = LVault.LVaultRead<List<LPresetRecord>>(lPresetPath);
+        LVaultResult<List<LPresetDocument>> lPresetResult = LVault.LVaultRead<List<LPresetDocument>>(lPresetPath);
         if (lPresetResult is { LVaultOutcome: LVaultOutcome.LVaultLoaded, LVaultValue: { } lPresetRecords })
         {
             return new LPresetCatalog(LPresetOutcome.LPresetLoaded, LPresetRecordsNormalize(lPresetRecords));
@@ -133,13 +132,14 @@ public static class LPresetStore
             []);
     }
 
-    private static IReadOnlyList<LPresetRecord> LPresetRecordsNormalize(IEnumerable<LPresetRecord?> lPresetRecords) =>
+    private static IReadOnlyList<LPresetDocument> LPresetRecordsNormalize(
+        IEnumerable<LPresetDocument?> lPresetRecords) =>
         lPresetRecords
             .Where(lPresetRecord => lPresetRecord is not null)
             .Select(lPresetRecord => lPresetRecord!.LPresetRecordNormalize())
             .ToArray();
 
-    public static bool LPresetFileSave(LPresetRecord lRecord, string lPresetFilePath) =>
+    public static bool LPresetFileSave(LPresetDocument lRecord, string lPresetFilePath) =>
         !LPresetCatalogCheck(lPresetFilePath) && LVault.LVaultSave(lPresetFilePath, lRecord);
 
     public static bool LPresetCatalogCheck(string lPresetFilePath)
@@ -158,17 +158,13 @@ public static class LPresetStore
         }
     }
 
-    public static LPresetRecord? LPresetFileLoad(string lPresetFilePath)
+    public static LPresetDocument? LPresetFileLoad(string lPresetFilePath)
     {
         string lPresetJson = File.ReadAllText(lPresetFilePath);
-        return JsonSerializer.Deserialize<LPresetRecord>(lPresetJson)?.LPresetRecordNormalize();
+        return JsonSerializer.Deserialize<LPresetDocument>(lPresetJson)?.LPresetRecordNormalize();
     }
 
-    private static string LPresetPathCreate()
-    {
-        string lAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lAppData, LPresetFolderName, LPresetFileName);
-    }
+    private static string LPresetPathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LPresetFileName);
 
     public static void LPresetSeamAttach()
     {

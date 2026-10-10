@@ -1,0 +1,67 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "enforced": true,
+  "ceilings": {
+    "Orphan": 0,
+    "Tested": 0
+  },
+  "helper": {
+    "framework": "net10.0"
+  },
+  "sources": {
+    "roots": [
+      "src"
+    ],
+    "tests": [
+      "tests/Cadroue.Tests.Interface",
+      "tests/Cadroue.Tests.Engine",
+      "tests/Cadroue.Tests.Conduct",
+      "tests/Cadroue.Tests.Windows"
+    ],
+    "extensions": [
+      ".cs"
+    ],
+    "markup": [
+      ".xaml"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ]
+  },
+  "implicitUsings": [
+    "System",
+    "System.Collections.Generic",
+    "System.IO",
+    "System.Linq",
+    "System.Net.Http",
+    "System.Threading",
+    "System.Threading.Tasks"
+  ],
+  "console": {
+    "top": 25
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditFake-"
+  }
+}

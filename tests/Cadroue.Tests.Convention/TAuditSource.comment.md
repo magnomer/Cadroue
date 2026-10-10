@@ -1,9 +1,11 @@
 # TAuditSource.cs
+Hash: `bff410c4e1268601`
 
 ## `internal static class TAuditSource`
 
 Shared file enumeration for every convention test.
-Carries no settings of its own: each test hands in the `TAuditScope` its sidecar describes.
+Carries no settings of its own.
+Each test hands in the `TAuditScope` its sidecar describes.
 
 ## `public static string TAuditRootRead()`
 

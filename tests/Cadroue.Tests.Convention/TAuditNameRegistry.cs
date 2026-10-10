@@ -1,8 +1,8 @@
 // Generated file. Do not edit by hand: every line is overwritten when it is rebuilt.
 //
-// AUDITNAMES GENERATION 16 - name registry for Cadroue.
-// The only generated file in the convention-test project. It carries the registered bases,
-// verbs and exemptions and nothing else; every audit setting is hand-written
+// AUDITNAMES GENERATION 21 - name registry for Cadroue.
+// One of the two generated files in the convention-test project. Together they carry the
+// registered bases, verbs and exemptions and nothing else; every audit setting is hand-written
 // tracked test code and must never be added here.
 //
 // Order: regenerate it first, then run the convention tests. The tests compile against this file as
@@ -12,7 +12,7 @@ namespace Convention.Tests;
 
 internal static class TAuditNameRegistry
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
 
     // AUDIT:SIDECAR:BASES:START
     public static readonly string[] TAuditBases =
@@ -22,6 +22,7 @@ internal static class TAuditNameRegistry
         "Alert",
         "Announcement",
         "Ask",
+        "Assay",
         "Asset",
         "Audio",
         "Audit",
@@ -105,6 +106,7 @@ internal static class TAuditNameRegistry
         "Headline",
         "Histogram",
         "History",
+        "Host",
         "House",
         "Icon",
         "Info",
@@ -239,94 +241,6 @@ internal static class TAuditNameRegistry
         "Workspace",
     ];
     // AUDIT:SIDECAR:BASES:END
-
-    // AUDIT:SIDECAR:VERBS:START
-    public static readonly string[] TAuditVerbs =
-    [
-        "Accept",
-        "Add",
-        "Adjust",
-        "Append",
-        "Apply",
-        "Attach",
-        "Build",
-        "Cancel",
-        "Change",
-        "Check",
-        "Claim",
-        "Clamp",
-        "Clear",
-        "Clone",
-        "Close",
-        "Commit",
-        "Compact",
-        "Confirm",
-        "Copy",
-        "Create",
-        "Defer",
-        "Delete",
-        "Describe",
-        "Detach",
-        "Dispatch",
-        "Dispose",
-        "Divide",
-        "Draw",
-        "Exist",
-        "Find",
-        "Format",
-        "Handle",
-        "Hide",
-        "Hook",
-        "Import",
-        "Insert",
-        "Interrupt",
-        "Load",
-        "Match",
-        "Move",
-        "Normalize",
-        "Open",
-        "Parse",
-        "Pause",
-        "Persist",
-        "Place",
-        "Play",
-        "Prepare",
-        "Propagate",
-        "Publish",
-        "Raise",
-        "Read",
-        "Rebuild",
-        "Record",
-        "Redo",
-        "Release",
-        "Remove",
-        "Reset",
-        "Resolve",
-        "Restore",
-        "Resume",
-        "Run",
-        "Save",
-        "Scan",
-        "Scroll",
-        "Seek",
-        "Select",
-        "Send",
-        "Set",
-        "Shorten",
-        "Show",
-        "Sort",
-        "Start",
-        "Stop",
-        "Suspend",
-        "Sync",
-        "Tick",
-        "Toggle",
-        "Undo",
-        "Update",
-        "Validate",
-        "Zoom",
-    ];
-    // AUDIT:SIDECAR:VERBS:END
 
     // AUDIT:SIDECAR:EXEMPT:START
     public static readonly Dictionary<string, string[]> TAuditExempt = new(StringComparer.Ordinal)

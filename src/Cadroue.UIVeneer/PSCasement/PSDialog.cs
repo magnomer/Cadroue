@@ -43,7 +43,7 @@ internal static class PSDialog
 
     private static void PSDialogLocationRestore(Window pWindow)
     {
-        Cadroue.Infrastructure.LPlacementRecord? pPlacement =
+        Cadroue.Infrastructure.LPlacementEntry? pPlacement =
             Cadroue.Infrastructure.LPlacement.LPlacementRead(PSDialogPlacementKey);
         if (pPlacement is null)
         {

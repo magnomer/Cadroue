@@ -1,4 +1,5 @@
 # TAuditScope.cs
+Hash: `142bda2f4e38438a`
 
 ## `internal sealed record TAuditScope`
 

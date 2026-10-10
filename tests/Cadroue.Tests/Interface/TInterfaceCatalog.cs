@@ -56,9 +56,9 @@ internal static partial class TInterface
             .Append(LCapabilityTable.LCapabilityAudioFallback);
 
     internal static LTrialResult TTrialResultCreate(bool success, string message) => new(success, message);
-    internal static Task TTrialSetStart(Func<string, Task<LTrialResult>> trial) => LTrialSet.LTrialSetStart(trial);
-    internal static IReadOnlySet<string>? TTrialSetRead() => LTrialSet.LTrialSetRead();
-    internal static void TTrialSetApply(IEnumerable<string> available) => LTrialSet.LTrialSetApply(available);
-    internal static void TTrialSetReset() => LTrialSet.LTrialSetReset();
-    internal static bool TTrialSetCheck(LRepertoireEncoder candidate) => LTrialSet.LTrialSetCheck(candidate);
+    internal static Task TTrialSetStart(Func<string, Task<LTrialResult>> trial) => LTrialCatalog.LTrialSetStart(trial);
+    internal static IReadOnlySet<string>? TTrialSetRead() => LTrialCatalog.LTrialSetRead();
+    internal static void TTrialSetApply(IEnumerable<string> available) => LTrialCatalog.LTrialSetApply(available);
+    internal static void TTrialSetReset() => LTrialCatalog.LTrialSetReset();
+    internal static bool TTrialSetCheck(LRepertoireEncoder candidate) => LTrialCatalog.LTrialSetCheck(candidate);
 }

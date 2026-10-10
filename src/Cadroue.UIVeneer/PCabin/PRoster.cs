@@ -25,7 +25,7 @@ public sealed class PRoster : UserControl
 
     public LRoster LRoster { get; } = LRoster.LRosterCreate();
 
-    public PRoster(LSceneTabRecord? lPreferenceTabLayout = null)
+    public PRoster(LSceneTabEntry? lPreferenceTabLayout = null)
     {
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
@@ -46,9 +46,9 @@ public sealed class PRoster : UserControl
         pRosterSharedBox.Unchecked += PRosterSharedHandle;
         pRosterCompletedBox.Checked += PRosterCompletedHandle;
         pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
-        LRoster.LRosterDetailApply += PRosterDetailUpdate;
-        LRoster.LRosterDetailDefer += PRosterDetailDefer;
-        LRoster.LRosterWarningShow += PRosterWarningShow;
+        LRoster.LRosterDetailApplied += PRosterDetailUpdate;
+        LRoster.LRosterDetailDeferred += PRosterDetailDefer;
+        LRoster.LRosterWarningShown += PRosterWarningShow;
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;
         pRosterElapsedTimer.Tick += PRosterElapsedTick;
@@ -60,7 +60,7 @@ public sealed class PRoster : UserControl
 
     public LStation PRosterStation => LRoster.LRosterStation;
 
-    public LSceneTabRecord PRosterLayoutRead() => LRoster.LRosterLayoutRead(pRosterLayout.PColumnWeightsRead());
+    public LSceneTabEntry PRosterLayoutRead() => LRoster.LRosterLayoutRead(pRosterLayout.PColumnWeightsRead());
 
     public double PRosterWidthRead() => LRoster.LRosterWidthResolve(pRosterLayout.PColumnTotalRead());
 
@@ -94,7 +94,7 @@ public sealed class PRoster : UserControl
     private void PRosterWarningShow(string pTitle, string pMessage) =>
         PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
 
-    private PColumn PRosterBuild(LSceneTabRecord? lPreferenceTabLayout)
+    private PColumn PRosterBuild(LSceneTabEntry? lPreferenceTabLayout)
     {
         var pLeftColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star), MinWidth = 320 };
         var pRightColumn = new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 240 };

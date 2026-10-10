@@ -11,28 +11,7 @@ internal static class TAuditHostWalker
         List<TViolation> violations = [];
         foreach (SyntaxNode root in TAuditBinder.TAuditWalkRead(sourcePaths))
         {
-            List<SyntaxNode> breaches = [];
-            TAuditBlockScan(root.ChildNodes().OfType<GlobalStatementSyntax>().Select(global => global.Statement)
-                .ToList(), breaches);
-            foreach (MemberDeclarationSyntax member in root.DescendantNodes().OfType<MemberDeclarationSyntax>())
-            {
-                switch (member)
-                {
-                    case BaseMethodDeclarationSyntax { Body: { } body }:
-                        TAuditBlockScan(body.Statements, breaches);
-                        break;
-                    case BaseMethodDeclarationSyntax { ExpressionBody: { } arrow }:
-                        TAuditExpressionScan(arrow.Expression, breaches);
-                        break;
-                    case PropertyDeclarationSyntax { ExpressionBody: { } arrow }:
-                        TAuditExpressionScan(arrow.Expression, breaches);
-                        break;
-                    case BasePropertyDeclarationSyntax { AccessorList: { } accessors }:
-                        breaches.AddRange(accessors.Accessors.Where(accessor =>
-                            accessor.Body is not null || accessor.ExpressionBody is not null));
-                        break;
-                }
-            }
+            List<SyntaxNode> breaches = TAuditBreachRead(root);
 
             HashSet<int> seen = [];
             foreach (SyntaxNode breach in breaches.SelectMany(breach => breach.DescendantNodesAndSelf()
@@ -48,13 +27,44 @@ internal static class TAuditHostWalker
                         line,
                         owner is null ? Path.GetFileNameWithoutExtension(root.SyntaxTree.FilePath)
                             : TAuditStrictWalker.TAuditMemberRead(owner),
-                        "Wiring",
+                        "Overworking",
                         $"{breach.Kind()} where only construction and wiring may stand"));
                 }
             }
         }
 
         return violations;
+    }
+
+    public static List<SyntaxNode> TAuditBreachRead(SyntaxNode root)
+    {
+        List<SyntaxNode> breaches = [];
+        TAuditBlockScan(root.ChildNodes().OfType<GlobalStatementSyntax>().Select(global => global.Statement)
+            .ToList(), breaches);
+        foreach (MemberDeclarationSyntax member in root.DescendantNodes().OfType<MemberDeclarationSyntax>())
+        {
+            switch (member)
+            {
+                case BaseMethodDeclarationSyntax { Body: { } body }:
+                    TAuditBlockScan(body.Statements, breaches);
+                    break;
+                case BaseMethodDeclarationSyntax { ExpressionBody: { } arrow }:
+                    TAuditExpressionScan(arrow.Expression, breaches);
+                    break;
+                case PropertyDeclarationSyntax { ExpressionBody: { } arrow }:
+                    TAuditExpressionScan(arrow.Expression, breaches);
+                    break;
+                case IndexerDeclarationSyntax { ExpressionBody: { } arrow }:
+                    TAuditExpressionScan(arrow.Expression, breaches);
+                    break;
+                case BasePropertyDeclarationSyntax { AccessorList: { } accessors }:
+                    breaches.AddRange(accessors.Accessors.Where(accessor =>
+                        accessor.Body is not null || accessor.ExpressionBody is not null));
+                    break;
+            }
+        }
+
+        return breaches;
     }
 
     private static void TAuditBlockScan(IReadOnlyList<StatementSyntax> statements, List<SyntaxNode> breaches)

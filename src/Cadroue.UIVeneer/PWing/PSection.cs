@@ -77,13 +77,13 @@ public sealed class PSection : UserControl
         PScrollbar.PScrollbarApply(this);
         Content = PPanel.PPanelBorderBuild(pBodyHost);
         PSectionRebuild();
-        LSection.LSectionChange += PSectionRebuild;
-        LSection.LSectionSelectApply += PSectionSelectApply;
-        LSection.LSectionEnabledApply += PSectionEnabledApply;
-        LSection.LSectionMinimizeChange += PSectionMinimizeHandle;
-        LSection.LSectionDrag.LSectionDragStart += PSectionDragShow;
+        LSection.LSectionChanged += PSectionRebuild;
+        LSection.LSectionSelectApplied += PSectionSelectApply;
+        LSection.LSectionEnabledApplied += PSectionEnabledApply;
+        LSection.LSectionMinimizeChanged += PSectionMinimizeHandle;
+        LSection.LSectionDrag.LSectionDragStarted += PSectionDragShow;
         LSection.LSectionDrag.LSectionDragEnd += PSectionDragHide;
-        LSection.LSectionDrag.LSectionRowMove += PSectionRowMove;
+        LSection.LSectionDrag.LSectionRowMoved += PSectionRowMove;
     }
 
     public bool PSectionMinimizedCheck() => LSection.LSectionMinimized;

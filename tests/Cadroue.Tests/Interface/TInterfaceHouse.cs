@@ -11,13 +11,13 @@ internal static partial class TInterface
     internal static void TWindowTabSet(LWindow window, LStripTab? tab, LViewer? viewer) =>
         window.LWindowTabSet(tab, viewer);
     internal static void TWindowAddAttach(LWindow window, Action<LWindowTab> handler) =>
-        window.LWindowTabAdd += handler;
+        window.LWindowTabAdded += handler;
     internal static void TWindowSelectAttach(LWindow window, Action<LStripTab, double> attach, Action<LStripTab> detach)
     {
-        window.LWindowTabAttach += attach;
-        window.LWindowTabDetach += detach;
+        window.LWindowTabAttached += attach;
+        window.LWindowTabDetached += detach;
     }
-    internal static LSceneRecord TWindowSceneRead(LWindow window, string name) => window.LWindowSceneRead(name);
+    internal static LSceneDocument TWindowSceneRead(LWindow window, string name) => window.LWindowSceneRead(name);
     internal static (double, double) TWindowWidthResolve(
         LWindow window, double? required, double reserved, double width) =>
         window.LWindowWidthResolve(required, reserved, width);
@@ -25,7 +25,7 @@ internal static partial class TInterface
     {
         var workspace = new LWorkspace(tab.LStripTabKey, preset);
         workspace.LWorkspaceAttach(
-            docket, flow?.LFlowSection.LFlowSegment, flow, null, null, () => new LSceneTabRecord());
+            docket, flow?.LFlowSection.LFlowSegment, flow, null, null, () => new LSceneTabEntry());
         tab.LStripWorkspaceAttach(workspace);
     }
     internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
@@ -41,8 +41,8 @@ internal static partial class TInterface
     internal static bool TWindowHandledRead(LWindow window) => window.LWindowDrop.LWindowDropHandled;
     internal static void TWindowDropAttach(LWindow window, Action<IReadOnlyList<string>> list, Action<string> viewer)
     {
-        window.LWindowDrop.LWindowListAdd += list;
-        window.LWindowDrop.LWindowViewerOpen += viewer;
+        window.LWindowDrop.LWindowListAdded += list;
+        window.LWindowDrop.LWindowViewerOpened += viewer;
     }
 
     internal static void TWindowShortcutAttach(
@@ -57,8 +57,8 @@ internal static partial class TInterface
         window.LWindowShortcut.LWindowShortcutRun(token);
     internal static void TWindowPlayAttach(LWindow window, Action play, Action pause)
     {
-        window.LWindowShortcut.LWindowShortcutPlay += play;
-        window.LWindowShortcut.LWindowShortcutPause += pause;
+        window.LWindowShortcut.LWindowShortcutPlayed += play;
+        window.LWindowShortcut.LWindowShortcutPaused += pause;
     }
 
     internal static LWindowPress TWindowPressCreate(
@@ -108,12 +108,12 @@ internal static partial class TInterface
     internal static void TSashCaptureHandle(LSash sash) => sash.LSashCaptureHandle();
     internal static int TSashLeaveResolve(LSash sash) => sash.LSashLeaveResolve();
     internal static void TSashBoundsAttach(LSash sash, Action<LSashBounds> handler) =>
-        sash.LSashBoundsChange += handler;
+        sash.LSashBoundsChanged += handler;
     internal static void TSashCaptureAttach(LSash sash, Action start, Action stop, Action<bool> active)
     {
-        sash.LSashCaptureStart += start;
-        sash.LSashCaptureStop += stop;
-        sash.LSashActiveChange += active;
+        sash.LSashCaptureStarted += start;
+        sash.LSashCaptureStopped += stop;
+        sash.LSashActiveChanged += active;
     }
 
     internal static LSashBounds TSashBoundsClamp(
@@ -151,7 +151,7 @@ internal static partial class TInterface
     internal static string TTokenTextRead(IEnumerable<(string?, string?)> inlines) => LToken.LTokenTextRead(inlines);
     internal static LToken TTokenCreate() => new();
     internal static bool TTokenDropHandle(LToken token, string? text) => token.LTokenDropHandle(text);
-    internal static void TTokenInsertAttach(LToken token, Action<string> handler) => token.LTokenInsert += handler;
+    internal static void TTokenInsertAttach(LToken token, Action<string> handler) => token.LTokenInserted += handler;
 
     internal static LGhost TGhostCreate(double grabX, double grabY) => new(grabX, grabY);
     internal static void TGhostPointSet(LGhost ghost, double x, double y) => ghost.LGhostPointSet(x, y);
@@ -180,6 +180,6 @@ internal static partial class TInterface
     internal static bool TLogSnapshotCheck(LLog log, long sequence) => log.LLogSnapshotCheck(sequence);
     internal static bool TLogExpandToggle(LLog log, LLogRow? row) => log.LLogExpandToggle(row);
     internal static void TLogCategorySet(LLog log, IReadOnlyList<string> tokens) => log.LLogCategorySet(tokens);
-    internal static void TLogResetAttach(LLog log, Action handler) => log.LLogRowsReset += handler;
+    internal static void TLogResetAttach(LLog log, Action handler) => log.LLogRowsRebuilt += handler;
     internal static string TLogKeyRead(LTraceKind kind) => LLogRow.LLogKeyRead(kind);
 }

@@ -81,7 +81,7 @@ public sealed class TKeymapChord
         TInterface.TKeymapDefaultApply(keymap);
 
         Assert.Equal(TInterface.TBindingDefaultRead(token), chord.LSKeymapChordGesture);
-        List<LBindingRecord> records = TInterface.TKeymapRecordsRead(keymap);
+        List<LBindingEntry> records = TInterface.TKeymapRecordsRead(keymap);
         Assert.Equal(keymap.LSKeymapChords.Count, records.Count);
         Assert.Contains(records, record => record.LBindingRecordToken == token
             && record.LBindingRecordGesture == chord.LSKeymapChordGesture);

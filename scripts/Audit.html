@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ audit summary</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead .title { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.panelhead h2 { margin: 0; }
+.meta { color: var(--ink-3); font-size: 13px; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.links { font-size: 13px; color: var(--ink-2); }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+td.wrap { white-space: normal; overflow-wrap: anywhere; min-width: 240px; }
+thead th { vertical-align: bottom; }
+details { margin-top: 12px; }
+details summary { cursor: pointer; color: var(--ink-2); font-size: 13px; }
+pre.console { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere;
+  background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 10px 12px; margin: 8px 0 0; max-height: 640px; overflow: auto; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ audit summary</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="result"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <div id="cards"></div>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function dur(ms) {
+    if (ms < 1000) return ms + ' ms';
+    var s = ms / 1000;
+    if (s < 60) return s.toFixed(1) + ' s';
+    var m = Math.floor(s / 60), r = Math.round(s - m * 60);
+    if (r === 60) { m += 1; r = 0; }
+    return m + ' min ' + (r < 10 ? '0' : '') + r + ' s';
+  }
+  function chip(status) { return '<span class="status ' + status.toLowerCase() + '">' + esc(status) + '</span>'; }
+  function pageOf(a) { return a.links.filter(function (l) { return l.kind === 'html'; })[0]; }
+  function nameHtml(a) {
+    var page = pageOf(a);
+    return page ? '<a href="' + esc(page.link) + '">' + esc(a.name) + '</a>' : esc(a.name);
+  }
+  function anchor(a) { return 'audit-' + a.name.toLowerCase(); }
+
+  var audits = d.audits;
+  var failed = audits.filter(function (a) { return a.status === 'FAIL'; });
+  var passed = audits.length - failed.length;
+  var gates = 0, above = 0;
+  audits.forEach(function (a) {
+    gates += a.rows.length;
+    above += a.rows.filter(function (r) { return r.count > 0; }).length;
+  });
+
+  // Header and verdict.
+  document.getElementById('subtitle').textContent =
+    'Version ' + d.version + DOT + d.generated + DOT + fmt(audits.length) + ' audits' + DOT + dur(d.duration);
+  var links = [];
+  audits.forEach(function (a) {
+    var page = pageOf(a);
+    if (page) links.push('<a href="' + esc(page.link) + '">' + esc(a.name) + '</a>');
+  });
+  document.getElementById('links').innerHTML = links.join(DOT);
+
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + audits.length + ' audits at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + audits.length + ' audits above 0.' +
+      '<span class="note">See ' + failed.map(function (a) { return '<a href="#' + anchor(a) + '">\u201c' + esc(a.name) + '\u201d</a>'; }).join(', ') + '.</span>';
+  }
+
+  // Result: one row per audit.
+  document.getElementById('result').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Audit</th><th class="l">Meaning</th><th>Duration</th></tr></thead><tbody>' +
+    audits.map(function (a) {
+      return '<tr><td class="l">' + chip(a.status) + '</td><td>' + fmt(a.above) + '</td><td class="l">' + nameHtml(a) +
+        '</td><td class="l wrap muted">' + esc(a.verdict) + '</td><td>' + dur(a.duration) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  var tiles = [
+    { label: 'Audits passed', value: fmt(passed) + ' <small>/ ' + fmt(audits.length) + '</small>', cls: '' },
+    { label: 'Audits failed', value: fmt(failed.length), cls: failed.length > 0 ? 'fail' : '' },
+    { label: 'Gates checked', value: fmt(gates), cls: '' },
+    { label: 'Gates above 0', value: fmt(above), cls: above > 0 ? (failed.length > 0 ? 'fail' : 'warn') : '' },
+    { label: 'Total duration', value: dur(d.duration), cls: '' }
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(function (t) {
+    return '<div class="tile ' + t.cls + '"><div class="label">' + t.label + '</div><div class="value">' + t.value + '</div></div>';
+  }).join('');
+
+  // One card per audit, in run order.
+  document.getElementById('cards').innerHTML = audits.map(function (a) {
+    var files = a.links.length === 0 ? '<span class="muted">No report written.</span>' :
+      a.links.map(function (l) { return '<a href="' + esc(l.link) + '">' + esc(l.name) + '</a>'; }).join(DOT);
+    var table = a.rows.length === 0 ? '<div class="empty">' + esc(a.verdict || 'No Result table.') + '</div>' :
+      '<div class="tablewrap"><table><thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+      a.rows.map(function (r) {
+        return '<tr><td class="l">' + chip(r.status) + '</td><td>' + fmt(r.count) + '</td><td class="l">' + esc(r.gate) +
+          '</td><td class="l wrap muted">' + esc(r.meaning) + '</td></tr>';
+      }).join('') + '</tbody></table></div>' +
+      (a.verdict ? '<p class="sub">' + esc(a.verdict) + '</p>' : '');
+    return '<section class="panel" id="' + anchor(a) + '">' +
+      '<div class="panelhead"><div class="title"><h2>' + nameHtml(a) + '</h2>' + chip(a.status) + '</div>' +
+      '<div class="meta"><span>Exit ' + fmt(a.exit) + '</span><span>' + dur(a.duration) + '</span></div></div>' +
+      '<div class="links">' + files + '</div>' + table +
+      '<details><summary>Console output (' + fmt(a.console === '' ? 0 : a.console.split('\n').length) + ' lines)</summary>' +
+      '<pre class="console">' + esc(a.console) + '</pre></details></section>';
+  }).join('');
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>' + fmt(audits.length) + ' audits' + DOT + fmt(gates) + ' gates</span>';
+})();
+</script>
+</body>
+</html>

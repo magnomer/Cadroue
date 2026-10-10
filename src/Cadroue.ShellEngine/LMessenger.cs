@@ -11,7 +11,7 @@ public static partial class LMessenger
         IReadOnlyList<LWorkItem>,
         Guid,
         Guid,
-        LCartographerPlanRecord?,
+        LCartographerPlanDocument?,
         int>? LMessengerRouteSource { get; set; }
 
     public static Func<LScheduleContract?>? LMessengerScheduleSource { get; set; }
@@ -27,7 +27,7 @@ public static partial class LMessenger
         IReadOnlyList<LWorkItem> lMessengerItems,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
-        LCartographerPlanRecord? lMessengerPlan = null) =>
+        LCartographerPlanDocument? lMessengerPlan = null) =>
         LMessengerRouteSource?.Invoke(
             lMessengerItems,
             lMessengerRelayTarget,

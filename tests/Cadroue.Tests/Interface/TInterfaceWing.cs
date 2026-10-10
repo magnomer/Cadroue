@@ -9,15 +9,15 @@ internal static partial class TInterface
 {
     internal static LProcessing TProcessingCreate() => new();
     internal static void TProcessingAttach(LProcessing processing, Action handler) =>
-        processing.LProcessingChange += handler;
+        processing.LProcessingChanged += handler;
     internal static bool TProcessingActiveCheck(LProcessing processing, string step) =>
         processing.LProcessingActiveCheck(step);
     internal static bool TProcessingEnabledCheck(LProcessing processing, string step) =>
         processing.LProcessingEnabledCheck(step);
     internal static void TProcessingOrderAttach(LProcessing processing, Action handler) =>
-        processing.LProcessingOrderChange += handler;
+        processing.LProcessingOrderChanged += handler;
     internal static void TProcessingStepAttach(LProcessing processing, Action<string> handler) =>
-        processing.LProcessingStepChange += handler;
+        processing.LProcessingStepChanged += handler;
     internal static void TProcessingStepAdd(LProcessing processing, string step) => processing.LProcessingStepAdd(step);
     internal static void TProcessingOrderedSet(LProcessing processing, bool ordered) =>
         processing.LProcessingOrderedSet(ordered);
@@ -53,12 +53,12 @@ internal static partial class TInterface
     internal static void TProcessingKeyHandle(LProcessing processing, string step, bool activate) =>
         processing.LProcessingKeyHandle(step, activate);
     internal static void TProcessingCancelAttach(LProcessing processing, Action handler) =>
-        processing.LProcessingDragCancel += handler;
+        processing.LProcessingDragCanceled += handler;
     internal static int TProcessingIndexResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
         LProcessing.LProcessingIndexResolve(y, tops, heights);
 
     internal static LClinic TClinicCreate() => new();
-    internal static void TClinicPlanAttach(LClinic clinic, Action handler) => clinic.LClinicPlanChange += handler;
+    internal static void TClinicPlanAttach(LClinic clinic, Action handler) => clinic.LClinicPlanChanged += handler;
     internal static void TClinicStepSet(LClinic clinic, string? step) => clinic.LClinicStepSet(step);
     internal static void TClinicActiveSet(LClinic clinic, bool active) => clinic.LClinicActiveSet(active);
     internal static void TClinicSalvageSet(LClinic clinic, LWorkFixSalvage salvage) =>
@@ -74,7 +74,7 @@ internal static partial class TInterface
     internal static LWorkFix TClinicPlanRead(LClinic clinic) => clinic.LClinicPlanRead();
     internal static void TClinicPlanApply(LClinic clinic, LWorkFix plan) => clinic.LClinicPlanApply(plan);
     internal static bool TClinicRepairCheck(LClinic clinic) => clinic.LClinicRepairCheck();
-    internal static void TClinicChangeAttach(LClinic clinic, Action handler) => clinic.LClinicChange += handler;
+    internal static void TClinicChangeAttach(LClinic clinic, Action handler) => clinic.LClinicChanged += handler;
     internal static void TClinicSourceSet(LClinic clinic, string? path) => clinic.LClinicSourceSet(path);
     internal static void TClinicResultSet(LClinic clinic, string path, LFlawKind kind, LCheckupOutcome outcome) =>
         clinic.LClinicResultSet(path, kind, new LCheckupResult(path, kind, outcome));
@@ -108,7 +108,7 @@ internal static partial class TInterface
         curve.LCurveCanvas.LCurveHistogramRead(size);
 
     internal static void TWhitebalanceToolAttach(LWhitebalance whitebalance, Action<bool, LNeutralTarget> handler) =>
-        whitebalance.LWhitebalanceToolChange += handler;
+        whitebalance.LWhitebalanceToolChanged += handler;
     internal static void TWhitebalanceToolToggle(LWhitebalance whitebalance, LNeutralTarget target, bool state) =>
         whitebalance.LWhitebalanceToolToggle(target, state);
     internal static bool TWhitebalanceGreyRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceGreyArmed;
@@ -154,8 +154,8 @@ internal static partial class TInterface
     internal static void TSensorRunHandle(LSensor sensor) => sensor.LSensorRunHandle();
     internal static void TSensorRunAttach(LSensor sensor, Action run, Action stop)
     {
-        sensor.LSensorRunApply += run;
-        sensor.LSensorStopApply += stop;
+        sensor.LSensorRunApplied += run;
+        sensor.LSensorStopApplied += stop;
     }
 
     internal static IReadOnlyList<LInspectorRow> TLoudnessRowsRead(LLoudness loudness, bool dynamic) =>
@@ -183,7 +183,7 @@ internal static partial class TInterface
     internal static void TFilterPolesSelect(LFilter filter, int index) => filter.LFilterPolesSelect(index);
 
     internal static void TEqualizerRowsAttach(LEqualizer equalizer, Action handler) =>
-        equalizer.LEqualizerRowsChange += handler;
+        equalizer.LEqualizerRowsChanged += handler;
     internal static string TEqualizerFrequencyCommit(LEqualizer equalizer, int index, string text) =>
         equalizer.LEqualizerFrequencyCommit(index, text);
     internal static string TEqualizerFrequencyRead(LEqualizer equalizer, int index) =>
@@ -205,12 +205,12 @@ internal static partial class TInterface
 
     internal static LViewer TViewerCreate() => new();
     internal static void TViewerMediaAttach(LViewer viewer, Action<LCargo> handler) =>
-        viewer.LViewerMediaChange += handler;
+        viewer.LViewerMediaChanged += handler;
     internal static void TViewerPlayingAttach(LViewer viewer, Action<bool> handler) =>
-        viewer.LViewerPlayingChange += handler;
+        viewer.LViewerPlayingChanged += handler;
     internal static void TViewerBypassAttach(LViewer viewer, Action<bool> handler) =>
-        viewer.LViewerBypassChange += handler;
-    internal static void TViewerEngineAttach(LViewer viewer, Action handler) => viewer.LViewerEngineChange += handler;
+        viewer.LViewerBypassChanged += handler;
+    internal static void TViewerEngineAttach(LViewer viewer, Action handler) => viewer.LViewerEngineChanged += handler;
     internal static int TViewerSerialChange(LViewer viewer) => viewer.LViewerSerialChange();
     internal static bool TViewerSerialCheck(LViewer viewer, int serial) => viewer.LViewerSerialCheck(serial);
     internal static void TViewerCommandSet(LViewer viewer, bool active) => viewer.LViewerCommandSet(active);
@@ -246,18 +246,19 @@ internal static partial class TInterface
     internal static void TViewerEstimateStart(LViewerNeutral neutral, LWhitebalanceMethod method) =>
         neutral.LViewerEstimateStart(method);
     internal static void TViewerToolAttach(LViewerNeutral neutral, Action<bool, LNeutralTarget> handler) =>
-        neutral.LViewerToolChange += handler;
+        neutral.LViewerToolChanged += handler;
     internal static void TViewerNeutralAttach(LViewerNeutral neutral, Action<LNeutralSample> handler) =>
-        neutral.LViewerNeutralChange += handler;
+        neutral.LViewerNeutralChanged += handler;
     internal static void TViewerEstimateAttach(LViewerNeutral neutral, Action<LNeutralWheel> handler) =>
-        neutral.LViewerEstimateChange += handler;
+        neutral.LViewerEstimateChanged += handler;
     internal static void TViewerFocusAttach(LViewerNeutral neutral, Action handler) =>
-        neutral.LViewerFocusApply += handler;
+        neutral.LViewerFocusApplied += handler;
     internal static LCrop TCropRead(LViewer viewer) => viewer.LCrop;
     internal static LCropDrag TCropDragRead(LViewer viewer) => viewer.LCropDrag;
-    internal static void TCropAttach(LCrop crop, Action handler) => crop.LCropApply += handler;
-    internal static void TCropVideoAttach(LCrop crop, Action handler) => crop.LCropVideoChange += handler;
-    internal static void TCropCaptureAttach(LCropDrag drag, Action<bool> handler) => drag.LCropCaptureApply += handler;
+    internal static void TCropAttach(LCrop crop, Action handler) => crop.LCropApplied += handler;
+    internal static void TCropVideoAttach(LCrop crop, Action handler) => crop.LCropVideoChanged += handler;
+    internal static void TCropCaptureAttach(LCropDrag drag, Action<bool> handler) =>
+        drag.LCropCaptureApplied += handler;
     internal static void TCropSizeHandle(LCrop crop, double width, double height) =>
         crop.LCropSizeHandle(width, height);
     internal static void TCropActiveSet(LCrop crop, bool active) => crop.LCropActiveSet(active);
@@ -265,7 +266,7 @@ internal static partial class TInterface
     internal static void TCropRectSet(LCrop crop, LCropbox? rect) => crop.LCropRectSet(rect);
     internal static void TCropHide(LCrop crop) => crop.LCropHide();
     internal static LCropBox TCropBoxRead(LCrop crop) => crop.LCropBoxRead();
-    internal static IReadOnlyList<LCropHandle> TCropHandlesRead(LCrop crop) => crop.LCropHandlesRead();
+    internal static IReadOnlyList<LCropGrip> TCropHandlesRead(LCrop crop) => crop.LCropHandlesRead();
     internal static LCropShade TCropShadeRead(LCrop crop) => crop.LCropShadeRead();
     internal static LCropbox TCropVideoRead(LCrop crop) => crop.LCropVideoRead();
     internal static LCropbox? TCropPixelRead(LCrop crop) => crop.LCropPixelRead();
@@ -331,9 +332,9 @@ internal static partial class TInterface
     internal static bool TViewerSurfaceMatch(LViewer viewer, nint foreground, nint surface, nint overlay) =>
         viewer.LViewerSurfaceMatch(foreground, surface, overlay);
     internal static void TViewerPlayerAttach(LViewerMedia media, Action handler) =>
-        media.LViewerPlayerCreate += handler;
+        media.LViewerPlayerCreated += handler;
     internal static void TViewerHostAttach(LViewerRenderer renderer, Action handler) =>
-        renderer.LViewerHostApply += handler;
+        renderer.LViewerHostApplied += handler;
     internal static Task TViewerLoadStart(LViewerMedia media, string path, TimeSpan position, bool? playing) =>
         media.LViewerLoadStart(new LViewerIntent(path, position, playing));
     internal static Task TViewerFlyleafApply(
@@ -345,16 +346,16 @@ internal static partial class TInterface
     internal static void TViewerClose(LViewerMedia media) => media.LViewerClose();
     internal static void TViewerClockAttach(LViewerPlayback playback, Action start, Action stop)
     {
-        playback.LViewerClockStart += start;
-        playback.LViewerClockStop += stop;
+        playback.LViewerClockStarted += start;
+        playback.LViewerClockStopped += stop;
     }
     internal static void TViewerTickAttach(LViewerPlayback playback, Action<TimeSpan> handler) =>
-        playback.LViewerClockTick += handler;
+        playback.LViewerClockTicked += handler;
     internal static void TViewerLoupeAttach(LViewerPlayback playback, Action play, Action pause, Action<TimeSpan> seek)
     {
-        playback.LViewerLoupePlay += play;
-        playback.LViewerLoupePause += pause;
-        playback.LViewerLoupeSeek += seek;
+        playback.LViewerLoupePlayed += play;
+        playback.LViewerLoupePaused += pause;
+        playback.LViewerLoupeSought += seek;
     }
     internal static void TViewerPlay(LViewerPlayback playback) => playback.LViewerPlay();
     internal static void TViewerPause(LViewerPlayback playback) => playback.LViewerPause();
@@ -420,13 +421,13 @@ internal static partial class TInterface
         };
 
     internal static LInfo TInfoCreate(LViewer viewer) => new(viewer);
-    internal static void TInfoAttach(LInfo info, Action handler) => info.LInfoChange += handler;
+    internal static void TInfoAttach(LInfo info, Action handler) => info.LInfoChanged += handler;
     internal static void TInfoDetach(LInfo info) => info.LInfoDetach();
     internal static IReadOnlyList<LInfoRow> TInfoRowsRead(LInfo info) => info.LInfoRowsRead();
 
     internal static LSource TSourceCreate(LViewer viewer, bool audioAllowed) => new(viewer, audioAllowed);
     internal static void TSourcePathAttach(LSource source, Action<string> handler) =>
-        source.LSourcePathApply += handler;
+        source.LSourcePathApplied += handler;
     internal static void TSourceRefuseAttach(LSource source, Action<string, string> handler) =>
         source.LSourceRefuse += handler;
     internal static string TSourceFilterRead(LSource source) => source.LSourceFilterRead();
@@ -439,17 +440,17 @@ internal static partial class TInterface
     internal static LSection TSectionCreate(LFlow flow) => new(flow);
     internal static void TSectionAttach(LSection section, Action change, Action select)
     {
-        section.LSectionChange += change;
-        section.LSectionSelectApply += select;
+        section.LSectionChanged += change;
+        section.LSectionSelectApplied += select;
     }
     internal static void TSectionDragAttach(LSection section, Action<int> start, Action<int> end, Action<int, int> move)
     {
-        section.LSectionDrag.LSectionDragStart += start;
+        section.LSectionDrag.LSectionDragStarted += start;
         section.LSectionDrag.LSectionDragEnd += end;
-        section.LSectionDrag.LSectionRowMove += move;
+        section.LSectionDrag.LSectionRowMoved += move;
     }
     internal static void TSectionEnabledAttach(LSection section, Action<bool> handler) =>
-        section.LSectionEnabledApply += handler;
+        section.LSectionEnabledApplied += handler;
     internal static IReadOnlyList<LSectionRow> TSectionRowsRead(LSection section) => section.LSectionRowsRead();
     internal static string TSectionTitleRead(LSection section) => section.LSectionTitleRead();
     internal static bool TSectionPressHandle(LSection section, int index, int clicks, double x, double y) =>

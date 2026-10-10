@@ -13,7 +13,7 @@ internal static partial class TAuditTruthWalker
         foreach (MemberDeclarationSyntax member in TAuditScopeRead(parts))
         {
             if (member is not (MethodDeclarationSyntax or PropertyDeclarationSyntax)
-                || TAuditBinder.TAuditSymbolRead(member) is not { } symbol)
+                || TAuditBinderSymbol.TAuditSymbolRead(member) is not { } symbol)
             {
                 continue;
             }
@@ -34,8 +34,8 @@ internal static partial class TAuditTruthWalker
             {
                 InvocationExpressionSyntax call => TAuditSendCheck(call, direct),
                 ObjectCreationExpressionSyntax creation
-                    => TAuditBinder.TAuditTypeRead(creation.Type) is { } built
-                       && TAuditBinder.TAuditLogicCheck(built)
+                    => TAuditBinderSymbol.TAuditTypeRead(creation.Type) is { } built
+                       && TAuditBinderSide.TAuditLogicCheck(built)
                        && built.Name.StartsWith(TAuditTruthSetting.TAuditRequestPrefix, StringComparison.Ordinal),
                 _ => false
             };
@@ -56,12 +56,12 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditSendCheck(InvocationExpressionSyntax call, bool direct)
     {
-        if (TAuditBinder.TAuditSymbolRead(call) is not { } callee)
+        if (TAuditBinderSymbol.TAuditSymbolRead(call) is not { } callee)
         {
             return false;
         }
 
-        return (TAuditBinder.TAuditLogicCheck(callee)
+        return (TAuditBinderSide.TAuditLogicCheck(callee)
                 && TAuditTruthSetting.TAuditSendRoots.Contains(callee.Name, StringComparer.Ordinal))
                || TAuditGateCheck(callee)
                || (!direct && TAuditSendNames.Contains(callee));
@@ -70,7 +70,7 @@ internal static partial class TAuditTruthWalker
     private static bool TAuditGateCheck(ISymbol callee)
     {
         return callee is IMethodSymbol { MethodKind: MethodKind.Ordinary, IsStatic: false } method
-               && TAuditBinder.TAuditConductCheck(method.ContainingType);
+               && TAuditBinderSide.TAuditConductCheck(method.ContainingType);
     }
 
     private static void TAuditSequenceScan(IReadOnlyList<TypeDeclarationSyntax> type, List<TViolation> violations)
@@ -89,10 +89,10 @@ internal static partial class TAuditTruthWalker
 
                     violations.Add(new TViolation(
                         scope.SyntaxTree.FilePath,
-                        TAuditLineRead(sends[later]),
+                        TAuditTruthReference.TAuditLineRead(sends[later]),
                         TAuditMemberRead(scope),
-                        "Shape",
-                        $"sends a second request after line {TAuditLineRead(sends[earlier])}"));
+                        "Misfiring",
+                        $"sends a second request after line {TAuditTruthReference.TAuditLineRead(sends[earlier])}"));
                     later = sends.Count;
                     break;
                 }
@@ -135,6 +135,8 @@ internal static partial class TAuditTruthWalker
     private static bool TAuditJumpCheck(IfStatementSyntax branch)
     {
         return branch.Else is null && branch.Statement.DescendantNodesAndSelf().Any(node =>
-            node is ReturnStatementSyntax or ThrowStatementSyntax or ContinueStatementSyntax or BreakStatementSyntax);
+            node is ReturnStatementSyntax or ThrowStatementSyntax or BreakStatementSyntax
+                or ContinueStatementSyntax
+            && node.Ancestors().TakeWhile(above => above != branch).All(above => above is BlockSyntax));
     }
 }

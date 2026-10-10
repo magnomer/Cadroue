@@ -23,21 +23,21 @@ public partial class PDeck : UserControl
     {
         pStrip = pStripOwner;
         lDeck = new LDeck(pStripOwner.LStrip);
-        pStripOwner.LStrip.LStripTabAdd += PDeckAddHandle;
-        pStripOwner.LStrip.LStripTabClose += PDeckCloseHandle;
-        lDeck.LDeckHide += PDeckHideHandle;
-        lDeck.LDeckShow += PDeckShowHandle;
-        lDeck.LDeckEmptyChange += PDeckNoticeApply;
+        pStripOwner.LStrip.LStripTabAdded += PDeckAddHandle;
+        pStripOwner.LStrip.LStripTabClosed += PDeckCloseHandle;
+        lDeck.LDeckHidden += PDeckHideHandle;
+        lDeck.LDeckRevealed += PDeckShowHandle;
+        lDeck.LDeckEmptyChanged += PDeckNoticeApply;
         PDeckNoticeApply();
     }
 
     private void PDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
-        pStrip.LStrip.LStripTabAdd -= PDeckAddHandle;
-        pStrip.LStrip.LStripTabClose -= PDeckCloseHandle;
-        lDeck.LDeckHide -= PDeckHideHandle;
-        lDeck.LDeckShow -= PDeckShowHandle;
-        lDeck.LDeckEmptyChange -= PDeckNoticeApply;
+        pStrip.LStrip.LStripTabAdded -= PDeckAddHandle;
+        pStrip.LStrip.LStripTabClosed -= PDeckCloseHandle;
+        lDeck.LDeckHidden -= PDeckHideHandle;
+        lDeck.LDeckRevealed -= PDeckShowHandle;
+        lDeck.LDeckEmptyChanged -= PDeckNoticeApply;
         lDeck.LDeckClose();
     }
 

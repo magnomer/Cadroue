@@ -17,7 +17,7 @@ public sealed class LFlowSection
         lSegment.LSegmentFaultNotice += LFlowFaultHandle;
     }
 
-    public event Action<IReadOnlyList<LPiece>, int?>? LFlowSectionChange;
+    public event Action<IReadOnlyList<LPiece>, int?>? LFlowSectionChanged;
 
     public LSegment LFlowSegment => lSegment;
 
@@ -53,7 +53,7 @@ public sealed class LFlowSection
     }
 
     public void LFlowSectionRaise() =>
-        LFlowSectionChange?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
+        LFlowSectionChanged?.Invoke(lSegment.LSegmentListRead(), lSegment.LSegmentSelectionRead());
 
     public void LFlowSectionAdd()
     {
@@ -308,7 +308,7 @@ public sealed class LFlowSection
     {
         lFlow.LFlowFiredSet(true);
         lFlow.LFlowSectionSelect(lActive);
-        LFlowSectionChange?.Invoke(lSections, lActive);
+        LFlowSectionChanged?.Invoke(lSections, lActive);
     }
 
     private void LFlowFaultHandle(LSegmentFault lFault, int lCount)

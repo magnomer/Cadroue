@@ -6,7 +6,6 @@ namespace Cadroue.Media;
 
 public static class LKeyframeCacheStore
 {
-    private const string LKeyframeCacheFolder = "Cadroue";
     private const string LKeyframeSubFolder = "LKeyframeList";
 
     public static bool LKeyframeCacheLoad(
@@ -26,7 +25,7 @@ public static class LKeyframeCacheStore
         try
         {
             string json = File.ReadAllText(cachePath);
-            LKeyframeCacheRecord? record = JsonSerializer.Deserialize<LKeyframeCacheRecord>(json);
+            LKeyframeCacheDocument? record = JsonSerializer.Deserialize<LKeyframeCacheDocument>(json);
             if (record is null || !LKeyframeCacheMatch(identity, record))
             {
                 return false;
@@ -59,7 +58,7 @@ public static class LKeyframeCacheStore
         int spanGridMilliseconds)
     {
         string cachePath = LKeyframePathCreate(identity);
-        var record = new LKeyframeCacheRecord
+        var record = new LKeyframeCacheDocument
         {
             LSourcePath = identity.LKeyframeSourcePath,
             LSourceLength = identity.LKeyframeSourceLength,
@@ -102,7 +101,7 @@ public static class LKeyframeCacheStore
         }
     }
 
-    private static bool LKeyframeCacheMatch(LKeyframeSourceIdentity identity, LKeyframeCacheRecord record)
+    private static bool LKeyframeCacheMatch(LKeyframeSourceIdentity identity, LKeyframeCacheDocument record)
     {
         return string.Equals(record.LSourcePath, identity.LKeyframeSourcePath, StringComparison.OrdinalIgnoreCase)
             && record.LSourceLength == identity.LKeyframeSourceLength
@@ -113,15 +112,25 @@ public static class LKeyframeCacheStore
 
     private static string LKeyframePathCreate(LKeyframeSourceIdentity identity)
     {
-        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(
-            appData,
-            LKeyframeCacheFolder,
+            LKeyframeHomeRead(),
             LKeyframeSubFolder,
             identity.LKeyframeCacheKey + ".json");
     }
 
-    private sealed class LKeyframeCacheRecord
+    public static string LKeyframeHomeRead()
+    {
+        string? lKeyframeHome = AppContext.GetData(LDepotHome.LDepotHomeKey) as string;
+        if (!string.IsNullOrWhiteSpace(lKeyframeHome))
+        {
+            return lKeyframeHome.Trim();
+        }
+
+        string lKeyframeApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(lKeyframeApplicationData, LDepotHome.LDepotHomeFolder);
+    }
+
+    private sealed class LKeyframeCacheDocument
     {
         public string LSourcePath { get; set; } = "";
 

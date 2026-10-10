@@ -27,7 +27,7 @@ public readonly partial record struct LPiece(
         init => lPieceSuffix = value;
     }
 
-    public static LPiece LPieceCreate(LSidecarSectionRecord lPieceRecord) =>
+    public static LPiece LPieceCreate(LSidecarSectionEntry lPieceRecord) =>
         new(
             TimeSpan.FromMilliseconds(lPieceRecord.LSidecarStartMilliseconds),
             TimeSpan.FromMilliseconds(lPieceRecord.LSidecarEndMilliseconds),
@@ -40,7 +40,7 @@ public readonly partial record struct LPiece(
             LPieceDetected = lPieceRecord.LSidecarDetected
         };
 
-    public LSidecarSectionRecord LPieceRecordCreate() => new()
+    public LSidecarSectionEntry LPieceRecordCreate() => new()
     {
         LSidecarStartMilliseconds = (long)LPieceOrigin.TotalMilliseconds,
         LSidecarEndMilliseconds = (long)LPieceEnd.TotalMilliseconds,

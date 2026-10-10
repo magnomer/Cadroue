@@ -24,11 +24,11 @@ public sealed class LWhitebalance
     private LNeutralTarget lWhitebalanceTarget = LNeutralTarget.LNeutralTargetGrey;
     private string lWhitebalanceStatus = string.Empty;
 
-    public event Action? LWhitebalanceChange;
+    public event Action? LWhitebalanceChanged;
 
-    public event Action<LWhitebalanceMethod>? LWhitebalanceEstimateChange;
+    public event Action<LWhitebalanceMethod>? LWhitebalanceEstimateChanged;
 
-    public event Action<bool, LNeutralTarget>? LWhitebalanceToolChange;
+    public event Action<bool, LNeutralTarget>? LWhitebalanceToolChanged;
 
     public LWorkVideoStep LWhitebalanceStep => lWhitebalanceStep;
 
@@ -196,7 +196,7 @@ public sealed class LWhitebalance
         }
 
         lWhitebalanceEstimate = lEstimate;
-        LWhitebalanceChange?.Invoke();
+        LWhitebalanceChanged?.Invoke();
     }
 
     public void LWhitebalanceToolSet(bool lArmed, LNeutralTarget lTarget)
@@ -236,7 +236,7 @@ public sealed class LWhitebalance
         }
 
         lWhitebalancePersistent = lPersistent;
-        LWhitebalanceChange?.Invoke();
+        LWhitebalanceChanged?.Invoke();
     }
 
     public void LWhitebalanceCapableSet(bool lCapable, bool lPreview)
@@ -265,7 +265,7 @@ public sealed class LWhitebalance
         if (lPrevious != LWhitebalanceMethod && !LWhitebalanceManual)
         {
             lWhitebalanceEstimate = new LNeutralWheel(0, 0, false);
-            LWhitebalanceEstimateChange?.Invoke(LWhitebalanceMethod);
+            LWhitebalanceEstimateChanged?.Invoke(LWhitebalanceMethod);
         }
 
         return true;
@@ -305,7 +305,7 @@ public sealed class LWhitebalance
     {
         if (lChanged)
         {
-            LWhitebalanceChange?.Invoke();
+            LWhitebalanceChanged?.Invoke();
         }
 
         if (!lWhitebalanceToolPending)
@@ -314,7 +314,7 @@ public sealed class LWhitebalance
         }
 
         lWhitebalanceToolPending = false;
-        LWhitebalanceToolChange?.Invoke(lWhitebalanceToolArmed, lWhitebalanceTarget);
+        LWhitebalanceToolChanged?.Invoke(lWhitebalanceToolArmed, lWhitebalanceTarget);
     }
 }
 

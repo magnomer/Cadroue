@@ -14,7 +14,7 @@ internal static class TAuditStrictWalker
         {
             foreach (TypeDeclarationSyntax type in root.DescendantNodes().OfType<TypeDeclarationSyntax>())
             {
-                if (TAuditBinder.TAuditSymbolRead(type) is not INamedTypeSymbol key)
+                if (TAuditBinderSymbol.TAuditSymbolRead(type) is not INamedTypeSymbol key)
                 {
                     continue;
                 }
@@ -30,7 +30,7 @@ internal static class TAuditStrictWalker
 
             if (TAuditVeneerCheck(root))
             {
-                TAuditGlyphScan(root, violations);
+                TAuditHomoglyphScan(root, violations);
                 TAuditPlainScan(root, violations);
             }
         }
@@ -46,12 +46,12 @@ internal static class TAuditStrictWalker
 
             foreach (TypeDeclarationSyntax part in type)
             {
-                TAuditStorageScan(part, veneer, violations);
+                TAuditHoardingScan(part, veneer, violations);
                 if (veneer)
                 {
-                    TAuditCallScan(part.Identifier.ValueText, part.Members, violations);
+                    TAuditStrictMeddling.TAuditMeddlingScan(part.Identifier.ValueText, part.Members, violations);
                     TAuditEngineScan(part, part.Identifier.ValueText, violations);
-                    TAuditShellScan(part, violations);
+                    TAuditFreelancingScan(part, violations);
                 }
             }
         }
@@ -80,7 +80,7 @@ internal static class TAuditStrictWalker
                         member.SyntaxTree.FilePath,
                         TAuditLineRead(member),
                         $"{owner}.{member.Identifier.ValueText}",
-                        "Call",
+                        "Meddling",
                         $"{value.Kind()} where only a call may stand"));
                 }
             }
@@ -92,7 +92,7 @@ internal static class TAuditStrictWalker
         }
     }
 
-    private static void TAuditStorageScan(TypeDeclarationSyntax part, bool veneer, List<TViolation> violations)
+    private static void TAuditHoardingScan(TypeDeclarationSyntax part, bool veneer, List<TViolation> violations)
     {
         string owner = part.Identifier.ValueText;
         foreach (BaseFieldDeclarationSyntax field in part.Members.OfType<BaseFieldDeclarationSyntax>())
@@ -114,7 +114,7 @@ internal static class TAuditStrictWalker
                     field.SyntaxTree.FilePath,
                     TAuditLineRead(variable),
                     $"{owner}.{variable.Identifier.ValueText}",
-                    veneer ? "Storage" : "Static",
+                    veneer ? "Hoarding" : "Sharing",
                     reason));
             }
         }
@@ -131,7 +131,7 @@ internal static class TAuditStrictWalker
                 property.SyntaxTree.FilePath,
                 TAuditLineRead(property),
                 $"{owner}.{property.Identifier.ValueText}",
-                "Storage",
+                "Hoarding",
                 "auto-property in a surface type"));
         }
 
@@ -141,12 +141,12 @@ internal static class TAuditStrictWalker
                 parameter.SyntaxTree.FilePath,
                 TAuditLineRead(parameter),
                 $"{owner}.{parameter.Identifier.ValueText}",
-                "Storage",
+                "Hoarding",
                 "primary constructor parameter in a surface type"));
         }
     }
 
-    private static void TAuditShellScan(TypeDeclarationSyntax part, List<TViolation> violations)
+    private static void TAuditFreelancingScan(TypeDeclarationSyntax part, List<TViolation> violations)
     {
         string owner = part.Identifier.ValueText;
         foreach (MemberDeclarationSyntax member in part.Members.Where(member =>
@@ -157,7 +157,7 @@ internal static class TAuditStrictWalker
                 member.SyntaxTree.FilePath,
                 TAuditLineRead(member),
                 $"{owner}.{TAuditMemberRead(member)}",
-                "Shell",
+                "Freelancing",
                 $"{member.Kind()} where only a constructor may stand"));
         }
     }
@@ -169,169 +169,6 @@ internal static class TAuditStrictWalker
                && accessors.Accessors.All(accessor => accessor.Body is null && accessor.ExpressionBody is null);
     }
 
-    private static void TAuditCallScan(
-        string owner, IEnumerable<MemberDeclarationSyntax> members, List<TViolation> violations)
-    {
-        foreach (MemberDeclarationSyntax member in members)
-        {
-            List<SyntaxNode> breaches = [];
-            foreach (SyntaxNode body in TAuditBodyRead(member))
-            {
-                TAuditBodyScan(body, breaches);
-            }
-
-            HashSet<int> seen = [];
-            foreach (SyntaxNode breach in breaches.SelectMany(TAuditNestRead))
-            {
-                int line = TAuditLineRead(breach);
-                if (seen.Add(line))
-                {
-                    violations.Add(new TViolation(
-                        member.SyntaxTree.FilePath,
-                        line,
-                        $"{owner}.{TAuditMemberRead(member)}",
-                        "Call",
-                        $"{breach.Kind()} where only a call may stand"));
-                }
-            }
-        }
-    }
-
-    private static IEnumerable<SyntaxNode> TAuditNestRead(SyntaxNode breach)
-    {
-        return breach.DescendantNodesAndSelf().Where(node =>
-            node == breach
-            || node is StatementSyntax and not BlockSyntax
-            || node is SwitchExpressionArmSyntax);
-    }
-
-    private static IEnumerable<SyntaxNode> TAuditBodyRead(MemberDeclarationSyntax member)
-    {
-        IEnumerable<SyntaxNode?> bodies = member switch
-        {
-            ConstructorDeclarationSyntax constructor =>
-                [constructor.Initializer?.ArgumentList, constructor.Body, constructor.ExpressionBody],
-            BaseMethodDeclarationSyntax method => [method.Body, method.ExpressionBody],
-            BaseFieldDeclarationSyntax field => field.Declaration.Variables
-                .Select(variable => (SyntaxNode?)variable.Initializer?.Value),
-            PropertyDeclarationSyntax { ExpressionBody: { } arrow } => [arrow],
-            IndexerDeclarationSyntax { ExpressionBody: { } arrow } => [arrow],
-            BasePropertyDeclarationSyntax { AccessorList: { } accessors } property => accessors.Accessors
-                .SelectMany(accessor => new SyntaxNode?[] { accessor.Body, accessor.ExpressionBody })
-                .Append((property as PropertyDeclarationSyntax)?.Initializer?.Value),
-            _ => []
-        };
-        return bodies.OfType<SyntaxNode>();
-    }
-
-    private static void TAuditBodyScan(SyntaxNode body, List<SyntaxNode> breaches)
-    {
-        switch (body)
-        {
-            case BlockSyntax block:
-                foreach (StatementSyntax statement in block.Statements)
-                {
-                    TAuditStatementScan(statement, breaches);
-                }
-
-                break;
-            case ArrowExpressionClauseSyntax arrow:
-                TAuditInvocationScan(arrow.Expression, breaches);
-                break;
-            case ArgumentListSyntax arguments:
-                TAuditArgumentScan(arguments, breaches);
-                break;
-            case ExpressionSyntax expression:
-                TAuditInvocationScan(expression, breaches);
-                break;
-            default:
-                breaches.Add(body);
-                break;
-        }
-    }
-
-    private static void TAuditStatementScan(StatementSyntax statement, List<SyntaxNode> breaches)
-    {
-        switch (statement)
-        {
-            case ExpressionStatementSyntax { Expression: var expression }:
-                TAuditInvocationScan(expression, breaches);
-                break;
-            case ReturnStatementSyntax { Expression: { } expression }:
-                TAuditInvocationScan(expression, breaches);
-                break;
-            default:
-                breaches.Add(statement);
-                break;
-        }
-    }
-
-    private static void TAuditInvocationScan(ExpressionSyntax expression, List<SyntaxNode> breaches)
-    {
-        if (expression is not InvocationExpressionSyntax call)
-        {
-            breaches.Add(expression);
-            return;
-        }
-
-        switch (call.Expression)
-        {
-            case SimpleNameSyntax:
-                break;
-            case MemberAccessExpressionSyntax access when access.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                TAuditOperandScan(access.Expression, breaches);
-                break;
-            default:
-                breaches.Add(call.Expression);
-                break;
-        }
-
-        if (TAuditBinder.TAuditSymbolRead(call) is IMethodSymbol method
-            && TAuditStrictSetting.TAuditQueryTypes.Contains(
-                (method.ReducedFrom ?? method).ContainingType.ToDisplayString(), StringComparer.Ordinal))
-        {
-            breaches.Add(call);
-        }
-
-        TAuditArgumentScan(call.ArgumentList, breaches);
-    }
-
-    private static void TAuditArgumentScan(ArgumentListSyntax arguments, List<SyntaxNode> breaches)
-    {
-        foreach (ArgumentSyntax argument in arguments.Arguments)
-        {
-            if (!argument.RefKindKeyword.IsKind(SyntaxKind.None))
-            {
-                breaches.Add(argument);
-                continue;
-            }
-
-            TAuditOperandScan(argument.Expression, breaches);
-        }
-    }
-
-    private static void TAuditOperandScan(ExpressionSyntax operand, List<SyntaxNode> breaches)
-    {
-        switch (operand)
-        {
-            case SimpleNameSyntax or ThisExpressionSyntax or BaseExpressionSyntax or PredefinedTypeSyntax
-                or LiteralExpressionSyntax:
-                break;
-            case MemberAccessExpressionSyntax access when access.IsKind(SyntaxKind.SimpleMemberAccessExpression):
-                TAuditOperandScan(access.Expression, breaches);
-                break;
-            case InvocationExpressionSyntax call:
-                TAuditInvocationScan(call, breaches);
-                break;
-            case AnonymousFunctionExpressionSyntax lambda:
-                TAuditBodyScan(lambda.Body, breaches);
-                break;
-            default:
-                breaches.Add(operand);
-                break;
-        }
-    }
-
     private static void TAuditEngineScan(SyntaxNode part, string owner, List<TViolation> violations)
     {
         HashSet<int> seen = [];
@@ -340,7 +177,7 @@ internal static class TAuditStrictWalker
             .OfType<SimpleNameSyntax>();
         foreach (SimpleNameSyntax name in names)
         {
-            if (!TAuditBinder.TAuditLogicCheck(name))
+            if (!TAuditBinderSide.TAuditLogicCheck(name))
             {
                 continue;
             }
@@ -357,12 +194,12 @@ internal static class TAuditStrictWalker
                 part.SyntaxTree.FilePath,
                 line,
                 $"{owner}.{label}",
-                "Depth",
+                "Prying",
                 $"names {name.Identifier.ValueText} from below the driver"));
         }
     }
 
-    public static void TAuditGlyphScan(SyntaxNode root, List<TViolation> violations)
+    public static void TAuditHomoglyphScan(SyntaxNode root, List<TViolation> violations)
     {
         foreach (SyntaxToken token in root.DescendantTokens())
         {
@@ -375,67 +212,9 @@ internal static class TAuditStrictWalker
                 root.SyntaxTree.FilePath,
                 TAuditLineRead(token.Parent ?? root),
                 token.ValueText,
-                "Glyph",
+                "Homoglyph",
                 "identifier carries a non-ASCII glyph"));
         }
-    }
-
-    public static ExpressionSyntax TAuditCoreRead(ExpressionSyntax condition)
-    {
-        ExpressionSyntax core = condition;
-        while (true)
-        {
-            core = core switch
-            {
-                ParenthesizedExpressionSyntax wrapped => wrapped.Expression,
-                PrefixUnaryExpressionSyntax { RawKind: (int)SyntaxKind.LogicalNotExpression } negated
-                    => negated.Operand,
-                _ => core
-            };
-            if (core is not (ParenthesizedExpressionSyntax or PrefixUnaryExpressionSyntax))
-            {
-                return core;
-            }
-        }
-    }
-
-    public static bool TAuditPatternCheck(PatternSyntax pattern)
-    {
-        return pattern switch
-        {
-            ConstantPatternSyntax constant => TAuditNullCheck(constant.Expression),
-            UnaryPatternSyntax not => TAuditPatternCheck(not.Pattern),
-            DeclarationPatternSyntax => true,
-            VarPatternSyntax => true,
-            TypePatternSyntax => true,
-            RecursivePatternSyntax { PositionalPatternClause: null } shape
-                => shape.PropertyPatternClause?.Subpatterns.Count is null or 0,
-            _ => false
-        };
-    }
-
-    public static bool TAuditNullCheck(ExpressionSyntax expression)
-    {
-        return expression.IsKind(SyntaxKind.NullLiteralExpression)
-               || expression.IsKind(SyntaxKind.DefaultLiteralExpression);
-    }
-
-    public static bool TAuditDataCheck(SyntaxNode node)
-    {
-        foreach (SyntaxNode child in node.DescendantNodesAndSelf())
-        {
-            bool logic = child switch
-            {
-                IdentifierNameSyntax or MemberBindingExpressionSyntax => TAuditBinder.TAuditEngineCheck(child),
-                _ => false
-            };
-            if (logic)
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     public static string TAuditMemberRead(MemberDeclarationSyntax member)

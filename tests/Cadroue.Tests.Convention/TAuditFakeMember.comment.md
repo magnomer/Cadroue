@@ -1,4 +1,5 @@
 # TAuditFakeMember.cs
+Hash: `3c2c44c59c44edbc`
 
 ## `internal sealed class TAuditFakeMember(string key, string name, string path, int line, bool stored)`
 

@@ -42,13 +42,13 @@ public sealed class LFunnelRule
 
     public bool LFunnelRuleFields => LFunnelRuleForm == LFunnelForm.LFunnelFormFilename;
 
-    public LSceneFunnelMatch LFunnelRuleContains { get; internal set; } = new();
+    public LSceneFunnelCondition LFunnelRuleContains { get; internal set; } = new();
 
-    public LSceneFunnelMatch LFunnelRulePrefix { get; internal set; } = new();
+    public LSceneFunnelCondition LFunnelRulePrefix { get; internal set; } = new();
 
-    public LSceneFunnelMatch LFunnelRuleEnd { get; internal set; } = new();
+    public LSceneFunnelCondition LFunnelRuleEnd { get; internal set; } = new();
 
-    public LSceneFunnelMatch LFunnelRuleExtension { get; internal set; } = new();
+    public LSceneFunnelCondition LFunnelRuleExtension { get; internal set; } = new();
 
     public string LFunnelRuleRegex { get; internal set; } = string.Empty;
 

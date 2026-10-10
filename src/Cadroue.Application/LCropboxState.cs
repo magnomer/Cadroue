@@ -12,7 +12,7 @@ public sealed class LCropboxState
     private int lCropboxRatioWidth;
     private int lCropboxRatioHeight;
 
-    public event Action? LCropboxStateChange;
+    public event Action? LCropboxStateChanged;
 
     public LWorkCrop LCropboxStateCrop => lCropboxStateCrop;
 
@@ -97,7 +97,7 @@ public sealed class LCropboxState
     public void LCropboxStateReset() =>
         LCropboxStateSet(LWorkCrop.LWorkCropCreate(), false, false, false, 0, 0);
 
-    private void LCropboxStateRaise() => LCropboxStateChange?.Invoke();
+    private void LCropboxStateRaise() => LCropboxStateChanged?.Invoke();
 }
 
 public sealed class LCropboxEdgeLock

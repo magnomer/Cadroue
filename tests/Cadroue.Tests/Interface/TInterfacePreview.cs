@@ -44,7 +44,7 @@ internal static partial class TInterface
 
     internal static LColorKind? TColorKindParse(string token) => LColor.LColorKindParse(token);
     internal static string TColorKindFormat(LColorKind kind) => LColor.LColorKindFormat(kind);
-    internal static LEditPlan TEditPersistentRead(LSidecarEditRecord record) => LEdit.LEditPersistentRead(record);
+    internal static LEditPlan TEditPersistentRead(LSidecarEditEntry record) => LEdit.LEditPersistentRead(record);
     internal static LEditPlan TEditPlanResolve(
         LEditPlan? saved, LEditPlan? persistent, bool cropPersistent = false, bool skipPersistent = false) =>
         LEdit.LEditPlanResolve(saved, persistent, cropPersistent, skipPersistent);
@@ -55,13 +55,13 @@ internal static partial class TInterface
         new(steps) { LWorkAudioSkip = skip };
     internal static LEditPlan TEditPlanCreate(LWorkCrop crop, LWorkVideo video, bool cropApply) =>
         new(crop, video, cropApply);
-    internal static LSidecarEditRecord TEditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
+    internal static LSidecarEditEntry TEditPersistentCreate(LEditPlan plan) => LEdit.LEditPersistentCreate(plan);
     internal static LWorkVideo TEditVideoCreate(IReadOnlyList<LWorkVideoStep> steps, bool mpvOnlyCapable) =>
         LEdit.LEditVideoCreate(steps, mpvOnlyCapable);
     internal static LWorkVideo TEditVideoCreate(
         IReadOnlyList<LWorkVideoStep> steps, bool mpvOnlyCapable, bool eqCapable) =>
         LEdit.LEditVideoCreate(steps, mpvOnlyCapable, eqCapable);
-    internal static LSidecarEditRecord TSidecarEditCreate(string kind, bool active, double value) =>
+    internal static LSidecarEditEntry TSidecarEditCreate(string kind, bool active, double value) =>
         new()
         {
             LSidecarSteps = new List<LSidecarVideoStep>
@@ -69,7 +69,7 @@ internal static partial class TInterface
                 new() { LSidecarKind = kind, LSidecarActive = active, LSidecarValue = value }
             }
         };
-    internal static LSidecarEditRecord TSidecarEditCreate(
+    internal static LSidecarEditEntry TSidecarEditCreate(
         string kind, bool active, double value, double? red, double? green, double? blue, double? protection) =>
         new()
         {

@@ -1,0 +1,14 @@
+{
+  "repository": "magnomer/Cadroue",
+  "records": "../docs-analysis/records/AuditObjectHistory",
+  "lineage": {
+    "records": "../docs-analysis/records/AuditHistoryLineage"
+  },
+  "report": {
+    "directory": "../docs-analysis",
+    "versionFile": "../version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditObjectHistory-"
+  },
+  "packs": ["Microsoft.NETCore.App", "Microsoft.WindowsDesktop.App"]
+}

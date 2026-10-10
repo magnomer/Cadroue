@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace Cadroue.Core;
 
-public sealed class LSidecarEditRecord
+public sealed class LSidecarEditEntry
 {
     public int LSidecarCropLeft { get; set; }
     public int LSidecarCropTop { get; set; }
@@ -109,7 +109,7 @@ public sealed class LSidecarEqualizerBand
     public double LSidecarBandGain { get; set; }
 }
 
-public sealed class LSidecarAudioRecord
+public sealed class LSidecarAudioEntry
 {
     public bool LSidecarSkip { get; set; }
     public List<LSidecarAudioStep> LSidecarSteps { get; set; } = new();
@@ -123,7 +123,7 @@ public sealed class LSidecarFixStep
     public bool LSidecarRepair { get; set; }
 }
 
-public sealed class LSidecarFixRecord
+public sealed class LSidecarFixEntry
 {
     public List<LSidecarFixStep> LSidecarSteps { get; set; } = new();
     public bool LSidecarSalvageActive { get; set; }
@@ -134,7 +134,7 @@ public sealed class LSidecarFixRecord
         LSidecarSalvageActive || LSidecarSteps.Any(lStep => lStep.LSidecarRepair);
 }
 
-public sealed class LSidecarSectionRecord
+public sealed class LSidecarSectionEntry
 {
     public long LSidecarStartMilliseconds { get; set; }
     public long LSidecarEndMilliseconds { get; set; }
@@ -146,7 +146,7 @@ public sealed class LSidecarSectionRecord
     public bool LSidecarDetected { get; set; }
 }
 
-public sealed class LSidecarDetectorRecord
+public sealed class LSidecarDetectorEntry
 {
     public int LSidecarDetectorKind { get; set; }
     public bool LSidecarDetectorEnabled { get; set; }
@@ -163,22 +163,22 @@ public sealed class LSidecarDetectorRecord
     public string LSidecarDetectorPreset { get; set; } = LDetector.LDetectorTokenDefault;
 }
 
-public sealed class LSidecarSplitRecord
+public sealed class LSidecarSplitEntry
 {
-    public List<LSidecarDetectorRecord> LSidecarSplitDetectors { get; set; } = new();
+    public List<LSidecarDetectorEntry> LSidecarSplitDetectors { get; set; } = new();
 
     public bool LSidecarSplitActive =>
         LSidecarSplitDetectors.Any(lDetector => lDetector.LSidecarDetectorEnabled);
 }
 
-public sealed class LSidecarWaveformRecord
+public sealed class LSidecarWaveformEntry
 {
     public int LSidecarBucketMilliseconds { get; set; }
     public long LSidecarDurationMilliseconds { get; set; }
     public string LSidecarPeaks { get; set; } = string.Empty;
 }
 
-public sealed class LSidecarSourceRecord
+public sealed class LSidecarSourceEntry
 {
     public string LSidecarFileName { get; set; } = string.Empty;
     public string LSidecarRelativePath { get; set; } = string.Empty;

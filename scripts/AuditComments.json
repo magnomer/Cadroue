@@ -1,0 +1,106 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "sources": {
+    "roots": [
+      "languages",
+      "localization",
+      "src",
+      "tests",
+      "themes"
+    ],
+    "files": [
+      "Directory.Build.props",
+      "Cadroue.slnx",
+      "version.json"
+    ],
+    "commentPattern": "*.comment.md",
+    "pairs": {
+      ".xaml.cs": "{base}.xaml.comment.md",
+      ".cs": "{base}.comment.md",
+      ".xaml": "{base}.comment.md",
+      ".csproj": "{base}.comment.md",
+      ".json": "{base}.comment.md",
+      ".props": "{base}.comment.md",
+      ".slnx": "{base}.comment.md"
+    },
+    "excludeSegments": [
+      ".git",
+      ".vs",
+      "bin",
+      "obj",
+      "artifacts",
+      "packages",
+      "node_modules",
+      "publish"
+    ],
+    "excludeSuffixes": [
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ]
+  },
+  "rules": {
+    "maxWords": 20,
+    "forbidden": [
+      ";"
+    ],
+    "sentenceMarks": [
+      ".",
+      "!",
+      "?"
+    ],
+    "abbreviations": [
+      "e.g",
+      "i.e",
+      "etc",
+      "vs",
+      "cf"
+    ]
+  },
+  "remark": {
+    "markers": {
+      ".cs": [
+        "//",
+        "/*"
+      ],
+      ".xaml": [
+        "<!--"
+      ],
+      ".props": [
+        "<!--"
+      ],
+      ".csproj": [
+        "<!--"
+      ],
+      ".slnx": [
+        "<!--"
+      ]
+    },
+    "closers": {
+      "/*": "*/",
+      "<!--": "-->"
+    },
+    "exemptFiles": [
+      "TAuditNameRegistry.cs",
+      "TAuditVerbRegistry.cs"
+    ]
+  },
+  "exempt": {
+    "comments": [
+      "version.comment.md"
+    ]
+  },
+  "ceilings": {
+    "unstamped": 0
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditComments-",
+    "segments": 1
+  }
+}

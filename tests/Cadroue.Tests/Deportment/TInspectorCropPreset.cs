@@ -76,6 +76,26 @@ public sealed class TInspectorCropPreset
     }
 
     [Fact]
+    public void RatioCommit_EchoAfterPreset_KeepsPreset()
+    {
+        LInspector inspector = TInterface.TInspectorCreate();
+        TInterface.TInspectorSourceSet(inspector, 1920, 1080);
+        TInterface.TInspectorLenientSet(inspector, true);
+        TInterface.TInspectorPresetSelect(inspector, 1);
+        TInterface.TInspectorFixedSet(inspector, true);
+        TInterface.TInspectorLenientSet(inspector, true);
+        LWorkCrop before = TInterface.TInspectorCropRead(inspector);
+
+        TInterface.TInspectorRatioCommit(inspector, "16", "0", false);
+        TInterface.TInspectorEdgeCommit(inspector, 0, "7", false);
+
+        Assert.Equal(1, inspector.LInspectorCrop.LInspectorPresetIndex);
+        Assert.True(inspector.LInspectorCrop.LInspectorRatioLenient);
+        Assert.Equal("9", TInterface.TInspectorRatioFormat(inspector, false, "0"));
+        Assert.Equal(before, TInterface.TInspectorCropRead(inspector));
+    }
+
+    [Fact]
     public void RatioCommit_CustomText_KeepsIndexZero_FixedShowsMismatch()
     {
         LInspector inspector = TInterface.TInspectorCreate();

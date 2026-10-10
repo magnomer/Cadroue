@@ -28,8 +28,8 @@ public sealed partial class LSEncoder
     private int lsEncoderHeight;
     private IReadOnlyList<LSVerdictRow> lsEncoderVideoResults = [];
 
-    public event Action? LSEncoderVideoChange;
-    public event Action? LSEncoderSizeChange;
+    public event Action? LSEncoderVideoChanged;
+    public event Action? LSEncoderSizeChanged;
 
     public static IReadOnlyList<LSEncoderTier> LSEncoderTiers => lsEncoderTiers;
 
@@ -78,7 +78,7 @@ public sealed partial class LSEncoder
         }
 
         lsEncoderVideoRate = lResolved;
-        LSEncoderVideoChange?.Invoke();
+        LSEncoderVideoChanged?.Invoke();
         return true;
     }
 
@@ -88,7 +88,7 @@ public sealed partial class LSEncoder
         string[] lItems = LRepertoireCatalog.LRepertoireEncodersRead()
             .Where(lCandidate =>
                 (!lKnown || LRepertoireCatalog.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
-                && LTrialSet.LTrialSetCheck(lCandidate))
+                && LTrialCatalog.LTrialSetCheck(lCandidate))
             .Select(lCandidate => lCandidate.LRepertoireText)
             .ToArray();
         if (string.IsNullOrEmpty(lKeep) || lItems.Contains(lKeep))
@@ -108,7 +108,7 @@ public sealed partial class LSEncoder
         {
             if (string.Equals(lCandidate.LRepertoireText, lText, StringComparison.Ordinal))
             {
-                return LTrialSet.LTrialSetCheck(lCandidate);
+                return LTrialCatalog.LTrialSetCheck(lCandidate);
             }
         }
 
@@ -149,7 +149,7 @@ public sealed partial class LSEncoder
         }
 
         lToken.ThrowIfCancellationRequested();
-        LTrialSet.LTrialSetApply(lNames);
+        LTrialCatalog.LTrialSetApply(lNames);
         if (!lAvailable.Contains(lsEncoderVideoEncoder)
             && lCandidates.Any(lCandidate => string.Equals(
                 lCandidate.LRepertoireText, lsEncoderVideoEncoder, StringComparison.Ordinal)))
@@ -187,7 +187,7 @@ public sealed partial class LSEncoder
         lsEncoderSizeTier = lTier;
         lsEncoderWidth = lsEncoderTiers[lTier].LSEncoderTierWidth;
         lsEncoderHeight = lsEncoderTiers[lTier].LSEncoderTierHeight;
-        LSEncoderSizeChange?.Invoke();
+        LSEncoderSizeChanged?.Invoke();
         return true;
     }
 
@@ -206,7 +206,7 @@ public sealed partial class LSEncoder
         lsEncoderWidth = lWidth;
         lsEncoderHeight = lHeight;
         lsEncoderSizeTier = lTier;
-        LSEncoderSizeChange?.Invoke();
+        LSEncoderSizeChanged?.Invoke();
         return true;
     }
 

@@ -12,9 +12,9 @@ public sealed class LSectionDrag
     private double lSectionGrabY;
     private int? lSectionDragIndex;
 
-    public event Action<int>? LSectionDragStart;
+    public event Action<int>? LSectionDragStarted;
     public event Action<int>? LSectionDragEnd;
-    public event Action<int, int>? LSectionRowMove;
+    public event Action<int, int>? LSectionRowMoved;
 
     public LSectionDrag(LSection lOwner, LFlow lFlowOwner)
     {
@@ -76,7 +76,7 @@ public sealed class LSectionDrag
         if (!lSectionDragActive)
         {
             lSectionDragActive = true;
-            LSectionDragStart?.Invoke(lDragIndex);
+            LSectionDragStarted?.Invoke(lDragIndex);
         }
 
         LSectionLiveMove(lDragIndex, LSectionIndexResolve(lY, lTops, lHeights));
@@ -139,7 +139,7 @@ public sealed class LSectionDrag
         }
 
         lSectionDragIndex = lInsert;
-        LSectionRowMove?.Invoke(lSource, lInsert);
+        LSectionRowMoved?.Invoke(lSource, lInsert);
     }
 
     private int LSectionIndexResolve(double lY, IReadOnlyList<double> lTops, IReadOnlyList<double> lHeights)

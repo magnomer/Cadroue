@@ -14,7 +14,7 @@ internal static partial class TInterface
 
     internal static LSOptions TOptionsCreate(LPreferenceState draft, bool mpv) => new(draft, mpv);
     internal static void TOptionsMpvAttach(LSOptions options, Action<bool> handler) =>
-        options.LSOptionsMpvChange += handler;
+        options.LSOptionsMpvChanged += handler;
     internal static void TOptionsMpvSet(LSOptions options, bool enabled) => options.LSOptionsMpvSet(enabled);
     internal static string TOptionsEngineRead(LSOptions options) => options.LSOptionsEngineRead();
     internal static void TOptionsPageSelect(LSOptions options, LSOptionsPage page) =>
@@ -24,7 +24,7 @@ internal static partial class TInterface
     internal static string TOptionsFfmpegResolve(string folder) => LSOptions.LSOptionsFfmpegResolve(folder);
 
     internal static LSSpectrum TSpectrumCreate(string name, string folder) => new(name, () => folder);
-    internal static void TSpectrumAttach(LSSpectrum spectrum, Action handler) => spectrum.LSSpectrumChange += handler;
+    internal static void TSpectrumAttach(LSSpectrum spectrum, Action handler) => spectrum.LSSpectrumChanged += handler;
     internal static void TSpectrumNamesSet(LSSpectrum spectrum, IReadOnlyList<string> names) =>
         spectrum.LSSpectrumNamesSet(names);
     internal static void TSpectrumSelect(LSSpectrum spectrum, string name) => spectrum.LSSpectrumSelect(name);
@@ -33,9 +33,9 @@ internal static partial class TInterface
 
     internal static LSEncoder TEncoderCreate(LPreset source, bool smart) => new(source, smart);
     internal static void TEncoderVideoAttach(LSEncoder encoder, Action handler) =>
-        encoder.LSEncoderVideoChange += handler;
+        encoder.LSEncoderVideoChanged += handler;
     internal static void TEncoderSizeAttach(LSEncoder encoder, Action handler) =>
-        encoder.LSEncoderSizeChange += handler;
+        encoder.LSEncoderSizeChanged += handler;
     internal static bool TEncoderVideoSet(LSEncoder encoder, string codec, string rate) =>
         encoder.LSEncoderVideoSet(codec, rate);
     internal static bool TEncoderAudioSet(LSEncoder encoder, string codec, string rate) =>
@@ -54,9 +54,9 @@ internal static partial class TInterface
     internal static LPreset TPresetCreate() => new();
     internal static string TPresetSuffixRead(LPreset preset, string policy) => preset.LPresetSuffixRead(policy);
 
-    internal static LSKeymap TKeymapCreate(List<LBindingRecord>? records) => new(records);
+    internal static LSKeymap TKeymapCreate(List<LBindingEntry>? records) => new(records);
     internal static void TKeymapAttach(LSKeymap keymap, Action<LSKeymapChord> handler) =>
-        keymap.LSKeymapChordChange += handler;
+        keymap.LSKeymapChordChanged += handler;
     internal static LSKeymapChord TKeymapChordRead(LSKeymap keymap, string token) => keymap.LSKeymapChordRead(token);
     internal static void TKeymapChordStart(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordStart(chord);
     internal static void TKeymapPendingSet(LSKeymap keymap, LSKeymapChord chord, string gesture) =>
@@ -64,7 +64,7 @@ internal static partial class TInterface
     internal static void TKeymapChordCommit(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordCommit(chord);
     internal static void TKeymapChordCancel(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordCancel(chord);
     internal static void TKeymapDefaultApply(LSKeymap keymap) => keymap.LSKeymapDefaultApply();
-    internal static List<LBindingRecord> TKeymapRecordsRead(LSKeymap keymap) => keymap.LSKeymapRecordsRead();
+    internal static List<LBindingEntry> TKeymapRecordsRead(LSKeymap keymap) => keymap.LSKeymapRecordsRead();
     internal static string TBindingGestureFormat(string key, bool ctrl, bool alt, bool shift, bool win) =>
         LBinding.LBindingGestureFormat(key, ctrl, alt, shift, win);
     internal static string TBindingDefaultRead(string token) => LBinding.LBindingDefaultRead(token);
@@ -72,9 +72,9 @@ internal static partial class TInterface
 
     internal static LSMonitor TMonitorCreate() => new();
     internal static void TMonitorCursorAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
-        monitor.LSMonitorCursorChange += handler;
+        monitor.LSMonitorCursorChanged += handler;
     internal static void TMonitorZoomAttach(LSMonitor monitor, Action handler) =>
-        monitor.LSMonitorZoomChange += handler;
+        monitor.LSMonitorZoomChanged += handler;
     internal static void TMonitorCursorSet(LSMonitor monitor, TimeSpan cursor) => monitor.LSMonitorCursorSet(cursor);
     internal static void TMonitorZoom(LSMonitor monitor, double factor, double most) =>
         monitor.LSMonitorZoom(factor, most);
@@ -87,25 +87,25 @@ internal static partial class TInterface
         monitor.LSMonitorColumnRead(envelope, column, columns);
     internal static void TMonitorIncreaseZoom(LSMonitor monitor) => monitor.LSMonitorIncreaseZoom();
     internal static void TMonitorDecreaseZoom(LSMonitor monitor) => monitor.LSMonitorDecreaseZoom();
-    internal static LSMonitorScroll TMonitorScrollRead(LSMonitor monitor) => monitor.LSMonitorScrollRead();
+    internal static LSMonitorScrollbar TMonitorScrollRead(LSMonitor monitor) => monitor.LSMonitorScrollRead();
     internal static LSMonitorHead TMonitorHeadResolve(LSMonitor monitor, double width, TimeSpan duration) =>
         monitor.LSMonitorHeadResolve(width, duration);
     internal static void TMonitorSeekAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
-        monitor.LSMonitorSeekApply += handler;
+        monitor.LSMonitorSeekApplied += handler;
     internal static void TMonitorSeekHandle(
         LSMonitor monitor, bool pressed, double x, double width, TimeSpan duration) =>
         monitor.LSMonitorSeekHandle(pressed, x, width, duration);
     internal static void TMonitorPlayAttach(LSMonitor monitor, Action play, Action pause)
     {
-        monitor.LSMonitorPlayApply += play;
-        monitor.LSMonitorPauseApply += pause;
+        monitor.LSMonitorPlayApplied += play;
+        monitor.LSMonitorPauseApplied += pause;
     }
 
     internal static void TMonitorPlayingSet(LSMonitor monitor, bool playing) => monitor.LSMonitorPlayingSet(playing);
     internal static void TMonitorPlayHandle(LSMonitor monitor) => monitor.LSMonitorPlayHandle();
     internal static LSMonitorFace TMonitorFaceRead(LSMonitor monitor) => monitor.LSMonitorFaceRead();
     internal static void TMonitorBypassAttach(LSMonitor monitor, Action<bool> handler) =>
-        monitor.LSMonitorBypassApply += handler;
+        monitor.LSMonitorBypassApplied += handler;
     internal static void TMonitorBypassSet(LSMonitor monitor, bool bypass) => monitor.LSMonitorBypassSet(bypass);
     internal static void TMonitorRadioHandle(LSMonitor monitor, bool bypass) => monitor.LSMonitorRadioHandle(bypass);
     internal static string TMonitorStatusRead(LSMonitor monitor, bool after) => monitor.LSMonitorStatusRead(after);

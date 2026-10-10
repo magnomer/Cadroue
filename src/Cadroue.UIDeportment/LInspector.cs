@@ -66,23 +66,23 @@ public sealed class LInspector
     {
         LInspectorCrop = new LInspectorCrop(this);
         LInspectorAudio = new LInspectorAudio(LInspectorSkip);
-        LInspectorTone.LToneChange += LInspectorVideoHandle;
-        LInspectorGamma.LGammaChange += LInspectorVideoHandle;
-        LInspectorExposure.LExposureChange += LInspectorVideoHandle;
-        LInspectorCurve.LCurveChange += LInspectorVideoHandle;
-        LInspectorWhitebalance.LWhitebalanceChange += LInspectorVideoHandle;
-        LInspectorWhitebalance.LWhitebalanceToolChange += LInspectorNeutralHandle;
-        LInspectorCrop.LInspectorCropbox.LCropboxStateChange += LInspectorPersistentHandle;
-        LInspectorAudio.LInspectorAudioChange += LInspectorPersistentHandle;
-        LInspectorSkip.LSkipChange += LInspectorPersistentHandle;
+        LInspectorTone.LToneChanged += LInspectorVideoHandle;
+        LInspectorGamma.LGammaChanged += LInspectorVideoHandle;
+        LInspectorExposure.LExposureChanged += LInspectorVideoHandle;
+        LInspectorCurve.LCurveChanged += LInspectorVideoHandle;
+        LInspectorWhitebalance.LWhitebalanceChanged += LInspectorVideoHandle;
+        LInspectorWhitebalance.LWhitebalanceToolChanged += LInspectorNeutralHandle;
+        LInspectorCrop.LInspectorCropbox.LCropboxStateChanged += LInspectorPersistentHandle;
+        LInspectorAudio.LInspectorAudioChanged += LInspectorPersistentHandle;
+        LInspectorSkip.LSkipChanged += LInspectorPersistentHandle;
         lInspectorPersistentMask = LInspectorPersistentResolve();
     }
 
-    public event Action? LInspectorChange;
-    public event Action? LInspectorVideoChange;
-    public event Action? LInspectorPersistentChange;
-    public event Action<bool>? LInspectorToolChange;
-    public event Action<bool>? LInspectorMinimizeChange;
+    public event Action? LInspectorChanged;
+    public event Action? LInspectorVideoChanged;
+    public event Action? LInspectorPersistentChanged;
+    public event Action<bool>? LInspectorToolChanged;
+    public event Action<bool>? LInspectorMinimizeChanged;
 
     public LInspectorCrop LInspectorCrop { get; }
 
@@ -151,8 +151,8 @@ public sealed class LInspector
 
         lInspectorMinimized = lMinimized;
         LInspectorToolsNormalize();
-        LInspectorChange?.Invoke();
-        LInspectorMinimizeChange?.Invoke(lMinimized);
+        LInspectorChanged?.Invoke();
+        LInspectorMinimizeChanged?.Invoke(lMinimized);
     }
 
     public void LInspectorStepSet(string? lStep)
@@ -164,7 +164,7 @@ public sealed class LInspector
 
         lInspectorStep = lStep;
         LInspectorToolsNormalize();
-        LInspectorChange?.Invoke();
+        LInspectorChanged?.Invoke();
     }
 
     public void LInspectorSourceSet(double lSourceWidth, double lSourceHeight)
@@ -182,7 +182,7 @@ public sealed class LInspector
         lInspectorSourcePresent = lPresent;
         lInspectorSourceWidth = lWidth;
         lInspectorSourceHeight = lHeight;
-        LInspectorChange?.Invoke();
+        LInspectorChanged?.Invoke();
     }
 
     public void LInspectorCapableSet(bool lCropCapable, bool lOrientationCapable)
@@ -194,7 +194,7 @@ public sealed class LInspector
 
         lInspectorCropCapable = lCropCapable;
         lInspectorOrientationCapable = lOrientationCapable;
-        LInspectorChange?.Invoke();
+        LInspectorChanged?.Invoke();
     }
 
     public void LInspectorToolSet(bool lToolArmed)
@@ -205,8 +205,8 @@ public sealed class LInspector
         }
 
         lInspectorToolArmed = lToolArmed;
-        LInspectorChange?.Invoke();
-        LInspectorToolChange?.Invoke(lToolArmed);
+        LInspectorChanged?.Invoke();
+        LInspectorToolChanged?.Invoke(lToolArmed);
     }
 
     public bool LInspectorOwnerSet(string lOwnerPath)
@@ -415,7 +415,7 @@ public sealed class LInspector
             return;
         }
 
-        LInspectorVideoChange?.Invoke();
+        LInspectorVideoChanged?.Invoke();
     }
 
     private void LInspectorVideoRelease()
@@ -427,7 +427,7 @@ public sealed class LInspector
         }
 
         lInspectorVideoPending = false;
-        LInspectorVideoChange?.Invoke();
+        LInspectorVideoChanged?.Invoke();
     }
 
     private void LInspectorPersistentHandle()
@@ -439,7 +439,7 @@ public sealed class LInspector
         }
 
         lInspectorPersistentMask = lMask;
-        LInspectorPersistentChange?.Invoke();
+        LInspectorPersistentChanged?.Invoke();
     }
 
     private int LInspectorPersistentResolve()

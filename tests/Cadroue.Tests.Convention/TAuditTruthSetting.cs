@@ -2,26 +2,45 @@ namespace Convention.Tests;
 
 internal static class TAuditTruthSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
     public const bool TAuditTruthEnforced = true;
     public const string TAuditTruthReport = "temp/audit/Custody-{0}.md";
     public const string TAuditStateSuffix = "State";
-    public const string TAuditBulletinType = "LNotice";
+    public const string TAuditBulletinType = "LBulletin";
     public const string TAuditConfiguration = "Debug";
-    public const string TAuditReferenceRoot = "src/Cadroue.UIVeneer";
+    public const string TAuditReferenceRoot = "src/Cadroue.Host";
     public const string TAuditConductRoot = "src/Cadroue.Conduct";
     public const string TAuditLedgerFile = "TAuditTruthLedger";
+
+    public static readonly string[] TAuditCapsuleInclude =
+    [
+        "src/Cadroue.UIDeportment.Capsule/*.cs",
+    ];
 
     public static readonly string[] TAuditShellInclude =
     [
         "src/Cadroue.UIVeneer/*.cs",
         "src/Cadroue.UIDeportment/*.cs",
+        "src/Cadroue.UITerminal/*.cs",
+        "src/Cadroue.UIDemeanor/*.cs",
     ];
 
     public static readonly string[] TAuditTruthInclude =
     [
         "src/Cadroue.UIDeportment/*.cs",
+        "src/Cadroue.UIDemeanor/*.cs",
     ];
+
+    public static readonly Dictionary<string, string[]> TAuditTruthInformative = new(StringComparer.Ordinal)
+    {
+        ["Mismatching"] = ["src/Cadroue.UIDemeanor"],
+    };
+
+    public static readonly Dictionary<string, string> TAuditControlPrefix = new(StringComparer.Ordinal)
+    {
+        ["src/Cadroue.UIDeportment"] = "P",
+        ["src/Cadroue.UIDemeanor"] = "P",
+    };
 
     public static readonly string[] TAuditFrameworkPacks =
     [
@@ -63,17 +82,12 @@ internal static class TAuditTruthSetting
         "TryAdd",
     ];
 
-    public const string TAuditRequestPrefix = "LWork";
+    public const string TAuditRequestPrefix = "LRequest";
 
     public static readonly string[] TAuditSendRoots =
     [
-        "LMessengerAudioDescribe",
-        "LMessengerConvertDescribe",
-        "LMessengerEditDescribe",
-        "LMessengerFixDescribe",
-        "LMessengerFunnelDescribe",
-        "LMessengerMergeDescribe",
-        "LMessengerSplitDescribe",
+        "LTenureRequestApply",
+        "LTenureRequestDefer",
     ];
 
     public static readonly string[] TAuditClockTypes =
@@ -105,6 +119,8 @@ internal static class TAuditTruthSetting
         "System.Threading.Tasks.Task.Delay",
     ];
 
+    public const string TAuditInputBase = "System.Windows.Controls.Control";
+
     public static readonly string[] TAuditInputMembers =
     [
         "IsChecked",
@@ -116,19 +132,16 @@ internal static class TAuditTruthSetting
         "Value",
     ];
 
-    public static readonly string[] TAuditTruthHandles =
+    public static readonly string[] TAuditFocusMembers =
     [
-        "LDocket",
-        "LGroupSelection",
-        "LMpv",
-        "LPresetSelection",
-        "LRelay",
-        "LScheduleContract",
-        "LSegment",
-        "LStation",
+        "IsFocused",
+        "IsKeyboardFocused",
+        "IsKeyboardFocusWithin",
     ];
 
-    public static readonly string[] TAuditTreatVerbs =
+    public static readonly string[] TAuditTruthHandles = [];
+
+    public static readonly string[] TAuditMoonlightingVerbs =
     [
         "Aggregate",
         "All",

@@ -63,7 +63,7 @@ internal static class TCheckup
     }
 
     private static string TCheckupBodyFormat(LCheckupResult result) =>
-        LCheckupFormat.LCheckupBodyFormat(result, TCheckupStrings);
+        LCheckupFormatter.LCheckupBodyFormat(result, TCheckupStrings);
 
     internal static void TCheckupProgressApply(
         string line,
@@ -71,7 +71,7 @@ internal static class TCheckup
         double start,
         double end,
         IProgress<double> progress) =>
-        LFlawScan.LFlawProgressApply(line, duration, start, end, progress);
+        LFlawScanner.LFlawProgressApply(line, duration, start, end, progress);
 }
 
 internal readonly record struct TCheckupJobResult(string TCheckupPath, bool TCheckupCompleted, bool TCheckupClean);

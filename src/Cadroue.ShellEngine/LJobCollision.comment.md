@@ -1,10 +1,13 @@
 # LJobCollision.cs
 
-## `private string LJobStreamValidate()`
+## `private async Task<string> LJobStreamValidate()`
 
-A stream set to Copy keeps the source codec, which the chosen container may not be able to store.
+Copy streams and Smart video retain the source codec.
+The chosen container may not support that codec.
 The encoder lists in Settings are filtered by container but are not consulted while Copy is selected.
-So the pairing is caught here instead of surfacing as an FFmpeg muxing error part-way through the run.
+For non-merge jobs, a readable probe rejects incompatible copied streams before encoding.
+An unreadable probe leaves the pairing unchecked.
+A fresh compatibility probe receives the runner's priority override, keeping preflight measurement under the same runner configuration.
 
 ## Inline notes
 
@@ -12,19 +15,20 @@ So the pairing is caught here instead of surfacing as an FFmpeg muxing error par
 
 Claim the intended name atomically.
 Success means it was free and is now ours.
-So no second instance can pick the same "free" name and clobber this output.
+Another caller using the same exclusive-create protocol cannot reserve that name.
 
 ### `if (string.Equals(pOutput.LEncodingCollision, "Rename output", StringComparison.Ordinal))`
 
-The name is taken — a pre-existing file or another instance.
-Apply the policy.
+Reservation failed, whether from an existing file, denied access or another I/O error.
+Rename-output policy seeks another reservable name.
 
-### `File.Move(pTarget, pFreePath, true)`
+### `File.Move(pTarget, pFreePath, true);`
 
 `pFreePath` is our own reservation placeholder, so overwriting it with the existing file is intended.
-A genuine failure (locked/denied) must abort so the pre-existing file is never destroyed by the encode that follows.
+A genuine failure (locked/denied) must abort.
+This protects the existing file from the encode that follows.
 
-### `LJobClaim(pTarget)`
+### `LJobClaim(pTarget);`
 
 The existing file has moved aside.
-Reclaim the now-free target so no other instance grabs it before the encode writes.
+Reclaim is attempted, but its result is ignored, so another instance can win the newly free target.

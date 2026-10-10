@@ -22,7 +22,7 @@ public sealed class LFlowWaveform
     }
 
     public event Action? LFlowWaveformReady;
-    public event Action<byte[]>? LFlowWaveformUpdate;
+    public event Action<byte[]>? LFlowWaveformUpdated;
 
     public byte[] LFlowWaveformPeaks =>
         lFlow.LFlowWaveformActive ? lWaveformOrchestrator.LWaveformCurrent : Array.Empty<byte>();
@@ -52,7 +52,7 @@ public sealed class LFlowWaveform
             return;
         }
 
-        LFlowWaveformUpdate?.Invoke(LFlowWaveformPeaks);
+        LFlowWaveformUpdated?.Invoke(LFlowWaveformPeaks);
     }
 
     private void LFlowWaveformHandle(LWaveformNotice lNotice)

@@ -79,9 +79,10 @@ public sealed class TAuditLine
 
     private const string TAuditLengthAdvice =
         "Do NOT split the file mechanically, and do NOT add a partial part: both leave one big object behind\n"
-        + "several files, which AUDITOBJECT then reports as a monolith. A file this long almost always carries\n"
-        + "more than one responsibility. Reconsider the design first: name the second responsibility and give it\n"
-        + "a single-purpose type of its own (C-NLRF-2, C-SRFR). A documented exception is rare (C-EXRE).";
+        + "several files, which AUDITOBJECT then reports as a Serpent, or a Hydra once it spreads. A file this\n"
+        + "long almost always carries more than one responsibility. Reconsider the design first: name the second\n"
+        + "responsibility and give it a single-purpose type of its own (C-NLRF-2, C-SRFR). A documented exception\n"
+        + "is rare (C-EXRE).";
 
     private const string TAuditWidthAdvice =
         "Do NOT wrap the line mechanically. A line this wide usually nests too deep, chains too far or spells\n"

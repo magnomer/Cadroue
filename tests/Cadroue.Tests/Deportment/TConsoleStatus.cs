@@ -10,7 +10,7 @@ public sealed class TConsoleStatus
     [Fact]
     public void Runs_AreOnePlainRun_WithoutAnAccent()
     {
-        IReadOnlyList<LConsoleRun> runs = TInterface.TConsoleRunsResolve("Paused, 1 of 3 done", null);
+        IReadOnlyList<LConsoleSpan> runs = TInterface.TConsoleRunsResolve("Paused, 1 of 3 done", null);
         Assert.Single(runs);
         Assert.Equal("Paused, 1 of 3 done", runs[0].LConsoleRunText);
         Assert.False(runs[0].LConsoleRunAccent);
@@ -19,7 +19,7 @@ public sealed class TConsoleStatus
     [Fact]
     public void Runs_SplitAroundTheAccent()
     {
-        IReadOnlyList<LConsoleRun> runs = TInterface.TConsoleRunsResolve("State Paused, 1 of 3 done", "Paused");
+        IReadOnlyList<LConsoleSpan> runs = TInterface.TConsoleRunsResolve("State Paused, 1 of 3 done", "Paused");
         Assert.Equal(3, runs.Count);
         Assert.Equal("State ", runs[0].LConsoleRunText);
         Assert.Equal("Paused", runs[1].LConsoleRunText);
@@ -30,7 +30,7 @@ public sealed class TConsoleStatus
     [Fact]
     public void Runs_OmitEmptyEdges()
     {
-        IReadOnlyList<LConsoleRun> runs = TInterface.TConsoleRunsResolve("Paused", "Paused");
+        IReadOnlyList<LConsoleSpan> runs = TInterface.TConsoleRunsResolve("Paused", "Paused");
         Assert.Single(runs);
         Assert.True(runs[0].LConsoleRunAccent);
 

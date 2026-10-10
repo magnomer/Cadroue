@@ -14,14 +14,14 @@ public sealed class LSource
     private readonly bool lSourceAudioAllowed;
     private string lSourcePath = string.Empty;
 
-    public event Action<string>? LSourcePathApply;
+    public event Action<string>? LSourcePathApplied;
     public event Action<string, string>? LSourceRefuse;
 
     public LSource(LViewer lViewer, bool lAudioAllowed)
     {
         lSourceViewer = lViewer;
         lSourceAudioAllowed = lAudioAllowed;
-        lSourceViewer.LViewerMediaChange += LSourceMediaHandle;
+        lSourceViewer.LViewerMediaChanged += LSourceMediaHandle;
     }
 
     public string LSourcePath => lSourcePath;
@@ -88,7 +88,7 @@ public sealed class LSource
     private void LSourceMediaHandle(LCargo lCargo)
     {
         lSourcePath = lCargo.LCargoSourcePath;
-        LSourcePathApply?.Invoke(lSourcePath);
+        LSourcePathApplied?.Invoke(lSourcePath);
     }
 
     private static string LSourcePatternRead(IReadOnlyList<string> lExtensions) =>

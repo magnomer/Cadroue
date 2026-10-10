@@ -9,7 +9,7 @@ public sealed record LAsk(string LAskQuestion, string LAskAction)
 
 public static class LAskNotice
 {
-    public static event Action<LAsk, Action<bool>>? LAskRaise;
+    public static event Action<LAsk, Action<bool>>? LAskRaised;
 
     public static void LAskPublish(LAsk? lAsk, Action<bool> lAnswer)
     {
@@ -19,7 +19,7 @@ public static class LAskNotice
             return;
         }
 
-        if (LAskRaise is not { } lRaise)
+        if (LAskRaised is not { } lRaise)
         {
             lAnswer(false);
             return;

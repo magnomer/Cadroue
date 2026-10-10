@@ -59,12 +59,12 @@ public sealed class PFlow : UserControl
         pDivider = new PDivider(this);
         pFlowName = new PFlowName(LFlow, pViewfinder);
         LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
-        LFlow.LFlowAttachApply += PFlowLabelsApply;
-        LFlow.LFlowClearApply += PFlowLabelsApply;
-        LFlow.LFlowSpoolApply += PFlowLabelsApply;
-        LFlow.LFlowKeyframe.LFlowTimerDefer += PFlowTimerDefer;
-        LFlow.LFlowKeyframe.LFlowTimerResume += PFlowTimerResume;
-        LFlow.LFlowKeyframe.LFlowTimerReset += PFlowTimerReset;
+        LFlow.LFlowAttachApplied += PFlowLabelsApply;
+        LFlow.LFlowClearApplied += PFlowLabelsApply;
+        LFlow.LFlowSpoolApplied += PFlowLabelsApply;
+        LFlow.LFlowKeyframe.LFlowTimerDeferred += PFlowTimerDefer;
+        LFlow.LFlowKeyframe.LFlowTimerResumed += PFlowTimerResume;
+        LFlow.LFlowKeyframe.LFlowTimerStopped += PFlowTimerReset;
         LFlow.LFlowKeyframe.LFlowKeyframeReady += PFlowKeyframeHandle;
         LFlow.LFlowWaveform.LFlowWaveformReady += PFlowWaveformHandle;
         LFlow.LFlowLosslesscut.LFlowLosslesscutAsk += PFlowLosslesscutHandle;

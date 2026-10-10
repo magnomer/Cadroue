@@ -24,7 +24,7 @@ public sealed class LSOptions
     private LSOptionsPage lsOptionsPage;
     private bool lsOptionsMpvEnabled;
 
-    public event Action<bool>? LSOptionsMpvChange;
+    public event Action<bool>? LSOptionsMpvChanged;
 
     public LSOptions()
         : this(LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
@@ -53,7 +53,7 @@ public sealed class LSOptions
     public void LSOptionsMpvSet(bool lEnabled)
     {
         lsOptionsMpvEnabled = lEnabled;
-        LSOptionsMpvChange?.Invoke(lEnabled);
+        LSOptionsMpvChanged?.Invoke(lEnabled);
     }
 
     public async Task LSOptionsMpvUpdate()

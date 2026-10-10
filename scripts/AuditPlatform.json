@@ -1,0 +1,102 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "enforced": true,
+  "ceilings": {
+    "Unmapped": 0,
+    "Absent": 0,
+    "Column": 0
+  },
+  "projects": {
+    "root": "src",
+    "table": [
+      { "name": "Cadroue.Core", "role": "portable" },
+      { "name": "Cadroue.Core.Windows", "role": "twin", "half": "Cadroue.Core" },
+      { "name": "Cadroue.Application", "role": "portable" },
+      { "name": "Cadroue.Infrastructure", "role": "portable" },
+      { "name": "Cadroue.ShellEngine", "role": "portable" },
+      { "name": "Cadroue.Conduct", "role": "portable" },
+      { "name": "Cadroue.UIDeportment", "role": "twin", "half": "Cadroue.Conduct", "capsule": "Cadroue.UIDeportment.Capsule" },
+      { "name": "Cadroue.UIDeportment.Capsule", "role": "portable" },
+      { "name": "Cadroue.UIVeneer", "role": "twin", "half": "Cadroue.Conduct" },
+      { "name": "Cadroue.UIDemeanor", "role": "portable" },
+      { "name": "Cadroue.UITerminal", "role": "portable" },
+      { "name": "Cadroue.Host", "role": "host" }
+    ]
+  },
+  "framework": {
+    "portable": "net10.0",
+    "twin": "net10.0-windows"
+  },
+  "helper": {
+    "framework": "net10.0"
+  },
+  "analyzer": {
+    "rule": "CA1416",
+    "silencers": {
+      "AnalysisLevel": "none",
+      "AnalysisMode": "None",
+      "EnableNETAnalyzers": "false",
+      "RunAnalyzers": "false",
+      "RunAnalyzersDuringBuild": "false"
+    }
+  },
+  "domain": {
+    "exempt": [
+      "Cadroue.Conduct"
+    ]
+  },
+  "windows": {
+    "properties": [
+      "UseWPF",
+      "UseWindowsForms",
+      "UseWinUI"
+    ],
+    "packages": [
+      "Microsoft.Web.WebView2",
+      "Microsoft.WindowsAppSDK",
+      "Microsoft.Windows.Compatibility",
+      "SharpVectors.Wpf"
+    ],
+    "patterns": [
+      "\\bSystem\\.Windows\\b",
+      "\\bMicrosoft\\.Win32\\b",
+      "\\bWindows\\.(Win32|UI|Storage|Media|System|Foundation|Graphics|Devices)\\b",
+      "\\[\\s*(assembly\\s*:\\s*)?(DllImport|LibraryImport|SupportedOSPlatform)\\b",
+      "\\bOperatingSystem\\.IsWindows\\w*\\b",
+      "\\bRuntimeInformation\\.IsOSPlatform\\b"
+    ]
+  },
+  "sources": {
+    "extensions": [
+      ".cs",
+      ".xaml"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ]
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditPlatform-"
+  }
+}

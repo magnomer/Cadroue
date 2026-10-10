@@ -1,5 +1,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,8 +18,10 @@ public sealed class TAuditStrict
     private static readonly Lazy<string> TAuditStrictWritten = new(TAuditReportSave);
 
     private static readonly string[] TAuditStrictKinds =
-        ["Storage", "Static", "Call", "Depth", "Reach", "Trigger", "Glyph", "Wiring", "Hook", "Shell", "Pack",
-            "Scaffold", "Contract"];
+        [
+            "Hoarding", "Sharing", "Meddling", "Prying", "Overreaching", "Branching", "Homoglyph",
+            "Overworking", "Tethering", "Freelancing", "Hardwiring", "Masquerading", "Dangling",
+        ];
 
     private static readonly Regex TAuditLiteralPattern = new(
         @"@?""(?:[^""\\]|\\.)*""|//.*$",
@@ -32,79 +37,79 @@ public sealed class TAuditStrict
     [Fact]
     public void AuditStrict_SurfaceFields_HoldNothing()
     {
-        TAuditStrictCheck("Storage", "surface field(s), property(ies) or parameter(s) hold state");
+        TAuditStrictCheck("Hoarding", "surface field(s), property(ies) or parameter(s) hold state");
     }
 
     [Fact]
     public void AuditStrict_DriverStatics_HoldNothing()
     {
-        TAuditStrictCheck("Static", "driver static field(s) hold mutable state");
+        TAuditStrictCheck("Sharing", "driver static field(s) hold mutable state");
     }
 
     [Fact]
-    public void AuditStrict_SurfaceMembers_CallOnly()
+    public void AuditStrict_SurfaceMembers_HoldNoMeddling()
     {
-        TAuditStrictCheck("Call", "surface line(s) do more than call a function");
+        TAuditStrictCheck("Meddling", "surface line(s) do more than call a function");
     }
 
     [Fact]
     public void AuditStrict_SurfaceSources_NameOnlyDriver()
     {
-        TAuditStrictCheck("Depth", "surface line(s) name a type from below the driver");
+        TAuditStrictCheck("Prying", "surface line(s) name a type from below the driver");
     }
 
     [Fact]
     public void AuditStrict_SurfaceMarkup_NameOnlyDriver()
     {
-        TAuditStrictCheck("Reach", "markup line(s) name a type from below the driver");
+        TAuditStrictCheck("Overreaching", "markup line(s) name a type from below the driver");
     }
 
     [Fact]
     public void AuditStrict_SurfaceMarkup_BranchNever()
     {
-        TAuditStrictCheck("Trigger", "markup line(s) branch or compute");
+        TAuditStrictCheck("Branching", "markup line(s) branch or compute");
     }
 
     [Fact]
-    public void AuditStrict_SurfaceNames_HoldNoGlyph()
+    public void AuditStrict_SurfaceNames_HoldNoHomoglyph()
     {
-        TAuditStrictCheck("Glyph", "surface identifier(s) carry a non-ASCII glyph");
+        TAuditStrictCheck("Homoglyph", "surface identifier(s) carry a non-ASCII glyph");
     }
 
     [Fact]
-    public void AuditStrict_HostSources_WireOnly()
+    public void AuditStrict_HostSources_HoldNoOverworking()
     {
-        TAuditStrictCheck("Wiring", "host line(s) do more than construct and wire");
+        TAuditStrictCheck("Overworking", "host line(s) do more than construct and wire");
     }
 
     [Fact]
-    public void AuditStrict_SurfaceMarkup_HookNever()
+    public void AuditStrict_SurfaceMarkup_HoldNoTethering()
     {
-        TAuditStrictCheck("Hook", "markup line(s) hook logic into markup");
+        TAuditStrictCheck("Tethering", "markup line(s) hook logic into markup");
     }
 
     [Fact]
-    public void AuditStrict_SurfaceTypes_ShellOnly()
+    public void AuditStrict_SurfaceTypes_HoldNoFreelancing()
     {
-        TAuditStrictCheck("Shell", "surface member(s) other than a constructor");
+        TAuditStrictCheck("Freelancing", "surface member(s) other than a constructor");
     }
 
     [Fact]
-    public void AuditStrict_DriverSource_PackNever()
+    public void AuditStrict_DriverSource_HoldNoHardwiring()
     {
-        TAuditStrictCheck("Pack", "driver line(s) hold a pack URI or name the surface");
+        TAuditStrictCheck("Hardwiring", "driver line(s) hold a pack URI or name the surface");
     }
 
     [Fact]
-    public void AuditStrict_DriverTypes_ScaffoldNever()
+    public void AuditStrict_DriverTypes_HoldNoMasquerading()
     {
-        TAuditStrictCheck("Scaffold", "driver type(s) derive from a scaffold type");
+        TAuditStrictCheck("Masquerading", "driver type(s) derive from a scaffold type");
     }
 
     [Fact]
-    public void AuditStrict_SurfaceMarkup_ContractHeld()
+    public void AuditStrict_SurfaceMarkup_HoldNoDangling()
     {
-        TAuditStrictCheck("Contract", "contract ID(s) have no x:Name or x:Key in the surface");
+        TAuditStrictCheck("Dangling", "contract ID(s) have no x:Name or x:Key in the surface");
     }
 
     [Fact]
@@ -131,6 +136,36 @@ public sealed class TAuditStrict
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             TAuditStrictAudit,
             $"{hits.Count} surface line(s) do file, JSON, regex, process or task work:\n{string.Join('\n', hits)}"));
+    }
+
+    [Fact]
+    public async Task AuditStrict_CoreRead_UserPrefixOperatorReturns()
+    {
+        ExpressionSyntax condition = SyntaxFactory.ParseExpression("-flag");
+        ExpressionSyntax? core = null;
+        Task read = Task.Run(() => core = TAuditStrictCondition.TAuditCoreRead(condition));
+
+        Task first = await Task.WhenAny(read, Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.True(first == read, "TAuditCoreRead hung on a prefix operator");
+        Assert.IsType<PrefixUnaryExpressionSyntax>(core);
+    }
+
+    [Fact]
+    public void AuditStrict_BreachRead_ExpressionIndexerBranchFlags()
+    {
+        SyntaxNode root = CSharpSyntaxTree.ParseText(
+            "class Host { int this[int slot] => slot > 0 ? slot : 0; }").GetRoot();
+
+        Assert.NotEmpty(TAuditHostWalker.TAuditBreachRead(root));
+    }
+
+    [Fact]
+    public void AuditStrict_BreachRead_ExpressionLocalFunctionBranchFlags()
+    {
+        SyntaxNode root = CSharpSyntaxTree.ParseText(
+            "class Host { void Wire() { int Pick(int slot) => slot > 0 ? slot : 0; } }").GetRoot();
+
+        Assert.NotEmpty(TAuditHostWalker.TAuditBreachRead(root));
     }
 
     [Fact]
@@ -231,7 +266,8 @@ public sealed class TAuditStrict
         IReadOnlyList<string> TAuditSources) TAuditStrictRead()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
-        IReadOnlyList<string> sources = TAuditScopeRead(repoRoot, TAuditTruthSetting.TAuditShellInclude);
+        IReadOnlyList<string> sources = TAuditScopeRead(
+            repoRoot, [.. TAuditTruthSetting.TAuditShellInclude, .. TAuditTruthSetting.TAuditCapsuleInclude]);
         IReadOnlyList<string> hosts = TAuditScopeRead(repoRoot, TAuditStrictSetting.TAuditHostInclude);
         IReadOnlyList<string> markups = TAuditScopeRead(repoRoot, TAuditStrictSetting.TAuditReachInclude);
         IReadOnlyList<string> drivers = TAuditScopeRead(repoRoot, TAuditStrictSetting.TAuditDeportmentInclude);
@@ -287,14 +323,14 @@ public sealed class TAuditStrict
         text.AppendLine();
         text.AppendLine("## Surface types by member");
         text.AppendLine();
-        text.AppendLine("| Class | Storage | Call | Depth |");
+        text.AppendLine("| Class | Hoarding | Meddling | Prying |");
         text.AppendLine("|---|---|---|---|");
         foreach (string veneer in veneers)
         {
-            int storage = TAuditClassRead(hits, veneer, "Storage");
-            int call = TAuditClassRead(hits, veneer, "Call");
-            int depth = TAuditClassRead(hits, veneer, "Depth");
-            text.AppendLine($"| {veneer} | {storage} | {call} | {depth} |");
+            int hoarding = TAuditClassRead(hits, veneer, "Hoarding");
+            int meddling = TAuditClassRead(hits, veneer, "Meddling");
+            int prying = TAuditClassRead(hits, veneer, "Prying");
+            text.AppendLine($"| {veneer} | {hoarding} | {meddling} | {prying} |");
         }
 
         foreach (string kind in TAuditStrictKinds)

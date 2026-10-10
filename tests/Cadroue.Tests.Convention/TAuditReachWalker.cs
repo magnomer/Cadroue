@@ -15,15 +15,15 @@ internal static class TAuditReachWalker
         @"x:Static\s+(?:[A-Za-z0-9_]+:)?(L[A-Z][A-Za-z0-9_]*)", RegexOptions.Compiled);
 
     private static readonly Regex TAuditSlotPattern = new(
-        $@"\b({string.Join('|', TAuditStrictSetting.TAuditTriggerSlots)})\s*=", RegexOptions.Compiled);
+        $@"\b({string.Join('|', TAuditStrictSetting.TAuditBranchingSlots)})\s*=", RegexOptions.Compiled);
 
-    private static readonly Regex TAuditHookPattern = new(
+    private static readonly Regex TAuditTetheringPattern = new(
         @"\{\s*(?:([A-Za-z_][\w.]*):)?([A-Za-z_][\w.]*)", RegexOptions.Compiled);
 
     public static IReadOnlyList<TViolation> TAuditRun(IEnumerable<string> markupPaths)
     {
         List<TViolation> violations = [];
-        IReadOnlySet<string> deportment = TAuditBinder.TAuditDeportmentRead();
+        IReadOnlySet<string> deportment = TAuditBinderSide.TAuditDeportmentRead();
         Dictionary<string, List<string>> spaces = TAuditSpaceRead();
         foreach (string path in markupPaths)
         {
@@ -34,7 +34,8 @@ internal static class TAuditReachWalker
             }
             catch (XmlException failure)
             {
-                violations.Add(new TViolation(path, failure.LineNumber, "markup", "Reach", "does not parse as XML"));
+                violations.Add(new TViolation(
+                    path, failure.LineNumber, "markup", "Overreaching", "does not parse as XML"));
                 continue;
             }
 
@@ -42,82 +43,83 @@ internal static class TAuditReachWalker
             foreach (XElement element in document.Descendants())
             {
                 TAuditElementScan(path, element, deportment, violations);
-                TAuditHookScan(element, spaces, hooks);
+                TAuditTetheringScan(element, spaces, hooks);
             }
 
             violations.AddRange(hooks.Select(hook => new TViolation(
                 path,
                 hook.Key,
                 hook.Value[0],
-                "Hook",
+                "Tethering",
                 $"line hooks logic into markup: {string.Join(", ", hook.Value)}")));
         }
 
         return violations;
     }
 
-    private static void TAuditHookScan(
+    private static void TAuditTetheringScan(
         XElement element, Dictionary<string, List<string>> spaces, SortedDictionary<int, List<string>> hooks)
     {
         string name = element.Name.LocalName;
         int line = ((IXmlLineInfo)element).LineNumber;
         string property = name[(name.LastIndexOf('.') + 1)..];
-        if (TAuditStrictSetting.TAuditHookElements.Contains(name, StringComparer.Ordinal)
+        if (TAuditStrictSetting.TAuditTetheringElements.Contains(name, StringComparer.Ordinal)
             || (name.Contains('.', StringComparison.Ordinal)
-                && TAuditStrictSetting.TAuditHookSlots.Contains(property, StringComparer.Ordinal))
-            || TAuditHookCheck(element, spaces))
+                && TAuditStrictSetting.TAuditTetheringSlots.Contains(property, StringComparer.Ordinal))
+            || TAuditTetheringCheck(element, spaces))
         {
-            TAuditHookAdd(hooks, line, name);
+            TAuditTetheringAdd(hooks, line, name);
         }
 
         foreach (XAttribute attribute in element.Attributes().Where(attribute => !attribute.IsNamespaceDeclaration))
         {
             line = ((IXmlLineInfo)attribute).LineNumber;
-            if (TAuditStrictSetting.TAuditHookSlots.Contains(attribute.Name.LocalName, StringComparer.Ordinal))
+            if (TAuditStrictSetting.TAuditTetheringSlots.Contains(attribute.Name.LocalName, StringComparer.Ordinal))
             {
-                TAuditHookAdd(hooks, line, attribute.Name.LocalName);
+                TAuditTetheringAdd(hooks, line, attribute.Name.LocalName);
             }
 
             string shell = TAuditStrictSetting.TAuditVeneerNamespace + ".";
             if (attribute.Name.LocalName == "Class" && !attribute.Value.StartsWith(shell, StringComparison.Ordinal))
             {
-                TAuditHookAdd(hooks, line, "x:Class");
+                TAuditTetheringAdd(hooks, line, "x:Class");
             }
 
             string slot = (element.Attribute("Property")?.Value ?? string.Empty).Trim('(', ')');
             slot = slot[(slot.LastIndexOf('.') + 1)..];
             if (attribute.Name.LocalName == "Property"
-                && TAuditStrictSetting.TAuditHookSlots.Contains(slot, StringComparer.Ordinal))
+                && TAuditStrictSetting.TAuditTetheringSlots.Contains(slot, StringComparer.Ordinal))
             {
-                TAuditHookAdd(hooks, line, slot);
+                TAuditTetheringAdd(hooks, line, slot);
             }
 
             bool literal = !attribute.Value.StartsWith('{');
             if (literal
-                && (TAuditStrictSetting.TAuditHookLiterals.Contains(attribute.Name.LocalName, StringComparer.Ordinal)
+                && (TAuditStrictSetting.TAuditTetheringLiterals.Contains(
+                        attribute.Name.LocalName, StringComparer.Ordinal)
                     || (attribute.Name.LocalName == "Value"
-                        && TAuditStrictSetting.TAuditHookLiterals.Contains(slot, StringComparer.Ordinal))))
+                        && TAuditStrictSetting.TAuditTetheringLiterals.Contains(slot, StringComparer.Ordinal))))
             {
-                TAuditHookAdd(hooks, line, attribute.Name.LocalName == "Value" ? slot : attribute.Name.LocalName);
+                TAuditTetheringAdd(hooks, line, attribute.Name.LocalName == "Value" ? slot : attribute.Name.LocalName);
             }
 
-            foreach (Match match in TAuditHookPattern.Matches(attribute.Value))
+            foreach (Match match in TAuditTetheringPattern.Matches(attribute.Value))
             {
                 string prefix = match.Groups[1].Value;
                 string extension = prefix.Length == 0 ? match.Groups[2].Value : $"{prefix}:{match.Groups[2].Value}";
                 string space = prefix.Length == 0
                     ? string.Empty
                     : element.GetNamespaceOfPrefix(prefix)?.NamespaceName ?? string.Empty;
-                if (TAuditStrictSetting.TAuditHookExtensions.Contains(extension, StringComparer.Ordinal)
+                if (TAuditStrictSetting.TAuditTetheringExtensions.Contains(extension, StringComparer.Ordinal)
                     || space.StartsWith("clr-namespace:", StringComparison.Ordinal))
                 {
-                    TAuditHookAdd(hooks, line, extension);
+                    TAuditTetheringAdd(hooks, line, extension);
                 }
             }
         }
     }
 
-    private static void TAuditHookAdd(SortedDictionary<int, List<string>> hooks, int line, string marker)
+    private static void TAuditTetheringAdd(SortedDictionary<int, List<string>> hooks, int line, string marker)
     {
         if (!hooks.TryGetValue(line, out List<string>? markers))
         {
@@ -128,7 +130,7 @@ internal static class TAuditReachWalker
         markers.Add(marker);
     }
 
-    private static bool TAuditHookCheck(XElement element, Dictionary<string, List<string>> spaces)
+    private static bool TAuditTetheringCheck(XElement element, Dictionary<string, List<string>> spaces)
     {
         const string prefix = "clr-namespace:";
         string name = element.Name.LocalName;
@@ -148,7 +150,8 @@ internal static class TAuditReachWalker
                  type = type.BaseType)
             {
                 if (type.Interfaces.Append(type).Any(shape =>
-                        TAuditStrictSetting.TAuditHookTypes.Contains(shape.ToDisplayString(), StringComparer.Ordinal)))
+                        TAuditStrictSetting.TAuditTetheringTypes.Contains(
+                            shape.ToDisplayString(), StringComparer.Ordinal)))
                 {
                     return true;
                 }
@@ -217,7 +220,7 @@ internal static class TAuditReachWalker
         IReadOnlySet<string> deportment,
         List<TViolation> violations)
     {
-        TAuditTriggerScan(path, element, violations);
+        TAuditBranchingScan(path, element, violations);
         foreach (XAttribute attribute in element.Attributes())
         {
             int line = ((IXmlLineInfo)attribute).LineNumber;
@@ -241,35 +244,35 @@ internal static class TAuditReachWalker
         }
     }
 
-    private static void TAuditTriggerScan(string path, XElement element, List<TViolation> violations)
+    private static void TAuditBranchingScan(string path, XElement element, List<TViolation> violations)
     {
         string name = element.Name.LocalName;
         string property = name[(name.LastIndexOf('.') + 1)..];
-        if (TAuditStrictSetting.TAuditTriggerElements.Contains(name, StringComparer.Ordinal))
+        if (TAuditStrictSetting.TAuditBranchingElements.Contains(name, StringComparer.Ordinal))
         {
             violations.Add(new TViolation(
-                path, ((IXmlLineInfo)element).LineNumber, name, "Trigger", "markup branches on a condition"));
+                path, ((IXmlLineInfo)element).LineNumber, name, "Branching", "markup branches on a condition"));
         }
         else if (name.Contains('.', StringComparison.Ordinal)
-                 && TAuditStrictSetting.TAuditTriggerSlots.Contains(property, StringComparer.Ordinal))
+                 && TAuditStrictSetting.TAuditBranchingSlots.Contains(property, StringComparer.Ordinal))
         {
             violations.Add(new TViolation(
-                path, ((IXmlLineInfo)element).LineNumber, name, "Trigger", $"property element {property} computes"));
+                path, ((IXmlLineInfo)element).LineNumber, name, "Branching", $"property element {property} computes"));
         }
 
         foreach (XAttribute attribute in element.Attributes().Where(attribute => !attribute.IsNamespaceDeclaration))
         {
             int line = ((IXmlLineInfo)attribute).LineNumber;
             string slot = attribute.Name.LocalName;
-            if (TAuditStrictSetting.TAuditTriggerSlots.Contains(slot, StringComparer.Ordinal))
+            if (TAuditStrictSetting.TAuditBranchingSlots.Contains(slot, StringComparer.Ordinal))
             {
-                violations.Add(new TViolation(path, line, slot, "Trigger", $"binding {slot} computes in markup"));
+                violations.Add(new TViolation(path, line, slot, "Branching", $"binding {slot} computes in markup"));
             }
 
             foreach (Match match in TAuditSlotPattern.Matches(attribute.Value))
             {
                 string found = match.Groups[1].Value;
-                violations.Add(new TViolation(path, line, found, "Trigger", $"binding {found} computes in markup"));
+                violations.Add(new TViolation(path, line, found, "Branching", $"binding {found} computes in markup"));
             }
         }
     }
@@ -283,11 +286,11 @@ internal static class TAuditReachWalker
         }
 
         string mapped = value[prefix.Length..].Split(';')[0];
-        if (TAuditStrictSetting.TAuditReachNamespaces.Any(space =>
+        if (TAuditStrictSetting.TAuditOverreachingNamespaces.Any(space =>
                 mapped.Equals(space, StringComparison.Ordinal)
                 || mapped.StartsWith(space + ".", StringComparison.Ordinal)))
         {
-            violations.Add(new TViolation(path, line, mapped, "Reach", "maps a logic namespace"));
+            violations.Add(new TViolation(path, line, mapped, "Overreaching", "maps a logic namespace"));
         }
     }
 
@@ -306,7 +309,7 @@ internal static class TAuditReachWalker
             named.Add(name);
             if (!deportment.Contains(name))
             {
-                violations.Add(new TViolation(path, line, name, "Reach", "reads a logic constant"));
+                violations.Add(new TViolation(path, line, name, "Overreaching", "reads a logic constant"));
             }
         }
 
@@ -315,7 +318,7 @@ internal static class TAuditReachWalker
             string name = match.Groups[1].Value;
             if (named.Add(name) && !deportment.Contains(name))
             {
-                violations.Add(new TViolation(path, line, name, "Reach", $"names logic in {slot}"));
+                violations.Add(new TViolation(path, line, name, "Overreaching", $"names logic in {slot}"));
             }
         }
     }

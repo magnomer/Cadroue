@@ -1,6 +1,6 @@
 # LPresetMerge.cs
 
-## `internal static IReadOnlyList<LPresetRecord> LPresetMergeCreate(`
+## `internal static IReadOnlyList<LPresetDocument> LPresetMergeCreate(`
 
 Storage is shared: another Cadroue process can have committed changes since this one last read the catalogue.
 The merge replays this process's own intent, its difference from the baseline it loaded, onto whatever is durable now.

@@ -13,7 +13,7 @@ public sealed class TMergeTabGroups
     private const string TMergeSecond = @"C:\media\clip (2).mp4";
     private const string TMergeThird = @"C:\media\other.mp4";
 
-    private static (LMergeTab, LDocket) TMergeBuild(LSceneTabRecord? layout = null, string preset = "Alpha")
+    private static (LMergeTab, LDocket) TMergeBuild(LSceneTabEntry? layout = null, string preset = "Alpha")
     {
         LDocket docket = TInterface.TDocketCreate();
         LMergeTab tab = TInterface.TMergeTabCreate(TInterface.TPresetSelectionCreate(preset), docket, layout);
@@ -29,7 +29,7 @@ public sealed class TMergeTabGroups
         TInterface.TGroupAutoChange(source.LMergeSelection, true);
         TInterface.TGroupStrictChange(source.LMergeSelection, false);
 
-        LSceneTabRecord layout = TInterface.TMergeLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TMergeLayoutRead(source);
         (LMergeTab target, _) = TMergeBuild(layout);
 
         Assert.True(layout.LSceneGroupAuto);

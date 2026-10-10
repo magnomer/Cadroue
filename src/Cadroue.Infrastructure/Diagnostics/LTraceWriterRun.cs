@@ -11,9 +11,11 @@ public static partial class LTraceWriter
     private const int LTraceWriterIdle = 250;
     private const int LTraceWriterBatch = 256;
     private const int LTraceWriterRetry = 8;
+    private const ThreadPriority LTraceWriterLevel = ThreadPriority.BelowNormal;
 
     private static FileStream? lTraceWriterStream;
     private static string? lTraceWriterPath;
+    private static Thread? lTraceWriterRunner;
 
     private static void LTraceWriterStart()
     {
@@ -22,13 +24,16 @@ public static partial class LTraceWriter
             return;
         }
 
-        var lTraceThread = new Thread(LTraceWriterRun)
+        lock (lTraceStateLock)
         {
-            IsBackground = true,
-            Name = "Cadroue.Trace",
-            Priority = ThreadPriority.BelowNormal
-        };
-        lTraceThread.Start();
+            lTraceWriterRunner = new Thread(LTraceWriterRun)
+            {
+                IsBackground = true,
+                Name = "Cadroue.Trace",
+                Priority = LTraceWriterLevel
+            };
+            lTraceWriterRunner.Start();
+        }
     }
 
     private static void LTraceWriterRun()

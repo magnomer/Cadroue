@@ -8,14 +8,14 @@ public sealed record LCartographerTab(
     Guid LCartographerTabId,
     string LCartographerLayoutKey,
     string LCartographerTitle,
-    LPresetRecord LCartographerExport,
-    LSceneTabRecord LCartographerLayout,
+    LPresetDocument LCartographerExport,
+    LSceneTabEntry LCartographerLayout,
     bool LCartographerFunnel);
 
 public sealed record LCartographerStagePlan(
     string LCartographerLayoutKey,
-    LPresetRecord LCartographerExport,
-    LSceneTabRecord LCartographerLayout,
+    LPresetDocument LCartographerExport,
+    LSceneTabEntry LCartographerLayout,
     Guid LCartographerStageId,
     Guid LCartographerNextStage,
     Guid LCartographerBatch,
@@ -44,7 +44,7 @@ public static partial class LCartographer
 
     public static bool LCartographerOwnershipCheck(LWorkItem lCartographerItem) =>
         LCartographerPlanStore.LCartographerPlanRead(
-            lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+            lCartographerItem.LWorkBatchId, out LCartographerPlanDocument lCartographerPlan)
         && lCartographerPlan.LCartographerStages.Any(
             lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget);
 
@@ -151,7 +151,7 @@ public static partial class LCartographer
         }
 
         if (LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+                lCartographerItem.LWorkBatchId, out LCartographerPlanDocument lCartographerPlan)
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
                     lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelayTarget)
                 is { } lCartographerStage)
@@ -224,8 +224,8 @@ public static partial class LCartographer
 
     private static bool LCartographerStageDispatch(
         LWorkItem lCartographerItem,
-        LCartographerPlanRecord lCartographerPlan,
-        LCartographerStageRecord lCartographerStage,
+        LCartographerPlanDocument lCartographerPlan,
+        LCartographerStageEntry lCartographerStage,
         LCartographerDelivery lCartographerSeam)
     {
         if (lCartographerPlan.LCartographerDeliveredWork.Contains(lCartographerItem.LWorkId))

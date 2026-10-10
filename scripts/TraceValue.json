@@ -1,0 +1,47 @@
+{
+  "generation": 1,
+  "project": "Cadroue",
+  "sources": {
+    "roots": [
+      "src"
+    ],
+    "extensions": [
+      ".cs"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ]
+  },
+  "generated": {
+    "roots": [
+      "src/Cadroue.UIVeneer",
+      "src/Cadroue.UIDeportment"
+    ],
+    "configuration": "Debug"
+  },
+  "references": {
+    "frameworks": [
+      "Microsoft.NETCore.App",
+      "Microsoft.WindowsDesktop.App"
+    ],
+    "build": "src/Cadroue.UIVeneer"
+  },
+  "layer": "^src/[^/]+?\\.(?<layer>[^/]+)/"
+}

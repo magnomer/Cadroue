@@ -31,6 +31,7 @@ internal sealed class TScheduleWork
 internal sealed class TSchedule : IDisposable
 {
     private readonly string tScheduleRoot;
+    private readonly string _tSchedulePrevious;
     private readonly LSchedule tSchedule;
     private int tScheduleSequence;
 
@@ -41,6 +42,7 @@ internal sealed class TSchedule : IDisposable
             "cadroue-schedule-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tScheduleRoot);
         LDepotIndex.LDepotIndexRelease();
+        _tSchedulePrevious = LDepot.LDepotRootRead();
         LDepot.LDepotRootSet(tScheduleRoot);
         tSchedule = new LSchedule();
         tSchedule.LScheduleLoad();
@@ -197,7 +199,7 @@ internal sealed class TSchedule : IDisposable
         tSchedule.LScheduleBatchRemove(
             tSchedule.LScheduleRecords.Select(workItem => workItem.LWorkId).ToArray());
         LDepotIndex.LDepotIndexRelease();
-        LDepot.LDepotRootSet(null);
+        LDepot.LDepotRootSet(_tSchedulePrevious);
         try
         {
             Directory.Delete(tScheduleRoot, true);

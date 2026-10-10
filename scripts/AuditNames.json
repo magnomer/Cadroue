@@ -1,0 +1,175 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "sources": {
+    "include": [
+      "*.cs",
+      "*.xaml"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".md",
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ],
+    "selfExclude": [
+      "TAuditComment.cs",
+      "TAuditCommentSetting.cs",
+      "TAuditConvention.cs",
+      "TAuditLine.cs",
+      "TAuditLineSetting.cs",
+      "TAuditName.cs",
+      "TAuditNameFilter.cs",
+      "TAuditNameRegistry.cs",
+      "TAuditNameSetting.cs",
+      "TAuditNameWalker.cs",
+      "TAuditRegistry.cs",
+      "TAuditScope.cs",
+      "TAuditSource.cs",
+      "TAuditVerbRegistry.cs",
+      "TSpecimen.cs",
+      "TViolation.cs"
+    ]
+  },
+  "naming": {
+    "prefixes": [
+      "PS",
+      "QS",
+      "CS",
+      "LS",
+      "ps",
+      "qs",
+      "cs",
+      "ls",
+      "P",
+      "Q",
+      "C",
+      "L",
+      "T",
+      "p",
+      "q",
+      "c",
+      "l",
+      "t"
+    ],
+    "prefixTurfs": {
+      "src/Cadroue.Application": ["L", "LS"],
+      "src/Cadroue.Conduct": ["C", "CS"],
+      "src/Cadroue.Core": ["L", "LS"],
+      "src/Cadroue.Core.Windows": ["L", "LS"],
+      "src/Cadroue.Host": ["L", "LS"],
+      "src/Cadroue.Infrastructure": ["L", "LS"],
+      "src/Cadroue.ShellEngine": ["L", "LS"],
+      "src/Cadroue.UIDemeanor": ["Q", "QS"],
+      "src/Cadroue.UIDeportment": ["Q", "QS"],
+      "src/Cadroue.UITerminal": ["P", "PS"],
+      "src/Cadroue.UIVeneer": ["P", "PS"],
+      "tests/Cadroue.Tests.Interface": ["T"],
+      "tests/Cadroue.Tests.Engine": ["T"],
+      "tests/Cadroue.Tests.Conduct": ["T"],
+      "tests/Cadroue.Tests.Convention": ["T"],
+      "tests/Cadroue.Tests.Windows": ["T"]
+    },
+    "prefixCeiling": 45,
+    "sealedTurfs": [
+      "src/Cadroue.Conduct"
+    ],
+    "testPrefix": "T",
+    "componentLimit": 3,
+    "componentReview": 3,
+    "componentPattern": "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+"
+  },
+  "kinds": {
+    "method": [
+      "Method",
+      "LocalFunction"
+    ],
+    "verbForbidden": [
+      "Field",
+      "Property",
+      "EnumMember",
+      "RecordProperty",
+      "XamlName",
+      "GeneratedCommand",
+      "TupleElement",
+      "TypeParameter",
+      "AnonymousMember",
+      "ClassDeclaration",
+      "StructDeclaration",
+      "InterfaceDeclaration",
+      "RecordDeclaration",
+      "RecordStructDeclaration",
+      "EnumDeclaration",
+      "Delegate",
+      "Event",
+      "EventField"
+    ]
+  },
+  "platform": {
+    "xamlNamespace": "http://schemas.microsoft.com/winfx/2006/xaml",
+    "testAttributes": [
+      "Fact",
+      "Theory"
+    ],
+    "generatedAttributes": [
+      "GeneratedCode",
+      "CompilerGenerated"
+    ],
+    "externalAttributes": [
+      "DllImport",
+      "LibraryImport"
+    ],
+    "commandAttributes": [
+      "RelayCommand",
+      "RelayCommandAttribute"
+    ],
+    "commandCancelArgument": "IncludeCancelCommand",
+    "commandAsyncSuffix": "Async",
+    "commandSuffix": "Command",
+    "commandCancelSuffix": "CancelCommand",
+    "frameworkContracts": {
+      "IEquatable": [
+        "Equals"
+      ],
+      "IDisposable": [
+        "Dispose"
+      ],
+      "IAsyncDisposable": [
+        "DisposeAsync"
+      ],
+      "INotifyPropertyChanged": [
+        "PropertyChanged"
+      ],
+      "INotifyPropertyChanging": [
+        "PropertyChanging"
+      ],
+      "IProgress": [
+        "Report"
+      ],
+      "IValueConverter": [
+        "Convert",
+        "ConvertBack"
+      ],
+      "IMultiValueConverter": [
+        "Convert",
+        "ConvertBack"
+      ]
+    }
+  },
+  "report": { "directory": "docs-analysis", "versionFile": "version.json", "versionKey": "current-version", "prefix": "AuditNames-" }
+}

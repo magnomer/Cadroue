@@ -44,7 +44,7 @@ public static partial class LFlyleaf
 
             lProgress?.Report(0.95);
             string lAssemblyFolder = LFlyleafRuntimeCreate(lSource);
-            LFlyleafRecordSave(new LFlyleafRecord
+            LFlyleafRecordSave(new LFlyleafDocument
             {
                 LFlyleafAssemblyFolder = lAssemblyFolder,
                 LFlyleafSourceFolder = lSource

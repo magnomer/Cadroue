@@ -1,0 +1,71 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "enforced": true,
+  "helper": {
+    "framework": "net10.0"
+  },
+  "sources": {
+    "roots": [
+      "src"
+    ],
+    "extensions": [
+      ".cs"
+    ],
+    "excludeSegments": [
+      ".git",
+      "bin",
+      "obj",
+      "out",
+      "publish",
+      "snapshots",
+      "TestResults"
+    ],
+    "excludeSuffixes": [
+      ".g.cs",
+      ".g.i.cs",
+      ".AssemblyInfo.cs",
+      ".GlobalUsings.g.cs",
+      ".Designer.cs"
+    ],
+    "excludePrefixes": [
+      "TemporaryGeneratedFile_",
+      "GeneratedInternalTypeHelper"
+    ]
+  },
+  "thresholds": {
+    "hydra": { "parts": 5, "lines": 1000, "fused": 0.75, "density": 0.5 },
+    "kraken": {},
+    "spider": { "outgoing": 25, "incoming": 25 },
+    "chameleon": { "mutable": 7 },
+    "octopus": { "outgoing": 40 },
+    "centipede": { "members": 40 },
+    "serpent": { "lines": 500 },
+    "hub": { "parts": 5 }
+  },
+  "ceiling": {
+    "hydra": 0,
+    "kraken": 0,
+    "spider": 0,
+    "chameleon": 0,
+    "octopus": 0,
+    "centipede": 0,
+    "serpent": 0,
+    "hub": 0
+  },
+  "parts": {
+  },
+  "console": {
+    "top": 25
+  },
+  "history": {
+    "records": "docs-analysis/records/AuditObjectHistory",
+    "pagePrefix": "AuditObjectHistory-"
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditObject-"
+  }
+}

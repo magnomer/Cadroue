@@ -15,7 +15,7 @@ public sealed class LMpvInstallResult
     public string LMpvInstallMessage { get; init; } = string.Empty;
 }
 
-internal sealed class LMpvInstallRecord
+internal sealed class LMpvInstallDocument
 {
     public string LMpvInstallFolder { get; set; } = string.Empty;
 }
@@ -46,7 +46,8 @@ public sealed partial class LMpv
                 return null;
             }
 
-            LMpvInstallRecord? lRecord = JsonSerializer.Deserialize<LMpvInstallRecord>(File.ReadAllText(lRecordPath));
+            LMpvInstallDocument? lRecord =
+                JsonSerializer.Deserialize<LMpvInstallDocument>(File.ReadAllText(lRecordPath));
             string? lFolder = lRecord?.LMpvInstallFolder;
             if (!string.IsNullOrWhiteSpace(lFolder) && File.Exists(Path.Combine(lFolder, LMpvLibraryFile)))
             {
@@ -86,7 +87,7 @@ public sealed partial class LMpv
                 throw new FileNotFoundException($"{LMpvLibraryFile} was not found in the mpv archive.");
             }
 
-            LMpvRecordSave(new LMpvInstallRecord { LMpvInstallFolder = lInstallFolder });
+            LMpvRecordSave(new LMpvInstallDocument { LMpvInstallFolder = lInstallFolder });
             LMpvArchiveDelete(lArchivePath);
             LTraceLog.LTraceInfoRecord($"Local mpv installed: {lDll}");
             lProgress?.Report(1);
@@ -257,7 +258,7 @@ public sealed partial class LMpv
 
     private static string LMpvRecordFind() => Path.Combine(LMpvRootRead(), LMpvRecordName);
 
-    private static void LMpvRecordSave(LMpvInstallRecord lRecord)
+    private static void LMpvRecordSave(LMpvInstallDocument lRecord)
     {
         Directory.CreateDirectory(LMpvRootRead());
         File.WriteAllText(

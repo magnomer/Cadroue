@@ -22,9 +22,9 @@ public interface LScheduleContract
 
     int LScheduleDoneCount { get; }
 
-    event Action<LScheduleContract>? LScheduleChange;
+    event Action<LScheduleContract>? LScheduleChanged;
 
-    event Action<LWorkItem, LScheduleNotice>? LScheduleItemChange;
+    event Action<LWorkItem, LScheduleNotice>? LScheduleItemChanged;
 
     void LScheduleChangeRaise();
 

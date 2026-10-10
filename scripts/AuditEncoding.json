@@ -1,0 +1,17 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "sources": {
+    "include": [ "*.cs", "*.xaml", "*.md", "*.json", "*.csproj", "*.props", "*.slnx", "*.ps1" ],
+    "excludeSegments": [ ".git", "bin", "obj", "out", "publish", "snapshots", "TestResults" ],
+    "skip": [ "version.json" ]
+  },
+  "tabless": [ ".cs", ".xaml" ],
+  "ascii": [ ".ps1" ],
+  "patterns": {
+    "control": "[\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F]",
+    "trail": "[\\u00A0-\\u00BF\\u0152\\u0153\\u0160\\u0161\\u0178\\u017D\\u017E\\u0192\\u02C6\\u02DC\\u2013\\u2014\\u2018-\\u201E\\u2020-\\u2022\\u2026\\u2030\\u2039\\u203A\\u20AC\\u2122]",
+    "mojibake": "\\u00EF\\u00BB\\u00BF|(?:[\\u00E0-\\u00EF]{trail}{2}){2}|(?:[\\u00C2-\\u00DF]{trail}){2}"
+  },
+  "report": { "directory": "docs-analysis", "versionFile": "version.json", "versionKey": "current-version", "prefix": "AuditEncoding-" }
+}

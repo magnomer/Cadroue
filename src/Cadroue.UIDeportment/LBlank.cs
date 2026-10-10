@@ -8,8 +8,8 @@ public sealed class LBlank
     private LDetectorBlank lBlankStep = LDetectorBlank.LDetectorBlankCreate();
     private bool lBlankPicking;
 
-    public event Action? LBlankChange;
-    public event Action<bool>? LBlankPickChange;
+    public event Action? LBlankChanged;
+    public event Action<bool>? LBlankPickChanged;
 
     public LDetectorBlank LBlankStep => lBlankStep;
 
@@ -41,7 +41,7 @@ public sealed class LBlank
         }
 
         lBlankStep = lNormal;
-        LBlankChange?.Invoke();
+        LBlankChanged?.Invoke();
     }
 
     public void LBlankEnabledSet(bool lEnabled) =>
@@ -106,7 +106,7 @@ public sealed class LBlank
         }
 
         lBlankPicking = lPicking;
-        LBlankPickChange?.Invoke(lPicking);
+        LBlankPickChanged?.Invoke(lPicking);
     }
 
     private void LBlankColorApply(double lX, double lY, double lBrightness)

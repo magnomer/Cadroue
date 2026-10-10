@@ -18,7 +18,7 @@ public sealed record LGroupCard(
 
 public sealed record LGroupSide(string LGroupSideText, string LGroupSideTip, bool LGroupSideActive);
 
-public sealed record LGroupToggle(string LGroupToggleKey, LGroupSide LGroupToggleLeft, LGroupSide LGroupToggleRight);
+public sealed record LGroupSwitch(string LGroupToggleKey, LGroupSide LGroupToggleLeft, LGroupSide LGroupToggleRight);
 
 public sealed class LGroupFace
 {
@@ -45,13 +45,13 @@ public sealed class LGroupFace
                     .ToArray()))
             .ToArray();
 
-    public LGroupToggle LGroupModeRead() =>
+    public LGroupSwitch LGroupModeRead() =>
         new(
             LGroupModeKey,
             LGroupSideCreate("Manual", !lGroup.LGroupSelection.LGroupAuto),
             LGroupSideCreate("Auto", lGroup.LGroupSelection.LGroupAuto));
 
-    public IReadOnlyList<LGroupToggle> LGroupSwitchesRead() =>
+    public IReadOnlyList<LGroupSwitch> LGroupSwitchesRead() =>
     [
         new(
             LGroupStrictKey,

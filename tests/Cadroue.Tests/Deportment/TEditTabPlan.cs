@@ -97,7 +97,7 @@ public sealed class TEditTabPlan
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LEditTab tab, LInspector inspector, LViewer viewer, _) = TEditBuild();
-        var written = new List<(string, LSidecarEditRecord?)>();
+        var written = new List<(string, LSidecarEditEntry?)>();
         TInterface.TEditLibrarianAttach(_ => null, (path, record) =>
         {
             written.Add((path, record));
@@ -120,7 +120,7 @@ public sealed class TEditTabPlan
             TInterface.TEditLibrarianAttach(null, null);
         }
 
-        (string path, LSidecarEditRecord? record) = Assert.Single(written);
+        (string path, LSidecarEditEntry? record) = Assert.Single(written);
         Assert.Equal(TEditSource, path);
         Assert.NotNull(record);
         Assert.Equal(10, record!.LSidecarCropLeft);

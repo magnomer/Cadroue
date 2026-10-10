@@ -36,7 +36,7 @@ public sealed class LLoudness
         lLoudnessToken = LLoudnessMatchRead();
     }
 
-    public event Action? LLoudnessChange;
+    public event Action? LLoudnessChanged;
 
     public LWorkNormalizeStep LLoudnessStep => lLoudnessStep;
 
@@ -220,7 +220,7 @@ public sealed class LLoudness
         }
 
         lLoudnessPersistent = lPersistent;
-        LLoudnessChange?.Invoke();
+        LLoudnessChanged?.Invoke();
     }
 
     private void LLoudnessStepApply(LWorkNormalizeStep lNormal, string? lToken)
@@ -232,7 +232,7 @@ public sealed class LLoudness
 
         lLoudnessStep = lNormal;
         lLoudnessToken = lToken;
-        LLoudnessChange?.Invoke();
+        LLoudnessChanged?.Invoke();
     }
 
     private static string? LLoudnessTokenResolve(LWorkNormalizeStep lStep, string? lFallback) =>

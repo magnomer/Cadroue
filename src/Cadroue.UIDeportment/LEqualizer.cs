@@ -20,8 +20,8 @@ public sealed class LEqualizer
         lEqualizerToken = LEqualizerMatchRead();
     }
 
-    public event Action? LEqualizerChange;
-    public event Action? LEqualizerRowsChange;
+    public event Action? LEqualizerChanged;
+    public event Action? LEqualizerRowsChanged;
 
     public bool LEqualizerActive => lEqualizerActive;
 
@@ -111,7 +111,7 @@ public sealed class LEqualizer
         }
 
         lEqualizerActive = lActive;
-        LEqualizerChange?.Invoke();
+        LEqualizerChanged?.Invoke();
     }
 
     public void LEqualizerBandSet(int lIndex, double lFrequency, double lGain)
@@ -176,7 +176,7 @@ public sealed class LEqualizer
         }
 
         lEqualizerPersistent = lPersistent;
-        LEqualizerChange?.Invoke();
+        LEqualizerChanged?.Invoke();
     }
 
     private double LEqualizerFrequencyResolve(int lIndex) =>
@@ -204,9 +204,9 @@ public sealed class LEqualizer
         lEqualizerToken = lToken;
         if (lRows)
         {
-            LEqualizerRowsChange?.Invoke();
+            LEqualizerRowsChanged?.Invoke();
         }
 
-        LEqualizerChange?.Invoke();
+        LEqualizerChanged?.Invoke();
     }
 }

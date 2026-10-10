@@ -24,10 +24,10 @@ public sealed class LViewerNeutral
         lViewer = lOwner;
     }
 
-    public event Action<bool, LNeutralTarget>? LViewerToolChange;
-    public event Action<LNeutralSample>? LViewerNeutralChange;
-    public event Action<LNeutralWheel>? LViewerEstimateChange;
-    public event Action? LViewerFocusApply;
+    public event Action<bool, LNeutralTarget>? LViewerToolChanged;
+    public event Action<LNeutralSample>? LViewerNeutralChanged;
+    public event Action<LNeutralWheel>? LViewerEstimateChanged;
+    public event Action? LViewerFocusApplied;
 
     public LViewerTool LViewerTool => lViewerTool;
 
@@ -116,7 +116,7 @@ public sealed class LViewerNeutral
     }
 
     public void LViewerEstimateStart(LWhitebalanceMethod lMethod) =>
-        lViewer.LViewerFrameRead(lFrame => LViewerEstimateChange?.Invoke(lFrame is null
+        lViewer.LViewerFrameRead(lFrame => LViewerEstimateChanged?.Invoke(lFrame is null
             ? new LNeutralWheel(0, 0, false)
             : LNeutral.LNeutralAnalyzeResolve(
                 lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight, lMethod)));
@@ -138,7 +138,7 @@ public sealed class LViewerNeutral
             lViewer.LViewerPlayback.LViewerPause();
         }
 
-        LViewerFocusApply?.Invoke();
+        LViewerFocusApplied?.Invoke();
         LViewerToolRaise(true);
     }
 
@@ -159,7 +159,7 @@ public sealed class LViewerNeutral
     private void LViewerToolRaise(bool lArmed)
     {
         lViewer.LCrop.LCropOverlayUpdate();
-        LViewerToolChange?.Invoke(lArmed, lViewerTarget);
+        LViewerToolChanged?.Invoke(lArmed, lViewerTarget);
     }
 
     private async void LViewerSampleStart(
@@ -181,7 +181,7 @@ public sealed class LViewerNeutral
             return;
         }
 
-        LViewerNeutralChange?.Invoke(lFrame is null
+        LViewerNeutralChanged?.Invoke(lFrame is null
             ? new LNeutralSample(LNeutralOutcome.LNeutralOutcomeDecode, 0, 0, 0, 1, 1, 1)
             : LNeutral.LNeutralResolve(
                 lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight,

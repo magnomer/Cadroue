@@ -9,20 +9,20 @@ public sealed partial class LSchedule
 
     internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
-    internal static bool LScheduleSignetMatch(LWorkRecord lWorkRecord) =>
+    internal static bool LScheduleSignetMatch(LWorkDocument lWorkRecord) =>
         lWorkRecord.LWorkSignet == Guid.Empty
         || lWorkRecord.LWorkSignet == LSignet.LSignetCurrent;
 
-    internal static bool LScheduleScopeMatch(LWorkRecord lWorkRecord) =>
+    internal static bool LScheduleScopeMatch(LWorkDocument lWorkRecord) =>
         Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
         || LScheduleSignetMatch(lWorkRecord);
 
-    internal static bool LScheduleRelayMatch(LWorkRecord lWorkRecord) =>
+    internal static bool LScheduleRelayMatch(LWorkDocument lWorkRecord) =>
         lWorkRecord.LWorkRelayProcess == 0
         || lWorkRecord.LWorkRelayProcess == Environment.ProcessId
         || !LSentinel.LSentinelOwnerCheck(lWorkRecord.LWorkRelayProcess, lWorkRecord.LWorkRelayStamp);
 
-    internal static bool LScheduleClaimMatch(LWorkRecord lWorkRecord) =>
+    internal static bool LScheduleClaimMatch(LWorkDocument lWorkRecord) =>
         LScheduleScopeMatch(lWorkRecord) && LScheduleRelayMatch(lWorkRecord);
 
     public LWorkItem? LScheduleClaim(Guid lRunnerId)
@@ -34,7 +34,7 @@ public sealed partial class LSchedule
             LScheduleStaleClaim();
         }
 
-        var lScheduleCandidates = new List<LWorkRecord>();
+        var lScheduleCandidates = new List<LWorkDocument>();
         foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled))
         {
             if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
@@ -43,13 +43,13 @@ public sealed partial class LSchedule
             }
         }
 
-        IEnumerable<LWorkRecord> lScheduleOrdered = lScheduleCandidates
+        IEnumerable<LWorkDocument> lScheduleOrdered = lScheduleCandidates
             .Where(LScheduleClaimMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
             .ThenBy(lWorkRecord => Cadroue.Application.LGate.LGateTimeRead(lWorkRecord.LWorkBatchId))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
 
-        foreach (LWorkRecord lWorkRecord in lScheduleOrdered)
+        foreach (LWorkDocument lWorkRecord in lScheduleOrdered)
         {
             lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateRunning);
             lWorkRecord.LWorkOwnerProcess = Environment.ProcessId;
@@ -267,7 +267,7 @@ public sealed partial class LSchedule
             : 0;
     }
 
-    private static LWorkRecord? LScheduleOwnedRead(Guid lWorkId, Guid lRunnerId)
+    private static LWorkDocument? LScheduleOwnedRead(Guid lWorkId, Guid lRunnerId)
     {
         string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, lWorkId);
         return File.Exists(lDepotFilePath)
@@ -277,7 +277,7 @@ public sealed partial class LSchedule
             : null;
     }
 
-    private bool LScheduleOwnedRelease(LWorkRecord lWorkRecord, string lScheduleMessage)
+    private bool LScheduleOwnedRelease(LWorkDocument lWorkRecord, string lScheduleMessage)
     {
         LSchedulePartialRemove(lWorkRecord);
         if (!LScheduleRecordRelease(lWorkRecord, lScheduleMessage))
@@ -345,7 +345,7 @@ public sealed partial class LSchedule
             ? "being processed"
             : "starting";
 
-    private static void LSchedulePartialRemove(LWorkRecord lWorkRecord)
+    private static void LSchedulePartialRemove(LWorkDocument lWorkRecord)
     {
         if (string.IsNullOrWhiteSpace(lWorkRecord.LWorkOutputPath)
             || lWorkRecord.LWorkMergeSources.Prepend(lWorkRecord.LWorkSourcePath).Any(lScheduleSource =>
@@ -366,7 +366,7 @@ public sealed partial class LSchedule
         }
     }
 
-    private static bool LScheduleFailedSet(LWorkRecord lWorkRecord, string lScheduleMessage)
+    private static bool LScheduleFailedSet(LWorkDocument lWorkRecord, string lScheduleMessage)
     {
         LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateFailed);
@@ -377,7 +377,7 @@ public sealed partial class LSchedule
             LDepotFolder.LDepotFolderFailed);
     }
 
-    internal static void LScheduleOwnerClear(LWorkRecord lWorkRecord)
+    internal static void LScheduleOwnerClear(LWorkDocument lWorkRecord)
     {
         lWorkRecord.LWorkOwnerProcess = 0;
         lWorkRecord.LWorkOwnerStamp = 0;
@@ -392,7 +392,7 @@ public sealed partial class LSchedule
     public bool LScheduleForeignCheck(LWorkItem lWorkItem, Guid lRunnerId) =>
         lWorkItem.LWorkOwnerRunner != Guid.Empty && lWorkItem.LWorkOwnerRunner != lRunnerId;
 
-    private static bool LScheduleRecordRelease(LWorkRecord lWorkRecord, string? lScheduleMessage = null)
+    private static bool LScheduleRecordRelease(LWorkDocument lWorkRecord, string? lScheduleMessage = null)
     {
         LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);

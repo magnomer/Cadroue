@@ -90,10 +90,10 @@ public sealed class PCompass : UserControl
         pCompassSectionGroups = LCompass.LCompassSectionRead().Select(PCompassGroupRead).ToList();
 
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle();
-        pViewer.LViewer.LViewerVolumeChange += PCompassValueHandle;
-        pViewer.LViewer.LViewerPlayingChange += PCompassPlayingApply;
-        pFlow.LFlow.LFlowEditChange += PCompassEditApply;
-        pFlow.LFlow.LFlowWaveformChange += PCompassWaveformApply;
+        pViewer.LViewer.LViewerVolumeChanged += PCompassValueHandle;
+        pViewer.LViewer.LViewerPlayingChanged += PCompassPlayingApply;
+        pFlow.LFlow.LFlowEditChanged += PCompassEditApply;
+        pFlow.LFlow.LFlowWaveformChanged += PCompassWaveformApply;
         PCompassEditApply(LCompass.LCompassEditActive);
         PCompassValueHandle(LCompass.LCompassVolume);
         PCompassWaveformApply(LCompass.LCompassWaveformActive);

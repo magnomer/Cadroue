@@ -8,7 +8,7 @@ public sealed record LSplitSectionDescription(
     string LSplitSectionSuffix = "",
     bool LSplitSectionHidden = false);
 
-public sealed record LSplitPlanRecord(
+public sealed record LSplitPlanDescription(
     string LSplitSourcePath,
     IReadOnlyList<LSplitSectionDescription> LSplitPlanSections);
 

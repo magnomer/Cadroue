@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ encoding audit</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.warn { background: var(--warn-wash); color: var(--warn); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.bars { position: relative; display: grid; grid-template-columns: minmax(120px, max-content) 1fr max-content; gap: 4px 12px; align-items: center; font-size: 13px; }
+.bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
+.bars .fill.root { background: var(--tally); }
+.bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; max-width: 420px; display: none; z-index: 5; }
+.tip .head { font-weight: 600; overflow-wrap: anywhere; }
+.tip .meta { color: var(--ink-3); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row .num { margin-left: auto; font-variant-numeric: tabular-nums; padding-left: 12px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+th.group { text-align: center; }
+thead th { vertical-align: bottom; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.path { white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+td.path .dir { color: var(--ink-3); }
+td.wrap { white-space: normal; text-align: left; }
+#gates a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+.code { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre; text-align: left; max-width: 520px; overflow: hidden; text-overflow: ellipsis; }
+.subhead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; scroll-margin-top: 12px; }
+.subhead.first { margin-top: 4px; }
+.subhead .count { color: var(--ink-3); font-weight: 400; }
+.subhead.warn { color: var(--warn); }
+.subhead.fail { color: var(--fail); }
+.subhead.ok { color: var(--ink-1); }
+.lead { color: var(--ink-3); font-size: 13px; margin: 0 0 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+button.more { font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px dashed var(--ring); border-radius: 8px; padding: 6px 12px; cursor: pointer; margin-top: 8px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+.list { margin: 0; padding-left: 18px; }
+.list li { overflow-wrap: anywhere; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: minmax(80px, 40%) 1fr max-content; }
+  .toolbar input { min-width: 0; }
+}
+td .chips { display: inline-flex; flex-wrap: wrap; gap: 4px; white-space: normal; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ encoding audit</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="gates"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2>Files and bytes by extension</h2>
+        <div class="muted">Every scanned file, grouped by its extension without case.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="Measure" id="metric"></div>
+    </div>
+    <div class="bars" id="extbars"></div>
+    <div class="tablewrap" style="margin-top: 16px"><table id="exttable"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Findings</h2>
+    <div id="findings"></div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2 id="alltitle"></h2>
+        <div class="muted">Every file the audit read, with its extension, its size and the kinds that hit it. Click a column heading to sort.</div>
+      </div>
+      <div class="segmented" role="group" aria-label="State" id="statefilter"></div>
+    </div>
+    <div class="toolbar"><input type="search" id="filter" placeholder="Filter by path or extension" aria-label="Filter files by path or extension"></div>
+    <div class="tablewrap"><table id="alltable"></table></div>
+    <div class="empty" id="allempty" style="display:none">None.</div>
+    <button type="button" class="more" id="allmore"></button>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var PF = new Intl.NumberFormat('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var LQ = '\u201c', RQ = '\u201d';
+  var LIMIT = 100;
+  var METRICS = [{ key: 'files', label: 'Files' }, { key: 'bytes', label: 'Bytes' }];
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function pct(part, whole) { return whole > 0 ? PF.format(part / whole * 100) + ' %' : '0.0 %'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pathHtml(path) {
+    var cut = path.lastIndexOf('/');
+    return cut < 0 ? esc(path) : '<span class="dir">' + esc(path.slice(0, cut + 1)) + '</span>' + esc(path.slice(cut + 1));
+  }
+  function slug(text) { return 'sec-' + String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function statusClass(s) { return s === 'FAIL' ? 'fail' : s === 'WARN' ? 'warn' : 'ok'; }
+  function load(key, fallback, allowed) {
+    try { var v = localStorage.getItem('auditencoding.' + key); if (v !== null && (!allowed || allowed.indexOf(v) >= 0)) return v; } catch (e) { }
+    return fallback;
+  }
+  function save(key, value) { try { localStorage.setItem('auditencoding.' + key, value); } catch (e) { } }
+  function segmented(box, options, current, onPick) {
+    box.innerHTML = '';
+    options.forEach(function (o) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = o.label;
+      b.setAttribute('aria-pressed', String(o.key === current));
+      b.addEventListener('click', function () {
+        Array.prototype.forEach.call(box.children, function (c) { c.setAttribute('aria-pressed', String(c === b)); });
+        onPick(o.key);
+      });
+      box.appendChild(b);
+    });
+  }
+  function makeTip(box) {
+    var tip = document.createElement('div');
+    tip.className = 'tip';
+    box.appendChild(tip);
+    return {
+      show: function (html, x, y) {
+        tip.innerHTML = html;
+        tip.style.display = 'block';
+        var bw = box.clientWidth, tw = tip.offsetWidth;
+        tip.style.left = Math.max(0, Math.min(bw - tw, x + 14)) + 'px';
+        tip.style.top = (y + 14) + 'px';
+      },
+      hide: function () { tip.style.display = 'none'; }
+    };
+  }
+  function pointer(box, ev) {
+    var r = box.getBoundingClientRect();
+    return { x: ev.clientX - r.left, y: ev.clientY - r.top };
+  }
+
+  // Header, verdict and result.
+  document.getElementById('subtitle').textContent = 'Version ' + d.version + DOT + d.generated + DOT + fmt(d.scanned) + ' text files scanned' + DOT +
+    'Generation ' + d.generation;
+  document.getElementById('links').innerHTML = d.reports.map(function (r) { return '<a href="' + esc(r.link) + '">' + esc(r.name) + '</a>'; }).join(DOT);
+
+  var failed = d.gates.filter(function (g) { return g.status === 'FAIL'; });
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + d.gates.length + ' gates at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + d.gates.length + ' gates above 0.<span class="note">See ' +
+      failed.map(function (g) { return '<a href="#' + slug(g.section) + '">' + LQ + esc(g.section) + RQ + '</a>'; }).join(', ') + '.</span>';
+  }
+
+  document.getElementById('gates').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+    d.gates.map(function (g) {
+      return '<tr><td class="l"><span class="status ' + statusClass(g.status) + '">' + g.status + '</span></td><td>' + fmt(g.count) +
+        '</td><td class="l"><a href="#' + slug(g.section) + '">' + esc(g.gate) + '</a></td><td class="l muted">' + esc(g.meaning) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  var tiles = [];
+  tiles.push('<div class="tile"><div class="label">Scanned files</div><div class="value">' + fmt(d.scanned) + '</div><div class="note">' +
+    fmt(d.extensions.length) + ' extensions</div></div>');
+  tiles.push('<div class="tile"><div class="label">Total bytes</div><div class="value">' + fmt(d.bytes) + '</div><div class="note">' +
+    fmt(d.scanned ? Math.round(d.bytes / d.scanned) : 0) + ' bytes per file</div></div>');
+  d.kinds.forEach(function (k) {
+    var n = k.hits.length;
+    tiles.push('<div class="tile ' + (n ? 'fail' : '') + '"><div class="label">' + esc(k.label) + '</div><div class="value">' + fmt(n) +
+      '</div><div class="note">' + (n ? 'files hit' : 'no file hit') + '</div></div>');
+  });
+  document.getElementById('tiles').innerHTML = tiles.join('');
+
+  // Scope.
+  function codes(list) { return list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
+  var scopeRows = [
+    ['Project root', '<code>' + esc(d.root) + '</code>'],
+    ['Includes', codes(d.scope.include)],
+    ['Excluded segments', codes(d.scope.excludeSegments)],
+    ['Skipped names', codes(d.scope.skip)],
+    ['Tabless suffixes', codes(d.scope.tabless)],
+    ['ASCII suffixes', codes(d.scope.ascii)],
+    ['Control pattern', codes([d.scope.control])],
+    ['Trail pattern', codes([d.scope.trail])],
+    ['Mojibake pattern', codes([d.scope.mojibake]) + ' <span class="muted">where <code>{trail}</code> stands for the trail pattern</span>']
+  ];
+  document.getElementById('scope').innerHTML = scopeRows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+
+  // Extensions.
+  var totals = { files: 0, bytes: 0 };
+  d.extensions.forEach(function (e) { totals.files += e.files; totals.bytes += e.bytes; });
+  var barBox = document.getElementById('extbars');
+  var barTip = makeTip(barBox);
+  var metric = load('metric', 'files', METRICS.map(function (m) { return m.key; }));
+  segmented(document.getElementById('metric'), METRICS, metric, function (k) { metric = k; save('metric', k); drawExtensions(); });
+  function drawExtensions() {
+    var list = d.extensions.slice().sort(function (a, b) { return b[metric] - a[metric] || (a.extension < b.extension ? -1 : a.extension > b.extension ? 1 : 0); });
+    var peak = list.reduce(function (m, e) { return Math.max(m, e[metric]); }, 0) || 1;
+    barBox.querySelectorAll('.name, .track, .num').forEach(function (n) { n.remove(); });
+    list.forEach(function (e) {
+      var name = document.createElement('div');
+      name.className = 'name';
+      name.textContent = e.extension;
+      var track = document.createElement('div');
+      track.className = 'track';
+      track.innerHTML = '<div class="fill" style="width:' + (e[metric] / peak * 100).toFixed(2) + '%"></div>';
+      var num = document.createElement('div');
+      num.className = 'num';
+      num.textContent = fmt(e[metric]);
+      [name, track, num].forEach(function (n) {
+        n.addEventListener('mousemove', function (ev) {
+          var p = pointer(barBox, ev);
+          barTip.show('<div class="head">' + esc(e.extension) + '</div>' +
+            '<div class="row"><span>Files</span><span class="num">' + fmt(e.files) + '</span></div>' +
+            '<div class="row"><span>Share of files</span><span class="num">' + pct(e.files, totals.files) + '</span></div>' +
+            '<div class="row"><span>Bytes</span><span class="num">' + fmt(e.bytes) + '</span></div>' +
+            '<div class="row"><span>Share of bytes</span><span class="num">' + pct(e.bytes, totals.bytes) + '</span></div>', p.x, p.y);
+        });
+        n.addEventListener('mouseleave', barTip.hide);
+        barBox.appendChild(n);
+      });
+    });
+  }
+  (function () {
+    function row(e, cls) {
+      return '<tr class="' + cls + '"><td class="l">' + esc(e.extension) + '</td><td>' + fmt(e.files) + '</td><td>' + pct(e.files, totals.files) +
+        '</td><td>' + fmt(e.bytes) + '</td><td>' + pct(e.bytes, totals.bytes) + '</td><td>' + fmt(e.files ? Math.round(e.bytes / e.files) : 0) + '</td></tr>';
+    }
+    document.getElementById('exttable').innerHTML =
+      '<thead><tr><th class="l" rowspan="2">Extension</th><th class="group" colspan="2">Files</th><th class="group" colspan="3">Bytes</th></tr>' +
+      '<tr><th>Count</th><th>Share</th><th>Total</th><th>Share</th><th>Average</th></tr></thead><tbody>' +
+      d.extensions.map(function (e) { return row(e, ''); }).join('') + row({ extension: 'Total', files: totals.files, bytes: totals.bytes }, 'total') + '</tbody>';
+  })();
+
+  // Findings, in the console order.
+  var findingBox = document.getElementById('findings');
+  d.kinds.forEach(function (k, index) {
+    var wrap = document.createElement('div');
+    findingBox.appendChild(wrap);
+    var status = k.hits.length ? 'FAIL' : 'OK';
+    var shown = LIMIT;
+    function draw() {
+      var html = '<div class="subhead ' + statusClass(status) + (index === 0 ? ' first' : '') + '" id="' + slug(k.label) + '">' +
+        '<span class="status ' + statusClass(status) + '">' + status + '</span>' + esc(k.label) + ' <span class="count">(' + fmt(k.hits.length) + ')</span></div>';
+      if (!k.hits.length) html += '<div class="empty">None.</div>';
+      else html += '<div class="tablewrap"><table><thead><tr><th class="l">File</th><th class="l">Detail</th></tr></thead><tbody>' +
+        k.hits.slice(0, shown).map(function (h) { return '<tr><td class="path">' + pathHtml(h.path) + '</td><td class="l">' + esc(h.detail) + '</td></tr>'; }).join('') +
+        '</tbody></table></div>';
+      wrap.innerHTML = html;
+      if (k.hits.length > shown) {
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'more';
+        more.textContent = 'Show all ' + fmt(k.hits.length) + ' (' + fmt(k.hits.length - shown) + ' hidden)';
+        more.addEventListener('click', function () { shown = Infinity; draw(); });
+        wrap.appendChild(more);
+      }
+    }
+    draw();
+  });
+
+  // Every scanned file.
+  d.files.forEach(function (f) { f.hits = f.kinds.length; });
+  var hitCount = d.files.filter(function (f) { return f.hits > 0; }).length;
+  var STATES = [{ key: 'all', label: 'All ' + fmt(d.files.length) }, { key: 'clean', label: 'Clean ' + fmt(d.files.length - hitCount) },
+    { key: 'hit', label: 'With hits ' + fmt(hitCount) }];
+  var COLUMNS = [
+    { key: 'path', label: 'File', num: false }, { key: 'extension', label: 'Extension', num: false },
+    { key: 'bytes', label: 'Bytes', num: true }, { key: 'hits', label: 'Kinds hit', num: true }
+  ];
+  var sortKey = load('sort', 'path', COLUMNS.map(function (c) { return c.key; }));
+  var sortDown = load('down', 'false', ['true', 'false']) === 'true';
+  var stateKey = load('state', 'all', STATES.map(function (s) { return s.key; }));
+  var shownAll = LIMIT;
+  segmented(document.getElementById('statefilter'), STATES, stateKey, function (k) { stateKey = k; save('state', k); shownAll = LIMIT; drawAll(); });
+  var filterBox = document.getElementById('filter');
+  filterBox.addEventListener('input', function () { shownAll = LIMIT; drawAll(); });
+  document.getElementById('allmore').addEventListener('click', function () { shownAll = Infinity; drawAll(); });
+  function drawAll() {
+    var q = filterBox.value.trim().toLowerCase();
+    var list = d.files.filter(function (f) {
+      var state = stateKey === 'all' || (stateKey === 'hit' ? f.hits > 0 : f.hits === 0);
+      return state && (!q || f.path.toLowerCase().indexOf(q) >= 0 || f.extension.indexOf(q) >= 0);
+    });
+    var col = COLUMNS.filter(function (c) { return c.key === sortKey; })[0];
+    list.sort(function (a, b) {
+      var r = col.num ? a[sortKey] - b[sortKey] : (a[sortKey] < b[sortKey] ? -1 : a[sortKey] > b[sortKey] ? 1 : 0);
+      if (r === 0) r = a.path < b.path ? -1 : a.path > b.path ? 1 : 0;
+      return sortDown ? -r : r;
+    });
+    document.getElementById('alltitle').textContent = 'Every scanned file (' + fmt(d.files.length) + ')';
+    var head = '<thead><tr>' + COLUMNS.map(function (c) {
+      return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === sortKey ? ' aria-sort="' + (sortDown ? 'descending' : 'ascending') + '"' : '') + '>' + c.label + '</th>';
+    }).join('') + '</tr></thead>';
+    var body = list.slice(0, shownAll).map(function (f) {
+      var chips = f.kinds.length ? '<span class="chips">' + f.kinds.map(function (i) { return '<span class="status fail">' + esc(d.kinds[i].label) + '</span>'; }).join('') + '</span>' :
+        '<span class="status ok">OK</span>';
+      return '<tr><td class="path">' + pathHtml(f.path) + '</td><td class="l">' + esc(f.extension) + '</td><td>' + fmt(f.bytes) + '</td><td class="l">' + chips + '</td></tr>';
+    }).join('');
+    var table = document.getElementById('alltable');
+    table.innerHTML = head + '<tbody>' + body + '</tbody>';
+    Array.prototype.forEach.call(table.querySelectorAll('th.sort'), function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-key');
+        if (k === sortKey) sortDown = !sortDown;
+        else { sortKey = k; sortDown = COLUMNS.filter(function (c) { return c.key === k; })[0].num; }
+        save('sort', sortKey); save('down', String(sortDown));
+        drawAll();
+      });
+    });
+    document.getElementById('allempty').style.display = list.length ? 'none' : '';
+    var more = document.getElementById('allmore');
+    more.style.display = list.length > shownAll ? '' : 'none';
+    more.textContent = 'Show all ' + fmt(list.length) + ' (' + fmt(list.length - Math.min(shownAll, list.length)) + ' hidden)';
+  }
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>' + fmt(d.scanned) + ' text files' + DOT + fmt(d.bytes) + ' bytes</span>';
+
+  drawExtensions();
+  drawAll();
+})();
+</script>
+</body>
+</html>

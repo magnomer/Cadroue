@@ -51,7 +51,7 @@ internal sealed partial class PSOptions : Window
     {
         lsOptions = new LSOptions();
         lsSpectrum = new LSSpectrum(lsOptions.LSOptionsDraft.LPreferenceSectionPalette);
-        lsSpectrum.LSSpectrumChange += PSSpectrumActiveApply;
+        lsSpectrum.LSSpectrumChanged += PSSpectrumActiveApply;
         psOptionsCallback = pApplyCallback;
 
         psOptionsStartupMode = PSModeBuild(
@@ -92,7 +92,7 @@ internal sealed partial class PSOptions : Window
             out psOptionsEngineEnable,
             PSOptionsEngineItems);
         psOptionsEngineEnable("Mpv", lsOptions.LSOptionsMpvEnabled);
-        lsOptions.LSOptionsMpvChange += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
+        lsOptions.LSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
         _ = lsOptions.LSOptionsMpvUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(

@@ -1,4 +1,5 @@
 # TAuditNameFilter.cs
+Hash: `94d5e4f62b0c181b`
 
 ## `internal static class TAuditNameFilter`
 
@@ -28,7 +29,7 @@ Each type key is visited once, so a cycle in the base lists cannot loop.
 
 ## `private static string TAuditKeyRead(TypeDeclarationSyntax type)`
 
-One key per type: its namespace, its enclosing types, its name and its arity, as auditnames.ps1 keys it.
+One key per type: its namespace, its enclosing types, its name and its arity, as AuditNames.ps1 keys it.
 
 ## Inline notes
 
@@ -40,5 +41,5 @@ That is the same reason an explicit interface implementation is exempt.
 The rule is applied here to the implicit form.
 For a partial type the interface may be declared in another part in another file.
 The walker indexes every part first, so every part's interfaces are read.
-A contract declared by a source base type counts too, as it does in auditnames.ps1.
+A contract declared by a source base type counts too, as it does in AuditNames.ps1.
 A contract name on a type that declares no such interface anywhere is audited like any other.

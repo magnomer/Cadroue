@@ -8,7 +8,7 @@ namespace Cadroue.UIDeportment;
 public sealed record LWindowTab(
     string LWindowTabKey,
     LPreset? LWindowTabPreset,
-    LSceneTabRecord? LWindowTabLayout,
+    LSceneTabEntry? LWindowTabLayout,
     string? LWindowTabName);
 
 public sealed class LWindow
@@ -30,20 +30,20 @@ public sealed class LWindow
         LRelayChannel.LRelayAcceptSeam = LWindowRelayHandle;
     }
 
-    public event Action<LWindowTab>? LWindowTabAdd;
-    public event Action? LWindowFunnelUpdate;
-    public event Action<LRelay>? LWindowRelayApply;
-    public event Action<double, double>? LWindowPlace;
-    public event Action? LWindowShow;
-    public event Action<string>? LWindowMediaDefer;
-    public event Action<string>? LWindowMediaOpen;
-    public event Action<LStripTab, double>? LWindowTabAttach;
-    public event Action<LStripTab>? LWindowTabDetach;
-    public event Action<bool>? LWindowLayoutChange;
-    public event Action? LWindowVerticalApply;
-    public event Action? LWindowHorizontalApply;
-    public event Action<double>? LWindowFlowApply;
-    public event Action<double>? LWindowVolumeSet;
+    public event Action<LWindowTab>? LWindowTabAdded;
+    public event Action? LWindowFunnelUpdated;
+    public event Action<LRelay>? LWindowRelayApplied;
+    public event Action<double, double>? LWindowPlaced;
+    public event Action? LWindowShown;
+    public event Action<string>? LWindowMediaDeferred;
+    public event Action<string>? LWindowMediaOpened;
+    public event Action<LStripTab, double>? LWindowTabAttached;
+    public event Action<LStripTab>? LWindowTabDetached;
+    public event Action<bool>? LWindowLayoutChanged;
+    public event Action? LWindowVerticalApplied;
+    public event Action? LWindowHorizontalApplied;
+    public event Action<double>? LWindowFlowApplied;
+    public event Action<double>? LWindowVolumeSynced;
 
     public LWindowDrop LWindowDrop { get; }
 
@@ -63,7 +63,7 @@ public sealed class LWindow
     {
         if (lWindowTab is { } lPrevious)
         {
-            LWindowTabDetach?.Invoke(lPrevious);
+            LWindowTabDetached?.Invoke(lPrevious);
         }
 
         lWindowTab = lTab;
@@ -73,7 +73,7 @@ public sealed class LWindow
             return;
         }
 
-        LWindowTabAttach?.Invoke(lTab, LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
+        LWindowTabAttached?.Invoke(lTab, LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
         LWindowVolumeSync(LPreference.LPreferenceStateCurrent);
     }
 
@@ -91,7 +91,7 @@ public sealed class LWindow
         {
             (double lLeft, double lTop) = LSash.LSashRelayResolve(
                 lRelay.LRelayDropLeft, lRelay.LRelayDropTop, lScreenLeft, lScreenTop, lScreenWidth, lScreenHeight);
-            LWindowPlace?.Invoke(lLeft, lTop);
+            LWindowPlaced?.Invoke(lLeft, lTop);
             LWindowRelayAccept(lRelay);
             LRelayChannel.LRelayStartupCommit();
             return;
@@ -113,24 +113,24 @@ public sealed class LWindow
 
         if (lWindowViewer is not null)
         {
-            LWindowMediaOpen?.Invoke(lPath);
+            LWindowMediaOpened?.Invoke(lPath);
         }
     }
 
     public void LWindowOptionsApply()
     {
         LPreferenceState lPreference = LPreference.LPreferenceStateCurrent;
-        LWindowLayoutChange?.Invoke(lPreference.LPreferenceVerticalTabs);
+        LWindowLayoutChanged?.Invoke(lPreference.LPreferenceVerticalTabs);
         if (lPreference.LPreferenceVerticalTabs)
         {
-            LWindowVerticalApply?.Invoke();
+            LWindowVerticalApplied?.Invoke();
         }
         else
         {
-            LWindowHorizontalApply?.Invoke();
+            LWindowHorizontalApplied?.Invoke();
         }
 
-        LWindowFlowApply?.Invoke(LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
+        LWindowFlowApplied?.Invoke(LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
         LWindowVolumeSync(lPreference);
     }
 
@@ -165,15 +165,15 @@ public sealed class LWindow
         LRelayChannel.LRelayAcceptSeam = null;
     }
 
-    public LSceneRecord LWindowSceneRead(string lSceneName) => new()
+    public LSceneDocument LWindowSceneRead(string lSceneName) => new()
     {
         LSceneName = lSceneName,
         LSceneLayoutKeys = lStrip.LStripTabs.Select(lTab => lTab.LStripTabKey).ToList(),
         LSceneTabExports = lStrip.LStripTabs
-            .Select(lTab => lTab.LStripTabPreset?.LPresetRecordCreate() ?? new LPresetRecord())
+            .Select(lTab => lTab.LStripTabPreset?.LPresetRecordCreate() ?? new LPresetDocument())
             .ToList(),
         LSceneTabLayouts = lStrip.LStripTabs
-            .Select(lTab => lTab.LStripLayoutRead() ?? new LSceneTabRecord())
+            .Select(lTab => lTab.LStripLayoutRead() ?? new LSceneTabEntry())
             .ToList(),
         LSceneTabRelays = LCartographer.LCartographerSlotResolve(LWindowIdsRead()).ToList(),
         LSceneTabNames = lStrip.LStripTabs.Select(lTab => lTab.LStripTabCustom).ToList(),
@@ -182,14 +182,14 @@ public sealed class LWindow
             : Math.Max(0, lStrip.LStripTabs.ToList().IndexOf(lStrip.LStripSelected))
     };
 
-    public bool LWindowSceneApply(LSceneRecord lScene, bool lConfirmed, Action lAllClose)
+    public bool LWindowSceneApply(LSceneDocument lScene, bool lConfirmed, Action lAllClose)
     {
         if (!lConfirmed)
         {
             return false;
         }
 
-        LSceneRecord lBackup = LWindowSceneRead(LScene.LSceneActiveName);
+        LSceneDocument lBackup = LWindowSceneRead(LScene.LSceneActiveName);
         LTrace.LTraceLoadingSet(true);
         try
         {
@@ -223,15 +223,15 @@ public sealed class LWindow
 
     public void LWindowRelayAccept(LRelay lRelay)
     {
-        LWindowTabAdd?.Invoke(new LWindowTab(
+        LWindowTabAdded?.Invoke(new LWindowTab(
             lRelay.LRelayLayoutKey,
             LPreset.LPresetStateCreate(lRelay.LRelayExport),
             lRelay.LRelayLayout,
             lRelay.LRelayCustomName));
         LStripTab? lAdded = lStrip.LStripTabs.LastOrDefault();
         lStrip.LStripSelect(lAdded);
-        LWindowRelayApply?.Invoke(lRelay);
-        LWindowFunnelUpdate?.Invoke();
+        LWindowRelayApplied?.Invoke(lRelay);
+        LWindowFunnelUpdated?.Invoke();
     }
 
     private bool LWindowRelayHandle(LRelay lRelay)
@@ -241,7 +241,7 @@ public sealed class LWindow
             return lWindowDispatcher(() =>
             {
                 LWindowRelayAccept(lRelay);
-                LWindowShow?.Invoke();
+                LWindowShown?.Invoke();
                 return true;
             });
         }
@@ -254,7 +254,7 @@ public sealed class LWindow
         }
     }
 
-    private void LWindowStartupRestore(LPreferenceState lPreference, LSceneRecord lScene)
+    private void LWindowStartupRestore(LPreferenceState lPreference, LSceneDocument lScene)
     {
         LTrace.LTraceLoadingSet(true);
         try
@@ -263,7 +263,7 @@ public sealed class LWindow
             {
                 foreach (string lKey in lPreference.LPreferenceStartupTabs)
                 {
-                    LWindowTabAdd?.Invoke(new LWindowTab(lKey, null, null, null));
+                    LWindowTabAdded?.Invoke(new LWindowTab(lKey, null, null, null));
                 }
 
                 lStrip.LStripSelect(lStrip.LStripTabs.FirstOrDefault());
@@ -280,7 +280,7 @@ public sealed class LWindow
         }
     }
 
-    private void LWindowSceneRestore(LSceneRecord lScene)
+    private void LWindowSceneRestore(LSceneDocument lScene)
     {
         IReadOnlyList<string> lKeys = lScene.LSceneDefaultTabs ? LWindowDefaultKeys : lScene.LSceneLayoutKeys;
         lStrip.LStripUpdateSuspend();
@@ -288,7 +288,7 @@ public sealed class LWindow
         {
             for (int lIndex = 0; lIndex < lKeys.Count; lIndex++)
             {
-                LWindowTabAdd?.Invoke(new LWindowTab(
+                LWindowTabAdded?.Invoke(new LWindowTab(
                     lKeys[lIndex],
                     lIndex < lScene.LSceneTabExports.Count
                         ? LPreset.LPresetStateCreate(lScene.LSceneTabExports[lIndex])
@@ -304,7 +304,7 @@ public sealed class LWindow
 
         LWindowSlotsApply(lScene.LSceneTabRelays);
         lStrip.LStripTitleUpdate();
-        LWindowFunnelUpdate?.Invoke();
+        LWindowFunnelUpdated?.Invoke();
         if (lStrip.LStripTabs.Count == 0)
         {
             lStrip.LStripSelect(null);
@@ -360,7 +360,7 @@ public sealed class LWindow
             return;
         }
 
-        LWindowMediaDefer?.Invoke(lPreference.LPreferenceMediaPath);
+        LWindowMediaDeferred?.Invoke(lPreference.LPreferenceMediaPath);
     }
 
     private void LWindowVolumeSync(LPreferenceState lPreference)
@@ -370,7 +370,7 @@ public sealed class LWindow
             return;
         }
 
-        LWindowVolumeSet?.Invoke(lPreference.LPreferenceVolume);
+        LWindowVolumeSynced?.Invoke(lPreference.LPreferenceVolume);
     }
 
     private List<Guid> LWindowIdsRead() => lStrip.LStripTabs.Select(lTab => lTab.LStripTabId).ToList();

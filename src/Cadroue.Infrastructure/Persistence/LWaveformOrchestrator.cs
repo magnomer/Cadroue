@@ -48,7 +48,7 @@ public sealed class LWaveformOrchestrator : IDisposable
 
         LWaveformReady?.Invoke(new LWaveformNotice(Array.Empty<byte>(), true));
 
-        LSidecarWaveformRecord? lWaveformStored = LSidecarStore.LSidecarWaveformRead(lWaveformPath);
+        LSidecarWaveformEntry? lWaveformStored = LSidecarStore.LSidecarWaveformRead(lWaveformPath);
         if (LWaveform.LWaveformRecordMatch(lWaveformStored, lWaveformDuration))
         {
             LWaveformApply(lWaveformPath, LWaveform.LWaveformPeaksRead(lWaveformStored));

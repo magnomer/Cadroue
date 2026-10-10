@@ -9,14 +9,13 @@ namespace Cadroue.Infrastructure;
 
 public sealed partial class LMpv
 {
-    private const string LMpvResultFolder = "Cadroue";
     private const string LMpvResultFile = "mpvprobe.json";
 
     public static LMpvProbe LMpvResultRead() => LMpvResultRead(LMpvStampRead());
 
     public static LMpvProbe LMpvResultRead(string lStamp)
     {
-        LMpvResultRecord? lRecord = LMpvResultLoad();
+        LMpvResultDocument? lRecord = LMpvResultLoad();
         if (lRecord is null)
         {
             return LMpvProbe.LMpvProbeUnknown;
@@ -31,7 +30,7 @@ public sealed partial class LMpv
 
     public static void LMpvResultSave(LMpvProbe lOutcome, string lStamp)
     {
-        var lRecord = new LMpvResultRecord
+        var lRecord = new LMpvResultDocument
         {
             LMpvOutcome = lOutcome,
             LMpvStamp = lStamp
@@ -66,7 +65,7 @@ public sealed partial class LMpv
         }
     }
 
-    public static LMpvResultRecord? LMpvResultLoad()
+    public static LMpvResultDocument? LMpvResultLoad()
     {
         string lPath = LMpvPathResolve();
         if (!File.Exists(lPath))
@@ -77,7 +76,7 @@ public sealed partial class LMpv
         try
         {
             string lJson = File.ReadAllText(lPath);
-            return JsonSerializer.Deserialize<LMpvResultRecord>(lJson);
+            return JsonSerializer.Deserialize<LMpvResultDocument>(lJson);
         }
         catch
         {
@@ -126,14 +125,10 @@ public sealed partial class LMpv
             : lInformational;
     }
 
-    private static string LMpvPathResolve()
-    {
-        string lAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lAppData, LMpvResultFolder, LMpvResultFile);
-    }
+    private static string LMpvPathResolve() => Path.Combine(LDepot.LDepotHomeRead(), LMpvResultFile);
 }
 
-public sealed class LMpvResultRecord
+public sealed class LMpvResultDocument
 {
     public LMpvProbe LMpvOutcome { get; set; } = LMpvProbe.LMpvProbeUnknown;
 

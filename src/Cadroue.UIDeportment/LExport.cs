@@ -11,7 +11,7 @@ public sealed class LExport
     private string? lExportDragging;
     private bool lExportDragActive;
 
-    public event Action? LExportPresetsChange;
+    public event Action? LExportPresetsChanged;
 
     public LExport(LPresetSelection lExportSelection, bool lSmartAllowed)
     {
@@ -38,15 +38,15 @@ public sealed class LExport
 
     public void LExportAttach()
     {
-        LPreset.LPresetStoreChange += LExportSync;
-        lExportOwner.LPresetSelectionChange += LExportUpdate;
+        LPreset.LPresetStoreChanged += LExportSync;
+        lExportOwner.LPresetSelectionChanged += LExportUpdate;
         LExportSync();
     }
 
     public void LExportDetach()
     {
-        LPreset.LPresetStoreChange -= LExportSync;
-        lExportOwner.LPresetSelectionChange -= LExportUpdate;
+        LPreset.LPresetStoreChanged -= LExportSync;
+        lExportOwner.LPresetSelectionChanged -= LExportUpdate;
     }
 
     public void LExportSync()
@@ -65,7 +65,7 @@ public sealed class LExport
             lExportEditing = null;
         }
 
-        LExportPresetsChange?.Invoke();
+        LExportPresetsChanged?.Invoke();
     }
 
     public void LExportSelect(string lPresetName)
@@ -82,7 +82,7 @@ public sealed class LExport
         }
 
         lExportEditing = lPresetName;
-        LExportPresetsChange?.Invoke();
+        LExportPresetsChanged?.Invoke();
     }
 
     public void LExportEditCancel()

@@ -60,14 +60,19 @@ public static partial class LMedia
 
     public static void LMediaScanRelease() => lMediaScanSlot.Release();
 
-    public static async Task<LMediaInfo> LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default)
+    public static Task<LMediaInfo> LMediaFfprobeRead(string sourcePath, CancellationToken lMediaToken = default) =>
+        LMediaFfprobeRead(sourcePath, lMediaToken, null);
+
+    public static async Task<LMediaInfo> LMediaFfprobeRead(
+        string sourcePath, CancellationToken lMediaToken, int? lMediaLevel)
     {
         for (int lMediaAttempt = 1; ; lMediaAttempt++)
         {
             lMediaToken.ThrowIfCancellationRequested();
 
             LMediaProcessResult lMediaResult = await LMediaProcessRun(
-                LTool.LToolFfprobeRead(), LMediaFfprobeCreate(sourcePath), lMediaToken).ConfigureAwait(false);
+                LTool.LToolFfprobeRead(), LMediaFfprobeCreate(sourcePath), lMediaToken, null, lMediaLevel)
+                .ConfigureAwait(false);
             string errorText = lMediaResult.LMediaProcessError;
             if (lMediaResult.LMediaProcessStalled)
             {
@@ -114,12 +119,14 @@ public static partial class LMedia
         string lMediaProgram,
         IReadOnlyList<string> lMediaArguments,
         CancellationToken lMediaToken,
-        LCustodyFamily? lMediaFamily = null)
+        LCustodyFamily? lMediaFamily = null,
+        int? lMediaLevel = null)
     {
         var lMediaOutput = new StringBuilder();
         var lMediaEmployer = new LEmployer(lMediaProgram)
         {
             LEmployerFamily = lMediaFamily,
+            LEmployerLevel = lMediaLevel,
             LEmployerIdleLimit = lMediaIdleLimit
         };
         LEmployerResult lMediaResult = await lMediaEmployer

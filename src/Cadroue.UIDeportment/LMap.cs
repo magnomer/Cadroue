@@ -95,16 +95,16 @@ public sealed class LMap
     public LMap(LFlow lOwner)
     {
         lFlow = lOwner;
-        lFlow.LFlowAttachApply += () => LMapTriggerApply("attach");
-        lFlow.LFlowClearApply += () => LMapTriggerApply("clear");
-        lFlow.LFlowCursorApply += () => LMapTriggerApply("cursor");
-        lFlow.LFlowSpoolApply += () => LMapTriggerApply("spool");
-        lFlow.LFlowSection.LFlowSectionChange += (_, _) => LMapTriggerApply("sections");
-        lFlow.LFlowKeyframe.LFlowKeyframeChange += (_, _) => LMapTriggerApply("keyframes");
-        lFlow.LFlowWaveform.LFlowWaveformUpdate += _ => LMapTriggerApply("waveform");
+        lFlow.LFlowAttachApplied += () => LMapTriggerApply("attach");
+        lFlow.LFlowClearApplied += () => LMapTriggerApply("clear");
+        lFlow.LFlowCursorApplied += () => LMapTriggerApply("cursor");
+        lFlow.LFlowSpoolApplied += () => LMapTriggerApply("spool");
+        lFlow.LFlowSection.LFlowSectionChanged += (_, _) => LMapTriggerApply("sections");
+        lFlow.LFlowKeyframe.LFlowKeyframeChanged += (_, _) => LMapTriggerApply("keyframes");
+        lFlow.LFlowWaveform.LFlowWaveformUpdated += _ => LMapTriggerApply("waveform");
     }
 
-    public event Action? LMapFrameApply;
+    public event Action? LMapFrameApplied;
 
     public LMapHitKind LMapDragKind => lMapDragKind;
 
@@ -285,7 +285,7 @@ public sealed class LMap
     private void LMapTriggerApply(string lTrigger)
     {
         lMapTrigger = lTrigger;
-        LMapFrameApply?.Invoke();
+        LMapFrameApplied?.Invoke();
     }
 
     private static TimeSpan LMapTimeResolve(LSpool lSpool, double lX, double lWidth) =>

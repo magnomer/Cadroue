@@ -1,4 +1,5 @@
 # TAuditObjectType.cs
+Hash: `b202f87d774b9373`
 
 ## `internal sealed class TAuditObjectType(INamedTypeSymbol symbol)`
 

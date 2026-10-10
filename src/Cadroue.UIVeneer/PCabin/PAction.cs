@@ -62,8 +62,8 @@ public sealed class PAction : UserControl
         pPanel.Children.Add(new Border { Width = 6 });
         pPanel.Children.Add(pActionAutoBox);
         Content = new Border { Child = pPanel };
-        LAction.LActionFaceChange += PActionFaceUpdate;
-        LAction.LActionEmptyRaise += PActionEmptyShow;
+        LAction.LActionFaceChanged += PActionFaceUpdate;
+        LAction.LActionEmptyRaised += PActionEmptyShow;
         PActionFaceUpdate();
     }
 

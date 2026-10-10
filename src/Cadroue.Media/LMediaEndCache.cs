@@ -6,7 +6,6 @@ namespace Cadroue.Media;
 
 public static class LMediaEndCache
 {
-    private const string LMediaEndFolder = "Cadroue";
     private const string LMediaEndStore = "LMediaEnd";
     private const long LMediaEndAbsent = -1;
 
@@ -22,7 +21,7 @@ public static class LMediaEndCache
         try
         {
             string lMediaJson = File.ReadAllText(lMediaCachePath);
-            LMediaEndRecord? lMediaRecord = JsonSerializer.Deserialize<LMediaEndRecord>(lMediaJson);
+            LMediaEndDocument? lMediaRecord = JsonSerializer.Deserialize<LMediaEndDocument>(lMediaJson);
             if (lMediaRecord is null || !LMediaEndMatch(lMediaIdentity, lMediaRecord))
             {
                 return false;
@@ -42,7 +41,7 @@ public static class LMediaEndCache
     public static bool LMediaEndSave(LKeyframeSourceIdentity lMediaIdentity, TimeSpan? lMediaVideoEnd)
     {
         string lMediaCachePath = LMediaEndResolve(lMediaIdentity);
-        var lMediaRecord = new LMediaEndRecord
+        var lMediaRecord = new LMediaEndDocument
         {
             LSourcePath = lMediaIdentity.LKeyframeSourcePath,
             LSourceLength = lMediaIdentity.LKeyframeSourceLength,
@@ -85,7 +84,7 @@ public static class LMediaEndCache
         }
     }
 
-    private static bool LMediaEndMatch(LKeyframeSourceIdentity lMediaIdentity, LMediaEndRecord lMediaRecord) =>
+    private static bool LMediaEndMatch(LKeyframeSourceIdentity lMediaIdentity, LMediaEndDocument lMediaRecord) =>
         string.Equals(lMediaRecord.LSourcePath, lMediaIdentity.LKeyframeSourcePath, StringComparison.OrdinalIgnoreCase)
         && lMediaRecord.LSourceLength == lMediaIdentity.LKeyframeSourceLength
         && lMediaRecord.LSourceTicks == lMediaIdentity.LKeyframeWriteTicks
@@ -97,15 +96,13 @@ public static class LMediaEndCache
 
     private static string LMediaEndResolve(LKeyframeSourceIdentity lMediaIdentity)
     {
-        string lMediaAppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         return Path.Combine(
-            lMediaAppData,
-            LMediaEndFolder,
+            LKeyframeCacheStore.LKeyframeHomeRead(),
             LMediaEndStore,
             lMediaIdentity.LKeyframeCacheKey + ".json");
     }
 
-    private sealed class LMediaEndRecord
+    private sealed class LMediaEndDocument
     {
         public string LSourcePath { get; set; } = "";
 

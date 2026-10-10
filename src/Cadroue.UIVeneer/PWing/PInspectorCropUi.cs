@@ -15,8 +15,8 @@ public sealed partial class PInspector
         pInspectorInsetBottom = PInspectorInsetBuild(3);
         pInspectorRatioWidth = PInspectorNumberBuild();
         pInspectorRatioHeight = PInspectorNumberBuild();
-        pInspectorRatioWidth.TextChanged += (_, _) => PInspectorRatioCommit();
-        pInspectorRatioHeight.TextChanged += (_, _) => PInspectorRatioCommit();
+        pInspectorRatioWidth.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioWidth);
+        pInspectorRatioHeight.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioHeight);
         pInspectorRatioPreset = PInspectorRatioBuild();
         pInspectorResolution = new TextBlock
         {
@@ -104,13 +104,15 @@ public sealed partial class PInspector
         return pInspectorCropBody;
     }
 
-    private void PInspectorRatioCommit() =>
-        LInspectorCrop.LInspectorRatioCommit(pInspectorRatioWidth.Text, pInspectorRatioHeight.Text);
+    private void PInspectorRatioCommit(TextBox pRatioBox) =>
+        LInspectorCrop.LInspectorRatioCommit(
+            pInspectorRatioWidth.Text, pInspectorRatioHeight.Text, pRatioBox.IsKeyboardFocusWithin);
 
     private TextBox PInspectorInsetBuild(int pEdge)
     {
         TextBox pInsetBox = PInspectorNumberBuild();
-        pInsetBox.TextChanged += (_, _) => LInspectorCrop.LInspectorEdgeCommit(pEdge, pInsetBox.Text);
+        pInsetBox.TextChanged += (_, _) =>
+            LInspectorCrop.LInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
         return pInsetBox;
     }
 

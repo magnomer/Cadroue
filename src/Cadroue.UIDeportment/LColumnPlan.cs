@@ -10,8 +10,8 @@ public sealed class LColumnPlan
     private readonly LColumn lColumn;
     private readonly double[] lColumnMinimums;
 
-    public event Action? LColumnPlanChange;
-    public event Action? LColumnWidthChange;
+    public event Action? LColumnPlanChanged;
+    public event Action? LColumnWidthChanged;
 
     public LColumnPlan(
         IReadOnlyList<double> lMinimumWidths,
@@ -46,7 +46,7 @@ public sealed class LColumnPlan
     {
         if (lColumn.LColumnWidthSet(lIndex, lFixedWidth))
         {
-            LColumnPlanChange?.Invoke();
+            LColumnPlanChanged?.Invoke();
         }
     }
 
@@ -58,7 +58,7 @@ public sealed class LColumnPlan
         }
 
         lColumnMinimums[lIndex] = 0;
-        LColumnPlanChange?.Invoke();
+        LColumnPlanChanged?.Invoke();
     }
 
     public void LColumnLayoutHandle(double lSlotWidth, double lActualWidth)
@@ -77,10 +77,10 @@ public sealed class LColumnPlan
         bool lCreated = lColumn.LColumnFlexCheck()
             && !lColumn.LColumnPixelsReady
             && lColumn.LColumnPixelsCreate(lAvailableWidth);
-        LColumnPlanChange?.Invoke();
+        LColumnPlanChanged?.Invoke();
         if (lCommitted || lCreated)
         {
-            LColumnWidthChange?.Invoke();
+            LColumnWidthChanged?.Invoke();
         }
     }
 
@@ -110,8 +110,8 @@ public sealed class LColumnPlan
             return;
         }
 
-        LColumnPlanChange?.Invoke();
-        LColumnWidthChange?.Invoke();
+        LColumnPlanChanged?.Invoke();
+        LColumnWidthChanged?.Invoke();
     }
 
     public static double LColumnGridResolve(double lSlotWidth, double lActualWidth) =>

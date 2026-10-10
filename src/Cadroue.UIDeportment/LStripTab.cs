@@ -54,7 +54,7 @@ public sealed class LStripTab : INotifyPropertyChanged
 
     public void LStripActionAttach(LAction lAction) => LStripTabAction = lAction;
 
-    public LSceneTabRecord? LStripLayoutRead() => LStripTabWorkspace?.LWorkspaceLayoutRead();
+    public LSceneTabEntry? LStripLayoutRead() => LStripTabWorkspace?.LWorkspaceLayoutRead();
 
     public bool LStripRelayCheck() => LStripTabAction?.LActionAutoRelay ?? false;
 

@@ -9,13 +9,13 @@ internal static class TAuditPair
         IReadOnlyList<TAuditHit> hits,
         string kind,
         IReadOnlyDictionary<string, int> ceilings,
-        IReadOnlyList<string> waivers,
+        IReadOnlyList<string> exempt,
         string summary)
     {
         List<string> over = [];
         int pairs = 0;
         foreach (IGrouping<string, TAuditHit> pair in hits
-                     .Where(hit => hit.TAuditHitKind == kind && hit.TAuditWaiverRead(waivers).Length == 0)
+                     .Where(hit => hit.TAuditHitKind == kind && hit.TAuditExemptRead(exempt).Length == 0)
                      .GroupBy(hit => hit.TAuditPairRead(), StringComparer.Ordinal))
         {
             int names = pair.Count();
@@ -46,11 +46,11 @@ internal static class TAuditPair
         IReadOnlyList<TAuditHit> hits,
         IReadOnlyList<string> kinds,
         IReadOnlyDictionary<string, int> ceilings,
-        IReadOnlyList<string> waivers)
+        IReadOnlyList<string> exempt)
     {
         Dictionary<string, int> counts = hits
             .Where(hit => kinds.Contains(hit.TAuditHitKind, StringComparer.Ordinal))
-            .Where(hit => hit.TAuditWaiverRead(waivers).Length == 0)
+            .Where(hit => hit.TAuditExemptRead(exempt).Length == 0)
             .GroupBy(hit => hit.TAuditPairRead(), StringComparer.Ordinal)
             .ToDictionary(
                 pair => pair.Key,
@@ -66,19 +66,19 @@ internal static class TAuditPair
             $"{stale.Count} ceiling(s) sit above the count and must be lowered.\n{string.Join('\n', stale)}"));
     }
 
-    public static void TAuditWaiverCheck(string audit, IReadOnlyList<TAuditHit> hits, IReadOnlyList<string> waivers)
+    public static void TAuditExemptCheck(string audit, IReadOnlyList<TAuditHit> hits, IReadOnlyList<string> exempt)
     {
         HashSet<string> used = hits
-            .Select(hit => hit.TAuditWaiverRead(waivers))
+            .Select(hit => hit.TAuditExemptRead(exempt))
             .Where(row => row.Length > 0)
             .ToHashSet(StringComparer.Ordinal);
-        List<string> stale = waivers
+        List<string> stale = exempt
             .Where(row => !used.Contains(row))
             .Select(row => $"  {row}")
             .ToList();
 
         Assert.True(stale.Count == 0, TAuditConvention.TAuditReportFormat(
             audit,
-            $"{stale.Count} waiver row(s) match no source line and must be deleted:\n{string.Join('\n', stale)}"));
+            $"{stale.Count} exempt row(s) match no source line and must be deleted:\n{string.Join('\n', stale)}"));
     }
 }

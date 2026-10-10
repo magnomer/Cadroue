@@ -1,25 +1,21 @@
 # Cadroue.UIVeneer.csproj
 
-Builds the WPF veneer and the `Cadroue` executable, the startup project.
+Builds the WPF veneer as a library that `Cadroue.Host` runs.
 
 ## Target
 
-Targets Windows for x64 and arm64, with the program icon from `PAsset/PProgram`.
+Targets Windows with WPF.
+`App.xaml` is compiled as a page, since a library may not hold an application definition.
 
 ## Project ring
 
-References every other source project, since the executable composes them all.
-
-## Notices
-
-`THIRD-PARTY-NOTICES.md` and `LICENSE` are copied beside the executable, outside the single file.
+References only the deportment.
+The lower projects still reach it through the deportment's own references.
+It grants its internals to the `Cadroue` executable, which wires the startup.
 
 ## Resources
 
 The icons under `PAsset` are compiled in as WPF resources.
+They are read by a pack URI that names the `Cadroue.UIVeneer` assembly.
 The localization catalogs are embedded under a `localization.` logical name.
 The FFmpeg error catalogs are embedded under `localization.ffmpeg-error.`.
-
-## `ExcludeFlyleafFromSingleFile`
-
-Keeps every `Flyleaf` file out of the single-file bundle and copies it beside the executable.

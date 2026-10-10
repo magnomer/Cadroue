@@ -25,11 +25,11 @@ public sealed class LViewerRenderer
         lViewer = lOwner;
     }
 
-    public event Action? LViewerHostApply;
+    public event Action? LViewerHostApplied;
 
     private LPlayer LPlayer => lViewer.LPlayer;
 
-    public void LViewerHostRaise() => LViewerHostApply?.Invoke();
+    public void LViewerHostRaise() => LViewerHostApplied?.Invoke();
 
     public bool LViewerOverlayHandle(bool lHostVisible, double lWidth, double lHeight)
     {
@@ -130,7 +130,7 @@ public sealed class LViewerRenderer
         lViewer.LViewerMpvSet(lMpv);
         LPlayer.LPlayerAppliedReset();
         lViewer.LViewerEngineSet(lMpv ? LPreviewEngine.LPreviewEngineMpv : LPreviewEngine.LPreviewEngineFlyleaf);
-        LViewerHostApply?.Invoke();
+        LViewerHostApplied?.Invoke();
     }
 
     public bool LViewerEngineRestore()

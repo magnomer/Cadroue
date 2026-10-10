@@ -12,7 +12,7 @@ public sealed class TSeriesMode
     {
         LGroupSelection lGroupSelection = TInterface.TGroupSelectionCreate();
         int lGroupChanges = 0;
-        lGroupSelection.LGroupSelectionChange += () => lGroupChanges++;
+        lGroupSelection.LGroupSelectionChanged += () => lGroupChanges++;
 
         TInterface.TGroupModeRead(lGroupSelection, LSeriesNameMode.LSeriesNameFirst);
 
@@ -25,7 +25,7 @@ public sealed class TSeriesMode
     {
         LGroupSelection lGroupSelection = TInterface.TGroupSelectionCreate();
         int lGroupChanges = 0;
-        lGroupSelection.LGroupSelectionChange += () => lGroupChanges++;
+        lGroupSelection.LGroupSelectionChanged += () => lGroupChanges++;
 
         TInterface.TGroupModeRead(lGroupSelection, LSeriesNameMode.LSeriesNameBase);
 

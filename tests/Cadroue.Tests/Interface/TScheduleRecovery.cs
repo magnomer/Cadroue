@@ -26,6 +26,7 @@ internal sealed class TScheduleRecoveryWork
 internal sealed class TScheduleRecovery : IDisposable
 {
     private readonly string tScheduleStorageRoot;
+    private readonly string _tScheduleStoragePrevious;
     private LSchedule? tSchedule;
     private int tScheduleSequence;
 
@@ -36,6 +37,7 @@ internal sealed class TScheduleRecovery : IDisposable
             "cadroue-schedule-recovery-" + Guid.NewGuid().ToString("N"));
 
         LDepotIndex.LDepotIndexRelease();
+        _tScheduleStoragePrevious = LDepot.LDepotRootRead();
         LDepot.LDepotRootSet(tScheduleStorageRoot);
         tSchedule = TScheduleLoad();
     }
@@ -146,7 +148,7 @@ internal sealed class TScheduleRecovery : IDisposable
             tSchedule = null;
             LDepotIndex.LDepotIndexRelease();
             LTraceWriter.LTraceWriterClear();
-            LDepot.LDepotRootSet(null);
+            LDepot.LDepotRootSet(_tScheduleStoragePrevious);
             if (Directory.Exists(tScheduleStorageRoot))
             {
                 Directory.Delete(tScheduleStorageRoot, recursive: true);

@@ -2,6 +2,7 @@ using Xunit;
 
 namespace Cadroue.Tests;
 
+[Collection("Sidecar")]
 public sealed class TWaveformScanner : IDisposable
 {
     private static readonly TimeSpan TWaveformScanDuration = TimeSpan.FromSeconds(1);

@@ -132,7 +132,7 @@ public sealed partial class LSchedule
         int lScheduleClearedCount = 0;
         foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
         {
-            LWorkRecord? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
+            LWorkDocument? lWorkRecord = LScheduleStore.LScheduleRecordRead(lDepotFilePath);
             if (lWorkRecord is null || !LScheduleScopeMatch(lWorkRecord) || !LSentinel.LSentinelStaleCheck(lWorkRecord))
             {
                 continue;

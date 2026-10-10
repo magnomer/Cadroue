@@ -1,10 +1,15 @@
 # TAuditFakeSetting.cs
+Hash: `b961fbab6d81572a`
 
 ## `internal static class TAuditFakeSetting`
 
-Hand-written and tracked: the fake-audit switch, the report path, the ceilings and the scopes live here.
-No script writes this file.
-`auditfake.ps1` reads its own auditfake.json and never writes this file.
+Hand-written and tracked.
+The fake-audit switch, the report path, the ceilings and the scopes live here.
+`AuditFake.ps1` reads its own AuditFake.json and never writes this file.
+
+## `public const int TAuditGeneration = 21;`
+
+Numbers the revision of the fake-audit settings this file holds.
 
 ## `public const bool TAuditFakeEnforced = true;`
 
@@ -21,8 +26,10 @@ Where the report lands, with the version in the name.
 The hit count each kind may reach.
 `Orphan` counts the members that nothing live and no test reads.
 `Tested` counts the members that only tests read.
-A count above fails the fact, a ceiling above the count is stale and fails too.
-Lower a ceiling when a member goes live or is removed, never raise one to admit a new one.
+A count above its ceiling fails the fact.
+A ceiling above the count is stale and fails too.
+Lower a ceiling when a member goes live or is removed.
+Never raise one to admit a new one.
 
 ## `public static readonly string[] TAuditFakeInclude`
 

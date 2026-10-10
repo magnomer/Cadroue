@@ -83,7 +83,7 @@ public static partial class LCartographer
     }
 
     private static IReadOnlyList<string> LCartographerMergeRun(
-        LSceneTabRecord lCartographerLayout,
+        LSceneTabEntry lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
         Guid lCartographerTarget,
@@ -130,7 +130,7 @@ public static partial class LCartographer
     }
 
     private static IReadOnlyList<string> LCartographerEditRun(
-        LSceneTabRecord lCartographerLayout,
+        LSceneTabEntry lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
         Guid lCartographerTarget,
@@ -179,7 +179,7 @@ public static partial class LCartographer
     }
 
     private static IReadOnlyList<string> LCartographerAudioRun(
-        LSceneTabRecord lCartographerLayout,
+        LSceneTabEntry lCartographerLayout,
         IReadOnlyList<string> lCartographerPaths,
         LEncoding lCartographerOutput,
         Guid lCartographerTarget,

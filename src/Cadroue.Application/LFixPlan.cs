@@ -7,7 +7,7 @@ namespace Cadroue.Application;
 
 public static partial class LFix
 {
-    public static LSidecarFixRecord LFixPersistentCreate(LWorkFix lFixPlan) => new()
+    public static LSidecarFixEntry LFixPersistentCreate(LWorkFix lFixPlan) => new()
     {
         LSidecarSteps = lFixPlan.LWorkFixSteps.Select(LFixRecordCreate).ToList(),
         LSidecarSalvageActive = lFixPlan.LWorkFixSalvage.LWorkSalvageActive,
@@ -15,16 +15,16 @@ public static partial class LFix
         LSidecarSalvageBasis = LFixBasisFormat(lFixPlan.LWorkFixSalvage.LWorkSalvageBasis)
     };
 
-    public static LWorkFix LFixPersistentRead(LSidecarFixRecord lFixRecord, bool lFixSalvagePersistent) =>
+    public static LWorkFix LFixPersistentRead(LSidecarFixEntry lFixRecord, bool lFixSalvagePersistent) =>
         LFixWorkCreate(lFixRecord, lFixStepPersistent: true, lFixSalvagePersistent);
 
-    public static LWorkFix? LFixPlanRead(string lFixSourcePath, Func<string, LSidecarFixRecord?> lSidecarRead) =>
+    public static LWorkFix? LFixPlanRead(string lFixSourcePath, Func<string, LSidecarFixEntry?> lSidecarRead) =>
         lSidecarRead(lFixSourcePath) is { } lFixRecord
             ? LFixWorkCreate(lFixRecord, lFixStepPersistent: false, lFixSalvagePersistent: false)
             : null;
 
     private static LWorkFix LFixWorkCreate(
-        LSidecarFixRecord lFixRecord, bool lFixStepPersistent, bool lFixSalvagePersistent) =>
+        LSidecarFixEntry lFixRecord, bool lFixStepPersistent, bool lFixSalvagePersistent) =>
         new(lFixRecord.LSidecarSteps
             .Select(lStep => new LWorkFixStep(
                 LFixKindCreate(lStep.LSidecarKind),
@@ -40,7 +40,7 @@ public static partial class LFix
         };
 
     public static void LFixPlanSave(
-        string lFixSourcePath, LWorkFix lFixPlan, Func<string, LSidecarFixRecord?, bool> lSidecarSave) =>
+        string lFixSourcePath, LWorkFix lFixPlan, Func<string, LSidecarFixEntry?, bool> lSidecarSave) =>
         lSidecarSave(lFixSourcePath, LFixPersistentCreate(lFixPlan));
 
     public static IReadOnlyList<LDossier> LFixRepairResolve(

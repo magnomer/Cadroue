@@ -33,7 +33,7 @@ public sealed partial class LSchedule
                 lWorkItem.LWorkLineage = LScheduleLineage.LScheduleLineageResolve(lWorkItem, lScheduleItems);
             }
 
-            var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+            var lWorkRecord = LWorkDocument.LWorkRecordCreate(lWorkItem);
             lWorkRecord.LWorkStateName = lWorkItem.LWorkStateCurrent.ToString();
             lWorkRecord.LWorkProgress = 1;
             if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderDone))
@@ -52,7 +52,7 @@ public sealed partial class LSchedule
         if (lScheduleAccepted.Count > 0)
         {
             LTraceLog.LTraceInfoRecord($"Schedule: added {lScheduleAccepted.Count} delivered work item(s)");
-            LScheduleChange?.Invoke(this);
+            LScheduleChanged?.Invoke(this);
         }
 
         return lScheduleAccepted;

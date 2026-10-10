@@ -10,7 +10,7 @@ public sealed record LCropBox(
     double LCropBoxHeight,
     bool LCropBoxShown);
 
-public sealed record LCropHandle(int LCropHandleIndex, double LCropHandleX, double LCropHandleY, bool LCropHandleShown);
+public sealed record LCropGrip(int LCropHandleIndex, double LCropHandleX, double LCropHandleY, bool LCropHandleShown);
 
 public sealed record LCropShade(LCropbox LCropShadeVideo, LCropbox LCropShadeBox, bool LCropShadeShown);
 
@@ -46,8 +46,8 @@ public sealed class LCrop
         lViewer = lOwner;
     }
 
-    public event Action? LCropApply;
-    public event Action? LCropVideoChange;
+    public event Action? LCropApplied;
+    public event Action? LCropVideoChanged;
 
     public bool LCropActive => lCropActive;
 
@@ -82,7 +82,7 @@ public sealed class LCrop
 
     public LCropBox LCropBoxRead() => new(lCropBoxX, lCropBoxY, lCropBoxWidth, lCropBoxHeight, lCropBoxShown);
 
-    public IReadOnlyList<LCropHandle> LCropHandlesRead() =>
+    public IReadOnlyList<LCropGrip> LCropHandlesRead() =>
         Enumerable.Range(0, LCropHandleCount).Select(LCropHandleResolve).ToList();
 
     public LCropShade LCropShadeRead() => new(
@@ -252,7 +252,7 @@ public sealed class LCrop
         lViewer.LViewerFilterUpdate();
     }
 
-    public void LCropOverlayUpdate() => LCropApply?.Invoke();
+    public void LCropOverlayUpdate() => LCropApplied?.Invoke();
 
     public void LCropShownSet(bool lShown) => lCropBoxShown = lShown;
 
@@ -275,10 +275,10 @@ public sealed class LCrop
     {
         lViewer.LViewerPreviewSet(lViewer.LViewerPreview.LCropboxChange(LCropPixelRead()));
         lViewer.LViewerFilterUpdate();
-        LCropVideoChange?.Invoke();
+        LCropVideoChanged?.Invoke();
     }
 
-    private LCropHandle LCropHandleResolve(int lIndex)
+    private LCropGrip LCropHandleResolve(int lIndex)
     {
         int lEdgeX = lCropGripX[lIndex];
         int lEdgeY = lCropGripY[lIndex];
@@ -289,7 +289,7 @@ public sealed class LCrop
             ? lCropBoxY + (lCropBoxHeight / 2)
             : lEdgeY < 0 ? lCropBoxY : lCropBoxY + lCropBoxHeight;
         bool lShown = LCropEditable && lCropBoxShown && lCropBoxWidth > 0 && lCropBoxHeight > 0;
-        return new LCropHandle(lIndex, lPointX - (LCropHandleSize / 2), lPointY - (LCropHandleSize / 2), lShown);
+        return new LCropGrip(lIndex, lPointX - (LCropHandleSize / 2), lPointY - (LCropHandleSize / 2), lShown);
     }
 
     private LCropbox? LCropSourceClamp(LCropbox? lCropbox)

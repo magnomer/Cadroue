@@ -6,29 +6,28 @@ namespace Cadroue.Infrastructure;
 
 public static class LBindingStore
 {
-    private const string LBindingFolderName = "Cadroue";
     private const string LBindingFileName = "keybindings.json";
 
-    public static List<LBindingRecord> LBindingLoad()
+    public static List<LBindingEntry> LBindingLoad()
     {
         string lBindingPath = LBindingPathCreate();
         if (!File.Exists(lBindingPath))
         {
-            return new List<LBindingRecord>();
+            return new List<LBindingEntry>();
         }
 
         try
         {
-            return JsonSerializer.Deserialize<List<LBindingRecord>>(File.ReadAllText(lBindingPath))
-                ?? new List<LBindingRecord>();
+            return JsonSerializer.Deserialize<List<LBindingEntry>>(File.ReadAllText(lBindingPath))
+                ?? new List<LBindingEntry>();
         }
         catch
         {
-            return new List<LBindingRecord>();
+            return new List<LBindingEntry>();
         }
     }
 
-    public static void LBindingSave(List<LBindingRecord> lBindingRecords)
+    public static void LBindingSave(List<LBindingEntry> lBindingRecords)
     {
         try
         {
@@ -48,9 +47,5 @@ public static class LBindingStore
         }
     }
 
-    private static string LBindingPathCreate()
-    {
-        string lBindingApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lBindingApplicationDataFolder, LBindingFolderName, LBindingFileName);
-    }
+    private static string LBindingPathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LBindingFileName);
 }

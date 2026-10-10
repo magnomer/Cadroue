@@ -81,14 +81,14 @@ internal sealed class PFlowName
         pFlowNameBox.PreviewTextInput += PFlowStepHandle;
         pFlowPrefixBox.PreviewTextInput += PFlowStepHandle;
         pFlowSuffixBox.PreviewTextInput += PFlowStepHandle;
-        lFlow.LFlowName.LFlowNameShow += PFlowNameShow;
-        lFlow.LFlowName.LFlowNameClose += PFlowNameHide;
+        lFlow.LFlowName.LFlowNameShown += PFlowNameShow;
+        lFlow.LFlowName.LFlowNameClosed += PFlowNameHide;
     }
 
     public void PFlowNameDetach()
     {
-        lFlow.LFlowName.LFlowNameShow -= PFlowNameShow;
-        lFlow.LFlowName.LFlowNameClose -= PFlowNameHide;
+        lFlow.LFlowName.LFlowNameShown -= PFlowNameShow;
+        lFlow.LFlowName.LFlowNameClosed -= PFlowNameHide;
     }
 
     private void PFlowNameShow(LFlowNamePrompt lPrompt)

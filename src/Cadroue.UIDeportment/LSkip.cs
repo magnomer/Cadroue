@@ -5,8 +5,8 @@ public sealed class LSkip
     private bool lSkipActive;
     private bool lSkipPersistent;
 
-    public event Action? LSkipChange;
-    public event Action? LSkipActiveChange;
+    public event Action? LSkipChanged;
+    public event Action? LSkipActiveChanged;
 
     public bool LSkipActive => lSkipActive;
 
@@ -20,8 +20,8 @@ public sealed class LSkip
         }
 
         lSkipActive = lActive;
-        LSkipChange?.Invoke();
-        LSkipActiveChange?.Invoke();
+        LSkipChanged?.Invoke();
+        LSkipActiveChanged?.Invoke();
     }
 
     public void LSkipPersistentSet(bool lPersistent)
@@ -32,6 +32,6 @@ public sealed class LSkip
         }
 
         lSkipPersistent = lPersistent;
-        LSkipChange?.Invoke();
+        LSkipChanged?.Invoke();
     }
 }

@@ -116,7 +116,7 @@ public static partial class LEdit
         };
     }
 
-    public static LSidecarEditRecord LEditPersistentCreate(LEditPlan lEditPlan) => new()
+    public static LSidecarEditEntry LEditPersistentCreate(LEditPlan lEditPlan) => new()
     {
         LSidecarCropLeft = lEditPlan.LEditCrop.LWorkCropLeft,
         LSidecarCropTop = lEditPlan.LEditCrop.LWorkCropTop,
@@ -134,13 +134,13 @@ public static partial class LEdit
         LSidecarSteps = lEditPlan.LEditVideo.LWorkVideoSteps.Select(LEditRecordCreate).ToList()
     };
 
-    public static LEditPlan LEditPersistentRead(LSidecarEditRecord lEditRecord) =>
+    public static LEditPlan LEditPersistentRead(LSidecarEditEntry lEditRecord) =>
         LEditPlanCreate(lEditRecord);
 
-    public static LEditPlan? LEditPlanRead(string lEditSourcePath, Func<string, LSidecarEditRecord?> lSidecarRead) =>
+    public static LEditPlan? LEditPlanRead(string lEditSourcePath, Func<string, LSidecarEditEntry?> lSidecarRead) =>
         lSidecarRead(lEditSourcePath) is { } lEditRecord ? LEditPlanCreate(lEditRecord) : null;
 
-    private static LEditPlan LEditPlanCreate(LSidecarEditRecord lEditRecord) => new(
+    private static LEditPlan LEditPlanCreate(LSidecarEditEntry lEditRecord) => new(
         new LWorkCrop(
             lEditRecord.LSidecarCropLeft,
             lEditRecord.LSidecarCropTop,
@@ -213,7 +213,7 @@ public static partial class LEdit
     }
 
     public static bool LEditPlanSave(
-        string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditRecord?, bool> lSidecarSave) =>
+        string lEditSourcePath, LEditPlan lEditPlan, Func<string, LSidecarEditEntry?, bool> lSidecarSave) =>
         lSidecarSave(lEditSourcePath, LEditPersistentCreate(lEditPlan));
 
     private static LSidecarVideoStep LEditRecordCreate(LWorkVideoStep lEditStep)

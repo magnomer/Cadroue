@@ -10,10 +10,6 @@ public sealed class TAuditComment
         """"(?:@\$?|\$@)"(?:[^"]|"")*"|"(?:\\.|[^"\\\r\n])*"|'(?:\\.|[^'\\\r\n])'"""",
         RegexOptions.Compiled);
 
-    private static readonly Regex TAuditSpanPattern = new("`[^`]*`", RegexOptions.Compiled);
-
-    private static readonly Regex TAuditBulletPattern = new(@"^[-*>]\s+", RegexOptions.Compiled);
-
     private static readonly string[] TAuditCodeExtensions = ["", ".cs", ".xaml", ".xaml.cs"];
 
     private static readonly Regex TAuditHeadingPattern = new(@"^##\s+`(?<span>[^`]+)`\s*$", RegexOptions.Compiled);
@@ -24,18 +20,6 @@ public sealed class TAuditComment
     private static readonly Regex TAuditGenericPattern = new(@"<[^<>]*>", RegexOptions.Compiled);
 
     private static readonly Regex TAuditIdentifierPattern = new(@"@?[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
-
-    private static readonly Regex TAuditSentencePattern = new(
-        "[" + Regex.Escape(string.Concat(TAuditCommentSetting.TAuditCommentMarks)) + @"]\s+\p{L}",
-        RegexOptions.Compiled);
-
-    private static readonly Regex TAuditAbbreviationPattern = new(
-        @"(?<![\p{L}.])(?:"
-        + string.Join('|', TAuditCommentSetting.TAuditCommentAbbreviations.Select(Regex.Escape))
-        + @")\.",
-        RegexOptions.Compiled | RegexOptions.IgnoreCase);
-
-    private static readonly Regex TAuditLevelPattern = new(@"^#+\s*", RegexOptions.Compiled);
 
     [Fact]
     public void AuditComment_CommentLines_KeepLineRules()
@@ -49,16 +33,17 @@ public sealed class TAuditComment
             [],
             [],
             []);
-        IEnumerable<string> comments = TAuditScanRead(repoRoot, scope).Concat(
+        IEnumerable<string> comments = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
             TAuditCommentSetting.TAuditCommentFiles
-                .Select(file => TAuditCommentRead(Path.Combine(repoRoot, file)))
-                .Where(File.Exists));
+                .Select(file => TAuditCommentFile.TAuditCommentRead(Path.Combine(repoRoot, file)))
+                .Where(File.Exists))
+            .Where(path => !TAuditCommentFile.TAuditReservedCheck(repoRoot, path));
         foreach (string path in comments)
         {
             string[] lines = File.ReadAllLines(path);
             for (int index = 0; index < lines.Length; index++)
             {
-                string problem = TAuditLineCheck(lines[index]);
+                string problem = TAuditCommentLine.TAuditLineCheck(lines[index]);
                 if (problem.Length > 0)
                 {
                     string relative = Path.GetRelativePath(repoRoot, path).Replace('\\', '/');
@@ -86,7 +71,7 @@ public sealed class TAuditComment
             TAuditCommentSetting.TAuditCommentSuffixes,
             [],
             TAuditCommentSetting.TAuditCommentExempt);
-        IEnumerable<string> sources = TAuditScanRead(repoRoot, scope).Concat(
+        IEnumerable<string> sources = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
             TAuditCommentSetting.TAuditCommentFiles
                 .Where(file => !TAuditCommentSetting.TAuditCommentExempt.Contains(
                     Path.GetFileName(file), StringComparer.OrdinalIgnoreCase))
@@ -143,8 +128,8 @@ public sealed class TAuditComment
     public void AuditComment_Sources_CarryCommentFile()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
-        List<string> hits = TAuditOwnerRead(repoRoot, TAuditCommentSetting.TAuditCommentSources)
-            .Where(path => !File.Exists(TAuditCommentRead(path)))
+        List<string> hits = TAuditCommentFile.TAuditOwnerRead(repoRoot)
+            .Where(path => !File.Exists(TAuditCommentFile.TAuditCommentRead(path)))
             .Select(path => "  " + Path.GetRelativePath(repoRoot, path).Replace('\\', '/'))
             .ToList();
 
@@ -158,10 +143,7 @@ public sealed class TAuditComment
     {
         string repoRoot = TAuditSource.TAuditRootRead();
         HashSet<string> expected = new(
-            TAuditOwnerRead(
-                    repoRoot,
-                    [.. TAuditCommentSetting.TAuditCommentSources, .. TAuditCommentSetting.TAuditCommentOptional])
-                .Select(TAuditCommentRead),
+            TAuditCommentFile.TAuditOwnerRead(repoRoot).Select(TAuditCommentFile.TAuditCommentRead),
             StringComparer.OrdinalIgnoreCase);
         TAuditScope scope = new(
             TAuditCommentSetting.TAuditCommentRoots,
@@ -170,7 +152,7 @@ public sealed class TAuditComment
             [],
             [],
             []);
-        List<string> hits = TAuditScanRead(repoRoot, scope)
+        List<string> hits = TAuditCommentFile.TAuditScanRead(repoRoot, scope)
             .Where(path => !expected.Contains(path))
             .Select(path => "  " + Path.GetRelativePath(repoRoot, path).Replace('\\', '/'))
             .ToList();
@@ -178,19 +160,6 @@ public sealed class TAuditComment
         Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
             $"{hits.Count} comment file(s) have no source beside them.\n" + string.Join('\n', hits)));
-    }
-
-    private static IEnumerable<string> TAuditOwnerRead(string repoRoot, string[] sources)
-    {
-        TAuditScope scope = new(
-            TAuditCommentSetting.TAuditCommentRoots,
-            sources,
-            TAuditCommentSetting.TAuditCommentSegments,
-            TAuditCommentSetting.TAuditCommentSuffixes,
-            [],
-            []);
-        return TAuditScanRead(repoRoot, scope)
-            .Concat(TAuditCommentSetting.TAuditCommentFiles.Select(file => Path.Combine(repoRoot, file)));
     }
 
     [Fact]
@@ -205,10 +174,11 @@ public sealed class TAuditComment
             [],
             []);
         List<string> hits = [];
-        IEnumerable<string> comments = TAuditScanRead(repoRoot, scope).Concat(
+        IEnumerable<string> comments = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
             TAuditCommentSetting.TAuditCommentFiles
-                .Select(file => TAuditCommentRead(Path.Combine(repoRoot, file)))
-                .Where(File.Exists));
+                .Select(file => TAuditCommentFile.TAuditCommentRead(Path.Combine(repoRoot, file)))
+                .Where(File.Exists))
+            .Where(path => !TAuditCommentFile.TAuditReservedCheck(repoRoot, path));
         foreach (string comment in comments)
         {
             string stem = comment[..^TAuditCommentSetting.TAuditCommentPattern.TrimStart('*').Length];
@@ -239,23 +209,6 @@ public sealed class TAuditComment
             $"{hits.Count} comment heading(s) name nothing in their source.\n" + string.Join('\n', hits)));
     }
 
-    private static IReadOnlyList<string> TAuditScanRead(string repoRoot, TAuditScope scope)
-    {
-        List<string> missing = TAuditCommentSetting.TAuditCommentRoots
-            .Where(root => !Directory.Exists(Path.Combine(repoRoot, root)))
-            .Concat(TAuditCommentSetting.TAuditCommentFiles
-                .Where(file => !File.Exists(Path.Combine(repoRoot, file))))
-            .ToList();
-        Assert.True(missing.Count == 0, TAuditConvention.TAuditReportFormat(
-            "AUDITCOMMENTS",
-            $"{missing.Count} configured root(s) or file(s) do not exist: {string.Join(", ", missing)}."));
-
-        IReadOnlyList<string> paths = TAuditSource.TAuditFileRead(repoRoot, scope);
-        Assert.True(paths.Count > 0, TAuditConvention.TAuditReportFormat(
-            "AUDITCOMMENTS", "No tracked file lies in the comment scope, so the audit cannot judge."));
-        return paths;
-    }
-
     private static string? TAuditMemberRead(string span)
     {
         if (span.StartsWith('<') || TAuditFilePattern.IsMatch(span))
@@ -274,14 +227,6 @@ public sealed class TAuditComment
         return last.Success ? last.Value : null;
     }
 
-    private static string TAuditCommentRead(string path)
-    {
-        string trimmed = path.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase)
-            ? path[..^3]
-            : Path.ChangeExtension(path, null);
-        return trimmed + ".comment.md";
-    }
-
     private static string[] TAuditSourceRead(string path, bool code)
     {
         string text = File.ReadAllText(path);
@@ -293,41 +238,5 @@ public sealed class TAuditComment
         }
 
         return text.Split('\n');
-    }
-
-    private static string TAuditLineCheck(string line)
-    {
-        string text = line.Trim();
-        bool heading = TAuditLevelPattern.IsMatch(text);
-        text = TAuditLevelPattern.Replace(text, string.Empty);
-        if (text.Length == 0)
-        {
-            return string.Empty;
-        }
-
-        text = TAuditBulletPattern.Replace(text, string.Empty);
-        string prose = TAuditSpanPattern.Replace(text, string.Empty);
-        List<string> problems = [];
-        int words = (heading ? prose : text).Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).Length;
-        if (words > TAuditCommentSetting.TAuditCommentWords)
-        {
-            problems.Add($"{words} words");
-        }
-
-        foreach (string token in TAuditCommentSetting.TAuditCommentForbidden)
-        {
-            if (prose.Contains(token, StringComparison.Ordinal))
-            {
-                problems.Add($"forbidden '{token}'");
-            }
-        }
-
-        int sentences = 1 + TAuditSentencePattern.Matches(TAuditAbbreviationPattern.Replace(prose, "abbr")).Count;
-        if (sentences > 1)
-        {
-            problems.Add($"{sentences} sentences");
-        }
-
-        return string.Join(", ", problems);
     }
 }

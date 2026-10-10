@@ -50,7 +50,7 @@ public static class LSidecarSource
             lSidecar.LSidecarSource.LSidecarFileName);
     }
 
-    public static bool LSidecarSourceMatch(string lSidecarMediaPath, LSidecarSourceRecord lSidecarSource)
+    public static bool LSidecarSourceMatch(string lSidecarMediaPath, LSidecarSourceEntry lSidecarSource)
     {
         try
         {
@@ -78,7 +78,7 @@ public static class LSidecarSource
     }
 
     public static bool LSidecarCacheMatch(
-        LSidecarSourceRecord lSidecarSource,
+        LSidecarSourceEntry lSidecarSource,
         long lSidecarLength,
         string lSidecarHash) =>
         lSidecarSource.LSidecarLength == lSidecarLength

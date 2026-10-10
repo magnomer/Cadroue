@@ -1,67 +1,80 @@
 # TAuditObjectSetting.cs
+Hash: `d70a0b16b7450716`
 
 ## `internal static class TAuditObjectSetting`
 
-Hand-written and tracked: the object-audit switch, the report path, the limits and the ceilings live here.
+Hand-written and tracked, this file holds the object-audit settings grouped by verdict.
 No script writes this file.
-`auditobject.ps1` reads its own auditobject.json and never writes this file.
+`AuditObject.ps1` keeps its own copy in AuditObject.json, and neither side reads the other.
+Each threshold dictionary is named for its verdict and ends in `Limit`.
+The ratchet holds every name ending in `Limit`, so its values may only fall.
+Raising a limit spares more types, which would loosen the audit.
+Every limit is reached at its value or above.
+Kraken has no dictionary, since it reuses the Serpent, Centipede, Octopus and Spider limits.
+
+## `public const int TAuditGeneration = 21;`
+
+The generation of the audit settings, kept by hand beside the ceilings.
 
 ## `public const bool TAuditObjectEnforced = true;`
 
-False makes every object fact a warning that passes.
-True fails a fact when a kind counts above its ceiling.
+False makes every flag, hub and part fact a warning that passes.
+True fails such a fact when its count rises above its ceiling.
 
 ## `public const string TAuditObjectReport = "temp/audit/Object-{0}.md";`
 
 Where the report lands, with the version in the name.
 `temp` is ignored by Git, so a run never dirties the tree.
 
-## `public const int TAuditPartLimit = 5;`
+## `public static readonly IReadOnlyDictionary<string, double> TAuditHydraLimit`
 
-A type declared in fewer files than this is never a monolith.
+The Parts, Lines, Fused and Density a type must reach to be a Hydra.
+It needs Parts and Lines, and Fused or Density too.
+Fused is Glued once hub state is removed, so one shared field alone never makes a Hydra.
+It holds doubles, since Fused and Density are shares.
 
-## `public const int TAuditSpanLimit = 1000;`
+## `public static readonly IReadOnlyDictionary<string, int> TAuditSpiderLimit`
 
-A type whose merged declarations hold fewer lines than this is never a monolith.
+The Outgoing and Incoming a type must both reach to be a Spider.
+Its Outgoing sits below the Octopus Outgoing, so a Spider need not be an Octopus.
+Incoming alone flags nothing, since a widely used record or helper is healthy.
 
-## `public const int TAuditHubReach = 5;`
+## `public static readonly IReadOnlyDictionary<string, int> TAuditChameleonLimit`
 
-A state slot reached from this many parts or more is a hub.
+The Mutable count at which a type is a Chameleon.
+
+## `public static readonly IReadOnlyDictionary<string, int> TAuditOctopusLimit`
+
+The Outgoing count at which a type is an Octopus.
+
+## `public static readonly IReadOnlyDictionary<string, int> TAuditCentipedeLimit`
+
+The Members count at which a type is a Centipede.
+
+## `public static readonly IReadOnlyDictionary<string, int> TAuditSerpentLimit`
+
+The Lines count at which a type is a Serpent.
+
+## `public static readonly IReadOnlyDictionary<string, int> TAuditHubLimit`
+
+The Parts a state slot must be reached from to be a hub.
 Its declaring part counts as reaching it.
 
-## `public const double TAuditWeaveLimit = 0.75;`
-
-The share of parts the largest member component may span before the parts count as one object.
-Hub state is removed before the components are formed, so one shared field alone never weaves a type.
-
-## `public const double TAuditDensityLimit = 0.5;`
-
-Cross-part references per member at which the parts count as one object whatever the weave says.
-
-## `public const int TAuditLargeLines = 500;`
-
-Lines at which a single-part type is large, matching `thresholds.lines` in scripts/auditobject.json.
-
-## `public const int TAuditLargeMembers = 40;`
-
-Members at which a single-part type is large.
-
-## `public const int TAuditLargeState = 12;`
-
-State slots at which a single-part type is large.
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling`
 
-The hit count each kind may reach.
-`Monolith` counts the split types that are one object behind many files.
-`Hub` counts the state slots reached from many parts, over every type.
-A count above fails the fact, a ceiling above the count is stale and fails too.
-Lower a ceiling when a type sheds a hit, never raise one to admit a new one.
+The hit count each flag may reach, and the hub slots over every type.
+A type counts once under every flag it hits, so a Kraken still counts as an Octopus or Spider.
+A count above fails the fact, and a ceiling above the count is stale and fails too.
+Lower a ceiling when a type sheds a flag, never raise one to admit a new one.
+A key missing here reads as a ceiling of 0.
+Each key is kept equal to its twin under `ceiling` in AuditObject.json, by hand.
 
-## `public static readonly IReadOnlyDictionary<string, int> TAuditPartCeiling`
+## `public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling`
 
-The parts a named type may be split over, keyed by its full name.
+The parts a split type may be declared in, keyed by its full name.
 Every split type is listed at its count, and a type not listed may hold one part.
-Lower a ceiling when a plan lifts a part into its own class, never raise one.
+Dropping a row once its type is whole tightens, so the ratchet lets it go.
+Lower a ceiling when a plan lifts a part into its own type, never raise one.
 
 ## `public static readonly string[] TAuditObjectInclude`
 

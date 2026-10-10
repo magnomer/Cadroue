@@ -53,10 +53,10 @@ internal static class TAuditFakeSerial
             return;
         }
 
-        serialized.Add(TAuditFakeWalker.TAuditKeyRead(named));
+        serialized.Add(TAuditFakeSymbol.TAuditKeyRead(named));
         foreach (IPropertySymbol property in named.GetMembers().OfType<IPropertySymbol>())
         {
-            serialized.Add(TAuditFakeWalker.TAuditKeyRead(property));
+            serialized.Add(TAuditFakeSymbol.TAuditKeyRead(property));
             TAuditPersistAdd(property.Type, serialized, seen);
         }
     }

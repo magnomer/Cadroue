@@ -1,0 +1,28 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "rings": [
+    "Cadroue.Application",
+    "Cadroue.ShellEngine"
+  ],
+  "ceilings": {
+    "Cadroue.Application": 10,
+    "Cadroue.ShellEngine": 19
+  },
+  "exempt": [
+    "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspacePostureRead",
+    "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspaceFallbackSave"
+  ],
+  "helper": {
+    "framework": "net10.0"
+  },
+  "console": {
+    "top": 25
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditFault-"
+  }
+}

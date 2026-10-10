@@ -4,4 +4,5 @@
 
 ### `catch (SqliteException)`
 
-The column already exists on a current-schema table.
+An existing column makes this migration redundant.
+The catch also suppresses other SQLite failures without checking their cause.

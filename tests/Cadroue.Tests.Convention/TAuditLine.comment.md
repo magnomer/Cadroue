@@ -1,4 +1,5 @@
 # TAuditLine.cs
+Hash: `867c2c819f1106ac`
 
 ## `public sealed class TAuditLine`
 
@@ -6,7 +7,7 @@ Holds every source file within the line limit and every line within the width li
 A file or line in the band below a limit prints as a warning and does not fail.
 Enforced, a kind fails when it counts above its ceiling.
 The advice printed with a hit says to reconsider the code, never to split or wrap it mechanically.
-Every hit, warning and ceiling matches auditlines.ps1 on the same tree, though neither reads the other.
+Every hit, warning and ceiling matches AuditLines.ps1 on the same tree, though neither reads the other.
 
 ## `private static readonly Lazy<IReadOnlyList<TAuditLineRow>> TAuditLineRows = new(TAuditLineRead);`
 
@@ -35,7 +36,7 @@ This holds even when the line rules are not enforced.
 ## `private const string TAuditLengthAdvice`
 
 Why a long file must not be split mechanically or given a partial part.
-Both leave one big object behind several files, which the object audit then reports.
+Both leave one big object across files, a Serpent to the object audit, or a Hydra once it spreads.
 
 ## `private const string TAuditWidthAdvice`
 

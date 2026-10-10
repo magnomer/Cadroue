@@ -1,0 +1,8 @@
+{
+  "generation": 5,
+  "tests": "tests",
+  "convention": "Cadroue.Tests.Convention",
+  "platforms": {
+    "Windows": "Cadroue.Tests"
+  }
+}

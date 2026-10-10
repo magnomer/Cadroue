@@ -69,7 +69,7 @@ internal sealed class TScheduleSignet : IDisposable
             lWorkCreateTime: created);
         tSchedule.LScheduleAdd(new[] { workItem }, Guid.NewGuid());
         string filePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, workItem.LWorkId);
-        LWorkRecord record = LScheduleStore.LScheduleRecordRead(filePath)!;
+        LWorkDocument record = LScheduleStore.LScheduleRecordRead(filePath)!;
         record.LWorkRelayProcess = relayProcess;
         record.LWorkRelayStamp = 0;
         LScheduleStore.LScheduleRecordSave(record, LDepotFolder.LDepotFolderScheduled);

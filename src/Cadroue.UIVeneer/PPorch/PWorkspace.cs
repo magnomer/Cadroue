@@ -15,8 +15,8 @@ namespace Cadroue.UIVeneer.PPorch;
 
 public sealed class PWorkspace
 {
-    private static readonly IReadOnlyDictionary<string, Func<LPresetSelection, LSceneTabRecord?, PTabSurface>>
-        pWorkspaceSurfaces = new Dictionary<string, Func<LPresetSelection, LSceneTabRecord?, PTabSurface>>
+    private static readonly IReadOnlyDictionary<string, Func<LPresetSelection, LSceneTabEntry?, PTabSurface>>
+        pWorkspaceSurfaces = new Dictionary<string, Func<LPresetSelection, LSceneTabEntry?, PTabSurface>>
         {
             ["Split"] = (lOwner, lLayout) => new PSplitTab(lOwner, lLayout),
             ["Edit"] = (lOwner, lLayout) => new PEditTab(lOwner, lLayout),
@@ -53,7 +53,7 @@ public sealed class PWorkspace
         LStrip lStrip,
         LStripTab lStripTab,
         LPreset? lExportSpecificState = null,
-        LSceneTabRecord? lPreferenceTabLayout = null)
+        LSceneTabEntry? lPreferenceTabLayout = null)
     {
         PWorkspaceTab = lStripTab;
         LWorkspace = new LWorkspace(lStripTab.LStripTabKey, lExportSpecificState);
@@ -73,19 +73,19 @@ public sealed class PWorkspace
             PWorkspaceSurface.PTabLayoutRead);
         PWorkspaceSurface.PTabAction?.LAction.LActionRelayAttach(lStrip, lStripTab);
         PWorkspaceSurface.PTabStripAttach(lStrip, lStripTab);
-        LWorkspace.LWorkspaceFlowAttach += PWorkspaceFlowAttach;
-        LWorkspace.LWorkspaceFlowClear += PWorkspaceFlowClear;
-        LWorkspace.LWorkspaceMediaClose += PWorkspaceMediaClose;
-        LWorkspace.LWorkspaceLosslesscutFind += PWorkspaceLosslesscutDefer;
-        LWorkspace.LWorkspaceRelayDefer += PWorkspaceRelayDefer;
-        LWorkspace.LWorkspaceRangeApply += PWorkspaceRangeApply;
-        LWorkspace.LWorkspaceVolumeApply += PWorkspaceVolumeApply;
-        LWorkspace.LWorkspaceSeekApply += PWorkspaceSeekApply;
-        LWorkspace.LWorkspacePathsAdd += PWorkspacePathsAdd;
-        LWorkspace.LWorkspaceSourceSelect += PWorkspaceSourceSelect;
-        LWorkspace.LWorkspaceSourceOpen += PWorkspaceSourceOpen;
+        LWorkspace.LWorkspaceFlowAttached += PWorkspaceFlowAttach;
+        LWorkspace.LWorkspaceFlowCleared += PWorkspaceFlowClear;
+        LWorkspace.LWorkspaceMediaClosed += PWorkspaceMediaClose;
+        LWorkspace.LWorkspaceLosslesscutFound += PWorkspaceLosslesscutDefer;
+        LWorkspace.LWorkspaceRelayDeferred += PWorkspaceRelayDefer;
+        LWorkspace.LWorkspaceRangeApplied += PWorkspaceRangeApply;
+        LWorkspace.LWorkspaceVolumeApplied += PWorkspaceVolumeApply;
+        LWorkspace.LWorkspaceSeekApplied += PWorkspaceSeekApply;
+        LWorkspace.LWorkspacePathsAdded += PWorkspacePathsAdd;
+        LWorkspace.LWorkspaceSourceSelected += PWorkspaceSourceSelect;
+        LWorkspace.LWorkspaceSourceOpened += PWorkspaceSourceOpen;
         pWorkspaceLists[LWorkspace.LWorkspaceListPresent](this);
-        PWorkspaceSurface.PTabWidthChange += PWorkspaceWidthRaise;
+        PWorkspaceSurface.PTabWidthChanged += PWorkspaceWidthRaise;
         PWorkspaceRoot = pWorkspaceRoots[LWorkspace.LWorkspaceSourcePresent](this);
     }
 
@@ -103,13 +103,13 @@ public sealed class PWorkspace
 
     public PList? PWorkspaceList { get; }
 
-    private event Action? PWorkspaceWidthChange;
+    private event Action? PWorkspaceWidthChanged;
 
-    public void PWorkspaceWidthAttach(Action pHandler) => PWorkspaceWidthChange += pHandler;
+    public void PWorkspaceWidthAttach(Action pHandler) => PWorkspaceWidthChanged += pHandler;
 
-    public void PWorkspaceWidthDetach(Action pHandler) => PWorkspaceWidthChange -= pHandler;
+    public void PWorkspaceWidthDetach(Action pHandler) => PWorkspaceWidthChanged -= pHandler;
 
-    private void PWorkspaceWidthRaise() => PWorkspaceWidthChange?.Invoke();
+    private void PWorkspaceWidthRaise() => PWorkspaceWidthChanged?.Invoke();
 
     public void PWorkspaceCommandApply(double pFlowHeight)
     {
@@ -145,18 +145,18 @@ public sealed class PWorkspace
 
     private void PWorkspaceDetach()
     {
-        LWorkspace.LWorkspaceFlowAttach -= PWorkspaceFlowAttach;
-        LWorkspace.LWorkspaceFlowClear -= PWorkspaceFlowClear;
-        LWorkspace.LWorkspaceMediaClose -= PWorkspaceMediaClose;
-        LWorkspace.LWorkspaceLosslesscutFind -= PWorkspaceLosslesscutDefer;
-        LWorkspace.LWorkspaceRelayDefer -= PWorkspaceRelayDefer;
-        LWorkspace.LWorkspaceRangeApply -= PWorkspaceRangeApply;
-        LWorkspace.LWorkspaceVolumeApply -= PWorkspaceVolumeApply;
-        LWorkspace.LWorkspaceSeekApply -= PWorkspaceSeekApply;
-        LWorkspace.LWorkspacePathsAdd -= PWorkspacePathsAdd;
-        LWorkspace.LWorkspaceSourceSelect -= PWorkspaceSourceSelect;
-        LWorkspace.LWorkspaceSourceOpen -= PWorkspaceSourceOpen;
-        PWorkspaceSurface.PTabWidthChange -= PWorkspaceWidthRaise;
+        LWorkspace.LWorkspaceFlowAttached -= PWorkspaceFlowAttach;
+        LWorkspace.LWorkspaceFlowCleared -= PWorkspaceFlowClear;
+        LWorkspace.LWorkspaceMediaClosed -= PWorkspaceMediaClose;
+        LWorkspace.LWorkspaceLosslesscutFound -= PWorkspaceLosslesscutDefer;
+        LWorkspace.LWorkspaceRelayDeferred -= PWorkspaceRelayDefer;
+        LWorkspace.LWorkspaceRangeApplied -= PWorkspaceRangeApply;
+        LWorkspace.LWorkspaceVolumeApplied -= PWorkspaceVolumeApply;
+        LWorkspace.LWorkspaceSeekApplied -= PWorkspaceSeekApply;
+        LWorkspace.LWorkspacePathsAdded -= PWorkspacePathsAdd;
+        LWorkspace.LWorkspaceSourceSelected -= PWorkspaceSourceSelect;
+        LWorkspace.LWorkspaceSourceOpened -= PWorkspaceSourceOpen;
+        PWorkspaceSurface.PTabWidthChanged -= PWorkspaceWidthRaise;
     }
 
     private static void PWorkspacePairClose(PWorkspace pWorkspace)
@@ -168,8 +168,8 @@ public sealed class PWorkspace
     private static void PWorkspaceListAttach(PWorkspace pWorkspace)
     {
         LList lList = pWorkspace.PWorkspaceList!.LList;
-        lList.LListPathChange += pWorkspace.LWorkspace.LWorkspacePathHandle;
-        lList.LListClearChange += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
+        lList.LListPathChanged += pWorkspace.LWorkspace.LWorkspacePathHandle;
+        lList.LListClearChanged += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
     }
 
     private static void PWorkspaceStepRun(string pStepName, Action pStep)

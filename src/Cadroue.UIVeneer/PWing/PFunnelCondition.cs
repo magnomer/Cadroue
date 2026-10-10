@@ -127,7 +127,7 @@ internal sealed class PFunnelCondition : Grid
 
     public void PFunnelConditionUpdate()
     {
-        LSceneFunnelMatch lMatch = lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
+        LSceneFunnelCondition lMatch = lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
         pFunnelField.Text = lFunnel.LFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
         PFunnelCaseApply(lMatch.LSceneFunnelCase);
         PFunnelJoinApply(lMatch.LSceneFunnelJoin);

@@ -6,7 +6,7 @@ public sealed class LSidecar
 {
     public int LSidecarVersion { get; set; } = 2;
 
-    public LSidecarSourceRecord LSidecarSource { get; set; } = new();
+    public LSidecarSourceEntry LSidecarSource { get; set; } = new();
 
     public List<long> LSidecarKeyframeDeltas { get; set; } = new();
 
@@ -14,13 +14,13 @@ public sealed class LSidecar
 
     public int LSidecarSpanGrid { get; set; }
 
-    public List<LSidecarSectionRecord> LSidecarSections { get; set; } = new();
+    public List<LSidecarSectionEntry> LSidecarSections { get; set; } = new();
 
-    public LSidecarEditRecord? LSidecarEdit { get; set; }
+    public LSidecarEditEntry? LSidecarEdit { get; set; }
 
-    public LSidecarAudioRecord? LSidecarAudio { get; set; }
+    public LSidecarAudioEntry? LSidecarAudio { get; set; }
 
-    public LSidecarWaveformRecord? LSidecarWaveform { get; set; }
+    public LSidecarWaveformEntry? LSidecarWaveform { get; set; }
 
     public double LSidecarLoudness { get; set; }
 

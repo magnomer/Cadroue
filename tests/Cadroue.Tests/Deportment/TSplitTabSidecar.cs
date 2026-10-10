@@ -33,7 +33,7 @@ public sealed class TSplitTabSidecar
         TInterface.TViewerMediaCommit(viewer, TInterface.TCargoCreate(TSplitSource, info, true), false);
     }
 
-    private static LSidecarSplitRecord TSplitRecordCreate(bool enabled) => TInterface.TDetectorSidecarFormat(
+    private static LSidecarSplitEntry TSplitRecordCreate(bool enabled) => TInterface.TDetectorSidecarFormat(
         TInterface.TDetectorSetCreate(
             [TInterface.TDetectorStepCreate(LDetectorKind.LDetectorKindSilence, enabled, -35, 2, 0)],
             TInterface.TDetectorBlankCreate(false, LDetectorType.LDetectorTypeColor, 200, 0.6, 0.9, 0.2, 0.8, 3),
@@ -42,9 +42,9 @@ public sealed class TSplitTabSidecar
             LDetectorMetricMode.LDetectorMetricRms,
             new Dictionary<LDetectorKind, string>()));
 
-    private static List<(string, LSidecarSplitRecord?)> TSplitWriterAttach(LSidecarSplitRecord? stored)
+    private static List<(string, LSidecarSplitEntry?)> TSplitWriterAttach(LSidecarSplitEntry? stored)
     {
-        var written = new List<(string, LSidecarSplitRecord?)>();
+        var written = new List<(string, LSidecarSplitEntry?)>();
         TInterface.TSplitLibrarianAttach(_ => stored, (path, record) =>
         {
             written.Add((path, record));
@@ -59,7 +59,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, LViewer viewer, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TSplitSourceSet(viewer);
@@ -73,7 +73,7 @@ public sealed class TSplitTabSidecar
             TInterface.TSplitLibrarianAttach(null, null);
         }
 
-        (string path, LSidecarSplitRecord? record) = Assert.Single(written);
+        (string path, LSidecarSplitEntry? record) = Assert.Single(written);
         Assert.Equal(TSplitSource, path);
         Assert.True(record!.LSidecarSplitActive);
         Assert.Equal(6, record.LSidecarSplitDetectors.Count);
@@ -85,7 +85,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, LViewer viewer, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TSplitSourceSet(viewer);
@@ -110,7 +110,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
@@ -131,7 +131,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, LViewer viewer, LDocket docket) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TInterface.TDocketDeliveredAdd(docket, TSplitSource, true);
@@ -154,7 +154,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, _, LViewer viewer, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TSplitSourceSet(viewer);
@@ -175,7 +175,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, _, LViewer viewer, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
             TSplitSourceSet(viewer);
@@ -188,7 +188,7 @@ public sealed class TSplitTabSidecar
             TInterface.TSplitLibrarianAttach(null, null);
         }
 
-        (_, LSidecarSplitRecord? record) = Assert.Single(written);
+        (_, LSidecarSplitEntry? record) = Assert.Single(written);
         Assert.False(record!.LSidecarSplitActive);
     }
 
@@ -198,7 +198,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
             TInterface.TSplitStateLoad(tab, TSplitSource);
@@ -225,7 +225,7 @@ public sealed class TSplitTabSidecar
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
-        List<(string, LSidecarSplitRecord?)> written = TSplitWriterAttach(null);
+        List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TInterface.TSplitStateLoad(tab, TSplitSource);

@@ -4,24 +4,24 @@ namespace Cadroue.Application;
 
 public sealed partial class LPreset
 {
-    internal static IReadOnlyList<LPresetRecord> LPresetMergeCreate(
-        IReadOnlyList<LPresetRecord> lPresetBaseline,
-        IReadOnlyList<LPresetRecord> lPresetLocal,
-        IReadOnlyList<LPresetRecord> lPresetStored)
+    internal static IReadOnlyList<LPresetDocument> LPresetMergeCreate(
+        IReadOnlyList<LPresetDocument> lPresetBaseline,
+        IReadOnlyList<LPresetDocument> lPresetLocal,
+        IReadOnlyList<LPresetDocument> lPresetStored)
     {
-        Dictionary<string, LPresetRecord> lPresetBaselineMap = LPresetLookupCreate(lPresetBaseline);
-        Dictionary<string, LPresetRecord> lPresetStoredMap = LPresetLookupCreate(lPresetStored);
-        var lPresetMerged = new List<LPresetRecord>();
+        Dictionary<string, LPresetDocument> lPresetBaselineMap = LPresetLookupCreate(lPresetBaseline);
+        Dictionary<string, LPresetDocument> lPresetStoredMap = LPresetLookupCreate(lPresetStored);
+        var lPresetMerged = new List<LPresetDocument>();
         var lPresetTaken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (LPresetRecord lPresetRecord in lPresetLocal)
+        foreach (LPresetDocument lPresetRecord in lPresetLocal)
         {
             string lPresetName = lPresetRecord.LPresetName;
-            bool lPresetUntouched = lPresetBaselineMap.TryGetValue(lPresetName, out LPresetRecord? lPresetBase)
+            bool lPresetUntouched = lPresetBaselineMap.TryGetValue(lPresetName, out LPresetDocument? lPresetBase)
                 && LPresetRecordMatch(lPresetBase, lPresetRecord);
             if (lPresetUntouched)
             {
-                if (lPresetStoredMap.TryGetValue(lPresetName, out LPresetRecord? lPresetDurable))
+                if (lPresetStoredMap.TryGetValue(lPresetName, out LPresetDocument? lPresetDurable))
                 {
                     lPresetMerged.Add(lPresetDurable);
                     lPresetTaken.Add(lPresetName);
@@ -34,7 +34,7 @@ public sealed partial class LPreset
             lPresetTaken.Add(lPresetName);
         }
 
-        foreach (LPresetRecord lPresetRecord in lPresetStored)
+        foreach (LPresetDocument lPresetRecord in lPresetStored)
         {
             if (!lPresetTaken.Contains(lPresetRecord.LPresetName)
                 && !lPresetBaselineMap.ContainsKey(lPresetRecord.LPresetName))
@@ -46,10 +46,11 @@ public sealed partial class LPreset
         return lPresetMerged;
     }
 
-    private static Dictionary<string, LPresetRecord> LPresetLookupCreate(IReadOnlyList<LPresetRecord> lPresetRecords)
+    private static Dictionary<string, LPresetDocument> LPresetLookupCreate(
+        IReadOnlyList<LPresetDocument> lPresetRecords)
     {
-        var lPresetMap = new Dictionary<string, LPresetRecord>(StringComparer.OrdinalIgnoreCase);
-        foreach (LPresetRecord lPresetRecord in lPresetRecords)
+        var lPresetMap = new Dictionary<string, LPresetDocument>(StringComparer.OrdinalIgnoreCase);
+        foreach (LPresetDocument lPresetRecord in lPresetRecords)
         {
             lPresetMap[lPresetRecord.LPresetName] = lPresetRecord;
         }
@@ -178,6 +179,6 @@ public sealed partial class LPreset
         return true;
     }
 
-    internal static bool LPresetRecordMatch(LPresetRecord lFirstRecord, LPresetRecord lSecondRecord) =>
+    internal static bool LPresetRecordMatch(LPresetDocument lFirstRecord, LPresetDocument lSecondRecord) =>
         LPresetValueMatch(LPresetStateCreate(lFirstRecord), LPresetStateCreate(lSecondRecord));
 }

@@ -194,7 +194,7 @@ public sealed class TFunnelRule
         TInterface.TFunnelRegexSet(source.LFunnel, rule, "^a");
         TInterface.TFunnelTargetSelect(source.LFunnel, rule, 1);
 
-        LSceneTabRecord layout = TInterface.TFunnelLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TFunnelLayoutRead(source);
         LFunnelTab restored = TInterface.TFunnelTabCreate(TInterface.TListCreate(docket), docket);
         TInterface.TFunnelLayoutApply(restored, layout);
         LFunnelRule pending = restored.LFunnel.LFunnelRules[0];

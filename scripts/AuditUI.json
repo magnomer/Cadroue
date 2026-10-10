@@ -1,0 +1,339 @@
+{
+  "generation": 21,
+  "project": "Cadroue",
+  "helper": {
+    "framework": "net10.0"
+  },
+  "ledger": "AuditUI.ledger.json",
+  "strict": {
+    "enforced": true,
+    "reachInclude": [
+      "src/Cadroue.UIVeneer/*.xaml"
+    ],
+    "veneerInclude": [
+      "src/Cadroue.UIVeneer/*.cs",
+      "src/Cadroue.UITerminal/*.cs"
+    ],
+    "deportmentInclude": [
+      "src/Cadroue.UIDeportment/*.cs",
+      "src/Cadroue.UIDemeanor/*.cs"
+    ],
+    "hostInclude": [
+      "src/Cadroue.Host/*.cs"
+    ],
+    "deportmentNamespace": "Cadroue.UIDeportment",
+    "queryTypes": [
+      "System.Linq.Enumerable",
+      "System.Linq.ParallelEnumerable",
+      "System.Linq.Queryable"
+    ],
+    "catalogPatterns": [
+      "^\\s*using\\s+System\\.IO\\s*;",
+      "^\\s*using\\s+System\\.Text\\.Json",
+      "^\\s*using\\s+System\\.Text\\.RegularExpressions",
+      "^\\s*using\\s+System\\.Diagnostics\\s*;",
+      "\\bJsonSerializer\\b",
+      "\\bJsonDocument\\b",
+      "\\bRegex\\b",
+      "\\bProcess\\.Start\\b",
+      "\\bProcessStartInfo\\b",
+      "\\bTask\\.Run\\b",
+      "\\bFile\\.\\w+\\(",
+      "\\bDirectory\\.\\w+\\(",
+      "\\bPath\\.\\w+\\("
+    ],
+    "catalogExempt": [],
+    "diskPatterns": [
+      "\\bFile\\.\\w+\\(",
+      "\\bDirectory\\.\\w+\\(",
+      "\\bPath\\.\\w+\\(",
+      "\\b(FileInfo|DirectoryInfo|DriveInfo|FileStream|FileSystemWatcher|FileSystemInfo)\\b",
+      "\\bSystem\\.IO\\.(File|Directory|Path|Drive|FileSystem)"
+    ],
+    "diskExempt": [],
+    "overreachingNamespaces": [
+      "Cadroue.Core",
+      "Cadroue.Application",
+      "Cadroue.ShellEngine",
+      "Cadroue.Conduct",
+      "Cadroue.Infrastructure",
+      "Cadroue.Core.Windows"
+    ],
+    "branchingElements": [
+      "DataTrigger",
+      "EventTrigger",
+      "MultiDataTrigger",
+      "MultiTrigger",
+      "Trigger",
+      "VisualState",
+      "VisualStateGroup",
+      "VisualStateManager.VisualStateGroups",
+      "VisualTransition"
+    ],
+    "branchingSlots": [
+      "CellTemplateSelector",
+      "ContentStringFormat",
+      "ContentTemplateSelector",
+      "Converter",
+      "FallbackValue",
+      "HeaderStringFormat",
+      "HeaderTemplateSelector",
+      "ItemContainerStyleSelector",
+      "ItemStringFormat",
+      "ItemTemplateSelector",
+      "StringFormat",
+      "StyleSelector",
+      "TargetNullValue",
+      "TemplateSelector",
+      "ValidatesOnDataErrors",
+      "ValidatesOnExceptions",
+      "ValidatesOnNotifyDataErrors",
+      "ValidationRules"
+    ],
+    "tetheringElements": [
+      "Binding",
+      "CommandBinding",
+      "InputBinding",
+      "KeyBinding",
+      "MouseBinding",
+      "MultiBinding",
+      "PLocalizationBinder",
+      "PriorityBinding",
+      "RelativeSource"
+    ],
+    "tetheringSlots": [
+      "Command",
+      "CommandParameter",
+      "CommandTarget",
+      "DisplayMemberPath",
+      "RelativeSource",
+      "SelectedValuePath"
+    ],
+    "tetheringExtensions": [
+      "Binding",
+      "MultiBinding",
+      "RelativeSource",
+      "TemplateBinding",
+      "x:Static"
+    ],
+    "tetheringTypes": [
+      "System.Windows.Controls.DataTemplateSelector",
+      "System.Windows.Controls.StyleSelector",
+      "System.Windows.Data.IMultiValueConverter",
+      "System.Windows.Data.IValueConverter"
+    ],
+    "tetheringLiterals": [
+      "Tag"
+    ],
+    "veneerNamespace": "Cadroue.UIVeneer",
+    "contractType": "QContract",
+    "hardwiringMarkers": [
+      "pack://",
+      ";component/",
+      "Cadroue.UIVeneer"
+    ],
+    "masqueradingTypes": [
+      "System.Windows.Application",
+      "System.Windows.Controls.ContentControl",
+      "System.Windows.Controls.ItemsControl",
+      "System.Windows.Controls.Page",
+      "System.Windows.ResourceDictionary"
+    ],
+    "contractIds": [
+      "Key",
+      "Name"
+    ]
+  },
+  "truth": {
+    "enforced": true,
+    "stateSuffix": "State",
+    "bulletinType": "LBulletin",
+    "conductRoot": "src/Cadroue.Conduct",
+    "capsuleInclude": [
+      "src/Cadroue.UIDeportment.Capsule/*.cs"
+    ],
+    "shellInclude": [
+      "src/Cadroue.UIVeneer/*.cs",
+      "src/Cadroue.UIDeportment/*.cs",
+      "src/Cadroue.UITerminal/*.cs",
+      "src/Cadroue.UIDemeanor/*.cs"
+    ],
+    "truthInclude": [
+      "src/Cadroue.UIDeportment/*.cs",
+      "src/Cadroue.UIDemeanor/*.cs"
+    ],
+    "informative": {
+      "Mismatching": [
+        "src/Cadroue.UIDemeanor"
+      ]
+    },
+    "controlPrefixes": {
+      "src/Cadroue.UIDeportment": "P",
+      "src/Cadroue.UIDemeanor": "P"
+    },
+    "controlBases": [
+      "System.Windows.FrameworkElement",
+      "System.Windows.FrameworkContentElement"
+    ],
+    "orderVerbs": [
+      "Insert",
+      "Move",
+      "RemoveAt",
+      "Reverse",
+      "Sort"
+    ],
+    "fillVerbs": [
+      "Add",
+      "AddRange",
+      "Clear",
+      "Enqueue",
+      "Insert",
+      "InsertRange",
+      "Move",
+      "Push",
+      "Remove",
+      "RemoveAll",
+      "RemoveAt",
+      "RemoveRange",
+      "Reverse",
+      "Sort",
+      "TryAdd"
+    ],
+    "requestPrefix": "LRequest",
+    "sendRoots": [
+      "LTenureRequestApply",
+      "LTenureRequestDefer"
+    ],
+    "clockTypes": [
+      "DispatcherTimer",
+      "PeriodicTimer",
+      "Stopwatch",
+      "Timer"
+    ],
+    "consoleInput": [
+      "System.Console.Read",
+      "System.Console.ReadKey",
+      "System.Console.ReadLine",
+      "System.IO.TextReader.Read",
+      "System.IO.TextReader.ReadLine",
+      "System.IO.TextReader.ReadLineAsync",
+      "System.IO.TextReader.ReadToEnd"
+    ],
+    "dialogTypes": [
+      "System.Windows.MessageBox"
+    ],
+    "delayMembers": [
+      "System.Threading.Tasks.Task.Delay"
+    ],
+    "inputBase": "System.Windows.Controls.Control",
+    "inputMembers": [
+      "IsChecked",
+      "Password",
+      "SelectedIndex",
+      "SelectedItem",
+      "SelectedValue",
+      "Text",
+      "Value"
+    ],
+    "focusMembers": [
+      "IsFocused",
+      "IsKeyboardFocused",
+      "IsKeyboardFocusWithin"
+    ],
+    "truthHandles": [],
+    "moonlightingVerbs": [
+      "Aggregate",
+      "All",
+      "Any",
+      "Average",
+      "Concat",
+      "Contains",
+      "Count",
+      "Distinct",
+      "DistinctBy",
+      "Except",
+      "First",
+      "FirstOrDefault",
+      "GroupBy",
+      "GroupJoin",
+      "Intersect",
+      "Join",
+      "Last",
+      "LastOrDefault",
+      "Max",
+      "MaxBy",
+      "Min",
+      "MinBy",
+      "OrderBy",
+      "OrderByDescending",
+      "Reverse",
+      "Select",
+      "SelectMany",
+      "Single",
+      "SingleOrDefault",
+      "Skip",
+      "SkipWhile",
+      "Sum",
+      "Take",
+      "TakeWhile",
+      "ThenBy",
+      "ThenByDescending",
+      "ToDictionary",
+      "ToHashSet",
+      "ToLookup",
+      "Union",
+      "Where",
+      "Zip"
+    ]
+  },
+  "boundary": {
+    "forbidden": [
+      "\\bLStateValueRead\\s*\\(",
+      "\\bLStateValueCreate\\s*\\(",
+      "\\bLStateWrittenResolve\\s*\\(",
+      "\\bLStateAnchorRead\\s*\\(",
+      "\\bLStateAnchorCreate\\s*\\(",
+      "\\busing\\s+static\\s+Cadroue\\."
+    ],
+    "state": [
+      "\\bLStateUnknown\\b(?!\\s*[:=])",
+      "\\bLStateSpecified\\b(?!\\s*[:=])",
+      "\\bLStateUnspecified\\b(?!\\s*[:=])"
+    ],
+    "converter": [],
+    "hidden": [
+      "^\\s*#\\s*if\\b",
+      "\\bdynamic\\b",
+      "\\bType\\.GetType\\s*\\(",
+      "\\bActivator\\.",
+      "\\.GetMethods?\\s*\\(",
+      "\\.GetPropert(y|ies)\\s*\\(",
+      "\\.GetFields?\\s*\\(",
+      "<x:Code\\b",
+      "\\bEnum\\.(Try)?Parse\\b",
+      "^\\s*(global\\s+)?using\\s+\\w+\\s*=",
+      "^\\s*extern\\s+alias\\b"
+    ],
+    "loader": [
+      "QHeadquarter.cs"
+    ],
+    "reflection": "\\bSystem\\.Reflection\\b",
+    "timer": "\\bCancellationTokenSource\\b",
+    "hold": [],
+    "panel": "\\b(class|struct|record)\\s+PS?[A-Z]",
+    "tracked": [
+      "src/*",
+      "tests/*"
+    ],
+    "logic": [
+      "src/*.cs"
+    ]
+  },
+  "report": {
+    "directory": "docs-analysis",
+    "versionFile": "version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditUI-",
+    "consoleItems": 10
+  }
+}

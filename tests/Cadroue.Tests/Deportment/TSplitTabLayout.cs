@@ -59,7 +59,7 @@ public sealed class TSplitTabLayout
             TInterface.TDetectorBlankCreate(true, LDetectorType.LDetectorTypeColor, 90, 0.4, 0.7, 0.1, 0.9, 1));
         TInterface.TSensorPersistentSet(inspector.LInspectorSensor, true);
 
-        LSceneTabRecord layout = TInterface.TSplitLayoutRead(tab);
+        LSceneTabEntry layout = TInterface.TSplitLayoutRead(tab);
 
         Assert.Equal(6, layout.LSceneDetectors.Count);
         Assert.True(layout.LSceneDetectPersistent);
@@ -91,7 +91,7 @@ public sealed class TSplitTabLayout
         TInterface.TBlankStepSet(
             inspector.LInspectorBlank, TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeColor));
 
-        LSceneTabRecord layout = TInterface.TSplitLayoutRead(source);
+        LSceneTabEntry layout = TInterface.TSplitLayoutRead(source);
         (LSplitTab target, LInspector restored, LProcessing processing) = TSplitBuild();
         TInterface.TSplitLayoutApply(target, layout);
 

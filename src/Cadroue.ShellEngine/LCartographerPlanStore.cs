@@ -12,12 +12,14 @@ public static class LCartographerPlanStore
     private static readonly Dictionary<Guid, LCartographerPlanEntry> lCartographerPlanCache = new();
 
     private sealed record LCartographerPlanEntry(
-        DateTime LCartographerPlanStamp, long LCartographerPlanLength, LCartographerPlanRecord LCartographerPlanParsed);
+        DateTime LCartographerPlanStamp,
+        long LCartographerPlanLength,
+        LCartographerPlanDocument LCartographerPlanParsed);
 
-    public static bool LCartographerPlanRead(Guid lCartographerPlanId, out LCartographerPlanRecord lCartographerPlan)
+    public static bool LCartographerPlanRead(Guid lCartographerPlanId, out LCartographerPlanDocument lCartographerPlan)
     {
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
-        lCartographerPlan = new LCartographerPlanRecord();
+        lCartographerPlan = new LCartographerPlanDocument();
         try
         {
             var lCartographerFile = new FileInfo(lCartographerPath);
@@ -57,7 +59,7 @@ public static class LCartographerPlanStore
         }
     }
 
-    public static bool LCartographerPlanSave(LCartographerPlanRecord lCartographerPlan)
+    public static bool LCartographerPlanSave(LCartographerPlanDocument lCartographerPlan)
     {
         Guid lCartographerPlanId = lCartographerPlan.LCartographerPlanId;
         string lCartographerPath = LCartographerPathRead(lCartographerPlanId);
@@ -131,7 +133,7 @@ public static class LCartographerPlanStore
     }
 
     private static void LCartographerCacheSet(
-        Guid lCartographerPlanId, string lCartographerPath, LCartographerPlanRecord lCartographerPlan)
+        Guid lCartographerPlanId, string lCartographerPath, LCartographerPlanDocument lCartographerPlan)
     {
         var lCartographerFile = new FileInfo(lCartographerPath);
         lock (lCartographerPlanCache)
@@ -149,19 +151,20 @@ public static class LCartographerPlanStore
         }
     }
 
-    private static bool LCartographerTextParse(string lCartographerJson, out LCartographerPlanRecord lCartographerPlan)
+    private static bool LCartographerTextParse(
+        string lCartographerJson, out LCartographerPlanDocument lCartographerPlan)
     {
-        LCartographerPlanRecord? lCartographerRead =
-            JsonSerializer.Deserialize<LCartographerPlanRecord>(lCartographerJson, lCartographerPlanJson);
+        LCartographerPlanDocument? lCartographerRead =
+            JsonSerializer.Deserialize<LCartographerPlanDocument>(lCartographerJson, lCartographerPlanJson);
         if (lCartographerRead is null)
         {
-            lCartographerPlan = new LCartographerPlanRecord();
+            lCartographerPlan = new LCartographerPlanDocument();
             return false;
         }
 
         lCartographerRead.LCartographerStages ??= new();
         lCartographerRead.LCartographerDeliveredWork ??= new();
-        foreach (LCartographerStageRecord lCartographerStage in lCartographerRead.LCartographerStages)
+        foreach (LCartographerStageEntry lCartographerStage in lCartographerRead.LCartographerStages)
         {
             lCartographerStage.LCartographerLayout ??= new();
             lCartographerStage.LCartographerExport ??= new();

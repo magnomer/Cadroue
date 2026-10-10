@@ -4,10 +4,10 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record LConsoleRun(string LConsoleRunText, bool LConsoleRunAccent);
+public sealed record LConsoleSpan(string LConsoleRunText, bool LConsoleRunAccent);
 
 public sealed record LConsoleStatus(
-    IReadOnlyList<LConsoleRun> LConsoleStatusRuns,
+    IReadOnlyList<LConsoleSpan> LConsoleStatusRuns,
     bool LConsoleStatusRunning,
     bool LConsoleStatusLoaded,
     bool LConsoleStatusBusy,
@@ -31,10 +31,10 @@ public sealed class LConsole
     {
         LConsoleStation = new LConsoleStation(lSchedule);
         LConsoleScene = new LConsoleScene();
-        lSchedule.LScheduleChange += LConsoleScheduleHandle;
-        lSchedule.LScheduleItemChange += LConsoleItemHandle;
-        LStation.LStationChange += LConsoleUpdate;
-        LConsoleStation.LConsoleStationChange += LConsoleUpdate;
+        lSchedule.LScheduleChanged += LConsoleScheduleHandle;
+        lSchedule.LScheduleItemChanged += LConsoleItemHandle;
+        LStation.LStationChanged += LConsoleUpdate;
+        LConsoleStation.LConsoleStationChanged += LConsoleUpdate;
     }
 
     public LConsoleStation LConsoleStation { get; }
@@ -47,18 +47,18 @@ public sealed class LConsole
 
     public double LConsoleProgress => lConsoleProgress;
 
-    public event Action<LConsoleStatus>? LConsoleStatusApply;
+    public event Action<LConsoleStatus>? LConsoleStatusApplied;
 
-    public event Action<double, bool>? LConsoleProgressApply;
+    public event Action<double, bool>? LConsoleProgressApplied;
 
-    public event Action? LConsoleUpdateDefer;
+    public event Action? LConsoleUpdateDeferred;
 
-    public event Action<string, string>? LConsoleWarningShow;
+    public event Action<string, string>? LConsoleWarningShown;
 
     public void LConsoleWindowAttach(LWindow lWindow, LStrip lStripOwner)
     {
         lStrip = lStripOwner;
-        lStripOwner.LStripSelectChange += LConsoleTabHandle;
+        lStripOwner.LStripSelectChanged += LConsoleTabHandle;
         LConsoleScene.LConsoleWindowAttach(lWindow, lStripOwner);
     }
 
@@ -72,14 +72,14 @@ public sealed class LConsole
 
     public void LConsoleClose()
     {
-        lSchedule.LScheduleChange -= LConsoleScheduleHandle;
-        lSchedule.LScheduleItemChange -= LConsoleItemHandle;
-        LStation.LStationChange -= LConsoleUpdate;
-        LConsoleStation.LConsoleStationChange -= LConsoleUpdate;
+        lSchedule.LScheduleChanged -= LConsoleScheduleHandle;
+        lSchedule.LScheduleItemChanged -= LConsoleItemHandle;
+        LStation.LStationChanged -= LConsoleUpdate;
+        LConsoleStation.LConsoleStationChanged -= LConsoleUpdate;
         LConsoleStation.LConsoleWatchStop();
         if (lStrip is not null)
         {
-            lStrip.LStripSelectChange -= LConsoleTabHandle;
+            lStrip.LStripSelectChanged -= LConsoleTabHandle;
         }
     }
 
@@ -111,7 +111,7 @@ public sealed class LConsole
         }
 
         lConsoleProgressPending = true;
-        LConsoleUpdateDefer?.Invoke();
+        LConsoleUpdateDeferred?.Invoke();
     }
 
     public void LConsolePendingSet(bool lProgressPending) => lConsoleProgressPending = lProgressPending;
@@ -126,7 +126,7 @@ public sealed class LConsole
 
         lConsoleBackward = lClamped < lConsoleProgress;
         lConsoleProgress = lClamped;
-        LConsoleProgressApply?.Invoke(lClamped, lClamped > 0 && !lConsoleBackward);
+        LConsoleProgressApplied?.Invoke(lClamped, lClamped > 0 && !lConsoleBackward);
         return true;
     }
 
@@ -137,7 +137,7 @@ public sealed class LConsole
         LConsoleProgressSet(
             lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress));
         bool lRunning = LConsoleStation.LConsoleRunning;
-        LConsoleStatusApply?.Invoke(LConsoleStatusResolve(lRunningItems, lRunning));
+        LConsoleStatusApplied?.Invoke(LConsoleStatusResolve(lRunningItems, lRunning));
     }
 
     private LConsoleStatus LConsoleStatusResolve(LWorkItem[] lRunningItems, bool lRunning)
@@ -197,25 +197,25 @@ public sealed class LConsole
             lRunningItem.LWorkProgress);
     }
 
-    public static IReadOnlyList<LConsoleRun> LConsoleRunsResolve(string lLine, string? lAccent)
+    public static IReadOnlyList<LConsoleSpan> LConsoleRunsResolve(string lLine, string? lAccent)
     {
         int lAccentIndex = string.IsNullOrEmpty(lAccent) ? -1 : lLine.IndexOf(lAccent, StringComparison.Ordinal);
         if (lAccentIndex < 0)
         {
-            return [new LConsoleRun(lLine, false)];
+            return [new LConsoleSpan(lLine, false)];
         }
 
-        var lRuns = new List<LConsoleRun>();
+        var lRuns = new List<LConsoleSpan>();
         if (lAccentIndex > 0)
         {
-            lRuns.Add(new LConsoleRun(lLine[..lAccentIndex], false));
+            lRuns.Add(new LConsoleSpan(lLine[..lAccentIndex], false));
         }
 
-        lRuns.Add(new LConsoleRun(lAccent!, true));
+        lRuns.Add(new LConsoleSpan(lAccent!, true));
         int lAccentEnd = lAccentIndex + lAccent!.Length;
         if (lAccentEnd < lLine.Length)
         {
-            lRuns.Add(new LConsoleRun(lLine[lAccentEnd..], false));
+            lRuns.Add(new LConsoleSpan(lLine[lAccentEnd..], false));
         }
 
         return lRuns;
@@ -291,7 +291,7 @@ public sealed class LConsole
     {
         if (LConsoleRemovalFormat(lOutcomes) is { } lMessage)
         {
-            LConsoleWarningShow?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
+            LConsoleWarningShown?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
         }
     }
 

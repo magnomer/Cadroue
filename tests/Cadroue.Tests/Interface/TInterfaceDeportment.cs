@@ -9,7 +9,7 @@ internal static partial class TInterface
 {
     internal static LInspector TInspectorCreate() => new();
     internal static void TInspectorAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorChange += handler;
+        inspector.LInspectorChanged += handler;
     internal static void TInspectorSourceSet(LInspector inspector, double width, double height) =>
         inspector.LInspectorSourceSet(width, height);
     internal static void TInspectorStepSet(LInspector inspector, string? step) => inspector.LInspectorStepSet(step);
@@ -31,9 +31,9 @@ internal static partial class TInterface
     internal static void TInspectorPlanApply(LInspector inspector, LEditPlan plan) =>
         inspector.LInspectorPlanApply(plan);
     internal static void TInspectorVideoAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorVideoChange += handler;
+        inspector.LInspectorVideoChanged += handler;
     internal static void TInspectorPersistentAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorPersistentChange += handler;
+        inspector.LInspectorPersistentChanged += handler;
     internal static string TInspectorTitleRead(LInspector inspector) => inspector.LInspectorTitleRead();
     internal static bool TInspectorSectionCheck(LInspector inspector, string key) =>
         inspector.LInspectorSectionCheck(key);
@@ -54,16 +54,17 @@ internal static partial class TInterface
         inspector.LInspectorCrop.LInspectorFixedSet(fixedRatio);
     internal static void TInspectorLenientSet(LInspector inspector, bool lenient) =>
         inspector.LInspectorCrop.LInspectorLenientSet(lenient);
-    internal static void TInspectorRatioCommit(LInspector inspector, string width, string height) =>
-        inspector.LInspectorCrop.LInspectorRatioCommit(width, height);
+    internal static void TInspectorRatioCommit(
+        LInspector inspector, string width, string height, bool typed = true) =>
+        inspector.LInspectorCrop.LInspectorRatioCommit(width, height, typed);
     internal static string TInspectorRatioFormat(LInspector inspector, bool width, string text) =>
         inspector.LInspectorCrop.LInspectorRatioFormat(width, text);
     internal static string TInspectorNoticeRead(LInspector inspector) =>
         inspector.LInspectorCrop.LInspectorNoticeRead();
     internal static string TInspectorResolutionRead(LInspector inspector) =>
         inspector.LInspectorCrop.LInspectorResolutionRead();
-    internal static void TInspectorEdgeCommit(LInspector inspector, int side, string text) =>
-        inspector.LInspectorCrop.LInspectorEdgeCommit(side, text);
+    internal static void TInspectorEdgeCommit(LInspector inspector, int side, string text, bool typed = true) =>
+        inspector.LInspectorCrop.LInspectorEdgeCommit(side, text, typed);
     internal static string TInspectorEdgeFormat(LInspector inspector, int side, string text) =>
         inspector.LInspectorCrop.LInspectorEdgeFormat(side, text);
     internal static void TInspectorEdgeReset(LInspector inspector) => inspector.LInspectorCrop.LInspectorEdgeReset();
@@ -99,14 +100,14 @@ internal static partial class TInterface
     internal static LWorkCurveSettings TCurveSettingsRead(LWorkVideoStep step) => step.LWorkCurveRead();
 
     internal static LTone TToneCreate() => new();
-    internal static void TToneAttach(LTone tone, Action handler) => tone.LToneChange += handler;
+    internal static void TToneAttach(LTone tone, Action handler) => tone.LToneChanged += handler;
     internal static void TToneValueSet(LTone tone, LColorKind kind, double value) => tone.LToneValueSet(kind, value);
     internal static void TToneActiveSet(LTone tone, LColorKind kind, bool active) => tone.LToneActiveSet(kind, active);
     internal static void TToneCapableSet(LTone tone, bool capable) => tone.LToneCapableSet(capable);
     internal static LWorkVideoStep TToneStepRead(LTone tone, LColorKind kind) => tone.LToneStepRead(kind);
 
     internal static LGamma TGammaCreate() => new();
-    internal static void TGammaAttach(LGamma gamma, Action handler) => gamma.LGammaChange += handler;
+    internal static void TGammaAttach(LGamma gamma, Action handler) => gamma.LGammaChanged += handler;
     internal static void TGammaValueSet(LGamma gamma, int index, double value) => gamma.LGammaValueSet(index, value);
     internal static void TGammaReset(LGamma gamma) => gamma.LGammaReset();
     internal static void TGammaCapableSet(LGamma gamma, bool capable, bool preview) =>
@@ -115,12 +116,12 @@ internal static partial class TInterface
     internal static bool TGammaPreviewRead(LGamma gamma) => gamma.LGammaPreview;
 
     internal static LExposure TExposureCreate() => new();
-    internal static void TExposureAttach(LExposure exposure, Action handler) => exposure.LExposureChange += handler;
+    internal static void TExposureAttach(LExposure exposure, Action handler) => exposure.LExposureChanged += handler;
     internal static void TExposureValueSet(LExposure exposure, double value) => exposure.LExposureValueSet(value);
     internal static LWorkVideoStep TExposureStepRead(LExposure exposure) => exposure.LExposureStep;
 
     internal static LCurve TCurveCreate() => new();
-    internal static void TCurveAttach(LCurve curve, Action handler) => curve.LCurveChange += handler;
+    internal static void TCurveAttach(LCurve curve, Action handler) => curve.LCurveChanged += handler;
     internal static void TCurveChannelSelect(LCurve curve, int channel) => curve.LCurveChannelSelect(channel);
     internal static void TCurvePointAdd(LCurve curve, double input, double output) =>
         curve.LCurvePointAdd(input, output);
@@ -148,9 +149,9 @@ internal static partial class TInterface
 
     internal static LWhitebalance TWhitebalanceCreate() => new();
     internal static void TWhitebalanceAttach(LWhitebalance whitebalance, Action handler) =>
-        whitebalance.LWhitebalanceChange += handler;
+        whitebalance.LWhitebalanceChanged += handler;
     internal static void TWhitebalanceEstimateAttach(LWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
-        whitebalance.LWhitebalanceEstimateChange += handler;
+        whitebalance.LWhitebalanceEstimateChanged += handler;
     internal static void TWhitebalanceSampleSet(LWhitebalance whitebalance, LNeutralSample sample) =>
         whitebalance.LWhitebalanceSampleSet(sample);
     internal static void TWhitebalanceMethodSet(LWhitebalance whitebalance, LWhitebalanceMethod method) =>
@@ -172,7 +173,7 @@ internal static partial class TInterface
         new(LNeutralOutcome.LNeutralOutcomeResolved, red, green, blue, redGain, greenGain, blueGain);
 
     internal static LNoise TNoiseCreate() => new();
-    internal static void TNoiseAttach(LNoise noise, Action handler) => noise.LNoiseChange += handler;
+    internal static void TNoiseAttach(LNoise noise, Action handler) => noise.LNoiseChanged += handler;
     internal static void TNoisePresetSelect(LNoise noise, string token) => noise.LNoisePresetSelect(token);
     internal static void TNoiseValueSet(LNoise noise, int index, double value) => noise.LNoiseValueSet(index, value);
     internal static void TNoiseStepSet(LNoise noise, LWorkAudioStep step) => noise.LNoiseStepSet(step);
@@ -197,7 +198,7 @@ internal static partial class TInterface
     internal static LDetectorStep TSensorStepRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorStepRead(kind);
 
     internal static LLoudness TLoudnessCreate() => new();
-    internal static void TLoudnessAttach(LLoudness loudness, Action handler) => loudness.LLoudnessChange += handler;
+    internal static void TLoudnessAttach(LLoudness loudness, Action handler) => loudness.LLoudnessChanged += handler;
     internal static void TLoudnessPresetSelect(LLoudness loudness, string token) =>
         loudness.LLoudnessPresetSelect(token);
     internal static void TLoudnessModeSet(LLoudness loudness, LLeveling mode) => loudness.LLoudnessModeSet(mode);
@@ -210,7 +211,7 @@ internal static partial class TInterface
     internal static LWorkNormalizeStep TLoudnessStepRead(LLoudness loudness) => loudness.LLoudnessStep;
 
     internal static LFilter TFilterCreate(bool high) => new(high);
-    internal static void TFilterAttach(LFilter filter, Action handler) => filter.LFilterChange += handler;
+    internal static void TFilterAttach(LFilter filter, Action handler) => filter.LFilterChanged += handler;
     internal static void TFilterPresetSelect(LFilter filter, string token) => filter.LFilterPresetSelect(token);
     internal static void TFilterFrequencySet(LFilter filter, double frequency) => filter.LFilterFrequencySet(frequency);
     internal static string? TFilterTokenRead(LFilter filter) => filter.LFilterToken;
@@ -219,7 +220,7 @@ internal static partial class TInterface
 
     internal static LEqualizer TEqualizerCreate() => new();
     internal static void TEqualizerAttach(LEqualizer equalizer, Action handler) =>
-        equalizer.LEqualizerChange += handler;
+        equalizer.LEqualizerChanged += handler;
     internal static void TEqualizerPresetSelect(LEqualizer equalizer, string token) =>
         equalizer.LEqualizerPresetSelect(token);
     internal static void TEqualizerBandSet(LEqualizer equalizer, int index, double frequency, double gain) =>
@@ -232,19 +233,19 @@ internal static partial class TInterface
     internal static LWorkAudioStep TEqualizerStepRead(LEqualizer equalizer) => equalizer.LEqualizerStepRead();
 
     internal static LVolume TVolumeCreate() => new();
-    internal static void TVolumeAttach(LVolume volume, Action handler) => volume.LVolumeChange += handler;
+    internal static void TVolumeAttach(LVolume volume, Action handler) => volume.LVolumeChanged += handler;
     internal static void TVolumeGainSet(LVolume volume, double gain) => volume.LVolumeGainSet(gain);
     internal static void TVolumeActiveSet(LVolume volume, bool active) => volume.LVolumeActiveSet(active);
     internal static double TVolumeGainRead(LVolume volume) => volume.LVolumeGain;
 
     internal static LSkip TSkipCreate() => new();
-    internal static void TSkipAttach(LSkip skip, Action handler) => skip.LSkipChange += handler;
+    internal static void TSkipAttach(LSkip skip, Action handler) => skip.LSkipChanged += handler;
     internal static void TSkipActiveSet(LSkip skip, bool active) => skip.LSkipActiveSet(active);
     internal static void TSkipPersistentSet(LSkip skip, bool persistent) => skip.LSkipPersistentSet(persistent);
 
     internal static LCropboxState TCropboxStateCreate() => new();
     internal static void TCropboxStateAttach(LCropboxState state, Action handler) =>
-        state.LCropboxStateChange += handler;
+        state.LCropboxStateChanged += handler;
     internal static void TCropboxCropSet(LCropboxState state, LWorkCrop crop) => state.LCropboxCropSet(crop);
     internal static void TCropboxApplySet(LCropboxState state, bool apply) => state.LCropboxApplySet(apply);
     internal static void TCropboxPersistentSet(LCropboxState state, bool persistent) =>
@@ -263,7 +264,7 @@ internal static partial class TInterface
 
     internal static LSLoupe TLoupeCreate() => new();
     internal static void TLoupePlayingAttach(LSLoupe loupe, Action<bool> handler) =>
-        loupe.LSLoupePlayingChange += handler;
+        loupe.LSLoupePlayingChanged += handler;
     internal static void TLoupePlayingSet(LSLoupe loupe, bool playing) => loupe.LSLoupePlayingSet(playing);
     internal static void TLoupeEndSet(LSLoupe loupe, bool ended) => loupe.LSLoupeEndSet(ended);
     internal static void TLoupeClose(LSLoupe loupe) => loupe.LSLoupeClose();
@@ -277,15 +278,15 @@ internal static partial class TInterface
     internal static void TLoupeFloatSet(LSLoupe loupe, LSLoupeFloat mode) => loupe.LSLoupeFloatSet(mode);
     internal static void TLoupeFloatRestore(LSLoupe loupe) => loupe.LSLoupeFloatRestore();
     internal static IReadOnlyList<LSLoupeButton> TLoupeButtonsRead(LSLoupe loupe) => loupe.LSLoupeButtonsRead();
-    internal static void TLoupeFloatAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeFloatChange += handler;
-    internal static void TLoupeEngineAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeEngineCreate += handler;
-    internal static void TLoupeCloseAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeCloseApply += handler;
+    internal static void TLoupeFloatAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeFloatChanged += handler;
+    internal static void TLoupeEngineAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeEngineCreated += handler;
+    internal static void TLoupeCloseAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeCloseApplied += handler;
 
     internal static LDocket TDocketCreate() => new();
     internal static int TDocketPathsAdd(LDocket docket, params string[] paths) => docket.LDocketPathsAdd(paths);
     internal static int TDocketPathsRemove(LDocket docket, params string[] paths) => docket.LDocketPathsRemove(paths);
     internal static LList TListCreate(LDocket docket) => new(docket);
-    internal static void TListPathAttach(LList list, Action<string?> handler) => list.LListPathChange += handler;
+    internal static void TListPathAttach(LList list, Action<string?> handler) => list.LListPathChanged += handler;
     internal static void TListSelect(LList list, string? path) => list.LListSelect(path);
     internal static void TListPressSelect(LList list, string path, bool shift, bool control) =>
         list.LListPressSelect(path, shift, control);
@@ -296,12 +297,12 @@ internal static partial class TInterface
     internal static void TListSuccessorReset(LList list) => list.LListSuccessorReset();
     internal static void TListRemovedApply(LList list, params string[] removed) => list.LListRemovedApply(removed);
     internal static void TListSuccessorSelect(LList list) => list.LListSuccessorSelect();
-    internal static void TListChangeAttach(LList list, Action handler) => list.LListChange += handler;
+    internal static void TListChangeAttach(LList list, Action handler) => list.LListChanged += handler;
     internal static void TListClearAttach(LList list, Action<IReadOnlyList<string>> handler) =>
-        list.LListClearChange += handler;
+        list.LListClearChanged += handler;
     internal static void TListItemsAttach(LList list, Action<IReadOnlyList<LDocketEntry>> handler) =>
-        list.LListItemsAdd += handler;
-    internal static void TListLockAttach(LList list, Action<bool> handler) => list.LListLockChange += handler;
+        list.LListItemsAdded += handler;
+    internal static void TListLockAttach(LList list, Action<bool> handler) => list.LListLockChanged += handler;
     internal static Task<int> TListPathsAdd(LList list, params string[] paths) => list.LListPathsAdd(paths);
     internal static void TListDialogAdd(LList list, bool? confirmed, IReadOnlyList<string> paths) =>
         list.LListDialogAdd(confirmed, paths, "file");
@@ -319,9 +320,9 @@ internal static partial class TInterface
     internal static bool TListKeyRun(LList list, string key, bool control) => list.LListKeyRun(key, control);
 
     internal static LFunnel TFunnelCreate() => new();
-    internal static void TFunnelAttach(LFunnel funnel, Action handler) => funnel.LFunnelChange += handler;
+    internal static void TFunnelAttach(LFunnel funnel, Action handler) => funnel.LFunnelChanged += handler;
     internal static void TFunnelRuleAttach(LFunnel funnel, Action<LFunnelRule> handler) =>
-        funnel.LFunnelRuleChange += handler;
+        funnel.LFunnelRuleChanged += handler;
     internal static LFunnelRule TFunnelRuleAdd(LFunnel funnel, LFunnelForm form) => funnel.LFunnelRuleAdd(form);
     internal static void TFunnelRuleRemove(LFunnel funnel, LFunnelRule rule) => funnel.LFunnelRuleRemove(rule);
     internal static bool TFunnelRuleMove(LFunnel funnel, LFunnelRule rule, int target) =>
@@ -350,7 +351,7 @@ internal static partial class TInterface
     internal static bool TFunnelRemainderCheck(LFunnel funnel) => funnel.LFunnelRemainderCheck();
 
     internal static LGroup TGroupCreate(LGroupSelection selection) => new(selection);
-    internal static void TGroupAttach(LGroup group, Action handler) => group.LGroupChange += handler;
+    internal static void TGroupAttach(LGroup group, Action handler) => group.LGroupChanged += handler;
     internal static bool TGroupAdd(LGroup group, IReadOnlyList<string> paths, string name) =>
         group.LGroupAdd(paths, name);
     internal static bool TGroupPathsInsert(LGroup group, int index, IReadOnlyList<string> paths, int insertAt) =>
@@ -360,17 +361,17 @@ internal static partial class TInterface
     internal static void TGroupEditCancel(LGroup group) => group.LGroupEditCancel();
     internal static bool TGroupNameCommit(LGroup group, string name) => group.LGroupNameCommit(name);
     internal static bool TGroupNameSet(LGroup group, int index, string name) => group.LGroupNameSet(index, name);
-    internal static void TGroupFaceAttach(LGroup group, Action handler) => group.LGroupFaceChange += handler;
+    internal static void TGroupFaceAttach(LGroup group, Action handler) => group.LGroupFaceChanged += handler;
     internal static void TGroupRequestAttach(LGroup group, Action<IReadOnlyList<string>> handler) =>
         group.LGroupDrag.LGroupPathsRequest += handler;
     internal static void TGroupOpenAttach(LGroup group, Action<string> handler) =>
-        group.LGroupDrag.LGroupItemOpen += handler;
+        group.LGroupDrag.LGroupItemOpened += handler;
     internal static void TGroupSourceAttach(LGroup group, Func<IReadOnlyList<string>> source) =>
         group.LGroupSourceAttach(source);
     internal static void TGroupAutoUpdate(LGroup group) => group.LGroupAutoUpdate();
     internal static IReadOnlyList<LGroupCard> TGroupCardsRead(LGroup group) => group.LGroupFace.LGroupCardsRead();
-    internal static LGroupToggle TGroupModeRead(LGroup group) => group.LGroupFace.LGroupModeRead();
-    internal static IReadOnlyList<LGroupToggle> TGroupSwitchesRead(LGroup group) =>
+    internal static LGroupSwitch TGroupModeRead(LGroup group) => group.LGroupFace.LGroupModeRead();
+    internal static IReadOnlyList<LGroupSwitch> TGroupSwitchesRead(LGroup group) =>
         group.LGroupFace.LGroupSwitchesRead();
     internal static void TGroupToggleRun(LGroup group, string key, bool right) =>
         group.LGroupFace.LGroupToggleRun(key, right);
@@ -393,7 +394,7 @@ internal static partial class TInterface
 
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name);
     internal static LExport TExportCreate(LPresetSelection selection, bool smart) => new(selection, smart);
-    internal static void TExportAttach(LExport export, Action handler) => export.LExportPresetsChange += handler;
+    internal static void TExportAttach(LExport export, Action handler) => export.LExportPresetsChanged += handler;
     internal static void TExportOwnerAttach(LExport export) => export.LExportAttach();
     internal static void TExportSelect(LExport export, string name) => export.LExportSelect(name);
     internal static void TExportEditStart(LExport export, string name) => export.LExportEditStart(name);
@@ -409,8 +410,8 @@ internal static partial class TInterface
         new(title, number);
     internal static LStripTab TStripTabCreate(string key) => new(key);
     internal static void TStripSelectAttach(LStrip strip, Action<LStripTab?> handler) =>
-        strip.LStripSelectChange += handler;
-    internal static void TStripTabAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabChange += handler;
+        strip.LStripSelectChanged += handler;
+    internal static void TStripTabAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabChanged += handler;
     internal static void TStripAdd(LStrip strip, LStripTab tab) => strip.LStripAdd(tab);
     internal static void TStripRemove(LStrip strip, LStripTab tab) => strip.LStripRemove(tab);
     internal static bool TStripMove(LStrip strip, LStripTab tab, int index) => strip.LStripMove(tab, index);
@@ -447,8 +448,8 @@ internal static partial class TInterface
         IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>
         new(minimums, stored, compact, flex);
     internal static LColumn TColumnOwnerRead(LColumnPlan plan) => plan.LColumn;
-    internal static void TColumnPlanAttach(LColumnPlan plan, Action handler) => plan.LColumnPlanChange += handler;
-    internal static void TColumnWidthAttach(LColumnPlan plan, Action handler) => plan.LColumnWidthChange += handler;
+    internal static void TColumnPlanAttach(LColumnPlan plan, Action handler) => plan.LColumnPlanChanged += handler;
+    internal static void TColumnWidthAttach(LColumnPlan plan, Action handler) => plan.LColumnWidthChanged += handler;
     internal static IReadOnlyList<LColumnSlot> TColumnSlotsResolve(LColumnPlan plan) => plan.LColumnSlotsResolve();
     internal static void TColumnWidthSet(LColumnPlan plan, int index, double width) =>
         plan.LColumnWidthSet(index, width);
@@ -469,8 +470,8 @@ internal static partial class TInterface
     internal static double TColumnPixelRead(LColumn column, int index) => column.LColumnPixelRead(index);
 
     internal static LAsk TAskCreate(string question, string action) => new(question, action);
-    internal static void TAskAttach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise += handler;
-    internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaise -= handler;
+    internal static void TAskAttach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaised += handler;
+    internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaised -= handler;
     internal static void TAskPublish(LAsk? ask, Action<bool> answer) => LAskNotice.LAskPublish(ask, answer);
 
     internal static LProgram TProgramCreate() => new();

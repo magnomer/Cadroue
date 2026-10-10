@@ -26,7 +26,7 @@ public sealed class LCropDrag
         lViewer = lOwner;
     }
 
-    public event Action<bool>? LCropCaptureApply;
+    public event Action<bool>? LCropCaptureApplied;
 
     public bool LCropPress => lCropPress;
 
@@ -34,13 +34,13 @@ public sealed class LCropDrag
 
     private LCrop LCrop => lViewer.LCrop;
 
-    public void LCropCaptureRelease() => LCropCaptureApply?.Invoke(false);
+    public void LCropCaptureRelease() => LCropCaptureApplied?.Invoke(false);
 
     public void LCropDragClear()
     {
         lCropPress = false;
         lCropPointActive = false;
-        LCropCaptureApply?.Invoke(false);
+        LCropCaptureApplied?.Invoke(false);
     }
 
     public bool LCropGripHandle(int lIndex, double lX, double lY)
@@ -89,7 +89,7 @@ public sealed class LCropDrag
         lCropPointActive = true;
         LCrop.LCropDrawSet();
         LCrop.LCropShownSet(true);
-        LCropCaptureApply?.Invoke(true);
+        LCropCaptureApplied?.Invoke(true);
         LCropBoxPlace(lX, lY, lX, lY);
         return true;
     }
@@ -122,7 +122,7 @@ public sealed class LCropDrag
         {
             LCropDragApply(lX, lY);
             lCropPress = false;
-            LCropCaptureApply?.Invoke(false);
+            LCropCaptureApplied?.Invoke(false);
             LCrop.LCropVideoCommit();
             return true;
         }
@@ -134,7 +134,7 @@ public sealed class LCropDrag
 
         LCropBoxPlace(lCropPointX, lCropPointY, lX, lY);
         lCropPointActive = false;
-        LCropCaptureApply?.Invoke(false);
+        LCropCaptureApplied?.Invoke(false);
         LCrop.LCropOverlayUpdate();
         LCrop.LCropVideoCommit();
         return true;
@@ -161,7 +161,7 @@ public sealed class LCropDrag
         lCropGrabX = lGrabX;
         lCropGrabY = lGrabY;
         lCropPress = true;
-        LCropCaptureApply?.Invoke(true);
+        LCropCaptureApplied?.Invoke(true);
     }
 
     private void LCropDragApply(double lDragX, double lDragY)

@@ -57,7 +57,7 @@ public sealed partial class LSchedule
                     lWorkItem, lScheduleItems.Concat(lScheduleAccepted));
             }
 
-            var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+            var lWorkRecord = LWorkDocument.LWorkRecordCreate(lWorkItem);
             if (LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {
                 lScheduleAccepted.Add(lWorkItem);
@@ -84,7 +84,7 @@ public sealed partial class LSchedule
             }
 
             LTraceLog.LTraceInfoRecord($"Schedule: added {lScheduleAccepted.Count} work item(s)");
-            LScheduleChange?.Invoke(this);
+            LScheduleChanged?.Invoke(this);
         }
 
         return lScheduleAccepted;
@@ -119,7 +119,7 @@ public sealed partial class LSchedule
         for (int lScheduleIndex = 0; lScheduleIndex < lScheduleRequestedIds.Length; lScheduleIndex++)
         {
             LWorkItem lWorkItem = lScheduleById[lScheduleRequestedIds[lScheduleIndex]];
-            LWorkRecord lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+            LWorkDocument lWorkRecord = LWorkDocument.LWorkRecordCreate(lWorkItem);
             lWorkRecord.LWorkCreateTime = lScheduleOrderTimes[lScheduleIndex];
             if (!LScheduleStore.LScheduleRecordSave(lWorkRecord, LDepotFolder.LDepotFolderScheduled))
             {

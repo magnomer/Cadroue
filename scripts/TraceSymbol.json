@@ -1,0 +1,8 @@
+{
+  "generation": 1,
+  "graft": "graft",
+  "markers": ["Fact", "Theory"],
+  "prefix": "^[A-Z][A-Z]",
+  "markup": [".xaml"],
+  "wiring": "\\+=|-=|\\bAddHandler\\b|\\bRemoveHandler\\b|EventHandler\\b"
+}

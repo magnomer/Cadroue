@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
+using Cadroue.Core;
 using Cadroue.Media;
 
 namespace Cadroue.Tests;
@@ -193,7 +194,10 @@ internal sealed class TEmployer : IDisposable
 
         try
         {
-            var employer = new LEmployer(program, prefix);
+            var employer = new LEmployer(program, prefix)
+            {
+                LEmployerLevel = LCustody.LCustodyLevelResolve("Normal", 1)
+            };
             LEmployerResult result = await employer.LEmployerRun(
                 arguments,
                 token,

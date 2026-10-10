@@ -47,7 +47,7 @@ public partial class PToolbar : UserControl
 
     private readonly LChrome lChrome = new();
 
-    public event Action? PToolbarOptionsApply;
+    public event Action? PToolbarOptionsApplied;
 
     public PToolbar()
     {
@@ -77,12 +77,12 @@ public partial class PToolbar : UserControl
 
     private void PToolbarOptionsShow()
     {
-        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApply);
+        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApplied);
     }
 
     public void PToolbarShortcutShow()
     {
-        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, PToolbarOptionsApply);
+        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, PToolbarOptionsApplied);
     }
 
     private void PChromeButtonsApply()

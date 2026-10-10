@@ -1,0 +1,24 @@
+{
+  "repository": "magnomer/Cadroue",
+  "records": "../docs-analysis/records/AuditLinesHistory",
+  "lineage": {
+    "records": "../docs-analysis/records/AuditHistoryLineage",
+    "share": 0.25
+  },
+  "report": {
+    "directory": "../docs-analysis",
+    "versionFile": "../version.json",
+    "versionKey": "current-version",
+    "prefix": "AuditLinesHistory-"
+  },
+  "sources": {
+    "roots": ["src", "tests"],
+    "extensions": [".cs", ".xaml", ".csproj"],
+    "excludeSegments": [".git", ".vs", "bin", "obj", "artifacts", "packages", "node_modules", "publish"]
+  },
+  "segments": 1,
+  "tally": {
+    "roots": ["scripts"],
+    "extensions": [".ps1", ".cs"]
+  }
+}

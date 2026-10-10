@@ -67,7 +67,7 @@ internal sealed partial class PSDiagnosis : Window
         psDiagnosisGrabber = new PSGrabber(this);
         psDiagnosisGrabber.PSGrabberAttach();
         Closed += PSDiagnosisCloseHandle;
-        lsDiagnosis.LSDiagnosisChange += PSDiagnosisResultApply;
+        lsDiagnosis.LSDiagnosisChanged += PSDiagnosisResultApply;
         _ = lsDiagnosis.LSDiagnosisProbeStart();
     }
 
@@ -113,7 +113,7 @@ internal sealed partial class PSDiagnosis : Window
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
         lsDiagnosis.LSDiagnosisClose();
-        lsDiagnosis.LSDiagnosisChange -= PSDiagnosisResultApply;
+        lsDiagnosis.LSDiagnosisChanged -= PSDiagnosisResultApply;
         PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
         Closed -= PSDiagnosisCloseHandle;

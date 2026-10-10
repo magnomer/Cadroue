@@ -10,7 +10,7 @@ public sealed partial class LSchedule
         LWorkState lScheduleState = lWorkItem.LWorkStateCurrent;
         LDepotFolder lScheduleTarget = LScheduleFolderResolve(lScheduleState, lScheduleSucceeded);
 
-        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+        var lWorkRecord = LWorkDocument.LWorkRecordCreate(lWorkItem);
         lWorkRecord.LWorkStateName = lScheduleState.ToString();
         lWorkRecord.LWorkMessage = lScheduleMessage;
         lWorkRecord.LWorkProgress = lScheduleSucceeded ? 1 : lWorkItem.LWorkProgress;
@@ -30,12 +30,12 @@ public sealed partial class LSchedule
     public bool LScheduleItemCancel(LWorkItem lWorkItem)
     {
         lScheduleLiveItems.Remove(lWorkItem.LWorkId);
-        LSchedulePartialRemove(LWorkRecord.LWorkRecordCreate(lWorkItem));
+        LSchedulePartialRemove(LWorkDocument.LWorkRecordCreate(lWorkItem));
 
         LDepotFolder lCancelSource = lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
             ? LDepotFolder.LDepotFolderRunning
             : LDepotFolder.LDepotFolderScheduled;
-        var lWorkRecord = LWorkRecord.LWorkRecordCreate(lWorkItem);
+        var lWorkRecord = LWorkDocument.LWorkRecordCreate(lWorkItem);
         LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateCancelled);
         lWorkRecord.LWorkProgress = 0;

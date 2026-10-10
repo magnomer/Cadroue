@@ -38,7 +38,7 @@ public sealed partial class PExport : UserControl
         this.lPresetOwner = lPresetOwner;
         this.pExportKind = pExportKind;
         LExport = new LExport(lPresetOwner, pExportSmartAllowed);
-        LExport.LExportPresetsChange += PExportPresetsUpdate;
+        LExport.LExportPresetsChanged += PExportPresetsUpdate;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();

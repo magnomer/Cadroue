@@ -3,7 +3,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed class LRelaySectionRecord
+public sealed class LRelaySectionEntry
 {
     public long LRelayStartTicks { get; set; }
     public long LRelayEndTicks { get; set; }
@@ -19,15 +19,15 @@ public sealed class LRelay
 {
     public string LRelayLayoutKey { get; set; } = "Split";
     public string LRelayCustomName { get; set; } = string.Empty;
-    public LPresetRecord LRelayExport { get; set; } = new();
-    public LSceneTabRecord LRelayLayout { get; set; } = new();
+    public LPresetDocument LRelayExport { get; set; } = new();
+    public LSceneTabEntry LRelayLayout { get; set; } = new();
     public List<string> LRelayPaths { get; set; } = new();
     public string LRelaySourcePath { get; set; } = string.Empty;
     public long LRelayPositionTicks { get; set; }
     public double? LRelayVolume { get; set; }
     public long? LRelayOriginTicks { get; set; }
     public long? LRelayLimitTicks { get; set; }
-    public List<LRelaySectionRecord> LRelaySections { get; set; } = new();
+    public List<LRelaySectionEntry> LRelaySections { get; set; } = new();
     public int? LRelaySectionIndex { get; set; }
 
     public double LRelayDropLeft { get; set; }
@@ -42,9 +42,9 @@ public sealed class LRelay
 
 public static class LRelayPayload
 {
-    public static List<LRelaySectionRecord> LRelayRecordsCreate(IReadOnlyList<LPiece> lRelaySegments) =>
+    public static List<LRelaySectionEntry> LRelayRecordsCreate(IReadOnlyList<LPiece> lRelaySegments) =>
         lRelaySegments
-            .Select(lRelaySegment => new LRelaySectionRecord
+            .Select(lRelaySegment => new LRelaySectionEntry
             {
                 LRelayStartTicks = lRelaySegment.LPieceOrigin.Ticks,
                 LRelayEndTicks = lRelaySegment.LPieceEnd.Ticks,
@@ -58,8 +58,8 @@ public static class LRelayPayload
             .ToList();
 
     public static LRelay LRelayCreate(
-        string layoutKey, string customName, LPresetRecord export,
-        LSceneTabRecord layout, double dropLeft, double dropTop) =>
+        string layoutKey, string customName, LPresetDocument export,
+        LSceneTabEntry layout, double dropLeft, double dropTop) =>
         new()
         {
             LRelayLayoutKey = layoutKey,
@@ -86,7 +86,7 @@ public static class LRelayPayload
             : lInformational;
     }
 
-    public static IReadOnlyList<LPiece> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionRecord> lRelaySections) =>
+    public static IReadOnlyList<LPiece> LRelaySegmentsCreate(IReadOnlyList<LRelaySectionEntry> lRelaySections) =>
         lRelaySections
             .Select(lRelaySection => new LPiece(
                 TimeSpan.FromTicks(lRelaySection.LRelayStartTicks),

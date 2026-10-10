@@ -7,13 +7,13 @@ namespace Cadroue.Application;
 
 public static class LLibrarian
 {
-    public static Func<string, LSidecarCoreRecord?>? LLibrarianCoreReader;
+    public static Func<string, LSidecarCoreDocument?>? LLibrarianCoreReader;
     public static Func<string, IReadOnlyList<long>>? LLibrarianKeyframesSeam;
-    public static Func<string, LSidecarWaveformRecord?>? LLibrarianWaveformReader;
-    public static Func<string, LSidecarEditRecord?>? LLibrarianEditReader;
-    public static Func<string, LSidecarAudioRecord?>? LLibrarianAudioReader;
-    public static Func<string, LSidecarSplitRecord?>? LLibrarianSplitReader;
-    public static Func<string, LSidecarFixRecord?>? LLibrarianFixReader;
+    public static Func<string, LSidecarWaveformEntry?>? LLibrarianWaveformReader;
+    public static Func<string, LSidecarEditEntry?>? LLibrarianEditReader;
+    public static Func<string, LSidecarAudioEntry?>? LLibrarianAudioReader;
+    public static Func<string, LSidecarSplitEntry?>? LLibrarianSplitReader;
+    public static Func<string, LSidecarFixEntry?>? LLibrarianFixReader;
     public static Func<string, IReadOnlyList<LSidecarDossier>?>? LLibrarianDiagnosisReader;
     public static Func<string, double>? LLibrarianLoudnessReader;
     public static Func<string, TimeSpan>? LLibrarianDurationReader;
@@ -23,34 +23,34 @@ public static class LLibrarian
     public static Func<string, LSidecarSourceResult?>? LLibrarianSourceResolver;
     public static Func<string, string, bool>? LLibrarianSourceMatcher;
 
-    public static Func<string, LSidecarEditRecord?, bool>? LLibrarianEditWriter;
-    public static Func<string, LSidecarAudioRecord?, bool>? LLibrarianAudioWriter;
-    public static Func<string, LSidecarSplitRecord?, bool>? LLibrarianSplitWriter;
-    public static Func<string, LSidecarFixRecord?, bool>? LLibrarianFixWriter;
+    public static Func<string, LSidecarEditEntry?, bool>? LLibrarianEditWriter;
+    public static Func<string, LSidecarAudioEntry?, bool>? LLibrarianAudioWriter;
+    public static Func<string, LSidecarSplitEntry?, bool>? LLibrarianSplitWriter;
+    public static Func<string, LSidecarFixEntry?, bool>? LLibrarianFixWriter;
     public static Func<string, LKeyframeSourceIdentity, IReadOnlyCollection<LSidecarDossier>, bool>?
         LLibrarianDiagnosisWriter;
     public static Func<string, double, bool>? LLibrarianLoudnessWriter;
-    public static Func<string, LSidecarWaveformRecord?, bool>? LLibrarianWaveformWriter;
+    public static Func<string, LSidecarWaveformEntry?, bool>? LLibrarianWaveformWriter;
 
-    public static LSidecarCoreRecord? LLibrarianLoad(string lLibrarianSourcePath) =>
+    public static LSidecarCoreDocument? LLibrarianLoad(string lLibrarianSourcePath) =>
         LLibrarianCoreReader?.Invoke(lLibrarianSourcePath);
 
     public static IReadOnlyList<long> LLibrarianKeyframesLoad(string lLibrarianSourcePath) =>
         LLibrarianKeyframesSeam?.Invoke(lLibrarianSourcePath) ?? Array.Empty<long>();
 
-    public static LSidecarWaveformRecord? LLibrarianWaveformLoad(string lLibrarianSourcePath) =>
+    public static LSidecarWaveformEntry? LLibrarianWaveformLoad(string lLibrarianSourcePath) =>
         LLibrarianWaveformReader?.Invoke(lLibrarianSourcePath);
 
-    public static LSidecarEditRecord? LLibrarianEditLoad(string lLibrarianSourcePath) =>
+    public static LSidecarEditEntry? LLibrarianEditLoad(string lLibrarianSourcePath) =>
         LLibrarianEditReader?.Invoke(lLibrarianSourcePath);
 
-    public static LSidecarAudioRecord? LLibrarianAudioLoad(string lLibrarianSourcePath) =>
+    public static LSidecarAudioEntry? LLibrarianAudioLoad(string lLibrarianSourcePath) =>
         LLibrarianAudioReader?.Invoke(lLibrarianSourcePath);
 
-    public static LSidecarSplitRecord? LLibrarianSplitLoad(string lLibrarianSourcePath) =>
+    public static LSidecarSplitEntry? LLibrarianSplitLoad(string lLibrarianSourcePath) =>
         LLibrarianSplitReader?.Invoke(lLibrarianSourcePath);
 
-    public static LSidecarFixRecord? LLibrarianFixLoad(string lLibrarianSourcePath) =>
+    public static LSidecarFixEntry? LLibrarianFixLoad(string lLibrarianSourcePath) =>
         LLibrarianFixReader?.Invoke(lLibrarianSourcePath);
 
     public static IReadOnlyList<LSidecarDossier>? LLibrarianDiagnosisLoad(string lLibrarianSourcePath) =>
@@ -74,16 +74,16 @@ public static class LLibrarian
     public static bool LLibrarianSourceMatch(string lLibrarianMediaPath, string lLibrarianSidecarPath) =>
         LLibrarianSourceMatcher?.Invoke(lLibrarianMediaPath, lLibrarianSidecarPath) ?? false;
 
-    public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditRecord? lLibrarianEdit) =>
+    public static bool LLibrarianEditSave(string lLibrarianSourcePath, LSidecarEditEntry? lLibrarianEdit) =>
         LLibrarianEditWriter?.Invoke(lLibrarianSourcePath, lLibrarianEdit) ?? false;
 
-    public static bool LLibrarianAudioSave(string lLibrarianSourcePath, LSidecarAudioRecord? lLibrarianAudio) =>
+    public static bool LLibrarianAudioSave(string lLibrarianSourcePath, LSidecarAudioEntry? lLibrarianAudio) =>
         LLibrarianAudioWriter?.Invoke(lLibrarianSourcePath, lLibrarianAudio) ?? false;
 
-    public static bool LLibrarianSplitSave(string lLibrarianSourcePath, LSidecarSplitRecord? lLibrarianSplit) =>
+    public static bool LLibrarianSplitSave(string lLibrarianSourcePath, LSidecarSplitEntry? lLibrarianSplit) =>
         LLibrarianSplitWriter?.Invoke(lLibrarianSourcePath, lLibrarianSplit) ?? false;
 
-    public static bool LLibrarianFixSave(string lLibrarianSourcePath, LSidecarFixRecord? lLibrarianFix) =>
+    public static bool LLibrarianFixSave(string lLibrarianSourcePath, LSidecarFixEntry? lLibrarianFix) =>
         LLibrarianFixWriter?.Invoke(lLibrarianSourcePath, lLibrarianFix) ?? false;
 
     public static bool LLibrarianDiagnosisSave(
@@ -97,6 +97,6 @@ public static class LLibrarian
 
     public static bool LLibrarianWaveformSave(
         string lLibrarianSourcePath,
-        LSidecarWaveformRecord? lLibrarianWaveform) =>
+        LSidecarWaveformEntry? lLibrarianWaveform) =>
         LLibrarianWaveformWriter?.Invoke(lLibrarianSourcePath, lLibrarianWaveform) ?? false;
 }

@@ -90,7 +90,7 @@ public sealed class PSource : UserControl
         Content = pRow;
 
         PSourcePlaceholderSync();
-        LSource.LSourcePathApply += PSourcePathApply;
+        LSource.LSourcePathApplied += PSourcePathApply;
         LSource.LSourceRefuse += PSourceRefuseShow;
     }
 

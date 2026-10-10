@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditNameSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
     public const string TAuditProject = "Cadroue";
     public const string TAuditTestPrefix = "T";
     public const string TAuditComponentPattern = "[A-Z]+(?=[A-Z][a-z]|[0-9]|$)|[A-Z]?[a-z]+|[0-9]+";
@@ -13,34 +13,54 @@ internal static class TAuditNameSetting
     public const string TAuditCommandSuffix = "Command";
     public const string TAuditCancelSuffix = "CancelCommand";
 
-    public const int TAuditPrefixCeiling = 0;
+    public const int TAuditPrefixCeiling = 45;
 
     public static readonly string[] TAuditPrefixes =
     [
         "PS",
+        "QS",
+        "CS",
         "LS",
         "ps",
+        "qs",
+        "cs",
         "ls",
         "P",
+        "Q",
+        "C",
         "L",
         "T",
         "p",
+        "q",
+        "c",
         "l",
         "t",
     ];
 
-    public static readonly Dictionary<string, string[]> TAuditPrefixRings = new(StringComparer.Ordinal)
+    public static readonly Dictionary<string, string[]> TAuditPrefixTurfs = new(StringComparer.Ordinal)
     {
         ["src/Cadroue.Application"] = ["L", "LS"],
+        ["src/Cadroue.Conduct"] = ["C", "CS"],
         ["src/Cadroue.Core"] = ["L", "LS"],
+        ["src/Cadroue.Core.Windows"] = ["L", "LS"],
+        ["src/Cadroue.Host"] = ["L", "LS"],
         ["src/Cadroue.Infrastructure"] = ["L", "LS"],
-        ["src/Cadroue.Media"] = ["L", "LS"],
         ["src/Cadroue.ShellEngine"] = ["L", "LS"],
-        ["src/Cadroue.UIDeportment"] = ["L", "LS"],
+        ["src/Cadroue.UIDemeanor"] = ["Q", "QS"],
+        ["src/Cadroue.UIDeportment"] = ["Q", "QS"],
+        ["src/Cadroue.UITerminal"] = ["P", "PS"],
         ["src/Cadroue.UIVeneer"] = ["P", "PS"],
-        ["tests/Cadroue.Tests"] = ["T"],
+        ["tests/Cadroue.Tests.Interface"] = ["T"],
+        ["tests/Cadroue.Tests.Engine"] = ["T"],
+        ["tests/Cadroue.Tests.Conduct"] = ["T"],
         ["tests/Cadroue.Tests.Convention"] = ["T"],
+        ["tests/Cadroue.Tests.Windows"] = ["T"],
     };
+
+    public static readonly string[] TAuditTurfSealed =
+    [
+        "src/Cadroue.Conduct",
+    ];
 
     public static readonly string[] TAuditSourceInclude =
     [
@@ -75,7 +95,25 @@ internal static class TAuditNameSetting
         "GeneratedInternalTypeHelper",
     ];
 
-    public static readonly string[] TAuditSelfExcluded = [];
+    public static readonly string[] TAuditSelfExcluded =
+    [
+        "TAuditComment.cs",
+        "TAuditCommentSetting.cs",
+        "TAuditConvention.cs",
+        "TAuditLine.cs",
+        "TAuditLineSetting.cs",
+        "TAuditName.cs",
+        "TAuditNameFilter.cs",
+        "TAuditNameRegistry.cs",
+        "TAuditNameSetting.cs",
+        "TAuditNameWalker.cs",
+        "TAuditRegistry.cs",
+        "TAuditScope.cs",
+        "TAuditSource.cs",
+        "TAuditVerbRegistry.cs",
+        "TSpecimen.cs",
+        "TViolation.cs",
+    ];
 
     public static readonly string[] TAuditMethodKinds =
     [
@@ -94,6 +132,15 @@ internal static class TAuditNameSetting
         "TupleElement",
         "TypeParameter",
         "AnonymousMember",
+        "ClassDeclaration",
+        "StructDeclaration",
+        "InterfaceDeclaration",
+        "RecordDeclaration",
+        "RecordStructDeclaration",
+        "EnumDeclaration",
+        "Delegate",
+        "Event",
+        "EventField",
     ];
 
     public static readonly string[] TAuditTestAttributes =

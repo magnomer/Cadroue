@@ -5,7 +5,7 @@ using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record LSMonitorScroll(
+public sealed record LSMonitorScrollbar(
     double LSMonitorScrollViewport,
     double LSMonitorScrollMaximum,
     double LSMonitorScrollValue,
@@ -41,14 +41,14 @@ public sealed class LSMonitor : IDisposable
     private double lMonitorOffset;
 
     public event Action? LSMonitorReady;
-    public event Action<TimeSpan>? LSMonitorCursorChange;
-    public event Action<bool>? LSMonitorPlayingChange;
-    public event Action? LSMonitorZoomChange;
-    public event Action? LSMonitorBypassChange;
-    public event Action<bool>? LSMonitorBypassApply;
-    public event Action<TimeSpan>? LSMonitorSeekApply;
-    public event Action? LSMonitorPlayApply;
-    public event Action? LSMonitorPauseApply;
+    public event Action<TimeSpan>? LSMonitorCursorChanged;
+    public event Action<bool>? LSMonitorPlayingChanged;
+    public event Action? LSMonitorZoomChanged;
+    public event Action? LSMonitorBypassChanged;
+    public event Action<bool>? LSMonitorBypassApplied;
+    public event Action<TimeSpan>? LSMonitorSeekApplied;
+    public event Action? LSMonitorPlayApplied;
+    public event Action? LSMonitorPauseApplied;
 
     public TimeSpan LSMonitorCursor => lMonitorCursor;
 
@@ -64,11 +64,11 @@ public sealed class LSMonitor : IDisposable
         ? new LSMonitorFace("PCompassPause.svg", LLocalization.LLocalizationTextRead("NormalizePreview.PauseTooltip"))
         : new LSMonitorFace("PCompassPlay.svg", LLocalization.LLocalizationTextRead("NormalizePreview.PlayTooltip"));
 
-    public LSMonitorScroll LSMonitorScrollRead()
+    public LSMonitorScrollbar LSMonitorScrollRead()
     {
         double lViewport = 1.0 / lMonitorScale;
         bool lEnabled = lMonitorScale > 1;
-        return new LSMonitorScroll(
+        return new LSMonitorScrollbar(
             lViewport, 1 - lViewport, lMonitorOffset, lEnabled, lEnabled ? 1 : LSMonitorScrollDim);
     }
 
@@ -122,7 +122,7 @@ public sealed class LSMonitor : IDisposable
             lX, lWidth, lDuration.TotalSeconds, lMonitorScale, lMonitorOffset);
         if (lSeconds is { } lTarget)
         {
-            LSMonitorSeekApply?.Invoke(TimeSpan.FromSeconds(lTarget));
+            LSMonitorSeekApplied?.Invoke(TimeSpan.FromSeconds(lTarget));
         }
     }
 
@@ -130,21 +130,21 @@ public sealed class LSMonitor : IDisposable
     {
         if (lMonitorPlaying)
         {
-            LSMonitorPauseApply?.Invoke();
+            LSMonitorPauseApplied?.Invoke();
         }
         else
         {
-            LSMonitorPlayApply?.Invoke();
+            LSMonitorPlayApplied?.Invoke();
         }
     }
 
     public void LSMonitorViewerAttach(LViewer lViewer)
     {
         lMonitorViewer = lViewer;
-        lViewer.LViewerPlayback.LViewerClockTick += LSMonitorCursorSet;
-        lViewer.LViewerBypassChange += LSMonitorBypassSet;
-        lViewer.LViewerPlayingChange += LSMonitorPlayingSet;
-        LSMonitorBypassApply += lViewer.LViewerBypassSet;
+        lViewer.LViewerPlayback.LViewerClockTicked += LSMonitorCursorSet;
+        lViewer.LViewerBypassChanged += LSMonitorBypassSet;
+        lViewer.LViewerPlayingChanged += LSMonitorPlayingSet;
+        LSMonitorBypassApplied += lViewer.LViewerBypassSet;
         LSMonitorBypassSet(lViewer.LViewerBypass);
         LSMonitorPlayingSet(lViewer.LViewerPlaying);
     }
@@ -156,24 +156,24 @@ public sealed class LSMonitor : IDisposable
             return;
         }
 
-        lViewer.LViewerPlayback.LViewerClockTick -= LSMonitorCursorSet;
-        lViewer.LViewerBypassChange -= LSMonitorBypassSet;
-        lViewer.LViewerPlayingChange -= LSMonitorPlayingSet;
-        LSMonitorBypassApply -= lViewer.LViewerBypassSet;
+        lViewer.LViewerPlayback.LViewerClockTicked -= LSMonitorCursorSet;
+        lViewer.LViewerBypassChanged -= LSMonitorBypassSet;
+        lViewer.LViewerPlayingChanged -= LSMonitorPlayingSet;
+        LSMonitorBypassApplied -= lViewer.LViewerBypassSet;
         lMonitorViewer = null;
     }
 
     public void LSMonitorBypassSet(bool lBypass)
     {
         lMonitorBypass = lBypass;
-        LSMonitorBypassChange?.Invoke();
+        LSMonitorBypassChanged?.Invoke();
     }
 
     public void LSMonitorRadioHandle(bool lBypass)
     {
         if (lMonitorBypass != lBypass)
         {
-            LSMonitorBypassApply?.Invoke(lBypass);
+            LSMonitorBypassApplied?.Invoke(lBypass);
         }
     }
 
@@ -184,13 +184,13 @@ public sealed class LSMonitor : IDisposable
     public void LSMonitorCursorSet(TimeSpan lCursor)
     {
         lMonitorCursor = lCursor;
-        LSMonitorCursorChange?.Invoke(lCursor);
+        LSMonitorCursorChanged?.Invoke(lCursor);
     }
 
     public void LSMonitorPlayingSet(bool lPlaying)
     {
         lMonitorPlaying = lPlaying;
-        LSMonitorPlayingChange?.Invoke(lPlaying);
+        LSMonitorPlayingChanged?.Invoke(lPlaying);
     }
 
     public void LSMonitorZoom(double lFactor, double lMost)
@@ -199,7 +199,7 @@ public sealed class LSMonitor : IDisposable
         lMonitorScale = Math.Clamp(lMonitorScale * lFactor, 1, lMost);
         double lViewport = 1.0 / lMonitorScale;
         lMonitorOffset = Math.Clamp(lCenter - lViewport / 2, 0, 1 - lViewport);
-        LSMonitorZoomChange?.Invoke();
+        LSMonitorZoomChanged?.Invoke();
     }
 
     public void LSMonitorOffsetSet(double lOffset)
@@ -211,7 +211,7 @@ public sealed class LSMonitor : IDisposable
         }
 
         lMonitorOffset = lNormal;
-        LSMonitorZoomChange?.Invoke();
+        LSMonitorZoomChanged?.Invoke();
     }
 
     public double LSMonitorFractionResolve(double lLocal) =>

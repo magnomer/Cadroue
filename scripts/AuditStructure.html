@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ structure audit</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7;
+  --surface: #fcfcfb;
+  --ink-1: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-3: #898781;
+  --grid: #e1e0d9;
+  --axis: #c3c2b7;
+  --ring: rgba(11, 11, 11, 0.10);
+  --wash: rgba(11, 11, 11, 0.05);
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --tally: #b4b2aa;
+  --pass: #138a5f;
+  --warn: #c98500;
+  --fail: #d63c3b;
+  --pass-wash: rgba(27, 175, 122, 0.12);
+  --warn-wash: rgba(237, 161, 0, 0.14);
+  --fail-wash: rgba(227, 73, 72, 0.12);
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink-1: #ffffff;
+    --ink-2: #c3c2b7;
+    --ink-3: #898781;
+    --grid: #2c2c2a;
+    --axis: #383835;
+    --ring: rgba(255, 255, 255, 0.10);
+    --wash: rgba(255, 255, 255, 0.06);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --tally: #5a5955;
+    --pass: #3ccf95;
+    --warn: #f2c440;
+    --fail: #ff7a72;
+    --pass-wash: rgba(60, 207, 149, 0.14);
+    --warn-wash: rgba(242, 196, 64, 0.14);
+    --fail-wash: rgba(255, 122, 114, 0.14);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d;
+  --surface: #1a1a19;
+  --ink-1: #ffffff;
+  --ink-2: #c3c2b7;
+  --ink-3: #898781;
+  --grid: #2c2c2a;
+  --axis: #383835;
+  --ring: rgba(255, 255, 255, 0.10);
+  --wash: rgba(255, 255, 255, 0.06);
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --tally: #5a5955;
+  --pass: #3ccf95;
+  --warn: #f2c440;
+  --fail: #ff7a72;
+  --pass-wash: rgba(60, 207, 149, 0.14);
+  --warn-wash: rgba(242, 196, 64, 0.14);
+  --fail-wash: rgba(255, 122, 114, 0.14);
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink-1);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+main { max-width: 1280px; margin: 0 auto; padding: 24px 16px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+h1 { font-size: 20px; font-weight: 600; margin: 0; }
+h2 { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+a { color: var(--series-1); }
+.sub { color: var(--ink-2); margin: 2px 0 0; }
+.muted { color: var(--ink-3); }
+.panel { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.panelhead { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.panelhead > div:first-child { flex: 1 1 320px; }
+.segmented { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--ring); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.segmented button { font: inherit; color: var(--ink-2); background: none; border: 0; padding: 6px 12px; cursor: pointer; }
+.segmented button + button { border-left: 1px solid var(--ring); }
+.segmented button[aria-pressed="true"] { color: var(--ink-1); background: var(--wash); font-weight: 600; }
+.verdict { border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; font-weight: 600; font-size: 15px; border: 1px solid var(--ring); }
+.verdict.pass { background: var(--pass-wash); color: var(--pass); }
+.verdict.warn { background: var(--warn-wash); color: var(--warn); }
+.verdict.fail { background: var(--fail-wash); color: var(--fail); }
+.verdict .note { display: block; font-weight: 400; font-size: 13px; color: var(--ink-2); margin-top: 2px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 12px 14px; }
+.tile .label { color: var(--ink-2); font-size: 12px; }
+.tile .value { font-size: 24px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.tile .value small { font-size: 14px; font-weight: 400; color: var(--ink-3); }
+.tile .note { color: var(--ink-3); font-size: 12px; }
+.tile.fail { border-color: var(--fail); background: var(--fail-wash); }
+.tile.warn { border-color: var(--warn); background: var(--warn-wash); }
+.scope { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; font-size: 13px; }
+.scope dt { color: var(--ink-3); }
+.scope dd { margin: 0; color: var(--ink-2); overflow-wrap: anywhere; }
+.scope code, td code { font: 12px ui-monospace, "Cascadia Mono", Consolas, monospace; background: var(--wash); border-radius: 4px; padding: 0 4px; }
+.status { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.03em; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+.status.ok { color: var(--pass); background: var(--pass-wash); }
+.status.warn { color: var(--warn); background: var(--warn-wash); }
+.status.fail { color: var(--fail); background: var(--fail-wash); }
+.status.plain { color: var(--ink-2); background: var(--wash); }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; color: var(--ink-2); font-size: 12px; margin: 4px 0 8px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+.bars { position: relative; display: grid; grid-template-columns: minmax(120px, max-content) 1fr max-content; gap: 4px 12px; align-items: center; font-size: 13px; }
+.bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
+.bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
+.bars .fill.root { background: var(--tally); }
+.bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; max-width: 420px; display: none; z-index: 5; }
+.tip .head { font-weight: 600; overflow-wrap: anywhere; }
+.tip .meta { color: var(--ink-3); margin-bottom: 4px; }
+.tip .row { display: flex; align-items: center; gap: 6px; }
+.tip .row .num { margin-left: auto; font-variant-numeric: tabular-nums; padding-left: 12px; }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 6px 10px; text-align: right; border-bottom: 1px solid var(--ring); white-space: nowrap; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+th.l, td.l { text-align: left; }
+th.group { text-align: center; }
+thead th { vertical-align: bottom; }
+th.sort { cursor: pointer; user-select: none; }
+th.sort[aria-sort="descending"]::after { content: " \2193"; }
+th.sort[aria-sort="ascending"]::after { content: " \2191"; }
+tr.total td { font-weight: 600; border-bottom: 0; }
+td.path { white-space: normal; overflow-wrap: anywhere; text-align: left; min-width: 240px; }
+td.path .dir { color: var(--ink-3); }
+td.wrap { white-space: normal; text-align: left; }
+#gates a { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--ink-3); }
+.code { font: 12px/1.4 ui-monospace, "Cascadia Mono", Consolas, monospace; white-space: pre; text-align: left; max-width: 520px; overflow: hidden; text-overflow: ellipsis; }
+.subhead { display: flex; align-items: center; gap: 8px; margin: 18px 0 6px; font-weight: 600; scroll-margin-top: 12px; }
+.subhead.first { margin-top: 4px; }
+.subhead .count { color: var(--ink-3); font-weight: 400; }
+.subhead.warn { color: var(--warn); }
+.subhead.fail { color: var(--fail); }
+.subhead.ok { color: var(--ink-1); }
+.lead { color: var(--ink-3); font-size: 13px; margin: 0 0 6px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.toolbar input { font: inherit; color: var(--ink-1); background: var(--page); border: 1px solid var(--ring); border-radius: 8px; padding: 6px 10px; min-width: 240px; flex: 1 1 240px; }
+button.more { font: inherit; font-size: 13px; color: var(--ink-2); background: var(--surface); border: 1px dashed var(--ring); border-radius: 8px; padding: 6px 12px; cursor: pointer; margin-top: 8px; }
+.empty { color: var(--ink-3); padding: 8px 0; }
+.list { margin: 0; padding-left: 18px; }
+.list li { overflow-wrap: anywhere; }
+footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; gap: 16px; }
+@media (max-width: 640px) {
+  .bars { grid-template-columns: minmax(80px, 40%) 1fr max-content; }
+  .toolbar input { min-width: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>__TITLE__ structure audit</h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div id="links" class="sub"></div>
+  </header>
+
+  <div class="verdict" id="verdict" role="status"></div>
+
+  <section class="panel">
+    <h2>Result</h2>
+    <div class="tablewrap"><table id="gates"></table></div>
+  </section>
+
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <h2>Findings by kind</h2>
+    <p class="lead">A held kind counts its hits per pair against a ceiling. A kind that allows none fails on its first hit. A reported kind never gates.</p>
+    <div class="tablewrap"><table id="kinds"></table></div>
+  </section>
+
+  <section class="panel">
+    <h2 id="pairtitle">Pairs</h2>
+    <p class="lead">Each held pair Kind:Ring&gt;Target against its ceiling. An unwritten ceiling is zero. A ceiling above its count is stale and fails.</p>
+    <div class="tablewrap"><table id="pairs"></table></div>
+    <div class="empty" id="pairempty" style="display:none">No held pair has a hit or a ceiling.</div>
+  </section>
+
+  <section class="panel">
+    <h2>Findings</h2>
+    <p class="lead">In console order, then the hits held by ceilings. Click a column heading to sort.</p>
+    <div id="findings"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Names</h2>
+    <div class="muted">Gated hits counted per name and target, heaviest first.</div>
+    <div class="bars" id="namebars" style="margin-top:8px"></div>
+    <div class="empty" id="nameempty" style="display:none">No name stepped past its ring.</div>
+  </section>
+
+  <section class="panel">
+    <div class="panelhead">
+      <div>
+        <h2 id="filetitle"></h2>
+        <div class="muted">Gated hits counted per file. Click a column heading to sort.</div>
+      </div>
+    </div>
+    <div class="toolbar"><input type="search" id="filter" placeholder="Filter by file" aria-label="Filter files by path"></div>
+    <div class="tablewrap"><table id="filetable"></table></div>
+    <div class="empty" id="fileempty" style="display:none">None.</div>
+    <button type="button" class="more" id="filemore"></button>
+  </section>
+
+  <section class="panel">
+    <h2>Scope</h2>
+    <dl class="scope" id="scope"></dl>
+    <div class="subhead">Rings <span class="count" id="ringcount"></span></div>
+    <p class="lead">The ring table, each ring with the one neighbour it may lean on.</p>
+    <div class="tablewrap"><table id="rings"></table></div>
+    <div class="subhead">Exemptions <span class="count" id="exemptcount"></span></div>
+    <div class="tablewrap"><table id="exemptions"></table></div>
+    <div class="empty" id="exemptempty" style="display:none">The configuration declares no exemption.</div>
+  </section>
+
+  <footer id="footer"></footer>
+</main>
+
+<script type="application/json" id="data">/*__DATA__*/</script>
+<script>
+(function () {
+  'use strict';
+  var d = JSON.parse(document.getElementById('data').textContent);
+  var NF = new Intl.NumberFormat('en-US');
+  var DOT = ' \u00b7 ';
+  var DASH = '\u2014';
+  var LQ = '\u201c', RQ = '\u201d';
+  var LIMIT = 100;
+  var HARD = ['Poaching', 'Drifting', 'Lingering', 'Squatting', 'Smuggling', 'Hollowing', 'Rerouting', 'Backdooring'];
+
+  function fmt(n) { return n === null || n === undefined ? DASH : NF.format(n); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function pathHtml(path) {
+    if (!path) return '<span class="muted">' + DASH + '</span>';
+    var cut = path.lastIndexOf('/');
+    return cut < 0 ? esc(path) : '<span class="dir">' + esc(path.slice(0, cut + 1)) + '</span>' + esc(path.slice(cut + 1));
+  }
+  function slug(text) { return 'sec-' + String(text).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''); }
+  function statusClass(s) { return s === 'FAIL' ? 'fail' : s === 'WARN' ? 'warn' : 'ok'; }
+  function compare(a, b) { return a < b ? -1 : a > b ? 1 : 0; }
+  function codes(list) { return list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
+  function load(key, fallback, allowed) {
+    try { var v = localStorage.getItem('auditstructure.' + key); if (v !== null && (!allowed || allowed.indexOf(v) >= 0)) return v; } catch (e) { }
+    return fallback;
+  }
+  function save(key, value) { try { localStorage.setItem('auditstructure.' + key, value); } catch (e) { } }
+  function sortValue(row, col) { var v = col.value ? col.value(row) : row[col.key]; return col.num ? Number(v) : String(v).toLowerCase(); }
+  function sortRows(list, columns, key, down) {
+    var col = columns.filter(function (c) { return c.key === key; })[0] || columns[0];
+    var indexed = list.map(function (row, i) { return { row: row, i: i }; });
+    indexed.sort(function (a, b) {
+      var x = sortValue(a.row, col), y = sortValue(b.row, col);
+      var r = col.num ? x - y : compare(x, y);
+      if (r === 0) r = a.i - b.i;
+      else if (down) r = -r;
+      return r;
+    });
+    return indexed.map(function (e) { return e.row; });
+  }
+  function headHtml(columns, key, down) {
+    return '<thead><tr>' + columns.map(function (c) {
+      return '<th class="sort' + (c.num ? '' : ' l') + '" data-key="' + c.key + '"' + (c.key === key ? ' aria-sort="' + (down ? 'descending' : 'ascending') + '"' : '') + '>' + c.label + '</th>';
+    }).join('') + '</tr></thead>';
+  }
+  function bindSort(table, columns, state, redraw) {
+    Array.prototype.forEach.call(table.querySelectorAll('th.sort'), function (th) {
+      th.addEventListener('click', function () {
+        var k = th.getAttribute('data-key');
+        if (k === state.key) state.down = !state.down;
+        else { state.key = k; state.down = columns.filter(function (c) { return c.key === k; })[0].num; }
+        redraw();
+      });
+    });
+  }
+  function cellHtml(row, col) {
+    var v = row[col.key];
+    if (col.render) return '<td class="' + (col.cls || (col.num ? '' : 'l')) + '">' + col.render(row) + '</td>';
+    return '<td class="' + (col.cls || (col.num ? '' : 'l')) + '">' + (col.num ? fmt(v) : esc(v)) + '</td>';
+  }
+  function standingClass(s) { return s === 'at ceiling' ? 'ok' : 'fail'; }
+
+  // Header, verdict and result.
+  document.getElementById('subtitle').textContent = 'Version ' + d.version + DOT + d.generated + DOT + fmt(d.scanned) + ' source files inside a ring' + DOT +
+    fmt(d.total) + ' findings' + DOT + 'Generation ' + d.generation;
+  document.getElementById('links').innerHTML = d.reports.map(function (r) { return '<a href="' + esc(r.link) + '">' + esc(r.name) + '</a>'; }).join(DOT);
+
+  var failed = d.gates.filter(function (g) { return g.status === 'FAIL'; });
+  var verdict = document.getElementById('verdict');
+  if (failed.length === 0) {
+    verdict.className = 'verdict pass';
+    verdict.innerHTML = 'PASS: all ' + d.gates.length + ' gates at 0.';
+  } else {
+    verdict.className = 'verdict fail';
+    verdict.innerHTML = 'FAIL: ' + failed.length + ' of ' + d.gates.length + ' gates above 0.<span class="note">See ' +
+      failed.map(function (g) { return '<a href="#' + slug(g.section) + '">' + LQ + esc(g.section) + RQ + '</a>'; }).join(', ') + '.</span>';
+  }
+
+  document.getElementById('gates').innerHTML =
+    '<thead><tr><th class="l">Status</th><th>Count</th><th class="l">Gate</th><th class="l">Meaning</th></tr></thead><tbody>' +
+    d.gates.map(function (g) {
+      return '<tr><td class="l"><span class="status ' + statusClass(g.status) + '">' + g.status + '</span></td><td>' + fmt(g.count) +
+        '</td><td class="l"><a href="#' + slug(g.section) + '">' + esc(g.gate) + '</a></td><td class="l muted">' + esc(g.meaning) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  // Tiles.
+  var tiles = [
+    ['Source files', d.scanned, fmt(d.outside) + ' outside a ring', ''],
+    ['Pairs', d.pairs.length, 'held pairs with a hit or a ceiling', ''],
+    ['Violations', d.violations.length, 'hits above a ceiling or of a kind that allows none', d.violations.length ? 'fail' : ''],
+    ['Held by ceilings', d.held.length, 'hits that pass today, each fixed one lowers a ceiling', d.held.length ? 'warn' : ''],
+    ['Findings', d.total, 'every kind, reported-only kinds included', '']
+  ];
+  document.getElementById('tiles').innerHTML = tiles.map(function (t) {
+    return '<div class="tile ' + t[3] + '"><div class="label">' + esc(t[0]) + '</div><div class="value">' + fmt(t[1]) + '</div><div class="note">' + esc(t[2]) + '</div></div>';
+  }).join('');
+
+  // Kinds.
+  document.getElementById('kinds').innerHTML =
+    '<thead><tr><th class="l">Kind</th><th class="l">Family</th><th class="l">Gate</th><th class="l">Meaning</th><th>Hits</th></tr></thead><tbody>' +
+    d.kinds.map(function (k) {
+      return '<tr><td class="l"><code>' + esc(k.kind) + '</code></td><td class="l">' + esc(k.family) + '</td><td class="l">' + esc(k.gate) +
+        '</td><td class="l muted">' + esc(k.meaning) + '</td><td>' + fmt(k.count) + '</td></tr>';
+    }).join('') + '<tr class="total"><td class="l">Total</td><td></td><td></td><td></td><td>' + fmt(d.total) + '</td></tr></tbody>';
+
+  // Pairs.
+  document.getElementById('pairtitle').textContent = 'Pairs (' + fmt(d.pairs.length) + ')';
+  document.getElementById('pairempty').style.display = d.pairs.length ? 'none' : '';
+  document.getElementById('pairs').innerHTML = d.pairs.length ?
+    '<thead><tr><th class="l">Pair</th><th>Files</th><th>Hits</th><th>Ceiling</th><th class="l">Standing</th></tr></thead><tbody>' +
+    d.pairs.map(function (p) {
+      return '<tr><td class="l"><code>' + esc(p.pair) + '</code></td><td>' + fmt(p.files) + '</td><td>' + fmt(p.hits) + '</td><td>' + fmt(p.ceiling) +
+        '</td><td class="l"><span class="status ' + standingClass(p.standing) + '">' + esc(p.standing) + '</span></td></tr>';
+    }).join('') + '</tbody>' : '';
+
+  // Findings, in the console order.
+  var findingBox = document.getElementById('findings');
+  function gateStatus(name) { var g = d.gates.filter(function (x) { return x.section === name; })[0]; return g ? g.status : 'OK'; }
+  function block(spec, index) {
+    var wrap = document.createElement('div');
+    findingBox.appendChild(wrap);
+    var shown = LIMIT;
+    var state = { key: spec.columns[0].key, down: false, sorted: false };
+    function draw() {
+      var items = state.sorted ? sortRows(spec.items, spec.columns, state.key, state.down) : spec.items;
+      var html = '<div class="subhead ' + statusClass(spec.status) + (index === 0 ? ' first' : '') + '" id="' + slug(spec.title) + '">' +
+        '<span class="status ' + statusClass(spec.status) + '">' + spec.status + '</span>' + esc(spec.title) + ' <span class="count">(' + fmt(items.length) + ')</span></div>';
+      if (!items.length) html += '<div class="empty">None.</div>';
+      else html += '<div class="tablewrap"><table>' + headHtml(spec.columns, state.sorted ? state.key : '', state.down) + '<tbody>' +
+        items.slice(0, shown).map(function (row) { return '<tr>' + spec.columns.map(function (c) { return cellHtml(row, c); }).join('') + '</tr>'; }).join('') +
+        '</tbody></table></div>';
+      wrap.innerHTML = html;
+      var table = wrap.querySelector('table');
+      if (table) bindSort(table, spec.columns, state, function () { state.sorted = true; draw(); });
+      if (items.length > shown) {
+        var more = document.createElement('button');
+        more.type = 'button';
+        more.className = 'more';
+        more.textContent = 'Show all ' + fmt(items.length) + ' (' + fmt(items.length - shown) + ' hidden)';
+        more.addEventListener('click', function () { shown = Infinity; draw(); });
+        wrap.appendChild(more);
+      }
+    }
+    draw();
+  }
+  var pairColumns = [
+    { key: 'pair', label: 'Pair', num: false, render: function (p) { return '<code>' + esc(p.pair) + '</code>'; } },
+    { key: 'hits', label: 'Hits', num: true }, { key: 'ceiling', label: 'Ceiling', num: true }
+  ];
+  var hitColumns = [
+    { key: 'path', label: 'File', num: false, cls: 'path', render: function (h) { return pathHtml(h.path); } },
+    { key: 'line', label: 'Line', num: true, render: function (h) { return h.line > 0 ? fmt(h.line) : '<span class="muted">' + DASH + '</span>'; } },
+    { key: 'kind', label: 'Kind', num: false },
+    { key: 'ring', label: 'Ring', num: false, render: function (h) { return h.ring ? '<code>' + esc(h.ring) + '</code>' : ''; } },
+    { key: 'target', label: 'Target', num: false, render: function (h) { return h.target ? '<code>' + esc(h.target) + '</code>' : ''; } },
+    { key: 'name', label: 'Name', num: false, cls: 'wrap', render: function (h) { return '<code>' + esc(h.name) + '</code>'; } },
+    { key: 'text', label: 'Source', num: false, cls: 'code' }
+  ];
+  var specs = [];
+  specs.push({ title: 'Above ceiling', items: d.pairs.filter(function (p) { return p.standing === 'above ceiling'; }), status: gateStatus('Above ceiling'), columns: pairColumns });
+  specs.push({ title: 'Hits above ceiling', items: d.violations.filter(function (h) { return HARD.indexOf(h.kind) < 0; }), status: gateStatus('Above ceiling'), columns: hitColumns });
+  specs.push({ title: 'Stale ceilings', items: d.pairs.filter(function (p) { return p.standing === 'stale ceiling'; }), status: gateStatus('Stale ceilings'), columns: pairColumns });
+  specs.push({
+    title: 'Stale exemptions', items: d.staleExemptions, status: gateStatus('Stale exemptions'),
+    columns: [{ key: 'list', label: 'List', num: false }, { key: 'row', label: 'Row', num: false, render: function (r) { return '<code>' + esc(r.row) + '</code>'; } }]
+  });
+  HARD.forEach(function (kind) {
+    specs.push({ title: kind, items: d.violations.filter(function (h) { return h.kind === kind; }), status: gateStatus(kind), columns: hitColumns });
+  });
+  specs.push({ title: 'Held by ceilings', items: d.held, status: d.held.length ? 'WARN' : 'OK', columns: hitColumns });
+  specs.forEach(block);
+
+  // Names.
+  var names = d.names.slice(0, LIMIT);
+  var peak = names.reduce(function (m, n) { return Math.max(m, n.hits); }, 0) || 1;
+  document.getElementById('namebars').innerHTML = names.map(function (n) {
+    var label = n.name + ' > ' + n.target;
+    return '<div class="name" title="' + esc(label + DOT + n.heaviest + DOT + fmt(n.files) + ' files') + '">' + esc(label) + '</div><div class="track"><div class="fill" style="width:' +
+      (n.hits / peak * 100).toFixed(2) + '%"></div></div><div class="num">' + fmt(n.hits) + '</div>';
+  }).join('');
+  document.getElementById('nameempty').style.display = names.length ? 'none' : '';
+
+  // Files.
+  var COLUMNS = [
+    { key: 'path', label: 'File', num: false, cls: 'path', render: function (f) { return pathHtml(f.path); } },
+    { key: 'hits', label: 'Hits', num: true }
+  ];
+  var fileState = { key: load('sort', 'hits', COLUMNS.map(function (c) { return c.key; })), down: load('down', 'true', ['true', 'false']) === 'true' };
+  var shownFiles = LIMIT;
+  var filterBox = document.getElementById('filter');
+  filterBox.addEventListener('input', function () { shownFiles = LIMIT; drawFiles(); });
+  document.getElementById('filemore').addEventListener('click', function () { shownFiles = Infinity; drawFiles(); });
+  function drawFiles() {
+    var q = filterBox.value.trim().toLowerCase();
+    var list = d.files.filter(function (f) { return !q || f.path.toLowerCase().indexOf(q) >= 0; });
+    list = sortRows(list, COLUMNS, fileState.key, fileState.down);
+    document.getElementById('filetitle').textContent = 'Files (' + fmt(d.files.length) + ')';
+    var table = document.getElementById('filetable');
+    table.innerHTML = headHtml(COLUMNS, fileState.key, fileState.down) + '<tbody>' + list.slice(0, shownFiles).map(function (f) {
+      return '<tr>' + COLUMNS.map(function (c) { return cellHtml(f, c); }).join('') + '</tr>';
+    }).join('') + '</tbody>';
+    bindSort(table, COLUMNS, fileState, function () { save('sort', fileState.key); save('down', String(fileState.down)); drawFiles(); });
+    document.getElementById('fileempty').style.display = list.length ? 'none' : '';
+    var more = document.getElementById('filemore');
+    more.style.display = list.length > shownFiles ? '' : 'none';
+    more.textContent = 'Show all ' + fmt(list.length) + ' (' + fmt(list.length - Math.min(shownFiles, list.length)) + ' hidden)';
+  }
+
+  // Scope.
+  var scopeRows = [
+    ['Project root', esc(d.root)],
+    ['Source folder', codes([d.scope.source])],
+    ['Helper framework', codes([d.scope.helper])],
+    ['Host', codes([d.scope.host])],
+    ['Host references', codes(d.scope.hostReferences)],
+    ['Shell folders', codes(d.scope.shells)],
+    ['Imports', codes(d.scope.imports)],
+    ['Eavesdropping members', codes(d.scope.eavesdropping)]
+  ];
+  document.getElementById('scope').innerHTML = scopeRows.map(function (r) { return '<dt>' + r[0] + '</dt><dd>' + r[1] + '</dd>'; }).join('');
+  document.getElementById('ringcount').textContent = '(' + fmt(d.rings.length) + ')';
+  document.getElementById('rings').innerHTML = '<thead><tr><th class="l">Ring</th><th class="l">Folder</th><th class="l">Neighbour</th><th class="l">Capsule</th>' +
+    '<th class="l">Pure</th><th class="l">Cut</th><th class="l">Frame</th></tr></thead><tbody>' +
+    d.rings.map(function (r) {
+      return '<tr><td class="l"><code>' + esc(r.name) + '</code></td><td class="l">' + pathHtml(r.folder) + '</td><td class="l">' +
+        (r.neighbour.length ? codes(r.neighbour) : '<span class="muted">nothing</span>') + '</td><td class="l">' +
+        (r.capsule.length ? codes(r.capsule) : '<span class="muted">' + DASH + '</span>') + '</td><td class="l">' + (r.pure ? 'Yes' : 'No') +
+        '</td><td class="l">' + (r.cut ? 'Yes' : 'No') + '</td><td class="wrap">' + (r.frame.length ? codes(r.frame) : '<span class="muted">' + DASH + '</span>') + '</td></tr>';
+    }).join('') + '</tbody>';
+  document.getElementById('exemptcount').textContent = '(' + fmt(d.exemptions.length) + ')';
+  document.getElementById('exemptempty').style.display = d.exemptions.length ? 'none' : '';
+  document.getElementById('exemptions').innerHTML = d.exemptions.length ?
+    '<thead><tr><th class="l">List</th><th class="l">Row</th><th>Cleared</th></tr></thead><tbody>' + d.exemptions.map(function (e) {
+      return '<tr><td class="l">' + esc(e.list) + '</td><td class="l"><code>' + esc(e.row) + '</code></td><td>' + fmt(e.cleared) + '</td></tr>';
+    }).join('') + '</tbody>' : '';
+
+  document.getElementById('footer').innerHTML = '<span>' + esc(d.project) + ' ' + esc(d.version) + '</span><span>Generated ' + esc(d.generated) + '</span>' +
+    '<span>' + fmt(d.scanned) + ' source files' + DOT + fmt(d.total) + ' findings</span>';
+
+  drawFiles();
+})();
+</script>
+</body>
+</html>

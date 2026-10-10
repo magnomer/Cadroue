@@ -27,7 +27,7 @@ public sealed class LStation
             LRunnerProgramPath = LStationProgramSource!()
         };
         lStationAutoActive = LStationPreferenceSource!().LPreferenceAutoActive;
-        LStationSchedule!.LScheduleChange += LStationScheduleHandle;
+        LStationSchedule!.LScheduleChanged += LStationScheduleHandle;
     }
 
     public string LStationLabel { get; private set; }
@@ -51,7 +51,7 @@ public sealed class LStation
 
     public Func<IReadOnlyList<LWorkItem>>? LStationSelectionSource { get; set; }
 
-    public static event Action? LStationChange;
+    public static event Action? LStationChanged;
 
     public static IReadOnlyList<LStation> LStationRecords
     {
@@ -76,7 +76,7 @@ public sealed class LStation
         }
 
         _ = lStationRetired?.LStationRunner.LRunnerDispose();
-        LStationChange?.Invoke();
+        LStationChanged?.Invoke();
         return lStation;
     }
 
@@ -115,7 +115,7 @@ public sealed class LStation
         return new[] { LStationInternalRead() };
     }
 
-    public void LStationSelectionRaise() => LStationChange?.Invoke();
+    public void LStationSelectionRaise() => LStationChanged?.Invoke();
 
     public IReadOnlyList<LWorkItem> LStationSelectionRead()
     {
@@ -170,7 +170,7 @@ public sealed class LStation
     {
         lStationAutoActive = false;
         LStationSelectionSource = null;
-        LStationSchedule!.LScheduleChange -= LStationScheduleHandle;
+        LStationSchedule!.LScheduleChanged -= LStationScheduleHandle;
 
         bool lStationRemoved;
         lock (lStationBoardLock)
@@ -184,7 +184,7 @@ public sealed class LStation
         }
 
         _ = LStationRunner.LRunnerDispose();
-        LStationChange?.Invoke();
+        LStationChanged?.Invoke();
     }
 
     private static LStation? LStationInternalRemove()

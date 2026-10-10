@@ -30,6 +30,7 @@ internal sealed class TRunner : IDisposable
     private const int TRunnerWaitMilliseconds = 8_000;
     private readonly object tRunnerScheduleGate = new();
     private readonly string tRunnerRoot;
+    private readonly string _tRunnerPrevious;
     private readonly string tRunnerControlRoot;
     private readonly LSchedule tRunnerSchedule;
     private readonly List<LRunner> tRunnerList = new();
@@ -49,6 +50,7 @@ internal sealed class TRunner : IDisposable
         File.WriteAllText(scriptPath, TRunnerScript);
 
         LDepotIndex.LDepotIndexRelease();
+        _tRunnerPrevious = LDepot.LDepotRootRead();
         LDepot.LDepotRootSet(tRunnerRoot);
         tRunnerSchedule = new LSchedule();
         tRunnerSchedule.LScheduleLoad();
@@ -65,6 +67,7 @@ internal sealed class TRunner : IDisposable
                 LRunnerProgramPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.System),
                     "WindowsPowerShell", "v1.0", "powershell.exe"),
+                LRunnerLevel = LCustody.LCustodyLevelResolve("Normal", 1),
                 LRunnerArgumentPrefix = "-NoLogo -NoProfile -NonInteractive -ExecutionPolicy Bypass",
                 LRunnerArgumentTransform = arguments =>
                 {
@@ -250,7 +253,7 @@ internal sealed class TRunner : IDisposable
         }
 
         LDepotIndex.LDepotIndexRelease();
-        LDepot.LDepotRootSet(null);
+        LDepot.LDepotRootSet(_tRunnerPrevious);
         try
         {
             Directory.Delete(tRunnerRoot, true);

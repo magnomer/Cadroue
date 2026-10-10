@@ -9,6 +9,8 @@ internal static class TAuditReference
 {
     private const string TAuditReferenceSource = "src/*.csproj";
 
+    private static readonly Lazy<IReadOnlyList<MetadataReference>> TAuditReferences = new(TAuditReferenceCreate);
+
     public static List<string> TAuditGeneratedRead()
     {
         List<string> files = [];
@@ -51,7 +53,9 @@ internal static class TAuditReference
             Path.GetDirectoryName(project)!, output, TAuditTruthSetting.TAuditConfiguration, framework);
     }
 
-    public static List<MetadataReference> TAuditReferenceRead()
+    public static IReadOnlyList<MetadataReference> TAuditReferenceRead() => TAuditReferences.Value;
+
+    private static IReadOnlyList<MetadataReference> TAuditReferenceCreate()
     {
         Dictionary<string, (Version TAuditVersion, string TAuditPath)> chosen = new(StringComparer.OrdinalIgnoreCase);
         string runtime = Path.GetDirectoryName(typeof(object).Assembly.Location)!;

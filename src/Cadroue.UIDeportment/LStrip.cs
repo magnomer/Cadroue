@@ -30,12 +30,12 @@ public sealed class LStrip
         lStripNumberSource = lNumberSource;
     }
 
-    public event Action? LStripChange;
-    public event Action<LStripTab?>? LStripSelectChange;
-    public event Action<LStripTab>? LStripTabChange;
-    public event Action<LStripTab>? LStripTabAdd;
-    public event Action<LStripTab>? LStripTabClose;
-    public event Action? LStripTitleChange;
+    public event Action? LStripChanged;
+    public event Action<LStripTab?>? LStripSelectChanged;
+    public event Action<LStripTab>? LStripTabChanged;
+    public event Action<LStripTab>? LStripTabAdded;
+    public event Action<LStripTab>? LStripTabClosed;
+    public event Action? LStripTitleChanged;
 
     public IReadOnlyList<LStripTab> LStripTabs => lStripTabs;
 
@@ -62,7 +62,7 @@ public sealed class LStrip
             return null;
         }
 
-        if (LCartographerPlanStore.LCartographerPlanRead(lWorkItem.LWorkBatchId, out LCartographerPlanRecord lPlan)
+        if (LCartographerPlanStore.LCartographerPlanRead(lWorkItem.LWorkBatchId, out LCartographerPlanDocument lPlan)
             && lPlan.LCartographerStages.FirstOrDefault(lStage => lStage.LCartographerStageId == lSourceTab)
                 is { } lSourceStage)
         {
@@ -144,9 +144,9 @@ public sealed class LStrip
     public void LStripAdd(LStripTab lTab)
     {
         lStripTabs.Add(lTab);
-        LStripChange?.Invoke();
+        LStripChanged?.Invoke();
         LStripTitleSet(lTab, lStripTitleSource(lTab.LStripTabKey));
-        LStripTabAdd?.Invoke(lTab);
+        LStripTabAdded?.Invoke(lTab);
         LTraceLog.LTraceInfoRecord(
             $"Tab opened '{lTab.LStripTabTitle}' ({lTab.LStripTabKey}): {lStripTabs.Count} tab(s) open");
         if (LStripSuspended)
@@ -190,7 +190,7 @@ public sealed class LStrip
             LStripTitleSet(lTab, lTitle);
         }
 
-        LStripTitleChange?.Invoke();
+        LStripTitleChanged?.Invoke();
     }
 
     public bool LStripNameSet(LStripTab lTab, string? lName)
@@ -295,7 +295,7 @@ public sealed class LStrip
         }
 
         lStripTabs.Move(lSourceIndex, lClamped);
-        LStripChange?.Invoke();
+        LStripChanged?.Invoke();
         LStripSeparatorUpdate();
         return true;
     }
@@ -315,7 +315,7 @@ public sealed class LStrip
         }
 
         lStripTabs.RemoveAt(lIndex);
-        LStripChange?.Invoke();
+        LStripChanged?.Invoke();
         LStripTitleUpdate();
         if (!lWasSelected)
         {
@@ -336,7 +336,7 @@ public sealed class LStrip
     {
         lStripHovered = null;
         lStripTabs.Clear();
-        LStripChange?.Invoke();
+        LStripChanged?.Invoke();
         LStripSelectedSet(null);
     }
 
@@ -374,7 +374,7 @@ public sealed class LStrip
         }
 
         string lClosedTitle = lTab.LStripTabTitle;
-        LStripTabClose?.Invoke(lTab);
+        LStripTabClosed?.Invoke(lTab);
         LCartographer.LCartographerTabRemove(lTab.LStripTabId);
         LStripRemove(lTab);
         LTraceLog.LTraceInfoRecord($"Tab closed '{lClosedTitle}': {lStripTabs.Count} tab(s) open");
@@ -384,7 +384,7 @@ public sealed class LStrip
     {
         foreach (LStripTab lTab in lStripTabs.ToArray())
         {
-            LStripTabClose?.Invoke(lTab);
+            LStripTabClosed?.Invoke(lTab);
             LCartographer.LCartographerTabRemove(lTab.LStripTabId);
         }
 
@@ -413,7 +413,7 @@ public sealed class LStrip
     private void LStripTabRaise(LStripTab lTab)
     {
         lTab.LStripTabUpdate();
-        LStripTabChange?.Invoke(lTab);
+        LStripTabChanged?.Invoke(lTab);
     }
 
     private void LStripTitleSet(LStripTab lTab, string lTitle)
@@ -435,7 +435,7 @@ public sealed class LStrip
         }
 
         lStripSelected = lTab;
-        LStripSelectChange?.Invoke(lTab);
+        LStripSelectChanged?.Invoke(lTab);
     }
 
     private void LStripSeparatorUpdate()

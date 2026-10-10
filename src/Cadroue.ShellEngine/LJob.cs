@@ -113,7 +113,8 @@ internal sealed partial class LJob
                 lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
 
             lJobItem.LWorkSourceMedia ??=
-                await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+                await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false);
 
             lJobDirectory = pDirectory;
             lJobItem.LWorkStartTime = DateTimeOffset.Now;
@@ -126,17 +127,20 @@ internal sealed partial class LJob
             double pTotalSeconds = lJobItem.LWorkKind switch
             {
                 LWorkKind.LWorkKindAudio =>
-                    (await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false))
+                    (await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                        .ConfigureAwait(false))
                         ?.LWorkMediaDuration.TotalSeconds ?? 0,
                 LWorkKind.LWorkKindMerge =>
-                    await LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken).ConfigureAwait(false),
+                    await LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken, lJobOwner.LRunnerLevel)
+                        .ConfigureAwait(false),
                 _ => lJobItem.LWorkDuration.TotalSeconds
             };
 
             if (pTotalSeconds <= 0 && lJobItem.LWorkKind != LWorkKind.LWorkKindMerge)
             {
                 pTotalSeconds = (lJobItem.LWorkSourceMedia
-                    ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false))
+                    ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                        .ConfigureAwait(false))
                     ?.LWorkMediaDuration.TotalSeconds ?? 0;
             }
 
@@ -204,9 +208,11 @@ internal sealed partial class LJob
                 ? lJobItem.LWorkMergeBytes
                 : LJobMergeRead();
             LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia
-                ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+                ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false);
             LWorkMedia? pOutputMedia = await LJobOutputResolve(
-                await LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken).ConfigureAwait(false),
+                await LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false),
                 lJobItem.LWorkOutputPath,
                 pSourceMedia).ConfigureAwait(false);
             lJobOwner.LRunnerDispatch(() =>

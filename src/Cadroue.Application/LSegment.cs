@@ -21,8 +21,8 @@ public sealed class LSegment
     public Action<IReadOnlyList<LPiece>, int?>? LSegmentNotice;
     public Action<LSegmentFault, int>? LSegmentFaultNotice;
 
-    public static Func<string, IReadOnlyList<LSidecarSectionRecord>>? LSegmentLoadSeam;
-    public static Func<string, IReadOnlyList<LSidecarSectionRecord>, bool>? LSegmentSaveSeam;
+    public static Func<string, IReadOnlyList<LSidecarSectionEntry>>? LSegmentLoadSeam;
+    public static Func<string, IReadOnlyList<LSidecarSectionEntry>, bool>? LSegmentSaveSeam;
 
     public IReadOnlyList<LPiece> LSegmentListRead() => lSegmentPieces.ToArray();
 
@@ -47,8 +47,8 @@ public sealed class LSegment
     {
         if (lSegmentSourcePath is not { } lSegmentSource || lSegmentPieces.Count > 0) return;
 
-        IReadOnlyList<LSidecarSectionRecord> lSegmentRecords =
-            LSegmentLoadSeam?.Invoke(lSegmentSource) ?? Array.Empty<LSidecarSectionRecord>();
+        IReadOnlyList<LSidecarSectionEntry> lSegmentRecords =
+            LSegmentLoadSeam?.Invoke(lSegmentSource) ?? Array.Empty<LSidecarSectionEntry>();
         if (lSegmentRecords.Count == 0) return;
 
         IReadOnlyList<LPiece> lSegmentList = LPiece.LPieceValidSelect(
@@ -70,7 +70,7 @@ public sealed class LSegment
         }
     }
 
-    public IReadOnlyList<LSidecarSectionRecord> LSegmentRecordsRead() =>
+    public IReadOnlyList<LSidecarSectionEntry> LSegmentRecordsRead() =>
         lSegmentPieces.Select(lSegmentPiece => lSegmentPiece.LPieceRecordCreate()).ToArray();
 
     private bool LSegmentSave()
@@ -94,14 +94,14 @@ public sealed class LSegment
         return LSegmentSet(lSegmentValid, lSegmentSelect);
     }
 
-    public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionRecord> lSegmentSections, int lSegmentPaletteCount)
+    public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionEntry> lSegmentSections, int lSegmentPaletteCount)
     {
         List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(lSegmentSections, 0, lSegmentPaletteCount);
         LSegmentApply(lSegmentImported, lSegmentImported.Count > 0 ? 0 : null);
     }
 
     public void LSegmentLosslesscutAppend(
-        IReadOnlyList<LSidecarSectionRecord> lSegmentSections,
+        IReadOnlyList<LSidecarSectionEntry> lSegmentSections,
         int lSegmentPaletteCount)
     {
         int lSegmentFirst = lSegmentPieces.Count;
@@ -116,7 +116,7 @@ public sealed class LSegment
     }
 
     private static List<LPiece> LSegmentLosslesscutCreate(
-        IReadOnlyList<LSidecarSectionRecord> lSegmentSections,
+        IReadOnlyList<LSidecarSectionEntry> lSegmentSections,
         int lSegmentColorOffset,
         int lSegmentPaletteCount)
     {

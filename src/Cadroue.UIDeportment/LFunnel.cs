@@ -23,10 +23,10 @@ public sealed class LFunnel
         LFunnelDrag = new LFunnelDrag(this);
     }
 
-    public event Action? LFunnelChange;
-    public event Action<LFunnelRule>? LFunnelRuleChange;
-    public event Action<LFunnelRule>? LFunnelRuleCreate;
-    public event Action<LFunnelRule>? LFunnelRuleDelete;
+    public event Action? LFunnelChanged;
+    public event Action<LFunnelRule>? LFunnelRuleChanged;
+    public event Action<LFunnelRule>? LFunnelRuleCreated;
+    public event Action<LFunnelRule>? LFunnelRuleDeleted;
 
     public LFunnelDrag LFunnelDrag { get; }
 
@@ -45,12 +45,12 @@ public sealed class LFunnel
     {
         if (lFunnelStrip is { } lPrevious)
         {
-            lPrevious.LStripChange -= LFunnelTargetsNormalize;
+            lPrevious.LStripChanged -= LFunnelTargetsNormalize;
         }
 
         lFunnelStrip = lStrip;
         lFunnelSelf = lSelf;
-        lStrip.LStripChange += LFunnelTargetsNormalize;
+        lStrip.LStripChanged += LFunnelTargetsNormalize;
         LFunnelTargetsNormalize();
     }
 
@@ -58,7 +58,7 @@ public sealed class LFunnel
     {
         if (lFunnelStrip is { } lStrip)
         {
-            lStrip.LStripChange -= LFunnelTargetsNormalize;
+            lStrip.LStripChanged -= LFunnelTargetsNormalize;
         }
 
         lFunnelStrip = null;
@@ -87,8 +87,8 @@ public sealed class LFunnel
         var lRule = new LFunnelRule(lForm);
         lFunnelRules.Add(lRule);
         lFunnelSelected = lRule;
-        LFunnelRuleCreate?.Invoke(lRule);
-        LFunnelChange?.Invoke();
+        LFunnelRuleCreated?.Invoke(lRule);
+        LFunnelChanged?.Invoke();
         return lRule;
     }
 
@@ -116,8 +116,8 @@ public sealed class LFunnel
                 : lFunnelRules[Math.Clamp(lIndex, 0, lFunnelRules.Count - 1)];
         }
 
-        LFunnelRuleDelete?.Invoke(lRule);
-        LFunnelChange?.Invoke();
+        LFunnelRuleDeleted?.Invoke(lRule);
+        LFunnelChanged?.Invoke();
     }
 
     public bool LFunnelRuleMove(LFunnelRule lRule, int lTargetIndex)
@@ -137,7 +137,7 @@ public sealed class LFunnel
 
         lFunnelRules.RemoveAt(lSourceIndex);
         lFunnelRules.Insert(lInsertIndex, lRule);
-        LFunnelChange?.Invoke();
+        LFunnelChanged?.Invoke();
         return true;
     }
 
@@ -149,7 +149,7 @@ public sealed class LFunnel
         }
 
         lFunnelSelected = lRule;
-        LFunnelChange?.Invoke();
+        LFunnelChanged?.Invoke();
     }
 
     public void LFunnelRulesRestore(IReadOnlyList<LSceneFunnelRule> lRecords)
@@ -157,7 +157,7 @@ public sealed class LFunnel
         foreach (LFunnelRule lGone in lFunnelRules.ToArray())
         {
             lFunnelRules.Remove(lGone);
-            LFunnelRuleDelete?.Invoke(lGone);
+            LFunnelRuleDeleted?.Invoke(lGone);
         }
 
         lFunnelSelected = null;
@@ -180,10 +180,10 @@ public sealed class LFunnel
             };
             lFunnelRules.Add(lRule);
             lFunnelSelected = lRule;
-            LFunnelRuleCreate?.Invoke(lRule);
+            LFunnelRuleCreated?.Invoke(lRule);
         }
 
-        LFunnelChange?.Invoke();
+        LFunnelChanged?.Invoke();
     }
 
     public void LFunnelTargetsResolve() =>
@@ -216,10 +216,10 @@ public sealed class LFunnel
 
         lRule.LFunnelRuleTarget = lTargetId;
         lRule.LFunnelRulePending = -1;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
-    public LSceneFunnelMatch LFunnelMatchRead(LFunnelRule lRule, LFunnelKind lKind) => lKind switch
+    public LSceneFunnelCondition LFunnelMatchRead(LFunnelRule lRule, LFunnelKind lKind) => lKind switch
     {
         LFunnelKind.LFunnelKindPrefix => lRule.LFunnelRulePrefix,
         LFunnelKind.LFunnelKindEnd => lRule.LFunnelRuleEnd,
@@ -235,7 +235,7 @@ public sealed class LFunnel
 
     public void LFunnelTextSet(LFunnelRule lRule, LFunnelKind lKind, string lText)
     {
-        LSceneFunnelMatch lMatch = LFunnelMatchRead(lRule, lKind);
+        LSceneFunnelCondition lMatch = LFunnelMatchRead(lRule, lKind);
         string lTrimmed = lText.Trim();
         if (lMatch.LSceneFunnelText == lTrimmed)
         {
@@ -243,19 +243,19 @@ public sealed class LFunnel
         }
 
         lMatch.LSceneFunnelText = lTrimmed;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelCaseSet(LFunnelRule lRule, LFunnelKind lKind, bool lCase)
     {
-        LSceneFunnelMatch lMatch = LFunnelMatchRead(lRule, lKind);
+        LSceneFunnelCondition lMatch = LFunnelMatchRead(lRule, lKind);
         if (lMatch.LSceneFunnelCase == lCase)
         {
             return;
         }
 
         lMatch.LSceneFunnelCase = lCase;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelCaseToggle(LFunnelRule lRule, LFunnelKind lKind) =>
@@ -263,14 +263,14 @@ public sealed class LFunnel
 
     public void LFunnelJoinSet(LFunnelRule lRule, LFunnelKind lKind, bool lAnd)
     {
-        LSceneFunnelMatch lMatch = LFunnelMatchRead(lRule, lKind);
+        LSceneFunnelCondition lMatch = LFunnelMatchRead(lRule, lKind);
         if (lMatch.LSceneFunnelJoin == lAnd)
         {
             return;
         }
 
         lMatch.LSceneFunnelJoin = lAnd;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelRegexSet(LFunnelRule lRule, string lRegex)
@@ -282,7 +282,7 @@ public sealed class LFunnel
         }
 
         lRule.LFunnelRuleRegex = lTrimmed;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelWholeSet(LFunnelRule lRule, bool lWhole)
@@ -293,7 +293,7 @@ public sealed class LFunnel
         }
 
         lRule.LFunnelRuleWhole = lWhole;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelCollapsedSet(LFunnelRule lRule, bool lCollapsed)
@@ -304,7 +304,7 @@ public sealed class LFunnel
         }
 
         lRule.LFunnelRuleCollapsed = lCollapsed;
-        LFunnelRuleChange?.Invoke(lRule);
+        LFunnelRuleChanged?.Invoke(lRule);
     }
 
     public void LFunnelCollapsedToggle(LFunnelRule lRule) => LFunnelCollapsedSet(lRule, !lRule.LFunnelRuleCollapsed);
@@ -353,7 +353,7 @@ public sealed class LFunnel
             }
             else
             {
-                LFunnelRuleChange?.Invoke(lRule);
+                LFunnelRuleChanged?.Invoke(lRule);
             }
         }
     }

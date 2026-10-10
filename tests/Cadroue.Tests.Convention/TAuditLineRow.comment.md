@@ -1,4 +1,5 @@
 # TAuditLineRow.cs
+Hash: `2a5115baa39988df`
 
 ## `internal sealed record TAuditLineRow`
 

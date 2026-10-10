@@ -16,12 +16,12 @@ public sealed class LViewerPlayback
         lViewer = lOwner;
     }
 
-    public event Action<TimeSpan>? LViewerClockTick;
-    public event Action? LViewerClockStart;
-    public event Action? LViewerClockStop;
-    public event Action? LViewerLoupePlay;
-    public event Action? LViewerLoupePause;
-    public event Action<TimeSpan>? LViewerLoupeSeek;
+    public event Action<TimeSpan>? LViewerClockTicked;
+    public event Action? LViewerClockStarted;
+    public event Action? LViewerClockStopped;
+    public event Action? LViewerLoupePlayed;
+    public event Action? LViewerLoupePaused;
+    public event Action<TimeSpan>? LViewerLoupeSought;
     public event Action<double>? LViewerLoupeVolume;
 
     private LPlayer LPlayer => lViewer.LPlayer;
@@ -55,24 +55,24 @@ public sealed class LViewerPlayback
     {
         if (lRunning)
         {
-            LViewerClockStart?.Invoke();
+            LViewerClockStarted?.Invoke();
             return;
         }
 
-        LViewerClockStop?.Invoke();
+        LViewerClockStopped?.Invoke();
     }
 
     public void LViewerLoupeSync(TimeSpan lPosition, bool lPlaying)
     {
         lViewer.LViewerPlaybackUpdate(lPlaying, lPosition);
-        LViewerClockTick?.Invoke(lPosition);
+        LViewerClockTicked?.Invoke(lPosition);
     }
 
     public void LViewerPlay()
     {
         if (lViewer.LViewerLoupeActive)
         {
-            LViewerLoupePlay?.Invoke();
+            LViewerLoupePlayed?.Invoke();
             return;
         }
 
@@ -108,7 +108,7 @@ public sealed class LViewerPlayback
     {
         if (lViewer.LViewerLoupeActive)
         {
-            LViewerLoupePause?.Invoke();
+            LViewerLoupePaused?.Invoke();
             return;
         }
 
@@ -138,7 +138,7 @@ public sealed class LViewerPlayback
     {
         if (lViewer.LViewerLoupeActive)
         {
-            LViewerLoupeSeek?.Invoke(lPosition);
+            LViewerLoupeSought?.Invoke(lPosition);
             LViewerLoupeSync(lPosition, lViewer.LViewerPlaying);
             return;
         }
@@ -245,7 +245,7 @@ public sealed class LViewerPlayback
 
         TimeSpan lPosition = LPlayer.LPlayerTimeRead();
         lViewer.LViewerPlaybackUpdate(null, lPosition);
-        LViewerClockTick?.Invoke(lPosition);
+        LViewerClockTicked?.Invoke(lPosition);
     }
 
     private void LViewerEndStop()

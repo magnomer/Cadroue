@@ -35,7 +35,7 @@ internal sealed class TTrace : IDisposable
 
         LTraceWriter.LTraceWriterPersist();
         LDepot.LDepotRootSet(tTraceRoot);
-        LTrace.LTraceAppend += TTraceEntryRead;
+        LTrace.LTraceAppended += TTraceEntryRead;
         LTrace.LTraceLoadingSet(false);
         LTrace.LTraceVerbose = false;
         LTraceLog.LTraceClear();
@@ -124,7 +124,7 @@ internal sealed class TTrace : IDisposable
         }
 
         tTraceDisposed = true;
-        LTrace.LTraceAppend -= TTraceEntryRead;
+        LTrace.LTraceAppended -= TTraceEntryRead;
         LTrace.LTraceReset();
         LTrace.LTraceLoadingSet(tTraceLoading);
         LTrace.LTraceVerbose = tTraceVerbose;

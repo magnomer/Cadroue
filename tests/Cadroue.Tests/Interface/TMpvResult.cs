@@ -13,10 +13,7 @@ public sealed class TMpvResultCollection;
 [Collection("MpvResult")]
 public sealed class TMpvResult : IDisposable
 {
-    private static readonly string TMpvResultPath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "Cadroue",
-        "mpvprobe.json");
+    private static readonly string TMpvResultPath = Path.Combine(LDepot.LDepotHomeRead(), "mpvprobe.json");
 
     private readonly string? tMpvBackup;
 

@@ -1,15 +1,18 @@
 # TAuditPlatformSetting.cs
+Hash: `ac0ef999b1eb2828`
 
 ## `internal static class TAuditPlatformSetting`
 
-Hand-written and tracked: the platform table, the frameworks, the Windows markers and the ceilings live here.
+Hand-written and tracked.
+The platform table, the frameworks, the Windows markers and the ceilings live here.
 No script writes this file.
-`auditplatform.ps1` reads its own auditplatform.json and never writes this file.
+`AuditPlatform.ps1` reads its own AuditPlatform.json and never writes this file.
 
 ## `public const bool TAuditPlatformEnforced = true;`
 
-False makes every platform fact a warning that passes.
-True fails a fact when a kind counts above its ceiling.
+False lets the ceiling fact pass above its ceilings.
+True fails it when a kind counts above its ceiling.
+Unreadable files and stale ceilings fail the facts either way.
 
 ## `public const string TAuditPlatformRoot = "src/";`
 
@@ -31,7 +34,7 @@ With it, a Windows API in a portable half fails the build.
 ## `public static readonly string[] TAuditPlatformShell`
 
 The columns whose twins are the UI projects, which the domain rule leaves to the UI audits.
-It matches `domain.exempt` in scripts/auditplatform.json.
+It matches `domain.exempt` in scripts/AuditPlatform.json.
 
 ## `public static readonly IReadOnlyDictionary<string, string> TAuditPlatformSilencers`
 
@@ -48,6 +51,11 @@ A portable half is its own column.
 A twin names its portable half.
 The host has an empty column because it names every project.
 Twin naming is not settled, so a twin's name here is provisional.
+
+## `public static readonly IReadOnlyDictionary<string, string> TAuditPlatformCapsule`
+
+For a twin, the one capsule project it may reference outside its column.
+The capsule keeps its own portable column, so that reference is no `Column` hit.
 
 ## `public static readonly string[] TAuditPlatformProperties`
 

@@ -24,14 +24,14 @@ public sealed class LDepotWatch : IDisposable
     {
         try
         {
-            LDepotChange?.Invoke();
+            LDepotChanged?.Invoke();
         }
         catch
         {
         }
     }
 
-    public event Action? LDepotChange;
+    public event Action? LDepotChanged;
 
     public static void LDepotOwnAdd(string lDepotFilePath)
     {

@@ -26,7 +26,7 @@ public static partial class LCartographer
         }
 
         if (LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerItem.LWorkBatchId, out LCartographerPlanRecord lCartographerPlan)
+                lCartographerItem.LWorkBatchId, out LCartographerPlanDocument lCartographerPlan)
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
                 lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelaySource)
                 is { } lCartographerSourceStage)

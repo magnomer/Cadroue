@@ -112,9 +112,9 @@ public sealed class PGroup : PPanel
         Content = PPanelBorderBuild(pBodyHost);
         PGroupActionUpdate();
         PGroupRebuild();
-        LGroup.LGroupChange += PGroupRebuild;
-        LGroup.LGroupFaceChange += PGroupActionUpdate;
-        LGroup.LGroupMinimizeChange += PGroupMinimizeHandle;
+        LGroup.LGroupChanged += PGroupRebuild;
+        LGroup.LGroupFaceChanged += PGroupActionUpdate;
+        LGroup.LGroupMinimizeChanged += PGroupMinimizeHandle;
         Loaded += PGroupLoadedHandle;
     }
 
@@ -173,7 +173,7 @@ public sealed class PGroup : PPanel
         return pSwitches;
     }
 
-    private Border PGroupSwitchBuild(LGroupToggle lToggle)
+    private Border PGroupSwitchBuild(LGroupSwitch lToggle)
     {
         Border pToggle = PGroupToggleBuild(lToggle);
         pToggle.Margin = new Thickness(8, 0, 0, 0);
@@ -205,7 +205,7 @@ public sealed class PGroup : PPanel
         return pButtons;
     }
 
-    private Border PGroupToggleBuild(LGroupToggle lToggle)
+    private Border PGroupToggleBuild(LGroupSwitch lToggle)
     {
         var pRow = new StackPanel { Orientation = Orientation.Horizontal };
         pRow.Children.Add(PGroupSegmentBuild(

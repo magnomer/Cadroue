@@ -34,8 +34,8 @@ public sealed class LRoster
         lSchedule = lScheduleOwner;
         lStation = lStationOwner;
         lStation.LStationSelectionSource = LRosterSelectionRead;
-        lSchedule.LScheduleChange += LRosterScheduleHandle;
-        lSchedule.LScheduleItemChange += LRosterItemHandle;
+        lSchedule.LScheduleChanged += LRosterScheduleHandle;
+        lSchedule.LScheduleItemChanged += LRosterItemHandle;
         LRosterMenu = new LRosterMenu(lSchedule, lStation, LRosterSelectionRead);
         System.Collections.ObjectModel.ObservableCollection<LRosterEntry> lEntries = [];
         lRosterEntries = lEntries;
@@ -46,11 +46,11 @@ public sealed class LRoster
         LProgram.LScheduleCurrent,
         LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist")));
 
-    public event Action? LRosterDetailApply;
+    public event Action? LRosterDetailApplied;
 
-    public event Action? LRosterDetailDefer;
+    public event Action? LRosterDetailDeferred;
 
-    public event Action<string, string>? LRosterWarningShow;
+    public event Action<string, string>? LRosterWarningShown;
 
     public LRosterMenu LRosterMenu { get; }
 
@@ -82,14 +82,14 @@ public sealed class LRoster
         }
 
         lRosterClosed = true;
-        lSchedule.LScheduleChange -= LRosterScheduleHandle;
-        lSchedule.LScheduleItemChange -= LRosterItemHandle;
+        lSchedule.LScheduleChanged -= LRosterScheduleHandle;
+        lSchedule.LScheduleItemChanged -= LRosterItemHandle;
         lStation.LStationClose();
     }
 
-    public LSceneTabRecord LRosterLayoutRead(IReadOnlyList<double> lWeights)
+    public LSceneTabEntry LRosterLayoutRead(IReadOnlyList<double> lWeights)
     {
-        var lLayout = new LSceneTabRecord();
+        var lLayout = new LSceneTabEntry();
         lLayout.LScenePanelWidths.AddRange(lWeights);
         return lLayout;
     }
@@ -99,7 +99,7 @@ public sealed class LRoster
     private void LRosterScheduleHandle(LScheduleContract lScheduleChanged)
     {
         LRosterRebuild();
-        LRosterDetailApply?.Invoke();
+        LRosterDetailApplied?.Invoke();
     }
 
     private void LRosterItemHandle(LWorkItem lWorkItem, LScheduleNotice lNotice)
@@ -124,7 +124,7 @@ public sealed class LRoster
         }
         else
         {
-            LRosterDetailApply?.Invoke();
+            LRosterDetailApplied?.Invoke();
         }
     }
 
@@ -136,7 +136,7 @@ public sealed class LRoster
         }
 
         lRosterDetailPending = true;
-        LRosterDetailDefer?.Invoke();
+        LRosterDetailDeferred?.Invoke();
     }
 
     public void LRosterDetailRun()
@@ -144,7 +144,7 @@ public sealed class LRoster
         lRosterDetailPending = false;
         if (!lRosterClosed)
         {
-            LRosterDetailApply?.Invoke();
+            LRosterDetailApplied?.Invoke();
         }
     }
 
@@ -157,7 +157,7 @@ public sealed class LRoster
 
         if (LRosterRunningCheck() || LRosterMeasuringCheck())
         {
-            LRosterDetailApply?.Invoke();
+            LRosterDetailApplied?.Invoke();
         }
     }
 
@@ -403,7 +403,7 @@ public sealed class LRoster
     private void LRosterSelectRaise()
     {
         LRosterCardsUpdate();
-        LRosterDetailApply?.Invoke();
+        LRosterDetailApplied?.Invoke();
         lStation.LStationSelectionRaise();
     }
 
@@ -438,7 +438,7 @@ public sealed class LRoster
 
         if (LConsole.LConsoleRemovalFormat(lSchedule.LScheduleBatchRemove(lRemovable)) is { } lMessage)
         {
-            LRosterWarningShow?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
+            LRosterWarningShown?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
         }
     }
 

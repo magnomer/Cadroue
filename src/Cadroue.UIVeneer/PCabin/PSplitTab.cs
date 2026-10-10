@@ -16,7 +16,7 @@ public sealed class PSplitTab : PTabSurface
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PSplitTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         LSplitTab = new LSplitTab(
             lPresetOwner,
@@ -30,28 +30,28 @@ public sealed class PSplitTab : PTabSurface
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
-        lAction.LActionRun += lPriority =>
+        lAction.LActionExecuted += lPriority =>
             LSplitTab.LSplitRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdd += () => LSplitTab.LSplitAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdd += pSplitPaths =>
+        lAction.LActionAllAdded += () => LSplitTab.LSplitAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdded += pSplitPaths =>
             LSplitTab.LSplitItemsRun(pSplitPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
         LSplitTab.LSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
 
         pInspector.PSensorRunShow();
-        pInspector.LSensor.LSensorRunApply += PSplitSweepStart;
-        pInspector.LSensor.LSensorStopApply += LSplitTab.LSplitSweep.LSplitSweepCancel;
+        pInspector.LSensor.LSensorRunApplied += PSplitSweepStart;
+        pInspector.LSensor.LSensorStopApplied += LSplitTab.LSplitSweep.LSplitSweepCancel;
         LSplitTab.LSplitPresetMissing += PExport.PExportMissingShow;
-        LSplitTab.LSplitSweep.LSplitBusyApply += PSplitBusyApply;
-        LSplitTab.LSplitSweep.LSplitProgressApply += pInspector.PSensorProgressApply;
-        LSplitTab.LSplitSweep.LSplitFailRaise += PSplitFailShow;
+        LSplitTab.LSplitSweep.LSplitBusyApplied += PSplitBusyApply;
+        LSplitTab.LSplitSweep.LSplitProgressApplied += pInspector.PSensorProgressApply;
+        LSplitTab.LSplitSweep.LSplitFailRaised += PSplitFailShow;
 
-        pList.LList.LListPathChange += LSplitTab.LSplitPathHandle;
-        pList.LList.LListLockChange += LSplitTab.LSplitLockHandle;
+        pList.LList.LListPathChanged += LSplitTab.LSplitPathHandle;
+        pList.LList.LListLockChanged += LSplitTab.LSplitLockHandle;
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
@@ -77,7 +77,7 @@ public sealed class PSplitTab : PTabSurface
         base.PTabClose();
     }
 
-    public override LSceneTabRecord PTabLayoutRead() => LSplitTab.LSplitLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => LSplitTab.LSplitLayoutRead(PTabLayoutCreate());
 
     private void PSplitSweepStart() => _ = LSplitTab.LSplitSweep.LSplitSweepStart();
 

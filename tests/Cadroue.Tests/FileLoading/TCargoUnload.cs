@@ -8,7 +8,7 @@ public sealed class TCargoUnload
     [Fact]
     public async Task Unload_ClearsCurrentMediaIdentity()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         await media.TMediaLoadRun(media.TSourceCreate("loaded.mp4"));
 
         Assert.True(media.TMediaClose());
@@ -20,7 +20,7 @@ public sealed class TCargoUnload
     [Fact]
     public async Task RepeatedLoadUnloadCycles_EmitOneCompletionPerOperation()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string source = media.TSourceCreate("cycle.mp4");
 
         for (int cycle = 0; cycle < 5; cycle++)

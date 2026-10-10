@@ -18,11 +18,11 @@ public static class LWaveform
             ? 0
             : (int)((lWaveformMilliseconds + LWaveformBucketMilliseconds - 1) / LWaveformBucketMilliseconds);
 
-    public static LSidecarWaveformRecord LWaveformRecordCreate(
+    public static LSidecarWaveformEntry LWaveformRecordCreate(
         IReadOnlyCollection<byte> lWaveformPeaks,
         TimeSpan lWaveformDuration)
     {
-        return new LSidecarWaveformRecord
+        return new LSidecarWaveformEntry
         {
             LSidecarBucketMilliseconds = LWaveformBucketMilliseconds,
             LSidecarDurationMilliseconds = LWaveformMillisecondsResolve(lWaveformDuration),
@@ -30,7 +30,7 @@ public static class LWaveform
         };
     }
 
-    public static byte[] LWaveformPeaksRead(LSidecarWaveformRecord? lWaveformRecord)
+    public static byte[] LWaveformPeaksRead(LSidecarWaveformEntry? lWaveformRecord)
     {
         if (string.IsNullOrWhiteSpace(lWaveformRecord?.LSidecarPeaks))
         {
@@ -63,7 +63,7 @@ public static class LWaveform
         return lWaveformEnvelope;
     }
 
-    public static bool LWaveformRecordMatch(LSidecarWaveformRecord? lWaveformRecord, TimeSpan lWaveformDuration)
+    public static bool LWaveformRecordMatch(LSidecarWaveformEntry? lWaveformRecord, TimeSpan lWaveformDuration)
     {
         if (lWaveformRecord is null
             || lWaveformRecord.LSidecarBucketMilliseconds != LWaveformBucketMilliseconds

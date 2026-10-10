@@ -133,8 +133,8 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
         pSensorRunPersistent.VerticalAlignment = VerticalAlignment.Center;
         PInspectorSwitchAttach(pSensorRunPersistent, LSensor.LSensorPersistentSet);
-        LSensor.LSensorPersistentChange += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
-        LSensor.LSensorRunningChange += _ => pSensorRunButton.Content = LSensor.LSensorRunText;
+        LSensor.LSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
+        LSensor.LSensorRunningChanged += _ => pSensorRunButton.Content = LSensor.LSensorRunText;
 
         pSensorRunButton = new Button
         {

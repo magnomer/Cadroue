@@ -8,7 +8,7 @@ public sealed class TWaveformSnapshot
     public void Peaks_DecodeToExpectedValues()
     {
         byte[] expected = { 0, 1, 127, 255 };
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(expected, TimeSpan.FromSeconds(1));
+        TWaveformData record = TWaveform.TWaveformRecordCreate(expected, TimeSpan.FromSeconds(1));
 
         Assert.Equal(expected, TWaveform.TWaveformPeaksRead(record));
     }
@@ -19,7 +19,7 @@ public sealed class TWaveformSnapshot
         TimeSpan duration = TimeSpan.FromSeconds(3);
         byte[] peaks = new byte[TWaveform.TWaveformBucketsResolve(duration)];
         peaks[0] = 1;
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(peaks, duration);
+        TWaveformData record = TWaveform.TWaveformRecordCreate(peaks, duration);
 
         Assert.True(TWaveform.TWaveformRecordMatch(
             record,
@@ -35,7 +35,7 @@ public sealed class TWaveformSnapshot
         TimeSpan duration = TimeSpan.FromSeconds(3);
         byte[] truncated = new byte[TWaveform.TWaveformBucketsResolve(duration) - 1];
         truncated[0] = 1;
-        TWaveformRecord record = TWaveform.TWaveformRecordCreate(truncated, duration);
+        TWaveformData record = TWaveform.TWaveformRecordCreate(truncated, duration);
 
         Assert.False(TWaveform.TWaveformRecordMatch(record, duration));
     }
@@ -43,7 +43,7 @@ public sealed class TWaveformSnapshot
     [Fact]
     public void MissingOrMalformedEncodedData_DecodesAsEmpty()
     {
-        var malformed = new TWaveformRecord(
+        var malformed = new TWaveformData(
             TWaveform.TWaveformBucketMilliseconds,
             1_000,
             "not base64");

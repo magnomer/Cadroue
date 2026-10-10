@@ -72,7 +72,7 @@ public static partial class LSidecarStore
 
                 string? lSidecarLegacyJson = LSidecarFile.LSidecarFileRead(lSidecarLegacyPath);
                 if (lSidecarLegacyJson is null
-                    || LSidecarParse.LSidecarCoreParse(lSidecarLegacyJson) is not { } lSidecarLegacy
+                    || LSidecarSerializer.LSidecarCoreParse(lSidecarLegacyJson) is not { } lSidecarLegacy
                     || !string.Equals(
                         lSidecarLegacy.LSidecarSource.LSidecarFileName,
                         Path.GetFileName(lSidecarFullPath),
@@ -133,15 +133,15 @@ public static partial class LSidecarStore
     public static LSidecar? LSidecarRead(string lSidecarPreciousPath)
     {
         string? lSidecarCoreJson = LSidecarFile.LSidecarFileRead(lSidecarPreciousPath);
-        if (lSidecarCoreJson is null || LSidecarParse.LSidecarCoreParse(lSidecarCoreJson) is not { } lSidecarCore)
+        if (lSidecarCoreJson is null || LSidecarSerializer.LSidecarCoreParse(lSidecarCoreJson) is not { } lSidecarCore)
         {
             return null;
         }
 
-        LSidecarCacheRecord? lSidecarCache = LSidecarCacheStore.LSidecarCacheLoad(
+        LSidecarCacheDocument? lSidecarCache = LSidecarCacheStore.LSidecarCacheLoad(
             lSidecarPreciousPath,
             lSidecarCoreJson);
-        return LSidecarParse.LSidecarCreate(lSidecarCore, lSidecarCache);
+        return LSidecarSerializer.LSidecarCreate(lSidecarCore, lSidecarCache);
     }
 
     public static LSidecar? LSidecarLoad(LKeyframeSourceIdentity lSidecarIdentity)
@@ -152,9 +152,9 @@ public static partial class LSidecarStore
 
     public static bool LSidecarSectionsSave(
         string lSidecarSourcePath,
-        IReadOnlyList<LSidecarSectionRecord> lSidecarSections)
+        IReadOnlyList<LSidecarSectionEntry> lSidecarSections)
     {
-        List<LSidecarSectionRecord> lSidecarCopy = lSidecarSections.ToList();
+        List<LSidecarSectionEntry> lSidecarCopy = lSidecarSections.ToList();
         return LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSections = lSidecarCopy);
     }
 
@@ -186,11 +186,11 @@ public static partial class LSidecarStore
         return lSidecarCoreSaved && lSidecarCacheSaved;
     }
 
-    public static LSidecarCoreRecord? LSidecarCoreRead(string lSidecarSourcePath)
+    public static LSidecarCoreDocument? LSidecarCoreRead(string lSidecarSourcePath)
     {
         LSidecarCoreResult lSidecarResult =
             LSidecarCoreResolve(lSidecarSourcePath, LSidecarPathRead(lSidecarSourcePath));
-        LSidecarCoreRecord? lSidecarCore = lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
+        LSidecarCoreDocument? lSidecarCore = lSidecarResult.LSidecarCoreState == LSidecarReadKind.LSidecarReadMatched
             ? lSidecarResult.LSidecarCoreValue
             : null;
         return LSidecarPendingApply(lSidecarSourcePath, lSidecarCore);
@@ -215,7 +215,7 @@ public static partial class LSidecarStore
             return new LSidecarCoreResult(LSidecarReadKind.LSidecarReadUnreadable, null, null);
         }
 
-        if (LSidecarParse.LSidecarCoreParse(lSidecarJson) is not { } lSidecarCore)
+        if (LSidecarSerializer.LSidecarCoreParse(lSidecarJson) is not { } lSidecarCore)
         {
             return new LSidecarCoreResult(LSidecarReadKind.LSidecarReadMalformed, null, lSidecarJson);
         }
@@ -225,7 +225,7 @@ public static partial class LSidecarStore
             : new LSidecarCoreResult(LSidecarReadKind.LSidecarReadForeign, lSidecarCore, lSidecarJson);
     }
 
-    private static bool LSidecarCoreSave(string lSidecarSourcePath, Action<LSidecarCoreRecord> lSidecarMutate)
+    private static bool LSidecarCoreSave(string lSidecarSourcePath, Action<LSidecarCoreDocument> lSidecarMutate)
     {
         try
         {
@@ -252,9 +252,9 @@ public static partial class LSidecarStore
                 string? lSidecarExistingJson = lSidecarMatched ? lSidecarResult.LSidecarCoreJson : null;
                 LSidecarCacheStore.LSidecarCacheMove(lSidecarPreciousPath, lSidecarExistingJson);
 
-                LSidecarCoreRecord lSidecarCore = lSidecarMatched
+                LSidecarCoreDocument lSidecarCore = lSidecarMatched
                     ? lSidecarResult.LSidecarCoreValue!
-                    : new LSidecarCoreRecord();
+                    : new LSidecarCoreDocument();
                 if (string.IsNullOrWhiteSpace(lSidecarCore.LSidecarSource.LSidecarPartialHash))
                 {
                     lSidecarCore.LSidecarSource = LSidecarSourceCreate(
@@ -267,7 +267,7 @@ public static partial class LSidecarStore
                 lSidecarMutate(lSidecarCore);
                 return LSidecarFile.LSidecarFileSave(
                     lSidecarPreciousPath,
-                    LSidecarParse.LSidecarCoreFormat(lSidecarCore, lSidecarExistingJson));
+                    LSidecarSerializer.LSidecarCoreFormat(lSidecarCore, lSidecarExistingJson));
             }
         }
         catch (Exception lException) when (
@@ -280,13 +280,13 @@ public static partial class LSidecarStore
         }
     }
 
-    private static LSidecarSourceRecord LSidecarSourceCreate(
+    private static LSidecarSourceEntry LSidecarSourceCreate(
         LKeyframeSourceIdentity lSidecarIdentity,
         string lSidecarPreciousPath)
     {
         string lSidecarFolder = Path.GetDirectoryName(Path.GetFullPath(lSidecarPreciousPath)) ?? string.Empty;
         string lSidecarSourcePath = lSidecarIdentity.LKeyframeSourcePath;
-        return new LSidecarSourceRecord
+        return new LSidecarSourceEntry
         {
             LSidecarFileName = Path.GetFileName(lSidecarSourcePath),
             LSidecarRelativePath = LSidecarRelativeCreate(lSidecarFolder, lSidecarSourcePath),
@@ -355,7 +355,7 @@ public static partial class LSidecarStore
         LSidecarRead(lSidecarPath) is { } lSidecar
         && LSidecarSource.LSidecarSourceMatch(lSidecarMediaPath, lSidecar.LSidecarSource);
 
-    public static IReadOnlyList<LSidecarSectionRecord> LSidecarSectionsRead(string lSidecarSourcePath)
+    public static IReadOnlyList<LSidecarSectionEntry> LSidecarSectionsRead(string lSidecarSourcePath)
     {
         try
         {
@@ -369,6 +369,6 @@ public static partial class LSidecarStore
             LTraceLog.LTraceErrorRecord("Sidecar sections could not be restored", lSidecarException);
         }
 
-        return Array.Empty<LSidecarSectionRecord>();
+        return Array.Empty<LSidecarSectionEntry>();
     }
 }

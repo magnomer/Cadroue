@@ -24,7 +24,7 @@ public sealed class PEditTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(220)
     };
 
-    public PEditTab(LPresetSelection lPresetOwner, LSceneTabRecord? lPreferenceTabLayout = null)
+    public PEditTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         LEditTab = new LEditTab(
             lPresetOwner,
@@ -36,27 +36,27 @@ public sealed class PEditTab : PTabSurface
         var pAction = new PAction();
         PTabAction = pAction;
         LAction lAction = pAction.LAction;
-        lAction.LActionRun += lPriority =>
+        lAction.LActionExecuted += lPriority =>
             LEditTab.LEditRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdd += () => LEditTab.LEditAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdd += pEditPaths =>
+        lAction.LActionAllAdded += () => LEditTab.LEditAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
+        lAction.LActionItemsAdded += pEditPaths =>
             LEditTab.LEditItemsRun(pEditPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
         LEditTab.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChange += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpen += _ => pInspector.PInspectorMinimizeSet(false);
-        pViewer.LViewer.LViewerPlayback.LViewerClockTick += PEditHistogramDefer;
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pViewer.LViewer.LViewerPlayback.LViewerClockTicked += PEditHistogramDefer;
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-        pList.LList.LListPathChange += LEditTab.LEditPathHandle;
-        pList.LList.LListItemsAdd += LEditTab.LEditStore.LEditItemsHandle;
-        pList.LList.LListLockChange += LEditTab.LEditLockHandle;
+        pList.LList.LListPathChanged += LEditTab.LEditPathHandle;
+        pList.LList.LListItemsAdded += LEditTab.LEditStore.LEditItemsHandle;
+        pList.LList.LListLockChanged += LEditTab.LEditLockHandle;
 
         LEditTab.LEditPresetMissing += PExport.PExportMissingShow;
         LEditTab.LEditPresetIncompatible += PExport.PExportIncompatibleShow;
-        LEditTab.LEditHistogramDefer += PEditHistogramDefer;
-        LEditTab.LEditColorDefer += PEditColorDefer;
+        LEditTab.LEditHistogramDeferred += PEditHistogramDefer;
+        LEditTab.LEditColorDeferred += PEditColorDefer;
         pEditColorTimer.Tick += PEditColorTick;
         pEditHistogramTimer.Tick += PEditHistogramTick;
         LEditTab.LEditColor.LEditCapableHandle();
@@ -90,7 +90,7 @@ public sealed class PEditTab : PTabSurface
         base.PTabClose();
     }
 
-    public override LSceneTabRecord PTabLayoutRead() => LEditTab.LEditLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => LEditTab.LEditLayoutRead(PTabLayoutCreate());
 
     private void PEditHistogramDefer(TimeSpan lPosition) => PEditHistogramDefer();
 

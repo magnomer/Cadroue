@@ -1,4 +1,5 @@
 # TSpecimen.cs
+Hash: `0b6da9e6a472965e`
 
 ## `internal readonly record struct TSpecimen`
 

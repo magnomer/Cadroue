@@ -23,7 +23,7 @@ public sealed class TPreset : IDisposable
             LPreset.LPresetNames.Add(name);
         }
 
-        LPresetSelection.LPresetLoadSeam = name => new LPresetRecord { LPresetName = name };
+        LPresetSelection.LPresetLoadSeam = name => new LPresetDocument { LPresetName = name };
         LPresetSelection.LPresetRenameSeam = (old, renamed, record) => true;
         LPresetSelection.LPresetNativeSeam = name =>
             string.Equals(name, TPresetNativeName, StringComparison.OrdinalIgnoreCase);
@@ -47,13 +47,13 @@ public sealed class TPreset : IDisposable
             && !string.IsNullOrWhiteSpace(record.LPresetDisplay));
 
     public bool TPresetNativeSave(string name, string path) =>
-        LPresetStore.LPresetFileSave(new LPresetRecord { LPresetName = name }, path);
+        LPresetStore.LPresetFileSave(new LPresetDocument { LPresetName = name }, path);
 
     public bool TPresetCatalogCheck(string path) => LPresetStore.LPresetCatalogCheck(path);
 
-    public LPresetRecord? TPresetFileLoad(string path) => LPresetStore.LPresetFileLoad(path);
+    public LPresetDocument? TPresetFileLoad(string path) => LPresetStore.LPresetFileLoad(path);
 
-    public LPresetRecord TPresetDefaultCreate() => new();
+    public LPresetDocument TPresetDefaultCreate() => new();
 
     internal TPresetSelectionResult TPresetSelectionChange(string current, string old, string renamed)
     {

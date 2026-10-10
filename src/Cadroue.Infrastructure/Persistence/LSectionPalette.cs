@@ -16,7 +16,7 @@ public sealed record LSectionPaletteFile(
     string[] LSectionPaletteColors,
     string LSectionPalettePath);
 
-public sealed class LSectionPaletteRecord
+public sealed class LSectionPaletteDocument
 {
     [JsonPropertyName("Name")]
     public string LSectionPaletteName { get; set; } = string.Empty;
@@ -182,7 +182,7 @@ public static class LSectionPalette
     {
         try
         {
-            LSectionPaletteRecord? lSectionRecord = JsonSerializer.Deserialize<LSectionPaletteRecord>(
+            LSectionPaletteDocument? lSectionRecord = JsonSerializer.Deserialize<LSectionPaletteDocument>(
                 File.ReadAllText(lSectionPath));
             if (lSectionRecord is null
                 || string.IsNullOrWhiteSpace(lSectionRecord.LSectionPaletteName)
@@ -205,7 +205,7 @@ public static class LSectionPalette
     public static bool LSectionPaletteSave(string lSectionPath, string lSectionName, string[] lSectionColors) =>
         LVault.LVaultSave(
             lSectionPath,
-            new LSectionPaletteRecord { LSectionPaletteName = lSectionName, LSectionPaletteColors = lSectionColors });
+            new LSectionPaletteDocument { LSectionPaletteName = lSectionName, LSectionPaletteColors = lSectionColors });
 
     public static bool LSectionPaletteDelete(string lSectionPath)
     {

@@ -4,13 +4,13 @@ namespace Cadroue.Application;
 
 public static partial class LAudio
 {
-    public static LSidecarAudioRecord LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
+    public static LSidecarAudioEntry LAudioPersistentCreate(LWorkAudio lAudioPlan) => new()
     {
         LSidecarSkip = lAudioPlan.LWorkAudioSkip,
         LSidecarSteps = lAudioPlan.LWorkAudioSteps.Select(LAudioRecordCreate).ToList()
     };
 
-    public static LWorkAudio LAudioPersistentRead(LSidecarAudioRecord lAudioRecord) =>
+    public static LWorkAudio LAudioPersistentRead(LSidecarAudioEntry lAudioRecord) =>
         new(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
         {
             LWorkAudioSkip = lAudioRecord.LSidecarSkip
@@ -18,7 +18,7 @@ public static partial class LAudio
 
     public static LWorkAudio? LAudioPlanRead(
         string lAudioSourcePath,
-        Func<string, LSidecarAudioRecord?> lSidecarRead) =>
+        Func<string, LSidecarAudioEntry?> lSidecarRead) =>
         lSidecarRead(lAudioSourcePath) is { } lAudioRecord
             ? new LWorkAudio(lAudioRecord.LSidecarSteps.Select(LAudioStepCreate).ToArray())
             {
@@ -27,7 +27,7 @@ public static partial class LAudio
             : null;
 
     public static bool LAudioPlanSave(
-        string lAudioSourcePath, LWorkAudio lAudioPlan, Func<string, LSidecarAudioRecord?, bool> lSidecarSave) =>
+        string lAudioSourcePath, LWorkAudio lAudioPlan, Func<string, LSidecarAudioEntry?, bool> lSidecarSave) =>
         lSidecarSave(lAudioSourcePath, LAudioPersistentCreate(lAudioPlan));
 
     public static LWorkAudio LAudioPlanResolve(

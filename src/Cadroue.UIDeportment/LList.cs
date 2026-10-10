@@ -15,19 +15,19 @@ public sealed class LList
     private string? lListPressPath;
     private bool lListMinimized;
 
-    public event Action? LListChange;
-    public event Action<string?>? LListPathChange;
-    public event Action<bool>? LListMinimizeChange;
-    public event Action<IReadOnlyList<string>>? LListClearChange;
-    public event Action<IReadOnlyList<LDocketEntry>>? LListItemsAdd;
-    public event Action<bool>? LListLockChange;
+    public event Action? LListChanged;
+    public event Action<string?>? LListPathChanged;
+    public event Action<bool>? LListMinimizeChanged;
+    public event Action<IReadOnlyList<string>>? LListClearChanged;
+    public event Action<IReadOnlyList<LDocketEntry>>? LListItemsAdded;
+    public event Action<bool>? LListLockChanged;
 
     public LList(LDocket lListOwner)
     {
         lListDocket = lListOwner;
         LListDrag = new LListDrag(this);
         LListFace = new LListFace(this);
-        lListDocket.LDocketChange += LListDocketHandle;
+        lListDocket.LDocketChanged += LListDocketHandle;
         lListDocket.LDocketAdded += LListAddHandle;
         lListDocket.LDocketDelivered += LListDeliveredHandle;
         lListDocket.LDocketRemoved += LListRemoveHandle;
@@ -165,7 +165,7 @@ public sealed class LList
         }
 
         lListMinimized = lMinimized;
-        LListMinimizeChange?.Invoke(lMinimized);
+        LListMinimizeChanged?.Invoke(lMinimized);
     }
 
     public bool LListKeyRun(string lKey, bool lControl)
@@ -300,8 +300,8 @@ public sealed class LList
 
     private void LListDocketHandle(IReadOnlyList<LDocketEntry> lEntries)
     {
-        LListChange?.Invoke();
-        LListLockChange?.Invoke(LListLockCheck());
+        LListChanged?.Invoke();
+        LListLockChanged?.Invoke(LListLockCheck());
     }
 
     private void LListAddHandle(IReadOnlyList<LDocketEntry> lAdded)
@@ -310,16 +310,16 @@ public sealed class LList
             $"List add handled: {lAdded.Count} entry(ies), "
             + $"selecting '{LUsher.LUsherNameRead(lAdded[0].LDocketEntryPath)}' and notifying subscribers");
         LListSelect(lAdded[0].LDocketEntryPath);
-        LListItemsAdd?.Invoke(lAdded);
+        LListItemsAdded?.Invoke(lAdded);
         LTraceLog.LTraceInfoRecord("List add subscribers notified");
     }
 
-    private void LListDeliveredHandle(IReadOnlyList<LDocketEntry> lAdded) => LListItemsAdd?.Invoke(lAdded);
+    private void LListDeliveredHandle(IReadOnlyList<LDocketEntry> lAdded) => LListItemsAdded?.Invoke(lAdded);
 
     private void LListRemoveHandle(IReadOnlyList<string> lRemoved)
     {
         LListRemovedApply(lRemoved);
-        LListClearChange?.Invoke(lRemoved);
+        LListClearChanged?.Invoke(lRemoved);
         LListSuccessorSelect();
     }
 
@@ -368,7 +368,7 @@ public sealed class LList
     private void LListCurrentApply(string? lListPath)
     {
         lListPathCurrent = lListPath;
-        LListPathChange?.Invoke(lListPath);
-        LListLockChange?.Invoke(LListLockCheck());
+        LListPathChanged?.Invoke(lListPath);
+        LListLockChanged?.Invoke(LListLockCheck());
     }
 }

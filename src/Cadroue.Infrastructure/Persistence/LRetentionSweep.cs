@@ -37,7 +37,7 @@ public static class LRetentionSweep
         DateTime lRetentionNow = DateTime.UtcNow;
         int lRetentionRemoved = 0;
 
-        foreach (string lRetentionPath in Directory.EnumerateFiles(lRetentionRoot, "*", SearchOption.AllDirectories))
+        foreach (string lRetentionPath in LRetentionFolderRead(lRetentionRoot))
         {
             string lRetentionRelative = Path.GetRelativePath(lRetentionRoot, lRetentionPath);
             if (!LRetention.LRetentionSweptCheck(lRetentionRelative))
@@ -45,29 +45,16 @@ public static class LRetentionSweep
                 continue;
             }
 
-            try
+            if (LRetentionFileRemove(lRetentionPath, lRetentionNow, lRetentionDays))
             {
-                if (LRetention.LRetentionExpiredCheck(
-                        File.GetLastWriteTimeUtc(lRetentionPath),
-                        lRetentionNow,
-                        lRetentionDays))
-                {
-                    File.Delete(lRetentionPath);
-                    lRetentionRemoved++;
-                }
-            }
-            catch (IOException)
-            {
-            }
-            catch (UnauthorizedAccessException)
-            {
+                lRetentionRemoved++;
             }
         }
 
         try
         {
-            LDepotIndex.LDepotIndexRebuild();
-            LDepotIndex.LDepotIndexCompact();
+            LDepotIndex.LDepotIndexRebuild(lRetentionRoot);
+            LDepotIndex.LDepotIndexCompact(lRetentionRoot);
         }
         catch (Exception lRetentionException) when (lRetentionException is IOException or InvalidOperationException)
         {
@@ -75,5 +62,44 @@ public static class LRetentionSweep
         }
 
         return lRetentionRemoved;
+    }
+
+    private static string[] LRetentionFolderRead(string lRetentionFolder)
+    {
+        try
+        {
+            return Directory.GetFiles(lRetentionFolder, "*", SearchOption.AllDirectories);
+        }
+        catch (Exception lRetentionException) when (lRetentionException is IOException or UnauthorizedAccessException)
+        {
+            LTraceLog.LTraceInfoRecord("Retention sweep could not read the folder", lRetentionException.Message);
+            return [];
+        }
+    }
+
+    private static bool LRetentionFileRemove(string lRetentionPath, DateTime lRetentionNow, int lRetentionDays)
+    {
+        try
+        {
+            var lRetentionFile = new FileInfo(lRetentionPath);
+            if (!lRetentionFile.Exists
+                || !LRetention.LRetentionExpiredCheck(
+                    lRetentionFile.LastWriteTimeUtc,
+                    lRetentionNow,
+                    lRetentionDays))
+            {
+                return false;
+            }
+
+            new FileStream(
+                lRetentionPath, FileMode.Open, FileAccess.ReadWrite, FileShare.None, 1, FileOptions.DeleteOnClose)
+                .Dispose();
+            return true;
+        }
+        catch (Exception lRetentionException) when (lRetentionException is IOException or UnauthorizedAccessException)
+        {
+            LTraceLog.LTraceInfoRecord("Retention sweep could not remove a file", lRetentionException.Message);
+            return false;
+        }
     }
 }

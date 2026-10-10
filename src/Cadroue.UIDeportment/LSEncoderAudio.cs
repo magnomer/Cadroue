@@ -9,7 +9,7 @@ public sealed partial class LSEncoder
     private string lsEncoderAudioRate = string.Empty;
     private IReadOnlyList<LSVerdictRow> lsEncoderAudioResults = [];
 
-    public event Action? LSEncoderAudioChange;
+    public event Action? LSEncoderAudioChanged;
 
     private Action? lsEncoderHelpHandler;
 
@@ -46,7 +46,7 @@ public sealed partial class LSEncoder
         }
 
         lsEncoderAudioRate = lResolved;
-        LSEncoderAudioChange?.Invoke();
+        LSEncoderAudioChanged?.Invoke();
         return true;
     }
 
@@ -76,7 +76,7 @@ public sealed partial class LSEncoder
             return true;
         }
 
-        return LTrialSet.LTrialSetRead(LTrialKind.LTrialKindAudio) is { } lSet
+        return LTrialCatalog.LTrialSetRead(LTrialKind.LTrialKindAudio) is { } lSet
             ? lSet.Contains(lName)
             : LInventory.LInventoryInstalledCheck(lName);
     }
@@ -106,7 +106,7 @@ public sealed partial class LSEncoder
         }
 
         lToken.ThrowIfCancellationRequested();
-        LTrialSet.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
+        LTrialCatalog.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
         if (!lAvailable.Contains(lsEncoderAudioEncoder)
             && LRepertoireCatalog.LRepertoireAudioResolve(lsEncoderAudioEncoder) is not null)
         {

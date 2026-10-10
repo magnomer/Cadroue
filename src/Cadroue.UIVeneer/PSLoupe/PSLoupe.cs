@@ -126,10 +126,10 @@ internal sealed class PSLoupe : Window
         PSLoupeFloatApply();
 
         psLoupeClock.Tick += PSLoupeClockHandle;
-        LSLoupe.LSLoupePlayingChange += PSLoupePlayApply;
-        LSLoupe.LSLoupeFloatChange += PSLoupeFloatApply;
-        LSLoupe.LSLoupeEngineCreate += PSLoupeEngineCreate;
-        LSLoupe.LSLoupeCloseApply += Close;
+        LSLoupe.LSLoupePlayingChanged += PSLoupePlayApply;
+        LSLoupe.LSLoupeFloatChanged += PSLoupeFloatApply;
+        LSLoupe.LSLoupeEngineCreated += PSLoupeEngineCreate;
+        LSLoupe.LSLoupeCloseApplied += Close;
         Loaded += PSLoupeLoadedHandle;
         psLoupeGrabber = new PSGrabber(this);
         psLoupeGrabber.PSGrabberAttach();
@@ -255,10 +255,10 @@ internal sealed class PSLoupe : Window
         Loaded -= PSLoupeLoadedHandle;
         psLoupeClock.Stop();
         psLoupeClock.Tick -= PSLoupeClockHandle;
-        LSLoupe.LSLoupePlayingChange -= PSLoupePlayApply;
-        LSLoupe.LSLoupeFloatChange -= PSLoupeFloatApply;
-        LSLoupe.LSLoupeEngineCreate -= PSLoupeEngineCreate;
-        LSLoupe.LSLoupeCloseApply -= Close;
+        LSLoupe.LSLoupePlayingChanged -= PSLoupePlayApply;
+        LSLoupe.LSLoupeFloatChanged -= PSLoupeFloatApply;
+        LSLoupe.LSLoupeEngineCreated -= PSLoupeEngineCreate;
+        LSLoupe.LSLoupeCloseApplied -= Close;
         PSGrabber.PSGrabberPlacementSave(this, PSLoupePlacementKey);
         psLoupeGrabber.PSGrabberDetach();
         PSLoupeStageRun("flyleaf host", PSLoupeFlyleafDispose);

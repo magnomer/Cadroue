@@ -7,11 +7,11 @@ public static partial class LSidecarStore
 {
     private static readonly object lSidecarPendingGate = new();
     private static readonly object lSidecarWriteGate = new();
-    private static readonly Dictionary<string, List<Action<LSidecarCoreRecord>>> lSidecarPending =
+    private static readonly Dictionary<string, List<Action<LSidecarCoreDocument>>> lSidecarPending =
         new(StringComparer.OrdinalIgnoreCase);
     private static Task lSidecarWriter = Task.CompletedTask;
 
-    public static LSidecarEditRecord? LSidecarEditRead(string lSidecarSourcePath)
+    public static LSidecarEditEntry? LSidecarEditRead(string lSidecarSourcePath)
     {
         try
         {
@@ -26,10 +26,10 @@ public static partial class LSidecarStore
         }
     }
 
-    public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditRecord? lSidecarEdit) =>
+    public static bool LSidecarEditSave(string lSidecarSourcePath, LSidecarEditEntry? lSidecarEdit) =>
         LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarEdit = lSidecarEdit);
 
-    public static LSidecarAudioRecord? LSidecarAudioRead(string lSidecarSourcePath)
+    public static LSidecarAudioEntry? LSidecarAudioRead(string lSidecarSourcePath)
     {
         try
         {
@@ -44,10 +44,10 @@ public static partial class LSidecarStore
         }
     }
 
-    public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioRecord? lSidecarAudio) =>
+    public static bool LSidecarAudioSave(string lSidecarSourcePath, LSidecarAudioEntry? lSidecarAudio) =>
         LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarAudio = lSidecarAudio);
 
-    public static LSidecarSplitRecord? LSidecarSplitRead(string lSidecarSourcePath)
+    public static LSidecarSplitEntry? LSidecarSplitRead(string lSidecarSourcePath)
     {
         try
         {
@@ -62,10 +62,10 @@ public static partial class LSidecarStore
         }
     }
 
-    public static bool LSidecarSplitSave(string lSidecarSourcePath, LSidecarSplitRecord? lSidecarSplit) =>
+    public static bool LSidecarSplitSave(string lSidecarSourcePath, LSidecarSplitEntry? lSidecarSplit) =>
         LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarSplit = lSidecarSplit);
 
-    public static LSidecarFixRecord? LSidecarFixRead(string lSidecarSourcePath)
+    public static LSidecarFixEntry? LSidecarFixRead(string lSidecarSourcePath)
     {
         try
         {
@@ -80,17 +80,17 @@ public static partial class LSidecarStore
         }
     }
 
-    public static bool LSidecarFixSave(string lSidecarSourcePath, LSidecarFixRecord? lSidecarFix) =>
+    public static bool LSidecarFixSave(string lSidecarSourcePath, LSidecarFixEntry? lSidecarFix) =>
         LSidecarCoreDefer(lSidecarSourcePath, lSidecarCore => lSidecarCore.LSidecarFix = lSidecarFix);
 
-    public static LSidecarWaveformRecord? LSidecarWaveformRead(string lSidecarSourcePath)
+    public static LSidecarWaveformEntry? LSidecarWaveformRead(string lSidecarSourcePath)
     {
         try
         {
             return LSidecarCacheStore.LSidecarCacheRead(lSidecarSourcePath) is { } lSidecarCache
                 && LSidecarSource.LSidecarSourceMatch(
                     lSidecarSourcePath,
-                    new LSidecarSourceRecord
+                    new LSidecarSourceEntry
                     {
                         LSidecarLength = lSidecarCache.LSidecarLength,
                         LSidecarPartialHash = lSidecarCache.LSidecarPartialHash
@@ -107,7 +107,7 @@ public static partial class LSidecarStore
         }
     }
 
-    public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformRecord? lSidecarWaveform) =>
+    public static bool LSidecarWaveformSave(string lSidecarSourcePath, LSidecarWaveformEntry? lSidecarWaveform) =>
         LSidecarCacheStore.LSidecarCacheChange(
             lSidecarSourcePath,
             lSidecarCache => lSidecarCache.LSidecarWaveform = lSidecarWaveform);
@@ -174,7 +174,7 @@ public static partial class LSidecarStore
         try
         {
             string lSidecarPreciousPath = LSidecarPathRead(lSidecarSourcePath);
-            LSidecarCoreRecord? lSidecarCore;
+            LSidecarCoreDocument? lSidecarCore;
             using (LLatch.LLatchClaim(lSidecarPreciousPath))
             {
                 lSidecarCore = LSidecarCoreRead(lSidecarSourcePath);
@@ -218,9 +218,10 @@ public static partial class LSidecarStore
         }
     }
 
-    private static LSidecarCoreRecord? LSidecarPendingApply(string lSidecarSourcePath, LSidecarCoreRecord? lSidecarCore)
+    private static LSidecarCoreDocument? LSidecarPendingApply(
+        string lSidecarSourcePath, LSidecarCoreDocument? lSidecarCore)
     {
-        Action<LSidecarCoreRecord>[] lSidecarMutations;
+        Action<LSidecarCoreDocument>[] lSidecarMutations;
         lock (lSidecarPendingGate)
         {
             if (!lSidecarPending.TryGetValue(LSidecarFullResolve(lSidecarSourcePath), out var lSidecarQueued))
@@ -231,8 +232,8 @@ public static partial class LSidecarStore
             lSidecarMutations = lSidecarQueued.ToArray();
         }
 
-        LSidecarCoreRecord lSidecarOverlay = lSidecarCore ?? new LSidecarCoreRecord();
-        foreach (Action<LSidecarCoreRecord> lSidecarMutation in lSidecarMutations)
+        LSidecarCoreDocument lSidecarOverlay = lSidecarCore ?? new LSidecarCoreDocument();
+        foreach (Action<LSidecarCoreDocument> lSidecarMutation in lSidecarMutations)
         {
             lSidecarMutation(lSidecarOverlay);
         }
@@ -240,14 +241,14 @@ public static partial class LSidecarStore
         return lSidecarOverlay;
     }
 
-    private static bool LSidecarCoreDefer(string lSidecarSourcePath, Action<LSidecarCoreRecord> lSidecarMutate)
+    private static bool LSidecarCoreDefer(string lSidecarSourcePath, Action<LSidecarCoreDocument> lSidecarMutate)
     {
         string lSidecarKey = LSidecarFullResolve(lSidecarSourcePath);
         lock (lSidecarPendingGate)
         {
             if (!lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
             {
-                lSidecarQueued = new List<Action<LSidecarCoreRecord>>();
+                lSidecarQueued = new List<Action<LSidecarCoreDocument>>();
                 lSidecarPending[lSidecarKey] = lSidecarQueued;
             }
 
@@ -272,7 +273,7 @@ public static partial class LSidecarStore
 
     private static bool LSidecarPendingSave(string lSidecarKey)
     {
-        Action<LSidecarCoreRecord>[] lSidecarMutations;
+        Action<LSidecarCoreDocument>[] lSidecarMutations;
         lock (lSidecarPendingGate)
         {
             if (!lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
@@ -285,7 +286,7 @@ public static partial class LSidecarStore
 
         bool lSidecarSaved = LSidecarCoreSave(lSidecarKey, lSidecarCore =>
         {
-            foreach (Action<LSidecarCoreRecord> lSidecarMutation in lSidecarMutations)
+            foreach (Action<LSidecarCoreDocument> lSidecarMutation in lSidecarMutations)
             {
                 lSidecarMutation(lSidecarCore);
             }
@@ -295,7 +296,7 @@ public static partial class LSidecarStore
         {
             if (lSidecarPending.TryGetValue(lSidecarKey, out var lSidecarQueued))
             {
-                var lSidecarWritten = new HashSet<Action<LSidecarCoreRecord>>(
+                var lSidecarWritten = new HashSet<Action<LSidecarCoreDocument>>(
                     lSidecarMutations, ReferenceEqualityComparer.Instance);
                 lSidecarQueued.RemoveAll(lSidecarWritten.Contains);
                 if (lSidecarQueued.Count == 0)

@@ -7,7 +7,7 @@ public sealed class LVolume
     private LWorkAudioStep lVolumeStep = LWorkAudioStep.LWorkVolumeCreate(false, 0);
     private bool lVolumePersistent;
 
-    public event Action? LVolumeChange;
+    public event Action? LVolumeChanged;
 
     public LWorkAudioStep LVolumeStep => lVolumeStep;
 
@@ -27,7 +27,7 @@ public sealed class LVolume
         }
 
         lVolumeStep = lNormal;
-        LVolumeChange?.Invoke();
+        LVolumeChanged?.Invoke();
     }
 
     public void LVolumeActiveSet(bool lActive) =>
@@ -44,6 +44,6 @@ public sealed class LVolume
         }
 
         lVolumePersistent = lPersistent;
-        LVolumeChange?.Invoke();
+        LVolumeChanged?.Invoke();
     }
 }

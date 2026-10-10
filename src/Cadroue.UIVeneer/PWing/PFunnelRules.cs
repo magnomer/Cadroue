@@ -84,10 +84,10 @@ public sealed class PFunnelRules : PPanel
         pRoot.Children.Add(pScroll);
 
         Content = PPanelBorderBuild(pRoot);
-        lFunnel.LFunnelRuleCreate += PFunnelRowAdd;
-        lFunnel.LFunnelRuleDelete += PFunnelRowRemove;
-        lFunnel.LFunnelChange += PFunnelRowsUpdate;
-        lFunnel.LFunnelRuleChange += PFunnelRuleHandle;
+        lFunnel.LFunnelRuleCreated += PFunnelRowAdd;
+        lFunnel.LFunnelRuleDeleted += PFunnelRowRemove;
+        lFunnel.LFunnelChanged += PFunnelRowsUpdate;
+        lFunnel.LFunnelRuleChanged += PFunnelRuleHandle;
         lFunnel.LFunnelRules.ToList().ForEach(PFunnelRowAdd);
         PFunnelRowsUpdate();
     }

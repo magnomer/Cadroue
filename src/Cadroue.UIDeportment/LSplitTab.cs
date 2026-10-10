@@ -42,11 +42,11 @@ public sealed class LSplitTab
         lSplitFlow = lFlow;
         LSplitSweep = new LSplitTabSweep(lInspector, lList, lDocket, lFlow);
         lFlow.LFlowSectionSet(true);
-        lInspector.LInspectorSensor.LSensorChange += LSplitChangeHandle;
-        lInspector.LInspectorBlank.LBlankChange += LSplitChangeHandle;
-        lInspector.LInspectorSensor.LSensorPersistentChange += LSplitPersistentHandle;
-        lInspector.LInspectorBlank.LBlankPickChange += LSplitPickHandle;
-        lViewer.LViewerNeutral.LViewerNeutralChange += LSplitSampleHandle;
+        lInspector.LInspectorSensor.LSensorChanged += LSplitChangeHandle;
+        lInspector.LInspectorBlank.LBlankChanged += LSplitChangeHandle;
+        lInspector.LInspectorSensor.LSensorPersistentChanged += LSplitPersistentHandle;
+        lInspector.LInspectorBlank.LBlankPickChanged += LSplitPickHandle;
+        lViewer.LViewerNeutral.LViewerNeutralChanged += LSplitSampleHandle;
     }
 
     public event Action? LSplitPresetMissing;
@@ -56,23 +56,23 @@ public sealed class LSplitTab
     public void LSplitClose()
     {
         LSplitSweep.LSplitSweepCancel();
-        lSplitInspector.LInspectorSensor.LSensorChange -= LSplitChangeHandle;
-        lSplitInspector.LInspectorBlank.LBlankChange -= LSplitChangeHandle;
-        lSplitInspector.LInspectorSensor.LSensorPersistentChange -= LSplitPersistentHandle;
-        lSplitInspector.LInspectorBlank.LBlankPickChange -= LSplitPickHandle;
-        lSplitViewer.LViewerNeutral.LViewerNeutralChange -= LSplitSampleHandle;
+        lSplitInspector.LInspectorSensor.LSensorChanged -= LSplitChangeHandle;
+        lSplitInspector.LInspectorBlank.LBlankChanged -= LSplitChangeHandle;
+        lSplitInspector.LInspectorSensor.LSensorPersistentChanged -= LSplitPersistentHandle;
+        lSplitInspector.LInspectorBlank.LBlankPickChanged -= LSplitPickHandle;
+        lSplitViewer.LViewerNeutral.LViewerNeutralChanged -= LSplitSampleHandle;
     }
 
     public void LSplitStart() => lSplitFlow.LFlowEditSet(!LSplitLockedCheck());
 
-    public LSceneTabRecord LSplitLayoutRead(LSceneTabRecord lLayout)
+    public LSceneTabEntry LSplitLayoutRead(LSceneTabEntry lLayout)
     {
-        lLayout.LSceneDetectors = LDetectorSet.LDetectorSceneFormat(LSplitStateRead());
+        lLayout.LSceneDetectors = LDetectorBundle.LDetectorSceneFormat(LSplitStateRead());
         lLayout.LSceneDetectPersistent = lSplitInspector.LInspectorSensor.LSensorPersistent;
         return lLayout;
     }
 
-    public void LSplitLayoutApply(LSceneTabRecord? lLayout)
+    public void LSplitLayoutApply(LSceneTabEntry? lLayout)
     {
         if (lLayout is null)
         {
@@ -81,7 +81,7 @@ public sealed class LSplitTab
             return;
         }
 
-        LSplitStateApply(LDetectorSet.LDetectorSceneParse(lLayout.LSceneDetectors));
+        LSplitStateApply(LDetectorBundle.LDetectorSceneParse(lLayout.LSceneDetectors));
         lSplitInspector.LInspectorSensor.LSensorPersistentSet(lLayout.LSceneDetectPersistent);
         LSplitActiveUpdate();
     }
@@ -195,7 +195,7 @@ public sealed class LSplitTab
             return;
         }
 
-        LSidecarSplitRecord lRecord = LDetectorSet.LDetectorSidecarFormat(LSplitStateRead());
+        LSidecarSplitEntry lRecord = LDetectorBundle.LDetectorSidecarFormat(LSplitStateRead());
         if (!lRecord.LSidecarSplitActive && LLibrarian.LLibrarianSplitLoad(lPath) is null)
         {
             return;
@@ -211,11 +211,11 @@ public sealed class LSplitTab
             return;
         }
 
-        LSplitStateApply(LDetectorSet.LDetectorSidecarParse(lRecord));
+        LSplitStateApply(LDetectorBundle.LDetectorSidecarParse(lRecord));
         LSplitActiveUpdate();
     }
 
-    public LDetectorSet LSplitStateRead()
+    public LDetectorBundle LSplitStateRead()
     {
         LSensor lSensor = lSplitInspector.LInspectorSensor;
         IReadOnlyList<LDetectorStep> lSteps = LDetector.LDetectorKinds
@@ -225,7 +225,7 @@ public sealed class LSplitTab
         Dictionary<LDetectorKind, string> lPresets = lSteps.ToDictionary(
             lStep => lStep.LDetectorStepKind,
             lStep => lSensor.LSensorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
-        return new LDetectorSet(
+        return new LDetectorBundle(
             lSteps,
             lSplitInspector.LInspectorBlank.LBlankStep,
             lSensor.LSensorMode,
@@ -234,7 +234,7 @@ public sealed class LSplitTab
             lPresets);
     }
 
-    private void LSplitStateApply(LDetectorSet lSet)
+    private void LSplitStateApply(LDetectorBundle lSet)
     {
         LSensor lSensor = lSplitInspector.LInspectorSensor;
         lSplitInspector.LInspectorSaveSuspend();

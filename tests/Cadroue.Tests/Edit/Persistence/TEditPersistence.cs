@@ -51,7 +51,7 @@ public sealed class TEditPersistence
         LWorkVideo video = TInterface.TWorkVideoCreate(new[] { TInterface.TWorkSaturationCreate(true, 130) });
         LEditPlan source = TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false);
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(source);
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(source);
         LEditPlan restored = TInterface.TEditPersistentRead(record);
 
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
@@ -68,7 +68,7 @@ public sealed class TEditPersistence
         LWorkVideo video = TInterface.TWorkVideoCreate(new[] { TInterface.TWorkExposureCreate(true, 1.2) });
         LEditPlan source = TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false);
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(source);
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(source);
         LEditPlan restored = TInterface.TEditPersistentRead(record);
 
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
@@ -94,7 +94,7 @@ public sealed class TEditPersistence
         LWorkVideo video = TInterface.TWorkVideoCreate(new[] { TInterface.TWorkGammaCreate(true, 75) });
         LEditPlan source = TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false);
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(source);
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(source);
         LEditPlan restored = TInterface.TEditPersistentRead(record);
 
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
@@ -112,7 +112,7 @@ public sealed class TEditPersistence
             TInterface.TWorkGammaCreate(true, 20.25, -90.5, 10.75, 30.125, 25.5)
         });
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(
             TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false));
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
         LWorkVideoStep restored = Assert.Single(
@@ -133,7 +133,7 @@ public sealed class TEditPersistence
     [Fact]
     public void Gamma_LegacyRecord_UsesValueAsGlobalAndNeutralAdvancedDefaults()
     {
-        LSidecarEditRecord record = TInterface.TSidecarEditCreate("Gamma", true, 35);
+        LSidecarEditEntry record = TInterface.TSidecarEditCreate("Gamma", true, 35);
 
         LWorkVideoStep restored = Assert.Single(
             TInterface.TEditPersistentRead(record).LEditVideo.LWorkVideoSteps);
@@ -150,7 +150,7 @@ public sealed class TEditPersistence
     [Fact]
     public void NonGammaRecord_IgnoresGammaFields()
     {
-        LSidecarEditRecord record = TInterface.TSidecarEditCreate(
+        LSidecarEditEntry record = TInterface.TSidecarEditCreate(
             "Contrast", true, 125, 50, null, null, 100);
 
         LWorkVideoStep restored = Assert.Single(
@@ -252,7 +252,7 @@ public sealed class TEditPersistence
                 TInterface.TWorkPointCreate(1, 1)
             });
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(), TInterface.TWorkVideoCreate(new[] { source }), false));
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
 
@@ -278,7 +278,7 @@ public sealed class TEditPersistence
             TInterface.TWorkSaturationCreate(true, 130),
             TInterface.TWorkBrightnessCreate(true, 25)
         });
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(
             TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false));
         record.LSidecarSteps.Add(record.LSidecarSteps[0]);
         record.LSidecarSteps.Add(record.LSidecarSteps[1]);
@@ -315,7 +315,7 @@ public sealed class TEditPersistence
     [Fact]
     public void EditPersistentRead_UnknownStepToken_CreatesBrightnessStep()
     {
-        LSidecarEditRecord record = TInterface.TSidecarEditCreate("Rubbish", true, 40);
+        LSidecarEditEntry record = TInterface.TSidecarEditCreate("Rubbish", true, 40);
 
         LEditPlan plan = TInterface.TEditPersistentRead(record);
 

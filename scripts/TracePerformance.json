@@ -1,0 +1,11 @@
+{
+  "generation": 1,
+  "configuration": "Release",
+  "output": "temp/performance",
+  "report": { "directory": "docs-analysis" },
+  "target": "src/Cadroue.Application/Cadroue.Application.csproj",
+  "tests": "tests",
+  "harmony": "2.4.2",
+  "repeat": 1,
+  "top": 30
+}

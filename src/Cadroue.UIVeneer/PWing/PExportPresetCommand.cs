@@ -49,7 +49,7 @@ public sealed partial class PExport
 
     private void PExportPresetSave(object sender, RoutedEventArgs e)
     {
-        LPresetRecord lPresetValue = lPresetOwner.LPresetSelectionValue;
+        LPresetDocument lPresetValue = lPresetOwner.LPresetSelectionValue;
         string lPresetName = string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
             ? LExport.LExportSelected ?? string.Empty
             : lPresetValue.LPresetName;
@@ -102,7 +102,7 @@ public sealed partial class PExport
             return;
         }
 
-        LPresetRecord? lImportedRecord;
+        LPresetDocument? lImportedRecord;
         try
         {
             lImportedRecord = LPresetStore.LPresetFileLoad(pDialog.FileName);

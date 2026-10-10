@@ -18,7 +18,7 @@ public sealed class LWorkspace
     private LFlow? lWorkspaceFlow;
     private LViewer? lWorkspaceViewer;
     private LStation? lWorkspaceStation;
-    private Func<LSceneTabRecord>? lWorkspaceLayoutSource;
+    private Func<LSceneTabEntry>? lWorkspaceLayoutSource;
     private LRelay? lWorkspaceRelay;
     private string lWorkspaceRelayPath = string.Empty;
 
@@ -28,21 +28,21 @@ public sealed class LWorkspace
         LWorkspacePreset = lPreset ?? LPreset.LPresetInitialCreate(lKey);
         LWorkspacePresetOwner = new LPresetSelection(
             LWorkspacePreset.LPresetRecordCreate(), LWorkspacePreset.LPresetName);
-        LWorkspacePresetOwner.LPresetSelectionChange += LWorkspacePresetHandle;
+        LWorkspacePresetOwner.LPresetSelectionChanged += LWorkspacePresetHandle;
         LWorkspacePresetHandle();
     }
 
-    public event Action<LMediaInfo, string>? LWorkspaceFlowAttach;
-    public event Action? LWorkspaceFlowClear;
-    public event Action? LWorkspaceMediaClose;
-    public event Action? LWorkspaceLosslesscutFind;
-    public event Action<LRelay, TimeSpan>? LWorkspaceRelayDefer;
-    public event Action<TimeSpan, TimeSpan>? LWorkspaceRangeApply;
-    public event Action<double>? LWorkspaceVolumeApply;
-    public event Action<TimeSpan>? LWorkspaceSeekApply;
-    public event Action<IReadOnlyList<string>>? LWorkspacePathsAdd;
-    public event Action<string>? LWorkspaceSourceSelect;
-    public event Action<string>? LWorkspaceSourceOpen;
+    public event Action<LMediaInfo, string>? LWorkspaceFlowAttached;
+    public event Action? LWorkspaceFlowCleared;
+    public event Action? LWorkspaceMediaClosed;
+    public event Action? LWorkspaceLosslesscutFound;
+    public event Action<LRelay, TimeSpan>? LWorkspaceRelayDeferred;
+    public event Action<TimeSpan, TimeSpan>? LWorkspaceRangeApplied;
+    public event Action<double>? LWorkspaceVolumeApplied;
+    public event Action<TimeSpan>? LWorkspaceSeekApplied;
+    public event Action<IReadOnlyList<string>>? LWorkspacePathsAdded;
+    public event Action<string>? LWorkspaceSourceSelected;
+    public event Action<string>? LWorkspaceSourceOpened;
 
     public string LWorkspaceKey { get; }
 
@@ -75,7 +75,7 @@ public sealed class LWorkspace
         LFlow? lFlow,
         LViewer? lViewer,
         LStation? lStation,
-        Func<LSceneTabRecord> lLayoutSource)
+        Func<LSceneTabEntry> lLayoutSource)
     {
         lWorkspaceDocket = lDocket;
         lWorkspaceSegment = lSegment;
@@ -85,57 +85,57 @@ public sealed class LWorkspace
         lWorkspaceLayoutSource = lLayoutSource;
         if (lViewer is not null)
         {
-            lViewer.LViewerMediaChange += LWorkspaceMediaHandle;
+            lViewer.LViewerMediaChanged += LWorkspaceMediaHandle;
         }
 
         if (lFlow is not null)
         {
-            lFlow.LFlowSection.LFlowSectionChange += LWorkspaceSectionHandle;
-            lFlow.LFlowMediaChange += LWorkspaceHistoryReset;
+            lFlow.LFlowSection.LFlowSectionChanged += LWorkspaceSectionHandle;
+            lFlow.LFlowMediaChanged += LWorkspaceHistoryReset;
         }
 
         if (lFlow is not null && lViewer is not null)
         {
             lFlow.LFlowPlayingAttach(() => lViewer.LViewerPlaying);
-            lViewer.LViewerPlayback.LViewerClockTick += lFlow.LFlowCursorUpdate;
-            lFlow.LFlowCursorChange += lViewer.LViewerPlayback.LViewerSeek;
-            lFlow.LFlowDragChange += lViewer.LViewerPlayback.LViewerDragSet;
-            lFlow.LFlowPlay += lViewer.LViewerPlayback.LViewerPlay;
-            lFlow.LFlowPause += lViewer.LViewerPlayback.LViewerPause;
-            lFlow.LFlowVolumeAdjust += lViewer.LViewerPlayback.LViewerVolumeAdjust;
+            lViewer.LViewerPlayback.LViewerClockTicked += lFlow.LFlowCursorUpdate;
+            lFlow.LFlowCursorChanged += lViewer.LViewerPlayback.LViewerSeek;
+            lFlow.LFlowDragChanged += lViewer.LViewerPlayback.LViewerDragSet;
+            lFlow.LFlowPlayed += lViewer.LViewerPlayback.LViewerPlay;
+            lFlow.LFlowPaused += lViewer.LViewerPlayback.LViewerPause;
+            lFlow.LFlowVolumeAdjusted += lViewer.LViewerPlayback.LViewerVolumeAdjust;
         }
 
         lWorkspaceHistory.LHistoryReset(LWorkspaceSnapshotRead());
-        LWorkspacePreset.LPresetChange += LWorkspaceHistoryAdd;
+        LWorkspacePreset.LPresetChanged += LWorkspaceHistoryAdd;
     }
 
     public void LWorkspaceClose()
     {
         if (lWorkspaceViewer is not null)
         {
-            lWorkspaceViewer.LViewerMediaChange -= LWorkspaceMediaHandle;
+            lWorkspaceViewer.LViewerMediaChanged -= LWorkspaceMediaHandle;
         }
 
         if (lWorkspaceFlow is not null)
         {
-            lWorkspaceFlow.LFlowSection.LFlowSectionChange -= LWorkspaceSectionHandle;
-            lWorkspaceFlow.LFlowMediaChange -= LWorkspaceHistoryReset;
+            lWorkspaceFlow.LFlowSection.LFlowSectionChanged -= LWorkspaceSectionHandle;
+            lWorkspaceFlow.LFlowMediaChanged -= LWorkspaceHistoryReset;
         }
 
         if (lWorkspaceFlow is { } lFlow && lWorkspaceViewer is { } lViewer)
         {
-            lViewer.LViewerPlayback.LViewerClockTick -= lFlow.LFlowCursorUpdate;
-            lFlow.LFlowCursorChange -= lViewer.LViewerPlayback.LViewerSeek;
-            lFlow.LFlowDragChange -= lViewer.LViewerPlayback.LViewerDragSet;
-            lFlow.LFlowPlay -= lViewer.LViewerPlayback.LViewerPlay;
-            lFlow.LFlowPause -= lViewer.LViewerPlayback.LViewerPause;
-            lFlow.LFlowVolumeAdjust -= lViewer.LViewerPlayback.LViewerVolumeAdjust;
+            lViewer.LViewerPlayback.LViewerClockTicked -= lFlow.LFlowCursorUpdate;
+            lFlow.LFlowCursorChanged -= lViewer.LViewerPlayback.LViewerSeek;
+            lFlow.LFlowDragChanged -= lViewer.LViewerPlayback.LViewerDragSet;
+            lFlow.LFlowPlayed -= lViewer.LViewerPlayback.LViewerPlay;
+            lFlow.LFlowPaused -= lViewer.LViewerPlayback.LViewerPause;
+            lFlow.LFlowVolumeAdjusted -= lViewer.LViewerPlayback.LViewerVolumeAdjust;
             lFlow.LFlowPlayingAttach(null);
         }
 
         lWorkspaceRelay = null;
-        LWorkspacePreset.LPresetChange -= LWorkspaceHistoryAdd;
-        LWorkspacePresetOwner.LPresetSelectionChange -= LWorkspacePresetHandle;
+        LWorkspacePreset.LPresetChanged -= LWorkspaceHistoryAdd;
+        LWorkspacePresetOwner.LPresetSelectionChanged -= LWorkspacePresetHandle;
         LWorkspacePresetOwner.LPresetSelectionClose();
     }
 
@@ -143,7 +143,7 @@ public sealed class LWorkspace
 
     public bool LWorkspaceBusyCheck() => lWorkspaceStation?.LStationBusyCheck() == true;
 
-    public LSceneTabRecord LWorkspaceLayoutRead() => lWorkspaceLayoutSource?.Invoke() ?? new LSceneTabRecord();
+    public LSceneTabEntry LWorkspaceLayoutRead() => lWorkspaceLayoutSource?.Invoke() ?? new LSceneTabEntry();
 
     public LHistoryEntry LWorkspaceSnapshotRead() => new(
         lWorkspaceSegment?.LSegmentListRead() ?? Array.Empty<LPiece>(),
@@ -166,7 +166,7 @@ public sealed class LWorkspace
     {
         if (string.IsNullOrWhiteSpace(lPath))
         {
-            LWorkspaceMediaClose?.Invoke();
+            LWorkspaceMediaClosed?.Invoke();
         }
     }
 
@@ -186,7 +186,7 @@ public sealed class LWorkspace
         if (lWorkspaceViewer.LViewerSourcePath is { } lLoaded
             && lRemovedPaths.Contains(lLoaded, StringComparer.OrdinalIgnoreCase))
         {
-            LWorkspaceMediaClose?.Invoke();
+            LWorkspaceMediaClosed?.Invoke();
         }
     }
 
@@ -200,7 +200,7 @@ public sealed class LWorkspace
         if (!LWorkspaceProtectedCheck(lProtected))
         {
             lCleared |= LWorkspaceLoadedCheck();
-            LWorkspaceMediaClose?.Invoke();
+            LWorkspaceMediaClosed?.Invoke();
         }
         else if (lWorkspaceViewer?.LViewerIntent is { } lPending && !lProtected.Contains(lPending.LViewerIntentPath))
         {
@@ -266,7 +266,7 @@ public sealed class LWorkspace
             : null;
         if (lWorkspaceDocket is not null && lRelay.LRelayPaths.Count > 0)
         {
-            LWorkspacePathsAdd?.Invoke(lRelay.LRelayPaths);
+            LWorkspacePathsAdded?.Invoke(lRelay.LRelayPaths);
             return;
         }
 
@@ -285,11 +285,11 @@ public sealed class LWorkspace
         if (lWorkspaceDocket is { } lDocket
             && lDocket.LDocketPathsRead().Contains(lPath, StringComparer.OrdinalIgnoreCase))
         {
-            LWorkspaceSourceSelect?.Invoke(lPath);
+            LWorkspaceSourceSelected?.Invoke(lPath);
             return;
         }
 
-        LWorkspaceSourceOpen?.Invoke(lPath);
+        LWorkspaceSourceOpened?.Invoke(lPath);
     }
 
     public void LWorkspaceRelayRestore(LRelay lRelay, TimeSpan lDuration)
@@ -304,18 +304,18 @@ public sealed class LWorkspace
 
             if (lRelay.LRelayOriginTicks is { } lOrigin && lRelay.LRelayLimitTicks is { } lLimit)
             {
-                LWorkspaceRangeApply?.Invoke(TimeSpan.FromTicks(lOrigin), TimeSpan.FromTicks(lLimit));
+                LWorkspaceRangeApplied?.Invoke(TimeSpan.FromTicks(lOrigin), TimeSpan.FromTicks(lLimit));
             }
         }
 
         if (lRelay.LRelayVolume is { } lVolume)
         {
-            LWorkspaceVolumeApply?.Invoke(lVolume);
+            LWorkspaceVolumeApplied?.Invoke(lVolume);
         }
 
         if (lRelay.LRelayPositionTicks > 0)
         {
-            LWorkspaceSeekApply?.Invoke(TimeSpan.FromTicks(lRelay.LRelayPositionTicks));
+            LWorkspaceSeekApplied?.Invoke(TimeSpan.FromTicks(lRelay.LRelayPositionTicks));
         }
     }
 
@@ -335,11 +335,11 @@ public sealed class LWorkspace
 
         if (lCargo.LCargoMediaInfo is { } lMediaInfo)
         {
-            LWorkspaceFlowAttach?.Invoke(lMediaInfo, lCargo.LCargoSourcePath);
+            LWorkspaceFlowAttached?.Invoke(lMediaInfo, lCargo.LCargoSourcePath);
             return;
         }
 
-        LWorkspaceFlowClear?.Invoke();
+        LWorkspaceFlowCleared?.Invoke();
     }
 
     private void LWorkspaceLosslesscutHandle(LCargo lCargo)
@@ -357,7 +357,7 @@ public sealed class LWorkspace
 
         if (lFlow.LFlowLosslesscutSet(LLosslesscut.LLosslesscutPathNormalize(lCargo.LCargoSourcePath)))
         {
-            LWorkspaceLosslesscutFind?.Invoke();
+            LWorkspaceLosslesscutFound?.Invoke();
         }
     }
 
@@ -372,7 +372,7 @@ public sealed class LWorkspace
         lWorkspaceRelay = null;
         if (lCargo.LCargoMediaInfo is { } lMediaInfo)
         {
-            LWorkspaceRelayDefer?.Invoke(lRelay, lMediaInfo.LMediaInfoDuration);
+            LWorkspaceRelayDeferred?.Invoke(lRelay, lMediaInfo.LMediaInfoDuration);
         }
     }
 

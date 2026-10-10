@@ -63,9 +63,9 @@ public sealed class PCrop : Canvas
         MouseLeftButtonUp += PCropReleaseHandle;
         SizeChanged += PCropSizeHandle;
         KeyDown += PCropKeyHandle;
-        LCrop.LCropApply += PCropApply;
-        LCropDrag.LCropCaptureApply += PCropCaptureApply;
-        LViewer.LViewerNeutral.LViewerFocusApply += PCropFocusApply;
+        LCrop.LCropApplied += PCropApply;
+        LCropDrag.LCropCaptureApplied += PCropCaptureApply;
+        LViewer.LViewerNeutral.LViewerFocusApplied += PCropFocusApply;
     }
 
     public LViewer LViewer { get; }
@@ -82,9 +82,9 @@ public sealed class PCrop : Canvas
         MouseLeftButtonUp -= PCropReleaseHandle;
         SizeChanged -= PCropSizeHandle;
         KeyDown -= PCropKeyHandle;
-        LCrop.LCropApply -= PCropApply;
-        LCropDrag.LCropCaptureApply -= PCropCaptureApply;
-        LViewer.LViewerNeutral.LViewerFocusApply -= PCropFocusApply;
+        LCrop.LCropApplied -= PCropApply;
+        LCropDrag.LCropCaptureApplied -= PCropCaptureApply;
+        LViewer.LViewerNeutral.LViewerFocusApplied -= PCropFocusApply;
     }
 
     private Rectangle PCropHandleBuild(int pIndex)
@@ -119,7 +119,7 @@ public sealed class PCrop : Canvas
         PCropShadeApply(LCrop.LCropShadeRead());
     }
 
-    private void PCropHandlePlace(LCropHandle lHandle)
+    private void PCropHandlePlace(LCropGrip lHandle)
     {
         Rectangle pHandle = pCropHandles[lHandle.LCropHandleIndex];
         pHandle.Visibility = PLook.PLookVisible[lHandle.LCropHandleShown];

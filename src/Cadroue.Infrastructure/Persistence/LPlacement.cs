@@ -4,7 +4,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed class LPlacementRecord
+public sealed class LPlacementEntry
 {
     public double LPlacementLeft { get; set; }
 
@@ -21,11 +21,11 @@ public static class LPlacement
 
     private static readonly object lPlacementLock = new();
 
-    public static LPlacementRecord? LPlacementRead(string lPlacementKey)
+    public static LPlacementEntry? LPlacementRead(string lPlacementKey)
     {
         lock (lPlacementLock)
         {
-            return LPlacementAllRead().LVaultValue?.TryGetValue(lPlacementKey, out LPlacementRecord? lPlacement) == true
+            return LPlacementAllRead().LVaultValue?.TryGetValue(lPlacementKey, out LPlacementEntry? lPlacement) == true
                 ? lPlacement
                 : null;
         }
@@ -40,7 +40,7 @@ public static class LPlacement
 
         lock (lPlacementLock)
         {
-            LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult = LPlacementAllRead();
+            LVaultResult<Dictionary<string, LPlacementEntry>> lPlacementResult = LPlacementAllRead();
             if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
             {
                 LTraceLog.LTraceErrorRecord(
@@ -48,9 +48,9 @@ public static class LPlacement
                 return false;
             }
 
-            Dictionary<string, LPlacementRecord> lPlacements = lPlacementResult.LVaultValue
-                ?? new Dictionary<string, LPlacementRecord>(StringComparer.Ordinal);
-            lPlacements[lPlacementKey] = new LPlacementRecord
+            Dictionary<string, LPlacementEntry> lPlacements = lPlacementResult.LVaultValue
+                ?? new Dictionary<string, LPlacementEntry>(StringComparer.Ordinal);
+            lPlacements[lPlacementKey] = new LPlacementEntry
             {
                 LPlacementLeft = lLeft,
                 LPlacementTop = lTop,
@@ -118,11 +118,11 @@ public static class LPlacement
 
     private static string LPlacementPathRead() => Path.Combine(LDepot.LDepotRootRead(), LPlacementFileName);
 
-    private static LVaultResult<Dictionary<string, LPlacementRecord>> LPlacementAllRead()
+    private static LVaultResult<Dictionary<string, LPlacementEntry>> LPlacementAllRead()
     {
         string lPlacementPath = LPlacementPathRead();
-        LVaultResult<Dictionary<string, LPlacementRecord>> lPlacementResult =
-            LVault.LVaultRead<Dictionary<string, LPlacementRecord>>(lPlacementPath);
+        LVaultResult<Dictionary<string, LPlacementEntry>> lPlacementResult =
+            LVault.LVaultRead<Dictionary<string, LPlacementEntry>>(lPlacementPath);
         if (lPlacementResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
         {
             LTraceLog.LTraceErrorRecord($"Subwindow placement catalogue is unreadable: {lPlacementPath}");

@@ -48,13 +48,13 @@ public sealed class PLogWindow : Window
         PScrollbar.PScrollbarApply(this);
         Content = PLogContentBuild();
 
-        LLog.LLogFilesChange += PLogFilesApply;
-        LLog.LLogRowsReset += PLogRowsReset;
-        LLog.LLogRowAppend += PLogRowAppend;
-        LLog.LLogRowsRemove += PLogRowsRemove;
-        LLog.LLogScroll += PLogFeedScroll;
-        LLog.LLogErrorShow += PLogErrorShow;
-        LLog.LLogCopy += PLogTextCopy;
+        LLog.LLogFilesChanged += PLogFilesApply;
+        LLog.LLogRowsRebuilt += PLogRowsReset;
+        LLog.LLogRowAppended += PLogRowAppend;
+        LLog.LLogRowsRemoved += PLogRowsRemove;
+        LLog.LLogScrolled += PLogFeedScroll;
+        LLog.LLogErrorShown += PLogErrorShow;
+        LLog.LLogCopied += PLogTextCopy;
         pLogFileCombo.SelectionChanged += PLogFileHandle;
         pLogFileCombo.DropDownOpened += PLogFilesHandle;
         LLog.LLogAttach();
@@ -248,7 +248,7 @@ public sealed class PLogWindow : Window
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
-        pLogPicker.PPickerChange += PLogCategoryHandle;
+        pLogPicker.PPickerChanged += PLogCategoryHandle;
         return pLogPicker;
     }
 

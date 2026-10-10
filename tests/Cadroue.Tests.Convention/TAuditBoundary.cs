@@ -147,7 +147,10 @@ public sealed class TAuditBoundary
         string repoRoot = TAuditSource.TAuditRootRead();
         TAuditScope scope = new(
             [],
-            [.. TAuditTruthSetting.TAuditShellInclude, .. TAuditStrictSetting.TAuditReachInclude],
+            [
+                .. TAuditTruthSetting.TAuditShellInclude, .. TAuditTruthSetting.TAuditCapsuleInclude,
+                .. TAuditStrictSetting.TAuditReachInclude
+            ],
             TAuditNameSetting.TAuditExcludedSegments,
             TAuditNameSetting.TAuditExcludedSuffixes,
             TAuditNameSetting.TAuditExcludedPrefixes,
@@ -183,7 +186,7 @@ public sealed class TAuditBoundary
 
     private static IReadOnlyList<string> TAuditShellRead(string repoRoot)
     {
-        return TAuditTruthSetting.TAuditShellInclude
+        return TAuditTruthSetting.TAuditShellInclude.Concat(TAuditTruthSetting.TAuditCapsuleInclude)
             .Select(pattern => pattern[..pattern.IndexOf('*')].TrimEnd('/'))
             .Distinct(StringComparer.Ordinal)
             .Select(root => Path.Combine(repoRoot, root.Replace('/', Path.DirectorySeparatorChar))

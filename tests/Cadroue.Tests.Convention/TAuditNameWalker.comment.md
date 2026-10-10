@@ -1,8 +1,9 @@
 # TAuditNameWalker.cs
+Hash: `9b6199c38f7bf330`
 
 ## Generation
 
-AUDITNAMES GENERATION 15.
+AUDITNAMES GENERATION 21.
 
 A generation is not a revision count.
 It names functionality, not edits.
@@ -27,7 +28,7 @@ Both files are committed, so this project builds on its own.
 Generation 8 checks missing prefix, component count, base registration, and verb ending.
 It exempts descriptive test methods under an all-or-nothing test-prefix consistency gate.
 It audits a generated name at the declaration it is built from.
-It clears a name only through a scoped row of the exempt block.
+It clears a name only through a scoped row of the exempt table.
 
 Generation 9 changes nothing the name audit reports.
 The number rises with the custody and strict audits, which share it.
@@ -45,7 +46,7 @@ It fails a type, delegate or event name that ends in a verb, as the script does.
 Generations 13 and 14 change nothing the name audit reports.
 The number rises with the UI audit, whose hook rule gains slots and a literal rule.
 
-Generation 15 adds the ring count in `TAuditName`, which this walker leaves alone.
+Generation 15 adds the turf count in `TAuditName`, which this walker leaves alone.
 The UI audit gains the pack, scaffold and contract kinds in the same generation.
 
 ## `public static List<TSpecimen> TAuditSpecimenRead(IEnumerable<string> sourcePaths)`
@@ -57,7 +58,7 @@ The code trees are parsed first, so the partial index sees every part before any
 
 ### `if (registry.TAuditExemptValidate(candidate.TSpecimenName, candidate.TSpecimenPath))`
 
-A row of the `AUDIT:EXEMPT` block grants its name only inside the files that row lists.
+A row of the registry's exempt table grants its name only inside the files that row lists.
 The same word stays a violation in every other file.
 A control template part such as `PART_Track` is registered there with the `*` scope.
 Only the user adds a row, and working a report never grants one.

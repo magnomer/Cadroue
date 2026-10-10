@@ -17,12 +17,12 @@ public sealed class LAction
     private Guid lActionRelayTarget;
     private bool lActionAutoRelay;
 
-    public event Action<LWorkPriority>? LActionRun;
-    public event Action? LActionAllAdd;
-    public event Func<Guid, int>? LActionCohortAdd;
-    public event Action<IReadOnlyList<string>>? LActionItemsAdd;
-    public event Action? LActionFaceChange;
-    public event Action? LActionEmptyRaise;
+    public event Action<LWorkPriority>? LActionExecuted;
+    public event Action? LActionAllAdded;
+    public event Func<Guid, int>? LActionCohortAdded;
+    public event Action<IReadOnlyList<string>>? LActionItemsAdded;
+    public event Action? LActionFaceChanged;
+    public event Action? LActionEmptyRaised;
 
     public Guid LActionSourceTab => lActionSourceTab;
 
@@ -57,7 +57,7 @@ public sealed class LAction
         lActionSourceTab = lStripTab.LStripTabId;
         lStripTab.LStripActionAttach(this);
         LCartographer.LCartographerStart();
-        lStrip.LStripTitleChange += LActionTargetUpdate;
+        lStrip.LStripTitleChanged += LActionTargetUpdate;
         LActionTargetUpdate();
     }
 
@@ -110,7 +110,7 @@ public sealed class LAction
     {
         if (LActionEligibleResolve(false))
         {
-            LActionAllAdd?.Invoke();
+            LActionAllAdded?.Invoke();
         }
     }
 
@@ -118,7 +118,7 @@ public sealed class LAction
     {
         if (LActionEligibleResolve(true))
         {
-            LActionRun?.Invoke(LWorkPriority.LWorkPriorityHigh);
+            LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityHigh);
         }
     }
 
@@ -131,16 +131,16 @@ public sealed class LAction
 
         if (LActionSelectionRead() is { Count: > 0 } lSelected)
         {
-            LActionItemsAdd?.Invoke(lSelected);
+            LActionItemsAdded?.Invoke(lSelected);
             return;
         }
 
-        LActionRun?.Invoke(LWorkPriority.LWorkPriorityNormal);
+        LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityNormal);
     }
 
-    public void LActionItemsRun(IReadOnlyList<string> lPaths) => LActionItemsAdd?.Invoke(lPaths);
+    public void LActionItemsRun(IReadOnlyList<string> lPaths) => LActionItemsAdded?.Invoke(lPaths);
 
-    public bool LActionCohortRun(Guid lCohort) => lActionAutoRelay && LActionCohortAdd?.Invoke(lCohort) > 0;
+    public bool LActionCohortRun(Guid lCohort) => lActionAutoRelay && LActionCohortAdded?.Invoke(lCohort) > 0;
 
     public static void LActionAccept(Guid lTargetTab, string lPath, Guid lCohort)
     {
@@ -192,7 +192,7 @@ public sealed class LAction
             lActionRelayTarget = Guid.Empty;
         }
 
-        LActionFaceChange?.Invoke();
+        LActionFaceChanged?.Invoke();
     }
 
     private string LActionKeyRead() =>
@@ -208,7 +208,7 @@ public sealed class LAction
         bool lAllowed = LActionEligibleCheck(lSelected ? LActionSelectionRead() : Array.Empty<string>());
         if (!lAllowed)
         {
-            LActionEmptyRaise?.Invoke();
+            LActionEmptyRaised?.Invoke();
         }
 
         return lAllowed;

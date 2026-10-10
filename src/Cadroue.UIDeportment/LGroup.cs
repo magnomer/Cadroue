@@ -4,7 +4,7 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public sealed class LGroupRecord
+public sealed class LGroupEntry
 {
     public string LGroupRecordName { get; set; } = string.Empty;
 
@@ -17,23 +17,23 @@ public sealed class LGroup
     private const string LGroupEscapeKey = "Escape";
 
     private readonly LGroupSelection lGroupOwner;
-    private readonly List<LGroupRecord> lGroupRecords = [];
+    private readonly List<LGroupEntry> lGroupRecords = [];
     private Func<IReadOnlyList<string>> lGroupSource = () => [];
     private bool lGroupMinimized;
     private int? lGroupSourceIndex;
     private string? lGroupDragPath;
     private int? lGroupEditingIndex;
 
-    public event Action? LGroupChange;
-    public event Action? LGroupFaceChange;
-    public event Action<bool>? LGroupMinimizeChange;
+    public event Action? LGroupChanged;
+    public event Action? LGroupFaceChanged;
+    public event Action<bool>? LGroupMinimizeChanged;
 
     public LGroup(LGroupSelection lGroupSelection)
     {
         lGroupOwner = lGroupSelection;
         LGroupDrag = new LGroupDrag(this);
         LGroupFace = new LGroupFace(this);
-        lGroupOwner.LGroupSelectionChange += LGroupSelectionHandle;
+        lGroupOwner.LGroupSelectionChanged += LGroupSelectionHandle;
     }
 
     public LGroupSelection LGroupSelection => lGroupOwner;
@@ -42,7 +42,7 @@ public sealed class LGroup
 
     public LGroupFace LGroupFace { get; }
 
-    public IReadOnlyList<LGroupRecord> LGroupRecords => lGroupRecords;
+    public IReadOnlyList<LGroupEntry> LGroupRecords => lGroupRecords;
 
     public bool LGroupAuto => lGroupOwner.LGroupAuto;
 
@@ -64,7 +64,7 @@ public sealed class LGroup
         }
 
         lGroupMinimized = lMinimized;
-        LGroupMinimizeChange?.Invoke(lMinimized);
+        LGroupMinimizeChanged?.Invoke(lMinimized);
     }
 
     public void LGroupDragSet(int? lSourceIndex, string? lDragPath)
@@ -80,7 +80,7 @@ public sealed class LGroup
             return;
         }
 
-        foreach (LGroupRecord lRecord in lGroupRecords)
+        foreach (LGroupEntry lRecord in lGroupRecords)
         {
             IReadOnlyList<string> lSorted = LSeries.LSeriesPathsSort(lRecord.LGroupRecordPaths);
             lRecord.LGroupRecordPaths.Clear();
@@ -94,7 +94,7 @@ public sealed class LGroup
     {
         var lTargetSet = new HashSet<string>(lPaths, StringComparer.OrdinalIgnoreCase);
         int lRemovedCount = 0;
-        foreach (LGroupRecord lRecord in lGroupRecords)
+        foreach (LGroupEntry lRecord in lGroupRecords)
         {
             lRemovedCount += lRecord.LGroupRecordPaths.RemoveAll(lTargetSet.Contains);
         }
@@ -116,7 +116,7 @@ public sealed class LGroup
         lGroupRecords.Clear();
         foreach (LSeriesGroup lSeries in lGroups)
         {
-            var lRecord = new LGroupRecord { LGroupRecordName = lSeries.LSeriesName };
+            var lRecord = new LGroupEntry { LGroupRecordName = lSeries.LSeriesName };
             lRecord.LGroupRecordPaths.AddRange(lSeries.LSeriesPaths);
             lGroupRecords.Add(lRecord);
         }
@@ -202,7 +202,7 @@ public sealed class LGroup
             return false;
         }
 
-        var lRecord = new LGroupRecord { LGroupRecordName = lName };
+        var lRecord = new LGroupEntry { LGroupRecordName = lName };
         foreach (string lPath in lNewPaths)
         {
             LGroupPathInsert(lRecord.LGroupRecordPaths, lPath, lRecord.LGroupRecordPaths.Count);
@@ -247,7 +247,7 @@ public sealed class LGroup
         }
 
         lGroupEditingIndex = lIndex;
-        LGroupChange?.Invoke();
+        LGroupChanged?.Invoke();
     }
 
     public void LGroupEditCancel()
@@ -258,7 +258,7 @@ public sealed class LGroup
         }
 
         lGroupEditingIndex = null;
-        LGroupChange?.Invoke();
+        LGroupChanged?.Invoke();
     }
 
     public bool LGroupNameCommit(string lName)
@@ -270,7 +270,7 @@ public sealed class LGroup
 
         lGroupEditingIndex = null;
         bool lApplied = LGroupNameApply(lIndex, lName);
-        LGroupChange?.Invoke();
+        LGroupChanged?.Invoke();
         return lApplied;
     }
 
@@ -281,7 +281,7 @@ public sealed class LGroup
             return false;
         }
 
-        LGroupChange?.Invoke();
+        LGroupChanged?.Invoke();
         return true;
     }
 
@@ -345,14 +345,14 @@ public sealed class LGroup
 
     private void LGroupSelectionHandle()
     {
-        LGroupFaceChange?.Invoke();
+        LGroupFaceChanged?.Invoke();
         LGroupAutoUpdate();
     }
 
     private void LGroupRecordsRaise()
     {
         lGroupEditingIndex = null;
-        LGroupChange?.Invoke();
+        LGroupChanged?.Invoke();
     }
 
     private bool LGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < lGroupRecords.Count;

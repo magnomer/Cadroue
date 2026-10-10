@@ -1,4 +1,5 @@
 # Cadroue.Tests.Convention.csproj
+Hash: `ce887e848efbe5d9`
 
 Builds tests that inspect source structure and enforce repository conventions.
 

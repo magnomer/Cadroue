@@ -1,0 +1,60 @@
+namespace Convention.Tests;
+
+internal static class TAuditEngineSetting
+{
+    public static readonly IReadOnlyDictionary<string, string[]> TAuditEngineOffer =
+        new Dictionary<string, string[]>
+        {
+            ["Cadroue.Conduct>Cadroue.ShellEngine"] =
+            [
+                "LDraftPort",
+                "LEntryPort",
+                "LGraspPort",
+                "LFavoritePort",
+                "LVistaPort",
+                "LCardPort",
+                "LTagPort",
+                "LRegisterPort",
+                "LMentionPort",
+                "LGlyphPort",
+                "LSituationPort",
+                "LExamplePort",
+                "LReferencePort",
+                "LAuthorPort",
+                "LMarkdownPort",
+                "LPronunciationPort",
+                "LFanqiePort",
+                "LDiweiPort",
+                "LScriptPort",
+                "LLanguagePort",
+                "LReflexPort",
+                "LParadigmPort",
+                "LSentencePort",
+                "LStemPort",
+                "LSettingsPort",
+                "LMediaPort",
+                "LPortraitPort",
+                "LTenure",
+                "LVista",
+                "LForay",
+                "LPosture",
+                "LEasel",
+                "LQuillChip",
+                "LQuillCard",
+                "LQuillSituation",
+                "LQuillReflex",
+                "LQuillReference",
+                "LQuillAuthor",
+                "LQuillExample",
+                "LQuillSentence",
+                "LQuillMention",
+                "LQuillTranscription",
+                "LQuillEtymology",
+                "LErrand",
+                "LTenureGauge",
+                "LQuillEntry",
+                "LQuillPronunciation",
+                "LQuillSpeech",
+            ],
+        };
+}

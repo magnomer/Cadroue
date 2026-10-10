@@ -18,12 +18,12 @@ public sealed class LConsoleStation
     public LConsoleStation(LScheduleContract lScheduleOwner)
     {
         lSchedule = lScheduleOwner;
-        lDepotWatch.LDepotChange += LConsoleWatchHandle;
+        lDepotWatch.LDepotChanged += LConsoleWatchHandle;
     }
 
-    public event Action? LConsoleWatchChange;
+    public event Action? LConsoleWatchChanged;
 
-    public event Action? LConsoleStationChange;
+    public event Action? LConsoleStationChanged;
 
     public bool LConsoleAutoActive => LConsoleStationRead().LStationAutoActive;
 
@@ -37,11 +37,11 @@ public sealed class LConsoleStation
 
     public void LConsoleWatchStop()
     {
-        lDepotWatch.LDepotChange -= LConsoleWatchHandle;
+        lDepotWatch.LDepotChanged -= LConsoleWatchHandle;
         lDepotWatch.Dispose();
     }
 
-    private void LConsoleWatchHandle() => LConsoleWatchChange?.Invoke();
+    private void LConsoleWatchHandle() => LConsoleWatchChanged?.Invoke();
 
     public LStation LConsoleStationRead()
     {
@@ -62,7 +62,7 @@ public sealed class LConsoleStation
         }
 
         lStation = lStationNext;
-        LConsoleStationChange?.Invoke();
+        LConsoleStationChanged?.Invoke();
         return true;
     }
 
@@ -75,7 +75,7 @@ public sealed class LConsoleStation
         }
 
         lStation = lBoard[LConsoleIndexResolve(Array.IndexOf(lBoard, LConsoleStationRead()), lStep, lBoard.Length)];
-        LConsoleStationChange?.Invoke();
+        LConsoleStationChanged?.Invoke();
     }
 
     public static int LConsoleIndexResolve(int lIndex, int lStep, int lCount) =>

@@ -1,10 +1,12 @@
 # TAuditEncoding.cs
+Hash: `b9e93637b09cabd1`
 
 ## `public sealed class TAuditEncoding`
 
 Keeps every tracked text file in one form: UTF-8 with no byte order mark and LF line breaks.
 A tool writing through the wrong code page leaves a mark, a raw control byte or doubled characters.
-Each fact reads the raw bytes, never a decoded string, so the decoder cannot hide what it repaired.
+Each fact reads the raw bytes, and only the line finders decode them.
+The strict decode fact guards that step, so a lenient decoder cannot hide what it repaired.
 The kinds of file, the skipped names and the patterns live in `TAuditEncodingSetting`.
 
 ## `private static readonly UTF8Encoding TAuditEncodingStrict`

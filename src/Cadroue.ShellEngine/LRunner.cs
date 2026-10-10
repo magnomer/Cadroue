@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -35,9 +36,17 @@ public sealed partial class LRunner
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
 
+    public int? LRunnerLevel { get; set; }
+
     public string LRunnerArgumentPrefix { get; set; } = string.Empty;
 
     public Func<string, string>? LRunnerArgumentTransform { get; set; }
+
+    internal LEmployer LRunnerEmployerCreate() => new(LRunnerProgramPath, LRunnerArgumentPrefix)
+    {
+        LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode,
+        LEmployerLevel = LRunnerLevel
+    };
 
     public bool LRunnerFailurePaused { get; set; }
 

@@ -93,7 +93,7 @@ public static class LRenderer
     private static readonly object lRendererCheckGate = new();
     private static Task<LMpvProbe>? lRendererCheckTask;
 
-    public static event Action? LRendererEngineChange;
+    public static event Action? LRendererEngineChanged;
 
     public static Action? LRendererFlyleafSeam { get; set; }
 
@@ -184,7 +184,7 @@ public static class LRenderer
         }
 
         lRendererEnginePreview = lRendererResolved;
-        LRendererEngineChange?.Invoke();
+        LRendererEngineChanged?.Invoke();
     }
 
     public static void LRendererEngineUpdate() => LRendererEngineSet(LRendererPreferenceRead());

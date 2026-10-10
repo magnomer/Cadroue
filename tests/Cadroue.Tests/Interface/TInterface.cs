@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -8,6 +10,29 @@ namespace Cadroue.Tests;
 
 internal static partial class TInterface
 {
+    [ModuleInitializer]
+    internal static void TInterfaceHomeStart()
+    {
+        string home = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "home", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(home);
+        AppContext.SetData(LDepotHome.LDepotHomeKey, home);
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => TInterfaceHomeClear(home);
+    }
+
+    internal static string TDepotHomeRead() => LDepot.LDepotHomeRead();
+
+    private static void TInterfaceHomeClear(string home)
+    {
+        LDepotIndex.LDepotIndexRelease();
+        try
+        {
+            Directory.Delete(home, recursive: true);
+        }
+        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
+        {
+        }
+    }
+
     internal static bool TClassifierMatch(LSceneFunnelRule rule, string name) =>
         LClassifier.LClassifierMatch(rule, name);
 
@@ -86,10 +111,10 @@ internal static partial class TInterface
         segment.LSegmentLoad(duration);
     }
 
-    internal static void TSegmentSeamSet(Func<string, IReadOnlyList<LSidecarSectionRecord>>? seam) =>
+    internal static void TSegmentSeamSet(Func<string, IReadOnlyList<LSidecarSectionEntry>>? seam) =>
         LSegment.LSegmentLoadSeam = seam;
 
-    internal static LPiece TPieceCreate(LSidecarSectionRecord record) => LPiece.LPieceCreate(record);
+    internal static LPiece TPieceCreate(LSidecarSectionEntry record) => LPiece.LPieceCreate(record);
 
     internal static LPieceDivision? TPieceDivide(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>

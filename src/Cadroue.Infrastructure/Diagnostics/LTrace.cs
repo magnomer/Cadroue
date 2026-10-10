@@ -26,8 +26,8 @@ public static partial class LTrace
     private static bool lTraceVerbose;
     private static bool lTraceLoading;
 
-    public static event Action<LTraceEntry>? LTraceAppend;
-    internal static event Action<long, LTraceEntry>? LTraceCommittedAppend;
+    public static event Action<LTraceEntry>? LTraceAppended;
+    internal static event Action<long, LTraceEntry>? LTraceCommittedAppended;
 
     public static Action<bool>? LTraceVerboseCallback;
 
@@ -136,8 +136,8 @@ public static partial class LTrace
             LTraceEntry.LTraceEntryFormat(lTraceEntry),
             lTraceSequence =>
             {
-                LTraceCommittedAppend?.Invoke(lTraceSequence, lTraceEntry);
-                LTraceAppend?.Invoke(lTraceEntry);
+                LTraceCommittedAppended?.Invoke(lTraceSequence, lTraceEntry);
+                LTraceAppended?.Invoke(lTraceEntry);
             },
             lTraceLossWeight);
     }

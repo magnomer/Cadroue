@@ -37,10 +37,10 @@ public sealed class LSash
         lSashBorder = lBorder;
     }
 
-    public event Action? LSashCaptureStart;
-    public event Action? LSashCaptureStop;
-    public event Action<bool>? LSashActiveChange;
-    public event Action<LSashBounds>? LSashBoundsChange;
+    public event Action? LSashCaptureStarted;
+    public event Action? LSashCaptureStopped;
+    public event Action<bool>? LSashActiveChanged;
+    public event Action<LSashBounds>? LSashBoundsChanged;
 
     public bool LSashActive => lSashActive;
 
@@ -95,8 +95,8 @@ public sealed class LSash
         lSashStartX = lPointerX;
         lSashStartY = lPointerY;
         lSashOrigin = lBounds;
-        LSashActiveChange?.Invoke(true);
-        LSashCaptureStart?.Invoke();
+        LSashActiveChanged?.Invoke(true);
+        LSashCaptureStarted?.Invoke();
         return true;
     }
 
@@ -114,7 +114,7 @@ public sealed class LSash
     {
         if (lSashActive)
         {
-            LSashBoundsChange?.Invoke(LSashMoveResolve(lPointerX, lPointerY, lMinimumWidth, lMinimumHeight));
+            LSashBoundsChanged?.Invoke(LSashMoveResolve(lPointerX, lPointerY, lMinimumWidth, lMinimumHeight));
             return true;
         }
 
@@ -134,8 +134,8 @@ public sealed class LSash
         }
 
         lSashActive = false;
-        LSashActiveChange?.Invoke(false);
-        LSashCaptureStop?.Invoke();
+        LSashActiveChanged?.Invoke(false);
+        LSashCaptureStopped?.Invoke();
         return true;
     }
 
@@ -147,7 +147,7 @@ public sealed class LSash
         }
 
         lSashActive = false;
-        LSashActiveChange?.Invoke(false);
+        LSashActiveChanged?.Invoke(false);
     }
 
     public LSashBounds LSashMoveResolve(double lPointerX, double lPointerY, double lMinimumWidth, double lMinimumHeight)

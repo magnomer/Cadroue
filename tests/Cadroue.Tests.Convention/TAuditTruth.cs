@@ -15,9 +15,13 @@ public sealed class TAuditTruth
     private static readonly Lazy<string> TAuditTruthWritten = new(TAuditReportSave);
 
     private static readonly string[] TAuditTruthKinds =
-        ["Argument", "Guard", "Fork", "Mirror", "Mutation", "Shape", "Treat", "Glyph", "Taint", "Feed", "Parity"];
+        [
+            "Replaying", "Gatekeeping", "Contesting", "Duplicating", "Tampering", "Misfiring", "Moonlighting",
+            "Homoglyph", "Laundering", "Spoonfeeding", "Mismatching", "Puppeteering", "Zeroing",
+        ];
 
-    private static readonly string[] TAuditLineKinds = ["Mutation", "Treat", "Glyph", "Taint", "Feed", "Parity"];
+    private static readonly string[] TAuditLineKinds =
+        ["Tampering", "Moonlighting", "Homoglyph", "Laundering", "Spoonfeeding", "Mismatching"];
 
     private readonly ITestOutputHelper _tAuditOutput;
 
@@ -29,62 +33,69 @@ public sealed class TAuditTruth
     [Fact]
     public void AuditTruth_DriverFields_ReachNoRequest()
     {
-        TAuditTruthCheck("Argument", "driver value(s) carried into a request");
-        TAuditTruthCheck("Guard", "driver value(s) or answer(s) decide a request");
+        TAuditTruthCheck("Replaying", "driver value(s) carried into a request");
+        TAuditTruthCheck("Gatekeeping", "driver value(s) or answer(s) decide a request");
+        TAuditTruthCheck("Zeroing", "driver literal zero(s) at a gate-bound position");
     }
 
     [Fact]
     public void AuditTruth_DriverFields_KeepOneWriter()
     {
-        TAuditTruthCheck("Fork", "driver field(s) written by the engine and by the driver");
+        TAuditTruthCheck("Contesting", "driver field(s) written by the engine and by the driver");
     }
 
     [Fact]
     public void AuditTruth_DriverFields_HoldNoEngine()
     {
-        TAuditTruthCheck("Mirror", "driver field(s) hold a value from below Conduct");
+        TAuditTruthCheck("Duplicating", "driver field(s) hold a value from below Conduct");
     }
 
     [Fact]
     public void AuditTruth_DriverSources_MutateNoLogic()
     {
-        TAuditTruthCheck("Mutation", "driver line(s) assign a logic member");
+        TAuditTruthCheck("Tampering", "driver line(s) assign a logic member");
     }
 
     [Fact]
-    public void AuditTruth_DriverShape_DrivesNoRequest()
+    public void AuditTruth_DriverRequests_HoldNoMisfiring()
     {
-        TAuditTruthCheck("Shape", "driver control(s), clock(s), handler(s) or second request(s)");
+        TAuditTruthCheck("Misfiring", "driver control(s), clock(s), handler(s) or second request(s)");
     }
 
     [Fact]
-    public void AuditTruth_DriverSources_TreatNoData()
+    public void AuditTruth_DriverSources_HoldNoMoonlighting()
     {
-        TAuditTruthCheck("Treat", "driver line(s) compute over a value from below Conduct");
+        TAuditTruthCheck("Moonlighting", "driver line(s) compute over a value from below Conduct");
     }
 
     [Fact]
-    public void AuditTruth_DriverNames_HoldNoGlyph()
+    public void AuditTruth_DriverNames_HoldNoHomoglyph()
     {
-        TAuditTruthCheck("Glyph", "driver identifier(s) carry a non-ASCII glyph");
+        TAuditTruthCheck("Homoglyph", "driver identifier(s) carry a non-ASCII glyph");
     }
 
     [Fact]
     public void AuditTruth_DriverLocals_CarryNoData()
     {
-        TAuditTruthCheck("Taint", "driver line(s) compute over a carried value or medium input");
+        TAuditTruthCheck("Laundering", "driver line(s) compute over a carried value or medium input");
     }
 
     [Fact]
-    public void AuditTruth_DriverSources_FeedNoDeeperType()
+    public void AuditTruth_DriverSources_HoldNoSpoonfeeding()
     {
-        TAuditTruthCheck("Feed", "driver line(s) hand the surface a type from below the cut");
+        TAuditTruthCheck("Spoonfeeding", "driver line(s) hand the surface a type from below the cut");
     }
 
     [Fact]
-    public void AuditTruth_DriverGates_MatchAcrossMedia()
+    public void AuditTruth_DriverGates_HoldNoMismatching()
     {
-        TAuditTruthCheck("Parity", "driver line(s) reach a Conduct member or port the other driver lacks");
+        TAuditTruthCheck("Mismatching", "driver line(s) reach a Conduct member or port the other driver lacks");
+    }
+
+    [Fact]
+    public void AuditTruth_ControlTypes_HoldNoPuppeteering()
+    {
+        TAuditTruthCheck("Puppeteering", "control member(s) request logic");
     }
 
     [Fact]
@@ -108,9 +119,16 @@ public sealed class TAuditTruth
             TAuditTruthSetting.TAuditLedgerFile,
             kind,
             TAuditTruthHits.Value.TAuditHits,
-            TAuditTruthSetting.TAuditTruthEnforced,
+            TAuditTruthSetting.TAuditTruthEnforced && TAuditEnforceCheck(kind),
             summary);
         _tAuditOutput.WriteLine($"{TAuditTruthAudit} {kind}: {count} {summary}. Report: {report}");
+    }
+
+    private static bool TAuditEnforceCheck(string kind)
+    {
+        return !TAuditTruthSetting.TAuditTruthInformative.TryGetValue(kind, out string[]? folders)
+            || folders.All(folder => TAuditTruthHits.Value.TAuditSources.Any(source =>
+                TAuditBinder.TAuditRelativeRead(source).StartsWith(folder + "/", StringComparison.OrdinalIgnoreCase)));
     }
 
     private static int TAuditKindRead(string kind)
@@ -132,6 +150,11 @@ public sealed class TAuditTruth
         text.AppendLine();
         text.AppendLine($"- Generation: {TAuditConvention.TAuditGeneration}");
         text.AppendLine($"- Enforced: {TAuditTruthSetting.TAuditTruthEnforced}");
+        foreach (string kind in TAuditTruthSetting.TAuditTruthInformative.Keys.Where(kind => !TAuditEnforceCheck(kind)))
+        {
+            text.AppendLine($"- Informative: {kind}");
+        }
+
         foreach (string kind in TAuditTruthKinds)
         {
             text.AppendLine($"- {kind}: {TAuditKindRead(kind)}");
@@ -187,8 +210,8 @@ public sealed class TAuditTruth
 
         IReadOnlySet<ISymbol> readers = TAuditTruthWalker.TAuditReaderRead(sources);
         List<TViolation> hits = TAuditTruthWalker.TAuditRun(sources)
-            .Concat(TAuditTreatWalker.TAuditRun(sources))
-            .Concat(TAuditTaintWalker.TAuditRun(sources, readers))
+            .Concat(TAuditMoonlightingWalker.TAuditRun(sources))
+            .Concat(TAuditLaunderingWalker.TAuditRun(sources, readers))
             .Select(hit => hit with
             {
                 TViolationPath = Path.GetRelativePath(repoRoot, hit.TViolationPath).Replace('\\', '/')

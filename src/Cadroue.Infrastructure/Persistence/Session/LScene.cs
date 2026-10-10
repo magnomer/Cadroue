@@ -12,15 +12,14 @@ public static partial class LScene
 {
     public const int LSceneVersionCurrent = 1;
 
-    private const string LSceneFolderName = "Cadroue";
     private const string LSceneFileName = "LScenePresets.json";
     private const string LSceneStateName = "session.json";
     private static LVaultOutcome lSceneCatalogueOutcome;
     private static bool lSceneStateReadable = true;
-    private static readonly List<LSceneRecord> lSceneRecords = LSceneLoad();
+    private static readonly List<LSceneDocument> lSceneRecords = LSceneLoad();
     private static string? lSceneRoot;
 
-    public static LSceneRecord LSceneCurrent { get; private set; } = new();
+    public static LSceneDocument LSceneCurrent { get; private set; } = new();
 
     public static string LSceneActiveName { get; private set; } = string.Empty;
 
@@ -38,19 +37,21 @@ public static partial class LScene
         lSceneRoot = lSceneRootPath;
         lSceneRecords.Clear();
         lSceneRecords.AddRange(LSceneLoad());
-        LSceneCurrent = new LSceneRecord();
+        LSceneCurrent = new LSceneDocument();
         LSceneActiveName = string.Empty;
     }
 
-    public static LSceneRecord LSceneStateLoad()
+    internal static string? LSceneRootRead() => lSceneRoot;
+
+    public static LSceneDocument LSceneStateLoad()
     {
-        LVaultResult<LSceneRecord> lSceneResult =
-            LVault.LVaultRead<LSceneRecord>(Path.Combine(LSceneFolderRead(), LSceneStateName));
+        LVaultResult<LSceneDocument> lSceneResult =
+            LVault.LVaultRead<LSceneDocument>(Path.Combine(LSceneFolderRead(), LSceneStateName));
         lSceneStateReadable = lSceneResult.LVaultOutcome != LVaultOutcome.LVaultUnreadable;
         return LSceneNormalize(lSceneResult.LVaultValue);
     }
 
-    public static bool LSceneStateSave(LSceneRecord lScene)
+    public static bool LSceneStateSave(LSceneDocument lScene)
     {
         if (!lSceneStateReadable)
         {
@@ -63,7 +64,7 @@ public static partial class LScene
     public static IReadOnlyList<string> LSceneNames =>
         lSceneRecords.Select(lSceneRecord => lSceneRecord.LSceneName).ToList();
 
-    public static LSceneRecord? LSceneRead(string lSceneName) =>
+    public static LSceneDocument? LSceneRead(string lSceneName) =>
         lSceneRecords.FirstOrDefault(lSceneRecord =>
             string.Equals(lSceneRecord.LSceneName, lSceneName, StringComparison.OrdinalIgnoreCase));
 
@@ -71,7 +72,7 @@ public static partial class LScene
     {
         string lScenePath = LScenePathCreate();
         using LLatchScope lSceneLatch = LLatch.LLatchClaim(lScenePath);
-        LVaultResult<List<LSceneRecord>> lSceneDisk = LVault.LVaultRead<List<LSceneRecord>>(lScenePath);
+        LVaultResult<List<LSceneDocument>> lSceneDisk = LVault.LVaultRead<List<LSceneDocument>>(lScenePath);
         lSceneCatalogueOutcome = lSceneDisk.LVaultOutcome;
         if (lSceneDisk.LVaultOutcome != LVaultOutcome.LVaultUnreadable)
         {
@@ -80,7 +81,7 @@ public static partial class LScene
         }
     }
 
-    public static bool LSceneSave(LSceneRecord lScene) =>
+    public static bool LSceneSave(LSceneDocument lScene) =>
         LSceneChange(lSceneNext =>
         {
             int lSceneIndex = lSceneNext.FindIndex(lSceneRecord =>
@@ -120,7 +121,7 @@ public static partial class LScene
         return string.IsNullOrWhiteSpace(lClean) ? $"{lSceneDefault}.json" : $"{lClean}.json";
     }
 
-    public static void LSceneFileSave(LSceneRecord lScene, string lScenePath)
+    public static void LSceneFileSave(LSceneDocument lScene, string lScenePath)
     {
         string lSceneJson = JsonSerializer.Serialize(lScene, new JsonSerializerOptions { WriteIndented = true });
         File.WriteAllText(lScenePath, lSceneJson);
@@ -132,18 +133,18 @@ public static partial class LScene
         return lSceneTrimmed.Length > 0 ? lSceneTrimmed : Path.GetFileNameWithoutExtension(lScenePath).Trim();
     }
 
-    public static LSceneRecord? LSceneFileLoad(string lScenePath)
+    public static LSceneDocument? LSceneFileLoad(string lScenePath)
     {
         string lSceneJson = File.ReadAllText(lScenePath);
-        return LSceneNormalize(JsonSerializer.Deserialize<LSceneRecord>(lSceneJson));
+        return LSceneNormalize(JsonSerializer.Deserialize<LSceneDocument>(lSceneJson));
     }
 
-    public static bool LSceneMatch(LSceneRecord lSceneLeft, LSceneRecord lSceneRight) =>
+    public static bool LSceneMatch(LSceneDocument lSceneLeft, LSceneDocument lSceneRight) =>
         string.Equals(LSceneCanonicalRead(lSceneLeft), LSceneCanonicalRead(lSceneRight), StringComparison.Ordinal);
 
-    private static string LSceneCanonicalRead(LSceneRecord lScene)
+    private static string LSceneCanonicalRead(LSceneDocument lScene)
     {
-        var lSceneCanonical = new LSceneRecord
+        var lSceneCanonical = new LSceneDocument
         {
             LSceneLayoutKeys = lScene.LSceneLayoutKeys,
             LSceneTabNames = lScene.LSceneTabNames,
@@ -151,7 +152,7 @@ public static partial class LScene
             LSceneTabLayouts = lScene.LSceneTabLayouts
                 .Select(lSceneTab =>
                 {
-                    LSceneTabRecord lSceneTabCanonical = lSceneTab.LSceneTabClone();
+                    LSceneTabEntry lSceneTabCanonical = lSceneTab.LSceneTabClone();
                     lSceneTabCanonical.LScenePanelWidths =
                         LSceneWidthsRead(lSceneTabCanonical.LScenePanelWidths);
                     return lSceneTabCanonical;
@@ -176,26 +177,26 @@ public static partial class LScene
             .ToList();
     }
 
-    private static List<LSceneRecord> LSceneLoad()
+    private static List<LSceneDocument> LSceneLoad()
     {
-        LVaultResult<List<LSceneRecord>> lSceneResult =
-            LVault.LVaultRead<List<LSceneRecord>>(LScenePathCreate());
+        LVaultResult<List<LSceneDocument>> lSceneResult =
+            LVault.LVaultRead<List<LSceneDocument>>(LScenePathCreate());
         lSceneCatalogueOutcome = lSceneResult.LVaultOutcome;
         return LSceneCatalogueNormalize(lSceneResult.LVaultValue);
     }
 
-    private static bool LSceneChange(Func<List<LSceneRecord>, bool> lSceneApply)
+    private static bool LSceneChange(Func<List<LSceneDocument>, bool> lSceneApply)
     {
         string lScenePath = LScenePathCreate();
         using LLatchScope lSceneLatch = LLatch.LLatchClaim(lScenePath);
-        LVaultResult<List<LSceneRecord>> lSceneDisk = LVault.LVaultRead<List<LSceneRecord>>(lScenePath);
+        LVaultResult<List<LSceneDocument>> lSceneDisk = LVault.LVaultRead<List<LSceneDocument>>(lScenePath);
         if (lSceneDisk.LVaultOutcome == LVaultOutcome.LVaultUnreadable)
         {
             lSceneCatalogueOutcome = LVaultOutcome.LVaultUnreadable;
             return false;
         }
 
-        List<LSceneRecord> lSceneNext = lSceneDisk.LVaultValue ?? new List<LSceneRecord>();
+        List<LSceneDocument> lSceneNext = lSceneDisk.LVaultValue ?? new List<LSceneDocument>();
         if (!lSceneApply(lSceneNext))
         {
             LSceneMirrorSet(lSceneNext);
@@ -211,7 +212,7 @@ public static partial class LScene
         return true;
     }
 
-    private static void LSceneMirrorSet(List<LSceneRecord> lSceneCatalogue)
+    private static void LSceneMirrorSet(List<LSceneDocument> lSceneCatalogue)
     {
         lSceneRecords.Clear();
         lSceneRecords.AddRange(lSceneCatalogue);
@@ -221,8 +222,5 @@ public static partial class LScene
     private static string LScenePathCreate() =>
         Path.Combine(LSceneFolderRead(), LSceneFileName);
 
-    private static string LSceneFolderRead() =>
-        lSceneRoot ?? Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            LSceneFolderName);
+    private static string LSceneFolderRead() => LSceneRootRead() ?? LDepot.LDepotHomeRead();
 }

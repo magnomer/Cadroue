@@ -2,10 +2,10 @@ namespace Convention.Tests;
 
 internal static class TAuditLineSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
     public const bool TAuditLineEnforced = true;
-    public const int TAuditLineLimit = 500;
-    public const int TAuditLineWarning = 450;
+    public const int TAuditLineLimit = 400;
+    public const int TAuditLineWarning = 350;
     public const int TAuditWidthBand = 5;
 
     public static readonly IReadOnlyDictionary<string, int> TAuditLineCeiling = new Dictionary<string, int>

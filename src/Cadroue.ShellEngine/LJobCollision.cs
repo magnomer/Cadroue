@@ -64,7 +64,8 @@ internal sealed partial class LJob
         }
 
         lJobItem.LWorkSourceMedia ??=
-            await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+            await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                .ConfigureAwait(false);
         if (lJobItem.LWorkSourceMedia is not { } pSource)
         {
             return string.Empty;

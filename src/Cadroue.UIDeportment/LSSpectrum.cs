@@ -18,7 +18,7 @@ public sealed class LSSpectrum
     private IReadOnlyList<string> lsSpectrumNames = [];
     private string lsSpectrumName;
 
-    public event Action? LSSpectrumChange;
+    public event Action? LSSpectrumChanged;
 
     public LSSpectrum(string lName)
         : this(lName, LDepot.LDepotPaletteRead)
@@ -48,7 +48,7 @@ public sealed class LSSpectrum
             lsSpectrumName = LSSpectrumDefault;
         }
 
-        LSSpectrumChange?.Invoke();
+        LSSpectrumChanged?.Invoke();
     }
 
     public void LSSpectrumSelect(string lName)
@@ -59,7 +59,7 @@ public sealed class LSSpectrum
         }
 
         lsSpectrumName = lName;
-        LSSpectrumChange?.Invoke();
+        LSSpectrumChanged?.Invoke();
     }
 
     public LSSpectrumResult LSSpectrumImport(string lSourcePath, out string lTargetPath)

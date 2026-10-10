@@ -11,7 +11,7 @@ public sealed class LGroupDrag
     private double lGroupGrabX;
     private double lGroupGrabY;
 
-    public event Action<string>? LGroupItemOpen;
+    public event Action<string>? LGroupItemOpened;
     public event Action<IReadOnlyList<string>>? LGroupPathsRequest;
 
     public LGroupDrag(LGroup lOwner)
@@ -35,7 +35,7 @@ public sealed class LGroupDrag
         lGroupGrabX = lGrabX;
         lGroupGrabY = lGrabY;
         lGroup.LGroupDragSet(lGroupIndex, lPath);
-        LGroupItemOpen?.Invoke(lPath);
+        LGroupItemOpened?.Invoke(lPath);
     }
 
     public bool LGroupDragResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed)

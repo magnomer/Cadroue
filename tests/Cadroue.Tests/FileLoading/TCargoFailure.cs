@@ -8,7 +8,7 @@ public sealed class TCargoFailure
     [Fact]
     public async Task UnsupportedSource_FailsWithoutSuccessEvent()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string source = media.TSourceCreate("unsupported.txt");
 
         TMediaLoadOutcome outcome = await media.TMediaLoadRun(source);
@@ -21,7 +21,7 @@ public sealed class TCargoFailure
     [Fact]
     public async Task MissingSource_FailsSafely()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
 
         TMediaLoadOutcome outcome = await media.TMediaLoadRun(media.TMediaMissingRead("missing.mp4"));
 
@@ -33,7 +33,7 @@ public sealed class TCargoFailure
     [Fact]
     public async Task CancelledLoad_DoesNotCorruptLaterSuccess()
     {
-        using var media = new TMediaLoad();
+        using var media = new TMediaLoader();
         string cancelled = media.TMediaGatedCreate("cancelled.mp4", 2_000, observeCancellation: true);
         string later = media.TSourceCreate("later.mp4", 7_000);
         using var cancellation = new CancellationTokenSource();

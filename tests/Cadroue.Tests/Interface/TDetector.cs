@@ -228,7 +228,7 @@ public sealed class TDetector
         Assert.Equal(60, lClamped.LDetectorBlankMinimum);
     }
 
-    private static LDetectorSet TDetectorSetBuild() => TInterface.TDetectorSetCreate(
+    private static LDetectorBundle TDetectorSetBuild() => TInterface.TDetectorSetCreate(
         [
             new LDetectorStep(LDetectorKind.LDetectorKindScene, true, 75, 0.5, 0),
             new LDetectorStep(LDetectorKind.LDetectorKindStill, false, 0.05, 2.0, 0),
@@ -252,10 +252,10 @@ public sealed class TDetector
     [Fact]
     public void LDetectorSidecarFormat_RoundTripsEveryKind()
     {
-        LDetectorSet lSet = TDetectorSetBuild();
+        LDetectorBundle lSet = TDetectorSetBuild();
 
-        LSidecarSplitRecord lRecord = TInterface.TDetectorSidecarFormat(lSet);
-        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+        LSidecarSplitEntry lRecord = TInterface.TDetectorSidecarFormat(lSet);
+        LDetectorBundle lParsed = TInterface.TDetectorSidecarParse(lRecord);
 
         Assert.Equal(6, lRecord.LSidecarSplitDetectors.Count);
         Assert.True(lRecord.LSidecarSplitActive);
@@ -270,10 +270,10 @@ public sealed class TDetector
     [Fact]
     public void LDetectorSceneFormat_RoundTripsEveryKind()
     {
-        LDetectorSet lSet = TDetectorSetBuild();
+        LDetectorBundle lSet = TDetectorSetBuild();
 
         List<LSceneDetector> lDetectors = TInterface.TDetectorSceneFormat(lSet);
-        LDetectorSet lParsed = TInterface.TDetectorSceneParse(lDetectors);
+        LDetectorBundle lParsed = TInterface.TDetectorSceneParse(lDetectors);
 
         Assert.Equal(6, lDetectors.Count);
         Assert.Equal((int)LDetectorStillMode.LDetectorStillTreat, lDetectors[2].LSceneDetectorType);
@@ -286,19 +286,19 @@ public sealed class TDetector
     [Fact]
     public void LDetectorSidecarParse_UnknownKindSkipped()
     {
-        var lRecord = new LSidecarSplitRecord
+        var lRecord = new LSidecarSplitEntry
         {
             LSidecarSplitDetectors =
             [
-                new LSidecarDetectorRecord { LSidecarDetectorKind = 99, LSidecarDetectorEnabled = true },
-                new LSidecarDetectorRecord
+                new LSidecarDetectorEntry { LSidecarDetectorKind = 99, LSidecarDetectorEnabled = true },
+                new LSidecarDetectorEntry
                 {
                     LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindSilence, LSidecarDetectorThreshold = -20
                 }
             ]
         };
 
-        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+        LDetectorBundle lParsed = TInterface.TDetectorSidecarParse(lRecord);
 
         Assert.Single(lParsed.LDetectorSetSteps);
         Assert.Equal(LDetectorKind.LDetectorKindSilence, lParsed.LDetectorSetSteps[0].LDetectorStepKind);
@@ -310,30 +310,30 @@ public sealed class TDetector
     [Fact]
     public void LDetectorSidecarParse_UndefinedTypeFallsBack()
     {
-        var lRecord = new LSidecarSplitRecord
+        var lRecord = new LSidecarSplitEntry
         {
             LSidecarSplitDetectors =
             [
-                new LSidecarDetectorRecord
+                new LSidecarDetectorEntry
                 {
                     LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindBlank, LSidecarDetectorType = 7
                 },
-                new LSidecarDetectorRecord
+                new LSidecarDetectorEntry
                 {
                     LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindStill, LSidecarDetectorType = 7
                 },
-                new LSidecarDetectorRecord
+                new LSidecarDetectorEntry
                 {
                     LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindLuminance, LSidecarDetectorType = 7
                 },
-                new LSidecarDetectorRecord
+                new LSidecarDetectorEntry
                 {
                     LSidecarDetectorKind = (int)LDetectorKind.LDetectorKindVolume, LSidecarDetectorType = 7
                 }
             ]
         };
 
-        LDetectorSet lParsed = TInterface.TDetectorSidecarParse(lRecord);
+        LDetectorBundle lParsed = TInterface.TDetectorSidecarParse(lRecord);
 
         Assert.Equal(LDetectorType.LDetectorTypeBlack, lParsed.LDetectorSetBlank!.Value.LDetectorBlankType);
         Assert.Equal(LDetectorStillMode.LDetectorStillDiscard, lParsed.LDetectorSetStill);

@@ -8,11 +8,11 @@ namespace Cadroue.Infrastructure;
 
 public static partial class LScene
 {
-    public static LSceneRecord LSceneNormalize(LSceneRecord? lScene)
+    public static LSceneDocument LSceneNormalize(LSceneDocument? lScene)
     {
         if (lScene is null)
         {
-            return new LSceneRecord
+            return new LSceneDocument
             {
                 LSceneVersion = LSceneVersionCurrent,
                 LSceneDefaultTabs = true
@@ -28,15 +28,15 @@ public static partial class LScene
 
         int lSceneCount = lScene.LSceneLayoutKeys.Count;
         LSceneListNormalize(lScene.LSceneTabNames, lSceneCount, () => string.Empty);
-        LSceneListNormalize(lScene.LSceneTabExports, lSceneCount, () => new LPresetRecord());
-        LSceneListNormalize(lScene.LSceneTabLayouts, lSceneCount, () => new LSceneTabRecord());
+        LSceneListNormalize(lScene.LSceneTabExports, lSceneCount, () => new LPresetDocument());
+        LSceneListNormalize(lScene.LSceneTabLayouts, lSceneCount, () => new LSceneTabEntry());
         LSceneListNormalize(lScene.LSceneTabRelays, lSceneCount, () => -1);
 
         lScene.LSceneTabIndex = lSceneCount == 0
             ? 0
             : Math.Clamp(lScene.LSceneTabIndex, 0, lSceneCount - 1);
 
-        foreach (LSceneTabRecord lSceneTab in lScene.LSceneTabLayouts)
+        foreach (LSceneTabEntry lSceneTab in lScene.LSceneTabLayouts)
         {
             LSceneTabNormalize(lSceneTab);
         }
@@ -45,13 +45,13 @@ public static partial class LScene
         return lScene;
     }
 
-    public static List<LSceneRecord> LSceneCatalogueNormalize(List<LSceneRecord>? lSceneCatalogue)
+    public static List<LSceneDocument> LSceneCatalogueNormalize(List<LSceneDocument>? lSceneCatalogue)
     {
         var lSceneSeen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lSceneNormalized = new List<LSceneRecord>();
-        foreach (LSceneRecord lSceneRecord in lSceneCatalogue ?? new List<LSceneRecord>())
+        var lSceneNormalized = new List<LSceneDocument>();
+        foreach (LSceneDocument lSceneRecord in lSceneCatalogue ?? new List<LSceneDocument>())
         {
-            LSceneRecord lSceneReady = LSceneNormalize(lSceneRecord);
+            LSceneDocument lSceneReady = LSceneNormalize(lSceneRecord);
             if (lSceneReady.LSceneName.Length == 0 || !lSceneSeen.Add(lSceneReady.LSceneName))
             {
                 continue;
@@ -63,7 +63,7 @@ public static partial class LScene
         return lSceneNormalized;
     }
 
-    private static void LSceneTabNormalize(LSceneTabRecord lSceneTab)
+    private static void LSceneTabNormalize(LSceneTabEntry lSceneTab)
     {
         lSceneTab.LScenePanelWidths = LSceneListRead(lSceneTab.LScenePanelWidths);
         lSceneTab.LScenePanelsCollapsed = LSceneListRead(lSceneTab.LScenePanelsCollapsed);
@@ -72,7 +72,7 @@ public static partial class LScene
         LSceneInspectorNormalize(lSceneTab.LSceneInspector);
     }
 
-    private static void LSceneInspectorNormalize(LSceneInspectorRecord? lSceneInspector)
+    private static void LSceneInspectorNormalize(LSceneInspectorEntry? lSceneInspector)
     {
         if (lSceneInspector is null)
         {

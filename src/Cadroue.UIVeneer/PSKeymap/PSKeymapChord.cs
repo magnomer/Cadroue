@@ -25,7 +25,7 @@ internal sealed class PSKeymapChord : Button
         VerticalAlignment = VerticalAlignment.Center;
         Focusable = true;
         Style = PButton.PButtonWhiteCreate();
-        lsKeymap.LSKeymapChordChange += PSKeymapChordHandle;
+        lsKeymap.LSKeymapChordChanged += PSKeymapChordHandle;
         PSKeymapTextUpdate();
     }
 

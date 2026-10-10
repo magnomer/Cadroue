@@ -24,16 +24,16 @@ public sealed class LSKeymap
 {
     private readonly Dictionary<string, LSKeymapChord> lsKeymapChords = new(StringComparer.Ordinal);
 
-    public event Action<LSKeymapChord>? LSKeymapChordChange;
+    public event Action<LSKeymapChord>? LSKeymapChordChanged;
 
     public LSKeymap()
         : this(LBinding.LBindingCurrent)
     {
     }
 
-    public LSKeymap(List<LBindingRecord>? lRecords)
+    public LSKeymap(List<LBindingEntry>? lRecords)
     {
-        List<LBindingRecord> lDraft = LBinding.LBindingNormalize(lRecords);
+        List<LBindingEntry> lDraft = LBinding.LBindingNormalize(lRecords);
         foreach (LBindingCommand lCommand in LBinding.LBindingCatalogRead())
         {
             string lToken = lCommand.LBindingCommandToken;
@@ -50,14 +50,14 @@ public sealed class LSKeymap
         lChord.LSKeymapChordGesture = lGesture;
         lChord.LSKeymapChordPending = string.Empty;
         lChord.LSKeymapChordActive = false;
-        LSKeymapChordChange?.Invoke(lChord);
+        LSKeymapChordChanged?.Invoke(lChord);
     }
 
     public void LSKeymapChordStart(LSKeymapChord lChord)
     {
         lChord.LSKeymapChordActive = true;
         lChord.LSKeymapChordPending = string.Empty;
-        LSKeymapChordChange?.Invoke(lChord);
+        LSKeymapChordChanged?.Invoke(lChord);
     }
 
     public void LSKeymapPendingSet(LSKeymapChord lChord, string lGesture)
@@ -68,14 +68,14 @@ public sealed class LSKeymap
         }
 
         lChord.LSKeymapChordPending = lGesture;
-        LSKeymapChordChange?.Invoke(lChord);
+        LSKeymapChordChanged?.Invoke(lChord);
     }
 
     public void LSKeymapChordCancel(LSKeymapChord lChord)
     {
         lChord.LSKeymapChordActive = false;
         lChord.LSKeymapChordPending = string.Empty;
-        LSKeymapChordChange?.Invoke(lChord);
+        LSKeymapChordChanged?.Invoke(lChord);
     }
 
     public void LSKeymapChordCommit(LSKeymapChord lChord)
@@ -84,13 +84,13 @@ public sealed class LSKeymap
         string lPending = lChord.LSKeymapChordPending;
         if (lPending.Length == 0)
         {
-            LSKeymapChordChange?.Invoke(lChord);
+            LSKeymapChordChanged?.Invoke(lChord);
             return;
         }
 
         lChord.LSKeymapChordGesture = lPending;
         lChord.LSKeymapChordPending = string.Empty;
-        LSKeymapChordChange?.Invoke(lChord);
+        LSKeymapChordChanged?.Invoke(lChord);
         foreach (LSKeymapChord lOther in lsKeymapChords.Values)
         {
             if (!ReferenceEquals(lOther, lChord)
@@ -109,9 +109,9 @@ public sealed class LSKeymap
         }
     }
 
-    public List<LBindingRecord> LSKeymapRecordsRead() =>
+    public List<LBindingEntry> LSKeymapRecordsRead() =>
         lsKeymapChords.Values
-            .Select(lChord => new LBindingRecord
+            .Select(lChord => new LBindingEntry
             {
                 LBindingRecordToken = lChord.LSKeymapChordToken,
                 LBindingRecordGesture = lChord.LSKeymapChordGesture

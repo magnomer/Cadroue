@@ -76,7 +76,7 @@ public static class LClassifier
             }
         }
 
-        (LSceneFunnelMatch, int)[] lClassifierParts =
+        (LSceneFunnelCondition, int)[] lClassifierParts =
         {
             (lClassifierRule.LSceneFunnelContains, 0),
             (lClassifierRule.LSceneFunnelPrefix, 1),
@@ -86,7 +86,7 @@ public static class LClassifier
 
         bool lClassifierHasResult = false;
         bool lClassifierResult = false;
-        foreach ((LSceneFunnelMatch lClassifierMatch, int lClassifierKind) in lClassifierParts)
+        foreach ((LSceneFunnelCondition lClassifierMatch, int lClassifierKind) in lClassifierParts)
         {
             if (string.IsNullOrWhiteSpace(lClassifierMatch.LSceneFunnelText))
             {

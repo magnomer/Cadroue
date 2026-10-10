@@ -45,7 +45,8 @@ internal sealed partial class LJob
             lJobItem.LWorkSourcePath, lJobItem.LWorkOrigin, lJobItem.LWorkEnd, lJobToken, pSource)
             .ConfigureAwait(false);
         LWorkMedia? pMedia = lJobItem.LWorkSourceMedia
-            ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
+            ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                .ConfigureAwait(false);
         bool pOpenEnd = LBridge.LBridgeEndCheck(
             lJobItem.LWorkEnd,
             pMedia?.LWorkMediaDuration ?? TimeSpan.Zero,

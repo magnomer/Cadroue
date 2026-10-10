@@ -10,13 +10,14 @@ internal static partial class TAuditTruthWalker
         TAuditTruthField field, MemberDeclarationSyntax scope, HashSet<ISymbol> writers, List<TViolation> violations)
     {
         List<SyntaxNode> writes = scope.DescendantNodes().OfType<IdentifierNameSyntax>()
-            .Where(identifier => TAuditFieldCheck(identifier, field.TFieldSymbols)
+            .Where(identifier => TAuditTruthReference.TAuditFieldCheck(identifier, field.TFieldSymbols)
                                  || (identifier.Parent is InvocationExpressionSyntax
-                                     && TAuditBinder.TAuditSymbolRead(identifier) is { } callee
+                                     && TAuditBinderSymbol.TAuditSymbolRead(identifier) is { } callee
                                      && writers.Contains(callee)))
-            .Select(TAuditReferenceRead)
+            .Select(TAuditTruthReference.TAuditReferenceRead)
             .Where(reference => reference.Parent is not MemberAccessExpressionSyntax)
-            .Where(reference => TAuditWriteCheck(reference, out _) || reference.Parent is InvocationExpressionSyntax)
+            .Where(reference => TAuditTruthReference.TAuditWriteCheck(reference, out _)
+                                 || reference.Parent is InvocationExpressionSyntax)
             .ToList();
         if (writes.Count < 2)
         {
@@ -39,9 +40,9 @@ internal static partial class TAuditTruthWalker
                 : string.Empty;
             violations.Add(new TViolation(
                 last.SyntaxTree.FilePath,
-                TAuditLineRead(last),
+                TAuditTruthReference.TAuditLineRead(last),
                 field.TFieldName,
-                "Guard",
+                "Gatekeeping",
                 $"toggled around a request{through}"));
         }
     }
@@ -68,12 +69,12 @@ internal static partial class TAuditTruthWalker
                 continue;
             }
 
-            bool writes = TAuditUseRead(field.TFieldSymbols)
+            bool writes = TAuditTruthReference.TAuditUseRead(field.TFieldSymbols)
                 .Where(identifier => identifier.SyntaxTree == body.SyntaxTree && body.Span.Contains(identifier.Span))
-                .Select(TAuditReferenceRead)
+                .Select(TAuditTruthReference.TAuditReferenceRead)
                 .Where(reference => reference.Parent is not MemberAccessExpressionSyntax)
-                .Any(reference => TAuditWriteCheck(reference, out _));
-            if (writes && TAuditBinder.TAuditSymbolRead(method) is { } symbol)
+                .Any(reference => TAuditTruthReference.TAuditWriteCheck(reference, out _));
+            if (writes && TAuditBinderSymbol.TAuditSymbolRead(method) is { } symbol)
             {
                 writers.Add(symbol);
             }
@@ -88,17 +89,17 @@ internal static partial class TAuditTruthWalker
         {
             foreach (BaseTypeSyntax baseType in part.BaseList?.Types ?? [])
             {
-                ITypeSymbol? symbol = TAuditBinder.TAuditTypeRead(baseType.Type);
-                if (symbol is null || !TAuditBinder.TAuditEngineCheck(symbol))
+                ITypeSymbol? symbol = TAuditBinderSymbol.TAuditTypeRead(baseType.Type);
+                if (symbol is null || !TAuditBinderSide.TAuditEngineCheck(symbol))
                 {
                     continue;
                 }
 
                 violations.Add(new TViolation(
                     part.SyntaxTree.FilePath,
-                    TAuditLineRead(baseType),
+                    TAuditTruthReference.TAuditLineRead(baseType),
                     part.Identifier.ValueText,
-                    "Mirror",
+                    "Duplicating",
                     $"derives from {symbol.Name}"));
             }
         }
@@ -125,9 +126,11 @@ internal static partial class TAuditTruthWalker
             string member = TAuditMemberRead(scope);
 
             HashSet<string> seen = new(StringComparer.Ordinal);
-            foreach (IdentifierNameSyntax identifier in scope.DescendantNodes().OfType<IdentifierNameSyntax>())
+            foreach (IdentifierNameSyntax identifier in scope.DescendantNodes(node => !TAuditNameofCheck(node))
+                         .OfType<IdentifierNameSyntax>())
             {
-                if (!TAuditFieldCheck(identifier, answered) || TAuditWriteCheck(identifier, out _))
+                if (!TAuditTruthReference.TAuditFieldCheck(identifier, answered)
+                    || TAuditTruthReference.TAuditWriteCheck(identifier, out _))
                 {
                     continue;
                 }
@@ -146,7 +149,7 @@ internal static partial class TAuditTruthWalker
                 }
 
                 string name = identifier.Identifier.ValueText;
-                int line = TAuditLineRead(identifier);
+                int line = TAuditTruthReference.TAuditLineRead(identifier);
                 if (seen.Add($"{line}:{name}:{sink.Value.TViolationKind}"))
                 {
                     violations.Add(new TViolation(
@@ -169,17 +172,18 @@ internal static partial class TAuditTruthWalker
             {
                 case VariableDeclaratorSyntax { Initializer.Value: var value } declarator
                     when TAuditAnswerCheck(value):
-                    TAuditSymbolAdd(declarator, answered);
+                    TAuditTruthReference.TAuditSymbolAdd(declarator, answered);
                     break;
                 case AssignmentExpressionSyntax { Left: IdentifierNameSyntax local } assignment
-                    when TAuditBinder.TAuditSymbolRead(local) is ILocalSymbol && TAuditAnswerCheck(assignment.Right):
-                    TAuditSymbolAdd(local, answered);
+                    when TAuditBinderSymbol.TAuditSymbolRead(local) is ILocalSymbol
+                         && TAuditAnswerCheck(assignment.Right):
+                    TAuditTruthReference.TAuditSymbolAdd(local, answered);
                     break;
                 case AssignmentExpressionSyntax assignment when TAuditAnswerCheck(assignment.Right):
                     TAuditDesignationAdd(assignment.Left, answered);
                     break;
                 case ForEachStatementSyntax loop when TAuditAnswerCheck(loop.Expression):
-                    TAuditSymbolAdd(loop, answered);
+                    TAuditTruthReference.TAuditSymbolAdd(loop, answered);
                     break;
                 case ForEachVariableStatementSyntax loop when TAuditAnswerCheck(loop.Expression):
                     TAuditDesignationAdd(loop.Variable, answered);
@@ -202,7 +206,7 @@ internal static partial class TAuditTruthWalker
                                      _ => (IEnumerable<ParameterSyntax>)[]
                                  })
                         {
-                            TAuditSymbolAdd(parameter, answered);
+                            TAuditTruthReference.TAuditSymbolAdd(parameter, answered);
                         }
                     }
 
@@ -218,13 +222,13 @@ internal static partial class TAuditTruthWalker
         foreach (SingleVariableDesignationSyntax designation in
                  node.DescendantNodesAndSelf().OfType<SingleVariableDesignationSyntax>())
         {
-            TAuditSymbolAdd(designation, answered);
+            TAuditTruthReference.TAuditSymbolAdd(designation, answered);
         }
 
         foreach (IdentifierNameSyntax name in node.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
         {
             if (name.Parent is TupleExpressionSyntax or ArgumentSyntax { Parent: TupleExpressionSyntax }
-                && TAuditBinder.TAuditSymbolRead(name) is ILocalSymbol local)
+                && TAuditBinderSymbol.TAuditSymbolRead(name) is ILocalSymbol local)
             {
                 answered.Add(local);
             }
@@ -246,12 +250,12 @@ internal static partial class TAuditTruthWalker
 
     private static bool TAuditAnswerCheck(ExpressionSyntax value)
     {
-        return value.DescendantNodesAndSelf().Any(node => node switch
+        return value.DescendantNodesAndSelf(node => !TAuditNameofCheck(node)).Any(node => node switch
         {
             InvocationExpressionSyntax or BaseObjectCreationExpressionSyntax
                 => TAuditCallRead((ExpressionSyntax)node) is not null,
             MemberAccessExpressionSyntax or MemberBindingExpressionSyntax
-                => TAuditBinder.TAuditLogicCheck(TAuditBinder.TAuditSymbolRead(node)),
+                => TAuditBinderSide.TAuditLogicCheck(TAuditBinderSymbol.TAuditSymbolRead(node)),
             _ => false
         });
     }

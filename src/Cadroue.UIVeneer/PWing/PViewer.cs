@@ -162,17 +162,17 @@ public sealed class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        LViewer.LViewerPlayback.LViewerClockStart += pViewerClockTimer.Start;
-        LViewer.LViewerPlayback.LViewerClockStop += pViewerClockTimer.Stop;
-        LViewer.LViewerEngineChange += PViewerAudioUpdate;
-        LViewer.LViewerBypassChange += PViewerBypassHandle;
-        LViewer.LViewerRenderer.LViewerHostApply += PViewerHostApply;
-        LViewer.LViewerMedia.LViewerPlayerCreate += PViewerPlayerCreate;
+        LViewer.LViewerPlayback.LViewerClockStarted += pViewerClockTimer.Start;
+        LViewer.LViewerPlayback.LViewerClockStopped += pViewerClockTimer.Stop;
+        LViewer.LViewerEngineChanged += PViewerAudioUpdate;
+        LViewer.LViewerBypassChanged += PViewerBypassHandle;
+        LViewer.LViewerRenderer.LViewerHostApplied += PViewerHostApply;
+        LViewer.LViewerMedia.LViewerPlayerCreated += PViewerPlayerCreate;
         LViewer.LViewerSource.LViewerSourceAsk += PViewerAskHandle;
         LViewer.LViewerSource.LViewerSourceLocate += PViewerLocateHandle;
         LViewer.LViewerMedia.LViewerFactsAttach(PViewerFactsRead);
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineShow;
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange += PViewerEngineHandle;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineShow;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineHandle;
         PViewerEngineShow();
         PViewerHostApply();
 
@@ -369,8 +369,8 @@ public sealed class PViewer : PPanel
     public void PViewerClose()
     {
         LViewer.LViewerMedia.LViewerClose();
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineShow;
-        Cadroue.Infrastructure.LRenderer.LRendererEngineChange -= PViewerEngineHandle;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineShow;
+        Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineHandle;
         pViewerClockTimer.Tick -= PViewerClockHandle;
         pViewerOverlay.PCropClose();
         pViewerOverlay.DragEnter -= PViewerDragAccept;

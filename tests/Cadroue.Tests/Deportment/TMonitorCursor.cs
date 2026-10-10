@@ -74,7 +74,7 @@ public sealed class TMonitorCursor
 
         TInterface.TMonitorIncreaseZoom(monitor);
         Assert.Equal(2, monitor.LSMonitorScale);
-        LSMonitorScroll scroll = TInterface.TMonitorScrollRead(monitor);
+        LSMonitorScrollbar scroll = TInterface.TMonitorScrollRead(monitor);
         Assert.Equal(0.5, scroll.LSMonitorScrollViewport, 6);
         Assert.Equal(0.5, scroll.LSMonitorScrollMaximum, 6);
         Assert.True(scroll.LSMonitorScrollEnabled);

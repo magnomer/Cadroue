@@ -8,12 +8,14 @@ internal static class LScout
 {
     internal static async Task<double> LScoutMergeRead(
         IReadOnlyList<string> lScoutMergeSources,
-        CancellationToken lScoutToken = default)
+        CancellationToken lScoutToken = default,
+        int? lScoutLevel = null)
     {
         double lScoutTotalSeconds = 0;
         foreach (string lScoutMergeSource in lScoutMergeSources)
         {
-            LWorkMedia? lScoutMedia = await LScoutMediaRead(lScoutMergeSource, lScoutToken).ConfigureAwait(false);
+            LWorkMedia? lScoutMedia = await LScoutMediaRead(lScoutMergeSource, lScoutToken, lScoutLevel)
+                .ConfigureAwait(false);
             lScoutTotalSeconds += lScoutMedia?.LWorkMediaDuration.TotalSeconds ?? 0;
         }
 
@@ -21,7 +23,7 @@ internal static class LScout
     }
 
     internal static async Task<LWorkMedia?> LScoutMediaRead(
-        string lScoutMediaPath, CancellationToken lScoutToken = default)
+        string lScoutMediaPath, CancellationToken lScoutToken = default, int? lScoutLevel = null)
     {
         if (string.IsNullOrWhiteSpace(lScoutMediaPath) || !File.Exists(lScoutMediaPath))
         {
@@ -30,7 +32,8 @@ internal static class LScout
 
         try
         {
-            LMediaInfo lScoutMedia = await LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken).ConfigureAwait(false);
+            LMediaInfo lScoutMedia = await LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken, lScoutLevel)
+                .ConfigureAwait(false);
             return new LWorkMedia(
                 lScoutMedia.LMediaVideoWidth,
                 lScoutMedia.LMediaVideoHeight,
@@ -109,12 +112,7 @@ internal static class LScout
 
         try
         {
-            var lScoutEmployer = new LEmployer(
-                lScoutRunner.LRunnerProgramPath, lScoutRunner.LRunnerArgumentPrefix)
-            {
-                LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
-            };
-            LEmployerResult lScoutResult = await lScoutEmployer.LEmployerRun(
+            LEmployerResult lScoutResult = await lScoutRunner.LRunnerEmployerCreate().LEmployerRun(
                 lScoutArguments,
                 lScoutToken,
                 static _ => { },

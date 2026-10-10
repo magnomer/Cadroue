@@ -59,7 +59,7 @@ internal sealed class PToken : RichTextBox
         pTokenParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
         Document.Blocks.Add(pTokenParagraph);
         Template = PTokenTemplateBuild();
-        lToken.LTokenInsert += PTokenInsert;
+        lToken.LTokenInserted += PTokenInsert;
         PreviewDragOver += PTokenDragHandle;
         PreviewDrop += PTokenDropHandle;
     }

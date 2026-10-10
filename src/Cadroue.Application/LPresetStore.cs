@@ -4,11 +4,11 @@ namespace Cadroue.Application;
 
 public sealed partial class LPreset
 {
-    private static readonly List<LPresetRecord> LPresetBaseline = new();
+    private static readonly List<LPresetDocument> LPresetBaseline = new();
 
     public static Func<LPresetCatalog>? LPresetLoadSeam;
     public static Func<IReadOnlyList<LPresetGroup>>? LPresetNativeSeam;
-    public static Func<Func<LPresetCatalog, IReadOnlyList<LPresetRecord>?>, bool>? LPresetSaveSeam;
+    public static Func<Func<LPresetCatalog, IReadOnlyList<LPresetDocument>?>, bool>? LPresetSaveSeam;
     public static Action<string>? LPresetTraceSeam;
 
     private static bool LPresetPrepared;
@@ -25,7 +25,7 @@ public sealed partial class LPreset
         IReadOnlyList<LPresetGroup> lNativeGroups = LPresetNativeSeam?.Invoke() ?? [];
         foreach (LPresetGroup lGroup in lNativeGroups)
         {
-            foreach (LPresetRecord lRecord in lGroup.LPresetGroupPresets)
+            foreach (LPresetDocument lRecord in lGroup.LPresetGroupPresets)
             {
                 LPresetNativeAdd(lRecord, lGroup.LPresetGroupName);
             }
@@ -48,7 +48,7 @@ public sealed partial class LPreset
             return;
         }
 
-        foreach (LPresetRecord lRecord in lStoredCatalog.LPresetRecords)
+        foreach (LPresetDocument lRecord in lStoredCatalog.LPresetRecords)
         {
             LPresetStoredAdd(LPreset.LPresetStateCreate(lRecord));
         }
@@ -56,7 +56,7 @@ public sealed partial class LPreset
         LPresetBaselineReset(lStoredCatalog.LPresetRecords);
     }
 
-    private static void LPresetNativeAdd(LPresetRecord lRecord, string lGroupName)
+    private static void LPresetNativeAdd(LPresetDocument lRecord, string lGroupName)
     {
         LPreset lPreset = LPresetStateCreate(lRecord);
         if (string.IsNullOrWhiteSpace(lPreset.LPresetName))
@@ -95,7 +95,7 @@ public sealed partial class LPreset
         var lPresetMapBackup = new Dictionary<string, LPreset>(LPresetMap, StringComparer.OrdinalIgnoreCase);
         if (lPresetMutate() && LPresetPersist())
         {
-            LPresetStoreChange?.Invoke();
+            LPresetStoreChanged?.Invoke();
             return true;
         }
 
@@ -119,7 +119,7 @@ public sealed partial class LPreset
             LPresetNames.Add(lName);
         }
 
-        LPresetStoreChange?.Invoke();
+        LPresetStoreChanged?.Invoke();
     }
 
     private static bool LPresetPersist()
@@ -130,14 +130,14 @@ public sealed partial class LPreset
             return false;
         }
 
-        IReadOnlyList<LPresetRecord> lPresetLocal = LPresetRecordsCreate();
+        IReadOnlyList<LPresetDocument> lPresetLocal = LPresetRecordsCreate();
         if (LPresetSaveSeam is null)
         {
             LPresetBaselineReset(lPresetLocal);
             return true;
         }
 
-        IReadOnlyList<LPresetRecord>? lPresetMerged = null;
+        IReadOnlyList<LPresetDocument>? lPresetMerged = null;
         bool lPresetSaved = LPresetSaveSeam(lPresetCatalog =>
         {
             if (lPresetCatalog.LPresetOutcome == LPresetOutcome.LPresetUnreadable)
@@ -160,9 +160,9 @@ public sealed partial class LPreset
         return true;
     }
 
-    private static IReadOnlyList<LPresetRecord> LPresetRecordsCreate()
+    private static IReadOnlyList<LPresetDocument> LPresetRecordsCreate()
     {
-        var lPresets = new List<LPresetRecord>();
+        var lPresets = new List<LPresetDocument>();
         foreach (string lName in LPresetNames)
         {
             if (!LPresetNativeCheck(lName) && LPresetMap.TryGetValue(lName, out LPreset? lPreset))
@@ -174,11 +174,11 @@ public sealed partial class LPreset
         return lPresets;
     }
 
-    private static void LPresetMergeApply(IReadOnlyList<LPresetRecord> lPresetRecords)
+    private static void LPresetMergeApply(IReadOnlyList<LPresetDocument> lPresetRecords)
     {
         LPresetBaselineReset(lPresetRecords);
         var lPresetStoredNames = new List<string>();
-        foreach (LPresetRecord lPresetRecord in lPresetRecords)
+        foreach (LPresetDocument lPresetRecord in lPresetRecords)
         {
             LPreset lPreset = LPresetStateCreate(lPresetRecord);
             if (string.IsNullOrWhiteSpace(lPreset.LPresetName) || LPresetNativeCheck(lPreset.LPresetName))
@@ -228,7 +228,7 @@ public sealed partial class LPreset
         }
     }
 
-    private static void LPresetBaselineReset(IReadOnlyList<LPresetRecord> lPresetRecords)
+    private static void LPresetBaselineReset(IReadOnlyList<LPresetDocument> lPresetRecords)
     {
         LPresetBaseline.Clear();
         LPresetBaseline.AddRange(lPresetRecords);

@@ -4,7 +4,6 @@ namespace Cadroue.Infrastructure;
 
 public static class LFrameStore
 {
-    private const string LFrameFolderName = "Cadroue";
     private const string LFrameFileName = "frame.json";
 
     private static bool lFrameReadable = true;
@@ -32,9 +31,5 @@ public static class LFrameStore
         return LVault.LVaultSave(LFramePathCreate(), lFrameState);
     }
 
-    private static string LFramePathCreate()
-    {
-        string lFrameApplicationDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lFrameApplicationDataFolder, LFrameFolderName, LFrameFileName);
-    }
+    private static string LFramePathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LFrameFileName);
 }

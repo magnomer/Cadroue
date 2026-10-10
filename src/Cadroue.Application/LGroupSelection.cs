@@ -14,7 +14,7 @@ public sealed class LGroupSelection
         LGroupNameMode = lGroupNameMode;
     }
 
-    public event Action? LGroupSelectionChange;
+    public event Action? LGroupSelectionChanged;
 
     public bool LGroupAuto { get; private set; }
 
@@ -51,6 +51,6 @@ public sealed class LGroupSelection
         LGroupAuto = lGroupAuto;
         LGroupStrict = lGroupStrict;
         LGroupNameMode = lGroupNameMode;
-        LGroupSelectionChange?.Invoke();
+        LGroupSelectionChanged?.Invoke();
     }
 }

@@ -6,7 +6,7 @@ namespace Convention.Tests;
 
 internal static class TAuditObjectWalker
 {
-    public static IReadOnlyList<TAuditObjectRow> TAuditRun(IReadOnlyList<string> sourcePaths, string repoRoot)
+    public static IReadOnlyList<TAuditObjectRow> TAuditRun(IReadOnlyList<string> sourcePaths)
     {
         HashSet<string> chosen = new(sourcePaths.Select(Path.GetFullPath), StringComparer.OrdinalIgnoreCase);
         List<SyntaxTree> trees = TAuditBinder.TAuditTrees
@@ -16,7 +16,7 @@ internal static class TAuditObjectWalker
         Dictionary<INamedTypeSymbol, TAuditObjectType> types = new(SymbolEqualityComparer.Default);
         foreach (SyntaxTree tree in trees)
         {
-            TAuditMemberScan(TAuditBinder.TAuditModelRead(tree), repoRoot, types);
+            TAuditMemberScan(TAuditBinder.TAuditModelRead(tree), types);
         }
 
         foreach (SyntaxTree tree in trees)
@@ -24,18 +24,37 @@ internal static class TAuditObjectWalker
             TAuditLinkScan(TAuditBinder.TAuditModelRead(tree), types);
         }
 
+        HashSet<INamedTypeSymbol> codebase = new(
+            trees.SelectMany(tree => tree.GetRoot().DescendantNodes()
+                .Where(node => node is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax)
+                .Select(node => TAuditBinder.TAuditModelRead(tree).GetDeclaredSymbol(node))
+                .OfType<INamedTypeSymbol>()),
+            SymbolEqualityComparer.Default);
+        Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> uses = new(SymbolEqualityComparer.Default);
+        foreach (SyntaxTree tree in trees)
+        {
+            TAuditUseScan(TAuditBinder.TAuditModelRead(tree), codebase, uses);
+        }
+
+        Dictionary<INamedTypeSymbol, int> incoming = new(SymbolEqualityComparer.Default);
+        foreach (INamedTypeSymbol used in uses.Values.SelectMany(used => used))
+        {
+            incoming[used] = incoming.GetValueOrDefault(used) + 1;
+        }
+
         return types.Values
             .Where(type => type.TAuditTypeMembers.Count > 0)
-            .Select(TAuditRowCreate)
+            .Select(type => TAuditRowCreate(
+                type,
+                uses.GetValueOrDefault(type.TAuditTypeSymbol)?.Count ?? 0,
+                incoming.GetValueOrDefault(type.TAuditTypeSymbol)))
             .OrderByDescending(row => row.TAuditObjectLines)
             .ThenBy(row => row.TAuditObjectName, StringComparer.Ordinal)
             .ToList();
     }
 
-    private static void TAuditMemberScan(
-        SemanticModel model, string repoRoot, Dictionary<INamedTypeSymbol, TAuditObjectType> types)
+    private static void TAuditMemberScan(SemanticModel model, Dictionary<INamedTypeSymbol, TAuditObjectType> types)
     {
-        string relative = Path.GetRelativePath(repoRoot, model.SyntaxTree.FilePath).Replace('\\', '/');
         foreach (TypeDeclarationSyntax declaration in
                  model.SyntaxTree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>())
         {
@@ -51,12 +70,12 @@ internal static class TAuditObjectWalker
             }
 
             FileLinePositionSpan span = declaration.GetLocation().GetLineSpan();
-            TAuditObjectPart part = new(relative, span.EndLinePosition.Line - span.StartLinePosition.Line + 1);
+            TAuditObjectPart part = new(span.EndLinePosition.Line - span.StartLinePosition.Line + 1);
             type.TAuditTypeParts.Add(part);
 
             foreach (MemberDeclarationSyntax member in declaration.Members)
             {
-                foreach ((ISymbol declared, bool state) in TAuditDeclaredRead(model, member))
+                foreach ((ISymbol declared, bool state, bool mutable) in TAuditDeclaredRead(model, member))
                 {
                     if (type.TAuditTypeMembers.ContainsKey(declared))
                     {
@@ -64,7 +83,7 @@ internal static class TAuditObjectWalker
                     }
 
                     type.TAuditTypeMembers.Add(
-                        declared, new TAuditObjectMember(type.TAuditTypeMembers.Count, declared, part, state));
+                        declared, new TAuditObjectMember(type.TAuditTypeMembers.Count, declared, part, state, mutable));
                 }
             }
         }
@@ -110,6 +129,73 @@ internal static class TAuditObjectWalker
         }
     }
 
+    private static void TAuditUseScan(
+        SemanticModel model,
+        HashSet<INamedTypeSymbol> codebase,
+        Dictionary<INamedTypeSymbol, HashSet<INamedTypeSymbol>> uses)
+    {
+        foreach (SyntaxNode declaration in model.SyntaxTree.GetRoot().DescendantNodes()
+                     .Where(node => node is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax))
+        {
+            if (model.GetDeclaredSymbol(declaration) is not INamedTypeSymbol user)
+            {
+                continue;
+            }
+
+            if (!uses.TryGetValue(user, out HashSet<INamedTypeSymbol>? used))
+            {
+                used = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+                uses.Add(user, used);
+            }
+
+            IEnumerable<SimpleNameSyntax> names = declaration
+                .DescendantNodes(node => node == declaration
+                    || node is not (BaseTypeDeclarationSyntax or DelegateDeclarationSyntax))
+                .OfType<SimpleNameSyntax>();
+            foreach (SimpleNameSyntax name in names)
+            {
+                used.UnionWith(TAuditUseRead(TAuditBinderSymbol.TAuditSymbolRead(model, name)).Where(target =>
+                    codebase.Contains(target)
+                    && !SymbolEqualityComparer.Default.Equals(target, user)
+                    && !TAuditNestCheck(user, target)));
+            }
+        }
+    }
+
+    private static IEnumerable<INamedTypeSymbol> TAuditUseRead(ISymbol? symbol) => symbol switch
+    {
+        null => [],
+        IAliasSymbol alias => TAuditUseRead(alias.Target),
+        IArrayTypeSymbol array => TAuditUseRead(array.ElementType),
+        IPointerTypeSymbol pointer => TAuditUseRead(pointer.PointedAtType),
+        INamedTypeSymbol named => (named.IsAnonymousType ? [] : new[] { named.OriginalDefinition })
+            .Concat(named.TypeArguments.SelectMany(TAuditUseRead)),
+        ITypeSymbol or INamespaceSymbol or ILocalSymbol or IParameterSymbol => [],
+        IRangeVariableSymbol or IDiscardSymbol or ILabelSymbol or IPreprocessingSymbol => [],
+        _ => symbol.ContainingType is null ? [] : [symbol.ContainingType.OriginalDefinition],
+    };
+
+    private static bool TAuditNestCheck(INamedTypeSymbol first, INamedTypeSymbol second)
+    {
+        for (INamedTypeSymbol? outer = first.ContainingType; outer is not null; outer = outer.ContainingType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(outer.OriginalDefinition, second))
+            {
+                return true;
+            }
+        }
+
+        for (INamedTypeSymbol? outer = second.ContainingType; outer is not null; outer = outer.ContainingType)
+        {
+            if (SymbolEqualityComparer.Default.Equals(outer.OriginalDefinition, first))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static TAuditObjectMember? TAuditTargetResolve(
         SemanticModel model, SimpleNameSyntax name, TAuditObjectType type)
     {
@@ -128,7 +214,7 @@ internal static class TAuditObjectWalker
         return type.TAuditTypeMembers.GetValueOrDefault(bound.OriginalDefinition);
     }
 
-    private static IEnumerable<(ISymbol TAuditSymbol, bool TAuditState)> TAuditDeclaredRead(
+    private static IEnumerable<(ISymbol TAuditSymbol, bool TAuditState, bool TAuditMutable)> TAuditDeclaredRead(
         SemanticModel model, MemberDeclarationSyntax member)
     {
         switch (member)
@@ -140,7 +226,7 @@ internal static class TAuditObjectWalker
                 {
                     if (model.GetDeclaredSymbol(variable) is IFieldSymbol declared)
                     {
-                        yield return (declared, !declared.IsConst);
+                        yield return (declared, !declared.IsConst, !declared.IsConst && !declared.IsReadOnly);
                     }
                 }
 
@@ -150,36 +236,45 @@ internal static class TAuditObjectWalker
                 {
                     if (model.GetDeclaredSymbol(variable) is IEventSymbol declared)
                     {
-                        yield return (declared, true);
+                        yield return (declared, true, false);
                     }
                 }
 
                 break;
             case PropertyDeclarationSyntax property:
-                if (model.GetDeclaredSymbol(property) is ISymbol declaredProperty)
+                if (model.GetDeclaredSymbol(property) is IPropertySymbol declaredProperty
+                    && declaredProperty.PartialImplementationPart is null)
                 {
                     bool stored = property.ExpressionBody is null
                         && property.AccessorList is not null
                         && property.AccessorList.Accessors.All(
                             accessor => accessor.Body is null && accessor.ExpressionBody is null);
-                    yield return (declaredProperty, stored);
+                    bool backed = declaredProperty.ContainingType.GetMembers().OfType<IFieldSymbol>().Any(
+                        backing => SymbolEqualityComparer.Default.Equals(backing.AssociatedSymbol, declaredProperty));
+                    bool settable = declaredProperty.SetMethod is { IsInitOnly: false };
+                    ISymbol key = declaredProperty.PartialDefinitionPart ?? declaredProperty;
+                    yield return (key, stored, backed && settable);
                 }
 
                 break;
             default:
-                if (model.GetDeclaredSymbol(member) is ISymbol declaredMember)
+                if (model.GetDeclaredSymbol(member) is ISymbol declaredMember
+                    and not IMethodSymbol { PartialImplementationPart: not null })
                 {
-                    yield return (declaredMember, false);
+                    ISymbol key = declaredMember is IMethodSymbol { PartialDefinitionPart: { } definition }
+                        ? definition
+                        : declaredMember;
+                    yield return (key, false, false);
                 }
 
                 break;
         }
     }
 
-    private static TAuditObjectRow TAuditRowCreate(TAuditObjectType type)
+    private static TAuditObjectRow TAuditRowCreate(TAuditObjectType type, int outgoing, int incoming)
     {
         List<TAuditObjectMember> members = type.TAuditTypeMembers.Values.ToList();
-        int cross = members.Sum(member => member.TAuditMemberUses.Count(
+        int crossings = members.Sum(member => member.TAuditMemberUses.Count(
             target => !ReferenceEquals(member.TAuditMemberPart, target.TAuditMemberPart)));
 
         HashSet<TAuditObjectMember> hubs = [];
@@ -188,7 +283,7 @@ internal static class TAuditObjectWalker
         {
             HashSet<TAuditObjectPart> touching = [member.TAuditMemberPart];
             touching.UnionWith(member.TAuditMemberUsers.Select(user => user.TAuditMemberPart));
-            if (touching.Count >= TAuditObjectSetting.TAuditHubReach)
+            if (touching.Count >= TAuditObjectSetting.TAuditHubLimit["Parts"])
             {
                 hubs.Add(member);
                 hubNames.Add($"`{member.TAuditMemberSymbol.Name}` reaches {touching.Count} parts");
@@ -196,35 +291,56 @@ internal static class TAuditObjectWalker
         }
 
         int lines = type.TAuditTypeParts.Sum(part => part.TAuditPartLines);
-        int partCount = type.TAuditTypeParts.Count;
-        double weave = TAuditWeaveRead(members, partCount, []);
-        double free = TAuditWeaveRead(members, partCount, hubs);
-        double density = members.Count == 0 ? 0 : cross / (double)members.Count;
-        bool monolith = partCount >= TAuditObjectSetting.TAuditPartLimit
-            && lines >= TAuditObjectSetting.TAuditSpanLimit
-            && (free >= TAuditObjectSetting.TAuditWeaveLimit || density >= TAuditObjectSetting.TAuditDensityLimit);
-        int state = members.Count(member => member.TAuditMemberState);
-        bool large = partCount == 1
-            && (lines >= TAuditObjectSetting.TAuditLargeLines
-                || members.Count >= TAuditObjectSetting.TAuditLargeMembers
-                || state >= TAuditObjectSetting.TAuditLargeState);
-
-        return new TAuditObjectRow(
+        int parts = type.TAuditTypeParts.Count;
+        double glued = TAuditGluedRead(members, parts, []);
+        double fused = TAuditGluedRead(members, parts, hubs);
+        double density = members.Count == 0 ? 0 : crossings / (double)members.Count;
+        TAuditObjectRow row = new(
             type.TAuditTypeSymbol.ToDisplayString(),
-            type.TAuditTypeParts.Select(part => part.TAuditPartPath).ToList(),
+            parts,
             lines,
             members.Count,
-            state,
+            members.Count(member => member.TAuditMemberMutable),
+            outgoing,
+            incoming,
             hubNames,
-            cross,
-            weave,
-            free,
+            hubs.Count,
+            crossings,
+            glued,
+            fused,
             density,
-            monolith,
-            large);
+            [],
+            string.Empty);
+        List<string> flags = TAuditFlagRead(row);
+        string verdict = flags.Count > 0 ? flags[0] : parts > 1 ? "Colony" : "Hermit";
+        return row with { TAuditObjectFlags = flags, TAuditObjectVerdict = verdict };
     }
 
-    private static double TAuditWeaveRead(
+    private static List<string> TAuditFlagRead(TAuditObjectRow row)
+    {
+        bool serpent = row.TAuditObjectLines >= TAuditObjectSetting.TAuditSerpentLimit["Lines"];
+        bool centipede = row.TAuditObjectMembers >= TAuditObjectSetting.TAuditCentipedeLimit["Members"];
+        bool octopus = row.TAuditObjectOutgoing >= TAuditObjectSetting.TAuditOctopusLimit["Outgoing"];
+        bool spider = row.TAuditObjectOutgoing >= TAuditObjectSetting.TAuditSpiderLimit["Outgoing"]
+            && row.TAuditObjectIncoming >= TAuditObjectSetting.TAuditSpiderLimit["Incoming"];
+        bool hydra = row.TAuditObjectParts >= TAuditObjectSetting.TAuditHydraLimit["Parts"]
+            && row.TAuditObjectLines >= TAuditObjectSetting.TAuditHydraLimit["Lines"]
+            && (row.TAuditObjectFused >= TAuditObjectSetting.TAuditHydraLimit["Fused"]
+                || row.TAuditObjectDensity >= TAuditObjectSetting.TAuditHydraLimit["Density"]);
+        List<(string TAuditFlag, bool TAuditHit)> ladder =
+        [
+            ("Hydra", hydra),
+            ("Kraken", (serpent || centipede) && (octopus || spider)),
+            ("Spider", spider),
+            ("Chameleon", row.TAuditObjectMutable >= TAuditObjectSetting.TAuditChameleonLimit["Mutable"]),
+            ("Octopus", octopus),
+            ("Centipede", centipede),
+            ("Serpent", serpent),
+        ];
+        return ladder.Where(step => step.TAuditHit).Select(step => step.TAuditFlag).ToList();
+    }
+
+    private static double TAuditGluedRead(
         List<TAuditObjectMember> members, int partCount, HashSet<TAuditObjectMember> excluded)
     {
         if (partCount == 0 || members.Count == 0)

@@ -32,7 +32,7 @@ public static partial class LMessenger
             return 0;
         }
 
-        LCartographerPlanRecord? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
+        LCartographerPlanDocument? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
         int lMessengerAdded = LMessengerDispatch(
             lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan);
         LTraceLog.LTraceInfoRecord(
@@ -59,13 +59,13 @@ public static partial class LMessenger
                 .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
                 .ToArray();
 
-            IReadOnlyList<LSplitPlanRecord> lMessengerPlans =
+            IReadOnlyList<LSplitPlanDescription> lMessengerPlans =
                 await LMessengerSplitCreate(lMessengerSourcePaths).ConfigureAwait(false);
 
             int lMessengerAdded = 0;
             LMessengerDefer(() =>
             {
-                foreach (LSplitPlanRecord lMessengerPlan in lMessengerPlans)
+                foreach (LSplitPlanDescription lMessengerPlan in lMessengerPlans)
                 {
                     lMessengerRelays.TryGetValue(lMessengerPlan.LSplitSourcePath, out Guid lMessengerBatch);
                     lMessengerAdded += LMessengerSplitDescribe(
@@ -82,17 +82,17 @@ public static partial class LMessenger
         }
     }
 
-    private static async Task<IReadOnlyList<LSplitPlanRecord>> LMessengerSplitCreate(
+    private static async Task<IReadOnlyList<LSplitPlanDescription>> LMessengerSplitCreate(
         IReadOnlyList<string> lMessengerSourcePaths)
     {
-        var lMessengerPlans = new List<LSplitPlanRecord>();
+        var lMessengerPlans = new List<LSplitPlanDescription>();
         foreach (string lMessengerSourcePath in lMessengerSourcePaths)
         {
             IReadOnlyList<LSplitSectionDescription> lMessengerSections =
                 await LMessengerSplitRead(lMessengerSourcePath).ConfigureAwait(false);
             if (lMessengerSections.Count > 0)
             {
-                lMessengerPlans.Add(new LSplitPlanRecord(lMessengerSourcePath, lMessengerSections));
+                lMessengerPlans.Add(new LSplitPlanDescription(lMessengerSourcePath, lMessengerSections));
             }
         }
         return lMessengerPlans;

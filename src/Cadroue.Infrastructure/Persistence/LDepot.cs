@@ -13,7 +13,6 @@ public enum LDepotFolder
 
 public static class LDepot
 {
-    private const string LDepotFolderName = "Cadroue";
     private const string LDepotWorkFolder = "workspace";
 
     private const string LDepotPaletteFolder = "palettes";
@@ -45,17 +44,37 @@ public static class LDepot
             return lDepotRoot;
         }
 
-        string lDepotApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolder);
+        return LDepotDefaultRead();
     }
 
-    public static string LDepotDefaultRead()
+    public static string LDepotDefaultRead() => Path.Combine(LDepotHomeRead(), LDepotWorkFolder);
+
+    public static string LDepotHomeRead()
     {
+        string? lDepotHome = AppContext.GetData(LDepotHome.LDepotHomeKey) as string;
+        if (!string.IsNullOrWhiteSpace(lDepotHome))
+        {
+            return lDepotHome.Trim();
+        }
+
         string lDepotApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lDepotApplicationData, LDepotFolderName, LDepotWorkFolder);
+        return Path.Combine(lDepotApplicationData, LDepotHome.LDepotHomeFolder);
     }
 
-    public static string LDepotIndexFind() => Path.Combine(LDepotRootRead(), LDepotIndexFile);
+    public static string LDepotLocalRead()
+    {
+        string? lDepotHome = AppContext.GetData(LDepotHome.LDepotHomeKey) as string;
+        if (!string.IsNullOrWhiteSpace(lDepotHome))
+        {
+            return Path.Combine(lDepotHome.Trim(), LDepotHome.LDepotHomeLocal);
+        }
+
+        string lDepotLocalData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return Path.Combine(lDepotLocalData, LDepotHome.LDepotHomeFolder);
+    }
+
+    public static string LDepotIndexFind(string? lDepotRoot = null) =>
+        Path.Combine(lDepotRoot ?? LDepotRootRead(), LDepotIndexFile);
 
     public static string LDepotPaletteRead()
     {
@@ -92,24 +111,25 @@ public static class LDepot
         return lDepotPass;
     }
 
-    public static string LDepotFolderRead(LDepotFolder lDepotFolder) =>
-        Path.Combine(LDepotRootRead(), LDepotNameRead(lDepotFolder));
+    public static string LDepotFolderRead(LDepotFolder lDepotFolder, string? lDepotRoot = null) =>
+        Path.Combine(lDepotRoot ?? LDepotRootRead(), LDepotNameRead(lDepotFolder));
 
     public static string LDepotFileRead(LDepotFolder lDepotFolder, Guid lWorkId) =>
         Path.Combine(LDepotFolderRead(lDepotFolder), $"{lWorkId:N}.json");
 
-    public static void LDepotCreate()
+    public static void LDepotCreate(string? lDepotRoot = null)
     {
-        Directory.CreateDirectory(LDepotRootRead());
+        lDepotRoot ??= LDepotRootRead();
+        Directory.CreateDirectory(lDepotRoot);
         foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
         {
-            Directory.CreateDirectory(LDepotFolderRead(lDepotFolder));
+            Directory.CreateDirectory(LDepotFolderRead(lDepotFolder, lDepotRoot));
         }
     }
 
-    public static IEnumerable<string> LDepotFilesRead(LDepotFolder lDepotFolder)
+    public static IEnumerable<string> LDepotFilesRead(LDepotFolder lDepotFolder, string? lDepotRoot = null)
     {
-        string lDepotFolderPath = LDepotFolderRead(lDepotFolder);
+        string lDepotFolderPath = LDepotFolderRead(lDepotFolder, lDepotRoot);
         return Directory.Exists(lDepotFolderPath)
             ? Directory.EnumerateFiles(lDepotFolderPath, "*.json")
             : Array.Empty<string>();

@@ -10,7 +10,7 @@ public sealed class LMergeTab
     private readonly LPresetSelection lMergePreset;
     private readonly LDocket lMergeDocket;
 
-    public LMergeTab(LPresetSelection lPreset, LDocket lDocket, LSceneTabRecord? lLayout)
+    public LMergeTab(LPresetSelection lPreset, LDocket lDocket, LSceneTabEntry? lLayout)
     {
         lMergePreset = lPreset;
         lMergeDocket = lDocket;
@@ -20,7 +20,7 @@ public sealed class LMergeTab
             lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
         LMergeGroup = new LGroup(LMergeSelection);
         LMergeGroup.LGroupSourceAttach(LMergePathsRead);
-        lDocket.LDocketChange += LMergeDocketHandle;
+        lDocket.LDocketChanged += LMergeDocketHandle;
         lDocket.LDocketRemoved += LMergeGroup.LGroupPathsRemove;
     }
 
@@ -32,11 +32,11 @@ public sealed class LMergeTab
 
     public void LMergeClose()
     {
-        lMergeDocket.LDocketChange -= LMergeDocketHandle;
+        lMergeDocket.LDocketChanged -= LMergeDocketHandle;
         lMergeDocket.LDocketRemoved -= LMergeGroup.LGroupPathsRemove;
     }
 
-    public LSceneTabRecord LMergeLayoutRead(LSceneTabRecord lLayout)
+    public LSceneTabEntry LMergeLayoutRead(LSceneTabEntry lLayout)
     {
         lLayout.LSceneGroupAuto = LMergeSelection.LGroupAuto;
         lLayout.LSceneGroupStrict = LMergeSelection.LGroupStrict;
@@ -103,7 +103,7 @@ public sealed class LMergeTab
     public IReadOnlyList<LWorkGroup> LMergeGroupsRead(Guid lCohort = default)
     {
         var lGroups = new List<LWorkGroup>();
-        foreach (LGroupRecord lRecord in LMergeGroup.LGroupRecords)
+        foreach (LGroupEntry lRecord in LMergeGroup.LGroupRecords)
         {
             if (lCohort != Guid.Empty
                 && !lRecord.LGroupRecordPaths.All(lPath =>

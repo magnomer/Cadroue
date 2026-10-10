@@ -22,7 +22,7 @@ public sealed class LFilter
         lFilterToken = LFilterMatchRead();
     }
 
-    public event Action? LFilterChange;
+    public event Action? LFilterChanged;
 
     public bool LFilterHigh => lFilterHigh;
 
@@ -185,7 +185,7 @@ public sealed class LFilter
         }
 
         lFilterPersistent = lPersistent;
-        LFilterChange?.Invoke();
+        LFilterChanged?.Invoke();
     }
 
     private void LFilterStepApply(LWorkPassStep lNormal, string? lToken)
@@ -197,7 +197,7 @@ public sealed class LFilter
 
         lFilterStep = lNormal;
         lFilterToken = lToken;
-        LFilterChange?.Invoke();
+        LFilterChanged?.Invoke();
     }
 
     private LWorkPassStep LFilterNormalize(

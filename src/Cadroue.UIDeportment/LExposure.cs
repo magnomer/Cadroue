@@ -9,7 +9,7 @@ public sealed class LExposure
     private bool lExposureCapable;
     private bool lExposurePreview;
 
-    public event Action? LExposureChange;
+    public event Action? LExposureChanged;
 
     public LWorkVideoStep LExposureStep => lExposureStep;
 
@@ -28,7 +28,7 @@ public sealed class LExposure
         }
 
         lExposureStep = lNormal;
-        LExposureChange?.Invoke();
+        LExposureChanged?.Invoke();
     }
 
     public void LExposureActiveSet(bool lActive) =>
@@ -45,7 +45,7 @@ public sealed class LExposure
         }
 
         lExposurePersistent = lPersistent;
-        LExposureChange?.Invoke();
+        LExposureChanged?.Invoke();
     }
 
     public void LExposureCapableSet(bool lCapable, bool lPreview)
@@ -58,6 +58,6 @@ public sealed class LExposure
 
         lExposureCapable = lCapable;
         lExposurePreview = lPreviewShown;
-        LExposureChange?.Invoke();
+        LExposureChanged?.Invoke();
     }
 }

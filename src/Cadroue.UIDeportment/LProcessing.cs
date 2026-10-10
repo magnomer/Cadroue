@@ -21,11 +21,11 @@ public sealed class LProcessing
     private double lProcessingDragY;
     private bool lProcessingDragActive;
 
-    public event Action? LProcessingChange;
-    public event Action? LProcessingOrderChange;
-    public event Action<string>? LProcessingStepChange;
-    public event Action<bool>? LProcessingMinimizeChange;
-    public event Action? LProcessingDragCancel;
+    public event Action? LProcessingChanged;
+    public event Action? LProcessingOrderChanged;
+    public event Action<string>? LProcessingStepChanged;
+    public event Action<bool>? LProcessingMinimizeChanged;
+    public event Action? LProcessingDragCanceled;
 
     public IReadOnlyList<string> LProcessingSteps => lProcessingSteps;
 
@@ -77,7 +77,7 @@ public sealed class LProcessing
     {
         lProcessingRows.Add(lRow);
         lProcessingSteps.Add(lRow.LProcessingRowKey);
-        LProcessingChange?.Invoke();
+        LProcessingChanged?.Invoke();
     }
 
     public void LProcessingKeyHandle(string lStep, bool lActivate)
@@ -122,7 +122,7 @@ public sealed class LProcessing
         lProcessingDragActive = true;
         if (lStarted)
         {
-            LProcessingChange?.Invoke();
+            LProcessingChanged?.Invoke();
         }
 
         LProcessingIndexMove(lDragIndex, LProcessingIndexResolve(lY, lTops, lHeights));
@@ -135,7 +135,7 @@ public sealed class LProcessing
         lProcessingDragActive = false;
         if (lShown)
         {
-            LProcessingChange?.Invoke();
+            LProcessingChanged?.Invoke();
         }
     }
 
@@ -157,7 +157,7 @@ public sealed class LProcessing
         bool lChanged = lActive ? lProcessingActive.Add(lStep) : lProcessingActive.Remove(lStep);
         if (lChanged)
         {
-            LProcessingChange?.Invoke();
+            LProcessingChanged?.Invoke();
         }
     }
 
@@ -174,12 +174,12 @@ public sealed class LProcessing
         if (!lEnabled && lProcessingDragIndex == lProcessingSteps.IndexOf(lStep))
         {
             LProcessingDragClear();
-            LProcessingDragCancel?.Invoke();
+            LProcessingDragCanceled?.Invoke();
         }
 
         if (lChanged)
         {
-            LProcessingChange?.Invoke();
+            LProcessingChanged?.Invoke();
         }
     }
 
@@ -191,7 +191,7 @@ public sealed class LProcessing
         }
 
         lProcessingOrdered = lOrdered;
-        LProcessingChange?.Invoke();
+        LProcessingChanged?.Invoke();
     }
 
     public void LProcessingSkipSet(bool lSkipActive)
@@ -202,7 +202,7 @@ public sealed class LProcessing
         }
 
         lProcessingSkipActive = lSkipActive;
-        LProcessingChange?.Invoke();
+        LProcessingChanged?.Invoke();
     }
 
     public void LProcessingMinimizedSet(bool lMinimized)
@@ -213,7 +213,7 @@ public sealed class LProcessing
         }
 
         lProcessingMinimized = lMinimized;
-        LProcessingMinimizeChange?.Invoke(lMinimized);
+        LProcessingMinimizeChanged?.Invoke(lMinimized);
     }
 
     public bool LProcessingStepSelect(string lStep)
@@ -224,8 +224,8 @@ public sealed class LProcessing
         }
 
         lProcessingStep = lStep;
-        LProcessingChange?.Invoke();
-        LProcessingStepChange?.Invoke(lStep);
+        LProcessingChanged?.Invoke();
+        LProcessingStepChanged?.Invoke(lStep);
         return true;
     }
 
@@ -258,7 +258,7 @@ public sealed class LProcessing
             lProcessingDragIndex = lTo;
         }
 
-        LProcessingOrderChange?.Invoke();
+        LProcessingOrderChanged?.Invoke();
         return true;
     }
 }

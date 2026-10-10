@@ -55,10 +55,10 @@ public sealed class LSLoupe
 
     public LPlayer LPlayer { get; } = new();
 
-    public event Action<bool>? LSLoupePlayingChange;
-    public event Action? LSLoupeFloatChange;
-    public event Action? LSLoupeEngineCreate;
-    public event Action? LSLoupeCloseApply;
+    public event Action<bool>? LSLoupePlayingChanged;
+    public event Action? LSLoupeFloatChanged;
+    public event Action? LSLoupeEngineCreated;
+    public event Action? LSLoupeCloseApplied;
 
     public bool LSLoupePlaying => lLoupePlaying;
 
@@ -100,18 +100,18 @@ public sealed class LSLoupe
         LPreferenceState lPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lPreference.LPreferenceLoupeFloat = lLoupeFloatTokens[lFloat];
         LPreference.LPreferenceStateSet(lPreference);
-        LSLoupeFloatChange?.Invoke();
+        LSLoupeFloatChanged?.Invoke();
     }
 
     public void LSLoupeViewerAttach(LViewer lViewer)
     {
         lLoupeViewer = lViewer;
-        lViewer.LViewerPreviewChange += LSLoupePreviewHandle;
-        lViewer.LViewerPlayback.LViewerLoupePlay += LSLoupePlay;
-        lViewer.LViewerPlayback.LViewerLoupePause += LSLoupePause;
-        lViewer.LViewerPlayback.LViewerLoupeSeek += LSLoupeSeek;
+        lViewer.LViewerPreviewChanged += LSLoupePreviewHandle;
+        lViewer.LViewerPlayback.LViewerLoupePlayed += LSLoupePlay;
+        lViewer.LViewerPlayback.LViewerLoupePaused += LSLoupePause;
+        lViewer.LViewerPlayback.LViewerLoupeSought += LSLoupeSeek;
         lViewer.LViewerPlayback.LViewerLoupeVolume += LSLoupeVolumeSet;
-        lViewer.LViewerMedia.LViewerLoupeClose += LSLoupeCloseHandle;
+        lViewer.LViewerMedia.LViewerLoupeClosed += LSLoupeCloseHandle;
         lViewer.LViewerMedia.LViewerLoupeAttach();
     }
 
@@ -130,7 +130,7 @@ public sealed class LSLoupe
 
         try
         {
-            LSLoupeEngineCreate?.Invoke();
+            LSLoupeEngineCreated?.Invoke();
             await LPlayer.LPlayerOpenStart(lLoupeSource);
             if (lLoupeClosed)
             {
@@ -166,12 +166,12 @@ public sealed class LSLoupe
         lLoupeClosed = true;
         if (lLoupeViewer is { } lViewer)
         {
-            lViewer.LViewerPreviewChange -= LSLoupePreviewHandle;
-            lViewer.LViewerPlayback.LViewerLoupePlay -= LSLoupePlay;
-            lViewer.LViewerPlayback.LViewerLoupePause -= LSLoupePause;
-            lViewer.LViewerPlayback.LViewerLoupeSeek -= LSLoupeSeek;
+            lViewer.LViewerPreviewChanged -= LSLoupePreviewHandle;
+            lViewer.LViewerPlayback.LViewerLoupePlayed -= LSLoupePlay;
+            lViewer.LViewerPlayback.LViewerLoupePaused -= LSLoupePause;
+            lViewer.LViewerPlayback.LViewerLoupeSought -= LSLoupeSeek;
             lViewer.LViewerPlayback.LViewerLoupeVolume -= LSLoupeVolumeSet;
-            lViewer.LViewerMedia.LViewerLoupeClose -= LSLoupeCloseHandle;
+            lViewer.LViewerMedia.LViewerLoupeClosed -= LSLoupeCloseHandle;
         }
 
         lLoupeFinal = LPlayer.LPlayerTimeRead();
@@ -280,7 +280,7 @@ public sealed class LSLoupe
             lLoupeEnded = false;
         }
 
-        LSLoupePlayingChange?.Invoke(lPlaying);
+        LSLoupePlayingChanged?.Invoke(lPlaying);
         if (!lLoupeClosed)
         {
             lLoupeViewer?.LViewerPlayback.LViewerLoupeSync(LPlayer.LPlayerTimeRead(), lPlaying);
@@ -310,5 +310,5 @@ public sealed class LSLoupe
         LPlayer.LPlayerPreviewApply(lState, "preview color/geometry");
     }
 
-    private void LSLoupeCloseHandle() => LSLoupeCloseApply?.Invoke();
+    private void LSLoupeCloseHandle() => LSLoupeCloseApplied?.Invoke();
 }

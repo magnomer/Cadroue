@@ -43,7 +43,7 @@ public static partial class LCartographer
         }
     }
 
-    public static Guid LCartographerRouteRead(LCartographerStageRecord lCartographerStage, string lCartographerPath)
+    public static Guid LCartographerRouteRead(LCartographerStageEntry lCartographerStage, string lCartographerPath)
     {
         IReadOnlyList<LCartographerFunnelRule> lCartographerRules = lCartographerStage.LCartographerFunnelRules;
         int lCartographerMatch = LClassifier.LClassifierRouteRead(
@@ -57,20 +57,20 @@ public static partial class LCartographer
         IReadOnlyList<LWorkItem> lCartographerItems,
         Guid lCartographerTarget,
         Guid lCartographerSource,
-        LCartographerPlanRecord? lCartographerPreparedPlan)
+        LCartographerPlanDocument? lCartographerPreparedPlan)
     {
         var lCartographerCreated = new List<Guid>();
         foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerItems.GroupBy(
             lCartographerItem => lCartographerItem.LWorkBatchId))
         {
             if (LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerBatch.Key, out LCartographerPlanRecord lCartographerExisting))
+                lCartographerBatch.Key, out LCartographerPlanDocument lCartographerExisting))
             {
-                LCartographerStageRecord? lCartographerSourceStage =
+                LCartographerStageEntry? lCartographerSourceStage =
                     lCartographerExisting.LCartographerStages.FirstOrDefault(
                         lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerSource
                             || lCartographerStage.LCartographerOriginalTab == lCartographerSource);
-                LCartographerStageRecord? lCartographerTargetStage =
+                LCartographerStageEntry? lCartographerTargetStage =
                     lCartographerExisting.LCartographerStages.FirstOrDefault(
                         lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerTarget
                             || lCartographerStage.LCartographerOriginalTab == lCartographerTarget);
@@ -97,7 +97,7 @@ public static partial class LCartographer
                 continue;
             }
 
-            LCartographerPlanRecord? lCartographerPlan = lCartographerPreparedPlan is null
+            LCartographerPlanDocument? lCartographerPlan = lCartographerPreparedPlan is null
                 ? LCartographerPlanCreate(lCartographerBatch.Key, lCartographerTarget)
                 : LCartographerPlanCopy(lCartographerPreparedPlan, lCartographerBatch.Key);
             if (lCartographerPlan is null || !LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan))

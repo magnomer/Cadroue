@@ -81,9 +81,9 @@ public sealed class PList : PPanel
         Focusable = true;
         KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
-        LList.LListChange += PListRowsRebuild;
-        LList.LListPathChange += PListSelectionUpdate;
-        LList.LListMinimizeChange += PListMinimizeHandle;
+        LList.LListChanged += PListRowsRebuild;
+        LList.LListPathChanged += PListSelectionUpdate;
+        LList.LListMinimizeChanged += PListMinimizeHandle;
         PListRowsRebuild();
     }
 

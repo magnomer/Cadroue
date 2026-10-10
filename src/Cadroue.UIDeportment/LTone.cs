@@ -13,7 +13,7 @@ public sealed class LTone
     private bool lToneSaturationPersistent;
     private bool lToneCapable = true;
 
-    public event Action? LToneChange;
+    public event Action? LToneChanged;
 
     public bool LToneCapable => lToneCapable;
 
@@ -55,7 +55,7 @@ public sealed class LTone
                 break;
         }
 
-        LToneChange?.Invoke();
+        LToneChanged?.Invoke();
     }
 
     public void LToneActiveSet(LColorKind lKind, bool lActive) =>
@@ -84,7 +84,7 @@ public sealed class LTone
                 break;
         }
 
-        LToneChange?.Invoke();
+        LToneChanged?.Invoke();
     }
 
     public void LToneCapableSet(bool lCapable)
@@ -95,7 +95,7 @@ public sealed class LTone
         }
 
         lToneCapable = lCapable;
-        LToneChange?.Invoke();
+        LToneChanged?.Invoke();
     }
 
     private static LWorkVideoStep LToneNormalize(LColorKind lKind, bool lActive, double lValue) => lKind switch

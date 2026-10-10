@@ -5,7 +5,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LScheduleEntry(LDepotFolder LScheduleEntryFolder, LWorkRecord LScheduleEntryWork);
+public sealed record LScheduleEntry(LDepotFolder LScheduleEntryFolder, LWorkDocument LScheduleEntryWork);
 
 public sealed partial class LSchedule : LScheduleContract
 {
@@ -19,17 +19,17 @@ public sealed partial class LSchedule : LScheduleContract
 
     public ReadOnlyObservableCollection<LWorkItem> LScheduleRecords { get; }
 
-    public event Action<LScheduleContract>? LScheduleChange;
+    public event Action<LScheduleContract>? LScheduleChanged;
 
-    public event Action<LWorkItem, LScheduleNotice>? LScheduleItemChange;
+    public event Action<LWorkItem, LScheduleNotice>? LScheduleItemChanged;
 
     public int LScheduleDoneCount =>
         lScheduleItems.Count(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
 
-    public void LScheduleChangeRaise() => LScheduleChange?.Invoke(this);
+    public void LScheduleChangeRaise() => LScheduleChanged?.Invoke(this);
 
     public void LScheduleItemRaise(LWorkItem lWorkItem, LScheduleNotice lScheduleNotice) =>
-        LScheduleItemChange?.Invoke(lWorkItem, lScheduleNotice);
+        LScheduleItemChanged?.Invoke(lWorkItem, lScheduleNotice);
 
     public void LScheduleLoad()
     {
@@ -48,7 +48,7 @@ public sealed partial class LSchedule : LScheduleContract
     {
         var lScheduleLoaded = new List<LWorkItem>();
         var lScheduleRunningIds = new HashSet<Guid>();
-        foreach ((LDepotFolder lDepotFolder, LWorkRecord lWorkRecord) in lScheduleEntries)
+        foreach ((LDepotFolder lDepotFolder, LWorkDocument lWorkRecord) in lScheduleEntries)
         {
             if (!LScheduleScopeMatch(lWorkRecord))
             {
@@ -82,7 +82,7 @@ public sealed partial class LSchedule : LScheduleContract
             lScheduleItems.Add(lWorkItem);
         }
 
-        LScheduleChange?.Invoke(this);
+        LScheduleChanged?.Invoke(this);
     }
 
     private IEnumerable<LScheduleEntry> LScheduleIndexRead()

@@ -23,6 +23,8 @@ public sealed class LEmployer
 
     public LCustodyFamily? LEmployerFamily { get; init; }
 
+    public int? LEmployerLevel { get; init; }
+
     public TimeSpan? LEmployerIdleLimit { get; init; }
 
     public Task<LEmployerResult> LEmployerRun(
@@ -161,9 +163,15 @@ public sealed class LEmployer
 
     private void LEmployerPriorityApply(Process lEmployerProcess)
     {
+        if (LEmployerLevel is int lEmployerLevel)
+        {
+            LCustody.LCustodyPriorityApply(lEmployerProcess, lEmployerLevel);
+            return;
+        }
+
         if (LEmployerFamily is LCustodyFamily lEmployerFamily)
         {
-            LCustody.LCustodyPriorityApply(lEmployerProcess, lEmployerFamily);
+            LCustody.LCustodyPriorityApply(lEmployerProcess, LCustody.LCustodyLevelRead(lEmployerFamily));
             return;
         }
 

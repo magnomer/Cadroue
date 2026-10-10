@@ -1,8 +1,10 @@
 # TAuditEncodingSetting.cs
+Hash: `6e33c16fb421d24b`
 
 ## `internal static class TAuditEncodingSetting`
 
-Hand-written and tracked: the kinds of file the encoding facts read, the names they skip and the patterns they match.
+Hand-written and tracked.
+It holds the kinds of file the encoding facts read, the names they skip and the patterns they match.
 No script writes this file.
 Every pattern is spelled in escapes, so this file passes its own audit however it is copied.
 
@@ -13,7 +15,7 @@ The tracked text kinds, as Git pathspecs: sources, markup, prose, settings, proj
 ## `public static readonly string[] TAuditEncodingSkip`
 
 The tracked files left out by name.
-`version.json` is set by hand at each commit and its final newline is not the tooling's to demand.
+`version.json` is set by hand at each commit, so no encoding fact reads it at all.
 
 ## `public static readonly string[] TAuditEncodingTabless`
 

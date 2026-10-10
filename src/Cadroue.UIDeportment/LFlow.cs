@@ -35,18 +35,18 @@ public sealed class LFlow
         LFlowName = new LFlowName(this);
     }
 
-    public event Action<bool>? LFlowEditChange;
-    public event Action<bool>? LFlowWaveformChange;
-    public event Action? LFlowMediaChange;
-    public event Action<TimeSpan>? LFlowCursorChange;
-    public event Action<bool>? LFlowDragChange;
-    public event Action? LFlowPlay;
-    public event Action? LFlowPause;
-    public event Action<double>? LFlowVolumeAdjust;
-    public event Action? LFlowAttachApply;
-    public event Action? LFlowClearApply;
-    public event Action? LFlowCursorApply;
-    public event Action? LFlowSpoolApply;
+    public event Action<bool>? LFlowEditChanged;
+    public event Action<bool>? LFlowWaveformChanged;
+    public event Action? LFlowMediaChanged;
+    public event Action<TimeSpan>? LFlowCursorChanged;
+    public event Action<bool>? LFlowDragChanged;
+    public event Action? LFlowPlayed;
+    public event Action? LFlowPaused;
+    public event Action<double>? LFlowVolumeAdjusted;
+    public event Action? LFlowAttachApplied;
+    public event Action? LFlowClearApplied;
+    public event Action? LFlowCursorApplied;
+    public event Action? LFlowSpoolApplied;
 
     public LFlowSection LFlowSection { get; }
 
@@ -138,14 +138,14 @@ public sealed class LFlow
         LFlowSourceSet(lMediaInfo, lSourcePath);
         LFlowCursorSet(lResumeAt);
         LFlowSection.LFlowSectionAttach();
-        LFlowAttachApply?.Invoke();
+        LFlowAttachApplied?.Invoke();
         LFlowSection.LFlowSectionLoad();
-        LFlowMediaChange?.Invoke();
+        LFlowMediaChanged?.Invoke();
         LFlowKeyframe.LFlowKeyframeRun();
         LFlowWaveform.LFlowWaveformStart();
         if (lSameSource && lFlowCursor > TimeSpan.Zero)
         {
-            LFlowCursorChange?.Invoke(lFlowCursor);
+            LFlowCursorChanged?.Invoke(lFlowCursor);
         }
     }
 
@@ -162,9 +162,9 @@ public sealed class LFlow
         LFlowSourceClear();
         LFlowSection.LFlowSectionReset();
         LFlowWaveform.LFlowWaveformClear();
-        LFlowClearApply?.Invoke();
+        LFlowClearApplied?.Invoke();
         LFlowSection.LFlowSectionRaise();
-        LFlowMediaChange?.Invoke();
+        LFlowMediaChanged?.Invoke();
         return true;
     }
 
@@ -243,7 +243,7 @@ public sealed class LFlow
     {
         lFlowKeyframeDirection = null;
         LFlowCursorSet(lCursor);
-        LFlowCursorApply?.Invoke();
+        LFlowCursorApplied?.Invoke();
         if (lKeyframeRestart)
         {
             LFlowKeyframe.LFlowKeyframeRun();
@@ -251,7 +251,7 @@ public sealed class LFlow
 
         if (lViewerSeek)
         {
-            LFlowCursorChange?.Invoke(lFlowCursor);
+            LFlowCursorChanged?.Invoke(lFlowCursor);
         }
     }
 
@@ -274,7 +274,7 @@ public sealed class LFlow
 
     public void LFlowSpoolUpdate()
     {
-        LFlowSpoolApply?.Invoke();
+        LFlowSpoolApplied?.Invoke();
         if (lFlowSpool is null)
         {
             return;
@@ -297,7 +297,7 @@ public sealed class LFlow
                 LFlowZoom(lSteps);
                 break;
             case "Volume":
-                LFlowVolumeAdjust?.Invoke(lSteps * LCursor.LCursorVolumeStep);
+                LFlowVolumeAdjusted?.Invoke(lSteps * LCursor.LCursorVolumeStep);
                 break;
             default:
                 LFlowWheelSeek(lSteps);
@@ -330,7 +330,7 @@ public sealed class LFlow
 
     public void LFlowDragHandle(bool lDragging)
     {
-        LFlowDragChange?.Invoke(lDragging);
+        LFlowDragChanged?.Invoke(lDragging);
         if (!lFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused)
         {
             return;
@@ -361,7 +361,7 @@ public sealed class LFlow
     {
         if (lFlowCommandActive)
         {
-            LFlowPlay?.Invoke();
+            LFlowPlayed?.Invoke();
         }
     }
 
@@ -369,7 +369,7 @@ public sealed class LFlow
     {
         if (lFlowCommandActive)
         {
-            LFlowPause?.Invoke();
+            LFlowPaused?.Invoke();
         }
     }
 
@@ -435,7 +435,7 @@ public sealed class LFlow
         }
 
         lFlowSectionEditable = lSectionEditable;
-        LFlowEditChange?.Invoke(lSectionEditable);
+        LFlowEditChanged?.Invoke(lSectionEditable);
         return true;
     }
 
@@ -449,7 +449,7 @@ public sealed class LFlow
         }
 
         lFlowWaveformActive = lWaveformActive;
-        LFlowWaveformChange?.Invoke(lWaveformActive);
+        LFlowWaveformChanged?.Invoke(lWaveformActive);
         LFlowWaveform.LFlowWaveformApply();
         LFlowWaveform.LFlowWaveformStart();
         return true;

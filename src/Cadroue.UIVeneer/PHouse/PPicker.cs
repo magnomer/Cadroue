@@ -40,7 +40,7 @@ internal sealed class PPicker : UserControl
     private readonly Border pPickerFrame;
     private readonly Popup pPickerPopup;
 
-    internal event Action? PPickerChange;
+    internal event Action? PPickerChanged;
 
     internal PPicker(IReadOnlyList<string> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
         : this(LPicker.LPickerItemsCreate(pItems, pSelected), pEmptyText)
@@ -178,7 +178,7 @@ internal sealed class PPicker : UserControl
     private void PPickerChangeHandle()
     {
         PPickerSummaryUpdate();
-        PPickerChange?.Invoke();
+        PPickerChanged?.Invoke();
     }
 
     private void PPickerSummaryUpdate()

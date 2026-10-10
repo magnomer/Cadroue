@@ -17,7 +17,7 @@ internal sealed class TClassifierFault : IDisposable
 
 internal static class TClassifierData
 {
-    internal static LSceneFunnelMatch TClassifierConditionCreate(
+    internal static LSceneFunnelCondition TClassifierConditionCreate(
         string text,
         bool caseSensitive = false,
         bool join = true) =>

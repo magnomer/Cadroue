@@ -61,7 +61,7 @@ public sealed class PInfo : UserControl
         };
 
         PInfoUpdate();
-        LInfo.LInfoChange += PInfoChangeHandle;
+        LInfo.LInfoChanged += PInfoChangeHandle;
         Unloaded += PInfoUnloadedHandle;
     }
 

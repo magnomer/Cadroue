@@ -183,8 +183,8 @@ public sealed class LFlowLosslesscut
 
         if (lShowRange && lResult.LLosslesscutResultSections.Count > 0)
         {
-            LSidecarSectionRecord lFirst = lResult.LLosslesscutResultSections[0];
-            LSidecarSectionRecord lLast = lResult.LLosslesscutResultSections[^1];
+            LSidecarSectionEntry lFirst = lResult.LLosslesscutResultSections[0];
+            LSidecarSectionEntry lLast = lResult.LLosslesscutResultSections[^1];
             lLines.Add(LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Range",
                 TimeSpan.FromMilliseconds(lFirst.LSidecarStartMilliseconds).ToString(@"hh\:mm\:ss\.fff"),

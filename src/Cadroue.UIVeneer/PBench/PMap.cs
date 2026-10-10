@@ -71,7 +71,7 @@ public sealed class PMap : FrameworkElement
     public PMap(LFlow lFlow)
     {
         LMap = new LMap(lFlow);
-        LMap.LMapFrameApply += InvalidateVisual;
+        LMap.LMapFrameApplied += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)

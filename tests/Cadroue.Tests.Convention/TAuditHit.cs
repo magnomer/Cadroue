@@ -10,13 +10,13 @@ internal sealed record TAuditHit(
 {
     public string TAuditPairRead() => $"{TAuditHitKind}:{TAuditHitRing}>{TAuditHitTarget}";
 
-    public string TAuditWaiverRead(IReadOnlyList<string> waivers)
+    public string TAuditExemptRead(IReadOnlyList<string> exempt)
     {
-        return waivers.FirstOrDefault(waiver =>
+        return exempt.FirstOrDefault(row =>
         {
-            int split = waiver.LastIndexOf(':');
-            string pattern = waiver[..split];
-            if (!string.Equals(waiver[(split + 1)..], TAuditHitName, StringComparison.Ordinal))
+            int split = row.LastIndexOf(':');
+            string pattern = row[..split];
+            if (!string.Equals(row[(split + 1)..], TAuditHitName, StringComparison.Ordinal))
             {
                 return false;
             }

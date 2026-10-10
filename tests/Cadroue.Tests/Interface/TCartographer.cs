@@ -42,7 +42,7 @@ internal static class TCartographer
         for (int index = 0; index < specs.Count; index++)
         {
             TCartographerTabSpec spec = specs[index];
-            var layout = new LSceneTabRecord
+            var layout = new LSceneTabEntry
             {
                 LSceneFunnelRules = spec.TCartographerFunnelTargets
                     .Select(target => new LSceneFunnelRule { LSceneFunnelTarget = target })
@@ -52,7 +52,7 @@ internal static class TCartographer
                 ids[index],
                 spec.TCartographerFunnel ? "Funnel" : "Convert",
                 $"tab-{index}",
-                new LPresetRecord(),
+                new LPresetDocument(),
                 layout,
                 spec.TCartographerFunnel));
         }
@@ -68,7 +68,7 @@ internal static class TCartographer
                 }
             }
 
-            LCartographerPlanRecord plan =
+            LCartographerPlanDocument plan =
                 LCartographer.LCartographerPlanCreate(Guid.NewGuid(), ids[entryIndex])
                 ?? throw new InvalidOperationException("Production returned no relay plan.");
 

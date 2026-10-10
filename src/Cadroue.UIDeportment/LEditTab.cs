@@ -46,27 +46,27 @@ public sealed class LEditTab
         LEditColor = new LEditTabColor(lInspector, lProcessing, lViewer);
         LEditStore = new LEditTabPlan(lInspector, lViewer, lDocket, LEditColor);
         lProcessing.LProcessingOrderedSet(false);
-        lInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChange += LEditCropHandle;
-        lInspector.LInspectorVideoChange += LEditChangeHandle;
-        lInspector.LInspectorPersistentChange += LEditStore.LEditPersistentSave;
-        lInspector.LInspectorToolChange += LEditToolHandle;
-        lInspector.LInspectorSkip.LSkipActiveChange += LEditSkipHandle;
-        lInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange += LEditColor.LEditEstimateHandle;
-        lViewer.LViewerMediaChange += LEditMediaHandle;
-        lViewer.LViewerEngineChange += LEditColor.LEditCapableHandle;
-        lViewer.LViewerEngineChange += lViewer.LViewerNeutral.LViewerNeutralCancel;
-        lViewer.LViewerNeutral.LViewerToolChange += lInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
-        lViewer.LViewerNeutral.LViewerNeutralChange += LEditColor.LEditNeutralHandle;
-        lViewer.LViewerNeutral.LViewerEstimateChange += LEditColor.LEditEstimateApply;
-        lInspector.LInspectorWhitebalance.LWhitebalanceToolChange += lViewer.LViewerNeutral.LViewerToolSet;
-        lViewer.LCrop.LCropVideoChange += LEditCropShow;
-        lProcessing.LProcessingStepChange += LEditStepHandle;
+        lInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChanged += LEditCropHandle;
+        lInspector.LInspectorVideoChanged += LEditChangeHandle;
+        lInspector.LInspectorPersistentChanged += LEditStore.LEditPersistentSave;
+        lInspector.LInspectorToolChanged += LEditToolHandle;
+        lInspector.LInspectorSkip.LSkipActiveChanged += LEditSkipHandle;
+        lInspector.LInspectorWhitebalance.LWhitebalanceEstimateChanged += LEditColor.LEditEstimateHandle;
+        lViewer.LViewerMediaChanged += LEditMediaHandle;
+        lViewer.LViewerEngineChanged += LEditColor.LEditCapableHandle;
+        lViewer.LViewerEngineChanged += lViewer.LViewerNeutral.LViewerNeutralCancel;
+        lViewer.LViewerNeutral.LViewerToolChanged += lInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
+        lViewer.LViewerNeutral.LViewerNeutralChanged += LEditColor.LEditNeutralHandle;
+        lViewer.LViewerNeutral.LViewerEstimateChanged += LEditColor.LEditEstimateApply;
+        lInspector.LInspectorWhitebalance.LWhitebalanceToolChanged += lViewer.LViewerNeutral.LViewerToolSet;
+        lViewer.LCrop.LCropVideoChanged += LEditCropShow;
+        lProcessing.LProcessingStepChanged += LEditStepHandle;
     }
 
     public event Action? LEditPresetMissing;
     public event Action? LEditPresetIncompatible;
-    public event Action? LEditHistogramDefer;
-    public event Action? LEditColorDefer;
+    public event Action? LEditHistogramDeferred;
+    public event Action? LEditColorDeferred;
 
     public LEditTabColor LEditColor { get; }
 
@@ -74,21 +74,21 @@ public sealed class LEditTab
 
     public void LEditClose()
     {
-        lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChange -= LEditCropHandle;
-        lEditInspector.LInspectorVideoChange -= LEditChangeHandle;
-        lEditInspector.LInspectorPersistentChange -= LEditStore.LEditPersistentSave;
-        lEditInspector.LInspectorToolChange -= LEditToolHandle;
-        lEditInspector.LInspectorSkip.LSkipActiveChange -= LEditSkipHandle;
-        lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateChange -= LEditColor.LEditEstimateHandle;
-        lEditViewer.LViewerMediaChange -= LEditMediaHandle;
-        lEditViewer.LViewerEngineChange -= LEditColor.LEditCapableHandle;
-        lEditViewer.LViewerEngineChange -= lEditViewer.LViewerNeutral.LViewerNeutralCancel;
-        lEditViewer.LViewerNeutral.LViewerToolChange -= lEditInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
-        lEditViewer.LViewerNeutral.LViewerNeutralChange -= LEditColor.LEditNeutralHandle;
-        lEditViewer.LViewerNeutral.LViewerEstimateChange -= LEditColor.LEditEstimateApply;
-        lEditInspector.LInspectorWhitebalance.LWhitebalanceToolChange -= lEditViewer.LViewerNeutral.LViewerToolSet;
-        lEditCrop.LCropVideoChange -= LEditCropShow;
-        lEditProcessing.LProcessingStepChange -= LEditStepHandle;
+        lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChanged -= LEditCropHandle;
+        lEditInspector.LInspectorVideoChanged -= LEditChangeHandle;
+        lEditInspector.LInspectorPersistentChanged -= LEditStore.LEditPersistentSave;
+        lEditInspector.LInspectorToolChanged -= LEditToolHandle;
+        lEditInspector.LInspectorSkip.LSkipActiveChanged -= LEditSkipHandle;
+        lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateChanged -= LEditColor.LEditEstimateHandle;
+        lEditViewer.LViewerMediaChanged -= LEditMediaHandle;
+        lEditViewer.LViewerEngineChanged -= LEditColor.LEditCapableHandle;
+        lEditViewer.LViewerEngineChanged -= lEditViewer.LViewerNeutral.LViewerNeutralCancel;
+        lEditViewer.LViewerNeutral.LViewerToolChanged -= lEditInspector.LInspectorWhitebalance.LWhitebalanceToolSet;
+        lEditViewer.LViewerNeutral.LViewerNeutralChanged -= LEditColor.LEditNeutralHandle;
+        lEditViewer.LViewerNeutral.LViewerEstimateChanged -= LEditColor.LEditEstimateApply;
+        lEditInspector.LInspectorWhitebalance.LWhitebalanceToolChanged -= lEditViewer.LViewerNeutral.LViewerToolSet;
+        lEditCrop.LCropVideoChanged -= LEditCropShow;
+        lEditProcessing.LProcessingStepChanged -= LEditStepHandle;
     }
 
     public void LEditStart()
@@ -98,11 +98,11 @@ public sealed class LEditTab
         lEditCrop.LCropActiveSet(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateActive);
     }
 
-    public LSceneTabRecord LEditLayoutRead(LSceneTabRecord lLayout)
+    public LSceneTabEntry LEditLayoutRead(LSceneTabEntry lLayout)
     {
         if (LEditStore.LEditCarriedRead() is { } lCarried)
         {
-            lLayout.LSceneInspector = new LSceneInspectorRecord
+            lLayout.LSceneInspector = new LSceneInspectorEntry
             {
                 LSceneInspectorEdit = LEdit.LEditPersistentCreate(lCarried),
                 LSceneInspectorCrop = lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent,
@@ -113,7 +113,7 @@ public sealed class LEditTab
         return lLayout;
     }
 
-    public void LEditLayoutApply(LSceneTabRecord? lLayout)
+    public void LEditLayoutApply(LSceneTabEntry? lLayout)
     {
         if (lLayout is null)
         {
@@ -259,7 +259,7 @@ public sealed class LEditTab
     public void LEditChangeHandle()
     {
         LEditColor.LEditColorUpdate();
-        LEditColorDefer?.Invoke();
+        LEditColorDeferred?.Invoke();
         LEditStore.LEditStateSave();
     }
 
@@ -279,7 +279,7 @@ public sealed class LEditTab
     private void LEditMediaHandle(LCargo lCargo)
     {
         LEditColor.LEditEstimateHandle(lEditInspector.LInspectorWhitebalance.LWhitebalanceMethod);
-        LEditHistogramDefer?.Invoke();
+        LEditHistogramDeferred?.Invoke();
         LEditCropRestore();
     }
 
@@ -287,7 +287,7 @@ public sealed class LEditTab
     {
         if (lStep == "Curve")
         {
-            LEditHistogramDefer?.Invoke();
+            LEditHistogramDeferred?.Invoke();
         }
     }
 

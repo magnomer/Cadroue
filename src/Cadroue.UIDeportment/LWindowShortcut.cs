@@ -38,8 +38,8 @@ public sealed class LWindowShortcut
         lWindow = lOwner;
     }
 
-    public event Action? LWindowShortcutPlay;
-    public event Action? LWindowShortcutPause;
+    public event Action? LWindowShortcutPlayed;
+    public event Action? LWindowShortcutPaused;
 
     public void LWindowShortcutAttach(
         Action lShow,
@@ -115,11 +115,11 @@ public sealed class LWindowShortcut
 
         if (lViewer.LViewerPlaying)
         {
-            LWindowShortcutPause?.Invoke();
+            LWindowShortcutPaused?.Invoke();
         }
         else
         {
-            LWindowShortcutPlay?.Invoke();
+            LWindowShortcutPlayed?.Invoke();
         }
 
         return true;

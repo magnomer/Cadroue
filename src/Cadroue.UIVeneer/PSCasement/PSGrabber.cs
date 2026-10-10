@@ -25,7 +25,7 @@ internal sealed class PSGrabber
 
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
-        Cadroue.Infrastructure.LPlacementRecord? pPlacement =
+        Cadroue.Infrastructure.LPlacementEntry? pPlacement =
             Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey);
         double pWidth = Math.Max(pPlacement?.LPlacementWidth ?? pWindow.Width, pWindow.MinWidth);
         double pHeight = Math.Max(pPlacement?.LPlacementHeight ?? pWindow.Height, pWindow.MinHeight);

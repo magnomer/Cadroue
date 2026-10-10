@@ -24,7 +24,7 @@ public sealed record LViewfinderShape(
 
 public sealed record LViewfinderPoint(double LViewfinderPointX, double LViewfinderPointY);
 
-public sealed record LViewfinderTick(
+public sealed record LViewfinderGraduation(
     double LViewfinderTickX,
     double LViewfinderTickTop,
     double LViewfinderTickBottom,
@@ -46,7 +46,7 @@ public sealed record LViewfinderCursor(double LViewfinderCursorX, string LViewfi
 public sealed record LViewfinderFrame(
     IReadOnlyList<LViewfinderShape> LViewfinderFrameUnder,
     LFlowWaveformOutline LViewfinderFrameWaveform,
-    IReadOnlyList<LViewfinderTick> LViewfinderFrameTicks,
+    IReadOnlyList<LViewfinderGraduation> LViewfinderFrameTicks,
     IReadOnlyList<LViewfinderBand> LViewfinderFrameBands,
     IReadOnlyList<LViewfinderShape> LViewfinderFrameOver,
     IReadOnlyList<LViewfinderShape> LViewfinderFrameKeyframes,
@@ -76,16 +76,16 @@ public sealed class LViewfinder
     public LViewfinder(LFlow lOwner)
     {
         lFlow = lOwner;
-        lFlow.LFlowAttachApply += () => LViewfinderTriggerApply("attach");
-        lFlow.LFlowClearApply += () => LViewfinderTriggerApply("clear");
-        lFlow.LFlowCursorApply += () => LViewfinderTriggerApply("cursor");
-        lFlow.LFlowSpoolApply += () => LViewfinderTriggerApply("spool");
-        lFlow.LFlowSection.LFlowSectionChange += (_, _) => LViewfinderTriggerApply("sections");
-        lFlow.LFlowKeyframe.LFlowKeyframeChange += (_, _) => LViewfinderTriggerApply("keyframes");
-        lFlow.LFlowWaveform.LFlowWaveformUpdate += _ => LViewfinderTriggerApply("waveform");
+        lFlow.LFlowAttachApplied += () => LViewfinderTriggerApply("attach");
+        lFlow.LFlowClearApplied += () => LViewfinderTriggerApply("clear");
+        lFlow.LFlowCursorApplied += () => LViewfinderTriggerApply("cursor");
+        lFlow.LFlowSpoolApplied += () => LViewfinderTriggerApply("spool");
+        lFlow.LFlowSection.LFlowSectionChanged += (_, _) => LViewfinderTriggerApply("sections");
+        lFlow.LFlowKeyframe.LFlowKeyframeChanged += (_, _) => LViewfinderTriggerApply("keyframes");
+        lFlow.LFlowWaveform.LFlowWaveformUpdated += _ => LViewfinderTriggerApply("waveform");
     }
 
-    public event Action? LViewfinderFrameApply;
+    public event Action? LViewfinderFrameApplied;
 
     public bool LViewfinderDragActive => lViewfinderDragActive;
 
@@ -151,7 +151,7 @@ public sealed class LViewfinder
         LFlowWaveformOutline lOutline = lWaveformActive
             ? LFlowWaveform.LFlowOutlineResolve(lPeaks, lWidth, lRailTop, lRailHeight, lRangeStart, lRangeEnd)
             : lViewfinderOutlineEmpty;
-        IReadOnlyList<LViewfinderTick> lTicks = LViewfinderTicksResolve(lWidth, lRangeStart, lRangeSeconds);
+        IReadOnlyList<LViewfinderGraduation> lTicks = LViewfinderTicksResolve(lWidth, lRangeStart, lRangeSeconds);
         IReadOnlyList<LViewfinderBand> lBands =
             LViewfinderBandsResolve(lWidth, lRailTop, lRailBottom, lRangeStart, lRangeEnd, lRangeSeconds);
         IReadOnlyList<LViewfinderShape> lOver =
@@ -261,7 +261,7 @@ public sealed class LViewfinder
     private void LViewfinderTriggerApply(string lTrigger)
     {
         lViewfinderTrigger = lTrigger;
-        LViewfinderFrameApply?.Invoke();
+        LViewfinderFrameApplied?.Invoke();
     }
 
     private static (double, double) LViewfinderRailResolve(double lHeight)
@@ -283,19 +283,19 @@ public sealed class LViewfinder
         return lSpool.LSpoolRangeOrigin + TimeSpan.FromSeconds(lRatio * lRange.TotalSeconds);
     }
 
-    private static IReadOnlyList<LViewfinderTick> LViewfinderTicksResolve(
+    private static IReadOnlyList<LViewfinderGraduation> LViewfinderTicksResolve(
         double lWidth, TimeSpan lRangeStart, double lRangeSeconds)
     {
         double lInterval = lRangeSeconds / (lWidth / LViewfinderTickPixels);
         double lStep = lViewfinderTickSteps.FirstOrDefault(
             lCandidate => lCandidate >= lInterval, lViewfinderTickSteps[^1]);
         double lStartSeconds = lRangeStart.TotalSeconds;
-        var lTicks = new List<LViewfinderTick>();
+        var lTicks = new List<LViewfinderGraduation>();
         for (double lSeconds = Math.Ceiling(lStartSeconds / lStep) * lStep;
             lSeconds <= lStartSeconds + lRangeSeconds + 1e-9;
             lSeconds += lStep)
         {
-            lTicks.Add(new LViewfinderTick(
+            lTicks.Add(new LViewfinderGraduation(
                 (lSeconds - lStartSeconds) / lRangeSeconds * lWidth,
                 LViewfinderLaneHeight * 0.5,
                 LViewfinderLaneHeight,

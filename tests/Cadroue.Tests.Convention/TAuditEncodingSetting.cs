@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditEncodingSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
 
     public static readonly string[] TAuditEncodingInclude =
     [
@@ -12,7 +12,6 @@ internal static class TAuditEncodingSetting
         "*.json",
         "*.csproj",
         "*.props",
-        "*.sln",
         "*.slnx",
         "*.ps1",
     ];

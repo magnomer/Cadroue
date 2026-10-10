@@ -44,14 +44,14 @@ public static class LBinding
         LBindingScopeSplit
     };
 
-    public static List<LBindingRecord> LBindingCurrent { get; private set; } = LBindingNormalize(null);
+    public static List<LBindingEntry> LBindingCurrent { get; private set; } = LBindingNormalize(null);
 
     public static void LBindingLoad() =>
         LBindingCurrent = LBindingNormalize(LBindingStore.LBindingLoad());
 
-    public static void LBindingSet(List<LBindingRecord> lBindingRecords)
+    public static void LBindingSet(List<LBindingEntry> lBindingRecords)
     {
-        List<LBindingRecord> lBindingPrevious = LBindingCurrent;
+        List<LBindingEntry> lBindingPrevious = LBindingCurrent;
         LBindingCurrent = LBindingNormalize(lBindingRecords);
         LBindingStore.LBindingSave(LBindingCurrent);
 
@@ -102,9 +102,9 @@ public static class LBinding
         _ => "Chrome.Shortcuts.ScopeGlobal"
     };
 
-    public static List<LBindingRecord> LBindingDefaultCreate() =>
+    public static List<LBindingEntry> LBindingDefaultCreate() =>
         lBindingCatalog
-            .Select(lBindingCommand => new LBindingRecord
+            .Select(lBindingCommand => new LBindingEntry
             {
                 LBindingRecordToken = lBindingCommand.LBindingCommandToken,
                 LBindingRecordGesture = lBindingCommand.LBindingCommandGesture
@@ -117,14 +117,14 @@ public static class LBinding
                 string.Equals(lBindingCommand.LBindingCommandToken, lBindingToken, StringComparison.Ordinal))
             ?.LBindingCommandGesture ?? string.Empty;
 
-    public static List<LBindingRecord> LBindingNormalize(List<LBindingRecord>? lBindingRecords)
+    public static List<LBindingEntry> LBindingNormalize(List<LBindingEntry>? lBindingRecords)
     {
-        var lBindingResult = new List<LBindingRecord>();
+        var lBindingResult = new List<LBindingEntry>();
         var lBindingTaken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         foreach (LBindingCommand lBindingCommand in lBindingCatalog)
         {
-            LBindingRecord? lBindingStored = lBindingRecords?.FirstOrDefault(lBindingEntry =>
+            LBindingEntry? lBindingStored = lBindingRecords?.FirstOrDefault(lBindingEntry =>
                 string.Equals(
                     lBindingEntry.LBindingRecordToken,
                     lBindingCommand.LBindingCommandToken,
@@ -139,7 +139,7 @@ public static class LBinding
                 lBindingGesture = string.Empty;
             }
 
-            lBindingResult.Add(new LBindingRecord
+            lBindingResult.Add(new LBindingEntry
             {
                 LBindingRecordToken = lBindingCommand.LBindingCommandToken,
                 LBindingRecordGesture = lBindingGesture
@@ -149,13 +149,13 @@ public static class LBinding
         return lBindingResult;
     }
 
-    public static string LBindingGestureRead(List<LBindingRecord>? lBindingRecords, string lBindingToken) =>
+    public static string LBindingGestureRead(List<LBindingEntry>? lBindingRecords, string lBindingToken) =>
         lBindingRecords?
             .FirstOrDefault(lBindingEntry =>
                 string.Equals(lBindingEntry.LBindingRecordToken, lBindingToken, StringComparison.Ordinal))
             ?.LBindingRecordGesture ?? string.Empty;
 
-    public static string? LBindingTokenFind(List<LBindingRecord>? lBindingRecords, string lBindingGesture)
+    public static string? LBindingTokenFind(List<LBindingEntry>? lBindingRecords, string lBindingGesture)
     {
         if (string.IsNullOrEmpty(lBindingGesture) || lBindingRecords is null)
         {

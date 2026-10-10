@@ -20,7 +20,7 @@ public sealed class TEditPersistenceWhitebalance
             TInterface.TWorkWhitebalanceCreate(true, method, 137.625)
         });
 
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(
             TInterface.TEditPlanCreate(TInterface.TWorkCropCreate(), video, false));
         LSidecarVideoStep stored = Assert.Single(record.LSidecarSteps);
         LWorkVideoStep restored = Assert.Single(
@@ -38,7 +38,7 @@ public sealed class TEditPersistenceWhitebalance
     [Fact]
     public void Whitebalance_LegacyRecord_UsesMedianAndOneHundredPercent()
     {
-        LSidecarEditRecord record = TInterface.TSidecarEditCreate("Whitebalance", true, 0);
+        LSidecarEditEntry record = TInterface.TSidecarEditCreate("Whitebalance", true, 0);
 
         LWorkVideoStep restored = Assert.Single(
             TInterface.TEditPersistentRead(record).LEditVideo.LWorkVideoSteps);
@@ -52,7 +52,7 @@ public sealed class TEditPersistenceWhitebalance
     [Fact]
     public void WhitebalanceManual_PersistentRecord_RoundTripsCoefficientsAndSamples()
     {
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(),
             TInterface.TWorkVideoCreate(new[]
             {
@@ -82,7 +82,7 @@ public sealed class TEditPersistenceWhitebalance
     [Fact]
     public void WhitebalanceManual_SidecarJson_RoundTripsInvariantNumbers()
     {
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(),
             TInterface.TWorkVideoCreate(new[]
             {
@@ -101,7 +101,7 @@ public sealed class TEditPersistenceWhitebalance
     [Fact]
     public void WhitebalanceAutomatic_PersistentRecord_OmitsManualFields()
     {
-        LSidecarEditRecord record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry record = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(),
             TInterface.TWorkVideoCreate(new[]
             {
@@ -118,7 +118,7 @@ public sealed class TEditPersistenceWhitebalance
     [Fact]
     public void NonWhitebalanceStep_OmitsAndIgnoresWhitebalanceFields()
     {
-        LSidecarEditRecord storedRecord = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
+        LSidecarEditEntry storedRecord = TInterface.TEditPersistentCreate(TInterface.TEditPlanCreate(
             TInterface.TWorkCropCreate(),
             TInterface.TWorkVideoCreate(new[] { TInterface.TWorkContrastCreate(true, 125) }),
             false));

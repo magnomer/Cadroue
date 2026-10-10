@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditStrictSetting
 {
-    public const int TAuditGeneration = 16;
+    public const int TAuditGeneration = 21;
     public const bool TAuditStrictEnforced = true;
     public const string TAuditStrictReport = "temp/audit/Strict-{0}.md";
     public const string TAuditLedgerFile = "TAuditStrictLedger";
@@ -15,16 +15,18 @@ internal static class TAuditStrictSetting
     public static readonly string[] TAuditVeneerInclude =
     [
         "src/Cadroue.UIVeneer/*.cs",
+        "src/Cadroue.UITerminal/*.cs",
     ];
 
     public static readonly string[] TAuditDeportmentInclude =
     [
         "src/Cadroue.UIDeportment/*.cs",
+        "src/Cadroue.UIDemeanor/*.cs",
     ];
 
     public static readonly string[] TAuditHostInclude =
     [
-        "src/Cadroue.UIVeneer/App.xaml.cs",
+        "src/Cadroue.Host/*.cs",
     ];
 
     public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";
@@ -33,14 +35,14 @@ internal static class TAuditStrictSetting
 
     public const string TAuditContractType = "QContract";
 
-    public static readonly string[] TAuditPackMarkers =
+    public static readonly string[] TAuditHardwiringMarkers =
     [
         "pack://",
         ";component/",
         "Cadroue.UIVeneer",
     ];
 
-    public static readonly string[] TAuditScaffoldTypes =
+    public static readonly string[] TAuditMasqueradingTypes =
     [
         "System.Windows.Application",
         "System.Windows.Controls.ContentControl",
@@ -79,14 +81,7 @@ internal static class TAuditStrictSetting
         @"\bPath\.\w+\(",
     ];
 
-    public static readonly string[] TAuditCatalogExempt =
-    [
-        "PIcon.cs",
-        "PLogWindow.cs",
-        "PPlayerFlyleaf.cs",
-        "PSAbout.cs",
-        "PSOptionsSystemWorkspace.cs",
-    ];
+    public static readonly string[] TAuditCatalogExempt = [];
 
     public static readonly string[] TAuditDiskPatterns =
     [
@@ -97,22 +92,19 @@ internal static class TAuditStrictSetting
         @"\bSystem\.IO\.(File|Directory|Path|Drive|FileSystem)",
     ];
 
-    public static readonly string[] TAuditDiskExempt =
-    [
-        "LViewerMedia.cs",
-        "LViewerMpv.cs",
-    ];
+    public static readonly string[] TAuditDiskExempt = [];
 
-    public static readonly string[] TAuditReachNamespaces =
+    public static readonly string[] TAuditOverreachingNamespaces =
     [
-        "Cadroue.Application",
         "Cadroue.Core",
-        "Cadroue.Infrastructure",
-        "Cadroue.Media",
+        "Cadroue.Application",
         "Cadroue.ShellEngine",
+        "Cadroue.Conduct",
+        "Cadroue.Infrastructure",
+        "Cadroue.Core.Windows",
     ];
 
-    public static readonly string[] TAuditTriggerElements =
+    public static readonly string[] TAuditBranchingElements =
     [
         "DataTrigger",
         "EventTrigger",
@@ -125,7 +117,7 @@ internal static class TAuditStrictSetting
         "VisualTransition",
     ];
 
-    public static readonly string[] TAuditTriggerSlots =
+    public static readonly string[] TAuditBranchingSlots =
     [
         "CellTemplateSelector",
         "ContentStringFormat",
@@ -147,7 +139,7 @@ internal static class TAuditStrictSetting
         "ValidationRules",
     ];
 
-    public static readonly string[] TAuditHookElements =
+    public static readonly string[] TAuditTetheringElements =
     [
         "Binding",
         "CommandBinding",
@@ -160,7 +152,7 @@ internal static class TAuditStrictSetting
         "RelativeSource",
     ];
 
-    public static readonly string[] TAuditHookSlots =
+    public static readonly string[] TAuditTetheringSlots =
     [
         "Command",
         "CommandParameter",
@@ -170,12 +162,12 @@ internal static class TAuditStrictSetting
         "SelectedValuePath",
     ];
 
-    public static readonly string[] TAuditHookLiterals =
+    public static readonly string[] TAuditTetheringLiterals =
     [
         "Tag",
     ];
 
-    public static readonly string[] TAuditHookExtensions =
+    public static readonly string[] TAuditTetheringExtensions =
     [
         "Binding",
         "MultiBinding",
@@ -184,7 +176,7 @@ internal static class TAuditStrictSetting
         "x:Static",
     ];
 
-    public static readonly string[] TAuditHookTypes =
+    public static readonly string[] TAuditTetheringTypes =
     [
         "System.Windows.Controls.DataTemplateSelector",
         "System.Windows.Controls.StyleSelector",

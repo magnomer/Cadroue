@@ -37,11 +37,11 @@ public sealed class LSensor
         LDetectorMetricMode.LDetectorMetricLufs, LDetectorMetricMode.LDetectorMetricRms
     };
 
-    public event Action? LSensorChange;
-    public event Action<bool>? LSensorRunningChange;
-    public event Action<bool>? LSensorPersistentChange;
-    public event Action? LSensorRunApply;
-    public event Action? LSensorStopApply;
+    public event Action? LSensorChanged;
+    public event Action<bool>? LSensorRunningChanged;
+    public event Action<bool>? LSensorPersistentChanged;
+    public event Action? LSensorRunApplied;
+    public event Action? LSensorStopApplied;
 
     public LSensor()
     {
@@ -195,11 +195,11 @@ public sealed class LSensor
     {
         if (lSensorRunning)
         {
-            LSensorStopApply?.Invoke();
+            LSensorStopApplied?.Invoke();
         }
         else
         {
-            LSensorRunApply?.Invoke();
+            LSensorRunApplied?.Invoke();
         }
     }
 
@@ -249,7 +249,7 @@ public sealed class LSensor
         }
 
         lSensorMode = lMode;
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     public void LSensorSpeedSet(LDetectorLuminanceMode lSpeed)
@@ -260,7 +260,7 @@ public sealed class LSensor
         }
 
         lSensorSpeed = lSpeed;
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     public void LSensorMetricSet(LDetectorMetricMode lMetric)
@@ -281,7 +281,7 @@ public sealed class LSensor
             });
         }
 
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     public void LSensorPresetSelect(LDetectorKind lKind, string lToken)
@@ -334,7 +334,7 @@ public sealed class LSensor
 
         lSensorSteps[lKind] = lNormal;
         lSensorTokens[lKind] = lToken;
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     public void LSensorTokenSet(LDetectorKind lKind, string lToken)
@@ -351,7 +351,7 @@ public sealed class LSensor
         }
 
         lSensorTokens[lKind] = lNormal;
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     public void LSensorRunningSet(bool lRunning)
@@ -362,7 +362,7 @@ public sealed class LSensor
         }
 
         lSensorRunning = lRunning;
-        LSensorRunningChange?.Invoke(lRunning);
+        LSensorRunningChanged?.Invoke(lRunning);
     }
 
     public void LSensorPersistentSet(bool lPersistent)
@@ -373,7 +373,7 @@ public sealed class LSensor
         }
 
         lSensorPersistent = lPersistent;
-        LSensorPersistentChange?.Invoke(lPersistent);
+        LSensorPersistentChanged?.Invoke(lPersistent);
     }
 
     private void LSensorStepApply(LDetectorStep lNormal)
@@ -384,7 +384,7 @@ public sealed class LSensor
         }
 
         lSensorSteps[lNormal.LDetectorStepKind] = lNormal;
-        LSensorChange?.Invoke();
+        LSensorChanged?.Invoke();
     }
 
     private static LDetectorStep LSensorNormalize(LDetectorStep lStep)

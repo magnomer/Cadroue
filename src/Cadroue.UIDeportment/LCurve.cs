@@ -27,7 +27,7 @@ public sealed class LCurve
         LCurveCanvas = new LCurveCanvas(this);
     }
 
-    public event Action? LCurveChange;
+    public event Action? LCurveChanged;
 
     public LCurveCanvas LCurveCanvas { get; }
 
@@ -84,7 +84,7 @@ public sealed class LCurve
             LCurveSelectedClamp();
         }
 
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveActiveSet(bool lActive)
@@ -95,7 +95,7 @@ public sealed class LCurve
         }
 
         lCurveActive = lActive;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveChannelSelect(int lChannel)
@@ -113,7 +113,7 @@ public sealed class LCurve
 
         lCurveChannel = lClamped;
         LCurveSelectedClamp();
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurvePointSelect(int lIndex)
@@ -125,7 +125,7 @@ public sealed class LCurve
         }
 
         lCurveSelected = lClamped;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurvePointSet(double lInput, double lOutput)
@@ -139,7 +139,7 @@ public sealed class LCurve
         }
 
         lPoints[lCurveSelected] = lPoint;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurvePointCommit(string lInputText, string lOutputText)
@@ -193,7 +193,7 @@ public sealed class LCurve
     {
         lCurveSelected = LColorCurve.LColorCurveInsert(
             lCurveChannels[lCurveChannel], Math.Clamp(lInput, 0, 1), Math.Clamp(lOutput, 0, 1));
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurvePointDelete()
@@ -206,14 +206,14 @@ public sealed class LCurve
 
         lPoints.RemoveAt(lCurveSelected);
         LCurveSelectedClamp();
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveChannelReset()
     {
         lCurveChannels[lCurveChannel] = LCurveIdentityCreate();
         LCurveSelectedClamp();
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveReset()
@@ -224,7 +224,7 @@ public sealed class LCurve
         }
 
         LCurveSelectedClamp();
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveHistogramSet(LHistogramCounts? lHistogram)
@@ -235,7 +235,7 @@ public sealed class LCurve
         }
 
         lCurveHistogram = lHistogram;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurvePersistentSet(bool lPersistent)
@@ -246,7 +246,7 @@ public sealed class LCurve
         }
 
         lCurvePersistent = lPersistent;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     public void LCurveCapableSet(bool lCapable, bool lPreview)
@@ -259,7 +259,7 @@ public sealed class LCurve
 
         lCurveCapable = lCapable;
         lCurvePreview = lPreviewShown;
-        LCurveChange?.Invoke();
+        LCurveChanged?.Invoke();
     }
 
     private void LCurveSelectedClamp() =>
