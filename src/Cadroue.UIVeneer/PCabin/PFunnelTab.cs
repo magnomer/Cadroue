@@ -8,14 +8,17 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PFunnelTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
+    private readonly PList pList;
     private readonly PFunnelRules pFunnelRules;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFunnelTab(LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFunnelTab(LStrip lStrip, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip);
+        pList = new PList(lStrip, new LDocket());
         LFunnelTab = new LFunnelTab(pList.LList, pList.LList.LListDocket);
         pFunnelRules = new PFunnelRules(LFunnelTab.LFunnel);
         var pAction = new PAction();

@@ -3,12 +3,6 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSEntry;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSFader;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -27,16 +21,17 @@ internal sealed partial class PSEncoder
         IReadOnlyList<int> pTicks = pDiscrete ? pRates : psAudioSampleStandard;
         double pMaximum = pTicks.Count > 0 ? pTicks[^1] : 48000;
 
-        psAudioSampleReadout = PSEntryBuild(string.Empty, 96);
-        UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
-        UIElement pRow = PSFaderDetentBuild(
+        psAudioSampleReadout = PSEntry.PSEntryBuild(string.Empty, 96);
+        UIElement pNotice = PSNotice.PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
+        UIElement pRow = PSFader.PSFaderDetentBuild(
             pTicks, pDiscrete, pMaximum,
             LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
             pStored, psAudioSampleReadout, pNotice);
 
         psAudioSamplePanel.Children.Clear();
         psAudioSamplePanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
                 pRow));
         psAudioSamplePanel.Children.Add(pNotice);

@@ -9,10 +9,10 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PEditTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new(pEditEligible: true, pColorPreview: true);
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
     private readonly PInspector pInspector = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly PList pList;
     private readonly PProcessing pProcessing = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
     private readonly System.Windows.Threading.DispatcherTimer pEditColorTimer = new()
@@ -24,9 +24,13 @@ public sealed class PEditTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(220)
     };
 
-    public PEditTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PEditTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip, pEditEligible: true, pColorPreview: true);
+        pList = new PList(lStrip, new LDocket());
         LEditTab = new LEditTab(
+            lStrip,
             lPresetOwner,
             pInspector.LInspector,
             pViewer.LViewer,
@@ -44,14 +48,14 @@ public sealed class PEditTab : PTabSurface
         pAction.PActionListAttach(pList);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
-        LEditTab.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        QEditProcessing.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
         pViewer.LViewer.LViewerPlayback.LViewerClockTicked += PEditHistogramDefer;
         pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         pList.LList.LListPathChanged += LEditTab.LEditPathHandle;
         pList.LList.LListItemsAdded += LEditTab.LEditStore.LEditItemsHandle;
-        pList.LList.LListLockChanged += LEditTab.LEditLockHandle;
+        pList.LList.LListLockChanged += LEditTab.QEditTool.LEditLockHandle;
 
         LEditTab.LEditPresetMissing += PExport.PExportMissingShow;
         LEditTab.LEditPresetIncompatible += PExport.PExportIncompatibleShow;

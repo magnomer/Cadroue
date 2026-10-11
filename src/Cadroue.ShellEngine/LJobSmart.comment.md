@@ -1,10 +1,13 @@
 # LJobSmart.cs
+Hash: `b287e4f1ef9251a6`
 
-## Inline notes
+## `private (int, string) LJobLeadingRun(LEncodeStage pStage)`
 
-### `LRunner.LRunnerRecord(`
+The splice stage rewrites the copied middle in place, without spawning ffmpeg.
+A file that needs no change is left untouched.
 
-Inside `LJobSmartRun`, this is the only whole-interval encode path.
+## `private async Task<(int, string)> LJobSmartRun()`
+
 Smart-mode jobs rejected earlier by eligibility checks use the ordinary stage path instead.
-Both Whole and Invalid plans take this path, so it is not restricted to a missing copyable middle.
-Fresh media probes for the boundary decision receive the runner's priority override, keeping planning under its execution configuration.
+A Whole or Invalid plan falls back to one whole-interval encode, not only a missing copyable middle.
+The media probe for the open-end decision receives the runner's priority override.

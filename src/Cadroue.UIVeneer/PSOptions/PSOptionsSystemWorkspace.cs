@@ -5,11 +5,6 @@ using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSInline;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
@@ -22,7 +17,7 @@ internal sealed partial class PSOptions
 
     private UIElement PSSystemRecordBuild()
     {
-        Button pRecordClear = PSInlineButtonBuild(
+        Button pRecordClear = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
             190,
             new Thickness(0));
@@ -35,34 +30,28 @@ internal sealed partial class PSOptions
         };
         pRecordButtonRow.Children.Add(pRecordClear);
 
-        var pRecordBesideNotice = (TextBlock)PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside"));
+        var pRecordBesideNotice = (TextBlock)PSNotice.PSNoticeBuild(string.Empty);
         void PSSystemNoticeUpdate()
         {
             lsOptionsDraft.LPreferenceRecordWorkspace =
-                string.Equals(PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
-            bool pWorkspace = lsOptions.LSOptionsRecordCheck();
-            string pRecordWorkspacePath = System.IO.Path.Combine(
-                LDepot.LDepotRootRead(),
-                Cadroue.Infrastructure.LSidecarStore.LSidecarRecordFolder);
-            pRecordBesideNotice.Text = pWorkspace
-                ? LLocalization.LLocalizationFormat("Options.System.FileRecordWorkspace", pRecordWorkspacePath)
-                : LLocalization.LLocalizationTextRead("Options.System.FileRecordBeside");
+                string.Equals(PSField.PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
+            pRecordBesideNotice.Text = LLocalization.LLocalizationFormat(
+                lsOptions.LSOptionsRecordResolve(), LSOptions.LSOptionsSidecarRead());
         }
         PSSystemNoticeUpdate();
         psOptionsRecordNotice = PSSystemNoticeUpdate;
 
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psOptionsRecordMode),
+        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psOptionsRecordMode),
             pRecordBesideNotice,
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordScope")),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
+            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordScope")),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
     }
 
     private void PSSystemRecordClear()
     {
         string pRecordFolder = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderRead();
-        if (!LUsher.LUsherFolderExist(pRecordFolder))
+        if (!lsOptions.LSOptionsFolderExist(pRecordFolder))
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,

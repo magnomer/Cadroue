@@ -4,10 +4,6 @@ using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSFader;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -71,7 +67,8 @@ internal sealed partial class PSEncoder
 
     private void PSVideoFpsBuild(Panel pHost)
     {
-        psVideoFpsNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
+        psVideoFpsNotice = PSNotice.PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
 
         if (PSVideoSourceCheck(psVideoFpsCustom.Text))
         {
@@ -82,7 +79,7 @@ internal sealed partial class PSEncoder
             psVideoFpsNotice.Visibility = Visibility.Collapsed;
         }
 
-        Slider pSlider = PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
+        Slider pSlider = PSFader.PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
 
         bool pSync = false;
         pSlider.ValueChanged += (_, _) =>
@@ -101,7 +98,7 @@ internal sealed partial class PSEncoder
             else
             {
                 psVideoFpsCustom.Text = psVideoFpsScale[pAt].PSVideoScaleValue;
-                psVideoFpsCustom.Foreground = PSFieldText;
+                psVideoFpsCustom.Foreground = PSField.PSFieldText;
                 psVideoFpsNotice.Visibility = Visibility.Collapsed;
             }
             psVideoFpsCustom.CaretIndex = psVideoFpsCustom.Text.Length;
@@ -117,20 +114,20 @@ internal sealed partial class PSEncoder
             bool pSource = PSVideoSourceCheck(psVideoFpsCustom.Text);
             pSync = true;
             pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
-            psVideoFpsCustom.Foreground = pSource ? PSFieldMuted : PSFieldText;
+            psVideoFpsCustom.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
             psVideoFpsNotice.Visibility = pSource ? Visibility.Visible : Visibility.Collapsed;
             pSync = false;
         };
 
-        pHost.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"),
-            PSFaderRowBuild(pSlider, psVideoFpsCustom)));
+        pHost.Children.Add(PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"),
+            PSFader.PSFaderRowBuild(pSlider, psVideoFpsCustom)));
         pHost.Children.Add(psVideoFpsNotice);
     }
 
     private void PSVideoFpsApply()
     {
         psVideoFpsCustom.Text = LLocalization.LLocalizationTextRead("Encoder.Sample.Source");
-        psVideoFpsCustom.Foreground = PSFieldMuted;
+        psVideoFpsCustom.Foreground = PSField.PSFieldMuted;
         if (psVideoFpsNotice is not null)
         {
             psVideoFpsNotice.Visibility = Visibility.Visible;

@@ -5,8 +5,6 @@ using Cadroue.Core;
 
 namespace Cadroue.Media;
 
-public readonly record struct LEmployerResult(int LEmployerExit, string LEmployerError, bool LEmployerStalled = false);
-
 public sealed class LEmployer
 {
     private const int LEmployerErrorLimit = 256 * 1024;
@@ -40,6 +38,35 @@ public sealed class LEmployer
             (lEmployerProcess, lEmployerPulse, lEmployerCancel) =>
                 LEmployerLineRead(lEmployerProcess, lEmployerPulse, lEmployerCancel, lEmployerOutputRead),
             lEmployerErrorRead);
+
+    public async Task<LEmployerResult> LEmployerRun(
+        string lEmployerArguments,
+        CancellationToken lEmployerToken,
+        Guid? lEmployerWorkId,
+        Action<string> lEmployerOutputRead,
+        Action<string> lEmployerErrorRead)
+    {
+        if (lEmployerWorkId is not Guid lEmployerChildId)
+        {
+            return await LEmployerRun(
+                lEmployerArguments, lEmployerToken, static _ => { }, lEmployerOutputRead, lEmployerErrorRead)
+                .ConfigureAwait(false);
+        }
+
+        try
+        {
+            return await LEmployerRun(
+                lEmployerArguments,
+                lEmployerToken,
+                lEmployerProcess => LEmployerChild.LEmployerChildAdd(lEmployerChildId, lEmployerProcess),
+                lEmployerOutputRead,
+                lEmployerErrorRead).ConfigureAwait(false);
+        }
+        finally
+        {
+            LEmployerChild.LEmployerChildRemove(lEmployerChildId);
+        }
+    }
 
     public Task<LEmployerResult> LEmployerRun(
         IReadOnlyList<string> lEmployerArguments,

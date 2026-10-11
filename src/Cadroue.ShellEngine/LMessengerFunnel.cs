@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -28,7 +27,7 @@ public static partial class LMessenger
             Guid lMessengerTarget = lMessengerTargets[lMessengerMatch];
             if (LCartographer.LCartographerCycleCheck(lMessengerSourceTab, lMessengerTarget, lMessengerName))
             {
-                LTraceLog.LTraceWarningRecord(
+                LTraceEngine.LTraceWarningSeam(
                     $"Funnel refused '{lMessengerName}': its rule route loops back through automatic funnels");
                 continue;
             }
@@ -46,7 +45,7 @@ public static partial class LMessenger
         }
 
         LSeal.LSealRun();
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Funnel relayed {lMessengerRelayed.Count} of {lMessengerItems.Count} file(s) by filename rule");
         return lMessengerRelayed.Count;
     }

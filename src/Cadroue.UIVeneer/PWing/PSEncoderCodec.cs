@@ -5,9 +5,6 @@ using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -17,7 +14,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoEncoderUpdate()
     {
-        bool pAvailable = LSEncoder.LSEncoderVideoCheck(PSComboTextRead(psVideoEncoderCombo));
+        bool pAvailable = LSEncoder.LSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
         psVideoEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
         if (!pAvailable)
         {
@@ -27,7 +24,7 @@ internal sealed partial class PSEncoder
 
     private void PSCodecContainerHandle()
     {
-        string pContainer = PSComboTextRead(psOutputContainerCombo);
+        string pContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
         string pCurrent = psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
         string[] pItems = LSEncoder.LSEncoderVideoRead(pContainer, pCurrent);
         psVideoEncoderCombo.ItemsSource = pItems;

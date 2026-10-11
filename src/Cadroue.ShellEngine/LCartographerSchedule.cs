@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -50,7 +49,7 @@ public static partial class LCartographer
         {
             lCartographerSchedule.LScheduleBatchRemove(
                 lCartographerAccepted.Select(lCartographerItem => lCartographerItem.LWorkId).ToArray());
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Work admission withdrew {lCartographerAccepted.Count} item(s): " +
                 "a source file is already held by other work");
             lCartographerAccepted = Array.Empty<LWorkItem>();

@@ -10,8 +10,8 @@ internal static class TAuditLineSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditLineCeiling = new Dictionary<string, int>
     {
-        ["Length"] = 0,
-        ["Width"] = 0,
+        ["Length"] = 5,
+        ["Width"] = 2,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditWidthLimit =

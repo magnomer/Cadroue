@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -129,32 +127,20 @@ public static partial class LSweep
         IProgress<double>? lSweepProgress)
     {
         var lSweepLines = new List<string>();
-        var lSweepEmployer = new LEmployer(LTool.LToolFfmpegRead())
-        {
-            LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode
-        };
-        Process? lSweepProcess = null;
-        using CancellationTokenRegistration lSweepKill = lSweepToken.Register(() =>
-        {
-            try
-            {
-                lSweepProcess?.Kill(true);
-            }
-            catch (Exception lSweepException)
-                when (lSweepException is System.ComponentModel.Win32Exception
-                    or InvalidOperationException
-                    or NotSupportedException)
-            {
-            }
-        });
+        string lSweepProgram = LToolEngine.LToolFfmpegSeam();
         LEmployerResult lSweepResult;
-        await LMedia.LMediaScanClaim(lSweepToken).ConfigureAwait(false);
+        await LSweepEngine.LSweepClaimSeam(lSweepToken).ConfigureAwait(false);
         try
         {
-            lSweepResult = await lSweepEmployer.LEmployerRun(
+            lSweepResult = await LEmployerEngine.LEmployerRunSeam(
+            lSweepProgram,
+            string.Empty,
+            LCustodyFamily.LCustodyFamilyEncode,
+            null,
+            null,
             lSweepArguments,
             lSweepToken,
-            lSweepAttach => lSweepProcess = lSweepAttach,
+            null,
             _ => { },
             lSweepLine =>
             {
@@ -169,7 +155,7 @@ public static partial class LSweep
         }
         finally
         {
-            LMedia.LMediaScanRelease();
+            LSweepEngine.LSweepReleaseSeam();
         }
 
         lSweepToken.ThrowIfCancellationRequested();

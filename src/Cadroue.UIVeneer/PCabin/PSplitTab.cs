@@ -8,16 +8,19 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PSplitTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new();
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
     private readonly PSection pSection;
-    private readonly PList pList = new(new LDocket());
+    private readonly PList pList;
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PSplitTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PSplitTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip);
+        pList = new PList(lStrip, new LDocket());
         LSplitTab = new LSplitTab(
             lPresetOwner,
             pInspector.LInspector,

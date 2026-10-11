@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -11,7 +12,15 @@ public sealed class LProgram
     private static Action<Action>? lProgramDeferSeam;
     private string? lDepotRootApplied;
 
+    public LProgram(CAtelier lAtelier)
+    {
+        ArgumentNullException.ThrowIfNull(lAtelier);
+        LProgramAtelier = lAtelier;
+    }
+
     public static LScheduleContract LScheduleCurrent { get; } = new LSchedule();
+
+    public CAtelier LProgramAtelier { get; }
 
     public void LProgramStart(
         string[] lArgs,
@@ -29,8 +38,6 @@ public sealed class LProgram
 
         LLocalization.LLocalizationNamesSeam = lResourceNames;
         LLocalization.LLocalizationTextSeam = lResourceRead;
-        LTraceLog.LTraceSeamAttach();
-        LPreferenceStateStore.LPreferenceSeamAttach();
         LPreference.LPreferenceDebounceSeam = lDebounceRestart;
         LPreference.LPreferenceLoad();
         LFrameStore.LFrameLoad();
@@ -48,16 +55,11 @@ public sealed class LProgram
             lPlacementKeys.Select(lPlacementKey => (lPlacementKey, lPlacementKey)).ToArray());
 
         LRenderer.LRendererToolAttach();
-        LSidecarStore.LSidecarLibrarianAttach();
-        LSidecarStore.LSidecarSegmentAttach();
-        LFlawScanner.LFlawCheckupAttach();
-        LPresetStore.LPresetSeamAttach();
         LPreset.LPresetPrepare();
         LProgramStationAttach(lDispatch);
         LAutopsy.LAutopsyProseAttach();
         LInventory.LInventoryPrepareStart();
         LTrialCatalog.LTrialSetStart();
-        LRunner.LRunnerTraceAttach();
         LTraceLog.LTraceLoadingRecord(
             $"Application started: version {LTraceLog.LTraceVersionRead()}, process {Environment.ProcessId}");
         LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive

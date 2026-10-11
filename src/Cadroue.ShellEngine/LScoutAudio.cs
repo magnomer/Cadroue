@@ -2,7 +2,6 @@ using System.Globalization;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -45,10 +44,15 @@ internal static class LScoutAudio
         {
             var lScoutPackets = new List<(double, double)>();
             double lScoutTimelineStart = 0;
-            LEmployerResult lScoutResult = await new LEmployer(LTool.LToolFfprobeRead()).LEmployerRun(
+            LEmployerResult lScoutResult = await LEmployerEngine.LEmployerRunSeam(
+                LToolEngine.LToolFfprobeSeam(),
+                string.Empty,
+                null,
+                null,
+                null,
                 lScoutArguments,
                 lScoutToken,
-                _ => { },
+                null,
                 lScoutLine =>
                 {
                     if (LScoutFormatRead(lScoutLine, out double lScoutFormatStart))

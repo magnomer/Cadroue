@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -17,42 +18,50 @@ public sealed class LRoster
     private readonly LScheduleContract lSchedule;
     private readonly LStation lStation;
     private readonly List<Guid> lRosterOrderedIds = [];
-    private readonly HashSet<Guid> lRosterSelectedIds = [];
-    private readonly HashSet<Guid> lRosterCollapsedIds = [];
+    private readonly HashSet<Guid> lRosterPresentIds = [];
     private readonly HashSet<Guid> lRosterCompletedIds = [];
     private readonly List<LRosterBatch> lRosterBatches = [];
     private readonly List<LRosterCard> lRosterCards = [];
     private bool lRosterClosed;
     private readonly IList<LRosterEntry> lRosterEntries;
     private readonly List<int> lRosterEntryCounts = [];
-    private bool lRosterDetailPending;
-    private Guid lRosterCurrentId;
-    private Guid lRosterCardId;
 
-    public LRoster(LScheduleContract lScheduleOwner, LStation lStationOwner)
+    public LRoster(CUsher lUsher, LScheduleContract lScheduleOwner, LStation lStationOwner)
     {
+        LRosterUsher = lUsher;
         lSchedule = lScheduleOwner;
         lStation = lStationOwner;
+        QRosterCollapse = new QRosterCollapse(LRosterCardUpdate);
+        QRosterDetail = new QRosterDetail(() => lRosterClosed, () => LRosterDetailApplied?.Invoke());
+        QRosterSelection = new QRosterSelection(
+            lRosterPresentIds.Contains, LRosterBatchCheck, () => lRosterOrderedIds, LRosterSelectRaise);
         lStation.LStationSelectionSource = LRosterSelectionRead;
         lSchedule.LScheduleChanged += LRosterScheduleHandle;
         lSchedule.LScheduleItemChanged += LRosterItemHandle;
-        LRosterMenu = new LRosterMenu(lSchedule, lStation, LRosterSelectionRead);
+        LRosterMenu = new LRosterMenu(lUsher, lSchedule, lStation, LRosterSelectionRead);
         System.Collections.ObjectModel.ObservableCollection<LRosterEntry> lEntries = [];
         lRosterEntries = lEntries;
         LRosterEntries = lEntries;
     }
 
-    public static LRoster LRosterCreate() => new(
+    public static LRoster LRosterCreate(LStrip lStrip) => new(
+        lStrip.LStripUsher,
         LProgram.LScheduleCurrent,
         LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist")));
 
     public event Action? LRosterDetailApplied;
 
-    public event Action? LRosterDetailDeferred;
-
     public event Action<string, string>? LRosterWarningShown;
 
+    public CUsher LRosterUsher { get; }
+
     public LRosterMenu LRosterMenu { get; }
+
+    public QRosterCollapse QRosterCollapse { get; }
+
+    public QRosterDetail QRosterDetail { get; }
+
+    public QRosterSelection QRosterSelection { get; }
 
     public LStation LRosterStation => lStation;
 
@@ -60,15 +69,7 @@ public sealed class LRoster
 
     public bool LRosterClosed => lRosterClosed;
 
-    public bool LRosterDetailPending => lRosterDetailPending;
-
-    public Guid LRosterCurrentId => lRosterCurrentId;
-
-    public Guid LRosterCardId => lRosterCardId;
-
     public IReadOnlyList<Guid> LRosterOrderedIds => lRosterOrderedIds;
-
-    public IReadOnlyCollection<Guid> LRosterSelectedIds => lRosterSelectedIds;
 
     public bool LRosterShared => LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
 
@@ -120,29 +121,9 @@ public sealed class LRoster
 
         if (lNotice == LScheduleNotice.LScheduleNoticeProgress)
         {
-            LRosterDeferRaise();
+            QRosterDetail.LRosterDeferRaise();
         }
         else
-        {
-            LRosterDetailApplied?.Invoke();
-        }
-    }
-
-    private void LRosterDeferRaise()
-    {
-        if (lRosterDetailPending)
-        {
-            return;
-        }
-
-        lRosterDetailPending = true;
-        LRosterDetailDeferred?.Invoke();
-    }
-
-    public void LRosterDetailRun()
-    {
-        lRosterDetailPending = false;
-        if (!lRosterClosed)
         {
             LRosterDetailApplied?.Invoke();
         }
@@ -166,7 +147,7 @@ public sealed class LRoster
 
     private bool LRosterMeasuringCheck()
     {
-        if (lRosterCardId != Guid.Empty)
+        if (QRosterSelection.LRosterCardId != Guid.Empty)
         {
             return LRosterBatchRead().Any(lWorkItem => !lWorkItem.LWorkSourceMeasured);
         }
@@ -178,7 +159,8 @@ public sealed class LRoster
     {
         LWorkItem[] lItems = lSchedule.LScheduleRecords.Where(LRosterVisibleCheck).ToArray();
         LRosterCompletedSync(lItems);
-        IReadOnlyList<LLineageEntry> lLineages = LLineage.LLineageRead(lItems, lSchedule.LScheduleLineageRead);
+        IReadOnlyList<LLineageEntry> lLineages =
+            LLineage.LLineageRead(LRosterUsher, lItems, lSchedule.LScheduleLineageRead);
         lRosterBatches.Clear();
         foreach (IGrouping<Guid, LLineageEntry> lGroup in lLineages.GroupBy(lLineage => lLineage.LLineageEntryBatch))
         {
@@ -190,7 +172,9 @@ public sealed class LRoster
         lRosterOrderedIds.Clear();
         lRosterOrderedIds.AddRange(
             lRosterBatches.SelectMany(lBatch => lBatch.LRosterBatchItems).Select(lWorkItem => lWorkItem.LWorkId));
-        LRosterStaleRemove(lRosterBatches.Select(lBatch => lBatch.LRosterBatchId).ToHashSet());
+        lRosterPresentIds.Clear();
+        lRosterPresentIds.UnionWith(lRosterOrderedIds);
+        QRosterCollapse.LRosterStaleRemove(lRosterBatches.Select(lBatch => lBatch.LRosterBatchId).ToHashSet());
         LRosterCardsUpdate();
     }
 
@@ -215,7 +199,7 @@ public sealed class LRoster
 
             if (lCollapseDone)
             {
-                LRosterCollapseSet(lBatch.Key, lCompleted);
+                QRosterCollapse.LRosterCollapseSet(lBatch.Key, lCompleted);
             }
         }
     }
@@ -276,14 +260,15 @@ public sealed class LRoster
     }
 
     private LRosterCard LRosterCardCreate(LRosterBatch lBatch) => LRosterCard.LRosterCardCreate(
+        LRosterUsher,
         lBatch.LRosterBatchId,
         lBatch.LRosterBatchLineages,
         lBatch.LRosterBatchItems,
-        LRosterCardCheck(lBatch.LRosterBatchId),
+        QRosterSelection.LRosterCardCheck(lBatch.LRosterBatchId),
         lRosterCompletedIds.Contains(lBatch.LRosterBatchId),
-        LRosterCollapsedCheck(lBatch.LRosterBatchId),
+        QRosterCollapse.LRosterCollapsedCheck(lBatch.LRosterBatchId),
         LRosterOwnerCheck,
-        LRosterSelectedCheck);
+        QRosterSelection.LRosterSelectedCheck);
 
     private bool LRosterVisibleCheck(LWorkItem lWorkItem)
     {
@@ -303,102 +288,26 @@ public sealed class LRoster
     public string LRosterOwnerFormat(LWorkItem lWorkItem) =>
         LRosterRow.LRosterOwnerFormat(lWorkItem, LRosterOwnerCheck(lWorkItem));
 
-    public LWorkItem? LRosterSelectRead() =>
-        lRosterCurrentId == Guid.Empty
+    public LWorkItem? LRosterSelectRead()
+    {
+        Guid lCurrentId = QRosterSelection.LRosterCurrentId;
+        return lCurrentId == Guid.Empty
             ? null
-            : lSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lRosterCurrentId);
+            : lSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lCurrentId);
+    }
 
     public IReadOnlyList<LWorkItem> LRosterSelectionRead() =>
-        lSchedule.LScheduleRecords.Where(lWorkItem => lRosterSelectedIds.Contains(lWorkItem.LWorkId)).ToArray();
+        lSchedule.LScheduleRecords
+            .Where(lWorkItem => QRosterSelection.LRosterSelectedCheck(lWorkItem.LWorkId))
+            .ToArray();
 
     public IReadOnlyList<LWorkItem> LRosterBatchRead() =>
-        lSchedule.LScheduleRecords.Where(lWorkItem => LRosterCardCheck(lWorkItem.LWorkBatchId)).ToArray();
+        lSchedule.LScheduleRecords
+            .Where(lWorkItem => QRosterSelection.LRosterCardCheck(lWorkItem.LWorkBatchId))
+            .ToArray();
 
-    public bool LRosterSelectedCheck(Guid lId) => lRosterSelectedIds.Contains(lId);
-
-    public bool LRosterCollapsedCheck(Guid lBatchId) => lRosterCollapsedIds.Contains(lBatchId);
-
-    public bool LRosterCardCheck(Guid lBatchId) => lBatchId == lRosterCardId;
-
-    public void LRosterCollapseSet(Guid lBatchId, bool lCollapsed)
-    {
-        if (lCollapsed)
-        {
-            lRosterCollapsedIds.Add(lBatchId);
-        }
-        else
-        {
-            lRosterCollapsedIds.Remove(lBatchId);
-        }
-    }
-
-    public bool LRosterCollapseToggle(Guid lBatchId)
-    {
-        bool lCollapsed = !lRosterCollapsedIds.Contains(lBatchId);
-        LRosterCollapseSet(lBatchId, lCollapsed);
-        LRosterCardUpdate(lBatchId);
-        return lCollapsed;
-    }
-
-    private void LRosterStaleRemove(IReadOnlyCollection<Guid> lBatchIds)
-    {
-        var lPresent = lRosterOrderedIds.ToHashSet();
-        lRosterSelectedIds.RemoveWhere(lId => !lPresent.Contains(lId));
-        if (!lPresent.Contains(lRosterCurrentId))
-        {
-            lRosterCurrentId = Guid.Empty;
-        }
-
-        if (lRosterCardId != Guid.Empty && !lBatchIds.Contains(lRosterCardId))
-        {
-            lRosterCardId = Guid.Empty;
-        }
-
-        lRosterCollapsedIds.RemoveWhere(lBatchId => !lBatchIds.Contains(lBatchId));
-    }
-
-    public void LRosterStepSelect(Guid lId, bool lRange, bool lToggle)
-    {
-        lRosterCardId = Guid.Empty;
-        if (lRange && lRosterCurrentId != Guid.Empty)
-        {
-            int lAnchor = lRosterOrderedIds.IndexOf(lRosterCurrentId);
-            int lTarget = lRosterOrderedIds.IndexOf(lId);
-            if (lAnchor >= 0 && lTarget >= 0)
-            {
-                lRosterSelectedIds.Clear();
-                for (int lIndex = Math.Min(lAnchor, lTarget); lIndex <= Math.Max(lAnchor, lTarget); lIndex++)
-                {
-                    lRosterSelectedIds.Add(lRosterOrderedIds[lIndex]);
-                }
-            }
-        }
-        else if (lToggle)
-        {
-            if (!lRosterSelectedIds.Add(lId))
-            {
-                lRosterSelectedIds.Remove(lId);
-            }
-
-            lRosterCurrentId = lId;
-        }
-        else
-        {
-            lRosterSelectedIds.Clear();
-            lRosterSelectedIds.Add(lId);
-            lRosterCurrentId = lId;
-        }
-
-        LRosterSelectRaise();
-    }
-
-    public void LRosterCardSelect(Guid lBatchId)
-    {
-        lRosterCardId = lBatchId;
-        lRosterSelectedIds.Clear();
-        lRosterCurrentId = Guid.Empty;
-        LRosterSelectRaise();
-    }
+    private bool LRosterBatchCheck(Guid lBatchId) =>
+        lRosterBatches.Exists(lBatch => lBatch.LRosterBatchId == lBatchId);
 
     private void LRosterSelectRaise()
     {

@@ -11,10 +11,6 @@ using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSPlate;
-using static Cadroue.UIVeneer.PSNotice;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
@@ -46,27 +42,29 @@ internal sealed partial class PSOptions
     private UIElement PSTimelineBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"), psOptionsOrderMode)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"),
+                psOptionsOrderMode)));
+        pPanel.Children.Add(
+            PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
             PSOptionsFieldBuild(
                 LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"),
                 psKeyframeSlider,
                 " px")));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),
             PSOptionsFieldBuild(
                 LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"),
                 psKeyframeDelaySlider,
                 " ms"),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
-            PSFieldBuild(
+            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"),
                 psOptionsOverlapBox)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.ShowWaveforms"), psWaveformBox),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.SectionPalette"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.ShowWaveforms"), psWaveformBox),
+            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.SectionPalette"),
             PSSpectrumFieldBuild()));
         return pPanel;
     }
@@ -75,11 +73,11 @@ internal sealed partial class PSOptions
     {
         PSSpectrumListBuild();
 
-        var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSFieldLabelWidth };
+        var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSField.PSFieldLabelWidth };
         pSide.Children.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Options.Timeline.Palette"),
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             Margin = new Thickness(0, 8, 0, 8)
         });
 
@@ -95,7 +93,7 @@ internal sealed partial class PSOptions
         pSide.Children.Add(pButtons);
 
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSField.PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pSide);
         Grid.SetColumn(psSpectrumList, 1);
@@ -128,7 +126,7 @@ internal sealed partial class PSOptions
             ToolTip = pTip,
             Content = new Image
             {
-                Source = PIcon.PIconRead(pIconPath, PSFieldText),
+                Source = PIcon.PIconRead(pIconPath, PSField.PSFieldText),
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform
@@ -196,7 +194,7 @@ internal sealed partial class PSOptions
         {
             Text = pName,
             Width = PSSpectrumNameWidth,
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
 
@@ -224,7 +222,7 @@ internal sealed partial class PSOptions
         var pRow = new Border
         {
             Background = Brushes.White,
-            BorderBrush = PSFieldLine,
+            BorderBrush = PSField.PSFieldLine,
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(10),
             Padding = new Thickness(12, 8, 14, 8),
@@ -263,7 +261,7 @@ internal sealed partial class PSOptions
             ToolTip = LLocalization.LLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
             Content = new Image
             {
-                Source = PIcon.PIconRead(PSSpectrumRemoveIcon, PSFieldText),
+                Source = PIcon.PIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform
@@ -303,7 +301,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        pRow.BorderBrush = pHovered ? PSSpectrumAccent : PSFieldLine;
+        pRow.BorderBrush = pHovered ? PSSpectrumAccent : PSField.PSFieldLine;
         pRow.Background = pHovered ? PSSpectrumSoft : Brushes.White;
     }
 
@@ -312,7 +310,7 @@ internal sealed partial class PSOptions
         foreach ((string pName, Border pRow) in psSpectrumRows)
         {
             bool pChosen = pName == lsSpectrum.LSSpectrumName;
-            pRow.BorderBrush = pChosen ? PSSpectrumAccent : PSFieldLine;
+            pRow.BorderBrush = pChosen ? PSSpectrumAccent : PSField.PSFieldLine;
             pRow.BorderThickness = new Thickness(pChosen ? 2 : 1);
             pRow.Background = pChosen ? PSSpectrumSoft : Brushes.White;
             pRow.Padding = new Thickness(pChosen ? 11 : 12, pChosen ? 7 : 8, pChosen ? 13 : 14, pChosen ? 7 : 8);

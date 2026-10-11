@@ -3,7 +3,6 @@ using System.IO;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -60,14 +59,19 @@ internal static class LSalvageExtract
         }
 
         string lSalvageTemp = LSalvageTempResolve(lSalvageOutputPath);
-        var lSalvageEmployer = new LEmployer(LTool.LToolFfmpegRead());
+        string lSalvageProgram = LToolEngine.LToolFfmpegSeam();
         LEmployerResult lSalvageResult;
         try
         {
-            lSalvageResult = await lSalvageEmployer.LEmployerRun(
+            lSalvageResult = await LEmployerEngine.LEmployerRunSeam(
+                lSalvageProgram,
+                string.Empty,
+                null,
+                null,
+                null,
                 LSalvageArgumentBuild(lSalvageSource, lSalvageTemp, lSalvageOrigin, lSalvageLength),
                 lSalvageToken,
-                static _ => { },
+                null,
                 static _ => { },
                 static _ => { }).ConfigureAwait(false);
         }

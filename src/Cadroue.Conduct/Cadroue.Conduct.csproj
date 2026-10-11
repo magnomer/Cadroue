@@ -1,10 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <WarningsAsErrors>CA1416</WarningsAsErrors>
   </PropertyGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cadroue.Tests.Conduct" />
+    <InternalsVisibleTo Include="Cadroue.Tests.Windows" />
+    <InternalsVisibleTo Include="Cadroue" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
   </ItemGroup>

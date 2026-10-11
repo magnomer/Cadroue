@@ -1,5 +1,5 @@
 # TAuditStrictSetting.cs
-Hash: `65b4ee8b61ef8c89`
+Hash: `677d36beb396f4b4`
 
 ## `internal static class TAuditStrictSetting`
 
@@ -28,16 +28,18 @@ The `git ls-files` patterns of the surface markup.
 
 ## `public static readonly string[] TAuditVeneerInclude`
 
-The `git ls-files` patterns of the surface sources, the Veneer and UITerminal both.
+The `git ls-files` patterns of the surface sources.
+The Veneer matches, while the `Cadroue.UITerminal` pattern names a folder Cadroue lacks.
 A type declared under one of these is a surface type, whatever its base.
 
 ## `public static readonly string[] TAuditDeportmentInclude`
 
 The `git ls-files` patterns of the driver sources, scanned for a reach into the file system.
+Deportment matches, while the `Cadroue.UIDemeanor` pattern names a folder Cadroue lacks.
 
 ## `public static readonly string[] TAuditHostInclude`
 
-The `git ls-files` patterns of the host sources, held to construction and wiring.
+The `git ls-files` patterns of the `Cadroue.Host` sources, held to construction and wiring.
 
 ## `public const string TAuditDeportmentNamespace = "Cadroue.UIDeportment";`
 
@@ -52,8 +54,8 @@ An `x:Class` in the surface markup naming a type outside it is tethering.
 
 ## `public const string TAuditContractType = "QContract";`
 
-The name of Deportment's only door to the scaffold.
-Every string argument of a call on it is a contract ID.
+The name of a contract type whose string arguments are contract IDs.
+No Cadroue type bears this name, so no call counts as a contract call.
 
 ## `public static readonly string[] TAuditHardwiringMarkers`
 
@@ -62,7 +64,7 @@ They match as plain text, string literals included, since a pack URI is a litera
 
 ## `public static readonly string[] TAuditMasqueradingTypes`
 
-The WPF types the scaffold derives from.
+The WPF types the Veneer derives from.
 A driver type with one of them among its base types is masquerading.
 
 ## `public static readonly string[] TAuditContractIds`
@@ -77,24 +79,22 @@ The types whose extension methods are queries, each a decision a surface may not
 ## `public static readonly string[] TAuditCatalogPatterns`
 
 A line matching one of these does file, JSON, regex or process work, or starts a task, in the surface.
-That work belongs below the UI, in the engine or in an `LUsher` adapter.
+That work belongs below the UI, in the engine or in an Infrastructure owner such as `LUsher`.
 
 ## `public static readonly string[] TAuditCatalogExempt`
 
-The surface files whose stream use is the framework's own: a resource stream, a bitmap decode, a browser page.
-It is empty.
-The exempt files moved to Deportment in the Great Purge.
+The surface files whose stream use is the framework's own, such as a resource stream or a bitmap decode.
+It is empty, so every catalog line in the Veneer counts.
 
 ## `public static readonly string[] TAuditDiskPatterns`
 
 A driver line matching one of these names a file system type.
-The patterns name the types, so the console's `TextReader` and `TextWriter` pass.
+The patterns name the types, so a plain `TextReader` or `TextWriter` passes.
 
 ## `public static readonly string[] TAuditDiskExempt`
 
 The driver files exempt from the disk scan by name.
-It is empty.
-No driver file names the file system.
+It is empty, so every disk reach in a driver counts.
 
 ## `public static readonly string[] TAuditOverreachingNamespaces`
 

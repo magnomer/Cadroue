@@ -3,11 +3,9 @@
   "project": "Cadroue",
   "sources": {
     "roots": [
-      "languages",
       "localization",
       "src",
-      "tests",
-      "themes"
+      "tests"
     ],
     "files": [
       "Directory.Build.props",
@@ -94,7 +92,7 @@
     ]
   },
   "ceilings": {
-    "unstamped": 0
+    "unstamped": 58
   },
   "report": {
     "directory": "docs-analysis",

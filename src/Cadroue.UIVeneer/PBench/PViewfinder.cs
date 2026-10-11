@@ -67,7 +67,7 @@ public sealed class PViewfinder : FrameworkElement
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        long pStamp = LViewfinder.LViewfinderDrawStart();
+        LViewfinder.LViewfinderDrawStart();
         LViewfinderFrame lFrame = LViewfinder.LViewfinderFrameResolve(ActualWidth, ActualHeight);
         lFrame.LViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         drawingContext.DrawGeometry(
@@ -77,7 +77,7 @@ public sealed class PViewfinder : FrameworkElement
         lFrame.LViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         PViewfinderKeyframesDraw(drawingContext, lFrame.LViewfinderFrameKeyframes);
         lFrame.LViewfinderFrameCursor.ToList().ForEach(lCursor => PViewfinderCursorDraw(drawingContext, lCursor));
-        LViewfinder.LViewfinderDrawRecord(pStamp);
+        LViewfinder.LViewfinderDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

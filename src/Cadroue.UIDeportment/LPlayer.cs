@@ -10,10 +10,10 @@ public sealed record LPlayerSeam(
     Action LPlayerStopSeam,
     Action<TimeSpan> LPlayerSeekSeam,
     Action<double> LPlayerVolumeSeam,
-    Action<string> LPlayerFilterSeam,
-    Action<string> LPlayerAudioSeam,
+    Action<string>? LPlayerFilterSeam,
+    Action<string>? LPlayerAudioSeam,
     Action<LPreviewApplication> LPlayerPreviewSeam,
-    Action LPlayerUpdateSeam,
+    Action? LPlayerUpdateSeam,
     Func<TimeSpan> LPlayerTimeSeam,
     Func<bool> LPlayerEndSeam,
     Action<string, double?> LPlayerFactsSeam,
@@ -27,6 +27,7 @@ public sealed class LPlayer
     private string lPlayerFilterApplied = string.Empty;
     private string? lPlayerAudioApplied;
     private TimeSpan? lPlayerVideoEnd;
+    private readonly QChronometer lPlayerChronometer = new();
 
     public bool LPlayerReady => lPlayerSeam is not null;
 
@@ -73,7 +74,7 @@ public sealed class LPlayer
 
     public void LPlayerVolumeSet(double lVolume) => lPlayerSeam?.LPlayerVolumeSeam(lVolume);
 
-    public void LPlayerUpdate() => lPlayerSeam?.LPlayerUpdateSeam();
+    public void LPlayerUpdate() => lPlayerSeam?.LPlayerUpdateSeam?.Invoke();
 
     public TimeSpan LPlayerTimeRead() => lPlayerSeam?.LPlayerTimeSeam() ?? TimeSpan.Zero;
 
@@ -81,6 +82,10 @@ public sealed class LPlayer
 
     public void LPlayerFactsRecord(string lReason, double? lMilliseconds = null) =>
         lPlayerSeam?.LPlayerFactsSeam(lReason, lMilliseconds);
+
+    public void LPlayerCreateStart() => lPlayerChronometer.QChronometerStart();
+
+    public double LPlayerCreateRead() => lPlayerChronometer.QChronometerRead();
 
     public void LPlayerPreviewApply(LPreviewState lState, string lReason)
     {
@@ -131,7 +136,7 @@ public sealed class LPlayer
 
         try
         {
-            lPlayerSeam?.LPlayerFilterSeam(lFilter);
+            lPlayerSeam?.LPlayerFilterSeam?.Invoke(lFilter);
             lPlayerFilterApplied = lFilter;
             return true;
         }
@@ -150,7 +155,7 @@ public sealed class LPlayer
     {
         try
         {
-            lPlayerSeam?.LPlayerFilterSeam(string.Empty);
+            lPlayerSeam?.LPlayerFilterSeam?.Invoke(string.Empty);
             lPlayerFilterApplied = string.Empty;
         }
         catch (Exception lClearException)
@@ -169,7 +174,7 @@ public sealed class LPlayer
 
         try
         {
-            lPlayerSeam?.LPlayerAudioSeam(lAudio);
+            lPlayerSeam?.LPlayerAudioSeam?.Invoke(lAudio);
             lPlayerAudioApplied = lAudio;
         }
         catch (Exception lAudioException)

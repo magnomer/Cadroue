@@ -7,6 +7,10 @@ public sealed partial class LSchedule
     public const int LScheduleLeaseSeconds = 10;
     public const int LScheduleAttemptLimit = 3;
 
+    public static Func<bool> LScheduleSharedSeam { get; set; } = () => false;
+
+    public static Func<Guid, DateTimeOffset> LScheduleTimeSeam { get; set; } = _ => DateTimeOffset.MinValue;
+
     internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
     internal static bool LScheduleSignetMatch(LWorkDocument lWorkRecord) =>
@@ -14,7 +18,7 @@ public sealed partial class LSchedule
         || lWorkRecord.LWorkSignet == LSignet.LSignetCurrent;
 
     internal static bool LScheduleScopeMatch(LWorkDocument lWorkRecord) =>
-        Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared
+        LScheduleSharedSeam()
         || LScheduleSignetMatch(lWorkRecord);
 
     internal static bool LScheduleRelayMatch(LWorkDocument lWorkRecord) =>
@@ -29,7 +33,7 @@ public sealed partial class LSchedule
     {
         LDepotIndex.LDepotIndexCreate();
 
-        if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared)
+        if (LScheduleSharedSeam())
         {
             LScheduleStaleClaim();
         }
@@ -46,7 +50,7 @@ public sealed partial class LSchedule
         IEnumerable<LWorkDocument> lScheduleOrdered = lScheduleCandidates
             .Where(LScheduleClaimMatch)
             .OrderByDescending(lWorkRecord => lWorkRecord.LWorkPriorityName == nameof(LWorkPriority.LWorkPriorityHigh))
-            .ThenBy(lWorkRecord => Cadroue.Application.LGate.LGateTimeRead(lWorkRecord.LWorkBatchId))
+            .ThenBy(lWorkRecord => LScheduleTimeSeam(lWorkRecord.LWorkBatchId))
             .ThenBy(lWorkRecord => lWorkRecord.LWorkCreateTime);
 
         foreach (LWorkDocument lWorkRecord in lScheduleOrdered)
@@ -290,62 +294,9 @@ public sealed partial class LSchedule
         return true;
     }
 
-    public int LScheduleStaleClaim()
-    {
-        LDepotIndex.LDepotIndexCreate();
+    public int LScheduleStaleClaim() => LScheduleStale.LScheduleStaleClaim();
 
-        int lScheduleReclaimedCount = 0;
-        foreach (string lDepotFilePath in LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderRunning).ToArray())
-        {
-            if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is not { } lWorkRecord
-                || !LSentinel.LSentinelStaleCheck(lWorkRecord))
-            {
-                continue;
-            }
-
-            LSchedulePartialRemove(lWorkRecord);
-            string lSchedulePhase = LSchedulePhaseFormat(lWorkRecord.LWorkPhaseName);
-
-            if (lWorkRecord.LWorkRecoverCount >= LScheduleAttemptLimit)
-            {
-                if (LScheduleFailedSet(
-                        lWorkRecord,
-                        $"Stopped unexpectedly while {lSchedulePhase} on attempt {lWorkRecord.LWorkRecoverCount}. " +
-                        "Not retried again."))
-                {
-                    lScheduleReclaimedCount++;
-                    LTraceLog.LTraceWarningRecord(
-                        $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
-                        $"failed: stopped unexpectedly while {lSchedulePhase} " +
-                        $"after {lWorkRecord.LWorkRecoverCount} recovery attempt(s)");
-                }
-
-                continue;
-            }
-
-            lWorkRecord.LWorkRecoverCount++;
-            if (LScheduleRecordRelease(
-                    lWorkRecord,
-                    $"Recovered after an unexpected stop while {lSchedulePhase} " +
-                    $"(attempt {lWorkRecord.LWorkRecoverCount})."))
-            {
-                lScheduleReclaimedCount++;
-                LTraceLog.LTraceWarningRecord(
-                    $"Schedule: work '{lWorkRecord.LWorkOutputName}' [{LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
-                    $"returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
-                    $"(attempt {lWorkRecord.LWorkRecoverCount} of {LScheduleAttemptLimit})");
-            }
-        }
-
-        return lScheduleReclaimedCount;
-    }
-
-    private static string LSchedulePhaseFormat(string lWorkPhase) =>
-        Enum.TryParse(lWorkPhase, out LWorkPhase lSchedulePhase) && lSchedulePhase == LWorkPhase.LWorkPhaseEncoding
-            ? "being processed"
-            : "starting";
-
-    private static void LSchedulePartialRemove(LWorkDocument lWorkRecord)
+    internal static void LSchedulePartialRemove(LWorkDocument lWorkRecord)
     {
         if (string.IsNullOrWhiteSpace(lWorkRecord.LWorkOutputPath)
             || lWorkRecord.LWorkMergeSources.Prepend(lWorkRecord.LWorkSourcePath).Any(lScheduleSource =>
@@ -366,17 +317,6 @@ public sealed partial class LSchedule
         }
     }
 
-    private static bool LScheduleFailedSet(LWorkDocument lWorkRecord, string lScheduleMessage)
-    {
-        LScheduleOwnerClear(lWorkRecord);
-        lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateFailed);
-        lWorkRecord.LWorkMessage = lScheduleMessage;
-        return LScheduleStore.LScheduleRecordMove(
-            lWorkRecord,
-            LDepotFolder.LDepotFolderRunning,
-            LDepotFolder.LDepotFolderFailed);
-    }
-
     internal static void LScheduleOwnerClear(LWorkDocument lWorkRecord)
     {
         lWorkRecord.LWorkOwnerProcess = 0;
@@ -392,7 +332,7 @@ public sealed partial class LSchedule
     public bool LScheduleForeignCheck(LWorkItem lWorkItem, Guid lRunnerId) =>
         lWorkItem.LWorkOwnerRunner != Guid.Empty && lWorkItem.LWorkOwnerRunner != lRunnerId;
 
-    private static bool LScheduleRecordRelease(LWorkDocument lWorkRecord, string? lScheduleMessage = null)
+    internal static bool LScheduleRecordRelease(LWorkDocument lWorkRecord, string? lScheduleMessage = null)
     {
         LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStatePending);

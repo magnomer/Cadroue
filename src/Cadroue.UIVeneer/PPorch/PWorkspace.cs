@@ -15,24 +15,24 @@ namespace Cadroue.UIVeneer.PPorch;
 
 public sealed class PWorkspace
 {
-    private static readonly IReadOnlyDictionary<string, Func<LPresetSelection, LSceneTabEntry?, PTabSurface>>
-        pWorkspaceSurfaces = new Dictionary<string, Func<LPresetSelection, LSceneTabEntry?, PTabSurface>>
+    private static readonly IReadOnlyDictionary<string, Func<LStrip, LPresetSelection, LSceneTabEntry?, PTabSurface>>
+        pWorkspaceSurfaces = new Dictionary<string, Func<LStrip, LPresetSelection, LSceneTabEntry?, PTabSurface>>
         {
-            ["Split"] = (lOwner, lLayout) => new PSplitTab(lOwner, lLayout),
-            ["Edit"] = (lOwner, lLayout) => new PEditTab(lOwner, lLayout),
-            ["Fix"] = (lOwner, lLayout) => new PFixTab(lOwner, lLayout),
-            ["Audio"] = (lOwner, lLayout) => new PAudioTab(lOwner, lLayout),
-            ["Convert"] = (lOwner, lLayout) => new PConvertTab(lOwner, lLayout),
-            ["Merge"] = (lOwner, lLayout) => new PMergeTab(lOwner, lLayout),
-            ["Funnel"] = (lOwner, lLayout) => new PFunnelTab(lLayout),
-            ["Worklist"] = (lOwner, lLayout) => new PWorklistTab(lLayout),
+            ["Split"] = (lStrip, lOwner, lLayout) => new PSplitTab(lStrip, lOwner, lLayout),
+            ["Edit"] = (lStrip, lOwner, lLayout) => new PEditTab(lStrip, lOwner, lLayout),
+            ["Fix"] = (lStrip, lOwner, lLayout) => new PFixTab(lStrip, lOwner, lLayout),
+            ["Audio"] = (lStrip, lOwner, lLayout) => new PAudioTab(lStrip, lOwner, lLayout),
+            ["Convert"] = (lStrip, lOwner, lLayout) => new PConvertTab(lStrip, lOwner, lLayout),
+            ["Merge"] = (lStrip, lOwner, lLayout) => new PMergeTab(lStrip, lOwner, lLayout),
+            ["Funnel"] = (lStrip, _, lLayout) => new PFunnelTab(lStrip, lLayout),
+            ["Worklist"] = (lStrip, _, lLayout) => new PWorklistTab(lStrip, lLayout),
         };
 
-    private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, FrameworkElement>> pWorkspaceRoots =
-        new Dictionary<bool, Func<PWorkspace, FrameworkElement>>
+    private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, LStrip, FrameworkElement>> pWorkspaceRoots =
+        new Dictionary<bool, Func<PWorkspace, LStrip, FrameworkElement>>
         {
             [true] = PWorkspaceGridBuild,
-            [false] = pWorkspace => pWorkspace.PWorkspaceSurface,
+            [false] = (pWorkspace, _) => pWorkspace.PWorkspaceSurface,
         };
 
     private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairCloses =
@@ -59,11 +59,11 @@ public sealed class PWorkspace
         LWorkspace = new LWorkspace(lStripTab.LStripTabKey, lExportSpecificState);
         lStripTab.LStripWorkspaceAttach(LWorkspace);
         PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.LStripTabKey](
-            LWorkspace.LWorkspacePresetOwner, lPreferenceTabLayout);
+            lStrip, LWorkspace.LWorkspacePresetOwner, lPreferenceTabLayout);
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
         PWorkspaceList = PWorkspaceSurface.PTabList;
-        PWorkspaceViewer?.LViewer.LViewerAllowSet(LWorkspace.LWorkspaceAudioOnly);
+        PWorkspaceViewer?.LViewer.LViewerAllowSet(LWorkspace.QWorkspaceKey.LWorkspaceAudioOnly);
         LWorkspace.LWorkspaceAttach(
             PWorkspaceList?.LList.LListDocket,
             PWorkspaceFlow?.LFlow.LFlowSection.LFlowSegment,
@@ -86,7 +86,7 @@ public sealed class PWorkspace
         LWorkspace.LWorkspaceSourceOpened += PWorkspaceSourceOpen;
         pWorkspaceLists[LWorkspace.LWorkspaceListPresent](this);
         PWorkspaceSurface.PTabWidthChanged += PWorkspaceWidthRaise;
-        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.LWorkspaceSourcePresent](this);
+        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.QWorkspaceKey.LWorkspaceSourcePresent](this, lStrip);
     }
 
     public LStripTab PWorkspaceTab { get; }
@@ -114,7 +114,7 @@ public sealed class PWorkspace
     public void PWorkspaceCommandApply(double pFlowHeight)
     {
         PWorkspaceFlow?.LFlow.LFlowCommandSet(true);
-        PWorkspaceFlow?.LFlow.LFlowSectionSet(LWorkspace.LWorkspaceSectionVisible);
+        PWorkspaceFlow?.LFlow.LFlowSectionSet(LWorkspace.QWorkspaceKey.LWorkspaceSectionVisible);
         PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
         PWorkspaceFlow?.PFlowOrderApply();
         PWorkspaceViewer?.LViewer.LViewerMedia.LViewerCommandApply(true);
@@ -208,7 +208,7 @@ public sealed class PWorkspace
             new Action(() => LWorkspace.LWorkspaceRelayRestore(lRelay, lDuration)));
 
     private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
-        PWorkspaceFlow?.LFlow.LFlowRangeSet(lOrigin, lLimit);
+        PWorkspaceFlow?.LFlow.QFlowSpool.LFlowRangeSet(lOrigin, lLimit);
 
     private void PWorkspaceVolumeApply(double lVolume) =>
         PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerVolumeSet(lVolume);
@@ -226,10 +226,11 @@ public sealed class PWorkspace
 
     private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(lPath);
 
-    private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
+    private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace, LStrip lStrip)
     {
         LViewer lViewer = pWorkspace.PWorkspaceViewer!.LViewer;
-        var pSource = new PSource(new LSource(lViewer, pWorkspace.LWorkspace.LWorkspaceAudioOnly));
+        var pSource = new PSource(
+            new LSource(lStrip, lViewer, pWorkspace.LWorkspace.QWorkspaceKey.LWorkspaceAudioOnly));
         var pInfo = new PInfo(new LInfo(lViewer));
         var pRoot = new Grid
         {

@@ -144,7 +144,10 @@ public sealed class LConsoleScene
     private void LConsoleSceneRun(bool lAnswer, string lSceneName, LSceneDocument lScene)
     {
         if (lAnswer && lWindow is { } lWindowOwner && lStrip is { } lStripOwner
-            && lWindowOwner.LWindowSceneApply(lScene, lStripOwner.LStripCloseConfirm(), lStripOwner.LStripAllClose))
+            && lWindowOwner.LWindowSceneApply(
+                lScene,
+                lStripOwner.QStripClosure.LStripCloseConfirm(),
+                lStripOwner.QStripClosure.LStripAllClose))
         {
             LConsoleSceneSelect(lSceneName);
             return;

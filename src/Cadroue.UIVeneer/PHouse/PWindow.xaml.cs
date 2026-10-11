@@ -18,12 +18,12 @@ public partial class PWindow : Window
     private readonly PRail pRail;
     private readonly LWindow lWindow;
     private readonly LSash lSash = new(PResizeBorderPixels);
-    public PWindow()
+    public PWindow(LStrip lStrip)
     {
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         FontSize = PWindowFontSize;
-        pStrip = new PStrip();
+        pStrip = new PStrip(lStrip);
         pRail = new PRail(pStrip);
         lWindow = new LWindow(pStrip.LStrip, PWindowDispatch);
         pConsole.LConsole.LConsoleWindowAttach(lWindow, pStrip.LStrip);
@@ -205,7 +205,7 @@ public partial class PWindow : Window
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {
-        eventArgs.Cancel = !pStrip.LStrip.LStripCloseConfirm();
+        eventArgs.Cancel = !pStrip.LStrip.QStripClosure.LStripCloseConfirm();
     }
 
     private void PWindowPositionRestore(LFrameState lFrame)

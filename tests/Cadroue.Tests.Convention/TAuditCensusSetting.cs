@@ -6,18 +6,18 @@ internal static class TAuditCensusSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditHollowingFloor = new Dictionary<string, int>
     {
-        ["Cadroue.Application"] = 91,
+        ["Cadroue.Application"] = 50,
     };
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditSquattingPattern =
         new Dictionary<string, string[]>
         {
-            ["Cadroue.Core"] = [@"^LRequest"],
+            ["Cadroue.Core"] = [],
         };
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditSmugglingWord =
         new Dictionary<string, string[]>
         {
-            ["src/Cadroue.ShellEngine"] = ["LVaultSessionStart"],
+            ["src/Cadroue.ShellEngine"] = [],
         };
 }

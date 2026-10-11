@@ -1,4 +1,19 @@
 # LEncodeBridgeStage.cs
+Hash: `b054abc3429f1be0`
+
+## `internal static LEncodeStage LEncodeConcatBuild(`
+
+Joins the bridge pieces by stream copy, adding the separately cut audio when there is one.
+A positive audio offset delays the audio input, so it lines up with the first copied video frame.
+
+## `private static string LEncodeTimescaleRead(`
+
+Only an MOV-family target with a source time base of 1/N gets an explicit track timescale.
+Any other target or time base reads empty, so FFmpeg keeps its own choice.
+
+## `internal static void LEncodeBridgeClear(Guid lWorkId)`
+
+Removes the concat list a job wrote, and leaves a locked or denied file in place without failing.
 
 ## Inline notes
 

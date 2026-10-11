@@ -1,47 +1,15 @@
-using System.Collections.Generic;
 using System.Threading;
 
 namespace Cadroue.Infrastructure;
 
 public static partial class LTrace
 {
-    private sealed record LTraceDrawReady(string LTraceDrawSurface, LTraceDrawTally LTraceDrawCount);
-
     private const int LTraceDrawPeriod = 1000;
 
     private static readonly object lTraceDrawLock = new();
-    private static readonly Dictionary<string, LTraceDrawTally> lTraceDrawTable = new(StringComparer.Ordinal);
 
     private static Timer? lTraceDrawTimer;
     private static LTraceTimelineTally? lTraceTimelineTally;
-
-    public static void LTraceDrawAdd(
-        string lTraceSurface,
-        string lTraceTrigger,
-        double lTraceMilliseconds,
-        int lTraceGlyphCount = 0)
-    {
-        if (!Volatile.Read(ref lTraceVerbose))
-        {
-            return;
-        }
-
-        lock (lTraceDrawLock)
-        {
-            if (!Volatile.Read(ref lTraceVerbose))
-            {
-                return;
-            }
-
-            if (!lTraceDrawTable.TryGetValue(lTraceSurface, out LTraceDrawTally? lTraceTally))
-            {
-                lTraceTally = new LTraceDrawTally();
-                lTraceDrawTable[lTraceSurface] = lTraceTally;
-            }
-
-            lTraceTally.LTraceDrawAdd(lTraceTrigger, lTraceMilliseconds, lTraceGlyphCount);
-        }
-    }
 
     public static void LTraceTimelineAdd(
         string lTraceSurface,
@@ -76,56 +44,32 @@ public static partial class LTrace
 
     public static void LTraceDrawTick()
     {
-        List<LTraceDrawReady> lTraceReady;
         LTraceTimelineTally? lTraceTimelineReady;
         lock (lTraceDrawLock)
         {
-            if (lTraceDrawTable.Count == 0 && lTraceTimelineTally is null)
-            {
-                return;
-            }
-
-            lTraceReady = new List<LTraceDrawReady>(lTraceDrawTable.Count);
-            foreach (KeyValuePair<string, LTraceDrawTally> lTraceEntry in lTraceDrawTable)
-            {
-                lTraceReady.Add(new LTraceDrawReady(lTraceEntry.Key, lTraceEntry.Value));
-            }
-
-            lTraceDrawTable.Clear();
             lTraceTimelineReady = lTraceTimelineTally;
             lTraceTimelineTally = null;
         }
 
-        foreach ((string lTraceSurface, LTraceDrawTally lTraceTally) in lTraceReady)
+        if (lTraceTimelineReady is null)
         {
-            LTraceRecord(
-                LTraceKind.LTraceUi,
-                lTraceTally.LTraceSummaryRead(lTraceSurface),
-                lTraceTally.LTraceDetailRead(),
-                null,
-                false,
-                1,
-                true);
+            return;
         }
 
-        if (lTraceTimelineReady is not null)
-        {
-            LTraceRecord(
-                LTraceKind.LTraceUi,
-                lTraceTimelineReady.LTraceSummaryRead(),
-                lTraceTimelineReady.LTraceDetailRead(),
-                null,
-                false,
-                1,
-                true);
-        }
+        LTraceRecord(
+            LTraceKind.LTraceUi,
+            lTraceTimelineReady.LTraceSummaryRead(),
+            lTraceTimelineReady.LTraceDetailRead(),
+            null,
+            false,
+            1,
+            true);
     }
 
     public static void LTraceReset()
     {
         lock (lTraceDrawLock)
         {
-            lTraceDrawTable.Clear();
             lTraceTimelineTally = null;
         }
 

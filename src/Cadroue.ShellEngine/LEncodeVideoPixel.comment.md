@@ -1,4 +1,10 @@
 # LEncodeVideoPixel.cs
+Hash: `8ef69496b702cb82`
+
+## `private static IReadOnlyList<string> LEncodeColorNormalize(LWorkItem lWorkItem, LEncoding lOutput)`
+
+The output range follows the source, so full-range input stays full-range.
+An automatic pixel format keeps the source layout, or `yuv420p` when the probe gave none.
 
 ## Inline notes
 

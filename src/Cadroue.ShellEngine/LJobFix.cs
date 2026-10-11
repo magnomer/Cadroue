@@ -3,7 +3,6 @@ using System.Linq;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -107,7 +106,7 @@ internal sealed partial class LJob
             return;
         }
 
-        IReadOnlyList<LDossier>? pCached = LCheckup.LCheckupCachedRead(lJobItem.LWorkSourcePath);
+        IReadOnlyList<LDossier>? pCached = LCheckupEngine.LCheckupReadSeam(lJobItem.LWorkSourcePath);
         if (pCached is not null)
         {
             lJobItem.LWorkDossiers = pCached;
@@ -115,7 +114,7 @@ internal sealed partial class LJob
         }
 
         IReadOnlyList<LDossier> pScanned = await LFlawScanner.LFlawScanRun(lJobItem, lJobToken).ConfigureAwait(false);
-        await LCheckup.LCheckupCachedSave(lJobItem.LWorkSourcePath, pScanned).ConfigureAwait(false);
+        await LCheckupEngine.LCheckupSaveSeam(lJobItem.LWorkSourcePath, pScanned).ConfigureAwait(false);
         lJobItem.LWorkDossiers = pScanned;
     }
 

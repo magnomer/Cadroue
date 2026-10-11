@@ -7,11 +7,6 @@ using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSInline;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -27,49 +22,50 @@ internal sealed partial class PSEncoder
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         PSNameBoxPrepare();
-        psLocationFolderLabel = PSFieldLabelBuild(string.Empty);
-        psLocationBrowse = PSInlineIconBuild(
+        psLocationFolderLabel = PSField.PSFieldLabelBuild(string.Empty);
+        psLocationBrowse = PSInline.PSInlineIconBuild(
             PSLocationBrowseIcon,
             LLocalization.LLocalizationTextRead("Encoder.Location.Browse"),
             new Thickness(8, 0, 0, 0));
         psLocationBrowse.Click += (_, _) => PSLocationCustomRead();
         psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
+        pPanel.Children.Add(
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
         psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
         pPanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"),
                 psOutputContainerCombo));
         pPanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"),
                 psOutputExtensionCombo));
 
-        psOutputSuffixLabel = PSFieldLabelBuild(string.Empty);
+        psOutputSuffixLabel = PSField.PSFieldLabelBuild(string.Empty);
         psOutputSuffixRow = PSOutputSuffixBuild(psOutputSuffixLabel, psOutputSuffixBox);
         psOutputSuffixBox.LostFocus += (_, _) => PSOutputSuffixNormalize();
         psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
         pPanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"),
                 psOutputCollisionCombo));
         pPanel.Children.Add(psOutputSuffixRow);
         PSOutputSuffixUpdate();
 
         PSLocationModeUpdate();
-        return PSPlateBuild(pPanel);
+        return PSPlate.PSPlateBuild(pPanel);
     }
 
     private static UIElement PSOutputSuffixBuild(TextBlock pLabel, TextBox pBox)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSField.PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pLabel);
-        pBox.MinHeight = PSFieldControlHeight;
+        pBox.MinHeight = PSField.PSFieldControlHeight;
         Grid.SetColumn(pBox, 1);
         pGrid.Children.Add(pBox);
         return pGrid;
@@ -77,12 +73,12 @@ internal sealed partial class PSEncoder
 
     private void PSOutputSuffixNormalize() =>
         psOutputSuffixBox.Text = lsEncoder.LSEncoderSuffixNormalize(
-            PSComboTextRead(psOutputCollisionCombo),
+            PSCombo.PSComboTextRead(psOutputCollisionCombo),
             psOutputSuffixBox.Text);
 
     private void PSOutputSuffixUpdate()
     {
-        string pMode = PSComboTextRead(psOutputCollisionCombo);
+        string pMode = PSCombo.PSComboTextRead(psOutputCollisionCombo);
         string pSuffix = lsEncoder.LSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
         bool pShown = LSEncoder.LSEncoderSuffixCheck(pMode);
         if (pShown)
@@ -110,8 +106,8 @@ internal sealed partial class PSEncoder
 
     private void PSOutputExtensionUpdate()
     {
-        string pCurrent = PSComboTextRead(psOutputExtensionCombo);
-        LLocalizationChoice[] pChoices = PSOutputExtensionRead(PSComboTextRead(psOutputContainerCombo));
+        string pCurrent = PSCombo.PSComboTextRead(psOutputExtensionCombo);
+        LLocalizationChoice[] pChoices = PSOutputExtensionRead(PSCombo.PSComboTextRead(psOutputContainerCombo));
         psOutputExtensionCombo.ItemsSource = pChoices;
         psOutputExtensionCombo.SelectedItem = pChoices.FirstOrDefault(
             pChoice => string.Equals(pChoice.LLocalizationChoiceToken, pCurrent, StringComparison.Ordinal))

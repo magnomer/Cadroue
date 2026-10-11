@@ -2,8 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using static Cadroue.UIVeneer.PCabin.PRosterOverview;
-using static Cadroue.UIVeneer.PWing.PPanel;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -41,7 +40,7 @@ internal static class PRosterDetail
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pScroll);
-        return PPanelBorderBuild(pRoot);
+        return PPanel.PPanelBorderBuild(pRoot);
     }
 
     public static void PRosterDetailUpdate(StackPanel pPanel, LRoster lRoster)
@@ -52,38 +51,42 @@ internal static class PRosterDetail
 
     private static void PRosterEmptyAdd(StackPanel pPanel, LRoster lRoster) =>
         pPanel.Children.Add(
-            PRosterNoteBuild(LLocalization.LLocalizationTextRead("Roster.Empty.Notice"), new Thickness(0)));
+            PRosterOverview.PRosterNoteBuild(LLocalization.LLocalizationTextRead("Roster.Empty.Notice"),
+                new Thickness(0)));
 
     private static void PRosterCardAdd(StackPanel pPanel, LRoster lRoster) =>
-        PRosterSummary.PRosterSummaryAdd(pPanel, LSummary.LSummaryRead(lRoster.LRosterBatchRead()));
+        PRosterSummary.PRosterSummaryAdd(pPanel, LSummary.LSummaryRead(lRoster));
 
     private static void PRosterJobAdd(StackPanel pPanel, LRoster lRoster)
     {
         LRosterDetail lDetail = LRosterDetail.LRosterDetailRead(lRoster);
         lDetail.LRosterDetailFailures.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
 
-        pPanel.Children.Add(PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
-        lDetail.LRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterTabBuild(lTab)));
-        lDetail.LRosterDetailMeters.ToList().ForEach(lMeter => pPanel.Children.Add(PRosterMeterBuild(lMeter)));
-        lDetail.LRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterBarBuild(lBar)));
-        pPanel.Children.Add(PRosterComparisonBuild(lDetail));
-        pPanel.Children.Add(PRosterRuleBuild());
+        pPanel.Children.Add(
+            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
+        lDetail.LRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterOverview.PRosterTabBuild(lTab)));
+        lDetail.LRosterDetailMeters.ToList().ForEach(
+            lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
+        lDetail.LRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
+        pPanel.Children.Add(PRosterOverview.PRosterComparisonBuild(lRoster, lDetail));
+        pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
-        pPanel.Children.Add(PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Record")));
+        pPanel.Children.Add(
+            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Record")));
         lDetail.LRosterDetailRecords.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
-        pPanel.Children.Add(PRosterRuleBuild());
+        pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         var pVideoPanel = new StackPanel();
         pVideoPanel.Children.Add(
-            PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo")));
+            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo")));
         lDetail.LRosterDetailVideos.ToList().ForEach(lRow => pVideoPanel.Children.Add(PRosterRowBuild(lRow)));
 
         var pAudioPanel = new StackPanel { Margin = new Thickness(14, 0, 0, 0) };
         pAudioPanel.Children.Add(
-            PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio")));
+            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio")));
         lDetail.LRosterDetailAudios.ToList().ForEach(lRow => pAudioPanel.Children.Add(PRosterRowBuild(lRow)));
 
-        pPanel.Children.Add(PRosterHalvesBuild(pVideoPanel, pAudioPanel));
+        pPanel.Children.Add(PRosterOverview.PRosterHalvesBuild(pVideoPanel, pAudioPanel));
     }
 
     private static Grid PRosterRowBuild(LRosterDetailRow lRow)

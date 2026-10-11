@@ -37,7 +37,7 @@ public sealed class LFlowSection
     {
         lSegment.LSegmentSourceSet(lFlow.LFlowSourcePath);
         lSegment.LSegmentReset();
-        lFlow.LFlowSectionSelect(lSegment.LSegmentSelectionRead());
+        lFlow.QFlowEdit.LFlowSectionSelect(lSegment.LSegmentSelectionRead());
     }
 
     public void LFlowSectionLoad()
@@ -57,14 +57,14 @@ public sealed class LFlowSection
 
     public void LFlowSectionAdd()
     {
-        if (!lFlow.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
+        if (!lFlow.QFlowEdit.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
         {
             return;
         }
 
-        lFlow.LFlowFiredSet(false);
+        lFlow.QFlowEdit.LFlowFiredSet(false);
         lSegment.LSegmentAdd(lFlow.LFlowCursor, lFlow.LFlowDuration, LFlowColorRead(), LFlowOverlapRead());
-        if (lFlow.LFlowSegmentFired)
+        if (lFlow.QFlowEdit.LFlowSegmentFired)
         {
             LFlowSectionRecord("added", lSegment.LSegmentSelectionRead()!.Value);
         }
@@ -72,7 +72,7 @@ public sealed class LFlowSection
 
     public void LFlowStartSet()
     {
-        if (!lFlow.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
+        if (!lFlow.QFlowEdit.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
         {
             return;
         }
@@ -88,7 +88,7 @@ public sealed class LFlowSection
 
     public void LFlowEndSet()
     {
-        if (!lFlow.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
+        if (!lFlow.QFlowEdit.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
         {
             return;
         }
@@ -103,14 +103,14 @@ public sealed class LFlowSection
 
     public void LFlowSectionDivide()
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return;
         }
 
-        lFlow.LFlowFiredSet(false);
+        lFlow.QFlowEdit.LFlowFiredSet(false);
         lSegment.LSegmentDivide(lFlow.LFlowCursor, LFlowColorRead());
-        if (!lFlow.LFlowSegmentFired)
+        if (!lFlow.QFlowEdit.LFlowSegmentFired)
         {
             return;
         }
@@ -122,7 +122,7 @@ public sealed class LFlowSection
 
     public void LFlowSectionDelete()
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return;
         }
@@ -162,7 +162,7 @@ public sealed class LFlowSection
 
     public void LFlowSectionClear()
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return;
         }
@@ -216,14 +216,14 @@ public sealed class LFlowSection
 
     public void LFlowSectionToggle(int lIndex)
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return;
         }
 
-        lFlow.LFlowFiredSet(false);
+        lFlow.QFlowEdit.LFlowFiredSet(false);
         lSegment.LSegmentToggle(lIndex);
-        if (!lFlow.LFlowSegmentFired)
+        if (!lFlow.QFlowEdit.LFlowSegmentFired)
         {
             return;
         }
@@ -234,7 +234,7 @@ public sealed class LFlowSection
 
     public bool LFlowSectionMove(int lSource, int lTarget)
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return false;
         }
@@ -250,14 +250,14 @@ public sealed class LFlowSection
 
     public bool LFlowSectionSort()
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return false;
         }
 
-        lFlow.LFlowFiredSet(false);
+        lFlow.QFlowEdit.LFlowFiredSet(false);
         lSegment.LSegmentSort();
-        if (!lFlow.LFlowSegmentFired)
+        if (!lFlow.QFlowEdit.LFlowSegmentFired)
         {
             return false;
         }
@@ -268,7 +268,7 @@ public sealed class LFlowSection
 
     public void LFlowNameSet(int lIndex, string lName, string? lPrefix, string? lSuffix)
     {
-        if (!lFlow.LFlowSectionEditable)
+        if (!lFlow.QFlowEdit.LFlowSectionEditable)
         {
             return;
         }
@@ -280,9 +280,9 @@ public sealed class LFlowSection
         }
 
         string lWas = lSections[lIndex].LPieceName;
-        lFlow.LFlowFiredSet(false);
+        lFlow.QFlowEdit.LFlowFiredSet(false);
         lSegment.LSegmentNameSet(lIndex, lName, lPrefix, lSuffix);
-        if (lFlow.LFlowSegmentFired)
+        if (lFlow.QFlowEdit.LFlowSegmentFired)
         {
             LFlowSectionRecord(string.IsNullOrEmpty(lWas) ? "named" : $"renamed from '{lWas}' to", lIndex);
         }
@@ -306,8 +306,8 @@ public sealed class LFlowSection
 
     private void LFlowSegmentHandle(IReadOnlyList<LPiece> lSections, int? lActive)
     {
-        lFlow.LFlowFiredSet(true);
-        lFlow.LFlowSectionSelect(lActive);
+        lFlow.QFlowEdit.LFlowFiredSet(true);
+        lFlow.QFlowEdit.LFlowSectionSelect(lActive);
         LFlowSectionChanged?.Invoke(lSections, lActive);
     }
 

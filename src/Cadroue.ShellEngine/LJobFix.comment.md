@@ -1,4 +1,5 @@
 # LJobFix.cs
+Hash: `2ec203aef0f86e14`
 
 ## `private const int LJobPassMax = 2;`
 
@@ -8,6 +9,22 @@ It can also expose one the first scan could not see past the first defect.
 A pass that does not validate as Done is rescanned only while the pass budget remains.
 Correctable selected defects can then form another repair pass.
 That is bounded here so a defect that never clears cannot loop forever.
+
+## `private async Task LJobDossiersCreate()`
+
+Dossiers already on the item win, then the cached checkup, and only then a fresh scan.
+The cache comes through LCheckupEngine, so the job never names the Infrastructure checkup.
+A fresh scan is saved back to that cache, so a later run of the same source reuses it.
+
+## `private async Task<(int, string)> LJobRepairRun(LEncodeStage pStage, int pStageNumber, int pStageCount)`
+
+Each repair writes a temporary file beside the output and then moves it over the output.
+So a failed repair stage leaves the previous output intact.
+
+## `private async Task<(int, string)> LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)`
+
+Validation always returns success, and its verdict lives in the validate state the outcome reads.
+The validation probe receives the runner's priority override, keeping its measurement under the same runner configuration.
 
 ## Inline notes
 
@@ -39,10 +56,9 @@ A report-only FFV1 dossier is never re-run.
 The first remaining set may trigger recomposition without comparison to the original repair set.
 Only subsequent remaining sets are compared, and the two-pass budget stops before another comparison can occur.
 
-### `IReadOnlyList<LDossier> pRepairable`
+### `&& pRepairable.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))`
 
 A selected report-only FFV1 slice-CRC mismatch remains unresolved even when the output passes probing and decoding.
 Never let it read as resolved.
 The report-only override considers only defects the plan selected for repair.
 Other detected defects do not trigger that override, but whole-output probe and decode failures still gate validation.
-The validation probe receives the runner's priority override, keeping its measurement under the same runner configuration.

@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;

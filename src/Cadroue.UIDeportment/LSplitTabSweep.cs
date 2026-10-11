@@ -67,7 +67,7 @@ public sealed class LSplitTabSweep
         var lSource = new CancellationTokenSource();
         lSplitSweepSource = lSource;
         lSplitInspector.LInspectorSensor.LSensorRunningSet(true);
-        lSplitFlow.LFlowEditSet(false);
+        lSplitFlow.QFlowEdit.LFlowEditSet(false);
         LSplitBusyApplied?.Invoke(true);
         LSplitProgressApplied?.Invoke(0);
         try
@@ -100,7 +100,7 @@ public sealed class LSplitTabSweep
         finally
         {
             LSplitBusyApplied?.Invoke(false);
-            lSplitFlow.LFlowEditSet(!LSplitLockedCheck());
+            lSplitFlow.QFlowEdit.LFlowEditSet(!LSplitLockedCheck());
             lSplitInspector.LInspectorSensor.LSensorRunningSet(false);
             lSplitSweepSource = null;
             lSource.Dispose();

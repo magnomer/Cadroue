@@ -224,14 +224,14 @@ Audio-only files can be opened only in an Audio tab. A Funnel tab routes files b
 From the repository root, restore and build the solution with:
 
 ```shell
-dotnet build .\Cadroue.sln --configuration Release
+dotnet build .\Cadroue.slnx --configuration Release
 ```
 
 Run the application or test suite with:
 
 ```shell
 dotnet run --project .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj
-dotnet test .\Cadroue.sln
+.\scripts\Test.ps1
 ```
 
 Create a self-contained Windows publish with:
@@ -259,7 +259,9 @@ localization/
 └─ ko.json
 
 tests/
-├─ Cadroue.Tests/           Unit and integration tests, reaching production through one test facade
+├─ Cadroue.Tests.Interface/ The test facade: relays, fakes, and the test workspace
+├─ Cadroue.Tests.Engine/    Unit and integration tests of the engine, reaching production through the facade
+├─ Cadroue.Tests.Windows/   Deportment tests and their UI relays
 └─ Cadroue.Tests.Convention/ Roslyn-based naming, structure, comment, and UI-layer convention audits
 ```
 
@@ -506,14 +508,14 @@ Cadroue에서는 한 탭에서 끝난 결과물을 다른 탭의 입력 파일�
 저장소 루트에서 다음 명령으로 솔루션을 복원하고 빌드할 수 있습니다.
 
 ```shell
-dotnet build .\Cadroue.sln --configuration Release
+dotnet build .\Cadroue.slnx --configuration Release
 ```
 
 애플리케이션 실행과 테스트에는 다음 명령을 사용합니다.
 
 ```shell
 dotnet run --project .\src\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj
-dotnet test .\Cadroue.sln
+.\scripts\Test.ps1
 ```
 
 자체 포함 Windows 배포본은 다음 명령으로 만들 수 있습니다.
@@ -541,7 +543,9 @@ localization/
 └─ ko.json
 
 tests/
-├─ Cadroue.Tests/           단위 테스트와 통합 테스트, 하나의 테스트 파사드를 통해 제품 코드에 접근
+├─ Cadroue.Tests.Interface/ 테스트 파사드: 릴레이, 가짜 객체, 테스트 작업 공간
+├─ Cadroue.Tests.Engine/    엔진 단위 테스트와 통합 테스트, 파사드를 통해 제품 코드에 접근
+├─ Cadroue.Tests.Windows/   Deportment 테스트와 UI 릴레이
 └─ Cadroue.Tests.Convention/ Roslyn 기반 명명·구조·주석·UI 계층 규칙 감사
 ```
 

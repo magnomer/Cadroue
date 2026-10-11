@@ -1,6 +1,6 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
@@ -27,10 +27,12 @@ public sealed class LGroupFace
     private const string LGroupNameKey = "Name";
 
     private readonly LGroup lGroup;
+    private readonly CUsher lGroupUsher;
 
-    public LGroupFace(LGroup lOwner)
+    public LGroupFace(LGroup lOwner, CUsher lUsher)
     {
         lGroup = lOwner;
+        lGroupUsher = lUsher;
     }
 
     public IReadOnlyList<LGroupCard> LGroupCardsRead() =>
@@ -41,7 +43,7 @@ public sealed class LGroupFace
                 lGroup.LGroupEditingIndex == lIndex,
                 lRecord.LGroupRecordPaths
                     .Select((lPath, lOrder) =>
-                        new LGroupFile(lIndex, (lOrder + 1).ToString(), lPath, LUsher.LUsherNameRead(lPath)))
+                        new LGroupFile(lIndex, (lOrder + 1).ToString(), lPath, lGroupUsher.CUsherNameRead(lPath)))
                     .ToArray()))
             .ToArray();
 

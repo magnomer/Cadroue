@@ -21,7 +21,9 @@
     <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
     <ProjectReference Include="..\Cadroue.ShellEngine\Cadroue.ShellEngine.csproj" />
     <ProjectReference Include="..\Cadroue.Conduct\Cadroue.Conduct.csproj" />
+    <ProjectReference Include="..\Cadroue.UIDemeanor\Cadroue.UIDemeanor.csproj" />
     <ProjectReference Include="..\Cadroue.UIDeportment\Cadroue.UIDeportment.csproj" />
+    <ProjectReference Include="..\Cadroue.UITerminal\Cadroue.UITerminal.csproj" />
     <ProjectReference Include="..\Cadroue.UIVeneer\Cadroue.UIVeneer.csproj" />
   </ItemGroup>
 

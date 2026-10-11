@@ -1,6 +1,5 @@
 using System.Reflection;
 
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
 
@@ -39,6 +38,11 @@ public static class LTraceLog
         LTrace.LTraceRecord(LTraceKind.LTraceError, lMessage, lException?.ToString());
     }
 
+    public static void LTraceFfmpegRecord(string lMessage, string? lDetail = null)
+    {
+        LTrace.LTraceRecord(LTraceKind.LTraceFfmpeg, lMessage, lDetail);
+    }
+
     public static void LTraceInteractionRecord(string lMessage, string? lDetail = null)
     {
         LTrace.LTraceRecord(LTraceKind.LTraceInteraction, lMessage, lDetail);
@@ -50,14 +54,6 @@ public static class LTraceLog
     {
         LTraceWriter.LTraceWriterClear();
         LTrace.LTraceReset();
-    }
-
-    public static void LTraceSeamAttach()
-    {
-        LLocalization.LLocalizationTraceSeam = LTraceErrorRecord;
-        LMediaLoader.LMediaTraceSeam = LTraceErrorRecord;
-        LClassifier.LClassifierFaultSource = lClassifierFault => LTraceWarningRecord(lClassifierFault);
-        LPreset.LPresetTraceSeam = lPresetMessage => LTraceWarningRecord(lPresetMessage);
     }
 
     public static string LTraceVersionRead()

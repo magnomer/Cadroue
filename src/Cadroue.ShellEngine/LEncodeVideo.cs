@@ -3,7 +3,6 @@ using System.Text;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -117,7 +116,7 @@ internal static partial class LEncodeVideo
 
     internal static string LEncodePassFormat(LWorkItem lWorkItem)
     {
-        string lPassFolder = Path.Combine(LDepot.LDepotPassRead(), $"{lWorkItem.LWorkId:N}");
+        string lPassFolder = Path.Combine(LDepotEngine.LDepotPassSeam(), $"{lWorkItem.LWorkId:N}");
         Directory.CreateDirectory(lPassFolder);
         return Path.Combine(lPassFolder, "pass");
     }

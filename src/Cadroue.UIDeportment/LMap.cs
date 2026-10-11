@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -68,19 +67,10 @@ public sealed record LMapFrame(
 public sealed class LMap
 {
     private const double LMapRenderLeast = 12;
-    private const double LMapRailTop = 3;
+    internal const double LMapRailTop = 3;
     private const double LMapCoverageHeight = 3;
-    private const double LMapHandleWidth = 12;
-    private const double LMapGripWidth = 7;
-    private const double LMapGripRate = 0.5;
-    private const double LMapGripInset = 2.5;
-    private const double LMapShadowDrop = 1.5;
-    private const double LMapNavigatorRim = 3.5;
-    private const double LMapBorderThickness = 1.2;
+    internal const double LMapHandleWidth = 12;
     private const double LMapSectionInset = 1;
-    private const double LMapBadgeHorizontal = 6;
-    private const double LMapBadgeVertical = 1;
-    private const double LMapBadgeMargin = 2;
 
     private static readonly LFlowWaveformOutline lMapOutlineEmpty = new(0, 0, []);
 
@@ -91,6 +81,7 @@ public sealed class LMap
     private double lMapPreviousX;
     private string lMapTrigger = "attach";
     private int lMapGlyphCount;
+    private readonly QChronometer lMapChronometer = new();
 
     public LMap(LFlow lOwner)
     {
@@ -98,7 +89,7 @@ public sealed class LMap
         lFlow.LFlowAttachApplied += () => LMapTriggerApply("attach");
         lFlow.LFlowClearApplied += () => LMapTriggerApply("clear");
         lFlow.LFlowCursorApplied += () => LMapTriggerApply("cursor");
-        lFlow.LFlowSpoolApplied += () => LMapTriggerApply("spool");
+        lFlow.QFlowSpool.LFlowSpoolApplied += () => LMapTriggerApply("spool");
         lFlow.LFlowSection.LFlowSectionChanged += (_, _) => LMapTriggerApply("sections");
         lFlow.LFlowKeyframe.LFlowKeyframeChanged += (_, _) => LMapTriggerApply("keyframes");
         lFlow.LFlowWaveform.LFlowWaveformUpdated += _ => LMapTriggerApply("waveform");
@@ -112,14 +103,12 @@ public sealed class LMap
 
     public int LMapGlyphCount => lMapGlyphCount;
 
-    public long LMapDrawStart() => Stopwatch.GetTimestamp();
+    public void LMapDrawStart() => lMapChronometer.QChronometerStart();
 
-    public void LMapDrawRecord(long lStamp)
-    {
-        double lMilliseconds = (Stopwatch.GetTimestamp() - lStamp) * 1000d / Stopwatch.Frequency;
+    public void LMapDrawRecord() =>
         LTrace.LTraceTimelineAdd(
-            "Map", lFlow.LFlowCursor, lFlow.LFlowSourcePath, lMapTrigger, lMilliseconds, lMapGlyphCount);
-    }
+            "Map", lFlow.LFlowCursor, lFlow.LFlowSourcePath, lMapTrigger,
+            lMapChronometer.QChronometerRead(), lMapGlyphCount);
 
     public LMapFrame LMapFrameResolve(double lWidth, double lHeight)
     {
@@ -169,37 +158,11 @@ public sealed class LMap
         double lBodyWidth = Math.Max(0, Math.Max(lBodyLeft, lBodyRight) - Math.Min(lBodyLeft, lBodyRight));
         if (lBodyWidth > 0)
         {
-            LMapNavigatorAdd(lOver, Math.Min(lBodyLeft, lBodyRight), lBodyWidth, lRailHeight, lWidth);
+            QMapNavigator.LMapNavigatorAdd(lOver, Math.Min(lBodyLeft, lBodyRight), lBodyWidth, lRailHeight, lWidth);
             lCursor.Add(Math.Clamp(lSpool.LSpoolRatioResolve(lFlow.LFlowCursor), 0, 1) * lWidth);
         }
 
         return lFrame with { LMapFrameWaveform = lOutline, LMapFrameBands = lBands, LMapFrameCursor = lCursor };
-    }
-
-    public IReadOnlyList<LMapBadge> LMapBadgeResolve(LMapBand lBand, double lTextWidth, double lTextHeight)
-    {
-        double lBandWidth = lBand.LMapBandRight - lBand.LMapBandLeft;
-        double lBandHeight = lBand.LMapBandBottom - lBand.LMapBandTop;
-        double lBadgeHeight = lTextHeight + LMapBadgeVertical * 2;
-        double lBadgeWidth = Math.Max(lBadgeHeight, lTextWidth + LMapBadgeHorizontal * 2);
-        if (lBadgeWidth > lBandWidth - LMapBadgeMargin * 2 || lBadgeHeight > lBandHeight - LMapBadgeMargin * 2)
-        {
-            return [];
-        }
-
-        double lLeft = lBand.LMapBandLeft + (lBandWidth - lBadgeWidth) / 2;
-        double lTop = lBand.LMapBandTop + (lBandHeight - lBadgeHeight) / 2;
-        return
-        [
-            new LMapBadge(
-                lLeft,
-                lTop,
-                lLeft + lBadgeWidth,
-                lTop + lBadgeHeight,
-                lBadgeHeight / 2,
-                lLeft + (lBadgeWidth - lTextWidth) / 2,
-                lTop + LMapBadgeVertical)
-        ];
     }
 
     public LMapHitKind LMapHoverResolve(double lX, double lY, double lWidth, double lHeight)
@@ -225,10 +188,10 @@ public sealed class LMap
         switch (lMapDragKind)
         {
             case LMapHitKind.LMapHitOrigin:
-                lFlow.LFlowDragSet(lSpool.LSpoolRangeOrigin);
+                lFlow.QFlowSpool.LFlowDragSet(lSpool.LSpoolRangeOrigin);
                 break;
             case LMapHitKind.LMapHitLimit:
-                lFlow.LFlowDragSet(lSpool.LSpoolRangeLimit);
+                lFlow.QFlowSpool.LFlowDragSet(lSpool.LSpoolRangeLimit);
                 break;
         }
 
@@ -252,17 +215,17 @@ public sealed class LMap
         switch (lMapDragKind)
         {
             case LMapHitKind.LMapHitOrigin:
-                lSpool.LSpoolStartSet(lFlow.LFlowDragTime + lDragDelta);
-                lFlow.LFlowSpoolHandle();
+                lSpool.LSpoolStartSet(lFlow.QFlowSpool.LFlowDragTime + lDragDelta);
+                lFlow.QFlowSpool.LFlowSpoolHandle();
                 break;
             case LMapHitKind.LMapHitLimit:
-                lSpool.LSpoolEndSet(lFlow.LFlowDragTime + lDragDelta);
-                lFlow.LFlowSpoolHandle();
+                lSpool.LSpoolEndSet(lFlow.QFlowSpool.LFlowDragTime + lDragDelta);
+                lFlow.QFlowSpool.LFlowSpoolHandle();
                 break;
             case LMapHitKind.LMapHitBody:
                 lSpool.LSpoolMove(lSpool.LSpoolTimeResolve((lX - lMapPreviousX) / lWidth));
                 lMapPreviousX = lX;
-                lFlow.LFlowSpoolHandle();
+                lFlow.QFlowSpool.LFlowSpoolHandle();
                 break;
             case LMapHitKind.LMapHitCursor:
                 lFlow.LFlowCursorSeek(LMapTimeResolve(lSpool, lX, lWidth));
@@ -320,7 +283,7 @@ public sealed class LMap
         }
 
         (double lMoveLeft, double lMoveWidth, double lMoveHeight) =
-            LMapMoveResolve(lBodyLeft, lBodyWidth, lRailBottom - LMapRailTop, lHandleWidth, lWidth);
+            QMapNavigator.LMapMoveResolve(lBodyLeft, lBodyWidth, lRailBottom - LMapRailTop, lHandleWidth, lWidth);
         bool lInsideMove = lMoveWidth > 0
             && lX >= lMoveLeft && lX <= lMoveLeft + lMoveWidth
             && lY >= LMapRailTop && lY <= LMapRailTop + lMoveHeight;
@@ -352,7 +315,7 @@ public sealed class LMap
                 lSection.LPieceColorIndex,
                 $"{lIndex + 1}",
                 !lSection.LPieceHidden,
-                lIndex == lFlow.LFlowSectionIndex));
+                lIndex == lFlow.QFlowEdit.LFlowSectionIndex));
         }
 
         return lBands;
@@ -380,119 +343,5 @@ public sealed class LMap
                 lCoverageTop + LMapCoverageHeight,
                 0));
         }
-    }
-
-    private static void LMapNavigatorAdd(
-        List<LMapShape> lOver, double lBodyLeft, double lBodyWidth, double lBodyHeight, double lWidth)
-    {
-        double lPaintHeight = Math.Max(0, lBodyHeight - LMapShadowDrop);
-        if (lPaintHeight <= 0)
-        {
-            return;
-        }
-
-        double lTop = LMapRailTop;
-        double lBottom = lTop + lPaintHeight;
-        double lRight = lBodyLeft + lBodyWidth;
-        double lRadius = Math.Clamp(lPaintHeight / 2, 4, 9);
-        double lSideWidth = Math.Min(LMapGripWidth, lBodyWidth);
-        double lGrabWidth = Math.Min(LMapHandleWidth, lBodyWidth);
-        lOver.Add(new LMapShape(LMapShapeKind.LMapShapeFill, lBodyLeft, lTop, lRight, lBottom, lRadius));
-
-        double lRimInset = LMapNavigatorRim / 2;
-        if (lBodyWidth - LMapNavigatorRim > 0 && lPaintHeight - LMapNavigatorRim > 0)
-        {
-            double lRimRadius = Math.Max(0, lRadius - lRimInset);
-            lOver.Add(new LMapShape(
-                LMapShapeKind.LMapShapeShadow,
-                lBodyLeft + lRimInset,
-                lTop + lRimInset + LMapShadowDrop,
-                lRight - lRimInset,
-                lBottom - lRimInset + LMapShadowDrop,
-                lRimRadius));
-            lOver.Add(new LMapShape(
-                LMapShapeKind.LMapShapeRim,
-                lBodyLeft + lRimInset,
-                lTop + lRimInset,
-                lRight - lRimInset,
-                lBottom - lRimInset,
-                lRimRadius));
-        }
-
-        lOver.Add(new LMapShape(
-            LMapShapeKind.LMapShapeSide, lBodyLeft, lTop, lBodyLeft + lSideWidth, lBottom, lRadius));
-        lOver.Add(new LMapShape(LMapShapeKind.LMapShapeSide, lRight - lSideWidth, lTop, lRight, lBottom, lRadius));
-        double lGripInset = Math.Max(3, lPaintHeight * 0.25);
-        lOver.Add(new LMapShape(
-            LMapShapeKind.LMapShapeGrip,
-            lBodyLeft + lSideWidth / 2, lTop + lGripInset, lBodyLeft + lSideWidth / 2, lBottom - lGripInset, 0));
-        lOver.Add(new LMapShape(
-            LMapShapeKind.LMapShapeGrip,
-            lRight - lSideWidth / 2, lTop + lGripInset, lRight - lSideWidth / 2, lBottom - lGripInset, 0));
-
-        (double lMoveLeft, double lMoveWidth, double lMoveHeight) =
-            LMapMoveResolve(lBodyLeft, lBodyWidth, lBodyHeight, lGrabWidth, lWidth);
-        double lGripWidth = Math.Min(lMoveWidth, lMoveWidth * LMapGripRate);
-        double lGripHeight = Math.Min(lMoveHeight, lPaintHeight) - LMapGripInset * 2;
-        if (lMoveWidth > 0 && lMoveHeight > 0 && lGripWidth > 0 && lGripHeight > 0)
-        {
-            double lGripLeft = lMoveLeft + (lMoveWidth - lGripWidth) / 2;
-            double lGripTop = lTop + LMapGripInset;
-            double lMoveRadius = Math.Min(8, lGripHeight / 2);
-            lOver.Add(new LMapShape(
-                LMapShapeKind.LMapShapeBody,
-                lGripLeft,
-                lGripTop,
-                lGripLeft + lGripWidth,
-                lGripTop + lGripHeight,
-                lMoveRadius));
-            LMapDotsAdd(lOver, lGripLeft, lGripTop, lGripWidth, lGripHeight);
-        }
-
-        lOver.Add(new LMapShape(LMapShapeKind.LMapShapeShine, lBodyLeft + 6, lTop + 1.5, lRight - 6, lTop + 1.5, 0));
-        double lBorderInset = LMapBorderThickness / 2;
-        if (lBodyWidth - LMapBorderThickness > 0 && lPaintHeight - LMapBorderThickness > 0)
-        {
-            lOver.Add(new LMapShape(
-                LMapShapeKind.LMapShapeBorder,
-                lBodyLeft + lBorderInset,
-                lTop + lBorderInset,
-                lRight - lBorderInset,
-                lBottom - lBorderInset,
-                lRadius));
-        }
-    }
-
-    private static void LMapDotsAdd(List<LMapShape> lOver, double lLeft, double lTop, double lWidth, double lHeight)
-    {
-        int lColumnCount = Math.Clamp((int)(lWidth / 9), 2, 10);
-        double lCenterOffset = (lColumnCount - 1) / 2.0;
-        double lY = lTop + lHeight / 2;
-        for (int lColumn = 0; lColumn < lColumnCount; lColumn++)
-        {
-            double lX = lLeft + lWidth / 2 + (lColumn - lCenterOffset) * 7;
-            if (lX > lLeft + 4 && lX < lLeft + lWidth - 4)
-            {
-                lOver.Add(new LMapShape(LMapShapeKind.LMapShapeDot, lX, lY, lX, lY, 1.3));
-            }
-        }
-    }
-
-    private static (double, double, double) LMapMoveResolve(
-        double lBodyLeft, double lBodyWidth, double lBodyHeight, double lSideWidth, double lWidth)
-    {
-        double lMoveHeight = Math.Clamp(lBodyHeight, 1, 16);
-        double lSpaceWidth = Math.Max(0, lBodyWidth - lSideWidth * 2);
-        if (lSpaceWidth <= 0)
-        {
-            return (0, 0, 0);
-        }
-
-        double lMoveWidth = Math.Clamp(lBodyWidth * 0.42, Math.Min(72, lSpaceWidth), Math.Min(320, lSpaceWidth));
-        double lCentered = lBodyLeft + (lBodyWidth - lMoveWidth) / 2;
-        double lLeftMinimum = lBodyLeft + lSideWidth;
-        double lLeftMaximum = lBodyLeft + lBodyWidth - lSideWidth - lMoveWidth;
-        double lMoveLeft = lLeftMaximum < lLeftMinimum ? lCentered : Math.Clamp(lCentered, lLeftMinimum, lLeftMaximum);
-        return (Math.Clamp(lMoveLeft, 0, Math.Max(0, lWidth - lMoveWidth)), lMoveWidth, lMoveHeight);
     }
 }

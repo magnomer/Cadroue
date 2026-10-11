@@ -8,9 +8,9 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PAudioTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new(pAudioEligible: true);
-    private readonly PList pList = new(new LDocket());
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
+    private readonly PList pList;
     private readonly PProcessing pProcessing = new();
     private readonly PInspector pInspector = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
@@ -19,9 +19,13 @@ public sealed class PAudioTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(150)
     };
 
-    public PAudioTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PAudioTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip, pAudioEligible: true);
+        pList = new PList(lStrip, new LDocket());
         LAudioTab = new LAudioTab(
+            lStrip,
             lPresetOwner,
             pInspector.LInspector,
             pViewer.LViewer,

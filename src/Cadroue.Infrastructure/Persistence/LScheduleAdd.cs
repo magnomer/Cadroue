@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;

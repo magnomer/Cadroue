@@ -38,10 +38,14 @@ public partial class PToolbar : UserControl
     private static readonly IReadOnlyDictionary<string, Action<PToolbar>> pLogoActions =
         new Dictionary<string, Action<PToolbar>>
         {
-            ["Options"] = pToolbar => pToolbar.PToolbarOptionsShow(),
+            ["Options"] = pToolbar =>
+                pToolbar.PToolbarOptionsShow(((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
             ["Shortcuts"] = pToolbar => pToolbar.PToolbarShortcutShow(),
-            ["Log"] = pToolbar => PLogWindow.PLogWindowShow(Window.GetWindow(pToolbar)!),
-            ["About"] = pToolbar => PSAbout.PSAboutShow(Window.GetWindow(pToolbar)!),
+            ["Log"] = pToolbar =>
+                PLogWindow.PLogWindowShow(
+                    Window.GetWindow(pToolbar)!, ((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
+            ["About"] = pToolbar =>
+                PSAbout.PSAboutShow(Window.GetWindow(pToolbar)!, ((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
             ["Exit"] = pToolbar => Window.GetWindow(pToolbar)!.Close(),
         };
 
@@ -75,9 +79,9 @@ public partial class PToolbar : UserControl
         pSceneHost.Visibility = PLook.PLookVisible[pVertical];
     }
 
-    private void PToolbarOptionsShow()
+    private void PToolbarOptionsShow(LStrip lStrip)
     {
-        PSOptions.PSOptionsShow(Window.GetWindow(this)!, PToolbarOptionsApplied);
+        PSOptions.PSOptionsShow(Window.GetWindow(this)!, lStrip, PToolbarOptionsApplied);
     }
 
     public void PToolbarShortcutShow()

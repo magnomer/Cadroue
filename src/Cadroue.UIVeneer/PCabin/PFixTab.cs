@@ -9,15 +9,18 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PFixTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new();
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
     private readonly PClinic pClinic = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly PList pList;
     private readonly PProcessing pProcessing = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFixTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFixTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip);
+        pList = new PList(lStrip, new LDocket());
         LFixTab = new LFixTab(
             lPresetOwner,
             pClinic.LClinic,

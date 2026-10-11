@@ -1,8 +1,6 @@
-using System.Diagnostics;
 using System.Globalization;
 
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 

@@ -1,6 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Cadroue.Application;
+using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
@@ -139,8 +139,10 @@ public static class LSectionPalette
         return $"#{lText[^6..].ToUpperInvariant()}";
     }
 
+    public static Func<string> LSectionPaletteSeam { get; set; } = () => LPreferenceState.LPreferencePaletteDefault;
+
     private static LSectionEntry LSectionActiveRead() =>
-        LSectionEntryFind(LPreference.LPreferenceStateCurrent.LPreferenceSectionPalette) ?? lSectionNative[0];
+        LSectionEntryFind(LSectionPaletteSeam()) ?? lSectionNative[0];
 
     private static LSectionEntry? LSectionEntryFind(string lName) =>
         LSectionEntriesRead()

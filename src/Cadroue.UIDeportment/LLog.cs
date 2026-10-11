@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -60,6 +61,7 @@ public sealed class LLogRow
 public sealed class LLog
 {
     private const int LLogRowMaximum = 5000;
+    private readonly CUsher lLogUsher;
     private readonly List<(long LLogSequence, LTraceEntry LLogEntry)> lLogPending = [];
     private readonly object lLogPendingLock = new();
     private readonly List<LLogRow> lLogRowsAll = [];
@@ -71,6 +73,11 @@ public sealed class LLog
     private bool lLogFollowTail = true;
     private long lLogSnapshot;
     private int lLogFileIndex;
+
+    public LLog(LStrip lStrip)
+    {
+        lLogUsher = lStrip.LStripUsher;
+    }
 
     public event Action? LLogFilesChanged;
     public event Action? LLogRowsRebuilt;
@@ -185,7 +192,7 @@ public sealed class LLog
         List<string> lFiles = lFilesResult.LTraceReadValue;
         if (!lFilesResult.LTraceReadSuccess)
         {
-            LLogErrorRaise("Log.Error.List", lFilesResult.LTraceReadError);
+            LLogNoticeRaise("Log.Error.List", lFilesResult.LTraceReadError);
         }
 
         if (!lFiles.Contains(lCurrentPath, StringComparer.OrdinalIgnoreCase))
@@ -220,7 +227,7 @@ public sealed class LLog
                 lFile,
                 lCurrent
                     ? LLocalization.LLocalizationTextRead("Log.File.Current")
-                    : LUsher.LUsherStemRead(lFile)));
+                    : lLogUsher.CUsherStemRead(lFile)));
         }
 
         LLogFilesChanged?.Invoke();
@@ -248,7 +255,7 @@ public sealed class LLog
 
         if (!lRead.LTraceReadSuccess)
         {
-            LLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
+            LLogNoticeRaise("Log.Error.Read", lRead.LTraceReadError);
             return;
         }
 
@@ -325,7 +332,7 @@ public sealed class LLog
         LTraceReadResult<string> lRead = LTraceWriter.LTraceFileRead(lLogFilePath);
         if (!lRead.LTraceReadSuccess)
         {
-            LLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
+            LLogNoticeRaise("Log.Error.Read", lRead.LTraceReadError);
             return;
         }
 
@@ -334,13 +341,19 @@ public sealed class LLog
 
     public void LLogFolderOpen()
     {
-        if (LUsher.LUsherPathOpen(lLogFilePath, LTraceWriter.LTraceFolderRead()) is { } lError)
+        if (lLogUsher.CUsherPathOpen(lLogFilePath, "Log file", LTraceWriter.LTraceFolderRead()) is { } lError)
         {
-            LLogErrorRaise("Log.Error.Open", lError);
+            LLogNoticeRaise("Log.Error.Open", lError);
         }
     }
 
-    public void LLogErrorRaise(string lMessageKey, string lDetail) =>
+    public void LLogErrorRaise(string lMessageKey, string lDetail)
+    {
+        LTraceLog.LTraceErrorRecord($"Log could not be copied: {lDetail}");
+        LLogNoticeRaise(lMessageKey, lDetail);
+    }
+
+    private void LLogNoticeRaise(string lMessageKey, string lDetail) =>
         LLogErrorShown?.Invoke(LLocalization.LLocalizationFormat(lMessageKey, lDetail));
 
     private void LLogAppendHandle(long lSequence, LTraceEntry lEntry)

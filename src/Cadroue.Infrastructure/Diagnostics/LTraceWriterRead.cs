@@ -19,37 +19,38 @@ public static partial class LTraceWriter
     internal static LTraceReadResult<string> LTraceWriterRead(out long lTraceCommitted)
     {
         LTraceWriterPersist();
+        string lTracePath = LTracePathRead();
+        LTraceReadResult<string> lTraceResult;
         lock (lTraceWriterLock)
         {
             try
             {
-                string lTracePath = LTracePathRead();
                 using var lTraceStream = new FileStream(
                     lTracePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using var lTraceReader = new StreamReader(lTraceStream, Encoding.UTF8);
-                string lTraceText = lTraceReader.ReadToEnd();
-                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return new LTraceReadResult<string>(true, lTraceText, string.Empty);
+                lTraceResult = new LTraceReadResult<string>(true, lTraceReader.ReadToEnd(), string.Empty);
             }
             catch (Exception lTraceException)
                 when (lTraceException is FileNotFoundException or DirectoryNotFoundException)
             {
-                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return new LTraceReadResult<string>(true, string.Empty, string.Empty);
+                lTraceResult = new LTraceReadResult<string>(true, string.Empty, string.Empty);
             }
             catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
             {
-                lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
-                return new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
+                lTraceResult = new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
             }
+
+            lTraceCommitted = Volatile.Read(ref lTraceWriterCommitted);
         }
+
+        return LTraceReadRecord(lTraceResult, $"Log could not be read: {lTracePath}");
     }
 
     public static LTraceReadResult<List<string>> LTraceFilesRead()
     {
+        string lTraceFolder = LTraceFolderRead();
         try
         {
-            string lTraceFolder = LTraceFolderRead();
             List<string> lTraceFiles = Directory.GetFiles(lTraceFolder, "Cadroue-*")
                 .Where(LTraceFileCheck)
                 .OrderByDescending(lTraceFile => lTraceFile, StringComparer.OrdinalIgnoreCase)
@@ -62,7 +63,9 @@ public static partial class LTraceWriter
         }
         catch (Exception lTraceException) when (lTraceException is IOException or UnauthorizedAccessException)
         {
-            return new LTraceReadResult<List<string>>(false, new List<string>(), lTraceException.Message);
+            return LTraceReadRecord(
+                new LTraceReadResult<List<string>>(false, new List<string>(), lTraceException.Message),
+                $"Log sessions could not be listed: {lTraceFolder}");
         }
     }
 
@@ -73,6 +76,7 @@ public static partial class LTraceWriter
             return LTraceWriterRead(out _);
         }
 
+        LTraceReadResult<string> lTraceResult;
         lock (lTraceWriterLock)
         {
             try
@@ -85,15 +89,29 @@ public static partial class LTraceWriter
                 using (lTraceContent)
                 using (var lTraceReader = new StreamReader(lTraceContent, Encoding.UTF8))
                 {
-                    return new LTraceReadResult<string>(true, lTraceReader.ReadToEnd(), string.Empty);
+                    lTraceResult = new LTraceReadResult<string>(true, lTraceReader.ReadToEnd(), string.Empty);
                 }
             }
             catch (Exception lTraceException)
                 when (lTraceException is IOException or UnauthorizedAccessException or InvalidDataException)
             {
-                return new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
+                lTraceResult = new LTraceReadResult<string>(false, string.Empty, lTraceException.Message);
             }
         }
+
+        return LTraceReadRecord(lTraceResult, $"Log could not be read: {lTracePath}");
+    }
+
+    private static LTraceReadResult<LTracePayload> LTraceReadRecord<LTracePayload>(
+        LTraceReadResult<LTracePayload> lTraceResult,
+        string lTraceSubject)
+    {
+        if (!lTraceResult.LTraceReadSuccess)
+        {
+            LTrace.LTraceRecord(LTraceKind.LTraceError, $"{lTraceSubject}: {lTraceResult.LTraceReadError}");
+        }
+
+        return lTraceResult;
     }
 
     private static bool LTraceFileCheck(string lTracePath) =>

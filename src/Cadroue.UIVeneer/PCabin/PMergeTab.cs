@@ -8,16 +8,19 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PMergeTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
+    private readonly PList pList;
     private readonly PGroup pGroup;
     private readonly PAction pAction = new();
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PMergeTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        LMergeTab = new LMergeTab(lPresetOwner, pList.LList.LListDocket, lPreferenceTabLayout);
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip);
+        pList = new PList(lStrip, new LDocket());
+        LMergeTab = new LMergeTab(lStrip, lPresetOwner, pList.LList.LListDocket, lPreferenceTabLayout);
         pGroup = new PGroup(LMergeTab.LMergeGroup);
         PTabAction = pAction;
         LAction lAction = pAction.LAction;

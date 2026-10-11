@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
 
@@ -6,6 +7,7 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LList
 {
+    private readonly CUsher lListUsher;
     private readonly LDocket lListDocket;
     private readonly HashSet<string> lListSelected = new(StringComparer.OrdinalIgnoreCase);
     private readonly CancellationTokenSource lListScanSource = new();
@@ -22,11 +24,12 @@ public sealed class LList
     public event Action<IReadOnlyList<LDocketEntry>>? LListItemsAdded;
     public event Action<bool>? LListLockChanged;
 
-    public LList(LDocket lListOwner)
+    public LList(LStrip lStrip, LDocket lListOwner)
     {
+        lListUsher = lStrip.LStripUsher;
         lListDocket = lListOwner;
         LListDrag = new LListDrag(this);
-        LListFace = new LListFace(this);
+        LListFace = new LListFace(this, lListUsher);
         lListDocket.LDocketChanged += LListDocketHandle;
         lListDocket.LDocketAdded += LListAddHandle;
         lListDocket.LDocketDelivered += LListDeliveredHandle;
@@ -90,7 +93,7 @@ public sealed class LList
         IReadOnlyList<string> lRequested = lAddPaths as IReadOnlyList<string> ?? lAddPaths.ToArray();
         LTraceLog.LTraceInfoRecord(
             $"List add requested: {lRequested.Count} path(s)",
-            string.Join(", ", lRequested.Select(LUsher.LUsherNameRead)));
+            string.Join(", ", lRequested.Select(lListUsher.CUsherNameRead)));
         try
         {
             LMediaScanResult lScanResult = await LMedia.LMediaPathScan(lRequested, lListScanSource.Token);
@@ -308,7 +311,7 @@ public sealed class LList
     {
         LTraceLog.LTraceInfoRecord(
             $"List add handled: {lAdded.Count} entry(ies), "
-            + $"selecting '{LUsher.LUsherNameRead(lAdded[0].LDocketEntryPath)}' and notifying subscribers");
+            + $"selecting '{lListUsher.CUsherNameRead(lAdded[0].LDocketEntryPath)}' and notifying subscribers");
         LListSelect(lAdded[0].LDocketEntryPath);
         LListItemsAdded?.Invoke(lAdded);
         LTraceLog.LTraceInfoRecord("List add subscribers notified");

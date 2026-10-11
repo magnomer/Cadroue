@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -15,27 +16,36 @@ public sealed class LStrip
     private readonly Func<string, string> lStripTitleSource;
     private readonly Func<string, int, string> lStripNumberSource;
     private LStripTab? lStripSelected;
-    private LStripTab? lStripHovered;
     private int lStripSuspendDepth;
-    private bool lStripVertical;
 
-    public LStrip()
-        : this(LStripTitleResolve, LStripNumberResolve)
+    public LStrip(LProgram lProgram)
+        : this(lProgram.LProgramAtelier.CAtelierUsher, LStripTitleResolve, LStripNumberResolve)
     {
     }
 
-    public LStrip(Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
+    public LStrip(CUsher lUsher, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
     {
+        LStripUsher = lUsher;
         lStripTitleSource = lTitleSource;
         lStripNumberSource = lNumberSource;
+        QStripSeparator = new QStripSeparator(this, lStripTabs);
+        QStripClosure = new QStripClosure(
+            this,
+            lStripTabs,
+            LLocalization.LLocalizationTextRead,
+            LTraceLog.LTraceInfoRecord,
+            LCartographer.LCartographerTabRemove);
     }
 
     public event Action? LStripChanged;
     public event Action<LStripTab?>? LStripSelectChanged;
     public event Action<LStripTab>? LStripTabChanged;
     public event Action<LStripTab>? LStripTabAdded;
-    public event Action<LStripTab>? LStripTabClosed;
     public event Action? LStripTitleChanged;
+
+    public QStripSeparator QStripSeparator { get; }
+
+    public QStripClosure QStripClosure { get; }
 
     public IReadOnlyList<LStripTab> LStripTabs => lStripTabs;
 
@@ -43,12 +53,12 @@ public sealed class LStrip
 
     public bool LStripSuspended => lStripSuspendDepth > 0;
 
-    public bool LStripVertical => lStripVertical;
-
     public static IReadOnlyList<string> LStripKeysRead() => LStripKeys;
 
     public static string LStripKeyResolve(string lKey) =>
         LStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : LStripDefaultKey;
+
+    public CUsher LStripUsher { get; }
 
     public static LStripTab LStripTabCreate(string lKey) => new(LStripKeyResolve(lKey));
 
@@ -130,17 +140,6 @@ public sealed class LStrip
 
     public void LStripUpdateResume() => lStripSuspendDepth = Math.Max(0, lStripSuspendDepth - 1);
 
-    public void LStripVerticalSet(bool lVertical)
-    {
-        if (lStripVertical == lVertical)
-        {
-            return;
-        }
-
-        lStripVertical = lVertical;
-        LStripHoverClear(null);
-    }
-
     public void LStripAdd(LStripTab lTab)
     {
         lStripTabs.Add(lTab);
@@ -161,7 +160,7 @@ public sealed class LStrip
         }
         else
         {
-            LStripSeparatorUpdate();
+            QStripSeparator.LStripSeparatorUpdate();
         }
     }
 
@@ -242,28 +241,6 @@ public sealed class LStrip
         LStripTabRaise(lTab);
     }
 
-    public void LStripHoverSet(LStripTab lTab)
-    {
-        if (ReferenceEquals(lStripHovered, lTab))
-        {
-            return;
-        }
-
-        lStripHovered = lTab;
-        LStripSeparatorUpdate();
-    }
-
-    public void LStripHoverClear(LStripTab? lTab)
-    {
-        if (lStripHovered is null || (lTab is not null && !ReferenceEquals(lStripHovered, lTab)))
-        {
-            return;
-        }
-
-        lStripHovered = null;
-        LStripSeparatorUpdate();
-    }
-
     public void LStripSelect(LStripTab? lTab)
     {
         foreach (LStripTab lItem in lStripTabs)
@@ -277,7 +254,7 @@ public sealed class LStrip
         }
 
         LStripSelectedSet(lTab);
-        LStripSeparatorUpdate();
+        QStripSeparator.LStripSeparatorUpdate();
     }
 
     public bool LStripMove(LStripTab lTab, int lTargetIndex)
@@ -296,7 +273,7 @@ public sealed class LStrip
 
         lStripTabs.Move(lSourceIndex, lClamped);
         LStripChanged?.Invoke();
-        LStripSeparatorUpdate();
+        QStripSeparator.LStripSeparatorUpdate();
         return true;
     }
 
@@ -309,17 +286,14 @@ public sealed class LStrip
         }
 
         bool lWasSelected = ReferenceEquals(lStripSelected, lTab);
-        if (ReferenceEquals(lStripHovered, lTab))
-        {
-            lStripHovered = null;
-        }
+        QStripSeparator.LStripHoverReset(lTab);
 
         lStripTabs.RemoveAt(lIndex);
         LStripChanged?.Invoke();
         LStripTitleUpdate();
         if (!lWasSelected)
         {
-            LStripSeparatorUpdate();
+            QStripSeparator.LStripSeparatorUpdate();
             return;
         }
 
@@ -334,7 +308,7 @@ public sealed class LStrip
 
     public void LStripClear()
     {
-        lStripHovered = null;
+        QStripSeparator.LStripHoverReset(null);
         lStripTabs.Clear();
         LStripChanged?.Invoke();
         LStripSelectedSet(null);
@@ -342,55 +316,6 @@ public sealed class LStrip
 
     public bool LStripBusyCheck(LStripTab? lTab = null) =>
         lTab is null ? lStripTabs.Any(lItem => lItem.LStripTabBusy) : lTab.LStripTabBusy;
-
-    public LAsk? LStripCloseResolve(LStripTab? lTab = null) =>
-        LStripBusyCheck(lTab)
-            ? new LAsk(
-                LLocalization.LLocalizationTextRead(
-                    lTab is null ? "Tab.Close.BusyAllMessage" : "Tab.Close.BusyMessage"),
-                LLocalization.LLocalizationTextRead("Terms.Stop"))
-            {
-                LAskTitle = LLocalization.LLocalizationTextRead("Tab.Close.BusyTitle")
-            }
-            : null;
-
-    public bool LStripCloseConfirm(LStripTab? lTab = null)
-    {
-        bool lConfirmed = false;
-        LAskNotice.LAskPublish(LStripCloseResolve(lTab), lAnswer => lConfirmed = lAnswer);
-        if (!lConfirmed)
-        {
-            LTraceLog.LTraceInfoRecord("Close declined: a worklist is still working");
-        }
-
-        return lConfirmed;
-    }
-
-    public void LStripClose(LStripTab lTab)
-    {
-        if (!lStripTabs.Contains(lTab))
-        {
-            return;
-        }
-
-        string lClosedTitle = lTab.LStripTabTitle;
-        LStripTabClosed?.Invoke(lTab);
-        LCartographer.LCartographerTabRemove(lTab.LStripTabId);
-        LStripRemove(lTab);
-        LTraceLog.LTraceInfoRecord($"Tab closed '{lClosedTitle}': {lStripTabs.Count} tab(s) open");
-    }
-
-    public void LStripAllClose()
-    {
-        foreach (LStripTab lTab in lStripTabs.ToArray())
-        {
-            LStripTabClosed?.Invoke(lTab);
-            LCartographer.LCartographerTabRemove(lTab.LStripTabId);
-        }
-
-        LStripClear();
-        LTraceLog.LTraceInfoRecord("All tabs closed");
-    }
 
     public bool LStripContentClear()
     {
@@ -410,7 +335,7 @@ public sealed class LStrip
     private static string LStripNumberResolve(string lName, int lOrdinal) =>
         LLocalization.LLocalizationFormat("Tab.Numbered", lName, lOrdinal);
 
-    private void LStripTabRaise(LStripTab lTab)
+    public void LStripTabRaise(LStripTab lTab)
     {
         lTab.LStripTabUpdate();
         LStripTabChanged?.Invoke(lTab);
@@ -436,26 +361,5 @@ public sealed class LStrip
 
         lStripSelected = lTab;
         LStripSelectChanged?.Invoke(lTab);
-    }
-
-    private void LStripSeparatorUpdate()
-    {
-        int lSelectedIndex = lStripSelected is null ? -1 : lStripTabs.IndexOf(lStripSelected);
-        int lHoveredIndex = lStripHovered is null ? -1 : lStripTabs.IndexOf(lStripHovered);
-        for (int lIndex = 0; lIndex < lStripTabs.Count; lIndex++)
-        {
-            bool lSeparator = lIndex < lStripTabs.Count - 1
-                && lIndex != lSelectedIndex
-                && lIndex != lSelectedIndex - 1
-                && lIndex != lHoveredIndex
-                && lIndex != lHoveredIndex - 1;
-            if (lStripTabs[lIndex].LStripTabSeparator == lSeparator)
-            {
-                continue;
-            }
-
-            lStripTabs[lIndex].LStripTabSeparator = lSeparator;
-            LStripTabRaise(lStripTabs[lIndex]);
-        }
     }
 }

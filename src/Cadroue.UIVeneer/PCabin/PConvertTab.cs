@@ -8,13 +8,16 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PConvertTab : PTabSurface
 {
-    private readonly PFlow pFlow = new();
-    private readonly PViewer pViewer = new();
-    private readonly PList pList = new(new LDocket());
+    private readonly PFlow pFlow;
+    private readonly PViewer pViewer;
+    private readonly PList pList;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PConvertTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        pFlow = new PFlow(lStrip);
+        pViewer = new PViewer(lStrip);
+        pList = new PList(lStrip, new LDocket());
         LConvertTab = new LConvertTab(lPresetOwner, pList.LList, pList.LList.LListDocket);
         var pAction = new PAction();
         PTabAction = pAction;

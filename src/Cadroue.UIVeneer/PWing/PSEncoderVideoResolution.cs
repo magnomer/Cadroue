@@ -5,11 +5,6 @@ using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFader;
-using static Cadroue.UIVeneer.PSEntry;
-using static Cadroue.UIVeneer.PSNotice;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -18,29 +13,30 @@ internal sealed partial class PSEncoder
     {
         psVideoResolutionValue = new TextBlock
         {
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
-        psVideoResolutionSlider = PSFaderCreate(0, LSEncoder.LSEncoderTiers.Count - 1, 0);
-        psVideoWidthBox = PSEntryBuild(string.Empty, 110);
-        psVideoHeightBox = PSEntryBuild(string.Empty, 110);
-        psVideoWidthSlider = PSFaderCreate(0, LSEncoder.LSEncoderDimensionMost, 0);
-        psVideoHeightSlider = PSFaderCreate(0, LSEncoder.LSEncoderDimensionMost, 0);
-        psVideoWidthLabel = PSFieldLabelBuild(string.Empty);
-        psVideoHeightLabel = PSFieldLabelBuild(string.Empty);
+        psVideoResolutionSlider = PSFader.PSFaderCreate(0, LSEncoder.LSEncoderTiers.Count - 1, 0);
+        psVideoWidthBox = PSEntry.PSEntryBuild(string.Empty, 110);
+        psVideoHeightBox = PSEntry.PSEntryBuild(string.Empty, 110);
+        psVideoWidthSlider = PSFader.PSFaderCreate(0, LSEncoder.LSEncoderDimensionMost, 0);
+        psVideoHeightSlider = PSFader.PSFaderCreate(0, LSEncoder.LSEncoderDimensionMost, 0);
+        psVideoWidthLabel = PSField.PSFieldLabelBuild(string.Empty);
+        psVideoHeightLabel = PSField.PSFieldLabelBuild(string.Empty);
 
-        pHost.Children.Add(PSFieldBuild(
+        pHost.Children.Add(PSField.PSFieldBuild(
             LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"),
-            PSFaderRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
+            PSFader.PSFaderRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
         pHost.Children.Add(
             PSVideoDimensionBuild(
                 psVideoWidthLabel,
-                PSFaderRowBuild(psVideoWidthSlider, psVideoWidthBox)));
+                PSFader.PSFaderRowBuild(psVideoWidthSlider, psVideoWidthBox)));
         pHost.Children.Add(
             PSVideoDimensionBuild(
                 psVideoHeightLabel,
-                PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
-        psVideoSizeNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
+                PSFader.PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
+        psVideoSizeNotice = PSNotice.PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
         pHost.Children.Add(psVideoSizeNotice);
 
         psVideoResolutionSlider.ValueChanged += (_, _) =>
@@ -59,8 +55,8 @@ internal sealed partial class PSEncoder
 
     private static UIElement PSVideoDimensionBuild(TextBlock pLabel, UIElement pContent)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSField.PSFieldControlHeight };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSField.PSFieldLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pLabel);
         Grid.SetColumn(pContent, 1);
@@ -112,13 +108,13 @@ internal sealed partial class PSEncoder
         if (psVideoWidthBox is not null)
         {
             psVideoWidthBox.Text = PSVideoDimensionFormat(lsEncoder.LSEncoderWidth, pSource);
-            psVideoWidthBox.Foreground = pSource ? PSFieldMuted : PSFieldText;
+            psVideoWidthBox.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
         }
 
         if (psVideoHeightBox is not null)
         {
             psVideoHeightBox.Text = PSVideoDimensionFormat(lsEncoder.LSEncoderHeight, pSource);
-            psVideoHeightBox.Foreground = pSource ? PSFieldMuted : PSFieldText;
+            psVideoHeightBox.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
         }
 
         if (psVideoResolutionValue is not null)

@@ -2,7 +2,6 @@ using System.Globalization;
 using System.IO;
 
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -21,13 +20,17 @@ internal static class LSalvageScanner
         try
         {
             var lSalvageLines = new List<string>();
-            var lSalvageProbe = new LEmployer(LTool.LToolFfprobeRead());
-            _ = await lSalvageProbe.LEmployerRun(
+            _ = await LEmployerEngine.LEmployerRunSeam(
+                LToolEngine.LToolFfprobeSeam(),
+                string.Empty,
+                null,
+                null,
+                null,
                 "-hide_banner -v error -select_streams v:0 -show_packets "
                 + "-show_entries packet=pts_time,dts_time,duration_time,flags "
                 + $"-of csv=p=0 -i {LEncode.LEncodeFormat(lSalvageSource)}",
                 lSalvageToken,
-                static _ => { },
+                null,
                 lSalvageLines.Add,
                 static _ => { }).ConfigureAwait(false);
 

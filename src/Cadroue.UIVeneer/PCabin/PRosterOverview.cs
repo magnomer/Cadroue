@@ -89,11 +89,11 @@ internal static class PRosterOverview
         return pRow;
     }
 
-    public static UIElement PRosterComparisonBuild(LRosterDetail lDetail)
+    public static UIElement PRosterComparisonBuild(LRoster lRoster, LRosterDetail lDetail)
     {
         (StackPanel pSourceStack, StackPanel pOutputStack) = PRosterStacksBuild(lDetail.LRosterDetailCompares);
-        pSourceStack.Children.Insert(0, PRosterOpenBuild(lDetail.LRosterDetailSource));
-        pOutputStack.Children.Insert(0, PRosterOpenBuild(lDetail.LRosterDetailOutput));
+        pSourceStack.Children.Insert(0, PRosterOpenBuild(lRoster, lDetail.LRosterDetailSource));
+        pOutputStack.Children.Insert(0, PRosterOpenBuild(lRoster, lDetail.LRosterDetailOutput));
 
         var pRoot = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
         Grid.SetIsSharedSizeScope(pRoot, true);
@@ -193,7 +193,7 @@ internal static class PRosterOverview
         Margin = new Thickness(0, 12, 0, 10)
     };
 
-    private static Button PRosterOpenBuild(string pPath)
+    private static Button PRosterOpenBuild(LRoster lRoster, string pPath)
     {
         var pButton = new Button
         {
@@ -211,7 +211,7 @@ internal static class PRosterOverview
             ToolTip = LLocalization.LLocalizationTextRead("Roster.Explorer.Tooltip"),
             Style = PButton.PButtonPanelCreate()
         };
-        pButton.Click += (_, _) => LRosterDetail.LRosterDetailOpen(pPath);
+        pButton.Click += (_, _) => LRosterDetail.LRosterDetailOpen(lRoster, pPath);
         return pButton;
     }
 

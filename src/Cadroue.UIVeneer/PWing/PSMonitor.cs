@@ -9,9 +9,6 @@ using Cadroue.Application;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFooter;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSMonitor : Window
@@ -107,7 +104,7 @@ internal sealed partial class PSMonitor : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button psClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Close"));
+        Button psClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Close"));
         psClose.Click += (_, _) => Close();
         psFooter.Children.Add(psClose);
         DockPanel.SetDock(psFooter, Dock.Bottom);
@@ -220,7 +217,7 @@ internal sealed partial class PSMonitor : Window
         var psStatus = new TextBlock
         {
             FontSize = 12,
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
             IsHitTestVisible = false

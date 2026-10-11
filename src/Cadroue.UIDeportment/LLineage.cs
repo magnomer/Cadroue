@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -17,6 +18,7 @@ public static class LLineage
     private readonly record struct LLineageKey(Guid LLineageKeyBatch, Guid LLineageKeyLineage);
 
     public static IReadOnlyList<LLineageEntry> LLineageRead(
+        CUsher lUsher,
         IReadOnlyList<LWorkItem> lWorkItems,
         Func<LWorkItem, Guid> lLineageRead)
     {
@@ -44,7 +46,7 @@ public static class LLineage
                 lKey.LLineageKeyLineage,
                 lSubjects[lKey],
                 lIndex[lKey],
-                LLineageOriginRead(lKey.LLineageKeyBatch, lSubjects[lKey], lWorkItems)))
+                LLineageOriginRead(lUsher, lKey.LLineageKeyBatch, lSubjects[lKey], lWorkItems)))
             .ToArray();
     }
 
@@ -59,7 +61,8 @@ public static class LLineage
         return lLineageFirst.LWorkSourcePath;
     }
 
-    private static long? LLineageOriginRead(Guid lBatchId, string lSubject, IReadOnlyList<LWorkItem> lWorkItems)
+    private static long? LLineageOriginRead(
+        CUsher lUsher, Guid lBatchId, string lSubject, IReadOnlyList<LWorkItem> lWorkItems)
     {
         foreach (LWorkItem lWorkItem in lWorkItems)
         {
@@ -68,12 +71,12 @@ public static class LLineage
                 continue;
             }
 
-            if (LLineageMatch(lWorkItem.LWorkOutputPath, lSubject) && lWorkItem.LWorkOutputBytes is { } lOutput)
+            if (LLineageMatch(lUsher, lWorkItem.LWorkOutputPath, lSubject) && lWorkItem.LWorkOutputBytes is { } lOutput)
             {
                 return lOutput;
             }
 
-            if (LLineageMatch(lWorkItem.LWorkSourcePath, lSubject) && lWorkItem.LWorkSourceBytes is { } lSource)
+            if (LLineageMatch(lUsher, lWorkItem.LWorkSourcePath, lSubject) && lWorkItem.LWorkSourceBytes is { } lSource)
             {
                 return lSource;
             }
@@ -82,13 +85,13 @@ public static class LLineage
         return null;
     }
 
-    public static string LLineageStepFormat(LWorkItem lWorkItem, string lSubject)
+    public static string LLineageStepFormat(CUsher lUsher, LWorkItem lWorkItem, string lSubject)
     {
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindSplit
-            && !LLineageMatch(lWorkItem.LWorkOutputPath, lSubject))
+            && !LLineageMatch(lUsher, lWorkItem.LWorkOutputPath, lSubject))
         {
             return LLocalization.LLocalizationFormat(
-                "Roster.Lineage.Split", LLineageFileRead(lWorkItem.LWorkOutputPath));
+                "Roster.Lineage.Split", LLineageFileRead(lUsher, lWorkItem.LWorkOutputPath));
         }
 
         string lTabName = LCartographer.LCartographerTitleRead(lWorkItem);
@@ -108,9 +111,10 @@ public static class LLineage
             _ => "Roster.Kind.Split"
         });
 
-    public static string LLineageRatioFormat(LWorkItem lWorkItem, string lSubject, long? lOriginBytes)
+    public static string LLineageRatioFormat(
+        CUsher lUsher, LWorkItem lWorkItem, string lSubject, long? lOriginBytes)
     {
-        if (LLineageMatch(lWorkItem.LWorkOutputPath, lSubject))
+        if (LLineageMatch(lUsher, lWorkItem.LWorkOutputPath, lSubject))
         {
             return LLineageRatioFormat(lWorkItem);
         }
@@ -152,38 +156,38 @@ public static class LLineage
         return lWorkItem.LWorkSourceBytes;
     }
 
-    public static bool LLineageMatch(string lLeftPath, string lRightPath) =>
-        LLineagePathRead(lLeftPath) is { } lLeftKey
-        && LLineagePathRead(lRightPath) is { } lRightKey
+    public static bool LLineageMatch(CUsher lUsher, string lLeftPath, string lRightPath) =>
+        LLineagePathRead(lUsher, lLeftPath) is { } lLeftKey
+        && LLineagePathRead(lUsher, lRightPath) is { } lRightKey
         && string.Equals(lLeftKey, lRightKey, StringComparison.OrdinalIgnoreCase);
 
-    public static string? LLineagePathRead(string lPath) =>
-        string.IsNullOrWhiteSpace(lPath) ? null : LUsher.LUsherPathResolve(lPath);
+    public static string? LLineagePathRead(CUsher lUsher, string lPath) =>
+        string.IsNullOrWhiteSpace(lPath) ? null : lUsher.CUsherPathResolve(lPath);
 
-    public static string LLineageTitleFormat(LLineageEntry lEntry)
+    public static string LLineageTitleFormat(CUsher lUsher, LLineageEntry lEntry)
     {
-        string lLineageName = LLineageFileRead(lEntry.LLineageEntrySubject);
+        string lLineageName = LLineageFileRead(lUsher, lEntry.LLineageEntrySubject);
         return lEntry.LLineageEntryItems.Count == 1
             ? LLocalization.LLocalizationFormat("Roster.Lineage.One", lLineageName)
             : LLocalization.LLocalizationFormat("Roster.Lineage.Many", lLineageName, lEntry.LLineageEntryItems.Count);
     }
 
-    public static string LLineageFileRead(string lFilePath) =>
+    public static string LLineageFileRead(CUsher lUsher, string lFilePath) =>
         string.IsNullOrWhiteSpace(lFilePath)
             ? LLocalization.LLocalizationTextRead("Roster.Lineage.Unknown")
-            : LUsher.LUsherNameRead(lFilePath);
+            : lUsher.CUsherNameRead(lFilePath);
 
     private static IEnumerable<string> LLineageInputsRead(LWorkItem lWorkItem) =>
         lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge
             ? lWorkItem.LWorkMergeSources
             : new[] { lWorkItem.LWorkSourcePath };
 
-    private static HashSet<string> LLineageKeysCreate(IEnumerable<string> lPaths)
+    private static HashSet<string> LLineageKeysCreate(CUsher lUsher, IEnumerable<string> lPaths)
     {
         var lKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (string lPath in lPaths)
         {
-            if (LLineagePathRead(lPath) is { } lKey)
+            if (LLineagePathRead(lUsher, lPath) is { } lKey)
             {
                 lKeys.Add(lKey);
             }
@@ -192,17 +196,18 @@ public static class LLineage
         return lKeys;
     }
 
-    public static HashSet<Guid> LLineageStageRead(IReadOnlyList<LWorkItem> lBatchItems)
+    public static HashSet<Guid> LLineageStageRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
-        HashSet<string> lConsumed = LLineageKeysCreate(lBatchItems.SelectMany(LLineageInputsRead));
-        HashSet<string> lProduced = LLineageKeysCreate(lBatchItems.Select(lWorkItem => lWorkItem.LWorkOutputPath));
+        HashSet<string> lConsumed = LLineageKeysCreate(lUsher, lBatchItems.SelectMany(LLineageInputsRead));
+        HashSet<string> lProduced =
+            LLineageKeysCreate(lUsher, lBatchItems.Select(lWorkItem => lWorkItem.LWorkOutputPath));
         var lStageIds = new HashSet<Guid>();
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
-            if (LLineagePathRead(lWorkItem.LWorkOutputPath) is { } lOutputKey
+            if (LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is { } lOutputKey
                 && lConsumed.Contains(lOutputKey)
                 && LLineageInputsRead(lWorkItem).Any(
-                    lInput => LLineagePathRead(lInput) is { } lInputKey && lProduced.Contains(lInputKey)))
+                    lInput => LLineagePathRead(lUsher, lInput) is { } lInputKey && lProduced.Contains(lInputKey)))
             {
                 lStageIds.Add(lWorkItem.LWorkId);
             }
@@ -211,10 +216,11 @@ public static class LLineage
         return lStageIds;
     }
 
-    public static int LLineageInitialRead(IReadOnlyList<LWorkItem> lBatchItems)
+    public static int LLineageInitialRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
-        HashSet<string> lOutputs = LLineageKeysCreate(lBatchItems.Select(lWorkItem => lWorkItem.LWorkOutputPath));
-        HashSet<string> lInputs = LLineageKeysCreate(lBatchItems.SelectMany(LLineageInputsRead));
+        HashSet<string> lOutputs =
+            LLineageKeysCreate(lUsher, lBatchItems.Select(lWorkItem => lWorkItem.LWorkOutputPath));
+        HashSet<string> lInputs = LLineageKeysCreate(lUsher, lBatchItems.SelectMany(LLineageInputsRead));
         lInputs.ExceptWith(lOutputs);
         return lInputs.Count;
     }

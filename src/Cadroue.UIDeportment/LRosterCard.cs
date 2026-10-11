@@ -1,5 +1,6 @@
 using System.Globalization;
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -122,6 +123,7 @@ public sealed record LRosterCard
     }
 
     public static LRosterCard LRosterCardCreate(
+        CUsher lUsher,
         Guid lBatchId,
         IReadOnlyList<LLineageEntry> lLineages,
         IReadOnlyList<LWorkItem> lItems,
@@ -131,33 +133,35 @@ public sealed record LRosterCard
         Func<LWorkItem, bool> lOwnerCheck,
         Func<Guid, bool> lSelectedCheck)
     {
-        HashSet<Guid> lStageIds = LLineage.LLineageStageRead(lItems);
+        HashSet<Guid> lStageIds = LLineage.LLineageStageRead(lUsher, lItems);
         return new LRosterCard
         {
             LRosterCardBatch = lBatchId,
-            LRosterCardTitle = LRosterTitleFormat(lItems),
+            LRosterCardTitle = LRosterTitleFormat(lUsher, lItems),
             LRosterCardKey = lSelected ? LRosterCardSelected : lCompleted ? LRosterCardDone : LRosterCardPlain,
             LRosterCardBody = lCompleted ? LRosterCardDone : lSelected ? LRosterCardSelected : LRosterCardPlain,
             LRosterCardCollapsed = lCollapsed,
             LRosterCardTooltip = LLocalization.LLocalizationTextRead(
                 lCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
             LRosterCardFiles = lLineages
-                .Select(lLineage => LRosterFileCreate(lLineage, lStageIds, lSelected, lOwnerCheck, lSelectedCheck))
+                .Select(lLineage => LRosterFileCreate(
+                    lUsher, lLineage, lStageIds, lSelected, lOwnerCheck, lSelectedCheck))
                 .ToArray()
         };
     }
 
-    public static string LRosterTitleFormat(IReadOnlyList<LWorkItem> lBatchItems)
+    public static string LRosterTitleFormat(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
         string lTitle = lBatchItems.Min(lWorkItem => lWorkItem.LWorkCreateTime).LocalDateTime.ToString(
             "yyyy-MM-dd tt h:mm", CultureInfo.CurrentUICulture);
-        int lInitialCount = LLineage.LLineageInitialRead(lBatchItems);
+        int lInitialCount = LLineage.LLineageInitialRead(lUsher, lBatchItems);
         return lInitialCount == 1
             ? LLocalization.LLocalizationFormat("Roster.Card.One", lTitle)
             : LLocalization.LLocalizationFormat("Roster.Card.Many", lTitle, lInitialCount);
     }
 
     private static LRosterFile LRosterFileCreate(
+        CUsher lUsher,
         LLineageEntry lLineage,
         HashSet<Guid> lStageIds,
         bool lCardSelected,
@@ -167,9 +171,10 @@ public sealed record LRosterCard
         IReadOnlyList<LWorkItem> lItems = lLineage.LLineageEntryItems;
         bool lStage = lItems.Count > 0 && lStageIds.Contains(lItems[^1].LWorkId);
         return new LRosterFile(
-            LLineage.LLineageTitleFormat(lLineage),
+            LLineage.LLineageTitleFormat(lUsher, lLineage),
             LRosterRow.LRosterShadeResolve(false, lCardSelected, lStage),
             lItems.Select((lWorkItem, lIndex) => LRosterRow.LRosterRowCreate(
+                lUsher,
                 lWorkItem,
                 lLineage,
                 lIndex == lItems.Count - 1,

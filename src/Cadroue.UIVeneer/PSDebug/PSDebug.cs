@@ -17,7 +17,7 @@ internal sealed class PSDebug : Window
 
     private static PSDebug? psDebugCurrent;
 
-    private readonly Window psDebugApplicationOwner;
+    private readonly PWindow psDebugApplicationOwner;
 
     private enum PSDebugKind
     {
@@ -143,7 +143,7 @@ internal sealed class PSDebug : Window
 
     private PSDebug(Window pOwner)
     {
-        psDebugApplicationOwner = pOwner;
+        psDebugApplicationOwner = (PWindow)pOwner;
         Title = "Debug";
         Owner = pOwner;
         Width = PSDebugWidth;
@@ -163,10 +163,14 @@ internal sealed class PSDebug : Window
         pRoot.Children.Add(PSDebugHeadingBuild("Subwindows"));
 
         var pWindows = PSDebugWrapBuild();
-        PSDebugButtonAdd(pWindows, "About", () => PSAbout.PSAboutShow(this));
-        PSDebugButtonAdd(pWindows, "Options", () => PSOptions.PSOptionsShow(this, null));
+        PSDebugButtonAdd(pWindows, "About", () => PSAbout.PSAboutShow(this, psDebugApplicationOwner.PStrip.LStrip));
+        PSDebugButtonAdd(
+            pWindows, "Options", () => PSOptions.PSOptionsShow(this, psDebugApplicationOwner.PStrip.LStrip, null));
         PSDebugButtonAdd(pWindows, "Shortcuts", () => PSKeymap.PSKeymapShow(this, null));
-        PSDebugButtonAdd(pWindows, "Log", () => PLogWindow.PLogWindowShow(psDebugApplicationOwner));
+        PSDebugButtonAdd(
+            pWindows,
+            "Log",
+            () => PLogWindow.PLogWindowShow(psDebugApplicationOwner, psDebugApplicationOwner.PStrip.LStrip));
         PSDebugButtonAdd(pWindows, "Diagnosis", () => PSDiagnosis.PSDiagnosisShow(this));
         PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
         PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, new LSVerdict("Debug verdict", new[]
@@ -174,7 +178,8 @@ internal sealed class PSDebug : Window
             new LSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
             new LSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
         })));
-        PSDebugButtonAdd(pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new LViewer()));
+        PSDebugButtonAdd(
+            pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new LViewer(psDebugApplicationOwner.PStrip.LStrip)));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(
             this,
@@ -246,15 +251,15 @@ internal sealed class PSDebug : Window
 
     private void PSDebugEncoderShow()
     {
-        var pEncoder = new PSEncoder(new LPreset(), () => { }) { Owner = this };
+        var pEncoder = new PSEncoder(psDebugApplicationOwner.PStrip.LStrip, new LPreset(), () => { }) { Owner = this };
         pEncoder.ShowDialog();
     }
 
     private void PSDebugMonitorShow()
     {
         var pSource = new LSMonitor();
-        var pFlow = new PFlow();
-        var pViewer = new PViewer();
+        var pFlow = new PFlow(psDebugApplicationOwner.PStrip.LStrip);
+        var pViewer = new PViewer(psDebugApplicationOwner.PStrip.LStrip);
         Window pMonitor = PSMonitor.PSMonitorShow(Owner, pSource, pFlow, pViewer);
         pMonitor.Closed += (_, _) => pSource.Dispose();
     }

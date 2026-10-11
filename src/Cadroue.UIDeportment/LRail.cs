@@ -40,7 +40,7 @@ public sealed class LRail
     {
         if (lTab is not null)
         {
-            lStrip.LStripHoverSet(lTab);
+            lStrip.QStripSeparator.LStripHoverSet(lTab);
         }
     }
 
@@ -48,7 +48,7 @@ public sealed class LRail
     {
         if (lTab is not null)
         {
-            lStrip.LStripHoverClear(lTab);
+            lStrip.QStripSeparator.LStripHoverClear(lTab);
         }
     }
 
@@ -174,16 +174,16 @@ public sealed class LRail
     public void LRailCloseHandle(LStripTab? lTab)
     {
         LRailDragClear();
-        if (lTab is not null && lStrip.LStripCloseConfirm(lTab))
+        if (lTab is not null && lStrip.QStripClosure.LStripCloseConfirm(lTab))
         {
-            lStrip.LStripClose(lTab);
+            lStrip.QStripClosure.LStripClose(lTab);
         }
     }
 
     public static double LRailCenterResolve(bool lVertical, double lX, double lY, double lWidth, double lHeight) =>
         lVertical ? lY + lHeight / 2 : lX + lWidth / 2;
 
-    public double LRailPointerResolve(double lX, double lY) => lStrip.LStripVertical ? lY : lX;
+    public double LRailPointerResolve(double lX, double lY) => lStrip.QStripSeparator.LStripVertical ? lY : lX;
 
     public static int LRailIndexResolve(double lPointer, IReadOnlyList<double> lCenters)
     {
@@ -253,7 +253,7 @@ public sealed class LRail
                     }
 
                     LTraceLog.LTraceInfoRecord($"Tab '{lTab.LStripTabTitle}' relayed");
-                    lStrip.LStripClose(lTab);
+                    lStrip.QStripClosure.LStripClose(lTab);
                     return LRailRelayOutcome.LRailRelayRelayed;
                 default:
                     LTraceLog.LTraceInfoRecord($"Tab '{lTab.LStripTabTitle}' kept: the other window did not take it");

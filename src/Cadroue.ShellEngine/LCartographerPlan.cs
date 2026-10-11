@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -30,7 +29,7 @@ public static partial class LCartographer
 
             if (lCartographerActive.Contains(lCartographerTabId))
             {
-                LTraceLog.LTraceWarningRecord(
+                LTraceEngine.LTraceWarningSeam(
                     "Relay cycle refused: a stage relays back into an ancestor; the loop is terminated");
                 return LCartographerFinishTarget;
             }

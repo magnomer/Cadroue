@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -6,18 +7,22 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LEditTabPlan
 {
+    private readonly CUsher lEditUsher;
     private readonly LInspector lEditInspector;
     private readonly LViewer lEditViewer;
     private readonly LDocket lEditDocket;
     private readonly LEditTabColor lEditColor;
 
-    public LEditTabPlan(LInspector lInspector, LViewer lViewer, LDocket lDocket, LEditTabColor lColor)
+    public LEditTabPlan(CUsher lUsher, LInspector lInspector, LViewer lViewer, LDocket lDocket, LEditTabColor lColor)
     {
+        lEditUsher = lUsher;
         lEditInspector = lInspector;
         lEditViewer = lViewer;
         lEditDocket = lDocket;
         lEditColor = lColor;
     }
+
+    public string LEditNameRead(string lPath) => lEditUsher.CUsherNameRead(lPath);
 
     public LEditPlan LEditStateRead()
     {
@@ -85,7 +90,7 @@ public sealed class LEditTabPlan
             return;
         }
 
-        string lName = LUsher.LUsherNameRead(lSourcePath);
+        string lName = lEditUsher.CUsherNameRead(lSourcePath);
         string lSummary = LEditPlanFormat(lPlan);
         if (!LEdit.LEditPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianEditSave))
         {
@@ -125,7 +130,7 @@ public sealed class LEditTabPlan
                 LLibrarian.LLibrarianEditSave);
             if (!lSaved)
             {
-                lFailed.Add(LUsher.LUsherNameRead(lPath));
+                lFailed.Add(lEditUsher.CUsherNameRead(lPath));
             }
         }
 

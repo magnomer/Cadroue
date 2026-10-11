@@ -1,4 +1,5 @@
 using System.Globalization;
+using Cadroue.Conduct;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
 
@@ -21,8 +22,10 @@ public sealed class LWindowDrop
 {
     private const int LWindowDropIndent = 14;
     private readonly LWindow lWindow;
+    private readonly CUsher lWindowDropUsher;
     private readonly List<string> lWindowDropTrace = [];
     private object? lWindowDropData;
+    private string lWindowDropName = string.Empty;
     private LWindowDropEffect? lWindowDropLast;
     private LWindowDropEffect lWindowDropEffect;
     private bool lWindowDropHandled;
@@ -30,6 +33,7 @@ public sealed class LWindowDrop
     public LWindowDrop(LWindow lOwner)
     {
         lWindow = lOwner;
+        lWindowDropUsher = lOwner.LWindowUsher;
     }
 
     public event Action<IReadOnlyList<string>>? LWindowListAdded;
@@ -132,7 +136,7 @@ public sealed class LWindowDrop
         }
 
         LWindowViewerOpened?.Invoke(lSourcePath);
-        LWindowDropAppend(lDrag, $"Drop into viewer: opened {LUsher.LUsherNameRead(lSourcePath)}");
+        LWindowDropAppend(lDrag, $"Drop into viewer: opened {lWindowDropName}");
         LWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
     }
 
@@ -147,11 +151,11 @@ public sealed class LWindowDrop
         IReadOnlyList<string> lPaths = LWindowPathsRead(lDrag);
         string lPayload = lPaths.Count == 0
             ? "no FileDrop payload"
-            : $"{lPaths.Count} path(s): {string.Join(", ", lPaths.Select(LUsher.LUsherNameRead))}";
+            : $"{lPaths.Count} path(s): {string.Join(", ", lPaths.Select(lWindowDropUsher.CUsherNameRead))}";
 
         if (lWindow.LWindowListPresent)
         {
-            bool lListMatch = LWindowMediaCheck(lPaths);
+            bool lListMatch = LWindowMediaCheck(lWindowDropUsher, lPaths);
             lReason = lListMatch
                 ? $"target=list, {lPayload}"
                 : $"target=list, none are media/folders — {lPayload}";
@@ -171,14 +175,15 @@ public sealed class LWindowDrop
             return LWindowDropEffect.LWindowDropNone;
         }
 
+        lWindowDropName = lWindowDropUsher.CUsherNameRead(lSourcePath);
         if (LMedia.LMediaAudioCheck(lSourcePath) && !lWindow.LWindowAudioAllowed)
         {
             lReason = "target=viewer, audio-only file on a video-only tab — "
-                + $"{LUsher.LUsherNameRead(lSourcePath)}";
+                + $"{lWindowDropName}";
             return LWindowDropEffect.LWindowDropNone;
         }
 
-        lReason = $"target=viewer, {LUsher.LUsherNameRead(lSourcePath)}";
+        lReason = $"target=viewer, {lWindowDropName}";
         return LWindowAllowedRead(lDrag);
     }
 
@@ -188,13 +193,13 @@ public sealed class LWindowDrop
     private static IReadOnlyList<string> LWindowPathsRead(LWindowDrag lDrag) =>
         lDrag.LWindowDragPaths ?? [];
 
-    private static string? LWindowPathRead(LWindowDrag lDrag) => LWindowFileFind(LWindowPathsRead(lDrag));
+    private string? LWindowPathRead(LWindowDrag lDrag) => LWindowFileFind(lWindowDropUsher, LWindowPathsRead(lDrag));
 
-    internal static string? LWindowFileFind(IReadOnlyList<string> lPaths) =>
-        lPaths.FirstOrDefault(LUsher.LUsherFileExist);
+    internal static string? LWindowFileFind(CUsher lUsher, IReadOnlyList<string> lPaths) =>
+        lPaths.FirstOrDefault(lUsher.CUsherFileExist);
 
-    internal static bool LWindowMediaCheck(IReadOnlyList<string> lPaths) =>
-        lPaths.Any(lPath => LUsher.LUsherFolderExist(lPath) || LMedia.LMediaCheck(lPath));
+    internal static bool LWindowMediaCheck(CUsher lUsher, IReadOnlyList<string> lPaths) =>
+        lPaths.Any(lPath => lUsher.CUsherFolderExist(lPath) || LMedia.LMediaCheck(lPath));
 
     private void LWindowDropAppend(LWindowDrag lDrag, string lSummary, string? lDetail = null)
     {

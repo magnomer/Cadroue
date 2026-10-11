@@ -8,7 +8,6 @@ using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 using Cadroue.UIVeneer.PWing;
-using static Cadroue.UIVeneer.PWing.PPanel;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -23,10 +22,11 @@ public sealed class PRoster : UserControl
     private readonly CheckBox pRosterCompletedBox;
     private readonly DispatcherTimer pRosterElapsedTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
-    public LRoster LRoster { get; } = LRoster.LRosterCreate();
+    public LRoster LRoster { get; }
 
-    public PRoster(LSceneTabEntry? lPreferenceTabLayout = null)
+    public PRoster(LStrip lStrip, LSceneTabEntry? lPreferenceTabLayout = null)
     {
+        LRoster = LRoster.LRosterCreate(lStrip);
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
@@ -47,7 +47,7 @@ public sealed class PRoster : UserControl
         pRosterCompletedBox.Checked += PRosterCompletedHandle;
         pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
         LRoster.LRosterDetailApplied += PRosterDetailUpdate;
-        LRoster.LRosterDetailDeferred += PRosterDetailDefer;
+        LRoster.QRosterDetail.LRosterDetailDeferred += PRosterDetailDefer;
         LRoster.LRosterWarningShown += PRosterWarningShow;
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;
@@ -89,7 +89,7 @@ public sealed class PRoster : UserControl
     private void PRosterDetailUpdate() => PRosterDetail.PRosterDetailUpdate(pRosterDetailPanel, LRoster);
 
     private void PRosterDetailDefer() =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LRoster.LRosterDetailRun));
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LRoster.QRosterDetail.LRosterDetailRun));
 
     private void PRosterWarningShow(string pTitle, string pMessage) =>
         PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
@@ -140,7 +140,7 @@ public sealed class PRoster : UserControl
         pRoot.Children.Add(pOptionRow);
         pRoot.Children.Add(pColumnHeader);
         pRoot.Children.Add(pRosterQueuePanel);
-        return PPanelBorderBuild(pRoot);
+        return PPanel.PPanelBorderBuild(pRoot);
     }
 
     private static Border PRosterBandBuild(UIElement pChild) => new()

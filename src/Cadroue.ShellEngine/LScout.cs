@@ -1,6 +1,5 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -32,7 +31,7 @@ internal static class LScout
 
         try
         {
-            LMediaInfo lScoutMedia = await LMedia.LMediaFfprobeRead(lScoutMediaPath, lScoutToken, lScoutLevel)
+            LMediaInfo lScoutMedia = await LMediaEngine.LMediaProbeSeam(lScoutMediaPath, lScoutToken, lScoutLevel)
                 .ConfigureAwait(false);
             return new LWorkMedia(
                 lScoutMedia.LMediaVideoWidth,
@@ -76,7 +75,7 @@ internal static class LScout
 
         try
         {
-            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeSeeker.LKeyframeRangeScan(
+            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeEngine.LKeyframeScanSeam(
                 lScoutMediaPath, TimeSpan.Zero, lScoutMediaDuration, lScoutToken).ConfigureAwait(false);
             if (lScoutKeyframes.Count < 2)
             {
@@ -112,10 +111,15 @@ internal static class LScout
 
         try
         {
-            LEmployerResult lScoutResult = await lScoutRunner.LRunnerEmployerCreate().LEmployerRun(
+            LEmployerResult lScoutResult = await LEmployerEngine.LEmployerRunSeam(
+                lScoutRunner.LRunnerProgramPath,
+                lScoutRunner.LRunnerArgumentPrefix,
+                LCustodyFamily.LCustodyFamilyEncode,
+                lScoutRunner.LRunnerLevel,
+                null,
                 lScoutArguments,
                 lScoutToken,
-                static _ => { },
+                null,
                 static _ => { },
                 static _ => { }).ConfigureAwait(false);
             lScoutToken.ThrowIfCancellationRequested();
@@ -192,7 +196,7 @@ internal static class LScout
 
         try
         {
-            return await LMedia.LMediaLoudnessRead(lScoutMediaPath, lScoutToken).ConfigureAwait(false);
+            return await LMediaEngine.LMediaLoudnessSeam(lScoutMediaPath, lScoutToken).ConfigureAwait(false);
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {

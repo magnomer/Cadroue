@@ -52,10 +52,10 @@ public sealed class LSection
         lSectionPieces = lFlow.LFlowSection.LFlowSectionsRead().ToArray();
         lSectionSelected = new HashSet<int>(lFlow.LFlowSection.LFlowSelectedRead());
         lSectionRowCount = lSectionPieces.Count;
-        lSectionEditable = lFlow.LFlowSectionEditable;
+        lSectionEditable = lFlow.QFlowEdit.LFlowSectionEditable;
         LSectionDrag = new LSectionDrag(this, lFlow);
         lFlow.LFlowSection.LFlowSectionChanged += LSectionUpdateHandle;
-        lFlow.LFlowEditChanged += LSectionEditHandle;
+        lFlow.QFlowEdit.LFlowEditChanged += LSectionEditHandle;
     }
 
     public LSectionDrag LSectionDrag { get; }

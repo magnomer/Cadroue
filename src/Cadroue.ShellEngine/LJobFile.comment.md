@@ -1,4 +1,10 @@
 # LJobFile.cs
+Hash: `53fad90f137623e5`
+
+## `private string LJobPathResolve(string pPath, string pSuffix)`
+
+Each candidate name is claimed as it is tried, so the returned path is already reserved.
+The first candidate carries the suffix alone, later ones add a counter.
 
 ## `private bool LJobClaim(string pPath)`
 

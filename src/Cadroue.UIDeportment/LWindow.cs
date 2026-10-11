@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -21,9 +22,12 @@ public sealed class LWindow
     private LStripTab? lWindowTab;
     private LViewer? lWindowViewer;
 
+    public CUsher LWindowUsher { get; }
+
     public LWindow(LStrip lStripOwner, Func<Func<bool>, bool> lDispatch)
     {
         lStrip = lStripOwner;
+        LWindowUsher = lStripOwner.LStripUsher;
         lWindowDispatcher = lDispatch;
         LWindowDrop = new LWindowDrop(this);
         LWindowShortcut = new LWindowShortcut(this);
@@ -355,7 +359,7 @@ public sealed class LWindow
     {
         if (!lPreference.LPreferenceMediaAutomatic
             || string.IsNullOrWhiteSpace(lPreference.LPreferenceMediaPath)
-            || !LUsher.LUsherFileExist(lPreference.LPreferenceMediaPath))
+            || !LWindowUsher.CUsherFileExist(lPreference.LPreferenceMediaPath))
         {
             return;
         }

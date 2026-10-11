@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -8,6 +9,7 @@ public sealed partial class LSEncoder
 {
     public const string LSEncoderSourceMode = "Same as source";
 
+    private readonly CUsher lsEncoderUsher;
     private readonly LPreset lsEncoderSource;
     private readonly LPreset lsEncoderDraft;
     private readonly bool lsEncoderSmart;
@@ -16,8 +18,9 @@ public sealed partial class LSEncoder
     private CancellationTokenSource? lsEncoderVideoTrial;
     private CancellationTokenSource? lsEncoderAudioTrial;
 
-    public LSEncoder(LPreset lSource, bool lSmart)
+    public LSEncoder(LStrip lStrip, LPreset lSource, bool lSmart)
     {
+        lsEncoderUsher = lStrip.LStripUsher;
         lsEncoderSource = lSource;
         lsEncoderDraft = lSource.LPresetClone();
         lsEncoderSmart = lSmart;
@@ -27,6 +30,9 @@ public sealed partial class LSEncoder
     }
 
     public LPreset LSEncoderDraft => lsEncoderDraft;
+
+    public string LSEncoderInitialResolve(string lCurrent) =>
+        lsEncoderUsher.CUsherFolderExist(lCurrent) ? lCurrent : string.Empty;
 
     private CancellationToken LSEncoderScanStart(LTrialKind lKind)
     {

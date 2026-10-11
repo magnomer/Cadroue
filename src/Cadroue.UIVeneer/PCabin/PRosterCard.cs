@@ -62,7 +62,7 @@ internal static class PRosterCard
             TextTrimming = TextTrimming.CharacterEllipsis,
             Cursor = Cursors.Hand
         };
-        pTitleCell.MouseLeftButtonUp += (_, _) => lRoster.LRosterCardSelect(lCard.LRosterCardBatch);
+        pTitleCell.MouseLeftButtonUp += (_, _) => lRoster.QRosterSelection.LRosterCardSelect(lCard.LRosterCardBatch);
         Grid.SetColumn(pTitleCell, 0);
         pGrid.Children.Add(pTitleCell);
 
@@ -111,7 +111,7 @@ internal static class PRosterCard
             pButton.Background = Brushes.Transparent;
             pIcon.Source = PIcon.PIconRead(pIconPath, pControlBrush);
         };
-        pButton.MouseLeftButtonUp += (_, _) => lRoster.LRosterCollapseToggle(lCard.LRosterCardBatch);
+        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterCollapse.LRosterCollapseToggle(lCard.LRosterCardBatch);
         return pButton;
     }
 

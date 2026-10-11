@@ -132,7 +132,7 @@ public partial class PRail : UserControl
 
     public void PRailApply(bool pVertical)
     {
-        lRail.LStrip.LStripVerticalSet(pVertical);
+        lRail.LStrip.QStripSeparator.LStripVerticalSet(pVertical);
         Width = pRailWidths[pVertical];
         Height = pRailHeights[pVertical];
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -216,7 +216,7 @@ public partial class PRail : UserControl
         var pItemElement = (FrameworkElement)pTabItemsControl.ItemContainerGenerator.ContainerFromItem(lStripTab);
         Point pItemPoint = pItemElement.TransformToAncestor(pTabItemsControl).Transform(new Point(0, 0));
         return LRail.LRailCenterResolve(
-            lRail.LStrip.LStripVertical,
+            lRail.LStrip.QStripSeparator.LStripVertical,
             pItemPoint.X,
             pItemPoint.Y,
             pItemElement.ActualWidth,

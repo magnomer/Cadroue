@@ -50,7 +50,7 @@ internal static class PRosterRow
             Child = pGrid,
             ContextMenu = pMenu
         };
-        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.LRosterStepSelect(
+        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.QRosterSelection.LRosterStepSelect(
             lRow.LRosterRowId,
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
             Keyboard.Modifiers.HasFlag(ModifierKeys.Control));

@@ -1,5 +1,5 @@
 # TAuditPuritySetting.cs
-Hash: `1658af72f42688d6`
+Hash: `7174d265624e5317`
 
 ## `internal static class TAuditPuritySetting`
 
@@ -11,8 +11,8 @@ Both copies change together, as scripts/principles.md asks.
 ## `public static readonly string[] TAuditPurityRing`
 
 The rings held to the frame and kept from every eavesdropping member.
-Conduct is one, since it uses no WPF and no console and serves both media.
-The surfaces, the drivers and the adapters are outside the purity and name what they need.
+Conduct is one, since it sits between the engine and the UI and needs no platform.
+Infrastructure, Media, the UI projects and the host are outside the purity and name what they need.
 
 ## `public static readonly string[] TAuditPurityFrame`
 
@@ -22,7 +22,7 @@ The framework namespaces a pure ring may name.
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditPurityExtra`
 
 The namespaces one pure ring adds to the shared frame, matching the ring frames of scripts/AuditStructure.json.
-The shell engine and Conduct rethrow a captured exception, so only they name `System.Runtime.ExceptionServices`.
+The shell engine and Conduct may rethrow a captured exception, so only they name `System.Runtime.ExceptionServices`.
 
 ## `public static readonly string[] TAuditEavesdroppingMember`
 
@@ -33,14 +33,15 @@ A member matches when its full name equals a row or sits under it.
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditPurityCeiling`
 
 The name count each `Kind:Ring>Target` pair may hold.
+The rows cap the eavesdropping members and foraged namespaces the core, application and engine still reach.
+Conduct has no row, so any break there fails at once.
+A row falls as its breaks move behind a port, and a row at zero keeps a cleared break shut.
 A count above fails the fact, a ceiling above the count is stale and fails too.
 Lower a ceiling when a ring sheds a name, never raise one to admit a new one.
-Empty since every foraging and eavesdropping break moved behind a port.
-It stays declared so the next break has a row to fail.
 
 ## `public static readonly string[] TAuditPurityExempt`
 
-The `path:name` rows that break the purity today, one row per break.
+The `path:name` rows that break the purity by design, one row per break.
 A path ending in `/*` exempts a whole folder for one name.
 Every row must still match a hit, so a fixed break deletes its row.
-No row stands today.
+No row stands, so every break counts against a ceiling.

@@ -1,6 +1,5 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -18,7 +17,7 @@ public static partial class LCartographer
         lCartographerVisited ??= new HashSet<Guid>();
         if (!lCartographerVisited.Add(lCartographerStage.LCartographerStageId))
         {
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay cycle terminated at stage '{lCartographerStage.LCartographerTitle}': " +
                 $"already visited this delivery");
             return true;
@@ -43,7 +42,7 @@ public static partial class LCartographer
                 return false;
             }
 
-            LTraceLog.LTraceInfoRecord(
+            LTraceEngine.LTraceInfoSeam(
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} paused at stage " +
                 $"'{lCartographerStage.LCartographerTitle}'");
             return true;
@@ -85,7 +84,7 @@ public static partial class LCartographer
                 continue;
             }
 
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay dropped '{Path.GetFileName(lCartographerPending)}' at stage " +
                 $"'{lCartographerStage.LCartographerTitle}': the file is missing or unreadable");
             lCartographerCleared.Add(lCartographerPending);
@@ -125,7 +124,7 @@ public static partial class LCartographer
                 lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId)
             is not { } lCartographerTarget)
         {
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay held '{Path.GetFileName(lCartographerPath)}' at funnel stage " +
                 $"'{lCartographerStage.LCartographerTitle}': no rule routes it onward");
             return lCartographerSeam.LCartographerTabIntake(
@@ -162,7 +161,7 @@ public static partial class LCartographer
         }
         catch (Exception lCartographerError)
         {
-            LTraceLog.LTraceErrorRecord("Relay stage execution failed", lCartographerError);
+            LTraceEngine.LTraceErrorSeam("Relay stage execution failed", lCartographerError);
             return;
         }
 

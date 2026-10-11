@@ -1,6 +1,5 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -33,6 +32,8 @@ public sealed record LCartographerDelivery(
 
 public static partial class LCartographer
 {
+    public static Func<int, long, bool> LCartographerOwnerSeam { get; set; } = (_, _) => false;
+
     public static readonly Guid LCartographerFinishTarget = new("feed0000-0000-0000-0000-0000000ffff0");
 
     private static readonly HashSet<Guid> lCartographerDelivered = new();
@@ -114,7 +115,7 @@ public static partial class LCartographer
         }
 
         return lCartographerItem.LWorkOwnerProcess == Environment.ProcessId
-            || LCartographerOwnershipCheck(lCartographerItem) && !LSentinel.LSentinelOwnerCheck(
+            || LCartographerOwnershipCheck(lCartographerItem) && !LCartographerOwnerSeam(
                 lCartographerItem.LWorkOwnerProcess, lCartographerItem.LWorkOwnerStamp);
     }
 
@@ -131,7 +132,7 @@ public static partial class LCartographer
 
         if (lCartographerItem.LWorkRelayTarget == LCartographerFinishTarget)
         {
-            LTraceLog.LTraceInfoRecord(
+            LTraceEngine.LTraceInfoSeam(
                 $"Relay finished '{lCartographerItem.LWorkOutputName}': removed at source, delivered to no tab");
             if (!lCartographerRetain)
             {
@@ -145,7 +146,7 @@ public static partial class LCartographer
             || !File.Exists(lCartographerItem.LWorkOutputPath))
         {
             lCartographerMissing.Add(lCartographerItem.LWorkId);
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay skipped '{lCartographerItem.LWorkOutputName}': the output file is missing");
             return false;
         }

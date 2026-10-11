@@ -1,4 +1,21 @@
 # LCartographerExecute.cs
+Hash: `6cf231376aa5fe11`
+
+## `public static Task<IReadOnlyList<string>> LCartographerStageRun(LCartographerStagePlan lCartographerPlan)`
+
+Queues one captured stage's inputs through the messenger of its layout, with no live tab involved.
+A layout key it does not know runs as Split.
+It returns only the inputs the stage acknowledged, for the caller to commit against the plan.
+
+## `private static IReadOnlyList<string> LCartographerEditRun(`
+
+The Edit plan comes from the stage's captured inspector record, or an empty plan when none was kept.
+The eq question goes through LInventoryEngine, so the cartographer never names the Infrastructure inventory.
+
+## `private static IReadOnlyList<string> LCartographerAcknowledgedRead(`
+
+An input counts as acknowledged only when the schedule holds work for it under this batch and stage.
+So an input the planner skipped stays unacknowledged, even when the messenger was called.
 
 ## Inline notes
 

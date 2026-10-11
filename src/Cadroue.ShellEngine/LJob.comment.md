@@ -1,4 +1,10 @@
 # LJob.cs
+Hash: `509ba8970a2c72d4`
+
+## `internal void LJobCancel()`
+
+A user cancel and a runner stop cancel the same linked token.
+The flag tells them apart, so a cancel parks the job as cancelled while a stop requeues it.
 
 ## `private async Task LJobRun()`
 
@@ -7,6 +13,11 @@ Validation, the lease, the output folder, collision handling and the first probe
 Preparation faults enter retry or failure handling, while cancellation cancels or releases the job.
 Fresh job probes receive the runner's priority override, keeping measurement standing aligned with its execution configuration.
 Final cleanup stops the lease in each case.
+
+## `private async Task LJobAttemptClear()`
+
+Every exit path ends an attempt here, and a stop reaches it twice.
+Each step tolerates repetition, so the second pass changes nothing.
 
 ## Inline notes
 

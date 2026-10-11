@@ -1,41 +1,39 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class LFlow
 {
+    private readonly CUsher lFlowUsher;
     private LSpool? lFlowSpool;
     private LMediaInfo? lFlowMediaInfo;
     private string? lFlowSourcePath;
     private TimeSpan lFlowCursor;
-    private int? lFlowSectionIndex;
-    private TimeSpan lFlowDragTime;
     private bool lFlowSectionActive;
     private bool lFlowCommandActive;
     private bool lFlowUnloaded;
     private bool lFlowDragPaused;
-    private bool lFlowSectionEditable = true;
-    private bool lFlowSegmentFired;
     private bool lFlowWaveformActive = LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
     private bool lFlowWaveformAudio;
-    private string? lFlowKeyframeStamp;
     private int? lFlowKeyframeDirection;
-    private string lFlowLosslesscutPath = string.Empty;
     private int lFlowPaletteCount = 1;
     private Func<bool>? lFlowPlayingSource;
 
-    public LFlow()
+    public LFlow(LStrip lStrip)
     {
+        lFlowUsher = lStrip.LStripUsher;
+        QFlowEdit = new QFlowEdit(this);
+        QFlowSpool = new QFlowSpool(this);
+        QFlowStamp = new QFlowStamp();
         LFlowSection = new LFlowSection(this);
-        LFlowKeyframe = new LFlowKeyframe(this);
+        LFlowKeyframe = new LFlowKeyframe(this, lFlowUsher);
         LFlowWaveform = new LFlowWaveform(this);
-        LFlowLosslesscut = new LFlowLosslesscut(this);
+        LFlowLosslesscut = new LFlowLosslesscut(this, lFlowUsher);
         LFlowName = new LFlowName(this);
     }
 
-    public event Action<bool>? LFlowEditChanged;
     public event Action<bool>? LFlowWaveformChanged;
     public event Action? LFlowMediaChanged;
     public event Action<TimeSpan>? LFlowCursorChanged;
@@ -46,7 +44,6 @@ public sealed class LFlow
     public event Action? LFlowAttachApplied;
     public event Action? LFlowClearApplied;
     public event Action? LFlowCursorApplied;
-    public event Action? LFlowSpoolApplied;
 
     public LFlowSection LFlowSection { get; }
 
@@ -58,6 +55,12 @@ public sealed class LFlow
 
     public LFlowName LFlowName { get; }
 
+    public QFlowEdit QFlowEdit { get; }
+
+    public QFlowSpool QFlowSpool { get; }
+
+    public QFlowStamp QFlowStamp { get; }
+
     public LSpool? LFlowSpool => lFlowSpool;
 
     public LMediaInfo? LFlowMediaInfo => lFlowMediaInfo;
@@ -65,10 +68,6 @@ public sealed class LFlow
     public string? LFlowSourcePath => lFlowSourcePath;
 
     public TimeSpan LFlowCursor => lFlowCursor;
-
-    public int? LFlowSectionIndex => lFlowSectionIndex;
-
-    public TimeSpan LFlowDragTime => lFlowDragTime;
 
     public bool LFlowSectionActive => lFlowSectionActive;
 
@@ -78,31 +77,15 @@ public sealed class LFlow
 
     public bool LFlowDragPaused => lFlowDragPaused;
 
-    public bool LFlowSectionEditable => lFlowSectionEditable;
-
-    public bool LFlowSegmentFired => lFlowSegmentFired;
-
     public bool LFlowWaveformActive => lFlowWaveformActive;
 
     public bool LFlowWaveformAudio => lFlowWaveformAudio;
 
-    public string? LFlowKeyframeStamp => lFlowKeyframeStamp;
-
     public int? LFlowKeyframeDirection => lFlowKeyframeDirection;
-
-    public string LFlowLosslesscutPath => lFlowLosslesscutPath;
 
     public int LFlowPaletteCount => lFlowPaletteCount;
 
     public TimeSpan LFlowDuration => lFlowSpool?.LSpoolDuration ?? TimeSpan.Zero;
-
-    public string LFlowLabelOrigin => LCursor.LCursorTimeFormat(lFlowSpool?.LSpoolRangeOrigin ?? TimeSpan.Zero);
-
-    public string LFlowLabelLimit => LCursor.LCursorTimeFormat(lFlowSpool?.LSpoolRangeLimit ?? TimeSpan.Zero);
-
-    public string LFlowLabelZero => LCursor.LCursorTimeFormat(TimeSpan.Zero);
-
-    public string LFlowLabelDuration => LCursor.LCursorTimeFormat(LFlowDuration);
 
     public int LFlowMapRow => LFlowOrderCheck() ? 1 : 3;
 
@@ -114,11 +97,8 @@ public sealed class LFlow
     public bool LFlowScanCheck() =>
         lFlowCommandActive && !lFlowUnloaded && lFlowMediaInfo is not null && LFlowSourceCheck();
 
-    public bool LFlowEditCheck() =>
-        lFlowSectionActive && lFlowSectionEditable;
-
     public string LFlowSourceFormat() =>
-        string.IsNullOrWhiteSpace(lFlowSourcePath) ? "(no media)" : LUsher.LUsherNameRead(lFlowSourcePath);
+        string.IsNullOrWhiteSpace(lFlowSourcePath) ? "(no media)" : lFlowUsher.CUsherNameRead(lFlowSourcePath);
 
     public void LFlowPlayingAttach(Func<bool>? lPlayingSource) => lFlowPlayingSource = lPlayingSource;
 
@@ -200,7 +180,7 @@ public sealed class LFlow
         lFlowMediaInfo = null;
         lFlowSpool = null;
         lFlowCursor = TimeSpan.Zero;
-        lFlowSectionIndex = null;
+        QFlowEdit.LFlowSectionSelect(null);
         lFlowKeyframeDirection = null;
     }
 
@@ -255,34 +235,6 @@ public sealed class LFlow
         }
     }
 
-    public void LFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)
-    {
-        if (lFlowSpool is not { } lSpool)
-        {
-            return;
-        }
-
-        lSpool.LSpoolRangeSet(lOrigin, lLimit);
-        LFlowSpoolHandle();
-    }
-
-    public void LFlowSpoolHandle()
-    {
-        LFlowKeyframe.LFlowKeyframeSuspend(true);
-        LFlowSpoolUpdate();
-    }
-
-    public void LFlowSpoolUpdate()
-    {
-        LFlowSpoolApplied?.Invoke();
-        if (lFlowSpool is null)
-        {
-            return;
-        }
-
-        LFlowKeyframe.LFlowKeyframeDefer();
-    }
-
     public bool LFlowWheelHandle(int lDelta)
     {
         if (!lFlowCommandActive || lDelta == 0)
@@ -315,7 +267,7 @@ public sealed class LFlow
         }
 
         lSpool.LSpoolZoom(lFlowCursor, lSteps);
-        LFlowSpoolHandle();
+        QFlowSpool.LFlowSpoolHandle();
     }
 
     private void LFlowWheelSeek(int lSteps)
@@ -380,7 +332,7 @@ public sealed class LFlow
             return false;
         }
 
-        bool lEditable = LFlowEditCheck();
+        bool lEditable = QFlowEdit.LFlowEditCheck();
         switch (lToken)
         {
             case "ZoomIn": LFlowZoom(1); return true;
@@ -397,10 +349,6 @@ public sealed class LFlow
             default: return false;
         }
     }
-
-    public void LFlowSectionSelect(int? lSectionIndex) => lFlowSectionIndex = lSectionIndex;
-
-    public void LFlowDragSet(TimeSpan lDragTime) => lFlowDragTime = lDragTime;
 
     public void LFlowSectionSet(bool lSectionActive) => lFlowSectionActive = lSectionActive;
 
@@ -422,25 +370,6 @@ public sealed class LFlow
 
     public void LFlowPausedSet(bool lDragPaused) => lFlowDragPaused = lDragPaused;
 
-    public bool LFlowEditSet(bool lSectionEditable)
-    {
-        if (!lSectionEditable)
-        {
-            LFlowName.LFlowNameHide();
-        }
-
-        if (lFlowSectionEditable == lSectionEditable)
-        {
-            return false;
-        }
-
-        lFlowSectionEditable = lSectionEditable;
-        LFlowEditChanged?.Invoke(lSectionEditable);
-        return true;
-    }
-
-    public void LFlowFiredSet(bool lSegmentFired) => lFlowSegmentFired = lSegmentFired;
-
     public bool LFlowWaveformSet(bool lWaveformActive)
     {
         if (lFlowWaveformActive == lWaveformActive)
@@ -455,29 +384,7 @@ public sealed class LFlow
         return true;
     }
 
-    public bool LFlowStampSet(string lKeyframeStamp)
-    {
-        if (string.Equals(lFlowKeyframeStamp, lKeyframeStamp, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        lFlowKeyframeStamp = lKeyframeStamp;
-        return true;
-    }
-
     public void LFlowDirectionSet(int? lKeyframeDirection) => lFlowKeyframeDirection = lKeyframeDirection;
-
-    public bool LFlowLosslesscutSet(string lLosslesscutPath)
-    {
-        if (string.Equals(lFlowLosslesscutPath, lLosslesscutPath, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        lFlowLosslesscutPath = lLosslesscutPath;
-        return true;
-    }
 
     private static bool LFlowOrderCheck() =>
         LPreference.LPreferenceStateCurrent.LPreferenceTimelineOrder != "ViewfinderFirst";

@@ -4,7 +4,6 @@ using System.Text;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -223,7 +222,7 @@ public static partial class LEncode
 
     private static string LEncodeJoinSave(LWorkItem lWorkItem, IReadOnlyList<string> lBridgeParts)
     {
-        string lJoinPath = Path.Combine(LDepot.LDepotBridgeRead(), $"{lWorkItem.LWorkId:N}.concat.txt");
+        string lJoinPath = Path.Combine(LDepotEngine.LDepotBridgeSeam(), $"{lWorkItem.LWorkId:N}.concat.txt");
         var lJoinList = new StringBuilder();
         foreach (string lPart in lBridgeParts)
         {
@@ -239,7 +238,7 @@ public static partial class LEncode
 
     internal static void LEncodeBridgeClear(Guid lWorkId)
     {
-        string lJoinPath = Path.Combine(LDepot.LDepotBridgeRead(), $"{lWorkId:N}.concat.txt");
+        string lJoinPath = Path.Combine(LDepotEngine.LDepotBridgeSeam(), $"{lWorkId:N}.concat.txt");
         try
         {
             if (File.Exists(lJoinPath))

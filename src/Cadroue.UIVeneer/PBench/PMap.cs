@@ -76,7 +76,7 @@ public sealed class PMap : FrameworkElement
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        long pStamp = LMap.LMapDrawStart();
+        LMap.LMapDrawStart();
         LMapFrame lFrame = LMap.LMapFrameResolve(ActualWidth, ActualHeight);
         lFrame.LMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
         drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.LMapFrameWaveform));
@@ -84,7 +84,7 @@ public sealed class PMap : FrameworkElement
         lFrame.LMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
         lFrame.LMapFrameCursor.ToList().ForEach(lCursorX =>
             PCursor.PCursorDraw(drawingContext, lCursorX, PCursor.PCursorHeadHeight, ActualHeight));
-        LMap.LMapDrawRecord(pStamp);
+        LMap.LMapDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -141,7 +141,7 @@ public sealed class PMap : FrameworkElement
             pRect,
             3,
             3);
-        LMap.LMapBadgeResolve(lBand, pBadgeText.Width, pBadgeText.Height)
+        QMapBadge.LMapBadgeResolve(lBand, pBadgeText.Width, pBadgeText.Height)
             .ToList()
             .ForEach(lBadge => PMapBadgeDraw(drawingContext, lBand, lBadge, pBadgeText));
         drawingContext.Pop();

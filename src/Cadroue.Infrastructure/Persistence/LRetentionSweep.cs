@@ -1,11 +1,14 @@
 using System;
 using System.IO;
-using Cadroue.Application;
 
 namespace Cadroue.Infrastructure;
 
 public static class LRetentionSweep
 {
+    public static Func<string, bool> LRetentionSweptSeam { get; set; } = _ => false;
+
+    public static Func<DateTime, DateTime, int, bool> LRetentionExpiredSeam { get; set; } = (_, _, _) => false;
+
     public static void LRetentionSweepStart(bool lRetentionActive, int lRetentionDays)
     {
         if (!lRetentionActive)
@@ -40,7 +43,7 @@ public static class LRetentionSweep
         foreach (string lRetentionPath in LRetentionFolderRead(lRetentionRoot))
         {
             string lRetentionRelative = Path.GetRelativePath(lRetentionRoot, lRetentionPath);
-            if (!LRetention.LRetentionSweptCheck(lRetentionRelative))
+            if (!LRetentionSweptSeam(lRetentionRelative))
             {
                 continue;
             }
@@ -83,7 +86,7 @@ public static class LRetentionSweep
         {
             var lRetentionFile = new FileInfo(lRetentionPath);
             if (!lRetentionFile.Exists
-                || !LRetention.LRetentionExpiredCheck(
+                || !LRetentionExpiredSeam(
                     lRetentionFile.LastWriteTimeUtc,
                     lRetentionNow,
                     lRetentionDays))

@@ -8,10 +8,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LWorkspace
 {
-    private const string LWorkspaceSplitKey = "Split";
-    private const string LWorkspaceAudioKey = "Audio";
-    private const string LWorkspaceMergeKey = "Merge";
-    private const string LWorkspaceWorklistKey = "Worklist";
     private readonly LHistory lWorkspaceHistory = new();
     private LDocket? lWorkspaceDocket;
     private LSegment? lWorkspaceSegment;
@@ -25,6 +21,7 @@ public sealed class LWorkspace
     public LWorkspace(string lKey, LPreset? lPreset)
     {
         LWorkspaceKey = lKey;
+        QWorkspaceKey = new QWorkspaceKey(lKey);
         LWorkspacePreset = lPreset ?? LPreset.LPresetInitialCreate(lKey);
         LWorkspacePresetOwner = new LPresetSelection(
             LWorkspacePreset.LPresetRecordCreate(), LWorkspacePreset.LPresetName);
@@ -46,6 +43,8 @@ public sealed class LWorkspace
 
     public string LWorkspaceKey { get; }
 
+    public QWorkspaceKey QWorkspaceKey { get; }
+
     public LPreset LWorkspacePreset { get; }
 
     public LPresetSelection LWorkspacePresetOwner { get; }
@@ -55,13 +54,6 @@ public sealed class LWorkspace
     public LViewer? LWorkspaceViewer => lWorkspaceViewer;
 
     public LFlow? LWorkspaceFlow => lWorkspaceFlow;
-
-    public bool LWorkspaceSourcePresent =>
-        LWorkspaceKey is not (LWorkspaceMergeKey or LWorkspaceWorklistKey);
-
-    public bool LWorkspaceAudioOnly => string.Equals(LWorkspaceKey, LWorkspaceAudioKey, StringComparison.Ordinal);
-
-    public bool LWorkspaceSectionVisible => string.Equals(LWorkspaceKey, LWorkspaceSplitKey, StringComparison.Ordinal);
 
     public bool LWorkspaceRelayPending => lWorkspaceRelay is not null;
 
@@ -94,17 +86,7 @@ public sealed class LWorkspace
             lFlow.LFlowMediaChanged += LWorkspaceHistoryReset;
         }
 
-        if (lFlow is not null && lViewer is not null)
-        {
-            lFlow.LFlowPlayingAttach(() => lViewer.LViewerPlaying);
-            lViewer.LViewerPlayback.LViewerClockTicked += lFlow.LFlowCursorUpdate;
-            lFlow.LFlowCursorChanged += lViewer.LViewerPlayback.LViewerSeek;
-            lFlow.LFlowDragChanged += lViewer.LViewerPlayback.LViewerDragSet;
-            lFlow.LFlowPlayed += lViewer.LViewerPlayback.LViewerPlay;
-            lFlow.LFlowPaused += lViewer.LViewerPlayback.LViewerPause;
-            lFlow.LFlowVolumeAdjusted += lViewer.LViewerPlayback.LViewerVolumeAdjust;
-        }
-
+        QWorkspacePair.LWorkspacePairAttach(lFlow, lViewer);
         lWorkspaceHistory.LHistoryReset(LWorkspaceSnapshotRead());
         LWorkspacePreset.LPresetChanged += LWorkspaceHistoryAdd;
     }
@@ -122,17 +104,7 @@ public sealed class LWorkspace
             lWorkspaceFlow.LFlowMediaChanged -= LWorkspaceHistoryReset;
         }
 
-        if (lWorkspaceFlow is { } lFlow && lWorkspaceViewer is { } lViewer)
-        {
-            lViewer.LViewerPlayback.LViewerClockTicked -= lFlow.LFlowCursorUpdate;
-            lFlow.LFlowCursorChanged -= lViewer.LViewerPlayback.LViewerSeek;
-            lFlow.LFlowDragChanged -= lViewer.LViewerPlayback.LViewerDragSet;
-            lFlow.LFlowPlayed -= lViewer.LViewerPlayback.LViewerPlay;
-            lFlow.LFlowPaused -= lViewer.LViewerPlayback.LViewerPause;
-            lFlow.LFlowVolumeAdjusted -= lViewer.LViewerPlayback.LViewerVolumeAdjust;
-            lFlow.LFlowPlayingAttach(null);
-        }
-
+        QWorkspacePair.LWorkspacePairDetach(lWorkspaceFlow, lWorkspaceViewer);
         lWorkspaceRelay = null;
         LWorkspacePreset.LPresetChanged -= LWorkspaceHistoryAdd;
         LWorkspacePresetOwner.LPresetSelectionChanged -= LWorkspacePresetHandle;
@@ -344,18 +316,18 @@ public sealed class LWorkspace
 
     private void LWorkspaceLosslesscutHandle(LCargo lCargo)
     {
-        if (lWorkspaceFlow is not { } lFlow || !LWorkspaceSectionVisible)
+        if (lWorkspaceFlow is not { } lFlow || !QWorkspaceKey.LWorkspaceSectionVisible)
         {
             return;
         }
 
         if (lCargo.LCargoMediaInfo is null || string.IsNullOrWhiteSpace(lCargo.LCargoSourcePath))
         {
-            lFlow.LFlowLosslesscutSet(string.Empty);
+            lFlow.QFlowStamp.LFlowLosslesscutSet(string.Empty);
             return;
         }
 
-        if (lFlow.LFlowLosslesscutSet(LLosslesscut.LLosslesscutPathNormalize(lCargo.LCargoSourcePath)))
+        if (lFlow.QFlowStamp.LFlowLosslesscutSet(LLosslesscut.LLosslesscutPathNormalize(lCargo.LCargoSourcePath)))
         {
             LWorkspaceLosslesscutFound?.Invoke();
         }
@@ -379,7 +351,7 @@ public sealed class LWorkspace
     private void LWorkspacePresetHandle() =>
         LWorkspacePreset.LPresetCopy(LPreset.LPresetStateCreate(LWorkspacePresetOwner.LPresetSelectionValue));
 
-    private bool LWorkspaceEditableCheck() => lWorkspaceFlow is null || lWorkspaceFlow.LFlowSectionEditable;
+    private bool LWorkspaceEditableCheck() => lWorkspaceFlow is null || lWorkspaceFlow.QFlowEdit.LFlowSectionEditable;
 
     private bool LWorkspaceSnapshotApply(LHistoryEntry? lEntry)
     {
@@ -405,7 +377,7 @@ public sealed class LWorkspace
     private void LWorkspaceSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
     {
         if (lWorkspaceFlow is not { } lFlow || lWorkspaceSegment is not { } lSegment
-            || !lFlow.LFlowSectionEditable || lFlow.LFlowSpool is null)
+            || !lFlow.QFlowEdit.LFlowSectionEditable || lFlow.LFlowSpool is null)
         {
             return;
         }

@@ -1,6 +1,5 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
@@ -108,18 +107,7 @@ public sealed class LViewerMpv
     {
         lViewer.LViewerNeutral.LViewerNeutralCancel();
         bool lHasPreview = LPlayer.LPlayerReady && lCargo.LCargoPreviewAvailable;
-        string lPath = lCargo.LCargoSourcePath ?? "(no path)";
-        string lFileName = System.IO.Path.GetFileName(lPath);
-        if (lCargo.LCargoMediaInfo is { } lInfo)
-        {
-            LTraceLog.LTraceInfoRecord(
-                $"Media opened '{lFileName}': {lInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff} (mpv preview) [{lPath}]");
-        }
-        else
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Media rejected '{lFileName}': {lCargo.LCargoFfmpegError ?? "unreadable"} [{lPath}]");
-        }
+        LMediaTrace.LMediaMpvRecord(lCargo);
 
         LPlayer.LPlayerAccurateReset();
         lViewer.LViewerMedia.LViewerHostShow(lHasPreview);
@@ -143,20 +131,14 @@ public sealed class LViewerMpv
         int lSerial,
         string lMpvReason)
     {
-        string lName = System.IO.Path.GetFileName(lSourcePath);
+        LMediaTrace.LMediaRebuildRecord(lSourcePath, lMpvReason, lViewer.LViewerEditEligible);
         if (lViewer.LViewerEditEligible)
         {
-            LTraceLog.LTraceErrorRecord(
-                $"mpv could not open '{lName}': {lMpvReason}; preview unavailable "
-                + $"(mpv is the Edit preview engine, no Flyleaf fallback) [{lSourcePath}]");
             LViewerMpvCommit(
                 new LCargo(lSourcePath, lMediaInfo, lMediaInfo is not null, false, lFfmpegError, lMpvReason));
             return;
         }
 
-        LTraceLog.LTraceErrorRecord(
-            $"mpv could not open '{lName}': {lMpvReason}; "
-            + $"falling back to the existing engine for this file [{lSourcePath}]");
         lViewer.LViewerRenderer.LViewerEngineApply(false);
         if (!lViewer.LViewerSerialCheck(lSerial))
         {

@@ -1,5 +1,6 @@
 using Cadroue.Core;
 using Cadroue.ShellEngine;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PWing;
 
@@ -9,9 +10,9 @@ public sealed class PWorklistTab : PTabSurface
 {
     private readonly PRoster pRoster;
 
-    public PWorklistTab(LSceneTabEntry? lPreferenceTabLayout = null)
+    public PWorklistTab(LStrip lStrip, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pRoster = new PRoster(lPreferenceTabLayout);
+        pRoster = new PRoster(lStrip, lPreferenceTabLayout);
         Content = pRoster;
     }
 

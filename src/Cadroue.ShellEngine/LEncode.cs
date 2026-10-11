@@ -4,7 +4,6 @@ using System.Text;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -117,7 +116,7 @@ public static partial class LEncode
 
     private static string LEncodeMergeSave(LWorkItem lWorkItem)
     {
-        string lMergeListPath = Path.Combine(LDepot.LDepotMergeRead(), $"{lWorkItem.LWorkId:N}.txt");
+        string lMergeListPath = Path.Combine(LDepotEngine.LDepotMergeSeam(), $"{lWorkItem.LWorkId:N}.txt");
         var lMergeList = new StringBuilder();
         foreach (string lMergeSource in lWorkItem.LWorkMergeSources)
         {
@@ -134,7 +133,7 @@ public static partial class LEncode
     private static IReadOnlyList<LEncodeStage> LEncodeStepsBuild(LWorkItem lWorkItem)
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
-        string lAudioFolder = LDepot.LDepotAudioRead();
+        string lAudioFolder = LDepotEngine.LDepotAudioSeam();
         string lRawWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.raw.wav");
         string lProcessedWav = Path.Combine(lAudioFolder, $"{lWorkItem.LWorkId:N}.proc.wav");
 

@@ -29,10 +29,6 @@ public static partial class LTrace
             lTraceTriggerCounts[lTraceTrigger] = lTraceSeen + 1;
         }
 
-        internal string LTraceSummaryRead(string lTraceSurface) => string.Create(
-            CultureInfo.InvariantCulture,
-            $"{lTraceSurface} drew {lTraceRenderCount}x in the last second");
-
         internal string LTraceDetailRead()
         {
             var lTraceBuilder = new StringBuilder();

@@ -1,4 +1,5 @@
 # LEncode.cs
+Hash: `0899a6d11790f316`
 
 ## `internal const string LEncodeIntermediate = "pcm_s32le"`
 
@@ -12,18 +13,22 @@ Whether the whole-file command re-encodes nothing.
 Video is stream-copied (mode Copy and no forced re-encode) and audio is copied or excluded.
 Such a run is surfaced as "Copying", not "Encoding".
 
-## `public static IReadOnlyList<LEncodeStage> LEncodeFixBuild(`
+## `private static string LEncodeMergeSave(LWorkItem lWorkItem)`
 
-One Fix repair pass: an optional source-to-output copy, the precedence-ordered repair stages, and the closing validation.
-The copy runs on the first pass only, since later recompose passes repair the output in place.
-The repair stages cover the given correctable dossiers.
-The dossier set is supplied so a recompose pass rebuilds over only what a fresh output scan found still warranted.
+Writes the concat list of a merge into the depot merge folder, named by work id.
+Paths take forward slashes and escaped single quotes, as the concat demuxer's quoting requires.
+
+## `private static IReadOnlyList<LEncodeStage> LEncodeStepsBuild(LWorkItem lWorkItem)`
+
+Audio-tab work with an active chain runs as extract, optional analysis, process and mux stages.
+The intermediate WAV files live in the depot audio folder and are marked temporary.
 
 ## `private static IReadOnlyList<LEncodeStage> LEncodeWholeBuild(LWorkItem lWorkItem, LEncoding lOutput)`
 
-The audio-tab work has nothing to filter (no active chain, or audio excluded outright).
-So it is one ordinary whole-file command honouring the Audio output contract.
-Exclude writes no audio, Copy copies, Encode encodes.
+The single whole-file command for every work kind except Fix and filtered audio.
+Audio-tab work lands here when it has nothing to filter or excludes audio outright.
+Its audio honours the output contract: Exclude writes no audio, Copy copies, Encode encodes.
+A two-pass video mode puts the log-only first pass ahead of it.
 
 ## `private static LEncodeStage LEncodePassBuild(LWorkItem lWorkItem, string lPassArguments)`
 
@@ -43,11 +48,6 @@ So the container the user chose is the one FFmpeg writes, and the output suffix 
 
 ## Inline notes
 
-### `if (lFixAction.LRemedyDossier.LDossierRepair == LFlawFfvone.LFlawReport)`
-
-A report-only dossier (FFV1 integrity) is detection-only: no ffmpeg stage can correct a slice-CRC mismatch.
-It is copied unchanged and surfaced as Unresolved at validation, never re-encoded here.
-
 ### `lArguments.Append(" -copypriorss 0")`
 
 Stream-copy seeking otherwise retains packets before the requested boundary.
@@ -57,13 +57,6 @@ At a keyframe cut that exposes the preceding section in the output even though t
 
 Fast input seeking can expose preroll packets from copied companion streams.
 Discard them at the output boundary when video is decoded.
-
-### `string lRecoverEncoder`
-
-Last-resort coded recovery: decode the damaged principal video and re-encode it in its own source codec family.
-That keeps the output close to the original.
-Healthy companion streams are copied, never re-encoded.
-The demuxer-side discard/genpts flags travel through `LDossierRepairInput`.
 
 ### `if (!lProcessed)`
 

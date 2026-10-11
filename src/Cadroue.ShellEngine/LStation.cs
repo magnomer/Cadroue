@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -125,7 +124,7 @@ public sealed class LStation
         }
         catch (Exception lStationException)
         {
-            LTraceLog.LTraceErrorRecord("Worklist selection could not be read", lStationException);
+            LTraceEngine.LTraceErrorSeam("Worklist selection could not be read", lStationException);
             return Array.Empty<LWorkItem>();
         }
     }

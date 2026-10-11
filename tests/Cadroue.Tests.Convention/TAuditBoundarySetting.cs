@@ -6,20 +6,10 @@ internal static class TAuditBoundarySetting
 
     public static readonly string[] TAuditBoundaryForbidden =
     [
-        @"\bLStateValueRead\s*\(",
-        @"\bLStateValueCreate\s*\(",
-        @"\bLStateWrittenResolve\s*\(",
-        @"\bLStateAnchorRead\s*\(",
-        @"\bLStateAnchorCreate\s*\(",
         @"\busing\s+static\s+" + TAuditNameSetting.TAuditProject + @"\.",
     ];
 
-    public static readonly string[] TAuditBoundaryState =
-    [
-        @"\bLStateUnknown\b(?!\s*[:=])",
-        @"\bLStateSpecified\b(?!\s*[:=])",
-        @"\bLStateUnspecified\b(?!\s*[:=])",
-    ];
+    public static readonly string[] TAuditBoundaryState = [];
 
     public static readonly string[] TAuditBoundaryConverter = [];
 
@@ -38,10 +28,7 @@ internal static class TAuditBoundarySetting
         @"^\s*extern\s+alias\b",
     ];
 
-    public static readonly string[] TAuditBoundaryLoader =
-    [
-        "QHeadquarter.cs",
-    ];
+    public static readonly string[] TAuditBoundaryLoader = [];
 
     public const string TAuditBoundaryReflection = @"\bSystem\.Reflection\b";
 

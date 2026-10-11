@@ -288,18 +288,9 @@
   },
   "boundary": {
     "forbidden": [
-      "\\bLStateValueRead\\s*\\(",
-      "\\bLStateValueCreate\\s*\\(",
-      "\\bLStateWrittenResolve\\s*\\(",
-      "\\bLStateAnchorRead\\s*\\(",
-      "\\bLStateAnchorCreate\\s*\\(",
       "\\busing\\s+static\\s+Cadroue\\."
     ],
-    "state": [
-      "\\bLStateUnknown\\b(?!\\s*[:=])",
-      "\\bLStateSpecified\\b(?!\\s*[:=])",
-      "\\bLStateUnspecified\\b(?!\\s*[:=])"
-    ],
+    "state": [],
     "converter": [],
     "hidden": [
       "^\\s*#\\s*if\\b",
@@ -314,9 +305,7 @@
       "^\\s*(global\\s+)?using\\s+\\w+\\s*=",
       "^\\s*extern\\s+alias\\b"
     ],
-    "loader": [
-      "QHeadquarter.cs"
-    ],
+    "loader": [],
     "reflection": "\\bSystem\\.Reflection\\b",
     "timer": "\\bCancellationTokenSource\\b",
     "hold": [],

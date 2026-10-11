@@ -1,8 +1,5 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -11,7 +8,7 @@ public sealed partial class LRunner
     internal readonly LScheduleContract lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
     internal readonly ConcurrentDictionary<Guid, LJob> lRunnerJobs = new();
-    internal readonly ConcurrentDictionary<Guid, Process> lRunnerProcesses = new();
+    internal readonly ConcurrentDictionary<Guid, byte> lRunnerProcesses = new();
     internal readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
 
     private readonly object lRunnerGate = new();
@@ -31,7 +28,7 @@ public sealed partial class LRunner
     {
         lRunnerSchedule = lSchedule;
         lRunnerPost = lRunnerPostAction;
-        LSentinel.LSentinelRunnerAdd(lRunnerId);
+        LRunnerAddSeam(lRunnerId);
     }
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
@@ -42,31 +39,27 @@ public sealed partial class LRunner
 
     public Func<string, string>? LRunnerArgumentTransform { get; set; }
 
-    internal LEmployer LRunnerEmployerCreate() => new(LRunnerProgramPath, LRunnerArgumentPrefix)
-    {
-        LEmployerFamily = LCustodyFamily.LCustodyFamilyEncode,
-        LEmployerLevel = LRunnerLevel
-    };
-
     public bool LRunnerFailurePaused { get; set; }
 
     public bool LRunnerRetryAllowed { get; set; }
 
     public int LRunnerRetryMaximum { get; set; } = 3;
 
-    public static Action<string, Exception?>? LRunnerReport { get; set; }
-
-    public static Action<string, string?>? LRunnerFfmpegReport { get; set; }
-
-    public static Func<bool>? LRunnerVerboseSource { get; set; }
-
     internal static void LRunnerRecord(string lRunnerMessage, Exception? lRunnerException = null)
-        => LRunnerReport?.Invoke(lRunnerMessage, lRunnerException);
+    {
+        if (lRunnerException is null)
+        {
+            LTraceEngine.LTraceInfoSeam(lRunnerMessage);
+            return;
+        }
 
-    internal static bool LRunnerVerboseCheck() => LRunnerVerboseSource?.Invoke() ?? false;
+        LTraceEngine.LTraceErrorSeam(lRunnerMessage, lRunnerException);
+    }
+
+    internal static bool LRunnerVerboseCheck() => LTraceEngine.LTraceVerboseSeam();
 
     internal static void LRunnerFfmpegRecord(string lRunnerSummary, string? lRunnerDetail = null)
-        => LRunnerFfmpegReport?.Invoke(lRunnerSummary, lRunnerDetail);
+        => LTraceEngine.LTraceFfmpegSeam(lRunnerSummary, lRunnerDetail);
 
     public bool LRunnerSuspended => lRunnerSuspended;
 
@@ -122,30 +115,36 @@ public sealed partial class LRunner
             {
                 bool lRunnerLiveExisted = false;
                 bool lRunnerSuspendedAny = false;
-                foreach (KeyValuePair<Guid, Process> lRunnerEntry in lRunnerProcesses)
+                var lRunnerHeld = new List<Guid>();
+                foreach (KeyValuePair<Guid, byte> lRunnerEntry in lRunnerProcesses)
                 {
-                    Process lRunnerProcess = lRunnerEntry.Value;
-                    if (lRunnerProcess.HasExited)
+                    Guid lWorkId = lRunnerEntry.Key;
+                    bool lRunnerLive = LEmployerEngine.LEmployerLiveSeam(lWorkId);
+                    lRunnerLiveExisted |= lRunnerLive;
+                    if (!LEmployerEngine.LEmployerSuspendSeam(lWorkId))
                     {
                         continue;
                     }
 
-                    lRunnerLiveExisted = true;
-                    if (!LRunnerProcessSuspend(lRunnerProcess))
-                    {
-                        continue;
-                    }
-
-                    lRunnerSuspendedAny = true;
-                    LRunnerMessageSet(LRunnerItemRead(lRunnerEntry.Key), "Suspended");
+                    lRunnerSuspendedAny |= lRunnerLive;
+                    lRunnerHeld.Add(lWorkId);
                 }
 
                 if (lRunnerSuspendedAny || !lRunnerLiveExisted)
                 {
                     lRunnerSuspended = true;
+                    foreach (Guid lWorkId in lRunnerHeld)
+                    {
+                        LRunnerMessageSet(LRunnerItemRead(lWorkId), "Suspended");
+                    }
                 }
                 else
                 {
+                    foreach (Guid lWorkId in lRunnerHeld)
+                    {
+                        LEmployerEngine.LEmployerResumeSeam(lWorkId);
+                    }
+
                     LRunnerRecord("Pause failed: no running process could be suspended; the queue keeps encoding");
                 }
             }
@@ -188,15 +187,53 @@ public sealed partial class LRunner
         lRunnerCancelled[lWorkId] = 0;
     }
 
-    internal void LRunnerProcessAttach(Guid lWorkId, Process lRunnerProcess)
+    internal void LRunnerProcessAttach(Guid lWorkId)
     {
         lock (lRunnerGate)
         {
-            lRunnerProcesses[lWorkId] = lRunnerProcess;
-            if (lRunnerSuspended && !lRunnerProcess.HasExited && LRunnerProcessSuspend(lRunnerProcess))
+            lRunnerProcesses[lWorkId] = 0;
+            if (lRunnerSuspended && LEmployerEngine.LEmployerSuspendSeam(lWorkId))
             {
                 LRunnerMessageSet(LRunnerItemRead(lWorkId), "Suspended");
             }
+        }
+    }
+
+    internal void LRunnerProcessDetach(Guid lWorkId)
+    {
+        lock (lRunnerGate)
+        {
+            if (lRunnerProcesses.TryRemove(lWorkId, out _))
+            {
+                LEmployerEngine.LEmployerResumeSeam(lWorkId);
+            }
+        }
+    }
+
+    private void LRunnerProcessResume()
+    {
+        bool lRunnerAllResumed = true;
+        foreach (KeyValuePair<Guid, byte> lRunnerEntry in lRunnerProcesses)
+        {
+            Guid lWorkId = lRunnerEntry.Key;
+            if (!LEmployerEngine.LEmployerResumeSeam(lWorkId))
+            {
+                lRunnerAllResumed = false;
+                continue;
+            }
+
+            LRunnerMessageSet(LRunnerItemRead(lWorkId), string.Empty);
+        }
+
+        if (lRunnerAllResumed)
+        {
+            lRunnerSuspended = false;
+        }
+        else
+        {
+            LRunnerRecord(
+                "Resume failed: a live process stayed suspended; " +
+                "the paused flag is kept so the next Play retries the resume");
         }
     }
 
@@ -342,25 +379,4 @@ public sealed partial class LRunner
             lRunnerSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
         });
     }
-
-    public static void LRunnerTraceAttach()
-    {
-        LRunnerReport = LRunnerReportHandle;
-        LRunnerFfmpegReport = LRunnerFfmpegHandle;
-        LRunnerVerboseSource = () => LTrace.LTraceVerbose;
-    }
-
-    private static void LRunnerReportHandle(string lRunnerMessage, Exception? lRunnerException)
-    {
-        if (lRunnerException is null)
-        {
-            LTraceLog.LTraceInfoRecord(lRunnerMessage);
-            return;
-        }
-
-        LTraceLog.LTraceErrorRecord(lRunnerMessage, lRunnerException);
-    }
-
-    private static void LRunnerFfmpegHandle(string lRunnerSummary, string? lRunnerDetail) =>
-        LTrace.LTraceRecord(LTraceKind.LTraceFfmpeg, lRunnerSummary, lRunnerDetail);
 }

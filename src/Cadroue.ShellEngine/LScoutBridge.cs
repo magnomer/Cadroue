@@ -2,7 +2,6 @@ using System.Globalization;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -29,7 +28,7 @@ internal static class LScoutBridge
                 return new[] { new LKeyframeEntry(lScoutOrigin), new LKeyframeEntry(lScoutEnd) };
             }
 
-            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeSeeker.LKeyframeRangeScan(
+            IReadOnlyList<LKeyframeEntry> lScoutKeyframes = await LKeyframeEngine.LKeyframeScanSeam(
                 lScoutSourcePath, lScoutOrigin, lScoutEnd, lScoutToken).ConfigureAwait(false);
             if (lScoutStream is null)
             {
@@ -121,10 +120,15 @@ internal static class LScoutBridge
             bool lScoutKeyPacket = false;
             bool? lScoutPacketIndependent = null;
             bool? lScoutLastIndependent = null;
-            LEmployerResult lScoutResult = await new LEmployer(LTool.LToolFfmpegRead()).LEmployerRun(
+            LEmployerResult lScoutResult = await LEmployerEngine.LEmployerRunSeam(
+                LToolEngine.LToolFfmpegSeam(),
+                string.Empty,
+                null,
+                null,
+                null,
                 lScoutArguments,
                 lScoutToken,
-                _ => { },
+                null,
                 _ => { },
                 lScoutLine =>
                 {

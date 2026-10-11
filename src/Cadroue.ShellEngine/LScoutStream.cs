@@ -4,7 +4,6 @@ using System.Text.Json;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -21,8 +20,12 @@ internal static class LScoutStream
         try
         {
             var lScoutJson = new StringBuilder();
-            await new LEmployer(LTool.LToolFfprobeRead())
-                .LEmployerRun(
+            await LEmployerEngine
+                .LEmployerListSeam(
+                    LToolEngine.LToolFfprobeSeam(),
+                    null,
+                    null,
+                    null,
                     LScoutStreamCreate(lScoutMediaPath),
                     lScoutToken,
                     lScoutLine => lScoutJson.AppendLine(lScoutLine))

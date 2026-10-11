@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -22,8 +21,8 @@ public static partial class LMessenger
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         LWorkItem? lMessengerItem = Cadroue.Application.LAudio.LAudioItemCreate(
             lMessengerPriority, lMessengerSourcePath, lMessengerProcessing, lMessengerOutput, lMessengerTab,
-            lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-            lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
             Cadroue.Application.LLibrarian.LLibrarianDurationRead,
             lMessengerBatchId);
         if (lMessengerItem is null)
@@ -35,7 +34,7 @@ public static partial class LMessenger
             new[] { lMessengerItem },
             lMessengerRelayTarget,
             lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
         LMessengerSourceResolve(new[] { lMessengerItem });
@@ -72,8 +71,8 @@ public static partial class LMessenger
                 : lMessengerLooseBatch;
             if (Cadroue.Application.LAudio.LAudioItemCreate(
                     lMessengerPriority, lMessengerSourcePath, lMessengerPlan, lMessengerOutput, lMessengerTab,
-                    lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-                    lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+                    lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
+                    lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
                     Cadroue.Application.LLibrarian.LLibrarianDurationRead,
                     lMessengerBatch)
                 is { } lMessengerItem)

@@ -8,11 +8,6 @@ using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSInline;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -22,7 +17,8 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Location")));
+        pGrid.Children.Add(
+            PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Location")));
 
         var pValueGrid = new Grid();
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -42,13 +38,13 @@ internal sealed partial class PSEncoder
 
     private static UIElement PSFieldLabelledBuild(TextBlock pLabel, TextBox pBox, Button pBrowse)
     {
-        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSFieldControlHeight };
+        var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 9), MinHeight = PSField.PSFieldControlHeight };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(pLabel);
 
         var pValueRow = new StackPanel { Orientation = Orientation.Horizontal };
-        pBox.MinHeight = PSFieldControlHeight;
+        pBox.MinHeight = PSField.PSFieldControlHeight;
         pValueRow.Children.Add(pBox);
         pValueRow.Children.Add(pBrowse);
 
@@ -63,7 +59,7 @@ internal sealed partial class PSEncoder
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
             Title = LLocalization.LLocalizationTextRead("Encoder.Location.Choose"),
-            InitialDirectory = LUsher.LUsherFolderExist(pCurrent) ? pCurrent : string.Empty
+            InitialDirectory = lsEncoder.LSEncoderInitialResolve(pCurrent)
         };
         if (pDialog.ShowDialog() == true)
         {
@@ -73,7 +69,7 @@ internal sealed partial class PSEncoder
 
     private void PSLocationModeUpdate()
     {
-        string pMode = PSModeTextRead(psLocationMode);
+        string pMode = PSField.PSModeTextRead(psLocationMode);
 
         if (psLocationFolderBox is not null)
         {

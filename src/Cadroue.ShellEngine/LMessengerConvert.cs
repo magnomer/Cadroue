@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -37,11 +36,11 @@ public static partial class LMessenger
             IReadOnlyList<LWorkItem> lMessengerItems =
                 Cadroue.Application.LConvert.LConvertItemsCreate(
                     lMessengerPriority, lMessengerDescription, lMessengerTab,
-                    lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+                    lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
                     lMessengerDurationRead);
 
             int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-            LTraceLog.LTraceInfoRecord(
+            LTraceEngine.LTraceInfoSeam(
                 $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
                 $"{lMessengerSourcePaths.Length} listed file(s)");
 
@@ -50,7 +49,7 @@ public static partial class LMessenger
         }
         catch (Exception lMessengerException)
         {
-            LTraceLog.LTraceErrorRecord("Convert could not be queued", lMessengerException);
+            LTraceEngine.LTraceErrorSeam("Convert could not be queued", lMessengerException);
             return 0;
         }
     }

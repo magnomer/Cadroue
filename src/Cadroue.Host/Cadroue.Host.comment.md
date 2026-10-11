@@ -1,4 +1,5 @@
 # Cadroue.Host.csproj
+Hash: `aa24dddd274fa035`
 
 The composition root that starts the veneer's application and wires the deportment's startup into it.
 It builds the executable `Cadroue.exe`, so the installed program keeps its name.

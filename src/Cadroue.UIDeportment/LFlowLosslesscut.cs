@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -29,17 +30,19 @@ public sealed class LFlowLosslesscut
     private const int LFlowImportDismiss = -1;
 
     private readonly LFlow lFlow;
+    private readonly CUsher lFlowUsher;
 
-    public LFlowLosslesscut(LFlow lOwner)
+    public LFlowLosslesscut(LFlow lOwner, CUsher lUsher)
     {
         lFlow = lOwner;
+        lFlowUsher = lUsher;
     }
 
     public event Action<LFlowLosslesscutPrompt, Action<int>>? LFlowLosslesscutAsk;
 
     public void LFlowLosslesscutFind()
     {
-        if (!lFlow.LFlowCommandActive || !lFlow.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
+        if (!lFlow.LFlowCommandActive || !lFlow.QFlowEdit.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
         {
             return;
         }
@@ -63,7 +66,7 @@ public sealed class LFlowLosslesscut
                     "Flow.LosslessCut.Detect.Message",
                     lIndex + 1,
                     lPaths.Count,
-                    LUsher.LUsherNameRead(lPath),
+                    lFlowUsher.CUsherNameRead(lPath),
                     LLosslesscut.LLosslesscutStampRead(lPath),
                     lProject.LLosslesscutProjectVersion?.ToString() ?? lUnspecified,
                     lProject.LLosslesscutProjectSegments.Count,
@@ -81,7 +84,7 @@ public sealed class LFlowLosslesscut
 
     public void LFlowLosslesscutRun(string lPath)
     {
-        if (!lFlow.LFlowCommandActive || !lFlow.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
+        if (!lFlow.LFlowCommandActive || !lFlow.QFlowEdit.LFlowSectionEditable || !lFlow.LFlowSourceCheck())
         {
             LFlowLosslesscutRaise(LFlowNoticeCreate(
                 LFlowLosslesscutKind.LFlowKindNotice,
@@ -130,14 +133,14 @@ public sealed class LFlowLosslesscut
             LFlowLosslesscutRaise(LFlowNoticeCreate(
                 LFlowLosslesscutKind.LFlowKindNotice,
                 "Flow.LosslessCut.Import.EmptyTitle",
-                LFlowLosslesscutFormat(lPath, lResult, false)));
+                LFlowLosslesscutFormat(lFlowUsher, lPath, lResult, false)));
             return;
         }
 
         int lMode = LFlowLosslesscutRaise(new LFlowLosslesscutPrompt(
             LFlowLosslesscutKind.LFlowKindChoice,
             LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
-            LFlowLosslesscutFormat(lPath, lResult, true)
+            LFlowLosslesscutFormat(lFlowUsher, lPath, lResult, true)
             + Environment.NewLine
             + Environment.NewLine
             + LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.ModeChoices"),
@@ -165,12 +168,13 @@ public sealed class LFlowLosslesscut
             + $"{lResult.LLosslesscutResultIssues.Count} skipped");
     }
 
-    public static string LFlowLosslesscutFormat(string lPath, LLosslesscutResult lResult, bool lShowRange)
+    public static string LFlowLosslesscutFormat(
+        CUsher lUsher, string lPath, LLosslesscutResult lResult, bool lShowRange)
     {
         string lUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
         var lLines = new List<string>
         {
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", LUsher.LUsherNameRead(lPath)),
+            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", lUsher.CUsherNameRead(lPath)),
             LLocalization.LLocalizationFormat(
                 "Flow.LosslessCut.Summary.Version", lResult.LLosslesscutResultVersion?.ToString() ?? lUnspecified),
             LLocalization.LLocalizationFormat(

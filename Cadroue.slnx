@@ -1,0 +1,19 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="src/Cadroue.Application/Cadroue.Application.csproj" />
+  <Project Path="src/Cadroue.Conduct/Cadroue.Conduct.csproj" />
+  <Project Path="src/Cadroue.Core/Cadroue.Core.csproj" />
+  <Project Path="src/Cadroue.Host/Cadroue.Host.csproj" />
+  <Project Path="src/Cadroue.Infrastructure/Cadroue.Infrastructure.csproj" />
+  <Project Path="src/Cadroue.Media/Cadroue.Media.csproj" />
+  <Project Path="src/Cadroue.ShellEngine/Cadroue.ShellEngine.csproj" />
+  <Project Path="src/Cadroue.UIDemeanor/Cadroue.UIDemeanor.csproj" />
+  <Project Path="src/Cadroue.UIDeportment/Cadroue.UIDeportment.csproj" />
+  <Project Path="src/Cadroue.UITerminal/Cadroue.UITerminal.csproj" />
+  <Project Path="src/Cadroue.UIVeneer/Cadroue.UIVeneer.csproj" />
+  <Project Path="tests/Cadroue.Tests.Conduct/Cadroue.Tests.Conduct.csproj" />
+</Solution>

@@ -6,13 +6,10 @@
     "Cadroue.ShellEngine"
   ],
   "ceilings": {
-    "Cadroue.Application": 10,
-    "Cadroue.ShellEngine": 19
+    "Cadroue.Application": 5,
+    "Cadroue.ShellEngine": 15
   },
-  "exempt": [
-    "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspacePostureRead",
-    "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspaceFallbackSave"
-  ],
+  "exempt": [],
   "helper": {
     "framework": "net10.0"
   },

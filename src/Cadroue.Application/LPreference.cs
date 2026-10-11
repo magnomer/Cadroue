@@ -24,7 +24,7 @@ public static class LPreference
 
     public static Func<string?, string>? LPreferenceLanguageSeam { get; set; }
 
-    public static Func<LPreferenceState>? LPreferenceLoadSeam { get; set; }
+    public static Func<LPreferenceState?>? LPreferenceLoadSeam { get; set; }
 
     public static Func<LPreferenceState, bool>? LPreferenceSaveSeam { get; set; }
 
@@ -34,7 +34,10 @@ public static class LPreference
 
     public static void LPreferenceLoad()
     {
-        LPreferenceStateCurrent = LPreferenceLoadSeam?.Invoke() ?? LPreferenceState.LPreferenceDefaultCreate();
+        LPreferenceState lPreferenceLoaded = LPreferenceLoadSeam?.Invoke()
+            ?? LPreferenceState.LPreferenceDefaultCreate();
+        lPreferenceLoaded.LPreferenceNormalize();
+        LPreferenceStateCurrent = lPreferenceLoaded;
         LPreferenceStateCurrent.LPreferenceLanguage =
             LPreferenceLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
     }
@@ -57,6 +60,7 @@ public static class LPreference
             return false;
         }
 
+        LPreferenceStateCurrent.LPreferenceNormalize();
         if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) ?? true)
         {
             return true;
@@ -149,6 +153,7 @@ public static class LPreference
 
     public static void LPreferenceSaveCommit()
     {
+        LPreferenceStateCurrent.LPreferenceNormalize();
         if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) == false)
         {
             LPreferenceTraceSeam?.Invoke("Preference kept — the deferred change could not be saved");

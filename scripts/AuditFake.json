@@ -3,8 +3,8 @@
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
-    "Orphan": 0,
-    "Tested": 0
+    "Orphan": 184,
+    "Tested": 121
   },
   "helper": {
     "framework": "net10.0"

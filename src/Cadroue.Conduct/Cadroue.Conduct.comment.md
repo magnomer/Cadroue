@@ -2,7 +2,20 @@
 Hash: `edb51d224f4dd76b`
 
 Builds Conduct, the gate ring every driver calls to reach the logic behind the screen.
-It holds no source yet, so the drivers still reach the engine directly.
+The drivers reach the engine through its gates, beginning with the Usher area.
+
+## `<ImplicitUsings>disable</ImplicitUsings>`
+
+Every namespace a file reads is written in that file.
+The pure-ring walker then sees each frame namespace Conduct uses.
+
+## `<InternalsVisibleTo Include="Cadroue.Tests.Conduct" />`
+
+The gate tests build the root with a fake port through its internal constructor.
+
+## `<InternalsVisibleTo Include="Cadroue" />`
+
+Only Host, the `Cadroue` assembly, builds the root, so its constructor stays internal.
 
 ## `<TargetFramework>net10.0</TargetFramework>`
 

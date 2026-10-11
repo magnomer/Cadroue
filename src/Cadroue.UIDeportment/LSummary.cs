@@ -1,6 +1,6 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using static Cadroue.UIDeportment.LRosterFormatter;
 
 namespace Cadroue.UIDeportment;
 
@@ -20,10 +20,13 @@ public sealed class LSummary
 
     public required IReadOnlyList<string> LSummaryOutputs { get; init; }
 
-    public static LSummary LSummaryRead(IReadOnlyList<LWorkItem> lBatchItems)
+    public static LSummary LSummaryRead(LRoster lRoster) =>
+        LSummaryRead(lRoster.LRosterUsher, lRoster.LRosterBatchRead());
+
+    public static LSummary LSummaryRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
-        (long? lSourceBytes, long? lOutputBytes) = LSummarySizeRead(lBatchItems);
-        (IReadOnlyList<string> lSources, IReadOnlyList<string> lOutputs) = LSummaryPathsRead(lBatchItems);
+        (long? lSourceBytes, long? lOutputBytes) = LSummarySizeRead(lUsher, lBatchItems);
+        (IReadOnlyList<string> lSources, IReadOnlyList<string> lOutputs) = LSummaryPathsRead(lUsher, lBatchItems);
         string? lMeter = LSummaryMeterFormat(lBatchItems, lOutputBytes);
         return new LSummary
         {
@@ -36,7 +39,9 @@ public sealed class LSummary
                     LLocalization.LLocalizationTextRead("Roster.Section.Output"),
                     LRosterDetail.LRosterLineHead),
                 LSummaryCompareCreate(
-                    LRosterMebiFormat(lSourceBytes), LRosterMebiFormat(lOutputBytes), LRosterDetail.LRosterLinePlain)
+                    LRosterFormatter.LRosterMebiFormat(lSourceBytes),
+                    LRosterFormatter.LRosterMebiFormat(lOutputBytes),
+                    LRosterDetail.LRosterLinePlain)
             ],
             LSummarySourceCount = LSummaryFilesFormat(lSources.Count),
             LSummaryOutputCount = LSummaryFilesFormat(lOutputs.Count),
@@ -54,7 +59,7 @@ public sealed class LSummary
         bool lAnySpent = false;
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
-            if (LRosterSpentRead(lWorkItem) is { } lSpent)
+            if (LRosterFormatter.LRosterSpentRead(lWorkItem) is { } lSpent)
             {
                 lSpentTotal += lSpent;
                 lAnySpent = true;
@@ -66,7 +71,9 @@ public sealed class LSummary
             return null;
         }
 
-        return $"{LRosterElapsedFormat(lSpentTotal)} / {LRosterSpeedFormat(lSpentTotal, lOutputBytes)}";
+        return LRosterFormatter.LRosterMeterFormat(
+            LRosterFormatter.LRosterElapsedFormat(lSpentTotal),
+            LRosterFormatter.LRosterSpeedFormat(lSpentTotal, lOutputBytes));
     }
 
     public static string LSummaryFilesFormat(int lCount) =>
@@ -79,12 +86,12 @@ public sealed class LSummary
             ? lWorkItem.LWorkMergeSources
             : [lWorkItem.LWorkSourcePath];
 
-    private static HashSet<string> LSummaryOutputsRead(IReadOnlyList<LWorkItem> lBatchItems)
+    private static HashSet<string> LSummaryOutputsRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
         var lOutputKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
-            if (LLineage.LLineagePathRead(lWorkItem.LWorkOutputPath) is { } lOutputKey)
+            if (LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is { } lOutputKey)
             {
                 lOutputKeys.Add(lOutputKey);
             }
@@ -94,9 +101,9 @@ public sealed class LSummary
     }
 
     public static (IReadOnlyList<string>, IReadOnlyList<string>) LSummaryPathsRead(
-        IReadOnlyList<LWorkItem> lBatchItems)
+        CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
-        HashSet<string> lOutputKeys = LSummaryOutputsRead(lBatchItems);
+        HashSet<string> lOutputKeys = LSummaryOutputsRead(lUsher, lBatchItems);
         var lConsumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lSeenSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lSources = new List<string>();
@@ -104,7 +111,7 @@ public sealed class LSummary
         {
             foreach (string lInput in LSummaryInputsRead(lWorkItem))
             {
-                if (LLineage.LLineagePathRead(lInput) is not { } lInputKey)
+                if (LLineage.LLineagePathRead(lUsher, lInput) is not { } lInputKey)
                 {
                     continue;
                 }
@@ -121,7 +128,7 @@ public sealed class LSummary
         var lOutputs = new List<string>();
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
-            if (LLineage.LLineagePathRead(lWorkItem.LWorkOutputPath) is { } lOutputKey
+            if (LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is { } lOutputKey
                 && !lConsumed.Contains(lOutputKey)
                 && lSeenOutputs.Add(lOutputKey))
             {
@@ -132,9 +139,10 @@ public sealed class LSummary
         return (lSources, lOutputs);
     }
 
-    public static (long? lSourceTotal, long? lOutputTotal) LSummarySizeRead(IReadOnlyList<LWorkItem> lBatchItems)
+    public static (long? lSourceTotal, long? lOutputTotal) LSummarySizeRead(
+        CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
     {
-        HashSet<string> lOutputKeys = LSummaryOutputsRead(lBatchItems);
+        HashSet<string> lOutputKeys = LSummaryOutputsRead(lUsher, lBatchItems);
         var lConsumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lInputBytes = new Dictionary<string, long?>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem lWorkItem in lBatchItems)
@@ -143,7 +151,7 @@ public sealed class LSummary
             IReadOnlyList<string> lInputs = LSummaryInputsRead(lWorkItem);
             for (int lIndex = 0; lIndex < lInputs.Count; lIndex++)
             {
-                if (LLineage.LLineagePathRead(lInputs[lIndex]) is not { } lInputKey)
+                if (LLineage.LLineagePathRead(lUsher, lInputs[lIndex]) is not { } lInputKey)
                 {
                     continue;
                 }
@@ -186,7 +194,7 @@ public sealed class LSummary
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
             if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-                || LLineage.LLineagePathRead(lWorkItem.LWorkOutputPath) is not { } lOutputKey
+                || LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is not { } lOutputKey
                 || lConsumed.Contains(lOutputKey)
                 || !lSeenOutputs.Add(lOutputKey)
                 || lWorkItem.LWorkOutputBytes is not { } lOutputWhole)

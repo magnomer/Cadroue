@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -185,6 +186,7 @@ public sealed partial class PExport
         var pButton = (Button)sender;
         LPreset pWorking = PExportWorkingRead();
         var psEncoder = new PSEncoder(
+            ((PWindow)Window.GetWindow(pButton)!).PStrip.LStrip,
             pWorking,
             () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate(),
             LExport.LExportSmartAllowed)

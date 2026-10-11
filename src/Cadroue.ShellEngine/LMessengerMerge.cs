@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -21,8 +20,8 @@ public static partial class LMessenger
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LMerge.LMergeItemsCreate(
             lMessengerPriority, lMessengerGroups, lMessengerOutput, lMessengerTab,
-            lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-            lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
             lMessengerRelays);
         if (lMessengerItems.Count == 0)
         {
@@ -30,7 +29,7 @@ public static partial class LMessenger
         }
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
+        LTraceEngine.LTraceInfoSeam($"Merge queued {lMessengerAdded} group(s) at {lMessengerPriority}");
         LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }

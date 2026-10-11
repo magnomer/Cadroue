@@ -32,7 +32,9 @@ public static partial class LFlyleaf
     {
         try
         {
-            LPreferenceState lPreferenceState = LPreferenceStateStore.LPreferenceStateLoad();
+            LPreferenceState lPreferenceState = LPreferenceStateStore.LPreferenceStateLoad()
+                ?? LPreferenceState.LPreferenceDefaultCreate();
+            lPreferenceState.LPreferenceNormalize();
             LDepot.LDepotRootSet(lPreferenceState.LPreferenceWorkspaceFolder);
             LTrace.LTraceVerbose = lPreferenceState.LPreferenceLogVerbose;
             LFlyleafResolverAttach();

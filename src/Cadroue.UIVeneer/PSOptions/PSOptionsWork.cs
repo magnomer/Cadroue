@@ -3,10 +3,6 @@ using System.Windows.Controls;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
@@ -26,18 +22,19 @@ internal sealed partial class PSOptions
         psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.Failure"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.Failure"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
             pRetryRow));
-        pPanel.Children.Add(PSPlateBuild(
+        pPanel.Children.Add(PSPlate.PSPlateBuild(
             LSOptions.LSOptionsLevelTitle,
             lsOptions.LSOptionsLevelsRead().Select(PSOptionsLevelBuild).ToArray()));
         return pPanel;
     }
 
     private static UIElement PSOptionsLevelBuild(LSOptionsLevel pLevel) =>
-        PSFieldBuild(
+        PSField.PSFieldBuild(
             pLevel.LSOptionsLevelText,
-            PSComboBuild(pLevel.LSOptionsLevelIndex, pLevel.LSOptionsLevelChoice, LSOptions.LSOptionsLevelNames));
+            PSCombo.PSComboBuild(pLevel.LSOptionsLevelIndex, pLevel.LSOptionsLevelChoice,
+                LSOptions.LSOptionsLevelNames));
 }

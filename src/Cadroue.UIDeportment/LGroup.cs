@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -16,6 +17,7 @@ public sealed class LGroup
     private const string LGroupReturnKey = "Return";
     private const string LGroupEscapeKey = "Escape";
 
+    private readonly CUsher lGroupUsher;
     private readonly LGroupSelection lGroupOwner;
     private readonly List<LGroupEntry> lGroupRecords = [];
     private Func<IReadOnlyList<string>> lGroupSource = () => [];
@@ -28,11 +30,12 @@ public sealed class LGroup
     public event Action? LGroupFaceChanged;
     public event Action<bool>? LGroupMinimizeChanged;
 
-    public LGroup(LGroupSelection lGroupSelection)
+    public LGroup(CUsher lUsher, LGroupSelection lGroupSelection)
     {
+        lGroupUsher = lUsher;
         lGroupOwner = lGroupSelection;
         LGroupDrag = new LGroupDrag(this);
-        LGroupFace = new LGroupFace(this);
+        LGroupFace = new LGroupFace(this, lUsher);
         lGroupOwner.LGroupSelectionChanged += LGroupSelectionHandle;
     }
 
@@ -144,7 +147,7 @@ public sealed class LGroup
         }
 
         bool lInserted = LGroupPathInsert(lGroupRecords[lTargetIndex].LGroupRecordPaths, lPath, lInsertAt);
-        string lGroupName = LUsher.LUsherNameRead(lPath);
+        string lGroupName = lGroupUsher.CUsherNameRead(lPath);
         LTraceLog.LTraceInfoRecord(lSourceIndex == lTargetIndex
             ? $"Group {lTargetIndex + 1}: reordered '{lGroupName}'"
             : lInserted

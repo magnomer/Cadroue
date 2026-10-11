@@ -4,9 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFooter;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -21,9 +18,9 @@ internal sealed partial class PSEncoder
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        var pApply = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Apply"));
-        var pOk = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.OK"));
-        var pCancel = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Cancel"));
+        var pApply = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Apply"));
+        var pOk = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.OK"));
+        var pCancel = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Cancel"));
         pApply.Click += (_, _) => PSEncoderApply();
         pOk.Click += (_, _) => { PSEncoderApply(); DialogResult = true; };
         pCancel.Click += (_, _) => Close();

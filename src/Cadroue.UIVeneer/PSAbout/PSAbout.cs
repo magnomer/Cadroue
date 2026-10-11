@@ -7,11 +7,6 @@ using System.Windows.Navigation;
 using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFooter;
-using static Cadroue.UIVeneer.PSPlate;
-
-using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
@@ -29,19 +24,20 @@ internal sealed class PSAbout : Window
     private const double PSAboutLogoSize = 76;
     private const double PSAboutRowGap = 7;
 
-    private readonly LSAbout lsAbout = new();
+    private readonly LSAbout lsAbout;
     private readonly PSGrabber psAboutGrabber;
 
     private TextBlock? psAboutDeveloper;
 
-    internal static void PSAboutShow(Window pOwner)
+    internal static void PSAboutShow(Window pOwner, LStrip lStrip)
     {
-        var psAbout = new PSAbout(pOwner);
+        var psAbout = new PSAbout(pOwner, lStrip);
         psAbout.ShowDialog();
     }
 
-    private PSAbout(Window pOwner)
+    private PSAbout(Window pOwner, LStrip lStrip)
     {
+        lsAbout = new LSAbout(lStrip);
         Title = LLocalization.LLocalizationTextRead("About.Window.Title");
         Owner = pOwner;
         Width = PSAboutWidthDefault;
@@ -50,6 +46,7 @@ internal sealed class PSAbout : Window
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
+        lsAbout.LSAboutErrorShown += PSAboutErrorShow;
         Content = PSAboutBuild();
         SizeToContent = SizeToContent.Height;
         Loaded += PSAboutLoadedHandle;
@@ -83,7 +80,7 @@ internal sealed class PSAbout : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("About.Button.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("About.Button.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
@@ -119,7 +116,7 @@ internal sealed class PSAbout : Window
         {
             Text = LLocalization.LLocalizationTextRead("About.Developer.Active"),
             FontWeight = FontWeights.SemiBold,
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
             Visibility = lsAbout.LSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed
@@ -131,13 +128,13 @@ internal sealed class PSAbout : Window
             Text = LLocalization.LLocalizationTextRead("Terms.Cadroue"),
             FontSize = 22,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center
         });
         pHeader.Children.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationFormat("About.Version.Format", LSAbout.LSAboutVersionRead()),
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 4, 0, 10)
         });
@@ -154,15 +151,15 @@ internal sealed class PSAbout : Window
         }
 
         pRows.Add(PSAboutLicenseBuild());
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
+        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
     }
 
     private UIElement PSAboutRowBuild(string pName, string pUrl)
     {
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
-        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSField.PSFieldLabelWidth) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pRow.Children.Add(PSFieldLabelBuild(pName));
+        pRow.Children.Add(PSField.PSFieldLabelBuild(pName));
 
         TextBlock pLink = PSAboutLinkBuild(pUrl, HorizontalAlignment.Left);
         Grid.SetColumn(pLink, 1);
@@ -173,9 +170,9 @@ internal sealed class PSAbout : Window
     private UIElement PSAboutLicenseBuild()
     {
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
-        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSFieldLabelWidth) });
+        pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSField.PSFieldLabelWidth) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pRow.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("About.Licenses.Label")));
+        pRow.Children.Add(PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("About.Licenses.Label")));
 
         var pLink = new Hyperlink(new Run(LLocalization.LLocalizationTextRead("About.Licenses.Link")));
         pLink.Click += PSAboutNoticeHandle;
@@ -195,12 +192,7 @@ internal sealed class PSAbout : Window
     private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
     {
         pEvent.Handled = true;
-        string pPath = System.IO.Path.Combine(AppContext.BaseDirectory, LSAbout.LSAboutNoticeName);
-        if (LUsher.LUsherLinkOpen(pPath) is { } pNoticeError)
-        {
-            LTraceLog.LTraceErrorRecord($"Notice could not be opened: {pPath}: {pNoticeError}");
-            PSAboutErrorShow(pPath, pNoticeError);
-        }
+        lsAbout.LSAboutNoticeOpen();
     }
 
     private TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)
@@ -229,11 +221,7 @@ internal sealed class PSAbout : Window
     private void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
     {
         pEvent.Handled = true;
-        if (LUsher.LUsherLinkOpen(pEvent.Uri.AbsoluteUri) is { } pLinkError)
-        {
-            LTraceLog.LTraceErrorRecord($"Link could not be opened: {pEvent.Uri.AbsoluteUri}: {pLinkError}");
-            PSAboutErrorShow(pEvent.Uri.AbsoluteUri, pLinkError);
-        }
+        lsAbout.LSAboutLinkOpen(pEvent.Uri.AbsoluteUri);
     }
 
     private void PSAboutErrorShow(string pResource, string pDetail) =>

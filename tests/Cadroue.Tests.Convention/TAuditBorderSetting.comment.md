@@ -1,5 +1,5 @@
 # TAuditBorderSetting.cs
-Hash: `bad21c1428b06c03`
+Hash: `c109c558ebab6397`
 
 ## `internal static class TAuditBorderSetting`
 
@@ -20,7 +20,9 @@ The one project that names every project, so it is no ring of the border.
 
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditBorderNeighbour`
 
-Every ring project under `src`, Host excepted, as its name to the one ring it may name as neighbour.
+Each ring of the border, by project name, to the one ring it may name as neighbour.
+A project left out, such as `Cadroue.Media`, is no ring of the border.
+Some rows declare rings with no project yet, such as `Cadroue.Core.Windows` and the capsule.
 A ring names its neighbour alone and ferries the data of every ring inside it.
 The two adapters name `Cadroue.Core` as spokes, since the contracts they implement live there.
 The core names no neighbour.
@@ -54,7 +56,8 @@ Deportment seals `L`, the medium-free controllers that later sink into Conduct.
 The name count each `Kind:Ring>Target` pair may hold.
 A count above fails the fact, a ceiling above the count is stale and fails too.
 Lower a ceiling when a ring sheds a name, never raise one to admit a new one.
-Every `Undercutting` and `Unsealing` ceiling is zero.
+`Undercutting` and `Unsealing` ceilings hold the names the UI rings still reach below their neighbour.
+`Leapfrogging` and `Trespassing` ceilings hold the behaviour names past a neighbour and the outer-ring names inside an inner ring.
 Every `Leaking` ceiling is zero, since no driver reads a Core or engine type through Conduct.
 
 ## `public static readonly string[] TAuditBorderExempt`

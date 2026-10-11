@@ -13,8 +13,6 @@ using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSCasement;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed class PSLoupe : Window
@@ -92,7 +90,7 @@ internal sealed class PSLoupe : Window
         MinWidth = PSLoupeWidthMinimum;
         MinHeight = PSLoupeHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
-        PSDialog.PSDialogApply(this, PSCasementBandFill);
+        PSDialog.PSDialogApply(this, PSCasement.PSCasementBandFill);
         PScrollbar.PScrollbarApply(this);
 
         psLoupeFlyleafHost = new FlyleafHost
@@ -152,7 +150,7 @@ internal sealed class PSLoupe : Window
 
     private UIElement PSLoupeBarBuild()
     {
-        var pBar = new Grid { Height = PSLoupeBarHeight, Background = PSCasementBandFill };
+        var pBar = new Grid { Height = PSLoupeBarHeight, Background = PSCasement.PSCasementBandFill };
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

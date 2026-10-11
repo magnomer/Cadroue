@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using FlyleafLib;
 using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaFramework.MediaRenderer;
+using FlyleafLib.MediaFramework.MediaStream;
 using FlyleafLib.MediaPlayer;
 
 using Cadroue.Application;
@@ -20,7 +20,7 @@ internal sealed class PPlayerFlyleaf
 
     public PPlayerFlyleaf(FlyleafHost pHost, LPlayer lPlayerOwner, Config pConfig)
     {
-        var pClock = Stopwatch.StartNew();
+        lPlayerOwner.LPlayerCreateStart();
         pPlayerHost = pHost;
         lPlayer = lPlayerOwner;
         pPlayer = new Player(pConfig);
@@ -30,17 +30,14 @@ internal sealed class PPlayerFlyleaf
         PPlayerFilterAdd(FLFilters.Hue, -180, 180, -3.14f, 3.14f);
         pPlayer.SeekCompleted += PPlayerSeekHandle;
         pPlayerHost.Player = pPlayer;
-        LRenderer.LRendererFactsRecord(
-            PPlayerFactsRead(
-                "Player created",
-                string.Join(
-                    ", ",
-                    $"max output {pPlayer.Config.Video.MaxOutputFps}fps",
-                    $"decoder threads {pPlayer.Config.Decoder.VideoThreads}",
-                    $"max video frames {pPlayer.Config.Decoder.MaxVideoFrames}",
-                    $"clear screen {pPlayer.Config.Video.ClearScreen}",
-                    $"sws forced {pPlayer.Config.Video.SwsForce}")),
-            pClock.Elapsed.TotalMilliseconds);
+        LRenderer.LRendererSetupRecord(
+            PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream),
+            pPlayer.Config.Video.MaxOutputFps,
+            pPlayer.Config.Decoder.VideoThreads,
+            pPlayer.Config.Decoder.MaxVideoFrames,
+            pPlayer.Config.Video.ClearScreen,
+            pPlayer.Config.Video.SwsForce,
+            lPlayerOwner.LPlayerCreateRead());
     }
 
     public static nint PPlayerHandleRead(System.Windows.Window? pWindow)
@@ -62,10 +59,10 @@ internal sealed class PPlayerFlyleaf
         pPlayer.Stop,
         PPlayerSeek,
         PPlayerVolumeSet,
-        PPlayerFilterSet,
-        PPlayerFilterSet,
+        null,
+        null,
         PPlayerPreviewApply,
-        PPlayerUpdate,
+        null,
         PPlayerTimeRead,
         PPlayerEndedRead,
         PPlayerFactsRecord,
@@ -89,14 +86,6 @@ internal sealed class PPlayerFlyleaf
     private void PPlayerSeek(TimeSpan pPosition) => pPlayer.SeekAccurate((int)pPosition.TotalMilliseconds);
 
     private void PPlayerVolumeSet(double pVolume) => pPlayer.Audio.Volume = (int)Math.Round(pVolume);
-
-    private static void PPlayerFilterSet(string pFilter)
-    {
-    }
-
-    private static void PPlayerUpdate()
-    {
-    }
 
     private TimeSpan PPlayerTimeRead() => TimeSpan.FromTicks(pPlayer.CurTime);
 
@@ -139,28 +128,21 @@ internal sealed class PPlayerFlyleaf
         });
 
     private void PPlayerFactsRecord(string pReason, double? pMilliseconds) =>
-        LRenderer.LRendererFactsRecord(PPlayerFactsRead(pReason), pMilliseconds);
+        LRenderer.LRendererFactsRecord(pReason, PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream), pMilliseconds);
 
-    private LRendererFacts PPlayerFactsRead(string pReason, string? pConfig = null)
+    private LRendererFacts PPlayerFactsRead(VideoStream? pPlayerStream) => new(
+        pPlayer.Config.Video.VideoProcessor.ToString(),
+        pPlayer.Config.Video.VideoAcceleration.ToString(),
+        pPlayer.Config.Video.SyncVPFilters)
     {
-        pPlayer.Config.Video.FLFilters.TryGetValue(FLFilters.Contrast, out FLFilter? pContrastFilter);
-        var pStream = pPlayer.decoder?.VideoDecoder?.VideoStream;
-        return new LRendererFacts(
-            pReason,
-            pPlayer.Config.Video.VideoProcessor.ToString(),
-            pPlayer.Config.Video.VideoAcceleration.ToString(),
-            pPlayer.Config.Video.SyncVPFilters)
-        {
-            LRendererProcessorActive = pPlayer.Renderer?.VideoProcessor.ToString(),
-            LRendererAccelerated = pPlayer.decoder?.VideoDecoder?.VideoAccelerated,
-            LRendererAdapter = pPlayer.Renderer?.GPUAdapter?.Description,
-            LRendererPixel = pStream?.PixelFormatStr,
-            LRendererColorRange = pStream?.ColorRange.ToString(),
-            LRendererColorSpace = pStream?.ColorSpace.ToString(),
-            LRendererContrast = pContrastFilter?.Value,
-            LRendererConfig = pConfig
-        };
-    }
+        LRendererProcessorActive = pPlayer.Renderer?.VideoProcessor.ToString(),
+        LRendererAccelerated = pPlayer.decoder?.VideoDecoder?.VideoAccelerated,
+        LRendererAdapter = pPlayer.Renderer?.GPUAdapter?.Description,
+        LRendererPixel = pPlayerStream?.PixelFormatStr,
+        LRendererColorRange = pPlayerStream?.ColorRange.ToString(),
+        LRendererColorSpace = pPlayerStream?.ColorSpace.ToString(),
+        LRendererContrast = pPlayer.Config.Video.FLFilters.GetValueOrDefault(FLFilters.Contrast)?.Value
+    };
 
     private void PPlayerDispose()
     {

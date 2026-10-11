@@ -4,12 +4,6 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSEntry;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSFader;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -34,7 +28,7 @@ internal sealed partial class PSEncoder
 
         if (!string.IsNullOrWhiteSpace(pCodec.LCapabilityNotice))
         {
-            psAudioRowsPanel.Children.Add(PSNoticeBuild(pCodec.LCapabilityNotice));
+            psAudioRowsPanel.Children.Add(PSNotice.PSNoticeBuild(pCodec.LCapabilityNotice));
         }
     }
 
@@ -50,28 +44,28 @@ internal sealed partial class PSEncoder
             ? pStored
             : pQuality.LCapabilityQualityDefault;
 
-        psAudioQualityBox = PSEntryBuild(pText, 120);
+        psAudioQualityBox = PSEntry.PSEntryBuild(pText, 120);
         if (pQuality.LCapabilityQualityMinimum is double pMinimum
             && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
-                ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
-                : PSFaderQualityBuild(
+                ? PSFader.PSFaderBitrateBuild(pMinimum, pMaximum, pText, psAudioQualityBox)
+                : PSFader.PSFaderQualityBuild(
                     pMinimum,
                     pMaximum,
                     pQuality.LCapabilityQualityStep,
                     pText,
                     psAudioQualityBox,
                     pQuality.LCapabilityQualityAscending);
-            psAudioRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
+            psAudioRowsPanel.Children.Add(PSField.PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
         }
         else
         {
-            psAudioRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, psAudioQualityBox));
+            psAudioRowsPanel.Children.Add(PSField.PSFieldBuild(pQuality.LCapabilityQualityLabel, psAudioQualityBox));
         }
 
         string pRange = pQuality.LCapabilityQualityRange;
-        psAudioRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
+        psAudioRowsPanel.Children.Add(PSNotice.PSNoticeBuild(string.IsNullOrEmpty(pRange)
             ? LLocalization.LLocalizationFormat("Encoder.Audio.FFmpegOption", pQuality.LCapabilityQualityOption)
             : LLocalization.LLocalizationFormat(
                 "Encoder.Audio.FFmpegOptionRange",
@@ -91,8 +85,8 @@ internal sealed partial class PSEncoder
             ? pStored
             : pSpeed.LCapabilitySpeedDefault;
 
-        psAudioSpeedCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pSpeed.LCapabilitySpeedValues));
-        psAudioRowsPanel.Children.Add(PSFieldBuild(pSpeed.LCapabilitySpeedLabel, psAudioSpeedCombo));
+        psAudioSpeedCombo = PSCombo.PSComboBuild(pSelected, PSEncoderChoicesRead(pSpeed.LCapabilitySpeedValues));
+        psAudioRowsPanel.Children.Add(PSField.PSFieldBuild(pSpeed.LCapabilitySpeedLabel, psAudioSpeedCombo));
     }
 
     private void PSAudioExtraBuild(LCapabilityCodec pCodec)
@@ -109,9 +103,9 @@ internal sealed partial class PSEncoder
                 ? pStored
                 : pExtra.LCapabilityExtraDefault;
 
-            ComboBox pCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
+            ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
             psAudioExtraCombos[pExtra.LCapabilityExtraOption] = pCombo;
-            psAudioRowsPanel.Children.Add(PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
+            psAudioRowsPanel.Children.Add(PSField.PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
         }
     }
 }

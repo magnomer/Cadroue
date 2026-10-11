@@ -1,4 +1,20 @@
 # LScoutBridge.cs
+Hash: `58f4742880f9af3e`
+
+## `internal static async Task<IReadOnlyList<LKeyframeEntry>> LScoutBridgeRead(`
+
+An intra-only codec can splice anywhere, so the range ends stand in for keyframes without a scan.
+Any failure other than cancellation yields no keyframes rather than failing the job.
+
+## `private static async Task<bool> LScoutBoundaryCheck(`
+
+HEVC accepts a boundary unless the trace proves it dependent.
+H.264 accepts one only when the trace proves it an IDR picture.
+
+## `internal static async Task<bool?> LScoutRefreshRead(`
+
+Codecs other than H.264 and HEVC are not inspected and count as independent.
+Null means the trace could not answer, never that the boundary is dependent.
 
 ## Inline notes
 

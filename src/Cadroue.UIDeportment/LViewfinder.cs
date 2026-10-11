@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -57,14 +56,9 @@ public sealed class LViewfinder
     public const double LViewfinderLaneHeight = 20;
 
     private const double LViewfinderRenderLeast = 28;
-    private const double LViewfinderCoverageHeight = 4;
-    private const double LViewfinderRailGap = 2;
-    private const double LViewfinderTickPixels = 100;
+    internal const double LViewfinderCoverageHeight = 4;
     private const double LViewfinderSectionInset = 1;
     private const double LViewfinderKeyframeWidth = 1;
-
-    private static readonly double[] lViewfinderTickSteps =
-        [0.1, 0.5, 1, 2, 5, 10, 15, 30, 60, 120, 300, 600, 1800, 3600];
 
     private static readonly LFlowWaveformOutline lViewfinderOutlineEmpty = new(0, 0, []);
 
@@ -72,6 +66,7 @@ public sealed class LViewfinder
     private bool lViewfinderDragActive;
     private string lViewfinderTrigger = "attach";
     private int lViewfinderGlyphCount;
+    private readonly QChronometer lViewfinderChronometer = new();
 
     public LViewfinder(LFlow lOwner)
     {
@@ -79,7 +74,7 @@ public sealed class LViewfinder
         lFlow.LFlowAttachApplied += () => LViewfinderTriggerApply("attach");
         lFlow.LFlowClearApplied += () => LViewfinderTriggerApply("clear");
         lFlow.LFlowCursorApplied += () => LViewfinderTriggerApply("cursor");
-        lFlow.LFlowSpoolApplied += () => LViewfinderTriggerApply("spool");
+        lFlow.QFlowSpool.LFlowSpoolApplied += () => LViewfinderTriggerApply("spool");
         lFlow.LFlowSection.LFlowSectionChanged += (_, _) => LViewfinderTriggerApply("sections");
         lFlow.LFlowKeyframe.LFlowKeyframeChanged += (_, _) => LViewfinderTriggerApply("keyframes");
         lFlow.LFlowWaveform.LFlowWaveformUpdated += _ => LViewfinderTriggerApply("waveform");
@@ -93,17 +88,16 @@ public sealed class LViewfinder
 
     public int LViewfinderGlyphCount => lViewfinderGlyphCount;
 
-    public long LViewfinderDrawStart() => Stopwatch.GetTimestamp();
+    public void LViewfinderDrawStart() => lViewfinderChronometer.QChronometerStart();
 
-    public void LViewfinderDrawRecord(long lStamp)
+    public void LViewfinderDrawRecord()
     {
-        double lMilliseconds = (Stopwatch.GetTimestamp() - lStamp) * 1000d / Stopwatch.Frequency;
         LTrace.LTraceTimelineAdd(
             "Viewfinder",
             lFlow.LFlowCursor,
             lFlow.LFlowSourcePath,
             lViewfinderTrigger,
-            lMilliseconds,
+            lViewfinderChronometer.QChronometerRead(),
             lViewfinderGlyphCount);
     }
 
@@ -121,7 +115,7 @@ public sealed class LViewfinder
         }
 
         double lCoverageTop = Math.Max(0, Math.Max(0, lHeight - 1) - LViewfinderCoverageHeight);
-        (double lRailTop, double lRailBottom) = LViewfinderRailResolve(lHeight);
+        (double lRailTop, double lRailBottom) = QViewfinderRail.LViewfinderRailResolve(lHeight);
         double lRailHeight = lRailBottom - lRailTop;
         if (lRailHeight <= 0)
         {
@@ -151,7 +145,8 @@ public sealed class LViewfinder
         LFlowWaveformOutline lOutline = lWaveformActive
             ? LFlowWaveform.LFlowOutlineResolve(lPeaks, lWidth, lRailTop, lRailHeight, lRangeStart, lRangeEnd)
             : lViewfinderOutlineEmpty;
-        IReadOnlyList<LViewfinderGraduation> lTicks = LViewfinderTicksResolve(lWidth, lRangeStart, lRangeSeconds);
+        IReadOnlyList<LViewfinderGraduation> lTicks =
+            QViewfinderRuler.LViewfinderTicksResolve(lWidth, lRangeStart, lRangeSeconds);
         IReadOnlyList<LViewfinderBand> lBands =
             LViewfinderBandsResolve(lWidth, lRailTop, lRailBottom, lRangeStart, lRangeEnd, lRangeSeconds);
         IReadOnlyList<LViewfinderShape> lOver =
@@ -197,7 +192,7 @@ public sealed class LViewfinder
             return null;
         }
 
-        (double lRailTop, double lRailBottom) = LViewfinderRailResolve(lHeight);
+        (double lRailTop, double lRailBottom) = QViewfinderRail.LViewfinderRailResolve(lHeight);
         if (lRailBottom <= lRailTop)
         {
             return null;
@@ -264,13 +259,6 @@ public sealed class LViewfinder
         LViewfinderFrameApplied?.Invoke();
     }
 
-    private static (double, double) LViewfinderRailResolve(double lHeight)
-    {
-        double lRailTop = LViewfinderLaneHeight + LViewfinderRailGap;
-        double lCoverageTop = Math.Max(0, Math.Max(0, lHeight - 1) - LViewfinderCoverageHeight);
-        return (lRailTop, Math.Max(lRailTop, lCoverageTop - LViewfinderRailGap));
-    }
-
     private static TimeSpan LViewfinderTimeResolve(LSpool lSpool, double lX, double lWidth)
     {
         double lRatio = Math.Clamp(Math.Clamp(lX, 0, lWidth) / lWidth, 0, 1);
@@ -281,28 +269,6 @@ public sealed class LViewfinder
         }
 
         return lSpool.LSpoolRangeOrigin + TimeSpan.FromSeconds(lRatio * lRange.TotalSeconds);
-    }
-
-    private static IReadOnlyList<LViewfinderGraduation> LViewfinderTicksResolve(
-        double lWidth, TimeSpan lRangeStart, double lRangeSeconds)
-    {
-        double lInterval = lRangeSeconds / (lWidth / LViewfinderTickPixels);
-        double lStep = lViewfinderTickSteps.FirstOrDefault(
-            lCandidate => lCandidate >= lInterval, lViewfinderTickSteps[^1]);
-        double lStartSeconds = lRangeStart.TotalSeconds;
-        var lTicks = new List<LViewfinderGraduation>();
-        for (double lSeconds = Math.Ceiling(lStartSeconds / lStep) * lStep;
-            lSeconds <= lStartSeconds + lRangeSeconds + 1e-9;
-            lSeconds += lStep)
-        {
-            lTicks.Add(new LViewfinderGraduation(
-                (lSeconds - lStartSeconds) / lRangeSeconds * lWidth,
-                LViewfinderLaneHeight * 0.5,
-                LViewfinderLaneHeight,
-                LCursor.LCursorTimeFormat(TimeSpan.FromSeconds(lSeconds))));
-        }
-
-        return lTicks;
     }
 
     private IReadOnlyList<LViewfinderBand> LViewfinderBandsResolve(
@@ -357,7 +323,7 @@ public sealed class LViewfinder
             $"{lIndex + 1}",
             lSection.LPieceName,
             !lSection.LPieceHidden,
-            lIndex == lFlow.LFlowSectionIndex);
+            lIndex == lFlow.QFlowEdit.LFlowSectionIndex);
     }
 
     private IReadOnlyList<LViewfinderShape> LViewfinderCoverageResolve(

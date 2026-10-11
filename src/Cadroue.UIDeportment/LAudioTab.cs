@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -28,6 +29,7 @@ public sealed class LAudioTab
         ["Equalizer"] = LAudioKind.LAudioKindEqualizer,
     };
 
+    private readonly CUsher lAudioUsher;
     private readonly LPresetSelection lAudioPreset;
     private readonly LInspector lAudioInspector;
     private readonly LInspectorAudio lAudioSections;
@@ -37,6 +39,7 @@ public sealed class LAudioTab
     private readonly LProcessing lAudioProcessing;
 
     public LAudioTab(
+        LStrip lStrip,
         LPresetSelection lPreset,
         LInspector lInspector,
         LViewer lViewer,
@@ -44,6 +47,7 @@ public sealed class LAudioTab
         LDocket lDocket,
         LProcessing lProcessing)
     {
+        lAudioUsher = lStrip.LStripUsher;
         lAudioPreset = lPreset;
         lAudioInspector = lInspector;
         lAudioSections = lInspector.LInspectorAudio;
@@ -229,7 +233,8 @@ public sealed class LAudioTab
         else if (lAudioInspector.LInspectorFailureSet(lSourcePath))
         {
             LTraceLog.LTraceWarningRecord(
-                $"Audio edit not saved for '{LUsher.LUsherNameRead(lSourcePath)}': the sidecar could not be written",
+                $"Audio edit not saved for '{
+                    lAudioUsher.CUsherNameRead(lSourcePath)}': the sidecar could not be written",
                 lSourcePath);
         }
 

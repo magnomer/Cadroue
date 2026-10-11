@@ -8,18 +8,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class LEditTab
 {
-    public static readonly IReadOnlyList<LProcessingRow> LEditRows =
-    [
-        new("Crop", "/PAsset/PPanel/PProcessingCrop.svg", "Processing.Step.Crop"),
-        new("Whitebalance", "/PAsset/PPanel/PProcessingWhitebalance.svg", "Processing.Step.Whitebalance"),
-        new("Exposure", "/PAsset/PPanel/PProcessingExposure.svg", "Processing.Step.Exposure"),
-        new("Brightness", "/PAsset/PPanel/PProcessingBrightness.svg", "Processing.Step.Brightness"),
-        new("Contrast", "/PAsset/PPanel/PProcessingContrast.svg", "Processing.Step.Contrast"),
-        new("Gamma", "/PAsset/PPanel/PProcessingGamma.svg", "Processing.Step.Gamma"),
-        new("Saturation", "/PAsset/PPanel/PProcessingSaturation.svg", "Processing.Step.Saturation"),
-        new("Curve", "/PAsset/PPanel/PProcessingCurve.svg", "Processing.Step.Curve"),
-    ];
-
     private readonly LPresetSelection lEditPreset;
     private readonly LInspector lEditInspector;
     private readonly LViewer lEditViewer;
@@ -29,6 +17,7 @@ public sealed class LEditTab
     private readonly LProcessing lEditProcessing;
 
     public LEditTab(
+        LStrip lStrip,
         LPresetSelection lPreset,
         LInspector lInspector,
         LViewer lViewer,
@@ -44,12 +33,13 @@ public sealed class LEditTab
         lEditDocket = lDocket;
         lEditProcessing = lProcessing;
         LEditColor = new LEditTabColor(lInspector, lProcessing, lViewer);
-        LEditStore = new LEditTabPlan(lInspector, lViewer, lDocket, LEditColor);
+        LEditStore = new LEditTabPlan(lStrip.LStripUsher, lInspector, lViewer, lDocket, LEditColor);
+        QEditTool = new QEditTool(lInspector, lViewer);
         lProcessing.LProcessingOrderedSet(false);
         lInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChanged += LEditCropHandle;
         lInspector.LInspectorVideoChanged += LEditChangeHandle;
         lInspector.LInspectorPersistentChanged += LEditStore.LEditPersistentSave;
-        lInspector.LInspectorToolChanged += LEditToolHandle;
+        lInspector.LInspectorToolChanged += QEditTool.LEditToolHandle;
         lInspector.LInspectorSkip.LSkipActiveChanged += LEditSkipHandle;
         lInspector.LInspectorWhitebalance.LWhitebalanceEstimateChanged += LEditColor.LEditEstimateHandle;
         lViewer.LViewerMediaChanged += LEditMediaHandle;
@@ -72,12 +62,14 @@ public sealed class LEditTab
 
     public LEditTabPlan LEditStore { get; }
 
+    public QEditTool QEditTool { get; }
+
     public void LEditClose()
     {
         lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStateChanged -= LEditCropHandle;
         lEditInspector.LInspectorVideoChanged -= LEditChangeHandle;
         lEditInspector.LInspectorPersistentChanged -= LEditStore.LEditPersistentSave;
-        lEditInspector.LInspectorToolChanged -= LEditToolHandle;
+        lEditInspector.LInspectorToolChanged -= QEditTool.LEditToolHandle;
         lEditInspector.LInspectorSkip.LSkipActiveChanged -= LEditSkipHandle;
         lEditInspector.LInspectorWhitebalance.LWhitebalanceEstimateChanged -= LEditColor.LEditEstimateHandle;
         lEditViewer.LViewerMediaChanged -= LEditMediaHandle;
@@ -215,7 +207,7 @@ public sealed class LEditTab
         }
 
         LTraceLog.LTraceInfoRecord(
-            $"Edit click '{LUsher.LUsherNameRead(lPath)}': "
+            $"Edit click '{LEditStore.LEditNameRead(lPath)}': "
             + $"persistent {(lEditInspector.LInspectorCrop.LInspectorCropbox.LCropboxStatePersistent ? "on" : "off")}, "
             + $"inspector now {LEditTabPlan.LEditCropFormat(lEditInspector.LInspectorCrop.LInspectorCropRead())}");
         lEditViewer.LViewerPathHandle(lPath);
@@ -263,24 +255,11 @@ public sealed class LEditTab
         LEditStore.LEditStateSave();
     }
 
-    private void LEditToolHandle(bool lArmed) => lEditCrop.LCropToolSet(lArmed);
-
-    public void LEditLockHandle(bool lLocked)
-    {
-        if (lLocked)
-        {
-            lEditViewer.LViewerNeutral.LViewerNeutralCancel();
-        }
-
-        lEditCrop.LCropLockSet(lLocked);
-        lEditCrop.LCropToolSet(!lLocked && lEditInspector.LInspectorToolArmed);
-    }
-
     private void LEditMediaHandle(LCargo lCargo)
     {
         LEditColor.LEditEstimateHandle(lEditInspector.LInspectorWhitebalance.LWhitebalanceMethod);
         LEditHistogramDeferred?.Invoke();
-        LEditCropRestore();
+        LEditCropRestore(lEditViewer.LViewerSourcePath is { } lPath ? LEditStore.LEditNameRead(lPath) : "(no media)");
     }
 
     private void LEditStepHandle(string lStep)
@@ -291,9 +270,8 @@ public sealed class LEditTab
         }
     }
 
-    private void LEditCropRestore()
+    private void LEditCropRestore(string lName)
     {
-        string lName = lEditViewer.LViewerSourcePath is { } lPath ? LUsher.LUsherNameRead(lPath) : "(no media)";
         LEditPlan? lApplied = null;
         lEditInspector.LInspectorSaveSuspend();
         try

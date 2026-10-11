@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,10 +27,11 @@ public sealed class PLogWindow : Window
     private readonly PSGrabber pLogGrabber;
     private readonly Window pLogOwner;
 
-    public LLog LLog { get; } = new();
+    public LLog LLog { get; }
 
-    private PLogWindow(Window pOwner)
+    private PLogWindow(Window pOwner, LStrip lStrip)
     {
+        LLog = new LLog(lStrip);
         pLogOwner = pOwner;
         pLogFileCombo = PLogComboBuild(320);
         pLogCategoryPicker = PLogCategoryBuild();
@@ -74,10 +74,10 @@ public sealed class PLogWindow : Window
         Closed += PLogCloseHandle;
     }
 
-    public static void PLogWindowShow(Window pOwner)
+    public static void PLogWindowShow(Window pOwner, LStrip lStrip)
     {
         PLogWindow pWindow = System.Windows.Application.Current.Windows.OfType<PLogWindow>().FirstOrDefault()
-            ?? new PLogWindow(pOwner);
+            ?? new PLogWindow(pOwner, lStrip);
         pWindow.WindowState = PLook.PLookUnminimized[pWindow.WindowState];
         pWindow.Show();
         pWindow.Activate();
@@ -157,7 +157,6 @@ public sealed class PLogWindow : Window
 
     private void PLogErrorShow(string pMessage)
     {
-        Debug.WriteLine(pMessage);
         PSWarning.PSWarningShow(this, LLocalization.LLocalizationTextRead("Log.Window.Title"), pMessage);
     }
 

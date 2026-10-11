@@ -1,5 +1,5 @@
 # TAuditFaultSetting.cs
-Hash: `2c4838d8b1815d59`
+Hash: `7835208ed05d812e`
 
 ## `internal static class TAuditFaultSetting`
 
@@ -13,8 +13,9 @@ Numbers the revision of the fault-audit settings this file holds.
 
 ## `public static readonly string[] TAuditFaultRing`
 
-The projects below Conduct whose catch clauses are walked, each under `src/`.
-A fault swallowed here never reaches the user, since only Conduct and above can tell them.
+The logic projects whose catch clauses are walked, each under `src/`.
+They are the application and the shell engine, where the work of a job and a plan runs.
+A fault swallowed there never reaches the user, since only the UI can tell them.
 
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditFaultCeiling`
 
@@ -27,6 +28,5 @@ Never raise one to admit a new one.
 ## `public static readonly string[] TAuditFaultExempt`
 
 Rows of `path:EnclosingMethod` whose catch clauses swallow by design and count against no ceiling.
-`LWorkspacePostureRead` reads an unreadable posture as none.
-`LWorkspaceFallbackSave` is a best-effort save that records its fault and goes on.
+Empty, so every swallowing catch in Cadroue counts against its ring's ceiling.
 A row that matches no hit fails, so no row outlives its catch.

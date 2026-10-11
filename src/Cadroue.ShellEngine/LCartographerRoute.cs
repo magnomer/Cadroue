@@ -1,6 +1,5 @@
 using System.IO;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -23,7 +22,7 @@ public static partial class LCartographer
 
         if (lCartographerTarget == lCartographerSourceTab)
         {
-            LTraceLog.LTraceWarningRecord("Relay target refused: a tab cannot relay into itself");
+            LTraceEngine.LTraceWarningSeam("Relay target refused: a tab cannot relay into itself");
             return;
         }
 
@@ -116,7 +115,7 @@ public static partial class LCartographer
                 lCartographerItem.LWorkRelayTarget = lCartographerPlan.LCartographerEntryStage;
                 lCartographerItem.LWorkRelaySource = lCartographerSource;
             }
-            LTraceLog.LTraceInfoRecord(
+            LTraceEngine.LTraceInfoSeam(
                 $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured " +
                 $"{lCartographerPlan.LCartographerStages.Count} stable stage(s)");
         }

@@ -41,10 +41,11 @@ public sealed class PFlow : UserControl
     private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = LFlowKeyframe.LFlowRequestDelay };
     private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = LFlowKeyframe.LFlowResumeDelay };
 
-    public LFlow LFlow { get; } = new();
+    public LFlow LFlow { get; }
 
-    public PFlow()
+    public PFlow(LStrip lStrip)
     {
+        LFlow = new LFlow(lStrip);
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         MinHeight = LDivider.LDividerMinimum;
         pFlowLosslesscutShows = new Dictionary<LFlowLosslesscutKind, Action<LFlowLosslesscutPrompt, Action<int>>>
@@ -61,7 +62,7 @@ public sealed class PFlow : UserControl
         LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
         LFlow.LFlowAttachApplied += PFlowLabelsApply;
         LFlow.LFlowClearApplied += PFlowLabelsApply;
-        LFlow.LFlowSpoolApplied += PFlowLabelsApply;
+        LFlow.QFlowSpool.LFlowSpoolApplied += PFlowLabelsApply;
         LFlow.LFlowKeyframe.LFlowTimerDeferred += PFlowTimerDefer;
         LFlow.LFlowKeyframe.LFlowTimerResumed += PFlowTimerResume;
         LFlow.LFlowKeyframe.LFlowTimerStopped += PFlowTimerReset;
@@ -142,10 +143,10 @@ public sealed class PFlow : UserControl
 
     private void PFlowLabelsApply()
     {
-        pViewfinderLabelLeft.Text = LFlow.LFlowLabelOrigin;
-        pViewfinderLabelRight.Text = LFlow.LFlowLabelLimit;
-        pMapLabelLeft.Text = LFlow.LFlowLabelZero;
-        pMapLabelRight.Text = LFlow.LFlowLabelDuration;
+        pViewfinderLabelLeft.Text = LFlow.QFlowSpool.LFlowLabelOrigin;
+        pViewfinderLabelRight.Text = LFlow.QFlowSpool.LFlowLabelLimit;
+        pMapLabelLeft.Text = LFlow.QFlowSpool.LFlowLabelZero;
+        pMapLabelRight.Text = LFlow.QFlowSpool.LFlowLabelDuration;
     }
 
     private void PFlowTimerDefer()

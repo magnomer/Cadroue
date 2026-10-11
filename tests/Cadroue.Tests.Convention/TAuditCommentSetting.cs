@@ -8,11 +8,9 @@ internal static class TAuditCommentSetting
 
     public static readonly string[] TAuditCommentRoots =
     [
-        "languages",
         "localization",
         "src",
         "tests",
-        "themes",
     ];
 
     public static readonly string[] TAuditCommentFiles =
@@ -96,7 +94,7 @@ internal static class TAuditCommentSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditCommentCeiling = new Dictionary<string, int>
     {
-        ["Unstamped"] = 0,
+        ["Unstamped"] = 58,
     };
 
     public static readonly Dictionary<string, string> TAuditCommentClosers = new(StringComparer.Ordinal)

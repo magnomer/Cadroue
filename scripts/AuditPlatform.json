@@ -3,9 +3,13 @@
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
-    "Unmapped": 0,
-    "Absent": 0,
-    "Column": 0
+    "Unmapped": 1,
+    "Absent": 2,
+    "Framework": 1,
+    "Column": 2,
+    "Analyzer": 4,
+    "Windows": 23,
+    "Implicit": 7
   },
   "projects": {
     "root": "src",

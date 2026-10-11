@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -27,8 +26,8 @@ public static partial class LMessenger
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LEdit.LEditItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
-            lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-            lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
             lMessengerBatchId);
         if (lMessengerItems.Count == 0)
         {
@@ -36,7 +35,7 @@ public static partial class LMessenger
         }
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
         LMessengerSourceResolve(lMessengerItems);
@@ -60,7 +59,7 @@ public static partial class LMessenger
             lMessengerOutput,
             Cadroue.Application.LLibrarian.LLibrarianEditLoad,
             Cadroue.Application.LLibrarian.LLibrarianDurationRead,
-            Cadroue.Infrastructure.LInventory.LInventoryFilterExist("eq"),
+            LInventoryEngine.LInventoryFilterSeam("eq"),
             Cadroue.Application.LGate.LGateBatchCreate());
 
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
@@ -70,7 +69,7 @@ public static partial class LMessenger
         }
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued");
 
         LMessengerSourceResolve(lMessengerItems);

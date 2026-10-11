@@ -1,6 +1,6 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
@@ -22,9 +22,9 @@ public static class LRosterFormatter
             ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeRate", lRate)
             : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
-    public static string LRosterContainerFormat(string lMediaPath)
+    public static string LRosterContainerFormat(CUsher lUsher, string lMediaPath)
     {
-        string lExtension = LUsher.LUsherExtensionRead(lMediaPath);
+        string lExtension = lUsher.CUsherExtensionRead(lMediaPath);
         return lExtension.Length == 0
             ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
             : lExtension.ToUpperInvariant();
@@ -63,6 +63,9 @@ public static class LRosterFormatter
         lSpent.TotalSeconds > 0 && lBytes is { } lWhole && lWhole > 0
             ? $"{lWhole / 1048576d / lSpent.TotalSeconds:0.##} MiB/s"
             : LLocalization.LLocalizationTextRead("Roster.Value.NotYet");
+
+    public static string LRosterMeterFormat(string lSpent, string lSpeed) =>
+        $"{lSpent} / {lSpeed}";
 
     public static string LRosterMebiFormat(long? lSizeBytes)
     {

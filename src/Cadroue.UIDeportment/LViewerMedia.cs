@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -26,9 +25,15 @@ public sealed class LViewerMedia
     public LViewerMedia(LViewer lOwner)
     {
         lViewer = lOwner;
+        QViewerLoupe = new QViewerLoupe(lOwner, this);
+        QViewerTeardown = new QViewerTeardown(lOwner, this, lViewerProbe.Dispose, LTraceLog.LTraceErrorRecord);
     }
 
     public event Action? LViewerPlayerCreated;
+
+    public QViewerLoupe QViewerLoupe { get; }
+
+    public QViewerTeardown QViewerTeardown { get; }
 
     private LPlayer LPlayer => lViewer.LPlayer;
 
@@ -63,29 +68,6 @@ public sealed class LViewerMedia
         }
 
         lViewer.LViewerPlayback.LViewerResume();
-    }
-
-    public void LViewerLoupeAttach()
-    {
-        lViewer.LViewerLoupeSet(true);
-        LViewerHostShow(false);
-        LViewerCommandApply(false);
-    }
-
-    public void LViewerLoupeDetach(TimeSpan lPosition, bool lPlaying)
-    {
-        lViewer.LViewerLoupeSet(false);
-        lViewer.LViewerResumeSet(lPlaying);
-        LViewerCommandApply(true);
-        LViewerHostShow(true);
-        lViewer.LViewerPlayback.LViewerSeek(lPosition);
-        if (lPlaying)
-        {
-            lViewer.LViewerPlayback.LViewerPlay();
-            return;
-        }
-
-        lViewer.LViewerPlayback.LViewerPause();
     }
 
     public void LViewerHostShow(bool lVisible)
@@ -124,31 +106,6 @@ public sealed class LViewerMedia
             + $"disposed {lFacts.LViewerFactsDisposed}\n"
             + $"overlay {lOverlay}\n"
             + $"player {(LPlayer.LPlayerReady ? "ready" : "none")}");
-    }
-
-    public void LViewerClose()
-    {
-        if (lViewer.LViewerUnloaded)
-        {
-            return;
-        }
-
-        lViewer.LViewerUnloadSet();
-        lViewer.LViewerSerialChange();
-        LViewerStageRun("media probe", lViewerProbe.Dispose);
-        LViewerStageRun("player", LViewerPlayerStop);
-    }
-
-    private static void LViewerStageRun(string lStage, Action lAction)
-    {
-        try
-        {
-            lAction();
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord($"Viewer close stage '{lStage}' failed", lException);
-        }
     }
 
     public event Action? LViewerLoupeClosed;
@@ -303,7 +260,8 @@ public sealed class LViewerMedia
 
         bool lCreated = !LPlayer.LPlayerReady;
         string? lPreviewError = null;
-        var lClock = Stopwatch.StartNew();
+        var lChronometer = new QChronometer();
+        lChronometer.QChronometerStart();
         try
         {
             if (lCreated)
@@ -312,11 +270,11 @@ public sealed class LViewerMedia
             }
 
             LPlayer.LPlayerVolumeSet(lViewer.LViewerVolume);
-            double lBeforeOpen = lClock.Elapsed.TotalMilliseconds;
+            double lBeforeOpen = lChronometer.QChronometerRead();
             await LPlayer.LPlayerOpenStart(lSourcePath);
             LPlayer.LPlayerFactsRecord(
                 $"Player opened '{System.IO.Path.GetFileName(lSourcePath)}'",
-                lClock.Elapsed.TotalMilliseconds - lBeforeOpen);
+                lChronometer.QChronometerRead() - lBeforeOpen);
         }
         catch (Exception lException)
         {
@@ -352,7 +310,7 @@ public sealed class LViewerMedia
 
     private void LViewerFlyleafCommit(LCargo lCargo, bool lReused)
     {
-        LViewerMediaRecord(lCargo, LPlayer.LPlayerReady);
+        LMediaTrace.LMediaOpenRecord(lCargo, LPlayer.LPlayerReady);
         LPlayer.LPlayerAccurateReset();
         if (lReused && LPlayer.LPlayerReady)
         {
@@ -419,38 +377,5 @@ public sealed class LViewerMedia
         LPlayer.LPlayerPlay();
         lViewer.LViewerPlaybackUpdate(true, lPosition);
         lViewer.LViewerPlayback.LViewerClockRun(true);
-    }
-
-    private static void LViewerMediaRecord(LCargo lCargo, bool lPlayerReady)
-    {
-        string lSourcePath = lCargo.LCargoSourcePath ?? "(no path)";
-        string lFileName = System.IO.Path.GetFileName(lSourcePath);
-        if (lCargo.LCargoMediaInfo is not LMediaInfo lMediaInfo)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Media rejected '{lFileName}': {lCargo.LCargoFfmpegError ?? "unreadable"} [{lSourcePath}]");
-            return;
-        }
-
-        string lStreams = lMediaInfo.LMediaVideoPresent
-            ? $"video {lMediaInfo.LMediaVideoWidth}x{lMediaInfo.LMediaVideoHeight} "
-                + $"{lMediaInfo.LMediaVideoCodec} {lMediaInfo.LMediaVideoRate:0.###}fps"
-            : "no video";
-        if (lMediaInfo.LMediaAudioPresent)
-        {
-            lStreams += $", audio {lMediaInfo.LMediaAudioCodec} "
-                + $"{lMediaInfo.LMediaSampleRate}Hz {lMediaInfo.LMediaAudioChannels}ch";
-        }
-
-        LTraceLog.LTraceInfoRecord(
-            $"Media opened '{lFileName}': {lMediaInfo.LMediaInfoDuration:hh\\:mm\\:ss\\.fff}, "
-            + $"{lStreams} [{lSourcePath}]");
-
-        if (!lPlayerReady)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Preview unavailable for '{lFileName}': "
-                + $"{lCargo.LCargoPreviewError ?? "the player did not start"}");
-        }
     }
 }

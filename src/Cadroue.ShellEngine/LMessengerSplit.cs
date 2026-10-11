@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -24,8 +23,8 @@ public static partial class LMessenger
         string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LSplit.LSplitItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
-            lMessengerMessage => LTraceLog.LTraceInfoRecord(lMessengerMessage),
-            lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
+            lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
             lMessengerBatchId);
         if (lMessengerItems.Count == 0)
         {
@@ -35,7 +34,7 @@ public static partial class LMessenger
         LCartographerPlanDocument? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
         int lMessengerAdded = LMessengerDispatch(
             lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan);
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
             $"from '{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
         LMessengerSourceResolve(lMessengerItems);
@@ -77,7 +76,7 @@ public static partial class LMessenger
         }
         catch (Exception lMessengerException)
         {
-            LTraceLog.LTraceErrorRecord("Split could not be queued", lMessengerException);
+            LTraceEngine.LTraceErrorSeam("Split could not be queued", lMessengerException);
             return 0;
         }
     }
@@ -113,7 +112,7 @@ public static partial class LMessenger
                 .LLibrarianDurationResolve(lMessengerSourcePath).ConfigureAwait(false);
             if (lMessengerDuration <= TimeSpan.Zero)
             {
-                LTraceLog.LTraceWarningRecord(
+                LTraceEngine.LTraceWarningSeam(
                     $"Split plan for '{lMessengerSourcePath}' has no known duration; " +
                     "sections are bounded by their own ends");
                 lMessengerDuration = TimeSpan.MaxValue;
@@ -124,7 +123,7 @@ public static partial class LMessenger
                 lMessengerDuration);
             if (lMessengerPieces.Count < lMessengerSidecar.LSidecarSections.Count)
             {
-                LTraceLog.LTraceWarningRecord(
+                LTraceEngine.LTraceWarningSeam(
                     $"Split plan for '{lMessengerSourcePath}' dropped "
                     + $"{lMessengerSidecar.LSidecarSections.Count - lMessengerPieces.Count} invalid section(s)");
             }
@@ -133,7 +132,7 @@ public static partial class LMessenger
         }
         catch (Exception lMessengerException)
         {
-            LTraceLog.LTraceErrorRecord(
+            LTraceEngine.LTraceErrorSeam(
                 $"Split plan could not be read for '{lMessengerSourcePath}'",
                 lMessengerException);
             return Array.Empty<LSplitSectionDescription>();

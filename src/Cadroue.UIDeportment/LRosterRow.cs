@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -34,6 +35,7 @@ public sealed record LRosterRow
     public required string LRosterRowShade { get; init; }
 
     public static LRosterRow LRosterRowCreate(
+        CUsher lUsher,
         LWorkItem lWorkItem,
         LLineageEntry lLineage,
         bool lLast,
@@ -42,12 +44,12 @@ public sealed record LRosterRow
         string lShade) => new()
     {
         LRosterRowId = lWorkItem.LWorkId,
-        LRosterRowStep = LLineage.LLineageStepFormat(lWorkItem, lLineage.LLineageEntrySubject),
+        LRosterRowStep = LLineage.LLineageStepFormat(lUsher, lWorkItem, lLineage.LLineageEntrySubject),
         LRosterRowPriority = LRosterPriorityFormat(lWorkItem.LWorkPriority),
         LRosterRowLength = LRosterSpanFormat(lWorkItem.LWorkLength),
         LRosterRowProgress = LRosterProgressFormat(lWorkItem),
         LRosterRowRatio = LLineage.LLineageRatioFormat(
-            lWorkItem, lLineage.LLineageEntrySubject, lLineage.LLineageEntryOrigin),
+            lUsher, lWorkItem, lLineage.LLineageEntrySubject, lLineage.LLineageEntryOrigin),
         LRosterRowState = LRosterStateFormat(lWorkItem.LWorkStateCurrent),
         LRosterRowKey = LRosterKeyRead(lWorkItem.LWorkStateCurrent),
         LRosterRowOwner = LRosterOwnerFormat(lWorkItem, lOwned),

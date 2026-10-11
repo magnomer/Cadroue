@@ -5,10 +5,6 @@ using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFooter;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed class PSVerdict : Window
@@ -81,7 +77,7 @@ internal sealed class PSVerdict : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Verification.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Verification.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
@@ -103,7 +99,7 @@ internal sealed class PSVerdict : Window
             return new TextBlock
             {
                 Text = LLocalization.LLocalizationTextRead("Encoder.Verification.NotRun"),
-                Foreground = PSFieldMuted,
+                Foreground = PSField.PSFieldMuted,
                 Margin = new Thickness(0, 4, 0, 8)
             };
         }
@@ -115,7 +111,7 @@ internal sealed class PSVerdict : Window
             pTable.Children.Add(PSVerdictRowBuild(pEntry));
         }
 
-        return PSPlateBuild(pTable);
+        return PSPlate.PSPlateBuild(pTable);
     }
 
     private static Grid PSVerdictGridBuild()
@@ -143,7 +139,7 @@ internal sealed class PSVerdict : Window
         var pHeader = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead(pKey),
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 10, 0)
         };
@@ -154,10 +150,10 @@ internal sealed class PSVerdict : Window
     private UIElement PSVerdictRowBuild(LSVerdictRow pEntry)
     {
         Grid pRowGrid = PSVerdictGridBuild();
-        pRowGrid.MinHeight = PSFieldChipHeight;
+        pRowGrid.MinHeight = PSField.PSFieldChipHeight;
         pRowGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
-        PSVerdictCellAdd(pRowGrid, 0, PSVerdictTextBuild(pEntry.LSVerdictFamily, PSFieldText));
-        PSVerdictCellAdd(pRowGrid, 1, PSVerdictTextBuild(pEntry.LSVerdictEncoder, PSFieldMuted));
+        PSVerdictCellAdd(pRowGrid, 0, PSVerdictTextBuild(pEntry.LSVerdictFamily, PSField.PSFieldText));
+        PSVerdictCellAdd(pRowGrid, 1, PSVerdictTextBuild(pEntry.LSVerdictEncoder, PSField.PSFieldMuted));
         PSVerdictCellAdd(pRowGrid, 2, PSVerdictBadgeBuild(pEntry.LSVerdictSuccess));
 
         var pRow = new StackPanel();
@@ -177,7 +173,7 @@ internal sealed class PSVerdict : Window
             Child = new TextBlock
             {
                 Text = pEntry.LSVerdictMessage,
-                Foreground = PSFieldMuted,
+                Foreground = PSField.PSFieldMuted,
                 FontFamily = PSVerdictDetailFont,
                 TextWrapping = TextWrapping.Wrap
             }
@@ -233,7 +229,7 @@ internal sealed class PSVerdict : Window
     private static Button PSVerdictChipBuild(bool pShown) => new()
     {
         Content = PSVerdictChipFormat(pShown),
-        Height = PSFieldChipHeight,
+        Height = PSField.PSFieldChipHeight,
         Padding = new Thickness(10, 0, 10, 0),
         VerticalAlignment = VerticalAlignment.Center,
         FontSize = 11,

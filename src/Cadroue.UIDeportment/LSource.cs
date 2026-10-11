@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -10,6 +11,7 @@ public sealed class LSource
     private const string LSourceSidecarPattern = "*.cad";
     private const string LSourceReturnKey = "Return";
 
+    private readonly CUsher lSourceUsher;
     private readonly LViewer lSourceViewer;
     private readonly bool lSourceAudioAllowed;
     private string lSourcePath = string.Empty;
@@ -17,8 +19,9 @@ public sealed class LSource
     public event Action<string>? LSourcePathApplied;
     public event Action<string, string>? LSourceRefuse;
 
-    public LSource(LViewer lViewer, bool lAudioAllowed)
+    public LSource(LStrip lStrip, LViewer lViewer, bool lAudioAllowed)
     {
+        lSourceUsher = lStrip.LStripUsher;
         lSourceViewer = lViewer;
         lSourceAudioAllowed = lAudioAllowed;
         lSourceViewer.LViewerMediaChanged += LSourceMediaHandle;
@@ -63,7 +66,7 @@ public sealed class LSource
         }
 
         string lPath = lText.Trim();
-        if (!LUsher.LUsherFileExist(lPath))
+        if (!lSourceUsher.CUsherFileExist(lPath))
         {
             return false;
         }

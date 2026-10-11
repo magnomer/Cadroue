@@ -1,8 +1,7 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
-using static Cadroue.UIDeportment.LRosterFormatter;
 
 namespace Cadroue.UIDeportment;
 
@@ -64,7 +63,7 @@ public sealed class LRosterDetail
 
     public static LRosterDetailKind LRosterKindRead(LRoster lRoster)
     {
-        if (lRoster.LRosterCardId != Guid.Empty)
+        if (lRoster.QRosterSelection.LRosterCardId != Guid.Empty)
         {
             return LRosterDetailKind.LRosterDetailCard;
         }
@@ -78,11 +77,11 @@ public sealed class LRosterDetail
     {
         LWorkItem? lWorkItem = lRoster.LRosterSelectRead();
         return lWorkItem is null
-            ? LRosterDetailCreate(null, string.Empty)
-            : LRosterDetailCreate(lWorkItem, lRoster.LRosterOwnerFormat(lWorkItem));
+            ? LRosterDetailCreate(lRoster.LRosterUsher, null, string.Empty)
+            : LRosterDetailCreate(lRoster.LRosterUsher, lWorkItem, lRoster.LRosterOwnerFormat(lWorkItem));
     }
 
-    public static LRosterDetail LRosterDetailCreate(LWorkItem? lWorkItem, string lOwnerText)
+    public static LRosterDetail LRosterDetailCreate(CUsher lUsher, LWorkItem? lWorkItem, string lOwnerText)
     {
         if (lWorkItem is null)
         {
@@ -118,11 +117,15 @@ public sealed class LRosterDetail
                 ? [LRosterRowCreate("Roster.Field.FailureReason", lWorkItem.LWorkMessage, LRosterValueFail)]
                 : [],
             LRosterDetailTabs = string.IsNullOrWhiteSpace(lTabName) ? [] : [lTabName],
-            LRosterDetailMeters = lBars.Count == 0 || LRosterSpentRead(lWorkItem) is null
+            LRosterDetailMeters = lBars.Count == 0 || LRosterFormatter.LRosterSpentRead(lWorkItem) is null
                 ? []
-                : [$"{LRosterSpentFormat(lWorkItem)} / {LRosterSpeedFormat(lWorkItem)}"],
+                : [
+                    LRosterFormatter.LRosterMeterFormat(
+                        LRosterFormatter.LRosterSpentFormat(lWorkItem),
+                        LRosterFormatter.LRosterSpeedFormat(lWorkItem))
+                ],
             LRosterDetailBars = lBars,
-            LRosterDetailCompares = LRosterComparesCreate(lWorkItem, lSourceBytes, lOutputBytes),
+            LRosterDetailCompares = LRosterComparesCreate(lUsher, lWorkItem, lSourceBytes, lOutputBytes),
             LRosterDetailSound = lSounds.Count > 0,
             LRosterDetailSounds = lSounds,
             LRosterDetailSource = lWorkItem.LWorkSourcePath,
@@ -137,16 +140,8 @@ public sealed class LRosterDetail
         };
     }
 
-    public static string? LRosterDetailOpen(string lPath)
-    {
-        string? lOpenError = LUsher.LUsherPathOpen(lPath);
-        if (lOpenError is not null)
-        {
-            LTraceLog.LTraceErrorRecord($"Could not open '{lPath}': {lOpenError}");
-        }
-
-        return lOpenError;
-    }
+    public static string? LRosterDetailOpen(LRoster lRoster, string lPath) =>
+        lRoster.LRosterUsher.CUsherPathOpen(lPath, "Roster file");
 
     public static IReadOnlyList<LRosterBar> LRosterBarsCreate(long? lSourceBytes, long? lOutputBytes)
     {
@@ -166,43 +161,46 @@ public sealed class LRosterDetail
     }
 
     private static IReadOnlyList<LRosterCompareRow> LRosterComparesCreate(
-        LWorkItem lWorkItem, long? lSourceBytes, long? lOutputBytes)
+        CUsher lUsher, LWorkItem lWorkItem, long? lSourceBytes, long? lOutputBytes)
     {
         LWorkMedia? lSourceInfo = lWorkItem.LWorkSourceMedia;
         LWorkMedia? lOutputInfo = lWorkItem.LWorkOutputMedia;
         LEncodingVideo lVideo = lWorkItem.LWorkOutput.LEncodingVideo;
-        string lUnknown = LRosterUnknownFormat(lWorkItem);
+        string lUnknown = LRosterFormatter.LRosterUnknownFormat(lWorkItem);
         return
         [
             new LRosterCompareRow(
                 new LRosterLine(LLocalization.LLocalizationTextRead("Roster.Section.Source"), LRosterLineHead),
                 new LRosterLine(LLocalization.LLocalizationTextRead("Roster.Section.Output"), LRosterLineHead)),
             LRosterCompareCreate(
-                lSourceBytes is { } lSourceWhole && lSourceWhole >= 0 ? LRosterMebiFormat(lSourceBytes) : lUnknown,
-                LRosterMebiFormat(lOutputBytes)),
+                lSourceBytes is { } lSourceWhole && lSourceWhole >= 0
+                    ? LRosterFormatter.LRosterMebiFormat(lSourceBytes)
+                    : lUnknown,
+                LRosterFormatter.LRosterMebiFormat(lOutputBytes)),
             LRosterCompareCreate(
-                lSourceInfo is null ? lUnknown : LRosterDimensionFormat(lSourceInfo),
+                lSourceInfo is null ? lUnknown : LRosterFormatter.LRosterDimensionFormat(lSourceInfo),
                 lOutputInfo is { LWorkMediaVideo: true }
                     ? $"{lOutputInfo.LWorkMediaWidth} x {lOutputInfo.LWorkMediaHeight}"
-                    : LRosterSizeFormat(lVideo.LEncodingSize)),
+                    : LRosterFormatter.LRosterSizeFormat(lVideo.LEncodingSize)),
             LRosterCompareCreate(
-                lSourceInfo is null ? lUnknown : LRosterFpsFormat(lSourceInfo),
+                lSourceInfo is null ? lUnknown : LRosterFormatter.LRosterFpsFormat(lSourceInfo),
                 lOutputInfo is { LWorkMediaVideo: true }
                     ? $"{lOutputInfo.LWorkMediaFramerate:0.###} fps"
-                    : LRosterFpsFormat(lVideo.LEncodingFps)),
+                    : LRosterFormatter.LRosterFpsFormat(lVideo.LEncodingFps)),
             LRosterCompareCreate(
                 lSourceInfo?.LWorkKeyframeInterval is { } lSourceInterval && lSourceInterval > 0
-                    ? LRosterRateFormat(lSourceInterval / 1000d)
+                    ? LRosterFormatter.LRosterRateFormat(lSourceInterval / 1000d)
                     : lUnknown,
-                LRosterRateFormat(lOutputInfo?.LWorkKeyframeInterval is { } lOutputInterval && lOutputInterval > 0
-                    ? lOutputInterval / 1000d
-                    : null)),
+                LRosterFormatter.LRosterRateFormat(
+                    lOutputInfo?.LWorkKeyframeInterval is { } lOutputInterval && lOutputInterval > 0
+                        ? lOutputInterval / 1000d
+                        : null)),
             LRosterCompareCreate(
-                lSourceInfo is null ? lUnknown : LRosterClockFormat(lSourceInfo.LWorkMediaDuration),
-                LRosterClockFormat(lOutputInfo?.LWorkMediaDuration ?? lWorkItem.LWorkDuration)),
+                lSourceInfo is null ? lUnknown : LRosterFormatter.LRosterClockFormat(lSourceInfo.LWorkMediaDuration),
+                LRosterFormatter.LRosterClockFormat(lOutputInfo?.LWorkMediaDuration ?? lWorkItem.LWorkDuration)),
             LRosterCompareCreate(
-                LRosterContainerFormat(lWorkItem.LWorkSourcePath),
-                LRosterContainerFormat(lWorkItem.LWorkOutputPath))
+                LRosterFormatter.LRosterContainerFormat(lUsher, lWorkItem.LWorkSourcePath),
+                LRosterFormatter.LRosterContainerFormat(lUsher, lWorkItem.LWorkOutputPath))
         ];
     }
 
@@ -223,14 +221,20 @@ public sealed class LRosterDetail
             : lSourceLoudness;
         return
         [
-            LRosterCompareCreate(LRosterCodecFormat(lSourceInfo), LRosterCodecFormat(lOutputInfo)),
-            LRosterCompareCreate(LRosterBitrateFormat(lSourceInfo), LRosterBitrateFormat(lOutputInfo)),
-            LRosterCompareCreate(LRosterSampleFormat(lSourceInfo), LRosterSampleFormat(lOutputInfo)),
+            LRosterCompareCreate(
+                LRosterFormatter.LRosterCodecFormat(lSourceInfo),
+                LRosterFormatter.LRosterCodecFormat(lOutputInfo)),
+            LRosterCompareCreate(
+                LRosterFormatter.LRosterBitrateFormat(lSourceInfo),
+                LRosterFormatter.LRosterBitrateFormat(lOutputInfo)),
+            LRosterCompareCreate(
+                LRosterFormatter.LRosterSampleFormat(lSourceInfo),
+                LRosterFormatter.LRosterSampleFormat(lOutputInfo)),
             LRosterCompareCreate(
                 lSourceAudio && lSourceLoudness is null
-                    ? LRosterUnknownFormat(lWorkItem)
-                    : LRosterLoudnessFormat(lSourceLoudness),
-                LRosterLoudnessFormat(lOutputLoudness))
+                    ? LRosterFormatter.LRosterUnknownFormat(lWorkItem)
+                    : LRosterFormatter.LRosterLoudnessFormat(lSourceLoudness),
+                LRosterFormatter.LRosterLoudnessFormat(lOutputLoudness))
         ];
     }
 
@@ -247,8 +251,8 @@ public sealed class LRosterDetail
         var lRows = new List<LRosterDetailRow>
         {
             LRosterRowCreate("Roster.Field.Queued", lWorkItem.LWorkCreateTime.ToString("yyyy-MM-dd HH:mm:ss")),
-            LRosterRowCreate("Roster.Field.Started", LRosterStampFormat(lWorkItem.LWorkStartTime)),
-            LRosterRowCreate("Roster.Field.Finished", LRosterStampFormat(lWorkItem.LWorkFinishTime)),
+            LRosterRowCreate("Roster.Field.Started", LRosterFormatter.LRosterStampFormat(lWorkItem.LWorkStartTime)),
+            LRosterRowCreate("Roster.Field.Finished", LRosterFormatter.LRosterStampFormat(lWorkItem.LWorkFinishTime)),
             LRosterRowCreate("Roster.Field.Attempts", lWorkItem.LWorkAttemptCount.ToString()),
             LRosterRowCreate("Roster.Field.Owner", lOwnerText),
             LRosterRowCreate(
@@ -270,7 +274,7 @@ public sealed class LRosterDetail
         {
             LRosterRowCreate("Roster.Field.Mode", $"{lVideo.LEncodingMode} ({lVideo.LEncodingStream})")
         };
-        if (!LRosterReencodeCheck(lVideo.LEncodingMode))
+        if (!LRosterFormatter.LRosterReencodeCheck(lVideo.LEncodingMode))
         {
             return lRows;
         }
@@ -282,7 +286,8 @@ public sealed class LRosterDetail
         lRows.Add(LRosterRowCreate("Roster.Field.PixelFormat", lVideo.LEncodingPixel));
         if (lVideo.LEncodingExtras.Count > 0)
         {
-            lRows.Add(LRosterRowCreate("Roster.Field.Extras", LRosterExtrasFormat(lVideo.LEncodingExtras)));
+            lRows.Add(
+                LRosterRowCreate("Roster.Field.Extras", LRosterFormatter.LRosterExtrasFormat(lVideo.LEncodingExtras)));
         }
 
         return lRows;
@@ -294,7 +299,7 @@ public sealed class LRosterDetail
         {
             LRosterRowCreate("Roster.Field.Mode", $"{lAudio.LEncodingMode} ({lAudio.LEncodingStream})")
         };
-        if (!LRosterReencodeCheck(lAudio.LEncodingMode))
+        if (!LRosterFormatter.LRosterReencodeCheck(lAudio.LEncodingMode))
         {
             return lRows;
         }
@@ -309,7 +314,8 @@ public sealed class LRosterDetail
 
         if (lAudio.LEncodingExtras.Count > 0)
         {
-            lRows.Add(LRosterRowCreate("Roster.Field.Extras", LRosterExtrasFormat(lAudio.LEncodingExtras)));
+            lRows.Add(
+                LRosterRowCreate("Roster.Field.Extras", LRosterFormatter.LRosterExtrasFormat(lAudio.LEncodingExtras)));
         }
 
         lRows.Add(LRosterRowCreate("Roster.Field.SampleRate", lAudio.LEncodingSampleRate));

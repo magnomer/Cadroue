@@ -27,11 +27,16 @@ public sealed partial class LPreset
         {
             foreach (LPresetDocument lRecord in lGroup.LPresetGroupPresets)
             {
-                LPresetNativeAdd(lRecord, lGroup.LPresetGroupName);
+                LPresetNativeAdd(lRecord.LPresetRecordNormalize(), lGroup.LPresetGroupName);
             }
         }
         LPresetCatalog lStoredCatalog = LPresetLoadSeam?.Invoke()
             ?? new LPresetCatalog(LPresetOutcome.LPresetMissing, []);
+        foreach (LPresetDocument lRecord in lStoredCatalog.LPresetRecords)
+        {
+            lRecord.LPresetRecordNormalize();
+        }
+
         LPresetBlocked = lStoredCatalog.LPresetOutcome == LPresetOutcome.LPresetUnreadable;
         if (LPresetBlocked)
         {
@@ -146,6 +151,11 @@ public sealed partial class LPreset
                 return null;
             }
 
+            foreach (LPresetDocument lPresetRecord in lPresetCatalog.LPresetRecords)
+            {
+                lPresetRecord.LPresetRecordNormalize();
+            }
+
             lPresetMerged = LPresetMergeCreate(LPresetBaseline, lPresetLocal, lPresetCatalog.LPresetRecords);
             return lPresetMerged;
         });
@@ -227,6 +237,18 @@ public sealed partial class LPreset
             LPresetNames.Add(lName);
         }
     }
+
+    public static LPresetDocument? LPresetSelectionRead(string lName) =>
+        LPresetRead(lName)?.LPresetRecordCreate();
+
+    public static bool LPresetSelectionSave(string lName, LPresetDocument lRecord) =>
+        LPresetSave(lName, LPresetStateCreate(lRecord));
+
+    public static bool LPresetSelectionSet(string lOldName, string lNewName, LPresetDocument lRecord) =>
+        LPresetNameSet(lOldName, lNewName, LPresetStateCreate(lRecord));
+
+    public static LEncoding LPresetSelectionResolve(LPresetDocument lRecord) =>
+        LPresetStateCreate(lRecord).LPresetOutputCreate();
 
     private static void LPresetBaselineReset(IReadOnlyList<LPresetDocument> lPresetRecords)
     {

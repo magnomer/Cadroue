@@ -5,17 +5,14 @@ using Cadroue.Infrastructure;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSInline;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
 {
     private UIElement PSSystemMpvBuild()
     {
-        Button pDownload = PSInlineButtonBuild(PSSystemMpvFormat(), 160, new Thickness(0, 0, 8, 0));
-        Button pBrowse = PSInlineIconBuild(
+        Button pDownload = PSInline.PSInlineButtonBuild(PSSystemMpvFormat(), 160, new Thickness(0, 0, 8, 0));
+        Button pBrowse = PSInline.PSInlineIconBuild(
             PSOptionsOpenIcon,
             LLocalization.LLocalizationTextRead("Options.System.Open"),
             new Thickness(0));
@@ -55,7 +52,7 @@ internal sealed partial class PSOptions
                     LLocalization.LLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
             }
         };
-        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty, "mpv folder");
 
         var pButtons = new StackPanel
         {
@@ -66,7 +63,7 @@ internal sealed partial class PSOptions
         pButtons.Children.Add(pBrowse);
         pButtons.Children.Add(pProgress);
 
-        return PSFieldBuild(string.Empty, pButtons);
+        return PSField.PSFieldBuild(string.Empty, pButtons);
     }
 
     private static string PSSystemMpvFormat() =>

@@ -5,14 +5,6 @@ using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSEntry;
-using static Cadroue.UIVeneer.PSFader;
-using static Cadroue.UIVeneer.PSInline;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -20,16 +12,16 @@ internal sealed partial class PSEncoder
     private UIElement PSVideoPlateBuild()
     {
         var pPanel = new StackPanel();
-        var pVerify = PSInlineButtonBuild(
+        var pVerify = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Encoder.Button.Verify"),
             84,
             new Thickness(8, 0, 0, 0));
-        var pLog = PSInlineButtonBuild(
+        var pLog = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
             64,
             new Thickness(6, 0, 0, 0));
         pLog.IsEnabled = lsEncoder.LSEncoderVideoResults.Count > 0;
-        ProgressBar pProgress = PSFieldProgressBuild();
+        ProgressBar pProgress = PSField.PSFieldProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pVerify.Click += async (_, _) =>
         {
@@ -55,7 +47,7 @@ internal sealed partial class PSEncoder
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoSet();
 
         psVideoEncodePanel.Children.Add(
-            PSFieldButtonBuild(
+            PSField.PSFieldButtonBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"),
                 psVideoEncoderCombo,
                 pVerify,
@@ -63,7 +55,7 @@ internal sealed partial class PSEncoder
                 pProgress));
         psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
         psVideoEncodePanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"),
                 psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
@@ -71,23 +63,24 @@ internal sealed partial class PSEncoder
         psVideoReactiveBox.Checked += (_, _) => PSVideoReactiveApply();
         psVideoReactiveBox.Unchecked += (_, _) => PSVideoReactiveApply();
         psVideoEncodePanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"),
                 psVideoReactiveBox));
         PSVideoFpsBuild(psVideoEncodePanel);
         psVideoEncodePanel.Children.Add(
-            PSFieldBuild(
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"),
                 psVideoPixelCombo));
 
-        pPanel.Children.Add(PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
+        pPanel.Children.Add(
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
         pPanel.Children.Add(psVideoEncodePanel);
         pPanel.Children.Add(psVideoNotice);
 
         PSVideoRowsRebuild();
         PSVideoScopeUpdate();
         PSVideoEncoderUpdate();
-        return PSPlateBuild(pPanel);
+        return PSPlate.PSPlateBuild(pPanel);
     }
 
     private static CheckBox PSVideoReactiveBuild(bool pReactive)
@@ -104,7 +97,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoScopeUpdate()
     {
-        string pMode = PSModeTextRead(psVideoMode);
+        string pMode = PSField.PSModeTextRead(psVideoMode);
         bool pEncoded = pMode == "Encode";
 
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
@@ -116,8 +109,8 @@ internal sealed partial class PSEncoder
 
     private void PSVideoSet()
     {
-        string pEncoder = PSComboTextRead(psVideoEncoderCombo);
-        string pRate = PSComboTextRead(psVideoRateCombo);
+        string pEncoder = PSCombo.PSComboTextRead(psVideoEncoderCombo);
+        string pRate = PSCombo.PSComboTextRead(psVideoRateCombo);
         if (pEncoder.Length > 0 && pRate.Length > 0)
         {
             lsEncoder.LSEncoderVideoSet(pEncoder, pRate);
@@ -156,7 +149,7 @@ internal sealed partial class PSEncoder
 
         if (!string.IsNullOrWhiteSpace(pCodec.LCapabilityNotice))
         {
-            psVideoRowsPanel.Children.Add(PSNoticeBuild(pCodec.LCapabilityNotice));
+            psVideoRowsPanel.Children.Add(PSNotice.PSNoticeBuild(pCodec.LCapabilityNotice));
         }
 
         PSVideoSpeedBuild(pCodec, pModeStored);
@@ -175,28 +168,28 @@ internal sealed partial class PSEncoder
             ? pStored
             : pQuality.LCapabilityQualityDefault;
 
-        psVideoQualityBox = PSEntryBuild(pText, 120);
+        psVideoQualityBox = PSEntry.PSEntryBuild(pText, 120);
         if (pQuality.LCapabilityQualityMinimum is double pMinimum
             && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
-                ? PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
-                : PSFaderQualityBuild(
+                ? PSFader.PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
+                : PSFader.PSFaderQualityBuild(
                     pMinimum,
                     pMaximum,
                     pQuality.LCapabilityQualityStep,
                     pText,
                     psVideoQualityBox,
                     pQuality.LCapabilityQualityAscending);
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
+            psVideoRowsPanel.Children.Add(PSField.PSFieldBuild(pQuality.LCapabilityQualityLabel, pSliderRow));
         }
         else
         {
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pQuality.LCapabilityQualityLabel, psVideoQualityBox));
+            psVideoRowsPanel.Children.Add(PSField.PSFieldBuild(pQuality.LCapabilityQualityLabel, psVideoQualityBox));
         }
 
         string pRange = pQuality.LCapabilityQualityRange;
-        psVideoRowsPanel.Children.Add(PSNoticeBuild(string.IsNullOrEmpty(pRange)
+        psVideoRowsPanel.Children.Add(PSNotice.PSNoticeBuild(string.IsNullOrEmpty(pRange)
             ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.LCapabilityQualityOption)
             : LLocalization.LLocalizationFormat(
                 "Encoder.Video.FFmpegOptionRange",
@@ -230,13 +223,13 @@ internal sealed partial class PSEncoder
             }
         }
 
-        Slider pSlider = PSFaderCreate(0, pLast, pLast - pIndex);
+        Slider pSlider = PSFader.PSFaderCreate(0, pLast, pLast - pIndex);
         psVideoSpeedSlider = pSlider;
 
         var pText = new TextBlock
         {
             Text = pChoices[pIndex].LCapabilityChoiceLabel,
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
         pSlider.ValueChanged += (_, _) =>
@@ -245,7 +238,8 @@ internal sealed partial class PSEncoder
             pText.Text = pChoices[pAt].LCapabilityChoiceLabel;
         };
 
-        psVideoRowsPanel.Children.Add(PSFieldBuild(pSpeed.LCapabilitySpeedLabel, PSFaderRowBuild(pSlider, pText)));
+        psVideoRowsPanel.Children.Add(
+            PSField.PSFieldBuild(pSpeed.LCapabilitySpeedLabel, PSFader.PSFaderRowBuild(pSlider, pText)));
     }
 
     private string PSVideoSpeedRead()
@@ -279,9 +273,9 @@ internal sealed partial class PSEncoder
                 ? pStored
                 : pExtra.LCapabilityExtraDefault;
 
-            ComboBox pCombo = PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
+            ComboBox pCombo = PSCombo.PSComboBuild(pSelected, PSEncoderChoicesRead(pExtra.LCapabilityExtraValues));
             psVideoExtraCombos[pExtra.LCapabilityExtraOption] = pCombo;
-            psVideoRowsPanel.Children.Add(PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
+            psVideoRowsPanel.Children.Add(PSField.PSFieldBuild(pExtra.LCapabilityExtraLabel, pCombo));
         }
     }
 }

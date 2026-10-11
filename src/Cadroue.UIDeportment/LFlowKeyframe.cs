@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -7,14 +8,16 @@ namespace Cadroue.UIDeportment;
 public sealed class LFlowKeyframe
 {
     private readonly LFlow lFlow;
+    private readonly CUsher lFlowUsher;
     private readonly LKeyframeOrchestrator lKeyframeOrchestrator = new();
     private bool lFlowResumePending;
     private IReadOnlyList<LKeyframeEntry> lFlowEntries = [];
     private IReadOnlyList<LKeyframeScanRange> lFlowRanges = [];
 
-    public LFlowKeyframe(LFlow lOwner)
+    public LFlowKeyframe(LFlow lOwner, CUsher lUsher)
     {
         lFlow = lOwner;
+        lFlowUsher = lUsher;
         lKeyframeOrchestrator.LKeyframeNoticeReady += LFlowKeyframeHandle;
     }
 
@@ -80,7 +83,7 @@ public sealed class LFlowKeyframe
         LTrace.LTraceRecord(
             LTraceKind.LTraceWork,
             $"Keyframe scan requested around {lFlow.LFlowCursor:hh\\:mm\\:ss\\.fff}",
-            $"source {LUsher.LUsherNameRead(lSourcePath)}, duration {lFlow.LFlowDuration:hh\\:mm\\:ss}\n"
+            $"source {lFlowUsher.CUsherNameRead(lSourcePath)}, duration {lFlow.LFlowDuration:hh\\:mm\\:ss}\n"
             + $"window {LKeyframeView.LKeyframeRangeBefore:hh\\:mm\\:ss} before to "
             + $"{LKeyframeView.LKeyframeRangeAfter:hh\\:mm\\:ss} after the cursor");
         lKeyframeOrchestrator.LKeyframeStart(lSourcePath, lFlow.LFlowMediaInfo!, lFlow.LFlowCursor);
@@ -136,7 +139,7 @@ public sealed class LFlowKeyframe
             lRange => (lRange.LKeyframeRangeLimit - lRange.LKeyframeRangeOrigin).TotalSeconds);
         string lStamp =
             $"{lNotice.LKeyframeKind}/{lNotice.LKeyframeList.Count}/{lNotice.LKeyframeRanges.Count}/{lScanned:0.###}";
-        if (!lFlow.LFlowStampSet(lStamp))
+        if (!lFlow.QFlowStamp.LFlowStampSet(lStamp))
         {
             return;
         }

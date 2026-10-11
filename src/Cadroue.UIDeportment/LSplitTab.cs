@@ -63,7 +63,7 @@ public sealed class LSplitTab
         lSplitViewer.LViewerNeutral.LViewerNeutralChanged -= LSplitSampleHandle;
     }
 
-    public void LSplitStart() => lSplitFlow.LFlowEditSet(!LSplitLockedCheck());
+    public void LSplitStart() => lSplitFlow.QFlowEdit.LFlowEditSet(!LSplitLockedCheck());
 
     public LSceneTabEntry LSplitLayoutRead(LSceneTabEntry lLayout)
     {
@@ -150,7 +150,7 @@ public sealed class LSplitTab
         }
     }
 
-    public void LSplitLockHandle(bool lLocked) => lSplitFlow.LFlowEditSet(!lLocked);
+    public void LSplitLockHandle(bool lLocked) => lSplitFlow.QFlowEdit.LFlowEditSet(!lLocked);
 
     public void LSplitPickHandle(bool lArmed) =>
         lSplitViewer.LViewerNeutral.LViewerToolSet(lArmed, LNeutralTarget.LNeutralTargetGrey);

@@ -6,10 +6,6 @@ using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSPlate;
-using static Cadroue.UIVeneer.PSInline;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSDiagnosis
@@ -44,7 +40,7 @@ internal sealed partial class PSDiagnosis
         {
             Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Checking"),
             FontWeight = FontWeights.SemiBold,
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
 
@@ -57,7 +53,7 @@ internal sealed partial class PSDiagnosis
         pLeft.Children.Add(psDiagnosisSummaryText);
         pBar.Children.Add(pLeft);
 
-        Button pRecheck = PSInlineButtonBuild(
+        Button pRecheck = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Diagnosis.Recheck"),
             110,
             new Thickness(0));
@@ -88,7 +84,8 @@ internal sealed partial class PSDiagnosis
             psDiagnosisVersionValue,
             psDiagnosisProgramBadge);
         UIElement pLocation = PSDiagnosisLineBuild("Options.System.Location", psDiagnosisLocationValue, null);
-        return PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion, pLocation);
+        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion,
+            pLocation);
     }
 
     private UIElement PSDiagnosisGroupBuild(string pTitleKey, IReadOnlyList<LSDiagnosisItem> pItems)
@@ -96,7 +93,7 @@ internal sealed partial class PSDiagnosis
         UIElement[] pRows = pItems
             .Select(pItem => PSDiagnosisFeatureBuild(pItem.LSDiagnosisLabel, pItem.LSDiagnosisFilters))
             .ToArray();
-        return PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
+        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
     }
 
     private UIElement PSDiagnosisFeatureBuild(string pLabelKey, string[] pFilters)
@@ -109,12 +106,12 @@ internal sealed partial class PSDiagnosis
 
     private static Grid PSDiagnosisLineBuild(string pLabelKey, UIElement pMiddle, UIElement? pBadge)
     {
-        var pRow = new Grid { Margin = new Thickness(0, 0, 0, 6), MinHeight = PSFieldChipHeight };
+        var pRow = new Grid { Margin = new Thickness(0, 0, 0, 6), MinHeight = PSField.PSFieldChipHeight };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSDiagnosisLabelWidth) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        TextBlock pLabel = PSFieldLabelBuild(LLocalization.LLocalizationTextRead(pLabelKey));
+        TextBlock pLabel = PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead(pLabelKey));
         pLabel.TextWrapping = TextWrapping.Wrap;
         pLabel.Margin = new Thickness(0, 0, 10, 0);
 
@@ -132,7 +129,7 @@ internal sealed partial class PSDiagnosis
 
     private static TextBlock PSDiagnosisValueBuild() => new()
     {
-        Foreground = PSFieldMuted,
+        Foreground = PSField.PSFieldMuted,
         TextWrapping = TextWrapping.Wrap,
         VerticalAlignment = VerticalAlignment.Center,
         Margin = new Thickness(0, 0, 10, 0),
@@ -152,7 +149,7 @@ internal sealed partial class PSDiagnosis
             Text = pFilter,
             FontFamily = PSDiagnosisChipFont,
             FontSize = 11,
-            Foreground = PSFieldMuted
+            Foreground = PSField.PSFieldMuted
         }
     };
 
@@ -187,7 +184,7 @@ internal sealed partial class PSDiagnosis
                 break;
             default:
                 pBadge.Background = PSDiagnosisNeutralFill;
-                pText.Foreground = PSFieldMuted;
+                pText.Foreground = PSField.PSFieldMuted;
                 pText.Text = "…";
                 break;
         }

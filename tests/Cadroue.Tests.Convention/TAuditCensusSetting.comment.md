@@ -1,5 +1,5 @@
 # TAuditCensusSetting.cs
-Hash: `e306cfc526ed19fb`
+Hash: `9ffae2c53ac04d89`
 
 ## `internal static class TAuditCensusSetting`
 
@@ -11,14 +11,15 @@ No script writes this file, and the census fact reads no script configuration.
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditHollowingFloor`
 
 The fewest source files a ring may hold.
-The application ring emptied once when its records were mistaken for the core's.
-Raise a floor when a plan lifts another clerk in, never lower it.
+It guards the application ring against being emptied into the core by a mistaken move.
+Raise a floor when the ring grows, never lower it.
 
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditSquattingPattern`
 
-Patterns a ring may not declare a type name under.
-A request record belongs to the application, so one in the core is misplaced.
+Patterns a ring may not declare a type name under, since such a type belongs to another ring.
+The core holds no pattern yet, so the fact keeps the slot for the first misplaced kind.
 
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditSmugglingWord`
 
 Words no bound source under a folder may name, matching `smugglingWords` in scripts/AuditStructure.json.
+The shell engine lists no word yet, so the fact keeps the slot for the first one.

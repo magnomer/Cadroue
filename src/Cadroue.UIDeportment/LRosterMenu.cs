@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -20,11 +21,15 @@ public sealed class LRosterMenu
     private readonly LStation lStation;
     private readonly Func<IReadOnlyList<LWorkItem>> lRosterSelectionSource;
 
+    private readonly CUsher lRosterUsher;
+
     public LRosterMenu(
+        CUsher lUsher,
         LScheduleContract lScheduleOwner,
         LStation lStationOwner,
         Func<IReadOnlyList<LWorkItem>> lSelectionSource)
     {
+        lRosterUsher = lUsher;
         lSchedule = lScheduleOwner;
         lStation = lStationOwner;
         lRosterSelectionSource = lSelectionSource;
@@ -146,8 +151,8 @@ public sealed class LRosterMenu
         return lRelayPaths;
     }
 
-    private static string? LRosterFileRead(LWorkItem lWorkItem) =>
-        !string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) && LUsher.LUsherFileExist(lWorkItem.LWorkOutputPath)
+    private string? LRosterFileRead(LWorkItem lWorkItem) =>
+        !string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) && lRosterUsher.CUsherFileExist(lWorkItem.LWorkOutputPath)
             ? lWorkItem.LWorkOutputPath
             : null;
 

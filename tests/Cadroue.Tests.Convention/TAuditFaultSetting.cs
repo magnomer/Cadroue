@@ -12,13 +12,9 @@ internal static class TAuditFaultSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditFaultCeiling = new Dictionary<string, int>
     {
-        ["Cadroue.Application"] = 10,
-        ["Cadroue.ShellEngine"] = 19,
+        ["Cadroue.Application"] = 5,
+        ["Cadroue.ShellEngine"] = 15,
     };
 
-    public static readonly string[] TAuditFaultExempt =
-    [
-        "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspacePostureRead",
-        "src/Cadroue.Application/Workspace/LWorkspaceClerk.cs:LWorkspaceFallbackSave",
-    ];
+    public static readonly string[] TAuditFaultExempt = [];
 }

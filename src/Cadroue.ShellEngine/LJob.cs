@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -300,7 +299,7 @@ internal sealed partial class LJob
 
     private async Task LJobAttemptClear()
     {
-        lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
+        lJobOwner.LRunnerProcessDetach(lJobItem.LWorkId);
         lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
         await LJobTempClear(lJobStagesDone).ConfigureAwait(false);
         LJobReservedClear();

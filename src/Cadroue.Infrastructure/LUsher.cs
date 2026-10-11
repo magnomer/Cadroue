@@ -16,6 +16,9 @@ public static class LUsher
 
     public static string LUsherExtensionRead(string lUsherPath) => Path.GetExtension(lUsherPath).TrimStart('.');
 
+    public static string LUsherProgramResolve(string lUsherName) =>
+        Path.Combine(AppContext.BaseDirectory, lUsherName);
+
     public static string LUsherPathResolve(string lUsherPath)
     {
         try
@@ -29,7 +32,7 @@ public static class LUsher
         }
     }
 
-    public static string? LUsherPathOpen(string lUsherPath, string? lUsherFallback = null)
+    public static string? LUsherPathOpen(string lUsherPath, string lUsherLabel, string? lUsherFallback = null)
     {
         try
         {
@@ -62,11 +65,11 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return lUsherException.Message;
+            return LUsherFailureRecord(lUsherLabel, lUsherPath, lUsherException.Message);
         }
     }
 
-    public static string? LUsherFolderOpen(string lUsherFolder)
+    public static string? LUsherFolderOpen(string lUsherFolder, string lUsherLabel)
     {
         if (!LUsherFolderExist(lUsherFolder))
         {
@@ -80,11 +83,11 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return lUsherException.Message;
+            return LUsherFailureRecord(lUsherLabel, lUsherFolder, lUsherException.Message);
         }
     }
 
-    public static string? LUsherLinkOpen(string lUsherTarget)
+    public static string? LUsherLinkOpen(string lUsherTarget, string lUsherLabel)
     {
         try
         {
@@ -93,7 +96,13 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return lUsherException.Message;
+            return LUsherFailureRecord(lUsherLabel, lUsherTarget, lUsherException.Message);
         }
+    }
+
+    private static string LUsherFailureRecord(string lUsherLabel, string lUsherTarget, string lUsherError)
+    {
+        LTraceLog.LTraceErrorRecord($"{lUsherLabel} could not be opened: {lUsherTarget}: {lUsherError}");
+        return lUsherError;
     }
 }

@@ -4,11 +4,6 @@ using Cadroue.Core;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSPlate;
-using static Cadroue.UIVeneer.PSNotice;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
@@ -47,21 +42,22 @@ internal sealed partial class PSOptions
     private UIElement PSGeneralBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Startup"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Startup"),
             PSOptionsStartupBuild(),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.LastMedia"), psMediaBox)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Confirm"),
-            PSFieldBuild(
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.LastMedia"), psMediaBox)));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Confirm"),
+            PSField.PSFieldBuild(
                 LLocalization.LLocalizationTextRead("Options.General.DestructiveActions"),
                 psOptionsConfirmBox),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Relay"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
-            PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Layout"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsTabsMode)));
-        pPanel.Children.Add(PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
-            PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"), psOptionsLanguageCombo)));
+            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.DestructiveNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Relay"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClear"), psRelayClearBox),
+            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.General.RelayClearNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Layout"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Tabs"), psOptionsTabsMode)));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
+            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.Language"),
+                psOptionsLanguageCombo)));
         return pPanel;
     }
 
@@ -80,13 +76,13 @@ internal sealed partial class PSOptions
 
         void PSOptionsPickerUpdate() =>
             psOptionsTabPicker.Visibility =
-                string.Equals(PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
+                string.Equals(PSField.PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
                     ? Visibility.Visible
                     : Visibility.Collapsed;
         PSOptionsPickerUpdate();
         psOptionsStartupPicker = PSOptionsPickerUpdate;
 
-        return PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"), pRow);
+        return PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.General.OpenWith"), pRow);
     }
 
     private static LLocalizationChoice[] PSOptionsLanguagesRead() =>

@@ -76,7 +76,7 @@ public sealed class LCompass
 
     public bool LCompassWaveformActive => lCompassFlow.LFlowWaveformActive;
 
-    public bool LCompassEditActive => lCompassFlow.LFlowSectionEditable;
+    public bool LCompassEditActive => lCompassFlow.QFlowEdit.LFlowSectionEditable;
 
     public IReadOnlyList<LCompassGroup> LCompassGroupsRead() =>
         LCompassSets

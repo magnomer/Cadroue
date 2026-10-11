@@ -5,13 +5,12 @@ using System.Windows.Resources;
 using System.Collections.Concurrent;
 using SharpVectors.Converters;
 using SharpVectors.Renderers.Wpf;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PAsset;
 
 public static class PIcon
 {
-    private const double PIconLargeThreshold = 60;
-
     private static readonly ConcurrentDictionary<string, ImageSource> pIconCache =
         new(StringComparer.Ordinal);
 
@@ -24,12 +23,11 @@ public static class PIcon
         EnsureViewboxPosition = true
     };
 
-    private static readonly IReadOnlyDictionary<string, Func<Uri, Brush?, ImageSource>> PIconReaders =
-        new Dictionary<string, Func<Uri, Brush?, ImageSource>>(StringComparer.OrdinalIgnoreCase)
+    private static readonly IReadOnlyDictionary<bool, Func<Uri, Brush?, ImageSource>> PIconReaders =
+        new Dictionary<bool, Func<Uri, Brush?, ImageSource>>
         {
-            [".svg"] = PIconSvgRead,
-            [".png"] = PIconBitmapRead,
-            [".ico"] = PIconBitmapRead,
+            [true] = PIconSvgRead,
+            [false] = PIconBitmapRead,
         };
 
     private static readonly IReadOnlyDictionary<bool, Func<DrawingGroup, Brush?, DrawingGroup>> PIconTints =
@@ -72,35 +70,18 @@ public static class PIcon
 
     private static string PIconPathResolve(string pIconPath, double pIconWidth)
     {
-        if (!string.Equals(System.IO.Path.GetExtension(pIconPath), ".svg", StringComparison.OrdinalIgnoreCase))
+        if (QIcon.QIconBitmapResolve(pIconPath, pIconWidth) is not { } pBitmapPath)
         {
             return pIconPath;
         }
 
-        string pNormalizedPath = pIconPath.Replace('\\', '/');
-        int pAssetStart = pNormalizedPath.IndexOf("/PAsset/", StringComparison.OrdinalIgnoreCase);
-        int pFileStart = pNormalizedPath.LastIndexOf('/') + 1;
-        if (pAssetStart < 0 || pFileStart <= pAssetStart + "/PAsset/".Length)
-        {
-            return pIconPath;
-        }
-
-        string pIconFolder = pNormalizedPath[(pAssetStart + "/PAsset/".Length)..(pFileStart - 1)];
-        string pIconName = System.IO.Path.GetFileNameWithoutExtension(pNormalizedPath);
-        if (pIconName.StartsWith('P'))
-        {
-            pIconName = pIconName.Substring(1);
-        }
-
-        string pResolution = pIconWidth < PIconLargeThreshold ? "P32" : "P256";
-        string pBitmapPath = $"/PAsset/{pResolution}/{pIconFolder}/{pIconName}.png";
         var pBitmapResource = System.Windows.Application.GetResourceStream(PIconUriCreate(pBitmapPath));
         using var pBitmapStream = pBitmapResource?.Stream;
         return pBitmapResource is null ? pIconPath : pBitmapPath;
     }
 
     private static ImageSource PIconCreate(string pIconPath, Uri pIconUri, Brush? pTintBrush) =>
-        PIconReaders[System.IO.Path.GetExtension(pIconPath)](pIconUri, pTintBrush);
+        PIconReaders[QIcon.QIconSvgCheck(pIconPath)](pIconUri, pTintBrush);
 
     private static ImageSource PIconBitmapRead(Uri pIconUri, Brush? pTintBrush)
     {
@@ -111,9 +92,7 @@ public static class PIcon
 
     private static BitmapSource PIconBitmapResolve(Uri pIconUri, BitmapSource pIconBitmap)
     {
-        string pIconAssetPath = pIconUri.AbsolutePath;
-        if (!pIconAssetPath.Contains("/P32/", StringComparison.OrdinalIgnoreCase)
-            && !pIconAssetPath.Contains("/P256/", StringComparison.OrdinalIgnoreCase))
+        if (!QIcon.QIconPrerenderCheck(pIconUri.AbsolutePath))
         {
             return pIconBitmap;
         }

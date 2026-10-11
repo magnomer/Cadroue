@@ -1,5 +1,5 @@
 # TAuditPlatformSetting.cs
-Hash: `ac0ef999b1eb2828`
+Hash: `3cfffe8a27215272`
 
 ## `internal static class TAuditPlatformSetting`
 
@@ -34,6 +34,7 @@ With it, a Windows API in a portable half fails the build.
 ## `public static readonly string[] TAuditPlatformShell`
 
 The columns whose twins are the UI projects, which the domain rule leaves to the UI audits.
+Deportment and the Veneer both sit in the Conduct column.
 It matches `domain.exempt` in scripts/AuditPlatform.json.
 
 ## `public static readonly IReadOnlyDictionary<string, string> TAuditPlatformSilencers`
@@ -50,12 +51,14 @@ The target platform table, as project name to the portable half of its column.
 A portable half is its own column.
 A twin names its portable half.
 The host has an empty column because it names every project.
-Twin naming is not settled, so a twin's name here is provisional.
+Rows for projects Cadroue lacks, such as `Cadroue.Core.Windows` and `Cadroue.UIDeportment.Capsule`, count as `Absent`.
+`Cadroue.Media` has no row, so it reports as unmapped.
 
 ## `public static readonly IReadOnlyDictionary<string, string> TAuditPlatformCapsule`
 
 For a twin, the one capsule project it may reference outside its column.
 The capsule keeps its own portable column, so that reference is no `Column` hit.
+Cadroue has no `Cadroue.UIDeportment.Capsule` project, so the row grants nothing.
 
 ## `public static readonly string[] TAuditPlatformProperties`
 
@@ -72,6 +75,6 @@ Source patterns that name a Windows API, a native import or a platform guard.
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditPlatformCeiling`
 
 The hit count each kind may reach.
-The ceilings stood at the counts on the day the fact was written.
+Each caps the platform breaks Cadroue's projects hold today, since none is split into twins yet.
 A count above fails the fact, a ceiling above the count is stale and fails too.
 Lower a ceiling when a project sheds a hit, never raise one to admit a new one.

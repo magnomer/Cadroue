@@ -1,5 +1,5 @@
 using Cadroue.Application;
-using Cadroue.Infrastructure;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
@@ -16,10 +16,12 @@ public sealed record LListCard(bool LListCardLocked, string LListCardTitle, IRea
 public sealed class LListFace
 {
     private readonly LList lList;
+    private readonly CUsher lListUsher;
 
-    public LListFace(LList lOwner)
+    public LListFace(LList lOwner, CUsher lUsher)
     {
         lList = lOwner;
+        lListUsher = lUsher;
     }
 
     public IReadOnlyList<LListCard> LListCardsRead()
@@ -76,6 +78,6 @@ public sealed class LListFace
             ? $"{lPath}\n{LLocalization.LLocalizationTextRead("List.Locked.Tooltip")}"
             : lPath;
         return new LListRow(
-            lPath, LUsher.LUsherNameRead(lPath), lTip, LListStateRead(lPath), lItem.LDocketEntryLocked, lLast);
+            lPath, lListUsher.CUsherNameRead(lPath), lTip, LListStateRead(lPath), lItem.LDocketEntryLocked, lLast);
     }
 }

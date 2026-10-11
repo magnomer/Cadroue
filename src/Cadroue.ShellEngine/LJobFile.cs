@@ -3,7 +3,6 @@ using System.Linq;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 

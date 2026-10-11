@@ -1,5 +1,5 @@
 # TAuditEngineSetting.cs
-Hash: `133991d50d853598`
+Hash: `414d504053fc8f22`
 
 ## `internal static class TAuditEngineSetting`
 
@@ -12,6 +12,7 @@ The border facts read it together with the other offer settings.
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditEngineOffer`
 
 For the `ring>neighbour` pair, the neighbour types the ring may name at all.
-Conduct names ShellEngine through 27 `L*Port` interfaces, which ShellEngine declares, and 21 other `L` types.
-Every other engine type is a helper Conduct may not name.
+The list is empty, since Cadroue's Conduct holds no source and names no engine type.
+An engine type Conduct comes to name is listed here first.
+Every engine type left off the list is a helper Conduct may not name.
 Each name stands as a literal, so the ratchet can read every entry.

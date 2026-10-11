@@ -179,8 +179,15 @@ public static class LListRelay
 
     private static bool LListDeliveredApply(Guid lTab, string lPath, Guid lBatch, bool lLocked)
     {
-        string lName = LUsher.LUsherNameRead(lPath);
-        if (lListStrip?.LStripTabFind(lTab) is not { } lTarget || lTarget.LStripTabDocket is not { } lOwner)
+        if (lListStrip is not { } lStrip)
+        {
+            string lPathName = lPath[(lPath.LastIndexOfAny(['\\', '/', ':']) + 1)..];
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{lPathName}': the destination tab is gone");
+            return false;
+        }
+
+        string lName = lStrip.LStripUsher.CUsherNameRead(lPath);
+        if (lStrip.LStripTabFind(lTab) is not { } lTarget || lTarget.LStripTabDocket is not { } lOwner)
         {
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lName}': the destination tab is gone");
             return false;

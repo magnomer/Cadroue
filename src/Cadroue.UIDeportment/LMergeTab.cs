@@ -10,7 +10,7 @@ public sealed class LMergeTab
     private readonly LPresetSelection lMergePreset;
     private readonly LDocket lMergeDocket;
 
-    public LMergeTab(LPresetSelection lPreset, LDocket lDocket, LSceneTabEntry? lLayout)
+    public LMergeTab(LStrip lStrip, LPresetSelection lPreset, LDocket lDocket, LSceneTabEntry? lLayout)
     {
         lMergePreset = lPreset;
         lMergeDocket = lDocket;
@@ -18,7 +18,7 @@ public sealed class LMergeTab
             lLayout?.LSceneGroupAuto ?? false,
             lLayout?.LSceneGroupStrict ?? true,
             lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
-        LMergeGroup = new LGroup(LMergeSelection);
+        LMergeGroup = new LGroup(lStrip.LStripUsher, LMergeSelection);
         LMergeGroup.LGroupSourceAttach(LMergePathsRead);
         lDocket.LDocketChanged += LMergeDocketHandle;
         lDocket.LDocketRemoved += LMergeGroup.LGroupPathsRemove;

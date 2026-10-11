@@ -7,10 +7,6 @@ using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSPlate;
-using static Cadroue.UIVeneer.PSFooter;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed class PSKeymap : Window
@@ -95,13 +91,13 @@ internal sealed class PSKeymap : Window
         pRows.Add(new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Notice"),
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 4, 0, 0)
         });
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlateBuild(pScopeTitle, pRows.ToArray()));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(pScopeTitle, pRows.ToArray()));
         return pPanel;
     }
 
@@ -114,7 +110,7 @@ internal sealed class PSKeymap : Window
         var pLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead(pCommand.LBindingCommandKey),
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 12, 0)
@@ -132,7 +128,7 @@ internal sealed class PSKeymap : Window
         var pRoot = new DockPanel { Background = Brushes.White };
         var pFooter = new DockPanel { Margin = new Thickness(12) };
 
-        Button pReset = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Reset"));
+        Button pReset = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Reset"));
         pReset.Width = 140;
         pReset.Click += (_, _) => PSKeymapDefaultApply();
         DockPanel.SetDock(pReset, Dock.Left);
@@ -143,9 +139,9 @@ internal sealed class PSKeymap : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        Button pApply = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
-        Button pOk = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
-        Button pCancel = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));
+        Button pApply = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
+        Button pOk = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
+        Button pCancel = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));
         pApply.Click += (_, _) => PSKeymapApply();
         pOk.Click += (_, _) => { PSKeymapApply(); Close(); };
         pCancel.Click += (_, _) => Close();

@@ -8,12 +8,12 @@ public sealed class PStrip
 {
     private readonly List<PWorkspace> pStripWorkspaces = new();
 
-    public PStrip()
+    public PStrip(LStrip lStrip)
     {
-        LStrip = new LStrip();
+        LStrip = lStrip;
         LStrip.LStripChanged += PStripStaleRemove;
         LStrip.LStripTabChanged += PStripTabHandle;
-        LStrip.LStripTabClosed += PStripCloseHandle;
+        LStrip.QStripClosure.LStripTabClosed += PStripCloseHandle;
         LStrip.LStripRelayAttach();
     }
 

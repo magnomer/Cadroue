@@ -4,7 +4,6 @@ using System.Text;
 
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -201,7 +200,7 @@ public static partial class LEncode
         if (lAudioActive)
         {
             lAudioPath = Path.Combine(
-                LDepot.LDepotBridgeRead(),
+                LDepotEngine.LDepotBridgeSeam(),
                 $"{lWorkItem.LWorkId:N}.audio{lResolvedExtension}");
             lStages.Add(LEncodeAudioBuild(lWorkItem, lAudioPath));
         }
@@ -221,7 +220,7 @@ public static partial class LEncode
         LBridgeStream? lBridgeSource,
         string lBridgeExtension)
     {
-        string lBridgeFolder = LDepot.LDepotBridgeRead();
+        string lBridgeFolder = LDepotEngine.LDepotBridgeSeam();
         var lStages = new List<LEncodeStage>();
         var lConcatParts = new List<string>();
 

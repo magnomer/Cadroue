@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -23,10 +24,12 @@ public sealed record LViewerAsk(
 public sealed class LViewerSource
 {
     private readonly LViewer lViewer;
+    private readonly CUsher lViewerUsher;
 
-    public LViewerSource(LViewer lOwner)
+    public LViewerSource(LViewer lOwner, CUsher lUsher)
     {
         lViewer = lOwner;
+        lViewerUsher = lUsher;
         lViewer.LViewerOpenRequest += LViewerSourceOpen;
     }
 
@@ -155,12 +158,12 @@ public sealed class LViewerSource
         IReadOnlyList<string> lList = lPaths ?? [];
         if (LViewerPathsDrop is not null)
         {
-            return LWindowDrop.LWindowMediaCheck(lList) && lCopyable
+            return LWindowDrop.LWindowMediaCheck(lViewerUsher, lList) && lCopyable
                 ? LWindowDropEffect.LWindowDropFile
                 : LWindowDropEffect.LWindowDropNone;
         }
 
-        string? lSourcePath = LWindowDrop.LWindowFileFind(lList);
+        string? lSourcePath = LWindowDrop.LWindowFileFind(lViewerUsher, lList);
         if (lSourcePath is null || (LMedia.LMediaAudioCheck(lSourcePath) && !lViewer.LViewerAudioAllowed))
         {
             return LWindowDropEffect.LWindowDropNone;
@@ -184,7 +187,7 @@ public sealed class LViewerSource
             return lEffect;
         }
 
-        string? lSourcePath = LWindowDrop.LWindowFileFind(lList);
+        string? lSourcePath = LWindowDrop.LWindowFileFind(lViewerUsher, lList);
         if (lSourcePath is null)
         {
             return LWindowDropEffect.LWindowDropNone;

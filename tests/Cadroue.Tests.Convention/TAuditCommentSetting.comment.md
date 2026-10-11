@@ -1,5 +1,5 @@
 # TAuditCommentSetting.cs
-Hash: `3580b2b6c96b4b4a`
+Hash: `61bc251f75449300`
 
 ## `internal static class TAuditCommentSetting`
 
@@ -7,6 +7,11 @@ Hand-written and tracked.
 The comment-audit rules and scope live here, not in a generated sidecar.
 AuditComments.ps1 reads its own tracked AuditComments.json and never writes this file.
 The audits read no script configuration, and both copies change together as scripts/principles.md asks.
+
+## `public static readonly string[] TAuditCommentRoots`
+
+The folders searched for sources and their comment files.
+They are Cadroue's own trees: the localization catalogs, the sources and the tests.
 
 ## `public static readonly string[] TAuditCommentFiles`
 
@@ -39,7 +44,7 @@ The comment markers per source extension, matching `remark.markers` in the scrip
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditCommentCeiling`
 
 The count of comment files with no hash that may stand as a warning, matching `ceilings.unstamped`.
-It stood at the backlog on the day the stamp became a check.
+It caps the backlog of comment files not yet stamped, a backlog that may only shrink.
 A count above it fails, and a ceiling above the count is stale and fails too.
 Lower it with each stamp, never raise it to admit a new unstamped file.
 

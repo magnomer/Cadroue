@@ -2,7 +2,6 @@ using System.IO;
 using System.Reflection;
 using System.Text.Json;
 
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
@@ -60,7 +59,7 @@ public static class LPresetStore
             }
 
             string lGroupName = lRelativePath[..lSeparatorIndex];
-            LPresetDocument lRecord = lPresetRead(lSource)?.LPresetRecordNormalize()
+            LPresetDocument lRecord = lPresetRead(lSource)
                 ?? throw new InvalidDataException($"Native preset is invalid: {lSource}");
             if (!lGroups.TryGetValue(lGroupName, out List<LPresetEntry>? lGroupRecords))
             {
@@ -122,7 +121,7 @@ public static class LPresetStore
         LVaultResult<List<LPresetDocument>> lPresetResult = LVault.LVaultRead<List<LPresetDocument>>(lPresetPath);
         if (lPresetResult is { LVaultOutcome: LVaultOutcome.LVaultLoaded, LVaultValue: { } lPresetRecords })
         {
-            return new LPresetCatalog(LPresetOutcome.LPresetLoaded, LPresetRecordsNormalize(lPresetRecords));
+            return new LPresetCatalog(LPresetOutcome.LPresetLoaded, lPresetRecords.OfType<LPresetDocument>().ToArray());
         }
 
         bool lPresetDamaged = lPresetResult.LVaultOutcome == LVaultOutcome.LVaultUnreadable
@@ -131,13 +130,6 @@ public static class LPresetStore
             lPresetDamaged ? LPresetOutcome.LPresetUnreadable : LPresetOutcome.LPresetMissing,
             []);
     }
-
-    private static IReadOnlyList<LPresetDocument> LPresetRecordsNormalize(
-        IEnumerable<LPresetDocument?> lPresetRecords) =>
-        lPresetRecords
-            .Where(lPresetRecord => lPresetRecord is not null)
-            .Select(lPresetRecord => lPresetRecord!.LPresetRecordNormalize())
-            .ToArray();
 
     public static bool LPresetFileSave(LPresetDocument lRecord, string lPresetFilePath) =>
         !LPresetCatalogCheck(lPresetFilePath) && LVault.LVaultSave(lPresetFilePath, lRecord);
@@ -165,18 +157,4 @@ public static class LPresetStore
     }
 
     private static string LPresetPathCreate() => Path.Combine(LDepot.LDepotHomeRead(), LPresetFileName);
-
-    public static void LPresetSeamAttach()
-    {
-        LPreset.LPresetNativeSeam = LPresetNativeLoad;
-        LPreset.LPresetLoadSeam = LPresetLoad;
-        LPreset.LPresetSaveSeam = LPresetSave;
-        LPresetSelection.LPresetLoadSeam = lName => LPreset.LPresetRead(lName)?.LPresetRecordCreate();
-        LPresetSelection.LPresetSaveSeam = (lName, lRecord) =>
-            LPreset.LPresetSave(lName, LPreset.LPresetStateCreate(lRecord));
-        LPresetSelection.LPresetRenameSeam = (lOldName, lNewName, lRecord) =>
-            LPreset.LPresetNameSet(lOldName, lNewName, LPreset.LPresetStateCreate(lRecord));
-        LPresetSelection.LPresetOutputSeam = lRecord =>
-            LPreset.LPresetStateCreate(lRecord).LPresetOutputCreate();
-    }
 }

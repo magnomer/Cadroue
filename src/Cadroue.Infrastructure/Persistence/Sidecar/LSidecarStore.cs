@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
 
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
 
@@ -12,6 +11,8 @@ public static partial class LSidecarStore
     public const string LSidecarExtension = ".cad";
     public const string LSidecarCacheExtension = ".cadcache";
     public const string LSidecarRecordFolder = "filerecord";
+
+    public static Func<string, LSidecarCoreDocument?> LSidecarCoreSeam { get; set; } = _ => null;
 
     private static string? lSidecarRecordFolder;
     private static bool lSidecarRecordActive;
@@ -24,8 +25,11 @@ public static partial class LSidecarStore
 
     public static string LSidecarFolderRead() => lSidecarRecordFolder ?? string.Empty;
 
+    public static string LSidecarFolderResolve() =>
+        Path.Combine(LDepot.LDepotRootRead(), LSidecarRecordFolder);
+
     public static void LSidecarFolderApply(bool lSidecarActive) =>
-        LSidecarFolderSet(Path.Combine(LDepot.LDepotRootRead(), LSidecarRecordFolder), lSidecarActive);
+        LSidecarFolderSet(LSidecarFolderResolve(), lSidecarActive);
 
     public static bool LSidecarFolderCheck() => lSidecarRecordActive;
 
@@ -315,37 +319,6 @@ public static partial class LSidecarStore
         }
     }
 
-    public static void LSidecarLibrarianAttach()
-    {
-        LLibrarian.LLibrarianCoreReader = LSidecarCoreRead;
-        LLibrarian.LLibrarianKeyframesSeam = LSidecarKeyframesRead;
-        LLibrarian.LLibrarianWaveformReader = LSidecarWaveformRead;
-        LLibrarian.LLibrarianEditReader = LSidecarEditRead;
-        LLibrarian.LLibrarianAudioReader = LSidecarAudioRead;
-        LLibrarian.LLibrarianSplitReader = LSidecarSplitRead;
-        LLibrarian.LLibrarianFixReader = LSidecarFixRead;
-        LLibrarian.LLibrarianDiagnosisReader = LSidecarDiagnosisRead;
-        LLibrarian.LLibrarianLoudnessReader = LSidecarLoudnessRead;
-        LLibrarian.LLibrarianDurationReader = LSidecarDurationRead;
-        LLibrarian.LLibrarianDurationResolver = LSidecarDurationResolve;
-        LLibrarian.LLibrarianEditWriter = LSidecarEditSave;
-        LLibrarian.LLibrarianAudioWriter = LSidecarAudioSave;
-        LLibrarian.LLibrarianSplitWriter = LSidecarSplitSave;
-        LLibrarian.LLibrarianFixWriter = LSidecarFixSave;
-        LLibrarian.LLibrarianDiagnosisWriter = LSidecarDiagnosisSave;
-        LLibrarian.LLibrarianLoudnessWriter = LSidecarLoudnessSave;
-        LLibrarian.LLibrarianWaveformWriter = LSidecarWaveformSave;
-        LLibrarian.LLibrarianFileChecker = LSidecarFileCheck;
-        LLibrarian.LLibrarianSourceResolver = LSidecarSourceResolve;
-        LLibrarian.LLibrarianSourceMatcher = LSidecarSourceMatch;
-    }
-
-    public static void LSidecarSegmentAttach()
-    {
-        LSegment.LSegmentLoadSeam = LSidecarSectionsRead;
-        LSegment.LSegmentSaveSeam = LSidecarSectionsSave;
-    }
-
     public static LSidecarSourceResult? LSidecarSourceResolve(string lSidecarPath) =>
         LSidecarRead(lSidecarPath) is { } lSidecar
             ? LSidecarSource.LSidecarSourceResolve(lSidecarPath, lSidecar)
@@ -359,7 +332,7 @@ public static partial class LSidecarStore
     {
         try
         {
-            if (LLibrarian.LLibrarianLoad(lSidecarSourcePath) is { } lSidecarCore)
+            if (LSidecarCoreSeam(lSidecarSourcePath) is { } lSidecarCore)
             {
                 return lSidecarCore.LSidecarSections;
             }

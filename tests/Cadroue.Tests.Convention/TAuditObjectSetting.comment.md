@@ -1,5 +1,5 @@
 # TAuditObjectSetting.cs
-Hash: `d70a0b16b7450716`
+Hash: `a42c6ee125c44b3f`
 
 ## `internal static class TAuditObjectSetting`
 
@@ -63,6 +63,7 @@ Its declaring part counts as reaching it.
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling`
 
 The hit count each flag may reach, and the hub slots over every type.
+Each caps the Cadroue types that carry that flag today.
 A type counts once under every flag it hits, so a Kraken still counts as an Octopus or Spider.
 A count above fails the fact, and a ceiling above the count is stale and fails too.
 Lower a ceiling when a type sheds a flag, never raise one to admit a new one.
@@ -73,6 +74,7 @@ Each key is kept equal to its twin under `ceiling` in AuditObject.json, by hand.
 
 The parts a split type may be declared in, keyed by its full name.
 Every split type is listed at its count, and a type not listed may hold one part.
+The rows are the Cadroue types still split today, from the core up to the Veneer.
 Dropping a row once its type is whole tightens, so the ratchet lets it go.
 Lower a ceiling when a plan lifts a part into its own type, never raise one.
 

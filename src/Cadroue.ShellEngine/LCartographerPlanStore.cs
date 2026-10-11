@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text.Json;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -53,7 +52,7 @@ public static class LCartographerPlanStore
             or JsonException
             or TimeoutException)
         {
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay plan {lCartographerPlanId:N} could not be read: {lCartographerError.Message}");
             return false;
         }
@@ -87,7 +86,7 @@ public static class LCartographerPlanStore
                 if (File.Exists(lCartographerTemporary)) File.Delete(lCartographerTemporary);
             }
             catch (Exception) { }
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay plan {lCartographerPlanId:N} could not be saved: " +
                 $"{lCartographerError.Message}");
             return false;
@@ -113,7 +112,7 @@ public static class LCartographerPlanStore
             or UnauthorizedAccessException
             or TimeoutException)
         {
-            LTraceLog.LTraceWarningRecord(
+            LTraceEngine.LTraceWarningSeam(
                 $"Relay plan {lCartographerPlanId:N} could not be deleted: {lCartographerError.Message}");
         }
     }
@@ -177,5 +176,5 @@ public static class LCartographerPlanStore
     }
 
     private static string LCartographerPathRead(Guid lCartographerPlanId) =>
-        Path.Combine(LDepot.LDepotRootRead(), LCartographerPlanFolder, $"{lCartographerPlanId:N}.json");
+        Path.Combine(LDepotEngine.LDepotRootSeam(), LCartographerPlanFolder, $"{lCartographerPlanId:N}.json");
 }

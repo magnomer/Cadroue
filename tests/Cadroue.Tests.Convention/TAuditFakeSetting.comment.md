@@ -1,5 +1,5 @@
 # TAuditFakeSetting.cs
-Hash: `b961fbab6d81572a`
+Hash: `85197b5bf3af6a0d`
 
 ## `internal static class TAuditFakeSetting`
 
@@ -26,6 +26,7 @@ Where the report lands, with the version in the name.
 The hit count each kind may reach.
 `Orphan` counts the members that nothing live and no test reads.
 `Tested` counts the members that only tests read.
+Both caps hold Cadroue's standing backlog of such members.
 A count above its ceiling fails the fact.
 A ceiling above the count is stale and fails too.
 Lower a ceiling when a member goes live or is removed.
@@ -34,6 +35,8 @@ Never raise one to admit a new one.
 ## `public static readonly string[] TAuditFakeInclude`
 
 The `git ls-files` patterns of the tests whose reads count as test reads.
+The Interface, Engine and Windows test projects match.
+The `Cadroue.Tests.Conduct` pattern matches no folder, so it adds nothing.
 
 ## `public static readonly string[] TAuditMarkupInclude`
 

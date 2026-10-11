@@ -6,8 +6,6 @@ using Cadroue.UIDeportment;
 using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSMonitor
@@ -114,7 +112,7 @@ internal sealed partial class PSMonitor
             GroupName = "PSMonitorAudio",
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
-            Foreground = PSFieldMuted,
+            Foreground = PSField.PSFieldMuted,
             Cursor = Cursors.Hand,
             VerticalContentAlignment = VerticalAlignment.Center,
             ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey),

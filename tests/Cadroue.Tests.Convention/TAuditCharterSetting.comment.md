@@ -1,10 +1,10 @@
 # TAuditCharterSetting.cs
-Hash: `da68a9761a892d66`
+Hash: `ed1afb286cf4d0dc`
 
 ## `internal static class TAuditCharterSetting`
 
 Hand-written and tracked.
-The project edge table lives here.
+The project edge table and the charter ceiling live here.
 No script writes this file.
 
 ## `public static readonly IReadOnlyDictionary<string, string[]> TAuditCharterEdges`
@@ -12,11 +12,13 @@ No script writes this file.
 Every `ProjectReference` under `src`, as project name to referenced project names.
 The fact holds the `.csproj` files to this table exactly, so a new edge is an edit here first.
 An edge is wider than a neighbour.
-The engine references the application alone and ferries core records through it.
+The rows still carry rings Cadroue lacks, such as `Cadroue.UIDemeanor` and `Cadroue.UITerminal`.
+Those rows match no project, so the Rerouting fact stays red until the table follows the real edges.
 
 ## `public static readonly IReadOnlyDictionary<string, int> TAuditCharterCeiling`
 
 The count each charter kind may hold.
-`Piggybacking` counts the cut projects that still compile against rings past their neighbour.
-Every cut project disables transitive project references, so the ceiling holds at zero.
+`Piggybacking` counts the cut projects that leave transitive project references on.
+Such a project compiles against rings past its neighbour without naming them.
 A count above fails the fact, a ceiling above the count is stale and fails too.
+Lower it when a cut project disables transitive references, never raise it.

@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -20,19 +21,27 @@ public sealed record LSOptionsLevel(
 
 public sealed class LSOptions
 {
+    private static readonly IReadOnlyDictionary<bool, string> lsOptionsRecordKeys = new Dictionary<bool, string>
+    {
+        [true] = "Options.System.FileRecordWorkspace",
+        [false] = "Options.System.FileRecordBeside",
+    };
+
+    private readonly CUsher lsOptionsUsher;
     private readonly LPreferenceState lsOptionsDraft;
     private LSOptionsPage lsOptionsPage;
     private bool lsOptionsMpvEnabled;
 
     public event Action<bool>? LSOptionsMpvChanged;
 
-    public LSOptions()
-        : this(LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
+    public LSOptions(LStrip lStrip)
+        : this(lStrip, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
     {
     }
 
-    public LSOptions(LPreferenceState lDraft, bool lMpvEnabled)
+    public LSOptions(LStrip lStrip, LPreferenceState lDraft, bool lMpvEnabled)
     {
+        lsOptionsUsher = lStrip.LStripUsher;
         lsOptionsDraft = lDraft;
         lsOptionsMpvEnabled = lMpvEnabled;
     }
@@ -44,6 +53,11 @@ public sealed class LSOptions
     public bool LSOptionsMpvEnabled => lsOptionsMpvEnabled;
 
     public void LSOptionsPageSelect(LSOptionsPage lPage) => lsOptionsPage = lPage;
+
+    public bool LSOptionsFolderExist(string lFolder) => lsOptionsUsher.CUsherFolderExist(lFolder);
+
+    public string? LSOptionsFolderOpen(string lFolder, string lFallback, string lLabel) =>
+        lsOptionsUsher.CUsherFolderOpen(string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder, lLabel);
 
     public string LSOptionsEngineRead() =>
         lsOptionsMpvEnabled && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
@@ -135,6 +149,10 @@ public sealed class LSOptions
             lLevel => lsOptionsDraft.LPreferenceLevelSet(lFamily, lLevel));
 
     public bool LSOptionsRecordCheck() => lsOptionsDraft.LPreferenceRecordWorkspace;
+
+    public string LSOptionsRecordResolve() => lsOptionsRecordKeys[LSOptionsRecordCheck()];
+
+    public static string LSOptionsSidecarRead() => LSidecarStore.LSidecarFolderResolve();
 
     public bool LSOptionsApply()
     {

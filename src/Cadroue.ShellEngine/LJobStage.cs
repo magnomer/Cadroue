@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -164,10 +162,17 @@ internal sealed partial class LJob
         lJobBlockMicroseconds = -1;
         lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
 
-        LEmployerResult pJobResult = await lJobOwner.LRunnerEmployerCreate().LEmployerRun(
+        Guid pWorkId = lJobItem.LWorkId;
+        lJobOwner.LRunnerProcessAttach(pWorkId);
+        LEmployerResult pJobResult = await LEmployerEngine.LEmployerRunSeam(
+            lJobOwner.LRunnerProgramPath,
+            lJobOwner.LRunnerArgumentPrefix,
+            LCustodyFamily.LCustodyFamilyEncode,
+            lJobOwner.LRunnerLevel,
+            null,
             pExecutableArguments,
             lJobToken,
-            pProcess => lJobOwner.LRunnerProcessAttach(lJobItem.LWorkId, pProcess),
+            pWorkId,
             LJobOutputRead,
             LJobStderrRead).ConfigureAwait(false);
 
@@ -175,7 +180,7 @@ internal sealed partial class LJob
             $"Exit code {pJobResult.LEmployerExit} for '{lJobItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
             $"ran for {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
-        lJobOwner.lRunnerProcesses.TryRemove(lJobItem.LWorkId, out _);
+        lJobOwner.LRunnerProcessDetach(pWorkId);
         return (pJobResult.LEmployerExit, pJobResult.LEmployerError);
     }
 }

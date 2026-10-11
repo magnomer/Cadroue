@@ -1,4 +1,10 @@
 # LJobCollision.cs
+Hash: `a8948f8a09de6aa7`
+
+## `private async Task<string> LJobValidate()`
+
+A non-empty answer fails the job before any lease, folder or file is touched.
+An output equal to an input is refused unless a rename policy keeps the original safe.
 
 ## `private async Task<string> LJobStreamValidate()`
 
@@ -8,6 +14,12 @@ The encoder lists in Settings are filtered by container but are not consulted wh
 For non-merge jobs, a readable probe rejects incompatible copied streams before encoding.
 An unreadable probe leaves the pairing unchecked.
 A fresh compatibility probe receives the runner's priority override, keeping preflight measurement under the same runner configuration.
+
+## `private string LJobCollisionApply()`
+
+Resolves the output name once, before encoding, so the encode never overwrites a file it does not own.
+When the target is the source itself, the encode goes to a staging name instead.
+`LJobStageCommit` then moves the source aside and the staged output into place.
 
 ## Inline notes
 

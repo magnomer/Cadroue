@@ -4,12 +4,6 @@ using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSEntry;
-using static Cadroue.UIVeneer.PSNotice;
-using static Cadroue.UIVeneer.PSFader;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -48,12 +42,14 @@ internal sealed partial class PSEncoder
         }
 
         psAudioChannelSlider = new Slider();
-        psAudioChannelReadout = PSEntryBuild(string.Empty, 96);
-        UIElement pNotice = PSNoticeBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
-        UIElement pRow = PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
+        psAudioChannelReadout = PSEntry.PSEntryBuild(string.Empty, 96);
+        UIElement pNotice = PSNotice.PSNoticeBuild(
+            LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
+        UIElement pRow = PSFader.PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout,
+            pNotice);
 
         psAudioChannelPanel.Children.Clear();
-        psAudioChannelPanel.Children.Add(PSFieldBuild(
+        psAudioChannelPanel.Children.Add(PSField.PSFieldBuild(
             LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
         psAudioChannelPanel.Children.Add(pNotice);
     }

@@ -1,6 +1,5 @@
 using Cadroue.Application;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -141,7 +140,7 @@ public static partial class LCartographer
             lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
                 ? LEdit.LEditPersistentRead(lCartographerRecord)
                 : LEditPlan.LEditEmptyCreate();
-        bool lCartographerEqCapable = LInventory.LInventoryFilterExist("eq");
+        bool lCartographerEqCapable = LInventoryEngine.LInventoryFilterSeam("eq");
         (LWorkCrop lCartographerCrop, LWorkVideo lCartographerVideo) =
             LEdit.LEditWorkResolve(lCartographerPlan, lCartographerEqCapable);
 

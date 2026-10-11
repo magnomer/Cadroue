@@ -112,7 +112,7 @@ public sealed class LSLoupe
         lViewer.LViewerPlayback.LViewerLoupeSought += LSLoupeSeek;
         lViewer.LViewerPlayback.LViewerLoupeVolume += LSLoupeVolumeSet;
         lViewer.LViewerMedia.LViewerLoupeClosed += LSLoupeCloseHandle;
-        lViewer.LViewerMedia.LViewerLoupeAttach();
+        lViewer.LViewerMedia.QViewerLoupe.LViewerLoupeAttach();
     }
 
     public async Task LSLoupeStart()
@@ -181,7 +181,7 @@ public sealed class LSLoupe
 
     public void LSLoupeDetach()
     {
-        lLoupeViewer?.LViewerMedia.LViewerLoupeDetach(lLoupeFinal, lLoupePlayingFinal);
+        lLoupeViewer?.LViewerMedia.QViewerLoupe.LViewerLoupeDetach(lLoupeFinal, lLoupePlayingFinal);
         lLoupeViewer = null;
     }
 

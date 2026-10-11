@@ -36,11 +36,11 @@ public sealed class LViewer
     private double lViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private LPreviewState lViewerPreview = LPreviewState.LPreviewDefaultCreate();
 
-    public LViewer()
+    public LViewer(LStrip lStrip)
     {
         LViewerPlayback = new LViewerPlayback(this);
         LViewerMedia = new LViewerMedia(this);
-        LViewerSource = new LViewerSource(this);
+        LViewerSource = new LViewerSource(this, lStrip.LStripUsher);
         LViewerRenderer = new LViewerRenderer(this);
         LViewerMpv = new LViewerMpv(this);
         LViewerNeutral = new LViewerNeutral(this);

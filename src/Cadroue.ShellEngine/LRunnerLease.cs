@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -8,6 +7,12 @@ public sealed partial class LRunner
 {
     private readonly Guid lRunnerId = Guid.NewGuid();
     private readonly ConcurrentDictionary<Guid, System.Timers.Timer> lRunnerLeaseTimers = new();
+
+    public static Action<Guid> LRunnerAddSeam { get; set; } = _ => { };
+
+    public static Action<Guid> LRunnerRemoveSeam { get; set; } = _ => { };
+
+    public static int LRunnerLeaseSeam { get; set; } = 10;
 
     public Guid LRunnerIdentity => lRunnerId;
 
@@ -27,7 +32,7 @@ public sealed partial class LRunner
 
         LRunnerRunning = false;
         LRunnerLeaseClear();
-        LSentinel.LSentinelRunnerRemove(lRunnerId);
+        LRunnerRemoveSeam(lRunnerId);
     }
 
     public void LRunnerPhaseSet(LWorkItem lWorkItem, LWorkPhase lRunnerPhase)
@@ -44,7 +49,7 @@ public sealed partial class LRunner
     internal void LRunnerLeaseStart(LWorkItem lWorkItem)
     {
         LRunnerLeaseStop(lWorkItem.LWorkId);
-        var lRunnerTimer = new System.Timers.Timer(LSchedule.LScheduleLeaseSeconds * 1000) { AutoReset = true };
+        var lRunnerTimer = new System.Timers.Timer(LRunnerLeaseSeam * 1000) { AutoReset = true };
         lRunnerTimer.Elapsed += (_, _) => lRunnerSchedule.LScheduleLeaseUpdate(lWorkItem.LWorkId, lRunnerId);
         lRunnerTimer.Start();
         lRunnerLeaseTimers[lWorkItem.LWorkId] = lRunnerTimer;

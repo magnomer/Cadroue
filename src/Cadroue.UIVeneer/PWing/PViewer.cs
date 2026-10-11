@@ -95,12 +95,15 @@ public sealed class PViewer : PPanel
     private readonly PCrop pViewerOverlay;
     private readonly DispatcherTimer pViewerClockTimer;
 
-    public LViewer LViewer { get; } = new();
+    public LViewer LViewer { get; }
 
     public LPlayer LPlayer => LViewer.LPlayer;
 
-    public PViewer(bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false) : base("")
+    public PViewer(
+        LStrip lStrip, bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false)
+        : base("")
     {
+        LViewer = new LViewer(lStrip);
         LViewer.LViewerEligibleSet(pAudioEligible, pEditEligible, pColorPreview);
         AllowDrop = true;
         Focusable = true;
@@ -368,7 +371,7 @@ public sealed class PViewer : PPanel
 
     public void PViewerClose()
     {
-        LViewer.LViewerMedia.LViewerClose();
+        LViewer.LViewerMedia.QViewerTeardown.LViewerClose();
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineHandle;
         pViewerClockTimer.Tick -= PViewerClockHandle;
@@ -376,8 +379,8 @@ public sealed class PViewer : PPanel
         pViewerOverlay.DragEnter -= PViewerDragAccept;
         pViewerOverlay.DragOver -= PViewerDragAccept;
         pViewerOverlay.Drop -= PViewerDropHandle;
-        PViewerStageRun("flyleaf host", PViewerFlyleafDispose);
-        PViewerStageRun("mpv host", PViewerMpvDispose);
+        LViewer.LViewerMedia.QViewerTeardown.LViewerStageRun("flyleaf host", PViewerFlyleafDispose);
+        LViewer.LViewerMedia.QViewerTeardown.LViewerStageRun("mpv host", PViewerMpvDispose);
     }
 
     private void PViewerFlyleafDispose()
@@ -391,17 +394,5 @@ public sealed class PViewer : PPanel
     {
         pViewerMpvOverlay.PViewerOverlayDispose();
         ((IDisposable)pViewerMpvHost).Dispose();
-    }
-
-    private static void PViewerStageRun(string pStage, Action pAction)
-    {
-        try
-        {
-            pAction();
-        }
-        catch (Exception pException)
-        {
-            Cadroue.Infrastructure.LTraceLog.LTraceErrorRecord($"Viewer close stage '{pStage}' failed", pException);
-        }
     }
 }

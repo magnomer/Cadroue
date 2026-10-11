@@ -4,8 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 
-using static Cadroue.UIVeneer.PSField;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -29,14 +27,14 @@ internal sealed partial class PSEncoder
     {
         var pHead = new FrameworkElementFactory(typeof(TextBlock));
         pHead.SetBinding(TextBlock.TextProperty, PSEncoderChipResolve("head"));
-        pHead.SetValue(TextBlock.ForegroundProperty, PSFieldText);
+        pHead.SetValue(TextBlock.ForegroundProperty, PSField.PSFieldText);
         pHead.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
         pHead.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
 
         var pToken = new FrameworkElementFactory(typeof(TextBlock));
         pToken.SetBinding(TextBlock.TextProperty, PSEncoderChipResolve("token"));
         pToken.SetValue(TextBlock.ForegroundProperty, PSEncoderChipText);
-        pToken.SetValue(TextBlock.FontSizeProperty, PSFieldFontSize - 1);
+        pToken.SetValue(TextBlock.FontSizeProperty, PSField.PSFieldFontSize - 1);
         pToken.SetValue(TextBlock.FontWeightProperty, FontWeights.Medium);
         pToken.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
 

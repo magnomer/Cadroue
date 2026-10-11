@@ -3,8 +3,6 @@ using System.Linq;
 using System.Text;
 
 using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.Media;
 
 namespace Cadroue.ShellEngine;
 
@@ -36,8 +34,8 @@ public static class LFlawScanner
             TimeSpan lFlawDuration;
             try
             {
-                lFlawDuration = (await LMedia.LMediaFfprobeRead(lFlawSource, lFlawToken).ConfigureAwait(false))
-                    .LMediaInfoDuration;
+                lFlawDuration = (await LMediaEngine.LMediaProbeSeam(lFlawSource, lFlawToken, null)
+                    .ConfigureAwait(false)).LMediaInfoDuration;
             }
             catch (Exception lFlawDurationException) when (
                 lFlawDurationException is InvalidOperationException
@@ -53,7 +51,7 @@ public static class LFlawScanner
                 double lFlawEnd = (double)++lFlawStageIndex / lFlawStageCount;
                 bool lFlawFfmpeg = string.Equals(
                     lFlawProgram,
-                    LTool.LToolFfmpegRead(),
+                    LToolEngine.LToolFfmpegSeam(),
                     StringComparison.OrdinalIgnoreCase);
                 LFlawOutput lFlawResult = await LFlawRunRead(
                     lFlawProgram,
@@ -69,49 +67,49 @@ public static class LFlawScanner
             }
 
             (_, string lFlawProbeError) = await LFlawStageRun(
-                LTool.LToolFfprobeRead(),
+                LToolEngine.LToolFfprobeSeam(),
                 $"-hide_banner -v error -show_error -show_format -i {LEncode.LEncodeFormat(lFlawSource)}");
             (_, string lFlawCopyError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
             (_, string lFlawTransportError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v warning -i {LEncode.LEncodeFormat(lFlawSource)} -map 0 -c copy -f null -");
             (string lFlawMetaReport, _) = await LFlawStageRun(
-                LTool.LToolFfprobeRead(),
+                LToolEngine.LToolFfprobeSeam(),
                 "-hide_banner -v error -show_streams -show_format -count_packets " +
                 $"-i {LEncode.LEncodeFormat(lFlawSource)}");
             (_, string lFlawIgnidxError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -fflags +ignidx -i {LEncode.LEncodeFormat(lFlawSource)} " +
                 "-map 0 -c copy -f null -");
             (_, string lFlawSeekError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -sseof -1 -i {LEncode.LEncodeFormat(lFlawSource)} " +
                 "-map 0 -c copy -f null -");
             (_, string lFlawDecodeError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} -an -map 0:v? -f null -");
             (string lFlawPacketReport, _) = await LFlawStageRun(
-                LTool.LToolFfprobeRead(),
+                LToolEngine.LToolFfprobeSeam(),
                 "-hide_banner -v error -show_packets -show_entries packet=stream_index,pts,dts,duration " +
                 $"-i {LEncode.LEncodeFormat(lFlawSource)}");
             (string lFlawChapterReport, _) = await LFlawStageRun(
-                LTool.LToolFfprobeRead(),
+                LToolEngine.LToolFfprobeSeam(),
                 $"-hide_banner -v error -show_chapters -i {LEncode.LEncodeFormat(lFlawSource)}");
             (_, string lFlawSecondaryError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -i {LEncode.LEncodeFormat(lFlawSource)} " +
                 "-map 0:s? -map 0:d? -c copy -f null -");
             (_, string lFlawCodedError) = await LFlawStageRun(
-                LTool.LToolFfmpegRead(),
+                LToolEngine.LToolFfmpegSeam(),
                 $"-hide_banner -nostdin -v error -err_detect +explode -i {LEncode.LEncodeFormat(lFlawSource)} " +
                 "-an -map 0:v? -f null -");
             string lFlawCrcError = string.Empty;
             if (LFlawFfvone.LFlawFfvoneCheck(lFlawMetaReport))
             {
                 (_, lFlawCrcError) = await LFlawStageRun(
-                    LTool.LToolFfmpegRead(),
+                    LToolEngine.LToolFfmpegSeam(),
                     $"-hide_banner -nostdin -v error -err_detect +crccheck -i {LEncode.LEncodeFormat(lFlawSource)} " +
                     "-an -map 0:v? -f null -");
             }
@@ -253,11 +251,15 @@ public static class LFlawScanner
     {
         bool lFlawProgressEnabled = lFlawFfmpeg && lFlawProgress is not null && lFlawDuration > TimeSpan.Zero;
         var lFlawOutput = new StringBuilder();
-        var lFlawEmployer = new LEmployer(lFlawProgram);
-        LEmployerResult lFlawResult = await lFlawEmployer.LEmployerRun(
+        LEmployerResult lFlawResult = await LEmployerEngine.LEmployerRunSeam(
+            lFlawProgram,
+            string.Empty,
+            null,
+            null,
+            null,
             lFlawProgressEnabled ? "-progress pipe:1 -nostats " + lFlawArguments : lFlawArguments,
             lFlawToken,
-            _ => { },
+            null,
             lFlawLine =>
             {
                 lFlawOutput.AppendLine(lFlawLine);
@@ -294,6 +296,4 @@ public static class LFlawScanner
         double lFlawFraction = lFlawMicroseconds / 1_000_000d / lFlawDuration.TotalSeconds;
         lFlawProgress.Report(lFlawStart + (lFlawEnd - lFlawStart) * Math.Clamp(lFlawFraction, 0, 1));
     }
-
-    public static void LFlawCheckupAttach() => LCheckup.LCheckupScannerSeam = LFlawScanRun;
 }

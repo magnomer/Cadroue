@@ -26,6 +26,6 @@ internal static class TAuditCharterSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditCharterCeiling = new Dictionary<string, int>
     {
-        ["Piggybacking"] = 0,
+        ["Piggybacking"] = 2,
     };
 }

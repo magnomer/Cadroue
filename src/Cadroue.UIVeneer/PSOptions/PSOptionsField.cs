@@ -2,8 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSOptions
@@ -37,7 +35,7 @@ internal sealed partial class PSOptions
     {
         var pValueText = new TextBlock
         {
-            Foreground = PSFieldText,
+            Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(12, 0, 0, 0),
             MinWidth = 48,
@@ -52,7 +50,7 @@ internal sealed partial class PSOptions
         };
         pRow.Children.Add(pSlider);
         pRow.Children.Add(pValueText);
-        return PSFieldBuild(pLabel, pRow);
+        return PSField.PSFieldBuild(pLabel, pRow);
     }
 
     private static string PSOptionsNumberFormat(double pValue) => $"{Math.Round(pValue):0}";

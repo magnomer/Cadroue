@@ -1,5 +1,6 @@
 using Cadroue.Infrastructure;
 using Cadroue.Application;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
@@ -8,8 +9,8 @@ public sealed record LSAboutCredit(string LSAboutCreditName, string LSAboutCredi
 public sealed class LSAbout
 {
     public const string LSAboutProjectUrl = "https://github.com/magnomer/Cadroue";
-    public const string LSAboutNoticeName = "THIRD-PARTY-NOTICES.md";
 
+    private const string LSAboutNoticeName = "THIRD-PARTY-NOTICES.md";
     private const int LSAboutTapTarget = 10;
     private const double LSAboutTapWindow = 1.5;
 
@@ -22,8 +23,16 @@ public sealed class LSAbout
         new("SharpVectors", "https://github.com/ElinamLLC/SharpVectors")
     ];
 
+    private readonly CUsher lsAboutUsher;
     private int lsAboutTapCount;
     private DateTime lsAboutTapLast;
+
+    public LSAbout(LStrip lStrip)
+    {
+        lsAboutUsher = lStrip.LStripUsher;
+    }
+
+    public event Action<string, string>? LSAboutErrorShown;
 
     public static IReadOnlyList<LSAboutCredit> LSAboutCredits => lsAboutCredits;
 
@@ -46,4 +55,19 @@ public sealed class LSAbout
     }
 
     public static string LSAboutVersionRead() => LTraceLog.LTraceVersionRead();
+
+    private string LSAboutNoticePath => lsAboutUsher.CUsherProgramResolve(LSAboutNoticeName);
+
+    public void LSAboutNoticeOpen() =>
+        LSAboutErrorRaise(LSAboutNoticePath, lsAboutUsher.CUsherLinkOpen(LSAboutNoticePath, "Notice"));
+
+    public void LSAboutLinkOpen(string lUrl) => LSAboutErrorRaise(lUrl, lsAboutUsher.CUsherLinkOpen(lUrl, "Link"));
+
+    private void LSAboutErrorRaise(string lResource, string? lDetail)
+    {
+        if (lDetail is not null)
+        {
+            LSAboutErrorShown?.Invoke(lResource, lDetail);
+        }
+    }
 }

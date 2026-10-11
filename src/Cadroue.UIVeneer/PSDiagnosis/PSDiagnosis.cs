@@ -6,9 +6,6 @@ using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSFooter;
-
 namespace Cadroue.UIVeneer;
 
 internal sealed partial class PSDiagnosis : Window
@@ -87,7 +84,7 @@ internal sealed partial class PSDiagnosis : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Diagnosis.Button.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Diagnosis.Button.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);

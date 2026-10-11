@@ -1,14 +1,12 @@
 using System;
 using System.Threading.Tasks;
 
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
 public sealed record LRendererFacts(
-    string LRendererReason,
     string LRendererProcessorSetting,
     string LRendererAcceleration,
     bool LRendererFilterSynced)
@@ -20,12 +18,35 @@ public sealed record LRendererFacts(
     public string? LRendererColorRange { get; init; }
     public string? LRendererColorSpace { get; init; }
     public double? LRendererContrast { get; init; }
-    public string? LRendererConfig { get; init; }
 }
 
 public static class LRenderer
 {
-    public static void LRendererFactsRecord(LRendererFacts lFacts, double? lMilliseconds = null)
+    public static void LRendererFactsRecord(string lReason, LRendererFacts lFacts, double? lMilliseconds = null) =>
+        LRendererFactsRecord(lReason, lFacts, null, lMilliseconds);
+
+    public static void LRendererSetupRecord(
+        LRendererFacts lFacts,
+        double lOutputFps,
+        int lDecoderThreads,
+        int lVideoFrames,
+        bool lScreenClear,
+        bool lSwsForced,
+        double lMilliseconds) =>
+        LRendererFactsRecord(
+            "Player created",
+            lFacts,
+            string.Join(
+                ", ",
+                $"max output {lOutputFps}fps",
+                $"decoder threads {lDecoderThreads}",
+                $"max video frames {lVideoFrames}",
+                $"clear screen {lScreenClear}",
+                $"sws forced {lSwsForced}"),
+            lMilliseconds);
+
+    private static void LRendererFactsRecord(
+        string lReason, LRendererFacts lFacts, string? lConfig, double? lMilliseconds)
     {
         if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
         {
@@ -45,7 +66,7 @@ public static class LRenderer
         };
         LTrace.LTraceRecord(
             LTraceKind.LTraceUi,
-            lFacts.LRendererReason,
+            lReason,
             $"verdict {lVerdict}\n"
             + $"acceleration requested {lFacts.LRendererAcceleration}, "
             + $"processor requested {lFacts.LRendererProcessorSetting}, "
@@ -55,17 +76,23 @@ public static class LRenderer
             + $"color range {lFacts.LRendererColorRange ?? "unknown"}, "
             + $"color space {lFacts.LRendererColorSpace ?? "unknown"}\n"
             + $"sync vp filters {lFacts.LRendererFilterSynced}"
-            + (lFacts.LRendererConfig is null ? string.Empty : $"\n{lFacts.LRendererConfig}"),
+            + (lConfig is null ? string.Empty : $"\n{lConfig}"),
             lMilliseconds);
     }
+
+    public static Func<string> LRendererFolderSeam { get; set; } = () => string.Empty;
+
+    public static Func<string> LRendererEngineSeam { get; set; } = () => LRendererFlyleafToken;
+
+    public static Func<string, string> LRendererTextSeam { get; set; } = lRendererKey => lRendererKey;
 
     public static LRendererSettings LRendererSettingsCurrent { get; private set; } =
         LRendererSettings.LRendererDefaultCreate();
 
     public static string LRendererFolderCurrent =>
-        string.IsNullOrWhiteSpace(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder)
+        string.IsNullOrWhiteSpace(LRendererFolderSeam())
             ? LRendererSettingsCurrent.LRendererLibraryFolder ?? string.Empty
-            : LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+            : LRendererFolderSeam();
 
     public static string LRendererProgramCurrent =>
         LRendererLibrary.LRendererProgramRead(LRendererFolderCurrent);
@@ -74,7 +101,7 @@ public static class LRenderer
     private static bool lRendererMpvAvailable;
 
     public static string LRendererErrorResolve(string? lError) =>
-        lError ?? LLocalization.LLocalizationTextRead("Viewer.Error.FlyleafOpen");
+        lError ?? LRendererTextSeam("Viewer.Error.FlyleafOpen");
 
     public static void LRendererProcessorRecord(string lProcessorWas, string lReason)
     {
@@ -105,9 +132,9 @@ public static class LRenderer
 
     public static string LRendererFfmpegResolve(string lRendererDefaultPath)
     {
-        if (LRendererLibrary.LRendererFolderValidate(LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder))
+        if (LRendererLibrary.LRendererFolderValidate(LRendererFolderSeam()))
         {
-            return LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+            return LRendererFolderSeam();
         }
 
         if (LRendererLibrary.LRendererFolderValidate(LRendererSettingsCurrent.LRendererLibraryFolder))
@@ -207,7 +234,7 @@ public static class LRenderer
 
     private static LPreviewEngine LRendererPreferenceRead() =>
         string.Equals(
-            LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine,
+            LRendererEngineSeam(),
             LRendererMpvToken,
             StringComparison.Ordinal)
             ? LPreviewEngine.LPreviewEngineMpv

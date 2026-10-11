@@ -43,6 +43,7 @@ internal static class TAuditNameRegistry
         "Checkup",
         "Chord",
         "Chrome",
+        "Chronometer",
         "Circle",
         "Classifier",
         "Clinic",

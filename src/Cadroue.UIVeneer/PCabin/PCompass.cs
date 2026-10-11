@@ -92,7 +92,7 @@ public sealed class PCompass : UserControl
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle();
         pViewer.LViewer.LViewerVolumeChanged += PCompassValueHandle;
         pViewer.LViewer.LViewerPlayingChanged += PCompassPlayingApply;
-        pFlow.LFlow.LFlowEditChanged += PCompassEditApply;
+        pFlow.LFlow.QFlowEdit.LFlowEditChanged += PCompassEditApply;
         pFlow.LFlow.LFlowWaveformChanged += PCompassWaveformApply;
         PCompassEditApply(LCompass.LCompassEditActive);
         PCompassValueHandle(LCompass.LCompassVolume);

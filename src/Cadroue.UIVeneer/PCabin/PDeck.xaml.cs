@@ -24,7 +24,7 @@ public partial class PDeck : UserControl
         pStrip = pStripOwner;
         lDeck = new LDeck(pStripOwner.LStrip);
         pStripOwner.LStrip.LStripTabAdded += PDeckAddHandle;
-        pStripOwner.LStrip.LStripTabClosed += PDeckCloseHandle;
+        pStripOwner.LStrip.QStripClosure.LStripTabClosed += PDeckCloseHandle;
         lDeck.LDeckHidden += PDeckHideHandle;
         lDeck.LDeckRevealed += PDeckShowHandle;
         lDeck.LDeckEmptyChanged += PDeckNoticeApply;
@@ -34,7 +34,7 @@ public partial class PDeck : UserControl
     private void PDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
         pStrip.LStrip.LStripTabAdded -= PDeckAddHandle;
-        pStrip.LStrip.LStripTabClosed -= PDeckCloseHandle;
+        pStrip.LStrip.QStripClosure.LStripTabClosed -= PDeckCloseHandle;
         lDeck.LDeckHidden -= PDeckHideHandle;
         lDeck.LDeckRevealed -= PDeckShowHandle;
         lDeck.LDeckEmptyChanged -= PDeckNoticeApply;

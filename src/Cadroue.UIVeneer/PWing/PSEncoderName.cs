@@ -6,11 +6,6 @@ using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 
-using static Cadroue.UIVeneer.PSField;
-using static Cadroue.UIVeneer.PSCombo;
-using static Cadroue.UIVeneer.PSInline;
-using static Cadroue.UIVeneer.PSPlate;
-
 namespace Cadroue.UIVeneer.PWing;
 
 internal sealed partial class PSEncoder
@@ -18,7 +13,7 @@ internal sealed partial class PSEncoder
     private void PSNameBoxPrepare()
     {
         psNameBox.MinWidth = 320;
-        psNameBox.Height = PSFieldControlHeight;
+        psNameBox.Height = PSField.PSFieldControlHeight;
         psNameBox.HorizontalAlignment = HorizontalAlignment.Stretch;
     }
 
@@ -27,7 +22,8 @@ internal sealed partial class PSEncoder
         var pGrid = new Grid { Margin = new Thickness(0, 8, 0, 9) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.Children.Add(PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Elements")));
+        pGrid.Children.Add(
+            PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Elements")));
 
         var pPanel = new WrapPanel();
         pPanel.Children.Add(
@@ -94,7 +90,7 @@ internal sealed partial class PSEncoder
         };
         var pBorder = new Border
         {
-            MinHeight = PSFieldChipHeight,
+            MinHeight = PSField.PSFieldChipHeight,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
@@ -182,7 +178,7 @@ internal sealed partial class PSEncoder
 
         var pBorder = new Border
         {
-            MinHeight = PSFieldChipHeight,
+            MinHeight = PSField.PSFieldChipHeight,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
             Background = Brushes.White,

@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.ShellEngine;
 
@@ -40,11 +39,11 @@ public static partial class LMessenger
         IReadOnlyList<LWorkItem> lMessengerItems =
             Cadroue.Application.LFix.LFixItemsCreate(
                 lMessengerPriority, lMessengerDescription, lMessengerTab,
-                lMessengerMessage => LTraceLog.LTraceErrorRecord(lMessengerMessage),
+                lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
                 Cadroue.Application.LLibrarian.LLibrarianDurationRead);
 
         int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LTraceLog.LTraceInfoRecord(
+        LTraceEngine.LTraceInfoSeam(
             $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"{lMessengerSourcePaths.Length} listed file(s)");
 
