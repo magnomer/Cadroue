@@ -13,78 +13,78 @@ public sealed class TCropAnchor
     [InlineData(1, 1, -1, -1, -1)]
     public void Grip_DrivesFromEdge_AnchorsOpposite(int edgeX, int edgeY, int drive, int anchorX, int anchorY)
     {
-        LCrop crop = TInterfaceCrop.TCropCreate();
+        QCrop crop = TInterfaceCrop.TCropCreate();
 
         TInterfaceCrop.TCropGripSet(crop, edgeX, edgeY);
 
-        Assert.Equal(edgeX, crop.LCropEdgeX);
-        Assert.Equal(edgeY, crop.LCropEdgeY);
-        Assert.Equal(drive, crop.LCropDrive);
-        Assert.Equal(anchorX, crop.LCropAnchorX);
-        Assert.Equal(anchorY, crop.LCropAnchorY);
+        Assert.Equal(edgeX, crop.QCropEdgeX);
+        Assert.Equal(edgeY, crop.QCropEdgeY);
+        Assert.Equal(drive, crop.QCropDrive);
+        Assert.Equal(anchorX, crop.QCropAnchorX);
+        Assert.Equal(anchorY, crop.QCropAnchorY);
         Assert.False(TInterfaceCrop.TCropMoveCheck(crop));
     }
 
     [Fact]
     public void Body_ClearsEdges_MovesWholeBox()
     {
-        LCrop crop = TInterfaceCrop.TCropCreate();
+        QCrop crop = TInterfaceCrop.TCropCreate();
         TInterfaceCrop.TCropGripSet(crop, 1, 0);
 
         TInterfaceCrop.TCropBodySet(crop);
 
         Assert.True(TInterfaceCrop.TCropMoveCheck(crop));
-        Assert.Equal(-1, crop.LCropDrive);
-        Assert.Equal(-1, crop.LCropAnchorX);
-        Assert.Equal(-1, crop.LCropAnchorY);
+        Assert.Equal(-1, crop.QCropDrive);
+        Assert.Equal(-1, crop.QCropAnchorX);
+        Assert.Equal(-1, crop.QCropAnchorY);
     }
 
     [Fact]
     public void Draw_ResetsAnchor_KeepsEdges()
     {
-        LCrop crop = TInterfaceCrop.TCropCreate();
+        QCrop crop = TInterfaceCrop.TCropCreate();
         TInterfaceCrop.TCropGripSet(crop, 0, 1);
 
         TInterfaceCrop.TCropDrawSet(crop);
 
-        Assert.Equal(0, crop.LCropEdgeX);
-        Assert.Equal(1, crop.LCropEdgeY);
-        Assert.Equal(-1, crop.LCropDrive);
-        Assert.Equal(-1, crop.LCropAnchorX);
+        Assert.Equal(0, crop.QCropEdgeX);
+        Assert.Equal(1, crop.QCropEdgeY);
+        Assert.Equal(-1, crop.QCropDrive);
+        Assert.Equal(-1, crop.QCropAnchorX);
     }
 
     [Fact]
     public void Ratio_InvalidBecomesFree()
     {
-        LCrop crop = TInterfaceCrop.TCropCreate();
+        QCrop crop = TInterfaceCrop.TCropCreate();
 
         TInterfaceCrop.TCropRatioSet(crop, 16, 9);
-        Assert.Equal(16, crop.LCropRatioWidth);
-        Assert.Equal(9, crop.LCropRatioHeight);
+        Assert.Equal(16, crop.QCropRatioWidth);
+        Assert.Equal(9, crop.QCropRatioHeight);
 
         TInterfaceCrop.TCropRatioSet(crop, 16, 0);
-        Assert.Equal(0, crop.LCropRatioWidth);
-        Assert.Equal(0, crop.LCropRatioHeight);
+        Assert.Equal(0, crop.QCropRatioWidth);
+        Assert.Equal(0, crop.QCropRatioHeight);
     }
 
     [Fact]
     public void Lock_DefaultsOpen_ActiveDefaultsOn()
     {
-        LCrop crop = TInterfaceCrop.TCropCreate();
+        QCrop crop = TInterfaceCrop.TCropCreate();
 
-        Assert.True(crop.LCropActive);
-        Assert.False(crop.LCropLocked);
-        Assert.False(crop.LCropPersistent);
+        Assert.True(crop.QCropActive);
+        Assert.False(crop.QCropLocked);
+        Assert.False(crop.QCropPersistent);
 
         TInterfaceCrop.TCropLockSet(crop, true);
 
-        Assert.True(crop.LCropLocked);
+        Assert.True(crop.QCropLocked);
     }
 
     [Fact]
     public void Loupe_PlayingClearsEnded_ResumeNeedsBoth()
     {
-        LSLoupe loupe = TInterface.TLoupeCreate();
+        QSLoupe loupe = TInterface.TLoupeCreate();
         List<bool> notices = [];
         TInterface.TLoupePlayingAttach(loupe, notices.Add);
 
@@ -93,16 +93,16 @@ public sealed class TCropAnchor
         TInterface.TLoupePlayingSet(loupe, false);
 
         Assert.False(TInterface.TLoupeResumeCheck(loupe));
-        Assert.True(loupe.LSLoupeEnded);
+        Assert.True(loupe.QSLoupeEnded);
 
         TInterface.TLoupePlayingSet(loupe, true);
 
-        Assert.False(loupe.LSLoupeEnded);
+        Assert.False(loupe.QSLoupeEnded);
         Assert.True(TInterface.TLoupeResumeCheck(loupe));
         Assert.Equal([true, false, true], notices);
 
         TInterface.TLoupeClose(loupe);
 
-        Assert.True(loupe.LSLoupeClosed);
+        Assert.True(loupe.QSLoupeClosed);
     }
 }

@@ -16,38 +16,38 @@ public sealed class PFixTab : PTabSurface
     private readonly PProcessing pProcessing;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFixTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFixTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LFixTab = lWorkspace.QWorkspaceMode.LFixTabCreate();
-        pClinic = new PClinic(LFixTab.LFixClinic);
-        pProcessing = new PProcessing(LFixTab.LFixProcessing);
-        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QFixTab = lWorkspace.QWorkspaceMode.QFixTabCreate();
+        pClinic = new PClinic(QFixTab.QFixClinic);
+        pProcessing = new PProcessing(QFixTab.QFixProcessing);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
-        LFixTab.LFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        QFixTab.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;
-        pClinic.PClinicDiagnosisExecuted += LFixTab.LFixDiagnosisRun;
-        LFixTab.LFixCheckup.LCheckupReady += PFixCheckupHandle;
-        LFixTab.LFixCheckup.LCheckupProgress += PFixProgressHandle;
-        LFixTab.LFixPresetMissing += PExport.PExportMissingShow;
+        pClinic.PClinicDiagnosisExecuted += QFixTab.QFixDiagnosisRun;
+        QFixTab.QFixCheckup.LCheckupReady += PFixCheckupHandle;
+        QFixTab.QFixCheckup.LCheckupProgress += PFixProgressHandle;
+        QFixTab.QFixPresetMissing += PExport.PExportMissingShow;
 
-        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
+        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
-        LFixTab.LFixLayoutApply(lPreferenceTabLayout);
+        QFixTab.QFixLayoutApply(lPreferenceTabLayout);
     }
 
-    public LFixTab LFixTab { get; }
+    public QFixTab QFixTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 
@@ -58,16 +58,16 @@ public sealed class PFixTab : PTabSurface
     public override void PTabClose()
     {
         base.PTabClose();
-        LFixTab.LFixCheckup.LCheckupReady -= PFixCheckupHandle;
-        LFixTab.LFixCheckup.LCheckupProgress -= PFixProgressHandle;
-        LFixTab.LFixClose();
+        QFixTab.QFixCheckup.LCheckupReady -= PFixCheckupHandle;
+        QFixTab.QFixCheckup.LCheckupProgress -= PFixProgressHandle;
+        QFixTab.QFixClose();
     }
 
-    public override LSceneTabEntry PTabLayoutRead() => LFixTab.LFixLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => QFixTab.QFixLayoutRead(PTabLayoutCreate());
 
     private void PFixCheckupHandle(LCheckupResult lResult) =>
-        Dispatcher.BeginInvoke(() => LFixTab.LFixCheckupHandle(lResult));
+        Dispatcher.BeginInvoke(() => QFixTab.QFixCheckupHandle(lResult));
 
     private void PFixProgressHandle(string lPath, double lProgress) =>
-        Dispatcher.BeginInvoke(() => LFixTab.LFixProgressHandle(lPath, lProgress));
+        Dispatcher.BeginInvoke(() => QFixTab.QFixProgressHandle(lPath, lProgress));
 }

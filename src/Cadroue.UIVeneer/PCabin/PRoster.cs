@@ -22,23 +22,23 @@ public sealed class PRoster : UserControl
     private readonly CheckBox pRosterCompletedBox;
     private readonly DispatcherTimer pRosterElapsedTimer = new() { Interval = TimeSpan.FromSeconds(1) };
 
-    public LRoster LRoster { get; }
+    public QRoster QRoster { get; }
 
-    public PRoster(LRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PRoster(QRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        LRoster = lRoster;
+        QRoster = lRoster;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
-        pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(LRoster, lEntry, pRosterMenu))
+        pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
         {
-            ItemsSource = LRoster.LRosterEntries
+            ItemsSource = QRoster.QRosterEntries
         };
         pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterSharedBox = PRosterOptionBuild(
-            LLocalization.LLocalizationTextRead("Roster.Queue.Shared"), LRoster.LRosterShared, 0);
+            LLocalization.LLocalizationTextRead("Roster.Queue.Shared"), QRoster.QRosterShared, 0);
         pRosterCompletedBox = PRosterOptionBuild(
-            LLocalization.LLocalizationTextRead("Roster.Queue.CollapseCompleted"), LRoster.LRosterCollapseDone, 18);
+            LLocalization.LLocalizationTextRead("Roster.Queue.CollapseCompleted"), QRoster.QRosterCollapseDone, 18);
         pRosterLayout = PRosterBuild(lPreferenceTabLayout);
         Content = new Grid { Margin = new Thickness(8, 8, 8, 8), Children = { pRosterBody } };
 
@@ -46,44 +46,44 @@ public sealed class PRoster : UserControl
         pRosterSharedBox.Unchecked += PRosterSharedHandle;
         pRosterCompletedBox.Checked += PRosterCompletedHandle;
         pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
-        LRoster.LRosterDetailApplied += PRosterDetailUpdate;
-        LRoster.QRosterDetail.LRosterDetailDeferred += PRosterDetailDefer;
-        LRoster.LRosterWarningShown += PRosterWarningShow;
+        QRoster.QRosterDetailApplied += PRosterDetailUpdate;
+        QRoster.QRosterDeferral.QRosterDeferralRaised += PRosterDetailDefer;
+        QRoster.QRosterWarningShown += PRosterWarningShow;
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;
         pRosterElapsedTimer.Tick += PRosterElapsedTick;
         pRosterElapsedTimer.Start();
 
-        LRoster.LRosterRebuild();
+        QRoster.QRosterRebuild();
         PRosterDetailUpdate();
     }
 
-    public LSceneTabEntry PRosterLayoutRead() => LRoster.LRosterLayoutRead();
+    public LSceneTabEntry PRosterLayoutRead() => QRoster.QRosterLayoutRead();
 
-    public double PRosterWidthRead() => LRoster.LRosterWidthResolve(pRosterLayout.PColumnTotalRead());
+    public double PRosterWidthRead() => QRoster.QRosterWidthResolve(pRosterLayout.PColumnTotalRead());
 
     public void PRosterClose() => pRosterElapsedTimer.Stop();
 
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments) => PRosterClose();
 
-    private void PRosterElapsedTick(object? pSender, EventArgs pArguments) => LRoster.LRosterElapsedTick(IsVisible);
+    private void PRosterElapsedTick(object? pSender, EventArgs pArguments) => QRoster.QRosterElapsedTick(IsVisible);
 
     private void PRosterVisibleHandle(object pSender, DependencyPropertyChangedEventArgs pArguments)
     {
-        pRosterSharedBox.IsChecked = PLook.PLookChecked[LRoster.LRosterShared];
-        pRosterCompletedBox.IsChecked = PLook.PLookChecked[LRoster.LRosterCollapseDone];
+        pRosterSharedBox.IsChecked = PLook.PLookChecked[QRoster.QRosterShared];
+        pRosterCompletedBox.IsChecked = PLook.PLookChecked[QRoster.QRosterCollapseDone];
     }
 
     private void PRosterSharedHandle(object pSender, RoutedEventArgs pArguments) =>
-        LRoster.LRosterSharedSet(pRosterSharedBox.IsChecked);
+        QRoster.QRosterSharedSet(pRosterSharedBox.IsChecked);
 
     private void PRosterCompletedHandle(object pSender, RoutedEventArgs pArguments) =>
-        LRoster.LRosterDoneSet(pRosterCompletedBox.IsChecked);
+        QRoster.QRosterDoneSet(pRosterCompletedBox.IsChecked);
 
-    private void PRosterDetailUpdate() => PRosterDetail.PRosterDetailUpdate(pRosterDetailPanel, LRoster);
+    private void PRosterDetailUpdate() => PRosterDetail.PRosterDetailUpdate(pRosterDetailPanel, QRoster);
 
     private void PRosterDetailDefer() =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LRoster.QRosterDetail.LRosterDetailRun));
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(QRoster.QRosterDeferral.QRosterDeferralRun));
 
     private void PRosterWarningShow(string pTitle, string pMessage) =>
         PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
@@ -104,7 +104,7 @@ public sealed class PRoster : UserControl
         PColumn pLayout = PColumn.PColumnAttach(
             pRosterBody,
             new[] { pLeftColumn, pRightColumn },
-            LRoster.LRosterPlanCreate(
+            QRoster.QRosterPlanCreate(
                 [pLeftColumn.MinWidth, pRightColumn.MinWidth], lPreferenceTabLayout?.LScenePanelWidths));
         UIElement pSplitter = pLayout.PColumnSplitterBuild(0);
         Grid.SetColumn(pSplitter, 1);

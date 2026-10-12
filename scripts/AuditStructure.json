@@ -1,5 +1,5 @@
 {
-  "generation": 21,
+  "generation": 22,
   "project": "Cadroue",
   "helper": {
     "framework": "net10.0"
@@ -259,7 +259,7 @@
     "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 923,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Core": 314,
     "Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine": 6,
-    "Unsealing:Cadroue.UIDeportment>Cadroue.Application": 81,
+    "Unsealing:Cadroue.UIDeportment>Cadroue.Application": 82,
     "Unsealing:Cadroue.UIDeportment>Cadroue.Core": 229,
     "Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine": 11
   },
@@ -276,11 +276,9 @@
       "L"
     ]
   },
-  "unsealingPrefixes": {
-    "Cadroue.UIDeportment": [
-      "L"
-    ]
-  },
+  "unsealingRings": [
+    "Cadroue.UIDeportment"
+  ],
   "hollowingFloors": {
     "Cadroue.Application": 50
   },

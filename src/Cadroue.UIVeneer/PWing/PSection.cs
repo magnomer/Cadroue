@@ -27,14 +27,14 @@ public sealed class PSection : UserControl
     private readonly UIElement pSectionFullBody;
     private readonly UIElement pSectionStripBody;
 
-    public LSection LSection { get; }
+    public QSection QSection { get; }
 
-    public PSection(LSection lSection)
+    public PSection(QSection lSection)
     {
-        LSection = lSection;
+        QSection = lSection;
         pSectionCountLabel = new TextBlock
         {
-            Text = LSection.LSectionTitleRead(),
+            Text = QSection.QSectionTitleRead(),
             FontSize = 12,
             FontFamily = pSectionFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -59,7 +59,7 @@ public sealed class PSection : UserControl
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
         pSectionActionBar = PSectionActionBuild();
-        pSectionActionBar.IsEnabled = LSection.LSectionEditable;
+        pSectionActionBar.IsEnabled = QSection.QSectionEditable;
         DockPanel.SetDock(pSectionActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pSectionActionBar);
@@ -77,19 +77,19 @@ public sealed class PSection : UserControl
         PScrollbar.PScrollbarApply(this);
         Content = PPanel.PPanelBorderBuild(pBodyHost);
         PSectionRebuild();
-        LSection.LSectionChanged += PSectionRebuild;
-        LSection.LSectionSelectApplied += PSectionSelectApply;
-        LSection.LSectionEnabledApplied += PSectionEnabledApply;
-        LSection.LSectionMinimizeChanged += PSectionMinimizeHandle;
-        LSection.LSectionDrag.LSectionDragStarted += PSectionDragShow;
-        LSection.LSectionDrag.LSectionDragEnd += PSectionDragHide;
-        LSection.LSectionDrag.LSectionRowMoved += PSectionRowMove;
+        QSection.QSectionChanged += PSectionRebuild;
+        QSection.QSectionSelectApplied += PSectionSelectApply;
+        QSection.QSectionEnabledApplied += PSectionEnabledApply;
+        QSection.QSectionMinimizeChanged += PSectionMinimizeHandle;
+        QSection.QSectionDrag.QSectionDragStarted += PSectionDragShow;
+        QSection.QSectionDrag.QSectionDragEnd += PSectionDragHide;
+        QSection.QSectionDrag.QSectionRowMoved += PSectionRowMove;
     }
 
-    public bool PSectionMinimizedCheck() => LSection.LSectionMinimized;
+    public bool PSectionMinimizedCheck() => QSection.QSectionMinimized;
 
     public void PSectionMinimizeSet(bool pSectionMinimizeRequest) =>
-        LSection.LSectionMinimizedSet(pSectionMinimizeRequest);
+        QSection.QSectionMinimizedSet(pSectionMinimizeRequest);
 
     internal int PSectionIndexRead(PSectionRow pRow) => pSectionRowPanel.Children.IndexOf(pRow.PSectionRowBorder);
 
@@ -102,14 +102,14 @@ public sealed class PSection : UserControl
     private void PSectionRebuild()
     {
         pSectionRowPanel.Children.Clear();
-        pSectionCountLabel.Text = LSection.LSectionTitleRead();
-        LSection.LSectionRowsRead()
+        pSectionCountLabel.Text = QSection.QSectionTitleRead();
+        QSection.QSectionRowsRead()
             .Select(PSectionRowBuild)
             .ToList()
             .ForEach(pRow => pSectionRowPanel.Children.Add(pRow));
     }
 
-    private Border PSectionRowBuild(LSectionRow lRow) => new PSectionRow(this, lRow).PSectionRowBorder;
+    private Border PSectionRowBuild(QSectionRow lRow) => new PSectionRow(this, lRow).PSectionRowBorder;
 
     private List<PSectionRow> PSectionRowsRead() =>
         pSectionRowPanel.Children.OfType<Border>().Select(PSectionRowRead).ToList();
@@ -121,7 +121,7 @@ public sealed class PSection : UserControl
     private void PSectionSelectApply() => PSectionRowsRead().ForEach(PSectionSelectedApply);
 
     private void PSectionSelectedApply(PSectionRow pRow) =>
-        pRow.PSectionSelectedSet(LSection.LSectionSelectedCheck(PSectionIndexRead(pRow)));
+        pRow.PSectionSelectedSet(QSection.QSectionSelectedCheck(PSectionIndexRead(pRow)));
 
     private void PSectionEnabledApply(bool lEditable)
     {
@@ -139,7 +139,7 @@ public sealed class PSection : UserControl
     {
         Border pRow = PSectionRowRead(lIndex).PSectionRowBorder;
         pRow.Opacity = PSectionDragOpacity;
-        PGhost.PGhostShow(pRow, LSection.LSectionDrag.LSectionGhost);
+        PGhost.PGhostShow(pRow, QSection.QSectionDrag.QSectionGhost);
     }
 
     private void PSectionDragHide(int lIndex)
@@ -158,15 +158,15 @@ public sealed class PSection : UserControl
     }
 
     private void PSectionNumberApply(PSectionRow pRow) =>
-        pRow.PSectionNumberSet(LSection.LSectionNumberRead(PSectionIndexRead(pRow)));
+        pRow.PSectionNumberSet(QSection.QSectionNumberRead(PSectionIndexRead(pRow)));
 
     private Border? PSectionDragRead() =>
-        pSectionRowPanel.Children.OfType<Border>().ElementAtOrDefault(LSection.LSectionDrag.LSectionDragRead());
+        pSectionRowPanel.Children.OfType<Border>().ElementAtOrDefault(QSection.QSectionDrag.QSectionDragRead());
 
     private void PSectionMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         Point pCurrent = pEvent.GetPosition(pSectionRowPanel);
-        bool pHandled = LSection.LSectionDrag.LSectionMoveHandle(
+        bool pHandled = QSection.QSectionDrag.QSectionMoveHandle(
             pCurrent.X,
             pCurrent.Y,
             SystemParameters.MinimumHorizontalDragDistance,
@@ -185,14 +185,14 @@ public sealed class PSection : UserControl
 
     private void PSectionUpHandle(object pSender, MouseButtonEventArgs pEvent)
     {
-        bool pHandled = LSection.LSectionDrag.LSectionReleaseHandle(
+        bool pHandled = QSection.QSectionDrag.QSectionReleaseHandle(
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift), Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
         pSectionRowPanel.ReleaseMouseCapture();
         pEvent.Handled = pHandled;
     }
 
     private void PSectionLostHandle(object pSender, MouseEventArgs pEvent) =>
-        LSection.LSectionDrag.LSectionLostHandle();
+        QSection.QSectionDrag.QSectionLostHandle();
 
     private UIElement PSectionHeaderBuild()
     {
@@ -240,12 +240,12 @@ public sealed class PSection : UserControl
         pActionLeft.Children.Add(PSectionButtonBuild(
             "/PAsset/PPanel/PSort.svg",
             LLocalization.LLocalizationTextRead("Section.Sort.Tooltip"),
-            (_, _) => LSection.LSectionSortRun()));
+            (_, _) => QSection.QSectionSortRun()));
 
         Button pSectionRemoveAllButton = PSectionButtonBuild(
             "/PAsset/PPanel/PListRemoveAll.svg",
             LLocalization.LLocalizationTextRead("Section.RemoveAll.Tooltip"),
-            (_, _) => LSection.LSectionClearRun());
+            (_, _) => QSection.QSectionClearRun());
         pSectionRemoveAllButton.Margin = new Thickness(PSectionActionGap, 0, 0, 0);
         var pActionRight = new StackPanel
         {
@@ -255,7 +255,7 @@ public sealed class PSection : UserControl
         pActionRight.Children.Add(PSectionButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("Section.Delete.Tooltip"),
-            (_, _) => LSection.LSectionDeleteRun()));
+            (_, _) => QSection.QSectionDeleteRun()));
         pActionRight.Children.Add(pSectionRemoveAllButton);
 
         var pActionPanel = new Grid { Margin = new Thickness(10, 4, 10, 4) };

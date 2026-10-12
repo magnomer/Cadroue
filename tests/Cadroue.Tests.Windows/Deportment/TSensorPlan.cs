@@ -10,34 +10,34 @@ public sealed class TSensorPlan
     [Fact]
     public void Plans_CoverEveryKindButBlank_WithRowsAndGroups()
     {
-        LSensor sensor = TInterface.TSensorCreate();
-        IReadOnlyList<LSensorPlan> plans = TInterface.TSensorPlansRead(sensor);
+        QSensor sensor = TInterface.TSensorCreate();
+        IReadOnlyList<QSensorPlan> plans = TInterface.TSensorPlansRead(sensor);
 
         Assert.Equal(5, plans.Count);
-        Assert.DoesNotContain(plans, plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindBlank);
-        LSensorPlan luminance = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindLuminance);
-        Assert.Equal(3, luminance.LSensorPlanRows.Count);
-        Assert.True(luminance.LSensorPlanSpeed.LSensorGroupShown);
-        Assert.False(luminance.LSensorPlanMode.LSensorGroupShown);
-        Assert.Equal(3, luminance.LSensorPlanSpeed.LSensorGroupNames.Count);
-        LSensorPlan scene = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindScene);
-        Assert.Equal(2, scene.LSensorPlanRows.Count);
-        Assert.True(scene.LSensorPlanPreset);
-        LSensorPlan still = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindStill);
-        Assert.True(still.LSensorPlanMode.LSensorGroupShown);
-        LSensorPlan volume = plans.Single(plan => plan.LSensorPlanKind == LDetectorKind.LDetectorKindVolume);
-        Assert.True(volume.LSensorPlanMetric.LSensorGroupShown);
+        Assert.DoesNotContain(plans, plan => plan.QSensorPlanKind == LDetectorKind.LDetectorKindBlank);
+        QSensorPlan luminance = plans.Single(plan => plan.QSensorPlanKind == LDetectorKind.LDetectorKindLuminance);
+        Assert.Equal(3, luminance.QSensorPlanRows.Count);
+        Assert.True(luminance.QSensorPlanSpeed.QSensorGroupShown);
+        Assert.False(luminance.QSensorPlanMode.QSensorGroupShown);
+        Assert.Equal(3, luminance.QSensorPlanSpeed.QSensorGroupNames.Count);
+        QSensorPlan scene = plans.Single(plan => plan.QSensorPlanKind == LDetectorKind.LDetectorKindScene);
+        Assert.Equal(2, scene.QSensorPlanRows.Count);
+        Assert.True(scene.QSensorPlanPreset);
+        QSensorPlan still = plans.Single(plan => plan.QSensorPlanKind == LDetectorKind.LDetectorKindStill);
+        Assert.True(still.QSensorPlanMode.QSensorGroupShown);
+        QSensorPlan volume = plans.Single(plan => plan.QSensorPlanKind == LDetectorKind.LDetectorKindVolume);
+        Assert.True(volume.QSensorPlanMetric.QSensorGroupShown);
     }
 
     [Fact]
     public void ValueSet_ByRow_RoundTripsThroughStep()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
         const LDetectorKind kind = LDetectorKind.LDetectorKindLuminance;
 
-        TInterface.TSensorValueSet(sensor, kind, LSensorPlan.LSensorPlanThreshold, 33);
-        TInterface.TSensorValueSet(sensor, kind, LSensorPlan.LSensorPlanWindow, 2);
-        TInterface.TSensorValueSet(sensor, kind, LSensorPlan.LSensorPlanMinimum, 4);
+        TInterface.TSensorValueSet(sensor, kind, QSensorPlan.QSensorPlanThreshold, 33);
+        TInterface.TSensorValueSet(sensor, kind, QSensorPlan.QSensorPlanWindow, 2);
+        TInterface.TSensorValueSet(sensor, kind, QSensorPlan.QSensorPlanMinimum, 4);
 
         LDetectorStep step = TInterface.TSensorStepRead(sensor, kind);
         Assert.Equal(step.LDetectorStepThreshold, TInterface.TSensorValueRead(sensor, kind, 0));
@@ -52,21 +52,21 @@ public sealed class TSensorPlan
     [Fact]
     public void RadioSelects_MapIndexToMode_IgnoreOutOfRange()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
 
         TInterface.TSensorModeSelect(sensor, 1);
-        Assert.Equal(LDetectorStillMode.LDetectorStillTreat, sensor.LSensorMode);
-        Assert.Equal(1, sensor.LSensorModeIndex);
+        Assert.Equal(LDetectorStillMode.LDetectorStillTreat, sensor.QSensorMode);
+        Assert.Equal(1, sensor.QSensorModeIndex);
         TInterface.TSensorModeSelect(sensor, 7);
-        Assert.Equal(1, sensor.LSensorModeIndex);
+        Assert.Equal(1, sensor.QSensorModeIndex);
 
         TInterface.TSensorSpeedSelect(sensor, 0);
-        Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceFast, sensor.LSensorSpeed);
+        Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceFast, sensor.QSensorSpeed);
         TInterface.TSensorSpeedSelect(sensor, -1);
-        Assert.Equal(0, sensor.LSensorSpeedIndex);
+        Assert.Equal(0, sensor.QSensorSpeedIndex);
 
         TInterface.TSensorMetricSelect(sensor, 1);
-        Assert.Equal(LDetectorMetricMode.LDetectorMetricRms, sensor.LSensorMetric);
+        Assert.Equal(LDetectorMetricMode.LDetectorMetricRms, sensor.QSensorMetric);
         Assert.Equal("dB", TInterface.TSensorUnitRead(sensor, LDetectorKind.LDetectorKindVolume, 0));
         TInterface.TSensorMetricSelect(sensor, 0);
         Assert.Equal("LU", TInterface.TSensorUnitRead(sensor, LDetectorKind.LDetectorKindVolume, 0));
@@ -76,18 +76,18 @@ public sealed class TSensorPlan
     [Fact]
     public void Choice_IndexFollowsMatch_SelectAppliesPreset()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
         const LDetectorKind kind = LDetectorKind.LDetectorKindScene;
         IReadOnlyList<string> tokens = TInterface.TDetectorTokensRead(kind);
 
-        LInspectorChoice choice = TInterface.TSensorChoiceRead(sensor, kind);
-        Assert.Equal(tokens.Count + 1, choice.LInspectorChoiceNames.Count);
-        Assert.Equal(tokens.Count, choice.LInspectorChoiceCustom);
-        Assert.Equal(tokens.ToList().IndexOf(LDetector.LDetectorTokenDefault), choice.LInspectorChoiceIndex);
+        QInspectorChoice choice = TInterface.TSensorChoiceRead(sensor, kind);
+        Assert.Equal(tokens.Count + 1, choice.QInspectorChoiceNames.Count);
+        Assert.Equal(tokens.Count, choice.QInspectorChoiceCustom);
+        Assert.Equal(tokens.ToList().IndexOf(LDetector.LDetectorTokenDefault), choice.QInspectorChoiceIndex);
 
         TInterface.TSensorChoiceSelect(sensor, kind, 0);
         Assert.Equal(tokens[0], TInterface.TSensorTokenRead(sensor, kind));
-        Assert.Equal(0, TInterface.TSensorChoiceRead(sensor, kind).LInspectorChoiceIndex);
+        Assert.Equal(0, TInterface.TSensorChoiceRead(sensor, kind).QInspectorChoiceIndex);
 
         TInterface.TSensorChoiceSelect(sensor, kind, tokens.Count);
         Assert.Equal(tokens[0], TInterface.TSensorTokenRead(sensor, kind));
@@ -96,7 +96,7 @@ public sealed class TSensorPlan
     [Fact]
     public void RunHandle_RaisesRunWhenIdle_StopWhenRunning()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
         int runs = 0;
         int stops = 0;
         TInterface.TSensorRunAttach(sensor, () => runs++, () => stops++);
@@ -107,6 +107,6 @@ public sealed class TSensorPlan
 
         Assert.Equal(1, runs);
         Assert.Equal(1, stops);
-        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Detect.Stop"), sensor.LSensorRunText);
+        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Detect.Stop"), sensor.QSensorRunText);
     }
 }

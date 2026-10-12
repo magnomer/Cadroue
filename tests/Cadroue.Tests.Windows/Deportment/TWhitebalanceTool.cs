@@ -8,9 +8,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TWhitebalanceTool
 {
-    private static LWhitebalance TWhitebalanceCapableCreate()
+    private static QWhitebalance TWhitebalanceCapableCreate()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
         return whitebalance;
     }
@@ -18,7 +18,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Toggle_GreyThenWhite_OneArmedAtATime()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetGrey, true);
         Assert.True(TInterface.TWhitebalanceGreyRead(whitebalance));
@@ -32,7 +32,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Toggle_UncheckOfOtherTarget_Ignored()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetWhite, true);
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetGrey, false);
@@ -45,7 +45,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void ToolNotice_FiresOncePerChange_WithTarget()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
         var notices = new List<(bool, LNeutralTarget)>();
         TInterface.TWhitebalanceToolAttach(whitebalance, (armed, target) => notices.Add((armed, target)));
 
@@ -63,7 +63,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Guide_ArmedShowsGuide_DisarmedShowsStatus()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
         Assert.Equal(string.Empty, TInterface.TWhitebalanceGuideRead(whitebalance));
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetWhite, true);
@@ -77,24 +77,24 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Readout_EmptyUntilSampled_ThenBytesAndText()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
-        LWhitebalanceReadout before = TInterface.TWhitebalanceReadoutRead(whitebalance);
-        Assert.False(before.LWhitebalanceReadoutSampled);
-        Assert.Equal(string.Empty, before.LWhitebalanceReadoutText);
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalanceReadout before = TInterface.TWhitebalanceReadoutRead(whitebalance);
+        Assert.False(before.QWhitebalanceReadoutSampled);
+        Assert.Equal(string.Empty, before.QWhitebalanceReadoutText);
 
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(120, 128, 140, 1.1, 1, 0.9));
-        LWhitebalanceReadout after = TInterface.TWhitebalanceReadoutRead(whitebalance);
+        QWhitebalanceReadout after = TInterface.TWhitebalanceReadoutRead(whitebalance);
 
-        Assert.True(after.LWhitebalanceReadoutSampled);
-        Assert.Equal((byte)120, after.LWhitebalanceReadoutRed);
-        Assert.Equal((byte)140, after.LWhitebalanceReadoutBlue);
-        Assert.NotEqual(string.Empty, after.LWhitebalanceReadoutText);
+        Assert.True(after.QWhitebalanceReadoutSampled);
+        Assert.Equal((byte)120, after.QWhitebalanceReadoutRed);
+        Assert.Equal((byte)140, after.QWhitebalanceReadoutBlue);
+        Assert.NotEqual(string.Empty, after.QWhitebalanceReadoutText);
     }
 
     [Fact]
     public void MethodSelect_MapsIndex_IgnoresNegative()
     {
-        LWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
         Assert.Equal(2, TInterface.TWhitebalanceIndexRead(whitebalance));
 
         TInterface.TWhitebalanceMethodSelect(whitebalance, 0);

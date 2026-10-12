@@ -21,12 +21,12 @@ public sealed partial class PInspector
         pVolumeApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Volume.ApplyTooltip"));
-        PInspectorSwitchAttach(pVolumeApplyBox, LVolume.LVolumeActiveSet);
+        PInspectorSwitchAttach(pVolumeApplyBox, QVolume.QVolumeActiveSet);
 
         pInspectorVolumePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Volume.PersistentTooltip"));
-        PInspectorSwitchAttach(pInspectorVolumePersistent, LVolume.LVolumePersistentSet);
+        PInspectorSwitchAttach(pInspectorVolumePersistent, QVolume.QVolumePersistentSet);
 
         pInspectorVolumeSlider = new Slider
         {
@@ -45,8 +45,8 @@ public sealed partial class PInspector
             pInspectorVolumeValue,
             LWorkAudio.LWorkGainLeast,
             LWorkAudio.LWorkGainMost,
-            () => LVolume.LVolumeGain,
-            LVolume.LVolumeGainSet);
+            () => QVolume.QVolumeGain,
+            QVolume.QVolumeGainSet);
 
         var pGainRow = new Grid();
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -102,10 +102,10 @@ public sealed partial class PInspector
 
     private void PVolumeUpdate()
     {
-        PInspectorSwitchUpdate(pVolumeApplyBox, LVolume.LVolumeStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pInspectorVolumePersistent, LVolume.LVolumePersistent);
-        PInspectorValueUpdate(pInspectorVolumeSlider, pInspectorVolumeValue, LVolume.LVolumeGain, "0.#");
-        PInspectorSectionUpdate(pInspectorVolumeStack, LVolume.LVolumeStep.LWorkStepActive);
-        pInspectorVolumeWarn.Visibility = PLook.PLookVisible[LVolume.LVolumeClipShown];
+        PInspectorSwitchUpdate(pVolumeApplyBox, QVolume.QVolumeStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pInspectorVolumePersistent, QVolume.QVolumePersistent);
+        PInspectorValueUpdate(pInspectorVolumeSlider, pInspectorVolumeValue, QVolume.QVolumeGain, "0.#");
+        PInspectorSectionUpdate(pInspectorVolumeStack, QVolume.QVolumeStep.LWorkStepActive);
+        pInspectorVolumeWarn.Visibility = PLook.PLookVisible[QVolume.QVolumeClipShown];
     }
 }

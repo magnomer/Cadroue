@@ -27,24 +27,24 @@ internal sealed partial class PSOptions : Window
     private const string PSSheetTimelineIcon = "/PAsset/PTab/PSSheetTimeline.svg";
     private const string PSSheetWorkIcon = "/PAsset/PTab/PSSheetWork.svg";
 
-    private readonly LSOptions lsOptions;
-    private readonly LSSpectrum lsSpectrum;
+    private readonly QSOptions lsOptions;
+    private readonly QSSpectrum lsSpectrum;
     private readonly Action? psOptionsCallback;
 
-    private LPreferenceState lsOptionsDraft => lsOptions.LSOptionsDraft;
+    private LPreferenceState lsOptionsDraft => lsOptions.QSOptionsDraft;
     private readonly PSGrabber psOptionsGrabber;
 
-    internal static void PSOptionsShow(Window pOwner, LSOptions lsOptionsOwner, Action? pApplyCallback)
+    internal static void PSOptionsShow(Window pOwner, QSOptions lsOptionsOwner, Action? pApplyCallback)
     {
         var psOptions = new PSOptions(pOwner, lsOptionsOwner, pApplyCallback);
         psOptions.ShowDialog();
     }
 
-    private PSOptions(Window pOwner, LSOptions lsOptionsOwner, Action? pApplyCallback)
+    private PSOptions(Window pOwner, QSOptions lsOptionsOwner, Action? pApplyCallback)
     {
         lsOptions = lsOptionsOwner;
-        lsSpectrum = lsOptions.LSOptionsSpectrumCreate();
-        lsSpectrum.LSSpectrumChanged += PSSpectrumActiveApply;
+        lsSpectrum = lsOptions.QSOptionsSpectrumCreate();
+        lsSpectrum.QSSpectrumChanged += PSSpectrumActiveApply;
         psOptionsCallback = pApplyCallback;
 
         psOptionsStartupMode = PSField.PSModeBuild(
@@ -80,13 +80,13 @@ internal sealed partial class PSOptions : Window
         psOptionsLanguageCombo = PSCombo.PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
 
         psOptionsEngineMode = PSField.PSModeBuild(
-            lsOptions.LSOptionsEngineRead(),
+            lsOptions.QSOptionsEngineRead(),
             () => { },
             out psOptionsEngineEnable,
             PSOptionsEngineItems);
-        psOptionsEngineEnable("Mpv", lsOptions.LSOptionsMpvEnabled);
-        lsOptions.LSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
-        _ = lsOptions.LSOptionsMpvUpdate();
+        psOptionsEngineEnable("Mpv", lsOptions.QSOptionsMpvEnabled);
+        lsOptions.QSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
+        _ = lsOptions.QSOptionsMpvUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(
             LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"),
@@ -169,7 +169,7 @@ internal sealed partial class PSOptions : Window
         {
             if (psSheets.SelectedIndex >= 0)
             {
-                lsOptions.LSOptionsPageSelect((LSOptionsPage)psSheets.SelectedIndex);
+                lsOptions.QSOptionsPageSelect((QSOptionsPage)psSheets.SelectedIndex);
             }
         };
         return PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, psSheets);
@@ -222,7 +222,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceTimelineOrder = PSField.PSModeTextRead(psOptionsOrderMode);
         lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
         lsOptionsDraft.LPreferenceKeyframeDelay = psKeyframeDelaySlider.Value;
-        lsOptionsDraft.LPreferenceSectionPalette = lsSpectrum.LSSpectrumName;
+        lsOptionsDraft.LPreferenceSectionPalette = lsSpectrum.QSSpectrumName;
         lsOptionsDraft.LPreferenceOverlapAllowed = psOptionsOverlapBox.IsChecked == true;
         lsOptionsDraft.LPreferenceWaveform = psWaveformBox.IsChecked == true;
 
@@ -236,7 +236,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceWorkspaceFolder = PSOptionsWorkspaceResolve(psWorkspaceBox.Text);
         lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
 
-        bool psOptionsSaved = lsOptions.LSOptionsApply();
+        bool psOptionsSaved = lsOptions.QSOptionsApply();
         psOptionsCallback?.Invoke();
         PSSystemMaintenanceUpdate();
         psOptionsRecordNotice?.Invoke();
@@ -249,7 +249,7 @@ internal sealed partial class PSOptions : Window
             return;
         }
 
-        if (lsOptions.LSOptionsRestartCheck())
+        if (lsOptions.QSOptionsRestartCheck())
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,
@@ -260,7 +260,7 @@ internal sealed partial class PSOptions : Window
 
     private string PSOptionsWorkspaceResolve(string psWorkspaceFolder)
     {
-        string psWorkspaceKept = LSOptions.LSOptionsWorkspaceResolve(psWorkspaceFolder, out bool psWorkspaceOccupied);
+        string psWorkspaceKept = QSOptions.QSOptionsWorkspaceResolve(psWorkspaceFolder, out bool psWorkspaceOccupied);
         if (!psWorkspaceOccupied)
         {
             return psWorkspaceKept;

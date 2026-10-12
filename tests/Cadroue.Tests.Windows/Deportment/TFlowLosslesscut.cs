@@ -12,9 +12,9 @@ public sealed class TFlowLosslesscut
         "{\"version\":1,\"mediaFileName\":\"clip.mp4\","
         + "\"cutSegments\":[{\"start\":1,\"end\":5},{\"start\":10,\"end\":20}]}";
 
-    private static LFlow TFlowBuild(string sourcePath)
+    private static QFlow TFlowBuild(string sourcePath)
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSectionSet(flow, true);
         TInterface.TFlowSourceSet(flow, TInterfaceViewer.TViewerInfoCreate(
@@ -22,13 +22,13 @@ public sealed class TFlowLosslesscut
         return flow;
     }
 
-    private static List<LFlowLosslesscutKind> TFlowPromptsAttach(LFlow flow, Func<LFlowLosslesscutKind, int> answer)
+    private static List<QFlowLosslesscutKind> TFlowPromptsAttach(QFlow flow, Func<QFlowLosslesscutKind, int> answer)
     {
-        List<LFlowLosslesscutKind> kinds = [];
+        List<QFlowLosslesscutKind> kinds = [];
         TInterface.TFlowLosslesscutAttach(flow, (prompt, choose) =>
         {
-            kinds.Add(prompt.LFlowPromptKind);
-            choose(answer(prompt.LFlowPromptKind));
+            kinds.Add(prompt.QFlowPromptKind);
+            choose(answer(prompt.QFlowPromptKind));
         });
         return kinds;
     }
@@ -39,13 +39,13 @@ public sealed class TFlowLosslesscut
         using var fixture = new TLosslesscut();
         string source = fixture.TSourceCreate("clip.mp4");
         string project = fixture.TLosslesscutAdjacentCreate("clip.llc", TFlowProjectText);
-        LFlow flow = TFlowBuild(source);
+        QFlow flow = TFlowBuild(source);
         TInterface.TFlowSectionAdd(flow);
-        List<LFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
+        List<QFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
 
         TInterface.TFlowLosslesscutRun(flow, project);
 
-        Assert.Equal([LFlowLosslesscutKind.LFlowKindChoice], kinds);
+        Assert.Equal([QFlowLosslesscutKind.QFlowKindChoice], kinds);
         IReadOnlyList<LPiece> sections = TInterface.TFlowSectionsRead(flow);
         Assert.Equal(2, sections.Count);
         Assert.Equal(TimeSpan.FromSeconds(1), sections[0].LPieceOrigin);
@@ -58,7 +58,7 @@ public sealed class TFlowLosslesscut
         using var fixture = new TLosslesscut();
         string source = fixture.TSourceCreate("clip.mp4");
         string project = fixture.TLosslesscutAdjacentCreate("clip.llc", TFlowProjectText);
-        LFlow flow = TFlowBuild(source);
+        QFlow flow = TFlowBuild(source);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
         TInterface.TFlowSectionAdd(flow);
 
@@ -79,26 +79,26 @@ public sealed class TFlowLosslesscut
         string source = fixture.TSourceCreate("other.mp4");
         string project = fixture.TLosslesscutAdjacentCreate("other.llc", TFlowProjectText);
         string broken = fixture.TLosslesscutAdjacentCreate("broken.llc", "not json");
-        LFlow flow = TFlowBuild(source);
-        List<LFlowLosslesscutKind> kinds = TFlowPromptsAttach(
-            flow, kind => kind == LFlowLosslesscutKind.LFlowKindDecision ? -1 : 0);
+        QFlow flow = TFlowBuild(source);
+        List<QFlowLosslesscutKind> kinds = TFlowPromptsAttach(
+            flow, kind => kind == QFlowLosslesscutKind.QFlowKindDecision ? -1 : 0);
 
         TInterface.TFlowLosslesscutRun(flow, project);
-        Assert.Equal([LFlowLosslesscutKind.LFlowKindDecision], kinds);
+        Assert.Equal([QFlowLosslesscutKind.QFlowKindDecision], kinds);
         Assert.Empty(TInterface.TFlowSectionsRead(flow));
 
         kinds.Clear();
         TInterface.TFlowLosslesscutRun(flow, broken);
-        Assert.Equal([LFlowLosslesscutKind.LFlowKindWarning], kinds);
+        Assert.Equal([QFlowLosslesscutKind.QFlowKindWarning], kinds);
     }
 
     [Fact]
     public void Run_NoticesWhenNoMediaIsLoaded()
     {
-        LFlow flow = TInterface.TFlowCreate();
-        List<LFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
+        QFlow flow = TInterface.TFlowCreate();
+        List<QFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
         TInterface.TFlowLosslesscutRun(flow, "C:\\nowhere.llc");
-        Assert.Equal([LFlowLosslesscutKind.LFlowKindNotice], kinds);
+        Assert.Equal([QFlowLosslesscutKind.QFlowKindNotice], kinds);
     }
 
     [Fact]
@@ -108,18 +108,18 @@ public sealed class TFlowLosslesscut
         string source = fixture.TSourceCreate("clip.mp4");
         fixture.TLosslesscutAdjacentCreate("clip.llc", TFlowProjectText);
         fixture.TLosslesscutAdjacentCreate("clip-2.llc", TFlowProjectText);
-        LFlow flow = TFlowBuild(source);
+        QFlow flow = TFlowBuild(source);
         int confirms = 0;
-        List<LFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, kind =>
-            kind == LFlowLosslesscutKind.LFlowKindDecision ? (++confirms == 2 ? 0 : -1) : 0);
+        List<QFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, kind =>
+            kind == QFlowLosslesscutKind.QFlowKindDecision ? (++confirms == 2 ? 0 : -1) : 0);
 
         TInterface.TFlowLosslesscutFind(flow);
 
         Assert.Equal(
             [
-                LFlowLosslesscutKind.LFlowKindDecision,
-                LFlowLosslesscutKind.LFlowKindDecision,
-                LFlowLosslesscutKind.LFlowKindChoice
+                QFlowLosslesscutKind.QFlowKindDecision,
+                QFlowLosslesscutKind.QFlowKindDecision,
+                QFlowLosslesscutKind.QFlowKindChoice
             ],
             kinds);
         Assert.Equal(2, TInterface.TFlowSectionsRead(flow).Count);
@@ -131,9 +131,9 @@ public sealed class TFlowLosslesscut
         using var fixture = new TLosslesscut();
         string source = fixture.TSourceCreate("clip.mp4");
         fixture.TLosslesscutAdjacentCreate("clip.llc", TFlowProjectText);
-        LFlow flow = TFlowBuild(source);
+        QFlow flow = TFlowBuild(source);
         TInterface.TFlowEditSet(flow, false);
-        List<LFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
+        List<QFlowLosslesscutKind> kinds = TFlowPromptsAttach(flow, _ => 0);
         TInterface.TFlowLosslesscutFind(flow);
         Assert.Empty(kinds);
     }

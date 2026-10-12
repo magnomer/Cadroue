@@ -19,8 +19,8 @@ public sealed class PCompass : UserControl
 
     private static readonly IReadOnlyDictionary<string, Brush> pCompassAccents = new Dictionary<string, Brush>
     {
-        [LCompass.LCompassAccentPositive] = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64)),
-        [LCompass.LCompassAccentNegative] = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45)),
+        [QCompass.QCompassAccentPositive] = new SolidColorBrush(Color.FromRgb(0x2F, 0x9E, 0x64)),
+        [QCompass.QCompassAccentNegative] = new SolidColorBrush(Color.FromRgb(0xD6, 0x45, 0x45)),
     };
 
     private static readonly IReadOnlyDictionary<bool, Brush> pCompassWaveformBrushes = new Dictionary<bool, Brush>
@@ -40,11 +40,11 @@ public sealed class PCompass : UserControl
     private readonly Border pCompassTrackFill;
     private readonly Grid pCompassSliderHost;
 
-    public LCompass LCompass { get; }
+    public QCompass QCompass { get; }
 
-    public PCompass(PFlow pFlow, PViewer pViewer, LCompass lCompass)
+    public PCompass(PFlow pFlow, PViewer pViewer, QCompass lCompass)
     {
-        LCompass = lCompass;
+        QCompass = lCompass;
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
         pCompassVolumeText = new TextBlock
         {
@@ -56,8 +56,8 @@ public sealed class PCompass : UserControl
         pCompassVolumeSlider = new Slider
         {
             Width = 132,
-            Minimum = LCompass.LCompassVolumeMinimum,
-            Maximum = LCompass.LCompassVolumeMaximum,
+            Minimum = QCompass.QCompassVolumeMinimum,
+            Maximum = QCompass.QCompassVolumeMaximum,
             VerticalAlignment = VerticalAlignment.Center,
             Focusable = false,
             ToolTip = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
@@ -80,23 +80,23 @@ public sealed class PCompass : UserControl
             HorizontalAlignment = HorizontalAlignment.Center
         };
 
-        List<StackPanel> pGroups = LCompass.LCompassGroupsRead().Select(PCompassGroupBuild).ToList();
+        List<StackPanel> pGroups = QCompass.QCompassGroupsRead().Select(PCompassGroupBuild).ToList();
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
         pVolumeGroup.Children.Add(PCompassWaveformBuild());
         pGroups.Add(pVolumeGroup);
         pGroups.ForEach(pGroup => pCompassLinePanel.Children.Add(pGroup));
         pCompassGroups = pGroups;
-        pCompassSectionGroups = LCompass.LCompassSectionRead().Select(PCompassGroupRead).ToList();
+        pCompassSectionGroups = QCompass.QCompassSectionRead().Select(PCompassGroupRead).ToList();
 
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle();
-        pViewer.LViewer.LViewerVolumeChanged += PCompassValueHandle;
-        pViewer.LViewer.LViewerPlayingChanged += PCompassPlayingApply;
-        pFlow.LFlow.QFlowEdit.LFlowEditChanged += PCompassEditApply;
-        pFlow.LFlow.LFlowWaveformChanged += PCompassWaveformApply;
-        PCompassEditApply(LCompass.LCompassEditActive);
-        PCompassValueHandle(LCompass.LCompassVolume);
-        PCompassWaveformApply(LCompass.LCompassWaveformActive);
+        pViewer.QViewer.QViewerVolumeChanged += PCompassValueHandle;
+        pViewer.QViewer.QViewerPlayingChanged += PCompassPlayingApply;
+        pFlow.QFlow.QFlowEdit.QFlowEditChanged += PCompassEditApply;
+        pFlow.QFlow.QFlowWaveformChanged += PCompassWaveformApply;
+        PCompassEditApply(QCompass.QCompassEditActive);
+        PCompassValueHandle(QCompass.QCompassVolume);
+        PCompassWaveformApply(QCompass.QCompassWaveformActive);
 
         Content = new Border
         {
@@ -107,10 +107,10 @@ public sealed class PCompass : UserControl
         pCompassLinePanel.SizeChanged += PCompassSizeHandle;
     }
 
-    private StackPanel PCompassGroupBuild(LCompassGroup lGroup)
+    private StackPanel PCompassGroupBuild(QCompassGroup lGroup)
     {
         StackPanel pGroup = PCompassGroupBuild();
-        lGroup.LCompassGroupButtons
+        lGroup.QCompassGroupButtons
             .Select(PCompassButtonBuild)
             .ToList()
             .ForEach(pButton => pGroup.Children.Add(pButton));
@@ -137,7 +137,7 @@ public sealed class PCompass : UserControl
 
     private StackPanel PCompassGroupRead(int pIndex) => pCompassGroups[pIndex];
 
-    private Button PCompassButtonBuild(LCompassButton lButton)
+    private Button PCompassButtonBuild(QCompassButton lButton)
     {
         var pImage = new Image
         {
@@ -163,23 +163,23 @@ public sealed class PCompass : UserControl
             Content = pStack,
             Style = PHouse.PButton.PButtonCommandCreate()
         };
-        pButton.Click += (_, _) => LCompass.LCompassRun(lButton.LCompassButtonKey);
-        pCompassFaces.Add(lButton.LCompassButtonKey, new PCompassFace(pButton, pImage, pLabel));
+        pButton.Click += (_, _) => QCompass.QCompassRun(lButton.QCompassButtonKey);
+        pCompassFaces.Add(lButton.QCompassButtonKey, new PCompassFace(pButton, pImage, pLabel));
         PCompassFaceApply(lButton);
         return pButton;
     }
 
-    private void PCompassFaceApply(LCompassButton lButton)
+    private void PCompassFaceApply(QCompassButton lButton)
     {
-        PCompassFace pFace = pCompassFaces[lButton.LCompassButtonKey];
+        PCompassFace pFace = pCompassFaces[lButton.QCompassButtonKey];
         pFace.PCompassFaceImage.Source = PIcon.PIconRead(
-            $"/PAsset/PCompass/{lButton.LCompassButtonIcon}",
-            pCompassAccents.GetValueOrDefault(lButton.LCompassButtonAccent));
-        pFace.PCompassFaceLabel.Text = lButton.LCompassButtonLabel;
-        pFace.PCompassFaceButton.ToolTip = lButton.LCompassButtonTooltip;
+            $"/PAsset/PCompass/{lButton.QCompassButtonIcon}",
+            pCompassAccents.GetValueOrDefault(lButton.QCompassButtonAccent));
+        pFace.PCompassFaceLabel.Text = lButton.QCompassButtonLabel;
+        pFace.PCompassFaceButton.ToolTip = lButton.QCompassButtonTooltip;
     }
 
-    private void PCompassPlayingApply(bool lPlaying) => PCompassFaceApply(LCompass.LCompassPlayRead(lPlaying));
+    private void PCompassPlayingApply(bool lPlaying) => PCompassFaceApply(QCompass.QCompassPlayRead(lPlaying));
 
     private void PCompassEditApply(bool lEditable) =>
         pCompassSectionGroups.ToList().ForEach(pGroup => pGroup.IsEnabled = lEditable);
@@ -208,13 +208,13 @@ public sealed class PCompass : UserControl
             Style = PHouse.PButton.PButtonCommandCreate(),
             ToolTip = LLocalization.LLocalizationTextRead("Compass.Waveform.Tooltip")
         };
-        pButton.Click += (_, _) => LCompass.LCompassWaveformToggle();
+        pButton.Click += (_, _) => QCompass.QCompassWaveformToggle();
         return pButton;
     }
 
     private void PCompassSizeHandle(object sender, SizeChangedEventArgs e) =>
         pCompassSeparators
-            .Zip(LCompass.LCompassSeparatorsResolve(pCompassGroups.Select(PCompassTopRead).ToList()))
+            .Zip(QCompass.QCompassSeparatorsResolve(pCompassGroups.Select(PCompassTopRead).ToList()))
             .ToList()
             .ForEach(pPair => PCompassSeparatorApply(pPair.First, pPair.Second));
 
@@ -271,19 +271,19 @@ public sealed class PCompass : UserControl
     private void PCompassValueHandle(double lVolume)
     {
         pCompassVolumeSlider.Value = lVolume;
-        pCompassVolumeText.Text = LCompass.LCompassVolumeFormat(lVolume);
+        pCompassVolumeText.Text = QCompass.QCompassVolumeFormat(lVolume);
         PCompassTrackUpdate();
     }
 
     private void PCompassVolumeHandle()
     {
-        pCompassVolumeText.Text = LCompass.LCompassVolumeFormat(pCompassVolumeSlider.Value);
+        pCompassVolumeText.Text = QCompass.QCompassVolumeFormat(pCompassVolumeSlider.Value);
         PCompassTrackUpdate();
-        LCompass.LCompassVolumeSet(pCompassVolumeSlider.Value);
+        QCompass.QCompassVolumeSet(pCompassVolumeSlider.Value);
     }
 
     private void PCompassTrackUpdate() =>
-        pCompassTrackFill.Width = LCompass.LCompassFillResolve(
+        pCompassTrackFill.Width = QCompass.QCompassFillResolve(
             pCompassSliderHost.ActualWidth,
             pCompassVolumeSlider.Value);
 

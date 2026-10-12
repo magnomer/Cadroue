@@ -21,11 +21,11 @@ public sealed class PConsoleScene : UserControl
             [false] = FontStyles.Normal,
         };
 
-    private readonly LConsoleScene lScene;
+    private readonly QConsoleScene lScene;
     private readonly ComboBox pConsoleRelayCombo;
     private readonly DispatcherTimer pConsoleSceneTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
 
-    public PConsoleScene(LConsoleScene lSceneOwner)
+    public PConsoleScene(QConsoleScene lSceneOwner)
     {
         lScene = lSceneOwner;
         pConsoleRelayCombo = PConsoleControl.PConsoleComboBuild();
@@ -56,39 +56,39 @@ public sealed class PConsoleScene : UserControl
         pConsoleRelayCombo.MouseEnter += PConsoleDropHandle;
         pConsoleRelayCombo.ItemContainerGenerator.StatusChanged += PConsoleRowsHandle;
         pConsoleSceneTimer.Tick += PConsoleTickHandle;
-        lScene.LConsoleNamesApplied += PConsoleListApply;
-        lScene.LConsoleSceneApplied += PConsoleSceneApply;
-        lScene.LConsoleMarkApplied += PConsoleMarkApply;
-        lScene.LConsoleFocusCleared += PConsoleFocusClear;
-        lScene.LConsoleNoticeShown += PConsoleNoticeShow;
-        lScene.LConsoleWarningShown += PConsoleWarningShow;
+        lScene.QConsoleNamesApplied += PConsoleListApply;
+        lScene.QConsoleSceneApplied += PConsoleSceneApply;
+        lScene.QConsoleMarkApplied += PConsoleMarkApply;
+        lScene.QConsoleFocusCleared += PConsoleFocusClear;
+        lScene.QConsoleNoticeShown += PConsoleNoticeShow;
+        lScene.QConsoleWarningShown += PConsoleWarningShow;
         Loaded += PConsoleCaretAttach;
         Loaded += PConsoleLoadHandle;
         Unloaded += PConsoleUnloadHandle;
-        lScene.LConsoleSceneRebuild();
+        lScene.QConsoleSceneRebuild();
     }
 
     private void PConsoleLoadHandle(object pSender, RoutedEventArgs pArguments)
     {
-        lScene.LConsoleSceneStart();
+        lScene.QConsoleSceneStart();
         pConsoleSceneTimer.Start();
     }
 
     private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments) => pConsoleSceneTimer.Stop();
 
     private void PConsoleTickHandle(object? pSender, EventArgs pArguments) =>
-        lScene.LConsoleTickHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
+        lScene.QConsoleTickHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
 
-    private void PConsoleDropHandle(object? pSender, EventArgs pArguments) => lScene.LConsoleMarkUpdate();
+    private void PConsoleDropHandle(object? pSender, EventArgs pArguments) => lScene.QConsoleMarkUpdate();
 
     private void PConsoleOpenHandle(object? pSender, EventArgs pArguments)
     {
-        lScene.LConsoleReloadSet(null);
+        lScene.QConsoleReloadSet(null);
         PConsoleBoxRead()?.SetValue(TextBoxBase.IsReadOnlyProperty, true);
-        lScene.LConsoleMarkUpdate();
+        lScene.QConsoleMarkUpdate();
     }
 
-    private void PConsoleCloseHandle(object? pSender, EventArgs pArguments) => lScene.LConsoleCloseHandle();
+    private void PConsoleCloseHandle(object? pSender, EventArgs pArguments) => lScene.QConsoleCloseHandle();
 
     private void PConsoleRowsHandle(object? pSender, EventArgs pArguments) =>
         pConsoleRelayCombo.Items.Cast<object>()
@@ -104,16 +104,16 @@ public sealed class PConsoleScene : UserControl
     }
 
     private void PConsoleRowHandle(object pSender, MouseButtonEventArgs pArguments) =>
-        lScene.LConsoleRowHandle(PSender.PSenderItemRead<string>(pSender));
+        lScene.QConsoleRowHandle(PSender.PSenderItemRead<string>(pSender));
 
     private void PConsoleDeleteHandle(object pSender, RoutedEventArgs pArguments) =>
-        pArguments.Handled = lScene.LConsoleDeleteHandle(PSender.PSenderItemRead<string>(pArguments.OriginalSource));
+        pArguments.Handled = lScene.QConsoleDeleteHandle(PSender.PSenderItemRead<string>(pArguments.OriginalSource));
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments) =>
-        lScene.LConsoleSelectHandle(pConsoleRelayCombo.SelectedItem, pConsoleRelayCombo.IsDropDownOpen);
+        lScene.QConsoleSelectHandle(pConsoleRelayCombo.SelectedItem, pConsoleRelayCombo.IsDropDownOpen);
 
     private void PConsoleSaveHandle(object pSender, RoutedEventArgs pArguments) =>
-        lScene.LConsoleSceneSave(pConsoleRelayCombo.Text);
+        lScene.QConsoleSceneSave(pConsoleRelayCombo.Text);
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)
     {
@@ -123,9 +123,9 @@ public sealed class PConsoleScene : UserControl
             Filter = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Filter"),
             DefaultExt = "json",
             AddExtension = true,
-            FileName = lScene.LConsoleFileResolve(pConsoleRelayCombo.Text)
+            FileName = lScene.QConsoleFileResolve(pConsoleRelayCombo.Text)
         };
-        lScene.LConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
+        lScene.QConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
     }
 
     private void PConsoleImportHandle(object pSender, RoutedEventArgs pArguments)
@@ -137,7 +137,7 @@ public sealed class PConsoleScene : UserControl
             DefaultExt = "json",
             CheckFileExists = true
         };
-        lScene.LConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
+        lScene.QConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
     }
 
     private void PConsoleListApply(IReadOnlyList<string> pNames) => pConsoleRelayCombo.ItemsSource = pNames;
@@ -177,13 +177,13 @@ public sealed class PConsoleScene : UserControl
         PConsoleBoxRead()?.SetValue(TextBoxBase.IsReadOnlyProperty, true);
 
     public void PConsolePressHandle(object pSender, MouseButtonEventArgs pArguments) =>
-        lScene.LConsolePressHandle(
+        lScene.QConsolePressHandle(
             pConsoleRelayCombo.IsDropDownOpen,
             pConsoleRelayCombo.IsKeyboardFocusWithin,
             PWalk.PWalkParentCheck(pArguments.OriginalSource as DependencyObject, pConsoleRelayCombo.Equals));
 
     public void PConsoleDeactivateHandle(object? pSender, EventArgs pArguments) =>
-        lScene.LConsoleDeactivateHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
+        lScene.QConsoleDeactivateHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);
 
     private void PConsoleFocusClear()
     {

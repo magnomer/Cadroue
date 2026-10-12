@@ -13,7 +13,7 @@ public sealed class TCurveCanvas
     [Fact]
     public void Press_NearPoint_SelectsIt()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
 
         TInterface.TCurvePressHandle(curve, 4, TCurveSize - 3, TCurveSize);
 
@@ -25,7 +25,7 @@ public sealed class TCurveCanvas
     [Fact]
     public void Press_OnEmpty_AddsAndSelectsPoint()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
 
         TInterface.TCurvePressHandle(curve, TCurveSize / 2, TCurveSize / 2, TCurveSize);
 
@@ -38,7 +38,7 @@ public sealed class TCurveCanvas
     [Fact]
     public void Move_WhileDragging_KeepsGapBelowNeighbour()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         TInterface.TCurvePressHandle(curve, TCurveSize / 2, TCurveSize / 2, TCurveSize);
 
         Assert.True(TInterface.TCurveMoveHandle(curve, TCurveSize + 40, 0, TCurveSize));
@@ -54,67 +54,67 @@ public sealed class TCurveCanvas
     [Fact]
     public void TrackRead_SamplesWholeWidth()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
 
-        IReadOnlyList<LCurvePoint> track = TInterface.TCurveTrackRead(curve, TCurveSize);
+        IReadOnlyList<QCurvePoint> track = TInterface.TCurveTrackRead(curve, TCurveSize);
 
         Assert.Equal(97, track.Count);
-        Assert.Equal(0, track[0].LCurvePointX, 6);
-        Assert.Equal(TCurveSize, track[0].LCurvePointY, 6);
-        Assert.Equal(TCurveSize, track[96].LCurvePointX, 6);
-        Assert.Equal(0, track[96].LCurvePointY, 6);
+        Assert.Equal(0, track[0].QCurvePointX, 6);
+        Assert.Equal(TCurveSize, track[0].QCurvePointY, 6);
+        Assert.Equal(TCurveSize, track[96].QCurvePointX, 6);
+        Assert.Equal(0, track[96].QCurvePointY, 6);
     }
 
     [Fact]
     public void GridRead_IdentityLine_OnlyWhileIdentity()
     {
-        LCurve curve = TInterface.TCurveCreate();
-        Assert.Contains(TInterface.TCurveGridRead(curve, TCurveSize), line => line.LCurveLineKey == "Identity");
-        Assert.Equal(6, TInterface.TCurveGridRead(curve, TCurveSize).Count(line => line.LCurveLineKey != "Identity"));
+        QCurve curve = TInterface.TCurveCreate();
+        Assert.Contains(TInterface.TCurveGridRead(curve, TCurveSize), line => line.QCurveLineKey == "Identity");
+        Assert.Equal(6, TInterface.TCurveGridRead(curve, TCurveSize).Count(line => line.QCurveLineKey != "Identity"));
 
         TInterface.TCurvePointAdd(curve, 0.5, 0.7);
 
-        Assert.DoesNotContain(TInterface.TCurveGridRead(curve, TCurveSize), line => line.LCurveLineKey == "Identity");
+        Assert.DoesNotContain(TInterface.TCurveGridRead(curve, TCurveSize), line => line.QCurveLineKey == "Identity");
     }
 
     [Fact]
     public void DotsRead_SelectedIsLarger_EndpointsFilledAsGuide()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         TInterface.TCurvePointAdd(curve, 0.5, 0.5);
 
-        IReadOnlyList<LCurveDot> dots = TInterface.TCurveDotsRead(curve, TCurveSize);
+        IReadOnlyList<QCurveDot> dots = TInterface.TCurveDotsRead(curve, TCurveSize);
 
         Assert.Equal(3, dots.Count);
-        Assert.Equal("Endpoint", dots[0].LCurveDotFill);
-        Assert.Equal("Selected", dots[1].LCurveDotFill);
-        Assert.Equal("Endpoint", dots[2].LCurveDotFill);
-        Assert.True(dots[1].LCurveDotSize > dots[0].LCurveDotSize);
-        Assert.Equal((TCurveSize / 2) - (dots[1].LCurveDotSize / 2), dots[1].LCurveDotLeft, 6);
+        Assert.Equal("Endpoint", dots[0].QCurveDotFill);
+        Assert.Equal("Selected", dots[1].QCurveDotFill);
+        Assert.Equal("Endpoint", dots[2].QCurveDotFill);
+        Assert.True(dots[1].QCurveDotSize > dots[0].QCurveDotSize);
+        Assert.Equal((TCurveSize / 2) - (dots[1].QCurveDotSize / 2), dots[1].QCurveDotLeft, 6);
     }
 
     [Fact]
     public void HistogramRead_ScalesPeakToHeadroom_EmptyWithoutCounts()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         Assert.Empty(TInterface.TCurveHistogramRead(curve, TCurveSize));
 
         byte[] pixels = new byte[4 * 4];
         Array.Fill(pixels, (byte)255);
         LHistogramCounts histogram = THistogram.THistogramCreate(pixels, 2, 2);
         TInterface.TCurveHistogramSet(curve, histogram);
-        IReadOnlyList<LCurvePoint> area = TInterface.TCurveHistogramRead(curve, TCurveSize);
+        IReadOnlyList<QCurvePoint> area = TInterface.TCurveHistogramRead(curve, TCurveSize);
 
         Assert.Equal(258, area.Count);
-        Assert.Equal(TCurveSize, area[0].LCurvePointY, 6);
-        Assert.Equal(TCurveSize - (TCurveSize * 0.94), area[256].LCurvePointY, 6);
-        Assert.Equal(TCurveSize, area[257].LCurvePointX, 6);
+        Assert.Equal(TCurveSize, area[0].QCurvePointY, 6);
+        Assert.Equal(TCurveSize - (TCurveSize * 0.94), area[256].QCurvePointY, 6);
+        Assert.Equal(TCurveSize, area[257].QCurvePointX, 6);
     }
 
     [Fact]
     public void PointCommit_ReadsPercentText_ClampsToUnit()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         TInterface.TCurvePointAdd(curve, 0.5, 0.5);
 
         TInterface.TCurvePointCommit(curve, "60", "250");

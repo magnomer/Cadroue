@@ -8,9 +8,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TFlowSectionEdit
 {
-    private static LFlow TFlowBuild(double seconds = 10)
+    private static QFlow TFlowBuild(double seconds = 10)
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSectionSet(flow, true);
         TInterface.TFlowSourceSet(
@@ -22,7 +22,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Add_CreatesASectionAtTheCursor_AndRaisesTheChange()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<int?> selections = [];
         TInterface.TFlowSectionAttach(flow, (sections, select) => selections.Add(select));
 
@@ -32,19 +32,19 @@ public sealed class TFlowSectionEdit
         Assert.Single(sections);
         Assert.Equal(TimeSpan.FromSeconds(10), sections[0].LPieceOrigin);
         Assert.Equal([0], selections);
-        Assert.Equal(0, flow.QFlowEdit.LFlowSectionIndex);
+        Assert.Equal(0, flow.QFlowEdit.QFlowSectionIndex);
         Assert.False(TInterface.TFlowEmptyCheck(flow));
     }
 
     [Fact]
     public void Add_RefusesWithoutEditableOrSource()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowEditSet(flow, false);
         TInterface.TFlowSectionAdd(flow);
         Assert.Empty(TInterface.TFlowSectionsRead(flow));
 
-        LFlow bare = TInterface.TFlowCreate();
+        QFlow bare = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(bare, true);
         TInterface.TFlowSectionAdd(bare);
         Assert.Empty(TInterface.TFlowSectionsRead(bare));
@@ -54,7 +54,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Divide_SplitsTheSelectedSection_AndKeepsTheLeftHalfSelected()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionAdd(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
 
@@ -70,7 +70,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Delete_WithoutConfirmation_RemovesTheSelectedSections()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionAdd(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
         TInterface.TFlowSectionDivide(flow);
@@ -86,7 +86,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Clear_EmptiesTheList_AndSkipsWhenAlreadyEmpty()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<int> counts = [];
         TInterface.TFlowSectionAttach(flow, (sections, select) => counts.Add(sections.Count));
         TInterface.TFlowSectionClear(flow);
@@ -101,7 +101,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Toggle_Move_Sort_Name_ChangeTheRecordsOnlyWhileEditable()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionAdd(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
         TInterface.TFlowSectionDivide(flow);
@@ -135,7 +135,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Seek_SelectsTheSection_AndMovesTheCursorToItsBound()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionAdd(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
         TInterface.TFlowSectionDivide(flow);
@@ -144,20 +144,20 @@ public sealed class TFlowSectionEdit
 
         TInterface.TFlowSectionSeek(flow, 1, true);
         Assert.Equal(1, TInterface.TFlowSelectionRead(flow));
-        Assert.Equal(TimeSpan.FromSeconds(60), flow.LFlowCursor);
+        Assert.Equal(TimeSpan.FromSeconds(60), flow.QFlowCursor);
 
         TInterface.TFlowSectionSeek(flow, 0, false);
-        Assert.Equal(TimeSpan.FromSeconds(10), flow.LFlowCursor);
+        Assert.Equal(TimeSpan.FromSeconds(10), flow.QFlowCursor);
         Assert.Equal([TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(10)], seeks);
 
         TInterface.TFlowSectionSeek(flow, 5, false);
-        Assert.Equal(TimeSpan.FromSeconds(10), flow.LFlowCursor);
+        Assert.Equal(TimeSpan.FromSeconds(10), flow.QFlowCursor);
     }
 
     [Fact]
     public void StartEnd_MoveTheSelectedBounds()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionAdd(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(20));
         TInterface.TFlowStartSet(flow);
@@ -172,7 +172,7 @@ public sealed class TFlowSectionEdit
     [Fact]
     public void Add_RecordsTheSectionLine()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         using var observed = new ManualResetEventSlim(false);
         string? line = null;
 

@@ -2,45 +2,45 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QFlowEdit
 {
-    private readonly LFlow lFlow;
-    private int? lFlowSectionIndex;
-    private bool lFlowSectionEditable = true;
-    private bool lFlowSegmentFired;
+    private readonly QFlow qFlow;
+    private int? qFlowSectionIndex;
+    private bool qFlowSectionEditable = true;
+    private bool qFlowSegmentFired;
 
-    public QFlowEdit(LFlow lOwner)
+    public QFlowEdit(QFlow lOwner)
     {
-        lFlow = lOwner;
+        qFlow = lOwner;
     }
 
-    public event Action<bool>? LFlowEditChanged;
+    public event Action<bool>? QFlowEditChanged;
 
-    public int? LFlowSectionIndex => lFlowSectionIndex;
+    public int? QFlowSectionIndex => qFlowSectionIndex;
 
-    public bool LFlowSectionEditable => lFlowSectionEditable;
+    public bool QFlowSectionEditable => qFlowSectionEditable;
 
-    public bool LFlowSegmentFired => lFlowSegmentFired;
+    public bool QFlowSegmentFired => qFlowSegmentFired;
 
-    public bool LFlowEditCheck() =>
-        lFlow.LFlowSectionActive && lFlowSectionEditable;
+    public bool QFlowEditCheck() =>
+        qFlow.QFlowSectionActive && qFlowSectionEditable;
 
-    public void LFlowSectionSelect(int? lSectionIndex) => lFlowSectionIndex = lSectionIndex;
+    public void QFlowSectionSelect(int? lSectionIndex) => qFlowSectionIndex = lSectionIndex;
 
-    public bool LFlowEditSet(bool lSectionEditable)
+    public bool QFlowEditSet(bool lSectionEditable)
     {
         if (!lSectionEditable)
         {
-            lFlow.LFlowName.LFlowNameHide();
+            qFlow.QFlowName.QFlowNameHide();
         }
 
-        if (lFlowSectionEditable == lSectionEditable)
+        if (qFlowSectionEditable == lSectionEditable)
         {
             return false;
         }
 
-        lFlowSectionEditable = lSectionEditable;
-        LFlowEditChanged?.Invoke(lSectionEditable);
+        qFlowSectionEditable = lSectionEditable;
+        QFlowEditChanged?.Invoke(lSectionEditable);
         return true;
     }
 
-    public void LFlowFiredSet(bool lSegmentFired) => lFlowSegmentFired = lSegmentFired;
+    public void QFlowFiredSet(bool lSegmentFired) => qFlowSegmentFired = lSegmentFired;
 }

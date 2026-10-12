@@ -10,7 +10,7 @@ namespace Cadroue.UIVeneer.PCabin;
 public partial class PDeck : UserControl
 {
     private PStrip pStrip = null!;
-    private LDeck lDeck = null!;
+    private QDeck lDeck = null!;
 
     public PDeck()
     {
@@ -22,40 +22,40 @@ public partial class PDeck : UserControl
     public void PDeckAttach(PStrip pStripOwner)
     {
         pStrip = pStripOwner;
-        lDeck = pStripOwner.LStrip.LStripDeck;
-        pStripOwner.LStrip.LStripTabAdded += PDeckAddHandle;
-        pStripOwner.LStrip.QStripClosure.LStripTabClosed += PDeckCloseHandle;
-        lDeck.LDeckHidden += PDeckHideHandle;
-        lDeck.LDeckRevealed += PDeckShowHandle;
-        lDeck.LDeckEmptyChanged += PDeckNoticeApply;
+        lDeck = pStripOwner.QStrip.QStripDeck;
+        pStripOwner.QStrip.QStripTabAdded += PDeckAddHandle;
+        pStripOwner.QStrip.QStripClosure.QStripTabClosed += PDeckCloseHandle;
+        lDeck.QDeckHidden += PDeckHideHandle;
+        lDeck.QDeckRevealed += PDeckShowHandle;
+        lDeck.QDeckEmptyChanged += PDeckNoticeApply;
         PDeckNoticeApply();
     }
 
     private void PDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
-        pStrip.LStrip.LStripTabAdded -= PDeckAddHandle;
-        pStrip.LStrip.QStripClosure.LStripTabClosed -= PDeckCloseHandle;
-        lDeck.LDeckHidden -= PDeckHideHandle;
-        lDeck.LDeckRevealed -= PDeckShowHandle;
-        lDeck.LDeckEmptyChanged -= PDeckNoticeApply;
-        lDeck.LDeckClose();
+        pStrip.QStrip.QStripTabAdded -= PDeckAddHandle;
+        pStrip.QStrip.QStripClosure.QStripTabClosed -= PDeckCloseHandle;
+        lDeck.QDeckHidden -= PDeckHideHandle;
+        lDeck.QDeckRevealed -= PDeckShowHandle;
+        lDeck.QDeckEmptyChanged -= PDeckNoticeApply;
+        lDeck.QDeckClose();
     }
 
-    private void PDeckAddHandle(LStripTab lStripTab)
+    private void PDeckAddHandle(QStripTab lStripTab)
     {
         FrameworkElement pRoot = pStrip.PStripWorkspaceRead(lStripTab)!.PWorkspaceRoot;
         pRoot.Visibility = Visibility.Collapsed;
         pDeckGrid.Children.Add(pRoot);
     }
 
-    private void PDeckCloseHandle(LStripTab lStripTab) =>
+    private void PDeckCloseHandle(QStripTab lStripTab) =>
         pDeckGrid.Children.Remove(pStrip.PStripWorkspaceRead(lStripTab)!.PWorkspaceRoot);
 
-    private void PDeckHideHandle(LStripTab lStripTab) =>
+    private void PDeckHideHandle(QStripTab lStripTab) =>
         pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceRoot.SetValue(VisibilityProperty, Visibility.Collapsed);
 
-    private void PDeckShowHandle(LStripTab lStripTab) =>
+    private void PDeckShowHandle(QStripTab lStripTab) =>
         pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceRoot.SetValue(VisibilityProperty, Visibility.Visible);
 
-    private void PDeckNoticeApply() => pDeckNotice.Visibility = PLook.PLookVisible[lDeck.LDeckEmpty];
+    private void PDeckNoticeApply() => pDeckNotice.Visibility = PLook.PLookVisible[lDeck.QDeckEmpty];
 }

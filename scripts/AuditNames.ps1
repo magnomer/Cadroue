@@ -41,7 +41,7 @@ AuditNames -Root C:\path\to\project
 Audit a specific checkout.
 #>
 #requires -Version 5.1
-# AUDITNAMES - AUDIT GENERATION 21.
+# AUDITNAMES - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -86,6 +86,8 @@ Audit a specific checkout.
 # Mismatching kind only informs while a driver folder it waits on holds no source.
 # Generation 21: an out-of-turf type declared public in a sealed turf fails at once, outside the
 # prefix ceiling.
+# Generation 22: nothing this audit reports changes; the number rises with the structure audit,
+# whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
 [CmdletBinding()]
 param(
     [string]$Root,

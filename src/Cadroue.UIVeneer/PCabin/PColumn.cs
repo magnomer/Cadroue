@@ -17,19 +17,19 @@ internal sealed class PColumn
 
     private readonly Grid pColumnGrid;
     private readonly IReadOnlyList<ColumnDefinition> pColumnItems;
-    private readonly LColumnPlan lColumnPlan;
+    private readonly QColumnPlan lColumnPlan;
 
     private PColumn(
         Grid pColumnGrid,
         IReadOnlyList<ColumnDefinition> pColumnItems,
-        LColumnPlan lColumnPlan,
+        QColumnPlan lColumnPlan,
         Action? pWidthNotify)
     {
         this.pColumnGrid = pColumnGrid;
         this.pColumnItems = pColumnItems;
         this.lColumnPlan = lColumnPlan;
-        lColumnPlan.LColumnPlanChanged += PColumnPlanApply;
-        lColumnPlan.LColumnWidthChanged += pWidthNotify;
+        lColumnPlan.QColumnPlanChanged += PColumnPlanApply;
+        lColumnPlan.QColumnWidthChanged += pWidthNotify;
         pColumnGrid.LayoutUpdated += PColumnLayoutHandle;
         PColumnPlanApply();
     }
@@ -37,7 +37,7 @@ internal sealed class PColumn
     public static PColumn PColumnAttach(
         Grid pColumnGrid,
         IReadOnlyList<ColumnDefinition> pColumnItems,
-        LColumnPlan lColumnPlan,
+        QColumnPlan lColumnPlan,
         Action? pWidthNotify = null)
     {
         return new PColumn(pColumnGrid, pColumnItems, lColumnPlan, pWidthNotify);
@@ -46,12 +46,12 @@ internal sealed class PColumn
     public static double PColumnMinimumRead(ColumnDefinition pColumn) => pColumn.MinWidth;
 
     public void PColumnWidthSet(int pPanelIndex, double pPanelFixedWidth) =>
-        lColumnPlan.LColumnWidthSet(pPanelIndex, pPanelFixedWidth);
+        lColumnPlan.QColumnWidthSet(pPanelIndex, pPanelFixedWidth);
 
     public void PColumnHiddenSet(int pPanelIndex, bool pPanelHidden) =>
-        lColumnPlan.LColumnHiddenSet(pPanelIndex, pPanelHidden);
+        lColumnPlan.QColumnHiddenSet(pPanelIndex, pPanelHidden);
 
-    public double PColumnTotalRead() => lColumnPlan.LColumnTotalRead();
+    public double PColumnTotalRead() => lColumnPlan.QColumnTotalRead();
 
     public Thumb PColumnSplitterBuild(int pLeftPanelIndex)
     {
@@ -67,10 +67,10 @@ internal sealed class PColumn
     }
 
     private void PColumnLayoutHandle(object? pSender, EventArgs pEvent) =>
-        lColumnPlan.LColumnLayoutHandle(PColumnSlotRead(), pColumnGrid.ActualWidth);
+        lColumnPlan.QColumnLayoutHandle(PColumnSlotRead(), pColumnGrid.ActualWidth);
 
     private void PColumnDragHandle(int pLeftPanelIndex, double pDelta) =>
-        lColumnPlan.LColumnDragHandle(
+        lColumnPlan.QColumnDragHandle(
             pLeftPanelIndex,
             pDelta,
             PColumnSlotRead(),
@@ -79,14 +79,14 @@ internal sealed class PColumn
 
     private void PColumnPlanApply() =>
         pColumnItems
-            .Zip(lColumnPlan.LColumnSlotsResolve())
+            .Zip(lColumnPlan.QColumnSlotsResolve())
             .ToList()
             .ForEach(pPair => PColumnSlotApply(pPair.First, pPair.Second));
 
-    private static void PColumnSlotApply(ColumnDefinition pColumn, LColumnSlot lSlot)
+    private static void PColumnSlotApply(ColumnDefinition pColumn, QColumnSlot lSlot)
     {
-        pColumn.MinWidth = lSlot.LColumnSlotMinimum;
-        pColumn.Width = new GridLength(lSlot.LColumnSlotWidth, pColumnUnits[lSlot.LColumnSlotStar]);
+        pColumn.MinWidth = lSlot.QColumnSlotMinimum;
+        pColumn.Width = new GridLength(lSlot.QColumnSlotWidth, pColumnUnits[lSlot.QColumnSlotStar]);
     }
 
     private double PColumnSlotRead() => LayoutInformation.GetLayoutSlot(pColumnGrid).Width;

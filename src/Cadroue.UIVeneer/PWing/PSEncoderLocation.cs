@@ -59,7 +59,7 @@ internal sealed partial class PSEncoder
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
             Title = LLocalization.LLocalizationTextRead("Encoder.Location.Choose"),
-            InitialDirectory = lsEncoder.LSEncoderInitialResolve(pCurrent)
+            InitialDirectory = lsEncoder.QSEncoderInitialResolve(pCurrent)
         };
         if (pDialog.ShowDialog() == true)
         {
@@ -73,10 +73,10 @@ internal sealed partial class PSEncoder
 
         if (psLocationFolderBox is not null)
         {
-            psLocationFolderBox.Text = lsEncoder.LSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
+            psLocationFolderBox.Text = lsEncoder.QSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
         }
 
-        bool pFolder = LSEncoder.LSEncoderFolderCheck(pMode);
+        bool pFolder = QSEncoder.QSEncoderFolderCheck(pMode);
 
         if (psLocationFolderRow is not null)
         {
@@ -85,19 +85,19 @@ internal sealed partial class PSEncoder
 
         if (psLocationBrowse is not null)
         {
-            psLocationBrowse.Visibility = LSEncoder.LSEncoderCustomCheck(pMode)
+            psLocationBrowse.Visibility = QSEncoder.QSEncoderCustomCheck(pMode)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
 
         if (psLocationFolderLabel is not null)
         {
-            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderFolderResolve(pMode));
+            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderFolderResolve(pMode));
         }
 
         if (psLocationStatus is not null)
         {
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderStatusResolve(pMode));
+            psLocationStatus.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderStatusResolve(pMode));
         }
     }
 }

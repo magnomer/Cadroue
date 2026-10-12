@@ -10,11 +10,11 @@ It also hosts the section palette editor plate.
 
 Reloads the palette registry from disk and rebuilds every palette row.
 It runs again after each load or remove, so the list always matches the files.
-LSSpectrum falls back to the default palette when the selected one is no longer listed.
+QSSpectrum falls back to the default palette when the selected one is no longer listed.
 
 ## `private void PSSpectrumLoad()`
 
-Imports a chosen palette file through LSSpectrum and selects it when it loads.
+Imports a chosen palette file through QSSpectrum and selects it when it loads.
 A reserved name, a failed copy or an unreadable file each get their own warning.
 
 ## `private void PSSpectrumSave()`

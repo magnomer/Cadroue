@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditBorderSetting
 {
-    public const int TAuditGeneration = 21;
+    public const int TAuditGeneration = 22;
     public const string TAuditBorderHost = "Cadroue.Host";
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditBorderNeighbour =
@@ -42,11 +42,7 @@ internal static class TAuditBorderSetting
             ["Cadroue.ShellEngine"] = ["L"],
         };
 
-    public static readonly IReadOnlyDictionary<string, string[]> TAuditUnsealingPrefix =
-        new Dictionary<string, string[]>
-        {
-            ["Cadroue.UIDeportment"] = ["L"],
-        };
+    public static readonly IReadOnlyList<string> TAuditUnsealingRing = ["Cadroue.UIDeportment"];
 
     public static readonly IReadOnlyDictionary<string, int> TAuditBorderCeiling = new Dictionary<string, int>
     {
@@ -66,7 +62,7 @@ internal static class TAuditBorderSetting
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Application"] = 923,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Core"] = 314,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine"] = 6,
-        ["Unsealing:Cadroue.UIDeportment>Cadroue.Application"] = 81,
+        ["Unsealing:Cadroue.UIDeportment>Cadroue.Application"] = 82,
         ["Unsealing:Cadroue.UIDeportment>Cadroue.Core"] = 229,
         ["Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 11,
     };

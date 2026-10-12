@@ -14,12 +14,12 @@ The current choice is kept when it still fits, otherwise the first item is selec
 ## `private UIElement PSAudioPlateBuild()`
 
 Builds the audio plate with stream, mode, encoder and rate-control rows.
-Encoder and rate changes go to LSEncoder, whose audio notice rebuilds the dependent rows.
+Encoder and rate changes go to QSEncoder, whose audio notice rebuilds the dependent rows.
 The Result button opens the verification table and stays disabled until a verification has results.
 
 ## `private void PSAudioRowsApply()`
 
-Answers the LSEncoder audio notice after the encoder or rate control changed.
+Answers the QSEncoder audio notice after the encoder or rate control changed.
 The rate combo gets a new list only when the labels differ, which spares a needless selection reset.
 
 ## `private void PSAudioScopeUpdate()`

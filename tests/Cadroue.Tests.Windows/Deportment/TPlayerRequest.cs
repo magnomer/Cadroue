@@ -12,42 +12,42 @@ public sealed class TPlayerRequest
     [Fact]
     public void Accurate_ReportsPriorRun_UntilCommit()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
 
         Assert.False(TInterfacePlayer.TPlayerAccurateSet(player));
-        Assert.True(player.LPlayerAccurateActive);
+        Assert.True(player.QPlayerAccurateActive);
         Assert.True(TInterfacePlayer.TPlayerAccurateSet(player));
 
         TInterfacePlayer.TPlayerSeekCommit(player, 500);
 
-        Assert.False(player.LPlayerAccurateActive);
+        Assert.False(player.QPlayerAccurateActive);
         Assert.False(TInterfacePlayer.TPlayerAccurateSet(player));
 
         TInterfacePlayer.TPlayerAccurateReset(player);
 
-        Assert.False(player.LPlayerAccurateActive);
+        Assert.False(player.QPlayerAccurateActive);
     }
 
     [Fact]
     public void Renderer_ResolvesOnFirstCompletedSeek_Only()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
 
         Assert.False(TInterfacePlayer.TPlayerSeekCommit(player, 0));
 
         TInterfacePlayer.TPlayerRendererSet(player, true);
 
         Assert.False(TInterfacePlayer.TPlayerSeekCommit(player, -1));
-        Assert.True(player.LPlayerRendererPending);
+        Assert.True(player.QPlayerRendererPending);
         Assert.True(TInterfacePlayer.TPlayerSeekCommit(player, 0));
-        Assert.False(player.LPlayerRendererPending);
+        Assert.False(player.QPlayerRendererPending);
         Assert.False(TInterfacePlayer.TPlayerSeekCommit(player, 10));
     }
 
     [Fact]
     public async Task OpenStart_RunsOpen_WithPath()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         string? opened = null;
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate(open: path => opened = path));
 
@@ -61,7 +61,7 @@ public sealed class TPlayerRequest
     [Fact]
     public async Task OpenStart_PropagatesFailure()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         TInterfacePlayer.TPlayerEngineSet(
             player,
             TInterfacePlayer.TPlayerSeamCreate(open: _ => throw new InvalidOperationException("no")));
@@ -73,7 +73,7 @@ public sealed class TPlayerRequest
     [Fact]
     public void Applied_TracksFilter_ResetClears()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         List<string> filters = [];
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate(filter: filters.Add));
 
@@ -81,28 +81,28 @@ public sealed class TPlayerRequest
         Assert.True(TInterfacePlayer.TPlayerFilterApply(player, "eq=contrast=1.2"));
 
         Assert.Equal(["eq=contrast=1.2"], filters);
-        Assert.Equal("eq=contrast=1.2", player.LPlayerFilterApplied);
+        Assert.Equal("eq=contrast=1.2", player.QPlayerFilterApplied);
 
         TInterfacePlayer.TPlayerAppliedReset(player);
 
-        Assert.Equal(string.Empty, player.LPlayerFilterApplied);
-        Assert.Null(player.LPlayerAudioApplied);
+        Assert.Equal(string.Empty, player.QPlayerFilterApplied);
+        Assert.Null(player.QPlayerAudioApplied);
     }
 
     [Fact]
     public void End_Set_ReadsBack()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
 
-        Assert.Null(player.LPlayerVideoEnd);
+        Assert.Null(player.QPlayerVideoEnd);
         TInterfacePlayer.TPlayerEndSet(player, TimeSpan.FromSeconds(3));
-        Assert.Equal(TimeSpan.FromSeconds(3), player.LPlayerVideoEnd);
+        Assert.Equal(TimeSpan.FromSeconds(3), player.QPlayerVideoEnd);
     }
 
     [Fact]
     public void Seek_ClampsToVideoEnd_WhenKnown()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         List<TimeSpan> seeks = [];
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate(seek: seeks.Add));
 
@@ -117,23 +117,23 @@ public sealed class TPlayerRequest
     [Fact]
     public void EngineSet_DisposesPrevious_AndResetsApplied()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         int disposed = 0;
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate(dispose: () => disposed++));
         TInterfacePlayer.TPlayerFilterApply(player, "eq=gamma=1.1");
         TInterfacePlayer.TPlayerAudioApply(player, "volume=2");
 
-        Assert.Equal("volume=2", player.LPlayerAudioApplied);
+        Assert.Equal("volume=2", player.QPlayerAudioApplied);
 
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate());
 
         Assert.Equal(1, disposed);
-        Assert.Equal(string.Empty, player.LPlayerFilterApplied);
-        Assert.Null(player.LPlayerAudioApplied);
+        Assert.Equal(string.Empty, player.QPlayerFilterApplied);
+        Assert.Null(player.QPlayerAudioApplied);
 
         TInterfacePlayer.TPlayerEngineSet(player, null);
 
-        Assert.False(player.LPlayerReady);
+        Assert.False(player.QPlayerReady);
         Assert.Equal(TimeSpan.Zero, TInterfacePlayer.TPlayerTimeRead(player));
         Assert.False(TInterfacePlayer.TPlayerEndedRead(player));
     }
@@ -141,7 +141,7 @@ public sealed class TPlayerRequest
     [Fact]
     public void PreviewApply_HandsResolvedValues_ContrastOnlyWhenFlyleafActive()
     {
-        LPlayer player = TInterfacePlayer.TPlayerCreate();
+        QPlayer player = TInterfacePlayer.TPlayerCreate();
         List<LPreviewApplication> applied = [];
         TInterfacePlayer.TPlayerEngineSet(player, TInterfacePlayer.TPlayerSeamCreate(preview: applied.Add));
         LPreviewState state = Interface.TInterface.TPreviewColorChange(

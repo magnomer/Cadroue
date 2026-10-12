@@ -16,9 +16,9 @@ public sealed class PGhost
     private readonly AdornerLayer pGhostLayer;
     private readonly PGhostAdorner pGhostAdorner;
     private readonly UIElement pGhostRoot;
-    private readonly LGhost lGhost;
+    private readonly QGhost lGhost;
 
-    private PGhost(AdornerLayer pLayer, PGhostAdorner pAdorner, UIElement pRoot, LGhost lOwner)
+    private PGhost(AdornerLayer pLayer, PGhostAdorner pAdorner, UIElement pRoot, QGhost lOwner)
     {
         pGhostLayer = pLayer;
         pGhostAdorner = pAdorner;
@@ -26,7 +26,7 @@ public sealed class PGhost
         lGhost = lOwner;
     }
 
-    public static PGhost PGhostShow(FrameworkElement pSourceElement, LGhost lGhost)
+    public static PGhost PGhostShow(FrameworkElement pSourceElement, QGhost lGhost)
     {
         UIElement pRoot = PGhostRootRead(pSourceElement);
         AdornerLayer pLayer = AdornerLayer.GetAdornerLayer(pRoot)!;
@@ -46,7 +46,7 @@ public sealed class PGhost
 
     public void PGhostPointSet(Point pRootPoint)
     {
-        lGhost.LGhostPointSet(pRootPoint.X, pRootPoint.Y);
+        lGhost.QGhostPointSet(pRootPoint.X, pRootPoint.Y);
         pGhostAdorner.PGhostAdornerUpdate();
     }
 
@@ -58,7 +58,7 @@ public sealed class PGhost
 
     public void PGhostClear()
     {
-        _ = lGhost.LGhostClear();
+        _ = lGhost.QGhostClear();
         pGhostLayer.Remove(pGhostAdorner);
     }
 
@@ -78,7 +78,7 @@ public sealed class PGhost
 
     public static DragDropEffects PGhostDragRun(
         FrameworkElement pSourceElement,
-        LGhost lGhost,
+        QGhost lGhost,
         Func<DragDropEffects> pDragBody)
     {
         PGhost pGhost = PGhostShow(pSourceElement, lGhost);
@@ -111,16 +111,16 @@ public sealed class PGhost
     private static ImageSource PGhostImageCreate(FrameworkElement pSourceElement)
     {
         DpiScale pDpi = VisualTreeHelper.GetDpi(pSourceElement);
-        LGhostSize lSize = LGhost.LGhostSizeResolve(
+        QGhostSize lSize = QGhost.QGhostSizeResolve(
             pSourceElement.ActualWidth,
             pSourceElement.ActualHeight,
             pDpi.DpiScaleX,
             pDpi.DpiScaleY);
         var pBitmap = new RenderTargetBitmap(
-            lSize.LGhostPixelWidth,
-            lSize.LGhostPixelHeight,
-            lSize.LGhostDpiX,
-            lSize.LGhostDpiY,
+            lSize.QGhostPixelWidth,
+            lSize.QGhostPixelHeight,
+            lSize.QGhostDpiX,
+            lSize.QGhostDpiY,
             PixelFormats.Pbgra32);
         pBitmap.Render(pSourceElement);
         pBitmap.Freeze();
@@ -142,7 +142,7 @@ public sealed class PGhost
     {
         private readonly VisualCollection pGhostVisuals;
         private readonly System.Windows.Shapes.Rectangle pGhostImage;
-        private readonly LGhost lGhost;
+        private readonly QGhost lGhost;
 
         internal PGhostAdorner(
             UIElement pAdornedElement,
@@ -150,7 +150,7 @@ public sealed class PGhost
             ImageSource pImage,
             double pWidth,
             double pHeight,
-            LGhost lOwner)
+            QGhost lOwner)
             : base(pAdornedElement)
         {
             lGhost = lOwner;
@@ -179,13 +179,13 @@ public sealed class PGhost
         {
             _ = PGhostCursorRead(out PGhostPoint pCursor);
             Point pRootPoint = AdornedElement.PointFromScreen(new Point(pCursor.PGhostX, pCursor.PGhostY));
-            lGhost.LGhostPointSet(pRootPoint.X, pRootPoint.Y);
+            lGhost.QGhostPointSet(pRootPoint.X, pRootPoint.Y);
             PGhostAdornerUpdate();
         }
 
         internal void PGhostAdornerRemove()
         {
-            _ = lGhost.LGhostClear();
+            _ = lGhost.QGhostClear();
             (Parent as AdornerLayer)?.Remove(this);
         }
 
@@ -201,7 +201,7 @@ public sealed class PGhost
 
         protected override Size ArrangeOverride(Size pFinalSize)
         {
-            pGhostImage.Arrange(new Rect(lGhost.LGhostLeft, lGhost.LGhostTop, pGhostImage.Width, pGhostImage.Height));
+            pGhostImage.Arrange(new Rect(lGhost.QGhostLeft, lGhost.QGhostTop, pGhostImage.Width, pGhostImage.Height));
             return pFinalSize;
         }
     }

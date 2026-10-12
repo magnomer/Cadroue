@@ -7,16 +7,16 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TFlowKeyframeTimer
 {
-    private static LFlow TFlowBuild(bool command = true)
+    private static QFlow TFlowBuild(bool command = true)
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, command);
         TInterface.TFlowSourceSet(
             flow, TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 640, 360), "C:\\media\\clip.mp4");
         return flow;
     }
 
-    private static List<string> TFlowTimerAttach(LFlow flow)
+    private static List<string> TFlowTimerAttach(QFlow flow)
     {
         List<string> timers = [];
         TInterface.TFlowTimerAttach(
@@ -30,7 +30,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Defer_StartsTheRequestTimer_OnlyWithASourceAndNoResumePending()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<string> timers = TFlowTimerAttach(flow);
 
         TInterface.TFlowKeyframeDefer(flow);
@@ -58,7 +58,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Suspend_WithoutCommand_NeverArmsTheResume()
     {
-        LFlow flow = TFlowBuild(false);
+        QFlow flow = TFlowBuild(false);
         List<string> timers = TFlowTimerAttach(flow);
         TInterface.TFlowKeyframeSuspend(flow, true);
         Assert.False(TInterface.TFlowResumeCheck(flow));
@@ -68,7 +68,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void CursorUpdate_Defers_AndSeekSuspends()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<string> timers = TFlowTimerAttach(flow);
         List<TimeSpan> seeks = [];
         int applies = 0;
@@ -93,7 +93,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Apply_IgnoresStaleSerials_AndForwardsTheCurrentOne()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<int> counts = [];
         TInterface.TFlowKeyframeAttach(flow, notice => { }, (entries, ranges) => counts.Add(entries.Count));
         LKeyframeEntry[] entries = [new(TimeSpan.FromSeconds(2))];
@@ -106,13 +106,13 @@ public sealed class TFlowKeyframeTimer
         TInterface.TFlowKeyframeApply(
             flow, TInterface.TKeyframeNoticeCreate(0, entries, ranges, LKeyframeKind.LKeyframeKindInter));
         Assert.Equal([1], counts);
-        Assert.Equal("LKeyframeKindInter/1/1/10", flow.QFlowStamp.LFlowKeyframeStamp);
+        Assert.Equal("LKeyframeKindInter/1/1/10", flow.QFlowStamp.QFlowKeyframeStamp);
     }
 
     [Fact]
     public void Shortcut_RunsOnlyWithCommandAndSpool()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         int spools = 0;
         TInterface.TFlowSpoolAttach(flow, () => spools++);
         Assert.True(TInterface.TFlowShortcutRun(flow, "ZoomIn"));
@@ -131,7 +131,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Wheel_SeeksByDefault_AndReportsHandled()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<TimeSpan> seeks = [];
         TInterface.TFlowCursorAttach(flow, () => { }, seeks.Add);
         Assert.False(TInterface.TFlowWheelHandle(flow, 0));
@@ -143,20 +143,20 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Name_EditsTheSelection_AndCommitsTrimmedText()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowSectionSet(flow, true);
         List<string> shows = [];
         int closes = 0;
-        TInterface.TFlowNameAttach(flow, prompt => shows.Add(prompt.LFlowNameText), () => closes++);
+        TInterface.TFlowNameAttach(flow, prompt => shows.Add(prompt.QFlowNameText), () => closes++);
 
         Assert.False(TInterface.TFlowNameStart(flow));
         TInterface.TFlowSectionAdd(flow);
         Assert.True(TInterface.TFlowNameStart(flow));
-        Assert.Equal(0, flow.LFlowName.LFlowNameIndex);
+        Assert.Equal(0, flow.QFlowName.QFlowNameIndex);
         Assert.Equal([""], shows);
 
         TInterface.TFlowNameCommit(flow, " named ", "", "");
-        Assert.Null(flow.LFlowName.LFlowNameIndex);
+        Assert.Null(flow.QFlowName.QFlowNameIndex);
         Assert.Equal(1, closes);
         Assert.Equal("named", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
 
@@ -169,7 +169,7 @@ public sealed class TFlowKeyframeTimer
     [Fact]
     public void Attach_And_Clear_RaiseTheStripNotices()
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowUnloadSet(flow);
         List<string> notices = [];
@@ -182,13 +182,13 @@ public sealed class TFlowKeyframeTimer
             TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 640, 360),
             "C:\\media\\clip.mp4",
             TimeSpan.FromSeconds(4));
-        Assert.Equal(TimeSpan.FromSeconds(4), flow.LFlowCursor);
-        Assert.Equal("0:04", TInterface.TCursorTimeFormat(flow.LFlowCursor));
-        Assert.Equal("1:00", flow.QFlowSpool.LFlowLabelDuration);
+        Assert.Equal(TimeSpan.FromSeconds(4), flow.QFlowCursor);
+        Assert.Equal("0:04", TInterface.TCursorTimeFormat(flow.QFlowCursor));
+        Assert.Equal("1:00", flow.QFlowSpool.QFlowLabelDuration);
         Assert.True(TInterface.TFlowClear(flow));
         Assert.Equal(["attach", "media", "clear", "media"], notices);
 
         TInterface.TFlowClose(flow);
-        Assert.True(flow.LFlowUnloaded);
+        Assert.True(flow.QFlowUnloaded);
     }
 }

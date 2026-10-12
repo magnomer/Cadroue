@@ -32,7 +32,7 @@ public sealed partial class PExport
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
-        if (LExport.LExportSelected is not string lPresetName)
+        if (QExport.QExportSelected is not string lPresetName)
         {
             return;
         }
@@ -52,7 +52,7 @@ public sealed partial class PExport
     {
         LPresetDocument lPresetValue = lPresetOwner.LPresetSelectionValue;
         string lPresetName = string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
-            ? LExport.LExportSelected ?? string.Empty
+            ? QExport.QExportSelected ?? string.Empty
             : lPresetValue.LPresetName;
 
         string pFileName = LPreset.LPresetFileFormat(lPresetName);
@@ -146,7 +146,7 @@ public sealed partial class PExport
     private void PExportModificationApply(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (LExport.LExportSelected is not string lPresetName)
+        if (QExport.QExportSelected is not string lPresetName)
         {
             return;
         }
@@ -162,7 +162,7 @@ public sealed partial class PExport
     private void PExportModificationRestore(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
-        if (LExport.LExportSelected is not string)
+        if (QExport.QExportSelected is not string)
         {
             return;
         }
@@ -172,13 +172,13 @@ public sealed partial class PExport
 
     private void PExportNameCommit(string lOldPresetName, string lNewPresetName)
     {
-        if (!LExport.LExportEditingCheck(lOldPresetName))
+        if (!QExport.QExportEditingCheck(lOldPresetName))
         {
             return;
         }
 
         pExportBoxCurrent = null;
-        LExport.LExportNameCommit(lOldPresetName, lNewPresetName);
+        QExport.QExportNameCommit(lOldPresetName, lNewPresetName);
     }
 
     private void PExportDialogShow(object sender, RoutedEventArgs e)
@@ -186,7 +186,7 @@ public sealed partial class PExport
         var pButton = (Button)sender;
         LPreset pWorking = PExportWorkingRead();
         var psEncoder = new PSEncoder(
-            LExport.LExportEncoderCreate(pWorking),
+            QExport.QExportEncoderCreate(pWorking),
             () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate())
         {
             Owner = Window.GetWindow(pButton)

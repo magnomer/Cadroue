@@ -4,17 +4,17 @@ Hash: `cb1c714df84d4f8b`
 ## `private UIElement PSVideoPlateBuild()`
 
 Builds the video plate with mode, encoder, rate-control, size, frame-rate and pixel rows.
-Encoder and rate changes go to LSEncoder, whose video notice rebuilds the dependent rows.
+Encoder and rate changes go to QSEncoder, whose video notice rebuilds the dependent rows.
 The Result button opens the verification table and stays disabled until a verification has results.
 
 ## `private void PSVideoScopeUpdate()`
 
 Encoder rows show only for the Encode mode.
-Copy and Smart hide them and show the notice LSEncoder picks for that mode.
+Copy and Smart hide them and show the notice QSEncoder picks for that mode.
 
 ## `private void PSVideoRowsApply()`
 
-Answers the LSEncoder video notice after the encoder or rate control changed.
+Answers the QSEncoder video notice after the encoder or rate control changed.
 The rate combo gets a new list only when the labels differ, which spares a needless selection reset.
 
 ## `private void PSVideoRowsRebuild()`

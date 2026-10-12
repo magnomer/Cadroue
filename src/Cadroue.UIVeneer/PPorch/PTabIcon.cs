@@ -11,10 +11,10 @@ public sealed class PTabIcon : IValueConverter
     private static readonly Brush pTabActiveBrush = PTabActiveCreate();
 
     private static readonly IReadOnlyDictionary<string, ImageSource> pTabIcons =
-        LStrip.LStripKeysRead().ToDictionary(pKey => pKey, pKey => PIcon.PIconRead(PTabPathRead(pKey)));
+        QStrip.QStripKeysRead().ToDictionary(pKey => pKey, pKey => PIcon.PIconRead(PTabPathRead(pKey)));
 
     private static readonly IReadOnlyDictionary<string, ImageSource> pTabActiveIcons =
-        LStrip.LStripKeysRead().ToDictionary(
+        QStrip.QStripKeysRead().ToDictionary(
             pKey => pKey, pKey => PIcon.PIconRead(PTabPathRead(pKey), pTabActiveBrush));
 
     private static readonly IReadOnlyDictionary<bool, IReadOnlyDictionary<string, ImageSource>> pTabSets =

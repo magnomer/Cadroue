@@ -16,23 +16,23 @@ public sealed class TAudioTabPlan
     private const string TAudioSource = @"C:\media\clip.mp4";
     private const string TAudioOther = @"C:\media\other.mp4";
 
-    private static (LAudioTab, LInspector, LViewer, LDocket, LProcessing) TAudioBuild(string preset = "Alpha")
+    private static (QAudioTab, QInspector, QViewer, LDocket, QProcessing) TAudioBuild(string preset = "Alpha")
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LAudioTab tab = TInterface.TAudioTabCreate(TInterface.TPresetSelectionCreate(preset), viewer, list);
-        LInspector inspector = TInterface.TAudioInspectorRead(tab);
-        LProcessing processing = TInterface.TAudioProcessingRead(tab);
-        foreach (LProcessingRow row in TInterface.TAudioRowsRead())
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QAudioTab tab = TInterface.TAudioTabCreate(TInterface.TPresetSelectionCreate(preset), viewer, list);
+        QInspector inspector = TInterface.TAudioInspectorRead(tab);
+        QProcessing processing = TInterface.TAudioProcessingRead(tab);
+        foreach (QProcessingRow row in TInterface.TAudioRowsRead())
         {
-            TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
+            TInterface.TProcessingStepAdd(processing, row.QProcessingRowKey);
         }
 
         return (tab, inspector, viewer, docket, processing);
     }
 
-    private static void TAudioSourceSet(LViewer viewer, string path)
+    private static void TAudioSourceSet(QViewer viewer, string path)
     {
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 1920, 1080);
         LCargo cargo = TInterfaceViewer.TCargoCreate(path, info, true);
@@ -43,10 +43,10 @@ public sealed class TAudioTabPlan
     [Fact]
     public void Rows_SixSteps_EveryKeyMapsToAKind()
     {
-        IReadOnlyList<LProcessingRow> rows = TInterface.TAudioRowsRead();
+        IReadOnlyList<QProcessingRow> rows = TInterface.TAudioRowsRead();
 
         Assert.Equal(6, rows.Count);
-        Assert.All(rows, row => Assert.NotNull(TInterface.TAudioKindRead(row.LProcessingRowKey)));
+        Assert.All(rows, row => Assert.NotNull(TInterface.TAudioKindRead(row.QProcessingRowKey)));
         Assert.Equal(LAudioKind.LAudioKindLeveling, TInterface.TAudioKindRead("Normalize"));
         Assert.Null(TInterface.TAudioKindRead("Salvage"));
     }
@@ -56,9 +56,9 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, _, LProcessing processing) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, _, _, QProcessing processing) = TAudioBuild();
         TInterface.TProcessingIndexMove(processing, 4, 0);
-        TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
+        TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
 
         LWorkAudio plan = TInterface.TAudioPlanRead(tab);
 
@@ -73,8 +73,8 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, _, LProcessing processing) = TAudioBuild();
-        TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
+        (QAudioTab tab, QInspector inspector, _, _, QProcessing processing) = TAudioBuild();
+        TInterface.TVolumeActiveSet(inspector.QInspectorAudio.QInspectorVolume, true);
 
         TInterface.TAudioChangeHandle(tab);
 
@@ -88,14 +88,14 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, LViewer viewer, _, _) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, QViewer viewer, _, _) = TAudioBuild();
         var graphs = new List<string>();
         TInterface.TAudioFilterAttach(viewer, graphs.Add);
-        TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
-        TInterface.TVolumeGainSet(inspector.LInspectorAudio.LInspectorVolume, 3);
+        TInterface.TVolumeActiveSet(inspector.QInspectorAudio.QInspectorVolume, true);
+        TInterface.TVolumeGainSet(inspector.QInspectorAudio.QInspectorVolume, 3);
 
         TInterface.TAudioViewerApply(tab);
-        TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
+        TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
         TInterface.TAudioViewerApply(tab);
 
         Assert.Equal(2, graphs.Count);
@@ -109,27 +109,27 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab source, LInspector sourceInspector, _, _, _) = TAudioBuild();
-        LInspectorAudio sections = sourceInspector.LInspectorAudio;
-        TInterface.TVolumeActiveSet(sections.LInspectorVolume, true);
-        TInterface.TVolumeGainSet(sections.LInspectorVolume, 4);
-        TInterface.TVolumePersistentSet(sections.LInspectorVolume, true);
-        TInterface.TSkipActiveSet(sourceInspector.LInspectorSkip, true);
-        TInterface.TSkipPersistentSet(sourceInspector.LInspectorSkip, true);
+        (QAudioTab source, QInspector sourceInspector, _, _, _) = TAudioBuild();
+        QInspectorAudio sections = sourceInspector.QInspectorAudio;
+        TInterface.TVolumeActiveSet(sections.QInspectorVolume, true);
+        TInterface.TVolumeGainSet(sections.QInspectorVolume, 4);
+        TInterface.TVolumePersistentSet(sections.QInspectorVolume, true);
+        TInterface.TSkipActiveSet(sourceInspector.QInspectorSkip, true);
+        TInterface.TSkipPersistentSet(sourceInspector.QInspectorSkip, true);
 
         LSceneTabEntry layout = TInterface.TAudioLayoutRead(source);
-        (LAudioTab target, LInspector targetInspector, _, _, LProcessing processing) = TAudioBuild();
+        (QAudioTab target, QInspector targetInspector, _, _, QProcessing processing) = TAudioBuild();
         TInterface.TAudioLayoutApply(target, layout);
-        LInspectorAudio targetSections = targetInspector.LInspectorAudio;
+        QInspectorAudio targetSections = targetInspector.QInspectorAudio;
 
         Assert.NotNull(layout.LSceneInspector?.LSceneInspectorAudio);
         Assert.True(layout.LSceneInspector!.LSceneInspectorSkip);
         Assert.True(TInterfaceInspector.TInspectorPersistentCheck(targetSections));
-        Assert.Equal(4, TInterface.TVolumeGainRead(targetSections.LInspectorVolume));
+        Assert.Equal(4, TInterface.TVolumeGainRead(targetSections.QInspectorVolume));
         Assert.True(TInterfaceInspector.TInspectorStepRead(
             targetSections, LAudioKind.LAudioKindVolume).LWorkStepActive);
-        Assert.True(targetInspector.LInspectorSkip.LSkipActive);
-        Assert.True(targetInspector.LInspectorSkip.LSkipPersistent);
+        Assert.True(targetInspector.QInspectorSkip.QSkipActive);
+        Assert.True(targetInspector.QInspectorSkip.QSkipPersistent);
         Assert.True(TInterface.TProcessingActiveCheck(processing, "Volume"));
         TInterface.TAudioClose(source);
         TInterface.TAudioClose(target);
@@ -140,8 +140,8 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, _, _) = TAudioBuild();
-        TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
+        (QAudioTab tab, QInspector inspector, _, _, _) = TAudioBuild();
+        TInterface.TVolumeActiveSet(inspector.QInspectorAudio.QInspectorVolume, true);
 
         Assert.Null(TInterface.TAudioLayoutRead(tab).LSceneInspector);
         TInterface.TAudioClose(tab);
@@ -152,7 +152,7 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, LViewer viewer, LDocket docket, _) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, QViewer viewer, LDocket docket, _) = TAudioBuild();
         var written = new List<string>();
         TInterface.TAudioLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
@@ -162,7 +162,7 @@ public sealed class TAudioTabPlan
             TAudioSourceSet(viewer, TAudioSource);
             Assert.Empty(written);
 
-            TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
+            TInterface.TVolumeActiveSet(inspector.QInspectorAudio.QInspectorVolume, true);
 
             Assert.Equal([TAudioSource], written);
         }
@@ -178,21 +178,21 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, LViewer viewer, LDocket docket, _) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, QViewer viewer, LDocket docket, _) = TAudioBuild();
         var written = new List<string>();
         TInterface.TAudioLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
         {
             TInterfaceList.TDocketPathsAdd(docket, TAudioSource);
-            TInterface.TVolumeActiveSet(inspector.LInspectorAudio.LInspectorVolume, true);
+            TInterface.TVolumeActiveSet(inspector.QInspectorAudio.QInspectorVolume, true);
 
             TAudioSourceSet(viewer, TAudioSource);
 
-            Assert.Equal(TAudioSource, inspector.LInspectorOwnerPath);
+            Assert.Equal(TAudioSource, inspector.QInspectorOwnerPath);
             Assert.Contains(TAudioSource, written);
             Assert.True(
                 TInterfaceInspector.TInspectorStepRead(
-                    inspector.LInspectorAudio, LAudioKind.LAudioKindVolume).LWorkStepActive);
+                    inspector.QInspectorAudio, LAudioKind.LAudioKindVolume).LWorkStepActive);
         }
         finally
         {
@@ -206,7 +206,7 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, _, LProcessing processing) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, _, _, QProcessing processing) = TAudioBuild();
         LSidecarAudioEntry saved = TInterface.TAudioRecordCreate(
             TInterface.TWorkAudioCreate(false, Interface.TInterface.TWorkVolumeCreate(true, 6)));
         TInterface.TAudioLibrarianAttach(_ => saved, (_, _) => true);
@@ -214,7 +214,7 @@ public sealed class TAudioTabPlan
         {
             TInterface.TAudioPlanRestore(tab, TAudioSource, false);
 
-            Assert.Equal(6, TInterface.TVolumeGainRead(inspector.LInspectorAudio.LInspectorVolume));
+            Assert.Equal(6, TInterface.TVolumeGainRead(inspector.QInspectorAudio.QInspectorVolume));
             Assert.True(TInterface.TProcessingActiveCheck(processing, "Volume"));
         }
         finally
@@ -229,7 +229,7 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LAudioTab tab, LInspector inspector, _, LDocket docket, _) = TAudioBuild();
+        (QAudioTab tab, QInspector inspector, _, LDocket docket, _) = TAudioBuild();
         var written = new List<string>();
         TInterface.TAudioLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
@@ -238,7 +238,7 @@ public sealed class TAudioTabPlan
             TInterface.TAudioItemsHandle(tab, TInterfaceList.TDocketItemsRead(docket));
             Assert.Empty(written);
 
-            TInterface.TVolumePersistentSet(inspector.LInspectorAudio.LInspectorVolume, true);
+            TInterface.TVolumePersistentSet(inspector.QInspectorAudio.QInspectorVolume, true);
             written.Clear();
             TInterface.TAudioItemsHandle(tab, TInterfaceList.TDocketItemsRead(docket));
 
@@ -256,7 +256,7 @@ public sealed class TAudioTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate();
-        (LAudioTab tab, _, _, _, _) = TAudioBuild("Missing");
+        (QAudioTab tab, _, _, _, _) = TAudioBuild("Missing");
         int missing = 0;
         TInterface.TAudioMissingAttach(tab, () => missing++);
 

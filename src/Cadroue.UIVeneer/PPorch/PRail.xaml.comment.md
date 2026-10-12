@@ -4,7 +4,7 @@ Hash: `79c2b8946f4581cb`
 ## `public partial class PRail : UserControl`
 
 The tab bar control.
-It draws the strip in one of two orientations and forwards gestures to `LRail` as plain numbers.
+It draws the strip in one of two orientations and forwards gestures to `QRail` as plain numbers.
 Every branch is a readonly table lookup, keyed by the vertical flag, a key, a flag or the outcome.
 
 ## `public const double PRailWidth = 180;`
@@ -23,7 +23,7 @@ A press anywhere in the window must commit a rename.
 
 ## `private void PTabPressHandle(object sender, MouseButtonEventArgs e)`
 
-Capture is taken only when `LRail` arms a drag.
+Capture is taken only when `QRail` arms a drag.
 A double click on the name starts the rename and takes no capture.
 
 ## `private static bool PTabHitCheck(FrameworkElement pTabElement, MouseButtonEventArgs e)`
@@ -41,7 +41,7 @@ The tab centers are read fresh each time, because items shift as the tab reorder
 The dragged tab is dimmed in place.
 The ghost keeps the grab offset, so it does not jump under the pointer.
 
-## `private double PTabCenterRead(LStripTab lStripTab)`
+## `private double PTabCenterRead(QStripTab lStripTab)`
 
 Reads the center along the strip axis from the item container.
 The measurement is relative to the items control, the space of the pointer reads.
@@ -51,7 +51,7 @@ The measurement is relative to the items control, the space of the pointer reads
 The screen point is read before the drag is cleared.
 A drag that ended outside the window is then offered to the relay.
 
-## `private async void PTabRelayRun(LStripTab? lStripTab, Point pDevicePoint)`
+## `private async void PTabRelayRun(QStripTab? lStripTab, Point pDevicePoint)`
 
 The window decides inside or outside in its own space.
 The relay receives the point in device pixels for the other window and in DIPs for the payload.
@@ -79,7 +79,7 @@ Focus before that would be lost.
 ## `private void PTabOutsideHandle(object sender, MouseButtonEventArgs e)`
 
 Passes the focused name box and whether the press hit inside it.
-`LRail` commits only when the press was outside.
+`QRail` commits only when the press was outside.
 
 ## `private void PTabLeaveHandle(object sender, RoutedEventArgs e) =>`
 

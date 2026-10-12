@@ -14,28 +14,28 @@ public sealed class PFunnelTab : PTabSurface
     private readonly PFunnelRules pFunnelRules;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFunnelTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFunnelTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LFunnelTab = lWorkspace.QWorkspaceMode.LFunnelTabCreate();
-        pFunnelRules = new PFunnelRules(LFunnelTab.LFunnel);
-        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QFunnelTab = lWorkspace.QWorkspaceMode.QFunnelTabCreate();
+        pFunnelRules = new PFunnelRules(QFunnelTab.QFunnel);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
-        LFunnelTab.LFunnelLayoutApply(lPreferenceTabLayout);
+        QFunnelTab.QFunnelLayoutApply(lPreferenceTabLayout);
     }
 
-    public LFunnelTab LFunnelTab { get; }
+    public QFunnelTab QFunnelTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 
@@ -43,16 +43,16 @@ public sealed class PFunnelTab : PTabSurface
 
     public override PList? PTabList => pList;
 
-    public override void PTabStripAttach(LStrip lStrip, LStripTab lStripTab) =>
-        LFunnelTab.LFunnel.LFunnelStripAttach(lStrip, lStripTab.LStripTabId);
+    public override void PTabStripAttach(QStrip lStrip, QStripTab lStripTab) =>
+        QFunnelTab.QFunnel.QFunnelStripAttach(lStrip, lStripTab.QStripTabId);
 
-    public override void PTabTargetsResolve() => LFunnelTab.LFunnel.LFunnelTargetsResolve();
+    public override void PTabTargetsResolve() => QFunnelTab.QFunnel.QFunnelTargetsResolve();
 
     public override void PTabClose()
     {
-        LFunnelTab.LFunnelClose();
+        QFunnelTab.QFunnelClose();
         base.PTabClose();
     }
 
-    public override LSceneTabEntry PTabLayoutRead() => LFunnelTab.LFunnelLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => QFunnelTab.QFunnelLayoutRead(PTabLayoutCreate());
 }

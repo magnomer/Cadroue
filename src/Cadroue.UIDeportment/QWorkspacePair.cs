@@ -4,53 +4,53 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QWorkspacePair
 {
-    public QWorkspacePair(QWorkspaceKey qWorkspaceKey, CUsher lUsher)
+    public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher)
     {
-        LWorkspaceFlow = new LFlow(lUsher);
-        LWorkspaceViewer = new LViewer(lUsher);
-        LWorkspaceViewer.LViewerEligibleSet(
-            qWorkspaceKey.LWorkspaceAudioOnly, qWorkspaceKey.LWorkspaceEdit, qWorkspaceKey.LWorkspaceEdit);
-        LWorkspaceViewer.LViewerAllowSet(qWorkspaceKey.LWorkspaceAudioOnly);
-        LWorkspaceCompass = new LCompass(LWorkspaceFlow, LWorkspaceViewer, qWorkspaceKey.LWorkspaceSectionVisible);
-        LWorkspaceSource = qWorkspaceKey.LWorkspaceSourcePresent
-            ? new LSource(lUsher, LWorkspaceViewer, qWorkspaceKey.LWorkspaceAudioOnly)
+        QWorkspaceFlow = new QFlow(lUsher);
+        QWorkspaceViewer = new QViewer(lUsher);
+        QWorkspaceViewer.QViewerEligibleSet(
+            qWorkspaceKey.QWorkspaceAudioOnly, qWorkspaceKey.QWorkspaceEdit, qWorkspaceKey.QWorkspaceEdit);
+        QWorkspaceViewer.QViewerAllowSet(qWorkspaceKey.QWorkspaceAudioOnly);
+        QWorkspaceCompass = new QCompass(QWorkspaceFlow, QWorkspaceViewer, qWorkspaceKey.QWorkspaceSectionVisible);
+        QWorkspaceSource = qWorkspaceKey.QWorkspaceSourcePresent
+            ? new QSource(lUsher, QWorkspaceViewer, qWorkspaceKey.QWorkspaceAudioOnly)
             : null;
-        LWorkspaceInfo = qWorkspaceKey.LWorkspaceSourcePresent ? new LInfo(LWorkspaceViewer) : null;
+        QWorkspaceInfo = qWorkspaceKey.QWorkspaceSourcePresent ? new QInfo(QWorkspaceViewer) : null;
     }
 
-    public LFlow LWorkspaceFlow { get; }
+    public QFlow QWorkspaceFlow { get; }
 
-    public LViewer LWorkspaceViewer { get; }
+    public QViewer QWorkspaceViewer { get; }
 
-    public LCompass LWorkspaceCompass { get; }
+    public QCompass QWorkspaceCompass { get; }
 
-    public LSource? LWorkspaceSource { get; }
+    public QSource? QWorkspaceSource { get; }
 
-    public LInfo? LWorkspaceInfo { get; }
+    public QInfo? QWorkspaceInfo { get; }
 
-    public void LWorkspacePairAttach()
+    public void QWorkspacePairAttach()
     {
-        LFlow lFlow = LWorkspaceFlow;
-        LViewer lViewer = LWorkspaceViewer;
-        lFlow.LFlowPlayingAttach(() => lViewer.LViewerPlaying);
-        lViewer.LViewerPlayback.LViewerClockTicked += lFlow.LFlowCursorUpdate;
-        lFlow.LFlowCursorChanged += lViewer.LViewerPlayback.LViewerSeek;
-        lFlow.LFlowDragChanged += lViewer.LViewerPlayback.LViewerDragSet;
-        lFlow.LFlowPlayed += lViewer.LViewerPlayback.LViewerPlay;
-        lFlow.LFlowPaused += lViewer.LViewerPlayback.LViewerPause;
-        lFlow.LFlowVolumeAdjusted += lViewer.LViewerPlayback.LViewerVolumeAdjust;
+        QFlow lFlow = QWorkspaceFlow;
+        QViewer lViewer = QWorkspaceViewer;
+        lFlow.QFlowPlayingAttach(() => lViewer.QViewerPlaying);
+        lViewer.QViewerPlayback.QViewerClockTicked += lFlow.QFlowCursorUpdate;
+        lFlow.QFlowCursorChanged += lViewer.QViewerPlayback.QViewerSeek;
+        lFlow.QFlowDragChanged += lViewer.QViewerPlayback.QViewerDragSet;
+        lFlow.QFlowPlayed += lViewer.QViewerPlayback.QViewerPlay;
+        lFlow.QFlowPaused += lViewer.QViewerPlayback.QViewerPause;
+        lFlow.QFlowVolumeAdjusted += lViewer.QViewerPlayback.QViewerVolumeAdjust;
     }
 
-    public void LWorkspacePairDetach()
+    public void QWorkspacePairDetach()
     {
-        LFlow lFlow = LWorkspaceFlow;
-        LViewer lViewer = LWorkspaceViewer;
-        lViewer.LViewerPlayback.LViewerClockTicked -= lFlow.LFlowCursorUpdate;
-        lFlow.LFlowCursorChanged -= lViewer.LViewerPlayback.LViewerSeek;
-        lFlow.LFlowDragChanged -= lViewer.LViewerPlayback.LViewerDragSet;
-        lFlow.LFlowPlayed -= lViewer.LViewerPlayback.LViewerPlay;
-        lFlow.LFlowPaused -= lViewer.LViewerPlayback.LViewerPause;
-        lFlow.LFlowVolumeAdjusted -= lViewer.LViewerPlayback.LViewerVolumeAdjust;
-        lFlow.LFlowPlayingAttach(null);
+        QFlow lFlow = QWorkspaceFlow;
+        QViewer lViewer = QWorkspaceViewer;
+        lViewer.QViewerPlayback.QViewerClockTicked -= lFlow.QFlowCursorUpdate;
+        lFlow.QFlowCursorChanged -= lViewer.QViewerPlayback.QViewerSeek;
+        lFlow.QFlowDragChanged -= lViewer.QViewerPlayback.QViewerDragSet;
+        lFlow.QFlowPlayed -= lViewer.QViewerPlayback.QViewerPlay;
+        lFlow.QFlowPaused -= lViewer.QViewerPlayback.QViewerPause;
+        lFlow.QFlowVolumeAdjusted -= lViewer.QViewerPlayback.QViewerVolumeAdjust;
+        lFlow.QFlowPlayingAttach(null);
     }
 }

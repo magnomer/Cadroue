@@ -4,7 +4,7 @@ Hash: `a6fd5a63eb89340e`
 ## `public sealed class PWorkspace`
 
 Builds one tab's surface, root and the veneer half of its workspace wiring.
-The deportment `LWorkspace` decides, and this class answers its notices on the child controls.
+The deportment `QWorkspace` decides, and this class answers its notices on the child controls.
 
 ## `private static readonly IReadOnlyDictionary<string, Func<LPresetSelection, LSceneTabEntry?, PTabSurface>>`
 

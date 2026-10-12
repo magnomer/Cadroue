@@ -34,8 +34,8 @@ public sealed partial class PInspector
         pGammaPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
-        PInspectorSwitchAttach(pGammaBox, LGamma.LGammaActiveSet);
-        PInspectorSwitchAttach(pGammaPersistent, LGamma.LGammaPersistentSet);
+        PInspectorSwitchAttach(pGammaBox, QGamma.QGammaActiveSet);
+        PInspectorSwitchAttach(pGammaPersistent, QGamma.QGammaPersistentSet);
         pGammaStack = new StackPanel();
         pGammaSlots.ForEach(PGammaRowBuild);
 
@@ -51,7 +51,7 @@ public sealed partial class PInspector
             Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        pGammaReset.Click += (_, _) => LGamma.LGammaReset();
+        pGammaReset.Click += (_, _) => QGamma.QGammaReset();
         pGammaStack.Children.Add(pGammaReset);
         pGammaBody = PToneBodyBuild(pGammaBox, pGammaStack);
         return pGammaBody;
@@ -59,16 +59,16 @@ public sealed partial class PInspector
 
     private void PGammaRowBuild(int pSlot)
     {
-        pGammaSliders[pSlot] = PToneSliderBuild(LGamma.LGammaLeastRead(pSlot), 100, 0);
+        pGammaSliders[pSlot] = PToneSliderBuild(QGamma.QGammaLeastRead(pSlot), 100, 0);
         pGammaValues[pSlot] = PInspectorDecimalBuild();
         pGammaValues[pSlot].Text = "0";
         PInspectorValueAttach(
             pGammaSliders[pSlot],
             pGammaValues[pSlot],
-            LGamma.LGammaLeastRead(pSlot),
+            QGamma.QGammaLeastRead(pSlot),
             100,
-            () => LGamma.LGammaValueRead(pSlot),
-            pNumber => LGamma.LGammaValueSet(pSlot, pNumber));
+            () => QGamma.QGammaValueRead(pSlot),
+            pNumber => QGamma.QGammaValueSet(pSlot, pNumber));
         pGammaStack.Children.Add(
             PInspectorSliderBuild(
                 LLocalization.LLocalizationTextRead(PGammaLabelKeys[pSlot]),
@@ -78,17 +78,17 @@ public sealed partial class PInspector
     }
 
     private void PGammaSlotUpdate(int pSlot) =>
-        PInspectorValueUpdate(pGammaSliders[pSlot], pGammaValues[pSlot], LGamma.LGammaValueRead(pSlot), "0.#");
+        PInspectorValueUpdate(pGammaSliders[pSlot], pGammaValues[pSlot], QGamma.QGammaValueRead(pSlot), "0.#");
 
     private void PGammaUpdate()
     {
-        PInspectorSwitchUpdate(pGammaBox, LGamma.LGammaStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pGammaPersistent, LGamma.LGammaPersistent);
+        PInspectorSwitchUpdate(pGammaBox, QGamma.QGammaStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pGammaPersistent, QGamma.QGammaPersistent);
         pGammaSlots.ForEach(PGammaSlotUpdate);
-        PInspectorSectionApply(pGammaBox, pGammaPersistent, pGammaStack, pGammaBody, LInspector.LInspectorTipResolve(
-            LGamma.LGammaStep.LWorkStepActive,
-            LGamma.LGammaCapable,
-            LGamma.LGammaPreview,
+        PInspectorSectionApply(pGammaBox, pGammaPersistent, pGammaStack, pGammaBody, QInspector.QInspectorTipResolve(
+            QGamma.QGammaStep.LWorkStepActive,
+            QGamma.QGammaCapable,
+            QGamma.QGammaPreview,
             "Inspector.Video.GammaRequiresEq",
             "Inspector.Video.GammaPreviewMpv",
             "Inspector.Video.ApplyGamma",

@@ -6,12 +6,12 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TDeckEvict
 {
-    private static LStrip TStripBuild() =>
+    private static QStrip TStripBuild() =>
         TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
 
-    private static LStripTab TStripTabAdd(LStrip strip, string key)
+    private static QStripTab TStripTabAdd(QStrip strip, string key)
     {
-        LStripTab tab = TInterface.TStripTabCreate(key);
+        QStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
         return tab;
     }
@@ -19,22 +19,22 @@ public sealed class TDeckEvict
     [Fact]
     public void Select_HidesPreviousAndShowsCurrent()
     {
-        LStrip strip = TStripBuild();
-        LDeck deck = TInterface.TDeckRead(strip);
+        QStrip strip = TStripBuild();
+        QDeck deck = TInterface.TDeckRead(strip);
         List<string> log = [];
         TInterface.TDeckAttach(
             deck,
-            tab => log.Add("hide " + tab.LStripTabKey),
-            tab => log.Add("show " + tab.LStripTabKey),
-            () => log.Add("empty " + deck.LDeckEmpty));
-        Assert.True(deck.LDeckEmpty);
+            tab => log.Add("hide " + tab.QStripTabKey),
+            tab => log.Add("show " + tab.QStripTabKey),
+            () => log.Add("empty " + deck.QDeckEmpty));
+        Assert.True(deck.QDeckEmpty);
 
-        LStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab first = TStripTabAdd(strip, "Split");
         Assert.Equal(["show Split", "empty False"], log);
-        Assert.Same(first, deck.LDeckShown);
+        Assert.Same(first, deck.QDeckShown);
 
         log.Clear();
-        LStripTab second = TStripTabAdd(strip, "Edit");
+        QStripTab second = TStripTabAdd(strip, "Edit");
         TInterface.TStripSelect(strip, second);
         Assert.Equal(["hide Split", "show Edit", "empty False"], log);
 
@@ -49,15 +49,15 @@ public sealed class TDeckEvict
         log.Clear();
         TInterface.TStripRemove(strip, first);
         Assert.Equal(["hide Split", "empty True"], log);
-        Assert.True(deck.LDeckEmpty);
-        Assert.Null(deck.LDeckShown);
+        Assert.True(deck.QDeckEmpty);
+        Assert.Null(deck.QDeckShown);
     }
 
     [Fact]
     public void Close_StopsListening()
     {
-        LStrip strip = TStripBuild();
-        LDeck deck = TInterface.TDeckRead(strip);
+        QStrip strip = TStripBuild();
+        QDeck deck = TInterface.TDeckRead(strip);
         int shows = 0;
         TInterface.TDeckAttach(deck, _ => { }, _ => shows++, () => { });
 

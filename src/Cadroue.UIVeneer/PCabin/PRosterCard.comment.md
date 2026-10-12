@@ -6,26 +6,26 @@ Hash: `f39505e85bc4b0e7`
 Builds the framed entries of a batch card from Deportment records.
 Every brush, border and corner comes from the theme tables, keyed by values the records carry.
 
-## `private static readonly IReadOnlyDictionary<string, Func<LRoster, LRosterEntry, ContextMenu, UIElement>>`
+## `private static readonly IReadOnlyDictionary<string, Func<QRoster, QRosterEntry, ContextMenu, UIElement>>`
 
 Picks the builder by entry kind, so the head, file and row entries share one frame builder.
 
-## `public static Border PRosterEntryBuild(LRoster lRoster, LRosterEntry lEntry, ContextMenu pMenu) => new()`
+## `public static Border PRosterEntryBuild(QRoster lRoster, QRosterEntry lEntry, ContextMenu pMenu) => new()`
 
 Wraps the entry body in a frame shaped by its position in the card.
 Neighbouring frames therefore join into one rounded card.
 
-## `private static Border PRosterHeaderBuild(LRoster lRoster, LRosterCard lCard)`
+## `private static Border PRosterHeaderBuild(QRoster lRoster, QRosterCard lCard)`
 
 Releasing the title selects the whole batch.
 The collapsed state decides which corners are rounded.
 
-## `private static Border PRosterToggleBuild(LRoster lRoster, LRosterCard lCard)`
+## `private static Border PRosterToggleBuild(QRoster lRoster, QRosterCard lCard)`
 
 Toggles collapse of the card.
 Hover redraws the icon in the text color, and leaving restores the card's control color.
 
-## `private static Border PRosterCloseBuild(LRoster lRoster, LRosterCard lCard)`
+## `private static Border PRosterCloseBuild(QRoster lRoster, QRosterCard lCard)`
 
 Removes the batch through the Deportment, which may ask first.
 The glyph turns to the failure color on hover.

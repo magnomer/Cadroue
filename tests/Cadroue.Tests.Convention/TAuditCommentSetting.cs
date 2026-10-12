@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
 {
-    public const int TAuditGeneration = 21;
+    public const int TAuditGeneration = 22;
     public const int TAuditCommentWords = 20;
     public const string TAuditCommentPattern = "*.comment.md";
 

@@ -38,60 +38,60 @@ public sealed class PMap : FrameworkElement
         [false] = null,
     };
 
-    private static readonly IReadOnlyDictionary<LMapHitKind, Cursor> pMapCursors = new Dictionary<LMapHitKind, Cursor>
+    private static readonly IReadOnlyDictionary<QMapHitKind, Cursor> pMapCursors = new Dictionary<QMapHitKind, Cursor>
     {
-        [LMapHitKind.LMapHitNone] = Cursors.Arrow,
-        [LMapHitKind.LMapHitOrigin] = Cursors.SizeWE,
-        [LMapHitKind.LMapHitLimit] = Cursors.SizeWE,
-        [LMapHitKind.LMapHitBody] = Cursors.SizeAll,
-        [LMapHitKind.LMapHitCursor] = Cursors.Hand,
+        [QMapHitKind.QMapHitNone] = Cursors.Arrow,
+        [QMapHitKind.QMapHitOrigin] = Cursors.SizeWE,
+        [QMapHitKind.QMapHitLimit] = Cursors.SizeWE,
+        [QMapHitKind.QMapHitBody] = Cursors.SizeAll,
+        [QMapHitKind.QMapHitCursor] = Cursors.Hand,
     };
 
-    private static readonly IReadOnlyDictionary<LMapShapeKind, Action<DrawingContext, LMapShape>> pMapDraws =
-        new Dictionary<LMapShapeKind, Action<DrawingContext, LMapShape>>
+    private static readonly IReadOnlyDictionary<QMapShapeKind, Action<DrawingContext, QMapShape>> pMapDraws =
+        new Dictionary<QMapShapeKind, Action<DrawingContext, QMapShape>>
         {
-            [LMapShapeKind.LMapShapeBackground] = PMapBackgroundDraw,
-            [LMapShapeKind.LMapShapeRail] = PMapRailDraw,
-            [LMapShapeKind.LMapShapeWaveform] = PMapWaveformDraw,
-            [LMapShapeKind.LMapShapeCoverage] = PMapCoverageDraw,
-            [LMapShapeKind.LMapShapeScanned] = PMapScanDraw,
-            [LMapShapeKind.LMapShapeFill] = PNavigatorFillDraw,
-            [LMapShapeKind.LMapShapeShadow] = PNavigatorShadowDraw,
-            [LMapShapeKind.LMapShapeRim] = PNavigatorRimDraw,
-            [LMapShapeKind.LMapShapeSide] = PNavigatorSideDraw,
-            [LMapShapeKind.LMapShapeGrip] = PGripSideDraw,
-            [LMapShapeKind.LMapShapeBody] = PGripBodyDraw,
-            [LMapShapeKind.LMapShapeDot] = PGripDotDraw,
-            [LMapShapeKind.LMapShapeShine] = PNavigatorShineDraw,
-            [LMapShapeKind.LMapShapeBorder] = PNavigatorBorderDraw,
+            [QMapShapeKind.QMapShapeBackground] = PMapBackgroundDraw,
+            [QMapShapeKind.QMapShapeRail] = PMapRailDraw,
+            [QMapShapeKind.QMapShapeWaveform] = PMapWaveformDraw,
+            [QMapShapeKind.QMapShapeCoverage] = PMapCoverageDraw,
+            [QMapShapeKind.QMapShapeScanned] = PMapScanDraw,
+            [QMapShapeKind.QMapShapeFill] = PNavigatorFillDraw,
+            [QMapShapeKind.QMapShapeShadow] = PNavigatorShadowDraw,
+            [QMapShapeKind.QMapShapeRim] = PNavigatorRimDraw,
+            [QMapShapeKind.QMapShapeSide] = PNavigatorSideDraw,
+            [QMapShapeKind.QMapShapeGrip] = PGripSideDraw,
+            [QMapShapeKind.QMapShapeBody] = PGripBodyDraw,
+            [QMapShapeKind.QMapShapeDot] = PGripDotDraw,
+            [QMapShapeKind.QMapShapeShine] = PNavigatorShineDraw,
+            [QMapShapeKind.QMapShapeBorder] = PNavigatorBorderDraw,
         };
 
-    public LMap LMap { get; }
+    public QMap QMap { get; }
 
-    public PMap(LMap lMap)
+    public PMap(QMap lMap)
     {
-        LMap = lMap;
-        LMap.LMapFrameApplied += InvalidateVisual;
+        QMap = lMap;
+        QMap.QMapFrameApplied += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        LMap.LMapDrawStart();
-        LMapFrame lFrame = LMap.LMapFrameResolve(ActualWidth, ActualHeight);
-        lFrame.LMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
-        drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.LMapFrameWaveform));
-        lFrame.LMapFrameBands.ToList().ForEach(lBand => PMapBandDraw(drawingContext, lBand));
-        lFrame.LMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.LMapShapeKind](drawingContext, lShape));
-        lFrame.LMapFrameCursor.ToList().ForEach(lCursorX =>
+        QMap.QMapDrawStart();
+        QMapFrame lFrame = QMap.QMapFrameResolve(ActualWidth, ActualHeight);
+        lFrame.QMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
+        drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QMapFrameWaveform));
+        lFrame.QMapFrameBands.ToList().ForEach(lBand => PMapBandDraw(drawingContext, lBand));
+        lFrame.QMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
+        lFrame.QMapFrameCursor.ToList().ForEach(lCursorX =>
             PCursor.PCursorDraw(drawingContext, lCursorX, PCursor.PCursorHeadHeight, ActualHeight));
-        LMap.LMapDrawRecord();
+        QMap.QMapDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
         Point pPoint = e.GetPosition(this);
-        e.Handled = LMap.LMapPressHandle(pPoint.X, pPoint.Y, ActualWidth, ActualHeight);
+        e.Handled = QMap.QMapPressHandle(pPoint.X, pPoint.Y, ActualWidth, ActualHeight);
         CaptureMouse();
     }
 
@@ -99,14 +99,14 @@ public sealed class PMap : FrameworkElement
     {
         base.OnMouseMove(e);
         Point pPoint = e.GetPosition(this);
-        Cursor = pMapCursors[LMap.LMapHoverResolve(pPoint.X, pPoint.Y, ActualWidth, ActualHeight)];
-        e.Handled = LMap.LMapMoveHandle(pPoint.X, ActualWidth);
+        Cursor = pMapCursors[QMap.QMapHoverResolve(pPoint.X, pPoint.Y, ActualWidth, ActualHeight)];
+        e.Handled = QMap.QMapMoveHandle(pPoint.X, ActualWidth);
     }
 
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
-        Cursor = pMapCursors[LMap.LMapLeaveResolve()];
+        Cursor = pMapCursors[QMap.QMapLeaveResolve()];
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
@@ -124,41 +124,41 @@ public sealed class PMap : FrameworkElement
 
     private void PMapDragClear()
     {
-        LMap.LMapDragClear();
+        QMap.QMapDragClear();
         ReleaseMouseCapture();
     }
 
-    private void PMapBandDraw(DrawingContext drawingContext, LMapBand lBand)
+    private void PMapBandDraw(DrawingContext drawingContext, QMapBand lBand)
     {
         var pRect = new Rect(
-            new Point(lBand.LMapBandLeft, lBand.LMapBandTop),
-            new Point(lBand.LMapBandRight, lBand.LMapBandBottom));
-        FormattedText pBadgeText = PMapTextBuild(lBand.LMapBandBadge);
-        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.LMapBandShown]);
+            new Point(lBand.QMapBandLeft, lBand.QMapBandTop),
+            new Point(lBand.QMapBandRight, lBand.QMapBandBottom));
+        FormattedText pBadgeText = PMapTextBuild(lBand.QMapBandBadge);
+        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.QMapBandShown]);
         drawingContext.DrawRoundedRectangle(
-            PSectionPalette.PSectionBandRead(lBand.LMapBandColor),
-            pMapSelectedPens[lBand.LMapBandSelected],
+            PSectionPalette.PSectionBandRead(lBand.QMapBandColor),
+            pMapSelectedPens[lBand.QMapBandSelected],
             pRect,
             3,
             3);
-        QMapBadge.LMapBadgeResolve(lBand, pBadgeText.Width, pBadgeText.Height)
+        QMapText.QMapBadgeResolve(lBand, pBadgeText.Width, pBadgeText.Height)
             .ToList()
             .ForEach(lBadge => PMapBadgeDraw(drawingContext, lBand, lBadge, pBadgeText));
         drawingContext.Pop();
     }
 
     private static void PMapBadgeDraw(
-        DrawingContext drawingContext, LMapBand lBand, LMapBadge lBadge, FormattedText pBadgeText)
+        DrawingContext drawingContext, QMapBand lBand, QMapBadge lBadge, FormattedText pBadgeText)
     {
         drawingContext.DrawRoundedRectangle(
-            PSectionPalette.PSectionBadgeRead(lBand.LMapBandColor),
+            PSectionPalette.PSectionBadgeRead(lBand.QMapBandColor),
             null,
             new Rect(
-                new Point(lBadge.LMapBadgeLeft, lBadge.LMapBadgeTop),
-                new Point(lBadge.LMapBadgeRight, lBadge.LMapBadgeBottom)),
-            lBadge.LMapBadgeRadius,
-            lBadge.LMapBadgeRadius);
-        drawingContext.DrawText(pBadgeText, new Point(lBadge.LMapBadgeX, lBadge.LMapBadgeY));
+                new Point(lBadge.QMapBadgeLeft, lBadge.QMapBadgeTop),
+                new Point(lBadge.QMapBadgeRight, lBadge.QMapBadgeBottom)),
+            lBadge.QMapBadgeRadius,
+            lBadge.QMapBadgeRadius);
+        drawingContext.DrawText(pBadgeText, new Point(lBadge.QMapBadgeX, lBadge.QMapBadgeY));
     }
 
     private FormattedText PMapTextBuild(string pText) => new(
@@ -170,66 +170,66 @@ public sealed class PMap : FrameworkElement
         pMapBadgeBrush,
         VisualTreeHelper.GetDpi(this).PixelsPerDip);
 
-    private static Rect PMapRectRead(LMapShape lShape) => new(
-        new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
-        new Point(lShape.LMapShapeRight, lShape.LMapShapeBottom));
+    private static Rect PMapRectRead(QMapShape lShape) => new(
+        new Point(lShape.QMapShapeLeft, lShape.QMapShapeTop),
+        new Point(lShape.QMapShapeRight, lShape.QMapShapeBottom));
 
-    private static void PMapBackgroundDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PMapBackgroundDraw(DrawingContext drawingContext, QMapShape lShape) =>
         drawingContext.DrawRectangle(pMapBrushBackground, null, PMapRectRead(lShape));
 
-    private static void PMapRailDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PMapRailDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, pMapBrushRail, null, lShape);
 
-    private static void PMapWaveformDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PMapWaveformDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, pMapWaveformBrush, null, lShape);
 
-    private static void PMapCoverageDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PMapCoverageDraw(DrawingContext drawingContext, QMapShape lShape) =>
         drawingContext.DrawRectangle(pMapBrushRail, null, PMapRectRead(lShape));
 
-    private static void PMapScanDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PMapScanDraw(DrawingContext drawingContext, QMapShape lShape) =>
         drawingContext.DrawRectangle(pMapCoverageBrush, null, PMapRectRead(lShape));
 
-    private static void PNavigatorFillDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorFillDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, pNavigatorFrameBrush, null, lShape);
 
-    private static void PNavigatorShadowDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorShadowDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, null, pNavigatorShadowPen, lShape);
 
-    private static void PNavigatorRimDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorRimDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, null, pNavigatorRimPen, lShape);
 
-    private static void PNavigatorSideDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorSideDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, pNavigatorFrameBrush, null, lShape);
 
-    private static void PGripSideDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PGripSideDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapLineDraw(drawingContext, pNavigatorGripPen, lShape);
 
-    private static void PGripBodyDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PGripBodyDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, pNavigatorBodyBrush, pNavigatorBodyPen, lShape);
 
-    private static void PGripDotDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PGripDotDraw(DrawingContext drawingContext, QMapShape lShape) =>
         drawingContext.DrawEllipse(
             pNavigatorGripBrush,
             null,
-            new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
-            lShape.LMapShapeRadius,
-            lShape.LMapShapeRadius);
+            new Point(lShape.QMapShapeLeft, lShape.QMapShapeTop),
+            lShape.QMapShapeRadius,
+            lShape.QMapShapeRadius);
 
-    private static void PNavigatorShineDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorShineDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapLineDraw(drawingContext, pNavigatorShinePen, lShape);
 
-    private static void PNavigatorBorderDraw(DrawingContext drawingContext, LMapShape lShape) =>
+    private static void PNavigatorBorderDraw(DrawingContext drawingContext, QMapShape lShape) =>
         PMapRoundedDraw(drawingContext, null, pNavigatorBorderPen, lShape);
 
-    private static void PMapRoundedDraw(DrawingContext drawingContext, Brush? pBrush, Pen? pPen, LMapShape lShape) =>
+    private static void PMapRoundedDraw(DrawingContext drawingContext, Brush? pBrush, Pen? pPen, QMapShape lShape) =>
         drawingContext.DrawRoundedRectangle(
-            pBrush, pPen, PMapRectRead(lShape), lShape.LMapShapeRadius, lShape.LMapShapeRadius);
+            pBrush, pPen, PMapRectRead(lShape), lShape.QMapShapeRadius, lShape.QMapShapeRadius);
 
-    private static void PMapLineDraw(DrawingContext drawingContext, Pen pPen, LMapShape lShape) =>
+    private static void PMapLineDraw(DrawingContext drawingContext, Pen pPen, QMapShape lShape) =>
         drawingContext.DrawLine(
             pPen,
-            new Point(lShape.LMapShapeLeft, lShape.LMapShapeTop),
-            new Point(lShape.LMapShapeRight, lShape.LMapShapeBottom));
+            new Point(lShape.QMapShapeLeft, lShape.QMapShapeTop),
+            new Point(lShape.QMapShapeRight, lShape.QMapShapeBottom));
 
     private static Brush PMapBrushBuild(byte pAlpha, byte pRed, byte pGreen, byte pBlue)
     {

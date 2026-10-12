@@ -18,14 +18,14 @@ public sealed partial class PInspector
         CheckBox pPersistent,
         StackPanel pStack,
         StackPanel pBody,
-        LInspectorTip pTip)
+        QInspectorTip pTip)
     {
-        pBox.IsEnabled = pTip.LInspectorTipEnabled;
-        pPersistent.IsEnabled = pTip.LInspectorTipEnabled;
-        PInspectorSectionUpdate(pStack, pTip.LInspectorTipEnabled);
-        pBody.ToolTip = pTip.LInspectorTipNotice;
-        pBox.ToolTip = pTip.LInspectorTipBox;
-        pPersistent.ToolTip = pTip.LInspectorTipPersistent;
+        pBox.IsEnabled = pTip.QInspectorTipEnabled;
+        pPersistent.IsEnabled = pTip.QInspectorTipEnabled;
+        PInspectorSectionUpdate(pStack, pTip.QInspectorTipEnabled);
+        pBody.ToolTip = pTip.QInspectorTipNotice;
+        pBox.ToolTip = pTip.QInspectorTipBox;
+        pPersistent.ToolTip = pTip.QInspectorTipPersistent;
         ToolTipService.SetShowOnDisabled(pBody, true);
         ToolTipService.SetShowOnDisabled(pBox, true);
         ToolTipService.SetShowOnDisabled(pPersistent, true);
@@ -95,12 +95,12 @@ public sealed partial class PInspector
     }
 
     private static void PInspectorSlideCommit(Slider pSlider, Func<double> pRead, Action<double> pSet) =>
-        LInspector.LInspectorSlideCommit(pSlider.Value, pRead(), pSlider.Minimum, pSlider.Maximum, pSet);
+        QInspector.QInspectorSlideCommit(pSlider.Value, pRead(), pSlider.Minimum, pSlider.Maximum, pSet);
 
     private static void PInspectorValueCommit(
         TextBox pValue, double? pMinimum, double? pMaximum, Func<double> pRead, Action<double> pSet)
     {
-        pSet(LInspector.LInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
+        pSet(QInspector.QInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
         pValue.CaretIndex = pValue.Text.Length;
     }
 }

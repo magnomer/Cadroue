@@ -10,10 +10,10 @@ public sealed class TCropOverlay
 {
     private const string TCropSource = @"C:\media\clip.mp4";
 
-    private static (LViewer, LCrop) TCropBuild(LRotateKind rotate, double areaWidth, double areaHeight)
+    private static (QViewer, QCrop) TCropBuild(LRotateKind rotate, double areaWidth, double areaHeight)
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LCrop crop = TInterfaceCrop.TCropRead(viewer);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QCrop crop = TInterfaceCrop.TCropRead(viewer);
         LCargo cargo = TInterfaceViewer.TCargoCreate(
             TCropSource, TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 1920, 1080), true);
         TInterfaceViewer.TViewerMediaCommit(viewer, cargo, false);
@@ -30,7 +30,7 @@ public sealed class TCropOverlay
     public void VideoRead_FitsRotatedSourceInsideArea(
         LRotateKind rotate, double areaWidth, double areaHeight, double x, double y, double width, double height)
     {
-        (_, LCrop crop) = TCropBuild(rotate, areaWidth, areaHeight);
+        (_, QCrop crop) = TCropBuild(rotate, areaWidth, areaHeight);
 
         LCropbox video = TInterfaceCrop.TCropVideoRead(crop);
 
@@ -43,109 +43,109 @@ public sealed class TCropOverlay
     [Fact]
     public void RectSet_PlacesBoxHandlesAndShade_InOverlayPixels()
     {
-        (LViewer viewer, LCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
+        (QViewer viewer, QCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
         int applies = 0;
         TInterfaceCrop.TCropAttach(crop, () => applies++);
 
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(480, 270, 960, 540));
 
-        LCropBox box = TInterfaceCrop.TCropBoxRead(crop);
-        Assert.True(box.LCropBoxShown);
-        Assert.Equal((200, 112.5, 400, 225), (box.LCropBoxX, box.LCropBoxY, box.LCropBoxWidth, box.LCropBoxHeight));
+        QCropBox box = TInterfaceCrop.TCropBoxRead(crop);
+        Assert.True(box.QCropBoxShown);
+        Assert.Equal((200, 112.5, 400, 225), (box.QCropBoxX, box.QCropBoxY, box.QCropBoxWidth, box.QCropBoxHeight));
         Assert.Equal(1, applies);
 
-        IReadOnlyList<LCropGrip> handles = TInterfaceCrop.TCropHandlesRead(crop);
-        Assert.Equal(LCrop.LCropHandleCount, handles.Count);
-        Assert.All(handles, handle => Assert.True(handle.LCropHandleShown));
-        Assert.Equal((195, 107.5), (handles[0].LCropHandleX, handles[0].LCropHandleY));
-        Assert.Equal((395, 107.5), (handles[1].LCropHandleX, handles[1].LCropHandleY));
-        Assert.Equal((595, 332.5), (handles[4].LCropHandleX, handles[4].LCropHandleY));
-        Assert.Equal((195, 220), (handles[7].LCropHandleX, handles[7].LCropHandleY));
+        IReadOnlyList<QCropGrip> handles = TInterfaceCrop.TCropHandlesRead(crop);
+        Assert.Equal(QCrop.QCropHandleCount, handles.Count);
+        Assert.All(handles, handle => Assert.True(handle.QCropHandleShown));
+        Assert.Equal((195, 107.5), (handles[0].QCropHandleX, handles[0].QCropHandleY));
+        Assert.Equal((395, 107.5), (handles[1].QCropHandleX, handles[1].QCropHandleY));
+        Assert.Equal((595, 332.5), (handles[4].QCropHandleX, handles[4].QCropHandleY));
+        Assert.Equal((195, 220), (handles[7].QCropHandleX, handles[7].QCropHandleY));
 
-        LCropShade shade = TInterfaceCrop.TCropShadeRead(crop);
-        Assert.True(shade.LCropShadeShown);
-        Assert.Equal(800, shade.LCropShadeVideo.LCropboxWidth);
-        Assert.Equal(400, shade.LCropShadeBox.LCropboxWidth);
-        Assert.Equal(Interface.TInterface.TCropboxCreate(480, 270, 960, 540), viewer.LViewerPreview.LCropbox);
+        QCropShade shade = TInterfaceCrop.TCropShadeRead(crop);
+        Assert.True(shade.QCropShadeShown);
+        Assert.Equal(800, shade.QCropShadeVideo.LCropboxWidth);
+        Assert.Equal(400, shade.QCropShadeBox.LCropboxWidth);
+        Assert.Equal(Interface.TInterface.TCropboxCreate(480, 270, 960, 540), viewer.QViewerPreview.LCropbox);
         Assert.Equal(Interface.TInterface.TCropboxCreate(480, 270, 960, 540), TInterfaceCrop.TCropPixelRead(crop));
     }
 
     [Fact]
     public void RectSet_Rotated_BoxFollowsDisplayTransform()
     {
-        (_, LCrop crop) = TCropBuild(LRotateKind.LRotate90, 800, 450);
+        (_, QCrop crop) = TCropBuild(LRotateKind.LRotate90, 800, 450);
 
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(0, 0, 540, 960));
 
-        LCropBox box = TInterfaceCrop.TCropBoxRead(crop);
-        Assert.Equal(273.4375, box.LCropBoxX, 6);
-        Assert.Equal(0, box.LCropBoxY, 6);
-        Assert.Equal(126.5625, box.LCropBoxWidth, 6);
-        Assert.Equal(225, box.LCropBoxHeight, 6);
+        QCropBox box = TInterfaceCrop.TCropBoxRead(crop);
+        Assert.Equal(273.4375, box.QCropBoxX, 6);
+        Assert.Equal(0, box.QCropBoxY, 6);
+        Assert.Equal(126.5625, box.QCropBoxWidth, 6);
+        Assert.Equal(225, box.QCropBoxHeight, 6);
     }
 
     [Fact]
     public void RectSet_OutsideSource_ClampsToFullFrame()
     {
-        (LViewer viewer, LCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
+        (QViewer viewer, QCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
 
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(1000, 600, 2000, 2000));
 
-        Assert.Equal(Interface.TInterface.TCropboxCreate(0, 0, 1920, 1080), viewer.LViewerPreview.LCropbox);
-        LCropBox box = TInterfaceCrop.TCropBoxRead(crop);
-        Assert.Equal((0, 0, 800, 450), (box.LCropBoxX, box.LCropBoxY, box.LCropBoxWidth, box.LCropBoxHeight));
+        Assert.Equal(Interface.TInterface.TCropboxCreate(0, 0, 1920, 1080), viewer.QViewerPreview.LCropbox);
+        QCropBox box = TInterfaceCrop.TCropBoxRead(crop);
+        Assert.Equal((0, 0, 800, 450), (box.QCropBoxX, box.QCropBoxY, box.QCropBoxWidth, box.QCropBoxHeight));
     }
 
     [Fact]
     public void RectSet_Null_HidesBoxAndClearsPreview()
     {
-        (LViewer viewer, LCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
+        (QViewer viewer, QCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(0, 0, 960, 540));
 
         TInterfaceCrop.TCropRectSet(crop, null);
 
-        Assert.False(TInterfaceCrop.TCropBoxRead(crop).LCropBoxShown);
-        Assert.False(TInterfaceCrop.TCropShadeRead(crop).LCropShadeShown);
-        Assert.Null(viewer.LViewerPreview.LCropbox);
+        Assert.False(TInterfaceCrop.TCropBoxRead(crop).QCropBoxShown);
+        Assert.False(TInterfaceCrop.TCropShadeRead(crop).QCropShadeShown);
+        Assert.Null(viewer.QViewerPreview.LCropbox);
         Assert.Null(TInterfaceCrop.TCropPixelRead(crop));
-        Assert.All(TInterfaceCrop.TCropHandlesRead(crop), handle => Assert.False(handle.LCropHandleShown));
+        Assert.All(TInterfaceCrop.TCropHandlesRead(crop), handle => Assert.False(handle.QCropHandleShown));
     }
 
     [Fact]
     public void SizeHandle_Resize_RestoresBoxFromPreview()
     {
-        (_, LCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
+        (_, QCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(0, 0, 960, 540));
 
         TInterfaceCrop.TCropSizeHandle(crop, 400, 225);
 
-        LCropBox box = TInterfaceCrop.TCropBoxRead(crop);
-        Assert.Equal((200, 112.5), (box.LCropBoxWidth, box.LCropBoxHeight));
+        QCropBox box = TInterfaceCrop.TCropBoxRead(crop);
+        Assert.Equal((200, 112.5), (box.QCropBoxWidth, box.QCropBoxHeight));
     }
 
     [Fact]
     public void ActiveAndLock_GateEditableAndCursor()
     {
-        (LViewer viewer, LCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
-        LViewerNeutral neutral = TInterfaceViewer.TViewerNeutralRead(viewer);
+        (QViewer viewer, QCrop crop) = TCropBuild(LRotateKind.LRotateNone, 800, 450);
+        QViewerNeutral neutral = TInterfaceViewer.TViewerNeutralRead(viewer);
         TInterfaceCrop.TCropRectSet(crop, Interface.TInterface.TCropboxCreate(0, 0, 960, 540));
 
-        Assert.True(crop.LCropEditable);
-        Assert.False(crop.LCropCrossShown);
+        Assert.True(crop.QCropEditable);
+        Assert.False(crop.QCropCrossShown);
 
         TInterfaceCrop.TCropToolSet(crop, true);
-        Assert.Equal(LViewerTool.LViewerToolCrop, neutral.LViewerTool);
-        Assert.True(crop.LCropCrossShown);
+        Assert.Equal(QViewerTool.QViewerToolCrop, neutral.QViewerTool);
+        Assert.True(crop.QCropCrossShown);
 
         TInterfaceCrop.TCropActiveSet(crop, false);
-        Assert.Equal(LViewerTool.LViewerToolNone, neutral.LViewerTool);
-        Assert.False(crop.LCropEditable);
-        Assert.False(TInterfaceCrop.TCropBoxRead(crop).LCropBoxShown);
+        Assert.Equal(QViewerTool.QViewerToolNone, neutral.QViewerTool);
+        Assert.False(crop.QCropEditable);
+        Assert.False(TInterfaceCrop.TCropBoxRead(crop).QCropBoxShown);
 
         TInterfaceCrop.TCropActiveSet(crop, true);
         TInterfaceCrop.TCropLockSet(crop, true);
-        Assert.False(crop.LCropEditable);
-        Assert.True(TInterfaceCrop.TCropBoxRead(crop).LCropBoxShown);
-        Assert.All(TInterfaceCrop.TCropHandlesRead(crop), handle => Assert.False(handle.LCropHandleShown));
+        Assert.False(crop.QCropEditable);
+        Assert.True(TInterfaceCrop.TCropBoxRead(crop).QCropBoxShown);
+        Assert.All(TInterfaceCrop.TCropHandlesRead(crop), handle => Assert.False(handle.QCropHandleShown));
     }
 }

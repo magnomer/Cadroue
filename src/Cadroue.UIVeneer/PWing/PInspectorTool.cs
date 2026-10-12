@@ -30,10 +30,10 @@ public sealed partial class PInspector
         };
         pToolButton.Checked += (_, _) =>
         {
-            LWhitebalance.LWhitebalanceToolSet(false, LWhitebalance.LWhitebalanceTarget);
-            LInspector.LInspectorToolSet(true);
+            QWhitebalance.QWhitebalanceToolSet(false, QWhitebalance.QWhitebalanceTarget);
+            QInspector.QInspectorToolSet(true);
         };
-        pToolButton.Unchecked += (_, _) => LInspector.LInspectorToolSet(false);
+        pToolButton.Unchecked += (_, _) => QInspector.QInspectorToolSet(false);
         return pToolButton;
     }
 

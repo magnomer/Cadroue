@@ -25,8 +25,8 @@ public sealed partial class PInspector
         pCurvePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistCurve"));
-        PInspectorSwitchAttach(pCurveBox, LCurve.LCurveActiveSet);
-        PInspectorSwitchAttach(pCurvePersistent, LCurve.LCurvePersistentSet);
+        PInspectorSwitchAttach(pCurveBox, QCurve.QCurveActiveSet);
+        PInspectorSwitchAttach(pCurvePersistent, QCurve.QCurvePersistentSet);
 
         pCurveChannel = new ComboBox
         {
@@ -46,7 +46,7 @@ public sealed partial class PInspector
         pCurveChannel.Items.Add(new LLocalizationChoice(
             "Blue", "Inspector.Video.CurveChannelBlue"));
         pCurveChannel.SelectedIndex = 0;
-        pCurveChannel.SelectionChanged += (_, _) => LCurve.LCurveChannelSelect(pCurveChannel.SelectedIndex);
+        pCurveChannel.SelectionChanged += (_, _) => QCurve.QCurveChannelSelect(pCurveChannel.SelectedIndex);
 
         pCurveCanvasHost = new Border
         {
@@ -64,11 +64,11 @@ public sealed partial class PInspector
         pCurveOutputValue.TextChanged += (_, _) => PCurvePointCommit();
 
         var pCurveDeletePoint = PCurveActionBuild(
-            "Inspector.Video.CurveDeletePoint", LCurve.LCurvePointDelete);
+            "Inspector.Video.CurveDeletePoint", QCurve.QCurvePointDelete);
         var pCurveResetChannel = PCurveActionBuild(
-            "Inspector.Video.CurveResetChannel", LCurve.LCurveChannelReset);
+            "Inspector.Video.CurveResetChannel", QCurve.QCurveChannelReset);
         var pCurveResetAll = PCurveActionBuild(
-            "Inspector.Video.CurveResetAll", LCurve.LCurveReset);
+            "Inspector.Video.CurveResetAll", QCurve.QCurveReset);
         var pCurveButtons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -111,19 +111,19 @@ public sealed partial class PInspector
         return pButton;
     }
 
-    private void PCurvePointCommit() => LCurve.LCurvePointCommit(pCurveInputValue.Text, pCurveOutputValue.Text);
+    private void PCurvePointCommit() => QCurve.QCurvePointCommit(pCurveInputValue.Text, pCurveOutputValue.Text);
 
     private void PCurveUpdate()
     {
-        PInspectorSwitchUpdate(pCurveBox, LCurve.LCurveActive);
-        PInspectorSwitchUpdate(pCurvePersistent, LCurve.LCurvePersistent);
-        pCurveChannel.SelectedIndex = LCurve.LCurveChannel;
-        PInspectorTextSet(pCurveInputValue, LCurve.LCurveInputPercent, "0.#");
-        PInspectorTextSet(pCurveOutputValue, LCurve.LCurveOutputPercent, "0.#");
-        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, LInspector.LInspectorTipResolve(
-            LCurve.LCurveActive,
-            LCurve.LCurveCapable,
-            LCurve.LCurvePreview,
+        PInspectorSwitchUpdate(pCurveBox, QCurve.QCurveActive);
+        PInspectorSwitchUpdate(pCurvePersistent, QCurve.QCurvePersistent);
+        pCurveChannel.SelectedIndex = QCurve.QCurveChannel;
+        PInspectorTextSet(pCurveInputValue, QCurve.QCurveInputPercent, "0.#");
+        PInspectorTextSet(pCurveOutputValue, QCurve.QCurveOutputPercent, "0.#");
+        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, QInspector.QInspectorTipResolve(
+            QCurve.QCurveActive,
+            QCurve.QCurveCapable,
+            QCurve.QCurvePreview,
             "Inspector.Video.CurveRequiresEq",
             "Inspector.Video.CurvePreviewMpv",
             "Inspector.Video.ApplyCurve",

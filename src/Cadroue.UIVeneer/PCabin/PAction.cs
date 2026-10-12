@@ -33,9 +33,9 @@ public sealed class PAction : UserControl
     private readonly Image pActionRelayIcon;
     private readonly TextBlock pActionRelayLabel;
 
-    public PAction(LAction lAction)
+    public PAction(QAction lAction)
     {
-        LAction = lAction;
+        QAction = lAction;
         var pPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -45,9 +45,9 @@ public sealed class PAction : UserControl
         Button pAddListButton = PActionButtonBuild("AddList", "PActionAddList.svg", "Action.AddList");
         pActionAllButton = PActionButtonBuild("AddAll", "PActionAddAll.svg", "Action.AddAll");
         Button pExecuteButton = PActionButtonBuild("Execute", "PActionExecute.svg", "Action.Execute");
-        pAddListButton.Click += (_, _) => LAction.LActionListRun();
-        pActionAllButton.Click += (_, _) => LAction.LActionAllRun();
-        pExecuteButton.Click += (_, _) => LAction.LActionHighRun();
+        pAddListButton.Click += (_, _) => QAction.QActionListRun();
+        pActionAllButton.Click += (_, _) => QAction.QActionAllRun();
+        pExecuteButton.Click += (_, _) => QAction.QActionHighRun();
         pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
         pActionRelayIcon = PActionIconBuild();
         pActionRelayLabel = PActionLabelBuild();
@@ -63,18 +63,18 @@ public sealed class PAction : UserControl
         pPanel.Children.Add(new Border { Width = 6 });
         pPanel.Children.Add(pActionAutoBox);
         Content = new Border { Child = pPanel };
-        LAction.LActionFaceChanged += PActionFaceUpdate;
-        LAction.LActionEmptyRaised += PActionEmptyShow;
+        QAction.QActionFaceChanged += PActionFaceUpdate;
+        QAction.QActionEmptyRaised += PActionEmptyShow;
         PActionFaceUpdate();
     }
 
-    public LAction LAction { get; }
+    public QAction QAction { get; }
 
     public void PActionRelayHide() => pActionRelayButton.Visibility = Visibility.Collapsed;
 
     public void PActionAutoApply(bool lActionAutoRelay)
     {
-        LAction.LActionAutoSet(lActionAutoRelay);
+        QAction.QActionAutoSet(lActionAutoRelay);
         pActionAutoBox.IsChecked = lActionAutoRelay;
     }
 
@@ -104,8 +104,8 @@ public sealed class PAction : UserControl
             ToolTip = LLocalization.LLocalizationTextRead("Action.AutoRelay.Tooltip")
         };
         PCheckbox.PCheckboxApply(pAutoBox);
-        pAutoBox.Checked += (_, _) => LAction.LActionAutoSet(pAutoBox.IsChecked);
-        pAutoBox.Unchecked += (_, _) => LAction.LActionAutoSet(pAutoBox.IsChecked);
+        pAutoBox.Checked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
+        pAutoBox.Unchecked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
         return pAutoBox;
     }
 
@@ -233,25 +233,25 @@ public sealed class PAction : UserControl
 
     private void PActionFaceUpdate()
     {
-        pActionRelayLabel.Text = LAction.LActionFaceText;
-        pActionRelayIcon.Source = PTabIcon.PTabIconFind(LAction.LActionFaceIcon);
-        pActionRelayIcon.Visibility = PLook.PLookVisible[LAction.LActionFaceShown];
+        pActionRelayLabel.Text = QAction.QActionFaceText;
+        pActionRelayIcon.Source = PTabIcon.PTabIconFind(QAction.QActionFaceIcon);
+        pActionRelayIcon.Visibility = PLook.PLookVisible[QAction.QActionFaceShown];
     }
 
     private void PActionOpenHandle(object pSender, RoutedEventArgs pArgs)
     {
         ContextMenu pRelayMenu = PMenu.PMenuCreate(pActionRelayButton);
-        LAction.LActionMenuRead().ToList().ForEach(lOption => PActionRowAppend(pRelayMenu, lOption));
+        QAction.QActionMenuRead().ToList().ForEach(lOption => PActionRowAppend(pRelayMenu, lOption));
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;
     }
 
-    private void PActionRowAppend(ContextMenu pRelayMenu, LActionOption lOption)
+    private void PActionRowAppend(ContextMenu pRelayMenu, QActionOption lOption)
     {
         MenuItem pRelayItem = PMenu.PMenuItemCreate(
-            lOption.LActionOptionTitle,
-            PTabIcon.PTabIconFind(lOption.LActionOptionKey));
-        pRelayItem.Click += (_, _) => LAction.LActionRelaySelect(lOption.LActionOptionId);
+            lOption.QActionOptionTitle,
+            PTabIcon.PTabIconFind(lOption.QActionOptionKey));
+        pRelayItem.Click += (_, _) => QAction.QActionRelaySelect(lOption.QActionOptionId);
         pRelayMenu.Items.Add(pRelayItem);
     }
 }

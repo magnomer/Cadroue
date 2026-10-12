@@ -8,9 +8,9 @@ namespace Cadroue.Tests.Windows;
 [Collection("Logging")]
 public sealed class TViewerEngine
 {
-    private static (LViewer TViewer, LViewerRenderer TRenderer) TViewerBuild()
+    private static (QViewer TViewer, QViewerRenderer TRenderer) TViewerBuild()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         TInterfaceViewer.TViewerCommandSet(viewer, true);
         return (viewer, TInterfaceViewer.TViewerRendererRead(viewer));
     }
@@ -18,24 +18,24 @@ public sealed class TViewerEngine
     [Fact]
     public void EngineRead_MarksTheActiveChoice_AndMpvAvailability()
     {
-        (_, LViewerRenderer renderer) = TViewerBuild();
+        (_, QViewerRenderer renderer) = TViewerBuild();
 
-        LViewerEnginePlan plan = TInterfaceViewer.TViewerEngineRead(renderer);
+        QViewerEnginePlan plan = TInterfaceViewer.TViewerEngineRead(renderer);
 
-        Assert.Equal(LRenderer.LRendererFlyleafToken, plan.LViewerChoiceFlyleaf.LViewerChoiceKey);
-        Assert.Equal(LRenderer.LRendererMpvToken, plan.LViewerChoiceMpv.LViewerChoiceKey);
-        Assert.True(plan.LViewerChoiceFlyleaf.LViewerChoiceEnabled);
-        Assert.NotEqual(plan.LViewerChoiceFlyleaf.LViewerChoiceActive, plan.LViewerChoiceMpv.LViewerChoiceActive);
-        Assert.NotEmpty(plan.LViewerChoiceFlyleaf.LViewerChoiceText);
-        Assert.NotEmpty(plan.LViewerChoiceMpv.LViewerChoiceTip);
+        Assert.Equal(LRenderer.LRendererFlyleafToken, plan.QViewerChoiceFlyleaf.QViewerChoiceKey);
+        Assert.Equal(LRenderer.LRendererMpvToken, plan.QViewerChoiceMpv.QViewerChoiceKey);
+        Assert.True(plan.QViewerChoiceFlyleaf.QViewerChoiceEnabled);
+        Assert.NotEqual(plan.QViewerChoiceFlyleaf.QViewerChoiceActive, plan.QViewerChoiceMpv.QViewerChoiceActive);
+        Assert.NotEmpty(plan.QViewerChoiceFlyleaf.QViewerChoiceText);
+        Assert.NotEmpty(plan.QViewerChoiceMpv.QViewerChoiceTip);
     }
 
     [Fact]
     public void EngineSelect_SameEngine_LeavesPreferenceAlone()
     {
-        (_, LViewerRenderer renderer) = TViewerBuild();
+        (_, QViewerRenderer renderer) = TViewerBuild();
         string before = TInterfaceViewer.TPreferenceEngineRead();
-        string active = TInterfaceViewer.TViewerEngineRead(renderer).LViewerChoiceFlyleaf.LViewerChoiceActive
+        string active = TInterfaceViewer.TViewerEngineRead(renderer).QViewerChoiceFlyleaf.QViewerChoiceActive
             ? LRenderer.LRendererFlyleafToken
             : LRenderer.LRendererMpvToken;
 
@@ -47,28 +47,28 @@ public sealed class TViewerEngine
     [Fact]
     public void EngineUpdate_NoChange_ReportsFalse_AndKeepsHost()
     {
-        (LViewer viewer, LViewerRenderer renderer) = TViewerBuild();
+        (QViewer viewer, QViewerRenderer renderer) = TViewerBuild();
         int hostApplies = 0;
         TInterfaceViewer.TViewerHostAttach(renderer, () => hostApplies++);
-        bool mpv = viewer.LViewerMpvActive;
+        bool mpv = viewer.QViewerMpvActive;
 
         Assert.False(TInterfaceViewer.TViewerEngineUpdate(renderer));
-        Assert.Equal(mpv, viewer.LViewerMpvActive);
+        Assert.Equal(mpv, viewer.QViewerMpvActive);
         Assert.Equal(0, hostApplies);
     }
 
     [Fact]
     public void OverlayHandle_ShownOnlyForVisibleSizedMpvHost()
     {
-        (LViewer viewer, LViewerRenderer renderer) = TViewerBuild();
+        (QViewer viewer, QViewerRenderer renderer) = TViewerBuild();
 
         Assert.False(TInterfaceViewer.TViewerOverlayHandle(renderer, true, 320, 240));
 
         TInterfaceViewer.TViewerMpvSet(viewer, true);
         TInterfaceViewer.TViewerHostSet(viewer, true);
 
-        Assert.True(viewer.LViewerMpvShown);
-        Assert.False(viewer.LViewerFlyleafShown);
+        Assert.True(viewer.QViewerMpvShown);
+        Assert.False(viewer.QViewerFlyleafShown);
         Assert.True(TInterfaceViewer.TViewerOverlayHandle(renderer, true, 320, 240));
         Assert.False(TInterfaceViewer.TViewerOverlayHandle(renderer, false, 320, 240));
         Assert.False(TInterfaceViewer.TViewerOverlayHandle(renderer, true, 0, 240));
@@ -81,24 +81,24 @@ public sealed class TViewerEngine
     [Fact]
     public void SwitchRead_FollowsBypass_AndEngine()
     {
-        (LViewer viewer, _) = TViewerBuild();
-        LViewerSwitch filtered = TInterfaceViewer.TViewerSwitchRead(viewer);
+        (QViewer viewer, _) = TViewerBuild();
+        QViewerSwitch filtered = TInterfaceViewer.TViewerSwitchRead(viewer);
         TInterfaceViewer.TViewerBypassSet(viewer, true);
-        LViewerSwitch original = TInterfaceViewer.TViewerSwitchRead(viewer);
+        QViewerSwitch original = TInterfaceViewer.TViewerSwitchRead(viewer);
 
-        Assert.NotEqual(filtered.LViewerSwitchText, original.LViewerSwitchText);
-        Assert.False(filtered.LViewerSwitchEnabled);
+        Assert.NotEqual(filtered.QViewerSwitchText, original.QViewerSwitchText);
+        Assert.False(filtered.QViewerSwitchEnabled);
 
         TInterfaceViewer.TViewerEngineSet(viewer, Cadroue.Core.LPreviewEngine.LPreviewEngineMpv);
 
-        Assert.True(TInterfaceViewer.TViewerSwitchRead(viewer).LViewerSwitchEnabled);
-        Assert.True(viewer.LViewerAudioCapable);
+        Assert.True(TInterfaceViewer.TViewerSwitchRead(viewer).QViewerSwitchEnabled);
+        Assert.True(viewer.QViewerAudioCapable);
     }
 
     [Fact]
     public void SurfaceMatch_ZeroForegroundNeverMatches()
     {
-        (LViewer viewer, _) = TViewerBuild();
+        (QViewer viewer, _) = TViewerBuild();
 
         Assert.False(TInterfaceViewer.TViewerSurfaceMatch(viewer, 0, 0, 0));
         Assert.True(TInterfaceViewer.TViewerSurfaceMatch(viewer, 7, 7, 0));

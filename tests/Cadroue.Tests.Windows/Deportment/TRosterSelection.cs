@@ -9,9 +9,9 @@ namespace Cadroue.Tests.Windows;
 [Collection("Schedule")]
 public sealed class TRosterSelection
 {
-    private static LRoster TRosterOpen(TSchedule schedule)
+    private static QRoster TRosterOpen(TSchedule schedule)
     {
-        LRoster roster = TInterfaceRoster.TRosterCreate(
+        QRoster roster = TInterfaceRoster.TRosterCreate(
             schedule.TScheduleRead(), TInterfaceRoster.TStationCreate(schedule.TScheduleRead()));
         TInterfaceRoster.TRosterRebuild(roster);
         return roster;
@@ -31,17 +31,17 @@ public sealed class TRosterSelection
     {
         using var schedule = new TSchedule();
         Guid[] ids = TRosterQueueAdd(schedule, Guid.NewGuid(), 3);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
 
         TInterfaceRoster.TRosterStepSelect(roster, ids[0], false, false);
         TInterfaceRoster.TRosterStepSelect(roster, ids[2], false, false);
 
         Assert.False(TInterfaceRoster.TRosterSelectedCheck(roster, ids[0]));
         Assert.True(TInterfaceRoster.TRosterSelectedCheck(roster, ids[2]));
-        Assert.Equal(ids[2], roster.QRosterSelection.LRosterCurrentId);
+        Assert.Equal(ids[2], roster.QRosterSelection.QRosterCurrentId);
         Assert.Equal(ids[2], TInterfaceRoster.TRosterSelectRead(roster)?.LWorkId);
-        LRosterRow third = TInterfaceRoster.TRosterCardsRead(roster)[0].LRosterCardFiles[2].LRosterFileRows[0];
-        Assert.Equal(LRosterRow.LRosterShadeSelected, third.LRosterRowShade);
+        QRosterRow third = TInterfaceRoster.TRosterCardsRead(roster)[0].QRosterCardFiles[2].QRosterFileRows[0];
+        Assert.Equal(QRosterRow.QRosterShadeSelected, third.QRosterRowShade);
         TInterfaceRoster.TRosterClose(roster);
     }
 
@@ -50,18 +50,18 @@ public sealed class TRosterSelection
     {
         using var schedule = new TSchedule();
         Guid[] ids = TRosterQueueAdd(schedule, Guid.NewGuid(), 4);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
 
         TInterfaceRoster.TRosterStepSelect(roster, ids[3], false, false);
         TInterfaceRoster.TRosterStepSelect(roster, ids[1], true, false);
-        Assert.Equal(3, roster.QRosterSelection.LRosterSelectedIds.Count);
+        Assert.Equal(3, roster.QRosterSelection.QRosterSelectedIds.Count);
         Assert.False(TInterfaceRoster.TRosterSelectedCheck(roster, ids[0]));
-        Assert.Equal(ids[3], roster.QRosterSelection.LRosterCurrentId);
+        Assert.Equal(ids[3], roster.QRosterSelection.QRosterCurrentId);
         Assert.Equal(3, TInterfaceRoster.TRosterSelectionRead(roster).Count);
 
         TInterfaceRoster.TRosterStepSelect(roster, ids[2], false, true);
         Assert.False(TInterfaceRoster.TRosterSelectedCheck(roster, ids[2]));
-        Assert.Equal(ids[2], roster.QRosterSelection.LRosterCurrentId);
+        Assert.Equal(ids[2], roster.QRosterSelection.QRosterCurrentId);
         TInterfaceRoster.TRosterClose(roster);
     }
 
@@ -71,19 +71,19 @@ public sealed class TRosterSelection
         using var schedule = new TSchedule();
         Guid batch = Guid.NewGuid();
         Guid[] ids = TRosterQueueAdd(schedule, batch, 2);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
 
         TInterfaceRoster.TRosterStepSelect(roster, ids[0], false, false);
         TInterfaceRoster.TRosterCardSelect(roster, batch);
-        Assert.Equal(batch, roster.QRosterSelection.LRosterCardId);
-        Assert.Empty(roster.QRosterSelection.LRosterSelectedIds);
-        Assert.Equal(Guid.Empty, roster.QRosterSelection.LRosterCurrentId);
-        Assert.Equal(LRosterCard.LRosterCardSelected, TInterfaceRoster.TRosterCardsRead(roster)[0].LRosterCardKey);
+        Assert.Equal(batch, roster.QRosterSelection.QRosterCardId);
+        Assert.Empty(roster.QRosterSelection.QRosterSelectedIds);
+        Assert.Equal(Guid.Empty, roster.QRosterSelection.QRosterCurrentId);
+        Assert.Equal(QRosterCard.QRosterCardSelected, TInterfaceRoster.TRosterCardsRead(roster)[0].QRosterCardKey);
         Assert.Null(TInterfaceRoster.TRosterSelectRead(roster));
 
         TInterfaceRoster.TRosterStepSelect(roster, ids[1], false, false);
-        Assert.Equal(Guid.Empty, roster.QRosterSelection.LRosterCardId);
-        Assert.Equal(LRosterCard.LRosterCardPlain, TInterfaceRoster.TRosterCardsRead(roster)[0].LRosterCardKey);
+        Assert.Equal(Guid.Empty, roster.QRosterSelection.QRosterCardId);
+        Assert.Equal(QRosterCard.QRosterCardPlain, TInterfaceRoster.TRosterCardsRead(roster)[0].QRosterCardKey);
         TInterfaceRoster.TRosterClose(roster);
     }
 
@@ -93,7 +93,7 @@ public sealed class TRosterSelection
         using var schedule = new TSchedule();
         Guid batch = Guid.NewGuid();
         Guid[] ids = TRosterQueueAdd(schedule, batch, 3);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         TInterfaceRoster.TRosterStepSelect(roster, ids[1], false, false);
         Assert.True(TInterfaceRoster.TRosterCollapseToggle(roster, batch));
         TInterfaceRoster.TRosterCardSelect(roster, batch);
@@ -102,9 +102,9 @@ public sealed class TRosterSelection
         TInterfaceRoster.TRosterRebuild(roster);
 
         Assert.Empty(TInterfaceRoster.TRosterCardsRead(roster));
-        Assert.Equal(Guid.Empty, roster.QRosterSelection.LRosterCardId);
-        Assert.Equal(Guid.Empty, roster.QRosterSelection.LRosterCurrentId);
-        Assert.Empty(roster.QRosterSelection.LRosterSelectedIds);
+        Assert.Equal(Guid.Empty, roster.QRosterSelection.QRosterCardId);
+        Assert.Equal(Guid.Empty, roster.QRosterSelection.QRosterCurrentId);
+        Assert.Empty(roster.QRosterSelection.QRosterSelectedIds);
         Assert.False(TInterfaceRoster.TRosterCollapsedCheck(roster, batch));
         TInterfaceRoster.TRosterClose(roster);
     }
@@ -114,7 +114,7 @@ public sealed class TRosterSelection
     {
         using var schedule = new TSchedule();
         TRosterQueueAdd(schedule, Guid.NewGuid(), 1);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         int detailApplied = 0;
         TInterfaceRoster.TRosterDetailAttach(roster, () => detailApplied++);
 
@@ -123,7 +123,7 @@ public sealed class TRosterSelection
         TInterfaceRoster.TRosterDetailRun(roster);
         TInterfaceRoster.TRosterElapsedTick(roster, true);
 
-        Assert.True(roster.LRosterClosed);
+        Assert.True(roster.QRosterClosed);
         Assert.Equal(0, detailApplied);
     }
 }

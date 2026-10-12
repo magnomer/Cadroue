@@ -9,9 +9,9 @@ namespace Cadroue.UIVeneer.PBench;
 internal sealed class PDivider : Border
 {
     private readonly FrameworkElement pDividerHost;
-    private readonly LDivider lDivider;
+    private readonly QDivider lDivider;
 
-    public PDivider(FrameworkElement pHost, LDivider lOwner)
+    public PDivider(FrameworkElement pHost, QDivider lOwner)
     {
         pDividerHost = pHost;
         lDivider = lOwner;
@@ -33,7 +33,7 @@ internal sealed class PDivider : Border
 
     private void PDividerPressHandle(object sender, MouseButtonEventArgs e)
     {
-        lDivider.LDividerPressHandle(e.GetPosition(Window.GetWindow(this)).Y, pDividerHost.ActualHeight);
+        lDivider.QDividerPressHandle(e.GetPosition(Window.GetWindow(this)).Y, pDividerHost.ActualHeight);
         MouseMove -= PDividerMoveHandle;
         MouseMove += PDividerMoveHandle;
         CaptureMouse();
@@ -42,7 +42,7 @@ internal sealed class PDivider : Border
 
     private void PDividerMoveHandle(object sender, MouseEventArgs e)
     {
-        pDividerHost.Height = lDivider.LDividerMoveResolve(
+        pDividerHost.Height = lDivider.QDividerMoveResolve(
             e.GetPosition(Window.GetWindow(this)).Y, pDividerHost.ActualHeight);
         e.Handled = true;
     }
@@ -58,7 +58,7 @@ internal sealed class PDivider : Border
     private void PDividerClear()
     {
         MouseMove -= PDividerMoveHandle;
-        lDivider.LDividerRelease();
+        lDivider.QDividerRelease();
         ReleaseMouseCapture();
     }
 }

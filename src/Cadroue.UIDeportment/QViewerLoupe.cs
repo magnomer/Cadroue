@@ -2,37 +2,37 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QViewerLoupe
 {
-    private readonly LViewer lViewer;
-    private readonly LViewerMedia lViewerMedia;
+    private readonly QViewer qViewer;
+    private readonly QViewerMedia qViewerMedia;
 
-    public QViewerLoupe(LViewer lOwner, LViewerMedia lMedia)
+    public QViewerLoupe(QViewer lOwner, QViewerMedia lMedia)
     {
-        lViewer = lOwner;
-        lViewerMedia = lMedia;
+        qViewer = lOwner;
+        qViewerMedia = lMedia;
     }
 
-    public LSLoupe LViewerLoupeCreate() => new(lViewer);
+    public QSLoupe QViewerLoupeCreate() => new(qViewer);
 
-    public void LViewerLoupeAttach()
+    public void QViewerLoupeAttach()
     {
-        lViewer.LViewerLoupeSet(true);
-        lViewerMedia.LViewerHostShow(false);
-        lViewerMedia.LViewerCommandApply(false);
+        qViewer.QViewerLoupeSet(true);
+        qViewerMedia.QViewerHostShow(false);
+        qViewerMedia.QViewerCommandApply(false);
     }
 
-    public void LViewerLoupeDetach(TimeSpan lPosition, bool lPlaying)
+    public void QViewerLoupeDetach(TimeSpan lPosition, bool lPlaying)
     {
-        lViewer.LViewerLoupeSet(false);
-        lViewer.LViewerResumeSet(lPlaying);
-        lViewerMedia.LViewerCommandApply(true);
-        lViewerMedia.LViewerHostShow(true);
-        lViewer.LViewerPlayback.LViewerSeek(lPosition);
+        qViewer.QViewerLoupeSet(false);
+        qViewer.QViewerResumeSet(lPlaying);
+        qViewerMedia.QViewerCommandApply(true);
+        qViewerMedia.QViewerHostShow(true);
+        qViewer.QViewerPlayback.QViewerSeek(lPosition);
         if (lPlaying)
         {
-            lViewer.LViewerPlayback.LViewerPlay();
+            qViewer.QViewerPlayback.QViewerPlay();
             return;
         }
 
-        lViewer.LViewerPlayback.LViewerPause();
+        qViewer.QViewerPlayback.QViewerPause();
     }
 }

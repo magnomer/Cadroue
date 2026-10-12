@@ -10,7 +10,7 @@ Builds one job row of the roster table, with its columns, step connector and con
 Defines the seven columns shared by every row and the table header.
 The auto columns use shared size groups, so all rows align on the widest cell.
 
-## `public static Border PRosterRowBuild(LRoster lRoster, LRosterRow lRow, ContextMenu pMenu)`
+## `public static Border PRosterRowBuild(QRoster lRoster, QRosterRow lRow, ContextMenu pMenu)`
 
 The state cell takes its brush from the row key, and every other cell is muted.
 A press selects the job with the current shift and control state.

@@ -8,102 +8,102 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LRail TRailRead(LStrip strip) => strip.LStripRail;
+    internal static QRail TRailRead(QStrip strip) => strip.QStripRail;
     internal static bool TRailPressHandle(
-        LRail rail, LStripTab? tab, int clicks, bool nameHit, double x, double y, double offsetX, double offsetY) =>
-        rail.LRailPressHandle(tab, clicks, nameHit, x, y, offsetX, offsetY);
-    internal static bool TRailMoveCheck(LRail rail, bool pressed) => rail.LRailMoveCheck(pressed);
-    internal static bool TRailDragResolve(LRail rail, double x, double y, double minimumX, double minimumY) =>
-        rail.LRailDragResolve(x, y, minimumX, minimumY);
-    internal static void TRailDragMove(LRail rail, double pointer, IReadOnlyList<double> centers) =>
-        rail.LRailDragMove(pointer, centers);
-    internal static LStripTab? TRailReleaseResolve(LRail rail) => rail.LRailReleaseResolve();
+        QRail rail, QStripTab? tab, int clicks, bool nameHit, double x, double y, double offsetX, double offsetY) =>
+        rail.QRailPressHandle(tab, clicks, nameHit, x, y, offsetX, offsetY);
+    internal static bool TRailMoveCheck(QRail rail, bool pressed) => rail.QRailMoveCheck(pressed);
+    internal static bool TRailDragResolve(QRail rail, double x, double y, double minimumX, double minimumY) =>
+        rail.QRailDragResolve(x, y, minimumX, minimumY);
+    internal static void TRailDragMove(QRail rail, double pointer, IReadOnlyList<double> centers) =>
+        rail.QRailDragMove(pointer, centers);
+    internal static QStripTab? TRailReleaseResolve(QRail rail) => rail.QRailReleaseResolve();
     internal static int TRailIndexResolve(double pointer, IReadOnlyList<double> centers) =>
-        LRail.LRailIndexResolve(pointer, centers);
+        QRail.QRailIndexResolve(pointer, centers);
     internal static bool TRailInsideCheck(bool minimized, double x, double y, double width, double height) =>
-        LRail.LRailInsideCheck(minimized, x, y, width, height);
+        QRail.QRailInsideCheck(minimized, x, y, width, height);
     internal static bool TRailNameCheck(bool visible, double x, double y, double width, double height) =>
-        LRail.LRailNameCheck(visible, x, y, width, height);
-    internal static bool TRailKeyHandle(LRail rail, LStripTab? tab, bool enter, bool escape, string text) =>
-        rail.LRailKeyHandle(tab, enter, escape, text);
-    internal static void TRailOutsideHandle(LRail rail, LStripTab? tab, bool inside, string? text) =>
-        rail.LRailOutsideHandle(tab, inside, text);
+        QRail.QRailNameCheck(visible, x, y, width, height);
+    internal static bool TRailKeyHandle(QRail rail, QStripTab? tab, bool enter, bool escape, string text) =>
+        rail.QRailKeyHandle(tab, enter, escape, text);
+    internal static void TRailOutsideHandle(QRail rail, QStripTab? tab, bool inside, string? text) =>
+        rail.QRailOutsideHandle(tab, inside, text);
 
-    internal static LChrome TChromeCreate() => new();
-    internal static void TChromePressHandle(LChrome chrome, bool caption, double x, double y) =>
-        chrome.LChromePressHandle(caption, x, y);
+    internal static QChrome TChromeCreate() => new();
+    internal static void TChromePressHandle(QChrome chrome, bool caption, double x, double y) =>
+        chrome.QChromePressHandle(caption, x, y);
     internal static bool TChromeMoveResolve(
-        LChrome chrome, double x, double y, bool pressed, double minimumX, double minimumY) =>
-        chrome.LChromeMoveResolve(x, y, pressed, minimumX, minimumY);
-    internal static bool TChromeReleaseResolve(LChrome chrome, bool logo) => chrome.LChromeReleaseResolve(logo);
-    internal static void TChromeReset(LChrome chrome) => chrome.LChromeReset();
+        QChrome chrome, double x, double y, bool pressed, double minimumX, double minimumY) =>
+        chrome.QChromeMoveResolve(x, y, pressed, minimumX, minimumY);
+    internal static bool TChromeReleaseResolve(QChrome chrome, bool logo) => chrome.QChromeReleaseResolve(logo);
+    internal static void TChromeReset(QChrome chrome) => chrome.QChromeReset();
     internal static bool TChromeCaptionResolve(bool interactive, bool tab, bool inside) =>
-        LChrome.LChromeCaptionResolve(interactive, tab, inside);
-    internal static bool TChromeDoubleCheck(int clicks, bool caption) => LChrome.LChromeDoubleCheck(clicks, caption);
+        QChrome.QChromeCaptionResolve(interactive, tab, inside);
+    internal static bool TChromeDoubleCheck(int clicks, bool caption) => QChrome.QChromeDoubleCheck(clicks, caption);
 
-    internal static LWorkspace TWorkspaceCreate(string key, LPreset? preset)
+    internal static QWorkspace TWorkspaceCreate(string key, LPreset? preset)
     {
         CAtelier atelier = TAtelierCreate();
-        LWorkspace workspace = new(key, atelier.CAtelierUsher, atelier.CAtelierLineage);
+        QWorkspace workspace = new(key, atelier.CAtelierUsher, atelier.CAtelierLineage);
         if (preset is not null)
         {
-            workspace.LWorkspacePresetAccept(preset);
+            workspace.QWorkspacePresetAccept(preset);
         }
 
         return workspace;
     }
-    internal static void TWorkspaceAttach(LWorkspace workspace) =>
-        workspace.LWorkspaceAttach(() => new LSceneTabEntry());
-    internal static LSegment TWorkspaceSegmentRead(LWorkspace workspace) =>
-        workspace.LWorkspaceFlow!.LFlowSection.LFlowSegment;
-    internal static void TWorkspaceClose(LWorkspace workspace) => workspace.LWorkspaceClose();
-    internal static bool TWorkspaceBusyCheck(LWorkspace workspace) => workspace.LWorkspaceBusyCheck();
+    internal static void TWorkspaceAttach(QWorkspace workspace) =>
+        workspace.QWorkspaceAttach(() => new LSceneTabEntry());
+    internal static LSegment TWorkspaceSegmentRead(QWorkspace workspace) =>
+        workspace.QWorkspaceFlow!.QFlowSection.QFlowSegment;
+    internal static void TWorkspaceClose(QWorkspace workspace) => workspace.QWorkspaceClose();
+    internal static bool TWorkspaceBusyCheck(QWorkspace workspace) => workspace.QWorkspaceBusyCheck();
     internal static IReadOnlyList<string> TDocketPathsRead(LDocket docket) => docket.LDocketPathsRead();
-    internal static LHistoryEntry TWorkspaceSnapshotRead(LWorkspace workspace) => workspace.LWorkspaceSnapshotRead();
-    internal static bool TWorkspaceUndo(LWorkspace workspace) => workspace.LWorkspaceUndo();
-    internal static bool TWorkspaceRedo(LWorkspace workspace) => workspace.LWorkspaceRedo();
-    internal static void TWorkspacePresetSelect(LWorkspace workspace, LPresetDocument record) =>
-        workspace.LWorkspacePresetOwner.LPresetSelectionValue = record;
+    internal static LHistoryEntry TWorkspaceSnapshotRead(QWorkspace workspace) => workspace.QWorkspaceSnapshotRead();
+    internal static bool TWorkspaceUndo(QWorkspace workspace) => workspace.QWorkspaceUndo();
+    internal static bool TWorkspaceRedo(QWorkspace workspace) => workspace.QWorkspaceRedo();
+    internal static void TWorkspacePresetSelect(QWorkspace workspace, LPresetDocument record) =>
+        workspace.QWorkspacePresetOwner.LPresetSelectionValue = record;
     internal static LPresetDocument TPresetRecordCreate(string display) => new() { LPresetDisplay = display };
-    internal static LRelay TWorkspaceRelayCreate(LWorkspace workspace, string custom, double left, double top) =>
-        workspace.LWorkspaceRelayCreate(custom, left, top);
-    internal static void TWorkspaceRelayApply(LWorkspace workspace, LRelay relay) =>
-        workspace.LWorkspaceRelayApply(relay);
-    internal static void TWorkspaceSourceRun(LWorkspace workspace) => workspace.LWorkspaceSourceRun();
-    internal static void TWorkspaceRelayRestore(LWorkspace workspace, LRelay relay, TimeSpan duration) =>
-        workspace.LWorkspaceRelayRestore(relay, duration);
-    internal static bool TWorkspaceMediaClear(LWorkspace workspace, IReadOnlySet<Guid> cohorts) =>
-        workspace.LWorkspaceMediaClear(cohorts);
-    internal static void TWorkspacePathHandle(LWorkspace workspace, string? path) =>
-        workspace.LWorkspacePathHandle(path);
-    internal static void TWorkspacePathsAttach(LWorkspace workspace, Action<IReadOnlyList<string>> handler) =>
-        workspace.LWorkspacePathsAdded += handler;
-    internal static void TWorkspaceSelectAttach(LWorkspace workspace, Action<string> handler) =>
-        workspace.LWorkspaceSourceSelected += handler;
-    internal static void TWorkspaceOpenAttach(LWorkspace workspace, Action<string> handler) =>
-        workspace.LWorkspaceSourceOpened += handler;
-    internal static void TWorkspaceCloseAttach(LWorkspace workspace, Action handler) =>
-        workspace.LWorkspaceMediaClosed += handler;
-    internal static void TWorkspaceVolumeAttach(LWorkspace workspace, Action<double> handler) =>
-        workspace.LWorkspaceVolumeApplied += handler;
-    internal static void TWorkspaceSeekAttach(LWorkspace workspace, Action<TimeSpan> handler) =>
-        workspace.LWorkspaceSeekApplied += handler;
-    internal static void TWorkspaceRangeAttach(LWorkspace workspace, Action<TimeSpan, TimeSpan> handler) =>
-        workspace.LWorkspaceRangeApplied += handler;
+    internal static LRelay TWorkspaceRelayCreate(QWorkspace workspace, string custom, double left, double top) =>
+        workspace.QWorkspaceRelayCreate(custom, left, top);
+    internal static void TWorkspaceRelayApply(QWorkspace workspace, LRelay relay) =>
+        workspace.QWorkspaceRelayApply(relay);
+    internal static void TWorkspaceSourceRun(QWorkspace workspace) => workspace.QWorkspaceSourceRun();
+    internal static void TWorkspaceRelayRestore(QWorkspace workspace, LRelay relay, TimeSpan duration) =>
+        workspace.QWorkspaceRelayRestore(relay, duration);
+    internal static bool TWorkspaceMediaClear(QWorkspace workspace, IReadOnlySet<Guid> cohorts) =>
+        workspace.QWorkspaceMediaClear(cohorts);
+    internal static void TWorkspacePathHandle(QWorkspace workspace, string? path) =>
+        workspace.QWorkspacePathHandle(path);
+    internal static void TWorkspacePathsAttach(QWorkspace workspace, Action<IReadOnlyList<string>> handler) =>
+        workspace.QWorkspacePathsAdded += handler;
+    internal static void TWorkspaceSelectAttach(QWorkspace workspace, Action<string> handler) =>
+        workspace.QWorkspaceSourceSelected += handler;
+    internal static void TWorkspaceOpenAttach(QWorkspace workspace, Action<string> handler) =>
+        workspace.QWorkspaceSourceOpened += handler;
+    internal static void TWorkspaceCloseAttach(QWorkspace workspace, Action handler) =>
+        workspace.QWorkspaceMediaClosed += handler;
+    internal static void TWorkspaceVolumeAttach(QWorkspace workspace, Action<double> handler) =>
+        workspace.QWorkspaceVolumeApplied += handler;
+    internal static void TWorkspaceSeekAttach(QWorkspace workspace, Action<TimeSpan> handler) =>
+        workspace.QWorkspaceSeekApplied += handler;
+    internal static void TWorkspaceRangeAttach(QWorkspace workspace, Action<TimeSpan, TimeSpan> handler) =>
+        workspace.QWorkspaceRangeApplied += handler;
 
-    internal static LSurface TSurfaceCreate(IReadOnlyList<double> minimums, int exportIndex) =>
+    internal static QSurface TSurfaceCreate(IReadOnlyList<double> minimums, int exportIndex) =>
         new(null, minimums, null, null, -1, exportIndex);
-    internal static LColumnPlan TSurfacePlanRead(LSurface surface) => surface.LSurfacePlan;
-    internal static LSceneTabEntry TSurfaceLayoutRead(LSurface surface) => surface.LSurfaceLayoutRead();
-    internal static IReadOnlyList<int> TSurfaceCollapsedResolve(LSurface surface, LSceneTabEntry? layout) =>
-        surface.LSurfaceCollapsedResolve(layout);
-    internal static bool TSurfaceToggleResolve(LSurface surface) => surface.LSurfaceToggleResolve();
-    internal static bool TSurfaceCollapsedCheck(LSurface surface, int index) => surface.LSurfaceCollapsedCheck(index);
-    internal static double TSurfaceWidthResolve(LSurface surface, double total) => surface.LSurfaceWidthResolve(total);
+    internal static QColumnPlan TSurfacePlanRead(QSurface surface) => surface.QSurfacePlan;
+    internal static LSceneTabEntry TSurfaceLayoutRead(QSurface surface) => surface.QSurfaceLayoutRead();
+    internal static IReadOnlyList<int> TSurfaceCollapsedResolve(QSurface surface, LSceneTabEntry? layout) =>
+        surface.QSurfaceCollapsedResolve(layout);
+    internal static bool TSurfaceToggleResolve(QSurface surface) => surface.QSurfaceToggleResolve();
+    internal static bool TSurfaceCollapsedCheck(QSurface surface, int index) => surface.QSurfaceCollapsedCheck(index);
+    internal static double TSurfaceWidthResolve(QSurface surface, double total) => surface.QSurfaceWidthResolve(total);
     internal static double TSurfaceMinimumResolve(double element, double table) =>
-        LSurface.LSurfaceMinimumResolve(element, table);
-    internal static IReadOnlyList<int> TSurfaceSplittersResolve(int count) => LSurface.LSurfaceSplittersResolve(count);
-    internal static int TSurfaceGutterResolve(int index) => LSurface.LSurfaceGutterResolve(index);
+        QSurface.QSurfaceMinimumResolve(element, table);
+    internal static IReadOnlyList<int> TSurfaceSplittersResolve(int count) => QSurface.QSurfaceSplittersResolve(count);
+    internal static int TSurfaceGutterResolve(int index) => QSurface.QSurfaceGutterResolve(index);
     internal static LSceneTabEntry TSceneTabCreate(bool exportHidden, bool autoRelay, params int[] collapsed) => new()
     {
         LSceneExportHidden = exportHidden,
@@ -113,29 +113,29 @@ internal static partial class TInterface
 
     internal static LPiece TPieceCreate(TimeSpan start, TimeSpan end) => new(start, end, 0, string.Empty);
 
-    internal static LDeck TDeckRead(LStrip strip) => strip.LStripDeck;
-    internal static void TDeckAttach(LDeck deck, Action<LStripTab> hide, Action<LStripTab> show, Action empty)
+    internal static QDeck TDeckRead(QStrip strip) => strip.QStripDeck;
+    internal static void TDeckAttach(QDeck deck, Action<QStripTab> hide, Action<QStripTab> show, Action empty)
     {
-        deck.LDeckHidden += hide;
-        deck.LDeckRevealed += show;
-        deck.LDeckEmptyChanged += empty;
+        deck.QDeckHidden += hide;
+        deck.QDeckRevealed += show;
+        deck.QDeckEmptyChanged += empty;
     }
-    internal static void TDeckClose(LDeck deck) => deck.LDeckClose();
+    internal static void TDeckClose(QDeck deck) => deck.QDeckClose();
 
-    internal static LStripTab TStripKeyCreate(string key) =>
-        new LStrip(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage).LStripTabCreate(key);
-    internal static string TStripKeyResolve(string key) => LStrip.LStripKeyResolve(key);
-    internal static bool TStripCloseConfirm(LStrip strip, LStripTab? tab) =>
-        strip.QStripClosure.LStripCloseConfirm(tab);
-    internal static void TStripClose(LStrip strip, LStripTab tab) => strip.QStripClosure.LStripClose(tab);
-    internal static void TStripAllClose(LStrip strip) => strip.QStripClosure.LStripAllClose();
-    internal static void TStripCloseAttach(LStrip strip, Action<LStripTab> handler) =>
-        strip.QStripClosure.LStripTabClosed += handler;
-    internal static void TStripAddAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabAdded += handler;
-    internal static IReadOnlyList<LStripTab> TStripRelayRead(LStrip strip, Guid source) =>
-        strip.LStripRelayRead(source);
-    internal static void TStripPendingSet(LStrip strip, LStripTab tab, bool pending) =>
-        strip.LStripPendingSet(tab, pending);
-    internal static void TStripEditSet(LStrip strip, LStripTab tab, bool editing) =>
-        strip.LStripEditSet(tab, editing);
+    internal static QStripTab TStripKeyCreate(string key) =>
+        new QStrip(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage).QStripTabCreate(key);
+    internal static string TStripKeyResolve(string key) => QStrip.QStripKeyResolve(key);
+    internal static bool TStripCloseConfirm(QStrip strip, QStripTab? tab) =>
+        strip.QStripClosure.QStripCloseConfirm(tab);
+    internal static void TStripClose(QStrip strip, QStripTab tab) => strip.QStripClosure.QStripClose(tab);
+    internal static void TStripAllClose(QStrip strip) => strip.QStripClosure.QStripAllClose();
+    internal static void TStripCloseAttach(QStrip strip, Action<QStripTab> handler) =>
+        strip.QStripClosure.QStripTabClosed += handler;
+    internal static void TStripAddAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabAdded += handler;
+    internal static IReadOnlyList<QStripTab> TStripRelayRead(QStrip strip, Guid source) =>
+        strip.QStripRelayRead(source);
+    internal static void TStripPendingSet(QStrip strip, QStripTab tab, bool pending) =>
+        strip.QStripPendingSet(tab, pending);
+    internal static void TStripEditSet(QStrip strip, QStripTab tab, bool editing) =>
+        strip.QStripEditSet(tab, editing);
 }

@@ -9,5 +9,5 @@ The output plate creates the status line, and PSLocationModeUpdate rewrites it f
 ## `private void PSLocationModeUpdate()`
 
 Each folder mode keeps its own folder text, so switching modes does not lose what was typed.
-LSEncoder stores the text under the previous mode and returns the text saved for the new one.
+QSEncoder stores the text under the previous mode and returns the text saved for the new one.
 The folder row hides for the source mode, and the browse button shows only for a custom location.

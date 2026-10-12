@@ -63,9 +63,9 @@ public abstract class PTabSurface : UserControl
     public abstract PViewer? PTabViewer { get; }
     public virtual PList? PTabList => null;
     public virtual PGroup? PTabGroup => null;
-    public LSurface LSurface { get; private set; } = null!;
+    public QSurface QSurface { get; private set; } = null!;
     public virtual void PTabClose() => PTabList?.PListClose();
-    public virtual void PTabStripAttach(LStrip lStrip, LStripTab lStripTab)
+    public virtual void PTabStripAttach(QStrip lStrip, QStripTab lStripTab)
     {
     }
 
@@ -85,21 +85,21 @@ public abstract class PTabSurface : UserControl
 
     public void PTabExportToggle()
     {
-        PTabExportApply(LSurface.LSurfaceToggleResolve());
+        PTabExportApply(QSurface.QSurfaceToggleResolve());
         PTabWidthRaise();
     }
 
-    public virtual double PTabWidthRead() => LSurface.LSurfaceWidthResolve(PTabColumn.PColumnTotalRead());
+    public virtual double PTabWidthRead() => QSurface.QSurfaceWidthResolve(PTabColumn.PColumnTotalRead());
 
     protected void PTabWidthRaise() => PTabWidthChanged?.Invoke();
 
-    protected LSceneTabEntry PTabLayoutCreate() => LSurface.LSurfaceLayoutRead();
+    protected LSceneTabEntry PTabLayoutCreate() => QSurface.QSurfaceLayoutRead();
 
     protected static void PTabLockAttach(PList pList, params UIElement[] pEditors)
     {
         Action<bool> pTabLockApply = pLocked => pEditors.ToList().ForEach(pEditor => pEditor.IsEnabled = !pLocked);
-        pList.LList.LListLockChanged += pTabLockApply;
-        pTabLockApply(pList.LList.LListLockCheck());
+        pList.QList.QListLockChanged += pTabLockApply;
+        pTabLockApply(pList.QList.QListLockCheck());
     }
 
     protected Grid PTabGridBuild(
@@ -128,33 +128,33 @@ public abstract class PTabSurface : UserControl
         };
         List<ColumnDefinition> pColumnItems = pPanels.Select(PTabColumnBuild).ToList();
         List<ColumnDefinition> pSplitterColumns = pPanels.Select(PTabGutterBuild).ToList();
-        IReadOnlyList<int> pPanelIndexes = LSurface.LSurfaceIndexesResolve(pPanels.Count);
-        IReadOnlyList<int> pSplitterIndexes = LSurface.LSurfaceSplittersResolve(pPanels.Count);
+        IReadOnlyList<int> pPanelIndexes = QSurface.QSurfaceIndexesResolve(pPanels.Count);
+        IReadOnlyList<int> pSplitterIndexes = QSurface.QSurfaceSplittersResolve(pPanels.Count);
         pPanelIndexes.ToList().ForEach(pIndex =>
         {
             pPanelGrid.ColumnDefinitions.Add(pColumnItems[pIndex]);
             pPanelGrid.ColumnDefinitions.Add(pSplitterColumns[pIndex]);
-            Grid.SetColumn(pPanels[pIndex], LSurface.LSurfaceColumnResolve(pIndex));
+            Grid.SetColumn(pPanels[pIndex], QSurface.QSurfaceColumnResolve(pIndex));
             pPanelGrid.Children.Add(pPanels[pIndex]);
         });
         pPanelGrid.ColumnDefinitions.Remove(pSplitterColumns.Last());
 
         List<Type> pTypes = pPanels.Select(PTabTypeRead).ToList();
         int pExportIndex = pTypes.LastIndexOf(typeof(PExport));
-        LSurface = qWorkspaceMode.LSurfaceCreate(
+        QSurface = qWorkspaceMode.QSurfaceCreate(
             pColumnItems.Select(PColumn.PColumnMinimumRead).ToArray(),
             lPreferenceTabLayout?.LScenePanelWidths,
             pPanels.Select(PTabCompactRead).ToList(),
             pTypes.IndexOf(typeof(PViewer)),
             pExportIndex);
-        PTabColumn = PColumn.PColumnAttach(pPanelGrid, pColumnItems, LSurface.LSurfacePlan, PTabWidthRaise);
+        PTabColumn = PColumn.PColumnAttach(pPanelGrid, pColumnItems, QSurface.QSurfacePlan, PTabWidthRaise);
         List<UIElement> pSplitters = pSplitterIndexes
             .Select(PTabColumn.PColumnSplitterBuild)
             .Cast<UIElement>()
             .ToList();
         pSplitterIndexes.ToList().ForEach(pIndex =>
         {
-            Grid.SetColumn(pSplitters[pIndex], LSurface.LSurfaceGutterResolve(pIndex));
+            Grid.SetColumn(pSplitters[pIndex], QSurface.QSurfaceGutterResolve(pIndex));
             pPanelGrid.Children.Add(pSplitters[pIndex]);
         });
 
@@ -162,12 +162,12 @@ public abstract class PTabSurface : UserControl
         pGrid.Children.Add(pPanelGrid);
         PTabPanels = pPanels;
         PTabExportPanel = pPanels.ElementAtOrDefault(pExportIndex);
-        PTabExportColumn = pSplitterColumns.ElementAtOrDefault(LSurface.LSurfaceLeftResolve(pExportIndex));
-        PTabExportSplitter = pSplitters.ElementAtOrDefault(LSurface.LSurfaceLeftResolve(pExportIndex));
-        pAction.PActionAutoApply(LSurface.LSurfaceAutoResolve(lPreferenceTabLayout));
-        PTabExportApply(LSurface.LSurfaceExportResolve(lPreferenceTabLayout));
+        PTabExportColumn = pSplitterColumns.ElementAtOrDefault(QSurface.QSurfaceLeftResolve(pExportIndex));
+        PTabExportSplitter = pSplitters.ElementAtOrDefault(QSurface.QSurfaceLeftResolve(pExportIndex));
+        pAction.PActionAutoApply(QSurface.QSurfaceAutoResolve(lPreferenceTabLayout));
+        PTabExportApply(QSurface.QSurfaceExportResolve(lPreferenceTabLayout));
         pPanelIndexes.ToList().ForEach(PTabCollapseAttach);
-        LSurface.LSurfaceCollapsedResolve(lPreferenceTabLayout).ToList().ForEach(PTabCollapseSet);
+        QSurface.QSurfaceCollapsedResolve(lPreferenceTabLayout).ToList().ForEach(PTabCollapseSet);
 
         var pActionRowContent = new Grid { MinHeight = 72 };
         pActionRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -199,7 +199,7 @@ public abstract class PTabSurface : UserControl
 
     private void PTabExportApply(bool pHidden)
     {
-        PTabColumn.PColumnHiddenSet(LSurface.LSurfaceExportIndex, pHidden);
+        PTabColumn.PColumnHiddenSet(QSurface.QSurfaceExportIndex, pHidden);
         PTabExportPanel?.SetValue(VisibilityProperty, PLook.PLookVisible[!pHidden]);
         PTabExportColumn?.SetValue(ColumnDefinition.WidthProperty, PLook.PLookSplitterWidth[pHidden]);
         PTabExportSplitter?.SetValue(VisibilityProperty, PLook.PLookVisible[!pHidden]);
@@ -211,7 +211,7 @@ public abstract class PTabSurface : UserControl
 
     private void PTabCollapseApply(int pIndex, bool pCollapsed, double pStripWidth)
     {
-        PTabColumn.PColumnWidthSet(pIndex, LSurface.LSurfaceCollapseResolve(pCollapsed, pStripWidth));
+        PTabColumn.PColumnWidthSet(pIndex, QSurface.QSurfaceCollapseResolve(pCollapsed, pStripWidth));
         PTabWidthRaise();
     }
 
@@ -229,7 +229,7 @@ public abstract class PTabSurface : UserControl
     private static ColumnDefinition PTabColumnBuild(UIElement pPanel) => new()
     {
         Width = new GridLength(1, GridUnitType.Star),
-        MinWidth = LSurface.LSurfaceMinimumResolve(
+        MinWidth = QSurface.QSurfaceMinimumResolve(
             ((FrameworkElement)pPanel).MinWidth,
             pTabMinimums.GetValueOrDefault(pPanel.GetType(), PTabMinimumDefault))
     };
@@ -240,7 +240,7 @@ public abstract class PTabSurface : UserControl
         new(
             pPanel.PListMinimizedCheck,
             pPanel.PListMinimizeSet,
-            pHandler => pPanel.LList.LListMinimizeChanged += pHandler);
+            pHandler => pPanel.QList.QListMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PProcessing pPanel) =>
         new(
@@ -252,7 +252,7 @@ public abstract class PTabSurface : UserControl
         new(
             pPanel.PInspectorMinimizedCheck,
             pPanel.PInspectorMinimizeSet,
-            pHandler => pPanel.LInspector.LInspectorMinimizeChanged += pHandler);
+            pHandler => pPanel.QInspector.QInspectorMinimizeChanged += pHandler);
 
     private static PTabCollapse PTabCollapseCreate(PClinic pPanel) =>
         new(
@@ -264,5 +264,5 @@ public abstract class PTabSurface : UserControl
         new(
             pPanel.PSectionMinimizedCheck,
             pPanel.PSectionMinimizeSet,
-            pHandler => pPanel.LSection.LSectionMinimizeChanged += pHandler);
+            pHandler => pPanel.QSection.QSectionMinimizeChanged += pHandler);
 }

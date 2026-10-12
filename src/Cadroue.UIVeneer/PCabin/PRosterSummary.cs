@@ -7,19 +7,19 @@ namespace Cadroue.UIVeneer.PCabin;
 
 internal static class PRosterSummary
 {
-    public static void PRosterSummaryAdd(StackPanel pPanel, LSummary lSummary)
+    public static void PRosterSummaryAdd(StackPanel pPanel, QSummary lSummary)
     {
         pPanel.Children.Add(
             PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
         pPanel.Children.Add(
             PRosterOverview.PRosterNoteBuild(
                 LLocalization.LLocalizationTextRead("Roster.Card.OverviewSubtitle"), new Thickness(0, 0, 0, 8)));
-        lSummary.LSummaryMeters.ToList().ForEach(
+        lSummary.QSummaryMeters.ToList().ForEach(
             lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
-        lSummary.LSummaryBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
+        lSummary.QSummaryBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
 
         (StackPanel pSourceStack, StackPanel pOutputStack) = PRosterOverview.PRosterStacksBuild(
-            lSummary.LSummaryCompares);
+            lSummary.QSummaryCompares);
         var pRoot = new StackPanel { Margin = new Thickness(0, 6, 0, 0) };
         Grid.SetIsSharedSizeScope(pRoot, true);
         pRoot.Children.Add(PRosterOverview.PRosterGridBuild(pSourceStack, pOutputStack));
@@ -28,16 +28,16 @@ internal static class PRosterSummary
         pPanel.Children.Add(pRoot);
     }
 
-    private static UIElement PRosterCountsBuild(LSummary lSummary)
+    private static UIElement PRosterCountsBuild(QSummary lSummary)
     {
         Grid pCountGrid = PRosterOverview.PRosterHalvesBuild(
-            PRosterCountBuild(lSummary.LSummarySourceCount, HorizontalAlignment.Left),
-            PRosterCountBuild(lSummary.LSummaryOutputCount, HorizontalAlignment.Right));
+            PRosterCountBuild(lSummary.QSummarySourceCount, HorizontalAlignment.Left),
+            PRosterCountBuild(lSummary.QSummaryOutputCount, HorizontalAlignment.Right));
         pCountGrid.Margin = new Thickness(0, 6, 0, 0);
 
         var pRoot = new StackPanel();
         pRoot.Children.Add(pCountGrid);
-        pRoot.Children.Add(PRosterOverview.PRosterPathsBuild(lSummary.LSummarySources, lSummary.LSummaryOutputs, 4));
+        pRoot.Children.Add(PRosterOverview.PRosterPathsBuild(lSummary.QSummarySources, lSummary.QSummaryOutputs, 4));
         return pRoot;
     }
 

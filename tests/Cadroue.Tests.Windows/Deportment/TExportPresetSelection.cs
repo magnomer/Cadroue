@@ -15,14 +15,14 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, "Split");
+        QExport export = TInterface.TExportCreate(selection, "Split");
         TInterface.TExportOwnerAttach(export);
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
 
         TInterface.TExportSelect(export, "Beta");
 
-        Assert.Equal("Beta", export.LExportSelected);
+        Assert.Equal("Beta", export.QExportSelected);
         Assert.Equal("Beta", selection.LPresetSelectionName);
         Assert.Equal(1, rebuilds);
     }
@@ -33,15 +33,15 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, "Convert");
+        QExport export = TInterface.TExportCreate(selection, "Convert");
         TInterface.TExportOwnerAttach(export);
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
 
         TInterface.TExportEditStart(export, "Beta");
 
-        Assert.Equal("Beta", export.LExportSelected);
-        Assert.Equal("Beta", export.LExportEditing);
+        Assert.Equal("Beta", export.QExportSelected);
+        Assert.Equal("Beta", export.QExportEditing);
         Assert.Equal(2, rebuilds);
 
         TInterface.TExportSync(export);
@@ -49,7 +49,7 @@ public sealed class TExportPresetSelection
 
         TInterface.TExportEditCancel(export);
 
-        Assert.Null(export.LExportEditing);
+        Assert.Null(export.QExportEditing);
         Assert.Equal(3, rebuilds);
     }
 
@@ -59,15 +59,15 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, "Convert");
+        QExport export = TInterface.TExportCreate(selection, "Convert");
         TInterface.TExportEditStart(export, "Alpha");
 
         Assert.False(TInterface.TExportNameCommit(export, "Beta", "Gamma"));
         Assert.True(TInterface.TExportNameCommit(export, "Alpha", "Gamma"));
 
-        Assert.Null(export.LExportEditing);
+        Assert.Null(export.QExportEditing);
         Assert.Equal("Gamma", selection.LPresetSelectionName);
-        Assert.Equal("Gamma", export.LExportSelected);
+        Assert.Equal("Gamma", export.QExportSelected);
     }
 
     [Fact]
@@ -76,20 +76,20 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, "Convert");
+        QExport export = TInterface.TExportCreate(selection, "Convert");
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
 
         Assert.False(TInterface.TExportDragMove(export));
         TInterface.TExportDragStart(export, "Alpha");
         Assert.True(TInterface.TExportDragMove(export));
-        Assert.True(export.LExportDragActive);
+        Assert.True(export.QExportDragActive);
 
         TInterface.TExportSync(export);
         Assert.Equal(0, rebuilds);
 
         Assert.True(TInterface.TExportDragClear(export));
-        Assert.Null(export.LExportDragging);
+        Assert.Null(export.QExportDragging);
         Assert.Equal(1, rebuilds);
         Assert.False(TInterface.TExportDragClear(export));
     }

@@ -10,11 +10,11 @@ namespace Cadroue.Tests.Windows;
 [Collection("Schedule")]
 public sealed class TWorkspaceSnapshot
 {
-    private static LWorkspace TWorkspaceBuild(string key = "Convert")
+    private static QWorkspace TWorkspaceBuild(string key = "Convert")
     {
-        LWorkspace workspace = TInterface.TWorkspaceCreate(key, null);
+        QWorkspace workspace = TInterface.TWorkspaceCreate(key, null);
         TInterface.TWorkspaceAttach(workspace);
-        TInterface.TFlowEditSet(workspace.LWorkspaceFlow!, true);
+        TInterface.TFlowEditSet(workspace.QWorkspaceFlow!, true);
         return workspace;
     }
 
@@ -23,23 +23,23 @@ public sealed class TWorkspaceSnapshot
     {
         using var schedule = new TSchedule();
         TInterfaceRoster.TStationAttach(schedule.TScheduleRead());
-        LWorkspace split = TInterface.TWorkspaceCreate("Split", null);
-        LWorkspace audio = TInterface.TWorkspaceCreate("Audio", null);
-        LWorkspace merge = TInterface.TWorkspaceCreate("Merge", null);
-        LWorkspace worklist = TInterface.TWorkspaceCreate("Worklist", null);
+        QWorkspace split = TInterface.TWorkspaceCreate("Split", null);
+        QWorkspace audio = TInterface.TWorkspaceCreate("Audio", null);
+        QWorkspace merge = TInterface.TWorkspaceCreate("Merge", null);
+        QWorkspace worklist = TInterface.TWorkspaceCreate("Worklist", null);
 
         try
         {
-            Assert.True(split.QWorkspaceKey.LWorkspaceSectionVisible);
-            Assert.False(audio.QWorkspaceKey.LWorkspaceSectionVisible);
-            Assert.True(audio.QWorkspaceKey.LWorkspaceAudioOnly);
-            Assert.True(split.QWorkspaceKey.LWorkspaceSourcePresent);
-            Assert.False(merge.QWorkspaceKey.LWorkspaceSourcePresent);
-            Assert.False(worklist.QWorkspaceKey.LWorkspaceSourcePresent);
-            Assert.True(split.LWorkspaceFlowPresent);
-            Assert.False(worklist.LWorkspaceFlowPresent);
-            Assert.True(split.QWorkspaceKey.LWorkspaceListPresent);
-            Assert.False(worklist.QWorkspaceKey.LWorkspaceListPresent);
+            Assert.True(split.QWorkspaceFacts.QWorkspaceSectionVisible);
+            Assert.False(audio.QWorkspaceFacts.QWorkspaceSectionVisible);
+            Assert.True(audio.QWorkspaceFacts.QWorkspaceAudioOnly);
+            Assert.True(split.QWorkspaceFacts.QWorkspaceSourcePresent);
+            Assert.False(merge.QWorkspaceFacts.QWorkspaceSourcePresent);
+            Assert.False(worklist.QWorkspaceFacts.QWorkspaceSourcePresent);
+            Assert.True(split.QWorkspaceFlowPresent);
+            Assert.False(worklist.QWorkspaceFlowPresent);
+            Assert.True(split.QWorkspaceFacts.QWorkspaceListPresent);
+            Assert.False(worklist.QWorkspaceFacts.QWorkspaceListPresent);
             Assert.False(TInterface.TWorkspaceBusyCheck(split));
         }
         finally
@@ -51,25 +51,25 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void PresetChange_RecordsHistory_UndoAndRedoRoundTrip()
     {
-        LWorkspace workspace = TWorkspaceBuild();
-        string initial = workspace.LWorkspacePreset.LPresetDisplay;
+        QWorkspace workspace = TWorkspaceBuild();
+        string initial = workspace.QWorkspacePreset.LPresetDisplay;
         Assert.False(TInterface.TWorkspaceUndo(workspace));
 
         TInterface.TWorkspacePresetSelect(workspace, TInterface.TPresetRecordCreate("first"));
-        Assert.Equal("first", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("first", workspace.QWorkspacePreset.LPresetDisplay);
         TInterface.TWorkspacePresetSelect(workspace, TInterface.TPresetRecordCreate("second"));
-        Assert.Equal("second", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("second", workspace.QWorkspacePreset.LPresetDisplay);
 
         Assert.True(TInterface.TWorkspaceUndo(workspace));
-        Assert.Equal("first", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("first", workspace.QWorkspacePreset.LPresetDisplay);
         Assert.True(TInterface.TWorkspaceUndo(workspace));
-        Assert.Equal(initial, workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal(initial, workspace.QWorkspacePreset.LPresetDisplay);
         Assert.False(TInterface.TWorkspaceUndo(workspace));
 
         Assert.True(TInterface.TWorkspaceRedo(workspace));
-        Assert.Equal("first", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("first", workspace.QWorkspacePreset.LPresetDisplay);
         Assert.True(TInterface.TWorkspaceRedo(workspace));
-        Assert.Equal("second", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("second", workspace.QWorkspacePreset.LPresetDisplay);
         Assert.False(TInterface.TWorkspaceRedo(workspace));
         TInterface.TWorkspaceClose(workspace);
     }
@@ -77,13 +77,13 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void Undo_WhileApplying_DoesNotRecordTheApply()
     {
-        LWorkspace workspace = TWorkspaceBuild();
+        QWorkspace workspace = TWorkspaceBuild();
         TInterface.TWorkspacePresetSelect(workspace, TInterface.TPresetRecordCreate("first"));
         TInterface.TWorkspacePresetSelect(workspace, TInterface.TPresetRecordCreate("second"));
 
         Assert.True(TInterface.TWorkspaceUndo(workspace));
         Assert.True(TInterface.TWorkspaceRedo(workspace));
-        Assert.Equal("second", workspace.LWorkspacePreset.LPresetDisplay);
+        Assert.Equal("second", workspace.QWorkspacePreset.LPresetDisplay);
         Assert.False(TInterface.TWorkspaceRedo(workspace));
         TInterface.TWorkspaceClose(workspace);
     }
@@ -91,7 +91,7 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void Snapshot_CarriesSegmentSections()
     {
-        LWorkspace workspace = TInterface.TWorkspaceCreate("Split", null);
+        QWorkspace workspace = TInterface.TWorkspaceCreate("Split", null);
         TInterface.TWorkspaceAttach(workspace);
         LSegment segment = TInterface.TWorkspaceSegmentRead(workspace);
         Interface.TInterface.TSegmentBoundSet(
@@ -110,7 +110,7 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void PathHandle_BlankPath_AsksMediaClose()
     {
-        LWorkspace workspace = TWorkspaceBuild();
+        QWorkspace workspace = TWorkspaceBuild();
         int closes = 0;
         TInterface.TWorkspaceCloseAttach(workspace, () => closes++);
 
@@ -125,8 +125,8 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void MediaClear_RemovesStaleDocketPaths_AndAsksClose()
     {
-        LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        LDocket docket = workspace.LWorkspaceDocket!;
+        QWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
+        LDocket docket = workspace.QWorkspaceDocket!;
         TInterfaceList.TDocketPathsAdd(docket, "C:/media/a.mp4", "C:/media/b.mp4");
         TInterface.TWorkspaceAttach(workspace);
         int closes = 0;

@@ -1,14 +1,14 @@
 # PSMonitor.cs
 Hash: `cd2924b6e37fcd19`
 
-## `internal static PSMonitor PSMonitorShow(Window? pOwner, LSMonitor pSource, PFlow pFlow, PViewer pViewer)`
+## `internal static PSMonitor PSMonitorShow(Window? pOwner, QSMonitor pSource, PFlow pFlow, PViewer pViewer)`
 
 Opens the loudness monitor window and ties it to the flow and viewer of one tab.
 Any monitor already open is closed first, so only one exists at a time.
 Seek, play and pause requests from the window go to the flow.
-Bypass and the playing state travel between LSMonitor and the viewer.
+Bypass and the playing state travel between QSMonitor and the viewer.
 
-## `private PSMonitor(Window? pOwner, LSMonitor pSource, PFlow pFlow, PViewer pViewer)`
+## `private PSMonitor(Window? pOwner, QSMonitor pSource, PFlow pFlow, PViewer pViewer)`
 
 The window takes its placement from the saved `NormalizePreview` key, which predates the Monitor name.
 The cursor is seeded from the flow, so the play head shows before the first clock tick.
@@ -28,7 +28,7 @@ Restarting the short timer coalesces a burst of scan results into one redraw.
 
 ## `private void PSMonitorRailDraw(Canvas pCanvas, TextBlock pStatus, Brush pFill, bool pAfter)`
 
-Draws one rail from the frame LSMonitor resolves for the canvas size.
+Draws one rail from the frame QSMonitor resolves for the canvas size.
 The rail adds grid lines, axis labels and the waveform outline, and decides none of them.
 
 ## `private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)`

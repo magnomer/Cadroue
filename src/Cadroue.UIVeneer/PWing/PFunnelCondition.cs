@@ -66,9 +66,9 @@ internal sealed class PFunnelCondition : Grid
     private const double PFunnelJoinWidth = 78;
     private const double PFunnelCaseWidth = 38;
 
-    private readonly LFunnel lFunnel;
-    private readonly LFunnelRule lFunnelRule;
-    private readonly LFunnelKind lFunnelKind;
+    private readonly QFunnel lFunnel;
+    private readonly QFunnelRule lFunnelRule;
+    private readonly QFunnelKind lFunnelKind;
     private readonly TextBox pFunnelField;
     private readonly TextBlock pFunnelCaseLabel;
     private readonly Border pFunnelCaseButton;
@@ -78,11 +78,11 @@ internal sealed class PFunnelCondition : Grid
     private readonly TextBlock pFunnelOrLabel;
     private readonly Border pFunnelOrSegment;
 
-    public PFunnelCondition(LFunnel lFunnelOwner, LFunnelRule lRule, LFunnelCondition lCondition)
+    public PFunnelCondition(QFunnel lFunnelOwner, QFunnelRule lRule, QFunnelCondition lCondition)
     {
         lFunnel = lFunnelOwner;
         lFunnelRule = lRule;
-        lFunnelKind = lCondition.LFunnelConditionKind;
+        lFunnelKind = lCondition.QFunnelConditionKind;
         pFunnelField = PFunnelFieldBuild();
         pFunnelCaseLabel = PFunnelMonoBuild();
         pFunnelCaseButton = PFunnelCaseBuild(pFunnelCaseLabel);
@@ -91,7 +91,7 @@ internal sealed class PFunnelCondition : Grid
         pFunnelAndSegment = PFunnelSegmentBuild(pFunnelAndLabel, () => PFunnelModeSet(true));
         pFunnelOrSegment = PFunnelSegmentBuild(pFunnelOrLabel, () => PFunnelModeSet(false));
         pFunnelJoin = PFunnelJoinBuild();
-        pFunnelJoin.Visibility = PLook.PLookVisible[lCondition.LFunnelConditionJoin];
+        pFunnelJoin.Visibility = PLook.PLookVisible[lCondition.QFunnelConditionJoin];
 
         Margin = new Thickness(0, 0, 0, 8);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -99,7 +99,7 @@ internal sealed class PFunnelCondition : Grid
 
         var pLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(lCondition.LFunnelConditionLabel),
+            Text = LLocalization.LLocalizationTextRead(lCondition.QFunnelConditionLabel),
             FontSize = 11,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelMutedBrush,
@@ -127,8 +127,8 @@ internal sealed class PFunnelCondition : Grid
 
     public void PFunnelConditionUpdate()
     {
-        LSceneFunnelCondition lMatch = lFunnel.LFunnelMatchRead(lFunnelRule, lFunnelKind);
-        pFunnelField.Text = lFunnel.LFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
+        LSceneFunnelCondition lMatch = lFunnel.QFunnelMatchRead(lFunnelRule, lFunnelKind);
+        pFunnelField.Text = lFunnel.QFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
         PFunnelCaseApply(lMatch.LSceneFunnelCase);
         PFunnelJoinApply(lMatch.LSceneFunnelJoin);
     }
@@ -142,7 +142,7 @@ internal sealed class PFunnelCondition : Grid
             FontFamily = pFunnelFontFamily
         };
         PTextbox.PTextboxApply(pField);
-        pField.TextChanged += (_, _) => lFunnel.LFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
+        pField.TextChanged += (_, _) => lFunnel.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
         return pField;
     }
 
@@ -169,7 +169,7 @@ internal sealed class PFunnelCondition : Grid
             SnapsToDevicePixels = true,
             Child = pLabel
         };
-        pHost.MouseLeftButtonUp += (_, _) => lFunnel.LFunnelCaseToggle(lFunnelRule, lFunnelKind);
+        pHost.MouseLeftButtonUp += (_, _) => lFunnel.QFunnelCaseToggle(lFunnelRule, lFunnelKind);
         return pHost;
     }
 
@@ -242,5 +242,5 @@ internal sealed class PFunnelCondition : Grid
         pSegment.Background = pFunnelSegmentBackgrounds[pActive];
     }
 
-    private void PFunnelModeSet(bool pAndMode) => lFunnel.LFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);
+    private void PFunnelModeSet(bool pAndMode) => lFunnel.QFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);
 }

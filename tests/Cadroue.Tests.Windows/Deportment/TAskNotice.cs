@@ -13,9 +13,9 @@ public sealed class TAskNotice
     [Fact]
     public void Publish_RaisesQuestionAndRunsTheAnswer()
     {
-        LAsk? seen = null;
+        QAsk? seen = null;
         bool? answered = null;
-        void TAskHandle(LAsk ask, Action<bool> answer)
+        void TAskHandle(QAsk ask, Action<bool> answer)
         {
             seen = ask;
             answer(true);
@@ -32,8 +32,8 @@ public sealed class TAskNotice
         }
 
         Assert.NotNull(seen);
-        Assert.Equal("Delete it?", seen!.LAskQuestion);
-        Assert.Equal("Delete", seen.LAskAction);
+        Assert.Equal("Delete it?", seen!.QAskQuestion);
+        Assert.Equal("Delete", seen.QAskAction);
         Assert.True(answered);
     }
 

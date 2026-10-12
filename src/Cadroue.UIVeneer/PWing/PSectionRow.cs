@@ -39,8 +39,8 @@ public sealed class PSectionRow
         [false] = pSectionTextBrush,
     };
 
-    private static readonly IReadOnlyDictionary<bool, Func<PSectionRow, LSectionRow, UIElement>> pSectionNames =
-        new Dictionary<bool, Func<PSectionRow, LSectionRow, UIElement>>
+    private static readonly IReadOnlyDictionary<bool, Func<PSectionRow, QSectionRow, UIElement>> pSectionNames =
+        new Dictionary<bool, Func<PSectionRow, QSectionRow, UIElement>>
         {
             [true] = (pRow, lRow) => pRow.PSectionEditorBuild(lRow),
             [false] = (pRow, lRow) => pRow.PSectionTextBuild(lRow),
@@ -68,17 +68,17 @@ public sealed class PSectionRow
         };
 
     private readonly PSection pSectionPanel;
-    private readonly LSection lSection;
+    private readonly QSection lSection;
     private readonly TextBlock pSectionBadgeText;
     private readonly List<TextBox> pSectionBoxes = [];
 
-    public PSectionRow(PSection pPanel, LSectionRow lRow)
+    public PSectionRow(PSection pPanel, QSectionRow lRow)
     {
         pSectionPanel = pPanel;
-        lSection = pPanel.LSection;
+        lSection = pPanel.QSection;
         pSectionBadgeText = new TextBlock
         {
-            Text = lRow.LSectionRowNumber,
+            Text = lRow.QSectionRowNumber,
             FontSize = PSection.PSectionNameSize,
             FontFamily = pSectionFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -93,7 +93,7 @@ public sealed class PSectionRow
             MinWidth = PSectionBadgeSize,
             Height = PSectionBadgeSize,
             CornerRadius = new CornerRadius(PSectionBadgeRadius),
-            Background = PSectionPalette.PSectionBadgeRead(lRow.LSectionRowColor),
+            Background = PSectionPalette.PSectionBadgeRead(lRow.QSectionRowColor),
             Padding = new Thickness(PSectionBadgePadding, 0, PSectionBadgePadding, 0),
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
@@ -103,13 +103,13 @@ public sealed class PSectionRow
         };
         pColorDot.MouseLeftButtonDown += PSectionToggleHandle;
 
-        UIElement pNameHost = pSectionNames[lRow.LSectionRowEditing](this, lRow);
+        UIElement pNameHost = pSectionNames[lRow.QSectionRowEditing](this, lRow);
 
-        TextBlock pBeginLabel = PSectionTimeBuild(lRow.LSectionRowOrigin);
+        TextBlock pBeginLabel = PSectionTimeBuild(lRow.QSectionRowOrigin);
         pBeginLabel.Margin = new Thickness(8, 0, 0, 0);
         pBeginLabel.MouseLeftButtonDown += PSectionOriginHandle;
 
-        TextBlock pEndLabel = PSectionTimeBuild(lRow.LSectionRowEnd);
+        TextBlock pEndLabel = PSectionTimeBuild(lRow.QSectionRowEnd);
         pEndLabel.MouseLeftButtonDown += PSectionEndHandle;
 
         var pTimeLabel = new StackPanel
@@ -120,9 +120,9 @@ public sealed class PSectionRow
         pTimeLabel.Children.Add(pBeginLabel);
         pTimeLabel.Children.Add(PSectionTimeBuild(PSectionArrowText));
         pTimeLabel.Children.Add(pEndLabel);
-        pTimeLabel.Children.Add(PSectionTimeBuild(lRow.LSectionRowSpan));
+        pTimeLabel.Children.Add(PSectionTimeBuild(lRow.QSectionRowSpan));
 
-        var pRowContent = new Grid { Opacity = PLook.PLookOpacity[!lRow.LSectionRowHidden] };
+        var pRowContent = new Grid { Opacity = PLook.PLookOpacity[!lRow.QSectionRowHidden] };
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRowContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -136,7 +136,7 @@ public sealed class PSectionRow
         PSectionRowBorder = new Border
         {
             Padding = new Thickness(12, 5, 12, 5),
-            Background = pSectionBackgrounds[lRow.LSectionRowSelected],
+            Background = pSectionBackgrounds[lRow.QSectionRowSelected],
             BorderBrush = pSectionLineBrush,
             BorderThickness = new Thickness(0, 0, 0, 1),
             Cursor = Cursors.Hand,
@@ -159,7 +159,7 @@ public sealed class PSectionRow
     {
         Point pOrigin = pSectionPanel.PSectionPointRead(pEvent);
         Point pGrab = pEvent.GetPosition(PSectionRowBorder);
-        bool pCapture = lSection.LSectionDrag.LSectionPressHandle(
+        bool pCapture = lSection.QSectionDrag.QSectionPressHandle(
             PSectionIndexRead(), pEvent.ClickCount, pOrigin.X, pOrigin.Y, pGrab.X, pGrab.Y);
         pSectionCaptures[pCapture](pSectionPanel);
     }
@@ -167,7 +167,7 @@ public sealed class PSectionRow
     private void PSectionToggleHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         pSectionPanel.PSectionCaptureRelease();
-        lSection.LSectionToggleHandle(PSectionIndexRead());
+        lSection.QSectionToggleHandle(PSectionIndexRead());
         pEvent.Handled = true;
     }
 
@@ -177,19 +177,19 @@ public sealed class PSectionRow
 
     private void PSectionSeekHandle(bool pSeekEnd, MouseButtonEventArgs pEvent)
     {
-        bool pSeek = lSection.LSectionSeekHandle(PSectionIndexRead(), pEvent.ClickCount, pSeekEnd);
+        bool pSeek = lSection.QSectionSeekHandle(PSectionIndexRead(), pEvent.ClickCount, pSeekEnd);
         pSectionReleases[pSeek](pSectionPanel);
         pEvent.Handled = pSeek;
     }
 
     private void PSectionRenameHandle(object pSender, MouseButtonEventArgs pEvent)
     {
-        bool pRename = lSection.LSectionRenameHandle(PSectionIndexRead(), pEvent.ClickCount);
+        bool pRename = lSection.QSectionRenameHandle(PSectionIndexRead(), pEvent.ClickCount);
         pSectionReleases[pRename](pSectionPanel);
         pEvent.Handled = pRename;
     }
 
-    private TextBlock PSectionTextBuild(LSectionRow lRow)
+    private TextBlock PSectionTextBuild(QSectionRow lRow)
     {
         var pNameText = new TextBlock
         {
@@ -201,26 +201,26 @@ public sealed class PSectionRow
             TextTrimming = TextTrimming.CharacterEllipsis
         };
         pNameText.Inlines.Add(
-            new Run(lRow.LSectionRowText) { Foreground = pSectionNameBrushes[lRow.LSectionRowUnnamed] });
-        lRow.LSectionRowAffixes.Select(PSectionAffixBuild).ToList().ForEach(pNameText.Inlines.Add);
+            new Run(lRow.QSectionRowText) { Foreground = pSectionNameBrushes[lRow.QSectionRowUnnamed] });
+        lRow.QSectionRowAffixes.Select(PSectionAffixBuild).ToList().ForEach(pNameText.Inlines.Add);
         pNameText.MouseLeftButtonDown += PSectionRenameHandle;
         return pNameText;
     }
 
     private static Run PSectionAffixBuild(string lAffix) => new(lAffix) { Foreground = pSectionMutedBrush };
 
-    private UIElement PSectionEditorBuild(LSectionRow lRow)
+    private UIElement PSectionEditorBuild(QSectionRow lRow)
     {
-        int pSerial = lSection.LSectionEditSerial;
-        TextBox pNameBox = PSectionFieldBuild(lRow.LSectionRowName, double.NaN, pSerial);
-        TextBox pPrefixBox = PSectionFieldBuild(lRow.LSectionRowPrefix, PSectionAffixWidth, pSerial);
-        TextBox pSuffixBox = PSectionFieldBuild(lRow.LSectionRowSuffix, PSectionAffixWidth, pSerial);
+        int pSerial = lSection.QSectionEditSerial;
+        TextBox pNameBox = PSectionFieldBuild(lRow.QSectionRowName, double.NaN, pSerial);
+        TextBox pPrefixBox = PSectionFieldBuild(lRow.QSectionRowPrefix, PSectionAffixWidth, pSerial);
+        TextBox pSuffixBox = PSectionFieldBuild(lRow.QSectionRowSuffix, PSectionAffixWidth, pSerial);
         TextBlock pPrefixMark = PSectionMarkBuild();
         TextBlock pSuffixMark = PSectionMarkBuild();
-        PSectionAffixShow(pPrefixBox, pPrefixMark, lRow.LSectionRowPrefixed);
-        PSectionAffixShow(pSuffixBox, pSuffixMark, lRow.LSectionRowSuffixed);
+        PSectionAffixShow(pPrefixBox, pPrefixMark, lRow.QSectionRowPrefixed);
+        PSectionAffixShow(pSuffixBox, pSuffixMark, lRow.QSectionRowSuffixed);
 
-        Action pTextSync = () => lSection.LSectionTextSet(pNameBox.Text, pPrefixBox.Text, pSuffixBox.Text);
+        Action pTextSync = () => lSection.QSectionTextSet(pNameBox.Text, pPrefixBox.Text, pSuffixBox.Text);
         pSectionBoxes.ForEach(pBox => pBox.TextChanged += (_, _) => pTextSync());
         PSectionStepAttach(pNameBox, () => PSectionAffixSelect(pPrefixBox, pPrefixMark));
         PSectionStepAttach(pPrefixBox, () => PSectionAffixSelect(pSuffixBox, pSuffixMark));
@@ -259,7 +259,7 @@ public sealed class PSectionRow
         };
         pFieldBox.Width = pFieldWidth;
         pFieldBox.LostFocus += (_, _) => PSectionEditClose(pSerial);
-        pFieldBox.KeyDown += (_, pEvent) => pEvent.Handled = lSection.LSectionKeyRun(pEvent.Key.ToString());
+        pFieldBox.KeyDown += (_, pEvent) => pEvent.Handled = lSection.QSectionKeyRun(pEvent.Key.ToString());
         pSectionBoxes.Add(pFieldBox);
         return pFieldBox;
     }
@@ -293,7 +293,7 @@ public sealed class PSectionRow
     {
         pFieldBox.PreviewTextInput += (_, pFieldEvent) =>
         {
-            pFieldEvent.Handled = LSection.LSectionStepCheck(pFieldEvent.Text);
+            pFieldEvent.Handled = QSection.QSectionStepCheck(pFieldEvent.Text);
             pSectionSteps[pFieldEvent.Handled](pNext);
         };
     }
@@ -301,7 +301,7 @@ public sealed class PSectionRow
     private void PSectionEditClose(int pSerial) =>
         pSectionPanel.Dispatcher.BeginInvoke(
             DispatcherPriority.Input,
-            new Action(() => lSection.LSectionBlurHandle(
+            new Action(() => lSection.QSectionBlurHandle(
                 pSerial, pSectionBoxes.Contains((Keyboard.FocusedElement as TextBox)!))));
 
     private static TextBlock PSectionTimeBuild(string pTimeText) => new()

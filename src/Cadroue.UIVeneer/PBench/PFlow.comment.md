@@ -14,20 +14,20 @@ Maps a confirm result onto the flow's answer codes, where yes is primary and no 
 
 Maps the three-way decision result onto the same answer codes.
 
-## `private readonly IReadOnlyDictionary<LFlowLosslesscutKind, Action<LFlowLosslesscutPrompt, Action<int>>>`
+## `private readonly IReadOnlyDictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>>`
 
 Chooses the modal by prompt kind, so no branch decides it.
 
-## `private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = LFlowKeyframe.LFlowRequestDelay };`
+## `private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = QFlowKeyframe.QFlowRequestDelay };`
 
 The debounce timer.
 The flow decides when it starts and stops.
 
-## `private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = LFlowKeyframe.LFlowResumeDelay };`
+## `private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = QFlowKeyframe.QFlowResumeDelay };`
 
 The timer that restarts scanning after a suspend, with the delay set again on each resume.
 
-## `public LFlow LFlow { get; } = new();`
+## `public QFlow QFlow { get; } = new();`
 
 The Deportment of this timeline, shared with the map, viewfinder and compass.
 
@@ -50,7 +50,7 @@ Places each reel in the row the flow assigns, which lets the two strips swap ord
 
 Reloads the palette size and re-announces the sections so bands redraw with new colors.
 
-## `public static Geometry PFlowWaveformBuild(LFlowWaveformOutline lOutline)`
+## `public static Geometry PFlowWaveformBuild(QFlowWaveformOutline lOutline)`
 
 Turns an outline into a frozen filled polygon without strokes.
 The map and viewfinder both draw it.
@@ -75,11 +75,11 @@ Hops to the dispatcher at background priority, because the notice may come from 
 
 Hops to the dispatcher at background priority, because the notice may come from a worker thread.
 
-## `private void PFlowNoticeShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)`
+## `private void PFlowNoticeShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)`
 
 A notice has one button, so it always answers primary after it is dismissed.
 
-## `private void PFlowWarningShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)`
+## `private void PFlowWarningShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)`
 
 A warning has one button, so it always answers primary after it is dismissed.
 

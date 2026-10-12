@@ -2,11 +2,11 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QRosterSelection
 {
-    private readonly Func<Guid, bool> lRosterItem;
-    private readonly Func<Guid, bool> lRosterBatch;
-    private readonly Func<IReadOnlyList<Guid>> lRosterOrder;
-    private readonly Action lRosterSelection;
-    private QRosterPick lRosterPick = new(Guid.Empty, Guid.Empty, new HashSet<Guid>());
+    private readonly Func<Guid, bool> qRosterItem;
+    private readonly Func<Guid, bool> qRosterBatch;
+    private readonly Func<IReadOnlyList<Guid>> qRosterOrder;
+    private readonly Action qRosterSelection;
+    private QRosterPick qRosterPick = new(Guid.Empty, Guid.Empty, new HashSet<Guid>());
 
     public QRosterSelection(
         Func<Guid, bool> lItemCheck,
@@ -14,36 +14,36 @@ public sealed class QRosterSelection
         Func<IReadOnlyList<Guid>> lOrderRead,
         Action lSelectRaise)
     {
-        lRosterItem = lItemCheck;
-        lRosterBatch = lBatchCheck;
-        lRosterOrder = lOrderRead;
-        lRosterSelection = lSelectRaise;
+        qRosterItem = lItemCheck;
+        qRosterBatch = lBatchCheck;
+        qRosterOrder = lOrderRead;
+        qRosterSelection = lSelectRaise;
     }
 
-    public Guid LRosterCurrentId =>
-        lRosterItem(lRosterPick.LRosterPickCurrent) ? lRosterPick.LRosterPickCurrent : Guid.Empty;
+    public Guid QRosterCurrentId =>
+        qRosterItem(qRosterPick.QRosterPickCurrent) ? qRosterPick.QRosterPickCurrent : Guid.Empty;
 
-    public Guid LRosterCardId => lRosterBatch(lRosterPick.LRosterPickCard) ? lRosterPick.LRosterPickCard : Guid.Empty;
+    public Guid QRosterCardId => qRosterBatch(qRosterPick.QRosterPickCard) ? qRosterPick.QRosterPickCard : Guid.Empty;
 
-    public IReadOnlyCollection<Guid> LRosterSelectedIds => lRosterPick.LRosterPickIds.Where(lRosterItem).ToArray();
+    public IReadOnlyCollection<Guid> QRosterSelectedIds => qRosterPick.QRosterPickIds.Where(qRosterItem).ToArray();
 
-    public bool LRosterSelectedCheck(Guid lId) => lRosterPick.LRosterPickIds.Contains(lId) && lRosterItem(lId);
+    public bool QRosterSelectedCheck(Guid lId) => qRosterPick.QRosterPickIds.Contains(lId) && qRosterItem(lId);
 
-    public bool LRosterCardCheck(Guid lBatchId) => lBatchId == LRosterCardId;
+    public bool QRosterCardCheck(Guid lBatchId) => lBatchId == QRosterCardId;
 
-    public void LRosterStepSelect(Guid lId, bool lRange, bool lToggle)
+    public void QRosterStepSelect(Guid lId, bool lRange, bool lToggle)
     {
         var lPresent = new QRosterPick(
-            LRosterCurrentId, Guid.Empty, lRosterPick.LRosterPickIds.Where(lRosterItem).ToHashSet());
-        lRosterPick = LRosterPickResolve(lPresent, lRosterOrder(), lId, lRange, lToggle);
-        lRosterSelection();
+            QRosterCurrentId, Guid.Empty, qRosterPick.QRosterPickIds.Where(qRosterItem).ToHashSet());
+        qRosterPick = QRosterPickResolve(lPresent, qRosterOrder(), lId, lRange, lToggle);
+        qRosterSelection();
     }
 
-    private static QRosterPick LRosterPickResolve(
+    private static QRosterPick QRosterPickResolve(
         QRosterPick lPresent, IReadOnlyList<Guid> lOrder, Guid lId, bool lRange, bool lToggle)
     {
-        Guid lCurrent = lPresent.LRosterPickCurrent;
-        HashSet<Guid> lIds = lPresent.LRosterPickIds.ToHashSet();
+        Guid lCurrent = lPresent.QRosterPickCurrent;
+        HashSet<Guid> lIds = lPresent.QRosterPickIds.ToHashSet();
         if (lRange && lCurrent != Guid.Empty)
         {
             List<Guid> lOrdered = lOrder.ToList();
@@ -76,9 +76,9 @@ public sealed class QRosterSelection
         return new QRosterPick(lCurrent, Guid.Empty, lIds);
     }
 
-    public void LRosterCardSelect(Guid lBatchId)
+    public void QRosterCardSelect(Guid lBatchId)
     {
-        lRosterPick = new QRosterPick(Guid.Empty, lBatchId, new HashSet<Guid>());
-        lRosterSelection();
+        qRosterPick = new QRosterPick(Guid.Empty, lBatchId, new HashSet<Guid>());
+        qRosterSelection();
     }
 }

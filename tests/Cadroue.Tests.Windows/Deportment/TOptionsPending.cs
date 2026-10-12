@@ -17,10 +17,10 @@ public sealed class TOptionsPending
         LPreferenceState before = TInterface.TPreferenceCurrentRead();
         LPreferenceState draft = Interface.TInterface.TPreferenceClone(before);
         draft.LPreferenceAutoplay = !before.LPreferenceAutoplay;
-        LSOptions options = TInterface.TOptionsCreate(draft, false);
+        QSOptions options = TInterface.TOptionsCreate(draft, false);
 
         Assert.Equal(before.LPreferenceAutoplay, TInterface.TPreferenceCurrentRead().LPreferenceAutoplay);
-        Assert.NotEqual(before.LPreferenceAutoplay, options.LSOptionsDraft.LPreferenceAutoplay);
+        Assert.NotEqual(before.LPreferenceAutoplay, options.QSOptionsDraft.LPreferenceAutoplay);
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public sealed class TOptionsPending
         {
             LPreferenceState draft = Interface.TInterface.TPreferenceClone(before);
             draft.LPreferenceAutoplay = !before.LPreferenceAutoplay;
-            LSOptions options = TInterface.TOptionsCreate(draft, false);
+            QSOptions options = TInterface.TOptionsCreate(draft, false);
 
             Assert.True(TInterface.TOptionsApply(options));
             Assert.Equal(1, saves);
@@ -52,7 +52,7 @@ public sealed class TOptionsPending
     {
         LPreferenceState draft = Interface.TInterface.TPreferenceClone(TInterface.TPreferenceCurrentRead());
         draft.LPreferencePreviewEngine = "Mpv";
-        LSOptions options = TInterface.TOptionsCreate(draft, false);
+        QSOptions options = TInterface.TOptionsCreate(draft, false);
         bool? notified = null;
         TInterface.TOptionsMpvAttach(options, enabled => notified = enabled);
 
@@ -66,12 +66,12 @@ public sealed class TOptionsPending
     [Fact]
     public void Page_SelectTracksShownSheet()
     {
-        LSOptions options = TInterface.TOptionsCreate(
+        QSOptions options = TInterface.TOptionsCreate(
             Interface.TInterface.TPreferenceClone(TInterface.TPreferenceCurrentRead()), false);
-        Assert.Equal(LSOptionsPage.LSOptionsPageGeneral, options.LSOptionsPage);
+        Assert.Equal(QSOptionsPage.QSOptionsPageGeneral, options.QSOptionsPage);
 
-        TInterface.TOptionsPageSelect(options, LSOptionsPage.LSOptionsPageTimeline);
-        Assert.Equal(LSOptionsPage.LSOptionsPageTimeline, options.LSOptionsPage);
+        TInterface.TOptionsPageSelect(options, QSOptionsPage.QSOptionsPageTimeline);
+        Assert.Equal(QSOptionsPage.QSOptionsPageTimeline, options.QSOptionsPage);
     }
 
     [Fact]
@@ -83,16 +83,16 @@ public sealed class TOptionsPending
     [Fact]
     public void Spectrum_NamesSet_FallsBackToDefault()
     {
-        LSSpectrum spectrum = TInterface.TSpectrumCreate("Gone", "unused");
+        QSSpectrum spectrum = TInterface.TSpectrumCreate("Gone", "unused");
         int changes = 0;
         TInterface.TSpectrumAttach(spectrum, () => changes++);
 
         TInterface.TSpectrumNamesSet(spectrum, ["Cadroue", "Muted"]);
-        Assert.Equal("Cadroue", spectrum.LSSpectrumName);
+        Assert.Equal("Cadroue", spectrum.QSSpectrumName);
 
         TInterface.TSpectrumSelect(spectrum, "Muted");
         TInterface.TSpectrumSelect(spectrum, "Muted");
-        Assert.Equal("Muted", spectrum.LSSpectrumName);
+        Assert.Equal("Muted", spectrum.QSSpectrumName);
         Assert.Equal(2, changes);
         Assert.False(TInterface.TSpectrumRemove(spectrum, "Cadroue", true, null));
     }

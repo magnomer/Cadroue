@@ -9,7 +9,7 @@ public sealed class TSourceFilter
     [Fact]
     public void Filter_ListsVideoPatterns_AudioOnlyWhenAllowed()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
 
         string video = TInterface.TSourceFilterRead(TInterface.TSourceCreate(viewer, false));
         string media = TInterface.TSourceFilterRead(TInterface.TSourceCreate(viewer, true));
@@ -30,22 +30,22 @@ public sealed class TSourceFilter
     [Fact]
     public void MediaChange_PublishesThePathToShow()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LSource source = TInterface.TSourceCreate(viewer, true);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QSource source = TInterface.TSourceCreate(viewer, true);
         List<string> paths = [];
         TInterface.TSourcePathAttach(source, paths.Add);
 
         TInterfaceViewer.TViewerMediaRaise(viewer, TInterfaceViewer.TCargoCreate(@"C:\clip.mp4", null, false));
 
         Assert.Equal([@"C:\clip.mp4"], paths);
-        Assert.Equal(@"C:\clip.mp4", source.LSourcePath);
+        Assert.Equal(@"C:\clip.mp4", source.QSourcePath);
     }
 
     [Fact]
     public void Open_RefusesAudioWhenNotAllowed_KeyRunNeedsReturnAndAnExistingFile()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LSource source = TInterface.TSourceCreate(viewer, false);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QSource source = TInterface.TSourceCreate(viewer, false);
         List<string> refusals = [];
         TInterface.TSourceRefuseAttach(source, (title, message) => refusals.Add(title));
 

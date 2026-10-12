@@ -14,13 +14,13 @@ public sealed class TMergeTabGroups
     private const string TMergeSecond = @"C:\media\clip (2).mp4";
     private const string TMergeThird = @"C:\media\other.mp4";
 
-    private static (LMergeTab, LDocket) TMergeBuild(LSceneTabEntry? layout = null, string preset = "Alpha")
+    private static (QMergeTab, LDocket) TMergeBuild(LSceneTabEntry? layout = null, string preset = "Alpha")
     {
-        LList list = TInterfaceList.TListCreate();
-        LMergeTab tab = TInterface.TMergeTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        QMergeTab tab = TInterface.TMergeTabCreate(
             TInterface.TPresetSelectionCreate(preset), TInterfaceViewer.TViewerCreate(), list);
         TInterface.TMergeLayoutApply(tab, layout);
-        return (tab, list.LListDocket);
+        return (tab, list.QListDocket);
     }
 
     [Fact]
@@ -28,17 +28,17 @@ public sealed class TMergeTabGroups
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LMergeTab source, _) = TMergeBuild();
-        TInterface.TGroupAutoChange(source.LMergeSelection, true);
-        TInterface.TGroupStrictChange(source.LMergeSelection, false);
+        (QMergeTab source, _) = TMergeBuild();
+        TInterface.TGroupAutoChange(source.QMergeSelection, true);
+        TInterface.TGroupStrictChange(source.QMergeSelection, false);
 
         LSceneTabEntry layout = TInterface.TMergeLayoutRead(source);
-        (LMergeTab target, _) = TMergeBuild(layout);
+        (QMergeTab target, _) = TMergeBuild(layout);
 
         Assert.True(layout.LSceneGroupAuto);
         Assert.False(layout.LSceneGroupStrict);
-        Assert.True(target.LMergeSelection.LGroupAuto);
-        Assert.False(target.LMergeSelection.LGroupStrict);
+        Assert.True(target.QMergeSelection.LGroupAuto);
+        Assert.False(target.QMergeSelection.LGroupStrict);
         TInterface.TMergeClose(source);
         TInterface.TMergeClose(target);
     }
@@ -48,16 +48,16 @@ public sealed class TMergeTabGroups
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LMergeTab tab, LDocket docket) = TMergeBuild();
+        (QMergeTab tab, LDocket docket) = TMergeBuild();
 
         TInterfaceList.TDocketPathsAdd(docket, TMergeFirst, TMergeSecond, TMergeThird);
-        Assert.Empty(tab.LMergeGroup.LGroupRecords);
+        Assert.Empty(tab.QMergeGroup.QGroupRecords);
 
-        TInterface.TGroupAutoChange(tab.LMergeSelection, true);
+        TInterface.TGroupAutoChange(tab.QMergeSelection, true);
         TInterfaceList.TDocketPathsRemove(docket, TMergeThird);
 
-        Assert.Single(tab.LMergeGroup.LGroupRecords);
-        Assert.Equal(2, tab.LMergeGroup.LGroupRecords[0].LGroupRecordPaths.Count);
+        Assert.Single(tab.QMergeGroup.QGroupRecords);
+        Assert.Equal(2, tab.QMergeGroup.QGroupRecords[0].QGroupRecordPaths.Count);
         TInterface.TMergeClose(tab);
     }
 
@@ -66,12 +66,12 @@ public sealed class TMergeTabGroups
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LMergeTab tab, LDocket docket) = TMergeBuild();
+        (QMergeTab tab, LDocket docket) = TMergeBuild();
         Guid cohort = Guid.NewGuid();
         TInterfaceList.TDocketPathsAdd(docket, TMergeFirst, TMergeSecond);
         TInterfaceList.TDocketDeliveredAdd(docket, TMergeThird, true);
-        TInterface.TGroupAdd(tab.LMergeGroup, [TMergeFirst, TMergeSecond], "Pair");
-        TInterface.TGroupAdd(tab.LMergeGroup, [TMergeThird], "Locked");
+        TInterface.TGroupAdd(tab.QMergeGroup, [TMergeFirst, TMergeSecond], "Pair");
+        TInterface.TGroupAdd(tab.QMergeGroup, [TMergeThird], "Locked");
 
         IReadOnlyList<LWorkGroup> groups = TInterface.TMergeGroupsRead(tab);
         IReadOnlyList<LWorkGroup> cohortGroups = TInterface.TMergeGroupsRead(tab, cohort);
@@ -90,7 +90,7 @@ public sealed class TMergeTabGroups
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate();
-        (LMergeTab tab, _) = TMergeBuild(preset: "Missing");
+        (QMergeTab tab, _) = TMergeBuild(preset: "Missing");
         int missing = 0;
         TInterface.TMergeMissingAttach(tab, () => missing++);
 

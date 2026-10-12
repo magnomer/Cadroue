@@ -2,53 +2,53 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QFlowSpool
 {
-    private readonly LFlow lFlow;
-    private TimeSpan lFlowDragTime;
+    private readonly QFlow qFlow;
+    private TimeSpan qFlowDragTime;
 
-    public QFlowSpool(LFlow lOwner)
+    public QFlowSpool(QFlow lOwner)
     {
-        lFlow = lOwner;
+        qFlow = lOwner;
     }
 
-    public event Action? LFlowSpoolApplied;
+    public event Action? QFlowSpoolApplied;
 
-    public TimeSpan LFlowDragTime => lFlowDragTime;
+    public TimeSpan QFlowDragTime => qFlowDragTime;
 
-    public string LFlowLabelOrigin => LCursor.LCursorTimeFormat(lFlow.LFlowSpool?.LSpoolRangeOrigin ?? TimeSpan.Zero);
+    public string QFlowLabelOrigin => QCursor.QCursorTimeFormat(qFlow.QFlowRange?.LSpoolRangeOrigin ?? TimeSpan.Zero);
 
-    public string LFlowLabelLimit => LCursor.LCursorTimeFormat(lFlow.LFlowSpool?.LSpoolRangeLimit ?? TimeSpan.Zero);
+    public string QFlowLabelLimit => QCursor.QCursorTimeFormat(qFlow.QFlowRange?.LSpoolRangeLimit ?? TimeSpan.Zero);
 
-    public string LFlowLabelZero => LCursor.LCursorTimeFormat(TimeSpan.Zero);
+    public string QFlowLabelZero => QCursor.QCursorTimeFormat(TimeSpan.Zero);
 
-    public string LFlowLabelDuration => LCursor.LCursorTimeFormat(lFlow.LFlowDuration);
+    public string QFlowLabelDuration => QCursor.QCursorTimeFormat(qFlow.QFlowDuration);
 
-    public void LFlowDragSet(TimeSpan lDragTime) => lFlowDragTime = lDragTime;
+    public void QFlowDragSet(TimeSpan lDragTime) => qFlowDragTime = lDragTime;
 
-    public void LFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)
+    public void QFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)
     {
-        if (lFlow.LFlowSpool is not { } lSpool)
+        if (qFlow.QFlowRange is not { } lSpool)
         {
             return;
         }
 
         lSpool.LSpoolRangeSet(lOrigin, lLimit);
-        LFlowSpoolHandle();
+        QFlowSpoolHandle();
     }
 
-    public void LFlowSpoolHandle()
+    public void QFlowSpoolHandle()
     {
-        lFlow.LFlowKeyframe.LFlowKeyframeSuspend(true);
-        LFlowSpoolUpdate();
+        qFlow.QFlowKeyframe.QFlowKeyframeSuspend(true);
+        QFlowSpoolUpdate();
     }
 
-    public void LFlowSpoolUpdate()
+    public void QFlowSpoolUpdate()
     {
-        LFlowSpoolApplied?.Invoke();
-        if (lFlow.LFlowSpool is null)
+        QFlowSpoolApplied?.Invoke();
+        if (qFlow.QFlowRange is null)
         {
             return;
         }
 
-        lFlow.LFlowKeyframe.LFlowKeyframeDefer();
+        qFlow.QFlowKeyframe.QFlowKeyframeDefer();
     }
 }

@@ -20,7 +20,7 @@ internal sealed partial class PSEncoder
             LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
             64,
             new Thickness(6, 0, 0, 0));
-        pLog.IsEnabled = lsEncoder.LSEncoderVideoResults.Count > 0;
+        pLog.IsEnabled = lsEncoder.QSEncoderVideoResults.Count > 0;
         ProgressBar pProgress = PSField.PSFieldProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pVerify.Click += async (_, _) =>
@@ -36,9 +36,9 @@ internal sealed partial class PSEncoder
                 pProgress.Visibility = Visibility.Collapsed;
             }
 
-            pLog.IsEnabled = lsEncoder.LSEncoderVideoResults.Count > 0;
+            pLog.IsEnabled = lsEncoder.QSEncoderVideoResults.Count > 0;
         };
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.LSEncoderVerdictCreate(false));
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.QSEncoderVerdictCreate(false));
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoSet();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoSet();
 
@@ -101,7 +101,7 @@ internal sealed partial class PSEncoder
         psVideoNotice.Text = LLocalization.LLocalizationTextRead(PSVideoNoticeRead(pMode));
     }
 
-    private string PSVideoNoticeRead(string pMode) => lsEncoder.LSEncoderNoticeResolve(pMode);
+    private string PSVideoNoticeRead(string pMode) => lsEncoder.QSEncoderNoticeResolve(pMode);
 
     private void PSVideoSet()
     {
@@ -109,19 +109,19 @@ internal sealed partial class PSEncoder
         string pRate = PSCombo.PSComboTextRead(psVideoRateCombo);
         if (pEncoder.Length > 0 && pRate.Length > 0)
         {
-            lsEncoder.LSEncoderVideoSet(pEncoder, pRate);
+            lsEncoder.QSEncoderVideoSet(pEncoder, pRate);
         }
     }
 
     private void PSVideoRowsApply()
     {
-        string[] pModeLabels = lsEncoder.LSEncoderVideoCodec.LCapabilityModeLabels;
+        string[] pModeLabels = lsEncoder.QSEncoderVideoCodec.LCapabilityModeLabels;
         if (psVideoRateCombo.ItemsSource is not string[] pShown || !pShown.SequenceEqual(pModeLabels))
         {
             psVideoRateCombo.ItemsSource = pModeLabels;
         }
 
-        psVideoRateCombo.SelectedItem = lsEncoder.LSEncoderVideoRate;
+        psVideoRateCombo.SelectedItem = lsEncoder.QSEncoderVideoRate;
         PSVideoRowsRebuild();
         PSVideoEncoderUpdate();
     }
@@ -134,8 +134,8 @@ internal sealed partial class PSEncoder
         psVideoSpeedChoices = null;
         psVideoExtraCombos.Clear();
 
-        LCapabilityCodec pCodec = lsEncoder.LSEncoderVideoCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.LSEncoderVideoRate);
+        LCapabilityCodec pCodec = lsEncoder.QSEncoderVideoCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderVideoRate);
         bool pModeStored = string.Equals(
             pMode.LCapabilityModeLabel,
             lsExportSpecificEdit.LPresetVideo.LPresetRateControl,

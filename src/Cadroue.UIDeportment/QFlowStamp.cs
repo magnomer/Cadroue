@@ -2,32 +2,32 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QFlowStamp
 {
-    private string? lFlowKeyframeStamp;
-    private string lFlowLosslesscutPath = string.Empty;
+    private string? qFlowKeyframeStamp;
+    private string qFlowLosslesscutPath = string.Empty;
 
-    public string? LFlowKeyframeStamp => lFlowKeyframeStamp;
+    public string? QFlowKeyframeStamp => qFlowKeyframeStamp;
 
-    public string LFlowLosslesscutPath => lFlowLosslesscutPath;
+    public string QFlowLosslesscutPath => qFlowLosslesscutPath;
 
-    public bool LFlowStampSet(string lKeyframeStamp)
+    public bool QFlowStampSet(string lKeyframeStamp)
     {
-        if (string.Equals(lFlowKeyframeStamp, lKeyframeStamp, StringComparison.Ordinal))
+        if (string.Equals(qFlowKeyframeStamp, lKeyframeStamp, StringComparison.Ordinal))
         {
             return false;
         }
 
-        lFlowKeyframeStamp = lKeyframeStamp;
+        qFlowKeyframeStamp = lKeyframeStamp;
         return true;
     }
 
-    public bool LFlowLosslesscutSet(string lLosslesscutPath)
+    public bool QFlowLosslesscutSet(string lLosslesscutPath)
     {
-        if (string.Equals(lFlowLosslesscutPath, lLosslesscutPath, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(qFlowLosslesscutPath, lLosslesscutPath, StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
 
-        lFlowLosslesscutPath = lLosslesscutPath;
+        qFlowLosslesscutPath = lLosslesscutPath;
         return true;
     }
 }

@@ -1,3 +1,3 @@
 namespace Cadroue.UIDeportment;
 
-internal sealed record QRosterPick(Guid LRosterPickCurrent, Guid LRosterPickCard, IReadOnlySet<Guid> LRosterPickIds);
+internal sealed record QRosterPick(Guid QRosterPickCurrent, Guid QRosterPickCard, IReadOnlySet<Guid> QRosterPickIds);

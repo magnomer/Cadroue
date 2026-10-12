@@ -2,7 +2,7 @@ namespace Cadroue.UIDeportment;
 
 public static class QEditProcessing
 {
-    public static readonly IReadOnlyList<LProcessingRow> LEditRows =
+    public static readonly IReadOnlyList<QProcessingRow> QEditRows =
     [
         new("Crop", "/PAsset/PPanel/PProcessingCrop.svg", "Processing.Step.Crop"),
         new("Whitebalance", "/PAsset/PPanel/PProcessingWhitebalance.svg", "Processing.Step.Whitebalance"),

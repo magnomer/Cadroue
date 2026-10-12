@@ -9,10 +9,10 @@ public sealed class TConsoleScene
     [Fact]
     public void Reload_IsConsumedOnce()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
         TInterface.TConsoleReloadSet(scene, "Night");
 
-        Assert.Equal("Night", scene.LConsoleReloadName);
+        Assert.Equal("Night", scene.QConsoleReloadName);
         Assert.Equal("Night", TInterface.TConsoleReloadRead(scene));
         Assert.Null(TInterface.TConsoleReloadRead(scene));
     }
@@ -20,18 +20,18 @@ public sealed class TConsoleScene
     [Fact]
     public void Row_KeepsTheReloadName_WhenTheSenderCarriesNone()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
         TInterface.TConsoleRowHandle(scene, "Night");
         TInterface.TConsoleRowHandle(scene, null);
 
-        Assert.Equal("Night", scene.LConsoleReloadName);
+        Assert.Equal("Night", scene.QConsoleReloadName);
     }
 
     [Fact]
     public void Scene_MatchesIgnoringCase()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
-        Assert.False(TInterface.TConsoleSceneCheck(scene, string.Empty) && scene.LConsoleSceneName.Length > 0);
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
+        Assert.False(TInterface.TConsoleSceneCheck(scene, string.Empty) && scene.QConsoleSceneName.Length > 0);
 
         TInterface.TConsoleSceneSet(scene, "Daily");
         Assert.True(TInterface.TConsoleSceneCheck(scene, "daily"));
@@ -41,7 +41,7 @@ public sealed class TConsoleScene
     [Fact]
     public void Dirty_IsFalse_WithoutANameOrAWindow()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
         Assert.False(TInterface.TConsoleDirtyCheck(scene));
 
         TInterface.TConsoleSceneSet(scene, "Unknown scene");
@@ -51,14 +51,14 @@ public sealed class TConsoleScene
     [Fact]
     public void Delete_IsNotHandled_WhenTheSourceIsNoSceneButton()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
         Assert.False(TInterface.TConsoleDeleteHandle(scene, null));
     }
 
     [Fact]
     public void Press_ClearsFocus_OnlyOutsideTheOpenCombo()
     {
-        LConsoleScene scene = TInterface.TConsoleSceneCreate();
+        QConsoleScene scene = TInterface.TConsoleSceneCreate();
         int cleared = 0;
         TInterface.TConsoleFocusAttach(scene, () => cleared++);
 

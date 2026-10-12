@@ -47,7 +47,7 @@ public partial class PToolbar : UserControl
             ["Exit"] = pToolbar => Window.GetWindow(pToolbar)!.Close(),
         };
 
-    private LChrome lChrome = null!;
+    private QChrome lChrome = null!;
 
     private QLogoMenu? qLogoMenu;
 
@@ -84,7 +84,7 @@ public partial class PToolbar : UserControl
         qLogoMenu = qLogoMenuOwner;
     }
 
-    public void PToolbarChromeSet(LChrome lChromeOwner)
+    public void PToolbarChromeSet(QChrome lChromeOwner)
     {
         lChrome = lChromeOwner;
     }
@@ -137,7 +137,7 @@ public partial class PToolbar : UserControl
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        bool pToggle = LChrome.LChromeDoubleCheck(
+        bool pToggle = QChrome.QChromeDoubleCheck(
             e.ClickCount, PChromeCaptionCheck(e.OriginalSource as DependencyObject));
         pChromeToggles[pToggle](this);
         e.Handled = pToggle;
@@ -147,7 +147,7 @@ public partial class PToolbar : UserControl
     {
         base.OnPreviewMouseLeftButtonDown(e);
         Point pChromePoint = e.GetPosition(this);
-        lChrome.LChromePressHandle(
+        lChrome.QChromePressHandle(
             PChromeCaptionCheck(e.OriginalSource as DependencyObject), pChromePoint.X, pChromePoint.Y);
     }
 
@@ -155,7 +155,7 @@ public partial class PToolbar : UserControl
     {
         base.OnPreviewMouseMove(e);
         Point pChromePoint = e.GetPosition(this);
-        bool pDrag = lChrome.LChromeMoveResolve(
+        bool pDrag = lChrome.QChromeMoveResolve(
             pChromePoint.X,
             pChromePoint.Y,
             PLook.PLookPressed[e.LeftButton],
@@ -168,19 +168,19 @@ public partial class PToolbar : UserControl
     {
         Mouse.Capture(null);
         PSash.PSashDragMove(Window.GetWindow(this)!, e, PChromeButtonHeight);
-        lChrome.LChromeReset();
+        lChrome.QChromeReset();
     }
 
     protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnPreviewMouseLeftButtonUp(e);
-        pChromeLogos[lChrome.LChromeReleaseResolve(PChromeLogoCheck(e.OriginalSource as DependencyObject))](this);
+        pChromeLogos[lChrome.QChromeReleaseResolve(PChromeLogoCheck(e.OriginalSource as DependencyObject))](this);
     }
 
     private bool PChromeCaptionCheck(DependencyObject? pChromeSource) =>
-        LChrome.LChromeCaptionResolve(
+        QChrome.QChromeCaptionResolve(
             PSash.PSashInteractiveCheck(pChromeSource),
-            PWalk.PWalkParentCheck(pChromeSource, PWalk.PWalkItemCheck<LStripTab>),
+            PWalk.PWalkParentCheck(pChromeSource, PWalk.PWalkItemCheck<QStripTab>),
             PWalk.PWalkParentCheck(pChromeSource, PChromeSelfMatch));
 
     private bool PChromeSelfMatch(DependencyObject pChromeNode) => ReferenceEquals(pChromeNode, this);
@@ -199,7 +199,7 @@ public partial class PToolbar : UserControl
         PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAsset/PMenu/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAsset/PMenu/PMenuAbout.svg");
         MenuItem pDebugItem = PMenu.PMenuItemCreate("Debug");
-        pDebugItem.Visibility = PLook.PLookVisible[LChrome.LChromeDebugVisible];
+        pDebugItem.Visibility = PLook.PLookVisible[QChrome.QChromeDebugVisible];
         pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
         pLogoMenu.Items.Add(pDebugItem);
         PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAsset/PMenu/PMenuExit.svg");

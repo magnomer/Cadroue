@@ -4,23 +4,23 @@ Hash: `80d6bc0d348870be`
 ## `private void PSVideoResolutionBuild(Panel pHost)`
 
 Builds the size tier row, the width and height rows and the source notice into the given host.
-The tier, width and height live in LSEncoder, and every control redraws from its size notice.
-The tier slider selects a tier in LSEncoder directly.
-A dimension slider only writes its box, and box edits alone carry dimensions to LSEncoder.
+The tier, width and height live in QSEncoder, and every control redraws from its size notice.
+The tier slider selects a tier in QSEncoder directly.
+A dimension slider only writes its box, and box edits alone carry dimensions to QSEncoder.
 
 ## `private static void PSVideoDimensionChange(Slider? pSlider, TextBox? pBox)`
 
 A slider writes its box only when the text differs, so an echo from the size notice stops there.
-Zero shows as an empty box, which LSEncoder reads as no value on that axis.
+Zero shows as an empty box, which QSEncoder reads as no value on that axis.
 
 ## `private void PSVideoDimensionChange()`
 
-Both boxes go to LSEncoder together, which picks the source, a matching tier or custom.
+Both boxes go to QSEncoder together, which picks the source, a matching tier or custom.
 A box showing the localized source word reads as zero, so the source tier holds.
 
 ## `private void PSVideoSizeApply()`
 
-Redraws the whole size block from LSEncoder after any tier or dimension change.
+Redraws the whole size block from QSEncoder after any tier or dimension change.
 The source tier mutes both boxes and shows the notice that the source size applies.
 A custom size leaves the tier slider where it was, since no tier matches.
 

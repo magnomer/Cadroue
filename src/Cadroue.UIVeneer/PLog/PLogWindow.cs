@@ -27,11 +27,11 @@ public sealed class PLogWindow : Window
     private readonly PSGrabber pLogGrabber;
     private readonly Window pLogOwner;
 
-    public LLog LLog { get; }
+    public QLog QLog { get; }
 
-    private PLogWindow(Window pOwner, LLog lLog)
+    private PLogWindow(Window pOwner, QLog lLog)
     {
-        LLog = lLog;
+        QLog = lLog;
         pLogOwner = pOwner;
         pLogFileCombo = PLogComboBuild(320);
         pLogCategoryPicker = PLogCategoryBuild();
@@ -48,16 +48,16 @@ public sealed class PLogWindow : Window
         PScrollbar.PScrollbarApply(this);
         Content = PLogContentBuild();
 
-        LLog.LLogFilesChanged += PLogFilesApply;
-        LLog.LLogRowsRebuilt += PLogRowsReset;
-        LLog.LLogRowAppended += PLogRowAppend;
-        LLog.LLogRowsRemoved += PLogRowsRemove;
-        LLog.LLogScrolled += PLogFeedScroll;
-        LLog.LLogErrorShown += PLogErrorShow;
-        LLog.LLogCopied += PLogTextCopy;
+        QLog.QLogFilesChanged += PLogFilesApply;
+        QLog.QLogRowsRebuilt += PLogRowsReset;
+        QLog.QLogRowAppended += PLogRowAppend;
+        QLog.QLogRowsRemoved += PLogRowsRemove;
+        QLog.QLogScrolled += PLogFeedScroll;
+        QLog.QLogErrorShown += PLogErrorShow;
+        QLog.QLogCopied += PLogTextCopy;
         pLogFileCombo.SelectionChanged += PLogFileHandle;
         pLogFileCombo.DropDownOpened += PLogFilesHandle;
-        LLog.LLogAttach();
+        QLog.QLogAttach();
 
         pLogFlushTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
@@ -74,7 +74,7 @@ public sealed class PLogWindow : Window
         Closed += PLogCloseHandle;
     }
 
-    public static void PLogWindowShow(Window pOwner, Func<LLog> lLogCreate)
+    public static void PLogWindowShow(Window pOwner, Func<QLog> lLogCreate)
     {
         PLogWindow pWindow = System.Windows.Application.Current.Windows.OfType<PLogWindow>().FirstOrDefault()
             ?? new PLogWindow(pOwner, lLogCreate());
@@ -85,39 +85,39 @@ public sealed class PLogWindow : Window
 
     private void PLogOwnerPlace()
     {
-        (Left, Top) = LSash.LSashCenterResolve(
+        (Left, Top) = QSash.QSashCenterResolve(
             PLook.PLookManual[WindowStartupLocation],
-            new LSashBounds(Left, Top, Width, Height),
-            new LSashBounds(pLogOwner.Left, pLogOwner.Top, pLogOwner.ActualWidth, pLogOwner.ActualHeight));
+            new QSashBounds(Left, Top, Width, Height),
+            new QSashBounds(pLogOwner.Left, pLogOwner.Top, pLogOwner.ActualWidth, pLogOwner.ActualHeight));
         WindowStartupLocation = WindowStartupLocation.Manual;
     }
 
     private void PLogOwnerHandle(object? sender, EventArgs e) => Close();
 
     private void PLogFileHandle(object sender, SelectionChangedEventArgs e) =>
-        LLog.LLogFileSelect(pLogFileCombo.SelectedIndex);
+        QLog.QLogFileSelect(pLogFileCombo.SelectedIndex);
 
-    private void PLogFilesHandle(object? sender, EventArgs e) => LLog.LLogFilesUpdate();
+    private void PLogFilesHandle(object? sender, EventArgs e) => QLog.QLogFilesUpdate();
 
-    private void PLogFlushHandle(object? sender, EventArgs e) => LLog.LLogTick();
+    private void PLogFlushHandle(object? sender, EventArgs e) => QLog.QLogTick();
 
     private void PLogFilesApply()
     {
         pLogFileCombo.Items.Clear();
-        LLog.LLogFiles.ToList().ForEach(PLogItemAdd);
-        pLogFileCombo.SelectedIndex = LLog.LLogFileIndex;
+        QLog.QLogFiles.ToList().ForEach(PLogItemAdd);
+        pLogFileCombo.SelectedIndex = QLog.QLogFileIndex;
     }
 
-    private void PLogItemAdd(LLogFile lFile) =>
-        pLogFileCombo.Items.Add(new ComboBoxItem { Content = lFile.LLogFileLabel, Tag = lFile.LLogFilePath });
+    private void PLogItemAdd(QLogFile lFile) =>
+        pLogFileCombo.Items.Add(new ComboBoxItem { Content = lFile.QLogFileLabel, Tag = lFile.QLogFilePath });
 
     private void PLogRowsReset()
     {
         pLogRowsShown.Clear();
-        LLog.LLogRowsShown.ToList().ForEach(PLogRowAppend);
+        QLog.QLogRowsShown.ToList().ForEach(PLogRowAppend);
     }
 
-    private void PLogRowAppend(LLogRow lRow) => pLogRowsShown.Add(new PLogRow(lRow));
+    private void PLogRowAppend(QLogRow lRow) => pLogRowsShown.Add(new PLogRow(lRow));
 
     private void PLogRowsRemove(int pCount) => Enumerable.Range(0, pCount).ToList().ForEach(PLogRowRemove);
 
@@ -128,7 +128,7 @@ public sealed class PLogWindow : Window
     private void PLogScrollHandle(object sender, ScrollChangedEventArgs e)
     {
         ScrollViewer? pViewer = e.OriginalSource as ScrollViewer;
-        LLog.LLogScrollHandle(
+        QLog.QLogScrollHandle(
             ReferenceEquals(pViewer?.TemplatedParent, pLogFeed),
             e.ExtentHeightChange,
             pViewer?.ScrollableHeight,
@@ -139,7 +139,7 @@ public sealed class PLogWindow : Window
     private void PLogDetailToggle(object sender, RoutedEventArgs e)
     {
         PLogRow? pRow = PSender.PSenderItemRead<PLogRow>(e.OriginalSource);
-        e.Handled = LLog.LLogExpandToggle(pRow?.LLogRow);
+        e.Handled = QLog.QLogExpandToggle(pRow?.QLogRow);
         pRow?.PLogRowUpdate();
     }
 
@@ -151,7 +151,7 @@ public sealed class PLogWindow : Window
         }
         catch (COMException pLogException)
         {
-            LLog.LLogErrorRaise("Log.Error.Copy", pLogException.Message);
+            QLog.QLogErrorRaise("Log.Error.Copy", pLogException.Message);
         }
     }
 
@@ -166,7 +166,7 @@ public sealed class PLogWindow : Window
         pLogFlushTimer.Tick -= PLogFlushHandle;
         PSGrabber.PSGrabberPlacementSave(this, PLogPlacementKey);
         pLogGrabber.PSGrabberDetach();
-        LLog.LLogDetach();
+        QLog.QLogDetach();
         pLogFileCombo.SelectionChanged -= PLogFileHandle;
         pLogFileCombo.DropDownOpened -= PLogFilesHandle;
         Closed -= PLogCloseHandle;
@@ -211,10 +211,10 @@ public sealed class PLogWindow : Window
             PLogOpenIcon,
             LLocalization.LLocalizationTextRead("Log.Button.Open"),
             new Thickness(0, 0, 8, 0));
-        pLogOpenButton.Click += (_, _) => LLog.LLogFolderOpen();
+        pLogOpenButton.Click += (_, _) => QLog.QLogFolderOpen();
         Button pLogCopyButton = PLogButtonBuild(
             LLocalization.LLocalizationTextRead("Log.Button.Copy"),
-            (_, _) => LLog.LLogTextCopy());
+            (_, _) => QLog.QLogTextCopy());
 
         DockPanel.SetDock(pLogFileCombo, Dock.Left);
         DockPanel.SetDock(pLogOpenButton, Dock.Left);
@@ -238,7 +238,7 @@ public sealed class PLogWindow : Window
     private PPicker PLogCategoryBuild()
     {
         var pLogPicker = new PPicker(
-            LLog.LLogCategoriesRead(),
+            QLog.QLogCategoriesRead(),
             Array.Empty<string>(),
             LLocalization.LLocalizationTextRead("Log.Category.All"))
         {
@@ -251,7 +251,7 @@ public sealed class PLogWindow : Window
         return pLogPicker;
     }
 
-    private void PLogCategoryHandle() => LLog.LLogCategorySet(pLogCategoryPicker.PPickerSelectionRead());
+    private void PLogCategoryHandle() => QLog.QLogCategorySet(pLogCategoryPicker.PPickerSelectionRead());
 
     private ListBox PLogFeedBuild()
     {
@@ -287,8 +287,8 @@ public sealed class PLogWindow : Window
         };
 
         PCheckbox.PCheckboxApply(pLogVerbose);
-        pLogVerbose.Checked += (_, _) => LLog.LLogVerboseSet(true);
-        pLogVerbose.Unchecked += (_, _) => LLog.LLogVerboseSet(false);
+        pLogVerbose.Checked += (_, _) => QLog.QLogVerboseSet(true);
+        pLogVerbose.Unchecked += (_, _) => QLog.QLogVerboseSet(false);
         return pLogVerbose;
     }
 

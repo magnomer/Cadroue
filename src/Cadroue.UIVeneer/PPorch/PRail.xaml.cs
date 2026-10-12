@@ -106,25 +106,25 @@ public partial class PRail : UserControl
             [false] = pNameBox => { },
         };
 
-    private static readonly IReadOnlyDictionary<LRailRelayOutcome, Action<Window>> pRailOutcomes =
-        new Dictionary<LRailRelayOutcome, Action<Window>>
+    private static readonly IReadOnlyDictionary<QRailRelayOutcome, Action<Window>> pRailOutcomes =
+        new Dictionary<QRailRelayOutcome, Action<Window>>
         {
-            [LRailRelayOutcome.LRailRelaySkipped] = pWindow => { },
-            [LRailRelayOutcome.LRailRelayBusy] = PTabBusyShow,
-            [LRailRelayOutcome.LRailRelayRelayed] = pWindow => { },
-            [LRailRelayOutcome.LRailRelayCopied] = pWindow => { },
-            [LRailRelayOutcome.LRailRelayKept] = PTabKeptShow,
+            [QRailRelayOutcome.QRailRelaySkipped] = pWindow => { },
+            [QRailRelayOutcome.QRailRelayBusy] = PTabBusyShow,
+            [QRailRelayOutcome.QRailRelayRelayed] = pWindow => { },
+            [QRailRelayOutcome.QRailRelayCopied] = pWindow => { },
+            [QRailRelayOutcome.QRailRelayKept] = PTabKeptShow,
         };
 
     private readonly PStrip pStrip;
-    private readonly LRail lRail;
+    private readonly QRail lRail;
 
     public PRail(PStrip pStripOwner)
     {
         pStrip = pStripOwner;
-        lRail = pStripOwner.LStrip.LStripRail;
+        lRail = pStripOwner.QStrip.QStripRail;
         InitializeComponent();
-        DataContext = pStripOwner.LStrip;
+        DataContext = pStripOwner.QStrip;
         Loaded += PRailLoadHandle;
         Unloaded += PRailUnloadHandle;
         PRailApply(false);
@@ -132,7 +132,7 @@ public partial class PRail : UserControl
 
     public void PRailApply(bool pVertical)
     {
-        lRail.LStrip.QStripSeparator.LStripVerticalSet(pVertical);
+        lRail.QStrip.QStripSeparator.QStripVerticalSet(pVertical);
         Width = pRailWidths[pVertical];
         Height = pRailHeights[pVertical];
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -153,18 +153,18 @@ public partial class PRail : UserControl
         Window.GetWindow(this)!.PreviewMouseDown -= PTabOutsideHandle;
 
     private void PTabEnterHandle(object sender, MouseEventArgs e) =>
-        lRail.LRailHoverSet(PSender.PSenderItemRead<LStripTab>(sender));
+        lRail.QRailHoverSet(PSender.PSenderItemRead<QStripTab>(sender));
 
     private void PTabLeaveHandle(object sender, MouseEventArgs e) =>
-        lRail.LRailHoverClear(PSender.PSenderItemRead<LStripTab>(sender));
+        lRail.QRailHoverClear(PSender.PSenderItemRead<QStripTab>(sender));
 
     private void PTabPressHandle(object sender, MouseButtonEventArgs e)
     {
         var pTabElement = (FrameworkElement)sender;
         Point pRailPoint = e.GetPosition(this);
         Point pOffset = e.GetPosition(pTabElement);
-        bool pDrag = lRail.LRailPressHandle(
-            PSender.PSenderItemRead<LStripTab>(sender),
+        bool pDrag = lRail.QRailPressHandle(
+            PSender.PSenderItemRead<QStripTab>(sender),
             e.ClickCount,
             PTabHitCheck(pTabElement, e),
             pRailPoint.X,
@@ -180,18 +180,18 @@ public partial class PRail : UserControl
         var pPresenter = (ContentPresenter)pTabElement.TemplatedParent!;
         var pNameText = (FrameworkElement)pPresenter.ContentTemplate.FindName("pTabNameText", pPresenter);
         Point pPoint = e.GetPosition(pNameText);
-        return LRail.LRailNameCheck(
+        return QRail.QRailNameCheck(
             pNameText.IsVisible, pPoint.X, pPoint.Y, pNameText.ActualWidth, pNameText.ActualHeight);
     }
 
     private void PTabMoveHandle(object sender, MouseEventArgs e) =>
-        pRailMoves[lRail.LRailMoveCheck(PLook.PLookPressed[e.LeftButton])](this, e);
+        pRailMoves[lRail.QRailMoveCheck(PLook.PLookPressed[e.LeftButton])](this, e);
 
     private void PTabMoveRun(MouseEventArgs e)
     {
         Point pRailPoint = e.GetPosition(this);
         FrameworkElement? pTabElement = Mouse.Captured as FrameworkElement;
-        bool pStart = lRail.LRailDragResolve(
+        bool pStart = lRail.QRailDragResolve(
             pRailPoint.X,
             pRailPoint.Y,
             SystemParameters.MinimumHorizontalDragDistance,
@@ -199,24 +199,24 @@ public partial class PRail : UserControl
         pRailGhosts[pStart](this, pTabElement);
         PGhost.PGhostSync(pTabElement);
         Point pItemsPoint = e.GetPosition(pTabItemsControl);
-        lRail.LRailDragMove(
-            lRail.LRailPointerResolve(pItemsPoint.X, pItemsPoint.Y),
-            lRail.LStrip.LStripTabs.Select(PTabCenterRead).ToList());
+        lRail.QRailDragMove(
+            lRail.QRailPointerResolve(pItemsPoint.X, pItemsPoint.Y),
+            lRail.QStrip.QStripTabs.Select(PTabCenterRead).ToList());
         e.Handled = true;
     }
 
     private void PTabGhostShow(FrameworkElement pTabElement)
     {
         pTabElement.Opacity = 0.72;
-        PGhost.PGhostShow(pTabElement, lRail.LRailGhost);
+        PGhost.PGhostShow(pTabElement, lRail.QRailGhost);
     }
 
-    private double PTabCenterRead(LStripTab lStripTab)
+    private double PTabCenterRead(QStripTab lStripTab)
     {
         var pItemElement = (FrameworkElement)pTabItemsControl.ItemContainerGenerator.ContainerFromItem(lStripTab);
         Point pItemPoint = pItemElement.TransformToAncestor(pTabItemsControl).Transform(new Point(0, 0));
-        return LRail.LRailCenterResolve(
-            lRail.LStrip.QStripSeparator.LStripVertical,
+        return QRail.QRailCenterResolve(
+            lRail.QStrip.QStripSeparator.QStripVertical,
             pItemPoint.X,
             pItemPoint.Y,
             pItemElement.ActualWidth,
@@ -225,25 +225,25 @@ public partial class PRail : UserControl
 
     private void PTabReleaseHandle(object sender, MouseButtonEventArgs e)
     {
-        LStripTab? lReleased = lRail.LRailReleaseResolve();
+        QStripTab? lReleased = lRail.QRailReleaseResolve();
         Point pScreenPoint = PointToScreen(e.GetPosition(this));
         PTabDragClear(Mouse.Captured as FrameworkElement);
         e.Handled = true;
         PTabRelayRun(lReleased, pScreenPoint);
     }
 
-    private async void PTabRelayRun(LStripTab? lStripTab, Point pDevicePoint)
+    private async void PTabRelayRun(QStripTab? lStripTab, Point pDevicePoint)
     {
         Window pWindow = Window.GetWindow(this)!;
         Point pWindowPoint = pWindow.PointFromScreen(pDevicePoint);
-        bool pInside = LRail.LRailInsideCheck(
+        bool pInside = QRail.QRailInsideCheck(
             PLook.PLookMinimized[pWindow.WindowState],
             pWindowPoint.X,
             pWindowPoint.Y,
             pWindow.ActualWidth,
             pWindow.ActualHeight);
         Point pDipPoint = PSash.PSashDipRead(pWindow).Transform(pDevicePoint);
-        LRailRelayOutcome lOutcome = await lRail.LRailRelayRun(
+        QRailRelayOutcome lOutcome = await lRail.QRailRelayRun(
             lStripTab, pInside, pDipPoint.X, pDipPoint.Y, pDevicePoint.X, pDevicePoint.Y);
         pRailOutcomes[lOutcome](pWindow);
     }
@@ -271,8 +271,8 @@ public partial class PRail : UserControl
     private void PTabOutsideHandle(object sender, MouseButtonEventArgs e)
     {
         var pNameBox = Keyboard.FocusedElement as TextBox;
-        lRail.LRailOutsideHandle(
-            PSender.PSenderItemRead<LStripTab>(pNameBox),
+        lRail.QRailOutsideHandle(
+            PSender.PSenderItemRead<QStripTab>(pNameBox),
             PWalk.PWalkParentCheck(e.OriginalSource as DependencyObject, pNode => ReferenceEquals(pNode, pNameBox)),
             pNameBox?.Text);
     }
@@ -288,7 +288,7 @@ public partial class PRail : UserControl
             DispatcherPriority.Input,
             new Action(() =>
             {
-                pNameBox.Text = PSender.PSenderItemRead<LStripTab>(pNameBox)!.LStripTabTitle;
+                pNameBox.Text = PSender.PSenderItemRead<QStripTab>(pNameBox)!.QStripTabTitle;
                 pNameBox.SelectAll();
                 pNameBox.Focus();
             }));
@@ -296,15 +296,15 @@ public partial class PRail : UserControl
     private void PTabKeyHandle(object sender, KeyEventArgs e)
     {
         var pNameBox = (TextBox)sender;
-        e.Handled = lRail.LRailKeyHandle(
-            PSender.PSenderItemRead<LStripTab>(sender),
+        e.Handled = lRail.QRailKeyHandle(
+            PSender.PSenderItemRead<QStripTab>(sender),
             pRailEnterKeys.GetValueOrDefault(e.Key),
             pRailEscapeKeys.GetValueOrDefault(e.Key),
             pNameBox.Text);
     }
 
     private void PTabLeaveHandle(object sender, RoutedEventArgs e) =>
-        lRail.LRailLeaveHandle(PSender.PSenderItemRead<LStripTab>(sender), ((TextBox)sender).Text);
+        lRail.QRailLeaveHandle(PSender.PSenderItemRead<QStripTab>(sender), ((TextBox)sender).Text);
 
     private static void PTabDragClear(FrameworkElement? pTabElement)
     {
@@ -316,7 +316,7 @@ public partial class PRail : UserControl
     private void PTabMenuHandle(object sender, RoutedEventArgs e)
     {
         ContextMenu pTabAddMenu = PMenu.PMenuCreate((Button)sender);
-        LStrip.LStripKeysRead().ToList().ForEach(pTabLayoutKey => PTabMenuAppend(pTabAddMenu, pTabLayoutKey));
+        QStrip.QStripKeysRead().ToList().ForEach(pTabLayoutKey => PTabMenuAppend(pTabAddMenu, pTabLayoutKey));
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
     }
@@ -324,26 +324,26 @@ public partial class PRail : UserControl
     private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey)
     {
         MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(
-            LStrip.LStripTitleResolve(pTabLayoutKey),
+            QStrip.QStripTitleResolve(pTabLayoutKey),
             PTabIcon.PTabIconRead(pTabLayoutKey));
         pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }
 
     private void PTabLayoutAdd(string pTabLayoutKey) =>
-        lRail.LStrip.LStripSelect(pStrip.PStripAdd(lRail.LStrip.LStripTabCreate(pTabLayoutKey)));
+        lRail.QStrip.QStripSelect(pStrip.PStripAdd(lRail.QStrip.QStripTabCreate(pTabLayoutKey)));
 
     private void PTabCloseHandle(object sender, MouseButtonEventArgs e)
     {
         PTabDragClear(Mouse.Captured as FrameworkElement);
         e.Handled = true;
-        lRail.LRailCloseHandle(PSender.PSenderItemRead<LStripTab>(sender));
+        lRail.QRailCloseHandle(PSender.PSenderItemRead<QStripTab>(sender));
     }
 
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
-        lRail.LRailDragClear();
+        lRail.QRailDragClear();
         PTabDragClear(e.OriginalSource as FrameworkElement);
     }
 }

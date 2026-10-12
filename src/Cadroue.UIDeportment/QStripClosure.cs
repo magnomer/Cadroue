@@ -4,74 +4,74 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QStripClosure
 {
-    private readonly LStrip lStrip;
-    private readonly ObservableCollection<LStripTab> lStripTabs;
-    private readonly Func<string, string> lStripText;
-    private readonly Action<string> lStripTrace;
-    private readonly Action<Guid> lStripCartographer;
+    private readonly QStrip qStrip;
+    private readonly ObservableCollection<QStripTab> qStripTabs;
+    private readonly Func<string, string> qStripText;
+    private readonly Action<string> qStripTrace;
+    private readonly Action<Guid> qStripCartographer;
 
     public QStripClosure(
-        LStrip lOwner,
-        ObservableCollection<LStripTab> lTabs,
+        QStrip lOwner,
+        ObservableCollection<QStripTab> lTabs,
         Func<string, string> lLocalization,
         Action<string> lTrace,
         Action<Guid> lCartographer)
     {
-        lStrip = lOwner;
-        lStripTabs = lTabs;
-        lStripText = lLocalization;
-        lStripTrace = lTrace;
-        lStripCartographer = lCartographer;
+        qStrip = lOwner;
+        qStripTabs = lTabs;
+        qStripText = lLocalization;
+        qStripTrace = lTrace;
+        qStripCartographer = lCartographer;
     }
 
-    public event Action<LStripTab>? LStripTabClosed;
+    public event Action<QStripTab>? QStripTabClosed;
 
-    public LAsk? LStripCloseResolve(LStripTab? lTab = null) =>
-        lStrip.LStripBusyCheck(lTab)
-            ? new LAsk(
-                lStripText(
+    public QAsk? QStripCloseResolve(QStripTab? lTab = null) =>
+        qStrip.QStripBusyCheck(lTab)
+            ? new QAsk(
+                qStripText(
                     lTab is null ? "Tab.Close.BusyAllMessage" : "Tab.Close.BusyMessage"),
-                lStripText("Terms.Stop"))
+                qStripText("Terms.Stop"))
             {
-                LAskTitle = lStripText("Tab.Close.BusyTitle")
+                QAskTitle = qStripText("Tab.Close.BusyTitle")
             }
             : null;
 
-    public bool LStripCloseConfirm(LStripTab? lTab = null)
+    public bool QStripCloseConfirm(QStripTab? lTab = null)
     {
         bool lConfirmed = false;
-        LAskNotice.LAskPublish(LStripCloseResolve(lTab), lAnswer => lConfirmed = lAnswer);
+        QAskNotice.QAskPublish(QStripCloseResolve(lTab), lAnswer => lConfirmed = lAnswer);
         if (!lConfirmed)
         {
-            lStripTrace("Close declined: a worklist is still working");
+            qStripTrace("Close declined: a worklist is still working");
         }
 
         return lConfirmed;
     }
 
-    public void LStripClose(LStripTab lTab)
+    public void QStripClose(QStripTab lTab)
     {
-        if (!lStripTabs.Contains(lTab))
+        if (!qStripTabs.Contains(lTab))
         {
             return;
         }
 
-        string lClosedTitle = lTab.LStripTabTitle;
-        LStripTabClosed?.Invoke(lTab);
-        lStripCartographer(lTab.LStripTabId);
-        lStrip.LStripRemove(lTab);
-        lStripTrace($"Tab closed '{lClosedTitle}': {lStripTabs.Count} tab(s) open");
+        string lClosedTitle = lTab.QStripTabTitle;
+        QStripTabClosed?.Invoke(lTab);
+        qStripCartographer(lTab.QStripTabId);
+        qStrip.QStripRemove(lTab);
+        qStripTrace($"Tab closed '{lClosedTitle}': {qStripTabs.Count} tab(s) open");
     }
 
-    public void LStripAllClose()
+    public void QStripAllClose()
     {
-        foreach (LStripTab lTab in lStripTabs.ToArray())
+        foreach (QStripTab lTab in qStripTabs.ToArray())
         {
-            LStripTabClosed?.Invoke(lTab);
-            lStripCartographer(lTab.LStripTabId);
+            QStripTabClosed?.Invoke(lTab);
+            qStripCartographer(lTab.QStripTabId);
         }
 
-        lStrip.LStripClear();
-        lStripTrace("All tabs closed");
+        qStrip.QStripClear();
+        qStripTrace("All tabs closed");
     }
 }

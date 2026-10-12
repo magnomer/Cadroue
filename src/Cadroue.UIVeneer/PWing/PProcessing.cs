@@ -45,16 +45,16 @@ public sealed class PProcessing : PPanel
     private readonly PProcessingRow pProcessingSkipRow;
     private readonly Dictionary<string, PProcessingRow> pProcessingRows = new(StringComparer.Ordinal);
 
-    public LProcessing LProcessing { get; }
+    public QProcessing QProcessing { get; }
 
-    public PProcessing(LProcessing lProcessing) : base("")
+    public PProcessing(QProcessing lProcessing) : base("")
     {
-        LProcessing = lProcessing;
-        LProcessing.LProcessingChanged += PProcessingUpdate;
-        LProcessing.LProcessingOrderChanged += PProcessingOrderUpdate;
-        LProcessing.LProcessingMinimizeChanged += PProcessingMinimizeHandle;
-        LProcessing.LProcessingStepChanged += PProcessingStepHandle;
-        LProcessing.LProcessingDragCanceled += PProcessingCaptureClear;
+        QProcessing = lProcessing;
+        QProcessing.QProcessingChanged += PProcessingUpdate;
+        QProcessing.QProcessingOrderChanged += PProcessingOrderUpdate;
+        QProcessing.QProcessingMinimizeChanged += PProcessingMinimizeHandle;
+        QProcessing.QProcessingStepChanged += PProcessingStepHandle;
+        QProcessing.QProcessingDragCanceled += PProcessingCaptureClear;
         UIElement pHeader = PProcessingHeaderBuild();
 
         pProcessingRowPanel = new StackPanel();
@@ -101,27 +101,27 @@ public sealed class PProcessing : PPanel
         PProcessingUpdate();
     }
 
-    public bool PProcessingMinimizedCheck() => LProcessing.LProcessingMinimized;
+    public bool PProcessingMinimizedCheck() => QProcessing.QProcessingMinimized;
 
     public void PProcessingMinimizeSet(bool pProcessingMinimizeRequest) =>
-        LProcessing.LProcessingMinimizedSet(pProcessingMinimizeRequest);
+        QProcessing.QProcessingMinimizedSet(pProcessingMinimizeRequest);
 
     public void PProcessingMonitorSet() => pProcessingMonitorButton.Visibility = Visibility.Visible;
 
-    public void PProcessingRowAdd(LProcessingRow lRow)
+    public void PProcessingRowAdd(QProcessingRow lRow)
     {
         PProcessingRow pRow = PProcessingStepBuild(lRow);
-        pProcessingRows.Add(lRow.LProcessingRowKey, pRow);
+        pProcessingRows.Add(lRow.QProcessingRowKey, pRow);
         pProcessingRowPanel.Children.Add(pRow.PProcessingRowBorder);
-        LProcessing.LProcessingRowAdd(lRow);
+        QProcessing.QProcessingRowAdd(lRow);
     }
 
-    private PProcessingRow PProcessingStepBuild(LProcessingRow lRow)
+    private PProcessingRow PProcessingStepBuild(QProcessingRow lRow)
     {
-        string pStepName = lRow.LProcessingRowKey;
+        string pStepName = lRow.QProcessingRowKey;
         var pRow = new PProcessingRow(
-            lRow.LProcessingRowIcon,
-            LLocalization.LLocalizationTextRead(lRow.LProcessingRowLabel),
+            lRow.QProcessingRowIcon,
+            LLocalization.LLocalizationTextRead(lRow.QProcessingRowLabel),
             pProcessingStepPadding,
             pProcessingStepLine);
         Border pBorder = pRow.PProcessingRowBorder;
@@ -141,40 +141,40 @@ public sealed class PProcessing : PPanel
             pProcessingSkipLine);
         pRow.PProcessingRowBorder.ToolTip = LLocalization.LLocalizationTextRead("Processing.Skip.Tooltip");
         pRow.PProcessingRowBorder.MouseLeftButtonUp += (_, _) =>
-            LProcessing.LProcessingStepSelect(LProcessing.LProcessingSkipStep);
+            QProcessing.QProcessingStepSelect(QProcessing.QProcessingSkipStep);
         return pRow;
     }
 
     private void PProcessingPressHandle(string pStepName, MouseButtonEventArgs pEvent)
     {
         Point pPoint = pEvent.GetPosition(pProcessingRowPanel);
-        LProcessing.LProcessingDragStart(pStepName, pPoint.X, pPoint.Y);
+        QProcessing.QProcessingDragStart(pStepName, pPoint.X, pPoint.Y);
         pEvent.Handled = true;
     }
 
     private void PProcessingKeyHandle(string pStepName, KeyEventArgs pEvent)
     {
         bool pActivate = pProcessingActivateKeys.GetValueOrDefault(pEvent.Key);
-        LProcessing.LProcessingKeyHandle(pStepName, pActivate);
+        QProcessing.QProcessingKeyHandle(pStepName, pActivate);
         pEvent.Handled = pActivate;
     }
 
     private void PProcessingMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         Point pPoint = pEvent.GetPosition(pProcessingRowPanel);
-        LProcessing.LProcessingDragMove(
+        QProcessing.QProcessingDragMove(
             pPoint.X,
             pPoint.Y,
             PLook.PLookPressed[pEvent.LeftButton],
             SystemParameters.MinimumHorizontalDragDistance,
             SystemParameters.MinimumVerticalDragDistance,
-            LProcessing.LProcessingSteps.Select(PProcessingTopRead).ToList(),
-            LProcessing.LProcessingSteps.Select(PProcessingHeightRead).ToList());
+            QProcessing.QProcessingSteps.Select(PProcessingTopRead).ToList(),
+            QProcessing.QProcessingSteps.Select(PProcessingHeightRead).ToList());
     }
 
-    private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent) => LProcessing.LProcessingDragClear();
+    private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent) => QProcessing.QProcessingDragClear();
 
-    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent) => LProcessing.LProcessingDragClear();
+    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent) => QProcessing.QProcessingDragClear();
 
     private static void PProcessingCaptureClear() => Mouse.Capture(null);
 
@@ -202,7 +202,7 @@ public sealed class PProcessing : PPanel
     private void PProcessingOrderUpdate()
     {
         pProcessingRowPanel.Children.Clear();
-        LProcessing.LProcessingSteps
+        QProcessing.QProcessingSteps
             .Select(PProcessingBorderRead)
             .ToList()
             .ForEach(pBorder => pProcessingRowPanel.Children.Add(pBorder));
@@ -211,26 +211,26 @@ public sealed class PProcessing : PPanel
 
     private void PProcessingUpdate()
     {
-        pProcessingActionBar.Visibility = PLook.PLookVisible[LProcessing.LProcessingOrdered];
-        LProcessing.LProcessingSteps.ToList().ForEach(PProcessingRowUpdate);
-        pProcessingSkipRow.PProcessingSelectApply(LProcessing.LProcessingSkipSelected);
-        pProcessingSkipRow.PProcessingActiveApply(LProcessing.LProcessingSkipActive);
-        pProcessingRowPanel.Opacity = LProcessing.LProcessingSkipOpacity;
-        pProcessingActionBar.IsEnabled = !LProcessing.LProcessingSkipActive;
-        pProcessingActionBar.Opacity = LProcessing.LProcessingSkipOpacity;
+        pProcessingActionBar.Visibility = PLook.PLookVisible[QProcessing.QProcessingOrdered];
+        QProcessing.QProcessingSteps.ToList().ForEach(PProcessingRowUpdate);
+        pProcessingSkipRow.PProcessingSelectApply(QProcessing.QProcessingSkipSelected);
+        pProcessingSkipRow.PProcessingActiveApply(QProcessing.QProcessingSkipActive);
+        pProcessingRowPanel.Opacity = QProcessing.QProcessingSkipOpacity;
+        pProcessingActionBar.IsEnabled = !QProcessing.QProcessingSkipActive;
+        pProcessingActionBar.Opacity = QProcessing.QProcessingSkipOpacity;
     }
 
     private void PProcessingRowUpdate(string pStepName)
     {
         PProcessingRow pRow = pProcessingRows[pStepName];
         pRow.PProcessingStateApply(
-            LProcessing.LProcessingEnabledCheck(pStepName),
-            LProcessing.LProcessingOpacityRead(pStepName),
-            LProcessing.LProcessingNoticeRead(pStepName),
-            LProcessing.LProcessingNoticeFormat(pStepName));
-        pRow.PProcessingSelectApply(LProcessing.LProcessingSelectedCheck(pStepName));
-        pRow.PProcessingActiveApply(LProcessing.LProcessingActiveCheck(pStepName));
-        pRow.PProcessingNumberApply(LProcessing.LProcessingNumberRead(pStepName), LProcessing.LProcessingOrdered);
+            QProcessing.QProcessingEnabledCheck(pStepName),
+            QProcessing.QProcessingOpacityRead(pStepName),
+            QProcessing.QProcessingNoticeRead(pStepName),
+            QProcessing.QProcessingNoticeFormat(pStepName));
+        pRow.PProcessingSelectApply(QProcessing.QProcessingSelectedCheck(pStepName));
+        pRow.PProcessingActiveApply(QProcessing.QProcessingActiveCheck(pStepName));
+        pRow.PProcessingNumberApply(QProcessing.QProcessingNumberRead(pStepName), QProcessing.QProcessingOrdered);
     }
 
     private UIElement PProcessingHeaderBuild()
@@ -273,12 +273,12 @@ public sealed class PProcessing : PPanel
         Button pUpButton = PProcessingButtonBuild(
             PProcessingUpIcon,
             LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"),
-            () => LProcessing.LProcessingStepMove(-1));
+            () => QProcessing.QProcessingStepMove(-1));
         pUpButton.Margin = new Thickness(0, 0, 2, 0);
         Button pDownButton = PProcessingButtonBuild(
             PProcessingDownIcon,
             LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"),
-            () => LProcessing.LProcessingStepMove(1));
+            () => QProcessing.QProcessingStepMove(1));
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(pUpButton);

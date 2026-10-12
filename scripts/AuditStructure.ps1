@@ -59,7 +59,7 @@ is modified. Git and the .NET SDK are required.
 
 AuditStructure.json shape:
   {
-    "generation": 21,
+    "generation": 22,
     "project": "Cadroue",
     "helper": { "framework": "net10.0" },
     "source": "src/",
@@ -71,7 +71,7 @@ AuditStructure.json shape:
     "ceilings": { "Leapfrogging:Cadroue.ShellEngine>Cadroue.Core": 15, "Piggybacking": 4 },
     "offers": { "Cadroue.Conduct>Cadroue.ShellEngine": [ "LEntryPort" ] },
     "offerPrefixes": { "Cadroue.ShellEngine": [ "L" ] },
-    "unsealingPrefixes": { "Cadroue.UIDeportment": [ "L" ] },
+    "unsealingRings": [ "Cadroue.UIDeportment" ],
     "hollowingFloors": { "Cadroue.Application": 91 },
     "squattingPatterns": { "Cadroue.Core": [ "^LRequest" ] },
     "smugglingWords": { "src/Cadroue.ShellEngine": [ "LVaultSessionStart" ] },
@@ -114,7 +114,7 @@ AuditStructure -ReportDirectory D:\temp\audit -Top 10 -Open -NoOpen
 Write the reports elsewhere, show ten rows of each list, open the Markdown report but not the page.
 #>
 #requires -Version 5.1
-# AUDITSTRUCTURE - AUDIT GENERATION 21.
+# AUDITSTRUCTURE - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -164,6 +164,8 @@ Write the reports elsewhere, show ten rows of each list, open the Markdown repor
 # Generation 21: two border kinds join. Drifting reports an offer list that no longer equals the
 # public types of its neighbour. Lingering reports a Conduct subscription to an engine event with
 # no matching removal.
+# Generation 22: the Unsealing kind walks every public top-level type of each ring unsealingRings
+# lists, whatever its prefix, so a type renamed to another prefix stays sealed.
 [CmdletBinding()]
 param(
     [string]$Root,
@@ -242,7 +244,7 @@ EXIT CODES
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:AuditGeneration = 21
+$script:AuditGeneration = 22
 
 # dotnet and git write UTF-8. A console still on the OEM code page would show every non-ASCII line
 # garbled, so this process reads and writes UTF-8. Process-local: the calling console keeps its own.
@@ -420,7 +422,7 @@ $script:AuditSchema = [ordered]@{
     'eavesdroppingMembers' = 'string[]'
     'offers'           = 'map[]'
     'offerPrefixes'    = 'map[]'
-    'unsealingPrefixes' = 'map[]'
+    'unsealingRings'   = 'string[]'
     'squattingPatterns' = 'map[]'
     'smugglingWords'   = 'map[]'
     'hollowingFloors'  = 'map[int]'
@@ -725,11 +727,11 @@ function Read-AuditConfig {
             }
         }
 
-        $unsealingNode = Get-AuditNode -Document $config -Key 'unsealingPrefixes'
-        if ($unsealingNode.Found -and (Test-AuditValue -Kind 'map[]' -Value $unsealingNode.Value)) {
-            foreach ($property in $unsealingNode.Value.PSObject.Properties) {
-                if (-not ($names -ccontains $property.Name)) {
-                    [void]$problems.Add("unsealingPrefixes row '$($property.Name)' names an undeclared ring")
+        $unsealingNode = Get-AuditNode -Document $config -Key 'unsealingRings'
+        if ($unsealingNode.Found -and (Test-AuditValue -Kind 'string[]' -Value $unsealingNode.Value)) {
+            foreach ($unsealingRing in @($unsealingNode.Value)) {
+                if (-not ($names -ccontains $unsealingRing)) {
+                    [void]$problems.Add("unsealingRings entry '$unsealingRing' names an undeclared ring")
                 }
             }
         }
@@ -887,7 +889,7 @@ string[] imports = Strings(config.GetProperty("imports"));
 string[] eavesdropping = Strings(config.GetProperty("eavesdroppingMembers"));
 Dictionary<string, string[]> offers = Map(config.GetProperty("offers"));
 Dictionary<string, string[]> offerPrefixes = Map(config.GetProperty("offerPrefixes"));
-Dictionary<string, string[]> unsealing = Map(config.GetProperty("unsealingPrefixes"));
+string[] unsealing = Strings(config.GetProperty("unsealingRings"));
 Dictionary<string, string[]> squatting = Map(config.GetProperty("squattingPatterns"));
 Dictionary<string, string[]> smuggling = Map(config.GetProperty("smugglingWords"));
 Dictionary<string, int> floors = config.GetProperty("hollowingFloors").EnumerateObject()
@@ -1223,7 +1225,7 @@ foreach ((string pair, string[] offer) in offers)
 }
 
 HashSet<string> sealedHits = new(StringComparer.Ordinal);
-foreach ((string ringName, string[] prefixes) in unsealing)
+foreach (string ringName in unsealing)
 {
     if (rings.FirstOrDefault(candidate => candidate.Name == ringName) is not { Neighbour: [string neighbour] })
     {
@@ -1231,8 +1233,7 @@ foreach ((string ringName, string[] prefixes) in unsealing)
     }
 
     IEnumerable<ISymbol> members = compilation
-        .GetSymbolsWithName(
-            name => prefixes.Any(prefix => name.StartsWith(prefix, StringComparison.Ordinal)), SymbolFilter.Type)
+        .GetSymbolsWithName(_ => true, SymbolFilter.Type)
         .OfType<INamedTypeSymbol>()
         .Where(type => type.ContainingType is null && type.DeclaredAccessibility == Accessibility.Public
             && SourceRing(type)?.Name == ringName)

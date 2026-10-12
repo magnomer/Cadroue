@@ -10,27 +10,27 @@ public sealed class TLogRows
     [Fact]
     public void Row_CarriesTheStringsTheWindowShows()
     {
-        LLogRow row = TInterface.TLogRowCreate(
+        QLogRow row = TInterface.TLogRowCreate(
             TInterface.TTraceEntryCreate(LTraceKind.LTraceError, "boom", "stack", 1500));
 
-        Assert.Equal("Log.Category.Error", row.LLogRowKey);
-        Assert.Equal("12:00:00.000", row.LLogRowTime);
-        Assert.Equal("boom", row.LLogRowSummary);
-        Assert.Equal("stack", row.LLogRowDetail);
-        Assert.True(row.LLogRowDetailed);
-        Assert.NotEqual(string.Empty, row.LLogRowSpan);
-        Assert.EndsWith("▾", row.LLogRowChip);
+        Assert.Equal("Log.Category.Error", row.QLogRowKey);
+        Assert.Equal("12:00:00.000", row.QLogRowTime);
+        Assert.Equal("boom", row.QLogRowSummary);
+        Assert.Equal("stack", row.QLogRowDetail);
+        Assert.True(row.QLogRowDetailed);
+        Assert.NotEqual(string.Empty, row.QLogRowSpan);
+        Assert.EndsWith("▾", row.QLogRowChip);
     }
 
     [Fact]
     public void Row_WithoutDetailOrSpan_IsPlain()
     {
-        LLogRow row = TInterface.TLogRowCreate(TInterface.TTraceEntryCreate(LTraceKind.LTraceInfo, "hi", null, null));
+        QLogRow row = TInterface.TLogRowCreate(TInterface.TTraceEntryCreate(LTraceKind.LTraceInfo, "hi", null, null));
 
-        Assert.Equal("Log.Category.Info", row.LLogRowKey);
-        Assert.Equal(string.Empty, row.LLogRowDetail);
-        Assert.False(row.LLogRowDetailed);
-        Assert.Equal(string.Empty, row.LLogRowSpan);
+        Assert.Equal("Log.Category.Info", row.QLogRowKey);
+        Assert.Equal(string.Empty, row.QLogRowDetail);
+        Assert.False(row.QLogRowDetailed);
+        Assert.Equal(string.Empty, row.QLogRowSpan);
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public sealed class TLogRows
     [Fact]
     public void CategorySet_ResetsTheShownRows()
     {
-        LLog log = TInterface.TLogCreate();
+        QLog log = TInterface.TLogCreate();
         int resets = 0;
         TInterface.TLogResetAttach(log, () => resets++);
 
@@ -52,27 +52,27 @@ public sealed class TLogRows
         TInterface.TLogCategorySet(log, []);
 
         Assert.Equal(2, resets);
-        Assert.Empty(log.LLogRowsShown);
+        Assert.Empty(log.QLogRowsShown);
     }
 
     [Fact]
     public void Scroll_FollowsOnlyWhenTheFeedRestsAtTheTail()
     {
-        LLog log = TInterface.TLogCreate();
+        QLog log = TInterface.TLogCreate();
 
         TInterface.TLogScrollHandle(log, true, 0, 1000, 500, 26);
-        Assert.False(log.LLogFollowTail);
+        Assert.False(log.QLogFollowTail);
 
         TInterface.TLogScrollHandle(log, true, 40, 1000, 990, 26);
-        Assert.False(log.LLogFollowTail);
+        Assert.False(log.QLogFollowTail);
 
         TInterface.TLogScrollHandle(log, false, 0, 1000, 990, 26);
-        Assert.False(log.LLogFollowTail);
+        Assert.False(log.QLogFollowTail);
 
         TInterface.TLogScrollHandle(log, true, 0, 1000, 990, 26);
-        Assert.True(log.LLogFollowTail);
+        Assert.True(log.QLogFollowTail);
 
         TInterface.TLogScrollHandle(log, true, 0, null, null, 26);
-        Assert.True(log.LLogFollowTail);
+        Assert.True(log.QLogFollowTail);
     }
 }

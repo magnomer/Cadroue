@@ -2,37 +2,37 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QViewerTeardown
 {
-    private readonly LViewer lViewer;
-    private readonly LViewerMedia lViewerMedia;
-    private readonly Action lViewerProbe;
-    private readonly Action<string, Exception?> lViewerTrace;
+    private readonly QViewer qViewer;
+    private readonly QViewerMedia qViewerMedia;
+    private readonly Action qViewerProbe;
+    private readonly Action<string, Exception?> qViewerTrace;
 
     public QViewerTeardown(
-        LViewer lOwner,
-        LViewerMedia lMedia,
+        QViewer lOwner,
+        QViewerMedia lMedia,
         Action lProbeDispose,
         Action<string, Exception?> lErrorRecord)
     {
-        lViewer = lOwner;
-        lViewerMedia = lMedia;
-        lViewerProbe = lProbeDispose;
-        lViewerTrace = lErrorRecord;
+        qViewer = lOwner;
+        qViewerMedia = lMedia;
+        qViewerProbe = lProbeDispose;
+        qViewerTrace = lErrorRecord;
     }
 
-    public void LViewerClose()
+    public void QViewerClose()
     {
-        if (lViewer.LViewerUnloaded)
+        if (qViewer.QViewerUnloaded)
         {
             return;
         }
 
-        lViewer.LViewerUnloadSet();
-        lViewer.LViewerSerialChange();
-        LViewerStageRun("media probe", lViewerProbe);
-        LViewerStageRun("player", lViewerMedia.LViewerPlayerStop);
+        qViewer.QViewerUnloadSet();
+        qViewer.QViewerSerialChange();
+        QViewerStageRun("media probe", qViewerProbe);
+        QViewerStageRun("player", qViewerMedia.QViewerPlayerStop);
     }
 
-    public void LViewerStageRun(string lStage, Action lAction)
+    public void QViewerStageRun(string lStage, Action lAction)
     {
         try
         {
@@ -40,7 +40,7 @@ public sealed class QViewerTeardown
         }
         catch (Exception lException)
         {
-            lViewerTrace($"Viewer close stage '{lStage}' failed", lException);
+            qViewerTrace($"Viewer close stage '{lStage}' failed", lException);
         }
     }
 }

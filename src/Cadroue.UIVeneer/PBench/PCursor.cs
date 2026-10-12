@@ -49,14 +49,14 @@ internal static class PCursor
         double lineBottom,
         Rect chipRect)
     {
-        (double pGuideLeft, double pGuideRight) = LCursor.LCursorGuideResolve(cursorX, pCursorPen.Thickness);
+        (double pGuideLeft, double pGuideRight) = QCursor.QCursorGuideResolve(cursorX, pCursorPen.Thickness);
         var pGuidelines = new GuidelineSet();
         pGuidelines.GuidelinesX.Add(pGuideLeft);
         pGuidelines.GuidelinesX.Add(pGuideRight);
         drawingContext.PushGuidelineSet(pGuidelines);
 
-        LCursor
-            .LCursorLinesResolve(lineTop, lineBottom, chipRect.IsEmpty, chipRect.Top, chipRect.Bottom, chipRect.Height)
+        QCursor
+            .QCursorLinesResolve(lineTop, lineBottom, chipRect.IsEmpty, chipRect.Top, chipRect.Bottom, chipRect.Height)
             .ToList()
             .ForEach(pLine => PCursorLineDraw(drawingContext, cursorX, pLine));
 
@@ -67,11 +67,11 @@ internal static class PCursor
         drawingContext.Pop();
     }
 
-    private static void PCursorLineDraw(DrawingContext drawingContext, double cursorX, LCursorLine pLine) =>
+    private static void PCursorLineDraw(DrawingContext drawingContext, double cursorX, QCursorLine pLine) =>
         drawingContext.DrawLine(
             pCursorPen,
-            new Point(cursorX, pLine.LCursorLineTop),
-            new Point(cursorX, pLine.LCursorLineBottom));
+            new Point(cursorX, pLine.QCursorLineTop),
+            new Point(cursorX, pLine.QCursorLineBottom));
 
     internal static Rect PCursorChipResolve(
         double cursorX,
@@ -81,7 +81,7 @@ internal static class PCursor
         double lineBottom,
         double actualWidth)
     {
-        (double pChipLeft, double pChipTop) = LCursor.LCursorChipResolve(
+        (double pChipLeft, double pChipTop) = QCursor.QCursorChipResolve(
             cursorX, chipWidth, chipHeight, lineTop, lineBottom, actualWidth);
         return new Rect(pChipLeft, pChipTop, chipWidth, chipHeight);
     }

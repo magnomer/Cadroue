@@ -9,70 +9,70 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LConsole TConsoleCreate() => new();
-    internal static bool TConsoleProgressSet(LConsole console, double target) => console.LConsoleProgressSet(target);
-    internal static void TConsoleProgressAttach(LConsole console, Action<double, bool> handler) =>
-        console.LConsoleProgressApplied += handler;
-    internal static IReadOnlyList<LConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
-        LConsole.LConsoleRunsResolve(line, accent);
+    internal static QConsole TConsoleCreate() => new();
+    internal static bool TConsoleProgressSet(QConsole console, double target) => console.QConsoleProgressSet(target);
+    internal static void TConsoleProgressAttach(QConsole console, Action<double, bool> handler) =>
+        console.QConsoleProgressApplied += handler;
+    internal static IReadOnlyList<QConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
+        QConsole.QConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
-        LConsole.LConsoleRemovalFormat(outcomes);
+        QConsole.QConsoleRemovalFormat(outcomes);
     internal static int TConsoleIndexResolve(int index, int step, int count) =>
-        LConsoleStation.LConsoleIndexResolve(index, step, count);
+        QConsoleStation.QConsoleIndexResolve(index, step, count);
 
-    internal static LConsoleScene TConsoleSceneCreate() => new();
-    internal static void TConsoleReloadSet(LConsoleScene scene, string? name) => scene.LConsoleReloadSet(name);
-    internal static string? TConsoleReloadRead(LConsoleScene scene) => scene.LConsoleReloadRead();
-    internal static void TConsoleRowHandle(LConsoleScene scene, string? name) => scene.LConsoleRowHandle(name);
-    internal static void TConsoleSceneSet(LConsoleScene scene, string name) => scene.LConsoleSceneSet(name);
-    internal static bool TConsoleSceneCheck(LConsoleScene scene, string name) => scene.LConsoleSceneCheck(name);
-    internal static bool TConsoleDirtyCheck(LConsoleScene scene) => scene.LConsoleDirtyCheck();
-    internal static bool TConsoleDeleteHandle(LConsoleScene scene, string? name) => scene.LConsoleDeleteHandle(name);
-    internal static void TConsoleFocusAttach(LConsoleScene scene, Action handler) =>
-        scene.LConsoleFocusCleared += handler;
-    internal static void TConsolePressHandle(LConsoleScene scene, bool dropOpen, bool focusWithin, bool inside) =>
-        scene.LConsolePressHandle(dropOpen, focusWithin, inside);
+    internal static QConsoleScene TConsoleSceneCreate() => new();
+    internal static void TConsoleReloadSet(QConsoleScene scene, string? name) => scene.QConsoleReloadSet(name);
+    internal static string? TConsoleReloadRead(QConsoleScene scene) => scene.QConsoleReloadRead();
+    internal static void TConsoleRowHandle(QConsoleScene scene, string? name) => scene.QConsoleRowHandle(name);
+    internal static void TConsoleSceneSet(QConsoleScene scene, string name) => scene.QConsoleSceneSet(name);
+    internal static bool TConsoleSceneCheck(QConsoleScene scene, string name) => scene.QConsoleSceneCheck(name);
+    internal static bool TConsoleDirtyCheck(QConsoleScene scene) => scene.QConsoleDirtyCheck();
+    internal static bool TConsoleDeleteHandle(QConsoleScene scene, string? name) => scene.QConsoleDeleteHandle(name);
+    internal static void TConsoleFocusAttach(QConsoleScene scene, Action handler) =>
+        scene.QConsoleFocusCleared += handler;
+    internal static void TConsolePressHandle(QConsoleScene scene, bool dropOpen, bool focusWithin, bool inside) =>
+        scene.QConsolePressHandle(dropOpen, focusWithin, inside);
     internal static string TConsoleStemResolve(string name, string path) =>
-        LConsoleScene.LConsoleStemResolve(name, path);
+        QConsoleScene.QConsoleStemResolve(name, path);
     internal static string TConsoleNameCreate(string baseName, IReadOnlyList<string> names) =>
-        LConsoleScene.LConsoleNameCreate(baseName, names);
+        QConsoleScene.QConsoleNameCreate(baseName, names);
 
-    internal static LEditTab TEditTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+    internal static QEditTab TEditTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
-    internal static LInspector TEditInspectorRead(LEditTab tab) => tab.LEditInspector;
-    internal static LProcessing TEditProcessingRead(LEditTab tab) => tab.LEditProcessing;
-    internal static void TEditClose(LEditTab tab) => tab.LEditClose();
-    internal static void TEditStart(LEditTab tab) => tab.LEditStart();
-    internal static LSceneTabEntry TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabEntry());
-    internal static void TEditLayoutApply(LEditTab tab, LSceneTabEntry? layout) => tab.LEditLayoutApply(layout);
-    internal static void TEditCropHandle(LEditTab tab) => tab.LEditCropHandle();
-    internal static void TEditSkipHandle(LEditTab tab) => tab.LEditSkipHandle();
-    internal static void TEditLockHandle(LEditTab tab, bool locked) => tab.QEditTool.LEditLockHandle(locked);
-    internal static void TEditPathHandle(LEditTab tab, string? path) => tab.LEditPathHandle(path);
-    internal static void TEditHistogramAttach(LEditTab tab, Action handler) => tab.LEditHistogramDeferred += handler;
-    internal static void TEditMissingAttach(LEditTab tab, Action handler) => tab.LEditPresetMissing += handler;
-    internal static void TEditRun(LEditTab tab, LWorkPriority priority) => tab.LEditRun(priority, default, default);
-    internal static LEditPlan TEditStateRead(LEditTab tab) => tab.LEditStore.LEditStateRead();
-    internal static LEditPlan? TEditCarriedRead(LEditTab tab) => tab.LEditStore.LEditCarriedRead();
-    internal static void TEditStateSave(LEditTab tab) => tab.LEditStore.LEditStateSave();
-    internal static void TEditPersistentSave(LEditTab tab) => tab.LEditStore.LEditPersistentSave();
-    internal static string TEditPlanFormat(LEditPlan? plan) => LEditTabPlan.LEditPlanFormat(plan);
-    internal static string TEditCropFormat(LWorkCrop? crop) => LEditTabPlan.LEditCropFormat(crop);
-    internal static string TEditRectFormat(LCropbox? rect) => LEditTabPlan.LEditRectFormat(rect);
-    internal static LWorkVideo TEditVideoRead(LEditTab tab, bool mpvOnlyCapable) =>
-        tab.LEditColor.LEditVideoRead(mpvOnlyCapable);
-    internal static void TEditColorUpdate(LEditTab tab) => tab.LEditColor.LEditColorUpdate();
-    internal static void TEditPreviewAttach(LViewer viewer, Action<LColor> handler) =>
-        viewer.LViewerPreviewChanged += () => handler(viewer.LViewerPreview.LColor);
-    internal static void TEditColorApply(LEditTab tab) => tab.LEditColor.LEditColorApply();
-    internal static void TEditNeutralHandle(LEditTab tab, LNeutralSample sample) =>
-        tab.LEditColor.LEditNeutralHandle(sample);
-    internal static void TEditEstimateHandle(LEditTab tab, LWhitebalanceMethod method) =>
-        tab.LEditColor.LEditEstimateHandle(method);
-    internal static void TEditEstimateApply(LEditTab tab, double x, double y, bool present) =>
-        tab.LEditColor.LEditEstimateApply(new LNeutralWheel(x, y, present));
-    internal static void TEditHistogramApply(LEditTab tab, int width, int height, byte[]? pixels) =>
-        tab.LEditColor.LEditHistogramApply(pixels is null ? null : new LMediaFrame(width, height, pixels));
+    internal static QInspector TEditInspectorRead(QEditTab tab) => tab.QEditInspector;
+    internal static QProcessing TEditProcessingRead(QEditTab tab) => tab.QEditProcessing;
+    internal static void TEditClose(QEditTab tab) => tab.QEditClose();
+    internal static void TEditStart(QEditTab tab) => tab.QEditStart();
+    internal static LSceneTabEntry TEditLayoutRead(QEditTab tab) => tab.QEditLayoutRead(new LSceneTabEntry());
+    internal static void TEditLayoutApply(QEditTab tab, LSceneTabEntry? layout) => tab.QEditLayoutApply(layout);
+    internal static void TEditCropHandle(QEditTab tab) => tab.QEditCropHandle();
+    internal static void TEditSkipHandle(QEditTab tab) => tab.QEditSkipHandle();
+    internal static void TEditLockHandle(QEditTab tab, bool locked) => tab.QEditTool.QEditLockHandle(locked);
+    internal static void TEditPathHandle(QEditTab tab, string? path) => tab.QEditPathHandle(path);
+    internal static void TEditHistogramAttach(QEditTab tab, Action handler) => tab.QEditHistogramDeferred += handler;
+    internal static void TEditMissingAttach(QEditTab tab, Action handler) => tab.QEditPresetMissing += handler;
+    internal static void TEditRun(QEditTab tab, LWorkPriority priority) => tab.QEditRun(priority, default, default);
+    internal static LEditPlan TEditStateRead(QEditTab tab) => tab.QEditStore.QEditStateRead();
+    internal static LEditPlan? TEditCarriedRead(QEditTab tab) => tab.QEditStore.QEditCarriedRead();
+    internal static void TEditStateSave(QEditTab tab) => tab.QEditStore.QEditStateSave();
+    internal static void TEditPersistentSave(QEditTab tab) => tab.QEditStore.QEditPersistentSave();
+    internal static string TEditPlanFormat(LEditPlan? plan) => QEditTabPlan.QEditPlanFormat(plan);
+    internal static string TEditCropFormat(LWorkCrop? crop) => QEditTabPlan.QEditCropFormat(crop);
+    internal static string TEditRectFormat(LCropbox? rect) => QEditTabPlan.QEditRectFormat(rect);
+    internal static LWorkVideo TEditVideoRead(QEditTab tab, bool mpvOnlyCapable) =>
+        tab.QEditColor.QEditVideoRead(mpvOnlyCapable);
+    internal static void TEditColorUpdate(QEditTab tab) => tab.QEditColor.QEditColorUpdate();
+    internal static void TEditPreviewAttach(QViewer viewer, Action<LColor> handler) =>
+        viewer.QViewerPreviewChanged += () => handler(viewer.QViewerPreview.LColor);
+    internal static void TEditColorApply(QEditTab tab) => tab.QEditColor.QEditColorApply();
+    internal static void TEditNeutralHandle(QEditTab tab, LNeutralSample sample) =>
+        tab.QEditColor.QEditNeutralHandle(sample);
+    internal static void TEditEstimateHandle(QEditTab tab, LWhitebalanceMethod method) =>
+        tab.QEditColor.QEditEstimateHandle(method);
+    internal static void TEditEstimateApply(QEditTab tab, double x, double y, bool present) =>
+        tab.QEditColor.QEditEstimateApply(new LNeutralWheel(x, y, present));
+    internal static void TEditHistogramApply(QEditTab tab, int width, int height, byte[]? pixels) =>
+        tab.QEditColor.QEditHistogramApply(pixels is null ? null : new LMediaFrame(width, height, pixels));
     internal static void TEditLibrarianAttach(
         Func<string, LSidecarEditEntry?>? reader, Func<string, LSidecarEditEntry?, bool>? writer)
     {
@@ -80,32 +80,32 @@ internal static partial class TInterface
         LLibrarian.LLibrarianEditWriter = writer;
     }
 
-    internal static LSplitTab TSplitTabCreate(LPresetSelection preset, LViewer viewer, LList list, LFlow flow) =>
+    internal static QSplitTab TSplitTabCreate(LPresetSelection preset, QViewer viewer, QList list, QFlow flow) =>
         new(preset, viewer, list, flow);
-    internal static LInspector TSplitInspectorRead(LSplitTab tab) => tab.LSplitInspector;
-    internal static LProcessing TSplitProcessingRead(LSplitTab tab) => tab.LSplitProcessing;
-    internal static IReadOnlyList<LProcessingRow> TSplitRowsRead() => LSplitTab.LSplitRows;
-    internal static void TSplitClose(LSplitTab tab) => tab.LSplitClose();
-    internal static void TSplitStart(LSplitTab tab) => tab.LSplitStart();
-    internal static LSceneTabEntry TSplitLayoutRead(LSplitTab tab) => tab.LSplitLayoutRead(new LSceneTabEntry());
-    internal static void TSplitLayoutApply(LSplitTab tab, LSceneTabEntry? layout) => tab.LSplitLayoutApply(layout);
-    internal static void TSplitPathHandle(LSplitTab tab, string? path) => tab.LSplitPathHandle(path);
-    internal static void TSplitLockHandle(LSplitTab tab, bool locked) => tab.LSplitLockHandle(locked);
-    internal static void TSplitPersistentHandle(LSplitTab tab, bool persistent) =>
-        tab.LSplitPersistentHandle(persistent);
-    internal static void TSplitStateSave(LSplitTab tab) => tab.LSplitStateSave();
-    internal static void TSplitStateLoad(LSplitTab tab, string path) => tab.LSplitStateLoad(path);
-    internal static LDetectorBundle TSplitStateRead(LSplitTab tab) => tab.LSplitStateRead();
-    internal static void TSplitMissingAttach(LSplitTab tab, Action handler) => tab.LSplitPresetMissing += handler;
-    internal static void TSplitRun(LSplitTab tab, LWorkPriority priority) => tab.LSplitRun(priority, default, default);
-    internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(LSplitTab tab) => tab.LSplitSweep.LSplitStepsRead();
-    internal static Task TSplitSweepStart(LSplitTab tab) => tab.LSplitSweep.LSplitSweepStart();
-    internal static void TSplitSweepCancel(LSplitTab tab) => tab.LSplitSweep.LSplitSweepCancel();
-    internal static bool TSplitSweepCheck(LSplitTab tab) => tab.LSplitSweep.LSplitSweepRunning;
-    internal static void TSplitBusyAttach(LSplitTab tab, Action<bool> handler) =>
-        tab.LSplitSweep.LSplitBusyApplied += handler;
-    internal static void TSplitFailAttach(LSplitTab tab, Action<string, string> handler) =>
-        tab.LSplitSweep.LSplitFailRaised += handler;
+    internal static QInspector TSplitInspectorRead(QSplitTab tab) => tab.QSplitInspector;
+    internal static QProcessing TSplitProcessingRead(QSplitTab tab) => tab.QSplitProcessing;
+    internal static IReadOnlyList<QProcessingRow> TSplitRowsRead() => QSplitTab.QSplitRows;
+    internal static void TSplitClose(QSplitTab tab) => tab.QSplitClose();
+    internal static void TSplitStart(QSplitTab tab) => tab.QSplitStart();
+    internal static LSceneTabEntry TSplitLayoutRead(QSplitTab tab) => tab.QSplitLayoutRead(new LSceneTabEntry());
+    internal static void TSplitLayoutApply(QSplitTab tab, LSceneTabEntry? layout) => tab.QSplitLayoutApply(layout);
+    internal static void TSplitPathHandle(QSplitTab tab, string? path) => tab.QSplitPathHandle(path);
+    internal static void TSplitLockHandle(QSplitTab tab, bool locked) => tab.QSplitLockHandle(locked);
+    internal static void TSplitPersistentHandle(QSplitTab tab, bool persistent) =>
+        tab.QSplitPersistentHandle(persistent);
+    internal static void TSplitStateSave(QSplitTab tab) => tab.QSplitStateSave();
+    internal static void TSplitStateLoad(QSplitTab tab, string path) => tab.QSplitStateLoad(path);
+    internal static LDetectorBundle TSplitStateRead(QSplitTab tab) => tab.QSplitStateRead();
+    internal static void TSplitMissingAttach(QSplitTab tab, Action handler) => tab.QSplitPresetMissing += handler;
+    internal static void TSplitRun(QSplitTab tab, LWorkPriority priority) => tab.QSplitRun(priority, default, default);
+    internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(QSplitTab tab) => tab.QSplitSweep.QSplitStepsRead();
+    internal static Task TSplitSweepStart(QSplitTab tab) => tab.QSplitSweep.QSplitSweepStart();
+    internal static void TSplitSweepCancel(QSplitTab tab) => tab.QSplitSweep.QSplitSweepCancel();
+    internal static bool TSplitSweepCheck(QSplitTab tab) => tab.QSplitSweep.QSplitSweepRunning;
+    internal static void TSplitBusyAttach(QSplitTab tab, Action<bool> handler) =>
+        tab.QSplitSweep.QSplitBusyApplied += handler;
+    internal static void TSplitFailAttach(QSplitTab tab, Action<string, string> handler) =>
+        tab.QSplitSweep.QSplitFailRaised += handler;
     internal static void TSplitLibrarianAttach(
         Func<string, LSidecarSplitEntry?>? reader, Func<string, LSidecarSplitEntry?, bool>? writer)
     {
@@ -125,41 +125,41 @@ internal static partial class TInterface
         double tolerance,
         double coverage,
         double minimum) => new(enabled, type, hue, saturation, brightness, tolerance, coverage, minimum);
-    internal static void TSensorEnabledSet(LSensor sensor, LDetectorKind kind, bool enabled) =>
-        sensor.LSensorEnabledSet(kind, enabled);
-    internal static void TSensorModeSet(LSensor sensor, LDetectorStillMode mode) => sensor.LSensorModeSet(mode);
-    internal static void TSensorSpeedSet(LSensor sensor, LDetectorLuminanceMode speed) => sensor.LSensorSpeedSet(speed);
-    internal static void TSensorPersistentSet(LSensor sensor, bool persistent) =>
-        sensor.LSensorPersistentSet(persistent);
-    internal static string TSensorNameRead(LDetectorKind kind) => LSensor.LSensorNameRead(kind);
-    internal static LDetectorKind? TSensorKindRead(string? name) => LSensor.LSensorKindRead(name);
+    internal static void TSensorEnabledSet(QSensor sensor, LDetectorKind kind, bool enabled) =>
+        sensor.QSensorEnabledSet(kind, enabled);
+    internal static void TSensorModeSet(QSensor sensor, LDetectorStillMode mode) => sensor.QSensorModeSet(mode);
+    internal static void TSensorSpeedSet(QSensor sensor, LDetectorLuminanceMode speed) => sensor.QSensorSpeedSet(speed);
+    internal static void TSensorPersistentSet(QSensor sensor, bool persistent) =>
+        sensor.QSensorPersistentSet(persistent);
+    internal static string TSensorNameRead(LDetectorKind kind) => QSensor.QSensorNameRead(kind);
+    internal static LDetectorKind? TSensorKindRead(string? name) => QSensor.QSensorKindRead(name);
 
-    internal static LFixTab TFixTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+    internal static QFixTab TFixTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(preset, viewer, list);
-    internal static LClinic TFixClinicRead(LFixTab tab) => tab.LFixClinic;
-    internal static LProcessing TFixProcessingRead(LFixTab tab) => tab.LFixProcessing;
-    internal static IReadOnlyList<LProcessingRow> TFixRowsRead() => LFixTab.LFixRows;
-    internal static IReadOnlyList<LFixRow> TFixKindsRead() => LFixTab.LFixKinds;
-    internal static void TFixClose(LFixTab tab) => tab.LFixClose();
-    internal static LSceneTabEntry TFixLayoutRead(LFixTab tab) => tab.LFixLayoutRead(new LSceneTabEntry());
-    internal static void TFixLayoutApply(LFixTab tab, LSceneTabEntry? layout) => tab.LFixLayoutApply(layout);
-    internal static void TFixPathHandle(LFixTab tab, string? path) => tab.LFixPathHandle(path);
-    internal static void TFixDiagnosisRun(LFixTab tab) => tab.LFixDiagnosisRun();
-    internal static void TFixCheckupHandle(LFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
-        tab.LFixCheckupHandle(new LCheckupResult(path, kind, outcome));
-    internal static void TFixProgressHandle(LFixTab tab, string path, double progress) =>
-        tab.LFixProgressHandle(path, progress);
-    internal static void TFixClearHandle(LFixTab tab, params string[] removed) => tab.LFixClearHandle(removed);
-    internal static void TFixChangeHandle(LFixTab tab) => tab.LFixChangeHandle();
-    internal static void TFixStateSave(LFixTab tab) => tab.LFixStateSave();
-    internal static void TFixPlanRestore(LFixTab tab, string path) => tab.LFixPlanRestore(path);
-    internal static void TFixMissingAttach(LFixTab tab, Action handler) => tab.LFixPresetMissing += handler;
-    internal static void TFixRun(LFixTab tab, LWorkPriority priority) => tab.LFixRun(priority, default, default);
-    internal static void TFixAllRun(LFixTab tab) => tab.LFixAllRun(default, default);
-    internal static void TFixCheckupAttach(LFixTab tab, Action<LCheckupResult> handler) =>
-        tab.LFixCheckup.LCheckupReady += handler;
-    internal static void TClinicSaveSuspend(LClinic clinic) => clinic.LClinicSaveSuspend();
-    internal static void TClinicSaveResume(LClinic clinic) => clinic.LClinicSaveResume();
+    internal static QClinic TFixClinicRead(QFixTab tab) => tab.QFixClinic;
+    internal static QProcessing TFixProcessingRead(QFixTab tab) => tab.QFixProcessing;
+    internal static IReadOnlyList<QProcessingRow> TFixRowsRead() => QFixTab.QFixRows;
+    internal static IReadOnlyList<QFixRow> TFixKindsRead() => QFixTab.QFixKinds;
+    internal static void TFixClose(QFixTab tab) => tab.QFixClose();
+    internal static LSceneTabEntry TFixLayoutRead(QFixTab tab) => tab.QFixLayoutRead(new LSceneTabEntry());
+    internal static void TFixLayoutApply(QFixTab tab, LSceneTabEntry? layout) => tab.QFixLayoutApply(layout);
+    internal static void TFixPathHandle(QFixTab tab, string? path) => tab.QFixPathHandle(path);
+    internal static void TFixDiagnosisRun(QFixTab tab) => tab.QFixDiagnosisRun();
+    internal static void TFixCheckupHandle(QFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
+        tab.QFixCheckupHandle(new LCheckupResult(path, kind, outcome));
+    internal static void TFixProgressHandle(QFixTab tab, string path, double progress) =>
+        tab.QFixProgressHandle(path, progress);
+    internal static void TFixClearHandle(QFixTab tab, params string[] removed) => tab.QFixClearHandle(removed);
+    internal static void TFixChangeHandle(QFixTab tab) => tab.QFixChangeHandle();
+    internal static void TFixStateSave(QFixTab tab) => tab.QFixStateSave();
+    internal static void TFixPlanRestore(QFixTab tab, string path) => tab.QFixPlanRestore(path);
+    internal static void TFixMissingAttach(QFixTab tab, Action handler) => tab.QFixPresetMissing += handler;
+    internal static void TFixRun(QFixTab tab, LWorkPriority priority) => tab.QFixRun(priority, default, default);
+    internal static void TFixAllRun(QFixTab tab) => tab.QFixAllRun(default, default);
+    internal static void TFixCheckupAttach(QFixTab tab, Action<LCheckupResult> handler) =>
+        tab.QFixCheckup.LCheckupReady += handler;
+    internal static void TClinicSaveSuspend(QClinic clinic) => clinic.QClinicSaveSuspend();
+    internal static void TClinicSaveResume(QClinic clinic) => clinic.QClinicSaveResume();
     internal static void TFixScannerAttach(Action<string>? scanner)
     {
         LLibrarian.LLibrarianDiagnosisReader = scanner is null ? null : _ => null;
@@ -178,34 +178,34 @@ internal static partial class TInterface
         LLibrarian.LLibrarianFixWriter = writer;
     }
 
-    internal static LAudioTab TAudioTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+    internal static QAudioTab TAudioTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
-    internal static LInspector TAudioInspectorRead(LAudioTab tab) => tab.LAudioInspector;
-    internal static LProcessing TAudioProcessingRead(LAudioTab tab) => tab.LAudioProcessing;
-    internal static IReadOnlyList<LProcessingRow> TAudioRowsRead() => LAudioTab.LAudioRows;
-    internal static LAudioKind? TAudioKindRead(string step) => LAudioTab.LAudioKindRead(step);
-    internal static void TAudioClose(LAudioTab tab) => tab.LAudioClose();
-    internal static LSceneTabEntry TAudioLayoutRead(LAudioTab tab) => tab.LAudioLayoutRead(new LSceneTabEntry());
-    internal static void TAudioLayoutApply(LAudioTab tab, LSceneTabEntry? layout) => tab.LAudioLayoutApply(layout);
-    internal static void TAudioPathHandle(LAudioTab tab, string? path) => tab.LAudioPathHandle(path);
-    internal static void TAudioSkipHandle(LAudioTab tab) => tab.LAudioSkipHandle();
-    internal static void TAudioChangeHandle(LAudioTab tab) => tab.LAudioChangeHandle();
-    internal static void TAudioItemsHandle(LAudioTab tab, IReadOnlyList<LDocketEntry> added) =>
-        tab.LAudioItemsHandle(added);
-    internal static void TAudioPersistentSave(LAudioTab tab) => tab.LAudioPersistentSave();
-    internal static void TAudioViewerApply(LAudioTab tab) => tab.LAudioViewerApply();
-    internal static LWorkAudio TAudioPlanRead(LAudioTab tab) => tab.LAudioPlanRead();
-    internal static void TAudioStateSave(LAudioTab tab) => tab.LAudioStateSave();
-    internal static void TAudioPlanRestore(LAudioTab tab, string path, bool ownerFirst) =>
-        tab.LAudioPlanRestore(path, ownerFirst);
-    internal static void TAudioFilterAttach(LViewer viewer, Action<string> handler) =>
-        viewer.LViewerPreviewChanged += () => handler(viewer.LViewerAudioResolve());
-    internal static void TAudioDeferAttach(LAudioTab tab, Action handler) => tab.LAudioViewerDeferred += handler;
-    internal static void TAudioMissingAttach(LAudioTab tab, Action handler) => tab.LAudioPresetMissing += handler;
-    internal static void TAudioIncompatibleAttach(LAudioTab tab, Action handler) =>
-        tab.LAudioPresetIncompatible += handler;
-    internal static void TAudioRun(LAudioTab tab, LWorkPriority priority) => tab.LAudioRun(priority, default, default);
-    internal static void TAudioAllRun(LAudioTab tab) => tab.LAudioAllRun(default, default);
+    internal static QInspector TAudioInspectorRead(QAudioTab tab) => tab.QAudioInspector;
+    internal static QProcessing TAudioProcessingRead(QAudioTab tab) => tab.QAudioProcessing;
+    internal static IReadOnlyList<QProcessingRow> TAudioRowsRead() => QAudioTab.QAudioRows;
+    internal static LAudioKind? TAudioKindRead(string step) => QAudioTab.QAudioKindRead(step);
+    internal static void TAudioClose(QAudioTab tab) => tab.QAudioClose();
+    internal static LSceneTabEntry TAudioLayoutRead(QAudioTab tab) => tab.QAudioLayoutRead(new LSceneTabEntry());
+    internal static void TAudioLayoutApply(QAudioTab tab, LSceneTabEntry? layout) => tab.QAudioLayoutApply(layout);
+    internal static void TAudioPathHandle(QAudioTab tab, string? path) => tab.QAudioPathHandle(path);
+    internal static void TAudioSkipHandle(QAudioTab tab) => tab.QAudioSkipHandle();
+    internal static void TAudioChangeHandle(QAudioTab tab) => tab.QAudioChangeHandle();
+    internal static void TAudioItemsHandle(QAudioTab tab, IReadOnlyList<LDocketEntry> added) =>
+        tab.QAudioItemsHandle(added);
+    internal static void TAudioPersistentSave(QAudioTab tab) => tab.QAudioPersistentSave();
+    internal static void TAudioViewerApply(QAudioTab tab) => tab.QAudioViewerApply();
+    internal static LWorkAudio TAudioPlanRead(QAudioTab tab) => tab.QAudioPlanRead();
+    internal static void TAudioStateSave(QAudioTab tab) => tab.QAudioStateSave();
+    internal static void TAudioPlanRestore(QAudioTab tab, string path, bool ownerFirst) =>
+        tab.QAudioPlanRestore(path, ownerFirst);
+    internal static void TAudioFilterAttach(QViewer viewer, Action<string> handler) =>
+        viewer.QViewerPreviewChanged += () => handler(viewer.QViewerAudioResolve());
+    internal static void TAudioDeferAttach(QAudioTab tab, Action handler) => tab.QAudioViewerDeferred += handler;
+    internal static void TAudioMissingAttach(QAudioTab tab, Action handler) => tab.QAudioPresetMissing += handler;
+    internal static void TAudioIncompatibleAttach(QAudioTab tab, Action handler) =>
+        tab.QAudioPresetIncompatible += handler;
+    internal static void TAudioRun(QAudioTab tab, LWorkPriority priority) => tab.QAudioRun(priority, default, default);
+    internal static void TAudioAllRun(QAudioTab tab) => tab.QAudioAllRun(default, default);
     internal static void TAudioLibrarianAttach(
         Func<string, LSidecarAudioEntry?>? reader, Func<string, LSidecarAudioEntry?, bool>? writer)
     {
@@ -213,35 +213,35 @@ internal static partial class TInterface
         LLibrarian.LLibrarianAudioWriter = writer;
     }
 
-    internal static void TVolumePersistentSet(LVolume volume, bool persistent) =>
-        volume.LVolumePersistentSet(persistent);
+    internal static void TVolumePersistentSet(QVolume volume, bool persistent) =>
+        volume.QVolumePersistentSet(persistent);
 
-    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+    internal static QMergeTab TMergeTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
-    internal static void TMergeLayoutApply(LMergeTab tab, LSceneTabEntry? layout) => tab.LMergeLayoutApply(layout);
-    internal static void TMergeClose(LMergeTab tab) => tab.LMergeClose();
-    internal static LSceneTabEntry TMergeLayoutRead(LMergeTab tab) => tab.LMergeLayoutRead(new LSceneTabEntry());
-    internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(LMergeTab tab, Guid cohort = default) =>
-        tab.LMergeGroupsRead(cohort);
-    internal static IReadOnlyDictionary<string, Guid> TMergeRelaysRead(LMergeTab tab) => tab.LMergeRelaysRead();
-    internal static IReadOnlyList<string> TMergePathsRead(LMergeTab tab) => tab.LMergePathsRead();
-    internal static IReadOnlyList<string> TMergeEligibleRead(LMergeTab tab) => tab.LMergeEligibleRead();
-    internal static void TMergeMissingAttach(LMergeTab tab, Action handler) => tab.LMergePresetMissing += handler;
-    internal static void TMergeRun(LMergeTab tab, LWorkPriority priority) => tab.LMergeRun(priority, default, default);
-    internal static int TMergeCohortRun(LMergeTab tab, Guid cohort) => tab.LMergeCohortRun(cohort, default, default);
+    internal static void TMergeLayoutApply(QMergeTab tab, LSceneTabEntry? layout) => tab.QMergeLayoutApply(layout);
+    internal static void TMergeClose(QMergeTab tab) => tab.QMergeClose();
+    internal static LSceneTabEntry TMergeLayoutRead(QMergeTab tab) => tab.QMergeLayoutRead(new LSceneTabEntry());
+    internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(QMergeTab tab, Guid cohort = default) =>
+        tab.QMergeGroupsRead(cohort);
+    internal static IReadOnlyDictionary<string, Guid> TMergeRelaysRead(QMergeTab tab) => tab.QMergeRelaysRead();
+    internal static IReadOnlyList<string> TMergePathsRead(QMergeTab tab) => tab.QMergePathsRead();
+    internal static IReadOnlyList<string> TMergeEligibleRead(QMergeTab tab) => tab.QMergeEligibleRead();
+    internal static void TMergeMissingAttach(QMergeTab tab, Action handler) => tab.QMergePresetMissing += handler;
+    internal static void TMergeRun(QMergeTab tab, LWorkPriority priority) => tab.QMergeRun(priority, default, default);
+    internal static int TMergeCohortRun(QMergeTab tab, Guid cohort) => tab.QMergeCohortRun(cohort, default, default);
 
     internal static void TGroupAutoChange(LGroupSelection selection, bool auto) => selection.LGroupAutoChange(auto);
     internal static void TGroupStrictChange(LGroupSelection selection, bool strict) =>
         selection.LGroupStrictChange(strict);
 
-    internal static LConvertTab TConvertTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+    internal static QConvertTab TConvertTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(preset, viewer, list);
-    internal static void TConvertMissingAttach(LConvertTab tab, Action handler) => tab.LConvertPresetMissing += handler;
-    internal static void TConvertRun(LConvertTab tab, LWorkPriority priority) =>
-        tab.LConvertRun(priority, default, default);
-    internal static void TConvertAllRun(LConvertTab tab) => tab.LConvertAllRun(default, default);
-    internal static void TConvertItemsRun(LConvertTab tab, params string[] paths) =>
-        tab.LConvertItemsRun(paths, default, default);
+    internal static void TConvertMissingAttach(QConvertTab tab, Action handler) => tab.QConvertPresetMissing += handler;
+    internal static void TConvertRun(QConvertTab tab, LWorkPriority priority) =>
+        tab.QConvertRun(priority, default, default);
+    internal static void TConvertAllRun(QConvertTab tab) => tab.QConvertAllRun(default, default);
+    internal static void TConvertItemsRun(QConvertTab tab, params string[] paths) =>
+        tab.QConvertItemsRun(paths, default, default);
 
     internal static void TMessengerDeliverAttach(Func<Guid, string, Guid, bool>? deliver) =>
         LMessenger.LMessengerDeliverSource = deliver;
@@ -255,58 +255,58 @@ internal static partial class TInterface
         new(steps) { LWorkAudioSkip = skip };
     internal static LSidecarAudioEntry TAudioRecordCreate(LWorkAudio plan) => LAudio.LAudioPersistentCreate(plan);
 
-    internal static LAction TActionCreate() => new();
-    internal static void TActionDocketAttach(LAction action, LDocket docket) => action.LActionDocketAttach(docket);
-    internal static void TActionEligibleAttach(LAction action, Func<IReadOnlyList<string>> source) =>
-        action.LActionEligibleAttach(source);
-    internal static bool TActionEligibleCheck(LAction action, params string[] chosen) =>
-        action.LActionEligibleCheck(chosen);
-    internal static void TActionStripAttach(LStrip strip) => LAction.LActionStripAttach(strip);
-    internal static void TActionListAttach(LAction action, LList list) => action.LActionListAttach(list);
-    internal static void TActionRelayAttach(LAction action, LStrip strip, LStripTab tab) =>
-        action.LActionRelayAttach(strip, tab);
-    internal static void TActionAutoSet(LAction action, bool? state) => action.LActionAutoSet(state);
-    internal static void TActionRelaySelect(LAction action, Guid target) => action.LActionRelaySelect(target);
-    internal static void TActionRelayApply(LAction action, Guid target) => action.LActionRelayApply(target);
-    internal static IReadOnlyList<LActionOption> TActionOptionsRead(LAction action) => action.LActionOptionsRead();
-    internal static IReadOnlyList<LActionOption> TActionMenuRead(LAction action) => action.LActionMenuRead();
-    internal static void TActionRunAttach(LAction action, Action<LWorkPriority> handler) =>
-        action.LActionExecuted += (priority, _, _) => handler(priority);
-    internal static void TActionAllAttach(LAction action, Action handler) =>
-        action.LActionAllAdded += (_, _) => handler();
-    internal static void TActionItemsAttach(LAction action, Action<IReadOnlyList<string>> handler) =>
-        action.LActionItemsAdded += (paths, _, _) => handler(paths);
-    internal static void TActionCohortAttach(LAction action, Func<Guid, int> handler) =>
-        action.LActionCohortAdded += (cohort, _, _) => handler(cohort);
-    internal static (Guid TActionTarget, Guid TActionSource) TActionRouteRead(LAction action)
+    internal static QAction TActionCreate() => new();
+    internal static void TActionDocketAttach(QAction action, LDocket docket) => action.QActionDocketAttach(docket);
+    internal static void TActionEligibleAttach(QAction action, Func<IReadOnlyList<string>> source) =>
+        action.QActionEligibleAttach(source);
+    internal static bool TActionEligibleCheck(QAction action, params string[] chosen) =>
+        action.QActionEligibleCheck(chosen);
+    internal static void TActionStripAttach(QStrip strip) => QAction.QActionStripAttach(strip);
+    internal static void TActionListAttach(QAction action, QList list) => action.QActionListAttach(list);
+    internal static void TActionRelayAttach(QAction action, QStrip strip, QStripTab tab) =>
+        action.QActionRelayAttach(strip, tab);
+    internal static void TActionAutoSet(QAction action, bool? state) => action.QActionAutoSet(state);
+    internal static void TActionRelaySelect(QAction action, Guid target) => action.QActionRelaySelect(target);
+    internal static void TActionRelayApply(QAction action, Guid target) => action.QActionRelayApply(target);
+    internal static IReadOnlyList<QActionOption> TActionOptionsRead(QAction action) => action.QActionOptionsRead();
+    internal static IReadOnlyList<QActionOption> TActionMenuRead(QAction action) => action.QActionMenuRead();
+    internal static void TActionRunAttach(QAction action, Action<LWorkPriority> handler) =>
+        action.QActionExecuted += (priority, _, _) => handler(priority);
+    internal static void TActionAllAttach(QAction action, Action handler) =>
+        action.QActionAllAdded += (_, _) => handler();
+    internal static void TActionItemsAttach(QAction action, Action<IReadOnlyList<string>> handler) =>
+        action.QActionItemsAdded += (paths, _, _) => handler(paths);
+    internal static void TActionCohortAttach(QAction action, Func<Guid, int> handler) =>
+        action.QActionCohortAdded += (cohort, _, _) => handler(cohort);
+    internal static (Guid TActionTarget, Guid TActionSource) TActionRouteRead(QAction action)
     {
         (Guid TActionTarget, Guid TActionSource) route = default;
         Action<IReadOnlyList<string>, Guid, Guid> capture = (_, target, source) => route = (target, source);
-        action.LActionItemsAdded += capture;
-        action.LActionItemsRun(Array.Empty<string>());
-        action.LActionItemsAdded -= capture;
+        action.QActionItemsAdded += capture;
+        action.QActionItemsRun(Array.Empty<string>());
+        action.QActionItemsAdded -= capture;
         return route;
     }
-    internal static void TActionEmptyAttach(LAction action, Action handler) => action.LActionEmptyRaised += handler;
-    internal static void TActionFaceAttach(LAction action, Action handler) => action.LActionFaceChanged += handler;
-    internal static void TActionAllRun(LAction action) => action.LActionAllRun();
-    internal static void TActionHighRun(LAction action) => action.LActionHighRun();
-    internal static void TActionListRun(LAction action) => action.LActionListRun();
-    internal static bool TActionCohortRun(LAction action, Guid cohort) => action.LActionCohortRun(cohort);
+    internal static void TActionEmptyAttach(QAction action, Action handler) => action.QActionEmptyRaised += handler;
+    internal static void TActionFaceAttach(QAction action, Action handler) => action.QActionFaceChanged += handler;
+    internal static void TActionAllRun(QAction action) => action.QActionAllRun();
+    internal static void TActionHighRun(QAction action) => action.QActionHighRun();
+    internal static void TActionListRun(QAction action) => action.QActionListRun();
+    internal static bool TActionCohortRun(QAction action, Guid cohort) => action.QActionCohortRun(cohort);
     internal static void TActionAccept(Guid target, string path, Guid cohort) =>
-        LAction.LActionAccept(target, path, cohort);
+        QAction.QActionAccept(target, path, cohort);
 
-    internal static LCompass TCompassCreate(LFlow flow, LViewer viewer, bool sections) => new(flow, viewer, sections);
-    internal static IReadOnlyList<LCompassGroup> TCompassGroupsRead(LCompass compass) => compass.LCompassGroupsRead();
-    internal static IReadOnlyList<int> TCompassSectionRead(LCompass compass) => compass.LCompassSectionRead();
-    internal static LCompassButton TCompassPlayRead(bool playing) => LCompass.LCompassPlayRead(playing);
-    internal static void TCompassRun(LCompass compass, string key) => compass.LCompassRun(key);
-    internal static void TCompassWaveformToggle(LCompass compass) => compass.LCompassWaveformToggle();
-    internal static void TCompassVolumeSet(LCompass compass, double raw) => compass.LCompassVolumeSet(raw);
-    internal static void TCompassVolumeAttach(LViewer viewer, Action<double> handler) =>
-        viewer.LViewerVolumeChanged += handler;
-    internal static string TCompassVolumeFormat(double raw) => LCompass.LCompassVolumeFormat(raw);
-    internal static double TCompassFillResolve(double host, double raw) => LCompass.LCompassFillResolve(host, raw);
+    internal static QCompass TCompassCreate(QFlow flow, QViewer viewer, bool sections) => new(flow, viewer, sections);
+    internal static IReadOnlyList<QCompassGroup> TCompassGroupsRead(QCompass compass) => compass.QCompassGroupsRead();
+    internal static IReadOnlyList<int> TCompassSectionRead(QCompass compass) => compass.QCompassSectionRead();
+    internal static QCompassButton TCompassPlayRead(bool playing) => QCompass.QCompassPlayRead(playing);
+    internal static void TCompassRun(QCompass compass, string key) => compass.QCompassRun(key);
+    internal static void TCompassWaveformToggle(QCompass compass) => compass.QCompassWaveformToggle();
+    internal static void TCompassVolumeSet(QCompass compass, double raw) => compass.QCompassVolumeSet(raw);
+    internal static void TCompassVolumeAttach(QViewer viewer, Action<double> handler) =>
+        viewer.QViewerVolumeChanged += handler;
+    internal static string TCompassVolumeFormat(double raw) => QCompass.QCompassVolumeFormat(raw);
+    internal static double TCompassFillResolve(double host, double raw) => QCompass.QCompassFillResolve(host, raw);
     internal static IReadOnlyList<double> TCompassSeparatorsResolve(params double[] tops) =>
-        LCompass.LCompassSeparatorsResolve(tops);
+        QCompass.QCompassSeparatorsResolve(tops);
 }

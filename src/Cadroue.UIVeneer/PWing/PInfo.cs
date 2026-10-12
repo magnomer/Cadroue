@@ -19,21 +19,21 @@ public sealed class PInfo : UserControl
     private static readonly IReadOnlyDictionary<string, Func<string, UIElement>> pInfoBuilders =
         new Dictionary<string, Func<string, UIElement>>
         {
-            [LInfo.LInfoKindMuted] = pText => PInfoTextBuild(pText, PInfoMutedBrush),
-            [LInfo.LInfoKindText] = pText => PInfoTextBuild(pText, PInfoTextBrush),
-            [LInfo.LInfoKindGrey] = pText => PInfoStatusBuild(pText, PInfoMutedBrush),
-            [LInfo.LInfoKindGood] = pText => PInfoStatusBuild(pText, PInfoGoodBrush),
-            [LInfo.LInfoKindBad] = pText => PInfoStatusBuild(pText, PInfoBadBrush),
-            [LInfo.LInfoKindSeparator] = pText => PInfoSeparatorBuild(),
+            [QInfo.QInfoKindMuted] = pText => PInfoTextBuild(pText, PInfoMutedBrush),
+            [QInfo.QInfoKindText] = pText => PInfoTextBuild(pText, PInfoTextBrush),
+            [QInfo.QInfoKindGrey] = pText => PInfoStatusBuild(pText, PInfoMutedBrush),
+            [QInfo.QInfoKindGood] = pText => PInfoStatusBuild(pText, PInfoGoodBrush),
+            [QInfo.QInfoKindBad] = pText => PInfoStatusBuild(pText, PInfoBadBrush),
+            [QInfo.QInfoKindSeparator] = pText => PInfoSeparatorBuild(),
         };
 
     private readonly StackPanel pInfoItemPanel;
 
-    public LInfo LInfo { get; }
+    public QInfo QInfo { get; }
 
-    public PInfo(LInfo lInfo)
+    public PInfo(QInfo lInfo)
     {
-        LInfo = lInfo;
+        QInfo = lInfo;
         MinHeight = 38;
 
         pInfoItemPanel = new StackPanel
@@ -61,21 +61,21 @@ public sealed class PInfo : UserControl
         };
 
         PInfoUpdate();
-        LInfo.LInfoChanged += PInfoChangeHandle;
+        QInfo.QInfoChanged += PInfoChangeHandle;
         Unloaded += PInfoUnloadedHandle;
     }
 
-    private void PInfoUnloadedHandle(object pSender, RoutedEventArgs pEvent) => LInfo.LInfoDetach();
+    private void PInfoUnloadedHandle(object pSender, RoutedEventArgs pEvent) => QInfo.QInfoDetach();
 
     private void PInfoChangeHandle() => Dispatcher.BeginInvoke(PInfoUpdate);
 
     private void PInfoUpdate()
     {
         pInfoItemPanel.Children.Clear();
-        LInfo.LInfoRowsRead().Select(PInfoRowBuild).ToList().ForEach(pItem => pInfoItemPanel.Children.Add(pItem));
+        QInfo.QInfoRowsRead().Select(PInfoRowBuild).ToList().ForEach(pItem => pInfoItemPanel.Children.Add(pItem));
     }
 
-    private static UIElement PInfoRowBuild(LInfoRow lRow) => pInfoBuilders[lRow.LInfoRowKind](lRow.LInfoRowText);
+    private static UIElement PInfoRowBuild(QInfoRow lRow) => pInfoBuilders[lRow.QInfoRowKind](lRow.QInfoRowText);
 
     private static TextBlock PInfoTextBuild(string pText, Brush pForeground) => new()
     {

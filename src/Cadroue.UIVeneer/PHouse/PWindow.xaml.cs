@@ -15,35 +15,35 @@ public partial class PWindow : Window
     private const double PWindowFontSize = 13;
     private readonly PStrip pStrip;
     private readonly PRail pRail;
-    private readonly LWindow lWindow;
-    private readonly LSash lSash;
-    public PWindow(LWindow lWindowRoot)
+    private readonly QWindow lWindow;
+    private readonly QSash lSash;
+    public PWindow(QWindow lWindowRoot)
     {
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         FontSize = PWindowFontSize;
         lWindow = lWindowRoot;
-        lSash = lWindow.LWindowPart.QWindowPartSash;
-        pStrip = new PStrip(lWindow.LWindowStrip);
+        lSash = lWindow.QWindowPart.QWindowPartSash;
+        pStrip = new PStrip(lWindow.QWindowStrip);
         pRail = new PRail(pStrip);
-        lWindow.LWindowDispatcherAttach(PWindowDispatch);
-        pConsole.PConsoleAttach(lWindow.LWindowPart.QWindowPartConsole);
+        lWindow.QWindowDispatcherAttach(PWindowDispatch);
+        pConsole.PConsoleAttach(lWindow.QWindowPart.QWindowPartConsole);
         PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
         Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
         PWindowNoticesAttach();
         pDeck.PDeckAttach(pStrip);
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
-        lWindow.LWindowTabsStart();
+        lWindow.QWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
-        pToolbar.PToolbarLogoSet(lWindow.LWindowLogo);
-        pToolbar.PToolbarChromeSet(lWindow.LWindowPart.QWindowPartChrome);
-        pToolbar.PToolbarOptionsApplied += lWindow.LWindowOptionsApply;
-        lWindow.LWindowOptionsApply();
+        pToolbar.PToolbarLogoSet(lWindow.QWindowLogo);
+        pToolbar.PToolbarChromeSet(lWindow.QWindowPart.QWindowPartChrome);
+        pToolbar.PToolbarOptionsApplied += lWindow.QWindowOptionsApply;
+        lWindow.QWindowOptionsApply();
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
-        pStrip.LStrip.LStripSelectChanged += PWindowTabHandle;
-        PWindowTabHandle(pStrip.LStrip.LStripSelected);
-        lWindow.LWindowRelayStart(
+        pStrip.QStrip.QStripSelectChanged += PWindowTabHandle;
+        PWindowTabHandle(pStrip.QStrip.QStripSelected);
+        lWindow.QWindowRelayStart(
             SystemParameters.VirtualScreenLeft,
             SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth,
@@ -54,7 +54,7 @@ public partial class PWindow : Window
         Closed += PWindowCloseHandle;
     }
 
-    public LWindow LWindow => lWindow;
+    public QWindow QWindow => lWindow;
 
     public PStrip PStrip => pStrip;
 
@@ -66,56 +66,56 @@ public partial class PWindow : Window
 
     private void PWindowNoticesAttach()
     {
-        lWindow.LWindowTabAdded += PWindowAddHandle;
-        lWindow.LWindowFunnelUpdated += PWindowFunnelUpdate;
-        lWindow.LWindowRelayApplied += PWindowRelayHandle;
-        lWindow.LWindowPlaced += PWindowPlace;
-        lWindow.LWindowShown += PWindowShowHandle;
-        lWindow.LWindowMediaDeferred += PWindowMediaDefer;
-        lWindow.LWindowMediaOpened += PWindowMediaOpen;
-        lWindow.LWindowTabAttached += PWindowTabAttach;
-        lWindow.LWindowTabDetached += PWindowTabDetach;
-        lWindow.LWindowLayoutChanged += PWindowLayoutApply;
-        lWindow.LWindowVerticalApplied += PWindowVerticalApply;
-        lWindow.LWindowHorizontalApplied += PWindowHorizontalApply;
-        lWindow.LWindowFlowApplied += PWindowFlowApply;
-        lWindow.LWindowVolumeSynced += PWindowVolumeSet;
-        lWindow.LWindowPart.QWindowPartDrop.LWindowListAdded += PWindowListAdd;
-        lWindow.LWindowPart.QWindowPartDrop.LWindowViewerOpened += PWindowViewerOpen;
-        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutPlayed += PWindowPlay;
-        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutPaused += PWindowPause;
-        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutAttach(
+        lWindow.QWindowTabAdded += PWindowAddHandle;
+        lWindow.QWindowFunnelUpdated += PWindowFunnelUpdate;
+        lWindow.QWindowRelayApplied += PWindowRelayHandle;
+        lWindow.QWindowPlaced += PWindowPlace;
+        lWindow.QWindowShown += PWindowShowHandle;
+        lWindow.QWindowMediaDeferred += PWindowMediaDefer;
+        lWindow.QWindowMediaOpened += PWindowMediaOpen;
+        lWindow.QWindowTabAttached += PWindowTabAttach;
+        lWindow.QWindowTabDetached += PWindowTabDetach;
+        lWindow.QWindowLayoutChanged += PWindowLayoutApply;
+        lWindow.QWindowVerticalApplied += PWindowVerticalApply;
+        lWindow.QWindowHorizontalApplied += PWindowHorizontalApply;
+        lWindow.QWindowFlowApplied += PWindowFlowApply;
+        lWindow.QWindowVolumeSynced += PWindowVolumeSet;
+        lWindow.QWindowPart.QWindowPartDrop.QWindowListAdded += PWindowListAdd;
+        lWindow.QWindowPart.QWindowPartDrop.QWindowViewerOpened += PWindowViewerOpen;
+        lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutPlayed += PWindowPlay;
+        lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutPaused += PWindowPause;
+        lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutAttach(
             pToolbar.PToolbarShortcutShow,
             PWindowUndo,
             PWindowRedo,
-            pStrip.LStrip.LStripContentClear,
+            pStrip.QStrip.QStripContentClear,
             PWindowMediaClear);
-        LAskNotice.LAskRaised += PWindowAskHandle;
-        lSash.LSashCaptureStarted += PResizeCaptureStart;
-        lSash.LSashCaptureStopped += PResizeCaptureStop;
-        lSash.LSashActiveChanged += PResizeRenderApply;
-        lSash.LSashBoundsChanged += PResizeBoundsApply;
+        QAskNotice.QAskRaised += PWindowAskHandle;
+        lSash.QSashCaptureStarted += PResizeCaptureStart;
+        lSash.QSashCaptureStopped += PResizeCaptureStop;
+        lSash.QSashActiveChanged += PResizeRenderApply;
+        lSash.QSashBoundsChanged += PResizeBoundsApply;
     }
 
     private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);
 
-    private void PWindowAskHandle(LAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);
+    private void PWindowAskHandle(QAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);
 
-    private void PWindowTabHandle(LStripTab? lStripTab) =>
-        lWindow.LWindowTabSet(lStripTab, lStripTab?.LStripTabWorkspace.LWorkspaceViewer);
+    private void PWindowTabHandle(QStripTab? lStripTab) =>
+        lWindow.QWindowTabSet(lStripTab, lStripTab?.QStripTabWorkspace.QWorkspaceViewer);
 
-    private void PWindowAddHandle(LWindowTab lTab) =>
-        pStrip.LStrip.LStripNameSet(
-            pStrip.PStripAdd(lWindow.LWindowTabCreate(lTab), lTab.LWindowTabLayout),
-            lTab.LWindowTabName);
+    private void PWindowAddHandle(QWindowTab lTab) =>
+        pStrip.QStrip.QStripNameSet(
+            pStrip.PStripAdd(lWindow.QWindowTabCreate(lTab), lTab.QWindowTabLayout),
+            lTab.QWindowTabName);
 
-    private void PWindowFunnelUpdate() => pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowFunnelResolve);
+    private void PWindowFunnelUpdate() => pStrip.QStrip.QStripTabs.ToList().ForEach(PWindowFunnelResolve);
 
-    private void PWindowFunnelResolve(LStripTab lStripTab) =>
+    private void PWindowFunnelResolve(QStripTab lStripTab) =>
         pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface.PTabTargetsResolve();
 
     private void PWindowRelayHandle(LRelay lRelay) =>
-        pStrip.PStripSelected?.LWorkspace.LWorkspaceRelayApply(lRelay);
+        pStrip.PStripSelected?.QWorkspace.QWorkspaceRelayApply(lRelay);
 
     private void PWindowPlace(double pLeft, double pTop)
     {
@@ -131,12 +131,12 @@ public partial class PWindow : Window
     }
 
     private void PWindowMediaDefer(string pPath) =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => lWindow.LWindowMediaRun(pPath)));
+        Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => lWindow.QWindowMediaRun(pPath)));
 
     private void PWindowMediaOpen(string pPath) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(pPath);
+        pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerSource.QViewerSourceOpen(pPath);
 
-    private void PWindowTabAttach(LStripTab lTab, double pFlowHeight)
+    private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)
     {
         PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
         pWorkspace?.PWorkspaceCommandApply(pFlowHeight);
@@ -144,7 +144,7 @@ public partial class PWindow : Window
         PWindowWidthApply();
     }
 
-    private void PWindowTabDetach(LStripTab lTab)
+    private void PWindowTabDetach(QStripTab lTab)
     {
         PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
         pWorkspace?.PWorkspaceWidthDetach(PWindowWidthApply);
@@ -180,35 +180,35 @@ public partial class PWindow : Window
         pStrip.PStripSelected?.PWorkspaceFlowApply(pFlowHeight);
 
     private void PWindowVolumeSet(double pVolume) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerVolumeSet(pVolume);
+        pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerVolumeSet(pVolume);
 
     private void PWindowWidthApply()
     {
-        (MinWidth, Width) = lWindow.LWindowWidthResolve(
+        (MinWidth, Width) = lWindow.QWindowWidthResolve(
             pStrip.PStripSelected?.PWorkspaceSurface.PTabWidthRead(),
             pTabRailColumn.Width.Value,
             Width);
     }
 
     private void PWindowListAdd(IReadOnlyList<string> pPaths) =>
-        _ = pStrip.PStripSelected?.PWorkspaceList?.LList.LListPathsAdd(pPaths);
+        _ = pStrip.PStripSelected?.PWorkspaceList?.QList.QListPathsAdd(pPaths);
 
     private void PWindowViewerOpen(string pPath) => PWindowMediaOpen(pPath);
 
-    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerPlay();
+    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerPlay();
 
-    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerPause();
+    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerPause();
 
-    private bool? PWindowUndo() => pStrip.PStripSelected?.LWorkspace.LWorkspaceUndo();
+    private bool? PWindowUndo() => pStrip.PStripSelected?.QWorkspace.QWorkspaceUndo();
 
-    private bool? PWindowRedo() => pStrip.PStripSelected?.LWorkspace.LWorkspaceRedo();
+    private bool? PWindowRedo() => pStrip.PStripSelected?.QWorkspace.QWorkspaceRedo();
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
-        pStrip.PStripSelected?.LWorkspace.LWorkspaceMediaClear(lCohorts);
+        pStrip.PStripSelected?.QWorkspace.QWorkspaceMediaClear(lCohorts);
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {
-        eventArgs.Cancel = !pStrip.LStrip.QStripClosure.LStripCloseConfirm();
+        eventArgs.Cancel = !pStrip.QStrip.QStripClosure.QStripCloseConfirm();
     }
 
     private void PWindowPositionRestore(LFrameState lFrame)
@@ -223,22 +223,22 @@ public partial class PWindow : Window
 
     private void PWindowCloseHandle(object? sender, EventArgs eventArgs)
     {
-        lWindow.LWindowFrameSave(
+        lWindow.QWindowFrameSave(
             PLook.PLookNormal[WindowState],
-            new LSashBounds(Left, Top, Width, Height),
-            new LSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
-        lWindow.LWindowClose();
-        LAskNotice.LAskRaised -= PWindowAskHandle;
-        pStrip.LStrip.LStripSelectChanged -= PWindowTabHandle;
-        pToolbar.PToolbarOptionsApplied -= lWindow.LWindowOptionsApply;
+            new QSashBounds(Left, Top, Width, Height),
+            new QSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
+        lWindow.QWindowClose();
+        QAskNotice.QAskRaised -= PWindowAskHandle;
+        pStrip.QStrip.QStripSelectChanged -= PWindowTabHandle;
+        pToolbar.PToolbarOptionsApplied -= lWindow.QWindowOptionsApply;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
         PDropHandlersRemove();
         PResizeHandlersRemove();
-        lWindow.LWindowTabSet(null, null);
-        pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowWorkspaceClose);
+        lWindow.QWindowTabSet(null, null);
+        pStrip.QStrip.QStripTabs.ToList().ForEach(PWindowWorkspaceClose);
         Closing -= PWindowExitHandle;
         Closed -= PWindowCloseHandle;
     }
 
-    private void PWindowWorkspaceClose(LStripTab lStripTab) => pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
+    private void PWindowWorkspaceClose(QStripTab lStripTab) => pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
 }

@@ -29,27 +29,27 @@ internal static class PNameplate
     private static void PNameplateEnterHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
     {
         var pElement = (FrameworkElement)pSender;
-        bool pOwned = LNameplate.LNameplateOwnedResolve(pElement.ToolTip, PNameplateOwnedRead(pElement));
+        bool pOwned = QNameplate.QNameplateOwnedResolve(pElement.ToolTip, PNameplateOwnedRead(pElement));
         pElement.SetValue(PNameplateOwnedProperty, pOwned);
         pElement.SetCurrentValue(
             FrameworkElement.ToolTipProperty,
-            LNameplate.LNameplateTipResolve(pOwned, pElement.ToolTip, () => PNameplateResolve(pElement)));
+            QNameplate.QNameplateTipResolve(pOwned, pElement.ToolTip, () => PNameplateResolve(pElement)));
     }
 
     internal static void PNameplateTipHandle(object pSender, ToolTipEventArgs pEvent)
     {
         var pElement = (FrameworkElement)pSender;
         bool? pOwned = PNameplateOwnedRead(pElement);
-        pEvent.Handled = LNameplate.LNameplateTipCheck(pOwned);
+        pEvent.Handled = QNameplate.QNameplateTipCheck(pOwned);
         pElement.SetCurrentValue(
             FrameworkElement.ToolTipProperty,
-            LNameplate.LNameplateTipResolve(pOwned, pElement.ToolTip, () => PNameplateResolve(pElement)));
+            QNameplate.QNameplateTipResolve(pOwned, pElement.ToolTip, () => PNameplateResolve(pElement)));
     }
 
     internal static string PNameplateResolve(DependencyObject pStart)
     {
         DependencyObject? pOwner = PWalk.PWalkParentFind(VisualTreeHelper.GetParent(pStart), PNameplateOwnerMatch);
-        return LNameplate.LNameplateResolve(
+        return QNameplate.QNameplateResolve(
             (pStart as FrameworkElement)?.Name,
             pStart.GetType().Name,
             (pOwner as FrameworkElement)?.Name,
@@ -60,5 +60,5 @@ internal static class PNameplate
         pElement.GetValue(PNameplateOwnedProperty) as bool?;
 
     private static bool PNameplateOwnerMatch(DependencyObject pNode) =>
-        LNameplate.LNameplateOwnerCheck((pNode as FrameworkElement)?.Name, pNode.GetType().Namespace);
+        QNameplate.QNameplateOwnerCheck((pNode as FrameworkElement)?.Name, pNode.GetType().Namespace);
 }

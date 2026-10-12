@@ -24,29 +24,29 @@ public partial class PWindow
 
     private void PDropEnterHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowPart.QWindowPartDrop.LWindowEnterHandle(PDropDragRead(dragEvent));
+        lWindow.QWindowPart.QWindowPartDrop.QWindowEnterHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropOverHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowPart.QWindowPartDrop.LWindowOverHandle(PDropDragRead(dragEvent));
+        lWindow.QWindowPart.QWindowPartDrop.QWindowOverHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowPart.QWindowPartDrop.LWindowDropHandle(PDropDragRead(dragEvent));
+        lWindow.QWindowPart.QWindowPartDrop.QWindowDropHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropResultApply(DragEventArgs dragEvent)
     {
-        dragEvent.Effects = PLook.PLookDropEffect[lWindow.LWindowPart.QWindowPartDrop.LWindowDropEffect];
-        dragEvent.Handled = lWindow.LWindowPart.QWindowPartDrop.LWindowDropHandled;
+        dragEvent.Effects = PLook.PLookDropEffect[lWindow.QWindowPart.QWindowPartDrop.QWindowDropEffect];
+        dragEvent.Handled = lWindow.QWindowPart.QWindowPartDrop.QWindowDropHandled;
     }
 
-    private static LWindowDrag PDropDragRead(DragEventArgs dragEvent) => new(
+    private static QWindowDrag PDropDragRead(DragEventArgs dragEvent) => new(
         dragEvent.Data.GetData(DataFormats.FileDrop) as string[],
         PWalk.PWalkParentCheck(dragEvent.OriginalSource as DependencyObject, PDropGroupMatch),
         dragEvent.OriginalSource?.GetType().Name,

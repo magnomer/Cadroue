@@ -31,7 +31,7 @@ public partial class PWindow
     {
         Point pPoint = e.GetPosition(this);
         Point pPointer = PSash.PSashPointerRead(this, pPoint);
-        e.Handled = lSash.LSashPressHandle(
+        e.Handled = lSash.QSashPressHandle(
             PLook.PLookNormal[WindowState],
             PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
@@ -45,7 +45,7 @@ public partial class PWindow
     {
         Point pPoint = e.GetPosition(this);
         Point pPointer = PSash.PSashPointerRead(this, pPoint);
-        e.Handled = lSash.LSashMoveHandle(
+        e.Handled = lSash.QSashMoveHandle(
             PLook.PLookNormal[WindowState],
             PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
@@ -56,22 +56,22 @@ public partial class PWindow
             pPointer.Y,
             MinWidth,
             MinHeight);
-        Mouse.OverrideCursor = PLook.PLookCursor[lSash.LSashDirection];
+        Mouse.OverrideCursor = PLook.PLookCursor[lSash.QSashDirection];
     }
 
     private void PResizeLeaveHandle(object sender, MouseEventArgs e)
     {
-        Mouse.OverrideCursor = PLook.PLookCursor[lSash.LSashLeaveResolve()];
+        Mouse.OverrideCursor = PLook.PLookCursor[lSash.QSashLeaveResolve()];
     }
 
     private void PResizeReleaseHandle(object sender, MouseButtonEventArgs e)
     {
-        e.Handled = lSash.LSashReleaseHandle();
+        e.Handled = lSash.QSashReleaseHandle();
     }
 
     private void PResizeCaptureHandle(object sender, MouseEventArgs e)
     {
-        lSash.LSashCaptureHandle();
+        lSash.QSashCaptureHandle();
         Mouse.OverrideCursor = null;
     }
 
@@ -82,5 +82,5 @@ public partial class PWindow
     private static void PResizeRenderApply(bool pActive) =>
         RenderOptions.ProcessRenderMode = PLook.PLookRender[pActive];
 
-    private void PResizeBoundsApply(LSashBounds lBounds) => PSash.PSashBoundsApply(this, lBounds);
+    private void PResizeBoundsApply(QSashBounds lBounds) => PSash.PSashBoundsApply(this, lBounds);
 }

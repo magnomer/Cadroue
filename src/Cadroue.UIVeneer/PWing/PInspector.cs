@@ -27,7 +27,7 @@ public sealed partial class PInspector : PPanel
             [false] = HorizontalAlignment.Left
         };
 
-    public LInspector LInspector { get; }
+    public QInspector QInspector { get; }
 
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
@@ -37,9 +37,9 @@ public sealed partial class PInspector : PPanel
     private readonly UIElement pInspectorStripBody;
     private readonly ScrollViewer pInspectorSectionsHost;
 
-    public PInspector(LInspector lInspector) : base("")
+    public PInspector(QInspector lInspector) : base("")
     {
-        LInspector = lInspector;
+        QInspector = lInspector;
         pInspectorTitleLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Inspector.Header.Title"),
@@ -53,7 +53,7 @@ public sealed partial class PInspector : PPanel
         Button pMinimizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
-            () => LInspector.LInspectorMinimizedSet(true));
+            () => QInspector.QInspectorMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -102,9 +102,9 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PEqualizerBodyBuild());
         pBody.Children.Add(PSkipBodyBuild());
         pBody.Children.Add(PBlankBuild());
-        pSensorSections = LSensor.LSensorPlans.Select(PSensorBuild).ToList();
+        pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
         pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
-        LSensor.LSensorChanged += PSensorUpdate;
+        QSensor.QSensorChanged += PSensorUpdate;
         pInspectorSections = PInspectorSectionsCreate();
 
         var pScroll = new ScrollViewer
@@ -138,49 +138,49 @@ public sealed partial class PInspector : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
-        LInspector.LInspectorChanged += PInspectorUpdate;
+        QInspector.QInspectorChanged += PInspectorUpdate;
         PInspectorAttach();
         PInspectorUpdate();
     }
 
-    public LTone LTone => LInspector.LInspectorTone;
+    public QTone QTone => QInspector.QInspectorTone;
 
-    public LGamma LGamma => LInspector.LInspectorGamma;
+    public QGamma QGamma => QInspector.QInspectorGamma;
 
-    public LExposure LExposure => LInspector.LInspectorExposure;
+    public QExposure QExposure => QInspector.QInspectorExposure;
 
-    public LCurve LCurve => LInspector.LInspectorCurve;
+    public QCurve QCurve => QInspector.QInspectorCurve;
 
-    public LWhitebalance LWhitebalance => LInspector.LInspectorWhitebalance;
+    public QWhitebalance QWhitebalance => QInspector.QInspectorWhitebalance;
 
-    public LVolume LVolume => LInspector.LInspectorAudio.LInspectorVolume;
+    public QVolume QVolume => QInspector.QInspectorAudio.QInspectorVolume;
 
-    public LLoudness LLoudness => LInspector.LInspectorAudio.LInspectorLoudness;
+    public QLoudness QLoudness => QInspector.QInspectorAudio.QInspectorLoudness;
 
-    public LNoise LNoise => LInspector.LInspectorAudio.LInspectorNoise;
+    public QNoise QNoise => QInspector.QInspectorAudio.QInspectorNoise;
 
-    public LFilter LFilterHigh => LInspector.LInspectorAudio.LInspectorHighpass;
+    public QFilter LFilterHigh => QInspector.QInspectorAudio.QInspectorHighpass;
 
-    public LFilter LFilterLow => LInspector.LInspectorAudio.LInspectorLowpass;
+    public QFilter LFilterLow => QInspector.QInspectorAudio.QInspectorLowpass;
 
-    public LEqualizer LEqualizer => LInspector.LInspectorAudio.LInspectorEqualizer;
+    public QEqualizer QEqualizer => QInspector.QInspectorAudio.QInspectorEqualizer;
 
-    public LSkip LSkip => LInspector.LInspectorSkip;
+    public QSkip QSkip => QInspector.QInspectorSkip;
 
     private void PInspectorAttach()
     {
-        LTone.LToneChanged += PToneUpdate;
-        LGamma.LGammaChanged += PGammaUpdate;
-        LExposure.LExposureChanged += PExposureUpdate;
-        LCurve.LCurveChanged += PCurveUpdate;
-        LWhitebalance.LWhitebalanceChanged += PWhitebalanceUpdate;
-        LVolume.LVolumeChanged += PVolumeUpdate;
-        LLoudness.LLoudnessChanged += PLoudnessUpdate;
-        LNoise.LNoiseChanged += PNoiseUpdate;
-        LFilterHigh.LFilterChanged += () => PFilterUpdate(pInspectorHighPass);
-        LFilterLow.LFilterChanged += () => PFilterUpdate(pInspectorLowPass);
-        LEqualizer.LEqualizerChanged += PEqualizerUpdate;
-        LSkip.LSkipChanged += PSkipUpdate;
+        QTone.QToneChanged += PToneUpdate;
+        QGamma.QGammaChanged += PGammaUpdate;
+        QExposure.QExposureChanged += PExposureUpdate;
+        QCurve.QCurveChanged += PCurveUpdate;
+        QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
+        QVolume.QVolumeChanged += PVolumeUpdate;
+        QLoudness.QLoudnessChanged += PLoudnessUpdate;
+        QNoise.QNoiseChanged += PNoiseUpdate;
+        LFilterHigh.QFilterChanged += () => PFilterUpdate(pInspectorHighPass);
+        LFilterLow.QFilterChanged += () => PFilterUpdate(pInspectorLowPass);
+        QEqualizer.QEqualizerChanged += PEqualizerUpdate;
+        QSkip.QSkipChanged += PSkipUpdate;
         PToneUpdate();
         PGammaUpdate();
         PExposureUpdate();
@@ -196,32 +196,32 @@ public sealed partial class PInspector : PPanel
         PInspectorCropAttach();
     }
 
-    public bool PInspectorMinimizedCheck() => LInspector.LInspectorMinimized;
+    public bool PInspectorMinimizedCheck() => QInspector.QInspectorMinimized;
 
     public void PInspectorMinimizeSet(bool pInspectorMinimizeRequest) =>
-        LInspector.LInspectorMinimizedSet(pInspectorMinimizeRequest);
+        QInspector.QInspectorMinimizedSet(pInspectorMinimizeRequest);
 
-    public void PInspectorStepShow(string? pStepName) => LInspector.LInspectorStepSet(pStepName);
+    public void PInspectorStepShow(string? pStepName) => QInspector.QInspectorStepSet(pStepName);
 
     private void PInspectorUpdate()
     {
-        pInspectorFullBody.Visibility = PLook.PLookVisible[!LInspector.LInspectorMinimized];
-        pInspectorStripBody.Visibility = PLook.PLookVisible[LInspector.LInspectorMinimized];
+        pInspectorFullBody.Visibility = PLook.PLookVisible[!QInspector.QInspectorMinimized];
+        pInspectorStripBody.Visibility = PLook.PLookVisible[QInspector.QInspectorMinimized];
         pSensorSections.ForEach(PSensorSectionShow);
-        pBlankBody.Visibility = PLook.PLookVisible[LInspector.LInspectorSensorCheck(LBlank.LBlankKind)];
+        pBlankBody.Visibility = PLook.PLookVisible[QInspector.QInspectorSensorCheck(QBlank.QBlankKind)];
         pInspectorSections.ForEach(PInspectorSectionShow);
-        pInspectorTitleLabel.Text = LInspector.LInspectorTitleRead();
-        pInspectorPersistentRow.Visibility = PLook.PLookVisible[LInspector.LInspectorPersistentShown];
-        pInspectorEmptyNotice.Visibility = PLook.PLookVisible[LInspector.LInspectorEmptyShown];
+        pInspectorTitleLabel.Text = QInspector.QInspectorTitleRead();
+        pInspectorPersistentRow.Visibility = PLook.PLookVisible[QInspector.QInspectorPersistentShown];
+        pInspectorEmptyNotice.Visibility = PLook.PLookVisible[QInspector.QInspectorEmptyShown];
         PInspectorCropUpdate();
     }
 
     private void PSensorSectionShow(PSensorSection pSection) => pSection.PSensorBody.Visibility =
-        PLook.PLookVisible[LInspector.LInspectorSensorCheck(pSection.PSensorPlan.LSensorPlanKind)];
+        PLook.PLookVisible[QInspector.QInspectorSensorCheck(pSection.PSensorPlan.QSensorPlanKind)];
 
     private void PInspectorSectionShow(PInspectorSection pSection)
     {
-        bool pShown = LInspector.LInspectorSectionCheck(pSection.PInspectorSectionKey);
+        bool pShown = QInspector.QInspectorSectionCheck(pSection.PInspectorSectionKey);
         pSection.PInspectorSectionBody.Visibility = PLook.PLookVisible[pShown];
         pSection.PInspectorSectionPersistent.Visibility = PLook.PLookVisible[pShown];
     }
@@ -270,7 +270,7 @@ public sealed partial class PInspector : PPanel
         Button pMaximizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
-            () => LInspector.LInspectorMinimizedSet(false));
+            () => QInspector.QInspectorMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

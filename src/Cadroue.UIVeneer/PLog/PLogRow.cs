@@ -37,27 +37,27 @@ internal sealed class PLogRow : INotifyPropertyChanged
         ["Log.Category.Info"] = PLogBadgeInfo,
     };
 
-    internal PLogRow(LLogRow lRow)
+    internal PLogRow(QLogRow lRow)
     {
-        LLogRow = lRow;
-        PLogBadge pLogBadge = PLogBadges.GetValueOrDefault(lRow.LLogRowKey, PLogBadgeInfo);
+        QLogRow = lRow;
+        PLogBadge pLogBadge = PLogBadges.GetValueOrDefault(lRow.QLogRowKey, PLogBadgeInfo);
         PLogBadgeFill = pLogBadge.PLogBadgeFill;
         PLogBadgeText = pLogBadge.PLogBadgeInk;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    internal LLogRow LLogRow { get; }
+    internal QLogRow QLogRow { get; }
 
-    public string PLogRowTime => LLogRow.LLogRowTime;
+    public string PLogRowTime => QLogRow.QLogRowTime;
 
-    public string PLogRowKind => LLogRow.LLogRowKind;
+    public string PLogRowKind => QLogRow.QLogRowKind;
 
-    public string PLogRowSummary => LLogRow.LLogRowSummary;
+    public string PLogRowSummary => QLogRow.QLogRowSummary;
 
-    public string PLogRowDetail => LLogRow.LLogRowDetail;
+    public string PLogRowDetail => QLogRow.QLogRowDetail;
 
-    public string PLogRowSpan => LLogRow.LLogRowSpan;
+    public string PLogRowSpan => QLogRow.QLogRowSpan;
 
     public Brush PLogBadgeFill { get; }
 
@@ -69,11 +69,11 @@ internal sealed class PLogRow : INotifyPropertyChanged
         PLogChangeRaise(nameof(PLogChipText));
     }
 
-    public Visibility PLogDetailShown => PLook.PLookVisible[LLogRow.LLogRowExpanded];
+    public Visibility PLogDetailShown => PLook.PLookVisible[QLogRow.QLogRowExpanded];
 
-    public Visibility PLogChipShown => PLook.PLookVisible[LLogRow.LLogRowDetailed];
+    public Visibility PLogChipShown => PLook.PLookVisible[QLogRow.QLogRowDetailed];
 
-    public string PLogChipText => LLogRow.LLogRowChip;
+    public string PLogChipText => QLogRow.QLogRowChip;
 
     internal static void PLogRowApply(ListBox pLogFeed)
     {

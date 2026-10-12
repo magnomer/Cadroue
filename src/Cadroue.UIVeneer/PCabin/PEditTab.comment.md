@@ -5,12 +5,12 @@ Hash: `6a97066b2533ddca`
 ## `public sealed class PEditTab : PTabSurface`
 
 The Edit tab surface, which only builds controls and attaches them to their Deportment owner.
-Every decision lives in `LEditTab`.
+Every decision lives in `QEditTab`.
 The class keeps the two debounce timers because timers are Veneer objects.
 
 ## `public PEditTab(LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)`
 
-Builds `LEditTab` first, so every Veneer subscription can reach its siblings.
+Builds `QEditTab` first, so every Veneer subscription can reach its siblings.
 Capability gating runs after the processing rows exist, so each row starts with the right enabled state.
 The saved layout is applied once the grid holds every panel.
 Start runs after the layout, so nothing restored is overwritten.

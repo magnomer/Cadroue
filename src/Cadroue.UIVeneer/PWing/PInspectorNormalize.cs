@@ -28,23 +28,23 @@ public sealed partial class PInspector
         pLoudnessApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
-        PInspectorSwitchAttach(pLoudnessApplyBox, LLoudness.LLoudnessActiveSet);
+        PInspectorSwitchAttach(pLoudnessApplyBox, QLoudness.QLoudnessActiveSet);
 
         pLoudnessPersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Normalize.PersistentTooltip"));
-        PInspectorSwitchAttach(pLoudnessPersistent, LLoudness.LLoudnessPersistentSet);
+        PInspectorSwitchAttach(pLoudnessPersistent, QLoudness.QLoudnessPersistentSet);
 
         pLoudnessPreset = PInspectorChoiceBuild(
-            LLoudness.LLoudnessChoiceRead(false).LInspectorChoiceNames,
-            pIndex => LLoudness.LLoudnessChoiceSelect(false, pIndex));
+            QLoudness.QLoudnessChoiceRead(false).QInspectorChoiceNames,
+            pIndex => QLoudness.QLoudnessChoiceSelect(false, pIndex));
         pDynamicPreset = PInspectorChoiceBuild(
-            LLoudness.LLoudnessChoiceRead(true).LInspectorChoiceNames,
-            pIndex => LLoudness.LLoudnessChoiceSelect(true, pIndex));
-        pLoudnessMode = PInspectorChoiceBuild(LLoudness.LLoudnessModeNames, LLoudness.LLoudnessModeSelect);
+            QLoudness.QLoudnessChoiceRead(true).QInspectorChoiceNames,
+            pIndex => QLoudness.QLoudnessChoiceSelect(true, pIndex));
+        pLoudnessMode = PInspectorChoiceBuild(QLoudness.QLoudnessModeNames, QLoudness.QLoudnessModeSelect);
 
-        pLoudnessRows = LLoudness.LLoudnessRowsRead(false).Select(lRow => PLoudnessRowBuild(false, lRow)).ToList();
-        pDynamicRows = LLoudness.LLoudnessRowsRead(true).Select(lRow => PLoudnessRowBuild(true, lRow)).ToList();
+        pLoudnessRows = QLoudness.QLoudnessRowsRead(false).Select(lRow => PLoudnessRowBuild(false, lRow)).ToList();
+        pDynamicRows = QLoudness.QLoudnessRowsRead(true).Select(lRow => PLoudnessRowBuild(true, lRow)).ToList();
 
         pLoudnessTwoPass = new CheckBox
         {
@@ -57,7 +57,7 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 8, 0, 0)
         };
         PCheckbox.PCheckboxApply(pLoudnessTwoPass);
-        PInspectorSwitchAttach(pLoudnessTwoPass, LLoudness.LLoudnessTwopassSet);
+        PInspectorSwitchAttach(pLoudnessTwoPass, QLoudness.QLoudnessTwopassSet);
 
         pLoudnessStack = new StackPanel();
         pLoudnessRows.ForEach(pRow => pLoudnessStack.Children.Add(pRow.PInspectorRowGrid));
@@ -99,31 +99,31 @@ public sealed partial class PInspector
         return pLoudnessBody;
     }
 
-    private PInspectorRow PLoudnessRowBuild(bool pDynamic, LInspectorRow lRow) => PInspectorRowBuild(
+    private PInspectorRow PLoudnessRowBuild(bool pDynamic, QInspectorRow lRow) => PInspectorRowBuild(
         lRow,
-        () => LLoudness.LLoudnessValueRead(pDynamic, lRow.LInspectorRowIndex),
-        () => LLoudness.LLoudnessDefaultRead(pDynamic, lRow.LInspectorRowIndex),
-        pNumber => LLoudness.LLoudnessValueSet(pDynamic, lRow.LInspectorRowIndex, pNumber));
+        () => QLoudness.QLoudnessValueRead(pDynamic, lRow.QInspectorRowIndex),
+        () => QLoudness.QLoudnessDefaultRead(pDynamic, lRow.QInspectorRowIndex),
+        pNumber => QLoudness.QLoudnessValueSet(pDynamic, lRow.QInspectorRowIndex, pNumber));
 
     private void PLoudnessRowUpdate(bool pDynamic, PInspectorRow pRow) =>
-        PInspectorRowUpdate(pRow, LLoudness.LLoudnessValueRead(pDynamic, pRow.PInspectorRowIndex));
+        PInspectorRowUpdate(pRow, QLoudness.QLoudnessValueRead(pDynamic, pRow.PInspectorRowIndex));
 
     private void PLoudnessUpdate()
     {
-        bool lActive = LLoudness.LLoudnessStep.LWorkStepActive;
-        bool lDynamic = LLoudness.LLoudnessDynamic;
+        bool lActive = QLoudness.QLoudnessStep.LWorkStepActive;
+        bool lDynamic = QLoudness.QLoudnessDynamic;
         PInspectorSwitchUpdate(pLoudnessApplyBox, lActive);
-        PInspectorSwitchUpdate(pLoudnessPersistent, LLoudness.LLoudnessPersistent);
-        PInspectorSwitchUpdate(pLoudnessTwoPass, LLoudness.LLoudnessStep.LWorkTwoPass);
-        pLoudnessMode.SelectedIndex = LLoudness.LLoudnessModeIndex;
+        PInspectorSwitchUpdate(pLoudnessPersistent, QLoudness.QLoudnessPersistent);
+        PInspectorSwitchUpdate(pLoudnessTwoPass, QLoudness.QLoudnessStep.LWorkTwoPass);
+        pLoudnessMode.SelectedIndex = QLoudness.QLoudnessModeIndex;
         pLoudnessStack.Visibility = PLook.PLookVisible[!lDynamic];
         pLoudnessPresetRow.Visibility = PLook.PLookVisible[!lDynamic];
         pDynamicStack.Visibility = PLook.PLookVisible[lDynamic];
         pDynamicPresetRow.Visibility = PLook.PLookVisible[lDynamic];
         pLoudnessRows.ForEach(pRow => PLoudnessRowUpdate(false, pRow));
         pDynamicRows.ForEach(pRow => PLoudnessRowUpdate(true, pRow));
-        PInspectorChoiceApply(pLoudnessPreset, LLoudness.LLoudnessChoiceRead(false));
-        PInspectorChoiceApply(pDynamicPreset, LLoudness.LLoudnessChoiceRead(true));
+        PInspectorChoiceApply(pLoudnessPreset, QLoudness.QLoudnessChoiceRead(false));
+        PInspectorChoiceApply(pDynamicPreset, QLoudness.QLoudnessChoiceRead(true));
         PInspectorSectionUpdate(pLoudnessPanel, lActive);
     }
 }

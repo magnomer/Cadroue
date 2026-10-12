@@ -83,7 +83,7 @@ internal static class TAuditBorderWalker
         Dictionary<string, HashSet<string>> inner = TAuditInnerRead();
         List<TAuditHit> hits = [];
         HashSet<string> taken = new(StringComparer.Ordinal);
-        foreach ((string ring, string[] prefixes) in TAuditBorderSetting.TAuditUnsealingPrefix)
+        foreach (string ring in TAuditBorderSetting.TAuditUnsealingRing)
         {
             if (TAuditBorderSetting.TAuditBorderNeighbour.GetValueOrDefault(ring) is not [string neighbour])
             {
@@ -91,7 +91,7 @@ internal static class TAuditBorderWalker
             }
 
             IEnumerable<ISymbol> members = TAuditBinder.TAuditCompilation
-                .GetSymbolsWithName(name => TAuditSealCheck(name, prefixes), SymbolFilter.Type)
+                .GetSymbolsWithName(_ => true, SymbolFilter.Type)
                 .OfType<INamedTypeSymbol>()
                 .Where(type => type.ContainingType is null && type.DeclaredAccessibility == Accessibility.Public
                     && TAuditBinderSymbol.TAuditSourceRead(type) is { } source
@@ -124,11 +124,6 @@ internal static class TAuditBorderWalker
         }
 
         return hits;
-    }
-
-    private static bool TAuditSealCheck(string name, string[] prefixes)
-    {
-        return prefixes.Any(prefix => name.StartsWith(prefix, StringComparison.Ordinal));
     }
 
     private static IEnumerable<INamedTypeSymbol> TAuditSignatureRead(ISymbol member)

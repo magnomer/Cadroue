@@ -6,9 +6,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TMapBands
 {
-    private static LFlow TFlowBuild()
+    private static QFlow TFlowBuild()
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSectionSet(flow, true);
         TInterface.TFlowSourceSet(
@@ -23,42 +23,42 @@ public sealed class TMapBands
     [Fact]
     public void Bands_FollowSections_WithBadge_Selection_AndHidden()
     {
-        LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapRead(flow);
+        QFlow flow = TFlowBuild();
+        QMap map = TInterface.TMapRead(flow);
 
-        IReadOnlyList<LMapBand> bands = TInterface.TMapFrameResolve(map, 600, 40).LMapFrameBands;
+        IReadOnlyList<QMapBand> bands = TInterface.TMapFrameResolve(map, 600, 40).QMapFrameBands;
         Assert.Equal(2, bands.Count);
-        Assert.Equal(100, bands[0].LMapBandLeft);
-        Assert.Equal(300, bands[0].LMapBandRight);
-        Assert.Equal(300, bands[1].LMapBandLeft);
-        Assert.Equal(600, bands[1].LMapBandRight);
-        Assert.Equal("1", bands[0].LMapBandBadge);
-        Assert.Equal("2", bands[1].LMapBandBadge);
-        Assert.Equal(4, bands[0].LMapBandTop);
-        Assert.True(bands[0].LMapBandSelected);
-        Assert.False(bands[1].LMapBandSelected);
-        Assert.True(bands[0].LMapBandShown);
-        Assert.Equal(2, map.LMapGlyphCount);
+        Assert.Equal(100, bands[0].QMapBandLeft);
+        Assert.Equal(300, bands[0].QMapBandRight);
+        Assert.Equal(300, bands[1].QMapBandLeft);
+        Assert.Equal(600, bands[1].QMapBandRight);
+        Assert.Equal("1", bands[0].QMapBandBadge);
+        Assert.Equal("2", bands[1].QMapBandBadge);
+        Assert.Equal(4, bands[0].QMapBandTop);
+        Assert.True(bands[0].QMapBandSelected);
+        Assert.False(bands[1].QMapBandSelected);
+        Assert.True(bands[0].QMapBandShown);
+        Assert.Equal(2, map.QMapGlyphCount);
 
         TInterface.TFlowSectionToggle(flow, 1);
-        bands = TInterface.TMapFrameResolve(map, 600, 40).LMapFrameBands;
-        Assert.False(bands[1].LMapBandShown);
-        Assert.Equal("sections", map.LMapTrigger);
+        bands = TInterface.TMapFrameResolve(map, 600, 40).QMapFrameBands;
+        Assert.False(bands[1].QMapBandShown);
+        Assert.Equal("sections", map.QMapTrigger);
     }
 
     [Fact]
     public void Badge_CentresInTheBand_AndSkipsWhenItDoesNotFit()
     {
-        LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapRead(flow);
-        LMapBand band = TInterface.TMapFrameResolve(map, 600, 40).LMapFrameBands[0];
+        QFlow flow = TFlowBuild();
+        QMap map = TInterface.TMapRead(flow);
+        QMapBand band = TInterface.TMapFrameResolve(map, 600, 40).QMapFrameBands[0];
 
-        LMapBadge badge = Assert.Single(TInterface.TMapBadgeResolve(map, band, 8, 14));
-        Assert.Equal(190, badge.LMapBadgeLeft);
-        Assert.Equal(210, badge.LMapBadgeRight);
-        Assert.Equal(8, badge.LMapBadgeRadius);
-        Assert.Equal(196, badge.LMapBadgeX);
-        Assert.Equal(badge.LMapBadgeTop + 1, badge.LMapBadgeY);
+        QMapBadge badge = Assert.Single(TInterface.TMapBadgeResolve(map, band, 8, 14));
+        Assert.Equal(190, badge.QMapBadgeLeft);
+        Assert.Equal(210, badge.QMapBadgeRight);
+        Assert.Equal(8, badge.QMapBadgeRadius);
+        Assert.Equal(196, badge.QMapBadgeX);
+        Assert.Equal(badge.QMapBadgeTop + 1, badge.QMapBadgeY);
 
         Assert.Empty(TInterface.TMapBadgeResolve(map, band, 500, 14));
         Assert.Empty(TInterface.TMapBadgeResolve(map, band, 8, 40));

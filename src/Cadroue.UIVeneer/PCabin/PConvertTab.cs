@@ -13,27 +13,27 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PConvertTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LConvertTab = lWorkspace.QWorkspaceMode.LConvertTabCreate();
-        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
-        LConvertTab.LConvertPresetMissing += PExport.PExportMissingShow;
-        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QConvertTab = lWorkspace.QWorkspaceMode.QConvertTabCreate();
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
+        QConvertTab.QConvertPresetMissing += PExport.PExportMissingShow;
+        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pViewer, pExport },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
     }
 
-    public LConvertTab LConvertTab { get; }
+    public QConvertTab QConvertTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 

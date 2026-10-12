@@ -10,16 +10,16 @@ namespace Cadroue.Tests.Windows;
 [Collection("Preset")]
 public sealed class TEditTabRows
 {
-    private static (LEditTab, LInspector, LProcessing) TEditBuild()
+    private static (QEditTab, QInspector, QProcessing) TEditBuild()
     {
-        LList list = TInterfaceList.TListCreate();
-        LEditTab tab = TInterface.TEditTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        QEditTab tab = TInterface.TEditTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
-        LInspector inspector = TInterface.TEditInspectorRead(tab);
-        LProcessing processing = TInterface.TEditProcessingRead(tab);
-        foreach (LProcessingRow row in QEditProcessing.LEditRows)
+        QInspector inspector = TInterface.TEditInspectorRead(tab);
+        QProcessing processing = TInterface.TEditProcessingRead(tab);
+        foreach (QProcessingRow row in QEditProcessing.QEditRows)
         {
-            TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
+            TInterface.TProcessingStepAdd(processing, row.QProcessingRowKey);
         }
         return (tab, inspector, processing);
     }
@@ -27,11 +27,11 @@ public sealed class TEditTabRows
     [Fact]
     public void Rows_EightSteps_CropFirstCurveLast()
     {
-        Assert.Equal(8, QEditProcessing.LEditRows.Count);
-        Assert.Equal("Crop", QEditProcessing.LEditRows[0].LProcessingRowKey);
-        Assert.Equal("Curve", QEditProcessing.LEditRows[^1].LProcessingRowKey);
-        Assert.All(QEditProcessing.LEditRows, row => Assert.StartsWith("/PAsset/PPanel/", row.LProcessingRowIcon));
-        Assert.All(QEditProcessing.LEditRows, row => Assert.StartsWith("Processing.Step.", row.LProcessingRowLabel));
+        Assert.Equal(8, QEditProcessing.QEditRows.Count);
+        Assert.Equal("Crop", QEditProcessing.QEditRows[0].QProcessingRowKey);
+        Assert.Equal("Curve", QEditProcessing.QEditRows[^1].QProcessingRowKey);
+        Assert.All(QEditProcessing.QEditRows, row => Assert.StartsWith("/PAsset/PPanel/", row.QProcessingRowIcon));
+        Assert.All(QEditProcessing.QEditRows, row => Assert.StartsWith("Processing.Step.", row.QProcessingRowLabel));
     }
 
     [Fact]
@@ -39,14 +39,14 @@ public sealed class TEditTabRows
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, _, LProcessing processing) = TEditBuild();
+        (QEditTab tab, _, QProcessing processing) = TEditBuild();
 
         LWorkVideo video = TInterface.TEditVideoRead(tab, true);
 
         Assert.Equal(7, video.LWorkVideoSteps.Count);
         Assert.Equal(LColorKind.LColorKindWhitebalance, video.LWorkVideoSteps[0].LWorkStepKind);
         Assert.Equal(LColorKind.LColorKindCurve, video.LWorkVideoSteps[^1].LWorkStepKind);
-        Assert.False(processing.LProcessingOrdered);
+        Assert.False(processing.QProcessingOrdered);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ public sealed class TEditTabRows
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, _, _) = TEditBuild();
+        (QEditTab tab, _, _) = TEditBuild();
 
         LWorkVideo video = TInterface.TEditVideoRead(tab, false);
 
@@ -69,9 +69,9 @@ public sealed class TEditTabRows
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, LProcessing processing) = TEditBuild();
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindSaturation, true);
+        (QEditTab tab, QInspector inspector, QProcessing processing) = TEditBuild();
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindSaturation, true);
 
         TInterface.TEditColorUpdate(tab);
 
@@ -85,7 +85,7 @@ public sealed class TEditTabRows
     [Fact]
     public void EnabledSet_Notice_KeptWhileDisabled_ClearedWhenEnabled()
     {
-        LProcessing processing = TInterface.TProcessingCreate();
+        QProcessing processing = TInterface.TProcessingCreate();
         TInterface.TProcessingStepAdd(processing, "Gamma");
         int notices = 0;
         TInterface.TProcessingAttach(processing, () => notices++);

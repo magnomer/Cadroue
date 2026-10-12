@@ -1,7 +1,7 @@
 # QRosterPick.cs
 Hash: `23527f996d31be62`
 
-## `internal sealed record QRosterPick(Guid LRosterPickCurrent, Guid LRosterPickCard, IReadOnlySet<Guid> LRosterPickIds)`
+## `internal sealed record QRosterPick(Guid QRosterPickCurrent, Guid QRosterPickCard, IReadOnlySet<Guid> QRosterPickIds)`
 
 Holds one whole roster selection: the current step, the selected card and the selected steps.
 It is immutable, so each select request replaces it at once and no reader sees a half-written pick.

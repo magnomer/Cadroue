@@ -58,23 +58,23 @@ public sealed class PViewer : PPanel
             [true] = _ => System.Windows.Application.Current.Windows.OfType<PSLoupe>().FirstOrDefault()?.Activate(),
             [false] = pViewer => PSLoupe.PSLoupeShow(
                 System.Windows.Application.Current.MainWindow,
-                pViewer.LViewer.LViewerMedia.QViewerLoupe.LViewerLoupeCreate()),
+                pViewer.QViewer.QViewerMedia.QViewerLoupe.QViewerLoupeCreate()),
         };
 
-    private static readonly IReadOnlyDictionary<LViewerAskKind, Action<PViewer, LViewerAsk, Action<bool>>> pViewerAsks =
-        new Dictionary<LViewerAskKind, Action<PViewer, LViewerAsk, Action<bool>>>
+    private static readonly IReadOnlyDictionary<QViewerAskKind, Action<PViewer, QViewerAsk, Action<bool>>> pViewerAsks =
+        new Dictionary<QViewerAskKind, Action<PViewer, QViewerAsk, Action<bool>>>
         {
-            [LViewerAskKind.LViewerAskWarning] = (pViewer, lAsk, pAnswer) =>
+            [QViewerAskKind.QViewerAskWarning] = (pViewer, lAsk, pAnswer) =>
             {
-                PSWarning.PSWarningShow(Window.GetWindow(pViewer), lAsk.LViewerAskTitle, lAsk.LViewerAskMessage);
+                PSWarning.PSWarningShow(Window.GetWindow(pViewer), lAsk.QViewerAskTitle, lAsk.QViewerAskMessage);
                 pAnswer(false);
             },
-            [LViewerAskKind.LViewerAskDecision] = (pViewer, lAsk, pAnswer) => pAnswer(PSDecision.PSDecisionConfirm(
+            [QViewerAskKind.QViewerAskDecision] = (pViewer, lAsk, pAnswer) => pAnswer(PSDecision.PSDecisionConfirm(
                 Window.GetWindow(pViewer),
-                lAsk.LViewerAskTitle,
-                lAsk.LViewerAskMessage,
-                lAsk.LViewerAskPrimary,
-                lAsk.LViewerAskDismiss)),
+                lAsk.QViewerAskTitle,
+                lAsk.QViewerAskMessage,
+                lAsk.QViewerAskPrimary,
+                lAsk.QViewerAskDismiss)),
         };
 
     private static readonly IReadOnlyDictionary<bool, Func<Microsoft.Win32.OpenFileDialog, string?>> pViewerLocates =
@@ -97,19 +97,19 @@ public sealed class PViewer : PPanel
     private readonly PCrop pViewerOverlay;
     private readonly DispatcherTimer pViewerClockTimer;
 
-    public LViewer LViewer { get; }
+    public QViewer QViewer { get; }
 
-    public LPlayer LPlayer => LViewer.LPlayer;
+    public QPlayer QPlayer => QViewer.QPlayer;
 
-    public PViewer(LViewer lViewer)
+    public PViewer(QViewer lViewer)
         : base("")
     {
-        LViewer = lViewer;
+        QViewer = lViewer;
         AllowDrop = true;
         Focusable = true;
         FocusVisualStyle = null;
 
-        pViewerOverlay = new PCrop(LViewer);
+        pViewerOverlay = new PCrop(QViewer);
         pViewerOverlay.DragEnter += PViewerDragAccept;
         pViewerOverlay.DragOver += PViewerDragAccept;
         pViewerOverlay.Drop += PViewerDropHandle;
@@ -139,7 +139,7 @@ public sealed class PViewer : PPanel
             Visibility = Visibility.Collapsed
         };
         pViewerMpvHost = new PViewerMpvHost { Visibility = Visibility.Collapsed };
-        pViewerMpvOverlay = new PViewerOverlay(pViewerMpvHost, LViewer.LViewerRenderer);
+        pViewerMpvOverlay = new PViewerOverlay(pViewerMpvHost, QViewer.QViewerRenderer);
         pViewerHosts = new Dictionary<bool, FrameworkElement>
         {
             [true] = pViewerMpvHost,
@@ -165,28 +165,28 @@ public sealed class PViewer : PPanel
 
         pViewerClockTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(100) };
         pViewerClockTimer.Tick += PViewerClockHandle;
-        LViewer.LViewerPlayback.LViewerClockStarted += pViewerClockTimer.Start;
-        LViewer.LViewerPlayback.LViewerClockStopped += pViewerClockTimer.Stop;
-        LViewer.LViewerEngineChanged += PViewerAudioUpdate;
-        LViewer.LViewerBypassChanged += PViewerBypassHandle;
-        LViewer.LViewerRenderer.LViewerHostApplied += PViewerHostApply;
-        LViewer.LViewerMedia.LViewerPlayerCreated += PViewerPlayerCreate;
-        LViewer.LViewerSource.LViewerSourceAsk += PViewerAskHandle;
-        LViewer.LViewerSource.LViewerSourceLocate += PViewerLocateHandle;
-        LViewer.LViewerMedia.LViewerFactsAttach(PViewerFactsRead);
+        QViewer.QViewerPlayback.QViewerClockStarted += pViewerClockTimer.Start;
+        QViewer.QViewerPlayback.QViewerClockStopped += pViewerClockTimer.Stop;
+        QViewer.QViewerEngineChanged += PViewerAudioUpdate;
+        QViewer.QViewerBypassChanged += PViewerBypassHandle;
+        QViewer.QViewerRenderer.QViewerHostApplied += PViewerHostApply;
+        QViewer.QViewerMedia.QViewerPlayerCreated += PViewerPlayerCreate;
+        QViewer.QViewerSource.QViewerSourceAsk += PViewerAskHandle;
+        QViewer.QViewerSource.QViewerSourceLocate += PViewerLocateHandle;
+        QViewer.QViewerMedia.QViewerFactsAttach(PViewerFactsRead);
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineHandle;
         PViewerEngineShow();
         PViewerHostApply();
 
-        Loaded += (_, _) => LViewer.LViewerMedia.LViewerHostRecord("panel loaded");
-        IsVisibleChanged += (_, pEvent) => LViewer.LViewerMedia.LViewerHostRecord($"panel visible {pEvent.NewValue}");
-        pViewerFlyleafHost.Loaded += (_, _) => LViewer.LViewerMedia.LViewerHostRecord("host loaded");
+        Loaded += (_, _) => QViewer.QViewerMedia.QViewerHostRecord("panel loaded");
+        IsVisibleChanged += (_, pEvent) => QViewer.QViewerMedia.QViewerHostRecord($"panel visible {pEvent.NewValue}");
+        pViewerFlyleafHost.Loaded += (_, _) => QViewer.QViewerMedia.QViewerHostRecord("host loaded");
         pViewerFlyleafHost.IsVisibleChanged += (_, pEvent) =>
-            LViewer.LViewerMedia.LViewerHostRecord($"host visible {pEvent.NewValue}");
+            QViewer.QViewerMedia.QViewerHostRecord($"host visible {pEvent.NewValue}");
         pViewerFlyleafHost.SizeChanged += (_, pEvent) =>
-            LViewer.LViewerMedia.LViewerHostRecord($"host sized {pEvent.NewSize.Width:0}x{pEvent.NewSize.Height:0}");
-        LViewer.LViewerMedia.LViewerHostRecord("host built");
+            QViewer.QViewerMedia.QViewerHostRecord($"host sized {pEvent.NewSize.Width:0}x{pEvent.NewSize.Height:0}");
+        QViewer.QViewerMedia.QViewerHostRecord("host built");
     }
 
     private static Button PViewerButtonBuild(string pIconPath, string pTipKey, double pRightMargin)
@@ -238,65 +238,65 @@ public sealed class PViewer : PPanel
     }
 
     private void PViewerCloseHandle(object pSender, RoutedEventArgs pEvent) =>
-        LViewer.LViewerMedia.LViewerMediaClose(false);
+        QViewer.QViewerMedia.QViewerMediaClose(false);
 
     private void PViewerLoupeHandle(object pSender, RoutedEventArgs pEvent) =>
-        pViewerLoupeShows[LViewer.LViewerLoupeActive](this);
+        pViewerLoupeShows[QViewer.QViewerLoupeActive](this);
 
-    private void PViewerAudioHandle(object pSender, RoutedEventArgs pEvent) => LViewer.LViewerBypassToggle();
+    private void PViewerAudioHandle(object pSender, RoutedEventArgs pEvent) => QViewer.QViewerBypassToggle();
 
-    private void PViewerClockHandle(object? pSender, EventArgs pEvent) => LViewer.LViewerPlayback.LViewerTick();
+    private void PViewerClockHandle(object? pSender, EventArgs pEvent) => QViewer.QViewerPlayback.QViewerTick();
 
     private void PViewerBypassHandle(bool lBypass) => PViewerAudioUpdate();
 
     private void PViewerAudioUpdate()
     {
-        LViewerSwitch lSwitch = LViewer.LViewerSwitchRead();
-        pViewerAudioSwitch.IsEnabled = lSwitch.LViewerSwitchEnabled;
-        pViewerAudioSwitch.Content = lSwitch.LViewerSwitchText;
-        pViewerAudioSwitch.ToolTip = lSwitch.LViewerSwitchTip;
+        QViewerSwitch lSwitch = QViewer.QViewerSwitchRead();
+        pViewerAudioSwitch.IsEnabled = lSwitch.QViewerSwitchEnabled;
+        pViewerAudioSwitch.Content = lSwitch.QViewerSwitchText;
+        pViewerAudioSwitch.ToolTip = lSwitch.QViewerSwitchTip;
     }
 
     private void PViewerEngineShow()
     {
-        LViewerEnginePlan lPlan = LViewer.LViewerRenderer.LViewerEngineRead();
-        Action<string> lSelect = LViewer.LViewerRenderer.LViewerEngineSelect;
+        QViewerEnginePlan lPlan = QViewer.QViewerRenderer.QViewerEngineRead();
+        Action<string> lSelect = QViewer.QViewerRenderer.QViewerEngineSelect;
         pViewerEngineSurface.Child = PViewerEngine.PViewerEngineBuild(lPlan, lSelect);
         pViewerEngineOverlay.Child = PViewerEngine.PViewerEngineBuild(lPlan, lSelect);
     }
 
-    private void PViewerEngineHandle() => Dispatcher.BeginInvoke(LViewer.LViewerRenderer.LViewerEngineHandle);
+    private void PViewerEngineHandle() => Dispatcher.BeginInvoke(QViewer.QViewerRenderer.QViewerEngineHandle);
 
     private void PViewerHostApply()
     {
-        pViewerOverlayMoves[LViewer.LViewerMpvActive](this);
-        pViewerHosts[true].Visibility = PLook.PLookVisible[LViewer.LViewerMpvShown];
-        pViewerHosts[false].Visibility = PLook.PLookVisible[LViewer.LViewerFlyleafShown];
-        pViewerCloseButton.Visibility = PLook.PLookVisible[LViewer.LViewerHostVisible];
-        pViewerPreviewButton.Visibility = PLook.PLookVisible[LViewer.LViewerHostVisible];
-        pViewerAudioSwitch.Visibility = PLook.PLookVisible[LViewer.LViewerAudioShown];
+        pViewerOverlayMoves[QViewer.QViewerMpvActive](this);
+        pViewerHosts[true].Visibility = PLook.PLookVisible[QViewer.QViewerMpvShown];
+        pViewerHosts[false].Visibility = PLook.PLookVisible[QViewer.QViewerFlyleafShown];
+        pViewerCloseButton.Visibility = PLook.PLookVisible[QViewer.QViewerHostVisible];
+        pViewerPreviewButton.Visibility = PLook.PLookVisible[QViewer.QViewerHostVisible];
+        pViewerAudioSwitch.Visibility = PLook.PLookVisible[QViewer.QViewerAudioShown];
         PViewerAudioUpdate();
         PViewerOverlay.PViewerInertApply(PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Surface));
         PViewerOverlay.PViewerInertApply(PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Overlay));
         pViewerMpvOverlay.PViewerOverlayPlace();
     }
 
-    private void PViewerPlayerCreate() => pViewerEngineCreates[LViewer.LViewerMpvActive](this);
+    private void PViewerPlayerCreate() => pViewerEngineCreates[QViewer.QViewerMpvActive](this);
 
     private void PViewerFlyleafCreate()
     {
         var pConfig = new Config();
         pConfig.Player.KeyBindings.Keys.Clear();
-        pViewerProcessors[LViewer.LViewerProcessorForced](pConfig);
+        pViewerProcessors[QViewer.QViewerProcessorForced](pConfig);
         pConfig.Video.BackColor = Colors.White;
         pConfig.Video.ClearScreen = false;
-        LPlayer.LPlayerEngineSet(new PPlayerFlyleaf(pViewerFlyleafHost, LPlayer, pConfig).PPlayerSeamRead());
+        QPlayer.QPlayerEngineSet(new PPlayerFlyleaf(pViewerFlyleafHost, QPlayer, pConfig).PPlayerSeamRead());
     }
 
     private void PViewerMpvCreate() =>
-        LPlayer.LPlayerMpvCreate(pViewerMpvHost.PViewerHandleRead());
+        QPlayer.QPlayerMpvCreate(pViewerMpvHost.PViewerHandleRead());
 
-    private LViewerHostFacts PViewerFactsRead()
+    private QViewerHostFacts PViewerFactsRead()
     {
         Window? pSurface = null;
         nint pHandle = nint.Zero;
@@ -313,7 +313,7 @@ public sealed class PViewer : PPanel
         {
         }
 
-        return new LViewerHostFacts(
+        return new QViewerHostFacts(
             IsVisible,
             pViewerFlyleafHost.IsVisible,
             pSurface?.Visibility.ToString(),
@@ -324,23 +324,23 @@ public sealed class PViewer : PPanel
             pOverlay?.AllowsTransparency);
     }
 
-    private void PViewerAskHandle(LViewerAsk lAsk, Action<bool> lAnswer) =>
-        pViewerAsks[lAsk.LViewerAskKind](this, lAsk, lAnswer);
+    private void PViewerAskHandle(QViewerAsk lAsk, Action<bool> lAnswer) =>
+        pViewerAsks[lAsk.QViewerAskKind](this, lAsk, lAnswer);
 
-    private static void PViewerLocateHandle(LViewerAsk lAsk, Action<string?> lAnswer)
+    private static void PViewerLocateHandle(QViewerAsk lAsk, Action<string?> lAnswer)
     {
         var pDialog = new Microsoft.Win32.OpenFileDialog
         {
-            Title = lAsk.LViewerAskTitle,
-            FileName = lAsk.LViewerAskName,
-            Filter = lAsk.LViewerAskFilter
+            Title = lAsk.QViewerAskTitle,
+            FileName = lAsk.QViewerAskName,
+            Filter = lAsk.QViewerAskFilter
         };
         lAnswer(pViewerLocates[pDialog.ShowDialog().GetValueOrDefault()](pDialog));
     }
 
     private void PViewerDragAccept(object pSender, DragEventArgs pEvent)
     {
-        pEvent.Effects = PLook.PLookDropEffect[LViewer.LViewerSource.LViewerDropResolve(
+        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDropResolve(
             pEvent.Data.GetData(DataFormats.FileDrop) as string[],
             pEvent.AllowedEffects.HasFlag(DragDropEffects.Copy))];
         pEvent.Handled = true;
@@ -348,7 +348,7 @@ public sealed class PViewer : PPanel
 
     private void PViewerDropHandle(object pSender, DragEventArgs pEvent)
     {
-        pEvent.Effects = PLook.PLookDropEffect[LViewer.LViewerSource.LViewerDropHandle(
+        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDropHandle(
             pEvent.Data.GetData(DataFormats.FileDrop) as string[],
             pEvent.AllowedEffects.HasFlag(DragDropEffects.Copy))];
         pEvent.Handled = true;
@@ -358,7 +358,7 @@ public sealed class PViewer : PPanel
     {
         try
         {
-            return LViewer.LViewerSurfaceMatch(
+            return QViewer.QViewerSurfaceMatch(
                 pForeground,
                 PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Surface),
                 PPlayerFlyleaf.PPlayerHandleRead(pViewerFlyleafHost.Overlay));
@@ -371,7 +371,7 @@ public sealed class PViewer : PPanel
 
     public void PViewerClose()
     {
-        LViewer.LViewerMedia.QViewerTeardown.LViewerClose();
+        QViewer.QViewerMedia.QViewerTeardown.QViewerClose();
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged -= PViewerEngineHandle;
         pViewerClockTimer.Tick -= PViewerClockHandle;
@@ -379,8 +379,8 @@ public sealed class PViewer : PPanel
         pViewerOverlay.DragEnter -= PViewerDragAccept;
         pViewerOverlay.DragOver -= PViewerDragAccept;
         pViewerOverlay.Drop -= PViewerDropHandle;
-        LViewer.LViewerMedia.QViewerTeardown.LViewerStageRun("flyleaf host", PViewerFlyleafDispose);
-        LViewer.LViewerMedia.QViewerTeardown.LViewerStageRun("mpv host", PViewerMpvDispose);
+        QViewer.QViewerMedia.QViewerTeardown.QViewerStageRun("flyleaf host", PViewerFlyleafDispose);
+        QViewer.QViewerMedia.QViewerTeardown.QViewerStageRun("mpv host", PViewerMpvDispose);
     }
 
     private void PViewerFlyleafDispose()

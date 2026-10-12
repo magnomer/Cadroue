@@ -11,7 +11,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Sample_TurnsManualAndActive_WithGains()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         int notices = 0;
         TInterface.TWhitebalanceAttach(whitebalance, () => notices++);
 
@@ -29,7 +29,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Reset_ReturnsToMedian_AndAsksForEstimate()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(120, 128, 140, 1.1, 1, 0.9));
         var requests = new List<LWhitebalanceMethod>();
         TInterface.TWhitebalanceEstimateAttach(whitebalance, requests.Add);
@@ -47,7 +47,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void MethodChange_ToAutomatic_RequestsEstimateOnce()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         var requests = new List<LWhitebalanceMethod>();
         TInterface.TWhitebalanceEstimateAttach(whitebalance, requests.Add);
 
@@ -62,14 +62,14 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Picker_SwitchesTarget_DisarmsOnSample()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceToolSet(whitebalance, true, LNeutralTarget.LNeutralTargetGrey);
         TInterface.TWhitebalanceToolSet(whitebalance, true, LNeutralTarget.LNeutralTargetWhite);
 
         Assert.True(TInterface.TWhitebalanceToolRead(whitebalance));
-        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, whitebalance.LWhitebalanceTarget);
+        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, whitebalance.QWhitebalanceTarget);
 
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(200, 200, 200, 1, 1, 1));
 
@@ -79,7 +79,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void CurveChannel_SelectAndEdit_KeepsOtherChannelsIdentity()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
 
         TInterface.TCurveChannelSelect(curve, 1);
         TInterface.TCurvePointAdd(curve, 0.5, 0.7);
@@ -104,7 +104,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void CurveStepSet_ActiveOnly_KeepsSelection()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         TInterface.TCurvePointAdd(curve, 0.5, 0.6);
         TInterface.TCurvePointSelect(curve, 0);
         int notices = 0;
@@ -122,7 +122,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void CurveStepSet_PointsChanged_ClampsSelection()
     {
-        LCurve curve = TInterface.TCurveCreate();
+        QCurve curve = TInterface.TCurveCreate();
         TInterface.TCurvePointAdd(curve, 0.3, 0.3);
         TInterface.TCurvePointAdd(curve, 0.6, 0.6);
         TInterface.TCurvePointSelect(curve, 3);

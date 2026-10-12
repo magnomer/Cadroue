@@ -15,7 +15,7 @@ internal sealed partial class PSEncoder
         string pStored = psAudioSampleReadout is null
             ? lsExportSpecificEdit.LPresetAudio.LPresetSampleRate
             : PSAudioSampleRead();
-        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.LSEncoderAudioEncoder);
+        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
         IReadOnlyList<int> pRates = LInventory.LInventorySampleRead(pEncoder);
         bool pDiscrete = pRates.Count > 0;
         IReadOnlyList<int> pTicks = pDiscrete ? pRates : psAudioSampleStandard;

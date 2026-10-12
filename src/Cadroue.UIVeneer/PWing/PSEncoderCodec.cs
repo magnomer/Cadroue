@@ -14,7 +14,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoEncoderUpdate()
     {
-        bool pAvailable = LSEncoder.LSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
+        bool pAvailable = QSEncoder.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
         psVideoEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
         if (!pAvailable)
         {
@@ -26,7 +26,7 @@ internal sealed partial class PSEncoder
     {
         string pContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
         string pCurrent = psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
-        string[] pItems = LSEncoder.LSEncoderVideoRead(pContainer, pCurrent);
+        string[] pItems = QSEncoder.QSEncoderVideoRead(pContainer, pCurrent);
         psVideoEncoderCombo.ItemsSource = pItems;
         psVideoEncoderCombo.SelectedItem = pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
         PSVideoEncoderUpdate();
@@ -39,14 +39,14 @@ internal sealed partial class PSEncoder
         IReadOnlyList<string> pAvailable;
         try
         {
-            pAvailable = await lsEncoder.LSEncoderVideoScan(pFeed);
+            pAvailable = await lsEncoder.QSEncoderVideoScan(pFeed);
         }
         catch (OperationCanceledException)
         {
             return;
         }
 
-        string pSelected = lsEncoder.LSEncoderVideoEncoder;
+        string pSelected = lsEncoder.QSEncoderVideoEncoder;
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
         PSVideoEncoderUpdate();

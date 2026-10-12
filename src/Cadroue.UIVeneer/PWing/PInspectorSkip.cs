@@ -15,12 +15,12 @@ public sealed partial class PInspector
         pSkipApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Skip.ApplyTooltip"));
-        PInspectorSwitchAttach(pSkipApplyBox, LSkip.LSkipActiveSet);
+        PInspectorSwitchAttach(pSkipApplyBox, QSkip.QSkipActiveSet);
 
         pSkipPersistentBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
-        PInspectorSwitchAttach(pSkipPersistentBox, LSkip.LSkipPersistentSet);
+        PInspectorSwitchAttach(pSkipPersistentBox, QSkip.QSkipPersistentSet);
 
         var pSkipNote = new TextBlock
         {
@@ -45,7 +45,7 @@ public sealed partial class PInspector
 
     private void PSkipUpdate()
     {
-        PInspectorSwitchUpdate(pSkipApplyBox, LSkip.LSkipActive);
-        PInspectorSwitchUpdate(pSkipPersistentBox, LSkip.LSkipPersistent);
+        PInspectorSwitchUpdate(pSkipApplyBox, QSkip.QSkipActive);
+        PInspectorSwitchUpdate(pSkipPersistentBox, QSkip.QSkipPersistent);
     }
 }

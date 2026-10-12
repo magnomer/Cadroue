@@ -7,9 +7,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TFlowSectionActive
 {
-    private static LFlow TFlowBuild(string? path = "C:\\media\\clip.mp4")
+    private static QFlow TFlowBuild(string? path = "C:\\media\\clip.mp4")
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSourceSet(flow, TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 640, 360), path);
         return flow;
@@ -18,7 +18,7 @@ public sealed class TFlowSectionActive
     [Fact]
     public void EditCheck_RequiresSectionActiveAndEditable()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         List<bool> notices = [];
         TInterface.TFlowEditAttach(flow, editable => notices.Add(editable));
 
@@ -36,12 +36,12 @@ public sealed class TFlowSectionActive
     [Fact]
     public void Source_ClampsCursor_AndMatchesCaseInsensitive()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
 
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(90));
-        Assert.Equal(TimeSpan.FromSeconds(60), flow.LFlowCursor);
+        Assert.Equal(TimeSpan.FromSeconds(60), flow.QFlowCursor);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(-5));
-        Assert.Equal(TimeSpan.Zero, flow.LFlowCursor);
+        Assert.Equal(TimeSpan.Zero, flow.QFlowCursor);
 
         Assert.True(TInterface.TFlowSourceMatch(flow, "c:\\MEDIA\\clip.mp4"));
         Assert.False(TInterface.TFlowSourceMatch(flow, null));
@@ -50,14 +50,14 @@ public sealed class TFlowSectionActive
 
         TInterface.TFlowSourceClear(flow);
         Assert.False(TInterface.TFlowSourceCheck(flow));
-        Assert.Null(flow.LFlowSpool);
-        Assert.Equal(TimeSpan.Zero, flow.LFlowDuration);
+        Assert.Null(flow.QFlowRange);
+        Assert.Equal(TimeSpan.Zero, flow.QFlowDuration);
     }
 
     [Fact]
     public void ScanCheck_FailsWithoutCommandOrAfterUnload()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
         TInterface.TFlowCommandSet(flow, false);
         Assert.False(TInterface.TFlowScanCheck(flow));
 
@@ -71,7 +71,7 @@ public sealed class TFlowSectionActive
     [Fact]
     public void StampAndLosslesscut_ReportChangesOnly()
     {
-        LFlow flow = TFlowBuild();
+        QFlow flow = TFlowBuild();
 
         Assert.True(TInterface.TFlowStampSet(flow, "a/1/1"));
         Assert.False(TInterface.TFlowStampSet(flow, "a/1/1"));

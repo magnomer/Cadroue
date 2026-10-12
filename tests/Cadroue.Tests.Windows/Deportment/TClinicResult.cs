@@ -14,7 +14,7 @@ public sealed class TClinicResult
     [Fact]
     public void ResultAndProgress_ReadBack_UnderRecasedPath()
     {
-        LClinic clinic = TInterface.TClinicCreate();
+        QClinic clinic = TInterface.TClinicCreate();
         int changes = 0;
         TInterface.TClinicChangeAttach(clinic, () => changes++);
         TInterface.TClinicSourceSet(clinic, TClinicResultPath);
@@ -33,7 +33,7 @@ public sealed class TClinicResult
     [Fact]
     public void ResultsRemove_DropsResultAndProgress_NotifiesShownSource()
     {
-        LClinic clinic = TInterface.TClinicCreate();
+        QClinic clinic = TInterface.TClinicCreate();
         TInterface.TClinicSourceSet(clinic, TClinicResultPath);
         TInterface.TClinicStepSet(clinic, "Container");
         TInterface.TClinicResultSet(
@@ -56,7 +56,7 @@ public sealed class TClinicResult
     [Fact]
     public void ResultsRemove_OtherPath_KeepsShownSourceQuiet()
     {
-        LClinic clinic = TInterface.TClinicCreate();
+        QClinic clinic = TInterface.TClinicCreate();
         TInterface.TClinicSourceSet(clinic, TClinicResultPath);
         TInterface.TClinicStepSet(clinic, "Container");
         TInterface.TClinicResultSet(

@@ -16,11 +16,11 @@ internal sealed class PPlayerFlyleaf
 {
     private readonly Player pPlayer;
     private readonly FlyleafHost pPlayerHost;
-    private readonly LPlayer lPlayer;
+    private readonly QPlayer lPlayer;
 
-    public PPlayerFlyleaf(FlyleafHost pHost, LPlayer lPlayerOwner, Config pConfig)
+    public PPlayerFlyleaf(FlyleafHost pHost, QPlayer lPlayerOwner, Config pConfig)
     {
-        lPlayerOwner.LPlayerCreateStart();
+        lPlayerOwner.QPlayerCreateStart();
         pPlayerHost = pHost;
         lPlayer = lPlayerOwner;
         pPlayer = new Player(pConfig);
@@ -37,7 +37,7 @@ internal sealed class PPlayerFlyleaf
             pPlayer.Config.Decoder.MaxVideoFrames,
             pPlayer.Config.Video.ClearScreen,
             pPlayer.Config.Video.SwsForce,
-            lPlayerOwner.LPlayerCreateRead());
+            lPlayerOwner.QPlayerCreateRead());
     }
 
     public static nint PPlayerHandleRead(System.Windows.Window? pWindow)
@@ -52,7 +52,7 @@ internal sealed class PPlayerFlyleaf
         }
     }
 
-    public LPlayerSeam PPlayerSeamRead() => new(
+    public QPlayerSeam PPlayerSeamRead() => new(
         PPlayerOpen,
         pPlayer.Play,
         pPlayer.Pause,
@@ -92,7 +92,7 @@ internal sealed class PPlayerFlyleaf
     private bool PPlayerEndedRead() => pPlayerEnded.Contains(pPlayer.Status);
 
     private void PPlayerSeekHandle(object? pSender, int pSeekMilliseconds) =>
-        lPlayer.LPlayerSeekHandle(pSeekMilliseconds);
+        lPlayer.QPlayerSeekHandle(pSeekMilliseconds);
 
     private void PPlayerPreviewApply(LPreviewApplication pApplication)
     {

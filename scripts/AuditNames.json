@@ -1,5 +1,5 @@
 {
-  "generation": 21,
+  "generation": 22,
   "project": "Cadroue",
   "sources": {
     "include": [
@@ -85,7 +85,7 @@
       "tests/Cadroue.Tests.Convention": ["T"],
       "tests/Cadroue.Tests.Windows": ["T"]
     },
-    "prefixCeiling": 225,
+    "prefixCeiling": 0,
     "sealedTurfs": [
       "src/Cadroue.Conduct"
     ],

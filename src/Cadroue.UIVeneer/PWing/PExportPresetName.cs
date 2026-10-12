@@ -12,7 +12,7 @@ public sealed partial class PExport
 {
     private void PExportEditCommit()
     {
-        if (LExport.LExportEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
+        if (QExport.QExportEditing is not string lEditingName || pExportBoxCurrent is not { } pEditingBox)
         {
             return;
         }
@@ -172,7 +172,7 @@ public sealed partial class PExport
             else if (pEvent.Key == Key.Escape)
             {
                 pExportBoxCurrent = null;
-                LExport.LExportEditCancel();
+                QExport.QExportEditCancel();
                 pEvent.Handled = true;
             }
         };

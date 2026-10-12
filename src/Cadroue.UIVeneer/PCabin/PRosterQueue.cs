@@ -8,10 +8,10 @@ namespace Cadroue.UIVeneer.PCabin;
 
 internal sealed class PRosterQueue : ItemsControl
 {
-    private readonly ConditionalWeakTable<LRosterEntry, UIElement>.CreateValueCallback pRosterQueueSource;
-    private readonly ConditionalWeakTable<LRosterEntry, UIElement> pRosterQueueBuilt = new();
+    private readonly ConditionalWeakTable<QRosterEntry, UIElement>.CreateValueCallback pRosterQueueSource;
+    private readonly ConditionalWeakTable<QRosterEntry, UIElement> pRosterQueueBuilt = new();
 
-    public PRosterQueue(Func<LRosterEntry, UIElement> pBuild)
+    public PRosterQueue(Func<QRosterEntry, UIElement> pBuild)
     {
         pRosterQueueSource = lEntry => pBuild(lEntry);
         Focusable = false;
@@ -39,7 +39,7 @@ internal sealed class PRosterQueue : ItemsControl
     protected override DependencyObject GetContainerForItemOverride() => new ContentControl { Focusable = false };
 
     protected override void PrepareContainerForItemOverride(DependencyObject pElement, object pItem) =>
-        ((ContentControl)pElement).Content = pRosterQueueBuilt.GetValue((LRosterEntry)pItem, pRosterQueueSource);
+        ((ContentControl)pElement).Content = pRosterQueueBuilt.GetValue((QRosterEntry)pItem, pRosterQueueSource);
 
     protected override void ClearContainerForItemOverride(DependencyObject pElement, object pItem) =>
         ((ContentControl)pElement).Content = null;

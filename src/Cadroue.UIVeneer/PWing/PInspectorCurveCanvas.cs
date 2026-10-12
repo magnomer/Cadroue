@@ -68,7 +68,7 @@ public sealed partial class PInspector
     private void PCurvePressHandle(object pSender, MouseButtonEventArgs pArgs)
     {
         Point pPixel = pArgs.GetPosition(pCurveCanvas);
-        LCurve.LCurvePressHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
+        QCurve.QCurvePressHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
         pCurveCanvas.CaptureMouse();
         pArgs.Handled = true;
     }
@@ -76,65 +76,65 @@ public sealed partial class PInspector
     private void PCurveMoveHandle(object pSender, MouseEventArgs pArgs)
     {
         Point pPixel = pArgs.GetPosition(pCurveCanvas);
-        pArgs.Handled = LCurve.LCurveMoveHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
+        pArgs.Handled = QCurve.QCurveMoveHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
     }
 
     private void PCurveReleaseHandle(object pSender, MouseButtonEventArgs pArgs)
     {
-        pArgs.Handled = LCurve.LCurveReleaseHandle();
+        pArgs.Handled = QCurve.QCurveReleaseHandle();
         pCurveCanvas.ReleaseMouseCapture();
     }
 
     private void PCurveRebuild()
     {
         pCurveCanvas.Children.Clear();
-        LCurveCanvas pPlan = LCurve.LCurveCanvas;
-        pCurveCanvas.Children.Add(PCurveHistogramBuild(pPlan.LCurveHistogramRead(PCurveCanvasSize)));
-        pPlan.LCurveGridRead(PCurveCanvasSize).ToList().ForEach(PCurveLineDraw);
-        pCurveCanvas.Children.Add(PCurveTrackBuild(pPlan.LCurveTrackRead(PCurveCanvasSize)));
-        pPlan.LCurveDotsRead(PCurveCanvasSize).ToList().ForEach(PCurveDotDraw);
+        QCurveCanvas pPlan = QCurve.QCurveCanvas;
+        pCurveCanvas.Children.Add(PCurveHistogramBuild(pPlan.QCurveHistogramRead(PCurveCanvasSize)));
+        pPlan.QCurveGridRead(PCurveCanvasSize).ToList().ForEach(PCurveLineDraw);
+        pCurveCanvas.Children.Add(PCurveTrackBuild(pPlan.QCurveTrackRead(PCurveCanvasSize)));
+        pPlan.QCurveDotsRead(PCurveCanvasSize).ToList().ForEach(PCurveDotDraw);
     }
 
-    private Polygon PCurveHistogramBuild(IReadOnlyList<LCurvePoint> pArea) => new()
+    private Polygon PCurveHistogramBuild(IReadOnlyList<QCurvePoint> pArea) => new()
     {
-        Fill = PCurveHistogramBrush[LCurve.LCurveChannel],
+        Fill = PCurveHistogramBrush[QCurve.QCurveChannel],
         IsHitTestVisible = false,
         Points = new PointCollection(pArea.Select(PCurvePointBuild))
     };
 
-    private void PCurveLineDraw(LCurveLine pLine) => pCurveCanvas.Children.Add(new Line
+    private void PCurveLineDraw(QCurveLine pLine) => pCurveCanvas.Children.Add(new Line
     {
-        X1 = pLine.LCurveLineFrom.LCurvePointX,
-        Y1 = pLine.LCurveLineFrom.LCurvePointY,
-        X2 = pLine.LCurveLineTo.LCurvePointX,
-        Y2 = pLine.LCurveLineTo.LCurvePointY,
-        Stroke = PCurveLineBrush[pLine.LCurveLineKey],
+        X1 = pLine.QCurveLineFrom.QCurvePointX,
+        Y1 = pLine.QCurveLineFrom.QCurvePointY,
+        X2 = pLine.QCurveLineTo.QCurvePointX,
+        Y2 = pLine.QCurveLineTo.QCurvePointY,
+        Stroke = PCurveLineBrush[pLine.QCurveLineKey],
         StrokeThickness = 1,
         SnapsToDevicePixels = true
     });
 
-    private Polyline PCurveTrackBuild(IReadOnlyList<LCurvePoint> pTrack) => new()
+    private Polyline PCurveTrackBuild(IReadOnlyList<QCurvePoint> pTrack) => new()
     {
-        Stroke = PCurveChannelBrush[LCurve.LCurveChannel],
+        Stroke = PCurveChannelBrush[QCurve.QCurveChannel],
         StrokeThickness = 1.6,
         StrokeLineJoin = PenLineJoin.Round,
         Points = new PointCollection(pTrack.Select(PCurvePointBuild))
     };
 
-    private void PCurveDotDraw(LCurveDot pDot)
+    private void PCurveDotDraw(QCurveDot pDot)
     {
         var pEllipse = new Ellipse
         {
-            Width = pDot.LCurveDotSize,
-            Height = pDot.LCurveDotSize,
-            Stroke = PCurveChannelBrush[LCurve.LCurveChannel],
-            StrokeThickness = pDot.LCurveDotThickness,
-            Fill = PCurveDotFill[LCurve.LCurveChannel][pDot.LCurveDotFill]
+            Width = pDot.QCurveDotSize,
+            Height = pDot.QCurveDotSize,
+            Stroke = PCurveChannelBrush[QCurve.QCurveChannel],
+            StrokeThickness = pDot.QCurveDotThickness,
+            Fill = PCurveDotFill[QCurve.QCurveChannel][pDot.QCurveDotFill]
         };
-        Canvas.SetLeft(pEllipse, pDot.LCurveDotLeft);
-        Canvas.SetTop(pEllipse, pDot.LCurveDotTop);
+        Canvas.SetLeft(pEllipse, pDot.QCurveDotLeft);
+        Canvas.SetTop(pEllipse, pDot.QCurveDotTop);
         pCurveCanvas.Children.Add(pEllipse);
     }
 
-    private static Point PCurvePointBuild(LCurvePoint pPoint) => new(pPoint.LCurvePointX, pPoint.LCurvePointY);
+    private static Point PCurvePointBuild(QCurvePoint pPoint) => new(pPoint.QCurvePointX, pPoint.QCurvePointY);
 }

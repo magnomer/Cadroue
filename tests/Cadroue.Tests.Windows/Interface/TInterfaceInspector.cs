@@ -6,111 +6,111 @@ namespace Cadroue.Tests.Windows;
 
 internal static class TInterfaceInspector
 {
-    internal static LInspector TInspectorCreate() => new();
-    internal static void TInspectorAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorChanged += handler;
-    internal static void TInspectorSourceSet(LInspector inspector, double width, double height) =>
-        inspector.LInspectorSourceSet(width, height);
-    internal static void TInspectorStepSet(LInspector inspector, string? step) => inspector.LInspectorStepSet(step);
-    internal static void TInspectorMinimizedSet(LInspector inspector, bool minimized) =>
-        inspector.LInspectorMinimizedSet(minimized);
-    internal static bool TInspectorOwnerSet(LInspector inspector, string path) => inspector.LInspectorOwnerSet(path);
-    internal static bool TInspectorFailureSet(LInspector inspector, string? path) =>
-        inspector.LInspectorFailureSet(path);
-    internal static LWorkCrop TInspectorCropRead(LInspector inspector) => inspector.LInspectorCrop.LInspectorCropRead();
-    internal static LCropbox? TInspectorRectRead(LInspector inspector) => inspector.LInspectorCrop.LInspectorRectRead();
-    internal static LRotateFlip TInspectorRotateRead(LInspector inspector) =>
-        inspector.LInspectorCrop.LInspectorRotateRead();
-    internal static void TInspectorCropApply(LInspector inspector, LWorkCrop crop, bool apply) =>
-        inspector.LInspectorCrop.LInspectorCropApply(crop, apply);
+    internal static QInspector TInspectorCreate() => new();
+    internal static void TInspectorAttach(QInspector inspector, Action handler) =>
+        inspector.QInspectorChanged += handler;
+    internal static void TInspectorSourceSet(QInspector inspector, double width, double height) =>
+        inspector.QInspectorSourceSet(width, height);
+    internal static void TInspectorStepSet(QInspector inspector, string? step) => inspector.QInspectorStepSet(step);
+    internal static void TInspectorMinimizedSet(QInspector inspector, bool minimized) =>
+        inspector.QInspectorMinimizedSet(minimized);
+    internal static bool TInspectorOwnerSet(QInspector inspector, string path) => inspector.QInspectorOwnerSet(path);
+    internal static bool TInspectorFailureSet(QInspector inspector, string? path) =>
+        inspector.QInspectorFailureSet(path);
+    internal static LWorkCrop TInspectorCropRead(QInspector inspector) => inspector.QInspectorCrop.QInspectorCropRead();
+    internal static LCropbox? TInspectorRectRead(QInspector inspector) => inspector.QInspectorCrop.QInspectorRectRead();
+    internal static LRotateFlip TInspectorRotateRead(QInspector inspector) =>
+        inspector.QInspectorCrop.QInspectorRotateRead();
+    internal static void TInspectorCropApply(QInspector inspector, LWorkCrop crop, bool apply) =>
+        inspector.QInspectorCrop.QInspectorCropApply(crop, apply);
     internal static void TInspectorRatioApply(
-        LInspector inspector, bool fixedRatio, bool lenient, int width, int height) =>
-        inspector.LInspectorCrop.LInspectorRatioApply(fixedRatio, lenient, width, height);
-    internal static void TInspectorCropReset(LInspector inspector) => inspector.LInspectorCrop.LInspectorCropReset();
-    internal static void TInspectorPlanApply(LInspector inspector, LEditPlan plan) =>
-        inspector.LInspectorPlanApply(plan);
-    internal static void TInspectorVideoAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorVideoChanged += handler;
-    internal static void TInspectorPersistentAttach(LInspector inspector, Action handler) =>
-        inspector.LInspectorPersistentChanged += handler;
-    internal static string TInspectorTitleRead(LInspector inspector) => inspector.LInspectorTitleRead();
-    internal static bool TInspectorSectionCheck(LInspector inspector, string key) =>
-        inspector.LInspectorSectionCheck(key);
+        QInspector inspector, bool fixedRatio, bool lenient, int width, int height) =>
+        inspector.QInspectorCrop.QInspectorRatioApply(fixedRatio, lenient, width, height);
+    internal static void TInspectorCropReset(QInspector inspector) => inspector.QInspectorCrop.QInspectorCropReset();
+    internal static void TInspectorPlanApply(QInspector inspector, LEditPlan plan) =>
+        inspector.QInspectorPlanApply(plan);
+    internal static void TInspectorVideoAttach(QInspector inspector, Action handler) =>
+        inspector.QInspectorVideoChanged += handler;
+    internal static void TInspectorPersistentAttach(QInspector inspector, Action handler) =>
+        inspector.QInspectorPersistentChanged += handler;
+    internal static string TInspectorTitleRead(QInspector inspector) => inspector.QInspectorTitleRead();
+    internal static bool TInspectorSectionCheck(QInspector inspector, string key) =>
+        inspector.QInspectorSectionCheck(key);
     internal static double TInspectorValueCommit(string text, double current, double? least, double? most) =>
-        LInspector.LInspectorValueCommit(text, current, least, most);
+        QInspector.QInspectorValueCommit(text, current, least, most);
     internal static string TInspectorValueFormat(string text, double number, string format) =>
-        LInspector.LInspectorValueFormat(text, number, format);
+        QInspector.QInspectorValueFormat(text, number, format);
     internal static void TInspectorSlideCommit(
         double slider, double current, double least, double most, Action<double> set) =>
-        LInspector.LInspectorSlideCommit(slider, current, least, most, set);
-    internal static LInspectorTip TInspectorTipResolve(
-        LInspector inspector, bool active, bool capable, bool preview, string disabled, string previewKey) =>
-        inspector.LInspectorTipResolve(
+        QInspector.QInspectorSlideCommit(slider, current, least, most, set);
+    internal static QInspectorTip TInspectorTipResolve(
+        QInspector inspector, bool active, bool capable, bool preview, string disabled, string previewKey) =>
+        inspector.QInspectorTipResolve(
             active, capable, preview, disabled, previewKey, "Inspector.Common.Apply", "Inspector.Common.Persistent");
-    internal static void TInspectorPresetSelect(LInspector inspector, int index) =>
-        inspector.LInspectorCrop.LInspectorPresetSelect(index);
-    internal static void TInspectorFixedSet(LInspector inspector, bool fixedRatio) =>
-        inspector.LInspectorCrop.LInspectorFixedSet(fixedRatio);
-    internal static void TInspectorLenientSet(LInspector inspector, bool lenient) =>
-        inspector.LInspectorCrop.LInspectorLenientSet(lenient);
+    internal static void TInspectorPresetSelect(QInspector inspector, int index) =>
+        inspector.QInspectorCrop.QInspectorPresetSelect(index);
+    internal static void TInspectorFixedSet(QInspector inspector, bool fixedRatio) =>
+        inspector.QInspectorCrop.QInspectorFixedSet(fixedRatio);
+    internal static void TInspectorLenientSet(QInspector inspector, bool lenient) =>
+        inspector.QInspectorCrop.QInspectorLenientSet(lenient);
     internal static void TInspectorRatioCommit(
-        LInspector inspector, string width, string height, bool typed = true) =>
-        inspector.LInspectorCrop.LInspectorRatioCommit(width, height, typed);
-    internal static string TInspectorRatioFormat(LInspector inspector, bool width, string text) =>
-        inspector.LInspectorCrop.LInspectorRatioFormat(width, text);
-    internal static string TInspectorNoticeRead(LInspector inspector) =>
-        inspector.LInspectorCrop.LInspectorNoticeRead();
-    internal static string TInspectorResolutionRead(LInspector inspector) =>
-        inspector.LInspectorCrop.LInspectorResolutionRead();
-    internal static void TInspectorEdgeCommit(LInspector inspector, int side, string text, bool typed = true) =>
-        inspector.LInspectorCrop.LInspectorEdgeCommit(side, text, typed);
-    internal static string TInspectorEdgeFormat(LInspector inspector, int side, string text) =>
-        inspector.LInspectorCrop.LInspectorEdgeFormat(side, text);
-    internal static void TInspectorEdgeReset(LInspector inspector) => inspector.LInspectorCrop.LInspectorEdgeReset();
+        QInspector inspector, string width, string height, bool typed = true) =>
+        inspector.QInspectorCrop.QInspectorRatioCommit(width, height, typed);
+    internal static string TInspectorRatioFormat(QInspector inspector, bool width, string text) =>
+        inspector.QInspectorCrop.QInspectorRatioFormat(width, text);
+    internal static string TInspectorNoticeRead(QInspector inspector) =>
+        inspector.QInspectorCrop.QInspectorNoticeRead();
+    internal static string TInspectorResolutionRead(QInspector inspector) =>
+        inspector.QInspectorCrop.QInspectorResolutionRead();
+    internal static void TInspectorEdgeCommit(QInspector inspector, int side, string text, bool typed = true) =>
+        inspector.QInspectorCrop.QInspectorEdgeCommit(side, text, typed);
+    internal static string TInspectorEdgeFormat(QInspector inspector, int side, string text) =>
+        inspector.QInspectorCrop.QInspectorEdgeFormat(side, text);
+    internal static void TInspectorEdgeReset(QInspector inspector) => inspector.QInspectorCrop.QInspectorEdgeReset();
     internal static void TInspectorCropSet(
-        LInspector inspector, LCropbox? drawn, int drive, int anchorX, int anchorY) =>
-        inspector.LInspectorCrop.LInspectorCropSet(drawn, drive, anchorX, anchorY);
-    internal static void TInspectorRotateSelect(LInspector inspector, int index) =>
-        inspector.LInspectorCrop.LInspectorRotateSelect(index);
-    internal static void TInspectorFlipSet(LInspector inspector, bool horizontal, bool flipped) =>
-        inspector.LInspectorCrop.LInspectorFlipSet(horizontal, flipped);
-    internal static void TInspectorApplySet(LInspector inspector, bool apply) =>
-        inspector.LInspectorCrop.LInspectorApplySet(apply);
-    internal static LWorkVideoStep TInspectorStepRead(LInspector inspector, LColorKind kind) =>
-        inspector.LInspectorStepRead(kind);
-    internal static void TInspectorVideoApply(LInspector inspector, LWorkVideo video) =>
-        inspector.LInspectorVideoApply(video);
-    internal static bool TInspectorPersistentCheck(LInspector inspector) => inspector.LInspectorPersistentCheck();
-    internal static bool TInspectorPersistentCheck(LInspector inspector, LColorKind kind) =>
-        inspector.LInspectorPersistentCheck(kind);
-    internal static void TInspectorPersistentSet(LInspector inspector, LColorKind kind, bool persistent) =>
-        inspector.LInspectorPersistentSet(kind, persistent);
-    internal static void TInspectorPersistentApply(LInspector inspector, LWorkVideo video) =>
-        inspector.LInspectorPersistentApply(video);
-    internal static LWorkVideo TInspectorPersistentRead(LInspector inspector) => inspector.LInspectorPersistentRead();
+        QInspector inspector, LCropbox? drawn, int drive, int anchorX, int anchorY) =>
+        inspector.QInspectorCrop.QInspectorCropSet(drawn, drive, anchorX, anchorY);
+    internal static void TInspectorRotateSelect(QInspector inspector, int index) =>
+        inspector.QInspectorCrop.QInspectorRotateSelect(index);
+    internal static void TInspectorFlipSet(QInspector inspector, bool horizontal, bool flipped) =>
+        inspector.QInspectorCrop.QInspectorFlipSet(horizontal, flipped);
+    internal static void TInspectorApplySet(QInspector inspector, bool apply) =>
+        inspector.QInspectorCrop.QInspectorApplySet(apply);
+    internal static LWorkVideoStep TInspectorStepRead(QInspector inspector, LColorKind kind) =>
+        inspector.QInspectorStepRead(kind);
+    internal static void TInspectorVideoApply(QInspector inspector, LWorkVideo video) =>
+        inspector.QInspectorVideoApply(video);
+    internal static bool TInspectorPersistentCheck(QInspector inspector) => inspector.QInspectorPersistentCheck();
+    internal static bool TInspectorPersistentCheck(QInspector inspector, LColorKind kind) =>
+        inspector.QInspectorPersistentCheck(kind);
+    internal static void TInspectorPersistentSet(QInspector inspector, LColorKind kind, bool persistent) =>
+        inspector.QInspectorPersistentSet(kind, persistent);
+    internal static void TInspectorPersistentApply(QInspector inspector, LWorkVideo video) =>
+        inspector.QInspectorPersistentApply(video);
+    internal static LWorkVideo TInspectorPersistentRead(QInspector inspector) => inspector.QInspectorPersistentRead();
     internal static LRotateFlip TRotateCropResolve(LWorkCrop crop) => LRotateFlip.LRotateCropResolve(crop);
-    internal static void TInspectorToolSet(LInspector inspector, bool armed) => inspector.LInspectorToolSet(armed);
-    internal static void TInspectorCapableSet(LInspector inspector, bool crop, bool orientation) =>
-        inspector.LInspectorCapableSet(crop, orientation);
+    internal static void TInspectorToolSet(QInspector inspector, bool armed) => inspector.QInspectorToolSet(armed);
+    internal static void TInspectorCapableSet(QInspector inspector, bool crop, bool orientation) =>
+        inspector.QInspectorCapableSet(crop, orientation);
 
-    internal static void TInspectorSaveSuspend(LInspector inspector) => inspector.LInspectorSaveSuspend();
-    internal static void TInspectorSaveResume(LInspector inspector) => inspector.LInspectorSaveResume();
+    internal static void TInspectorSaveSuspend(QInspector inspector) => inspector.QInspectorSaveSuspend();
+    internal static void TInspectorSaveResume(QInspector inspector) => inspector.QInspectorSaveResume();
 
-    internal static LWorkAudioStep TInspectorStepRead(LInspectorAudio audio, LAudioKind kind) =>
-        audio.LInspectorStepRead(kind);
-    internal static void TInspectorAudioApply(LInspectorAudio audio, LWorkAudio plan) =>
-        audio.LInspectorAudioApply(plan);
-    internal static bool TInspectorPersistentCheck(LInspectorAudio audio) => audio.LInspectorPersistentCheck();
-    internal static void TInspectorPersistentApply(LInspectorAudio audio, LWorkAudio plan, bool skipPersistent) =>
-        audio.LInspectorPersistentApply(plan, skipPersistent);
-    internal static LWorkAudio TInspectorPersistentRead(LInspectorAudio audio) => audio.LInspectorPersistentRead();
-    internal static void TInspectorAudioAttach(LInspectorAudio audio, Action handler) =>
-        audio.LInspectorAudioChanged += handler;
+    internal static LWorkAudioStep TInspectorStepRead(QInspectorAudio audio, LAudioKind kind) =>
+        audio.QInspectorStepRead(kind);
+    internal static void TInspectorAudioApply(QInspectorAudio audio, LWorkAudio plan) =>
+        audio.QInspectorAudioApply(plan);
+    internal static bool TInspectorPersistentCheck(QInspectorAudio audio) => audio.QInspectorPersistentCheck();
+    internal static void TInspectorPersistentApply(QInspectorAudio audio, LWorkAudio plan, bool skipPersistent) =>
+        audio.QInspectorPersistentApply(plan, skipPersistent);
+    internal static LWorkAudio TInspectorPersistentRead(QInspectorAudio audio) => audio.QInspectorPersistentRead();
+    internal static void TInspectorAudioAttach(QInspectorAudio audio, Action handler) =>
+        audio.QInspectorAudioChanged += handler;
 
-    internal static LInspectorChoice TInspectorChoiceRead(
+    internal static QInspectorChoice TInspectorChoiceRead(
         IReadOnlyList<string> tokens, Func<string, string> keyRead, string? token, string? match) =>
-        LInspectorPlan.LInspectorChoiceRead(tokens, keyRead, token, match);
+        QInspectorPlan.QInspectorChoiceRead(tokens, keyRead, token, match);
     internal static string? TInspectorChoiceResolve(
         IReadOnlyList<string> tokens, int index, string? token, string? match) =>
-        LInspectorPlan.LInspectorChoiceResolve(tokens, index, token, match);
+        QInspectorPlan.QInspectorChoiceResolve(tokens, index, token, match);
 }

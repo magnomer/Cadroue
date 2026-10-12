@@ -31,10 +31,10 @@ internal sealed partial class PSDiagnosis : Window
 
     private static PSDiagnosis? psDiagnosisCurrent;
 
-    private readonly LSDiagnosis lsDiagnosis;
+    private readonly QSDiagnosis lsDiagnosis;
     private readonly PSGrabber psDiagnosisGrabber;
 
-    internal static void PSDiagnosisShow(Window pOwner, Func<LSDiagnosis> lsDiagnosisCreate)
+    internal static void PSDiagnosisShow(Window pOwner, Func<QSDiagnosis> lsDiagnosisCreate)
     {
         if (psDiagnosisCurrent is not null)
         {
@@ -47,10 +47,10 @@ internal sealed partial class PSDiagnosis : Window
         psDiagnosis.Show();
     }
 
-    private PSDiagnosis(Window pOwner, LSDiagnosis lsDiagnosisOwner)
+    private PSDiagnosis(Window pOwner, QSDiagnosis lsDiagnosisOwner)
     {
         lsDiagnosis = lsDiagnosisOwner;
-        Title = lsDiagnosis.LSDiagnosisTitle;
+        Title = lsDiagnosis.QSDiagnosisTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;
         Width = PSDiagnosisWidthDefault;
@@ -65,12 +65,12 @@ internal sealed partial class PSDiagnosis : Window
         psDiagnosisGrabber = new PSGrabber(this);
         psDiagnosisGrabber.PSGrabberAttach();
         Closed += PSDiagnosisCloseHandle;
-        lsDiagnosis.LSDiagnosisChanged += PSDiagnosisResultApply;
-        _ = lsDiagnosis.LSDiagnosisProbeStart();
+        lsDiagnosis.QSDiagnosisChanged += PSDiagnosisResultApply;
+        _ = lsDiagnosis.QSDiagnosisProbeStart();
     }
 
     private UIElement PSDiagnosisBuild() =>
-        PSDialog.PSDialogBuild(this, lsDiagnosis.LSDiagnosisTitle, PSDiagnosisRootBuild());
+        PSDialog.PSDialogBuild(this, lsDiagnosis.QSDiagnosisTitle, PSDiagnosisRootBuild());
 
     private DockPanel PSDiagnosisRootBuild()
     {
@@ -110,8 +110,8 @@ internal sealed partial class PSDiagnosis : Window
 
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
-        lsDiagnosis.LSDiagnosisClose();
-        lsDiagnosis.LSDiagnosisChanged -= PSDiagnosisResultApply;
+        lsDiagnosis.QSDiagnosisClose();
+        lsDiagnosis.QSDiagnosisChanged -= PSDiagnosisResultApply;
         PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
         Closed -= PSDiagnosisCloseHandle;

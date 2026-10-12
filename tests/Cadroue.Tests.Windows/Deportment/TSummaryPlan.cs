@@ -26,19 +26,19 @@ public sealed class TSummaryPlan
         two.LWorkSourceBytes = 2_097_152;
         schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
-        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
 
-        Assert.Empty(summary.LSummaryMeters);
-        Assert.Empty(summary.LSummaryBars);
-        Assert.Equal(2, summary.LSummaryCompares.Count);
-        Assert.Equal(LRosterDetail.LRosterLineHead, summary.LSummaryCompares[0].LRosterCompareSource.LRosterLineKey);
-        Assert.Equal("3 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
+        Assert.Empty(summary.QSummaryMeters);
+        Assert.Empty(summary.QSummaryBars);
+        Assert.Equal(2, summary.QSummaryCompares.Count);
+        Assert.Equal(QRosterDetail.QRosterLineHead, summary.QSummaryCompares[0].QRosterCompareSource.QRosterLineKey);
+        Assert.Equal("3 MiB", summary.QSummaryCompares[1].QRosterCompareSource.QRosterLineText);
         Assert.Equal(
-            TInterfaceRoster.TRosterMebiFormat(null), summary.LSummaryCompares[1].LRosterCompareOutput.LRosterLineText);
-        Assert.Equal(new[] { one.LWorkSourcePath, two.LWorkSourcePath }, summary.LSummarySources);
-        Assert.Equal(new[] { one.LWorkOutputPath, two.LWorkOutputPath }, summary.LSummaryOutputs);
-        Assert.Equal(TInterfaceRoster.TSummaryFilesFormat(2), summary.LSummarySourceCount);
-        Assert.Equal(TInterfaceRoster.TSummaryFilesFormat(2), summary.LSummaryOutputCount);
+            TInterfaceRoster.TRosterMebiFormat(null), summary.QSummaryCompares[1].QRosterCompareOutput.QRosterLineText);
+        Assert.Equal(new[] { one.LWorkSourcePath, two.LWorkSourcePath }, summary.QSummarySources);
+        Assert.Equal(new[] { one.LWorkOutputPath, two.LWorkOutputPath }, summary.QSummaryOutputs);
+        Assert.Equal(TInterfaceRoster.TSummaryFilesFormat(2), summary.QSummarySourceCount);
+        Assert.Equal(TInterfaceRoster.TSummaryFilesFormat(2), summary.QSummaryOutputCount);
     }
 
     [Fact]
@@ -60,14 +60,14 @@ public sealed class TSummaryPlan
         second.TWorkItem.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
         schedule.TScheduleAdd(first, second);
 
-        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
-        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
-        Assert.Equal(new[] { second.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
-        Assert.Equal("00:04 / 0.25 MiB/s", Assert.Single(summary.LSummaryMeters));
-        LRosterBar bar = Assert.Single(summary.LSummaryBars);
-        Assert.Equal("25%", bar.LRosterBarPercent);
-        Assert.Equal("4 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("1 MiB", summary.LSummaryCompares[1].LRosterCompareOutput.LRosterLineText);
+        QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.QSummarySources);
+        Assert.Equal(new[] { second.TWorkItem.LWorkOutputPath }, summary.QSummaryOutputs);
+        Assert.Equal("00:04 / 0.25 MiB/s", Assert.Single(summary.QSummaryMeters));
+        QRosterBar bar = Assert.Single(summary.QSummaryBars);
+        Assert.Equal("25%", bar.QRosterBarPercent);
+        Assert.Equal("4 MiB", summary.QSummaryCompares[1].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("1 MiB", summary.QSummaryCompares[1].QRosterCompareOutput.QRosterLineText);
     }
 
     [Fact]
@@ -82,10 +82,10 @@ public sealed class TSummaryPlan
         one.LWorkStateCurrent = LWorkState.LWorkStateRunning;
         schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
-        LRosterCompareRow sizes =
-            TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch).LSummaryCompares[1];
-        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.LRosterCompareSource.LRosterLineText);
-        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.LRosterCompareOutput.LRosterLineText);
+        QRosterCompareRow sizes =
+            TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch).QSummaryCompares[1];
+        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.QRosterCompareSource.QRosterLineText);
+        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.QRosterCompareOutput.QRosterLineText);
         Assert.Null(TInterfaceRoster.TSummaryMeterFormat([one, two], null));
     }
 
@@ -104,14 +104,14 @@ public sealed class TSummaryPlan
         two.TWorkItem.LWorkOwnerProcess = Environment.ProcessId;
         schedule.TScheduleAdd(one, two);
 
-        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
         IReadOnlyList<Guid> shown = TInterfaceRoster.TRosterIdsRead(schedule.TScheduleRead());
         TInterfaceRoster.TStationClose(other);
 
         Assert.Equal(new[] { one.TWorkId }, shown);
-        Assert.Equal(new[] { one.TWorkItem.LWorkSourcePath, two.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
-        Assert.Equal(new[] { one.TWorkItem.LWorkOutputPath, two.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
-        Assert.Equal("3 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
+        Assert.Equal(new[] { one.TWorkItem.LWorkSourcePath, two.TWorkItem.LWorkSourcePath }, summary.QSummarySources);
+        Assert.Equal(new[] { one.TWorkItem.LWorkOutputPath, two.TWorkItem.LWorkOutputPath }, summary.QSummaryOutputs);
+        Assert.Equal("3 MiB", summary.QSummaryCompares[1].QRosterCompareSource.QRosterLineText);
     }
 
     [Fact]
@@ -125,13 +125,13 @@ public sealed class TSummaryPlan
         second.TWorkItem.LWorkSourceBytes = 2_097_152;
         schedule.TScheduleAdd(first, second);
 
-        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
 
-        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
+        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.QSummarySources);
         Assert.Equal(
-            new[] { first.TWorkItem.LWorkOutputPath, second.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
-        Assert.Equal("1 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
+            new[] { first.TWorkItem.LWorkOutputPath, second.TWorkItem.LWorkOutputPath }, summary.QSummaryOutputs);
+        Assert.Equal("1 MiB", summary.QSummaryCompares[1].QRosterCompareSource.QRosterLineText);
         Assert.Equal(
-            TInterfaceRoster.TRosterMebiFormat(123), summary.LSummaryCompares[1].LRosterCompareOutput.LRosterLineText);
+            TInterfaceRoster.TRosterMebiFormat(123), summary.QSummaryCompares[1].QRosterCompareOutput.QRosterLineText);
     }
 }

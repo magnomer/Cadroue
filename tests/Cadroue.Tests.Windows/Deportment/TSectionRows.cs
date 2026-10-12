@@ -7,9 +7,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TSectionRows
 {
-    private static (LFlow, LSection) TSectionBuild()
+    private static (QFlow, QSection) TSectionBuild()
     {
-        LFlow flow = TInterface.TFlowCreate();
+        QFlow flow = TInterface.TFlowCreate();
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSectionSet(flow, true);
         TInterface.TFlowSourceSet(
@@ -25,31 +25,31 @@ public sealed class TSectionRows
     [Fact]
     public void Rows_ComeFromPieces_WithNumbersTimesAffixesAndSelection()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         TInterface.TFlowSectionSelect(flow, 1);
 
-        IReadOnlyList<LSectionRow> rows = TInterface.TSectionRowsRead(section);
+        IReadOnlyList<QSectionRow> rows = TInterface.TSectionRowsRead(section);
 
         Assert.Equal(2, rows.Count);
-        Assert.Equal("1", rows[0].LSectionRowNumber);
-        Assert.True(rows[0].LSectionRowUnnamed);
-        Assert.Equal("0:10", rows[0].LSectionRowOrigin);
-        Assert.Equal("0:30", rows[0].LSectionRowEnd);
-        Assert.Equal("  (0:20)", rows[0].LSectionRowSpan);
-        Assert.False(rows[0].LSectionRowSelected);
-        Assert.Equal("beta", rows[1].LSectionRowText);
-        Assert.Equal(["  /  pre"], rows[1].LSectionRowAffixes);
-        Assert.True(rows[1].LSectionRowPrefixed);
-        Assert.False(rows[1].LSectionRowSuffixed);
-        Assert.True(rows[1].LSectionRowSelected);
-        Assert.False(rows[1].LSectionRowEditing);
+        Assert.Equal("1", rows[0].QSectionRowNumber);
+        Assert.True(rows[0].QSectionRowUnnamed);
+        Assert.Equal("0:10", rows[0].QSectionRowOrigin);
+        Assert.Equal("0:30", rows[0].QSectionRowEnd);
+        Assert.Equal("  (0:20)", rows[0].QSectionRowSpan);
+        Assert.False(rows[0].QSectionRowSelected);
+        Assert.Equal("beta", rows[1].QSectionRowText);
+        Assert.Equal(["  /  pre"], rows[1].QSectionRowAffixes);
+        Assert.True(rows[1].QSectionRowPrefixed);
+        Assert.False(rows[1].QSectionRowSuffixed);
+        Assert.True(rows[1].QSectionRowSelected);
+        Assert.False(rows[1].QSectionRowEditing);
         Assert.False(string.IsNullOrEmpty(TInterface.TSectionTitleRead(section)));
     }
 
     [Fact]
     public void SameList_AppliesSelectionOnly_ChangedListRebuilds()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         int rebuilds = 0;
         int selects = 0;
         TInterface.TSectionAttach(section, () => rebuilds++, () => selects++);
@@ -66,15 +66,15 @@ public sealed class TSectionRows
     [Fact]
     public void Rename_StartsEditing_CommitAppliesTrimmedAffixes_CancelRestores()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         int rebuilds = 0;
         TInterface.TSectionAttach(section, () => rebuilds++, () => { });
 
         Assert.False(TInterface.TSectionRenameHandle(section, 0, 1));
         Assert.True(TInterface.TSectionRenameHandle(section, 0, 2));
-        Assert.Equal(0, section.LSectionEditIndex);
-        Assert.True(TInterface.TSectionRowsRead(section)[0].LSectionRowEditing);
-        int serial = section.LSectionEditSerial;
+        Assert.Equal(0, section.QSectionEditIndex);
+        Assert.True(TInterface.TSectionRowsRead(section)[0].QSectionRowEditing);
+        int serial = section.QSectionEditSerial;
 
         TInterface.TSectionTextSet(section, " gamma ", "p ", " s");
         Assert.True(TInterface.TSectionKeyRun(section, "Return"));
@@ -83,7 +83,7 @@ public sealed class TSectionRows
         Assert.Equal("gamma", piece.LPieceName);
         Assert.Equal("p", piece.LPiecePrefix);
         Assert.Equal("s", piece.LPieceSuffix);
-        Assert.Null(section.LSectionEditIndex);
+        Assert.Null(section.QSectionEditIndex);
 
         TInterface.TSectionBlurHandle(section, serial, false);
         Assert.Equal("gamma", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
@@ -101,25 +101,25 @@ public sealed class TSectionRows
     [Fact]
     public void Blur_CommitsOnlyTheLiveEditor_WhenFocusLeftTheBoxes()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         TInterface.TSectionRenameHandle(section, 0, 2);
-        int serial = section.LSectionEditSerial;
+        int serial = section.QSectionEditSerial;
         TInterface.TSectionTextSet(section, "kept", "", "");
 
         TInterface.TSectionBlurHandle(section, serial - 1, false);
-        Assert.Equal(0, section.LSectionEditIndex);
+        Assert.Equal(0, section.QSectionEditIndex);
         TInterface.TSectionBlurHandle(section, serial, true);
-        Assert.Equal(0, section.LSectionEditIndex);
+        Assert.Equal(0, section.QSectionEditIndex);
         TInterface.TSectionBlurHandle(section, serial, false);
 
-        Assert.Null(section.LSectionEditIndex);
+        Assert.Null(section.QSectionEditIndex);
         Assert.Equal("kept", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
     }
 
     [Fact]
     public void Drag_MovesAfterThreshold_ReordersThroughTheFlow_ReleaseRebuilds()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         List<int> starts = [];
         List<int> ends = [];
         List<(int, int)> moves = [];
@@ -137,21 +137,21 @@ public sealed class TSectionRows
 
         Assert.Equal([0], starts);
         Assert.Equal([(0, 1)], moves);
-        Assert.Equal(1, section.LSectionDrag.LSectionDragIndex);
+        Assert.Equal(1, section.QSectionDrag.QSectionDragIndex);
         Assert.Equal("beta", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
         Assert.Equal(0, rebuilds);
 
         Assert.True(TInterface.TSectionReleaseHandle(section, false, false));
         Assert.Equal([1], ends);
         Assert.Equal(1, rebuilds);
-        Assert.Null(section.LSectionDrag.LSectionDragIndex);
+        Assert.Null(section.QSectionDrag.QSectionDragIndex);
         Assert.False(TInterface.TSectionReleaseHandle(section, false, false));
     }
 
     [Fact]
     public void Release_WithoutMove_SelectsByModifiers_ToggleAndSeekAskTheFlow()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         TInterface.TFlowSectionSelect(flow, 0);
 
         TInterface.TSectionPressHandle(section, 1, 1, 5, 5);
@@ -168,17 +168,17 @@ public sealed class TSectionRows
         Assert.False(TInterface.TSectionSeekHandle(section, 0, 1, false));
         Assert.True(TInterface.TSectionSeekHandle(section, 0, 2, true));
         Assert.Equal(0, TInterface.TFlowSelectionRead(flow));
-        Assert.Equal(TimeSpan.FromSeconds(30), flow.LFlowCursor);
+        Assert.Equal(TimeSpan.FromSeconds(30), flow.QFlowCursor);
 
         TInterface.TSectionPressHandle(section, 0, 1, 5, 5);
         TInterface.TSectionLostHandle(section);
-        Assert.Null(section.LSectionDrag.LSectionDragIndex);
+        Assert.Null(section.QSectionDrag.QSectionDragIndex);
     }
 
     [Fact]
     public void EditableOff_DisablesCancelsAndClearsTheDrag()
     {
-        (LFlow flow, LSection section) = TSectionBuild();
+        (QFlow flow, QSection section) = TSectionBuild();
         List<bool> enabled = [];
         TInterface.TSectionEnabledAttach(section, enabled.Add);
         TInterface.TSectionRenameHandle(section, 0, 2);
@@ -186,8 +186,8 @@ public sealed class TSectionRows
         TInterface.TFlowEditSet(flow, false);
 
         Assert.Equal([false], enabled);
-        Assert.False(section.LSectionEditable);
-        Assert.Null(section.LSectionEditIndex);
+        Assert.False(section.QSectionEditable);
+        Assert.Null(section.QSectionEditIndex);
         Assert.False(TInterface.TSectionRenameHandle(section, 0, 2));
         Assert.True(TInterface.TSectionPressHandle(section, 0, 1, 5, 5));
         Assert.False(TInterface.TSectionMoveHandle(section, 50, 50, 4, true, [0, 30], [30, 30]));

@@ -15,8 +15,8 @@ namespace Cadroue.UIVeneer.PPorch;
 
 public sealed class PWorkspace
 {
-    private static readonly IReadOnlyDictionary<string, Func<LWorkspace, LSceneTabEntry?, PTabSurface>>
-        pWorkspaceSurfaces = new Dictionary<string, Func<LWorkspace, LSceneTabEntry?, PTabSurface>>
+    private static readonly IReadOnlyDictionary<string, Func<QWorkspace, LSceneTabEntry?, PTabSurface>>
+        pWorkspaceSurfaces = new Dictionary<string, Func<QWorkspace, LSceneTabEntry?, PTabSurface>>
         {
             ["Split"] = (lWorkspace, lLayout) => new PSplitTab(lWorkspace, lLayout),
             ["Edit"] = (lWorkspace, lLayout) => new PEditTab(lWorkspace, lLayout),
@@ -25,7 +25,7 @@ public sealed class PWorkspace
             ["Convert"] = (lWorkspace, lLayout) => new PConvertTab(lWorkspace, lLayout),
             ["Merge"] = (lWorkspace, lLayout) => new PMergeTab(lWorkspace, lLayout),
             ["Funnel"] = (lWorkspace, lLayout) => new PFunnelTab(lWorkspace, lLayout),
-            ["Worklist"] = (lWorkspace, lLayout) => new PWorklistTab(lWorkspace.LWorkspaceRoster!, lLayout),
+            ["Worklist"] = (lWorkspace, lLayout) => new PWorklistTab(lWorkspace.QWorkspaceRoster!, lLayout),
         };
 
     private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, FrameworkElement>> pWorkspaceRoots =
@@ -43,36 +43,36 @@ public sealed class PWorkspace
         };
 
     public PWorkspace(
-        LStrip lStrip,
-        LStripTab lStripTab,
+        QStrip lStrip,
+        QStripTab lStripTab,
         LSceneTabEntry? lPreferenceTabLayout = null)
     {
         PWorkspaceTab = lStripTab;
-        LWorkspace = lStripTab.LStripTabWorkspace;
-        PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.LStripTabKey](LWorkspace, lPreferenceTabLayout);
+        QWorkspace = lStripTab.QStripTabWorkspace;
+        PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.QStripTabKey](QWorkspace, lPreferenceTabLayout);
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
         PWorkspaceList = PWorkspaceSurface.PTabList;
-        LWorkspace.LWorkspaceAttach(PWorkspaceSurface.PTabLayoutRead);
+        QWorkspace.QWorkspaceAttach(PWorkspaceSurface.PTabLayoutRead);
         PWorkspaceSurface.PTabStripAttach(lStrip, lStripTab);
-        LWorkspace.LWorkspaceFlowAttached += PWorkspaceFlowAttach;
-        LWorkspace.LWorkspaceFlowCleared += PWorkspaceFlowClear;
-        LWorkspace.LWorkspaceMediaClosed += PWorkspaceMediaClose;
-        LWorkspace.LWorkspaceLosslesscutFound += PWorkspaceLosslesscutDefer;
-        LWorkspace.LWorkspaceRelayDeferred += PWorkspaceRelayDefer;
-        LWorkspace.LWorkspaceRangeApplied += PWorkspaceRangeApply;
-        LWorkspace.LWorkspaceVolumeApplied += PWorkspaceVolumeApply;
-        LWorkspace.LWorkspaceSeekApplied += PWorkspaceSeekApply;
-        LWorkspace.LWorkspacePathsAdded += PWorkspacePathsAdd;
-        LWorkspace.LWorkspaceSourceSelected += PWorkspaceSourceSelect;
-        LWorkspace.LWorkspaceSourceOpened += PWorkspaceSourceOpen;
+        QWorkspace.QWorkspaceFlowAttached += PWorkspaceFlowAttach;
+        QWorkspace.QWorkspaceFlowCleared += PWorkspaceFlowClear;
+        QWorkspace.QWorkspaceMediaClosed += PWorkspaceMediaClose;
+        QWorkspace.QWorkspaceLosslesscutFound += PWorkspaceLosslesscutDefer;
+        QWorkspace.QWorkspaceRelayDeferred += PWorkspaceRelayDefer;
+        QWorkspace.QWorkspaceRangeApplied += PWorkspaceRangeApply;
+        QWorkspace.QWorkspaceVolumeApplied += PWorkspaceVolumeApply;
+        QWorkspace.QWorkspaceSeekApplied += PWorkspaceSeekApply;
+        QWorkspace.QWorkspacePathsAdded += PWorkspacePathsAdd;
+        QWorkspace.QWorkspaceSourceSelected += PWorkspaceSourceSelect;
+        QWorkspace.QWorkspaceSourceOpened += PWorkspaceSourceOpen;
         PWorkspaceSurface.PTabWidthChanged += PWorkspaceWidthRaise;
-        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.QWorkspaceKey.LWorkspaceSourcePresent](this);
+        PWorkspaceRoot = pWorkspaceRoots[QWorkspace.QWorkspaceFacts.QWorkspaceSourcePresent](this);
     }
 
-    public LStripTab PWorkspaceTab { get; }
+    public QStripTab PWorkspaceTab { get; }
 
-    public LWorkspace LWorkspace { get; }
+    public QWorkspace QWorkspace { get; }
 
     public FrameworkElement PWorkspaceRoot { get; }
 
@@ -94,19 +94,19 @@ public sealed class PWorkspace
 
     public void PWorkspaceCommandApply(double pFlowHeight)
     {
-        PWorkspaceFlow?.LFlow.LFlowCommandSet(true);
-        PWorkspaceFlow?.LFlow.LFlowSectionSet(LWorkspace.QWorkspaceKey.LWorkspaceSectionVisible);
+        PWorkspaceFlow?.QFlow.QFlowCommandSet(true);
+        PWorkspaceFlow?.QFlow.QFlowSectionSet(QWorkspace.QWorkspaceFacts.QWorkspaceSectionVisible);
         PWorkspaceFlow?.PFlowHeightSet(pFlowHeight);
         PWorkspaceFlow?.PFlowOrderApply();
-        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerCommandApply(true);
+        PWorkspaceViewer?.QViewer.QViewerMedia.QViewerCommandApply(true);
     }
 
     public void PWorkspaceCommandReset()
     {
-        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerDragSet(false);
-        PWorkspaceFlow?.LFlow.LFlowSectionSet(false);
-        PWorkspaceFlow?.LFlow.LFlowCommandSet(false);
-        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerCommandApply(false);
+        PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerDragSet(false);
+        PWorkspaceFlow?.QFlow.QFlowSectionSet(false);
+        PWorkspaceFlow?.QFlow.QFlowCommandSet(false);
+        PWorkspaceViewer?.QViewer.QViewerMedia.QViewerCommandApply(false);
     }
 
     public void PWorkspaceFlowApply(double pFlowHeight)
@@ -119,24 +119,24 @@ public sealed class PWorkspace
     public void PWorkspaceClose()
     {
         PWorkspaceStepRun("subscriptions", PWorkspaceDetach);
-        PWorkspaceStepRun("deportment", LWorkspace.LWorkspaceClose);
+        PWorkspaceStepRun("deportment", QWorkspace.QWorkspaceClose);
         PWorkspaceStepRun("surface", PWorkspaceSurface.PTabClose);
-        pWorkspacePairCloses[LWorkspace.LWorkspaceFlowPresent](this);
+        pWorkspacePairCloses[QWorkspace.QWorkspaceFlowPresent](this);
     }
 
     private void PWorkspaceDetach()
     {
-        LWorkspace.LWorkspaceFlowAttached -= PWorkspaceFlowAttach;
-        LWorkspace.LWorkspaceFlowCleared -= PWorkspaceFlowClear;
-        LWorkspace.LWorkspaceMediaClosed -= PWorkspaceMediaClose;
-        LWorkspace.LWorkspaceLosslesscutFound -= PWorkspaceLosslesscutDefer;
-        LWorkspace.LWorkspaceRelayDeferred -= PWorkspaceRelayDefer;
-        LWorkspace.LWorkspaceRangeApplied -= PWorkspaceRangeApply;
-        LWorkspace.LWorkspaceVolumeApplied -= PWorkspaceVolumeApply;
-        LWorkspace.LWorkspaceSeekApplied -= PWorkspaceSeekApply;
-        LWorkspace.LWorkspacePathsAdded -= PWorkspacePathsAdd;
-        LWorkspace.LWorkspaceSourceSelected -= PWorkspaceSourceSelect;
-        LWorkspace.LWorkspaceSourceOpened -= PWorkspaceSourceOpen;
+        QWorkspace.QWorkspaceFlowAttached -= PWorkspaceFlowAttach;
+        QWorkspace.QWorkspaceFlowCleared -= PWorkspaceFlowClear;
+        QWorkspace.QWorkspaceMediaClosed -= PWorkspaceMediaClose;
+        QWorkspace.QWorkspaceLosslesscutFound -= PWorkspaceLosslesscutDefer;
+        QWorkspace.QWorkspaceRelayDeferred -= PWorkspaceRelayDefer;
+        QWorkspace.QWorkspaceRangeApplied -= PWorkspaceRangeApply;
+        QWorkspace.QWorkspaceVolumeApplied -= PWorkspaceVolumeApply;
+        QWorkspace.QWorkspaceSeekApplied -= PWorkspaceSeekApply;
+        QWorkspace.QWorkspacePathsAdded -= PWorkspacePathsAdd;
+        QWorkspace.QWorkspaceSourceSelected -= PWorkspaceSourceSelect;
+        QWorkspace.QWorkspaceSourceOpened -= PWorkspaceSourceOpen;
         PWorkspaceSurface.PTabWidthChanged -= PWorkspaceWidthRaise;
     }
 
@@ -167,43 +167,43 @@ public sealed class PWorkspace
 
     private void PWorkspaceMediaClose()
     {
-        PWorkspaceViewer?.LViewer.LViewerMedia.LViewerMediaClose(true);
+        PWorkspaceViewer?.QViewer.QViewerMedia.QViewerMediaClose(true);
         PWorkspaceFlow?.PFlowClear();
     }
 
     private void PWorkspaceLosslesscutDefer() =>
         PWorkspaceSurface.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PWorkspaceLosslesscutFind));
 
-    private void PWorkspaceLosslesscutFind() => PWorkspaceFlow?.LFlow.LFlowLosslesscut.LFlowLosslesscutFind();
+    private void PWorkspaceLosslesscutFind() => PWorkspaceFlow?.QFlow.QFlowLosslesscut.QFlowLosslesscutFind();
 
     private void PWorkspaceRelayDefer(LRelay lRelay, TimeSpan lDuration) =>
         PWorkspaceSurface.Dispatcher.BeginInvoke(
             DispatcherPriority.Background,
-            new Action(() => LWorkspace.LWorkspaceRelayRestore(lRelay, lDuration)));
+            new Action(() => QWorkspace.QWorkspaceRelayRestore(lRelay, lDuration)));
 
     private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
-        PWorkspaceFlow?.LFlow.QFlowSpool.LFlowRangeSet(lOrigin, lLimit);
+        PWorkspaceFlow?.QFlow.QFlowSpool.QFlowRangeSet(lOrigin, lLimit);
 
     private void PWorkspaceVolumeApply(double lVolume) =>
-        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerVolumeSet(lVolume);
+        PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerVolumeSet(lVolume);
 
     private void PWorkspaceSeekApply(TimeSpan lPosition) =>
-        PWorkspaceViewer?.LViewer.LViewerPlayback.LViewerSeek(lPosition);
+        PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerSeek(lPosition);
 
     private async void PWorkspacePathsAdd(IReadOnlyList<string> lPaths)
     {
-        await PWorkspaceList!.LList.LListPathsAdd(lPaths);
-        LWorkspace.LWorkspaceSourceRun();
+        await PWorkspaceList!.QList.QListPathsAdd(lPaths);
+        QWorkspace.QWorkspaceSourceRun();
     }
 
-    private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.LList.LListListedSelect(lPath);
+    private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.QList.QListListedSelect(lPath);
 
-    private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(lPath);
+    private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.QViewer.QViewerSource.QViewerSourceOpen(lPath);
 
     private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
     {
-        var pSource = new PSource(pWorkspace.LWorkspace.LWorkspaceSource!);
-        var pInfo = new PInfo(pWorkspace.LWorkspace.LWorkspaceInfo!);
+        var pSource = new PSource(pWorkspace.QWorkspace.QWorkspaceSource!);
+        var pInfo = new PInfo(pWorkspace.QWorkspace.QWorkspaceInfo!);
         var pRoot = new Grid
         {
             ClipToBounds = true,

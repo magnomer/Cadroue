@@ -3,17 +3,17 @@ Hash: `d045e12a512f08bb`
 
 ## `public PRoster(LSceneTabEntry? lPreferenceTabLayout = null)`
 
-Builds the queue and detail columns and subscribes to the LRoster notices.
+Builds the queue and detail columns and subscribes to the QRoster notices.
 The elapsed timer starts here and stops only through the close path.
 
-## `public LSceneTabEntry PRosterLayoutRead() => LRoster.LRosterLayoutRead(pRosterLayout.PColumnWeightsRead());`
+## `public LSceneTabEntry PRosterLayoutRead() => QRoster.QRosterLayoutRead(pRosterLayout.PColumnWeightsRead());`
 
 The roster layout is saved from the live column weights.
 The veneer only reports the weights and the deportment decides the stored shape.
 
-## `private void PRosterElapsedTick(object? pSender, EventArgs pArguments) => LRoster.LRosterElapsedTick(IsVisible);`
+## `private void PRosterElapsedTick(object? pSender, EventArgs pArguments) => QRoster.QRosterElapsedTick(IsVisible);`
 
-The visibility flag lets LRoster skip elapsed updates while the worklist tab is hidden.
+The visibility flag lets QRoster skip elapsed updates while the worklist tab is hidden.
 
 ## `private void PRosterVisibleHandle(object pSender, DependencyPropertyChangedEventArgs pArguments)`
 

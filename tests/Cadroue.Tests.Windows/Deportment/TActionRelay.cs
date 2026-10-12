@@ -7,15 +7,15 @@ namespace Cadroue.Tests.Windows;
 [Collection("Cartographer")]
 public sealed class TActionRelay
 {
-    private static LStrip TStripBuild() =>
+    private static QStrip TStripBuild() =>
         TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
 
-    private static (LStripTab TStripTab, LAction TAction) TActionTabAdd(LStrip strip, string key, bool auto)
+    private static (QStripTab TStripTab, QAction TAction) TActionTabAdd(QStrip strip, string key, bool auto)
     {
-        LStripTab tab = TInterface.TStripTabCreate(key);
+        QStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
         TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key));
-        LAction action = TInterface.TActionCreate();
+        QAction action = TInterface.TActionCreate();
         TInterface.TActionRelayAttach(action, strip, tab);
         TInterface.TActionAutoSet(action, auto);
         return (tab, action);
@@ -24,17 +24,17 @@ public sealed class TActionRelay
     [Fact]
     public void Accept_DeliversToAutoTab_OnlyWhenArmed()
     {
-        LStrip strip = TStripBuild();
+        QStrip strip = TStripBuild();
         TInterface.TActionStripAttach(strip);
-        (LStripTab armed, LAction armedAction) = TActionTabAdd(strip, "Edit", true);
-        (LStripTab idle, LAction idleAction) = TActionTabAdd(strip, "Convert", false);
+        (QStripTab armed, QAction armedAction) = TActionTabAdd(strip, "Edit", true);
+        (QStripTab idle, QAction idleAction) = TActionTabAdd(strip, "Convert", false);
         List<string> armedItems = [];
         List<string> idleItems = [];
         TInterface.TActionItemsAttach(armedAction, paths => armedItems.AddRange(paths));
         TInterface.TActionItemsAttach(idleAction, paths => idleItems.AddRange(paths));
 
-        TInterface.TActionAccept(armed.LStripTabId, @"C:\media\a.mp4", Guid.NewGuid());
-        TInterface.TActionAccept(idle.LStripTabId, @"C:\media\b.mp4", Guid.NewGuid());
+        TInterface.TActionAccept(armed.QStripTabId, @"C:\media\a.mp4", Guid.NewGuid());
+        TInterface.TActionAccept(idle.QStripTabId, @"C:\media\b.mp4", Guid.NewGuid());
         TInterface.TActionAccept(Guid.NewGuid(), @"C:\media\c.mp4", Guid.NewGuid());
 
         Assert.Equal([@"C:\media\a.mp4"], armedItems);
@@ -44,13 +44,13 @@ public sealed class TActionRelay
     [Fact]
     public void Accept_SkipsMergeTab_EvenWhenArmed()
     {
-        LStrip strip = TStripBuild();
+        QStrip strip = TStripBuild();
         TInterface.TActionStripAttach(strip);
-        (LStripTab merge, LAction mergeAction) = TActionTabAdd(strip, "Merge", true);
+        (QStripTab merge, QAction mergeAction) = TActionTabAdd(strip, "Merge", true);
         List<string> items = [];
         TInterface.TActionItemsAttach(mergeAction, paths => items.AddRange(paths));
 
-        TInterface.TActionAccept(merge.LStripTabId, @"C:\media\a.mp4", Guid.NewGuid());
+        TInterface.TActionAccept(merge.QStripTabId, @"C:\media\a.mp4", Guid.NewGuid());
 
         Assert.Empty(items);
     }
@@ -58,8 +58,8 @@ public sealed class TActionRelay
     [Fact]
     public void CohortRun_NeedsAutoAndAnAddedItem()
     {
-        LStrip strip = TStripBuild();
-        (LStripTab tab, LAction action) = TActionTabAdd(strip, "Merge", false);
+        QStrip strip = TStripBuild();
+        (QStripTab tab, QAction action) = TActionTabAdd(strip, "Merge", false);
         int added = 0;
         TInterface.TActionCohortAttach(action, _ => added);
         Guid cohort = Guid.NewGuid();
@@ -78,16 +78,16 @@ public sealed class TActionRelay
     [Fact]
     public void StripTitleChange_RefreshesTargetFromCartographer()
     {
-        LStrip strip = TStripBuild();
-        (LStripTab source, LAction action) = TActionTabAdd(strip, "Split", false);
-        (LStripTab target, _) = TActionTabAdd(strip, "Edit", false);
-        TInterface.TActionRelaySelect(action, target.LStripTabId);
-        Assert.Equal(target.LStripTabTitle, action.LActionFaceText);
+        QStrip strip = TStripBuild();
+        (QStripTab source, QAction action) = TActionTabAdd(strip, "Split", false);
+        (QStripTab target, _) = TActionTabAdd(strip, "Edit", false);
+        TInterface.TActionRelaySelect(action, target.QStripTabId);
+        Assert.Equal(target.QStripTabTitle, action.QActionFaceText);
 
         Assert.True(TInterface.TStripNameSet(strip, target, "Renamed"));
 
-        Assert.Equal("Renamed", action.LActionFaceText);
-        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
-        Assert.Equal(source.LStripTabId, TInterface.TActionRouteRead(action).TActionSource);
+        Assert.Equal("Renamed", action.QActionFaceText);
+        Assert.Equal(target.QStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
+        Assert.Equal(source.QStripTabId, TInterface.TActionRouteRead(action).TActionSource);
     }
 }

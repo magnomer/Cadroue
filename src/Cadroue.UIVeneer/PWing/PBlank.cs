@@ -39,7 +39,7 @@ public sealed partial class PInspector
         pBlankSwitch = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
-        PInspectorSwitchAttach(pBlankSwitch, LBlank.LBlankEnabledSet);
+        PInspectorSwitchAttach(pBlankSwitch, QBlank.QBlankEnabledSet);
         pBlankStack = new StackPanel();
         pBlankBody = new StackPanel
         {
@@ -49,9 +49,9 @@ public sealed partial class PInspector
         StackPanel pStack = pBlankStack;
 
         (pBlankBrightnessSlider, pBlankBrightnessValue) = PSensorValueBuild(
-            LBlank.LBlankBrightnessBound,
-            () => LBlank.LBlankStep.LDetectorBlankBrightness,
-            LBlank.LBlankBrightnessSet);
+            QBlank.QBlankBrightnessBound,
+            () => QBlank.QBlankStep.LDetectorBlankBrightness,
+            QBlank.QBlankBrightnessSet);
         pBlankBrightnessSlider.Width = PWhitebalanceWheelSize;
         pBlankBrightnessSlider.HorizontalAlignment = HorizontalAlignment.Center;
         pBlankBrightnessSlider.Margin = new Thickness(0, 6, 0, 0);
@@ -66,8 +66,8 @@ public sealed partial class PInspector
 
         (pBlankToleranceSlider, pBlankToleranceValue) = PSensorValueBuild(
             LDetector.LDetectorToleranceRead(),
-            () => LBlank.LBlankStep.LDetectorBlankTolerance,
-            LBlank.LBlankToleranceSet);
+            () => QBlank.QBlankStep.LDetectorBlankTolerance,
+            QBlank.QBlankToleranceSet);
         pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Tolerance"),
             pBlankToleranceSlider,
@@ -76,8 +76,8 @@ public sealed partial class PInspector
 
         (pBlankCoverageSlider, pBlankCoverageValue) = PSensorValueBuild(
             LDetector.LDetectorCoverageRead(),
-            () => LBlank.LBlankStep.LDetectorBlankCoverage,
-            LBlank.LBlankCoverageSet);
+            () => QBlank.QBlankStep.LDetectorBlankCoverage,
+            QBlank.QBlankCoverageSet);
         pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Coverage"),
             pBlankCoverageSlider,
@@ -85,9 +85,9 @@ public sealed partial class PInspector
             pBlankCoverageValue));
 
         (pBlankMinimumSlider, pBlankMinimumValue) = PSensorValueBuild(
-            LBlank.LBlankMinimumBound,
-            () => LBlank.LBlankStep.LDetectorBlankMinimum,
-            LBlank.LBlankMinimumSet);
+            QBlank.QBlankMinimumBound,
+            () => QBlank.QBlankStep.LDetectorBlankMinimum,
+            QBlank.QBlankMinimumSet);
         pStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"),
             pBlankMinimumSlider,
@@ -98,8 +98,8 @@ public sealed partial class PInspector
         pBlankBody.Children.Add(PInspectorSeparatorBuild());
         pBlankBody.Children.Add(pStack);
 
-        LBlank.LBlankChanged += PBlankUpdate;
-        LBlank.LBlankPickChanged += PBlankPickUpdate;
+        QBlank.QBlankChanged += PBlankUpdate;
+        QBlank.QBlankPickChanged += PBlankPickUpdate;
         PBlankUpdate();
         return pBlankBody;
     }
@@ -109,11 +109,11 @@ public sealed partial class PInspector
         pBlankBlack = PSensorRadioBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Black"),
             "PBlankType",
-            () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeBlack));
+            () => QBlank.QBlankTypeSet(LDetectorType.LDetectorTypeBlack));
         pBlankColor = PSensorRadioBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Color"),
             "PBlankType",
-            () => LBlank.LBlankTypeSet(LDetectorType.LDetectorTypeColor));
+            () => QBlank.QBlankTypeSet(LDetectorType.LDetectorTypeColor));
         Border pBlankType = PRadio.PRadioSegmentBuild(pBlankBlack, pBlankColor);
         pBlankType.Margin = new Thickness(0, 0, 0, 10);
         return pBlankType;
@@ -137,8 +137,8 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PInspectorToolCreate(typeof(ToggleButton))
         };
-        pBlankPicker.Checked += (_, _) => LBlank.LBlankPickSet(true);
-        pBlankPicker.Unchecked += (_, _) => LBlank.LBlankPickSet(false);
+        pBlankPicker.Checked += (_, _) => QBlank.QBlankPickSet(true);
+        pBlankPicker.Unchecked += (_, _) => QBlank.QBlankPickSet(false);
 
         return PInspectorFieldBuild(
             LLocalization.LLocalizationTextRead("Inspector.Blank.Picker"),
@@ -199,13 +199,13 @@ public sealed partial class PInspector
     private void PBlankWheelHandle(object pSender, MouseEventArgs pBlankMouse)
     {
         Point pBlankPoint = pBlankMouse.GetPosition(pBlankWheelCanvas);
-        LBlank.LBlankWheelHandle(
+        QBlank.QBlankWheelHandle(
             PLook.PLookPressed[pBlankMouse.LeftButton], pBlankPoint.X, pBlankPoint.Y, PWhitebalanceWheelSize);
     }
 
     private void PBlankWheelPlace()
     {
-        LNeutralDot pDot = LBlank.LBlankDotRead(PWhitebalanceWheelSize, pBlankWheelDot.Width);
+        LNeutralDot pDot = QBlank.QBlankDotRead(PWhitebalanceWheelSize, pBlankWheelDot.Width);
         Canvas.SetLeft(pBlankWheelDot, pDot.LNeutralDotLeft);
         Canvas.SetTop(pBlankWheelDot, pDot.LNeutralDotTop);
         pBlankWheelDot.Visibility = PLook.PLookVisible[pDot.LNeutralDotPresent];
@@ -219,11 +219,11 @@ public sealed partial class PInspector
 
     private void PBlankUpdate()
     {
-        LDetectorBlank pBlank = LBlank.LBlankStep;
+        LDetectorBlank pBlank = QBlank.QBlankStep;
         PInspectorSwitchUpdate(pBlankSwitch, pBlank.LDetectorBlankEnabled);
-        pBlankColor.IsChecked = PLook.PLookChecked[LBlank.LBlankWheelPresent];
-        pBlankBlack.IsChecked = PLook.PLookChecked[!LBlank.LBlankWheelPresent];
-        pBlankColorArea.Visibility = PLook.PLookVisible[LBlank.LBlankWheelPresent];
+        pBlankColor.IsChecked = PLook.PLookChecked[QBlank.QBlankWheelPresent];
+        pBlankBlack.IsChecked = PLook.PLookChecked[!QBlank.QBlankWheelPresent];
+        pBlankColorArea.Visibility = PLook.PLookVisible[QBlank.QBlankWheelPresent];
         PInspectorValueUpdate(pBlankBrightnessSlider, pBlankBrightnessValue, pBlank.LDetectorBlankBrightness, "0.00");
         PInspectorValueUpdate(pBlankToleranceSlider, pBlankToleranceValue, pBlank.LDetectorBlankTolerance, "0.00");
         PInspectorValueUpdate(pBlankCoverageSlider, pBlankCoverageValue, pBlank.LDetectorBlankCoverage, "0.00");

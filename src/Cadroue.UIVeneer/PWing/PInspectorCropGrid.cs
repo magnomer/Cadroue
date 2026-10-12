@@ -79,7 +79,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(3)
         };
-        pResetButton.Click += (_, _) => LInspectorCrop.LInspectorEdgeReset();
+        pResetButton.Click += (_, _) => QInspectorCrop.QInspectorEdgeReset();
         return pResetButton;
     }
 

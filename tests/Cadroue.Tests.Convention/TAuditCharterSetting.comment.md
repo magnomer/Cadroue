@@ -1,5 +1,5 @@
 # TAuditCharterSetting.cs
-Hash: `ed1afb286cf4d0dc`
+Hash: `3b4337431df2ff84`
 
 ## `internal static class TAuditCharterSetting`
 

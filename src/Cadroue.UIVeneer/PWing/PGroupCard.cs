@@ -17,8 +17,8 @@ public sealed class PGroupCard
     private static readonly Brush pGroupMutedBrush = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E));
     private static readonly Brush pGroupCardBrush = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFB));
 
-    private static readonly IReadOnlyDictionary<bool, Func<PGroupCard, LGroupCard, UIElement>> pGroupNames =
-        new Dictionary<bool, Func<PGroupCard, LGroupCard, UIElement>>
+    private static readonly IReadOnlyDictionary<bool, Func<PGroupCard, QGroupCard, UIElement>> pGroupNames =
+        new Dictionary<bool, Func<PGroupCard, QGroupCard, UIElement>>
         {
             [true] = (pCard, lCard) => pCard.PGroupEditBuild(lCard),
             [false] = (pCard, lCard) => pCard.PGroupLabelBuild(lCard),
@@ -31,14 +31,14 @@ public sealed class PGroupCard
             [false] = (pCard, pRow) => { },
         };
 
-    private readonly LGroup lGroup;
+    private readonly QGroup lGroup;
     private readonly StackPanel pGroupFileRows = new();
     private readonly List<Border> pGroupRowBorders = [];
 
-    public PGroupCard(PGroup pPanel, LGroupCard lCard)
+    public PGroupCard(PGroup pPanel, QGroupCard lCard)
     {
-        lGroup = pPanel.LGroup;
-        lCard.LGroupCardFiles.ToList().ForEach(PGroupFileAdd);
+        lGroup = pPanel.QGroup;
+        lCard.QGroupCardFiles.ToList().ForEach(PGroupFileAdd);
 
         var pCardBody = new StackPanel();
         pCardBody.Children.Add(PGroupCrestBuild(lCard));
@@ -57,7 +57,7 @@ public sealed class PGroupCard
             Tag = pGroupFileRows
         };
         PGroupCardBorder.DragOver += PGroup.PGroupOverHandle;
-        PGroupCardBorder.Drop += (_, pEvent) => PGroupDropHandle(lCard.LGroupCardIndex, pEvent);
+        PGroupCardBorder.Drop += (_, pEvent) => PGroupDropHandle(lCard.QGroupCardIndex, pEvent);
     }
 
     public Border PGroupCardBorder { get; }
@@ -65,9 +65,9 @@ public sealed class PGroupCard
     private void PGroupDropHandle(int pGroupIndex, DragEventArgs pEvent)
     {
         var pMove = pEvent.Data.GetData(PGroup.PGroupMoveKind) as PGroup.PGroupMovePayload;
-        pEvent.Handled = lGroup.LGroupDrag.LGroupCardAccept(
+        pEvent.Handled = lGroup.QGroupDrag.QGroupCardAccept(
             pGroupIndex,
-            LGroupDrag.LGroupInsertResolve(
+            QGroupDrag.QGroupInsertResolve(
                 pEvent.GetPosition(pGroupFileRows).Y,
                 pGroupRowBorders.Select(PGroupTopRead).ToList(),
                 pGroupRowBorders.Select(PGroupHeightRead).ToList()),
@@ -81,18 +81,18 @@ public sealed class PGroupCard
 
     private static double PGroupHeightRead(Border pRow) => pRow.ActualHeight;
 
-    private UIElement PGroupCrestBuild(LGroupCard lCard)
+    private UIElement PGroupCrestBuild(QGroupCard lCard)
     {
         var pHeaderGrid = new Grid { Margin = new Thickness(10, 4, 4, 4) };
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pHeaderGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        UIElement pNameElement = pGroupNames[lCard.LGroupCardEditing](this, lCard);
+        UIElement pNameElement = pGroupNames[lCard.QGroupCardEditing](this, lCard);
 
         Button pRemoveButton = PGroup.PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("Group.Remove.Tooltip"),
-            (_, _) => lGroup.LGroupRemove(lCard.LGroupCardIndex));
+            (_, _) => lGroup.QGroupRemove(lCard.QGroupCardIndex));
         pRemoveButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         Grid.SetColumn(pRemoveButton, 1);
@@ -101,11 +101,11 @@ public sealed class PGroupCard
         return pHeaderGrid;
     }
 
-    private TextBlock PGroupLabelBuild(LGroupCard lCard)
+    private TextBlock PGroupLabelBuild(QGroupCard lCard)
     {
         var pNameLabel = new TextBlock
         {
-            Text = lCard.LGroupCardName,
+            Text = lCard.QGroupCardName,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -115,15 +115,15 @@ public sealed class PGroupCard
             ToolTip = LLocalization.LLocalizationTextRead("Group.Rename.Tooltip")
         };
         pNameLabel.MouseLeftButtonDown += (_, pNameEvent) =>
-            pNameEvent.Handled = lGroup.LGroupLabelHandle(lCard.LGroupCardIndex, pNameEvent.ClickCount);
+            pNameEvent.Handled = lGroup.QGroupLabelHandle(lCard.QGroupCardIndex, pNameEvent.ClickCount);
         return pNameLabel;
     }
 
-    private TextBox PGroupEditBuild(LGroupCard lCard)
+    private TextBox PGroupEditBuild(QGroupCard lCard)
     {
         var pNameBox = new TextBox
         {
-            Text = lCard.LGroupCardName,
+            Text = lCard.QGroupCardName,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -137,19 +137,19 @@ public sealed class PGroupCard
             pNameBox.SelectAll();
         };
         pNameBox.KeyDown += (_, pKeyEvent) =>
-            pKeyEvent.Handled = lGroup.LGroupKeyRun(pKeyEvent.Key.ToString(), pNameBox.Text);
-        pNameBox.LostKeyboardFocus += (_, _) => lGroup.LGroupNameCommit(pNameBox.Text);
+            pKeyEvent.Handled = lGroup.QGroupKeyRun(pKeyEvent.Key.ToString(), pNameBox.Text);
+        pNameBox.LostKeyboardFocus += (_, _) => lGroup.QGroupNameCommit(pNameBox.Text);
         return pNameBox;
     }
 
-    private void PGroupFileAdd(LGroupFile lFile) => pGroupFileRows.Children.Add(PGroupFileBuild(lFile));
+    private void PGroupFileAdd(QGroupFile lFile) => pGroupFileRows.Children.Add(PGroupFileBuild(lFile));
 
-    private Border PGroupFileBuild(LGroupFile lFile)
+    private Border PGroupFileBuild(QGroupFile lFile)
     {
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new TextBlock
         {
-            Text = lFile.LGroupFileNumber,
+            Text = lFile.QGroupFileNumber,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -161,7 +161,7 @@ public sealed class PGroupCard
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = lFile.LGroupFileName,
+            Text = lFile.QGroupFileName,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             Foreground = pGroupRowBrush,
@@ -172,7 +172,7 @@ public sealed class PGroupCard
         Button pItemRemoveButton = PGroup.PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("Group.Item.RemoveTooltip"),
-            (_, _) => lGroup.LGroupItemRemove(lFile.LGroupFileGroup, lFile.LGroupFilePath));
+            (_, _) => lGroup.QGroupItemRemove(lFile.QGroupFileGroup, lFile.QGroupFilePath));
         pItemRemoveButton.Width = 22;
         pItemRemoveButton.Height = 20;
         pItemRemoveButton.Margin = new Thickness(6, 0, 0, 0);
@@ -190,34 +190,34 @@ public sealed class PGroupCard
             Padding = new Thickness(20, 4, 8, 4),
             Background = Brushes.Transparent,
             Cursor = Cursors.Hand,
-            ToolTip = lFile.LGroupFilePath,
+            ToolTip = lFile.QGroupFilePath,
             Child = pRowGrid,
-            Tag = lFile.LGroupFilePath
+            Tag = lFile.QGroupFilePath
         };
         pRowBorder.MouseLeftButtonDown += (_, pRowEvent) => PGroupPressHandle(lFile, pRowBorder, pRowEvent);
         pRowBorder.MouseMove += (_, pRowEvent) => PGroupMoveHandle(pRowBorder, pRowEvent);
         pRowBorder.MouseLeftButtonUp += (_, _) =>
         {
             pRowBorder.ReleaseMouseCapture();
-            lGroup.LGroupDrag.LGroupDragClear();
+            lGroup.QGroupDrag.QGroupDragClear();
         };
         pGroupRowBorders.Add(pRowBorder);
         return pRowBorder;
     }
 
-    private void PGroupPressHandle(LGroupFile lFile, Border pRowBorder, MouseButtonEventArgs pRowEvent)
+    private void PGroupPressHandle(QGroupFile lFile, Border pRowBorder, MouseButtonEventArgs pRowEvent)
     {
         Point pOrigin = pRowEvent.GetPosition(null);
         Point pGrab = pRowEvent.GetPosition(pRowBorder);
-        lGroup.LGroupDrag.LGroupPressHandle(
-            lFile.LGroupFileGroup, lFile.LGroupFilePath, pOrigin.X, pOrigin.Y, pGrab.X, pGrab.Y);
+        lGroup.QGroupDrag.QGroupPressHandle(
+            lFile.QGroupFileGroup, lFile.QGroupFilePath, pOrigin.X, pOrigin.Y, pGrab.X, pGrab.Y);
         pRowBorder.CaptureMouse();
     }
 
     private void PGroupMoveHandle(Border pRowBorder, MouseEventArgs pRowEvent)
     {
         Point pCurrent = pRowEvent.GetPosition(null);
-        bool pStart = lGroup.LGroupDrag.LGroupDragResolve(
+        bool pStart = lGroup.QGroupDrag.QGroupDragResolve(
             pCurrent.X,
             pCurrent.Y,
             SystemParameters.MinimumHorizontalDragDistance,
@@ -230,9 +230,9 @@ public sealed class PGroupCard
     {
         var pData = new DataObject(
             PGroup.PGroupMoveKind,
-            new PGroup.PGroupMovePayload(lGroup.LGroupDrag.LGroupDragIndex, lGroup.LGroupDrag.LGroupDragPath));
-        LGhost lGhost = lGroup.LGroupDrag.LGroupGhost;
-        lGroup.LGroupDrag.LGroupDragClear();
+            new PGroup.PGroupMovePayload(lGroup.QGroupDrag.QGroupDragIndex, lGroup.QGroupDrag.QGroupDragPath));
+        QGhost lGhost = lGroup.QGroupDrag.QGroupGhost;
+        lGroup.QGroupDrag.QGroupDragClear();
         pRowBorder.ReleaseMouseCapture();
         PGhost.PGhostDragRun(
             pRowBorder,

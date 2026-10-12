@@ -9,7 +9,7 @@ public sealed class TViewerLoadSerial
     [Fact]
     public void Serial_Advances_StaleResultIgnored()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         TInterfaceViewer.TViewerCommandSet(viewer, true);
 
         int first = TInterfaceViewer.TViewerSerialChange(viewer);
@@ -25,7 +25,7 @@ public sealed class TViewerLoadSerial
     [Fact]
     public void Serial_CommandInactive_Rejects()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, serial));
@@ -38,13 +38,13 @@ public sealed class TViewerLoadSerial
     [Fact]
     public void Serial_Unloaded_RejectsForever()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         TInterfaceViewer.TViewerCommandSet(viewer, true);
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
         TInterfaceViewer.TViewerUnloadSet(viewer);
 
-        Assert.True(viewer.LViewerUnloaded);
+        Assert.True(viewer.QViewerUnloaded);
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, serial));
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, TInterfaceViewer.TViewerSerialChange(viewer)));
     }
@@ -52,15 +52,15 @@ public sealed class TViewerLoadSerial
     [Fact]
     public void MediaClose_AdvancesSerial_ClearsIntent()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         TInterfaceViewer.TViewerCommandSet(viewer, true);
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.FromSeconds(3), true);
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
         TInterfaceViewer.TViewerMediaClose(viewer);
 
-        Assert.Null(viewer.LViewerIntent);
-        Assert.Null(viewer.LViewerSourcePath);
+        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerSourcePath);
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, serial));
     }
 }

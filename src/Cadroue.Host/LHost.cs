@@ -9,16 +9,16 @@ int code = 1;
 Thread thread = new(() =>
 {
     PProgram application = new();
-    application.PProgramAttach(LTraceLog.LTraceErrorRecord, LProgram.LProgramDebounceTick);
+    application.PProgramAttach(LTraceLog.LTraceErrorRecord, QProgram.QProgramDebounceTick);
     CAtelier atelier = new(new LUsherOutlet(), new LLineageOutlet());
 
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
     LEngine engine = new(LRigFactory.LRigFactoryCreate());
-    LProgram program = new(engine.LEngineSchedule, engine.LEngineStationAttach);
+    QProgram program = new(engine.LEngineSchedule, engine.LEngineStationAttach);
 
     application.Startup += (_, e) =>
     {
-        program.LProgramStart(
+        program.QProgramStart(
             e.Args,
             application.PProgramDispatch,
             application.PProgramDefer,
@@ -28,9 +28,9 @@ Thread thread = new(() =>
             application.PProgramDebounceDefer,
             PProgramFlyleaf.PProgramFlyleafStart,
             PProgramFlyleaf.PProgramVerboseApply);
-        application.PProgramWindowShow(new LWindow(atelier));
+        application.PProgramWindowShow(new QWindow(atelier));
     };
-    application.Exit += (_, e) => program.LProgramClose(e.ApplicationExitCode);
+    application.Exit += (_, e) => program.QProgramClose(e.ApplicationExitCode);
 
     code = application.Run();
 });

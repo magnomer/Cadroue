@@ -19,11 +19,11 @@ public sealed class PSource : UserControl
     private readonly TextBox pSourcePathBox;
     private readonly TextBlock pSourcePlaceholderText;
 
-    public LSource LSource { get; }
+    public QSource QSource { get; }
 
-    public PSource(LSource lSource)
+    public PSource(QSource lSource)
     {
-        LSource = lSource;
+        QSource = lSource;
         MinHeight = PSourceRowHeight;
 
         pSourcePathBox = new TextBox
@@ -41,7 +41,7 @@ public sealed class PSource : UserControl
 
         pSourcePlaceholderText = new TextBlock
         {
-            Text = LSource.LSourcePlaceholderRead(),
+            Text = QSource.QSourcePlaceholderRead(),
             FontSize = 11,
             Foreground = PSourceMutedBrush,
             VerticalAlignment = VerticalAlignment.Center,
@@ -90,8 +90,8 @@ public sealed class PSource : UserControl
         Content = pRow;
 
         PSourcePlaceholderSync();
-        LSource.LSourcePathApplied += PSourcePathApply;
-        LSource.LSourceRefuse += PSourceRefuseShow;
+        QSource.QSourcePathApplied += PSourcePathApply;
+        QSource.QSourceRefuse += PSourceRefuseShow;
     }
 
     private void PSourcePathApply(string lPath) => pSourcePathBox.Text = lPath;
@@ -102,20 +102,20 @@ public sealed class PSource : UserControl
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LSource.LSourceTitleRead(),
-            Filter = LSource.LSourceFilterRead()
+            Title = QSource.QSourceTitleRead(),
+            Filter = QSource.QSourceFilterRead()
         };
-        LSource.LSourceDialogOpen(pDialog.ShowDialog(), pDialog.FileName);
+        QSource.QSourceDialogOpen(pDialog.ShowDialog(), pDialog.FileName);
     }
 
     private void PSourceRefuseShow(string lTitle, string lMessage) =>
         PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), lTitle, lMessage);
 
     private void PSourceKeyHandle(object pSender, KeyEventArgs pEvent) =>
-        pEvent.Handled = LSource.LSourceKeyRun(pEvent.Key.ToString(), pSourcePathBox.Text);
+        pEvent.Handled = QSource.QSourceKeyRun(pEvent.Key.ToString(), pSourcePathBox.Text);
 
     private void PSourcePlaceholderSync() =>
-        pSourcePlaceholderText.Visibility = PLook.PLookVisible[LSource.LSourcePlaceholderCheck(pSourcePathBox.Text)];
+        pSourcePlaceholderText.Visibility = PLook.PLookVisible[QSource.QSourcePlaceholderCheck(pSourcePathBox.Text)];
 
     private static Image PSourceIconCreate() => new()
     {

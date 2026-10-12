@@ -5,15 +5,15 @@ namespace Cadroue.Tests.Windows;
 
 internal static class TInterfacePlayer
 {
-    internal static LPlayer TPlayerCreate() => new();
-    internal static bool TPlayerAccurateSet(LPlayer player) => player.LPlayerAccurateSet();
-    internal static void TPlayerAccurateReset(LPlayer player) => player.LPlayerAccurateReset();
-    internal static void TPlayerRendererSet(LPlayer player, bool pending) => player.LPlayerRendererSet(pending);
-    internal static bool TPlayerSeekCommit(LPlayer player, int milliseconds) => player.LPlayerSeekCommit(milliseconds);
-    internal static Task TPlayerOpenStart(LPlayer player, string path) => player.LPlayerOpenStart(path);
-    internal static bool TPlayerFilterApply(LPlayer player, string filter) => player.LPlayerFilterApply(filter);
-    internal static void TPlayerEngineSet(LPlayer player, LPlayerSeam? seam) => player.LPlayerEngineSet(seam);
-    internal static LPlayerSeam TPlayerSeamCreate(
+    internal static QPlayer TPlayerCreate() => new();
+    internal static bool TPlayerAccurateSet(QPlayer player) => player.QPlayerAccurateSet();
+    internal static void TPlayerAccurateReset(QPlayer player) => player.QPlayerAccurateReset();
+    internal static void TPlayerRendererSet(QPlayer player, bool pending) => player.QPlayerRendererSet(pending);
+    internal static bool TPlayerSeekCommit(QPlayer player, int milliseconds) => player.QPlayerSeekCommit(milliseconds);
+    internal static Task TPlayerOpenStart(QPlayer player, string path) => player.QPlayerOpenStart(path);
+    internal static bool TPlayerFilterApply(QPlayer player, string filter) => player.QPlayerFilterApply(filter);
+    internal static void TPlayerEngineSet(QPlayer player, QPlayerSeam? seam) => player.QPlayerEngineSet(seam);
+    internal static QPlayerSeam TPlayerSeamCreate(
         Action<string>? open = null,
         Action<string>? filter = null,
         Action<TimeSpan>? seek = null,
@@ -35,14 +35,14 @@ internal static class TInterfacePlayer
             ended ?? (() => false),
             (_, _) => { },
             dispose ?? (() => { }));
-    internal static void TPlayerAppliedReset(LPlayer player) => player.LPlayerAppliedReset();
-    internal static void TPlayerEndSet(LPlayer player, TimeSpan? end) => player.LPlayerEndSet(end);
+    internal static void TPlayerAppliedReset(QPlayer player) => player.QPlayerAppliedReset();
+    internal static void TPlayerEndSet(QPlayer player, TimeSpan? end) => player.QPlayerEndSet(end);
 
-    internal static void TPlayerSeek(LPlayer player, TimeSpan position) => player.LPlayerSeek(position);
-    internal static TimeSpan TPlayerTimeRead(LPlayer player) => player.LPlayerTimeRead();
-    internal static bool TPlayerEndedRead(LPlayer player) => player.LPlayerEndedRead();
+    internal static void TPlayerSeek(QPlayer player, TimeSpan position) => player.QPlayerSeek(position);
+    internal static TimeSpan TPlayerTimeRead(QPlayer player) => player.QPlayerTimeRead();
+    internal static bool TPlayerEndedRead(QPlayer player) => player.QPlayerEndedRead();
 
-    internal static void TPlayerPreviewApply(LPlayer player, LPreviewState state) =>
-        player.LPlayerPreviewApply(state, "test");
-    internal static void TPlayerAudioApply(LPlayer player, string audio) => player.LPlayerAudioApply(audio);
+    internal static void TPlayerPreviewApply(QPlayer player, LPreviewState state) =>
+        player.QPlayerPreviewApply(state, "test");
+    internal static void TPlayerAudioApply(QPlayer player, string audio) => player.QPlayerAudioApply(audio);
 }

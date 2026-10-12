@@ -10,7 +10,7 @@ public sealed class PWorklistTab : PTabSurface
 {
     private readonly PRoster pRoster;
 
-    public PWorklistTab(LRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PWorklistTab(QRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         pRoster = new PRoster(lRoster, lPreferenceTabLayout);
         Content = pRoster;

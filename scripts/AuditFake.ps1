@@ -69,7 +69,7 @@ AuditFake -ReportDirectory D:\temp\audit -Top 10 -Open -NoOpen
 Write the reports elsewhere, show ten rows of each kind, open the Markdown report but not the page.
 #>
 #requires -Version 5.1
-# AUDITFAKE - AUDIT GENERATION 21.
+# AUDITFAKE - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -101,6 +101,8 @@ Write the reports elsewhere, show ten rows of each kind, open the Markdown repor
 # Mismatching kind only informs while a driver folder it waits on holds no source.
 # Generation 21: nothing this audit reports changes; the number rises with the structure, name and
 # UI audits, which gained kinds, and with the new fault audit.
+# Generation 22: nothing this audit reports changes; the number rises with the structure audit,
+# whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
 [CmdletBinding()]
 param(
     [string]$Root,
@@ -154,7 +156,7 @@ REPORTS
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:AuditGeneration = 21
+$script:AuditGeneration = 22
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding

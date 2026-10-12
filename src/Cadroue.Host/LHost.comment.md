@@ -16,7 +16,7 @@ So the whole run happens on one STA thread the entry point starts and joins.
 The veneer's application, which the host only creates, wires and runs.
 Creating it makes it `Application.Current`, and its constructor loads `App.xaml`.
 
-## `LProgram program = new();`
+## `QProgram program = new();`
 
 The deportment's startup sequence, which owns every load, attach and start of the run.
 The host hands it the seams that need the dispatcher, the resources or Flyleaf.
@@ -66,7 +66,7 @@ Each preference seam is a one-call lambda, so the current preference is read at 
 The start runs inside `Run`, so the dispatcher is live before any step queues onto it.
 It passes the command-line arguments, which carry a relayed tab.
 
-## `program.LProgramStart(`
+## `program.QProgramStart(`
 
 The dispatch seam blocks on the UI thread and the defer seam queues onto it.
 The debounce restart and both Flyleaf hooks are handed in, since only the host holds them.
@@ -87,7 +87,7 @@ The veneer grants the host its internals, so the host reaches this internal clas
 
 The host creates and shows the main window, and the application closes with it.
 
-## `application.Exit += (_, e) => program.LProgramClose(e.ApplicationExitCode);`
+## `application.Exit += (_, e) => program.QProgramClose(e.ApplicationExitCode);`
 
 The close saves the preferences, stops the relay channel and persists the sidecars and the trace.
 It runs on exit, before `Run` returns the exit code.

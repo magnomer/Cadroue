@@ -60,59 +60,59 @@ public sealed partial class PInspector
     private CheckBox pInspectorPersistentBox = null!;
     private Image pInspectorToolIcon = null!;
 
-    private LInspectorCrop LInspectorCrop => LInspector.LInspectorCrop;
+    private QInspectorCrop QInspectorCrop => QInspector.QInspectorCrop;
 
     private void PInspectorCropAttach()
     {
-        LInspectorCrop.LInspectorCropbox.LCropboxStateChanged += PInspectorCropUpdate;
+        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += PInspectorCropUpdate;
         PInspectorCropUpdate();
     }
 
     private void PInspectorCropUpdate()
     {
-        LInspectorCrop lCrop = LInspectorCrop;
-        pInspectorApplyBox.IsChecked = PLook.PLookChecked[lCrop.LInspectorActive];
-        pInspectorPersistentBox.IsChecked = PLook.PLookChecked[lCrop.LInspectorPersistent];
-        pInspectorInsetLeft.Text = lCrop.LInspectorEdgeFormat(0, pInspectorInsetLeft.Text);
-        pInspectorInsetTop.Text = lCrop.LInspectorEdgeFormat(1, pInspectorInsetTop.Text);
-        pInspectorInsetRight.Text = lCrop.LInspectorEdgeFormat(2, pInspectorInsetRight.Text);
-        pInspectorInsetBottom.Text = lCrop.LInspectorEdgeFormat(3, pInspectorInsetBottom.Text);
-        pInspectorFlipHorizontal.IsChecked = PLook.PLookChecked[lCrop.LInspectorFlipHorizontal];
-        pInspectorFlipVertical.IsChecked = PLook.PLookChecked[lCrop.LInspectorFlipVertical];
-        pInspectorRotateCombo.SelectedIndex = lCrop.LInspectorRotateIndex;
-        pInspectorApplyBox.IsEnabled = LInspector.LInspectorCropCapable;
-        pInspectorApplyBox.ToolTip = lCrop.LInspectorApplyTip;
-        pInspectorRotateCombo.IsEnabled = LInspector.LInspectorOrientationCapable;
-        pInspectorFlipHorizontal.IsEnabled = LInspector.LInspectorOrientationCapable;
-        pInspectorFlipVertical.IsEnabled = LInspector.LInspectorOrientationCapable;
-        pInspectorRotateCombo.ToolTip = lCrop.LInspectorOrientationTip;
-        pInspectorFlipHorizontal.ToolTip = lCrop.LInspectorOrientationTip;
-        pInspectorFlipVertical.ToolTip = lCrop.LInspectorOrientationTip;
-        PInspectorSectionUpdate(pInspectorCropStack, lCrop.LInspectorCropEnabled);
+        QInspectorCrop lCrop = QInspectorCrop;
+        pInspectorApplyBox.IsChecked = PLook.PLookChecked[lCrop.QInspectorActive];
+        pInspectorPersistentBox.IsChecked = PLook.PLookChecked[lCrop.QInspectorPersistent];
+        pInspectorInsetLeft.Text = lCrop.QInspectorEdgeFormat(0, pInspectorInsetLeft.Text);
+        pInspectorInsetTop.Text = lCrop.QInspectorEdgeFormat(1, pInspectorInsetTop.Text);
+        pInspectorInsetRight.Text = lCrop.QInspectorEdgeFormat(2, pInspectorInsetRight.Text);
+        pInspectorInsetBottom.Text = lCrop.QInspectorEdgeFormat(3, pInspectorInsetBottom.Text);
+        pInspectorFlipHorizontal.IsChecked = PLook.PLookChecked[lCrop.QInspectorFlipHorizontal];
+        pInspectorFlipVertical.IsChecked = PLook.PLookChecked[lCrop.QInspectorFlipVertical];
+        pInspectorRotateCombo.SelectedIndex = lCrop.QInspectorRotateIndex;
+        pInspectorApplyBox.IsEnabled = QInspector.QInspectorCropCapable;
+        pInspectorApplyBox.ToolTip = lCrop.QInspectorApplyTip;
+        pInspectorRotateCombo.IsEnabled = QInspector.QInspectorOrientationCapable;
+        pInspectorFlipHorizontal.IsEnabled = QInspector.QInspectorOrientationCapable;
+        pInspectorFlipVertical.IsEnabled = QInspector.QInspectorOrientationCapable;
+        pInspectorRotateCombo.ToolTip = lCrop.QInspectorOrientationTip;
+        pInspectorFlipHorizontal.ToolTip = lCrop.QInspectorOrientationTip;
+        pInspectorFlipVertical.ToolTip = lCrop.QInspectorOrientationTip;
+        PInspectorSectionUpdate(pInspectorCropStack, lCrop.QInspectorCropEnabled);
         PInspectorRatioUpdate();
         PInspectorToolUpdate();
     }
 
     private void PInspectorRatioUpdate()
     {
-        LInspectorCrop lCrop = LInspectorCrop;
-        pInspectorRatioPreset.SelectedIndex = lCrop.LInspectorPresetIndex;
-        pInspectorCustomPanel.Visibility = PLook.PLookVisible[lCrop.LInspectorCustomShown];
-        pInspectorRatioFixed.IsChecked = PLook.PLookChecked[lCrop.LInspectorRatioFixed];
-        pInspectorRatioLenient.IsChecked = PLook.PLookChecked[lCrop.LInspectorRatioLenient];
-        pInspectorRatioLenient.IsEnabled = lCrop.LInspectorRatioFixed;
-        pInspectorResolution.Text = lCrop.LInspectorResolutionRead();
-        pInspectorRatioWidth.Text = lCrop.LInspectorRatioFormat(true, pInspectorRatioWidth.Text);
-        pInspectorRatioHeight.Text = lCrop.LInspectorRatioFormat(false, pInspectorRatioHeight.Text);
-        pInspectorRatioNotice.Text = lCrop.LInspectorNoticeRead();
-        pInspectorRatioNotice.Visibility = PLook.PLookVisible[lCrop.LInspectorNoticeShown];
+        QInspectorCrop lCrop = QInspectorCrop;
+        pInspectorRatioPreset.SelectedIndex = lCrop.QInspectorPresetIndex;
+        pInspectorCustomPanel.Visibility = PLook.PLookVisible[lCrop.QInspectorCustomShown];
+        pInspectorRatioFixed.IsChecked = PLook.PLookChecked[lCrop.QInspectorRatioFixed];
+        pInspectorRatioLenient.IsChecked = PLook.PLookChecked[lCrop.QInspectorRatioLenient];
+        pInspectorRatioLenient.IsEnabled = lCrop.QInspectorRatioFixed;
+        pInspectorResolution.Text = lCrop.QInspectorResolutionRead();
+        pInspectorRatioWidth.Text = lCrop.QInspectorRatioFormat(true, pInspectorRatioWidth.Text);
+        pInspectorRatioHeight.Text = lCrop.QInspectorRatioFormat(false, pInspectorRatioHeight.Text);
+        pInspectorRatioNotice.Text = lCrop.QInspectorNoticeRead();
+        pInspectorRatioNotice.Visibility = PLook.PLookVisible[lCrop.QInspectorNoticeShown];
     }
 
     private void PInspectorToolUpdate()
     {
-        LInspectorCrop lCrop = LInspectorCrop;
-        pInspectorCropTool.IsChecked = PLook.PLookChecked[LInspector.LInspectorToolArmed];
-        pInspectorCropTool.Background = pInspectorToolFaces[lCrop.LInspectorToolKey];
-        pInspectorToolIcon.Source = PIcon.PIconRead(PCropIcon, pInspectorToolInks[lCrop.LInspectorToolActive]);
+        QInspectorCrop lCrop = QInspectorCrop;
+        pInspectorCropTool.IsChecked = PLook.PLookChecked[QInspector.QInspectorToolArmed];
+        pInspectorCropTool.Background = pInspectorToolFaces[lCrop.QInspectorToolKey];
+        pInspectorToolIcon.Source = PIcon.PIconRead(PCropIcon, pInspectorToolInks[lCrop.QInspectorToolActive]);
     }
 }

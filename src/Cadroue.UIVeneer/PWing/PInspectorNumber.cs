@@ -29,7 +29,7 @@ public sealed partial class PInspector
         pNumberBox.TextAlignment = TextAlignment.Center;
         pNumberBox.Padding = new Thickness(4, 0, 4, 0);
         pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
-            pNumberEvent.Handled = !LInspector.LInspectorDigitCheck(pNumberEvent.Text);
+            pNumberEvent.Handled = !QInspector.QInspectorDigitCheck(pNumberEvent.Text);
         return pNumberBox;
     }
 
@@ -46,15 +46,15 @@ public sealed partial class PInspector
         pDecimalBox.TextAlignment = TextAlignment.Center;
         pDecimalBox.Padding = new Thickness(4, 0, 4, 0);
         pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
-            pDecimalEvent.Handled = !LInspector.LInspectorDecimalCheck(pDecimalEvent.Text);
+            pDecimalEvent.Handled = !QInspector.QInspectorDecimalCheck(pDecimalEvent.Text);
         return pDecimalBox;
     }
 
     private static double PInspectorDecimalRead(TextBox pDecimalBox, double pFallback) =>
-        LInspector.LInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
+        QInspector.QInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
 
     private static void PInspectorTextSet(TextBox pValueBox, double pNumber, string pFormat) =>
-        pValueBox.Text = LInspector.LInspectorValueFormat(pValueBox.Text, pNumber, pFormat);
+        pValueBox.Text = QInspector.QInspectorValueFormat(pValueBox.Text, pNumber, pFormat);
 
     private static void PInspectorSectionUpdate(FrameworkElement pStack, bool pEnabled)
     {
@@ -78,10 +78,10 @@ public sealed partial class PInspector
         return pCombo;
     }
 
-    private static void PInspectorChoiceApply(ComboBox pCombo, LInspectorChoice lChoice)
+    private static void PInspectorChoiceApply(ComboBox pCombo, QInspectorChoice lChoice)
     {
-        pCombo.Items[lChoice.LInspectorChoiceCustom] = lChoice.LInspectorChoiceText;
-        pCombo.SelectedIndex = lChoice.LInspectorChoiceIndex;
+        pCombo.Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
+        pCombo.SelectedIndex = lChoice.QInspectorChoiceIndex;
     }
 
     private static Slider PInspectorSliderBuild(double pLeast, double pMost, double pValue, Func<double> pReset)
@@ -138,15 +138,15 @@ public sealed partial class PInspector
     }
 
     private static PInspectorRow PInspectorRowBuild(
-        LInspectorRow lRow, Func<double> pRead, Func<double> pReset, Action<double> pSet)
+        QInspectorRow lRow, Func<double> pRead, Func<double> pReset, Action<double> pSet)
     {
-        Slider pSlider = PInspectorSliderBuild(lRow.LInspectorRowLeast, lRow.LInspectorRowMost, pRead(), pReset);
+        Slider pSlider = PInspectorSliderBuild(lRow.QInspectorRowLeast, lRow.QInspectorRowMost, pRead(), pReset);
         TextBox pValue = PInspectorDecimalBuild();
-        PInspectorTextSet(pValue, pRead(), lRow.LInspectorRowPattern);
-        PInspectorValueAttach(pSlider, pValue, lRow.LInspectorRowLeast, lRow.LInspectorRowMost, pRead, pSet);
-        TextBlock pUnit = PInspectorUnitBuild(lRow.LInspectorRowUnit);
-        Grid pGrid = PInspectorSliderBuild(lRow.LInspectorRowLabel, pSlider, pUnit, pValue);
-        return new PInspectorRow(pGrid, pSlider, pValue, pUnit, lRow.LInspectorRowIndex, lRow.LInspectorRowPattern);
+        PInspectorTextSet(pValue, pRead(), lRow.QInspectorRowPattern);
+        PInspectorValueAttach(pSlider, pValue, lRow.QInspectorRowLeast, lRow.QInspectorRowMost, pRead, pSet);
+        TextBlock pUnit = PInspectorUnitBuild(lRow.QInspectorRowUnit);
+        Grid pGrid = PInspectorSliderBuild(lRow.QInspectorRowLabel, pSlider, pUnit, pValue);
+        return new PInspectorRow(pGrid, pSlider, pValue, pUnit, lRow.QInspectorRowIndex, lRow.QInspectorRowPattern);
     }
 
     private static void PInspectorRowUpdate(PInspectorRow pRow, double pValue) =>

@@ -10,22 +10,22 @@ public sealed class TInspectorGating
     [Fact]
     public void Source_ZeroSize_ReadsAbsent()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         int notices = 0;
         TInterfaceInspector.TInspectorAttach(inspector, () => notices++);
 
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorSourceSet(inspector, 0, 1080);
 
-        Assert.False(inspector.LInspectorSourcePresent);
-        Assert.Equal(0, inspector.LInspectorSourceWidth);
+        Assert.False(inspector.QInspectorSourcePresent);
+        Assert.Equal(0, inspector.QInspectorSourceWidth);
         Assert.Equal(2, notices);
     }
 
     [Fact]
     public void Step_SameName_IsSilent()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         int notices = 0;
         TInterfaceInspector.TInspectorAttach(inspector, () => notices++);
 
@@ -34,27 +34,27 @@ public sealed class TInspectorGating
         TInterfaceInspector.TInspectorMinimizedSet(inspector, true);
 
         Assert.Equal(2, notices);
-        Assert.True(inspector.LInspectorMinimized);
+        Assert.True(inspector.QInspectorMinimized);
     }
 
     [Fact]
     public void Capable_Off_TurnsPreviewOff()
     {
-        LGamma gamma = TInterface.TGammaCreate();
+        QGamma gamma = TInterface.TGammaCreate();
 
         TInterface.TGammaCapableSet(gamma, true, true);
         Assert.True(TInterface.TGammaPreviewRead(gamma));
 
         TInterface.TGammaCapableSet(gamma, false, true);
 
-        Assert.False(gamma.LGammaCapable);
+        Assert.False(gamma.QGammaCapable);
         Assert.False(TInterface.TGammaPreviewRead(gamma));
     }
 
     [Fact]
     public void ToneCapable_RepeatedValue_IsSilent()
     {
-        LTone tone = TInterface.TToneCreate();
+        QTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
@@ -62,13 +62,13 @@ public sealed class TInspectorGating
         TInterface.TToneCapableSet(tone, false);
 
         Assert.Equal(1, notices);
-        Assert.False(tone.LToneCapable);
+        Assert.False(tone.QToneCapable);
     }
 
     [Fact]
     public void WhitebalanceCapable_Off_DisarmsPicker()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
         TInterface.TWhitebalanceToolSet(whitebalance, true, Cadroue.Application.LNeutralTarget.LNeutralTargetWhite);
         Assert.True(TInterface.TWhitebalanceToolRead(whitebalance));
@@ -83,17 +83,17 @@ public sealed class TInspectorGating
     [Fact]
     public void Owner_FirstPath_ReadsFirst()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
         Assert.True(TInterfaceInspector.TInspectorOwnerSet(inspector, "a.mp4"));
         Assert.False(TInterfaceInspector.TInspectorOwnerSet(inspector, "b.mp4"));
-        Assert.Equal("b.mp4", inspector.LInspectorOwnerPath);
+        Assert.Equal("b.mp4", inspector.QInspectorOwnerPath);
     }
 
     [Fact]
     public void Failure_SamePath_RecordsOnce()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
         Assert.True(TInterfaceInspector.TInspectorFailureSet(inspector, "a.mp4"));
         Assert.False(TInterfaceInspector.TInspectorFailureSet(inspector, "A.MP4"));

@@ -11,19 +11,19 @@ public sealed class QLogoMenu
         qLogoMenuUsher = qUsher;
     }
 
-    public LLog QLogoLogCreate() => new(qLogoMenuUsher);
+    public QLog QLogoLogCreate() => new(qLogoMenuUsher);
 
-    public LSAbout QLogoAboutCreate() => new(qLogoMenuUsher);
+    public QSAbout QLogoAboutCreate() => new(qLogoMenuUsher);
 
-    public LSOptions QLogoOptionsCreate() => new(qLogoMenuUsher);
+    public QSOptions QLogoOptionsCreate() => new(qLogoMenuUsher);
 
-    public LSKeymap QLogoKeymapCreate() => new();
+    public QSKeymap QLogoKeymapCreate() => new();
 
-    public LSVerdict QLogoVerdictCreate() => new("Debug verdict", new[]
+    public QSVerdict QLogoVerdictCreate() => new("Debug verdict", new[]
     {
-        new LSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
-        new LSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
+        new QSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
+        new QSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
     });
 
-    public LSMonitor QLogoMonitorCreate() => new();
+    public QSMonitor QLogoMonitorCreate() => new();
 }

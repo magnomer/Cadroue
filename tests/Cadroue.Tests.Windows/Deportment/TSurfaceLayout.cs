@@ -7,23 +7,23 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TSurfaceLayout
 {
-    private static LSurface TSurfaceBuild(int exportIndex = 2) =>
+    private static QSurface TSurfaceBuild(int exportIndex = 2) =>
         TInterface.TSurfaceCreate([100, 100, 100], exportIndex);
 
     [Fact]
     public void LayoutRead_ReflectsHiddenExportAndCollapsedColumns()
     {
-        LSurface surface = TInterface.TSurfaceCreate([100, 100, 100], 2);
-        LColumn column = TInterface.TColumnOwnerRead(TInterface.TSurfacePlanRead(surface));
+        QSurface surface = TInterface.TSurfaceCreate([100, 100, 100], 2);
+        QColumn column = TInterface.TColumnOwnerRead(TInterface.TSurfacePlanRead(surface));
 
-        Assert.False(surface.LSurfaceExportHidden);
+        Assert.False(surface.QSurfaceExportHidden);
         Assert.True(TInterface.TSurfaceToggleResolve(surface));
         TInterface.TColumnHiddenSet(column, 2, true);
         TInterface.TColumnWidthSet(column, 0, 48);
 
         LSceneTabEntry layout = TInterface.TSurfaceLayoutRead(surface);
 
-        Assert.True(surface.LSurfaceExportHidden);
+        Assert.True(surface.QSurfaceExportHidden);
         Assert.False(TInterface.TSurfaceToggleResolve(surface));
         Assert.True(layout.LSceneExportHidden);
         Assert.False(layout.LSceneAutoRelay);
@@ -36,17 +36,17 @@ public sealed class TSurfaceLayout
     [Fact]
     public void WithoutExport_NeverHidden()
     {
-        LSurface surface = TSurfaceBuild(-1);
+        QSurface surface = TSurfaceBuild(-1);
 
-        Assert.False(surface.LSurfaceExportHidden);
-        Assert.Equal(-1, surface.LSurfaceExportIndex);
+        Assert.False(surface.QSurfaceExportHidden);
+        Assert.Equal(-1, surface.QSurfaceExportIndex);
         Assert.True(TInterface.TSurfaceToggleResolve(surface));
     }
 
     [Fact]
     public void CollapsedResolve_KeepsOnlyIndexesInRange()
     {
-        LSurface surface = TSurfaceBuild();
+        QSurface surface = TSurfaceBuild();
 
         Assert.Empty(TInterface.TSurfaceCollapsedResolve(surface, null));
         Assert.Equal(
@@ -57,7 +57,7 @@ public sealed class TSurfaceLayout
     [Fact]
     public void StaticResolves_AreArithmeticOverTheGrid()
     {
-        LSurface surface = TSurfaceBuild();
+        QSurface surface = TSurfaceBuild();
 
         Assert.Equal(316, TInterface.TSurfaceWidthResolve(surface, 300));
         Assert.Equal(90, TInterface.TSurfaceMinimumResolve(90, 300));

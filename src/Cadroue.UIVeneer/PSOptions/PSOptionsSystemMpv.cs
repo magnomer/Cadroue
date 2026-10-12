@@ -35,7 +35,7 @@ internal sealed partial class PSOptions
 
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
-            await lsOptions.LSOptionsMpvUpdate();
+            await lsOptions.QSOptionsMpvUpdate();
             string pMpvTitle = LLocalization.LLocalizationTextRead("Options.System.LocalMpv");
             if (pResult.LMpvInstallSuccess)
             {
@@ -67,5 +67,5 @@ internal sealed partial class PSOptions
     }
 
     private static string PSSystemMpvFormat() =>
-        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsMpvResolve());
+        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsMpvResolve());
 }

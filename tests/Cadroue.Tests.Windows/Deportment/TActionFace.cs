@@ -10,12 +10,12 @@ namespace Cadroue.Tests.Windows;
 [Collection("Cartographer")]
 public sealed class TActionFace
 {
-    private static LStrip TStripBuild() =>
+    private static QStrip TStripBuild() =>
         TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
 
-    private static LStripTab TStripTabAdd(LStrip strip, string key)
+    private static QStripTab TStripTabAdd(QStrip strip, string key)
     {
-        LStripTab tab = TInterface.TStripTabCreate(key);
+        QStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
         TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key));
         return tab;
@@ -24,26 +24,26 @@ public sealed class TActionFace
     [Fact]
     public void AutoSet_ReadsCheckedOnly()
     {
-        LAction action = TInterface.TActionCreate();
+        QAction action = TInterface.TActionCreate();
 
         TInterface.TActionAutoSet(action, null);
-        Assert.False(action.LActionAutoRelay);
+        Assert.False(action.QActionAutoRelay);
 
         TInterface.TActionAutoSet(action, true);
-        Assert.True(action.LActionAutoRelay);
+        Assert.True(action.QActionAutoRelay);
     }
 
     [Fact]
     public void RelayAttach_HoldsTabAndAnswersStripSeams()
     {
-        LStrip strip = TStripBuild();
-        LStripTab source = TStripTabAdd(strip, "Split");
-        LAction action = TInterface.TActionCreate();
+        QStrip strip = TStripBuild();
+        QStripTab source = TStripTabAdd(strip, "Split");
+        QAction action = TInterface.TActionCreate();
 
         TInterface.TActionRelayAttach(action, strip, source);
 
-        Assert.Same(action, source.LStripTabAction);
-        Assert.Equal(source.LStripTabId, TInterface.TActionRouteRead(action).TActionSource);
+        Assert.Same(action, source.QStripTabAction);
+        Assert.Equal(source.QStripTabId, TInterface.TActionRouteRead(action).TActionSource);
         Assert.False(TInterface.TStripRelayCheck(source));
 
         TInterface.TActionAutoSet(action, true);
@@ -53,73 +53,73 @@ public sealed class TActionFace
     [Fact]
     public void RelaySelect_ShowsTabFace_RefusesSelf()
     {
-        LStrip strip = TStripBuild();
-        LStripTab source = TStripTabAdd(strip, "Split");
-        LStripTab target = TStripTabAdd(strip, "Edit");
-        LAction action = TInterface.TActionCreate();
+        QStrip strip = TStripBuild();
+        QStripTab source = TStripTabAdd(strip, "Split");
+        QStripTab target = TStripTabAdd(strip, "Edit");
+        QAction action = TInterface.TActionCreate();
         TInterface.TActionRelayAttach(action, strip, source);
         int faces = 0;
         TInterface.TActionFaceAttach(action, () => faces++);
 
-        Assert.False(action.LActionFaceShown);
-        Assert.Equal(string.Empty, action.LActionFaceIcon);
-        Assert.Equal([target.LStripTabId], TInterface.TActionOptionsRead(action).Select(o => o.LActionOptionId));
+        Assert.False(action.QActionFaceShown);
+        Assert.Equal(string.Empty, action.QActionFaceIcon);
+        Assert.Equal([target.QStripTabId], TInterface.TActionOptionsRead(action).Select(o => o.QActionOptionId));
 
-        TInterface.TActionRelaySelect(action, target.LStripTabId);
+        TInterface.TActionRelaySelect(action, target.QStripTabId);
 
-        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
-        Assert.True(action.LActionFaceShown);
-        Assert.Equal("Edit", action.LActionFaceIcon);
-        Assert.Equal(target.LStripTabTitle, action.LActionFaceText);
+        Assert.Equal(target.QStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
+        Assert.True(action.QActionFaceShown);
+        Assert.Equal("Edit", action.QActionFaceIcon);
+        Assert.Equal(target.QStripTabTitle, action.QActionFaceText);
         Assert.Equal(1, faces);
 
-        TInterface.TActionRelaySelect(action, target.LStripTabId);
+        TInterface.TActionRelaySelect(action, target.QStripTabId);
         Assert.Equal(1, faces);
 
-        TInterface.TActionRelaySelect(action, source.LStripTabId);
-        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
+        TInterface.TActionRelaySelect(action, source.QStripTabId);
+        Assert.Equal(target.QStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
 
         TInterface.TActionRelaySelect(action, LCartographer.LCartographerFinishTarget);
         Assert.Equal(LCartographer.LCartographerFinishTarget, TInterface.TActionRouteRead(action).TActionTarget);
-        Assert.False(action.LActionFaceShown);
+        Assert.False(action.QActionFaceShown);
     }
 
     [Fact]
     public void RelayApply_UnknownTab_FallsBackToNone()
     {
-        LStrip strip = TStripBuild();
-        LStripTab source = TStripTabAdd(strip, "Split");
-        LAction action = TInterface.TActionCreate();
+        QStrip strip = TStripBuild();
+        QStripTab source = TStripTabAdd(strip, "Split");
+        QAction action = TInterface.TActionCreate();
         TInterface.TActionRelayAttach(action, strip, source);
 
         TInterface.TActionRelayApply(action, Guid.NewGuid());
 
         Assert.Equal(Guid.Empty, TInterface.TActionRouteRead(action).TActionTarget);
-        Assert.False(action.LActionFaceShown);
+        Assert.False(action.QActionFaceShown);
     }
 
     [Fact]
     public void MenuRead_WrapsOptionsWithNoneAndFinish()
     {
-        LStrip strip = TStripBuild();
-        LStripTab source = TStripTabAdd(strip, "Split");
-        LStripTab target = TStripTabAdd(strip, "Convert");
-        LAction action = TInterface.TActionCreate();
+        QStrip strip = TStripBuild();
+        QStripTab source = TStripTabAdd(strip, "Split");
+        QStripTab target = TStripTabAdd(strip, "Convert");
+        QAction action = TInterface.TActionCreate();
         TInterface.TActionRelayAttach(action, strip, source);
 
-        IReadOnlyList<LActionOption> menu = TInterface.TActionMenuRead(action);
+        IReadOnlyList<QActionOption> menu = TInterface.TActionMenuRead(action);
 
         Assert.Equal(
-            [Guid.Empty, target.LStripTabId, LCartographer.LCartographerFinishTarget],
-            menu.Select(o => o.LActionOptionId));
-        Assert.Equal(string.Empty, menu[0].LActionOptionKey);
-        Assert.Equal("Convert", menu[1].LActionOptionKey);
+            [Guid.Empty, target.QStripTabId, LCartographer.LCartographerFinishTarget],
+            menu.Select(o => o.QActionOptionId));
+        Assert.Equal(string.Empty, menu[0].QActionOptionKey);
+        Assert.Equal("Convert", menu[1].QActionOptionKey);
     }
 
     [Fact]
     public void Runs_GateOnEligible_RaiseEmptyOtherwise()
     {
-        LAction action = TInterface.TActionCreate();
+        QAction action = TInterface.TActionCreate();
         List<LWorkPriority> runs = [];
         int alls = 0;
         int empties = 0;
@@ -151,11 +151,11 @@ public sealed class TActionFace
     [Fact]
     public void ListRun_WithSelection_SendsItems()
     {
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
         TInterfaceList.TDocketPathsAdd(docket, @"C:\media\a.mp4", @"C:\media\b.mp4");
         TInterfaceList.TListPressSelect(list, @"C:\media\b.mp4", false, false);
-        LAction action = TInterface.TActionCreate();
+        QAction action = TInterface.TActionCreate();
         TInterface.TActionListAttach(action, list);
         List<string> items = [];
         List<LWorkPriority> runs = [];

@@ -13,12 +13,12 @@ public sealed partial class PExport
     private Border PExportRowBuild(string lPresetName, LPreset lWorking)
     {
         bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
-        bool pPresetSelected = LExport.LExportSelectedCheck(lPresetName);
+        bool pPresetSelected = QExport.QExportSelectedCheck(lPresetName);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
             && !LPreset.LPresetMatch(lPresetName, lWorking);
-        bool pPresetEditing = LExport.LExportEditingCheck(lPresetName);
-        bool pPresetUnsupported = !LExport.LExportSupportCheck(lPresetName, lWorking);
+        bool pPresetEditing = QExport.QExportEditingCheck(lPresetName);
+        bool pPresetUnsupported = !QExport.QExportSupportCheck(lPresetName, lWorking);
         UIElement pNameElement = pPresetEditing
             ? PExportBoxBuild(lPresetName)
             : PExportDisplayBuild(lPresetName, pPresetModified, pPresetUnsupported);
@@ -32,7 +32,7 @@ public sealed partial class PExport
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Opacity = pPresetUnsupported ? 0.42 : 1,
-            ToolTip = pPresetUnsupported ? LLocalization.LLocalizationTextRead(LExport.LExportSupportNotice) : null,
+            ToolTip = pPresetUnsupported ? LLocalization.LLocalizationTextRead(QExport.QExportSupportNotice) : null,
             Child = pNameElement
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>
@@ -46,7 +46,7 @@ public sealed partial class PExport
             {
                 PExportDragClear();
                 pPresetRowPanel.ReleaseMouseCapture();
-                LExport.LExportEditStart(lPresetName);
+                QExport.QExportEditStart(lPresetName);
                 pEvent.Handled = true;
                 return;
             }
@@ -54,12 +54,12 @@ public sealed partial class PExport
             if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
             {
                 pExportDragOrigin = null;
-                LExport.LExportDragClear();
+                QExport.QExportDragClear();
                 return;
             }
 
             Point pGrabPoint = pEvent.GetPosition(pRowBorder);
-            LExport.LExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
+            QExport.QExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
             pPresetRowDragging = pRowBorder;
             pPresetOpacityOrigin = pRowBorder.Opacity;
             pExportDragOrigin = pEvent.GetPosition(pPresetRowPanel);
@@ -72,7 +72,7 @@ public sealed partial class PExport
                 return;
             }
 
-            if (!LExport.LExportEditingCheck(lPresetName))
+            if (!QExport.QExportEditingCheck(lPresetName))
             {
                 PExportEditCommit();
                 PExportPresetSelect(lPresetName);

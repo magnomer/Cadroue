@@ -1,5 +1,5 @@
 # TAuditPuritySetting.cs
-Hash: `7174d265624e5317`
+Hash: `61a8b4e9b7a825a4`
 
 ## `internal static class TAuditPuritySetting`
 

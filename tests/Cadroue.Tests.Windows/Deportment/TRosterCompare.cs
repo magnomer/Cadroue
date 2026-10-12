@@ -12,14 +12,14 @@ public sealed class TRosterCompare
     [Fact]
     public void Compare_FlagsOnlyTheOutputWhenItDiffers()
     {
-        LRosterCompareRow same = TInterfaceRoster.TRosterCompareCreate("a", "a");
-        LRosterCompareRow other = TInterfaceRoster.TRosterCompareCreate("a", "b");
+        QRosterCompareRow same = TInterfaceRoster.TRosterCompareCreate("a", "a");
+        QRosterCompareRow other = TInterfaceRoster.TRosterCompareCreate("a", "b");
 
-        Assert.Equal(LRosterDetail.LRosterLinePlain, same.LRosterCompareSource.LRosterLineKey);
-        Assert.Equal(LRosterDetail.LRosterLinePlain, same.LRosterCompareOutput.LRosterLineKey);
-        Assert.Equal(LRosterDetail.LRosterLinePlain, other.LRosterCompareSource.LRosterLineKey);
-        Assert.Equal(LRosterDetail.LRosterLineChanged, other.LRosterCompareOutput.LRosterLineKey);
-        Assert.Equal("b", other.LRosterCompareOutput.LRosterLineText);
+        Assert.Equal(QRosterDetail.QRosterLinePlain, same.QRosterCompareSource.QRosterLineKey);
+        Assert.Equal(QRosterDetail.QRosterLinePlain, same.QRosterCompareOutput.QRosterLineKey);
+        Assert.Equal(QRosterDetail.QRosterLinePlain, other.QRosterCompareSource.QRosterLineKey);
+        Assert.Equal(QRosterDetail.QRosterLineChanged, other.QRosterCompareOutput.QRosterLineKey);
+        Assert.Equal("b", other.QRosterCompareOutput.QRosterLineText);
     }
 
     [Fact]
@@ -30,16 +30,16 @@ public sealed class TRosterCompare
         schedule.TScheduleAdd(added);
         LWorkItem work = added.TWorkItem;
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
-        Assert.Equal(7, detail.LRosterDetailCompares.Count);
-        LRosterCompareRow head = detail.LRosterDetailCompares[0];
-        Assert.Equal(LRosterDetail.LRosterLineHead, head.LRosterCompareSource.LRosterLineKey);
-        Assert.Equal(LRosterDetail.LRosterLineHead, head.LRosterCompareOutput.LRosterLineKey);
-        string measuring = detail.LRosterDetailCompares[1].LRosterCompareSource.LRosterLineText;
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        Assert.Equal(7, detail.QRosterDetailCompares.Count);
+        QRosterCompareRow head = detail.QRosterDetailCompares[0];
+        Assert.Equal(QRosterDetail.QRosterLineHead, head.QRosterCompareSource.QRosterLineKey);
+        Assert.Equal(QRosterDetail.QRosterLineHead, head.QRosterCompareOutput.QRosterLineKey);
+        string measuring = detail.QRosterDetailCompares[1].QRosterCompareSource.QRosterLineText;
 
         work.LWorkSourceMeasured = true;
-        LRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
-        Assert.NotEqual(measuring, measured.LRosterDetailCompares[1].LRosterCompareSource.LRosterLineText);
+        QRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        Assert.NotEqual(measuring, measured.QRosterDetailCompares[1].QRosterCompareSource.QRosterLineText);
     }
 
     [Fact]
@@ -53,18 +53,18 @@ public sealed class TRosterCompare
         work.LWorkSourceMedia = Interface.TInterface.TWorkMediaCreate(3840, 2160, 60, 10_000, true);
         work.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true);
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
-        Assert.Equal("3840 x 2160", detail.LRosterDetailCompares[2].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("1920 x 1080", detail.LRosterDetailCompares[2].LRosterCompareOutput.LRosterLineText);
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        Assert.Equal("3840 x 2160", detail.QRosterDetailCompares[2].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("1920 x 1080", detail.QRosterDetailCompares[2].QRosterCompareOutput.QRosterLineText);
         Assert.Equal(
-            LRosterDetail.LRosterLineChanged, detail.LRosterDetailCompares[2].LRosterCompareOutput.LRosterLineKey);
-        Assert.Equal("60 fps", detail.LRosterDetailCompares[3].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("30 fps", detail.LRosterDetailCompares[3].LRosterCompareOutput.LRosterLineText);
-        Assert.Equal("0:10", detail.LRosterDetailCompares[5].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("0:05", detail.LRosterDetailCompares[5].LRosterCompareOutput.LRosterLineText);
-        Assert.Equal("SOURCE", detail.LRosterDetailCompares[6].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("OUTPUT", detail.LRosterDetailCompares[6].LRosterCompareOutput.LRosterLineText);
-        Assert.False(detail.LRosterDetailSound);
+            QRosterDetail.QRosterLineChanged, detail.QRosterDetailCompares[2].QRosterCompareOutput.QRosterLineKey);
+        Assert.Equal("60 fps", detail.QRosterDetailCompares[3].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("30 fps", detail.QRosterDetailCompares[3].QRosterCompareOutput.QRosterLineText);
+        Assert.Equal("0:10", detail.QRosterDetailCompares[5].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("0:05", detail.QRosterDetailCompares[5].QRosterCompareOutput.QRosterLineText);
+        Assert.Equal("SOURCE", detail.QRosterDetailCompares[6].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("OUTPUT", detail.QRosterDetailCompares[6].QRosterCompareOutput.QRosterLineText);
+        Assert.False(detail.QRosterDetailSound);
     }
 
     [Fact]
@@ -90,18 +90,18 @@ public sealed class TRosterCompare
             LWorkMediaLoudness = -16
         };
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
-        Assert.True(detail.LRosterDetailSound);
-        Assert.Equal(4, detail.LRosterDetailSounds.Count);
-        Assert.Equal("AAC", detail.LRosterDetailSounds[0].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("OPUS", detail.LRosterDetailSounds[0].LRosterCompareOutput.LRosterLineText);
-        Assert.Equal("192k", detail.LRosterDetailSounds[1].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("128k", detail.LRosterDetailSounds[1].LRosterCompareOutput.LRosterLineText);
-        Assert.Equal("48000 Hz", detail.LRosterDetailSounds[2].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("-23 LUFS", detail.LRosterDetailSounds[3].LRosterCompareSource.LRosterLineText);
-        Assert.Equal("-23 LUFS", detail.LRosterDetailSounds[3].LRosterCompareOutput.LRosterLineText);
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        Assert.True(detail.QRosterDetailSound);
+        Assert.Equal(4, detail.QRosterDetailSounds.Count);
+        Assert.Equal("AAC", detail.QRosterDetailSounds[0].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("OPUS", detail.QRosterDetailSounds[0].QRosterCompareOutput.QRosterLineText);
+        Assert.Equal("192k", detail.QRosterDetailSounds[1].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("128k", detail.QRosterDetailSounds[1].QRosterCompareOutput.QRosterLineText);
+        Assert.Equal("48000 Hz", detail.QRosterDetailSounds[2].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("-23 LUFS", detail.QRosterDetailSounds[3].QRosterCompareSource.QRosterLineText);
+        Assert.Equal("-23 LUFS", detail.QRosterDetailSounds[3].QRosterCompareOutput.QRosterLineText);
         Assert.All(
-            detail.LRosterDetailSounds.Take(3),
-            row => Assert.Equal(LRosterDetail.LRosterLineChanged, row.LRosterCompareOutput.LRosterLineKey));
+            detail.QRosterDetailSounds.Take(3),
+            row => Assert.Equal(QRosterDetail.QRosterLineChanged, row.QRosterCompareOutput.QRosterLineKey));
     }
 }

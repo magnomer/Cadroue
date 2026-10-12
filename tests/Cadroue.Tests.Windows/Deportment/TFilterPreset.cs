@@ -10,13 +10,13 @@ public sealed class TFilterPreset
     [Fact]
     public void Choice_FollowsOwnTable_SelectByIndex()
     {
-        LFilter high = TInterface.TFilterCreate(true);
-        LFilter low = TInterface.TFilterCreate(false);
+        QFilter high = TInterface.TFilterCreate(true);
+        QFilter low = TInterface.TFilterCreate(false);
 
         Assert.Equal(
-            LPassband.LPassbandHighPresets.Count + 1, TInterface.TFilterChoiceRead(high).LInspectorChoiceNames.Count);
-        Assert.Equal(2, TInterface.TFilterChoiceRead(high).LInspectorChoiceIndex);
-        Assert.Equal(0, TInterface.TFilterChoiceRead(low).LInspectorChoiceIndex);
+            LPassband.LPassbandHighPresets.Count + 1, TInterface.TFilterChoiceRead(high).QInspectorChoiceNames.Count);
+        Assert.Equal(2, TInterface.TFilterChoiceRead(high).QInspectorChoiceIndex);
+        Assert.Equal(0, TInterface.TFilterChoiceRead(low).QInspectorChoiceIndex);
 
         TInterface.TFilterChoiceSelect(high, 0);
         Assert.Equal("Rumble", TInterface.TFilterTokenRead(high));
@@ -28,16 +28,16 @@ public sealed class TFilterPreset
     [Fact]
     public void Poles_IndexAndResonance()
     {
-        LFilter filter = TInterface.TFilterCreate(true);
-        Assert.Equal(1, filter.LFilterPolesIndex);
-        Assert.True(filter.LFilterResonanceActive);
-        Assert.Equal(2, filter.LFilterPoles.Count);
+        QFilter filter = TInterface.TFilterCreate(true);
+        Assert.Equal(1, filter.QFilterPolesIndex);
+        Assert.True(filter.QFilterResonanceActive);
+        Assert.Equal(2, filter.QFilterPoles.Count);
 
         TInterface.TFilterPolesSelect(filter, 0);
         Assert.Equal(1, TInterface.TFilterStepRead(filter).LWorkPassPoles);
-        Assert.Equal(0, filter.LFilterPolesIndex);
-        Assert.False(filter.LFilterResonanceActive);
+        Assert.Equal(0, filter.QFilterPolesIndex);
+        Assert.False(filter.QFilterResonanceActive);
         TInterface.TFilterPolesSelect(filter, 9);
-        Assert.Equal(0, filter.LFilterPolesIndex);
+        Assert.Equal(0, filter.QFilterPolesIndex);
     }
 }

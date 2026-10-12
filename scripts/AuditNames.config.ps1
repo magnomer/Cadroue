@@ -8,7 +8,7 @@ generation number, the configuration schema, and the strict reader they use. No 
 value appears here: this file is identical in every project at this generation.
 #>
 #requires -Version 5.1
-# AUDITNAMES.CONFIG - AUDIT GENERATION 21.
+# AUDITNAMES.CONFIG - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A configuration is total: every key in the schema must be present, a missing key is an error rather
@@ -51,7 +51,9 @@ value appears here: this file is identical in every project at this generation.
 # Mismatching kind only informs while a driver folder it waits on holds no source.
 # Generation 21: an out-of-turf type declared public in a sealed turf fails at once, outside the
 # prefix ceiling.
-$script:AuditGeneration = 21
+# Generation 22: nothing this audit reports changes; the number rises with the structure audit,
+# whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
+$script:AuditGeneration = 22
 
 # The generated name registry beside this file. SyncNames.ps1 writes it from docs-internal; the audits
 # read it and never docs-internal.

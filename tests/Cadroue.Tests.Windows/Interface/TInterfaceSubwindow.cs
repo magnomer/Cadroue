@@ -12,114 +12,114 @@ internal static partial class TInterface
     internal static void TPreferenceSaveAttach(Func<LPreferenceState, bool>? seam) =>
         LPreference.LPreferenceSaveSeam = seam;
 
-    internal static LSOptions TOptionsCreate(LPreferenceState draft, bool mpv) =>
+    internal static QSOptions TOptionsCreate(LPreferenceState draft, bool mpv) =>
         new(TAtelierCreate().CAtelierUsher, draft, mpv);
-    internal static void TOptionsMpvAttach(LSOptions options, Action<bool> handler) =>
-        options.LSOptionsMpvChanged += handler;
-    internal static void TOptionsMpvSet(LSOptions options, bool enabled) => options.LSOptionsMpvSet(enabled);
-    internal static string TOptionsEngineRead(LSOptions options) => options.LSOptionsEngineRead();
-    internal static void TOptionsPageSelect(LSOptions options, LSOptionsPage page) =>
-        options.LSOptionsPageSelect(page);
-    internal static bool TOptionsApply(LSOptions options) => options.LSOptionsApply();
-    internal static bool TOptionsRecordCheck(LSOptions options) => options.LSOptionsRecordCheck();
-    internal static string TOptionsFfmpegResolve(string folder) => LSOptions.LSOptionsFfmpegResolve(folder);
+    internal static void TOptionsMpvAttach(QSOptions options, Action<bool> handler) =>
+        options.QSOptionsMpvChanged += handler;
+    internal static void TOptionsMpvSet(QSOptions options, bool enabled) => options.QSOptionsMpvSet(enabled);
+    internal static string TOptionsEngineRead(QSOptions options) => options.QSOptionsEngineRead();
+    internal static void TOptionsPageSelect(QSOptions options, QSOptionsPage page) =>
+        options.QSOptionsPageSelect(page);
+    internal static bool TOptionsApply(QSOptions options) => options.QSOptionsApply();
+    internal static bool TOptionsRecordCheck(QSOptions options) => options.QSOptionsRecordCheck();
+    internal static string TOptionsFfmpegResolve(string folder) => QSOptions.QSOptionsFfmpegResolve(folder);
 
-    internal static LSSpectrum TSpectrumCreate(string name, string folder) => new(name, () => folder);
-    internal static void TSpectrumAttach(LSSpectrum spectrum, Action handler) => spectrum.LSSpectrumChanged += handler;
-    internal static void TSpectrumNamesSet(LSSpectrum spectrum, IReadOnlyList<string> names) =>
-        spectrum.LSSpectrumNamesSet(names);
-    internal static void TSpectrumSelect(LSSpectrum spectrum, string name) => spectrum.LSSpectrumSelect(name);
-    internal static bool TSpectrumRemove(LSSpectrum spectrum, string name, bool native, string? path) =>
-        spectrum.LSSpectrumRemove(name, native, path);
+    internal static QSSpectrum TSpectrumCreate(string name, string folder) => new(name, () => folder);
+    internal static void TSpectrumAttach(QSSpectrum spectrum, Action handler) => spectrum.QSSpectrumChanged += handler;
+    internal static void TSpectrumNamesSet(QSSpectrum spectrum, IReadOnlyList<string> names) =>
+        spectrum.QSSpectrumNamesSet(names);
+    internal static void TSpectrumSelect(QSSpectrum spectrum, string name) => spectrum.QSSpectrumSelect(name);
+    internal static bool TSpectrumRemove(QSSpectrum spectrum, string name, bool native, string? path) =>
+        spectrum.QSSpectrumRemove(name, native, path);
 
-    internal static LSEncoder TEncoderCreate(LPreset source, bool smart) =>
-        TExportCreate(TPresetSelectionCreate(string.Empty), smart ? "Split" : "Convert").LExportEncoderCreate(source);
-    internal static void TEncoderVideoAttach(LSEncoder encoder, Action handler) =>
-        encoder.LSEncoderVideoChanged += handler;
-    internal static void TEncoderSizeAttach(LSEncoder encoder, Action handler) =>
-        encoder.LSEncoderSizeChanged += handler;
-    internal static bool TEncoderVideoSet(LSEncoder encoder, string codec, string rate) =>
-        encoder.LSEncoderVideoSet(codec, rate);
-    internal static bool TEncoderAudioSet(LSEncoder encoder, string codec, string rate) =>
-        encoder.LSEncoderAudioSet(codec, rate);
-    internal static bool TEncoderTierSelect(LSEncoder encoder, int tier) => encoder.LSEncoderTierSelect(tier);
-    internal static bool TEncoderSizeSet(LSEncoder encoder, int width, int height) =>
-        encoder.LSEncoderSizeSet(width, height);
-    internal static string TEncoderSizeFormat(LSEncoder encoder) => encoder.LSEncoderSizeFormat();
-    internal static string TEncoderSuffixSelect(LSEncoder encoder, string policy, string shown) =>
-        encoder.LSEncoderSuffixSelect(policy, shown);
-    internal static string TEncoderLocationSelect(LSEncoder encoder, string mode, string shown) =>
-        encoder.LSEncoderLocationSelect(mode, shown);
-    internal static string TEncoderNoticeResolve(LSEncoder encoder, string mode) =>
-        encoder.LSEncoderNoticeResolve(mode);
-    internal static void TEncoderApply(LSEncoder encoder) => encoder.LSEncoderApply();
+    internal static QSEncoder TEncoderCreate(LPreset source, bool smart) =>
+        TExportCreate(TPresetSelectionCreate(string.Empty), smart ? "Split" : "Convert").QExportEncoderCreate(source);
+    internal static void TEncoderVideoAttach(QSEncoder encoder, Action handler) =>
+        encoder.QSEncoderVideoChanged += handler;
+    internal static void TEncoderSizeAttach(QSEncoder encoder, Action handler) =>
+        encoder.QSEncoderSizeChanged += handler;
+    internal static bool TEncoderVideoSet(QSEncoder encoder, string codec, string rate) =>
+        encoder.QSEncoderVideoSet(codec, rate);
+    internal static bool TEncoderAudioSet(QSEncoder encoder, string codec, string rate) =>
+        encoder.QSEncoderAudioSet(codec, rate);
+    internal static bool TEncoderTierSelect(QSEncoder encoder, int tier) => encoder.QSEncoderTierSelect(tier);
+    internal static bool TEncoderSizeSet(QSEncoder encoder, int width, int height) =>
+        encoder.QSEncoderSizeSet(width, height);
+    internal static string TEncoderSizeFormat(QSEncoder encoder) => encoder.QSEncoderSizeFormat();
+    internal static string TEncoderSuffixSelect(QSEncoder encoder, string policy, string shown) =>
+        encoder.QSEncoderSuffixSelect(policy, shown);
+    internal static string TEncoderLocationSelect(QSEncoder encoder, string mode, string shown) =>
+        encoder.QSEncoderLocationSelect(mode, shown);
+    internal static string TEncoderNoticeResolve(QSEncoder encoder, string mode) =>
+        encoder.QSEncoderNoticeResolve(mode);
+    internal static void TEncoderApply(QSEncoder encoder) => encoder.QSEncoderApply();
     internal static LPreset TPresetCreate() => new();
     internal static string TPresetSuffixRead(LPreset preset, string policy) => preset.LPresetSuffixRead(policy);
 
-    internal static LSKeymap TKeymapCreate(List<LBindingEntry>? records) => new(records);
-    internal static void TKeymapAttach(LSKeymap keymap, Action<LSKeymapChord> handler) =>
-        keymap.LSKeymapChordChanged += handler;
-    internal static LSKeymapChord TKeymapChordRead(LSKeymap keymap, string token) => keymap.LSKeymapChordRead(token);
-    internal static void TKeymapChordStart(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordStart(chord);
-    internal static void TKeymapPendingSet(LSKeymap keymap, LSKeymapChord chord, string gesture) =>
-        keymap.LSKeymapPendingSet(chord, gesture);
-    internal static void TKeymapChordCommit(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordCommit(chord);
-    internal static void TKeymapChordCancel(LSKeymap keymap, LSKeymapChord chord) => keymap.LSKeymapChordCancel(chord);
-    internal static void TKeymapDefaultApply(LSKeymap keymap) => keymap.LSKeymapDefaultApply();
-    internal static List<LBindingEntry> TKeymapRecordsRead(LSKeymap keymap) => keymap.LSKeymapRecordsRead();
+    internal static QSKeymap TKeymapCreate(List<LBindingEntry>? records) => new(records);
+    internal static void TKeymapAttach(QSKeymap keymap, Action<QSKeymapChord> handler) =>
+        keymap.QSKeymapChordChanged += handler;
+    internal static QSKeymapChord TKeymapChordRead(QSKeymap keymap, string token) => keymap.QSKeymapChordRead(token);
+    internal static void TKeymapChordStart(QSKeymap keymap, QSKeymapChord chord) => keymap.QSKeymapChordStart(chord);
+    internal static void TKeymapPendingSet(QSKeymap keymap, QSKeymapChord chord, string gesture) =>
+        keymap.QSKeymapPendingSet(chord, gesture);
+    internal static void TKeymapChordCommit(QSKeymap keymap, QSKeymapChord chord) => keymap.QSKeymapChordCommit(chord);
+    internal static void TKeymapChordCancel(QSKeymap keymap, QSKeymapChord chord) => keymap.QSKeymapChordCancel(chord);
+    internal static void TKeymapDefaultApply(QSKeymap keymap) => keymap.QSKeymapDefaultApply();
+    internal static List<LBindingEntry> TKeymapRecordsRead(QSKeymap keymap) => keymap.QSKeymapRecordsRead();
     internal static string TBindingGestureFormat(string key, bool ctrl, bool alt, bool shift, bool win) =>
         LBinding.LBindingGestureFormat(key, ctrl, alt, shift, win);
     internal static string TBindingDefaultRead(string token) => LBinding.LBindingDefaultRead(token);
     internal static IReadOnlyList<LBindingCommand> TBindingCatalogRead() => LBinding.LBindingCatalogRead();
 
-    internal static LSMonitor TMonitorCreate() => new();
-    internal static void TMonitorCursorAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
-        monitor.LSMonitorCursorChanged += handler;
-    internal static void TMonitorZoomAttach(LSMonitor monitor, Action handler) =>
-        monitor.LSMonitorZoomChanged += handler;
-    internal static void TMonitorCursorSet(LSMonitor monitor, TimeSpan cursor) => monitor.LSMonitorCursorSet(cursor);
-    internal static void TMonitorZoom(LSMonitor monitor, double factor, double most) =>
-        monitor.LSMonitorZoom(factor, most);
-    internal static void TMonitorOffsetSet(LSMonitor monitor, double offset) => monitor.LSMonitorOffsetSet(offset);
-    internal static double TMonitorFractionResolve(LSMonitor monitor, double local) =>
-        monitor.LSMonitorFractionResolve(local);
-    internal static double TMonitorLocalResolve(LSMonitor monitor, double fraction) =>
-        monitor.LSMonitorLocalResolve(fraction);
-    internal static double TMonitorColumnRead(LSMonitor monitor, double[] envelope, int column, int columns) =>
-        monitor.LSMonitorColumnRead(envelope, column, columns);
-    internal static void TMonitorIncreaseZoom(LSMonitor monitor) => monitor.LSMonitorIncreaseZoom();
-    internal static void TMonitorDecreaseZoom(LSMonitor monitor) => monitor.LSMonitorDecreaseZoom();
-    internal static LSMonitorScrollbar TMonitorScrollRead(LSMonitor monitor) => monitor.LSMonitorScrollRead();
-    internal static LSMonitorHead TMonitorHeadResolve(LSMonitor monitor, double width, TimeSpan duration) =>
-        monitor.LSMonitorHeadResolve(width, duration);
-    internal static void TMonitorSeekAttach(LSMonitor monitor, Action<TimeSpan> handler) =>
-        monitor.LSMonitorSeekApplied += handler;
+    internal static QSMonitor TMonitorCreate() => new();
+    internal static void TMonitorCursorAttach(QSMonitor monitor, Action<TimeSpan> handler) =>
+        monitor.QSMonitorCursorChanged += handler;
+    internal static void TMonitorZoomAttach(QSMonitor monitor, Action handler) =>
+        monitor.QSMonitorZoomChanged += handler;
+    internal static void TMonitorCursorSet(QSMonitor monitor, TimeSpan cursor) => monitor.QSMonitorCursorSet(cursor);
+    internal static void TMonitorZoom(QSMonitor monitor, double factor, double most) =>
+        monitor.QSMonitorZoom(factor, most);
+    internal static void TMonitorOffsetSet(QSMonitor monitor, double offset) => monitor.QSMonitorOffsetSet(offset);
+    internal static double TMonitorFractionResolve(QSMonitor monitor, double local) =>
+        monitor.QSMonitorFractionResolve(local);
+    internal static double TMonitorLocalResolve(QSMonitor monitor, double fraction) =>
+        monitor.QSMonitorLocalResolve(fraction);
+    internal static double TMonitorColumnRead(QSMonitor monitor, double[] envelope, int column, int columns) =>
+        monitor.QSMonitorColumnRead(envelope, column, columns);
+    internal static void TMonitorIncreaseZoom(QSMonitor monitor) => monitor.QSMonitorIncreaseZoom();
+    internal static void TMonitorDecreaseZoom(QSMonitor monitor) => monitor.QSMonitorDecreaseZoom();
+    internal static QSMonitorScrollbar TMonitorScrollRead(QSMonitor monitor) => monitor.QSMonitorScrollRead();
+    internal static QSMonitorHead TMonitorHeadResolve(QSMonitor monitor, double width, TimeSpan duration) =>
+        monitor.QSMonitorHeadResolve(width, duration);
+    internal static void TMonitorSeekAttach(QSMonitor monitor, Action<TimeSpan> handler) =>
+        monitor.QSMonitorSeekApplied += handler;
     internal static void TMonitorSeekHandle(
-        LSMonitor monitor, bool pressed, double x, double width, TimeSpan duration) =>
-        monitor.LSMonitorSeekHandle(pressed, x, width, duration);
-    internal static void TMonitorPlayAttach(LSMonitor monitor, Action play, Action pause)
+        QSMonitor monitor, bool pressed, double x, double width, TimeSpan duration) =>
+        monitor.QSMonitorSeekHandle(pressed, x, width, duration);
+    internal static void TMonitorPlayAttach(QSMonitor monitor, Action play, Action pause)
     {
-        monitor.LSMonitorPlayApplied += play;
-        monitor.LSMonitorPauseApplied += pause;
+        monitor.QSMonitorPlayApplied += play;
+        monitor.QSMonitorPauseApplied += pause;
     }
 
-    internal static void TMonitorPlayingSet(LSMonitor monitor, bool playing) => monitor.LSMonitorPlayingSet(playing);
-    internal static void TMonitorPlayHandle(LSMonitor monitor) => monitor.LSMonitorPlayHandle();
-    internal static LSMonitorFace TMonitorFaceRead(LSMonitor monitor) => monitor.LSMonitorFaceRead();
-    internal static void TMonitorBypassAttach(LSMonitor monitor, Action<bool> handler) =>
-        monitor.LSMonitorBypassApplied += handler;
-    internal static void TMonitorBypassSet(LSMonitor monitor, bool bypass) => monitor.LSMonitorBypassSet(bypass);
-    internal static void TMonitorRadioHandle(LSMonitor monitor, bool bypass) => monitor.LSMonitorRadioHandle(bypass);
-    internal static string TMonitorStatusRead(LSMonitor monitor, bool after) => monitor.LSMonitorStatusRead(after);
-    internal static LSMonitorFrame TMonitorFrameResolve(LSMonitor monitor, bool after, double width, double height) =>
-        monitor.LSMonitorFrameResolve(after, width, height);
-    internal static LFlowWaveformOutline TMonitorOutlineResolve(
+    internal static void TMonitorPlayingSet(QSMonitor monitor, bool playing) => monitor.QSMonitorPlayingSet(playing);
+    internal static void TMonitorPlayHandle(QSMonitor monitor) => monitor.QSMonitorPlayHandle();
+    internal static QSMonitorFace TMonitorFaceRead(QSMonitor monitor) => monitor.QSMonitorFaceRead();
+    internal static void TMonitorBypassAttach(QSMonitor monitor, Action<bool> handler) =>
+        monitor.QSMonitorBypassApplied += handler;
+    internal static void TMonitorBypassSet(QSMonitor monitor, bool bypass) => monitor.QSMonitorBypassSet(bypass);
+    internal static void TMonitorRadioHandle(QSMonitor monitor, bool bypass) => monitor.QSMonitorRadioHandle(bypass);
+    internal static string TMonitorStatusRead(QSMonitor monitor, bool after) => monitor.QSMonitorStatusRead(after);
+    internal static QSMonitorFrame TMonitorFrameResolve(QSMonitor monitor, bool after, double width, double height) =>
+        monitor.QSMonitorFrameResolve(after, width, height);
+    internal static QFlowWaveformOutline TMonitorOutlineResolve(
         double[] envelope, double width, double height, double scale, double offset) =>
-        LSMonitorPlan.LSMonitorOutlineResolve(envelope, width, height, scale, offset);
+        QSMonitorPlan.QSMonitorOutlineResolve(envelope, width, height, scale, offset);
 
-    internal static LSVerdict TVerdictCreate(string title, IReadOnlyList<LSVerdictRow> rows) => new(title, rows);
-    internal static bool TVerdictDetailCheck(LSVerdictRow row) => LSVerdict.LSVerdictDetailCheck(row);
+    internal static QSVerdict TVerdictCreate(string title, IReadOnlyList<QSVerdictRow> rows) => new(title, rows);
+    internal static bool TVerdictDetailCheck(QSVerdictRow row) => QSVerdict.QSVerdictDetailCheck(row);
 
-    internal static LSAbout TAboutCreate() => new(TAtelierCreate().CAtelierUsher);
-    internal static bool TAboutTapChange(LSAbout about, DateTime now) => about.LSAboutTapChange(now);
+    internal static QSAbout TAboutCreate() => new(TAtelierCreate().CAtelierUsher);
+    internal static bool TAboutTapChange(QSAbout about, DateTime now) => about.QSAboutTapChange(now);
 }

@@ -6,14 +6,14 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TColumnWeight
 {
-    private static LColumn TColumnBuild(
+    private static QColumn TColumnBuild(
         IReadOnlyList<double>? stored = null, IReadOnlyList<bool>? compact = null, int flex = -1) =>
         TInterface.TColumnCreate([100, 100, 100], stored, compact, flex);
 
     [Fact]
     public void Hide_KeepsWeightForShow()
     {
-        LColumn column = TColumnBuild([200, 200, 400]);
+        QColumn column = TColumnBuild([200, 200, 400]);
 
         Assert.True(TInterface.TColumnHiddenSet(column, 2, true));
         Assert.False(TInterface.TColumnHiddenSet(column, 2, true));
@@ -28,7 +28,7 @@ public sealed class TColumnWeight
     [Fact]
     public void WidthSet_FixesAndRestoresWeight()
     {
-        LColumn column = TColumnBuild([100, 100, 200]);
+        QColumn column = TColumnBuild([100, 100, 200]);
 
         Assert.True(TInterface.TColumnWidthSet(column, 0, 48));
         Assert.Equal(48, TInterface.TColumnFixedRead(column, 0));
@@ -42,7 +42,7 @@ public sealed class TColumnWeight
     [Fact]
     public void Total_SumsMinimumsFixedAndSplitters()
     {
-        LColumn column = TColumnBuild();
+        QColumn column = TColumnBuild();
         TInterface.TColumnWidthSet(column, 0, 48);
         TInterface.TColumnHiddenSet(column, 2, true);
 
@@ -52,7 +52,7 @@ public sealed class TColumnWeight
     [Fact]
     public void Minimum_ScalesWhenAvailableIsShort()
     {
-        LColumn column = TColumnBuild();
+        QColumn column = TColumnBuild();
         TInterface.TColumnHiddenSet(column, 1, true);
 
         Assert.Equal([50, 0, 50], TInterface.TColumnMinimumRead(column, 100));
@@ -62,7 +62,7 @@ public sealed class TColumnWeight
     [Fact]
     public void Defaults_SplitRemainderAmongFlexible_OnceOnly()
     {
-        LColumn column = TColumnBuild(compact: [true, false, false]);
+        QColumn column = TColumnBuild(compact: [true, false, false]);
 
         Assert.True(TInterface.TColumnDefaultsRead(column));
         Assert.False(TInterface.TColumnDefaultsRead(column));
@@ -74,7 +74,7 @@ public sealed class TColumnWeight
     [Fact]
     public void Drag_MovesBudgetBetweenNeighbours_WithinMinimums()
     {
-        LColumn column = TColumnBuild();
+        QColumn column = TColumnBuild();
         double[] widths = [200, 200, 200];
 
         Assert.True(TInterface.TColumnDragResolve(column, 0, 150, widths, [100, 100, 100]));
@@ -85,21 +85,21 @@ public sealed class TColumnWeight
     [Fact]
     public void Drag_WithFlexColumn_DonatesFromFlex()
     {
-        LColumn column = TColumnBuild(flex: 2);
+        QColumn column = TColumnBuild(flex: 2);
         double[] widths = [200, 200, 200];
 
         Assert.True(TInterface.TColumnDragResolve(column, 0, 50, widths, [100, 100, 100]));
         Assert.Equal([250, 200, 150], widths);
 
         Assert.True(TInterface.TColumnWeightsCommit(column, widths));
-        Assert.True(column.LColumnPixelsReady);
+        Assert.True(column.QColumnPixelsReady);
         Assert.Equal(150, TInterface.TColumnPixelRead(column, 2));
     }
 
     [Fact]
     public void Applied_ThrottlesSmallChanges()
     {
-        LColumn column = TColumnBuild();
+        QColumn column = TColumnBuild();
 
         Assert.False(TInterface.TColumnAppliedSet(column, 0));
         Assert.True(TInterface.TColumnAppliedSet(column, 800));
@@ -110,14 +110,14 @@ public sealed class TColumnWeight
     [Fact]
     public void SlotsResolve_HiddenFixedFlexAndStar()
     {
-        LColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], [200, 200, 400], null, 2);
+        QColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], [200, 200, 400], null, 2);
         int plans = 0;
         TInterface.TColumnPlanAttach(plan, () => plans++);
 
-        IReadOnlyList<LColumnSlot> slots = TInterface.TColumnSlotsResolve(plan);
-        Assert.Equal([true, true, true], slots.Select(slot => slot.LColumnSlotStar));
-        Assert.Equal([0.25, 0.25, 0.5], slots.Select(slot => slot.LColumnSlotWidth));
-        Assert.Equal([100, 100, 100], slots.Select(slot => slot.LColumnSlotMinimum));
+        IReadOnlyList<QColumnSlot> slots = TInterface.TColumnSlotsResolve(plan);
+        Assert.Equal([true, true, true], slots.Select(slot => slot.QColumnSlotStar));
+        Assert.Equal([0.25, 0.25, 0.5], slots.Select(slot => slot.QColumnSlotWidth));
+        Assert.Equal([100, 100, 100], slots.Select(slot => slot.QColumnSlotMinimum));
 
         TInterface.TColumnHiddenSet(plan, 1, true);
         TInterface.TColumnWidthSet(plan, 0, 48);
@@ -125,9 +125,9 @@ public sealed class TColumnWeight
         slots = TInterface.TColumnSlotsResolve(plan);
         Assert.Equal(
             (48, false, 100),
-            (slots[0].LColumnSlotWidth, slots[0].LColumnSlotStar, slots[0].LColumnSlotMinimum));
-        Assert.Equal((0, false, 0), (slots[1].LColumnSlotWidth, slots[1].LColumnSlotStar, slots[1].LColumnSlotMinimum));
-        Assert.True(slots[2].LColumnSlotStar);
+            (slots[0].QColumnSlotWidth, slots[0].QColumnSlotStar, slots[0].QColumnSlotMinimum));
+        Assert.Equal((0, false, 0), (slots[1].QColumnSlotWidth, slots[1].QColumnSlotStar, slots[1].QColumnSlotMinimum));
+        Assert.True(slots[2].QColumnSlotStar);
 
         TInterface.TColumnHiddenSet(plan, 1, true);
         Assert.Equal(2, plans);
@@ -136,7 +136,7 @@ public sealed class TColumnWeight
     [Fact]
     public void LayoutHandle_AppliesMinimums_CommitsDefaultsOnce()
     {
-        LColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], null, [true, false, false], -1);
+        QColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], null, [true, false, false], -1);
         int plans = 0;
         int widths = 0;
         TInterface.TColumnPlanAttach(plan, () => plans++);
@@ -163,7 +163,7 @@ public sealed class TColumnWeight
     [Fact]
     public void DragHandle_MovesWidthBetweenNeighbours()
     {
-        LColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], null, null, -1);
+        QColumnPlan plan = TInterface.TColumnPlanCreate([100, 100, 100], null, null, -1);
         int plans = 0;
         int widths = 0;
         TInterface.TColumnPlanAttach(plan, () => plans++);

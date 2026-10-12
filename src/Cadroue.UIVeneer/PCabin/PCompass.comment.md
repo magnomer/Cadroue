@@ -23,7 +23,7 @@ Gives the waveform icon a blue tint while the waveform shows and a grey one othe
 
 The group panels that belong to section editing, enabled and disabled together.
 
-## `public LCompass LCompass { get; }`
+## `public QCompass QCompass { get; }`
 
 The Deportment this view forwards to.
 
@@ -36,12 +36,12 @@ The initial edit, volume and waveform states are applied before the first layout
 
 Every group begins with a separator, which the size handler hides at the start of a wrapped line.
 
-## `private Button PCompassButtonBuild(LCompassButton lButton)`
+## `private Button PCompassButtonBuild(QCompassButton lButton)`
 
 Registers the face by key before applying the record.
 The click forwards only the key.
 
-## `private void PCompassFaceApply(LCompassButton lButton)`
+## `private void PCompassFaceApply(QCompassButton lButton)`
 
 Rewrites icon, label and tooltip of a registered face.
 This lets the play button change its look while it is playing.

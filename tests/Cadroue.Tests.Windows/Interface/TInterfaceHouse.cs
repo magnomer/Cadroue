@@ -7,66 +7,66 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LWindow TWindowCreate(Func<Func<bool>, bool> dispatch)
+    internal static QWindow TWindowCreate(Func<Func<bool>, bool> dispatch)
     {
-        LWindow window = new(TAtelierCreate());
-        window.LWindowDispatcherAttach(dispatch);
+        QWindow window = new(TAtelierCreate());
+        window.QWindowDispatcherAttach(dispatch);
         return window;
     }
-    internal static LStrip TWindowStripRead(LWindow window) => window.LWindowStrip;
-    internal static void TWindowTabSet(LWindow window, LStripTab? tab, LViewer? viewer) =>
-        window.LWindowTabSet(tab, viewer);
-    internal static void TWindowAddAttach(LWindow window, Action<LWindowTab> handler) =>
-        window.LWindowTabAdded += handler;
-    internal static void TWindowSelectAttach(LWindow window, Action<LStripTab, double> attach, Action<LStripTab> detach)
+    internal static QStrip TWindowStripRead(QWindow window) => window.QWindowStrip;
+    internal static void TWindowTabSet(QWindow window, QStripTab? tab, QViewer? viewer) =>
+        window.QWindowTabSet(tab, viewer);
+    internal static void TWindowAddAttach(QWindow window, Action<QWindowTab> handler) =>
+        window.QWindowTabAdded += handler;
+    internal static void TWindowSelectAttach(QWindow window, Action<QStripTab, double> attach, Action<QStripTab> detach)
     {
-        window.LWindowTabAttached += attach;
-        window.LWindowTabDetached += detach;
+        window.QWindowTabAttached += attach;
+        window.QWindowTabDetached += detach;
     }
-    internal static LSceneDocument TWindowSceneRead(LWindow window, string name) => window.LWindowSceneRead(name);
+    internal static LSceneDocument TWindowSceneRead(QWindow window, string name) => window.QWindowSceneRead(name);
     internal static (double, double) TWindowWidthResolve(
-        LWindow window, double? required, double reserved, double width) =>
-        window.LWindowWidthResolve(required, reserved, width);
-    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset)
+        QWindow window, double? required, double reserved, double width) =>
+        window.QWindowWidthResolve(required, reserved, width);
+    internal static void TStripWorkspaceAttach(QStripTab tab, LPreset preset)
     {
-        tab.LStripTabWorkspace.LWorkspacePresetAccept(preset);
-        tab.LStripTabWorkspace.LWorkspaceAttach(() => new LSceneTabEntry());
+        tab.QStripTabWorkspace.QWorkspacePresetAccept(preset);
+        tab.QStripTabWorkspace.QWorkspaceAttach(() => new LSceneTabEntry());
     }
     internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
 
-    internal static LWindowDrag TWindowDragCreate(
+    internal static QWindowDrag TWindowDragCreate(
         string[]? paths, bool group, string? source, bool copy, object? data) =>
         new(paths, group, source, copy, data);
-    internal static void TWindowOverHandle(LWindow window, LWindowDrag drag) =>
-        window.LWindowPart.QWindowPartDrop.LWindowOverHandle(drag);
-    internal static void TWindowDropHandle(LWindow window, LWindowDrag drag) =>
-        window.LWindowPart.QWindowPartDrop.LWindowDropHandle(drag);
-    internal static LWindowDropEffect TWindowEffectRead(LWindow window) =>
-        window.LWindowPart.QWindowPartDrop.LWindowDropEffect;
-    internal static bool TWindowHandledRead(LWindow window) => window.LWindowPart.QWindowPartDrop.LWindowDropHandled;
-    internal static void TWindowDropAttach(LWindow window, Action<IReadOnlyList<string>> list, Action<string> viewer)
+    internal static void TWindowOverHandle(QWindow window, QWindowDrag drag) =>
+        window.QWindowPart.QWindowPartDrop.QWindowOverHandle(drag);
+    internal static void TWindowDropHandle(QWindow window, QWindowDrag drag) =>
+        window.QWindowPart.QWindowPartDrop.QWindowDropHandle(drag);
+    internal static QWindowDropEffect TWindowEffectRead(QWindow window) =>
+        window.QWindowPart.QWindowPartDrop.QWindowDropEffect;
+    internal static bool TWindowHandledRead(QWindow window) => window.QWindowPart.QWindowPartDrop.QWindowDropHandled;
+    internal static void TWindowDropAttach(QWindow window, Action<IReadOnlyList<string>> list, Action<string> viewer)
     {
-        window.LWindowPart.QWindowPartDrop.LWindowListAdded += list;
-        window.LWindowPart.QWindowPartDrop.LWindowViewerOpened += viewer;
+        window.QWindowPart.QWindowPartDrop.QWindowListAdded += list;
+        window.QWindowPart.QWindowPartDrop.QWindowViewerOpened += viewer;
     }
 
     internal static void TWindowShortcutAttach(
-        LWindow window,
+        QWindow window,
         Action show,
         Func<bool?> undo,
         Func<bool?> redo,
         Func<bool> unload,
         Func<IReadOnlySet<Guid>, bool?> clear) =>
-        window.LWindowPart.QWindowPartShortcut.LWindowShortcutAttach(show, undo, redo, unload, clear);
-    internal static bool TWindowShortcutRun(LWindow window, string token) =>
-        window.LWindowPart.QWindowPartShortcut.LWindowShortcutRun(token);
-    internal static void TWindowPlayAttach(LWindow window, Action play, Action pause)
+        window.QWindowPart.QWindowPartShortcut.QWindowShortcutAttach(show, undo, redo, unload, clear);
+    internal static bool TWindowShortcutRun(QWindow window, string token) =>
+        window.QWindowPart.QWindowPartShortcut.QWindowShortcutRun(token);
+    internal static void TWindowPlayAttach(QWindow window, Action play, Action pause)
     {
-        window.LWindowPart.QWindowPartShortcut.LWindowShortcutPlayed += play;
-        window.LWindowPart.QWindowPartShortcut.LWindowShortcutPaused += pause;
+        window.QWindowPart.QWindowPartShortcut.QWindowShortcutPlayed += play;
+        window.QWindowPart.QWindowPartShortcut.QWindowShortcutPaused += pause;
     }
 
-    internal static LWindowPress TWindowPressCreate(
+    internal static QWindowPress TWindowPressCreate(
         bool handled,
         int message,
         int virtualKey,
@@ -78,26 +78,26 @@ internal static partial class TInterface
         Func<int, string> key,
         Func<int, short> state) =>
         new(handled, message, virtualKey, modal, own, foreground, viewer, input, key, state);
-    internal static bool TWindowShortcutHandle(LWindow window, LWindowPress press) =>
-        window.LWindowPart.QWindowPartShortcut.LWindowShortcutHandle(press);
+    internal static bool TWindowShortcutHandle(QWindow window, QWindowPress press) =>
+        window.QWindowPart.QWindowPartShortcut.QWindowShortcutHandle(press);
 
-    internal static LSash TSashCreate(double border) => new(border);
-    internal static LSashBounds TSashBoundsCreate(double left, double top, double width, double height) =>
+    internal static QSash TSashCreate(double border) => new(border);
+    internal static QSashBounds TSashBoundsCreate(double left, double top, double width, double height) =>
         new(left, top, width, height);
     internal static int TSashDirectionResolve(double x, double y, double width, double height, double border) =>
-        LSash.LSashDirectionResolve(x, y, width, height, border);
+        QSash.QSashDirectionResolve(x, y, width, height, border);
     internal static bool TSashPressHandle(
-        LSash sash,
+        QSash sash,
         bool normal,
         bool interactive,
         double x,
         double y,
         double pointerX,
         double pointerY,
-        LSashBounds bounds) =>
-        sash.LSashPressHandle(normal, interactive, x, y, pointerX, pointerY, bounds);
+        QSashBounds bounds) =>
+        sash.QSashPressHandle(normal, interactive, x, y, pointerX, pointerY, bounds);
     internal static bool TSashMoveHandle(
-        LSash sash,
+        QSash sash,
         bool normal,
         bool interactive,
         double x,
@@ -108,38 +108,38 @@ internal static partial class TInterface
         double pointerY,
         double minimumWidth,
         double minimumHeight) =>
-        sash.LSashMoveHandle(normal, interactive, x, y, width, height, pointerX, pointerY, minimumWidth, minimumHeight);
-    internal static bool TSashReleaseHandle(LSash sash) => sash.LSashReleaseHandle();
-    internal static void TSashCaptureHandle(LSash sash) => sash.LSashCaptureHandle();
-    internal static int TSashLeaveResolve(LSash sash) => sash.LSashLeaveResolve();
-    internal static void TSashBoundsAttach(LSash sash, Action<LSashBounds> handler) =>
-        sash.LSashBoundsChanged += handler;
-    internal static void TSashCaptureAttach(LSash sash, Action start, Action stop, Action<bool> active)
+        sash.QSashMoveHandle(normal, interactive, x, y, width, height, pointerX, pointerY, minimumWidth, minimumHeight);
+    internal static bool TSashReleaseHandle(QSash sash) => sash.QSashReleaseHandle();
+    internal static void TSashCaptureHandle(QSash sash) => sash.QSashCaptureHandle();
+    internal static int TSashLeaveResolve(QSash sash) => sash.QSashLeaveResolve();
+    internal static void TSashBoundsAttach(QSash sash, Action<QSashBounds> handler) =>
+        sash.QSashBoundsChanged += handler;
+    internal static void TSashCaptureAttach(QSash sash, Action start, Action stop, Action<bool> active)
     {
-        sash.LSashCaptureStarted += start;
-        sash.LSashCaptureStopped += stop;
-        sash.LSashActiveChanged += active;
+        sash.QSashCaptureStarted += start;
+        sash.QSashCaptureStopped += stop;
+        sash.QSashActiveChanged += active;
     }
 
-    internal static LSashBounds TSashBoundsClamp(
-        LSashBounds bounds,
-        LSashBounds work,
+    internal static QSashBounds TSashBoundsClamp(
+        QSashBounds bounds,
+        QSashBounds work,
         double minWidth,
         double minHeight,
         double maxWidth,
         double maxHeight) =>
-        LSash.LSashBoundsClamp(bounds, work, minWidth, minHeight, maxWidth, maxHeight);
-    internal static LSashBounds TSashPlacementResolve(
+        QSash.QSashBoundsClamp(bounds, work, minWidth, minHeight, maxWidth, maxHeight);
+    internal static QSashBounds TSashPlacementResolve(
         double? left,
         double? top,
         double width,
         double height,
-        LSashBounds current,
+        QSashBounds current,
         double minWidth,
         double minHeight,
         double workLeft,
         double workTop) =>
-        LSash.LSashPlacementResolve(left, top, width, height, current, minWidth, minHeight, workLeft, workTop);
+        QSash.QSashPlacementResolve(left, top, width, height, current, minWidth, minHeight, workLeft, workTop);
     internal static (double, double) TSashRelayResolve(
         double dropLeft,
         double dropTop,
@@ -147,44 +147,44 @@ internal static partial class TInterface
         double screenTop,
         double screenWidth,
         double screenHeight) =>
-        LSash.LSashRelayResolve(dropLeft, dropTop, screenLeft, screenTop, screenWidth, screenHeight);
-    internal static (double, double) TSashCenterResolve(bool manual, LSashBounds window, LSashBounds owner) =>
-        LSash.LSashCenterResolve(manual, window, owner);
+        QSash.QSashRelayResolve(dropLeft, dropTop, screenLeft, screenTop, screenWidth, screenHeight);
+    internal static (double, double) TSashCenterResolve(bool manual, QSashBounds window, QSashBounds owner) =>
+        QSash.QSashCenterResolve(manual, window, owner);
 
-    internal static IReadOnlyList<LTokenPart> TTokenParse(string text) => LToken.LTokenParse(text);
-    internal static LTokenPart TTokenPartResolve(string token) => LToken.LTokenPartResolve(token);
-    internal static string TTokenTextRead(IEnumerable<(string?, string?)> inlines) => LToken.LTokenTextRead(inlines);
-    internal static LToken TTokenCreate() => new();
-    internal static bool TTokenDropHandle(LToken token, string? text) => token.LTokenDropHandle(text);
-    internal static void TTokenInsertAttach(LToken token, Action<string> handler) => token.LTokenInserted += handler;
+    internal static IReadOnlyList<QTokenPart> TTokenParse(string text) => QToken.QTokenParse(text);
+    internal static QTokenPart TTokenPartResolve(string token) => QToken.QTokenPartResolve(token);
+    internal static string TTokenTextRead(IEnumerable<(string?, string?)> inlines) => QToken.QTokenTextRead(inlines);
+    internal static QToken TTokenCreate() => new();
+    internal static bool TTokenDropHandle(QToken token, string? text) => token.QTokenDropHandle(text);
+    internal static void TTokenInsertAttach(QToken token, Action<string> handler) => token.QTokenInserted += handler;
 
-    internal static LGhost TGhostCreate(double grabX, double grabY) => new(grabX, grabY);
-    internal static void TGhostPointSet(LGhost ghost, double x, double y) => ghost.LGhostPointSet(x, y);
-    internal static bool TGhostClear(LGhost ghost) => ghost.LGhostClear();
-    internal static LGhostSize TGhostSizeResolve(double width, double height, double scaleX, double scaleY) =>
-        LGhost.LGhostSizeResolve(width, height, scaleX, scaleY);
+    internal static QGhost TGhostCreate(double grabX, double grabY) => new(grabX, grabY);
+    internal static void TGhostPointSet(QGhost ghost, double x, double y) => ghost.QGhostPointSet(x, y);
+    internal static bool TGhostClear(QGhost ghost) => ghost.QGhostClear();
+    internal static QGhostSize TGhostSizeResolve(double width, double height, double scaleX, double scaleY) =>
+        QGhost.QGhostSizeResolve(width, height, scaleX, scaleY);
 
-    internal static IReadOnlyList<LPickerItem> TPickerItemsCreate(
+    internal static IReadOnlyList<QPickerItem> TPickerItemsCreate(
         IReadOnlyList<string> tokens, IReadOnlyList<string> selected) =>
-        LPicker.LPickerItemsCreate(tokens, selected);
+        QPicker.QPickerItemsCreate(tokens, selected);
     internal static (string, bool) TPickerSummaryResolve(IReadOnlyList<string> labels, string empty) =>
-        LPicker.LPickerSummaryResolve(labels, empty);
+        QPicker.QPickerSummaryResolve(labels, empty);
 
-    internal static LLog TLogCreate() => new(TAtelierCreate().CAtelierUsher);
+    internal static QLog TLogCreate() => new(TAtelierCreate().CAtelierUsher);
     internal static LTraceEntry TTraceEntryCreate(LTraceKind kind, string summary, string? detail, double? span) =>
         new("12:00:00.000", string.Empty, kind, summary, detail, span);
-    internal static LLogRow TLogRowCreate(LTraceEntry entry) => new(entry);
-    internal static void TLogFileSet(LLog log, string path, string livePath) => log.LLogFileSet(path, livePath);
-    internal static bool TLogLiveSet(LLog log, string livePath) => log.LLogLiveSet(livePath);
-    internal static bool TLogFileCheck(LLog log, string path) => log.LLogFileCheck(path);
-    internal static void TLogFollowSet(LLog log, bool follow) => log.LLogFollowSet(follow);
+    internal static QLogRow TLogRowCreate(LTraceEntry entry) => new(entry);
+    internal static void TLogFileSet(QLog log, string path, string livePath) => log.QLogFileSet(path, livePath);
+    internal static bool TLogLiveSet(QLog log, string livePath) => log.QLogLiveSet(livePath);
+    internal static bool TLogFileCheck(QLog log, string path) => log.QLogFileCheck(path);
+    internal static void TLogFollowSet(QLog log, bool follow) => log.QLogFollowSet(follow);
     internal static void TLogScrollHandle(
-        LLog log, bool feed, double extent, double? scrollable, double? offset, double row) =>
-        log.LLogScrollHandle(feed, extent, scrollable, offset, row);
-    internal static void TLogSnapshotSet(LLog log, long sequence) => log.LLogSnapshotSet(sequence);
-    internal static bool TLogSnapshotCheck(LLog log, long sequence) => log.LLogSnapshotCheck(sequence);
-    internal static bool TLogExpandToggle(LLog log, LLogRow? row) => log.LLogExpandToggle(row);
-    internal static void TLogCategorySet(LLog log, IReadOnlyList<string> tokens) => log.LLogCategorySet(tokens);
-    internal static void TLogResetAttach(LLog log, Action handler) => log.LLogRowsRebuilt += handler;
-    internal static string TLogKeyRead(LTraceKind kind) => LLogRow.LLogKeyRead(kind);
+        QLog log, bool feed, double extent, double? scrollable, double? offset, double row) =>
+        log.QLogScrollHandle(feed, extent, scrollable, offset, row);
+    internal static void TLogSnapshotSet(QLog log, long sequence) => log.QLogSnapshotSet(sequence);
+    internal static bool TLogSnapshotCheck(QLog log, long sequence) => log.QLogSnapshotCheck(sequence);
+    internal static bool TLogExpandToggle(QLog log, QLogRow? row) => log.QLogExpandToggle(row);
+    internal static void TLogCategorySet(QLog log, IReadOnlyList<string> tokens) => log.QLogCategorySet(tokens);
+    internal static void TLogResetAttach(QLog log, Action handler) => log.QLogRowsRebuilt += handler;
+    internal static string TLogKeyRead(LTraceKind kind) => QLogRow.QLogKeyRead(kind);
 }

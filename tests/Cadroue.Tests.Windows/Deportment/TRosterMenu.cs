@@ -9,9 +9,9 @@ namespace Cadroue.Tests.Windows;
 [Collection("Schedule")]
 public sealed class TRosterMenu
 {
-    private static LRoster TRosterOpen(TSchedule schedule)
+    private static QRoster TRosterOpen(TSchedule schedule)
     {
-        LRoster roster = TInterfaceRoster.TRosterCreate(
+        QRoster roster = TInterfaceRoster.TRosterCreate(
             schedule.TScheduleRead(), TInterfaceRoster.TStationCreate(schedule.TScheduleRead()));
         TInterfaceRoster.TRosterRebuild(roster);
         return roster;
@@ -25,13 +25,13 @@ public sealed class TRosterMenu
         TScheduleWork one = schedule.TWorkCreate(batch, "one");
         TScheduleWork two = schedule.TWorkCreate(batch, "two");
         schedule.TScheduleAdd(one, two);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         TInterfaceRoster.TRosterStepSelect(roster, one.TWorkId, false, false);
         TInterfaceRoster.TRosterStepSelect(roster, two.TWorkId, false, true);
 
-        LRosterItem cancel = Assert.Single(TInterfaceRoster.TRosterMenuRead(roster, one.TWorkId, null));
-        Assert.True(cancel.LRosterItemEnabled);
-        Assert.Empty(cancel.LRosterItemIcon);
+        QRosterItem cancel = Assert.Single(TInterfaceRoster.TRosterMenuRead(roster, one.TWorkId, null));
+        Assert.True(cancel.QRosterItemEnabled);
+        Assert.Empty(cancel.QRosterItemIcon);
         TInterfaceRoster.TRosterItemRun(cancel);
 
         Assert.All(schedule.TScheduleRecordsRead(), item =>
@@ -48,10 +48,10 @@ public sealed class TRosterMenu
         TScheduleWork two = schedule.TWorkCreate(batch, "two");
         schedule.TScheduleAdd(one, two);
         schedule.TScheduleCancel(one, two);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         TInterfaceRoster.TRosterStepSelect(roster, two.TWorkId, false, false);
 
-        LRosterItem restart = Assert.Single(TInterfaceRoster.TRosterMenuRead(roster, one.TWorkId, null));
+        QRosterItem restart = Assert.Single(TInterfaceRoster.TRosterMenuRead(roster, one.TWorkId, null));
         TInterfaceRoster.TRosterItemRun(restart);
 
         IReadOnlyList<TScheduleItem> records = schedule.TScheduleRecordsRead();
@@ -69,10 +69,10 @@ public sealed class TRosterMenu
         schedule.TScheduleAdd(schedule.TWorkCreate(Guid.NewGuid(), "one"));
         TScheduleWork claimed = schedule.TScheduleNextClaim();
         schedule.TScheduleCommit(claimed, true);
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
 
         Assert.Empty(TInterfaceRoster.TRosterMenuRead(roster, claimed.TWorkId, null));
-        LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
+        QStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
         Assert.Empty(TInterfaceRoster.TRosterMenuRead(roster, claimed.TWorkId, strip));
         Assert.Empty(TInterfaceRoster.TRosterMenuRead(roster, Guid.NewGuid(), null));
         TInterfaceRoster.TRosterClose(roster);

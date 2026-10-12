@@ -24,45 +24,45 @@ public sealed class PEditTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(220)
     };
 
-    public PEditTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PEditTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LEditTab = lWorkspace.QWorkspaceMode.LEditTabCreate();
-        pInspector = new PInspector(LEditTab.LEditInspector);
-        pProcessing = new PProcessing(LEditTab.LEditProcessing);
-        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QEditTab = lWorkspace.QWorkspaceMode.QEditTabCreate();
+        pInspector = new PInspector(QEditTab.QEditInspector);
+        pProcessing = new PProcessing(QEditTab.QEditProcessing);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
-        QEditProcessing.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        QEditProcessing.QEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
-        pViewer.LViewer.LViewerPlayback.LViewerClockTicked += PEditHistogramDefer;
+        pViewer.QViewer.QViewerPlayback.QViewerClockTicked += PEditHistogramDefer;
 
-        LEditTab.LEditPresetMissing += PExport.PExportMissingShow;
-        LEditTab.LEditPresetIncompatible += PExport.PExportIncompatibleShow;
-        LEditTab.LEditHistogramDeferred += PEditHistogramDefer;
-        LEditTab.LEditColorDeferred += PEditColorDefer;
+        QEditTab.QEditPresetMissing += PExport.PExportMissingShow;
+        QEditTab.QEditPresetIncompatible += PExport.PExportIncompatibleShow;
+        QEditTab.QEditHistogramDeferred += PEditHistogramDefer;
+        QEditTab.QEditColorDeferred += PEditColorDefer;
         pEditColorTimer.Tick += PEditColorTick;
         pEditHistogramTimer.Tick += PEditHistogramTick;
-        LEditTab.LEditColor.LEditCapableHandle();
+        QEditTab.QEditColor.QEditCapableHandle();
 
-        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
+        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
-        LEditTab.LEditLayoutApply(lPreferenceTabLayout);
-        LEditTab.LEditStart();
+        QEditTab.QEditLayoutApply(lPreferenceTabLayout);
+        QEditTab.QEditStart();
     }
 
-    public LEditTab LEditTab { get; }
+    public QEditTab QEditTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 
@@ -74,11 +74,11 @@ public sealed class PEditTab : PTabSurface
     {
         pEditColorTimer.Stop();
         pEditHistogramTimer.Stop();
-        LEditTab.LEditClose();
+        QEditTab.QEditClose();
         base.PTabClose();
     }
 
-    public override LSceneTabEntry PTabLayoutRead() => LEditTab.LEditLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => QEditTab.QEditLayoutRead(PTabLayoutCreate());
 
     private void PEditHistogramDefer(TimeSpan lPosition) => PEditHistogramDefer();
 
@@ -97,12 +97,12 @@ public sealed class PEditTab : PTabSurface
     private void PEditColorTick(object? pSender, EventArgs pEvent)
     {
         pEditColorTimer.Stop();
-        LEditTab.LEditColor.LEditColorApply();
+        QEditTab.QEditColor.QEditColorApply();
     }
 
     private void PEditHistogramTick(object? pSender, EventArgs pEvent)
     {
         pEditHistogramTimer.Stop();
-        LEditTab.LEditColor.LEditHistogramRun();
+        QEditTab.QEditColor.QEditHistogramRun();
     }
 }

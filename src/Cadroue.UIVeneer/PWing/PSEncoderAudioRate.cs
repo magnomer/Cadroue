@@ -15,8 +15,8 @@ internal sealed partial class PSEncoder
         psAudioSpeedCombo = null;
         psAudioExtraCombos.Clear();
 
-        LCapabilityCodec pCodec = lsEncoder.LSEncoderAudioCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.LSEncoderAudioRate);
+        LCapabilityCodec pCodec = lsEncoder.QSEncoderAudioCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderAudioRate);
         bool pModeStored = string.Equals(
             pMode.LCapabilityModeLabel,
             lsExportSpecificEdit.LPresetAudio.LPresetRateControl,

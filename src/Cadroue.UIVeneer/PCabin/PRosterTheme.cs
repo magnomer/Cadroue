@@ -64,108 +64,108 @@ internal static class PRosterTheme
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterRowShades = new Dictionary<string, Brush>
     {
-        [LRosterRow.LRosterShadeSelected] = PRosterSelectBrush,
-        [LRosterRow.LRosterShadeStage] = PRosterStageBrush,
-        [LRosterRow.LRosterShadePlain] = Brushes.Transparent,
+        [QRosterRow.QRosterShadeSelected] = PRosterSelectBrush,
+        [QRosterRow.QRosterShadeStage] = PRosterStageBrush,
+        [QRosterRow.QRosterShadePlain] = Brushes.Transparent,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterRowHovers = new Dictionary<string, Brush>
     {
-        [LRosterRow.LRosterShadeSelected] = PRosterSelectBrush,
-        [LRosterRow.LRosterShadeStage] = PRosterHeaderBrush,
-        [LRosterRow.LRosterShadePlain] = PRosterHeaderBrush,
+        [QRosterRow.QRosterShadeSelected] = PRosterSelectBrush,
+        [QRosterRow.QRosterShadeStage] = PRosterHeaderBrush,
+        [QRosterRow.QRosterShadePlain] = PRosterHeaderBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterCardFills = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectCard,
-        [LRosterCard.LRosterCardDone] = PRosterDoneCard,
-        [LRosterCard.LRosterCardPlain] = PRosterCardBrush,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectCard,
+        [QRosterCard.QRosterCardDone] = PRosterDoneCard,
+        [QRosterCard.QRosterCardPlain] = PRosterCardBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterCardHovers = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectCard,
-        [LRosterCard.LRosterCardDone] = PRosterDoneHover,
-        [LRosterCard.LRosterCardPlain] = PRosterHoverBrush,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectCard,
+        [QRosterCard.QRosterCardDone] = PRosterDoneHover,
+        [QRosterCard.QRosterCardPlain] = PRosterHoverBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterCardLines = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectLine,
-        [LRosterCard.LRosterCardDone] = PRosterDoneLine,
-        [LRosterCard.LRosterCardPlain] = PRosterCardLine,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectLine,
+        [QRosterCard.QRosterCardDone] = PRosterDoneLine,
+        [QRosterCard.QRosterCardPlain] = PRosterCardLine,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterBodyFills = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectBody,
-        [LRosterCard.LRosterCardDone] = PRosterDoneBody,
-        [LRosterCard.LRosterCardPlain] = PRosterBodyBrush,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectBody,
+        [QRosterCard.QRosterCardDone] = PRosterDoneBody,
+        [QRosterCard.QRosterCardPlain] = PRosterBodyBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterBodyLines = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterOuterLine,
-        [LRosterCard.LRosterCardDone] = PRosterDoneLine,
-        [LRosterCard.LRosterCardPlain] = PRosterCardLine,
+        [QRosterCard.QRosterCardSelected] = PRosterOuterLine,
+        [QRosterCard.QRosterCardDone] = PRosterDoneLine,
+        [QRosterCard.QRosterCardPlain] = PRosterCardLine,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterTitleBrushes = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectText,
-        [LRosterCard.LRosterCardDone] = PRosterMutedBrush,
-        [LRosterCard.LRosterCardPlain] = PRosterTitleBrush,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectText,
+        [QRosterCard.QRosterCardDone] = PRosterMutedBrush,
+        [QRosterCard.QRosterCardPlain] = PRosterTitleBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterControlBrushes = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterSelectText,
-        [LRosterCard.LRosterCardDone] = PRosterMutedBrush,
-        [LRosterCard.LRosterCardPlain] = PRosterMutedBrush,
+        [QRosterCard.QRosterCardSelected] = PRosterSelectText,
+        [QRosterCard.QRosterCardDone] = PRosterMutedBrush,
+        [QRosterCard.QRosterCardPlain] = PRosterMutedBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterControlHovers = new Dictionary<string, Brush>
     {
-        [LRosterCard.LRosterCardSelected] = PRosterCardBrush,
-        [LRosterCard.LRosterCardDone] = PRosterDoneHover,
-        [LRosterCard.LRosterCardPlain] = PRosterControlHover,
+        [QRosterCard.QRosterCardSelected] = PRosterCardBrush,
+        [QRosterCard.QRosterCardDone] = PRosterDoneHover,
+        [QRosterCard.QRosterCardPlain] = PRosterControlHover,
     };
 
     public static readonly IReadOnlyDictionary<string, Thickness> PRosterFrameBorders =
         new Dictionary<string, Thickness>
         {
-            [LRosterEntry.LRosterFrameWhole] = new Thickness(1),
-            [LRosterEntry.LRosterFrameTop] = new Thickness(1, 1, 1, 0),
-            [LRosterEntry.LRosterFrameMiddle] = new Thickness(1, 0, 1, 0),
-            [LRosterEntry.LRosterFrameBottom] = new Thickness(1, 0, 1, 1),
+            [QRosterEntry.QRosterFrameWhole] = new Thickness(1),
+            [QRosterEntry.QRosterFrameTop] = new Thickness(1, 1, 1, 0),
+            [QRosterEntry.QRosterFrameMiddle] = new Thickness(1, 0, 1, 0),
+            [QRosterEntry.QRosterFrameBottom] = new Thickness(1, 0, 1, 1),
         };
 
     public static readonly IReadOnlyDictionary<string, CornerRadius> PRosterFrameCorners =
         new Dictionary<string, CornerRadius>
         {
-            [LRosterEntry.LRosterFrameWhole] = new CornerRadius(PRosterCorner),
-            [LRosterEntry.LRosterFrameTop] = new CornerRadius(PRosterCorner, PRosterCorner, 0, 0),
-            [LRosterEntry.LRosterFrameMiddle] = new CornerRadius(0),
-            [LRosterEntry.LRosterFrameBottom] = new CornerRadius(0, 0, PRosterCorner, PRosterCorner),
+            [QRosterEntry.QRosterFrameWhole] = new CornerRadius(PRosterCorner),
+            [QRosterEntry.QRosterFrameTop] = new CornerRadius(PRosterCorner, PRosterCorner, 0, 0),
+            [QRosterEntry.QRosterFrameMiddle] = new CornerRadius(0),
+            [QRosterEntry.QRosterFrameBottom] = new CornerRadius(0, 0, PRosterCorner, PRosterCorner),
         };
 
     public static readonly IReadOnlyDictionary<string, Thickness> PRosterFramePaddings =
         new Dictionary<string, Thickness>
         {
-            [LRosterEntry.LRosterFrameWhole] = new Thickness(0),
-            [LRosterEntry.LRosterFrameTop] = new Thickness(0),
-            [LRosterEntry.LRosterFrameMiddle] = new Thickness(0),
-            [LRosterEntry.LRosterFrameBottom] = new Thickness(0, 0, 0, 6),
+            [QRosterEntry.QRosterFrameWhole] = new Thickness(0),
+            [QRosterEntry.QRosterFrameTop] = new Thickness(0),
+            [QRosterEntry.QRosterFrameMiddle] = new Thickness(0),
+            [QRosterEntry.QRosterFrameBottom] = new Thickness(0, 0, 0, 6),
         };
 
     public static readonly IReadOnlyDictionary<string, Thickness> PRosterFrameMargins =
         new Dictionary<string, Thickness>
         {
-            [LRosterEntry.LRosterFrameWhole] = new Thickness(0, 0, 0, 8),
-            [LRosterEntry.LRosterFrameTop] = new Thickness(0),
-            [LRosterEntry.LRosterFrameMiddle] = new Thickness(0),
-            [LRosterEntry.LRosterFrameBottom] = new Thickness(0, 0, 0, 8),
+            [QRosterEntry.QRosterFrameWhole] = new Thickness(0, 0, 0, 8),
+            [QRosterEntry.QRosterFrameTop] = new Thickness(0),
+            [QRosterEntry.QRosterFrameMiddle] = new Thickness(0),
+            [QRosterEntry.QRosterFrameBottom] = new Thickness(0, 0, 0, 8),
         };
 
     public static readonly IReadOnlyDictionary<bool, Thickness> PRosterHeaderBorders = new Dictionary<bool, Thickness>
@@ -207,45 +207,45 @@ internal static class PRosterTheme
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterLineBrushes = new Dictionary<string, Brush>
     {
-        [LRosterDetail.LRosterLineHead] = PRosterMutedBrush,
-        [LRosterDetail.LRosterLinePlain] = PRosterTextBrush,
-        [LRosterDetail.LRosterLineChanged] = PRosterAccentBrush,
+        [QRosterDetail.QRosterLineHead] = PRosterMutedBrush,
+        [QRosterDetail.QRosterLinePlain] = PRosterTextBrush,
+        [QRosterDetail.QRosterLineChanged] = PRosterAccentBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, double> PRosterLineSizes = new Dictionary<string, double>
     {
-        [LRosterDetail.LRosterLineHead] = PRosterRowSize - 1,
-        [LRosterDetail.LRosterLinePlain] = PRosterRowSize,
-        [LRosterDetail.LRosterLineChanged] = PRosterRowSize,
+        [QRosterDetail.QRosterLineHead] = PRosterRowSize - 1,
+        [QRosterDetail.QRosterLinePlain] = PRosterRowSize,
+        [QRosterDetail.QRosterLineChanged] = PRosterRowSize,
     };
 
     public static readonly IReadOnlyDictionary<string, FontWeight> PRosterLineWeights =
         new Dictionary<string, FontWeight>
         {
-            [LRosterDetail.LRosterLineHead] = FontWeights.SemiBold,
-            [LRosterDetail.LRosterLinePlain] = FontWeights.Normal,
-            [LRosterDetail.LRosterLineChanged] = FontWeights.SemiBold,
+            [QRosterDetail.QRosterLineHead] = FontWeights.SemiBold,
+            [QRosterDetail.QRosterLinePlain] = FontWeights.Normal,
+            [QRosterDetail.QRosterLineChanged] = FontWeights.SemiBold,
         };
 
     public static readonly IReadOnlyDictionary<string, Thickness> PRosterLineMargins =
         new Dictionary<string, Thickness>
         {
-            [LRosterDetail.LRosterLineHead] = new Thickness(0, 0, 0, 3),
-            [LRosterDetail.LRosterLinePlain] = new Thickness(0, 1, 0, 1),
-            [LRosterDetail.LRosterLineChanged] = new Thickness(0, 1, 0, 1),
+            [QRosterDetail.QRosterLineHead] = new Thickness(0, 0, 0, 3),
+            [QRosterDetail.QRosterLinePlain] = new Thickness(0, 1, 0, 1),
+            [QRosterDetail.QRosterLineChanged] = new Thickness(0, 1, 0, 1),
         };
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterValueBrushes = new Dictionary<string, Brush>
     {
-        [LRosterDetail.LRosterValuePlain] = PRosterTextBrush,
-        [LRosterDetail.LRosterValueFail] = PRosterFailBrush,
+        [QRosterDetail.QRosterValuePlain] = PRosterTextBrush,
+        [QRosterDetail.QRosterValueFail] = PRosterFailBrush,
     };
 
     public static readonly IReadOnlyDictionary<string, FontWeight> PRosterValueWeights =
         new Dictionary<string, FontWeight>
         {
-            [LRosterDetail.LRosterValuePlain] = FontWeights.Normal,
-            [LRosterDetail.LRosterValueFail] = FontWeights.SemiBold,
+            [QRosterDetail.QRosterValuePlain] = FontWeights.Normal,
+            [QRosterDetail.QRosterValueFail] = FontWeights.SemiBold,
         };
 
     public static readonly IReadOnlyDictionary<bool, Brush> PRosterMarkBrushes = new Dictionary<bool, Brush>
@@ -256,9 +256,9 @@ internal static class PRosterTheme
 
     public static readonly IReadOnlyDictionary<string, Brush> PRosterPercentBrushes = new Dictionary<string, Brush>
     {
-        [LRosterDetail.LRosterPercentOver] = PRosterFailBrush,
-        [LRosterDetail.LRosterPercentUnder] = PRosterAccentBrush,
-        [LRosterDetail.LRosterPercentEqual] = PRosterTextBrush,
+        [QRosterDetail.QRosterPercentOver] = PRosterFailBrush,
+        [QRosterDetail.QRosterPercentUnder] = PRosterAccentBrush,
+        [QRosterDetail.QRosterPercentEqual] = PRosterTextBrush,
     };
 
     private static Brush PRosterBrushCreate(byte pRed, byte pGreen, byte pBlue)

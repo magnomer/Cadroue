@@ -33,7 +33,7 @@ internal sealed class PPicker : UserControl
         [false] = PLineBrush,
     };
 
-    private readonly IReadOnlyList<LPickerItem> lPickerItems;
+    private readonly IReadOnlyList<QPickerItem> lPickerItems;
     private readonly Dictionary<string, CheckBox> pPickerBoxes = new(StringComparer.Ordinal);
     private readonly StackPanel pPickerList = new() { Margin = new Thickness(6) };
     private readonly TextBlock pPickerSummary;
@@ -43,16 +43,16 @@ internal sealed class PPicker : UserControl
     internal event Action? PPickerChanged;
 
     internal PPicker(IReadOnlyList<string> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
-        : this(LPicker.LPickerItemsCreate(pItems, pSelected), pEmptyText)
+        : this(QPicker.QPickerItemsCreate(pItems, pSelected), pEmptyText)
     {
     }
 
     internal PPicker(IReadOnlyList<LLocalizationChoice> pItems, IReadOnlyList<string> pSelected, string pEmptyText)
-        : this(LPicker.LPickerItemsCreate(pItems, pSelected), pEmptyText)
+        : this(QPicker.QPickerItemsCreate(pItems, pSelected), pEmptyText)
     {
     }
 
-    private PPicker(IReadOnlyList<LPickerItem> lItems, string pEmptyText)
+    private PPicker(IReadOnlyList<QPickerItem> lItems, string pEmptyText)
     {
         lPickerItems = lItems;
         PPickerEmptyText = pEmptyText;
@@ -95,12 +95,12 @@ internal sealed class PPicker : UserControl
     internal string PPickerEmptyText { get; }
 
     internal IReadOnlyList<string> PPickerSelectionRead() =>
-        PPickerCheckedRead().Select(lItem => lItem.LPickerItemToken).ToArray();
+        PPickerCheckedRead().Select(lItem => lItem.QPickerItemToken).ToArray();
 
-    private IEnumerable<LPickerItem> PPickerCheckedRead() => lPickerItems.Where(PPickerCheckedMatch);
+    private IEnumerable<QPickerItem> PPickerCheckedRead() => lPickerItems.Where(PPickerCheckedMatch);
 
-    private bool PPickerCheckedMatch(LPickerItem lItem) =>
-        pPickerBoxes[lItem.LPickerItemToken].IsChecked.GetValueOrDefault();
+    private bool PPickerCheckedMatch(QPickerItem lItem) =>
+        pPickerBoxes[lItem.QPickerItemToken].IsChecked.GetValueOrDefault();
 
     private ToggleButton PPickerArrowBuild()
     {
@@ -120,18 +120,18 @@ internal sealed class PPicker : UserControl
         return pArrow;
     }
 
-    private void PPickerRowAdd(LPickerItem lItem)
+    private void PPickerRowAdd(QPickerItem lItem)
     {
         var pBox = new CheckBox
         {
-            Content = lItem.LPickerItemLabel,
-            IsChecked = PLook.PLookChecked[lItem.LPickerItemChecked],
+            Content = lItem.QPickerItemLabel,
+            IsChecked = PLook.PLookChecked[lItem.QPickerItemChecked],
             Margin = new Thickness(8, 6, 8, 6)
         };
         PCheckbox.PCheckboxApply(pBox);
         pBox.Checked += (_, _) => PPickerChangeHandle();
         pBox.Unchecked += (_, _) => PPickerChangeHandle();
-        pPickerBoxes[lItem.LPickerItemToken] = pBox;
+        pPickerBoxes[lItem.QPickerItemToken] = pBox;
         pPickerList.Children.Add(pBox);
     }
 
@@ -183,8 +183,8 @@ internal sealed class PPicker : UserControl
 
     private void PPickerSummaryUpdate()
     {
-        (string lText, bool lEmpty) = LPicker.LPickerSummaryResolve(
-            PPickerCheckedRead().Select(lItem => lItem.LPickerItemLabel).ToArray(),
+        (string lText, bool lEmpty) = QPicker.QPickerSummaryResolve(
+            PPickerCheckedRead().Select(lItem => lItem.QPickerItemLabel).ToArray(),
             PPickerEmptyText);
         pPickerSummary.Text = lText;
         pPickerSummary.Foreground = PPickerSummaryBrushes[lEmpty];

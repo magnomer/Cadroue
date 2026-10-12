@@ -42,15 +42,15 @@ public static class PLook
 
     public static readonly IReadOnlyDictionary<int, Cursor?> PLookCursor = new Dictionary<int, Cursor?>
     {
-        [LSash.LSashNone] = null,
-        [LSash.LSashLeft] = Cursors.SizeWE,
-        [LSash.LSashRight] = Cursors.SizeWE,
-        [LSash.LSashTop] = Cursors.SizeNS,
-        [LSash.LSashBottom] = Cursors.SizeNS,
-        [LSash.LSashLeft | LSash.LSashTop] = Cursors.SizeNWSE,
-        [LSash.LSashRight | LSash.LSashBottom] = Cursors.SizeNWSE,
-        [LSash.LSashLeft | LSash.LSashBottom] = Cursors.SizeNESW,
-        [LSash.LSashRight | LSash.LSashTop] = Cursors.SizeNESW,
+        [QSash.QSashNone] = null,
+        [QSash.QSashLeft] = Cursors.SizeWE,
+        [QSash.QSashRight] = Cursors.SizeWE,
+        [QSash.QSashTop] = Cursors.SizeNS,
+        [QSash.QSashBottom] = Cursors.SizeNS,
+        [QSash.QSashLeft | QSash.QSashTop] = Cursors.SizeNWSE,
+        [QSash.QSashRight | QSash.QSashBottom] = Cursors.SizeNWSE,
+        [QSash.QSashLeft | QSash.QSashBottom] = Cursors.SizeNESW,
+        [QSash.QSashRight | QSash.QSashTop] = Cursors.SizeNESW,
     };
 
     public static readonly IReadOnlyDictionary<bool, RenderMode> PLookRender = new Dictionary<bool, RenderMode>
@@ -97,11 +97,11 @@ public static class PLook
             [WindowState.Maximized] = WindowState.Maximized,
         };
 
-    public static readonly IReadOnlyDictionary<LWindowDropEffect, DragDropEffects> PLookDropEffect =
-        new Dictionary<LWindowDropEffect, DragDropEffects>
+    public static readonly IReadOnlyDictionary<QWindowDropEffect, DragDropEffects> PLookDropEffect =
+        new Dictionary<QWindowDropEffect, DragDropEffects>
         {
-            [LWindowDropEffect.LWindowDropNone] = DragDropEffects.None,
-            [LWindowDropEffect.LWindowDropFile] = DragDropEffects.Copy,
+            [QWindowDropEffect.QWindowDropNone] = DragDropEffects.None,
+            [QWindowDropEffect.QWindowDropFile] = DragDropEffects.Copy,
         };
 
     public static readonly IReadOnlyDictionary<bool, DragDropEffects> PLookCopyEffect =

@@ -20,7 +20,7 @@ public partial class PWindow
 
     private void PShortcutMessageHandle(ref MSG pShortcutMessage, ref bool pShortcutHandled)
     {
-        pShortcutHandled = lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutHandle(new LWindowPress(
+        pShortcutHandled = lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutHandle(new QWindowPress(
             pShortcutHandled,
             pShortcutMessage.message,
             (int)pShortcutMessage.wParam,

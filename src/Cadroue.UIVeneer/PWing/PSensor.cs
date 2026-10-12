@@ -12,7 +12,7 @@ namespace Cadroue.UIVeneer.PWing;
 public sealed partial class PInspector
 {
     private sealed record PSensorSection(
-        LSensorPlan PSensorPlan,
+        QSensorPlan PSensorPlan,
         StackPanel PSensorBody,
         StackPanel PSensorStack,
         CheckBox PSensorSwitch,
@@ -29,26 +29,26 @@ public sealed partial class PInspector
     private Border pSensorRunRow = null!;
     private ProgressBar pSensorProgress = null!;
 
-    public LSensor LSensor => LInspector.LInspectorSensor;
+    public QSensor QSensor => QInspector.QInspectorSensor;
 
-    public LBlank LBlank => LInspector.LInspectorBlank;
+    public QBlank QBlank => QInspector.QInspectorBlank;
 
-    private PSensorSection PSensorBuild(LSensorPlan lPlan)
+    private PSensorSection PSensorBuild(QSensorPlan lPlan)
     {
-        CheckBox pApply = PInspectorSwitchBuild(lPlan.LSensorPlanSwitch, lPlan.LSensorPlanTip);
-        PInspectorSwitchAttach(pApply, pEnabled => LSensor.LSensorEnabledSet(lPlan.LSensorPlanKind, pEnabled));
+        CheckBox pApply = PInspectorSwitchBuild(lPlan.QSensorPlanSwitch, lPlan.QSensorPlanTip);
+        PInspectorSwitchAttach(pApply, pEnabled => QSensor.QSensorEnabledSet(lPlan.QSensorPlanKind, pEnabled));
         var pStack = new StackPanel();
-        List<RadioButton> pMetrics = PSensorRadiosBuild(pStack, lPlan.LSensorPlanMetric, LSensor.LSensorMetricSelect);
+        List<RadioButton> pMetrics = PSensorRadiosBuild(pStack, lPlan.QSensorPlanMetric, QSensor.QSensorMetricSelect);
         ComboBox pPreset = PInspectorChoiceBuild(
-            LSensor.LSensorChoiceRead(lPlan.LSensorPlanKind).LInspectorChoiceNames,
-            pIndex => LSensor.LSensorChoiceSelect(lPlan.LSensorPlanKind, pIndex));
-        UIElement pPresetRow = PInspectorFieldBuild(lPlan.LSensorPlanChoice, pPreset);
-        pPresetRow.Visibility = PLook.PLookVisible[lPlan.LSensorPlanPreset];
+            QSensor.QSensorChoiceRead(lPlan.QSensorPlanKind).QInspectorChoiceNames,
+            pIndex => QSensor.QSensorChoiceSelect(lPlan.QSensorPlanKind, pIndex));
+        UIElement pPresetRow = PInspectorFieldBuild(lPlan.QSensorPlanChoice, pPreset);
+        pPresetRow.Visibility = PLook.PLookVisible[lPlan.QSensorPlanPreset];
         pStack.Children.Add(pPresetRow);
-        List<RadioButton> pSpeeds = PSensorRadiosBuild(pStack, lPlan.LSensorPlanSpeed, LSensor.LSensorSpeedSelect);
-        List<PInspectorRow> pRows = lPlan.LSensorPlanRows.Select(lRow => PSensorRowBuild(lPlan, lRow)).ToList();
+        List<RadioButton> pSpeeds = PSensorRadiosBuild(pStack, lPlan.QSensorPlanSpeed, QSensor.QSensorSpeedSelect);
+        List<PInspectorRow> pRows = lPlan.QSensorPlanRows.Select(lRow => PSensorRowBuild(lPlan, lRow)).ToList();
         pRows.ForEach(pRow => pStack.Children.Add(pRow.PInspectorRowGrid));
-        List<RadioButton> pModes = PSensorRadiosBuild(pStack, lPlan.LSensorPlanMode, LSensor.LSensorModeSelect);
+        List<RadioButton> pModes = PSensorRadiosBuild(pStack, lPlan.QSensorPlanMode, QSensor.QSensorModeSelect);
 
         var pBody = new StackPanel
         {
@@ -63,11 +63,11 @@ public sealed partial class PInspector
         return pSection;
     }
 
-    private PInspectorRow PSensorRowBuild(LSensorPlan lPlan, LInspectorRow lRow) => PInspectorRowBuild(
+    private PInspectorRow PSensorRowBuild(QSensorPlan lPlan, QInspectorRow lRow) => PInspectorRowBuild(
         lRow,
-        () => LSensor.LSensorValueRead(lPlan.LSensorPlanKind, lRow.LInspectorRowIndex),
-        () => LSensor.LSensorDefaultRead(lPlan.LSensorPlanKind, lRow.LInspectorRowIndex),
-        pNumber => LSensor.LSensorValueSet(lPlan.LSensorPlanKind, lRow.LInspectorRowIndex, pNumber));
+        () => QSensor.QSensorValueRead(lPlan.QSensorPlanKind, lRow.QInspectorRowIndex),
+        () => QSensor.QSensorDefaultRead(lPlan.QSensorPlanKind, lRow.QInspectorRowIndex),
+        pNumber => QSensor.QSensorValueSet(lPlan.QSensorPlanKind, lRow.QInspectorRowIndex, pNumber));
 
     private (Slider, TextBox) PSensorValueBuild(LDetectorBound lBound, Func<double> pRead, Action<double> pSet)
     {
@@ -82,32 +82,32 @@ public sealed partial class PInspector
 
     private void PSensorSectionUpdate(PSensorSection pSection)
     {
-        LSensorPlan lPlan = pSection.PSensorPlan;
-        bool lEnabled = LSensor.LSensorEnabledRead(lPlan.LSensorPlanKind);
+        QSensorPlan lPlan = pSection.PSensorPlan;
+        bool lEnabled = QSensor.QSensorEnabledRead(lPlan.QSensorPlanKind);
         PInspectorSwitchUpdate(pSection.PSensorSwitch, lEnabled);
         pSection.PSensorRows.ForEach(pRow => PSensorRowUpdate(lPlan, pRow));
-        pSection.PSensorModes[LSensor.LSensorModeIndex].IsChecked = true;
-        pSection.PSensorSpeeds[LSensor.LSensorSpeedIndex].IsChecked = true;
-        pSection.PSensorMetrics[LSensor.LSensorMetricIndex].IsChecked = true;
-        PInspectorChoiceApply(pSection.PSensorPreset, LSensor.LSensorChoiceRead(lPlan.LSensorPlanKind));
+        pSection.PSensorModes[QSensor.QSensorModeIndex].IsChecked = true;
+        pSection.PSensorSpeeds[QSensor.QSensorSpeedIndex].IsChecked = true;
+        pSection.PSensorMetrics[QSensor.QSensorMetricIndex].IsChecked = true;
+        PInspectorChoiceApply(pSection.PSensorPreset, QSensor.QSensorChoiceRead(lPlan.QSensorPlanKind));
         PInspectorSectionUpdate(pSection.PSensorStack, lEnabled);
     }
 
-    private void PSensorRowUpdate(LSensorPlan lPlan, PInspectorRow pRow)
+    private void PSensorRowUpdate(QSensorPlan lPlan, PInspectorRow pRow)
     {
-        PInspectorRowUpdate(pRow, LSensor.LSensorValueRead(lPlan.LSensorPlanKind, pRow.PInspectorRowIndex));
-        pRow.PInspectorRowUnit.Text = LSensor.LSensorUnitRead(lPlan.LSensorPlanKind, pRow.PInspectorRowIndex);
+        PInspectorRowUpdate(pRow, QSensor.QSensorValueRead(lPlan.QSensorPlanKind, pRow.PInspectorRowIndex));
+        pRow.PInspectorRowUnit.Text = QSensor.QSensorUnitRead(lPlan.QSensorPlanKind, pRow.PInspectorRowIndex);
     }
 
-    private static List<RadioButton> PSensorRadiosBuild(StackPanel pStack, LSensorGroup lGroup, Action<int> pSelect)
+    private static List<RadioButton> PSensorRadiosBuild(StackPanel pStack, QSensorGroup lGroup, Action<int> pSelect)
     {
         string pGroupName = $"PSensorGroup_{Guid.NewGuid():N}";
-        List<RadioButton> pRadios = lGroup.LSensorGroupNames
+        List<RadioButton> pRadios = lGroup.QSensorGroupNames
             .Select((pName, pIndex) => PSensorRadioBuild(pName, pGroupName, () => pSelect(pIndex)))
             .ToList();
         Border pRow = PRadio.PRadioSegmentBuild(pRadios.ToArray());
-        UIElement pField = PInspectorFieldBuild(lGroup.LSensorGroupLabel, pRow, true);
-        pField.Visibility = PLook.PLookVisible[lGroup.LSensorGroupShown];
+        UIElement pField = PInspectorFieldBuild(lGroup.QSensorGroupLabel, pRow, true);
+        pField.Visibility = PLook.PLookVisible[lGroup.QSensorGroupShown];
         pStack.Children.Add(pField);
         return pRadios;
     }
@@ -132,13 +132,13 @@ public sealed partial class PInspector
             LLocalization.LLocalizationTextRead("Inspector.Detect.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
         pSensorRunPersistent.VerticalAlignment = VerticalAlignment.Center;
-        PInspectorSwitchAttach(pSensorRunPersistent, LSensor.LSensorPersistentSet);
-        LSensor.LSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
-        LSensor.LSensorRunningChanged += _ => pSensorRunButton.Content = LSensor.LSensorRunText;
+        PInspectorSwitchAttach(pSensorRunPersistent, QSensor.QSensorPersistentSet);
+        QSensor.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
+        QSensor.QSensorRunningChanged += _ => pSensorRunButton.Content = QSensor.QSensorRunText;
 
         pSensorRunButton = new Button
         {
-            Content = LSensor.LSensorRunText,
+            Content = QSensor.QSensorRunText,
             Height = 28,
             MinWidth = 90,
             FontSize = 12,
@@ -146,7 +146,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PButton.PButtonWhiteCreate()
         };
-        pSensorRunButton.Click += (_, _) => LSensor.LSensorRunHandle();
+        pSensorRunButton.Click += (_, _) => QSensor.QSensorRunHandle();
 
         var pSensorRunGrid = new Grid();
         pSensorRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

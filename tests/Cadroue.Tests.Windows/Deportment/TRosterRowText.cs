@@ -71,11 +71,11 @@ public sealed class TRosterRowText
     }
 
     [Theory]
-    [InlineData(true, false, false, LRosterRow.LRosterShadeSelected)]
-    [InlineData(true, true, true, LRosterRow.LRosterShadeSelected)]
-    [InlineData(false, false, true, LRosterRow.LRosterShadeStage)]
-    [InlineData(false, true, true, LRosterRow.LRosterShadePlain)]
-    [InlineData(false, false, false, LRosterRow.LRosterShadePlain)]
+    [InlineData(true, false, false, QRosterRow.QRosterShadeSelected)]
+    [InlineData(true, true, true, QRosterRow.QRosterShadeSelected)]
+    [InlineData(false, false, true, QRosterRow.QRosterShadeStage)]
+    [InlineData(false, true, true, QRosterRow.QRosterShadePlain)]
+    [InlineData(false, false, false, QRosterRow.QRosterShadePlain)]
     public void Shade_PrefersSelectionThenStageOutsideASelectedCard(
         bool selected, bool cardSelected, bool stage, string expected) =>
         Assert.Equal(expected, TInterfaceRoster.TRosterShadeResolve(selected, cardSelected, stage));
@@ -91,23 +91,23 @@ public sealed class TRosterRowText
         work.LWorkSourceBytes = 200;
         work.LWorkOutputBytes = 100;
         schedule.TScheduleAdd(created);
-        LRosterRow row = TInterfaceRoster.TRosterRowCreate(
+        QRosterRow row = TInterfaceRoster.TRosterRowCreate(
             TInterfaceRoster.TRosterLineageRead(schedule.TScheduleRead(), [work]),
             work,
             false,
             true,
             true,
-            LRosterRow.LRosterShadeStage);
+            QRosterRow.QRosterShadeStage);
 
-        Assert.Equal(work.LWorkId, row.LRosterRowId);
-        Assert.Equal("Done", row.LRosterRowKey);
-        Assert.Equal(TInterfaceRoster.TRosterPriorityFormat(LWorkPriority.LWorkPriorityHigh), row.LRosterRowPriority);
-        Assert.Equal("00:00:01", row.LRosterRowLength);
-        Assert.StartsWith("50", row.LRosterRowRatio);
-        Assert.Equal("-", row.LRosterRowOwner);
-        Assert.False(row.LRosterRowLast);
-        Assert.True(row.LRosterRowStage);
-        Assert.Equal(LRosterRow.LRosterShadeStage, row.LRosterRowShade);
-        Assert.NotEmpty(row.LRosterRowStep);
+        Assert.Equal(work.LWorkId, row.QRosterRowId);
+        Assert.Equal("Done", row.QRosterRowKey);
+        Assert.Equal(TInterfaceRoster.TRosterPriorityFormat(LWorkPriority.LWorkPriorityHigh), row.QRosterRowPriority);
+        Assert.Equal("00:00:01", row.QRosterRowLength);
+        Assert.StartsWith("50", row.QRosterRowRatio);
+        Assert.Equal("-", row.QRosterRowOwner);
+        Assert.False(row.QRosterRowLast);
+        Assert.True(row.QRosterRowStage);
+        Assert.Equal(QRosterRow.QRosterShadeStage, row.QRosterRowShade);
+        Assert.NotEmpty(row.QRosterRowStep);
     }
 }

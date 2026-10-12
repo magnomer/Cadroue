@@ -32,7 +32,7 @@ Git is the only external tool required.
 
 AuditLines.json shape:
   {
-    "generation": 21,
+    "generation": 22,
     "project": "Cadroue",
     "enforced": true,
     "ceilings": { "Length": 0, "Width": 0 },
@@ -117,7 +117,7 @@ AuditLines -Extensions .cs, .xaml
 AuditLines -SourceRoots .\src, .\tests
 #>
 #requires -Version 5.1
-# AUDITLINES - AUDIT GENERATION 21.
+# AUDITLINES - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -150,6 +150,8 @@ AuditLines -SourceRoots .\src, .\tests
 # Mismatching kind only informs while a driver folder it waits on holds no source.
 # Generation 21: nothing this audit reports changes; the number rises with the structure, name and
 # UI audits, which gained kinds, and with the new fault audit.
+# Generation 22: nothing this audit reports changes; the number rises with the structure audit,
+# whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
 [CmdletBinding()]
 param(
     [string]$ConfigPath,
@@ -277,7 +279,7 @@ $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 21
+$script:AuditGeneration = 22
 $script:ItemLimit = 40
 
 # Console paging. A page is one window of rows; the audit stops at each page boundary and waits

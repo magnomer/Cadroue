@@ -8,208 +8,208 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LFlow TFlowCreate() => new(TAtelierCreate().CAtelierUsher);
-    internal static void TFlowEditAttach(LFlow flow, Action<bool> handler) =>
-        flow.QFlowEdit.LFlowEditChanged += handler;
-    internal static void TFlowSourceSet(LFlow flow, LMediaInfo media, string? path) => flow.LFlowSourceSet(media, path);
-    internal static bool TFlowSourceMatch(LFlow flow, string? path) => flow.LFlowSourceMatch(path);
-    internal static void TFlowSourceClear(LFlow flow) => flow.LFlowSourceClear();
-    internal static void TFlowCursorSet(LFlow flow, TimeSpan cursor) => flow.LFlowCursorSet(cursor);
-    internal static void TFlowSectionSet(LFlow flow, bool active) => flow.LFlowSectionSet(active);
-    internal static void TFlowCommandSet(LFlow flow, bool active) => flow.LFlowCommandSet(active);
-    internal static void TFlowUnloadSet(LFlow flow) => flow.LFlowUnloadSet();
-    internal static bool TFlowEditSet(LFlow flow, bool editable) => flow.QFlowEdit.LFlowEditSet(editable);
-    internal static bool TFlowEditCheck(LFlow flow) => flow.QFlowEdit.LFlowEditCheck();
-    internal static bool TFlowSourceCheck(LFlow flow) => flow.LFlowSourceCheck();
-    internal static bool TFlowScanCheck(LFlow flow) => flow.LFlowScanCheck();
-    internal static bool TFlowStampSet(LFlow flow, string stamp) => flow.QFlowStamp.LFlowStampSet(stamp);
-    internal static bool TFlowLosslesscutSet(LFlow flow, string path) => flow.QFlowStamp.LFlowLosslesscutSet(path);
-    internal static void TFlowAttach(LFlow flow, LMediaInfo media, string? path, TimeSpan cursor) =>
-        flow.LFlowAttach(media, path, cursor);
-    internal static bool TFlowClear(LFlow flow) => flow.LFlowClear();
-    internal static void TFlowClose(LFlow flow) => flow.LFlowClose();
-    internal static void TFlowPaletteApply(LFlow flow, int count) => flow.LFlowPaletteApply(count);
-    internal static void TFlowPlayingAttach(LFlow flow, Func<bool>? source) => flow.LFlowPlayingAttach(source);
-    internal static void TFlowSpoolAttach(LFlow flow, Action handler) => flow.QFlowSpool.LFlowSpoolApplied += handler;
-    internal static void TFlowCursorAttach(LFlow flow, Action apply, Action<TimeSpan> change)
+    internal static QFlow TFlowCreate() => new(TAtelierCreate().CAtelierUsher);
+    internal static void TFlowEditAttach(QFlow flow, Action<bool> handler) =>
+        flow.QFlowEdit.QFlowEditChanged += handler;
+    internal static void TFlowSourceSet(QFlow flow, LMediaInfo media, string? path) => flow.QFlowSourceSet(media, path);
+    internal static bool TFlowSourceMatch(QFlow flow, string? path) => flow.QFlowSourceMatch(path);
+    internal static void TFlowSourceClear(QFlow flow) => flow.QFlowSourceClear();
+    internal static void TFlowCursorSet(QFlow flow, TimeSpan cursor) => flow.QFlowCursorSet(cursor);
+    internal static void TFlowSectionSet(QFlow flow, bool active) => flow.QFlowSectionSet(active);
+    internal static void TFlowCommandSet(QFlow flow, bool active) => flow.QFlowCommandSet(active);
+    internal static void TFlowUnloadSet(QFlow flow) => flow.QFlowUnloadSet();
+    internal static bool TFlowEditSet(QFlow flow, bool editable) => flow.QFlowEdit.QFlowEditSet(editable);
+    internal static bool TFlowEditCheck(QFlow flow) => flow.QFlowEdit.QFlowEditCheck();
+    internal static bool TFlowSourceCheck(QFlow flow) => flow.QFlowSourceCheck();
+    internal static bool TFlowScanCheck(QFlow flow) => flow.QFlowScanCheck();
+    internal static bool TFlowStampSet(QFlow flow, string stamp) => flow.QFlowStamp.QFlowStampSet(stamp);
+    internal static bool TFlowLosslesscutSet(QFlow flow, string path) => flow.QFlowStamp.QFlowLosslesscutSet(path);
+    internal static void TFlowAttach(QFlow flow, LMediaInfo media, string? path, TimeSpan cursor) =>
+        flow.QFlowAttach(media, path, cursor);
+    internal static bool TFlowClear(QFlow flow) => flow.QFlowClear();
+    internal static void TFlowClose(QFlow flow) => flow.QFlowClose();
+    internal static void TFlowPaletteApply(QFlow flow, int count) => flow.QFlowPaletteApply(count);
+    internal static void TFlowPlayingAttach(QFlow flow, Func<bool>? source) => flow.QFlowPlayingAttach(source);
+    internal static void TFlowSpoolAttach(QFlow flow, Action handler) => flow.QFlowSpool.QFlowSpoolApplied += handler;
+    internal static void TFlowCursorAttach(QFlow flow, Action apply, Action<TimeSpan> change)
     {
-        flow.LFlowCursorApplied += apply;
-        flow.LFlowCursorChanged += change;
+        flow.QFlowCursorApplied += apply;
+        flow.QFlowCursorChanged += change;
     }
-    internal static void TFlowStripAttach(LFlow flow, Action attach, Action clear)
+    internal static void TFlowStripAttach(QFlow flow, Action attach, Action clear)
     {
-        flow.LFlowAttachApplied += attach;
-        flow.LFlowClearApplied += clear;
+        flow.QFlowAttachApplied += attach;
+        flow.QFlowClearApplied += clear;
     }
-    internal static void TFlowMediaAttach(LFlow flow, Action handler) => flow.LFlowMediaChanged += handler;
+    internal static void TFlowMediaAttach(QFlow flow, Action handler) => flow.QFlowMediaChanged += handler;
     internal static void TFlowPlayAttach(
-        LFlow flow, Action play, Action pause, Action<bool> drag, Action<double> volume)
+        QFlow flow, Action play, Action pause, Action<bool> drag, Action<double> volume)
     {
-        flow.LFlowPlayed += play;
-        flow.LFlowPaused += pause;
-        flow.LFlowDragChanged += drag;
-        flow.LFlowVolumeAdjusted += volume;
+        flow.QFlowPlayed += play;
+        flow.QFlowPaused += pause;
+        flow.QFlowDragChanged += drag;
+        flow.QFlowVolumeAdjusted += volume;
     }
-    internal static void TFlowNameAttach(LFlow flow, Action<LFlowNamePrompt> show, Action close)
+    internal static void TFlowNameAttach(QFlow flow, Action<QFlowNamePrompt> show, Action close)
     {
-        flow.LFlowName.LFlowNameShown += show;
-        flow.LFlowName.LFlowNameClosed += close;
+        flow.QFlowName.QFlowNameShown += show;
+        flow.QFlowName.QFlowNameClosed += close;
     }
-    internal static bool TFlowShortcutRun(LFlow flow, string token) => flow.LFlowShortcutRun(token);
-    internal static bool TFlowWheelHandle(LFlow flow, int delta) => flow.LFlowWheelHandle(delta);
-    internal static void TFlowDragHandle(LFlow flow, bool dragging) => flow.LFlowDragHandle(dragging);
-    internal static void TFlowCursorUpdate(LFlow flow, TimeSpan cursor) => flow.LFlowCursorUpdate(cursor);
-    internal static void TFlowCursorSeek(LFlow flow, TimeSpan cursor) => flow.LFlowCursorSeek(cursor);
-    internal static void TFlowRangeSet(LFlow flow, TimeSpan origin, TimeSpan limit) =>
-        flow.QFlowSpool.LFlowRangeSet(origin, limit);
-    internal static bool TFlowNameStart(LFlow flow) => flow.LFlowName.LFlowNameStart();
-    internal static void TFlowNameHide(LFlow flow) => flow.LFlowName.LFlowNameHide();
-    internal static void TFlowNameCommit(LFlow flow, string name, string prefix, string suffix) =>
-        flow.LFlowName.LFlowNameCommit(name, prefix, suffix);
+    internal static bool TFlowShortcutRun(QFlow flow, string token) => flow.QFlowShortcutRun(token);
+    internal static bool TFlowWheelHandle(QFlow flow, int delta) => flow.QFlowWheelHandle(delta);
+    internal static void TFlowDragHandle(QFlow flow, bool dragging) => flow.QFlowDragHandle(dragging);
+    internal static void TFlowCursorUpdate(QFlow flow, TimeSpan cursor) => flow.QFlowCursorUpdate(cursor);
+    internal static void TFlowCursorSeek(QFlow flow, TimeSpan cursor) => flow.QFlowCursorSeek(cursor);
+    internal static void TFlowRangeSet(QFlow flow, TimeSpan origin, TimeSpan limit) =>
+        flow.QFlowSpool.QFlowRangeSet(origin, limit);
+    internal static bool TFlowNameStart(QFlow flow) => flow.QFlowName.QFlowNameStart();
+    internal static void TFlowNameHide(QFlow flow) => flow.QFlowName.QFlowNameHide();
+    internal static void TFlowNameCommit(QFlow flow, string name, string prefix, string suffix) =>
+        flow.QFlowName.QFlowNameCommit(name, prefix, suffix);
     internal static double TFlowOffsetResolve(bool empty, double origin, double size, double host) =>
-        LFlowName.LFlowOffsetResolve(empty, origin, size, host);
+        QFlowName.QFlowOffsetResolve(empty, origin, size, host);
 
-    internal static void TFlowSectionAttach(LFlow flow, Action<IReadOnlyList<LPiece>, int?> handler) =>
-        flow.LFlowSection.LFlowSectionChanged += handler;
-    internal static IReadOnlyList<LPiece> TFlowSectionsRead(LFlow flow) => flow.LFlowSection.LFlowSectionsRead();
-    internal static int? TFlowSelectionRead(LFlow flow) => flow.LFlowSection.LFlowSelectionRead();
-    internal static IReadOnlyList<int> TFlowSelectedRead(LFlow flow) => flow.LFlowSection.LFlowSelectedRead();
-    internal static IReadOnlyList<LSplitSectionDescription> TFlowSplitRead(LFlow flow) =>
-        flow.LFlowSection.LFlowSplitRead();
-    internal static bool TFlowEmptyCheck(LFlow flow) => flow.LFlowSection.LFlowEmptyCheck();
-    internal static void TFlowSectionAdd(LFlow flow) => flow.LFlowSection.LFlowSectionAdd();
-    internal static void TFlowStartSet(LFlow flow) => flow.LFlowSection.LFlowStartSet();
-    internal static void TFlowEndSet(LFlow flow) => flow.LFlowSection.LFlowEndSet();
-    internal static void TFlowSectionDivide(LFlow flow) => flow.LFlowSection.LFlowSectionDivide();
-    internal static void TFlowSectionDelete(LFlow flow) => flow.LFlowSection.LFlowSectionDelete();
-    internal static void TFlowSectionClear(LFlow flow) => flow.LFlowSection.LFlowSectionClear();
-    internal static void TFlowSectionSelect(LFlow flow, int index) => flow.LFlowSection.LFlowSectionSelect(index);
-    internal static void TFlowSelectToggle(LFlow flow, int index) => flow.LFlowSection.LFlowSelectToggle(index);
-    internal static void TFlowRangeSelect(LFlow flow, int index) => flow.LFlowSection.LFlowRangeSelect(index);
-    internal static void TFlowSectionSeek(LFlow flow, int index, bool end) =>
-        flow.LFlowSection.LFlowSectionSeek(index, end);
-    internal static void TFlowSectionToggle(LFlow flow, int index) => flow.LFlowSection.LFlowSectionToggle(index);
-    internal static bool TFlowSectionMove(LFlow flow, int source, int target) =>
-        flow.LFlowSection.LFlowSectionMove(source, target);
-    internal static bool TFlowSectionSort(LFlow flow) => flow.LFlowSection.LFlowSectionSort();
-    internal static void TFlowNameSet(LFlow flow, int index, string name, string? prefix, string? suffix) =>
-        flow.LFlowSection.LFlowNameSet(index, name, prefix, suffix);
+    internal static void TFlowSectionAttach(QFlow flow, Action<IReadOnlyList<LPiece>, int?> handler) =>
+        flow.QFlowSection.QFlowSectionChanged += handler;
+    internal static IReadOnlyList<LPiece> TFlowSectionsRead(QFlow flow) => flow.QFlowSection.QFlowSectionsRead();
+    internal static int? TFlowSelectionRead(QFlow flow) => flow.QFlowSection.QFlowSelectionRead();
+    internal static IReadOnlyList<int> TFlowSelectedRead(QFlow flow) => flow.QFlowSection.QFlowSelectedRead();
+    internal static IReadOnlyList<LSplitSectionDescription> TFlowSplitRead(QFlow flow) =>
+        flow.QFlowSection.QFlowSplitRead();
+    internal static bool TFlowEmptyCheck(QFlow flow) => flow.QFlowSection.QFlowEmptyCheck();
+    internal static void TFlowSectionAdd(QFlow flow) => flow.QFlowSection.QFlowSectionAdd();
+    internal static void TFlowStartSet(QFlow flow) => flow.QFlowSection.QFlowStartSet();
+    internal static void TFlowEndSet(QFlow flow) => flow.QFlowSection.QFlowEndSet();
+    internal static void TFlowSectionDivide(QFlow flow) => flow.QFlowSection.QFlowSectionDivide();
+    internal static void TFlowSectionDelete(QFlow flow) => flow.QFlowSection.QFlowSectionDelete();
+    internal static void TFlowSectionClear(QFlow flow) => flow.QFlowSection.QFlowSectionClear();
+    internal static void TFlowSectionSelect(QFlow flow, int index) => flow.QFlowSection.QFlowSectionSelect(index);
+    internal static void TFlowSelectToggle(QFlow flow, int index) => flow.QFlowSection.QFlowSelectToggle(index);
+    internal static void TFlowRangeSelect(QFlow flow, int index) => flow.QFlowSection.QFlowRangeSelect(index);
+    internal static void TFlowSectionSeek(QFlow flow, int index, bool end) =>
+        flow.QFlowSection.QFlowSectionSeek(index, end);
+    internal static void TFlowSectionToggle(QFlow flow, int index) => flow.QFlowSection.QFlowSectionToggle(index);
+    internal static bool TFlowSectionMove(QFlow flow, int source, int target) =>
+        flow.QFlowSection.QFlowSectionMove(source, target);
+    internal static bool TFlowSectionSort(QFlow flow) => flow.QFlowSection.QFlowSectionSort();
+    internal static void TFlowNameSet(QFlow flow, int index, string name, string? prefix, string? suffix) =>
+        flow.QFlowSection.QFlowNameSet(index, name, prefix, suffix);
     internal static bool TFlowCombineApply(
-        LFlow flow,
+        QFlow flow,
         IReadOnlyList<LSweepSpan> excluded,
         IReadOnlyList<LSweepSpan> kept,
         IReadOnlyList<LSweepBoundary> boundaries) =>
-        flow.LFlowSection.LFlowCombineApply(excluded, kept, boundaries);
+        flow.QFlowSection.QFlowCombineApply(excluded, kept, boundaries);
 
-    internal static void TFlowLosslesscutAttach(LFlow flow, Action<LFlowLosslesscutPrompt, Action<int>> handler) =>
-        flow.LFlowLosslesscut.LFlowLosslesscutAsk += handler;
-    internal static void TFlowLosslesscutFind(LFlow flow) => flow.LFlowLosslesscut.LFlowLosslesscutFind();
-    internal static void TFlowLosslesscutRun(LFlow flow, string path) =>
-        flow.LFlowLosslesscut.LFlowLosslesscutRun(path);
+    internal static void TFlowLosslesscutAttach(QFlow flow, Action<QFlowLosslesscutPrompt, Action<int>> handler) =>
+        flow.QFlowLosslesscut.QFlowLosslesscutAsk += handler;
+    internal static void TFlowLosslesscutFind(QFlow flow) => flow.QFlowLosslesscut.QFlowLosslesscutFind();
+    internal static void TFlowLosslesscutRun(QFlow flow, string path) =>
+        flow.QFlowLosslesscut.QFlowLosslesscutRun(path);
     internal static string TFlowLosslesscutFormat(string path, LLosslesscutResult result, bool range) =>
-        LFlowLosslesscut.LFlowLosslesscutFormat(TAtelierCreate().CAtelierUsher, path, result, range);
+        QFlowLosslesscut.QFlowLosslesscutFormat(TAtelierCreate().CAtelierUsher, path, result, range);
 
-    internal static void TFlowTimerAttach(LFlow flow, Action defer, Action<TimeSpan> resume, Action reset)
+    internal static void TFlowTimerAttach(QFlow flow, Action defer, Action<TimeSpan> resume, Action reset)
     {
-        flow.LFlowKeyframe.LFlowTimerDeferred += defer;
-        flow.LFlowKeyframe.LFlowTimerResumed += resume;
-        flow.LFlowKeyframe.LFlowTimerStopped += reset;
+        flow.QFlowKeyframe.QFlowTimerDeferred += defer;
+        flow.QFlowKeyframe.QFlowTimerResumed += resume;
+        flow.QFlowKeyframe.QFlowTimerStopped += reset;
     }
     internal static void TFlowKeyframeAttach(
-        LFlow flow,
+        QFlow flow,
         Action<LKeyframeNotice> ready,
         Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>> change)
     {
-        flow.LFlowKeyframe.LFlowKeyframeReady += ready;
-        flow.LFlowKeyframe.LFlowKeyframeChanged += change;
+        flow.QFlowKeyframe.QFlowKeyframeReady += ready;
+        flow.QFlowKeyframe.QFlowKeyframeChanged += change;
     }
-    internal static bool TFlowResumeCheck(LFlow flow) => flow.LFlowKeyframe.LFlowResumePending;
-    internal static void TFlowKeyframeDefer(LFlow flow) => flow.LFlowKeyframe.LFlowKeyframeDefer();
-    internal static void TFlowKeyframeSuspend(LFlow flow, bool resume) =>
-        flow.LFlowKeyframe.LFlowKeyframeSuspend(resume);
-    internal static void TFlowKeyframeReset(LFlow flow) => flow.LFlowKeyframe.LFlowKeyframeReset();
-    internal static void TFlowKeyframeTick(LFlow flow) => flow.LFlowKeyframe.LFlowKeyframeTick();
-    internal static void TFlowKeyframeMove(LFlow flow, int direction) =>
-        flow.LFlowKeyframe.LFlowKeyframeMove(direction);
-    internal static void TFlowKeyframeApply(LFlow flow, LKeyframeNotice notice) =>
-        flow.LFlowKeyframe.LFlowKeyframeApply(notice);
+    internal static bool TFlowResumeCheck(QFlow flow) => flow.QFlowKeyframe.QFlowResumePending;
+    internal static void TFlowKeyframeDefer(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeDefer();
+    internal static void TFlowKeyframeSuspend(QFlow flow, bool resume) =>
+        flow.QFlowKeyframe.QFlowKeyframeSuspend(resume);
+    internal static void TFlowKeyframeReset(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeReset();
+    internal static void TFlowKeyframeTick(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeTick();
+    internal static void TFlowKeyframeMove(QFlow flow, int direction) =>
+        flow.QFlowKeyframe.QFlowKeyframeMove(direction);
+    internal static void TFlowKeyframeApply(QFlow flow, LKeyframeNotice notice) =>
+        flow.QFlowKeyframe.QFlowKeyframeApply(notice);
     internal static LKeyframeNotice TKeyframeNoticeCreate(
         int serial, IReadOnlyList<LKeyframeEntry> list, IReadOnlyList<LKeyframeScanRange> ranges, LKeyframeKind kind) =>
         new(serial, list, ranges, kind);
 
-    internal static void TFlowWaveformAttach(LFlow flow, Action ready, Action<byte[]> update)
+    internal static void TFlowWaveformAttach(QFlow flow, Action ready, Action<byte[]> update)
     {
-        flow.LFlowWaveform.LFlowWaveformReady += ready;
-        flow.LFlowWaveform.LFlowWaveformUpdated += update;
+        flow.QFlowWaveform.QFlowWaveformReady += ready;
+        flow.QFlowWaveform.QFlowWaveformUpdated += update;
     }
-    internal static bool TFlowWaveformSet(LFlow flow, bool active) => flow.LFlowWaveformSet(active);
-    internal static void TFlowWaveformApply(LFlow flow) => flow.LFlowWaveform.LFlowWaveformApply();
-    internal static byte[] TFlowPeaksRead(LFlow flow) => flow.LFlowWaveform.LFlowWaveformPeaks;
-    internal static LFlowWaveformOutline TFlowOutlineResolve(
+    internal static bool TFlowWaveformSet(QFlow flow, bool active) => flow.QFlowWaveformSet(active);
+    internal static void TFlowWaveformApply(QFlow flow) => flow.QFlowWaveform.QFlowWaveformApply();
+    internal static byte[] TFlowPeaksRead(QFlow flow) => flow.QFlowWaveform.QFlowWaveformPeaks;
+    internal static QFlowWaveformOutline TFlowOutlineResolve(
         byte[] peaks, double width, double top, double height, TimeSpan start, TimeSpan end) =>
-        LFlowWaveform.LFlowOutlineResolve(peaks, width, top, height, start, end);
+        QFlowWaveform.QFlowOutlineResolve(peaks, width, top, height, start, end);
 
-    internal static LDivider TDividerCreate() => new();
-    internal static void TDividerPressHandle(LDivider divider, double y, double height) =>
-        divider.LDividerPressHandle(y, height);
-    internal static double TDividerMoveResolve(LDivider divider, double y, double height) =>
-        divider.LDividerMoveResolve(y, height);
-    internal static void TDividerRelease(LDivider divider) => divider.LDividerRelease();
+    internal static QDivider TDividerCreate() => new();
+    internal static void TDividerPressHandle(QDivider divider, double y, double height) =>
+        divider.QDividerPressHandle(y, height);
+    internal static double TDividerMoveResolve(QDivider divider, double y, double height) =>
+        divider.QDividerMoveResolve(y, height);
+    internal static void TDividerRelease(QDivider divider) => divider.QDividerRelease();
 
-    internal static string TCursorTimeFormat(TimeSpan time) => LCursor.LCursorTimeFormat(time);
-    internal static int TCursorWheelResolve(int delta) => LCursor.LCursorWheelResolve(delta);
+    internal static string TCursorTimeFormat(TimeSpan time) => QCursor.QCursorTimeFormat(time);
+    internal static int TCursorWheelResolve(int delta) => QCursor.QCursorWheelResolve(delta);
     internal static (double, double) TCursorGuideResolve(double x, double thickness) =>
-        LCursor.LCursorGuideResolve(x, thickness);
+        QCursor.QCursorGuideResolve(x, thickness);
     internal static (double, double) TCursorChipResolve(
         double x, double chipWidth, double chipHeight, double top, double bottom, double width) =>
-        LCursor.LCursorChipResolve(x, chipWidth, chipHeight, top, bottom, width);
-    internal static IReadOnlyList<LCursorLine> TCursorLinesResolve(
+        QCursor.QCursorChipResolve(x, chipWidth, chipHeight, top, bottom, width);
+    internal static IReadOnlyList<QCursorLine> TCursorLinesResolve(
         double top, double bottom, bool empty, double chipTop, double chipBottom, double chipHeight) =>
-        LCursor.LCursorLinesResolve(top, bottom, empty, chipTop, chipBottom, chipHeight);
+        QCursor.QCursorLinesResolve(top, bottom, empty, chipTop, chipBottom, chipHeight);
 
-    internal static LMap TMapRead(LFlow flow) => flow.LFlowMap;
-    internal static void TMapFrameAttach(LMap map, Action handler) => map.LMapFrameApplied += handler;
-    internal static LMapFrame TMapFrameResolve(LMap map, double width, double height) =>
-        map.LMapFrameResolve(width, height);
-    internal static IReadOnlyList<LMapBadge> TMapBadgeResolve(LMap map, LMapBand band, double width, double height) =>
-        QMapBadge.LMapBadgeResolve(band, width, height);
-    internal static LMapHitKind TMapHoverResolve(LMap map, double x, double y, double width, double height) =>
-        map.LMapHoverResolve(x, y, width, height);
-    internal static LMapHitKind TMapLeaveResolve(LMap map) => map.LMapLeaveResolve();
-    internal static bool TMapPressHandle(LMap map, double x, double y, double width, double height) =>
-        map.LMapPressHandle(x, y, width, height);
-    internal static bool TMapMoveHandle(LMap map, double x, double width) => map.LMapMoveHandle(x, width);
-    internal static void TMapDragClear(LMap map) => map.LMapDragClear();
+    internal static QMap TMapRead(QFlow flow) => flow.QFlowMap;
+    internal static void TMapFrameAttach(QMap map, Action handler) => map.QMapFrameApplied += handler;
+    internal static QMapFrame TMapFrameResolve(QMap map, double width, double height) =>
+        map.QMapFrameResolve(width, height);
+    internal static IReadOnlyList<QMapBadge> TMapBadgeResolve(QMap map, QMapBand band, double width, double height) =>
+        QMapText.QMapBadgeResolve(band, width, height);
+    internal static QMapHitKind TMapHoverResolve(QMap map, double x, double y, double width, double height) =>
+        map.QMapHoverResolve(x, y, width, height);
+    internal static QMapHitKind TMapLeaveResolve(QMap map) => map.QMapLeaveResolve();
+    internal static bool TMapPressHandle(QMap map, double x, double y, double width, double height) =>
+        map.QMapPressHandle(x, y, width, height);
+    internal static bool TMapMoveHandle(QMap map, double x, double width) => map.QMapMoveHandle(x, width);
+    internal static void TMapDragClear(QMap map) => map.QMapDragClear();
 
-    internal static LViewfinder TViewfinderRead(LFlow flow) => flow.LFlowViewfinder;
-    internal static void TViewfinderFrameAttach(LViewfinder viewfinder, Action handler) =>
-        viewfinder.LViewfinderFrameApplied += handler;
-    internal static LViewfinderFrame TViewfinderFrameResolve(LViewfinder viewfinder, double width, double height) =>
-        viewfinder.LViewfinderFrameResolve(width, height);
-    internal static LViewfinderPoint TViewfinderTickResolve(LViewfinderGraduation tick, double textHeight) =>
-        LViewfinderText.LViewfinderTickResolve(tick, textHeight);
-    internal static IReadOnlyList<LViewfinderLabel> TViewfinderLabelResolve(
-        LViewfinderBand band, double badgeWidth, double badgeHeight) =>
-        LViewfinderText.LViewfinderLabelResolve(band, badgeWidth, badgeHeight);
-    internal static LViewfinderBadge TViewfinderBadgeResolve(
-        LViewfinderBand band,
-        LViewfinderLabel label,
+    internal static QViewfinder TViewfinderRead(QFlow flow) => flow.QFlowViewfinder;
+    internal static void TViewfinderFrameAttach(QViewfinder viewfinder, Action handler) =>
+        viewfinder.QViewfinderFrameApplied += handler;
+    internal static QViewfinderFrame TViewfinderFrameResolve(QViewfinder viewfinder, double width, double height) =>
+        viewfinder.QViewfinderFrameResolve(width, height);
+    internal static QViewfinderPoint TViewfinderTickResolve(QViewfinderGraduation tick, double textHeight) =>
+        QViewfinderText.QViewfinderTickResolve(tick, textHeight);
+    internal static IReadOnlyList<QViewfinderLabel> TViewfinderLabelResolve(
+        QViewfinderBand band, double badgeWidth, double badgeHeight) =>
+        QViewfinderText.QViewfinderLabelResolve(band, badgeWidth, badgeHeight);
+    internal static QViewfinderBadge TViewfinderBadgeResolve(
+        QViewfinderBand band,
+        QViewfinderLabel label,
         double badgeWidth,
         double badgeHeight,
         double nameWidth,
         double nameHeight) =>
-        LViewfinderText.LViewfinderBadgeResolve(band, label, badgeWidth, badgeHeight, nameWidth, nameHeight);
-    internal static LViewfinderChip TViewfinderChipResolve(
-        LViewfinderCursor cursor, double textWidth, double textHeight, double width, double height) =>
-        LViewfinderText.LViewfinderChipResolve(cursor, textWidth, textHeight, width, height);
-    internal static LViewfinderPoint TViewfinderPopupResolve(
-        LViewfinder viewfinder, int index, double width, double height) =>
-        viewfinder.LViewfinderPopupResolve(index, width, height);
-    internal static bool TViewfinderPressHandle(LViewfinder viewfinder, double x, double width) =>
-        viewfinder.LViewfinderPressHandle(x, width);
-    internal static bool TViewfinderMoveHandle(LViewfinder viewfinder, double x, double width) =>
-        viewfinder.LViewfinderMoveHandle(x, width);
-    internal static void TViewfinderDragClear(LViewfinder viewfinder) => viewfinder.LViewfinderDragClear();
+        QViewfinderText.QViewfinderBadgeResolve(band, label, badgeWidth, badgeHeight, nameWidth, nameHeight);
+    internal static QViewfinderChip TViewfinderChipResolve(
+        QViewfinderCursor cursor, double textWidth, double textHeight, double width, double height) =>
+        QViewfinderText.QViewfinderChipResolve(cursor, textWidth, textHeight, width, height);
+    internal static QViewfinderPoint TViewfinderPopupResolve(
+        QViewfinder viewfinder, int index, double width, double height) =>
+        viewfinder.QViewfinderPopupResolve(index, width, height);
+    internal static bool TViewfinderPressHandle(QViewfinder viewfinder, double x, double width) =>
+        viewfinder.QViewfinderPressHandle(x, width);
+    internal static bool TViewfinderMoveHandle(QViewfinder viewfinder, double x, double width) =>
+        viewfinder.QViewfinderMoveHandle(x, width);
+    internal static void TViewfinderDragClear(QViewfinder viewfinder) => viewfinder.QViewfinderDragClear();
 
     internal static void TTraceAttach(Action<LTraceEntry> handler) => LTrace.LTraceAppended += handler;
 

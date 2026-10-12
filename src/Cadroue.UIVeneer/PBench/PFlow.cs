@@ -25,7 +25,7 @@ public sealed class PFlow : UserControl
             [PSDecisionChoice.PSDecisionDismiss] = -1,
         };
 
-    private readonly IReadOnlyDictionary<LFlowLosslesscutKind, Action<LFlowLosslesscutPrompt, Action<int>>>
+    private readonly IReadOnlyDictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>>
         pFlowLosslesscutShows;
 
     private readonly PViewfinder pViewfinder;
@@ -38,37 +38,37 @@ public sealed class PFlow : UserControl
     private readonly Grid pFlowMapReel;
     private readonly PDivider pDivider;
     private readonly PFlowName pFlowName;
-    private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = LFlowKeyframe.LFlowRequestDelay };
-    private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = LFlowKeyframe.LFlowResumeDelay };
+    private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = QFlowKeyframe.QFlowRequestDelay };
+    private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = QFlowKeyframe.QFlowResumeDelay };
 
-    public LFlow LFlow { get; }
+    public QFlow QFlow { get; }
 
-    public PFlow(LFlow lFlow)
+    public PFlow(QFlow lFlow)
     {
-        LFlow = lFlow;
+        QFlow = lFlow;
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
-        MinHeight = LDivider.LDividerMinimum;
-        pFlowLosslesscutShows = new Dictionary<LFlowLosslesscutKind, Action<LFlowLosslesscutPrompt, Action<int>>>
+        MinHeight = QDivider.QDividerMinimum;
+        pFlowLosslesscutShows = new Dictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>>
         {
-            [LFlowLosslesscutKind.LFlowKindDecision] = PFlowConfirmShow,
-            [LFlowLosslesscutKind.LFlowKindChoice] = PFlowSelectShow,
-            [LFlowLosslesscutKind.LFlowKindNotice] = PFlowNoticeShow,
-            [LFlowLosslesscutKind.LFlowKindWarning] = PFlowWarningShow,
+            [QFlowLosslesscutKind.QFlowKindDecision] = PFlowConfirmShow,
+            [QFlowLosslesscutKind.QFlowKindChoice] = PFlowSelectShow,
+            [QFlowLosslesscutKind.QFlowKindNotice] = PFlowNoticeShow,
+            [QFlowLosslesscutKind.QFlowKindWarning] = PFlowWarningShow,
         };
-        pViewfinder = new PViewfinder(LFlow.LFlowViewfinder);
-        pMap = new PMap(LFlow.LFlowMap);
-        pDivider = new PDivider(this, LFlow.LFlowDivider);
-        pFlowName = new PFlowName(LFlow, pViewfinder);
-        LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
-        LFlow.LFlowAttachApplied += PFlowLabelsApply;
-        LFlow.LFlowClearApplied += PFlowLabelsApply;
-        LFlow.QFlowSpool.LFlowSpoolApplied += PFlowLabelsApply;
-        LFlow.LFlowKeyframe.LFlowTimerDeferred += PFlowTimerDefer;
-        LFlow.LFlowKeyframe.LFlowTimerResumed += PFlowTimerResume;
-        LFlow.LFlowKeyframe.LFlowTimerStopped += PFlowTimerReset;
-        LFlow.LFlowKeyframe.LFlowKeyframeReady += PFlowKeyframeHandle;
-        LFlow.LFlowWaveform.LFlowWaveformReady += PFlowWaveformHandle;
-        LFlow.LFlowLosslesscut.LFlowLosslesscutAsk += PFlowLosslesscutHandle;
+        pViewfinder = new PViewfinder(QFlow.QFlowViewfinder);
+        pMap = new PMap(QFlow.QFlowMap);
+        pDivider = new PDivider(this, QFlow.QFlowDivider);
+        pFlowName = new PFlowName(QFlow, pViewfinder);
+        QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
+        QFlow.QFlowAttachApplied += PFlowLabelsApply;
+        QFlow.QFlowClearApplied += PFlowLabelsApply;
+        QFlow.QFlowSpool.QFlowSpoolApplied += PFlowLabelsApply;
+        QFlow.QFlowKeyframe.QFlowTimerDeferred += PFlowTimerDefer;
+        QFlow.QFlowKeyframe.QFlowTimerResumed += PFlowTimerResume;
+        QFlow.QFlowKeyframe.QFlowTimerStopped += PFlowTimerReset;
+        QFlow.QFlowKeyframe.QFlowKeyframeReady += PFlowKeyframeHandle;
+        QFlow.QFlowWaveform.QFlowWaveformReady += PFlowWaveformHandle;
+        QFlow.QFlowLosslesscut.QFlowLosslesscutAsk += PFlowLosslesscutHandle;
         pKeyframeRequestTimer.Tick += PFlowTimerHandle;
         pKeyframeResumeTimer.Tick += PFlowTimerHandle;
 
@@ -93,15 +93,15 @@ public sealed class PFlow : UserControl
     }
 
     public void PFlowAttach(LMediaInfo lMediaInfo, string? lSourcePath, TimeSpan lCursorTime) =>
-        LFlow.LFlowAttach(lMediaInfo, lSourcePath, lCursorTime);
+        QFlow.QFlowAttach(lMediaInfo, lSourcePath, lCursorTime);
 
-    public bool PFlowClear() => LFlow.LFlowClear();
+    public bool PFlowClear() => QFlow.QFlowClear();
 
     public void PFlowHeightSet(double pFlowHeight) => Height = pFlowHeight;
 
     public void PFlowClose()
     {
-        LFlow.LFlowClose();
+        QFlow.QFlowClose();
         PFlowTimerReset();
         pKeyframeRequestTimer.Tick -= PFlowTimerHandle;
         pKeyframeResumeTimer.Tick -= PFlowTimerHandle;
@@ -111,24 +111,24 @@ public sealed class PFlow : UserControl
 
     public void PFlowOrderApply()
     {
-        Grid.SetRow(pFlowMapReel, LFlow.LFlowMapRow);
-        Grid.SetRow(pFlowViewfinderReel, LFlow.LFlowViewfinderRow);
+        Grid.SetRow(pFlowMapReel, QFlow.QFlowMapRow);
+        Grid.SetRow(pFlowViewfinderReel, QFlow.QFlowViewfinderRow);
     }
 
     public void PFlowPaletteApply()
     {
-        LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
-        LFlow.LFlowSection.LFlowSectionRaise();
+        QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
+        QFlow.QFlowSection.QFlowSectionRaise();
     }
 
-    public static Geometry PFlowWaveformBuild(LFlowWaveformOutline lOutline)
+    public static Geometry PFlowWaveformBuild(QFlowWaveformOutline lOutline)
     {
         var pFlowWaveformGeometry = new StreamGeometry();
         using (StreamGeometryContext pFlowWaveformContext = pFlowWaveformGeometry.Open())
         {
-            pFlowWaveformContext.BeginFigure(new Point(lOutline.LFlowOutlineX, lOutline.LFlowOutlineY), true, true);
-            lOutline.LFlowOutlinePoints.ToList().ForEach(lPoint =>
-                pFlowWaveformContext.LineTo(new Point(lPoint.LFlowPointX, lPoint.LFlowPointY), false, false));
+            pFlowWaveformContext.BeginFigure(new Point(lOutline.QFlowOutlineX, lOutline.QFlowOutlineY), true, true);
+            lOutline.QFlowOutlinePoints.ToList().ForEach(lPoint =>
+                pFlowWaveformContext.LineTo(new Point(lPoint.QFlowPointX, lPoint.QFlowPointY), false, false));
         }
 
         pFlowWaveformGeometry.Freeze();
@@ -138,15 +138,15 @@ public sealed class PFlow : UserControl
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         base.OnMouseWheel(e);
-        e.Handled = LFlow.LFlowWheelHandle(e.Delta);
+        e.Handled = QFlow.QFlowWheelHandle(e.Delta);
     }
 
     private void PFlowLabelsApply()
     {
-        pViewfinderLabelLeft.Text = LFlow.QFlowSpool.LFlowLabelOrigin;
-        pViewfinderLabelRight.Text = LFlow.QFlowSpool.LFlowLabelLimit;
-        pMapLabelLeft.Text = LFlow.QFlowSpool.LFlowLabelZero;
-        pMapLabelRight.Text = LFlow.QFlowSpool.LFlowLabelDuration;
+        pViewfinderLabelLeft.Text = QFlow.QFlowSpool.QFlowLabelOrigin;
+        pViewfinderLabelRight.Text = QFlow.QFlowSpool.QFlowLabelLimit;
+        pMapLabelLeft.Text = QFlow.QFlowSpool.QFlowLabelZero;
+        pMapLabelRight.Text = QFlow.QFlowSpool.QFlowLabelDuration;
     }
 
     private void PFlowTimerDefer()
@@ -167,43 +167,43 @@ public sealed class PFlow : UserControl
         pKeyframeResumeTimer.Stop();
     }
 
-    private void PFlowTimerHandle(object? sender, EventArgs e) => LFlow.LFlowKeyframe.LFlowKeyframeTick();
+    private void PFlowTimerHandle(object? sender, EventArgs e) => QFlow.QFlowKeyframe.QFlowKeyframeTick();
 
     private void PFlowKeyframeHandle(LKeyframeNotice lNotice) =>
-        Dispatcher.InvokeAsync(() => LFlow.LFlowKeyframe.LFlowKeyframeApply(lNotice), DispatcherPriority.Background);
+        Dispatcher.InvokeAsync(() => QFlow.QFlowKeyframe.QFlowKeyframeApply(lNotice), DispatcherPriority.Background);
 
     private void PFlowWaveformHandle() =>
-        Dispatcher.InvokeAsync(LFlow.LFlowWaveform.LFlowWaveformApply, DispatcherPriority.Background);
+        Dispatcher.InvokeAsync(QFlow.QFlowWaveform.QFlowWaveformApply, DispatcherPriority.Background);
 
-    private void PFlowLosslesscutHandle(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
-        pFlowLosslesscutShows[lPrompt.LFlowPromptKind](lPrompt, lAnswer);
+    private void PFlowLosslesscutHandle(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
+        pFlowLosslesscutShows[lPrompt.QFlowPromptKind](lPrompt, lAnswer);
 
-    private void PFlowConfirmShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
+    private void PFlowConfirmShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
         lAnswer(pFlowConfirmChoices[PSDecision.PSDecisionConfirm(
             Window.GetWindow(this),
-            lPrompt.LFlowPromptTitle,
-            lPrompt.LFlowPromptMessage,
-            lPrompt.LFlowPromptPrimary,
-            lPrompt.LFlowPromptDismiss)]);
+            lPrompt.QFlowPromptTitle,
+            lPrompt.QFlowPromptMessage,
+            lPrompt.QFlowPromptPrimary,
+            lPrompt.QFlowPromptDismiss)]);
 
-    private void PFlowSelectShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
+    private void PFlowSelectShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
         lAnswer(pFlowSelectChoices[PSDecision.PSDecisionSelect(
             Window.GetWindow(this),
-            lPrompt.LFlowPromptTitle,
-            lPrompt.LFlowPromptMessage,
-            lPrompt.LFlowPromptPrimary,
-            lPrompt.LFlowPromptAlternate,
-            lPrompt.LFlowPromptDismiss)]);
+            lPrompt.QFlowPromptTitle,
+            lPrompt.QFlowPromptMessage,
+            lPrompt.QFlowPromptPrimary,
+            lPrompt.QFlowPromptAlternate,
+            lPrompt.QFlowPromptDismiss)]);
 
-    private void PFlowNoticeShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
+    private void PFlowNoticeShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
     {
-        PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), lPrompt.LFlowPromptTitle, lPrompt.LFlowPromptMessage);
+        PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), lPrompt.QFlowPromptTitle, lPrompt.QFlowPromptMessage);
         lAnswer(0);
     }
 
-    private void PFlowWarningShow(LFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
+    private void PFlowWarningShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
     {
-        PSWarning.PSWarningShow(Window.GetWindow(this), lPrompt.LFlowPromptTitle, lPrompt.LFlowPromptMessage);
+        PSWarning.PSWarningShow(Window.GetWindow(this), lPrompt.QFlowPromptTitle, lPrompt.QFlowPromptMessage);
         lAnswer(0);
     }
 

@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditObjectSetting
 {
-    public const int TAuditGeneration = 21;
+    public const int TAuditGeneration = 22;
     public const bool TAuditObjectEnforced = true;
     public const string TAuditObjectReport = "temp/audit/Object-{0}.md";
 
@@ -86,7 +86,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.ShellEngine.LMessenger"] = 9,
         ["Cadroue.ShellEngine.LRunner"] = 2,
         ["Cadroue.ShellEngine.LSweep"] = 7,
-        ["Cadroue.UIDeportment.LSEncoder"] = 3,
+        ["Cadroue.UIDeportment.QSEncoder"] = 3,
         ["Cadroue.UIVeneer.PHouse.PWindow"] = 5,
         ["Cadroue.UIVeneer.PSDiagnosis"] = 2,
         ["Cadroue.UIVeneer.PSFader"] = 2,

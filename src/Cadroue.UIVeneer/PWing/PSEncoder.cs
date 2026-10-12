@@ -19,11 +19,11 @@ internal sealed partial class PSEncoder : Window
     internal const double PSEncoderWidthMinimum = 680;
     internal const double PSEncoderHeightMinimum = 770;
 
-    private readonly LSEncoder lsEncoder;
+    private readonly QSEncoder lsEncoder;
     private readonly System.Action psEncoderSummary;
     private readonly PToken psNameBox;
 
-    private LPreset lsExportSpecificEdit => lsEncoder.LSEncoderDraft;
+    private LPreset lsExportSpecificEdit => lsEncoder.QSEncoderDraft;
     private readonly ListBox psOutputContainerCombo;
     private readonly ComboBox psOutputExtensionCombo;
     private readonly ComboBox psOutputCollisionCombo;
@@ -98,15 +98,15 @@ internal sealed partial class PSEncoder : Window
                 pChoice.LCapabilityChoiceLabel))
             .ToArray();
 
-    public PSEncoder(LSEncoder lsEncoderOwner, System.Action pRefresh)
+    public PSEncoder(QSEncoder lsEncoderOwner, System.Action pRefresh)
     {
         lsEncoder = lsEncoderOwner;
-        lsEncoder.LSEncoderVideoChanged += PSVideoRowsApply;
-        lsEncoder.LSEncoderAudioChanged += PSAudioRowsApply;
-        lsEncoder.LSEncoderHelpAttach(PSEncoderHelpHandle);
-        lsEncoder.LSEncoderSizeChanged += PSVideoSizeApply;
+        lsEncoder.QSEncoderVideoChanged += PSVideoRowsApply;
+        lsEncoder.QSEncoderAudioChanged += PSAudioRowsApply;
+        lsEncoder.QSEncoderHelpAttach(PSEncoderHelpHandle);
+        lsEncoder.QSEncoderSizeChanged += PSVideoSizeApply;
         psEncoderSummary = pRefresh;
-        psNameBox = new PToken(lsEncoder.LSEncoderTokenCreate())
+        psNameBox = new PToken(lsEncoder.QSEncoderTokenCreate())
         {
             PTokenText = lsExportSpecificEdit.LPresetDisplay,
             MinWidth = 320
@@ -145,12 +145,12 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
         psVideoEncoderCombo = PSCombo.PSComboBuild(
-            lsEncoder.LSEncoderVideoEncoder,
-            LSEncoder.LSEncoderVideoRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.LSEncoderVideoEncoder));
+            lsEncoder.QSEncoderVideoEncoder,
+            QSEncoder.QSEncoderVideoRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderVideoEncoder));
         psVideoEncoderCombo.ItemTemplate = psEncoderChipTemplate;
         psVideoEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         psVideoRateCombo = PSCombo.PSComboBuild(
-            lsEncoder.LSEncoderVideoRate, lsEncoder.LSEncoderVideoCodec.LCapabilityModeLabels);
+            lsEncoder.QSEncoderVideoRate, lsEncoder.QSEncoderVideoCodec.LCapabilityModeLabels);
         psVideoRowsPanel = new StackPanel();
         psAudioRowsPanel = new StackPanel();
         psVideoEncodePanel = new StackPanel();
@@ -184,12 +184,12 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
             new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
         psAudioEncoderCombo = PSCombo.PSComboBuild(
-            lsEncoder.LSEncoderAudioEncoder,
-            LSEncoder.LSEncoderAudioRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.LSEncoderAudioEncoder));
+            lsEncoder.QSEncoderAudioEncoder,
+            QSEncoder.QSEncoderAudioRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderAudioEncoder));
         psAudioEncoderCombo.ItemTemplate = psEncoderChipTemplate;
         psAudioEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         psAudioRateCombo = PSCombo.PSComboBuild(
-            lsEncoder.LSEncoderAudioRate, lsEncoder.LSEncoderAudioCodec.LCapabilityModeLabels);
+            lsEncoder.QSEncoderAudioRate, lsEncoder.QSEncoderAudioCodec.LCapabilityModeLabels);
         Title = LLocalization.LLocalizationTextRead("Encoder.Window.Title");
         Width = PSEncoderWidthDefault;
         Height = PSEncoderHeightDefault;
@@ -234,7 +234,7 @@ internal sealed partial class PSEncoder : Window
             pExtra => pExtra.Key, pExtra => PSCombo.PSComboTextRead(pExtra.Value), StringComparer.Ordinal);
         lsExportSpecificEdit.LPresetAudio.LPresetSampleRate = PSAudioSampleRead();
         lsExportSpecificEdit.LPresetAudio.LPresetChannels = PSAudioChannelRead();
-        lsEncoder.LSEncoderApply();
+        lsEncoder.QSEncoderApply();
         psEncoderSummary();
     }
 
@@ -242,7 +242,7 @@ internal sealed partial class PSEncoder : Window
 
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
-        lsEncoder.LSEncoderClose();
+        lsEncoder.QSEncoderClose();
         PSGrabber.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
         psEncoderGrabber.PSGrabberDetach();
         Closed -= PSEncoderCloseHandle;

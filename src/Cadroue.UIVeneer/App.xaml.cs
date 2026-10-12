@@ -54,7 +54,7 @@ public partial class PProgram : System.Windows.Application
         pProgramDebounce.Start();
     }
 
-    public void PProgramWindowShow(LWindow lWindow)
+    public void PProgramWindowShow(QWindow lWindow)
     {
         PWindow pWindow = new(lWindow);
         PNameplate.PNameplateAttach();

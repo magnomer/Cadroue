@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditPuritySetting
 {
-    public const int TAuditGeneration = 21;
+    public const int TAuditGeneration = 22;
 
     public static readonly string[] TAuditPurityRing =
     [

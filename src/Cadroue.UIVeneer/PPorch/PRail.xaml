@@ -16,7 +16,7 @@
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="TextTrimming" Value="CharacterEllipsis" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding LStripTabSelected}" Value="True">
+                <DataTrigger Binding="{Binding QStripTabSelected}" Value="True">
                     <Setter Property="Foreground" Value="#0349DC" />
                     <Setter Property="FontWeight" Value="SemiBold" />
                 </DataTrigger>
@@ -24,16 +24,16 @@
         </Style>
         <Style x:Key="pTabNameTextStyle" TargetType="TextBlock" BasedOn="{StaticResource pTabTextStyle}">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding LStripTabEditing}" Value="True">
+                <DataTrigger Binding="{Binding QStripTabEditing}" Value="True">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
         <Style x:Key="pTabIconStyle" TargetType="Image">
-            <Setter Property="Source" Value="{Binding LStripTabKey, Converter={StaticResource pTabIcon}}" />
+            <Setter Property="Source" Value="{Binding QStripTabKey, Converter={StaticResource pTabIcon}}" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding LStripTabSelected}" Value="True">
-                    <Setter Property="Source" Value="{Binding LStripTabKey, Converter={StaticResource pTabIconActive}}" />
+                <DataTrigger Binding="{Binding QStripTabSelected}" Value="True">
+                    <Setter Property="Source" Value="{Binding QStripTabKey, Converter={StaticResource pTabIconActive}}" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
@@ -50,7 +50,7 @@
             <Setter Property="SelectionBrush" Value="#4C86F7" />
             <Setter Property="FocusVisualStyle" Value="{x:Null}" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding LStripTabEditing}" Value="True">
+                <DataTrigger Binding="{Binding QStripTabEditing}" Value="True">
                     <Setter Property="Visibility" Value="Visible" />
                 </DataTrigger>
             </Style.Triggers>
@@ -76,7 +76,7 @@
                     <Setter Property="Background" Value="#EEF4FC" />
                     <Setter Property="BorderBrush" Value="#D5E0ED" />
                 </Trigger>
-                <DataTrigger Binding="{Binding LStripTabSelected}" Value="True">
+                <DataTrigger Binding="{Binding QStripTabSelected}" Value="True">
                     <Setter Property="Background" Value="#FFFFFF" />
                     <Setter Property="BorderBrush" Value="#C9D6E5" />
                     <Setter Property="BorderThickness" Value="1,1,1,0" />
@@ -96,7 +96,7 @@
                     <Setter Property="Background" Value="#EEF4FC" />
                     <Setter Property="BorderBrush" Value="#D5E0ED" />
                 </Trigger>
-                <DataTrigger Binding="{Binding LStripTabSelected}" Value="True">
+                <DataTrigger Binding="{Binding QStripTabSelected}" Value="True">
                     <Setter Property="Background" Value="#FFFFFF" />
                     <Setter Property="BorderBrush" Value="#C9D6E5" />
                     <Setter Property="BorderThickness" Value="1,1,0,1" />
@@ -144,7 +144,7 @@
         </Style>
         <ItemsPanelTemplate x:Key="pHorizontalItemsPanel"><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
         <ItemsPanelTemplate x:Key="pVerticalItemsPanel"><StackPanel Orientation="Vertical" /></ItemsPanelTemplate>
-        <DataTemplate x:Key="pHorizontalTabTemplate" DataType="{x:Type lDeportment:LStripTab}">
+        <DataTemplate x:Key="pHorizontalTabTemplate" DataType="{x:Type lDeportment:QStripTab}">
             <Grid Margin="0,12,0,0">
                 <Border Style="{StaticResource pTabFrameHorizontalStyle}"
                         MouseEnter="PTabEnterHandle"
@@ -155,7 +155,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="26" Height="26" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
-                        <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
+                        <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding QStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
                             <Canvas Width="20" Height="20">
@@ -169,7 +169,7 @@
                     <Canvas.Style>
                         <Style TargetType="Canvas">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding LStripTabSeparator}" Value="False">
+                                <DataTrigger Binding="{Binding QStripTabSeparator}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -179,7 +179,7 @@
                 </Canvas>
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="pVerticalTabTemplate" DataType="{x:Type lDeportment:LStripTab}">
+        <DataTemplate x:Key="pVerticalTabTemplate" DataType="{x:Type lDeportment:QStripTab}">
             <Grid Margin="8,0,0,0">
                 <Border Style="{StaticResource pTabFrameVerticalStyle}"
                         MouseEnter="PTabEnterHandle"
@@ -190,7 +190,7 @@
                     <Grid>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
                         <Image Width="26" Height="26" Style="{StaticResource pTabIconStyle}" Margin="0,0,10,0" />
-                        <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding LStripTabTitle}" />
+                        <TextBlock x:Name="pTabNameText" Grid.Column="1" Style="{StaticResource pTabNameTextStyle}" Text="{Binding QStripTabTitle}" />
                         <TextBox Grid.Column="1" Style="{StaticResource pTabNameBoxStyle}" Loaded="PTabLoadHandle" KeyDown="PTabKeyHandle" LostKeyboardFocus="PTabLeaveHandle" />
                         <Border Grid.Column="2" Style="{StaticResource pTabCloseStyle}" MouseLeftButtonDown="PTabCloseHandle">
                             <Canvas Width="20" Height="20">
@@ -204,7 +204,7 @@
                     <Border.Style>
                         <Style TargetType="Border">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding LStripTabSeparator}" Value="False">
+                                <DataTrigger Binding="{Binding QStripTabSeparator}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed"/>
                                 </DataTrigger>
                             </Style.Triggers>
@@ -218,7 +218,7 @@
         <ScrollViewer x:Name="pTabViewport" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Disabled">
             <StackPanel x:Name="pTabStack" Orientation="Horizontal">
                 <ItemsControl x:Name="pTabItemsControl"
-                              ItemsSource="{Binding LStripTabs}"
+                              ItemsSource="{Binding QStripTabs}"
                               ItemTemplate="{StaticResource pHorizontalTabTemplate}"
                               ItemsPanel="{StaticResource pHorizontalItemsPanel}" />
                 <Button x:Name="pTabAddButton" Style="{StaticResource pTabAddHorizontalStyle}" Content="+" Click="PTabMenuHandle" />

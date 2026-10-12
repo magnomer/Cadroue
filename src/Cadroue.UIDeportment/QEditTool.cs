@@ -2,27 +2,27 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QEditTool
 {
-    private readonly LInspector lEditInspector;
-    private readonly LViewer lEditViewer;
-    private readonly LCrop lEditCrop;
+    private readonly QInspector qEditInspector;
+    private readonly QViewer qEditViewer;
+    private readonly QCrop qEditCrop;
 
-    public QEditTool(LInspector lInspector, LViewer lViewer)
+    public QEditTool(QInspector lInspector, QViewer lViewer)
     {
-        lEditInspector = lInspector;
-        lEditViewer = lViewer;
-        lEditCrop = lViewer.LCrop;
+        qEditInspector = lInspector;
+        qEditViewer = lViewer;
+        qEditCrop = lViewer.QCrop;
     }
 
-    public void LEditToolHandle(bool lArmed) => lEditCrop.LCropToolSet(lArmed);
+    public void QEditToolHandle(bool lArmed) => qEditCrop.QCropToolSet(lArmed);
 
-    public void LEditLockHandle(bool lLocked)
+    public void QEditLockHandle(bool lLocked)
     {
         if (lLocked)
         {
-            lEditViewer.LViewerNeutral.LViewerNeutralCancel();
+            qEditViewer.QViewerNeutral.QViewerNeutralCancel();
         }
 
-        lEditCrop.LCropLockSet(lLocked);
-        lEditCrop.LCropToolSet(!lLocked && lEditInspector.LInspectorToolArmed);
+        qEditCrop.QCropLockSet(lLocked);
+        qEditCrop.QCropToolSet(!lLocked && qEditInspector.QInspectorToolArmed);
     }
 }

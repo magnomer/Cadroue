@@ -72,7 +72,7 @@ AuditFault -ReportDirectory D:\temp\audit -Top 10 -Open -NoOpen
 Write the reports elsewhere, show ten rows of each ring, open the Markdown report but not the page.
 #>
 #requires -Version 5.1
-# AUDITFAULT - AUDIT GENERATION 21.
+# AUDITFAULT - AUDIT GENERATION 22.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -82,6 +82,8 @@ Write the reports elsewhere, show ten rows of each ring, open the Markdown repor
 # and each refuses a configuration written at another generation.
 # Generation 21: the first generation of this audit. It binds the sources with Roslyn and reports
 # every catch clause below Conduct that hands its fault to no one as Swallowing, per ring.
+# Generation 22: nothing this audit reports changes; the number rises with the structure audit,
+# whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
 [CmdletBinding()]
 param(
     [string]$Root,
@@ -136,7 +138,7 @@ REPORTS
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:AuditGeneration = 21
+$script:AuditGeneration = 22
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding

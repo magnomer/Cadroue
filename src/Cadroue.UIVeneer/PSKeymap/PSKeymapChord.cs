@@ -11,10 +11,10 @@ internal sealed class PSKeymapChord : Button
 {
     internal const double PSKeymapChordWidth = 168;
 
-    private readonly LSKeymap lsKeymap;
-    private readonly LSKeymapChord lsKeymapChord;
+    private readonly QSKeymap lsKeymap;
+    private readonly QSKeymapChord lsKeymapChord;
 
-    internal PSKeymapChord(LSKeymap psKeymapOwner, LSKeymapChord psKeymapChordState)
+    internal PSKeymapChord(QSKeymap psKeymapOwner, QSKeymapChord psKeymapChordState)
     {
         lsKeymap = psKeymapOwner;
         lsKeymapChord = psKeymapChordState;
@@ -25,11 +25,11 @@ internal sealed class PSKeymapChord : Button
         VerticalAlignment = VerticalAlignment.Center;
         Focusable = true;
         Style = PButton.PButtonWhiteCreate();
-        lsKeymap.LSKeymapChordChanged += PSKeymapChordHandle;
+        lsKeymap.QSKeymapChordChanged += PSKeymapChordHandle;
         PSKeymapTextUpdate();
     }
 
-    private void PSKeymapChordHandle(LSKeymapChord psKeymapChanged)
+    private void PSKeymapChordHandle(QSKeymapChord psKeymapChanged)
     {
         if (ReferenceEquals(psKeymapChanged, lsKeymapChord))
         {
@@ -41,21 +41,21 @@ internal sealed class PSKeymapChord : Button
     {
         base.OnClick();
         Keyboard.Focus(this);
-        lsKeymap.LSKeymapChordStart(lsKeymapChord);
+        lsKeymap.QSKeymapChordStart(lsKeymapChord);
     }
 
     protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e)
     {
         base.OnLostKeyboardFocus(e);
-        if (lsKeymapChord.LSKeymapChordActive)
+        if (lsKeymapChord.QSKeymapChordActive)
         {
-            lsKeymap.LSKeymapChordCancel(lsKeymapChord);
+            lsKeymap.QSKeymapChordCancel(lsKeymapChord);
         }
     }
 
     protected override void OnPreviewKeyDown(KeyEventArgs e)
     {
-        if (!lsKeymapChord.LSKeymapChordActive)
+        if (!lsKeymapChord.QSKeymapChordActive)
         {
             base.OnPreviewKeyDown(e);
             return;
@@ -66,33 +66,33 @@ internal sealed class PSKeymapChord : Button
 
         if (psKeymapChordKey == Key.Escape)
         {
-            lsKeymap.LSKeymapChordCancel(lsKeymapChord);
+            lsKeymap.QSKeymapChordCancel(lsKeymapChord);
             return;
         }
 
         if (psKeymapChordKey == Key.Enter)
         {
-            lsKeymap.LSKeymapChordCommit(lsKeymapChord);
+            lsKeymap.QSKeymapChordCommit(lsKeymapChord);
             return;
         }
 
-        lsKeymap.LSKeymapPendingSet(
+        lsKeymap.QSKeymapPendingSet(
             lsKeymapChord,
             PShortcut.PShortcutGestureFormat(psKeymapChordKey, Keyboard.Modifiers));
     }
 
     private void PSKeymapTextUpdate()
     {
-        if (lsKeymapChord.LSKeymapChordActive)
+        if (lsKeymapChord.QSKeymapChordActive)
         {
-            Content = lsKeymapChord.LSKeymapChordPending.Length > 0
-                ? lsKeymapChord.LSKeymapChordPending
+            Content = lsKeymapChord.QSKeymapChordPending.Length > 0
+                ? lsKeymapChord.QSKeymapChordPending
                 : LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Capture");
             return;
         }
 
-        Content = lsKeymapChord.LSKeymapChordGesture.Length > 0
-            ? lsKeymapChord.LSKeymapChordGesture
+        Content = lsKeymapChord.QSKeymapChordGesture.Length > 0
+            ? lsKeymapChord.QSKeymapChordGesture
             : LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Unassigned");
     }
 }

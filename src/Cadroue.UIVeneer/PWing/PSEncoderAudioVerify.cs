@@ -14,14 +14,14 @@ internal sealed partial class PSEncoder
         IReadOnlyList<string> pAvailable;
         try
         {
-            pAvailable = await lsEncoder.LSEncoderAudioScan(pFeed);
+            pAvailable = await lsEncoder.QSEncoderAudioScan(pFeed);
         }
         catch (OperationCanceledException)
         {
             return;
         }
 
-        string pSelected = lsEncoder.LSEncoderAudioEncoder;
+        string pSelected = lsEncoder.QSEncoderAudioEncoder;
         pCombo.ItemsSource = pAvailable;
         pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
         PSAudioEncoderUpdate();

@@ -8,35 +8,35 @@ public sealed class PStrip
 {
     private readonly List<PWorkspace> pStripWorkspaces = new();
 
-    public PStrip(LStrip lStrip)
+    public PStrip(QStrip lStrip)
     {
-        LStrip = lStrip;
-        LStrip.LStripChanged += PStripStaleRemove;
-        LStrip.LStripTabChanged += PStripTabHandle;
-        LStrip.QStripClosure.LStripTabClosed += PStripCloseHandle;
+        QStrip = lStrip;
+        QStrip.QStripChanged += PStripStaleRemove;
+        QStrip.QStripTabChanged += PStripTabHandle;
+        QStrip.QStripClosure.QStripTabClosed += PStripCloseHandle;
     }
 
-    public LStrip LStrip { get; }
+    public QStrip QStrip { get; }
 
-    public PWorkspace? PStripSelected => PStripWorkspaceRead(LStrip.LStripSelected);
+    public PWorkspace? PStripSelected => PStripWorkspaceRead(QStrip.QStripSelected);
 
-    public PWorkspace? PStripWorkspaceRead(LStripTab? lStripTab) =>
+    public PWorkspace? PStripWorkspaceRead(QStripTab? lStripTab) =>
         pStripWorkspaces.FirstOrDefault(pWorkspace => ReferenceEquals(pWorkspace.PWorkspaceTab, lStripTab));
 
-    public LStripTab PStripAdd(LStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout = null)
+    public QStripTab PStripAdd(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        var pWorkspace = new PWorkspace(LStrip, lStripTab, lPreferenceTabLayout);
+        var pWorkspace = new PWorkspace(QStrip, lStripTab, lPreferenceTabLayout);
         pStripWorkspaces.Add(pWorkspace);
-        LStrip.LStripAdd(lStripTab);
+        QStrip.QStripAdd(lStripTab);
         return lStripTab;
     }
 
-    private void PStripTabHandle(LStripTab lStripTab) =>
+    private void PStripTabHandle(QStripTab lStripTab) =>
         PStripWorkspaceRead(lStripTab)?.PWorkspaceRoot.SetValue(
-            System.Windows.UIElement.IsEnabledProperty, !lStripTab.LStripTabPending);
+            System.Windows.UIElement.IsEnabledProperty, !lStripTab.QStripTabPending);
 
-    private void PStripCloseHandle(LStripTab lStripTab) => PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
+    private void PStripCloseHandle(QStripTab lStripTab) => PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
 
     private void PStripStaleRemove() =>
-        pStripWorkspaces.RemoveAll(pWorkspace => !LStrip.LStripTabs.Contains(pWorkspace.PWorkspaceTab));
+        pStripWorkspaces.RemoveAll(pWorkspace => !QStrip.QStripTabs.Contains(pWorkspace.PWorkspaceTab));
 }

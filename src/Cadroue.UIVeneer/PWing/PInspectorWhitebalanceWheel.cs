@@ -93,13 +93,13 @@ public sealed partial class PInspector
     private void PWhitebalanceWheelHandle(object pSender, MouseEventArgs pWheelMouse)
     {
         Point pWheelPoint = pWheelMouse.GetPosition(pWhitebalanceWheelCanvas);
-        LWhitebalance.LWhitebalanceWheelHandle(
+        QWhitebalance.QWhitebalanceWheelHandle(
             PLook.PLookPressed[pWheelMouse.LeftButton], pWheelPoint.X, pWheelPoint.Y, PWhitebalanceWheelSize);
     }
 
     private void PWhitebalanceWheelPlace()
     {
-        LNeutralDot pDot = LWhitebalance.LWhitebalanceDotRead(PWhitebalanceWheelSize, pWhitebalanceWheelDot.Width);
+        LNeutralDot pDot = QWhitebalance.QWhitebalanceDotRead(PWhitebalanceWheelSize, pWhitebalanceWheelDot.Width);
         Canvas.SetLeft(pWhitebalanceWheelDot, pDot.LNeutralDotLeft);
         Canvas.SetTop(pWhitebalanceWheelDot, pDot.LNeutralDotTop);
         pWhitebalanceWheelDot.Visibility = PLook.PLookVisible[pDot.LNeutralDotPresent];

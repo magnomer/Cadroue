@@ -18,25 +18,25 @@ internal sealed class PToken : RichTextBox
     private static readonly Brush PTokenPressedBrush = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
     private static readonly Brush PTokenOperatorBrush = new SolidColorBrush(Color.FromRgb(0xD1, 0x3B, 0x3B));
 
-    private static readonly IReadOnlyDictionary<LTokenKind, Func<LTokenPart, UIElement>> PTokenFaces =
-        new Dictionary<LTokenKind, Func<LTokenPart, UIElement>>
+    private static readonly IReadOnlyDictionary<QTokenKind, Func<QTokenPart, UIElement>> PTokenFaces =
+        new Dictionary<QTokenKind, Func<QTokenPart, UIElement>>
         {
-            [LTokenKind.LTokenChip] = PTokenLabelBuild,
-            [LTokenKind.LTokenOperator] = PTokenOperatorBuild,
+            [QTokenKind.QTokenChip] = PTokenLabelBuild,
+            [QTokenKind.QTokenOperator] = PTokenOperatorBuild,
         };
 
-    private static readonly IReadOnlyDictionary<LTokenKind, Func<LTokenPart, Inline>> PTokenInlines =
-        new Dictionary<LTokenKind, Func<LTokenPart, Inline>>
+    private static readonly IReadOnlyDictionary<QTokenKind, Func<QTokenPart, Inline>> PTokenInlines =
+        new Dictionary<QTokenKind, Func<QTokenPart, Inline>>
         {
-            [LTokenKind.LTokenPlain] = PTokenRunBuild,
-            [LTokenKind.LTokenChip] = PTokenContainerBuild,
-            [LTokenKind.LTokenOperator] = PTokenContainerBuild,
+            [QTokenKind.QTokenPlain] = PTokenRunBuild,
+            [QTokenKind.QTokenChip] = PTokenContainerBuild,
+            [QTokenKind.QTokenOperator] = PTokenContainerBuild,
         };
 
     private readonly Paragraph pTokenParagraph = new();
-    private readonly LToken lToken;
+    private readonly QToken lToken;
 
-    internal PToken(LToken lTokenOwner)
+    internal PToken(QToken lTokenOwner)
     {
         lToken = lTokenOwner;
         Background = Brushes.White;
@@ -60,21 +60,21 @@ internal sealed class PToken : RichTextBox
         pTokenParagraph.LineStackingStrategy = LineStackingStrategy.BlockLineHeight;
         Document.Blocks.Add(pTokenParagraph);
         Template = PTokenTemplateBuild();
-        lToken.LTokenInserted += PTokenInsert;
+        lToken.QTokenInserted += PTokenInsert;
         PreviewDragOver += PTokenDragHandle;
         PreviewDrop += PTokenDropHandle;
     }
 
     internal string PTokenText
     {
-        get => LToken.LTokenTextRead(pTokenParagraph.Inlines.Select(PTokenInlineRead));
+        get => QToken.QTokenTextRead(pTokenParagraph.Inlines.Select(PTokenInlineRead));
         set => PTokenTextSet(value);
     }
 
     internal void PTokenInsert(string pToken)
     {
         Selection.Text = string.Empty;
-        InlineUIContainer pContainer = PTokenInlineBuild(LToken.LTokenPartResolve(pToken), CaretPosition);
+        InlineUIContainer pContainer = PTokenInlineBuild(QToken.QTokenPartResolve(pToken), CaretPosition);
         CaretPosition = pContainer.ElementEnd.GetInsertionPosition(LogicalDirection.Forward)!;
         Focus();
     }
@@ -82,27 +82,27 @@ internal sealed class PToken : RichTextBox
     private void PTokenTextSet(string pText)
     {
         pTokenParagraph.Inlines.Clear();
-        pTokenParagraph.Inlines.AddRange(LToken.LTokenParse(pText).Select(PTokenPartBuild));
+        pTokenParagraph.Inlines.AddRange(QToken.QTokenParse(pText).Select(PTokenPartBuild));
         CaretPosition = pTokenParagraph.ContentEnd;
     }
 
     private static (string? PTokenText, string? PTokenTag) PTokenInlineRead(Inline pInline) =>
         ((pInline as Run)?.Text, ((pInline as InlineUIContainer)?.Child as FrameworkElement)?.Tag as string);
 
-    private static Inline PTokenPartBuild(LTokenPart lPart) => PTokenInlines[lPart.LTokenPartKind](lPart);
+    private static Inline PTokenPartBuild(QTokenPart lPart) => PTokenInlines[lPart.QTokenPartKind](lPart);
 
-    private static Inline PTokenContainerBuild(LTokenPart lPart) => PTokenInlineBuild(lPart, null);
+    private static Inline PTokenContainerBuild(QTokenPart lPart) => PTokenInlineBuild(lPart, null);
 
-    private static Inline PTokenRunBuild(LTokenPart lPart)
+    private static Inline PTokenRunBuild(QTokenPart lPart)
     {
-        return new Run(lPart.LTokenPartText)
+        return new Run(lPart.QTokenPartText)
         {
             Foreground = PTokenTextBrush,
             BaselineAlignment = BaselineAlignment.Center
         };
     }
 
-    private static InlineUIContainer PTokenInlineBuild(LTokenPart lPart, TextPointer? pPosition)
+    private static InlineUIContainer PTokenInlineBuild(QTokenPart lPart, TextPointer? pPosition)
     {
         return new InlineUIContainer(PTokenChipBuild(lPart), pPosition)
         {
@@ -110,13 +110,13 @@ internal sealed class PToken : RichTextBox
         };
     }
 
-    private static Border PTokenChipBuild(LTokenPart lPart)
+    private static Border PTokenChipBuild(QTokenPart lPart)
     {
         var pTextHost = new Grid();
-        pTextHost.Children.Add(PTokenFaces[lPart.LTokenPartKind](lPart));
+        pTextHost.Children.Add(PTokenFaces[lPart.QTokenPartKind](lPart));
         var pChip = new Border
         {
-            Tag = lPart.LTokenPartText,
+            Tag = lPart.QTokenPartText,
             Height = 24,
             BorderBrush = PLineBrush,
             BorderThickness = new Thickness(1),
@@ -134,9 +134,9 @@ internal sealed class PToken : RichTextBox
         return pChip;
     }
 
-    private static UIElement PTokenLabelBuild(LTokenPart lPart) => new TextBlock
+    private static UIElement PTokenLabelBuild(QTokenPart lPart) => new TextBlock
     {
-        Text = lPart.LTokenPartLabel,
+        Text = lPart.QTokenPartLabel,
         Foreground = PTokenTextBrush,
         LineHeight = 14,
         LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
@@ -144,7 +144,7 @@ internal sealed class PToken : RichTextBox
         VerticalAlignment = VerticalAlignment.Center
     };
 
-    private static UIElement PTokenOperatorBuild(LTokenPart lPart)
+    private static UIElement PTokenOperatorBuild(QTokenPart lPart)
     {
         var pContent = new StackPanel
         {
@@ -154,7 +154,7 @@ internal sealed class PToken : RichTextBox
         };
         pContent.Children.Add(new Image
         {
-            Source = PIcon.PIconRead(lPart.LTokenPartIcon, PTokenOperatorBrush),
+            Source = PIcon.PIconRead(lPart.QTokenPartIcon, PTokenOperatorBrush),
             Width = 14,
             Height = 14,
             Stretch = Stretch.Uniform,
@@ -162,7 +162,7 @@ internal sealed class PToken : RichTextBox
         });
         pContent.Children.Add(new TextBlock
         {
-            Text = lPart.LTokenPartCount,
+            Text = lPart.QTokenPartCount,
             Foreground = PTokenOperatorBrush,
             LineHeight = 14,
             LineStackingStrategy = LineStackingStrategy.BlockLineHeight,
@@ -181,7 +181,7 @@ internal sealed class PToken : RichTextBox
     private void PTokenDropHandle(object sender, DragEventArgs e)
     {
         CaretPosition = GetPositionFromPoint(e.GetPosition(this), true)!;
-        e.Handled = lToken.LTokenDropHandle(e.Data.GetData(PTokenDataKind) as string);
+        e.Handled = lToken.QTokenDropHandle(e.Data.GetData(PTokenDataKind) as string);
     }
 
     private static ControlTemplate PTokenTemplateBuild()

@@ -620,10 +620,10 @@
     "src/Cadroue.UIVeneer/PWing/PViewer.cs": 5
   },
   "Sharing": {
-    "src/Cadroue.UIDeportment/LAction.cs": 1,
-    "src/Cadroue.UIDeportment/LAsk.cs": 1,
-    "src/Cadroue.UIDeportment/LListRelay.cs": 2,
-    "src/Cadroue.UIDeportment/LProgram.cs": 1
+    "src/Cadroue.UIDeportment/QAction.cs": 1,
+    "src/Cadroue.UIDeportment/QAsk.cs": 1,
+    "src/Cadroue.UIDeportment/QListRelay.cs": 2,
+    "src/Cadroue.UIDeportment/QProgram.cs": 1
   },
   "Tethering": {
     "src/Cadroue.UIVeneer/PPorch/PRail.xaml": 18,

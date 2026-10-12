@@ -2,36 +2,36 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QRosterCollapse
 {
-    private readonly Action<Guid> lRosterCard;
-    private readonly HashSet<Guid> lRosterCollapsedIds = [];
+    private readonly Action<Guid> qRosterCard;
+    private readonly HashSet<Guid> qRosterCollapsedIds = [];
 
     public QRosterCollapse(Action<Guid> lCardUpdate)
     {
-        lRosterCard = lCardUpdate;
+        qRosterCard = lCardUpdate;
     }
 
-    public bool LRosterCollapsedCheck(Guid lBatchId) => lRosterCollapsedIds.Contains(lBatchId);
+    public bool QRosterCollapsedCheck(Guid lBatchId) => qRosterCollapsedIds.Contains(lBatchId);
 
-    public void LRosterCollapseSet(Guid lBatchId, bool lCollapsed)
+    public void QRosterCollapseSet(Guid lBatchId, bool lCollapsed)
     {
         if (lCollapsed)
         {
-            lRosterCollapsedIds.Add(lBatchId);
+            qRosterCollapsedIds.Add(lBatchId);
         }
         else
         {
-            lRosterCollapsedIds.Remove(lBatchId);
+            qRosterCollapsedIds.Remove(lBatchId);
         }
     }
 
-    public bool LRosterCollapseToggle(Guid lBatchId)
+    public bool QRosterCollapseToggle(Guid lBatchId)
     {
-        bool lCollapsed = !lRosterCollapsedIds.Contains(lBatchId);
-        LRosterCollapseSet(lBatchId, lCollapsed);
-        lRosterCard(lBatchId);
+        bool lCollapsed = !qRosterCollapsedIds.Contains(lBatchId);
+        QRosterCollapseSet(lBatchId, lCollapsed);
+        qRosterCard(lBatchId);
         return lCollapsed;
     }
 
-    public void LRosterStaleRemove(IReadOnlyCollection<Guid> lBatchIds) =>
-        lRosterCollapsedIds.RemoveWhere(lBatchId => !lBatchIds.Contains(lBatchId));
+    public void QRosterStaleRemove(IReadOnlyCollection<Guid> lBatchIds) =>
+        qRosterCollapsedIds.RemoveWhere(lBatchId => !lBatchIds.Contains(lBatchId));
 }

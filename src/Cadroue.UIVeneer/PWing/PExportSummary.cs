@@ -28,13 +28,13 @@ public sealed partial class PExport : UserControl
     private PGhost? pPresetDragGhost;
     private TextBox? pExportBoxCurrent;
 
-    public LExport LExport { get; }
+    public QExport QExport { get; }
 
-    public PExport(LExport lExport, LPresetSelection lPresetOwner)
+    public PExport(QExport lExport, LPresetSelection lPresetOwner)
     {
         this.lPresetOwner = lPresetOwner;
-        LExport = lExport;
-        LExport.LExportPresetsChanged += PExportPresetsUpdate;
+        QExport = lExport;
+        QExport.QExportPresetsChanged += PExportPresetsUpdate;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         pPresetRowPanel = new StackPanel();
@@ -82,8 +82,8 @@ public sealed partial class PExport : UserControl
         PExportPresetsUpdate();
         Content = PExportFrameBuild(pPanel);
 
-        Loaded += (_, _) => LExport.LExportAttach();
-        Unloaded += (_, _) => LExport.LExportDetach();
+        Loaded += (_, _) => QExport.QExportAttach();
+        Unloaded += (_, _) => QExport.QExportDetach();
     }
 
     private LPreset PExportWorkingRead() => LPreset.LPresetStateCreate(lPresetOwner.LPresetSelectionValue);

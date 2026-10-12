@@ -8,12 +8,12 @@ namespace Cadroue.Tests.Windows;
 [Collection("Schedule")]
 public sealed class TStripTab
 {
-    private static LStrip TStripBuild() =>
+    private static QStrip TStripBuild() =>
         TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
 
-    private static LStripTab TStripTabAdd(LStrip strip, string key)
+    private static QStripTab TStripTabAdd(QStrip strip, string key)
     {
-        LStripTab tab = TInterface.TStripTabCreate(key);
+        QStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
         return tab;
     }
@@ -21,118 +21,118 @@ public sealed class TStripTab
     [Fact]
     public void Add_NumbersSameKind_AndSelectsFirst()
     {
-        LStrip strip = TStripBuild();
-        List<LStripTab?> selections = [];
+        QStrip strip = TStripBuild();
+        List<QStripTab?> selections = [];
         TInterface.TStripSelectAttach(strip, tab => selections.Add(tab));
 
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Split");
-        LStripTab edit = TStripTabAdd(strip, "Edit");
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Split");
+        QStripTab edit = TStripTabAdd(strip, "Edit");
 
-        Assert.Equal("Split 1", first.LStripTabTitle);
-        Assert.Equal("Split 2", second.LStripTabTitle);
-        Assert.Equal("Edit", edit.LStripTabTitle);
-        Assert.Same(first, strip.LStripSelected);
-        Assert.True(first.LStripTabSelected);
-        Assert.False(second.LStripTabSelected);
+        Assert.Equal("Split 1", first.QStripTabTitle);
+        Assert.Equal("Split 2", second.QStripTabTitle);
+        Assert.Equal("Edit", edit.QStripTabTitle);
+        Assert.Same(first, strip.QStripSelected);
+        Assert.True(first.QStripTabSelected);
+        Assert.False(second.QStripTabSelected);
         Assert.Equal([first], selections);
     }
 
     [Fact]
     public void Remove_SelectedTab_SelectsNextAndRenumbers()
     {
-        LStrip strip = TStripBuild();
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Split");
-        LStripTab third = TStripTabAdd(strip, "Split");
+        QStrip strip = TStripBuild();
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Split");
+        QStripTab third = TStripTabAdd(strip, "Split");
         TInterface.TStripSelect(strip, second);
 
         TInterface.TStripRemove(strip, second);
 
-        Assert.Same(third, strip.LStripSelected);
-        Assert.Equal("Split 1", first.LStripTabTitle);
-        Assert.Equal("Split 2", third.LStripTabTitle);
+        Assert.Same(third, strip.QStripSelected);
+        Assert.Equal("Split 1", first.QStripTabTitle);
+        Assert.Equal("Split 2", third.QStripTabTitle);
 
         TInterface.TStripRemove(strip, third);
-        Assert.Same(first, strip.LStripSelected);
-        Assert.Equal("Split", first.LStripTabTitle);
+        Assert.Same(first, strip.QStripSelected);
+        Assert.Equal("Split", first.QStripTabTitle);
 
         TInterface.TStripRemove(strip, first);
-        Assert.Null(strip.LStripSelected);
+        Assert.Null(strip.QStripSelected);
     }
 
     [Fact]
     public void NameSet_ResolvesDuplicates_AndResetsToStandard()
     {
-        LStrip strip = TStripBuild();
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Split");
+        QStrip strip = TStripBuild();
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Split");
 
         Assert.True(TInterface.TStripNameSet(strip, first, "  Intro "));
-        Assert.Equal("Intro", first.LStripTabTitle);
-        Assert.Equal("Split", second.LStripTabTitle);
+        Assert.Equal("Intro", first.QStripTabTitle);
+        Assert.Equal("Split", second.QStripTabTitle);
 
         Assert.True(TInterface.TStripNameSet(strip, second, "Intro"));
-        Assert.Equal("Intro 2", second.LStripTabTitle);
+        Assert.Equal("Intro 2", second.QStripTabTitle);
 
         Assert.False(TInterface.TStripNameSet(strip, first, "Split"));
-        Assert.Equal(string.Empty, first.LStripTabCustom);
-        Assert.Equal("Split", first.LStripTabTitle);
+        Assert.Equal(string.Empty, first.QStripTabCustom);
+        Assert.Equal("Split", first.QStripTabTitle);
     }
 
     [Fact]
     public void Separator_HidesAroundSelectedAndHovered()
     {
-        LStrip strip = TStripBuild();
-        LStripTab a = TStripTabAdd(strip, "Split");
-        LStripTab b = TStripTabAdd(strip, "Edit");
-        LStripTab c = TStripTabAdd(strip, "Audio");
-        LStripTab d = TStripTabAdd(strip, "Merge");
+        QStrip strip = TStripBuild();
+        QStripTab a = TStripTabAdd(strip, "Split");
+        QStripTab b = TStripTabAdd(strip, "Edit");
+        QStripTab c = TStripTabAdd(strip, "Audio");
+        QStripTab d = TStripTabAdd(strip, "Merge");
 
-        Assert.False(a.LStripTabSeparator);
-        Assert.True(b.LStripTabSeparator);
-        Assert.True(c.LStripTabSeparator);
-        Assert.False(d.LStripTabSeparator);
+        Assert.False(a.QStripTabSeparator);
+        Assert.True(b.QStripTabSeparator);
+        Assert.True(c.QStripTabSeparator);
+        Assert.False(d.QStripTabSeparator);
 
         TInterface.TStripHoverSet(strip, d);
-        Assert.False(c.LStripTabSeparator);
+        Assert.False(c.QStripTabSeparator);
 
         TInterface.TStripHoverClear(strip, a);
-        Assert.False(c.LStripTabSeparator);
+        Assert.False(c.QStripTabSeparator);
 
         TInterface.TStripHoverClear(strip, null);
-        Assert.True(c.LStripTabSeparator);
+        Assert.True(c.QStripTabSeparator);
     }
 
     [Fact]
     public void Move_ReordersAndClamps()
     {
-        LStrip strip = TStripBuild();
-        LStripTab a = TStripTabAdd(strip, "Split");
-        LStripTab b = TStripTabAdd(strip, "Edit");
-        LStripTab c = TStripTabAdd(strip, "Audio");
+        QStrip strip = TStripBuild();
+        QStripTab a = TStripTabAdd(strip, "Split");
+        QStripTab b = TStripTabAdd(strip, "Edit");
+        QStripTab c = TStripTabAdd(strip, "Audio");
 
         Assert.True(TInterface.TStripMove(strip, a, 9));
-        Assert.Equal([b, c, a], strip.LStripTabs);
+        Assert.Equal([b, c, a], strip.QStripTabs);
         Assert.False(TInterface.TStripMove(strip, a, 2));
     }
 
     [Fact]
     public void Suspend_DefersTitlesAndSelection()
     {
-        LStrip strip = TStripBuild();
+        QStrip strip = TStripBuild();
         TInterface.TStripUpdateSuspend(strip);
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Split");
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Split");
 
-        Assert.Null(strip.LStripSelected);
-        Assert.Equal("Split", second.LStripTabTitle);
+        Assert.Null(strip.QStripSelected);
+        Assert.Equal("Split", second.QStripTabTitle);
 
         TInterface.TStripUpdateResume(strip);
         TInterface.TStripTitleUpdate(strip);
 
-        Assert.Equal("Split 1", first.LStripTabTitle);
-        Assert.Equal("Split 2", second.LStripTabTitle);
+        Assert.Equal("Split 1", first.QStripTabTitle);
+        Assert.Equal("Split 2", second.QStripTabTitle);
     }
 
     [Fact]
@@ -140,18 +140,18 @@ public sealed class TStripTab
     {
         Assert.Equal("Edit", TInterface.TStripKeyResolve("Edit"));
         Assert.Equal("Split", TInterface.TStripKeyResolve("Unknown"));
-        Assert.Equal("Split", TInterface.TStripKeyCreate("Bogus").LStripTabKey);
-        Assert.Equal("Worklist", TInterface.TStripKeyCreate("Worklist").LStripTabKey);
+        Assert.Equal("Split", TInterface.TStripKeyCreate("Bogus").QStripTabKey);
+        Assert.Equal("Worklist", TInterface.TStripKeyCreate("Worklist").QStripTabKey);
     }
 
     [Fact]
     public void Close_RaisesCloseNotice_ThenRemovesTab()
     {
-        LStrip strip = TStripBuild();
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Edit");
-        List<LStripTab> added = [];
-        List<LStripTab> closed = [];
+        QStrip strip = TStripBuild();
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Edit");
+        List<QStripTab> added = [];
+        List<QStripTab> closed = [];
         TInterface.TStripAddAttach(strip, added.Add);
         TInterface.TStripCloseAttach(strip, closed.Add);
 
@@ -161,14 +161,14 @@ public sealed class TStripTab
         TInterface.TStripClose(strip, second);
 
         Assert.Equal([second], closed);
-        Assert.Equal([first], strip.LStripTabs);
+        Assert.Equal([first], strip.QStripTabs);
 
-        LStripTab third = TStripTabAdd(strip, "Fix");
+        QStripTab third = TStripTabAdd(strip, "Fix");
         Assert.Equal([third], added);
         TInterface.TStripAllClose(strip);
         Assert.Equal([second, first, third], closed);
-        Assert.Empty(strip.LStripTabs);
-        Assert.Null(strip.LStripSelected);
+        Assert.Empty(strip.QStripTabs);
+        Assert.Null(strip.QStripSelected);
     }
 
     [Fact]
@@ -176,40 +176,40 @@ public sealed class TStripTab
     {
         using var schedule = new TSchedule();
         TInterfaceRoster.TStationAttach(schedule.TScheduleRead());
-        LStrip strip = TStripBuild();
-        LStripTab source = TStripTabAdd(strip, "Split");
-        LStripTab listed = TStripTabAdd(strip, "Convert");
-        LStripTab bare = TStripTabAdd(strip, "Worklist");
+        QStrip strip = TStripBuild();
+        QStripTab source = TStripTabAdd(strip, "Split");
+        QStripTab listed = TStripTabAdd(strip, "Convert");
+        QStripTab bare = TStripTabAdd(strip, "Worklist");
         TInterface.TStripWorkspaceAttach(source, TInterface.TPresetInitialCreate("Split"));
         TInterface.TStripWorkspaceAttach(listed, TInterface.TPresetInitialCreate("Convert"));
         TInterface.TStripWorkspaceAttach(bare, TInterface.TPresetInitialCreate("Worklist"));
 
         try
         {
-            Assert.Equal([listed], TInterface.TStripRelayRead(strip, source.LStripTabId));
-            Assert.False(bare.LStripTabBusy);
+            Assert.Equal([listed], TInterface.TStripRelayRead(strip, source.QStripTabId));
+            Assert.False(bare.QStripTabBusy);
         }
         finally
         {
-            TInterface.TWorkspaceClose(bare.LStripTabWorkspace);
+            TInterface.TWorkspaceClose(bare.QStripTabWorkspace);
         }
     }
 
     [Fact]
     public void PendingSet_RaisesTabChangeOnce()
     {
-        LStrip strip = TStripBuild();
-        LStripTab tab = TStripTabAdd(strip, "Split");
-        List<LStripTab> changes = [];
+        QStrip strip = TStripBuild();
+        QStripTab tab = TStripTabAdd(strip, "Split");
+        List<QStripTab> changes = [];
         TInterface.TStripTabAttach(strip, changes.Add);
 
         TInterface.TStripPendingSet(strip, tab, true);
         TInterface.TStripPendingSet(strip, tab, true);
-        Assert.True(tab.LStripTabPending);
+        Assert.True(tab.QStripTabPending);
         Assert.Equal([tab], changes);
 
         TInterface.TStripPendingSet(strip, tab, false);
-        Assert.False(tab.LStripTabPending);
+        Assert.False(tab.QStripTabPending);
         Assert.Equal(2, changes.Count);
     }
 }

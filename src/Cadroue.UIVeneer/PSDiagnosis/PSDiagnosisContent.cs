@@ -58,7 +58,7 @@ internal sealed partial class PSDiagnosis
             110,
             new Thickness(0));
         pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
-        pRecheck.Click += (_, _) => _ = lsDiagnosis.LSDiagnosisReset();
+        pRecheck.Click += (_, _) => _ = lsDiagnosis.QSDiagnosisReset();
         Grid.SetColumn(pRecheck, 1);
         pBar.Children.Add(pRecheck);
         return pBar;
@@ -68,8 +68,8 @@ internal sealed partial class PSDiagnosis
     {
         var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
         pBody.Children.Add(PSDiagnosisProgramBuild());
-        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Video", LSDiagnosis.LSDiagnosisVideoItems));
-        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Audio", LSDiagnosis.LSDiagnosisAudioItems));
+        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Video", QSDiagnosis.QSDiagnosisVideoItems));
+        pBody.Children.Add(PSDiagnosisGroupBuild("Diagnosis.Group.Audio", QSDiagnosis.QSDiagnosisAudioItems));
         return pBody;
     }
 
@@ -88,10 +88,10 @@ internal sealed partial class PSDiagnosis
             pLocation);
     }
 
-    private UIElement PSDiagnosisGroupBuild(string pTitleKey, IReadOnlyList<LSDiagnosisItem> pItems)
+    private UIElement PSDiagnosisGroupBuild(string pTitleKey, IReadOnlyList<QSDiagnosisItem> pItems)
     {
         UIElement[] pRows = pItems
-            .Select(pItem => PSDiagnosisFeatureBuild(pItem.LSDiagnosisLabel, pItem.LSDiagnosisFilters))
+            .Select(pItem => PSDiagnosisFeatureBuild(pItem.QSDiagnosisLabel, pItem.QSDiagnosisFilters))
             .ToArray();
         return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
     }
@@ -164,20 +164,20 @@ internal sealed partial class PSDiagnosis
             VerticalAlignment = VerticalAlignment.Center,
             Child = pText
         };
-        PSDiagnosisBadgeApply(pBadge, pText, LSDiagnosisState.LSDiagnosisStateChecking);
+        PSDiagnosisBadgeApply(pBadge, pText, QSDiagnosisState.QSDiagnosisStateChecking);
         return (pBadge, pText);
     }
 
-    private static void PSDiagnosisBadgeApply(Border pBadge, TextBlock pText, LSDiagnosisState pState)
+    private static void PSDiagnosisBadgeApply(Border pBadge, TextBlock pText, QSDiagnosisState pState)
     {
         switch (pState)
         {
-            case LSDiagnosisState.LSDiagnosisStateReady:
+            case QSDiagnosisState.QSDiagnosisStateReady:
                 pBadge.Background = PSDiagnosisReadyFill;
                 pText.Foreground = PSDiagnosisReadyInk;
                 pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Available");
                 break;
-            case LSDiagnosisState.LSDiagnosisStateMissing:
+            case QSDiagnosisState.QSDiagnosisStateMissing:
                 pBadge.Background = PSDiagnosisMissingFill;
                 pText.Foreground = PSDiagnosisMissingInk;
                 pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Unavailable");
@@ -198,40 +198,40 @@ internal sealed partial class PSDiagnosis
             return;
         }
 
-        bool pChecking = lsDiagnosis.LSDiagnosisChecking;
-        bool pReady = lsDiagnosis.LSDiagnosisReady;
-        psDiagnosisVersionValue.Text = pChecking ? "…" : pReady ? lsDiagnosis.LSDiagnosisVersion : "—";
+        bool pChecking = lsDiagnosis.QSDiagnosisChecking;
+        bool pReady = lsDiagnosis.QSDiagnosisReady;
+        psDiagnosisVersionValue.Text = pChecking ? "…" : pReady ? lsDiagnosis.QSDiagnosisVersion : "—";
         psDiagnosisLocationValue.Text = pChecking
             ? "…"
-            : lsDiagnosis.LSDiagnosisLocation.Length == 0
+            : lsDiagnosis.QSDiagnosisLocation.Length == 0
                 ? LLocalization.LLocalizationTextRead("Diagnosis.LocationPath")
-                : lsDiagnosis.LSDiagnosisLocation;
-        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.LSDiagnosisProgramState);
+                : lsDiagnosis.QSDiagnosisLocation;
+        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.QSDiagnosisProgramState);
         foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
         {
-            PSDiagnosisBadgeApply(pBadge, pText, lsDiagnosis.LSDiagnosisStateRead(pFilters));
+            PSDiagnosisBadgeApply(pBadge, pText, lsDiagnosis.QSDiagnosisStateRead(pFilters));
         }
 
-        PSDiagnosisSummaryApply(lsDiagnosis.LSDiagnosisMood, lsDiagnosis.LSDiagnosisMissing);
+        PSDiagnosisSummaryApply(lsDiagnosis.QSDiagnosisMood, lsDiagnosis.QSDiagnosisMissing);
     }
 
-    private void PSDiagnosisSummaryApply(LSDiagnosisMood pMood, int pMissing)
+    private void PSDiagnosisSummaryApply(QSDiagnosisMood pMood, int pMissing)
     {
         switch (pMood)
         {
-            case LSDiagnosisMood.LSDiagnosisMoodReady:
+            case QSDiagnosisMood.QSDiagnosisMoodReady:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisReadyDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Ready");
                 break;
-            case LSDiagnosisMood.LSDiagnosisMoodWarning:
+            case QSDiagnosisMood.QSDiagnosisMoodWarning:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisWarnDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
                 break;
-            case LSDiagnosisMood.LSDiagnosisMoodMissing:
+            case QSDiagnosisMood.QSDiagnosisMoodMissing:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
                 break;
-            case LSDiagnosisMood.LSDiagnosisMoodAbsent:
+            case QSDiagnosisMood.QSDiagnosisMoodAbsent:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
                 psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.NoProgram");
                 break;

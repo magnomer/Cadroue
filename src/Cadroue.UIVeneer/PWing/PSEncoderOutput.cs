@@ -72,21 +72,21 @@ internal sealed partial class PSEncoder
     }
 
     private void PSOutputSuffixNormalize() =>
-        psOutputSuffixBox.Text = lsEncoder.LSEncoderSuffixNormalize(
+        psOutputSuffixBox.Text = lsEncoder.QSEncoderSuffixNormalize(
             PSCombo.PSComboTextRead(psOutputCollisionCombo),
             psOutputSuffixBox.Text);
 
     private void PSOutputSuffixUpdate()
     {
         string pMode = PSCombo.PSComboTextRead(psOutputCollisionCombo);
-        string pSuffix = lsEncoder.LSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
-        bool pShown = LSEncoder.LSEncoderSuffixCheck(pMode);
+        string pSuffix = lsEncoder.QSEncoderSuffixSelect(pMode, psOutputSuffixBox.Text);
+        bool pShown = QSEncoder.QSEncoderSuffixCheck(pMode);
         if (pShown)
         {
             psOutputSuffixBox.Text = pSuffix;
             if (psOutputSuffixLabel is not null)
             {
-                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(LSEncoder.LSEncoderSuffixResolve(pMode));
+                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderSuffixResolve(pMode));
             }
         }
 

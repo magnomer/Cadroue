@@ -36,18 +36,18 @@ public sealed class TCursorChip
     [Fact]
     public void Lines_SplitAroundTheChip_AndSkipEmptySpans()
     {
-        IReadOnlyList<LCursorLine> whole = TInterface.TCursorLinesResolve(0, 50, true, 0, 0, 0);
+        IReadOnlyList<QCursorLine> whole = TInterface.TCursorLinesResolve(0, 50, true, 0, 0, 0);
         Assert.Single(whole);
-        Assert.Equal(50, whole[0].LCursorLineBottom);
+        Assert.Equal(50, whole[0].QCursorLineBottom);
 
-        IReadOnlyList<LCursorLine> split = TInterface.TCursorLinesResolve(0, 50, false, 20, 30, 10);
+        IReadOnlyList<QCursorLine> split = TInterface.TCursorLinesResolve(0, 50, false, 20, 30, 10);
         Assert.Equal(2, split.Count);
-        Assert.Equal(18, split[0].LCursorLineBottom);
-        Assert.Equal(32, split[1].LCursorLineTop);
+        Assert.Equal(18, split[0].QCursorLineBottom);
+        Assert.Equal(32, split[1].QCursorLineTop);
 
-        IReadOnlyList<LCursorLine> top = TInterface.TCursorLinesResolve(0, 50, false, 0, 10, 10);
+        IReadOnlyList<QCursorLine> top = TInterface.TCursorLinesResolve(0, 50, false, 0, 10, 10);
         Assert.Single(top);
-        Assert.Equal(12, top[0].LCursorLineTop);
+        Assert.Equal(12, top[0].QCursorLineTop);
 
         Assert.Empty(TInterface.TCursorLinesResolve(10, 10, true, 0, 0, 0));
         Assert.Single(TInterface.TCursorLinesResolve(0, 50, false, 20, 30, 0));

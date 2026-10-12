@@ -10,9 +10,9 @@ namespace Cadroue.Tests.Windows;
 [Collection("Schedule")]
 public sealed class TRosterRemoval
 {
-    private static LRoster TRosterOpen(TSchedule schedule)
+    private static QRoster TRosterOpen(TSchedule schedule)
     {
-        LRoster roster = TInterfaceRoster.TRosterCreate(
+        QRoster roster = TInterfaceRoster.TRosterCreate(
             schedule.TScheduleRead(), TInterfaceRoster.TStationCreate(schedule.TScheduleRead()));
         TInterfaceRoster.TRosterRebuild(roster);
         return roster;
@@ -33,10 +33,10 @@ public sealed class TRosterRemoval
         using var schedule = new TSchedule();
         Guid batch = Guid.NewGuid();
         schedule.TScheduleAdd(schedule.TWorkCreate(batch, "one"), schedule.TWorkCreate(Guid.NewGuid(), "two"));
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         LPreferenceState before = TPreferenceConfirmSet(false);
         int asked = 0;
-        void TAskHandle(LAsk ask, Action<bool> answer) => asked++;
+        void TAskHandle(QAsk ask, Action<bool> answer) => asked++;
         TInterface.TAskAttach(TAskHandle);
         try
         {
@@ -61,11 +61,11 @@ public sealed class TRosterRemoval
         using var schedule = new TSchedule();
         Guid batch = Guid.NewGuid();
         schedule.TScheduleAdd(schedule.TWorkCreate(batch, "one"), schedule.TWorkCreate(batch, "two"));
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         LPreferenceState before = TPreferenceConfirmSet(true);
-        var asks = new List<LAsk>();
+        var asks = new List<QAsk>();
         bool reply = false;
-        void TAskHandle(LAsk ask, Action<bool> answer)
+        void TAskHandle(QAsk ask, Action<bool> answer)
         {
             asks.Add(ask);
             answer(reply);
@@ -86,8 +86,8 @@ public sealed class TRosterRemoval
         }
 
         Assert.Equal(2, asks.Count);
-        Assert.NotEmpty(asks[0].LAskQuestion);
-        Assert.NotEmpty(asks[0].LAskTitle);
+        Assert.NotEmpty(asks[0].QAskQuestion);
+        Assert.NotEmpty(asks[0].QAskTitle);
         Assert.Empty(schedule.TScheduleRecordsRead());
         TInterfaceRoster.TRosterClose(roster);
     }
@@ -97,11 +97,11 @@ public sealed class TRosterRemoval
     {
         using var schedule = new TSchedule();
         schedule.TScheduleAdd(schedule.TWorkCreate(Guid.NewGuid(), "one"));
-        LRoster roster = TRosterOpen(schedule);
+        QRoster roster = TRosterOpen(schedule);
         LPreferenceState before = TPreferenceConfirmSet(true);
         int asked = 0;
         int warned = 0;
-        void TAskHandle(LAsk ask, Action<bool> answer) => asked++;
+        void TAskHandle(QAsk ask, Action<bool> answer) => asked++;
         TInterface.TAskAttach(TAskHandle);
         TInterfaceRoster.TRosterWarningAttach(roster, (_, _) => warned++);
         try

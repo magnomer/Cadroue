@@ -20,8 +20,8 @@ public sealed partial class PInspector
         pExposurePersistent = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure"));
-        PInspectorSwitchAttach(pExposureBox, LExposure.LExposureActiveSet);
-        PInspectorSwitchAttach(pExposurePersistent, LExposure.LExposurePersistentSet);
+        PInspectorSwitchAttach(pExposureBox, QExposure.QExposureActiveSet);
+        PInspectorSwitchAttach(pExposurePersistent, QExposure.QExposurePersistentSet);
         pExposureSlider = PToneSliderBuild(-3, 3, 0);
         pExposureValue = PInspectorDecimalBuild();
         pExposureValue.Text = "0";
@@ -30,8 +30,8 @@ public sealed partial class PInspector
             pExposureValue,
             -3,
             3,
-            () => LExposure.LExposureStep.LWorkStepValue,
-            LExposure.LExposureValueSet);
+            () => QExposure.QExposureStep.LWorkStepValue,
+            QExposure.QExposureValueSet);
         pExposureStack = new StackPanel();
         pExposureStack.Children.Add(PInspectorSliderBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
@@ -44,15 +44,15 @@ public sealed partial class PInspector
 
     private void PExposureUpdate()
     {
-        PInspectorSwitchUpdate(pExposureBox, LExposure.LExposureStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pExposurePersistent, LExposure.LExposurePersistent);
-        PInspectorValueUpdate(pExposureSlider, pExposureValue, LExposure.LExposureStep.LWorkStepValue, "0.#");
+        PInspectorSwitchUpdate(pExposureBox, QExposure.QExposureStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pExposurePersistent, QExposure.QExposurePersistent);
+        PInspectorValueUpdate(pExposureSlider, pExposureValue, QExposure.QExposureStep.LWorkStepValue, "0.#");
         PInspectorSectionApply(
             pExposureBox, pExposurePersistent, pExposureStack, pExposureBody,
-            LInspector.LInspectorTipResolve(
-                LExposure.LExposureStep.LWorkStepActive,
-                LExposure.LExposureCapable,
-                LExposure.LExposurePreview,
+            QInspector.QInspectorTipResolve(
+                QExposure.QExposureStep.LWorkStepActive,
+                QExposure.QExposureCapable,
+                QExposure.QExposurePreview,
                 "Inspector.Video.ExposureRequiresEq",
                 "Inspector.Video.ExposurePreviewMpv",
                 "Inspector.Video.ApplyExposure",

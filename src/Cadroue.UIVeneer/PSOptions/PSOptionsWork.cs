@@ -27,14 +27,14 @@ internal sealed partial class PSOptions
             PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
             pRetryRow));
         pPanel.Children.Add(PSPlate.PSPlateBuild(
-            LSOptions.LSOptionsLevelTitle,
-            lsOptions.LSOptionsLevelsRead().Select(PSOptionsLevelBuild).ToArray()));
+            QSOptions.QSOptionsLevelTitle,
+            lsOptions.QSOptionsLevelsRead().Select(PSOptionsLevelBuild).ToArray()));
         return pPanel;
     }
 
-    private static UIElement PSOptionsLevelBuild(LSOptionsLevel pLevel) =>
+    private static UIElement PSOptionsLevelBuild(QSOptionsLevel pLevel) =>
         PSField.PSFieldBuild(
-            pLevel.LSOptionsLevelText,
-            PSCombo.PSComboBuild(pLevel.LSOptionsLevelIndex, pLevel.LSOptionsLevelChoice,
-                LSOptions.LSOptionsLevelNames));
+            pLevel.QSOptionsLevelText,
+            PSCombo.PSComboBuild(pLevel.QSOptionsLevelIndex, pLevel.QSOptionsLevelChoice,
+                QSOptions.QSOptionsLevelNames));
 }

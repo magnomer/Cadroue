@@ -3,7 +3,7 @@ Hash: `20d1012e72de6279`
 
 ## `public sealed class PViewer : PPanel`
 
-The viewer panel holds the controls only, and LViewer and its siblings hold every fact.
+The viewer panel holds the controls only, and QViewer and its siblings hold every fact.
 Delete this file and the program still knows the source, the engine and the play state.
 
 ## `private static readonly IReadOnlyDictionary<bool, Action<Config>> pViewerProcessors =`
@@ -17,15 +17,15 @@ The host is first taken from its old parent, because a WPF element has one paren
 
 ## `private static readonly IReadOnlyDictionary<bool, Action<PViewer>> pViewerEngineCreates =`
 
-Creates the engine wrapper LViewer asks for, keyed by the mpv-active flag.
+Creates the engine wrapper QViewer asks for, keyed by the mpv-active flag.
 
 ## `private static readonly IReadOnlyDictionary<bool, Action<PViewer>> pViewerLoupeShows =`
 
-Activates the open loupe or opens a new one, by the loupe flag LViewer keeps.
+Activates the open loupe or opens a new one, by the loupe flag QViewer keeps.
 
-## `private static readonly IReadOnlyDictionary<LViewerAskKind, Action<PViewer, LViewerAsk, Action<bool>>> pViewerAsks =`
+## `private static readonly IReadOnlyDictionary<QViewerAskKind, Action<PViewer, QViewerAsk, Action<bool>>> pViewerAsks =`
 
-Shows the modal an ask kind needs and hands the answer back to LViewerSource.
+Shows the modal an ask kind needs and hands the answer back to QViewerSource.
 A warning offers no choice, so it always answers no.
 
 ## `private static readonly IReadOnlyDictionary<bool, Func<Microsoft.Win32.OpenFileDialog, string?>> pViewerLocates =`
@@ -34,9 +34,9 @@ Turns the dialog result into a path or null, so a cancelled locate answers null.
 
 ## `public PViewer(bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false) : base("")`
 
-Builds both engine hosts once and collapses the one LViewer does not show.
+Builds both engine hosts once and collapses the one QViewer does not show.
 The picker redraw runs at once while the engine handle is queued, so the cards show the new choice first.
-The host trace lines are written by LViewerMedia from plain strings the events hand over.
+The host trace lines are written by QViewerMedia from plain strings the events hand over.
 
 ## `private static Button PViewerButtonBuild(string pIconPath, string pTipKey, double pRightMargin)`
 
@@ -51,28 +51,28 @@ Builds an empty top-left slot that one engine picker card is placed into.
 
 Rebuilds both engine pickers from one plan, so the surface and overlay cards always agree.
 
-## `private void PViewerEngineHandle() => Dispatcher.BeginInvoke(LViewer.LViewerRenderer.LViewerEngineHandle);`
+## `private void PViewerEngineHandle() => Dispatcher.BeginInvoke(QViewer.QViewerRenderer.QViewerEngineHandle);`
 
 The engine notice can arrive off the UI thread, so the engine handle is marshalled onto the dispatcher.
 
 ## `private void PViewerHostApply()`
 
-Applies the host facts LViewer resolves, through the visibility table.
+Applies the host facts QViewer resolves, through the visibility table.
 The Flyleaf windows are made inert after each apply, so they never take activation from the main window.
 
 ## `private void PViewerFlyleafCreate()`
 
-Builds the Flyleaf player config and hands its seam to LPlayer.
+Builds the Flyleaf player config and hands its seam to QPlayer.
 The Flyleaf key bindings are cleared, so every shortcut reaches the program's own dispatch.
 
-## `private LViewerHostFacts PViewerFactsRead()`
+## `private QViewerHostFacts PViewerFactsRead()`
 
 Reads the raw host facts for the host trace, and decides nothing about them.
 A disposed Flyleaf host can throw on read, so the facts fall back to empty values.
 
 ## `internal bool PViewerSurfaceMatch(nint pForeground)`
 
-Hands the Flyleaf window handles to LViewer, which decides whether the foreground is one of them.
+Hands the Flyleaf window handles to QViewer, which decides whether the foreground is one of them.
 A disposed host can throw on read, so the answer is then no.
 
 ## `public void PViewerClose()`

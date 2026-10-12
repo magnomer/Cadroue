@@ -74,7 +74,7 @@ internal sealed partial class PSOptions
             LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"),
             psSystemFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
-        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this, lsOptions.LSOptionsDiagnosisCreate);
+        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this, lsOptions.QSOptionsDiagnosisCreate);
 
         Button pDoneClear = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Options.System.ClearDone"),
@@ -248,7 +248,7 @@ internal sealed partial class PSOptions
     }
 
     private static string PSSystemFlyleafFormat() =>
-        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsFlyleafResolve());
+        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsFlyleafResolve());
 
 
     private static void PSSystemFolderRead(TextBox pPathBox, string pDialogTitle, string pFallback)
@@ -265,9 +265,9 @@ internal sealed partial class PSOptions
     }
 
     private void PSSystemFolderOpen(string pFolder, string pFallback) =>
-        lsOptions.LSOptionsFolderOpen(pFolder, pFallback);
+        lsOptions.QSOptionsFolderOpen(pFolder, pFallback);
 
 
     private static string PSSystemFfmpegFormat(string pFolder) =>
-        LLocalization.LLocalizationTextRead(LSOptions.LSOptionsFfmpegResolve(pFolder));
+        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsFfmpegResolve(pFolder));
 }

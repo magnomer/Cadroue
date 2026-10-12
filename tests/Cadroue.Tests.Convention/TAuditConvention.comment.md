@@ -1,5 +1,5 @@
 # TAuditConvention.cs
-Hash: `cd8e33bb02d9bdea`
+Hash: `ec49e0d4c463cdc9`
 
 ## `public sealed class TAuditConvention`
 

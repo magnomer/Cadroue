@@ -24,18 +24,18 @@ internal sealed class PSAbout : Window
     private const double PSAboutLogoSize = 76;
     private const double PSAboutRowGap = 7;
 
-    private readonly LSAbout lsAbout;
+    private readonly QSAbout lsAbout;
     private readonly PSGrabber psAboutGrabber;
 
     private TextBlock? psAboutDeveloper;
 
-    internal static void PSAboutShow(Window pOwner, LSAbout lsAboutOwner)
+    internal static void PSAboutShow(Window pOwner, QSAbout lsAboutOwner)
     {
         var psAbout = new PSAbout(pOwner, lsAboutOwner);
         psAbout.ShowDialog();
     }
 
-    private PSAbout(Window pOwner, LSAbout lsAboutOwner)
+    private PSAbout(Window pOwner, QSAbout lsAboutOwner)
     {
         lsAbout = lsAboutOwner;
         Title = LLocalization.LLocalizationTextRead("About.Window.Title");
@@ -46,7 +46,7 @@ internal sealed class PSAbout : Window
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
         PScrollbar.PScrollbarApply(this);
-        lsAbout.LSAboutErrorShown += PSAboutErrorShow;
+        lsAbout.QSAboutErrorShown += PSAboutErrorShow;
         Content = PSAboutBuild();
         SizeToContent = SizeToContent.Height;
         Loaded += PSAboutLoadedHandle;
@@ -119,7 +119,7 @@ internal sealed class PSAbout : Window
             Foreground = PSField.PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
-            Visibility = lsAbout.LSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed
+            Visibility = lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed
         };
         pHeader.Children.Add(psAboutDeveloper);
 
@@ -133,19 +133,19 @@ internal sealed class PSAbout : Window
         });
         pHeader.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationFormat("About.Version.Format", LSAbout.LSAboutVersionRead()),
+            Text = LLocalization.LLocalizationFormat("About.Version.Format", QSAbout.QSAboutVersionRead()),
             Foreground = PSField.PSFieldMuted,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 4, 0, 10)
         });
-        pHeader.Children.Add(PSAboutLinkBuild(LSAbout.LSAboutProjectUrl, HorizontalAlignment.Center));
+        pHeader.Children.Add(PSAboutLinkBuild(QSAbout.QSAboutProjectUrl, HorizontalAlignment.Center));
         return pHeader;
     }
 
     private UIElement PSAboutCreditBuild()
     {
-        var pRows = new List<UIElement>(LSAbout.LSAboutCredits.Count + 1);
-        foreach ((string pName, string pUrl) in LSAbout.LSAboutCredits)
+        var pRows = new List<UIElement>(QSAbout.QSAboutCredits.Count + 1);
+        foreach ((string pName, string pUrl) in QSAbout.QSAboutCredits)
         {
             pRows.Add(PSAboutRowBuild(pName, pUrl));
         }
@@ -192,7 +192,7 @@ internal sealed class PSAbout : Window
     private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
     {
         pEvent.Handled = true;
-        lsAbout.LSAboutNoticeOpen();
+        lsAbout.QSAboutNoticeOpen();
     }
 
     private TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)
@@ -212,16 +212,16 @@ internal sealed class PSAbout : Window
 
     private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)
     {
-        if (lsAbout.LSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
+        if (lsAbout.QSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
         {
-            psAboutDeveloper.Visibility = lsAbout.LSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
+            psAboutDeveloper.Visibility = lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
         }
     }
 
     private void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
     {
         pEvent.Handled = true;
-        lsAbout.LSAboutLinkOpen(pEvent.Uri.AbsoluteUri);
+        lsAbout.QSAboutLinkOpen(pEvent.Uri.AbsoluteUri);
     }
 
     private void PSAboutErrorShow(string pResource, string pDetail) =>

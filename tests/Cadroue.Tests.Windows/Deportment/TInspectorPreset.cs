@@ -10,7 +10,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoisePreset_RoundTripsThroughValues()
     {
-        LNoise noise = TInterface.TNoiseCreate();
+        QNoise noise = TInterface.TNoiseCreate();
 
         TInterface.TNoisePresetSelect(noise, "Strong");
 
@@ -22,7 +22,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoiseValueDrift_KeepsBaseToken_LosesMatch()
     {
-        LNoise noise = TInterface.TNoiseCreate();
+        QNoise noise = TInterface.TNoiseCreate();
         TInterface.TNoisePresetSelect(noise, "Strong");
 
         TInterface.TNoiseValueSet(noise, 0, 20);
@@ -38,7 +38,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoiseStepApply_TakesMatchAsToken()
     {
-        LNoise noise = TInterface.TNoiseCreate();
+        QNoise noise = TInterface.TNoiseCreate();
 
         TInterface.TNoiseStepSet(
             noise, Interface.TInterface.TWorkNoiseCreate(true, 10, -50, false, LGrain.LGrainWhite, 5, 0.8, -40));
@@ -50,7 +50,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void LoudnessMode_SwitchesPresetFamily()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
+        QLoudness loudness = TInterface.TLoudnessCreate();
         Assert.Equal("Audiobook", TInterface.TLoudnessTokenRead(loudness));
 
         TInterface.TLoudnessModeSet(loudness, LLeveling.LLevelingDynamic);
@@ -68,7 +68,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void LoudnessPreset_SetsTargetPeakRange()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
+        QLoudness loudness = TInterface.TLoudnessCreate();
         int notices = 0;
         TInterface.TLoudnessAttach(loudness, () => notices++);
 
@@ -86,8 +86,8 @@ public sealed class TInspectorPreset
     [Fact]
     public void FilterPreset_HighAndLow_MatchTheirOwnTables()
     {
-        LFilter high = TInterface.TFilterCreate(true);
-        LFilter low = TInterface.TFilterCreate(false);
+        QFilter high = TInterface.TFilterCreate(true);
+        QFilter low = TInterface.TFilterCreate(false);
 
         Assert.Equal("Voice", TInterface.TFilterTokenRead(high));
         Assert.Equal("Air tame", TInterface.TFilterTokenRead(low));
@@ -106,7 +106,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerPreset_BandsFollowGrid_EditBreaksMatch()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
         Assert.Equal("Flat", TInterface.TEqualizerTokenRead(equalizer));
 
         TInterface.TEqualizerPresetSelect(equalizer, "Bright");
@@ -126,7 +126,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerBandSet_SameBand_IsSilent()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
         int notices = 0;
         TInterface.TEqualizerAttach(equalizer, () => notices++);
 
@@ -141,7 +141,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerBandSet_OutOfRangeBand_StoresClampedValue()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
 
         TInterface.TEqualizerBandSet(equalizer, 0, 5, 99);
 
@@ -155,7 +155,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void SensorDefaults_MatchNormalForEveryPresetKind()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
 
         foreach (LDetectorKind kind in LDetector.LDetectorKinds)
         {
@@ -173,14 +173,14 @@ public sealed class TInspectorPreset
     [Fact]
     public void SensorValueDrift_KeepsBaseToken_SurvivesRestore()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
         TInterface.TSensorPresetSelect(sensor, LDetectorKind.LDetectorKindStill, "Sensitive");
         TInterface.TSensorThresholdSet(sensor, LDetectorKind.LDetectorKindStill, 0.3);
 
         Assert.Equal("Sensitive", TInterface.TSensorTokenRead(sensor, LDetectorKind.LDetectorKindStill));
         Assert.Null(TInterface.TSensorMatchRead(sensor, LDetectorKind.LDetectorKindStill));
 
-        LSensor restored = TInterface.TSensorCreate();
+        QSensor restored = TInterface.TSensorCreate();
         TInterface.TSensorStepSet(restored, TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindStill));
         TInterface.TSensorTokenSet(
             restored,
@@ -196,7 +196,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void SensorTokenSet_RejectsTokenOutsideKindCatalog()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
 
         TInterface.TSensorTokenSet(sensor, LDetectorKind.LDetectorKindScene, "Strong");
         Assert.Null(TInterface.TSensorTokenRead(sensor, LDetectorKind.LDetectorKindScene));
@@ -208,7 +208,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void SensorMetricSet_FollowsPresetOnlyWhileValuesMatch()
     {
-        LSensor sensor = TInterface.TSensorCreate();
+        QSensor sensor = TInterface.TSensorCreate();
 
         TInterface.TSensorMetricSet(sensor, LDetectorMetricMode.LDetectorMetricRms);
         Assert.Equal(19, TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindVolume).LDetectorStepThreshold);

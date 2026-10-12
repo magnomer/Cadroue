@@ -13,7 +13,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_RightOfCentre_TurnsManualAndPlacesDotThere()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize - 6, TNeutralSize / 2, TNeutralSize);
@@ -30,7 +30,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_Unpressed_OrIncapable_Ignored()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize - 6, TNeutralSize / 2, TNeutralSize);
         Assert.False(TInterface.TWhitebalanceManualRead(whitebalance));
@@ -44,7 +44,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_OutsideDisc_ClampsToRim()
     {
-        LWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize * 3, TNeutralSize / 2, TNeutralSize);

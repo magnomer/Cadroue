@@ -30,40 +30,40 @@ internal static class PRosterRow
         return pGrid;
     }
 
-    public static Border PRosterRowBuild(LRoster lRoster, LRosterRow lRow, ContextMenu pMenu)
+    public static Border PRosterRowBuild(QRoster lRoster, QRosterRow lRow, ContextMenu pMenu)
     {
         Grid pGrid = PRosterColumnsCreate();
         pGrid.MinHeight = 29;
         pGrid.Children.Add(PRosterStepBuild(lRow));
-        PRosterCellAdd(pGrid, 1, lRow.LRosterRowPriority, PRosterTheme.PRosterMutedBrush);
-        PRosterCellAdd(pGrid, 2, lRow.LRosterRowLength, PRosterTheme.PRosterMutedBrush);
-        PRosterCellAdd(pGrid, 3, lRow.LRosterRowProgress, PRosterTheme.PRosterMutedBrush);
-        PRosterCellAdd(pGrid, 4, lRow.LRosterRowRatio, PRosterTheme.PRosterMutedBrush);
-        PRosterCellAdd(pGrid, 5, lRow.LRosterRowState, PRosterTheme.PRosterStateBrushes[lRow.LRosterRowKey]);
-        PRosterCellAdd(pGrid, 6, lRow.LRosterRowOwner, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 1, lRow.QRosterRowPriority, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 2, lRow.QRosterRowLength, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 3, lRow.QRosterRowProgress, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 4, lRow.QRosterRowRatio, PRosterTheme.PRosterMutedBrush);
+        PRosterCellAdd(pGrid, 5, lRow.QRosterRowState, PRosterTheme.PRosterStateBrushes[lRow.QRosterRowKey]);
+        PRosterCellAdd(pGrid, 6, lRow.QRosterRowOwner, PRosterTheme.PRosterMutedBrush);
 
         var pRow = new Border
         {
             Padding = new Thickness(12, 0, 12, 0),
-            Background = PRosterTheme.PRosterRowShades[lRow.LRosterRowShade],
+            Background = PRosterTheme.PRosterRowShades[lRow.QRosterRowShade],
             Cursor = Cursors.Hand,
             Child = pGrid,
             ContextMenu = pMenu
         };
-        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.QRosterSelection.LRosterStepSelect(
-            lRow.LRosterRowId,
+        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.QRosterSelection.QRosterStepSelect(
+            lRow.QRosterRowId,
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
             Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
-        pRow.MouseEnter += (_, _) => pRow.Background = PRosterTheme.PRosterRowHovers[lRow.LRosterRowShade];
-        pRow.MouseLeave += (_, _) => pRow.Background = PRosterTheme.PRosterRowShades[lRow.LRosterRowShade];
+        pRow.MouseEnter += (_, _) => pRow.Background = PRosterTheme.PRosterRowHovers[lRow.QRosterRowShade];
+        pRow.MouseLeave += (_, _) => pRow.Background = PRosterTheme.PRosterRowShades[lRow.QRosterRowShade];
         pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuApply(
-            pMenu, lRoster.LRosterMenu.LRosterMenuRead(lRow.LRosterRowId, PWindow.PWindowStripRead()?.LStrip), pArgs);
+            pMenu, lRoster.QRosterMenu.QRosterMenuRead(lRow.QRosterRowId, PWindow.PWindowStripRead()?.QStrip), pArgs);
         return pRow;
     }
 
     private static void PRosterMenuApply(
         ContextMenu pMenu,
-        IReadOnlyList<LRosterItem> lItems,
+        IReadOnlyList<QRosterItem> lItems,
         ContextMenuEventArgs pArgs)
     {
         pMenu.Items.Clear();
@@ -71,27 +71,27 @@ internal static class PRosterRow
         pArgs.Handled = pMenu.Items.IsEmpty;
     }
 
-    private static MenuItem PRosterItemBuild(LRosterItem lItem)
+    private static MenuItem PRosterItemBuild(QRosterItem lItem)
     {
-        MenuItem pItem = PMenu.PMenuItemCreate(lItem.LRosterItemText, PTabIcon.PTabIconFind(lItem.LRosterItemIcon));
-        pItem.IsEnabled = lItem.LRosterItemEnabled;
-        pItem.Click += (_, _) => lItem.LRosterItemAction();
+        MenuItem pItem = PMenu.PMenuItemCreate(lItem.QRosterItemText, PTabIcon.PTabIconFind(lItem.QRosterItemIcon));
+        pItem.IsEnabled = lItem.QRosterItemEnabled;
+        pItem.Click += (_, _) => lItem.QRosterItemAction();
         return pItem;
     }
 
-    private static Grid PRosterStepBuild(LRosterRow lRow)
+    private static Grid PRosterStepBuild(QRosterRow lRow)
     {
         var pStepGrid = new Grid();
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pStepGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        Grid pConnector = PRosterConnectorBuild(lRow.LRosterRowLast, lRow.LRosterRowStage);
+        Grid pConnector = PRosterConnectorBuild(lRow.QRosterRowLast, lRow.QRosterRowStage);
         Grid.SetColumn(pConnector, 0);
         pStepGrid.Children.Add(pConnector);
 
         var pStepCell = new TextBlock
         {
-            Text = lRow.LRosterRowStep,
+            Text = lRow.QRosterRowStep,
             FontSize = PRosterTheme.PRosterRowSize,
             Foreground = PRosterTheme.PRosterTextBrush,
             VerticalAlignment = VerticalAlignment.Center,

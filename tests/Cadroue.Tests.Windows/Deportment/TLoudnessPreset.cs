@@ -10,50 +10,50 @@ public sealed class TLoudnessPreset
     [Fact]
     public void Rows_ThreeLoudness_FourDynamic()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
+        QLoudness loudness = TInterface.TLoudnessCreate();
 
         Assert.Equal(3, TInterface.TLoudnessRowsRead(loudness, false).Count);
         Assert.Equal(4, TInterface.TLoudnessRowsRead(loudness, true).Count);
-        Assert.Equal("LUFS", TInterface.TLoudnessRowsRead(loudness, false)[0].LInspectorRowUnit);
+        Assert.Equal("LUFS", TInterface.TLoudnessRowsRead(loudness, false)[0].QInspectorRowUnit);
         Assert.Equal(
-            LLevelingCatalog.LLevelingFrameMost, TInterface.TLoudnessRowsRead(loudness, true)[0].LInspectorRowMost);
+            LLevelingCatalog.LLevelingFrameMost, TInterface.TLoudnessRowsRead(loudness, true)[0].QInspectorRowMost);
     }
 
     [Fact]
     public void ModeSelect_SwitchesIndex_AndChoiceFamily()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
-        Assert.Equal(0, loudness.LLoudnessModeIndex);
+        QLoudness loudness = TInterface.TLoudnessCreate();
+        Assert.Equal(0, loudness.QLoudnessModeIndex);
 
         TInterface.TLoudnessModeSelect(loudness, 1);
-        Assert.True(loudness.LLoudnessDynamic);
-        Assert.Equal(1, loudness.LLoudnessModeIndex);
+        Assert.True(loudness.QLoudnessDynamic);
+        Assert.Equal(1, loudness.QLoudnessModeIndex);
         Assert.Equal(
             LLevelingCatalog.LLevelingDynamicTokens.Count + 1,
-            TInterface.TLoudnessChoiceRead(loudness, true).LInspectorChoiceNames.Count);
+            TInterface.TLoudnessChoiceRead(loudness, true).QInspectorChoiceNames.Count);
         Assert.Equal(
             LLevelingCatalog.LLevelingLoudnessTokens.Count + 1,
-            TInterface.TLoudnessChoiceRead(loudness, false).LInspectorChoiceNames.Count);
-        Assert.Equal(2, loudness.LLoudnessModeNames.Count);
+            TInterface.TLoudnessChoiceRead(loudness, false).QInspectorChoiceNames.Count);
+        Assert.Equal(2, loudness.QLoudnessModeNames.Count);
     }
 
     [Fact]
     public void ChoiceSelect_OnlyForActiveMode()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
+        QLoudness loudness = TInterface.TLoudnessCreate();
 
         TInterface.TLoudnessChoiceSelect(loudness, true, 0);
         Assert.Equal(TInterface.TLoudnessMatchRead(loudness), TInterface.TLoudnessTokenRead(loudness));
 
         TInterface.TLoudnessChoiceSelect(loudness, false, 2);
         Assert.Equal(LLevelingCatalog.LLevelingLoudnessTokens[2], TInterface.TLoudnessTokenRead(loudness));
-        Assert.Equal(2, TInterface.TLoudnessChoiceRead(loudness, false).LInspectorChoiceIndex);
+        Assert.Equal(2, TInterface.TLoudnessChoiceRead(loudness, false).QInspectorChoiceIndex);
     }
 
     [Fact]
     public void ValueSet_ByModeAndIndex_DefaultsFollowToken()
     {
-        LLoudness loudness = TInterface.TLoudnessCreate();
+        QLoudness loudness = TInterface.TLoudnessCreate();
 
         TInterface.TLoudnessValueSet(loudness, false, 1, -3);
         Assert.Equal(-3, TInterface.TLoudnessValueRead(loudness, false, 1));

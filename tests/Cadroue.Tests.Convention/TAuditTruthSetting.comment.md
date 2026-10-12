@@ -1,5 +1,5 @@
 # TAuditTruthSetting.cs
-Hash: `f546e9d8f9e8c3c1`
+Hash: `ea9658301511f227`
 
 ## `internal static class TAuditTruthSetting`
 
@@ -8,7 +8,7 @@ The driver-audit scope, the binder inputs and the handle list live here.
 The per-file ceilings live in the ledger named by `TAuditLedgerFile`.
 No script writes this file.
 
-## `public const int TAuditGeneration = 21;`
+## `public const int TAuditGeneration = 22;`
 
 Numbers the revision of the driver-audit settings this file holds.
 

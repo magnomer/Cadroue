@@ -1,5 +1,5 @@
 # TAuditFaultSetting.cs
-Hash: `7835208ed05d812e`
+Hash: `1cb38a395c244770`
 
 ## `internal static class TAuditFaultSetting`
 
@@ -7,7 +7,7 @@ Hand-written and tracked.
 The rings, the ceilings and the exempt rows of the fault audit live here.
 `AuditFault.ps1` reads its own AuditFault.json and never writes this file.
 
-## `public const int TAuditGeneration = 21;`
+## `public const int TAuditGeneration = 22;`
 
 Numbers the revision of the fault-audit settings this file holds.
 

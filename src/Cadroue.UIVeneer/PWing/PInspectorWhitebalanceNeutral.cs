@@ -116,31 +116,31 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PInspectorToolCreate(typeof(ToggleButton))
         };
-        pPickerTool.Checked += (_, _) => LWhitebalance.LWhitebalanceToolToggle(pTarget, true);
-        pPickerTool.Unchecked += (_, _) => LWhitebalance.LWhitebalanceToolToggle(pTarget, false);
+        pPickerTool.Checked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, true);
+        pPickerTool.Unchecked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, false);
         return pPickerTool;
     }
 
     private void PWhitebalanceToolUpdate()
     {
-        pInspectorNeutralTool.IsChecked = PLook.PLookChecked[LWhitebalance.LWhitebalanceGreyArmed];
-        pInspectorWhiteTool.IsChecked = PLook.PLookChecked[LWhitebalance.LWhitebalanceWhiteArmed];
+        pInspectorNeutralTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceGreyArmed];
+        pInspectorWhiteTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceWhiteArmed];
         pInspectorNeutralIcon.Source = PIcon.PIconRead(
-            PPickerIcon, PInspectorPickBrush[LWhitebalance.LWhitebalanceGreyArmed]);
+            PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceGreyArmed]);
         pInspectorWhiteIcon.Source = PIcon.PIconRead(
-            PPickerIcon, PInspectorPickBrush[LWhitebalance.LWhitebalanceWhiteArmed]);
-        pInspectorNeutralStatus.Text = LWhitebalance.LWhitebalanceGuideRead();
-        pInspectorNeutralStatus.Visibility = PLook.PLookVisible[LWhitebalance.LWhitebalanceGuideShown];
+            PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceWhiteArmed]);
+        pInspectorNeutralStatus.Text = QWhitebalance.QWhitebalanceGuideRead();
+        pInspectorNeutralStatus.Visibility = PLook.PLookVisible[QWhitebalance.QWhitebalanceGuideShown];
     }
 
     private void PWhitebalanceReadoutUpdate()
     {
-        LWhitebalanceReadout pReadout = LWhitebalance.LWhitebalanceReadoutRead();
-        pInspectorNeutralGroup.Visibility = PLook.PLookVisible[pReadout.LWhitebalanceReadoutSampled];
+        QWhitebalanceReadout pReadout = QWhitebalance.QWhitebalanceReadoutRead();
+        pInspectorNeutralGroup.Visibility = PLook.PLookVisible[pReadout.QWhitebalanceReadoutSampled];
         pInspectorNeutralSwatch.Fill = new SolidColorBrush(Color.FromRgb(
-            pReadout.LWhitebalanceReadoutRed,
-            pReadout.LWhitebalanceReadoutGreen,
-            pReadout.LWhitebalanceReadoutBlue));
-        pInspectorNeutralReadout.Text = pReadout.LWhitebalanceReadoutText;
+            pReadout.QWhitebalanceReadoutRed,
+            pReadout.QWhitebalanceReadoutGreen,
+            pReadout.QWhitebalanceReadoutBlue));
+        pInspectorNeutralReadout.Text = pReadout.QWhitebalanceReadoutText;
     }
 }

@@ -9,13 +9,13 @@ internal static class PSectionPalette
     private const byte PSectionBadgeAlpha = 0xFF;
 
     internal static Brush PSectionBandRead(int pColorIndex) =>
-        PSectionBrushBuild(LSection.LSectionHexRead(pColorIndex), PSectionBandAlpha);
+        PSectionBrushBuild(QSection.QSectionHexRead(pColorIndex), PSectionBandAlpha);
 
     internal static Brush PSectionBadgeRead(int pColorIndex) =>
-        PSectionBrushBuild(LSection.LSectionHexRead(pColorIndex), PSectionBadgeAlpha);
+        PSectionBrushBuild(QSection.QSectionHexRead(pColorIndex), PSectionBadgeAlpha);
 
     internal static IReadOnlyList<Brush> PSectionBadgesRead(string pName) =>
-        LSection.LSectionPaletteRead(pName).Select(PSectionBadgeBuild).ToList();
+        QSection.QSectionPaletteRead(pName).Select(PSectionBadgeBuild).ToList();
 
     private static Brush PSectionBadgeBuild(string pHex) => PSectionBrushBuild(pHex, PSectionBadgeAlpha);
 

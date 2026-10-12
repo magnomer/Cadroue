@@ -15,29 +15,29 @@ public sealed class PMergeTab : PTabSurface
     private readonly PAction pAction;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PMergeTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LMergeTab = lWorkspace.QWorkspaceMode.LMergeTabCreate();
-        pGroup = new PGroup(LMergeTab.LMergeGroup);
-        pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
-        LMergeTab.LMergePresetMissing += PExport.PExportMissingShow;
-        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QMergeTab = lWorkspace.QWorkspaceMode.QMergeTabCreate();
+        pGroup = new PGroup(QMergeTab.QMergeGroup);
+        pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
+        QMergeTab.QMergePresetMissing += PExport.PExportMissingShow;
+        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
-        LMergeTab.LMergeLayoutApply(lPreferenceTabLayout);
+        QMergeTab.QMergeLayoutApply(lPreferenceTabLayout);
     }
 
-    public LMergeTab LMergeTab { get; }
+    public QMergeTab QMergeTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 
@@ -49,9 +49,9 @@ public sealed class PMergeTab : PTabSurface
 
     public override void PTabClose()
     {
-        LMergeTab.LMergeClose();
+        QMergeTab.QMergeClose();
         base.PTabClose();
     }
 
-    public override LSceneTabEntry PTabLayoutRead() => LMergeTab.LMergeLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => QMergeTab.QMergeLayoutRead(PTabLayoutCreate());
 }

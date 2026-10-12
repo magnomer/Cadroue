@@ -38,7 +38,7 @@ internal sealed partial class PSMonitor
             Cursor = Cursors.Hand,
             Content = psMonitorPlayImage
         };
-        psMonitorPlayButton.Click += (_, _) => psMonitorSource.LSMonitorPlayHandle();
+        psMonitorPlayButton.Click += (_, _) => psMonitorSource.QSMonitorPlayHandle();
         PSMonitorFaceApply();
         return psMonitorPlayButton;
     }
@@ -47,10 +47,10 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorFaceApply()
     {
-        LSMonitorFace lFace = psMonitorSource.LSMonitorFaceRead();
+        QSMonitorFace lFace = psMonitorSource.QSMonitorFaceRead();
         psMonitorPlayImage.Source = PAsset.PIcon.PIconRead(
-            $"/PAsset/PCompass/{lFace.LSMonitorFaceIcon}", psMonitorAxisFill);
-        psMonitorPlayButton.ToolTip = lFace.LSMonitorFaceTip;
+            $"/PAsset/PCompass/{lFace.QSMonitorFaceIcon}", psMonitorAxisFill);
+        psMonitorPlayButton.ToolTip = lFace.QSMonitorFaceTip;
     }
 
     private UIElement PSMonitorZoomBuild()
@@ -60,12 +60,12 @@ internal sealed partial class PSMonitor
             PSMonitorButtonBuild(
                 "/PAsset/PCompass/PCompassZoomIncrease.svg",
                 "NormalizePreview.ZoomIn",
-                psMonitorSource.LSMonitorIncreaseZoom));
+                psMonitorSource.QSMonitorIncreaseZoom));
         psZoom.Children.Add(
             PSMonitorButtonBuild(
                 "/PAsset/PCompass/PCompassZoomDecrease.svg",
                 "NormalizePreview.ZoomOut",
-                psMonitorSource.LSMonitorDecreaseZoom));
+                psMonitorSource.QSMonitorDecreaseZoom));
         return psZoom;
     }
 
@@ -95,12 +95,12 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorZoomApply()
     {
-        LSMonitorScrollbar lScroll = psMonitorSource.LSMonitorScrollRead();
-        psMonitorScrollbar.ViewportSize = lScroll.LSMonitorScrollViewport;
-        psMonitorScrollbar.Maximum = lScroll.LSMonitorScrollMaximum;
-        psMonitorScrollbar.Value = lScroll.LSMonitorScrollValue;
-        psMonitorScrollbar.IsEnabled = lScroll.LSMonitorScrollEnabled;
-        psMonitorScrollbar.Opacity = lScroll.LSMonitorScrollOpacity;
+        QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorScrollRead();
+        psMonitorScrollbar.ViewportSize = lScroll.QSMonitorScrollViewport;
+        psMonitorScrollbar.Maximum = lScroll.QSMonitorScrollMaximum;
+        psMonitorScrollbar.Value = lScroll.QSMonitorScrollValue;
+        psMonitorScrollbar.IsEnabled = lScroll.QSMonitorScrollEnabled;
+        psMonitorScrollbar.Opacity = lScroll.QSMonitorScrollOpacity;
         PSMonitorUpdate();
     }
 
@@ -120,7 +120,7 @@ internal sealed partial class PSMonitor
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top
         };
-        psRadio.Checked += (_, _) => psMonitorSource.LSMonitorRadioHandle(pBypass);
+        psRadio.Checked += (_, _) => psMonitorSource.QSMonitorRadioHandle(pBypass);
         return psRadio;
     }
 
@@ -133,22 +133,22 @@ internal sealed partial class PSMonitor
     private void PSMonitorSeekHandle(object pSender, MouseEventArgs pEvent)
     {
         var pCanvas = (Canvas)pSender;
-        psMonitorSource.LSMonitorSeekHandle(
+        psMonitorSource.QSMonitorSeekHandle(
             pCanvas.IsMouseCaptured,
             pEvent.GetPosition(pCanvas).X,
             pCanvas.ActualWidth,
-            psMonitorViewer.LViewer.LViewerDuration);
+            psMonitorViewer.QViewer.QViewerDuration);
     }
 
     private void PSMonitorCursorHandle(TimeSpan pCursor) =>
-        Dispatcher.BeginInvoke(() => psMonitorSource.LSMonitorCursorSet(pCursor));
+        Dispatcher.BeginInvoke(() => psMonitorSource.QSMonitorCursorSet(pCursor));
 
     private void PSMonitorCursorApply(TimeSpan pCursor) => PSMonitorHeadPlace();
 
     private void PSMonitorBypassApply()
     {
-        psMonitorBeforeRadio.IsChecked = PLook.PLookChecked[psMonitorSource.LSMonitorBypass];
-        psMonitorAfterRadio.IsChecked = PLook.PLookChecked[!psMonitorSource.LSMonitorBypass];
+        psMonitorBeforeRadio.IsChecked = PLook.PLookChecked[psMonitorSource.QSMonitorBypass];
+        psMonitorAfterRadio.IsChecked = PLook.PLookChecked[!psMonitorSource.QSMonitorBypass];
     }
 
     private void PSMonitorHeadPlace()
@@ -159,9 +159,9 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorHeadApply(Canvas pCanvas, Border pHead)
     {
-        LSMonitorHead lHead = psMonitorSource.LSMonitorHeadResolve(
-            pCanvas.ActualWidth, psMonitorViewer.LViewer.LViewerDuration);
-        pHead.Visibility = PLook.PLookVisible[lHead.LSMonitorHeadShown];
-        pHead.Margin = new Thickness(lHead.LSMonitorHeadLeft, 0, 0, 0);
+        QSMonitorHead lHead = psMonitorSource.QSMonitorHeadResolve(
+            pCanvas.ActualWidth, psMonitorViewer.QViewer.QViewerDuration);
+        pHead.Visibility = PLook.PLookVisible[lHead.QSMonitorHeadShown];
+        pHead.Margin = new Thickness(lHead.QSMonitorHeadLeft, 0, 0, 0);
     }
 }

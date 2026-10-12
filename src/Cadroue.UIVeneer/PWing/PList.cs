@@ -30,11 +30,11 @@ public sealed class PList : PPanel
     private readonly UIElement pListFullBody;
     private readonly UIElement pListStripBody;
 
-    public LList LList { get; }
+    public QList QList { get; }
 
-    public PList(LList lList) : base("")
+    public PList(QList lList) : base("")
     {
-        LList = lList;
+        QList = lList;
         pListRowPanel = new StackPanel();
 
         pListEmptyNotice = new TextBlock
@@ -81,42 +81,42 @@ public sealed class PList : PPanel
         Focusable = true;
         KeyDown += PListKeyHandle;
         Content = PPanelBorderBuild(pBodyHost);
-        LList.LListChanged += PListRowsRebuild;
-        LList.LListPathChanged += PListSelectionUpdate;
-        LList.LListMinimizeChanged += PListMinimizeHandle;
+        QList.QListChanged += PListRowsRebuild;
+        QList.QListPathChanged += PListSelectionUpdate;
+        QList.QListMinimizeChanged += PListMinimizeHandle;
         PListRowsRebuild();
     }
 
-    public void PListClose() => LList.LListClose();
+    public void PListClose() => QList.QListClose();
 
     private void PListRowsRebuild()
     {
         pListRowPanel.Children.Clear();
         pListRows.Clear();
-        LList.LListFace.LListCardsRead()
+        QList.QListFace.QListCardsRead()
             .Select(PListCardBuild)
             .ToList()
             .ForEach(pCard => pListRowPanel.Children.Add(pCard));
-        pListEmptyNotice.Visibility = PLook.PLookVisible[LList.LListEmpty];
+        pListEmptyNotice.Visibility = PLook.PLookVisible[QList.QListEmpty];
     }
 
-    private UIElement PListCardBuild(LListCard lCard) => pListCards[lCard.LListCardLocked](this, lCard);
+    private UIElement PListCardBuild(QListCard lCard) => pListCards[lCard.QListCardLocked](this, lCard);
 
-    private static readonly IReadOnlyDictionary<bool, Func<PList, LListCard, UIElement>> pListCards =
-        new Dictionary<bool, Func<PList, LListCard, UIElement>>
+    private static readonly IReadOnlyDictionary<bool, Func<PList, QListCard, UIElement>> pListCards =
+        new Dictionary<bool, Func<PList, QListCard, UIElement>>
         {
-            [false] = (pList, lCard) => pList.PListRowBuild(lCard.LListCardRows[0]),
+            [false] = (pList, lCard) => pList.PListRowBuild(lCard.QListCardRows[0]),
             [true] = (pList, lCard) => pList.PListLockedBuild(lCard),
         };
 
-    private Border PListRowBuild(LListRow lRow)
+    private Border PListRowBuild(QListRow lRow)
     {
         var pRow = new PListRow(this, lRow);
         pListRows.Add(pRow);
         return pRow.PListRowBorder;
     }
 
-    private UIElement PListLockedBuild(LListCard lCard)
+    private UIElement PListLockedBuild(QListCard lCard)
     {
         var pListCardRows = new StackPanel();
         var pListHeader = new StackPanel
@@ -135,7 +135,7 @@ public sealed class PList : PPanel
         });
         pListHeader.Children.Add(new TextBlock
         {
-            Text = lCard.LListCardTitle,
+            Text = lCard.QListCardTitle,
             FontSize = 11,
             FontFamily = pListFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -143,7 +143,7 @@ public sealed class PList : PPanel
             VerticalAlignment = VerticalAlignment.Center
         });
         pListCardRows.Children.Add(pListHeader);
-        lCard.LListCardRows.Select(PListRowBuild).ToList().ForEach(pRow => pListCardRows.Children.Add(pRow));
+        lCard.QListCardRows.Select(PListRowBuild).ToList().ForEach(pRow => pListCardRows.Children.Add(pRow));
 
         return new Border
         {
@@ -160,7 +160,7 @@ public sealed class PList : PPanel
     private void PListSelectionUpdate(string? lPath) => pListRows.ForEach(PListRowUpdate);
 
     private void PListRowUpdate(PListRow pRow) =>
-        pRow.PListStateApply(LList.LListFace.LListStateRead(pRow.PListRowPath));
+        pRow.PListStateApply(QList.QListFace.QListStateRead(pRow.PListRowPath));
 
     private void PListMinimizeHandle(bool pListMinimized)
     {
@@ -168,12 +168,12 @@ public sealed class PList : PPanel
         pListStripBody.Visibility = PLook.PLookVisible[pListMinimized];
     }
 
-    public bool PListMinimizedCheck() => LList.LListMinimized;
+    public bool PListMinimizedCheck() => QList.QListMinimized;
 
-    public void PListMinimizeSet(bool pListMinimizeRequest) => LList.LListMinimizedSet(pListMinimizeRequest);
+    public void PListMinimizeSet(bool pListMinimizeRequest) => QList.QListMinimizedSet(pListMinimizeRequest);
 
     private void PListKeyHandle(object pKeySender, KeyEventArgs pKeyEvent) =>
-        pKeyEvent.Handled = LList.LListKeyRun(
+        pKeyEvent.Handled = QList.QListKeyRun(
             pKeyEvent.Key.ToString(), Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
 
     private UIElement PListStripBuild()
@@ -243,7 +243,7 @@ public sealed class PList : PPanel
         Button pRemoveAllButton = PListButtonBuild(
             "/PAsset/PPanel/PListRemoveAll.svg",
             LLocalization.LLocalizationTextRead("List.Button.RemoveAll"),
-            LList.LListClear);
+            QList.QListClear);
         pRemoveAllButton.Margin = new Thickness(PListActionGap, 0, 2, 0);
         var pRightPanel = new StackPanel
         {
@@ -253,7 +253,7 @@ public sealed class PList : PPanel
         pRightPanel.Children.Add(PListButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
             LLocalization.LLocalizationTextRead("List.Button.RemoveFile"),
-            LList.LListRemove));
+            QList.QListRemove));
         pRightPanel.Children.Add(pRemoveAllButton);
 
         var pActionGrid = new Grid { Margin = new Thickness(10, 4, 10, 6) };
@@ -303,7 +303,7 @@ public sealed class PList : PPanel
             Multiselect = true,
             Filter = LLocalization.LLocalizationTextRead("List.Dialog.MediaFilter")
         };
-        LList.LListDialogAdd(pDialog.ShowDialog(), pDialog.FileNames, "file");
+        QList.QListDialogAdd(pDialog.ShowDialog(), pDialog.FileNames, "file");
     }
 
     private void PListFolderOpen()
@@ -313,6 +313,6 @@ public sealed class PList : PPanel
             Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFolder"),
             Multiselect = true
         };
-        LList.LListDialogAdd(pDialog.ShowDialog(), pDialog.FolderNames, "folder");
+        QList.QListDialogAdd(pDialog.ShowDialog(), pDialog.FolderNames, "folder");
     }
 }

@@ -38,7 +38,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioFixed);
-        PInspectorSwitchAttach(pInspectorRatioFixed, LInspectorCrop.LInspectorFixedSet);
+        PInspectorSwitchAttach(pInspectorRatioFixed, QInspectorCrop.QInspectorFixedSet);
 
         pInspectorRatioLenient = new CheckBox
         {
@@ -52,7 +52,7 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioLenient);
-        PInspectorSwitchAttach(pInspectorRatioLenient, LInspectorCrop.LInspectorLenientSet);
+        PInspectorSwitchAttach(pInspectorRatioLenient, QInspectorCrop.QInspectorLenientSet);
 
         pInspectorRatioNotice = new TextBlock
         {
@@ -66,19 +66,19 @@ public sealed partial class PInspector
 
         pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
         pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
-        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => LInspectorCrop.LInspectorFlipSet(true, pFlipped));
-        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => LInspectorCrop.LInspectorFlipSet(false, pFlipped));
+        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => QInspectorCrop.QInspectorFlipSet(true, pFlipped));
+        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => QInspectorCrop.QInspectorFlipSet(false, pFlipped));
         pInspectorRotateCombo = PInspectorRotateBuild();
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
             LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
-        PInspectorSwitchAttach(pInspectorApplyBox, LInspectorCrop.LInspectorApplySet);
+        PInspectorSwitchAttach(pInspectorApplyBox, QInspectorCrop.QInspectorApplySet);
         pInspectorPersistentBox = PInspectorSwitchBuild(
             LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
             LLocalization.LLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
-        PInspectorSwitchAttach(pInspectorPersistentBox, LInspectorCrop.LInspectorPersistentSet);
+        PInspectorSwitchAttach(pInspectorPersistentBox, QInspectorCrop.QInspectorPersistentSet);
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(
@@ -105,14 +105,14 @@ public sealed partial class PInspector
     }
 
     private void PInspectorRatioCommit(TextBox pRatioBox) =>
-        LInspectorCrop.LInspectorRatioCommit(
+        QInspectorCrop.QInspectorRatioCommit(
             pInspectorRatioWidth.Text, pInspectorRatioHeight.Text, pRatioBox.IsKeyboardFocusWithin);
 
     private TextBox PInspectorInsetBuild(int pEdge)
     {
         TextBox pInsetBox = PInspectorNumberBuild();
         pInsetBox.TextChanged += (_, _) =>
-            LInspectorCrop.LInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
+            QInspectorCrop.QInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
         return pInsetBox;
     }
 
@@ -148,7 +148,7 @@ public sealed partial class PInspector
         pRotateCombo.Items.Add(new LLocalizationChoice("Degrees180", "Inspector.Crop.Degrees180"));
         pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise270", "Inspector.Crop.Clockwise270"));
         pRotateCombo.SelectedIndex = 0;
-        pRotateCombo.SelectionChanged += (_, _) => LInspectorCrop.LInspectorRotateSelect(pRotateCombo.SelectedIndex);
+        pRotateCombo.SelectionChanged += (_, _) => QInspectorCrop.QInspectorRotateSelect(pRotateCombo.SelectedIndex);
         return pRotateCombo;
     }
 
@@ -163,7 +163,7 @@ public sealed partial class PInspector
         pPresetCombo.Items.Add("1:1");
         pPresetCombo.Items.Add("21:9");
         pPresetCombo.SelectedIndex = 0;
-        pPresetCombo.SelectionChanged += (_, _) => LInspectorCrop.LInspectorPresetSelect(pPresetCombo.SelectedIndex);
+        pPresetCombo.SelectionChanged += (_, _) => QInspectorCrop.QInspectorPresetSelect(pPresetCombo.SelectedIndex);
         return pPresetCombo;
     }
 

@@ -10,19 +10,19 @@ namespace Cadroue.Tests.Windows;
 [Collection("Preset")]
 public sealed class TSplitTabLayout
 {
-    private static (LSplitTab, LInspector, LProcessing) TSplitBuild()
+    private static (QSplitTab, QInspector, QProcessing) TSplitBuild()
     {
-        LList list = TInterfaceList.TListCreate();
-        LSplitTab tab = TInterface.TSplitTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        QSplitTab tab = TInterface.TSplitTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"),
             TInterfaceViewer.TViewerCreate(),
             list,
             TInterface.TFlowCreate());
-        LInspector inspector = TInterface.TSplitInspectorRead(tab);
-        LProcessing processing = TInterface.TSplitProcessingRead(tab);
-        foreach (LProcessingRow row in TInterface.TSplitRowsRead())
+        QInspector inspector = TInterface.TSplitInspectorRead(tab);
+        QProcessing processing = TInterface.TSplitProcessingRead(tab);
+        foreach (QProcessingRow row in TInterface.TSplitRowsRead())
         {
-            TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
+            TInterface.TProcessingStepAdd(processing, row.QProcessingRowKey);
         }
 
         return (tab, inspector, processing);
@@ -33,12 +33,12 @@ public sealed class TSplitTabLayout
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        IReadOnlyList<LProcessingRow> rows = TInterface.TSplitRowsRead();
+        IReadOnlyList<QProcessingRow> rows = TInterface.TSplitRowsRead();
 
         Assert.Equal(6, rows.Count);
         foreach (LDetectorKind kind in LDetector.LDetectorKinds)
         {
-            Assert.Contains(rows, row => row.LProcessingRowKey == TInterface.TSensorNameRead(kind));
+            Assert.Contains(rows, row => row.QProcessingRowKey == TInterface.TSensorNameRead(kind));
             Assert.Equal(kind, TInterface.TSensorKindRead(TInterface.TSensorNameRead(kind)));
         }
     }
@@ -48,14 +48,14 @@ public sealed class TSplitTabLayout
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, _) = TSplitBuild();
         TInterface.TSensorStepSet(
-            inspector.LInspectorSensor,
+            inspector.QInspectorSensor,
             TInterface.TDetectorStepCreate(LDetectorKind.LDetectorKindSilence, true, -40, 1.5, 0));
         TInterface.TBlankStepSet(
-            inspector.LInspectorBlank,
+            inspector.QInspectorBlank,
             TInterface.TDetectorBlankCreate(true, LDetectorType.LDetectorTypeColor, 90, 0.4, 0.7, 0.1, 0.9, 1));
-        TInterface.TSensorPersistentSet(inspector.LInspectorSensor, true);
+        TInterface.TSensorPersistentSet(inspector.QInspectorSensor, true);
 
         LSceneTabEntry layout = TInterface.TSplitLayoutRead(tab);
 
@@ -76,8 +76,8 @@ public sealed class TSplitTabLayout
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab source, LInspector inspector, _) = TSplitBuild();
-        LSensor sensor = inspector.LInspectorSensor;
+        (QSplitTab source, QInspector inspector, _) = TSplitBuild();
+        QSensor sensor = inspector.QInspectorSensor;
         TInterface.TSensorPresetSelect(sensor, LDetectorKind.LDetectorKindScene, "Sensitive");
         TInterface.TSensorStepSet(sensor, TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindScene) with
         {
@@ -87,27 +87,27 @@ public sealed class TSplitTabLayout
         TInterface.TSensorSpeedSet(sensor, LDetectorLuminanceMode.LDetectorLuminanceFull);
         TInterface.TSensorMetricSet(sensor, LDetectorMetricMode.LDetectorMetricRms);
         TInterface.TBlankStepSet(
-            inspector.LInspectorBlank, TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeColor));
+            inspector.QInspectorBlank, TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeColor));
 
         LSceneTabEntry layout = TInterface.TSplitLayoutRead(source);
-        (LSplitTab target, LInspector restored, LProcessing processing) = TSplitBuild();
+        (QSplitTab target, QInspector restored, QProcessing processing) = TSplitBuild();
         TInterface.TSplitLayoutApply(target, layout);
 
-        LSensor restoredSensor = restored.LInspectorSensor;
+        QSensor restoredSensor = restored.QInspectorSensor;
         Assert.Equal(
             TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindScene),
             TInterface.TSensorStepRead(restoredSensor, LDetectorKind.LDetectorKindScene));
         Assert.Equal("Sensitive", TInterface.TSensorTokenRead(restoredSensor, LDetectorKind.LDetectorKindScene));
-        Assert.Equal(LDetectorStillMode.LDetectorStillTreat, restoredSensor.LSensorMode);
-        Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceFull, restoredSensor.LSensorSpeed);
-        Assert.Equal(LDetectorMetricMode.LDetectorMetricRms, restoredSensor.LSensorMetric);
+        Assert.Equal(LDetectorStillMode.LDetectorStillTreat, restoredSensor.QSensorMode);
+        Assert.Equal(LDetectorLuminanceMode.LDetectorLuminanceFull, restoredSensor.QSensorSpeed);
+        Assert.Equal(LDetectorMetricMode.LDetectorMetricRms, restoredSensor.QSensorMetric);
         Assert.Equal(
-            TInterface.TBlankStepRead(inspector.LInspectorBlank), TInterface.TBlankStepRead(restored.LInspectorBlank));
+            TInterface.TBlankStepRead(inspector.QInspectorBlank), TInterface.TBlankStepRead(restored.QInspectorBlank));
         Assert.True(TInterface.TProcessingActiveCheck(
             processing, TInterface.TSensorNameRead(LDetectorKind.LDetectorKindScene)));
         Assert.False(TInterface.TProcessingActiveCheck(
             processing, TInterface.TSensorNameRead(LDetectorKind.LDetectorKindBlank)));
-        Assert.False(restored.LInspectorSaveSuspended);
+        Assert.False(restored.QInspectorSaveSuspended);
     }
 
     [Fact]
@@ -115,12 +115,12 @@ public sealed class TSplitTabLayout
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, LProcessing processing) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, QProcessing processing) = TSplitBuild();
 
         TInterface.TSplitLayoutApply(tab, null);
 
-        Assert.True(inspector.LInspectorMinimized);
-        Assert.True(processing.LProcessingMinimized);
+        Assert.True(inspector.QInspectorMinimized);
+        Assert.True(processing.QProcessingMinimized);
     }
 
     [Fact]
@@ -128,10 +128,10 @@ public sealed class TSplitTabLayout
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (_, LInspector inspector, LProcessing processing) = TSplitBuild();
+        (_, QInspector inspector, QProcessing processing) = TSplitBuild();
         string key = TInterface.TSensorNameRead(LDetectorKind.LDetectorKindVolume);
 
-        TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindVolume, true);
+        TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindVolume, true);
 
         Assert.True(TInterface.TProcessingActiveCheck(processing, key));
     }

@@ -6,7 +6,7 @@ Hash: `054eaa48bc05d64a`
 Builds the file record plate with its location toggle, notices and clear button.
 The location toggle writes `LPreferenceRecordWorkspace` on the draft at once.
 The notice can then name the folder records would use.
-`LSOptions` names the notice key and the folder, and this page formats them.
+`QSOptions` names the notice key and the folder, and this page formats them.
 The notice starts empty because the first update fills it straight away.
 
 ## `private void PSSystemRecordClear()`

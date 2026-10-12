@@ -98,7 +98,7 @@ public sealed partial class PInspector
                 System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 2, 0, 0),
-            Visibility = PLook.PLookVisible[LTone.LToneNoticeShown]
+            Visibility = PLook.PLookVisible[QTone.QToneNoticeShown]
         });
 
         pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
@@ -144,15 +144,15 @@ public sealed partial class PInspector
         double? pMinimum,
         double? pMaximum)
     {
-        PInspectorSwitchAttach(pApply, pActive => LTone.LToneActiveSet(pKind, pActive));
-        PInspectorSwitchAttach(pPersistent, pFlag => LTone.LTonePersistentSet(pKind, pFlag));
+        PInspectorSwitchAttach(pApply, pActive => QTone.QToneActiveSet(pKind, pActive));
+        PInspectorSwitchAttach(pPersistent, pFlag => QTone.QTonePersistentSet(pKind, pFlag));
         PInspectorValueAttach(
             pSlider,
             pValue,
             pMinimum,
             pMaximum,
-            () => LTone.LToneStepRead(pKind).LWorkStepValue,
-            pNumber => LTone.LToneValueSet(pKind, pNumber));
+            () => QTone.QToneStepRead(pKind).LWorkStepValue,
+            pNumber => QTone.QToneValueSet(pKind, pNumber));
     }
 
     private void PToneUpdate()
@@ -189,11 +189,11 @@ public sealed partial class PInspector
         string pApplyKey,
         string pPersistKey)
     {
-        LWorkVideoStep pStep = LTone.LToneStepRead(pKind);
+        LWorkVideoStep pStep = QTone.QToneStepRead(pKind);
         PInspectorSwitchUpdate(pApply, pStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pPersistent, LTone.LTonePersistentRead(pKind));
+        PInspectorSwitchUpdate(pPersistent, QTone.QTonePersistentRead(pKind));
         PInspectorValueUpdate(pSlider, pValue, pStep.LWorkStepValue, "0.#");
-        PInspectorSectionApply(pApply, pPersistent, pStack, pBody, LInspector.LInspectorTipResolve(
-            pStep.LWorkStepActive, LTone.LToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey));
+        PInspectorSectionApply(pApply, pPersistent, pStack, pBody, QInspector.QInspectorTipResolve(
+            pStep.LWorkStepActive, QTone.QToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey));
     }
 }

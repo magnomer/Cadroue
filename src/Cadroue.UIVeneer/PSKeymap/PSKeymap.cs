@@ -27,25 +27,25 @@ internal sealed class PSKeymap : Window
     private const string PSSheetFlowIcon = "/PAsset/PTab/PSSheetTimeline.svg";
     private const string PSSheetSplitIcon = "/PAsset/PTab/PSplitButton.svg";
 
-    private readonly LSKeymap lsKeymap;
+    private readonly QSKeymap lsKeymap;
     private readonly Action? psKeymapCallback;
     private readonly PSGrabber psKeymapGrabber;
     private readonly Dictionary<string, PSKeymapChord> psKeymapChords = new(StringComparer.Ordinal);
 
-    internal static void PSKeymapShow(Window pOwner, LSKeymap lsKeymapOwner, Action? pApplyCallback)
+    internal static void PSKeymapShow(Window pOwner, QSKeymap lsKeymapOwner, Action? pApplyCallback)
     {
         var psKeymap = new PSKeymap(pOwner, lsKeymapOwner, pApplyCallback);
         psKeymap.ShowDialog();
     }
 
-    private PSKeymap(Window pOwner, LSKeymap lsKeymapOwner, Action? pApplyCallback)
+    private PSKeymap(Window pOwner, QSKeymap lsKeymapOwner, Action? pApplyCallback)
     {
         lsKeymap = lsKeymapOwner;
         psKeymapCallback = pApplyCallback;
 
-        foreach (LSKeymapChord pChord in lsKeymap.LSKeymapChords)
+        foreach (QSKeymapChord pChord in lsKeymap.QSKeymapChords)
         {
-            psKeymapChords[pChord.LSKeymapChordToken] = new PSKeymapChord(lsKeymap, pChord);
+            psKeymapChords[pChord.QSKeymapChordToken] = new PSKeymapChord(lsKeymap, pChord);
         }
 
         Title = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title");
@@ -156,11 +156,11 @@ internal sealed class PSKeymap : Window
         return pRoot;
     }
 
-    private void PSKeymapDefaultApply() => lsKeymap.LSKeymapDefaultApply();
+    private void PSKeymapDefaultApply() => lsKeymap.QSKeymapDefaultApply();
 
     private void PSKeymapApply()
     {
-        lsKeymap.LSKeymapApply();
+        lsKeymap.QSKeymapApply();
         psKeymapCallback?.Invoke();
     }
 

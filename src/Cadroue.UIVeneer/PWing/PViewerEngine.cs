@@ -26,12 +26,12 @@ internal static class PViewerEngine
         [false] = new SolidColorBrush(Color.FromRgb(0x8A, 0x93, 0x9E)),
     };
 
-    public static Border PViewerEngineBuild(LViewerEnginePlan lPlan, Action<string> pChoose)
+    public static Border PViewerEngineBuild(QViewerEnginePlan lPlan, Action<string> pChoose)
     {
         var pInner = new StackPanel { Orientation = Orientation.Horizontal };
-        pInner.Children.Add(PViewerChoiceBuild(lPlan.LViewerChoiceFlyleaf, pChoose));
+        pInner.Children.Add(PViewerChoiceBuild(lPlan.QViewerChoiceFlyleaf, pChoose));
         pInner.Children.Add(new Border { Width = 1, Background = pViewerEngineLine });
-        pInner.Children.Add(PViewerChoiceBuild(lPlan.LViewerChoiceMpv, pChoose));
+        pInner.Children.Add(PViewerChoiceBuild(lPlan.QViewerChoiceMpv, pChoose));
         return new Border
         {
             BorderBrush = pViewerEngineLine,
@@ -43,28 +43,28 @@ internal static class PViewerEngine
         };
     }
 
-    private static Border PViewerChoiceBuild(LViewerEngineChoice lChoice, Action<string> pChoose)
+    private static Border PViewerChoiceBuild(QViewerEngineChoice lChoice, Action<string> pChoose)
     {
         var pLabel = new TextBlock
         {
-            Text = lChoice.LViewerChoiceText,
+            Text = lChoice.QViewerChoiceText,
             FontSize = 12,
             FontFamily = pViewerEngineFont,
-            FontWeight = PLook.PLookWeight[lChoice.LViewerChoiceActive],
-            Foreground = pViewerChoiceText[lChoice.LViewerChoiceActive],
+            FontWeight = PLook.PLookWeight[lChoice.QViewerChoiceActive],
+            Foreground = pViewerChoiceText[lChoice.QViewerChoiceActive],
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
         var pChoice = new Border
         {
-            Background = pViewerChoiceFill[lChoice.LViewerChoiceActive],
+            Background = pViewerChoiceFill[lChoice.QViewerChoiceActive],
             Padding = new Thickness(12, 3, 12, 3),
-            Cursor = PLook.PLookHand[lChoice.LViewerChoiceEnabled],
-            Opacity = PLook.PLookOpacity[lChoice.LViewerChoiceEnabled],
-            ToolTip = lChoice.LViewerChoiceTip,
+            Cursor = PLook.PLookHand[lChoice.QViewerChoiceEnabled],
+            Opacity = PLook.PLookOpacity[lChoice.QViewerChoiceEnabled],
+            ToolTip = lChoice.QViewerChoiceTip,
             Child = pLabel
         };
-        pChoice.MouseLeftButtonUp += (_, _) => pChoose(lChoice.LViewerChoiceKey);
+        pChoice.MouseLeftButtonUp += (_, _) => pChoose(lChoice.QViewerChoiceKey);
         return pChoice;
     }
 }

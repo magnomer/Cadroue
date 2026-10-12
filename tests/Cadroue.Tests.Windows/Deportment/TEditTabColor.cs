@@ -10,17 +10,17 @@ namespace Cadroue.Tests.Windows;
 [Collection("Preset")]
 public sealed class TEditTabColor
 {
-    private static (LEditTab, LInspector) TEditBuild() => TEditBuild(TInterfaceViewer.TViewerCreate());
+    private static (QEditTab, QInspector) TEditBuild() => TEditBuild(TInterfaceViewer.TViewerCreate());
 
-    private static (LEditTab, LInspector) TEditBuild(LViewer viewer)
+    private static (QEditTab, QInspector) TEditBuild(QViewer viewer)
     {
-        LList list = TInterfaceList.TListCreate();
-        LEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
-        LInspector inspector = TInterface.TEditInspectorRead(tab);
-        LProcessing processing = TInterface.TEditProcessingRead(tab);
-        foreach (LProcessingRow row in QEditProcessing.LEditRows)
+        QList list = TInterfaceList.TListCreate();
+        QEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        QInspector inspector = TInterface.TEditInspectorRead(tab);
+        QProcessing processing = TInterface.TEditProcessingRead(tab);
+        foreach (QProcessingRow row in QEditProcessing.QEditRows)
         {
-            TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
+            TInterface.TProcessingStepAdd(processing, row.QProcessingRowKey);
         }
         return (tab, inspector);
     }
@@ -30,7 +30,7 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector) = TEditBuild();
+        (QEditTab tab, QInspector inspector) = TEditBuild();
         byte[] pixels = new byte[4 * 4];
         for (int index = 0; index < 4; index++)
         {
@@ -40,7 +40,7 @@ public sealed class TEditTabColor
 
         TInterface.TEditHistogramApply(tab, 2, 2, pixels);
 
-        LHistogramCounts? counts = inspector.LInspectorCurve.LCurveHistogram;
+        LHistogramCounts? counts = inspector.QInspectorCurve.QCurveHistogram;
         Assert.NotNull(counts);
         Assert.Equal(4, counts!.LHistogramRed[255]);
         Assert.Equal(4, counts.LHistogramGreen[0]);
@@ -48,7 +48,7 @@ public sealed class TEditTabColor
 
         TInterface.TEditHistogramApply(tab, 0, 0, null);
 
-        Assert.Null(inspector.LInspectorCurve.LCurveHistogram);
+        Assert.Null(inspector.QInspectorCurve.QCurveHistogram);
     }
 
     [Fact]
@@ -56,15 +56,15 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector) = TEditBuild();
+        (QEditTab tab, QInspector inspector) = TEditBuild();
 
         TInterface.TEditNeutralHandle(tab, TInterface.TNeutralSampleCreate(120, 128, 136, 1.1, 1.0, 0.9));
 
-        LWorkWhitebalanceSettings value = TInterface.TWhitebalanceValueRead(inspector.LInspectorWhitebalance);
+        LWorkWhitebalanceSettings value = TInterface.TWhitebalanceValueRead(inspector.QInspectorWhitebalance);
         Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodManual, value.LWorkWhitebalanceMethod);
         Assert.Equal(1.1, value.LWorkWhitebalanceRed);
         Assert.Equal(0.9, value.LWorkWhitebalanceBlue);
-        Assert.True(inspector.LInspectorWhitebalance.LWhitebalanceStep.LWorkStepActive);
+        Assert.True(inspector.QInspectorWhitebalance.QWhitebalanceStep.LWorkStepActive);
     }
 
     [Fact]
@@ -72,8 +72,8 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        (LEditTab tab, LInspector inspector) = TEditBuild(viewer);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        (QEditTab tab, QInspector inspector) = TEditBuild(viewer);
         var asked = new List<LNeutralWheel>();
         TInterfaceViewer.TViewerEstimateAttach(TInterfaceViewer.TViewerNeutralRead(viewer), asked.Add);
 
@@ -83,7 +83,7 @@ public sealed class TEditTabColor
 
         Assert.Single(asked);
         Assert.False(asked[0].LNeutralWheelPresent);
-        LNeutralWheel wheel = TInterface.TWhitebalanceWheelRead(inspector.LInspectorWhitebalance);
+        LNeutralWheel wheel = TInterface.TWhitebalanceWheelRead(inspector.QInspectorWhitebalance);
         Assert.True(wheel.LNeutralWheelPresent);
         Assert.Equal(0.25, wheel.LNeutralWheelX);
     }
@@ -93,15 +93,15 @@ public sealed class TEditTabColor
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        (LEditTab tab, LInspector inspector) = TEditBuild(viewer);
-        TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, 40);
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        (QEditTab tab, QInspector inspector) = TEditBuild(viewer);
+        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 40);
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
         var colors = new List<LColor>();
         TInterface.TEditPreviewAttach(viewer, colors.Add);
 
         TInterface.TEditColorApply(tab);
-        TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
+        TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
 
         Assert.Equal(3, colors.Count);
         Assert.NotEqual(0, colors[0].LColorBrightness);

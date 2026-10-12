@@ -16,37 +16,37 @@ internal static class TInterfaceCrop
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
-    internal static LCrop TCropCreate() => new LViewer(TInterface.TAtelierCreate().CAtelierUsher).LCrop;
-    internal static void TCropGripSet(LCrop crop, int edgeX, int edgeY) => crop.LCropGripSet(edgeX, edgeY);
-    internal static void TCropBodySet(LCrop crop) => crop.LCropBodySet();
-    internal static void TCropDrawSet(LCrop crop) => crop.LCropDrawSet();
-    internal static bool TCropMoveCheck(LCrop crop) => crop.LCropMoveCheck();
-    internal static void TCropRatioSet(LCrop crop, double width, double height) =>
-        crop.LCropRatioSet(width, height);
-    internal static void TCropLockSet(LCrop crop, bool locked) => crop.LCropLockSet(locked);
+    internal static QCrop TCropCreate() => new QViewer(TInterface.TAtelierCreate().CAtelierUsher).QCrop;
+    internal static void TCropGripSet(QCrop crop, int edgeX, int edgeY) => crop.QCropGripSet(edgeX, edgeY);
+    internal static void TCropBodySet(QCrop crop) => crop.QCropBodySet();
+    internal static void TCropDrawSet(QCrop crop) => crop.QCropDrawSet();
+    internal static bool TCropMoveCheck(QCrop crop) => crop.QCropMoveCheck();
+    internal static void TCropRatioSet(QCrop crop, double width, double height) =>
+        crop.QCropRatioSet(width, height);
+    internal static void TCropLockSet(QCrop crop, bool locked) => crop.QCropLockSet(locked);
 
-    internal static LCrop TCropRead(LViewer viewer) => viewer.LCrop;
-    internal static LCropDrag TCropDragRead(LViewer viewer) => viewer.LCropDrag;
-    internal static void TCropAttach(LCrop crop, Action handler) => crop.LCropApplied += handler;
-    internal static void TCropVideoAttach(LCrop crop, Action handler) => crop.LCropVideoChanged += handler;
-    internal static void TCropCaptureAttach(LCropDrag drag, Action<bool> handler) =>
-        drag.LCropCaptureApplied += handler;
-    internal static void TCropSizeHandle(LCrop crop, double width, double height) =>
-        crop.LCropSizeHandle(width, height);
-    internal static void TCropActiveSet(LCrop crop, bool active) => crop.LCropActiveSet(active);
-    internal static void TCropToolSet(LCrop crop, bool armed) => crop.LCropToolSet(armed);
-    internal static void TCropRectSet(LCrop crop, LCropbox? rect) => crop.LCropRectSet(rect);
-    internal static void TCropHide(LCrop crop) => crop.LCropHide();
-    internal static LCropBox TCropBoxRead(LCrop crop) => crop.LCropBoxRead();
-    internal static IReadOnlyList<LCropGrip> TCropHandlesRead(LCrop crop) => crop.LCropHandlesRead();
-    internal static LCropShade TCropShadeRead(LCrop crop) => crop.LCropShadeRead();
-    internal static LCropbox TCropVideoRead(LCrop crop) => crop.LCropVideoRead();
-    internal static LCropbox? TCropPixelRead(LCrop crop) => crop.LCropPixelRead();
-    internal static bool TCropGripHandle(LCropDrag drag, int index, double x, double y) =>
-        drag.LCropGripHandle(index, x, y);
-    internal static bool TCropBodyHandle(LCropDrag drag, double x, double y) => drag.LCropBodyHandle(x, y);
-    internal static bool TCropPressHandle(LCropDrag drag, double x, double y) => drag.LCropPressHandle(x, y);
-    internal static bool TCropMoveHandle(LCropDrag drag, bool pressed, double x, double y) =>
-        drag.LCropMoveHandle(pressed, x, y);
-    internal static bool TCropReleaseHandle(LCropDrag drag, double x, double y) => drag.LCropReleaseHandle(x, y);
+    internal static QCrop TCropRead(QViewer viewer) => viewer.QCrop;
+    internal static QCropDrag TCropDragRead(QViewer viewer) => viewer.QCropDrag;
+    internal static void TCropAttach(QCrop crop, Action handler) => crop.QCropApplied += handler;
+    internal static void TCropVideoAttach(QCrop crop, Action handler) => crop.QCropVideoChanged += handler;
+    internal static void TCropCaptureAttach(QCropDrag drag, Action<bool> handler) =>
+        drag.QCropCaptureApplied += handler;
+    internal static void TCropSizeHandle(QCrop crop, double width, double height) =>
+        crop.QCropSizeHandle(width, height);
+    internal static void TCropActiveSet(QCrop crop, bool active) => crop.QCropActiveSet(active);
+    internal static void TCropToolSet(QCrop crop, bool armed) => crop.QCropToolSet(armed);
+    internal static void TCropRectSet(QCrop crop, LCropbox? rect) => crop.QCropRectSet(rect);
+    internal static void TCropHide(QCrop crop) => crop.QCropHide();
+    internal static QCropBox TCropBoxRead(QCrop crop) => crop.QCropBoxRead();
+    internal static IReadOnlyList<QCropGrip> TCropHandlesRead(QCrop crop) => crop.QCropHandlesRead();
+    internal static QCropShade TCropShadeRead(QCrop crop) => crop.QCropShadeRead();
+    internal static LCropbox TCropVideoRead(QCrop crop) => crop.QCropVideoRead();
+    internal static LCropbox? TCropPixelRead(QCrop crop) => crop.QCropPixelRead();
+    internal static bool TCropGripHandle(QCropDrag drag, int index, double x, double y) =>
+        drag.QCropGripHandle(index, x, y);
+    internal static bool TCropBodyHandle(QCropDrag drag, double x, double y) => drag.QCropBodyHandle(x, y);
+    internal static bool TCropPressHandle(QCropDrag drag, double x, double y) => drag.QCropPressHandle(x, y);
+    internal static bool TCropMoveHandle(QCropDrag drag, bool pressed, double x, double y) =>
+        drag.QCropMoveHandle(pressed, x, y);
+    internal static bool TCropReleaseHandle(QCropDrag drag, double x, double y) => drag.QCropReleaseHandle(x, y);
 }

@@ -18,7 +18,7 @@ Unsubscribes from the strip, which outlives this control.
 Without it a closed deck would keep receiving tab notices.
 It also closes the deportment, which subscribes the strip's selection itself.
 
-## `private void PDeckAddHandle(LStripTab lStripTab)`
+## `private void PDeckAddHandle(QStripTab lStripTab)`
 
 A new root starts collapsed.
 The deportment reveals it when its tab is selected.

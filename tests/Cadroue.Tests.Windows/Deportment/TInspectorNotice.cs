@@ -11,7 +11,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ToneValue_RaisesOnceOnChange_NeverOnSameValue()
     {
-        LTone tone = TInterface.TToneCreate();
+        QTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
@@ -25,7 +25,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ToneContrast_ClampsToRange_ThenStaysQuiet()
     {
-        LTone tone = TInterface.TToneCreate();
+        QTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
@@ -39,7 +39,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void GammaSlot_ChangesOnlyThatSlot_ResetRaisesOnce()
     {
-        LGamma gamma = TInterface.TGammaCreate();
+        QGamma gamma = TInterface.TGammaCreate();
         int notices = 0;
         TInterface.TGammaAttach(gamma, () => notices++);
 
@@ -62,7 +62,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ExposureValue_ClampsToStops_SameValueIsSilent()
     {
-        LExposure exposure = TInterface.TExposureCreate();
+        QExposure exposure = TInterface.TExposureCreate();
         int notices = 0;
         TInterface.TExposureAttach(exposure, () => notices++);
 
@@ -76,7 +76,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void SkipFlags_RaiseOnlyOnChange()
     {
-        LSkip skip = TInterface.TSkipCreate();
+        QSkip skip = TInterface.TSkipCreate();
         int notices = 0;
         TInterface.TSkipAttach(skip, () => notices++);
 
@@ -90,7 +90,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void VolumeGain_ClampsAndStaysQuietOnRepeat()
     {
-        LVolume volume = TInterface.TVolumeCreate();
+        QVolume volume = TInterface.TVolumeCreate();
         int notices = 0;
         TInterface.TVolumeAttach(volume, () => notices++);
 

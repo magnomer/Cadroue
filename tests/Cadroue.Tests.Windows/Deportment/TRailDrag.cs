@@ -6,12 +6,12 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TRailDrag
 {
-    private static LStrip TStripBuild() =>
+    private static QStrip TStripBuild() =>
         TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
 
-    private static LStripTab TStripTabAdd(LStrip strip, string key)
+    private static QStripTab TStripTabAdd(QStrip strip, string key)
     {
-        LStripTab tab = TInterface.TStripTabCreate(key);
+        QStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
         return tab;
     }
@@ -19,52 +19,52 @@ public sealed class TRailDrag
     [Fact]
     public void Press_SelectsAndArmsDrag_UntilThreshold()
     {
-        LStrip strip = TStripBuild();
-        LStripTab first = TStripTabAdd(strip, "Split");
-        LStripTab second = TStripTabAdd(strip, "Edit");
-        LRail rail = TInterface.TRailRead(strip);
+        QStrip strip = TStripBuild();
+        QStripTab first = TStripTabAdd(strip, "Split");
+        QStripTab second = TStripTabAdd(strip, "Edit");
+        QRail rail = TInterface.TRailRead(strip);
 
         Assert.True(TInterface.TRailPressHandle(rail, second, 1, false, 100, 20, 5, 5));
-        Assert.Same(second, strip.LStripSelected);
-        Assert.Same(second, rail.LRailDragTab);
-        Assert.False(rail.LRailDragActive);
+        Assert.Same(second, strip.QStripSelected);
+        Assert.Same(second, rail.QRailDragTab);
+        Assert.False(rail.QRailDragActive);
         Assert.True(TInterface.TRailMoveCheck(rail, true));
         Assert.False(TInterface.TRailMoveCheck(rail, false));
 
         Assert.False(TInterface.TRailDragResolve(rail, 102, 21, 4, 4));
-        Assert.False(rail.LRailDragActive);
+        Assert.False(rail.QRailDragActive);
         Assert.True(TInterface.TRailDragResolve(rail, 110, 20, 4, 4));
-        Assert.True(rail.LRailDragActive);
+        Assert.True(rail.QRailDragActive);
         Assert.False(TInterface.TRailDragResolve(rail, 120, 20, 4, 4));
 
         TInterface.TRailDragMove(rail, 10, [50, 150]);
-        Assert.Equal([second, first], strip.LStripTabs);
+        Assert.Equal([second, first], strip.QStripTabs);
 
         Assert.Same(second, TInterface.TRailReleaseResolve(rail));
-        Assert.Null(rail.LRailDragTab);
-        Assert.False(rail.LRailDragActive);
+        Assert.Null(rail.QRailDragTab);
+        Assert.False(rail.QRailDragActive);
     }
 
     [Fact]
     public void DoubleClickOnName_StartsEditing_WithoutDrag()
     {
-        LStrip strip = TStripBuild();
-        LStripTab tab = TStripTabAdd(strip, "Split");
-        LRail rail = TInterface.TRailRead(strip);
+        QStrip strip = TStripBuild();
+        QStripTab tab = TStripTabAdd(strip, "Split");
+        QRail rail = TInterface.TRailRead(strip);
 
         Assert.False(TInterface.TRailPressHandle(rail, tab, 2, true, 0, 0, 0, 0));
-        Assert.True(tab.LStripTabEditing);
-        Assert.Null(rail.LRailDragTab);
+        Assert.True(tab.QStripTabEditing);
+        Assert.Null(rail.QRailDragTab);
         Assert.Null(TInterface.TRailReleaseResolve(rail));
 
         Assert.True(TInterface.TRailKeyHandle(rail, tab, true, false, "Renamed"));
-        Assert.False(tab.LStripTabEditing);
-        Assert.Equal("Renamed", tab.LStripTabTitle);
+        Assert.False(tab.QStripTabEditing);
+        Assert.Equal("Renamed", tab.QStripTabTitle);
 
         TInterface.TStripEditSet(strip, tab, true);
         Assert.True(TInterface.TRailKeyHandle(rail, tab, false, true, "Ignored"));
-        Assert.False(tab.LStripTabEditing);
-        Assert.Equal("Renamed", tab.LStripTabTitle);
+        Assert.False(tab.QStripTabEditing);
+        Assert.Equal("Renamed", tab.QStripTabTitle);
         Assert.False(TInterface.TRailKeyHandle(rail, tab, false, false, "Ignored"));
         Assert.False(TInterface.TRailKeyHandle(rail, null, true, false, "Ignored"));
     }
@@ -72,19 +72,19 @@ public sealed class TRailDrag
     [Fact]
     public void OutsideClick_CommitsOnlyWhileEditingAndOutside()
     {
-        LStrip strip = TStripBuild();
-        LStripTab tab = TStripTabAdd(strip, "Split");
-        LRail rail = TInterface.TRailRead(strip);
+        QStrip strip = TStripBuild();
+        QStripTab tab = TStripTabAdd(strip, "Split");
+        QRail rail = TInterface.TRailRead(strip);
 
         TInterface.TRailOutsideHandle(rail, tab, false, "Skipped");
-        Assert.Equal("Split", tab.LStripTabTitle);
+        Assert.Equal("Split", tab.QStripTabTitle);
 
         TInterface.TStripEditSet(strip, tab, true);
         TInterface.TRailOutsideHandle(rail, tab, true, "Skipped");
-        Assert.True(tab.LStripTabEditing);
+        Assert.True(tab.QStripTabEditing);
         TInterface.TRailOutsideHandle(rail, tab, false, "Outside");
-        Assert.False(tab.LStripTabEditing);
-        Assert.Equal("Outside", tab.LStripTabTitle);
+        Assert.False(tab.QStripTabEditing);
+        Assert.Equal("Outside", tab.QStripTabTitle);
     }
 
     [Fact]

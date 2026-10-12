@@ -35,68 +35,68 @@ public sealed class PViewfinder : FrameworkElement
         [false] = null,
     };
 
-    private static readonly IReadOnlyDictionary<LViewfinderShapeKind, Brush> pViewfinderBrushes =
-        new Dictionary<LViewfinderShapeKind, Brush>
+    private static readonly IReadOnlyDictionary<QViewfinderShapeKind, Brush> pViewfinderBrushes =
+        new Dictionary<QViewfinderShapeKind, Brush>
         {
-            [LViewfinderShapeKind.LViewfinderShapeBackground] = pViewfinderBrushBackground,
-            [LViewfinderShapeKind.LViewfinderShapeRail] = pViewfinderBrushRail,
-            [LViewfinderShapeKind.LViewfinderShapeWaveform] = pViewfinderWaveformBrush,
-            [LViewfinderShapeKind.LViewfinderShapeCoverage] = pViewfinderBrushRail,
-            [LViewfinderShapeKind.LViewfinderShapeScanned] = pViewfinderCoverageBrush,
-            [LViewfinderShapeKind.LViewfinderShapeKeyframe] = pViewfinderBrushKeyframe,
+            [QViewfinderShapeKind.QViewfinderShapeBackground] = pViewfinderBrushBackground,
+            [QViewfinderShapeKind.QViewfinderShapeRail] = pViewfinderBrushRail,
+            [QViewfinderShapeKind.QViewfinderShapeWaveform] = pViewfinderWaveformBrush,
+            [QViewfinderShapeKind.QViewfinderShapeCoverage] = pViewfinderBrushRail,
+            [QViewfinderShapeKind.QViewfinderShapeScanned] = pViewfinderCoverageBrush,
+            [QViewfinderShapeKind.QViewfinderShapeKeyframe] = pViewfinderBrushKeyframe,
         };
 
-    private static readonly IReadOnlyDictionary<LViewfinderShapeKind, double> pViewfinderRadii =
-        new Dictionary<LViewfinderShapeKind, double>
+    private static readonly IReadOnlyDictionary<QViewfinderShapeKind, double> pViewfinderRadii =
+        new Dictionary<QViewfinderShapeKind, double>
         {
-            [LViewfinderShapeKind.LViewfinderShapeBackground] = 0,
-            [LViewfinderShapeKind.LViewfinderShapeRail] = 3,
-            [LViewfinderShapeKind.LViewfinderShapeWaveform] = 3,
-            [LViewfinderShapeKind.LViewfinderShapeCoverage] = 0,
-            [LViewfinderShapeKind.LViewfinderShapeScanned] = 0,
-            [LViewfinderShapeKind.LViewfinderShapeKeyframe] = 0,
+            [QViewfinderShapeKind.QViewfinderShapeBackground] = 0,
+            [QViewfinderShapeKind.QViewfinderShapeRail] = 3,
+            [QViewfinderShapeKind.QViewfinderShapeWaveform] = 3,
+            [QViewfinderShapeKind.QViewfinderShapeCoverage] = 0,
+            [QViewfinderShapeKind.QViewfinderShapeScanned] = 0,
+            [QViewfinderShapeKind.QViewfinderShapeKeyframe] = 0,
         };
 
-    public LViewfinder LViewfinder { get; }
+    public QViewfinder QViewfinder { get; }
 
-    public PViewfinder(LViewfinder lViewfinder)
+    public PViewfinder(QViewfinder lViewfinder)
     {
-        LViewfinder = lViewfinder;
-        LViewfinder.LViewfinderFrameApplied += InvalidateVisual;
+        QViewfinder = lViewfinder;
+        QViewfinder.QViewfinderFrameApplied += InvalidateVisual;
     }
 
     protected override void OnRender(DrawingContext drawingContext)
     {
-        LViewfinder.LViewfinderDrawStart();
-        LViewfinderFrame lFrame = LViewfinder.LViewfinderFrameResolve(ActualWidth, ActualHeight);
-        lFrame.LViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
+        QViewfinder.QViewfinderDrawStart();
+        QViewfinderFrame lFrame = QViewfinder.QViewfinderFrameResolve(ActualWidth, ActualHeight);
+        lFrame.QViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         drawingContext.DrawGeometry(
-            pViewfinderBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.LViewfinderFrameWaveform));
-        lFrame.LViewfinderFrameTicks.ToList().ForEach(lTick => PViewfinderTickDraw(drawingContext, lTick));
-        lFrame.LViewfinderFrameBands.ToList().ForEach(lBand => PViewfinderBandDraw(drawingContext, lBand));
-        lFrame.LViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
-        PViewfinderKeyframesDraw(drawingContext, lFrame.LViewfinderFrameKeyframes);
-        lFrame.LViewfinderFrameCursor.ToList().ForEach(lCursor => PViewfinderCursorDraw(drawingContext, lCursor));
-        LViewfinder.LViewfinderDrawRecord();
+            pViewfinderBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QViewfinderFrameWaveform));
+        lFrame.QViewfinderFrameTicks.ToList().ForEach(lTick => PViewfinderTickDraw(drawingContext, lTick));
+        lFrame.QViewfinderFrameBands.ToList().ForEach(lBand => PViewfinderBandDraw(drawingContext, lBand));
+        lFrame.QViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
+        PViewfinderKeyframesDraw(drawingContext, lFrame.QViewfinderFrameKeyframes);
+        lFrame.QViewfinderFrameCursor.ToList().ForEach(lCursor => PViewfinderCursorDraw(drawingContext, lCursor));
+        QViewfinder.QViewfinderDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        e.Handled = LViewfinder.LViewfinderPressHandle(e.GetPosition(this).X, ActualWidth);
+        e.Handled = QViewfinder.QViewfinderPressHandle(e.GetPosition(this).X, ActualWidth);
         CaptureMouse();
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        e.Handled = LViewfinder.LViewfinderMoveHandle(e.GetPosition(this).X, ActualWidth);
+        e.Handled = QViewfinder.QViewfinderMoveHandle(e.GetPosition(this).X, ActualWidth);
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
-        LViewfinder.LViewfinderDragClear();
+        QViewfinder.QViewfinderDragClear();
         ReleaseMouseCapture();
         e.Handled = true;
     }
@@ -104,90 +104,90 @@ public sealed class PViewfinder : FrameworkElement
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
-        LViewfinder.LViewfinderDragClear();
+        QViewfinder.QViewfinderDragClear();
     }
 
-    private static void PViewfinderShapeDraw(DrawingContext drawingContext, LViewfinderShape lShape) =>
+    private static void PViewfinderShapeDraw(DrawingContext drawingContext, QViewfinderShape lShape) =>
         drawingContext.DrawRoundedRectangle(
-            pViewfinderBrushes[lShape.LViewfinderShapeKind],
+            pViewfinderBrushes[lShape.QViewfinderShapeKind],
             null,
             PViewfinderRectRead(lShape),
-            pViewfinderRadii[lShape.LViewfinderShapeKind],
-            pViewfinderRadii[lShape.LViewfinderShapeKind]);
+            pViewfinderRadii[lShape.QViewfinderShapeKind],
+            pViewfinderRadii[lShape.QViewfinderShapeKind]);
 
-    private static void PViewfinderKeyframesDraw(DrawingContext drawingContext, IReadOnlyList<LViewfinderShape> lMarks)
+    private static void PViewfinderKeyframesDraw(DrawingContext drawingContext, IReadOnlyList<QViewfinderShape> lMarks)
     {
         var pGuidelines = new GuidelineSet();
-        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.LViewfinderShapeLeft));
-        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.LViewfinderShapeRight));
+        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.QViewfinderShapeLeft));
+        lMarks.ToList().ForEach(lMark => pGuidelines.GuidelinesX.Add(lMark.QViewfinderShapeRight));
         pGuidelines.Freeze();
         drawingContext.PushGuidelineSet(pGuidelines);
         lMarks.ToList().ForEach(lMark => PViewfinderShapeDraw(drawingContext, lMark));
         drawingContext.Pop();
     }
 
-    private void PViewfinderTickDraw(DrawingContext drawingContext, LViewfinderGraduation lTick)
+    private void PViewfinderTickDraw(DrawingContext drawingContext, QViewfinderGraduation lTick)
     {
         drawingContext.DrawLine(
             pViewfinderTickPen,
-            new Point(lTick.LViewfinderTickX, lTick.LViewfinderTickTop),
-            new Point(lTick.LViewfinderTickX, lTick.LViewfinderTickBottom));
+            new Point(lTick.QViewfinderTickX, lTick.QViewfinderTickTop),
+            new Point(lTick.QViewfinderTickX, lTick.QViewfinderTickBottom));
         FormattedText pLabel = PViewfinderTextBuild(
-            lTick.LViewfinderTickLabel, pViewfinderTickTypeface, 9, pViewfinderTickBrush);
-        LViewfinderPoint lPoint = LViewfinderText.LViewfinderTickResolve(lTick, pLabel.Height);
-        drawingContext.DrawText(pLabel, new Point(lPoint.LViewfinderPointX, lPoint.LViewfinderPointY));
+            lTick.QViewfinderTickLabel, pViewfinderTickTypeface, 9, pViewfinderTickBrush);
+        QViewfinderPoint lPoint = QViewfinderText.QViewfinderTickResolve(lTick, pLabel.Height);
+        drawingContext.DrawText(pLabel, new Point(lPoint.QViewfinderPointX, lPoint.QViewfinderPointY));
     }
 
-    private void PViewfinderBandDraw(DrawingContext drawingContext, LViewfinderBand lBand)
+    private void PViewfinderBandDraw(DrawingContext drawingContext, QViewfinderBand lBand)
     {
         FormattedText pBadgeText = PViewfinderTextBuild(
-            lBand.LViewfinderBandBadge, pViewfinderBadgeTypeface, PSection.PSectionNameSize, pViewfinderBadgeBrush);
-        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.LViewfinderBandShown]);
+            lBand.QViewfinderBandBadge, pViewfinderBadgeTypeface, PSection.PSectionNameSize, pViewfinderBadgeBrush);
+        drawingContext.PushOpacity(PLook.PLookOpacity[lBand.QViewfinderBandShown]);
         drawingContext.DrawRoundedRectangle(
-            PSectionPalette.PSectionBandRead(lBand.LViewfinderBandColor),
-            pViewfinderSelectedPens[lBand.LViewfinderBandSelected],
+            PSectionPalette.PSectionBandRead(lBand.QViewfinderBandColor),
+            pViewfinderSelectedPens[lBand.QViewfinderBandSelected],
             new Rect(
-                new Point(lBand.LViewfinderBandLeft, lBand.LViewfinderBandTop),
-                new Point(lBand.LViewfinderBandRight, lBand.LViewfinderBandBottom)),
+                new Point(lBand.QViewfinderBandLeft, lBand.QViewfinderBandTop),
+                new Point(lBand.QViewfinderBandRight, lBand.QViewfinderBandBottom)),
             3,
             3);
-        LViewfinderText.LViewfinderLabelResolve(lBand, pBadgeText.Width, pBadgeText.Height)
+        QViewfinderText.QViewfinderLabelResolve(lBand, pBadgeText.Width, pBadgeText.Height)
             .ToList()
             .ForEach(lLabel => PViewfinderLabelDraw(drawingContext, lBand, lLabel, pBadgeText));
         drawingContext.Pop();
     }
 
     private void PViewfinderLabelDraw(
-        DrawingContext drawingContext, LViewfinderBand lBand, LViewfinderLabel lLabel, FormattedText pBadgeText)
+        DrawingContext drawingContext, QViewfinderBand lBand, QViewfinderLabel lLabel, FormattedText pBadgeText)
     {
-        FormattedText pNameText = PViewfinderNameBuild(lLabel.LViewfinderLabelName, lLabel.LViewfinderLabelRoom);
-        LViewfinderBadge lBadge = LViewfinderText.LViewfinderBadgeResolve(
+        FormattedText pNameText = PViewfinderNameBuild(lLabel.QViewfinderLabelName, lLabel.QViewfinderLabelRoom);
+        QViewfinderBadge lBadge = QViewfinderText.QViewfinderBadgeResolve(
             lBand, lLabel, pBadgeText.Width, pBadgeText.Height, pNameText.Width, pNameText.Height);
         drawingContext.DrawRoundedRectangle(
-            PSectionPalette.PSectionBadgeRead(lBand.LViewfinderBandColor),
+            PSectionPalette.PSectionBadgeRead(lBand.QViewfinderBandColor),
             null,
             new Rect(
-                new Point(lBadge.LViewfinderBadgeLeft, lBadge.LViewfinderBadgeTop),
-                new Point(lBadge.LViewfinderBadgeRight, lBadge.LViewfinderBadgeBottom)),
-            lBadge.LViewfinderBadgeRadius,
-            lBadge.LViewfinderBadgeRadius);
-        drawingContext.DrawText(pBadgeText, PViewfinderPointRead(lBadge.LViewfinderBadgeText));
-        drawingContext.DrawText(pNameText, PViewfinderPointRead(lBadge.LViewfinderBadgeName));
+                new Point(lBadge.QViewfinderBadgeLeft, lBadge.QViewfinderBadgeTop),
+                new Point(lBadge.QViewfinderBadgeRight, lBadge.QViewfinderBadgeBottom)),
+            lBadge.QViewfinderBadgeRadius,
+            lBadge.QViewfinderBadgeRadius);
+        drawingContext.DrawText(pBadgeText, PViewfinderPointRead(lBadge.QViewfinderBadgeText));
+        drawingContext.DrawText(pNameText, PViewfinderPointRead(lBadge.QViewfinderBadgeName));
     }
 
-    private void PViewfinderCursorDraw(DrawingContext drawingContext, LViewfinderCursor lCursor)
+    private void PViewfinderCursorDraw(DrawingContext drawingContext, QViewfinderCursor lCursor)
     {
         FormattedText pTimeText = PViewfinderTextBuild(
-            lCursor.LViewfinderCursorText, pViewfinderTickTypeface, 10, pViewfinderCursorBrush);
-        LViewfinderChip lChip = LViewfinderText.LViewfinderChipResolve(
+            lCursor.QViewfinderCursorText, pViewfinderTickTypeface, 10, pViewfinderCursorBrush);
+        QViewfinderChip lChip = QViewfinderText.QViewfinderChipResolve(
             lCursor, pTimeText.Width, pTimeText.Height, ActualWidth, ActualHeight);
         var pChipRect = new Rect(
-            new Point(lChip.LViewfinderChipLeft, lChip.LViewfinderChipTop),
-            new Point(lChip.LViewfinderChipRight, lChip.LViewfinderChipBottom));
+            new Point(lChip.QViewfinderChipLeft, lChip.QViewfinderChipTop),
+            new Point(lChip.QViewfinderChipRight, lChip.QViewfinderChipBottom));
         PCursor.PCursorDraw(
-            drawingContext, lCursor.LViewfinderCursorX, LViewfinder.LViewfinderLaneHeight, ActualHeight, pChipRect);
+            drawingContext, lCursor.QViewfinderCursorX, QViewfinder.QViewfinderLaneHeight, ActualHeight, pChipRect);
         drawingContext.DrawRoundedRectangle(pTimecodeBackgroundBrush, pTimecodeBorderPen, pChipRect, 3, 3);
-        drawingContext.DrawText(pTimeText, PViewfinderPointRead(lChip.LViewfinderChipText));
+        drawingContext.DrawText(pTimeText, PViewfinderPointRead(lChip.QViewfinderChipText));
     }
 
     private FormattedText PViewfinderTextBuild(string pText, Typeface pTypeface, double pSize, Brush pBrush) => new(
@@ -213,12 +213,12 @@ public sealed class PViewfinder : FrameworkElement
         Trimming = TextTrimming.CharacterEllipsis
     };
 
-    private static Rect PViewfinderRectRead(LViewfinderShape lShape) => new(
-        new Point(lShape.LViewfinderShapeLeft, lShape.LViewfinderShapeTop),
-        new Point(lShape.LViewfinderShapeRight, lShape.LViewfinderShapeBottom));
+    private static Rect PViewfinderRectRead(QViewfinderShape lShape) => new(
+        new Point(lShape.QViewfinderShapeLeft, lShape.QViewfinderShapeTop),
+        new Point(lShape.QViewfinderShapeRight, lShape.QViewfinderShapeBottom));
 
-    private static Point PViewfinderPointRead(LViewfinderPoint lPoint) =>
-        new(lPoint.LViewfinderPointX, lPoint.LViewfinderPointY);
+    private static Point PViewfinderPointRead(QViewfinderPoint lPoint) =>
+        new(lPoint.QViewfinderPointX, lPoint.QViewfinderPointY);
 
     private static Brush PViewfinderBrushBuild(byte pAlpha, byte pRed, byte pGreen, byte pBlue)
     {

@@ -6,18 +6,18 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TCompassButtons
 {
-    private static (LCompass TCompass, LFlow TFlow, LViewer TViewer) TCompassBuild(bool sections)
+    private static (QCompass TCompass, QFlow TFlow, QViewer TViewer) TCompassBuild(bool sections)
     {
-        LFlow flow = TInterface.TFlowCreate();
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QFlow flow = TInterface.TFlowCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         return (TInterface.TCompassCreate(flow, viewer, sections), flow, viewer);
     }
 
     [Fact]
     public void GroupsRead_HidesSectionGroups_UnlessShown()
     {
-        (LCompass plain, _, _) = TCompassBuild(false);
-        (LCompass split, _, _) = TCompassBuild(true);
+        (QCompass plain, _, _) = TCompassBuild(false);
+        (QCompass split, _, _) = TCompassBuild(true);
 
         Assert.Equal(3, TInterface.TCompassGroupsRead(plain).Count);
         Assert.Empty(TInterface.TCompassSectionRead(plain));
@@ -27,53 +27,53 @@ public sealed class TCompassButtons
             ["ZoomIn", "ZoomOut", "Play", "SectionAdd", "SectionDelete", "SectionStart", "SectionSplit", "SectionEnd",
                 "KeyframePrevious", "KeyframeNearest", "KeyframeNext"],
             TInterface.TCompassGroupsRead(split)
-                .SelectMany(g => g.LCompassGroupButtons)
-                .Select(b => b.LCompassButtonKey));
+                .SelectMany(g => g.QCompassGroupButtons)
+                .Select(b => b.QCompassButtonKey));
     }
 
     [Fact]
     public void PlayRead_SwapsFaceByPlaying()
     {
-        LCompassButton play = TInterface.TCompassPlayRead(false);
-        LCompassButton pause = TInterface.TCompassPlayRead(true);
+        QCompassButton play = TInterface.TCompassPlayRead(false);
+        QCompassButton pause = TInterface.TCompassPlayRead(true);
 
-        Assert.Equal(LCompass.LCompassPlayKey, play.LCompassButtonKey);
-        Assert.Equal(LCompass.LCompassPlayKey, pause.LCompassButtonKey);
-        Assert.Equal("PCompassPlay.svg", play.LCompassButtonIcon);
-        Assert.Equal("PCompassPause.svg", pause.LCompassButtonIcon);
-        Assert.Equal(LCompass.LCompassAccentPositive, play.LCompassButtonAccent);
-        Assert.Equal(LCompass.LCompassAccentNone, pause.LCompassButtonAccent);
+        Assert.Equal(QCompass.QCompassPlayKey, play.QCompassButtonKey);
+        Assert.Equal(QCompass.QCompassPlayKey, pause.QCompassButtonKey);
+        Assert.Equal("PCompassPlay.svg", play.QCompassButtonIcon);
+        Assert.Equal("PCompassPause.svg", pause.QCompassButtonIcon);
+        Assert.Equal(QCompass.QCompassAccentPositive, play.QCompassButtonAccent);
+        Assert.Equal(QCompass.QCompassAccentNone, pause.QCompassButtonAccent);
     }
 
     [Fact]
     public void Run_PlayKey_TogglesByViewer_OtherKeysReachFlow()
     {
-        (LCompass compass, LFlow flow, LViewer viewer) = TCompassBuild(false);
+        (QCompass compass, QFlow flow, QViewer viewer) = TCompassBuild(false);
         int plays = 0;
         int pauses = 0;
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowPlayAttach(flow, () => plays++, () => pauses++, _ => { }, _ => { });
 
-        TInterface.TCompassRun(compass, LCompass.LCompassPlayKey);
+        TInterface.TCompassRun(compass, QCompass.QCompassPlayKey);
         Assert.Equal((1, 0), (plays, pauses));
 
         TInterfaceViewer.TViewerPlaybackUpdate(viewer, true, null);
-        TInterface.TCompassRun(compass, LCompass.LCompassPlayKey);
+        TInterface.TCompassRun(compass, QCompass.QCompassPlayKey);
         Assert.Equal((1, 1), (plays, pauses));
 
-        bool waveform = compass.LCompassWaveformActive;
+        bool waveform = compass.QCompassWaveformActive;
         TInterface.TCompassWaveformToggle(compass);
-        Assert.Equal(!waveform, compass.LCompassWaveformActive);
+        Assert.Equal(!waveform, compass.QCompassWaveformActive);
     }
 
     [Fact]
     public void VolumeSet_ClampsAndSkipsEqual()
     {
-        (LCompass compass, _, LViewer viewer) = TCompassBuild(false);
+        (QCompass compass, _, QViewer viewer) = TCompassBuild(false);
         TInterfaceViewer.TViewerCommandSet(viewer, true);
         List<double> applied = [];
         TInterface.TCompassVolumeAttach(viewer, applied.Add);
-        double current = compass.LCompassVolume;
+        double current = compass.QCompassVolume;
 
         TInterface.TCompassVolumeSet(compass, current);
         Assert.Empty(applied);

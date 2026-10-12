@@ -4,7 +4,7 @@ Hash: `32353b610cc09443`
 ## `public partial class PWindow : Window`
 
 The main window shell.
-It wires the strip, rail, toolbar, console and deck together and answers `LWindow` notices with control calls.
+It wires the strip, rail, toolbar, console and deck together and answers `QWindow` notices with control calls.
 Partial peers hold the drop, shortcut and resize handlers.
 
 ## `public PWindow()`
@@ -21,24 +21,24 @@ Returns null when no main window is open.
 
 ## `private void PWindowNoticesAttach()`
 
-Subscribes every `LWindow`, `LSash` and ask notice in one place.
+Subscribes every `QWindow`, `QSash` and ask notice in one place.
 The close handler undoes the ask subscription and the peers' handlers.
 
 ## `private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);`
 
 The seam that lets the deportment run a body on the UI thread without referencing the Dispatcher.
 
-## `private void PWindowAskHandle(LAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);`
+## `private void PWindowAskHandle(QAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);`
 
 The only place a destructive question becomes a modal.
 The answer returns to the deportment through the callback.
 
-## `private void PWindowTabHandle(LStripTab? lStripTab) =>`
+## `private void PWindowTabHandle(QStripTab? lStripTab) =>`
 
 Hands the deportment the selected tab and the viewer of its workspace.
 A tab without a workspace passes a null viewer.
 
-## `private void PWindowAddHandle(LWindowTab lTab)`
+## `private void PWindowAddHandle(QWindowTab lTab)`
 
 Creates the tab with its restored preset and layout, then applies its saved name.
 
@@ -47,12 +47,12 @@ Creates the tab with its restored preset and layout, then applies its saved name
 Runs at Loaded priority.
 So a launch with a media path opens it after the first layout pass.
 
-## `private void PWindowTabAttach(LStripTab lTab, double pFlowHeight)`
+## `private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)`
 
 Applies the command state to the newly selected workspace and follows its width.
 The window width is resolved at once, so it fits the new tab.
 
-## `private void PWindowTabDetach(LStripTab lTab)`
+## `private void PWindowTabDetach(QStripTab lTab)`
 
 Stops following the width before the command state is reset.
 

@@ -36,7 +36,7 @@ internal sealed partial class PSOptions
             lsOptionsDraft.LPreferenceRecordWorkspace =
                 string.Equals(PSField.PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
             pRecordBesideNotice.Text = LLocalization.LLocalizationFormat(
-                lsOptions.LSOptionsRecordResolve(), LSOptions.LSOptionsSidecarRead());
+                lsOptions.QSOptionsRecordResolve(), QSOptions.QSOptionsSidecarRead());
         }
         PSSystemNoticeUpdate();
         psOptionsRecordNotice = PSSystemNoticeUpdate;
@@ -51,7 +51,7 @@ internal sealed partial class PSOptions
     private void PSSystemRecordClear()
     {
         string pRecordFolder = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderRead();
-        if (!lsOptions.LSOptionsFolderExist(pRecordFolder))
+        if (!lsOptions.QSOptionsFolderExist(pRecordFolder))
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,
@@ -99,7 +99,7 @@ internal sealed partial class PSOptions
         }
     }
 
-    private bool PSWorkspaceAppliedCheck() => LSOptions.LSOptionsAppliedCheck(psWorkspaceBox.Text);
+    private bool PSWorkspaceAppliedCheck() => QSOptions.QSOptionsAppliedCheck(psWorkspaceBox.Text);
 
     private void PSSystemDoneClear()
     {

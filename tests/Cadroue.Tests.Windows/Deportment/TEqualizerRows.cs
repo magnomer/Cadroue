@@ -10,18 +10,18 @@ public sealed class TEqualizerRows
     [Fact]
     public void Rows_MirrorBands_WithIndexAndText()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
-        IReadOnlyList<LEqualizerBand> rows = equalizer.LEqualizerRows;
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        IReadOnlyList<QEqualizerBand> rows = equalizer.QEqualizerRows;
 
         Assert.Equal(TInterface.TEqualizerBandsRead(equalizer).Count, rows.Count);
-        Assert.Equal(Enumerable.Range(0, rows.Count), rows.Select(row => row.LEqualizerBandIndex));
-        Assert.Equal(TInterface.TEqualizerFrequencyRead(equalizer, 0), rows[0].LEqualizerBandFrequency);
+        Assert.Equal(Enumerable.Range(0, rows.Count), rows.Select(row => row.QEqualizerBandIndex));
+        Assert.Equal(TInterface.TEqualizerFrequencyRead(equalizer, 0), rows[0].QEqualizerBandFrequency);
     }
 
     [Fact]
     public void RowsChange_OnlyWhenCountChanges()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
         int rows = 0;
         int changes = 0;
         TInterface.TEqualizerRowsAttach(equalizer, () => rows++);
@@ -41,7 +41,7 @@ public sealed class TEqualizerRows
     [Fact]
     public void FrequencyCommit_ParsesAndEchoes_OneChange()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
         int changes = 0;
         TInterface.TEqualizerAttach(equalizer, () => changes++);
 
@@ -59,16 +59,16 @@ public sealed class TEqualizerRows
     [Fact]
     public void Choice_SelectByIndex_ThenGainEditBreaksMatch()
     {
-        LEqualizer equalizer = TInterface.TEqualizerCreate();
+        QEqualizer equalizer = TInterface.TEqualizerCreate();
         IReadOnlyList<string> tokens = Interface.TInterface.TContourTokensRead();
 
         TInterface.TEqualizerChoiceSelect(equalizer, 1);
         Assert.Equal(tokens[1], TInterface.TEqualizerTokenRead(equalizer));
-        Assert.Equal(1, TInterface.TEqualizerChoiceRead(equalizer).LInspectorChoiceIndex);
+        Assert.Equal(1, TInterface.TEqualizerChoiceRead(equalizer).QInspectorChoiceIndex);
 
         TInterface.TEqualizerGainSet(equalizer, 0, TInterface.TEqualizerGainRead(equalizer, 0) + 1);
-        LInspectorChoice choice = TInterface.TEqualizerChoiceRead(equalizer);
-        Assert.Equal(choice.LInspectorChoiceCustom, choice.LInspectorChoiceIndex);
+        QInspectorChoice choice = TInterface.TEqualizerChoiceRead(equalizer);
+        Assert.Equal(choice.QInspectorChoiceCustom, choice.QInspectorChoiceIndex);
         Assert.Equal(tokens[1], TInterface.TEqualizerTokenRead(equalizer));
     }
 
@@ -83,10 +83,10 @@ public sealed class TEqualizerRows
         Assert.Equal("B", TInterfaceInspector.TInspectorChoiceResolve(tokens, 1, "A", "A"));
         Assert.Equal("A", TInterfaceInspector.TInspectorChoiceResolve(tokens, 0, "A", null));
 
-        LInspectorChoice drifted = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", null);
-        Assert.Equal(2, drifted.LInspectorChoiceIndex);
-        Assert.Equal(3, drifted.LInspectorChoiceNames.Count);
-        LInspectorChoice matched = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", "B");
-        Assert.Equal(1, matched.LInspectorChoiceIndex);
+        QInspectorChoice drifted = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", null);
+        Assert.Equal(2, drifted.QInspectorChoiceIndex);
+        Assert.Equal(3, drifted.QInspectorChoiceNames.Count);
+        QInspectorChoice matched = TInterfaceInspector.TInspectorChoiceRead(tokens, token => token, "A", "B");
+        Assert.Equal(1, matched.QInspectorChoiceIndex);
     }
 }

@@ -9,4 +9,4 @@ Both feed one correction pipeline, differing only in the target they hand the vi
 
 ## `private void PWhitebalanceToolUpdate()`
 
-Writes both toggles from `LWhitebalance` and raises the viewer notice only when the armed state or target changed.
+Writes both toggles from `QWhitebalance` and raises the viewer notice only when the armed state or target changed.

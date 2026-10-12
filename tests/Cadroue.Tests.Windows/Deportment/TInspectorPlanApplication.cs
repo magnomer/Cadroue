@@ -11,7 +11,7 @@ public sealed class TInspectorPlanApplication
     [Fact]
     public void PlanApply_SetsEverySection_RaisesOneVideoNotice()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         int notices = 0;
         TInterfaceInspector.TInspectorVideoAttach(inspector, () => notices++);
@@ -35,11 +35,11 @@ public sealed class TInspectorPlanApplication
         TInterfaceInspector.TInspectorPlanApply(inspector, plan);
 
         Assert.Equal(1, notices);
-        Assert.Equal(plan.LEditCrop, inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop);
-        Assert.True(inspector.LInspectorCrop.LInspectorActive);
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioFixed);
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioLenient);
-        Assert.Equal(3, inspector.LInspectorCrop.LInspectorPresetIndex);
+        Assert.Equal(plan.LEditCrop, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);
+        Assert.True(inspector.QInspectorCrop.QInspectorActive);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioFixed);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioLenient);
+        Assert.Equal(3, inspector.QInspectorCrop.QInspectorPresetIndex);
         Assert.Equal(12, TInterfaceInspector.TInspectorStepRead(
             inspector, LColorKind.LColorKindBrightness).LWorkStepValue);
         Assert.Equal(110, TInterfaceInspector.TInspectorStepRead(
@@ -49,13 +49,13 @@ public sealed class TInspectorPlanApplication
         Assert.True(TInterfaceInspector.TInspectorStepRead(inspector, LColorKind.LColorKindGamma).LWorkStepActive);
         Assert.False(TInterfaceInspector.TInspectorStepRead(
             inspector, LColorKind.LColorKindSaturation).LWorkStepActive);
-        Assert.True(inspector.LInspectorSkip.LSkipActive);
+        Assert.True(inspector.QInspectorSkip.QSkipActive);
     }
 
     [Fact]
     public void VideoApply_RaisesOnce_SingleSetRaisesEach()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         int notices = 0;
         TInterfaceInspector.TInspectorVideoAttach(inspector, () => notices++);
 
@@ -66,8 +66,8 @@ public sealed class TInspectorPlanApplication
         ]));
         Assert.Equal(1, notices);
 
-        TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, 7);
-        TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, 90);
+        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 7);
+        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, 90);
 
         Assert.Equal(3, notices);
     }
@@ -75,18 +75,18 @@ public sealed class TInspectorPlanApplication
     [Fact]
     public void PersistentChange_RaisesOncePerFlip_NotOnValues()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         int notices = 0;
         TInterfaceInspector.TInspectorPersistentAttach(inspector, () => notices++);
 
-        TInterface.TToneValueSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, 7);
+        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 7);
         Assert.Equal(0, notices);
 
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindBrightness, true);
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindBrightness, true);
-        TInterface.TSkipPersistentSet(inspector.LInspectorSkip, true);
-        TInterfaceCrop.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
-        TInterface.TVolumePersistentSet(inspector.LInspectorAudio.LInspectorVolume, true);
+        TInterface.TSkipPersistentSet(inspector.QInspectorSkip, true);
+        TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
+        TInterface.TVolumePersistentSet(inspector.QInspectorAudio.QInspectorVolume, true);
 
         Assert.Equal(4, notices);
     }
@@ -94,37 +94,37 @@ public sealed class TInspectorPlanApplication
     [Fact]
     public void AudioApply_RaisesOneAudioNotice()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         int notices = 0;
-        inspector.LInspectorAudio.LInspectorAudioChanged += () => notices++;
+        inspector.QInspectorAudio.QInspectorAudioChanged += () => notices++;
 
         LWorkAudioStep volume = Interface.TInterface.TWorkVolumeCreate(true, 3);
         TInterfaceInspector.TInspectorAudioApply(
-            inspector.LInspectorAudio, Interface.TInterface.TWorkAudioCreate([volume], false));
+            inspector.QInspectorAudio, Interface.TInterface.TWorkAudioCreate([volume], false));
 
         Assert.Equal(1, notices);
-        Assert.Equal(3, inspector.LInspectorAudio.LInspectorVolume.LVolumeGain);
+        Assert.Equal(3, inspector.QInspectorAudio.QInspectorVolume.QVolumeGain);
     }
 
     [Fact]
     public void Section_Shown_Title_FollowStep()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
         TInterfaceInspector.TInspectorStepSet(inspector, "Noise Reduction");
 
         Assert.True(TInterfaceInspector.TInspectorSectionCheck(inspector, "Noise Reduction"));
         Assert.False(TInterfaceInspector.TInspectorSectionCheck(inspector, "Crop"));
-        Assert.True(inspector.LInspectorPersistentShown);
-        Assert.False(inspector.LInspectorEmptyShown);
+        Assert.True(inspector.QInspectorPersistentShown);
+        Assert.False(inspector.QInspectorEmptyShown);
         Assert.Equal(
             Interface.TInterface.TLocalizationTextRead("Inspector.Step.NoiseReduction"),
             TInterfaceInspector.TInspectorTitleRead(inspector));
 
         TInterfaceInspector.TInspectorStepSet(inspector, "Nowhere");
 
-        Assert.False(inspector.LInspectorPersistentShown);
-        Assert.True(inspector.LInspectorEmptyShown);
+        Assert.False(inspector.QInspectorPersistentShown);
+        Assert.True(inspector.QInspectorEmptyShown);
         string title = Interface.TInterface.TLocalizationTextRead("Inspector.Header.Title");
         Assert.Equal(title, TInterfaceInspector.TInspectorTitleRead(inspector));
     }
@@ -132,35 +132,35 @@ public sealed class TInspectorPlanApplication
     [Fact]
     public void StepSet_AwayFromCrop_DisarmsTool_RaisesToolNotice()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         var armed = new List<bool>();
-        inspector.LInspectorToolChanged += armed.Add;
+        inspector.QInspectorToolChanged += armed.Add;
         TInterfaceInspector.TInspectorStepSet(inspector, "Crop");
         TInterfaceInspector.TInspectorToolSet(inspector, true);
 
         TInterfaceInspector.TInspectorStepSet(inspector, "Gamma");
 
-        Assert.False(inspector.LInspectorToolArmed);
+        Assert.False(inspector.QInspectorToolArmed);
         Assert.Equal(new[] { true, false }, armed);
     }
 
     [Fact]
     public void TipResolve_DisabledThenPreview_ThenApplyKeys()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
-        LInspectorTip disabled = TInterfaceInspector.TInspectorTipResolve(
+        QInspectorTip disabled = TInterfaceInspector.TInspectorTipResolve(
             inspector, true, false, true, "Disabled", "Preview");
-        LInspectorTip preview = TInterfaceInspector.TInspectorTipResolve(
+        QInspectorTip preview = TInterfaceInspector.TInspectorTipResolve(
             inspector, true, true, false, "Disabled", "Preview");
-        LInspectorTip plain = TInterfaceInspector.TInspectorTipResolve(
+        QInspectorTip plain = TInterfaceInspector.TInspectorTipResolve(
             inspector, true, true, true, "Disabled", "Preview");
 
-        Assert.False(disabled.LInspectorTipEnabled);
-        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Disabled"), disabled.LInspectorTipBox);
-        Assert.True(preview.LInspectorTipEnabled);
-        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Preview"), preview.LInspectorTipNotice);
-        Assert.Null(plain.LInspectorTipNotice);
-        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Common.Apply"), plain.LInspectorTipBox);
+        Assert.False(disabled.QInspectorTipEnabled);
+        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Disabled"), disabled.QInspectorTipBox);
+        Assert.True(preview.QInspectorTipEnabled);
+        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Preview"), preview.QInspectorTipNotice);
+        Assert.Null(plain.QInspectorTipNotice);
+        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Common.Apply"), plain.QInspectorTipBox);
     }
 }

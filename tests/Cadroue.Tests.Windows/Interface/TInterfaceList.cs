@@ -10,58 +10,58 @@ internal static class TInterfaceList
     internal static LDocket TDocketCreate() => new();
     internal static int TDocketPathsAdd(LDocket docket, params string[] paths) => docket.LDocketPathsAdd(paths);
     internal static int TDocketPathsRemove(LDocket docket, params string[] paths) => docket.LDocketPathsRemove(paths);
-    internal static LList TListCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
-    internal static void TListPathAttach(LList list, Action<string?> handler) => list.LListPathChanged += handler;
-    internal static void TListSelect(LList list, string? path) => list.LListSelect(path);
-    internal static void TListPressSelect(LList list, string path, bool shift, bool control) =>
-        list.LListPressSelect(path, shift, control);
-    internal static void TListReleaseSelect(LList list) => list.LListReleaseSelect();
-    internal static void TListAllSelect(LList list) => list.LListAllSelect();
-    internal static IReadOnlyList<string> TListSelectionRead(LList list) => list.LListSelectionRead();
-    internal static void TListSuccessorSet(LList list, params string[] removed) => list.LListSuccessorSet(removed);
-    internal static void TListSuccessorReset(LList list) => list.LListSuccessorReset();
-    internal static void TListRemovedApply(LList list, params string[] removed) => list.LListRemovedApply(removed);
-    internal static void TListSuccessorSelect(LList list) => list.LListSuccessorSelect();
-    internal static void TListChangeAttach(LList list, Action handler) => list.LListChanged += handler;
-    internal static void TListClearAttach(LList list, Action<IReadOnlyList<string>> handler) =>
-        list.LListClearChanged += handler;
-    internal static void TListItemsAttach(LList list, Action<IReadOnlyList<LDocketEntry>> handler) =>
-        list.LListItemsAdded += handler;
-    internal static void TListLockAttach(LList list, Action<bool> handler) => list.LListLockChanged += handler;
-    internal static Task<int> TListPathsAdd(LList list, params string[] paths) => list.LListPathsAdd(paths);
-    internal static void TListDialogAdd(LList list, bool? confirmed, IReadOnlyList<string> paths) =>
-        list.LListDialogAdd(confirmed, paths, "file");
-    internal static void TListRemove(LList list) => list.LListRemove();
-    internal static void TListClear(LList list) => list.LListClear();
-    internal static bool TListLockCheck(LList list) => list.LListLockCheck();
-    internal static IReadOnlyList<LListCard> TListCardsRead(LList list) => list.LListFace.LListCardsRead();
-    internal static string TListStateRead(LList list, string path) => list.LListFace.LListStateRead(path);
+    internal static QList TListCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
+    internal static void TListPathAttach(QList list, Action<string?> handler) => list.QListPathChanged += handler;
+    internal static void TListSelect(QList list, string? path) => list.QListSelect(path);
+    internal static void TListPressSelect(QList list, string path, bool shift, bool control) =>
+        list.QListPressSelect(path, shift, control);
+    internal static void TListReleaseSelect(QList list) => list.QListReleaseSelect();
+    internal static void TListAllSelect(QList list) => list.QListAllSelect();
+    internal static IReadOnlyList<string> TListSelectionRead(QList list) => list.QListSelectionRead();
+    internal static void TListSuccessorSet(QList list, params string[] removed) => list.QListSuccessorSet(removed);
+    internal static void TListSuccessorReset(QList list) => list.QListSuccessorReset();
+    internal static void TListRemovedApply(QList list, params string[] removed) => list.QListRemovedApply(removed);
+    internal static void TListSuccessorSelect(QList list) => list.QListSuccessorSelect();
+    internal static void TListChangeAttach(QList list, Action handler) => list.QListChanged += handler;
+    internal static void TListClearAttach(QList list, Action<IReadOnlyList<string>> handler) =>
+        list.QListClearChanged += handler;
+    internal static void TListItemsAttach(QList list, Action<IReadOnlyList<LDocketEntry>> handler) =>
+        list.QListItemsAdded += handler;
+    internal static void TListLockAttach(QList list, Action<bool> handler) => list.QListLockChanged += handler;
+    internal static Task<int> TListPathsAdd(QList list, params string[] paths) => list.QListPathsAdd(paths);
+    internal static void TListDialogAdd(QList list, bool? confirmed, IReadOnlyList<string> paths) =>
+        list.QListDialogAdd(confirmed, paths, "file");
+    internal static void TListRemove(QList list) => list.QListRemove();
+    internal static void TListClear(QList list) => list.QListClear();
+    internal static bool TListLockCheck(QList list) => list.QListLockCheck();
+    internal static IReadOnlyList<QListCard> TListCardsRead(QList list) => list.QListFace.QListCardsRead();
+    internal static string TListStateRead(QList list, string path) => list.QListFace.QListStateRead(path);
     internal static bool TListPressHandle(
-        LList list, string path, bool shift, bool control, double x, double y, double grabX, double grabY) =>
-        list.LListDrag.LListPressHandle(path, shift, control, x, y, grabX, grabY);
-    internal static bool TListDragResolve(LList list, double x, double y, double minimum, bool pressed) =>
-        list.LListDrag.LListDragResolve(x, y, minimum, minimum, pressed);
-    internal static void TListReleaseHandle(LList list) => list.LListDrag.LListReleaseHandle();
-    internal static bool TListKeyRun(LList list, string key, bool control) => list.LListKeyRun(key, control);
+        QList list, string path, bool shift, bool control, double x, double y, double grabX, double grabY) =>
+        list.QListDrag.QListPressHandle(path, shift, control, x, y, grabX, grabY);
+    internal static bool TListDragResolve(QList list, double x, double y, double minimum, bool pressed) =>
+        list.QListDrag.QListDragResolve(x, y, minimum, minimum, pressed);
+    internal static void TListReleaseHandle(QList list) => list.QListDrag.QListReleaseHandle();
+    internal static bool TListKeyRun(QList list, string key, bool control) => list.QListKeyRun(key, control);
 
     internal static int TDocketDeliveredAdd(LDocket docket, string path, bool locked) =>
         docket.LDocketDeliveredAdd([path], Guid.NewGuid(), locked);
 
     internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
 
-    internal static void TListRelayAttach(LStrip strip) =>
-        LListRelay.LListRelayAttach(strip, TInterface.TAtelierCreate().CAtelierUsher);
+    internal static void TListRelayAttach(QStrip strip) =>
+        QListRelay.QListRelayAttach(strip, TInterface.TAtelierCreate().CAtelierUsher);
     internal static bool TListDeliveredAdd(Guid tab, string path, Guid batch) =>
-        LListRelay.LListDeliveredAdd(tab, path, batch);
+        QListRelay.QListDeliveredAdd(tab, path, batch);
     internal static bool TListDeliveredCommit(Guid tab, string path, Guid batch) =>
-        LListRelay.LListDeliveredCommit(tab, path, batch);
+        QListRelay.QListDeliveredCommit(tab, path, batch);
     internal static void TListDeliveredRemove(LWorkItem work, bool force) =>
-        LListRelay.LListDeliveredRemove(work, force);
-    internal static void TListBatchRemove(params Guid[] batches) => LListRelay.LListBatchRemove(batches);
-    internal static bool TListSourceClaim(params LWorkItem[] accepted) => LListRelay.LListSourceClaim(accepted);
+        QListRelay.QListDeliveredRemove(work, force);
+    internal static void TListBatchRemove(params Guid[] batches) => QListRelay.QListBatchRemove(batches);
+    internal static bool TListSourceClaim(params LWorkItem[] accepted) => QListRelay.QListSourceClaim(accepted);
     internal static void TListSourceRelease(
         IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> unlocks) =>
-        LListRelay.LListSourceRelease(unlocks);
+        QListRelay.QListSourceRelease(unlocks);
 
     internal static int TDocketDeliveredAdd(LDocket docket, string path, Guid batch, bool locked) =>
         docket.LDocketDeliveredAdd([path], batch, locked);

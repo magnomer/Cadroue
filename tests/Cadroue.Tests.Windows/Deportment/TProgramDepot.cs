@@ -47,7 +47,7 @@ public sealed class TProgramDepot : IDisposable
     {
         string first = Path.Combine(tDepotParent, "first");
         string second = Path.Combine(tDepotParent, "second");
-        LProgram program = TInterface.TProgramCreate();
+        QProgram program = TInterface.TProgramCreate();
 
         TDepotFolderSet(first);
         Assert.True(TInterface.TProgramDepotApply(program));
@@ -73,7 +73,7 @@ public sealed class TProgramDepot : IDisposable
         string occupied = Path.Combine(tDepotParent, "occupied");
         Directory.CreateDirectory(occupied);
         File.WriteAllText(Path.Combine(occupied, "keep.txt"), "occupied");
-        LProgram program = TInterface.TProgramCreate();
+        QProgram program = TInterface.TProgramCreate();
 
         TDepotFolderSet(first);
         Assert.True(TInterface.TProgramDepotApply(program));

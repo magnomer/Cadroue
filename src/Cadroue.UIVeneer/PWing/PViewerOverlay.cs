@@ -45,9 +45,9 @@ internal sealed class PViewerOverlay
     private readonly Popup pViewerOverlayPopup;
     private readonly PViewerMpvHost pViewerOverlayHost;
     private readonly Window pViewerOverlayWindow;
-    private readonly LViewerRenderer lViewerRenderer;
+    private readonly QViewerRenderer lViewerRenderer;
 
-    public PViewerOverlay(PViewerMpvHost pHost, LViewerRenderer lRenderer)
+    public PViewerOverlay(PViewerMpvHost pHost, QViewerRenderer lRenderer)
     {
         pViewerOverlayHost = pHost;
         lViewerRenderer = lRenderer;
@@ -84,7 +84,7 @@ internal sealed class PViewerOverlay
         PViewerOverlayPlace();
 
     public void PViewerOverlayPlace() =>
-        pViewerOverlayApplies[lViewerRenderer.LViewerOverlayHandle(
+        pViewerOverlayApplies[lViewerRenderer.QViewerOverlayHandle(
             pViewerOverlayHost.IsVisible,
             pViewerOverlayHost.ActualWidth,
             pViewerOverlayHost.ActualHeight)](this);

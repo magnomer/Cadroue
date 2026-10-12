@@ -18,7 +18,7 @@ public sealed class PFunnelRuleRow : Border
 
     private const double PFunnelFieldHeight = 30;
 
-    private readonly LFunnel lFunnel;
+    private readonly QFunnel lFunnel;
     private readonly List<PFunnelCondition> pFunnelConditions;
     private readonly ComboBox pFunnelRelayCombo;
     private readonly PFunnelRuleFrame pFunnelFrame;
@@ -26,7 +26,7 @@ public sealed class PFunnelRuleRow : Border
     private readonly TextBox pFunnelRegexField;
     private readonly CheckBox pFunnelWholeBox;
 
-    public PFunnelRuleRow(LFunnel lFunnelOwner, LFunnelRule lFunnelRule)
+    public PFunnelRuleRow(QFunnel lFunnelOwner, QFunnelRule lFunnelRule)
     {
         lFunnel = lFunnelOwner;
         PFunnelRule = lFunnelRule;
@@ -35,11 +35,11 @@ public sealed class PFunnelRuleRow : Border
         pFunnelWholeBox = PFunnelWholeBuild();
         pFunnelRegexStack = new StackPanel
         {
-            Visibility = PLook.PLookVisible[lFunnelRule.LFunnelRulePattern]
+            Visibility = PLook.PLookVisible[lFunnelRule.QFunnelRulePattern]
         };
         pFunnelRegexStack.Children.Add(pFunnelRegexField);
         pFunnelRegexStack.Children.Add(pFunnelWholeBox);
-        pFunnelConditions = LFunnel.LFunnelConditions.Select(PFunnelConditionBuild).ToList();
+        pFunnelConditions = QFunnel.QFunnelConditions.Select(PFunnelConditionBuild).ToList();
 
         var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
         pBody.Children.Add(pFunnelRegexStack);
@@ -48,9 +48,9 @@ public sealed class PFunnelRuleRow : Border
 
         pFunnelFrame = new PFunnelRuleFrame(
             pBody,
-            lFunnelRule.LFunnelRuleTitle,
-            () => lFunnelOwner.LFunnelRuleRemove(lFunnelRule),
-            () => lFunnelOwner.LFunnelCollapsedToggle(lFunnelRule));
+            lFunnelRule.QFunnelRuleTitle,
+            () => lFunnelOwner.QFunnelRuleRemove(lFunnelRule),
+            () => lFunnelOwner.QFunnelCollapsedToggle(lFunnelRule));
 
         var pCard = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pFunnelFrame.PFunnelHeader, Dock.Top);
@@ -68,7 +68,7 @@ public sealed class PFunnelRuleRow : Border
         PFunnelRowUpdate();
     }
 
-    public LFunnelRule PFunnelRule { get; }
+    public QFunnelRule PFunnelRule { get; }
 
     public Border PFunnelHeader => pFunnelFrame.PFunnelHeader;
 
@@ -78,19 +78,19 @@ public sealed class PFunnelRuleRow : Border
 
     public void PFunnelRowUpdate()
     {
-        pFunnelFrame.PFunnelCollapsedSet(PFunnelRule.LFunnelRuleCollapsed);
-        pFunnelRegexField.Text = lFunnel.LFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
-        pFunnelWholeBox.IsChecked = PFunnelRule.LFunnelRuleWhole;
+        pFunnelFrame.PFunnelCollapsedSet(PFunnelRule.QFunnelRuleCollapsed);
+        pFunnelRegexField.Text = lFunnel.QFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
+        pFunnelWholeBox.IsChecked = PFunnelRule.QFunnelRuleWhole;
         pFunnelConditions.ForEach(PFunnelConditionApply);
         PFunnelRelayUpdate();
     }
 
     private static void PFunnelConditionApply(PFunnelCondition pCondition) => pCondition.PFunnelConditionUpdate();
 
-    private PFunnelCondition PFunnelConditionBuild(LFunnelCondition lCondition) =>
+    private PFunnelCondition PFunnelConditionBuild(QFunnelCondition lCondition) =>
         new(lFunnel, PFunnelRule, lCondition)
         {
-            Visibility = PLook.PLookVisible[PFunnelRule.LFunnelRuleFields]
+            Visibility = PLook.PLookVisible[PFunnelRule.QFunnelRuleFields]
         };
 
     private TextBox PFunnelRegexBuild()
@@ -103,7 +103,7 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(0, 0, 0, 8)
         };
         PTextbox.PTextboxApply(pField);
-        pField.TextChanged += (_, _) => lFunnel.LFunnelRegexSet(PFunnelRule, pField.Text);
+        pField.TextChanged += (_, _) => lFunnel.QFunnelRegexSet(PFunnelRule, pField.Text);
         return pField;
     }
 
@@ -118,8 +118,8 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(2, 0, 0, 0)
         };
         PCheckbox.PCheckboxApply(pBox);
-        pBox.Checked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, true);
-        pBox.Unchecked += (_, _) => lFunnel.LFunnelWholeSet(PFunnelRule, false);
+        pBox.Checked += (_, _) => lFunnel.QFunnelWholeSet(PFunnelRule, true);
+        pBox.Unchecked += (_, _) => lFunnel.QFunnelWholeSet(PFunnelRule, false);
         return pBox;
     }
 
@@ -146,16 +146,16 @@ public sealed class PFunnelRuleRow : Border
     private void PFunnelRelayUpdate()
     {
         pFunnelRelayCombo.SelectionChanged -= PFunnelRelayHandle;
-        pFunnelRelayCombo.ItemsSource = lFunnel.LFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
-        pFunnelRelayCombo.SelectedValue = PFunnelRule.LFunnelRuleTarget;
+        pFunnelRelayCombo.ItemsSource = lFunnel.QFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
+        pFunnelRelayCombo.SelectedValue = PFunnelRule.QFunnelRuleTarget;
         pFunnelRelayCombo.SelectionChanged += PFunnelRelayHandle;
     }
 
-    private static PActionRelayOption PFunnelOptionBuild(LFunnelTarget lTarget) =>
-        new(lTarget.LFunnelTargetId, lTarget.LFunnelTargetTitle, PTabIcon.PTabIconFind(lTarget.LFunnelTargetKey));
+    private static PActionRelayOption PFunnelOptionBuild(QFunnelTarget lTarget) =>
+        new(lTarget.QFunnelTargetId, lTarget.QFunnelTargetTitle, PTabIcon.PTabIconFind(lTarget.QFunnelTargetKey));
 
     private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs) =>
-        lFunnel.LFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);
+        lFunnel.QFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);
 
     private static DataTemplate PFunnelTemplateBuild()
     {

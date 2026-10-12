@@ -16,7 +16,7 @@ internal sealed partial class PSEncoder
         string pStored = psAudioChannelReadout is null
             ? lsExportSpecificEdit.LPresetAudio.LPresetChannels
             : PSAudioChannelRead();
-        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.LSEncoderAudioEncoder);
+        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
         IReadOnlyList<string> pLayouts = LInventory.LInventoryLayoutRead(pEncoder);
         if (pLayouts.Count == 0)
         {

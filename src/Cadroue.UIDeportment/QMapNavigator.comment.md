@@ -6,7 +6,7 @@ Hash: `10abb4774ba80e43`
 Builds the navigator shapes on the map, the rect marking the working range.
 It holds no state, so the map calls it as plain geometry.
 
-## `internal static void LMapNavigatorAdd(`
+## `internal static void QMapNavigatorAdd(`
 
 Adds fill, shadow, rim, sides, edge grips, move grip with dots, shine and border in paint order.
 Nothing is drawn when the body is no taller than its shadow drop.

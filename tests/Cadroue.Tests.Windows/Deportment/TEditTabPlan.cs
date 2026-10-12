@@ -12,17 +12,17 @@ public sealed class TEditTabPlan
 {
     private const string TEditSource = @"C:\media\clip.mp4";
 
-    private static (LEditTab, LInspector, LViewer, LDocket) TEditBuild()
+    private static (QEditTab, QInspector, QViewer, LDocket) TEditBuild()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
-        LInspector inspector = TInterface.TEditInspectorRead(tab);
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        QInspector inspector = TInterface.TEditInspectorRead(tab);
         return (tab, inspector, viewer, docket);
     }
 
-    private static void TEditSourceSet(LViewer viewer)
+    private static void TEditSourceSet(QViewer viewer)
     {
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 1920, 1080);
         TInterfaceViewer.TViewerMediaCommit(viewer, TInterfaceViewer.TCargoCreate(TEditSource, info, true), false);
@@ -33,10 +33,10 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, _) = TEditBuild();
+        (QEditTab tab, QInspector inspector, _, _) = TEditBuild();
         LWorkCrop edges = Interface.TInterface.TWorkCropCreate(1, 2, 3, 4, 0, false, false);
-        TInterfaceCrop.TCropboxCropSet(inspector.LInspectorCrop.LInspectorCropbox, edges);
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, true);
+        TInterfaceCrop.TCropboxCropSet(inspector.QInspectorCrop.QInspectorCropbox, edges);
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
 
         Assert.Null(TInterface.TEditCarriedRead(tab));
     }
@@ -46,15 +46,15 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, _) = TEditBuild();
+        (QEditTab tab, QInspector inspector, _, _) = TEditBuild();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         LWorkCrop edges = Interface.TInterface.TWorkCropCreate(10, 0, 0, 0, 0, false, false);
-        TInterfaceCrop.TCropboxCropSet(inspector.LInspectorCrop.LInspectorCropbox, edges);
-        TInterfaceCrop.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
-        TInterfaceCrop.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
-        TInterfaceCrop.TCropboxRatioSet(inspector.LInspectorCrop.LInspectorCropbox, true, true, 4, 3);
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, true);
-        TInterface.TSkipActiveSet(inspector.LInspectorSkip, true);
+        TInterfaceCrop.TCropboxCropSet(inspector.QInspectorCrop.QInspectorCropbox, edges);
+        TInterfaceCrop.TCropboxApplySet(inspector.QInspectorCrop.QInspectorCropbox, true);
+        TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
+        TInterfaceCrop.TCropboxRatioSet(inspector.QInspectorCrop.QInspectorCropbox, true, true, 4, 3);
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
+        TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
 
         LEditPlan? carried = TInterface.TEditCarriedRead(tab);
 
@@ -73,9 +73,9 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, _) = TEditBuild();
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindBrightness, true);
-        TInterface.TToneActiveSet(inspector.LInspectorTone, LColorKind.LColorKindContrast, true);
+        (QEditTab tab, QInspector inspector, _, _) = TEditBuild();
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindContrast, true);
 
         LEditPlan? carried = TInterface.TEditCarriedRead(tab);
@@ -92,7 +92,7 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, LViewer viewer, _) = TEditBuild();
+        (QEditTab tab, QInspector inspector, QViewer viewer, _) = TEditBuild();
         var written = new List<(string, LSidecarEditEntry?)>();
         TInterface.TEditLibrarianAttach(_ => null, (path, record) =>
         {
@@ -104,9 +104,9 @@ public sealed class TEditTabPlan
             TEditSourceSet(viewer);
             TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
             TInterfaceCrop.TCropboxCropSet(
-                inspector.LInspectorCrop.LInspectorCropbox,
+                inspector.QInspectorCrop.QInspectorCropbox,
                 Interface.TInterface.TWorkCropCreate(10, 20, 30, 40, 180, false, true));
-            TInterfaceCrop.TCropboxApplySet(inspector.LInspectorCrop.LInspectorCropbox, true);
+            TInterfaceCrop.TCropboxApplySet(inspector.QInspectorCrop.QInspectorCropbox, true);
             written.Clear();
 
             TInterface.TEditStateSave(tab);
@@ -130,7 +130,7 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, _, LViewer viewer, _) = TEditBuild();
+        (QEditTab tab, _, QViewer viewer, _) = TEditBuild();
         int writes = 0;
         TInterface.TEditLibrarianAttach(_ => null, (_, _) =>
         {
@@ -156,7 +156,7 @@ public sealed class TEditTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LEditTab tab, LInspector inspector, _, LDocket docket) = TEditBuild();
+        (QEditTab tab, QInspector inspector, _, LDocket docket) = TEditBuild();
         var written = new List<string>();
         TInterface.TEditLibrarianAttach(_ => null, (path, _) =>
         {
@@ -166,7 +166,7 @@ public sealed class TEditTabPlan
         try
         {
             TInterfaceList.TDocketPathsAdd(docket, @"C:\a.mp4", @"C:\b.mp4");
-            TInterfaceCrop.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
+            TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
             written.Clear();
 
             TInterface.TEditPersistentSave(tab);

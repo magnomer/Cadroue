@@ -59,29 +59,29 @@ public sealed class PListRow
         };
 
     private readonly PList pListPanel;
-    private readonly LList lList;
+    private readonly QList lList;
 
-    public PListRow(PList pPanel, LListRow lRow)
+    public PListRow(PList pPanel, QListRow lRow)
     {
         pListPanel = pPanel;
-        lList = pPanel.LList;
-        PListRowPath = lRow.LListRowPath;
+        lList = pPanel.QList;
+        PListRowPath = lRow.QListRowPath;
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new Image
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.LListRowLocked]),
+            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.QListRowLocked]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0)
         });
         pRowContent.Children.Add(new TextBlock
         {
-            Text = lRow.LListRowName,
+            Text = lRow.QListRowName,
             FontSize = 12,
             FontFamily = pListFontFamily,
-            Foreground = pListForegrounds[lRow.LListRowLocked],
+            Foreground = pListForegrounds[lRow.QListRowLocked],
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis
         });
@@ -89,13 +89,13 @@ public sealed class PListRow
         PListRowBorder = new Border
         {
             Padding = new Thickness(12, 5, 12, 5),
-            Background = pListBackgrounds[lRow.LListRowState],
+            Background = pListBackgrounds[lRow.QListRowState],
             BorderBrush = pListLineBrush,
-            BorderThickness = pListBorders[lRow.LListRowLast],
+            BorderThickness = pListBorders[lRow.QListRowLast],
             Cursor = Cursors.Hand,
-            ToolTip = lRow.LListRowTip,
+            ToolTip = lRow.QListRowTip,
             Child = pRowContent,
-            Tag = lRow.LListRowPath
+            Tag = lRow.QListRowPath
         };
         PListRowBorder.MouseLeftButtonDown += PListPressHandle;
         PListRowBorder.MouseMove += PListMoveHandle;
@@ -113,7 +113,7 @@ public sealed class PListRow
         pListPanel.Focus();
         Point pOrigin = pEvent.GetPosition(null);
         Point pGrab = pEvent.GetPosition(PListRowBorder);
-        bool pCapture = lList.LListDrag.LListPressHandle(
+        bool pCapture = lList.QListDrag.QListPressHandle(
             PListRowPath,
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
             Keyboard.Modifiers.HasFlag(ModifierKeys.Control),
@@ -128,7 +128,7 @@ public sealed class PListRow
     private void PListMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         Point pCurrent = pEvent.GetPosition(null);
-        bool pStart = lList.LListDrag.LListDragResolve(
+        bool pStart = lList.QListDrag.QListDragResolve(
             pCurrent.X,
             pCurrent.Y,
             SystemParameters.MinimumHorizontalDragDistance,
@@ -139,17 +139,17 @@ public sealed class PListRow
 
     private void PListDragRun()
     {
-        var pDragData = new DataObject(PList.PListDragKind, lList.LListDrag.LListDragPaths.ToArray());
+        var pDragData = new DataObject(PList.PListDragKind, lList.QListDrag.QListDragPaths.ToArray());
         PListRowBorder.ReleaseMouseCapture();
         PGhost.PGhostDragRun(
             PListRowBorder,
-            lList.LListDrag.LListGhost,
+            lList.QListDrag.QListGhost,
             () => DragDrop.DoDragDrop(PListRowBorder, pDragData, DragDropEffects.Copy));
     }
 
     private void PListReleaseHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         PListRowBorder.ReleaseMouseCapture();
-        lList.LListDrag.LListReleaseHandle();
+        lList.QListDrag.QListReleaseHandle();
     }
 }

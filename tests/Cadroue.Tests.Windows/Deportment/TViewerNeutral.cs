@@ -10,13 +10,13 @@ public sealed class TViewerNeutral
 {
     private const string TNeutralSource = @"C:\media\missing.mp4";
 
-    private static (LViewer, LViewerNeutral) TNeutralBuild()
+    private static (QViewer, QViewerNeutral) TNeutralBuild()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         return (viewer, TInterfaceViewer.TViewerNeutralRead(viewer));
     }
 
-    private static void TNeutralMediaSet(LViewer viewer)
+    private static void TNeutralMediaSet(QViewer viewer)
     {
         LCargo cargo = TInterfaceViewer.TCargoCreate(
             TNeutralSource, TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 1920, 1080), true);
@@ -27,7 +27,7 @@ public sealed class TViewerNeutral
     [Fact]
     public void ToolSet_ArmOnce_RetargetsInPlace_SerialMovesOnCancel()
     {
-        (LViewer viewer, LViewerNeutral neutral) = TNeutralBuild();
+        (QViewer viewer, QViewerNeutral neutral) = TNeutralBuild();
         TInterfaceViewer.TViewerPlaybackUpdate(viewer, true, TimeSpan.Zero);
         var tools = new List<(bool, LNeutralTarget)>();
         int focuses = 0;
@@ -35,57 +35,57 @@ public sealed class TViewerNeutral
         TInterfaceViewer.TViewerFocusAttach(neutral, () => focuses++);
 
         TInterfaceViewer.TViewerToolSet(neutral, true, LNeutralTarget.LNeutralTargetGrey);
-        int armed = neutral.LViewerNeutralSerial;
+        int armed = neutral.QViewerNeutralSerial;
         TInterfaceViewer.TViewerToolSet(neutral, true, LNeutralTarget.LNeutralTargetWhite);
 
-        Assert.Equal(armed, neutral.LViewerNeutralSerial);
-        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, neutral.LViewerNeutralTarget);
-        Assert.Equal(LViewerTool.LViewerToolNeutral, neutral.LViewerTool);
-        Assert.True(neutral.LViewerNeutralArmed);
+        Assert.Equal(armed, neutral.QViewerNeutralSerial);
+        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, neutral.QViewerNeutralTarget);
+        Assert.Equal(QViewerTool.QViewerToolNeutral, neutral.QViewerTool);
+        Assert.True(neutral.QViewerNeutralArmed);
         Assert.Equal(1, focuses);
 
         TInterfaceViewer.TViewerNeutralCancel(neutral);
 
-        Assert.Equal(armed + 1, neutral.LViewerNeutralSerial);
-        Assert.Equal(LViewerTool.LViewerToolNone, neutral.LViewerTool);
+        Assert.Equal(armed + 1, neutral.QViewerNeutralSerial);
+        Assert.Equal(QViewerTool.QViewerToolNone, neutral.QViewerTool);
         Assert.Equal([(true, LNeutralTarget.LNeutralTargetGrey), (false, LNeutralTarget.LNeutralTargetWhite)], tools);
 
         TInterfaceViewer.TViewerNeutralCancel(neutral);
-        Assert.Equal(armed + 1, neutral.LViewerNeutralSerial);
+        Assert.Equal(armed + 1, neutral.QViewerNeutralSerial);
     }
 
     [Fact]
     public void KeyHandle_EscapeWhileArmed_Cancels()
     {
-        (_, LViewerNeutral neutral) = TNeutralBuild();
+        (_, QViewerNeutral neutral) = TNeutralBuild();
 
         Assert.False(TInterfaceViewer.TViewerKeyHandle(neutral, "Escape"));
 
         TInterfaceViewer.TViewerToolSet(neutral, true, LNeutralTarget.LNeutralTargetGrey);
 
         Assert.False(TInterfaceViewer.TViewerKeyHandle(neutral, "Enter"));
-        Assert.True(neutral.LViewerNeutralArmed);
+        Assert.True(neutral.QViewerNeutralArmed);
         Assert.True(TInterfaceViewer.TViewerKeyHandle(neutral, "Escape"));
-        Assert.False(neutral.LViewerNeutralArmed);
+        Assert.False(neutral.QViewerNeutralArmed);
     }
 
     [Fact]
     public void Press_OutsideVideo_StaysArmed()
     {
-        (LViewer viewer, LViewerNeutral neutral) = TNeutralBuild();
+        (QViewer viewer, QViewerNeutral neutral) = TNeutralBuild();
         TNeutralMediaSet(viewer);
         TInterfaceViewer.TViewerToolSet(neutral, true, LNeutralTarget.LNeutralTargetGrey);
 
         TInterfaceViewer.TViewerPressHandle(neutral, -5, 10);
         TInterfaceViewer.TViewerPressHandle(neutral, 10, 900);
 
-        Assert.True(neutral.LViewerNeutralArmed);
+        Assert.True(neutral.QViewerNeutralArmed);
     }
 
     [Fact]
     public async Task Press_InsideVideo_EndsToolAndReportsDecodeFailure()
     {
-        (LViewer viewer, LViewerNeutral neutral) = TNeutralBuild();
+        (QViewer viewer, QViewerNeutral neutral) = TNeutralBuild();
         TNeutralMediaSet(viewer);
         var captures = new List<bool>();
         var samples = new List<LNeutralSample>();
@@ -95,7 +95,7 @@ public sealed class TViewerNeutral
 
         Assert.True(TInterfaceCrop.TCropPressHandle(TInterfaceCrop.TCropDragRead(viewer), 400, 225));
 
-        Assert.False(neutral.LViewerNeutralArmed);
+        Assert.False(neutral.QViewerNeutralArmed);
         Assert.Equal([false], captures);
         for (int wait = 0; wait < 50 && samples.Count == 0; wait++)
         {
@@ -109,7 +109,7 @@ public sealed class TViewerNeutral
     [Fact]
     public void EstimateStart_NoMedia_RaisesEmptyWheelOnce()
     {
-        (_, LViewerNeutral neutral) = TNeutralBuild();
+        (_, QViewerNeutral neutral) = TNeutralBuild();
         var wheels = new List<LNeutralWheel>();
         TInterfaceViewer.TViewerEstimateAttach(neutral, wheels.Add);
 

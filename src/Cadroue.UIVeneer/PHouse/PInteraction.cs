@@ -39,7 +39,7 @@ internal static class PInteraction
         RoutedEventArgs pEvent,
         object? pContent,
         string pType) =>
-        LInteraction.LInteractionRecord(
+        QInteraction.QInteractionRecord(
             ReferenceEquals(pElement, pEvent.OriginalSource),
             pType,
             () => PInteractionLabelRead(pElement, pContent),
@@ -48,7 +48,7 @@ internal static class PInteraction
             (pElement as ToggleButton)?.IsChecked);
 
     private static string PInteractionLabelRead(FrameworkElement pElement, object? pContent) =>
-        LInteraction.LInteractionLabelResolve(
+        QInteraction.QInteractionLabelResolve(
             AutomationProperties.GetName(pElement),
             PInteractionContentRead(pContent),
             pElement.ToolTip as string,

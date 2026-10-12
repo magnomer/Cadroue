@@ -23,309 +23,309 @@ internal static partial class TInterface
         new(global, red, green, blue, highlight);
     internal static LWorkCurveSettings TCurveSettingsRead(LWorkVideoStep step) => step.LWorkCurveRead();
 
-    internal static LTone TToneCreate() => new();
-    internal static void TToneAttach(LTone tone, Action handler) => tone.LToneChanged += handler;
-    internal static void TToneValueSet(LTone tone, LColorKind kind, double value) => tone.LToneValueSet(kind, value);
-    internal static void TToneActiveSet(LTone tone, LColorKind kind, bool active) => tone.LToneActiveSet(kind, active);
-    internal static void TToneCapableSet(LTone tone, bool capable) => tone.LToneCapableSet(capable);
-    internal static LWorkVideoStep TToneStepRead(LTone tone, LColorKind kind) => tone.LToneStepRead(kind);
+    internal static QTone TToneCreate() => new();
+    internal static void TToneAttach(QTone tone, Action handler) => tone.QToneChanged += handler;
+    internal static void TToneValueSet(QTone tone, LColorKind kind, double value) => tone.QToneValueSet(kind, value);
+    internal static void TToneActiveSet(QTone tone, LColorKind kind, bool active) => tone.QToneActiveSet(kind, active);
+    internal static void TToneCapableSet(QTone tone, bool capable) => tone.QToneCapableSet(capable);
+    internal static LWorkVideoStep TToneStepRead(QTone tone, LColorKind kind) => tone.QToneStepRead(kind);
 
-    internal static LGamma TGammaCreate() => new();
-    internal static void TGammaAttach(LGamma gamma, Action handler) => gamma.LGammaChanged += handler;
-    internal static void TGammaValueSet(LGamma gamma, int index, double value) => gamma.LGammaValueSet(index, value);
-    internal static void TGammaReset(LGamma gamma) => gamma.LGammaReset();
-    internal static void TGammaCapableSet(LGamma gamma, bool capable, bool preview) =>
-        gamma.LGammaCapableSet(capable, preview);
-    internal static LWorkGammaSettings TGammaValueRead(LGamma gamma) => gamma.LGammaValue;
-    internal static bool TGammaPreviewRead(LGamma gamma) => gamma.LGammaPreview;
+    internal static QGamma TGammaCreate() => new();
+    internal static void TGammaAttach(QGamma gamma, Action handler) => gamma.QGammaChanged += handler;
+    internal static void TGammaValueSet(QGamma gamma, int index, double value) => gamma.QGammaValueSet(index, value);
+    internal static void TGammaReset(QGamma gamma) => gamma.QGammaReset();
+    internal static void TGammaCapableSet(QGamma gamma, bool capable, bool preview) =>
+        gamma.QGammaCapableSet(capable, preview);
+    internal static LWorkGammaSettings TGammaValueRead(QGamma gamma) => gamma.QGammaValue;
+    internal static bool TGammaPreviewRead(QGamma gamma) => gamma.QGammaPreview;
 
-    internal static LExposure TExposureCreate() => new();
-    internal static void TExposureAttach(LExposure exposure, Action handler) => exposure.LExposureChanged += handler;
-    internal static void TExposureValueSet(LExposure exposure, double value) => exposure.LExposureValueSet(value);
-    internal static LWorkVideoStep TExposureStepRead(LExposure exposure) => exposure.LExposureStep;
+    internal static QExposure TExposureCreate() => new();
+    internal static void TExposureAttach(QExposure exposure, Action handler) => exposure.QExposureChanged += handler;
+    internal static void TExposureValueSet(QExposure exposure, double value) => exposure.QExposureValueSet(value);
+    internal static LWorkVideoStep TExposureStepRead(QExposure exposure) => exposure.QExposureStep;
 
-    internal static LCurve TCurveCreate() => new();
-    internal static void TCurveAttach(LCurve curve, Action handler) => curve.LCurveChanged += handler;
-    internal static void TCurveChannelSelect(LCurve curve, int channel) => curve.LCurveChannelSelect(channel);
-    internal static void TCurvePointAdd(LCurve curve, double input, double output) =>
-        curve.LCurvePointAdd(input, output);
-    internal static void TCurvePointSet(LCurve curve, double input, double output) =>
-        curve.LCurvePointSet(input, output);
-    internal static void TCurvePointDelete(LCurve curve) => curve.LCurvePointDelete();
-    internal static void TCurveChannelReset(LCurve curve) => curve.LCurveChannelReset();
-    internal static int TCurveChannelRead(LCurve curve) => curve.LCurveChannel;
-    internal static int TCurveSelectedRead(LCurve curve) => curve.LCurveSelected;
-    internal static IReadOnlyList<LWorkCurvePoint> TCurvePointsRead(LCurve curve) => curve.LCurvePoints;
-    internal static LWorkVideoStep TCurveStepRead(LCurve curve) => curve.LCurveStepRead();
-    internal static void TCurveStepSet(LCurve curve, LWorkVideoStep step) => curve.LCurveStepSet(step);
-    internal static void TCurvePointSelect(LCurve curve, int index) => curve.LCurvePointSelect(index);
+    internal static QCurve TCurveCreate() => new();
+    internal static void TCurveAttach(QCurve curve, Action handler) => curve.QCurveChanged += handler;
+    internal static void TCurveChannelSelect(QCurve curve, int channel) => curve.QCurveChannelSelect(channel);
+    internal static void TCurvePointAdd(QCurve curve, double input, double output) =>
+        curve.QCurvePointAdd(input, output);
+    internal static void TCurvePointSet(QCurve curve, double input, double output) =>
+        curve.QCurvePointSet(input, output);
+    internal static void TCurvePointDelete(QCurve curve) => curve.QCurvePointDelete();
+    internal static void TCurveChannelReset(QCurve curve) => curve.QCurveChannelReset();
+    internal static int TCurveChannelRead(QCurve curve) => curve.QCurveChannel;
+    internal static int TCurveSelectedRead(QCurve curve) => curve.QCurveSelected;
+    internal static IReadOnlyList<LWorkCurvePoint> TCurvePointsRead(QCurve curve) => curve.QCurvePoints;
+    internal static LWorkVideoStep TCurveStepRead(QCurve curve) => curve.QCurveStepRead();
+    internal static void TCurveStepSet(QCurve curve, LWorkVideoStep step) => curve.QCurveStepSet(step);
+    internal static void TCurvePointSelect(QCurve curve, int index) => curve.QCurvePointSelect(index);
 
-    internal static LBlank TBlankCreate() => new();
-    internal static void TBlankStepSet(LBlank blank, LDetectorBlank step) => blank.LBlankStepSet(step);
-    internal static void TBlankTypeSet(LBlank blank, LDetectorType type) => blank.LBlankTypeSet(type);
-    internal static void TBlankWheelSet(LBlank blank, double x, double y) => blank.LBlankWheelSet(x, y);
-    internal static void TBlankSampleSet(LBlank blank, int red, int green, int blue) =>
-        blank.LBlankSampleSet(red, green, blue);
-    internal static bool TBlankPresentRead(LBlank blank) => blank.LBlankWheelPresent;
-    internal static LDetectorBlank TBlankStepRead(LBlank blank) => blank.LBlankStep;
+    internal static QBlank TBlankCreate() => new();
+    internal static void TBlankStepSet(QBlank blank, LDetectorBlank step) => blank.QBlankStepSet(step);
+    internal static void TBlankTypeSet(QBlank blank, LDetectorType type) => blank.QBlankTypeSet(type);
+    internal static void TBlankWheelSet(QBlank blank, double x, double y) => blank.QBlankWheelSet(x, y);
+    internal static void TBlankSampleSet(QBlank blank, int red, int green, int blue) =>
+        blank.QBlankSampleSet(red, green, blue);
+    internal static bool TBlankPresentRead(QBlank blank) => blank.QBlankWheelPresent;
+    internal static LDetectorBlank TBlankStepRead(QBlank blank) => blank.QBlankStep;
     internal static LDetectorBlank TBlankStepCreate(LDetectorType type) =>
         LDetectorBlank.LDetectorBlankCreate() with { LDetectorBlankType = type };
 
-    internal static LWhitebalance TWhitebalanceCreate() => new();
-    internal static void TWhitebalanceAttach(LWhitebalance whitebalance, Action handler) =>
-        whitebalance.LWhitebalanceChanged += handler;
-    internal static void TWhitebalanceEstimateAttach(LWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
-        whitebalance.LWhitebalanceEstimateChanged += handler;
-    internal static void TWhitebalanceSampleSet(LWhitebalance whitebalance, LNeutralSample sample) =>
-        whitebalance.LWhitebalanceSampleSet(sample);
-    internal static void TWhitebalanceMethodSet(LWhitebalance whitebalance, LWhitebalanceMethod method) =>
-        whitebalance.LWhitebalanceMethodSet(method);
-    internal static void TWhitebalanceReset(LWhitebalance whitebalance) => whitebalance.LWhitebalanceReset();
-    internal static void TWhitebalanceToolSet(LWhitebalance whitebalance, bool armed, LNeutralTarget target) =>
-        whitebalance.LWhitebalanceToolSet(armed, target);
-    internal static void TWhitebalanceCapableSet(LWhitebalance whitebalance, bool capable, bool preview) =>
-        whitebalance.LWhitebalanceCapableSet(capable, preview);
-    internal static LWorkWhitebalanceSettings TWhitebalanceValueRead(LWhitebalance whitebalance) =>
-        whitebalance.LWhitebalanceValue;
-    internal static LWorkVideoStep TWhitebalanceStepRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceStep;
-    internal static bool TWhitebalanceManualRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceManual;
-    internal static bool TWhitebalanceToolRead(LWhitebalance whitebalance) => whitebalance.LWhitebalanceToolArmed;
-    internal static LNeutralWheel TWhitebalanceWheelRead(LWhitebalance whitebalance) =>
-        whitebalance.LWhitebalanceWheelRead();
+    internal static QWhitebalance TWhitebalanceCreate() => new();
+    internal static void TWhitebalanceAttach(QWhitebalance whitebalance, Action handler) =>
+        whitebalance.QWhitebalanceChanged += handler;
+    internal static void TWhitebalanceEstimateAttach(QWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
+        whitebalance.QWhitebalanceEstimateChanged += handler;
+    internal static void TWhitebalanceSampleSet(QWhitebalance whitebalance, LNeutralSample sample) =>
+        whitebalance.QWhitebalanceSampleSet(sample);
+    internal static void TWhitebalanceMethodSet(QWhitebalance whitebalance, LWhitebalanceMethod method) =>
+        whitebalance.QWhitebalanceMethodSet(method);
+    internal static void TWhitebalanceReset(QWhitebalance whitebalance) => whitebalance.QWhitebalanceReset();
+    internal static void TWhitebalanceToolSet(QWhitebalance whitebalance, bool armed, LNeutralTarget target) =>
+        whitebalance.QWhitebalanceToolSet(armed, target);
+    internal static void TWhitebalanceCapableSet(QWhitebalance whitebalance, bool capable, bool preview) =>
+        whitebalance.QWhitebalanceCapableSet(capable, preview);
+    internal static LWorkWhitebalanceSettings TWhitebalanceValueRead(QWhitebalance whitebalance) =>
+        whitebalance.QWhitebalanceValue;
+    internal static LWorkVideoStep TWhitebalanceStepRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceStep;
+    internal static bool TWhitebalanceManualRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceManual;
+    internal static bool TWhitebalanceToolRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceToolArmed;
+    internal static LNeutralWheel TWhitebalanceWheelRead(QWhitebalance whitebalance) =>
+        whitebalance.QWhitebalanceWheelRead();
     internal static LNeutralSample TNeutralSampleCreate(
         int red, int green, int blue, double redGain, double greenGain, double blueGain) =>
         new(LNeutralOutcome.LNeutralOutcomeResolved, red, green, blue, redGain, greenGain, blueGain);
 
-    internal static LNoise TNoiseCreate() => new();
-    internal static void TNoiseAttach(LNoise noise, Action handler) => noise.LNoiseChanged += handler;
-    internal static void TNoisePresetSelect(LNoise noise, string token) => noise.LNoisePresetSelect(token);
-    internal static void TNoiseValueSet(LNoise noise, int index, double value) => noise.LNoiseValueSet(index, value);
-    internal static void TNoiseStepSet(LNoise noise, LWorkAudioStep step) => noise.LNoiseStepSet(step);
-    internal static string? TNoiseTokenRead(LNoise noise) => noise.LNoiseToken;
-    internal static string? TNoiseMatchRead(LNoise noise) => noise.LNoiseMatchRead();
-    internal static LWorkNoiseStep TNoiseStepRead(LNoise noise) => noise.LNoiseStep;
+    internal static QNoise TNoiseCreate() => new();
+    internal static void TNoiseAttach(QNoise noise, Action handler) => noise.QNoiseChanged += handler;
+    internal static void TNoisePresetSelect(QNoise noise, string token) => noise.QNoisePresetSelect(token);
+    internal static void TNoiseValueSet(QNoise noise, int index, double value) => noise.QNoiseValueSet(index, value);
+    internal static void TNoiseStepSet(QNoise noise, LWorkAudioStep step) => noise.QNoiseStepSet(step);
+    internal static string? TNoiseTokenRead(QNoise noise) => noise.QNoiseToken;
+    internal static string? TNoiseMatchRead(QNoise noise) => noise.QNoiseMatchRead();
+    internal static LWorkNoiseStep TNoiseStepRead(QNoise noise) => noise.QNoiseStep;
 
-    internal static LSensor TSensorCreate() => new();
+    internal static QSensor TSensorCreate() => new();
     internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) =>
         LDetector.LDetectorTokensRead(kind);
-    internal static void TSensorPresetSelect(LSensor sensor, LDetectorKind kind, string token) =>
-        sensor.LSensorPresetSelect(kind, token);
-    internal static void TSensorTokenSet(LSensor sensor, LDetectorKind kind, string token) =>
-        sensor.LSensorTokenSet(kind, token);
-    internal static void TSensorStepSet(LSensor sensor, LDetectorStep step) => sensor.LSensorStepSet(step);
-    internal static void TSensorThresholdSet(LSensor sensor, LDetectorKind kind, double threshold) =>
-        sensor.LSensorThresholdSet(kind, threshold);
-    internal static void TSensorMetricSet(LSensor sensor, LDetectorMetricMode metric) =>
-        sensor.LSensorMetricSet(metric);
-    internal static string? TSensorTokenRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorTokenRead(kind);
-    internal static string? TSensorMatchRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorMatchRead(kind);
-    internal static LDetectorStep TSensorStepRead(LSensor sensor, LDetectorKind kind) => sensor.LSensorStepRead(kind);
+    internal static void TSensorPresetSelect(QSensor sensor, LDetectorKind kind, string token) =>
+        sensor.QSensorPresetSelect(kind, token);
+    internal static void TSensorTokenSet(QSensor sensor, LDetectorKind kind, string token) =>
+        sensor.QSensorTokenSet(kind, token);
+    internal static void TSensorStepSet(QSensor sensor, LDetectorStep step) => sensor.QSensorStepSet(step);
+    internal static void TSensorThresholdSet(QSensor sensor, LDetectorKind kind, double threshold) =>
+        sensor.QSensorThresholdSet(kind, threshold);
+    internal static void TSensorMetricSet(QSensor sensor, LDetectorMetricMode metric) =>
+        sensor.QSensorMetricSet(metric);
+    internal static string? TSensorTokenRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorTokenRead(kind);
+    internal static string? TSensorMatchRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorMatchRead(kind);
+    internal static LDetectorStep TSensorStepRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorStepRead(kind);
 
-    internal static LLoudness TLoudnessCreate() => new();
-    internal static void TLoudnessAttach(LLoudness loudness, Action handler) => loudness.LLoudnessChanged += handler;
-    internal static void TLoudnessPresetSelect(LLoudness loudness, string token) =>
-        loudness.LLoudnessPresetSelect(token);
-    internal static void TLoudnessModeSet(LLoudness loudness, LLeveling mode) => loudness.LLoudnessModeSet(mode);
-    internal static void TLoudnessValueSet(LLoudness loudness, int index, double value) =>
-        loudness.LLoudnessValueSet(index, value);
-    internal static void TLoudnessDynamicSet(LLoudness loudness, int index, double value) =>
-        loudness.LLoudnessDynamicSet(index, value);
-    internal static string? TLoudnessTokenRead(LLoudness loudness) => loudness.LLoudnessToken;
-    internal static string? TLoudnessMatchRead(LLoudness loudness) => loudness.LLoudnessMatchRead();
-    internal static LWorkNormalizeStep TLoudnessStepRead(LLoudness loudness) => loudness.LLoudnessStep;
+    internal static QLoudness TLoudnessCreate() => new();
+    internal static void TLoudnessAttach(QLoudness loudness, Action handler) => loudness.QLoudnessChanged += handler;
+    internal static void TLoudnessPresetSelect(QLoudness loudness, string token) =>
+        loudness.QLoudnessPresetSelect(token);
+    internal static void TLoudnessModeSet(QLoudness loudness, LLeveling mode) => loudness.QLoudnessModeSet(mode);
+    internal static void TLoudnessValueSet(QLoudness loudness, int index, double value) =>
+        loudness.QLoudnessValueSet(index, value);
+    internal static void TLoudnessDynamicSet(QLoudness loudness, int index, double value) =>
+        loudness.QLoudnessDynamicSet(index, value);
+    internal static string? TLoudnessTokenRead(QLoudness loudness) => loudness.QLoudnessToken;
+    internal static string? TLoudnessMatchRead(QLoudness loudness) => loudness.QLoudnessMatchRead();
+    internal static LWorkNormalizeStep TLoudnessStepRead(QLoudness loudness) => loudness.QLoudnessStep;
 
-    internal static LFilter TFilterCreate(bool high) => new(high);
-    internal static void TFilterAttach(LFilter filter, Action handler) => filter.LFilterChanged += handler;
-    internal static void TFilterPresetSelect(LFilter filter, string token) => filter.LFilterPresetSelect(token);
-    internal static void TFilterFrequencySet(LFilter filter, double frequency) => filter.LFilterFrequencySet(frequency);
-    internal static string? TFilterTokenRead(LFilter filter) => filter.LFilterToken;
-    internal static string? TFilterMatchRead(LFilter filter) => filter.LFilterMatchRead();
-    internal static LWorkPassStep TFilterStepRead(LFilter filter) => filter.LFilterStep;
+    internal static QFilter TFilterCreate(bool high) => new(high);
+    internal static void TFilterAttach(QFilter filter, Action handler) => filter.QFilterChanged += handler;
+    internal static void TFilterPresetSelect(QFilter filter, string token) => filter.QFilterPresetSelect(token);
+    internal static void TFilterFrequencySet(QFilter filter, double frequency) => filter.QFilterFrequencySet(frequency);
+    internal static string? TFilterTokenRead(QFilter filter) => filter.QFilterToken;
+    internal static string? TFilterMatchRead(QFilter filter) => filter.QFilterMatchRead();
+    internal static LWorkPassStep TFilterStepRead(QFilter filter) => filter.QFilterStep;
 
-    internal static LEqualizer TEqualizerCreate() => new();
-    internal static void TEqualizerAttach(LEqualizer equalizer, Action handler) =>
-        equalizer.LEqualizerChanged += handler;
-    internal static void TEqualizerPresetSelect(LEqualizer equalizer, string token) =>
-        equalizer.LEqualizerPresetSelect(token);
-    internal static void TEqualizerBandSet(LEqualizer equalizer, int index, double frequency, double gain) =>
-        equalizer.LEqualizerBandSet(index, frequency, gain);
-    internal static void TEqualizerBandAdd(LEqualizer equalizer) => equalizer.LEqualizerBandAdd();
-    internal static void TEqualizerBandRemove(LEqualizer equalizer, int index) => equalizer.LEqualizerBandRemove(index);
-    internal static string? TEqualizerTokenRead(LEqualizer equalizer) => equalizer.LEqualizerToken;
-    internal static string? TEqualizerMatchRead(LEqualizer equalizer) => equalizer.LEqualizerMatchRead();
-    internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(LEqualizer equalizer) => equalizer.LEqualizerBands;
-    internal static LWorkAudioStep TEqualizerStepRead(LEqualizer equalizer) => equalizer.LEqualizerStepRead();
+    internal static QEqualizer TEqualizerCreate() => new();
+    internal static void TEqualizerAttach(QEqualizer equalizer, Action handler) =>
+        equalizer.QEqualizerChanged += handler;
+    internal static void TEqualizerPresetSelect(QEqualizer equalizer, string token) =>
+        equalizer.QEqualizerPresetSelect(token);
+    internal static void TEqualizerBandSet(QEqualizer equalizer, int index, double frequency, double gain) =>
+        equalizer.QEqualizerBandSet(index, frequency, gain);
+    internal static void TEqualizerBandAdd(QEqualizer equalizer) => equalizer.QEqualizerBandAdd();
+    internal static void TEqualizerBandRemove(QEqualizer equalizer, int index) => equalizer.QEqualizerBandRemove(index);
+    internal static string? TEqualizerTokenRead(QEqualizer equalizer) => equalizer.QEqualizerToken;
+    internal static string? TEqualizerMatchRead(QEqualizer equalizer) => equalizer.QEqualizerMatchRead();
+    internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(QEqualizer equalizer) => equalizer.QEqualizerBands;
+    internal static LWorkAudioStep TEqualizerStepRead(QEqualizer equalizer) => equalizer.QEqualizerStepRead();
 
-    internal static LVolume TVolumeCreate() => new();
-    internal static void TVolumeAttach(LVolume volume, Action handler) => volume.LVolumeChanged += handler;
-    internal static void TVolumeGainSet(LVolume volume, double gain) => volume.LVolumeGainSet(gain);
-    internal static void TVolumeActiveSet(LVolume volume, bool active) => volume.LVolumeActiveSet(active);
-    internal static double TVolumeGainRead(LVolume volume) => volume.LVolumeGain;
+    internal static QVolume TVolumeCreate() => new();
+    internal static void TVolumeAttach(QVolume volume, Action handler) => volume.QVolumeChanged += handler;
+    internal static void TVolumeGainSet(QVolume volume, double gain) => volume.QVolumeGainSet(gain);
+    internal static void TVolumeActiveSet(QVolume volume, bool active) => volume.QVolumeActiveSet(active);
+    internal static double TVolumeGainRead(QVolume volume) => volume.QVolumeGain;
 
-    internal static LSkip TSkipCreate() => new();
-    internal static void TSkipAttach(LSkip skip, Action handler) => skip.LSkipChanged += handler;
-    internal static void TSkipActiveSet(LSkip skip, bool active) => skip.LSkipActiveSet(active);
-    internal static void TSkipPersistentSet(LSkip skip, bool persistent) => skip.LSkipPersistentSet(persistent);
+    internal static QSkip TSkipCreate() => new();
+    internal static void TSkipAttach(QSkip skip, Action handler) => skip.QSkipChanged += handler;
+    internal static void TSkipActiveSet(QSkip skip, bool active) => skip.QSkipActiveSet(active);
+    internal static void TSkipPersistentSet(QSkip skip, bool persistent) => skip.QSkipPersistentSet(persistent);
 
-    internal static LSLoupe TLoupeCreate() =>
-        TInterfaceViewer.TViewerCreate().LViewerMedia.QViewerLoupe.LViewerLoupeCreate();
-    internal static void TLoupePlayingAttach(LSLoupe loupe, Action<bool> handler) =>
-        loupe.LSLoupePlayingChanged += handler;
-    internal static void TLoupePlayingSet(LSLoupe loupe, bool playing) => loupe.LSLoupePlayingSet(playing);
-    internal static void TLoupeEndSet(LSLoupe loupe, bool ended) => loupe.LSLoupeEndSet(ended);
-    internal static void TLoupeClose(LSLoupe loupe) => loupe.LSLoupeClose();
-    internal static bool TLoupeResumeCheck(LSLoupe loupe) => loupe.LSLoupeResumeCheck();
-    internal static LSLoupe TLoupeViewerCreate(LViewer viewer)
+    internal static QSLoupe TLoupeCreate() =>
+        TInterfaceViewer.TViewerCreate().QViewerMedia.QViewerLoupe.QViewerLoupeCreate();
+    internal static void TLoupePlayingAttach(QSLoupe loupe, Action<bool> handler) =>
+        loupe.QSLoupePlayingChanged += handler;
+    internal static void TLoupePlayingSet(QSLoupe loupe, bool playing) => loupe.QSLoupePlayingSet(playing);
+    internal static void TLoupeEndSet(QSLoupe loupe, bool ended) => loupe.QSLoupeEndSet(ended);
+    internal static void TLoupeClose(QSLoupe loupe) => loupe.QSLoupeClose();
+    internal static bool TLoupeResumeCheck(QSLoupe loupe) => loupe.QSLoupeResumeCheck();
+    internal static QSLoupe TLoupeViewerCreate(QViewer viewer)
     {
-        var loupe = viewer.LViewerMedia.QViewerLoupe.LViewerLoupeCreate();
-        loupe.LSLoupeViewerAttach();
+        var loupe = viewer.QViewerMedia.QViewerLoupe.QViewerLoupeCreate();
+        loupe.QSLoupeViewerAttach();
         return loupe;
     }
-    internal static void TLoupeDetach(LSLoupe loupe) => loupe.LSLoupeDetach();
-    internal static Task TLoupeStart(LSLoupe loupe) => loupe.LSLoupeStart();
-    internal static void TLoupePlayToggle(LSLoupe loupe) => loupe.LSLoupePlayToggle();
-    internal static void TLoupeSeek(LSLoupe loupe, TimeSpan position) => loupe.LSLoupeSeek(position);
-    internal static void TLoupeTick(LSLoupe loupe) => loupe.LSLoupeTick();
-    internal static void TLoupeFloatSet(LSLoupe loupe, LSLoupeFloat mode) => loupe.LSLoupeFloatSet(mode);
-    internal static void TLoupeFloatRestore(LSLoupe loupe) => loupe.LSLoupeFloatRestore();
-    internal static IReadOnlyList<LSLoupeButton> TLoupeButtonsRead(LSLoupe loupe) => loupe.LSLoupeButtonsRead();
-    internal static void TLoupeFloatAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeFloatChanged += handler;
-    internal static void TLoupeEngineAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeEngineCreated += handler;
-    internal static void TLoupeCloseAttach(LSLoupe loupe, Action handler) => loupe.LSLoupeCloseApplied += handler;
+    internal static void TLoupeDetach(QSLoupe loupe) => loupe.QSLoupeDetach();
+    internal static Task TLoupeStart(QSLoupe loupe) => loupe.QSLoupeStart();
+    internal static void TLoupePlayToggle(QSLoupe loupe) => loupe.QSLoupePlayToggle();
+    internal static void TLoupeSeek(QSLoupe loupe, TimeSpan position) => loupe.QSLoupeSeek(position);
+    internal static void TLoupeTick(QSLoupe loupe) => loupe.QSLoupeTick();
+    internal static void TLoupeFloatSet(QSLoupe loupe, QSLoupeFloat mode) => loupe.QSLoupeFloatSet(mode);
+    internal static void TLoupeFloatRestore(QSLoupe loupe) => loupe.QSLoupeFloatRestore();
+    internal static IReadOnlyList<QSLoupeButton> TLoupeButtonsRead(QSLoupe loupe) => loupe.QSLoupeButtonsRead();
+    internal static void TLoupeFloatAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeFloatChanged += handler;
+    internal static void TLoupeEngineAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeEngineCreated += handler;
+    internal static void TLoupeCloseAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeCloseApplied += handler;
 
-    internal static LGroup TGroupCreate(LGroupSelection selection) => new(TAtelierCreate().CAtelierUsher, selection);
-    internal static void TGroupAttach(LGroup group, Action handler) => group.LGroupChanged += handler;
-    internal static bool TGroupAdd(LGroup group, IReadOnlyList<string> paths, string name) =>
-        group.LGroupAdd(paths, name);
-    internal static bool TGroupPathsInsert(LGroup group, int index, IReadOnlyList<string> paths, int insertAt) =>
-        group.LGroupPathsInsert(index, paths, insertAt);
-    internal static void TGroupRemove(LGroup group, int index) => group.LGroupRemove(index);
-    internal static void TGroupEditStart(LGroup group, int index) => group.LGroupEditStart(index);
-    internal static void TGroupEditCancel(LGroup group) => group.LGroupEditCancel();
-    internal static bool TGroupNameCommit(LGroup group, string name) => group.LGroupNameCommit(name);
-    internal static bool TGroupNameSet(LGroup group, int index, string name) => group.LGroupNameSet(index, name);
-    internal static void TGroupFaceAttach(LGroup group, Action handler) => group.LGroupFaceChanged += handler;
-    internal static void TGroupRequestAttach(LGroup group, Action<IReadOnlyList<string>> handler) =>
-        group.LGroupDrag.LGroupPathsRequest += handler;
-    internal static void TGroupOpenAttach(LGroup group, Action<string> handler) =>
-        group.LGroupDrag.LGroupItemOpened += handler;
-    internal static void TGroupSourceAttach(LGroup group, Func<IReadOnlyList<string>> source) =>
-        group.LGroupSourceAttach(source);
-    internal static void TGroupAutoUpdate(LGroup group) => group.LGroupAutoUpdate();
-    internal static IReadOnlyList<LGroupCard> TGroupCardsRead(LGroup group) => group.LGroupFace.LGroupCardsRead();
-    internal static LGroupSwitch TGroupModeRead(LGroup group) => group.LGroupFace.LGroupModeRead();
-    internal static IReadOnlyList<LGroupSwitch> TGroupSwitchesRead(LGroup group) =>
-        group.LGroupFace.LGroupSwitchesRead();
-    internal static void TGroupToggleRun(LGroup group, string key, bool right) =>
-        group.LGroupFace.LGroupToggleRun(key, right);
-    internal static bool TGroupLabelHandle(LGroup group, int index, int clicks) =>
-        group.LGroupLabelHandle(index, clicks);
-    internal static bool TGroupKeyRun(LGroup group, string key, string text) => group.LGroupKeyRun(key, text);
+    internal static QGroup TGroupCreate(LGroupSelection selection) => new(TAtelierCreate().CAtelierUsher, selection);
+    internal static void TGroupAttach(QGroup group, Action handler) => group.QGroupChanged += handler;
+    internal static bool TGroupAdd(QGroup group, IReadOnlyList<string> paths, string name) =>
+        group.QGroupAdd(paths, name);
+    internal static bool TGroupPathsInsert(QGroup group, int index, IReadOnlyList<string> paths, int insertAt) =>
+        group.QGroupPathsInsert(index, paths, insertAt);
+    internal static void TGroupRemove(QGroup group, int index) => group.QGroupRemove(index);
+    internal static void TGroupEditStart(QGroup group, int index) => group.QGroupEditStart(index);
+    internal static void TGroupEditCancel(QGroup group) => group.QGroupEditCancel();
+    internal static bool TGroupNameCommit(QGroup group, string name) => group.QGroupNameCommit(name);
+    internal static bool TGroupNameSet(QGroup group, int index, string name) => group.QGroupNameSet(index, name);
+    internal static void TGroupFaceAttach(QGroup group, Action handler) => group.QGroupFaceChanged += handler;
+    internal static void TGroupRequestAttach(QGroup group, Action<IReadOnlyList<string>> handler) =>
+        group.QGroupDrag.QGroupPathsRequest += handler;
+    internal static void TGroupOpenAttach(QGroup group, Action<string> handler) =>
+        group.QGroupDrag.QGroupItemOpened += handler;
+    internal static void TGroupSourceAttach(QGroup group, Func<IReadOnlyList<string>> source) =>
+        group.QGroupSourceAttach(source);
+    internal static void TGroupAutoUpdate(QGroup group) => group.QGroupAutoUpdate();
+    internal static IReadOnlyList<QGroupCard> TGroupCardsRead(QGroup group) => group.QGroupFace.QGroupCardsRead();
+    internal static QGroupSwitch TGroupModeRead(QGroup group) => group.QGroupFace.QGroupModeRead();
+    internal static IReadOnlyList<QGroupSwitch> TGroupSwitchesRead(QGroup group) =>
+        group.QGroupFace.QGroupSwitchesRead();
+    internal static void TGroupToggleRun(QGroup group, string key, bool right) =>
+        group.QGroupFace.QGroupToggleRun(key, right);
+    internal static bool TGroupLabelHandle(QGroup group, int index, int clicks) =>
+        group.QGroupLabelHandle(index, clicks);
+    internal static bool TGroupKeyRun(QGroup group, string key, string text) => group.QGroupKeyRun(key, text);
     internal static bool TGroupCardAccept(
-        LGroup group, int target, int insertAt, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
-        group.LGroupDrag.LGroupCardAccept(target, insertAt, files, moveIndex, movePath, paths);
+        QGroup group, int target, int insertAt, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
+        group.QGroupDrag.QGroupCardAccept(target, insertAt, files, moveIndex, movePath, paths);
     internal static bool TGroupPanelAccept(
-        LGroup group, bool handled, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
-        group.LGroupDrag.LGroupPanelAccept(handled, files, moveIndex, movePath, paths);
-    internal static void TGroupPressHandle(LGroup group, int index, string path, double x, double y) =>
-        group.LGroupDrag.LGroupPressHandle(index, path, x, y, 0, 0);
-    internal static bool TGroupDragResolve(LGroup group, double x, double y, double minimum, bool pressed) =>
-        group.LGroupDrag.LGroupDragResolve(x, y, minimum, minimum, pressed);
-    internal static void TGroupDragClear(LGroup group) => group.LGroupDrag.LGroupDragClear();
+        QGroup group, bool handled, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
+        group.QGroupDrag.QGroupPanelAccept(handled, files, moveIndex, movePath, paths);
+    internal static void TGroupPressHandle(QGroup group, int index, string path, double x, double y) =>
+        group.QGroupDrag.QGroupPressHandle(index, path, x, y, 0, 0);
+    internal static bool TGroupDragResolve(QGroup group, double x, double y, double minimum, bool pressed) =>
+        group.QGroupDrag.QGroupDragResolve(x, y, minimum, minimum, pressed);
+    internal static void TGroupDragClear(QGroup group) => group.QGroupDrag.QGroupDragClear();
     internal static int TGroupInsertResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
-        LGroupDrag.LGroupInsertResolve(y, tops, heights);
+        QGroupDrag.QGroupInsertResolve(y, tops, heights);
 
     internal static LPresetSelection TPresetSelectionCreate(string name) => new(name, string.Empty);
-    internal static LExport TExportCreate(LPresetSelection selection, string key) =>
-        new(TAtelierCreate().CAtelierUsher, selection, new QWorkspaceKey(key));
-    internal static void TExportAttach(LExport export, Action handler) => export.LExportPresetsChanged += handler;
-    internal static void TExportOwnerAttach(LExport export) => export.LExportAttach();
-    internal static void TExportSelect(LExport export, string name) => export.LExportSelect(name);
-    internal static void TExportEditStart(LExport export, string name) => export.LExportEditStart(name);
-    internal static void TExportEditCancel(LExport export) => export.LExportEditCancel();
-    internal static bool TExportNameCommit(LExport export, string oldName, string newName) =>
-        export.LExportNameCommit(oldName, newName);
-    internal static void TExportDragStart(LExport export, string name) => export.LExportDragStart(name, 0, 0);
-    internal static bool TExportDragMove(LExport export) => export.LExportDragMove();
-    internal static bool TExportDragClear(LExport export) => export.LExportDragClear();
-    internal static void TExportSync(LExport export) => export.LExportSync();
+    internal static QExport TExportCreate(LPresetSelection selection, string key) =>
+        new(TAtelierCreate().CAtelierUsher, selection, new QWorkspaceFacts(key));
+    internal static void TExportAttach(QExport export, Action handler) => export.QExportPresetsChanged += handler;
+    internal static void TExportOwnerAttach(QExport export) => export.QExportAttach();
+    internal static void TExportSelect(QExport export, string name) => export.QExportSelect(name);
+    internal static void TExportEditStart(QExport export, string name) => export.QExportEditStart(name);
+    internal static void TExportEditCancel(QExport export) => export.QExportEditCancel();
+    internal static bool TExportNameCommit(QExport export, string oldName, string newName) =>
+        export.QExportNameCommit(oldName, newName);
+    internal static void TExportDragStart(QExport export, string name) => export.QExportDragStart(name, 0, 0);
+    internal static bool TExportDragMove(QExport export) => export.QExportDragMove();
+    internal static bool TExportDragClear(QExport export) => export.QExportDragClear();
+    internal static void TExportSync(QExport export) => export.QExportSync();
 
     internal static CAtelier TAtelierCreate() => new(new LUsherOutlet(), new LLineageOutlet());
-    internal static LStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
+    internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, title, number);
-    internal static LStripTab TStripTabCreate(string key) =>
+    internal static QStripTab TStripTabCreate(string key) =>
         new(key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage);
-    internal static void TStripSelectAttach(LStrip strip, Action<LStripTab?> handler) =>
-        strip.LStripSelectChanged += handler;
-    internal static void TStripTabAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabChanged += handler;
-    internal static void TStripAdd(LStrip strip, LStripTab tab) => strip.LStripAdd(tab);
-    internal static void TStripRemove(LStrip strip, LStripTab tab) => strip.LStripRemove(tab);
-    internal static bool TStripMove(LStrip strip, LStripTab tab, int index) => strip.LStripMove(tab, index);
-    internal static void TStripSelect(LStrip strip, LStripTab? tab) => strip.LStripSelect(tab);
-    internal static bool TStripNameSet(LStrip strip, LStripTab tab, string? name) => strip.LStripNameSet(tab, name);
-    internal static void TStripHoverSet(LStrip strip, LStripTab tab) => strip.QStripSeparator.LStripHoverSet(tab);
-    internal static void TStripHoverClear(LStrip strip, LStripTab? tab) => strip.QStripSeparator.LStripHoverClear(tab);
-    internal static void TStripUpdateSuspend(LStrip strip) => strip.LStripUpdateSuspend();
-    internal static bool TStripRelayCheck(LStripTab tab) => tab.LStripRelayCheck();
-    internal static bool TStripCohortRun(LStripTab tab, Guid cohort) => tab.LStripCohortRun(cohort);
-    internal static void TStripUpdateResume(LStrip strip) => strip.LStripUpdateResume();
-    internal static void TStripTitleUpdate(LStrip strip) => strip.LStripTitleUpdate();
+    internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
+        strip.QStripSelectChanged += handler;
+    internal static void TStripTabAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabChanged += handler;
+    internal static void TStripAdd(QStrip strip, QStripTab tab) => strip.QStripAdd(tab);
+    internal static void TStripRemove(QStrip strip, QStripTab tab) => strip.QStripRemove(tab);
+    internal static bool TStripMove(QStrip strip, QStripTab tab, int index) => strip.QStripMove(tab, index);
+    internal static void TStripSelect(QStrip strip, QStripTab? tab) => strip.QStripSelect(tab);
+    internal static bool TStripNameSet(QStrip strip, QStripTab tab, string? name) => strip.QStripNameSet(tab, name);
+    internal static void TStripHoverSet(QStrip strip, QStripTab tab) => strip.QStripSeparator.QStripHoverSet(tab);
+    internal static void TStripHoverClear(QStrip strip, QStripTab? tab) => strip.QStripSeparator.QStripHoverClear(tab);
+    internal static void TStripUpdateSuspend(QStrip strip) => strip.QStripUpdateSuspend();
+    internal static bool TStripRelayCheck(QStripTab tab) => tab.QStripRelayCheck();
+    internal static bool TStripCohortRun(QStripTab tab, Guid cohort) => tab.QStripCohortRun(cohort);
+    internal static void TStripUpdateResume(QStrip strip) => strip.QStripUpdateResume();
+    internal static void TStripTitleUpdate(QStrip strip) => strip.QStripTitleUpdate();
 
-    internal static LColumn TColumnCreate(
+    internal static QColumn TColumnCreate(
         IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>
         new(minimums, stored, compact, flex);
-    internal static bool TColumnHiddenSet(LColumn column, int index, bool hidden) =>
-        column.LColumnHiddenSet(index, hidden);
-    internal static bool TColumnWidthSet(LColumn column, int index, double width) =>
-        column.LColumnWidthSet(index, width);
-    internal static IReadOnlyList<double> TColumnWeightsRead(LColumn column) => column.LColumnWeightsRead();
-    internal static bool TColumnWeightsCommit(LColumn column, IReadOnlyList<double> widths) =>
-        column.LColumnWeightsCommit(widths);
-    internal static double TColumnTotalRead(LColumn column, double splitter) => column.LColumnTotalRead(splitter);
-    internal static double[] TColumnMinimumRead(LColumn column, double available) =>
-        column.LColumnMinimumRead(available);
-    internal static double[]? TColumnDefaultResolve(LColumn column, double available, IReadOnlyList<double> minimums) =>
-        column.LColumnDefaultResolve(available, minimums);
+    internal static bool TColumnHiddenSet(QColumn column, int index, bool hidden) =>
+        column.QColumnHiddenSet(index, hidden);
+    internal static bool TColumnWidthSet(QColumn column, int index, double width) =>
+        column.QColumnWidthSet(index, width);
+    internal static IReadOnlyList<double> TColumnWeightsRead(QColumn column) => column.QColumnWeightsRead();
+    internal static bool TColumnWeightsCommit(QColumn column, IReadOnlyList<double> widths) =>
+        column.QColumnWeightsCommit(widths);
+    internal static double TColumnTotalRead(QColumn column, double splitter) => column.QColumnTotalRead(splitter);
+    internal static double[] TColumnMinimumRead(QColumn column, double available) =>
+        column.QColumnMinimumRead(available);
+    internal static double[]? TColumnDefaultResolve(QColumn column, double available, IReadOnlyList<double> minimums) =>
+        column.QColumnDefaultResolve(available, minimums);
     internal static bool TColumnDragResolve(
-        LColumn column, int left, double delta, double[] widths, IReadOnlyList<double> minimums) =>
-        column.LColumnDragResolve(left, delta, widths, minimums);
-    internal static bool TColumnDefaultsRead(LColumn column) => column.LColumnDefaultsRead();
-    internal static LColumnPlan TColumnPlanCreate(
+        QColumn column, int left, double delta, double[] widths, IReadOnlyList<double> minimums) =>
+        column.QColumnDragResolve(left, delta, widths, minimums);
+    internal static bool TColumnDefaultsRead(QColumn column) => column.QColumnDefaultsRead();
+    internal static QColumnPlan TColumnPlanCreate(
         IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>
         new(minimums, stored, compact, flex);
-    internal static LColumn TColumnOwnerRead(LColumnPlan plan) => plan.LColumn;
-    internal static void TColumnPlanAttach(LColumnPlan plan, Action handler) => plan.LColumnPlanChanged += handler;
-    internal static void TColumnWidthAttach(LColumnPlan plan, Action handler) => plan.LColumnWidthChanged += handler;
-    internal static IReadOnlyList<LColumnSlot> TColumnSlotsResolve(LColumnPlan plan) => plan.LColumnSlotsResolve();
-    internal static void TColumnWidthSet(LColumnPlan plan, int index, double width) =>
-        plan.LColumnWidthSet(index, width);
-    internal static void TColumnHiddenSet(LColumnPlan plan, int index, bool hidden) =>
-        plan.LColumnHiddenSet(index, hidden);
-    internal static void TColumnLayoutHandle(LColumnPlan plan, double slot, double actual) =>
-        plan.LColumnLayoutHandle(slot, actual);
+    internal static QColumn TColumnOwnerRead(QColumnPlan plan) => plan.QColumn;
+    internal static void TColumnPlanAttach(QColumnPlan plan, Action handler) => plan.QColumnPlanChanged += handler;
+    internal static void TColumnWidthAttach(QColumnPlan plan, Action handler) => plan.QColumnWidthChanged += handler;
+    internal static IReadOnlyList<QColumnSlot> TColumnSlotsResolve(QColumnPlan plan) => plan.QColumnSlotsResolve();
+    internal static void TColumnWidthSet(QColumnPlan plan, int index, double width) =>
+        plan.QColumnWidthSet(index, width);
+    internal static void TColumnHiddenSet(QColumnPlan plan, int index, bool hidden) =>
+        plan.QColumnHiddenSet(index, hidden);
+    internal static void TColumnLayoutHandle(QColumnPlan plan, double slot, double actual) =>
+        plan.QColumnLayoutHandle(slot, actual);
     internal static void TColumnDragHandle(
-        LColumnPlan plan, int left, double delta, double slot, double actual, IReadOnlyList<double> widths) =>
-        plan.LColumnDragHandle(left, delta, slot, actual, widths);
+        QColumnPlan plan, int left, double delta, double slot, double actual, IReadOnlyList<double> widths) =>
+        plan.QColumnDragHandle(left, delta, slot, actual, widths);
     internal static double TColumnGridResolve(double slot, double actual) =>
-        LColumnPlan.LColumnGridResolve(slot, actual);
-    internal static double TColumnTotalRead(LColumnPlan plan) => plan.LColumnTotalRead();
-    internal static bool TColumnAppliedSet(LColumn column, double available) => column.LColumnAppliedSet(available);
-    internal static bool TColumnHiddenCheck(LColumn column, int index) => column.LColumnHiddenCheck(index);
-    internal static double TColumnWeightRead(LColumn column, int index) => column.LColumnWeightRead(index);
-    internal static double TColumnFixedRead(LColumn column, int index) => column.LColumnFixedRead(index);
-    internal static double TColumnPixelRead(LColumn column, int index) => column.LColumnPixelRead(index);
+        QColumnPlan.QColumnGridResolve(slot, actual);
+    internal static double TColumnTotalRead(QColumnPlan plan) => plan.QColumnTotalRead();
+    internal static bool TColumnAppliedSet(QColumn column, double available) => column.QColumnAppliedSet(available);
+    internal static bool TColumnHiddenCheck(QColumn column, int index) => column.QColumnHiddenCheck(index);
+    internal static double TColumnWeightRead(QColumn column, int index) => column.QColumnWeightRead(index);
+    internal static double TColumnFixedRead(QColumn column, int index) => column.QColumnFixedRead(index);
+    internal static double TColumnPixelRead(QColumn column, int index) => column.QColumnPixelRead(index);
 
-    internal static LAsk TAskCreate(string question, string action) => new(question, action);
-    internal static void TAskAttach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaised += handler;
-    internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaised -= handler;
-    internal static void TAskPublish(LAsk? ask, Action<bool> answer) => LAskNotice.LAskPublish(ask, answer);
+    internal static QAsk TAskCreate(string question, string action) => new(question, action);
+    internal static void TAskAttach(Action<QAsk, Action<bool>> handler) => QAskNotice.QAskRaised += handler;
+    internal static void TAskDetach(Action<QAsk, Action<bool>> handler) => QAskNotice.QAskRaised -= handler;
+    internal static void TAskPublish(QAsk? ask, Action<bool> answer) => QAskNotice.QAskPublish(ask, answer);
 
-    internal static LProgram TProgramCreate() => new(
+    internal static QProgram TProgramCreate() => new(
         Interface.TInterface.TInterfaceEngine.LEngineSchedule,
         Interface.TInterface.TInterfaceEngine.LEngineStationAttach);
-    internal static bool TProgramDepotApply(LProgram program) => program.LProgramDepotApply();
-    internal static string? TProgramDepotRead(LProgram program) => program.LProgramDepotRoot;
-    internal static bool TProgramLanguageNormalize() => LProgram.LProgramLanguageNormalize();
+    internal static bool TProgramDepotApply(QProgram program) => program.QProgramDepotApply();
+    internal static string? TProgramDepotRead(QProgram program) => program.QProgramDepotRoot;
+    internal static bool TProgramLanguageNormalize() => QProgram.QProgramLanguageNormalize();
     internal static string TDepotRootRead() => LDepot.LDepotRootRead();
     internal static void TDepotRootSet(string? root) => LDepot.LDepotRootSet(root);
     internal static void TDepotIndexRelease() => LDepotIndex.LDepotIndexRelease();

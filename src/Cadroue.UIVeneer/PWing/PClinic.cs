@@ -36,12 +36,12 @@ public sealed class PClinic : PPanel
     private readonly Button pClinicDiagnosisButton;
     private readonly PClinicSalvage pClinicSalvage;
 
-    public LClinic LClinic { get; }
+    public QClinic QClinic { get; }
 
-    public PClinic(LClinic lClinic) : base("")
+    public PClinic(QClinic lClinic) : base("")
     {
-        LClinic = lClinic;
-        pClinicSalvage = new PClinicSalvage(LClinic);
+        QClinic = lClinic;
+        pClinicSalvage = new PClinicSalvage(QClinic);
         pClinicTitleLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Clinic.Header.Title"),
@@ -55,7 +55,7 @@ public sealed class PClinic : PPanel
         Button pMinimizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
-            () => LClinic.LClinicMinimizedSet(true));
+            () => QClinic.QClinicMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
         var pHeaderGrid = new Grid();
@@ -77,8 +77,8 @@ public sealed class PClinic : PPanel
         pClinicApplyBox = PClinicSwitchBuild(
             LLocalization.LLocalizationTextRead("Clinic.Apply"),
             LLocalization.LLocalizationTextRead("Clinic.Apply.Tooltip"));
-        pClinicApplyBox.Checked += (_, _) => LClinic.LClinicActiveSet(true);
-        pClinicApplyBox.Unchecked += (_, _) => LClinic.LClinicActiveSet(false);
+        pClinicApplyBox.Checked += (_, _) => QClinic.QClinicActiveSet(true);
+        pClinicApplyBox.Unchecked += (_, _) => QClinic.QClinicActiveSet(false);
 
         pClinicToggleRow = new StackPanel
         {
@@ -169,8 +169,8 @@ public sealed class PClinic : PPanel
             LLocalization.LLocalizationTextRead("Clinic.Persistent"),
             LLocalization.LLocalizationTextRead("Clinic.Persistent.Tooltip"));
         pClinicPersistentBox.IsEnabled = false;
-        pClinicPersistentBox.Checked += (_, _) => LClinic.LClinicPersistentSet(true);
-        pClinicPersistentBox.Unchecked += (_, _) => LClinic.LClinicPersistentSet(false);
+        pClinicPersistentBox.Checked += (_, _) => QClinic.QClinicPersistentSet(true);
+        pClinicPersistentBox.Unchecked += (_, _) => QClinic.QClinicPersistentSet(false);
         pClinicSalvage.PClinicSalvagePersistent.Visibility = Visibility.Collapsed;
         pClinicPersistentBox.VerticalAlignment = VerticalAlignment.Center;
         var pPersistentStack = new Grid { VerticalAlignment = VerticalAlignment.Center };
@@ -227,16 +227,16 @@ public sealed class PClinic : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
-        LClinic.LClinicChanged += PClinicUpdate;
-        LClinic.LClinicMinimizeChanged += PClinicMinimizeHandle;
+        QClinic.QClinicChanged += PClinicUpdate;
+        QClinic.QClinicMinimizeChanged += PClinicMinimizeHandle;
         PClinicUpdate();
     }
 
-    public bool PClinicMinimizedCheck() => LClinic.LClinicMinimized;
+    public bool PClinicMinimizedCheck() => QClinic.QClinicMinimized;
 
-    public void PClinicMinimizeSet(bool pClinicMinimizeRequest) => LClinic.LClinicMinimizedSet(pClinicMinimizeRequest);
+    public void PClinicMinimizeSet(bool pClinicMinimizeRequest) => QClinic.QClinicMinimizedSet(pClinicMinimizeRequest);
 
-    public void PClinicStepShow(string? pStepName) => LClinic.LClinicStepSet(pStepName);
+    public void PClinicStepShow(string? pStepName) => QClinic.QClinicStepSet(pStepName);
 
     internal static CheckBox PClinicSwitchBuild(string pSwitchLabel, string pSwitchTip)
     {
@@ -263,25 +263,25 @@ public sealed class PClinic : PPanel
     private void PClinicUpdate()
     {
         pClinicSalvage.PClinicSalvageUpdate();
-        pClinicApplyBox.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
-        pClinicPersistentBox.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
-        pClinicDiagnosisButton.Visibility = PLook.PLookVisible[!LClinic.LClinicSalvageShown];
-        pClinicSalvage.PClinicSalvageActive.Visibility = PLook.PLookVisible[LClinic.LClinicSalvageShown];
-        pClinicSalvage.PClinicSalvagePersistent.Visibility = PLook.PLookVisible[LClinic.LClinicSalvageShown];
+        pClinicApplyBox.Visibility = PLook.PLookVisible[!QClinic.QClinicSalvageShown];
+        pClinicPersistentBox.Visibility = PLook.PLookVisible[!QClinic.QClinicSalvageShown];
+        pClinicDiagnosisButton.Visibility = PLook.PLookVisible[!QClinic.QClinicSalvageShown];
+        pClinicSalvage.PClinicSalvageActive.Visibility = PLook.PLookVisible[QClinic.QClinicSalvageShown];
+        pClinicSalvage.PClinicSalvagePersistent.Visibility = PLook.PLookVisible[QClinic.QClinicSalvageShown];
         pClinicToggleRow.Visibility = Visibility.Visible;
-        pClinicEmptyNotice.Visibility = PLook.PLookVisible[!LClinic.LClinicKnown];
-        pClinicItemBody.Visibility = PLook.PLookVisible[LClinic.LClinicKnown];
-        pClinicToggleRow.IsEnabled = LClinic.LClinicKnown;
-        pClinicPersistentBox.IsEnabled = LClinic.LClinicPersistentAllowed;
-        pClinicApplyBox.IsChecked = LClinic.LClinicRepairChecked;
-        pClinicPersistentBox.IsChecked = LClinic.LClinicPersistentChecked;
-        pClinicResultBody.Visibility = PLook.PLookVisible[LClinic.LClinicResultShown];
-        pClinicDiagnosisProgress.Value = LClinic.LClinicProgressValue;
-        pClinicDiagnosisProgress.Visibility = PLook.PLookVisible[LClinic.LClinicScanShown];
-        pClinicResultText.Text = LClinic.LClinicResultFormat();
-        pClinicTitleLabel.Text = LClinic.LClinicTitleRead();
-        pClinicItemSimple.Text = LClinic.LClinicSimpleRead();
-        pClinicItemTechnical.Text = LClinic.LClinicTechnicalRead();
+        pClinicEmptyNotice.Visibility = PLook.PLookVisible[!QClinic.QClinicKnown];
+        pClinicItemBody.Visibility = PLook.PLookVisible[QClinic.QClinicKnown];
+        pClinicToggleRow.IsEnabled = QClinic.QClinicKnown;
+        pClinicPersistentBox.IsEnabled = QClinic.QClinicPersistentAllowed;
+        pClinicApplyBox.IsChecked = QClinic.QClinicRepairChecked;
+        pClinicPersistentBox.IsChecked = QClinic.QClinicPersistentChecked;
+        pClinicResultBody.Visibility = PLook.PLookVisible[QClinic.QClinicResultShown];
+        pClinicDiagnosisProgress.Value = QClinic.QClinicProgressValue;
+        pClinicDiagnosisProgress.Visibility = PLook.PLookVisible[QClinic.QClinicScanShown];
+        pClinicResultText.Text = QClinic.QClinicResultFormat();
+        pClinicTitleLabel.Text = QClinic.QClinicTitleRead();
+        pClinicItemSimple.Text = QClinic.QClinicSimpleRead();
+        pClinicItemTechnical.Text = QClinic.QClinicTechnicalRead();
     }
 
     private UIElement PClinicStripBuild()
@@ -289,7 +289,7 @@ public sealed class PClinic : PPanel
         Button pMaximizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
-            () => LClinic.LClinicMinimizedSet(false));
+            () => QClinic.QClinicMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 

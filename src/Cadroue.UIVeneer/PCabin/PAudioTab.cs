@@ -19,42 +19,42 @@ public sealed class PAudioTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(150)
     };
 
-    public PAudioTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PAudioTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
-        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
-        pList = new PList(lWorkspace.LWorkspaceList!);
-        LAudioTab = lWorkspace.QWorkspaceMode.LAudioTabCreate();
-        pProcessing = new PProcessing(LAudioTab.LAudioProcessing);
-        pInspector = new PInspector(LAudioTab.LAudioInspector);
-        LAudioTab.LAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        pFlow = new PFlow(lWorkspace.QWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
+        pList = new PList(lWorkspace.QWorkspaceList!);
+        QAudioTab = lWorkspace.QWorkspaceMode.QAudioTabCreate();
+        pProcessing = new PProcessing(QAudioTab.QAudioProcessing);
+        pInspector = new PInspector(QAudioTab.QAudioInspector);
+        QAudioTab.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
         pProcessing.PProcessingMonitorShown += PAudioMonitorShow;
         pProcessing.PProcessingMonitorSet();
 
-        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
 
-        LAudioTab.LAudioPresetMissing += PExport.PExportMissingShow;
-        LAudioTab.LAudioPresetIncompatible += PExport.PExportIncompatibleShow;
-        LAudioTab.LAudioViewerDeferred += PAudioViewerDefer;
+        QAudioTab.QAudioPresetMissing += PExport.PExportMissingShow;
+        QAudioTab.QAudioPresetIncompatible += PExport.PExportIncompatibleShow;
+        QAudioTab.QAudioViewerDeferred += PAudioViewerDefer;
         pAudioViewerTimer.Tick += PAudioViewerTick;
 
-        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
+        var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
+            new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
-        LAudioTab.LAudioLayoutApply(lPreferenceTabLayout);
+        QAudioTab.QAudioLayoutApply(lPreferenceTabLayout);
     }
 
-    public LAudioTab LAudioTab { get; }
+    public QAudioTab QAudioTab { get; }
 
     public override PFlow PTabFlow => pFlow;
 
@@ -66,13 +66,13 @@ public sealed class PAudioTab : PTabSurface
     {
         pAudioViewerTimer.Stop();
         base.PTabClose();
-        LAudioTab.LAudioClose();
+        QAudioTab.QAudioClose();
     }
 
-    public override LSceneTabEntry PTabLayoutRead() => LAudioTab.LAudioLayoutRead(PTabLayoutCreate());
+    public override LSceneTabEntry PTabLayoutRead() => QAudioTab.QAudioLayoutRead(PTabLayoutCreate());
 
     private void PAudioMonitorShow() =>
-        PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), LAudioTab.LAudioMonitor, pFlow, pViewer);
+        PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), QAudioTab.QAudioMonitor, pFlow, pViewer);
 
     private void PAudioViewerDefer()
     {
@@ -83,6 +83,6 @@ public sealed class PAudioTab : PTabSurface
     private void PAudioViewerTick(object? pSender, EventArgs pEvent)
     {
         pAudioViewerTimer.Stop();
-        LAudioTab.LAudioViewerApply();
+        QAudioTab.QAudioViewerApply();
     }
 }

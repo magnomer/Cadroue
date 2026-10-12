@@ -8,12 +8,12 @@ namespace Cadroue.UIVeneer.PCabin;
 
 internal static class PRosterDetail
 {
-    private static readonly IReadOnlyDictionary<LRosterDetailKind, Action<StackPanel, LRoster>> PRosterFillers =
-        new Dictionary<LRosterDetailKind, Action<StackPanel, LRoster>>
+    private static readonly IReadOnlyDictionary<QRosterDetailKind, Action<StackPanel, QRoster>> PRosterFillers =
+        new Dictionary<QRosterDetailKind, Action<StackPanel, QRoster>>
         {
-            [LRosterDetailKind.LRosterDetailNone] = PRosterEmptyAdd,
-            [LRosterDetailKind.LRosterDetailJob] = PRosterJobAdd,
-            [LRosterDetailKind.LRosterDetailCard] = PRosterCardAdd,
+            [QRosterDetailKind.QRosterDetailNone] = PRosterEmptyAdd,
+            [QRosterDetailKind.QRosterDetailJob] = PRosterJobAdd,
+            [QRosterDetailKind.QRosterDetailCard] = PRosterCardAdd,
         };
 
     public static UIElement PRosterDetailBuild(TextBlock pTitle, StackPanel pPanel)
@@ -43,60 +43,60 @@ internal static class PRosterDetail
         return PPanel.PPanelBorderBuild(pRoot);
     }
 
-    public static void PRosterDetailUpdate(StackPanel pPanel, LRoster lRoster)
+    public static void PRosterDetailUpdate(StackPanel pPanel, QRoster lRoster)
     {
         pPanel.Children.Clear();
-        PRosterFillers[LRosterDetail.LRosterKindRead(lRoster)](pPanel, lRoster);
+        PRosterFillers[QRosterDetail.QRosterKindRead(lRoster)](pPanel, lRoster);
     }
 
-    private static void PRosterEmptyAdd(StackPanel pPanel, LRoster lRoster) =>
+    private static void PRosterEmptyAdd(StackPanel pPanel, QRoster lRoster) =>
         pPanel.Children.Add(
             PRosterOverview.PRosterNoteBuild(LLocalization.LLocalizationTextRead("Roster.Empty.Notice"),
                 new Thickness(0)));
 
-    private static void PRosterCardAdd(StackPanel pPanel, LRoster lRoster) =>
-        PRosterSummary.PRosterSummaryAdd(pPanel, LSummary.LSummaryRead(lRoster));
+    private static void PRosterCardAdd(StackPanel pPanel, QRoster lRoster) =>
+        PRosterSummary.PRosterSummaryAdd(pPanel, QSummary.QSummaryRead(lRoster));
 
-    private static void PRosterJobAdd(StackPanel pPanel, LRoster lRoster)
+    private static void PRosterJobAdd(StackPanel pPanel, QRoster lRoster)
     {
-        LRosterDetail lDetail = LRosterDetail.LRosterDetailRead(lRoster);
-        lDetail.LRosterDetailFailures.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
+        QRosterDetail lDetail = QRosterDetail.QRosterDetailRead(lRoster);
+        lDetail.QRosterDetailFailures.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
 
         pPanel.Children.Add(
             PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
-        lDetail.LRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterOverview.PRosterTabBuild(lTab)));
-        lDetail.LRosterDetailMeters.ToList().ForEach(
+        lDetail.QRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterOverview.PRosterTabBuild(lTab)));
+        lDetail.QRosterDetailMeters.ToList().ForEach(
             lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
-        lDetail.LRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
+        lDetail.QRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
         pPanel.Children.Add(PRosterOverview.PRosterComparisonBuild(lRoster, lDetail));
         pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         pPanel.Children.Add(
             PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Record")));
-        lDetail.LRosterDetailRecords.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
+        lDetail.QRosterDetailRecords.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
         pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         var pVideoPanel = new StackPanel();
         pVideoPanel.Children.Add(
             PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo")));
-        lDetail.LRosterDetailVideos.ToList().ForEach(lRow => pVideoPanel.Children.Add(PRosterRowBuild(lRow)));
+        lDetail.QRosterDetailVideos.ToList().ForEach(lRow => pVideoPanel.Children.Add(PRosterRowBuild(lRow)));
 
         var pAudioPanel = new StackPanel { Margin = new Thickness(14, 0, 0, 0) };
         pAudioPanel.Children.Add(
             PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio")));
-        lDetail.LRosterDetailAudios.ToList().ForEach(lRow => pAudioPanel.Children.Add(PRosterRowBuild(lRow)));
+        lDetail.QRosterDetailAudios.ToList().ForEach(lRow => pAudioPanel.Children.Add(PRosterRowBuild(lRow)));
 
         pPanel.Children.Add(PRosterOverview.PRosterHalvesBuild(pVideoPanel, pAudioPanel));
     }
 
-    private static Grid PRosterRowBuild(LRosterDetailRow lRow)
+    private static Grid PRosterRowBuild(QRosterDetailRow lRow)
     {
         var pGrid = new Grid { Margin = new Thickness(0, 0, 0, 5) };
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PRosterTheme.PRosterLabelWidth) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(new TextBlock
         {
-            Text = lRow.LRosterDetailLabel,
+            Text = lRow.QRosterDetailLabel,
             Foreground = PRosterTheme.PRosterMutedBrush,
             FontSize = PRosterTheme.PRosterRowSize,
             VerticalAlignment = VerticalAlignment.Top
@@ -104,10 +104,10 @@ internal static class PRosterDetail
 
         var pValueBlock = new TextBlock
         {
-            Text = lRow.LRosterDetailValue,
-            Foreground = PRosterTheme.PRosterValueBrushes[lRow.LRosterDetailKey],
+            Text = lRow.QRosterDetailValue,
+            Foreground = PRosterTheme.PRosterValueBrushes[lRow.QRosterDetailKey],
             FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = PRosterTheme.PRosterValueWeights[lRow.LRosterDetailKey],
+            FontWeight = PRosterTheme.PRosterValueWeights[lRow.QRosterDetailKey],
             TextWrapping = TextWrapping.Wrap
         };
         Grid.SetColumn(pValueBlock, 1);

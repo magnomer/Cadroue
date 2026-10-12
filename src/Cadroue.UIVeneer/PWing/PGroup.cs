@@ -52,11 +52,11 @@ public sealed class PGroup : PPanel
     private readonly UIElement pGroupFullBody;
     private readonly UIElement pGroupStripBody;
 
-    public LGroup LGroup { get; }
+    public QGroup QGroup { get; }
 
-    public PGroup(LGroup lGroup) : base("")
+    public PGroup(QGroup lGroup) : base("")
     {
-        LGroup = lGroup;
+        QGroup = lGroup;
         pGroupRowPanel = new StackPanel();
         pGroupActionHost = new Border
         {
@@ -112,25 +112,25 @@ public sealed class PGroup : PPanel
         Content = PPanelBorderBuild(pBodyHost);
         PGroupActionUpdate();
         PGroupRebuild();
-        LGroup.LGroupChanged += PGroupRebuild;
-        LGroup.LGroupFaceChanged += PGroupActionUpdate;
-        LGroup.LGroupMinimizeChanged += PGroupMinimizeHandle;
+        QGroup.QGroupChanged += PGroupRebuild;
+        QGroup.QGroupFaceChanged += PGroupActionUpdate;
+        QGroup.QGroupMinimizeChanged += PGroupMinimizeHandle;
         Loaded += PGroupLoadedHandle;
     }
 
-    private void PGroupLoadedHandle(object pSender, RoutedEventArgs pEvent) => LGroup.LGroupAutoUpdate();
+    private void PGroupLoadedHandle(object pSender, RoutedEventArgs pEvent) => QGroup.QGroupAutoUpdate();
 
     private void PGroupRebuild()
     {
         pGroupRowPanel.Children.Clear();
-        LGroup.LGroupFace.LGroupCardsRead()
+        QGroup.QGroupFace.QGroupCardsRead()
             .Select(PGroupCardBuild)
             .ToList()
             .ForEach(pCard => pGroupRowPanel.Children.Add(pCard));
-        pGroupEmptyNotice.Visibility = PLook.PLookVisible[LGroup.LGroupEmpty];
+        pGroupEmptyNotice.Visibility = PLook.PLookVisible[QGroup.QGroupEmpty];
     }
 
-    private Border PGroupCardBuild(LGroupCard lCard) => new PGroupCard(this, lCard).PGroupCardBorder;
+    private Border PGroupCardBuild(QGroupCard lCard) => new PGroupCard(this, lCard).PGroupCardBorder;
 
     private void PGroupMinimizeHandle(bool pGroupMinimized)
     {
@@ -147,12 +147,12 @@ public sealed class PGroup : PPanel
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pActionGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        Border pModeToggle = PGroupToggleBuild(LGroup.LGroupFace.LGroupModeRead());
+        Border pModeToggle = PGroupToggleBuild(QGroup.QGroupFace.QGroupModeRead());
         pModeToggle.HorizontalAlignment = HorizontalAlignment.Left;
         Grid.SetColumn(pModeToggle, 0);
         pActionGrid.Children.Add(pModeToggle);
 
-        UIElement pTrailing = pGroupTrailings[LGroup.LGroupAuto](this);
+        UIElement pTrailing = pGroupTrailings[QGroup.QGroupAuto](this);
         Grid.SetColumn(pTrailing, 2);
         pActionGrid.Children.Add(pTrailing);
         return pActionGrid;
@@ -166,14 +166,14 @@ public sealed class PGroup : PPanel
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Center
         };
-        LGroup.LGroupFace.LGroupSwitchesRead()
+        QGroup.QGroupFace.QGroupSwitchesRead()
             .Select(PGroupSwitchBuild)
             .ToList()
             .ForEach(pToggle => pSwitches.Children.Add(pToggle));
         return pSwitches;
     }
 
-    private Border PGroupSwitchBuild(LGroupSwitch lToggle)
+    private Border PGroupSwitchBuild(QGroupSwitch lToggle)
     {
         Border pToggle = PGroupToggleBuild(lToggle);
         pToggle.Margin = new Thickness(8, 0, 0, 0);
@@ -191,28 +191,28 @@ public sealed class PGroup : PPanel
         pButtons.Children.Add(PGroupButtonBuild(
             "/PAsset/PPanel/PGroupStrict.svg",
             LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
-            (_, _) => LGroup.LGroupStrictApply()));
+            (_, _) => QGroup.QGroupStrictApply()));
         pButtons.Children.Add(PGroupButtonBuild(
             "/PAsset/PPanel/PGroupLoose.svg",
             LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
-            (_, _) => LGroup.LGroupLooseApply()));
+            (_, _) => QGroup.QGroupLooseApply()));
         Button pSortButton = PGroupButtonBuild(
             "/PAsset/PPanel/PSort.svg",
             LLocalization.LLocalizationTextRead("Group.Sort.Tooltip"),
-            (_, _) => LGroup.LGroupSort());
+            (_, _) => QGroup.QGroupSort());
         pSortButton.Margin = new Thickness(0);
         pButtons.Children.Add(pSortButton);
         return pButtons;
     }
 
-    private Border PGroupToggleBuild(LGroupSwitch lToggle)
+    private Border PGroupToggleBuild(QGroupSwitch lToggle)
     {
         var pRow = new StackPanel { Orientation = Orientation.Horizontal };
         pRow.Children.Add(PGroupSegmentBuild(
-            lToggle.LGroupToggleLeft, () => LGroup.LGroupFace.LGroupToggleRun(lToggle.LGroupToggleKey, false)));
+            lToggle.QGroupToggleLeft, () => QGroup.QGroupFace.QGroupToggleRun(lToggle.QGroupToggleKey, false)));
         pRow.Children.Add(new Border { Width = 1, Background = pGroupLineBrush });
         pRow.Children.Add(PGroupSegmentBuild(
-            lToggle.LGroupToggleRight, () => LGroup.LGroupFace.LGroupToggleRun(lToggle.LGroupToggleKey, true)));
+            lToggle.QGroupToggleRight, () => QGroup.QGroupFace.QGroupToggleRun(lToggle.QGroupToggleKey, true)));
 
         return new Border
         {
@@ -226,25 +226,25 @@ public sealed class PGroup : PPanel
         };
     }
 
-    private static Border PGroupSegmentBuild(LGroupSide lSide, Action pGroupClick)
+    private static Border PGroupSegmentBuild(QGroupSide lSide, Action pGroupClick)
     {
         var pLabel = new TextBlock
         {
-            Text = lSide.LGroupSideText,
+            Text = lSide.QGroupSideText,
             FontSize = 12,
             FontFamily = pGroupFontFamily,
-            FontWeight = PLook.PLookWeight[lSide.LGroupSideActive],
-            Foreground = pGroupSegmentBrushes[lSide.LGroupSideActive],
+            FontWeight = PLook.PLookWeight[lSide.QGroupSideActive],
+            Foreground = pGroupSegmentBrushes[lSide.QGroupSideActive],
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
 
         var pSegment = new Border
         {
-            Background = pGroupSegmentFills[lSide.LGroupSideActive],
+            Background = pGroupSegmentFills[lSide.QGroupSideActive],
             Padding = new Thickness(12, 3, 12, 3),
             Cursor = Cursors.Hand,
-            ToolTip = lSide.LGroupSideTip,
+            ToolTip = lSide.QGroupSideTip,
             Child = pLabel
         };
         pSegment.MouseLeftButtonUp += (_, _) => pGroupClick();
@@ -266,7 +266,7 @@ public sealed class PGroup : PPanel
         Button pMinimizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
             LLocalization.LLocalizationTextRead("Group.Panel.HideTooltip"),
-            (_, _) => LGroup.LGroupMinimizedSet(true));
+            (_, _) => QGroup.QGroupMinimizedSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -292,7 +292,7 @@ public sealed class PGroup : PPanel
         Button pMaximizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
             LLocalization.LLocalizationTextRead("Group.Panel.ShowTooltip"),
-            (_, _) => LGroup.LGroupMinimizedSet(false));
+            (_, _) => QGroup.QGroupMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
@@ -331,7 +331,7 @@ public sealed class PGroup : PPanel
     private void PGroupDropHandle(object pSender, DragEventArgs pEvent)
     {
         var pMove = pEvent.Data.GetData(PGroupMoveKind) as PGroupMovePayload;
-        pEvent.Handled = LGroup.LGroupDrag.LGroupPanelAccept(
+        pEvent.Handled = QGroup.QGroupDrag.QGroupPanelAccept(
             pEvent.Handled,
             pEvent.Data.GetData(DataFormats.FileDrop) as string[],
             pMove?.PGroupMoveIndex,

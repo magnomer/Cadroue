@@ -9,30 +9,30 @@ public sealed class TChromePress
     [Fact]
     public void Press_OnCaption_Arms_AndDragStartsPastThreshold()
     {
-        LChrome chrome = TInterface.TChromeCreate();
+        QChrome chrome = TInterface.TChromeCreate();
 
         TInterface.TChromePressHandle(chrome, true, 100, 10);
-        Assert.True(chrome.LChromeArmed);
-        Assert.False(chrome.LChromeDragActive);
+        Assert.True(chrome.QChromeArmed);
+        Assert.False(chrome.QChromeDragActive);
 
         Assert.False(TInterface.TChromeMoveResolve(chrome, 102, 11, true, 4, 4));
         Assert.False(TInterface.TChromeMoveResolve(chrome, 120, 10, false, 4, 4));
         Assert.True(TInterface.TChromeMoveResolve(chrome, 120, 10, true, 4, 4));
-        Assert.True(chrome.LChromeDragActive);
+        Assert.True(chrome.QChromeDragActive);
         Assert.False(TInterface.TChromeMoveResolve(chrome, 130, 10, true, 4, 4));
 
         TInterface.TChromeReset(chrome);
-        Assert.False(chrome.LChromeArmed);
-        Assert.False(chrome.LChromeDragActive);
+        Assert.False(chrome.QChromeArmed);
+        Assert.False(chrome.QChromeDragActive);
     }
 
     [Fact]
     public void Press_OffCaption_NeverArms()
     {
-        LChrome chrome = TInterface.TChromeCreate();
+        QChrome chrome = TInterface.TChromeCreate();
 
         TInterface.TChromePressHandle(chrome, false, 100, 10);
-        Assert.False(chrome.LChromeArmed);
+        Assert.False(chrome.QChromeArmed);
         Assert.False(TInterface.TChromeMoveResolve(chrome, 200, 10, true, 4, 4));
         Assert.False(TInterface.TChromeReleaseResolve(chrome, true));
     }
@@ -40,11 +40,11 @@ public sealed class TChromePress
     [Fact]
     public void Release_IsAClick_OnlyWhenArmedWithoutDrag_AndOnLogo()
     {
-        LChrome chrome = TInterface.TChromeCreate();
+        QChrome chrome = TInterface.TChromeCreate();
 
         TInterface.TChromePressHandle(chrome, true, 0, 0);
         Assert.False(TInterface.TChromeReleaseResolve(chrome, false));
-        Assert.False(chrome.LChromeArmed);
+        Assert.False(chrome.QChromeArmed);
 
         TInterface.TChromePressHandle(chrome, true, 0, 0);
         Assert.True(TInterface.TChromeReleaseResolve(chrome, true));

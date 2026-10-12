@@ -8,9 +8,9 @@ namespace Cadroue.Tests.Windows;
 [Collection("Logging")]
 public sealed class TViewerSource
 {
-    private static (LViewer TViewer, LViewerSource TSource) TSourceBuild()
+    private static (QViewer TViewer, QViewerSource TSource) TSourceBuild()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
         TInterfaceViewer.TViewerCommandSet(viewer, true);
         return (viewer, TInterfaceViewer.TViewerSourceRead(viewer));
     }
@@ -25,19 +25,19 @@ public sealed class TViewerSource
     [Fact]
     public void SourceOpen_CommandInactive_Refuses()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         TInterfaceViewer.TViewerCommandSet(viewer, false);
 
         TInterfaceViewer.TViewerSourceOpen(source, "clip.mp4");
 
-        Assert.Null(viewer.LViewerIntent);
+        Assert.Null(viewer.QViewerIntent);
         Assert.False(TInterfaceViewer.TViewerSourceMatch(viewer, "clip.mp4"));
     }
 
     [Fact]
     public void SourceOpen_PlainPath_StartsLoad_AndReportsMissingFile()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         string path = Path.Combine(Path.GetTempPath(), $"cadroue-open-{Guid.NewGuid():N}.mp4");
@@ -47,17 +47,17 @@ public sealed class TViewerSource
         Assert.Single(cargos);
         Assert.Equal(path, cargos[0].LCargoSourcePath);
         Assert.NotNull(cargos[0].LCargoFfmpegError);
-        Assert.Null(viewer.LViewerIntent);
+        Assert.Null(viewer.QViewerIntent);
     }
 
     [Fact]
     public void SourceOpen_SidecarUnresolved_AsksWarning_AndRefuses()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
-        List<LViewerAskKind> asks = [];
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
+        List<QViewerAskKind> asks = [];
         TInterfaceViewer.TViewerAskAttach(source, (ask, answer) =>
         {
-            asks.Add(ask.LViewerAskKind);
+            asks.Add(ask.QViewerAskKind);
             answer(true);
         });
         TInterfaceViewer.TViewerLibrarianAttach(
@@ -71,20 +71,20 @@ public sealed class TViewerSource
             TInterfaceViewer.TViewerLibrarianAttach(null, null, null);
         }
 
-        Assert.Equal([LViewerAskKind.LViewerAskWarning], asks);
-        Assert.Null(viewer.LViewerIntent);
+        Assert.Equal([QViewerAskKind.QViewerAskWarning], asks);
+        Assert.Null(viewer.QViewerIntent);
     }
 
     [Fact]
     public void SourceOpen_SidecarMismatch_DecisionAccepted_OpensResolvedPath()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
-        List<LViewerAskKind> asks = [];
+        List<QViewerAskKind> asks = [];
         TInterfaceViewer.TViewerAskAttach(source, (ask, answer) =>
         {
-            asks.Add(ask.LViewerAskKind);
+            asks.Add(ask.QViewerAskKind);
             answer(true);
         });
         string resolved = Path.Combine(Path.GetTempPath(), $"cadroue-resolved-{Guid.NewGuid():N}.mp4");
@@ -101,7 +101,7 @@ public sealed class TViewerSource
             TInterfaceViewer.TViewerLibrarianAttach(null, null, null);
         }
 
-        Assert.Equal([LViewerAskKind.LViewerAskDecision], asks);
+        Assert.Equal([QViewerAskKind.QViewerAskDecision], asks);
         Assert.Single(cargos);
         Assert.Equal(resolved, cargos[0].LCargoSourcePath);
     }
@@ -109,59 +109,59 @@ public sealed class TViewerSource
     [Fact]
     public void PathHandle_SameSource_DoesNotReopen_OtherSourceDoes()
     {
-        (LViewer viewer, _) = TSourceBuild();
+        (QViewer viewer, _) = TSourceBuild();
         string path = Path.Combine(Path.GetTempPath(), $"cadroue-same-{Guid.NewGuid():N}.mp4");
         TInterfaceViewer.TViewerRequestSet(viewer, path);
         TInterfaceViewer.TViewerIntentSet(viewer, path, TimeSpan.Zero, null);
-        int serial = viewer.LViewerLoadSerial;
+        int serial = viewer.QViewerLoadSerial;
 
         TInterfaceViewer.TViewerPathHandle(viewer, path);
-        Assert.Equal(serial, viewer.LViewerLoadSerial);
+        Assert.Equal(serial, viewer.QViewerLoadSerial);
 
         TInterfaceViewer.TViewerPathHandle(viewer, Path.Combine(Path.GetTempPath(), "cadroue-other.mp4"));
-        Assert.NotEqual(serial, viewer.LViewerLoadSerial);
+        Assert.NotEqual(serial, viewer.QViewerLoadSerial);
     }
 
     [Fact]
     public void DropResolve_ListPresent_AcceptsFoldersAndMedia()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         TInterfaceViewer.TViewerDropAttach(source, _ => { });
         string folder = Path.GetTempPath();
 
-        Assert.Equal(LWindowDropEffect.LWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [folder], true));
-        Assert.Equal(LWindowDropEffect.LWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [folder], false));
-        Assert.Equal(LWindowDropEffect.LWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, null, true));
+        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [folder], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [folder], false));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, null, true));
         Assert.Equal(
-            LWindowDropEffect.LWindowDropNone,
+            QWindowDropEffect.QWindowDropNone,
             TInterfaceViewer.TViewerDropResolve(
                 source, [Path.Combine(folder, $"missing-{Guid.NewGuid():N}.txt")], true));
-        Assert.Null(viewer.LViewerIntent);
+        Assert.Null(viewer.QViewerIntent);
     }
 
     [Fact]
     public void DropHandle_ListPresent_HandsPathsToList()
     {
-        (_, LViewerSource source) = TSourceBuild();
+        (_, QViewerSource source) = TSourceBuild();
         List<string> handed = [];
         TInterfaceViewer.TViewerDropAttach(source, paths => handed.AddRange(paths));
         string folder = Path.GetTempPath();
 
-        Assert.Equal(LWindowDropEffect.LWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [folder], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [folder], true));
         Assert.Equal([folder], handed);
     }
 
     [Fact]
     public void DropResolve_ViewerOnly_NeedsExistingFile_AndAudioAllowance()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         string audio = TSourceFileCreate(".mp3");
         try
         {
-            Assert.Equal(LWindowDropEffect.LWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
             TInterfaceViewer.TViewerAllowSet(viewer, true);
-            Assert.Equal(LWindowDropEffect.LWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
-            Assert.Equal(LWindowDropEffect.LWindowDropNone, TInterfaceViewer.TViewerDropResolve(
+            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(
                 source, [audio], false));
         }
         finally
@@ -169,19 +169,19 @@ public sealed class TViewerSource
             File.Delete(audio);
         }
 
-        Assert.Equal(LWindowDropEffect.LWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
     }
 
     [Fact]
     public void DropHandle_ViewerOnly_OpensFirstExistingFile()
     {
-        (LViewer viewer, LViewerSource source) = TSourceBuild();
+        (QViewer viewer, QViewerSource source) = TSourceBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         string file = TSourceFileCreate(".txt");
         try
         {
-            Assert.Equal(LWindowDropEffect.LWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [file], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [file], true));
         }
         finally
         {

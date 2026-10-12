@@ -12,12 +12,12 @@ public sealed class TCartographerCollection { }
 [Collection("Cartographer")]
 public sealed class TListDelivery
 {
-    private static (LStrip, LStripTab, LDocket) TListBuild(params string[] paths)
+    private static (QStrip, QStripTab, LDocket) TListBuild(params string[] paths)
     {
-        LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => name);
-        LStripTab tab = TInterface.TStripTabCreate("Convert");
+        QStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => name);
+        QStripTab tab = TInterface.TStripTabCreate("Convert");
         TInterface.TStripAdd(strip, tab);
-        LDocket docket = tab.LStripTabDocket!;
+        LDocket docket = tab.QStripTabDocket!;
         TInterfaceList.TDocketPathsAdd(docket, paths);
         TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Convert"));
         TInterfaceList.TListRelayAttach(strip);
@@ -36,11 +36,11 @@ public sealed class TListDelivery
         File.WriteAllBytes(clip, []);
         try
         {
-            (_, LStripTab tab, LDocket docket) = TListBuild();
+            (_, QStripTab tab, LDocket docket) = TListBuild();
             Guid batch = Guid.NewGuid();
 
-            Assert.True(TInterfaceList.TListDeliveredAdd(tab.LStripTabId, clip, batch));
-            Assert.False(TInterfaceList.TListDeliveredAdd(tab.LStripTabId, Path.Combine(folder, "gone.mp4"), batch));
+            Assert.True(TInterfaceList.TListDeliveredAdd(tab.QStripTabId, clip, batch));
+            Assert.False(TInterfaceList.TListDeliveredAdd(tab.QStripTabId, Path.Combine(folder, "gone.mp4"), batch));
             Assert.False(TInterfaceList.TListDeliveredAdd(Guid.NewGuid(), clip, batch));
 
             LDocketEntry entry = Assert.Single(TInterfaceList.TDocketItemsRead(docket));
@@ -57,9 +57,9 @@ public sealed class TListDelivery
     [Fact]
     public void SourceClaim_LocksTheSourceInItsTab_ReleaseUnlocksIt()
     {
-        (_, LStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
+        (_, QStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
         Guid batch = Guid.NewGuid();
-        LWorkItem work = TWorkBuild(@"C:\a.mp4", batch, tab.LStripTabId);
+        LWorkItem work = TWorkBuild(@"C:\a.mp4", batch, tab.QStripTabId);
 
         Assert.True(TInterfaceList.TListSourceClaim(work));
         Assert.True(TInterfaceList.TDocketItemsRead(docket)[0].LDocketEntryLocked);
@@ -72,9 +72,9 @@ public sealed class TListDelivery
     [Fact]
     public void BatchRemove_DropsDeliveredFiles_UnlocksOrphans()
     {
-        (_, LStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4");
+        (_, QStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4");
         Guid batch = Guid.NewGuid();
-        LWorkItem work = TWorkBuild(@"C:\a.mp4", batch, tab.LStripTabId);
+        LWorkItem work = TWorkBuild(@"C:\a.mp4", batch, tab.QStripTabId);
         TInterfaceList.TListSourceClaim(work);
         TInterfaceList.TDocketDeliveredAdd(docket, @"C:\delivered.mp4", batch, false);
 
@@ -88,8 +88,8 @@ public sealed class TListDelivery
     [Fact]
     public void DeliveredRemove_ForcedDropsTheSourceFromItsTab()
     {
-        (_, LStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
-        LWorkItem work = TWorkBuild(@"C:\a.mp4", Guid.NewGuid(), tab.LStripTabId);
+        (_, QStripTab tab, LDocket docket) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
+        LWorkItem work = TWorkBuild(@"C:\a.mp4", Guid.NewGuid(), tab.QStripTabId);
 
         TInterfaceList.TListDeliveredRemove(work, true);
 

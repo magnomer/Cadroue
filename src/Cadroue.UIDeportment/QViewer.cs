@@ -1,0 +1,399 @@
+using Cadroue.Application;
+using Cadroue.Conduct;
+using Cadroue.Core;
+using Cadroue.Infrastructure;
+using Cadroue.Media;
+
+namespace Cadroue.UIDeportment;
+
+public sealed record QViewerIntent(
+    string QViewerIntentPath,
+    TimeSpan QViewerIntentPosition,
+    bool? QViewerIntentPlaying);
+
+public sealed record QViewerSwitch(string QViewerSwitchText, string QViewerSwitchTip, bool QViewerSwitchEnabled);
+
+public sealed class QViewer
+{
+    private int qViewerLoadSerial;
+    private bool qViewerMpvActive;
+    private bool qViewerHostVisible;
+    private bool qViewerLoupeActive;
+    private LPreviewEngine qViewerEngine = LPreviewEngine.LPreviewEngineFlyleaf;
+    private bool qViewerCommandActive;
+    private bool qViewerUnloaded;
+    private bool qViewerEndReached;
+    private bool qViewerResumeInactive;
+    private bool qViewerAudioAllowed;
+    private bool qViewerAudioEligible;
+    private bool qViewerEditEligible;
+    private bool qViewerColorPreview;
+    private bool qViewerBypass;
+    private string qViewerAudioFilter = string.Empty;
+    private QViewerIntent? qViewerIntent;
+    private string? qViewerRequestPath;
+    private string? qViewerSourcePath;
+    private LMediaInfo? qViewerMediaInfo;
+    private double qViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
+    private LPreviewState qViewerPreview = LPreviewState.LPreviewDefaultCreate();
+
+    public QViewer(CUsher lUsher)
+    {
+        QViewerPlayback = new QViewerPlayback(this);
+        QViewerMedia = new QViewerMedia(this);
+        QViewerSource = new QViewerSource(this, lUsher);
+        QViewerRenderer = new QViewerRenderer(this);
+        QViewerMpv = new QViewerMpv(this);
+        QViewerNeutral = new QViewerNeutral(this);
+        QCrop = new QCrop(this);
+        QCropDrag = new QCropDrag(this);
+    }
+
+    public QPlayer QPlayer { get; } = new();
+
+    public QViewerPlayback QViewerPlayback { get; }
+
+    public QViewerMedia QViewerMedia { get; }
+
+    public QViewerSource QViewerSource { get; }
+
+    public QViewerRenderer QViewerRenderer { get; }
+
+    public QViewerMpv QViewerMpv { get; }
+
+    public QViewerNeutral QViewerNeutral { get; }
+
+    public QCrop QCrop { get; }
+
+    public QCropDrag QCropDrag { get; }
+
+    public event Action<LCargo>? QViewerMediaChanged;
+    public event Action<bool>? QViewerPlayingChanged;
+    public event Action? QViewerEngineChanged;
+    public event Action? QViewerPreviewChanged;
+    public event Action<bool>? QViewerBypassChanged;
+    public event Action<double>? QViewerVolumeChanged;
+    public event Action<string>? QViewerOpenRequest;
+
+    public int QViewerLoadSerial => qViewerLoadSerial;
+
+    public bool QViewerMpvActive => qViewerMpvActive;
+
+    public bool QViewerHostVisible => qViewerHostVisible;
+
+    public bool QViewerMpvShown => qViewerHostVisible && qViewerMpvActive;
+
+    public bool QViewerFlyleafShown => qViewerHostVisible && !qViewerMpvActive;
+
+    public bool QViewerAudioShown => qViewerHostVisible && qViewerAudioEligible;
+
+    public bool QViewerAudioCapable => qViewerEngine == LPreviewEngine.LPreviewEngineMpv;
+
+    public bool QViewerLoupeActive => qViewerLoupeActive;
+
+    public LPreviewEngine QViewerEngine => qViewerEngine;
+
+    public bool QViewerCommandActive => qViewerCommandActive;
+
+    public bool QViewerUnloaded => qViewerUnloaded;
+
+    public bool QViewerEndReached => qViewerEndReached;
+
+    public bool QViewerResumeInactive => qViewerResumeInactive;
+
+    public bool QViewerAudioAllowed => qViewerAudioAllowed;
+
+    public bool QViewerAudioEligible => qViewerAudioEligible;
+
+    public bool QViewerEditEligible => qViewerEditEligible;
+
+    public bool QViewerColorPreview => qViewerColorPreview;
+
+    public bool QViewerProcessorForced => qViewerColorPreview && LFlyleaf.LFlyleafActive;
+
+    public bool QViewerBypass => qViewerBypass;
+
+    public QViewerIntent? QViewerIntent => qViewerIntent;
+
+    public string? QViewerSourcePath => qViewerSourcePath;
+
+    public LMediaInfo? QViewerMediaInfo => qViewerMediaInfo;
+
+    public double QViewerVolume => qViewerVolume;
+
+    public LPreviewState QViewerPreview => qViewerPreview;
+
+    public bool QViewerPlaying => qViewerPreview.LPlaybackState.LPlaybackStatePlaying;
+
+    public TimeSpan QViewerPosition => qViewerPreview.LPlaybackState.LPlaybackPosition;
+
+    public TimeSpan QViewerDuration => qViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
+
+    public bool QViewerVideoPresent => qViewerMediaInfo is { LMediaVideoPresent: true };
+
+    public QViewerSwitch QViewerSwitchRead() => new(
+        LLocalization.LLocalizationTextRead(qViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered"),
+        LLocalization.LLocalizationTextRead(
+            QViewerAudioCapable ? "Viewer.Audio.SwitchTooltip" : "Viewer.Audio.MpvRequired"),
+        QViewerAudioCapable);
+
+    public int QViewerSerialChange() => ++qViewerLoadSerial;
+
+    public bool QViewerSerialCheck(int lSerial) =>
+        !qViewerUnloaded && lSerial == qViewerLoadSerial && qViewerCommandActive;
+
+    public void QViewerMpvSet(bool lMpvActive) => qViewerMpvActive = lMpvActive;
+
+    public void QViewerHostSet(bool lHostVisible) => qViewerHostVisible = lHostVisible;
+
+    public void QViewerLoupeSet(bool lLoupeActive) => qViewerLoupeActive = lLoupeActive;
+
+    public void QViewerCommandSet(bool lCommandActive) => qViewerCommandActive = lCommandActive;
+
+    public void QViewerUnloadSet() => qViewerUnloaded = true;
+
+    public void QViewerEndSet(bool lEndReached) => qViewerEndReached = lEndReached;
+
+    public void QViewerResumeSet(bool lResumeInactive) => qViewerResumeInactive = lResumeInactive;
+
+    public void QViewerAllowSet(bool lAudioAllowed) => qViewerAudioAllowed = lAudioAllowed;
+
+    public void QViewerEligibleSet(bool lAudioEligible, bool lEditEligible, bool lColorPreview)
+    {
+        qViewerAudioEligible = lAudioEligible;
+        qViewerEditEligible = lEditEligible;
+        qViewerColorPreview = lColorPreview;
+    }
+
+    public void QViewerIntentSet(QViewerIntent? lIntent) => qViewerIntent = lIntent;
+
+    public void QViewerRequestSet(string lRequestPath) => qViewerRequestPath = lRequestPath;
+
+    public void QViewerPathHandle(string? lPath)
+    {
+        if (string.IsNullOrWhiteSpace(lPath) || QViewerSourceMatch(lPath))
+        {
+            return;
+        }
+
+        QViewerOpenRequest?.Invoke(lPath);
+    }
+
+    public bool QViewerSourceMatch(string lRequestPath) =>
+        string.Equals(qViewerRequestPath, lRequestPath, StringComparison.OrdinalIgnoreCase)
+        && (qViewerMediaInfo is not null || qViewerIntent is not null);
+
+    public bool QViewerSurfaceMatch(nint lForeground, nint lSurface, nint lOverlay) =>
+        lForeground != nint.Zero && (lForeground == lSurface || lForeground == lOverlay);
+
+    public void QViewerEngineSet(LPreviewEngine lEngine)
+    {
+        if (qViewerEngine == lEngine)
+        {
+            return;
+        }
+
+        qViewerEngine = lEngine;
+        QViewerEngineChanged?.Invoke();
+    }
+
+    public void QViewerFilterSet(string? lFilter) => qViewerAudioFilter = lFilter ?? string.Empty;
+
+    public string QViewerAudioResolve() => qViewerBypass ? string.Empty : qViewerAudioFilter;
+
+    public void QViewerGraphSet(string lGraph)
+    {
+        QViewerFilterSet(lGraph);
+        QViewerAudioApply();
+        QViewerPreviewRaise();
+    }
+
+    public void QViewerBypassSet(bool lBypass)
+    {
+        if (qViewerBypass == lBypass)
+        {
+            return;
+        }
+
+        qViewerBypass = lBypass;
+        QViewerBypassChanged?.Invoke(lBypass);
+        QViewerAudioApply();
+        QViewerPreviewRaise();
+    }
+
+    public void QViewerBypassToggle() => QViewerBypassSet(!qViewerBypass);
+
+    public void QViewerAudioApply()
+    {
+        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
+        {
+            return;
+        }
+
+        QPlayer.QPlayerAudioApply(QViewerAudioResolve());
+    }
+
+    public void QViewerVolumeApply(double lVolume)
+    {
+        qViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
+        if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
+        {
+            LPreference.LPreferenceVolumeSet(qViewerVolume);
+        }
+
+        QViewerVolumeChanged?.Invoke(qViewerVolume);
+    }
+
+    public void QViewerPreviewSet(LPreviewState lPreview) => qViewerPreview = lPreview;
+
+    public void QViewerPreviewRaise() => QViewerPreviewChanged?.Invoke();
+
+    public LPreviewState QViewerRenderRead() =>
+        QCrop.QCropActive
+            ? qViewerPreview
+            : qViewerPreview
+                .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
+                .LCropboxChange(null);
+
+    public void QViewerFilterUpdate()
+    {
+        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
+        {
+            return;
+        }
+
+        string lFilter = LPreview.LPreviewFilterResolve(QViewerRenderRead());
+        bool lChanged = lFilter != QPlayer.QPlayerFilterApplied;
+        if (!QPlayer.QPlayerFilterApply(lFilter) || !lChanged)
+        {
+            return;
+        }
+
+        if (QViewerPlaying)
+        {
+            return;
+        }
+
+        try
+        {
+            QPlayer.QPlayerUpdate();
+        }
+        catch (Exception lRefreshException)
+        {
+            LTraceLog.LTraceErrorRecord($"mpv rejected paused preview refresh: {lRefreshException.Message}");
+        }
+    }
+
+    public void QViewerPreviewApply()
+    {
+        if (qViewerMpvActive)
+        {
+            QViewerFilterUpdate();
+            QViewerPreviewRaise();
+            return;
+        }
+
+        QPlayer.QPlayerPreviewApply(QViewerRenderRead(), "preview color/geometry");
+        QPlayer.QPlayerFactsRecord("Preview color applied");
+        QViewerPreviewRaise();
+    }
+
+    public void QViewerRotateSet(LRotateFlip lRotateFlip)
+    {
+        qViewerPreview = qViewerPreview.LRotateFlipChange(lRotateFlip);
+        LTraceLog.LTraceInfoRecord(
+            $"Viewer rotate/flip set: rotate {lRotateFlip.LRotateKind}, "
+            + $"H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}, "
+            + $"player {(QPlayer.QPlayerReady ? "ready" : "none")}, overlay remapped");
+        QViewerPreviewApply();
+        QCrop.QCropOverlayUpdate();
+    }
+
+    public void QViewerColorSet(LColor lColor)
+    {
+        qViewerPreview = qViewerPreview.LColorChange(lColor);
+        QViewerPreviewApply();
+    }
+
+    public void QViewerMediaRaise(LCargo lCargo)
+    {
+        Delegate[] lHandlers = QViewerMediaChanged?.GetInvocationList() ?? Array.Empty<Delegate>();
+        foreach (Action<LCargo> lHandler in lHandlers.Cast<Action<LCargo>>())
+        {
+            try
+            {
+                lHandler(lCargo);
+            }
+            catch (Exception lException)
+            {
+                LTraceLog.LTraceErrorRecord("Viewer media notice handler failed", lException);
+            }
+        }
+    }
+
+    public void QViewerPlaybackUpdate(bool? lPlaying, TimeSpan? lPosition)
+    {
+        LPlaybackState lState = qViewerPreview.LPlaybackState;
+        bool lPlayingNow = lPlaying ?? lState.LPlaybackStatePlaying;
+        qViewerPreview = qViewerPreview.LPlaybackStateChange(
+            new LPlaybackState(lPlayingNow, lPosition ?? lState.LPlaybackPosition));
+        if (lPlayingNow != lState.LPlaybackStatePlaying)
+        {
+            QViewerPlayingChanged?.Invoke(lPlayingNow);
+        }
+    }
+
+    public void QViewerMediaCommit(LCargo lCargo, bool lCropPersistent)
+    {
+        qViewerMediaInfo = lCargo.LCargoMediaInfo;
+        qViewerSourcePath = lCargo.LCargoSourcePath;
+        qViewerPreview = qViewerPreview.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        qViewerEndReached = false;
+        if (!lCropPersistent)
+        {
+            qViewerPreview = qViewerPreview.LCropboxChange(null);
+        }
+    }
+
+    public void QViewerMediaClose()
+    {
+        qViewerLoadSerial++;
+        qViewerIntent = null;
+        qViewerRequestPath = null;
+        qViewerSourcePath = null;
+        qViewerMediaInfo = null;
+        qViewerPreview = qViewerPreview
+            .LCropboxChange(null)
+            .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+    }
+
+    public TimeSpan QViewerTimeRead() => QPlayer.QPlayerReady ? QPlayer.QPlayerTimeRead() : QViewerPosition;
+
+    public async void QViewerFrameRead(Action<LMediaFrame?> lFrameApply)
+    {
+        if (qViewerMediaInfo is not { LMediaVideoPresent: true } lMediaInfo)
+        {
+            lFrameApply(null);
+            return;
+        }
+
+        int lWidth = lMediaInfo.LMediaVideoWidth;
+        int lHeight = lMediaInfo.LMediaVideoHeight;
+        string? lPath = qViewerSourcePath;
+        if (lWidth <= 0 || lHeight <= 0 || string.IsNullOrWhiteSpace(lPath))
+        {
+            lFrameApply(null);
+            return;
+        }
+
+        TimeSpan lTime = QViewerTimeRead();
+        int lClaim = qViewerLoadSerial;
+        LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lTime, lWidth, lHeight);
+        if (qViewerUnloaded || lClaim != qViewerLoadSerial)
+        {
+            return;
+        }
+
+        lFrameApply(lFrame);
+    }
+}

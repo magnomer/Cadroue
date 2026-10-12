@@ -12,14 +12,14 @@ public sealed class TSplitTabSweep
 {
     private const string TSplitSource = @"C:\media\clip.mp4";
 
-    private static (LSplitTab, LInspector, LList, LDocket, LFlow) TSplitBuild()
+    private static (QSplitTab, QInspector, QList, LDocket, QFlow) TSplitBuild()
     {
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LFlow flow = TInterface.TFlowCreate();
-        LSplitTab tab = TInterface.TSplitTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QFlow flow = TInterface.TFlowCreate();
+        QSplitTab tab = TInterface.TSplitTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list, flow);
-        LInspector inspector = TInterface.TSplitInspectorRead(tab);
+        QInspector inspector = TInterface.TSplitInspectorRead(tab);
         return (tab, inspector, list, docket, flow);
     }
 
@@ -28,12 +28,12 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _, _) = TSplitBuild();
-        LSensor sensor = inspector.LInspectorSensor;
+        (QSplitTab tab, QInspector inspector, _, _, _) = TSplitBuild();
+        QSensor sensor = inspector.QInspectorSensor;
         TInterface.TSensorEnabledSet(sensor, LDetectorKind.LDetectorKindVolume, true);
         TInterface.TSensorEnabledSet(sensor, LDetectorKind.LDetectorKindScene, true);
         TInterface.TBlankStepSet(
-            inspector.LInspectorBlank,
+            inspector.QInspectorBlank,
             TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeBlack) with { LDetectorBlankEnabled = true });
 
         IReadOnlyList<LDetectorKind> steps = TInterface.TSplitStepsRead(tab);
@@ -48,7 +48,7 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, _, _, _) = TSplitBuild();
+        (QSplitTab tab, _, _, _, _) = TSplitBuild();
 
         Assert.Empty(TInterface.TSplitStepsRead(tab));
     }
@@ -58,8 +58,8 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _, _) = TSplitBuild();
-        TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+        (QSplitTab tab, QInspector inspector, _, _, _) = TSplitBuild();
+        TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
         var busy = new List<bool>();
         TInterface.TSplitBusyAttach(tab, busy.Add);
 
@@ -67,7 +67,7 @@ public sealed class TSplitTabSweep
 
         Assert.Empty(busy);
         Assert.False(TInterface.TSplitSweepCheck(tab));
-        Assert.False(inspector.LInspectorSensor.LSensorRunning);
+        Assert.False(inspector.QInspectorSensor.QSensorRunning);
     }
 
     [Fact]
@@ -75,10 +75,10 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, LList list, LDocket docket, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, QList list, LDocket docket, _) = TSplitBuild();
         TInterfaceList.TDocketPathsAdd(docket, TSplitSource);
         TInterfaceList.TListSelect(list, TSplitSource);
-        TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+        TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
         var busy = new List<bool>();
         TInterface.TSplitBusyAttach(tab, busy.Add);
 
@@ -93,7 +93,7 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, LList list, LDocket docket, LFlow flow) = TSplitBuild();
+        (QSplitTab tab, _, QList list, LDocket docket, QFlow flow) = TSplitBuild();
         TInterfaceList.TDocketPathsAdd(docket, TSplitSource);
         TInterfaceList.TListSelect(list, TSplitSource);
         TInterface.TFlowCommandSet(flow, true);
@@ -114,7 +114,7 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, _, _, _) = TSplitBuild();
+        (QSplitTab tab, _, _, _, _) = TSplitBuild();
 
         TInterface.TSplitSweepCancel(tab);
         TInterface.TSplitClose(tab);
@@ -127,12 +127,12 @@ public sealed class TSplitTabSweep
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, _, _, LFlow flow) = TSplitBuild();
+        (QSplitTab tab, _, _, _, QFlow flow) = TSplitBuild();
 
         TInterface.TSplitLockHandle(tab, true);
-        Assert.False(flow.QFlowEdit.LFlowSectionEditable);
+        Assert.False(flow.QFlowEdit.QFlowSectionEditable);
 
         TInterface.TSplitLockHandle(tab, false);
-        Assert.True(flow.QFlowEdit.LFlowSectionEditable);
+        Assert.True(flow.QFlowEdit.QFlowSectionEditable);
     }
 }

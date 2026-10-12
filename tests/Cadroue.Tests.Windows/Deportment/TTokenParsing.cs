@@ -9,46 +9,46 @@ public sealed class TTokenParsing
     [Fact]
     public void Parse_SplitsRunsTokensAndOperators()
     {
-        IReadOnlyList<LTokenPart> parts = TInterface.TTokenParse("clip_{OriginalName}-{Backspace:3}{Custom} end");
+        IReadOnlyList<QTokenPart> parts = TInterface.TTokenParse("clip_{OriginalName}-{Backspace:3}{Custom} end");
 
         Assert.Equal(
             [
-                LTokenKind.LTokenPlain,
-                LTokenKind.LTokenChip,
-                LTokenKind.LTokenPlain,
-                LTokenKind.LTokenOperator,
-                LTokenKind.LTokenChip,
-                LTokenKind.LTokenPlain,
+                QTokenKind.QTokenPlain,
+                QTokenKind.QTokenChip,
+                QTokenKind.QTokenPlain,
+                QTokenKind.QTokenOperator,
+                QTokenKind.QTokenChip,
+                QTokenKind.QTokenPlain,
             ],
-            parts.Select(part => part.LTokenPartKind));
-        Assert.Equal("clip_", parts[0].LTokenPartText);
-        Assert.Equal("{OriginalName}", parts[1].LTokenPartText);
-        Assert.Equal("{Backspace:3}", parts[3].LTokenPartText);
-        Assert.Equal("3", parts[3].LTokenPartCount);
-        Assert.EndsWith("3", parts[3].LTokenPartLabel);
-        Assert.Equal("/PAsset/PPanel/PTokenBackspace.svg", parts[3].LTokenPartIcon);
-        Assert.Equal("Custom", parts[4].LTokenPartLabel);
-        Assert.Equal(" end", parts[5].LTokenPartText);
+            parts.Select(part => part.QTokenPartKind));
+        Assert.Equal("clip_", parts[0].QTokenPartText);
+        Assert.Equal("{OriginalName}", parts[1].QTokenPartText);
+        Assert.Equal("{Backspace:3}", parts[3].QTokenPartText);
+        Assert.Equal("3", parts[3].QTokenPartCount);
+        Assert.EndsWith("3", parts[3].QTokenPartLabel);
+        Assert.Equal("/PAsset/PPanel/PTokenBackspace.svg", parts[3].QTokenPartIcon);
+        Assert.Equal("Custom", parts[4].QTokenPartLabel);
+        Assert.Equal(" end", parts[5].QTokenPartText);
     }
 
     [Fact]
     public void Parse_KeepsAnUnclosedBraceAsRun()
     {
-        IReadOnlyList<LTokenPart> parts = TInterface.TTokenParse("a{b");
+        IReadOnlyList<QTokenPart> parts = TInterface.TTokenParse("a{b");
 
         Assert.Equal(2, parts.Count);
-        Assert.Equal(LTokenKind.LTokenPlain, parts[1].LTokenPartKind);
-        Assert.Equal("{b", parts[1].LTokenPartText);
+        Assert.Equal(QTokenKind.QTokenPlain, parts[1].QTokenPartKind);
+        Assert.Equal("{b", parts[1].QTokenPartText);
     }
 
     [Fact]
     public void PartResolve_DefaultsOperatorCountToOne()
     {
-        LTokenPart part = TInterface.TTokenPartResolve("{delete}");
+        QTokenPart part = TInterface.TTokenPartResolve("{delete}");
 
-        Assert.Equal(LTokenKind.LTokenOperator, part.LTokenPartKind);
-        Assert.Equal("1", part.LTokenPartCount);
-        Assert.Equal("/PAsset/PPanel/PTokenDelete.svg", part.LTokenPartIcon);
+        Assert.Equal(QTokenKind.QTokenOperator, part.QTokenPartKind);
+        Assert.Equal("1", part.QTokenPartCount);
+        Assert.Equal("/PAsset/PPanel/PTokenDelete.svg", part.QTokenPartIcon);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ public sealed class TTokenParsing
     [Fact]
     public void Drop_RaisesInsertOnlyForAToken()
     {
-        LToken token = TInterface.TTokenCreate();
+        QToken token = TInterface.TTokenCreate();
         List<string> inserts = [];
         TInterface.TTokenInsertAttach(token, inserts.Add);
 

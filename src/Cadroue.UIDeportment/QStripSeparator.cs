@@ -4,78 +4,78 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QStripSeparator
 {
-    private readonly LStrip lStrip;
-    private readonly ObservableCollection<LStripTab> lStripTabs;
-    private LStripTab? lStripHovered;
-    private bool lStripVertical;
+    private readonly QStrip qStrip;
+    private readonly ObservableCollection<QStripTab> qStripTabs;
+    private QStripTab? qStripHovered;
+    private bool qStripVertical;
 
-    public QStripSeparator(LStrip lOwner, ObservableCollection<LStripTab> lTabs)
+    public QStripSeparator(QStrip lOwner, ObservableCollection<QStripTab> lTabs)
     {
-        lStrip = lOwner;
-        lStripTabs = lTabs;
+        qStrip = lOwner;
+        qStripTabs = lTabs;
     }
 
-    public bool LStripVertical => lStripVertical;
+    public bool QStripVertical => qStripVertical;
 
-    public void LStripVerticalSet(bool lVertical)
+    public void QStripVerticalSet(bool lVertical)
     {
-        if (lStripVertical == lVertical)
+        if (qStripVertical == lVertical)
         {
             return;
         }
 
-        lStripVertical = lVertical;
-        LStripHoverClear(null);
+        qStripVertical = lVertical;
+        QStripHoverClear(null);
     }
 
-    public void LStripHoverSet(LStripTab lTab)
+    public void QStripHoverSet(QStripTab lTab)
     {
-        if (ReferenceEquals(lStripHovered, lTab))
+        if (ReferenceEquals(qStripHovered, lTab))
         {
             return;
         }
 
-        lStripHovered = lTab;
-        LStripSeparatorUpdate();
+        qStripHovered = lTab;
+        QStripSeparatorUpdate();
     }
 
-    public void LStripHoverClear(LStripTab? lTab)
+    public void QStripHoverClear(QStripTab? lTab)
     {
-        if (lStripHovered is null || (lTab is not null && !ReferenceEquals(lStripHovered, lTab)))
+        if (qStripHovered is null || (lTab is not null && !ReferenceEquals(qStripHovered, lTab)))
         {
             return;
         }
 
-        lStripHovered = null;
-        LStripSeparatorUpdate();
+        qStripHovered = null;
+        QStripSeparatorUpdate();
     }
 
-    public void LStripHoverReset(LStripTab? lTab)
+    public void QStripHoverReset(QStripTab? lTab)
     {
-        if (lTab is null || ReferenceEquals(lStripHovered, lTab))
+        if (lTab is null || ReferenceEquals(qStripHovered, lTab))
         {
-            lStripHovered = null;
+            qStripHovered = null;
         }
     }
 
-    public void LStripSeparatorUpdate()
+    public void QStripSeparatorUpdate()
     {
-        int lSelectedIndex = lStrip.LStripSelected is null ? -1 : lStripTabs.IndexOf(lStrip.LStripSelected);
-        int lHoveredIndex = lStripHovered is null ? -1 : lStripTabs.IndexOf(lStripHovered);
-        for (int lIndex = 0; lIndex < lStripTabs.Count; lIndex++)
+        int lSelectedIndex = qStrip.QStripSelected is null ? -1 : qStripTabs.IndexOf(qStrip.QStripSelected);
+        int lHoveredIndex = qStripHovered is null ? -1 : qStripTabs.IndexOf(qStripHovered);
+        for (int lIndex = 0; lIndex < qStripTabs.Count; lIndex++)
         {
-            bool lSeparator = lIndex < lStripTabs.Count - 1
+            bool lSeparator = lIndex < qStripTabs.Count - 1
                 && lIndex != lSelectedIndex
                 && lIndex != lSelectedIndex - 1
                 && lIndex != lHoveredIndex
                 && lIndex != lHoveredIndex - 1;
-            if (lStripTabs[lIndex].LStripTabSeparator == lSeparator)
+            if (qStripTabs[lIndex].QStripTabSeparator == lSeparator)
             {
                 continue;
             }
 
-            lStripTabs[lIndex].LStripTabSeparator = lSeparator;
-            lStrip.LStripTabRaise(lStripTabs[lIndex]);
+            qStripTabs[lIndex].QStripTabSeparator = lSeparator;
+            qStrip.QStripTabRaise(qStripTabs[lIndex]);
         }
     }
 }

@@ -10,12 +10,12 @@ public sealed class TWindowShortcut
     private const int TWindowMotion = 0x0200;
     private const short TWindowKeyState = unchecked((short)0x8000);
 
-    private static LWindow TWindowBuild() => TInterface.TWindowCreate(body => body());
+    private static QWindow TWindowBuild() => TInterface.TWindowCreate(body => body());
 
-    private static LFlow TWindowFlowAttach(LWindow window)
+    private static QFlow TWindowFlowAttach(QWindow window)
     {
-        LStripTab tab = TInterface.TStripTabCreate("Split");
-        LFlow flow = tab.LStripTabWorkspace.LWorkspaceFlow!;
+        QStripTab tab = TInterface.TStripTabCreate("Split");
+        QFlow flow = tab.QStripTabWorkspace.QWorkspaceFlow!;
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSourceSet(flow, TInterfaceViewer.TViewerInfoCreate(
             TimeSpan.FromSeconds(60), 640, 360), "C:\\a.mp4");
@@ -24,8 +24,8 @@ public sealed class TWindowShortcut
         return flow;
     }
 
-    private static LWindowPress TWindowPressBuild(
-        LWindow window,
+    private static QWindowPress TWindowPressBuild(
+        QWindow window,
         bool handled,
         int message,
         bool modal,
@@ -49,7 +49,7 @@ public sealed class TWindowShortcut
     [Fact]
     public void Run_DispatchesTokensToTheAttachedSeams()
     {
-        LWindow window = TWindowBuild();
+        QWindow window = TWindowBuild();
         List<string> calls = [];
         TInterface.TWindowShortcutAttach(
             window,
@@ -67,7 +67,7 @@ public sealed class TWindowShortcut
         Assert.False(TInterface.TWindowShortcutRun(window, "ZoomIn"));
         Assert.Equal(["show", "undo", "redo", "unload", "clear"], calls);
 
-        LFlow flow = TWindowFlowAttach(window);
+        QFlow flow = TWindowFlowAttach(window);
         TInterface.TFlowSpoolAttach(flow, () => calls.Add("spool"));
         Assert.True(TInterface.TWindowShortcutRun(window, "ZoomIn"));
         Assert.False(TInterface.TWindowShortcutRun(window, "Nothing"));
@@ -77,7 +77,7 @@ public sealed class TWindowShortcut
     [Fact]
     public void PlayPause_NeedsAViewer_AndTogglesByState()
     {
-        LWindow window = TWindowBuild();
+        QWindow window = TWindowBuild();
         List<string> calls = [];
         TInterface.TWindowPlayAttach(window, () => calls.Add("play"), () => calls.Add("pause"));
 
@@ -92,7 +92,7 @@ public sealed class TWindowShortcut
     [Fact]
     public void Handle_GatesOnMessageModalFocusAndInput()
     {
-        LWindow window = TWindowBuild();
+        QWindow window = TWindowBuild();
 
         Assert.True(TInterface.TWindowShortcutHandle(
             window, TWindowPressBuild(window, true, TWindowMotion, false, 100, false, "A", 0)));
@@ -111,7 +111,7 @@ public sealed class TWindowShortcut
     [Fact]
     public void Handle_ResolvesTheGestureAndRunsTheBoundToken()
     {
-        LWindow window = TWindowBuild();
+        QWindow window = TWindowBuild();
         List<string> calls = [];
         TInterface.TWindowShortcutAttach(
             window,
@@ -120,7 +120,7 @@ public sealed class TWindowShortcut
             () => null,
             () => false,
             _ => null);
-        LFlow flow = TWindowFlowAttach(window);
+        QFlow flow = TWindowFlowAttach(window);
         TInterface.TFlowSpoolAttach(flow, () => calls.Add("spool"));
 
         Assert.True(TInterface.TWindowShortcutHandle(

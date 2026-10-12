@@ -11,7 +11,7 @@ public sealed class TInspectorCropEdge
     [Fact]
     public void EdgeCommit_Text_WritesClampedEdges()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
 
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "10");
@@ -19,7 +19,7 @@ public sealed class TInspectorCropEdge
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 2, "abc");
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 3, "40");
 
-        LWorkCrop crop = inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop;
+        LWorkCrop crop = inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
         Assert.Equal(
             (10, 0, 0, 40), (crop.LWorkCropLeft, crop.LWorkCropTop, crop.LWorkCropRight, crop.LWorkCropBottom));
         Assert.Equal("1910 × 1040", TInterfaceInspector.TInspectorResolutionRead(inspector));
@@ -28,7 +28,7 @@ public sealed class TInspectorCropEdge
     [Fact]
     public void EdgeFormat_EchoesEquivalentText()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "12");
 
@@ -41,56 +41,56 @@ public sealed class TInspectorCropEdge
     [Fact]
     public void EdgeCommit_FixedRatio_FollowsRatioAcrossAxis()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorPresetSelect(inspector, 5);
 
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "500");
 
-        LWorkCrop crop = inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop;
+        LWorkCrop crop = inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
         double width = 1920 - crop.LWorkCropLeft - crop.LWorkCropRight;
         double height = 1080 - crop.LWorkCropTop - crop.LWorkCropBottom;
         Assert.Equal(width, height);
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioFixed);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioFixed);
     }
 
     [Fact]
     public void EdgeReset_ClearsEdges_KeepsRatioOff()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 2, "300");
 
         TInterfaceInspector.TInspectorEdgeReset(inspector);
 
         LWorkCrop cleared = Interface.TInterface.TWorkCropCreate();
-        Assert.Equal(cleared, inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop);
-        Assert.False(inspector.LInspectorCrop.LInspectorRatioFixed);
+        Assert.Equal(cleared, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);
+        Assert.False(inspector.QInspectorCrop.QInspectorRatioFixed);
     }
 
     [Fact]
     public void CropSet_DrawnRect_BecomesEdges_NullClears()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
 
         TInterfaceInspector.TInspectorCropSet(
             inspector, Interface.TInterface.TCropboxCreate(100, 50, 800, 600), -1, -1, -1);
 
-        LWorkCrop crop = inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop;
+        LWorkCrop crop = inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
         Assert.Equal(
             (100, 50, 1020, 430), (crop.LWorkCropLeft, crop.LWorkCropTop, crop.LWorkCropRight, crop.LWorkCropBottom));
 
         TInterfaceInspector.TInspectorCropSet(inspector, null, -1, -1, -1);
 
         LWorkCrop cleared = Interface.TInterface.TWorkCropCreate();
-        Assert.Equal(cleared, inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop);
+        Assert.Equal(cleared, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);
     }
 
     [Fact]
     public void CropSet_FixedRatio_SnapsDrawnRect()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorPresetSelect(inspector, 5);
 
@@ -105,23 +105,23 @@ public sealed class TInspectorCropEdge
     [Fact]
     public void CropReset_PersistentSkips_OtherwiseClears()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "20");
         TInterfaceInspector.TInspectorStepSet(inspector, "Crop");
         TInterfaceInspector.TInspectorApplySet(inspector, true);
         TInterfaceInspector.TInspectorToolSet(inspector, true);
-        TInterfaceCrop.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, true);
+        TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
 
         TInterfaceInspector.TInspectorCropReset(inspector);
-        Assert.Equal(20, inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop.LWorkCropLeft);
-        Assert.True(inspector.LInspectorToolArmed);
+        Assert.Equal(20, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop.LWorkCropLeft);
+        Assert.True(inspector.QInspectorToolArmed);
 
-        TInterfaceCrop.TCropboxPersistentSet(inspector.LInspectorCrop.LInspectorCropbox, false);
+        TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, false);
         TInterfaceInspector.TInspectorCropReset(inspector);
 
         LWorkCrop cleared = Interface.TInterface.TWorkCropCreate();
-        Assert.Equal(cleared, inspector.LInspectorCrop.LInspectorCropbox.LCropboxStateCrop);
-        Assert.False(inspector.LInspectorToolArmed);
+        Assert.Equal(cleared, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);
+        Assert.False(inspector.QInspectorToolArmed);
     }
 }

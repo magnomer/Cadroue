@@ -12,18 +12,18 @@ public sealed class TSplitTabSidecar
 {
     private const string TSplitSource = @"C:\media\clip.mp4";
 
-    private static (LSplitTab, LInspector, LViewer, LDocket) TSplitBuild()
+    private static (QSplitTab, QInspector, QViewer, LDocket) TSplitBuild()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LSplitTab tab = TInterface.TSplitTabCreate(
+        QViewer viewer = TInterfaceViewer.TViewerCreate();
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QSplitTab tab = TInterface.TSplitTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"), viewer, list, TInterface.TFlowCreate());
-        LInspector inspector = TInterface.TSplitInspectorRead(tab);
+        QInspector inspector = TInterface.TSplitInspectorRead(tab);
         return (tab, inspector, viewer, docket);
     }
 
-    private static void TSplitSourceSet(LViewer viewer)
+    private static void TSplitSourceSet(QViewer viewer)
     {
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(60), 1920, 1080);
         TInterfaceViewer.TViewerMediaCommit(viewer, TInterfaceViewer.TCargoCreate(TSplitSource, info, true), false);
@@ -54,12 +54,12 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, LViewer viewer, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, QViewer viewer, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TSplitSourceSet(viewer);
-            TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+            TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
             written.Clear();
 
             TInterface.TSplitStateSave(tab);
@@ -80,12 +80,12 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, LViewer viewer, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, QViewer viewer, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TSplitSourceSet(viewer);
-            TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+            TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
             written.Clear();
             TInterfaceInspector.TInspectorSaveSuspend(inspector);
 
@@ -105,11 +105,11 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
-            TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+            TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
 
             TInterface.TSplitStateSave(tab);
         }
@@ -126,13 +126,13 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, LViewer viewer, LDocket docket) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, QViewer viewer, LDocket docket) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
             TInterfaceList.TDocketDeliveredAdd(docket, TSplitSource, true);
             TSplitSourceSet(viewer);
-            TInterface.TSensorEnabledSet(inspector.LInspectorSensor, LDetectorKind.LDetectorKindScene, true);
+            TInterface.TSensorEnabledSet(inspector.QInspectorSensor, LDetectorKind.LDetectorKindScene, true);
 
             TInterface.TSplitStateSave(tab);
         }
@@ -149,7 +149,7 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, LViewer viewer, _) = TSplitBuild();
+        (QSplitTab tab, _, QViewer viewer, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
@@ -170,7 +170,7 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, _, LViewer viewer, _) = TSplitBuild();
+        (QSplitTab tab, _, QViewer viewer, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
@@ -193,7 +193,7 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
@@ -204,14 +204,14 @@ public sealed class TSplitTabSidecar
             TInterface.TSplitLibrarianAttach(null, null);
         }
 
-        LSensor sensor = inspector.LInspectorSensor;
+        QSensor sensor = inspector.QInspectorSensor;
         LDetectorStep silence = TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindSilence);
         Assert.True(silence.LDetectorStepEnabled);
         Assert.Equal(-35, silence.LDetectorStepThreshold);
         Assert.Equal(2, silence.LDetectorStepMinimum);
-        Assert.Equal(LDetectorStillMode.LDetectorStillDiscard, sensor.LSensorMode);
-        Assert.Equal(200, TInterface.TBlankStepRead(inspector.LInspectorBlank).LDetectorBlankHue);
-        Assert.False(inspector.LInspectorSaveSuspended);
+        Assert.Equal(LDetectorStillMode.LDetectorStillDiscard, sensor.QSensorMode);
+        Assert.Equal(200, TInterface.TBlankStepRead(inspector.QInspectorBlank).LDetectorBlankHue);
+        Assert.False(inspector.QInspectorSaveSuspended);
         Assert.Empty(written);
     }
 
@@ -220,7 +220,7 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
         List<(string, LSidecarSplitEntry?)> written = TSplitWriterAttach(null);
         try
         {
@@ -232,7 +232,7 @@ public sealed class TSplitTabSidecar
         }
 
         Assert.False(TInterface.TSensorStepRead(
-            inspector.LInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
+            inspector.QInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
         Assert.Empty(written);
     }
 
@@ -241,7 +241,7 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
+        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
         TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
@@ -253,7 +253,7 @@ public sealed class TSplitTabSidecar
         }
 
         Assert.True(TInterface.TSensorStepRead(
-            inspector.LInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
+            inspector.QInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
     }
 
     [Fact]
@@ -261,8 +261,8 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LSplitTab tab, LInspector inspector, _, _) = TSplitBuild();
-        TInterface.TSensorPersistentSet(inspector.LInspectorSensor, true);
+        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
+        TInterface.TSensorPersistentSet(inspector.QInspectorSensor, true);
         TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
@@ -274,6 +274,6 @@ public sealed class TSplitTabSidecar
         }
 
         Assert.False(TInterface.TSensorStepRead(
-            inspector.LInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
+            inspector.QInspectorSensor, LDetectorKind.LDetectorKindSilence).LDetectorStepEnabled);
     }
 }

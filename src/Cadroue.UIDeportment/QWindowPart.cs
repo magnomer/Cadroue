@@ -4,24 +4,24 @@ public sealed class QWindowPart
 {
     private const double QWindowPartBorder = 8;
 
-    public QWindowPart(LWindow lOwner)
+    public QWindowPart(QWindow lOwner)
     {
-        QWindowPartDrop = new LWindowDrop(lOwner);
-        QWindowPartShortcut = new LWindowShortcut(lOwner);
-        lOwner.LWindowStrip.LStripRelayAttach();
-        QWindowPartChrome = new LChrome();
-        QWindowPartSash = new LSash(QWindowPartBorder);
-        QWindowPartConsole = new LConsole();
-        QWindowPartConsole.LConsoleWindowAttach(lOwner, lOwner.LWindowStrip);
+        QWindowPartDrop = new QWindowDrop(lOwner);
+        QWindowPartShortcut = new QWindowShortcut(lOwner);
+        lOwner.QWindowStrip.QStripRelayAttach();
+        QWindowPartChrome = new QChrome();
+        QWindowPartSash = new QSash(QWindowPartBorder);
+        QWindowPartConsole = new QConsole();
+        QWindowPartConsole.QConsoleWindowAttach(lOwner, lOwner.QWindowStrip);
     }
 
-    public LWindowDrop QWindowPartDrop { get; }
+    public QWindowDrop QWindowPartDrop { get; }
 
-    public LWindowShortcut QWindowPartShortcut { get; }
+    public QWindowShortcut QWindowPartShortcut { get; }
 
-    public LChrome QWindowPartChrome { get; }
+    public QChrome QWindowPartChrome { get; }
 
-    public LSash QWindowPartSash { get; }
+    public QSash QWindowPartSash { get; }
 
-    public LConsole QWindowPartConsole { get; }
+    public QConsole QWindowPartConsole { get; }
 }

@@ -13,13 +13,13 @@ The minimum height wins when the content is shorter.
 
 ## `private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)`
 
-Quick repeated taps on the logo toggle developer mode through LSAbout.
+Quick repeated taps on the logo toggle developer mode through QSAbout.
 The developer line is updated only when a toggle actually happened.
 
 ## `private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)`
 
-Asks `LSAbout` to open the third-party notice shipped beside the executable.
-A failure comes back through `LSAboutErrorShown`, which shows it as a warning.
+Asks `QSAbout` to open the third-party notice shipped beside the executable.
+A failure comes back through `QSAboutErrorShown`, which shows it as a warning.
 
 ## `private void PSAboutCloseHandle(object? pSender, EventArgs pEvent)`
 

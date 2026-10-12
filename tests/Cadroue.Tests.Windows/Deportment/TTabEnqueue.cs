@@ -18,8 +18,8 @@ public sealed class TTabEnqueue
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate();
-        LList list = TInterfaceList.TListCreate();
-        LConvertTab tab = TInterface.TConvertTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        QConvertTab tab = TInterface.TConvertTabCreate(
             TInterface.TPresetSelectionCreate("Missing"), TInterfaceViewer.TViewerCreate(), list);
         int missing = 0;
         TInterface.TConvertMissingAttach(tab, () => missing++);
@@ -34,19 +34,19 @@ public sealed class TTabEnqueue
     [Fact]
     public void Funnel_Dispatch_OneDeliveryPerMatchedItem_EmptyListDeliversNothing()
     {
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LFunnelTab tab = TInterfaceFunnel.TFunnelTabCreate(TInterfaceViewer.TViewerCreate(), list);
-        LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
-        LStripTab self = TInterface.TStripTabCreate("Funnel");
-        LStripTab target = TInterface.TStripTabCreate("Convert");
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QFunnelTab tab = TInterfaceFunnel.TFunnelTabCreate(TInterfaceViewer.TViewerCreate(), list);
+        QStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
+        QStripTab self = TInterface.TStripTabCreate("Funnel");
+        QStripTab target = TInterface.TStripTabCreate("Convert");
         TInterface.TStripAdd(strip, self);
         TInterface.TStripAdd(strip, target);
         TInterface.TStripWorkspaceAttach(target, TInterface.TPresetInitialCreate("Convert"));
-        TInterfaceFunnel.TFunnelStripAttach(tab.LFunnel, strip, self.LStripTabId);
-        LFunnelRule rule = TInterfaceFunnel.TFunnelRuleAdd(tab.LFunnel, LFunnelForm.LFunnelFormFilename);
-        TInterfaceFunnel.TFunnelTextSet(tab.LFunnel, rule, LFunnelKind.LFunnelKindExtension, "mp4");
-        TInterfaceFunnel.TFunnelTargetSelect(tab.LFunnel, rule, 1);
+        TInterfaceFunnel.TFunnelStripAttach(tab.QFunnel, strip, self.QStripTabId);
+        QFunnelRule rule = TInterfaceFunnel.TFunnelRuleAdd(tab.QFunnel, QFunnelForm.QFunnelFormFilename);
+        TInterfaceFunnel.TFunnelTextSet(tab.QFunnel, rule, QFunnelKind.QFunnelKindExtension, "mp4");
+        TInterfaceFunnel.TFunnelTargetSelect(tab.QFunnel, rule, 1);
         var delivered = new List<(Guid, string)>();
         TInterface.TMessengerDeliverAttach((tabId, path, _) =>
         {
@@ -60,7 +60,7 @@ public sealed class TTabEnqueue
 
             TInterfaceList.TDocketPathsAdd(docket, TTabClip, TTabSong);
             TInterfaceFunnel.TFunnelAllRun(tab);
-            Assert.Equal([(target.LStripTabId, TTabClip)], delivered);
+            Assert.Equal([(target.QStripTabId, TTabClip)], delivered);
 
             TInterfaceList.TListSelect(list, TTabSong);
             TInterfaceFunnel.TFunnelRun(tab);
@@ -80,7 +80,7 @@ public sealed class TTabEnqueue
     public void Action_EligibleCheck_NoSourceAllows_DocketUnlockedGates_OverrideWins()
     {
         LDocket docket = TInterfaceList.TDocketCreate();
-        LAction action = TInterface.TActionCreate();
+        QAction action = TInterface.TActionCreate();
 
         Assert.True(TInterface.TActionEligibleCheck(action));
 

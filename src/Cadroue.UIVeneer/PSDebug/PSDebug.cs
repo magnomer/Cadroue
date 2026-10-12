@@ -176,14 +176,14 @@ internal sealed class PSDebug : Window
         PSDebugButtonAdd(
             pWindows,
             "Diagnosis",
-            () => PSDiagnosis.PSDiagnosisShow(this, () => qLogoMenu.QLogoOptionsCreate().LSOptionsDiagnosisCreate()));
+            () => PSDiagnosis.PSDiagnosisShow(this, () => qLogoMenu.QLogoOptionsCreate().QSOptionsDiagnosisCreate()));
         PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
         PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, qLogoMenu.QLogoVerdictCreate()));
         PSDebugButtonAdd(
             pWindows, "Loupe", () => PSLoupe.PSLoupeShow(
                 this,
-                psDebugApplicationOwner.LWindow.LWindowPairCreate().LWorkspaceViewer
-                    .LViewerMedia.QViewerLoupe.LViewerLoupeCreate()));
+                psDebugApplicationOwner.QWindow.QWindowPairCreate().QWorkspaceViewer
+                    .QViewerMedia.QViewerLoupe.QViewerLoupeCreate()));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(
             this,
@@ -255,22 +255,22 @@ internal sealed class PSDebug : Window
 
     private void PSDebugEncoderShow()
     {
-        if (psDebugApplicationOwner.PStrip.LStrip.LStripSelected is not { } lTab)
+        if (psDebugApplicationOwner.PStrip.QStrip.QStripSelected is not { } lTab)
         {
             return;
         }
 
         var pEncoder = new PSEncoder(
-            lTab.LStripTabWorkspace.LWorkspaceExport.LExportEncoderCreate(new LPreset()), () => { }) { Owner = this };
+            lTab.QStripTabWorkspace.QWorkspaceExport.QExportEncoderCreate(new LPreset()), () => { }) { Owner = this };
         pEncoder.ShowDialog();
     }
 
     private void PSDebugMonitorShow()
     {
-        LSMonitor pSource = qLogoMenu.QLogoMonitorCreate();
-        QWorkspacePair qPair = psDebugApplicationOwner.LWindow.LWindowPairCreate();
-        var pFlow = new PFlow(qPair.LWorkspaceFlow);
-        var pViewer = new PViewer(qPair.LWorkspaceViewer);
+        QSMonitor pSource = qLogoMenu.QLogoMonitorCreate();
+        QWorkspacePair qPair = psDebugApplicationOwner.QWindow.QWindowPairCreate();
+        var pFlow = new PFlow(qPair.QWorkspaceFlow);
+        var pViewer = new PViewer(qPair.QWorkspaceViewer);
         Window pMonitor = PSMonitor.PSMonitorShow(Owner, pSource, pFlow, pViewer);
         pMonitor.Closed += (_, _) => pSource.Dispose();
     }

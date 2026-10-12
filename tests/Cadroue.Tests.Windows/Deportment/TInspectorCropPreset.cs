@@ -16,14 +16,14 @@ public sealed class TInspectorCropPreset
     [InlineData(6, "21", "9")]
     public void PresetSelect_Index_SetsRatioAndReadsBack(int index, string width, string height)
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
 
         TInterfaceInspector.TInspectorPresetSelect(inspector, index);
 
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioFixed);
-        Assert.Equal(index, inspector.LInspectorCrop.LInspectorPresetIndex);
-        Assert.False(inspector.LInspectorCrop.LInspectorCustomShown);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioFixed);
+        Assert.Equal(index, inspector.QInspectorCrop.QInspectorPresetIndex);
+        Assert.False(inspector.QInspectorCrop.QInspectorCustomShown);
         Assert.Equal(width, TInterfaceInspector.TInspectorRatioFormat(inspector, true, string.Empty));
         Assert.Equal(height, TInterfaceInspector.TInspectorRatioFormat(inspector, false, string.Empty));
     }
@@ -35,7 +35,7 @@ public sealed class TInspectorCropPreset
     [InlineData(720, 1280)]
     public void PresetSelect_FitsInsideSource(double sourceWidth, double sourceHeight)
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, sourceWidth, sourceHeight);
 
         TInterfaceInspector.TInspectorPresetSelect(inspector, 5);
@@ -46,31 +46,31 @@ public sealed class TInspectorCropPreset
         Assert.True(width > 0 && height > 0);
         Assert.True(width <= sourceWidth && height <= sourceHeight);
         Assert.Equal(width, height);
-        Assert.False(inspector.LInspectorCrop.LInspectorNoticeShown);
+        Assert.False(inspector.QInspectorCrop.QInspectorNoticeShown);
     }
 
     [Fact]
     public void PresetSelect_NoSource_LeavesRatioFree()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
         TInterfaceInspector.TInspectorPresetSelect(inspector, 1);
 
-        Assert.False(inspector.LInspectorCrop.LInspectorRatioFixed);
-        Assert.Equal(0, inspector.LInspectorCrop.LInspectorPresetIndex);
-        Assert.True(inspector.LInspectorCrop.LInspectorCustomShown);
+        Assert.False(inspector.QInspectorCrop.QInspectorRatioFixed);
+        Assert.Equal(0, inspector.QInspectorCrop.QInspectorPresetIndex);
+        Assert.True(inspector.QInspectorCrop.QInspectorCustomShown);
     }
 
     [Fact]
     public void PresetSelect_Custom_AfterPreset_ResetsRatio()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorPresetSelect(inspector, 1);
 
         TInterfaceInspector.TInspectorPresetSelect(inspector, 0);
 
-        Assert.False(inspector.LInspectorCrop.LInspectorRatioFixed);
+        Assert.False(inspector.QInspectorCrop.QInspectorRatioFixed);
         Assert.Equal("0", TInterfaceInspector.TInspectorRatioFormat(inspector, true, "16"));
         Assert.Equal(string.Empty, TInterfaceInspector.TInspectorRatioFormat(inspector, false, string.Empty));
     }
@@ -78,7 +78,7 @@ public sealed class TInspectorCropPreset
     [Fact]
     public void RatioCommit_EchoAfterPreset_KeepsPreset()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorLenientSet(inspector, true);
         TInterfaceInspector.TInspectorPresetSelect(inspector, 1);
@@ -89,8 +89,8 @@ public sealed class TInspectorCropPreset
         TInterfaceInspector.TInspectorRatioCommit(inspector, "16", "0", false);
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "7", false);
 
-        Assert.Equal(1, inspector.LInspectorCrop.LInspectorPresetIndex);
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioLenient);
+        Assert.Equal(1, inspector.QInspectorCrop.QInspectorPresetIndex);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioLenient);
         Assert.Equal("9", TInterfaceInspector.TInspectorRatioFormat(inspector, false, "0"));
         Assert.Equal(before, TInterfaceInspector.TInspectorCropRead(inspector));
     }
@@ -98,40 +98,40 @@ public sealed class TInspectorCropPreset
     [Fact]
     public void RatioCommit_CustomText_KeepsIndexZero_FixedShowsMismatch()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
 
         TInterfaceInspector.TInspectorRatioCommit(inspector, "5", "4");
         TInterfaceInspector.TInspectorFixedSet(inspector, true);
 
-        Assert.Equal(0, inspector.LInspectorCrop.LInspectorPresetIndex);
-        Assert.True(inspector.LInspectorCrop.LInspectorCustomShown);
-        Assert.True(inspector.LInspectorCrop.LInspectorNoticeShown);
+        Assert.Equal(0, inspector.QInspectorCrop.QInspectorPresetIndex);
+        Assert.True(inspector.QInspectorCrop.QInspectorCustomShown);
+        Assert.True(inspector.QInspectorCrop.QInspectorNoticeShown);
         Assert.NotEqual(string.Empty, TInterfaceInspector.TInspectorNoticeRead(inspector));
     }
 
     [Fact]
     public void LenientSet_WithinTolerance_HidesNotice_LenientNeedsFixed()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorRatioCommit(inspector, "16", "9");
 
         TInterfaceInspector.TInspectorLenientSet(inspector, true);
-        Assert.False(inspector.LInspectorCrop.LInspectorRatioLenient);
+        Assert.False(inspector.QInspectorCrop.QInspectorRatioLenient);
 
         TInterfaceInspector.TInspectorFixedSet(inspector, true);
         TInterfaceInspector.TInspectorLenientSet(inspector, true);
         TInterfaceInspector.TInspectorEdgeCommit(inspector, 0, "2");
 
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioLenient);
-        Assert.False(inspector.LInspectorCrop.LInspectorNoticeShown);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioLenient);
+        Assert.False(inspector.QInspectorCrop.QInspectorNoticeShown);
     }
 
     [Fact]
     public void RatioFormat_FreeRatio_ShowsNormalizedCropSize()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         Assert.Equal(string.Empty, TInterfaceInspector.TInspectorRatioFormat(inspector, true, string.Empty));
 
@@ -146,17 +146,17 @@ public sealed class TInspectorCropPreset
     [Fact]
     public void ApplySet_Off_ResetsRatio_OnKeepsIt()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
+        QInspector inspector = TInterfaceInspector.TInspectorCreate();
         TInterfaceInspector.TInspectorSourceSet(inspector, 1920, 1080);
         TInterfaceInspector.TInspectorApplySet(inspector, true);
         TInterfaceInspector.TInspectorPresetSelect(inspector, 1);
 
         TInterfaceInspector.TInspectorApplySet(inspector, true);
-        Assert.True(inspector.LInspectorCrop.LInspectorRatioFixed);
+        Assert.True(inspector.QInspectorCrop.QInspectorRatioFixed);
 
         TInterfaceInspector.TInspectorApplySet(inspector, false);
 
-        Assert.False(inspector.LInspectorCrop.LInspectorActive);
-        Assert.False(inspector.LInspectorCrop.LInspectorRatioFixed);
+        Assert.False(inspector.QInspectorCrop.QInspectorActive);
+        Assert.False(inspector.QInspectorCrop.QInspectorRatioFixed);
     }
 }

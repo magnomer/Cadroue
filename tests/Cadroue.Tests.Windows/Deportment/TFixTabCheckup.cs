@@ -13,13 +13,13 @@ public sealed class TFixTabCheckup
     private const string TFixSource = @"C:\media\clip.mp4";
     private const string TFixStranger = @"C:\media\stranger.mp4";
 
-    private static (LFixTab, LClinic, LList, LDocket) TFixBuild()
+    private static (QFixTab, QClinic, QList, LDocket) TFixBuild()
     {
-        LList list = TInterfaceList.TListCreate();
-        LDocket docket = list.LListDocket;
-        LFixTab tab = TInterface.TFixTabCreate(
+        QList list = TInterfaceList.TListCreate();
+        LDocket docket = list.QListDocket;
+        QFixTab tab = TInterface.TFixTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
-        LClinic clinic = TInterface.TFixClinicRead(tab);
+        QClinic clinic = TInterface.TFixClinicRead(tab);
         TInterfaceList.TDocketPathsAdd(docket, TFixSource);
         TInterface.TClinicSourceSet(clinic, TFixSource);
         TInterface.TClinicStepSet(clinic, "Container");
@@ -31,7 +31,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, LClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
 
         TInterface.TFixCheckupHandle(
             tab, TFixStranger, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
@@ -48,7 +48,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, LClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
         TInterface.TFixCheckupHandle(
             tab, TFixSource, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
 
@@ -65,7 +65,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, LClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
         TInterface.TFixCheckupHandle(
             tab, TFixSource, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
 
@@ -80,7 +80,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, _, LList list, _) = TFixBuild();
+        (QFixTab tab, _, QList list, _) = TFixBuild();
         TInterfaceList.TListSelect(list, null);
         var scanned = new System.Collections.Concurrent.ConcurrentBag<string>();
         TInterface.TFixScannerAttach(scanned.Add);
@@ -103,7 +103,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, _, LList list, _) = TFixBuild();
+        (QFixTab tab, _, QList list, _) = TFixBuild();
         var scanned = new System.Collections.Concurrent.ConcurrentBag<string>();
         using var ready = new ManualResetEventSlim();
         TInterface.TFixScannerAttach(path =>

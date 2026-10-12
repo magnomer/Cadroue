@@ -6,46 +6,46 @@ Hash: `34413747728a83b8`
 Owns the working-range role of the timeline: range set, range notice, drag anchor and labels.
 The spool itself stays on the owner, because cursor, wheel and shortcut roles read it too.
 
-## `public QFlowSpool(LFlow lOwner)`
+## `public QFlowSpool(QFlow lOwner)`
 
 Holds the owner to read its spool and to reach its keyframe sibling.
 
-## `public event Action? LFlowSpoolApplied`
+## `public event Action? QFlowSpoolApplied`
 
 Raised on every range change so both strips and the labels redraw.
 
-## `public TimeSpan LFlowDragTime`
+## `public TimeSpan QFlowDragTime`
 
 The range edge time a map grip drag started from.
 
-## `public string LFlowLabelOrigin`
+## `public string QFlowLabelOrigin`
 
 The working range start, formatted for the viewfinder label.
 
-## `public string LFlowLabelLimit`
+## `public string QFlowLabelLimit`
 
 The working range end, formatted for the viewfinder label.
 
-## `public string LFlowLabelZero`
+## `public string QFlowLabelZero`
 
 The media start, formatted for the map label.
 
-## `public string LFlowLabelDuration`
+## `public string QFlowLabelDuration`
 
 The media duration, formatted for the map label.
 
-## `public void LFlowDragSet(TimeSpan lDragTime)`
+## `public void QFlowDragSet(TimeSpan lDragTime)`
 
 Records the grip drag anchor when a map drag starts.
 
-## `public void LFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)`
+## `public void QFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)`
 
 Sets the working range when media is loaded, else does nothing.
 
-## `public void LFlowSpoolHandle()`
+## `public void QFlowSpoolHandle()`
 
 Suspends the keyframe scan before the range notice, so a drag never starts a scan per step.
 
-## `public void LFlowSpoolUpdate()`
+## `public void QFlowSpoolUpdate()`
 
 Raises the range notice, then defers a keyframe scan only while media is loaded.

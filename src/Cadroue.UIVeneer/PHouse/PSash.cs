@@ -55,7 +55,7 @@ internal static class PSash
         double pActualWidth = pWindow.ActualWidth;
         bool pMaximized = PLook.PLookMaximized[pWindow.WindowState];
         pWindow.WindowState = PLook.PLookUnmaximized[pWindow.WindowState];
-        (pWindow.Left, pWindow.Top) = LSash.LSashDragResolve(
+        (pWindow.Left, pWindow.Top) = QSash.QSashDragResolve(
             pMaximized,
             pWindow.Left,
             pWindow.Top,
@@ -77,15 +77,15 @@ internal static class PSash
         return pFromDevice.Transform(pScreenPoint);
     }
 
-    internal static LSashBounds PSashBoundsRead(Window pWindow) =>
+    internal static QSashBounds PSashBoundsRead(Window pWindow) =>
         new(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight);
 
-    internal static void PSashBoundsApply(Window pWindow, LSashBounds lBounds)
+    internal static void PSashBoundsApply(Window pWindow, QSashBounds lBounds)
     {
-        pWindow.Left = lBounds.LSashLeft;
-        pWindow.Top = lBounds.LSashTop;
-        pWindow.Width = lBounds.LSashWidth;
-        pWindow.Height = lBounds.LSashHeight;
+        pWindow.Left = lBounds.QSashLeft;
+        pWindow.Top = lBounds.QSashTop;
+        pWindow.Width = lBounds.QSashWidth;
+        pWindow.Height = lBounds.QSashHeight;
     }
 
     private static void PSashSourceRun(Window pWindow, Action<Window> pStep)
@@ -128,7 +128,7 @@ internal static class PSash
         double pWidth,
         double pHeight)
     {
-        LSashBounds lDesired = LSash.LSashPlacementResolve(
+        QSashBounds lDesired = QSash.QSashPlacementResolve(
             pLeft,
             pTop,
             pWidth,
@@ -138,7 +138,7 @@ internal static class PSash
             pWindow.MinHeight,
             SystemParameters.WorkArea.Left,
             SystemParameters.WorkArea.Top);
-        LSashBounds lBounds = LSash.LSashBoundsClamp(
+        QSashBounds lBounds = QSash.QSashBoundsClamp(
             lDesired,
             PSashAreaRead(pWindow, lDesired),
             pWindow.MinWidth,
@@ -147,17 +147,17 @@ internal static class PSash
             pWindow.MaxHeight);
 
         pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-        pWindow.Width = lBounds.LSashWidth;
-        pWindow.Height = lBounds.LSashHeight;
-        pWindow.Left = lBounds.LSashLeft;
-        pWindow.Top = lBounds.LSashTop;
+        pWindow.Width = lBounds.QSashWidth;
+        pWindow.Height = lBounds.QSashHeight;
+        pWindow.Left = lBounds.QSashLeft;
+        pWindow.Top = lBounds.QSashTop;
     }
 
-    private static LSashBounds PSashAreaRead(Window pWindow, LSashBounds lBounds)
+    private static QSashBounds PSashAreaRead(Window pWindow, QSashBounds lBounds)
     {
         Matrix pToDevice = PSashDeviceRead(pWindow);
-        Point pTopLeft = pToDevice.Transform(new Point(lBounds.LSashLeft, lBounds.LSashTop));
-        Point pBottomRight = pToDevice.Transform(new Point(lBounds.LSashRight, lBounds.LSashBottom));
+        Point pTopLeft = pToDevice.Transform(new Point(lBounds.QSashLeft, lBounds.QSashTop));
+        Point pBottomRight = pToDevice.Transform(new Point(lBounds.QSashRight, lBounds.QSashBottom));
         var pNativeBounds = new PSashRect
         {
             PSashLeft = (int)Math.Floor(pTopLeft.X),
@@ -175,7 +175,7 @@ internal static class PSash
         if (pMonitor == IntPtr.Zero || !GetMonitorInfo(pMonitor, ref pMonitorInfo))
         {
             Rect pWorkArea = SystemParameters.WorkArea;
-            return new LSashBounds(pWorkArea.Left, pWorkArea.Top, pWorkArea.Width, pWorkArea.Height);
+            return new QSashBounds(pWorkArea.Left, pWorkArea.Top, pWorkArea.Width, pWorkArea.Height);
         }
 
         Matrix pFromDevice = PSashDipRead(pWindow);
@@ -183,7 +183,7 @@ internal static class PSash
             new Point(pMonitorInfo.PSashWork.PSashLeft, pMonitorInfo.PSashWork.PSashTop));
         Point pWorkBottomRight = pFromDevice.Transform(
             new Point(pMonitorInfo.PSashWork.PSashRight, pMonitorInfo.PSashWork.PSashBottom));
-        return LSashBounds.LSashCornersCreate(
+        return QSashBounds.QSashCornersCreate(
             pWorkTopLeft.X,
             pWorkTopLeft.Y,
             pWorkBottomRight.X,
@@ -209,7 +209,7 @@ internal static class PSash
             return IntPtr.Zero;
         }
 
-        LSashLimits lLimits = LSash.LSashLimitsResolve(
+        QSashLimits lLimits = QSash.QSashLimitsResolve(
             pMonitorInfo.PSashBounds.PSashLeft,
             pMonitorInfo.PSashBounds.PSashTop,
             pMonitorInfo.PSashWork.PSashLeft,
@@ -217,10 +217,10 @@ internal static class PSash
             pMonitorInfo.PSashWork.PSashRight,
             pMonitorInfo.PSashWork.PSashBottom);
         PSashLimits pWindowLimits = Marshal.PtrToStructure<PSashLimits>(pLParam);
-        pWindowLimits.PSashPosition.PSashX = (int)lLimits.LSashX;
-        pWindowLimits.PSashPosition.PSashY = (int)lLimits.LSashY;
-        pWindowLimits.PSashSize.PSashX = (int)lLimits.LSashWidth;
-        pWindowLimits.PSashSize.PSashY = (int)lLimits.LSashHeight;
+        pWindowLimits.PSashPosition.PSashX = (int)lLimits.QSashX;
+        pWindowLimits.PSashPosition.PSashY = (int)lLimits.QSashY;
+        pWindowLimits.PSashSize.PSashX = (int)lLimits.QSashWidth;
+        pWindowLimits.PSashSize.PSashY = (int)lLimits.QSashHeight;
         Marshal.StructureToPtr(pWindowLimits, pLParam, false);
         pHandled = true;
         return IntPtr.Zero;

@@ -11,10 +11,10 @@ The log window closes with its owner, so it never outlives the main window.
 
 ## `private void PLogTextCopy(string pText)`
 
-A busy clipboard throws, so the failure goes back to `LLog` to record and announce.
+A busy clipboard throws, so the failure goes back to `QLog` to record and announce.
 
 ## `private void PLogErrorShow(string pMessage)`
 
 Shows a log window failure as a warning over the window.
 The failure is already recorded before the notice reaches this handler.
-`LLog` records a copy failure, and the trace reader or `LUsher` records the rest.
+`QLog` records a copy failure, and the trace reader or `LUsher` records the rest.

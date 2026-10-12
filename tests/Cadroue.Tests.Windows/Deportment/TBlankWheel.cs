@@ -11,7 +11,7 @@ public sealed class TBlankWheel
     [Fact]
     public void FreshInstance_TypeSetColor_WheelPresent()
     {
-        LBlank blank = TInterface.TBlankCreate();
+        QBlank blank = TInterface.TBlankCreate();
         Assert.False(TInterface.TBlankPresentRead(blank));
 
         TInterface.TBlankTypeSet(blank, LDetectorType.LDetectorTypeColor);
@@ -22,7 +22,7 @@ public sealed class TBlankWheel
     [Fact]
     public void TypeSetBlack_AfterPick_WheelAbsent()
     {
-        LBlank blank = TInterface.TBlankCreate();
+        QBlank blank = TInterface.TBlankCreate();
         TInterface.TBlankWheelSet(blank, 0.5, 0);
         Assert.True(TInterface.TBlankPresentRead(blank));
 
@@ -34,7 +34,7 @@ public sealed class TBlankWheel
     [Fact]
     public void StepSet_FollowsStepType()
     {
-        LBlank blank = TInterface.TBlankCreate();
+        QBlank blank = TInterface.TBlankCreate();
         TInterface.TBlankStepSet(blank, TInterface.TBlankStepCreate(LDetectorType.LDetectorTypeColor));
         Assert.True(TInterface.TBlankPresentRead(blank));
 
@@ -45,7 +45,7 @@ public sealed class TBlankWheel
     [Fact]
     public void SampleSet_ForcesColorType()
     {
-        LBlank blank = TInterface.TBlankCreate();
+        QBlank blank = TInterface.TBlankCreate();
 
         TInterface.TBlankSampleSet(blank, 255, 0, 0);
 
@@ -55,7 +55,7 @@ public sealed class TBlankWheel
     [Fact]
     public void DotRead_AbsentWhileBlack_PlacedAfterPress()
     {
-        LBlank blank = TInterface.TBlankCreate();
+        QBlank blank = TInterface.TBlankCreate();
         Assert.False(TInterface.TBlankDotRead(blank, 120, 11).LNeutralDotPresent);
 
         TInterface.TBlankWheelHandle(blank, false, 114, 60, 120);
