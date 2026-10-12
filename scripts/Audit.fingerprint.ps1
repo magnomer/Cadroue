@@ -11,7 +11,7 @@ is untracked and not ignored, its path and content. The report folder is left ou
 so writing the reports never changes it. Staging a file does not change it either.
 Without git or a repository, the fingerprint is empty and matches nothing.
 #>
-# AUDIT.FINGERPRINT - AUDIT GENERATION 22.
+# AUDIT.FINGERPRINT - AUDIT GENERATION 23.
 #requires -Version 5.1
 
 function Get-AuditFingerprint {

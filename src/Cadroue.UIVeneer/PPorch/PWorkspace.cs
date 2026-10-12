@@ -59,13 +59,13 @@ public sealed class PWorkspace
         QWorkspace.QWorkspaceFlowCleared += PWorkspaceFlowClear;
         QWorkspace.QWorkspaceMediaClosed += PWorkspaceMediaClose;
         QWorkspace.QWorkspaceLosslesscutFound += PWorkspaceLosslesscutDefer;
-        QWorkspace.QWorkspaceRelayDeferred += PWorkspaceRelayDefer;
-        QWorkspace.QWorkspaceRangeApplied += PWorkspaceRangeApply;
-        QWorkspace.QWorkspaceVolumeApplied += PWorkspaceVolumeApply;
-        QWorkspace.QWorkspaceSeekApplied += PWorkspaceSeekApply;
-        QWorkspace.QWorkspacePathsAdded += PWorkspacePathsAdd;
-        QWorkspace.QWorkspaceSourceSelected += PWorkspaceSourceSelect;
-        QWorkspace.QWorkspaceSourceOpened += PWorkspaceSourceOpen;
+        QWorkspace.QWorkspaceRelay.QWorkspaceRelayDeferred += PWorkspaceRelayDefer;
+        QWorkspace.QWorkspaceRelay.QWorkspaceRangeApplied += PWorkspaceRangeApply;
+        QWorkspace.QWorkspaceRelay.QWorkspaceVolumeApplied += PWorkspaceVolumeApply;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSeekApplied += PWorkspaceSeekApply;
+        QWorkspace.QWorkspaceRelay.QWorkspacePathsAdded += PWorkspacePathsAdd;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSourceSelected += PWorkspaceSourceSelect;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSourceOpened += PWorkspaceSourceOpen;
         PWorkspaceSurface.PTabWidthChanged += PWorkspaceWidthRaise;
         PWorkspaceRoot = pWorkspaceRoots[QWorkspace.QWorkspaceFacts.QWorkspaceSourcePresent](this);
     }
@@ -130,13 +130,13 @@ public sealed class PWorkspace
         QWorkspace.QWorkspaceFlowCleared -= PWorkspaceFlowClear;
         QWorkspace.QWorkspaceMediaClosed -= PWorkspaceMediaClose;
         QWorkspace.QWorkspaceLosslesscutFound -= PWorkspaceLosslesscutDefer;
-        QWorkspace.QWorkspaceRelayDeferred -= PWorkspaceRelayDefer;
-        QWorkspace.QWorkspaceRangeApplied -= PWorkspaceRangeApply;
-        QWorkspace.QWorkspaceVolumeApplied -= PWorkspaceVolumeApply;
-        QWorkspace.QWorkspaceSeekApplied -= PWorkspaceSeekApply;
-        QWorkspace.QWorkspacePathsAdded -= PWorkspacePathsAdd;
-        QWorkspace.QWorkspaceSourceSelected -= PWorkspaceSourceSelect;
-        QWorkspace.QWorkspaceSourceOpened -= PWorkspaceSourceOpen;
+        QWorkspace.QWorkspaceRelay.QWorkspaceRelayDeferred -= PWorkspaceRelayDefer;
+        QWorkspace.QWorkspaceRelay.QWorkspaceRangeApplied -= PWorkspaceRangeApply;
+        QWorkspace.QWorkspaceRelay.QWorkspaceVolumeApplied -= PWorkspaceVolumeApply;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSeekApplied -= PWorkspaceSeekApply;
+        QWorkspace.QWorkspaceRelay.QWorkspacePathsAdded -= PWorkspacePathsAdd;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSourceSelected -= PWorkspaceSourceSelect;
+        QWorkspace.QWorkspaceRelay.QWorkspaceSourceOpened -= PWorkspaceSourceOpen;
         PWorkspaceSurface.PTabWidthChanged -= PWorkspaceWidthRaise;
     }
 
@@ -179,7 +179,7 @@ public sealed class PWorkspace
     private void PWorkspaceRelayDefer(LRelay lRelay, TimeSpan lDuration) =>
         PWorkspaceSurface.Dispatcher.BeginInvoke(
             DispatcherPriority.Background,
-            new Action(() => QWorkspace.QWorkspaceRelayRestore(lRelay, lDuration)));
+            new Action(() => QWorkspace.QWorkspaceRelay.QWorkspaceRelayRestore(lRelay, lDuration)));
 
     private void PWorkspaceRangeApply(TimeSpan lOrigin, TimeSpan lLimit) =>
         PWorkspaceFlow?.QFlow.QFlowSpool.QFlowRangeSet(lOrigin, lLimit);
@@ -193,7 +193,7 @@ public sealed class PWorkspace
     private async void PWorkspacePathsAdd(IReadOnlyList<string> lPaths)
     {
         await PWorkspaceList!.QList.QListPathsAdd(lPaths);
-        QWorkspace.QWorkspaceSourceRun();
+        QWorkspace.QWorkspaceRelay.QWorkspaceSourceRun();
     }
 
     private void PWorkspaceSourceSelect(string lPath) => PWorkspaceList?.QList.QListListedSelect(lPath);

@@ -1,10 +1,10 @@
 {
-  "generation": 22,
+  "generation": 23,
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
-    "Length": 6,
-    "Width": 3
+    "Length": 0,
+    "Width": 0
   },
   "sources": {
     "roots": [

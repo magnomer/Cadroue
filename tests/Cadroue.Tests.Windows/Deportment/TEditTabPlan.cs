@@ -36,7 +36,7 @@ public sealed class TEditTabPlan
         (QEditTab tab, QInspector inspector, _, _) = TEditBuild();
         LWorkCrop edges = Interface.TInterface.TWorkCropCreate(1, 2, 3, 4, 0, false, false);
         TInterfaceCrop.TCropboxCropSet(inspector.QInspectorCrop.QInspectorCropbox, edges);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindContrast, true);
 
         Assert.Null(TInterface.TEditCarriedRead(tab));
     }
@@ -53,7 +53,7 @@ public sealed class TEditTabPlan
         TInterfaceCrop.TCropboxApplySet(inspector.QInspectorCrop.QInspectorCropbox, true);
         TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
         TInterfaceCrop.TCropboxRatioSet(inspector.QInspectorCrop.QInspectorCropbox, true, true, 4, 3);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindContrast, true);
         TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
 
         LEditPlan? carried = TInterface.TEditCarriedRead(tab);
@@ -74,8 +74,8 @@ public sealed class TEditTabPlan
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (QEditTab tab, QInspector inspector, _, _) = TEditBuild();
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindContrast, true);
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindContrast, true);
 
         LEditPlan? carried = TInterface.TEditCarriedRead(tab);

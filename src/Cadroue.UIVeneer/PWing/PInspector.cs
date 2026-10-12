@@ -143,15 +143,15 @@ public sealed partial class PInspector : PPanel
         PInspectorUpdate();
     }
 
-    public QTone QTone => QInspector.QInspectorTone;
+    public QTone QTone => QInspector.QInspectorVideo.QInspectorTone;
 
-    public QGamma QGamma => QInspector.QInspectorGamma;
+    public QGamma QGamma => QInspector.QInspectorVideo.QInspectorGamma;
 
-    public QExposure QExposure => QInspector.QInspectorExposure;
+    public QExposure QExposure => QInspector.QInspectorVideo.QInspectorExposure;
 
-    public QCurve QCurve => QInspector.QInspectorCurve;
+    public QCurve QCurve => QInspector.QInspectorVideo.QInspectorCurve;
 
-    public QWhitebalance QWhitebalance => QInspector.QInspectorWhitebalance;
+    public QWhitebalance QWhitebalance => QInspector.QInspectorVideo.QInspectorWhitebalance;
 
     public QVolume QVolume => QInspector.QInspectorAudio.QInspectorVolume;
 

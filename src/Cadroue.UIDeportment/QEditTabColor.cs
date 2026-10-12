@@ -44,7 +44,7 @@ public sealed class QEditTabColor
         {
             if (LColor.LColorKindParse(lStep) is { } lKind)
             {
-                lSteps.Add(qEditInspector.QInspectorStepRead(lKind));
+                lSteps.Add(qEditInspector.QInspectorVideo.QInspectorStepRead(lKind));
             }
         }
 
@@ -67,7 +67,7 @@ public sealed class QEditTabColor
         qEditProcessing.QProcessingEnabledSet("Brightness", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Contrast", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Saturation", lEqCapable, lEqNotice);
-        qEditInspector.QInspectorTone.QToneCapableSet(lEqCapable);
+        qEditInspector.QInspectorVideo.QInspectorTone.QToneCapableSet(lEqCapable);
 
         qEditProcessing.QProcessingEnabledSet(
             "Crop", lCropCapable, LLocalization.LLocalizationTextRead("Processing.Step.RequiresCrop"));
@@ -75,21 +75,22 @@ public sealed class QEditTabColor
 
         qEditProcessing.QProcessingEnabledSet(
             "Exposure", lExposureCapable, LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresEq"));
-        qEditInspector.QInspectorExposure.QExposureCapableSet(lExposureCapable, lPreviewMpv);
+        qEditInspector.QInspectorVideo.QInspectorExposure.QExposureCapableSet(lExposureCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Curve", lCurveCapable, LLocalization.LLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
-        qEditInspector.QInspectorCurve.QCurveCapableSet(lCurveCapable, lPreviewMpv);
+        qEditInspector.QInspectorVideo.QInspectorCurve.QCurveCapableSet(lCurveCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Whitebalance",
             lWhitebalanceCapable,
             LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq"));
-        qEditInspector.QInspectorWhitebalance.QWhitebalanceCapableSet(lWhitebalanceCapable, lPreviewMpv);
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceCapableSet(
+            lWhitebalanceCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Gamma", lEqCapable, LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresEq"));
-        qEditInspector.QInspectorGamma.QGammaCapableSet(lEqCapable, lEqCapable && lPreviewMpv);
+        qEditInspector.QInspectorVideo.QInspectorGamma.QGammaCapableSet(lEqCapable, lEqCapable && lPreviewMpv);
 
         QEditColorUpdate();
         QEditColorApply();
@@ -100,15 +101,15 @@ public sealed class QEditTabColor
         switch (LNeutral.LNeutralStatusResolve(lSample.LNeutralOutcome))
         {
             case LNeutralStatus.LNeutralStatusValid:
-                qEditInspector.QInspectorWhitebalance.QWhitebalanceSampleSet(lSample);
+                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceSampleSet(lSample);
                 return;
             case LNeutralStatus.LNeutralStatusDecode:
-                qEditInspector.QInspectorWhitebalance.QWhitebalanceStatusSet(
+                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
                     LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceDecode"));
                 LTraceLog.LTraceInfoRecord("Whitebalance pick: frame decode failed");
                 return;
             default:
-                qEditInspector.QInspectorWhitebalance.QWhitebalanceStatusSet(
+                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
                     LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceInvalid"));
                 LTraceLog.LTraceInfoRecord($"Whitebalance pick: invalid sample ({lSample.LNeutralOutcome})");
                 return;
@@ -128,15 +129,16 @@ public sealed class QEditTabColor
     public void QEditHistogramRun() => qEditViewer.QViewerFrameRead(QEditHistogramApply);
 
     public void QEditEstimateApply(LNeutralWheel lEstimate) =>
-        qEditInspector.QInspectorWhitebalance.QWhitebalanceEstimateSet(lEstimate);
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceEstimateSet(lEstimate);
 
     public void QEditHistogramApply(LMediaFrame? lFrame) =>
-        qEditInspector.QInspectorCurve.QCurveHistogramSet(lFrame is null
+        qEditInspector.QInspectorVideo.QInspectorCurve.QCurveHistogramSet(lFrame is null
             ? null
             : LHistogram.LHistogramCreate(lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight));
 
     private void QEditActiveSet(string lStep, LColorKind lKind) =>
-        qEditProcessing.QProcessingActiveSet(lStep, qEditInspector.QInspectorStepRead(lKind).LWorkStepActive);
+        qEditProcessing.QProcessingActiveSet(
+            lStep, qEditInspector.QInspectorVideo.QInspectorStepRead(lKind).LWorkStepActive);
 
     private static bool QEditMpvCheck() => LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
 

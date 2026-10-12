@@ -53,14 +53,14 @@ public sealed class TGroupEdit
         TInterface.TGroupAttach(group, () => rebuilds++);
 
         TInterface.TGroupEditStart(group, 0);
-        Assert.Equal(0, group.QGroupEditingIndex);
+        Assert.Equal(0, group.QGroupName.QGroupEditingIndex);
         Assert.Equal(1, rebuilds);
 
         TInterface.TGroupEditStart(group, 0);
         Assert.Equal(1, rebuilds);
 
         Assert.True(TInterface.TGroupNameCommit(group, "  Two "));
-        Assert.Null(group.QGroupEditingIndex);
+        Assert.Null(group.QGroupName.QGroupEditingIndex);
         Assert.Equal("Two", group.QGroupRecords[0].QGroupRecordName);
         Assert.Equal(2, rebuilds);
 
@@ -80,13 +80,13 @@ public sealed class TGroupEdit
 
         TInterface.TGroupEditStart(group, 0);
         Assert.False(TInterface.TGroupNameCommit(group, "   "));
-        Assert.Null(group.QGroupEditingIndex);
+        Assert.Null(group.QGroupName.QGroupEditingIndex);
         Assert.Equal("One", group.QGroupRecords[0].QGroupRecordName);
         Assert.Equal(2, rebuilds);
 
         TInterface.TGroupEditStart(group, 0);
         TInterface.TGroupEditCancel(group);
-        Assert.Null(group.QGroupEditingIndex);
+        Assert.Null(group.QGroupName.QGroupEditingIndex);
         Assert.Equal("One", group.QGroupRecords[0].QGroupRecordName);
         Assert.Equal(4, rebuilds);
 
@@ -126,7 +126,7 @@ public sealed class TGroupEdit
         TInterface.TGroupEditStart(group, 1);
         TInterface.TGroupRemove(group, 0);
 
-        Assert.Null(group.QGroupEditingIndex);
+        Assert.Null(group.QGroupName.QGroupEditingIndex);
         Assert.Equal(2, rebuilds);
         Assert.False(TInterface.TGroupNameCommit(group, "Three"));
         Assert.Equal("Two", group.QGroupRecords[0].QGroupRecordName);
@@ -254,6 +254,6 @@ public sealed class TGroupEdit
         TInterface.TGroupLabelHandle(group, 0, 2);
         Assert.True(TInterface.TGroupKeyRun(group, "Escape", "Three"));
         Assert.Equal("Two", group.QGroupRecords[0].QGroupRecordName);
-        Assert.Null(group.QGroupEditingIndex);
+        Assert.Null(group.QGroupName.QGroupEditingIndex);
     }
 }

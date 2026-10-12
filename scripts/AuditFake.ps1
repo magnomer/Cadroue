@@ -69,7 +69,7 @@ AuditFake -ReportDirectory D:\temp\audit -Top 10 -Open -NoOpen
 Write the reports elsewhere, show ten rows of each kind, open the Markdown report but not the page.
 #>
 #requires -Version 5.1
-# AUDITFAKE - AUDIT GENERATION 22.
+# AUDITFAKE - AUDIT GENERATION 23.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -156,7 +156,7 @@ REPORTS
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:AuditGeneration = 22
+$script:AuditGeneration = 23
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding

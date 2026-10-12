@@ -217,7 +217,12 @@ internal static partial class TAuditTruthWalker
         {
             bool inside = TAuditTruthReference.TAuditInsideCheck(identifier, type)
                 || TAuditBinderSymbol.TAuditSymbolRead(identifier) is IParameterSymbol { RefKind: not RefKind.None };
-            if (!inside && !field.TFieldShared)
+            bool reached = !inside
+                && TAuditBinderSymbol.TAuditSymbolRead(identifier) is
+                {
+                    DeclaredAccessibility: not Accessibility.Private
+                };
+            if (!inside && !reached && !field.TFieldShared)
             {
                 continue;
             }
@@ -261,7 +266,7 @@ internal static partial class TAuditTruthWalker
                 continue;
             }
 
-            if (!inside || !scopes.Add(scope))
+            if (!scopes.Add(scope))
             {
                 continue;
             }

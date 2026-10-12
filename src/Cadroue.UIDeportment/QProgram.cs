@@ -141,7 +141,7 @@ public sealed class QProgram
             }
 
             if (qDepotRootApplied is string lDepotPrevious
-                && !LDepot.LDepotFolderMove(lDepotPrevious, lDepotRoot))
+                && !LDepotRelocation.LDepotFolderMove(lDepotPrevious, lDepotRoot))
             {
                 return false;
             }

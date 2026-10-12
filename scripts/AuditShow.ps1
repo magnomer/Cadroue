@@ -26,7 +26,7 @@ Display this help and exit. The alias -? is supported.
 AuditShow
 #>
 #requires -Version 5.1
-# AUDITSHOW - AUDIT GENERATION 22.
+# AUDITSHOW - AUDIT GENERATION 23.
 [CmdletBinding()]
 param(
     [string]$ConfigPath,
@@ -78,7 +78,7 @@ EXAMPLES
     exit 0
 }
 
-Write-Host 'AUDITSHOW - AUDIT GENERATION 22' -ForegroundColor Blue
+Write-Host 'AUDITSHOW - AUDIT GENERATION 23' -ForegroundColor Blue
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

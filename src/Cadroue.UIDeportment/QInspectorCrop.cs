@@ -11,8 +11,6 @@ public sealed class QInspectorCrop
         (0, 0), (16, 9), (9, 16), (4, 3), (3, 4), (1, 1), (21, 9)
     };
 
-    private static readonly int[] qInspectorRotations = { 0, 90, 180, 270 };
-
     private readonly QInspector qInspector;
     private readonly LCropboxEdgeLock qInspectorEdgeLock = new();
 
@@ -47,19 +45,8 @@ public sealed class QInspectorCrop
 
     public bool QInspectorCropEnabled => QInspectorActive && qInspector.QInspectorCropCapable;
 
-    public int QInspectorRotateIndex =>
-        Math.Max(0, Array.IndexOf(qInspectorRotations, QInspectorCropbox.LCropboxStateCrop.LWorkCropRotation));
-
-    public bool QInspectorFlipHorizontal => QInspectorCropbox.LCropboxStateCrop.LWorkFlipHorizontal;
-
-    public bool QInspectorFlipVertical => QInspectorCropbox.LCropboxStateCrop.LWorkFlipVertical;
-
     public string QInspectorApplyTip => LLocalization.LLocalizationTextRead(
         qInspector.QInspectorCropCapable ? "Inspector.Crop.ApplyTooltip" : "Inspector.Crop.RequiresCrop");
-
-    public string? QInspectorOrientationTip => qInspector.QInspectorOrientationCapable
-        ? null
-        : LLocalization.LLocalizationTextRead("Inspector.Crop.RequiresTranspose");
 
     public bool QInspectorToolActive => qInspector.QInspectorToolArmed && QInspectorRectRead() is not null;
 
@@ -75,8 +62,6 @@ public sealed class QInspectorCrop
 
     public LCropbox? QInspectorRectRead() => LCropbox.LCropboxRectResolve(
         QInspectorCropbox.LCropboxStateCrop, qInspector.QInspectorSourceWidth, qInspector.QInspectorSourceHeight);
-
-    public LRotateFlip QInspectorRotateRead() => LRotateFlip.LRotateCropResolve(QInspectorCropbox.LCropboxStateCrop);
 
     public string QInspectorResolutionRead()
     {
@@ -218,26 +203,6 @@ public sealed class QInspectorCrop
             lFitted, QInspectorActive, true, lRatio.LCropboxRatioLenient, lRatioWidth, lRatioHeight);
     }
 
-    public void QInspectorRotateSelect(int lIndex)
-    {
-        if (lIndex < 0)
-        {
-            return;
-        }
-
-        LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
-        QInspectorOrientationSet(qInspectorRotations[lIndex], lCrop.LWorkFlipHorizontal, lCrop.LWorkFlipVertical);
-    }
-
-    public void QInspectorFlipSet(bool lHorizontal, bool lFlipped)
-    {
-        LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
-        QInspectorOrientationSet(
-            lCrop.LWorkCropRotation,
-            lHorizontal ? lFlipped : lCrop.LWorkFlipHorizontal,
-            lHorizontal ? lCrop.LWorkFlipVertical : lFlipped);
-    }
-
     public void QInspectorApplySet(bool lApply)
     {
         bool lFlipped = QInspectorActive != lApply;
@@ -315,48 +280,11 @@ public sealed class QInspectorCrop
         }
     }
 
-    private string? QInspectorNoticeResolve()
-    {
-        if (!qInspector.QInspectorSourcePresent)
-        {
-            return null;
-        }
-
-        double lCropWidth = QInspectorWidthRead();
-        double lCropHeight = QInspectorHeightRead();
-        if (lCropWidth <= 0 || lCropHeight <= 0)
-        {
-            return LLocalization.LLocalizationTextRead("Inspector.Crop.FrameError");
-        }
-
-        LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
-        if (!lRatio.LCropboxRatioFixed)
-        {
-            return null;
-        }
-
-        if (lRatio.LCropboxRatioWidth <= 0 || lRatio.LCropboxRatioHeight <= 0)
-        {
-            return LLocalization.LLocalizationTextRead("Inspector.Crop.RatioError");
-        }
-
-        if (lRatio.LCropboxRatioLenient
-            && LCropbox.LCropboxToleranceCheck(
-                lCropWidth, lCropHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight))
-        {
-            return null;
-        }
-
-        (int lExcess, bool lWide) = LCropbox.LCropboxExcessResolve(
-            lCropWidth, lCropHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
-        if (lExcess <= 0)
-        {
-            return null;
-        }
-
-        return LLocalization.LLocalizationFormat(
-            lWide ? "Inspector.Crop.WidthMismatch" : "Inspector.Crop.HeightMismatch", lExcess);
-    }
+    private string? QInspectorNoticeResolve() => QInspectorNotice.QInspectorNoticeResolve(
+        qInspector.QInspectorSourcePresent,
+        QInspectorWidthRead(),
+        QInspectorHeightRead(),
+        QInspectorCropbox.LCropboxStateRatio);
 
     private void QInspectorRatioCommit(bool? lFixed, bool? lLenient)
     {
@@ -368,26 +296,6 @@ public sealed class QInspectorCrop
             lRatioFixed && (lLenient ?? lRatio.LCropboxRatioLenient),
             lRatio.LCropboxRatioWidth,
             lRatio.LCropboxRatioHeight);
-    }
-
-    private void QInspectorOrientationSet(int lRotation, bool lFlipHorizontal, bool lFlipVertical)
-    {
-        LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
-        if (lCrop.LWorkCropRotation == lRotation
-            && lCrop.LWorkFlipHorizontal == lFlipHorizontal
-            && lCrop.LWorkFlipVertical == lFlipVertical)
-        {
-            return;
-        }
-
-        QInspectorCropbox.LCropboxCropSet(lCrop.LWorkEdgeActive
-            ? LCropbox.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
-            : lCrop with
-            {
-                LWorkCropRotation = lRotation,
-                LWorkFlipHorizontal = lFlipHorizontal,
-                LWorkFlipVertical = lFlipVertical
-            });
     }
 
     private void QInspectorEdgesSet(LCropboxEdges lInsets)

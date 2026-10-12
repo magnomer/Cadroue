@@ -49,7 +49,7 @@ public sealed class TWorkspaceRelay
         TInterface.TWorkspaceRelayApply(workspace, relay);
         Assert.Equal(["C:/media/a.mp4"], added);
         Assert.Empty(selected);
-        Assert.True(workspace.QWorkspaceRelayPending);
+        Assert.True(workspace.QWorkspaceRelay.QWorkspaceRelayPending);
 
         TInterfaceList.TDocketPathsAdd(target, "C:/media/a.mp4");
         TInterface.TWorkspaceSourceRun(workspace);

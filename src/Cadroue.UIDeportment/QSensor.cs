@@ -203,21 +203,8 @@ public sealed class QSensor
         }
     }
 
-    public string? QSensorMatchRead(LDetectorKind lKind)
-    {
-        LDetectorStep lStep = QSensorStepRead(lKind);
-        return lKind switch
-        {
-            LDetectorKind.LDetectorKindScene => QSensorSceneMatch(lStep.LDetectorStepThreshold),
-            LDetectorKind.LDetectorKindStill => LDetector.LDetectorStillMatch(
-                lStep.LDetectorStepThreshold, lStep.LDetectorStepMinimum),
-            LDetectorKind.LDetectorKindLuminance => LDetector.LDetectorLuminanceMatch(
-                lStep.LDetectorStepThreshold, lStep.LDetectorStepWindow, lStep.LDetectorStepMinimum),
-            LDetectorKind.LDetectorKindVolume => LDetector.LDetectorPresetMatch(
-                qSensorMetric, lStep.LDetectorStepThreshold, lStep.LDetectorStepWindow, lStep.LDetectorStepMinimum),
-            _ => null
-        };
-    }
+    public string? QSensorMatchRead(LDetectorKind lKind) =>
+        LDetector.LDetectorStepMatch(QSensorStepRead(lKind), qSensorMetric);
 
     public void QSensorStepSet(LDetectorStep lStep)
     {
@@ -226,20 +213,23 @@ public sealed class QSensor
             return;
         }
 
-        QSensorStepApply(QSensorNormalize(lStep));
+        QSensorStepApply(LDetector.LDetectorStepNormalize(lStep));
     }
 
     public void QSensorEnabledSet(LDetectorKind lKind, bool lEnabled) =>
         QSensorStepApply(QSensorStepRead(lKind) with { LDetectorStepEnabled = lEnabled });
 
     public void QSensorThresholdSet(LDetectorKind lKind, double lThreshold) =>
-        QSensorStepApply(QSensorNormalize(QSensorStepRead(lKind) with { LDetectorStepThreshold = lThreshold }));
+        QSensorStepApply(
+            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepThreshold = lThreshold }));
 
     public void QSensorMinimumSet(LDetectorKind lKind, double lMinimum) =>
-        QSensorStepApply(QSensorNormalize(QSensorStepRead(lKind) with { LDetectorStepMinimum = lMinimum }));
+        QSensorStepApply(
+            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepMinimum = lMinimum }));
 
     public void QSensorWindowSet(LDetectorKind lKind, double lWindow) =>
-        QSensorStepApply(QSensorNormalize(QSensorStepRead(lKind) with { LDetectorStepWindow = lWindow }));
+        QSensorStepApply(
+            LDetector.LDetectorStepNormalize(QSensorStepRead(lKind) with { LDetectorStepWindow = lWindow }));
 
     public void QSensorModeSet(LDetectorStillMode lMode)
     {
@@ -275,7 +265,7 @@ public sealed class QSensor
         if (lMatch is { } lToken && LDetector.LDetectorPresetRead(lToken) is { } lPreset)
         {
             LDetectorStep lStep = QSensorStepRead(LDetectorKind.LDetectorKindVolume);
-            qSensorSteps[LDetectorKind.LDetectorKindVolume] = QSensorNormalize(lStep with
+            qSensorSteps[LDetectorKind.LDetectorKindVolume] = LDetector.LDetectorStepNormalize(lStep with
             {
                 LDetectorStepThreshold = LDetector.LDetectorPresetResolve(lPreset, lMetric)
             });
@@ -292,41 +282,13 @@ public sealed class QSensor
         }
 
         LDetectorStep lStep = QSensorStepRead(lKind);
-        LDetectorStep? lTarget = lKind switch
-        {
-            LDetectorKind.LDetectorKindScene => LDetector.LDetectorSceneResolve(lToken) is { } lSensitivity
-                ? lStep with { LDetectorStepThreshold = lSensitivity }
-                : null,
-            LDetectorKind.LDetectorKindStill => LDetector.LDetectorStillResolve(lToken) is { } lStill
-                ? lStep with
-                {
-                    LDetectorStepThreshold = lStill.LDetectorTolerance,
-                    LDetectorStepMinimum = lStill.LDetectorMinimum
-                }
-                : null,
-            LDetectorKind.LDetectorKindLuminance => LDetector.LDetectorLuminanceResolve(lToken) is { } lLuminance
-                ? lStep with
-                {
-                    LDetectorStepThreshold = lLuminance.LDetectorThreshold,
-                    LDetectorStepWindow = lLuminance.LDetectorWindow,
-                    LDetectorStepMinimum = lLuminance.LDetectorMinimum
-                }
-                : null,
-            _ => LDetector.LDetectorPresetRead(lToken) is { } lPreset
-                ? lStep with
-                {
-                    LDetectorStepThreshold = LDetector.LDetectorPresetResolve(lPreset, qSensorMetric),
-                    LDetectorStepWindow = lPreset.LDetectorPresetWindow,
-                    LDetectorStepMinimum = lPreset.LDetectorPresetMinimum
-                }
-                : null
-        };
+        LDetectorStep? lTarget = LDetector.LDetectorStepResolve(lStep, lToken, qSensorMetric);
         if (lTarget is not { } lResolved)
         {
             return;
         }
 
-        LDetectorStep lNormal = QSensorNormalize(lResolved);
+        LDetectorStep lNormal = LDetector.LDetectorStepNormalize(lResolved);
         if (qSensorSteps[lKind] == lNormal && qSensorTokens[lKind] == lToken)
         {
             return;
@@ -385,31 +347,5 @@ public sealed class QSensor
 
         qSensorSteps[lNormal.LDetectorStepKind] = lNormal;
         QSensorChanged?.Invoke();
-    }
-
-    private static LDetectorStep QSensorNormalize(LDetectorStep lStep)
-    {
-        LDetectorKind lKind = lStep.LDetectorStepKind;
-        return lStep with
-        {
-            LDetectorStepThreshold = lKind == LDetectorKind.LDetectorKindScene
-                ? LDetector.LDetectorSensitivityClamp(lStep.LDetectorStepThreshold)
-                : LDetector.LDetectorThresholdClamp(lKind, lStep.LDetectorStepThreshold),
-            LDetectorStepMinimum = LDetector.LDetectorMinimumClamp(lKind, lStep.LDetectorStepMinimum),
-            LDetectorStepWindow = LDetector.LDetectorWindowClamp(lKind, lStep.LDetectorStepWindow)
-        };
-    }
-
-    private static string? QSensorSceneMatch(double lSensitivity)
-    {
-        foreach (string lToken in LDetector.LDetectorScenePresets)
-        {
-            if (LDetector.LDetectorSceneResolve(lToken) is { } lTarget && Math.Abs(lSensitivity - lTarget) < 0.5)
-            {
-                return lToken;
-            }
-        }
-
-        return null;
     }
 }

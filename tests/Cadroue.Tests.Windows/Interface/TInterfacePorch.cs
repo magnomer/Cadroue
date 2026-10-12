@@ -66,30 +66,30 @@ internal static partial class TInterface
         workspace.QWorkspacePresetOwner.LPresetSelectionValue = record;
     internal static LPresetDocument TPresetRecordCreate(string display) => new() { LPresetDisplay = display };
     internal static LRelay TWorkspaceRelayCreate(QWorkspace workspace, string custom, double left, double top) =>
-        workspace.QWorkspaceRelayCreate(custom, left, top);
+        workspace.QWorkspaceRelay.QWorkspaceRelayCreate(custom, left, top);
     internal static void TWorkspaceRelayApply(QWorkspace workspace, LRelay relay) =>
-        workspace.QWorkspaceRelayApply(relay);
-    internal static void TWorkspaceSourceRun(QWorkspace workspace) => workspace.QWorkspaceSourceRun();
+        workspace.QWorkspaceRelay.QWorkspaceRelayApply(relay);
+    internal static void TWorkspaceSourceRun(QWorkspace workspace) => workspace.QWorkspaceRelay.QWorkspaceSourceRun();
     internal static void TWorkspaceRelayRestore(QWorkspace workspace, LRelay relay, TimeSpan duration) =>
-        workspace.QWorkspaceRelayRestore(relay, duration);
+        workspace.QWorkspaceRelay.QWorkspaceRelayRestore(relay, duration);
     internal static bool TWorkspaceMediaClear(QWorkspace workspace, IReadOnlySet<Guid> cohorts) =>
         workspace.QWorkspaceMediaClear(cohorts);
     internal static void TWorkspacePathHandle(QWorkspace workspace, string? path) =>
         workspace.QWorkspacePathHandle(path);
     internal static void TWorkspacePathsAttach(QWorkspace workspace, Action<IReadOnlyList<string>> handler) =>
-        workspace.QWorkspacePathsAdded += handler;
+        workspace.QWorkspaceRelay.QWorkspacePathsAdded += handler;
     internal static void TWorkspaceSelectAttach(QWorkspace workspace, Action<string> handler) =>
-        workspace.QWorkspaceSourceSelected += handler;
+        workspace.QWorkspaceRelay.QWorkspaceSourceSelected += handler;
     internal static void TWorkspaceOpenAttach(QWorkspace workspace, Action<string> handler) =>
-        workspace.QWorkspaceSourceOpened += handler;
+        workspace.QWorkspaceRelay.QWorkspaceSourceOpened += handler;
     internal static void TWorkspaceCloseAttach(QWorkspace workspace, Action handler) =>
         workspace.QWorkspaceMediaClosed += handler;
     internal static void TWorkspaceVolumeAttach(QWorkspace workspace, Action<double> handler) =>
-        workspace.QWorkspaceVolumeApplied += handler;
+        workspace.QWorkspaceRelay.QWorkspaceVolumeApplied += handler;
     internal static void TWorkspaceSeekAttach(QWorkspace workspace, Action<TimeSpan> handler) =>
-        workspace.QWorkspaceSeekApplied += handler;
+        workspace.QWorkspaceRelay.QWorkspaceSeekApplied += handler;
     internal static void TWorkspaceRangeAttach(QWorkspace workspace, Action<TimeSpan, TimeSpan> handler) =>
-        workspace.QWorkspaceRangeApplied += handler;
+        workspace.QWorkspaceRelay.QWorkspaceRangeApplied += handler;
 
     internal static QSurface TSurfaceCreate(IReadOnlyList<double> minimums, int exportIndex) =>
         new(null, minimums, null, null, -1, exportIndex);

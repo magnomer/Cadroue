@@ -145,6 +145,19 @@ public static class LDetector
         return Math.Clamp(lDetectorValue, lDetectorBound.LDetectorBoundLeast, lDetectorBound.LDetectorBoundMost);
     }
 
+    public static LDetectorStep LDetectorStepNormalize(LDetectorStep lDetectorStep)
+    {
+        LDetectorKind lDetectorKind = lDetectorStep.LDetectorStepKind;
+        return lDetectorStep with
+        {
+            LDetectorStepThreshold = lDetectorKind == LDetectorKind.LDetectorKindScene
+                ? LDetectorSensitivityClamp(lDetectorStep.LDetectorStepThreshold)
+                : LDetectorThresholdClamp(lDetectorKind, lDetectorStep.LDetectorStepThreshold),
+            LDetectorStepMinimum = LDetectorMinimumClamp(lDetectorKind, lDetectorStep.LDetectorStepMinimum),
+            LDetectorStepWindow = LDetectorWindowClamp(lDetectorKind, lDetectorStep.LDetectorStepWindow)
+        };
+    }
+
     public const string LDetectorTokenDefault = "Normal";
 
     public static IReadOnlyList<string> LDetectorTokensRead(LDetectorKind lDetectorKind) => lDetectorKind switch
@@ -218,6 +231,20 @@ public static class LDetector
         _ => null
     };
 
+    public static string? LDetectorSceneMatch(double lDetectorSensitivity)
+    {
+        foreach (string lDetectorToken in LDetectorScenePresets)
+        {
+            if (LDetectorSceneResolve(lDetectorToken) is { } lDetectorTarget
+                && Math.Abs(lDetectorSensitivity - lDetectorTarget) < 0.5)
+            {
+                return lDetectorToken;
+            }
+        }
+
+        return null;
+    }
+
     public static readonly IReadOnlyList<string> LDetectorStillPresets = new[]
     {
         "Conservative",
@@ -281,4 +308,55 @@ public static class LDetector
 
         return null;
     }
+
+    public static string? LDetectorStepMatch(LDetectorStep lDetectorStep, LDetectorMetricMode lDetectorMetric) =>
+        lDetectorStep.LDetectorStepKind switch
+        {
+            LDetectorKind.LDetectorKindScene => LDetectorSceneMatch(lDetectorStep.LDetectorStepThreshold),
+            LDetectorKind.LDetectorKindStill => LDetectorStillMatch(
+                lDetectorStep.LDetectorStepThreshold, lDetectorStep.LDetectorStepMinimum),
+            LDetectorKind.LDetectorKindLuminance => LDetectorLuminanceMatch(
+                lDetectorStep.LDetectorStepThreshold,
+                lDetectorStep.LDetectorStepWindow,
+                lDetectorStep.LDetectorStepMinimum),
+            LDetectorKind.LDetectorKindVolume => LDetectorPresetMatch(
+                lDetectorMetric,
+                lDetectorStep.LDetectorStepThreshold,
+                lDetectorStep.LDetectorStepWindow,
+                lDetectorStep.LDetectorStepMinimum),
+            _ => null
+        };
+
+    public static LDetectorStep? LDetectorStepResolve(
+        LDetectorStep lDetectorStep,
+        string lDetectorToken,
+        LDetectorMetricMode lDetectorMetric) => lDetectorStep.LDetectorStepKind switch
+    {
+        LDetectorKind.LDetectorKindScene => LDetectorSceneResolve(lDetectorToken) is { } lDetectorSensitivity
+            ? lDetectorStep with { LDetectorStepThreshold = lDetectorSensitivity }
+            : null,
+        LDetectorKind.LDetectorKindStill => LDetectorStillResolve(lDetectorToken) is { } lDetectorStill
+            ? lDetectorStep with
+            {
+                LDetectorStepThreshold = lDetectorStill.LDetectorTolerance,
+                LDetectorStepMinimum = lDetectorStill.LDetectorMinimum
+            }
+            : null,
+        LDetectorKind.LDetectorKindLuminance => LDetectorLuminanceResolve(lDetectorToken) is { } lDetectorLuminance
+            ? lDetectorStep with
+            {
+                LDetectorStepThreshold = lDetectorLuminance.LDetectorThreshold,
+                LDetectorStepWindow = lDetectorLuminance.LDetectorWindow,
+                LDetectorStepMinimum = lDetectorLuminance.LDetectorMinimum
+            }
+            : null,
+        _ => LDetectorPresetRead(lDetectorToken) is { } lDetectorPreset
+            ? lDetectorStep with
+            {
+                LDetectorStepThreshold = LDetectorPresetResolve(lDetectorPreset, lDetectorMetric),
+                LDetectorStepWindow = lDetectorPreset.LDetectorPresetWindow,
+                LDetectorStepMinimum = lDetectorPreset.LDetectorPresetMinimum
+            }
+            : null
+    };
 }

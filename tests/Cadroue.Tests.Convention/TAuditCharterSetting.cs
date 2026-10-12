@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditCharterSetting
 {
-    public const int TAuditGeneration = 22;
+    public const int TAuditGeneration = 23;
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditCharterEdges = new Dictionary<string, string[]>
     {
@@ -12,8 +12,9 @@ internal static class TAuditCharterSetting
         ["Cadroue.Core.Windows"] = ["Cadroue.Core"],
         ["Cadroue.Host"] =
         [
-            "Cadroue.Core", "Cadroue.Application", "Cadroue.Infrastructure", "Cadroue.Core.Windows", "Cadroue.ShellEngine",
-            "Cadroue.Conduct", "Cadroue.UIDeportment", "Cadroue.UIVeneer", "Cadroue.UIDemeanor", "Cadroue.UITerminal",
+            "Cadroue.Core", "Cadroue.Application", "Cadroue.Infrastructure", "Cadroue.Core.Windows",
+            "Cadroue.ShellEngine", "Cadroue.Conduct", "Cadroue.UIDeportment", "Cadroue.UIVeneer",
+            "Cadroue.UIDemeanor", "Cadroue.UITerminal",
         ],
         ["Cadroue.UITerminal"] = ["Cadroue.UIDemeanor"],
         ["Cadroue.UIDemeanor"] = ["Cadroue.Conduct"],

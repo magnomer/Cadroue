@@ -115,7 +115,7 @@ public sealed class PGroupCard
             ToolTip = LLocalization.LLocalizationTextRead("Group.Rename.Tooltip")
         };
         pNameLabel.MouseLeftButtonDown += (_, pNameEvent) =>
-            pNameEvent.Handled = lGroup.QGroupLabelHandle(lCard.QGroupCardIndex, pNameEvent.ClickCount);
+            pNameEvent.Handled = lGroup.QGroupName.QGroupLabelHandle(lCard.QGroupCardIndex, pNameEvent.ClickCount);
         return pNameLabel;
     }
 
@@ -137,8 +137,8 @@ public sealed class PGroupCard
             pNameBox.SelectAll();
         };
         pNameBox.KeyDown += (_, pKeyEvent) =>
-            pKeyEvent.Handled = lGroup.QGroupKeyRun(pKeyEvent.Key.ToString(), pNameBox.Text);
-        pNameBox.LostKeyboardFocus += (_, _) => lGroup.QGroupNameCommit(pNameBox.Text);
+            pKeyEvent.Handled = lGroup.QGroupName.QGroupKeyRun(pKeyEvent.Key.ToString(), pNameBox.Text);
+        pNameBox.LostKeyboardFocus += (_, _) => lGroup.QGroupName.QGroupNameCommit(pNameBox.Text);
         return pNameBox;
     }
 

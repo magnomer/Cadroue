@@ -7,7 +7,7 @@ Hand-written and tracked.
 The fake-audit switch, the report path, the ceilings and the scopes live here.
 `AuditFake.ps1` reads its own AuditFake.json and never writes this file.
 
-## `public const int TAuditGeneration = 22;`
+## `public const int TAuditGeneration = 23;`
 
 Numbers the revision of the fake-audit settings this file holds.
 

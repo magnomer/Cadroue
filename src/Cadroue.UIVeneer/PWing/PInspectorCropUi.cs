@@ -66,8 +66,10 @@ public sealed partial class PInspector
 
         pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
         pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
-        PInspectorSwitchAttach(pInspectorFlipHorizontal, pFlipped => QInspectorCrop.QInspectorFlipSet(true, pFlipped));
-        PInspectorSwitchAttach(pInspectorFlipVertical, pFlipped => QInspectorCrop.QInspectorFlipSet(false, pFlipped));
+        PInspectorSwitchAttach(
+            pInspectorFlipHorizontal, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(true, pFlipped));
+        PInspectorSwitchAttach(
+            pInspectorFlipVertical, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(false, pFlipped));
         pInspectorRotateCombo = PInspectorRotateBuild();
         pInspectorCropTool = PInspectorToolBuild();
 
@@ -148,7 +150,8 @@ public sealed partial class PInspector
         pRotateCombo.Items.Add(new LLocalizationChoice("Degrees180", "Inspector.Crop.Degrees180"));
         pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise270", "Inspector.Crop.Clockwise270"));
         pRotateCombo.SelectedIndex = 0;
-        pRotateCombo.SelectionChanged += (_, _) => QInspectorCrop.QInspectorRotateSelect(pRotateCombo.SelectedIndex);
+        pRotateCombo.SelectionChanged += (_, _) =>
+            QInspector.QInspectorOrientation.QInspectorRotateSelect(pRotateCombo.SelectedIndex);
         return pRotateCombo;
     }
 

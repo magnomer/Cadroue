@@ -10,7 +10,7 @@ No script writes this file, and the border fact reads no script configuration.
 `AuditStructure.json` holds its own copy, kept in step by hand as scripts/principles.md asks.
 The neighbours and the cut are tied to the charter and the UI roots by facts, not by hand.
 
-## `public const int TAuditGeneration = 22;`
+## `public const int TAuditGeneration = 23;`
 
 Numbers the revision of the border settings this file holds.
 

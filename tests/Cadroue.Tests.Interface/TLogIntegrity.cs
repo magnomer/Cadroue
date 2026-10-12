@@ -131,7 +131,7 @@ internal static class TLogIntegrity
             LDepot.LDepotRootSet(source);
             LTraceLog.LTraceInfoRecord("before workspace move");
             LTraceWriter.LTraceWriterPersist();
-            bool moved = LDepot.LDepotFolderMove(source, target);
+            bool moved = LDepotRelocation.LDepotFolderMove(source, target);
             LTraceLog.LTraceInfoRecord("after workspace move");
             string text = LTraceWriter.LTraceWriterRead();
             return new TLogMoveResult(moved, LDepot.LDepotRootRead(), Directory.Exists(source), text);
@@ -175,7 +175,7 @@ internal static class TLogIntegrity
                     throw new TimeoutException("Concurrent workspace move test did not continue.");
                 }
 
-                LDepot.LDepotMove(source, target);
+                LDepotRelocation.LDepotMove(source, target);
                 LDepot.LDepotRootSet(target);
             }));
 

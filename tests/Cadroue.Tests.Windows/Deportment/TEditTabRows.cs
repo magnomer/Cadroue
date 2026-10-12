@@ -70,8 +70,8 @@ public sealed class TEditTabRows
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (QEditTab tab, QInspector inspector, QProcessing processing) = TEditBuild();
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindSaturation, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindSaturation, true);
 
         TInterface.TEditColorUpdate(tab);
 

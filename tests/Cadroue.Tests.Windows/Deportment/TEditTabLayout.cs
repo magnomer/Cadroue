@@ -27,7 +27,7 @@ public sealed class TEditTabLayout
         (QEditTab tab, QInspector inspector) = TEditBuild();
         LWorkCrop edges = Interface.TInterface.TWorkCropCreate(10, 20, 30, 40, 90, false, false);
         TInterfaceCrop.TCropboxCropSet(inspector.QInspectorCrop.QInspectorCropbox, edges);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, true);
 
         LSceneTabEntry layout = TInterface.TEditLayoutRead(tab);
 
@@ -46,8 +46,8 @@ public sealed class TEditTabLayout
         TInterfaceCrop.TCropboxApplySet(inspector.QInspectorCrop.QInspectorCropbox, true);
         TInterfaceCrop.TCropboxPersistentSet(inspector.QInspectorCrop.QInspectorCropbox, true);
         TInterfaceCrop.TCropboxRatioSet(inspector.QInspectorCrop.QInspectorCropbox, true, false, 16, 9);
-        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 20);
-        TInterface.TToneActiveSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, true);
+        TInterface.TToneValueSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, 20);
+        TInterface.TToneActiveSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, true);
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindBrightness, true);
         TInterface.TSkipActiveSet(inspector.QInspectorSkip, true);
         TInterface.TSkipPersistentSet(inspector.QInspectorSkip, true);
@@ -68,8 +68,8 @@ public sealed class TEditTabLayout
             inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateRatio,
             restored.QInspectorCrop.QInspectorCropbox.LCropboxStateRatio);
         Assert.Equal(
-            TInterface.TToneStepRead(inspector.QInspectorTone, LColorKind.LColorKindBrightness),
-            TInterface.TToneStepRead(restored.QInspectorTone, LColorKind.LColorKindBrightness));
+            TInterface.TToneStepRead(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness),
+            TInterface.TToneStepRead(restored.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness));
         Assert.True(TInterfaceInspector.TInspectorPersistentCheck(restored, LColorKind.LColorKindBrightness));
         Assert.False(TInterfaceInspector.TInspectorPersistentCheck(restored, LColorKind.LColorKindContrast));
         Assert.True(restored.QInspectorSkip.QSkipActive);

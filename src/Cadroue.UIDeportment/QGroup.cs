@@ -14,9 +14,6 @@ public sealed class QGroupEntry
 
 public sealed class QGroup
 {
-    private const string QGroupReturnKey = "Return";
-    private const string QGroupEscapeKey = "Escape";
-
     private readonly CUsher qGroupUsher;
     private readonly LGroupSelection qGroupOwner;
     private readonly List<QGroupEntry> qGroupRecords = [];
@@ -24,7 +21,6 @@ public sealed class QGroup
     private bool qGroupMinimized;
     private int? qGroupSourceIndex;
     private string? qGroupDragPath;
-    private int? qGroupEditingIndex;
 
     public event Action? QGroupChanged;
     public event Action? QGroupFaceChanged;
@@ -36,6 +32,7 @@ public sealed class QGroup
         qGroupOwner = lGroupSelection;
         QGroupDrag = new QGroupDrag(this);
         QGroupFace = new QGroupFace(this, lUsher);
+        QGroupName = new QGroupName(this);
         qGroupOwner.LGroupSelectionChanged += QGroupSelectionHandle;
     }
 
@@ -45,11 +42,11 @@ public sealed class QGroup
 
     public QGroupFace QGroupFace { get; }
 
+    public QGroupName QGroupName { get; }
+
     public IReadOnlyList<QGroupEntry> QGroupRecords => qGroupRecords;
 
     public bool QGroupAuto => qGroupOwner.LGroupAuto;
-
-    public int? QGroupEditingIndex => qGroupEditingIndex;
 
     public bool QGroupEmpty => qGroupRecords.Count == 0;
 
@@ -242,66 +239,6 @@ public sealed class QGroup
         QGroupRecordsRaise();
     }
 
-    public void QGroupEditStart(int lIndex)
-    {
-        if (!QGroupIndexCheck(lIndex) || qGroupEditingIndex == lIndex)
-        {
-            return;
-        }
-
-        qGroupEditingIndex = lIndex;
-        QGroupChanged?.Invoke();
-    }
-
-    public void QGroupEditCancel()
-    {
-        if (qGroupEditingIndex is null)
-        {
-            return;
-        }
-
-        qGroupEditingIndex = null;
-        QGroupChanged?.Invoke();
-    }
-
-    public bool QGroupNameCommit(string lName)
-    {
-        if (qGroupEditingIndex is not { } lIndex)
-        {
-            return false;
-        }
-
-        qGroupEditingIndex = null;
-        bool lApplied = QGroupNameApply(lIndex, lName);
-        QGroupChanged?.Invoke();
-        return lApplied;
-    }
-
-    public bool QGroupNameSet(int lIndex, string lName)
-    {
-        if (!QGroupNameApply(lIndex, lName))
-        {
-            return false;
-        }
-
-        QGroupChanged?.Invoke();
-        return true;
-    }
-
-    private bool QGroupNameApply(int lIndex, string lName)
-    {
-        string lTrimmed = lName.Trim();
-        if (!QGroupIndexCheck(lIndex)
-            || lTrimmed.Length == 0
-            || string.Equals(lTrimmed, qGroupRecords[lIndex].QGroupRecordName, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        qGroupRecords[lIndex].QGroupRecordName = lTrimmed;
-        return true;
-    }
-
     public void QGroupSourceAttach(Func<IReadOnlyList<string>> lSource) => qGroupSource = lSource;
 
     public void QGroupAutoUpdate()
@@ -316,33 +253,9 @@ public sealed class QGroup
 
     public void QGroupLooseApply() => QGroupSourceApply(false);
 
-    public bool QGroupLabelHandle(int lIndex, int lClickCount)
-    {
-        if (lClickCount != 2)
-        {
-            return false;
-        }
+    internal bool QGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qGroupRecords.Count;
 
-        QGroupEditStart(lIndex);
-        return true;
-    }
-
-    public bool QGroupKeyRun(string lKey, string lText)
-    {
-        if (string.Equals(lKey, QGroupReturnKey, StringComparison.Ordinal))
-        {
-            QGroupNameCommit(lText);
-            return true;
-        }
-
-        if (string.Equals(lKey, QGroupEscapeKey, StringComparison.Ordinal))
-        {
-            QGroupEditCancel();
-            return true;
-        }
-
-        return false;
-    }
+    internal void QGroupChangedRaise() => QGroupChanged?.Invoke();
 
     private void QGroupSourceApply(bool? lStrict) => QGroupAutoApply(qGroupSource(), lStrict);
 
@@ -354,11 +267,9 @@ public sealed class QGroup
 
     private void QGroupRecordsRaise()
     {
-        qGroupEditingIndex = null;
+        QGroupName.QGroupEditClear();
         QGroupChanged?.Invoke();
     }
-
-    private bool QGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qGroupRecords.Count;
 
     private static bool QGroupPathInsert(List<string> lPaths, string lPath, int lInsertAt)
     {

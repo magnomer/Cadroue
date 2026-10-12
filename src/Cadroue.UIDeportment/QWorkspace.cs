@@ -1,7 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 using Cadroue.ShellEngine;
 
@@ -12,8 +11,6 @@ public sealed class QWorkspace
     private readonly LHistory qWorkspaceHistory = new();
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
-    private LRelay? qWorkspaceRelay;
-    private string qWorkspaceRelayPath = string.Empty;
 
     public QWorkspace(string lKey, CUsher lUsher, CLineage lLineage)
     {
@@ -29,25 +26,21 @@ public sealed class QWorkspace
         QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
         QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher,
             QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
+        QWorkspaceRelay = new QWorkspaceRelay(this);
     }
 
     public event Action<LMediaInfo, string>? QWorkspaceFlowAttached;
     public event Action? QWorkspaceFlowCleared;
     public event Action? QWorkspaceMediaClosed;
     public event Action? QWorkspaceLosslesscutFound;
-    public event Action<LRelay, TimeSpan>? QWorkspaceRelayDeferred;
-    public event Action<TimeSpan, TimeSpan>? QWorkspaceRangeApplied;
-    public event Action<double>? QWorkspaceVolumeApplied;
-    public event Action<TimeSpan>? QWorkspaceSeekApplied;
-    public event Action<IReadOnlyList<string>>? QWorkspacePathsAdded;
-    public event Action<string>? QWorkspaceSourceSelected;
-    public event Action<string>? QWorkspaceSourceOpened;
 
     public string QWorkspaceKey { get; }
 
     public QWorkspaceFacts QWorkspaceFacts { get; }
 
     public QWorkspaceMode QWorkspaceMode { get; }
+
+    public QWorkspaceRelay QWorkspaceRelay { get; }
 
     public LPreset QWorkspacePreset { get; }
 
@@ -71,11 +64,9 @@ public sealed class QWorkspace
 
     public QInfo? QWorkspaceInfo => qWorkspacePair?.QWorkspaceInfo;
 
-    public bool QWorkspaceRelayPending => qWorkspaceRelay is not null;
-
     public bool QWorkspaceFlowPresent => qWorkspacePair is not null;
 
-    private LSegment? QWorkspaceSegment => QWorkspaceFlow?.QFlowSection.QFlowSegment;
+    internal LSegment? QWorkspaceSegment => QWorkspaceFlow?.QFlowSection.QFlowSegment;
 
     public void QWorkspaceAttach(Func<LSceneTabEntry> lLayoutSource)
     {
@@ -118,7 +109,7 @@ public sealed class QWorkspace
             }
 
             qWorkspacePair?.QWorkspacePairDetach();
-            qWorkspaceRelay = null;
+            QWorkspaceRelay.QWorkspaceRelayClose();
             QWorkspacePreset.LPresetChanged -= QWorkspaceHistoryAdd;
             QWorkspacePresetOwner.LPresetSelectionChanged -= QWorkspacePresetHandle;
             QWorkspacePresetOwner.LPresetSelectionClose();
@@ -213,107 +204,11 @@ public sealed class QWorkspace
         return lCleared;
     }
 
-    public LRelay QWorkspaceRelayCreate(string lCustomName, double lDropLeft, double lDropTop)
-    {
-        LRelay lRelay = LRelayPayload.LRelayCreate(
-            QWorkspaceKey,
-            lCustomName,
-            QWorkspacePreset.LPresetRecordCreate(),
-            QWorkspaceLayoutRead(),
-            lDropLeft,
-            lDropTop);
-        if (QWorkspaceDocket is { } lDocket)
-        {
-            lRelay.LRelayPaths.AddRange(lDocket.LDocketPathsRead());
-        }
-
-        if (QWorkspaceViewer is { } lViewer)
-        {
-            lRelay.LRelaySourcePath = lViewer.QViewerSourcePath ?? string.Empty;
-            lRelay.LRelayPositionTicks = lViewer.QViewerPosition.Ticks;
-            lRelay.LRelayVolume = lViewer.QViewerVolume;
-        }
-
-        if (QWorkspaceFlow is { } lFlow && QWorkspaceSegment is { } lSegment)
-        {
-            lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(lSegment.LSegmentListRead());
-            lRelay.LRelaySectionIndex = lSegment.LSegmentSelectionRead();
-            if (lFlow.QFlowRange is { } lSpool)
-            {
-                lRelay.LRelayOriginTicks = lSpool.LSpoolRangeOrigin.Ticks;
-                lRelay.LRelayLimitTicks = lSpool.LSpoolRangeLimit.Ticks;
-            }
-        }
-
-        return lRelay;
-    }
-
-    public void QWorkspaceRelayApply(LRelay lRelay)
-    {
-        qWorkspaceRelayPath = lRelay.LRelaySourcePath;
-        qWorkspaceRelay = QWorkspaceViewer is not null && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath)
-            ? lRelay
-            : null;
-        if (QWorkspaceDocket is not null && lRelay.LRelayPaths.Count > 0)
-        {
-            QWorkspacePathsAdded?.Invoke(lRelay.LRelayPaths);
-            return;
-        }
-
-        QWorkspaceSourceRun();
-    }
-
-    public void QWorkspaceSourceRun()
-    {
-        string lPath = qWorkspaceRelayPath;
-        qWorkspaceRelayPath = string.Empty;
-        if (string.IsNullOrWhiteSpace(lPath) || QWorkspaceViewer is null)
-        {
-            return;
-        }
-
-        if (QWorkspaceDocket is { } lDocket
-            && lDocket.LDocketPathsRead().Contains(lPath, StringComparer.OrdinalIgnoreCase))
-        {
-            QWorkspaceSourceSelected?.Invoke(lPath);
-            return;
-        }
-
-        QWorkspaceSourceOpened?.Invoke(lPath);
-    }
-
-    public void QWorkspaceRelayRestore(LRelay lRelay, TimeSpan lDuration)
-    {
-        if (QWorkspaceFlow is not null && QWorkspaceSegment is { } lSegment)
-        {
-            IReadOnlyList<LPiece> lSections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
-            if (lSections.Count > 0)
-            {
-                lSegment.LSegmentBoundSet(lSections, lRelay.LRelaySectionIndex, lDuration);
-            }
-
-            if (lRelay.LRelayOriginTicks is { } lOrigin && lRelay.LRelayLimitTicks is { } lLimit)
-            {
-                QWorkspaceRangeApplied?.Invoke(TimeSpan.FromTicks(lOrigin), TimeSpan.FromTicks(lLimit));
-            }
-        }
-
-        if (lRelay.LRelayVolume is { } lVolume)
-        {
-            QWorkspaceVolumeApplied?.Invoke(lVolume);
-        }
-
-        if (lRelay.LRelayPositionTicks > 0)
-        {
-            QWorkspaceSeekApplied?.Invoke(TimeSpan.FromTicks(lRelay.LRelayPositionTicks));
-        }
-    }
-
     private void QWorkspaceMediaHandle(LCargo lCargo)
     {
         QWorkspaceLosslesscutHandle(lCargo);
         QWorkspaceFlowHandle(lCargo);
-        QWorkspaceRelayHandle(lCargo);
+        QWorkspaceRelay.QWorkspaceRelayHandle(lCargo);
     }
 
     private void QWorkspaceFlowHandle(LCargo lCargo)
@@ -348,21 +243,6 @@ public sealed class QWorkspace
         if (lFlow.QFlowStamp.QFlowLosslesscutSet(LLosslesscut.LLosslesscutPathNormalize(lCargo.LCargoSourcePath)))
         {
             QWorkspaceLosslesscutFound?.Invoke();
-        }
-    }
-
-    private void QWorkspaceRelayHandle(LCargo lCargo)
-    {
-        if (qWorkspaceRelay is not { } lRelay
-            || !string.Equals(lCargo.LCargoSourcePath, lRelay.LRelaySourcePath, StringComparison.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        qWorkspaceRelay = null;
-        if (lCargo.LCargoMediaInfo is { } lMediaInfo)
-        {
-            QWorkspaceRelayDeferred?.Invoke(lRelay, lMediaInfo.LMediaInfoDuration);
         }
     }
 

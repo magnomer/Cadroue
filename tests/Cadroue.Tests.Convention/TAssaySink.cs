@@ -206,4 +206,80 @@ public sealed class TAssaySink
                     QAssayCheck(_count, gate);
             """), "Gatekeeping", null);
     }
+
+    [Fact]
+    public void AuditTruth_OwnerAlias_ReportsGatekeeping()
+    {
+        TAssayTruth.TAssayTruthCheck("""
+            using System;
+            using Cadroue.Conduct.Assay;
+
+            namespace Cadroue.UIDeportment.Assay;
+
+            public sealed class QAssay
+            {
+                private int _count;
+
+                public int QAssayCount => _count;
+            }
+
+            public sealed class QAssayRelay
+            {
+                private readonly QAssay _owner;
+
+                public QAssayRelay(QAssay owner)
+                {
+                    _owner = owner;
+                }
+
+                public void QAssayRelayRun(CAssay gate)
+                {
+                    if (_owner.QAssayCount > 0)
+                    {
+                        gate.CAssayApply();
+                    }
+                }
+            }
+            """, "Gatekeeping", new TViolation(
+            TAssayTruth.TAssayDriverPath, 24, "QAssay._count", "Gatekeeping", "decides a request in an if"));
+    }
+
+    [Fact]
+    public void AuditTruth_OwnerPrivate_AllowsRequest()
+    {
+        TAssayTruth.TAssayTruthCheck("""
+            using System;
+            using Cadroue.Conduct.Assay;
+
+            namespace Cadroue.UIDeportment.Assay;
+
+            public sealed class QAssay
+            {
+                private int _count;
+
+                public bool QAssayCheck()
+                {
+                    return _count > 0;
+                }
+            }
+
+            public sealed class QAssayRelay
+            {
+                private readonly QAssay _owner;
+
+                public QAssayRelay(QAssay owner)
+                {
+                    _owner = owner;
+                }
+
+                public void QAssayRelayRun(CAssay gate)
+                {
+                    if (_owner.QAssayCheck())
+                    {
+                        gate.CAssayApply();
+                    }
+                }
+            }
+            """, "Gatekeeping", null);
+    }
 }

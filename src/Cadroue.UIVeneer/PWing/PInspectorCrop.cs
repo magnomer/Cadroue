@@ -77,17 +77,18 @@ public sealed partial class PInspector
         pInspectorInsetTop.Text = lCrop.QInspectorEdgeFormat(1, pInspectorInsetTop.Text);
         pInspectorInsetRight.Text = lCrop.QInspectorEdgeFormat(2, pInspectorInsetRight.Text);
         pInspectorInsetBottom.Text = lCrop.QInspectorEdgeFormat(3, pInspectorInsetBottom.Text);
-        pInspectorFlipHorizontal.IsChecked = PLook.PLookChecked[lCrop.QInspectorFlipHorizontal];
-        pInspectorFlipVertical.IsChecked = PLook.PLookChecked[lCrop.QInspectorFlipVertical];
-        pInspectorRotateCombo.SelectedIndex = lCrop.QInspectorRotateIndex;
+        pInspectorFlipHorizontal.IsChecked =
+            PLook.PLookChecked[QInspector.QInspectorOrientation.QInspectorFlipHorizontal];
+        pInspectorFlipVertical.IsChecked = PLook.PLookChecked[QInspector.QInspectorOrientation.QInspectorFlipVertical];
+        pInspectorRotateCombo.SelectedIndex = QInspector.QInspectorOrientation.QInspectorRotateIndex;
         pInspectorApplyBox.IsEnabled = QInspector.QInspectorCropCapable;
         pInspectorApplyBox.ToolTip = lCrop.QInspectorApplyTip;
         pInspectorRotateCombo.IsEnabled = QInspector.QInspectorOrientationCapable;
         pInspectorFlipHorizontal.IsEnabled = QInspector.QInspectorOrientationCapable;
         pInspectorFlipVertical.IsEnabled = QInspector.QInspectorOrientationCapable;
-        pInspectorRotateCombo.ToolTip = lCrop.QInspectorOrientationTip;
-        pInspectorFlipHorizontal.ToolTip = lCrop.QInspectorOrientationTip;
-        pInspectorFlipVertical.ToolTip = lCrop.QInspectorOrientationTip;
+        pInspectorRotateCombo.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
+        pInspectorFlipHorizontal.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
+        pInspectorFlipVertical.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
         PInspectorSectionUpdate(pInspectorCropStack, lCrop.QInspectorCropEnabled);
         PInspectorRatioUpdate();
         PInspectorToolUpdate();

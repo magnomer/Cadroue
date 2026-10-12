@@ -139,7 +139,7 @@ internal sealed partial class PSOptions
         }
 
         string pWorkspaceRoot = LDepot.LDepotRootRead();
-        if (LDepot.LDepotRunningCheck(pWorkspaceRoot))
+        if (LDepotRelocation.LDepotRunningCheck(pWorkspaceRoot))
         {
             PSWarning.PSWarningShow(
                 this,

@@ -99,34 +99,3 @@ public sealed class LCropboxState
 
     private void LCropboxStateRaise() => LCropboxStateChanged?.Invoke();
 }
-
-public sealed class LCropboxEdgeLock
-{
-    private readonly bool[] lCropboxEdgeLocked = new bool[4];
-
-    public void LCropboxEdgeSet(int lEdge, bool lLocked) => lCropboxEdgeLocked[lEdge] = lLocked;
-
-    public void LCropboxEdgeClear() => Array.Clear(lCropboxEdgeLocked);
-
-    public LCropboxEdges? LCropboxEdgeResolve(
-        double lSourceWidth,
-        double lSourceHeight,
-        LCropboxEdges lInsets,
-        double lRatioWidth,
-        double lRatioHeight,
-        bool lHorizontal) =>
-        LCropbox.LCropboxLockResolve(
-            lSourceWidth,
-            lSourceHeight,
-            lInsets.LCropboxLeft,
-            lInsets.LCropboxTop,
-            lInsets.LCropboxRight,
-            lInsets.LCropboxBottom,
-            lCropboxEdgeLocked[0],
-            lCropboxEdgeLocked[1],
-            lCropboxEdgeLocked[2],
-            lCropboxEdgeLocked[3],
-            lRatioWidth,
-            lRatioHeight,
-            lHorizontal);
-}

@@ -220,4 +220,24 @@ public sealed class TInspectorPreset
         Assert.Equal(15, TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindVolume).LDetectorStepThreshold);
         Assert.Equal("Normal", TInterface.TSensorTokenRead(sensor, LDetectorKind.LDetectorKindVolume));
     }
+
+    [Fact]
+    public void SensorPresetSelect_LuminanceAndVolume_ApplyCatalogValues()
+    {
+        QSensor sensor = TInterface.TSensorCreate();
+
+        TInterface.TSensorPresetSelect(sensor, LDetectorKind.LDetectorKindLuminance, "Sensitive");
+        LDetectorStep luminance = TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindLuminance);
+        Assert.Equal(4.0, luminance.LDetectorStepThreshold);
+        Assert.Equal(0.3, luminance.LDetectorStepWindow);
+        Assert.Equal(0.3, luminance.LDetectorStepMinimum);
+        Assert.Equal("Sensitive", TInterface.TSensorMatchRead(sensor, LDetectorKind.LDetectorKindLuminance));
+
+        TInterface.TSensorPresetSelect(sensor, LDetectorKind.LDetectorKindVolume, "Conservative");
+        LDetectorStep volume = TInterface.TSensorStepRead(sensor, LDetectorKind.LDetectorKindVolume);
+        Assert.Equal(24, volume.LDetectorStepThreshold);
+        Assert.Equal(2, volume.LDetectorStepWindow);
+        Assert.Equal(0.5, volume.LDetectorStepMinimum);
+        Assert.Equal("Conservative", TInterface.TSensorMatchRead(sensor, LDetectorKind.LDetectorKindVolume));
+    }
 }

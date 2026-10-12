@@ -222,7 +222,7 @@ public sealed class QRail
             return QRailRelayOutcome.QRailRelayBusy;
         }
 
-        LRelay lRelay = lWorkspace.QWorkspaceRelayCreate(lTab.QStripTabCustom, lDipX, lDipY);
+        LRelay lRelay = lWorkspace.QWorkspaceRelay.QWorkspaceRelayCreate(lTab.QStripTabCustom, lDipX, lDipY);
         string lRelayFilePath;
         try
         {

@@ -55,7 +55,6 @@ public sealed class QWindow
 
     public event Action<QWindowTab>? QWindowTabAdded;
     public event Action? QWindowFunnelUpdated;
-    public event Action<LRelay>? QWindowRelayApplied;
     public event Action<double, double>? QWindowPlaced;
     public event Action? QWindowShown;
     public event Action<string>? QWindowMediaDeferred;
@@ -251,7 +250,7 @@ public sealed class QWindow
             lRelay.LRelayCustomName));
         QStripTab? lAdded = qStrip.QStripTabs.LastOrDefault();
         qStrip.QStripSelect(lAdded);
-        QWindowRelayApplied?.Invoke(lRelay);
+        lAdded?.QStripTabWorkspace.QWorkspaceRelay.QWorkspaceRelayApply(lRelay);
         QWindowFunnelUpdated?.Invoke();
     }
 

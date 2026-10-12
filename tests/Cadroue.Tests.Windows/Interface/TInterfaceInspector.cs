@@ -20,7 +20,7 @@ internal static class TInterfaceInspector
     internal static LWorkCrop TInspectorCropRead(QInspector inspector) => inspector.QInspectorCrop.QInspectorCropRead();
     internal static LCropbox? TInspectorRectRead(QInspector inspector) => inspector.QInspectorCrop.QInspectorRectRead();
     internal static LRotateFlip TInspectorRotateRead(QInspector inspector) =>
-        inspector.QInspectorCrop.QInspectorRotateRead();
+        inspector.QInspectorOrientation.QInspectorRotateRead();
     internal static void TInspectorCropApply(QInspector inspector, LWorkCrop crop, bool apply) =>
         inspector.QInspectorCrop.QInspectorCropApply(crop, apply);
     internal static void TInspectorRatioApply(
@@ -30,7 +30,7 @@ internal static class TInterfaceInspector
     internal static void TInspectorPlanApply(QInspector inspector, LEditPlan plan) =>
         inspector.QInspectorPlanApply(plan);
     internal static void TInspectorVideoAttach(QInspector inspector, Action handler) =>
-        inspector.QInspectorVideoChanged += handler;
+        inspector.QInspectorVideo.QInspectorVideoChanged += handler;
     internal static void TInspectorPersistentAttach(QInspector inspector, Action handler) =>
         inspector.QInspectorPersistentChanged += handler;
     internal static string TInspectorTitleRead(QInspector inspector) => inspector.QInspectorTitleRead();
@@ -71,23 +71,25 @@ internal static class TInterfaceInspector
         QInspector inspector, LCropbox? drawn, int drive, int anchorX, int anchorY) =>
         inspector.QInspectorCrop.QInspectorCropSet(drawn, drive, anchorX, anchorY);
     internal static void TInspectorRotateSelect(QInspector inspector, int index) =>
-        inspector.QInspectorCrop.QInspectorRotateSelect(index);
+        inspector.QInspectorOrientation.QInspectorRotateSelect(index);
     internal static void TInspectorFlipSet(QInspector inspector, bool horizontal, bool flipped) =>
-        inspector.QInspectorCrop.QInspectorFlipSet(horizontal, flipped);
+        inspector.QInspectorOrientation.QInspectorFlipSet(horizontal, flipped);
     internal static void TInspectorApplySet(QInspector inspector, bool apply) =>
         inspector.QInspectorCrop.QInspectorApplySet(apply);
     internal static LWorkVideoStep TInspectorStepRead(QInspector inspector, LColorKind kind) =>
-        inspector.QInspectorStepRead(kind);
+        inspector.QInspectorVideo.QInspectorStepRead(kind);
     internal static void TInspectorVideoApply(QInspector inspector, LWorkVideo video) =>
-        inspector.QInspectorVideoApply(video);
-    internal static bool TInspectorPersistentCheck(QInspector inspector) => inspector.QInspectorPersistentCheck();
+        inspector.QInspectorVideo.QInspectorVideoApply(video);
+    internal static bool TInspectorPersistentCheck(QInspector inspector) =>
+        inspector.QInspectorVideo.QInspectorPersistentCheck();
     internal static bool TInspectorPersistentCheck(QInspector inspector, LColorKind kind) =>
-        inspector.QInspectorPersistentCheck(kind);
+        inspector.QInspectorVideo.QInspectorPersistentCheck(kind);
     internal static void TInspectorPersistentSet(QInspector inspector, LColorKind kind, bool persistent) =>
-        inspector.QInspectorPersistentSet(kind, persistent);
+        inspector.QInspectorVideo.QInspectorPersistentSet(kind, persistent);
     internal static void TInspectorPersistentApply(QInspector inspector, LWorkVideo video) =>
-        inspector.QInspectorPersistentApply(video);
-    internal static LWorkVideo TInspectorPersistentRead(QInspector inspector) => inspector.QInspectorPersistentRead();
+        inspector.QInspectorVideo.QInspectorPersistentApply(video);
+    internal static LWorkVideo TInspectorPersistentRead(QInspector inspector) =>
+        inspector.QInspectorVideo.QInspectorPersistentRead();
     internal static LRotateFlip TRotateCropResolve(LWorkCrop crop) => LRotateFlip.LRotateCropResolve(crop);
     internal static void TInspectorToolSet(QInspector inspector, bool armed) => inspector.QInspectorToolSet(armed);
     internal static void TInspectorCapableSet(QInspector inspector, bool crop, bool orientation) =>

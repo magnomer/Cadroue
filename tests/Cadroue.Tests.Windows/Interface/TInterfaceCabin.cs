@@ -45,7 +45,7 @@ internal static partial class TInterface
     internal static void TEditStart(QEditTab tab) => tab.QEditStart();
     internal static LSceneTabEntry TEditLayoutRead(QEditTab tab) => tab.QEditLayoutRead(new LSceneTabEntry());
     internal static void TEditLayoutApply(QEditTab tab, LSceneTabEntry? layout) => tab.QEditLayoutApply(layout);
-    internal static void TEditCropHandle(QEditTab tab) => tab.QEditCropHandle();
+    internal static void TEditCropHandle(QEditTab tab) => tab.QEditCrop.QEditCropHandle();
     internal static void TEditSkipHandle(QEditTab tab) => tab.QEditSkipHandle();
     internal static void TEditLockHandle(QEditTab tab, bool locked) => tab.QEditTool.QEditLockHandle(locked);
     internal static void TEditPathHandle(QEditTab tab, string? path) => tab.QEditPathHandle(path);
@@ -191,13 +191,13 @@ internal static partial class TInterface
     internal static void TAudioSkipHandle(QAudioTab tab) => tab.QAudioSkipHandle();
     internal static void TAudioChangeHandle(QAudioTab tab) => tab.QAudioChangeHandle();
     internal static void TAudioItemsHandle(QAudioTab tab, IReadOnlyList<LDocketEntry> added) =>
-        tab.QAudioItemsHandle(added);
-    internal static void TAudioPersistentSave(QAudioTab tab) => tab.QAudioPersistentSave();
+        tab.QAudioStore.QAudioItemsHandle(added);
+    internal static void TAudioPersistentSave(QAudioTab tab) => tab.QAudioStore.QAudioPersistentSave();
     internal static void TAudioViewerApply(QAudioTab tab) => tab.QAudioViewerApply();
-    internal static LWorkAudio TAudioPlanRead(QAudioTab tab) => tab.QAudioPlanRead();
-    internal static void TAudioStateSave(QAudioTab tab) => tab.QAudioStateSave();
+    internal static LWorkAudio TAudioPlanRead(QAudioTab tab) => tab.QAudioStore.QAudioPlanRead();
+    internal static void TAudioStateSave(QAudioTab tab) => tab.QAudioStore.QAudioStateSave();
     internal static void TAudioPlanRestore(QAudioTab tab, string path, bool ownerFirst) =>
-        tab.QAudioPlanRestore(path, ownerFirst);
+        tab.QAudioStore.QAudioPlanRestore(path, ownerFirst);
     internal static void TAudioFilterAttach(QViewer viewer, Action<string> handler) =>
         viewer.QViewerPreviewChanged += () => handler(viewer.QViewerAudioResolve());
     internal static void TAudioDeferAttach(QAudioTab tab, Action handler) => tab.QAudioViewerDeferred += handler;

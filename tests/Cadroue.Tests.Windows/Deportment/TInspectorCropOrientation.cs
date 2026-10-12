@@ -19,7 +19,7 @@ public sealed class TInspectorCropOrientation
         TInterfaceInspector.TInspectorRotateSelect(inspector, index);
 
         Assert.Equal(rotation, inspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop.LWorkCropRotation);
-        Assert.Equal(index, inspector.QInspectorCrop.QInspectorRotateIndex);
+        Assert.Equal(index, inspector.QInspectorOrientation.QInspectorRotateIndex);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public sealed class TInspectorCropOrientation
 
         TInterfaceInspector.TInspectorRotateSelect(inspector, -1);
 
-        Assert.Equal(2, inspector.QInspectorCrop.QInspectorRotateIndex);
+        Assert.Equal(2, inspector.QInspectorOrientation.QInspectorRotateIndex);
     }
 
     [Fact]
@@ -39,14 +39,14 @@ public sealed class TInspectorCropOrientation
         QInspector inspector = TInterfaceInspector.TInspectorCreate();
 
         TInterfaceInspector.TInspectorFlipSet(inspector, true, true);
-        Assert.True(inspector.QInspectorCrop.QInspectorFlipHorizontal);
-        Assert.False(inspector.QInspectorCrop.QInspectorFlipVertical);
+        Assert.True(inspector.QInspectorOrientation.QInspectorFlipHorizontal);
+        Assert.False(inspector.QInspectorOrientation.QInspectorFlipVertical);
 
         TInterfaceInspector.TInspectorFlipSet(inspector, false, true);
         TInterfaceInspector.TInspectorFlipSet(inspector, true, false);
 
-        Assert.False(inspector.QInspectorCrop.QInspectorFlipHorizontal);
-        Assert.True(inspector.QInspectorCrop.QInspectorFlipVertical);
+        Assert.False(inspector.QInspectorOrientation.QInspectorFlipHorizontal);
+        Assert.True(inspector.QInspectorOrientation.QInspectorFlipVertical);
     }
 
     [Fact]

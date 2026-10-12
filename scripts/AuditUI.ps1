@@ -69,7 +69,7 @@ AuditUI -NoOpen
 AuditUI -Configuration Release
 #>
 #requires -Version 5.1
-# AUDITUI - AUDIT GENERATION 22.
+# AUDITUI - AUDIT GENERATION 23.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -107,6 +107,8 @@ AuditUI -Configuration Release
 # or one compared with a gate-reaching member.
 # Generation 22: nothing this audit reports changes; the number rises with the structure audit,
 # whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
+# Generation 23: the truth audit sees an owned field read from outside its type. A read through a
+# member that is not private, such as a sibling reading its owner's alias, is checked like one inside.
 [CmdletBinding()]
 param(
     [string]$Root,
@@ -220,7 +222,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 22
+$script:AuditGeneration = 23
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
 $script:BinderSource = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'AuditBinder.cs'))
 
@@ -3050,7 +3052,12 @@ internal static partial class LAuditTruthWalker
         {
             bool inside = LAuditInsideCheck(identifier, type)
                           || LAuditBind.LAuditSymbolRead(identifier) is IParameterSymbol { RefKind: not RefKind.None };
-            if (!inside && !field.TFieldShared)
+            bool reached = !inside
+                           && LAuditBind.LAuditSymbolRead(identifier) is
+                           {
+                               DeclaredAccessibility: not Accessibility.Private
+                           };
+            if (!inside && !reached && !field.TFieldShared)
             {
                 continue;
             }
@@ -3107,7 +3114,7 @@ internal static partial class LAuditTruthWalker
                 continue;
             }
 
-            if (!inside || !scopes.Add(scope))
+            if (!scopes.Add(scope))
             {
                 continue;
             }

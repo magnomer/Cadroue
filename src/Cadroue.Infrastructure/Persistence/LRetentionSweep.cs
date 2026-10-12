@@ -31,7 +31,7 @@ public static class LRetentionSweep
             return 0;
         }
 
-        if (LDepot.LDepotRunningCheck(lRetentionRoot))
+        if (LDepotRelocation.LDepotRunningCheck(lRetentionRoot))
         {
             LTraceLog.LTraceInfoRecord("Retention sweep skipped: a job is running");
             return 0;

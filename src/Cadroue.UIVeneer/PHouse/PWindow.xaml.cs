@@ -68,7 +68,6 @@ public partial class PWindow : Window
     {
         lWindow.QWindowTabAdded += PWindowAddHandle;
         lWindow.QWindowFunnelUpdated += PWindowFunnelUpdate;
-        lWindow.QWindowRelayApplied += PWindowRelayHandle;
         lWindow.QWindowPlaced += PWindowPlace;
         lWindow.QWindowShown += PWindowShowHandle;
         lWindow.QWindowMediaDeferred += PWindowMediaDefer;
@@ -113,9 +112,6 @@ public partial class PWindow : Window
 
     private void PWindowFunnelResolve(QStripTab lStripTab) =>
         pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface.PTabTargetsResolve();
-
-    private void PWindowRelayHandle(LRelay lRelay) =>
-        pStrip.PStripSelected?.QWorkspace.QWorkspaceRelayApply(lRelay);
 
     private void PWindowPlace(double pLeft, double pTop)
     {

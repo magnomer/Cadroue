@@ -44,7 +44,7 @@ public sealed class QEditTabPlan
     public LEditPlan? QEditCarriedRead()
     {
         bool lCropPersistent = qEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent;
-        bool lVideoPersistent = qEditInspector.QInspectorPersistentCheck();
+        bool lVideoPersistent = qEditInspector.QInspectorVideo.QInspectorPersistentCheck();
         bool lSkipPersistent = qEditInspector.QInspectorSkip.QSkipPersistent;
         if (!lCropPersistent && !lVideoPersistent && !lSkipPersistent)
         {
@@ -57,7 +57,7 @@ public sealed class QEditTabPlan
             ? qEditInspector.QInspectorCrop.QInspectorCropRead()
             : LWorkCrop.LWorkCropCreate();
         LWorkVideo lVideo = lVideoPersistent
-            ? qEditInspector.QInspectorPersistentRead()
+            ? qEditInspector.QInspectorVideo.QInspectorPersistentRead()
             : LWorkVideo.LWorkVideoCreate();
         return new LEditPlan(lCrop, lVideo, lCropPersistent && qEditInspector.QInspectorCrop.QInspectorActive)
         {

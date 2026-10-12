@@ -40,7 +40,7 @@ public sealed class QGroupFace
             .Select((lRecord, lIndex) => new QGroupCard(
                 lIndex,
                 lRecord.QGroupRecordName,
-                qGroup.QGroupEditingIndex == lIndex,
+                qGroup.QGroupName.QGroupEditingIndex == lIndex,
                 lRecord.QGroupRecordPaths
                     .Select((lPath, lOrder) =>
                         new QGroupFile(lIndex, (lOrder + 1).ToString(), lPath, qGroupUsher.CUsherNameRead(lPath)))

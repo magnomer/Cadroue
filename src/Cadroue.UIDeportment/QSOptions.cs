@@ -126,7 +126,7 @@ public sealed class QSOptions
         string lCurrent = LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder;
         string lNext = LDepot.LDepotRootResolve(lFolder);
         lOccupied = !string.Equals(lNext, LDepot.LDepotRootResolve(lCurrent), StringComparison.OrdinalIgnoreCase)
-            && LDepot.LDepotOccupiedCheck(lNext);
+            && LDepotRelocation.LDepotOccupiedCheck(lNext);
         return lOccupied ? lCurrent : lFolder;
     }
 

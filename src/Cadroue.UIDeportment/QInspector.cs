@@ -6,17 +6,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QInspector
 {
-    private static readonly LColorKind[] qInspectorKinds =
-    {
-        LColorKind.LColorKindBrightness,
-        LColorKind.LColorKindContrast,
-        LColorKind.LColorKindSaturation,
-        LColorKind.LColorKindGamma,
-        LColorKind.LColorKindWhitebalance,
-        LColorKind.LColorKindExposure,
-        LColorKind.LColorKindCurve
-    };
-
     private static readonly IReadOnlyDictionary<string, string> qInspectorTitles = new Dictionary<string, string>
     {
         ["Crop"] = "Inspector.Step.Crop",
@@ -56,8 +45,6 @@ public sealed class QInspector
     private bool qInspectorOrientationCapable = true;
     private bool qInspectorToolArmed;
     private int qInspectorSaveDepth;
-    private int qInspectorVideoDepth;
-    private bool qInspectorVideoPending;
     private int qInspectorPersistentMask;
     private string? qInspectorOwnerPath;
     private string? qInspectorFailurePath;
@@ -65,13 +52,10 @@ public sealed class QInspector
     public QInspector()
     {
         QInspectorCrop = new QInspectorCrop(this);
+        QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorAudio = new QInspectorAudio(QInspectorSkip);
-        QInspectorTone.QToneChanged += QInspectorVideoHandle;
-        QInspectorGamma.QGammaChanged += QInspectorVideoHandle;
-        QInspectorExposure.QExposureChanged += QInspectorVideoHandle;
-        QInspectorCurve.QCurveChanged += QInspectorVideoHandle;
-        QInspectorWhitebalance.QWhitebalanceChanged += QInspectorVideoHandle;
-        QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
+        QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
+        QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
         QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
         QInspectorAudio.QInspectorAudioChanged += QInspectorPersistentHandle;
         QInspectorSkip.QSkipChanged += QInspectorPersistentHandle;
@@ -79,22 +63,15 @@ public sealed class QInspector
     }
 
     public event Action? QInspectorChanged;
-    public event Action? QInspectorVideoChanged;
     public event Action? QInspectorPersistentChanged;
     public event Action<bool>? QInspectorToolChanged;
     public event Action<bool>? QInspectorMinimizeChanged;
 
     public QInspectorCrop QInspectorCrop { get; }
 
-    public QTone QInspectorTone { get; } = new();
+    public QInspectorOrientation QInspectorOrientation { get; }
 
-    public QGamma QInspectorGamma { get; } = new();
-
-    public QExposure QInspectorExposure { get; } = new();
-
-    public QCurve QInspectorCurve { get; } = new();
-
-    public QWhitebalance QInspectorWhitebalance { get; } = new();
+    public QInspectorVideo QInspectorVideo { get; } = new();
 
     public QSkip QInspectorSkip { get; } = new();
 
@@ -233,102 +210,22 @@ public sealed class QInspector
         return true;
     }
 
-    public LWorkVideoStep QInspectorStepRead(LColorKind lKind) => lKind switch
-    {
-        LColorKind.LColorKindGamma => QInspectorGamma.QGammaStep,
-        LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalanceStep,
-        LColorKind.LColorKindExposure => QInspectorExposure.QExposureStep,
-        LColorKind.LColorKindCurve => QInspectorCurve.QCurveStepRead(),
-        _ => QInspectorTone.QToneStepRead(lKind)
-    };
-
     public void QInspectorPlanApply(LEditPlan lPlan)
     {
-        qInspectorVideoDepth++;
+        QInspectorVideo.QInspectorVideoSuspend();
         try
         {
             QInspectorCrop.QInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
             QInspectorCrop.QInspectorRatioApply(
                 lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
-            QInspectorVideoApply(lPlan.LEditVideo);
+            QInspectorVideo.QInspectorVideoApply(lPlan.LEditVideo);
             QInspectorSkip.QSkipActiveSet(lPlan.LEditSkip);
         }
         finally
         {
-            QInspectorVideoRelease();
+            QInspectorVideo.QInspectorVideoResume();
         }
     }
-
-    public void QInspectorVideoApply(LWorkVideo lVideo)
-    {
-        qInspectorVideoDepth++;
-        try
-        {
-            QInspectorTone.QToneStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindBrightness)
-                ?? LWorkVideoStep.LWorkBrightnessCreate(false, 0));
-            QInspectorTone.QToneStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindContrast)
-                ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
-            QInspectorTone.QToneStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindSaturation)
-                ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
-            QInspectorGamma.QGammaStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
-                ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
-            QInspectorWhitebalance.QWhitebalanceStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindWhitebalance)
-                ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
-            QInspectorExposure.QExposureStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindExposure)
-                ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
-            QInspectorCurve.QCurveStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindCurve)
-                ?? LWorkVideoStep.LWorkCurveCreate(false));
-            qInspectorVideoPending = true;
-        }
-        finally
-        {
-            QInspectorVideoRelease();
-        }
-    }
-
-    public bool QInspectorPersistentCheck() => qInspectorKinds.Any(QInspectorPersistentCheck);
-
-    public bool QInspectorPersistentCheck(LColorKind lKind) => lKind switch
-    {
-        LColorKind.LColorKindGamma => QInspectorGamma.QGammaPersistent,
-        LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalancePersistent,
-        LColorKind.LColorKindExposure => QInspectorExposure.QExposurePersistent,
-        LColorKind.LColorKindCurve => QInspectorCurve.QCurvePersistent,
-        _ => QInspectorTone.QTonePersistentRead(lKind)
-    };
-
-    public void QInspectorPersistentSet(LColorKind lKind, bool lPersistent)
-    {
-        switch (lKind)
-        {
-            case LColorKind.LColorKindGamma:
-                QInspectorGamma.QGammaPersistentSet(lPersistent);
-                break;
-            case LColorKind.LColorKindWhitebalance:
-                QInspectorWhitebalance.QWhitebalancePersistentSet(lPersistent);
-                break;
-            case LColorKind.LColorKindExposure:
-                QInspectorExposure.QExposurePersistentSet(lPersistent);
-                break;
-            case LColorKind.LColorKindCurve:
-                QInspectorCurve.QCurvePersistentSet(lPersistent);
-                break;
-            default:
-                QInspectorTone.QTonePersistentSet(lKind, lPersistent);
-                break;
-        }
-    }
-
-    public void QInspectorPersistentApply(LWorkVideo lVideo)
-    {
-        foreach (LWorkVideoStep lStep in lVideo.LWorkVideoSteps)
-        {
-            QInspectorPersistentSet(lStep.LWorkStepKind, true);
-        }
-    }
-
-    public LWorkVideo QInspectorPersistentRead() =>
-        new(qInspectorKinds.Where(QInspectorPersistentCheck).Select(QInspectorStepRead).ToList());
 
     public QInspectorTip QInspectorTipResolve(
         bool lActive,
@@ -389,7 +286,8 @@ public sealed class QInspector
     {
         if (qInspectorMinimized || qInspectorStep != "Whitebalance")
         {
-            QInspectorWhitebalance.QWhitebalanceToolSet(false, QInspectorWhitebalance.QWhitebalanceTarget);
+            QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolSet(
+                false, QInspectorVideo.QInspectorWhitebalance.QWhitebalanceTarget);
         }
 
         if (qInspectorStep != "Crop")
@@ -404,30 +302,6 @@ public sealed class QInspector
         {
             QInspectorToolSet(false);
         }
-    }
-
-    private void QInspectorVideoHandle()
-    {
-        QInspectorPersistentHandle();
-        if (qInspectorVideoDepth > 0)
-        {
-            qInspectorVideoPending = true;
-            return;
-        }
-
-        QInspectorVideoChanged?.Invoke();
-    }
-
-    private void QInspectorVideoRelease()
-    {
-        qInspectorVideoDepth--;
-        if (qInspectorVideoDepth > 0 || !qInspectorVideoPending)
-        {
-            return;
-        }
-
-        qInspectorVideoPending = false;
-        QInspectorVideoChanged?.Invoke();
     }
 
     private void QInspectorPersistentHandle()
@@ -447,13 +321,13 @@ public sealed class QInspector
         bool[] lFlags =
         {
             QInspectorCrop.QInspectorPersistent,
-            QInspectorTone.QTonePersistentRead(LColorKind.LColorKindBrightness),
-            QInspectorTone.QTonePersistentRead(LColorKind.LColorKindContrast),
-            QInspectorTone.QTonePersistentRead(LColorKind.LColorKindSaturation),
-            QInspectorGamma.QGammaPersistent,
-            QInspectorExposure.QExposurePersistent,
-            QInspectorCurve.QCurvePersistent,
-            QInspectorWhitebalance.QWhitebalancePersistent,
+            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindBrightness),
+            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindContrast),
+            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindSaturation),
+            QInspectorVideo.QInspectorGamma.QGammaPersistent,
+            QInspectorVideo.QInspectorExposure.QExposurePersistent,
+            QInspectorVideo.QInspectorCurve.QCurvePersistent,
+            QInspectorVideo.QInspectorWhitebalance.QWhitebalancePersistent,
             QInspectorAudio.QInspectorVolume.QVolumePersistent,
             QInspectorAudio.QInspectorLoudness.QLoudnessPersistent,
             QInspectorAudio.QInspectorNoise.QNoisePersistent,
@@ -464,9 +338,6 @@ public sealed class QInspector
         };
         return lFlags.Select((lFlag, lIndex) => lFlag ? 1 << lIndex : 0).Sum();
     }
-
-    private static LWorkVideoStep? QInspectorStepFind(LWorkVideo lVideo, LColorKind lKind) =>
-        lVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
 }
 
 public sealed record QInspectorTip(

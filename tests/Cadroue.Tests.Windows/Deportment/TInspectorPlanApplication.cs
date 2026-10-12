@@ -66,8 +66,8 @@ public sealed class TInspectorPlanApplication
         ]));
         Assert.Equal(1, notices);
 
-        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 7);
-        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindContrast, 90);
+        TInterface.TToneValueSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, 7);
+        TInterface.TToneValueSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindContrast, 90);
 
         Assert.Equal(3, notices);
     }
@@ -79,7 +79,7 @@ public sealed class TInspectorPlanApplication
         int notices = 0;
         TInterfaceInspector.TInspectorPersistentAttach(inspector, () => notices++);
 
-        TInterface.TToneValueSet(inspector.QInspectorTone, LColorKind.LColorKindBrightness, 7);
+        TInterface.TToneValueSet(inspector.QInspectorVideo.QInspectorTone, LColorKind.LColorKindBrightness, 7);
         Assert.Equal(0, notices);
 
         TInterfaceInspector.TInspectorPersistentSet(inspector, LColorKind.LColorKindBrightness, true);

@@ -1,5 +1,5 @@
 {
-  "generation": 22,
+  "generation": 23,
   "project": "Cadroue",
   "helper": {
     "framework": "net10.0"
@@ -251,10 +251,10 @@
     "Piggybacking": 2,
     "Trespassing:Cadroue.Infrastructure>Cadroue.Application": 71,
     "Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure": 0,
-    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 481,
-    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 121,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1269,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2073,
+    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 480,
+    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 120,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1271,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2033,
     "Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine": 157,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 923,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Core": 314,

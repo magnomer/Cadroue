@@ -200,10 +200,11 @@ internal static partial class TInterface
     internal static bool TGroupPathsInsert(QGroup group, int index, IReadOnlyList<string> paths, int insertAt) =>
         group.QGroupPathsInsert(index, paths, insertAt);
     internal static void TGroupRemove(QGroup group, int index) => group.QGroupRemove(index);
-    internal static void TGroupEditStart(QGroup group, int index) => group.QGroupEditStart(index);
-    internal static void TGroupEditCancel(QGroup group) => group.QGroupEditCancel();
-    internal static bool TGroupNameCommit(QGroup group, string name) => group.QGroupNameCommit(name);
-    internal static bool TGroupNameSet(QGroup group, int index, string name) => group.QGroupNameSet(index, name);
+    internal static void TGroupEditStart(QGroup group, int index) => group.QGroupName.QGroupEditStart(index);
+    internal static void TGroupEditCancel(QGroup group) => group.QGroupName.QGroupEditCancel();
+    internal static bool TGroupNameCommit(QGroup group, string name) => group.QGroupName.QGroupNameCommit(name);
+    internal static bool TGroupNameSet(QGroup group, int index, string name) =>
+        group.QGroupName.QGroupNameSet(index, name);
     internal static void TGroupFaceAttach(QGroup group, Action handler) => group.QGroupFaceChanged += handler;
     internal static void TGroupRequestAttach(QGroup group, Action<IReadOnlyList<string>> handler) =>
         group.QGroupDrag.QGroupPathsRequest += handler;
@@ -219,8 +220,9 @@ internal static partial class TInterface
     internal static void TGroupToggleRun(QGroup group, string key, bool right) =>
         group.QGroupFace.QGroupToggleRun(key, right);
     internal static bool TGroupLabelHandle(QGroup group, int index, int clicks) =>
-        group.QGroupLabelHandle(index, clicks);
-    internal static bool TGroupKeyRun(QGroup group, string key, string text) => group.QGroupKeyRun(key, text);
+        group.QGroupName.QGroupLabelHandle(index, clicks);
+    internal static bool TGroupKeyRun(QGroup group, string key, string text) =>
+        group.QGroupName.QGroupKeyRun(key, text);
     internal static bool TGroupCardAccept(
         QGroup group, int target, int insertAt, string[]? files, int? moveIndex, string? movePath, string[]? paths) =>
         group.QGroupDrag.QGroupCardAccept(target, insertAt, files, moveIndex, movePath, paths);

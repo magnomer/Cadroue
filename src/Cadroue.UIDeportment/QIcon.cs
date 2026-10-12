@@ -23,8 +23,11 @@ public static class QIcon
 
     public static bool QIconSvgCheck(string qIconPath) => qIconKinds[QIconExtensionRead(qIconPath)];
 
-    public static string? QIconBitmapResolve(string qIconPath, double qIconWidth) =>
-        qIconResolvers[qIconPath.EndsWith(QIconSvgExtension, StringComparison.OrdinalIgnoreCase)](qIconPath, qIconWidth);
+    public static string? QIconBitmapResolve(string qIconPath, double qIconWidth)
+    {
+        bool qIconSvg = qIconPath.EndsWith(QIconSvgExtension, StringComparison.OrdinalIgnoreCase);
+        return qIconResolvers[qIconSvg](qIconPath, qIconWidth);
+    }
 
     public static bool QIconPrerenderCheck(string qIconPath) =>
         qIconPath.Contains("/P32/", StringComparison.OrdinalIgnoreCase)
