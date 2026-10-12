@@ -15,16 +15,11 @@ public sealed class TFixTabCheckup
 
     private static (LFixTab, LClinic, LList, LDocket) TFixBuild()
     {
-        LClinic clinic = TInterface.TClinicCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LList list = TInterfaceList.TListCreate(docket);
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
         LFixTab tab = TInterface.TFixTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            clinic,
-            TInterfaceViewer.TViewerCreate(),
-            list,
-            docket,
-            TInterface.TProcessingCreate());
+            TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
+        LClinic clinic = TInterface.TFixClinicRead(tab);
         TInterfaceList.TDocketPathsAdd(docket, TFixSource);
         TInterface.TClinicSourceSet(clinic, TFixSource);
         TInterface.TClinicStepSet(clinic, "Container");

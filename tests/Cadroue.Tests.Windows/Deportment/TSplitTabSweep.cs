@@ -14,18 +14,12 @@ public sealed class TSplitTabSweep
 
     private static (LSplitTab, LInspector, LList, LDocket, LFlow) TSplitBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LList list = TInterfaceList.TListCreate(docket);
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
         LFlow flow = TInterface.TFlowCreate();
         LSplitTab tab = TInterface.TSplitTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            TInterfaceViewer.TViewerCreate(),
-            list,
-            docket,
-            TInterface.TProcessingCreate(),
-            flow);
+            TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list, flow);
+        LInspector inspector = TInterface.TSplitInspectorRead(tab);
         return (tab, inspector, list, docket, flow);
     }
 

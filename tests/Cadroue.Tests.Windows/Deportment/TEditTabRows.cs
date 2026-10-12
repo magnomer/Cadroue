@@ -12,21 +12,15 @@ public sealed class TEditTabRows
 {
     private static (LEditTab, LInspector, LProcessing) TEditBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LProcessing processing = TInterface.TProcessingCreate();
+        LList list = TInterfaceList.TListCreate();
+        LEditTab tab = TInterface.TEditTabCreate(
+            TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
+        LInspector inspector = TInterface.TEditInspectorRead(tab);
+        LProcessing processing = TInterface.TEditProcessingRead(tab);
         foreach (LProcessingRow row in QEditProcessing.LEditRows)
         {
             TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
         }
-
-        LEditTab tab = TInterface.TEditTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            TInterfaceViewer.TViewerCreate(),
-            TInterfaceList.TListCreate(docket),
-            docket,
-            processing);
         return (tab, inspector, processing);
     }
 

@@ -64,7 +64,7 @@ public sealed class LConsole
 
     private void LConsoleTabHandle(LStripTab? lTab)
     {
-        if (lTab?.LStripTabWorkspace?.LWorkspaceStation is { } lStation)
+        if (lTab?.LStripTabWorkspace.LWorkspaceStation is { } lStation)
         {
             LConsoleStation.LConsoleStationSet(lStation);
         }

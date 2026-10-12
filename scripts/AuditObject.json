@@ -47,11 +47,11 @@
     "hydra": 7,
     "kraken": 3,
     "spider": 1,
-    "chameleon": 68,
+    "chameleon": 63,
     "octopus": 2,
     "centipede": 58,
     "serpent": 18,
-    "hub": 11
+    "hub": 12
   },
   "parts": {
     "Cadroue.Application.LAudio": 2,

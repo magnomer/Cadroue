@@ -12,10 +12,9 @@ public sealed class TWorkspaceRelay
     [Fact]
     public void Create_CarriesKeyPresetAndDocketPaths()
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        TInterfaceList.TDocketPathsAdd(docket, "C:/media/a.mp4", "C:/media/b.mp4");
         LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(workspace, docket, null, null, null);
+        TInterfaceList.TDocketPathsAdd(workspace.LWorkspaceDocket!, "C:/media/a.mp4", "C:/media/b.mp4");
+        TInterface.TWorkspaceAttach(workspace);
 
         LRelay relay = TInterface.TWorkspaceRelayCreate(workspace, "Custom", 40, 60);
 
@@ -31,17 +30,15 @@ public sealed class TWorkspaceRelay
     [Fact]
     public void Apply_WithPaths_DefersToPathsAdd_ThenSelectsListedSource()
     {
-        LDocket source = TInterfaceList.TDocketCreate();
-        TInterfaceList.TDocketPathsAdd(source, "C:/media/a.mp4");
         LWorkspace origin = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(origin, source, null, null, null);
+        TInterfaceList.TDocketPathsAdd(origin.LWorkspaceDocket!, "C:/media/a.mp4");
+        TInterface.TWorkspaceAttach(origin);
         LRelay relay = TInterface.TWorkspaceRelayCreate(origin, string.Empty, 0, 0);
         relay.LRelaySourcePath = "C:/media/a.mp4";
 
-        LDocket target = TInterfaceList.TDocketCreate();
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
         LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(workspace, target, null, null, viewer);
+        LDocket target = workspace.LWorkspaceDocket!;
+        TInterface.TWorkspaceAttach(workspace);
         List<string> added = [];
         List<string> selected = [];
         List<string> opened = [];
@@ -63,9 +60,8 @@ public sealed class TWorkspaceRelay
     [Fact]
     public void Apply_WithoutList_OpensSourceDirectly()
     {
-        LViewer viewer = TInterfaceViewer.TViewerCreate();
         LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(workspace, null, null, null, viewer);
+        TInterface.TWorkspaceAttach(workspace);
         LRelay relay = TInterface.TWorkspaceRelayCreate(workspace, string.Empty, 0, 0);
         relay.LRelaySourcePath = "C:/media/a.mp4";
         List<string> opened = [];
@@ -80,8 +76,9 @@ public sealed class TWorkspaceRelay
     public void Restore_RaisesVolumeSeekAndRange_OnlyWhenCarried()
     {
         LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(workspace, null, null, null, null);
+        TInterface.TWorkspaceAttach(workspace);
         LRelay relay = TInterface.TWorkspaceRelayCreate(workspace, string.Empty, 0, 0);
+        relay.LRelayVolume = null;
         List<double> volumes = [];
         List<TimeSpan> seeks = [];
         List<(TimeSpan, TimeSpan)> ranges = [];
@@ -101,16 +98,14 @@ public sealed class TWorkspaceRelay
         TInterface.TWorkspaceRelayRestore(workspace, relay, TimeSpan.FromSeconds(10));
         Assert.Equal([0.5], volumes);
         Assert.Equal([TimeSpan.FromSeconds(3)], seeks);
-        Assert.Empty(ranges);
+        Assert.Equal([(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(9))], ranges);
     }
 
     [Fact]
     public void Restore_WithFlow_AppliesRange()
     {
-        LFlow flow = TInterface.TFlowCreate();
-        LSegment segment = Interface.TInterface.TSegmentCreate();
         LWorkspace workspace = TInterface.TWorkspaceCreate("Split", null);
-        TInterface.TWorkspaceAttach(workspace, null, segment, flow, null);
+        TInterface.TWorkspaceAttach(workspace);
         LRelay relay = TInterface.TWorkspaceRelayCreate(workspace, string.Empty, 0, 0);
         relay.LRelayOriginTicks = TimeSpan.FromSeconds(1).Ticks;
         relay.LRelayLimitTicks = TimeSpan.FromSeconds(9).Ticks;

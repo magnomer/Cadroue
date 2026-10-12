@@ -10,9 +10,8 @@ public sealed class TLoupeTransport
 {
     private static (LSLoupe, LViewer) TLoupeBuild(Func<bool>? ended = null)
     {
-        LSLoupe loupe = TInterface.TLoupeCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
-        TInterface.TLoupeViewerAttach(loupe, viewer);
+        LSLoupe loupe = TInterface.TLoupeViewerCreate(viewer);
         TInterfacePlayer.TPlayerEngineSet(loupe.LPlayer, TInterfacePlayer.TPlayerSeamCreate(ended: ended));
         return (loupe, viewer);
     }

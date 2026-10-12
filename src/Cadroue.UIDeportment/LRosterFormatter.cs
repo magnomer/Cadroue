@@ -1,5 +1,4 @@
 using Cadroue.Application;
-using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -22,13 +21,10 @@ public static class LRosterFormatter
             ? LLocalization.LLocalizationFormat("Roster.Field.KeyframeRate", lRate)
             : LLocalization.LLocalizationTextRead("Roster.Value.Unknown");
 
-    public static string LRosterContainerFormat(CUsher lUsher, string lMediaPath)
-    {
-        string lExtension = lUsher.CUsherExtensionRead(lMediaPath);
-        return lExtension.Length == 0
+    public static string LRosterContainerFormat(string lExtension) =>
+        lExtension.Length == 0
             ? LLocalization.LLocalizationTextRead("Roster.Value.Unknown")
             : lExtension.ToUpperInvariant();
-    }
 
     public static string LRosterStampFormat(DateTimeOffset? lStamp) =>
         lStamp is { } lValue

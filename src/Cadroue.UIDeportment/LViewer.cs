@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -36,11 +37,11 @@ public sealed class LViewer
     private double lViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private LPreviewState lViewerPreview = LPreviewState.LPreviewDefaultCreate();
 
-    public LViewer(LStrip lStrip)
+    public LViewer(CUsher lUsher)
     {
         LViewerPlayback = new LViewerPlayback(this);
         LViewerMedia = new LViewerMedia(this);
-        LViewerSource = new LViewerSource(this, lStrip.LStripUsher);
+        LViewerSource = new LViewerSource(this, lUsher);
         LViewerRenderer = new LViewerRenderer(this);
         LViewerMpv = new LViewerMpv(this);
         LViewerNeutral = new LViewerNeutral(this);

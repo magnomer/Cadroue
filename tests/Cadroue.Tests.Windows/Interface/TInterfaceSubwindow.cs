@@ -13,7 +13,7 @@ internal static partial class TInterface
         LPreference.LPreferenceSaveSeam = seam;
 
     internal static LSOptions TOptionsCreate(LPreferenceState draft, bool mpv) =>
-        new(new LStrip(TProgramCreate()), draft, mpv);
+        new(TAtelierCreate().CAtelierUsher, draft, mpv);
     internal static void TOptionsMpvAttach(LSOptions options, Action<bool> handler) =>
         options.LSOptionsMpvChanged += handler;
     internal static void TOptionsMpvSet(LSOptions options, bool enabled) => options.LSOptionsMpvSet(enabled);
@@ -33,7 +33,7 @@ internal static partial class TInterface
         spectrum.LSSpectrumRemove(name, native, path);
 
     internal static LSEncoder TEncoderCreate(LPreset source, bool smart) =>
-        new(new LStrip(TProgramCreate()), source, smart);
+        TExportCreate(TPresetSelectionCreate(string.Empty), smart ? "Split" : "Convert").LExportEncoderCreate(source);
     internal static void TEncoderVideoAttach(LSEncoder encoder, Action handler) =>
         encoder.LSEncoderVideoChanged += handler;
     internal static void TEncoderSizeAttach(LSEncoder encoder, Action handler) =>
@@ -120,6 +120,6 @@ internal static partial class TInterface
     internal static LSVerdict TVerdictCreate(string title, IReadOnlyList<LSVerdictRow> rows) => new(title, rows);
     internal static bool TVerdictDetailCheck(LSVerdictRow row) => LSVerdict.LSVerdictDetailCheck(row);
 
-    internal static LSAbout TAboutCreate() => new(new LStrip(TProgramCreate()));
+    internal static LSAbout TAboutCreate() => new(TAtelierCreate().CAtelierUsher);
     internal static bool TAboutTapChange(LSAbout about, DateTime now) => about.LSAboutTapChange(now);
 }

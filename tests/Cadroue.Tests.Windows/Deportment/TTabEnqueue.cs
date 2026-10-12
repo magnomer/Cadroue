@@ -18,9 +18,9 @@ public sealed class TTabEnqueue
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
+        LList list = TInterfaceList.TListCreate();
         LConvertTab tab = TInterface.TConvertTabCreate(
-            TInterface.TPresetSelectionCreate("Missing"), TInterfaceList.TListCreate(docket), docket);
+            TInterface.TPresetSelectionCreate("Missing"), TInterfaceViewer.TViewerCreate(), list);
         int missing = 0;
         TInterface.TConvertMissingAttach(tab, () => missing++);
 
@@ -34,16 +34,15 @@ public sealed class TTabEnqueue
     [Fact]
     public void Funnel_Dispatch_OneDeliveryPerMatchedItem_EmptyListDeliversNothing()
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LList list = TInterfaceList.TListCreate(docket);
-        LFunnelTab tab = TInterfaceFunnel.TFunnelTabCreate(list, docket);
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
+        LFunnelTab tab = TInterfaceFunnel.TFunnelTabCreate(TInterfaceViewer.TViewerCreate(), list);
         LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
         LStripTab self = TInterface.TStripTabCreate("Funnel");
         LStripTab target = TInterface.TStripTabCreate("Convert");
         TInterface.TStripAdd(strip, self);
         TInterface.TStripAdd(strip, target);
-        TInterface.TStripWorkspaceAttach(
-            target, TInterface.TPresetInitialCreate("Convert"), TInterfaceList.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(target, TInterface.TPresetInitialCreate("Convert"));
         TInterfaceFunnel.TFunnelStripAttach(tab.LFunnel, strip, self.LStripTabId);
         LFunnelRule rule = TInterfaceFunnel.TFunnelRuleAdd(tab.LFunnel, LFunnelForm.LFunnelFormFilename);
         TInterfaceFunnel.TFunnelTextSet(tab.LFunnel, rule, LFunnelKind.LFunnelKindExtension, "mp4");

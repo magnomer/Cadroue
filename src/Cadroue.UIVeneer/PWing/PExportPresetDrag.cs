@@ -43,7 +43,7 @@ public sealed partial class PExport
         if (LExport.LExportDragMove())
         {
             pPresetRow.Opacity = 0.42;
-            pPresetDragGhost = PHouse.PGhost.PGhostShow(pPresetRow, pPresetDragOffset);
+            pPresetDragGhost = PHouse.PGhost.PGhostShow(pPresetRow, LExport.LExportGhost);
         }
 
         pPresetDragGhost?.PGhostCursorSync();

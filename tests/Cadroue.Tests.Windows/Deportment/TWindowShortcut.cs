@@ -10,20 +10,16 @@ public sealed class TWindowShortcut
     private const int TWindowMotion = 0x0200;
     private const short TWindowKeyState = unchecked((short)0x8000);
 
-    private static LWindow TWindowBuild()
-    {
-        LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
-        return TInterface.TWindowCreate(strip, body => body());
-    }
+    private static LWindow TWindowBuild() => TInterface.TWindowCreate(body => body());
 
     private static LFlow TWindowFlowAttach(LWindow window)
     {
-        LFlow flow = TInterface.TFlowCreate();
+        LStripTab tab = TInterface.TStripTabCreate("Split");
+        LFlow flow = tab.LStripTabWorkspace.LWorkspaceFlow!;
         TInterface.TFlowCommandSet(flow, true);
         TInterface.TFlowSourceSet(flow, TInterfaceViewer.TViewerInfoCreate(
             TimeSpan.FromSeconds(60), 640, 360), "C:\\a.mp4");
-        LStripTab tab = TInterface.TStripTabCreate("Split");
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"), null, flow);
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"));
         TInterface.TWindowTabSet(window, tab, null);
         return flow;
     }

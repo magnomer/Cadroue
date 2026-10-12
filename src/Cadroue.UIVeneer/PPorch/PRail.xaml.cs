@@ -122,7 +122,7 @@ public partial class PRail : UserControl
     public PRail(PStrip pStripOwner)
     {
         pStrip = pStripOwner;
-        lRail = new LRail(pStripOwner.LStrip);
+        lRail = pStripOwner.LStrip.LStripRail;
         InitializeComponent();
         DataContext = pStripOwner.LStrip;
         Loaded += PRailLoadHandle;
@@ -208,7 +208,7 @@ public partial class PRail : UserControl
     private void PTabGhostShow(FrameworkElement pTabElement)
     {
         pTabElement.Opacity = 0.72;
-        PGhost.PGhostShow(pTabElement, new Point(lRail.LRailOffsetX, lRail.LRailOffsetY));
+        PGhost.PGhostShow(pTabElement, lRail.LRailGhost);
     }
 
     private double PTabCenterRead(LStripTab lStripTab)
@@ -331,7 +331,7 @@ public partial class PRail : UserControl
     }
 
     private void PTabLayoutAdd(string pTabLayoutKey) =>
-        lRail.LStrip.LStripSelect(pStrip.PStripAdd(pTabLayoutKey));
+        lRail.LStrip.LStripSelect(pStrip.PStripAdd(lRail.LStrip.LStripTabCreate(pTabLayoutKey)));
 
     private void PTabCloseHandle(object sender, MouseButtonEventArgs e)
     {

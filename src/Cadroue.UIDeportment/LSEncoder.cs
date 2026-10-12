@@ -18,9 +18,9 @@ public sealed partial class LSEncoder
     private CancellationTokenSource? lsEncoderVideoTrial;
     private CancellationTokenSource? lsEncoderAudioTrial;
 
-    public LSEncoder(LStrip lStrip, LPreset lSource, bool lSmart)
+    internal LSEncoder(CUsher lUsher, LPreset lSource, bool lSmart)
     {
-        lsEncoderUsher = lStrip.LStripUsher;
+        lsEncoderUsher = lUsher;
         lsEncoderSource = lSource;
         lsEncoderDraft = lSource.LPresetClone();
         lsEncoderSmart = lSmart;
@@ -30,6 +30,12 @@ public sealed partial class LSEncoder
     }
 
     public LPreset LSEncoderDraft => lsEncoderDraft;
+
+    public LToken LSEncoderTokenCreate() => new();
+
+    public LSVerdict LSEncoderVerdictCreate(bool lAudio) => lAudio
+        ? new(LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"), LSEncoderAudioResults)
+        : new(LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"), LSEncoderVideoResults);
 
     public string LSEncoderInitialResolve(string lCurrent) =>
         lsEncoderUsher.CUsherFolderExist(lCurrent) ? lCurrent : string.Empty;

@@ -17,16 +17,12 @@ public sealed class LAction
     private Guid lActionRelayTarget;
     private bool lActionAutoRelay;
 
-    public event Action<LWorkPriority>? LActionExecuted;
-    public event Action? LActionAllAdded;
-    public event Func<Guid, int>? LActionCohortAdded;
-    public event Action<IReadOnlyList<string>>? LActionItemsAdded;
+    public event Action<LWorkPriority, Guid, Guid>? LActionExecuted;
+    public event Action<Guid, Guid>? LActionAllAdded;
+    public event Func<Guid, Guid, Guid, int>? LActionCohortAdded;
+    public event Action<IReadOnlyList<string>, Guid, Guid>? LActionItemsAdded;
     public event Action? LActionFaceChanged;
     public event Action? LActionEmptyRaised;
-
-    public Guid LActionSourceTab => lActionSourceTab;
-
-    public Guid LActionRelayTarget => lActionRelayTarget;
 
     public bool LActionAutoRelay => lActionAutoRelay;
 
@@ -110,7 +106,7 @@ public sealed class LAction
     {
         if (LActionEligibleResolve(false))
         {
-            LActionAllAdded?.Invoke();
+            LActionAllAdded?.Invoke(lActionRelayTarget, lActionSourceTab);
         }
     }
 
@@ -118,7 +114,7 @@ public sealed class LAction
     {
         if (LActionEligibleResolve(true))
         {
-            LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityHigh);
+            LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityHigh, lActionRelayTarget, lActionSourceTab);
         }
     }
 
@@ -131,16 +127,18 @@ public sealed class LAction
 
         if (LActionSelectionRead() is { Count: > 0 } lSelected)
         {
-            LActionItemsAdded?.Invoke(lSelected);
+            LActionItemsAdded?.Invoke(lSelected, lActionRelayTarget, lActionSourceTab);
             return;
         }
 
-        LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityNormal);
+        LActionExecuted?.Invoke(LWorkPriority.LWorkPriorityNormal, lActionRelayTarget, lActionSourceTab);
     }
 
-    public void LActionItemsRun(IReadOnlyList<string> lPaths) => LActionItemsAdded?.Invoke(lPaths);
+    public void LActionItemsRun(IReadOnlyList<string> lPaths) =>
+        LActionItemsAdded?.Invoke(lPaths, lActionRelayTarget, lActionSourceTab);
 
-    public bool LActionCohortRun(Guid lCohort) => lActionAutoRelay && LActionCohortAdded?.Invoke(lCohort) > 0;
+    public bool LActionCohortRun(Guid lCohort) =>
+        lActionAutoRelay && LActionCohortAdded?.Invoke(lCohort, lActionRelayTarget, lActionSourceTab) > 0;
 
     public static void LActionAccept(Guid lTargetTab, string lPath, Guid lCohort)
     {

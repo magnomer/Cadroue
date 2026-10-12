@@ -1,10 +1,11 @@
 using Cadroue.UIDeportment;
+using Cadroue.Tests.Interface;
 
 using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
-[Collection("Preset")]
+[Collection("Schedule")]
 public sealed class TStripTab
 {
     private static LStrip TStripBuild() =>
@@ -173,18 +174,25 @@ public sealed class TStripTab
     [Fact]
     public void RelayRead_SkipsSourceAndTabsWithoutList()
     {
+        using var schedule = new TSchedule();
+        TInterfaceRoster.TStationAttach(schedule.TScheduleRead());
         LStrip strip = TStripBuild();
         LStripTab source = TStripTabAdd(strip, "Split");
         LStripTab listed = TStripTabAdd(strip, "Convert");
         LStripTab bare = TStripTabAdd(strip, "Worklist");
-        TInterface.TStripWorkspaceAttach(source, TInterface.TPresetInitialCreate("Split"), TInterfaceList.TDocketCreate(
-            ));
-        TInterface.TStripWorkspaceAttach(
-            listed, TInterface.TPresetInitialCreate("Convert"), TInterfaceList.TDocketCreate());
-        TInterface.TStripWorkspaceAttach(bare, TInterface.TPresetInitialCreate("Worklist"), null);
+        TInterface.TStripWorkspaceAttach(source, TInterface.TPresetInitialCreate("Split"));
+        TInterface.TStripWorkspaceAttach(listed, TInterface.TPresetInitialCreate("Convert"));
+        TInterface.TStripWorkspaceAttach(bare, TInterface.TPresetInitialCreate("Worklist"));
 
-        Assert.Equal([listed], TInterface.TStripRelayRead(strip, source.LStripTabId));
-        Assert.False(bare.LStripTabBusy);
+        try
+        {
+            Assert.Equal([listed], TInterface.TStripRelayRead(strip, source.LStripTabId));
+            Assert.False(bare.LStripTabBusy);
+        }
+        finally
+        {
+            TInterface.TWorkspaceClose(bare.LStripTabWorkspace);
+        }
     }
 
     [Fact]

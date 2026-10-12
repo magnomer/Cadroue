@@ -21,16 +21,17 @@ public sealed class CUsher
 
     public string CUsherStemRead(string path) => _cUsherPort.LUsherStemRead(path);
 
-    public string CUsherExtensionRead(string path) => _cUsherPort.LUsherExtensionRead(path);
+    public (string CUsherPath, string? CUsherFailure) CUsherProgramOpen(string name, string? failure = null)
+    {
+        string path = _cUsherPort.LUsherProgramResolve(name);
+        return (path, CUsherLinkOpen(path, failure));
+    }
 
-    public string CUsherProgramResolve(string name) => _cUsherPort.LUsherProgramResolve(name);
+    public string? CUsherPathOpen(string path, string? fallback = null, string? failure = null) =>
+        _cUsherPort.LUsherPathOpen(path, fallback, failure);
 
-    public string CUsherPathResolve(string path) => _cUsherPort.LUsherPathResolve(path);
+    public string? CUsherFolderOpen(string folder) => _cUsherPort.LUsherFolderOpen(folder);
 
-    public string? CUsherPathOpen(string path, string label, string? fallback = null) =>
-        _cUsherPort.LUsherPathOpen(path, label, fallback);
-
-    public string? CUsherFolderOpen(string folder, string label) => _cUsherPort.LUsherFolderOpen(folder, label);
-
-    public string? CUsherLinkOpen(string target, string label) => _cUsherPort.LUsherLinkOpen(target, label);
+    public string? CUsherLinkOpen(string target, string? failure = null) =>
+        _cUsherPort.LUsherLinkOpen(target, failure);
 }

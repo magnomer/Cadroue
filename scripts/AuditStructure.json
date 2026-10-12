@@ -247,26 +247,26 @@
     "Leaking:Cadroue.UIDeportment>Cadroue.Core": 0,
     "Leaking:Cadroue.UIDeportment>Cadroue.ShellEngine": 0,
     "Leapfrogging:Cadroue.Conduct>Cadroue.Core": 0,
-    "Leapfrogging:Cadroue.ShellEngine>Cadroue.Core": 836,
+    "Leapfrogging:Cadroue.ShellEngine>Cadroue.Core": 832,
     "Piggybacking": 2,
-    "Trespassing:Cadroue.Infrastructure>Cadroue.Application": 16,
+    "Trespassing:Cadroue.Infrastructure>Cadroue.Application": 71,
     "Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure": 0,
-    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 485,
-    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 117,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1270,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2155,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine": 172,
-    "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 953,
-    "Undercutting:Cadroue.UIVeneer>Cadroue.Core": 325,
-    "Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine": 9,
-    "Unsealing:Cadroue.UIDeportment>Cadroue.Application": 91,
-    "Unsealing:Cadroue.UIDeportment>Cadroue.Core": 242,
-    "Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine": 12
+    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 481,
+    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 121,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1269,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2073,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine": 157,
+    "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 923,
+    "Undercutting:Cadroue.UIVeneer>Cadroue.Core": 314,
+    "Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine": 6,
+    "Unsealing:Cadroue.UIDeportment>Cadroue.Application": 81,
+    "Unsealing:Cadroue.UIDeportment>Cadroue.Core": 229,
+    "Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine": 11
   },
   "offers": {
-    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort"],
-    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher"],
-    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher"]
+    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep"],
+    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep"],
+    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep"]
   },
   "offerPrefixes": {
     "Cadroue.Conduct": [

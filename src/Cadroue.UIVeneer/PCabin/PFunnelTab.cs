@@ -14,29 +14,20 @@ public sealed class PFunnelTab : PTabSurface
     private readonly PFunnelRules pFunnelRules;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFunnelTab(LStrip lStrip, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFunnelTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lStrip);
-        pViewer = new PViewer(lStrip);
-        pList = new PList(lStrip, new LDocket());
-        LFunnelTab = new LFunnelTab(pList.LList, pList.LList.LListDocket);
+        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
+        pList = new PList(lWorkspace.LWorkspaceList!);
+        LFunnelTab = lWorkspace.QWorkspaceMode.LFunnelTabCreate();
         pFunnelRules = new PFunnelRules(LFunnelTab.LFunnel);
-        var pAction = new PAction();
-        PTabAction = pAction;
-        LAction lAction = pAction.LAction;
-        lAction.LActionExecuted += _ => LFunnelTab.LFunnelRun();
-        lAction.LActionAllAdded += LFunnelTab.LFunnelAllRun;
-        lAction.LActionItemsAdded += LFunnelTab.LFunnelItemsRun;
-        pAction.PActionListAttach(pList);
-        lAction.LActionEligibleAttach(LFunnelTab.LFunnelEligibleRead);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
-
-        pList.LList.LListPathChanged += pViewer.LViewer.LViewerPathHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
         pTabGrid = PTabGridBuild(
+            lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
-            new PCompass(pFlow, pViewer),
+            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);

@@ -24,7 +24,7 @@ public sealed class TViewfinderSelection
     public void Press_SelectsTheSectionUnderTheCursor_AndDragsThePlayhead()
     {
         LFlow flow = TFlowBuild();
-        LViewfinder viewfinder = TInterface.TViewfinderCreate(flow);
+        LViewfinder viewfinder = TInterface.TViewfinderRead(flow);
         List<bool> drags = [];
         TInterface.TFlowPlayAttach(flow, () => { }, () => { }, drags.Add, _ => { });
 
@@ -44,7 +44,7 @@ public sealed class TViewfinderSelection
 
         TInterface.TViewfinderPressHandle(viewfinder, 150, 600);
         Assert.Equal(0, flow.QFlowEdit.LFlowSectionIndex);
-        LViewfinder bare = TInterface.TViewfinderCreate(TInterface.TFlowCreate());
+        LViewfinder bare = TInterface.TViewfinderRead(TInterface.TFlowCreate());
         Assert.False(TInterface.TViewfinderPressHandle(bare, 10, 600));
     }
 
@@ -52,7 +52,7 @@ public sealed class TViewfinderSelection
     public void Bands_ClampToTheRange_AndFeedThePopupOffset()
     {
         LFlow flow = TFlowBuild();
-        LViewfinder viewfinder = TInterface.TViewfinderCreate(flow);
+        LViewfinder viewfinder = TInterface.TViewfinderRead(flow);
 
         IReadOnlyList<LViewfinderBand> bands =
             TInterface.TViewfinderFrameResolve(viewfinder, 600, 100).LViewfinderFrameBands;
@@ -81,7 +81,7 @@ public sealed class TViewfinderSelection
     public void Label_FitsBadgeThenName_AndPlacesBoth()
     {
         LFlow flow = TFlowBuild();
-        LViewfinder viewfinder = TInterface.TViewfinderCreate(flow);
+        LViewfinder viewfinder = TInterface.TViewfinderRead(flow);
         LViewfinderBand band = TInterface.TViewfinderFrameResolve(viewfinder, 600, 100).LViewfinderFrameBands[0];
 
         LViewfinderLabel label = Assert.Single(TInterface.TViewfinderLabelResolve(band, 8, 14));

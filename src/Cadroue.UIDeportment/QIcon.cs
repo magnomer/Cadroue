@@ -9,9 +9,9 @@ public static class QIcon
     private static readonly IReadOnlyDictionary<string, bool> qIconKinds =
         new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase)
         {
-            ["svg"] = true,
-            ["png"] = false,
-            ["ico"] = false,
+            [".svg"] = true,
+            [".png"] = false,
+            [".ico"] = false,
         };
 
     private static readonly IReadOnlyDictionary<bool, Func<string, double, string?>> qIconResolvers =
@@ -21,15 +21,21 @@ public static class QIcon
             [false] = QIconNoneResolve,
         };
 
-    public static bool QIconSvgCheck(string qIconPath) =>
-        qIconKinds[qIconPath[(qIconPath.LastIndexOf('.') + 1)..]];
+    public static bool QIconSvgCheck(string qIconPath) => qIconKinds[QIconExtensionRead(qIconPath)];
 
     public static string? QIconBitmapResolve(string qIconPath, double qIconWidth) =>
-        qIconResolvers[QIconSvgCheck(qIconPath)](qIconPath, qIconWidth);
+        qIconResolvers[qIconPath.EndsWith(QIconSvgExtension, StringComparison.OrdinalIgnoreCase)](qIconPath, qIconWidth);
 
     public static bool QIconPrerenderCheck(string qIconPath) =>
         qIconPath.Contains("/P32/", StringComparison.OrdinalIgnoreCase)
         || qIconPath.Contains("/P256/", StringComparison.OrdinalIgnoreCase);
+
+    private static string QIconExtensionRead(string qIconPath)
+    {
+        string qIconFile = qIconPath[(qIconPath.Replace('\\', '/').LastIndexOf('/') + 1)..];
+        int qIconDot = qIconFile.LastIndexOf('.');
+        return qIconDot < 0 ? string.Empty : qIconFile[qIconDot..];
+    }
 
     private static string? QIconNoneResolve(string qIconPath, double qIconWidth) => null;
 

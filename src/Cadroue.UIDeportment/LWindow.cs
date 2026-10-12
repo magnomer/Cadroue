@@ -18,20 +18,39 @@ public sealed class LWindow
     private static readonly string[] LWindowDefaultKeys = ["Split", "Edit", "Audio", "Convert", "Merge", "Worklist"];
 
     private readonly LStrip lStrip;
-    private readonly Func<Func<bool>, bool> lWindowDispatcher;
     private LStripTab? lWindowTab;
     private LViewer? lWindowViewer;
 
-    public CUsher LWindowUsher { get; }
+    internal CUsher LWindowUsher { get; }
 
-    public LWindow(LStrip lStripOwner, Func<Func<bool>, bool> lDispatch)
+    public LWindow(CAtelier lAtelier)
     {
-        lStrip = lStripOwner;
-        LWindowUsher = lStripOwner.LStripUsher;
-        lWindowDispatcher = lDispatch;
-        LWindowDrop = new LWindowDrop(this);
-        LWindowShortcut = new LWindowShortcut(this);
-        LRelayChannel.LRelayAcceptSeam = LWindowRelayHandle;
+        ArgumentNullException.ThrowIfNull(lAtelier);
+
+        LWindowUsher = lAtelier.CAtelierUsher;
+        lStrip = new LStrip(LWindowUsher, lAtelier.CAtelierLineage);
+        LWindowLogo = new QLogoMenu(LWindowUsher);
+        LWindowPart = new QWindowPart(this);
+    }
+
+    public LStrip LWindowStrip => lStrip;
+
+    public QWorkspacePair LWindowPairCreate() => new(new QWorkspaceKey(string.Empty), LWindowUsher);
+
+    public QLogoMenu LWindowLogo { get; }
+
+    public void LWindowDispatcherAttach(Func<Func<bool>, bool> lDispatch) =>
+        LRelayChannel.LRelayAcceptSeam = lRelay => LWindowRelayHandle(lRelay, lDispatch);
+
+    public LStripTab LWindowTabCreate(LWindowTab lTab)
+    {
+        LStripTab lStripTab = lStrip.LStripTabCreate(lTab.LWindowTabKey);
+        if (lTab.LWindowTabPreset is { } lPreset)
+        {
+            lStripTab.LStripTabWorkspace.LWorkspacePresetAccept(lPreset);
+        }
+
+        return lStripTab;
     }
 
     public event Action<LWindowTab>? LWindowTabAdded;
@@ -49,9 +68,7 @@ public sealed class LWindow
     public event Action<double>? LWindowFlowApplied;
     public event Action<double>? LWindowVolumeSynced;
 
-    public LWindowDrop LWindowDrop { get; }
-
-    public LWindowShortcut LWindowShortcut { get; }
+    public QWindowPart LWindowPart { get; }
 
     public LStripTab? LWindowTab => lWindowTab;
 
@@ -238,11 +255,11 @@ public sealed class LWindow
         LWindowFunnelUpdated?.Invoke();
     }
 
-    private bool LWindowRelayHandle(LRelay lRelay)
+    private bool LWindowRelayHandle(LRelay lRelay, Func<Func<bool>, bool> lDispatch)
     {
         try
         {
-            return lWindowDispatcher(() =>
+            return lDispatch(() =>
             {
                 LWindowRelayAccept(lRelay);
                 LWindowShown?.Invoke();

@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
@@ -133,18 +134,23 @@ public sealed class TRosterCards
         TScheduleWork origin = schedule.TWorkCreate(batch, "origin");
         TScheduleWork derived = schedule.TWorkDeriveCreate(origin, "derived");
         LWorkItem[] items = [origin.TWorkItem, derived.TWorkItem];
+        schedule.TScheduleAdd(origin);
+        schedule.TScheduleAdd(derived);
 
-        Assert.Equal(1, TInterfaceRoster.TLineageInitialRead(items));
-        Assert.Empty(TInterfaceRoster.TLineageStageRead(items));
-        IReadOnlyList<LLineageEntry> lineages = TInterfaceRoster.TLineageRead(items, _ => batch);
-        LLineageEntry entry = Assert.Single(lineages);
-        Assert.Equal(2, entry.LLineageEntryItems.Count);
-        Assert.Equal(origin.TWorkItem.LWorkSourcePath, entry.LLineageEntrySubject);
+        Assert.Equal(1, TInterfaceRoster.TLineageInitialRead(schedule.TScheduleRead(), items));
+        Assert.Empty(TInterfaceRoster.TLineageStageRead(schedule.TScheduleRead(), items));
+        CLineageAnswer lineage = TInterfaceRoster.TRosterLineageRead(schedule.TScheduleRead(), items);
+        CLineageEntry entry = Assert.Single(lineage.CLineageEntries);
+        Assert.Equal(2, entry.CLineageEntryIds.Count);
+        Assert.Equal(origin.TWorkItem.LWorkSourcePath, entry.CLineageEntrySubject);
         Assert.NotEmpty(TInterfaceRoster.TLineageTitleFormat(entry));
-        Assert.Equal("-", TInterfaceRoster.TLineageRatioFormat(derived.TWorkItem, entry.LLineageEntrySubject, null));
-        Assert.StartsWith(
-            "12.3", TInterfaceRoster.TLineageRatioFormat(derived.TWorkItem, entry.LLineageEntrySubject, 1000));
-        Assert.NotEmpty(TInterfaceRoster.TRosterTitleFormat(items));
+        Assert.Equal(1, lineage.CLineageBatches.Single().CLineageBatchInitial);
+        Assert.Empty(lineage.CLineageBatches.Single().CLineageBatchStages);
+        Assert.Equal("-", TInterfaceRoster.TLineageRatioFormat(lineage, derived.TWorkItem));
+        origin.TWorkItem.LWorkSourceBytes = 1000;
+        Assert.StartsWith("12.3", TInterfaceRoster.TLineageRatioFormat(
+            TInterfaceRoster.TRosterLineageRead(schedule.TScheduleRead(), items), derived.TWorkItem));
+        Assert.NotEmpty(TInterfaceRoster.TRosterTitleFormat(lineage));
     }
 
     [Fact]

@@ -11,32 +11,20 @@ public sealed class PFixTab : PTabSurface
 {
     private readonly PFlow pFlow;
     private readonly PViewer pViewer;
-    private readonly PClinic pClinic = new();
+    private readonly PClinic pClinic;
     private readonly PList pList;
-    private readonly PProcessing pProcessing = new();
+    private readonly PProcessing pProcessing;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PFixTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PFixTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lStrip);
-        pViewer = new PViewer(lStrip);
-        pList = new PList(lStrip, new LDocket());
-        LFixTab = new LFixTab(
-            lPresetOwner,
-            pClinic.LClinic,
-            pViewer.LViewer,
-            pList.LList,
-            pList.LList.LListDocket,
-            pProcessing.LProcessing);
-        var pAction = new PAction();
-        PTabAction = pAction;
-        LAction lAction = pAction.LAction;
-        lAction.LActionExecuted += lPriority =>
-            LFixTab.LFixRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdded += () => LFixTab.LFixAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdded += pFixPaths =>
-            LFixTab.LFixItemsRun(pFixPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        pAction.PActionListAttach(pList);
+        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
+        pList = new PList(lWorkspace.LWorkspaceList!);
+        LFixTab = lWorkspace.QWorkspaceMode.LFixTabCreate();
+        pClinic = new PClinic(LFixTab.LFixClinic);
+        pProcessing = new PProcessing(LFixTab.LFixProcessing);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
         LFixTab.LFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
@@ -46,16 +34,12 @@ public sealed class PFixTab : PTabSurface
         LFixTab.LFixCheckup.LCheckupProgress += PFixProgressHandle;
         LFixTab.LFixPresetMissing += PExport.PExportMissingShow;
 
-        pList.LList.LListPathChanged += LFixTab.LFixPathHandle;
-        pList.LList.LListItemsAdded += LFixTab.LFixItemsHandle;
-        pList.LList.LListClearChanged += LFixTab.LFixClearHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-
-        var pExport = new PExport(lPresetOwner, pExportSmartAllowed: true);
+        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);
         pTabGrid = PTabGridBuild(
+            lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport },
-            new PCompass(pFlow, pViewer),
+            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);

@@ -9,9 +9,9 @@ public sealed class TListSelection
 {
     private static (LDocket, LList) TListBuild(params string[] paths)
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        TInterfaceList.TDocketPathsAdd(docket, paths);
-        return (docket, TInterfaceList.TListCreate(docket));
+        LList list = TInterfaceList.TListCreate();
+        TInterfaceList.TDocketPathsAdd(list.LListDocket, paths);
+        return (list.LListDocket, list);
     }
 
     [Fact]
@@ -80,6 +80,7 @@ public sealed class TListSelection
     public void SelectAll_WithoutSelection_CurrentIsLast_KeepsCurrentOtherwise()
     {
         (_, LList list) = TListBuild(@"C:\a.mp4", @"C:\b.mp4");
+        TInterfaceList.TListSelect(list, null);
 
         TInterfaceList.TListAllSelect(list);
 
@@ -204,7 +205,8 @@ public sealed class TListSelection
         Assert.False(TInterfaceList.TListDragResolve(list, 30, 30, 4, false));
         Assert.True(TInterfaceList.TListDragResolve(list, 30, 30, 4, true));
         Assert.Equal([@"C:\a.mp4", @"C:\b.mp4"], list.LListDrag.LListDragPaths);
-        Assert.Equal(3, list.LListDrag.LListGrabX);
+        TInterface.TGhostPointSet(list.LListDrag.LListGhost, 13, 14);
+        Assert.Equal(10, list.LListDrag.LListGhost.LGhostLeft);
         Assert.Null(list.LListDrag.LListDragPath);
         Assert.False(TInterfaceList.TListDragResolve(list, 60, 60, 4, true));
 

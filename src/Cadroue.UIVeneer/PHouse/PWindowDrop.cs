@@ -24,26 +24,26 @@ public partial class PWindow
 
     private void PDropEnterHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowDrop.LWindowEnterHandle(PDropDragRead(dragEvent));
+        lWindow.LWindowPart.QWindowPartDrop.LWindowEnterHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropOverHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowDrop.LWindowOverHandle(PDropDragRead(dragEvent));
+        lWindow.LWindowPart.QWindowPartDrop.LWindowOverHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropHandle(object sender, DragEventArgs dragEvent)
     {
-        lWindow.LWindowDrop.LWindowDropHandle(PDropDragRead(dragEvent));
+        lWindow.LWindowPart.QWindowPartDrop.LWindowDropHandle(PDropDragRead(dragEvent));
         PDropResultApply(dragEvent);
     }
 
     private void PDropResultApply(DragEventArgs dragEvent)
     {
-        dragEvent.Effects = PLook.PLookDropEffect[lWindow.LWindowDrop.LWindowDropEffect];
-        dragEvent.Handled = lWindow.LWindowDrop.LWindowDropHandled;
+        dragEvent.Effects = PLook.PLookDropEffect[lWindow.LWindowPart.QWindowPartDrop.LWindowDropEffect];
+        dragEvent.Handled = lWindow.LWindowPart.QWindowPartDrop.LWindowDropHandled;
     }
 
     private static LWindowDrag PDropDragRead(DragEventArgs dragEvent) => new(

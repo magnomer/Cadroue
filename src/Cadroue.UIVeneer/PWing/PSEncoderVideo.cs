@@ -38,11 +38,7 @@ internal sealed partial class PSEncoder
 
             pLog.IsEnabled = lsEncoder.LSEncoderVideoResults.Count > 0;
         };
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(
-            this,
-            new LSVerdict(
-                LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"),
-                lsEncoder.LSEncoderVideoResults));
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.LSEncoderVerdictCreate(false));
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoSet();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoSet();
 

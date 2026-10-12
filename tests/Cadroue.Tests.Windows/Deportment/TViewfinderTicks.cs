@@ -19,7 +19,7 @@ public sealed class TViewfinderTicks
     public void Ticks_PickTheStepFromTheZoom_AndLabelEachOne()
     {
         LFlow flow = TFlowBuild(60);
-        LViewfinder viewfinder = TInterface.TViewfinderCreate(flow);
+        LViewfinder viewfinder = TInterface.TViewfinderRead(flow);
 
         IReadOnlyList<LViewfinderGraduation> ticks =
             TInterface.TViewfinderFrameResolve(viewfinder, 600, 100).LViewfinderFrameTicks;
@@ -34,7 +34,7 @@ public sealed class TViewfinderTicks
         Assert.Equal(6, TInterface.TViewfinderFrameResolve(viewfinder, 600, 100).LViewfinderFrameTicks.Count);
 
         LFlow hours = TFlowBuild(3600);
-        LViewfinder wide = TInterface.TViewfinderCreate(hours);
+        LViewfinder wide = TInterface.TViewfinderRead(hours);
         IReadOnlyList<LViewfinderGraduation> coarse =
             TInterface.TViewfinderFrameResolve(wide, 300, 100).LViewfinderFrameTicks;
         Assert.Equal(3, coarse.Count);
@@ -49,7 +49,7 @@ public sealed class TViewfinderTicks
     public void Frame_PlacesTheCursorChip_AndDropsItOutsideTheRange()
     {
         LFlow flow = TFlowBuild(60);
-        LViewfinder viewfinder = TInterface.TViewfinderCreate(flow);
+        LViewfinder viewfinder = TInterface.TViewfinderRead(flow);
         TInterface.TFlowCursorSet(flow, TimeSpan.FromSeconds(30));
 
         LViewfinderFrame frame = TInterface.TViewfinderFrameResolve(viewfinder, 600, 100);

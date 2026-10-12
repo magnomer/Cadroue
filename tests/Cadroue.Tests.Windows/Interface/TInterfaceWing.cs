@@ -202,7 +202,7 @@ internal static partial class TInterface
     internal static IReadOnlyList<LInfoRow> TInfoRowsRead(LInfo info) => info.LInfoRowsRead();
 
     internal static LSource TSourceCreate(LViewer viewer, bool audioAllowed) =>
-        new(new LStrip(TProgramCreate()), viewer, audioAllowed);
+        new(TAtelierCreate().CAtelierUsher, viewer, audioAllowed);
     internal static void TSourcePathAttach(LSource source, Action<string> handler) =>
         source.LSourcePathApplied += handler;
     internal static void TSourceRefuseAttach(LSource source, Action<string, string> handler) =>

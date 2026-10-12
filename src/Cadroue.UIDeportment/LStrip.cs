@@ -15,17 +15,21 @@ public sealed class LStrip
     private readonly ObservableCollection<LStripTab> lStripTabs = [];
     private readonly Func<string, string> lStripTitleSource;
     private readonly Func<string, int, string> lStripNumberSource;
+    private readonly CUsher lStripUsher;
+    private readonly CLineage lStripLineage;
     private LStripTab? lStripSelected;
     private int lStripSuspendDepth;
 
-    public LStrip(LProgram lProgram)
-        : this(lProgram.LProgramAtelier.CAtelierUsher, LStripTitleResolve, LStripNumberResolve)
+    public LStrip(CUsher lUsher, CLineage lLineage)
+        : this(lUsher, lLineage, LStripTitleResolve, LStripNumberResolve)
     {
     }
 
-    public LStrip(CUsher lUsher, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
+    public LStrip(
+        CUsher lUsher, CLineage lLineage, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
     {
-        LStripUsher = lUsher;
+        lStripUsher = lUsher;
+        lStripLineage = lLineage;
         lStripTitleSource = lTitleSource;
         lStripNumberSource = lNumberSource;
         QStripSeparator = new QStripSeparator(this, lStripTabs);
@@ -35,6 +39,8 @@ public sealed class LStrip
             LLocalization.LLocalizationTextRead,
             LTraceLog.LTraceInfoRecord,
             LCartographer.LCartographerTabRemove);
+        LStripRail = new LRail(this);
+        LStripDeck = new LDeck(this);
     }
 
     public event Action? LStripChanged;
@@ -47,6 +53,10 @@ public sealed class LStrip
 
     public QStripClosure QStripClosure { get; }
 
+    public LRail LStripRail { get; }
+
+    public LDeck LStripDeck { get; }
+
     public IReadOnlyList<LStripTab> LStripTabs => lStripTabs;
 
     public LStripTab? LStripSelected => lStripSelected;
@@ -58,9 +68,7 @@ public sealed class LStrip
     public static string LStripKeyResolve(string lKey) =>
         LStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : LStripDefaultKey;
 
-    public CUsher LStripUsher { get; }
-
-    public static LStripTab LStripTabCreate(string lKey) => new(LStripKeyResolve(lKey));
+    public LStripTab LStripTabCreate(string lKey) => new(LStripKeyResolve(lKey), lStripUsher, lStripLineage);
 
     public LStripTab? LStripTabFind(Guid lId) => lStripTabs.FirstOrDefault(lTab => lTab.LStripTabId == lId);
 
@@ -91,13 +99,11 @@ public sealed class LStrip
         LSeal.LSealNodesSource = LStripSealRead;
         LSeal.LSealFireSeam = LStripNodeRun;
         LAction.LActionStripAttach(this);
-        LListRelay.LListRelayAttach(this);
+        LListRelay.LListRelayAttach(this, lStripUsher);
     }
 
     public string LStripTitleRead(Guid lId) =>
         LStripTabFind(lId)?.LStripTabTitle ?? LCartographer.LCartographerStageRead(lId);
-
-    public static Guid LStripTargetRead(Guid lId) => LCartographer.LCartographerTargetRead(lId);
 
     public IReadOnlyList<LStripTab> LStripRelayRead(Guid lSourceTab) =>
         lStripTabs
@@ -142,6 +148,7 @@ public sealed class LStrip
 
     public void LStripAdd(LStripTab lTab)
     {
+        lTab.LStripTabWorkspace.QWorkspaceMode.LWorkspaceAction?.LActionRelayAttach(this, lTab);
         lStripTabs.Add(lTab);
         LStripChanged?.Invoke();
         LStripTitleSet(lTab, lStripTitleSource(lTab.LStripTabKey));
@@ -323,7 +330,7 @@ public sealed class LStrip
         IReadOnlySet<Guid> lActiveBatches = LBastion.LBastionCohortsRead();
         foreach (LStripTab lTab in lStripTabs)
         {
-            lCleared |= lTab.LStripTabWorkspace?.LWorkspaceMediaClear(lActiveBatches) == true;
+            lCleared |= lTab.LStripTabWorkspace.LWorkspaceMediaClear(lActiveBatches);
         }
 
         LTraceLog.LTraceInfoRecord($"Tabs cleared across {lStripTabs.Count} tab(s)");

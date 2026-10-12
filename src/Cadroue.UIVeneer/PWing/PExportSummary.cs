@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -23,9 +22,7 @@ public sealed partial class PExport : UserControl
     private readonly TextBlock pExportSummaryAudio;
     private readonly TextBlock pExportSummaryOutput;
     private readonly StackPanel pPresetRowPanel;
-    private readonly LWorkKind? pExportKind;
     private Point? pExportDragOrigin;
-    private Point pPresetDragOffset;
     private Border? pPresetRowDragging;
     private double pPresetOpacityOrigin;
     private PGhost? pPresetDragGhost;
@@ -33,11 +30,10 @@ public sealed partial class PExport : UserControl
 
     public LExport LExport { get; }
 
-    public PExport(LPresetSelection lPresetOwner, LWorkKind? pExportKind = null, bool pExportSmartAllowed = false)
+    public PExport(LExport lExport, LPresetSelection lPresetOwner)
     {
         this.lPresetOwner = lPresetOwner;
-        this.pExportKind = pExportKind;
-        LExport = new LExport(lPresetOwner, pExportSmartAllowed);
+        LExport = lExport;
         LExport.LExportPresetsChanged += PExportPresetsUpdate;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);

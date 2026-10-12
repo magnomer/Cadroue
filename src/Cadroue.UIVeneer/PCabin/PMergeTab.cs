@@ -12,38 +12,29 @@ public sealed class PMergeTab : PTabSurface
     private readonly PViewer pViewer;
     private readonly PList pList;
     private readonly PGroup pGroup;
-    private readonly PAction pAction = new();
+    private readonly PAction pAction;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PMergeTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PMergeTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lStrip);
-        pViewer = new PViewer(lStrip);
-        pList = new PList(lStrip, new LDocket());
-        LMergeTab = new LMergeTab(lStrip, lPresetOwner, pList.LList.LListDocket, lPreferenceTabLayout);
+        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
+        pList = new PList(lWorkspace.LWorkspaceList!);
+        LMergeTab = lWorkspace.QWorkspaceMode.LMergeTabCreate();
         pGroup = new PGroup(LMergeTab.LMergeGroup);
-        PTabAction = pAction;
-        LAction lAction = pAction.LAction;
-        lAction.LActionExecuted += lPriority =>
-            LMergeTab.LMergeRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdded += () => LMergeTab.LMergeAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionCohortAdded += lCohort =>
-            LMergeTab.LMergeCohortRun(lCohort, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionEligibleAttach(LMergeTab.LMergeEligibleRead);
+        pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
         LMergeTab.LMergePresetMissing += PExport.PExportMissingShow;
-        pList.LList.LListPathChanged += pViewer.LViewer.LViewerPathHandle;
-        pGroup.LGroup.LGroupDrag.LGroupItemOpened += pViewer.LViewer.LViewerPathHandle;
-        pGroup.LGroup.LGroupDrag.LGroupPathsRequest += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-        var pExport = new PExport(lPresetOwner);
+        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
+            lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
-            new PCompass(pFlow, pViewer),
+            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
         Content = pTabGrid;
+        LMergeTab.LMergeLayoutApply(lPreferenceTabLayout);
     }
 
     public LMergeTab LMergeTab { get; }

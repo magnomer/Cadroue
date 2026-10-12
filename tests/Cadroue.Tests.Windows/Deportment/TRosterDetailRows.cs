@@ -40,9 +40,11 @@ public sealed class TRosterDetailRows
     public void Pending_HasNoFailureNoMeterNoBar_AndSevenRecordRows()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
 
         Assert.Empty(detail.LRosterDetailFailures);
         Assert.Empty(detail.LRosterDetailMeters);
@@ -63,17 +65,19 @@ public sealed class TRosterDetailRows
     public void Running_ShowsMeterAndBarOnceBothSizesAreKnown()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
         work.LWorkStateCurrent = LWorkState.LWorkStateRunning;
         work.LWorkStartTime = DateTimeOffset.Now.AddSeconds(-10);
         work.LWorkSourceBytes = 4_000_000;
 
-        LRosterDetail before = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail before = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.Empty(before.LRosterDetailBars);
         Assert.Empty(before.LRosterDetailMeters);
 
         work.LWorkOutputBytes = 1_000_000;
-        LRosterDetail after = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail after = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         LRosterBar bar = Assert.Single(after.LRosterDetailBars);
         Assert.False(bar.LRosterBarOver);
         Assert.Equal("25%", bar.LRosterBarPercent);
@@ -103,18 +107,20 @@ public sealed class TRosterDetailRows
     public void Failed_PutsTheReasonFirst_AndKeepsItOutOfTheMessageRow()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
         work.LWorkStateCurrent = LWorkState.LWorkStateFailed;
         work.LWorkMessage = "boom";
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         LRosterDetailRow failure = Assert.Single(detail.LRosterDetailFailures);
         Assert.Equal("boom", failure.LRosterDetailValue);
         Assert.Equal(LRosterDetail.LRosterValueFail, failure.LRosterDetailKey);
         Assert.Equal(7, detail.LRosterDetailRecords.Count);
 
         work.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        LRosterDetail done = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail done = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.Empty(done.LRosterDetailFailures);
         Assert.Equal(8, done.LRosterDetailRecords.Count);
         Assert.Equal("boom", done.LRosterDetailRecords[7].LRosterDetailValue);
@@ -124,9 +130,11 @@ public sealed class TRosterDetailRows
     public void Encoding_ListsEncoderRowsOnlyWhenReencoding()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.Equal(7, detail.LRosterDetailVideos.Count);
         Assert.Equal("Encode (Include)", detail.LRosterDetailVideos[0].LRosterDetailValue);
         Assert.Equal("-profile:v high", detail.LRosterDetailVideos[6].LRosterDetailValue);
@@ -151,7 +159,53 @@ public sealed class TRosterDetailRows
         Assert.Equal(
             "2024-01-02 03:04:05",
             TInterfaceRoster.TRosterStampFormat(new DateTimeOffset(2024, 1, 2, 3, 4, 5, TimeSpan.Zero)));
-        Assert.Equal("MP4", TInterfaceRoster.TRosterContainerFormat(@"C:\clip.mp4"));
-        Assert.NotEqual(string.Empty, TInterfaceRoster.TRosterContainerFormat("noext"));
+    }
+
+    [Fact]
+    public void DetailCreate_ContainerRow_ShowsEachExtensionOrUnknown()
+    {
+        using var schedule = new TSchedule();
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "clip");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
+        TInterfaceRoster.TWorkOutputSet(work, @"C:\clip.mp4");
+
+        LRosterCompareRow container =
+            TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-").LRosterDetailCompares[6];
+        Assert.Equal("SOURCE", container.LRosterCompareSource.LRosterLineText);
+        Assert.Equal("MP4", container.LRosterCompareOutput.LRosterLineText);
+
+        TInterfaceRoster.TWorkOutputSet(work, @"C:\noext");
+        LRosterCompareRow bare =
+            TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-").LRosterDetailCompares[6];
+        Assert.NotEqual(string.Empty, bare.LRosterCompareOutput.LRosterLineText);
+        Assert.NotEqual("NOEXT", bare.LRosterCompareOutput.LRosterLineText);
+    }
+
+    [Fact]
+    public void Detail_TabTitle_FollowsATabRenameAfterTheRebuild()
+    {
+        using var schedule = new TSchedule();
+        LStrip strip = TInterface.TStripCreate(key => key, (title, number) => $"{title} {number}");
+        LStripTab tab = TInterface.TStripTabCreate("Split");
+        TInterface.TStripAdd(strip, tab);
+        TInterfaceRoster.TStripTitleAttach(strip);
+        try
+        {
+            TScheduleWork one = schedule.TWorkCreate(Guid.NewGuid(), "one");
+            one.TWorkItem.LWorkRelaySource = tab.LStripTabId;
+            schedule.TScheduleAdd(one);
+            LRoster roster = TRosterOpen(schedule);
+            TInterfaceRoster.TRosterStepSelect(roster, one.TWorkId, false, false);
+            Assert.Equal(new[] { "Split" }, TInterfaceRoster.TRosterDetailRead(roster).LRosterDetailTabs);
+
+            Assert.True(TInterface.TStripNameSet(strip, tab, "Renamed"));
+            Assert.Equal(new[] { "Renamed" }, TInterfaceRoster.TRosterDetailRead(roster).LRosterDetailTabs);
+            TInterfaceRoster.TRosterClose(roster);
+        }
+        finally
+        {
+            TInterfaceRoster.TStripTitleAttach(null);
+        }
     }
 }

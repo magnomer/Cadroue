@@ -31,41 +31,37 @@ public sealed class LAudioTab
 
     private readonly CUsher lAudioUsher;
     private readonly LPresetSelection lAudioPreset;
-    private readonly LInspector lAudioInspector;
     private readonly LInspectorAudio lAudioSections;
     private readonly LViewer lAudioViewer;
     private readonly LList lAudioList;
     private readonly LDocket lAudioDocket;
-    private readonly LProcessing lAudioProcessing;
 
-    public LAudioTab(
-        LStrip lStrip,
-        LPresetSelection lPreset,
-        LInspector lInspector,
-        LViewer lViewer,
-        LList lList,
-        LDocket lDocket,
-        LProcessing lProcessing)
+    public LAudioTab(CUsher lUsher, LPresetSelection lPreset, LViewer lViewer, LList lList)
     {
-        lAudioUsher = lStrip.LStripUsher;
+        lAudioUsher = lUsher;
         lAudioPreset = lPreset;
-        lAudioInspector = lInspector;
-        lAudioSections = lInspector.LInspectorAudio;
-        lInspector.LInspectorPersistentChanged += LAudioPersistentSave;
+        lAudioSections = LAudioInspector.LInspectorAudio;
+        LAudioInspector.LInspectorPersistentChanged += LAudioPersistentSave;
         lAudioSections.LInspectorAudioChanged += LAudioChangeHandle;
-        lInspector.LInspectorSkip.LSkipActiveChanged += LAudioSkipHandle;
+        LAudioInspector.LInspectorSkip.LSkipActiveChanged += LAudioSkipHandle;
         lAudioViewer = lViewer;
         lAudioList = lList;
-        lAudioDocket = lDocket;
-        lAudioProcessing = lProcessing;
-        lProcessing.LProcessingOrderedSet(true);
-        lProcessing.LProcessingOrderChanged += LAudioStateSave;
+        lAudioDocket = lList.LListDocket;
+        LAudioProcessing.LProcessingOrderedSet(true);
+        LAudioProcessing.LProcessingOrderChanged += LAudioStateSave;
         lViewer.LViewerMediaChanged += LAudioMediaHandle;
+        lList.LListPathChanged += LAudioPathHandle;
+        lList.LListItemsAdded += LAudioItemsHandle;
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public event Action? LAudioPresetMissing;
     public event Action? LAudioPresetIncompatible;
     public event Action? LAudioViewerDeferred;
+
+    public LInspector LAudioInspector { get; } = new();
+
+    public LProcessing LAudioProcessing { get; } = new();
 
     public LSMonitor LAudioMonitor { get; } = new();
 
@@ -74,10 +70,10 @@ public sealed class LAudioTab
 
     public void LAudioClose()
     {
-        lAudioInspector.LInspectorPersistentChanged -= LAudioPersistentSave;
+        LAudioInspector.LInspectorPersistentChanged -= LAudioPersistentSave;
         lAudioSections.LInspectorAudioChanged -= LAudioChangeHandle;
-        lAudioInspector.LInspectorSkip.LSkipActiveChanged -= LAudioSkipHandle;
-        lAudioProcessing.LProcessingOrderChanged -= LAudioStateSave;
+        LAudioInspector.LInspectorSkip.LSkipActiveChanged -= LAudioSkipHandle;
+        LAudioProcessing.LProcessingOrderChanged -= LAudioStateSave;
         lAudioViewer.LViewerMediaChanged -= LAudioMediaHandle;
         LAudioMonitor.Dispose();
     }
@@ -89,7 +85,7 @@ public sealed class LAudioTab
             lLayout.LSceneInspector = new LSceneInspectorEntry
             {
                 LSceneInspectorAudio = LAudio.LAudioPersistentCreate(lAudioSections.LInspectorPersistentRead()),
-                LSceneInspectorSkip = lAudioInspector.LInspectorSkip.LSkipPersistent
+                LSceneInspectorSkip = LAudioInspector.LInspectorSkip.LSkipPersistent
             };
         }
 
@@ -100,17 +96,17 @@ public sealed class LAudioTab
     {
         if (lLayout?.LSceneInspector is { LSceneInspectorAudio: { } lRecord } lInspector)
         {
-            lAudioInspector.LInspectorSaveSuspend();
+            LAudioInspector.LInspectorSaveSuspend();
             try
             {
                 LWorkAudio lPlan = LAudio.LAudioPersistentRead(lRecord);
                 lAudioSections.LInspectorAudioApply(lPlan);
                 lAudioSections.LInspectorPersistentApply(lPlan, lInspector.LSceneInspectorSkip);
-                lAudioInspector.LInspectorSkip.LSkipActiveSet(lPlan.LWorkAudioSkip);
+                LAudioInspector.LInspectorSkip.LSkipActiveSet(lPlan.LWorkAudioSkip);
             }
             finally
             {
-                lAudioInspector.LInspectorSaveResume();
+                LAudioInspector.LInspectorSaveResume();
             }
         }
 
@@ -183,7 +179,7 @@ public sealed class LAudioTab
 
     public void LAudioSkipHandle()
     {
-        lAudioProcessing.LProcessingSkipSet(lAudioInspector.LInspectorSkip.LSkipActive);
+        LAudioProcessing.LProcessingSkipSet(LAudioInspector.LInspectorSkip.LSkipActive);
         LAudioStateSave();
     }
 
@@ -209,12 +205,12 @@ public sealed class LAudioTab
 
     public LWorkAudio LAudioPlanRead() =>
         lAudioSections.LInspectorAudioRead(
-            lAudioProcessing.LProcessingSteps.Select(LAudioKindRead).OfType<LAudioKind>());
+            LAudioProcessing.LProcessingSteps.Select(LAudioKindRead).OfType<LAudioKind>());
 
     public void LAudioStateSave()
     {
-        if (lAudioInspector.LInspectorSaveSuspended
-            || lAudioInspector.LInspectorOwnerPath is not { } lSourcePath
+        if (LAudioInspector.LInspectorSaveSuspended
+            || LAudioInspector.LInspectorOwnerPath is not { } lSourcePath
             || lAudioDocket.LDocketLockCheck(lSourcePath))
         {
             return;
@@ -228,9 +224,9 @@ public sealed class LAudioTab
 
         if (LAudio.LAudioPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianAudioSave))
         {
-            lAudioInspector.LInspectorFailureSet(null);
+            LAudioInspector.LInspectorFailureSet(null);
         }
-        else if (lAudioInspector.LInspectorFailureSet(lSourcePath))
+        else if (LAudioInspector.LInspectorFailureSet(lSourcePath))
         {
             LTraceLog.LTraceWarningRecord(
                 $"Audio edit not saved for '{
@@ -244,7 +240,7 @@ public sealed class LAudioTab
     public void LAudioPlanRestore(string lSourcePath, bool lOwnerFirst)
     {
         bool lAdopted = false;
-        lAudioInspector.LInspectorSaveSuspend();
+        LAudioInspector.LInspectorSaveSuspend();
         try
         {
             LWorkAudio? lSaved = LAudio.LAudioPlanRead(lSourcePath, LLibrarian.LLibrarianAudioLoad);
@@ -261,17 +257,17 @@ public sealed class LAudioTab
             LWorkAudio lResolved = LAudio.LAudioPlanResolve(
                 lSaved,
                 lPersistent,
-                lAudioInspector.LInspectorSkip.LSkipPersistent,
-                lAudioInspector.LInspectorSkip.LSkipActive);
+                LAudioInspector.LInspectorSkip.LSkipPersistent,
+                LAudioInspector.LInspectorSkip.LSkipActive);
             lAudioSections.LInspectorAudioApply(lResolved);
-            lAudioInspector.LInspectorSkip.LSkipActiveSet(lResolved.LWorkAudioSkip);
+            LAudioInspector.LInspectorSkip.LSkipActiveSet(lResolved.LWorkAudioSkip);
         }
         finally
         {
-            lAudioInspector.LInspectorSaveResume();
+            LAudioInspector.LInspectorSaveResume();
         }
 
-        lAudioProcessing.LProcessingSkipSet(lAudioInspector.LInspectorSkip.LSkipActive);
+        LAudioProcessing.LProcessingSkipSet(LAudioInspector.LInspectorSkip.LSkipActive);
         LAudioActiveUpdate();
         LAudioViewerApply();
         if (lAdopted)
@@ -282,18 +278,18 @@ public sealed class LAudioTab
 
     public void LAudioActiveUpdate()
     {
-        foreach (string lStep in lAudioProcessing.LProcessingSteps)
+        foreach (string lStep in LAudioProcessing.LProcessingSteps)
         {
             if (LAudioKindRead(lStep) is { } lKind)
             {
-                lAudioProcessing.LProcessingActiveSet(lStep, lAudioSections.LInspectorStepRead(lKind).LWorkStepActive);
+                LAudioProcessing.LProcessingActiveSet(lStep, lAudioSections.LInspectorStepRead(lKind).LWorkStepActive);
             }
         }
     }
 
     private void LAudioMediaHandle(LCargo lCargo)
     {
-        bool lOwnerFirst = lAudioInspector.LInspectorOwnerSet(lCargo.LCargoSourcePath);
+        bool lOwnerFirst = LAudioInspector.LInspectorOwnerSet(lCargo.LCargoSourcePath);
         LAudioPlanRestore(lCargo.LCargoSourcePath, lOwnerFirst);
         LAudioMonitor.LSMonitorSourceOpen(
             lCargo.LCargoSourcePath,
@@ -304,14 +300,14 @@ public sealed class LAudioTab
 
     private void LAudioFanoutSave(IEnumerable<string> lPaths)
     {
-        if (lAudioInspector.LInspectorSaveSuspended || !lAudioSections.LInspectorPersistentCheck())
+        if (LAudioInspector.LInspectorSaveSuspended || !lAudioSections.LInspectorPersistentCheck())
         {
             return;
         }
 
         LWorkAudio lPersistent = lAudioSections.LInspectorPersistentRead();
-        bool lSkipPersistent = lAudioInspector.LInspectorSkip.LSkipPersistent;
-        bool lSkipApply = lAudioInspector.LInspectorSkip.LSkipActive;
+        bool lSkipPersistent = LAudioInspector.LInspectorSkip.LSkipPersistent;
+        bool lSkipApply = LAudioInspector.LInspectorSkip.LSkipActive;
         var lFailed = new List<string>();
         foreach (string lPath in lPaths)
         {

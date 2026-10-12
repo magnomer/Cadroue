@@ -33,43 +33,41 @@ public sealed class LFixTab
             .ToList();
 
     private readonly LPresetSelection lFixPreset;
-    private readonly LClinic lFixClinic;
     private readonly LViewer lFixViewer;
     private readonly LList lFixList;
     private readonly LDocket lFixDocket;
-    private readonly LProcessing lFixProcessing;
 
-    public LFixTab(
-        LPresetSelection lPreset,
-        LClinic lClinic,
-        LViewer lViewer,
-        LList lList,
-        LDocket lDocket,
-        LProcessing lProcessing)
+    public LFixTab(LPresetSelection lPreset, LViewer lViewer, LList lList)
     {
         lFixPreset = lPreset;
-        lFixClinic = lClinic;
         lFixViewer = lViewer;
         lFixList = lList;
-        lFixDocket = lDocket;
-        lFixProcessing = lProcessing;
-        lProcessing.LProcessingOrderedSet(false);
-        lClinic.LClinicPlanChanged += LFixChangeHandle;
+        lFixDocket = lList.LListDocket;
+        LFixProcessing.LProcessingOrderedSet(false);
+        LFixClinic.LClinicPlanChanged += LFixChangeHandle;
+        lList.LListPathChanged += LFixPathHandle;
+        lList.LListItemsAdded += LFixItemsHandle;
+        lList.LListClearChanged += LFixClearHandle;
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public event Action? LFixPresetMissing;
+
+    public LClinic LFixClinic { get; } = new();
+
+    public LProcessing LFixProcessing { get; } = new();
 
     public LCheckup LFixCheckup { get; } = new();
 
     public void LFixClose()
     {
-        lFixClinic.LClinicPlanChanged -= LFixChangeHandle;
+        LFixClinic.LClinicPlanChanged -= LFixChangeHandle;
         LFixCheckup.Dispose();
     }
 
     public LSceneTabEntry LFixLayoutRead(LSceneTabEntry lLayout)
     {
-        LWorkFix lPlan = lFixClinic.LClinicPlanRead();
+        LWorkFix lPlan = LFixClinic.LClinicPlanRead();
         LWorkFix lPersistent = LFix.LFixPersistentResolve(lPlan);
         bool lSalvagePersistent = lPlan.LWorkFixSalvage.LWorkSalvagePersistent;
         if (lPersistent.LWorkFixSteps.Any() || lSalvagePersistent)
@@ -88,19 +86,19 @@ public sealed class LFixTab
     {
         if (lLayout is null)
         {
-            lFixClinic.LClinicMinimizedSet(true);
+            LFixClinic.LClinicMinimizedSet(true);
         }
 
         if (lLayout?.LSceneInspector is { LSceneInspectorFix: { } lRecord } lInspector)
         {
-            lFixClinic.LClinicSaveSuspend();
+            LFixClinic.LClinicSaveSuspend();
             try
             {
-                lFixClinic.LClinicPlanApply(LFix.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage));
+                LFixClinic.LClinicPlanApply(LFix.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage));
             }
             finally
             {
-                lFixClinic.LClinicSaveResume();
+                LFixClinic.LClinicSaveResume();
             }
         }
 
@@ -163,7 +161,7 @@ public sealed class LFixTab
         }
 
         LFixStateSave();
-        lFixClinic.LClinicSourceSet(lPath);
+        LFixClinic.LClinicSourceSet(lPath);
         lFixViewer.LViewerPathHandle(lPath);
         LFixPlanRestore(lPath);
     }
@@ -186,14 +184,14 @@ public sealed class LFixTab
             LFixCheckup.LCheckupSourceCancel(lPath);
         }
 
-        lFixClinic.LClinicResultsRemove(lRemoved);
+        LFixClinic.LClinicResultsRemove(lRemoved);
     }
 
     public void LFixCheckupHandle(LCheckupResult lResult)
     {
         if (LFixListedCheck(lResult.LCheckupSource))
         {
-            lFixClinic.LClinicResultSet(lResult.LCheckupSource, lResult.LCheckupKind, lResult);
+            LFixClinic.LClinicResultSet(lResult.LCheckupSource, lResult.LCheckupKind, lResult);
         }
     }
 
@@ -201,11 +199,11 @@ public sealed class LFixTab
     {
         if (LFixListedCheck(lPath))
         {
-            lFixClinic.LClinicProgressSet(lPath, lProgress);
+            LFixClinic.LClinicProgressSet(lPath, lProgress);
         }
     }
 
-    public void LFixItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
+    private void LFixItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
         LFixPersistentSave(lAdded.Select(lItem => lItem.LDocketEntryPath));
 
     public void LFixChangeHandle()
@@ -216,14 +214,14 @@ public sealed class LFixTab
 
     public void LFixStateSave()
     {
-        if (lFixClinic.LClinicSaveSuspended
+        if (LFixClinic.LClinicSaveSuspended
             || lFixViewer.LViewerSourcePath is not { } lSourcePath
             || lFixDocket.LDocketLockCheck(lSourcePath))
         {
             return;
         }
 
-        LWorkFix lPlan = lFixClinic.LClinicPlanRead();
+        LWorkFix lPlan = LFixClinic.LClinicPlanRead();
         if (!lPlan.LWorkFixActive && LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad) is null)
         {
             return;
@@ -238,16 +236,16 @@ public sealed class LFixTab
 
     public void LFixPlanRestore(string lSourcePath)
     {
-        lFixClinic.LClinicSaveSuspend();
+        LFixClinic.LClinicSaveSuspend();
         try
         {
             LWorkFix? lSaved = LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad);
-            LWorkFix lPersistent = LFix.LFixPersistentResolve(lFixClinic.LClinicPlanRead());
-            lFixClinic.LClinicPlanApply(LFix.LFixPlanResolve(lSaved, lPersistent));
+            LWorkFix lPersistent = LFix.LFixPersistentResolve(LFixClinic.LClinicPlanRead());
+            LFixClinic.LClinicPlanApply(LFix.LFixPlanResolve(lSaved, lPersistent));
         }
         finally
         {
-            lFixClinic.LClinicSaveResume();
+            LFixClinic.LClinicSaveResume();
         }
 
         LFixActiveUpdate();
@@ -255,25 +253,25 @@ public sealed class LFixTab
 
     public void LFixActiveUpdate()
     {
-        LWorkFix lPlan = lFixClinic.LClinicPlanRead();
+        LWorkFix lPlan = LFixClinic.LClinicPlanRead();
         foreach (LFixRow lRow in LFixKinds)
         {
             bool lActive = lPlan.LWorkFixSteps.Any(
                 lStep => lStep.LWorkFixKind == lRow.LFixRowKind && lStep.LWorkFixRepair);
-            lFixProcessing.LProcessingActiveSet(lRow.LFixRowStep.LProcessingRowKey, lActive);
+            LFixProcessing.LProcessingActiveSet(lRow.LFixRowStep.LProcessingRowKey, lActive);
         }
 
-        lFixProcessing.LProcessingActiveSet(LFixSalvageKey, lPlan.LWorkFixSalvage.LWorkSalvageActive);
+        LFixProcessing.LProcessingActiveSet(LFixSalvageKey, lPlan.LWorkFixSalvage.LWorkSalvageActive);
     }
 
     private void LFixPersistentSave(IEnumerable<string> lPaths)
     {
-        if (lFixClinic.LClinicSaveSuspended)
+        if (LFixClinic.LClinicSaveSuspended)
         {
             return;
         }
 
-        LWorkFix lPersistent = LFix.LFixPersistentResolve(lFixClinic.LClinicPlanRead());
+        LWorkFix lPersistent = LFix.LFixPersistentResolve(LFixClinic.LClinicPlanRead());
         if (!lPersistent.LWorkFixSteps.Any())
         {
             return;

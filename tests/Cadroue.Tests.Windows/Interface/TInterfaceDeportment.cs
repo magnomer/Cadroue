@@ -12,8 +12,11 @@ namespace Cadroue.Tests.Windows;
 internal static partial class TInterface
 {
     [ModuleInitializer]
-    internal static void TInterfaceHomeStart() =>
+    internal static void TInterfaceHomeStart()
+    {
         RuntimeHelpers.RunModuleConstructor(typeof(Interface.TInterface).Module.ModuleHandle);
+        _ = TProgramCreate();
+    }
 
     internal static LWorkGammaSettings TGammaSettingsCreate(
         double global, double red, double green, double blue, double highlight) =>
@@ -164,14 +167,20 @@ internal static partial class TInterface
     internal static void TSkipActiveSet(LSkip skip, bool active) => skip.LSkipActiveSet(active);
     internal static void TSkipPersistentSet(LSkip skip, bool persistent) => skip.LSkipPersistentSet(persistent);
 
-    internal static LSLoupe TLoupeCreate() => new();
+    internal static LSLoupe TLoupeCreate() =>
+        TInterfaceViewer.TViewerCreate().LViewerMedia.QViewerLoupe.LViewerLoupeCreate();
     internal static void TLoupePlayingAttach(LSLoupe loupe, Action<bool> handler) =>
         loupe.LSLoupePlayingChanged += handler;
     internal static void TLoupePlayingSet(LSLoupe loupe, bool playing) => loupe.LSLoupePlayingSet(playing);
     internal static void TLoupeEndSet(LSLoupe loupe, bool ended) => loupe.LSLoupeEndSet(ended);
     internal static void TLoupeClose(LSLoupe loupe) => loupe.LSLoupeClose();
     internal static bool TLoupeResumeCheck(LSLoupe loupe) => loupe.LSLoupeResumeCheck();
-    internal static void TLoupeViewerAttach(LSLoupe loupe, LViewer viewer) => loupe.LSLoupeViewerAttach(viewer);
+    internal static LSLoupe TLoupeViewerCreate(LViewer viewer)
+    {
+        var loupe = viewer.LViewerMedia.QViewerLoupe.LViewerLoupeCreate();
+        loupe.LSLoupeViewerAttach();
+        return loupe;
+    }
     internal static void TLoupeDetach(LSLoupe loupe) => loupe.LSLoupeDetach();
     internal static Task TLoupeStart(LSLoupe loupe) => loupe.LSLoupeStart();
     internal static void TLoupePlayToggle(LSLoupe loupe) => loupe.LSLoupePlayToggle();
@@ -226,8 +235,9 @@ internal static partial class TInterface
     internal static int TGroupInsertResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
         LGroupDrag.LGroupInsertResolve(y, tops, heights);
 
-    internal static LPresetSelection TPresetSelectionCreate(string name) => new(name);
-    internal static LExport TExportCreate(LPresetSelection selection, bool smart) => new(selection, smart);
+    internal static LPresetSelection TPresetSelectionCreate(string name) => new(name, string.Empty);
+    internal static LExport TExportCreate(LPresetSelection selection, string key) =>
+        new(TAtelierCreate().CAtelierUsher, selection, new QWorkspaceKey(key));
     internal static void TExportAttach(LExport export, Action handler) => export.LExportPresetsChanged += handler;
     internal static void TExportOwnerAttach(LExport export) => export.LExportAttach();
     internal static void TExportSelect(LExport export, string name) => export.LExportSelect(name);
@@ -235,15 +245,16 @@ internal static partial class TInterface
     internal static void TExportEditCancel(LExport export) => export.LExportEditCancel();
     internal static bool TExportNameCommit(LExport export, string oldName, string newName) =>
         export.LExportNameCommit(oldName, newName);
-    internal static void TExportDragStart(LExport export, string name) => export.LExportDragStart(name);
+    internal static void TExportDragStart(LExport export, string name) => export.LExportDragStart(name, 0, 0);
     internal static bool TExportDragMove(LExport export) => export.LExportDragMove();
     internal static bool TExportDragClear(LExport export) => export.LExportDragClear();
     internal static void TExportSync(LExport export) => export.LExportSync();
 
-    internal static CAtelier TAtelierCreate() => new(new LUsherOutlet());
+    internal static CAtelier TAtelierCreate() => new(new LUsherOutlet(), new LLineageOutlet());
     internal static LStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
-        new(TAtelierCreate().CAtelierUsher, title, number);
-    internal static LStripTab TStripTabCreate(string key) => new(key);
+        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, title, number);
+    internal static LStripTab TStripTabCreate(string key) =>
+        new(key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage);
     internal static void TStripSelectAttach(LStrip strip, Action<LStripTab?> handler) =>
         strip.LStripSelectChanged += handler;
     internal static void TStripTabAttach(LStrip strip, Action<LStripTab> handler) => strip.LStripTabChanged += handler;
@@ -309,7 +320,9 @@ internal static partial class TInterface
     internal static void TAskDetach(Action<LAsk, Action<bool>> handler) => LAskNotice.LAskRaised -= handler;
     internal static void TAskPublish(LAsk? ask, Action<bool> answer) => LAskNotice.LAskPublish(ask, answer);
 
-    internal static LProgram TProgramCreate() => new(TAtelierCreate());
+    internal static LProgram TProgramCreate() => new(
+        Interface.TInterface.TInterfaceEngine.LEngineSchedule,
+        Interface.TInterface.TInterfaceEngine.LEngineStationAttach);
     internal static bool TProgramDepotApply(LProgram program) => program.LProgramDepotApply();
     internal static string? TProgramDepotRead(LProgram program) => program.LProgramDepotRoot;
     internal static bool TProgramLanguageNormalize() => LProgram.LProgramLanguageNormalize();

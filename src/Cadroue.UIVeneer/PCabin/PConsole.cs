@@ -31,7 +31,7 @@ public sealed class PConsole : UserControl
         };
 
     private readonly IReadOnlyDictionary<bool, Action<double>> pConsoleProgressWrites;
-    private readonly IReadOnlyDictionary<bool, UIElement?> pConsoleSceneContents;
+    private IReadOnlyDictionary<bool, UIElement?> pConsoleSceneContents = null!;
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
@@ -48,7 +48,8 @@ public sealed class PConsole : UserControl
     private readonly Button pConsoleClearButton;
     private readonly Button pConsoleEmptyButton;
     private readonly Button pConsoleTabsButton;
-    private readonly PConsoleScene pConsoleScene;
+    private PConsoleScene pConsoleScene = null!;
+    private LConsole lConsole = null!;
     private readonly ContentControl pConsoleSceneHost;
     private readonly Border pConsoleSceneSeparator;
 
@@ -84,13 +85,7 @@ public sealed class PConsole : UserControl
         pConsoleTabsButton = PConsoleControl.PConsoleButtonBuild(
             "ClearTabs", "PConsoleClearTabs.svg", PRosterTheme.PRosterTextBrush, PConsoleTabsHandle);
         pConsoleAutoBox = PConsoleControl.PConsoleAutoBuild(PConsoleAutoHandle);
-        pConsoleScene = new PConsoleScene(LConsole.LConsoleScene);
-        pConsoleSceneHost = new ContentControl { Content = pConsoleScene };
-        pConsoleSceneContents = new Dictionary<bool, UIElement?>
-        {
-            [true] = pConsoleScene,
-            [false] = null,
-        };
+        pConsoleSceneHost = new ContentControl();
         pConsoleSceneSeparator = PConsoleControl.PConsoleSeparatorBuild();
         pConsolePreviousButton = PConsoleControl.PConsoleSwitchBuild(
             "PConsolePrevious.svg",
@@ -102,19 +97,29 @@ public sealed class PConsole : UserControl
             PConsoleNextHandle);
 
         Content = PConsoleBuild();
-        LConsole.LConsoleStatusApplied += PConsoleStatusApply;
-        LConsole.LConsoleProgressApplied += PConsoleProgressApply;
-        LConsole.LConsoleUpdateDeferred += PConsoleUpdateDefer;
-        LConsole.LConsoleWarningShown += PConsoleWarningShow;
-        LConsole.LConsoleStation.LConsoleWatchChanged += PConsoleWatchHandle;
-        LConsole.LConsoleStation.LConsoleWatchStart();
-        Unloaded += PConsoleUnloadHandle;
-
-        LConsole.LConsoleUpdate();
-        Dispatcher.BeginInvoke(new Action(LConsole.LConsoleScheduleLoad));
     }
 
-    public LConsole LConsole { get; } = new();
+    public void PConsoleAttach(LConsole lConsoleOwner)
+    {
+        lConsole = lConsoleOwner;
+        pConsoleScene = new PConsoleScene(lConsole.LConsoleScene);
+        pConsoleSceneHost.Content = pConsoleScene;
+        pConsoleSceneContents = new Dictionary<bool, UIElement?>
+        {
+            [true] = pConsoleScene,
+            [false] = null,
+        };
+        lConsole.LConsoleStatusApplied += PConsoleStatusApply;
+        lConsole.LConsoleProgressApplied += PConsoleProgressApply;
+        lConsole.LConsoleUpdateDeferred += PConsoleUpdateDefer;
+        lConsole.LConsoleWarningShown += PConsoleWarningShow;
+        lConsole.LConsoleStation.LConsoleWatchChanged += PConsoleWatchHandle;
+        lConsole.LConsoleStation.LConsoleWatchStart();
+        Unloaded += PConsoleUnloadHandle;
+
+        lConsole.LConsoleUpdate();
+        Dispatcher.BeginInvoke(new Action(lConsole.LConsoleScheduleLoad));
+    }
 
     public PConsoleScene PConsoleSceneRead() => pConsoleScene;
 
@@ -124,42 +129,42 @@ public sealed class PConsole : UserControl
         pConsoleSceneSeparator.Visibility = PLook.PLookVisible[pShown];
     }
 
-    private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleStart();
+    private void PConsoleStartHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleStart();
 
-    private void PConsolePauseHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsolePause();
+    private void PConsolePauseHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsolePause();
 
-    private void PConsoleCancelHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleCancel();
+    private void PConsoleCancelHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleCancel();
 
-    private void PConsoleStopHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleStop();
+    private void PConsoleStopHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleStop();
 
-    private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleRemove();
+    private void PConsoleRemoveHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleRemove();
 
-    private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleDoneClear();
+    private void PConsoleDoneHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleDoneClear();
 
-    private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleAllClear();
+    private void PConsoleAllHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleAllClear();
 
-    private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments) => LConsole.LConsoleTabsClear();
+    private void PConsoleTabsHandle(object pSender, RoutedEventArgs pArguments) => lConsole.LConsoleTabsClear();
 
     private void PConsoleAutoHandle(object pSender, RoutedEventArgs pArguments) =>
-        LConsole.LConsoleAutoSet(pConsoleAutoBox.IsChecked);
+        lConsole.LConsoleAutoSet(pConsoleAutoBox.IsChecked);
 
     private void PConsolePreviousHandle(object pSender, RoutedEventArgs pArguments) =>
-        LConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepBack);
+        lConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepBack);
 
     private void PConsoleNextHandle(object pSender, RoutedEventArgs pArguments) =>
-        LConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepForward);
+        lConsole.LConsoleStation.LConsoleStationMove(LConsoleStation.LConsoleStepForward);
 
-    private void PConsoleWatchHandle() => Dispatcher.BeginInvoke(new Action(LConsole.LConsoleScheduleLoad));
+    private void PConsoleWatchHandle() => Dispatcher.BeginInvoke(new Action(lConsole.LConsoleScheduleLoad));
 
     private void PConsoleUpdateDefer() =>
-        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(LConsole.LConsoleUpdate));
+        Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(lConsole.LConsoleUpdate));
 
     private void PConsoleWarningShow(string pTitle, string pMessage) =>
         PSWarning.PSWarningShow(Window.GetWindow(this), pTitle, pMessage);
 
     private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments)
     {
-        LConsole.LConsoleClose();
+        lConsole.LConsoleClose();
         Unloaded -= PConsoleUnloadHandle;
     }
 

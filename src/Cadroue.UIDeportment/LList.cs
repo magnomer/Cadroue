@@ -8,7 +8,7 @@ namespace Cadroue.UIDeportment;
 public sealed class LList
 {
     private readonly CUsher lListUsher;
-    private readonly LDocket lListDocket;
+    private readonly LDocket lListDocket = new();
     private readonly HashSet<string> lListSelected = new(StringComparer.OrdinalIgnoreCase);
     private readonly CancellationTokenSource lListScanSource = new();
     private string? lListPathCurrent;
@@ -24,10 +24,9 @@ public sealed class LList
     public event Action<IReadOnlyList<LDocketEntry>>? LListItemsAdded;
     public event Action<bool>? LListLockChanged;
 
-    public LList(LStrip lStrip, LDocket lListOwner)
+    public LList(CUsher lUsher)
     {
-        lListUsher = lStrip.LStripUsher;
-        lListDocket = lListOwner;
+        lListUsher = lUsher;
         LListDrag = new LListDrag(this);
         LListFace = new LListFace(this, lListUsher);
         lListDocket.LDocketChanged += LListDocketHandle;

@@ -43,9 +43,9 @@ public sealed class PFlow : UserControl
 
     public LFlow LFlow { get; }
 
-    public PFlow(LStrip lStrip)
+    public PFlow(LFlow lFlow)
     {
-        LFlow = new LFlow(lStrip);
+        LFlow = lFlow;
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         MinHeight = LDivider.LDividerMinimum;
         pFlowLosslesscutShows = new Dictionary<LFlowLosslesscutKind, Action<LFlowLosslesscutPrompt, Action<int>>>
@@ -55,9 +55,9 @@ public sealed class PFlow : UserControl
             [LFlowLosslesscutKind.LFlowKindNotice] = PFlowNoticeShow,
             [LFlowLosslesscutKind.LFlowKindWarning] = PFlowWarningShow,
         };
-        pViewfinder = new PViewfinder(LFlow);
-        pMap = new PMap(LFlow);
-        pDivider = new PDivider(this);
+        pViewfinder = new PViewfinder(LFlow.LFlowViewfinder);
+        pMap = new PMap(LFlow.LFlowMap);
+        pDivider = new PDivider(this, LFlow.LFlowDivider);
         pFlowName = new PFlowName(LFlow, pViewfinder);
         LFlow.LFlowPaletteApply(LSection.LSectionCountRead());
         LFlow.LFlowAttachApplied += PFlowLabelsApply;

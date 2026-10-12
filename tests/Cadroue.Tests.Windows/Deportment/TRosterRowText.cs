@@ -85,14 +85,19 @@ public sealed class TRosterRowText
     {
         using var schedule = new TSchedule();
         Guid batch = Guid.NewGuid();
-        LWorkItem work = schedule.TWorkCreate(batch, "one", LWorkPriority.LWorkPriorityHigh).TWorkItem;
+        TScheduleWork created = schedule.TWorkCreate(batch, "one", LWorkPriority.LWorkPriorityHigh);
+        LWorkItem work = created.TWorkItem;
         work.LWorkStateCurrent = LWorkState.LWorkStateDone;
         work.LWorkSourceBytes = 200;
         work.LWorkOutputBytes = 100;
-        LLineageEntry lineage = Assert.Single(TInterfaceRoster.TLineageRead([work], _ => batch));
-
+        schedule.TScheduleAdd(created);
         LRosterRow row = TInterfaceRoster.TRosterRowCreate(
-            work, lineage, false, true, true, LRosterRow.LRosterShadeStage);
+            TInterfaceRoster.TRosterLineageRead(schedule.TScheduleRead(), [work]),
+            work,
+            false,
+            true,
+            true,
+            LRosterRow.LRosterShadeStage);
 
         Assert.Equal(work.LWorkId, row.LRosterRowId);
         Assert.Equal("Done", row.LRosterRowKey);

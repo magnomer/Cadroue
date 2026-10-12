@@ -6,8 +6,7 @@ public sealed class LFunnelDrag
     private LFunnelRule? lFunnelDragRule;
     private double lFunnelDragX;
     private double lFunnelDragY;
-    private double lFunnelOffsetX;
-    private double lFunnelOffsetY;
+    private LGhost lFunnelGhost = new(0, 0);
     private bool lFunnelDragActive;
 
     public LFunnelDrag(LFunnel lOwner)
@@ -19,17 +18,14 @@ public sealed class LFunnelDrag
 
     public bool LFunnelDragActive => lFunnelDragActive;
 
-    public double LFunnelOffsetX => lFunnelOffsetX;
-
-    public double LFunnelOffsetY => lFunnelOffsetY;
+    public LGhost LFunnelGhost => lFunnelGhost;
 
     public void LFunnelPressHandle(LFunnelRule lRule, double lX, double lY, double lOffsetX, double lOffsetY)
     {
         lFunnelDragRule = lRule;
         lFunnelDragX = lX;
         lFunnelDragY = lY;
-        lFunnelOffsetX = lOffsetX;
-        lFunnelOffsetY = lOffsetY;
+        lFunnelGhost = new LGhost(lOffsetX, lOffsetY);
         lFunnelDragActive = false;
     }
 

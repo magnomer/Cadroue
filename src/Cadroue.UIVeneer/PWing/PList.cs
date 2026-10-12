@@ -32,9 +32,9 @@ public sealed class PList : PPanel
 
     public LList LList { get; }
 
-    public PList(LStrip lStrip, LDocket pListOwner) : base("")
+    public PList(LList lList) : base("")
     {
-        LList = new LList(lStrip, pListOwner);
+        LList = lList;
         pListRowPanel = new StackPanel();
 
         pListEmptyNotice = new TextBlock

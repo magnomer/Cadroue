@@ -13,30 +13,20 @@ public sealed class PConvertTab : PTabSurface
     private readonly PList pList;
     private readonly System.Windows.Controls.Grid pTabGrid;
 
-    public PConvertTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PConvertTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lStrip);
-        pViewer = new PViewer(lStrip);
-        pList = new PList(lStrip, new LDocket());
-        LConvertTab = new LConvertTab(lPresetOwner, pList.LList, pList.LList.LListDocket);
-        var pAction = new PAction();
-        PTabAction = pAction;
-        LAction lAction = pAction.LAction;
-        lAction.LActionExecuted += lPriority =>
-            LConvertTab.LConvertRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdded += () =>
-            LConvertTab.LConvertAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdded += pConvertPaths =>
-            LConvertTab.LConvertItemsRun(pConvertPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        pAction.PActionListAttach(pList);
+        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
+        pList = new PList(lWorkspace.LWorkspaceList!);
+        LConvertTab = lWorkspace.QWorkspaceMode.LConvertTabCreate();
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
         LConvertTab.LConvertPresetMissing += PExport.PExportMissingShow;
-        pList.LList.LListPathChanged += pViewer.LViewer.LViewerPathHandle;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-        var pExport = new PExport(lPresetOwner);
+        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
+            lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pViewer, pExport },
-            new PCompass(pFlow, pViewer),
+            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);

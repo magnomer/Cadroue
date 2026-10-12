@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -10,23 +11,23 @@ public sealed class LMergeTab
     private readonly LPresetSelection lMergePreset;
     private readonly LDocket lMergeDocket;
 
-    public LMergeTab(LStrip lStrip, LPresetSelection lPreset, LDocket lDocket, LSceneTabEntry? lLayout)
+    public LMergeTab(CUsher lUsher, LPresetSelection lPreset, LViewer lViewer, LList lList)
     {
         lMergePreset = lPreset;
-        lMergeDocket = lDocket;
-        LMergeSelection = new LGroupSelection(
-            lLayout?.LSceneGroupAuto ?? false,
-            lLayout?.LSceneGroupStrict ?? true,
-            lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
-        LMergeGroup = new LGroup(lStrip.LStripUsher, LMergeSelection);
+        lMergeDocket = lList.LListDocket;
+        LMergeGroup = new LGroup(lUsher, LMergeSelection);
         LMergeGroup.LGroupSourceAttach(LMergePathsRead);
-        lDocket.LDocketChanged += LMergeDocketHandle;
-        lDocket.LDocketRemoved += LMergeGroup.LGroupPathsRemove;
+        lMergeDocket.LDocketChanged += LMergeDocketHandle;
+        lMergeDocket.LDocketRemoved += LMergeGroup.LGroupPathsRemove;
+        lList.LListPathChanged += lViewer.LViewerPathHandle;
+        LMergeGroup.LGroupDrag.LGroupItemOpened += lViewer.LViewerPathHandle;
+        LMergeGroup.LGroupDrag.LGroupPathsRequest += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public event Action? LMergePresetMissing;
 
-    public LGroupSelection LMergeSelection { get; }
+    public LGroupSelection LMergeSelection { get; } = new();
 
     public LGroup LMergeGroup { get; }
 
@@ -42,6 +43,13 @@ public sealed class LMergeTab
         lLayout.LSceneGroupStrict = LMergeSelection.LGroupStrict;
         lLayout.LSceneGroupMode = LMergeSelection.LGroupNameMode;
         return lLayout;
+    }
+
+    public void LMergeLayoutApply(LSceneTabEntry? lLayout)
+    {
+        LMergeSelection.LGroupAutoChange(lLayout?.LSceneGroupAuto ?? false);
+        LMergeSelection.LGroupStrictChange(lLayout?.LSceneGroupStrict ?? true);
+        LMergeSelection.LGroupModeChange(lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
     }
 
     public void LMergeRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)

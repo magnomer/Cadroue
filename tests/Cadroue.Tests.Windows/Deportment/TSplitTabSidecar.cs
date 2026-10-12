@@ -14,17 +14,12 @@ public sealed class TSplitTabSidecar
 
     private static (LSplitTab, LInspector, LViewer, LDocket) TSplitBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
         LSplitTab tab = TInterface.TSplitTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            viewer,
-            TInterfaceList.TListCreate(docket),
-            docket,
-            TInterface.TProcessingCreate(),
-            TInterface.TFlowCreate());
+            TInterface.TPresetSelectionCreate("Alpha"), viewer, list, TInterface.TFlowCreate());
+        LInspector inspector = TInterface.TSplitInspectorRead(tab);
         return (tab, inspector, viewer, docket);
     }
 

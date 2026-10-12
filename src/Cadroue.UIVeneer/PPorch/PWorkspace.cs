@@ -15,24 +15,24 @@ namespace Cadroue.UIVeneer.PPorch;
 
 public sealed class PWorkspace
 {
-    private static readonly IReadOnlyDictionary<string, Func<LStrip, LPresetSelection, LSceneTabEntry?, PTabSurface>>
-        pWorkspaceSurfaces = new Dictionary<string, Func<LStrip, LPresetSelection, LSceneTabEntry?, PTabSurface>>
+    private static readonly IReadOnlyDictionary<string, Func<LWorkspace, LSceneTabEntry?, PTabSurface>>
+        pWorkspaceSurfaces = new Dictionary<string, Func<LWorkspace, LSceneTabEntry?, PTabSurface>>
         {
-            ["Split"] = (lStrip, lOwner, lLayout) => new PSplitTab(lStrip, lOwner, lLayout),
-            ["Edit"] = (lStrip, lOwner, lLayout) => new PEditTab(lStrip, lOwner, lLayout),
-            ["Fix"] = (lStrip, lOwner, lLayout) => new PFixTab(lStrip, lOwner, lLayout),
-            ["Audio"] = (lStrip, lOwner, lLayout) => new PAudioTab(lStrip, lOwner, lLayout),
-            ["Convert"] = (lStrip, lOwner, lLayout) => new PConvertTab(lStrip, lOwner, lLayout),
-            ["Merge"] = (lStrip, lOwner, lLayout) => new PMergeTab(lStrip, lOwner, lLayout),
-            ["Funnel"] = (lStrip, _, lLayout) => new PFunnelTab(lStrip, lLayout),
-            ["Worklist"] = (lStrip, _, lLayout) => new PWorklistTab(lStrip, lLayout),
+            ["Split"] = (lWorkspace, lLayout) => new PSplitTab(lWorkspace, lLayout),
+            ["Edit"] = (lWorkspace, lLayout) => new PEditTab(lWorkspace, lLayout),
+            ["Fix"] = (lWorkspace, lLayout) => new PFixTab(lWorkspace, lLayout),
+            ["Audio"] = (lWorkspace, lLayout) => new PAudioTab(lWorkspace, lLayout),
+            ["Convert"] = (lWorkspace, lLayout) => new PConvertTab(lWorkspace, lLayout),
+            ["Merge"] = (lWorkspace, lLayout) => new PMergeTab(lWorkspace, lLayout),
+            ["Funnel"] = (lWorkspace, lLayout) => new PFunnelTab(lWorkspace, lLayout),
+            ["Worklist"] = (lWorkspace, lLayout) => new PWorklistTab(lWorkspace.LWorkspaceRoster!, lLayout),
         };
 
-    private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, LStrip, FrameworkElement>> pWorkspaceRoots =
-        new Dictionary<bool, Func<PWorkspace, LStrip, FrameworkElement>>
+    private static readonly IReadOnlyDictionary<bool, Func<PWorkspace, FrameworkElement>> pWorkspaceRoots =
+        new Dictionary<bool, Func<PWorkspace, FrameworkElement>>
         {
             [true] = PWorkspaceGridBuild,
-            [false] = (pWorkspace, _) => pWorkspace.PWorkspaceSurface,
+            [false] = pWorkspace => pWorkspace.PWorkspaceSurface,
         };
 
     private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspacePairCloses =
@@ -42,36 +42,18 @@ public sealed class PWorkspace
             [false] = pWorkspace => { },
         };
 
-    private static readonly IReadOnlyDictionary<bool, Action<PWorkspace>> pWorkspaceLists =
-        new Dictionary<bool, Action<PWorkspace>>
-        {
-            [true] = PWorkspaceListAttach,
-            [false] = pWorkspace => { },
-        };
-
     public PWorkspace(
         LStrip lStrip,
         LStripTab lStripTab,
-        LPreset? lExportSpecificState = null,
         LSceneTabEntry? lPreferenceTabLayout = null)
     {
         PWorkspaceTab = lStripTab;
-        LWorkspace = new LWorkspace(lStripTab.LStripTabKey, lExportSpecificState);
-        lStripTab.LStripWorkspaceAttach(LWorkspace);
-        PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.LStripTabKey](
-            lStrip, LWorkspace.LWorkspacePresetOwner, lPreferenceTabLayout);
+        LWorkspace = lStripTab.LStripTabWorkspace;
+        PWorkspaceSurface = pWorkspaceSurfaces[lStripTab.LStripTabKey](LWorkspace, lPreferenceTabLayout);
         PWorkspaceFlow = PWorkspaceSurface.PTabFlow;
         PWorkspaceViewer = PWorkspaceSurface.PTabViewer;
         PWorkspaceList = PWorkspaceSurface.PTabList;
-        PWorkspaceViewer?.LViewer.LViewerAllowSet(LWorkspace.QWorkspaceKey.LWorkspaceAudioOnly);
-        LWorkspace.LWorkspaceAttach(
-            PWorkspaceList?.LList.LListDocket,
-            PWorkspaceFlow?.LFlow.LFlowSection.LFlowSegment,
-            PWorkspaceFlow?.LFlow,
-            PWorkspaceViewer?.LViewer,
-            PWorkspaceSurface.PTabStation,
-            PWorkspaceSurface.PTabLayoutRead);
-        PWorkspaceSurface.PTabAction?.LAction.LActionRelayAttach(lStrip, lStripTab);
+        LWorkspace.LWorkspaceAttach(PWorkspaceSurface.PTabLayoutRead);
         PWorkspaceSurface.PTabStripAttach(lStrip, lStripTab);
         LWorkspace.LWorkspaceFlowAttached += PWorkspaceFlowAttach;
         LWorkspace.LWorkspaceFlowCleared += PWorkspaceFlowClear;
@@ -84,9 +66,8 @@ public sealed class PWorkspace
         LWorkspace.LWorkspacePathsAdded += PWorkspacePathsAdd;
         LWorkspace.LWorkspaceSourceSelected += PWorkspaceSourceSelect;
         LWorkspace.LWorkspaceSourceOpened += PWorkspaceSourceOpen;
-        pWorkspaceLists[LWorkspace.LWorkspaceListPresent](this);
         PWorkspaceSurface.PTabWidthChanged += PWorkspaceWidthRaise;
-        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.QWorkspaceKey.LWorkspaceSourcePresent](this, lStrip);
+        PWorkspaceRoot = pWorkspaceRoots[LWorkspace.QWorkspaceKey.LWorkspaceSourcePresent](this);
     }
 
     public LStripTab PWorkspaceTab { get; }
@@ -165,13 +146,6 @@ public sealed class PWorkspace
         PWorkspaceStepRun("viewer", pWorkspace.PWorkspaceViewer!.PViewerClose);
     }
 
-    private static void PWorkspaceListAttach(PWorkspace pWorkspace)
-    {
-        LList lList = pWorkspace.PWorkspaceList!.LList;
-        lList.LListPathChanged += pWorkspace.LWorkspace.LWorkspacePathHandle;
-        lList.LListClearChanged += pWorkspace.LWorkspace.LWorkspaceRemovedHandle;
-    }
-
     private static void PWorkspaceStepRun(string pStepName, Action pStep)
     {
         try
@@ -226,12 +200,10 @@ public sealed class PWorkspace
 
     private void PWorkspaceSourceOpen(string lPath) => PWorkspaceViewer?.LViewer.LViewerSource.LViewerSourceOpen(lPath);
 
-    private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace, LStrip lStrip)
+    private static FrameworkElement PWorkspaceGridBuild(PWorkspace pWorkspace)
     {
-        LViewer lViewer = pWorkspace.PWorkspaceViewer!.LViewer;
-        var pSource = new PSource(
-            new LSource(lStrip, lViewer, pWorkspace.LWorkspace.QWorkspaceKey.LWorkspaceAudioOnly));
-        var pInfo = new PInfo(new LInfo(lViewer));
+        var pSource = new PSource(pWorkspace.LWorkspace.LWorkspaceSource!);
+        var pInfo = new PInfo(pWorkspace.LWorkspace.LWorkspaceInfo!);
         var pRoot = new Grid
         {
             ClipToBounds = true,

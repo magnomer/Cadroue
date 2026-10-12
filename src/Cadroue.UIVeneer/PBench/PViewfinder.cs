@@ -59,9 +59,9 @@ public sealed class PViewfinder : FrameworkElement
 
     public LViewfinder LViewfinder { get; }
 
-    public PViewfinder(LFlow lFlow)
+    public PViewfinder(LViewfinder lViewfinder)
     {
-        LViewfinder = new LViewfinder(lFlow);
+        LViewfinder = lViewfinder;
         LViewfinder.LViewfinderFrameApplied += InvalidateVisual;
     }
 

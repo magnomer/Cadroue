@@ -17,7 +17,7 @@ public sealed class TActionFace
     {
         LStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key), TInterfaceList.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key));
         return tab;
     }
 
@@ -43,7 +43,7 @@ public sealed class TActionFace
         TInterface.TActionRelayAttach(action, strip, source);
 
         Assert.Same(action, source.LStripTabAction);
-        Assert.Equal(source.LStripTabId, action.LActionSourceTab);
+        Assert.Equal(source.LStripTabId, TInterface.TActionRouteRead(action).TActionSource);
         Assert.False(TInterface.TStripRelayCheck(source));
 
         TInterface.TActionAutoSet(action, true);
@@ -67,7 +67,7 @@ public sealed class TActionFace
 
         TInterface.TActionRelaySelect(action, target.LStripTabId);
 
-        Assert.Equal(target.LStripTabId, action.LActionRelayTarget);
+        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
         Assert.True(action.LActionFaceShown);
         Assert.Equal("Edit", action.LActionFaceIcon);
         Assert.Equal(target.LStripTabTitle, action.LActionFaceText);
@@ -77,10 +77,10 @@ public sealed class TActionFace
         Assert.Equal(1, faces);
 
         TInterface.TActionRelaySelect(action, source.LStripTabId);
-        Assert.Equal(target.LStripTabId, action.LActionRelayTarget);
+        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
 
         TInterface.TActionRelaySelect(action, LCartographer.LCartographerFinishTarget);
-        Assert.Equal(LCartographer.LCartographerFinishTarget, action.LActionRelayTarget);
+        Assert.Equal(LCartographer.LCartographerFinishTarget, TInterface.TActionRouteRead(action).TActionTarget);
         Assert.False(action.LActionFaceShown);
     }
 
@@ -94,7 +94,7 @@ public sealed class TActionFace
 
         TInterface.TActionRelayApply(action, Guid.NewGuid());
 
-        Assert.Equal(Guid.Empty, action.LActionRelayTarget);
+        Assert.Equal(Guid.Empty, TInterface.TActionRouteRead(action).TActionTarget);
         Assert.False(action.LActionFaceShown);
     }
 
@@ -151,9 +151,9 @@ public sealed class TActionFace
     [Fact]
     public void ListRun_WithSelection_SendsItems()
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
         TInterfaceList.TDocketPathsAdd(docket, @"C:\media\a.mp4", @"C:\media\b.mp4");
-        LList list = TInterfaceList.TListCreate(docket);
         TInterfaceList.TListPressSelect(list, @"C:\media\b.mp4", false, false);
         LAction action = TInterface.TActionCreate();
         TInterface.TActionListAttach(action, list);

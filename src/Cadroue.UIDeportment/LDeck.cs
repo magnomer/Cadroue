@@ -5,7 +5,7 @@ public sealed class LDeck
     private readonly LStrip lStrip;
     private LStripTab? lDeckShown;
 
-    public LDeck(LStrip lStripOwner)
+    internal LDeck(LStrip lStripOwner)
     {
         lStrip = lStripOwner;
         lStrip.LStripSelectChanged += LDeckSelectHandle;

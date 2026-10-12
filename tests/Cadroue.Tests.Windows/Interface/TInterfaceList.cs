@@ -10,7 +10,7 @@ internal static class TInterfaceList
     internal static LDocket TDocketCreate() => new();
     internal static int TDocketPathsAdd(LDocket docket, params string[] paths) => docket.LDocketPathsAdd(paths);
     internal static int TDocketPathsRemove(LDocket docket, params string[] paths) => docket.LDocketPathsRemove(paths);
-    internal static LList TListCreate(LDocket docket) => new(new LStrip(TInterface.TProgramCreate()), docket);
+    internal static LList TListCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
     internal static void TListPathAttach(LList list, Action<string?> handler) => list.LListPathChanged += handler;
     internal static void TListSelect(LList list, string? path) => list.LListSelect(path);
     internal static void TListPressSelect(LList list, string path, bool shift, bool control) =>
@@ -49,7 +49,8 @@ internal static class TInterfaceList
 
     internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
 
-    internal static void TListRelayAttach(LStrip strip) => LListRelay.LListRelayAttach(strip);
+    internal static void TListRelayAttach(LStrip strip) =>
+        LListRelay.LListRelayAttach(strip, TInterface.TAtelierCreate().CAtelierUsher);
     internal static bool TListDeliveredAdd(Guid tab, string path, Guid batch) =>
         LListRelay.LListDeliveredAdd(tab, path, batch);
     internal static bool TListDeliveredCommit(Guid tab, string path, Guid batch) =>

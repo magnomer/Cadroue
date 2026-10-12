@@ -22,7 +22,7 @@ public sealed class TRailDrag
         LStrip strip = TStripBuild();
         LStripTab first = TStripTabAdd(strip, "Split");
         LStripTab second = TStripTabAdd(strip, "Edit");
-        LRail rail = TInterface.TRailCreate(strip);
+        LRail rail = TInterface.TRailRead(strip);
 
         Assert.True(TInterface.TRailPressHandle(rail, second, 1, false, 100, 20, 5, 5));
         Assert.Same(second, strip.LStripSelected);
@@ -50,7 +50,7 @@ public sealed class TRailDrag
     {
         LStrip strip = TStripBuild();
         LStripTab tab = TStripTabAdd(strip, "Split");
-        LRail rail = TInterface.TRailCreate(strip);
+        LRail rail = TInterface.TRailRead(strip);
 
         Assert.False(TInterface.TRailPressHandle(rail, tab, 2, true, 0, 0, 0, 0));
         Assert.True(tab.LStripTabEditing);
@@ -74,7 +74,7 @@ public sealed class TRailDrag
     {
         LStrip strip = TStripBuild();
         LStripTab tab = TStripTabAdd(strip, "Split");
-        LRail rail = TInterface.TRailCreate(strip);
+        LRail rail = TInterface.TRailRead(strip);
 
         TInterface.TRailOutsideHandle(rail, tab, false, "Skipped");
         Assert.Equal("Split", tab.LStripTabTitle);

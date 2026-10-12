@@ -10,15 +10,11 @@ public interface LUsherPort
 
     string LUsherStemRead(string lPath);
 
-    string LUsherExtensionRead(string lPath);
-
     string LUsherProgramResolve(string lName);
 
-    string LUsherPathResolve(string lPath);
+    string? LUsherPathOpen(string lPath, string? lFallback, string? lFailure);
 
-    string? LUsherPathOpen(string lPath, string lLabel, string? lFallback);
+    string? LUsherFolderOpen(string lFolder);
 
-    string? LUsherFolderOpen(string lFolder, string lLabel);
-
-    string? LUsherLinkOpen(string lTarget, string lLabel);
+    string? LUsherLinkOpen(string lTarget, string? lFailure);
 }

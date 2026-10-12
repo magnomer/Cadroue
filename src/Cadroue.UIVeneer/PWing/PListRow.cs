@@ -140,11 +140,10 @@ public sealed class PListRow
     private void PListDragRun()
     {
         var pDragData = new DataObject(PList.PListDragKind, lList.LListDrag.LListDragPaths.ToArray());
-        var pGrabOffset = new Point(lList.LListDrag.LListGrabX, lList.LListDrag.LListGrabY);
         PListRowBorder.ReleaseMouseCapture();
         PGhost.PGhostDragRun(
             PListRowBorder,
-            pGrabOffset,
+            lList.LListDrag.LListGhost,
             () => DragDrop.DoDragDrop(PListRowBorder, pDragData, DragDropEffects.Copy));
     }
 

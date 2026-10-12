@@ -9,11 +9,12 @@ namespace Cadroue.UIVeneer.PBench;
 internal sealed class PDivider : Border
 {
     private readonly FrameworkElement pDividerHost;
-    private readonly LDivider lDivider = new();
+    private readonly LDivider lDivider;
 
-    public PDivider(FrameworkElement pHost)
+    public PDivider(FrameworkElement pHost, LDivider lOwner)
     {
         pDividerHost = pHost;
+        lDivider = lOwner;
         Height = 8;
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         Cursor = Cursors.SizeNS;

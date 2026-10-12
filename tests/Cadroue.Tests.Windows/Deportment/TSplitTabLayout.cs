@@ -12,22 +12,19 @@ public sealed class TSplitTabLayout
 {
     private static (LSplitTab, LInspector, LProcessing) TSplitBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LProcessing processing = TInterface.TProcessingCreate();
+        LList list = TInterfaceList.TListCreate();
+        LSplitTab tab = TInterface.TSplitTabCreate(
+            TInterface.TPresetSelectionCreate("Alpha"),
+            TInterfaceViewer.TViewerCreate(),
+            list,
+            TInterface.TFlowCreate());
+        LInspector inspector = TInterface.TSplitInspectorRead(tab);
+        LProcessing processing = TInterface.TSplitProcessingRead(tab);
         foreach (LProcessingRow row in TInterface.TSplitRowsRead())
         {
             TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
         }
 
-        LSplitTab tab = TInterface.TSplitTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            TInterfaceViewer.TViewerCreate(),
-            TInterfaceList.TListCreate(docket),
-            docket,
-            processing,
-            TInterface.TFlowCreate());
         return (tab, inspector, processing);
     }
 

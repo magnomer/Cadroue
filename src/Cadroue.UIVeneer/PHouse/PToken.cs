@@ -34,10 +34,11 @@ internal sealed class PToken : RichTextBox
         };
 
     private readonly Paragraph pTokenParagraph = new();
-    private readonly LToken lToken = new();
+    private readonly LToken lToken;
 
-    internal PToken()
+    internal PToken(LToken lTokenOwner)
     {
+        lToken = lTokenOwner;
         Background = Brushes.White;
         Foreground = PTokenTextBrush;
         BorderBrush = PLineBrush;

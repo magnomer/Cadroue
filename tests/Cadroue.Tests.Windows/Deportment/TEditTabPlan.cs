@@ -14,16 +14,11 @@ public sealed class TEditTabPlan
 
     private static (LEditTab, LInspector, LViewer, LDocket) TEditBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LEditTab tab = TInterface.TEditTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            viewer,
-            TInterfaceList.TListCreate(docket),
-            docket,
-            TInterface.TProcessingCreate());
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
+        LEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        LInspector inspector = TInterface.TEditInspectorRead(tab);
         return (tab, inspector, viewer, docket);
     }
 

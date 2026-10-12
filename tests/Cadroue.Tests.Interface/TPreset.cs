@@ -52,14 +52,14 @@ public sealed class TPreset : IDisposable
 
     internal TPresetSelectionResult TPresetSelectionChange(string current, string old, string renamed)
     {
-        LPresetSelection selection = new(current);
+        LPresetSelection selection = new(current, string.Empty);
         bool ok = selection.LPresetSelectionCommit(old, renamed);
         return new TPresetSelectionResult(ok, selection.LPresetSelectionName);
     }
 
     public string TPresetSeamChange(string current, string old, string renamed)
     {
-        LPresetSelection selection = new(current);
+        LPresetSelection selection = new(current, string.Empty);
         string nameDuringSeam = string.Empty;
         LPresetSelection.LPresetRenameSeam = (_, _, _) =>
         {

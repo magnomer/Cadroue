@@ -24,7 +24,7 @@ public sealed class TMapBands
     public void Bands_FollowSections_WithBadge_Selection_AndHidden()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
 
         IReadOnlyList<LMapBand> bands = TInterface.TMapFrameResolve(map, 600, 40).LMapFrameBands;
         Assert.Equal(2, bands.Count);
@@ -50,7 +50,7 @@ public sealed class TMapBands
     public void Badge_CentresInTheBand_AndSkipsWhenItDoesNotFit()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
         LMapBand band = TInterface.TMapFrameResolve(map, 600, 40).LMapFrameBands[0];
 
         LMapBadge badge = Assert.Single(TInterface.TMapBadgeResolve(map, band, 8, 14));

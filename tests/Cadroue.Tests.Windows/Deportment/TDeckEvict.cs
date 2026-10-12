@@ -20,7 +20,7 @@ public sealed class TDeckEvict
     public void Select_HidesPreviousAndShowsCurrent()
     {
         LStrip strip = TStripBuild();
-        LDeck deck = TInterface.TDeckCreate(strip);
+        LDeck deck = TInterface.TDeckRead(strip);
         List<string> log = [];
         TInterface.TDeckAttach(
             deck,
@@ -57,7 +57,7 @@ public sealed class TDeckEvict
     public void Close_StopsListening()
     {
         LStrip strip = TStripBuild();
-        LDeck deck = TInterface.TDeckCreate(strip);
+        LDeck deck = TInterface.TDeckRead(strip);
         int shows = 0;
         TInterface.TDeckAttach(deck, _ => { }, _ => shows++, () => { });
 

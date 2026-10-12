@@ -12,9 +12,11 @@ public sealed class LRoster
 
     private sealed record LRosterBatch(
         Guid LRosterBatchId,
-        IReadOnlyList<LLineageEntry> LRosterBatchLineages,
+        CLineageAnswer LRosterBatchAnswer,
         IReadOnlyList<LWorkItem> LRosterBatchItems);
 
+    private readonly CUsher lRosterUsher;
+    private readonly CLineage lRosterLineage;
     private readonly LScheduleContract lSchedule;
     private readonly LStation lStation;
     private readonly List<Guid> lRosterOrderedIds = [];
@@ -23,12 +25,14 @@ public sealed class LRoster
     private readonly List<LRosterBatch> lRosterBatches = [];
     private readonly List<LRosterCard> lRosterCards = [];
     private bool lRosterClosed;
+    private LColumnPlan? lRosterPlan;
     private readonly IList<LRosterEntry> lRosterEntries;
     private readonly List<int> lRosterEntryCounts = [];
 
-    public LRoster(CUsher lUsher, LScheduleContract lScheduleOwner, LStation lStationOwner)
+    public LRoster(CUsher lUsher, CLineage lLineage, LScheduleContract lScheduleOwner, LStation lStationOwner)
     {
-        LRosterUsher = lUsher;
+        lRosterUsher = lUsher;
+        lRosterLineage = lLineage;
         lSchedule = lScheduleOwner;
         lStation = lStationOwner;
         QRosterCollapse = new QRosterCollapse(LRosterCardUpdate);
@@ -44,16 +48,15 @@ public sealed class LRoster
         LRosterEntries = lEntries;
     }
 
-    public static LRoster LRosterCreate(LStrip lStrip) => new(
-        lStrip.LStripUsher,
+    public static LRoster LRosterCreate(CUsher lUsher, CLineage lLineage) => new(
+        lUsher,
+        lLineage,
         LProgram.LScheduleCurrent,
         LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist")));
 
     public event Action? LRosterDetailApplied;
 
     public event Action<string, string>? LRosterWarningShown;
-
-    public CUsher LRosterUsher { get; }
 
     public LRosterMenu LRosterMenu { get; }
 
@@ -88,10 +91,19 @@ public sealed class LRoster
         lStation.LStationClose();
     }
 
-    public LSceneTabEntry LRosterLayoutRead(IReadOnlyList<double> lWeights)
+    public string? LRosterPathOpen(string lPath) =>
+        lRosterUsher.CUsherPathOpen(lPath, failure: "Could not open '{0}': {1}");
+
+    public LColumnPlan LRosterPlanCreate(IReadOnlyList<double> lMinimumWidths, IReadOnlyList<double>? lStoredWidths)
+    {
+        lRosterPlan = new LColumnPlan(lMinimumWidths, lStoredWidths, null, -1);
+        return lRosterPlan;
+    }
+
+    public LSceneTabEntry LRosterLayoutRead()
     {
         var lLayout = new LSceneTabEntry();
-        lLayout.LScenePanelWidths.AddRange(lWeights);
+        lLayout.LScenePanelWidths.AddRange(lRosterPlan?.LColumnWeightsRead() ?? []);
         return lLayout;
     }
 
@@ -158,48 +170,39 @@ public sealed class LRoster
     public void LRosterRebuild()
     {
         LWorkItem[] lItems = lSchedule.LScheduleRecords.Where(LRosterVisibleCheck).ToArray();
-        LRosterCompletedSync(lItems);
-        IReadOnlyList<LLineageEntry> lLineages =
-            LLineage.LLineageRead(LRosterUsher, lItems, lSchedule.LScheduleLineageRead);
+        CLineageAnswer lAnswer =
+            lRosterLineage.CLineageRead(lItems.Select(lWorkItem => lWorkItem.LWorkId).ToArray());
+        LRosterCompletedSync(lAnswer.CLineageBatches);
         lRosterBatches.Clear();
-        foreach (IGrouping<Guid, LLineageEntry> lGroup in lLineages.GroupBy(lLineage => lLineage.LLineageEntryBatch))
-        {
-            LLineageEntry[] lBatchLineages = lGroup.ToArray();
-            LWorkItem[] lBatchItems = lBatchLineages.SelectMany(lLineage => lLineage.LLineageEntryItems).ToArray();
-            lRosterBatches.Add(new LRosterBatch(lGroup.Key, lBatchLineages, lBatchItems));
-        }
-
+        lRosterBatches.AddRange(lAnswer.CLineageBatches.Select(
+            lBatch => new LRosterBatch(lBatch.CLineageBatchId, lAnswer, lItems)));
         lRosterOrderedIds.Clear();
-        lRosterOrderedIds.AddRange(
-            lRosterBatches.SelectMany(lBatch => lBatch.LRosterBatchItems).Select(lWorkItem => lWorkItem.LWorkId));
+        lRosterOrderedIds.AddRange(lAnswer.CLineageBatches.SelectMany(lBatch => lBatch.CLineageBatchIds));
         lRosterPresentIds.Clear();
         lRosterPresentIds.UnionWith(lRosterOrderedIds);
         QRosterCollapse.LRosterStaleRemove(lRosterBatches.Select(lBatch => lBatch.LRosterBatchId).ToHashSet());
         LRosterCardsUpdate();
     }
 
-    private void LRosterCompletedSync(IReadOnlyList<LWorkItem> lItems)
+    private void LRosterCompletedSync(IReadOnlyList<CLineageBatch> lBatches)
     {
-        IGrouping<Guid, LWorkItem>[] lBatches = lItems.GroupBy(lWorkItem => lWorkItem.LWorkBatchId).ToArray();
-        HashSet<Guid> lPresent = lBatches.Select(lBatch => lBatch.Key).ToHashSet();
+        HashSet<Guid> lPresent = lBatches.Select(lBatch => lBatch.CLineageBatchId).ToHashSet();
         lRosterCompletedIds.RemoveWhere(lBatchId => !lPresent.Contains(lBatchId));
         bool lCollapseDone = LRosterCollapseDone;
-        foreach (IGrouping<Guid, LWorkItem> lBatch in lBatches)
+        foreach (CLineageBatch lBatch in lBatches)
         {
-            bool lCompleted = lBatch.All(lWorkItem => lWorkItem.LWorkStateCurrent is not
-                (LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning));
-            if (lCompleted)
+            if (lBatch.CLineageBatchCompleted)
             {
-                lRosterCompletedIds.Add(lBatch.Key);
+                lRosterCompletedIds.Add(lBatch.CLineageBatchId);
             }
             else
             {
-                lRosterCompletedIds.Remove(lBatch.Key);
+                lRosterCompletedIds.Remove(lBatch.CLineageBatchId);
             }
 
             if (lCollapseDone)
             {
-                QRosterCollapse.LRosterCollapseSet(lBatch.Key, lCompleted);
+                QRosterCollapse.LRosterCollapseSet(lBatch.CLineageBatchId, lBatch.CLineageBatchCompleted);
             }
         }
     }
@@ -260,9 +263,9 @@ public sealed class LRoster
     }
 
     private LRosterCard LRosterCardCreate(LRosterBatch lBatch) => LRosterCard.LRosterCardCreate(
-        LRosterUsher,
+        lRosterLineage,
         lBatch.LRosterBatchId,
-        lBatch.LRosterBatchLineages,
+        lBatch.LRosterBatchAnswer,
         lBatch.LRosterBatchItems,
         QRosterSelection.LRosterCardCheck(lBatch.LRosterBatchId),
         lRosterCompletedIds.Contains(lBatch.LRosterBatchId),
@@ -305,6 +308,16 @@ public sealed class LRoster
         lSchedule.LScheduleRecords
             .Where(lWorkItem => QRosterSelection.LRosterCardCheck(lWorkItem.LWorkBatchId))
             .ToArray();
+
+    internal CLineageStep LRosterStepRead(Guid lWorkId) =>
+        lRosterBatches
+            .SelectMany(lBatch => lBatch.LRosterBatchAnswer.CLineageSteps)
+            .First(lStep => lStep.CLineageStepId == lWorkId);
+
+    internal string LRosterTitleRead(CLineageStep lStep) =>
+        lRosterLineage.CLineageTitleRead(lStep.CLineageStepBatch, lStep.CLineageStepRelay, lStep.CLineageStepTab);
+
+    internal CLineageBatch LRosterSummaryRead() => lRosterLineage.CLineageBatchRead(QRosterSelection.LRosterCardId);
 
     private bool LRosterBatchCheck(Guid lBatchId) =>
         lRosterBatches.Exists(lBatch => lBatch.LRosterBatchId == lBatchId);

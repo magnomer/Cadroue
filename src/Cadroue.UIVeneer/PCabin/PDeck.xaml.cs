@@ -22,7 +22,7 @@ public partial class PDeck : UserControl
     public void PDeckAttach(PStrip pStripOwner)
     {
         pStrip = pStripOwner;
-        lDeck = new LDeck(pStripOwner.LStrip);
+        lDeck = pStripOwner.LStrip.LStripDeck;
         pStripOwner.LStrip.LStripTabAdded += PDeckAddHandle;
         pStripOwner.LStrip.QStripClosure.LStripTabClosed += PDeckCloseHandle;
         lDeck.LDeckHidden += PDeckHideHandle;

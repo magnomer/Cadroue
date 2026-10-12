@@ -134,8 +134,7 @@ public sealed class TFunnelRule
         LStripTab target = TInterface.TStripTabCreate("Convert");
         TInterface.TStripAdd(strip, self);
         TInterface.TStripAdd(strip, target);
-        TInterface.TStripWorkspaceAttach(
-            target, TInterface.TPresetInitialCreate("Convert"), TInterfaceList.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(target, TInterface.TPresetInitialCreate("Convert"));
         return (strip, self, target);
     }
 
@@ -186,8 +185,8 @@ public sealed class TFunnelRule
     [Fact]
     public void LayoutRoundTrip_TargetIndexAndPending_ThroughTab()
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LFunnelTab source = TInterfaceFunnel.TFunnelTabCreate(TInterfaceList.TListCreate(docket), docket);
+        LList list = TInterfaceList.TListCreate();
+        LFunnelTab source = TInterfaceFunnel.TFunnelTabCreate(TInterfaceViewer.TViewerCreate(), list);
         (LStrip strip, LStripTab self, LStripTab target) = TFunnelStripBuild();
         TInterfaceFunnel.TFunnelStripAttach(source.LFunnel, strip, self.LStripTabId);
         LFunnelRule rule = TInterfaceFunnel.TFunnelRuleAdd(source.LFunnel, LFunnelForm.LFunnelFormRegex);
@@ -195,7 +194,8 @@ public sealed class TFunnelRule
         TInterfaceFunnel.TFunnelTargetSelect(source.LFunnel, rule, 1);
 
         LSceneTabEntry layout = TInterfaceFunnel.TFunnelLayoutRead(source);
-        LFunnelTab restored = TInterfaceFunnel.TFunnelTabCreate(TInterfaceList.TListCreate(docket), docket);
+        LList restoredList = TInterfaceList.TListCreate();
+        LFunnelTab restored = TInterfaceFunnel.TFunnelTabCreate(TInterfaceViewer.TViewerCreate(), restoredList);
         TInterfaceFunnel.TFunnelLayoutApply(restored, layout);
         LFunnelRule pending = restored.LFunnel.LFunnelRules[0];
 

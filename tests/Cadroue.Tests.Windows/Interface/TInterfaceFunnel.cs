@@ -37,7 +37,7 @@ internal static class TInterfaceFunnel
         };
     internal static bool TFunnelRemainderCheck(LFunnel funnel) => funnel.LFunnelRemainderCheck();
 
-    internal static LFunnelTab TFunnelTabCreate(LList list, LDocket docket) => new(list, docket);
+    internal static LFunnelTab TFunnelTabCreate(LViewer viewer, LList list) => new(viewer, list);
     internal static void TFunnelClose(LFunnelTab tab) => tab.LFunnelClose();
     internal static void TFunnelLayoutApply(LFunnelTab tab, LSceneTabEntry? layout) => tab.LFunnelLayoutApply(layout);
     internal static LSceneTabEntry TFunnelLayoutRead(LFunnelTab tab) => tab.LFunnelLayoutRead(new LSceneTabEntry());

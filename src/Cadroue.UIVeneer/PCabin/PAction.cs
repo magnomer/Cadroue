@@ -33,8 +33,9 @@ public sealed class PAction : UserControl
     private readonly Image pActionRelayIcon;
     private readonly TextBlock pActionRelayLabel;
 
-    public PAction()
+    public PAction(LAction lAction)
     {
+        LAction = lAction;
         var pPanel = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -67,9 +68,7 @@ public sealed class PAction : UserControl
         PActionFaceUpdate();
     }
 
-    public LAction LAction { get; } = new();
-
-    public void PActionListAttach(PWing.PList pActionList) => LAction.LActionListAttach(pActionList.LList);
+    public LAction LAction { get; }
 
     public void PActionRelayHide() => pActionRelayButton.Visibility = Visibility.Collapsed;
 

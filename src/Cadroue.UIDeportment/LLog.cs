@@ -74,9 +74,9 @@ public sealed class LLog
     private long lLogSnapshot;
     private int lLogFileIndex;
 
-    public LLog(LStrip lStrip)
+    public LLog(CUsher lUsher)
     {
-        lLogUsher = lStrip.LStripUsher;
+        lLogUsher = lUsher;
     }
 
     public event Action? LLogFilesChanged;
@@ -192,7 +192,7 @@ public sealed class LLog
         List<string> lFiles = lFilesResult.LTraceReadValue;
         if (!lFilesResult.LTraceReadSuccess)
         {
-            LLogNoticeRaise("Log.Error.List", lFilesResult.LTraceReadError);
+            LLogErrorRaise("Log.Error.List", lFilesResult.LTraceReadError);
         }
 
         if (!lFiles.Contains(lCurrentPath, StringComparer.OrdinalIgnoreCase))
@@ -255,7 +255,7 @@ public sealed class LLog
 
         if (!lRead.LTraceReadSuccess)
         {
-            LLogNoticeRaise("Log.Error.Read", lRead.LTraceReadError);
+            LLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
             return;
         }
 
@@ -332,7 +332,7 @@ public sealed class LLog
         LTraceReadResult<string> lRead = LTraceWriter.LTraceFileRead(lLogFilePath);
         if (!lRead.LTraceReadSuccess)
         {
-            LLogNoticeRaise("Log.Error.Read", lRead.LTraceReadError);
+            LLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
             return;
         }
 
@@ -341,19 +341,13 @@ public sealed class LLog
 
     public void LLogFolderOpen()
     {
-        if (lLogUsher.CUsherPathOpen(lLogFilePath, "Log file", LTraceWriter.LTraceFolderRead()) is { } lError)
+        if (lLogUsher.CUsherPathOpen(lLogFilePath, LTraceWriter.LTraceFolderRead()) is { } lError)
         {
-            LLogNoticeRaise("Log.Error.Open", lError);
+            LLogErrorRaise("Log.Error.Open", lError);
         }
     }
 
-    public void LLogErrorRaise(string lMessageKey, string lDetail)
-    {
-        LTraceLog.LTraceErrorRecord($"Log could not be copied: {lDetail}");
-        LLogNoticeRaise(lMessageKey, lDetail);
-    }
-
-    private void LLogNoticeRaise(string lMessageKey, string lDetail) =>
+    public void LLogErrorRaise(string lMessageKey, string lDetail) =>
         LLogErrorShown?.Invoke(LLocalization.LLocalizationFormat(lMessageKey, lDetail));
 
     private void LLogAppendHandle(long lSequence, LTraceEntry lEntry)

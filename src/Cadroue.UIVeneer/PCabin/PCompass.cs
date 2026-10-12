@@ -42,9 +42,9 @@ public sealed class PCompass : UserControl
 
     public LCompass LCompass { get; }
 
-    public PCompass(PFlow pFlow, PViewer pViewer, bool pCompassSectionShow = false)
+    public PCompass(PFlow pFlow, PViewer pViewer, LCompass lCompass)
     {
-        LCompass = new LCompass(pFlow.LFlow, pViewer.LViewer, pCompassSectionShow);
+        LCompass = lCompass;
         pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
         pCompassVolumeText = new TextBlock
         {

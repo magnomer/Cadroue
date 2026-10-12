@@ -38,18 +38,18 @@ public partial class PToolbar : UserControl
     private static readonly IReadOnlyDictionary<string, Action<PToolbar>> pLogoActions =
         new Dictionary<string, Action<PToolbar>>
         {
-            ["Options"] = pToolbar =>
-                pToolbar.PToolbarOptionsShow(((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
+            ["Options"] = pToolbar => pToolbar.PToolbarOptionsShow(),
             ["Shortcuts"] = pToolbar => pToolbar.PToolbarShortcutShow(),
             ["Log"] = pToolbar =>
-                PLogWindow.PLogWindowShow(
-                    Window.GetWindow(pToolbar)!, ((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
+                PLogWindow.PLogWindowShow(Window.GetWindow(pToolbar)!, pToolbar.qLogoMenu!.QLogoLogCreate),
             ["About"] = pToolbar =>
-                PSAbout.PSAboutShow(Window.GetWindow(pToolbar)!, ((PWindow)Window.GetWindow(pToolbar)!).PStrip.LStrip),
+                PSAbout.PSAboutShow(Window.GetWindow(pToolbar)!, pToolbar.qLogoMenu!.QLogoAboutCreate()),
             ["Exit"] = pToolbar => Window.GetWindow(pToolbar)!.Close(),
         };
 
-    private readonly LChrome lChrome = new();
+    private LChrome lChrome = null!;
+
+    private QLogoMenu? qLogoMenu;
 
     public event Action? PToolbarOptionsApplied;
 
@@ -79,14 +79,24 @@ public partial class PToolbar : UserControl
         pSceneHost.Visibility = PLook.PLookVisible[pVertical];
     }
 
-    private void PToolbarOptionsShow(LStrip lStrip)
+    public void PToolbarLogoSet(QLogoMenu qLogoMenuOwner)
     {
-        PSOptions.PSOptionsShow(Window.GetWindow(this)!, lStrip, PToolbarOptionsApplied);
+        qLogoMenu = qLogoMenuOwner;
+    }
+
+    public void PToolbarChromeSet(LChrome lChromeOwner)
+    {
+        lChrome = lChromeOwner;
+    }
+
+    private void PToolbarOptionsShow()
+    {
+        PSOptions.PSOptionsShow(Window.GetWindow(this)!, qLogoMenu!.QLogoOptionsCreate(), PToolbarOptionsApplied);
     }
 
     public void PToolbarShortcutShow()
     {
-        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, PToolbarOptionsApplied);
+        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, qLogoMenu!.QLogoKeymapCreate(), PToolbarOptionsApplied);
     }
 
     private void PChromeButtonsApply()
@@ -190,7 +200,7 @@ public partial class PToolbar : UserControl
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAsset/PMenu/PMenuAbout.svg");
         MenuItem pDebugItem = PMenu.PMenuItemCreate("Debug");
         pDebugItem.Visibility = PLook.PLookVisible[LChrome.LChromeDebugVisible];
-        pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!);
+        pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
         pLogoMenu.Items.Add(pDebugItem);
         PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAsset/PMenu/PMenuExit.svg");
 

@@ -211,7 +211,7 @@ internal static class PRosterOverview
             ToolTip = LLocalization.LLocalizationTextRead("Roster.Explorer.Tooltip"),
             Style = PButton.PButtonPanelCreate()
         };
-        pButton.Click += (_, _) => LRosterDetail.LRosterDetailOpen(lRoster, pPath);
+        pButton.Click += (_, _) => lRoster.LRosterPathOpen(pPath);
         return pButton;
     }
 

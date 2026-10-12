@@ -102,7 +102,7 @@ public sealed class LWindowShortcut
             case "Unload":
                 return lWindowClearSeam?.Invoke(LBastion.LBastionCohortsRead()) ?? false;
             default:
-                return lWindow.LWindowTab?.LStripTabWorkspace?.LWorkspaceFlow?.LFlowShortcutRun(lToken) ?? false;
+                return lWindow.LWindowTab?.LStripTabWorkspace.LWorkspaceFlow?.LFlowShortcutRun(lToken) ?? false;
         }
     }
 

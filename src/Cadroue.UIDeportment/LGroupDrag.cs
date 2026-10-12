@@ -8,8 +8,7 @@ public sealed class LGroupDrag
     private bool lGroupDragOrigin;
     private double lGroupDragX;
     private double lGroupDragY;
-    private double lGroupGrabX;
-    private double lGroupGrabY;
+    private LGhost lGroupGhost = new(0, 0);
 
     public event Action<string>? LGroupItemOpened;
     public event Action<IReadOnlyList<string>>? LGroupPathsRequest;
@@ -19,9 +18,7 @@ public sealed class LGroupDrag
         lGroup = lOwner;
     }
 
-    public double LGroupGrabX => lGroupGrabX;
-
-    public double LGroupGrabY => lGroupGrabY;
+    public LGhost LGroupGhost => lGroupGhost;
 
     public int LGroupDragIndex => lGroup.LGroupSourceIndex ?? -1;
 
@@ -32,8 +29,7 @@ public sealed class LGroupDrag
         lGroupDragOrigin = true;
         lGroupDragX = lX;
         lGroupDragY = lY;
-        lGroupGrabX = lGrabX;
-        lGroupGrabY = lGrabY;
+        lGroupGhost = new LGhost(lGrabX, lGrabY);
         lGroup.LGroupDragSet(lGroupIndex, lPath);
         LGroupItemOpened?.Invoke(lPath);
     }

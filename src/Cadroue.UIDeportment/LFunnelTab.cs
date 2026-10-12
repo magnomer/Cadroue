@@ -9,10 +9,12 @@ public sealed class LFunnelTab
     private readonly LList lFunnelList;
     private readonly LDocket lFunnelDocket;
 
-    public LFunnelTab(LList lList, LDocket lDocket)
+    public LFunnelTab(LViewer lViewer, LList lList)
     {
         lFunnelList = lList;
-        lFunnelDocket = lDocket;
+        lFunnelDocket = lList.LListDocket;
+        lList.LListPathChanged += lViewer.LViewerPathHandle;
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public LFunnel LFunnel { get; } = new();

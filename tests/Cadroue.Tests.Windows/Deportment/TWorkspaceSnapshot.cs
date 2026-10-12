@@ -1,38 +1,51 @@
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
+using Cadroue.Tests.Interface;
 
 using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
-[Collection("Preset")]
+[Collection("Schedule")]
 public sealed class TWorkspaceSnapshot
 {
     private static LWorkspace TWorkspaceBuild(string key = "Convert")
     {
         LWorkspace workspace = TInterface.TWorkspaceCreate(key, null);
-        TInterface.TWorkspaceAttach(workspace, null, null, null, null);
+        TInterface.TWorkspaceAttach(workspace);
+        TInterface.TFlowEditSet(workspace.LWorkspaceFlow!, true);
         return workspace;
     }
 
     [Fact]
     public void Create_DerivesFactsFromKey()
     {
+        using var schedule = new TSchedule();
+        TInterfaceRoster.TStationAttach(schedule.TScheduleRead());
         LWorkspace split = TInterface.TWorkspaceCreate("Split", null);
         LWorkspace audio = TInterface.TWorkspaceCreate("Audio", null);
         LWorkspace merge = TInterface.TWorkspaceCreate("Merge", null);
         LWorkspace worklist = TInterface.TWorkspaceCreate("Worklist", null);
 
-        Assert.True(split.QWorkspaceKey.LWorkspaceSectionVisible);
-        Assert.False(audio.QWorkspaceKey.LWorkspaceSectionVisible);
-        Assert.True(audio.QWorkspaceKey.LWorkspaceAudioOnly);
-        Assert.True(split.QWorkspaceKey.LWorkspaceSourcePresent);
-        Assert.False(merge.QWorkspaceKey.LWorkspaceSourcePresent);
-        Assert.False(worklist.QWorkspaceKey.LWorkspaceSourcePresent);
-        Assert.False(split.LWorkspaceFlowPresent);
-        Assert.False(split.LWorkspaceListPresent);
-        Assert.False(TInterface.TWorkspaceBusyCheck(split));
+        try
+        {
+            Assert.True(split.QWorkspaceKey.LWorkspaceSectionVisible);
+            Assert.False(audio.QWorkspaceKey.LWorkspaceSectionVisible);
+            Assert.True(audio.QWorkspaceKey.LWorkspaceAudioOnly);
+            Assert.True(split.QWorkspaceKey.LWorkspaceSourcePresent);
+            Assert.False(merge.QWorkspaceKey.LWorkspaceSourcePresent);
+            Assert.False(worklist.QWorkspaceKey.LWorkspaceSourcePresent);
+            Assert.True(split.LWorkspaceFlowPresent);
+            Assert.False(worklist.LWorkspaceFlowPresent);
+            Assert.True(split.QWorkspaceKey.LWorkspaceListPresent);
+            Assert.False(worklist.QWorkspaceKey.LWorkspaceListPresent);
+            Assert.False(TInterface.TWorkspaceBusyCheck(split));
+        }
+        finally
+        {
+            TInterface.TWorkspaceClose(worklist);
+        }
     }
 
     [Fact]
@@ -78,9 +91,9 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void Snapshot_CarriesSegmentSections()
     {
-        LSegment segment = Interface.TInterface.TSegmentCreate();
         LWorkspace workspace = TInterface.TWorkspaceCreate("Split", null);
-        TInterface.TWorkspaceAttach(workspace, null, segment, null, null);
+        TInterface.TWorkspaceAttach(workspace);
+        LSegment segment = TInterface.TWorkspaceSegmentRead(workspace);
         Interface.TInterface.TSegmentBoundSet(
             segment,
             [TInterface.TPieceCreate(TimeSpan.Zero, TimeSpan.FromSeconds(2))],
@@ -112,16 +125,16 @@ public sealed class TWorkspaceSnapshot
     [Fact]
     public void MediaClear_RemovesStaleDocketPaths_AndAsksClose()
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        TInterfaceList.TDocketPathsAdd(docket, "C:/media/a.mp4", "C:/media/b.mp4");
         LWorkspace workspace = TInterface.TWorkspaceCreate("Convert", null);
-        TInterface.TWorkspaceAttach(workspace, docket, null, null, null);
+        LDocket docket = workspace.LWorkspaceDocket!;
+        TInterfaceList.TDocketPathsAdd(docket, "C:/media/a.mp4", "C:/media/b.mp4");
+        TInterface.TWorkspaceAttach(workspace);
         int closes = 0;
         TInterface.TWorkspaceCloseAttach(workspace, () => closes++);
 
         Assert.True(TInterface.TWorkspaceMediaClear(workspace, new HashSet<Guid>()));
 
-        Assert.Equal(1, closes);
+        Assert.Equal(2, closes);
         Assert.Empty(TInterface.TDocketPathsRead(docket));
         Assert.False(TInterface.TWorkspaceMediaClear(workspace, new HashSet<Guid>()));
     }

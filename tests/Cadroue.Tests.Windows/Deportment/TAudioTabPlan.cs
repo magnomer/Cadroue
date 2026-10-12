@@ -18,22 +18,17 @@ public sealed class TAudioTabPlan
 
     private static (LAudioTab, LInspector, LViewer, LDocket, LProcessing) TAudioBuild(string preset = "Alpha")
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LProcessing processing = TInterface.TProcessingCreate();
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
+        LAudioTab tab = TInterface.TAudioTabCreate(TInterface.TPresetSelectionCreate(preset), viewer, list);
+        LInspector inspector = TInterface.TAudioInspectorRead(tab);
+        LProcessing processing = TInterface.TAudioProcessingRead(tab);
         foreach (LProcessingRow row in TInterface.TAudioRowsRead())
         {
             TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
         }
 
-        LAudioTab tab = TInterface.TAudioTabCreate(
-            TInterface.TPresetSelectionCreate(preset),
-            inspector,
-            viewer,
-            TInterfaceList.TListCreate(docket),
-            docket,
-            processing);
         return (tab, inspector, viewer, docket, processing);
     }
 

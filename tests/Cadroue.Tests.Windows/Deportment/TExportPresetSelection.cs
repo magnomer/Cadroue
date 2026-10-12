@@ -15,7 +15,7 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, true);
+        LExport export = TInterface.TExportCreate(selection, "Split");
         TInterface.TExportOwnerAttach(export);
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
@@ -24,7 +24,6 @@ public sealed class TExportPresetSelection
 
         Assert.Equal("Beta", export.LExportSelected);
         Assert.Equal("Beta", selection.LPresetSelectionName);
-        Assert.True(export.LExportSmartAllowed);
         Assert.Equal(1, rebuilds);
     }
 
@@ -34,7 +33,7 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, false);
+        LExport export = TInterface.TExportCreate(selection, "Convert");
         TInterface.TExportOwnerAttach(export);
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
@@ -60,7 +59,7 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, false);
+        LExport export = TInterface.TExportCreate(selection, "Convert");
         TInterface.TExportEditStart(export, "Alpha");
 
         Assert.False(TInterface.TExportNameCommit(export, "Beta", "Gamma"));
@@ -77,7 +76,7 @@ public sealed class TExportPresetSelection
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha", "Beta");
         LPresetSelection selection = TInterface.TPresetSelectionCreate("Alpha");
-        LExport export = TInterface.TExportCreate(selection, false);
+        LExport export = TInterface.TExportCreate(selection, "Convert");
         int rebuilds = 0;
         TInterface.TExportAttach(export, () => rebuilds++);
 

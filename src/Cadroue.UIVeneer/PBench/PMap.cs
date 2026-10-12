@@ -68,9 +68,9 @@ public sealed class PMap : FrameworkElement
 
     public LMap LMap { get; }
 
-    public PMap(LFlow lFlow)
+    public PMap(LMap lMap)
     {
-        LMap = new LMap(lFlow);
+        LMap = lMap;
         LMap.LMapFrameApplied += InvalidateVisual;
     }
 

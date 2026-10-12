@@ -63,8 +63,6 @@ public abstract class PTabSurface : UserControl
     public abstract PViewer? PTabViewer { get; }
     public virtual PList? PTabList => null;
     public virtual PGroup? PTabGroup => null;
-    public virtual LStation? PTabStation => null;
-    public PAction? PTabAction { get; protected set; }
     public LSurface LSurface { get; private set; } = null!;
     public virtual void PTabClose() => PTabList?.PListClose();
     public virtual void PTabStripAttach(LStrip lStrip, LStripTab lStripTab)
@@ -105,6 +103,7 @@ public abstract class PTabSurface : UserControl
     }
 
     protected Grid PTabGridBuild(
+        QWorkspaceMode qWorkspaceMode,
         IReadOnlyList<UIElement> pPanels,
         UIElement pCompass,
         PAction pAction,
@@ -142,13 +141,13 @@ public abstract class PTabSurface : UserControl
 
         List<Type> pTypes = pPanels.Select(PTabTypeRead).ToList();
         int pExportIndex = pTypes.LastIndexOf(typeof(PExport));
-        PTabColumn = PColumn.PColumnAttach(
-            pPanelGrid,
-            pColumnItems,
+        LSurface = qWorkspaceMode.LSurfaceCreate(
+            pColumnItems.Select(PColumn.PColumnMinimumRead).ToArray(),
             lPreferenceTabLayout?.LScenePanelWidths,
             pPanels.Select(PTabCompactRead).ToList(),
             pTypes.IndexOf(typeof(PViewer)),
-            PTabWidthRaise);
+            pExportIndex);
+        PTabColumn = PColumn.PColumnAttach(pPanelGrid, pColumnItems, LSurface.LSurfacePlan, PTabWidthRaise);
         List<UIElement> pSplitters = pSplitterIndexes
             .Select(PTabColumn.PColumnSplitterBuild)
             .Cast<UIElement>()
@@ -161,10 +160,7 @@ public abstract class PTabSurface : UserControl
 
         Grid.SetRow(pPanelGrid, 0);
         pGrid.Children.Add(pPanelGrid);
-        LSurface = new LSurface(PTabColumn.LColumn, pPanels.Count, pExportIndex);
-        LSurface.LSurfaceActionAttach(pAction.LAction);
         PTabPanels = pPanels;
-        PTabAction = pAction;
         PTabExportPanel = pPanels.ElementAtOrDefault(pExportIndex);
         PTabExportColumn = pSplitterColumns.ElementAtOrDefault(LSurface.LSurfaceLeftResolve(pExportIndex));
         PTabExportSplitter = pSplitters.ElementAtOrDefault(LSurface.LSurfaceLeftResolve(pExportIndex));

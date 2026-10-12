@@ -55,10 +55,7 @@ internal sealed partial class PSOptions
             psWorkspaceBox,
             LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"),
             LDepot.LDepotDefaultRead());
-        pWorkspaceOpen.Click += (_, _) => PSSystemFolderOpen(
-            psWorkspaceBox.Text,
-            LDepot.LDepotDefaultRead(),
-            "Workspace folder");
+        pWorkspaceOpen.Click += (_, _) => PSSystemFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRead());
 
         Button pFfmpegBrowse = PSInline.PSInlineIconBuild(
             PSOptionsBrowseIcon,
@@ -76,8 +73,8 @@ internal sealed partial class PSOptions
             psSystemFfmpegBox,
             LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"),
             psSystemFfmpegBox.Text);
-        pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty, "FFmpeg folder");
-        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this);
+        pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
+        pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this, lsOptions.LSOptionsDiagnosisCreate);
 
         Button pDoneClear = PSInline.PSInlineButtonBuild(
             LLocalization.LLocalizationTextRead("Options.System.ClearDone"),
@@ -201,7 +198,7 @@ internal sealed partial class PSOptions
                         pResult.LFlyleafInstallMessage));
             }
         };
-        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty, "Flyleaf folder");
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
 
         var pButtons = new StackPanel
         {
@@ -267,8 +264,8 @@ internal sealed partial class PSOptions
         }
     }
 
-    private void PSSystemFolderOpen(string pFolder, string pFallback, string pLabel) =>
-        lsOptions.LSOptionsFolderOpen(pFolder, pFallback, pLabel);
+    private void PSSystemFolderOpen(string pFolder, string pFallback) =>
+        lsOptions.LSOptionsFolderOpen(pFolder, pFallback);
 
 
     private static string PSSystemFfmpegFormat(string pFolder) =>

@@ -27,9 +27,9 @@ public sealed class LSAbout
     private int lsAboutTapCount;
     private DateTime lsAboutTapLast;
 
-    public LSAbout(LStrip lStrip)
+    public LSAbout(CUsher lUsher)
     {
-        lsAboutUsher = lStrip.LStripUsher;
+        lsAboutUsher = lUsher;
     }
 
     public event Action<string, string>? LSAboutErrorShown;
@@ -56,12 +56,15 @@ public sealed class LSAbout
 
     public static string LSAboutVersionRead() => LTraceLog.LTraceVersionRead();
 
-    private string LSAboutNoticePath => lsAboutUsher.CUsherProgramResolve(LSAboutNoticeName);
+    public void LSAboutNoticeOpen()
+    {
+        (string lPath, string? lFailure) =
+            lsAboutUsher.CUsherProgramOpen(LSAboutNoticeName, "Notice could not be opened: {0}: {1}");
+        LSAboutErrorRaise(lPath, lFailure);
+    }
 
-    public void LSAboutNoticeOpen() =>
-        LSAboutErrorRaise(LSAboutNoticePath, lsAboutUsher.CUsherLinkOpen(LSAboutNoticePath, "Notice"));
-
-    public void LSAboutLinkOpen(string lUrl) => LSAboutErrorRaise(lUrl, lsAboutUsher.CUsherLinkOpen(lUrl, "Link"));
+    public void LSAboutLinkOpen(string lUrl) =>
+        LSAboutErrorRaise(lUrl, lsAboutUsher.CUsherLinkOpen(lUrl, "Link could not be opened: {0}: {1}"));
 
     private void LSAboutErrorRaise(string lResource, string? lDetail)
     {

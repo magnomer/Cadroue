@@ -9,6 +9,7 @@ public static partial class LSidecarStore
     private static readonly object lSidecarWriteGate = new();
     private static readonly Dictionary<string, List<Action<LSidecarCoreDocument>>> lSidecarPending =
         new(StringComparer.OrdinalIgnoreCase);
+    private static readonly HashSet<string> lSidecarFailure = new(StringComparer.OrdinalIgnoreCase);
     private static Task lSidecarWriter = Task.CompletedTask;
 
     public static LSidecarEditEntry? LSidecarEditRead(string lSidecarSourcePath)
@@ -304,6 +305,11 @@ public static partial class LSidecarStore
                     lSidecarPending.Remove(lSidecarKey);
                 }
             }
+
+            if (!lSidecarSaved)
+            {
+                lSidecarFailure.Add(lSidecarKey);
+            }
         }
 
         if (!lSidecarSaved)
@@ -328,6 +334,12 @@ public static partial class LSidecarStore
         foreach (string lSidecarKey in lSidecarKeys)
         {
             lSidecarSaved &= LSidecarPendingPersist(lSidecarKey);
+        }
+
+        lock (lSidecarPendingGate)
+        {
+            lSidecarSaved &= lSidecarFailure.Count == 0;
+            lSidecarFailure.Clear();
         }
 
         return lSidecarSaved;

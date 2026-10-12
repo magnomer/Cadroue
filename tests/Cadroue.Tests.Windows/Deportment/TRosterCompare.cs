@@ -26,9 +26,11 @@ public sealed class TRosterCompare
     public void Compares_StartWithAHeadRow_AndReadMeasuringUntilTheSourceIsMeasured()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.Equal(7, detail.LRosterDetailCompares.Count);
         LRosterCompareRow head = detail.LRosterDetailCompares[0];
         Assert.Equal(LRosterDetail.LRosterLineHead, head.LRosterCompareSource.LRosterLineKey);
@@ -36,7 +38,7 @@ public sealed class TRosterCompare
         string measuring = detail.LRosterDetailCompares[1].LRosterCompareSource.LRosterLineText;
 
         work.LWorkSourceMeasured = true;
-        LRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.NotEqual(measuring, measured.LRosterDetailCompares[1].LRosterCompareSource.LRosterLineText);
     }
 
@@ -44,12 +46,14 @@ public sealed class TRosterCompare
     public void Compares_ShowDimensionFpsAndDurationChanges()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
         work.LWorkSourceMeasured = true;
         work.LWorkSourceMedia = Interface.TInterface.TWorkMediaCreate(3840, 2160, 60, 10_000, true);
         work.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true);
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.Equal("3840 x 2160", detail.LRosterDetailCompares[2].LRosterCompareSource.LRosterLineText);
         Assert.Equal("1920 x 1080", detail.LRosterDetailCompares[2].LRosterCompareOutput.LRosterLineText);
         Assert.Equal(
@@ -67,7 +71,9 @@ public sealed class TRosterCompare
     public void Sounds_AppearWithASampleRate_AndFlagCodecBitrateAndLoudnessChanges()
     {
         using var schedule = new TSchedule();
-        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
         work.LWorkSourceMeasured = true;
         work.LWorkSourceMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true) with
         {
@@ -84,7 +90,7 @@ public sealed class TRosterCompare
             LWorkMediaLoudness = -16
         };
 
-        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(work, "-");
+        LRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
         Assert.True(detail.LRosterDetailSound);
         Assert.Equal(4, detail.LRosterDetailSounds.Count);
         Assert.Equal("AAC", detail.LRosterDetailSounds[0].LRosterCompareSource.LRosterLineText);

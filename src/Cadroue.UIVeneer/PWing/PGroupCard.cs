@@ -231,12 +231,12 @@ public sealed class PGroupCard
         var pData = new DataObject(
             PGroup.PGroupMoveKind,
             new PGroup.PGroupMovePayload(lGroup.LGroupDrag.LGroupDragIndex, lGroup.LGroupDrag.LGroupDragPath));
-        var pGrabOffset = new Point(lGroup.LGroupDrag.LGroupGrabX, lGroup.LGroupDrag.LGroupGrabY);
+        LGhost lGhost = lGroup.LGroupDrag.LGroupGhost;
         lGroup.LGroupDrag.LGroupDragClear();
         pRowBorder.ReleaseMouseCapture();
         PGhost.PGhostDragRun(
             pRowBorder,
-            pGrabOffset,
+            lGhost,
             () => DragDrop.DoDragDrop(pRowBorder, pData, DragDropEffects.Move));
     }
 }

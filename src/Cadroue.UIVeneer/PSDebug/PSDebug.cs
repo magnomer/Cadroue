@@ -18,6 +18,7 @@ internal sealed class PSDebug : Window
     private static PSDebug? psDebugCurrent;
 
     private readonly PWindow psDebugApplicationOwner;
+    private readonly QLogoMenu qLogoMenu;
 
     private enum PSDebugKind
     {
@@ -129,7 +130,7 @@ internal sealed class PSDebug : Window
             PSDebugKind.PSDebugWarning)
     };
 
-    internal static void PSDebugShow(Window pOwner)
+    internal static void PSDebugShow(Window pOwner, QLogoMenu qLogoMenuOwner)
     {
         if (psDebugCurrent is not null)
         {
@@ -137,13 +138,14 @@ internal sealed class PSDebug : Window
             return;
         }
 
-        psDebugCurrent = new PSDebug(pOwner);
+        psDebugCurrent = new PSDebug(pOwner, qLogoMenuOwner);
         psDebugCurrent.Show();
     }
 
-    private PSDebug(Window pOwner)
+    private PSDebug(Window pOwner, QLogoMenu qLogoMenuOwner)
     {
         psDebugApplicationOwner = (PWindow)pOwner;
+        qLogoMenu = qLogoMenuOwner;
         Title = "Debug";
         Owner = pOwner;
         Width = PSDebugWidth;
@@ -163,23 +165,25 @@ internal sealed class PSDebug : Window
         pRoot.Children.Add(PSDebugHeadingBuild("Subwindows"));
 
         var pWindows = PSDebugWrapBuild();
-        PSDebugButtonAdd(pWindows, "About", () => PSAbout.PSAboutShow(this, psDebugApplicationOwner.PStrip.LStrip));
+        PSDebugButtonAdd(pWindows, "About", () => PSAbout.PSAboutShow(this, qLogoMenu.QLogoAboutCreate()));
         PSDebugButtonAdd(
-            pWindows, "Options", () => PSOptions.PSOptionsShow(this, psDebugApplicationOwner.PStrip.LStrip, null));
-        PSDebugButtonAdd(pWindows, "Shortcuts", () => PSKeymap.PSKeymapShow(this, null));
+            pWindows, "Options", () => PSOptions.PSOptionsShow(this, qLogoMenu.QLogoOptionsCreate(), null));
+        PSDebugButtonAdd(pWindows, "Shortcuts", () => PSKeymap.PSKeymapShow(this, qLogoMenu.QLogoKeymapCreate(), null));
         PSDebugButtonAdd(
             pWindows,
             "Log",
-            () => PLogWindow.PLogWindowShow(psDebugApplicationOwner, psDebugApplicationOwner.PStrip.LStrip));
-        PSDebugButtonAdd(pWindows, "Diagnosis", () => PSDiagnosis.PSDiagnosisShow(this));
-        PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
-        PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, new LSVerdict("Debug verdict", new[]
-        {
-            new LSVerdictRow("Video", "debug-pass", true, "Simulated successful verification."),
-            new LSVerdictRow("Audio", "debug-fail", false, "Simulated verification detail.")
-        })));
+            () => PLogWindow.PLogWindowShow(psDebugApplicationOwner, qLogoMenu.QLogoLogCreate));
         PSDebugButtonAdd(
-            pWindows, "Loupe", () => PSLoupe.PSLoupeShow(this, new LViewer(psDebugApplicationOwner.PStrip.LStrip)));
+            pWindows,
+            "Diagnosis",
+            () => PSDiagnosis.PSDiagnosisShow(this, () => qLogoMenu.QLogoOptionsCreate().LSOptionsDiagnosisCreate()));
+        PSDebugButtonAdd(pWindows, "Encoder", PSDebugEncoderShow);
+        PSDebugButtonAdd(pWindows, "Verdict", () => PSVerdict.PSVerdictShow(this, qLogoMenu.QLogoVerdictCreate()));
+        PSDebugButtonAdd(
+            pWindows, "Loupe", () => PSLoupe.PSLoupeShow(
+                this,
+                psDebugApplicationOwner.LWindow.LWindowPairCreate().LWorkspaceViewer
+                    .LViewerMedia.QViewerLoupe.LViewerLoupeCreate()));
         PSDebugButtonAdd(pWindows, "Monitor", PSDebugMonitorShow);
         PSDebugButtonAdd(pWindows, "Destructive alert", () => PSAlert.PSAlertConfirm(
             this,
@@ -251,15 +255,22 @@ internal sealed class PSDebug : Window
 
     private void PSDebugEncoderShow()
     {
-        var pEncoder = new PSEncoder(psDebugApplicationOwner.PStrip.LStrip, new LPreset(), () => { }) { Owner = this };
+        if (psDebugApplicationOwner.PStrip.LStrip.LStripSelected is not { } lTab)
+        {
+            return;
+        }
+
+        var pEncoder = new PSEncoder(
+            lTab.LStripTabWorkspace.LWorkspaceExport.LExportEncoderCreate(new LPreset()), () => { }) { Owner = this };
         pEncoder.ShowDialog();
     }
 
     private void PSDebugMonitorShow()
     {
-        var pSource = new LSMonitor();
-        var pFlow = new PFlow(psDebugApplicationOwner.PStrip.LStrip);
-        var pViewer = new PViewer(psDebugApplicationOwner.PStrip.LStrip);
+        LSMonitor pSource = qLogoMenu.QLogoMonitorCreate();
+        QWorkspacePair qPair = psDebugApplicationOwner.LWindow.LWindowPairCreate();
+        var pFlow = new PFlow(qPair.LWorkspaceFlow);
+        var pViewer = new PViewer(qPair.LWorkspaceViewer);
         Window pMonitor = PSMonitor.PSMonitorShow(Owner, pSource, pFlow, pViewer);
         pMonitor.Closed += (_, _) => pSource.Dispose();
     }

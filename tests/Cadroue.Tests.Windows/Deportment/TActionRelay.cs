@@ -14,7 +14,7 @@ public sealed class TActionRelay
     {
         LStripTab tab = TInterface.TStripTabCreate(key);
         TInterface.TStripAdd(strip, tab);
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key), TInterfaceList.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate(key));
         LAction action = TInterface.TActionCreate();
         TInterface.TActionRelayAttach(action, strip, tab);
         TInterface.TActionAutoSet(action, auto);
@@ -87,7 +87,7 @@ public sealed class TActionRelay
         Assert.True(TInterface.TStripNameSet(strip, target, "Renamed"));
 
         Assert.Equal("Renamed", action.LActionFaceText);
-        Assert.Equal(target.LStripTabId, action.LActionRelayTarget);
-        Assert.Equal(source.LStripTabId, action.LActionSourceTab);
+        Assert.Equal(target.LStripTabId, TInterface.TActionRouteRead(action).TActionTarget);
+        Assert.Equal(source.LStripTabId, TInterface.TActionRouteRead(action).TActionSource);
     }
 }

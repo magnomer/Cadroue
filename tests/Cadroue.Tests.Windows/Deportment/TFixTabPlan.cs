@@ -15,22 +15,17 @@ public sealed class TFixTabPlan
 
     private static (LFixTab, LClinic, LViewer, LDocket, LProcessing) TFixBuild(string preset = "Alpha")
     {
-        LClinic clinic = TInterface.TClinicCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LProcessing processing = TInterface.TProcessingCreate();
+        LList list = TInterfaceList.TListCreate();
+        LDocket docket = list.LListDocket;
+        LFixTab tab = TInterface.TFixTabCreate(TInterface.TPresetSelectionCreate(preset), viewer, list);
+        LClinic clinic = TInterface.TFixClinicRead(tab);
+        LProcessing processing = TInterface.TFixProcessingRead(tab);
         foreach (LProcessingRow row in TInterface.TFixRowsRead())
         {
             TInterface.TProcessingStepAdd(processing, row.LProcessingRowKey);
         }
 
-        LFixTab tab = TInterface.TFixTabCreate(
-            TInterface.TPresetSelectionCreate(preset),
-            clinic,
-            viewer,
-            TInterfaceList.TListCreate(docket),
-            docket,
-            processing);
         return (tab, clinic, viewer, docket, processing);
     }
 
@@ -196,15 +191,13 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (LFixTab tab, LClinic clinic, _, LDocket docket, _) = TFixBuild();
+        (_, LClinic clinic, _, LDocket docket, _) = TFixBuild();
         var written = new List<string>();
         TInterface.TFixLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
         {
             TInterface.TClinicPlanApply(clinic, TFixPlanCreate(LFlawKind.LFlawKindCoded, true, true));
             TInterfaceList.TDocketPathsAdd(docket, TFixSource, TFixOther);
-
-            TInterface.TFixItemsHandle(tab, TInterfaceList.TDocketItemsRead(docket));
 
             Assert.Equal([TFixSource, TFixOther], written);
         }

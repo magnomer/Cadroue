@@ -98,15 +98,19 @@ internal sealed partial class PSEncoder : Window
                 pChoice.LCapabilityChoiceLabel))
             .ToArray();
 
-    public PSEncoder(LStrip lStrip, LPreset lsExportSpecificState, System.Action pRefresh, bool psSmartAllowed = false)
+    public PSEncoder(LSEncoder lsEncoderOwner, System.Action pRefresh)
     {
-        lsEncoder = new LSEncoder(lStrip, lsExportSpecificState, psSmartAllowed);
+        lsEncoder = lsEncoderOwner;
         lsEncoder.LSEncoderVideoChanged += PSVideoRowsApply;
         lsEncoder.LSEncoderAudioChanged += PSAudioRowsApply;
         lsEncoder.LSEncoderHelpAttach(PSEncoderHelpHandle);
         lsEncoder.LSEncoderSizeChanged += PSVideoSizeApply;
         psEncoderSummary = pRefresh;
-        psNameBox = new PToken { PTokenText = lsExportSpecificEdit.LPresetDisplay, MinWidth = 320 };
+        psNameBox = new PToken(lsEncoder.LSEncoderTokenCreate())
+        {
+            PTokenText = lsExportSpecificEdit.LPresetDisplay,
+            MinWidth = 320
+        };
         psOutputContainerCombo = PSField.PSListBuild(lsExportSpecificEdit.LPresetContainer,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("MP4", "Encoder.Container.MP4"),

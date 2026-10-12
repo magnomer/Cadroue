@@ -7,7 +7,13 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LWindow TWindowCreate(LStrip strip, Func<Func<bool>, bool> dispatch) => new(strip, dispatch);
+    internal static LWindow TWindowCreate(Func<Func<bool>, bool> dispatch)
+    {
+        LWindow window = new(TAtelierCreate());
+        window.LWindowDispatcherAttach(dispatch);
+        return window;
+    }
+    internal static LStrip TWindowStripRead(LWindow window) => window.LWindowStrip;
     internal static void TWindowTabSet(LWindow window, LStripTab? tab, LViewer? viewer) =>
         window.LWindowTabSet(tab, viewer);
     internal static void TWindowAddAttach(LWindow window, Action<LWindowTab> handler) =>
@@ -21,12 +27,10 @@ internal static partial class TInterface
     internal static (double, double) TWindowWidthResolve(
         LWindow window, double? required, double reserved, double width) =>
         window.LWindowWidthResolve(required, reserved, width);
-    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset, LDocket? docket, LFlow? flow = null)
+    internal static void TStripWorkspaceAttach(LStripTab tab, LPreset preset)
     {
-        var workspace = new LWorkspace(tab.LStripTabKey, preset);
-        workspace.LWorkspaceAttach(
-            docket, flow?.LFlowSection.LFlowSegment, flow, null, null, () => new LSceneTabEntry());
-        tab.LStripWorkspaceAttach(workspace);
+        tab.LStripTabWorkspace.LWorkspacePresetAccept(preset);
+        tab.LStripTabWorkspace.LWorkspaceAttach(() => new LSceneTabEntry());
     }
     internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
 
@@ -34,15 +38,16 @@ internal static partial class TInterface
         string[]? paths, bool group, string? source, bool copy, object? data) =>
         new(paths, group, source, copy, data);
     internal static void TWindowOverHandle(LWindow window, LWindowDrag drag) =>
-        window.LWindowDrop.LWindowOverHandle(drag);
+        window.LWindowPart.QWindowPartDrop.LWindowOverHandle(drag);
     internal static void TWindowDropHandle(LWindow window, LWindowDrag drag) =>
-        window.LWindowDrop.LWindowDropHandle(drag);
-    internal static LWindowDropEffect TWindowEffectRead(LWindow window) => window.LWindowDrop.LWindowDropEffect;
-    internal static bool TWindowHandledRead(LWindow window) => window.LWindowDrop.LWindowDropHandled;
+        window.LWindowPart.QWindowPartDrop.LWindowDropHandle(drag);
+    internal static LWindowDropEffect TWindowEffectRead(LWindow window) =>
+        window.LWindowPart.QWindowPartDrop.LWindowDropEffect;
+    internal static bool TWindowHandledRead(LWindow window) => window.LWindowPart.QWindowPartDrop.LWindowDropHandled;
     internal static void TWindowDropAttach(LWindow window, Action<IReadOnlyList<string>> list, Action<string> viewer)
     {
-        window.LWindowDrop.LWindowListAdded += list;
-        window.LWindowDrop.LWindowViewerOpened += viewer;
+        window.LWindowPart.QWindowPartDrop.LWindowListAdded += list;
+        window.LWindowPart.QWindowPartDrop.LWindowViewerOpened += viewer;
     }
 
     internal static void TWindowShortcutAttach(
@@ -52,13 +57,13 @@ internal static partial class TInterface
         Func<bool?> redo,
         Func<bool> unload,
         Func<IReadOnlySet<Guid>, bool?> clear) =>
-        window.LWindowShortcut.LWindowShortcutAttach(show, undo, redo, unload, clear);
+        window.LWindowPart.QWindowPartShortcut.LWindowShortcutAttach(show, undo, redo, unload, clear);
     internal static bool TWindowShortcutRun(LWindow window, string token) =>
-        window.LWindowShortcut.LWindowShortcutRun(token);
+        window.LWindowPart.QWindowPartShortcut.LWindowShortcutRun(token);
     internal static void TWindowPlayAttach(LWindow window, Action play, Action pause)
     {
-        window.LWindowShortcut.LWindowShortcutPlayed += play;
-        window.LWindowShortcut.LWindowShortcutPaused += pause;
+        window.LWindowPart.QWindowPartShortcut.LWindowShortcutPlayed += play;
+        window.LWindowPart.QWindowPartShortcut.LWindowShortcutPaused += pause;
     }
 
     internal static LWindowPress TWindowPressCreate(
@@ -74,7 +79,7 @@ internal static partial class TInterface
         Func<int, short> state) =>
         new(handled, message, virtualKey, modal, own, foreground, viewer, input, key, state);
     internal static bool TWindowShortcutHandle(LWindow window, LWindowPress press) =>
-        window.LWindowShortcut.LWindowShortcutHandle(press);
+        window.LWindowPart.QWindowPartShortcut.LWindowShortcutHandle(press);
 
     internal static LSash TSashCreate(double border) => new(border);
     internal static LSashBounds TSashBoundsCreate(double left, double top, double width, double height) =>
@@ -165,7 +170,7 @@ internal static partial class TInterface
     internal static (string, bool) TPickerSummaryResolve(IReadOnlyList<string> labels, string empty) =>
         LPicker.LPickerSummaryResolve(labels, empty);
 
-    internal static LLog TLogCreate() => new(new LStrip(TProgramCreate()));
+    internal static LLog TLogCreate() => new(TAtelierCreate().CAtelierUsher);
     internal static LTraceEntry TTraceEntryCreate(LTraceKind kind, string summary, string? detail, double? span) =>
         new("12:00:00.000", string.Empty, kind, summary, detail, span);
     internal static LLogRow TLogRowCreate(LTraceEntry entry) => new(entry);

@@ -45,10 +45,11 @@ public sealed class PProcessing : PPanel
     private readonly PProcessingRow pProcessingSkipRow;
     private readonly Dictionary<string, PProcessingRow> pProcessingRows = new(StringComparer.Ordinal);
 
-    public LProcessing LProcessing { get; } = new();
+    public LProcessing LProcessing { get; }
 
-    public PProcessing() : base("")
+    public PProcessing(LProcessing lProcessing) : base("")
     {
+        LProcessing = lProcessing;
         LProcessing.LProcessingChanged += PProcessingUpdate;
         LProcessing.LProcessingOrderChanged += PProcessingOrderUpdate;
         LProcessing.LProcessingMinimizeChanged += PProcessingMinimizeHandle;
@@ -97,6 +98,7 @@ public sealed class PProcessing : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
+        PProcessingUpdate();
     }
 
     public bool PProcessingMinimizedCheck() => LProcessing.LProcessingMinimized;

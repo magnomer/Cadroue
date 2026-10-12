@@ -1,0 +1,21 @@
+using Cadroue.Core;
+
+namespace Cadroue.Infrastructure;
+
+public static class LRigFactoryUsher
+{
+    public static LRigUsher LRigUsherCreate()
+    {
+        return new LRigUsher(
+            LUsher.LUsherFileExist,
+            LUsher.LUsherFolderExist,
+            LUsher.LUsherProgramResolve,
+            LUsher.LUsherPathResolve,
+            LUsher.LUsherNameRead,
+            LUsher.LUsherStemRead,
+            LUsher.LUsherExtensionRead,
+            LUsher.LUsherPathOpen,
+            LUsher.LUsherFolderOpen,
+            LUsher.LUsherLinkOpen);
+    }
+}

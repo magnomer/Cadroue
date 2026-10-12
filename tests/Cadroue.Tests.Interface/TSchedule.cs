@@ -49,12 +49,13 @@ internal sealed class TSchedule : IDisposable
         Guid batchId,
         string name,
         LWorkPriority priority = LWorkPriority.LWorkPriorityNormal,
-        TScheduleWork? parent = null)
+        TScheduleWork? parent = null,
+        LWorkKind kind = LWorkKind.LWorkKindEdit)
     {
         DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
         return new TScheduleWork(new LWorkItem(
             batchId,
-            LWorkKind.LWorkKindEdit,
+            kind,
             priority,
             parent?.TWorkItem.LWorkOutputPath ?? Path.Combine(tScheduleRoot, name + ".source"),
             TimeSpan.Zero,
@@ -93,6 +94,23 @@ internal sealed class TSchedule : IDisposable
 
     internal int TScheduleAdd(params TScheduleWork[] work) =>
         tSchedule.LScheduleAdd(work.Select(item => item.TWorkItem).ToArray());
+
+    internal TScheduleWork TWorkMergeCreate(Guid batchId, string name, IReadOnlyList<string> sources)
+    {
+        DateTimeOffset created = DateTimeOffset.UnixEpoch.AddTicks(++tScheduleSequence);
+        return new TScheduleWork(new LWorkItem(
+            batchId,
+            LWorkKind.LWorkKindMerge,
+            LWorkPriority.LWorkPriorityNormal,
+            Path.Combine(tScheduleRoot, name + ".source"),
+            TimeSpan.Zero,
+            TimeSpan.FromSeconds(1),
+            name,
+            Path.Combine(tScheduleRoot, name + ".output"),
+            TWorkOutput.TWorkOutputCreate(),
+            lWorkCreateTime: created,
+            lWorkMergeSources: sources));
+    }
 
     internal TScheduleWork TWorkDeriveCreate(TScheduleWork origin, string name)
     {

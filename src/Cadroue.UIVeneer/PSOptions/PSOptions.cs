@@ -34,16 +34,16 @@ internal sealed partial class PSOptions : Window
     private LPreferenceState lsOptionsDraft => lsOptions.LSOptionsDraft;
     private readonly PSGrabber psOptionsGrabber;
 
-    internal static void PSOptionsShow(Window pOwner, LStrip lStrip, Action? pApplyCallback)
+    internal static void PSOptionsShow(Window pOwner, LSOptions lsOptionsOwner, Action? pApplyCallback)
     {
-        var psOptions = new PSOptions(pOwner, lStrip, pApplyCallback);
+        var psOptions = new PSOptions(pOwner, lsOptionsOwner, pApplyCallback);
         psOptions.ShowDialog();
     }
 
-    private PSOptions(Window pOwner, LStrip lStrip, Action? pApplyCallback)
+    private PSOptions(Window pOwner, LSOptions lsOptionsOwner, Action? pApplyCallback)
     {
-        lsOptions = new LSOptions(lStrip);
-        lsSpectrum = new LSSpectrum(lsOptions.LSOptionsDraft.LPreferenceSectionPalette);
+        lsOptions = lsOptionsOwner;
+        lsSpectrum = lsOptions.LSOptionsSpectrumCreate();
         lsSpectrum.LSSpectrumChanged += PSSpectrumActiveApply;
         psOptionsCallback = pApplyCallback;
 

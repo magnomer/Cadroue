@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -10,10 +11,11 @@ public sealed class LStripTab : INotifyPropertyChanged
     private const string LStripMergeKey = "Merge";
     private const string LStripWorklistKey = "Worklist";
 
-    public LStripTab(string lKey)
+    public LStripTab(string lKey, CUsher lUsher, CLineage lLineage)
     {
         LStripTabId = Guid.NewGuid();
         LStripTabKey = lKey;
+        LStripTabWorkspace = new LWorkspace(lKey, lUsher, lLineage);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;
@@ -34,15 +36,15 @@ public sealed class LStripTab : INotifyPropertyChanged
 
     public bool LStripTabPending { get; internal set; }
 
-    public LWorkspace? LStripTabWorkspace { get; private set; }
+    public LWorkspace LStripTabWorkspace { get; }
 
     public LAction? LStripTabAction { get; private set; }
 
-    public LPreset? LStripTabPreset => LStripTabWorkspace?.LWorkspacePreset;
+    public LPreset? LStripTabPreset => LStripTabWorkspace.LWorkspacePreset;
 
-    public LDocket? LStripTabDocket => LStripTabWorkspace?.LWorkspaceDocket;
+    public LDocket? LStripTabDocket => LStripTabWorkspace.LWorkspaceDocket;
 
-    public bool LStripTabBusy => LStripTabWorkspace?.LWorkspaceBusyCheck() == true;
+    public bool LStripTabBusy => LStripTabWorkspace.LWorkspaceBusyCheck();
 
     public bool LStripTabFunnel => string.Equals(LStripTabKey, LStripFunnelKey, StringComparison.Ordinal);
 
@@ -50,11 +52,9 @@ public sealed class LStripTab : INotifyPropertyChanged
 
     public bool LStripTabWorklist => string.Equals(LStripTabKey, LStripWorklistKey, StringComparison.Ordinal);
 
-    public void LStripWorkspaceAttach(LWorkspace lWorkspace) => LStripTabWorkspace = lWorkspace;
-
     public void LStripActionAttach(LAction lAction) => LStripTabAction = lAction;
 
-    public LSceneTabEntry? LStripLayoutRead() => LStripTabWorkspace?.LWorkspaceLayoutRead();
+    public LSceneTabEntry? LStripLayoutRead() => LStripTabWorkspace.LWorkspaceLayoutRead();
 
     public bool LStripRelayCheck() => LStripTabAction?.LActionAutoRelay ?? false;
 

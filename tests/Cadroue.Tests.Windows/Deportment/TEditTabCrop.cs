@@ -14,18 +14,12 @@ public sealed class TEditTabCrop
 
     private static (LEditTab, LInspector, LViewer, LCrop, LProcessing) TEditBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
         LViewer viewer = TInterfaceViewer.TViewerCreate();
         LCrop crop = TInterfaceCrop.TCropRead(viewer);
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LProcessing processing = TInterface.TProcessingCreate();
-        LEditTab tab = TInterface.TEditTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            viewer,
-            TInterfaceList.TListCreate(docket),
-            docket,
-            processing);
+        LList list = TInterfaceList.TListCreate();
+        LEditTab tab = TInterface.TEditTabCreate(TInterface.TPresetSelectionCreate("Alpha"), viewer, list);
+        LInspector inspector = TInterface.TEditInspectorRead(tab);
+        LProcessing processing = TInterface.TEditProcessingRead(tab);
         return (tab, inspector, viewer, crop, processing);
     }
 

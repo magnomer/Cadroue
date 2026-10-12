@@ -85,7 +85,7 @@
       "tests/Cadroue.Tests.Convention": ["T"],
       "tests/Cadroue.Tests.Windows": ["T"]
     },
-    "prefixCeiling": 227,
+    "prefixCeiling": 225,
     "sealedTurfs": [
       "src/Cadroue.Conduct"
     ],

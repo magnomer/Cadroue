@@ -9,14 +9,15 @@ public sealed class TWindowDrop
 {
     private static LWindow TWindowBuild(out LStrip strip)
     {
-        strip = TInterface.TStripCreate(key => key, (name, ordinal) => $"{name} {ordinal}");
-        return TInterface.TWindowCreate(strip, body => body());
+        LWindow window = TInterface.TWindowCreate(body => body());
+        strip = TInterface.TWindowStripRead(window);
+        return window;
     }
 
     private static LStripTab TListTabAdd(LStrip strip)
     {
         LStripTab tab = TInterface.TStripTabCreate("Split");
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"), TInterfaceList.TDocketCreate());
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"));
         TInterface.TStripAdd(strip, tab);
         return tab;
     }
@@ -94,10 +95,7 @@ public sealed class TWindowDrop
     public void Drop_OnViewerTab_OpensTheFirstExistingFile()
     {
         LWindow window = TWindowBuild(out LStrip strip);
-        LStripTab tab = TInterface.TStripTabCreate("Split");
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Split"), null);
-        TInterface.TStripAdd(strip, tab);
-        TInterface.TWindowTabSet(window, tab, TInterfaceViewer.TViewerCreate());
+        TInterface.TWindowTabSet(window, null, TInterfaceViewer.TViewerCreate());
         List<string> viewerDrops = [];
         TInterface.TWindowDropAttach(window, _ => { }, viewerDrops.Add);
         string media = TMediaFileCreate();
@@ -139,8 +137,8 @@ public sealed class TWindowDrop
         List<string> notices = [];
         TInterface.TWindowSelectAttach(
             window,
-            (tab, _) => notices.Add("attach " + tab.LStripTabTitle),
-            tab => notices.Add("detach " + tab.LStripTabTitle));
+            (tab, _) => notices.Add("attach Split " + (ReferenceEquals(tab, first) ? 1 : 2)),
+            tab => notices.Add("detach Split " + (ReferenceEquals(tab, first) ? 1 : 2)));
 
         TInterface.TWindowTabSet(window, first, null);
         TInterface.TWindowTabSet(window, second, null);

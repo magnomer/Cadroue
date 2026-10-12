@@ -24,9 +24,9 @@ public sealed class PRoster : UserControl
 
     public LRoster LRoster { get; }
 
-    public PRoster(LStrip lStrip, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PRoster(LRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        LRoster = LRoster.LRosterCreate(lStrip);
+        LRoster = lRoster;
         FocusVisualStyle = null;
         PScrollbar.PScrollbarApply(this);
         ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
@@ -58,17 +58,11 @@ public sealed class PRoster : UserControl
         PRosterDetailUpdate();
     }
 
-    public LStation PRosterStation => LRoster.LRosterStation;
-
-    public LSceneTabEntry PRosterLayoutRead() => LRoster.LRosterLayoutRead(pRosterLayout.PColumnWeightsRead());
+    public LSceneTabEntry PRosterLayoutRead() => LRoster.LRosterLayoutRead();
 
     public double PRosterWidthRead() => LRoster.LRosterWidthResolve(pRosterLayout.PColumnTotalRead());
 
-    public void PRosterClose()
-    {
-        pRosterElapsedTimer.Stop();
-        LRoster.LRosterClose();
-    }
+    public void PRosterClose() => pRosterElapsedTimer.Stop();
 
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments) => PRosterClose();
 
@@ -108,7 +102,10 @@ public sealed class PRoster : UserControl
         pRosterBody.Children.Add(pQueue);
 
         PColumn pLayout = PColumn.PColumnAttach(
-            pRosterBody, new[] { pLeftColumn, pRightColumn }, lPreferenceTabLayout?.LScenePanelWidths);
+            pRosterBody,
+            new[] { pLeftColumn, pRightColumn },
+            LRoster.LRosterPlanCreate(
+                [pLeftColumn.MinWidth, pRightColumn.MinWidth], lPreferenceTabLayout?.LScenePanelWidths));
         UIElement pSplitter = pLayout.PColumnSplitterBuild(0);
         Grid.SetColumn(pSplitter, 1);
         pRosterBody.Children.Add(pSplitter);

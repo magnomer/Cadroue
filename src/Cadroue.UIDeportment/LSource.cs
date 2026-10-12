@@ -19,9 +19,9 @@ public sealed class LSource
     public event Action<string>? LSourcePathApplied;
     public event Action<string, string>? LSourceRefuse;
 
-    public LSource(LStrip lStrip, LViewer lViewer, bool lAudioAllowed)
+    public LSource(CUsher lUsher, LViewer lViewer, bool lAudioAllowed)
     {
-        lSourceUsher = lStrip.LStripUsher;
+        lSourceUsher = lUsher;
         lSourceViewer = lViewer;
         lSourceAudioAllowed = lAudioAllowed;
         lSourceViewer.LViewerMediaChanged += LSourceMediaHandle;

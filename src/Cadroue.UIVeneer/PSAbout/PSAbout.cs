@@ -29,15 +29,15 @@ internal sealed class PSAbout : Window
 
     private TextBlock? psAboutDeveloper;
 
-    internal static void PSAboutShow(Window pOwner, LStrip lStrip)
+    internal static void PSAboutShow(Window pOwner, LSAbout lsAboutOwner)
     {
-        var psAbout = new PSAbout(pOwner, lStrip);
+        var psAbout = new PSAbout(pOwner, lsAboutOwner);
         psAbout.ShowDialog();
     }
 
-    private PSAbout(Window pOwner, LStrip lStrip)
+    private PSAbout(Window pOwner, LSAbout lsAboutOwner)
     {
-        lsAbout = new LSAbout(lStrip);
+        lsAbout = lsAboutOwner;
         Title = LLocalization.LLocalizationTextRead("About.Window.Title");
         Owner = pOwner;
         Width = PSAboutWidthDefault;

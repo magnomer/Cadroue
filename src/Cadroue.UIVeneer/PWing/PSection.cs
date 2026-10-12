@@ -139,7 +139,7 @@ public sealed class PSection : UserControl
     {
         Border pRow = PSectionRowRead(lIndex).PSectionRowBorder;
         pRow.Opacity = PSectionDragOpacity;
-        PGhost.PGhostShow(pRow, new Point(LSection.LSectionDrag.LSectionGrabX, LSection.LSectionDrag.LSectionGrabY));
+        PGhost.PGhostShow(pRow, LSection.LSectionDrag.LSectionGhost);
     }
 
     private void PSectionDragHide(int lIndex)

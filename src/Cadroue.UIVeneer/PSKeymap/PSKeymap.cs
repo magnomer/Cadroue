@@ -32,15 +32,15 @@ internal sealed class PSKeymap : Window
     private readonly PSGrabber psKeymapGrabber;
     private readonly Dictionary<string, PSKeymapChord> psKeymapChords = new(StringComparer.Ordinal);
 
-    internal static void PSKeymapShow(Window pOwner, Action? pApplyCallback)
+    internal static void PSKeymapShow(Window pOwner, LSKeymap lsKeymapOwner, Action? pApplyCallback)
     {
-        var psKeymap = new PSKeymap(pOwner, pApplyCallback);
+        var psKeymap = new PSKeymap(pOwner, lsKeymapOwner, pApplyCallback);
         psKeymap.ShowDialog();
     }
 
-    private PSKeymap(Window pOwner, Action? pApplyCallback)
+    private PSKeymap(Window pOwner, LSKeymap lsKeymapOwner, Action? pApplyCallback)
     {
-        lsKeymap = new LSKeymap();
+        lsKeymap = lsKeymapOwner;
         psKeymapCallback = pApplyCallback;
 
         foreach (LSKeymapChord pChord in lsKeymap.LSKeymapChords)

@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -9,24 +10,25 @@ namespace Cadroue.UIDeportment;
 public sealed class LWorkspace
 {
     private readonly LHistory lWorkspaceHistory = new();
-    private LDocket? lWorkspaceDocket;
-    private LSegment? lWorkspaceSegment;
-    private LFlow? lWorkspaceFlow;
-    private LViewer? lWorkspaceViewer;
-    private LStation? lWorkspaceStation;
+    private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? lWorkspaceLayoutSource;
     private LRelay? lWorkspaceRelay;
     private string lWorkspaceRelayPath = string.Empty;
 
-    public LWorkspace(string lKey, LPreset? lPreset)
+    public LWorkspace(string lKey, CUsher lUsher, CLineage lLineage)
     {
         LWorkspaceKey = lKey;
         QWorkspaceKey = new QWorkspaceKey(lKey);
-        LWorkspacePreset = lPreset ?? LPreset.LPresetInitialCreate(lKey);
-        LWorkspacePresetOwner = new LPresetSelection(
-            LWorkspacePreset.LPresetRecordCreate(), LWorkspacePreset.LPresetName);
+        LWorkspaceRoster = QWorkspaceKey.LWorkspaceWorklist ? LRoster.LRosterCreate(lUsher, lLineage) : null;
+        LWorkspaceList = QWorkspaceKey.LWorkspaceListPresent ? new LList(lUsher) : null;
+        qWorkspacePair = QWorkspaceKey.LWorkspaceFlowPresent ? new QWorkspacePair(QWorkspaceKey, lUsher) : null;
+        LWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
+        LWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
         LWorkspacePresetOwner.LPresetSelectionChanged += LWorkspacePresetHandle;
-        LWorkspacePresetHandle();
+        LWorkspacePresetAccept(LWorkspacePreset);
+        LWorkspaceExport = new LExport(lUsher, LWorkspacePresetOwner, QWorkspaceKey);
+        QWorkspaceMode = new QWorkspaceMode(QWorkspaceKey, lUsher,
+            LWorkspacePresetOwner, LWorkspaceViewer, LWorkspaceList, LWorkspaceFlow);
     }
 
     public event Action<LMediaInfo, string>? LWorkspaceFlowAttached;
@@ -45,81 +47,97 @@ public sealed class LWorkspace
 
     public QWorkspaceKey QWorkspaceKey { get; }
 
+    public QWorkspaceMode QWorkspaceMode { get; }
+
     public LPreset LWorkspacePreset { get; }
 
     public LPresetSelection LWorkspacePresetOwner { get; }
 
-    public LDocket? LWorkspaceDocket => lWorkspaceDocket;
+    public LRoster? LWorkspaceRoster { get; }
 
-    public LViewer? LWorkspaceViewer => lWorkspaceViewer;
+    public LExport LWorkspaceExport { get; }
 
-    public LFlow? LWorkspaceFlow => lWorkspaceFlow;
+    public LList? LWorkspaceList { get; }
+
+    public LDocket? LWorkspaceDocket => LWorkspaceList?.LListDocket;
+
+    public LViewer? LWorkspaceViewer => qWorkspacePair?.LWorkspaceViewer;
+
+    public LFlow? LWorkspaceFlow => qWorkspacePair?.LWorkspaceFlow;
+
+    public LCompass? LWorkspaceCompass => qWorkspacePair?.LWorkspaceCompass;
+
+    public LSource? LWorkspaceSource => qWorkspacePair?.LWorkspaceSource;
+
+    public LInfo? LWorkspaceInfo => qWorkspacePair?.LWorkspaceInfo;
 
     public bool LWorkspaceRelayPending => lWorkspaceRelay is not null;
 
-    public bool LWorkspaceFlowPresent => lWorkspaceFlow is not null;
+    public bool LWorkspaceFlowPresent => qWorkspacePair is not null;
 
-    public bool LWorkspaceListPresent => lWorkspaceDocket is not null;
+    private LSegment? LWorkspaceSegment => LWorkspaceFlow?.LFlowSection.LFlowSegment;
 
-    public void LWorkspaceAttach(
-        LDocket? lDocket,
-        LSegment? lSegment,
-        LFlow? lFlow,
-        LViewer? lViewer,
-        LStation? lStation,
-        Func<LSceneTabEntry> lLayoutSource)
+    public void LWorkspaceAttach(Func<LSceneTabEntry> lLayoutSource)
     {
-        lWorkspaceDocket = lDocket;
-        lWorkspaceSegment = lSegment;
-        lWorkspaceFlow = lFlow;
-        lWorkspaceViewer = lViewer;
-        lWorkspaceStation = lStation;
         lWorkspaceLayoutSource = lLayoutSource;
-        if (lViewer is not null)
+        if (LWorkspaceViewer is { } lViewer)
         {
             lViewer.LViewerMediaChanged += LWorkspaceMediaHandle;
         }
 
-        if (lFlow is not null)
+        if (LWorkspaceFlow is { } lFlow)
         {
             lFlow.LFlowSection.LFlowSectionChanged += LWorkspaceSectionHandle;
             lFlow.LFlowMediaChanged += LWorkspaceHistoryReset;
         }
 
-        QWorkspacePair.LWorkspacePairAttach(lFlow, lViewer);
+        if (LWorkspaceList is { } lList)
+        {
+            lList.LListPathChanged += LWorkspacePathHandle;
+            lList.LListClearChanged += LWorkspaceRemovedHandle;
+        }
+
+        qWorkspacePair?.LWorkspacePairAttach();
         lWorkspaceHistory.LHistoryReset(LWorkspaceSnapshotRead());
         LWorkspacePreset.LPresetChanged += LWorkspaceHistoryAdd;
     }
 
     public void LWorkspaceClose()
     {
-        if (lWorkspaceViewer is not null)
+        try
         {
-            lWorkspaceViewer.LViewerMediaChanged -= LWorkspaceMediaHandle;
-        }
+            if (LWorkspaceViewer is not null)
+            {
+                LWorkspaceViewer.LViewerMediaChanged -= LWorkspaceMediaHandle;
+            }
 
-        if (lWorkspaceFlow is not null)
+            if (LWorkspaceFlow is not null)
+            {
+                LWorkspaceFlow.LFlowSection.LFlowSectionChanged -= LWorkspaceSectionHandle;
+                LWorkspaceFlow.LFlowMediaChanged -= LWorkspaceHistoryReset;
+            }
+
+            qWorkspacePair?.LWorkspacePairDetach();
+            lWorkspaceRelay = null;
+            LWorkspacePreset.LPresetChanged -= LWorkspaceHistoryAdd;
+            LWorkspacePresetOwner.LPresetSelectionChanged -= LWorkspacePresetHandle;
+            LWorkspacePresetOwner.LPresetSelectionClose();
+        }
+        finally
         {
-            lWorkspaceFlow.LFlowSection.LFlowSectionChanged -= LWorkspaceSectionHandle;
-            lWorkspaceFlow.LFlowMediaChanged -= LWorkspaceHistoryReset;
+            LWorkspaceRoster?.LRosterClose();
         }
-
-        QWorkspacePair.LWorkspacePairDetach(lWorkspaceFlow, lWorkspaceViewer);
-        lWorkspaceRelay = null;
-        LWorkspacePreset.LPresetChanged -= LWorkspaceHistoryAdd;
-        LWorkspacePresetOwner.LPresetSelectionChanged -= LWorkspacePresetHandle;
-        LWorkspacePresetOwner.LPresetSelectionClose();
     }
 
-    public LStation? LWorkspaceStation => lWorkspaceStation;
+    public LStation? LWorkspaceStation => LWorkspaceRoster?.LRosterStation;
 
-    public bool LWorkspaceBusyCheck() => lWorkspaceStation?.LStationBusyCheck() == true;
+    public bool LWorkspaceBusyCheck() => LWorkspaceStation?.LStationBusyCheck() == true;
 
     public LSceneTabEntry LWorkspaceLayoutRead() => lWorkspaceLayoutSource?.Invoke() ?? new LSceneTabEntry();
 
     public LHistoryEntry LWorkspaceSnapshotRead() => new(
-        lWorkspaceSegment?.LSegmentListRead() ?? Array.Empty<LPiece>(),
-        lWorkspaceSegment?.LSegmentSelectionRead(),
+        LWorkspaceSegment?.LSegmentListRead() ?? Array.Empty<LPiece>(),
+        LWorkspaceSegment?.LSegmentSelectionRead(),
         LWorkspacePreset.LPresetRecordCreate());
 
     public void LWorkspaceSectionHandle(IReadOnlyList<LPiece> lSections, int? lSectionSelect) => LWorkspaceHistoryAdd();
@@ -144,18 +162,18 @@ public sealed class LWorkspace
 
     public void LWorkspaceRemovedHandle(IReadOnlyList<string> lRemovedPaths)
     {
-        if (lWorkspaceViewer is null)
+        if (LWorkspaceViewer is null)
         {
             return;
         }
 
-        if (lWorkspaceViewer.LViewerIntent is { } lPending
+        if (LWorkspaceViewer.LViewerIntent is { } lPending
             && lRemovedPaths.Contains(lPending.LViewerIntentPath, StringComparer.OrdinalIgnoreCase))
         {
             LWorkspaceLoadCancel();
         }
 
-        if (lWorkspaceViewer.LViewerSourcePath is { } lLoaded
+        if (LWorkspaceViewer.LViewerSourcePath is { } lLoaded
             && lRemovedPaths.Contains(lLoaded, StringComparer.OrdinalIgnoreCase))
         {
             LWorkspaceMediaClosed?.Invoke();
@@ -164,7 +182,7 @@ public sealed class LWorkspace
 
     public bool LWorkspaceMediaClear(IReadOnlySet<Guid> lCohorts)
     {
-        IReadOnlySet<string> lProtected = lWorkspaceDocket?.LDocketProtectedRead(lCohorts)
+        IReadOnlySet<string> lProtected = LWorkspaceDocket?.LDocketProtectedRead(lCohorts)
                 .Select(lEntry => lEntry.LDocketEntryPath)
                 .ToHashSet(StringComparer.OrdinalIgnoreCase)
             ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -174,13 +192,13 @@ public sealed class LWorkspace
             lCleared |= LWorkspaceLoadedCheck();
             LWorkspaceMediaClosed?.Invoke();
         }
-        else if (lWorkspaceViewer?.LViewerIntent is { } lPending && !lProtected.Contains(lPending.LViewerIntentPath))
+        else if (LWorkspaceViewer?.LViewerIntent is { } lPending && !lProtected.Contains(lPending.LViewerIntentPath))
         {
             LWorkspaceLoadCancel();
             lCleared = true;
         }
 
-        if (lWorkspaceDocket is { } lDocket && lDocket.LDocketPathsRead().Count > 0)
+        if (LWorkspaceDocket is { } lDocket && lDocket.LDocketPathsRead().Count > 0)
         {
             string[] lStale = lDocket.LDocketStaleRead(lCohorts)
                 .Select(lEntry => lEntry.LDocketEntryPath)
@@ -204,19 +222,19 @@ public sealed class LWorkspace
             LWorkspaceLayoutRead(),
             lDropLeft,
             lDropTop);
-        if (lWorkspaceDocket is { } lDocket)
+        if (LWorkspaceDocket is { } lDocket)
         {
             lRelay.LRelayPaths.AddRange(lDocket.LDocketPathsRead());
         }
 
-        if (lWorkspaceViewer is { } lViewer)
+        if (LWorkspaceViewer is { } lViewer)
         {
             lRelay.LRelaySourcePath = lViewer.LViewerSourcePath ?? string.Empty;
             lRelay.LRelayPositionTicks = lViewer.LViewerPosition.Ticks;
             lRelay.LRelayVolume = lViewer.LViewerVolume;
         }
 
-        if (lWorkspaceFlow is { } lFlow && lWorkspaceSegment is { } lSegment)
+        if (LWorkspaceFlow is { } lFlow && LWorkspaceSegment is { } lSegment)
         {
             lRelay.LRelaySections = LRelayPayload.LRelayRecordsCreate(lSegment.LSegmentListRead());
             lRelay.LRelaySectionIndex = lSegment.LSegmentSelectionRead();
@@ -233,10 +251,10 @@ public sealed class LWorkspace
     public void LWorkspaceRelayApply(LRelay lRelay)
     {
         lWorkspaceRelayPath = lRelay.LRelaySourcePath;
-        lWorkspaceRelay = lWorkspaceViewer is not null && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath)
+        lWorkspaceRelay = LWorkspaceViewer is not null && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath)
             ? lRelay
             : null;
-        if (lWorkspaceDocket is not null && lRelay.LRelayPaths.Count > 0)
+        if (LWorkspaceDocket is not null && lRelay.LRelayPaths.Count > 0)
         {
             LWorkspacePathsAdded?.Invoke(lRelay.LRelayPaths);
             return;
@@ -249,12 +267,12 @@ public sealed class LWorkspace
     {
         string lPath = lWorkspaceRelayPath;
         lWorkspaceRelayPath = string.Empty;
-        if (string.IsNullOrWhiteSpace(lPath) || lWorkspaceViewer is null)
+        if (string.IsNullOrWhiteSpace(lPath) || LWorkspaceViewer is null)
         {
             return;
         }
 
-        if (lWorkspaceDocket is { } lDocket
+        if (LWorkspaceDocket is { } lDocket
             && lDocket.LDocketPathsRead().Contains(lPath, StringComparer.OrdinalIgnoreCase))
         {
             LWorkspaceSourceSelected?.Invoke(lPath);
@@ -266,7 +284,7 @@ public sealed class LWorkspace
 
     public void LWorkspaceRelayRestore(LRelay lRelay, TimeSpan lDuration)
     {
-        if (lWorkspaceFlow is not null && lWorkspaceSegment is { } lSegment)
+        if (LWorkspaceFlow is not null && LWorkspaceSegment is { } lSegment)
         {
             IReadOnlyList<LPiece> lSections = LRelayPayload.LRelaySegmentsCreate(lRelay.LRelaySections);
             if (lSections.Count > 0)
@@ -300,7 +318,7 @@ public sealed class LWorkspace
 
     private void LWorkspaceFlowHandle(LCargo lCargo)
     {
-        if (lWorkspaceFlow is null)
+        if (LWorkspaceFlow is null)
         {
             return;
         }
@@ -316,7 +334,7 @@ public sealed class LWorkspace
 
     private void LWorkspaceLosslesscutHandle(LCargo lCargo)
     {
-        if (lWorkspaceFlow is not { } lFlow || !QWorkspaceKey.LWorkspaceSectionVisible)
+        if (LWorkspaceFlow is not { } lFlow || !QWorkspaceKey.LWorkspaceSectionVisible)
         {
             return;
         }
@@ -348,10 +366,16 @@ public sealed class LWorkspace
         }
     }
 
+    public void LWorkspacePresetAccept(LPreset lPreset)
+    {
+        LWorkspacePresetOwner.LPresetSelectionAccept(lPreset.LPresetRecordCreate(), lPreset.LPresetName);
+        LWorkspacePresetHandle();
+    }
+
     private void LWorkspacePresetHandle() =>
         LWorkspacePreset.LPresetCopy(LPreset.LPresetStateCreate(LWorkspacePresetOwner.LPresetSelectionValue));
 
-    private bool LWorkspaceEditableCheck() => lWorkspaceFlow is null || lWorkspaceFlow.QFlowEdit.LFlowSectionEditable;
+    private bool LWorkspaceEditableCheck() => LWorkspaceFlow is null || LWorkspaceFlow.QFlowEdit.LFlowSectionEditable;
 
     private bool LWorkspaceSnapshotApply(LHistoryEntry? lEntry)
     {
@@ -376,7 +400,7 @@ public sealed class LWorkspace
 
     private void LWorkspaceSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
     {
-        if (lWorkspaceFlow is not { } lFlow || lWorkspaceSegment is not { } lSegment
+        if (LWorkspaceFlow is not { } lFlow || LWorkspaceSegment is not { } lSegment
             || !lFlow.QFlowEdit.LFlowSectionEditable || lFlow.LFlowSpool is null)
         {
             return;
@@ -386,15 +410,15 @@ public sealed class LWorkspace
     }
 
     private bool LWorkspaceProtectedCheck(IReadOnlySet<string> lProtected) =>
-        lWorkspaceViewer is { } lViewer
+        LWorkspaceViewer is { } lViewer
         && ((lViewer.LViewerSourcePath is { } lSource && lProtected.Contains(lSource))
             || (lViewer.LViewerIntent is { } lPending && lProtected.Contains(lPending.LViewerIntentPath)));
 
     private bool LWorkspaceLoadedCheck() =>
-        lWorkspaceViewer is { LViewerUnloaded: false } lViewer
+        LWorkspaceViewer is { LViewerUnloaded: false } lViewer
         && (lViewer.LViewerSourcePath is not null
             || lViewer.LViewerMediaInfo is not null
             || lViewer.LViewerIntent is not null);
 
-    private void LWorkspaceLoadCancel() => lWorkspaceViewer?.LViewerMedia.LViewerLoadCancel();
+    private void LWorkspaceLoadCancel() => LWorkspaceViewer?.LViewerMedia.LViewerLoadCancel();
 }

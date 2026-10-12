@@ -33,7 +33,6 @@ public sealed class LSection
     private IReadOnlyList<LPiece> lSectionPieces;
     private HashSet<int> lSectionSelected;
     private int lSectionRowCount;
-    private bool lSectionEditable;
     private bool lSectionMinimized;
     private int? lSectionEditIndex;
     private int lSectionEditSerial;
@@ -52,7 +51,6 @@ public sealed class LSection
         lSectionPieces = lFlow.LFlowSection.LFlowSectionsRead().ToArray();
         lSectionSelected = new HashSet<int>(lFlow.LFlowSection.LFlowSelectedRead());
         lSectionRowCount = lSectionPieces.Count;
-        lSectionEditable = lFlow.QFlowEdit.LFlowSectionEditable;
         LSectionDrag = new LSectionDrag(this, lFlow);
         lFlow.LFlowSection.LFlowSectionChanged += LSectionUpdateHandle;
         lFlow.QFlowEdit.LFlowEditChanged += LSectionEditHandle;
@@ -62,7 +60,7 @@ public sealed class LSection
 
     public LFlow LFlow => lFlow;
 
-    public bool LSectionEditable => lSectionEditable;
+    public bool LSectionEditable => lFlow.QFlowEdit.LFlowSectionEditable;
 
     public int LSectionRowCount => lSectionRowCount;
 
@@ -109,7 +107,7 @@ public sealed class LSection
     {
         LSectionDrag.LSectionDragClear();
         LSectionEditCommit();
-        if (lSectionEditable)
+        if (LSectionEditable)
         {
             lFlow.LFlowSection.LFlowSectionToggle(lIndex);
         }
@@ -135,7 +133,7 @@ public sealed class LSection
 
     public bool LSectionRenameHandle(int lIndex, int lClickCount)
     {
-        if (lClickCount < 2 || !lSectionEditable)
+        if (lClickCount < 2 || !LSectionEditable)
         {
             return false;
         }
@@ -255,7 +253,6 @@ public sealed class LSection
 
     private void LSectionEditHandle(bool lEditable)
     {
-        lSectionEditable = lEditable;
         LSectionEnabledApplied?.Invoke(lEditable);
         if (lEditable)
         {

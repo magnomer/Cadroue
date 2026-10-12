@@ -6,7 +6,7 @@ namespace Cadroue.Tests.Windows;
 
 internal static class TInterfaceViewer
 {
-    internal static LViewer TViewerCreate() => new(new LStrip(TInterface.TProgramCreate()));
+    internal static LViewer TViewerCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
     internal static void TViewerMediaAttach(LViewer viewer, Action<LCargo> handler) =>
         viewer.LViewerMediaChanged += handler;
     internal static void TViewerPlayingAttach(LViewer viewer, Action<bool> handler) =>

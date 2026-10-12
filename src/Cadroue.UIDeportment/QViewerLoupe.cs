@@ -11,6 +11,8 @@ public sealed class QViewerLoupe
         lViewerMedia = lMedia;
     }
 
+    public LSLoupe LViewerLoupeCreate() => new(lViewer);
+
     public void LViewerLoupeAttach()
     {
         lViewer.LViewerLoupeSet(true);

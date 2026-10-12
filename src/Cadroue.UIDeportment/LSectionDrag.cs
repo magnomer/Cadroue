@@ -8,8 +8,7 @@ public sealed class LSectionDrag
     private bool lSectionDragOrigin;
     private double lSectionDragX;
     private double lSectionDragY;
-    private double lSectionGrabX;
-    private double lSectionGrabY;
+    private LGhost lSectionGhost = new(0, 0);
     private int? lSectionDragIndex;
 
     public event Action<int>? LSectionDragStarted;
@@ -26,9 +25,7 @@ public sealed class LSectionDrag
 
     public int? LSectionDragIndex => lSectionDragIndex;
 
-    public double LSectionGrabX => lSectionGrabX;
-
-    public double LSectionGrabY => lSectionGrabY;
+    public LGhost LSectionGhost => lSectionGhost;
 
     public int LSectionDragRead() => lSectionDragIndex ?? -1;
 
@@ -47,8 +44,7 @@ public sealed class LSectionDrag
         lSectionDragOrigin = true;
         lSectionDragX = lX;
         lSectionDragY = lY;
-        lSectionGrabX = lGrabX;
-        lSectionGrabY = lGrabY;
+        lSectionGhost = new LGhost(lGrabX, lGrabY);
         return true;
     }
 

@@ -5,17 +5,28 @@ namespace Cadroue.UIDeportment;
 public sealed class LSurface
 {
     private const double LSurfaceWidthPadding = 16;
+    private readonly LColumnPlan lSurfacePlan;
     private readonly LColumn lSurfaceColumn;
     private readonly int lSurfaceCount;
     private readonly int lSurfaceExportIndex;
-    private LAction? lSurfaceAction;
+    private readonly LAction? lSurfaceAction;
 
-    public LSurface(LColumn lColumn, int lCount, int lExportIndex)
+    public LSurface(
+        LAction? lAction,
+        IReadOnlyList<double> lMinimumWidths,
+        IReadOnlyList<double>? lStoredWidths,
+        IReadOnlyList<bool>? lCompactPanels,
+        int lFlexIndex,
+        int lExportIndex)
     {
-        lSurfaceColumn = lColumn;
-        lSurfaceCount = lCount;
+        lSurfaceAction = lAction;
+        lSurfacePlan = new LColumnPlan(lMinimumWidths, lStoredWidths, lCompactPanels, lFlexIndex);
+        lSurfaceColumn = lSurfacePlan.LColumn;
+        lSurfaceCount = lMinimumWidths.Count;
         lSurfaceExportIndex = lExportIndex;
     }
+
+    public LColumnPlan LSurfacePlan => lSurfacePlan;
 
     public int LSurfaceExportIndex => lSurfaceExportIndex;
 
@@ -23,8 +34,6 @@ public sealed class LSurface
         lSurfaceExportIndex >= 0 && lSurfaceColumn.LColumnHiddenCheck(lSurfaceExportIndex);
 
     public bool LSurfaceAutoRelay => lSurfaceAction?.LActionAutoRelay ?? false;
-
-    public void LSurfaceActionAttach(LAction lAction) => lSurfaceAction = lAction;
 
     public bool LSurfaceCollapsedCheck(int lIndex) => lSurfaceColumn.LColumnFixedRead(lIndex) > 0;
 

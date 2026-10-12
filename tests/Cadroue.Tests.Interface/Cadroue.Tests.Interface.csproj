@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="Cadroue.Tests.Conduct" />
     <InternalsVisibleTo Include="Cadroue.Tests.Engine" />
     <InternalsVisibleTo Include="Cadroue.Tests.Windows" />
   </ItemGroup>

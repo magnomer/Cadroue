@@ -32,7 +32,7 @@ public static class LUsher
         }
     }
 
-    public static string? LUsherPathOpen(string lUsherPath, string lUsherLabel, string? lUsherFallback = null)
+    public static string? LUsherPathOpen(string lUsherPath, string? lUsherFallback = null)
     {
         try
         {
@@ -65,11 +65,11 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return LUsherFailureRecord(lUsherLabel, lUsherPath, lUsherException.Message);
+            return lUsherException.Message;
         }
     }
 
-    public static string? LUsherFolderOpen(string lUsherFolder, string lUsherLabel)
+    public static string? LUsherFolderOpen(string lUsherFolder)
     {
         if (!LUsherFolderExist(lUsherFolder))
         {
@@ -83,11 +83,11 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return LUsherFailureRecord(lUsherLabel, lUsherFolder, lUsherException.Message);
+            return lUsherException.Message;
         }
     }
 
-    public static string? LUsherLinkOpen(string lUsherTarget, string lUsherLabel)
+    public static string? LUsherLinkOpen(string lUsherTarget)
     {
         try
         {
@@ -96,13 +96,7 @@ public static class LUsher
         }
         catch (Exception lUsherException)
         {
-            return LUsherFailureRecord(lUsherLabel, lUsherTarget, lUsherException.Message);
+            return lUsherException.Message;
         }
-    }
-
-    private static string LUsherFailureRecord(string lUsherLabel, string lUsherTarget, string lUsherError)
-    {
-        LTraceLog.LTraceErrorRecord($"{lUsherLabel} could not be opened: {lUsherTarget}: {lUsherError}");
-        return lUsherError;
     }
 }

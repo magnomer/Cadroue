@@ -159,7 +159,7 @@ public sealed class PFunnelRules : PPanel
     private void PFunnelGhostShow(PFunnelRuleRow pRow)
     {
         pRow.Opacity = 0.72;
-        PGhost.PGhostShow(pRow, new Point(lFunnel.LFunnelDrag.LFunnelOffsetX, lFunnel.LFunnelDrag.LFunnelOffsetY));
+        PGhost.PGhostShow(pRow, lFunnel.LFunnelDrag.LFunnelGhost);
     }
 
     private double PFunnelCenterRead(LFunnelRule lRule)

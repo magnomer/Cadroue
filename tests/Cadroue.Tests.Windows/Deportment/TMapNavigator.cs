@@ -20,7 +20,7 @@ public sealed class TMapNavigator
     public void Hover_FindsGrips_Body_AndCursorArea()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
 
         Assert.Equal(LMapHitKind.LMapHitOrigin, TInterface.TMapHoverResolve(map, 103, 10, 600, 40));
         Assert.Equal(LMapHitKind.LMapHitLimit, TInterface.TMapHoverResolve(map, 397, 10, 600, 40));
@@ -35,7 +35,7 @@ public sealed class TMapNavigator
     public void BodyDrag_MovesTheSpool_AndRaisesDragNotices()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
         List<bool> drags = [];
         TInterface.TFlowPlayAttach(flow, () => { }, () => { }, drags.Add, _ => { });
 
@@ -56,7 +56,7 @@ public sealed class TMapNavigator
     public void GripDrag_ResizesOneEnd_AndCursorPressSeeks()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
         List<TimeSpan> seeks = [];
         TInterface.TFlowCursorAttach(flow, () => { }, seeks.Add);
 
@@ -74,14 +74,14 @@ public sealed class TMapNavigator
         Assert.Equal([TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(60)], seeks);
 
         LFlow bare = TInterface.TFlowCreate();
-        Assert.False(TInterface.TMapPressHandle(TInterface.TMapCreate(bare), 10, 10, 600, 40));
+        Assert.False(TInterface.TMapPressHandle(TInterface.TMapRead(bare), 10, 10, 600, 40));
     }
 
     [Fact]
     public void Frame_CarriesNavigatorShapes_AndRedrawsOnFlowNotices()
     {
         LFlow flow = TFlowBuild();
-        LMap map = TInterface.TMapCreate(flow);
+        LMap map = TInterface.TMapRead(flow);
         int redraws = 0;
         TInterface.TMapFrameAttach(map, () => redraws++);
 

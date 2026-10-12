@@ -53,6 +53,9 @@ public sealed class LPlayer
         LPlayerAppliedReset();
     }
 
+    public void LPlayerMpvCreate(nint lHostHandle) =>
+        LPlayerEngineSet(new LPlayerMpv(lHostHandle).LPlayerSeamRead());
+
     public void LPlayerDispose() => LPlayerEngineSet(null);
 
     public void LPlayerEndSet(TimeSpan? lVideoEnd) => lPlayerVideoEnd = lVideoEnd;

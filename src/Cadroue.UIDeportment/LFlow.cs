@@ -21,9 +21,9 @@ public sealed class LFlow
     private int lFlowPaletteCount = 1;
     private Func<bool>? lFlowPlayingSource;
 
-    public LFlow(LStrip lStrip)
+    public LFlow(CUsher lUsher)
     {
-        lFlowUsher = lStrip.LStripUsher;
+        lFlowUsher = lUsher;
         QFlowEdit = new QFlowEdit(this);
         QFlowSpool = new QFlowSpool(this);
         QFlowStamp = new QFlowStamp();
@@ -32,6 +32,9 @@ public sealed class LFlow
         LFlowWaveform = new LFlowWaveform(this);
         LFlowLosslesscut = new LFlowLosslesscut(this, lFlowUsher);
         LFlowName = new LFlowName(this);
+        LFlowViewfinder = new LViewfinder(this);
+        LFlowMap = new LMap(this);
+        LFlowDivider = new LDivider();
     }
 
     public event Action<bool>? LFlowWaveformChanged;
@@ -54,6 +57,12 @@ public sealed class LFlow
     public LFlowLosslesscut LFlowLosslesscut { get; }
 
     public LFlowName LFlowName { get; }
+
+    public LViewfinder LFlowViewfinder { get; }
+
+    public LMap LFlowMap { get; }
+
+    public LDivider LFlowDivider { get; }
 
     public QFlowEdit QFlowEdit { get; }
 

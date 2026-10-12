@@ -10,7 +10,7 @@ public sealed class TUsher
 
     public TUsher()
     {
-        tUsherArea = new CAtelier(tUsherPort).CAtelierUsher;
+        tUsherArea = new CAtelier(tUsherPort, new TLineagePort()).CAtelierUsher;
     }
 
     [Fact]
@@ -30,56 +30,78 @@ public sealed class TUsher
     [Fact]
     public void UsherNameRead_Path_ReturnsThePortName()
     {
-        Assert.Equal("a.name", tUsherArea.CUsherNameRead("a"));
-        Assert.Equal(["name:a"], tUsherPort.TUsherCalls);
+        Assert.Equal("d/a.b.name", tUsherArea.CUsherNameRead("d/a.b"));
+        Assert.Equal(["name:d/a.b"], tUsherPort.TUsherCalls);
     }
 
     [Fact]
     public void UsherStemRead_Path_ReturnsThePortStem()
     {
-        Assert.Equal("a.stem", tUsherArea.CUsherStemRead("a"));
-        Assert.Equal(["stem:a"], tUsherPort.TUsherCalls);
+        Assert.Equal("d/a.b.stem", tUsherArea.CUsherStemRead("d/a.b"));
+        Assert.Equal(["stem:d/a.b"], tUsherPort.TUsherCalls);
     }
 
     [Fact]
-    public void UsherExtensionRead_Path_ReturnsThePortExtension()
+    public void UsherProgramOpen_Name_AnswersTheResolvedPathAndTheFailure()
     {
-        Assert.Equal("a.extension", tUsherArea.CUsherExtensionRead("a"));
-        Assert.Equal(["extension:a"], tUsherPort.TUsherCalls);
+        (string path, string? failure) = tUsherArea.CUsherProgramOpen("n");
+        Assert.Equal("n.program", path);
+        Assert.Equal("n.program.failed", failure);
+        Assert.Equal(["program:n", "link:n.program"], tUsherPort.TUsherCalls);
+        Assert.Equal([null], tUsherPort.TUsherFailures);
     }
 
     [Fact]
-    public void UsherProgramResolve_Name_ReturnsThePortPath()
+    public void UsherProgramOpen_FailureText_HandsTheCallerTextToThePort()
     {
-        Assert.Equal("n.program", tUsherArea.CUsherProgramResolve("n"));
-        Assert.Equal(["program:n"], tUsherPort.TUsherCalls);
+        tUsherArea.CUsherProgramOpen("{n}", "Notice could not be opened: {0}: {1}");
+        Assert.Equal(["Notice could not be opened: {0}: {1}"], tUsherPort.TUsherFailures);
     }
-
-    [Fact]
-    public void UsherPathResolve_Path_ReturnsThePortPath()
-    {
-        Assert.Equal("a.path", tUsherArea.CUsherPathResolve("a"));
-        Assert.Equal(["path:a"], tUsherPort.TUsherCalls);
-    }
-
     [Fact]
     public void UsherPathOpen_WithoutFallback_PassesNullAndReturnsTheFailure()
     {
-        Assert.Equal("a|Label|.failed", tUsherArea.CUsherPathOpen("a", "Label"));
-        Assert.Equal(["reveal:a|Label|"], tUsherPort.TUsherCalls);
+        Assert.Equal("a|.failed", tUsherArea.CUsherPathOpen("a"));
+        Assert.Equal(["reveal:a|"], tUsherPort.TUsherCalls);
     }
 
     [Fact]
+    public void UsherPathOpen_FailureText_HandsTheCallerTextToThePort()
+    {
+        Assert.Equal("{a}|.failed", tUsherArea.CUsherPathOpen("{a}", failure: "Could not open '{0}': {1}"));
+        Assert.Equal(["Could not open '{0}': {1}"], tUsherPort.TUsherFailures);
+    }
+
+    [Fact]
+    public void UsherPathOpen_WithoutFailureText_HandsNullToThePort()
+    {
+        Assert.Equal("a|.failed", tUsherArea.CUsherPathOpen("a"));
+        Assert.Equal([null], tUsherPort.TUsherFailures);
+    }
+    [Fact]
     public void UsherFolderOpen_Folder_ReturnsTheFailure()
     {
-        Assert.Equal("f|Label.failed", tUsherArea.CUsherFolderOpen("f", "Label"));
-        Assert.Equal(["explorer:f|Label"], tUsherPort.TUsherCalls);
+        Assert.Equal("f.failed", tUsherArea.CUsherFolderOpen("f"));
+        Assert.Equal(["explorer:f"], tUsherPort.TUsherCalls);
     }
 
     [Fact]
     public void UsherLinkOpen_Target_ReturnsTheFailure()
     {
-        Assert.Equal("t|Label.failed", tUsherArea.CUsherLinkOpen("t", "Label"));
-        Assert.Equal(["link:t|Label"], tUsherPort.TUsherCalls);
+        Assert.Equal("t.failed", tUsherArea.CUsherLinkOpen("t"));
+        Assert.Equal(["link:t"], tUsherPort.TUsherCalls);
+    }
+
+    [Fact]
+    public void UsherLinkOpen_FailureText_HandsTheCallerTextToThePort()
+    {
+        Assert.Equal("{t}.failed", tUsherArea.CUsherLinkOpen("{t}", "Link could not be opened: {0}: {1}"));
+        Assert.Equal(["Link could not be opened: {0}: {1}"], tUsherPort.TUsherFailures);
+    }
+
+    [Fact]
+    public void UsherLinkOpen_WithoutFailureText_HandsNullToThePort()
+    {
+        Assert.Equal("t.failed", tUsherArea.CUsherLinkOpen("t"));
+        Assert.Equal([null], tUsherPort.TUsherFailures);
     }
 }

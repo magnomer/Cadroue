@@ -1,7 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -75,13 +74,26 @@ public sealed class LRosterDetail
 
     public static LRosterDetail LRosterDetailRead(LRoster lRoster)
     {
-        LWorkItem? lWorkItem = lRoster.LRosterSelectRead();
-        return lWorkItem is null
-            ? LRosterDetailCreate(lRoster.LRosterUsher, null, string.Empty)
-            : LRosterDetailCreate(lRoster.LRosterUsher, lWorkItem, lRoster.LRosterOwnerFormat(lWorkItem));
+        if (lRoster.LRosterSelectRead() is not { } lWorkItem)
+        {
+            return LRosterDetailCreate(null, string.Empty, null, string.Empty, []);
+        }
+
+        CLineageStep lStep = lRoster.LRosterStepRead(lWorkItem.LWorkId);
+        return LRosterDetailCreate(
+            lWorkItem,
+            lRoster.LRosterOwnerFormat(lWorkItem),
+            lStep.CLineageStepSource,
+            lRoster.LRosterTitleRead(lStep),
+            [lStep.CLineageSourceExtension, lStep.CLineageOutputExtension]);
     }
 
-    public static LRosterDetail LRosterDetailCreate(CUsher lUsher, LWorkItem? lWorkItem, string lOwnerText)
+    public static LRosterDetail LRosterDetailCreate(
+        LWorkItem? lWorkItem,
+        string lOwnerText,
+        long? lSourceBytes,
+        string lTabName,
+        IReadOnlyList<string> lExtensions)
     {
         if (lWorkItem is null)
         {
@@ -104,9 +116,7 @@ public sealed class LRosterDetail
             };
         }
 
-        long? lSourceBytes = LLineage.LLineageSourceRead(lWorkItem);
         long? lOutputBytes = lWorkItem.LWorkOutputBytes;
-        string lTabName = LCartographer.LCartographerTitleRead(lWorkItem);
         bool lFailed = lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateFailed;
         bool lMessage = !string.IsNullOrWhiteSpace(lWorkItem.LWorkMessage);
         IReadOnlyList<LRosterBar> lBars = LRosterBarsCreate(lSourceBytes, lOutputBytes);
@@ -125,7 +135,7 @@ public sealed class LRosterDetail
                         LRosterFormatter.LRosterSpeedFormat(lWorkItem))
                 ],
             LRosterDetailBars = lBars,
-            LRosterDetailCompares = LRosterComparesCreate(lUsher, lWorkItem, lSourceBytes, lOutputBytes),
+            LRosterDetailCompares = LRosterComparesCreate(lWorkItem, lSourceBytes, lOutputBytes, lExtensions),
             LRosterDetailSound = lSounds.Count > 0,
             LRosterDetailSounds = lSounds,
             LRosterDetailSource = lWorkItem.LWorkSourcePath,
@@ -139,9 +149,6 @@ public sealed class LRosterDetail
             LRosterDetailAudios = LRosterAudiosCreate(lWorkItem.LWorkOutput.LEncodingAudio)
         };
     }
-
-    public static string? LRosterDetailOpen(LRoster lRoster, string lPath) =>
-        lRoster.LRosterUsher.CUsherPathOpen(lPath, "Roster file");
 
     public static IReadOnlyList<LRosterBar> LRosterBarsCreate(long? lSourceBytes, long? lOutputBytes)
     {
@@ -161,7 +168,7 @@ public sealed class LRosterDetail
     }
 
     private static IReadOnlyList<LRosterCompareRow> LRosterComparesCreate(
-        CUsher lUsher, LWorkItem lWorkItem, long? lSourceBytes, long? lOutputBytes)
+        LWorkItem lWorkItem, long? lSourceBytes, long? lOutputBytes, IReadOnlyList<string> lExtensions)
     {
         LWorkMedia? lSourceInfo = lWorkItem.LWorkSourceMedia;
         LWorkMedia? lOutputInfo = lWorkItem.LWorkOutputMedia;
@@ -199,8 +206,8 @@ public sealed class LRosterDetail
                 lSourceInfo is null ? lUnknown : LRosterFormatter.LRosterClockFormat(lSourceInfo.LWorkMediaDuration),
                 LRosterFormatter.LRosterClockFormat(lOutputInfo?.LWorkMediaDuration ?? lWorkItem.LWorkDuration)),
             LRosterCompareCreate(
-                LRosterFormatter.LRosterContainerFormat(lUsher, lWorkItem.LWorkSourcePath),
-                LRosterFormatter.LRosterContainerFormat(lUsher, lWorkItem.LWorkOutputPath))
+                LRosterFormatter.LRosterContainerFormat(lExtensions[0]),
+                LRosterFormatter.LRosterContainerFormat(lExtensions[1]))
         ];
     }
 

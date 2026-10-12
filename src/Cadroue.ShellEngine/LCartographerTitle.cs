@@ -16,19 +16,20 @@ public static partial class LCartographer
     public static void LCartographerStageSet(Guid lCartographerStageId, string lCartographerTitle) =>
         lCartographerStageTitles[lCartographerStageId] = lCartographerTitle;
 
-    public static string LCartographerTitleRead(LWorkItem lCartographerItem)
+    public static string LCartographerTitleRead(
+        Guid lCartographerBatchId, Guid lCartographerRelaySource, string lCartographerTab)
     {
         string lCartographerTitle =
-            LCartographerTitleSource?.Invoke(lCartographerItem.LWorkRelaySource) ?? string.Empty;
+            LCartographerTitleSource?.Invoke(lCartographerRelaySource) ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(lCartographerTitle))
         {
             return lCartographerTitle;
         }
 
         if (LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerItem.LWorkBatchId, out LCartographerPlanDocument lCartographerPlan)
+                lCartographerBatchId, out LCartographerPlanDocument lCartographerPlan)
             && lCartographerPlan.LCartographerStages.FirstOrDefault(
-                lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerItem.LWorkRelaySource)
+                lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerRelaySource)
                 is { } lCartographerSourceStage)
         {
             lCartographerStageTitles[lCartographerSourceStage.LCartographerStageId] =
@@ -36,6 +37,6 @@ public static partial class LCartographer
             return lCartographerSourceStage.LCartographerTitle;
         }
 
-        return lCartographerItem.LWorkTab;
+        return lCartographerTab;
     }
 }

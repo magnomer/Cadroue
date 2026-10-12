@@ -53,6 +53,8 @@ public sealed class LSLoupe
     private TimeSpan lLoupeFinal;
     private bool lLoupePlayingFinal;
 
+    public LSLoupe(LViewer lViewer) => lLoupeViewer = lViewer;
+
     public LPlayer LPlayer { get; } = new();
 
     public event Action<bool>? LSLoupePlayingChanged;
@@ -103,9 +105,9 @@ public sealed class LSLoupe
         LSLoupeFloatChanged?.Invoke();
     }
 
-    public void LSLoupeViewerAttach(LViewer lViewer)
+    public void LSLoupeViewerAttach()
     {
-        lLoupeViewer = lViewer;
+        LViewer lViewer = lLoupeViewer!;
         lViewer.LViewerPreviewChanged += LSLoupePreviewHandle;
         lViewer.LViewerPlayback.LViewerLoupePlayed += LSLoupePlay;
         lViewer.LViewerPlayback.LViewerLoupePaused += LSLoupePause;

@@ -17,49 +17,50 @@ public sealed class LSplitTab
     ];
 
     private readonly LPresetSelection lSplitPreset;
-    private readonly LInspector lSplitInspector;
     private readonly LViewer lSplitViewer;
     private readonly LList lSplitList;
     private readonly LDocket lSplitDocket;
-    private readonly LProcessing lSplitProcessing;
     private readonly LFlow lSplitFlow;
 
-    public LSplitTab(
-        LPresetSelection lPreset,
-        LInspector lInspector,
-        LViewer lViewer,
-        LList lList,
-        LDocket lDocket,
-        LProcessing lProcessing,
-        LFlow lFlow)
+    public LSplitTab(LPresetSelection lPreset, LViewer lViewer, LList lList, LFlow lFlow)
     {
         lSplitPreset = lPreset;
-        lSplitInspector = lInspector;
         lSplitViewer = lViewer;
         lSplitList = lList;
-        lSplitDocket = lDocket;
-        lSplitProcessing = lProcessing;
+        lSplitDocket = lList.LListDocket;
         lSplitFlow = lFlow;
-        LSplitSweep = new LSplitTabSweep(lInspector, lList, lDocket, lFlow);
+        LSplitSweep = new LSplitTabSweep(LSplitInspector, lList, lSplitDocket, lFlow);
         lFlow.LFlowSectionSet(true);
-        lInspector.LInspectorSensor.LSensorChanged += LSplitChangeHandle;
-        lInspector.LInspectorBlank.LBlankChanged += LSplitChangeHandle;
-        lInspector.LInspectorSensor.LSensorPersistentChanged += LSplitPersistentHandle;
-        lInspector.LInspectorBlank.LBlankPickChanged += LSplitPickHandle;
+        LSplitInspector.LInspectorSensor.LSensorChanged += LSplitChangeHandle;
+        LSplitInspector.LInspectorBlank.LBlankChanged += LSplitChangeHandle;
+        LSplitInspector.LInspectorSensor.LSensorPersistentChanged += LSplitPersistentHandle;
+        LSplitInspector.LInspectorBlank.LBlankPickChanged += LSplitPickHandle;
         lViewer.LViewerNeutral.LViewerNeutralChanged += LSplitSampleHandle;
+        LSplitSection = new LSection(lFlow);
+        LSplitInspector.LInspectorSensor.LSensorRunApplied += () => _ = LSplitSweep.LSplitSweepStart();
+        LSplitInspector.LInspectorSensor.LSensorStopApplied += LSplitSweep.LSplitSweepCancel;
+        lList.LListPathChanged += LSplitPathHandle;
+        lList.LListLockChanged += LSplitLockHandle;
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public event Action? LSplitPresetMissing;
+
+    public LInspector LSplitInspector { get; } = new();
+
+    public LProcessing LSplitProcessing { get; } = new();
+
+    public LSection LSplitSection { get; }
 
     public LSplitTabSweep LSplitSweep { get; }
 
     public void LSplitClose()
     {
         LSplitSweep.LSplitSweepCancel();
-        lSplitInspector.LInspectorSensor.LSensorChanged -= LSplitChangeHandle;
-        lSplitInspector.LInspectorBlank.LBlankChanged -= LSplitChangeHandle;
-        lSplitInspector.LInspectorSensor.LSensorPersistentChanged -= LSplitPersistentHandle;
-        lSplitInspector.LInspectorBlank.LBlankPickChanged -= LSplitPickHandle;
+        LSplitInspector.LInspectorSensor.LSensorChanged -= LSplitChangeHandle;
+        LSplitInspector.LInspectorBlank.LBlankChanged -= LSplitChangeHandle;
+        LSplitInspector.LInspectorSensor.LSensorPersistentChanged -= LSplitPersistentHandle;
+        LSplitInspector.LInspectorBlank.LBlankPickChanged -= LSplitPickHandle;
         lSplitViewer.LViewerNeutral.LViewerNeutralChanged -= LSplitSampleHandle;
     }
 
@@ -68,7 +69,7 @@ public sealed class LSplitTab
     public LSceneTabEntry LSplitLayoutRead(LSceneTabEntry lLayout)
     {
         lLayout.LSceneDetectors = LDetectorBundle.LDetectorSceneFormat(LSplitStateRead());
-        lLayout.LSceneDetectPersistent = lSplitInspector.LInspectorSensor.LSensorPersistent;
+        lLayout.LSceneDetectPersistent = LSplitInspector.LInspectorSensor.LSensorPersistent;
         return lLayout;
     }
 
@@ -76,13 +77,13 @@ public sealed class LSplitTab
     {
         if (lLayout is null)
         {
-            lSplitProcessing.LProcessingMinimizedSet(true);
-            lSplitInspector.LInspectorMinimizedSet(true);
+            LSplitProcessing.LProcessingMinimizedSet(true);
+            LSplitInspector.LInspectorMinimizedSet(true);
             return;
         }
 
         LSplitStateApply(LDetectorBundle.LDetectorSceneParse(lLayout.LSceneDetectors));
-        lSplitInspector.LInspectorSensor.LSensorPersistentSet(lLayout.LSceneDetectPersistent);
+        LSplitInspector.LInspectorSensor.LSensorPersistentSet(lLayout.LSceneDetectPersistent);
         LSplitActiveUpdate();
     }
 
@@ -144,7 +145,7 @@ public sealed class LSplitTab
         }
 
         lSplitViewer.LViewerPathHandle(lPath);
-        if (!lSplitInspector.LInspectorSensor.LSensorPersistent)
+        if (!LSplitInspector.LInspectorSensor.LSensorPersistent)
         {
             LSplitStateLoad(lPath);
         }
@@ -156,7 +157,7 @@ public sealed class LSplitTab
         lSplitViewer.LViewerNeutral.LViewerToolSet(lArmed, LNeutralTarget.LNeutralTargetGrey);
 
     public void LSplitSampleHandle(LNeutralSample lSample) =>
-        lSplitInspector.LInspectorBlank.LBlankSampleSet(
+        LSplitInspector.LInspectorBlank.LBlankSampleSet(
             lSample.LNeutralRed, lSample.LNeutralGreen, lSample.LNeutralBlue);
 
     public void LSplitChangeHandle()
@@ -176,19 +177,19 @@ public sealed class LSplitTab
 
     public void LSplitActiveUpdate()
     {
-        LSensor lSensor = lSplitInspector.LInspectorSensor;
+        LSensor lSensor = LSplitInspector.LInspectorSensor;
         foreach (LDetectorKind lKind in LDetector.LDetectorKinds)
         {
             bool lActive = lKind == LDetectorKind.LDetectorKindBlank
-                ? lSplitInspector.LInspectorBlank.LBlankStep.LDetectorBlankEnabled
+                ? LSplitInspector.LInspectorBlank.LBlankStep.LDetectorBlankEnabled
                 : lSensor.LSensorStepRead(lKind).LDetectorStepEnabled;
-            lSplitProcessing.LProcessingActiveSet(LSensor.LSensorNameRead(lKind), lActive);
+            LSplitProcessing.LProcessingActiveSet(LSensor.LSensorNameRead(lKind), lActive);
         }
     }
 
     public void LSplitStateSave()
     {
-        if (lSplitInspector.LInspectorSaveSuspended
+        if (LSplitInspector.LInspectorSaveSuspended
             || lSplitViewer.LViewerSourcePath is not { } lPath
             || lSplitDocket.LDocketLockCheck(lPath))
         {
@@ -217,7 +218,7 @@ public sealed class LSplitTab
 
     public LDetectorBundle LSplitStateRead()
     {
-        LSensor lSensor = lSplitInspector.LInspectorSensor;
+        LSensor lSensor = LSplitInspector.LInspectorSensor;
         IReadOnlyList<LDetectorStep> lSteps = LDetector.LDetectorKinds
             .Where(lKind => lKind != LDetectorKind.LDetectorKindBlank)
             .Select(lSensor.LSensorStepRead)
@@ -227,7 +228,7 @@ public sealed class LSplitTab
             lStep => lSensor.LSensorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
         return new LDetectorBundle(
             lSteps,
-            lSplitInspector.LInspectorBlank.LBlankStep,
+            LSplitInspector.LInspectorBlank.LBlankStep,
             lSensor.LSensorMode,
             lSensor.LSensorSpeed,
             lSensor.LSensorMetric,
@@ -236,13 +237,13 @@ public sealed class LSplitTab
 
     private void LSplitStateApply(LDetectorBundle lSet)
     {
-        LSensor lSensor = lSplitInspector.LInspectorSensor;
-        lSplitInspector.LInspectorSaveSuspend();
+        LSensor lSensor = LSplitInspector.LInspectorSensor;
+        LSplitInspector.LInspectorSaveSuspend();
         try
         {
             if (lSet.LDetectorSetBlank is { } lBlank)
             {
-                lSplitInspector.LInspectorBlank.LBlankStepSet(lBlank);
+                LSplitInspector.LInspectorBlank.LBlankStepSet(lBlank);
             }
 
             foreach (LDetectorStep lStep in lSet.LDetectorSetSteps)
@@ -272,7 +273,7 @@ public sealed class LSplitTab
         }
         finally
         {
-            lSplitInspector.LInspectorSaveResume();
+            LSplitInspector.LInspectorSaveResume();
         }
     }
 

@@ -10,11 +10,13 @@ public sealed class LConvertTab
     private readonly LList lConvertList;
     private readonly LDocket lConvertDocket;
 
-    public LConvertTab(LPresetSelection lPreset, LList lList, LDocket lDocket)
+    public LConvertTab(LPresetSelection lPreset, LViewer lViewer, LList lList)
     {
         lConvertPreset = lPreset;
         lConvertList = lList;
-        lConvertDocket = lDocket;
+        lConvertDocket = lList.LListDocket;
+        lList.LListPathChanged += lViewer.LViewerPathHandle;
+        lViewer.LViewerSource.LViewerPathsDrop += lDropPaths => _ = lList.LListPathsAdd(lDropPaths);
     }
 
     public event Action? LConvertPresetMissing;

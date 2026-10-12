@@ -16,9 +16,11 @@ public sealed class TMergeTabGroups
 
     private static (LMergeTab, LDocket) TMergeBuild(LSceneTabEntry? layout = null, string preset = "Alpha")
     {
-        LDocket docket = TInterfaceList.TDocketCreate();
-        LMergeTab tab = TInterface.TMergeTabCreate(TInterface.TPresetSelectionCreate(preset), docket, layout);
-        return (tab, docket);
+        LList list = TInterfaceList.TListCreate();
+        LMergeTab tab = TInterface.TMergeTabCreate(
+            TInterface.TPresetSelectionCreate(preset), TInterfaceViewer.TViewerCreate(), list);
+        TInterface.TMergeLayoutApply(tab, layout);
+        return (tab, list.LListDocket);
     }
 
     [Fact]

@@ -8,7 +8,7 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LFlow TFlowCreate() => new(new LStrip(TProgramCreate()));
+    internal static LFlow TFlowCreate() => new(TAtelierCreate().CAtelierUsher);
     internal static void TFlowEditAttach(LFlow flow, Action<bool> handler) =>
         flow.QFlowEdit.LFlowEditChanged += handler;
     internal static void TFlowSourceSet(LFlow flow, LMediaInfo media, string? path) => flow.LFlowSourceSet(media, path);
@@ -167,7 +167,7 @@ internal static partial class TInterface
         double top, double bottom, bool empty, double chipTop, double chipBottom, double chipHeight) =>
         LCursor.LCursorLinesResolve(top, bottom, empty, chipTop, chipBottom, chipHeight);
 
-    internal static LMap TMapCreate(LFlow flow) => new(flow);
+    internal static LMap TMapRead(LFlow flow) => flow.LFlowMap;
     internal static void TMapFrameAttach(LMap map, Action handler) => map.LMapFrameApplied += handler;
     internal static LMapFrame TMapFrameResolve(LMap map, double width, double height) =>
         map.LMapFrameResolve(width, height);
@@ -181,7 +181,7 @@ internal static partial class TInterface
     internal static bool TMapMoveHandle(LMap map, double x, double width) => map.LMapMoveHandle(x, width);
     internal static void TMapDragClear(LMap map) => map.LMapDragClear();
 
-    internal static LViewfinder TViewfinderCreate(LFlow flow) => new(flow);
+    internal static LViewfinder TViewfinderRead(LFlow flow) => flow.LFlowViewfinder;
     internal static void TViewfinderFrameAttach(LViewfinder viewfinder, Action handler) =>
         viewfinder.LViewfinderFrameApplied += handler;
     internal static LViewfinderFrame TViewfinderFrameResolve(LViewfinder viewfinder, double width, double height) =>

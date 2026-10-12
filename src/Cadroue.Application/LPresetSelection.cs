@@ -19,21 +19,20 @@ public sealed class LPresetSelection
     public static Func<LPresetDocument, LEncoding>? LPresetOutputSeam;
     public static Func<string, bool>? LPresetNativeSeam;
 
-    public LPresetSelection(string lPresetName)
+    private readonly LWorkKind? lPresetSelectionKind;
+
+    public LPresetSelection(string lPresetName, string lKey)
     {
+        lPresetSelectionKind = lKey switch
+        {
+            "Edit" => LWorkKind.LWorkKindEdit,
+            "Audio" => LWorkKind.LWorkKindAudio,
+            _ => null
+        };
         LPresetSelectionName = LPresetSelectionResolve(lPresetName);
         LPresetDraftAttach(LPresetSelectionName);
         LPresetDraftChanged += LPresetDraftHandle;
         LPresetNameChanged += LPresetNameHandle;
-    }
-
-    public LPresetSelection(LPresetDocument lPresetValue, string lPresetName)
-        : this(lPresetName)
-    {
-        if (string.Equals(LPresetSelectionName, lPresetName, StringComparison.OrdinalIgnoreCase))
-        {
-            LPresetDraftAccept(lPresetName, lPresetValue);
-        }
     }
 
     public event Action? LPresetSelectionChanged;
@@ -58,6 +57,16 @@ public sealed class LPresetSelection
 
     public LEncoding? LPresetSelectionEncoding =>
         LPresetSelectionValid ? LPresetOutputSeam?.Invoke(LPresetSelectionValue) : null;
+
+    public void LPresetSelectionAccept(LPresetDocument lPresetValue, string lPresetName)
+    {
+        LPresetSelectionName = LPresetSelectionResolve(lPresetName);
+        LPresetDraftAttach(LPresetSelectionName);
+        if (string.Equals(LPresetSelectionName, lPresetName, StringComparison.OrdinalIgnoreCase))
+        {
+            LPresetDraftAccept(lPresetName, lPresetValue);
+        }
+    }
 
     public void LPresetSelectionClose()
     {
@@ -156,6 +165,22 @@ public sealed class LPresetSelection
     }
 
     public void LPresetSelectionRestore() => LPresetDraftReset(LPresetSelectionName);
+
+    public bool LPresetSupportCheck(string lPresetName, LPreset lWorking, bool lSelected)
+    {
+        if (lPresetSelectionKind is not { } lKind)
+        {
+            return true;
+        }
+
+        LPreset? lPresetValue = lSelected ? lWorking : LPreset.LPresetRead(lPresetName);
+        return lPresetValue is null
+            || LEncoding.LEncodingSupportCheck(
+                lKind,
+                lPresetValue.LPresetVideo.LPresetMode,
+                lPresetValue.LPresetAudio.LPresetMode,
+                lPresetValue.LPresetAudio.LPresetStream);
+    }
 
     internal static void LPresetDraftSync(
         string lPresetName,

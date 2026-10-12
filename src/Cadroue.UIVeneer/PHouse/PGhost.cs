@@ -26,11 +26,10 @@ public sealed class PGhost
         lGhost = lOwner;
     }
 
-    public static PGhost PGhostShow(FrameworkElement pSourceElement, Point pGrabOffset)
+    public static PGhost PGhostShow(FrameworkElement pSourceElement, LGhost lGhost)
     {
         UIElement pRoot = PGhostRootRead(pSourceElement);
         AdornerLayer pLayer = AdornerLayer.GetAdornerLayer(pRoot)!;
-        var lGhost = new LGhost(pGrabOffset.X, pGrabOffset.Y);
         var pAdorner = new PGhostAdorner(
             pRoot,
             pSourceElement,
@@ -79,10 +78,10 @@ public sealed class PGhost
 
     public static DragDropEffects PGhostDragRun(
         FrameworkElement pSourceElement,
-        Point pGrabOffset,
+        LGhost lGhost,
         Func<DragDropEffects> pDragBody)
     {
-        PGhost pGhost = PGhostShow(pSourceElement, pGrabOffset);
+        PGhost pGhost = PGhostShow(pSourceElement, lGhost);
         GiveFeedbackEventHandler pFeedbackHandle = pGhost.PGhostFeedbackHandle;
         pSourceElement.GiveFeedback += pFeedbackHandle;
         try

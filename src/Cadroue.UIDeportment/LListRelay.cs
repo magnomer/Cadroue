@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -9,10 +10,12 @@ namespace Cadroue.UIDeportment;
 public static class LListRelay
 {
     private static LStrip? lListStrip;
+    private static CUsher? lListUsher;
 
-    public static void LListRelayAttach(LStrip lStrip)
+    public static void LListRelayAttach(LStrip lStrip, CUsher lUsher)
     {
         lListStrip = lStrip;
+        lListUsher = lUsher;
         LCartographer.LCartographerLockSeam = LListSourceClaim;
         LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
             LListDeliveredAdd,
@@ -179,14 +182,14 @@ public static class LListRelay
 
     private static bool LListDeliveredApply(Guid lTab, string lPath, Guid lBatch, bool lLocked)
     {
-        if (lListStrip is not { } lStrip)
+        if (lListStrip is not { } lStrip || lListUsher is not { } lUsher)
         {
             string lPathName = lPath[(lPath.LastIndexOfAny(['\\', '/', ':']) + 1)..];
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lPathName}': the destination tab is gone");
             return false;
         }
 
-        string lName = lStrip.LStripUsher.CUsherNameRead(lPath);
+        string lName = lUsher.CUsherNameRead(lPath);
         if (lStrip.LStripTabFind(lTab) is not { } lTarget || lTarget.LStripTabDocket is not { } lOwner)
         {
             LTraceLog.LTraceWarningRecord($"Relay skipped '{lName}': the destination tab is gone");

@@ -31,10 +31,10 @@ internal sealed partial class PSDiagnosis : Window
 
     private static PSDiagnosis? psDiagnosisCurrent;
 
-    private readonly LSDiagnosis lsDiagnosis = new();
+    private readonly LSDiagnosis lsDiagnosis;
     private readonly PSGrabber psDiagnosisGrabber;
 
-    internal static void PSDiagnosisShow(Window pOwner)
+    internal static void PSDiagnosisShow(Window pOwner, Func<LSDiagnosis> lsDiagnosisCreate)
     {
         if (psDiagnosisCurrent is not null)
         {
@@ -42,13 +42,14 @@ internal sealed partial class PSDiagnosis : Window
             return;
         }
 
-        var psDiagnosis = new PSDiagnosis(pOwner);
+        var psDiagnosis = new PSDiagnosis(pOwner, lsDiagnosisCreate());
         psDiagnosisCurrent = psDiagnosis;
         psDiagnosis.Show();
     }
 
-    private PSDiagnosis(Window pOwner)
+    private PSDiagnosis(Window pOwner, LSDiagnosis lsDiagnosisOwner)
     {
+        lsDiagnosis = lsDiagnosisOwner;
         Title = lsDiagnosis.LSDiagnosisTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;

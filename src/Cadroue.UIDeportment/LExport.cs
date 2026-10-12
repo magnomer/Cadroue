@@ -1,22 +1,28 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class LExport
 {
+    private readonly CUsher lExportUsher;
     private readonly LPresetSelection lExportOwner;
     private readonly bool lExportSmartAllowed;
+    private readonly string lExportNotice;
     private string? lExportSelected;
     private string? lExportEditing;
     private string? lExportDragging;
     private bool lExportDragActive;
+    private LGhost lExportGhost = new(0, 0);
 
     public event Action? LExportPresetsChanged;
 
-    public LExport(LPresetSelection lExportSelection, bool lSmartAllowed)
+    public LExport(CUsher lUsher, LPresetSelection lExportSelection, QWorkspaceKey qWorkspaceKey)
     {
+        lExportUsher = lUsher;
         lExportOwner = lExportSelection;
-        lExportSmartAllowed = lSmartAllowed;
+        lExportSmartAllowed = qWorkspaceKey.LWorkspaceSmart;
+        lExportNotice = qWorkspaceKey.LWorkspaceNotice;
         lExportSelected = LExportNameNormalize(lExportSelection.LPresetSelectionName);
     }
 
@@ -28,13 +34,20 @@ public sealed class LExport
 
     public bool LExportDragActive => lExportDragActive;
 
-    public bool LExportSmartAllowed => lExportSmartAllowed;
+    public LGhost LExportGhost => lExportGhost;
 
     public bool LExportSelectedCheck(string lPresetName) =>
         string.Equals(lPresetName, lExportSelected, StringComparison.OrdinalIgnoreCase);
 
     public bool LExportEditingCheck(string lPresetName) =>
         string.Equals(lPresetName, lExportEditing, StringComparison.OrdinalIgnoreCase);
+
+    public string LExportSupportNotice => lExportNotice;
+
+    public bool LExportSupportCheck(string lPresetName, LPreset lWorking) =>
+        lExportOwner.LPresetSupportCheck(lPresetName, lWorking, LExportSelectedCheck(lPresetName));
+
+    public LSEncoder LExportEncoderCreate(LPreset lSource) => new(lExportUsher, lSource, lExportSmartAllowed);
 
     public void LExportAttach()
     {
@@ -104,10 +117,11 @@ public sealed class LExport
         return true;
     }
 
-    public void LExportDragStart(string lPresetName)
+    public void LExportDragStart(string lPresetName, double lGrabX, double lGrabY)
     {
         lExportDragging = lPresetName;
         lExportDragActive = false;
+        lExportGhost = new LGhost(lGrabX, lGrabY);
     }
 
     public bool LExportDragMove()

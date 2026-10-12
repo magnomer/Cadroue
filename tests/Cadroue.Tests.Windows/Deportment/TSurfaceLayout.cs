@@ -8,13 +8,13 @@ namespace Cadroue.Tests.Windows;
 public sealed class TSurfaceLayout
 {
     private static LSurface TSurfaceBuild(int exportIndex = 2) =>
-        TInterface.TSurfaceCreate(TInterface.TColumnCreate([100, 100, 100], null, null, -1), 3, exportIndex);
+        TInterface.TSurfaceCreate([100, 100, 100], exportIndex);
 
     [Fact]
     public void LayoutRead_ReflectsHiddenExportAndCollapsedColumns()
     {
-        LColumn column = TInterface.TColumnCreate([100, 100, 100], null, null, -1);
-        LSurface surface = TInterface.TSurfaceCreate(column, 3, 2);
+        LSurface surface = TInterface.TSurfaceCreate([100, 100, 100], 2);
+        LColumn column = TInterface.TColumnOwnerRead(TInterface.TSurfacePlanRead(surface));
 
         Assert.False(surface.LSurfaceExportHidden);
         Assert.True(TInterface.TSurfaceToggleResolve(surface));

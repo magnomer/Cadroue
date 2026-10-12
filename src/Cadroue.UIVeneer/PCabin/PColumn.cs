@@ -22,44 +22,34 @@ internal sealed class PColumn
     private PColumn(
         Grid pColumnGrid,
         IReadOnlyList<ColumnDefinition> pColumnItems,
-        IReadOnlyList<double>? pStoredWidths,
-        IReadOnlyList<bool>? pCompactPanels,
-        int pFlexPanelIndex,
+        LColumnPlan lColumnPlan,
         Action? pWidthNotify)
     {
         this.pColumnGrid = pColumnGrid;
         this.pColumnItems = pColumnItems;
-        lColumnPlan = new LColumnPlan(
-            pColumnItems.Select(PColumnMinimumRead).ToArray(),
-            pStoredWidths,
-            pCompactPanels,
-            pFlexPanelIndex);
+        this.lColumnPlan = lColumnPlan;
         lColumnPlan.LColumnPlanChanged += PColumnPlanApply;
         lColumnPlan.LColumnWidthChanged += pWidthNotify;
         pColumnGrid.LayoutUpdated += PColumnLayoutHandle;
         PColumnPlanApply();
     }
 
-    public LColumn LColumn => lColumnPlan.LColumn;
-
     public static PColumn PColumnAttach(
         Grid pColumnGrid,
         IReadOnlyList<ColumnDefinition> pColumnItems,
-        IReadOnlyList<double>? pStoredWidths,
-        IReadOnlyList<bool>? pCompactPanels = null,
-        int pFlexPanelIndex = -1,
+        LColumnPlan lColumnPlan,
         Action? pWidthNotify = null)
     {
-        return new PColumn(pColumnGrid, pColumnItems, pStoredWidths, pCompactPanels, pFlexPanelIndex, pWidthNotify);
+        return new PColumn(pColumnGrid, pColumnItems, lColumnPlan, pWidthNotify);
     }
+
+    public static double PColumnMinimumRead(ColumnDefinition pColumn) => pColumn.MinWidth;
 
     public void PColumnWidthSet(int pPanelIndex, double pPanelFixedWidth) =>
         lColumnPlan.LColumnWidthSet(pPanelIndex, pPanelFixedWidth);
 
     public void PColumnHiddenSet(int pPanelIndex, bool pPanelHidden) =>
         lColumnPlan.LColumnHiddenSet(pPanelIndex, pPanelHidden);
-
-    public IReadOnlyList<double> PColumnWeightsRead() => lColumnPlan.LColumnWeightsRead();
 
     public double PColumnTotalRead() => lColumnPlan.LColumnTotalRead();
 
@@ -100,8 +90,6 @@ internal sealed class PColumn
     }
 
     private double PColumnSlotRead() => LayoutInformation.GetLayoutSlot(pColumnGrid).Width;
-
-    private static double PColumnMinimumRead(ColumnDefinition pColumn) => pColumn.MinWidth;
 
     private static double PColumnActualRead(ColumnDefinition pColumn) => pColumn.ActualWidth;
 

@@ -27,7 +27,7 @@ public sealed partial class PInspector : PPanel
             [false] = HorizontalAlignment.Left
         };
 
-    public LInspector LInspector { get; } = new();
+    public LInspector LInspector { get; }
 
     private readonly TextBlock pInspectorTitleLabel;
     private readonly TextBlock pInspectorEmptyNotice;
@@ -37,8 +37,9 @@ public sealed partial class PInspector : PPanel
     private readonly UIElement pInspectorStripBody;
     private readonly ScrollViewer pInspectorSectionsHost;
 
-    public PInspector() : base("")
+    public PInspector(LInspector lInspector) : base("")
     {
+        LInspector = lInspector;
         pInspectorTitleLabel = new TextBlock
         {
             Text = LLocalization.LLocalizationTextRead("Inspector.Header.Title"),

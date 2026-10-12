@@ -25,7 +25,6 @@ public sealed class LWindowDrop
     private readonly CUsher lWindowDropUsher;
     private readonly List<string> lWindowDropTrace = [];
     private object? lWindowDropData;
-    private string lWindowDropName = string.Empty;
     private LWindowDropEffect? lWindowDropLast;
     private LWindowDropEffect lWindowDropEffect;
     private bool lWindowDropHandled;
@@ -47,7 +46,7 @@ public sealed class LWindowDrop
     {
         if (!lDrag.LWindowDragGroup)
         {
-            LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out _);
+            LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out _, out _);
             LWindowDropAppend(
                 lDrag,
                 "Drag entered window: "
@@ -73,7 +72,7 @@ public sealed class LWindowDrop
         }
 
         LWindowDropStart(lDrag);
-        LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out string lReason);
+        LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out string lReason, out _);
         if (lEffect != lWindowDropLast)
         {
             lWindowDropLast = lEffect;
@@ -96,7 +95,7 @@ public sealed class LWindowDrop
         }
 
         lWindowDropLast = null;
-        LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out string lReason);
+        LWindowDropEffect lEffect = LWindowDropResolve(lDrag, out string lReason, out string lName);
         LWindowDropSet(lEffect, true);
 
         string lTarget = lWindow.LWindowListPresent ? "list" : lWindow.LWindowViewerPresent ? "viewer" : "none";
@@ -136,7 +135,7 @@ public sealed class LWindowDrop
         }
 
         LWindowViewerOpened?.Invoke(lSourcePath);
-        LWindowDropAppend(lDrag, $"Drop into viewer: opened {lWindowDropName}");
+        LWindowDropAppend(lDrag, $"Drop into viewer: opened {lName}");
         LWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
     }
 
@@ -146,8 +145,9 @@ public sealed class LWindowDrop
         lWindowDropHandled = lHandled;
     }
 
-    private LWindowDropEffect LWindowDropResolve(LWindowDrag lDrag, out string lReason)
+    private LWindowDropEffect LWindowDropResolve(LWindowDrag lDrag, out string lReason, out string lName)
     {
+        lName = string.Empty;
         IReadOnlyList<string> lPaths = LWindowPathsRead(lDrag);
         string lPayload = lPaths.Count == 0
             ? "no FileDrop payload"
@@ -175,15 +175,15 @@ public sealed class LWindowDrop
             return LWindowDropEffect.LWindowDropNone;
         }
 
-        lWindowDropName = lWindowDropUsher.CUsherNameRead(lSourcePath);
+        lName = lWindowDropUsher.CUsherNameRead(lSourcePath);
         if (LMedia.LMediaAudioCheck(lSourcePath) && !lWindow.LWindowAudioAllowed)
         {
             lReason = "target=viewer, audio-only file on a video-only tab — "
-                + $"{lWindowDropName}";
+                + $"{lName}";
             return LWindowDropEffect.LWindowDropNone;
         }
 
-        lReason = $"target=viewer, {lWindowDropName}";
+        lReason = $"target=viewer, {lName}";
         return LWindowAllowedRead(lDrag);
     }
 

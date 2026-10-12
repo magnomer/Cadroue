@@ -17,11 +17,10 @@ public sealed class LRail
     private LStripTab? lRailDragTab;
     private double lRailDragX;
     private double lRailDragY;
-    private double lRailOffsetX;
-    private double lRailOffsetY;
+    private LGhost lRailGhost = new(0, 0);
     private bool lRailDragActive;
 
-    public LRail(LStrip lStripOwner)
+    internal LRail(LStrip lStripOwner)
     {
         lStrip = lStripOwner;
     }
@@ -32,9 +31,7 @@ public sealed class LRail
 
     public bool LRailDragActive => lRailDragActive;
 
-    public double LRailOffsetX => lRailOffsetX;
-
-    public double LRailOffsetY => lRailOffsetY;
+    public LGhost LRailGhost => lRailGhost;
 
     public void LRailHoverSet(LStripTab? lTab)
     {
@@ -79,8 +76,7 @@ public sealed class LRail
         lRailDragTab = lTab;
         lRailDragX = lX;
         lRailDragY = lY;
-        lRailOffsetX = lOffsetX;
-        lRailOffsetY = lOffsetY;
+        lRailGhost = new LGhost(lOffsetX, lOffsetY);
         lRailDragActive = false;
         lStrip.LStripSelect(lTab);
         return true;

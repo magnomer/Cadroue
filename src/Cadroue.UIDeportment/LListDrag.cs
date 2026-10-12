@@ -7,8 +7,7 @@ public sealed class LListDrag
     private bool lListDragOrigin;
     private double lListDragX;
     private double lListDragY;
-    private double lListGrabX;
-    private double lListGrabY;
+    private LGhost lListGhost = new(0, 0);
     private IReadOnlyList<string> lListDragPaths = [];
 
     public LListDrag(LList lOwner)
@@ -18,9 +17,7 @@ public sealed class LListDrag
 
     public string? LListDragPath => lListDragPath;
 
-    public double LListGrabX => lListGrabX;
-
-    public double LListGrabY => lListGrabY;
+    public LGhost LListGhost => lListGhost;
 
     public IReadOnlyList<string> LListDragPaths => lListDragPaths;
 
@@ -36,8 +33,7 @@ public sealed class LListDrag
         lListDragOrigin = true;
         lListDragX = lX;
         lListDragY = lY;
-        lListGrabX = lGrabX;
-        lListGrabY = lGrabY;
+        lListGhost = new LGhost(lGrabX, lGrabY);
         lListDragPath = lListPath;
         return true;
     }

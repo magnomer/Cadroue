@@ -17,132 +17,21 @@ internal static partial class TInterface
         Directory.CreateDirectory(home);
         AppContext.SetData(LDepotHome.LDepotHomeKey, home);
         AppDomain.CurrentDomain.ProcessExit += (_, _) => TInterfaceHomeClear(home);
-        TInterfaceSeamAttach();
-        TInterfaceTraceAttach();
-        TInterfaceStoreAttach();
-        TInterfaceProcessAttach();
+        LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
+        TInterfaceEngine = new LEngine(LRigFactory.LRigFactoryCreate());
     }
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void TInterfaceSeamAttach()
-    {
-        LLocalization.LLocalizationTraceSeam = LTraceLog.LTraceErrorRecord;
-        LUsherEngine.LUsherFileSeam = LUsher.LUsherFileExist;
-        LUsherEngine.LUsherFolderSeam = LUsher.LUsherFolderExist;
-        LUsherEngine.LUsherNameSeam = LUsher.LUsherNameRead;
-        LUsherEngine.LUsherStemSeam = LUsher.LUsherStemRead;
-        LUsherEngine.LUsherExtensionSeam = LUsher.LUsherExtensionRead;
-        LUsherEngine.LUsherProgramSeam = LUsher.LUsherProgramResolve;
-        LUsherEngine.LUsherPathSeam = LUsher.LUsherPathResolve;
-        LUsherEngine.LUsherRevealSeam = LUsher.LUsherPathOpen;
-        LUsherEngine.LUsherExplorerSeam = LUsher.LUsherFolderOpen;
-        LUsherEngine.LUsherLinkSeam = LUsher.LUsherLinkOpen;
-        LMediaTrace.LMediaErrorSeam = LTraceLog.LTraceErrorRecord;
-        LMediaTrace.LMediaOpenSeam = LTraceLog.LTraceInfoRecord;
-        LClassifier.LClassifierFaultSource = lClassifierFault => LTraceLog.LTraceWarningRecord(lClassifierFault);
-        LPreset.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
-        LPreference.LPreferenceLanguageSeam = LLocalization.LLocalizationLanguageNormalize;
-        LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
-        LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;
-        LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
-        LLibrarian.LLibrarianCoreReader = LSidecarStore.LSidecarCoreRead;
-        LLibrarian.LLibrarianKeyframesSeam = LSidecarStore.LSidecarKeyframesRead;
-        LLibrarian.LLibrarianWaveformReader = LSidecarStore.LSidecarWaveformRead;
-        LLibrarian.LLibrarianEditReader = LSidecarStore.LSidecarEditRead;
-        LLibrarian.LLibrarianAudioReader = LSidecarStore.LSidecarAudioRead;
-        LLibrarian.LLibrarianSplitReader = LSidecarStore.LSidecarSplitRead;
-        LLibrarian.LLibrarianFixReader = LSidecarStore.LSidecarFixRead;
-        LLibrarian.LLibrarianDiagnosisReader = LSidecarStore.LSidecarDiagnosisRead;
-        LLibrarian.LLibrarianLoudnessReader = LSidecarStore.LSidecarLoudnessRead;
-        LLibrarian.LLibrarianDurationReader = LSidecarStore.LSidecarDurationRead;
-        LLibrarian.LLibrarianDurationResolver = LSidecarStore.LSidecarDurationResolve;
-        LLibrarian.LLibrarianEditWriter = LSidecarStore.LSidecarEditSave;
-        LLibrarian.LLibrarianAudioWriter = LSidecarStore.LSidecarAudioSave;
-        LLibrarian.LLibrarianSplitWriter = LSidecarStore.LSidecarSplitSave;
-        LLibrarian.LLibrarianFixWriter = LSidecarStore.LSidecarFixSave;
-        LLibrarian.LLibrarianDiagnosisWriter = LSidecarStore.LSidecarDiagnosisSave;
-        LLibrarian.LLibrarianLoudnessWriter = LSidecarStore.LSidecarLoudnessSave;
-        LLibrarian.LLibrarianWaveformWriter = LSidecarStore.LSidecarWaveformSave;
-        LLibrarian.LLibrarianFileChecker = LSidecarStore.LSidecarFileCheck;
-        LLibrarian.LLibrarianSourceResolver = LSidecarStore.LSidecarSourceResolve;
-        LLibrarian.LLibrarianSourceMatcher = LSidecarStore.LSidecarSourceMatch;
-        LSegment.LSegmentLoadSeam = LSidecarStore.LSidecarSectionsRead;
-        LSegment.LSegmentSaveSeam = LSidecarStore.LSidecarSectionsSave;
-        LRenderer.LRendererFolderSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
-        LRenderer.LRendererEngineSeam = () => LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine;
-        LRenderer.LRendererTextSeam = LLocalization.LLocalizationTextRead;
-        LSectionPalette.LSectionPaletteSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceSectionPalette;
-        LSchedule.LScheduleSharedSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
-        LSchedule.LScheduleTimeSeam = LGate.LGateTimeRead;
-        LRetentionSweep.LRetentionSweptSeam = LRetention.LRetentionSweptCheck;
-        LRetentionSweep.LRetentionExpiredSeam = LRetention.LRetentionExpiredCheck;
-        LSidecarStore.LSidecarCoreSeam = LLibrarian.LLibrarianLoad;
-        LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
-        LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
-        LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
-        LPresetSelection.LPresetLoadSeam = LPreset.LPresetSelectionRead;
-        LPresetSelection.LPresetSaveSeam = LPreset.LPresetSelectionSave;
-        LPresetSelection.LPresetRenameSeam = LPreset.LPresetSelectionSet;
-        LPresetSelection.LPresetOutputSeam = LPreset.LPresetSelectionResolve;
-    }
+    internal static LEngine TInterfaceEngine { get; private set; } = null!;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     internal static void TInterfaceTraceAttach()
     {
-        LTraceEngine.LTraceInfoSeam = LTraceLog.LTraceInfoRecord;
-        LTraceEngine.LTraceWarningSeam = message => LTraceLog.LTraceWarningRecord(message);
-        LTraceEngine.LTraceErrorSeam = LTraceLog.LTraceErrorRecord;
-        LTraceEngine.LTraceFfmpegSeam = LTraceLog.LTraceFfmpegRecord;
-        LTraceEngine.LTraceVerboseSeam = () => LTrace.LTraceVerbose;
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void TInterfaceStoreAttach()
-    {
-        LDepotEngine.LDepotAudioSeam = LDepot.LDepotAudioRead;
-        LDepotEngine.LDepotMergeSeam = LDepot.LDepotMergeRead;
-        LDepotEngine.LDepotBridgeSeam = LDepot.LDepotBridgeRead;
-        LDepotEngine.LDepotPassSeam = LDepot.LDepotPassRead;
-        LDepotEngine.LDepotRootSeam = LDepot.LDepotRootRead;
-        LInventoryEngine.LInventoryFilterSeam = LInventory.LInventoryFilterExist;
-        LCartographer.LCartographerOwnerSeam = LSentinel.LSentinelOwnerCheck;
-        LRunner.LRunnerAddSeam = LSentinel.LSentinelRunnerAdd;
-        LRunner.LRunnerRemoveSeam = LSentinel.LSentinelRunnerRemove;
-        LRunner.LRunnerLeaseSeam = LSchedule.LScheduleLeaseSeconds;
-        LCheckupEngine.LCheckupReadSeam = LCheckup.LCheckupCachedRead;
-        LCheckupEngine.LCheckupSaveSeam = LCheckup.LCheckupCachedSave;
-        LCheckup.LCheckupScannerSeam = LFlawScanner.LFlawScanRun;
-    }
-
-    [MethodImpl(MethodImplOptions.NoInlining)]
-    internal static void TInterfaceProcessAttach()
-    {
-        LEmployerEngine.LEmployerRunSeam =
-            (program, prefix, family, level, idle, arguments, token, work, output, error) =>
-                new LEmployer(program, prefix)
-                {
-                    LEmployerFamily = family,
-                    LEmployerLevel = level,
-                    LEmployerIdleLimit = idle
-                }.LEmployerRun(arguments, token, work, output, error);
-        LEmployerEngine.LEmployerListSeam =
-            (program, family, level, idle, arguments, token, output) =>
-                new LEmployer(program)
-                {
-                    LEmployerFamily = family,
-                    LEmployerLevel = level,
-                    LEmployerIdleLimit = idle
-                }.LEmployerRun(arguments, token, output);
-        LEmployerEngine.LEmployerSuspendSeam = LEmployerChild.LEmployerChildSuspend;
-        LEmployerEngine.LEmployerResumeSeam = LEmployerChild.LEmployerChildResume;
-        LEmployerEngine.LEmployerLiveSeam = LEmployerChild.LEmployerChildCheck;
-        LToolEngine.LToolFfmpegSeam = LTool.LToolFfmpegRead;
-        LToolEngine.LToolFfprobeSeam = LTool.LToolFfprobeRead;
-        LMediaEngine.LMediaProbeSeam = LMedia.LMediaFfprobeRead;
-        LMediaEngine.LMediaLoudnessSeam = LMedia.LMediaLoudnessRead;
-        LKeyframeEngine.LKeyframeScanSeam = LKeyframeSeeker.LKeyframeRangeScan;
-        LSweepEngine.LSweepClaimSeam = LMedia.LMediaScanClaim;
-        LSweepEngine.LSweepReleaseSeam = LMedia.LMediaScanRelease;
+        LRigTrace rigTrace = LRigFactory.LRigFactoryCreate().LRigTrace;
+        LTraceEngine.LTraceInfoSeam = rigTrace.LRigTraceInfo;
+        LTraceEngine.LTraceWarningSeam = rigTrace.LRigTraceWarning;
+        LTraceEngine.LTraceErrorSeam = rigTrace.LRigTraceError;
+        LTraceEngine.LTraceFfmpegSeam = rigTrace.LRigTraceFfmpeg;
+        LTraceEngine.LTraceVerboseSeam = rigTrace.LRigTraceVerbose;
     }
 
     internal static string TDepotHomeRead() => LDepot.LDepotHomeRead();
@@ -342,6 +231,72 @@ internal static partial class TInterface
 
     internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);
     internal static bool TUsherFolderExist(string? path) => LUsher.LUsherFolderExist(path);
+    internal static string? TUsherPathOpen(string path, string? fallback, string? failure) =>
+        new LUsherOutlet().LUsherPathOpen(path, fallback, failure);
+    internal static string? TUsherLinkOpen(string target, string? failure) =>
+        new LUsherOutlet().LUsherLinkOpen(target, failure);
+    internal static string TUsherNameRead(string path) => new LUsherOutlet().LUsherNameRead(path);
+    internal static string TUsherStemRead(string path) => new LUsherOutlet().LUsherStemRead(path);
+
+    internal static LLineageAnswer TLineageResolve(LScheduleContract schedule, IReadOnlyList<Guid> ids)
+    {
+        LScheduleContract? previous = LStation.LStationSchedule;
+        LStation.LStationSchedule = schedule;
+        try
+        {
+            return new LLineageOutlet().LLineageResolve(ids);
+        }
+        finally
+        {
+            LStation.LStationSchedule = previous;
+        }
+    }
+    internal static LScheduleLineageAnswer TLineagePlanRead(LScheduleContract schedule, IReadOnlyList<Guid> ids) =>
+        LScheduleLineagePlan.LScheduleLineageResolve(
+            schedule,
+            ids,
+            LLineageEngine.LLineageFileSeam,
+            LUsherEnvironmentEngine.LUsherPathSeam,
+            LUsherTextEngine.LUsherNameSeam,
+            LUsherTextEngine.LUsherExtensionSeam);
+    internal static LScheduleLineageAnswer TLineagePlanRead(
+        LScheduleContract schedule, IReadOnlyList<Guid> ids, Func<string, string> pathResolve) =>
+        LScheduleLineagePlan.LScheduleLineageResolve(
+            schedule,
+            ids,
+            LLineageEngine.LLineageFileSeam,
+            pathResolve,
+            LUsherTextEngine.LUsherNameSeam,
+            LUsherTextEngine.LUsherExtensionSeam);
+    internal static LScheduleLineageAnswer TLineageExtensionRead(
+        LScheduleContract schedule, IReadOnlyList<Guid> ids, Func<string, string> extensionRead) =>
+        LScheduleLineagePlan.LScheduleLineageResolve(
+            schedule,
+            ids,
+            LLineageEngine.LLineageFileSeam,
+            LUsherEnvironmentEngine.LUsherPathSeam,
+            LUsherTextEngine.LUsherNameSeam,
+            extensionRead);
+    internal static string TLineageTitleRead(LLineageStep step) =>
+        new LLineageOutlet().LLineageTitleRead(step.LLineageStepBatch, step.LLineageStepRelay, step.LLineageStepTab);
+    internal static LLineageAnswer TLineageAnswerCreate(
+        IReadOnlyList<LLineageGroup> groups, IReadOnlyList<LLineageBatch> batches, IReadOnlyList<LLineageStep> steps) =>
+        new(groups, batches, steps);
+    internal static LLineageGroup TLineageGroupCreate(
+        Guid batch, Guid lineage, string subject, string? name, IReadOnlyList<Guid> ids, long? origin) =>
+        new(batch, lineage, subject, name, ids, origin);
+    internal static LLineageBatch TLineageBatchCreate(
+        Guid id, IReadOnlySet<Guid> stages, int initial, DateTimeOffset earliest, IReadOnlyList<string> sources,
+        IReadOnlyList<string> outputs, long? sourceTotal, long? outputTotal, int sourceCount, int outputCount,
+        IReadOnlyList<Guid> ids, bool completed) =>
+        new(
+            id, stages, initial, earliest, sources, outputs, sourceTotal, outputTotal, sourceCount, outputCount, ids,
+            completed);
+    internal static LLineageStep TLineageStepCreate(
+        Guid id, Guid batch, Guid relay, string tab, string kind, bool subject, string? name, long? source,
+        double? ratio, string sourceExtension, string outputExtension) =>
+        new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
+    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet();
 
     internal static void TLocalizationSeamSet(
         Func<IEnumerable<string>>? names, Func<string, string?>? text, Action<string, Exception?>? trace)

@@ -35,28 +35,30 @@ public sealed record LRosterRow
     public required string LRosterRowShade { get; init; }
 
     public static LRosterRow LRosterRowCreate(
-        CUsher lUsher,
+        CLineage lLineage,
         LWorkItem lWorkItem,
-        LLineageEntry lLineage,
+        CLineageStep lStep,
         bool lLast,
         bool lStage,
         bool lOwned,
-        string lShade) => new()
+        string lShade)
     {
-        LRosterRowId = lWorkItem.LWorkId,
-        LRosterRowStep = LLineage.LLineageStepFormat(lUsher, lWorkItem, lLineage.LLineageEntrySubject),
-        LRosterRowPriority = LRosterPriorityFormat(lWorkItem.LWorkPriority),
-        LRosterRowLength = LRosterSpanFormat(lWorkItem.LWorkLength),
-        LRosterRowProgress = LRosterProgressFormat(lWorkItem),
-        LRosterRowRatio = LLineage.LLineageRatioFormat(
-            lUsher, lWorkItem, lLineage.LLineageEntrySubject, lLineage.LLineageEntryOrigin),
-        LRosterRowState = LRosterStateFormat(lWorkItem.LWorkStateCurrent),
-        LRosterRowKey = LRosterKeyRead(lWorkItem.LWorkStateCurrent),
-        LRosterRowOwner = LRosterOwnerFormat(lWorkItem, lOwned),
-        LRosterRowLast = lLast,
-        LRosterRowStage = lStage,
-        LRosterRowShade = lShade
-    };
+        return new LRosterRow
+        {
+            LRosterRowId = lWorkItem.LWorkId,
+            LRosterRowStep = LLineage.LLineageStepFormat(lLineage, lStep),
+            LRosterRowPriority = LRosterPriorityFormat(lWorkItem.LWorkPriority),
+            LRosterRowLength = LRosterSpanFormat(lWorkItem.LWorkLength),
+            LRosterRowProgress = LRosterProgressFormat(lWorkItem),
+            LRosterRowRatio = LLineage.LLineageRatioFormat(lStep),
+            LRosterRowState = LRosterStateFormat(lWorkItem.LWorkStateCurrent),
+            LRosterRowKey = LRosterKeyRead(lWorkItem.LWorkStateCurrent),
+            LRosterRowOwner = LRosterOwnerFormat(lWorkItem, lOwned),
+            LRosterRowLast = lLast,
+            LRosterRowStage = lStage,
+            LRosterRowShade = lShade
+        };
+    }
 
     public static string LRosterShadeResolve(bool lSelected, bool lCardSelected, bool lStage)
     {

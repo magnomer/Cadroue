@@ -36,10 +36,11 @@ public sealed class PClinic : PPanel
     private readonly Button pClinicDiagnosisButton;
     private readonly PClinicSalvage pClinicSalvage;
 
-    public LClinic LClinic { get; } = new();
+    public LClinic LClinic { get; }
 
-    public PClinic() : base("")
+    public PClinic(LClinic lClinic) : base("")
     {
+        LClinic = lClinic;
         pClinicSalvage = new PClinicSalvage(LClinic);
         pClinicTitleLabel = new TextBlock
         {

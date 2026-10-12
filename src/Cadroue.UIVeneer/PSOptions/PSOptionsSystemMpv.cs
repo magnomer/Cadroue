@@ -52,7 +52,7 @@ internal sealed partial class PSOptions
                     LLocalization.LLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
             }
         };
-        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty, "mpv folder");
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
 
         var pButtons = new StackPanel
         {

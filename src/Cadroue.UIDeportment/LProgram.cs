@@ -1,5 +1,4 @@
 using Cadroue.Application;
-using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -10,17 +9,16 @@ namespace Cadroue.UIDeportment;
 public sealed class LProgram
 {
     private static Action<Action>? lProgramDeferSeam;
+    private readonly Action<Action<Action>> lProgramStation;
     private string? lDepotRootApplied;
 
-    public LProgram(CAtelier lAtelier)
+    public LProgram(LScheduleContract lSchedule, Action<Action<Action>> lStation)
     {
-        ArgumentNullException.ThrowIfNull(lAtelier);
-        LProgramAtelier = lAtelier;
+        LScheduleCurrent = lSchedule;
+        lProgramStation = lStation;
     }
 
-    public static LScheduleContract LScheduleCurrent { get; } = new LSchedule();
-
-    public CAtelier LProgramAtelier { get; }
+    public static LScheduleContract LScheduleCurrent { get; private set; } = null!;
 
     public void LProgramStart(
         string[] lArgs,
@@ -56,7 +54,7 @@ public sealed class LProgram
 
         LRenderer.LRendererToolAttach();
         LPreset.LPresetPrepare();
-        LProgramStationAttach(lDispatch);
+        lProgramStation(lDispatch);
         LAutopsy.LAutopsyProseAttach();
         LInventory.LInventoryPrepareStart();
         LTrialCatalog.LTrialSetStart();
@@ -89,7 +87,7 @@ public sealed class LProgram
         LTraceWriter.LTraceWriterPersist();
     }
 
-    public void LProgramDebounceTick() => LPreference.LPreferenceSaveCommit();
+    public static void LProgramDebounceTick() => LPreference.LPreferenceSaveCommit();
 
     public static void LProgramDefer(Action lAction)
     {
@@ -100,20 +98,6 @@ public sealed class LProgram
         }
 
         lAction();
-    }
-
-    private static void LProgramStationAttach(Action<Action> lDispatch)
-    {
-        LStation.LStationSchedule = LScheduleCurrent;
-        LStation.LStationPost = lDispatch;
-        LStation.LStationProgramSource = () => LRenderer.LRendererProgramCurrent;
-        LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
-        LMessenger.LMessengerScheduleSource = () => LScheduleCurrent;
-        LCartographer.LCartographerScheduleContract = LScheduleCurrent;
-        LMessenger.LMessengerRouteSource =
-            (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
-                LCartographer.LCartographerAccept(
-                    lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan);
     }
 
     public static bool LProgramLanguageNormalize()

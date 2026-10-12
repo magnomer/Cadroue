@@ -6,6 +6,9 @@ using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
+[CollectionDefinition("Cartographer", DisableParallelization = true)]
+public sealed class TCartographerCollection { }
+
 [Collection("Cartographer")]
 public sealed class TListDelivery
 {
@@ -14,9 +17,9 @@ public sealed class TListDelivery
         LStrip strip = TInterface.TStripCreate(key => key, (name, ordinal) => name);
         LStripTab tab = TInterface.TStripTabCreate("Convert");
         TInterface.TStripAdd(strip, tab);
-        LDocket docket = TInterfaceList.TDocketCreate();
+        LDocket docket = tab.LStripTabDocket!;
         TInterfaceList.TDocketPathsAdd(docket, paths);
-        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Convert"), docket);
+        TInterface.TStripWorkspaceAttach(tab, TInterface.TPresetInitialCreate("Convert"));
         TInterfaceList.TListRelayAttach(strip);
         return (strip, tab, docket);
     }

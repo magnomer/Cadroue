@@ -123,9 +123,9 @@ public sealed record LRosterCard
     }
 
     public static LRosterCard LRosterCardCreate(
-        CUsher lUsher,
+        CLineage lLineage,
         Guid lBatchId,
-        IReadOnlyList<LLineageEntry> lLineages,
+        CLineageAnswer lAnswer,
         IReadOnlyList<LWorkItem> lItems,
         bool lSelected,
         bool lCompleted,
@@ -133,56 +133,77 @@ public sealed record LRosterCard
         Func<LWorkItem, bool> lOwnerCheck,
         Func<Guid, bool> lSelectedCheck)
     {
-        HashSet<Guid> lStageIds = LLineage.LLineageStageRead(lUsher, lItems);
+        CLineageBatch lRecord = lAnswer.CLineageBatches.First(lBatch => lBatch.CLineageBatchId == lBatchId);
+        var lLookup = new Dictionary<Guid, LWorkItem>();
+        foreach (LWorkItem lWorkItem in lItems)
+        {
+            lLookup.TryAdd(lWorkItem.LWorkId, lWorkItem);
+        }
+
+        var lSteps = new Dictionary<Guid, CLineageStep>();
+        foreach (CLineageStep lStep in lAnswer.CLineageSteps)
+        {
+            lSteps.TryAdd(lStep.CLineageStepId, lStep);
+        }
+
         return new LRosterCard
         {
             LRosterCardBatch = lBatchId,
-            LRosterCardTitle = LRosterTitleFormat(lUsher, lItems),
+            LRosterCardTitle = LRosterTitleFormat(lRecord.CLineageBatchEarliest, lRecord.CLineageBatchInitial),
             LRosterCardKey = lSelected ? LRosterCardSelected : lCompleted ? LRosterCardDone : LRosterCardPlain,
             LRosterCardBody = lCompleted ? LRosterCardDone : lSelected ? LRosterCardSelected : LRosterCardPlain,
             LRosterCardCollapsed = lCollapsed,
             LRosterCardTooltip = LLocalization.LLocalizationTextRead(
                 lCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
-            LRosterCardFiles = lLineages
-                .Select(lLineage => LRosterFileCreate(
-                    lUsher, lLineage, lStageIds, lSelected, lOwnerCheck, lSelectedCheck))
+            LRosterCardFiles = lAnswer.CLineageEntries
+                .Where(lEntry => lEntry.CLineageEntryBatch == lBatchId)
+                .Select(lEntry => LRosterFileCreate(
+                    lLineage,
+                    lEntry,
+                    lLookup,
+                    lSteps,
+                    lRecord.CLineageBatchStages,
+                    lSelected,
+                    lOwnerCheck,
+                    lSelectedCheck))
                 .ToArray()
         };
     }
 
-    public static string LRosterTitleFormat(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
+    public static string LRosterTitleFormat(DateTimeOffset lEarliest, int lInitialCount)
     {
-        string lTitle = lBatchItems.Min(lWorkItem => lWorkItem.LWorkCreateTime).LocalDateTime.ToString(
+        string lTitle = lEarliest.LocalDateTime.ToString(
             "yyyy-MM-dd tt h:mm", CultureInfo.CurrentUICulture);
-        int lInitialCount = LLineage.LLineageInitialRead(lUsher, lBatchItems);
         return lInitialCount == 1
             ? LLocalization.LLocalizationFormat("Roster.Card.One", lTitle)
             : LLocalization.LLocalizationFormat("Roster.Card.Many", lTitle, lInitialCount);
     }
 
     private static LRosterFile LRosterFileCreate(
-        CUsher lUsher,
-        LLineageEntry lLineage,
-        HashSet<Guid> lStageIds,
+        CLineage lLineage,
+        CLineageEntry lEntry,
+        IReadOnlyDictionary<Guid, LWorkItem> lLookup,
+        IReadOnlyDictionary<Guid, CLineageStep> lSteps,
+        IReadOnlySet<Guid> lStageIds,
         bool lCardSelected,
         Func<LWorkItem, bool> lOwnerCheck,
         Func<Guid, bool> lSelectedCheck)
     {
-        IReadOnlyList<LWorkItem> lItems = lLineage.LLineageEntryItems;
-        bool lStage = lItems.Count > 0 && lStageIds.Contains(lItems[^1].LWorkId);
+        IReadOnlyList<Guid> lIds = lEntry.CLineageEntryIds;
+        bool lStage = lIds.Count > 0 && lStageIds.Contains(lIds[^1]);
         return new LRosterFile(
-            LLineage.LLineageTitleFormat(lUsher, lLineage),
+            LLineage.LLineageTitleFormat(lEntry),
             LRosterRow.LRosterShadeResolve(false, lCardSelected, lStage),
-            lItems.Select((lWorkItem, lIndex) => LRosterRow.LRosterRowCreate(
-                lUsher,
-                lWorkItem,
+            lIds.Select((lId, lIndex) => LRosterRow.LRosterRowCreate(
                 lLineage,
-                lIndex == lItems.Count - 1,
-                lStageIds.Contains(lWorkItem.LWorkId),
-                lOwnerCheck(lWorkItem),
+                lLookup[lId],
+                lSteps[lId],
+                lIndex == lIds.Count - 1,
+                lStageIds.Contains(lId),
+                lOwnerCheck(lLookup[lId]),
                 LRosterRow.LRosterShadeResolve(
-                    lSelectedCheck(lWorkItem.LWorkId),
+                    lSelectedCheck(lId),
                     lCardSelected,
-                    lStageIds.Contains(lWorkItem.LWorkId)))).ToArray());
+                    lStageIds.Contains(lId)))).ToArray());
     }
 }

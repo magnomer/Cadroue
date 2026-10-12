@@ -12,21 +12,22 @@ using Cadroue.UIVeneer.PPorch;
 namespace Cadroue.UIVeneer.PHouse;
 public partial class PWindow : Window
 {
-    private const int PResizeBorderPixels = 8;
     private const double PWindowFontSize = 13;
     private readonly PStrip pStrip;
     private readonly PRail pRail;
     private readonly LWindow lWindow;
-    private readonly LSash lSash = new(PResizeBorderPixels);
-    public PWindow(LStrip lStrip)
+    private readonly LSash lSash;
+    public PWindow(LWindow lWindowRoot)
     {
         InitializeComponent();
         Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
         FontSize = PWindowFontSize;
-        pStrip = new PStrip(lStrip);
+        lWindow = lWindowRoot;
+        lSash = lWindow.LWindowPart.QWindowPartSash;
+        pStrip = new PStrip(lWindow.LWindowStrip);
         pRail = new PRail(pStrip);
-        lWindow = new LWindow(pStrip.LStrip, PWindowDispatch);
-        pConsole.LConsole.LConsoleWindowAttach(lWindow, pStrip.LStrip);
+        lWindow.LWindowDispatcherAttach(PWindowDispatch);
+        pConsole.PConsoleAttach(lWindow.LWindowPart.QWindowPartConsole);
         PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
         Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
         PWindowNoticesAttach();
@@ -35,6 +36,8 @@ public partial class PWindow : Window
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         lWindow.LWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
+        pToolbar.PToolbarLogoSet(lWindow.LWindowLogo);
+        pToolbar.PToolbarChromeSet(lWindow.LWindowPart.QWindowPartChrome);
         pToolbar.PToolbarOptionsApplied += lWindow.LWindowOptionsApply;
         lWindow.LWindowOptionsApply();
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
@@ -77,11 +80,11 @@ public partial class PWindow : Window
         lWindow.LWindowHorizontalApplied += PWindowHorizontalApply;
         lWindow.LWindowFlowApplied += PWindowFlowApply;
         lWindow.LWindowVolumeSynced += PWindowVolumeSet;
-        lWindow.LWindowDrop.LWindowListAdded += PWindowListAdd;
-        lWindow.LWindowDrop.LWindowViewerOpened += PWindowViewerOpen;
-        lWindow.LWindowShortcut.LWindowShortcutPlayed += PWindowPlay;
-        lWindow.LWindowShortcut.LWindowShortcutPaused += PWindowPause;
-        lWindow.LWindowShortcut.LWindowShortcutAttach(
+        lWindow.LWindowPart.QWindowPartDrop.LWindowListAdded += PWindowListAdd;
+        lWindow.LWindowPart.QWindowPartDrop.LWindowViewerOpened += PWindowViewerOpen;
+        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutPlayed += PWindowPlay;
+        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutPaused += PWindowPause;
+        lWindow.LWindowPart.QWindowPartShortcut.LWindowShortcutAttach(
             pToolbar.PToolbarShortcutShow,
             PWindowUndo,
             PWindowRedo,
@@ -99,11 +102,11 @@ public partial class PWindow : Window
     private void PWindowAskHandle(LAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);
 
     private void PWindowTabHandle(LStripTab? lStripTab) =>
-        lWindow.LWindowTabSet(lStripTab, lStripTab?.LStripTabWorkspace?.LWorkspaceViewer);
+        lWindow.LWindowTabSet(lStripTab, lStripTab?.LStripTabWorkspace.LWorkspaceViewer);
 
     private void PWindowAddHandle(LWindowTab lTab) =>
         pStrip.LStrip.LStripNameSet(
-            pStrip.PStripAdd(lTab.LWindowTabKey, lTab.LWindowTabPreset, lTab.LWindowTabLayout),
+            pStrip.PStripAdd(lWindow.LWindowTabCreate(lTab), lTab.LWindowTabLayout),
             lTab.LWindowTabName);
 
     private void PWindowFunnelUpdate() => pStrip.LStrip.LStripTabs.ToList().ForEach(PWindowFunnelResolve);

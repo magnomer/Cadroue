@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
@@ -7,7 +8,7 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static LRail TRailCreate(LStrip strip) => new(strip);
+    internal static LRail TRailRead(LStrip strip) => strip.LStripRail;
     internal static bool TRailPressHandle(
         LRail rail, LStripTab? tab, int clicks, bool nameHit, double x, double y, double offsetX, double offsetY) =>
         rail.LRailPressHandle(tab, clicks, nameHit, x, y, offsetX, offsetY);
@@ -40,10 +41,21 @@ internal static partial class TInterface
         LChrome.LChromeCaptionResolve(interactive, tab, inside);
     internal static bool TChromeDoubleCheck(int clicks, bool caption) => LChrome.LChromeDoubleCheck(clicks, caption);
 
-    internal static LWorkspace TWorkspaceCreate(string key, LPreset? preset) => new(key, preset);
-    internal static void TWorkspaceAttach(
-        LWorkspace workspace, LDocket? docket, LSegment? segment, LFlow? flow, LViewer? viewer) =>
-        workspace.LWorkspaceAttach(docket, segment, flow, viewer, null, () => new LSceneTabEntry());
+    internal static LWorkspace TWorkspaceCreate(string key, LPreset? preset)
+    {
+        CAtelier atelier = TAtelierCreate();
+        LWorkspace workspace = new(key, atelier.CAtelierUsher, atelier.CAtelierLineage);
+        if (preset is not null)
+        {
+            workspace.LWorkspacePresetAccept(preset);
+        }
+
+        return workspace;
+    }
+    internal static void TWorkspaceAttach(LWorkspace workspace) =>
+        workspace.LWorkspaceAttach(() => new LSceneTabEntry());
+    internal static LSegment TWorkspaceSegmentRead(LWorkspace workspace) =>
+        workspace.LWorkspaceFlow!.LFlowSection.LFlowSegment;
     internal static void TWorkspaceClose(LWorkspace workspace) => workspace.LWorkspaceClose();
     internal static bool TWorkspaceBusyCheck(LWorkspace workspace) => workspace.LWorkspaceBusyCheck();
     internal static IReadOnlyList<string> TDocketPathsRead(LDocket docket) => docket.LDocketPathsRead();
@@ -79,8 +91,9 @@ internal static partial class TInterface
     internal static void TWorkspaceRangeAttach(LWorkspace workspace, Action<TimeSpan, TimeSpan> handler) =>
         workspace.LWorkspaceRangeApplied += handler;
 
-    internal static LSurface TSurfaceCreate(LColumn column, int count, int exportIndex) =>
-        new(column, count, exportIndex);
+    internal static LSurface TSurfaceCreate(IReadOnlyList<double> minimums, int exportIndex) =>
+        new(null, minimums, null, null, -1, exportIndex);
+    internal static LColumnPlan TSurfacePlanRead(LSurface surface) => surface.LSurfacePlan;
     internal static LSceneTabEntry TSurfaceLayoutRead(LSurface surface) => surface.LSurfaceLayoutRead();
     internal static IReadOnlyList<int> TSurfaceCollapsedResolve(LSurface surface, LSceneTabEntry? layout) =>
         surface.LSurfaceCollapsedResolve(layout);
@@ -100,7 +113,7 @@ internal static partial class TInterface
 
     internal static LPiece TPieceCreate(TimeSpan start, TimeSpan end) => new(start, end, 0, string.Empty);
 
-    internal static LDeck TDeckCreate(LStrip strip) => new(strip);
+    internal static LDeck TDeckRead(LStrip strip) => strip.LStripDeck;
     internal static void TDeckAttach(LDeck deck, Action<LStripTab> hide, Action<LStripTab> show, Action empty)
     {
         deck.LDeckHidden += hide;
@@ -109,7 +122,8 @@ internal static partial class TInterface
     }
     internal static void TDeckClose(LDeck deck) => deck.LDeckClose();
 
-    internal static LStripTab TStripKeyCreate(string key) => LStrip.LStripTabCreate(key);
+    internal static LStripTab TStripKeyCreate(string key) =>
+        new LStrip(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage).LStripTabCreate(key);
     internal static string TStripKeyResolve(string key) => LStrip.LStripKeyResolve(key);
     internal static bool TStripCloseConfirm(LStrip strip, LStripTab? tab) =>
         strip.QStripClosure.LStripCloseConfirm(tab);

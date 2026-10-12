@@ -16,7 +16,7 @@ internal static class TInterfaceCrop
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
-    internal static LCrop TCropCreate() => new LViewer(new LStrip(TInterface.TProgramCreate())).LCrop;
+    internal static LCrop TCropCreate() => new LViewer(TInterface.TAtelierCreate().CAtelierUsher).LCrop;
     internal static void TCropGripSet(LCrop crop, int edgeX, int edgeY) => crop.LCropGripSet(edgeX, edgeY);
     internal static void TCropBodySet(LCrop crop) => crop.LCropBodySet();
     internal static void TCropDrawSet(LCrop crop) => crop.LCropDrawSet();

@@ -24,8 +24,9 @@ public sealed class TSummaryPlan
         LWorkItem two = schedule.TWorkCreate(batch, "two").TWorkItem;
         one.LWorkSourceBytes = 1_048_576;
         two.LWorkSourceBytes = 2_097_152;
+        schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
-        LSummary summary = TInterfaceRoster.TSummaryRead([one, two]);
+        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
 
         Assert.Empty(summary.LSummaryMeters);
         Assert.Empty(summary.LSummaryBars);
@@ -57,17 +58,11 @@ public sealed class TSummaryPlan
         second.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
         second.TWorkItem.LWorkStartTime = DateTimeOffset.UnixEpoch;
         second.TWorkItem.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
-        LWorkItem[] items = [first.TWorkItem, second.TWorkItem];
+        schedule.TScheduleAdd(first, second);
 
-        (long? source, long? output) = TInterfaceRoster.TSummarySizeRead(items);
-        Assert.Equal(4_194_304, source);
-        Assert.Equal(1_048_576, output);
-
-        (IReadOnlyList<string> sources, IReadOnlyList<string> outputs) = TInterfaceRoster.TSummaryPathsRead(items);
-        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, sources);
-        Assert.Equal(new[] { second.TWorkItem.LWorkOutputPath }, outputs);
-
-        LSummary summary = TInterfaceRoster.TSummaryRead(items);
+        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
+        Assert.Equal(new[] { second.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
         Assert.Equal("00:04 / 0.25 MiB/s", Assert.Single(summary.LSummaryMeters));
         LRosterBar bar = Assert.Single(summary.LSummaryBars);
         Assert.Equal("25%", bar.LRosterBarPercent);
@@ -85,10 +80,58 @@ public sealed class TSummaryPlan
         one.LWorkSourceBytes = 1_048_576;
         one.LWorkOutputBytes = 512;
         one.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
-        (long? source, long? output) = TInterfaceRoster.TSummarySizeRead([one, two]);
-        Assert.Null(source);
-        Assert.Null(output);
+        LRosterCompareRow sizes =
+            TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch).LSummaryCompares[1];
+        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.LRosterCompareSource.LRosterLineText);
+        Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.LRosterCompareOutput.LRosterLineText);
         Assert.Null(TInterfaceRoster.TSummaryMeterFormat([one, two], null));
+    }
+
+    [Fact]
+    public void Read_KeepsAnItemHiddenFromTheRoster_InTheBatchSourcesAndSizes()
+    {
+        using var schedule = new TSchedule();
+        Guid batch = Guid.NewGuid();
+        TScheduleWork one = schedule.TWorkCreate(batch, "one");
+        TScheduleWork two = schedule.TWorkCreate(batch, "two");
+        one.TWorkItem.LWorkSourceBytes = 1_048_576;
+        two.TWorkItem.LWorkSourceBytes = 2_097_152;
+        var other = TInterfaceRoster.TStationCreate(schedule.TScheduleRead());
+        two.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        two.TWorkItem.LWorkOwnerRunner = TInterfaceRoster.TStationRunnerRead(other);
+        two.TWorkItem.LWorkOwnerProcess = Environment.ProcessId;
+        schedule.TScheduleAdd(one, two);
+
+        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        IReadOnlyList<Guid> shown = TInterfaceRoster.TRosterIdsRead(schedule.TScheduleRead());
+        TInterfaceRoster.TStationClose(other);
+
+        Assert.Equal(new[] { one.TWorkId }, shown);
+        Assert.Equal(new[] { one.TWorkItem.LWorkSourcePath, two.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
+        Assert.Equal(new[] { one.TWorkItem.LWorkOutputPath, two.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
+        Assert.Equal("3 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
+    }
+
+    [Fact]
+    public void Read_SharedSourcePath_ListsItOnce_AndTheFirstItemBytesWin()
+    {
+        using var schedule = new TSchedule();
+        Guid batch = Guid.NewGuid();
+        TScheduleWork first = schedule.TWorkCreate(batch, "one");
+        TScheduleWork second = schedule.TWorkDeriveCreate(first, "two");
+        first.TWorkItem.LWorkSourceBytes = 1_048_576;
+        second.TWorkItem.LWorkSourceBytes = 2_097_152;
+        schedule.TScheduleAdd(first, second);
+
+        LSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+
+        Assert.Equal(new[] { first.TWorkItem.LWorkSourcePath }, summary.LSummarySources);
+        Assert.Equal(
+            new[] { first.TWorkItem.LWorkOutputPath, second.TWorkItem.LWorkOutputPath }, summary.LSummaryOutputs);
+        Assert.Equal("1 MiB", summary.LSummaryCompares[1].LRosterCompareSource.LRosterLineText);
+        Assert.Equal(
+            TInterfaceRoster.TRosterMebiFormat(123), summary.LSummaryCompares[1].LRosterCompareOutput.LRosterLineText);
     }
 }

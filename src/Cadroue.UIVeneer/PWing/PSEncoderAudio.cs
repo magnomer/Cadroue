@@ -59,11 +59,7 @@ internal sealed partial class PSEncoder
 
             pLog.IsEnabled = lsEncoder.LSEncoderAudioResults.Count > 0;
         };
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(
-            this,
-            new LSVerdict(
-                LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"),
-                lsEncoder.LSEncoderAudioResults));
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.LSEncoderVerdictCreate(true));
         psAudioEncoderCombo.SelectionChanged += (_, _) => PSAudioSet();
         psAudioRateCombo.SelectionChanged += (_, _) => PSAudioSet();
 

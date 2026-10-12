@@ -34,14 +34,14 @@ public sealed class LSOptions
 
     public event Action<bool>? LSOptionsMpvChanged;
 
-    public LSOptions(LStrip lStrip)
-        : this(lStrip, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
+    public LSOptions(CUsher lUsher)
+        : this(lUsher, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
     {
     }
 
-    public LSOptions(LStrip lStrip, LPreferenceState lDraft, bool lMpvEnabled)
+    public LSOptions(CUsher lUsher, LPreferenceState lDraft, bool lMpvEnabled)
     {
-        lsOptionsUsher = lStrip.LStripUsher;
+        lsOptionsUsher = lUsher;
         lsOptionsDraft = lDraft;
         lsOptionsMpvEnabled = lMpvEnabled;
     }
@@ -54,10 +54,14 @@ public sealed class LSOptions
 
     public void LSOptionsPageSelect(LSOptionsPage lPage) => lsOptionsPage = lPage;
 
+    public LSDiagnosis LSOptionsDiagnosisCreate() => new();
+
+    public LSSpectrum LSOptionsSpectrumCreate() => new(lsOptionsDraft.LPreferenceSectionPalette);
+
     public bool LSOptionsFolderExist(string lFolder) => lsOptionsUsher.CUsherFolderExist(lFolder);
 
-    public string? LSOptionsFolderOpen(string lFolder, string lFallback, string lLabel) =>
-        lsOptionsUsher.CUsherFolderOpen(string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder, lLabel);
+    public string? LSOptionsFolderOpen(string lFolder, string lFallback) =>
+        lsOptionsUsher.CUsherFolderOpen(string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder);
 
     public string LSOptionsEngineRead() =>
         lsOptionsMpvEnabled && string.Equals(lsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)

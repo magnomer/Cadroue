@@ -29,9 +29,9 @@ public sealed class PLogWindow : Window
 
     public LLog LLog { get; }
 
-    private PLogWindow(Window pOwner, LStrip lStrip)
+    private PLogWindow(Window pOwner, LLog lLog)
     {
-        LLog = new LLog(lStrip);
+        LLog = lLog;
         pLogOwner = pOwner;
         pLogFileCombo = PLogComboBuild(320);
         pLogCategoryPicker = PLogCategoryBuild();
@@ -74,10 +74,10 @@ public sealed class PLogWindow : Window
         Closed += PLogCloseHandle;
     }
 
-    public static void PLogWindowShow(Window pOwner, LStrip lStrip)
+    public static void PLogWindowShow(Window pOwner, Func<LLog> lLogCreate)
     {
         PLogWindow pWindow = System.Windows.Application.Current.Windows.OfType<PLogWindow>().FirstOrDefault()
-            ?? new PLogWindow(pOwner, lStrip);
+            ?? new PLogWindow(pOwner, lLogCreate());
         pWindow.WindowState = PLook.PLookUnminimized[pWindow.WindowState];
         pWindow.Show();
         pWindow.Activate();

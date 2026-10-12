@@ -56,7 +56,9 @@ public sealed class PViewer : PPanel
         new Dictionary<bool, Action<PViewer>>
         {
             [true] = _ => System.Windows.Application.Current.Windows.OfType<PSLoupe>().FirstOrDefault()?.Activate(),
-            [false] = pViewer => PSLoupe.PSLoupeShow(System.Windows.Application.Current.MainWindow, pViewer.LViewer),
+            [false] = pViewer => PSLoupe.PSLoupeShow(
+                System.Windows.Application.Current.MainWindow,
+                pViewer.LViewer.LViewerMedia.QViewerLoupe.LViewerLoupeCreate()),
         };
 
     private static readonly IReadOnlyDictionary<LViewerAskKind, Action<PViewer, LViewerAsk, Action<bool>>> pViewerAsks =
@@ -99,12 +101,10 @@ public sealed class PViewer : PPanel
 
     public LPlayer LPlayer => LViewer.LPlayer;
 
-    public PViewer(
-        LStrip lStrip, bool pAudioEligible = false, bool pEditEligible = false, bool pColorPreview = false)
+    public PViewer(LViewer lViewer)
         : base("")
     {
-        LViewer = new LViewer(lStrip);
-        LViewer.LViewerEligibleSet(pAudioEligible, pEditEligible, pColorPreview);
+        LViewer = lViewer;
         AllowDrop = true;
         Focusable = true;
         FocusVisualStyle = null;
@@ -294,7 +294,7 @@ public sealed class PViewer : PPanel
     }
 
     private void PViewerMpvCreate() =>
-        LPlayer.LPlayerEngineSet(new LPlayerMpv(pViewerMpvHost.PViewerHandleRead()).LPlayerSeamRead());
+        LPlayer.LPlayerMpvCreate(pViewerMpvHost.PViewerHandleRead());
 
     private LViewerHostFacts PViewerFactsRead()
     {

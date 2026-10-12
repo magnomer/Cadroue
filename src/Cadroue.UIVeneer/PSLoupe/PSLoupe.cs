@@ -66,17 +66,18 @@ internal sealed class PSLoupe : Window
     private readonly Button psLoupePlayButton;
     private readonly IReadOnlyDictionary<LSLoupeFloat, Button> psLoupeSegments;
 
-    public LSLoupe LSLoupe { get; } = new();
+    public LSLoupe LSLoupe { get; }
 
-    internal static void PSLoupeShow(Window pOwner, LViewer lViewer)
+    internal static void PSLoupeShow(Window pOwner, LSLoupe lLoupe)
     {
-        var psLoupe = new PSLoupe(pOwner);
-        psLoupe.LSLoupe.LSLoupeViewerAttach(lViewer);
+        var psLoupe = new PSLoupe(pOwner, lLoupe);
+        lLoupe.LSLoupeViewerAttach();
         psLoupe.Show();
     }
 
-    private PSLoupe(Window pOwner)
+    private PSLoupe(Window pOwner, LSLoupe lLoupe)
     {
+        LSLoupe = lLoupe;
         psLoupeOwners = new Dictionary<bool, Window?>
         {
             [true] = pOwner,
@@ -233,7 +234,7 @@ internal sealed class PSLoupe : Window
     }
 
     private void PSLoupeMpvCreate() =>
-        LSLoupe.LPlayer.LPlayerEngineSet(new LPlayerMpv(psLoupeMpvHost.PViewerHandleRead()).LPlayerSeamRead());
+        LSLoupe.LPlayer.LPlayerMpvCreate(psLoupeMpvHost.PViewerHandleRead());
 
     private void PSLoupeLoadedHandle(object pSender, RoutedEventArgs pEvent)
     {

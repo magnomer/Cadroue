@@ -37,14 +37,10 @@ internal static partial class TInterface
     internal static string TConsoleNameCreate(string baseName, IReadOnlyList<string> names) =>
         LConsoleScene.LConsoleNameCreate(baseName, names);
 
-    internal static LEditTab TEditTabCreate(
-        LPresetSelection preset,
-        LInspector inspector,
-        LViewer viewer,
-        LList list,
-        LDocket docket,
-        LProcessing processing) =>
-        new(new LStrip(TProgramCreate()), preset, inspector, viewer, list, docket, processing);
+    internal static LEditTab TEditTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+    internal static LInspector TEditInspectorRead(LEditTab tab) => tab.LEditInspector;
+    internal static LProcessing TEditProcessingRead(LEditTab tab) => tab.LEditProcessing;
     internal static void TEditClose(LEditTab tab) => tab.LEditClose();
     internal static void TEditStart(LEditTab tab) => tab.LEditStart();
     internal static LSceneTabEntry TEditLayoutRead(LEditTab tab) => tab.LEditLayoutRead(new LSceneTabEntry());
@@ -84,14 +80,10 @@ internal static partial class TInterface
         LLibrarian.LLibrarianEditWriter = writer;
     }
 
-    internal static LSplitTab TSplitTabCreate(
-        LPresetSelection preset,
-        LInspector inspector,
-        LViewer viewer,
-        LList list,
-        LDocket docket,
-        LProcessing processing,
-        LFlow flow) => new(preset, inspector, viewer, list, docket, processing, flow);
+    internal static LSplitTab TSplitTabCreate(LPresetSelection preset, LViewer viewer, LList list, LFlow flow) =>
+        new(preset, viewer, list, flow);
+    internal static LInspector TSplitInspectorRead(LSplitTab tab) => tab.LSplitInspector;
+    internal static LProcessing TSplitProcessingRead(LSplitTab tab) => tab.LSplitProcessing;
     internal static IReadOnlyList<LProcessingRow> TSplitRowsRead() => LSplitTab.LSplitRows;
     internal static void TSplitClose(LSplitTab tab) => tab.LSplitClose();
     internal static void TSplitStart(LSplitTab tab) => tab.LSplitStart();
@@ -142,13 +134,10 @@ internal static partial class TInterface
     internal static string TSensorNameRead(LDetectorKind kind) => LSensor.LSensorNameRead(kind);
     internal static LDetectorKind? TSensorKindRead(string? name) => LSensor.LSensorKindRead(name);
 
-    internal static LFixTab TFixTabCreate(
-        LPresetSelection preset,
-        LClinic clinic,
-        LViewer viewer,
-        LList list,
-        LDocket docket,
-        LProcessing processing) => new(preset, clinic, viewer, list, docket, processing);
+    internal static LFixTab TFixTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+        new(preset, viewer, list);
+    internal static LClinic TFixClinicRead(LFixTab tab) => tab.LFixClinic;
+    internal static LProcessing TFixProcessingRead(LFixTab tab) => tab.LFixProcessing;
     internal static IReadOnlyList<LProcessingRow> TFixRowsRead() => LFixTab.LFixRows;
     internal static IReadOnlyList<LFixRow> TFixKindsRead() => LFixTab.LFixKinds;
     internal static void TFixClose(LFixTab tab) => tab.LFixClose();
@@ -161,7 +150,6 @@ internal static partial class TInterface
     internal static void TFixProgressHandle(LFixTab tab, string path, double progress) =>
         tab.LFixProgressHandle(path, progress);
     internal static void TFixClearHandle(LFixTab tab, params string[] removed) => tab.LFixClearHandle(removed);
-    internal static void TFixItemsHandle(LFixTab tab, IReadOnlyList<LDocketEntry> added) => tab.LFixItemsHandle(added);
     internal static void TFixChangeHandle(LFixTab tab) => tab.LFixChangeHandle();
     internal static void TFixStateSave(LFixTab tab) => tab.LFixStateSave();
     internal static void TFixPlanRestore(LFixTab tab, string path) => tab.LFixPlanRestore(path);
@@ -190,14 +178,10 @@ internal static partial class TInterface
         LLibrarian.LLibrarianFixWriter = writer;
     }
 
-    internal static LAudioTab TAudioTabCreate(
-        LPresetSelection preset,
-        LInspector inspector,
-        LViewer viewer,
-        LList list,
-        LDocket docket,
-        LProcessing processing) =>
-        new(new LStrip(TProgramCreate()), preset, inspector, viewer, list, docket, processing);
+    internal static LAudioTab TAudioTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+    internal static LInspector TAudioInspectorRead(LAudioTab tab) => tab.LAudioInspector;
+    internal static LProcessing TAudioProcessingRead(LAudioTab tab) => tab.LAudioProcessing;
     internal static IReadOnlyList<LProcessingRow> TAudioRowsRead() => LAudioTab.LAudioRows;
     internal static LAudioKind? TAudioKindRead(string step) => LAudioTab.LAudioKindRead(step);
     internal static void TAudioClose(LAudioTab tab) => tab.LAudioClose();
@@ -232,8 +216,9 @@ internal static partial class TInterface
     internal static void TVolumePersistentSet(LVolume volume, bool persistent) =>
         volume.LVolumePersistentSet(persistent);
 
-    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LDocket docket, LSceneTabEntry? layout) =>
-        new(new LStrip(TProgramCreate()), preset, docket, layout);
+    internal static LMergeTab TMergeTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+    internal static void TMergeLayoutApply(LMergeTab tab, LSceneTabEntry? layout) => tab.LMergeLayoutApply(layout);
     internal static void TMergeClose(LMergeTab tab) => tab.LMergeClose();
     internal static LSceneTabEntry TMergeLayoutRead(LMergeTab tab) => tab.LMergeLayoutRead(new LSceneTabEntry());
     internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(LMergeTab tab, Guid cohort = default) =>
@@ -249,8 +234,8 @@ internal static partial class TInterface
     internal static void TGroupStrictChange(LGroupSelection selection, bool strict) =>
         selection.LGroupStrictChange(strict);
 
-    internal static LConvertTab TConvertTabCreate(LPresetSelection preset, LList list, LDocket docket) =>
-        new(preset, list, docket);
+    internal static LConvertTab TConvertTabCreate(LPresetSelection preset, LViewer viewer, LList list) =>
+        new(preset, viewer, list);
     internal static void TConvertMissingAttach(LConvertTab tab, Action handler) => tab.LConvertPresetMissing += handler;
     internal static void TConvertRun(LConvertTab tab, LWorkPriority priority) =>
         tab.LConvertRun(priority, default, default);
@@ -286,12 +271,22 @@ internal static partial class TInterface
     internal static IReadOnlyList<LActionOption> TActionOptionsRead(LAction action) => action.LActionOptionsRead();
     internal static IReadOnlyList<LActionOption> TActionMenuRead(LAction action) => action.LActionMenuRead();
     internal static void TActionRunAttach(LAction action, Action<LWorkPriority> handler) =>
-        action.LActionExecuted += handler;
-    internal static void TActionAllAttach(LAction action, Action handler) => action.LActionAllAdded += handler;
+        action.LActionExecuted += (priority, _, _) => handler(priority);
+    internal static void TActionAllAttach(LAction action, Action handler) =>
+        action.LActionAllAdded += (_, _) => handler();
     internal static void TActionItemsAttach(LAction action, Action<IReadOnlyList<string>> handler) =>
-        action.LActionItemsAdded += handler;
+        action.LActionItemsAdded += (paths, _, _) => handler(paths);
     internal static void TActionCohortAttach(LAction action, Func<Guid, int> handler) =>
-        action.LActionCohortAdded += handler;
+        action.LActionCohortAdded += (cohort, _, _) => handler(cohort);
+    internal static (Guid TActionTarget, Guid TActionSource) TActionRouteRead(LAction action)
+    {
+        (Guid TActionTarget, Guid TActionSource) route = default;
+        Action<IReadOnlyList<string>, Guid, Guid> capture = (_, target, source) => route = (target, source);
+        action.LActionItemsAdded += capture;
+        action.LActionItemsRun(Array.Empty<string>());
+        action.LActionItemsAdded -= capture;
+        return route;
+    }
     internal static void TActionEmptyAttach(LAction action, Action handler) => action.LActionEmptyRaised += handler;
     internal static void TActionFaceAttach(LAction action, Action handler) => action.LActionFaceChanged += handler;
     internal static void TActionAllRun(LAction action) => action.LActionAllRun();

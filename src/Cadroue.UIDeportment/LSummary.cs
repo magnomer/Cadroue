@@ -20,13 +20,12 @@ public sealed class LSummary
 
     public required IReadOnlyList<string> LSummaryOutputs { get; init; }
 
-    public static LSummary LSummaryRead(LRoster lRoster) =>
-        LSummaryRead(lRoster.LRosterUsher, lRoster.LRosterBatchRead());
-
-    public static LSummary LSummaryRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
+    public static LSummary LSummaryRead(LRoster lRoster)
     {
-        (long? lSourceBytes, long? lOutputBytes) = LSummarySizeRead(lUsher, lBatchItems);
-        (IReadOnlyList<string> lSources, IReadOnlyList<string> lOutputs) = LSummaryPathsRead(lUsher, lBatchItems);
+        IReadOnlyList<LWorkItem> lBatchItems = lRoster.LRosterBatchRead();
+        CLineageBatch lBatch = lRoster.LRosterSummaryRead();
+        long? lSourceBytes = lBatch.CLineageSourceTotal;
+        long? lOutputBytes = lBatch.CLineageOutputTotal;
         string? lMeter = LSummaryMeterFormat(lBatchItems, lOutputBytes);
         return new LSummary
         {
@@ -43,10 +42,10 @@ public sealed class LSummary
                     LRosterFormatter.LRosterMebiFormat(lOutputBytes),
                     LRosterDetail.LRosterLinePlain)
             ],
-            LSummarySourceCount = LSummaryFilesFormat(lSources.Count),
-            LSummaryOutputCount = LSummaryFilesFormat(lOutputs.Count),
-            LSummarySources = lSources,
-            LSummaryOutputs = lOutputs
+            LSummarySourceCount = LSummaryFilesFormat(lBatch.CLineageSourceCount),
+            LSummaryOutputCount = LSummaryFilesFormat(lBatch.CLineageOutputCount),
+            LSummarySources = lBatch.CLineageBatchSources,
+            LSummaryOutputs = lBatch.CLineageBatchOutputs
         };
     }
 
@@ -80,134 +79,4 @@ public sealed class LSummary
         lCount == 1
             ? LLocalization.LLocalizationTextRead("Roster.Summary.FileOne")
             : LLocalization.LLocalizationFormat("Roster.Summary.FileMany", lCount);
-
-    private static IReadOnlyList<string> LSummaryInputsRead(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge
-            ? lWorkItem.LWorkMergeSources
-            : [lWorkItem.LWorkSourcePath];
-
-    private static HashSet<string> LSummaryOutputsRead(CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
-    {
-        var lOutputKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            if (LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is { } lOutputKey)
-            {
-                lOutputKeys.Add(lOutputKey);
-            }
-        }
-
-        return lOutputKeys;
-    }
-
-    public static (IReadOnlyList<string>, IReadOnlyList<string>) LSummaryPathsRead(
-        CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
-    {
-        HashSet<string> lOutputKeys = LSummaryOutputsRead(lUsher, lBatchItems);
-        var lConsumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lSeenSources = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lSources = new List<string>();
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            foreach (string lInput in LSummaryInputsRead(lWorkItem))
-            {
-                if (LLineage.LLineagePathRead(lUsher, lInput) is not { } lInputKey)
-                {
-                    continue;
-                }
-
-                lConsumed.Add(lInputKey);
-                if (!lOutputKeys.Contains(lInputKey) && lSeenSources.Add(lInputKey))
-                {
-                    lSources.Add(lInput);
-                }
-            }
-        }
-
-        var lSeenOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lOutputs = new List<string>();
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            if (LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is { } lOutputKey
-                && !lConsumed.Contains(lOutputKey)
-                && lSeenOutputs.Add(lOutputKey))
-            {
-                lOutputs.Add(lWorkItem.LWorkOutputPath);
-            }
-        }
-
-        return (lSources, lOutputs);
-    }
-
-    public static (long? lSourceTotal, long? lOutputTotal) LSummarySizeRead(
-        CUsher lUsher, IReadOnlyList<LWorkItem> lBatchItems)
-    {
-        HashSet<string> lOutputKeys = LSummaryOutputsRead(lUsher, lBatchItems);
-        var lConsumed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var lInputBytes = new Dictionary<string, long?>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            bool lMerge = lWorkItem.LWorkKind == LWorkKind.LWorkKindMerge;
-            IReadOnlyList<string> lInputs = LSummaryInputsRead(lWorkItem);
-            for (int lIndex = 0; lIndex < lInputs.Count; lIndex++)
-            {
-                if (LLineage.LLineagePathRead(lUsher, lInputs[lIndex]) is not { } lInputKey)
-                {
-                    continue;
-                }
-
-                lConsumed.Add(lInputKey);
-                if (!lInputBytes.ContainsKey(lInputKey))
-                {
-                    lInputBytes[lInputKey] = lMerge
-                        ? lIndex < lWorkItem.LWorkMergeBytes.Count && lWorkItem.LWorkMergeBytes[lIndex] > 0
-                            ? lWorkItem.LWorkMergeBytes[lIndex]
-                            : null
-                        : lWorkItem.LWorkSourceBytes;
-                }
-            }
-        }
-
-        long lSourceTotal = 0;
-        bool lSourceAny = false, lSourceOk = true;
-        foreach ((string lInputKey, long? lInputByte) in lInputBytes)
-        {
-            if (lOutputKeys.Contains(lInputKey))
-            {
-                continue;
-            }
-
-            lSourceAny = true;
-            if (lInputByte is { } lInputWhole)
-            {
-                lSourceTotal += lInputWhole;
-            }
-            else
-            {
-                lSourceOk = false;
-            }
-        }
-
-        long lOutputTotal = 0;
-        bool lOutputAny = false;
-        var lSeenOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
-                || LLineage.LLineagePathRead(lUsher, lWorkItem.LWorkOutputPath) is not { } lOutputKey
-                || lConsumed.Contains(lOutputKey)
-                || !lSeenOutputs.Add(lOutputKey)
-                || lWorkItem.LWorkOutputBytes is not { } lOutputWhole)
-            {
-                continue;
-            }
-
-            lOutputAny = true;
-            lOutputTotal += lOutputWhole;
-        }
-
-        return (
-            lSourceAny && lSourceOk ? lSourceTotal : null,
-            lOutputAny ? lOutputTotal : null);
-    }
 }

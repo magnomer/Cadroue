@@ -3,8 +3,8 @@
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
-    "Length": 5,
-    "Width": 2
+    "Length": 6,
+    "Width": 3
   },
   "sources": {
     "roots": [

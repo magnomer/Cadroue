@@ -11,9 +11,9 @@ public sealed class PEditTab : PTabSurface
 {
     private readonly PFlow pFlow;
     private readonly PViewer pViewer;
-    private readonly PInspector pInspector = new();
+    private readonly PInspector pInspector;
     private readonly PList pList;
-    private readonly PProcessing pProcessing = new();
+    private readonly PProcessing pProcessing;
     private readonly System.Windows.Controls.Grid pTabGrid;
     private readonly System.Windows.Threading.DispatcherTimer pEditColorTimer = new()
     {
@@ -24,38 +24,21 @@ public sealed class PEditTab : PTabSurface
         Interval = TimeSpan.FromMilliseconds(220)
     };
 
-    public PEditTab(LStrip lStrip, LPresetSelection lPresetOwner, LSceneTabEntry? lPreferenceTabLayout = null)
+    public PEditTab(LWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        pFlow = new PFlow(lStrip);
-        pViewer = new PViewer(lStrip, pEditEligible: true, pColorPreview: true);
-        pList = new PList(lStrip, new LDocket());
-        LEditTab = new LEditTab(
-            lStrip,
-            lPresetOwner,
-            pInspector.LInspector,
-            pViewer.LViewer,
-            pList.LList,
-            pList.LList.LListDocket,
-            pProcessing.LProcessing);
-        var pAction = new PAction();
-        PTabAction = pAction;
-        LAction lAction = pAction.LAction;
-        lAction.LActionExecuted += lPriority =>
-            LEditTab.LEditRun(lPriority, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionAllAdded += () => LEditTab.LEditAllRun(lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        lAction.LActionItemsAdded += pEditPaths =>
-            LEditTab.LEditItemsRun(pEditPaths, lAction.LActionRelayTarget, lAction.LActionSourceTab);
-        pAction.PActionListAttach(pList);
+        pFlow = new PFlow(lWorkspace.LWorkspaceFlow!);
+        pViewer = new PViewer(lWorkspace.LWorkspaceViewer!);
+        pList = new PList(lWorkspace.LWorkspaceList!);
+        LEditTab = lWorkspace.QWorkspaceMode.LEditTabCreate();
+        pInspector = new PInspector(LEditTab.LEditInspector);
+        pProcessing = new PProcessing(LEditTab.LEditProcessing);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.LWorkspaceAction!);
         pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QEditProcessing.LEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
         pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
         pViewer.LViewer.LViewerPlayback.LViewerClockTicked += PEditHistogramDefer;
-        pViewer.LViewer.LViewerSource.LViewerPathsDrop += pDropPaths => _ = pList.LList.LListPathsAdd(pDropPaths);
-        pList.LList.LListPathChanged += LEditTab.LEditPathHandle;
-        pList.LList.LListItemsAdded += LEditTab.LEditStore.LEditItemsHandle;
-        pList.LList.LListLockChanged += LEditTab.QEditTool.LEditLockHandle;
 
         LEditTab.LEditPresetMissing += PExport.PExportMissingShow;
         LEditTab.LEditPresetIncompatible += PExport.PExportIncompatibleShow;
@@ -65,11 +48,12 @@ public sealed class PEditTab : PTabSurface
         pEditHistogramTimer.Tick += PEditHistogramTick;
         LEditTab.LEditColor.LEditCapableHandle();
 
-        var pExport = new PExport(lPresetOwner, LWorkKind.LWorkKindEdit);
+        var pExport = new PExport(lWorkspace.LWorkspaceExport, lWorkspace.LWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
         pTabGrid = PTabGridBuild(
+            lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
-            new PCompass(pFlow, pViewer),
+            new PCompass(pFlow, pViewer, lWorkspace.LWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);

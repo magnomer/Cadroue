@@ -12,15 +12,10 @@ public sealed class TEditTabLayout
 {
     private static (LEditTab, LInspector) TEditBuild()
     {
-        LInspector inspector = TInterfaceInspector.TInspectorCreate();
-        LDocket docket = TInterfaceList.TDocketCreate();
+        LList list = TInterfaceList.TListCreate();
         LEditTab tab = TInterface.TEditTabCreate(
-            TInterface.TPresetSelectionCreate("Alpha"),
-            inspector,
-            TInterfaceViewer.TViewerCreate(),
-            TInterfaceList.TListCreate(docket),
-            docket,
-            TInterface.TProcessingCreate());
+            TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
+        LInspector inspector = TInterface.TEditInspectorRead(tab);
         return (tab, inspector);
     }
 

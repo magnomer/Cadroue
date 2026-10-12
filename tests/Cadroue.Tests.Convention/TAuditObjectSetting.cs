@@ -50,11 +50,11 @@ internal static class TAuditObjectSetting
         ["Hydra"] = 7,
         ["Kraken"] = 3,
         ["Spider"] = 1,
-        ["Chameleon"] = 68,
+        ["Chameleon"] = 63,
         ["Octopus"] = 2,
         ["Centipede"] = 58,
         ["Serpent"] = 18,
-        ["Hub"] = 11,
+        ["Hub"] = 12,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling = new Dictionary<string, int>
