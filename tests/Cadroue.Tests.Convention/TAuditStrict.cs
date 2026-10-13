@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,10 +21,6 @@ public sealed class TAuditStrict
             "Hoarding", "Sharing", "Meddling", "Prying", "Overreaching", "Branching", "Homoglyph",
             "Overworking", "Tethering", "Freelancing", "Hardwiring", "Masquerading", "Dangling",
         ];
-
-    private static readonly Regex TAuditLiteralPattern = new(
-        @"@?""(?:[^""\\]|\\.)*""|//.*$",
-        RegexOptions.Compiled);
 
     private readonly ITestOutputHelper _tAuditOutput;
 
@@ -115,7 +110,7 @@ public sealed class TAuditStrict
     [Fact]
     public void AuditStrict_DriverSources_TouchNoDisk()
     {
-        List<string> hits = TAuditSourceScan(
+        List<string> hits = TAuditStrictSource.TAuditSourceScan(
             TAuditStrictSetting.TAuditDeportmentInclude,
             TAuditStrictSetting.TAuditDiskPatterns,
             TAuditStrictSetting.TAuditDiskExempt);
@@ -128,7 +123,7 @@ public sealed class TAuditStrict
     [Fact]
     public void AuditStrict_SurfaceSources_HoldNoCatalog()
     {
-        List<string> hits = TAuditSourceScan(
+        List<string> hits = TAuditStrictSource.TAuditSourceScan(
             TAuditStrictSetting.TAuditVeneerInclude,
             TAuditStrictSetting.TAuditCatalogPatterns,
             TAuditStrictSetting.TAuditCatalogExempt);
@@ -171,11 +166,11 @@ public sealed class TAuditStrict
     [Fact]
     public void AuditStrict_Exempt_MatchesSource()
     {
-        List<string> stale = TAuditExemptRead(
+        List<string> stale = TAuditStrictSource.TAuditExemptRead(
                 TAuditStrictSetting.TAuditVeneerInclude,
                 TAuditStrictSetting.TAuditCatalogPatterns,
                 TAuditStrictSetting.TAuditCatalogExempt)
-            .Concat(TAuditExemptRead(
+            .Concat(TAuditStrictSource.TAuditExemptRead(
                 TAuditStrictSetting.TAuditDeportmentInclude,
                 TAuditStrictSetting.TAuditDiskPatterns,
                 TAuditStrictSetting.TAuditDiskExempt))
@@ -214,52 +209,6 @@ public sealed class TAuditStrict
             TAuditStrictSetting.TAuditStrictEnforced,
             summary);
         _tAuditOutput.WriteLine($"{TAuditStrictAudit} {kind}: {count} {summary}. Report: {report}");
-    }
-
-    private static IEnumerable<string> TAuditExemptRead(
-        IReadOnlyList<string> include, IReadOnlyList<string> forbidden, IReadOnlyList<string> exempt)
-    {
-        HashSet<string> used = TAuditSourceScan(include, forbidden, [])
-            .Select(hit => Path.GetFileName(hit.Trim().Split(':')[0]))
-            .ToHashSet(StringComparer.Ordinal);
-        return exempt.Where(name => !used.Contains(name)).Select(name => $"  {name}");
-    }
-
-    private static List<string> TAuditSourceScan(
-        IReadOnlyList<string> include, IReadOnlyList<string> forbidden, IReadOnlyList<string> exempt)
-    {
-        string repoRoot = TAuditSource.TAuditRootRead();
-        TAuditScope scope = new(
-            [],
-            include,
-            TAuditNameSetting.TAuditExcludedSegments,
-            TAuditNameSetting.TAuditExcludedSuffixes,
-            TAuditNameSetting.TAuditExcludedPrefixes,
-            []);
-        List<string> hits = [];
-        foreach (string path in TAuditSource.TAuditFileRead(repoRoot, scope))
-        {
-            if (exempt.Contains(Path.GetFileName(path), StringComparer.Ordinal))
-            {
-                continue;
-            }
-
-            string[] lines = File.ReadAllLines(path);
-            for (int index = 0; index < lines.Length; index++)
-            {
-                string bare = TAuditLiteralPattern.Replace(lines[index], string.Empty);
-                foreach (string pattern in forbidden)
-                {
-                    if (Regex.IsMatch(bare, pattern))
-                    {
-                        string relative = Path.GetRelativePath(repoRoot, path).Replace('\\', '/');
-                        hits.Add($"  {relative}:{index + 1} {pattern}");
-                    }
-                }
-            }
-        }
-
-        return hits;
     }
 
     private static (IReadOnlyList<TViolation> TAuditHits, IReadOnlyList<string> TAuditVeneers,
