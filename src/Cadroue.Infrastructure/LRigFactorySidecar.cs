@@ -24,7 +24,7 @@ public static class LRigFactorySidecar
         LLibrarian.LLibrarianDiagnosisWriter = LSidecarStore.LSidecarDiagnosisSave;
         LLibrarian.LLibrarianLoudnessWriter = LSidecarStore.LSidecarLoudnessSave;
         LLibrarian.LLibrarianWaveformWriter = LSidecarStore.LSidecarWaveformSave;
-        LLibrarian.LLibrarianFileChecker = LSidecarStore.LSidecarFileCheck;
+        LLibrarian.LLibrarianFileChecker = LSidecarPath.LSidecarFileCheck;
         LLibrarian.LLibrarianSourceResolver = LSidecarStore.LSidecarSourceResolve;
         LLibrarian.LLibrarianSourceMatcher = LSidecarStore.LSidecarSourceMatch;
         LSegment.LSegmentLoadSeam = LSidecarStore.LSidecarSectionsRead;

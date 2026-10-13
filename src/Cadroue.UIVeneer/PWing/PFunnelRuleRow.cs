@@ -79,7 +79,7 @@ public sealed class PFunnelRuleRow : Border
     public void PFunnelRowUpdate()
     {
         pFunnelFrame.PFunnelCollapsedSet(PFunnelRule.QFunnelRuleCollapsed);
-        pFunnelRegexField.Text = lFunnel.QFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
+        pFunnelRegexField.Text = lFunnel.QFunnelCriterion.QFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
         pFunnelWholeBox.IsChecked = PFunnelRule.QFunnelRuleWhole;
         pFunnelConditions.ForEach(PFunnelConditionApply);
         PFunnelRelayUpdate();
@@ -103,7 +103,7 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(0, 0, 0, 8)
         };
         PTextbox.PTextboxApply(pField);
-        pField.TextChanged += (_, _) => lFunnel.QFunnelRegexSet(PFunnelRule, pField.Text);
+        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelRegexSet(PFunnelRule, pField.Text);
         return pField;
     }
 
@@ -118,8 +118,8 @@ public sealed class PFunnelRuleRow : Border
             Margin = new Thickness(2, 0, 0, 0)
         };
         PCheckbox.PCheckboxApply(pBox);
-        pBox.Checked += (_, _) => lFunnel.QFunnelWholeSet(PFunnelRule, true);
-        pBox.Unchecked += (_, _) => lFunnel.QFunnelWholeSet(PFunnelRule, false);
+        pBox.Checked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, true);
+        pBox.Unchecked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, false);
         return pBox;
     }
 

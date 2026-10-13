@@ -25,7 +25,7 @@ internal static class TInterfaceInspector
         inspector.QInspectorCrop.QInspectorCropApply(crop, apply);
     internal static void TInspectorRatioApply(
         QInspector inspector, bool fixedRatio, bool lenient, int width, int height) =>
-        inspector.QInspectorCrop.QInspectorRatioApply(fixedRatio, lenient, width, height);
+        inspector.QInspectorRatio.QInspectorRatioApply(fixedRatio, lenient, width, height);
     internal static void TInspectorCropReset(QInspector inspector) => inspector.QInspectorCrop.QInspectorCropReset();
     internal static void TInspectorPlanApply(QInspector inspector, LEditPlan plan) =>
         inspector.QInspectorPlanApply(plan);
@@ -48,16 +48,16 @@ internal static class TInterfaceInspector
         inspector.QInspectorTipResolve(
             active, capable, preview, disabled, previewKey, "Inspector.Common.Apply", "Inspector.Common.Persistent");
     internal static void TInspectorPresetSelect(QInspector inspector, int index) =>
-        inspector.QInspectorCrop.QInspectorPresetSelect(index);
+        inspector.QInspectorRatio.QInspectorPresetSelect(index);
     internal static void TInspectorFixedSet(QInspector inspector, bool fixedRatio) =>
-        inspector.QInspectorCrop.QInspectorFixedSet(fixedRatio);
+        inspector.QInspectorRatio.QInspectorFixedSet(fixedRatio);
     internal static void TInspectorLenientSet(QInspector inspector, bool lenient) =>
-        inspector.QInspectorCrop.QInspectorLenientSet(lenient);
+        inspector.QInspectorRatio.QInspectorLenientSet(lenient);
     internal static void TInspectorRatioCommit(
         QInspector inspector, string width, string height, bool typed = true) =>
-        inspector.QInspectorCrop.QInspectorRatioCommit(width, height, typed);
+        inspector.QInspectorRatio.QInspectorRatioCommit(width, height, typed);
     internal static string TInspectorRatioFormat(QInspector inspector, bool width, string text) =>
-        inspector.QInspectorCrop.QInspectorRatioFormat(width, text);
+        inspector.QInspectorRatio.QInspectorRatioFormat(width, text);
     internal static string TInspectorNoticeRead(QInspector inspector) =>
         inspector.QInspectorCrop.QInspectorNoticeRead();
     internal static string TInspectorResolutionRead(QInspector inspector) =>

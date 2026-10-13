@@ -8,11 +8,11 @@ public sealed class QWindowPart
     {
         QWindowPartDrop = new QWindowDrop(lOwner);
         QWindowPartShortcut = new QWindowShortcut(lOwner);
-        lOwner.QWindowStrip.QStripRelayAttach();
+        lOwner.QWindowStrip.QStripRelay.QStripRelayAttach();
         QWindowPartChrome = new QChrome();
         QWindowPartSash = new QSash(QWindowPartBorder);
         QWindowPartConsole = new QConsole();
-        QWindowPartConsole.QConsoleWindowAttach(lOwner, lOwner.QWindowStrip);
+        QWindowPartConsole.QConsoleWindowAttach(lOwner.QWindowScene, lOwner.QWindowStrip);
     }
 
     public QWindowDrop QWindowPartDrop { get; }

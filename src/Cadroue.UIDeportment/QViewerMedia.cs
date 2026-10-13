@@ -5,22 +5,10 @@ using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record QViewerHostFacts(
-    bool QViewerFactsPanel,
-    bool QViewerFactsHost,
-    string? QViewerFactsState,
-    double? QViewerFactsWidth,
-    double? QViewerFactsHeight,
-    nint QViewerFactsWindow,
-    bool QViewerFactsDisposed,
-    bool? QViewerFactsOverlay);
-
 public sealed class QViewerMedia
 {
     private readonly QViewer qViewer;
     private readonly LMediaLoader qViewerProbe = new();
-    private Func<QViewerHostFacts>? qViewerFactsSource;
-    private int qViewerHostStamp;
 
     public QViewerMedia(QViewer lOwner)
     {
@@ -41,9 +29,9 @@ public sealed class QViewerMedia
 
     private QViewerRenderer QViewerRenderer => qViewer.QViewerRenderer;
 
-    public void QViewerPlayerRaise() => QViewerPlayerCreated?.Invoke();
+    private QViewerHost QViewerHost => qViewer.QViewerHost;
 
-    public void QViewerFactsAttach(Func<QViewerHostFacts> lFactsSource) => qViewerFactsSource = lFactsSource;
+    public void QViewerPlayerRaise() => QViewerPlayerCreated?.Invoke();
 
     public void QViewerCommandApply(bool lCommandActive)
     {
@@ -52,7 +40,7 @@ public sealed class QViewerMedia
             return;
         }
 
-        QViewerHostRecord($"command set {(lCommandActive ? "on" : "off")}");
+        QViewerHost.QViewerHostRecord($"command set {(lCommandActive ? "on" : "off")}");
         if (!lCommandActive)
         {
             qViewer.QViewerPlayback.QViewerSuspend();
@@ -68,44 +56,6 @@ public sealed class QViewerMedia
         }
 
         qViewer.QViewerPlayback.QViewerResume();
-    }
-
-    public void QViewerHostShow(bool lVisible)
-    {
-        bool lChanged = lVisible != qViewer.QViewerHostVisible;
-        qViewer.QViewerHostSet(lVisible);
-        QViewerRenderer.QViewerHostRaise();
-        if (lChanged && !qViewer.QViewerMpvActive)
-        {
-            QViewerHostRecord($"host {(lVisible ? "shown" : "hidden")}");
-        }
-    }
-
-    public void QViewerHostRecord(string lStage)
-    {
-        if (qViewerFactsSource is null || !LTrace.LTraceCheck(LTraceKind.LTraceUi))
-        {
-            qViewerHostStamp++;
-            return;
-        }
-
-        QViewerHostFacts lFacts = qViewerFactsSource();
-        string lSurface = lFacts.QViewerFactsState is null
-            ? "none"
-            : $"{lFacts.QViewerFactsState} {lFacts.QViewerFactsWidth:0}x{lFacts.QViewerFactsHeight:0}";
-        string lOverlay = lFacts.QViewerFactsOverlay is not { } lTransparent
-            ? "none"
-            : $"present, AllowsTransparency {lTransparent} (software-composited layer over the video)";
-        LTrace.LTraceRecord(
-            LTraceKind.LTraceUi,
-            $"Viewer host [{++qViewerHostStamp}] {lStage}",
-            $"panel visible {lFacts.QViewerFactsPanel}, host visible {lFacts.QViewerFactsHost}, "
-            + $"command {(qViewer.QViewerCommandActive ? "on" : "off")}\n"
-            + $"surface {lSurface}, "
-            + $"handle {(lFacts.QViewerFactsWindow == nint.Zero ? "none" : "set")}, "
-            + $"disposed {lFacts.QViewerFactsDisposed}\n"
-            + $"overlay {lOverlay}\n"
-            + $"player {(QPlayer.QPlayerReady ? "ready" : "none")}");
     }
 
     public event Action? QViewerLoupeClosed;
@@ -130,7 +80,7 @@ public sealed class QViewerMedia
 
         string lClosedPath = qViewer.QViewerSourcePath ?? string.Empty;
         qViewer.QViewerMediaClose();
-        QViewerHostShow(false);
+        QViewerHost.QViewerHostShow(false);
         QViewerPlayerStop();
         qViewer.QCrop.QCropHide();
         qViewer.QViewerPreviewApply();
@@ -269,7 +219,7 @@ public sealed class QViewerMedia
                 QViewerPlayerCreated?.Invoke();
             }
 
-            QPlayer.QPlayerVolumeSet(qViewer.QViewerVolume);
+            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
             double lBeforeOpen = lChronometer.QChronometerRead();
             await QPlayer.QPlayerOpenStart(lSourcePath);
             QPlayer.QPlayerFactsRecord(
@@ -326,7 +276,7 @@ public sealed class QViewerMedia
             }
         }
 
-        QViewerHostShow(QPlayer.QPlayerReady);
+        QViewerHost.QViewerHostShow(QPlayer.QPlayerReady);
         QPlayer.QPlayerEndSet(lCargo.LCargoMediaInfo?.LMediaVideoEnd);
         QViewerIntent? lRequest = QViewerCargoApply(lCargo);
         if (!QPlayer.QPlayerReady)

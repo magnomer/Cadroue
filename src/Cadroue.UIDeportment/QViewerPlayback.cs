@@ -30,8 +30,8 @@ public sealed class QViewerPlayback
     {
         if (qViewer.QViewerLoupeActive)
         {
-            qViewer.QViewerVolumeApply(lVolume);
-            QViewerLoupeVolume?.Invoke(qViewer.QViewerVolume);
+            qViewer.QViewerAudio.QViewerVolumeApply(lVolume);
+            QViewerLoupeVolume?.Invoke(qViewer.QViewerAudio.QViewerVolume);
             return;
         }
 
@@ -40,16 +40,16 @@ public sealed class QViewerPlayback
             return;
         }
 
-        qViewer.QViewerVolumeApply(lVolume);
+        qViewer.QViewerAudio.QViewerVolumeApply(lVolume);
         if (!QPlayer.QPlayerReady)
         {
             return;
         }
 
-        QPlayer.QPlayerVolumeSet(qViewer.QViewerVolume);
+        QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
     }
 
-    public void QViewerVolumeAdjust(double lDelta) => QViewerVolumeSet(qViewer.QViewerVolume + lDelta);
+    public void QViewerVolumeAdjust(double lDelta) => QViewerVolumeSet(qViewer.QViewerAudio.QViewerVolume + lDelta);
 
     public void QViewerClockRun(bool lRunning)
     {

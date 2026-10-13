@@ -33,6 +33,7 @@ public sealed class QGroup
         QGroupDrag = new QGroupDrag(this);
         QGroupFace = new QGroupFace(this, lUsher);
         QGroupName = new QGroupName(this);
+        QGroupName.QGroupNameChanged += QGroupNameHandle;
         qGroupOwner.LGroupSelectionChanged += QGroupSelectionHandle;
     }
 
@@ -253,11 +254,11 @@ public sealed class QGroup
 
     public void QGroupLooseApply() => QGroupSourceApply(false);
 
-    internal bool QGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qGroupRecords.Count;
-
-    internal void QGroupChangedRaise() => QGroupChanged?.Invoke();
+    private bool QGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qGroupRecords.Count;
 
     private void QGroupSourceApply(bool? lStrict) => QGroupAutoApply(qGroupSource(), lStrict);
+
+    private void QGroupNameHandle() => QGroupChanged?.Invoke();
 
     private void QGroupSelectionHandle()
     {

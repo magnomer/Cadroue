@@ -13,17 +13,19 @@ public sealed class QGroupName
         qGroup = lOwner;
     }
 
+    public event Action? QGroupNameChanged;
+
     public int? QGroupEditingIndex => qGroupEditingIndex;
 
     public void QGroupEditStart(int lIndex)
     {
-        if (!qGroup.QGroupIndexCheck(lIndex) || qGroupEditingIndex == lIndex)
+        if (!QGroupIndexCheck(lIndex) || qGroupEditingIndex == lIndex)
         {
             return;
         }
 
         qGroupEditingIndex = lIndex;
-        qGroup.QGroupChangedRaise();
+        QGroupNameChanged?.Invoke();
     }
 
     public void QGroupEditCancel()
@@ -34,7 +36,7 @@ public sealed class QGroupName
         }
 
         qGroupEditingIndex = null;
-        qGroup.QGroupChangedRaise();
+        QGroupNameChanged?.Invoke();
     }
 
     public bool QGroupNameCommit(string lName)
@@ -46,7 +48,7 @@ public sealed class QGroupName
 
         qGroupEditingIndex = null;
         bool lApplied = QGroupNameApply(lIndex, lName);
-        qGroup.QGroupChangedRaise();
+        QGroupNameChanged?.Invoke();
         return lApplied;
     }
 
@@ -57,7 +59,7 @@ public sealed class QGroupName
             return false;
         }
 
-        qGroup.QGroupChangedRaise();
+        QGroupNameChanged?.Invoke();
         return true;
     }
 
@@ -91,10 +93,12 @@ public sealed class QGroupName
 
     internal void QGroupEditClear() => qGroupEditingIndex = null;
 
+    private bool QGroupIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qGroup.QGroupRecords.Count;
+
     private bool QGroupNameApply(int lIndex, string lName)
     {
         string lTrimmed = lName.Trim();
-        if (!qGroup.QGroupIndexCheck(lIndex)
+        if (!QGroupIndexCheck(lIndex)
             || lTrimmed.Length == 0
             || string.Equals(lTrimmed, qGroup.QGroupRecords[lIndex].QGroupRecordName, StringComparison.Ordinal))
         {

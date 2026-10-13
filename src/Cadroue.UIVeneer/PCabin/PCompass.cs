@@ -90,7 +90,7 @@ public sealed class PCompass : UserControl
         pCompassSectionGroups = QCompass.QCompassSectionRead().Select(PCompassGroupRead).ToList();
 
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle();
-        pViewer.QViewer.QViewerVolumeChanged += PCompassValueHandle;
+        pViewer.QViewer.QViewerAudio.QViewerVolumeChanged += PCompassValueHandle;
         pViewer.QViewer.QViewerPlayingChanged += PCompassPlayingApply;
         pFlow.QFlow.QFlowEdit.QFlowEditChanged += PCompassEditApply;
         pFlow.QFlow.QFlowWaveformChanged += PCompassWaveformApply;

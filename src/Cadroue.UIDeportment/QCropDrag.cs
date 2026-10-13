@@ -145,7 +145,7 @@ public sealed class QCropDrag
         LCropbox lVideo = QCrop.QCropVideoRead();
         LCropboxPoint lStart = LCropbox.LCropboxPointClamp(lStartX, lStartY, lVideo);
         LCropboxPoint lEnd = LCropbox.LCropboxPointClamp(lEndX, lEndY, lVideo);
-        QCrop.QCropBoxSet(LCropbox.LCropboxDrawResolve(
+        QCrop.QCropBoxSet(LCropboxDrag.LCropboxDrawResolve(
             lStart.LCropboxPointX, lStart.LCropboxPointY, lEnd.LCropboxPointX, lEnd.LCropboxPointY,
             QCrop.QCropRatioWidth, QCrop.QCropRatioHeight));
         QCrop.QCropOverlayUpdate();
@@ -171,12 +171,12 @@ public sealed class QCropDrag
         LCropbox lResult;
         if (QCrop.QCropMoveCheck())
         {
-            lResult = LCropbox.LCropboxMoveResolve(lOrigin, qCropGrabX, qCropGrabY, lDragX, lDragY, lVideo);
+            lResult = LCropboxDrag.LCropboxMoveResolve(lOrigin, qCropGrabX, qCropGrabY, lDragX, lDragY, lVideo);
         }
         else
         {
             LCropboxPoint lClamped = LCropbox.LCropboxPointClamp(lDragX, lDragY, lVideo);
-            lResult = LCropbox.LCropboxResizeResolve(
+            lResult = LCropboxDrag.LCropboxResizeResolve(
                 lOrigin, lClamped.LCropboxPointX, lClamped.LCropboxPointY, QCrop.QCropEdgeX, QCrop.QCropEdgeY,
                 QCrop.QCropRatioWidth, QCrop.QCropRatioHeight, lVideo, QCropSizeMinimum);
         }

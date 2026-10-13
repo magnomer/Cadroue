@@ -16,9 +16,9 @@ internal static class TInterfaceFunnel
         funnel.QFunnelRuleMove(rule, target);
     internal static void TFunnelRuleSelect(QFunnel funnel, QFunnelRule rule) => funnel.QFunnelRuleSelect(rule);
     internal static void TFunnelJoinSet(QFunnel funnel, QFunnelRule rule, QFunnelKind kind, bool and) =>
-        funnel.QFunnelJoinSet(rule, kind, and);
+        funnel.QFunnelCriterion.QFunnelJoinSet(rule, kind, and);
     internal static void TFunnelTextSet(QFunnel funnel, QFunnelRule rule, QFunnelKind kind, string text) =>
-        funnel.QFunnelTextSet(rule, kind, text);
+        funnel.QFunnelCriterion.QFunnelTextSet(rule, kind, text);
     internal static void TFunnelTargetSet(QFunnel funnel, QFunnelRule rule, Guid target) =>
         funnel.QFunnelTargetSet(rule, target);
     internal static void TFunnelTargetsResolve(QFunnel funnel, params Guid[] tabs) =>
@@ -57,13 +57,13 @@ internal static class TInterfaceFunnel
     internal static void TFunnelTargetSelect(QFunnel funnel, QFunnelRule rule, int index) =>
         funnel.QFunnelTargetSelect(rule, index);
     internal static string TFunnelTextResolve(QFunnel funnel, QFunnelRule rule, QFunnelKind kind, string shown) =>
-        funnel.QFunnelTextResolve(rule, kind, shown);
+        funnel.QFunnelCriterion.QFunnelTextResolve(rule, kind, shown);
     internal static string TFunnelRegexResolve(QFunnel funnel, QFunnelRule rule, string shown) =>
-        funnel.QFunnelRegexResolve(rule, shown);
+        funnel.QFunnelCriterion.QFunnelRegexResolve(rule, shown);
     internal static void TFunnelRegexSet(QFunnel funnel, QFunnelRule rule, string regex) =>
-        funnel.QFunnelRegexSet(rule, regex);
+        funnel.QFunnelCriterion.QFunnelRegexSet(rule, regex);
     internal static void TFunnelCaseToggle(QFunnel funnel, QFunnelRule rule, QFunnelKind kind) =>
-        funnel.QFunnelCaseToggle(rule, kind);
+        funnel.QFunnelCriterion.QFunnelCaseToggle(rule, kind);
     internal static void TFunnelCollapsedToggle(QFunnel funnel, QFunnelRule rule) =>
         funnel.QFunnelCollapsedToggle(rule);
     internal static void TFunnelCreateAttach(QFunnel funnel, Action<QFunnelRule> handler) =>

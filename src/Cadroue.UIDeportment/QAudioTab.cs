@@ -186,25 +186,26 @@ public sealed class QAudioTab
     {
         QAudioStore.QAudioActiveUpdate();
         QAudioStore.QAudioStateSave();
-        QAudioMonitor.QSMonitorPlanApply(QAudioStore.QAudioPlanRead());
+        QAudioMonitor.QSMonitorWaveform.QSMonitorPlanApply(QAudioStore.QAudioPlanRead());
         QAudioViewerDeferred?.Invoke();
     }
 
     public void QAudioViewerApply()
     {
         LWorkAudio lPlan = QAudioStore.QAudioPlanRead();
-        qAudioViewer.QViewerGraphSet(lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(QAudioRateRead()));
+        qAudioViewer.QViewerAudio.QViewerGraphSet(
+            lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(QAudioRateRead()));
     }
 
     private void QAudioMediaHandle(LCargo lCargo)
     {
         bool lOwnerFirst = QAudioInspector.QInspectorOwnerSet(lCargo.LCargoSourcePath);
         QAudioStore.QAudioPlanRestore(lCargo.LCargoSourcePath, lOwnerFirst);
-        QAudioMonitor.QSMonitorSourceOpen(
+        QAudioMonitor.QSMonitorWaveform.QSMonitorSourceOpen(
             lCargo.LCargoSourcePath,
             lCargo.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero,
             QAudioRateRead());
-        QAudioMonitor.QSMonitorPlanApply(QAudioStore.QAudioPlanRead());
+        QAudioMonitor.QSMonitorWaveform.QSMonitorPlanApply(QAudioStore.QAudioPlanRead());
     }
 
     private int QAudioRateRead() => qAudioViewer.QViewerMediaInfo?.LMediaSampleRate ?? 0;

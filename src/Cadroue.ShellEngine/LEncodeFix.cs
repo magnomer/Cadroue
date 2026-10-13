@@ -51,7 +51,7 @@ public static partial class LEncode
     internal static string LEncodeRecoverBuild(LWorkItem lWorkItem)
     {
         string lRecoverEncoder =
-            LRepertoireCatalog.LRepertoireEncoderResolve(lWorkItem.LWorkSourceMedia?.LWorkMediaCodec)
+            LRepertoireVideo.LRepertoireEncoderResolve(lWorkItem.LWorkSourceMedia?.LWorkMediaCodec)
             ?? "libx264";
         string lRecoverExtension = Path.GetExtension(lWorkItem.LWorkOutputPath).TrimStart('.').ToLowerInvariant();
         string lRecoverFlags = lRecoverExtension is "mp4" or "m4v" or "m4a" or "mov"

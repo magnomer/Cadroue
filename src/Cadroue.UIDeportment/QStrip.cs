@@ -41,6 +41,7 @@ public sealed class QStrip
             LCartographer.LCartographerTabRemove);
         QStripRail = new QRail(this);
         QStripDeck = new QDeck(this);
+        QStripRelay = new QStripRelay(this, lUsher);
     }
 
     public event Action? QStripChanged;
@@ -56,6 +57,8 @@ public sealed class QStrip
     public QRail QStripRail { get; }
 
     public QDeck QStripDeck { get; }
+
+    public QStripRelay QStripRelay { get; }
 
     public IReadOnlyList<QStripTab> QStripTabs => qStripTabs;
 
@@ -89,58 +92,6 @@ public sealed class QStrip
 
         return QStripTabFind(lSourceTab);
     }
-
-    public void QStripRelayAttach()
-    {
-        LCartographer.LCartographerTabsSource = QStripCartographerRead;
-        LCartographer.LCartographerTitleSource = QStripTitleRead;
-        LMessenger.LMessengerTitleSource = QStripTitleRead;
-        LMessenger.LMessengerDrainSource = QStripPathsRemove;
-        LSeal.LSealNodesSource = QStripSealRead;
-        LSeal.LSealFireSeam = QStripNodeRun;
-        QAction.QActionStripAttach(this);
-        QListRelay.QListRelayAttach(this, qStripUsher);
-    }
-
-    public string QStripTitleRead(Guid lId) =>
-        QStripTabFind(lId)?.QStripTabTitle ?? LCartographer.LCartographerStageRead(lId);
-
-    public IReadOnlyList<QStripTab> QStripRelayRead(Guid lSourceTab) =>
-        qStripTabs
-            .Where(lTab => lTab.QStripTabId != lSourceTab && lTab.QStripTabDocket is not null)
-            .ToArray();
-
-    public IReadOnlyList<LCartographerTab> QStripCartographerRead() =>
-        qStripTabs
-            .Select(lTab => (lTab, lLayout: lTab.QStripLayoutRead()))
-            .Where(lPair => lPair.lTab.QStripTabPreset is not null && lPair.lLayout is not null)
-            .Select(lPair => new LCartographerTab(
-                lPair.lTab.QStripTabId,
-                lPair.lTab.QStripTabKey,
-                lPair.lTab.QStripTabTitle,
-                lPair.lTab.QStripTabPreset!.LPresetRecordCreate(),
-                lPair.lLayout!.LSceneTabClone(),
-                lPair.lTab.QStripTabFunnel))
-            .ToArray();
-
-    public IReadOnlyList<LSealNode> QStripSealRead() =>
-        qStripTabs
-            .Where(lTab => lTab.QStripTabDocket is not null)
-            .Select(lTab => new LSealNode(
-                lTab.QStripTabId,
-                lTab.QStripTabMerge,
-                lTab.QStripRelayCheck(),
-                lTab.QStripTabDocket!.LDocketItemsRead()
-                    .Where(lItem => lItem.LDocketEntryDelivered && lItem.LDocketEntryBatch != Guid.Empty)
-                    .Select(lItem => lItem.LDocketEntryBatch)
-                    .Distinct()
-                    .ToArray()))
-            .ToArray();
-
-    public void QStripPathsRemove(Guid lId, IReadOnlyList<string> lPaths) =>
-        QStripTabFind(lId)?.QStripTabDocket?.LDocketPathsRemove(lPaths);
-
-    public bool QStripNodeRun(Guid lId, Guid lCohort) => QStripTabFind(lId)?.QStripCohortRun(lCohort) ?? false;
 
     public void QStripUpdateSuspend() => qStripSuspendDepth++;
 

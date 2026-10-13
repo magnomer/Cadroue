@@ -23,7 +23,8 @@ internal static partial class TInterface
         window.QWindowTabAttached += attach;
         window.QWindowTabDetached += detach;
     }
-    internal static LSceneDocument TWindowSceneRead(QWindow window, string name) => window.QWindowSceneRead(name);
+    internal static LSceneDocument TWindowSceneRead(QWindow window, string name) =>
+        window.QWindowScene.QWindowSceneRead(name);
     internal static (double, double) TWindowWidthResolve(
         QWindow window, double? required, double reserved, double width) =>
         window.QWindowWidthResolve(required, reserved, width);

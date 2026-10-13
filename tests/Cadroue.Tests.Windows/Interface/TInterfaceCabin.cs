@@ -14,7 +14,7 @@ internal static partial class TInterface
     internal static void TConsoleProgressAttach(QConsole console, Action<double, bool> handler) =>
         console.QConsoleProgressApplied += handler;
     internal static IReadOnlyList<QConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
-        QConsole.QConsoleRunsResolve(line, accent);
+        QConsoleLine.QConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
         QConsole.QConsoleRemovalFormat(outcomes);
     internal static int TConsoleIndexResolve(int index, int step, int count) =>
@@ -45,7 +45,7 @@ internal static partial class TInterface
     internal static void TEditStart(QEditTab tab) => tab.QEditStart();
     internal static LSceneTabEntry TEditLayoutRead(QEditTab tab) => tab.QEditLayoutRead(new LSceneTabEntry());
     internal static void TEditLayoutApply(QEditTab tab, LSceneTabEntry? layout) => tab.QEditLayoutApply(layout);
-    internal static void TEditCropHandle(QEditTab tab) => tab.QEditCrop.QEditCropHandle();
+    internal static void TEditCropHandle(QEditTab tab) => tab.QEditCropboxHandle();
     internal static void TEditSkipHandle(QEditTab tab) => tab.QEditSkipHandle();
     internal static void TEditLockHandle(QEditTab tab, bool locked) => tab.QEditTool.QEditLockHandle(locked);
     internal static void TEditPathHandle(QEditTab tab, string? path) => tab.QEditPathHandle(path);
@@ -199,7 +199,7 @@ internal static partial class TInterface
     internal static void TAudioPlanRestore(QAudioTab tab, string path, bool ownerFirst) =>
         tab.QAudioStore.QAudioPlanRestore(path, ownerFirst);
     internal static void TAudioFilterAttach(QViewer viewer, Action<string> handler) =>
-        viewer.QViewerPreviewChanged += () => handler(viewer.QViewerAudioResolve());
+        viewer.QViewerPreviewChanged += () => handler(viewer.QViewerAudio.QViewerAudioResolve());
     internal static void TAudioDeferAttach(QAudioTab tab, Action handler) => tab.QAudioViewerDeferred += handler;
     internal static void TAudioMissingAttach(QAudioTab tab, Action handler) => tab.QAudioPresetMissing += handler;
     internal static void TAudioIncompatibleAttach(QAudioTab tab, Action handler) =>
@@ -304,7 +304,7 @@ internal static partial class TInterface
     internal static void TCompassWaveformToggle(QCompass compass) => compass.QCompassWaveformToggle();
     internal static void TCompassVolumeSet(QCompass compass, double raw) => compass.QCompassVolumeSet(raw);
     internal static void TCompassVolumeAttach(QViewer viewer, Action<double> handler) =>
-        viewer.QViewerVolumeChanged += handler;
+        viewer.QViewerAudio.QViewerVolumeChanged += handler;
     internal static string TCompassVolumeFormat(double raw) => QCompass.QCompassVolumeFormat(raw);
     internal static double TCompassFillResolve(double host, double raw) => QCompass.QCompassFillResolve(host, raw);
     internal static IReadOnlyList<double> TCompassSeparatorsResolve(params double[] tops) =>

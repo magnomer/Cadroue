@@ -146,9 +146,9 @@ internal static partial class TInterface
     internal static void TSensorSpeedSelect(QSensor sensor, int index) => sensor.QSensorSpeedSelect(index);
     internal static void TSensorMetricSelect(QSensor sensor, int index) => sensor.QSensorMetricSelect(index);
     internal static QInspectorChoice TSensorChoiceRead(QSensor sensor, LDetectorKind kind) =>
-        sensor.QSensorChoiceRead(kind);
+        sensor.QSensorPreset.QSensorChoiceRead(kind);
     internal static void TSensorChoiceSelect(QSensor sensor, LDetectorKind kind, int index) =>
-        sensor.QSensorChoiceSelect(kind, index);
+        sensor.QSensorPreset.QSensorChoiceSelect(kind, index);
     internal static void TSensorRunningSet(QSensor sensor, bool running) => sensor.QSensorRunningSet(running);
     internal static void TSensorRunHandle(QSensor sensor) => sensor.QSensorRunHandle();
     internal static void TSensorRunAttach(QSensor sensor, Action run, Action stop)

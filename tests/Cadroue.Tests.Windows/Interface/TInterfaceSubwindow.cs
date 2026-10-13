@@ -110,7 +110,8 @@ internal static partial class TInterface
         monitor.QSMonitorBypassApplied += handler;
     internal static void TMonitorBypassSet(QSMonitor monitor, bool bypass) => monitor.QSMonitorBypassSet(bypass);
     internal static void TMonitorRadioHandle(QSMonitor monitor, bool bypass) => monitor.QSMonitorRadioHandle(bypass);
-    internal static string TMonitorStatusRead(QSMonitor monitor, bool after) => monitor.QSMonitorStatusRead(after);
+    internal static string TMonitorStatusRead(QSMonitor monitor, bool after) =>
+        monitor.QSMonitorWaveform.QSMonitorStatusRead(after);
     internal static QSMonitorFrame TMonitorFrameResolve(QSMonitor monitor, bool after, double width, double height) =>
         monitor.QSMonitorFrameResolve(after, width, height);
     internal static QFlowWaveformOutline TMonitorOutlineResolve(

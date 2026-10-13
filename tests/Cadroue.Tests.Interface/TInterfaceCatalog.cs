@@ -43,7 +43,7 @@ internal static partial class TInterface
     internal static string? TRepertoireAudioResolve(string text) => LRepertoireCatalog.LRepertoireAudioResolve(text);
     internal static string TRepertoireAudioFind(string codecName) => LRepertoireCatalog.LRepertoireAudioFind(codecName);
     internal static IReadOnlyList<LRepertoireEncoder> TRepertoireEncodersRead() =>
-        LRepertoireCatalog.LRepertoireEncodersRead();
+        LRepertoireVideo.LRepertoireEncodersRead();
 
     internal static LCapabilityCodec TCapabilityRead(string? encoder) => LCapability.LCapabilityRead(encoder);
     internal static LCapabilityCodec TCapabilityAudioRead(string? encoder) => LCapability.LCapabilityAudioRead(encoder);

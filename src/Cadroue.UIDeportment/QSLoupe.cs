@@ -140,7 +140,7 @@ public sealed class QSLoupe
             }
 
             QSLoupePreviewApply(lViewer);
-            QPlayer.QPlayerVolumeSet(lViewer.QViewerVolume);
+            QPlayer.QPlayerVolumeSet(lViewer.QViewerAudio.QViewerVolume);
             TimeSpan lInherit = lViewer.QViewerPosition;
             if (lInherit > TimeSpan.Zero)
             {
@@ -308,7 +308,7 @@ public sealed class QSLoupe
     {
         LPreviewState lState = lViewer.QViewerRenderRead();
         QPlayer.QPlayerFilterApply(LPreview.LPreviewFilterResolve(lState));
-        QPlayer.QPlayerAudioApply(lViewer.QViewerAudioResolve());
+        QPlayer.QPlayerAudioApply(lViewer.QViewerAudio.QViewerAudioResolve());
         QPlayer.QPlayerPreviewApply(lState, "preview color/geometry");
     }
 

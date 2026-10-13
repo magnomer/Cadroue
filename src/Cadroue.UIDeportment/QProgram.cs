@@ -83,7 +83,7 @@ public sealed class QProgram
         LTraceLog.LTraceInfoRecord($"Application exiting with code {lExitCode}");
         LPreference.LPreferenceSaveCommit();
         LRelayChannel.LRelayChannelStop();
-        LSidecarStore.LSidecarPersist();
+        LSidecarPending.LSidecarPersist();
         LTraceWriter.LTraceWriterPersist();
     }
 
@@ -125,7 +125,7 @@ public sealed class QProgram
     }
 
     public static void QProgramSidecarApply() =>
-        LSidecarStore.LSidecarFolderApply(LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
+        LSidecarPath.LSidecarFolderApply(LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
 
     public string? QProgramDepotRoot => qDepotRootApplied;
 

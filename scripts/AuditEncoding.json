@@ -1,5 +1,5 @@
 {
-  "generation": 23,
+  "generation": 24,
   "project": "Cadroue",
   "sources": {
     "include": [ "*.cs", "*.xaml", "*.md", "*.json", "*.csproj", "*.props", "*.slnx", "*.ps1" ],

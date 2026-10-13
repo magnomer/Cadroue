@@ -18,7 +18,7 @@ public sealed class TPreset : IDisposable
             LPreset.LPresetNames.Add(name);
         }
 
-        LPresetSelection.LPresetLoadSeam = name => new LPresetDocument { LPresetName = name };
+        LPresetDraft.LPresetLoadSeam = name => new LPresetDocument { LPresetName = name };
         LPresetSelection.LPresetRenameSeam = (old, renamed, record) => true;
         LPresetSelection.LPresetNativeSeam = name =>
             string.Equals(name, TPresetNativeName, StringComparison.OrdinalIgnoreCase);
@@ -73,7 +73,7 @@ public sealed class TPreset : IDisposable
     public void Dispose()
     {
         LPreset.LPresetNames.Clear();
-        LPresetSelection.LPresetLoadSeam = null;
+        LPresetDraft.LPresetLoadSeam = null;
         LPresetSelection.LPresetRenameSeam = null;
         LPresetSelection.LPresetNativeSeam = null;
     }

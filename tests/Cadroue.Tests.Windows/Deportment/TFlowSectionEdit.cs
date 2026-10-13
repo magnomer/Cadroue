@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Cadroue.Tests.Windows;
 
+[Collection("Logging")]
 public sealed class TFlowSectionEdit
 {
     private static QFlow TFlowBuild(double seconds = 10)

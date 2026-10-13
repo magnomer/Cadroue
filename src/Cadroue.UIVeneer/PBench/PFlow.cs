@@ -138,7 +138,7 @@ public sealed class PFlow : UserControl
     protected override void OnMouseWheel(MouseWheelEventArgs e)
     {
         base.OnMouseWheel(e);
-        e.Handled = QFlow.QFlowWheelHandle(e.Delta);
+        e.Handled = QFlow.QFlowWheel.QFlowWheelHandle(e.Delta);
     }
 
     private void PFlowLabelsApply()

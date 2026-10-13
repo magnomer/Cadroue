@@ -104,7 +104,7 @@ public sealed record LDetectorBundle(
                 lBlank.LDetectorBlankBrightness,
                 lBlank.LDetectorBlankTolerance,
                 lBlank.LDetectorBlankCoverage,
-                LDetector.LDetectorTokenDefault);
+                LDetectorCatalog.LDetectorTokenDefault);
         }
 
         foreach (LDetectorStep lStep in lSet.LDetectorSetSteps)

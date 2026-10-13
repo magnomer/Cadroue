@@ -13,7 +13,6 @@ public sealed class QList
     private readonly CancellationTokenSource qListScanSource = new();
     private string? qListPathCurrent;
     private string? qListPathAnchor;
-    private string? qListPathSuccessor;
     private string? qListPressPath;
     private bool qListMinimized;
 
@@ -29,6 +28,7 @@ public sealed class QList
         qListUsher = lUsher;
         QListDrag = new QListDrag(this);
         QListFace = new QListFace(this, qListUsher);
+        QListSuccessor = new QListSuccessor();
         qListDocket.LDocketChanged += QListDocketHandle;
         qListDocket.LDocketAdded += QListAddHandle;
         qListDocket.LDocketDelivered += QListDeliveredHandle;
@@ -40,6 +40,8 @@ public sealed class QList
     public QListDrag QListDrag { get; }
 
     public QListFace QListFace { get; }
+
+    public QListSuccessor QListSuccessor { get; }
 
     public string? QListPathCurrent => qListPathCurrent;
 
@@ -141,9 +143,10 @@ public sealed class QList
             return;
         }
 
-        QListSuccessorSet(lRemovedPaths);
+        QListSuccessor.QListSuccessorSet(
+            lRemovedPaths, qListDocket.LDocketPathsRead(), QListIndexRead(lRemovedPaths[0]));
         qListDocket.LDocketPathsRemove(lRemovedPaths);
-        QListSuccessorReset();
+        QListSuccessor.QListSuccessorReset();
     }
 
     public void QListClear()
@@ -256,47 +259,12 @@ public sealed class QList
         QListCurrentApply(QListCurrentResolve());
     }
 
-    public void QListSuccessorSet(IReadOnlyList<string> lRemovedPaths)
-    {
-        var lRemovedSet = new HashSet<string>(lRemovedPaths, StringComparer.OrdinalIgnoreCase);
-        IReadOnlyList<string> lPaths = qListDocket.LDocketPathsRead();
-        int lRemovedIndex = QListIndexRead(lRemovedPaths[0]);
-        qListPathSuccessor = null;
-        for (int lIndex = lRemovedIndex; lIndex < lPaths.Count; lIndex++)
-        {
-            if (!lRemovedSet.Contains(lPaths[lIndex]))
-            {
-                qListPathSuccessor = lPaths[lIndex];
-                return;
-            }
-        }
-
-        for (int lIndex = lRemovedIndex - 1; lIndex >= 0; lIndex--)
-        {
-            if (!lRemovedSet.Contains(lPaths[lIndex]))
-            {
-                qListPathSuccessor = lPaths[lIndex];
-                return;
-            }
-        }
-    }
-
-    public void QListSuccessorReset() => qListPathSuccessor = null;
-
     public void QListRemovedApply(IReadOnlyList<string> lRemovedPaths)
     {
         qListSelected.ExceptWith(lRemovedPaths);
         if (QListIndexRead(qListPathAnchor) < 0)
         {
             qListPathAnchor = null;
-        }
-    }
-
-    public void QListSuccessorSelect()
-    {
-        if (qListPathCurrent is { } lCurrentPath && qListDocket.LDocketItemFind(lCurrentPath) is null)
-        {
-            QListSelect(qListPathSuccessor);
         }
     }
 
@@ -322,7 +290,10 @@ public sealed class QList
     {
         QListRemovedApply(lRemoved);
         QListClearChanged?.Invoke(lRemoved);
-        QListSuccessorSelect();
+        if (qListPathCurrent is { } lCurrentPath && qListDocket.LDocketItemFind(lCurrentPath) is null)
+        {
+            QListSelect(QListSuccessor.QListPathSuccessor);
+        }
     }
 
     private void QListSelectionToggle(string lListPath)

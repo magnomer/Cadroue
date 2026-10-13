@@ -6,11 +6,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QInspectorCrop
 {
-    private static readonly (int, int)[] qInspectorPresets =
-    {
-        (0, 0), (16, 9), (9, 16), (4, 3), (3, 4), (1, 1), (21, 9)
-    };
-
     private readonly QInspector qInspector;
     private readonly LCropboxEdgeLock qInspectorEdgeLock = new();
 
@@ -36,7 +31,7 @@ public sealed class QInspectorCrop
         {
             LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
             return lRatio.LCropboxRatioFixed
-                ? QInspectorPresetResolve(lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight)
+                ? QInspectorRatio.QInspectorPresetResolve(lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight)
                 : 0;
         }
     }
@@ -54,6 +49,8 @@ public sealed class QInspectorCrop
         QInspectorToolActive ? "Active" : qInspector.QInspectorToolArmed ? "Armed" : "Idle";
 
     public bool QInspectorNoticeShown => QInspectorNoticeResolve() is not null;
+
+    internal void QInspectorEdgeClear() => qInspectorEdgeLock.LCropboxEdgeClear();
 
     public string QInspectorNoticeRead() => QInspectorNoticeResolve() ?? string.Empty;
 
@@ -81,23 +78,6 @@ public sealed class QInspectorCrop
 
     public string QInspectorEdgeFormat(int lSide, string lText) =>
         QInspectorWholeFormat(lText, QInspectorEdgeRead(QInspectorCropbox.LCropboxStateCrop, lSide));
-
-    public string QInspectorRatioFormat(bool lWidth, string lText)
-    {
-        LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
-        int lShown = lWidth ? lRatio.LCropboxRatioWidth : lRatio.LCropboxRatioHeight;
-        if (qInspector.QInspectorSourcePresent && !lRatio.LCropboxRatioFixed
-            && lRatio.LCropboxRatioWidth == 0 && lRatio.LCropboxRatioHeight == 0
-            && QInspectorRectRead() is not null)
-        {
-            LCropboxExtent lExtent = LCropbox.LCropboxRatioNormalize(
-                (int)Math.Round(QInspectorWidthRead()),
-                (int)Math.Round(QInspectorHeightRead()));
-            lShown = lWidth ? lExtent.LCropboxExtentWidth : lExtent.LCropboxExtentHeight;
-        }
-
-        return QInspectorWholeFormat(lText, lShown);
-    }
 
     public void QInspectorEdgeCommit(int lSide, string lText, bool lTyped)
     {
@@ -132,84 +112,13 @@ public sealed class QInspectorCrop
         QInspectorEdgesSet(new LCropboxEdges(0, 0, 0, 0));
     }
 
-    public void QInspectorRatioCommit(string lWidthText, string lHeightText, bool lTyped)
-    {
-        if (!lTyped)
-        {
-            return;
-        }
-
-        LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
-        QInspectorCropbox.LCropboxRatioSet(
-            lRatio.LCropboxRatioFixed,
-            lRatio.LCropboxRatioLenient,
-            (int)Math.Round(QInspectorNumberParse(lWidthText)),
-            (int)Math.Round(QInspectorNumberParse(lHeightText)));
-    }
-
-    public void QInspectorFixedSet(bool lFixed) => QInspectorRatioCommit(lFixed, null);
-
-    public void QInspectorLenientSet(bool lLenient) => QInspectorRatioCommit(null, lLenient);
-
-    public void QInspectorPresetSelect(int lIndex)
-    {
-        if (lIndex < 0)
-        {
-            return;
-        }
-
-        LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
-        if (lIndex == 0)
-        {
-            if (lRatio.LCropboxRatioFixed
-                && QInspectorPresetResolve(lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight) != 0)
-            {
-                QInspectorRatioReset();
-            }
-
-            return;
-        }
-
-        (int lRatioWidth, int lRatioHeight) = qInspectorPresets[lIndex];
-        if (lRatioWidth == lRatio.LCropboxRatioWidth && lRatioHeight == lRatio.LCropboxRatioHeight
-            && lRatio.LCropboxRatioFixed)
-        {
-            return;
-        }
-
-        if (!qInspector.QInspectorSourcePresent)
-        {
-            return;
-        }
-
-        LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
-        double lBoundsWidth = QInspectorWidthRead();
-        double lBoundsHeight = QInspectorHeightRead();
-        LCropbox? lPreset = lBoundsWidth > 0 && lBoundsHeight > 0
-            ? LCropbox.LCropboxRatioResolve(
-                new LCropbox(lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lBoundsWidth, lBoundsHeight),
-                lRatioWidth,
-                lRatioHeight)
-            : null;
-        LWorkCrop lFitted = lPreset is { } lCropbox
-            ? QInspectorEdgesResolve(lCrop, new LCropboxEdges(
-                lCropbox.LCropboxX,
-                lCropbox.LCropboxY,
-                qInspector.QInspectorSourceWidth - lCropbox.LCropboxRight,
-                qInspector.QInspectorSourceHeight - lCropbox.LCropboxBottom))
-            : lCrop;
-        qInspectorEdgeLock.LCropboxEdgeClear();
-        QInspectorCropbox.LCropboxStateSet(
-            lFitted, QInspectorActive, true, lRatio.LCropboxRatioLenient, lRatioWidth, lRatioHeight);
-    }
-
     public void QInspectorApplySet(bool lApply)
     {
         bool lFlipped = QInspectorActive != lApply;
         QInspectorCropbox.LCropboxApplySet(lApply);
         if (lFlipped && !lApply)
         {
-            QInspectorRatioReset();
+            qInspector.QInspectorRatio.QInspectorRatioReset();
         }
     }
 
@@ -247,19 +156,6 @@ public sealed class QInspectorCrop
         QInspectorCropbox.LCropboxApplySet(lApply);
     }
 
-    public void QInspectorRatioApply(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
-    {
-        bool lValid = lRatioWidth > 0 && lRatioHeight > 0;
-        QInspectorCropbox.LCropboxRatioSet(
-            lRatioFixed && lValid, lRatioLenient && lRatioFixed && lValid, lRatioWidth, lRatioHeight);
-    }
-
-    public void QInspectorRatioReset()
-    {
-        qInspectorEdgeLock.LCropboxEdgeClear();
-        QInspectorCropbox.LCropboxRatioSet(false, false, 0, 0);
-    }
-
     public void QInspectorCropReset()
     {
         if (QInspectorPersistent)
@@ -286,18 +182,6 @@ public sealed class QInspectorCrop
         QInspectorHeightRead(),
         QInspectorCropbox.LCropboxStateRatio);
 
-    private void QInspectorRatioCommit(bool? lFixed, bool? lLenient)
-    {
-        LCropboxRatio lRatio = QInspectorCropbox.LCropboxStateRatio;
-        bool lRatioFixed = lFixed ?? lRatio.LCropboxRatioFixed;
-        qInspectorEdgeLock.LCropboxEdgeClear();
-        QInspectorCropbox.LCropboxRatioSet(
-            lRatioFixed,
-            lRatioFixed && (lLenient ?? lRatio.LCropboxRatioLenient),
-            lRatio.LCropboxRatioWidth,
-            lRatio.LCropboxRatioHeight);
-    }
-
     private void QInspectorEdgesSet(LCropboxEdges lInsets)
     {
         LWorkCrop lCrop = QInspectorEdgesResolve(QInspectorCropbox.LCropboxStateCrop, lInsets);
@@ -310,19 +194,32 @@ public sealed class QInspectorCrop
         QInspectorCropbox.LCropboxStateSet(lCrop, QInspectorActive, false, false, 0, 0);
     }
 
-    private double QInspectorWidthRead()
+    internal LCropbox? QInspectorBoundsResolve(int lRatioWidth, int lRatioHeight)
+    {
+        LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
+        double lBoundsWidth = QInspectorWidthRead();
+        double lBoundsHeight = QInspectorHeightRead();
+        return lBoundsWidth > 0 && lBoundsHeight > 0
+            ? LCropbox.LCropboxRatioResolve(
+                new LCropbox(lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lBoundsWidth, lBoundsHeight),
+                lRatioWidth,
+                lRatioHeight)
+            : null;
+    }
+
+    internal double QInspectorWidthRead()
     {
         LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
         return qInspector.QInspectorSourceWidth - lCrop.LWorkCropLeft - lCrop.LWorkCropRight;
     }
 
-    private double QInspectorHeightRead()
+    internal double QInspectorHeightRead()
     {
         LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
         return qInspector.QInspectorSourceHeight - lCrop.LWorkCropTop - lCrop.LWorkCropBottom;
     }
 
-    private static LWorkCrop QInspectorEdgesResolve(LWorkCrop lCrop, LCropboxEdges lInsets) => lCrop with
+    internal static LWorkCrop QInspectorEdgesResolve(LWorkCrop lCrop, LCropboxEdges lInsets) => lCrop with
     {
         LWorkCropLeft = QInspectorEdgeNormalize(lInsets.LCropboxLeft),
         LWorkCropTop = QInspectorEdgeNormalize(lInsets.LCropboxTop),
@@ -340,13 +237,10 @@ public sealed class QInspectorCrop
 
     private static int QInspectorEdgeNormalize(double lEdge) => (int)Math.Max(0, Math.Round(lEdge));
 
-    private static int QInspectorPresetResolve(int lRatioWidth, int lRatioHeight) =>
-        Math.Max(0, Array.IndexOf(qInspectorPresets, (lRatioWidth, lRatioHeight)));
-
-    private static double QInspectorNumberParse(string lText) =>
+    internal static double QInspectorNumberParse(string lText) =>
         double.TryParse(lText, NumberStyles.Integer, CultureInfo.InvariantCulture, out double lNumber) ? lNumber : 0;
 
-    private static string QInspectorWholeFormat(string lText, double lNumber)
+    internal static string QInspectorWholeFormat(string lText, double lNumber)
     {
         if ((string.IsNullOrWhiteSpace(lText) && lNumber == 0)
             || (double.TryParse(lText, NumberStyles.Integer, CultureInfo.InvariantCulture, out double lShown)

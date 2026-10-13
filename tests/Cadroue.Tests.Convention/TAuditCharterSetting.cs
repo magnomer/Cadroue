@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditCharterSetting
 {
-    public const int TAuditGeneration = 23;
+    public const int TAuditGeneration = 24;
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditCharterEdges = new Dictionary<string, string[]>
     {

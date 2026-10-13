@@ -1,9 +1,12 @@
+using System.Text.RegularExpressions;
 using Xunit;
 
 namespace Convention.Tests;
 
 internal static class TAuditCommentFile
 {
+    private static readonly Regex TAuditStampPattern = new(@"^##\s+Stamp\s*$", RegexOptions.Compiled);
+
     public static IEnumerable<string> TAuditOwnerRead(string repoRoot)
     {
         TAuditScope scope = new(
@@ -36,6 +39,25 @@ internal static class TAuditCommentFile
         return paths;
     }
 
+    public static IEnumerable<string> TAuditSidecarScan(string repoRoot)
+    {
+        TAuditScope scope = new(
+            TAuditCommentSetting.TAuditCommentRoots,
+            [TAuditCommentSetting.TAuditCommentPattern],
+            TAuditCommentSetting.TAuditCommentSegments,
+            [],
+            [],
+            []);
+        IEnumerable<string> rooted = TAuditCommentSetting.TAuditCommentFiles
+            .Select(file => Path.GetDirectoryName(Path.GetFullPath(Path.Combine(repoRoot, file)))!)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .SelectMany(directory => Directory.GetFiles(directory, TAuditCommentSetting.TAuditCommentPattern)
+                .Order(StringComparer.Ordinal));
+        return TAuditScanRead(repoRoot, scope)
+            .Concat(rooted)
+            .Where(path => !TAuditReservedCheck(repoRoot, path));
+    }
+
     public static bool TAuditReservedCheck(string repoRoot, string path)
     {
         return TAuditCommentSetting.TAuditCommentReserved.Any(file => string.Equals(
@@ -44,11 +66,28 @@ internal static class TAuditCommentFile
             StringComparison.OrdinalIgnoreCase));
     }
 
-    public static string TAuditCommentRead(string path)
+    public static string TAuditCommentRead(string repoRoot, string path)
     {
-        string trimmed = path.EndsWith(".xaml.cs", StringComparison.OrdinalIgnoreCase)
-            ? path[..^3]
-            : Path.ChangeExtension(path, null);
-        return trimmed + ".comment.md";
+        string directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+        bool rooted = string.Equals(
+            directory.TrimEnd('\\', '/'),
+            Path.GetFullPath(repoRoot).TrimEnd('\\', '/'),
+            StringComparison.OrdinalIgnoreCase);
+        string name = rooted
+            ? TAuditCommentSetting.TAuditCommentRoot
+            : Path.GetFileName(directory) + TAuditCommentSetting.TAuditCommentPattern.TrimStart('*');
+        return Path.Combine(directory, name);
+    }
+
+    public static string[] TAuditProseRead(string path)
+    {
+        string[] lines = File.ReadAllLines(path);
+        int stamp = Array.FindIndex(lines, line => TAuditStampPattern.IsMatch(line));
+        return stamp < 0 ? lines : lines[..stamp];
+    }
+
+    public static int TAuditStampFind(string[] lines)
+    {
+        return Array.FindIndex(lines, line => TAuditStampPattern.IsMatch(line));
     }
 }

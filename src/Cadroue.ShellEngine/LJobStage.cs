@@ -163,7 +163,7 @@ internal sealed partial class LJob
         lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
 
         Guid pWorkId = lJobItem.LWorkId;
-        lJobOwner.LRunnerProcessAttach(pWorkId);
+        lJobOwner.LRunnerProcess.LRunnerProcessAttach(lJobItem);
         LEmployerResult pJobResult = await LEmployerEngine.LEmployerRunSeam(
             lJobOwner.LRunnerProgramPath,
             lJobOwner.LRunnerArgumentPrefix,
@@ -180,7 +180,7 @@ internal sealed partial class LJob
             $"Exit code {pJobResult.LEmployerExit} for '{lJobItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
             $"ran for {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
-        lJobOwner.LRunnerProcessDetach(pWorkId);
+        lJobOwner.LRunnerProcess.LRunnerProcessDetach(pWorkId);
         return (pJobResult.LEmployerExit, pJobResult.LEmployerError);
     }
 }

@@ -165,8 +165,8 @@ public sealed class TInspectorPreset
                 continue;
             }
 
-            Assert.Equal(LDetector.LDetectorTokenDefault, TInterface.TSensorTokenRead(sensor, kind));
-            Assert.Equal(LDetector.LDetectorTokenDefault, TInterface.TSensorMatchRead(sensor, kind));
+            Assert.Equal(LDetectorCatalog.LDetectorTokenDefault, TInterface.TSensorTokenRead(sensor, kind));
+            Assert.Equal(LDetectorCatalog.LDetectorTokenDefault, TInterface.TSensorMatchRead(sensor, kind));
         }
     }
 

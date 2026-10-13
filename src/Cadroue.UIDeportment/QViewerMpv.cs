@@ -36,7 +36,7 @@ public sealed class QViewerMpv
                 QPlayer.QPlayerAppliedReset();
             }
 
-            QPlayer.QPlayerVolumeSet(qViewer.QViewerVolume);
+            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
             if (!qViewer.QViewerSerialCheck(lSerial))
             {
                 return;
@@ -99,7 +99,7 @@ public sealed class QViewerMpv
         if (QPlayer.QPlayerReady)
         {
             QPlayer.QPlayerStop();
-            qViewer.QViewerMedia.QViewerHostShow(false);
+            qViewer.QViewerHost.QViewerHostShow(false);
         }
     }
 
@@ -110,7 +110,7 @@ public sealed class QViewerMpv
         LMediaTrace.LMediaMpvRecord(lCargo);
 
         QPlayer.QPlayerAccurateReset();
-        qViewer.QViewerMedia.QViewerHostShow(lHasPreview);
+        qViewer.QViewerHost.QViewerHostShow(lHasPreview);
         QViewerIntent? lRequest = qViewer.QViewerMedia.QViewerCargoApply(lCargo);
         if (!lHasPreview)
         {
@@ -120,7 +120,7 @@ public sealed class QViewerMpv
         }
 
         qViewer.QViewerFilterUpdate();
-        qViewer.QViewerAudioApply();
+        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
         qViewer.QViewerMedia.QViewerIntentApply(lRequest);
     }
 

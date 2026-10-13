@@ -83,11 +83,11 @@ public sealed record QSensorPlan(
             QSensorGroupCreate(
                 "Inspector.Detector.Metric", QSensorMetricKeys, lKind == LDetectorKind.LDetectorKindVolume),
             LLocalization.LLocalizationTextRead("Inspector.Common.Preset"),
-            QSensor.QSensorPresetCheck(lKind));
+            QSensorPreset.QSensorPresetCheck(lKind));
     }
 
     public static string QSensorKeyRead(LDetectorKind lKind, string lToken) =>
-        LDetector.LDetectorTokensRead(lKind).Contains(lToken)
+        LDetectorCatalog.LDetectorTokensRead(lKind).Contains(lToken)
             ? "Inspector.Detector." + lToken
             : "Inspector.Common.Custom";
 

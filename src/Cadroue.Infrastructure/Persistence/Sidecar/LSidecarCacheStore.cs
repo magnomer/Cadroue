@@ -6,7 +6,7 @@ namespace Cadroue.Infrastructure;
 internal static class LSidecarCacheStore
 {
     internal static LSidecarCacheDocument? LSidecarCacheRead(string lSidecarSourcePath) =>
-        LSidecarCacheLoad(LSidecarStore.LSidecarPathRead(lSidecarSourcePath), null);
+        LSidecarCacheLoad(LSidecarPath.LSidecarPathRead(lSidecarSourcePath), null);
 
     internal static bool LSidecarDiagnosisSave(
         string lSidecarSourcePath,
@@ -45,7 +45,7 @@ internal static class LSidecarCacheStore
 
     internal static LSidecarCacheDocument? LSidecarCacheLoad(string lSidecarPreciousPath, string? lSidecarPreciousJson)
     {
-        string lSidecarCachePath = LSidecarStore.LSidecarCacheResolve(lSidecarPreciousPath);
+        string lSidecarCachePath = LSidecarPath.LSidecarCacheResolve(lSidecarPreciousPath);
         string? lSidecarCacheJson = LSidecarFile.LSidecarFileRead(lSidecarCachePath);
         if (lSidecarCacheJson is not null)
         {
@@ -63,7 +63,7 @@ internal static class LSidecarCacheStore
             return;
         }
 
-        string lSidecarCachePath = LSidecarStore.LSidecarCacheResolve(lSidecarPreciousPath);
+        string lSidecarCachePath = LSidecarPath.LSidecarCacheResolve(lSidecarPreciousPath);
         if (File.Exists(lSidecarCachePath))
         {
             return;
@@ -102,7 +102,7 @@ internal static class LSidecarCacheStore
         IReadOnlyCollection<int> lSidecarScannedSpans,
         int lSidecarSpanGridMilliseconds)
     {
-        string lSidecarCachePath = LSidecarStore.LSidecarCacheResolve(lSidecarPreciousPath);
+        string lSidecarCachePath = LSidecarPath.LSidecarCacheResolve(lSidecarPreciousPath);
         try
         {
             using (LLatch.LLatchClaim(lSidecarCachePath))
@@ -160,8 +160,8 @@ internal static class LSidecarCacheStore
     {
         try
         {
-            string lSidecarPreciousPath = LSidecarStore.LSidecarPathRead(lSidecarSourcePath);
-            string lSidecarCachePath = LSidecarStore.LSidecarCacheResolve(lSidecarPreciousPath);
+            string lSidecarPreciousPath = LSidecarPath.LSidecarPathRead(lSidecarSourcePath);
+            string lSidecarCachePath = LSidecarPath.LSidecarCacheResolve(lSidecarPreciousPath);
             using (LLatch.LLatchClaim(lSidecarCachePath))
             {
                 LSidecarCacheDocument lSidecarCache = LSidecarBaseRead(

@@ -13,7 +13,6 @@ public sealed class QSensor
     private const string QSensorVolume = "Volume";
 
     private readonly Dictionary<LDetectorKind, LDetectorStep> qSensorSteps = new();
-    private readonly Dictionary<LDetectorKind, string?> qSensorTokens = new();
     private LDetectorStillMode qSensorMode = LDetectorStillMode.LDetectorStillDiscard;
     private LDetectorLuminanceMode qSensorSpeed = LDetectorLuminanceMode.LDetectorLuminanceNormal;
     private LDetectorMetricMode qSensorMetric = LDetectorMetricMode.LDetectorMetricLufs;
@@ -45,6 +44,7 @@ public sealed class QSensor
 
     public QSensor()
     {
+        QSensorPreset = new QSensorPreset(this);
         foreach (LDetectorKind lKind in LDetector.LDetectorKinds)
         {
             if (lKind == LDetectorKind.LDetectorKindBlank)
@@ -53,13 +53,16 @@ public sealed class QSensor
             }
 
             qSensorSteps[lKind] = LDetector.LDetectorCreate(lKind);
-            qSensorTokens[lKind] = QSensorPresetCheck(lKind) ? LDetector.LDetectorTokenDefault : null;
+            QSensorPreset.QSensorKindAdd(lKind);
         }
 
         QSensorPlans = qSensorSteps.Keys.Select(QSensorPlan.QSensorPlanCreate).ToList();
+        QSensorPreset.QSensorPresetChanged += () => QSensorChanged?.Invoke();
     }
 
     public IReadOnlyList<QSensorPlan> QSensorPlans { get; }
+
+    public QSensorPreset QSensorPreset { get; }
 
     public int QSensorModeIndex => Array.IndexOf(QSensorModes, qSensorMode);
 
@@ -79,8 +82,6 @@ public sealed class QSensor
     public bool QSensorRunning => qSensorRunning;
 
     public bool QSensorPersistent => qSensorPersistent;
-
-    public static bool QSensorPresetCheck(LDetectorKind lKind) => LDetector.LDetectorTokensRead(lKind).Count > 0;
 
     public static string QSensorNameRead(LDetectorKind lKind) => lKind switch
     {
@@ -107,8 +108,6 @@ public sealed class QSensor
     public LDetectorStep QSensorStepRead(LDetectorKind lKind) =>
         qSensorSteps.TryGetValue(lKind, out LDetectorStep lStep) ? lStep : LDetector.LDetectorCreate(lKind);
 
-    public string? QSensorTokenRead(LDetectorKind lKind) => qSensorTokens.GetValueOrDefault(lKind);
-
     public bool QSensorEnabledRead(LDetectorKind lKind) => QSensorStepRead(lKind).LDetectorStepEnabled;
 
     public double QSensorValueRead(LDetectorKind lKind, int lRow)
@@ -134,12 +133,6 @@ public sealed class QSensor
             ? (qSensorMetric == LDetectorMetricMode.LDetectorMetricRms ? "dB" : "LU")
             : QSensorPlans.First(lPlan => lPlan.QSensorPlanKind == lKind)
                 .QSensorPlanRows.First(lEntry => lEntry.QInspectorRowIndex == lRow).QInspectorRowUnit;
-
-    public QInspectorChoice QSensorChoiceRead(LDetectorKind lKind) => QInspectorPlan.QInspectorChoiceRead(
-        LDetector.LDetectorTokensRead(lKind),
-        lToken => QSensorPlan.QSensorKeyRead(lKind, lToken),
-        QSensorTokenRead(lKind),
-        QSensorMatchRead(lKind));
 
     public void QSensorValueSet(LDetectorKind lKind, int lRow, double lValue)
     {
@@ -181,16 +174,6 @@ public sealed class QSensor
         }
     }
 
-    public void QSensorChoiceSelect(LDetectorKind lKind, int lIndex)
-    {
-        string? lToken = QInspectorPlan.QInspectorChoiceResolve(
-            LDetector.LDetectorTokensRead(lKind), lIndex, QSensorTokenRead(lKind), QSensorMatchRead(lKind));
-        if (lToken is not null)
-        {
-            QSensorPresetSelect(lKind, lToken);
-        }
-    }
-
     public void QSensorRunHandle()
     {
         if (qSensorRunning)
@@ -202,9 +185,6 @@ public sealed class QSensor
             QSensorRunApplied?.Invoke();
         }
     }
-
-    public string? QSensorMatchRead(LDetectorKind lKind) =>
-        LDetector.LDetectorStepMatch(QSensorStepRead(lKind), qSensorMetric);
 
     public void QSensorStepSet(LDetectorStep lStep)
     {
@@ -260,59 +240,17 @@ public sealed class QSensor
             return;
         }
 
-        string? lMatch = QSensorMatchRead(LDetectorKind.LDetectorKindVolume);
+        string? lMatch = QSensorPreset.QSensorMatchRead(LDetectorKind.LDetectorKindVolume);
         qSensorMetric = lMetric;
-        if (lMatch is { } lToken && LDetector.LDetectorPresetRead(lToken) is { } lPreset)
+        if (lMatch is { } lToken && LDetectorCatalog.LDetectorPresetRead(lToken) is { } lPreset)
         {
             LDetectorStep lStep = QSensorStepRead(LDetectorKind.LDetectorKindVolume);
             qSensorSteps[LDetectorKind.LDetectorKindVolume] = LDetector.LDetectorStepNormalize(lStep with
             {
-                LDetectorStepThreshold = LDetector.LDetectorPresetResolve(lPreset, lMetric)
+                LDetectorStepThreshold = LDetectorCatalog.LDetectorPresetResolve(lPreset, lMetric)
             });
         }
 
-        QSensorChanged?.Invoke();
-    }
-
-    public void QSensorPresetSelect(LDetectorKind lKind, string lToken)
-    {
-        if (!QSensorPresetCheck(lKind) || !qSensorSteps.ContainsKey(lKind))
-        {
-            return;
-        }
-
-        LDetectorStep lStep = QSensorStepRead(lKind);
-        LDetectorStep? lTarget = LDetector.LDetectorStepResolve(lStep, lToken, qSensorMetric);
-        if (lTarget is not { } lResolved)
-        {
-            return;
-        }
-
-        LDetectorStep lNormal = LDetector.LDetectorStepNormalize(lResolved);
-        if (qSensorSteps[lKind] == lNormal && qSensorTokens[lKind] == lToken)
-        {
-            return;
-        }
-
-        qSensorSteps[lKind] = lNormal;
-        qSensorTokens[lKind] = lToken;
-        QSensorChanged?.Invoke();
-    }
-
-    public void QSensorTokenSet(LDetectorKind lKind, string lToken)
-    {
-        if (!qSensorSteps.ContainsKey(lKind))
-        {
-            return;
-        }
-
-        string? lNormal = LDetector.LDetectorTokensRead(lKind).Contains(lToken) ? lToken : null;
-        if (qSensorTokens[lKind] == lNormal)
-        {
-            return;
-        }
-
-        qSensorTokens[lKind] = lNormal;
         QSensorChanged?.Invoke();
     }
 
@@ -338,6 +276,8 @@ public sealed class QSensor
         QSensorPersistentChanged?.Invoke(lPersistent);
     }
 
+    internal void QSensorStepCommit(LDetectorStep lNormal) => qSensorSteps[lNormal.LDetectorStepKind] = lNormal;
+
     private void QSensorStepApply(LDetectorStep lNormal)
     {
         if (qSensorSteps[lNormal.LDetectorStepKind] == lNormal)
@@ -345,7 +285,7 @@ public sealed class QSensor
             return;
         }
 
-        qSensorSteps[lNormal.LDetectorStepKind] = lNormal;
+        QSensorStepCommit(lNormal);
         QSensorChanged?.Invoke();
     }
 }

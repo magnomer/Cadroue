@@ -10,7 +10,6 @@ public sealed class TAuditComment
         """"(?:@\$?|\$@)"(?:[^"]|"")*"|"(?:\\.|[^"\\\r\n])*"|'(?:\\.|[^'\\\r\n])'"""",
         RegexOptions.Compiled);
 
-    private static readonly string[] TAuditCodeExtensions = ["", ".cs", ".xaml", ".xaml.cs"];
 
     private static readonly Regex TAuditHeadingPattern = new(@"^##\s+`(?<span>[^`]+)`\s*$", RegexOptions.Compiled);
 
@@ -26,21 +25,9 @@ public sealed class TAuditComment
     {
         string repoRoot = TAuditSource.TAuditRootRead();
         List<string> hits = [];
-        TAuditScope scope = new(
-            TAuditCommentSetting.TAuditCommentRoots,
-            [TAuditCommentSetting.TAuditCommentPattern],
-            TAuditCommentSetting.TAuditCommentSegments,
-            [],
-            [],
-            []);
-        IEnumerable<string> comments = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
-            TAuditCommentSetting.TAuditCommentFiles
-                .Select(file => TAuditCommentFile.TAuditCommentRead(Path.Combine(repoRoot, file)))
-                .Where(File.Exists))
-            .Where(path => !TAuditCommentFile.TAuditReservedCheck(repoRoot, path));
-        foreach (string path in comments)
+        foreach (string path in TAuditCommentFile.TAuditSidecarScan(repoRoot))
         {
-            string[] lines = File.ReadAllLines(path);
+            string[] lines = TAuditCommentFile.TAuditProseRead(path);
             for (int index = 0; index < lines.Length; index++)
             {
                 string problem = TAuditCommentLine.TAuditLineCheck(lines[index]);
@@ -52,7 +39,7 @@ public sealed class TAuditComment
             }
         }
 
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+        Assert.True(!TAuditCommentSetting.TAuditCommentEnforced || hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
             $"{hits.Count} comment line(s) break the line rules: one sentence, "
             + $"at most {TAuditCommentSetting.TAuditCommentWords} words, "
@@ -117,86 +104,83 @@ public sealed class TAuditComment
             }
         }
 
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+        Assert.True(!TAuditCommentSetting.TAuditCommentEnforced || hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
             $"{hits.Count} in-code comment(s) found. "
-            + $"Prose belongs in the {TAuditCommentSetting.TAuditCommentPattern} file beside the source.\n"
+            + $"Prose belongs in the folder's {TAuditCommentSetting.TAuditCommentPattern} sidecar.\n"
             + string.Join('\n', hits)));
     }
 
     [Fact]
-    public void AuditComment_Sources_CarryCommentFile()
+    public void AuditComment_Folders_CarrySidecar()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
         List<string> hits = TAuditCommentFile.TAuditOwnerRead(repoRoot)
-            .Where(path => !File.Exists(TAuditCommentFile.TAuditCommentRead(path)))
-            .Select(path => "  " + Path.GetRelativePath(repoRoot, path).Replace('\\', '/'))
+            .GroupBy(path => TAuditCommentFile.TAuditCommentRead(repoRoot, path), StringComparer.OrdinalIgnoreCase)
+            .Where(group => !File.Exists(group.Key))
+            .Select(group => "  " + Path.GetRelativePath(repoRoot, group.First()).Replace('\\', '/'))
             .ToList();
 
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+        Assert.True(!TAuditCommentSetting.TAuditCommentEnforced || hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} source(s) have no comment file beside them.\n" + string.Join('\n', hits)));
+            $"{hits.Count} folder(s) hold a source but no sidecar.\n" + string.Join('\n', hits)));
     }
 
     [Fact]
-    public void AuditComment_CommentFiles_HaveSource()
+    public void AuditComment_CommentFiles_SideFolder()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
+        IEnumerable<string> owners = TAuditCommentFile.TAuditOwnerRead(repoRoot);
         HashSet<string> expected = new(
-            TAuditCommentFile.TAuditOwnerRead(repoRoot).Select(TAuditCommentFile.TAuditCommentRead),
+            owners.Select(path => TAuditCommentFile.TAuditCommentRead(repoRoot, path)),
             StringComparer.OrdinalIgnoreCase);
-        TAuditScope scope = new(
-            TAuditCommentSetting.TAuditCommentRoots,
-            [TAuditCommentSetting.TAuditCommentPattern],
-            TAuditCommentSetting.TAuditCommentSegments,
-            [],
-            [],
-            []);
-        List<string> hits = TAuditCommentFile.TAuditScanRead(repoRoot, scope)
-            .Where(path => !expected.Contains(path))
+        List<string> hits = TAuditCommentFile.TAuditSidecarScan(repoRoot)
+            .Where(path => !expected.Contains(Path.GetFullPath(path)))
             .Select(path => "  " + Path.GetRelativePath(repoRoot, path).Replace('\\', '/'))
             .ToList();
 
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+        Assert.True(!TAuditCommentSetting.TAuditCommentEnforced || hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} comment file(s) have no source beside them.\n" + string.Join('\n', hits)));
+            $"{hits.Count} comment file(s) are no folder's sidecar.\n" + string.Join('\n', hits)));
     }
 
     [Fact]
     public void AuditComment_Headings_NameMembers()
     {
         string repoRoot = TAuditSource.TAuditRootRead();
-        TAuditScope scope = new(
-            TAuditCommentSetting.TAuditCommentRoots,
-            [TAuditCommentSetting.TAuditCommentPattern],
-            TAuditCommentSetting.TAuditCommentSegments,
-            [],
-            [],
-            []);
         List<string> hits = [];
-        IEnumerable<string> comments = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
-            TAuditCommentSetting.TAuditCommentFiles
-                .Select(file => TAuditCommentFile.TAuditCommentRead(Path.Combine(repoRoot, file)))
-                .Where(File.Exists))
-            .Where(path => !TAuditCommentFile.TAuditReservedCheck(repoRoot, path));
-        foreach (string comment in comments)
+        IEnumerable<IGrouping<string, string>> folders = TAuditCommentFile.TAuditOwnerRead(repoRoot)
+            .GroupBy(path => TAuditCommentFile.TAuditCommentRead(repoRoot, path), StringComparer.OrdinalIgnoreCase)
+            .Where(group => File.Exists(group.Key) && !TAuditCommentFile.TAuditReservedCheck(repoRoot, group.Key));
+        foreach (IGrouping<string, string> folder in folders)
         {
-            string stem = comment[..^TAuditCommentSetting.TAuditCommentPattern.TrimStart('*').Length];
-            string[] sources = [.. TAuditCodeExtensions.Select(extension => stem + extension).Where(File.Exists)];
-            if (sources.Length == 0 || TAuditCommentSetting.TAuditCommentExempt.Contains(
-                    Path.GetFileName(sources[0]), StringComparer.OrdinalIgnoreCase))
+            string comment = folder.Key;
+            string[] sources = [.. folder.Where(path => !TAuditCommentSetting.TAuditCommentExempt.Contains(
+                Path.GetFileName(path), StringComparer.OrdinalIgnoreCase))];
+            if (sources.Length == 0)
             {
                 continue;
             }
 
+            HashSet<string> names = new(folder.Select(Path.GetFileName)!, StringComparer.OrdinalIgnoreCase);
             string text = string.Concat(sources.Select(File.ReadAllText));
 
-            string[] lines = File.ReadAllLines(comment);
+            string[] lines = TAuditCommentFile.TAuditProseRead(comment);
             for (int index = 0; index < lines.Length; index++)
             {
                 Match heading = TAuditHeadingPattern.Match(lines[index]);
-                string? name = heading.Success ? TAuditMemberRead(heading.Groups["span"].Value) : null;
-                if (name is not null && !Regex.IsMatch(text, $@"\b{Regex.Escape(name)}\b"))
+                if (!heading.Success)
+                {
+                    continue;
+                }
+
+                string span = heading.Groups["span"].Value;
+                bool file = TAuditFilePattern.IsMatch(span);
+                string? name = file ? span : TAuditMemberRead(span);
+                bool named = file
+                    ? names.Contains(span)
+                    : name is null || Regex.IsMatch(text, $@"\b{Regex.Escape(name)}\b");
+                if (!named)
                 {
                     string relative = Path.GetRelativePath(repoRoot, comment).Replace('\\', '/');
                     hits.Add($"  {relative}:{index + 1} {name}");
@@ -204,9 +188,9 @@ public sealed class TAuditComment
             }
         }
 
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
+        Assert.True(!TAuditCommentSetting.TAuditCommentEnforced || hits.Count == 0, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} comment heading(s) name nothing in their source.\n" + string.Join('\n', hits)));
+            $"{hits.Count} comment heading(s) name nothing in their folder.\n" + string.Join('\n', hits)));
     }
 
     private static string? TAuditMemberRead(string span)

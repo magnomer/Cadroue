@@ -40,8 +40,8 @@ public sealed partial class PInspector
         var pStack = new StackPanel();
         List<RadioButton> pMetrics = PSensorRadiosBuild(pStack, lPlan.QSensorPlanMetric, QSensor.QSensorMetricSelect);
         ComboBox pPreset = PInspectorChoiceBuild(
-            QSensor.QSensorChoiceRead(lPlan.QSensorPlanKind).QInspectorChoiceNames,
-            pIndex => QSensor.QSensorChoiceSelect(lPlan.QSensorPlanKind, pIndex));
+            QSensor.QSensorPreset.QSensorChoiceRead(lPlan.QSensorPlanKind).QInspectorChoiceNames,
+            pIndex => QSensor.QSensorPreset.QSensorChoiceSelect(lPlan.QSensorPlanKind, pIndex));
         UIElement pPresetRow = PInspectorFieldBuild(lPlan.QSensorPlanChoice, pPreset);
         pPresetRow.Visibility = PLook.PLookVisible[lPlan.QSensorPlanPreset];
         pStack.Children.Add(pPresetRow);
@@ -89,7 +89,7 @@ public sealed partial class PInspector
         pSection.PSensorModes[QSensor.QSensorModeIndex].IsChecked = true;
         pSection.PSensorSpeeds[QSensor.QSensorSpeedIndex].IsChecked = true;
         pSection.PSensorMetrics[QSensor.QSensorMetricIndex].IsChecked = true;
-        PInspectorChoiceApply(pSection.PSensorPreset, QSensor.QSensorChoiceRead(lPlan.QSensorPlanKind));
+        PInspectorChoiceApply(pSection.PSensorPreset, QSensor.QSensorPreset.QSensorChoiceRead(lPlan.QSensorPlanKind));
         PInspectorSectionUpdate(pSection.PSensorStack, lEnabled);
     }
 

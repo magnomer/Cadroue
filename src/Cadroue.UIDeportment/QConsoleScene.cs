@@ -8,7 +8,7 @@ public sealed class QConsoleScene
 {
     private string? qConsoleReloadName;
     private string qConsoleSceneName = string.Empty;
-    private QWindow? qWindow;
+    private QWindowScene? qWindowScene;
     private QStrip? qStrip;
 
     public string? QConsoleReloadName => qConsoleReloadName;
@@ -27,9 +27,9 @@ public sealed class QConsoleScene
 
     public event Action<string, string>? QConsoleWarningShown;
 
-    public void QConsoleWindowAttach(QWindow lWindowOwner, QStrip lStripOwner)
+    public void QConsoleWindowAttach(QWindowScene lSceneOwner, QStrip lStripOwner)
     {
-        qWindow = lWindowOwner;
+        qWindowScene = lSceneOwner;
         qStrip = lStripOwner;
     }
 
@@ -80,12 +80,12 @@ public sealed class QConsoleScene
     {
         if (qConsoleSceneName.Length == 0
             || LScene.LSceneRead(qConsoleSceneName) is not { } lSceneStored
-            || qWindow is null)
+            || qWindowScene is null)
         {
             return false;
         }
 
-        return !LScene.LSceneMatch(lSceneStored, qWindow.QWindowSceneRead(qConsoleSceneName));
+        return !LScene.LSceneMatch(lSceneStored, qWindowScene.QWindowSceneRead(qConsoleSceneName));
     }
 
     public void QConsoleRowHandle(string? lSceneName)
@@ -143,8 +143,8 @@ public sealed class QConsoleScene
 
     private void QConsoleSceneRun(bool lAnswer, string lSceneName, LSceneDocument lScene)
     {
-        if (lAnswer && qWindow is { } lWindowOwner && qStrip is { } lStripOwner
-            && lWindowOwner.QWindowSceneApply(
+        if (lAnswer && qWindowScene is { } lSceneOwner && qStrip is { } lStripOwner
+            && lSceneOwner.QWindowSceneApply(
                 lScene,
                 lStripOwner.QStripClosure.QStripCloseConfirm(),
                 lStripOwner.QStripClosure.QStripAllClose))
@@ -198,12 +198,12 @@ public sealed class QConsoleScene
             return;
         }
 
-        if (qWindow is not { } lWindowOwner)
+        if (qWindowScene is not { } lSceneOwner)
         {
             return;
         }
 
-        LScene.LSceneSave(lWindowOwner.QWindowSceneRead(lSceneName));
+        LScene.LSceneSave(lSceneOwner.QWindowSceneRead(lSceneName));
         QConsoleSceneRebuild();
         QConsoleSceneSelect(lSceneName);
         LTraceLog.LTraceInfoRecord($"Scene saved '{lSceneName}'");
@@ -236,7 +236,7 @@ public sealed class QConsoleScene
             return lScene;
         }
 
-        return qWindow?.QWindowSceneRead(
+        return qWindowScene?.QWindowSceneRead(
             lSceneName.Length > 0 ? lSceneName : LLocalization.LLocalizationTextRead("Console.Scene.DefaultName"));
     }
 

@@ -11,8 +11,6 @@ public sealed record QViewerIntent(
     TimeSpan QViewerIntentPosition,
     bool? QViewerIntentPlaying);
 
-public sealed record QViewerSwitch(string QViewerSwitchText, string QViewerSwitchTip, bool QViewerSwitchEnabled);
-
 public sealed class QViewer
 {
     private int qViewerLoadSerial;
@@ -28,17 +26,17 @@ public sealed class QViewer
     private bool qViewerAudioEligible;
     private bool qViewerEditEligible;
     private bool qViewerColorPreview;
-    private bool qViewerBypass;
-    private string qViewerAudioFilter = string.Empty;
     private QViewerIntent? qViewerIntent;
     private string? qViewerRequestPath;
     private string? qViewerSourcePath;
     private LMediaInfo? qViewerMediaInfo;
-    private double qViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private LPreviewState qViewerPreview = LPreviewState.LPreviewDefaultCreate();
 
     public QViewer(CUsher lUsher)
     {
+        QViewerAudio = new QViewerAudio(QPlayer);
+        QViewerAudio.QViewerAudioChanged += QViewerAudioHandle;
+        QViewerHost = new QViewerHost(this);
         QViewerPlayback = new QViewerPlayback(this);
         QViewerMedia = new QViewerMedia(this);
         QViewerSource = new QViewerSource(this, lUsher);
@@ -50,6 +48,10 @@ public sealed class QViewer
     }
 
     public QPlayer QPlayer { get; } = new();
+
+    public QViewerAudio QViewerAudio { get; }
+
+    public QViewerHost QViewerHost { get; }
 
     public QViewerPlayback QViewerPlayback { get; }
 
@@ -71,8 +73,6 @@ public sealed class QViewer
     public event Action<bool>? QViewerPlayingChanged;
     public event Action? QViewerEngineChanged;
     public event Action? QViewerPreviewChanged;
-    public event Action<bool>? QViewerBypassChanged;
-    public event Action<double>? QViewerVolumeChanged;
     public event Action<string>? QViewerOpenRequest;
 
     public int QViewerLoadSerial => qViewerLoadSerial;
@@ -111,15 +111,11 @@ public sealed class QViewer
 
     public bool QViewerProcessorForced => qViewerColorPreview && LFlyleaf.LFlyleafActive;
 
-    public bool QViewerBypass => qViewerBypass;
-
     public QViewerIntent? QViewerIntent => qViewerIntent;
 
     public string? QViewerSourcePath => qViewerSourcePath;
 
     public LMediaInfo? QViewerMediaInfo => qViewerMediaInfo;
-
-    public double QViewerVolume => qViewerVolume;
 
     public LPreviewState QViewerPreview => qViewerPreview;
 
@@ -130,12 +126,6 @@ public sealed class QViewer
     public TimeSpan QViewerDuration => qViewerMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
 
     public bool QViewerVideoPresent => qViewerMediaInfo is { LMediaVideoPresent: true };
-
-    public QViewerSwitch QViewerSwitchRead() => new(
-        LLocalization.LLocalizationTextRead(qViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered"),
-        LLocalization.LLocalizationTextRead(
-            QViewerAudioCapable ? "Viewer.Audio.SwitchTooltip" : "Viewer.Audio.MpvRequired"),
-        QViewerAudioCapable);
 
     public int QViewerSerialChange() => ++qViewerLoadSerial;
 
@@ -194,54 +184,14 @@ public sealed class QViewer
         }
 
         qViewerEngine = lEngine;
+        QViewerAudio.QViewerCapableSet(QViewerAudioCapable);
         QViewerEngineChanged?.Invoke();
     }
 
-    public void QViewerFilterSet(string? lFilter) => qViewerAudioFilter = lFilter ?? string.Empty;
-
-    public string QViewerAudioResolve() => qViewerBypass ? string.Empty : qViewerAudioFilter;
-
-    public void QViewerGraphSet(string lGraph)
+    private void QViewerAudioHandle()
     {
-        QViewerFilterSet(lGraph);
-        QViewerAudioApply();
+        QViewerAudio.QViewerAudioApply(qViewerMpvActive);
         QViewerPreviewRaise();
-    }
-
-    public void QViewerBypassSet(bool lBypass)
-    {
-        if (qViewerBypass == lBypass)
-        {
-            return;
-        }
-
-        qViewerBypass = lBypass;
-        QViewerBypassChanged?.Invoke(lBypass);
-        QViewerAudioApply();
-        QViewerPreviewRaise();
-    }
-
-    public void QViewerBypassToggle() => QViewerBypassSet(!qViewerBypass);
-
-    public void QViewerAudioApply()
-    {
-        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
-        {
-            return;
-        }
-
-        QPlayer.QPlayerAudioApply(QViewerAudioResolve());
-    }
-
-    public void QViewerVolumeApply(double lVolume)
-    {
-        qViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
-        if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
-        {
-            LPreference.LPreferenceVolumeSet(qViewerVolume);
-        }
-
-        QViewerVolumeChanged?.Invoke(qViewerVolume);
     }
 
     public void QViewerPreviewSet(LPreviewState lPreview) => qViewerPreview = lPreview;

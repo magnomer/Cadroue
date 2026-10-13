@@ -77,7 +77,7 @@ public sealed class QAction
     }
 
     public IReadOnlyList<QActionOption> QActionOptionsRead() =>
-        qActionRelayStrip?.QStripRelayRead(qActionSourceTab).Select(QActionOptionCreate).ToArray()
+        qActionRelayStrip?.QStripRelay.QStripRelayRead(qActionSourceTab).Select(QActionOptionCreate).ToArray()
         ?? Array.Empty<QActionOption>();
 
     public IReadOnlyList<QActionOption> QActionMenuRead() =>

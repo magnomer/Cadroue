@@ -32,7 +32,7 @@ public sealed class PRoster : UserControl
         ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
         pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
         {
-            ItemsSource = QRoster.QRosterEntries
+            ItemsSource = QRoster.QRosterFeed.QRosterEntries
         };
         pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterSharedBox = PRosterOptionBuild(
@@ -48,7 +48,7 @@ public sealed class PRoster : UserControl
         pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
         QRoster.QRosterDetailApplied += PRosterDetailUpdate;
         QRoster.QRosterDeferral.QRosterDeferralRaised += PRosterDetailDefer;
-        QRoster.QRosterWarningShown += PRosterWarningShow;
+        QRoster.QRosterRemoval.QRosterWarningShown += PRosterWarningShow;
         IsVisibleChanged += PRosterVisibleHandle;
         Unloaded += PRosterUnloadHandle;
         pRosterElapsedTimer.Tick += PRosterElapsedTick;

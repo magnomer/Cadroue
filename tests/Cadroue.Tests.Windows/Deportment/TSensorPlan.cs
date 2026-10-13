@@ -83,7 +83,7 @@ public sealed class TSensorPlan
         QInspectorChoice choice = TInterface.TSensorChoiceRead(sensor, kind);
         Assert.Equal(tokens.Count + 1, choice.QInspectorChoiceNames.Count);
         Assert.Equal(tokens.Count, choice.QInspectorChoiceCustom);
-        Assert.Equal(tokens.ToList().IndexOf(LDetector.LDetectorTokenDefault), choice.QInspectorChoiceIndex);
+        Assert.Equal(tokens.ToList().IndexOf(LDetectorCatalog.LDetectorTokenDefault), choice.QInspectorChoiceIndex);
 
         TInterface.TSensorChoiceSelect(sensor, kind, 0);
         Assert.Equal(tokens[0], TInterface.TSensorTokenRead(sensor, kind));

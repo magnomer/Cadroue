@@ -283,4 +283,18 @@ public readonly partial record struct LPiece
         lPieceList.Insert(lPieceIndex, lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false });
         return new LPieceDivision(lPieceList, lPieceIndex, lPieceIndex + 1);
     }
+
+    public static List<LPiece> LPieceLosslesscutCreate(
+        IReadOnlyList<LSidecarSectionEntry> lPieceSections,
+        int lPieceColorOffset,
+        int lPiecePaletteCount)
+    {
+        int lPiecePalette = Math.Max(1, lPiecePaletteCount);
+        return lPieceSections
+            .Select((lPieceSection, lPieceIndex) => LPieceCreate(lPieceSection) with
+            {
+                LPieceColorIndex = (lPieceColorOffset + lPieceIndex) % lPiecePalette
+            })
+            .ToList();
+    }
 }

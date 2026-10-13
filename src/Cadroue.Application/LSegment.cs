@@ -96,7 +96,7 @@ public sealed class LSegment
 
     public void LSegmentLosslesscutSet(IReadOnlyList<LSidecarSectionEntry> lSegmentSections, int lSegmentPaletteCount)
     {
-        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(lSegmentSections, 0, lSegmentPaletteCount);
+        List<LPiece> lSegmentImported = LPiece.LPieceLosslesscutCreate(lSegmentSections, 0, lSegmentPaletteCount);
         LSegmentApply(lSegmentImported, lSegmentImported.Count > 0 ? 0 : null);
     }
 
@@ -105,7 +105,7 @@ public sealed class LSegment
         int lSegmentPaletteCount)
     {
         int lSegmentFirst = lSegmentPieces.Count;
-        List<LPiece> lSegmentImported = LSegmentLosslesscutCreate(
+        List<LPiece> lSegmentImported = LPiece.LPieceLosslesscutCreate(
             lSegmentSections,
             lSegmentFirst,
             lSegmentPaletteCount);
@@ -113,20 +113,6 @@ public sealed class LSegment
         List<LPiece> lSegmentList = lSegmentPieces.ToList();
         lSegmentList.AddRange(lSegmentImported);
         LSegmentApply(lSegmentList, lSegmentFirst);
-    }
-
-    private static List<LPiece> LSegmentLosslesscutCreate(
-        IReadOnlyList<LSidecarSectionEntry> lSegmentSections,
-        int lSegmentColorOffset,
-        int lSegmentPaletteCount)
-    {
-        int lSegmentPalette = Math.Max(1, lSegmentPaletteCount);
-        return lSegmentSections
-            .Select((lSegmentSection, lSegmentIndex) => LPiece.LPieceCreate(lSegmentSection) with
-            {
-                LPieceColorIndex = (lSegmentColorOffset + lSegmentIndex) % lSegmentPalette
-            })
-            .ToList();
     }
 
     public void LSegmentAdd(

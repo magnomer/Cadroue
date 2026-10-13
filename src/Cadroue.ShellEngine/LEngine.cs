@@ -26,7 +26,7 @@ public sealed class LEngine
         LCartographer.LCartographerOwnerSeam = lRig.LRigSentinel.LRigSentinelOwner;
         LRunner.LRunnerAddSeam = lRig.LRigSentinel.LRigSentinelEnrollment;
         LRunner.LRunnerRemoveSeam = lRig.LRigSentinel.LRigSentinelWithdrawal;
-        LRunner.LRunnerLeaseSeam = lRig.LRigSentinel.LRigSentinelLease;
+        LRunnerLease.LRunnerLeaseSeam = lRig.LRigSentinel.LRigSentinelLease;
         LCheckupEngine.LCheckupReadSeam = lRig.LRigCheckup.LRigCheckupReader;
         LCheckupEngine.LCheckupSaveSeam = lRig.LRigCheckup.LRigCheckupWriter;
         LEmployerEngine.LEmployerRunSeam = lRig.LRigEmployer.LRigEmployerCommand;

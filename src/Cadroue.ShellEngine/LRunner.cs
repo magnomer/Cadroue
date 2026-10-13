@@ -3,33 +3,36 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public sealed partial class LRunner
+public sealed class LRunner
 {
     internal readonly LScheduleContract lRunnerSchedule;
     private readonly Action<Action> lRunnerPost;
     internal readonly ConcurrentDictionary<Guid, LJob> lRunnerJobs = new();
-    internal readonly ConcurrentDictionary<Guid, byte> lRunnerProcesses = new();
-    internal readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
+    private readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
 
+    private readonly Guid lRunnerId = Guid.NewGuid();
     private readonly object lRunnerGate = new();
     private LRunnerBatch? lRunnerBatch;
-    private bool lRunnerSuspended;
     private volatile bool lRunnerRunning;
 
     private static readonly TimeSpan lRunnerPollInterval = TimeSpan.FromMilliseconds(500);
-
-    private sealed class LRunnerBatch
-    {
-        public readonly CancellationTokenSource LRunnerBatchSource = new();
-        public int LRunnerBatchActive;
-    }
 
     public LRunner(LScheduleContract lSchedule, Action<Action> lRunnerPostAction)
     {
         lRunnerSchedule = lSchedule;
         lRunnerPost = lRunnerPostAction;
+        LRunnerLease = new LRunnerLease(lSchedule, lRunnerId);
+        LRunnerProcess = new LRunnerProcess(lRunnerGate, lSchedule, lRunnerPostAction);
         LRunnerAddSeam(lRunnerId);
     }
+
+    public static Action<Guid> LRunnerAddSeam { get; set; } = _ => { };
+
+    public static Action<Guid> LRunnerRemoveSeam { get; set; } = _ => { };
+
+    internal LRunnerLease LRunnerLease { get; }
+
+    public LRunnerProcess LRunnerProcess { get; }
 
     public string LRunnerProgramPath { get; set; } = "ffmpeg";
 
@@ -61,13 +64,19 @@ public sealed partial class LRunner
     internal static void LRunnerFfmpegRecord(string lRunnerSummary, string? lRunnerDetail = null)
         => LTraceEngine.LTraceFfmpegSeam(lRunnerSummary, lRunnerDetail);
 
-    public bool LRunnerSuspended => lRunnerSuspended;
+    public Guid LRunnerIdentity => lRunnerId;
+
+    public bool LRunnerOwnerCheck(LWorkItem lWorkItem) =>
+        lRunnerSchedule.LScheduleOwnerCheck(lWorkItem, lRunnerId);
+
+    public bool LRunnerForeignCheck(LWorkItem lWorkItem) =>
+        lRunnerSchedule.LScheduleForeignCheck(lWorkItem, lRunnerId);
 
     public bool LRunnerPaused { get; private set; }
 
     internal async Task LRunnerResume(CancellationToken lRunnerToken)
     {
-        while (lRunnerSuspended)
+        while (LRunnerProcess.LRunnerProcessSuspended)
         {
             lRunnerToken.ThrowIfCancellationRequested();
             await Task.Delay(lRunnerPollInterval, lRunnerToken).ConfigureAwait(false);
@@ -87,9 +96,9 @@ public sealed partial class LRunner
             LRunnerRunning = true;
             LRunnerPaused = false;
 
-            if (lRunnerSuspended)
+            if (LRunnerProcess.LRunnerProcessSuspended)
             {
-                LRunnerProcessResume();
+                LRunnerProcess.LRunnerProcessResume();
                 if (lRunnerBatch is null)
                 {
                     LRunnerBatchStart();
@@ -110,44 +119,7 @@ public sealed partial class LRunner
         {
             LRunnerRunning = false;
             LRunnerPaused = true;
-
-            if (!lRunnerSuspended)
-            {
-                bool lRunnerLiveExisted = false;
-                bool lRunnerSuspendedAny = false;
-                var lRunnerHeld = new List<Guid>();
-                foreach (KeyValuePair<Guid, byte> lRunnerEntry in lRunnerProcesses)
-                {
-                    Guid lWorkId = lRunnerEntry.Key;
-                    bool lRunnerLive = LEmployerEngine.LEmployerLiveSeam(lWorkId);
-                    lRunnerLiveExisted |= lRunnerLive;
-                    if (!LEmployerEngine.LEmployerSuspendSeam(lWorkId))
-                    {
-                        continue;
-                    }
-
-                    lRunnerSuspendedAny |= lRunnerLive;
-                    lRunnerHeld.Add(lWorkId);
-                }
-
-                if (lRunnerSuspendedAny || !lRunnerLiveExisted)
-                {
-                    lRunnerSuspended = true;
-                    foreach (Guid lWorkId in lRunnerHeld)
-                    {
-                        LRunnerMessageSet(LRunnerItemRead(lWorkId), "Suspended");
-                    }
-                }
-                else
-                {
-                    foreach (Guid lWorkId in lRunnerHeld)
-                    {
-                        LEmployerEngine.LEmployerResumeSeam(lWorkId);
-                    }
-
-                    LRunnerRecord("Pause failed: no running process could be suspended; the queue keeps encoding");
-                }
-            }
+            LRunnerProcess.LRunnerProcessSuspend();
         }
 
         lRunnerSchedule.LScheduleChangeRaise();
@@ -163,12 +135,12 @@ public sealed partial class LRunner
             lRunnerBatch?.LRunnerBatchSource.Cancel();
             lRunnerBatch = null;
 
-            if (lRunnerSuspended)
+            if (LRunnerProcess.LRunnerProcessSuspended)
             {
-                LRunnerProcessResume();
+                LRunnerProcess.LRunnerProcessResume();
             }
 
-            lRunnerSuspended = false;
+            LRunnerProcess.LRunnerProcessReset();
             lRunnerDraining = lRunnerJobs.Values.Select(lRunnerJob => lRunnerJob.LJobCompletion).ToArray();
         }
 
@@ -187,58 +159,31 @@ public sealed partial class LRunner
         lRunnerCancelled[lWorkId] = 0;
     }
 
-    internal void LRunnerProcessAttach(Guid lWorkId)
+    internal bool LRunnerPendingRemove(Guid lWorkId) => lRunnerCancelled.TryRemove(lWorkId, out _);
+
+    public async Task LRunnerDispose()
     {
-        lock (lRunnerGate)
+        if (LRunnerRunning || !lRunnerJobs.IsEmpty)
         {
-            lRunnerProcesses[lWorkId] = 0;
-            if (lRunnerSuspended && LEmployerEngine.LEmployerSuspendSeam(lWorkId))
-            {
-                LRunnerMessageSet(LRunnerItemRead(lWorkId), "Suspended");
-            }
+            LRunnerRecord($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
+            await LRunnerCancel().ConfigureAwait(false);
         }
+
+        LRunnerRunning = false;
+        LRunnerLease.LRunnerLeaseClear();
+        LRunnerRemoveSeam(lRunnerId);
     }
 
-    internal void LRunnerProcessDetach(Guid lWorkId)
+    public void LRunnerPhaseSet(LWorkItem lWorkItem, LWorkPhase lRunnerPhase)
     {
-        lock (lRunnerGate)
+        if (lWorkItem.LWorkPhaseCurrent == lRunnerPhase)
         {
-            if (lRunnerProcesses.TryRemove(lWorkId, out _))
-            {
-                LEmployerEngine.LEmployerResumeSeam(lWorkId);
-            }
+            return;
         }
+
+        lWorkItem.LWorkPhaseCurrent = lRunnerPhase;
+        lRunnerSchedule.LSchedulePhaseSet(lWorkItem.LWorkId, lRunnerId, lRunnerPhase);
     }
-
-    private void LRunnerProcessResume()
-    {
-        bool lRunnerAllResumed = true;
-        foreach (KeyValuePair<Guid, byte> lRunnerEntry in lRunnerProcesses)
-        {
-            Guid lWorkId = lRunnerEntry.Key;
-            if (!LEmployerEngine.LEmployerResumeSeam(lWorkId))
-            {
-                lRunnerAllResumed = false;
-                continue;
-            }
-
-            LRunnerMessageSet(LRunnerItemRead(lWorkId), string.Empty);
-        }
-
-        if (lRunnerAllResumed)
-        {
-            lRunnerSuspended = false;
-        }
-        else
-        {
-            LRunnerRecord(
-                "Resume failed: a live process stayed suspended; " +
-                "the paused flag is kept so the next Play retries the resume");
-        }
-    }
-
-    private LWorkItem? LRunnerItemRead(Guid lWorkId) =>
-        lRunnerJobs.TryGetValue(lWorkId, out LJob? lRunnerJob) ? lRunnerJob.LJobItem : null;
 
     private void LRunnerBatchStart()
     {
@@ -336,7 +281,7 @@ public sealed partial class LRunner
             if (lRunnerCurrent)
             {
                 lRunnerBatch = null;
-                lRunnerSuspended = false;
+                LRunnerProcess.LRunnerProcessReset();
             }
         }
 
@@ -365,18 +310,4 @@ public sealed partial class LRunner
     }
 
     internal void LRunnerDispatch(Action pAction) => lRunnerPost(pAction);
-
-    private void LRunnerMessageSet(LWorkItem? pWorkItem, string pMessage)
-    {
-        if (pWorkItem is null)
-        {
-            return;
-        }
-
-        LRunnerDispatch(() =>
-        {
-            pWorkItem.LWorkMessage = pMessage;
-            lRunnerSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
-        });
-    }
 }

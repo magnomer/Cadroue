@@ -22,7 +22,7 @@ public static class LTrialCatalog
     private static async Task LTrialSetRun(Func<string, Task<LTrialResult>> lTrial)
     {
         var lAvailable = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (LRepertoireEncoder lCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
+        foreach (LRepertoireEncoder lCandidate in LRepertoireVideo.LRepertoireEncodersRead())
         {
             foreach (string lEncoder in lCandidate.LRepertoireTokens)
             {

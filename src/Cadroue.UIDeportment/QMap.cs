@@ -195,7 +195,7 @@ public sealed class QMap
                 break;
         }
 
-        qFlow.QFlowDragHandle(true);
+        qFlow.QFlowWheel.QFlowDragHandle(true);
         if (qMapDragKind == QMapHitKind.QMapHitCursor)
         {
             qFlow.QFlowCursorSeek(QMapTimeResolve(lSpool, lX, lWidth));
@@ -241,7 +241,7 @@ public sealed class QMap
         qMapDragKind = QMapHitKind.QMapHitNone;
         if (lDragging)
         {
-            qFlow.QFlowDragHandle(false);
+            qFlow.QFlowWheel.QFlowDragHandle(false);
         }
     }
 

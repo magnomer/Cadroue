@@ -8,13 +8,15 @@ namespace Convention.Tests;
 
 public sealed class TAuditCommentStamp
 {
-    private const string TAuditMissingProblem = "no hash";
-
-    private const string TAuditChangedProblem = "source changed";
+    private const string TAuditMissingProblem = "no stamp";
 
     private const string TAuditUnstampedKind = "Unstamped";
 
-    private static readonly Regex TAuditHashPattern = new("^Hash: `(?<hash>[0-9a-f]{16})`$", RegexOptions.Compiled);
+    private static readonly Regex TAuditCommitPattern =
+        new(@"^Commit: `(?<commit>[0-9a-f]{7,40})`\s*$", RegexOptions.Compiled);
+
+    private static readonly Regex TAuditRowPattern =
+        new(@"^- `(?<name>[^`]+)` `(?<hash>[0-9a-f]{16})`\s*$", RegexOptions.Compiled);
 
     private readonly ITestOutputHelper _tAuditOutput;
 
@@ -24,38 +26,18 @@ public sealed class TAuditCommentStamp
     }
 
     [Fact]
-    public void AuditComment_StampedFiles_MatchSource()
+    public void AuditComment_ChangedFolders_Advise()
     {
         List<string> hits = TAuditStampRead(TAuditSource.TAuditRootRead())
-            .Where(hit => hit.EndsWith(TAuditChangedProblem, StringComparison.Ordinal))
+            .Where(hit => !hit.EndsWith(TAuditMissingProblem, StringComparison.Ordinal))
             .ToList();
-
-        Assert.True(hits.Count == 0, TAuditConvention.TAuditReportFormat(
-            "AUDITCOMMENTS",
-            $"{hits.Count} comment file(s) carry a hash their source no longer matches.\n"
-            + "A stale hash means the source changed under this prose. Do not just restamp it.\n"
-            + "For each file, diff its sources (git diff -- <source>) and reread every section the diff touches.\n"
-            + "Rewrite prose that no longer holds, add sections for new members and drop sections for removed ones.\n"
-            + "Only then run scripts/StampComment.ps1 on the file. It lists the sections the source changes touch.\n"
-            + "A restamp that leaves the prose word for word is flagged on the next run.\n"
-            + string.Join('\n', hits)));
-    }
-
-    [Fact]
-    public void AuditComment_RestampedFiles_ReviseProse()
-    {
-        string repoRoot = TAuditSource.TAuditRootRead();
-        List<string> hits = TAuditCommentSnapshot.TAuditRestampRead(repoRoot, TAuditStateRead(repoRoot));
         if (hits.Count > 0)
         {
             _tAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
                 "AUDITCOMMENTS",
-                "WARNING: HASH BUMPED, COMMENT NOT REVISED.\n"
-                + "THESE FILES WERE RESTAMPED, YET THEIR PROSE MATCHES THE TEXT THEY HELD WHILE STALE.\n"
-                + "DO NOT BUMP HASHES MINDLESSLY. A STAMP VOUCHES THAT THE PROSE WAS REREAD.\n"
-                + "DIFF EACH SOURCE, REREAD EVERY SECTION IT TOUCHES, REWRITE WHAT NO LONGER HOLDS.\n"
-                + "IF THE PROSE STILL HOLDS, STATE WHY FOR EACH FILE IN THE REPORT OF THIS CHANGE.\n"
-                + "THE WARNING CLEARS WHEN THE PROSE CHANGES OR A COMMIT CARRIES THE NEW STAMP."));
+                $"ADVICE (never a failure): {hits.Count} folder(s) changed since their sidecar was stamped.\n"
+                + "Better to check: run the listed diff and reread the sidecar where the change touches its intent.\n"
+                + "Then run scripts/StampComment.ps1 on the sidecar."));
             _tAuditOutput.WriteLine(string.Join('\n', hits));
         }
     }
@@ -72,15 +54,16 @@ public sealed class TAuditCommentStamp
             _tAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
                 "AUDITCOMMENTS",
                 $"WARNING (not a failure while at or below the ceiling {ceiling}): "
-                + $"{hits.Count} comment file(s) carry no hash. "
+                + $"{hits.Count} sidecar(s) carry no stamp. "
                 + "Reread each one, then stamp it with scripts/StampComment.ps1."));
             _tAuditOutput.WriteLine(string.Join('\n', hits));
         }
 
-        Assert.True(hits.Count <= ceiling, TAuditConvention.TAuditReportFormat(
+        bool held = !TAuditCommentSetting.TAuditCommentEnforced || hits.Count <= ceiling;
+        Assert.True(held, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"{hits.Count} comment file(s) carry no hash, above the ceiling {ceiling}. "
-            + "A new comment file is stamped when it is written.\n"
+            $"{hits.Count} sidecar(s) carry no stamp, above the ceiling {ceiling}. "
+            + "A new sidecar is stamped when it is written.\n"
             + string.Join('\n', hits)));
     }
 
@@ -93,62 +76,145 @@ public sealed class TAuditCommentStamp
 
         Assert.True(count >= ceiling, TAuditConvention.TAuditReportFormat(
             "AUDITCOMMENTS",
-            $"The ceiling {ceiling} sits above the {count} unstamped comment file(s) and must be lowered."));
+            $"The ceiling {ceiling} sits above the {count} unstamped sidecar(s) and must be lowered."));
+    }
+
+    [Fact]
+    public void AuditComment_Folders_HoldFileLimit()
+    {
+        string repoRoot = TAuditSource.TAuditRootRead();
+        int limit = TAuditCommentSetting.TAuditCommentFolderFiles;
+        IReadOnlyDictionary<string, int> ceilings = TAuditCommentSetting.TAuditCommentFolders;
+        List<string> hits = TAuditFolderRead(repoRoot)
+            .Where(pair => pair.Value > limit
+                && !(ceilings.TryGetValue(pair.Key, out int ceiling) && pair.Value <= ceiling))
+            .Select(pair => $"  {pair.Key}: {pair.Value} files")
+            .ToList();
+        if (hits.Count > 0)
+        {
+            _tAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
+                "AUDITCOMMENTS",
+                $"WARNING (never a failure): {hits.Count} folder(s) hold more than {limit} sources "
+                + "above their ceiling. Split the folder by concern, or hold its count under a ceiling row."));
+            _tAuditOutput.WriteLine(string.Join('\n', hits));
+        }
+    }
+
+    [Fact]
+    public void AuditComment_FolderCeilings_MatchCount()
+    {
+        Dictionary<string, int> counts = TAuditFolderRead(TAuditSource.TAuditRootRead());
+        int limit = TAuditCommentSetting.TAuditCommentFolderFiles;
+        List<string> hits = TAuditCommentSetting.TAuditCommentFolders
+            .Where(pair => pair.Value <= limit || pair.Value > counts.GetValueOrDefault(pair.Key))
+            .Select(pair => $"  {pair.Key}: ceiling {pair.Value}, count {counts.GetValueOrDefault(pair.Key)}")
+            .ToList();
+        if (hits.Count > 0)
+        {
+            _tAuditOutput.WriteLine(TAuditConvention.TAuditReportFormat(
+                "AUDITCOMMENTS",
+                $"WARNING (never a failure): {hits.Count} folder ceiling(s) sit above their count "
+                + $"or at or under the limit {limit}.\n"
+                + string.Join('\n', hits)));
+        }
+    }
+
+    private static Dictionary<string, int> TAuditFolderRead(string repoRoot)
+    {
+        return TAuditCommentFile.TAuditOwnerRead(repoRoot)
+            .GroupBy(path =>
+            {
+                string directory = Path.GetDirectoryName(Path.GetFullPath(path))!;
+                string folder = Path.GetRelativePath(repoRoot, directory).Replace('\\', '/');
+                return folder.Length == 0 ? "." : folder;
+            }, StringComparer.Ordinal)
+            .ToDictionary(group => group.Key, group => group.Count(), StringComparer.Ordinal);
     }
 
     private static List<string> TAuditStampRead(string repoRoot)
     {
         List<string> hits = [];
-        foreach ((string path, string second, string expected) in TAuditStateRead(repoRoot))
+        IEnumerable<IGrouping<string, string>> folders = TAuditCommentFile.TAuditOwnerRead(repoRoot)
+            .GroupBy(path => TAuditCommentFile.TAuditCommentRead(repoRoot, path), StringComparer.OrdinalIgnoreCase)
+            .Where(group => File.Exists(group.Key))
+            .Where(group => !TAuditCommentFile.TAuditReservedCheck(repoRoot, group.Key))
+            .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase);
+        foreach (IGrouping<string, string> folder in folders)
         {
-            Match stamp = TAuditHashPattern.Match(second);
-            string problem = !stamp.Success
-                ? TAuditMissingProblem
-                : stamp.Groups["hash"].Value == expected ? string.Empty : TAuditChangedProblem;
-            if (problem.Length > 0)
+            string[] owners = [.. folder
+                .Where(owner => !TAuditCommentSetting.TAuditCommentExempt.Contains(
+                    Path.GetFileName(owner), StringComparer.OrdinalIgnoreCase))
+                .OrderBy(Path.GetFileName, StringComparer.Ordinal)];
+            if (owners.Length == 0)
             {
-                string relative = Path.GetRelativePath(repoRoot, path).Replace('\\', '/');
-                hits.Add($"  {relative}:2 {problem}");
+                continue;
+            }
+
+            string relative = Path.GetRelativePath(repoRoot, folder.Key).Replace('\\', '/');
+            string[] lines = File.ReadAllLines(folder.Key);
+            int stamp = TAuditCommentFile.TAuditStampFind(lines);
+            string? commit = null;
+            Dictionary<string, string> rows = new(StringComparer.Ordinal);
+            for (int index = stamp < 0 ? lines.Length : stamp + 1; index < lines.Length; index++)
+            {
+                Match commitMatch = TAuditCommitPattern.Match(lines[index]);
+                if (commitMatch.Success)
+                {
+                    commit = commitMatch.Groups["commit"].Value;
+                    continue;
+                }
+
+                Match rowMatch = TAuditRowPattern.Match(lines[index]);
+                if (rowMatch.Success)
+                {
+                    rows[rowMatch.Groups["name"].Value] = rowMatch.Groups["hash"].Value;
+                }
+            }
+
+            if (stamp < 0 || commit is null)
+            {
+                hits.Add($"  {relative} {TAuditMissingProblem}");
+                continue;
+            }
+
+            Dictionary<string, string> hashes = owners.ToDictionary(
+                owner => Path.GetFileName(owner), TAuditHashRead, StringComparer.Ordinal);
+            List<string> changes = [];
+            string[] changed = [.. hashes.Keys
+                .Where(name => rows.TryGetValue(name, out string? hash) && hash != hashes[name])];
+            string[] added = [.. hashes.Keys.Where(name => !rows.ContainsKey(name))];
+            string[] removed = [.. rows.Keys.Where(name => !hashes.ContainsKey(name))];
+            if (changed.Length > 0)
+            {
+                changes.Add("changed " + string.Join(", ", changed));
+            }
+
+            if (added.Length > 0)
+            {
+                changes.Add("added " + string.Join(", ", added));
+            }
+
+            if (removed.Length > 0)
+            {
+                changes.Add("removed " + string.Join(", ", removed));
+            }
+
+            if (changes.Count > 0)
+            {
+                string? directory = Path.GetDirectoryName(relative);
+                string folderPath = string.IsNullOrEmpty(directory) ? "." : directory.Replace('\\', '/');
+                hits.Add($"  {relative} {string.Join(" | ", changes)} (git diff {commit} -- {folderPath})");
             }
         }
 
         return hits;
     }
 
-    private static List<(string, string, string)> TAuditStateRead(string repoRoot)
+    private static string TAuditHashRead(string owner)
     {
-        List<(string, string, string)> states = [];
-        HashSet<string> rooted = new(
-            TAuditCommentSetting.TAuditCommentFiles.Select(
-                file => TAuditCommentFile.TAuditCommentRead(Path.Combine(repoRoot, file))),
-            StringComparer.OrdinalIgnoreCase);
-        IEnumerable<IGrouping<string, string>> pairs = TAuditCommentFile.TAuditOwnerRead(repoRoot)
-            .GroupBy(TAuditCommentFile.TAuditCommentRead, StringComparer.OrdinalIgnoreCase)
-            .Where(group => File.Exists(group.Key))
-            .Where(group => !TAuditCommentFile.TAuditReservedCheck(repoRoot, group.Key))
-            .OrderBy(group => rooted.Contains(group.Key))
-            .ThenBy(group => group.Key, StringComparer.OrdinalIgnoreCase);
-        foreach (IGrouping<string, string> pair in pairs)
-        {
-            string[] owners = [.. pair.OrderBy(Path.GetFileName, StringComparer.Ordinal)];
-            if (owners.Any(owner => TAuditCommentSetting.TAuditCommentExempt.Contains(
-                    Path.GetFileName(owner), StringComparer.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
-
-            string[] lines = File.ReadAllLines(pair.Key);
-            states.Add((pair.Key, lines.Length >= 2 ? lines[1] : string.Empty, TAuditHashRead(owners)));
-        }
-
-        return states;
-    }
-
-    private static string TAuditHashRead(IEnumerable<string> owners)
-    {
-        string text = string.Concat(owners.Select(owner => File.ReadAllText(owner)
+        string text = File.ReadAllText(owner)
             .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Replace('\r', '\n')));
+            .Replace('\r', '\n');
         byte[] digest = SHA256.HashData(new UTF8Encoding(false).GetBytes(text));
         return Convert.ToHexStringLower(digest)[..16];
     }

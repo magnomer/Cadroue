@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditObjectSetting
 {
-    public const int TAuditGeneration = 23;
+    public const int TAuditGeneration = 24;
     public const bool TAuditObjectEnforced = true;
     public const string TAuditObjectReport = "temp/audit/Object-{0}.md";
 
@@ -52,8 +52,8 @@ internal static class TAuditObjectSetting
         ["Spider"] = 1,
         ["Chameleon"] = 63,
         ["Octopus"] = 2,
-        ["Centipede"] = 58,
-        ["Serpent"] = 18,
+        ["Centipede"] = 55,
+        ["Serpent"] = 17,
         ["Hub"] = 12,
     };
 
@@ -75,7 +75,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.Infrastructure.LMpv"] = 5,
         ["Cadroue.Infrastructure.LScene"] = 2,
         ["Cadroue.Infrastructure.LSchedule"] = 7,
-        ["Cadroue.Infrastructure.LSidecarStore"] = 2,
+        ["Cadroue.Infrastructure.LSidecarStore"] = 1,
         ["Cadroue.Infrastructure.LTrace"] = 3,
         ["Cadroue.Infrastructure.LTraceWriter"] = 4,
         ["Cadroue.Media.LMedia"] = 5,
@@ -84,7 +84,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.ShellEngine.LEncodeVideo"] = 4,
         ["Cadroue.ShellEngine.LJob"] = 10,
         ["Cadroue.ShellEngine.LMessenger"] = 9,
-        ["Cadroue.ShellEngine.LRunner"] = 2,
+        ["Cadroue.ShellEngine.LRunner"] = 1,
         ["Cadroue.ShellEngine.LSweep"] = 7,
         ["Cadroue.UIDeportment.QSEncoder"] = 3,
         ["Cadroue.UIVeneer.PHouse.PWindow"] = 5,

@@ -18,10 +18,11 @@ internal static class TInterfaceList
     internal static void TListReleaseSelect(QList list) => list.QListReleaseSelect();
     internal static void TListAllSelect(QList list) => list.QListAllSelect();
     internal static IReadOnlyList<string> TListSelectionRead(QList list) => list.QListSelectionRead();
-    internal static void TListSuccessorSet(QList list, params string[] removed) => list.QListSuccessorSet(removed);
-    internal static void TListSuccessorReset(QList list) => list.QListSuccessorReset();
+    internal static void TListSuccessorSet(QList list, params string[] removed) =>
+        list.QListSuccessor.QListSuccessorSet(
+            removed, list.QListDocket.LDocketPathsRead(), list.QListIndexRead(removed[0]));
+    internal static void TListSuccessorReset(QList list) => list.QListSuccessor.QListSuccessorReset();
     internal static void TListRemovedApply(QList list, params string[] removed) => list.QListRemovedApply(removed);
-    internal static void TListSuccessorSelect(QList list) => list.QListSuccessorSelect();
     internal static void TListChangeAttach(QList list, Action handler) => list.QListChanged += handler;
     internal static void TListClearAttach(QList list, Action<IReadOnlyList<string>> handler) =>
         list.QListClearChanged += handler;

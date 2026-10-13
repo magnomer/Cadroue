@@ -13,7 +13,8 @@ public sealed class QRoster
     private sealed record QRosterBatch(
         Guid QRosterBatchId,
         CLineageAnswer QRosterBatchAnswer,
-        IReadOnlyList<LWorkItem> QRosterBatchItems);
+        IReadOnlyList<LWorkItem> QRosterBatchItems,
+        bool QRosterBatchCompleted);
 
     private readonly CUsher qRosterUsher;
     private readonly CLineage qRosterLineage;
@@ -21,13 +22,9 @@ public sealed class QRoster
     private readonly LStation qStation;
     private readonly List<Guid> qRosterOrderedIds = [];
     private readonly HashSet<Guid> qRosterPresentIds = [];
-    private readonly HashSet<Guid> qRosterCompletedIds = [];
     private readonly List<QRosterBatch> qRosterBatches = [];
-    private readonly List<QRosterCard> qRosterCards = [];
     private bool qRosterClosed;
     private QColumnPlan? qRosterPlan;
-    private readonly IList<QRosterEntry> qRosterEntries;
-    private readonly List<int> qRosterEntryCounts = [];
 
     public QRoster(CUsher lUsher, CLineage lLineage, LScheduleContract lScheduleOwner, LStation lStationOwner)
     {
@@ -42,10 +39,10 @@ public sealed class QRoster
         qStation.LStationSelectionSource = QRosterSelectionRead;
         qSchedule.LScheduleChanged += QRosterScheduleHandle;
         qSchedule.LScheduleItemChanged += QRosterItemHandle;
+        QRosterRemoval = new QRosterRemoval();
+        QRosterRemoval.QRosterRemovalConfirmed += QRosterBatchRemove;
         QRosterMenu = new QRosterMenu(lUsher, qSchedule, qStation, QRosterSelectionRead);
-        System.Collections.ObjectModel.ObservableCollection<QRosterEntry> lEntries = [];
-        qRosterEntries = lEntries;
-        QRosterEntries = lEntries;
+        QRosterFeed = new QRosterFeed();
     }
 
     public static QRoster QRosterCreate(CUsher lUsher, CLineage lLineage) => new(
@@ -56,8 +53,6 @@ public sealed class QRoster
 
     public event Action? QRosterDetailApplied;
 
-    public event Action<string, string>? QRosterWarningShown;
-
     public QRosterMenu QRosterMenu { get; }
 
     public QRosterCollapse QRosterCollapse { get; }
@@ -66,9 +61,11 @@ public sealed class QRoster
 
     public QRosterSelection QRosterSelection { get; }
 
+    public QRosterRemoval QRosterRemoval { get; }
+
     public LStation QRosterStation => qStation;
 
-    public IReadOnlyList<QRosterEntry> QRosterEntries { get; }
+    public QRosterFeed QRosterFeed { get; }
 
     public bool QRosterClosed => qRosterClosed;
 
@@ -175,7 +172,7 @@ public sealed class QRoster
         QRosterCompletedSync(lAnswer.CLineageBatches);
         qRosterBatches.Clear();
         qRosterBatches.AddRange(lAnswer.CLineageBatches.Select(
-            lBatch => new QRosterBatch(lBatch.CLineageBatchId, lAnswer, lItems)));
+            lBatch => new QRosterBatch(lBatch.CLineageBatchId, lAnswer, lItems, lBatch.CLineageBatchCompleted)));
         qRosterOrderedIds.Clear();
         qRosterOrderedIds.AddRange(lAnswer.CLineageBatches.SelectMany(lBatch => lBatch.CLineageBatchIds));
         qRosterPresentIds.Clear();
@@ -186,34 +183,14 @@ public sealed class QRoster
 
     private void QRosterCompletedSync(IReadOnlyList<CLineageBatch> lBatches)
     {
-        HashSet<Guid> lPresent = lBatches.Select(lBatch => lBatch.CLineageBatchId).ToHashSet();
-        qRosterCompletedIds.RemoveWhere(lBatchId => !lPresent.Contains(lBatchId));
         bool lCollapseDone = QRosterCollapseDone;
         foreach (CLineageBatch lBatch in lBatches)
         {
-            if (lBatch.CLineageBatchCompleted)
-            {
-                qRosterCompletedIds.Add(lBatch.CLineageBatchId);
-            }
-            else
-            {
-                qRosterCompletedIds.Remove(lBatch.CLineageBatchId);
-            }
-
-            if (lCollapseDone)
-            {
-                QRosterCollapse.QRosterCollapseSet(lBatch.CLineageBatchId, lBatch.CLineageBatchCompleted);
-            }
+            QRosterCollapse.QRosterCompletedApply(lBatch.CLineageBatchId, lBatch.CLineageBatchCompleted, lCollapseDone);
         }
     }
 
-    private void QRosterCardsUpdate()
-    {
-        QRosterCard[] lNext = QRosterCard.QRosterReuseResolve(qRosterCards, qRosterBatches.Select(QRosterCardCreate));
-        QRosterCard.QRosterStepsResolve(qRosterCards.ToArray(), lNext).ToList().ForEach(QRosterEntriesApply);
-        qRosterCards.Clear();
-        qRosterCards.AddRange(lNext);
-    }
+    private void QRosterCardsUpdate() => QRosterFeed.QRosterFeedApply(qRosterBatches.Select(QRosterCardCreate));
 
     private void QRosterCardUpdate(Guid lBatchId)
     {
@@ -223,43 +200,7 @@ public sealed class QRoster
             return;
         }
 
-        qRosterCards[lIndex] = QRosterCardCreate(qRosterBatches[lIndex]);
-        QRosterEntriesRemove(lIndex);
-        QRosterEntriesInsert(lIndex, qRosterCards[lIndex]);
-    }
-
-    private void QRosterEntriesApply(QRosterCardStep lStep)
-    {
-        if (lStep.QRosterStepCard is { } lCard)
-        {
-            QRosterEntriesInsert(lStep.QRosterStepIndex, lCard);
-            return;
-        }
-
-        QRosterEntriesRemove(lStep.QRosterStepIndex);
-    }
-
-    private void QRosterEntriesInsert(int lCardIndex, QRosterCard lCard)
-    {
-        int lOffset = qRosterEntryCounts.Take(lCardIndex).Sum();
-        IReadOnlyList<QRosterEntry> lEntries = QRosterEntry.QRosterEntriesCreate(lCard);
-        for (int lIndex = 0; lIndex < lEntries.Count; lIndex++)
-        {
-            qRosterEntries.Insert(lOffset + lIndex, lEntries[lIndex]);
-        }
-
-        qRosterEntryCounts.Insert(lCardIndex, lEntries.Count);
-    }
-
-    private void QRosterEntriesRemove(int lCardIndex)
-    {
-        int lOffset = qRosterEntryCounts.Take(lCardIndex).Sum();
-        for (int lIndex = 0; lIndex < qRosterEntryCounts[lCardIndex]; lIndex++)
-        {
-            qRosterEntries.RemoveAt(lOffset);
-        }
-
-        qRosterEntryCounts.RemoveAt(lCardIndex);
+        QRosterFeed.QRosterCardSet(lIndex, QRosterCardCreate(qRosterBatches[lIndex]));
     }
 
     private QRosterCard QRosterCardCreate(QRosterBatch lBatch) => QRosterCard.QRosterCardCreate(
@@ -268,7 +209,7 @@ public sealed class QRoster
         lBatch.QRosterBatchAnswer,
         lBatch.QRosterBatchItems,
         QRosterSelection.QRosterCardCheck(lBatch.QRosterBatchId),
-        qRosterCompletedIds.Contains(lBatch.QRosterBatchId),
+        lBatch.QRosterBatchCompleted,
         QRosterCollapse.QRosterCollapsedCheck(lBatch.QRosterBatchId),
         QRosterOwnerCheck,
         QRosterSelection.QRosterSelectedCheck);
@@ -319,6 +260,14 @@ public sealed class QRoster
 
     internal CLineageBatch QRosterSummaryRead() => qRosterLineage.CLineageBatchRead(QRosterSelection.QRosterCardId);
 
+    public void QRosterRemove(Guid lBatchId) => QRosterRemoval.QRosterRemoveConfirm(
+        qSchedule.LScheduleRemovableRead(qSchedule.LScheduleRecords
+            .Where(lWorkItem => lWorkItem.LWorkBatchId == lBatchId)
+            .Select(lWorkItem => lWorkItem.LWorkId)));
+
+    private void QRosterBatchRemove(IReadOnlyList<Guid> lRemovable) =>
+        QRosterRemoval.QRosterWarningRaise(QConsole.QConsoleRemovalFormat(qSchedule.LScheduleBatchRemove(lRemovable)));
+
     private bool QRosterBatchCheck(Guid lBatchId) =>
         qRosterBatches.Exists(lBatch => lBatch.QRosterBatchId == lBatchId);
 
@@ -327,41 +276,6 @@ public sealed class QRoster
         QRosterCardsUpdate();
         QRosterDetailApplied?.Invoke();
         qStation.LStationSelectionRaise();
-    }
-
-    public void QRosterRemove(Guid lBatchId)
-    {
-        IReadOnlyList<Guid> lRemovable = qSchedule.LScheduleRemovableRead(
-            qSchedule.LScheduleRecords
-                .Where(lWorkItem => lWorkItem.LWorkBatchId == lBatchId)
-                .Select(lWorkItem => lWorkItem.LWorkId));
-        if (lRemovable.Count == 0)
-        {
-            return;
-        }
-
-        QAsk? lAsk = LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
-            ? new QAsk(
-                LLocalization.LLocalizationFormat("Roster.Card.Confirm", lRemovable.Count),
-                LLocalization.LLocalizationTextRead("Terms.Remove"))
-            {
-                QAskTitle = LLocalization.LLocalizationTextRead("Console.Confirm.Title")
-            }
-            : null;
-        QAskNotice.QAskPublish(lAsk, lAnswer => QRosterRemoveRun(lAnswer, lRemovable));
-    }
-
-    private void QRosterRemoveRun(bool lAnswer, IReadOnlyList<Guid> lRemovable)
-    {
-        if (!lAnswer)
-        {
-            return;
-        }
-
-        if (QConsole.QConsoleRemovalFormat(qSchedule.LScheduleBatchRemove(lRemovable)) is { } lMessage)
-        {
-            QRosterWarningShown?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
-        }
     }
 
     public bool QRosterSharedSet(bool? lChecked)

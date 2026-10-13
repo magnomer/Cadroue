@@ -130,7 +130,7 @@ public sealed class LStation
     }
 
     public bool LStationBusyCheck() =>
-        LStationRunner.LRunnerRunning || LStationRunner.LRunnerSuspended;
+        LStationRunner.LRunnerRunning || LStationRunner.LRunnerProcess.LRunnerProcessSuspended;
 
     public static bool LStationActiveCheck()
     {

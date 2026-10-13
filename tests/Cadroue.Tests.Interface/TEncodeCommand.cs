@@ -80,7 +80,7 @@ internal sealed partial class TEncodeCommand : IDisposable
         };
 
     internal static IReadOnlyList<string> TVideoEncodersRead() =>
-        LRepertoireCatalog.LRepertoireEncodersRead()
+        LRepertoireVideo.LRepertoireEncodersRead()
             .Select(encoder => encoder.LRepertoireTokens[0])
             .Distinct(StringComparer.Ordinal)
             .OrderBy(encoder => encoder, StringComparer.Ordinal)

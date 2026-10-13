@@ -21,11 +21,11 @@ public sealed class QEditTab
         qEditDocket = lList.QListDocket;
         QEditColor = new QEditTabColor(QEditInspector, QEditProcessing, lViewer);
         QEditStore = new QEditTabPlan(lUsher, QEditInspector, lViewer, qEditDocket, QEditColor);
-        QEditCrop = new QEditTabCrop(QEditInspector, QEditProcessing, lViewer, QEditStore, QEditColor);
+        QEditCrop = new QEditTabCrop(QEditInspector, QEditProcessing, lViewer, QEditStore);
         QEditTool = new QEditTool(QEditInspector, lViewer);
         QEditProcessing.QProcessingOrderedSet(false);
         QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
-        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCrop.QEditCropHandle;
+        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
@@ -66,7 +66,7 @@ public sealed class QEditTab
     public void QEditClose()
     {
         QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
-        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged -= QEditCrop.QEditCropHandle;
+        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged -= QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged -= QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged -= QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged -= QEditTool.QEditToolHandle;
@@ -85,9 +85,8 @@ public sealed class QEditTab
 
     public void QEditStart()
     {
-        QEditCrop.QEditCropUpdate();
+        QEditCrop.QEditCropStart();
         QEditColor.QEditColorUpdate();
-        qEditViewer.QCrop.QCropActiveSet(QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateActive);
     }
 
     public LSceneTabEntry QEditLayoutRead(LSceneTabEntry lLayout)
@@ -216,8 +215,20 @@ public sealed class QEditTab
     public void QEditSkipHandle()
     {
         QEditProcessing.QProcessingSkipSet(QEditInspector.QInspectorSkip.QSkipActive);
-        QEditCrop.QEditViewerApply();
+        QEditViewerApply();
         QEditStore.QEditStateSave();
+    }
+
+    public void QEditCropboxHandle()
+    {
+        LRotateFlip lRotate = QEditInspector.QInspectorOrientation.QInspectorRotateRead();
+        if (qEditViewer.QViewerPreview.LRotateFlip != lRotate)
+        {
+            qEditViewer.QViewerRotateSet(lRotate);
+            QEditCrop.QEditSourceSync();
+        }
+
+        QEditCrop.QEditCropHandle();
     }
 
     public void QEditChangeHandle()
@@ -231,7 +242,7 @@ public sealed class QEditTab
     {
         QEditColor.QEditEstimateHandle(QEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceMethod);
         QEditHistogramDeferred?.Invoke();
-        QEditCrop.QEditCropRestore(
+        QEditCropRestore(
             qEditViewer.QViewerSourcePath is { } lPath ? QEditStore.QEditNameRead(lPath) : "(no media)");
     }
 
@@ -243,11 +254,71 @@ public sealed class QEditTab
         }
     }
 
+    private void QEditCropRestore(string lName)
+    {
+        LEditPlan? lApplied = null;
+        QEditInspector.QInspectorSaveSuspend();
+        try
+        {
+            QEditCrop.QEditSourceSync();
+            LEditPlan? lPersistent = QEditStore.QEditCarriedRead();
+            LEditPlan? lSaved = QEditStore.QEditSavedRead();
+            LTraceLog.LTraceInfoRecord(
+                $"Edit media ready '{lName}': display {QEditCrop.QEditSourceFormat()}, "
+                + $"persistent {(lPersistent is null ? "off" : "on")}, "
+                + $"carried {QEditTabPlan.QEditPlanFormat(lPersistent)}, "
+                + $"sidecar {QEditTabPlan.QEditPlanFormat(lSaved)}");
+            QEditInspector.QInspectorCrop.QInspectorCropReset();
+
+            bool lCarryWins = lPersistent is not null;
+            LEditPlan lPlan = LEdit.LEditPlanResolve(
+                lSaved,
+                lPersistent,
+                QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent,
+                QEditInspector.QInspectorSkip.QSkipPersistent);
+            LTraceLog.LTraceInfoRecord(
+                $"Edit applying {(lCarryWins ? "persistent" : "sidecar")} plan to '{lName}': "
+                + $"{QEditTabPlan.QEditPlanFormat(lPlan)}");
+            qEditViewer.QViewerRotateSet(LRotateFlip.LRotateCropResolve(lPlan.LEditCrop));
+            QEditCrop.QEditSourceSync();
+
+            lApplied = lCarryWins ? lPlan : null;
+            QEditInspector.QInspectorPlanApply(lPlan);
+        }
+        finally
+        {
+            QEditInspector.QInspectorSaveResume();
+        }
+
+        QEditProcessing.QProcessingSkipSet(QEditInspector.QInspectorSkip.QSkipActive);
+        QEditViewerApply();
+        if (lApplied is not null)
+        {
+            QEditStore.QEditStateSave(lApplied);
+        }
+    }
+
     private void QEditCropApply(LEditPlan lPlan)
     {
         QEditInspector.QInspectorCrop.QInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
-        QEditInspector.QInspectorCrop.QInspectorRatioApply(
+        QEditInspector.QInspectorRatio.QInspectorRatioApply(
             lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
+    }
+
+    private void QEditViewerApply()
+    {
+        bool lSkip = QEditInspector.QInspectorSkip.QSkipActive;
+        LRotateFlip lRotate = lSkip
+            ? LRotateFlip.LRotateDefaultCreate()
+            : QEditInspector.QInspectorOrientation.QInspectorRotateRead();
+        LCropbox? lRect = lSkip ? null : QEditInspector.QInspectorCrop.QInspectorRectRead();
+        LTraceLog.LTraceInfoRecord(
+            $"Edit viewer push: rotate {lRotate.LRotateKind}, "
+            + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}, "
+            + $"{QEditTabPlan.QEditRectFormat(lRect)}");
+        qEditViewer.QViewerRotateSet(lRotate);
+        qEditViewer.QCrop.QCropRectSet(lRect);
+        QEditColor.QEditColorApply();
     }
 
     private bool QEditPresetCheck()

@@ -123,7 +123,7 @@ public static class LCapability
             return string.Empty;
         }
 
-        if (LRepertoireCatalog.LRepertoireTokenResolve(lEncoderText) is { } lToken)
+        if (LRepertoireVideo.LRepertoireTokenResolve(lEncoderText) is { } lToken)
         {
             return lToken;
         }

@@ -225,7 +225,7 @@ public sealed class QSplitTab
             .ToArray();
         Dictionary<LDetectorKind, string> lPresets = lSteps.ToDictionary(
             lStep => lStep.LDetectorStepKind,
-            lStep => lSensor.QSensorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
+            lStep => lSensor.QSensorPreset.QSensorTokenRead(lStep.LDetectorStepKind) ?? string.Empty);
         return new LDetectorBundle(
             lSteps,
             QSplitInspector.QInspectorBlank.QBlankStep,
@@ -268,7 +268,7 @@ public sealed class QSplitTab
 
             foreach (KeyValuePair<LDetectorKind, string> lPreset in lSet.LDetectorSetPresets)
             {
-                lSensor.QSensorTokenSet(lPreset.Key, lPreset.Value);
+                lSensor.QSensorPreset.QSensorTokenSet(lPreset.Key, lPreset.Value);
             }
         }
         finally

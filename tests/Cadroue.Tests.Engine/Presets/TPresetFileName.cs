@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Cadroue.Tests.Engine;
 
-[CollectionDefinition("Preset")]
+[CollectionDefinition("Preset", DisableParallelization = true)]
 public sealed class TPresetCollection { }
 
 [Collection("Preset")]

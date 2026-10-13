@@ -103,8 +103,10 @@ public sealed partial class PInspector
         pInspectorRatioLenient.IsChecked = PLook.PLookChecked[lCrop.QInspectorRatioLenient];
         pInspectorRatioLenient.IsEnabled = lCrop.QInspectorRatioFixed;
         pInspectorResolution.Text = lCrop.QInspectorResolutionRead();
-        pInspectorRatioWidth.Text = lCrop.QInspectorRatioFormat(true, pInspectorRatioWidth.Text);
-        pInspectorRatioHeight.Text = lCrop.QInspectorRatioFormat(false, pInspectorRatioHeight.Text);
+        pInspectorRatioWidth.Text =
+            QInspector.QInspectorRatio.QInspectorRatioFormat(true, pInspectorRatioWidth.Text);
+        pInspectorRatioHeight.Text =
+            QInspector.QInspectorRatio.QInspectorRatioFormat(false, pInspectorRatioHeight.Text);
         pInspectorRatioNotice.Text = lCrop.QInspectorNoticeRead();
         pInspectorRatioNotice.Visibility = PLook.PLookVisible[lCrop.QInspectorNoticeShown];
     }

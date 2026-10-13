@@ -21,6 +21,8 @@ public sealed class QFunnel
     public QFunnel()
     {
         QFunnelDrag = new QFunnelDrag(this);
+        QFunnelCriterion = new QFunnelCriterion();
+        QFunnelCriterion.QFunnelCriterionChanged += QFunnelCriterionHandle;
     }
 
     public event Action? QFunnelChanged;
@@ -29,6 +31,8 @@ public sealed class QFunnel
     public event Action<QFunnelRule>? QFunnelRuleDeleted;
 
     public QFunnelDrag QFunnelDrag { get; }
+
+    public QFunnelCriterion QFunnelCriterion { get; }
 
     public IReadOnlyList<QFunnelRule> QFunnelRules => qFunnelRules;
 
@@ -65,7 +69,7 @@ public sealed class QFunnel
     }
 
     public IReadOnlyList<QFunnelTarget> QFunnelTargetsRead() =>
-        qFunnelStrip?.QStripRelayRead(qFunnelSelf)
+        qFunnelStrip?.QStripRelay.QStripRelayRead(qFunnelSelf)
             .Select(lTab => new QFunnelTarget(lTab.QStripTabId, lTab.QStripTabTitle, lTab.QStripTabKey))
             .ToArray()
         ?? [];
@@ -219,83 +223,6 @@ public sealed class QFunnel
         QFunnelRuleChanged?.Invoke(lRule);
     }
 
-    public LSceneFunnelCondition QFunnelMatchRead(QFunnelRule lRule, QFunnelKind lKind) => lKind switch
-    {
-        QFunnelKind.QFunnelKindPrefix => lRule.QFunnelRulePrefix,
-        QFunnelKind.QFunnelKindEnd => lRule.QFunnelRuleEnd,
-        QFunnelKind.QFunnelKindExtension => lRule.QFunnelRuleExtension,
-        _ => lRule.QFunnelRuleContains
-    };
-
-    public string QFunnelTextResolve(QFunnelRule lRule, QFunnelKind lKind, string lShown) =>
-        QFunnelEchoResolve(QFunnelMatchRead(lRule, lKind).LSceneFunnelText, lShown);
-
-    public string QFunnelRegexResolve(QFunnelRule lRule, string lShown) =>
-        QFunnelEchoResolve(lRule.QFunnelRuleRegex, lShown);
-
-    public void QFunnelTextSet(QFunnelRule lRule, QFunnelKind lKind, string lText)
-    {
-        LSceneFunnelCondition lMatch = QFunnelMatchRead(lRule, lKind);
-        string lTrimmed = lText.Trim();
-        if (lMatch.LSceneFunnelText == lTrimmed)
-        {
-            return;
-        }
-
-        lMatch.LSceneFunnelText = lTrimmed;
-        QFunnelRuleChanged?.Invoke(lRule);
-    }
-
-    public void QFunnelCaseSet(QFunnelRule lRule, QFunnelKind lKind, bool lCase)
-    {
-        LSceneFunnelCondition lMatch = QFunnelMatchRead(lRule, lKind);
-        if (lMatch.LSceneFunnelCase == lCase)
-        {
-            return;
-        }
-
-        lMatch.LSceneFunnelCase = lCase;
-        QFunnelRuleChanged?.Invoke(lRule);
-    }
-
-    public void QFunnelCaseToggle(QFunnelRule lRule, QFunnelKind lKind) =>
-        QFunnelCaseSet(lRule, lKind, !QFunnelMatchRead(lRule, lKind).LSceneFunnelCase);
-
-    public void QFunnelJoinSet(QFunnelRule lRule, QFunnelKind lKind, bool lAnd)
-    {
-        LSceneFunnelCondition lMatch = QFunnelMatchRead(lRule, lKind);
-        if (lMatch.LSceneFunnelJoin == lAnd)
-        {
-            return;
-        }
-
-        lMatch.LSceneFunnelJoin = lAnd;
-        QFunnelRuleChanged?.Invoke(lRule);
-    }
-
-    public void QFunnelRegexSet(QFunnelRule lRule, string lRegex)
-    {
-        string lTrimmed = lRegex.Trim();
-        if (lRule.QFunnelRuleRegex == lTrimmed)
-        {
-            return;
-        }
-
-        lRule.QFunnelRuleRegex = lTrimmed;
-        QFunnelRuleChanged?.Invoke(lRule);
-    }
-
-    public void QFunnelWholeSet(QFunnelRule lRule, bool lWhole)
-    {
-        if (lRule.QFunnelRuleWhole == lWhole)
-        {
-            return;
-        }
-
-        lRule.QFunnelRuleWhole = lWhole;
-        QFunnelRuleChanged?.Invoke(lRule);
-    }
-
     public void QFunnelCollapsedSet(QFunnelRule lRule, bool lCollapsed)
     {
         if (lRule.QFunnelRuleCollapsed == lCollapsed)
@@ -358,6 +285,5 @@ public sealed class QFunnel
         }
     }
 
-    private static string QFunnelEchoResolve(string lStored, string lShown) =>
-        lShown.Trim() == lStored ? lShown : lStored;
+    private void QFunnelCriterionHandle(QFunnelRule lRule) => QFunnelRuleChanged?.Invoke(lRule);
 }

@@ -38,7 +38,7 @@ public sealed partial class QSEncoder
     public string QSEncoderVideoRate => qsEncoderVideoRate;
 
     public LCapabilityCodec QSEncoderVideoCodec =>
-        LCapability.LCapabilityRead(LRepertoireCatalog.LRepertoireTokenResolve(qsEncoderVideoEncoder) ?? string.Empty);
+        LCapability.LCapabilityRead(LRepertoireVideo.LRepertoireTokenResolve(qsEncoderVideoEncoder) ?? string.Empty);
 
     public int QSEncoderSizeTier => qsEncoderSizeTier;
 
@@ -85,9 +85,9 @@ public sealed partial class QSEncoder
     public static string[] QSEncoderVideoRead(string lContainer, string lKeep)
     {
         bool lKnown = LRepertoireCatalog.LRepertoireContainerNames.Contains(lContainer);
-        string[] lItems = LRepertoireCatalog.LRepertoireEncodersRead()
+        string[] lItems = LRepertoireVideo.LRepertoireEncodersRead()
             .Where(lCandidate =>
-                (!lKnown || LRepertoireCatalog.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
+                (!lKnown || LRepertoireVideo.LRepertoireContainerCheck(lCandidate.LRepertoireText, lContainer))
                 && LTrialCatalog.LTrialSetCheck(lCandidate))
             .Select(lCandidate => lCandidate.LRepertoireText)
             .ToArray();
@@ -96,15 +96,15 @@ public sealed partial class QSEncoder
             return lItems;
         }
 
-        bool lFits = LRepertoireCatalog.LRepertoireEncodersRead()
+        bool lFits = LRepertoireVideo.LRepertoireEncodersRead()
                 .Any(lCandidate => string.Equals(lCandidate.LRepertoireText, lKeep, StringComparison.Ordinal))
-            && (!lKnown || LRepertoireCatalog.LRepertoireContainerCheck(lKeep, lContainer));
+            && (!lKnown || LRepertoireVideo.LRepertoireContainerCheck(lKeep, lContainer));
         return lFits ? [lKeep, .. lItems] : lItems;
     }
 
     public static bool QSEncoderVideoCheck(string lText)
     {
-        foreach (LRepertoireEncoder lCandidate in LRepertoireCatalog.LRepertoireEncodersRead())
+        foreach (LRepertoireEncoder lCandidate in LRepertoireVideo.LRepertoireEncodersRead())
         {
             if (string.Equals(lCandidate.LRepertoireText, lText, StringComparison.Ordinal))
             {
@@ -121,7 +121,7 @@ public sealed partial class QSEncoder
         var lAvailable = new List<string>();
         var lNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lRows = new List<QSVerdictRow>();
-        IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireCatalog.LRepertoireEncodersRead();
+        IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireVideo.LRepertoireEncodersRead();
         int lTotal = lCandidates.Sum(lCandidate => lCandidate.LRepertoireTokens.Count);
         int lDone = 0;
         foreach (LRepertoireEncoder lCandidate in lCandidates)

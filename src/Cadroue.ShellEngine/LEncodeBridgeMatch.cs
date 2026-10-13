@@ -12,7 +12,7 @@ public static partial class LEncode
     {
         string lCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
             .ToLowerInvariant();
-        string lEncoder = LRepertoireCatalog.LRepertoireEncoderResolve(lCodec)
+        string lEncoder = LRepertoireVideo.LRepertoireEncoderResolve(lCodec)
             ?? throw new InvalidOperationException(
                 $"no smart-encoding boundary encoder maps to source codec '{lCodec}'");
 

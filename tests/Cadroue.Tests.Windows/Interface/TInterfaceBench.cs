@@ -29,7 +29,8 @@ internal static partial class TInterface
     internal static bool TFlowClear(QFlow flow) => flow.QFlowClear();
     internal static void TFlowClose(QFlow flow) => flow.QFlowClose();
     internal static void TFlowPaletteApply(QFlow flow, int count) => flow.QFlowPaletteApply(count);
-    internal static void TFlowPlayingAttach(QFlow flow, Func<bool>? source) => flow.QFlowPlayingAttach(source);
+    internal static void TFlowPlayingAttach(QFlow flow, Func<bool>? source) =>
+        flow.QFlowWheel.QFlowPlayingAttach(source);
     internal static void TFlowSpoolAttach(QFlow flow, Action handler) => flow.QFlowSpool.QFlowSpoolApplied += handler;
     internal static void TFlowCursorAttach(QFlow flow, Action apply, Action<TimeSpan> change)
     {
@@ -47,8 +48,8 @@ internal static partial class TInterface
     {
         flow.QFlowPlayed += play;
         flow.QFlowPaused += pause;
-        flow.QFlowDragChanged += drag;
-        flow.QFlowVolumeAdjusted += volume;
+        flow.QFlowWheel.QFlowDragChanged += drag;
+        flow.QFlowWheel.QFlowVolumeAdjusted += volume;
     }
     internal static void TFlowNameAttach(QFlow flow, Action<QFlowNamePrompt> show, Action close)
     {
@@ -56,8 +57,8 @@ internal static partial class TInterface
         flow.QFlowName.QFlowNameClosed += close;
     }
     internal static bool TFlowShortcutRun(QFlow flow, string token) => flow.QFlowShortcutRun(token);
-    internal static bool TFlowWheelHandle(QFlow flow, int delta) => flow.QFlowWheelHandle(delta);
-    internal static void TFlowDragHandle(QFlow flow, bool dragging) => flow.QFlowDragHandle(dragging);
+    internal static bool TFlowWheelHandle(QFlow flow, int delta) => flow.QFlowWheel.QFlowWheelHandle(delta);
+    internal static void TFlowDragHandle(QFlow flow, bool dragging) => flow.QFlowWheel.QFlowDragHandle(dragging);
     internal static void TFlowCursorUpdate(QFlow flow, TimeSpan cursor) => flow.QFlowCursorUpdate(cursor);
     internal static void TFlowCursorSeek(QFlow flow, TimeSpan cursor) => flow.QFlowCursorSeek(cursor);
     internal static void TFlowRangeSet(QFlow flow, TimeSpan origin, TimeSpan limit) =>

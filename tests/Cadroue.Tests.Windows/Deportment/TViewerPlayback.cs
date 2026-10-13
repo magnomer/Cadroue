@@ -187,6 +187,6 @@ public sealed class TViewerPlayback
         TInterfaceViewer.TViewerVolumeSet(playback, 20);
 
         Assert.Equal([100], volumes);
-        Assert.Equal(100, viewer.QViewerVolume);
+        Assert.Equal(100, viewer.QViewerAudio.QViewerVolume);
     }
 }

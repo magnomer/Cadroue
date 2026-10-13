@@ -38,7 +38,8 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioFixed);
-        PInspectorSwitchAttach(pInspectorRatioFixed, QInspectorCrop.QInspectorFixedSet);
+        PInspectorSwitchAttach(
+            pInspectorRatioFixed, QInspector.QInspectorRatio.QInspectorFixedSet);
 
         pInspectorRatioLenient = new CheckBox
         {
@@ -52,7 +53,8 @@ public sealed partial class PInspector
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
         PCheckbox.PCheckboxApply(pInspectorRatioLenient);
-        PInspectorSwitchAttach(pInspectorRatioLenient, QInspectorCrop.QInspectorLenientSet);
+        PInspectorSwitchAttach(
+            pInspectorRatioLenient, QInspector.QInspectorRatio.QInspectorLenientSet);
 
         pInspectorRatioNotice = new TextBlock
         {
@@ -107,7 +109,7 @@ public sealed partial class PInspector
     }
 
     private void PInspectorRatioCommit(TextBox pRatioBox) =>
-        QInspectorCrop.QInspectorRatioCommit(
+        QInspector.QInspectorRatio.QInspectorRatioCommit(
             pInspectorRatioWidth.Text, pInspectorRatioHeight.Text, pRatioBox.IsKeyboardFocusWithin);
 
     private TextBox PInspectorInsetBuild(int pEdge)
@@ -166,7 +168,8 @@ public sealed partial class PInspector
         pPresetCombo.Items.Add("1:1");
         pPresetCombo.Items.Add("21:9");
         pPresetCombo.SelectedIndex = 0;
-        pPresetCombo.SelectionChanged += (_, _) => QInspectorCrop.QInspectorPresetSelect(pPresetCombo.SelectedIndex);
+        pPresetCombo.SelectionChanged += (_, _) =>
+            QInspector.QInspectorRatio.QInspectorPresetSelect(pPresetCombo.SelectedIndex);
         return pPresetCombo;
     }
 

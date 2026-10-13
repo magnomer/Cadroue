@@ -4,16 +4,6 @@ namespace Cadroue.Application;
 
 public sealed class LPresetSelection
 {
-    private static readonly Dictionary<string, LPresetDocument> LPresetDrafts =
-        new(StringComparer.OrdinalIgnoreCase);
-
-    private static readonly object LPresetDraftLock = new();
-
-    private static event Action<string>? LPresetDraftChanged;
-
-    private static event Action<string, string>? LPresetNameChanged;
-
-    public static Func<string, LPresetDocument?>? LPresetLoadSeam;
     public static Func<string, LPresetDocument, bool>? LPresetSaveSeam;
     public static Func<string, string, LPresetDocument, bool>? LPresetRenameSeam;
     public static Func<LPresetDocument, LEncoding>? LPresetOutputSeam;
@@ -30,9 +20,9 @@ public sealed class LPresetSelection
             _ => null
         };
         LPresetSelectionName = LPresetSelectionResolve(lPresetName);
-        LPresetDraftAttach(LPresetSelectionName);
-        LPresetDraftChanged += LPresetDraftHandle;
-        LPresetNameChanged += LPresetNameHandle;
+        LPresetDraft.LPresetDraftAttach(LPresetSelectionName);
+        LPresetDraft.LPresetDraftChanged += LPresetDraftHandle;
+        LPresetDraft.LPresetNameChanged += LPresetNameHandle;
     }
 
     public event Action? LPresetSelectionChanged;
@@ -41,7 +31,7 @@ public sealed class LPresetSelection
 
     public LPresetDocument LPresetSelectionValue
     {
-        get => LPresetDraftRead(LPresetSelectionName);
+        get => LPresetDraft.LPresetDraftRead(LPresetSelectionName);
         set
         {
             if (LPresetNameCheck(value.LPresetName))
@@ -49,7 +39,7 @@ public sealed class LPresetSelection
                 LPresetSelectionName = value.LPresetName;
             }
 
-            LPresetDraftSet(LPresetSelectionName, value);
+            LPresetDraft.LPresetDraftSet(LPresetSelectionName, value);
         }
     }
 
@@ -61,17 +51,17 @@ public sealed class LPresetSelection
     public void LPresetSelectionAccept(LPresetDocument lPresetValue, string lPresetName)
     {
         LPresetSelectionName = LPresetSelectionResolve(lPresetName);
-        LPresetDraftAttach(LPresetSelectionName);
+        LPresetDraft.LPresetDraftAttach(LPresetSelectionName);
         if (string.Equals(LPresetSelectionName, lPresetName, StringComparison.OrdinalIgnoreCase))
         {
-            LPresetDraftAccept(lPresetName, lPresetValue);
+            LPresetDraft.LPresetDraftAccept(lPresetName, lPresetValue);
         }
     }
 
     public void LPresetSelectionClose()
     {
-        LPresetDraftChanged -= LPresetDraftHandle;
-        LPresetNameChanged -= LPresetNameHandle;
+        LPresetDraft.LPresetDraftChanged -= LPresetDraftHandle;
+        LPresetDraft.LPresetNameChanged -= LPresetNameHandle;
     }
 
     public void LPresetSelectionSelect(string lPresetName)
@@ -82,7 +72,7 @@ public sealed class LPresetSelection
         }
 
         LPresetSelectionName = lPresetName;
-        LPresetDraftAttach(lPresetName);
+        LPresetDraft.LPresetDraftAttach(lPresetName);
         LPresetSelectionRaise();
     }
 
@@ -97,19 +87,19 @@ public sealed class LPresetSelection
             return false;
         }
 
-        if (LPresetLoadSeam?.Invoke(lOldName) is not { } lPresetStored)
+        if (LPresetDraft.LPresetLoadSeam?.Invoke(lOldName) is not { } lPresetStored)
         {
             return false;
         }
 
         lPresetStored.LPresetName = lName;
-        LPresetDraftMove(lOldName, lName);
+        LPresetDraft.LPresetDraftMove(lOldName, lName);
         if (LPresetRenameSeam?.Invoke(lOldName, lName, lPresetStored) == true)
         {
             return true;
         }
 
-        LPresetDraftMove(lName, lOldName);
+        LPresetDraft.LPresetDraftMove(lName, lOldName);
         return false;
     }
 
@@ -122,49 +112,20 @@ public sealed class LPresetSelection
         }
 
         string lOldName = LPresetSelectionName;
-        bool lPresetRenamed = !string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase);
-        LPresetDocument lRecord;
-        LPresetDocument? lPresetPrior;
-        lock (LPresetDraftLock)
-        {
-            lRecord = LPresetDraftRead(lOldName);
-            LPresetDrafts.TryGetValue(lName, out lPresetPrior);
-            lRecord.LPresetName = lName;
-            LPresetSelectionName = lName;
-            LPresetDrafts[lName] = lRecord;
-        }
-
+        LPresetDocument lRecord = LPresetDraft.LPresetDraftPrepare(lOldName, lName, out LPresetDocument? lPresetPrior);
+        LPresetSelectionName = lName;
         if (LPresetSaveSeam?.Invoke(lName, lRecord) != true)
         {
-            lRecord.LPresetName = lOldName;
             LPresetSelectionName = lOldName;
-            lock (LPresetDraftLock)
-            {
-                LPresetDrafts[lOldName] = lRecord;
-                if (lPresetRenamed)
-                {
-                    LPresetDraftRestore(lName, lPresetPrior);
-                }
-            }
-
+            LPresetDraft.LPresetDraftCancel(lOldName, lRecord, lName, lPresetPrior);
             return false;
         }
 
-        if (lPresetRenamed)
-        {
-            lock (LPresetDraftLock)
-            {
-                LPresetDrafts.Remove(lOldName);
-            }
-
-            LPresetDraftReset(lOldName);
-        }
-
-        LPresetDraftRaise(lName);
+        LPresetDraft.LPresetDraftCommit(lOldName, lName);
         return true;
     }
 
-    public void LPresetSelectionRestore() => LPresetDraftReset(LPresetSelectionName);
+    public void LPresetSelectionRestore() => LPresetDraft.LPresetDraftReset(LPresetSelectionName);
 
     public bool LPresetSupportCheck(string lPresetName, LPreset lWorking, bool lSelected)
     {
@@ -182,153 +143,12 @@ public sealed class LPresetSelection
                 lPresetValue.LPresetAudio.LPresetStream);
     }
 
-    internal static void LPresetDraftSync(
-        string lPresetName,
-        LPresetDocument? lPresetStored,
-        LPresetDocument? lPresetPrevious)
-    {
-        if (lPresetStored is null)
-        {
-            lock (LPresetDraftLock)
-            {
-                LPresetDrafts.Remove(lPresetName);
-            }
-
-            LPresetNameChanged?.Invoke(lPresetName, LPreset.LPresetFirstName ?? string.Empty);
-            return;
-        }
-
-        lock (LPresetDraftLock)
-        {
-            if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetDocument? lPresetDraft)
-                || lPresetPrevious is null
-                || !LPreset.LPresetRecordMatch(lPresetPrevious, lPresetDraft))
-            {
-                return;
-            }
-
-            LPresetDrafts[lPresetName] = LPresetDraftCopy(lPresetStored, lPresetName);
-        }
-
-        LPresetDraftRaise(lPresetName);
-    }
-
-    internal static void LPresetDraftMove(string lOldPresetName, string lNewPresetName)
-    {
-        lock (LPresetDraftLock)
-        {
-            if (LPresetDrafts.Remove(lOldPresetName, out LPresetDocument? lPresetDraft))
-            {
-                lPresetDraft.LPresetName = lNewPresetName;
-                LPresetDrafts[lNewPresetName] = lPresetDraft;
-            }
-        }
-
-        LPresetNameChanged?.Invoke(lOldPresetName, lNewPresetName);
-    }
-
     private static bool LPresetNameCheck(string lPresetName) =>
         LPreset.LPresetNames.Any(lName =>
             string.Equals(lName, lPresetName, StringComparison.OrdinalIgnoreCase));
 
     private static string LPresetSelectionResolve(string lPresetName) =>
         LPresetNameCheck(lPresetName) ? lPresetName : LPreset.LPresetFirstName ?? string.Empty;
-
-    private static void LPresetDraftAccept(string lPresetName, LPresetDocument lPresetValue)
-    {
-        lPresetValue.LPresetName = lPresetName;
-        lock (LPresetDraftLock)
-        {
-            if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetDocument? lPresetDraft)
-                || (LPresetLoadSeam?.Invoke(lPresetName) is { } lPresetStored
-                    && LPreset.LPresetRecordMatch(lPresetStored, lPresetDraft)))
-            {
-                LPresetDrafts[lPresetName] = lPresetValue;
-            }
-        }
-    }
-
-    private static LPresetDocument LPresetDraftRead(string lPresetName)
-    {
-        lock (LPresetDraftLock)
-        {
-            if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetDocument? lPresetDraft))
-            {
-                lPresetDraft = LPresetDraftCreate(lPresetName);
-                LPresetDrafts[lPresetName] = lPresetDraft;
-            }
-
-            return lPresetDraft;
-        }
-    }
-
-    private static LPresetDocument LPresetDraftCreate(string lPresetName)
-    {
-        LPresetDocument lPresetDraft = LPresetLoadSeam?.Invoke(lPresetName) ?? new LPresetDocument();
-        lPresetDraft.LPresetName = lPresetName;
-        return lPresetDraft;
-    }
-
-    private static void LPresetDraftSet(string lPresetName, LPresetDocument lPresetValue)
-    {
-        lPresetValue.LPresetName = lPresetName;
-        lock (LPresetDraftLock)
-        {
-            LPresetDrafts[lPresetName] = lPresetValue;
-        }
-
-        LPresetDraftRaise(lPresetName);
-    }
-
-    private static void LPresetDraftRestore(string lPresetName, LPresetDocument? lPresetPrior)
-    {
-        lock (LPresetDraftLock)
-        {
-            if (lPresetPrior is null)
-            {
-                LPresetDrafts.Remove(lPresetName);
-                return;
-            }
-
-            LPresetDrafts[lPresetName] = lPresetPrior;
-        }
-    }
-
-    private static void LPresetDraftReset(string lPresetName)
-    {
-        if (LPresetLoadSeam?.Invoke(lPresetName) is not { } lPresetStored)
-        {
-            return;
-        }
-
-        LPresetDocument lPresetDraft = LPresetDraftCopy(lPresetStored, lPresetName);
-        lock (LPresetDraftLock)
-        {
-            LPresetDrafts[lPresetName] = lPresetDraft;
-        }
-
-        LPresetDraftRaise(lPresetName);
-    }
-
-    private static LPresetDocument LPresetDraftCopy(LPresetDocument lPresetRecord, string lPresetName)
-    {
-        LPresetDocument lPresetDraft = LPreset.LPresetStateCreate(lPresetRecord).LPresetRecordCreate();
-        lPresetDraft.LPresetName = lPresetName;
-        return lPresetDraft;
-    }
-
-    private static void LPresetDraftRaise(string lPresetName) => LPresetDraftChanged?.Invoke(lPresetName);
-
-    private void LPresetDraftAttach(string lPresetName)
-    {
-        lock (LPresetDraftLock)
-        {
-            if (!LPresetDrafts.ContainsKey(lPresetName))
-            {
-                LPresetDrafts[lPresetName] = LPresetDraftCreate(lPresetName);
-            }
-        }
-    }
 
     private void LPresetDraftHandle(string lPresetName)
     {
@@ -346,7 +166,7 @@ public sealed class LPresetSelection
         }
 
         LPresetSelectionName = lNewPresetName;
-        LPresetDraftAttach(lNewPresetName);
+        LPresetDraft.LPresetDraftAttach(lNewPresetName);
         LPresetSelectionRaise();
     }
 

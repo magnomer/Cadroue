@@ -1,5 +1,5 @@
 {
-  "generation": 23,
+  "generation": 24,
   "project": "Cadroue",
   "enforced": true,
   "helper": {
@@ -49,8 +49,8 @@
     "spider": 1,
     "chameleon": 63,
     "octopus": 2,
-    "centipede": 58,
-    "serpent": 18,
+    "centipede": 55,
+    "serpent": 17,
     "hub": 12
   },
   "parts": {
@@ -70,7 +70,7 @@
     "Cadroue.Infrastructure.LMpv": 5,
     "Cadroue.Infrastructure.LScene": 2,
     "Cadroue.Infrastructure.LSchedule": 7,
-    "Cadroue.Infrastructure.LSidecarStore": 2,
+    "Cadroue.Infrastructure.LSidecarStore": 1,
     "Cadroue.Infrastructure.LTrace": 3,
     "Cadroue.Infrastructure.LTraceWriter": 4,
     "Cadroue.Media.LMedia": 5,
@@ -79,7 +79,7 @@
     "Cadroue.ShellEngine.LEncodeVideo": 4,
     "Cadroue.ShellEngine.LJob": 10,
     "Cadroue.ShellEngine.LMessenger": 9,
-    "Cadroue.ShellEngine.LRunner": 2,
+    "Cadroue.ShellEngine.LRunner": 1,
     "Cadroue.ShellEngine.LSweep": 7,
     "Cadroue.UIDeportment.QSEncoder": 3,
     "Cadroue.UIVeneer.PHouse.PWindow": 5,

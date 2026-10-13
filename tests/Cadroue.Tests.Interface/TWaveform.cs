@@ -32,7 +32,7 @@ internal sealed class TWaveform : IDisposable
     internal TWaveform()
     {
         Directory.CreateDirectory(tWaveformRoot);
-        LSidecarStore.LSidecarFolderSet(tWaveformRoot, true);
+        LSidecarPath.LSidecarFolderSet(tWaveformRoot, true);
     }
 
     internal static int TWaveformBucketMilliseconds => LWaveform.LWaveformBucketMilliseconds;
@@ -73,7 +73,7 @@ internal sealed class TWaveform : IDisposable
         LKeyframeSourceIdentity identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
         if (!LSidecarStore.LSidecarSave(identity, Array.Empty<long>(), Array.Empty<int>(), 1_000)
             || !LSidecarStore.LSidecarWaveformSave(sourcePath, LWaveform.LWaveformRecordCreate(peaks, duration))
-            || !LSidecarStore.LSidecarPersist())
+            || !LSidecarPending.LSidecarPersist())
         {
             return null;
         }
@@ -138,7 +138,7 @@ internal sealed class TWaveform : IDisposable
 
     internal void TWaveformCorruptSave(string sourcePath, string content) =>
         File.WriteAllText(
-            LSidecarStore.LSidecarCacheResolve(LSidecarStore.LSidecarPathRead(sourcePath)),
+            LSidecarPath.LSidecarCacheResolve(LSidecarPath.LSidecarPathRead(sourcePath)),
             content,
             Encoding.UTF8);
 
@@ -150,7 +150,7 @@ internal sealed class TWaveform : IDisposable
         }
 
         tWaveformDisposed = true;
-        LSidecarStore.LSidecarFolderSet(null, false);
+        LSidecarPath.LSidecarFolderSet(null, false);
         try
         {
             Directory.Delete(tWaveformRoot, recursive: true);

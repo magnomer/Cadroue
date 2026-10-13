@@ -1,5 +1,7 @@
 namespace Cadroue.UIDeportment;
 
+public sealed record QViewfinderPoint(double QViewfinderPointX, double QViewfinderPointY);
+
 public sealed record QViewfinderLabel(string QViewfinderLabelName, double QViewfinderLabelRoom);
 
 public sealed record QViewfinderBadge(

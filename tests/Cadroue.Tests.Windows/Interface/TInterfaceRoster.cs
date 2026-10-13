@@ -40,9 +40,9 @@ internal static class TInterfaceRoster
         roster.QRosterCollapse.QRosterCollapseToggle(batchId);
     internal static bool TRosterCollapsedCheck(QRoster roster, Guid batchId) =>
         roster.QRosterCollapse.QRosterCollapsedCheck(batchId);
-    internal static IReadOnlyList<QRosterEntry> TRosterEntriesRead(QRoster roster) => roster.QRosterEntries;
+    internal static IReadOnlyList<QRosterEntry> TRosterEntriesRead(QRoster roster) => roster.QRosterFeed.QRosterEntries;
     internal static IReadOnlyList<QRosterCard> TRosterCardsRead(QRoster roster) =>
-        roster.QRosterEntries
+        roster.QRosterFeed.QRosterEntries
             .Where(entry => entry.QRosterEntryKind == QRosterEntry.QRosterKindHead)
             .Select(entry => entry.QRosterEntryCard)
             .ToArray();
@@ -50,7 +50,7 @@ internal static class TInterfaceRoster
     internal static void TRosterDeferAttach(QRoster roster, Action handler) =>
         roster.QRosterDeferral.QRosterDeferralRaised += handler;
     internal static void TRosterWarningAttach(QRoster roster, Action<string, string> handler) =>
-        roster.QRosterWarningShown += handler;
+        roster.QRosterRemoval.QRosterWarningShown += handler;
     internal static void TRosterRemove(QRoster roster, Guid batchId) => roster.QRosterRemove(batchId);
     internal static IReadOnlyList<QRosterItem> TRosterMenuRead(QRoster roster, Guid id, QStrip? strip) =>
         roster.QRosterMenu.QRosterMenuRead(id, strip);
@@ -129,7 +129,7 @@ internal static class TInterfaceRoster
             [step.CLineageSourceExtension, step.CLineageOutputExtension]);
     }
     internal static void TStripTitleAttach(QStrip? strip) =>
-        LCartographer.LCartographerTitleSource = strip is null ? null : strip.QStripTitleRead;
+        LCartographer.LCartographerTitleSource = strip is null ? null : strip.QStripRelay.QStripTitleRead;
     internal static IReadOnlyList<QRosterBar> TRosterBarsCreate(long? source, long? output) =>
         QRosterDetail.QRosterBarsCreate(source, output);
     internal static QRosterCompareRow TRosterCompareCreate(string source, string output) =>

@@ -14,12 +14,10 @@ public sealed class QFlow
     private bool qFlowSectionActive;
     private bool qFlowCommandActive;
     private bool qFlowUnloaded;
-    private bool qFlowDragPaused;
     private bool qFlowWaveformActive = LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
     private bool qFlowWaveformAudio;
     private int? qFlowKeyframeDirection;
     private int qFlowPaletteCount = 1;
-    private Func<bool>? qFlowPlayingSource;
 
     public QFlow(CUsher lUsher)
     {
@@ -32,6 +30,7 @@ public sealed class QFlow
         QFlowWaveform = new QFlowWaveform(this);
         QFlowLosslesscut = new QFlowLosslesscut(this, qFlowUsher);
         QFlowName = new QFlowName(this);
+        QFlowWheel = new QFlowWheel(this);
         QFlowViewfinder = new QViewfinder(this);
         QFlowMap = new QMap(this);
         QFlowDivider = new QDivider();
@@ -40,10 +39,8 @@ public sealed class QFlow
     public event Action<bool>? QFlowWaveformChanged;
     public event Action? QFlowMediaChanged;
     public event Action<TimeSpan>? QFlowCursorChanged;
-    public event Action<bool>? QFlowDragChanged;
     public event Action? QFlowPlayed;
     public event Action? QFlowPaused;
-    public event Action<double>? QFlowVolumeAdjusted;
     public event Action? QFlowAttachApplied;
     public event Action? QFlowClearApplied;
     public event Action? QFlowCursorApplied;
@@ -57,6 +54,8 @@ public sealed class QFlow
     public QFlowLosslesscut QFlowLosslesscut { get; }
 
     public QFlowName QFlowName { get; }
+
+    public QFlowWheel QFlowWheel { get; }
 
     public QViewfinder QFlowViewfinder { get; }
 
@@ -84,8 +83,6 @@ public sealed class QFlow
 
     public bool QFlowUnloaded => qFlowUnloaded;
 
-    public bool QFlowDragPaused => qFlowDragPaused;
-
     public bool QFlowWaveformActive => qFlowWaveformActive;
 
     public bool QFlowWaveformAudio => qFlowWaveformAudio;
@@ -108,8 +105,6 @@ public sealed class QFlow
 
     public string QFlowSourceFormat() =>
         string.IsNullOrWhiteSpace(qFlowSourcePath) ? "(no media)" : qFlowUsher.CUsherNameRead(qFlowSourcePath);
-
-    public void QFlowPlayingAttach(Func<bool>? lPlayingSource) => qFlowPlayingSource = lPlayingSource;
 
     public void QFlowPaletteApply(int lPaletteCount) => qFlowPaletteCount = Math.Max(1, lPaletteCount);
 
@@ -244,80 +239,6 @@ public sealed class QFlow
         }
     }
 
-    public bool QFlowWheelHandle(int lDelta)
-    {
-        if (!qFlowCommandActive || lDelta == 0)
-        {
-            return false;
-        }
-
-        int lSteps = QCursor.QCursorWheelResolve(lDelta);
-        switch (LPreference.LPreferenceStateCurrent.LPreferenceWheelAction)
-        {
-            case "Zoom":
-                QFlowZoom(lSteps);
-                break;
-            case "Volume":
-                QFlowVolumeAdjusted?.Invoke(lSteps * QCursor.QCursorVolumeStep);
-                break;
-            default:
-                QFlowWheelSeek(lSteps);
-                break;
-        }
-
-        return true;
-    }
-
-    public void QFlowZoom(int lSteps)
-    {
-        if (qFlowRange is not { } lSpool)
-        {
-            return;
-        }
-
-        lSpool.LSpoolZoom(qFlowCursor, lSteps);
-        QFlowSpool.QFlowSpoolHandle();
-    }
-
-    private void QFlowWheelSeek(int lSteps)
-    {
-        if (qFlowRange is not { } lSpool)
-        {
-            return;
-        }
-
-        QFlowCursorSeek(QFlowCursorClamp(qFlowCursor + lSpool.LSpoolStepResolve(lSteps)));
-    }
-
-    public void QFlowDragHandle(bool lDragging)
-    {
-        QFlowDragChanged?.Invoke(lDragging);
-        if (!qFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused)
-        {
-            return;
-        }
-
-        if (lDragging)
-        {
-            if (qFlowDragPaused || qFlowPlayingSource?.Invoke() != true)
-            {
-                return;
-            }
-
-            qFlowDragPaused = true;
-            QFlowPauseRaise();
-            return;
-        }
-
-        if (!qFlowDragPaused)
-        {
-            return;
-        }
-
-        qFlowDragPaused = false;
-        QFlowPlayRaise();
-    }
-
     public void QFlowPlayRaise()
     {
         if (qFlowCommandActive)
@@ -344,8 +265,8 @@ public sealed class QFlow
         bool lEditable = QFlowEdit.QFlowEditCheck();
         switch (lToken)
         {
-            case "ZoomIn": QFlowZoom(1); return true;
-            case "ZoomOut": QFlowZoom(-1); return true;
+            case "ZoomIn": QFlowWheel.QFlowZoom(1); return true;
+            case "ZoomOut": QFlowWheel.QFlowZoom(-1); return true;
             case "SectionAdd" when lEditable: QFlowSection.QFlowSectionAdd(); return true;
             case "SectionStart" when lEditable: QFlowSection.QFlowStartSet(); return true;
             case "SectionSplit" when lEditable: QFlowSection.QFlowSectionDivide(); return true;
@@ -376,8 +297,6 @@ public sealed class QFlow
     }
 
     public void QFlowUnloadSet() => qFlowUnloaded = true;
-
-    public void QFlowPausedSet(bool lDragPaused) => qFlowDragPaused = lDragPaused;
 
     public bool QFlowWaveformSet(bool lWaveformActive)
     {

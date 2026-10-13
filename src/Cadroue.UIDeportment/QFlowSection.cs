@@ -135,7 +135,7 @@ public sealed class QFlowSection
         }
 
         QAskNotice.QAskPublish(
-            QFlowAskCreate("Flow.Section.DeleteConfirm", "Terms.Delete"),
+            QAskNotice.QAskCreate("Flow.Section.DeleteConfirm", "Terms.Delete", "Flow.Confirm.Title"),
             lAnswer => QFlowDeleteRun(lAnswer, lSelected, lApproved));
     }
 
@@ -175,7 +175,7 @@ public sealed class QFlowSection
         }
 
         QAskNotice.QAskPublish(
-            QFlowAskCreate("Flow.Section.ClearConfirm", "Terms.Remove"),
+            QAskNotice.QAskCreate("Flow.Section.ClearConfirm", "Terms.Remove", "Flow.Confirm.Title"),
             lAnswer => QFlowClearRun(lAnswer, lCount, lApproved));
     }
 
@@ -344,14 +344,4 @@ public sealed class QFlowSection
     private int QFlowColorRead() => qSegment.LSegmentListRead().Count % qFlow.QFlowPaletteCount;
 
     private static bool QFlowOverlapRead() => LPreference.LPreferenceStateCurrent.LPreferenceOverlapAllowed;
-
-    private static QAsk? QFlowAskCreate(string lQuestionKey, string lActionKey) =>
-        LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
-            ? new QAsk(
-                LLocalization.LLocalizationTextRead(lQuestionKey),
-                LLocalization.LLocalizationTextRead(lActionKey))
-            {
-                QAskTitle = LLocalization.LLocalizationTextRead("Flow.Confirm.Title")
-            }
-            : null;
 }

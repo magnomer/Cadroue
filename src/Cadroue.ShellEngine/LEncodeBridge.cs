@@ -179,7 +179,7 @@ public static partial class LEncode
         }
         bool lBridgeReencode = lBridgePlan.LBridgeHead is not null || lBridgePlan.LBridgeTail is not null;
         string? lBridgeCodec = lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec;
-        if (lBridgeReencode && LRepertoireCatalog.LRepertoireEncoderResolve(lBridgeCodec) is null)
+        if (lBridgeReencode && LRepertoireVideo.LRepertoireEncoderResolve(lBridgeCodec) is null)
         {
             LRunner.LRunnerRecord(
                 $"Smart encoding failed for '{lWorkItem.LWorkOutputName}': " +

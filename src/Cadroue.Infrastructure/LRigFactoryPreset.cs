@@ -10,7 +10,7 @@ public static class LRigFactoryPreset
         LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
-        LPresetSelection.LPresetLoadSeam = LPreset.LPresetSelectionRead;
+        LPresetDraft.LPresetLoadSeam = LPreset.LPresetSelectionRead;
         LPresetSelection.LPresetSaveSeam = LPreset.LPresetSelectionSave;
         LPresetSelection.LPresetRenameSeam = LPreset.LPresetSelectionSet;
         LPresetSelection.LPresetOutputSeam = LPreset.LPresetSelectionResolve;

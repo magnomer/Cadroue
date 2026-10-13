@@ -217,7 +217,7 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
     <div class="panelhead">
       <div>
         <h2 id="alltitle"></h2>
-        <div class="muted">Every comment file the audit read, with its paired sources and its hash state. Click a column heading to sort.</div>
+        <div class="muted">Every comment file the audit read, with its folder's sources and its stamp state. Click a column heading to sort.</div>
       </div>
       <div class="segmented" role="group" aria-label="State" id="statefilter"></div>
     </div>
@@ -345,7 +345,7 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
   tiles.push('<div class="tile"><div class="label">Comment files</div><div class="value">' + fmt(totals.files) + '</div><div class="note">for ' +
     fmt(d.scanned.sources) + ' source files</div></div>');
   tiles.push('<div class="tile"><div class="label">Stamped</div><div class="value">' + fmt(stateCounts.stamped || 0) + '</div><div class="note">' +
-    pct(stateCounts.stamped || 0, d.comments.length) + ' of comment files carry a current hash</div></div>');
+    pct(stateCounts.stamped || 0, d.comments.length) + ' of comment files carry a current stamp</div></div>');
   tiles.push('<div class="tile"><div class="label">Comment lines</div><div class="value">' + fmt(totals.lines) + '</div><div class="note">' +
     fmt(totals.nonBlank) + ' non-blank</div></div>');
   tiles.push('<div class="tile"><div class="label">Sizes</div><div class="value">' + fmt(totals.bytes) + '</div><div class="note">' +
@@ -358,7 +358,8 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
   document.getElementById('ceilings').innerHTML =
     '<thead><tr><th class="l">Key</th><th class="l">Kind</th><th>Count</th><th>Ceiling</th><th class="l">State</th></tr></thead><tbody>' +
     d.ceilings.map(function (c) {
-      var s = c.ceiling > c.count ? ['fail', 'STALE'] : c.count > c.ceiling ? ['fail', 'ABOVE'] : c.count > 0 ? ['warn', 'WARN'] : ['ok', 'OK'];
+      var bad = c.kind === 'Folder sources' ? 'warn' : 'fail';
+      var s = c.ceiling > c.count ? [bad, 'STALE'] : c.count > c.ceiling ? [bad, 'ABOVE'] : c.count > 0 ? ['warn', 'WARN'] : ['ok', 'OK'];
       return '<tr><td class="l"><code>' + esc(c.key) + '</code></td><td class="l">' + esc(c.kind) + '</td><td>' + fmt(c.count) + '</td><td>' + fmt(c.ceiling) +
         '</td><td class="l"><span class="status ' + s[0] + '">' + s[1] + '</span></td></tr>';
     }).join('') + '</tbody>';
@@ -469,24 +470,26 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
       '</td><td class="code" title="' + esc(h.text) + '">' + esc(h.text) + '</td></tr>';
   }
   var ceiling = d.ceilings[0];
-  var staleCeilings = d.ceilings.filter(function (c) { return c.ceiling > c.count; });
+  var staleCeilings = [ceiling].filter(function (c) { return c.ceiling > c.count; });
   [
-    { section: 'Sources without a comment file', title: 'Sources without a comment file', items: d.missing,
-      head: '<thead><tr><th class="l">Source</th><th class="l">Expected comment file</th></tr></thead>',
+    { section: 'Folders without a sidecar', title: 'Folders without a sidecar', items: d.missing,
+      head: '<thead><tr><th class="l">First source</th><th class="l">Expected sidecar</th></tr></thead>',
       row: function (m) { return '<tr><td class="path">' + pathHtml(m.path) + '</td><td class="l">' + esc(m.expected) + '</td></tr>'; } },
-    { section: 'Comment files without a source', title: 'Comment files without a source', items: d.orphans,
+    { section: 'Comment files without a folder', title: 'Comment files without a folder', items: d.orphans,
       list: function (p) { return pathHtml(p); } },
     { section: 'Comment lines breaking the line rules', title: 'Comment lines breaking the line rules', items: d.rules, head: hitHead('Problem'), row: hitRow },
-    { section: 'Headings naming nothing in their source', title: 'Headings naming nothing in their source', items: d.headings, head: hitHead('Problem'), row: hitRow },
-    { section: 'Comment files with a stale hash', title: 'Comment files with a stale hash', items: d.stale, head: hitHead('Problem'), row: hitRow,
+    { section: 'Headings naming nothing in their folder', title: 'Headings naming nothing in their folder', items: d.headings, head: hitHead('Problem'), row: hitRow },
+    { section: 'Sidecars with a changed folder', title: 'Sidecars with a changed folder', items: d.stale, head: hitHead('Problem'), row: hitRow,
       lead: d.stale.length ? d.staleAdvice.map(esc).join(' ') : '' },
-    { section: 'Comment files restamped unrevised', title: 'Comment files restamped unrevised', items: d.restamped, head: hitHead('Problem'), row: hitRow,
-      lead: d.restamped.length ? '<strong>' + d.restampAdvice.map(esc).join(' ') + '</strong>' : '' },
-    { section: 'Comment files with no hash', title: 'Comment files with no hash', items: d.unstamped, head: hitHead('Problem'), row: hitRow,
+    { section: 'Sidecars with no stamp', title: 'Sidecars with no stamp', items: d.unstamped, head: hitHead('Problem'), row: hitRow,
       extra: 'ceiling ' + fmt(ceiling.ceiling),
-      lead: 'A warning while the count sits at or below the ceiling of ' + fmt(ceiling.ceiling) + ', a failure above it. Reread each file, then stamp it with stampcomment.ps1 and lower the ceiling.' },
+      lead: 'A warning while the count sits at or below the ceiling of ' + fmt(ceiling.ceiling) + ', a failure above it. Reread each sidecar, then stamp it with stampcomment.ps1 and lower the ceiling.' },
+    { section: 'Folders over the file limit', title: 'Folders over the file limit', items: d.folderLimit, head: hitHead('Problem'), row: hitRow,
+      lead: 'A warning only. Split the folder by concern, or hold its count under a ceilings.folders row.' },
+    { section: 'Stale folder ceilings', title: 'Stale folder ceilings', items: d.folderStale, head: hitHead('Problem'), row: hitRow,
+      lead: 'A warning only. Lower each row to its folder\'s count, or drop it at or under the limit.' },
     { section: 'Stale ceilings', title: 'Stale ceilings', items: staleCeilings,
-      list: function (c) { return '<code>' + esc(c.key) + '</code> is ' + fmt(c.ceiling) + ' but only ' + fmt(c.count) + ' comment files carry no hash, so lower it.'; } },
+      list: function (c) { return '<code>' + esc(c.key) + '</code> is ' + fmt(c.ceiling) + ' but only ' + fmt(c.count) + ' sidecars carry no stamp, so lower it.'; } },
     { section: 'In-code comments', title: 'In-code comments', items: d.remarks, head: hitHead('Marker'), row: hitRow },
     { section: 'Unreadable files', title: 'Unreadable files', items: d.unreadable, list: function (u) { return esc(u); } }
   ].forEach(block);
@@ -495,8 +498,8 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
   var findingsByPath = {};
   [d.rules, d.headings].forEach(function (list) { list.forEach(function (h) { findingsByPath[h.path] = (findingsByPath[h.path] || 0) + 1; }); });
   d.comments.forEach(function (c) { c.findings = findingsByPath[c.path] || 0; c.source = c.sources.join(', '); });
-  var STATECLASS = { 'stamped': 'ok', 'no hash': 'warn', 'stale': 'fail', 'no source': 'fail', 'unreadable': 'fail', 'exempt': 'plain' };
-  var STATES = ['stamped', 'stale', 'no hash', 'no source', 'exempt', 'unreadable'].filter(function (s) { return stateCounts[s]; });
+  var STATECLASS = { 'stamped': 'ok', 'no stamp': 'warn', 'changed': 'warn', 'no source': 'fail', 'unreadable': 'fail', 'exempt': 'plain' };
+  var STATES = ['stamped', 'changed', 'no stamp', 'no source', 'exempt', 'unreadable'].filter(function (s) { return stateCounts[s]; });
   var COLUMNS = [
     { key: 'state', label: 'State', num: false }, { key: 'lines', label: 'Lines', num: true }, { key: 'nonBlank', label: 'Non-blank', num: true },
     { key: 'bytes', label: 'Bytes', num: true }, { key: 'findings', label: 'Line findings', num: true }, { key: 'folder', label: 'Folder', num: false },

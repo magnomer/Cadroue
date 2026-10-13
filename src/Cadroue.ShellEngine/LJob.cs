@@ -32,8 +32,6 @@ internal sealed partial class LJob
         lJobToken = lJobSource.Token;
     }
 
-    internal LWorkItem LJobItem => lJobItem;
-
     internal Task LJobCompletion { get; private set; } = Task.CompletedTask;
 
     internal Task LJobStart() => LJobCompletion = LJobRun();
@@ -54,7 +52,7 @@ internal sealed partial class LJob
     {
         var pJobClock = Stopwatch.StartNew();
         lJobClock = pJobClock;
-        if (lJobOwner.lRunnerCancelled.TryRemove(lJobItem.LWorkId, out _))
+        if (lJobOwner.LRunnerPendingRemove(lJobItem.LWorkId))
         {
             LJobCancel();
         }
@@ -77,7 +75,7 @@ internal sealed partial class LJob
                 return;
             }
 
-            lJobOwner.LRunnerLeaseStart(lJobItem);
+            lJobOwner.LRunnerLease.LRunnerLeaseStart(lJobItem);
             lJobOwner.LRunnerDispatch(() =>
             {
                 lJobItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
@@ -299,8 +297,8 @@ internal sealed partial class LJob
 
     private async Task LJobAttemptClear()
     {
-        lJobOwner.LRunnerProcessDetach(lJobItem.LWorkId);
-        lJobOwner.LRunnerLeaseStop(lJobItem.LWorkId);
+        lJobOwner.LRunnerProcess.LRunnerProcessDetach(lJobItem.LWorkId);
+        lJobOwner.LRunnerLease.LRunnerLeaseStop(lJobItem.LWorkId);
         await LJobTempClear(lJobStagesDone).ConfigureAwait(false);
         LJobReservedClear();
         LEncode.LEncodeBridgeClear(lJobItem.LWorkId);

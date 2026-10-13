@@ -1,49 +1,56 @@
 <#
 .SYNOPSIS
-Audits the comment files that accompany source files and the sources themselves for stray comments.
+Audits the folder comment files that accompany source folders and the sources themselves for stray comments.
 
 .DESCRIPTION
+Every folder holding a source carries exactly one comment file, the folder sidecar, named
+{folder name}{comment suffix} inside that folder. The repository root's sidecar is named by
+sources.rootComment. It carries the intent of the folder's code, which no check judges.
+
 Reads the project configuration from AuditComments.json next to this script, then
 performs these actions on every run:
   1. Prints the Result table, one gate per finding kind below.
   2. Prints comment-file line totals for each folder under the source roots.
-  3. Prints sources that have no comment file, and comment files that have no source.
+  3. Prints folders that have no sidecar, and comment files that are no folder's sidecar.
   4. Prints comment lines that break the line rules: too many words, a forbidden
      character, or more than one sentence.
   5. Prints in-code comment lines found inside sources, every line of a block comment included.
-  6. Prints signature headings that name no identifier of the source they describe.
-  7. Prints comment files whose second line holds a hash their source no longer matches, and
-     those whose second line holds no hash.
-  8. Prints the exempt comment files, which the line rules, headings and hashes skip.
-  9. Writes a Markdown report to {report.directory}\{prefix}{version}.md.
- 10. Writes the full result as a page to {report.directory}\{prefix}{version}.html.
+  6. Prints signature headings that name no identifier of the folder's sources, and file
+     headings that name no file of the folder.
+  7. Prints sidecars whose stamp no longer matches their folder, as advice, and those with no stamp.
+  8. Prints folders over the file limit and folder ceilings set above their count, as warnings.
+  9. Prints the exempt comment files, which the line rules, headings and stamps skip.
+ 10. Writes a Markdown report to {report.directory}\{prefix}{version}.md.
+ 11. Writes the full result as a page to {report.directory}\{prefix}{version}.html.
      The page opens in the default browser unless -NoOpen is given.
 The console follows scripts\report.md: widest view first, empty lists left out.
 The page holds everything the console and the report hold, plus every comment file read.
 It fills the template AuditComments.html next to this script, and works offline.
 
-The second line of every paired comment file reads Hash: `<16 hex digits>`. The digits are
-the first 16 of the lowercase SHA-256 of the UTF-8 text of the sources paired to that file,
-each with its byte order mark dropped and CRLF or CR turned into LF, joined in ordinal
-file-name order. A source edit therefore flags its comment file until a person rereads the
-prose and restamps it with StampComment.ps1. Exempt files are skipped, as for headings.
+A sidecar ends with its stamp, a section that StampComment.ps1 writes:
+  ## Stamp
+
+  Commit: `<commit the stamp was taken at>`
+  - `<file name>` `<16 hex digits>`
+One row per source of the folder. The digits are the first 16 of the lowercase SHA-256 of the
+UTF-8 text of that source, its byte order mark dropped and CRLF or CR turned into LF. The stamp
+section is reserved: the line rules and the heading check stop at it.
+A row whose source changed, a source with no row, and a row whose source is gone are advice:
+the sidecar is listed with the diff command that shows what changed since its stamp, and the
+gate only warns. A sidecar with no stamp section warns while the count sits at or below
+ceilings.unstamped and fails above it. A ceiling above the count is stale and fails.
+
+While enforced is false, every finding gate warns instead of failing: folders without a sidecar,
+comment files without a folder, line rules, in-code comments, headings and unstamped sidecars.
+Stale ceilings and unreadable files fail either way. A project sets it false while it migrates.
+
+A folder holding more sources than rules.folderFiles warns, unless its count sits at or below
+its row in ceilings.folders. A row above its folder's count is stale, and warns.
 
 Exempt comment files, listed by path under exempt.comments, belong to the developer alone. Only
-the developer edits them, so the audit never judges them: no line rule, heading or hash check
-reads them, and StampComment.ps1 refuses them. They still pair with their sources, count in the
-folder totals, and print under Exempt comment files. A listed path that does not exist stops the
-audit with an error.
-
-Each run keeps the text of every stale comment file in AuditCommentsSnapshot.json next to
-this script, once per stale stamp. A later run that finds the file restamped while its prose,
-spacing and blank lines aside, still matches that text lists it under Comment files restamped
-unrevised, with a capitalized warning. That gate only warns. Its entry clears once the prose
-changes, once HEAD carries the new stamp, or once the file is gone. The convention test keeps
-its own snapshot, so each side flags only the stale files it saw itself.
-
-A stale hash always fails. A missing hash is backlog from before the stamp existed: its gate
-reads WARN in yellow while the count sits at or below ceilings.unstamped, and FAIL above it.
-A ceiling above the count is stale and fails, so the ceiling only walks down as files are stamped.
+the developer edits them, so the audit never judges them: no line rule, heading or stamp check
+reads them, and StampComment.ps1 refuses them. They count in the folder totals and print under
+Exempt comment files. A listed path that does not exist stops the audit with an error.
 
 Everything project-specific lives in AuditComments.json. The script itself
 carries no project knowledge. Files come from git: tracked and untracked files,
@@ -55,21 +62,20 @@ An unreadable file is reported once, under Unreadable files, and never as a miss
 
 AuditComments.json shape:
   {
-    "generation": 23,
+    "generation": 24,
     "project": "Cadroue",
+    "enforced": true,
     "sources": {
-      "roots": ["languages", "localization", "src", "tests", "themes"],
+      "roots": ["localization", "src", "tests"],
       "files": ["Directory.Build.props", "Cadroue.slnx", "version.json"],
       "commentPattern": "*.comment.md",
-      "pairs": { ".xaml.cs": "{base}.xaml.comment.md", ".cs": "{base}.comment.md",
-                 ".xaml": "{base}.comment.md", ".csproj": "{base}.comment.md",
-                 ".json": "{base}.comment.md", ".props": "{base}.comment.md",
-                 ".slnx": "{base}.comment.md" },
+      "rootComment": "Cadroue.comment.md",
+      "suffixes": [".cs", ".xaml", ".csproj", ".json", ".props", ".slnx"],
       "excludeSegments": [".git", "bin", "obj"],
       "excludeSuffixes": [".g.cs", ".Designer.cs"]
     },
     "rules": { "maxWords": 20, "forbidden": [";"], "sentenceMarks": [".", "!", "?"],
-               "abbreviations": ["e.g", "i.e", "etc", "vs", "cf"] },
+               "abbreviations": ["e.g", "i.e", "etc", "vs", "cf"], "folderFiles": 10 },
     "remark": {
       "markers": { ".cs": ["//", "/*"], ".xaml": ["<!--"], ".props": ["<!--"],
                    ".csproj": ["<!--"], ".slnx": ["<!--"] },
@@ -77,7 +83,7 @@ AuditComments.json shape:
       "exemptFiles": ["TAuditNameRegistry.cs", "TAuditVerbRegistry.cs"]
     },
     "exempt": { "comments": ["version.comment.md"] },
-    "ceilings": { "unstamped": <n> },
+    "ceilings": { "unstamped": <n>, "folders": { "<folder path>": <n> } },
     "report": {
       "directory": "docs-analysis",
       "versionFile": "version.json",
@@ -87,14 +93,16 @@ AuditComments.json shape:
     }
   }
 
-Pairs map a source suffix to the comment file it expects, where {base} is the
-file name with that suffix removed. Longer suffixes are matched first.
-Markers are looked for in every file whose extension declares them, paired or not,
+Suffixes name the files that count as sources. A file under a root ending in one of them is a
+source of its folder, the excluded suffixes aside. Folder ceilings are keyed by the folder's path
+from the repository root, with forward slashes.
+Markers are looked for in every file whose extension declares them, source or not,
 except the exempt files and the excluded suffixes. Headings are checked in every
 comment file the line rules read, the root-level ones included.
 
 Files lists single sources, relative to the repository root, audited beside the
-roots. They report under the (root) folder and are skipped when -SourceRoots is given.
+roots. They form the root folder, whose sidecar is sources.rootComment, report under the
+(root) folder, and are skipped when -SourceRoots is given.
 
 Report.prefix starts the file name of both the Markdown report and the page.
 
@@ -135,7 +143,7 @@ AuditComments -Segments 2
 AuditComments -SourceRoots .\src -MaxWords 25
 #>
 #requires -Version 5.1
-# AUDITCOMMENTS - AUDIT GENERATION 23.
+# AUDITCOMMENTS - AUDIT GENERATION 24.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -171,6 +179,9 @@ AuditComments -SourceRoots .\src -MaxWords 25
 # UI audits, which gained kinds, and with the new fault audit.
 # Generation 22: nothing this audit reports changes; the number rises with the structure audit,
 # whose Unsealing kind walks every public type of a sealed ring, whatever its prefix.
+# Generation 24: one sidecar per folder replaces one per source file. A stamp section records each
+# source's hash and the commit, and a changed folder is advice, never a failure. A folder over the
+# file limit warns above its own ceiling. The restamped-unrevised warning and its snapshot are gone.
 [CmdletBinding()]
 param(
     [string]$ConfigPath,
@@ -205,7 +216,7 @@ SYNTAX
 
 CONFIGURATION
     All project-specific values live in AuditComments.json next to the script:
-    source roots, comment-file pattern, source-to-comment pairs, excluded
+    source roots, comment-file pattern, root sidecar, source suffixes, excluded
     directory names and suffixes, line rules, in-code comment markers and
     exempt files, exempt comment files, report directory, version file and key, and the report
     file-name prefix. Parameters below override it per run.
@@ -215,24 +226,27 @@ PAGE
     It opens in the default browser unless -NoOpen is given.
 
 CHECKS
-    Pairs: every source under the roots and every root-level file needs its
-        comment file, and every comment file under the roots needs a source.
+    Sidecars: every folder holding a source needs its sidecar,
+        {folder}.comment.md, and the root folder needs sources.rootComment.
+        Every other comment file under the roots is a finding.
     Line rules: every comment line holds one sentence, at most the word
-        limit, and none of the forbidden characters.
-    In-code comments: every file whose extension declares markers, paired
+        limit, and none of the forbidden characters. The stamp section is
+        not read.
+    In-code comments: every file whose extension declares markers, source
         or not, carries none, exempt files and excluded suffixes aside.
-    Headings: every signature heading names an identifier of its source,
-        in every comment file the line rules read.
-    Hashes: the second line of every paired comment file is Hash: `<hex>`,
-        16 digits of the SHA-256 of its sources' LF-normalized text. A stale
-        hash is a finding. A missing hash is a WARN while the count sits at
-        or below ceilings.unstamped, a finding above it, and a ceiling above
-        the count is stale and a finding. Restamp one file with
-        StampComment.ps1 only after rereading its prose.
-    Restamps: a file restamped while its prose still matches the text it
-        held when stale is a WARN, kept in AuditCommentsSnapshot.json.
+    Headings: every signature heading names an identifier of its folder's
+        sources, and every file heading names a file of the folder.
+    Stamps: a sidecar ends with ## Stamp, the commit, and one hash row per
+        source. A changed, added or removed source is a WARN that lists the
+        diff to reread. A missing stamp is a WARN while the count sits at or
+        below ceilings.unstamped, a finding above it, and a ceiling above
+        the count is stale and a finding. Stamp a sidecar with
+        StampComment.ps1.
+    Folder size: a folder with more sources than rules.folderFiles is a
+        WARN unless ceilings.folders holds it. A row above its folder's
+        count is a WARN.
     Exempt: the comment files under exempt.comments belong to the developer
-        alone. Line rules, headings and hashes skip them, and they are
+        alone. Line rules, headings and stamps skip them, and they are
         listed under Exempt comment files.
     A configured root or root-level file that does not exist, or a failing
     git, stops the audit with an error. Paths print with forward slashes
@@ -289,7 +303,7 @@ $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 23
+$script:AuditGeneration = 24
 
 # Console paging. A page is one window of rows; the audit stops at each page boundary and waits
 # for a key so the reader can inspect the output before it scrolls away. Any key shows the next
@@ -381,7 +395,7 @@ function Get-ConfigLeaves {
     $leaves = [System.Collections.Generic.List[string]]::new()
     foreach ($property in $Node.PSObject.Properties) {
         $child = if ($Path.Length -eq 0) { $property.Name } else { $Path + '.' + $property.Name }
-        if ($property.Value -is [System.Management.Automation.PSCustomObject] -and $child -notin @('sources.pairs', 'remark.markers', 'remark.closers')) {
+        if ($property.Value -is [System.Management.Automation.PSCustomObject] -and $child -notin @('ceilings.folders', 'remark.markers', 'remark.closers')) {
             foreach ($leaf in (Get-ConfigLeaves -Node $property.Value -Path $child)) { $leaves.Add($leaf) }
         }
         else {
@@ -401,6 +415,7 @@ function Test-ConfigValue {
     switch ($Kind) {
         'string' { return $Value -is [string] -and -not [string]::IsNullOrWhiteSpace($Value) }
         'int' { return ($Value -is [int] -or $Value -is [long]) -and $Value -ge 0 }
+        'bool' { return $Value -is [bool] }
         'strings' {
             if ($null -eq $Value -or -not ($Value -is [System.Array])) { return $false }
             foreach ($item in $Value) {
@@ -419,6 +434,13 @@ function Test-ConfigValue {
             if ($null -eq $Value -or -not ($Value -is [System.Management.Automation.PSCustomObject])) { return $false }
             foreach ($property in $Value.PSObject.Properties) {
                 if (-not (Test-ConfigValue -Value $property.Value -Kind 'strings')) { return $false }
+            }
+            return $true
+        }
+        'mapInts' {
+            if ($null -eq $Value -or -not ($Value -is [System.Management.Automation.PSCustomObject])) { return $false }
+            foreach ($property in $Value.PSObject.Properties) {
+                if (-not (Test-ConfigValue -Value $property.Value -Kind 'int')) { return $false }
             }
             return $true
         }
@@ -449,13 +471,13 @@ function Read-AuditConfig {
 
     $problems = [System.Collections.Generic.List[string]]::new()
     $schema = [ordered]@{
-        'generation' = 'int'; 'project' = 'string'
-        'sources.roots' = 'strings'; 'sources.files' = 'strings'; 'sources.commentPattern' = 'string'; 'sources.pairs' = 'map'
+        'generation' = 'int'; 'project' = 'string'; 'enforced' = 'bool'
+        'sources.roots' = 'strings'; 'sources.files' = 'strings'; 'sources.commentPattern' = 'string'; 'sources.rootComment' = 'string'; 'sources.suffixes' = 'strings'
         'sources.excludeSegments' = 'strings'; 'sources.excludeSuffixes' = 'strings'
-        'rules.maxWords' = 'int'; 'rules.forbidden' = 'strings'; 'rules.sentenceMarks' = 'strings'; 'rules.abbreviations' = 'strings'
+        'rules.maxWords' = 'int'; 'rules.forbidden' = 'strings'; 'rules.sentenceMarks' = 'strings'; 'rules.abbreviations' = 'strings'; 'rules.folderFiles' = 'int'
         'remark.markers' = 'mapStrings'; 'remark.closers' = 'map'; 'remark.exemptFiles' = 'strings'
         'exempt.comments' = 'strings'
-        'ceilings.unstamped' = 'int'
+        'ceilings.unstamped' = 'int'; 'ceilings.folders' = 'mapInts'
         'report.directory' = 'string'; 'report.versionFile' = 'string'; 'report.versionKey' = 'string'; 'report.prefix' = 'string'; 'report.segments' = 'int'
     }
 
@@ -516,11 +538,17 @@ $versionPathFull = Join-AuditPath -Root $repoRootFull -Relative $config.report.v
 $versionKey = [string]$config.report.versionKey
 $reportPrefix = [string]$config.report.prefix
 
+$rootComment = [string]$config.sources.rootComment
+$folderFileLimit = [int]$config.rules.folderFiles
 $pairs = [System.Collections.Generic.List[object]]::new()
-foreach ($property in $config.sources.pairs.PSObject.Properties) {
-    $pairs.Add([pscustomobject]@{ Suffix = [string]$property.Name; Template = [string]$property.Value })
+foreach ($suffix in @($config.sources.suffixes)) {
+    $pairs.Add([pscustomobject]@{ Suffix = [string]$suffix })
 }
 $pairs = @($pairs | Sort-Object -Property @{ Expression = { $_.Suffix.Length }; Descending = $true })
+$folderCeilings = [ordered]@{}
+foreach ($property in $config.ceilings.folders.PSObject.Properties) {
+    $folderCeilings[[string]$property.Name] = [int]$property.Value
+}
 
 $markers = @{}
 foreach ($property in $config.remark.markers.PSObject.Properties) {
@@ -640,7 +668,7 @@ function Get-GateStatus {
     param([Parameter(Mandatory = $true)]$Row)
 
     if ($Row.Count -eq 0) { return 'OK' }
-    if ($null -ne $Row.PSObject.Properties['Warn']) { return 'WARN' }
+    if ($null -ne $Row.PSObject.Properties['Warn'] -and $Row.Warn) { return 'WARN' }
     if ($null -ne $Row.PSObject.Properties['Ceiling'] -and $Row.Count -le $Row.Ceiling) { return 'WARN' }
     return 'FAIL'
 }
@@ -798,12 +826,19 @@ function Get-PairFor {
 
     foreach ($pair in $pairs) {
         if ($Name.EndsWith($pair.Suffix, [System.StringComparison]::OrdinalIgnoreCase)) {
-            $base = $Name.Substring(0, $Name.Length - $pair.Suffix.Length)
-            return [pscustomobject]@{ Suffix = $pair.Suffix; Base = $base; Expected = $pair.Template.Replace('{base}', $base) }
+            return [pscustomobject]@{ Suffix = $pair.Suffix }
         }
     }
 
     return $null
+}
+
+# The sidecar a folder expects: its own name plus the comment suffix, or the configured root sidecar.
+function Get-SidecarName {
+    param([Parameter(Mandatory = $true)][string]$Directory)
+
+    if ([string]::Equals($Directory.TrimEnd('\', '/'), $repoRootFull.TrimEnd('\', '/'), [System.StringComparison]::OrdinalIgnoreCase)) { return $rootComment }
+    return [System.IO.Path]::GetFileName($Directory.TrimEnd('\', '/')) + $commentSuffix
 }
 
 $stringLiteralPattern = [System.Text.RegularExpressions.Regex]::new('(?:"{3,})[\s\S]*?"{3,}|(?:@\$?|\$@)"(?:[^"]|"")*"|"(?:\\.|[^"\\\r\n])*"|''(?:\\.|[^''\\\r\n])''', [System.Text.RegularExpressions.RegexOptions]::Compiled)
@@ -875,21 +910,6 @@ function ConvertTo-PageJson {
         return '[' + ($items -join ",`n") + ']'
     }
     throw "The page data holds a value of an unexpected type: $($Value.GetType().FullName)"
-}
-
-# The prose of a comment file without its Hash line, with blank lines and spacing left out.
-function ConvertTo-ProseKey {
-    param([Parameter(Mandatory = $true)][AllowEmptyString()][string]$Text)
-
-    $kept = [System.Collections.Generic.List[string]]::new()
-    $number = 0
-    foreach ($line in ($Text -split "`n")) {
-        $number++
-        if ($number -eq 2 -and $line -cmatch '^Hash: `[0-9a-f]{16}`\s*$') { continue }
-        $squeezed = [System.Text.RegularExpressions.Regex]::Replace($line.Trim(), '\s+', ' ')
-        if ($squeezed.Length -gt 0) { $kept.Add($squeezed) }
-    }
-    return ($kept -join "`n")
 }
 
 function Invoke-AuditGit {
@@ -997,7 +1017,7 @@ function Add-SourceFile {
             $count = Measure-Lines -Path $File.FullName -Relative $Relative
             $sourceFiles.Add([pscustomobject]@{
                 Full = $File.FullName; Relative = $Relative; Folder = $Folder; Name = $File.Name; Directory = $File.DirectoryName
-                Suffix = $pair.Suffix; Expected = $pair.Expected; Lines = $count.Lines; NonBlank = $count.NonBlank
+                Suffix = $pair.Suffix; Expected = (Get-SidecarName -Directory $File.DirectoryName); Lines = $count.Lines; NonBlank = $count.NonBlank
             })
         }
     }
@@ -1058,11 +1078,17 @@ foreach ($fileFull in $scanPaths) {
 }
 
 $rootComments = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
+$rootDirectories = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($fileFull in $sourceFileFulls) {
     $file = [System.IO.FileInfo]::new($fileFull)
     Add-SourceFile -File $file -Relative (Get-RelativePathSafe -BasePath $repoRootFull -Path $fileFull) -Folder "(root)"
-    $commentFull = Join-Path $file.DirectoryName (Get-PairFor -Name $file.Name).Expected
-    if ([System.IO.File]::Exists($commentFull)) { $rootComments.Add([System.IO.FileInfo]::new($commentFull)) }
+    [void]$rootDirectories.Add($file.DirectoryName)
+}
+# Every comment file directly inside a root-level source's folder, so a stray one shows as a comment file without a folder.
+foreach ($directory in @($rootDirectories | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
+    foreach ($commentFull in @([System.IO.Directory]::GetFiles($directory, $commentPattern) | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
+        $rootComments.Add([System.IO.FileInfo]::new($commentFull))
+    }
 }
 foreach ($comment in $rootComments) {
     Add-CommentFile -File $comment -Relative (Get-RelativePathSafe -BasePath $repoRootFull -Path $comment.FullName) -Folder "(root)"
@@ -1111,18 +1137,23 @@ foreach ($source in $sourceFiles) {
 }
 
 # Every list keeps the enumeration order: paths sorted without case, then the root-level files, like the convention test.
-$missingComments = @($sourceFiles | Where-Object { -not [System.IO.File]::Exists((Join-Path $_.Directory $_.Expected)) })
+# A folder without its sidecar lists once, under its first source.
+$missingSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$missingComments = @($sourceFiles | Where-Object { -not [System.IO.File]::Exists((Join-Path $_.Directory $_.Expected)) -and $missingSeen.Add($_.Directory) })
 $orphanComments = @($commentFiles | Where-Object {
+    -not $exemptComments.Contains($_.Full) -and
     -not ($expectedByDirectory.ContainsKey($_.Directory) -and $expectedByDirectory[$_.Directory].Contains($_.Name))
 })
 
-# Line rules inside comment files.
+# Line rules inside comment files. The reserved stamp section ends what they read.
+$stampHeadingPattern = [System.Text.RegularExpressions.Regex]::new('^##\s+Stamp\s*$')
 $ruleHits = [System.Collections.Generic.List[object]]::new()
 foreach ($comment in $commentFiles) {
     if (-not $comment.Readable -or $exemptComments.Contains($comment.Full)) { continue }
     $number = 0
     foreach ($line in [System.IO.File]::ReadLines($comment.Full)) {
         $number++
+        if ($stampHeadingPattern.IsMatch($line)) { break }
         $problems = @(Test-CommentLine -Line $line)
         if ($problems.Count -gt 0) {
             $ruleHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = $number; Problem = ($problems -join ', '); Text = $line.Trim() })
@@ -1172,19 +1203,33 @@ $headingPattern = [System.Text.RegularExpressions.Regex]::new('^##\s+`(?<span>[^
 $fileNamePattern = [System.Text.RegularExpressions.Regex]::new('^[\w.]+\.(cs|xaml|json|csproj|props|slnx|md)$')
 $genericPattern = [System.Text.RegularExpressions.Regex]::new('<[^<>]*>')
 $identifierPattern = [System.Text.RegularExpressions.Regex]::new('@?[A-Za-z_][A-Za-z0-9_]*')
+# The sources each sidecar describes: every source of its folder.
+$ownersByComment = @{}
+foreach ($source in $sourceFiles) {
+    $pairedFull = [System.IO.Path]::Combine($source.Directory, $source.Expected)
+    if (-not $ownersByComment.ContainsKey($pairedFull)) { $ownersByComment[$pairedFull] = [System.Collections.Generic.List[object]]::new() }
+    $ownersByComment[$pairedFull].Add($source)
+}
 foreach ($comment in $commentFiles) {
-    if (-not $comment.Readable -or $exemptComments.Contains($comment.Full)) { continue }
-    $stem = $comment.Full.Substring(0, $comment.Full.Length - $commentSuffix.Length)
-    $owners = @(@('', '.cs', '.xaml', '.xaml.cs') | ForEach-Object { $stem + $_ } | Where-Object { [System.IO.File]::Exists($_) })
-    if ($owners.Count -eq 0 -or $exemptFiles.Contains([System.IO.Path]::GetFileName($owners[0]))) { continue }
-    $ownerText = -join @($owners | ForEach-Object { [System.IO.File]::ReadAllText($_) })
+    if (-not $comment.Readable -or $exemptComments.Contains($comment.Full) -or -not $ownersByComment.ContainsKey($comment.Full)) { continue }
+    $owners = @($ownersByComment[$comment.Full] | Where-Object { -not $exemptFiles.Contains($_.Name) -and -not $unreadable.Contains($_.Full) })
+    if ($owners.Count -eq 0) { continue }
+    $ownerNames = [System.Collections.Generic.HashSet[string]]::new([string[]]@($ownersByComment[$comment.Full] | ForEach-Object { $_.Name }), [System.StringComparer]::OrdinalIgnoreCase)
+    $ownerText = -join @($owners | ForEach-Object { [System.IO.File]::ReadAllText($_.Full) })
     $number = 0
     foreach ($line in [System.IO.File]::ReadLines($comment.Full)) {
         $number++
+        if ($stampHeadingPattern.IsMatch($line)) { break }
         $heading = $headingPattern.Match($line)
         if (-not $heading.Success) { continue }
         $span = $heading.Groups['span'].Value
-        if ($span.StartsWith('<', [System.StringComparison]::Ordinal) -or $fileNamePattern.IsMatch($span)) { continue }
+        if ($span.StartsWith('<', [System.StringComparison]::Ordinal)) { continue }
+        if ($fileNamePattern.IsMatch($span)) {
+            if (-not $ownerNames.Contains($span)) {
+                $headingHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = $number; Problem = $span; Text = $line.Trim() })
+            }
+            continue
+        }
         $stop = $span.IndexOfAny([char[]]@('(', '=', ';', '{', ':'))
         $head = if ($stop -lt 0) { $span } else { $span.Substring(0, $stop) }
         while ($genericPattern.IsMatch($head)) { $head = $genericPattern.Replace($head, '') }
@@ -1197,25 +1242,42 @@ foreach ($comment in $commentFiles) {
     }
 }
 
-# Source hashes on the second line of every paired comment file.
+# The stamp section that ends every sidecar: the commit, then one hash row per source of the folder.
+# A changed, added or removed source is advice, listed with the diff that shows the change.
 $hashHits = [System.Collections.Generic.List[object]]::new()
 $unstampedHits = [System.Collections.Generic.List[object]]::new()
-$stampStates = [System.Collections.Generic.List[object]]::new()
 $unstampedCeiling = [int]$config.ceilings.unstamped
-$hashLinePattern = [System.Text.RegularExpressions.Regex]::new('^Hash: `(?<hash>[0-9a-f]{16})`$')
+# While enforced is false every finding gate only warns, so a project mid-migration stays green.
+$enforced = [bool]$config.enforced
+$commitLinePattern = [System.Text.RegularExpressions.Regex]::new('^Commit: `(?<commit>[0-9a-f]{7,40})`\s*$')
+$rowLinePattern = [System.Text.RegularExpressions.Regex]::new('^- `(?<name>[^`]+)` `(?<hash>[0-9a-f]{16})`\s*$')
 $hashEncoding = [System.Text.UTF8Encoding]::new($false)
 $hashAlgorithm = [System.Security.Cryptography.SHA256]::Create()
-$ownersByComment = @{}
-foreach ($source in $sourceFiles) {
-    $pairedFull = [System.IO.Path]::Combine($source.Directory, $source.Expected)
-    if (-not $ownersByComment.ContainsKey($pairedFull)) { $ownersByComment[$pairedFull] = [System.Collections.Generic.List[object]]::new() }
-    $ownersByComment[$pairedFull].Add($source)
-}
 foreach ($comment in $commentFiles) {
     if (-not $comment.Readable -or $exemptComments.Contains($comment.Full) -or -not $ownersByComment.ContainsKey($comment.Full)) { continue }
-    $owners = @($ownersByComment[$comment.Full] | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_.Name } })
-    if (@($owners | Where-Object { $exemptFiles.Contains($_.Name) }).Count -gt 0) { continue }
-    $joined = [System.Text.StringBuilder]::new()
+    $owners = @($ownersByComment[$comment.Full] | Where-Object { -not $exemptFiles.Contains($_.Name) } | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_.Name } })
+    if ($owners.Count -eq 0) { continue }
+    $commentLines = [System.IO.File]::ReadAllLines($comment.Full)
+    $stampAt = -1
+    for ($index = 0; $index -lt $commentLines.Count; $index++) {
+        if ($stampHeadingPattern.IsMatch($commentLines[$index])) { $stampAt = $index; break }
+    }
+    $commit = $null
+    $rows = [ordered]@{}
+    if ($stampAt -ge 0) {
+        for ($index = $stampAt + 1; $index -lt $commentLines.Count; $index++) {
+            $commitMatch = $commitLinePattern.Match($commentLines[$index])
+            if ($commitMatch.Success) { $commit = $commitMatch.Groups['commit'].Value; continue }
+            $rowMatch = $rowLinePattern.Match($commentLines[$index])
+            if ($rowMatch.Success) { $rows[$rowMatch.Groups['name'].Value] = $rowMatch.Groups['hash'].Value }
+        }
+    }
+    if ($stampAt -lt 0 -or $null -eq $commit) {
+        $unstampedHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = $(if ($stampAt -lt 0) { $commentLines.Count } else { $stampAt + 1 }); Problem = 'no stamp'; Text = '' })
+        continue
+    }
+    $changed = [System.Collections.Generic.List[string]]::new()
+    $added = [System.Collections.Generic.List[string]]::new()
     $readable = $true
     foreach ($owner in $owners) {
         try { $ownerText = [System.IO.File]::ReadAllText($owner.Full) }
@@ -1224,69 +1286,53 @@ foreach ($comment in $commentFiles) {
             $readable = $false
             break
         }
-        [void]$joined.Append($ownerText.Replace("`r`n", "`n").Replace("`r", "`n"))
+        $digest = $hashAlgorithm.ComputeHash($hashEncoding.GetBytes($ownerText.Replace("`r`n", "`n").Replace("`r", "`n")))
+        $hash = (-join @($digest | ForEach-Object { $_.ToString('x2') })).Substring(0, 16)
+        if (-not $rows.Contains($owner.Name)) { $added.Add($owner.Name) }
+        elseif ([string]$rows[$owner.Name] -cne $hash) { $changed.Add($owner.Name) }
     }
     if (-not $readable) { continue }
-    $digest = $hashAlgorithm.ComputeHash($hashEncoding.GetBytes($joined.ToString()))
-    $expectedHash = (-join @($digest | ForEach-Object { $_.ToString('x2') })).Substring(0, 16)
-    $commentLines = [System.IO.File]::ReadAllLines($comment.Full)
-    $second = if ($commentLines.Count -ge 2) { $commentLines[1] } else { '' }
-    $stamp = $hashLinePattern.Match($second)
-    if (-not $stamp.Success) {
-        $unstampedHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = 2; Problem = 'no hash'; Text = $second.Trim() })
-    }
-    else {
-        $current = $stamp.Groups['hash'].Value -ceq $expectedHash
-        $stampStates.Add([pscustomobject]@{ Relative = $comment.Relative; Full = $comment.Full; Stamp = $second; Current = $current })
-        if (-not $current) {
-            $hashHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = 2; Problem = 'source changed'; Text = $second.Trim() })
-        }
-    }
+    $ownerNameSet = [System.Collections.Generic.HashSet[string]]::new([string[]]@($owners | ForEach-Object { $_.Name }), [System.StringComparer]::Ordinal)
+    $removed = @($rows.Keys | Where-Object { -not $ownerNameSet.Contains([string]$_) })
+    if ($changed.Count + $added.Count + $removed.Count -eq 0) { continue }
+    $parts = @()
+    if ($changed.Count -gt 0) { $parts += 'changed ' + ($changed -join ', ') }
+    if ($added.Count -gt 0) { $parts += 'added ' + ($added -join ', ') }
+    if ($removed.Count -gt 0) { $parts += 'removed ' + ($removed -join ', ') }
+    $folderRelative = [System.IO.Path]::GetDirectoryName($comment.Relative)
+    if ([string]::IsNullOrEmpty($folderRelative)) { $folderRelative = '.' }
+    $hashHits.Add([pscustomobject]@{ Relative = $comment.Relative; Line = $stampAt + 1; Problem = ($parts -join '; ').Replace(';', ' |'); Text = "git diff $commit -- $($folderRelative.Replace('\', '/'))" })
 }
 $hashAlgorithm.Dispose()
-
-# Snapshots of stale comment files, kept between runs in scripts\AuditCommentsSnapshot.json.
-# A stale file is recorded once per stale stamp, with its text at the first run that saw it stale.
-# A later run that finds it restamped but with the same prose flags a hash bumped without a revision.
-# The entry clears when the prose changes, when HEAD carries the new stamp, or when the file goes away.
-$restampHits = [System.Collections.Generic.List[object]]::new()
-$snapshotPath = Join-Path $PSScriptRoot 'AuditCommentsSnapshot.json'
-$snapshots = @{}
-if ([System.IO.File]::Exists($snapshotPath)) {
-    try {
-        $snapshotData = Get-Content -LiteralPath $snapshotPath -Raw -Encoding UTF8 | ConvertFrom-Json
-        foreach ($property in @($snapshotData.PSObject.Properties)) {
-            $snapshots[[string]$property.Name] = [pscustomobject]@{ Stamp = [string]$property.Value[0]; Text = [string]$property.Value[1] }
-        }
-    }
-    catch { $snapshots = @{} }
-}
-$keptSnapshots = [ordered]@{}
-foreach ($state in @($stampStates | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_.Relative } })) {
-    $text = [System.IO.File]::ReadAllText($state.Full).Replace("`r`n", "`n").Replace("`r", "`n")
-    $entry = $snapshots[$state.Relative]
-    if (-not $state.Current) {
-        if ($null -eq $entry -or $entry.Stamp -cne $state.Stamp) { $entry = [pscustomobject]@{ Stamp = $state.Stamp; Text = $text } }
-        $keptSnapshots[$state.Relative] = $entry
-        continue
-    }
-    if ($null -eq $entry -or $entry.Stamp -ceq $state.Stamp) { continue }
-    if ((ConvertTo-ProseKey -Text $text) -cne (ConvertTo-ProseKey -Text $entry.Text)) { continue }
-    $committed = Invoke-AuditGit -Arguments @('-C', $repoRootFull, 'show', "HEAD:$($state.Relative)")
-    if ($committed.ExitCode -eq 0 -and @($committed.Lines).Count -ge 2 -and ([string]$committed.Lines[1]).TrimEnd() -ceq $state.Stamp.TrimEnd()) { continue }
-    $restampHits.Add([pscustomobject]@{ Relative = $state.Relative; Line = 2; Problem = 'restamped, prose unchanged'; Text = $state.Stamp.Trim() })
-    $keptSnapshots[$state.Relative] = $entry
-}
-$snapshotText = [System.Text.StringBuilder]::new("{")
-$snapshotIndex = 0
-foreach ($key in $keptSnapshots.Keys) {
-    $separator = if ($snapshotIndex -eq 0) { "`n" } else { ",`n" }
-    [void]$snapshotText.Append($separator + '  ' + (ConvertTo-PageJson $key) + ': [' + (ConvertTo-PageJson $keptSnapshots[$key].Stamp) + ', ' + (ConvertTo-PageJson $keptSnapshots[$key].Text) + ']')
-    $snapshotIndex++
-}
-[void]$snapshotText.Append($(if ($snapshotIndex -eq 0) { "}`n" } else { "`n}`n" }))
-[System.IO.File]::WriteAllText($snapshotPath, $snapshotText.ToString(), [System.Text.UTF8Encoding]::new($false))
 $staleCeilings = if ($unstampedCeiling -gt $unstampedHits.Count) { 1 } else { 0 }
+
+# Folders over the file limit warn unless their own ceiling holds them. A ceiling above its folder's count is stale and warns.
+$folderHits = [System.Collections.Generic.List[object]]::new()
+$folderStaleHits = [System.Collections.Generic.List[object]]::new()
+$folderCounts = [ordered]@{}
+foreach ($source in $sourceFiles) {
+    $folderRelative = (Get-RelativePathSafe -BasePath $repoRootFull -Path $source.Directory).Trim('/')
+    if ($folderRelative.Length -eq 0) { $folderRelative = '.' }
+    if (-not $folderCounts.Contains($folderRelative)) { $folderCounts[$folderRelative] = 0 }
+    $folderCounts[$folderRelative]++
+}
+foreach ($folderRelative in @($folderCounts.Keys | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
+    $count = [int]$folderCounts[$folderRelative]
+    if ($count -le $folderFileLimit) { continue }
+    if ($folderCeilings.Contains($folderRelative) -and $count -le [int]$folderCeilings[$folderRelative]) { continue }
+    $ceilingText = if ($folderCeilings.Contains($folderRelative)) { "ceiling $($folderCeilings[$folderRelative])" } else { "limit $folderFileLimit" }
+    $folderHits.Add([pscustomobject]@{ Relative = $folderRelative; Line = $count; Problem = "$count files, $ceilingText"; Text = '' })
+}
+foreach ($folderRelative in @($folderCeilings.Keys | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
+    $count = if ($folderCounts.Contains($folderRelative)) { [int]$folderCounts[$folderRelative] } else { 0 }
+    $ceiling = [int]$folderCeilings[$folderRelative]
+    if ($ceiling -gt $count -and $ceiling -gt $folderFileLimit) {
+        $folderStaleHits.Add([pscustomobject]@{ Relative = $folderRelative; Line = $count; Problem = "ceiling $ceiling, count $count"; Text = '' })
+    }
+    elseif ($ceiling -le $folderFileLimit) {
+        $folderStaleHits.Add([pscustomobject]@{ Relative = $folderRelative; Line = $count; Problem = "ceiling $ceiling at or under the limit $folderFileLimit"; Text = '' })
+    }
+}
 
 $exemptListed = @($commentFiles | Where-Object { $exemptComments.Contains($_.Full) })
 
@@ -1316,33 +1362,27 @@ $generatedAt = Get-Date
 
 # Advice printed under the hash findings, in the console and the report alike.
 $staleAdvice = @(
-    'A stale hash means the source changed under this prose. Do not just restamp it.',
-    'For each file, diff its sources (git diff -- <source>) and reread every section the diff touches.',
-    'Rewrite prose that no longer holds, add sections for new members and drop sections for removed ones.',
-    'Only then run StampComment.ps1 on the file. It lists the sections the source changes touch.',
-    'A restamp that leaves the prose word for word is flagged on the next run.'
-)
-$restampAdvice = @(
-    'WARNING: HASH BUMPED, COMMENT NOT REVISED.',
-    'THESE FILES WERE RESTAMPED, YET THEIR PROSE MATCHES THE TEXT THEY HELD WHILE STALE.',
-    'DO NOT BUMP HASHES MINDLESSLY. A STAMP VOUCHES THAT THE PROSE WAS REREAD.',
-    'DIFF EACH SOURCE, REREAD EVERY SECTION IT TOUCHES, REWRITE WHAT NO LONGER HOLDS.',
-    'IF THE PROSE STILL HOLDS, STATE WHY FOR EACH FILE IN THE REPORT OF THIS CHANGE.',
-    'THE WARNING CLEARS WHEN THE PROSE CHANGES OR A COMMIT CARRIES THE NEW STAMP.'
+    'Better to check: the folder changed since its sidecar was stamped.',
+    'Run the listed diff and reread the sidecar where the change touches its intent.',
+    'Then run StampComment.ps1 on the sidecar.'
 )
 
 # Console output.
 Write-AuditLine ("Scanned: {0:N0} source files, {1:N0} comment files" -f $sourceFiles.Count, $commentFiles.Count) -ForegroundColor DarkGray
+if (-not $enforced) {
+    Write-AuditLine 'Not enforced: every finding gate warns until enforced is true.' -ForegroundColor Yellow
+}
 
 $gateRows = @(
-    [pscustomobject]@{ Gate = 'Sources without a comment file'; Count = $missingComments.Count; Meaning = 'sources with no sidecar comment file'; Section = 'Sources without a comment file' },
-    [pscustomobject]@{ Gate = 'Comment files without a source'; Count = $orphanComments.Count; Meaning = 'comment files whose source is gone'; Section = 'Comment files without a source' },
-    [pscustomobject]@{ Gate = 'Comment lines breaking the line rules'; Count = $ruleHits.Count; Meaning = 'lines too long, multi-sentence or with a forbidden char'; Section = 'Comment lines breaking the line rules' },
-    [pscustomobject]@{ Gate = 'In-code comments'; Count = $remarkHits.Count; Meaning = 'comment lines left inside sources'; Section = 'In-code comments' },
-    [pscustomobject]@{ Gate = 'Headings naming nothing in their source'; Count = $headingHits.Count; Meaning = 'headings naming no identifier of their source'; Section = 'Headings naming nothing in their source' },
-    [pscustomobject]@{ Gate = 'Comment files with a stale hash'; Count = $hashHits.Count; Meaning = 'comment files stamped for an older source'; Section = 'Comment files with a stale hash' },
-    [pscustomobject]@{ Gate = 'Comment files restamped unrevised'; Count = $restampHits.Count; Warn = $true; Meaning = 'hash bumped while the prose stayed word for word, warn only'; Section = 'Comment files restamped unrevised' },
-    [pscustomobject]@{ Gate = 'Comment files with no hash'; Count = $unstampedHits.Count; Ceiling = $unstampedCeiling; Meaning = "unstamped comment files, warn up to ceiling $(Format-Integer $unstampedCeiling)"; Section = 'Comment files with no hash' },
+    [pscustomobject]@{ Gate = 'Folders without a sidecar'; Count = $missingComments.Count; Warn = -not $enforced; Meaning = 'folders holding a source but no sidecar'; Section = 'Folders without a sidecar' },
+    [pscustomobject]@{ Gate = 'Comment files without a folder'; Count = $orphanComments.Count; Warn = -not $enforced; Meaning = 'comment files that are no folder''s sidecar'; Section = 'Comment files without a folder' },
+    [pscustomobject]@{ Gate = 'Comment lines breaking the line rules'; Count = $ruleHits.Count; Warn = -not $enforced; Meaning = 'lines too long, multi-sentence or with a forbidden char'; Section = 'Comment lines breaking the line rules' },
+    [pscustomobject]@{ Gate = 'In-code comments'; Count = $remarkHits.Count; Warn = -not $enforced; Meaning = 'comment lines left inside sources'; Section = 'In-code comments' },
+    [pscustomobject]@{ Gate = 'Headings naming nothing in their folder'; Count = $headingHits.Count; Warn = -not $enforced; Meaning = 'headings naming no file or identifier of their folder'; Section = 'Headings naming nothing in their folder' },
+    [pscustomobject]@{ Gate = 'Sidecars with a changed folder'; Count = $hashHits.Count; Warn = $true; Meaning = 'folders changed since the stamp, advice only'; Section = 'Sidecars with a changed folder' },
+    [pscustomobject]@{ Gate = 'Sidecars with no stamp'; Count = $unstampedHits.Count; Warn = -not $enforced; Ceiling = $unstampedCeiling; Meaning = "unstamped sidecars, warn up to ceiling $(Format-Integer $unstampedCeiling)"; Section = 'Sidecars with no stamp' },
+    [pscustomobject]@{ Gate = 'Folders over the file limit'; Count = $folderHits.Count; Warn = $true; Meaning = "folders over $(Format-Integer $folderFileLimit) sources and their ceiling, warn only"; Section = 'Folders over the file limit' },
+    [pscustomobject]@{ Gate = 'Stale folder ceilings'; Count = $folderStaleHits.Count; Warn = $true; Meaning = 'folder ceilings above their count, warn only'; Section = 'Stale folder ceilings' },
     [pscustomobject]@{ Gate = 'Stale ceilings'; Count = $staleCeilings; Meaning = 'ceilings set above their count'; Section = 'Stale ceilings' },
     [pscustomobject]@{ Gate = 'Unreadable files'; Count = $readErrors.Count; Meaning = 'files the audit could not read'; Section = 'Unreadable files' }
 )
@@ -1386,12 +1426,12 @@ function Write-HitTable {
 }
 
 if ($missingComments.Count -gt 0) {
-    Write-SectionTitle ("Sources without a comment file ({0:N0})" -f $missingComments.Count)
+    Write-SectionTitle ("Folders without a sidecar ({0:N0})" -f $missingComments.Count)
     foreach ($item in $missingComments) { Write-AuditLine "$($item.Relative) -> $($item.Expected)" }
 }
 
 if ($orphanComments.Count -gt 0) {
-    Write-SectionTitle ("Comment files without a source ({0:N0})" -f $orphanComments.Count)
+    Write-SectionTitle ("Comment files without a folder ({0:N0})" -f $orphanComments.Count)
     foreach ($item in $orphanComments) { Write-AuditLine $item.Relative }
 }
 
@@ -1401,35 +1441,44 @@ if ($ruleHits.Count -gt 0) {
 }
 
 if ($headingHits.Count -gt 0) {
-    Write-SectionTitle ("Headings naming nothing in their source ({0:N0})" -f $headingHits.Count)
+    Write-SectionTitle ("Headings naming nothing in their folder ({0:N0})" -f $headingHits.Count)
     Write-HitTable -Items @($headingHits) -Kind 'Problem'
 }
 
 if ($hashHits.Count -gt 0) {
-    Write-SectionTitle ("Comment files with a stale hash ({0:N0})" -f $hashHits.Count)
-    Write-HitTable -Items @($hashHits) -Kind 'Problem'
+    Write-SectionTitle ("Sidecars with a changed folder ({0:N0})" -f $hashHits.Count) -Color Yellow
+    foreach ($item in $hashHits) {
+        Write-AuditLine "$($item.Relative): $($item.Problem)"
+        Write-AuditLine "  $($item.Text)" -ForegroundColor DarkGray
+    }
     foreach ($advice in $staleAdvice) { Write-AuditLine $advice -ForegroundColor Yellow }
 }
 
-if ($restampHits.Count -gt 0) {
-    Write-SectionTitle ("Comment files restamped unrevised ({0:N0})" -f $restampHits.Count) -Color Red
-    foreach ($advice in $restampAdvice) { Write-AuditLine $advice -ForegroundColor Red }
-    Write-HitTable -Items @($restampHits) -Kind 'Problem'
-}
-
 if ($unstampedHits.Count -gt $unstampedCeiling) {
-    Write-SectionTitle ("Comment files with no hash ({0:N0}, ceiling {1:N0})" -f $unstampedHits.Count, $unstampedCeiling)
+    Write-SectionTitle ("Sidecars with no stamp ({0:N0}, ceiling {1:N0})" -f $unstampedHits.Count, $unstampedCeiling)
     Write-HitTable -Items @($unstampedHits) -Kind 'Problem'
 }
 elseif ($unstampedHits.Count -gt 0) {
     # The backlog list is long, so a warning prints its count here and the report keeps the full list.
-    Write-SectionTitle ("Comment files with no hash ({0:N0}, ceiling {1:N0})" -f $unstampedHits.Count, $unstampedCeiling) -Color Yellow
-    Write-AuditLine ("WARNING: {0:N0} comment files carry no hash. Reread each one, stamp it with StampComment.ps1, and lower ceilings.unstamped. The report lists them all." -f $unstampedHits.Count) -ForegroundColor Yellow
+    Write-SectionTitle ("Sidecars with no stamp ({0:N0}, ceiling {1:N0})" -f $unstampedHits.Count, $unstampedCeiling) -Color Yellow
+    Write-AuditLine ("WARNING: {0:N0} sidecars carry no stamp. Reread each one, stamp it with StampComment.ps1, and lower ceilings.unstamped. The report lists them all." -f $unstampedHits.Count) -ForegroundColor Yellow
 }
 
 if ($staleCeilings -gt 0) {
     Write-SectionTitle "Stale ceilings (1)"
-    Write-AuditLine ("ceilings.unstamped is {0:N0} but only {1:N0} comment files carry no hash, so lower it." -f $unstampedCeiling, $unstampedHits.Count)
+    Write-AuditLine ("ceilings.unstamped is {0:N0} but only {1:N0} sidecars carry no stamp, so lower it." -f $unstampedCeiling, $unstampedHits.Count)
+}
+
+if ($folderHits.Count -gt 0) {
+    Write-SectionTitle ("Folders over the file limit ({0:N0})" -f $folderHits.Count) -Color Yellow
+    foreach ($item in $folderHits) { Write-AuditLine "$($item.Relative): $($item.Problem)" }
+    Write-AuditLine 'Split the folder by concern, or hold its count under a ceilings.folders row.' -ForegroundColor Yellow
+}
+
+if ($folderStaleHits.Count -gt 0) {
+    Write-SectionTitle ("Stale folder ceilings ({0:N0})" -f $folderStaleHits.Count) -Color Yellow
+    foreach ($item in $folderStaleHits) { Write-AuditLine "$($item.Relative): $($item.Problem)" }
+    Write-AuditLine 'Lower each row to its folder''s count, or drop it at or under the limit.' -ForegroundColor Yellow
 }
 
 if ($remarkHits.Count -gt 0) {
@@ -1439,7 +1488,7 @@ if ($remarkHits.Count -gt 0) {
 
 if ($exemptListed.Count -gt 0) {
     Write-SectionTitle ("Exempt comment files ({0:N0})" -f $exemptListed.Count)
-    Write-AuditLine 'Only the developer edits these. Line rules, headings and hashes skip them.' -ForegroundColor DarkGray
+    Write-AuditLine 'Only the developer edits these. Line rules, headings and stamps skip them.' -ForegroundColor DarkGray
     foreach ($item in $exemptListed) { Write-AuditLine $item.Relative }
 }
 
@@ -1468,15 +1517,16 @@ $report = [System.Text.StringBuilder]::new()
 [void]$report.AppendLine("| Source files | $(Format-Integer $sourceFiles.Count) |")
 [void]$report.AppendLine("| Comment files | $(Format-Integer $totalFiles) |")
 [void]$report.AppendLine("| Comment lines | $(Format-Integer $totalLines) |")
-[void]$report.AppendLine("| Sources without a comment file | $(Format-Integer $missingComments.Count) |")
-[void]$report.AppendLine("| Comment files without a source | $(Format-Integer $orphanComments.Count) |")
+[void]$report.AppendLine("| Folders without a sidecar | $(Format-Integer $missingComments.Count) |")
+[void]$report.AppendLine("| Comment files without a folder | $(Format-Integer $orphanComments.Count) |")
 [void]$report.AppendLine("| Lines breaking the line rules | $(Format-Integer $ruleHits.Count) |")
 [void]$report.AppendLine("| In-code comments | $(Format-Integer $remarkHits.Count) |")
-[void]$report.AppendLine("| Headings naming nothing in their source | $(Format-Integer $headingHits.Count) |")
-[void]$report.AppendLine("| Comment files with a stale hash | $(Format-Integer $hashHits.Count) |")
-[void]$report.AppendLine("| Comment files restamped unrevised (warning) | $(Format-Integer $restampHits.Count) |")
-[void]$report.AppendLine("| Comment files with no hash (warning) | $(Format-Integer $unstampedHits.Count) |")
-[void]$report.AppendLine("| Ceiling for comment files with no hash | $(Format-Integer $unstampedCeiling) |")
+[void]$report.AppendLine("| Headings naming nothing in their folder | $(Format-Integer $headingHits.Count) |")
+[void]$report.AppendLine("| Sidecars with a changed folder (advice) | $(Format-Integer $hashHits.Count) |")
+[void]$report.AppendLine("| Sidecars with no stamp (warning) | $(Format-Integer $unstampedHits.Count) |")
+[void]$report.AppendLine("| Ceiling for sidecars with no stamp | $(Format-Integer $unstampedCeiling) |")
+[void]$report.AppendLine("| Folders over the file limit (warning) | $(Format-Integer $folderHits.Count) |")
+[void]$report.AppendLine("| Stale folder ceilings (warning) | $(Format-Integer $folderStaleHits.Count) |")
 [void]$report.AppendLine("| Exempt comment files | $(Format-Integer $exemptListed.Count) |")
 [void]$report.AppendLine()
 [void]$report.AppendLine("## Comment lines by folder")
@@ -1492,16 +1542,16 @@ foreach ($item in $folderResults) {
     [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Name) | $(Format-Integer $item.SourceFiles) | $(Format-Integer $item.Files) | $(Format-Integer $item.Lines) | $(Format-Integer $item.NonBlank) | $(Format-Percent $share) | $(Format-Integer $item.Bytes) | $(Format-Integer $average) | $(Format-Ratio $density) |")
 }
 [void]$report.AppendLine()
-[void]$report.AppendLine("## Sources without a comment file")
+[void]$report.AppendLine("## Folders without a sidecar")
 [void]$report.AppendLine()
 if ($missingComments.Count -eq 0) { [void]$report.AppendLine("None.") }
 else {
-    [void]$report.AppendLine("| Source | Expected |")
-    [void]$report.AppendLine("|--------|----------|")
+    [void]$report.AppendLine("| First source | Expected |")
+    [void]$report.AppendLine("|--------------|----------|")
     foreach ($item in $missingComments) { [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Relative) | $(ConvertTo-MarkdownCell $item.Expected) |") }
 }
 [void]$report.AppendLine()
-[void]$report.AppendLine("## Comment files without a source")
+[void]$report.AppendLine("## Comment files without a folder")
 [void]$report.AppendLine()
 if ($orphanComments.Count -eq 0) { [void]$report.AppendLine("None.") }
 else { foreach ($item in $orphanComments) { [void]$report.AppendLine("- $(ConvertTo-MarkdownCell $item.Relative)") } }
@@ -1524,32 +1574,31 @@ else {
     foreach ($item in $remarkHits) { [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Relative) | $(Format-Integer $item.Line) | $(ConvertTo-MarkdownCell $item.Marker) | $(ConvertTo-MarkdownCell $item.Text) |") }
 }
 [void]$report.AppendLine()
-[void]$report.AppendLine("## Comment files with a stale hash")
+[void]$report.AppendLine("## Sidecars with a changed folder")
 [void]$report.AppendLine()
 if ($hashHits.Count -eq 0) { [void]$report.AppendLine("None.") }
 else {
-    [void]$report.AppendLine("| File | Problem |")
-    [void]$report.AppendLine("|------|---------|")
-    foreach ($item in $hashHits) { [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Relative) | $(ConvertTo-MarkdownCell $item.Problem) |") }
+    [void]$report.AppendLine("| File | Change | Diff |")
+    [void]$report.AppendLine("|------|--------|------|")
+    foreach ($item in $hashHits) { [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Relative) | $(ConvertTo-MarkdownCell $item.Problem) | ``$($item.Text)`` |") }
     [void]$report.AppendLine()
     foreach ($advice in $staleAdvice) { [void]$report.AppendLine($advice) }
 }
 [void]$report.AppendLine()
-[void]$report.AppendLine("## Comment files restamped unrevised")
+[void]$report.AppendLine("## Folders over the file limit")
 [void]$report.AppendLine()
-if ($restampHits.Count -eq 0) { [void]$report.AppendLine("None.") }
-else {
-    foreach ($advice in $restampAdvice) { [void]$report.AppendLine("**$advice**") }
-    [void]$report.AppendLine()
-    [void]$report.AppendLine("| File | Problem |")
-    [void]$report.AppendLine("|------|---------|")
-    foreach ($item in $restampHits) { [void]$report.AppendLine("| $(ConvertTo-MarkdownCell $item.Relative) | $(ConvertTo-MarkdownCell $item.Problem) |") }
-}
+if ($folderHits.Count -eq 0) { [void]$report.AppendLine("None.") }
+else { foreach ($item in $folderHits) { [void]$report.AppendLine("- $(ConvertTo-MarkdownCell $item.Relative): $(ConvertTo-MarkdownCell $item.Problem)") } }
 [void]$report.AppendLine()
-[void]$report.AppendLine("## Comment files with no hash")
+[void]$report.AppendLine("## Stale folder ceilings")
+[void]$report.AppendLine()
+if ($folderStaleHits.Count -eq 0) { [void]$report.AppendLine("None.") }
+else { foreach ($item in $folderStaleHits) { [void]$report.AppendLine("- $(ConvertTo-MarkdownCell $item.Relative): $(ConvertTo-MarkdownCell $item.Problem)") } }
+[void]$report.AppendLine()
+[void]$report.AppendLine("## Sidecars with no stamp")
 [void]$report.AppendLine()
 [void]$report.AppendLine("A warning while the count sits at or below the ceiling of $(Format-Integer $unstampedCeiling), a failure above it.")
-[void]$report.AppendLine("Reread each file, then stamp it with StampComment.ps1 and lower the ceiling.")
+[void]$report.AppendLine("Reread each sidecar, then stamp it with StampComment.ps1 and lower the ceiling.")
 [void]$report.AppendLine()
 if ($unstampedHits.Count -eq 0) { [void]$report.AppendLine("None.") }
 else {
@@ -1560,7 +1609,7 @@ else {
 [void]$report.AppendLine()
 [void]$report.AppendLine("## Exempt comment files")
 [void]$report.AppendLine()
-[void]$report.AppendLine("Only the developer edits these. Line rules, headings and hashes skip them.")
+[void]$report.AppendLine("Only the developer edits these. Line rules, headings and stamps skip them.")
 [void]$report.AppendLine()
 if ($exemptListed.Count -eq 0) { [void]$report.AppendLine("None.") }
 else { foreach ($item in $exemptListed) { [void]$report.AppendLine("- $(ConvertTo-MarkdownCell $item.Relative)") } }
@@ -1605,8 +1654,8 @@ foreach ($comment in $commentFiles) {
     elseif ($owners.Count -eq 0) { $state = 'no source' }
     elseif ($exemptComments.Contains($comment.Full)) { $state = 'exempt' }
     elseif (@($owners | Where-Object { $exemptFiles.Contains($_.Name) }).Count -gt 0) { $state = 'exempt' }
-    elseif ($staleRelatives.Contains($comment.Relative)) { $state = 'stale' }
-    elseif ($unstampedRelatives.Contains($comment.Relative)) { $state = 'no hash' }
+    elseif ($staleRelatives.Contains($comment.Relative)) { $state = 'changed' }
+    elseif ($unstampedRelatives.Contains($comment.Relative)) { $state = 'no stamp' }
     elseif (@($owners | Where-Object { $unreadable.Contains($_.Full) }).Count -gt 0) { $state = 'unreadable' }
     $pageComments.Add([ordered]@{
         path = [string]$comment.Relative; folder = [string]$comment.Folder; state = $state
@@ -1623,6 +1672,7 @@ $pageData = [ordered]@{
     project = [string]$config.project
     version = $version
     generation = $script:AuditGeneration
+    enforced = $enforced
     generated = $generatedAt.ToString('yyyy-MM-dd HH:mm:ss zzz')
     scanned = [ordered]@{ sources = [long]$sourceFiles.Count; comments = [long]$commentFiles.Count }
     gates = @($gateRows | ForEach-Object {
@@ -1630,13 +1680,17 @@ $pageData = [ordered]@{
         if ($null -ne $_.PSObject.Properties['Ceiling']) { $ceiling = [long]$_.Ceiling }
         [ordered]@{ status = Get-GateStatus -Row $_; gate = $_.Gate; count = [long]$_.Count; ceiling = $ceiling; meaning = $_.Meaning; section = $_.Section }
     })
-    ceilings = @([ordered]@{ key = 'ceilings.unstamped'; kind = 'Comment files with no hash'; count = [long]$unstampedHits.Count; ceiling = [long]$unstampedCeiling })
+    ceilings = @(@([ordered]@{ key = 'ceilings.unstamped'; kind = 'Sidecars with no stamp'; count = [long]$unstampedHits.Count; ceiling = [long]$unstampedCeiling }) + @($folderCeilings.Keys | ForEach-Object {
+        [ordered]@{ key = 'ceilings.folders.' + [string]$_; kind = 'Folder sources'; count = [long]$(if ($folderCounts.Contains([string]$_)) { $folderCounts[[string]$_] } else { 0 }); ceiling = [long]$folderCeilings[[string]$_] }
+    }))
     scope = [ordered]@{
         roots = @($rootEntries | ForEach-Object { $(if ($_.Prefix.Length -eq 0) { '.' } else { $_.Prefix.TrimEnd('/') }) })
         files = @($sourceFileFulls | ForEach-Object { Get-RelativePathSafe -BasePath $repoRootFull -Path $_ })
         commentPattern = $commentPattern
         segments = $Segments
-        pairs = @($config.sources.pairs.PSObject.Properties | ForEach-Object { [ordered]@{ suffix = [string]$_.Name; template = [string]$_.Value } })
+        pairs = @($pairs | ForEach-Object { [ordered]@{ suffix = [string]$_.Suffix; template = '{folder}' + $commentSuffix } })
+        rootComment = $rootComment
+        folderFiles = $folderFileLimit
         excluded = @($excludedNames | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })
         excludedSuffixes = @($excludedSuffixes)
         maxWords = $MaxWords
@@ -1657,8 +1711,8 @@ $pageData = [ordered]@{
     headings = ConvertTo-PageHit -Items @($headingHits) -Kind 'Problem'
     stale = ConvertTo-PageHit -Items @($hashHits) -Kind 'Problem'
     staleAdvice = @($staleAdvice)
-    restamped = ConvertTo-PageHit -Items @($restampHits) -Kind 'Problem'
-    restampAdvice = @($restampAdvice)
+    folderLimit = ConvertTo-PageHit -Items @($folderHits) -Kind 'Problem'
+    folderStale = ConvertTo-PageHit -Items @($folderStaleHits) -Kind 'Problem'
     unstamped = ConvertTo-PageHit -Items @($unstampedHits) -Kind 'Problem'
     remarks = ConvertTo-PageHit -Items @($remarkHits) -Kind 'Marker'
     unreadable = @($readErrors)
@@ -1688,7 +1742,11 @@ if (-not $NoOpen) {
     Start-Process -FilePath $pagePathFull
 }
 
-if (($missingComments.Count + $orphanComments.Count + $ruleHits.Count + $remarkHits.Count + $headingHits.Count + $hashHits.Count + $staleCeilings + $readErrors.Count) -gt 0 -or $unstampedHits.Count -gt $unstampedCeiling) {
+# Changed folders, folders over the limit and stale folder ceilings only warn, so they never fail the run.
+# While enforced is false the finding gates warn too, and only stale ceilings and unreadable files fail.
+$findings = $missingComments.Count + $orphanComments.Count + $ruleHits.Count + $remarkHits.Count + $headingHits.Count
+$held = $findings -eq 0 -and $unstampedHits.Count -le $unstampedCeiling
+if ((-not $held -and $enforced) -or ($staleCeilings + $readErrors.Count) -gt 0) {
     exit 1
 }
 

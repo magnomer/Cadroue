@@ -72,7 +72,7 @@ public sealed class QCompass
 
     public bool QCompassPlaying => qCompassViewer.QViewerPlaying;
 
-    public double QCompassVolume => qCompassViewer.QViewerVolume;
+    public double QCompassVolume => qCompassViewer.QViewerAudio.QViewerVolume;
 
     public bool QCompassWaveformActive => qCompassFlow.QFlowWaveformActive;
 

@@ -238,116 +238,19 @@ public sealed class QColumn
         return lMinimumTotal + lSplitterWidth * Math.Max(0, lVisibleCount - 1);
     }
 
-    public double QColumnAvailableResolve(double lGridWidth, double lSplitterWidth)
-    {
-        int lVisibleCount = qColumnHiddenFlags.Count(lHidden => !lHidden);
-        return Math.Max(0, lGridWidth - lSplitterWidth * Math.Max(0, lVisibleCount - 1));
-    }
+    public double QColumnAvailableResolve(double lGridWidth, double lSplitterWidth) =>
+        QColumnWidth.QColumnAvailableResolve(qColumnHiddenFlags, lGridWidth, lSplitterWidth);
 
-    public double[] QColumnMinimumRead(double lAvailableWidth)
-    {
-        double[] lMinimumWidths = qColumnMinimumWidths.ToArray();
-        for (int lIndex = 0; lIndex < lMinimumWidths.Length; lIndex++)
-        {
-            if (qColumnHiddenFlags[lIndex])
-            {
-                lMinimumWidths[lIndex] = 0;
-            }
-            else if (qColumnFixedWidths[lIndex] > 0)
-            {
-                lMinimumWidths[lIndex] = qColumnFixedWidths[lIndex];
-            }
-        }
+    public double[] QColumnMinimumRead(double lAvailableWidth) =>
+        QColumnWidth.QColumnMinimumRead(qColumnMinimumWidths, qColumnHiddenFlags, qColumnFixedWidths, lAvailableWidth);
 
-        double lMinimumTotal = lMinimumWidths.Sum();
-        if (lMinimumTotal <= lAvailableWidth || lMinimumTotal <= 0)
-        {
-            return lMinimumWidths;
-        }
-
-        double lScale = lAvailableWidth / lMinimumTotal;
-        for (int lIndex = 0; lIndex < lMinimumWidths.Length; lIndex++)
-        {
-            lMinimumWidths[lIndex] *= lScale;
-        }
-
-        return lMinimumWidths;
-    }
-
-    public double[]? QColumnDefaultResolve(double lAvailableWidth, IReadOnlyList<double> lMinimumWidths)
-    {
-        double lCompactTotal = 0;
-        int lFlexibleCount = 0;
-        for (int lIndex = 0; lIndex < QColumnCount; lIndex++)
-        {
-            if (qColumnHiddenFlags[lIndex])
-            {
-                continue;
-            }
-
-            if (qColumnCompactFlags[lIndex])
-            {
-                lCompactTotal += lMinimumWidths[lIndex];
-                continue;
-            }
-
-            lFlexibleCount++;
-        }
-
-        if (lFlexibleCount == 0)
-        {
-            return null;
-        }
-
-        double lFlexibleWidth = Math.Max(0, lAvailableWidth - lCompactTotal) / lFlexibleCount;
-        var lWidths = new double[QColumnCount];
-        for (int lIndex = 0; lIndex < QColumnCount; lIndex++)
-        {
-            if (qColumnHiddenFlags[lIndex])
-            {
-                continue;
-            }
-
-            lWidths[lIndex] = qColumnCompactFlags[lIndex]
-                ? lMinimumWidths[lIndex]
-                : Math.Max(lMinimumWidths[lIndex], lFlexibleWidth);
-        }
-
-        return lWidths;
-    }
+    public double[]? QColumnDefaultResolve(double lAvailableWidth, IReadOnlyList<double> lMinimumWidths) =>
+        QColumnWidth.QColumnDefaultResolve(qColumnHiddenFlags, qColumnCompactFlags, lAvailableWidth, lMinimumWidths);
 
     public bool QColumnDragResolve(
-        int lLeftIndex, double lDelta, double[] lWidths, IReadOnlyList<double> lMinimumWidths)
-    {
-        int lReceiverIndex;
-        int lDonorIndex;
-        double lReceiverSign;
-        if (!QColumnFlexCheck())
-        {
-            lReceiverIndex = lLeftIndex;
-            lDonorIndex = lLeftIndex + 1;
-            lReceiverSign = 1;
-        }
-        else
-        {
-            lDonorIndex = qColumnFlexIndex;
-            lReceiverIndex = qColumnFlexIndex > lLeftIndex ? lLeftIndex : lLeftIndex + 1;
-            lReceiverSign = qColumnFlexIndex > lLeftIndex ? 1 : -1;
-        }
-
-        double lClampedDelta = Math.Clamp(
-            lReceiverSign * lDelta,
-            lMinimumWidths[lReceiverIndex] - lWidths[lReceiverIndex],
-            lWidths[lDonorIndex] - lMinimumWidths[lDonorIndex]);
-        if (Math.Abs(lClampedDelta) <= 0)
-        {
-            return false;
-        }
-
-        lWidths[lReceiverIndex] += lClampedDelta;
-        lWidths[lDonorIndex] -= lClampedDelta;
-        return true;
-    }
+        int lLeftIndex, double lDelta, double[] lWidths, IReadOnlyList<double> lMinimumWidths) =>
+        QColumnWidth.QColumnDragResolve(
+            QColumnFlexCheck() ? qColumnFlexIndex : -1, lLeftIndex, lDelta, lWidths, lMinimumWidths);
 
     private static bool QColumnStoredCheck(IReadOnlyList<double>? lStoredWidths, int lCount) =>
         lStoredWidths is not null

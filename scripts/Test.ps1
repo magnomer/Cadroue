@@ -3,7 +3,8 @@
     Run the project test suite.
 .DESCRIPTION
     Runs every test project under the tests folder from the repository root.
-    The test projects are discovered on disk, not through the solution. By
+    The test projects are discovered on disk, not through the solution: every
+    *.csproj at any depth under the tests folder, outside bin and obj folders. By
     default every project runs, the convention test project included. -Main
     skips the convention project and -Convention runs it alone.
     -Platform picks the test projects mapped to one platform in Test.json; the
@@ -289,6 +290,16 @@ function Get-OrdinalKey {
     return [System.BitConverter]::ToString([System.Text.Encoding]::BigEndianUnicode.GetBytes($Text)).Replace('-', '')
 }
 
+function Find-TestProject {
+    # Every *.csproj at any depth under the folder is a test project. A bin or obj folder holds build
+    # output, never a project, so the walk does not enter one.
+    param([string]$Folder)
+    Get-ChildItem -LiteralPath $Folder -Filter '*.csproj' -File
+    Get-ChildItem -LiteralPath $Folder -Directory |
+        Where-Object { $_.Name -ne 'bin' -and $_.Name -ne 'obj' } |
+        ForEach-Object { Find-TestProject -Folder $_.FullName }
+}
+
 function Read-TestConfig {
     $configPath = Join-Path $PSScriptRoot 'Test.json'
     if (-not (Test-Path -LiteralPath $configPath -PathType Leaf)) {
@@ -332,8 +343,7 @@ if (-not (Test-Path -LiteralPath $testsRoot -PathType Container)) {
 }
 
 $projects = @(
-    Get-ChildItem -LiteralPath $testsRoot -Directory |
-        ForEach-Object { Get-ChildItem -LiteralPath $_.FullName -Filter '*.csproj' -File } |
+    Find-TestProject -Folder $testsRoot |
         Sort-Object -Property @{ Expression = { Get-OrdinalKey $_.Name } }
 )
 

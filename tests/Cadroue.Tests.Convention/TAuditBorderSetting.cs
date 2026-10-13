@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditBorderSetting
 {
-    public const int TAuditGeneration = 23;
+    public const int TAuditGeneration = 24;
     public const string TAuditBorderHost = "Cadroue.Host";
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditBorderNeighbour =
@@ -51,16 +51,16 @@ internal static class TAuditBorderSetting
         ["Leaking:Cadroue.UIDeportment>Cadroue.Core"] = 0,
         ["Leaking:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 0,
         ["Leapfrogging:Cadroue.Conduct>Cadroue.Core"] = 0,
-        ["Leapfrogging:Cadroue.ShellEngine>Cadroue.Core"] = 832,
+        ["Leapfrogging:Cadroue.ShellEngine>Cadroue.Core"] = 840,
         ["Trespassing:Cadroue.Infrastructure>Cadroue.Application"] = 71,
         ["Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure"] = 0,
-        ["Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure"] = 480,
+        ["Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure"] = 484,
         ["Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure"] = 120,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 1271,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.Core"] = 2033,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 157,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 1273,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.Core"] = 2035,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 159,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Application"] = 923,
-        ["Undercutting:Cadroue.UIVeneer>Cadroue.Core"] = 314,
+        ["Undercutting:Cadroue.UIVeneer>Cadroue.Core"] = 313,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine"] = 6,
         ["Unsealing:Cadroue.UIDeportment>Cadroue.Application"] = 82,
         ["Unsealing:Cadroue.UIDeportment>Cadroue.Core"] = 229,

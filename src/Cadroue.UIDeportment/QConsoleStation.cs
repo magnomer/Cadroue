@@ -29,7 +29,7 @@ public sealed class QConsoleStation
 
     public bool QConsoleRunning => QConsoleStationRead().LStationRunner.LRunnerRunning;
 
-    public bool QConsoleSuspended => QConsoleStationRead().LStationRunner.LRunnerSuspended;
+    public bool QConsoleSuspended => QConsoleStationRead().LStationRunner.LRunnerProcess.LRunnerProcessSuspended;
 
     public bool QConsoleSwitchShown => LStation.LStationBoardRead().Length > 1;
 

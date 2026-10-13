@@ -76,7 +76,7 @@ internal sealed partial class PSMonitor : Window
         PSGrabber.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
         psMonitorGrabber = new PSGrabber(this);
         psMonitorGrabber.PSGrabberAttach();
-        psMonitorSource.QSMonitorReady += PSMonitorReadyHandle;
+        psMonitorSource.QSMonitorWaveform.QSMonitorReady += PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged += PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged += PSMonitorPlayingApply;
         psMonitorSource.QSMonitorZoomChanged += PSMonitorZoomApply;
@@ -88,7 +88,7 @@ internal sealed partial class PSMonitor : Window
         Closed += PSMonitorCloseHandle;
         psMonitorSource.QSMonitorViewerAttach(psMonitorViewer.QViewer);
         psMonitorSource.QSMonitorCursorSet(pFlow.QFlow.QFlowCursor);
-        psMonitorSource.QSMonitorUpdate();
+        psMonitorSource.QSMonitorWaveform.QSMonitorUpdate();
         PSMonitorZoomApply();
     }
 
@@ -252,7 +252,7 @@ internal sealed partial class PSMonitor : Window
 
     private void PSMonitorRailDraw(Canvas pCanvas, TextBlock pStatus, Brush pFill, bool pAfter)
     {
-        pStatus.Text = psMonitorSource.QSMonitorStatusRead(pAfter);
+        pStatus.Text = psMonitorSource.QSMonitorWaveform.QSMonitorStatusRead(pAfter);
         pCanvas.Children.Clear();
         QSMonitorFrame lFrame = psMonitorSource.QSMonitorFrameResolve(
             pAfter, pCanvas.ActualWidth, pCanvas.ActualHeight);
@@ -293,7 +293,7 @@ internal sealed partial class PSMonitor : Window
 
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
     {
-        psMonitorSource.QSMonitorReady -= PSMonitorReadyHandle;
+        psMonitorSource.QSMonitorWaveform.QSMonitorReady -= PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged -= PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged -= PSMonitorPlayingApply;
         psMonitorSource.QSMonitorZoomChanged -= PSMonitorZoomApply;

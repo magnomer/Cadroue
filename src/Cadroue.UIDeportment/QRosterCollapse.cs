@@ -34,4 +34,12 @@ public sealed class QRosterCollapse
 
     public void QRosterStaleRemove(IReadOnlyCollection<Guid> lBatchIds) =>
         qRosterCollapsedIds.RemoveWhere(lBatchId => !lBatchIds.Contains(lBatchId));
+
+    public void QRosterCompletedApply(Guid lBatchId, bool lCompleted, bool lCollapseDone)
+    {
+        if (lCollapseDone)
+        {
+            QRosterCollapseSet(lBatchId, lCompleted);
+        }
+    }
 }

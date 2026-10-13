@@ -132,7 +132,7 @@ internal sealed class TRunner : IDisposable
 
     internal void TRunnerWorkCancel(Guid workId) => tRunnerList.ForEach(runner => runner.LRunnerJobCancel(workId));
 
-    internal bool TRunnerSuspended => tRunnerList.All(runner => runner.LRunnerSuspended);
+    internal bool TRunnerSuspended => tRunnerList.All(runner => runner.LRunnerProcess.LRunnerProcessSuspended);
 
     internal bool TRunnerRunning => tRunnerList.Any(runner => runner.LRunnerRunning);
 

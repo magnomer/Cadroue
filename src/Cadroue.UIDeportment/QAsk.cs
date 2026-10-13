@@ -1,3 +1,5 @@
+using Cadroue.Application;
+
 namespace Cadroue.UIDeportment;
 
 public sealed record QAsk(string QAskQuestion, string QAskAction)
@@ -27,4 +29,17 @@ public static class QAskNotice
 
         lRaise(lAsk, lAnswer);
     }
+
+    internal static QAsk? QAskCreate(string lQuestionKey, string lActionKey, string lTitleKey) =>
+        QAskCreate(() => LLocalization.LLocalizationTextRead(lQuestionKey), lActionKey, lTitleKey);
+
+    internal static QAsk? QAskCreate(Func<string> lQuestionRead, string lActionKey, string lTitleKey) =>
+        LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
+            ? new QAsk(
+                lQuestionRead(),
+                LLocalization.LLocalizationTextRead(lActionKey))
+            {
+                QAskTitle = LLocalization.LLocalizationTextRead(lTitleKey)
+            }
+            : null;
 }

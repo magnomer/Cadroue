@@ -4,21 +4,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record QConsoleSpan(string QConsoleRunText, bool QConsoleRunAccent);
-
-public sealed record QConsoleStatus(
-    IReadOnlyList<QConsoleSpan> QConsoleStatusRuns,
-    bool QConsoleStatusRunning,
-    bool QConsoleStatusLoaded,
-    bool QConsoleStatusBusy,
-    bool QConsoleStatusActive,
-    bool QConsoleStatusRemovable,
-    bool QConsoleStatusDone,
-    bool QConsoleStatusClearable,
-    bool QConsoleStatusBoard,
-    bool QConsoleStatusAuto,
-    string QConsoleStatusStation);
-
 public sealed class QConsole
 {
     private readonly LScheduleContract qSchedule = QProgram.QScheduleCurrent;
@@ -55,11 +40,11 @@ public sealed class QConsole
 
     public event Action<string, string>? QConsoleWarningShown;
 
-    public void QConsoleWindowAttach(QWindow lWindow, QStrip lStripOwner)
+    public void QConsoleWindowAttach(QWindowScene lSceneOwner, QStrip lStripOwner)
     {
         qStrip = lStripOwner;
         lStripOwner.QStripSelectChanged += QConsoleTabHandle;
-        QConsoleScene.QConsoleWindowAttach(lWindow, lStripOwner);
+        QConsoleScene.QConsoleWindowAttach(lSceneOwner, lStripOwner);
     }
 
     private void QConsoleTabHandle(QStripTab? lTab)
@@ -137,100 +122,18 @@ public sealed class QConsole
         QConsoleProgressSet(
             lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress));
         bool lRunning = QConsoleStation.QConsoleRunning;
-        QConsoleStatusApplied?.Invoke(QConsoleStatusResolve(lRunningItems, lRunning));
-    }
-
-    private QConsoleStatus QConsoleStatusResolve(LWorkItem[] lRunningItems, bool lRunning)
-    {
-        int lTotal = qSchedule.LScheduleRecords.Count;
-        bool lSuspended = QConsoleStation.QConsoleSuspended;
-        bool lPaused = !lRunning && !lSuspended;
-        string lRunState = LLocalization.LLocalizationTextRead(
-            lSuspended ? "Console.State.Suspended" : lRunning ? "Console.State.Running" : "Console.State.Paused");
-        return new QConsoleStatus(
-            QConsoleRunsResolve(
-                QConsoleLineFormat(lRunningItems, lTotal, lRunState),
-                lTotal > 0 && lPaused ? lRunState : null),
+        QConsoleStatusApplied?.Invoke(QConsoleLine.QConsoleStatusResolve(
+            lRunningItems,
             lRunning,
-            lTotal > 0,
-            lRunningItems.Length > 0,
-            lRunning || lSuspended,
-            QConsoleStation.QConsoleSelectionRead()
-                .Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
-            qSchedule.LScheduleRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone),
-            qSchedule.LScheduleRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
+            QConsoleStation.QConsoleSuspended,
+            qSchedule.LScheduleRecords,
+            qSchedule.LScheduleDoneCount,
+            qSchedule.LSchedulePendingRead().Count,
+            QConsoleStation.QConsoleSelectionRead(),
             QConsoleStation.QConsoleSwitchShown,
             QConsoleStation.QConsoleAutoActive,
-            QConsoleStation.QConsoleLabelFormat());
+            QConsoleStation.QConsoleLabelFormat()));
     }
-
-    private string QConsoleLineFormat(LWorkItem[] lRunningItems, int lTotal, string lRunState)
-    {
-        if (lTotal == 0)
-        {
-            return LLocalization.LLocalizationTextRead("Console.Status.Empty");
-        }
-
-        string lDoneText = LLocalization.LLocalizationFormat(
-            "Console.Done.Format", qSchedule.LScheduleDoneCount, lTotal);
-        if (lRunningItems.Length == 0)
-        {
-            return LLocalization.LLocalizationFormat(
-                "Console.Status.Pending", lRunState, lDoneText, qSchedule.LSchedulePendingRead().Count);
-        }
-
-        if (lRunningItems.Length > 1)
-        {
-            return LLocalization.LLocalizationFormat(
-                "Console.Status.MultipleRunning",
-                lRunningItems.Length,
-                lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress),
-                lDoneText);
-        }
-
-        LWorkItem lRunningItem = lRunningItems[0];
-        return LLocalization.LLocalizationFormat(
-            "Console.Status.Running",
-            lRunningItem.LWorkOutputName,
-            lDoneText,
-            QConsoleStageFormat(lRunningItem.LWorkStageCurrent),
-            lRunningItem.LWorkProgress);
-    }
-
-    public static IReadOnlyList<QConsoleSpan> QConsoleRunsResolve(string lLine, string? lAccent)
-    {
-        int lAccentIndex = string.IsNullOrEmpty(lAccent) ? -1 : lLine.IndexOf(lAccent, StringComparison.Ordinal);
-        if (lAccentIndex < 0)
-        {
-            return [new QConsoleSpan(lLine, false)];
-        }
-
-        var lRuns = new List<QConsoleSpan>();
-        if (lAccentIndex > 0)
-        {
-            lRuns.Add(new QConsoleSpan(lLine[..lAccentIndex], false));
-        }
-
-        lRuns.Add(new QConsoleSpan(lAccent!, true));
-        int lAccentEnd = lAccentIndex + lAccent!.Length;
-        if (lAccentEnd < lLine.Length)
-        {
-            lRuns.Add(new QConsoleSpan(lLine[lAccentEnd..], false));
-        }
-
-        return lRuns;
-    }
-
-    private static string QConsoleStageFormat(LWorkStage lWorkStage) =>
-        LLocalization.LLocalizationTextRead(lWorkStage switch
-        {
-            LWorkStage.LWorkStageExtract => "Console.Stage.Extract",
-            LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",
-            LWorkStage.LWorkStageProcess => "Console.Stage.Process",
-            LWorkStage.LWorkStageMux => "Console.Stage.Mux",
-            LWorkStage.LWorkStagePassthrough => "Console.Stage.Copy",
-            _ => "Console.Stage.Encode"
-        });
 
     public void QConsoleStart() => QConsoleStation.QConsoleStart();
 
@@ -315,7 +218,7 @@ public sealed class QConsole
 
     public void QConsoleDoneClear() =>
         QAskNotice.QAskPublish(
-            QConsoleAskResolve("Console.ClearDone.Confirm", "Terms.Remove"),
+            QAskNotice.QAskCreate("Console.ClearDone.Confirm", "Terms.Remove", "Console.Confirm.Title"),
             lAnswer => QConsoleDoneRun(lAnswer));
 
     private void QConsoleDoneRun(bool lAnswer)
@@ -330,7 +233,7 @@ public sealed class QConsole
     {
         QAsk? lAsk = LStation.LStationActiveCheck()
             ? QConsoleAskCreate("Console.ClearAll.RunningConfirm", "Terms.Stop")
-            : QConsoleAskResolve("Console.ClearAll.Confirm", "Terms.Remove");
+            : QAskNotice.QAskCreate("Console.ClearAll.Confirm", "Terms.Remove", "Console.Confirm.Title");
         QAskNotice.QAskPublish(lAsk, lAnswer => _ = QConsoleAllRun(lAnswer));
     }
 
@@ -348,7 +251,7 @@ public sealed class QConsole
 
     public void QConsoleTabsClear() =>
         QAskNotice.QAskPublish(
-            QConsoleAskResolve("Console.ClearTabs.Confirm", "Terms.Remove"),
+            QAskNotice.QAskCreate("Console.ClearTabs.Confirm", "Terms.Remove", "Console.Confirm.Title"),
             lAnswer => QConsoleTabsRun(lAnswer));
 
     private void QConsoleTabsRun(bool lAnswer)
@@ -358,11 +261,6 @@ public sealed class QConsole
             qStrip?.QStripContentClear();
         }
     }
-
-    private static QAsk? QConsoleAskResolve(string lQuestionKey, string lActionKey) =>
-        LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
-            ? QConsoleAskCreate(lQuestionKey, lActionKey)
-            : null;
 
     private static QAsk QConsoleAskCreate(string lQuestionKey, string lActionKey) =>
         new(LLocalization.LLocalizationTextRead(lQuestionKey), LLocalization.LLocalizationTextRead(lActionKey))

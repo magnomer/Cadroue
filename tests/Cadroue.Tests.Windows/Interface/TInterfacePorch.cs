@@ -133,7 +133,7 @@ internal static partial class TInterface
         strip.QStripClosure.QStripTabClosed += handler;
     internal static void TStripAddAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabAdded += handler;
     internal static IReadOnlyList<QStripTab> TStripRelayRead(QStrip strip, Guid source) =>
-        strip.QStripRelayRead(source);
+        strip.QStripRelay.QStripRelayRead(source);
     internal static void TStripPendingSet(QStrip strip, QStripTab tab, bool pending) =>
         strip.QStripPendingSet(tab, pending);
     internal static void TStripEditSet(QStrip strip, QStripTab tab, bool editing) =>

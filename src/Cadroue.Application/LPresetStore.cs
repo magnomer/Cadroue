@@ -200,7 +200,7 @@ public sealed partial class LPreset
             LPresetMap.TryGetValue(lPreset.LPresetName, out LPreset? lPresetPrevious);
             LPresetMap[lPreset.LPresetName] = lPreset;
             lPresetStoredNames.Add(lPreset.LPresetName);
-            LPresetSelection.LPresetDraftSync(
+            LPresetDraft.LPresetDraftSync(
                 lPreset.LPresetName, lPresetRecord, lPresetPrevious?.LPresetRecordCreate());
         }
 
@@ -211,7 +211,7 @@ public sealed partial class LPreset
                 && !lPresetStoredNames.Contains(lName, StringComparer.OrdinalIgnoreCase))
             {
                 LPresetMap.Remove(lName);
-                LPresetSelection.LPresetDraftSync(lName, null, null);
+                LPresetDraft.LPresetDraftSync(lName, null, null);
             }
         }
     }

@@ -12,7 +12,7 @@ internal static class TInterfaceViewer
     internal static void TViewerPlayingAttach(QViewer viewer, Action<bool> handler) =>
         viewer.QViewerPlayingChanged += handler;
     internal static void TViewerBypassAttach(QViewer viewer, Action<bool> handler) =>
-        viewer.QViewerBypassChanged += handler;
+        viewer.QViewerAudio.QViewerBypassChanged += handler;
     internal static void TViewerEngineAttach(QViewer viewer, Action handler) => viewer.QViewerEngineChanged += handler;
     internal static int TViewerSerialChange(QViewer viewer) => viewer.QViewerSerialChange();
     internal static bool TViewerSerialCheck(QViewer viewer, int serial) => viewer.QViewerSerialCheck(serial);
@@ -20,9 +20,10 @@ internal static class TInterfaceViewer
     internal static void TViewerUnloadSet(QViewer viewer) => viewer.QViewerUnloadSet();
     internal static void TViewerEndSet(QViewer viewer, bool reached) => viewer.QViewerEndSet(reached);
     internal static void TViewerAllowSet(QViewer viewer, bool allowed) => viewer.QViewerAllowSet(allowed);
-    internal static void TViewerFilterSet(QViewer viewer, string? filter) => viewer.QViewerFilterSet(filter);
-    internal static void TViewerBypassSet(QViewer viewer, bool bypass) => viewer.QViewerBypassSet(bypass);
-    internal static string TViewerAudioResolve(QViewer viewer) => viewer.QViewerAudioResolve();
+    internal static void TViewerFilterSet(QViewer viewer, string? filter) =>
+        viewer.QViewerAudio.QViewerFilterSet(filter);
+    internal static void TViewerBypassSet(QViewer viewer, bool bypass) => viewer.QViewerAudio.QViewerBypassSet(bypass);
+    internal static string TViewerAudioResolve(QViewer viewer) => viewer.QViewerAudio.QViewerAudioResolve();
     internal static void TViewerEngineSet(QViewer viewer, LPreviewEngine engine) => viewer.QViewerEngineSet(engine);
     internal static void TViewerIntentSet(QViewer viewer, string path, TimeSpan position, bool? playing) =>
         viewer.QViewerIntentSet(new QViewerIntent(path, position, playing));
@@ -75,7 +76,8 @@ internal static class TInterfaceViewer
     internal static void TViewerLoupeSet(QViewer viewer, bool active) => viewer.QViewerLoupeSet(active);
     internal static void TViewerMpvSet(QViewer viewer, bool mpv) => viewer.QViewerMpvSet(mpv);
     internal static void TViewerHostSet(QViewer viewer, bool visible) => viewer.QViewerHostSet(visible);
-    internal static QViewerSwitch TViewerSwitchRead(QViewer viewer) => viewer.QViewerSwitchRead();
+    internal static QViewerSwitch TViewerSwitchRead(QViewer viewer) =>
+        viewer.QViewerAudio.QViewerSwitchRead();
     internal static bool TViewerSurfaceMatch(QViewer viewer, nint foreground, nint surface, nint overlay) =>
         viewer.QViewerSurfaceMatch(foreground, surface, overlay);
     internal static void TViewerPlayerAttach(QViewerMedia media, Action handler) =>

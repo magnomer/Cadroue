@@ -53,6 +53,7 @@ public sealed class QInspector
     {
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
+        QInspectorRatio = new QInspectorRatio(this, QInspectorCrop);
         QInspectorAudio = new QInspectorAudio(QInspectorSkip);
         QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
         QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
@@ -70,6 +71,8 @@ public sealed class QInspector
     public QInspectorCrop QInspectorCrop { get; }
 
     public QInspectorOrientation QInspectorOrientation { get; }
+
+    public QInspectorRatio QInspectorRatio { get; }
 
     public QInspectorVideo QInspectorVideo { get; } = new();
 
@@ -216,7 +219,7 @@ public sealed class QInspector
         try
         {
             QInspectorCrop.QInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
-            QInspectorCrop.QInspectorRatioApply(
+            QInspectorRatio.QInspectorRatioApply(
                 lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
             QInspectorVideo.QInspectorVideoApply(lPlan.LEditVideo);
             QInspectorSkip.QSkipActiveSet(lPlan.LEditSkip);

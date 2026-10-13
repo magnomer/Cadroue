@@ -127,8 +127,8 @@ internal sealed class PFunnelCondition : Grid
 
     public void PFunnelConditionUpdate()
     {
-        LSceneFunnelCondition lMatch = lFunnel.QFunnelMatchRead(lFunnelRule, lFunnelKind);
-        pFunnelField.Text = lFunnel.QFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
+        LSceneFunnelCondition lMatch = lFunnel.QFunnelCriterion.QFunnelMatchRead(lFunnelRule, lFunnelKind);
+        pFunnelField.Text = lFunnel.QFunnelCriterion.QFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
         PFunnelCaseApply(lMatch.LSceneFunnelCase);
         PFunnelJoinApply(lMatch.LSceneFunnelJoin);
     }
@@ -142,7 +142,7 @@ internal sealed class PFunnelCondition : Grid
             FontFamily = pFunnelFontFamily
         };
         PTextbox.PTextboxApply(pField);
-        pField.TextChanged += (_, _) => lFunnel.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
+        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
         return pField;
     }
 
@@ -169,7 +169,7 @@ internal sealed class PFunnelCondition : Grid
             SnapsToDevicePixels = true,
             Child = pLabel
         };
-        pHost.MouseLeftButtonUp += (_, _) => lFunnel.QFunnelCaseToggle(lFunnelRule, lFunnelKind);
+        pHost.MouseLeftButtonUp += (_, _) => lFunnel.QFunnelCriterion.QFunnelCaseToggle(lFunnelRule, lFunnelKind);
         return pHost;
     }
 
@@ -242,5 +242,6 @@ internal sealed class PFunnelCondition : Grid
         pSegment.Background = pFunnelSegmentBackgrounds[pActive];
     }
 
-    private void PFunnelModeSet(bool pAndMode) => lFunnel.QFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);
+    private void PFunnelModeSet(bool pAndMode) =>
+        lFunnel.QFunnelCriterion.QFunnelJoinSet(lFunnelRule, lFunnelKind, pAndMode);
 }

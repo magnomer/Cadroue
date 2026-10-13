@@ -2,9 +2,12 @@ namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
 {
-    public const int TAuditGeneration = 23;
+    public const int TAuditGeneration = 24;
+    public const bool TAuditCommentEnforced = false;
     public const int TAuditCommentWords = 20;
     public const string TAuditCommentPattern = "*.comment.md";
+    public const string TAuditCommentRoot = "Cadroue.comment.md";
+    public const int TAuditCommentFolderFiles = 10;
 
     public static readonly string[] TAuditCommentRoots =
     [
@@ -94,7 +97,12 @@ internal static class TAuditCommentSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditCommentCeiling = new Dictionary<string, int>
     {
-        ["Unstamped"] = 58,
+        ["Unstamped"] = 0,
+    };
+
+    public static readonly IReadOnlyDictionary<string, int> TAuditCommentFolders =
+        new Dictionary<string, int>(StringComparer.Ordinal)
+    {
     };
 
     public static readonly Dictionary<string, string> TAuditCommentClosers = new(StringComparer.Ordinal)

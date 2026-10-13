@@ -45,7 +45,7 @@ internal sealed class TKeyframe : IDisposable
     internal TKeyframe()
     {
         Directory.CreateDirectory(tKeyframeRoot);
-        LSidecarStore.LSidecarFolderSet(tKeyframeRoot, true);
+        LSidecarPath.LSidecarFolderSet(tKeyframeRoot, true);
         tKeyframeOrchestrator = TKeyframeOrchestratorCreate();
     }
 
@@ -164,7 +164,7 @@ internal sealed class TKeyframe : IDisposable
             control.TKeyframeGate.Dispose();
         }
 
-        LSidecarStore.LSidecarFolderSet(null, false);
+        LSidecarPath.LSidecarFolderSet(null, false);
         try
         {
             Directory.Delete(tKeyframeRoot, recursive: true);

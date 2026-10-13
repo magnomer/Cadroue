@@ -61,7 +61,7 @@ public sealed class LPresetVideoEntry
         var lPresetDefault = new LPresetVideoEntry();
         LPresetStream ??= lPresetDefault.LPresetStream;
         LPresetMode ??= lPresetDefault.LPresetMode;
-        LPresetEncoder = LRepertoireCatalog.LRepertoireTextNormalize(LPresetEncoder ?? lPresetDefault.LPresetEncoder);
+        LPresetEncoder = LRepertoireVideo.LRepertoireTextNormalize(LPresetEncoder ?? lPresetDefault.LPresetEncoder);
         LPresetRateControl ??= lPresetDefault.LPresetRateControl;
         LPresetQuality ??= lPresetDefault.LPresetQuality;
         LPresetSpeedPreset ??= lPresetDefault.LPresetSpeedPreset;

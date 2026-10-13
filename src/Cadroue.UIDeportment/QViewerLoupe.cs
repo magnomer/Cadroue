@@ -16,7 +16,7 @@ public sealed class QViewerLoupe
     public void QViewerLoupeAttach()
     {
         qViewer.QViewerLoupeSet(true);
-        qViewerMedia.QViewerHostShow(false);
+        qViewer.QViewerHost.QViewerHostShow(false);
         qViewerMedia.QViewerCommandApply(false);
     }
 
@@ -25,7 +25,7 @@ public sealed class QViewerLoupe
         qViewer.QViewerLoupeSet(false);
         qViewer.QViewerResumeSet(lPlaying);
         qViewerMedia.QViewerCommandApply(true);
-        qViewerMedia.QViewerHostShow(true);
+        qViewer.QViewerHost.QViewerHostShow(true);
         qViewer.QViewerPlayback.QViewerSeek(lPosition);
         if (lPlaying)
         {

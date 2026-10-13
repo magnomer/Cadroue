@@ -50,7 +50,7 @@ internal sealed partial class PSOptions
 
     private void PSSystemRecordClear()
     {
-        string pRecordFolder = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderRead();
+        string pRecordFolder = Cadroue.Infrastructure.LSidecarPath.LSidecarFolderRead();
         if (!lsOptions.QSOptionsFolderExist(pRecordFolder))
         {
             PSAnnouncement.PSAnnouncementShow(
@@ -69,7 +69,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        int pRemoved = Cadroue.Infrastructure.LSidecarStore.LSidecarFolderClear();
+        int pRemoved = Cadroue.Infrastructure.LSidecarPath.LSidecarFolderClear();
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
             this,

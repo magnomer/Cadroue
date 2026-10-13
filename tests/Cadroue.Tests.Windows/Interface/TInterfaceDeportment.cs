@@ -107,18 +107,20 @@ internal static partial class TInterface
 
     internal static QSensor TSensorCreate() => new();
     internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) =>
-        LDetector.LDetectorTokensRead(kind);
+        LDetectorCatalog.LDetectorTokensRead(kind);
     internal static void TSensorPresetSelect(QSensor sensor, LDetectorKind kind, string token) =>
-        sensor.QSensorPresetSelect(kind, token);
+        sensor.QSensorPreset.QSensorPresetSelect(kind, token);
     internal static void TSensorTokenSet(QSensor sensor, LDetectorKind kind, string token) =>
-        sensor.QSensorTokenSet(kind, token);
+        sensor.QSensorPreset.QSensorTokenSet(kind, token);
     internal static void TSensorStepSet(QSensor sensor, LDetectorStep step) => sensor.QSensorStepSet(step);
     internal static void TSensorThresholdSet(QSensor sensor, LDetectorKind kind, double threshold) =>
         sensor.QSensorThresholdSet(kind, threshold);
     internal static void TSensorMetricSet(QSensor sensor, LDetectorMetricMode metric) =>
         sensor.QSensorMetricSet(metric);
-    internal static string? TSensorTokenRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorTokenRead(kind);
-    internal static string? TSensorMatchRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorMatchRead(kind);
+    internal static string? TSensorTokenRead(QSensor sensor, LDetectorKind kind) =>
+        sensor.QSensorPreset.QSensorTokenRead(kind);
+    internal static string? TSensorMatchRead(QSensor sensor, LDetectorKind kind) =>
+        sensor.QSensorPreset.QSensorMatchRead(kind);
     internal static LDetectorStep TSensorStepRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorStepRead(kind);
 
     internal static QLoudness TLoudnessCreate() => new();

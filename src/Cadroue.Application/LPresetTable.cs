@@ -113,7 +113,7 @@ public sealed partial class LPreset
                 }
             }
 
-            LPresetSelection.LPresetDraftSync(lName, null, null);
+            LPresetDraft.LPresetDraftSync(lName, null, null);
             return true;
         });
     }

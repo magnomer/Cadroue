@@ -9,10 +9,7 @@ using FlyleafLib;
 using FlyleafLib.Controls.WPF;
 using FlyleafLib.MediaFramework.MediaRenderer;
 
-using Cadroue.Application;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -114,14 +111,16 @@ public sealed class PViewer : PPanel
         pViewerOverlay.DragOver += PViewerDragAccept;
         pViewerOverlay.Drop += PViewerDropHandle;
 
-        pViewerCloseButton = PViewerButtonBuild("/PAsset/PPanel/PViewerClose.svg", "Viewer.Unload.Tooltip", 16);
+        pViewerCloseButton = PViewerControl.PViewerButtonBuild(
+            "/PAsset/PPanel/PViewerClose.svg", "Viewer.Unload.Tooltip", 16);
         pViewerCloseButton.Click += PViewerCloseHandle;
-        pViewerPreviewButton = PViewerButtonBuild("/PAsset/PPanel/PViewerPreview.svg", "Viewer.Preview.Tooltip", 44);
+        pViewerPreviewButton = PViewerControl.PViewerButtonBuild(
+            "/PAsset/PPanel/PViewerPreview.svg", "Viewer.Preview.Tooltip", 44);
         pViewerPreviewButton.Click += PViewerLoupeHandle;
-        pViewerAudioSwitch = PViewerAudioBuild();
+        pViewerAudioSwitch = PViewerControl.PViewerAudioBuild();
         pViewerAudioSwitch.Click += PViewerAudioHandle;
-        pViewerEngineSurface = PViewerSlotBuild();
-        pViewerEngineOverlay = PViewerSlotBuild();
+        pViewerEngineSurface = PViewerControl.PViewerSlotBuild();
+        pViewerEngineOverlay = PViewerControl.PViewerSlotBuild();
 
         pViewerOverlayHost = new Grid();
         pViewerOverlayHost.Children.Add(pViewerOverlay);
@@ -168,73 +167,25 @@ public sealed class PViewer : PPanel
         QViewer.QViewerPlayback.QViewerClockStarted += pViewerClockTimer.Start;
         QViewer.QViewerPlayback.QViewerClockStopped += pViewerClockTimer.Stop;
         QViewer.QViewerEngineChanged += PViewerAudioUpdate;
-        QViewer.QViewerBypassChanged += PViewerBypassHandle;
+        QViewer.QViewerAudio.QViewerBypassChanged += PViewerBypassHandle;
         QViewer.QViewerRenderer.QViewerHostApplied += PViewerHostApply;
         QViewer.QViewerMedia.QViewerPlayerCreated += PViewerPlayerCreate;
         QViewer.QViewerSource.QViewerSourceAsk += PViewerAskHandle;
         QViewer.QViewerSource.QViewerSourceLocate += PViewerLocateHandle;
-        QViewer.QViewerMedia.QViewerFactsAttach(PViewerFactsRead);
+        QViewer.QViewerHost.QViewerFactsAttach(PViewerFactsRead);
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineHandle;
         PViewerEngineShow();
         PViewerHostApply();
 
-        Loaded += (_, _) => QViewer.QViewerMedia.QViewerHostRecord("panel loaded");
-        IsVisibleChanged += (_, pEvent) => QViewer.QViewerMedia.QViewerHostRecord($"panel visible {pEvent.NewValue}");
-        pViewerFlyleafHost.Loaded += (_, _) => QViewer.QViewerMedia.QViewerHostRecord("host loaded");
+        Loaded += (_, _) => QViewer.QViewerHost.QViewerHostRecord("panel loaded");
+        IsVisibleChanged += (_, pEvent) => QViewer.QViewerHost.QViewerHostRecord($"panel visible {pEvent.NewValue}");
+        pViewerFlyleafHost.Loaded += (_, _) => QViewer.QViewerHost.QViewerHostRecord("host loaded");
         pViewerFlyleafHost.IsVisibleChanged += (_, pEvent) =>
-            QViewer.QViewerMedia.QViewerHostRecord($"host visible {pEvent.NewValue}");
+            QViewer.QViewerHost.QViewerHostRecord($"host visible {pEvent.NewValue}");
         pViewerFlyleafHost.SizeChanged += (_, pEvent) =>
-            QViewer.QViewerMedia.QViewerHostRecord($"host sized {pEvent.NewSize.Width:0}x{pEvent.NewSize.Height:0}");
-        QViewer.QViewerMedia.QViewerHostRecord("host built");
-    }
-
-    private static Button PViewerButtonBuild(string pIconPath, string pTipKey, double pRightMargin)
-    {
-        return new Button
-        {
-            Content = new Image
-            {
-                Width = 16,
-                Height = 16,
-                Source = PIcon.PIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
-                Stretch = Stretch.Uniform
-            },
-            Width = 24,
-            Height = 24,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 16, pRightMargin, 0),
-            ToolTip = LLocalization.LLocalizationTextRead(pTipKey),
-            Visibility = Visibility.Collapsed,
-            Style = PButton.PButtonPanelCreate()
-        };
-    }
-
-    private static Button PViewerAudioBuild()
-    {
-        return new Button
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(16, 52, 0, 0),
-            MinWidth = 84,
-            Height = 24,
-            Padding = new Thickness(12, 0, 12, 0),
-            FontSize = 11,
-            Visibility = Visibility.Collapsed,
-            Style = PButton.PButtonPanelCreate()
-        };
-    }
-
-    private static Border PViewerSlotBuild()
-    {
-        return new Border
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(16, 16, 0, 0)
-        };
+            QViewer.QViewerHost.QViewerHostRecord($"host sized {pEvent.NewSize.Width:0}x{pEvent.NewSize.Height:0}");
+        QViewer.QViewerHost.QViewerHostRecord("host built");
     }
 
     private void PViewerCloseHandle(object pSender, RoutedEventArgs pEvent) =>
@@ -243,7 +194,8 @@ public sealed class PViewer : PPanel
     private void PViewerLoupeHandle(object pSender, RoutedEventArgs pEvent) =>
         pViewerLoupeShows[QViewer.QViewerLoupeActive](this);
 
-    private void PViewerAudioHandle(object pSender, RoutedEventArgs pEvent) => QViewer.QViewerBypassToggle();
+    private void PViewerAudioHandle(object pSender, RoutedEventArgs pEvent) =>
+        QViewer.QViewerAudio.QViewerBypassToggle();
 
     private void PViewerClockHandle(object? pSender, EventArgs pEvent) => QViewer.QViewerPlayback.QViewerTick();
 
@@ -251,7 +203,7 @@ public sealed class PViewer : PPanel
 
     private void PViewerAudioUpdate()
     {
-        QViewerSwitch lSwitch = QViewer.QViewerSwitchRead();
+        QViewerSwitch lSwitch = QViewer.QViewerAudio.QViewerSwitchRead();
         pViewerAudioSwitch.IsEnabled = lSwitch.QViewerSwitchEnabled;
         pViewerAudioSwitch.Content = lSwitch.QViewerSwitchText;
         pViewerAudioSwitch.ToolTip = lSwitch.QViewerSwitchTip;

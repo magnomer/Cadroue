@@ -31,7 +31,7 @@ internal sealed class TSidecar : IDisposable
     internal TSidecar()
     {
         Directory.CreateDirectory(tSidecarRoot);
-        LSidecarStore.LSidecarFolderSet(tSidecarRoot, true);
+        LSidecarPath.LSidecarFolderSet(tSidecarRoot, true);
     }
 
     internal static TSidecarData? TSidecarCoreParse(string json)
@@ -71,25 +71,25 @@ internal sealed class TSidecar : IDisposable
 
     internal TSidecarData? TSidecarRead(string sourcePath)
     {
-        LSidecar? sidecar = LSidecarStore.LSidecarRead(LSidecarStore.LSidecarPathRead(sourcePath));
+        LSidecar? sidecar = LSidecarStore.LSidecarRead(LSidecarPath.LSidecarPathRead(sourcePath));
         return sidecar is null ? null : TSidecarDataCreate(sidecar);
     }
 
     internal bool TLoudnessSave(string sourcePath, double loudness) =>
-        LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarStore.LSidecarPersist();
+        LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarPending.LSidecarPersist();
 
     internal double TLoudnessRead(string sourcePath) => LSidecarStore.LSidecarLoudnessRead(sourcePath);
 
     internal void TSidecarLocationSet(bool locationMode) =>
-        LSidecarStore.LSidecarFolderSet(tSidecarRoot, !locationMode);
+        LSidecarPath.LSidecarFolderSet(tSidecarRoot, !locationMode);
 
-    internal string TSidecarPathRead(string sourcePath) => LSidecarStore.LSidecarPathRead(sourcePath);
+    internal string TSidecarPathRead(string sourcePath) => LSidecarPath.LSidecarPathRead(sourcePath);
 
     internal string TSidecarTextRead(string sourcePath) =>
-        File.ReadAllText(LSidecarStore.LSidecarPathRead(sourcePath), Encoding.UTF8);
+        File.ReadAllText(LSidecarPath.LSidecarPathRead(sourcePath), Encoding.UTF8);
 
     internal void TSidecarTextSave(string sourcePath, string content) =>
-        File.WriteAllText(LSidecarStore.LSidecarPathRead(sourcePath), content, Encoding.UTF8);
+        File.WriteAllText(LSidecarPath.LSidecarPathRead(sourcePath), content, Encoding.UTF8);
 
     internal void TSidecarLegacySave(string sourcePath, string content) =>
         File.WriteAllText(Path.ChangeExtension(sourcePath, ".cad"), content, Encoding.UTF8);
@@ -108,18 +108,18 @@ internal sealed class TSidecar : IDisposable
                 LSidecarBucketMilliseconds = bucketMilliseconds,
                 LSidecarDurationMilliseconds = durationMilliseconds,
                 LSidecarPeaks = peaks
-            }) && LSidecarStore.LSidecarPersist();
+            }) && LSidecarPending.LSidecarPersist();
 
     internal void TSidecarPersistCopy(string sourcePath, string destinationPath)
     {
-        string sourceCore = LSidecarStore.LSidecarPathRead(sourcePath);
-        string destinationCore = LSidecarStore.LSidecarPathRead(destinationPath);
+        string sourceCore = LSidecarPath.LSidecarPathRead(sourcePath);
+        string destinationCore = LSidecarPath.LSidecarPathRead(destinationPath);
         File.Copy(sourceCore, destinationCore, overwrite: true);
 
-        string sourceCache = LSidecarStore.LSidecarCacheResolve(sourceCore);
+        string sourceCache = LSidecarPath.LSidecarCacheResolve(sourceCore);
         if (File.Exists(sourceCache))
         {
-            File.Copy(sourceCache, LSidecarStore.LSidecarCacheResolve(destinationCore), overwrite: true);
+            File.Copy(sourceCache, LSidecarPath.LSidecarCacheResolve(destinationCore), overwrite: true);
         }
     }
 
@@ -150,7 +150,7 @@ internal sealed class TSidecar : IDisposable
 
     internal void TSidecarCorruptSave(string sourcePath, string content) =>
         File.WriteAllText(
-            LSidecarStore.LSidecarCacheResolve(LSidecarStore.LSidecarPathRead(sourcePath)),
+            LSidecarPath.LSidecarCacheResolve(LSidecarPath.LSidecarPathRead(sourcePath)),
             content,
             Encoding.UTF8);
 
@@ -178,7 +178,7 @@ internal sealed class TSidecar : IDisposable
         }
 
         tSidecarDisposed = true;
-        LSidecarStore.LSidecarFolderSet(null, false);
+        LSidecarPath.LSidecarFolderSet(null, false);
         try
         {
             Directory.Delete(tSidecarRoot, recursive: true);
@@ -189,8 +189,8 @@ internal sealed class TSidecar : IDisposable
     }
 
     internal LSidecarSourceResult? TSourceResolve(string sourcePath) =>
-        LSidecarStore.LSidecarSourceResolve(LSidecarStore.LSidecarPathRead(sourcePath));
+        LSidecarStore.LSidecarSourceResolve(LSidecarPath.LSidecarPathRead(sourcePath));
 
     internal bool TSourceMatch(string mediaPath, string sourcePath) =>
-        LSidecarStore.LSidecarSourceMatch(mediaPath, LSidecarStore.LSidecarPathRead(sourcePath));
+        LSidecarStore.LSidecarSourceMatch(mediaPath, LSidecarPath.LSidecarPathRead(sourcePath));
 }

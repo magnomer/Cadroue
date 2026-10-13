@@ -156,7 +156,7 @@ public sealed class QSOptions
 
     public string QSOptionsRecordResolve() => qsOptionsRecordKeys[QSOptionsRecordCheck()];
 
-    public static string QSOptionsSidecarRead() => LSidecarStore.LSidecarFolderResolve();
+    public static string QSOptionsSidecarRead() => LSidecarPath.LSidecarFolderResolve();
 
     public bool QSOptionsApply()
     {
