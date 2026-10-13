@@ -135,24 +135,11 @@ public sealed class QViewerRenderer
 
     public bool QViewerEngineRestore()
     {
-        QViewerIntent? lPending = qViewer.QViewerIntent;
-        string? lSourcePath = qViewer.QViewerSourcePath;
         bool lPlaying = qViewer.QViewerResumeInactive || qViewer.QViewerPlaying;
         TimeSpan lPosition = qViewer.QViewerTimeRead();
         bool lSwapped = QViewerEngineUpdate();
-        if (lPending is { } lRequest)
-        {
-            _ = qViewer.QViewerMedia.QViewerLoadStart(lRequest);
-            return true;
-        }
-
-        if (!lSwapped || lSourcePath is null)
-        {
-            return false;
-        }
-
-        _ = qViewer.QViewerMedia.QViewerLoadStart(new QViewerIntent(lSourcePath, lPosition, lPlaying));
-        return true;
+        return (lSwapped || qViewer.QViewerWorkspace.CWorkspaceIntent is not null)
+            && qViewer.QViewerWorkspace.CWorkspaceRestore(lPosition, lPlaying);
     }
 
 }

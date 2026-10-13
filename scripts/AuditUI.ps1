@@ -69,7 +69,7 @@ AuditUI -NoOpen
 AuditUI -Configuration Release
 #>
 #requires -Version 5.1
-# AUDITUI - AUDIT GENERATION 25.
+# AUDITUI - AUDIT GENERATION 26.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -222,7 +222,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 25
+$script:AuditGeneration = 26
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
 $script:BinderSource = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'AuditBinder.cs'))
 
@@ -2806,6 +2806,8 @@ internal static partial class LAuditTruthWalker
 
     private static Dictionary<ISymbol, List<IdentifierNameSyntax>> LAuditIndex = new(SymbolEqualityComparer.Default);
 
+    private static HashSet<ITypeSymbol> LAuditCopyTypes = new(SymbolEqualityComparer.Default);
+
     private sealed record LAuditTruthField(
         HashSet<ISymbol> TFieldSymbols,
         string TFieldName,
@@ -2896,10 +2898,26 @@ internal static partial class LAuditTruthWalker
             uses.Add(identifier);
         }
 
+        LAuditCopyResolve();
         List<TypeDeclarationSyntax> every = parts.Values.SelectMany(type => type).ToList();
         LAuditRelayRead(every);
         LAuditSendResolve(every);
         return parts;
+    }
+
+    private static void LAuditCopyResolve()
+    {
+        LAuditCopyTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+        foreach (WithExpressionSyntax copy in LAuditRoots.SelectMany(root =>
+                     root.DescendantNodes().OfType<WithExpressionSyntax>()))
+        {
+            for (ITypeSymbol? copied = LAuditBind.LAuditTypeRead(copy);
+                 copied is { IsRecord: true };
+                 copied = copied.BaseType)
+            {
+                LAuditCopyTypes.Add(copied.OriginalDefinition);
+            }
+        }
     }
 
     private static IEnumerable<LAuditTruthField> LAuditFieldRead(IReadOnlyList<TypeDeclarationSyntax> type)
@@ -2921,7 +2939,9 @@ internal static partial class LAuditTruthWalker
                     }
 
                     HashSet<ISymbol> symbols = LAuditAliasRead(symbol, type);
-                    if (!fixture || LAuditBind.LAuditEngineCheck(symbol.Type) || LAuditFillCheck(symbols, type))
+                    if (!fixture
+                        || LAuditBind.LAuditEngineCheck(symbol.Type)
+                        || LAuditFillCheck(symbols, symbol, type))
                     {
                         yield return new LAuditTruthField(
                             symbols,
@@ -2947,6 +2967,16 @@ internal static partial class LAuditTruthWalker
                              .OfType<IPropertySymbol>() ?? [])
                 {
                     symbols.Add(property.OriginalDefinition);
+                }
+
+                if (symbol.ContainingType is { IsRecord: true } record
+                    && LAuditValueCheck(symbol.Type)
+                    && !LAuditCopyTypes.Contains(record.OriginalDefinition)
+                    && !LAuditUseRead(symbols)
+                        .Select(LAuditReferenceRead)
+                        .Any(reference => LAuditWriteCheck(reference, out _)))
+                {
+                    continue;
                 }
 
                 yield return new LAuditTruthField(
@@ -2981,12 +3011,32 @@ internal static partial class LAuditTruthWalker
         }
     }
 
-    private static bool LAuditFillCheck(HashSet<ISymbol> symbols, IReadOnlyList<TypeDeclarationSyntax> type)
+    private static bool LAuditFillCheck(
+        HashSet<ISymbol> symbols, IFieldSymbol field, IReadOnlyList<TypeDeclarationSyntax> type)
     {
+        bool value = LAuditValueCheck(field.Type);
         return LAuditUseRead(symbols)
             .Where(identifier => LAuditInsideCheck(identifier, type))
             .Select(LAuditReferenceRead)
-            .Any(reference => LAuditWriteCheck(reference, out _));
+            .Where(reference => LAuditWriteCheck(reference, out _))
+            .Any(reference => !value
+                || reference.FirstAncestorOrSelf<SyntaxNode>(node =>
+                    node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax
+                        or MemberDeclarationSyntax)
+                is not ConstructorDeclarationSyntax constructor
+                || !SymbolEqualityComparer.Default.Equals(
+                    LAuditBind.LAuditSymbolRead(constructor)?.ContainingType, field.ContainingType));
+    }
+
+    private static bool LAuditValueCheck(ITypeSymbol type)
+    {
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
+        {
+            type = nullable.TypeArguments[0];
+        }
+
+        return type.TypeKind == TypeKind.Enum
+               || type.SpecialType is >= SpecialType.System_Boolean and <= SpecialType.System_String;
     }
 
     private static IEnumerable<IdentifierNameSyntax> LAuditUseRead(IEnumerable<ISymbol> symbols)

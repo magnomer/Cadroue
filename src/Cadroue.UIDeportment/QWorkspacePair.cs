@@ -6,11 +6,11 @@ public sealed class QWorkspacePair
 {
     private readonly bool qWorkspacePairSection;
 
-    public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher)
+    public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher, CWorkspace lWorkspace)
     {
         qWorkspacePairSection = qWorkspaceKey.QWorkspaceSectionVisible;
         QWorkspaceFlow = new QFlow(lUsher);
-        QWorkspaceViewer = new QViewer(lUsher);
+        QWorkspaceViewer = new QViewer(lUsher, lWorkspace);
         QWorkspaceViewer.QViewerEligibleSet(
             qWorkspaceKey.QWorkspaceAudioOnly, qWorkspaceKey.QWorkspaceEdit, qWorkspaceKey.QWorkspaceEdit);
         QWorkspaceViewer.QViewerAllowSet(qWorkspaceKey.QWorkspaceAudioOnly);
@@ -44,12 +44,13 @@ public sealed class QWorkspacePair
         lFlow.QFlowWheel.QFlowVolumeAdjusted += lViewer.QViewerPlayback.QViewerVolumeAdjust;
     }
 
-    public void QWorkspaceCommandApply()
+    public void QWorkspaceFlowApply()
     {
         QWorkspaceFlow.QFlowCommandSet(true);
         QWorkspaceFlow.QFlowSectionSet(qWorkspacePairSection);
-        QWorkspaceViewer.QViewerMedia.QViewerCommandApply(true);
     }
+
+    public void QWorkspaceViewerApply() => QWorkspaceViewer.QViewerMedia.QViewerCommandApply(true);
 
     public void QWorkspaceCommandReset()
     {

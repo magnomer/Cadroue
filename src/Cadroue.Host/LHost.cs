@@ -10,7 +10,7 @@ Thread thread = new(() =>
 {
     PProgram application = new();
     application.PProgramAttach(LTraceLog.LTraceErrorRecord, QProgram.QProgramDebounceTick);
-    CAtelier atelier = new(new LUsherOutlet(), new LLineageOutlet());
+    CAtelier atelier = new(new LUsherOutlet(), new LLineageOutlet(), new LWorkspaceOutlet());
 
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
     LEngine engine = new(LRigFactory.LRigFactoryCreate());

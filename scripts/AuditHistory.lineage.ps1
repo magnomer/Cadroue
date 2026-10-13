@@ -14,7 +14,7 @@ A record found under other rules or for another pair of commits is read again
 from git. Without a local repository, no rename is read and the lineage stays as
 recorded.
 #>
-# AUDITHISTORY.LINEAGE - AUDIT GENERATION 25.
+# AUDITHISTORY.LINEAGE - AUDIT GENERATION 26.
 #requires -Version 5.1
 
 $script:LineageRoots = @('src', 'tests')

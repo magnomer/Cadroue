@@ -99,7 +99,7 @@ public sealed class QViewerNeutral
             return;
         }
 
-        string? lPath = qViewer.QViewerSourcePath;
+        string? lPath = qViewer.QViewerWorkspace.CWorkspaceSource;
         if (string.IsNullOrWhiteSpace(lPath))
         {
             return;

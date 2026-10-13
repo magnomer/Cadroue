@@ -241,11 +241,11 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
+        (_, QInspector inspector, QViewer viewer, _) = TSplitBuild();
         TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
-            TInterface.TSplitPathHandle(tab, TSplitSource);
+            TInterface.TSplitPathHandle(viewer, TSplitSource);
         }
         finally
         {
@@ -261,12 +261,12 @@ public sealed class TSplitTabSidecar
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QSplitTab tab, QInspector inspector, _, _) = TSplitBuild();
+        (_, QInspector inspector, QViewer viewer, _) = TSplitBuild();
         TInterface.TSensorPersistentSet(inspector.QInspectorSensor, true);
         TSplitWriterAttach(TSplitRecordCreate(true));
         try
         {
-            TInterface.TSplitPathHandle(tab, TSplitSource);
+            TInterface.TSplitPathHandle(viewer, TSplitSource);
         }
         finally
         {

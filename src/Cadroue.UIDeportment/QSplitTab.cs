@@ -39,7 +39,8 @@ public sealed class QSplitTab
         QSplitSection = new QSection(lFlow);
         QSplitInspector.QInspectorSensor.QSensorRunApplied += () => _ = QSplitSweep.QSplitSweepStart();
         QSplitInspector.QInspectorSensor.QSensorStopApplied += QSplitSweep.QSplitSweepCancel;
-        lList.QListPathChanged += QSplitPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        lViewer.QViewerOpenRequest += QSplitOpenHandle;
         lList.QListLockChanged += QSplitLockHandle;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
     }
@@ -62,6 +63,7 @@ public sealed class QSplitTab
         QSplitInspector.QInspectorSensor.QSensorPersistentChanged -= QSplitPersistentHandle;
         QSplitInspector.QInspectorBlank.QBlankPickChanged -= QSplitPickHandle;
         qSplitViewer.QViewerNeutral.QViewerNeutralChanged -= QSplitSampleHandle;
+        qSplitViewer.QViewerOpenRequest -= QSplitOpenHandle;
     }
 
     public void QSplitStart() => qSplitFlow.QFlowEdit.QFlowEditSet(!QSplitLockedCheck());
@@ -137,14 +139,9 @@ public sealed class QSplitTab
             lSourceTab);
     }
 
-    public void QSplitPathHandle(string? lPath)
+    // After the viewer opens a new path: its saved split state loads unless the sensor is persistent.
+    private void QSplitOpenHandle(string lPath)
     {
-        if (string.IsNullOrWhiteSpace(lPath) || qSplitViewer.QViewerSourceMatch(lPath))
-        {
-            return;
-        }
-
-        qSplitViewer.QViewerPathHandle(lPath);
         if (!QSplitInspector.QInspectorSensor.QSensorPersistent)
         {
             QSplitStateLoad(lPath);
@@ -190,7 +187,7 @@ public sealed class QSplitTab
     public void QSplitStateSave()
     {
         if (QSplitInspector.QInspectorSaveSuspended
-            || qSplitViewer.QViewerSourcePath is not { } lPath
+            || qSplitViewer.QViewerWorkspace.CWorkspaceSource is not { } lPath
             || qSplitDocket.LDocketLockCheck(lPath))
         {
             return;

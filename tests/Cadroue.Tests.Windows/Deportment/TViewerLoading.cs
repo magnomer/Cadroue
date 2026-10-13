@@ -36,14 +36,14 @@ public sealed class TViewerLoading
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         string path = Path.Combine(Path.GetTempPath(), $"cadroue-missing-{Guid.NewGuid():N}.mp4");
 
-        await TInterfaceViewer.TViewerLoadStart(media, path, TimeSpan.Zero, null);
+        await TInterfaceViewer.TViewerLoadStart(media, path);
 
         Assert.Empty(opened);
         Assert.Single(cargos);
         Assert.Null(cargos[0].LCargoMediaInfo);
         Assert.False(cargos[0].LCargoPreviewAvailable);
         Assert.NotNull(cargos[0].LCargoFfmpegError);
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
         Assert.False(viewer.QPlayer.QPlayerReady);
     }
 
@@ -54,10 +54,10 @@ public sealed class TViewerLoading
         TInterfaceViewer.TViewerCommandSet(viewer, false);
         int serial = viewer.QViewerLoadSerial;
 
-        await TInterfaceViewer.TViewerLoadStart(media, "clip.mp4", TimeSpan.Zero, null);
+        await TInterfaceViewer.TViewerLoadStart(media, "clip.mp4");
 
         Assert.Equal(serial, viewer.QViewerLoadSerial);
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
     [Fact]
@@ -77,8 +77,8 @@ public sealed class TViewerLoading
         Assert.Single(cargos);
         Assert.True(cargos[0].LCargoPreviewAvailable);
         Assert.Same(info, viewer.QViewerMediaInfo);
-        Assert.Equal("clip.mp4", viewer.QViewerSourcePath);
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Equal("clip.mp4", viewer.QViewerWorkspace.CWorkspaceSource);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
         Assert.False(viewer.QViewerPlaying);
         Assert.True(viewer.QViewerHostVisible);
         Assert.True(viewer.QPlayer.QPlayerRendererPending);
@@ -158,7 +158,7 @@ public sealed class TViewerLoading
 
         Assert.Equal(2, cargos.Count);
         Assert.Equal(string.Empty, cargos[1].LCargoSourcePath);
-        Assert.Null(viewer.QViewerSourcePath);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceSource);
         Assert.False(viewer.QPlayer.QPlayerReady);
         Assert.False(viewer.QViewerHostVisible);
         Assert.Equal(2, cropResets);
@@ -176,7 +176,7 @@ public sealed class TViewerLoading
         int serial = viewer.QViewerLoadSerial;
 
         Assert.True(TInterfaceViewer.TViewerLoadCancel(media));
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
         Assert.Equal(serial + 1, viewer.QViewerLoadSerial);
     }
 

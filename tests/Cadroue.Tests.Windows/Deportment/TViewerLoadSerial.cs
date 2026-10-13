@@ -59,8 +59,8 @@ public sealed class TViewerLoadSerial
 
         TInterfaceViewer.TViewerMediaClose(viewer);
 
-        Assert.Null(viewer.QViewerIntent);
-        Assert.Null(viewer.QViewerSourcePath);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceSource);
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, serial));
     }
 }

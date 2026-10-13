@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Media;
 
@@ -78,21 +79,13 @@ public sealed class QViewerMpv
 
     private void QViewerMpvRestore()
     {
-        if (qViewer.QViewerUnloaded || !qViewer.QViewerMpvActive || qViewer.QViewerIntent is not null)
+        if (qViewer.QViewerUnloaded || !qViewer.QViewerMpvActive)
         {
             return;
         }
 
-        if (qViewer.QViewerSourcePath is { } lKeptPath)
+        if (qViewer.QViewerWorkspace.CWorkspaceIdleRestore(qViewer.QViewerPosition, false))
         {
-            var lRequest = new QViewerIntent(lKeptPath, qViewer.QViewerPosition, false);
-            if (qViewer.QViewerCommandActive)
-            {
-                _ = qViewer.QViewerMedia.QViewerLoadStart(lRequest);
-                return;
-            }
-
-            qViewer.QViewerIntentSet(lRequest);
             return;
         }
 
@@ -111,7 +104,7 @@ public sealed class QViewerMpv
 
         QPlayer.QPlayerAccurateReset();
         qViewer.QViewerHost.QViewerHostShow(lHasPreview);
-        QViewerIntent? lRequest = qViewer.QViewerMedia.QViewerCargoApply(lCargo);
+        qViewer.QViewerMedia.QViewerCargoApply(lCargo);
         if (!lHasPreview)
         {
             QPlayer.QPlayerDispose();
@@ -121,7 +114,7 @@ public sealed class QViewerMpv
 
         qViewer.QViewerFilterUpdate();
         qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
-        qViewer.QViewerMedia.QViewerIntentApply(lRequest);
+        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
     }
 
     private async Task QViewerMpvRebuild(

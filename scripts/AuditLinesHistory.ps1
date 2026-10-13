@@ -53,7 +53,7 @@
     AuditLinesHistory -Rebuild
     Count every version again.
 #>
-# AUDITLINESHISTORY - AUDIT GENERATION 25.
+# AUDITLINESHISTORY - AUDIT GENERATION 26.
 [CmdletBinding()]
 param(
     [switch]$Rebuild,
@@ -70,7 +70,7 @@ if ($Help) {
     return
 }
 
-Write-Host 'AUDITLINESHISTORY - AUDIT GENERATION 25' -ForegroundColor Blue
+Write-Host 'AUDITLINESHISTORY - AUDIT GENERATION 26' -ForegroundColor Blue
 
 Add-Type -AssemblyName System.IO.Compression
 Add-Type -AssemblyName System.IO.Compression.FileSystem

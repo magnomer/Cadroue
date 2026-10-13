@@ -123,6 +123,14 @@ The report states the generation it reads from `AuditUI.json`.
 
 ## Verdict
 
+A value-typed member set once at construction is identity, so the truth walk does not audit it.
+A value type is a bool, char, number, string or enum, or the nullable form of one.
+A `readonly` value field is skipped when every write sits in a constructor of its own type.
+A write from a lambda, a local function or another member still audits it.
+A positional record parameter of a value type is skipped unless the record is copied with `with` or written.
+The copy scan covers every tracked source and counts a copied record's base records too.
+`TAuditTruthField.TAuditValueCheck` holds the same rule, copied by hand.
+
 A file above the ceiling of a kind fails, and a ceiling above its count is stale and fails.
 Every fact the tests gate is one counter, and the counters sum to zero exactly when those tests pass.
 The report lists every hit in the line format of the test reports, so the two diff directly.

@@ -15,7 +15,7 @@ public sealed class QConvertTab
         qConvertPreset = lPreset;
         qConvertList = lList;
         qConvertDocket = lList.QListDocket;
-        lList.QListPathChanged += lViewer.QViewerPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
     }
 

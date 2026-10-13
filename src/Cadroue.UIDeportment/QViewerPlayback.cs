@@ -81,12 +81,12 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (qViewer.QViewerIntent is { } lPending)
-        {
-            qViewer.QViewerIntentSet(lPending with { QViewerIntentPlaying = true });
-            return;
-        }
+        qViewer.QViewerWorkspace.CWorkspacePlay(true);
+    }
 
+    // The workspace holds no pending load: the player plays now.
+    public void QViewerPlayApply()
+    {
         if (!QPlayer.QPlayerReady || qViewer.QViewerPlaying)
         {
             return;
@@ -117,12 +117,12 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (qViewer.QViewerIntent is { } lPending)
-        {
-            qViewer.QViewerIntentSet(lPending with { QViewerIntentPlaying = false });
-            return;
-        }
+        qViewer.QViewerWorkspace.CWorkspacePlay(false);
+    }
 
+    // The workspace holds no pending load: the player pauses now.
+    public void QViewerPauseApply()
+    {
         if (!QPlayer.QPlayerReady)
         {
             return;
@@ -148,13 +148,12 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (qViewer.QViewerIntent is { } lPending)
-        {
-            qViewer.QViewerIntentSet(lPending with { QViewerIntentPosition = lPosition });
-            qViewer.QViewerPlaybackUpdate(null, lPosition);
-            return;
-        }
+        qViewer.QViewerWorkspace.CWorkspaceSeek(lPosition);
+    }
 
+    // The workspace holds no pending load: the player seeks now.
+    public void QViewerSeekApply(TimeSpan lPosition)
+    {
         if (!QPlayer.QPlayerReady)
         {
             return;

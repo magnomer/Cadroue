@@ -6,6 +6,9 @@ internal static class TAuditDeportmentSetting
         new Dictionary<string, string[]>
         {
             ["Cadroue.UIDeportment>Cadroue.Conduct"] =
-                ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep"],
+                [
+                    "CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch",
+                    "CLineageStep", "CWorkspace", "CWorkspaceIntent",
+                ],
         };
 }

@@ -6,6 +6,9 @@ internal static class TAuditEngineSetting
         new Dictionary<string, string[]>
         {
             ["Cadroue.Conduct>Cadroue.ShellEngine"] =
-                ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep"],
+                [
+                    "LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep",
+                    "LWorkspacePort",
+                ],
         };
 }

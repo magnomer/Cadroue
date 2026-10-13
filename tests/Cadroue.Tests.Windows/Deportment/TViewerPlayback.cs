@@ -66,11 +66,11 @@ public sealed class TViewerPlayback
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.FromSeconds(2), null);
 
         TInterfaceViewer.TViewerPlay(playback);
-        Assert.True(viewer.QViewerIntent!.QViewerIntentPlaying);
+        Assert.True(viewer.QViewerWorkspace.CWorkspaceIntent!.CWorkspaceIntentPlaying);
         TInterfaceViewer.TViewerPause(playback);
-        Assert.False(viewer.QViewerIntent!.QViewerIntentPlaying);
+        Assert.False(viewer.QViewerWorkspace.CWorkspaceIntent!.CWorkspaceIntentPlaying);
         TInterfaceViewer.TViewerSeek(playback, TimeSpan.FromSeconds(9));
-        Assert.Equal(TimeSpan.FromSeconds(9), viewer.QViewerIntent!.QViewerIntentPosition);
+        Assert.Equal(TimeSpan.FromSeconds(9), viewer.QViewerWorkspace.CWorkspaceIntent!.CWorkspaceIntentPosition);
         Assert.Equal(TimeSpan.FromSeconds(9), viewer.QViewerPosition);
 
         Assert.Empty(calls);

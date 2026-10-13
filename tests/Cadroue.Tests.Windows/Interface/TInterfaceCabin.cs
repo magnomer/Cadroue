@@ -89,7 +89,7 @@ internal static partial class TInterface
     internal static void TSplitStart(QSplitTab tab) => tab.QSplitStart();
     internal static LSceneTabEntry TSplitLayoutRead(QSplitTab tab) => tab.QSplitLayoutRead(new LSceneTabEntry());
     internal static void TSplitLayoutApply(QSplitTab tab, LSceneTabEntry? layout) => tab.QSplitLayoutApply(layout);
-    internal static void TSplitPathHandle(QSplitTab tab, string? path) => tab.QSplitPathHandle(path);
+    internal static void TSplitPathHandle(QViewer viewer, string? path) => viewer.QViewerWorkspace.CWorkspaceOpen(path);
     internal static void TSplitLockHandle(QSplitTab tab, bool locked) => tab.QSplitLockHandle(locked);
     internal static void TSplitPersistentHandle(QSplitTab tab, bool persistent) =>
         tab.QSplitPersistentHandle(persistent);
@@ -143,7 +143,7 @@ internal static partial class TInterface
     internal static void TFixClose(QFixTab tab) => tab.QFixClose();
     internal static LSceneTabEntry TFixLayoutRead(QFixTab tab) => tab.QFixLayoutRead(new LSceneTabEntry());
     internal static void TFixLayoutApply(QFixTab tab, LSceneTabEntry? layout) => tab.QFixLayoutApply(layout);
-    internal static void TFixPathHandle(QFixTab tab, string? path) => tab.QFixPathHandle(path);
+    internal static void TFixPathHandle(QViewer viewer, string? path) => viewer.QViewerWorkspace.CWorkspaceOpen(path);
     internal static void TFixDiagnosisRun(QFixTab tab) => tab.QFixDiagnosisRun();
     internal static void TFixCheckupHandle(QFixTab tab, string path, LFlawKind kind, LCheckupOutcome outcome) =>
         tab.QFixCheckupHandle(new LCheckupResult(path, kind, outcome));
@@ -187,7 +187,6 @@ internal static partial class TInterface
     internal static void TAudioClose(QAudioTab tab) => tab.QAudioClose();
     internal static LSceneTabEntry TAudioLayoutRead(QAudioTab tab) => tab.QAudioLayoutRead(new LSceneTabEntry());
     internal static void TAudioLayoutApply(QAudioTab tab, LSceneTabEntry? layout) => tab.QAudioLayoutApply(layout);
-    internal static void TAudioPathHandle(QAudioTab tab, string? path) => tab.QAudioPathHandle(path);
     internal static void TAudioSkipHandle(QAudioTab tab) => tab.QAudioSkipHandle();
     internal static void TAudioChangeHandle(QAudioTab tab) => tab.QAudioChangeHandle();
     internal static void TAudioItemsHandle(QAudioTab tab, IReadOnlyList<LDocketEntry> added) =>

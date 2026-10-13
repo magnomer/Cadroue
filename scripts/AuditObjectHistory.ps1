@@ -74,7 +74,7 @@
     Measure every version again.
 #>
 #requires -Version 5.1
-# AUDITOBJECTHISTORY - AUDIT GENERATION 25.
+# AUDITOBJECTHISTORY - AUDIT GENERATION 26.
 [CmdletBinding()]
 param(
     [switch]$Rebuild,
@@ -91,7 +91,7 @@ if ($Help) {
     return
 }
 
-Write-Host 'AUDITOBJECTHISTORY - AUDIT GENERATION 25' -ForegroundColor Blue
+Write-Host 'AUDITOBJECTHISTORY - AUDIT GENERATION 26' -ForegroundColor Blue
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding

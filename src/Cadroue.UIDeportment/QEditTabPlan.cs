@@ -70,7 +70,7 @@ public sealed class QEditTabPlan
     }
 
     public LEditPlan? QEditSavedRead() =>
-        qEditViewer.QViewerSourcePath is { } lSourcePath
+        qEditViewer.QViewerWorkspace.CWorkspaceSource is { } lSourcePath
             ? LEdit.LEditPlanRead(lSourcePath, LLibrarian.LLibrarianEditLoad)
             : null;
 
@@ -79,7 +79,7 @@ public sealed class QEditTabPlan
     public void QEditStateSave(LEditPlan lPlan)
     {
         if (qEditInspector.QInspectorSaveSuspended
-            || qEditViewer.QViewerSourcePath is not { } lSourcePath
+            || qEditViewer.QViewerWorkspace.CWorkspaceSource is not { } lSourcePath
             || qEditDocket.LDocketLockCheck(lSourcePath))
         {
             return;

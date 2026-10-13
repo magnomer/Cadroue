@@ -42,6 +42,7 @@ public sealed class QEditTab
         QEditProcessing.QProcessingStepChanged += QEditStepHandle;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
         lList.QListPathChanged += QEditPathHandle;
+        lViewer.QViewerOpenNotice += QEditOpenHandle;
         lList.QListItemsAdded += QEditStore.QEditItemsHandle;
         lList.QListLockChanged += QEditTool.QEditLockHandle;
     }
@@ -73,6 +74,7 @@ public sealed class QEditTab
         QEditInspector.QInspectorSkip.QSkipActiveChanged -= QEditSkipHandle;
         lWhitebalance.QWhitebalanceEstimateChanged -= QEditColor.QEditEstimateHandle;
         qEditViewer.QViewerMediaChanged -= QEditMediaHandle;
+        qEditViewer.QViewerOpenNotice -= QEditOpenHandle;
         qEditViewer.QViewerEngineChanged -= QEditColor.QEditCapableHandle;
         qEditViewer.QViewerEngineChanged -= qEditViewer.QViewerNeutral.QViewerNeutralCancel;
         qEditViewer.QViewerNeutral.QViewerToolChanged -= lWhitebalance.QWhitebalanceToolSet;
@@ -200,16 +202,15 @@ public sealed class QEditTab
             return;
         }
 
-        if (qEditViewer.QViewerSourceMatch(lPath))
-        {
-            return;
-        }
+        qEditViewer.QViewerWorkspace.CWorkspaceOpen(lPath);
+    }
 
+    private void QEditOpenHandle(string lPath)
+    {
         LTraceLog.LTraceInfoRecord(
             $"Edit click '{QEditStore.QEditNameRead(lPath)}': "
             + $"persistent {(QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent ? "on" : "off")}, "
             + $"inspector now {QEditTabPlan.QEditCropFormat(QEditInspector.QInspectorCrop.QInspectorCropRead())}");
-        qEditViewer.QViewerPathHandle(lPath);
     }
 
     public void QEditSkipHandle()
@@ -243,7 +244,7 @@ public sealed class QEditTab
         QEditColor.QEditEstimateHandle(QEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceMethod);
         QEditHistogramDeferred?.Invoke();
         QEditCropRestore(
-            qEditViewer.QViewerSourcePath is { } lPath ? QEditStore.QEditNameRead(lPath) : "(no media)");
+            qEditViewer.QViewerWorkspace.CWorkspaceSource is { } lPath ? QEditStore.QEditNameRead(lPath) : "(no media)");
     }
 
     private void QEditStepHandle(string lStep)

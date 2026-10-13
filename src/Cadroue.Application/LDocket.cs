@@ -87,6 +87,11 @@ public sealed class LDocket
         return lDocketRemovedPaths.Length;
     }
 
+    public int LDocketStaleRemove(IReadOnlySet<Guid> lDocketActiveBatches) =>
+        LDocketPathsRemove(LDocketStaleRead(lDocketActiveBatches)
+            .Select(lDocketEntry => lDocketEntry.LDocketEntryPath)
+            .ToArray());
+
     public bool LDocketClaim(IReadOnlyList<(string LDocketPath, Guid LDocketBatch)> lDocketClaims)
     {
         var lDocketClaimable = new List<(LDocketEntry, Guid)>();

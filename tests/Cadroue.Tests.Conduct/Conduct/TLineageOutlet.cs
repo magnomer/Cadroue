@@ -106,7 +106,8 @@ public sealed class TLineageOutlet
         schedule.TScheduleAdd(work);
         LLineageStep step = Assert.Single(
             TInterface.TLineageResolve(schedule.TScheduleRead(), [work.TWorkId]).LLineageSteps);
-        string expected = new CAtelier(new TUsherPort(), TInterface.TLineageOutletCreate()).CAtelierLineage
+        string expected = new CAtelier(new TUsherPort(), TInterface.TLineageOutletCreate(), new TWorkspacePort())
+            .CAtelierLineage
             .CLineageTitleRead(work.TWorkItem.LWorkBatchId, work.TWorkItem.LWorkRelaySource, work.TWorkItem.LWorkTab);
 
         schedule.TScheduleAllClear();

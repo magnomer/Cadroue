@@ -1,5 +1,5 @@
 {
-  "generation": 25,
+  "generation": 26,
   "project": "Cadroue",
   "helper": {
     "framework": "net10.0"
@@ -253,7 +253,7 @@
     "Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure": 0,
     "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 487,
     "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 120,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1274,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1271,
     "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2035,
     "Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine": 159,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 921,
@@ -264,9 +264,9 @@
     "Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine": 11
   },
   "offers": {
-    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep"],
-    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep"],
-    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep"]
+    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep", "LWorkspacePort"],
+    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent"],
+    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent"]
   },
   "offerPrefixes": {
     "Cadroue.Conduct": [

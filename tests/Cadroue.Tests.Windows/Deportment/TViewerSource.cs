@@ -30,7 +30,7 @@ public sealed class TViewerSource
 
         TInterfaceViewer.TViewerSourceOpen(source, "clip.mp4");
 
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
         Assert.False(TInterfaceViewer.TViewerSourceMatch(viewer, "clip.mp4"));
     }
 
@@ -47,7 +47,7 @@ public sealed class TViewerSource
         Assert.Single(cargos);
         Assert.Equal(path, cargos[0].LCargoSourcePath);
         Assert.NotNull(cargos[0].LCargoFfmpegError);
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public sealed class TViewerSource
         }
 
         Assert.Equal([QViewerAskKind.QViewerAskWarning], asks);
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
     [Fact]
@@ -136,7 +136,7 @@ public sealed class TViewerSource
             QWindowDropEffect.QWindowDropNone,
             TInterfaceViewer.TViewerDropResolve(
                 source, [Path.Combine(folder, $"missing-{Guid.NewGuid():N}.txt")], true));
-        Assert.Null(viewer.QViewerIntent);
+        Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
     [Fact]

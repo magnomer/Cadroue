@@ -136,8 +136,9 @@ public partial class PWindow : Window
     private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)
     {
         PTabSurface? pSurface = pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lTab);
+        lTab.QStripTabWorkspace.QWorkspaceFlowApply();
         pSurface?.PTabFlow?.PFlowLayoutApply(pFlowHeight);
-        lTab.QStripTabWorkspace.QWorkspaceCommandApply();
+        lTab.QStripTabWorkspace.QWorkspaceViewerApply();
         pSurface?.PTabWidthChanged += PWindowWidthApply;
         PWindowWidthApply();
     }

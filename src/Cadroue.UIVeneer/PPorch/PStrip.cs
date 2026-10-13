@@ -42,13 +42,11 @@ public sealed class PStrip
             lInfo => new PInfo(lInfo),
             pSurface.PTabExportToggle,
             PButton.PButtonSourceCreate,
-            () => PIcon.PIconRead("/PAsset/PPanel/PExportToggle.svg"));
-        QStrip.QStripDeck.QDeckSurfaceAdd(
-            lStripTab,
-            pSurface,
+            () => PIcon.PIconRead("/PAsset/PPanel/PExportToggle.svg"),
             pSurface.PTabClose,
             () => pSurface.PTabFlow!.PFlowClose(),
             () => pSurface.PTabViewer!.PViewerClose());
+        QStrip.QStripDeck.QDeckSurfaceAdd(lStripTab, pSurface);
         QStrip.QStripAdd(lStripTab);
         return lStripTab;
     }

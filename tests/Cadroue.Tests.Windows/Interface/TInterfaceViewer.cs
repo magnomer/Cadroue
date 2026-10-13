@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -6,7 +7,11 @@ namespace Cadroue.Tests.Windows;
 
 internal static class TInterfaceViewer
 {
-    internal static QViewer TViewerCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
+    internal static QViewer TViewerCreate()
+    {
+        CAtelier atelier = TInterface.TAtelierCreate();
+        return new(atelier.CAtelierUsher, atelier.CAtelierWorkspaceCreate());
+    }
     internal static void TViewerMediaAttach(QViewer viewer, Action<LCargo> handler) =>
         viewer.QViewerMediaChanged += handler;
     internal static void TViewerPlayingAttach(QViewer viewer, Action<bool> handler) =>
@@ -25,11 +30,31 @@ internal static class TInterfaceViewer
     internal static void TViewerBypassSet(QViewer viewer, bool bypass) => viewer.QViewerAudio.QViewerBypassSet(bypass);
     internal static string TViewerAudioResolve(QViewer viewer) => viewer.QViewerAudio.QViewerAudioResolve();
     internal static void TViewerEngineSet(QViewer viewer, LPreviewEngine engine) => viewer.QViewerEngineSet(engine);
-    internal static void TViewerIntentSet(QViewer viewer, string path, TimeSpan position, bool? playing) =>
-        viewer.QViewerIntentSet(new QViewerIntent(path, position, playing));
-    internal static void TViewerIntentReset(QViewer viewer) => viewer.QViewerIntentSet(null);
-    internal static void TViewerRequestSet(QViewer viewer, string path) => viewer.QViewerRequestSet(path);
-    internal static bool TViewerSourceMatch(QViewer viewer, string path) => viewer.QViewerSourceMatch(path);
+    internal static void TViewerIntentSet(QViewer viewer, string path, TimeSpan position, bool? playing)
+    {
+        viewer.QViewerWorkspace.CWorkspaceStart(path);
+        viewer.QViewerWorkspace.CWorkspaceSeek(position);
+        if (playing is bool play)
+        {
+            viewer.QViewerWorkspace.CWorkspacePlay(play);
+        }
+    }
+    internal static void TViewerIntentReset(QViewer viewer) => viewer.QViewerWorkspace.CWorkspaceCancel();
+    internal static void TViewerRequestSet(QViewer viewer, string path) => viewer.QViewerWorkspace.CWorkspaceRequestSet(path);
+    // True when the workspace holds or is loading the path, so asking for it raises no open.
+    // The viewer's command is off for the ask, so a raised open is refused before it changes anything.
+    internal static bool TViewerSourceMatch(QViewer viewer, string path)
+    {
+        bool active = viewer.QViewerCommandActive;
+        int heard = 0;
+        void TViewerNoticeRecord(string _) => heard++;
+        viewer.QViewerCommandSet(false);
+        viewer.QViewerOpenNotice += TViewerNoticeRecord;
+        viewer.QViewerWorkspace.CWorkspaceOpen(path);
+        viewer.QViewerOpenNotice -= TViewerNoticeRecord;
+        viewer.QViewerCommandSet(active);
+        return heard == 0;
+    }
     internal static void TViewerPreviewSet(QViewer viewer, LPreviewState preview) => viewer.QViewerPreviewSet(preview);
     internal static void TViewerRotateSet(QViewer viewer, LRotateFlip rotate) =>
         viewer.QViewerPreviewSet(viewer.QViewerPreview.LRotateFlipChange(rotate));
@@ -84,8 +109,7 @@ internal static class TInterfaceViewer
         media.QViewerPlayerCreated += handler;
     internal static void TViewerHostAttach(QViewerRenderer renderer, Action handler) =>
         renderer.QViewerHostApplied += handler;
-    internal static Task TViewerLoadStart(QViewerMedia media, string path, TimeSpan position, bool? playing) =>
-        media.QViewerLoadStart(new QViewerIntent(path, position, playing));
+    internal static Task TViewerLoadStart(QViewerMedia media, string path) => media.QViewerLoadStart(path);
     internal static Task TViewerFlyleafApply(
         QViewerMedia media, string path, LMediaInfo? info, string? error, int serial) =>
         media.QViewerFlyleafApply(path, info, error, serial);
@@ -114,7 +138,7 @@ internal static class TInterfaceViewer
     internal static void TViewerResume(QViewerPlayback playback) => playback.QViewerResume();
     internal static void TViewerTick(QViewerPlayback playback) => playback.QViewerTick();
     internal static void TViewerSourceOpen(QViewerSource source, string path) => source.QViewerSourceOpen(path);
-    internal static void TViewerPathHandle(QViewer viewer, string? path) => viewer.QViewerPathHandle(path);
+    internal static void TViewerPathHandle(QViewer viewer, string? path) => viewer.QViewerWorkspace.CWorkspaceOpen(path);
     internal static void TViewerAskAttach(QViewerSource source, Action<QViewerAsk, Action<bool>> handler) =>
         source.QViewerSourceAsk += handler;
     internal static void TViewerDropAttach(QViewerSource source, Action<IReadOnlyList<string>> handler) =>

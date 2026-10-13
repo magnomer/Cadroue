@@ -166,6 +166,7 @@ internal static partial class TAuditTruthWalker
         }
 
         TAuditTruthReference.TAuditIndexResolve(TAuditRoots);
+        TAuditTruthField.TAuditCopyResolve(TAuditRoots);
         List<TypeDeclarationSyntax> every = parts.Values.SelectMany(type => type).ToList();
         TAuditRelayRead(every);
         TAuditSendResolve(every);

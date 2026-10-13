@@ -45,6 +45,9 @@ public sealed class QWorkspaceFrame
     private readonly Action qWorkspaceExportHandler;
     private readonly Func<Style> qWorkspaceExportStyle;
     private readonly Func<ImageSource> qWorkspaceExportIcon;
+    private readonly Action qWorkspaceSurfaceCloser;
+    private readonly Action qWorkspaceFlowCloser;
+    private readonly Action qWorkspaceViewerCloser;
 
     internal QWorkspaceFrame(
         QWorkspace lWorkspace,
@@ -54,7 +57,10 @@ public sealed class QWorkspaceFrame
         Func<QInfo, UIElement> lInfoFactory,
         Action lExportHandler,
         Func<Style> lExportStyle,
-        Func<ImageSource> lExportIcon)
+        Func<ImageSource> lExportIcon,
+        Action lSurfaceClose,
+        Action lFlowClose,
+        Action lViewerClose)
     {
         qWorkspace = lWorkspace;
         qWorkspaceFrameSurface = lSurface;
@@ -64,18 +70,21 @@ public sealed class QWorkspaceFrame
         qWorkspaceExportHandler = lExportHandler;
         qWorkspaceExportStyle = lExportStyle;
         qWorkspaceExportIcon = lExportIcon;
+        qWorkspaceSurfaceCloser = lSurfaceClose;
+        qWorkspaceFlowCloser = lFlowClose;
+        qWorkspaceViewerCloser = lViewerClose;
         qWorkspaceFrameAttaches[qWorkspace.QWorkspaceFlowPresent](this);
         QWorkspaceFrameRoot = qWorkspaceFrameRoots[qWorkspace.QWorkspaceFacts.QWorkspaceSourcePresent](this);
     }
 
     public FrameworkElement QWorkspaceFrameRoot { get; }
 
-    public void QWorkspaceFrameClose(Action lSurfaceClose, Action lFlowClose, Action lViewerClose)
+    public void QWorkspaceFrameClose()
     {
         QWorkspaceStepRun("subscriptions", () => qWorkspaceFrameDetaches[qWorkspace.QWorkspaceFlowPresent](this));
         QWorkspaceStepRun("deportment", qWorkspace.QWorkspaceClose);
-        QWorkspaceStepRun("surface", lSurfaceClose);
-        qWorkspaceFrameCloses[qWorkspace.QWorkspaceFlowPresent](lFlowClose, lViewerClose);
+        QWorkspaceStepRun("surface", qWorkspaceSurfaceCloser);
+        qWorkspaceFrameCloses[qWorkspace.QWorkspaceFlowPresent](qWorkspaceFlowCloser, qWorkspaceViewerCloser);
     }
 
     private void QWorkspaceFrameAttach()

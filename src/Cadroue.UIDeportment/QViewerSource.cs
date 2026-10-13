@@ -57,7 +57,7 @@ public sealed class QViewerSource
             return;
         }
 
-        qViewer.QViewerRequestSet(lSourcePath);
+        qViewer.QViewerWorkspace.CWorkspaceRequestSet(lSourcePath);
         if (LLibrarian.LLibrarianFileCheck(lSourcePath))
         {
             if (QViewerSidecarResolve(lSourcePath) is not { } lResolvedPath)
@@ -76,7 +76,7 @@ public sealed class QViewerSource
             qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LRotateFlipChange(LRotateFlip.LRotateDefaultCreate()));
         }
 
-        _ = qViewer.QViewerMedia.QViewerLoadStart(new QViewerIntent(lSourcePath, TimeSpan.Zero, null));
+        _ = qViewer.QViewerMedia.QViewerLoadStart(lSourcePath);
     }
 
     private string? QViewerSidecarResolve(string lSidecarPath)

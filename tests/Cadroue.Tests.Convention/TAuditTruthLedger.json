@@ -256,7 +256,7 @@
     "src/Cadroue.UIDeportment/QWindow.cs": 0,
     "src/Cadroue.UIDeportment/QWindowDrop.cs": 14,
     "src/Cadroue.UIDeportment/QWindowScene.cs": 1,
-    "src/Cadroue.UIDeportment/QWorkspace.cs": 5
+    "src/Cadroue.UIDeportment/QWorkspace.cs": 1
   },
   "Misfiring": {},
   "Mismatching": {},
@@ -357,7 +357,7 @@
     "src/Cadroue.UIDeportment/QWindow.cs": 4,
     "src/Cadroue.UIDeportment/QWindowDrop.cs": 2,
     "src/Cadroue.UIDeportment/QWindowScene.cs": 10,
-    "src/Cadroue.UIDeportment/QWorkspace.cs": 9,
+    "src/Cadroue.UIDeportment/QWorkspace.cs": 5,
     "src/Cadroue.UIDeportment/QWorkspaceRelay.cs": 13
   },
   "Puppeteering": {},

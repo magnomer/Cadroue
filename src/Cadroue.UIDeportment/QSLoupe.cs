@@ -124,7 +124,7 @@ public sealed class QSLoupe
             return;
         }
 
-        qLoupeSource = lViewer.QViewerSourcePath;
+        qLoupeSource = lViewer.QViewerWorkspace.CWorkspaceSource;
         if (string.IsNullOrWhiteSpace(qLoupeSource))
         {
             return;

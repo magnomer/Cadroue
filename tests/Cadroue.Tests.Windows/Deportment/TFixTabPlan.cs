@@ -212,12 +212,12 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, QViewer viewer, _, _) = TFixBuild();
+        (_, QClinic clinic, QViewer viewer, _, _) = TFixBuild();
         TInterfaceViewer.TViewerRequestSet(viewer, TFixSource);
         TFixSourceSet(viewer, TFixSource);
 
-        TInterface.TFixPathHandle(tab, "  ");
-        TInterface.TFixPathHandle(tab, TFixSource);
+        TInterface.TFixPathHandle(viewer, "  ");
+        TInterface.TFixPathHandle(viewer, TFixSource);
 
         Assert.Null(clinic.QClinicSource);
     }

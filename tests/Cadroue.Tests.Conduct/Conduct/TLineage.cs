@@ -14,7 +14,7 @@ public sealed class TLineage
 
     public TLineage()
     {
-        tLineageArea = new CAtelier(new TUsherPort(), tLineagePort).CAtelierLineage;
+        tLineageArea = new CAtelier(new TUsherPort(), tLineagePort, new TWorkspacePort()).CAtelierLineage;
     }
 
     [Fact]

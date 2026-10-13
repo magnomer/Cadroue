@@ -17,19 +17,25 @@ public sealed class QStrip
     private readonly Func<string, int, string> qStripNumberSource;
     private readonly CUsher qStripUsher;
     private readonly CLineage qStripLineage;
+    private readonly Func<CWorkspace> qStripWorkspaceSource;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
-    public QStrip(CUsher lUsher, CLineage lLineage)
-        : this(lUsher, lLineage, QStripTitleResolve, QStripNumberResolve)
+    public QStrip(CUsher lUsher, CLineage lLineage, Func<CWorkspace> lWorkspaceSource)
+        : this(lUsher, lLineage, lWorkspaceSource, QStripTitleResolve, QStripNumberResolve)
     {
     }
 
     public QStrip(
-        CUsher lUsher, CLineage lLineage, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
+        CUsher lUsher,
+        CLineage lLineage,
+        Func<CWorkspace> lWorkspaceSource,
+        Func<string, string> lTitleSource,
+        Func<string, int, string> lNumberSource)
     {
         qStripUsher = lUsher;
         qStripLineage = lLineage;
+        qStripWorkspaceSource = lWorkspaceSource;
         qStripTitleSource = lTitleSource;
         qStripNumberSource = lNumberSource;
         QStripSeparator = new QStripSeparator(this, qStripTabs);
@@ -71,7 +77,8 @@ public sealed class QStrip
     public static string QStripKeyResolve(string lKey) =>
         QStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : QStripDefaultKey;
 
-    public QStripTab QStripTabCreate(string lKey) => new(QStripKeyResolve(lKey), qStripUsher, qStripLineage);
+    public QStripTab QStripTabCreate(string lKey) =>
+        new(QStripKeyResolve(lKey), qStripUsher, qStripLineage, qStripWorkspaceSource());
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 

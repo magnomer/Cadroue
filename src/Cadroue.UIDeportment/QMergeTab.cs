@@ -19,8 +19,8 @@ public sealed class QMergeTab
         QMergeGroup.QGroupSourceAttach(QMergePathsRead);
         qMergeDocket.LDocketChanged += QMergeDocketHandle;
         qMergeDocket.LDocketRemoved += QMergeGroup.QGroupPathsRemove;
-        lList.QListPathChanged += lViewer.QViewerPathHandle;
-        QMergeGroup.QGroupDrag.QGroupItemOpened += lViewer.QViewerPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        QMergeGroup.QGroupDrag.QGroupItemOpened += lViewer.QViewerWorkspace.CWorkspaceOpen;
         QMergeGroup.QGroupDrag.QGroupPathsRequest += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
     }

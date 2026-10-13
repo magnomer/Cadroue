@@ -9,15 +9,9 @@ public sealed class QDeck
 {
     public delegate FrameworkElement QDeckBuilder(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout);
 
-    private sealed record QDeckEntry(
-        FrameworkElement QDeckEntrySurface,
-        Action QDeckEntryCloser,
-        Action QDeckEntryFlow,
-        Action QDeckEntryViewer);
-
     private readonly QStrip qStrip;
     private readonly Func<string, string> qDeckText;
-    private readonly ConditionalWeakTable<QStripTab, QDeckEntry> qDeckSurfaces = new();
+    private readonly ConditionalWeakTable<QStripTab, FrameworkElement> qDeckSurfaces = new();
     private readonly Dictionary<string, QDeckBuilder> qDeckBuilders = [];
     private QStripTab? qDeckShown;
     private UserControl qDeckSurface = null!;
@@ -61,23 +55,24 @@ public sealed class QDeck
     public FrameworkElement QDeckSurfaceBuild(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout) =>
         qDeckBuilders[lStripTab.QStripTabKey](lStripTab.QStripTabWorkspace, lPreferenceTabLayout);
 
-    public void QDeckSurfaceAdd(
-        QStripTab lStripTab, FrameworkElement lSurface, Action lSurfaceClose, Action lFlowClose, Action lViewerClose) =>
-        qDeckSurfaces.Add(lStripTab, new QDeckEntry(lSurface, lSurfaceClose, lFlowClose, lViewerClose));
+    public void QDeckSurfaceAdd(QStripTab lStripTab, FrameworkElement lSurface) =>
+        qDeckSurfaces.Add(lStripTab, lSurface);
 
     public TSurface? QDeckSurfaceRead<TSurface>(QStripTab? lStripTab)
         where TSurface : FrameworkElement =>
-        QDeckEntryRead(lStripTab)?.QDeckEntrySurface as TSurface;
+        lStripTab is not null && qStrip.QStripTabs.Contains(lStripTab)
+            && qDeckSurfaces.TryGetValue(lStripTab, out var lSurface)
+                ? lSurface as TSurface
+                : null;
 
     public void QDeckSurfaceClose(QStripTab lStripTab)
     {
-        if (QDeckEntryRead(lStripTab) is not { } lEntry)
+        if (QDeckSurfaceRead<FrameworkElement>(lStripTab) is null)
         {
             return;
         }
 
-        lStripTab.QStripTabWorkspace.QWorkspaceFrame?.QWorkspaceFrameClose(
-            lEntry.QDeckEntryCloser, lEntry.QDeckEntryFlow, lEntry.QDeckEntryViewer);
+        lStripTab.QStripTabWorkspace.QWorkspaceFrame?.QWorkspaceFrameClose();
     }
 
     public void QDeckAllClose() => qStrip.QStripTabs.ToList().ForEach(QDeckSurfaceClose);
@@ -127,12 +122,6 @@ public sealed class QDeck
     private void QDeckTabHandle(QStripTab lStripTab) =>
         lStripTab.QStripTabWorkspace.QWorkspaceView?.SetValue(
             UIElement.IsEnabledProperty, !lStripTab.QStripTabPending);
-
-    private QDeckEntry? QDeckEntryRead(QStripTab? lStripTab) =>
-        lStripTab is not null && qStrip.QStripTabs.Contains(lStripTab)
-            && qDeckSurfaces.TryGetValue(lStripTab, out var lEntry)
-                ? lEntry
-                : null;
 
     private void QDeckHideHandle(QStripTab lStripTab) =>
         lStripTab.QStripTabWorkspace.QWorkspaceView?.SetValue(UIElement.VisibilityProperty, Visibility.Collapsed);

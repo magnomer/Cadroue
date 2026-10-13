@@ -13,7 +13,7 @@ public sealed class QFunnelTab
     {
         qFunnelList = lList;
         qFunnelDocket = lList.QListDocket;
-        lList.QListPathChanged += lViewer.QViewerPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
     }
 

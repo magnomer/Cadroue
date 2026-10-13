@@ -12,6 +12,23 @@ internal sealed record TAuditTruthField(
     int TFieldLine,
     bool TFieldShared)
 {
+    private static HashSet<ITypeSymbol> TAuditCopyTypes = new(SymbolEqualityComparer.Default);
+
+    internal static void TAuditCopyResolve(IReadOnlyList<SyntaxNode> roots)
+    {
+        TAuditCopyTypes = new HashSet<ITypeSymbol>(SymbolEqualityComparer.Default);
+        foreach (WithExpressionSyntax copy in roots.SelectMany(root =>
+                     root.DescendantNodes().OfType<WithExpressionSyntax>()))
+        {
+            for (ITypeSymbol? copied = TAuditBinderSymbol.TAuditTypeRead(copy);
+                 copied is { IsRecord: true };
+                 copied = copied.BaseType)
+            {
+                TAuditCopyTypes.Add(copied.OriginalDefinition);
+            }
+        }
+    }
+
     internal static IEnumerable<TAuditTruthField> TAuditFieldRead(IReadOnlyList<TypeDeclarationSyntax> type)
     {
         foreach (TypeDeclarationSyntax part in type.SelectMany(part =>
@@ -31,7 +48,9 @@ internal sealed record TAuditTruthField(
                     }
 
                     HashSet<ISymbol> symbols = TAuditTruthWalker.TAuditAliasRead(symbol, type);
-                    if (!fixture || TAuditBinderSide.TAuditEngineCheck(symbol.Type) || TAuditFillCheck(symbols, type))
+                    if (!fixture
+                        || TAuditBinderSide.TAuditEngineCheck(symbol.Type)
+                        || TAuditFillCheck(symbols, symbol, type))
                     {
                         yield return new TAuditTruthField(
                             symbols,
@@ -57,6 +76,16 @@ internal sealed record TAuditTruthField(
                              .OfType<IPropertySymbol>() ?? [])
                 {
                     symbols.Add(property.OriginalDefinition);
+                }
+
+                if (symbol.ContainingType is { IsRecord: true } record
+                    && TAuditValueCheck(symbol.Type)
+                    && !TAuditCopyTypes.Contains(record.OriginalDefinition)
+                    && !TAuditTruthReference.TAuditUseRead(symbols)
+                        .Select(TAuditTruthReference.TAuditReferenceRead)
+                        .Any(reference => TAuditTruthReference.TAuditWriteCheck(reference, out _)))
+                {
+                    continue;
                 }
 
                 yield return new TAuditTruthField(
@@ -91,11 +120,31 @@ internal sealed record TAuditTruthField(
         }
     }
 
-    private static bool TAuditFillCheck(HashSet<ISymbol> symbols, IReadOnlyList<TypeDeclarationSyntax> type)
+    private static bool TAuditFillCheck(
+        HashSet<ISymbol> symbols, IFieldSymbol field, IReadOnlyList<TypeDeclarationSyntax> type)
     {
+        bool value = TAuditValueCheck(field.Type);
         return TAuditTruthReference.TAuditUseRead(symbols)
             .Where(identifier => TAuditTruthReference.TAuditInsideCheck(identifier, type))
             .Select(TAuditTruthReference.TAuditReferenceRead)
-            .Any(reference => TAuditTruthReference.TAuditWriteCheck(reference, out _));
+            .Where(reference => TAuditTruthReference.TAuditWriteCheck(reference, out _))
+            .Any(reference => !value
+                || reference.FirstAncestorOrSelf<SyntaxNode>(node =>
+                    node is AnonymousFunctionExpressionSyntax or LocalFunctionStatementSyntax
+                        or MemberDeclarationSyntax)
+                is not ConstructorDeclarationSyntax constructor
+                || !SymbolEqualityComparer.Default.Equals(
+                    TAuditBinderSymbol.TAuditSymbolRead(constructor)?.ContainingType, field.ContainingType));
+    }
+
+    private static bool TAuditValueCheck(ITypeSymbol type)
+    {
+        if (type is INamedTypeSymbol { OriginalDefinition.SpecialType: SpecialType.System_Nullable_T } nullable)
+        {
+            type = nullable.TypeArguments[0];
+        }
+
+        return type.TypeKind == TypeKind.Enum
+               || type.SpecialType is >= SpecialType.System_Boolean and <= SpecialType.System_String;
     }
 }

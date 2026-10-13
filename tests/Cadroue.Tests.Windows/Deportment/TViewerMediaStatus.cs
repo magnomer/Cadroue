@@ -19,7 +19,7 @@ public sealed class TViewerMediaStatus
 
         TInterfaceViewer.TViewerMediaCommit(viewer, TInterfaceViewer.TCargoCreate("clip.mp4", info, true), false);
 
-        Assert.Equal("clip.mp4", viewer.QViewerSourcePath);
+        Assert.Equal("clip.mp4", viewer.QViewerWorkspace.CWorkspaceSource);
         Assert.Same(info, viewer.QViewerMediaInfo);
         Assert.False(viewer.QViewerPlaying);
         Assert.Equal(TimeSpan.Zero, viewer.QViewerPosition);

@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -16,7 +17,11 @@ internal static class TInterfaceCrop
     internal static void TCropboxRatioSet(LCropboxState state, bool fixedRatio, bool lenient, int width, int height) =>
         state.LCropboxRatioSet(fixedRatio, lenient, width, height);
 
-    internal static QCrop TCropCreate() => new QViewer(TInterface.TAtelierCreate().CAtelierUsher).QCrop;
+    internal static QCrop TCropCreate()
+    {
+        CAtelier atelier = TInterface.TAtelierCreate();
+        return new QViewer(atelier.CAtelierUsher, atelier.CAtelierWorkspaceCreate()).QCrop;
+    }
     internal static void TCropGripSet(QCrop crop, int edgeX, int edgeY) => crop.QCropGripSet(edgeX, edgeY);
     internal static void TCropBodySet(QCrop crop) => crop.QCropBodySet();
     internal static void TCropDrawSet(QCrop crop) => crop.QCropDrawSet();

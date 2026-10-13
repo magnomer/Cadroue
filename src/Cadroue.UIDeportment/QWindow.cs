@@ -16,6 +16,7 @@ public sealed class QWindow
     private const double QWindowWidthFloor = 900;
 
     private readonly QStrip qStrip;
+    private readonly Func<CWorkspace> qWindowWorkspaceSource;
     private QStripTab? qWindowTab;
     private QViewer? qWindowViewer;
 
@@ -26,7 +27,8 @@ public sealed class QWindow
         ArgumentNullException.ThrowIfNull(lAtelier);
 
         QWindowUsher = lAtelier.CAtelierUsher;
-        qStrip = new QStrip(QWindowUsher, lAtelier.CAtelierLineage);
+        qWindowWorkspaceSource = lAtelier.CAtelierWorkspaceCreate;
+        qStrip = new QStrip(QWindowUsher, lAtelier.CAtelierLineage, qWindowWorkspaceSource);
         QWindowScene = new QWindowScene(qStrip);
         QWindowScene.QWindowSceneAdded += QWindowTabRaise;
         QWindowScene.QWindowSceneRestored += QWindowFunnelRaise;
@@ -38,7 +40,8 @@ public sealed class QWindow
 
     public QWindowScene QWindowScene { get; }
 
-    public QWorkspacePair QWindowPairCreate() => new(new QWorkspaceFacts(string.Empty), QWindowUsher);
+    public QWorkspacePair QWindowPairCreate() =>
+        new(new QWorkspaceFacts(string.Empty), QWindowUsher, qWindowWorkspaceSource());
 
     public QLogoMenu QWindowLogo { get; }
 

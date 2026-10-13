@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditBorderSetting
 {
-    public const int TAuditGeneration = 25;
+    public const int TAuditGeneration = 26;
     public const string TAuditBorderHost = "Cadroue.Host";
 
     public static readonly IReadOnlyDictionary<string, string[]> TAuditBorderNeighbour =
@@ -56,7 +56,7 @@ internal static class TAuditBorderSetting
         ["Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure"] = 0,
         ["Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure"] = 484,
         ["Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure"] = 120,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 1274,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 1271,
         ["Undercutting:Cadroue.UIDeportment>Cadroue.Core"] = 2035,
         ["Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 159,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Application"] = 921,

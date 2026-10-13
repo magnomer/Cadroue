@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -73,12 +74,13 @@ public sealed class QViewerMedia
         }
 
         bool lLoadClosed = qViewerProbe.LMediaLoadClose();
-        if (!lLoadClosed && string.IsNullOrWhiteSpace(qViewer.QViewerSourcePath) && qViewer.QViewerMediaInfo is null)
+        if (!lLoadClosed && string.IsNullOrWhiteSpace(qViewer.QViewerWorkspace.CWorkspaceSource)
+            && !qViewer.QViewerWorkspace.CWorkspaceMedia)
         {
             return false;
         }
 
-        string lClosedPath = qViewer.QViewerSourcePath ?? string.Empty;
+        string lClosedPath = qViewer.QViewerWorkspace.CWorkspaceSource ?? string.Empty;
         qViewer.QViewerMediaClose();
         QViewerHost.QViewerHostShow(false);
         QViewerPlayerStop();
@@ -95,12 +97,11 @@ public sealed class QViewerMedia
 
     public bool QViewerLoadCancel()
     {
-        if (qViewer.QViewerIntent is null)
+        if (!qViewer.QViewerWorkspace.CWorkspaceCancel())
         {
             return false;
         }
 
-        qViewer.QViewerIntentSet(null);
         qViewer.QViewerSerialChange();
         return true;
     }
@@ -116,7 +117,14 @@ public sealed class QViewerMedia
         QPlayer.QPlayerDispose();
     }
 
-    public Task QViewerLoadStart(QViewerIntent lRequest)
+    // An open: the workspace starts a new load of the path once the viewer may load.
+    public Task QViewerLoadStart(string lSourcePath) => QViewerLoadRun(lSourcePath, true);
+
+    // A restore: the workspace asks its pending load or its held source loaded again;
+    // an inactive viewer leaves it pending.
+    public void QViewerLoadRestore(string lLoadPath) => _ = QViewerLoadRun(lLoadPath, false);
+
+    private Task QViewerLoadRun(string lSourcePath, bool lFresh)
     {
         if (!qViewer.QViewerCommandActive)
         {
@@ -138,9 +146,11 @@ public sealed class QViewerMedia
             return Task.CompletedTask;
         }
 
-        string lSourcePath = lRequest.QViewerIntentPath;
-        string lLoadPath = LMediaLoader.LMediaPathResolve(lSourcePath) ?? lSourcePath;
-        qViewer.QViewerIntentSet(lRequest with { QViewerIntentPath = lLoadPath });
+        if (lFresh)
+        {
+            qViewer.QViewerWorkspace.CWorkspaceStart(lSourcePath);
+        }
+
         qViewerProbe.LMediaLoadTail = !qViewer.QViewerMpvActive;
         LTraceLog.LTraceInfoRecord(
             $"Video load start serial={lSerial} '{System.IO.Path.GetFileName(lSourcePath)}'",
@@ -155,9 +165,7 @@ public sealed class QViewerMedia
         LTraceLog.LTraceInfoRecord(
             $"Video probe outcome {lOutcome.LMediaLoadKind} '{System.IO.Path.GetFileName(lOutcome.LMediaLoadPath)}'",
             lOutcome.LMediaLoadError);
-        if (qViewer.QViewerUnloaded
-            || qViewer.QViewerIntent is not { } lPending
-            || !string.Equals(lOutcome.LMediaLoadPath, lPending.QViewerIntentPath, StringComparison.OrdinalIgnoreCase))
+        if (qViewer.QViewerUnloaded || !qViewer.QViewerWorkspace.CWorkspaceIntentMatch(lOutcome.LMediaLoadPath))
         {
             LTraceLog.LTraceInfoRecord(
                 "Video probe outcome discarded (stale/superseded): "
@@ -278,7 +286,7 @@ public sealed class QViewerMedia
 
         QViewerHost.QViewerHostShow(QPlayer.QPlayerReady);
         QPlayer.QPlayerEndSet(lCargo.LCargoMediaInfo?.LMediaVideoEnd);
-        QViewerIntent? lRequest = QViewerCargoApply(lCargo);
+        QViewerCargoApply(lCargo);
         if (!QPlayer.QPlayerReady)
         {
             qViewer.QViewerPlaybackUpdate(false, TimeSpan.Zero);
@@ -290,10 +298,10 @@ public sealed class QViewerMedia
             $"Viewer preview restored: rotate {lRotate.LRotateKind}, "
             + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}");
         QPlayer.QPlayerPreviewApply(qViewer.QViewerPreview, "preview restored");
-        QViewerIntentApply(lRequest);
+        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
     }
 
-    public QViewerIntent? QViewerCargoApply(LCargo lCargo)
+    public void QViewerCargoApply(LCargo lCargo)
     {
         qViewer.QViewerMediaCommit(lCargo, QViewerCropPersistent);
         if (!QViewerCropPersistent)
@@ -301,31 +309,33 @@ public sealed class QViewerMedia
             qViewer.QCrop.QCropHide();
         }
 
-        QViewerIntent? lRequest = qViewer.QViewerIntent;
-        qViewer.QViewerIntentSet(null);
         qViewer.QViewerMediaRaise(lCargo);
-        return lRequest;
     }
 
-    public void QViewerIntentApply(QViewerIntent? lRequest)
+    // The workspace spent the committed intent: the player starts at its place, playing.
+    public void QViewerCommitPlay(TimeSpan lPosition)
     {
-        TimeSpan lPosition = lRequest?.QViewerIntentPosition ?? TimeSpan.Zero;
+        QViewerCommitSeek(lPosition);
+        QPlayer.QPlayerPlay();
+        qViewer.QViewerPlaybackUpdate(true, lPosition);
+        qViewer.QViewerPlayback.QViewerClockRun(true);
+    }
+
+    // The workspace spent the committed intent: the player waits at its place, paused.
+    public void QViewerCommitPause(TimeSpan lPosition)
+    {
+        QViewerCommitSeek(lPosition);
+        QPlayer.QPlayerPause();
+        qViewer.QViewerPlaybackUpdate(false, lPosition);
+    }
+
+    private void QViewerCommitSeek(TimeSpan lPosition)
+    {
         if (lPosition > TimeSpan.Zero)
         {
             qViewer.QViewerPlayback.QViewerAccurateSeek(lPosition);
         }
 
-        bool lPlaying = lRequest?.QViewerIntentPlaying ?? LPreference.LPreferenceStateCurrent.LPreferenceAutoplay;
         qViewer.QViewerResumeSet(false);
-        if (!lPlaying)
-        {
-            QPlayer.QPlayerPause();
-            qViewer.QViewerPlaybackUpdate(false, lPosition);
-            return;
-        }
-
-        QPlayer.QPlayerPlay();
-        qViewer.QViewerPlaybackUpdate(true, lPosition);
-        qViewer.QViewerPlayback.QViewerClockRun(true);
     }
 }

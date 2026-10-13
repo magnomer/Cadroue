@@ -254,11 +254,16 @@ internal static partial class TInterface
     internal static bool TExportDragClear(QExport export) => export.QExportDragClear();
     internal static void TExportSync(QExport export) => export.QExportSync();
 
-    internal static CAtelier TAtelierCreate() => new(new LUsherOutlet(), new LLineageOutlet());
+    internal static CAtelier TAtelierCreate() => new(new LUsherOutlet(), new LLineageOutlet(), new LWorkspaceOutlet());
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
-        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, title, number);
+        new(
+            TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, TAtelierCreate().CAtelierWorkspaceCreate,
+            title,
+            number);
     internal static QStripTab TStripTabCreate(string key) =>
-        new(key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage);
+        new(
+            key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage,
+            TAtelierCreate().CAtelierWorkspaceCreate());
     internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
         strip.QStripSelectChanged += handler;
     internal static void TStripTabAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabChanged += handler;

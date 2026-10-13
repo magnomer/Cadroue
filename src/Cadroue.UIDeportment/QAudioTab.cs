@@ -47,7 +47,8 @@ public sealed class QAudioTab
         QAudioProcessing.QProcessingOrderedSet(true);
         QAudioProcessing.QProcessingOrderChanged += QAudioStore.QAudioStateSave;
         lViewer.QViewerMediaChanged += QAudioMediaHandle;
-        lList.QListPathChanged += QAudioPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        lViewer.QViewerOpenNotice += QAudioOpenHandle;
         lList.QListItemsAdded += QAudioStore.QAudioItemsHandle;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
     }
@@ -74,6 +75,7 @@ public sealed class QAudioTab
         QAudioInspector.QInspectorSkip.QSkipActiveChanged -= QAudioSkipHandle;
         QAudioProcessing.QProcessingOrderChanged -= QAudioStore.QAudioStateSave;
         qAudioViewer.QViewerMediaChanged -= QAudioMediaHandle;
+        qAudioViewer.QViewerOpenNotice -= QAudioOpenHandle;
         QAudioMonitor.Dispose();
     }
 
@@ -165,16 +167,8 @@ public sealed class QAudioTab
             lSourceTab);
     }
 
-    public void QAudioPathHandle(string? lPath)
-    {
-        if (string.IsNullOrWhiteSpace(lPath) || qAudioViewer.QViewerSourceMatch(lPath))
-        {
-            return;
-        }
-
-        QAudioStore.QAudioStateSave();
-        qAudioViewer.QViewerPathHandle(lPath);
-    }
+    // Before the viewer opens a new path: the plan of the source it leaves is saved.
+    private void QAudioOpenHandle(string lPath) => QAudioStore.QAudioStateSave();
 
     public void QAudioSkipHandle()
     {

@@ -40,7 +40,7 @@ public sealed class QWorkspaceRelay
 
         if (qWorkspace.QWorkspaceViewer is { } lViewer)
         {
-            lRelay.LRelaySourcePath = lViewer.QViewerSourcePath ?? string.Empty;
+            lRelay.LRelaySourcePath = lViewer.QViewerWorkspace.CWorkspaceSource ?? string.Empty;
             lRelay.LRelayPositionTicks = lViewer.QViewerPosition.Ticks;
             lRelay.LRelayVolume = lViewer.QViewerAudio.QViewerVolume;
         }

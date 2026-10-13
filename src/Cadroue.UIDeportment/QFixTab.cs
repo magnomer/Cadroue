@@ -45,7 +45,9 @@ public sealed class QFixTab
         qFixDocket = lList.QListDocket;
         QFixProcessing.QProcessingOrderedSet(false);
         QFixClinic.QClinicPlanChanged += QFixChangeHandle;
-        lList.QListPathChanged += QFixPathHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        lViewer.QViewerOpenNotice += QFixOpenHandle;
+        lViewer.QViewerOpenRequest += QFixPlanRestore;
         lList.QListItemsAdded += QFixItemsHandle;
         lList.QListClearChanged += QFixClearHandle;
         lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
@@ -62,6 +64,8 @@ public sealed class QFixTab
     public void QFixClose()
     {
         QFixClinic.QClinicPlanChanged -= QFixChangeHandle;
+        qFixViewer.QViewerOpenNotice -= QFixOpenHandle;
+        qFixViewer.QViewerOpenRequest -= QFixPlanRestore;
         QFixCheckup.Dispose();
     }
 
@@ -153,17 +157,11 @@ public sealed class QFixTab
             lSourceTab);
     }
 
-    public void QFixPathHandle(string? lPath)
+    // Before the viewer opens a new path: the plan of the source it leaves is saved, then the clinic follows.
+    private void QFixOpenHandle(string lPath)
     {
-        if (string.IsNullOrWhiteSpace(lPath) || qFixViewer.QViewerSourceMatch(lPath))
-        {
-            return;
-        }
-
         QFixStateSave();
         QFixClinic.QClinicSourceSet(lPath);
-        qFixViewer.QViewerPathHandle(lPath);
-        QFixPlanRestore(lPath);
     }
 
     public void QFixDiagnosisRun()
@@ -215,7 +213,7 @@ public sealed class QFixTab
     public void QFixStateSave()
     {
         if (QFixClinic.QClinicSaveSuspended
-            || qFixViewer.QViewerSourcePath is not { } lSourcePath
+            || qFixViewer.QViewerWorkspace.CWorkspaceSource is not { } lSourcePath
             || qFixDocket.LDocketLockCheck(lSourcePath))
         {
             return;

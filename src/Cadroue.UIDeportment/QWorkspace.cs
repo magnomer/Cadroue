@@ -12,16 +12,20 @@ namespace Cadroue.UIDeportment;
 public sealed class QWorkspace
 {
     private readonly LHistory qWorkspaceHistory = new();
+    private readonly CWorkspace qWorkspaceGate;
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
 
-    public QWorkspace(string lKey, CUsher lUsher, CLineage lLineage)
+    public QWorkspace(string lKey, CUsher lUsher, CLineage lLineage, CWorkspace lWorkspace)
     {
+        qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
         QWorkspaceFacts = new QWorkspaceFacts(lKey);
         QWorkspaceRoster = QWorkspaceFacts.QWorkspaceWorklist ? QRoster.QRosterCreate(lUsher, lLineage) : null;
         QWorkspaceList = QWorkspaceFacts.QWorkspaceListPresent ? new QList(lUsher) : null;
-        qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent ? new QWorkspacePair(QWorkspaceFacts, lUsher) : null;
+        qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent
+            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lWorkspace)
+            : null;
         QWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
         QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
@@ -82,11 +86,17 @@ public sealed class QWorkspace
         Func<QInfo, UIElement> lInfoFactory,
         Action lExportHandler,
         Func<Style> lExportStyle,
-        Func<ImageSource> lExportIcon) =>
+        Func<ImageSource> lExportIcon,
+        Action lSurfaceClose,
+        Action lFlowClose,
+        Action lViewerClose) =>
         QWorkspaceFrame = new QWorkspaceFrame(
-            this, lSurface, lFrameFactory, lSourceFactory, lInfoFactory, lExportHandler, lExportStyle, lExportIcon);
+            this, lSurface, lFrameFactory, lSourceFactory, lInfoFactory, lExportHandler, lExportStyle, lExportIcon,
+            lSurfaceClose, lFlowClose, lViewerClose);
 
-    public void QWorkspaceCommandApply() => qWorkspacePair?.QWorkspaceCommandApply();
+    public void QWorkspaceFlowApply() => qWorkspacePair?.QWorkspaceFlowApply();
+
+    public void QWorkspaceViewerApply() => qWorkspacePair?.QWorkspaceViewerApply();
 
     public void QWorkspaceCommandReset() => qWorkspacePair?.QWorkspaceCommandReset();
 
@@ -175,19 +185,13 @@ public sealed class QWorkspace
 
     public void QWorkspaceRemovedHandle(IReadOnlyList<string> lRemovedPaths)
     {
-        if (QWorkspaceViewer is null)
-        {
-            return;
-        }
-
-        if (QWorkspaceViewer.QViewerIntent is { } lPending
-            && lRemovedPaths.Contains(lPending.QViewerIntentPath, StringComparer.OrdinalIgnoreCase))
+        (bool lCancelled, bool lClosed) = qWorkspaceGate.CWorkspaceRemovalRead(lRemovedPaths);
+        if (lCancelled)
         {
             QWorkspaceLoadCancel();
         }
 
-        if (QWorkspaceViewer.QViewerSourcePath is { } lLoaded
-            && lRemovedPaths.Contains(lLoaded, StringComparer.OrdinalIgnoreCase))
+        if (lClosed)
         {
             QWorkspaceMediaClosed?.Invoke();
         }
@@ -195,35 +199,22 @@ public sealed class QWorkspace
 
     public bool QWorkspaceMediaClear(IReadOnlySet<Guid> lCohorts)
     {
-        IReadOnlySet<string> lProtected = QWorkspaceDocket?.LDocketProtectedRead(lCohorts)
-                .Select(lEntry => lEntry.LDocketEntryPath)
-                .ToHashSet(StringComparer.OrdinalIgnoreCase)
-            ?? new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        bool lCleared = false;
-        if (!QWorkspaceProtectedCheck(lProtected))
+        string[] lKept = QWorkspaceDocket?.LDocketProtectedRead(lCohorts)
+            .Select(lEntry => lEntry.LDocketEntryPath)
+            .ToArray() ?? [];
+        (bool lClosed, bool lCancelled, bool lCleared) = qWorkspaceGate.CWorkspaceClearRead(lKept);
+        if (lClosed)
         {
-            lCleared |= QWorkspaceLoadedCheck();
             QWorkspaceMediaClosed?.Invoke();
         }
-        else if (QWorkspaceViewer?.QViewerIntent is { } lPending && !lProtected.Contains(lPending.QViewerIntentPath))
+
+        if (lCancelled)
         {
             QWorkspaceLoadCancel();
-            lCleared = true;
         }
 
-        if (QWorkspaceDocket is { } lDocket && lDocket.LDocketPathsRead().Count > 0)
-        {
-            string[] lStale = lDocket.LDocketStaleRead(lCohorts)
-                .Select(lEntry => lEntry.LDocketEntryPath)
-                .ToArray();
-            if (lStale.Length > 0)
-            {
-                lDocket.LDocketPathsRemove(lStale);
-                lCleared = true;
-            }
-        }
-
-        return lCleared;
+        int lStaleRemoved = QWorkspaceDocket?.LDocketStaleRemove(lCohorts) ?? 0;
+        return lCleared || lStaleRemoved > 0;
     }
 
     private void QWorkspaceMediaHandle(LCargo lCargo)
@@ -310,17 +301,6 @@ public sealed class QWorkspace
 
         lSegment.LSegmentBoundSet(lSections, lSectionSelect, lFlow.QFlowDuration);
     }
-
-    private bool QWorkspaceProtectedCheck(IReadOnlySet<string> lProtected) =>
-        QWorkspaceViewer is { } lViewer
-        && ((lViewer.QViewerSourcePath is { } lSource && lProtected.Contains(lSource))
-            || (lViewer.QViewerIntent is { } lPending && lProtected.Contains(lPending.QViewerIntentPath)));
-
-    private bool QWorkspaceLoadedCheck() =>
-        QWorkspaceViewer is { QViewerUnloaded: false } lViewer
-        && (lViewer.QViewerSourcePath is not null
-            || lViewer.QViewerMediaInfo is not null
-            || lViewer.QViewerIntent is not null);
 
     private void QWorkspaceLoadCancel() => QWorkspaceViewer?.QViewerMedia.QViewerLoadCancel();
 }
