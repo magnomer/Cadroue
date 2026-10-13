@@ -1,5 +1,5 @@
 {
-  "generation": 24,
+  "generation": 25,
   "bases": [
     "About",
     "Action",
@@ -41,6 +41,7 @@
     "Compass",
     "Console",
     "Contour",
+    "Contract",
     "Convert",
     "Courier",
     "Crest",

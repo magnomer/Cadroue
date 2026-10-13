@@ -4,8 +4,9 @@ Audits the folder comment files that accompany source folders and the sources th
 
 .DESCRIPTION
 Every folder holding a source carries exactly one comment file, the folder sidecar, named
-{folder name}{comment suffix} inside that folder. The repository root's sidecar is named by
-sources.rootComment. It carries the intent of the folder's code, which no check judges.
+{folder name}{comment suffix} inside that folder. It carries the intent of the folder's code,
+which no check judges. The repository root is the one exception: no file directly inside it
+is audited, and it needs no sidecar.
 
 Reads the project configuration from AuditComments.json next to this script, then
 performs these actions on every run:
@@ -56,20 +57,18 @@ Everything project-specific lives in AuditComments.json. The script itself
 carries no project knowledge. Files come from git: tracked and untracked files,
 never ignored ones, as in the convention tests. Git is the only external tool required.
 Every path prints with forward slashes, and every list keeps the order of the
-convention tests: paths under the roots sorted without case, then the root-level files.
-A configured root or root-level file that does not exist stops the audit with an error.
+convention tests: paths under the roots sorted without case.
+A configured root that does not exist stops the audit with an error.
 An unreadable file is reported once, under Unreadable files, and never as a missing pair.
 
 AuditComments.json shape:
   {
-    "generation": 24,
+    "generation": 25,
     "project": "Cadroue",
     "enforced": true,
     "sources": {
       "roots": ["localization", "src", "tests"],
-      "files": ["Directory.Build.props", "Cadroue.slnx", "version.json"],
       "commentPattern": "*.comment.md",
-      "rootComment": "Cadroue.comment.md",
       "suffixes": [".cs", ".xaml", ".csproj", ".json", ".props", ".slnx"],
       "excludeSegments": [".git", "bin", "obj"],
       "excludeSuffixes": [".g.cs", ".Designer.cs"]
@@ -82,7 +81,7 @@ AuditComments.json shape:
       "closers": { "/*": "*/", "<!--": "-->" },
       "exemptFiles": ["TAuditNameRegistry.cs", "TAuditVerbRegistry.cs"]
     },
-    "exempt": { "comments": ["version.comment.md"] },
+    "exempt": { "comments": ["<comment file path>"] },
     "ceilings": { "unstamped": <n>, "folders": { "<folder path>": <n> } },
     "report": {
       "directory": "docs-analysis",
@@ -98,11 +97,7 @@ source of its folder, the excluded suffixes aside. Folder ceilings are keyed by 
 from the repository root, with forward slashes.
 Markers are looked for in every file whose extension declares them, source or not,
 except the exempt files and the excluded suffixes. Headings are checked in every
-comment file the line rules read, the root-level ones included.
-
-Files lists single sources, relative to the repository root, audited beside the
-roots. They form the root folder, whose sidecar is sources.rootComment, report under the
-(root) folder, and are skipped when -SourceRoots is given.
+comment file the line rules read.
 
 Report.prefix starts the file name of both the Markdown report and the page.
 
@@ -143,7 +138,7 @@ AuditComments -Segments 2
 AuditComments -SourceRoots .\src -MaxWords 25
 #>
 #requires -Version 5.1
-# AUDITCOMMENTS - AUDIT GENERATION 24.
+# AUDITCOMMENTS - AUDIT GENERATION 25.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -182,6 +177,8 @@ AuditComments -SourceRoots .\src -MaxWords 25
 # Generation 24: one sidecar per folder replaces one per source file. A stamp section records each
 # source's hash and the commit, and a changed folder is advice, never a failure. A folder over the
 # file limit warns above its own ceiling. The restamped-unrevised warning and its snapshot are gone.
+# Generation 25: the repository root is exempt. No file directly inside it is audited, and the
+# root-level files and root sidecar settings are gone.
 [CmdletBinding()]
 param(
     [string]$ConfigPath,
@@ -227,8 +224,8 @@ PAGE
 
 CHECKS
     Sidecars: every folder holding a source needs its sidecar,
-        {folder}.comment.md, and the root folder needs sources.rootComment.
-        Every other comment file under the roots is a finding.
+        {folder}.comment.md. Every other comment file under the roots is a
+        finding. Files directly inside the repository root are never audited.
     Line rules: every comment line holds one sentence, at most the word
         limit, and none of the forbidden characters. The stamp section is
         not read.
@@ -248,7 +245,7 @@ CHECKS
     Exempt: the comment files under exempt.comments belong to the developer
         alone. Line rules, headings and stamps skip them, and they are
         listed under Exempt comment files.
-    A configured root or root-level file that does not exist, or a failing
+    A configured root that does not exist, or a failing
     git, stops the audit with an error. Paths print with forward slashes
     in the order of the convention tests.
 
@@ -303,7 +300,7 @@ $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 24
+$script:AuditGeneration = 25
 
 # Console paging. A page is one window of rows; the audit stops at each page boundary and waits
 # for a key so the reader can inspect the output before it scrolls away. Any key shows the next
@@ -472,7 +469,7 @@ function Read-AuditConfig {
     $problems = [System.Collections.Generic.List[string]]::new()
     $schema = [ordered]@{
         'generation' = 'int'; 'project' = 'string'; 'enforced' = 'bool'
-        'sources.roots' = 'strings'; 'sources.files' = 'strings'; 'sources.commentPattern' = 'string'; 'sources.rootComment' = 'string'; 'sources.suffixes' = 'strings'
+        'sources.roots' = 'strings'; 'sources.commentPattern' = 'string'; 'sources.suffixes' = 'strings'
         'sources.excludeSegments' = 'strings'; 'sources.excludeSuffixes' = 'strings'
         'rules.maxWords' = 'int'; 'rules.forbidden' = 'strings'; 'rules.sentenceMarks' = 'strings'; 'rules.abbreviations' = 'strings'; 'rules.folderFiles' = 'int'
         'remark.markers' = 'mapStrings'; 'remark.closers' = 'map'; 'remark.exemptFiles' = 'strings'
@@ -538,7 +535,6 @@ $versionPathFull = Join-AuditPath -Root $repoRootFull -Relative $config.report.v
 $versionKey = [string]$config.report.versionKey
 $reportPrefix = [string]$config.report.prefix
 
-$rootComment = [string]$config.sources.rootComment
 $folderFileLimit = [int]$config.rules.folderFiles
 $pairs = [System.Collections.Generic.List[object]]::new()
 foreach ($suffix in @($config.sources.suffixes)) {
@@ -833,11 +829,10 @@ function Get-PairFor {
     return $null
 }
 
-# The sidecar a folder expects: its own name plus the comment suffix, or the configured root sidecar.
+# The sidecar a folder expects: its own name plus the comment suffix.
 function Get-SidecarName {
     param([Parameter(Mandatory = $true)][string]$Directory)
 
-    if ([string]::Equals($Directory.TrimEnd('\', '/'), $repoRootFull.TrimEnd('\', '/'), [System.StringComparison]::OrdinalIgnoreCase)) { return $rootComment }
     return [System.IO.Path]::GetFileName($Directory.TrimEnd('\', '/')) + $commentSuffix
 }
 
@@ -942,17 +937,6 @@ foreach ($root in $SourceRoots) {
 
 if ($sourceRootFulls.Count -eq 0) { throw "At least one source root must be supplied." }
 
-$sourceFileFulls = [System.Collections.Generic.List[string]]::new()
-if (-not $PSBoundParameters.ContainsKey('SourceRoots')) {
-    foreach ($entry in @($config.sources.files)) {
-        if ([string]::IsNullOrWhiteSpace($entry)) { continue }
-        $fileFull = Join-AuditPath -Root $repoRootFull -Relative $entry
-        if (-not [System.IO.File]::Exists($fileFull)) { throw "The configured source file does not exist: $fileFull" }
-        if ($null -eq (Get-PairFor -Name ([System.IO.Path]::GetFileName($fileFull)))) { throw "Source file has no pair: $fileFull" }
-        [void]$sourceFileFulls.Add($fileFull)
-    }
-}
-
 # Comment files only the developer edits, so no check judges them.
 $exemptComments = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 foreach ($entry in @($config.exempt.comments)) {
@@ -1046,6 +1030,8 @@ $scanFolders = @{}
 foreach ($entry in $listing.Lines) {
     $relative = ([string]$entry).Trim()
     if ($relative.Length -eq 0 -or (Test-IsExcludedPath -Relative $relative -ExcludedNames $excludedNames)) { continue }
+    # The repository root is exempt: a file directly inside it is never audited.
+    if ($relative.IndexOf('/') -lt 0) { continue }
 
     $owner = $null
     foreach ($candidate in $rootEntries) {
@@ -1075,23 +1061,6 @@ foreach ($fileFull in $scanPaths) {
     else {
         Add-SourceFile -File $file -Relative $relative -Folder $folder
     }
-}
-
-$rootComments = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
-$rootDirectories = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-foreach ($fileFull in $sourceFileFulls) {
-    $file = [System.IO.FileInfo]::new($fileFull)
-    Add-SourceFile -File $file -Relative (Get-RelativePathSafe -BasePath $repoRootFull -Path $fileFull) -Folder "(root)"
-    [void]$rootDirectories.Add($file.DirectoryName)
-}
-# Every comment file directly inside a root-level source's folder, so a stray one shows as a comment file without a folder.
-foreach ($directory in @($rootDirectories | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
-    foreach ($commentFull in @([System.IO.Directory]::GetFiles($directory, $commentPattern) | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })) {
-        $rootComments.Add([System.IO.FileInfo]::new($commentFull))
-    }
-}
-foreach ($comment in $rootComments) {
-    Add-CommentFile -File $comment -Relative (Get-RelativePathSafe -BasePath $repoRootFull -Path $comment.FullName) -Folder "(root)"
 }
 
 if ($sourceFiles.Count -eq 0) {
@@ -1136,7 +1105,7 @@ foreach ($source in $sourceFiles) {
     [void]$expectedByDirectory[$source.Directory].Add($source.Expected)
 }
 
-# Every list keeps the enumeration order: paths sorted without case, then the root-level files, like the convention test.
+# Every list keeps the enumeration order: paths sorted without case, like the convention test.
 # A folder without its sidecar lists once, under its first source.
 $missingSeen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
 $missingComments = @($sourceFiles | Where-Object { -not [System.IO.File]::Exists((Join-Path $_.Directory $_.Expected)) -and $missingSeen.Add($_.Directory) })
@@ -1503,7 +1472,6 @@ $report = [System.Text.StringBuilder]::new()
 [void]$report.AppendLine()
 [void]$report.AppendLine("- Generated: $($generatedAt.ToString('yyyy-MM-dd HH:mm:ss zzz'))")
 [void]$report.AppendLine("- Source roots: $(ConvertTo-MarkdownCell ($sourceRootFulls -join '; '))")
-[void]$report.AppendLine("- Source files: $(ConvertTo-MarkdownCell ($sourceFileFulls -join '; '))")
 [void]$report.AppendLine("- Comment pattern: ``$commentPattern``")
 [void]$report.AppendLine("- Folder segments: $Segments")
 [void]$report.AppendLine("- Line rules: at most $MaxWords words, one sentence, none of $(ConvertTo-MarkdownCell (($forbidden | ForEach-Object { '`' + $_ + '`' }) -join ' '))")
@@ -1685,11 +1653,9 @@ $pageData = [ordered]@{
     }))
     scope = [ordered]@{
         roots = @($rootEntries | ForEach-Object { $(if ($_.Prefix.Length -eq 0) { '.' } else { $_.Prefix.TrimEnd('/') }) })
-        files = @($sourceFileFulls | ForEach-Object { Get-RelativePathSafe -BasePath $repoRootFull -Path $_ })
         commentPattern = $commentPattern
         segments = $Segments
         pairs = @($pairs | ForEach-Object { [ordered]@{ suffix = [string]$_.Suffix; template = '{folder}' + $commentSuffix } })
-        rootComment = $rootComment
         folderFiles = $folderFileLimit
         excluded = @($excludedNames | Sort-Object -Property @{ Expression = { Get-OrdinalKey $_ } })
         excludedSuffixes = @($excludedSuffixes)

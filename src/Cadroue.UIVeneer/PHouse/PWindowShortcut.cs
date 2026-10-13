@@ -34,7 +34,7 @@ public partial class PWindow
     }
 
     private bool? PShortcutViewerMatch(nint pForeground) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.PViewerSurfaceMatch(pForeground);
+        pStrip.PStripSelected?.PTabViewer?.PViewerSurfaceMatch(pForeground);
 
     private static bool PShortcutInputCheck() =>
         PWalk.PWalkParentCheck(Keyboard.FocusedElement as DependencyObject, PShortcutInputMatch);

@@ -1,3 +1,6 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
@@ -67,6 +70,25 @@ public sealed class QWorkspace
     public bool QWorkspaceFlowPresent => qWorkspacePair is not null;
 
     internal LSegment? QWorkspaceSegment => QWorkspaceFlow?.QFlowSection.QFlowSegment;
+
+    public QWorkspaceFrame? QWorkspaceFrame { get; private set; }
+
+    public FrameworkElement? QWorkspaceView => QWorkspaceFrame?.QWorkspaceFrameRoot;
+
+    public void QWorkspaceFrameBuild(
+        FrameworkElement lSurface,
+        Func<UserControl> lFrameFactory,
+        Func<QSource, UIElement> lSourceFactory,
+        Func<QInfo, UIElement> lInfoFactory,
+        Action lExportHandler,
+        Func<Style> lExportStyle,
+        Func<ImageSource> lExportIcon) =>
+        QWorkspaceFrame = new QWorkspaceFrame(
+            this, lSurface, lFrameFactory, lSourceFactory, lInfoFactory, lExportHandler, lExportStyle, lExportIcon);
+
+    public void QWorkspaceCommandApply() => qWorkspacePair?.QWorkspaceCommandApply();
+
+    public void QWorkspaceCommandReset() => qWorkspacePair?.QWorkspaceCommandReset();
 
     public void QWorkspaceAttach(Func<LSceneTabEntry> lLayoutSource)
     {

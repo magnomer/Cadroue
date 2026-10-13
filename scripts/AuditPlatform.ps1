@@ -78,7 +78,7 @@ AuditPlatform -NoOpen
 Audit the current checkout and write the page without opening it.
 #>
 #requires -Version 5.1
-# AUDITPLATFORM - AUDIT GENERATION 24.
+# AUDITPLATFORM - AUDIT GENERATION 25.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -169,7 +169,7 @@ EXIT CODES
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$script:AuditGeneration = 24
+$script:AuditGeneration = 25
 $script:AuditKinds = @('Unmapped', 'Absent', 'Framework', 'Reference', 'Column', 'Analyzer', 'Windows', 'Empty',
     'Suppress', 'Implicit', 'Domain')
 

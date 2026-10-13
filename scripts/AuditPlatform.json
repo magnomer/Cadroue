@@ -1,11 +1,11 @@
 {
-  "generation": 24,
+  "generation": 25,
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
     "Unmapped": 1,
     "Absent": 2,
-    "Framework": 1,
+    "Framework": 0,
     "Column": 2,
     "Analyzer": 4,
     "Windows": 23,

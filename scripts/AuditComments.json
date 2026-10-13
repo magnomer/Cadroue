@@ -1,5 +1,5 @@
 {
-  "generation": 24,
+  "generation": 25,
   "project": "Cadroue",
   "enforced": false,
   "sources": {
@@ -8,13 +8,7 @@
       "src",
       "tests"
     ],
-    "files": [
-      "Directory.Build.props",
-      "Cadroue.slnx",
-      "version.json"
-    ],
     "commentPattern": "*.comment.md",
-    "rootComment": "Cadroue.comment.md",
     "suffixes": [
       ".cs",
       ".xaml",
@@ -89,9 +83,7 @@
     ]
   },
   "exempt": {
-    "comments": [
-      "version.comment.md"
-    ]
+    "comments": []
   },
   "ceilings": {
     "unstamped": 0,

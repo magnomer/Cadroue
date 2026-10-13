@@ -4,8 +4,11 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QWorkspacePair
 {
+    private readonly bool qWorkspacePairSection;
+
     public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher)
     {
+        qWorkspacePairSection = qWorkspaceKey.QWorkspaceSectionVisible;
         QWorkspaceFlow = new QFlow(lUsher);
         QWorkspaceViewer = new QViewer(lUsher);
         QWorkspaceViewer.QViewerEligibleSet(
@@ -39,6 +42,21 @@ public sealed class QWorkspacePair
         lFlow.QFlowPlayed += lViewer.QViewerPlayback.QViewerPlay;
         lFlow.QFlowPaused += lViewer.QViewerPlayback.QViewerPause;
         lFlow.QFlowWheel.QFlowVolumeAdjusted += lViewer.QViewerPlayback.QViewerVolumeAdjust;
+    }
+
+    public void QWorkspaceCommandApply()
+    {
+        QWorkspaceFlow.QFlowCommandSet(true);
+        QWorkspaceFlow.QFlowSectionSet(qWorkspacePairSection);
+        QWorkspaceViewer.QViewerMedia.QViewerCommandApply(true);
+    }
+
+    public void QWorkspaceCommandReset()
+    {
+        QWorkspaceViewer.QViewerPlayback.QViewerDragSet(false);
+        QWorkspaceFlow.QFlowSectionSet(false);
+        QWorkspaceFlow.QFlowCommandSet(false);
+        QWorkspaceViewer.QViewerMedia.QViewerCommandApply(false);
     }
 
     public void QWorkspacePairDetach()

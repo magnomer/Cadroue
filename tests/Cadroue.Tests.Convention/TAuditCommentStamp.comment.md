@@ -50,7 +50,7 @@ A missing line reads as no hash, a wrong value as a changed source.
 ## `private static List<(string, string, string)> TAuditStateRead(string repoRoot)`
 
 Every paired comment file with its second line and the hash its sources call for.
-The comment files come from the owner list, so the root-level ones count too and come last.
+The comment files come from the owner list.
 A comment file whose source is exempt is skipped, as for headings.
 A reserved comment file is skipped too, since only the developer edits it.
 

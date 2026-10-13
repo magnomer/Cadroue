@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditCensusSetting
 {
-    public const int TAuditGeneration = 24;
+    public const int TAuditGeneration = 25;
 
     public static readonly IReadOnlyDictionary<string, int> TAuditHollowingFloor = new Dictionary<string, int>
     {

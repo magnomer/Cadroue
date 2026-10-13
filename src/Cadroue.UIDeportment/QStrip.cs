@@ -40,7 +40,7 @@ public sealed class QStrip
             LTraceLog.LTraceInfoRecord,
             LCartographer.LCartographerTabRemove);
         QStripRail = new QRail(this);
-        QStripDeck = new QDeck(this);
+        QStripDeck = new QDeck(this, LLocalization.LLocalizationTextRead);
         QStripRelay = new QStripRelay(this, lUsher);
     }
 

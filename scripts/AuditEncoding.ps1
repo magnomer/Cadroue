@@ -28,7 +28,7 @@ Git is the only external tool required.
 
 AuditEncoding.json shape:
   {
-    "generation": 24,
+    "generation": 25,
     "project": "Cadroue",
     "sources": {
       "include": ["*.cs", "*.md", "*.ps1"],
@@ -74,7 +74,7 @@ AuditEncoding -Root D:\temp\sample
 Audit another git working tree with this configuration.
 #>
 #requires -Version 5.1
-# AUDITENCODING - AUDIT GENERATION 24.
+# AUDITENCODING - AUDIT GENERATION 25.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -191,7 +191,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 24
+$script:AuditGeneration = 25
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
 
 Write-Host "AUDITENCODING - AUDIT GENERATION $script:AuditGeneration" -ForegroundColor Blue

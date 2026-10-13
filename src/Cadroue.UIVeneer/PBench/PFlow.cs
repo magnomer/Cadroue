@@ -92,12 +92,19 @@ public sealed class PFlow : UserControl
         Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
     }
 
-    public void PFlowAttach(LMediaInfo lMediaInfo, string? lSourcePath, TimeSpan lCursorTime) =>
-        QFlow.QFlowAttach(lMediaInfo, lSourcePath, lCursorTime);
-
-    public bool PFlowClear() => QFlow.QFlowClear();
-
     public void PFlowHeightSet(double pFlowHeight) => Height = pFlowHeight;
+
+    public void PFlowLayoutApply(double pFlowHeight)
+    {
+        PFlowHeightSet(pFlowHeight);
+        PFlowOrderApply();
+    }
+
+    public void PFlowSelectedApply(double pFlowHeight)
+    {
+        PFlowLayoutApply(pFlowHeight);
+        PFlowPaletteApply();
+    }
 
     public void PFlowClose()
     {

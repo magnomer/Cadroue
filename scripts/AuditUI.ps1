@@ -69,7 +69,7 @@ AuditUI -NoOpen
 AuditUI -Configuration Release
 #>
 #requires -Version 5.1
-# AUDITUI - AUDIT GENERATION 24.
+# AUDITUI - AUDIT GENERATION 25.
 # A generation is not a revision count. It names functionality, not edits, so editing one of these
 # files is never on its own a reason to raise it. Raise it only when the audited outcome changes.
 # A generation names the set of checks the audit applies. Two projects on the same generation audit
@@ -222,7 +222,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false)
 $OutputEncoding = [Console]::OutputEncoding
 
-$script:AuditGeneration = 24
+$script:AuditGeneration = 25
 $script:Invariant = [System.Globalization.CultureInfo]::InvariantCulture
 $script:BinderSource = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot 'AuditBinder.cs'))
 

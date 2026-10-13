@@ -58,11 +58,7 @@ public sealed class TAuditComment
             TAuditCommentSetting.TAuditCommentSuffixes,
             [],
             TAuditCommentSetting.TAuditCommentExempt);
-        IEnumerable<string> sources = TAuditCommentFile.TAuditScanRead(repoRoot, scope).Concat(
-            TAuditCommentSetting.TAuditCommentFiles
-                .Where(file => !TAuditCommentSetting.TAuditCommentExempt.Contains(
-                    Path.GetFileName(file), StringComparer.OrdinalIgnoreCase))
-                .Select(file => Path.Combine(repoRoot, file)));
+        IEnumerable<string> sources = TAuditCommentFile.TAuditScanRead(repoRoot, scope);
 
         List<string> hits = [];
         foreach (string path in sources)

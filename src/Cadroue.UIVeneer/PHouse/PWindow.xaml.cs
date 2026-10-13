@@ -6,6 +6,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PCabin;
 using Cadroue.UIVeneer.PPorch;
 
@@ -31,7 +32,7 @@ public partial class PWindow : Window
         PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
         Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
         PWindowNoticesAttach();
-        pDeck.PDeckAttach(pStrip);
+        pStrip.QStrip.QStripDeck.QDeckAttach(pDeck);
         Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
         Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
         lWindow.QWindowTabsStart();
@@ -111,7 +112,7 @@ public partial class PWindow : Window
     private void PWindowFunnelUpdate() => pStrip.QStrip.QStripTabs.ToList().ForEach(PWindowFunnelResolve);
 
     private void PWindowFunnelResolve(QStripTab lStripTab) =>
-        pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceSurface.PTabTargetsResolve();
+        pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lStripTab)?.PTabTargetsResolve();
 
     private void PWindowPlace(double pLeft, double pTop)
     {
@@ -130,21 +131,21 @@ public partial class PWindow : Window
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() => lWindow.QWindowMediaRun(pPath)));
 
     private void PWindowMediaOpen(string pPath) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerSource.QViewerSourceOpen(pPath);
+        pStrip.PStripSelected?.PTabViewer?.QViewer.QViewerSource.QViewerSourceOpen(pPath);
 
     private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)
     {
-        PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
-        pWorkspace?.PWorkspaceCommandApply(pFlowHeight);
-        pWorkspace?.PWorkspaceWidthAttach(PWindowWidthApply);
+        PTabSurface? pSurface = pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lTab);
+        pSurface?.PTabFlow?.PFlowLayoutApply(pFlowHeight);
+        lTab.QStripTabWorkspace.QWorkspaceCommandApply();
+        pSurface?.PTabWidthChanged += PWindowWidthApply;
         PWindowWidthApply();
     }
 
     private void PWindowTabDetach(QStripTab lTab)
     {
-        PWorkspace? pWorkspace = pStrip.PStripWorkspaceRead(lTab);
-        pWorkspace?.PWorkspaceWidthDetach(PWindowWidthApply);
-        pWorkspace?.PWorkspaceCommandReset();
+        pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lTab)?.PTabWidthChanged -= PWindowWidthApply;
+        lTab.QStripTabWorkspace.QWorkspaceCommandReset();
     }
 
     private void PWindowLayoutApply(bool pVertical)
@@ -172,35 +173,37 @@ public partial class PWindow : Window
         PWindowWidthApply();
     }
 
-    private void PWindowFlowApply(double pFlowHeight) =>
-        pStrip.PStripSelected?.PWorkspaceFlowApply(pFlowHeight);
+    private void PWindowFlowApply(double pFlowHeight)
+    {
+        pStrip.PStripSelected?.PTabFlow?.PFlowSelectedApply(pFlowHeight);
+    }
 
     private void PWindowVolumeSet(double pVolume) =>
-        pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerVolumeSet(pVolume);
+        pStrip.PStripSelected?.PTabViewer?.QViewer.QViewerPlayback.QViewerVolumeSet(pVolume);
 
     private void PWindowWidthApply()
     {
         (MinWidth, Width) = lWindow.QWindowWidthResolve(
-            pStrip.PStripSelected?.PWorkspaceSurface.PTabWidthRead(),
+            pStrip.PStripSelected?.PTabWidthRead(),
             pTabRailColumn.Width.Value,
             Width);
     }
 
     private void PWindowListAdd(IReadOnlyList<string> pPaths) =>
-        _ = pStrip.PStripSelected?.PWorkspaceList?.QList.QListPathsAdd(pPaths);
+        _ = pStrip.PStripSelected?.PTabList?.QList.QListPathsAdd(pPaths);
 
     private void PWindowViewerOpen(string pPath) => PWindowMediaOpen(pPath);
 
-    private void PWindowPlay() => pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerPlay();
+    private void PWindowPlay() => pStrip.PStripSelected?.PTabViewer?.QViewer.QViewerPlayback.QViewerPlay();
 
-    private void PWindowPause() => pStrip.PStripSelected?.PWorkspaceViewer?.QViewer.QViewerPlayback.QViewerPause();
+    private void PWindowPause() => pStrip.PStripSelected?.PTabViewer?.QViewer.QViewerPlayback.QViewerPause();
 
-    private bool? PWindowUndo() => pStrip.PStripSelected?.QWorkspace.QWorkspaceUndo();
+    private bool? PWindowUndo() => pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceUndo();
 
-    private bool? PWindowRedo() => pStrip.PStripSelected?.QWorkspace.QWorkspaceRedo();
+    private bool? PWindowRedo() => pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceRedo();
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
-        pStrip.PStripSelected?.QWorkspace.QWorkspaceMediaClear(lCohorts);
+        pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceMediaClear(lCohorts);
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {
@@ -231,10 +234,8 @@ public partial class PWindow : Window
         PDropHandlersRemove();
         PResizeHandlersRemove();
         lWindow.QWindowTabSet(null, null);
-        pStrip.QStrip.QStripTabs.ToList().ForEach(PWindowWorkspaceClose);
+        pStrip.QStrip.QStripDeck.QDeckAllClose();
         Closing -= PWindowExitHandle;
         Closed -= PWindowCloseHandle;
     }
-
-    private void PWindowWorkspaceClose(QStripTab lStripTab) => pStrip.PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
 }

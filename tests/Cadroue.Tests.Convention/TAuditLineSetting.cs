@@ -2,7 +2,7 @@ namespace Convention.Tests;
 
 internal static class TAuditLineSetting
 {
-    public const int TAuditGeneration = 24;
+    public const int TAuditGeneration = 25;
     public const bool TAuditLineEnforced = true;
     public const int TAuditLineLimit = 400;
     public const int TAuditLineWarning = 350;

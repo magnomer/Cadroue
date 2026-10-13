@@ -1,42 +1,55 @@
+using System.Windows;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIVeneer.PCabin;
+using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer.PPorch;
 
 public sealed class PStrip
 {
-    private readonly List<PWorkspace> pStripWorkspaces = new();
-
     public PStrip(QStrip lStrip)
     {
         QStrip = lStrip;
-        QStrip.QStripChanged += PStripStaleRemove;
-        QStrip.QStripTabChanged += PStripTabHandle;
-        QStrip.QStripClosure.QStripTabClosed += PStripCloseHandle;
+        QStrip.QStripDeck.QDeckBuilderAdd("Split", (lWorkspace, lLayout) => new PSplitTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Edit", (lWorkspace, lLayout) => new PEditTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Fix", (lWorkspace, lLayout) => new PFixTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Audio", (lWorkspace, lLayout) => new PAudioTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Convert", (lWorkspace, lLayout) => new PConvertTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Merge", (lWorkspace, lLayout) => new PMergeTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd("Funnel", (lWorkspace, lLayout) => new PFunnelTab(lWorkspace, lLayout));
+        QStrip.QStripDeck.QDeckBuilderAdd(
+            "Worklist", (lWorkspace, lLayout) => new PWorklistTab(lWorkspace.QWorkspaceRoster!, lLayout));
     }
 
     public QStrip QStrip { get; }
 
-    public PWorkspace? PStripSelected => PStripWorkspaceRead(QStrip.QStripSelected);
-
-    public PWorkspace? PStripWorkspaceRead(QStripTab? lStripTab) =>
-        pStripWorkspaces.FirstOrDefault(pWorkspace => ReferenceEquals(pWorkspace.PWorkspaceTab, lStripTab));
+    public PTabSurface? PStripSelected => QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(QStrip.QStripSelected);
 
     public QStripTab PStripAdd(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout = null)
     {
-        var pWorkspace = new PWorkspace(QStrip, lStripTab, lPreferenceTabLayout);
-        pStripWorkspaces.Add(pWorkspace);
+        QWorkspace lWorkspace = lStripTab.QStripTabWorkspace;
+        PTabSurface pSurface = (PTabSurface)QStrip.QStripDeck.QDeckSurfaceBuild(lStripTab, lPreferenceTabLayout);
+        lWorkspace.QWorkspaceAttach(pSurface.PTabLayoutRead);
+        pSurface.PTabStripAttach(QStrip, lStripTab);
+        lWorkspace.QWorkspaceFrameBuild(
+            pSurface,
+            () => new PWorkspace(),
+            lSource => new PSource(lSource),
+            lInfo => new PInfo(lInfo),
+            pSurface.PTabExportToggle,
+            PButton.PButtonSourceCreate,
+            () => PIcon.PIconRead("/PAsset/PPanel/PExportToggle.svg"));
+        QStrip.QStripDeck.QDeckSurfaceAdd(
+            lStripTab,
+            pSurface,
+            pSurface.PTabClose,
+            () => pSurface.PTabFlow!.PFlowClose(),
+            () => pSurface.PTabViewer!.PViewerClose());
         QStrip.QStripAdd(lStripTab);
         return lStripTab;
     }
-
-    private void PStripTabHandle(QStripTab lStripTab) =>
-        PStripWorkspaceRead(lStripTab)?.PWorkspaceRoot.SetValue(
-            System.Windows.UIElement.IsEnabledProperty, !lStripTab.QStripTabPending);
-
-    private void PStripCloseHandle(QStripTab lStripTab) => PStripWorkspaceRead(lStripTab)?.PWorkspaceClose();
-
-    private void PStripStaleRemove() =>
-        pStripWorkspaces.RemoveAll(pWorkspace => !QStrip.QStripTabs.Contains(pWorkspace.PWorkspaceTab));
 }

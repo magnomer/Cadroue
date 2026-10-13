@@ -13,11 +13,6 @@ The audits read no script configuration, and both copies change together as scri
 The folders searched for sources and their comment files.
 They are Cadroue's own trees: the localization catalogs, the sources and the tests.
 
-## `public static readonly string[] TAuditCommentFiles`
-
-Repository-root files audited beside the roots, since a root of `.` would sweep docs and scratch folders.
-Each needs its comment file at the root, and a listed `.props` file must carry no in-code comment.
-
 ## `public static readonly string[] TAuditCommentExempt`
 
 TAuditNameRegistry.cs and TAuditVerbRegistry.cs are generated and carry a generated-file header, so they alone are exempt.

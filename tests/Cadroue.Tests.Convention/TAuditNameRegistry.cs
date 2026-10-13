@@ -1,6 +1,6 @@
 // Generated file. Do not edit by hand: every line is overwritten when it is rebuilt.
 //
-// AUDITNAMES GENERATION 24 - name registry for Cadroue.
+// AUDITNAMES GENERATION 25 - name registry for Cadroue.
 // One of the two generated files in the convention-test project. Together they carry the
 // registered bases, verbs and exemptions and nothing else; every audit setting is hand-written
 // tracked test code and must never be added here.
@@ -12,7 +12,7 @@ namespace Convention.Tests;
 
 internal static class TAuditNameRegistry
 {
-    public const int TAuditGeneration = 24;
+    public const int TAuditGeneration = 25;
 
     // AUDIT:SIDECAR:BASES:START
     public static readonly string[] TAuditBases =
@@ -57,6 +57,7 @@ internal static class TAuditNameRegistry
         "Compass",
         "Console",
         "Contour",
+        "Contract",
         "Convert",
         "Courier",
         "Crest",

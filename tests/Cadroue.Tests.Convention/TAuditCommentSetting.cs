@@ -2,11 +2,10 @@ namespace Convention.Tests;
 
 internal static class TAuditCommentSetting
 {
-    public const int TAuditGeneration = 24;
+    public const int TAuditGeneration = 25;
     public const bool TAuditCommentEnforced = false;
     public const int TAuditCommentWords = 20;
     public const string TAuditCommentPattern = "*.comment.md";
-    public const string TAuditCommentRoot = "Cadroue.comment.md";
     public const int TAuditCommentFolderFiles = 10;
 
     public static readonly string[] TAuditCommentRoots =
@@ -14,13 +13,6 @@ internal static class TAuditCommentSetting
         "localization",
         "src",
         "tests",
-    ];
-
-    public static readonly string[] TAuditCommentFiles =
-    [
-        "Directory.Build.props",
-        "Cadroue.slnx",
-        "version.json",
     ];
 
     public static readonly string[] TAuditCommentForbidden =
@@ -72,10 +64,7 @@ internal static class TAuditCommentSetting
         "TAuditVerbRegistry.cs",
     ];
 
-    public static readonly string[] TAuditCommentReserved =
-    [
-        "version.comment.md",
-    ];
+    public static readonly string[] TAuditCommentReserved = [];
 
     public static readonly string[] TAuditCommentAbbreviations =
     [

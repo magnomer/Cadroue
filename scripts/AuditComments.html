@@ -123,7 +123,6 @@ a { color: var(--series-1); }
 .bars .name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bars .track { height: 14px; background: var(--wash); border-radius: 4px; overflow: hidden; }
 .bars .fill { height: 100%; border-radius: 4px; background: var(--series-1); }
-.bars .fill.root { background: var(--tally); }
 .bars .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tip { position: absolute; pointer-events: none; background: var(--surface); color: var(--ink-1); border: 1px solid var(--ring); border-radius: 8px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); padding: 8px 10px; font-size: 12px; min-width: 170px; max-width: 420px; display: none; z-index: 5; }
@@ -368,7 +367,6 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
   function codes(list) { return list.length ? list.map(function (x) { return '<code>' + esc(x) + '</code>'; }).join(' ') : 'None'; }
   var scopeRows = [
     ['Source roots', esc(d.scope.roots.join(', '))],
-    ['Root-level files', d.scope.files.length ? esc(d.scope.files.join(', ')) : 'None'],
     ['Comment pattern', codes([d.scope.commentPattern])],
     ['Pairs', d.scope.pairs.map(function (p) { return '<code>' + esc(p.suffix) + '</code> \u2192 <code>' + esc(p.template) + '</code>'; }).join(', ')],
     ['Folder segments', String(d.scope.segments)],
@@ -401,7 +399,7 @@ footer { color: var(--ink-3); font-size: 12px; display: flex; flex-wrap: wrap; g
       name.textContent = f.name;
       var track = document.createElement('div');
       track.className = 'track';
-      track.innerHTML = '<div class="fill' + (f.name === '(root)' ? ' root' : '') + '" style="width:' + (f[metric] / peak * 100).toFixed(2) + '%"></div>';
+      track.innerHTML = '<div class="fill" style="width:' + (f[metric] / peak * 100).toFixed(2) + '%"></div>';
       var num = document.createElement('div');
       num.className = 'num';
       num.textContent = metricText(f, metric);
