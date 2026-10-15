@@ -199,7 +199,7 @@ internal static partial class TInterface
 
     internal static LDetectorBound TDetectorThresholdRead(LDetectorKind kind) => LDetector.LDetectorThresholdRead(kind);
 
-    internal static QInfo TInfoCreate(QViewer viewer) => new(viewer);
+    internal static QInfo TInfoCreate(QViewer viewer) => new(viewer, TAtelierCreate().CAtelierInfo);
     internal static void TInfoAttach(QInfo info, Action handler) => info.QInfoChanged += handler;
     internal static void TInfoDetach(QInfo info) => info.QInfoDetach();
     internal static IReadOnlyList<LInfoRow> TInfoRowsRead(QInfo info) =>

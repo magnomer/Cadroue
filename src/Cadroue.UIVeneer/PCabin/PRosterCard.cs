@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -125,7 +124,7 @@ internal static class PRosterCard
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
-        Border pButton = PRosterControlBuild(pGlyph, LLocalization.LLocalizationTextRead("Roster.Card.Remove"));
+        Border pButton = PRosterControlBuild(pGlyph, QLocalizationCatalog.QLocalizationTextRead("Roster.Card.Remove"));
         pButton.MouseEnter += (_, _) =>
         {
             pButton.Background = PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey];

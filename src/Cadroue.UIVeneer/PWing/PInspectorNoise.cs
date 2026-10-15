@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -20,13 +19,13 @@ public sealed partial class PInspector
     private StackPanel PNoiseBodyBuild()
     {
         pNoiseApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Noise.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.ApplyTooltip"));
         PInspectorSwitchAttach(pNoiseApplyBox, QNoise.QNoiseActiveSet);
 
         pNoisePersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Noise.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.PersistentTooltip"));
         PInspectorSwitchAttach(pNoisePersistent, QNoise.QNoisePersistentSet);
 
         pNoisePreset = PInspectorChoiceBuild(
@@ -38,23 +37,24 @@ public sealed partial class PInspector
 
         pNoiseTrack = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Noise.Track"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Noise.TrackTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.Track"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.TrackTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pNoiseTrack);
+        PInteraction.PInteractionButtonAttach(pNoiseTrack);
+        QCheckbox.QCheckboxAttach(pNoiseTrack);
         PInspectorSwitchAttach(pNoiseTrack, QNoise.QNoiseTrackSet);
 
         pNoiseStack = new StackPanel();
         pNoiseStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pNoisePreset));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset"), pNoisePreset));
         pNoiseRows.ForEach(pRow => pNoiseStack.Children.Add(pRow.PInspectorRowGrid));
         pNoiseStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Noise.Noise"), pNoiseType));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.Noise"), pNoiseType));
         pNoiseStack.Children.Add(pNoiseTrack);
 
         pNoiseBody = new StackPanel

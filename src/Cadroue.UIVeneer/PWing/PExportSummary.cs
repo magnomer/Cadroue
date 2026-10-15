@@ -69,10 +69,14 @@ public sealed partial class PExport : UserControl
         pBody.Children.Add(pSeparator);
 
         UIElement pSummary = PExportSummaryBuild(
-            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Field.Container"), out pExportSummaryBox),
-            PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Video"), out pExportSummaryVideo),
-            PExportLineBuild(LLocalization.LLocalizationTextRead("ExportSummary.Audio"), out pExportSummaryAudio),
-            PExportLineBuild(LLocalization.LLocalizationTextRead("Roster.Section.Output"), out pExportSummaryOutput));
+            PExportLineBuild(
+                QLocalizationCatalog.QLocalizationTextRead("Roster.Field.Container"), out pExportSummaryBox),
+            PExportLineBuild(
+                QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Video"), out pExportSummaryVideo),
+            PExportLineBuild(
+                QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Audio"), out pExportSummaryAudio),
+            PExportLineBuild(
+                QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Output"), out pExportSummaryOutput));
         Grid.SetRow(pSummary, 3);
         pBody.Children.Add(pSummary);
 
@@ -141,7 +145,7 @@ public sealed partial class PExport : UserControl
         CornerRadius = new CornerRadius(9, 9, 0, 0),
         Child = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("ExportSummary.Header.Export"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Header.Export"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PHeaderTextBrush,
@@ -154,7 +158,7 @@ public sealed partial class PExport : UserControl
         var pPanel = new StackPanel();
         pPanel.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("ExportSummary.Header.Summary"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("ExportSummary.Header.Summary"),
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PExportTextBrush,

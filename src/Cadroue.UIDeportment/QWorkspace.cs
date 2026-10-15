@@ -16,7 +16,7 @@ public sealed class QWorkspace
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
 
-    public QWorkspace(string lKey, CUsher lUsher, CLineage lLineage, CWorkspace lWorkspace)
+    public QWorkspace(string lKey, CUsher lUsher, CInfo lInfo, CLineage lLineage, CWorkspace lWorkspace)
     {
         qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
@@ -24,7 +24,7 @@ public sealed class QWorkspace
         QWorkspaceRoster = QWorkspaceFacts.QWorkspaceWorklist ? QRoster.QRosterCreate(lUsher, lLineage) : null;
         QWorkspaceList = QWorkspaceFacts.QWorkspaceListPresent ? new QList(lUsher) : null;
         qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent
-            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lWorkspace)
+            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lInfo, lWorkspace)
             : null;
         QWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);

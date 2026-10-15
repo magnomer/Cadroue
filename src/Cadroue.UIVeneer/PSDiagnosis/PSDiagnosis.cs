@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -85,7 +84,8 @@ internal sealed partial class PSDiagnosis : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Diagnosis.Button.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Diagnosis.Button.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);

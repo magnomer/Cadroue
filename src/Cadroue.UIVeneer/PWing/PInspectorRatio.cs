@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -13,7 +13,8 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 14, 0, 0)
         };
         var pPresetPanel = new StackPanel { Orientation = Orientation.Horizontal };
-        pPresetPanel.Children.Add(PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Ratio")));
+        pPresetPanel.Children.Add(PInspectorLabelBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Inspector.Crop.Ratio")));
         pPresetPanel.Children.Add(pInspectorRatioPreset);
 
         pInspectorCustomPanel = new StackPanel

@@ -1,6 +1,5 @@
 using System.Windows;
 using Cadroue.Core;
-using Cadroue.Application;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
@@ -58,20 +57,20 @@ internal sealed partial class PSOptions : Window
         psOptionsTabPicker = new PPicker(
             PSOptionsTabItems,
             lsOptionsDraft.LPreferenceStartupTabs,
-            LLocalization.LLocalizationTextRead("Options.Startup.NoTab"))
+            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"))
         {
             MinWidth = 260,
             Height = PSField.PSFieldControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
         psMediaBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Startup.OpenLastMedia"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.OpenLastMedia"),
             lsOptionsDraft.LPreferenceMediaAutomatic);
         psOptionsConfirmBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Confirm.Ask"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Confirm.Ask"),
             lsOptionsDraft.LPreferenceConfirmDestructive);
         psRelayClearBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Relay.ClearCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Relay.ClearCheck"),
             lsOptionsDraft.LPreferenceRelayEmpty);
         psOptionsTabsMode = PSField.PSModeBuild(
             lsOptionsDraft.LPreferenceVerticalTabs ? "Vertical" : "Horizontal",
@@ -89,7 +88,7 @@ internal sealed partial class PSOptions : Window
         _ = lsOptions.QSOptionsMpvUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Playback.AutoplayCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Playback.AutoplayCheck"),
             lsOptionsDraft.LPreferenceAutoplay);
         psOptionsVolumeMode = PSField.PSModeBuild(
             lsOptionsDraft.LPreferenceVolumeMode, () => { }, PSOptionsVolumeItems);
@@ -97,7 +96,7 @@ internal sealed partial class PSOptions : Window
         psOptionsWheelMode = PSField.PSModeBuild(
             lsOptionsDraft.LPreferenceWheelAction, () => { }, PSOptionsWheelItems);
         psOptionsDragBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Playback.DragPause"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Playback.DragPause"),
             lsOptionsDraft.LPreferenceDragPaused);
 
         psOptionsOrderMode = PSField.PSModeBuild(
@@ -105,29 +104,29 @@ internal sealed partial class PSOptions : Window
         psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframePixels, 1, 50);
         psKeyframeDelaySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeDelay, 0, 5000);
         psOptionsOverlapBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Timeline.OverlapCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.OverlapCheck"),
             lsOptionsDraft.LPreferenceOverlapAllowed);
         psWaveformBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Timeline.WaveformCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.WaveformCheck"),
             lsOptionsDraft.LPreferenceWaveform);
 
         psOptionsFailureBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Work.FailurePause"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Work.FailurePause"),
             lsOptionsDraft.LPreferenceFailurePaused);
         psOptionsRetryBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.Work.RetryCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Work.RetryCheck"),
             lsOptionsDraft.LPreferenceRetryAllowed);
         psOptionsRetrySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRetryMaximum, 0, 10);
 
         psOptionsCleanupBox = PSOptionsCheckBuild(
-            LLocalization.LLocalizationTextRead("Options.System.CleanupCheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.CleanupCheck"),
             lsOptionsDraft.LPreferenceCleanupActive);
         psOptionsCleanupSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceCleanupDays, 1, 365);
 
         psWorkspaceBox = PSEntry.PSEntryBuild(lsOptionsDraft.LPreferenceWorkspaceFolder, 320);
         psSystemFfmpegBox = PSEntry.PSEntryBuild(lsOptionsDraft.LPreferenceFfmpegFolder, 320);
 
-        Title = LLocalization.LLocalizationTextRead("Options.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Options.Window.Title");
         Owner = pOwner;
         Width = PSOptionsWidthDefault;
         Height = PSOptionsHeightDefault;
@@ -146,23 +145,23 @@ internal sealed partial class PSOptions : Window
         TabControl psSheets = PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
             PSSheet.PSSheetBuild(
-                LLocalization.LLocalizationTextRead("Options.Sheet.General"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.General"),
                 PSSheetGeneralIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSGeneralBuild()))),
             PSSheet.PSSheetBuild(
-                LLocalization.LLocalizationTextRead("Options.Sheet.System"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.System"),
                 PSSheetSystemIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSSystemBuild()))),
             PSSheet.PSSheetBuild(
-                LLocalization.LLocalizationTextRead("Options.Sheet.Playback"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Playback"),
                 PSSheetPlaybackIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSPlaybackBuild()))),
             PSSheet.PSSheetBuild(
-                LLocalization.LLocalizationTextRead("Options.Sheet.Timeline"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Timeline"),
                 PSSheetTimelineIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSTimelineBuild()))),
             PSSheet.PSSheetBuild(
-                LLocalization.LLocalizationTextRead("Options.Sheet.Work"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Work"),
                 PSSheetWorkIcon,
                 PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild()))));
         psSheets.SelectionChanged += (_, _) =>
@@ -184,9 +183,11 @@ internal sealed partial class PSOptions : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pApply = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
-        Button pOk = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
-        Button pCancel = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));
+        Button pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Apply"));
+        Button pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Button.OK"));
+        Button pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Cancel"));
         pApply.Click += (_, _) => PSOptionsApply();
         pOk.Click += (_, _) => { PSOptionsApply(); Close(); };
         pCancel.Click += (_, _) => Close();
@@ -244,8 +245,8 @@ internal sealed partial class PSOptions : Window
         {
             PSWarning.PSWarningShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.Save.FailedTitle"),
-                LLocalization.LLocalizationTextRead("Options.Save.FailedMessage"));
+                QLocalizationCatalog.QLocalizationTextRead("Options.Save.FailedTitle"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Save.FailedMessage"));
             return;
         }
 
@@ -253,8 +254,8 @@ internal sealed partial class PSOptions : Window
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.Language.RestartTitle"),
-                LLocalization.LLocalizationTextRead("Options.Language.RestartMessage"));
+                QLocalizationCatalog.QLocalizationTextRead("Options.Language.RestartTitle"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Language.RestartMessage"));
         }
     }
 
@@ -269,8 +270,8 @@ internal sealed partial class PSOptions : Window
         psWorkspaceBox.Text = psWorkspaceKept;
         PSWarning.PSWarningShow(
             this,
-            LLocalization.LLocalizationTextRead("Options.System.Workspace"),
-            LLocalization.LLocalizationFormat(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
+            QLocalizationCatalog.QLocalizationFormat(
                 "Options.System.WorkspaceOccupied",
                 Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceFolder)));
         return psWorkspaceKept;

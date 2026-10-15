@@ -45,43 +45,43 @@ internal sealed partial class PSOptions
 
         Button pWorkspaceBrowse = PSInline.PSInlineIconBuild(
             PSOptionsBrowseIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Browse"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Browse"),
             new Thickness(8, 0, 0, 0));
         Button pWorkspaceOpen = PSInline.PSInlineIconBuild(
             PSOptionsOpenIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
             new Thickness(6, 0, 0, 0));
         pWorkspaceBrowse.Click += (_, _) => PSSystemFolderRead(
             psWorkspaceBox,
-            LLocalization.LLocalizationTextRead("Options.System.ChooseWorkspace"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ChooseWorkspace"),
             LDepot.LDepotDefaultRead());
         pWorkspaceOpen.Click += (_, _) => PSSystemFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRead());
 
         Button pFfmpegBrowse = PSInline.PSInlineIconBuild(
             PSOptionsBrowseIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Browse"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Browse"),
             new Thickness(8, 0, 0, 0));
         Button pFfmpegOpen = PSInline.PSInlineIconBuild(
             PSOptionsOpenIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
             new Thickness(6, 0, 0, 0));
         Button pFfmpegDiagnosis = PSInline.PSInlineIconBuild(
             PSOptionsDiagnosisIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Diagnosis"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Diagnosis"),
             new Thickness(6, 0, 0, 0));
         pFfmpegBrowse.Click += (_, _) => PSSystemFolderRead(
             psSystemFfmpegBox,
-            LLocalization.LLocalizationTextRead("Options.System.ChooseFFmpeg"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ChooseFFmpeg"),
             psSystemFfmpegBox.Text);
         pFfmpegOpen.Click += (_, _) => PSSystemFolderOpen(psSystemFfmpegBox.Text, string.Empty);
         pFfmpegDiagnosis.Click += (_, _) => PSDiagnosis.PSDiagnosisShow(this, lsOptions.QSOptionsDiagnosisCreate);
 
         Button pDoneClear = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Options.System.ClearDone"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDone"),
             190,
             new Thickness(0));
         Button pWorkspaceClear = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspace"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspace"),
             190,
             new Thickness(0));
         pDoneClear.Click += (_, _) => PSSystemDoneClear();
@@ -90,7 +90,7 @@ internal sealed partial class PSOptions
         psSystemMaintenanceButtons.Add(pDoneClear);
         psSystemMaintenanceButtons.Add(pWorkspaceClear);
         psSystemMaintenanceNotice = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Options.System.WorkspaceUnapplied"));
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceUnapplied"));
         psWorkspaceBox.TextChanged += (_, _) => PSSystemMaintenanceUpdate();
         PSSystemMaintenanceUpdate();
 
@@ -109,15 +109,15 @@ internal sealed partial class PSOptions
         pDoneClearRow.Children.Add(pDoneClear);
 
         UIElement pCleanupRow = PSOptionsFieldBuild(
-            LLocalization.LLocalizationTextRead("Options.System.CleanupDays"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.CleanupDays"),
             psOptionsCleanupSlider,
-            LLocalization.LLocalizationTextRead("Options.System.CleanupUnit"));
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.CleanupUnit"));
         pCleanupRow.Visibility = psOptionsCleanupBox.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
         psOptionsCleanupBox.Checked += (_, _) => pCleanupRow.Visibility = Visibility.Visible;
         psOptionsCleanupBox.Unchecked += (_, _) => pCleanupRow.Visibility = Visibility.Collapsed;
 
         UIElement pWorkspaceDefault = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead()));
+            QLocalizationCatalog.QLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead()));
         pWorkspaceDefault.Visibility = string.IsNullOrWhiteSpace(psWorkspaceBox.Text)
             ? Visibility.Visible
             : Visibility.Collapsed;
@@ -127,29 +127,34 @@ internal sealed partial class PSOptions
                 : Visibility.Collapsed;
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FFmpeg"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FFmpeg"),
             PSField.PSFieldButtonBuild(
-                LLocalization.LLocalizationTextRead("Options.System.Location"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
                 psSystemFfmpegBox,
                 pFfmpegBrowse,
                 pFfmpegOpen,
                 pFfmpegDiagnosis),
             pFfmpegState));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.Workspace"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
             PSField.PSFieldButtonBuild(
-                LLocalization.LLocalizationTextRead("Options.System.Location"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
                 psWorkspaceBox,
                 pWorkspaceBrowse,
                 pWorkspaceOpen),
             pWorkspaceDefault,
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.CurrentSize"), psWorkspaceSize),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pWorkspaceClearRow),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.CurrentSize"),
+                psWorkspaceSize),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Maintenance"),
+                pWorkspaceClearRow),
             psSystemMaintenanceNotice));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.WorkRecord"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pDoneClearRow),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.AutoDelete"), psOptionsCleanupBox),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.System.WorkRecord"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Maintenance"),
+                pDoneClearRow),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.AutoDelete"),
+                psOptionsCleanupBox),
             pCleanupRow,
-            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.CleanupNotice"))));
+            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.CleanupNotice"))));
         pPanel.Children.Add(PSSystemRecordBuild());
         return pPanel;
     }
@@ -159,7 +164,7 @@ internal sealed partial class PSOptions
         Button pInstall = PSInline.PSInlineButtonBuild(PSSystemFlyleafFormat(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInline.PSInlineIconBuild(
             PSOptionsOpenIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
             new Thickness(0));
         ProgressBar pProgress = PSSystemProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
@@ -180,20 +185,20 @@ internal sealed partial class PSOptions
 
             pInstall.Content = PSSystemFlyleafFormat();
             pInstall.IsEnabled = true;
-            string pFlyleafTitle = LLocalization.LLocalizationTextRead("Options.System.LocalFlyleaf");
+            string pFlyleafTitle = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalFlyleaf");
             if (pResult.LFlyleafInstallSuccess)
             {
                 PSAnnouncement.PSAnnouncementShow(
                     this,
                     pFlyleafTitle,
-                    LLocalization.LLocalizationTextRead("Flyleaf.Local.Install.Completed"));
+                    QLocalizationCatalog.QLocalizationTextRead("Flyleaf.Local.Install.Completed"));
             }
             else
             {
                 PSWarning.PSWarningShow(
                     this,
                     pFlyleafTitle,
-                    LLocalization.LLocalizationFormat(
+                    QLocalizationCatalog.QLocalizationFormat(
                         "Flyleaf.Local.Install.Failed",
                         pResult.LFlyleafInstallMessage));
             }
@@ -248,7 +253,7 @@ internal sealed partial class PSOptions
     }
 
     private static string PSSystemFlyleafFormat() =>
-        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsFlyleafResolve());
+        QLocalizationCatalog.QLocalizationTextRead(QSOptions.QSOptionsFlyleafResolve());
 
 
     private static void PSSystemFolderRead(TextBox pPathBox, string pDialogTitle, string pFallback)
@@ -269,5 +274,5 @@ internal sealed partial class PSOptions
 
 
     private static string PSSystemFfmpegFormat(string pFolder) =>
-        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsFfmpegResolve(pFolder));
+        QLocalizationCatalog.QLocalizationTextRead(QSOptions.QSOptionsFfmpegResolve(pFolder));
 }

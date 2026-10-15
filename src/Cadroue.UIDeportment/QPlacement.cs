@@ -39,36 +39,15 @@ public static class QPlacement
         IReadOnlyList<(string QPlacementPrefix, string QPlacementKey)> lPlacementEntries) =>
         QPlacementGateSeam.CPlacementImport(lPlacementEntries, QPlacementKeyExist, QPlacementSave);
 
-    private static bool QPlacementCapsuleSave(
+    // The store answers its own outcome; the gate traces it.
+    private static (bool, string?) QPlacementCapsuleSave(
         string lPlacementKey, double lLeft, double lTop, double lWidth, double lHeight)
     {
         lock (qPlacementLock)
         {
             string lRoot = QPlacementRootSeam();
-            try
-            {
-                return QPlacementEntrySave(lRoot, lPlacementKey, new LPlacement(lLeft, lTop, lWidth, lHeight));
-            }
-            catch (Exception)
-            {
-                QPlacementGateSeam.CPlacementUnsavedRecord(lPlacementKey);
-                return false;
-            }
-        }
-    }
-
-    // An unreadable catalogue is told apart where the store throws it.
-    private static bool QPlacementEntrySave(string lRoot, string lPlacementKey, LPlacement lPlacement)
-    {
-        try
-        {
-            qPlacementCapsule.LCapsuleSave(lRoot, lPlacementKey, lPlacement);
-            return true;
-        }
-        catch (InvalidDataException lUnreadable)
-        {
-            QPlacementGateSeam.CPlacementBlockedRecord(lPlacementKey, lUnreadable);
-            return false;
+            return qPlacementCapsule.LCapsuleSave(
+                lRoot, lPlacementKey, new LPlacement(lLeft, lTop, lWidth, lHeight));
         }
     }
 

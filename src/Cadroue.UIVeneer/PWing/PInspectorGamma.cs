@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -29,11 +29,11 @@ public sealed partial class PInspector
     private StackPanel PGammaBuild()
     {
         pGammaBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyGamma"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyGamma"));
         pGammaPersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.PersistGamma"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistGamma"));
         PInspectorSwitchAttach(pGammaBox, QGamma.QGammaActiveSet);
         PInspectorSwitchAttach(pGammaPersistent, QGamma.QGammaPersistentSet);
         pGammaStack = new StackPanel();
@@ -41,8 +41,8 @@ public sealed partial class PInspector
 
         var pGammaReset = new Button
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Video.GammaReset"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Video.GammaResetTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaReset"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaResetTooltip"),
             Height = 28,
             MinWidth = 64,
             Padding = new Thickness(8, 0, 8, 0),
@@ -71,7 +71,7 @@ public sealed partial class PInspector
             pNumber => QGamma.QGammaValueSet(pSlot, pNumber));
         pGammaStack.Children.Add(
             PInspectorSliderBuild(
-                LLocalization.LLocalizationTextRead(PGammaLabelKeys[pSlot]),
+                QLocalizationCatalog.QLocalizationTextRead(PGammaLabelKeys[pSlot]),
                 pGammaSliders[pSlot],
                 PGammaUnits[pSlot],
                 pGammaValues[pSlot]));

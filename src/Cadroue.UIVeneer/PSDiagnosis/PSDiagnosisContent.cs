@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -38,7 +37,7 @@ internal sealed partial class PSDiagnosis
         };
         psDiagnosisSummaryText = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Checking"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Checking"),
             FontWeight = FontWeights.SemiBold,
             Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
@@ -54,7 +53,7 @@ internal sealed partial class PSDiagnosis
         pBar.Children.Add(pLeft);
 
         Button pRecheck = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Diagnosis.Recheck"),
+            QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Recheck"),
             110,
             new Thickness(0));
         pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
@@ -84,7 +83,7 @@ internal sealed partial class PSDiagnosis
             psDiagnosisVersionValue,
             psDiagnosisProgramBadge);
         UIElement pLocation = PSDiagnosisLineBuild("Options.System.Location", psDiagnosisLocationValue, null);
-        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Diagnosis.Group.Program"), pVersion,
+        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Group.Program"), pVersion,
             pLocation);
     }
 
@@ -93,7 +92,7 @@ internal sealed partial class PSDiagnosis
         UIElement[] pRows = pItems
             .Select(pItem => PSDiagnosisFeatureBuild(pItem.QSDiagnosisLabel, pItem.QSDiagnosisFilters))
             .ToArray();
-        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRows);
+        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(pTitleKey), pRows);
     }
 
     private UIElement PSDiagnosisFeatureBuild(string pLabelKey, string[] pFilters)
@@ -111,7 +110,7 @@ internal sealed partial class PSDiagnosis
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        TextBlock pLabel = PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead(pLabelKey));
+        TextBlock pLabel = PSField.PSFieldLabelBuild(QLocalizationCatalog.QLocalizationTextRead(pLabelKey));
         pLabel.TextWrapping = TextWrapping.Wrap;
         pLabel.Margin = new Thickness(0, 0, 10, 0);
 
@@ -175,12 +174,12 @@ internal sealed partial class PSDiagnosis
             case QSDiagnosisState.QSDiagnosisStateReady:
                 pBadge.Background = PSDiagnosisReadyFill;
                 pText.Foreground = PSDiagnosisReadyInk;
-                pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Available");
+                pText.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Available");
                 break;
             case QSDiagnosisState.QSDiagnosisStateMissing:
                 pBadge.Background = PSDiagnosisMissingFill;
                 pText.Foreground = PSDiagnosisMissingInk;
-                pText.Text = LLocalization.LLocalizationTextRead("Encoder.Verification.Unavailable");
+                pText.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Unavailable");
                 break;
             default:
                 pBadge.Background = PSDiagnosisNeutralFill;
@@ -204,7 +203,7 @@ internal sealed partial class PSDiagnosis
         psDiagnosisLocationValue.Text = pChecking
             ? "…"
             : lsDiagnosis.QSDiagnosisLocation.Length == 0
-                ? LLocalization.LLocalizationTextRead("Diagnosis.LocationPath")
+                ? QLocalizationCatalog.QLocalizationTextRead("Diagnosis.LocationPath")
                 : lsDiagnosis.QSDiagnosisLocation;
         PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.QSDiagnosisProgramState);
         foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
@@ -221,23 +220,25 @@ internal sealed partial class PSDiagnosis
         {
             case QSDiagnosisMood.QSDiagnosisMoodReady:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisReadyDot;
-                psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Ready");
+                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Ready");
                 break;
             case QSDiagnosisMood.QSDiagnosisMoodWarning:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisWarnDot;
-                psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
+                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationFormat("Diagnosis.Summary.Missing",
+                    pMissing);
                 break;
             case QSDiagnosisMood.QSDiagnosisMoodMissing:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
-                psDiagnosisSummaryText.Text = LLocalization.LLocalizationFormat("Diagnosis.Summary.Missing", pMissing);
+                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationFormat("Diagnosis.Summary.Missing",
+                    pMissing);
                 break;
             case QSDiagnosisMood.QSDiagnosisMoodAbsent:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
-                psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.NoProgram");
+                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.NoProgram");
                 break;
             default:
                 psDiagnosisSummaryDot.Fill = PSDiagnosisNeutralFill;
-                psDiagnosisSummaryText.Text = LLocalization.LLocalizationTextRead("Diagnosis.Summary.Checking");
+                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Checking");
                 break;
         }
     }

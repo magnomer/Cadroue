@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -105,8 +104,8 @@ public sealed class QCompass
         new(
             lEntry.QCompassEntryKey,
             lEntry.QCompassEntryIcon,
-            LLocalization.LLocalizationTextRead($"Compass.{lText}.Label"),
-            LLocalization.LLocalizationTextRead($"Compass.{lText}.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead($"Compass.{lText}.Label"),
+            QLocalizationCatalog.QLocalizationTextRead($"Compass.{lText}.Tooltip"),
             lEntry.QCompassEntryAccent);
 
     public void QCompassRun(string lKey)

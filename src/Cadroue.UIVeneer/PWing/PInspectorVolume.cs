@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -19,13 +19,13 @@ public sealed partial class PInspector
     private StackPanel PVolumeBodyBuild()
     {
         pVolumeApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Volume.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ApplyTooltip"));
         PInspectorSwitchAttach(pVolumeApplyBox, QVolume.QVolumeActiveSet);
 
         pInspectorVolumePersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Volume.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.PersistentTooltip"));
         PInspectorSwitchAttach(pInspectorVolumePersistent, QVolume.QVolumePersistentSet);
 
         pInspectorVolumeSlider = new Slider
@@ -35,8 +35,8 @@ public sealed partial class PInspector
             Value = 0,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PSlider.PSliderApply(pInspectorVolumeSlider);
-        PSlider.PSliderResetApply(pInspectorVolumeSlider, static () => 0);
+        QSlider.QSliderAttach(pInspectorVolumeSlider);
+        QSlider.QSliderResetAttach(pInspectorVolumeSlider, static () => 0);
 
         pInspectorVolumeValue = PInspectorDecimalBuild();
         pInspectorVolumeValue.Text = "0";
@@ -54,7 +54,8 @@ public sealed partial class PInspector
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         pGainRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        TextBlock pGainLabel = PInspectorLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Volume.Gain"));
+        TextBlock pGainLabel = PInspectorLabelBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Inspector.Volume.Gain"));
         var pGainUnit = new TextBlock
         {
             Text = "dB",
@@ -76,7 +77,7 @@ public sealed partial class PInspector
 
         pInspectorVolumeWarn = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Volume.ClipNotice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ClipNotice"),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorWarnBrush,

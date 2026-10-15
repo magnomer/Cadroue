@@ -1,5 +1,4 @@
 using System.Globalization;
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -35,7 +34,7 @@ public sealed class QEqualizer
 
     public double QEqualizerGainMost => LContourCatalog.LContourGainMost;
 
-    public string QEqualizerRemoveTip => LLocalization.LLocalizationTextRead("Inspector.Equalizer.Remove");
+    public string QEqualizerRemoveTip => QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Remove");
 
     public IReadOnlyList<QEqualizerBand> QEqualizerRows => qEqualizerBands
         .Select((lBand, lIndex) => new QEqualizerBand(

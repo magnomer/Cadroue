@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -18,7 +17,7 @@ internal sealed partial class PSOptions
     private UIElement PSSystemRecordBuild()
     {
         Button pRecordClear = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
             190,
             new Thickness(0));
         pRecordClear.Click += (_, _) => PSSystemRecordClear();
@@ -35,17 +34,19 @@ internal sealed partial class PSOptions
         {
             lsOptionsDraft.LPreferenceRecordWorkspace =
                 string.Equals(PSField.PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
-            pRecordBesideNotice.Text = LLocalization.LLocalizationFormat(
+            pRecordBesideNotice.Text = QLocalizationCatalog.QLocalizationFormat(
                 lsOptions.QSOptionsRecordResolve(), QSOptions.QSOptionsSidecarRead());
         }
         PSSystemNoticeUpdate();
         psOptionsRecordNotice = PSSystemNoticeUpdate;
 
-        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecord"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Location"), psOptionsRecordMode),
+        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecord"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
+                psOptionsRecordMode),
             pRecordBesideNotice,
-            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.System.FileRecordScope")),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.System.Maintenance"), pRecordButtonRow));
+            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecordScope")),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Maintenance"),
+                pRecordButtonRow));
     }
 
     private void PSSystemRecordClear()
@@ -55,16 +56,16 @@ internal sealed partial class PSOptions
         {
             PSAnnouncement.PSAnnouncementShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
-                LLocalization.LLocalizationTextRead("Options.System.NoFileRecord"));
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.NoFileRecord"));
             return;
         }
 
         if (!PSAlert.PSAlertConfirm(
                 this,
-                LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
-                LLocalization.LLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
-                LLocalization.LLocalizationTextRead("Terms.Delete")))
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
+                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Delete")))
         {
             return;
         }
@@ -73,8 +74,8 @@ internal sealed partial class PSOptions
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
             this,
-            LLocalization.LLocalizationTextRead("Options.System.ClearFileRecord"),
-            LLocalization.LLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved));
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
+            QLocalizationCatalog.QLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved));
     }
 
     private void PSWorkspaceSizeUpdate()
@@ -110,9 +111,9 @@ internal sealed partial class PSOptions
 
         if (!PSAlert.PSAlertConfirm(
                 this,
-                LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
-                LLocalization.LLocalizationFormat("Options.System.ClearDoneConfirm", LDepot.LDepotRootRead()),
-                LLocalization.LLocalizationTextRead("Terms.Delete")))
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
+                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearDoneConfirm", LDepot.LDepotRootRead()),
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Delete")))
         {
             return;
         }
@@ -127,8 +128,8 @@ internal sealed partial class PSOptions
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
             this,
-            LLocalization.LLocalizationTextRead("Options.System.ClearDoneTitle"),
-            LLocalization.LLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved));
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
+            QLocalizationCatalog.QLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved));
     }
 
     private void PSWorkspaceClear()
@@ -143,16 +144,16 @@ internal sealed partial class PSOptions
         {
             PSWarning.PSWarningShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-                LLocalization.LLocalizationTextRead("Options.System.WorkspaceRunning"));
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceRunning"));
             return;
         }
 
         if (!PSAlert.PSAlertConfirm(
                 this,
-                LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-                LLocalization.LLocalizationFormat("Options.System.ClearWorkspaceConfirm", pWorkspaceRoot),
-                LLocalization.LLocalizationTextRead("Terms.Reset")))
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearWorkspaceConfirm", pWorkspaceRoot),
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Reset")))
         {
             return;
         }
@@ -163,8 +164,8 @@ internal sealed partial class PSOptions
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
             this,
-            LLocalization.LLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
-            LLocalization.LLocalizationTextRead("Options.System.WorkspaceReset"));
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceReset"));
     }
 
     private static string PSSystemSizeFormat(long pBytes)

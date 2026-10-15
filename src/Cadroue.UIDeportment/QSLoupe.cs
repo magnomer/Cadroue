@@ -85,7 +85,7 @@ public sealed class QSLoupe
     public bool QSLoupePlayTinted => !qLoupePlaying;
 
     public string QSLoupePlayTip =>
-        LLocalization.LLocalizationTextRead(qLoupePlaying ? "Loupe.Pause.Tooltip" : "Loupe.Play.Tooltip");
+        QLocalizationCatalog.QLocalizationTextRead(qLoupePlaying ? "Loupe.Pause.Tooltip" : "Loupe.Play.Tooltip");
 
     public bool QSLoupeResumeCheck() => qLoupePlaying && !qLoupeEnded;
 
@@ -291,7 +291,7 @@ public sealed class QSLoupe
 
     private QSLoupeButton QSLoupeButtonResolve((QSLoupeFloat, string) lButton) => new(
         lButton.Item1,
-        LLocalization.LLocalizationTextRead(lButton.Item2),
+        QLocalizationCatalog.QLocalizationTextRead(lButton.Item2),
         lButton.Item1 == qLoupeFloat);
 
     private void QSLoupePreviewHandle()

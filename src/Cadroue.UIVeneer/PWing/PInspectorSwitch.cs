@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -17,7 +18,8 @@ public sealed partial class PInspector
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        PCheckbox.PCheckboxApply(pSwitch);
+        PInteraction.PInteractionButtonAttach(pSwitch);
+        QCheckbox.QCheckboxAttach(pSwitch);
         return pSwitch;
     }
 

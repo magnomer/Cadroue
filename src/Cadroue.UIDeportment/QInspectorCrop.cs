@@ -40,7 +40,7 @@ public sealed class QInspectorCrop
 
     public bool QInspectorCropEnabled => QInspectorActive && qInspector.QInspectorCropCapable;
 
-    public string QInspectorApplyTip => LLocalization.LLocalizationTextRead(
+    public string QInspectorApplyTip => QLocalizationCatalog.QLocalizationTextRead(
         qInspector.QInspectorCropCapable ? "Inspector.Crop.ApplyTooltip" : "Inspector.Crop.RequiresCrop");
 
     public bool QInspectorToolActive => qInspector.QInspectorToolArmed && QInspectorRectRead() is not null;

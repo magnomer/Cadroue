@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -66,8 +66,8 @@ internal sealed partial class PSEncoder
 
         string pRange = pQuality.LCapabilityQualityRange;
         psAudioRowsPanel.Children.Add(PSNotice.PSNoticeBuild(string.IsNullOrEmpty(pRange)
-            ? LLocalization.LLocalizationFormat("Encoder.Audio.FFmpegOption", pQuality.LCapabilityQualityOption)
-            : LLocalization.LLocalizationFormat(
+            ? QLocalizationCatalog.QLocalizationFormat("Encoder.Audio.FFmpegOption", pQuality.LCapabilityQualityOption)
+            : QLocalizationCatalog.QLocalizationFormat(
                 "Encoder.Audio.FFmpegOptionRange",
                 pQuality.LCapabilityQualityOption,
                 pRange)));

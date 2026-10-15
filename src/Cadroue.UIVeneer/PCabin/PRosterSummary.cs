@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -10,10 +9,10 @@ internal static class PRosterSummary
     public static void PRosterSummaryAdd(StackPanel pPanel, QSummary lSummary)
     {
         pPanel.Children.Add(
-            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
+            PRosterOverview.PRosterSectionBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Overview")));
         pPanel.Children.Add(
             PRosterOverview.PRosterNoteBuild(
-                LLocalization.LLocalizationTextRead("Roster.Card.OverviewSubtitle"), new Thickness(0, 0, 0, 8)));
+                QLocalizationCatalog.QLocalizationTextRead("Roster.Card.OverviewSubtitle"), new Thickness(0, 0, 0, 8)));
         lSummary.QSummaryMeters.ToList().ForEach(
             lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
         lSummary.QSummaryBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));

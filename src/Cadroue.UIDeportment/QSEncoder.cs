@@ -34,8 +34,8 @@ public sealed partial class QSEncoder
     public QToken QSEncoderTokenCreate() => new();
 
     public QSVerdict QSEncoderVerdictCreate(bool lAudio) => lAudio
-        ? new(LLocalization.LLocalizationTextRead("Encoder.Verification.AudioTitle"), QSEncoderAudioResults)
-        : new(LLocalization.LLocalizationTextRead("Encoder.Verification.VideoTitle"), QSEncoderVideoResults);
+        ? new(QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.AudioTitle"), QSEncoderAudioResults)
+        : new(QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.VideoTitle"), QSEncoderVideoResults);
 
     public string QSEncoderInitialResolve(string lCurrent) =>
         qsEncoderUsher.CUsherFolderExist(lCurrent) ? lCurrent : string.Empty;

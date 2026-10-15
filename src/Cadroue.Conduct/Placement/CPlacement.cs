@@ -16,17 +16,38 @@ public sealed class CPlacement
         _cPlacementPort = port;
     }
 
-    // Only a kept rectangle is written; the answer is the write's.
+    // Only a kept rectangle is written; the answer is the write's. The write answers whether it saved and, when an
+    // unreadable catalogue kept it from saving, that catalogue's message; each unsaved write is traced.
     public bool CPlacementSave(
         string key,
         double left,
         double top,
         double width,
         double height,
-        Func<string, double, double, double, double, bool> write)
+        Func<string, double, double, double, double, (bool, string?)> write)
     {
         ArgumentNullException.ThrowIfNull(write);
-        return CPlacementSaveCheck(left, top, width, height) && write(key, left, top, width, height);
+        if (!CPlacementSaveCheck(left, top, width, height))
+        {
+            return false;
+        }
+
+        (bool saved, string? unreadable) = write(key, left, top, width, height);
+        if (saved)
+        {
+            return true;
+        }
+
+        if (unreadable is null)
+        {
+            CPlacementUnsavedRecord(key);
+        }
+        else
+        {
+            CPlacementBlockedRecord(key, unreadable);
+        }
+
+        return false;
     }
 
     // Each placement the preferences once held is saved where none is held; a failure ends the import, traced.
@@ -61,12 +82,12 @@ public sealed class CPlacement
     }
 
     // Any failure but an unreadable catalogue names the key.
-    public void CPlacementUnsavedRecord(string key) => _cPlacementPort.LPlacementUnsavedRecord(key);
+    private void CPlacementUnsavedRecord(string key) => _cPlacementPort.LPlacementUnsavedRecord(key);
 
     // An unreadable catalogue is named before the key it kept from saving.
-    public void CPlacementBlockedRecord(string key, Exception unreadable)
+    private void CPlacementBlockedRecord(string key, string unreadable)
     {
-        CPlacementUnreadableRecord(unreadable);
+        _cPlacementPort.LPlacementUnreadableRecord(unreadable);
         _cPlacementPort.LPlacementBlockedRecord(key);
     }
 

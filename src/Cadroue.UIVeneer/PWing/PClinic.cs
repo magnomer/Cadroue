@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -43,7 +42,7 @@ public sealed class PClinic : PPanel
         pClinicSalvage = new PClinicSalvage(QClinic);
         pClinicTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Header.Title"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Header.Title"),
             FontSize = 12,
             FontFamily = pClinicFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -53,7 +52,7 @@ public sealed class PClinic : PPanel
 
         Button pMinimizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.HideTooltip"),
             () => QClinic.QClinicMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -74,8 +73,8 @@ public sealed class PClinic : PPanel
         };
 
         pClinicApplyBox = PClinicSwitchBuild(
-            LLocalization.LLocalizationTextRead("Clinic.Apply"),
-            LLocalization.LLocalizationTextRead("Clinic.Apply.Tooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply.Tooltip"));
         pClinicApplyBox.Checked += (_, _) => QClinic.QClinicActiveSet(true);
         pClinicApplyBox.Unchecked += (_, _) => QClinic.QClinicActiveSet(false);
 
@@ -91,7 +90,7 @@ public sealed class PClinic : PPanel
 
         pClinicEmptyNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Empty.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Empty.Notice"),
             FontSize = 12,
             FontFamily = pClinicFontFamily,
             Foreground = pClinicMutedBrush,
@@ -125,7 +124,7 @@ public sealed class PClinic : PPanel
 
         var pResultHeader = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Result.Header"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Header"),
             FontSize = 12,
             FontFamily = pClinicFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -134,7 +133,7 @@ public sealed class PClinic : PPanel
         };
         pClinicResultText = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Result.Empty"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Empty"),
             FontSize = 12,
             FontFamily = pClinicFontFamily,
             Foreground = pClinicMutedBrush,
@@ -165,8 +164,8 @@ public sealed class PClinic : PPanel
         };
 
         pClinicPersistentBox = PClinicSwitchBuild(
-            LLocalization.LLocalizationTextRead("Clinic.Persistent"),
-            LLocalization.LLocalizationTextRead("Clinic.Persistent.Tooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent.Tooltip"));
         pClinicPersistentBox.IsEnabled = false;
         pClinicPersistentBox.Checked += (_, _) => QClinic.QClinicPersistentSet(true);
         pClinicPersistentBox.Unchecked += (_, _) => QClinic.QClinicPersistentSet(false);
@@ -178,8 +177,8 @@ public sealed class PClinic : PPanel
 
         pClinicDiagnosisButton = new Button
         {
-            Content = LLocalization.LLocalizationTextRead("Clinic.Diagnosis.Run"),
-            ToolTip = LLocalization.LLocalizationTextRead("Clinic.Diagnosis.Run.Tooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Clinic.Diagnosis.Run"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Clinic.Diagnosis.Run.Tooltip"),
             Height = 28,
             MinWidth = 90,
             FontSize = 12,
@@ -248,7 +247,8 @@ public sealed class PClinic : PPanel
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        PCheckbox.PCheckboxApply(pSwitch);
+        PInteraction.PInteractionButtonAttach(pSwitch);
+        QCheckbox.QCheckboxAttach(pSwitch);
         return pSwitch;
     }
 
@@ -287,7 +287,7 @@ public sealed class PClinic : PPanel
     {
         Button pMaximizeButton = PClinicButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.ShowTooltip"),
             () => QClinic.QClinicMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;

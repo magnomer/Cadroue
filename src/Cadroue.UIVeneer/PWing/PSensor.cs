@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -129,8 +128,8 @@ public sealed partial class PInspector
     private UIElement PSensorRunBuild()
     {
         pSensorRunPersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Detect.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
         pSensorRunPersistent.VerticalAlignment = VerticalAlignment.Center;
         PInspectorSwitchAttach(pSensorRunPersistent, QSensor.QSensorPersistentSet);
         QSensor.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);

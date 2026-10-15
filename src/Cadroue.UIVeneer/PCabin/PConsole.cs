@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -89,11 +88,11 @@ public sealed class PConsole : UserControl
         pConsoleSceneSeparator = PConsoleControl.PConsoleSeparatorBuild();
         pConsolePreviousButton = PConsoleControl.PConsoleSwitchBuild(
             "PConsolePrevious.svg",
-            LLocalization.LLocalizationTextRead("Console.Previous.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Previous.Tooltip"),
             PConsolePreviousHandle);
         pConsoleNextButton = PConsoleControl.PConsoleSwitchBuild(
             "PConsoleNext.svg",
-            LLocalization.LLocalizationTextRead("Console.Next.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Next.Tooltip"),
             PConsoleNextHandle);
 
         Content = PConsoleBuild();

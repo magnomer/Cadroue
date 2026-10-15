@@ -17,7 +17,6 @@ internal static partial class TInterface
         RuntimeHelpers.RunModuleConstructor(typeof(Interface.TInterface).Module.ModuleHandle);
         _ = TProgramCreate();
         QPlacement.QPlacementGateSeam = TAtelierCreate().CAtelierPlacement;
-        QInfo.QInfoGateSeam = TAtelierCreate().CAtelierInfo;
     }
 
     internal static LWorkGammaSettings TGammaSettingsCreate(
@@ -264,12 +263,13 @@ internal static partial class TInterface
             new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(
-            TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, TAtelierCreate().CAtelierWorkspaceCreate,
+            TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
+            TAtelierCreate().CAtelierWorkspaceCreate,
             title,
             number);
     internal static QStripTab TStripTabCreate(string key) =>
         new(
-            key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage,
+            key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
             TAtelierCreate().CAtelierWorkspaceCreate());
     internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
         strip.QStripSelectChanged += handler;
@@ -342,6 +342,8 @@ internal static partial class TInterface
     internal static bool TProgramDepotApply(QProgram program) => program.QProgramDepotApply();
     internal static string? TProgramDepotRead(QProgram program) => program.QProgramDepotRoot;
     internal static bool TProgramLanguageNormalize() => QProgram.QProgramLanguageNormalize();
+    internal static void TProgramLanguageLoad(string? language) => QProgram.QProgramLanguageLoad(language);
+    internal static string TLocalizationCatalogRead(string key) => QLocalizationCatalog.QLocalizationTextRead(key);
     internal static string TDepotRootRead() => LDepot.LDepotRootRead();
     internal static void TDepotRootSet(string? root) => LDepot.LDepotRootSet(root);
     internal static void TDepotIndexRelease() => LDepotIndex.LDepotIndexRelease();

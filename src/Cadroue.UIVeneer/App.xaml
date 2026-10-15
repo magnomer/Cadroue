@@ -4,6 +4,12 @@
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
-        <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="PHouse/PCheckbox.xaml" />
+                <ResourceDictionary Source="PHouse/PSlider.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+            <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

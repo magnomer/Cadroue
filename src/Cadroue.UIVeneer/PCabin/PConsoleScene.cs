@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Microsoft.Win32;
@@ -37,15 +36,15 @@ public sealed class PConsoleScene : UserControl
         pControls.Children.Add(pConsoleRelayCombo);
         pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
             "PConsoleSave.svg",
-            LLocalization.LLocalizationTextRead("Console.Scene.SaveTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTooltip"),
             PConsoleSaveHandle));
         pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
             "PExportExport.svg",
-            LLocalization.LLocalizationTextRead("Console.Scene.ExportTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ExportTooltip"),
             PConsoleExportHandle));
         pControls.Children.Add(PConsoleControl.PConsoleInlineBuild(
             "PExportImport.svg",
-            LLocalization.LLocalizationTextRead("Console.Scene.ImportTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportTooltip"),
             PConsoleImportHandle));
         Content = pControls;
 
@@ -119,8 +118,8 @@ public sealed class PConsoleScene : UserControl
     {
         var pDialog = new SaveFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Export"),
-            Filter = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Filter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
             DefaultExt = "json",
             AddExtension = true,
             FileName = lScene.QConsoleFileResolve(pConsoleRelayCombo.Text)
@@ -132,8 +131,8 @@ public sealed class PConsoleScene : UserControl
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Import"),
-            Filter = LLocalization.LLocalizationTextRead("Console.Scene.Dialog.Filter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
             DefaultExt = "json",
             CheckFileExists = true
         };

@@ -28,7 +28,7 @@ public sealed class QAction
 
     public string QActionFaceText => QActionOptionFind() is { } lOption
         ? lOption.QActionOptionTitle
-        : LLocalization.LLocalizationTextRead(QActionKeyRead());
+        : QLocalizationCatalog.QLocalizationTextRead(QActionKeyRead());
 
     public string QActionFaceIcon => QActionOptionFind()?.QActionOptionKey ?? string.Empty;
 
@@ -81,11 +81,12 @@ public sealed class QAction
         ?? Array.Empty<QActionOption>();
 
     public IReadOnlyList<QActionOption> QActionMenuRead() =>
-        new[] { new QActionOption(Guid.Empty, LLocalization.LLocalizationTextRead("Action.Relay.None"), string.Empty) }
+        new[] { new QActionOption(Guid.Empty, QLocalizationCatalog.QLocalizationTextRead("Action.Relay.None"),
+            string.Empty) }
             .Concat(QActionOptionsRead())
             .Append(new QActionOption(
                 LCartographer.LCartographerFinishTarget,
-                LLocalization.LLocalizationTextRead("Action.Relay.Finish"),
+                QLocalizationCatalog.QLocalizationTextRead("Action.Relay.Finish"),
                 string.Empty))
             .ToArray();
 

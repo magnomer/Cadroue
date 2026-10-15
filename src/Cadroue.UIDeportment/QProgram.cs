@@ -42,7 +42,7 @@ public sealed class QProgram
         LFrameStore.LFrameLoad();
         LBinding.LBindingLoad();
         LScene.LSceneCurrentLoad();
-        LLocalization.LLocalizationLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
+        QProgramLanguageLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
         QProgramLanguageNormalize();
 
         LPreference.LPreferenceDepotCallback = QProgramDepotHandle;
@@ -97,6 +97,16 @@ public sealed class QProgram
         }
 
         lAction();
+    }
+
+    public static void QProgramLanguageLoad(string? lLanguage)
+    {
+        LLocalization.LLocalizationLoad(lLanguage);
+        QLocalizationCatalog.QLocalizationCatalogApply(
+            System.Windows.Application.Current?.Resources,
+            LLocalization.LLocalizationTextsRead(),
+            LLocalization.LLocalizationFallbackRead(),
+            LLocalization.LLocalizationTraceRecord);
     }
 
     public static bool QProgramLanguageNormalize()

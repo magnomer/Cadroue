@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -34,7 +33,7 @@ public static class QConsoleLine
     {
         int lTotal = lRecords.Count;
         bool lPaused = !lRunning && !lSuspended;
-        string lRunState = LLocalization.LLocalizationTextRead(
+        string lRunState = QLocalizationCatalog.QLocalizationTextRead(
             lSuspended ? "Console.State.Suspended" : lRunning ? "Console.State.Running" : "Console.State.Paused");
         return new QConsoleStatus(
             QConsoleRunsResolve(
@@ -57,18 +56,19 @@ public static class QConsoleLine
     {
         if (lTotal == 0)
         {
-            return LLocalization.LLocalizationTextRead("Console.Status.Empty");
+            return QLocalizationCatalog.QLocalizationTextRead("Console.Status.Empty");
         }
 
-        string lDoneText = LLocalization.LLocalizationFormat("Console.Done.Format", lDoneCount, lTotal);
+        string lDoneText = QLocalizationCatalog.QLocalizationFormat("Console.Done.Format", lDoneCount, lTotal);
         if (lRunningItems.Length == 0)
         {
-            return LLocalization.LLocalizationFormat("Console.Status.Pending", lRunState, lDoneText, lPendingCount);
+            return QLocalizationCatalog.QLocalizationFormat("Console.Status.Pending", lRunState, lDoneText,
+                lPendingCount);
         }
 
         if (lRunningItems.Length > 1)
         {
-            return LLocalization.LLocalizationFormat(
+            return QLocalizationCatalog.QLocalizationFormat(
                 "Console.Status.MultipleRunning",
                 lRunningItems.Length,
                 lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress),
@@ -76,7 +76,7 @@ public static class QConsoleLine
         }
 
         LWorkItem lRunningItem = lRunningItems[0];
-        return LLocalization.LLocalizationFormat(
+        return QLocalizationCatalog.QLocalizationFormat(
             "Console.Status.Running",
             lRunningItem.LWorkOutputName,
             lDoneText,
@@ -109,7 +109,7 @@ public static class QConsoleLine
     }
 
     private static string QConsoleStageFormat(LWorkStage lWorkStage) =>
-        LLocalization.LLocalizationTextRead(lWorkStage switch
+        QLocalizationCatalog.QLocalizationTextRead(lWorkStage switch
         {
             LWorkStage.LWorkStageExtract => "Console.Stage.Extract",
             LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",

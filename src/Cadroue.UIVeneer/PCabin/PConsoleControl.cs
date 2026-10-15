@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -18,16 +17,17 @@ public static class PConsoleControl
     {
         var pAutoBox = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Console.AutoResume.Label"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Console.AutoResume.Label"),
             FontSize = PConsoleStationSize,
             Foreground = PRosterTheme.PRosterTextBrush,
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(14, 0, 4, 0),
             FocusVisualStyle = null,
-            ToolTip = LLocalization.LLocalizationTextRead("Console.AutoResume.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.AutoResume.Tooltip")
         };
-        PCheckbox.PCheckboxApply(pAutoBox);
+        PInteraction.PInteractionButtonAttach(pAutoBox);
+        QCheckbox.QCheckboxAttach(pAutoBox);
         pAutoBox.Checked += pChange;
         pAutoBox.Unchecked += pChange;
         return pAutoBox;
@@ -44,8 +44,8 @@ public static class PConsoleControl
         };
         PDropdown.PDropdownActionApply(
             pRelayCombo,
-            LLocalization.LLocalizationTextRead("Console.Scene.DeleteTooltip"));
-        pRelayCombo.ToolTip = LLocalization.LLocalizationTextRead("Console.Scene.ComboTooltip");
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DeleteTooltip"));
+        pRelayCombo.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ComboTooltip");
         return pRelayCombo;
     }
 
@@ -119,7 +119,7 @@ public static class PConsoleControl
         pStack.Children.Add(new Border { Height = 2 });
         pStack.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead($"Console.Button.{pLabelKey}"),
+            Text = QLocalizationCatalog.QLocalizationTextRead($"Console.Button.{pLabelKey}"),
             FontSize = PRosterTheme.PRosterRowSize,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center,
@@ -133,7 +133,7 @@ public static class PConsoleControl
             Margin = new Thickness(0, 0, 4, 0),
             Content = pStack,
             Style = PConsoleButtonCreate(),
-            ToolTip = LLocalization.LLocalizationTextRead($"Console.Button.{pLabelKey}Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead($"Console.Button.{pLabelKey}Tooltip")
         };
         pButton.Click += pClick;
         return pButton;

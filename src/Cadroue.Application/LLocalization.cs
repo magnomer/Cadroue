@@ -66,6 +66,31 @@ public static class LLocalization
         }
     }
 
+    public static IReadOnlyDictionary<string, string> LLocalizationTextsRead()
+    {
+        lock (lLocalizationGate)
+        {
+            var lLocalizationTexts = new Dictionary<string, string>(
+                LLocalizationFallbackRead(), StringComparer.Ordinal);
+            foreach ((string lLocalizationKey, string lLocalizationText)
+                in lLocalizationCurrentCatalog?.LLocalizationCatalogValues ?? LLocalizationFallbackRead())
+            {
+                lLocalizationTexts[lLocalizationKey] = lLocalizationText;
+            }
+
+            return lLocalizationTexts;
+        }
+    }
+
+    public static IReadOnlyDictionary<string, string> LLocalizationFallbackRead()
+    {
+        lock (lLocalizationGate)
+        {
+            return lLocalizationFallbackCatalog?.LLocalizationCatalogValues
+                ?? new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+    }
+
     public static string LLocalizationTextRead(string lLocalizationKey)
     {
         lock (lLocalizationGate)

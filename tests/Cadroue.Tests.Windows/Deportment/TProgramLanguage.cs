@@ -13,6 +13,7 @@ public sealed class TProgramLanguage : IDisposable
     private static readonly Dictionary<string, string> tProgramResources = new(StringComparer.Ordinal)
     {
         ["localization.en.json"] = "{\"Terms.App\":\"Cadroue\",\"Localization.Language.Name\":\"English\"}",
+        ["localization.xx.json"] = "{\"Terms.App\":\"Cadroue\",\"Localization.Language.Name\":\"Testish\"}",
         ["localization.ffmpeg-error.en.json"] = "{}",
     };
 
@@ -53,5 +54,15 @@ public sealed class TProgramLanguage : IDisposable
 
         Assert.False(TInterface.TProgramLanguageNormalize());
         Assert.Equal("en", TInterface.TPreferenceCurrentRead().LPreferenceLanguage);
+    }
+
+    [Fact]
+    public void Load_LanguageChangeReachesCatalog()
+    {
+        TInterface.TProgramLanguageLoad("xx");
+        Assert.Equal("Testish", TInterface.TLocalizationCatalogRead("Localization.Language.Name"));
+
+        TInterface.TProgramLanguageLoad("en");
+        Assert.Equal("English", TInterface.TLocalizationCatalogRead("Localization.Language.Name"));
     }
 }

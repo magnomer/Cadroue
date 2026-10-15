@@ -1,4 +1,3 @@
-using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
 
@@ -95,13 +94,13 @@ public sealed class QToken
             return new QTokenPart(
                 lToken,
                 QTokenKind.QTokenOperator,
-                LLocalization.LLocalizationTextRead(lOperator.QTokenKey) + lCount,
+                QLocalizationCatalog.QLocalizationTextRead(lOperator.QTokenKey) + lCount,
                 lOperator.QTokenIcon,
                 lCount);
         }
 
         string lLabel = QTokenLabelKeys.TryGetValue(lToken, out string? lKey)
-            ? LLocalization.LLocalizationTextRead(lKey)
+            ? QLocalizationCatalog.QLocalizationTextRead(lKey)
             : lInner;
         return new QTokenPart(lToken, QTokenKind.QTokenChip, lLabel, string.Empty, lCount);
     }

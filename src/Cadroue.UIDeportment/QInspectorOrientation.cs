@@ -27,7 +27,7 @@ public sealed class QInspectorOrientation
 
     public string? QInspectorOrientationTip => qInspector.QInspectorOrientationCapable
         ? null
-        : LLocalization.LLocalizationTextRead("Inspector.Crop.RequiresTranspose");
+        : QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.RequiresTranspose");
 
     public LRotateFlip QInspectorRotateRead() => LRotateFlip.LRotateCropResolve(
         qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);

@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -38,7 +37,7 @@ public sealed class PLogWindow : Window
         pLogVerboseBox = PLogVerboseBuild();
         pLogFeed = PLogFeedBuild();
 
-        Title = LLocalization.LLocalizationTextRead("Log.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Log.Window.Title");
         Width = 860;
         Height = 560;
         MinWidth = 640;
@@ -157,7 +156,7 @@ public sealed class PLogWindow : Window
 
     private void PLogErrorShow(string pMessage)
     {
-        PSWarning.PSWarningShow(this, LLocalization.LLocalizationTextRead("Log.Window.Title"), pMessage);
+        PSWarning.PSWarningShow(this, QLocalizationCatalog.QLocalizationTextRead("Log.Window.Title"), pMessage);
     }
 
     private void PLogCloseHandle(object? sender, EventArgs e)
@@ -199,7 +198,7 @@ public sealed class PLogWindow : Window
 
         return PSDialog.PSDialogBuild(
             this,
-            LLocalization.LLocalizationTextRead("Log.Window.Title"),
+            QLocalizationCatalog.QLocalizationTextRead("Log.Window.Title"),
             pLogBody);
     }
 
@@ -209,11 +208,11 @@ public sealed class PLogWindow : Window
 
         Button pLogOpenButton = PSInline.PSInlineIconBuild(
             PLogOpenIcon,
-            LLocalization.LLocalizationTextRead("Log.Button.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Log.Button.Open"),
             new Thickness(0, 0, 8, 0));
         pLogOpenButton.Click += (_, _) => QLog.QLogFolderOpen();
         Button pLogCopyButton = PLogButtonBuild(
-            LLocalization.LLocalizationTextRead("Log.Button.Copy"),
+            QLocalizationCatalog.QLocalizationTextRead("Log.Button.Copy"),
             (_, _) => QLog.QLogTextCopy());
 
         DockPanel.SetDock(pLogFileCombo, Dock.Left);
@@ -240,7 +239,7 @@ public sealed class PLogWindow : Window
         var pLogPicker = new PPicker(
             QLog.QLogCategoriesRead(),
             Array.Empty<string>(),
-            LLocalization.LLocalizationTextRead("Log.Category.All"))
+            QLocalizationCatalog.QLocalizationTextRead("Log.Category.All"))
         {
             Width = 200,
             Height = PSField.PSFieldControlHeight,
@@ -280,13 +279,14 @@ public sealed class PLogWindow : Window
     {
         var pLogVerbose = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Log.Verbose.Label"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Log.Verbose.Label"),
             VerticalAlignment = VerticalAlignment.Center,
             IsChecked = LTrace.LTraceVerbose,
-            ToolTip = LLocalization.LLocalizationTextRead("Log.Verbose.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Log.Verbose.Tooltip")
         };
 
-        PCheckbox.PCheckboxApply(pLogVerbose);
+        PInteraction.PInteractionButtonAttach(pLogVerbose);
+        QCheckbox.QCheckboxAttach(pLogVerbose);
         pLogVerbose.Checked += (_, _) => QLog.QLogVerboseSet(true);
         pLogVerbose.Unchecked += (_, _) => QLog.QLogVerboseSet(false);
         return pLogVerbose;

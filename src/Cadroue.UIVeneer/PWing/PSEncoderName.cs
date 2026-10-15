@@ -3,8 +3,8 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.Application;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -23,56 +23,56 @@ internal sealed partial class PSEncoder
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(
-            PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Elements")));
+            PSField.PSFieldLabelBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Elements")));
 
         var pPanel = new WrapPanel();
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Prefix"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Prefix"),
                 "{Prefix}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.OriginalName"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.OriginalName"),
                 "{OriginalName}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionNumber"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.SectionNumber"),
                 "{SectionNumber}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionName"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.SectionName"),
                 "{SectionName}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionStart"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.SectionStart"),
                 "{SectionStart}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionEnd"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.SectionEnd"),
                 "{SectionEnd}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.SectionDuration"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.SectionDuration"),
                 "{SectionDuration}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Date"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Date"),
                 "{Date}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Time"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Time"),
                 "{Time}"));
         pPanel.Children.Add(
             PSNameTokenBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Suffix"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Suffix"),
                 "{Suffix}"));
         pPanel.Children.Add(
             PSNameOperatorBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Backspace"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Backspace"),
                 "Backspace"));
         pPanel.Children.Add(
             PSNameOperatorBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Delete"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Delete"),
                 "Delete"));
         Grid.SetColumn(pPanel, 1);
         pGrid.Children.Add(pPanel);

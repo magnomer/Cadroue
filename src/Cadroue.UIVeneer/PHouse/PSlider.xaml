@@ -1,0 +1,79 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:Double x:Key="PSliderFaded">0.45</sys:Double>
+    <sys:Double x:Key="PSliderHeavy">5</sys:Double>
+    <SolidColorBrush x:Key="PSliderRail" Color="#E4E9F0" />
+    <SolidColorBrush x:Key="PSliderAccent" Color="#4C86F7" />
+    <SolidColorBrush x:Key="PSliderDeep" Color="#2F6BDB" />
+    <SolidColorBrush x:Key="PSliderSoft" Color="#F7F9FC" />
+
+    <Style x:Key="PSliderThumb" TargetType="Thumb">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Grid Background="Transparent">
+                        <Ellipse x:Name="PSliderKnob"
+                                 Width="16"
+                                 Height="16"
+                                 Fill="White"
+                                 Stroke="{StaticResource PSliderAccent}"
+                                 StrokeThickness="2" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PSlider" TargetType="Slider">
+        <Setter Property="Height" Value="24" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Slider">
+                    <Grid x:Name="PSliderFrame" Background="Transparent" VerticalAlignment="Center" Height="24">
+                        <Border Height="4"
+                                CornerRadius="2"
+                                Background="{StaticResource PSliderRail}"
+                                VerticalAlignment="Center" />
+                        <Track x:Name="PART_Track">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton Focusable="False" OverridesDefaultStyle="True">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Grid Background="Transparent">
+                                                <Border x:Name="PSliderFill"
+                                                        Height="4"
+                                                        CornerRadius="2"
+                                                        Background="{StaticResource PSliderAccent}"
+                                                        VerticalAlignment="Center" />
+                                            </Grid>
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton Focusable="False" OverridesDefaultStyle="True">
+                                    <RepeatButton.Template>
+                                        <ControlTemplate TargetType="RepeatButton">
+                                            <Grid Background="Transparent" />
+                                        </ControlTemplate>
+                                    </RepeatButton.Template>
+                                </RepeatButton>
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="PSliderThumb"
+                                       Style="{StaticResource PSliderThumb}"
+                                       Width="16"
+                                       Height="16"
+                                       Focusable="False"
+                                       OverridesDefaultStyle="True" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

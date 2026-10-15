@@ -41,29 +41,35 @@ internal sealed partial class PSOptions
     private UIElement PSTimelineBuild()
     {
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Order"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.StripOrder"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.Order"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.StripOrder"),
                 psOptionsOrderMode)));
         pPanel.Children.Add(
-            PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
+            PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.KeyframeSpacing"),
             PSOptionsFieldBuild(
-                LLocalization.LLocalizationTextRead("Options.Timeline.Minimum"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.Minimum"),
                 psKeyframeSlider,
                 " px")));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelay"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Timeline.KeyframeDelay"),
             PSOptionsFieldBuild(
-                LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.KeyframeDelayLabel"),
                 psKeyframeDelaySlider,
                 " ms"),
-            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.KeyframeDelayNotice"))));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Overlapping"),
+            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead(
+                "Options.Timeline.KeyframeDelayNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Timeline.Overlapping"),
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Options.Timeline.OverlappingSections"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.OverlappingSections"),
                 psOptionsOverlapBox)));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.Waveform"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Timeline.ShowWaveforms"), psWaveformBox),
-            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Timeline.WaveformNotice"))));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Timeline.SectionPalette"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Timeline.Waveform"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.ShowWaveforms"),
+                psWaveformBox),
+            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.WaveformNotice"))));
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Timeline.SectionPalette"),
             PSSpectrumFieldBuild()));
         return pPanel;
     }
@@ -75,7 +81,7 @@ internal sealed partial class PSOptions
         var pSide = new StackPanel { VerticalAlignment = VerticalAlignment.Top, Width = PSField.PSFieldLabelWidth };
         pSide.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Options.Timeline.Palette"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.Palette"),
             Foreground = PSField.PSFieldMuted,
             Margin = new Thickness(0, 8, 0, 8)
         });
@@ -83,11 +89,11 @@ internal sealed partial class PSOptions
         var pButtons = new StackPanel { Orientation = Orientation.Horizontal };
         pButtons.Children.Add(PSSpectrumButtonBuild(
             PSSpectrumLoadIcon,
-            LLocalization.LLocalizationTextRead("Options.Timeline.LoadTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTooltip"),
             PSSpectrumLoad));
         pButtons.Children.Add(PSSpectrumButtonBuild(
             PSSpectrumSaveIcon,
-            LLocalization.LLocalizationTextRead("Options.Timeline.SaveTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.SaveTooltip"),
             PSSpectrumSave));
         pSide.Children.Add(pButtons);
 
@@ -139,8 +145,8 @@ internal sealed partial class PSOptions
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
-            Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTitle"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.JsonFilter"),
             InitialDirectory = lsSpectrum.QSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() != true)
@@ -162,8 +168,8 @@ internal sealed partial class PSOptions
             };
             PSWarning.PSWarningShow(
                 this,
-                LLocalization.LLocalizationTextRead("Options.Timeline.LoadTitle"),
-                LLocalization.LLocalizationTextRead(pMessageKey));
+                QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTitle"),
+                QLocalizationCatalog.QLocalizationTextRead(pMessageKey));
             return;
         }
 
@@ -175,8 +181,8 @@ internal sealed partial class PSOptions
     {
         var pDialog = new SaveFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Options.Timeline.SaveTitle"),
-            Filter = LLocalization.LLocalizationTextRead("Options.Timeline.JsonFilter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.SaveTitle"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.JsonFilter"),
             FileName = $"{lsSpectrum.QSSpectrumName}.json",
             InitialDirectory = lsSpectrum.QSSpectrumFolderRead()
         };
@@ -257,7 +263,7 @@ internal sealed partial class PSOptions
             Height = PSSpectrumRemoveSize,
             Margin = new Thickness(8, 0, 0, 6),
             VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = LLocalization.LLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
+            ToolTip = QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
             Content = new Image
             {
                 Source = QIcon.QIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
@@ -274,11 +280,11 @@ internal sealed partial class PSOptions
     {
         bool pConfirmed = PSAlert.PSAlertConfirm(
             this,
-            LLocalization.LLocalizationTextRead("Options.Timeline.RemoveTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.RemoveTitle"),
             LSectionPalette.LSectionNativeCheck(pName)
-                ? LLocalization.LLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
-                : LLocalization.LLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
-            LLocalization.LLocalizationTextRead("Terms.Remove"));
+                ? QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
+                : QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Remove"));
         if (!pConfirmed
             || !lsSpectrum.QSSpectrumRemove(
                 pName,

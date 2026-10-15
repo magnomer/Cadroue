@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -30,21 +31,22 @@ public sealed partial class PInspector
 
         pInspectorRatioFixed = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.FixedRatio"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.FixedRatio"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pInspectorRatioFixed);
+        PInteraction.PInteractionButtonAttach(pInspectorRatioFixed);
+        QCheckbox.QCheckboxAttach(pInspectorRatioFixed);
         PInspectorSwitchAttach(
             pInspectorRatioFixed, QInspector.QInspectorRatio.QInspectorFixedSet);
 
         pInspectorRatioLenient = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.Lenient"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.LenientTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Lenient"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.LenientTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
@@ -52,7 +54,8 @@ public sealed partial class PInspector
             IsEnabled = false,
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pInspectorRatioLenient);
+        PInteraction.PInteractionButtonAttach(pInspectorRatioLenient);
+        QCheckbox.QCheckboxAttach(pInspectorRatioLenient);
         PInspectorSwitchAttach(
             pInspectorRatioLenient, QInspector.QInspectorRatio.QInspectorLenientSet);
 
@@ -66,8 +69,9 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
 
-        pInspectorFlipHorizontal = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Horizontal"));
-        pInspectorFlipVertical = PCropCheckBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Vertical"));
+        pInspectorFlipHorizontal = PCropCheckBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Inspector.Crop.Horizontal"));
+        pInspectorFlipVertical = PCropCheckBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Vertical"));
         PInspectorSwitchAttach(
             pInspectorFlipHorizontal, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(true, pFlipped));
         PInspectorSwitchAttach(
@@ -76,21 +80,23 @@ public sealed partial class PInspector
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
         PInspectorSwitchAttach(pInspectorApplyBox, QInspectorCrop.QInspectorApplySet);
         pInspectorPersistentBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
         PInspectorSwitchAttach(pInspectorPersistentBox, QInspectorCrop.QInspectorPersistentSet);
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Tool"), pInspectorCropTool));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Tool"),
+                pInspectorCropTool));
         pInspectorCropStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Flip"), PCropFlipBuild()));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Flip"), PCropFlipBuild()));
         pInspectorCropStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Rotate"), pInspectorRotateCombo));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Rotate"),
+                pInspectorRotateCombo));
         pInspectorCropStack.Children.Add(PInspectorEdgeBuild());
         pInspectorCropStack.Children.Add(PCropRatioBuild());
         pInspectorCropStack.Children.Add(pInspectorRatioFixed);
@@ -140,7 +146,8 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 14, 0)
         };
-        PCheckbox.PCheckboxApply(pFlip);
+        PInteraction.PInteractionButtonAttach(pFlip);
+        QCheckbox.QCheckboxAttach(pFlip);
         return pFlip;
     }
 

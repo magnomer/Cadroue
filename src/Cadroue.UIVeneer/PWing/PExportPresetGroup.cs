@@ -34,7 +34,7 @@ public sealed partial class PExport
                 Source = QIcon.QIconRead(pCollapsed ? PExportExpandIcon : PExportCollapseIcon, PExportMutedBrush),
                 Stretch = Stretch.Uniform
             },
-            ToolTip = LLocalization.LLocalizationTextRead(pCollapsed
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pCollapsed
                 ? "ExportPreset.Group.Expand"
                 : "ExportPreset.Group.Collapse"),
             Width = 22,

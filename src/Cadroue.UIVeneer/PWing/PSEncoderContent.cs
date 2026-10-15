@@ -1,4 +1,4 @@
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,9 +18,9 @@ internal sealed partial class PSEncoder
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        var pApply = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Apply"));
-        var pOk = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.OK"));
-        var pCancel = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Button.Cancel"));
+        var pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Apply"));
+        var pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.OK"));
+        var pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Cancel"));
         pApply.Click += (_, _) => PSEncoderApply();
         pOk.Click += (_, _) => { PSEncoderApply(); DialogResult = true; };
         pCancel.Click += (_, _) => Close();

@@ -130,13 +130,13 @@ public sealed class QSOptions
         return lOccupied ? lCurrent : lFolder;
     }
 
-    public static string QSOptionsLevelTitle => LLocalization.LLocalizationTextRead("Options.Work.Priority");
+    public static string QSOptionsLevelTitle => QLocalizationCatalog.QLocalizationTextRead("Options.Work.Priority");
 
     public static string[] QSOptionsLevelNames =>
     [
-        LLocalization.LLocalizationTextRead("Options.Work.PriorityLow"),
-        LLocalization.LLocalizationTextRead("Options.Work.PriorityNormal"),
-        LLocalization.LLocalizationTextRead("Options.Work.PriorityHigh")
+        QLocalizationCatalog.QLocalizationTextRead("Options.Work.PriorityLow"),
+        QLocalizationCatalog.QLocalizationTextRead("Options.Work.PriorityNormal"),
+        QLocalizationCatalog.QLocalizationTextRead("Options.Work.PriorityHigh")
     ];
 
     public IReadOnlyList<QSOptionsLevel> QSOptionsLevelsRead() =>
@@ -148,7 +148,7 @@ public sealed class QSOptions
 
     private QSOptionsLevel QSOptionsLevelCreate(LCustodyFamily lFamily, string lKey) =>
         new(
-            LLocalization.LLocalizationTextRead(lKey),
+            QLocalizationCatalog.QLocalizationTextRead(lKey),
             qsOptionsDraft.LPreferenceLevelRead(lFamily),
             lLevel => qsOptionsDraft.LPreferenceLevelSet(lFamily, lLevel));
 

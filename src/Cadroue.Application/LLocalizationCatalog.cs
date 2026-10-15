@@ -17,17 +17,17 @@ public sealed class LLocalizationCatalog
         @"(?:^|\.)(?:Key|Text|Value|Label|Item|Thing)\d+(?:\.|$)",
         RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Compiled);
 
-    private readonly IReadOnlyDictionary<string, string> lLocalizationCatalogValues;
-
     private LLocalizationCatalog(
         string lLocalizationCatalogCode,
         IReadOnlyDictionary<string, string> lLocalizationCatalogValues)
     {
         LLocalizationCatalogCode = lLocalizationCatalogCode;
-        this.lLocalizationCatalogValues = lLocalizationCatalogValues;
+        LLocalizationCatalogValues = lLocalizationCatalogValues;
     }
 
     public string LLocalizationCatalogCode { get; }
+
+    public IReadOnlyDictionary<string, string> LLocalizationCatalogValues { get; }
 
     public string LLocalizationCatalogName =>
         LLocalizationCatalogRead("Localization.Language.Name") ?? LLocalizationCatalogCode;
@@ -109,7 +109,7 @@ public sealed class LLocalizationCatalog
     }
 
     public string? LLocalizationCatalogRead(string lLocalizationKey) =>
-        lLocalizationCatalogValues.TryGetValue(lLocalizationKey, out string? lLocalizationText)
+        LLocalizationCatalogValues.TryGetValue(lLocalizationKey, out string? lLocalizationText)
             ? lLocalizationText
             : null;
 

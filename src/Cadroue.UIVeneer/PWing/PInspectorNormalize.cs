@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -26,13 +25,13 @@ public sealed partial class PInspector
     private StackPanel PLoudnessBodyBuild()
     {
         pLoudnessApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.ApplyTooltip"));
         PInspectorSwitchAttach(pLoudnessApplyBox, QLoudness.QLoudnessActiveSet);
 
         pLoudnessPersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Normalize.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.PersistentTooltip"));
         PInspectorSwitchAttach(pLoudnessPersistent, QLoudness.QLoudnessPersistentSet);
 
         pLoudnessPreset = PInspectorChoiceBuild(
@@ -48,15 +47,16 @@ public sealed partial class PInspector
 
         pLoudnessTwoPass = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Normalize.TwoPass"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Normalize.TwoPassTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.TwoPass"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.TwoPassTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pLoudnessTwoPass);
+        PInteraction.PInteractionButtonAttach(pLoudnessTwoPass);
+        QCheckbox.QCheckboxAttach(pLoudnessTwoPass);
         PInspectorSwitchAttach(pLoudnessTwoPass, QLoudness.QLoudnessTwopassSet);
 
         pLoudnessStack = new StackPanel();
@@ -68,7 +68,7 @@ public sealed partial class PInspector
 
         var pNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Normalize.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.Notice"),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorMutedBrush,
@@ -76,12 +76,13 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 4, 0, 0)
         };
 
-        string pPresetLabel = LLocalization.LLocalizationTextRead("Inspector.Common.Preset");
+        string pPresetLabel = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset");
         pLoudnessPresetRow = PInspectorFieldBuild(pPresetLabel, pLoudnessPreset);
         pDynamicPresetRow = PInspectorFieldBuild(pPresetLabel, pDynamicPreset);
         pLoudnessPanel = new StackPanel();
         pLoudnessPanel.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Normalize.Mode"), pLoudnessMode));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Normalize.Mode"),
+                pLoudnessMode));
         pLoudnessPanel.Children.Add(pLoudnessPresetRow);
         pLoudnessPanel.Children.Add(pDynamicPresetRow);
         pLoudnessPanel.Children.Add(pLoudnessStack);

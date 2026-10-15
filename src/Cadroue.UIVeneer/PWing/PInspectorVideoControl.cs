@@ -49,8 +49,8 @@ public sealed partial class PInspector
             Value = pValue,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PSlider.PSliderApply(pSlider);
-        PSlider.PSliderResetApply(pSlider, () => pValue);
+        QSlider.QSliderAttach(pSlider);
+        QSlider.QSliderResetAttach(pSlider, () => pValue);
         return pSlider;
     }
 

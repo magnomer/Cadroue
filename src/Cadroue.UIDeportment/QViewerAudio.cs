@@ -14,8 +14,8 @@ public sealed class QViewerAudio
     private double qViewerVolume = LPreference.LPreferenceStateCurrent.LPreferenceVolume;
     private readonly IReadOnlyDictionary<bool, string> qViewerSwitchTips = new Dictionary<bool, string>
     {
-        [true] = LLocalization.LLocalizationTextRead("Viewer.Audio.SwitchTooltip"),
-        [false] = LLocalization.LLocalizationTextRead("Viewer.Audio.MpvRequired"),
+        [true] = QLocalizationCatalog.QLocalizationTextRead("Viewer.Audio.SwitchTooltip"),
+        [false] = QLocalizationCatalog.QLocalizationTextRead("Viewer.Audio.MpvRequired"),
     };
 
     public QViewerAudio(QPlayer lPlayer)
@@ -32,7 +32,7 @@ public sealed class QViewerAudio
     public double QViewerVolume => qViewerVolume;
 
     public QViewerSwitch QViewerSwitchRead() => new(
-        LLocalization.LLocalizationTextRead(qViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered"),
+        QLocalizationCatalog.QLocalizationTextRead(qViewerBypass ? "Viewer.Audio.Original" : "Viewer.Audio.Filtered"),
         qViewerSwitchTips[qViewerCapable],
         qViewerCapable);
 

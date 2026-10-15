@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
@@ -25,7 +24,7 @@ public sealed class QLogRow
         QLogRowCategory = lEntry.LTraceEntryKind;
         QLogRowKey = QLogKeyRead(lEntry.LTraceEntryKind);
         QLogRowTime = lEntry.LTraceEntryTime;
-        QLogRowKind = LLocalization.LLocalizationTextRead(QLogRowKey);
+        QLogRowKind = QLocalizationCatalog.QLocalizationTextRead(QLogRowKey);
         QLogRowSummary = lEntry.LTraceEntrySummary;
         QLogRowDetail = lEntry.LTraceEntryDetail ?? string.Empty;
         QLogRowDetailed = lEntry.LTraceEntryDetailed;
@@ -51,7 +50,7 @@ public sealed class QLogRow
     public bool QLogRowExpanded { get; internal set; }
 
     public string QLogRowChip =>
-        LLocalization.LLocalizationTextRead("Log.Button.Details") + (QLogRowExpanded ? "  ▴" : "  ▾");
+        QLocalizationCatalog.QLocalizationTextRead("Log.Button.Details") + (QLogRowExpanded ? "  ▴" : "  ▾");
 
     public static string QLogKeyRead(LTraceKind lKind) => QLogRowKeys.GetValueOrDefault(lKind, QLogInfoKey);
 }

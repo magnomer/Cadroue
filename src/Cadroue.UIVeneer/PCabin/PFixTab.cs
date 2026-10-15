@@ -25,7 +25,7 @@ public sealed class PFixTab : PTabSurface
         pClinic = new PClinic(QFixTab.QFixClinic);
         pProcessing = new PProcessing(QFixTab.QFixProcessing);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
+        pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QFixTab.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;

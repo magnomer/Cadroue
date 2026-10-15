@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -52,7 +51,7 @@ internal sealed class PSWarning : Window
         };
 
         Button pConfirm = PSFooter.PSFooterButtonBuild(
-            LLocalization.LLocalizationTextRead("Terms.OK"));
+            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
         pConfirm.Foreground = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
         pConfirm.BorderBrush = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
         pConfirm.Click += (_, _) => Close();

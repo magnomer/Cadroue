@@ -7,7 +7,6 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using FlyleafLib;
 using FlyleafLib.Controls.WPF;
-using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
 using Cadroue.UIDeportment;
@@ -83,7 +82,7 @@ internal sealed class PSLoupe : Window
             [false] = null,
         };
         QSLoupe.QSLoupeFloatRestore();
-        Title = LLocalization.LLocalizationTextRead("Loupe.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Loupe.Window.Title");
         Owner = pOwner;
         Width = PSLoupeWidthDefault;
         Height = PSLoupeHeightDefault;

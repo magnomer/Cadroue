@@ -5,7 +5,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Cadroue.UIDeportment;
-using Cadroue.Application;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
 
@@ -58,7 +57,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource = pSource;
         psMonitorFlow = pFlow;
         psMonitorViewer = pViewer;
-        Title = LLocalization.LLocalizationTextRead("NormalizePreview.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("NormalizePreview.Window.Title");
         Owner = pOwner;
         ShowInTaskbar = true;
         Width = PSMonitorWidthDefault;
@@ -104,7 +103,8 @@ internal sealed partial class PSMonitor : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button psClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("NormalizePreview.Close"));
+        Button psClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "NormalizePreview.Close"));
         psClose.Click += (_, _) => Close();
         psFooter.Children.Add(psClose);
         DockPanel.SetDock(psFooter, Dock.Bottom);

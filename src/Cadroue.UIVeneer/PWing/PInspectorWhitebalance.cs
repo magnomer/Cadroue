@@ -22,11 +22,11 @@ public sealed partial class PInspector
     private StackPanel PWhitebalanceBuild()
     {
         pWhitebalanceBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyWhitebalance"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyWhitebalance"));
         pWhitebalancePersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
         PInspectorSwitchAttach(pWhitebalanceBox, QWhitebalance.QWhitebalanceActiveSet);
         PInspectorSwitchAttach(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistentSet);
         pWhitebalanceMethod = new ComboBox
@@ -62,10 +62,10 @@ public sealed partial class PInspector
             QWhitebalance.QWhitebalanceSaturationSet);
         pWhitebalanceStack = new StackPanel();
         pWhitebalanceMethodField = PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
             pWhitebalanceMethod);
         pWhitebalanceSaturationField = PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
             pWhitebalanceSaturationSlider,
             "%",
             pWhitebalanceSaturationValue);
@@ -75,7 +75,7 @@ public sealed partial class PInspector
         pWhitebalanceStack.Children.Add(pWhitebalanceSaturationField);
         pWhitebalanceStack.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceWarning"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceWarning"),
             Foreground = new System.Windows.Media.SolidColorBrush(
                 System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
             TextWrapping = TextWrapping.Wrap,
@@ -83,8 +83,8 @@ public sealed partial class PInspector
         });
         var pWhitebalanceReset = new Button
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceReset"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceReset"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip"),
             Height = 28,
             MinWidth = 64,
             Padding = new Thickness(8, 0, 8, 0),

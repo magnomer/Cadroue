@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -48,7 +47,7 @@ internal sealed class PSKeymap : Window
             psKeymapChords[pChord.QSKeymapChordToken] = new PSKeymapChord(lsKeymap, pChord);
         }
 
-        Title = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Title");
         Owner = pOwner;
         Width = PSKeymapWidthDefault;
         Height = PSKeymapHeightDefault;
@@ -72,7 +71,7 @@ internal sealed class PSKeymap : Window
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
-        string pScopeTitle = LLocalization.LLocalizationTextRead(
+        string pScopeTitle = QLocalizationCatalog.QLocalizationTextRead(
             Cadroue.Infrastructure.LBinding.LBindingLabelRead(pScope));
         return PSSheet.PSSheetBuild(
             pScopeTitle,
@@ -90,7 +89,7 @@ internal sealed class PSKeymap : Window
 
         pRows.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Notice"),
             Foreground = PSField.PSFieldMuted,
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 4, 0, 0)
@@ -109,7 +108,7 @@ internal sealed class PSKeymap : Window
 
         var pLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(pCommand.LBindingCommandKey),
+            Text = QLocalizationCatalog.QLocalizationTextRead(pCommand.LBindingCommandKey),
             Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center,
             TextWrapping = TextWrapping.Wrap,
@@ -128,7 +127,8 @@ internal sealed class PSKeymap : Window
         var pRoot = new DockPanel { Background = Brushes.White };
         var pFooter = new DockPanel { Margin = new Thickness(12) };
 
-        Button pReset = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Reset"));
+        Button pReset = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Chrome.Shortcuts.Reset"));
         pReset.Width = 140;
         pReset.Click += (_, _) => PSKeymapDefaultApply();
         DockPanel.SetDock(pReset, Dock.Left);
@@ -139,9 +139,11 @@ internal sealed class PSKeymap : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        Button pApply = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Apply"));
-        Button pOk = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.OK"));
-        Button pCancel = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Options.Button.Cancel"));
+        Button pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Apply"));
+        Button pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Button.OK"));
+        Button pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Cancel"));
         pApply.Click += (_, _) => PSKeymapApply();
         pOk.Click += (_, _) => { PSKeymapApply(); Close(); };
         pCancel.Click += (_, _) => Close();

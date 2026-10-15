@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -34,8 +33,8 @@ public sealed class QSummary
             QSummaryCompares =
             [
                 QSummaryCompareCreate(
-                    LLocalization.LLocalizationTextRead("Roster.Section.Source"),
-                    LLocalization.LLocalizationTextRead("Roster.Section.Output"),
+                    QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Source"),
+                    QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Output"),
                     QRosterDetail.QRosterLineHead),
                 QSummaryCompareCreate(
                     QRosterFormatter.QRosterMebiFormat(lSourceBytes),
@@ -77,6 +76,6 @@ public sealed class QSummary
 
     public static string QSummaryFilesFormat(int lCount) =>
         lCount == 1
-            ? LLocalization.LLocalizationTextRead("Roster.Summary.FileOne")
-            : LLocalization.LLocalizationFormat("Roster.Summary.FileMany", lCount);
+            ? QLocalizationCatalog.QLocalizationTextRead("Roster.Summary.FileOne")
+            : QLocalizationCatalog.QLocalizationFormat("Roster.Summary.FileMany", lCount);
 }

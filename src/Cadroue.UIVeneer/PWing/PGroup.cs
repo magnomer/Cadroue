@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -66,7 +65,7 @@ public sealed class PGroup : PPanel
 
         pGroupEmptyNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Group.Empty.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Group.Empty.Notice"),
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             Foreground = pGroupMutedBrush,
@@ -189,15 +188,15 @@ public sealed class PGroup : PPanel
         };
         pButtons.Children.Add(PGroupButtonBuild(
             "/PAsset/PPanel/PGroupStrict.svg",
-            LLocalization.LLocalizationTextRead("Group.Strict.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Strict.Tooltip"),
             (_, _) => QGroup.QGroupStrictApply()));
         pButtons.Children.Add(PGroupButtonBuild(
             "/PAsset/PPanel/PGroupLoose.svg",
-            LLocalization.LLocalizationTextRead("Group.Loose.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Loose.Tooltip"),
             (_, _) => QGroup.QGroupLooseApply()));
         Button pSortButton = PGroupButtonBuild(
             "/PAsset/PPanel/PSort.svg",
-            LLocalization.LLocalizationTextRead("Group.Sort.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Sort.Tooltip"),
             (_, _) => QGroup.QGroupSort());
         pSortButton.Margin = new Thickness(0);
         pButtons.Children.Add(pSortButton);
@@ -254,7 +253,7 @@ public sealed class PGroup : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Group.Header.Title"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Group.Header.Title"),
             FontSize = 12,
             FontFamily = pGroupFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -264,7 +263,7 @@ public sealed class PGroup : PPanel
 
         Button pMinimizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("Group.Panel.HideTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Panel.HideTooltip"),
             (_, _) => QGroup.QGroupMinimizedSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
@@ -290,7 +289,7 @@ public sealed class PGroup : PPanel
     {
         Button pMaximizeButton = PGroupButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("Group.Panel.ShowTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Panel.ShowTooltip"),
             (_, _) => QGroup.QGroupMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;

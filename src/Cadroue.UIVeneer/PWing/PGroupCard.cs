@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -91,7 +90,7 @@ public sealed class PGroupCard
 
         Button pRemoveButton = PGroup.PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("Group.Remove.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Remove.Tooltip"),
             (_, _) => lGroup.QGroupRemove(lCard.QGroupCardIndex));
         pRemoveButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -112,7 +111,7 @@ public sealed class PGroupCard
             Foreground = pGroupTitleBrush,
             VerticalAlignment = VerticalAlignment.Center,
             TextTrimming = TextTrimming.CharacterEllipsis,
-            ToolTip = LLocalization.LLocalizationTextRead("Group.Rename.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Group.Rename.Tooltip")
         };
         pNameLabel.MouseLeftButtonDown += (_, pNameEvent) =>
             pNameEvent.Handled = lGroup.QGroupName.QGroupLabelHandle(lCard.QGroupCardIndex, pNameEvent.ClickCount);
@@ -171,7 +170,7 @@ public sealed class PGroupCard
 
         Button pItemRemoveButton = PGroup.PGroupButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("Group.Item.RemoveTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Group.Item.RemoveTooltip"),
             (_, _) => lGroup.QGroupItemRemove(lFile.QGroupFileGroup, lFile.QGroupFilePath));
         pItemRemoveButton.Width = 22;
         pItemRemoveButton.Height = 20;

@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -65,7 +64,7 @@ internal sealed class PSAlert : Window
         };
 
         Button pCancelButton = PSFooter.PSFooterButtonBuild(
-            pCancel ?? LLocalization.LLocalizationTextRead("Terms.Cancel"));
+            pCancel ?? QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"));
         pCancelButton.IsCancel = true;
         pCancelButton.Click += (_, _) => Close();
 

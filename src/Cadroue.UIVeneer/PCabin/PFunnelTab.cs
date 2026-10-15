@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
@@ -22,7 +21,7 @@ public sealed class PFunnelTab : PTabSurface
         QFunnelTab = lWorkspace.QWorkspaceMode.QFunnelTabCreate();
         pFunnelRules = new PFunnelRules(QFunnelTab.QFunnel);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.FunnelAll.Tooltip"));
+        pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
         pTabGrid = PTabGridBuild(
             lWorkspace.QWorkspaceMode,

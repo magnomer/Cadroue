@@ -35,8 +35,9 @@ public sealed class TPlacementGate
         bool written = false;
 
         Assert.False(tPlacementArea.CPlacementSave(
-            "loupe", left, top, width, height, (_, _, _, _, _) => written = true));
+            "loupe", left, top, width, height, (_, _, _, _, _) => (written = true, null)));
         Assert.False(written);
+        Assert.Empty(tPlacementPort.TPlacementCalls);
     }
 
     [Fact]
@@ -47,9 +48,9 @@ public sealed class TPlacementGate
         Assert.True(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (key, left, top, width, height) =>
         {
             writes.Add($"{key}:{left},{top},{width},{height}");
-            return true;
+            return (true, null);
         }));
-        Assert.False(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (_, _, _, _, _) => false));
+        Assert.False(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (_, _, _, _, _) => (false, null)));
         Assert.Equal(["loupe:1,2,3,4"], writes);
     }
 
@@ -98,8 +99,9 @@ public sealed class TPlacementGate
     public void PlacementRecords_EachFailure_ReachesThePortInOrder()
     {
         tPlacementArea.CPlacementUnreadableRecord(new InvalidDataException("bad"));
-        tPlacementArea.CPlacementBlockedRecord("loupe", new InvalidDataException("worse"));
-        tPlacementArea.CPlacementUnsavedRecord("loupe");
+        Assert.False(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (_, _, _, _, _) => (false, "worse")));
+        Assert.False(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (_, _, _, _, _) => (false, null)));
+        Assert.True(tPlacementArea.CPlacementSave("loupe", 1, 2, 3, 4, (_, _, _, _, _) => (true, null)));
 
         Assert.Equal(
             ["unreadable:bad", "unreadable:worse", "blocked:loupe", "unsaved:loupe"], tPlacementPort.TPlacementCalls);

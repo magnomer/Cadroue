@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
@@ -33,7 +32,7 @@ public sealed class PEditTab : PTabSurface
         pInspector = new PInspector(QEditTab.QEditInspector);
         pProcessing = new PProcessing(QEditTab.QEditProcessing);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.EditAll.Tooltip"));
+        pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QEditProcessing.QEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;

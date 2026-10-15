@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -38,31 +39,36 @@ internal sealed partial class PSOptions
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlaybackEngineBuild());
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Autoplay"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Playback.Autoplay"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Autoplay"),
                 psOptionsAutoplayBox)));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumePlate"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.VolumeMode"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Playback.VolumePlate"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.VolumeMode"),
                 psOptionsVolumeMode),
             PSOptionsFieldBuild(
-                LLocalization.LLocalizationTextRead("Options.Playback.DefaultVolume"),
+                QLocalizationCatalog.QLocalizationTextRead("Options.Playback.DefaultVolume"),
                 psOptionsVolumeSlider,
                 "%")));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Mousewheel"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.OverTimeline"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Playback.Mousewheel"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.OverTimeline"),
                 psOptionsWheelMode)));
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Dragging"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.WhileDragging"),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Playback.Dragging"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.WhileDragging"),
                 psOptionsDragBox)));
         return pPanel;
     }
 
     private UIElement PSPlaybackEngineBuild()
     {
-        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Playback.Preview"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Playback.Engine"), psOptionsEngineMode),
+        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Preview"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.Engine"),
+                psOptionsEngineMode),
             PSSystemFlyleafBuild(),
             PSSystemMpvBuild(),
-            PSNotice.PSNoticeBuild(LLocalization.LLocalizationTextRead("Options.Playback.MpvEditNotice")));
+            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Playback.MpvEditNotice")));
     }
 }

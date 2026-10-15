@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -77,7 +76,8 @@ internal sealed class PSVerdict : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("Encoder.Verification.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Encoder.Verification.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
@@ -98,7 +98,7 @@ internal sealed class PSVerdict : Window
         {
             return new TextBlock
             {
-                Text = LLocalization.LLocalizationTextRead("Encoder.Verification.NotRun"),
+                Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.NotRun"),
                 Foreground = PSField.PSFieldMuted,
                 Margin = new Thickness(0, 4, 0, 8)
             };
@@ -138,7 +138,7 @@ internal sealed class PSVerdict : Window
     {
         var pHeader = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(pKey),
+            Text = QLocalizationCatalog.QLocalizationTextRead(pKey),
             Foreground = PSField.PSFieldMuted,
             FontWeight = FontWeights.SemiBold,
             Margin = new Thickness(0, 0, 10, 0)
@@ -218,7 +218,7 @@ internal sealed class PSVerdict : Window
         Margin = new Thickness(0, 0, 10, 0),
         Child = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(pSuccess
+            Text = QLocalizationCatalog.QLocalizationTextRead(pSuccess
                 ? "Encoder.Verification.Available"
                 : "Encoder.Verification.Unavailable"),
             Foreground = pSuccess ? PSVerdictPassInk : PSVerdictFailInk,
@@ -237,7 +237,7 @@ internal sealed class PSVerdict : Window
     };
 
     private static string PSVerdictChipFormat(bool pShown) =>
-        LLocalization.LLocalizationTextRead("Encoder.Verification.Details") + (pShown ? "  ▴" : "  ▾");
+        QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Details") + (pShown ? "  ▴" : "  ▾");
 
     private static Brush PSVerdictBrushCreate(byte pRed, byte pGreen, byte pBlue)
     {

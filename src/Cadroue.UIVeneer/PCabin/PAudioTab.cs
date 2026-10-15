@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
@@ -34,7 +33,7 @@ public sealed class PAudioTab : PTabSurface
         pProcessing.PProcessingMonitorSet();
 
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AudioAll.Tooltip"));
+        pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.AudioAll.Tooltip"));
 
         QAudioTab.QAudioPresetMissing += PExport.PExportMissingShow;
         QAudioTab.QAudioPresetIncompatible += PExport.PExportIncompatibleShow;

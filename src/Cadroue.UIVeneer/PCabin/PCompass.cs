@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Application;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
@@ -59,7 +58,7 @@ public sealed class PCompass : UserControl
             Maximum = QCompass.QCompassVolumeMaximum,
             VerticalAlignment = VerticalAlignment.Center,
             Focusable = false,
-            ToolTip = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Compass.Volume.Label"),
             Style = PCompassSliderBuild()
         };
         pCompassTrackFill = new Border
@@ -193,7 +192,7 @@ public sealed class PCompass : UserControl
         pStack.Children.Add(new Border { Height = 1 });
         pStack.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Compass.Waveform.Label"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Compass.Waveform.Label"),
             FontSize = 11,
             HorizontalAlignment = HorizontalAlignment.Center,
             TextAlignment = TextAlignment.Center
@@ -205,7 +204,7 @@ public sealed class PCompass : UserControl
             Height = 58,
             Content = pStack,
             Style = PHouse.PButton.PButtonCommandCreate(),
-            ToolTip = LLocalization.LLocalizationTextRead("Compass.Waveform.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Compass.Waveform.Tooltip")
         };
         pButton.Click += (_, _) => QCompass.QCompassWaveformToggle();
         return pButton;
@@ -237,7 +236,7 @@ public sealed class PCompass : UserControl
         FrameworkElement pIcon = PCompassIconBuild();
         var pLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Compass.Volume.Label"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Compass.Volume.Label"),
             FontSize = 11,
             Foreground = new SolidColorBrush(Color.FromRgb(0x2D, 0x37, 0x48)),
             VerticalAlignment = VerticalAlignment.Center,

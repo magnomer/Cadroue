@@ -1,5 +1,5 @@
 using System.Windows.Controls;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -15,11 +15,11 @@ public sealed partial class PInspector
     private StackPanel PExposureBuild()
     {
         pExposureBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyExposure"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyExposure"));
         pExposurePersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.PersistExposure"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistExposure"));
         PInspectorSwitchAttach(pExposureBox, QExposure.QExposureActiveSet);
         PInspectorSwitchAttach(pExposurePersistent, QExposure.QExposurePersistentSet);
         pExposureSlider = PToneSliderBuild(-3, 3, 0);
@@ -34,7 +34,7 @@ public sealed partial class PInspector
             QExposure.QExposureValueSet);
         pExposureStack = new StackPanel();
         pExposureStack.Children.Add(PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Amount"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
             pExposureSlider,
             "EV",
             pExposureValue));

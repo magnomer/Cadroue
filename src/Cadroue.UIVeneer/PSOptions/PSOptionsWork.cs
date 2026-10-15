@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -14,7 +13,7 @@ internal sealed partial class PSOptions
     private UIElement PSWorkBuild()
     {
         UIElement pRetryRow = PSOptionsFieldBuild(
-            LLocalization.LLocalizationTextRead("Options.Work.RetryLimit"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Work.RetryLimit"),
             psOptionsRetrySlider,
             string.Empty);
         pRetryRow.IsEnabled = psOptionsRetryBox.IsChecked == true;
@@ -22,9 +21,10 @@ internal sealed partial class PSOptions
         psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;
 
         var pPanel = new StackPanel();
-        pPanel.Children.Add(PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("Options.Work.Failure"),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.OnFailure"), psOptionsFailureBox),
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
+        pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.Failure"),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.OnFailure"),
+                psOptionsFailureBox),
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.Retry"), psOptionsRetryBox),
             pRetryRow));
         pPanel.Children.Add(PSPlate.PSPlateBuild(
             QSOptions.QSOptionsLevelTitle,

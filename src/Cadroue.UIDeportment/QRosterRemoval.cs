@@ -1,4 +1,3 @@
-using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
 
@@ -16,7 +15,7 @@ public sealed class QRosterRemoval
         }
 
         QAsk? lAsk = QAskNotice.QAskCreate(
-            () => LLocalization.LLocalizationFormat("Roster.Card.Confirm", lRemovable.Count),
+            () => QLocalizationCatalog.QLocalizationFormat("Roster.Card.Confirm", lRemovable.Count),
             "Terms.Remove",
             "Console.Confirm.Title");
         QAskNotice.QAskPublish(lAsk, lAnswer => QRosterRemoveRun(lAnswer, lRemovable));
@@ -36,7 +35,7 @@ public sealed class QRosterRemoval
     {
         if (lMessage is not null)
         {
-            QRosterWarningShown?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
+            QRosterWarningShown?.Invoke(QLocalizationCatalog.QLocalizationTextRead("Console.Remove.Title"), lMessage);
         }
     }
 }

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -26,7 +25,7 @@ public static class PViewerControl
             HorizontalAlignment = HorizontalAlignment.Right,
             VerticalAlignment = VerticalAlignment.Top,
             Margin = new Thickness(0, 16, pRightMargin, 0),
-            ToolTip = LLocalization.LLocalizationTextRead(pTipKey),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTipKey),
             Visibility = Visibility.Collapsed,
             Style = PButton.PButtonPanelCreate()
         };

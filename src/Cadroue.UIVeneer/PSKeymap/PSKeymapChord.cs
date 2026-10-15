@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -87,12 +86,12 @@ internal sealed class PSKeymapChord : Button
         {
             Content = lsKeymapChord.QSKeymapChordPending.Length > 0
                 ? lsKeymapChord.QSKeymapChordPending
-                : LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Capture");
+                : QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Capture");
             return;
         }
 
         Content = lsKeymapChord.QSKeymapChordGesture.Length > 0
             ? lsKeymapChord.QSKeymapChordGesture
-            : LLocalization.LLocalizationTextRead("Chrome.Shortcuts.Unassigned");
+            : QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Unassigned");
     }
 }

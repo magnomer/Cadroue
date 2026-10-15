@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -73,8 +72,8 @@ public sealed record QSensorPlan(
             lMinimum.LDetectorBoundMost));
         return new QSensorPlan(
             lKind,
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Detector.ApplyTooltip"),
             lRows,
             QSensorGroupCreate(
                 "Inspector.Detector.StillMode", QSensorModeKeys, lKind == LDetectorKind.LDetectorKindStill),
@@ -82,7 +81,7 @@ public sealed record QSensorPlan(
                 "Inspector.Detector.LuminanceMode", QSensorSpeedKeys, lKind == LDetectorKind.LDetectorKindLuminance),
             QSensorGroupCreate(
                 "Inspector.Detector.Metric", QSensorMetricKeys, lKind == LDetectorKind.LDetectorKindVolume),
-            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset"),
             QSensorPreset.QSensorPresetCheck(lKind));
     }
 
@@ -92,8 +91,8 @@ public sealed record QSensorPlan(
             : "Inspector.Common.Custom";
 
     private static QSensorGroup QSensorGroupCreate(string lLabelKey, string[] lKeys, bool lShown) => new(
-        LLocalization.LLocalizationTextRead(lLabelKey),
-        lKeys.Select(LLocalization.LLocalizationTextRead).ToList(),
+        QLocalizationCatalog.QLocalizationTextRead(lLabelKey),
+        lKeys.Select(QLocalizationCatalog.QLocalizationTextRead).ToList(),
         lShown);
 
     private static (string, string, string) QSensorShapeRead(LDetectorKind lKind) => lKind switch

@@ -4,6 +4,7 @@ using Microsoft.Win32;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -12,7 +13,8 @@ public sealed partial class PExport
 {
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
-        string lPresetName = LPreset.LPresetNameCreate(LLocalization.LLocalizationTextRead("ExportPreset.DefaultName"));
+        string lPresetName = LPreset.LPresetNameCreate(QLocalizationCatalog.QLocalizationTextRead(
+            "ExportPreset.DefaultName"));
         PExportPresetSave(lPresetName);
     }
 
@@ -27,8 +29,8 @@ public sealed partial class PExport
     private void PExportFailureShow(string lPresetName) =>
         PSWarning.PSWarningShow(
             Window.GetWindow(this),
-            LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
-            LLocalization.LLocalizationFormat("ExportPreset.Error.Write", lPresetName));
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Export"),
+            QLocalizationCatalog.QLocalizationFormat("ExportPreset.Error.Write", lPresetName));
 
     private void PExportPresetDelete(object sender, RoutedEventArgs e)
     {
@@ -59,12 +61,12 @@ public sealed partial class PExport
 
         var pDialog = new SaveFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
-            Filter = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Filter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Export"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
             DefaultExt = "json",
             AddExtension = true,
             FileName = string.IsNullOrWhiteSpace(pFileName)
-                ? LLocalization.LLocalizationTextRead("ExportPreset.Dialog.DefaultFile")
+                ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.DefaultFile")
                 : $"{pFileName}.json"
         };
 
@@ -77,8 +79,8 @@ public sealed partial class PExport
         {
             PSWarning.PSWarningShow(
                 Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Export"),
-                LLocalization.LLocalizationTextRead("ExportPreset.Error.Catalogue"));
+                QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Export"),
+                QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Error.Catalogue"));
             return;
         }
 
@@ -92,8 +94,8 @@ public sealed partial class PExport
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
-            Filter = LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Filter"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Import"),
+            Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
             DefaultExt = "json",
             CheckFileExists = true
         };
@@ -112,8 +114,8 @@ public sealed partial class PExport
         {
             PSWarning.PSWarningShow(
                 Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
-                LLocalization.LLocalizationFormat("ExportPreset.Error.Read", pError.Message));
+                QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Import"),
+                QLocalizationCatalog.QLocalizationFormat("ExportPreset.Error.Read", pError.Message));
             return;
         }
 
@@ -121,8 +123,8 @@ public sealed partial class PExport
         {
             PSWarning.PSWarningShow(
                 Window.GetWindow(this),
-                LLocalization.LLocalizationTextRead("ExportPreset.Dialog.Import"),
-                LLocalization.LLocalizationTextRead("ExportPreset.Error.Invalid"));
+                QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Import"),
+                QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Error.Invalid"));
             return;
         }
 
@@ -130,7 +132,7 @@ public sealed partial class PExport
 
         string lPresetName = LPreset.LPresetNameCreate(
             string.IsNullOrWhiteSpace(lImportedName)
-                ? LLocalization.LLocalizationTextRead("ExportPreset.ImportedName")
+                ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ImportedName")
                 : lImportedName);
 
         lImportedRecord.LPresetName = lPresetName;

@@ -50,8 +50,8 @@ public sealed class QListFace
                 .Select((lEntry, lIndex) => QListRowCreate(lEntry, lIndex < lGroup.Length - 1))
                 .ToArray();
             string lTitle = lGroup.Length == 1
-                ? LLocalization.LLocalizationTextRead("List.Locked.SummaryOne")
-                : LLocalization.LLocalizationFormat("List.Locked.SummaryMany", lGroup.Length);
+                ? QLocalizationCatalog.QLocalizationTextRead("List.Locked.SummaryOne")
+                : QLocalizationCatalog.QLocalizationFormat("List.Locked.SummaryMany", lGroup.Length);
             lCards.Add(new QListCard(true, lTitle, lRows));
         }
 
@@ -75,7 +75,7 @@ public sealed class QListFace
     {
         string lPath = lItem.LDocketEntryPath;
         string lTip = lItem.LDocketEntryLocked
-            ? $"{lPath}\n{LLocalization.LLocalizationTextRead("List.Locked.Tooltip")}"
+            ? $"{lPath}\n{QLocalizationCatalog.QLocalizationTextRead("List.Locked.Tooltip")}"
             : lPath;
         return new QListRow(
             lPath, qListUsher.CUsherNameRead(lPath), lTip, QListStateRead(lPath), lItem.LDocketEntryLocked, lLast);

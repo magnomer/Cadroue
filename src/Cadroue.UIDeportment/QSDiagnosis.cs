@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
@@ -57,7 +56,7 @@ public sealed class QSDiagnosis
 
     public static IReadOnlyList<QSDiagnosisItem> QSDiagnosisAudioItems => qsDiagnosisAudioItems;
 
-    public string QSDiagnosisTitle => LLocalization.LLocalizationTextRead("Diagnosis.Window.Title");
+    public string QSDiagnosisTitle => QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Window.Title");
 
     public bool QSDiagnosisChecking => qsDiagnosisFeature is null;
 

@@ -315,5 +315,7 @@
     "Validate",
     "Zoom"
   ],
-  "exempt": {}
+  "exempt": {
+    "PART_Track": ["*"]
+  }
 }

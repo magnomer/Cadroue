@@ -25,23 +25,23 @@ internal sealed partial class PSEncoder
         psLocationFolderLabel = PSField.PSFieldLabelBuild(string.Empty);
         psLocationBrowse = PSInline.PSInlineIconBuild(
             PSLocationBrowseIcon,
-            LLocalization.LLocalizationTextRead("Encoder.Location.Browse"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Browse"),
             new Thickness(8, 0, 0, 0));
         psLocationBrowse.Click += (_, _) => PSLocationCustomRead();
         psLocationFolderRow = PSFieldLabelledBuild(psLocationFolderLabel, psLocationFolderBox, psLocationBrowse);
         pPanel.Children.Add(
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Name"), psNameBox));
         pPanel.Children.Add(PSNameRowBuild());
         pPanel.Children.Add(PSLocationFieldBuild(psLocationStatus));
         pPanel.Children.Add(psLocationFolderRow);
         psOutputContainerCombo.SelectionChanged += (_, _) => PSOutputContainerHandle();
         pPanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Container"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Container"),
                 psOutputContainerCombo));
         pPanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Extension"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Extension"),
                 psOutputExtensionCombo));
 
         psOutputSuffixLabel = PSField.PSFieldLabelBuild(string.Empty);
@@ -50,7 +50,7 @@ internal sealed partial class PSEncoder
         psOutputCollisionCombo.SelectionChanged += (_, _) => PSOutputSuffixUpdate();
         pPanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Field.Output.Collision"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Collision"),
                 psOutputCollisionCombo));
         pPanel.Children.Add(psOutputSuffixRow);
         PSOutputSuffixUpdate();
@@ -86,7 +86,8 @@ internal sealed partial class PSEncoder
             psOutputSuffixBox.Text = pSuffix;
             if (psOutputSuffixLabel is not null)
             {
-                psOutputSuffixLabel.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderSuffixResolve(pMode));
+                psOutputSuffixLabel.Text = QLocalizationCatalog.QLocalizationTextRead(QSEncoder.QSEncoderSuffixResolve(
+                    pMode));
             }
         }
 

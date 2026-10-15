@@ -62,7 +62,7 @@ public sealed class QWhitebalance
     public bool QWhitebalanceGuideShown => QWhitebalanceGuideRead().Length > 0;
 
     public string QWhitebalanceGuideRead() => qWhitebalanceToolArmed
-        ? LLocalization.LLocalizationTextRead(qWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite
+        ? QLocalizationCatalog.QLocalizationTextRead(qWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite
             ? "Inspector.Video.WhitebalanceGuideWhite"
             : "Inspector.Video.WhitebalanceGuide")
         : qWhitebalanceStatus;
@@ -91,7 +91,7 @@ public sealed class QWhitebalance
             lDisplay.LNeutralDisplaySampled
                 ? string.Format(
                     CultureInfo.InvariantCulture,
-                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
+                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
                     lDisplay.LNeutralDisplayRed,
                     lDisplay.LNeutralDisplayGreen,
                     lDisplay.LNeutralDisplayBlue)

@@ -65,14 +65,14 @@ public sealed class QViewerRenderer
         return new QViewerEnginePlan(
             new QViewerEngineChoice(
                 LRenderer.LRendererFlyleafToken,
-                LLocalization.LLocalizationTextRead("Processing.Engine.Flyleaf"),
-                LLocalization.LLocalizationTextRead("Processing.Engine.FlyleafTooltip"),
+                QLocalizationCatalog.QLocalizationTextRead("Processing.Engine.Flyleaf"),
+                QLocalizationCatalog.QLocalizationTextRead("Processing.Engine.FlyleafTooltip"),
                 !lMpv,
                 true),
             new QViewerEngineChoice(
                 LRenderer.LRendererMpvToken,
-                LLocalization.LLocalizationTextRead("Processing.Engine.Mpv"),
-                LLocalization.LLocalizationTextRead(
+                QLocalizationCatalog.QLocalizationTextRead("Processing.Engine.Mpv"),
+                QLocalizationCatalog.QLocalizationTextRead(
                     lInstalled ? "Processing.Engine.MpvTooltip" : "Processing.Engine.MpvMissing"),
                 lMpv,
                 lInstalled));
