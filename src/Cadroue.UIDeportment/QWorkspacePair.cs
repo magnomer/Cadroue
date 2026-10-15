@@ -6,7 +6,7 @@ public sealed class QWorkspacePair
 {
     private readonly bool qWorkspacePairSection;
 
-    public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher, CWorkspace lWorkspace)
+    public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher, CInfo lInfo, CWorkspace lWorkspace)
     {
         qWorkspacePairSection = qWorkspaceKey.QWorkspaceSectionVisible;
         QWorkspaceFlow = new QFlow(lUsher);
@@ -18,7 +18,7 @@ public sealed class QWorkspacePair
         QWorkspaceSource = qWorkspaceKey.QWorkspaceSourcePresent
             ? new QSource(lUsher, QWorkspaceViewer, qWorkspaceKey.QWorkspaceAudioOnly)
             : null;
-        QWorkspaceInfo = qWorkspaceKey.QWorkspaceSourcePresent ? new QInfo(QWorkspaceViewer) : null;
+        QWorkspaceInfo = qWorkspaceKey.QWorkspaceSourcePresent ? new QInfo(QWorkspaceViewer, lInfo) : null;
     }
 
     public QFlow QWorkspaceFlow { get; }

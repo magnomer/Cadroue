@@ -6,6 +6,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -72,7 +73,7 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 6, 0, 0)
         };
-        PSlider.PSliderApply(pWhitebalanceWheelBrightness);
+        QSlider.QSliderAttach(pWhitebalanceWheelBrightness);
         pWhitebalanceWheelBrightness.ValueChanged += (_, _) =>
             pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
 

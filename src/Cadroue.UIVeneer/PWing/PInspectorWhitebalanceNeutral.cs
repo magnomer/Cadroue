@@ -76,7 +76,7 @@ public sealed partial class PInspector
         };
 
         UIElement pInspectorNeutralField = PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalancePicker"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalancePicker"),
             pInspectorNeutralTools,
             true);
 
@@ -109,7 +109,7 @@ public sealed partial class PInspector
         var pPickerTool = new ToggleButton
         {
             Content = pPickerIcon,
-            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
             Width = 32,
             Height = 32,
             VerticalAlignment = VerticalAlignment.Center,

@@ -1,4 +1,3 @@
-using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
 
@@ -46,8 +45,10 @@ public sealed class QSMonitor : IDisposable
     public double QSMonitorOffset => qMonitorOffset;
 
     public QSMonitorFace QSMonitorFaceRead() => qMonitorPlaying
-        ? new QSMonitorFace("PCompassPause.svg", LLocalization.LLocalizationTextRead("NormalizePreview.PauseTooltip"))
-        : new QSMonitorFace("PCompassPlay.svg", LLocalization.LLocalizationTextRead("NormalizePreview.PlayTooltip"));
+        ? new QSMonitorFace("PCompassPause.svg", QLocalizationCatalog.QLocalizationTextRead(
+            "NormalizePreview.PauseTooltip"))
+        : new QSMonitorFace("PCompassPlay.svg", QLocalizationCatalog.QLocalizationTextRead(
+            "NormalizePreview.PlayTooltip"));
 
     public QSMonitorScrollbar QSMonitorScrollRead()
     {

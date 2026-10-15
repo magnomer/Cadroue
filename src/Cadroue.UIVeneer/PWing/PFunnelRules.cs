@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,7 +51,7 @@ public sealed class PFunnelRules : PPanel
         pFunnelRowGrid = new Grid { Margin = new Thickness(12, 12, 12, 12) };
         pFunnelEmptyNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Empty"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Empty"),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelMutedBrush,
@@ -191,7 +190,7 @@ public sealed class PFunnelRules : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Title"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Title"),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -251,22 +250,22 @@ public sealed class PFunnelRules : PPanel
             Height = 26,
             Margin = new Thickness(0, 0, 2, 0),
             Style = PButton.PButtonPanelCreate(),
-            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey)
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey)
         };
     }
 
     private void PFunnelMenuShow(UIElement pTarget)
     {
         MenuItem pFilenameItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Filename"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Filename"));
         pFilenameItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormFilename);
 
         MenuItem pRegexItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Regex"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Regex"));
         pRegexItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormRegex);
 
         MenuItem pRemainderItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead("Inspector.Funnel.Remainder"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remainder"));
         pRemainderItem.IsEnabled = !lFunnel.QFunnelRemainderCheck();
         pRemainderItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormRemainder);
 

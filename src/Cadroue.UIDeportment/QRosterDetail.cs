@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -177,8 +176,8 @@ public sealed class QRosterDetail
         return
         [
             new QRosterCompareRow(
-                new QRosterLine(LLocalization.LLocalizationTextRead("Roster.Section.Source"), QRosterLineHead),
-                new QRosterLine(LLocalization.LLocalizationTextRead("Roster.Section.Output"), QRosterLineHead)),
+                new QRosterLine(QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Source"), QRosterLineHead),
+                new QRosterLine(QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Output"), QRosterLineHead)),
             QRosterCompareCreate(
                 lSourceBytes is { } lSourceWhole && lSourceWhole >= 0
                     ? QRosterFormatter.QRosterMebiFormat(lSourceBytes)
@@ -332,5 +331,5 @@ public sealed class QRosterDetail
 
     private static QRosterDetailRow QRosterRowCreate(
         string lLabelKey, string lValue, string lKey = QRosterValuePlain) =>
-        new(LLocalization.LLocalizationTextRead(lLabelKey), lValue, lKey);
+        new(QLocalizationCatalog.QLocalizationTextRead(lLabelKey), lValue, lKey);
 }

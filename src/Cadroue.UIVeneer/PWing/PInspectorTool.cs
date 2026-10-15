@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -22,7 +21,7 @@ public sealed partial class PInspector
         var pToolButton = new ToggleButton
         {
             Content = pInspectorToolIcon,
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.DrawTooltip"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.DrawTooltip"),
             Width = 32,
             Height = 32,
             VerticalAlignment = VerticalAlignment.Center,

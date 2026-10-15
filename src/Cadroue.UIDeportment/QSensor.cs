@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -71,7 +70,7 @@ public sealed class QSensor
     public int QSensorMetricIndex => Array.IndexOf(QSensorMetrics, qSensorMetric);
 
     public string QSensorRunText =>
-        LLocalization.LLocalizationTextRead(qSensorRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
+        QLocalizationCatalog.QLocalizationTextRead(qSensorRunning ? "Inspector.Detect.Stop" : "Inspector.Detect.Run");
 
     public LDetectorStillMode QSensorMode => qSensorMode;
 

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -20,11 +21,11 @@ public sealed partial class PInspector
     private StackPanel PCurveBuild()
     {
         pCurveBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.ApplyCurve"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyCurve"));
         pCurvePersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Video.PersistCurve"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistCurve"));
         PInspectorSwitchAttach(pCurveBox, QCurve.QCurveActiveSet);
         PInspectorSwitchAttach(pCurvePersistent, QCurve.QCurvePersistentSet);
 
@@ -83,12 +84,12 @@ public sealed partial class PInspector
 
         pCurveStack = new StackPanel();
         pCurveStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.CurveChannel"), pCurveChannel));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveChannel"), pCurveChannel));
         pCurveStack.Children.Add(pCurveCanvasHost);
         pCurveStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.CurveInput"), pCurveInputValue));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveInput"), pCurveInputValue));
         pCurveStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Video.CurveOutput"), pCurveOutputValue));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveOutput"), pCurveOutputValue));
         pCurveStack.Children.Add(pCurveButtons);
 
         pCurveBody = PToneBodyBuild(pCurveBox, pCurveStack);
@@ -99,7 +100,7 @@ public sealed partial class PInspector
     {
         var pButton = new Button
         {
-            Content = LLocalization.LLocalizationTextRead(pLabelKey),
+            Content = QLocalizationCatalog.QLocalizationTextRead(pLabelKey),
             Height = 28,
             MinWidth = 64,
             Padding = new Thickness(8, 0, 8, 0),

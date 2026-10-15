@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.ShellEngine;
 
@@ -158,14 +157,15 @@ public sealed class QConsole
         }
 
         string lSubject = lRunningItems.Length > 1
-            ? LLocalization.LLocalizationFormat("Console.Cancel.MultipleSubject", lRunningItems.Length)
-            : LLocalization.LLocalizationFormat("Console.Cancel.SingleSubject", lRunningItems[0].LWorkOutputName);
+            ? QLocalizationCatalog.QLocalizationFormat("Console.Cancel.MultipleSubject", lRunningItems.Length)
+            : QLocalizationCatalog.QLocalizationFormat("Console.Cancel.SingleSubject",
+                lRunningItems[0].LWorkOutputName);
         var lAsk = new QAsk(
-            LLocalization.LLocalizationFormat("Console.Cancel.Confirm", lSubject),
-            LLocalization.LLocalizationTextRead("Terms.Stop"))
+            QLocalizationCatalog.QLocalizationFormat("Console.Cancel.Confirm", lSubject),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Stop"))
         {
-            QAskTitle = LLocalization.LLocalizationTextRead("Console.Cancel.Title"),
-            QAskDismiss = LLocalization.LLocalizationTextRead("Console.Cancel.Keep")
+            QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Cancel.Title"),
+            QAskDismiss = QLocalizationCatalog.QLocalizationTextRead("Console.Cancel.Keep")
         };
         QAskNotice.QAskPublish(lAsk, lAnswer => QConsoleCancelRun(lAnswer, lRunningItems));
     }
@@ -194,7 +194,7 @@ public sealed class QConsole
     {
         if (QConsoleRemovalFormat(lOutcomes) is { } lMessage)
         {
-            QConsoleWarningShown?.Invoke(LLocalization.LLocalizationTextRead("Console.Remove.Title"), lMessage);
+            QConsoleWarningShown?.Invoke(QLocalizationCatalog.QLocalizationTextRead("Console.Remove.Title"), lMessage);
         }
     }
 
@@ -208,11 +208,11 @@ public sealed class QConsole
         }
 
         string lDetail = lHeld > 0 && lBlocked > 0
-            ? LLocalization.LLocalizationFormat("Console.Remove.HeldAndBlocked", lHeld, lBlocked)
+            ? QLocalizationCatalog.QLocalizationFormat("Console.Remove.HeldAndBlocked", lHeld, lBlocked)
             : lHeld > 0
-                ? LLocalization.LLocalizationFormat("Console.Remove.Held", lHeld)
-                : LLocalization.LLocalizationFormat("Console.Remove.Blocked", lBlocked);
-        return LLocalization.LLocalizationFormat(
+                ? QLocalizationCatalog.QLocalizationFormat("Console.Remove.Held", lHeld)
+                : QLocalizationCatalog.QLocalizationFormat("Console.Remove.Blocked", lBlocked);
+        return QLocalizationCatalog.QLocalizationFormat(
             "Console.Remove.Partial", lOutcomes.Count - lHeld - lBlocked, lOutcomes.Count, lDetail);
     }
 
@@ -263,8 +263,9 @@ public sealed class QConsole
     }
 
     private static QAsk QConsoleAskCreate(string lQuestionKey, string lActionKey) =>
-        new(LLocalization.LLocalizationTextRead(lQuestionKey), LLocalization.LLocalizationTextRead(lActionKey))
+        new(QLocalizationCatalog.QLocalizationTextRead(lQuestionKey), QLocalizationCatalog.QLocalizationTextRead(
+            lActionKey))
         {
-            QAskTitle = LLocalization.LLocalizationTextRead("Console.Confirm.Title")
+            QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Confirm.Title")
         };
 }

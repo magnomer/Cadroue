@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
@@ -14,7 +15,8 @@ internal sealed partial class PSOptions
             IsChecked = pChecked,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PCheckbox.PCheckboxApply(pCheck);
+        PInteraction.PInteractionButtonAttach(pCheck);
+        QCheckbox.QCheckboxAttach(pCheck);
         return pCheck;
     }
 
@@ -27,7 +29,7 @@ internal sealed partial class PSOptions
             Value = Math.Clamp(pValue, pMinimum, pMaximum),
             Width = 260
         };
-        PSlider.PSliderApply(pSlider);
+        QSlider.QSliderAttach(pSlider);
         return pSlider;
     }
 

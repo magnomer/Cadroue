@@ -2,7 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -37,7 +37,7 @@ internal sealed partial class PSEncoder
             || string.Equals(pTrim, "Same as source", StringComparison.Ordinal)
             || string.Equals(
                 pTrim,
-                LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source"),
                 StringComparison.Ordinal);
     }
 
@@ -68,7 +68,7 @@ internal sealed partial class PSEncoder
     private void PSVideoFpsBuild(Panel pHost)
     {
         psVideoFpsNotice = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.FpsSource"));
 
         if (PSVideoSourceCheck(psVideoFpsCustom.Text))
         {
@@ -119,14 +119,14 @@ internal sealed partial class PSEncoder
             pSync = false;
         };
 
-        pHost.Children.Add(PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.FPS"),
+        pHost.Children.Add(PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.FPS"),
             PSFader.PSFaderRowBuild(pSlider, psVideoFpsCustom)));
         pHost.Children.Add(psVideoFpsNotice);
     }
 
     private void PSVideoFpsApply()
     {
-        psVideoFpsCustom.Text = LLocalization.LLocalizationTextRead("Encoder.Sample.Source");
+        psVideoFpsCustom.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source");
         psVideoFpsCustom.Foreground = PSField.PSFieldMuted;
         if (psVideoFpsNotice is not null)
         {

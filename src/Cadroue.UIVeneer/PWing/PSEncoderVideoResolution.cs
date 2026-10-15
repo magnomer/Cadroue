@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -25,7 +24,7 @@ internal sealed partial class PSEncoder
         psVideoHeightLabel = PSField.PSFieldLabelBuild(string.Empty);
 
         pHost.Children.Add(PSField.PSFieldBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Video.Field.Size"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.Size"),
             PSFader.PSFaderRowBuild(psVideoResolutionSlider, psVideoResolutionValue)));
         pHost.Children.Add(
             PSVideoDimensionBuild(
@@ -36,7 +35,7 @@ internal sealed partial class PSEncoder
                 psVideoHeightLabel,
                 PSFader.PSFaderRowBuild(psVideoHeightSlider, psVideoHeightBox)));
         psVideoSizeNotice = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
         pHost.Children.Add(psVideoSizeNotice);
 
         psVideoResolutionSlider.ValueChanged += (_, _) =>
@@ -96,7 +95,7 @@ internal sealed partial class PSEncoder
 
     private static string PSVideoDimensionFormat(int pValue, bool pSource) =>
         pSource
-            ? LLocalization.LLocalizationTextRead("Encoder.Sample.Source")
+            ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
             : pValue > 0 ? pValue.ToString(CultureInfo.InvariantCulture) : string.Empty;
 
     private void PSVideoSizeApply()
@@ -120,9 +119,9 @@ internal sealed partial class PSEncoder
         if (psVideoResolutionValue is not null)
         {
             psVideoResolutionValue.Text = pCustom
-                ? LLocalization.LLocalizationTextRead("Encoder.Value.Custom")
+                ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Value.Custom")
                 : pSource
-                    ? LLocalization.LLocalizationTextRead("Encoder.Sample.Source")
+                    ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
                     : QSEncoder.QSEncoderTiers[pTier].QSEncoderTierLabel;
         }
 
@@ -179,9 +178,9 @@ internal sealed partial class PSEncoder
         }
 
         bool pReactive = psVideoReactiveBox.IsChecked == true;
-        psVideoWidthLabel.Text = LLocalization.LLocalizationTextRead(
+        psVideoWidthLabel.Text = QLocalizationCatalog.QLocalizationTextRead(
             pReactive ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width");
-        psVideoHeightLabel.Text = LLocalization.LLocalizationTextRead(
+        psVideoHeightLabel.Text = QLocalizationCatalog.QLocalizationTextRead(
             pReactive ? "Encoder.Video.Field.AxisY" : "Encoder.Video.Field.Height");
     }
 }

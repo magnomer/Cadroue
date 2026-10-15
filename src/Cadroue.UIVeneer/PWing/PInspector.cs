@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -41,7 +40,7 @@ public sealed partial class PInspector : PPanel
         QInspector = lInspector;
         pInspectorTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Header.Title"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Header.Title"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -51,7 +50,7 @@ public sealed partial class PInspector : PPanel
 
         Button pMinimizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("Inspector.Panel.HideTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.HideTooltip"),
             () => QInspector.QInspectorMinimizedSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -73,7 +72,7 @@ public sealed partial class PInspector : PPanel
 
         pInspectorEmptyNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Empty.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Empty.Notice"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorMutedBrush,
@@ -268,7 +267,7 @@ public sealed partial class PInspector : PPanel
     {
         Button pMaximizeButton = PInspectorButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("Inspector.Panel.ShowTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Panel.ShowTooltip"),
             () => QInspector.QInspectorMinimizedSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;

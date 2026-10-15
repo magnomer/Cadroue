@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 
@@ -61,7 +62,7 @@ public sealed partial class PExport
             else if (!pPresetNative && !pUserHeaderAdded)
             {
                 pPresetRowPanel.Children.Add(PExportGroupBuild(
-                    LLocalization.LLocalizationTextRead("ExportPreset.Group.User"),
+                    QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Group.User"),
                     LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
                         PExportUserGroup,
                         false),

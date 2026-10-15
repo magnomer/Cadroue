@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PWing;
 
@@ -51,7 +50,7 @@ internal static class PRosterDetail
 
     private static void PRosterEmptyAdd(StackPanel pPanel, QRoster lRoster) =>
         pPanel.Children.Add(
-            PRosterOverview.PRosterNoteBuild(LLocalization.LLocalizationTextRead("Roster.Empty.Notice"),
+            PRosterOverview.PRosterNoteBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Empty.Notice"),
                 new Thickness(0)));
 
     private static void PRosterCardAdd(StackPanel pPanel, QRoster lRoster) =>
@@ -63,7 +62,7 @@ internal static class PRosterDetail
         lDetail.QRosterDetailFailures.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
 
         pPanel.Children.Add(
-            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Overview")));
+            PRosterOverview.PRosterSectionBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Overview")));
         lDetail.QRosterDetailTabs.ToList().ForEach(lTab => pPanel.Children.Add(PRosterOverview.PRosterTabBuild(lTab)));
         lDetail.QRosterDetailMeters.ToList().ForEach(
             lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
@@ -72,18 +71,20 @@ internal static class PRosterDetail
         pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         pPanel.Children.Add(
-            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.Record")));
+            PRosterOverview.PRosterSectionBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Section.Record")));
         lDetail.QRosterDetailRecords.ToList().ForEach(lRow => pPanel.Children.Add(PRosterRowBuild(lRow)));
         pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         var pVideoPanel = new StackPanel();
         pVideoPanel.Children.Add(
-            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingVideo")));
+            PRosterOverview.PRosterSectionBuild(QLocalizationCatalog.QLocalizationTextRead(
+                "Roster.Section.EncodingVideo")));
         lDetail.QRosterDetailVideos.ToList().ForEach(lRow => pVideoPanel.Children.Add(PRosterRowBuild(lRow)));
 
         var pAudioPanel = new StackPanel { Margin = new Thickness(14, 0, 0, 0) };
         pAudioPanel.Children.Add(
-            PRosterOverview.PRosterSectionBuild(LLocalization.LLocalizationTextRead("Roster.Section.EncodingAudio")));
+            PRosterOverview.PRosterSectionBuild(QLocalizationCatalog.QLocalizationTextRead(
+                "Roster.Section.EncodingAudio")));
         lDetail.QRosterDetailAudios.ToList().ForEach(lRow => pAudioPanel.Children.Add(PRosterRowBuild(lRow)));
 
         pPanel.Children.Add(PRosterOverview.PRosterHalvesBuild(pVideoPanel, pAudioPanel));

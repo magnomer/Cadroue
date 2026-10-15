@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIDeportment;
 
@@ -13,11 +12,11 @@ internal sealed partial class PSEncoder
     {
         var pPanel = new StackPanel();
         var pVerify = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Button.Verify"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify"),
             84,
             new Thickness(8, 0, 0, 0));
         var pLog = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Result"),
             64,
             new Thickness(6, 0, 0, 0));
         pLog.IsEnabled = lsEncoder.QSEncoderVideoResults.Count > 0;
@@ -44,7 +43,7 @@ internal sealed partial class PSEncoder
 
         psVideoEncodePanel.Children.Add(
             PSField.PSFieldButtonBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Video.Field.Encoder"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.Encoder"),
                 psVideoEncoderCombo,
                 pVerify,
                 pLog,
@@ -52,7 +51,7 @@ internal sealed partial class PSEncoder
         psVideoEncodePanel.Children.Add(psVideoEncoderNotice);
         psVideoEncodePanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Video.Field.RateControl"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.RateControl"),
                 psVideoRateCombo));
         psVideoEncodePanel.Children.Add(psVideoRowsPanel);
         PSVideoResolutionBuild(psVideoEncodePanel);
@@ -60,16 +59,16 @@ internal sealed partial class PSEncoder
         psVideoReactiveBox.Unchecked += (_, _) => PSVideoReactiveApply();
         psVideoEncodePanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Video.Field.Reactive"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.Reactive"),
                 psVideoReactiveBox));
         PSVideoFpsBuild(psVideoEncodePanel);
         psVideoEncodePanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Video.Field.PixelFormat"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.PixelFormat"),
                 psVideoPixelCombo));
 
         pPanel.Children.Add(
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.Mode"), psVideoMode));
         pPanel.Children.Add(psVideoEncodePanel);
         pPanel.Children.Add(psVideoNotice);
 
@@ -83,11 +82,12 @@ internal sealed partial class PSEncoder
     {
         var pReactiveBox = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Encoder.Video.Orientation"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Orientation"),
             IsChecked = pReactive,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PCheckbox.PCheckboxApply(pReactiveBox);
+        PInteraction.PInteractionButtonAttach(pReactiveBox);
+        QCheckbox.QCheckboxAttach(pReactiveBox);
         return pReactiveBox;
     }
 
@@ -98,7 +98,7 @@ internal sealed partial class PSEncoder
 
         psVideoEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psVideoNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
-        psVideoNotice.Text = LLocalization.LLocalizationTextRead(PSVideoNoticeRead(pMode));
+        psVideoNotice.Text = QLocalizationCatalog.QLocalizationTextRead(PSVideoNoticeRead(pMode));
     }
 
     private string PSVideoNoticeRead(string pMode) => lsEncoder.QSEncoderNoticeResolve(pMode);
@@ -186,8 +186,8 @@ internal sealed partial class PSEncoder
 
         string pRange = pQuality.LCapabilityQualityRange;
         psVideoRowsPanel.Children.Add(PSNotice.PSNoticeBuild(string.IsNullOrEmpty(pRange)
-            ? LLocalization.LLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.LCapabilityQualityOption)
-            : LLocalization.LLocalizationFormat(
+            ? QLocalizationCatalog.QLocalizationFormat("Encoder.Video.FFmpegOption", pQuality.LCapabilityQualityOption)
+            : QLocalizationCatalog.QLocalizationFormat(
                 "Encoder.Video.FFmpegOptionRange",
                 pQuality.LCapabilityQualityOption,
                 pRange)));

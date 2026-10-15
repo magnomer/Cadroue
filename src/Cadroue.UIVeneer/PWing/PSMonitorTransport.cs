@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.Application;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -80,7 +79,7 @@ internal sealed partial class PSMonitor
             BorderBrush = psMonitorGridFill,
             BorderThickness = new Thickness(1),
             Cursor = Cursors.Hand,
-            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
             Content = new Image
             {
                 Width = 18,
@@ -108,14 +107,14 @@ internal sealed partial class PSMonitor
     {
         var psRadio = new RadioButton
         {
-            Content = LLocalization.LLocalizationTextRead(pLabelKey),
+            Content = QLocalizationCatalog.QLocalizationTextRead(pLabelKey),
             GroupName = "PSMonitorAudio",
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = PSField.PSFieldMuted,
             Cursor = Cursors.Hand,
             VerticalContentAlignment = VerticalAlignment.Center,
-            ToolTip = LLocalization.LLocalizationTextRead(pTooltipKey),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
             Margin = new Thickness(PSMonitorRadioLeft, 8, 12, 0),
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top

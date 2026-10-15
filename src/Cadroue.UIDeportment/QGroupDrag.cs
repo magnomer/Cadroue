@@ -1,4 +1,3 @@
-using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
 
@@ -76,7 +75,7 @@ public sealed class QGroupDrag
             return true;
         }
 
-        string lName = LLocalization.LLocalizationFormat("Group.Default.Name", qGroup.QGroupRecords.Count + 1);
+        string lName = QLocalizationCatalog.QLocalizationFormat("Group.Default.Name", qGroup.QGroupRecords.Count + 1);
         return lMoveIndex is { } lSourceIndex && lMovePath is { } lPath
             ? qGroup.QGroupAdd([lPath], lName, lSourceIndex)
             : qGroup.QGroupAdd(lListPaths ?? [], lName);

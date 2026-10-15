@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -52,7 +51,7 @@ internal sealed class PSAnnouncement : Window
         };
 
         Button pConfirm = PSFooter.PSFooterButtonBuild(
-            LLocalization.LLocalizationTextRead("Terms.OK"));
+            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
         pConfirm.Click += (_, _) => Close();
 
         pFooter.Children.Add(pConfirm);

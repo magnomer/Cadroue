@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -77,7 +76,7 @@ public sealed class QFunnel
     public IReadOnlyList<QFunnelTarget> QFunnelOptionsRead() =>
         QFunnelTargetsRead()
             .Prepend(new QFunnelTarget(
-                Guid.Empty, LLocalization.LLocalizationTextRead("Inspector.Funnel.RelayNone"), string.Empty))
+                Guid.Empty, QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.RelayNone"), string.Empty))
             .ToArray();
 
     public IReadOnlyList<QFunnelSlot> QFunnelSlotsRead() =>

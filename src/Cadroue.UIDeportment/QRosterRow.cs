@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -79,12 +78,12 @@ public sealed record QRosterRow
 
         if (lOwned)
         {
-            return LLocalization.LLocalizationTextRead("Roster.Owner.ThisTab");
+            return QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.ThisTab");
         }
 
         return lWorkItem.LWorkOwnerProcess == Environment.ProcessId
-            ? LLocalization.LLocalizationTextRead("Roster.Owner.OtherTab")
-            : LLocalization.LLocalizationTextRead("Roster.Owner.OtherWindow");
+            ? QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.OtherTab")
+            : QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.OtherWindow");
     }
 
     public static string QRosterProgressFormat(LWorkItem lWorkItem) =>
@@ -94,8 +93,8 @@ public sealed record QRosterRow
 
     public static string QRosterPriorityFormat(LWorkPriority lPriority) =>
         lPriority == LWorkPriority.LWorkPriorityHigh
-            ? LLocalization.LLocalizationTextRead("Roster.Priority.High")
-            : LLocalization.LLocalizationTextRead("Roster.Priority.Normal");
+            ? QLocalizationCatalog.QLocalizationTextRead("Roster.Priority.High")
+            : QLocalizationCatalog.QLocalizationTextRead("Roster.Priority.Normal");
 
     public static string QRosterSpanFormat(TimeSpan lSpan) => $"{lSpan:hh\\:mm\\:ss}";
 
@@ -114,29 +113,29 @@ public sealed record QRosterRow
 
     public static string QRosterStateFormat(LWorkState lWorkState) => lWorkState switch
     {
-        LWorkState.LWorkStatePending => LLocalization.LLocalizationTextRead("Roster.State.Pending"),
-        LWorkState.LWorkStateRunning => LLocalization.LLocalizationTextRead("Roster.State.Running"),
-        LWorkState.LWorkStateDone => LLocalization.LLocalizationTextRead("Roster.State.Done"),
-        LWorkState.LWorkStateFailed => LLocalization.LLocalizationTextRead("Roster.State.Failed"),
-        LWorkState.LWorkStateUnresolved => LLocalization.LLocalizationTextRead("Roster.State.Unresolved"),
-        LWorkState.LWorkStatePartial => LLocalization.LLocalizationTextRead("Roster.State.Partial"),
-        LWorkState.LWorkStateBlocked => LLocalization.LLocalizationTextRead("Roster.State.Blocked"),
-        LWorkState.LWorkStateCancelled => LLocalization.LLocalizationTextRead("Roster.State.Cancelled"),
+        LWorkState.LWorkStatePending => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Pending"),
+        LWorkState.LWorkStateRunning => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Running"),
+        LWorkState.LWorkStateDone => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Done"),
+        LWorkState.LWorkStateFailed => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Failed"),
+        LWorkState.LWorkStateUnresolved => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Unresolved"),
+        LWorkState.LWorkStatePartial => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Partial"),
+        LWorkState.LWorkStateBlocked => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Blocked"),
+        LWorkState.LWorkStateCancelled => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Cancelled"),
         _ => lWorkState.ToString()
     };
 
     public static string QRosterPhaseFormat(LWorkState lWorkState, LWorkPhase lWorkPhase) => lWorkState switch
     {
-        LWorkState.LWorkStateDone => LLocalization.LLocalizationTextRead("Roster.State.Done"),
-        LWorkState.LWorkStateFailed => LLocalization.LLocalizationTextRead("Roster.State.Failed"),
-        LWorkState.LWorkStateUnresolved => LLocalization.LLocalizationTextRead("Roster.State.Unresolved"),
-        LWorkState.LWorkStatePartial => LLocalization.LLocalizationTextRead("Roster.State.Partial"),
-        LWorkState.LWorkStateBlocked => LLocalization.LLocalizationTextRead("Roster.State.Blocked"),
+        LWorkState.LWorkStateDone => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Done"),
+        LWorkState.LWorkStateFailed => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Failed"),
+        LWorkState.LWorkStateUnresolved => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Unresolved"),
+        LWorkState.LWorkStatePartial => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Partial"),
+        LWorkState.LWorkStateBlocked => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Blocked"),
         _ => lWorkPhase switch
         {
-            LWorkPhase.LWorkPhaseEncoding => LLocalization.LLocalizationTextRead("Roster.Phase.Processing"),
-            LWorkPhase.LWorkPhaseStarted => LLocalization.LLocalizationTextRead("Roster.Phase.Started"),
-            _ => LLocalization.LLocalizationTextRead("Roster.Phase.NotStarted")
+            LWorkPhase.LWorkPhaseEncoding => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.Processing"),
+            LWorkPhase.LWorkPhaseStarted => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.Started"),
+            _ => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.NotStarted")
         }
     };
 }

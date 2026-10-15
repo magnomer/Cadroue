@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -197,7 +196,7 @@ public sealed class PSection : UserControl
     {
         Button pMinimizeButton = PSectionButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("Section.Panel.HideTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Section.Panel.HideTooltip"),
             (_, _) => PSectionMinimizeSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
@@ -223,7 +222,7 @@ public sealed class PSection : UserControl
     {
         Button pMaximizeButton = PSectionButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("Section.Panel.ShowTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Section.Panel.ShowTooltip"),
             (_, _) => PSectionMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
@@ -238,12 +237,12 @@ public sealed class PSection : UserControl
         var pActionLeft = new StackPanel { Orientation = Orientation.Horizontal };
         pActionLeft.Children.Add(PSectionButtonBuild(
             "/PAsset/PPanel/PSort.svg",
-            LLocalization.LLocalizationTextRead("Section.Sort.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Section.Sort.Tooltip"),
             (_, _) => QSection.QSectionSortRun()));
 
         Button pSectionRemoveAllButton = PSectionButtonBuild(
             "/PAsset/PPanel/PListRemoveAll.svg",
-            LLocalization.LLocalizationTextRead("Section.RemoveAll.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Section.RemoveAll.Tooltip"),
             (_, _) => QSection.QSectionClearRun());
         pSectionRemoveAllButton.Margin = new Thickness(PSectionActionGap, 0, 0, 0);
         var pActionRight = new StackPanel
@@ -253,7 +252,7 @@ public sealed class PSection : UserControl
         };
         pActionRight.Children.Add(PSectionButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("Section.Delete.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Section.Delete.Tooltip"),
             (_, _) => QSection.QSectionDeleteRun()));
         pActionRight.Children.Add(pSectionRemoveAllButton);
 

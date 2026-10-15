@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -27,14 +26,14 @@ public sealed class PClinicSalvage : StackPanel
         Visibility = Visibility.Collapsed;
 
         pClinicSalvageActive = PClinic.PClinicSwitchBuild(
-            LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply"),
-            LLocalization.LLocalizationTextRead("Clinic.Salvage.Apply.Tooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Apply.Tooltip"));
         pClinicSalvageActive.Checked += (_, _) => lClinic.QSalvageActiveSet(true);
         pClinicSalvageActive.Unchecked += (_, _) => lClinic.QSalvageActiveSet(false);
 
         var pModeLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Salvage.Mode.Label"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Mode.Label"),
             FontSize = 12,
             FontFamily = pClinicSalvageFont,
             FontWeight = FontWeights.SemiBold,
@@ -51,7 +50,7 @@ public sealed class PClinicSalvage : StackPanel
 
         var pBasisHeading = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Clinic.Salvage.Basis.Label"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Basis.Label"),
             FontSize = 12,
             FontFamily = pClinicSalvageFont,
             FontWeight = FontWeights.SemiBold,
@@ -76,8 +75,8 @@ public sealed class PClinicSalvage : StackPanel
         };
 
         pClinicSalvagePersistent = PClinic.PClinicSwitchBuild(
-            LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent"),
-            LLocalization.LLocalizationTextRead("Clinic.Salvage.Persistent.Tooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Persistent.Tooltip"));
         pClinicSalvagePersistent.Checked += (_, _) => lClinic.QSalvagePersistentSet(true);
         pClinicSalvagePersistent.Unchecked += (_, _) => lClinic.QSalvagePersistentSet(false);
 
@@ -108,8 +107,8 @@ public sealed class PClinicSalvage : StackPanel
 
     private static RadioButton PClinicRadioBuild(string pKey) => new()
     {
-        Content = LLocalization.LLocalizationTextRead(pKey),
-        ToolTip = LLocalization.LLocalizationTextRead($"{pKey}.Tooltip"),
+        Content = QLocalizationCatalog.QLocalizationTextRead(pKey),
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead($"{pKey}.Tooltip"),
         FontSize = 12,
         FontFamily = pClinicSalvageFont
     };

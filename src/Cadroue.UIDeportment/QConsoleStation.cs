@@ -109,10 +109,10 @@ public sealed class QConsoleStation
         LStation[] lBoard = LStation.LStationBoardRead();
         LStation lCurrent = QConsoleStationRead();
         string lLabel = string.Equals(lCurrent.LStationLabel, QConsoleInternalLabel, StringComparison.Ordinal)
-            ? LLocalization.LLocalizationTextRead("Console.Station.Background")
+            ? QLocalizationCatalog.QLocalizationTextRead("Console.Station.Background")
             : lCurrent.LStationLabel;
         return lBoard.Length > 1
-            ? LLocalization.LLocalizationFormat(
+            ? QLocalizationCatalog.QLocalizationFormat(
                 "Console.Station.Numbered", lLabel, Array.IndexOf(lBoard, lCurrent) + 1, lBoard.Length)
             : lLabel;
     }

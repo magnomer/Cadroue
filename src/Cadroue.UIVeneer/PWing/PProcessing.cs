@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -70,7 +69,7 @@ public sealed class PProcessing : PPanel
 
         pProcessingMonitorButton = PProcessingButtonBuild(
             PProcessingMonitorIcon,
-            LLocalization.LLocalizationTextRead("NormalizePreview.Button.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("NormalizePreview.Button.Tooltip"),
             () => PProcessingMonitorShown?.Invoke());
         pProcessingMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
         pProcessingMonitorButton.Visibility = Visibility.Collapsed;
@@ -120,7 +119,7 @@ public sealed class PProcessing : PPanel
         string pStepName = lRow.QProcessingRowKey;
         var pRow = new PProcessingRow(
             lRow.QProcessingRowIcon,
-            LLocalization.LLocalizationTextRead(lRow.QProcessingRowLabel),
+            QLocalizationCatalog.QLocalizationTextRead(lRow.QProcessingRowLabel),
             pProcessingStepPadding,
             pProcessingStepLine);
         Border pBorder = pRow.PProcessingRowBorder;
@@ -135,10 +134,10 @@ public sealed class PProcessing : PPanel
     {
         var pRow = new PProcessingRow(
             PProcessingSkipIcon,
-            LLocalization.LLocalizationTextRead("Processing.Skip.Label"),
+            QLocalizationCatalog.QLocalizationTextRead("Processing.Skip.Label"),
             pProcessingSkipPadding,
             pProcessingSkipLine);
-        pRow.PProcessingRowBorder.ToolTip = LLocalization.LLocalizationTextRead("Processing.Skip.Tooltip");
+        pRow.PProcessingRowBorder.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Processing.Skip.Tooltip");
         pRow.PProcessingRowBorder.MouseLeftButtonUp += (_, _) =>
             QProcessing.QProcessingStepSelect(QProcessing.QProcessingSkipStep);
         return pRow;
@@ -236,7 +235,7 @@ public sealed class PProcessing : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Processing.Header.Title"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Processing.Header.Title"),
             FontSize = 12,
             FontFamily = pProcessingFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -246,7 +245,7 @@ public sealed class PProcessing : PPanel
 
         Button pMinimizeButton = PProcessingButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("Processing.Hide.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Processing.Hide.Tooltip"),
             () => PProcessingMinimizeSet(true));
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
 
@@ -271,12 +270,12 @@ public sealed class PProcessing : PPanel
     {
         Button pUpButton = PProcessingButtonBuild(
             PProcessingUpIcon,
-            LLocalization.LLocalizationTextRead("Processing.MoveUp.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Processing.MoveUp.Tooltip"),
             () => QProcessing.QProcessingStepMove(-1));
         pUpButton.Margin = new Thickness(0, 0, 2, 0);
         Button pDownButton = PProcessingButtonBuild(
             PProcessingDownIcon,
-            LLocalization.LLocalizationTextRead("Processing.MoveDown.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Processing.MoveDown.Tooltip"),
             () => QProcessing.QProcessingStepMove(1));
 
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
@@ -300,7 +299,7 @@ public sealed class PProcessing : PPanel
     {
         Button pMaximizeButton = PProcessingButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("Processing.Show.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("Processing.Show.Tooltip"),
             () => PProcessingMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;

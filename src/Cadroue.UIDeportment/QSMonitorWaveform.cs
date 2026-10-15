@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -48,7 +47,7 @@ public sealed class QSMonitorWaveform : IDisposable
             : lEnvelope.Length > 0
                 ? null
                 : lFailed ? "NormalizePreview.Unavailable" : "NormalizePreview.Empty";
-        return lKey is null ? string.Empty : LLocalization.LLocalizationTextRead(lKey);
+        return lKey is null ? string.Empty : QLocalizationCatalog.QLocalizationTextRead(lKey);
     }
 
     public double[] QSMonitorEnvelopeRead(bool lAfter)

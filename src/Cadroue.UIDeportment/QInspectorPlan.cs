@@ -1,4 +1,3 @@
-using Cadroue.Application;
 
 namespace Cadroue.UIDeportment;
 
@@ -24,17 +23,17 @@ public static class QInspectorPlan
 
     public static QInspectorRow QInspectorRowCreate(
         int lIndex, string lLabelKey, string lUnit, string lFormat, double lLeast, double lMost) =>
-        new(lIndex, LLocalization.LLocalizationTextRead(lLabelKey), lUnit, lFormat, lLeast, lMost);
+        new(lIndex, QLocalizationCatalog.QLocalizationTextRead(lLabelKey), lUnit, lFormat, lLeast, lMost);
 
     public static QInspectorChoice QInspectorChoiceRead(
         IReadOnlyList<string> lTokens, Func<string, string> lKeyRead, string? lToken, string? lMatch)
     {
         string lText = lMatch is null && lToken is not null
-            ? LLocalization.LLocalizationFormat(
-                QInspectorCustomBased, LLocalization.LLocalizationTextRead(lKeyRead(lToken)))
-            : LLocalization.LLocalizationTextRead(QInspectorCustomKey);
+            ? QLocalizationCatalog.QLocalizationFormat(
+                QInspectorCustomBased, QLocalizationCatalog.QLocalizationTextRead(lKeyRead(lToken)))
+            : QLocalizationCatalog.QLocalizationTextRead(QInspectorCustomKey);
         List<string> lNames = lTokens
-            .Select(lEntry => LLocalization.LLocalizationTextRead(lKeyRead(lEntry)))
+            .Select(lEntry => QLocalizationCatalog.QLocalizationTextRead(lKeyRead(lEntry)))
             .ToList();
         lNames.Add(lText);
         int lIndex = lMatch is null ? -1 : lTokens.ToList().IndexOf(lMatch);

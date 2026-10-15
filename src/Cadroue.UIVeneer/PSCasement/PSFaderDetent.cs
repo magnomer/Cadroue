@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
@@ -43,7 +44,7 @@ internal static partial class PSFader
             Width = PSFaderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PSlider.PSliderApply(pSlider);
+        QSlider.QSliderAttach(pSlider);
         pSlider.IsSnapToTickEnabled = true;
         pReadout.IsReadOnly = pSnap;
         pReadout.Text = PSFaderDetentFormat(pStart, pZeroLabel);

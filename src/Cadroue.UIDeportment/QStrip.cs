@@ -16,24 +16,27 @@ public sealed class QStrip
     private readonly Func<string, string> qStripTitleSource;
     private readonly Func<string, int, string> qStripNumberSource;
     private readonly CUsher qStripUsher;
+    private readonly CInfo qStripInfo;
     private readonly CLineage qStripLineage;
     private readonly Func<CWorkspace> qStripWorkspaceSource;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
-    public QStrip(CUsher lUsher, CLineage lLineage, Func<CWorkspace> lWorkspaceSource)
-        : this(lUsher, lLineage, lWorkspaceSource, QStripTitleResolve, QStripNumberResolve)
+    public QStrip(CUsher lUsher, CInfo lInfo, CLineage lLineage, Func<CWorkspace> lWorkspaceSource)
+        : this(lUsher, lInfo, lLineage, lWorkspaceSource, QStripTitleResolve, QStripNumberResolve)
     {
     }
 
     public QStrip(
         CUsher lUsher,
+        CInfo lInfo,
         CLineage lLineage,
         Func<CWorkspace> lWorkspaceSource,
         Func<string, string> lTitleSource,
         Func<string, int, string> lNumberSource)
     {
         qStripUsher = lUsher;
+        qStripInfo = lInfo;
         qStripLineage = lLineage;
         qStripWorkspaceSource = lWorkspaceSource;
         qStripTitleSource = lTitleSource;
@@ -42,11 +45,11 @@ public sealed class QStrip
         QStripClosure = new QStripClosure(
             this,
             qStripTabs,
-            LLocalization.LLocalizationTextRead,
+            QLocalizationCatalog.QLocalizationTextRead,
             LTraceLog.LTraceInfoRecord,
             LCartographer.LCartographerTabRemove);
         QStripRail = new QRail(this);
-        QStripDeck = new QDeck(this, LLocalization.LLocalizationTextRead);
+        QStripDeck = new QDeck(this, QLocalizationCatalog.QLocalizationTextRead);
         QStripRelay = new QStripRelay(this, lUsher);
     }
 
@@ -78,7 +81,7 @@ public sealed class QStrip
         QStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : QStripDefaultKey;
 
     public QStripTab QStripTabCreate(string lKey) =>
-        new(QStripKeyResolve(lKey), qStripUsher, qStripLineage, qStripWorkspaceSource());
+        new(QStripKeyResolve(lKey), qStripUsher, qStripInfo, qStripLineage, qStripWorkspaceSource());
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 
@@ -295,10 +298,10 @@ public sealed class QStrip
         return lCleared;
     }
 
-    public static string QStripTitleResolve(string lKey) => LLocalization.LLocalizationTextRead("Tab." + lKey);
+    public static string QStripTitleResolve(string lKey) => QLocalizationCatalog.QLocalizationTextRead("Tab." + lKey);
 
     private static string QStripNumberResolve(string lName, int lOrdinal) =>
-        LLocalization.LLocalizationFormat("Tab.Numbered", lName, lOrdinal);
+        QLocalizationCatalog.QLocalizationFormat("Tab.Numbered", lName, lOrdinal);
 
     public void QStripTabRaise(QStripTab lTab)
     {

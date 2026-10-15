@@ -252,6 +252,7 @@ internal static class TAuditNameRegistry
     // AUDIT:SIDECAR:EXEMPT:START
     public static readonly Dictionary<string, string[]> TAuditExempt = new(StringComparer.Ordinal)
     {
+        ["PART_Track"] = ["*"],
     };
     // AUDIT:SIDECAR:EXEMPT:END
 }

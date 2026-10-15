@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using System.Windows;
@@ -86,8 +85,8 @@ internal sealed class PFunnelCondition : Grid
         pFunnelField = PFunnelFieldBuild();
         pFunnelCaseLabel = PFunnelMonoBuild();
         pFunnelCaseButton = PFunnelCaseBuild(pFunnelCaseLabel);
-        pFunnelAndLabel = PFunnelLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Funnel.And"));
-        pFunnelOrLabel = PFunnelLabelBuild(LLocalization.LLocalizationTextRead("Inspector.Funnel.Or"));
+        pFunnelAndLabel = PFunnelLabelBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.And"));
+        pFunnelOrLabel = PFunnelLabelBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Or"));
         pFunnelAndSegment = PFunnelSegmentBuild(pFunnelAndLabel, () => PFunnelModeSet(true));
         pFunnelOrSegment = PFunnelSegmentBuild(pFunnelOrLabel, () => PFunnelModeSet(false));
         pFunnelJoin = PFunnelJoinBuild();
@@ -99,7 +98,7 @@ internal sealed class PFunnelCondition : Grid
 
         var pLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead(lCondition.QFunnelConditionLabel),
+            Text = QLocalizationCatalog.QLocalizationTextRead(lCondition.QFunnelConditionLabel),
             FontSize = 11,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelMutedBrush,
@@ -176,7 +175,7 @@ internal sealed class PFunnelCondition : Grid
     private void PFunnelCaseApply(bool pOn)
     {
         pFunnelCaseButton.BorderBrush = pFunnelCaseBorders[pOn];
-        pFunnelCaseButton.ToolTip = LLocalization.LLocalizationTextRead(pFunnelCaseTooltips[pOn]);
+        pFunnelCaseButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelCaseTooltips[pOn]);
         pFunnelCaseLabel.Text = pFunnelCaseTexts[pOn];
         pFunnelCaseLabel.Foreground = pFunnelCaseForegrounds[pOn];
     }

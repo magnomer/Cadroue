@@ -1,7 +1,7 @@
 using System.Windows;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -23,16 +23,16 @@ internal sealed partial class PSEncoder
 
         psAudioSampleReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
         UIElement pRow = PSFader.PSFaderDetentBuild(
             pTicks, pDiscrete, pMaximum,
-            LLocalization.LLocalizationTextRead("Encoder.Sample.Source"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source"),
             pStored, psAudioSampleReadout, pNotice);
 
         psAudioSamplePanel.Children.Clear();
         psAudioSamplePanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.SampleRate"),
                 pRow));
         psAudioSamplePanel.Children.Add(pNotice);
     }

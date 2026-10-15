@@ -6,7 +6,6 @@ using System.Windows.Media;
 using System.Windows.Navigation;
 using Cadroue.UIVeneer.PHouse;
 
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -37,7 +36,7 @@ internal sealed class PSAbout : Window
     private PSAbout(Window pOwner, QSAbout lsAboutOwner)
     {
         lsAbout = lsAboutOwner;
-        Title = LLocalization.LLocalizationTextRead("About.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("About.Window.Title");
         Owner = pOwner;
         Width = PSAboutWidthDefault;
         MinWidth = PSAboutWidthMinimum;
@@ -79,7 +78,7 @@ internal sealed class PSAbout : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooter.PSFooterButtonBuild(LLocalization.LLocalizationTextRead("About.Button.Close"));
+        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("About.Button.Close"));
         pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
@@ -113,7 +112,7 @@ internal sealed class PSAbout : Window
 
         psAboutDeveloper = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("About.Developer.Active"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("About.Developer.Active"),
             FontWeight = FontWeights.SemiBold,
             Foreground = PSField.PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center,
@@ -124,7 +123,7 @@ internal sealed class PSAbout : Window
 
         pHeader.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Terms.Cadroue"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Terms.Cadroue"),
             FontSize = 22,
             FontWeight = FontWeights.SemiBold,
             Foreground = PSField.PSFieldText,
@@ -132,7 +131,7 @@ internal sealed class PSAbout : Window
         });
         pHeader.Children.Add(new TextBlock
         {
-            Text = LLocalization.LLocalizationFormat("About.Version.Format", QSAbout.QSAboutVersionRead()),
+            Text = QLocalizationCatalog.QLocalizationFormat("About.Version.Format", QSAbout.QSAboutVersionRead()),
             Foreground = PSField.PSFieldMuted,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 4, 0, 10)
@@ -150,7 +149,7 @@ internal sealed class PSAbout : Window
         }
 
         pRows.Add(PSAboutLicenseBuild());
-        return PSPlate.PSPlateBuild(LLocalization.LLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
+        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("About.Credits.Title"), pRows.ToArray());
     }
 
     private UIElement PSAboutRowBuild(string pName, string pUrl)
@@ -171,9 +170,10 @@ internal sealed class PSAbout : Window
         var pRow = new Grid { Margin = new Thickness(0, 0, 0, PSAboutRowGap) };
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSField.PSFieldLabelWidth) });
         pRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pRow.Children.Add(PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("About.Licenses.Label")));
+        pRow.Children.Add(PSField.PSFieldLabelBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "About.Licenses.Label")));
 
-        var pLink = new Hyperlink(new Run(LLocalization.LLocalizationTextRead("About.Licenses.Link")));
+        var pLink = new Hyperlink(new Run(QLocalizationCatalog.QLocalizationTextRead("About.Licenses.Link")));
         pLink.Click += PSAboutNoticeHandle;
 
         var pText = new TextBlock
@@ -226,8 +226,8 @@ internal sealed class PSAbout : Window
     private void PSAboutErrorShow(string pResource, string pDetail) =>
         PSWarning.PSWarningShow(
             this,
-            LLocalization.LLocalizationTextRead("About.Window.Title"),
-            LLocalization.LLocalizationFormat("About.Error.Open", pResource, pDetail));
+            QLocalizationCatalog.QLocalizationTextRead("About.Window.Title"),
+            QLocalizationCatalog.QLocalizationFormat("About.Error.Open", pResource, pDetail));
 
     private void PSAboutCloseHandle(object? pSender, EventArgs pEvent)
     {

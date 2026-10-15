@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
@@ -26,7 +25,7 @@ public sealed class PSplitTab : PTabSurface
         pProcessing = new PProcessing(QSplitTab.QSplitProcessing);
         pSection = new PSection(QSplitTab.QSplitSection);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        pAction.PActionAllSet(true, LLocalization.LLocalizationTextRead("Action.AddAll.SplitTooltip"));
+        pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
         QSplitTab.QSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;

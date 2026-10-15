@@ -86,7 +86,7 @@ public sealed class QViewerSource
         {
             QViewerAskRaise(QViewerAskCreate(
                 QViewerAskKind.QViewerAskWarning,
-                LLocalization.LLocalizationTextRead("Viewer.Sidecar.ReadError")));
+                QLocalizationCatalog.QLocalizationTextRead("Viewer.Sidecar.ReadError")));
             return null;
         }
 
@@ -98,7 +98,7 @@ public sealed class QViewerSource
         if (lResult.LSidecarResultKind != LSidecarSourceKind.LSidecarSourceMissing
             && QViewerAskRaise(QViewerAskCreate(
                 QViewerAskKind.QViewerAskDecision,
-                LLocalization.LLocalizationFormat("Viewer.Sidecar.MismatchFound", lResult.LSidecarResultPath))))
+                QLocalizationCatalog.QLocalizationFormat("Viewer.Sidecar.MismatchFound", lResult.LSidecarResultPath))))
         {
             return lResult.LSidecarResultPath;
         }
@@ -112,12 +112,12 @@ public sealed class QViewerSource
         QViewerSourceLocate?.Invoke(
             new QViewerAsk(
                 QViewerAskKind.QViewerAskDecision,
-                LLocalization.LLocalizationFormat("Viewer.Locate.Title", lSidecarName),
+                QLocalizationCatalog.QLocalizationFormat("Viewer.Locate.Title", lSidecarName),
                 string.Empty,
                 string.Empty,
                 string.Empty,
                 lSidecarName,
-                LLocalization.LLocalizationTextRead("Viewer.Dialog.MediaFilter")),
+                QLocalizationCatalog.QLocalizationTextRead("Viewer.Dialog.MediaFilter")),
             lPath => lChosen = lPath);
         if (lChosen is null)
         {
@@ -131,7 +131,7 @@ public sealed class QViewerSource
 
         return QViewerAskRaise(QViewerAskCreate(
             QViewerAskKind.QViewerAskDecision,
-            LLocalization.LLocalizationTextRead("Viewer.Sidecar.MismatchSelected")))
+            QLocalizationCatalog.QLocalizationTextRead("Viewer.Sidecar.MismatchSelected")))
             ? lChosen
             : null;
     }
@@ -139,10 +139,10 @@ public sealed class QViewerSource
     private static QViewerAsk QViewerAskCreate(QViewerAskKind lKind, string lMessage) =>
         new(
             lKind,
-            LLocalization.LLocalizationTextRead("Viewer.Dialog.OpenTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Viewer.Dialog.OpenTitle"),
             lMessage,
-            LLocalization.LLocalizationTextRead("Terms.Open"),
-            LLocalization.LLocalizationTextRead("Terms.Cancel"),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"),
             string.Empty,
             string.Empty);
 

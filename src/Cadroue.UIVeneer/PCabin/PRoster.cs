@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
@@ -34,11 +33,12 @@ public sealed class PRoster : UserControl
         {
             ItemsSource = QRoster.QRosterFeed.QRosterEntries
         };
-        pRosterDetailTitle = PRosterTitleBuild(LLocalization.LLocalizationTextRead("Roster.Title.JobDetail"));
+        pRosterDetailTitle = PRosterTitleBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterSharedBox = PRosterOptionBuild(
-            LLocalization.LLocalizationTextRead("Roster.Queue.Shared"), QRoster.QRosterShared, 0);
+            QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Shared"), QRoster.QRosterShared, 0);
         pRosterCompletedBox = PRosterOptionBuild(
-            LLocalization.LLocalizationTextRead("Roster.Queue.CollapseCompleted"), QRoster.QRosterCollapseDone, 18);
+            QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.CollapseCompleted"), QRoster.QRosterCollapseDone,
+                18);
         pRosterLayout = PRosterBuild(lPreferenceTabLayout);
         Content = new Grid { Margin = new Thickness(8, 8, 8, 8), Children = { pRosterBody } };
 
@@ -158,20 +158,21 @@ public sealed class PRoster : UserControl
             IsChecked = PLook.PLookChecked[pChecked],
             Margin = new Thickness(pLeftMargin, 0, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pBox);
+        PInteraction.PInteractionButtonAttach(pBox);
+        QCheckbox.QCheckboxAttach(pBox);
         return pBox;
     }
 
     private static Grid PRosterHeaderBuild()
     {
         Grid pGrid = PRosterRow.PRosterColumnsCreate();
-        PRosterHeadAdd(pGrid, 0, LLocalization.LLocalizationTextRead("Roster.Queue.Step"));
-        PRosterHeadAdd(pGrid, 1, LLocalization.LLocalizationTextRead("Roster.Queue.Priority"));
-        PRosterHeadAdd(pGrid, 2, LLocalization.LLocalizationTextRead("Roster.Queue.Length"));
-        PRosterHeadAdd(pGrid, 3, LLocalization.LLocalizationTextRead("Roster.Queue.Progress"));
-        PRosterHeadAdd(pGrid, 4, LLocalization.LLocalizationTextRead("Roster.Queue.Percentage"));
-        PRosterHeadAdd(pGrid, 5, LLocalization.LLocalizationTextRead("Roster.Queue.State"));
-        PRosterHeadAdd(pGrid, 6, LLocalization.LLocalizationTextRead("Roster.Queue.Owner"));
+        PRosterHeadAdd(pGrid, 0, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Step"));
+        PRosterHeadAdd(pGrid, 1, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Priority"));
+        PRosterHeadAdd(pGrid, 2, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Length"));
+        PRosterHeadAdd(pGrid, 3, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Progress"));
+        PRosterHeadAdd(pGrid, 4, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Percentage"));
+        PRosterHeadAdd(pGrid, 5, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.State"));
+        PRosterHeadAdd(pGrid, 6, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Owner"));
         return pGrid;
     }
 

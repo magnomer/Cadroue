@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -15,7 +14,7 @@ internal sealed partial class PSEncoder
         psAudioEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
         if (!pAvailable)
         {
-            psAudioEncoderNotice.Text = LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Unavailable");
+            psAudioEncoderNotice.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.Unavailable");
         }
     }
 
@@ -34,11 +33,11 @@ internal sealed partial class PSEncoder
         var pPanel = new StackPanel();
 
         var pVerify = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Button.Verify"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify"),
             84,
             new Thickness(8, 0, 0, 0));
         var pLog = PSInline.PSInlineButtonBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Button.Result"),
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Result"),
             64,
             new Thickness(6, 0, 0, 0));
         pLog.IsEnabled = lsEncoder.QSEncoderAudioResults.Count > 0;
@@ -65,7 +64,7 @@ internal sealed partial class PSEncoder
 
         psAudioEncodePanel.Children.Add(
             PSField.PSFieldButtonBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Encoder"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Encoder"),
                 psAudioEncoderCombo,
                 pVerify,
                 pLog,
@@ -73,7 +72,7 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Children.Add(psAudioEncoderNotice);
         psAudioEncodePanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.RateControl"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.RateControl"),
                 psAudioRateCombo));
         psAudioEncodePanel.Children.Add(psAudioRowsPanel);
         psAudioEncodePanel.Children.Add(psAudioSamplePanel);
@@ -83,10 +82,10 @@ internal sealed partial class PSEncoder
 
         pPanel.Children.Add(
             PSField.PSFieldBuild(
-                LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Stream"),
+                QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Stream"),
                 psAudioStreamCombo));
         pPanel.Children.Add(
-            PSField.PSFieldBuild(LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioMode));
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Mode"), psAudioMode));
         pPanel.Children.Add(psAudioEncodePanel);
         pPanel.Children.Add(psAudioNotice);
 
@@ -135,8 +134,8 @@ internal sealed partial class PSEncoder
         psAudioEncodePanel.Visibility = pEncoded ? Visibility.Visible : Visibility.Collapsed;
         psAudioNotice.Visibility = pEncoded ? Visibility.Collapsed : Visibility.Visible;
         psAudioNotice.Text = pExcluded
-            ? LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Excluded")
-            : LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.Copied");
+            ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.Excluded")
+            : QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.Copied");
     }
 
     private static TextBlock PSAudioNoticeBuild() => new()

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -64,7 +64,7 @@ internal sealed class PFunnelRuleFrame
             TextAlignment = TextAlignment.Center
         };
         pFunnelFoldButton = PFunnelFoldBuild();
-        pFunnelTitleBar = PFunnelTitleBuild(LLocalization.LLocalizationTextRead(pTitleKey), pRemove);
+        pFunnelTitleBar = PFunnelTitleBuild(QLocalizationCatalog.QLocalizationTextRead(pTitleKey), pRemove);
     }
 
     public Border PFunnelHeader => pFunnelTitleBar;
@@ -78,7 +78,7 @@ internal sealed class PFunnelRuleFrame
         pFunnelBody.Visibility = PLook.PLookVisible[!pCollapsed];
         pFunnelTitleBar.BorderThickness = pFunnelHeaderBorders[pCollapsed];
         pFunnelFoldButton.Content = pFunnelGlyphs[pCollapsed];
-        pFunnelFoldButton.ToolTip = LLocalization.LLocalizationTextRead(pFunnelFoldTooltips[pCollapsed]);
+        pFunnelFoldButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[pCollapsed]);
     }
 
     private Border PFunnelTitleBuild(string pTitle, Action pRemove)
@@ -136,7 +136,7 @@ internal sealed class PFunnelRuleFrame
             Cursor = Cursors.Hand,
             Style = PButton.PButtonChromeCreate(false),
             Content = pFunnelGlyphs[false],
-            ToolTip = LLocalization.LLocalizationTextRead(pFunnelFoldTooltips[false])
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[false])
         };
         pButton.Click += (_, _) => pFunnelFold();
         return pButton;
@@ -198,7 +198,7 @@ internal sealed class PFunnelRuleFrame
             Padding = new Thickness(0),
             Cursor = Cursors.Hand,
             Style = PButton.PButtonChromeCreate(false),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Funnel.Remove")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remove")
         };
         pButton.Click += (_, _) => pRemove();
         return pButton;

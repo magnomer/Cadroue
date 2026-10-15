@@ -228,24 +228,24 @@ internal sealed class PSDebug : Window
                     this,
                     pMessage.PSDebugName,
                     pMessage.PSDebugMessageText,
-                    LLocalization.LLocalizationTextRead("Terms.Delete"));
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Delete"));
                 break;
             case PSDebugKind.PSDebugDecision:
                 PSDecision.PSDecisionConfirm(
                     this,
                     pMessage.PSDebugName,
                     pMessage.PSDebugMessageText,
-                    LLocalization.LLocalizationTextRead("Terms.Continue"),
-                    LLocalization.LLocalizationTextRead("Terms.Cancel"));
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Continue"),
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"));
                 break;
             case PSDebugKind.PSDebugChoice:
                 PSDecision.PSDecisionSelect(
                     this,
                     pMessage.PSDebugName,
                     pMessage.PSDebugMessageText,
-                    LLocalization.LLocalizationTextRead("Terms.Replace"),
-                    LLocalization.LLocalizationTextRead("Terms.Append"),
-                    LLocalization.LLocalizationTextRead("Terms.Cancel"));
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Replace"),
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Append"),
+                    QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"));
                 break;
             default:
                 PSAnnouncement.PSAnnouncementShow(this, pMessage.PSDebugName, pMessage.PSDebugMessageText);

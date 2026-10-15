@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Microsoft.Win32;
@@ -38,7 +37,7 @@ public sealed class PList : PPanel
 
         pListEmptyNotice = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("List.Empty.Notice"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("List.Empty.Notice"),
             FontSize = 12,
             FontFamily = pListFontFamily,
             Foreground = pListMutedBrush,
@@ -179,7 +178,7 @@ public sealed class PList : PPanel
     {
         Button pMaximizeButton = PListButtonBuild(
             "/PAsset/PPanel/PListMaximize.svg",
-            LLocalization.LLocalizationTextRead("List.Show.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Show.Tooltip"),
             () => PListMinimizeSet(false));
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
@@ -193,7 +192,7 @@ public sealed class PList : PPanel
     {
         var pTitleLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("List.Header.Files"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("List.Header.Files"),
             FontSize = 12,
             FontFamily = pListFontFamily,
             FontWeight = FontWeights.SemiBold,
@@ -203,7 +202,7 @@ public sealed class PList : PPanel
 
         Button pMinimizeButton = PListButtonBuild(
             "/PAsset/PPanel/PListMinimize.svg",
-            LLocalization.LLocalizationTextRead("List.Hide.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Hide.Tooltip"),
             () => PListMinimizeSet(true));
         pMinimizeButton.Margin = new Thickness(0);
         pMinimizeButton.HorizontalAlignment = HorizontalAlignment.Right;
@@ -229,19 +228,19 @@ public sealed class PList : PPanel
     {
         Button pAddFolderButton = PListButtonBuild(
             "/PAsset/PPanel/PFolder.svg",
-            LLocalization.LLocalizationTextRead("List.Button.AddFolder"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Button.AddFolder"),
             PListFolderOpen);
         pAddFolderButton.Margin = new Thickness(PListActionGap, 0, 2, 0);
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(PListButtonBuild(
             "/PAsset/PPanel/PExportPlus.svg",
-            LLocalization.LLocalizationTextRead("List.Button.AddFiles"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Button.AddFiles"),
             PListFilesOpen));
         pLeftPanel.Children.Add(pAddFolderButton);
 
         Button pRemoveAllButton = PListButtonBuild(
             "/PAsset/PPanel/PListRemoveAll.svg",
-            LLocalization.LLocalizationTextRead("List.Button.RemoveAll"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Button.RemoveAll"),
             QList.QListClear);
         pRemoveAllButton.Margin = new Thickness(PListActionGap, 0, 2, 0);
         var pRightPanel = new StackPanel
@@ -251,7 +250,7 @@ public sealed class PList : PPanel
         };
         pRightPanel.Children.Add(PListButtonBuild(
             "/PAsset/PPanel/PExportMinus.svg",
-            LLocalization.LLocalizationTextRead("List.Button.RemoveFile"),
+            QLocalizationCatalog.QLocalizationTextRead("List.Button.RemoveFile"),
             QList.QListRemove));
         pRightPanel.Children.Add(pRemoveAllButton);
 
@@ -298,9 +297,9 @@ public sealed class PList : PPanel
     {
         var pDialog = new OpenFileDialog
         {
-            Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFiles"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("List.Dialog.AddFiles"),
             Multiselect = true,
-            Filter = LLocalization.LLocalizationTextRead("List.Dialog.MediaFilter")
+            Filter = QLocalizationCatalog.QLocalizationTextRead("List.Dialog.MediaFilter")
         };
         QList.QListDialogAdd(pDialog.ShowDialog(), pDialog.FileNames, "file");
     }
@@ -309,7 +308,7 @@ public sealed class PList : PPanel
     {
         var pDialog = new OpenFolderDialog
         {
-            Title = LLocalization.LLocalizationTextRead("List.Dialog.AddFolder"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("List.Dialog.AddFolder"),
             Multiselect = true
         };
         QList.QListDialogAdd(pDialog.ShowDialog(), pDialog.FolderNames, "folder");

@@ -77,8 +77,8 @@ public sealed class QRosterMenu
 
         QRosterItem lHeader = new(
             lRelayPaths.Count > 1
-                ? LLocalization.LLocalizationFormat("Roster.Relay.Many", lRelayPaths.Count)
-                : LLocalization.LLocalizationTextRead("Roster.Relay.One"),
+                ? QLocalizationCatalog.QLocalizationFormat("Roster.Relay.Many", lRelayPaths.Count)
+                : QLocalizationCatalog.QLocalizationTextRead("Roster.Relay.One"),
             string.Empty,
             false,
             () => { });
@@ -101,8 +101,8 @@ public sealed class QRosterMenu
 
     private static QRosterItem QRosterItemCreate(int lCount, string lOneKey, string lManyKey, Action lRun) => new(
         lCount > 1
-            ? LLocalization.LLocalizationFormat(lManyKey, lCount)
-            : LLocalization.LLocalizationTextRead(lOneKey),
+            ? QLocalizationCatalog.QLocalizationFormat(lManyKey, lCount)
+            : QLocalizationCatalog.QLocalizationTextRead(lOneKey),
         string.Empty,
         true,
         lRun);

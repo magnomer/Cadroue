@@ -2,7 +2,6 @@ using System;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
@@ -21,7 +20,7 @@ public partial class PWindow : Window
     public PWindow(QWindow lWindowRoot)
     {
         InitializeComponent();
-        Title = LLocalization.LLocalizationTextRead("Program.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Program.Window.Title");
         FontSize = PWindowFontSize;
         lWindow = lWindowRoot;
         lSash = lWindow.QWindowPart.QWindowPartSash;

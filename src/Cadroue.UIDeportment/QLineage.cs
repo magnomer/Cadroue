@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -20,19 +19,19 @@ public static class QLineage
     {
         if (lStep.CLineageStepKind == nameof(LWorkKind.LWorkKindSplit) && !lStep.CLineageStepSubject)
         {
-            return LLocalization.LLocalizationFormat(
+            return QLocalizationCatalog.QLocalizationFormat(
                 "Roster.Lineage.Split", QLineageNameFormat(lStep.CLineageStepName));
         }
 
         string lTabName = lLineage.CLineageTitleRead(
             lStep.CLineageStepBatch, lStep.CLineageStepRelay, lStep.CLineageStepTab);
-        return LLocalization.LLocalizationFormat(
+        return QLocalizationCatalog.QLocalizationFormat(
             "Roster.Lineage.Step",
             string.IsNullOrWhiteSpace(lTabName) ? QLineageKindRead(lStep.CLineageStepKind) : lTabName);
     }
 
     private static string QLineageKindRead(string lKind) =>
-        LLocalization.LLocalizationTextRead(QLineageKinds.GetValueOrDefault(lKind, "Roster.Kind.Split"));
+        QLocalizationCatalog.QLocalizationTextRead(QLineageKinds.GetValueOrDefault(lKind, "Roster.Kind.Split"));
 
     public static string QLineageRatioFormat(CLineageStep lStep) =>
         lStep.CLineageStepRatio is { } lRatio ? $"{lRatio:P1}" : "-";
@@ -41,10 +40,11 @@ public static class QLineage
     {
         string lLineageName = QLineageNameFormat(lEntry.CLineageEntryName);
         return lEntry.CLineageEntryIds.Count == 1
-            ? LLocalization.LLocalizationFormat("Roster.Lineage.One", lLineageName)
-            : LLocalization.LLocalizationFormat("Roster.Lineage.Many", lLineageName, lEntry.CLineageEntryIds.Count);
+            ? QLocalizationCatalog.QLocalizationFormat("Roster.Lineage.One", lLineageName)
+            : QLocalizationCatalog.QLocalizationFormat("Roster.Lineage.Many", lLineageName,
+                lEntry.CLineageEntryIds.Count);
     }
 
     private static string QLineageNameFormat(string? lName) =>
-        lName ?? LLocalization.LLocalizationTextRead("Roster.Lineage.Unknown");
+        lName ?? QLocalizationCatalog.QLocalizationTextRead("Roster.Lineage.Unknown");
 }

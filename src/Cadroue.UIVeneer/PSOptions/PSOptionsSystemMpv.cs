@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
@@ -14,7 +13,7 @@ internal sealed partial class PSOptions
         Button pDownload = PSInline.PSInlineButtonBuild(PSSystemMpvFormat(), 160, new Thickness(0, 0, 8, 0));
         Button pBrowse = PSInline.PSInlineIconBuild(
             PSOptionsOpenIcon,
-            LLocalization.LLocalizationTextRead("Options.System.Open"),
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
             new Thickness(0));
         ProgressBar pProgress = PSSystemProgressBuild();
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
@@ -36,20 +35,20 @@ internal sealed partial class PSOptions
             pDownload.Content = PSSystemMpvFormat();
             pDownload.IsEnabled = true;
             await lsOptions.QSOptionsMpvUpdate();
-            string pMpvTitle = LLocalization.LLocalizationTextRead("Options.System.LocalMpv");
+            string pMpvTitle = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv");
             if (pResult.LMpvInstallSuccess)
             {
                 PSAnnouncement.PSAnnouncementShow(
                     this,
                     pMpvTitle,
-                    LLocalization.LLocalizationTextRead("Mpv.Local.Install.Completed"));
+                    QLocalizationCatalog.QLocalizationTextRead("Mpv.Local.Install.Completed"));
             }
             else
             {
                 PSWarning.PSWarningShow(
                     this,
                     pMpvTitle,
-                    LLocalization.LLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
+                    QLocalizationCatalog.QLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
             }
         };
         pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
@@ -67,5 +66,5 @@ internal sealed partial class PSOptions
     }
 
     private static string PSSystemMpvFormat() =>
-        LLocalization.LLocalizationTextRead(QSOptions.QSOptionsMpvResolve());
+        QLocalizationCatalog.QLocalizationTextRead(QSOptions.QSOptionsMpvResolve());
 }

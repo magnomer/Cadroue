@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -85,8 +84,8 @@ public sealed class QSection
 
     public string QSectionTitleRead() =>
         qSectionPieces.Count == 0
-            ? LLocalization.LLocalizationTextRead("Section.Header.Title")
-            : LLocalization.LLocalizationFormat("Section.Header.Count", qSectionPieces.Count);
+            ? QLocalizationCatalog.QLocalizationTextRead("Section.Header.Title")
+            : QLocalizationCatalog.QLocalizationFormat("Section.Header.Count", qSectionPieces.Count);
 
     public IReadOnlyList<QSectionRow> QSectionRowsRead() =>
         qSectionPieces.Select(QSectionRowCreate).ToArray();
@@ -284,7 +283,7 @@ public sealed class QSection
             lIndex,
             QSectionNumberRead(lIndex),
             lPiece.LPieceName,
-            lUnnamed ? LLocalization.LLocalizationFormat("Section.DefaultName", lIndex + 1) : lPiece.LPieceName,
+            lUnnamed ? QLocalizationCatalog.QLocalizationFormat("Section.DefaultName", lIndex + 1) : lPiece.LPieceName,
             lUnnamed,
             lPiece.LPiecePrefix,
             lPiece.LPieceSuffix,

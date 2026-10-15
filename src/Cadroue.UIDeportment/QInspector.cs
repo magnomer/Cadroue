@@ -113,7 +113,7 @@ public sealed class QInspector
 
     public bool QInspectorSensorCheck(LDetectorKind lKind) => QSensor.QSensorKindRead(qInspectorStep) == lKind;
 
-    public string QInspectorTitleRead() => LLocalization.LLocalizationTextRead(
+    public string QInspectorTitleRead() => QLocalizationCatalog.QLocalizationTextRead(
         QSensor.QSensorKindRead(qInspectorStep) is { } lKind
             ? qInspectorSensorTitles[lKind]
             : qInspectorTitles.GetValueOrDefault(qInspectorStep ?? string.Empty, "Inspector.Header.Title"));
@@ -240,19 +240,19 @@ public sealed class QInspector
         string lPersistKey)
     {
         string? lNotice = !lCapable
-            ? LLocalization.LLocalizationTextRead(lDisabledKey)
+            ? QLocalizationCatalog.QLocalizationTextRead(lDisabledKey)
             : !lPreviewAvailable && lPreviewKey.Length > 0
-                ? LLocalization.LLocalizationTextRead(lPreviewKey)
+                ? QLocalizationCatalog.QLocalizationTextRead(lPreviewKey)
                 : null;
         return new QInspectorTip(
             lCapable && lActive,
             lNotice,
-            lNotice ?? LLocalization.LLocalizationTextRead(lApplyKey),
-            lNotice ?? LLocalization.LLocalizationTextRead(lPersistKey));
+            lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lApplyKey),
+            lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lPersistKey));
     }
 
     public string QInspectorNoticeRead(QInspectorTip lTip, string lKey) =>
-        lTip.QInspectorTipNotice ?? LLocalization.LLocalizationTextRead(lKey);
+        lTip.QInspectorTipNotice ?? QLocalizationCatalog.QLocalizationTextRead(lKey);
 
     public static bool QInspectorDigitCheck(string lText) => lText.All(char.IsDigit);
 

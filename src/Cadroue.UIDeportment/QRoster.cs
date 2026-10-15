@@ -49,7 +49,7 @@ public sealed class QRoster
         lUsher,
         lLineage,
         QProgram.QScheduleCurrent,
-        LStation.LStationCreate(LLocalization.LLocalizationTextRead("Roster.Title.Worklist")));
+        LStation.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")));
 
     public event Action? QRosterDetailApplied;
 

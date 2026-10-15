@@ -4,7 +4,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
@@ -98,7 +97,7 @@ public sealed class PSectionRow
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0),
             Cursor = Cursors.Hand,
-            ToolTip = LLocalization.LLocalizationTextRead("Section.Toggle.Tooltip"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Section.Toggle.Tooltip"),
             Child = pSectionBadgeText
         };
         pColorDot.MouseLeftButtonDown += PSectionToggleHandle;

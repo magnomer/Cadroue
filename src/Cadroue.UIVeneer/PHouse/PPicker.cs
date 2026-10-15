@@ -128,7 +128,8 @@ internal sealed class PPicker : UserControl
             IsChecked = PLook.PLookChecked[lItem.QPickerItemChecked],
             Margin = new Thickness(8, 6, 8, 6)
         };
-        PCheckbox.PCheckboxApply(pBox);
+        PInteraction.PInteractionButtonAttach(pBox);
+        QCheckbox.QCheckboxAttach(pBox);
         pBox.Checked += (_, _) => PPickerChangeHandle();
         pBox.Unchecked += (_, _) => PPickerChangeHandle();
         pPickerBoxes[lItem.QPickerItemToken] = pBox;

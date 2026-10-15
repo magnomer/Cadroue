@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using System.Windows;
 using System.Windows.Controls;
@@ -111,13 +110,14 @@ public sealed class PFunnelRuleRow : Border
     {
         var pBox = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Funnel.Whole"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Whole"),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelTitleBrush,
             Margin = new Thickness(2, 0, 0, 0)
         };
-        PCheckbox.PCheckboxApply(pBox);
+        PInteraction.PInteractionButtonAttach(pBox);
+        QCheckbox.QCheckboxAttach(pBox);
         pBox.Checked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, true);
         pBox.Unchecked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, false);
         return pBox;
@@ -196,7 +196,7 @@ public sealed class PFunnelRuleRow : Border
 
         var pRelayLabel = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Funnel.Relay"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Relay"),
             FontSize = 12,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelTitleBrush,

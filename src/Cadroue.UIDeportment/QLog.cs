@@ -173,7 +173,7 @@ public sealed class QLog
             qLogFiles.Add(new QLogFile(
                 lFile,
                 lCurrent
-                    ? LLocalization.LLocalizationTextRead("Log.File.Current")
+                    ? QLocalizationCatalog.QLocalizationTextRead("Log.File.Current")
                     : qLogUsher.CUsherStemRead(lFile)));
         }
 
@@ -295,7 +295,7 @@ public sealed class QLog
     }
 
     public void QLogErrorRaise(string lMessageKey, string lDetail) =>
-        QLogErrorShown?.Invoke(LLocalization.LLocalizationFormat(lMessageKey, lDetail));
+        QLogErrorShown?.Invoke(QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail));
 
     private void QLogAppendHandle(long lSequence, LTraceEntry lEntry)
     {

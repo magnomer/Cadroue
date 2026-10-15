@@ -23,7 +23,7 @@ public sealed class QViewerMpv
     {
         if (lMediaInfo is { LMediaAudioOnly: true } && !qViewer.QViewerAudioAllowed)
         {
-            string lAudioError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
+            string lAudioError = QLocalizationCatalog.QLocalizationTextRead("Viewer.Error.AudioOnlyTab");
             QViewerMpvCommit(new LCargo(lSourcePath, null, false, false, lAudioError, lAudioError));
             return;
         }

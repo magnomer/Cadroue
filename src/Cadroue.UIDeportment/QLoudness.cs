@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -49,7 +48,7 @@ public sealed class QLoudness
     public int QLoudnessModeIndex => QLoudnessDynamic ? 1 : 0;
 
     public IReadOnlyList<string> QLoudnessModeNames =>
-        QLoudnessModeKeys.Select(LLocalization.LLocalizationTextRead).ToList();
+        QLoudnessModeKeys.Select(QLocalizationCatalog.QLocalizationTextRead).ToList();
 
     public IReadOnlyList<QInspectorRow> QLoudnessRowsRead(bool lDynamic) => lDynamic
         ? QDynamic.QDynamicRowsRead()

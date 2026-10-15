@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 
@@ -31,7 +32,8 @@ public sealed partial class PExport
             Cursor = Cursors.Hand,
             HorizontalAlignment = HorizontalAlignment.Stretch,
             Opacity = pPresetUnsupported ? 0.42 : 1,
-            ToolTip = pPresetUnsupported ? LLocalization.LLocalizationTextRead(QExport.QExportSupportNotice) : null,
+            ToolTip = pPresetUnsupported ? QLocalizationCatalog.QLocalizationTextRead(
+                QExport.QExportSupportNotice) : null,
             Child = pNameElement
         };
         pRowBorder.PreviewMouseLeftButtonDown += (_, pEvent) =>

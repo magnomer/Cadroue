@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Application;
 
@@ -41,12 +42,12 @@ public sealed partial class PExport
         pButtonPanel.Children.Add(PExportInlineBuild(
             PExportCheckIcon,
             PExportApplyBrush,
-            LLocalization.LLocalizationTextRead("ExportPreset.ApplyTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ApplyTooltip"),
             PExportModificationApply));
         pButtonPanel.Children.Add(PExportInlineBuild(
             PExportCancelIcon,
             PExportCancelBrush,
-            LLocalization.LLocalizationTextRead("ExportPreset.DiscardTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.DiscardTooltip"),
             PExportModificationRestore));
         Grid.SetColumn(pButtonPanel, 1);
         pGrid.Children.Add(pButtonPanel);
@@ -99,7 +100,7 @@ public sealed partial class PExport
         VerticalAlignment = VerticalAlignment.Center,
         Child = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("ExportPreset.Native"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Native"),
             FontSize = 10,
             FontFamily = new FontFamily("Segoe UI"),
             FontWeight = FontWeights.SemiBold,

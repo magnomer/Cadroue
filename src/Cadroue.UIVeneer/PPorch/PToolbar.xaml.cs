@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -214,7 +213,7 @@ public partial class PToolbar : UserControl
         string pLogoMenuIconPath)
     {
         MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(
-            LLocalization.LLocalizationTextRead(pLogoMenuKey),
+            QLocalizationCatalog.QLocalizationTextRead(pLogoMenuKey),
             PMenu.PMenuIconRead(pLogoMenuIconPath));
         pLogoMenuItem.Click += (_, _) => pLogoActions[pLogoMenuToken](this);
         pLogoMenu.Items.Add(pLogoMenuItem);

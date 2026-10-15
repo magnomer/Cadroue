@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -207,7 +206,7 @@ internal static class PRosterOverview
             Height = PRosterTheme.PRosterRowHeight,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
-            ToolTip = LLocalization.LLocalizationTextRead("Roster.Explorer.Tooltip"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Roster.Explorer.Tooltip"),
             Style = PButton.PButtonPanelCreate()
         };
         pButton.Click += (_, _) => lRoster.QRosterPathOpen(pPath);

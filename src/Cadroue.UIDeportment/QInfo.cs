@@ -10,14 +10,15 @@ public sealed class QInfo
 {
     public event Action? QInfoChanged;
 
-    public QInfo(QViewer lViewer)
+    private readonly CInfo qInfoGate;
+
+    public QInfo(QViewer lViewer, CInfo lInfo)
     {
+        qInfoGate = lInfo;
         QInfoViewer = lViewer;
         lViewer.QViewerMediaChanged += QInfoMediaHandle;
         LMediaProbe.LMediaAvailabilityReady += QInfoAvailabilityHandle;
     }
-
-    public static CInfo QInfoGateSeam { get; set; } = null!;
 
     public QViewer QInfoViewer { get; }
 
@@ -25,7 +26,7 @@ public sealed class QInfo
 
     private void QInfoMediaHandle(LCargo lCargo)
     {
-        QInfoGateSeam.CInfoProbeDefer(
+        qInfoGate.CInfoProbeDefer(
             lCargo.LCargoSourcePath,
             LMediaProbe.LMediaAvailabilityCurrent,
             () => LMediaProbe.LMediaAvailabilityDefer());
@@ -33,6 +34,6 @@ public sealed class QInfo
     }
 
     private void QInfoAvailabilityHandle(bool lReady) =>
-        QInfoGateSeam.CInfoAvailabilityPropagate(
+        qInfoGate.CInfoAvailabilityPropagate(
             QInfoViewer.QViewerCargo?.LCargoSourcePath, () => QInfoChanged?.Invoke());
 }

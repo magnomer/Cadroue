@@ -22,13 +22,16 @@ public sealed class QWindow
 
     internal CUsher QWindowUsher { get; }
 
+    private CInfo QWindowInfo { get; }
+
     public QWindow(CAtelier lAtelier)
     {
         ArgumentNullException.ThrowIfNull(lAtelier);
 
         QWindowUsher = lAtelier.CAtelierUsher;
+        QWindowInfo = lAtelier.CAtelierInfo;
         qWindowWorkspaceSource = lAtelier.CAtelierWorkspaceCreate;
-        qStrip = new QStrip(QWindowUsher, lAtelier.CAtelierLineage, qWindowWorkspaceSource);
+        qStrip = new QStrip(QWindowUsher, QWindowInfo, lAtelier.CAtelierLineage, qWindowWorkspaceSource);
         QWindowScene = new QWindowScene(qStrip);
         QWindowScene.QWindowSceneAdded += QWindowTabRaise;
         QWindowScene.QWindowSceneRestored += QWindowFunnelRaise;
@@ -41,7 +44,7 @@ public sealed class QWindow
     public QWindowScene QWindowScene { get; }
 
     public QWorkspacePair QWindowPairCreate() =>
-        new(new QWorkspaceFacts(string.Empty), QWindowUsher, qWindowWorkspaceSource());
+        new(new QWorkspaceFacts(string.Empty), QWindowUsher, QWindowInfo, qWindowWorkspaceSource());
 
     public QLogoMenu QWindowLogo { get; }
 

@@ -1,5 +1,4 @@
 using System.Windows;
-using Cadroue.Application;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
@@ -13,18 +12,18 @@ public sealed partial class PExport
 
     public static void PExportIncompatibleShow() => PSAnnouncement.PSAnnouncementShow(
         null,
-        LLocalization.LLocalizationTextRead("ExportPreset.Incompatible.Title"),
-        LLocalization.LLocalizationTextRead("ExportPreset.Incompatible.Body"));
+        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible.Title"),
+        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible.Body"));
 
     internal static string PExportMarkRead(string lPresetText, bool lPresetUnsupported) =>
         lPresetUnsupported
-            ? $"{lPresetText} {LLocalization.LLocalizationTextRead("ExportPreset.Incompatible")}"
+            ? $"{lPresetText} {QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible")}"
             : lPresetText;
 
     public static void PExportMissingShow() => PSAnnouncement.PSAnnouncementShow(
         null,
-        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Title"),
-        LLocalization.LLocalizationTextRead("ExportPreset.Missing.Body"));
+        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Missing.Title"),
+        QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Missing.Body"));
 
     private UIElement PExportActionBuild()
     {
@@ -36,11 +35,11 @@ public sealed partial class PExport
         var pLeftPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pLeftPanel.Children.Add(PExportButtonBuild(
             PExportPlusIcon,
-            LLocalization.LLocalizationTextRead("ExportPreset.AddTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.AddTooltip"),
             PExportPresetAdd));
         pLeftPanel.Children.Add(PExportButtonBuild(
             PExportMinusIcon,
-            LLocalization.LLocalizationTextRead("ExportPreset.DeleteTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.DeleteTooltip"),
             PExportPresetDelete));
         Grid.SetColumn(pLeftPanel, 0);
         pGrid.Children.Add(pLeftPanel);
@@ -52,15 +51,15 @@ public sealed partial class PExport
         };
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportSettingIcon,
-            LLocalization.LLocalizationTextRead("ExportPreset.SettingsTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.SettingsTooltip"),
             PExportDialogShow));
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportExportIcon,
-            LLocalization.LLocalizationTextRead("ExportPreset.ExportTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ExportTooltip"),
             PExportPresetSave));
         pRightPanel.Children.Add(PExportButtonBuild(
             PExportImportIcon,
-            LLocalization.LLocalizationTextRead("ExportPreset.ImportTooltip"),
+            QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ImportTooltip"),
             PExportPresetLoad));
         Grid.SetColumn(pRightPanel, 2);
         pGrid.Children.Add(pRightPanel);

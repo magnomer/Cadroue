@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -27,7 +27,7 @@ internal sealed partial class PSEncoder
 
         var pLabels = new List<string>(pLayouts.Count + 1)
         {
-            LLocalization.LLocalizationTextRead("Encoder.Sample.Source")
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
         };
         pLabels.AddRange(pLayouts);
 
@@ -44,13 +44,13 @@ internal sealed partial class PSEncoder
         psAudioChannelSlider = new Slider();
         psAudioChannelReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
         UIElement pRow = PSFader.PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout,
             pNotice);
 
         psAudioChannelPanel.Children.Clear();
         psAudioChannelPanel.Children.Add(PSField.PSFieldBuild(
-            LLocalization.LLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Field.Channels"), pRow));
         psAudioChannelPanel.Children.Add(pNotice);
     }
 

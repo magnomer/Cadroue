@@ -36,8 +36,8 @@ public sealed partial class PInspector
     private StackPanel PBlankBuild()
     {
         pBlankSwitch = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
         PInspectorSwitchAttach(pBlankSwitch, QBlank.QBlankEnabledSet);
         pBlankStack = new StackPanel();
         pBlankBody = new StackPanel
@@ -68,7 +68,7 @@ public sealed partial class PInspector
             () => QBlank.QBlankStep.LDetectorBlankTolerance,
             QBlank.QBlankToleranceSet);
         pStack.Children.Add(PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Tolerance"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Tolerance"),
             pBlankToleranceSlider,
             string.Empty,
             pBlankToleranceValue));
@@ -78,7 +78,7 @@ public sealed partial class PInspector
             () => QBlank.QBlankStep.LDetectorBlankCoverage,
             QBlank.QBlankCoverageSet);
         pStack.Children.Add(PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Coverage"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Coverage"),
             pBlankCoverageSlider,
             string.Empty,
             pBlankCoverageValue));
@@ -88,7 +88,7 @@ public sealed partial class PInspector
             () => QBlank.QBlankStep.LDetectorBlankMinimum,
             QBlank.QBlankMinimumSet);
         pStack.Children.Add(PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Minimum"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Minimum"),
             pBlankMinimumSlider,
             "s",
             pBlankMinimumValue));
@@ -106,11 +106,11 @@ public sealed partial class PInspector
     private UIElement PBlankTypeBuild()
     {
         pBlankBlack = PSensorRadioBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Black"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Black"),
             "PBlankType",
             () => QBlank.QBlankTypeSet(LDetectorType.LDetectorTypeBlack));
         pBlankColor = PSensorRadioBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Color"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Color"),
             "PBlankType",
             () => QBlank.QBlankTypeSet(LDetectorType.LDetectorTypeColor));
         Border pBlankType = PRadio.PRadioSegmentBuild(pBlankBlack, pBlankColor);
@@ -130,7 +130,7 @@ public sealed partial class PInspector
         pBlankPicker = new ToggleButton
         {
             Content = pBlankPickerIcon,
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Blank.PickerTooltip"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.PickerTooltip"),
             Width = 32,
             Height = 32,
             VerticalAlignment = VerticalAlignment.Center,
@@ -140,7 +140,7 @@ public sealed partial class PInspector
         pBlankPicker.Unchecked += (_, _) => QBlank.QBlankPickSet(false);
 
         return PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Blank.Picker"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Picker"),
             pBlankPicker,
             true);
     }

@@ -1,7 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -20,22 +20,24 @@ public sealed partial class PInspector
 
         PInspectorCellAdd(
             pCropGrid,
-            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Top"), pInspectorInsetTop),
+            PInspectorCellBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Top"), pInspectorInsetTop),
             0,
             1);
         PInspectorCellAdd(
             pCropGrid,
-            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft),
+            PInspectorCellBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Left"), pInspectorInsetLeft),
             1,
             0);
         PInspectorCellAdd(
             pCropGrid,
-            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Right"), pInspectorInsetRight),
+            PInspectorCellBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Right"),
+                pInspectorInsetRight),
             1,
             2);
         PInspectorCellAdd(
             pCropGrid,
-            PInspectorCellBuild(LLocalization.LLocalizationTextRead("Inspector.Crop.Bottom"), pInspectorInsetBottom),
+            PInspectorCellBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Bottom"),
+                pInspectorInsetBottom),
             2,
             1);
         PInspectorCellAdd(pCropGrid, PInspectorResolutionBuild(), 1, 1);
@@ -59,7 +61,7 @@ public sealed partial class PInspector
         HorizontalAlignment = HorizontalAlignment.Center,
         VerticalAlignment = VerticalAlignment.Bottom,
         Margin = new Thickness(3),
-        ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.Resolution"),
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Resolution"),
         Child = pInspectorResolution
     };
 
@@ -67,8 +69,8 @@ public sealed partial class PInspector
     {
         var pResetButton = new Button
         {
-            Content = LLocalization.LLocalizationTextRead("Inspector.Crop.Reset"),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Crop.ResetTooltip"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Reset"),
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ResetTooltip"),
             Height = PInspectorFieldHeight,
             MinWidth = 64,
             Padding = new Thickness(8, 0, 8, 0),

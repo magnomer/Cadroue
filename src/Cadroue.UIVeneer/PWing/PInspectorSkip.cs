@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -13,18 +13,18 @@ public sealed partial class PInspector
     private StackPanel PSkipBodyBuild()
     {
         pSkipApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Skip.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.ApplyTooltip"));
         PInspectorSwitchAttach(pSkipApplyBox, QSkip.QSkipActiveSet);
 
         pSkipPersistentBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
         PInspectorSwitchAttach(pSkipPersistentBox, QSkip.QSkipPersistentSet);
 
         var pSkipNote = new TextBlock
         {
-            Text = LLocalization.LLocalizationTextRead("Inspector.Skip.Note"),
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.Note"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
             Foreground = pInspectorMutedBrush,

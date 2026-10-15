@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -31,24 +30,24 @@ public sealed partial class PInspector
     private StackPanel PFilterHighBuild()
     {
         pInspectorHighPass = PInspectorPassBuild(
-            LFilterHigh, LLocalization.LLocalizationTextRead("Inspector.Pass.HighApply"));
+            LFilterHigh, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.HighApply"));
         return pInspectorHighPass.PInspectorPassBody;
     }
 
     private StackPanel PFilterLowBuild()
     {
         pInspectorLowPass = PInspectorPassBuild(
-            LFilterLow, LLocalization.LLocalizationTextRead("Inspector.Pass.LowApply"));
+            LFilterLow, QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.LowApply"));
         return pInspectorLowPass.PInspectorPassBody;
     }
 
     private static PInspectorPass PInspectorPassBuild(QFilter lOwner, string pApplyTip)
     {
         CheckBox pApply = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"), pApplyTip);
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"), pApplyTip);
         CheckBox pPersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
         PInspectorSwitchAttach(pApply, lOwner.QFilterActiveSet);
         PInspectorSwitchAttach(pPersistent, lOwner.QFilterPersistentSet);
 
@@ -105,23 +104,24 @@ public sealed partial class PInspector
         var pStack = new StackPanel();
         var pBody = new StackPanel { Margin = new Thickness(12, 12, 12, 12), Visibility = Visibility.Collapsed };
         pStack.Children.Add(
-            PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pPreset));
+            PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset"), pPreset));
         pStack.Children.Add(
             PInspectorSliderBuild(
-                LLocalization.LLocalizationTextRead("Inspector.Pass.Cutoff"), pFrequency, "Hz", pValue));
+                QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.Cutoff"), pFrequency, "Hz", pValue));
         pStack.Children.Add(
             PInspectorSliderBuild(
-                LLocalization.LLocalizationTextRead("Inspector.Pass.Steepness"),
+                QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.Steepness"),
                 pStages,
                 "×12dB",
                 pStageValue));
         Grid pResonanceRow = PInspectorSliderBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Pass.Resonance"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.Resonance"),
             pResonanceSlider,
             "Q",
             pResonance);
         pStack.Children.Add(pResonanceRow);
-        pStack.Children.Add(PInspectorFieldBuild(LLocalization.LLocalizationTextRead("Inspector.Pass.Poles"), pPoles));
+        pStack.Children.Add(PInspectorFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.Poles"),
+            pPoles));
 
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());

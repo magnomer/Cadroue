@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -84,7 +83,7 @@ public sealed class QGroupFace
 
     private static QGroupSide QGroupSideCreate(string lKey, bool lActive) =>
         new(
-            LLocalization.LLocalizationTextRead($"Group.{lKey}.Label"),
-            LLocalization.LLocalizationTextRead($"Group.{lKey}.Tooltip"),
+            QLocalizationCatalog.QLocalizationTextRead($"Group.{lKey}.Label"),
+            QLocalizationCatalog.QLocalizationTextRead($"Group.{lKey}.Tooltip"),
             lActive);
 }

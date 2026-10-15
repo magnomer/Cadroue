@@ -83,31 +83,33 @@ public sealed class QClinic
 
     public bool QClinicSalvageSource => !QClinicSalvageFixed;
 
-    public string QClinicSalvageText => LLocalization.LLocalizationTextRead(!QClinicRepairCheck()
+    public string QClinicSalvageText => QLocalizationCatalog.QLocalizationTextRead(!QClinicRepairCheck()
         ? "Clinic.Salvage.Basis.None"
         : QClinicSalvageFixed
             ? "Clinic.Salvage.Basis.Fixed.Description"
             : "Clinic.Salvage.Basis.Source.Description");
 
     public string QClinicTitleRead() =>
-        LLocalization.LLocalizationTextRead(QClinicKnown ? $"Processing.Step.{qClinicStep}" : "Clinic.Header.Title");
+        QLocalizationCatalog.QLocalizationTextRead(
+            QClinicKnown ? $"Processing.Step.{qClinicStep}" : "Clinic.Header.Title");
 
     public string QClinicSimpleRead() =>
-        QClinicKnown ? LLocalization.LLocalizationTextRead($"Clinic.Step.{qClinicStep}.Simple") : string.Empty;
+        QClinicKnown ? QLocalizationCatalog.QLocalizationTextRead($"Clinic.Step.{qClinicStep}.Simple") : string.Empty;
 
     public string QClinicTechnicalRead() =>
-        QClinicKnown ? LLocalization.LLocalizationTextRead($"Clinic.Step.{qClinicStep}.Technical") : string.Empty;
+        QClinicKnown ? QLocalizationCatalog.QLocalizationTextRead(
+            $"Clinic.Step.{qClinicStep}.Technical") : string.Empty;
 
     public string QClinicResultFormat() => LCheckupFormatter.LCheckupBodyFormat(
         QClinicResultRead(),
         new LCheckupStrings(
-            LLocalization.LLocalizationTextRead("Clinic.Result.Empty"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Scanning"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Clean"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Failed"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Defect"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Evidence"),
-            LLocalization.LLocalizationTextRead("Clinic.Result.Repair")));
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Empty"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Scanning"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Clean"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Failed"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Defect"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Evidence"),
+            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Repair")));
 
     public bool QClinicMinimized => qClinicMinimized;
 

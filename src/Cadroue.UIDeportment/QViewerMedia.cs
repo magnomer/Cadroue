@@ -211,7 +211,7 @@ public sealed class QViewerMedia
     {
         if (lMediaInfo is { LMediaAudioOnly: true } && !qViewer.QViewerAudioAllowed)
         {
-            string lAudioOnlyError = LLocalization.LLocalizationTextRead("Viewer.Error.AudioOnlyTab");
+            string lAudioOnlyError = QLocalizationCatalog.QLocalizationTextRead("Viewer.Error.AudioOnlyTab");
             QViewerFlyleafCommit(new LCargo(lSourcePath, null, false, false, lAudioOnlyError, lAudioOnlyError), false);
             return;
         }

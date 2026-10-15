@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -62,7 +61,8 @@ public sealed class QNoise
 
     public int QNoiseTypeIndex => Array.IndexOf(QNoiseTypes, qNoiseStep.LWorkNoiseType);
 
-    public IReadOnlyList<string> QNoiseTypeNames => QNoiseTypeKeys.Select(LLocalization.LLocalizationTextRead).ToList();
+    public IReadOnlyList<string> QNoiseTypeNames =>
+        QNoiseTypeKeys.Select(QLocalizationCatalog.QLocalizationTextRead).ToList();
 
     public IReadOnlyList<QInspectorRow> QNoiseRows => QNoiseOrder
         .Select(lIndex => QInspectorPlan.QInspectorRowCreate(

@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Cadroue.Conduct;
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -56,9 +55,9 @@ public sealed class QSource
 
     public bool QSourceAudioAllowed => qSourceAudioAllowed;
 
-    public static string QSourcePlaceholderRead() => LLocalization.LLocalizationTextRead("Source.Empty.Notice");
+    public static string QSourcePlaceholderRead() => QLocalizationCatalog.QLocalizationTextRead("Source.Empty.Notice");
 
-    public static string QSourceTitleRead() => LLocalization.LLocalizationTextRead("Source.Dialog.Open");
+    public static string QSourceTitleRead() => QLocalizationCatalog.QLocalizationTextRead("Source.Dialog.Open");
 
     public static bool QSourcePlaceholderCheck(string lText) => string.IsNullOrWhiteSpace(lText);
 
@@ -67,9 +66,9 @@ public sealed class QSource
         string lVideoPattern = QSourcePatternRead(LMedia.LMediaVideoExtensions);
         string lAudioPattern = QSourcePatternRead(LMedia.LMediaAudioExtensions);
         return qSourceAudioAllowed
-            ? LLocalization.LLocalizationFormat(
+            ? QLocalizationCatalog.QLocalizationFormat(
                 "Source.Dialog.MediaProjectFilter", lVideoPattern, lAudioPattern, QSourceSidecarPattern)
-            : LLocalization.LLocalizationFormat(
+            : QLocalizationCatalog.QLocalizationFormat(
                 "Source.Dialog.VideoProjectFilter", lVideoPattern, QSourceSidecarPattern);
     }
 
@@ -104,8 +103,8 @@ public sealed class QSource
         if (LMedia.LMediaAudioCheck(lPath) && !qSourceAudioAllowed)
         {
             QSourceRefuse?.Invoke(
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Title"),
-                LLocalization.LLocalizationTextRead("Source.AudioOnly.Message"));
+                QLocalizationCatalog.QLocalizationTextRead("Source.AudioOnly.Title"),
+                QLocalizationCatalog.QLocalizationTextRead("Source.AudioOnly.Message"));
             return false;
         }
 

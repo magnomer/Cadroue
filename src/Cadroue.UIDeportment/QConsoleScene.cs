@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
@@ -133,10 +132,10 @@ public sealed class QConsoleScene
         }
 
         var lAsk = new QAsk(
-            LLocalization.LLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
-            LLocalization.LLocalizationTextRead("Terms.Load"))
+            QLocalizationCatalog.QLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Load"))
         {
-            QAskTitle = LLocalization.LLocalizationTextRead("Console.Scene.LoadTitle")
+            QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.LoadTitle")
         };
         QAskNotice.QAskPublish(lAsk, lAnswer => QConsoleSceneRun(lAnswer, lSceneName, lScene));
     }
@@ -193,8 +192,8 @@ public sealed class QConsoleScene
         if (lSceneName.Length == 0)
         {
             QConsoleNoticeShown?.Invoke(
-                LLocalization.LLocalizationTextRead("Console.Scene.SaveTitle"),
-                LLocalization.LLocalizationTextRead("Console.Scene.NameRequired"));
+                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTitle"),
+                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.NameRequired"));
             return;
         }
 
@@ -237,13 +236,14 @@ public sealed class QConsoleScene
         }
 
         return qWindowScene?.QWindowSceneRead(
-            lSceneName.Length > 0 ? lSceneName : LLocalization.LLocalizationTextRead("Console.Scene.DefaultName"));
+            lSceneName.Length > 0 ? lSceneName : QLocalizationCatalog.QLocalizationTextRead(
+                "Console.Scene.DefaultName"));
     }
 
     public string QConsoleFileResolve(string? lText) =>
         LScene.LSceneFileResolve(
             QConsoleExportResolve(lText)?.LSceneName ?? string.Empty,
-            LLocalization.LLocalizationTextRead("Console.Scene.DefaultName"));
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName"));
 
     public void QConsoleExportCommit(bool? lConfirmed, string lPath, string? lText)
     {
@@ -295,7 +295,7 @@ public sealed class QConsoleScene
     public static string QConsoleStemResolve(string lSceneName, string lPath)
     {
         string lName = LScene.LSceneStemResolve(lSceneName, lPath);
-        return lName.Length > 0 ? lName : LLocalization.LLocalizationTextRead("Console.Scene.ImportedName");
+        return lName.Length > 0 ? lName : QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportedName");
     }
 
     public static string QConsoleNameCreate(string lBaseName, IReadOnlyList<string> lNames)
@@ -317,8 +317,8 @@ public sealed class QConsoleScene
 
     private void QConsoleErrorRaise(string lMessageKey, string lDetail, string lTitleKey) =>
         QConsoleWarningShown?.Invoke(
-            LLocalization.LLocalizationTextRead(lTitleKey),
+            QLocalizationCatalog.QLocalizationTextRead(lTitleKey),
             lDetail.Length > 0
-                ? LLocalization.LLocalizationFormat(lMessageKey, lDetail)
-                : LLocalization.LLocalizationTextRead(lMessageKey));
+                ? QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail)
+                : QLocalizationCatalog.QLocalizationTextRead(lMessageKey));
 }

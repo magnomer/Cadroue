@@ -83,8 +83,8 @@ public sealed class QSplitTabSweep
             if (!qSplitFlow.QFlowSection.QFlowCombineApply(lExcluded, lKept, lBoundaries))
             {
                 QSplitFailRaised?.Invoke(
-                    LLocalization.LLocalizationTextRead("Inspector.Detect.FailTitle"),
-                    LLocalization.LLocalizationFormat("Inspector.Detect.CeilingMessage", LPiece.LPieceCeiling));
+                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.FailTitle"),
+                    QLocalizationCatalog.QLocalizationFormat("Inspector.Detect.CeilingMessage", LPiece.LPieceCeiling));
             }
         }
         catch (OperationCanceledException)
@@ -94,8 +94,8 @@ public sealed class QSplitTabSweep
         {
             LTraceLog.LTraceErrorRecord($"Detection failed for '{lSelected.LDocketEntryPath}'", lException);
             QSplitFailRaised?.Invoke(
-                LLocalization.LLocalizationTextRead("Inspector.Detect.FailTitle"),
-                LLocalization.LLocalizationFormat("Inspector.Detect.FailMessage", lException.Message));
+                QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.FailTitle"),
+                QLocalizationCatalog.QLocalizationFormat("Inspector.Detect.FailMessage", lException.Message));
         }
         finally
         {

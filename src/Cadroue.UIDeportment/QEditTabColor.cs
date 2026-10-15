@@ -63,33 +63,34 @@ public sealed class QEditTabColor
         bool lCropCapable = QEditFilterCheck("crop");
         bool lOrientationCapable = QEditFilterCheck("transpose", "hflip", "vflip");
 
-        string lEqNotice = LLocalization.LLocalizationTextRead("Processing.Step.RequiresEq");
+        string lEqNotice = QLocalizationCatalog.QLocalizationTextRead("Processing.Step.RequiresEq");
         qEditProcessing.QProcessingEnabledSet("Brightness", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Contrast", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Saturation", lEqCapable, lEqNotice);
         qEditInspector.QInspectorVideo.QInspectorTone.QToneCapableSet(lEqCapable);
 
         qEditProcessing.QProcessingEnabledSet(
-            "Crop", lCropCapable, LLocalization.LLocalizationTextRead("Processing.Step.RequiresCrop"));
+            "Crop", lCropCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.RequiresCrop"));
         qEditInspector.QInspectorCapableSet(lCropCapable, lOrientationCapable);
 
         qEditProcessing.QProcessingEnabledSet(
-            "Exposure", lExposureCapable, LLocalization.LLocalizationTextRead("Inspector.Video.ExposureRequiresEq"));
+            "Exposure", lExposureCapable, QLocalizationCatalog.QLocalizationTextRead(
+                "Inspector.Video.ExposureRequiresEq"));
         qEditInspector.QInspectorVideo.QInspectorExposure.QExposureCapableSet(lExposureCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
-            "Curve", lCurveCapable, LLocalization.LLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
+            "Curve", lCurveCapable, QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
         qEditInspector.QInspectorVideo.QInspectorCurve.QCurveCapableSet(lCurveCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Whitebalance",
             lWhitebalanceCapable,
-            LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq"));
         qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceCapableSet(
             lWhitebalanceCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
-            "Gamma", lEqCapable, LLocalization.LLocalizationTextRead("Processing.Step.GammaRequiresEq"));
+            "Gamma", lEqCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.GammaRequiresEq"));
         qEditInspector.QInspectorVideo.QInspectorGamma.QGammaCapableSet(lEqCapable, lEqCapable && lPreviewMpv);
 
         QEditColorUpdate();
@@ -105,12 +106,12 @@ public sealed class QEditTabColor
                 return;
             case LNeutralStatus.LNeutralStatusDecode:
                 qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
-                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceDecode"));
+                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceDecode"));
                 LTraceLog.LTraceInfoRecord("Whitebalance pick: frame decode failed");
                 return;
             default:
                 qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
-                    LLocalization.LLocalizationTextRead("Inspector.Video.WhitebalanceInvalid"));
+                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceInvalid"));
                 LTraceLog.LTraceInfoRecord($"Whitebalance pick: invalid sample ({lSample.LNeutralOutcome})");
                 return;
         }

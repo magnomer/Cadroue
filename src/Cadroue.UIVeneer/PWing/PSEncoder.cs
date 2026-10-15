@@ -190,7 +190,7 @@ internal sealed partial class PSEncoder : Window
         psAudioEncoderCombo.HorizontalContentAlignment = HorizontalAlignment.Stretch;
         psAudioRateCombo = PSCombo.PSComboBuild(
             lsEncoder.QSEncoderAudioRate, lsEncoder.QSEncoderAudioCodec.LCapabilityModeLabels);
-        Title = LLocalization.LLocalizationTextRead("Encoder.Window.Title");
+        Title = QLocalizationCatalog.QLocalizationTextRead("Encoder.Window.Title");
         Width = PSEncoderWidthDefault;
         Height = PSEncoderHeightDefault;
         MinWidth = PSEncoderWidthMinimum;

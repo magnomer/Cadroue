@@ -4,7 +4,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
-using Cadroue.Application;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
@@ -18,7 +17,7 @@ internal sealed partial class PSEncoder
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(130) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.Children.Add(
-            PSField.PSFieldLabelBuild(LLocalization.LLocalizationTextRead("Encoder.Field.Output.Location")));
+            PSField.PSFieldLabelBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Field.Output.Location")));
 
         var pValueGrid = new Grid();
         pValueGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -58,7 +57,7 @@ internal sealed partial class PSEncoder
         string pCurrent = psLocationFolderBox.Text.Trim();
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
-            Title = LLocalization.LLocalizationTextRead("Encoder.Location.Choose"),
+            Title = QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Choose"),
             InitialDirectory = lsEncoder.QSEncoderInitialResolve(pCurrent)
         };
         if (pDialog.ShowDialog() == true)
@@ -92,12 +91,13 @@ internal sealed partial class PSEncoder
 
         if (psLocationFolderLabel is not null)
         {
-            psLocationFolderLabel.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderFolderResolve(pMode));
+            psLocationFolderLabel.Text = QLocalizationCatalog.QLocalizationTextRead(QSEncoder.QSEncoderFolderResolve(
+                pMode));
         }
 
         if (psLocationStatus is not null)
         {
-            psLocationStatus.Text = LLocalization.LLocalizationTextRead(QSEncoder.QSEncoderStatusResolve(pMode));
+            psLocationStatus.Text = QLocalizationCatalog.QLocalizationTextRead(QSEncoder.QSEncoderStatusResolve(pMode));
         }
     }
 }

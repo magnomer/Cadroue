@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -251,20 +250,20 @@ public partial class PRail : UserControl
     private static void PTabKeptShow(Window pWindow) =>
         PSWarning.PSWarningShow(
             pWindow,
-            LLocalization.LLocalizationTextRead("Tab.Relay.KeptTitle"),
-            LLocalization.LLocalizationTextRead("Tab.Relay.KeptMessage"));
+            QLocalizationCatalog.QLocalizationTextRead("Tab.Relay.KeptTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Tab.Relay.KeptMessage"));
 
     private static void PTabBusyShow(Window pWindow) =>
         PSAnnouncement.PSAnnouncementShow(
             pWindow,
-            LLocalization.LLocalizationTextRead("Tab.Relay.BusyTitle"),
-            LLocalization.LLocalizationTextRead("Tab.Relay.BusyMessage"));
+            QLocalizationCatalog.QLocalizationTextRead("Tab.Relay.BusyTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Tab.Relay.BusyMessage"));
 
     private void PTabLoadHandle(object sender, RoutedEventArgs e)
     {
         var pNameBox = (TextBox)sender;
         System.Windows.Automation.AutomationProperties.SetName(
-            pNameBox, LLocalization.LLocalizationTextRead("Tab.Rename.Name"));
+            pNameBox, QLocalizationCatalog.QLocalizationTextRead("Tab.Rename.Name"));
         pNameBox.IsVisibleChanged += PTabVisibleHandle;
     }
 

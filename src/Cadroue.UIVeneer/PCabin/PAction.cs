@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
@@ -47,7 +46,7 @@ public sealed class PAction : UserControl
         pAddListButton.Click += (_, _) => QAction.QActionListRun();
         pActionAllButton.Click += (_, _) => QAction.QActionAllRun();
         pExecuteButton.Click += (_, _) => QAction.QActionHighRun();
-        pActionAllButton.ToolTip = LLocalization.LLocalizationTextRead("Action.AddAll.Tooltip");
+        pActionAllButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.Tooltip");
         pActionRelayIcon = PActionIconBuild();
         pActionRelayLabel = PActionLabelBuild();
         pActionRelayButton = PActionRelayBuild();
@@ -86,23 +85,24 @@ public sealed class PAction : UserControl
 
     private static void PActionEmptyShow() => PSWarning.PSWarningShow(
         null,
-        LLocalization.LLocalizationTextRead("Action.Empty.Title"),
-        LLocalization.LLocalizationTextRead("Action.Empty.Body"));
+        QLocalizationCatalog.QLocalizationTextRead("Action.Empty.Title"),
+        QLocalizationCatalog.QLocalizationTextRead("Action.Empty.Body"));
 
     private CheckBox PActionAutoBuild()
     {
         var pAutoBox = new CheckBox
         {
-            Content = LLocalization.LLocalizationTextRead("Action.AutoRelay.Label"),
+            Content = QLocalizationCatalog.QLocalizationTextRead("Action.AutoRelay.Label"),
             FontSize = 12,
             Foreground = pActionRelayText,
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 6, 0),
             FocusVisualStyle = null,
-            ToolTip = LLocalization.LLocalizationTextRead("Action.AutoRelay.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AutoRelay.Tooltip")
         };
-        PCheckbox.PCheckboxApply(pAutoBox);
+        PInteraction.PInteractionButtonAttach(pAutoBox);
+        QCheckbox.QCheckboxAttach(pAutoBox);
         pAutoBox.Checked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
         pAutoBox.Unchecked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
         return pAutoBox;
@@ -110,7 +110,7 @@ public sealed class PAction : UserControl
 
     private static Button PActionButtonBuild(string pActionToken, string pIconAssetName, string pLabelKey)
     {
-        string pLabelText = LLocalization.LLocalizationTextRead(pLabelKey);
+        string pLabelText = QLocalizationCatalog.QLocalizationTextRead(pLabelKey);
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
@@ -180,10 +180,10 @@ public sealed class PAction : UserControl
             FocusVisualStyle = null,
             Content = pFace,
             Template = PActionTemplateBuild(),
-            ToolTip = LLocalization.LLocalizationTextRead("Action.Relay.Tooltip")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.Relay.Tooltip")
         };
         System.Windows.Automation.AutomationProperties.SetName(
-            pButton, LLocalization.LLocalizationTextRead("Action.Relay.Name"));
+            pButton, QLocalizationCatalog.QLocalizationTextRead("Action.Relay.Name"));
         pButton.Click += PActionOpenHandle;
         return pButton;
     }

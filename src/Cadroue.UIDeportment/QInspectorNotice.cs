@@ -14,7 +14,7 @@ internal static class QInspectorNotice
 
         if (lCropWidth <= 0 || lCropHeight <= 0)
         {
-            return LLocalization.LLocalizationTextRead("Inspector.Crop.FrameError");
+            return QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.FrameError");
         }
 
         if (!lRatio.LCropboxRatioFixed)
@@ -24,7 +24,7 @@ internal static class QInspectorNotice
 
         if (lRatio.LCropboxRatioWidth <= 0 || lRatio.LCropboxRatioHeight <= 0)
         {
-            return LLocalization.LLocalizationTextRead("Inspector.Crop.RatioError");
+            return QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.RatioError");
         }
 
         if (lRatio.LCropboxRatioLenient
@@ -41,7 +41,7 @@ internal static class QInspectorNotice
             return null;
         }
 
-        return LLocalization.LLocalizationFormat(
+        return QLocalizationCatalog.QLocalizationFormat(
             lWide ? "Inspector.Crop.WidthMismatch" : "Inspector.Crop.HeightMismatch", lExcess);
     }
 }

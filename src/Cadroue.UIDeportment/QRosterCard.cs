@@ -1,5 +1,4 @@
 using System.Globalization;
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 
@@ -153,7 +152,7 @@ public sealed record QRosterCard
             QRosterCardKey = lSelected ? QRosterCardSelected : lCompleted ? QRosterCardDone : QRosterCardPlain,
             QRosterCardBody = lCompleted ? QRosterCardDone : lSelected ? QRosterCardSelected : QRosterCardPlain,
             QRosterCardCollapsed = lCollapsed,
-            QRosterCardTooltip = LLocalization.LLocalizationTextRead(
+            QRosterCardTooltip = QLocalizationCatalog.QLocalizationTextRead(
                 lCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
             QRosterCardFiles = lAnswer.CLineageEntries
                 .Where(lEntry => lEntry.CLineageEntryBatch == lBatchId)
@@ -175,8 +174,8 @@ public sealed record QRosterCard
         string lTitle = lEarliest.LocalDateTime.ToString(
             "yyyy-MM-dd tt h:mm", CultureInfo.CurrentUICulture);
         return lInitialCount == 1
-            ? LLocalization.LLocalizationFormat("Roster.Card.One", lTitle)
-            : LLocalization.LLocalizationFormat("Roster.Card.Many", lTitle, lInitialCount);
+            ? QLocalizationCatalog.QLocalizationFormat("Roster.Card.One", lTitle)
+            : QLocalizationCatalog.QLocalizationFormat("Roster.Card.Many", lTitle, lInitialCount);
     }
 
     private static QRosterFile QRosterFileCreate(

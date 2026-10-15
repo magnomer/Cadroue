@@ -16,7 +16,6 @@ Thread thread = new(() =>
         new LWorkspaceOutlet(),
         new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
     QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
-    QInfo.QInfoGateSeam = atelier.CAtelierInfo;
 
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
     LEngine engine = new(LRigFactory.LRigFactoryCreate());

@@ -58,11 +58,11 @@ public sealed class QFlowLosslesscut
                 continue;
             }
 
-            string lUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
+            string lUnspecified = QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
             int lChoice = QFlowLosslesscutRaise(new QFlowLosslesscutPrompt(
                 QFlowLosslesscutKind.QFlowKindDecision,
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
-                LLocalization.LLocalizationFormat(
+                QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Detect.Title"),
+                QLocalizationCatalog.QLocalizationFormat(
                     "Flow.LosslessCut.Detect.Message",
                     lIndex + 1,
                     lPaths.Count,
@@ -71,9 +71,9 @@ public sealed class QFlowLosslesscut
                     lProject.LLosslesscutProjectVersion?.ToString() ?? lUnspecified,
                     lProject.LLosslesscutProjectSegments.Count,
                     QFlowFallbackRead(lProject.LLosslesscutProjectMedia, lUnspecified)),
-                LLocalization.LLocalizationTextRead("Terms.Import"),
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Import"),
                 string.Empty,
-                LLocalization.LLocalizationTextRead("Terms.Skip")));
+                QLocalizationCatalog.QLocalizationTextRead("Terms.Skip")));
             if (lChoice == QFlowImportPrimary)
             {
                 QFlowLosslesscutRun(lPath);
@@ -89,7 +89,7 @@ public sealed class QFlowLosslesscut
             QFlowLosslesscutRaise(QFlowNoticeCreate(
                 QFlowLosslesscutKind.QFlowKindNotice,
                 "Flow.LosslessCut.Import.Title",
-                LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.NoMedia")));
+                QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Import.NoMedia")));
             return;
         }
 
@@ -100,14 +100,14 @@ public sealed class QFlowLosslesscut
             QFlowLosslesscutRaise(QFlowNoticeCreate(
                 QFlowLosslesscutKind.QFlowKindWarning,
                 "Flow.LosslessCut.Import.Title",
-                LLocalization.LLocalizationFormat("Flow.LosslessCut.Import.ReadError", lFault?.Message)));
+                QLocalizationCatalog.QLocalizationFormat("Flow.LosslessCut.Import.ReadError", lFault?.Message)));
             return;
         }
 
         if (!LLosslesscut.LLosslesscutVersionCheck(lProject.LLosslesscutProjectVersion)
             && QFlowLosslesscutRaise(QFlowConfirmCreate(
                 "Flow.LosslessCut.Import.VersionTitle",
-                LLocalization.LLocalizationFormat(
+                QLocalizationCatalog.QLocalizationFormat(
                     "Flow.LosslessCut.Import.VersionWarning", lProject.LLosslesscutProjectVersion),
                 "Terms.Continue")) != QFlowImportPrimary)
         {
@@ -119,7 +119,7 @@ public sealed class QFlowLosslesscut
         if (!lResult.LLosslesscutResultAgreement
             && QFlowLosslesscutRaise(QFlowConfirmCreate(
                 "Flow.LosslessCut.Import.MediaMismatchTitle",
-                LLocalization.LLocalizationFormat(
+                QLocalizationCatalog.QLocalizationFormat(
                     "Flow.LosslessCut.Import.MediaMismatch",
                     lResult.LLosslesscutResultMedia,
                     qFlow.QFlowSourceFormat()),
@@ -139,14 +139,14 @@ public sealed class QFlowLosslesscut
 
         int lMode = QFlowLosslesscutRaise(new QFlowLosslesscutPrompt(
             QFlowLosslesscutKind.QFlowKindChoice,
-            LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Import.PreviewTitle"),
             QFlowLosslesscutFormat(qFlowUsher, lPath, lResult, true)
             + Environment.NewLine
             + Environment.NewLine
-            + LLocalization.LLocalizationTextRead("Flow.LosslessCut.Import.ModeChoices"),
-            LLocalization.LLocalizationTextRead("Terms.Replace"),
-            LLocalization.LLocalizationTextRead("Terms.Append"),
-            LLocalization.LLocalizationTextRead("Terms.Cancel")));
+            + QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Import.ModeChoices"),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Replace"),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Append"),
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel")));
         if (lMode == QFlowImportDismiss)
         {
             return;
@@ -171,17 +171,17 @@ public sealed class QFlowLosslesscut
     public static string QFlowLosslesscutFormat(
         CUsher lUsher, string lPath, LLosslesscutResult lResult, bool lShowRange)
     {
-        string lUnspecified = LLocalization.LLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
+        string lUnspecified = QLocalizationCatalog.QLocalizationTextRead("Flow.LosslessCut.Value.NotSpecified");
         var lLines = new List<string>
         {
-            LLocalization.LLocalizationFormat("Flow.LosslessCut.Summary.Project", lUsher.CUsherNameRead(lPath)),
-            LLocalization.LLocalizationFormat(
+            QLocalizationCatalog.QLocalizationFormat("Flow.LosslessCut.Summary.Project", lUsher.CUsherNameRead(lPath)),
+            QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Version", lResult.LLosslesscutResultVersion?.ToString() ?? lUnspecified),
-            LLocalization.LLocalizationFormat(
+            QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Media", QFlowFallbackRead(lResult.LLosslesscutResultMedia, lUnspecified)),
-            LLocalization.LLocalizationFormat(
+            QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Valid", lResult.LLosslesscutResultSections.Count),
-            LLocalization.LLocalizationFormat(
+            QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Skipped", lResult.LLosslesscutResultIssues.Count)
         };
 
@@ -189,7 +189,7 @@ public sealed class QFlowLosslesscut
         {
             LSidecarSectionEntry lFirst = lResult.LLosslesscutResultSections[0];
             LSidecarSectionEntry lLast = lResult.LLosslesscutResultSections[^1];
-            lLines.Add(LLocalization.LLocalizationFormat(
+            lLines.Add(QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Range",
                 TimeSpan.FromMilliseconds(lFirst.LSidecarStartMilliseconds).ToString(@"hh\:mm\:ss\.fff"),
                 TimeSpan.FromMilliseconds(lLast.LSidecarEndMilliseconds).ToString(@"hh\:mm\:ss\.fff")));
@@ -197,13 +197,13 @@ public sealed class QFlowLosslesscut
 
         foreach (LLosslesscutIssue lIssue in lResult.LLosslesscutResultIssues.Take(QFlowIssueLimit))
         {
-            lLines.Add(LLocalization.LLocalizationFormat(
+            lLines.Add(QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.Issue", lIssue.LLosslesscutIssueIndex + 1, lIssue.LLosslesscutIssueReason));
         }
 
         if (lResult.LLosslesscutResultIssues.Count > QFlowIssueLimit)
         {
-            lLines.Add(LLocalization.LLocalizationFormat(
+            lLines.Add(QLocalizationCatalog.QLocalizationFormat(
                 "Flow.LosslessCut.Summary.MoreIssues", lResult.LLosslesscutResultIssues.Count - QFlowIssueLimit));
         }
 
@@ -221,16 +221,17 @@ public sealed class QFlowLosslesscut
         QFlowLosslesscutKind lKind,
         string lTitleKey,
         string lMessage) =>
-        new(lKind, LLocalization.LLocalizationTextRead(lTitleKey), lMessage, string.Empty, string.Empty, string.Empty);
+        new(lKind, QLocalizationCatalog.QLocalizationTextRead(lTitleKey), lMessage, string.Empty, string.Empty,
+            string.Empty);
 
     private static QFlowLosslesscutPrompt QFlowConfirmCreate(string lTitleKey, string lMessage, string lPrimaryKey) =>
         new(
             QFlowLosslesscutKind.QFlowKindDecision,
-            LLocalization.LLocalizationTextRead(lTitleKey),
+            QLocalizationCatalog.QLocalizationTextRead(lTitleKey),
             lMessage,
-            LLocalization.LLocalizationTextRead(lPrimaryKey),
+            QLocalizationCatalog.QLocalizationTextRead(lPrimaryKey),
             string.Empty,
-            LLocalization.LLocalizationTextRead("Terms.Cancel"));
+            QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"));
 
     private static string QFlowFallbackRead(string lValue, string lFallback) =>
         string.IsNullOrWhiteSpace(lValue) ? lFallback : lValue;

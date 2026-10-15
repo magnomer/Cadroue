@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -33,13 +32,13 @@ public sealed partial class PInspector
     private StackPanel PEqualizerBodyBuild()
     {
         pEqualizerApplyBox = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Apply"),
-            LLocalization.LLocalizationTextRead("Inspector.Equalizer.ApplyTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.ApplyTooltip"));
         PInspectorSwitchAttach(pEqualizerApplyBox, QEqualizer.QEqualizerActiveSet);
 
         pEqualizerPersistent = PInspectorSwitchBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Persistent"),
-            LLocalization.LLocalizationTextRead("Inspector.Equalizer.PersistentTooltip"));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.PersistentTooltip"));
         PInspectorSwitchAttach(pEqualizerPersistent, QEqualizer.QEqualizerPersistentSet);
 
         pEqualizerPreset = PInspectorChoiceBuild(
@@ -60,13 +59,13 @@ public sealed partial class PInspector
             Height = 26,
             HorizontalAlignment = HorizontalAlignment.Left,
             Style = PButton.PButtonPanelCreate(),
-            ToolTip = LLocalization.LLocalizationTextRead("Inspector.Equalizer.Add")
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Add")
         };
         pAddButton.Click += (_, _) => QEqualizer.QEqualizerBandAdd();
 
         pEqualizerStack = new StackPanel();
         pEqualizerStack.Children.Add(PInspectorFieldBuild(
-            LLocalization.LLocalizationTextRead("Inspector.Common.Preset"), pEqualizerPreset));
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Preset"), pEqualizerPreset));
         pEqualizerStack.Children.Add(pEqualizerRowPanel);
         pEqualizerStack.Children.Add(pAddButton);
 
