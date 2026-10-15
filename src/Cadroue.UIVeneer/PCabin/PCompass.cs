@@ -5,7 +5,6 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PWing;
 
@@ -172,7 +171,7 @@ public sealed class PCompass : UserControl
     private void PCompassFaceApply(QCompassButton lButton)
     {
         PCompassFace pFace = pCompassFaces[lButton.QCompassButtonKey];
-        pFace.PCompassFaceImage.Source = PIcon.PIconRead(
+        pFace.PCompassFaceImage.Source = QIcon.QIconRead(
             $"/PAsset/PCompass/{lButton.QCompassButtonIcon}",
             pCompassAccents.GetValueOrDefault(lButton.QCompassButtonAccent));
         pFace.PCompassFaceLabel.Text = lButton.QCompassButtonLabel;
@@ -185,7 +184,7 @@ public sealed class PCompass : UserControl
         pCompassSectionGroups.ToList().ForEach(pGroup => pGroup.IsEnabled = lEditable);
 
     private void PCompassWaveformApply(bool lActive) =>
-        pCompassWaveformIcon.Source = PIcon.PIconRead(PCompassWaveformIcon, pCompassWaveformBrushes[lActive]);
+        pCompassWaveformIcon.Source = QIcon.QIconRead(PCompassWaveformIcon, pCompassWaveformBrushes[lActive]);
 
     private Button PCompassWaveformBuild()
     {
@@ -291,7 +290,7 @@ public sealed class PCompass : UserControl
     {
         return new Image
         {
-            Source = PIcon.PIconRead("/PAsset/P32/PCompass/CompassVolume.png"),
+            Source = QIcon.QIconRead("/PAsset/P32/PCompass/CompassVolume.png"),
             Width = 22,
             Height = 22,
             Stretch = Stretch.Uniform,

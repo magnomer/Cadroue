@@ -10,7 +10,8 @@ public sealed class TUsher
 
     public TUsher()
     {
-        tUsherArea = new CAtelier(tUsherPort, new TLineagePort(), new TWorkspacePort()).CAtelierUsher;
+        tUsherArea = new CAtelier(tUsherPort, new TLineagePort(), new TWorkspacePort(), new TPlacementPort())
+            .CAtelierUsher;
     }
 
     [Fact]

@@ -3,7 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -79,7 +79,7 @@ public sealed class PProcessingRow
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead(pIconPath, pProcessingIconBrushes[false]),
+            Source = QIcon.QIconRead(pIconPath, pProcessingIconBrushes[false]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0)
@@ -113,7 +113,7 @@ public sealed class PProcessingRow
 
     public void PProcessingActiveApply(bool pActive)
     {
-        pProcessingRowIcon.Source = PIcon.PIconRead(pProcessingIconPath, pProcessingIconBrushes[pActive]);
+        pProcessingRowIcon.Source = QIcon.QIconRead(pProcessingIconPath, pProcessingIconBrushes[pActive]);
         pProcessingRowLabel.Foreground = pProcessingTextBrushes[pActive];
         pProcessingRowLabel.FontWeight = pProcessingRowWeights[pActive];
     }

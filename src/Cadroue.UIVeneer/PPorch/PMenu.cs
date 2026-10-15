@@ -5,6 +5,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PPorch;
 
@@ -44,7 +45,7 @@ internal static class PMenu
     };
 
     internal static ImageSource PMenuIconRead(string pMenuIconPath)
-        => PAsset.PIcon.PIconRead(pMenuIconPath, pMenuTextBrush);
+        => QIcon.QIconRead(pMenuIconPath, pMenuTextBrush);
 
     internal static MenuItem PMenuItemCreate(string pMenuText) => new()
     {

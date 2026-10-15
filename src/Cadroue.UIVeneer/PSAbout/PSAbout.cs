@@ -4,7 +4,6 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Navigation;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 using Cadroue.Application;
@@ -103,7 +102,7 @@ internal sealed class PSAbout : Window
 
         var pLogo = new Image
         {
-            Source = PIcon.PIconRead(PSAboutLogoPath, PSAboutLogoSize),
+            Source = QIcon.QIconRead(PSAboutLogoPath, PSAboutLogoSize),
             Width = PSAboutLogoSize,
             Height = PSAboutLogoSize,
             Stretch = Stretch.Uniform,

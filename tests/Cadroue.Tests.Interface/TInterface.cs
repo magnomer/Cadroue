@@ -311,6 +311,18 @@ internal static partial class TInterface
     internal static IReadOnlyDictionary<string, string> TLocalizationLanguagesRead() =>
         LLocalization.LLocalizationLanguagesRead();
 
+    internal static LCargo TInfoCargoCreate(
+        string path, LMediaInfo? info, bool processable, bool preview, string? previewError) =>
+        new(path, info, processable, preview, null, previewError);
+    internal static LMediaInfo TInfoVideoCreate(TimeSpan duration, int width, int height) =>
+        new(duration, width, height, 25, "h264", false, "", 0, 0);
+    internal static IReadOnlyList<LInfoRow> TInfoReportRead(LCargo? cargo, bool? availability) =>
+        LInfoReport.LInfoReportRead(cargo, availability);
+    internal static string TInfoTextShorten(string text) => LInfoText.LInfoTextShorten(text);
+    internal static string TInfoDurationFormat(TimeSpan duration) => LInfoText.LInfoDurationFormat(duration);
+    internal static string TInfoCodecFormat(string codec) => LInfoText.LInfoCodecFormat(codec);
+    internal static string TInfoChannelFormat(int channels) => LInfoText.LInfoChannelFormat(channels);
+
     internal static LDetectorBundle TDetectorSetCreate(
         IReadOnlyList<LDetectorStep> steps,
         LDetectorBlank? blank,

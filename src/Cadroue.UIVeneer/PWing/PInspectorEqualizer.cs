@@ -4,7 +4,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -54,7 +53,7 @@ public sealed partial class PInspector
             {
                 Width = 20,
                 Height = 20,
-                Source = PIcon.PIconRead(pEqualizerAddIcon, pInspectorIconBrush),
+                Source = QIcon.QIconRead(pEqualizerAddIcon, pInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 28,
@@ -130,7 +129,7 @@ public sealed partial class PInspector
             {
                 Width = 16,
                 Height = 16,
-                Source = PIcon.PIconRead(pEqualizerRemoveIcon, pInspectorIconBrush),
+                Source = QIcon.QIconRead(pEqualizerRemoveIcon, pInspectorIconBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 26,

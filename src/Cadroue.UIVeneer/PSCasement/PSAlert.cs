@@ -91,7 +91,7 @@ internal sealed class PSAlert : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead(
+            Source = QIcon.QIconRead(
                 "/PAsset/PSDialog/PSAlert.svg",
                 new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18))),
             Width = 28,

@@ -6,7 +6,6 @@ using System.Windows.Shapes;
 
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -101,7 +100,7 @@ public sealed partial class PInspector
     {
         Width = 18,
         Height = 18,
-        Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush),
+        Source = QIcon.QIconRead(PPickerIcon, pInspectorIconBrush),
         Stretch = Stretch.Uniform
     };
 
@@ -125,9 +124,9 @@ public sealed partial class PInspector
     {
         pInspectorNeutralTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceGreyArmed];
         pInspectorWhiteTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceWhiteArmed];
-        pInspectorNeutralIcon.Source = PIcon.PIconRead(
+        pInspectorNeutralIcon.Source = QIcon.QIconRead(
             PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceGreyArmed]);
-        pInspectorWhiteIcon.Source = PIcon.PIconRead(
+        pInspectorWhiteIcon.Source = QIcon.QIconRead(
             PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceWhiteArmed]);
         pInspectorNeutralStatus.Text = QWhitebalance.QWhitebalanceGuideRead();
         pInspectorNeutralStatus.Visibility = PLook.PLookVisible[QWhitebalance.QWhitebalanceGuideShown];

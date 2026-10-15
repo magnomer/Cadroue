@@ -10,7 +10,13 @@ Thread thread = new(() =>
 {
     PProgram application = new();
     application.PProgramAttach(LTraceLog.LTraceErrorRecord, QProgram.QProgramDebounceTick);
-    CAtelier atelier = new(new LUsherOutlet(), new LLineageOutlet(), new LWorkspaceOutlet());
+    CAtelier atelier = new(
+        new LUsherOutlet(),
+        new LLineageOutlet(),
+        new LWorkspaceOutlet(),
+        new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
+    QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
+    QInfo.QInfoGateSeam = atelier.CAtelierInfo;
 
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
     LEngine engine = new(LRigFactory.LRigFactoryCreate());

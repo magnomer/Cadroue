@@ -244,7 +244,7 @@ public sealed class PFunnelRules : PPanel
             {
                 Width = 20,
                 Height = 20,
-                Source = PAsset.PIcon.PIconRead(pIconPath, pFunnelIconBrush),
+                Source = QIcon.QIconRead(pIconPath, pFunnelIconBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 28,

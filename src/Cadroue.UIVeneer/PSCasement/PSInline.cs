@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -20,7 +21,7 @@ internal static class PSInline
     {
         Content = new Image
         {
-            Source = PAsset.PIcon.PIconRead(pIconPath, PSField.PSFieldText),
+            Source = QIcon.QIconRead(pIconPath, PSField.PSFieldText),
             Width = 22,
             Height = 22,
             Stretch = Stretch.Uniform

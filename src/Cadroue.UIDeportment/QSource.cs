@@ -1,8 +1,12 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
 using Cadroue.Conduct;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
+using Microsoft.Win32;
 
 namespace Cadroue.UIDeportment;
 
@@ -15,6 +19,7 @@ public sealed class QSource
     private readonly QViewer qSourceViewer;
     private readonly bool qSourceAudioAllowed;
     private string qSourcePath = string.Empty;
+    private UserControl qSourceSurface = null!;
 
     public event Action<string>? QSourcePathApplied;
     public event Action<string, string>? QSourceRefuse;
@@ -25,6 +30,26 @@ public sealed class QSource
         qSourceViewer = lViewer;
         qSourceAudioAllowed = lAudioAllowed;
         qSourceViewer.QViewerMediaChanged += QSourceMediaHandle;
+    }
+
+    private TextBox QSourcePathBox => QContract.QContractFind<TextBox>(qSourceSurface, "pSourcePath");
+
+    private TextBlock QSourcePlaceholder => QContract.QContractFind<TextBlock>(qSourceSurface, "pSourcePlaceholder");
+
+    private Button QSourceBrowse => QContract.QContractFind<Button>(qSourceSurface, "pSourceBrowse");
+
+    public UserControl QSourceAttach(UserControl lSurface, Func<Style> lButtonStyle)
+    {
+        qSourceSurface = lSurface;
+        QSourceBrowse.Style = lButtonStyle();
+        QSourcePathBox.KeyDown += QSourceKeyHandle;
+        QSourcePathBox.TextChanged += QSourceTextHandle;
+        QSourcePlaceholder.Text = QSourcePlaceholderRead();
+        QSourceBrowse.Click += QSourceBrowseHandle;
+        QSourcePlaceholderSync();
+        QSourcePathApplied += QSourcePathApply;
+        QSourceRefuse += QWarningNotice.QWarningPublish;
+        return qSourceSurface;
     }
 
     public string QSourcePath => qSourcePath;
@@ -87,6 +112,27 @@ public sealed class QSource
         qSourceViewer.QViewerSource.QViewerSourceOpen(lPath);
         return true;
     }
+
+    private void QSourcePathApply(string lPath) => QSourcePathBox.Text = lPath;
+
+    private void QSourceTextHandle(object sender, TextChangedEventArgs e) => QSourcePlaceholderSync();
+
+    private void QSourceBrowseHandle(object sender, RoutedEventArgs e)
+    {
+        var lDialog = new OpenFileDialog
+        {
+            Title = QSourceTitleRead(),
+            Filter = QSourceFilterRead()
+        };
+        QSourceDialogOpen(lDialog.ShowDialog(), lDialog.FileName);
+    }
+
+    private void QSourceKeyHandle(object sender, KeyEventArgs e) =>
+        e.Handled = QSourceKeyRun(e.Key.ToString(), QSourcePathBox.Text);
+
+    private void QSourcePlaceholderSync() =>
+        QSourcePlaceholder.Visibility =
+            QSourcePlaceholderCheck(QSourcePathBox.Text) ? Visibility.Visible : Visibility.Collapsed;
 
     private void QSourceMediaHandle(LCargo lCargo)
     {

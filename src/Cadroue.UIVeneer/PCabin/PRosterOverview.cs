@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -201,7 +200,7 @@ internal static class PRosterOverview
             {
                 Width = 16,
                 Height = 16,
-                Source = PIcon.PIconRead(PRosterOpenIcon, PRosterTheme.PRosterTextBrush),
+                Source = QIcon.QIconRead(PRosterOpenIcon, PRosterTheme.PRosterTextBrush),
                 Stretch = Stretch.Uniform
             },
             Width = 20,

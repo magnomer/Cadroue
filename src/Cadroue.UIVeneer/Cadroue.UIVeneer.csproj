@@ -35,6 +35,5 @@
     <PackageReference Include="Flyleaf.FFmpeg.Bindings" Version="9.0.0" />
     <PackageReference Include="FlyleafLib" Version="3.11.0" />
     <PackageReference Include="FlyleafLib.Controls.WPF" Version="1.7.0" />
-    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
   </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -72,7 +73,7 @@ internal sealed class PSWarning : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead(
+            Source = QIcon.QIconRead(
                 "/PAsset/PSDialog/PSWarning.svg",
                 new SolidColorBrush(Color.FromRgb(0xB4, 0x6A, 0x18))),
             Width = 28,

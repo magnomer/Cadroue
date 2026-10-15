@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PCabin;
 
@@ -31,7 +31,7 @@ public static class PConsoleIndicator
         });
         pRest.Children.Add(new Image
         {
-            Source = PIcon.PIconRead("/PAsset/PPanel/PConsoleRest.svg", PRosterTheme.PRosterDoneBrush),
+            Source = QIcon.QIconRead("/PAsset/PPanel/PConsoleRest.svg", PRosterTheme.PRosterDoneBrush),
             Width = 18.2,
             Height = 18.2,
             Stretch = Stretch.Uniform
@@ -43,7 +43,7 @@ public static class PConsoleIndicator
     {
         return new Image
         {
-            Source = PIcon.PIconRead("/PAsset/P32/PPanel/ConsoleSpinner.png"),
+            Source = QIcon.QIconRead("/PAsset/P32/PPanel/ConsoleSpinner.png"),
             Stretch = Stretch.Uniform,
             Width = PConsoleIndicatorSize,
             Height = PConsoleIndicatorSize,

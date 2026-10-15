@@ -251,22 +251,22 @@
     "Piggybacking": 2,
     "Trespassing:Cadroue.Infrastructure>Cadroue.Application": 71,
     "Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure": 0,
-    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 487,
-    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 117,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1271,
-    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2040,
+    "Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure": 486,
+    "Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure": 105,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Application": 1270,
+    "Undercutting:Cadroue.UIDeportment>Cadroue.Core": 2019,
     "Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine": 159,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Application": 920,
     "Undercutting:Cadroue.UIVeneer>Cadroue.Core": 307,
     "Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine": 6,
     "Unsealing:Cadroue.UIDeportment>Cadroue.Application": 82,
-    "Unsealing:Cadroue.UIDeportment>Cadroue.Core": 230,
+    "Unsealing:Cadroue.UIDeportment>Cadroue.Core": 231,
     "Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine": 11
   },
   "offers": {
-    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep", "LWorkspacePort"],
-    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent"],
-    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent"]
+    "Cadroue.Conduct>Cadroue.ShellEngine": ["LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep", "LWorkspacePort", "LPlacementPort"],
+    "Cadroue.UIDeportment>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo"],
+    "Cadroue.UIDemeanor>Cadroue.Conduct": ["CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch", "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo"]
   },
   "offerPrefixes": {
     "Cadroue.Conduct": [

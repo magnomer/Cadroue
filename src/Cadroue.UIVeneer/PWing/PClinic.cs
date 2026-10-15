@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -313,7 +312,7 @@ public sealed class PClinic : PPanel
             {
                 Width = 20,
                 Height = 20,
-                Source = PIcon.PIconRead(pIconPath, pClinicIconBrush),
+                Source = QIcon.QIconRead(pIconPath, pClinicIconBrush),
                 Stretch = Stretch.Uniform
             },
             ToolTip = pTooltip,

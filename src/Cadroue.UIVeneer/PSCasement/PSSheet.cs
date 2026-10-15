@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Markup;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -60,7 +60,7 @@ internal static class PSSheet
         {
             pHeader.Children.Add(new Image
             {
-                Source = PIcon.PIconRead(pIconPath, psSheetIconBrush),
+                Source = QIcon.QIconRead(pIconPath, psSheetIconBrush),
                 Width = PSSheetIconSize,
                 Height = PSSheetIconSize,
                 Stretch = Stretch.Uniform,

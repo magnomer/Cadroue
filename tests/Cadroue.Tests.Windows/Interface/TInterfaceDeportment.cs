@@ -16,6 +16,8 @@ internal static partial class TInterface
     {
         RuntimeHelpers.RunModuleConstructor(typeof(Interface.TInterface).Module.ModuleHandle);
         _ = TProgramCreate();
+        QPlacement.QPlacementGateSeam = TAtelierCreate().CAtelierPlacement;
+        QInfo.QInfoGateSeam = TAtelierCreate().CAtelierInfo;
     }
 
     internal static LWorkGammaSettings TGammaSettingsCreate(
@@ -254,7 +256,12 @@ internal static partial class TInterface
     internal static bool TExportDragClear(QExport export) => export.QExportDragClear();
     internal static void TExportSync(QExport export) => export.QExportSync();
 
-    internal static CAtelier TAtelierCreate() => new(new LUsherOutlet(), new LLineageOutlet(), new LWorkspaceOutlet());
+    internal static CAtelier TAtelierCreate() =>
+        new(
+            new LUsherOutlet(),
+            new LLineageOutlet(),
+            new LWorkspaceOutlet(),
+            new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(
             TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierLineage, TAtelierCreate().CAtelierWorkspaceCreate,

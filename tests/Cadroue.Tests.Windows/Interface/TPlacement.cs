@@ -1,26 +1,30 @@
-using Cadroue.Infrastructure;
+using Cadroue.UIDeportment;
+using Cadroue.UIDeportment.Capsule;
 
-namespace Cadroue.Tests.Interface;
+namespace Cadroue.Tests.Windows;
 
 internal sealed class TPlacement : IDisposable
 {
-    private readonly string tPlacementPrevious;
+    private readonly Func<string> tPlacementPrevious;
     private readonly string tPlacementRoot;
 
     internal TPlacement()
     {
-        tPlacementPrevious = LDepot.LDepotRootRead();
+        tPlacementPrevious = QPlacement.QPlacementRootSeam;
         tPlacementRoot = Path.Combine(Path.GetTempPath(), "cadroue-placement-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tPlacementRoot);
-        LDepot.LDepotRootSet(tPlacementRoot);
+        QPlacement.QPlacementRootSeam = () => tPlacementRoot;
     }
 
     internal string TPlacementPath => Path.Combine(tPlacementRoot, "placement.json");
 
     internal bool TPlacementSave(string key, double marker) =>
-        LPlacement.LPlacementSave(key, marker, marker + 1, marker + 100, marker + 200);
+        QPlacement.QPlacementSave(key, marker, marker + 1, marker + 100, marker + 200);
 
-    internal LPlacementEntry? TPlacementRead(string key) => LPlacement.LPlacementRead(key);
+    internal LPlacement? TPlacementRead(string key) =>
+        QPlacement.QPlacementRead(key, out double left, out double top, out double width, out double height)
+            ? new LPlacement(left, top, width, height)
+            : null;
 
     internal void TPlacementMalformSave() => File.WriteAllText(TPlacementPath, "{ invalid placement json");
 
@@ -28,7 +32,7 @@ internal sealed class TPlacement : IDisposable
 
     public void Dispose()
     {
-        LDepot.LDepotRootSet(tPlacementPrevious);
+        QPlacement.QPlacementRootSeam = tPlacementPrevious;
         try
         {
             Directory.Delete(tPlacementRoot, true);

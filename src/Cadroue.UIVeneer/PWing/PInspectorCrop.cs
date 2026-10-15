@@ -2,7 +2,6 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -116,6 +115,6 @@ public sealed partial class PInspector
         QInspectorCrop lCrop = QInspectorCrop;
         pInspectorCropTool.IsChecked = PLook.PLookChecked[QInspector.QInspectorToolArmed];
         pInspectorCropTool.Background = pInspectorToolFaces[lCrop.QInspectorToolKey];
-        pInspectorToolIcon.Source = PIcon.PIconRead(PCropIcon, pInspectorToolInks[lCrop.QInspectorToolActive]);
+        pInspectorToolIcon.Source = QIcon.QIconRead(PCropIcon, pInspectorToolInks[lCrop.QInspectorToolActive]);
     }
 }

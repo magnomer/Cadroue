@@ -3,7 +3,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PBench;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.Core;
@@ -126,7 +125,7 @@ internal sealed partial class PSOptions
             ToolTip = pTip,
             Content = new Image
             {
-                Source = PIcon.PIconRead(pIconPath, PSField.PSFieldText),
+                Source = QIcon.QIconRead(pIconPath, PSField.PSFieldText),
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform
@@ -261,7 +260,7 @@ internal sealed partial class PSOptions
             ToolTip = LLocalization.LLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
             Content = new Image
             {
-                Source = PIcon.PIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
+                Source = QIcon.QIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform

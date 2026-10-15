@@ -74,6 +74,8 @@ public sealed class QViewer
     public QCropDrag QCropDrag { get; }
 
     public event Action<LCargo>? QViewerMediaChanged;
+
+    public LCargo? QViewerCargo { get; private set; }
     public event Action<bool>? QViewerPlayingChanged;
     public event Action? QViewerEngineChanged;
     public event Action? QViewerPreviewChanged;
@@ -264,6 +266,7 @@ public sealed class QViewer
 
     public void QViewerMediaRaise(LCargo lCargo)
     {
+        QViewerCargo = lCargo;
         Delegate[] lHandlers = QViewerMediaChanged?.GetInvocationList() ?? Array.Empty<Delegate>();
         foreach (Action<LCargo> lHandler in lHandlers.Cast<Action<LCargo>>())
         {
