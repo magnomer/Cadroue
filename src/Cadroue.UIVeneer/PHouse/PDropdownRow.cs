@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PHouse;
 
@@ -71,7 +71,7 @@ internal static class PDropdownRow
         var pMinus = new FrameworkElementFactory(typeof(Image));
         pMinus.SetValue(
             Image.SourceProperty,
-            PIcon.PIconRead("/PAsset/PPanel/PExportMinus.svg", PDropdown.PDropdownTextBrush));
+            QIcon.QIconRead("/PAsset/PPanel/PExportMinus.svg", PDropdown.PDropdownTextBrush));
         pMinus.SetValue(FrameworkElement.WidthProperty, 8.0);
         pMinus.SetValue(FrameworkElement.HeightProperty, 8.0);
         pMinus.SetValue(Image.StretchProperty, Stretch.Uniform);

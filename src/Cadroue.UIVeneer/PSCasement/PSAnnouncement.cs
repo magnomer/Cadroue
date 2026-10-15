@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -70,7 +71,7 @@ internal sealed class PSAnnouncement : Window
 
         var pIcon = new Image
         {
-            Source = PAsset.PIcon.PIconRead(
+            Source = QIcon.QIconRead(
                 "/PAsset/PSDialog/PSAnnouncement.svg",
                 new SolidColorBrush(Color.FromRgb(0x1F, 0x6F, 0xB4))),
             Width = 28,

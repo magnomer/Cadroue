@@ -4,7 +4,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -92,7 +91,7 @@ internal static class PRosterCard
         Brush pControlBrush = PRosterTheme.PRosterControlBrushes[lCard.QRosterCardKey];
         var pIcon = new Image
         {
-            Source = PIcon.PIconRead(pIconPath, pControlBrush),
+            Source = QIcon.QIconRead(pIconPath, pControlBrush),
             Width = 20,
             Height = 20,
             Stretch = Stretch.Uniform,
@@ -104,12 +103,12 @@ internal static class PRosterCard
         pButton.MouseEnter += (_, _) =>
         {
             pButton.Background = PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey];
-            pIcon.Source = PIcon.PIconRead(pIconPath, PRosterTheme.PRosterTextBrush);
+            pIcon.Source = QIcon.QIconRead(pIconPath, PRosterTheme.PRosterTextBrush);
         };
         pButton.MouseLeave += (_, _) =>
         {
             pButton.Background = Brushes.Transparent;
-            pIcon.Source = PIcon.PIconRead(pIconPath, pControlBrush);
+            pIcon.Source = QIcon.QIconRead(pIconPath, pControlBrush);
         };
         pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterCollapse.QRosterCollapseToggle(lCard.QRosterCardBatch);
         return pButton;

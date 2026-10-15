@@ -43,16 +43,15 @@ internal static class PSDialog
 
     private static void PSDialogLocationRestore(Window pWindow)
     {
-        Cadroue.Infrastructure.LPlacementEntry? pPlacement =
-            Cadroue.Infrastructure.LPlacement.LPlacementRead(PSDialogPlacementKey);
-        if (pPlacement is null)
+        if (!Cadroue.UIDeportment.QPlacement.QPlacementRead(
+                PSDialogPlacementKey, out double pLeft, out double pTop, out _, out _))
         {
             return;
         }
 
         pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
-        pWindow.Left = pPlacement.LPlacementLeft;
-        pWindow.Top = pPlacement.LPlacementTop;
+        pWindow.Left = pLeft;
+        pWindow.Top = pTop;
     }
 
     private static void PSDialogLocationSave(Window pWindow)
@@ -60,7 +59,7 @@ internal static class PSDialog
         Rect pBounds = pWindow.WindowState == WindowState.Normal
             ? new Rect(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight)
             : pWindow.RestoreBounds;
-        Cadroue.Infrastructure.LPlacement.LPlacementSave(
+        Cadroue.UIDeportment.QPlacement.QPlacementSave(
             PSDialogPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
     }
 

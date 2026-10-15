@@ -31,6 +31,7 @@ public sealed class QProgram
         Action lFlyleafStart,
         Action<bool> lFlyleafVerbose)
     {
+        QPlacement.QPlacementRootSeam = LDepot.LDepotRootRead;
         LRelayChannel.LRelayStartupRead(lArgs);
         LRenderer.LRendererSettingsLoad();
 
@@ -48,9 +49,7 @@ public sealed class QProgram
         LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
         LFlyleaf.LFlyleafResolverAttach();
-        LPlacement.LPlacementImport(
-            LPreferenceStateStore.LPreferencePathRead(),
-            lPlacementKeys.Select(lPlacementKey => (lPlacementKey, lPlacementKey)).ToArray());
+        QPlacement.QPlacementImport(lPlacementKeys.Select(lPlacementKey => (lPlacementKey, lPlacementKey)).ToArray());
 
         LRenderer.LRendererToolAttach();
         LPreset.LPresetPrepare();

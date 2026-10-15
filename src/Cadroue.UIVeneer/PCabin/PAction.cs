@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PPorch;
 
@@ -115,7 +114,7 @@ public sealed class PAction : UserControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead(
+            Source = QIcon.QIconRead(
                 $"/PAsset/PCompass/{pIconAssetName}",
                 pActionAccents.GetValueOrDefault(pActionToken)),
             Width = 24,

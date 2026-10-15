@@ -1,5 +1,8 @@
+using System.Windows.Controls;
+
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.Media;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests.Windows;
@@ -199,7 +202,10 @@ internal static partial class TInterface
     internal static QInfo TInfoCreate(QViewer viewer) => new(viewer);
     internal static void TInfoAttach(QInfo info, Action handler) => info.QInfoChanged += handler;
     internal static void TInfoDetach(QInfo info) => info.QInfoDetach();
-    internal static IReadOnlyList<QInfoRow> TInfoRowsRead(QInfo info) => info.QInfoRowsRead();
+    internal static IReadOnlyList<LInfoRow> TInfoRowsRead(QInfo info) =>
+        LInfoReport.LInfoReportRead(info.QInfoViewer.QViewerCargo, LMediaProbe.LMediaAvailabilityCurrent);
+    internal static UserControl TInfoFaceAttach(QInfo info, UserControl surface) =>
+        QInfoFace.QInfoFaceAttach(info, surface);
 
     internal static QSource TSourceCreate(QViewer viewer, bool audioAllowed) =>
         new(TAtelierCreate().CAtelierUsher, viewer, audioAllowed);

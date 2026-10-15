@@ -25,14 +25,14 @@ internal sealed class PSGrabber
 
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
-        Cadroue.Infrastructure.LPlacementEntry? pPlacement =
-            Cadroue.Infrastructure.LPlacement.LPlacementRead(pPlacementKey);
-        double pWidth = Math.Max(pPlacement?.LPlacementWidth ?? pWindow.Width, pWindow.MinWidth);
-        double pHeight = Math.Max(pPlacement?.LPlacementHeight ?? pWindow.Height, pWindow.MinHeight);
+        bool pStored = Cadroue.UIDeportment.QPlacement.QPlacementRead(
+            pPlacementKey, out double pLeft, out double pTop, out double pWidthStored, out double pHeightStored);
+        double pWidth = Math.Max(pStored ? pWidthStored : pWindow.Width, pWindow.MinWidth);
+        double pHeight = Math.Max(pStored ? pHeightStored : pWindow.Height, pWindow.MinHeight);
         PSash.PSashPlacementRestore(
             pWindow,
-            pPlacement?.LPlacementLeft,
-            pPlacement?.LPlacementTop,
+            pStored ? pLeft : null,
+            pStored ? pTop : null,
             pWidth,
             pHeight);
     }
@@ -42,7 +42,7 @@ internal sealed class PSGrabber
         Rect pBounds = pWindow.WindowState == WindowState.Normal
             ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
             : pWindow.RestoreBounds;
-        Cadroue.Infrastructure.LPlacement.LPlacementSave(
+        Cadroue.UIDeportment.QPlacement.QPlacementSave(
             pPlacementKey,
             pBounds.Left,
             pBounds.Top,

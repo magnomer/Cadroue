@@ -2,7 +2,6 @@ using System.Windows;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PCabin;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
@@ -38,11 +37,11 @@ public sealed class PStrip
         lWorkspace.QWorkspaceFrameBuild(
             pSurface,
             () => new PWorkspace(),
-            lSource => new PSource(lSource),
-            lInfo => new PInfo(lInfo),
+            lSource => lSource.QSourceAttach(new PSource(), PButton.PButtonSourceCreate),
+            lInfo => QInfoFace.QInfoFaceAttach(lInfo, new PInfo()),
             pSurface.PTabExportToggle,
             PButton.PButtonSourceCreate,
-            () => PIcon.PIconRead("/PAsset/PPanel/PExportToggle.svg"),
+            () => QIcon.QIconRead("/PAsset/PPanel/PExportToggle.svg"),
             pSurface.PTabClose,
             () => pSurface.PTabFlow!.PFlowClose(),
             () => pSurface.PTabViewer!.PViewerClose());

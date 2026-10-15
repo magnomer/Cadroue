@@ -9,5 +9,9 @@
     <ProjectReference Include="..\Cadroue.Infrastructure\Cadroue.Infrastructure.csproj" />
     <ProjectReference Include="..\Cadroue.Media\Cadroue.Media.csproj" />
     <ProjectReference Include="..\Cadroue.Conduct\Cadroue.Conduct.csproj" />
+    <ProjectReference Include="..\Cadroue.UIDeportment.Capsule\Cadroue.UIDeportment.Capsule.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="SharpVectors.Wpf" Version="1.8.5" />
   </ItemGroup>
 </Project>

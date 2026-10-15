@@ -1,3 +1,4 @@
+using Cadroue.Application;
 using Cadroue.UIDeportment;
 
 using Xunit;
@@ -14,8 +15,8 @@ public sealed class TInfoRows
 
     private static string[] TInfoKindsRead(QInfo info) =>
         TInterface.TInfoRowsRead(info)
-            .Where(row => row.QInfoRowKind != QInfo.QInfoKindSeparator)
-            .Select(row => row.QInfoRowKind)
+            .Where(row => row.LInfoRowKind != LInfoRow.LInfoRowSeparator)
+            .Select(row => row.LInfoRowKind)
             .ToArray();
 
     [Fact]
@@ -23,10 +24,10 @@ public sealed class TInfoRows
     {
         (_, QInfo info) = TInfoBuild();
 
-        IReadOnlyList<QInfoRow> rows = TInterface.TInfoRowsRead(info);
+        IReadOnlyList<LInfoRow> rows = TInterface.TInfoRowsRead(info);
 
-        QInfoRow row = Assert.Single(rows);
-        Assert.Equal(QInfo.QInfoKindMuted, row.QInfoRowKind);
+        LInfoRow row = Assert.Single(rows);
+        Assert.Equal(LInfoRow.LInfoRowMuted, row.LInfoRowKind);
     }
 
     [Fact]
@@ -42,17 +43,17 @@ public sealed class TInfoRows
                 @"C:\clip.mp4", TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(75), 640, 360), true));
 
         Assert.Equal(1, changes);
-        IReadOnlyList<QInfoRow> rows = TInterface.TInfoRowsRead(info);
+        IReadOnlyList<LInfoRow> rows = TInterface.TInfoRowsRead(info);
         string[] texts = rows
-            .Where(row => row.QInfoRowKind == QInfo.QInfoKindText)
-            .Select(row => row.QInfoRowText)
+            .Where(row => row.LInfoRowKind == LInfoRow.LInfoRowText)
+            .Select(row => row.LInfoRowCaption)
             .ToArray();
         Assert.Equal(
-            [QInfo.QInfoKindGood, QInfo.QInfoKindGood, QInfo.QInfoKindText, QInfo.QInfoKindText,
-                QInfo.QInfoKindText, QInfo.QInfoKindText, QInfo.QInfoKindText],
+            [LInfoRow.LInfoRowGood, LInfoRow.LInfoRowGood, LInfoRow.LInfoRowText, LInfoRow.LInfoRowText,
+                LInfoRow.LInfoRowText, LInfoRow.LInfoRowText, LInfoRow.LInfoRowText],
             TInfoKindsRead(info));
-        Assert.Equal(QInfo.QInfoKindSeparator, rows[1].QInfoRowKind);
-        Assert.NotEqual(QInfo.QInfoKindSeparator, rows[0].QInfoRowKind);
+        Assert.Equal(LInfoRow.LInfoRowSeparator, rows[1].LInfoRowKind);
+        Assert.NotEqual(LInfoRow.LInfoRowSeparator, rows[0].LInfoRowKind);
         Assert.Equal("01:15", texts[0]);
         Assert.Equal("640×360", texts[1]);
         Assert.Equal("25 fps", texts[2]);
@@ -70,13 +71,13 @@ public sealed class TInfoRows
                 @"C:\song.flac", TInterfaceViewer.TViewerAudioCreate(TimeSpan.FromMinutes(61)), false));
 
         string[] texts = TInterface.TInfoRowsRead(info)
-            .Where(row => row.QInfoRowKind == QInfo.QInfoKindText)
-            .Select(row => row.QInfoRowText)
+            .Where(row => row.LInfoRowKind == LInfoRow.LInfoRowText)
+            .Select(row => row.LInfoRowCaption)
             .ToArray();
         Assert.Equal("01:01:00", texts[0]);
         Assert.Equal("AAC", texts[2]);
         Assert.Equal("48 kHz", texts[3]);
-        Assert.Equal([QInfo.QInfoKindGood, QInfo.QInfoKindBad], TInfoKindsRead(info).Take(2));
+        Assert.Equal([LInfoRow.LInfoRowGood, LInfoRow.LInfoRowBad], TInfoKindsRead(info).Take(2));
     }
 
     [Fact]
@@ -88,8 +89,8 @@ public sealed class TInfoRows
             viewer, TInterfaceViewer.TCargoErrorCreate(@"C:\broken.mp4", new string('x', 200), null));
 
         string[] kinds = TInfoKindsRead(info);
-        Assert.Equal([QInfo.QInfoKindBad, QInfo.QInfoKindBad, QInfo.QInfoKindMuted], kinds);
-        string error = TInterface.TInfoRowsRead(info).Last().QInfoRowText;
+        Assert.Equal([LInfoRow.LInfoRowBad, LInfoRow.LInfoRowBad, LInfoRow.LInfoRowMuted], kinds);
+        string error = TInterface.TInfoRowsRead(info).Last().LInfoRowCaption;
         Assert.True(error.Length <= 81);
     }
 }

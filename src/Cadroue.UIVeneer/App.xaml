@@ -1,7 +1,9 @@
 <Application x:Class="Cadroue.UIVeneer.PProgram"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              ShutdownMode="OnMainWindowClose">
     <Application.Resources>
+        <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
     </Application.Resources>
 </Application>

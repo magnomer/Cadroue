@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
@@ -63,7 +63,7 @@ public static class PConsoleControl
         {
             Content = new Image
             {
-                Source = PIcon.PIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
+                Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
                 Width = PConsoleSwitchSize,
                 Height = PConsoleSwitchSize,
                 Stretch = Stretch.Uniform
@@ -86,7 +86,7 @@ public static class PConsoleControl
         {
             Content = new Image
             {
-                Source = PIcon.PIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
+                Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
                 Width = PConsoleSwitchSize,
                 Height = PConsoleSwitchSize,
                 Stretch = Stretch.Uniform
@@ -110,7 +110,7 @@ public static class PConsoleControl
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(new Image
         {
-            Source = PIcon.PIconRead($"/PAsset/PPanel/{pIconName}", pAccentBrush),
+            Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", pAccentBrush),
             Width = PRosterTheme.PRosterIconSize,
             Height = PRosterTheme.PRosterIconSize,
             Stretch = Stretch.Uniform,

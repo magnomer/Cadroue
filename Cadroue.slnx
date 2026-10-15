@@ -13,6 +13,7 @@
   <Project Path="src/Cadroue.ShellEngine/Cadroue.ShellEngine.csproj" />
   <Project Path="src/Cadroue.UIDemeanor/Cadroue.UIDemeanor.csproj" />
   <Project Path="src/Cadroue.UIDeportment/Cadroue.UIDeportment.csproj" />
+  <Project Path="src/Cadroue.UIDeportment.Capsule/Cadroue.UIDeportment.Capsule.csproj" />
   <Project Path="src/Cadroue.UITerminal/Cadroue.UITerminal.csproj" />
   <Project Path="src/Cadroue.UIVeneer/Cadroue.UIVeneer.csproj" />
   <Project Path="tests/Cadroue.Tests.Conduct/Cadroue.Tests.Conduct.csproj" />

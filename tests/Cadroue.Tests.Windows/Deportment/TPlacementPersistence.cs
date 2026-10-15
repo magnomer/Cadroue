@@ -1,13 +1,6 @@
-using Cadroue.Tests.Interface;
-
 using Xunit;
 
-namespace Cadroue.Tests.Engine;
-
-[CollectionDefinition("Placement", DisableParallelization = true)]
-public sealed class TPlacementCollection
-{
-}
+namespace Cadroue.Tests.Windows;
 
 [Collection("Placement")]
 public sealed class TPlacementPersistence

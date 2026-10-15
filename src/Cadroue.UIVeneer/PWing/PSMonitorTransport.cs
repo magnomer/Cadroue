@@ -48,7 +48,7 @@ internal sealed partial class PSMonitor
     private void PSMonitorFaceApply()
     {
         QSMonitorFace lFace = psMonitorSource.QSMonitorFaceRead();
-        psMonitorPlayImage.Source = PAsset.PIcon.PIconRead(
+        psMonitorPlayImage.Source = QIcon.QIconRead(
             $"/PAsset/PCompass/{lFace.QSMonitorFaceIcon}", psMonitorAxisFill);
         psMonitorPlayButton.ToolTip = lFace.QSMonitorFaceTip;
     }
@@ -86,7 +86,7 @@ internal sealed partial class PSMonitor
                 Width = 18,
                 Height = 18,
                 Stretch = Stretch.Uniform,
-                Source = PAsset.PIcon.PIconRead(pIconPath, psMonitorAxisFill)
+                Source = QIcon.QIconRead(pIconPath, psMonitorAxisFill)
             }
         };
         psButton.Click += (_, _) => pAction();

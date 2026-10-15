@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -71,7 +70,7 @@ public sealed class PListRow
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.QListRowLocked]),
+            Source = QIcon.QIconRead("/PAsset/PPanel/PVideo.svg", pListIcons[lRow.QListRowLocked]),
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 4, 0)

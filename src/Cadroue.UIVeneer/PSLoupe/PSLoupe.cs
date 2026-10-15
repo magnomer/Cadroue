@@ -8,7 +8,6 @@ using System.Windows.Threading;
 using FlyleafLib;
 using FlyleafLib.Controls.WPF;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
 using Cadroue.UIDeportment;
@@ -214,7 +213,7 @@ internal sealed class PSLoupe : Window
     private void PSLoupePlayApply(bool lPlaying)
     {
         psLoupeClockRuns[lPlaying](psLoupeClock);
-        psLoupePlayImage.Source = PIcon.PIconRead(QSLoupe.QSLoupePlayIcon, psLoupePlayTints[QSLoupe.QSLoupePlayTinted]);
+        psLoupePlayImage.Source = QIcon.QIconRead(QSLoupe.QSLoupePlayIcon, psLoupePlayTints[QSLoupe.QSLoupePlayTinted]);
         psLoupePlayButton.ToolTip = QSLoupe.QSLoupePlayTip;
     }
 

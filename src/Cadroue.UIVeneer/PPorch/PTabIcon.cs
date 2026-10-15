@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 
 namespace Cadroue.UIVeneer.PPorch;
 
@@ -11,11 +10,11 @@ public sealed class PTabIcon : IValueConverter
     private static readonly Brush pTabActiveBrush = PTabActiveCreate();
 
     private static readonly IReadOnlyDictionary<string, ImageSource> pTabIcons =
-        QStrip.QStripKeysRead().ToDictionary(pKey => pKey, pKey => PIcon.PIconRead(PTabPathRead(pKey)));
+        QStrip.QStripKeysRead().ToDictionary(pKey => pKey, pKey => QIcon.QIconRead(PTabPathRead(pKey)));
 
     private static readonly IReadOnlyDictionary<string, ImageSource> pTabActiveIcons =
         QStrip.QStripKeysRead().ToDictionary(
-            pKey => pKey, pKey => PIcon.PIconRead(PTabPathRead(pKey), pTabActiveBrush));
+            pKey => pKey, pKey => QIcon.QIconRead(PTabPathRead(pKey), pTabActiveBrush));
 
     private static readonly IReadOnlyDictionary<bool, IReadOnlyDictionary<string, ImageSource>> pTabSets =
         new Dictionary<bool, IReadOnlyDictionary<string, ImageSource>>

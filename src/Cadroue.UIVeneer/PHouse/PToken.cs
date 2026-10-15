@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 
 namespace Cadroue.UIVeneer.PHouse;
 
@@ -154,7 +153,7 @@ internal sealed class PToken : RichTextBox
         };
         pContent.Children.Add(new Image
         {
-            Source = PIcon.PIconRead(lPart.QTokenPartIcon, PTokenOperatorBrush),
+            Source = QIcon.QIconRead(lPart.QTokenPartIcon, PTokenOperatorBrush),
             Width = 14,
             Height = 14,
             Stretch = Stretch.Uniform,

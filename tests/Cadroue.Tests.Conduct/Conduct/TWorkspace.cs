@@ -17,7 +17,8 @@ public sealed class TWorkspace
         {
             tWorkspaceHeard.Add($"{kind}:{position.TotalSeconds}");
         }
-        tWorkspaceArea = new CAtelier(new TUsherPort(), new TLineagePort(), tWorkspacePort).CAtelierWorkspaceCreate();
+        tWorkspaceArea = new CAtelier(new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort())
+            .CAtelierWorkspaceCreate();
         tWorkspaceArea.CWorkspaceOpened += path => tWorkspaceHeard.Add("open:" + path);
         tWorkspaceArea.CWorkspacePlayed += () => tWorkspaceHeard.Add("play");
         tWorkspaceArea.CWorkspacePaused += () => tWorkspaceHeard.Add("pause");
@@ -31,7 +32,7 @@ public sealed class TWorkspace
     [Fact]
     public void AtelierWorkspaceCreate_EachCall_GivesItsOwnWorkspace()
     {
-        CAtelier atelier = new(new TUsherPort(), new TLineagePort(), tWorkspacePort);
+        CAtelier atelier = new(new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort());
 
         Assert.NotSame(atelier.CAtelierWorkspaceCreate(), atelier.CAtelierWorkspaceCreate());
     }

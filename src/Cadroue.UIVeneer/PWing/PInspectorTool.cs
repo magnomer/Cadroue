@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -15,7 +15,7 @@ public sealed partial class PInspector
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead(PCropIcon, pInspectorIconBrush),
+            Source = QIcon.QIconRead(PCropIcon, pInspectorIconBrush),
             Stretch = Stretch.Uniform
         };
 

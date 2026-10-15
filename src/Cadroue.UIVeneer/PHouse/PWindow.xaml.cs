@@ -91,6 +91,7 @@ public partial class PWindow : Window
             pStrip.QStrip.QStripContentClear,
             PWindowMediaClear);
         QAskNotice.QAskRaised += PWindowAskHandle;
+        QWarningNotice.QWarningRaised += PWindowWarningHandle;
         lSash.QSashCaptureStarted += PResizeCaptureStart;
         lSash.QSashCaptureStopped += PResizeCaptureStop;
         lSash.QSashActiveChanged += PResizeRenderApply;
@@ -100,6 +101,9 @@ public partial class PWindow : Window
     private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);
 
     private void PWindowAskHandle(QAsk lAsk, Action<bool> lAnswer) => PSAlert.PSAlertConfirm(this, lAsk, lAnswer);
+
+    private void PWindowWarningHandle(string lTitle, string lMessage) =>
+        PSAnnouncement.PSAnnouncementShow(this, lTitle, lMessage);
 
     private void PWindowTabHandle(QStripTab? lStripTab) =>
         lWindow.QWindowTabSet(lStripTab, lStripTab?.QStripTabWorkspace.QWorkspaceViewer);
@@ -229,6 +233,7 @@ public partial class PWindow : Window
             new QSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
         lWindow.QWindowClose();
         QAskNotice.QAskRaised -= PWindowAskHandle;
+        QWarningNotice.QWarningRaised -= PWindowWarningHandle;
         pStrip.QStrip.QStripSelectChanged -= PWindowTabHandle;
         pToolbar.PToolbarOptionsApplied -= lWindow.QWindowOptionsApply;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;

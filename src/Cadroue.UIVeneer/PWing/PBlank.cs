@@ -7,7 +7,6 @@ using System.Windows.Shapes;
 using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PAsset;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -125,7 +124,7 @@ public sealed partial class PInspector
         {
             Width = 18,
             Height = 18,
-            Source = PIcon.PIconRead(PPickerIcon, pInspectorIconBrush),
+            Source = QIcon.QIconRead(PPickerIcon, pInspectorIconBrush),
             Stretch = Stretch.Uniform
         };
         pBlankPicker = new ToggleButton
@@ -214,7 +213,7 @@ public sealed partial class PInspector
     private void PBlankPickUpdate(bool pPicking)
     {
         pBlankPicker.IsChecked = PLook.PLookChecked[pPicking];
-        pBlankPickerIcon.Source = PIcon.PIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
+        pBlankPickerIcon.Source = QIcon.QIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
     }
 
     private void PBlankUpdate()

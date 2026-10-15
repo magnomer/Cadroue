@@ -3,7 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 
 using Cadroue.Application;
-using Cadroue.UIVeneer.PAsset;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -18,7 +18,7 @@ public static class PViewerControl
             {
                 Width = 16,
                 Height = 16,
-                Source = PIcon.PIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                Source = QIcon.QIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
                 Stretch = Stretch.Uniform
             },
             Width = 24,
