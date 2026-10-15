@@ -243,8 +243,8 @@ public sealed class QEditTab
     {
         QEditColor.QEditEstimateHandle(QEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceMethod);
         QEditHistogramDeferred?.Invoke();
-        QEditCropRestore(
-            qEditViewer.QViewerWorkspace.CWorkspaceSource is { } lPath ? QEditStore.QEditNameRead(lPath) : "(no media)");
+        string? lPath = qEditViewer.QViewerWorkspace.CWorkspaceSource;
+        QEditCropRestore(lPath is null ? "(no media)" : QEditStore.QEditNameRead(lPath));
     }
 
     private void QEditStepHandle(string lStep)

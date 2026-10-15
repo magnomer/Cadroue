@@ -114,7 +114,7 @@ public sealed class QViewerMpv
 
         qViewer.QViewerFilterUpdate();
         qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
-        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
+        qViewer.QViewerMedia.QViewerCommitApply();
     }
 
     private async Task QViewerMpvRebuild(

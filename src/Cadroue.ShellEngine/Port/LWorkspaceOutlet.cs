@@ -18,15 +18,6 @@ public sealed class LWorkspaceOutlet : LWorkspacePort
     }
 
     // The full load path; a path the system cannot resolve loads as given.
-    public string LWorkspacePathResolve(string lPath)
-    {
-        try
-        {
-            return string.IsNullOrWhiteSpace(lPath) ? string.Empty : Path.GetFullPath(lPath);
-        }
-        catch (Exception lPathException) when (lPathException is ArgumentException or NotSupportedException)
-        {
-            return lPath;
-        }
-    }
+    public string LWorkspacePathResolve(string lPath) =>
+        string.IsNullOrWhiteSpace(lPath) ? string.Empty : LUsherEnvironmentEngine.LUsherPathSeam(lPath);
 }

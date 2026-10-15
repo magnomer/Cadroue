@@ -40,7 +40,8 @@ internal static class TInterfaceViewer
         }
     }
     internal static void TViewerIntentReset(QViewer viewer) => viewer.QViewerWorkspace.CWorkspaceCancel();
-    internal static void TViewerRequestSet(QViewer viewer, string path) => viewer.QViewerWorkspace.CWorkspaceRequestSet(path);
+    internal static void TViewerRequestSet(QViewer viewer, string path) =>
+        viewer.QViewerWorkspace.CWorkspaceRequestSet(path);
     // True when the workspace holds or is loading the path, so asking for it raises no open.
     // The viewer's command is off for the ask, so a raised open is refused before it changes anything.
     internal static bool TViewerSourceMatch(QViewer viewer, string path)
@@ -138,7 +139,8 @@ internal static class TInterfaceViewer
     internal static void TViewerResume(QViewerPlayback playback) => playback.QViewerResume();
     internal static void TViewerTick(QViewerPlayback playback) => playback.QViewerTick();
     internal static void TViewerSourceOpen(QViewerSource source, string path) => source.QViewerSourceOpen(path);
-    internal static void TViewerPathHandle(QViewer viewer, string? path) => viewer.QViewerWorkspace.CWorkspaceOpen(path);
+    internal static void TViewerPathHandle(QViewer viewer, string? path) =>
+        viewer.QViewerWorkspace.CWorkspaceOpen(path);
     internal static void TViewerAskAttach(QViewerSource source, Action<QViewerAsk, Action<bool>> handler) =>
         source.QViewerSourceAsk += handler;
     internal static void TViewerDropAttach(QViewerSource source, Action<IReadOnlyList<string>> handler) =>

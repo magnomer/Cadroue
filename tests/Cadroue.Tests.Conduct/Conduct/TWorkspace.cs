@@ -13,15 +13,19 @@ public sealed class TWorkspace
 
     public TWorkspace()
     {
+        void TWorkspaceHeardRecord(string kind, TimeSpan position)
+        {
+            tWorkspaceHeard.Add($"{kind}:{position.TotalSeconds}");
+        }
         tWorkspaceArea = new CAtelier(new TUsherPort(), new TLineagePort(), tWorkspacePort).CAtelierWorkspaceCreate();
         tWorkspaceArea.CWorkspaceOpened += path => tWorkspaceHeard.Add("open:" + path);
         tWorkspaceArea.CWorkspacePlayed += () => tWorkspaceHeard.Add("play");
         tWorkspaceArea.CWorkspacePaused += () => tWorkspaceHeard.Add("pause");
-        tWorkspaceArea.CWorkspaceSought += position => tWorkspaceHeard.Add($"seek:{position.TotalSeconds}");
-        tWorkspaceArea.CWorkspaceIntentSought += position => tWorkspaceHeard.Add($"kept:{position.TotalSeconds}");
+        tWorkspaceArea.CWorkspaceSought += position => TWorkspaceHeardRecord("seek", position);
+        tWorkspaceArea.CWorkspaceIntentSought += position => TWorkspaceHeardRecord("kept", position);
         tWorkspaceArea.CWorkspaceRestored += path => tWorkspaceHeard.Add("restore:" + path);
-        tWorkspaceArea.CWorkspaceCommitPlayed += position => tWorkspaceHeard.Add($"commit-play:{position.TotalSeconds}");
-        tWorkspaceArea.CWorkspaceCommitPaused += position => tWorkspaceHeard.Add($"commit-pause:{position.TotalSeconds}");
+        tWorkspaceArea.CWorkspaceCommitPlayed += position => TWorkspaceHeardRecord("commit-play", position);
+        tWorkspaceArea.CWorkspaceCommitPaused += position => TWorkspaceHeardRecord("commit-pause", position);
     }
 
     [Fact]

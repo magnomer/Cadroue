@@ -298,7 +298,7 @@ public sealed class QViewerMedia
             $"Viewer preview restored: rotate {lRotate.LRotateKind}, "
             + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}");
         QPlayer.QPlayerPreviewApply(qViewer.QViewerPreview, "preview restored");
-        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
+        QViewerCommitApply();
     }
 
     public void QViewerCargoApply(LCargo lCargo)
@@ -311,6 +311,11 @@ public sealed class QViewerMedia
 
         qViewer.QViewerMediaRaise(lCargo);
     }
+
+    // The player holds the committed media: the workspace spends its intent, and the autoplay
+    // preference, read at each commit, decides an intent that left the play state open.
+    public void QViewerCommitApply() =>
+        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
 
     // The workspace spent the committed intent: the player starts at its place, playing.
     public void QViewerCommitPlay(TimeSpan lPosition)
