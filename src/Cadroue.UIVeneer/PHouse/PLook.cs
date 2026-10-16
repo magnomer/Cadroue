@@ -66,21 +66,6 @@ public static class PLook
         [WindowState.Maximized] = false,
     };
 
-    public static readonly IReadOnlyDictionary<WindowState, bool> PLookMaximized = new Dictionary<WindowState, bool>
-    {
-        [WindowState.Normal] = false,
-        [WindowState.Minimized] = false,
-        [WindowState.Maximized] = true,
-    };
-
-    public static readonly IReadOnlyDictionary<WindowState, WindowState> PLookUnmaximized =
-        new Dictionary<WindowState, WindowState>
-        {
-            [WindowState.Normal] = WindowState.Normal,
-            [WindowState.Minimized] = WindowState.Minimized,
-            [WindowState.Maximized] = WindowState.Normal,
-        };
-
     public static readonly IReadOnlyDictionary<WindowStartupLocation, bool> PLookManual =
         new Dictionary<WindowStartupLocation, bool>
         {
