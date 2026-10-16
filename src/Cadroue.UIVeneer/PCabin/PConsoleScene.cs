@@ -103,10 +103,10 @@ public sealed class PConsoleScene : UserControl
     }
 
     private void PConsoleRowHandle(object pSender, MouseButtonEventArgs pArguments) =>
-        lScene.QConsoleRowHandle(PSender.PSenderItemRead<string>(pSender));
+        lScene.QConsoleRowHandle(QSender.QSenderItemRead<string>(pSender));
 
     private void PConsoleDeleteHandle(object pSender, RoutedEventArgs pArguments) =>
-        pArguments.Handled = lScene.QConsoleDeleteHandle(PSender.PSenderItemRead<string>(pArguments.OriginalSource));
+        pArguments.Handled = lScene.QConsoleDeleteHandle(QSender.QSenderItemRead<string>(pArguments.OriginalSource));
 
     private void PConsoleSelectHandle(object pSender, SelectionChangedEventArgs pArguments) =>
         lScene.QConsoleSelectHandle(pConsoleRelayCombo.SelectedItem, pConsoleRelayCombo.IsDropDownOpen);
@@ -179,7 +179,7 @@ public sealed class PConsoleScene : UserControl
         lScene.QConsolePressHandle(
             pConsoleRelayCombo.IsDropDownOpen,
             pConsoleRelayCombo.IsKeyboardFocusWithin,
-            PWalk.PWalkParentCheck(pArguments.OriginalSource as DependencyObject, pConsoleRelayCombo.Equals));
+            QWalk.QWalkParentCheck(pArguments.OriginalSource as DependencyObject, pConsoleRelayCombo.Equals));
 
     public void PConsoleDeactivateHandle(object? pSender, EventArgs pArguments) =>
         lScene.QConsoleDeactivateHandle(pConsoleRelayCombo.IsKeyboardFocusWithin);

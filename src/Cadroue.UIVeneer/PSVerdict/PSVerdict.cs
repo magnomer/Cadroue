@@ -226,15 +226,16 @@ internal sealed class PSVerdict : Window
         }
     };
 
-    private static Button PSVerdictChipBuild(bool pShown) => new()
-    {
-        Content = PSVerdictChipFormat(pShown),
-        Height = PSField.PSFieldChipHeight,
-        Padding = new Thickness(10, 0, 10, 0),
-        VerticalAlignment = VerticalAlignment.Center,
-        FontSize = 11,
-        Style = PButton.PButtonWhiteCreate()
-    };
+    private static Button PSVerdictChipBuild(bool pShown) => QButton.QButtonBuild(
+        new()
+        {
+            Content = PSVerdictChipFormat(pShown),
+            Height = PSField.PSFieldChipHeight,
+            Padding = new Thickness(10, 0, 10, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            FontSize = 11
+        },
+        QButtonLook.QButtonLookWhite);
 
     private static string PSVerdictChipFormat(bool pShown) =>
         QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Details") + (pShown ? "  ▴" : "  ▾");

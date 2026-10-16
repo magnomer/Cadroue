@@ -134,11 +134,11 @@ internal sealed class PFunnelRuleFrame
             Height = 20,
             Padding = new Thickness(0),
             Cursor = Cursors.Hand,
-            Style = PButton.PButtonChromeCreate(false),
             Content = pFunnelGlyphs[false],
             ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[false])
         };
         pButton.Click += (_, _) => pFunnelFold();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookChrome);
         return pButton;
     }
 
@@ -197,10 +197,10 @@ internal sealed class PFunnelRuleFrame
             Foreground = pFunnelMutedBrush,
             Padding = new Thickness(0),
             Cursor = Cursors.Hand,
-            Style = PButton.PButtonChromeCreate(false),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remove")
         };
         pButton.Click += (_, _) => pRemove();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookChrome);
         return pButton;
     }
 }

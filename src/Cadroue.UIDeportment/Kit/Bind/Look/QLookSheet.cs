@@ -67,6 +67,36 @@ internal static class QLookSheet
         new("PTokenChip", QLookCue.QLookCuePressed, "PTokenChipFrame", Border.BackgroundProperty, "PTokenPressed"),
 
         new("PPicker", QLookCue.QLookCueExpanded, "PPickerFrame", Border.BorderBrushProperty, "PPickerAccent"),
+
+        new("PButtonSource", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonGreyHover"),
+        new("PButtonSource", QLookCue.QLookCuePressed, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonGreyPressed"),
+
+        new("PButtonCommand", QLookCue.QLookCueHover, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonCommandHover"),
+        new("PButtonCommand", QLookCue.QLookCuePressed, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonCommandPressed"),
+
+        new("PButtonFaded", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonCommandHover"),
+        new("PButtonFaded", QLookCue.QLookCuePressed, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonCommandPressed"),
+        new("PButtonFaded", QLookCue.QLookCueDisabled, "PButtonFrame", UIElement.OpacityProperty, "PButtonFade"),
+
+        new("PButtonPanel", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonGreyHover"),
+        new("PButtonPanel", QLookCue.QLookCueDisabled, "PButtonFace", TextElement.ForegroundProperty, "PButtonMuted"),
+
+        new("PButtonWhite", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonWhiteHover"),
+        new("PButtonWhite", QLookCue.QLookCuePressed, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonWhitePressed"),
+
+        new("PButtonChrome", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonChromeHover"),
+        new("PButtonChrome", QLookCue.QLookCuePressed, "PButtonPlate",
+            Border.BackgroundProperty, "PButtonChromePressed"),
+
+        new("PButtonExit", QLookCue.QLookCueHover, "PButtonPlate", Border.BackgroundProperty, "PButtonExitHover"),
+        new("PButtonExit", QLookCue.QLookCueHover, "PButtonFace", TextElement.ForegroundProperty, "PButtonInk"),
+        new("PButtonExit", QLookCue.QLookCuePressed, "PButtonPlate", Border.BackgroundProperty, "PButtonExitPressed"),
+        new("PButtonExit", QLookCue.QLookCuePressed, "PButtonFace", TextElement.ForegroundProperty, "PButtonInk"),
     ];
 
     internal static IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> QLookSheetResolve(

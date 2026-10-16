@@ -286,10 +286,10 @@ public sealed class PSection : UserControl
             ToolTip = pTooltip,
             Width = 28,
             Height = 26,
-            Margin = new Thickness(0, 0, 2, 0),
-            Style = PButton.PButtonPanelCreate()
+            Margin = new Thickness(0, 0, 2, 0)
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 }

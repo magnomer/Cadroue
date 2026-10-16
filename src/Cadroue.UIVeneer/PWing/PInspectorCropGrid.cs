@@ -76,12 +76,12 @@ public sealed partial class PInspector
             Padding = new Thickness(8, 0, 8, 0),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
-            Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Bottom,
             Margin = new Thickness(3)
         };
         pResetButton.Click += (_, _) => QInspectorCrop.QInspectorEdgeReset();
+        QButton.QButtonAttach(pResetButton, QButtonLook.QButtonLookPanel);
         return pResetButton;
     }
 

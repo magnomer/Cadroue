@@ -38,7 +38,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pInspectorRatioFixed);
+        QInteractionClick.QInteractionClickAttach(pInspectorRatioFixed);
         QCheckbox.QCheckboxAttach(pInspectorRatioFixed);
         PInspectorSwitchAttach(
             pInspectorRatioFixed, QInspector.QInspectorRatio.QInspectorFixedSet);
@@ -54,7 +54,7 @@ public sealed partial class PInspector
             IsEnabled = false,
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pInspectorRatioLenient);
+        QInteractionClick.QInteractionClickAttach(pInspectorRatioLenient);
         QCheckbox.QCheckboxAttach(pInspectorRatioLenient);
         PInspectorSwitchAttach(
             pInspectorRatioLenient, QInspector.QInspectorRatio.QInspectorLenientSet);
@@ -146,7 +146,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 14, 0)
         };
-        PInteraction.PInteractionButtonAttach(pFlip);
+        QInteractionClick.QInteractionClickAttach(pFlip);
         QCheckbox.QCheckboxAttach(pFlip);
         return pFlip;
     }

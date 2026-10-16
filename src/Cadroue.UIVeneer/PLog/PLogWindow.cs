@@ -137,7 +137,7 @@ public sealed class PLogWindow : Window
 
     private void PLogDetailToggle(object sender, RoutedEventArgs e)
     {
-        PLogRow? pRow = PSender.PSenderItemRead<PLogRow>(e.OriginalSource);
+        PLogRow? pRow = QSender.QSenderItemRead<PLogRow>(e.OriginalSource);
         e.Handled = QLog.QLogExpandToggle(pRow?.QLogRow);
         pRow?.PLogRowUpdate();
     }
@@ -247,7 +247,6 @@ public sealed class PLogWindow : Window
             pLogPicker,
             QPicker.QPickerItemsCreate(QLog.QLogCategoriesRead(), Array.Empty<string>()),
             QLocalizationCatalog.QLocalizationTextRead("Log.Category.All"),
-            PInteraction.PInteractionButtonHandle,
             QLog.QLogCategorySet);
         return pLogPicker;
     }
@@ -285,7 +284,7 @@ public sealed class PLogWindow : Window
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Log.Verbose.Tooltip")
         };
 
-        PInteraction.PInteractionButtonAttach(pLogVerbose);
+        QInteractionClick.QInteractionClickAttach(pLogVerbose);
         QCheckbox.QCheckboxAttach(pLogVerbose);
         pLogVerbose.Checked += (_, _) => QLog.QLogVerboseSet(true);
         pLogVerbose.Unchecked += (_, _) => QLog.QLogVerboseSet(false);
@@ -313,10 +312,10 @@ public sealed class PLogWindow : Window
             MinWidth = 84,
             Height = PSField.PSFieldControlHeight,
             Margin = new Thickness(0, 0, 8, 0),
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonWhiteCreate()
+            VerticalAlignment = VerticalAlignment.Center
         };
         pLogButton.Click += pLogClick;
+        QButton.QButtonAttach(pLogButton, QButtonLook.QButtonLookWhite);
         return pLogButton;
     }
 }

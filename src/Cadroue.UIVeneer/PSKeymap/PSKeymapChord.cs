@@ -23,7 +23,7 @@ internal sealed class PSKeymapChord : Button
         HorizontalAlignment = HorizontalAlignment.Right;
         VerticalAlignment = VerticalAlignment.Center;
         Focusable = true;
-        Style = PButton.PButtonWhiteCreate();
+        QButton.QButtonAttach(this, QButtonLook.QButtonLookWhite);
         lsKeymap.QSKeymapChordChanged += PSKeymapChordHandle;
         PSKeymapTextUpdate();
     }

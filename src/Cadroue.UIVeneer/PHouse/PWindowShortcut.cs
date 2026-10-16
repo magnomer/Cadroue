@@ -29,7 +29,7 @@ public partial class PWindow
             GetForegroundWindow,
             PShortcutViewerMatch,
             PShortcutInputCheck,
-            QShortcut.QShortcutVirtualFormat,
+            QShortcutKey.QShortcutKeyFormat,
             GetKeyState));
     }
 
@@ -37,7 +37,8 @@ public partial class PWindow
         pStrip.PStripSelected?.PTabViewer?.PViewerSurfaceMatch(pForeground);
 
     private static bool PShortcutInputCheck() =>
-        PWalk.PWalkParentCheck(Keyboard.FocusedElement as DependencyObject, PShortcutInputMatch);
+        QWalk.QWalkParentCheck(Keyboard.FocusedElement as DependencyObject, PShortcutInputMatch);
 
-    private static bool PShortcutInputMatch(DependencyObject pNode) => PWalk.PWalkTypeCheck(pNode, PShortcutInputTypes);
+    private static bool PShortcutInputMatch(DependencyObject pNode) =>
+        QWalkType.QWalkTypeMatch(pNode, PShortcutInputTypes);
 }

@@ -13,7 +13,6 @@ internal static class PRosterTheme
     public const double PRosterCorner = 9;
     public const double PRosterButtonSize = 58;
     public const double PRosterIconSize = 24;
-    public const double PRosterDisabledOpacity = 0.35;
 
     public static readonly Thickness PRosterHeaderPadding = new(12, 10, 12, 10);
     public static readonly Brush PRosterLineBrush = PRosterBrushCreate(0xD9, 0xDE, 0xE7);

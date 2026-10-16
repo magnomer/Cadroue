@@ -48,10 +48,10 @@ public sealed partial class PInspector
             Padding = new Thickness(8, 0, 8, 0),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
-            Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
         pGammaReset.Click += (_, _) => QGamma.QGammaReset();
+        QButton.QButtonAttach(pGammaReset, QButtonLook.QButtonLookPanel);
         pGammaStack.Children.Add(pGammaReset);
         pGammaBody = PToneBodyBuild(pGammaBox, pGammaStack);
         return pGammaBody;

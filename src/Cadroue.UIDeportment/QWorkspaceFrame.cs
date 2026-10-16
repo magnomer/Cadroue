@@ -43,7 +43,6 @@ public sealed class QWorkspaceFrame
     private readonly Func<QSource, UIElement> qWorkspaceSourceFactory;
     private readonly Func<QInfo, UIElement> qWorkspaceInfoFactory;
     private readonly Action qWorkspaceExportHandler;
-    private readonly Func<Style> qWorkspaceExportStyle;
     private readonly Func<ImageSource> qWorkspaceExportIcon;
     private readonly Action qWorkspaceSurfaceCloser;
     private readonly Action qWorkspaceFlowCloser;
@@ -56,7 +55,6 @@ public sealed class QWorkspaceFrame
         Func<QSource, UIElement> lSourceFactory,
         Func<QInfo, UIElement> lInfoFactory,
         Action lExportHandler,
-        Func<Style> lExportStyle,
         Func<ImageSource> lExportIcon,
         Action lSurfaceClose,
         Action lFlowClose,
@@ -68,7 +66,6 @@ public sealed class QWorkspaceFrame
         qWorkspaceSourceFactory = lSourceFactory;
         qWorkspaceInfoFactory = lInfoFactory;
         qWorkspaceExportHandler = lExportHandler;
-        qWorkspaceExportStyle = lExportStyle;
         qWorkspaceExportIcon = lExportIcon;
         qWorkspaceSurfaceCloser = lSurfaceClose;
         qWorkspaceFlowCloser = lFlowClose;
@@ -190,8 +187,8 @@ public sealed class QWorkspaceFrame
             lFrame.qWorkspaceInfoFactory(lFrame.qWorkspace.QWorkspaceInfo!);
         QContract.QContractFind<Border>(lRoot, "pWorkspaceSurface").Child = lFrame.qWorkspaceFrameSurface;
         Button lExport = QContract.QContractFind<Button>(lRoot, "pWorkspaceExport");
-        lExport.Style = lFrame.qWorkspaceExportStyle();
         lExport.Click += (_, _) => lFrame.qWorkspaceExportHandler();
+        QButton.QButtonAttach(lExport, QButtonLook.QButtonLookSource);
         QContract.QContractFind<Image>(lRoot, "pWorkspaceExportIcon").Source = lFrame.qWorkspaceExportIcon();
         return lRoot;
     }

@@ -11,40 +11,42 @@ public static class PViewerControl
 {
     internal static Button PViewerButtonBuild(string pIconPath, string pTipKey, double pRightMargin)
     {
-        return new Button
-        {
-            Content = new Image
+        return QButton.QButtonBuild(
+            new Button
             {
-                Width = 16,
-                Height = 16,
-                Source = QIcon.QIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
-                Stretch = Stretch.Uniform
+                Content = new Image
+                {
+                    Width = 16,
+                    Height = 16,
+                    Source = QIcon.QIconRead(pIconPath, new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D))),
+                    Stretch = Stretch.Uniform
+                },
+                Width = 24,
+                Height = 24,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, 16, pRightMargin, 0),
+                ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTipKey),
+                Visibility = Visibility.Collapsed
             },
-            Width = 24,
-            Height = 24,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(0, 16, pRightMargin, 0),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTipKey),
-            Visibility = Visibility.Collapsed,
-            Style = PButton.PButtonPanelCreate()
-        };
+            QButtonLook.QButtonLookPanel);
     }
 
     internal static Button PViewerAudioBuild()
     {
-        return new Button
-        {
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Top,
-            Margin = new Thickness(16, 52, 0, 0),
-            MinWidth = 84,
-            Height = 24,
-            Padding = new Thickness(12, 0, 12, 0),
-            FontSize = 11,
-            Visibility = Visibility.Collapsed,
-            Style = PButton.PButtonPanelCreate()
-        };
+        return QButton.QButtonBuild(
+            new Button
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(16, 52, 0, 0),
+                MinWidth = 84,
+                Height = 24,
+                Padding = new Thickness(12, 0, 12, 0),
+                FontSize = 11,
+                Visibility = Visibility.Collapsed
+            },
+            QButtonLook.QButtonLookPanel);
     }
 
     internal static Border PViewerSlotBuild()

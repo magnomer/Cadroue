@@ -1,8 +1,10 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -170,7 +172,7 @@ internal static class PSCasement
             PSCasementCloseBuild(),
             (_, _) => pWindow.Close(),
             pButtonWidth, pButtonHeight, pScale,
-            pClose: true));
+            pLook: QButtonLook.QButtonLookExit));
         Grid.SetColumn(pButtons, 2);
         pGrid.Children.Add(pButtons);
         return pGrid;
@@ -212,7 +214,7 @@ internal static class PSCasement
         double pWidth,
         double pHeight,
         double pScale,
-        bool pClose = false)
+        QButtonLook pLook = QButtonLook.QButtonLookChrome)
     {
         if (pScale != 1 && pIcon is FrameworkElement pGlyph)
         {
@@ -223,10 +225,10 @@ internal static class PSCasement
         {
             Width = pWidth,
             Height = pHeight,
-            Content = pIcon,
-            Style = PButton.PButtonChromeCreate(pClose)
+            Content = pIcon
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, pLook);
         return pButton;
     }
 
@@ -279,10 +281,11 @@ internal static class PSCasement
 
     private static void PSCasementGlyphAttach(System.Windows.Shapes.Shape pGlyph)
     {
-        pGlyph.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new System.Windows.Data.Binding("Foreground")
+        pGlyph.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new System.Windows.Data.Binding
         {
+            Path = new PropertyPath(TextElement.ForegroundProperty),
             RelativeSource = new System.Windows.Data.RelativeSource(
-                System.Windows.Data.RelativeSourceMode.FindAncestor, typeof(Button), 1)
+                System.Windows.Data.RelativeSourceMode.FindAncestor, typeof(ContentPresenter), 1)
         });
     }
 }

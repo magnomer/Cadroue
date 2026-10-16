@@ -15,7 +15,7 @@ internal sealed partial class PSOptions
             IsChecked = pChecked,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PInteraction.PInteractionButtonAttach(pCheck);
+        QInteractionClick.QInteractionClickAttach(pCheck);
         QCheckbox.QCheckboxAttach(pCheck);
         return pCheck;
     }

@@ -206,10 +206,10 @@ internal static class PRosterOverview
             Height = PRosterTheme.PRosterRowHeight,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Roster.Explorer.Tooltip"),
-            Style = PButton.PButtonPanelCreate()
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Roster.Explorer.Tooltip")
         };
         pButton.Click += (_, _) => lRoster.QRosterPathOpen(pPath);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 

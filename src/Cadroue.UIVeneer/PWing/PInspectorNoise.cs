@@ -45,7 +45,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pNoiseTrack);
+        QInteractionClick.QInteractionClickAttach(pNoiseTrack);
         QCheckbox.QCheckboxAttach(pNoiseTrack);
         PInspectorSwitchAttach(pNoiseTrack, QNoise.QNoiseTrackSet);
 

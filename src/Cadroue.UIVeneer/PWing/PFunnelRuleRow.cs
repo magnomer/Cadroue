@@ -116,7 +116,7 @@ public sealed class PFunnelRuleRow : Border
             Foreground = pFunnelTitleBrush,
             Margin = new Thickness(2, 0, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pBox);
+        QInteractionClick.QInteractionClickAttach(pBox);
         QCheckbox.QCheckboxAttach(pBox);
         pBox.Checked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, true);
         pBox.Unchecked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, false);

@@ -49,8 +49,10 @@
                         </Button>
                         <Button x:Name="pChromeCloseButton" Click="PChromeCloseHandle">
                             <Canvas Width="18" Height="16">
-                                <Line X1="2.5" Y1="2.5" X2="13.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/>
-                                <Line X1="13.5" Y1="2.5" X2="2.5" Y2="13.5" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" StrokeThickness="1.25"/>
+                                <Line X1="2.5" Y1="2.5" X2="13.5" Y2="13.5" StrokeThickness="1.25"
+                                      Stroke="{Binding (TextElement.Foreground), RelativeSource={RelativeSource AncestorType=ContentPresenter}}" />
+                                <Line X1="13.5" Y1="2.5" X2="2.5" Y2="13.5" StrokeThickness="1.25"
+                                      Stroke="{Binding (TextElement.Foreground), RelativeSource={RelativeSource AncestorType=ContentPresenter}}" />
                             </Canvas>
                         </Button>
                     </StackPanel>

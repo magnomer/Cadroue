@@ -100,16 +100,16 @@ public partial class PToolbar : UserControl
 
     private void PChromeButtonsApply()
     {
-        PChromeButtonApply(pChromeMinimizeButton, false, new CornerRadius(0, 0, 0, 9));
-        PChromeButtonApply(pChromeMaximizeButton, false, new CornerRadius(0));
-        PChromeButtonApply(pChromeCloseButton, true, new CornerRadius(0, 9, 9, 0));
+        PChromeButtonApply(pChromeMinimizeButton, QButtonLook.QButtonLookFirst);
+        PChromeButtonApply(pChromeMaximizeButton, QButtonLook.QButtonLookChrome);
+        PChromeButtonApply(pChromeCloseButton, QButtonLook.QButtonLookLast);
     }
 
-    private static void PChromeButtonApply(Button pChromeButton, bool pChromeClose, CornerRadius pChromeCornerRadius)
+    private static void PChromeButtonApply(Button pChromeButton, QButtonLook pChromeLook)
     {
         pChromeButton.Width = PChromeButtonWidth;
         pChromeButton.Height = PChromeButtonHeight;
-        pChromeButton.Style = PButton.PButtonChromeCreate(pChromeClose, pChromeCornerRadius);
+        QButton.QButtonAttach(pChromeButton, pChromeLook);
     }
 
     private void PChromeMinimizeHandle(object sender, RoutedEventArgs e)
@@ -179,19 +179,19 @@ public partial class PToolbar : UserControl
     private bool PChromeCaptionCheck(DependencyObject? pChromeSource) =>
         QChrome.QChromeCaptionResolve(
             PSash.PSashInteractiveCheck(pChromeSource),
-            PWalk.PWalkParentCheck(pChromeSource, PWalk.PWalkItemCheck<QStripTab>),
-            PWalk.PWalkParentCheck(pChromeSource, PChromeSelfMatch));
+            QWalk.QWalkParentCheck(pChromeSource, QSender.QSenderItemCheck<QStripTab>),
+            QWalk.QWalkParentCheck(pChromeSource, PChromeSelfMatch));
 
     private bool PChromeSelfMatch(DependencyObject pChromeNode) => ReferenceEquals(pChromeNode, this);
 
     private bool PChromeLogoMatch(DependencyObject pChromeNode) => ReferenceEquals(pChromeNode, pLogoHost);
 
     private bool PChromeLogoCheck(DependencyObject? pChromeSource) =>
-        PWalk.PWalkParentCheck(pChromeSource, PChromeLogoMatch);
+        QWalk.QWalkParentCheck(pChromeSource, PChromeLogoMatch);
 
     private void PLogoMenuShow(FrameworkElement pLogoButton)
     {
-        ContextMenu pLogoMenu = PMenu.PMenuCreate(pLogoButton);
+        ContextMenu pLogoMenu = QMenu.QMenuBuild(pLogoButton, QMenuSide.QMenuSideBelow);
 
         PLogoItemAppend(pLogoMenu, "Options", "Chrome.Menu.Options", "/PAsset/PMenu/PMenuPreferences.svg");
         PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAsset/PMenu/PMenuShortcuts.svg");

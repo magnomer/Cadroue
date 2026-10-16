@@ -58,10 +58,10 @@ public sealed partial class PInspector
             Width = 28,
             Height = 26,
             HorizontalAlignment = HorizontalAlignment.Left,
-            Style = PButton.PButtonPanelCreate(),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Equalizer.Add")
         };
         pAddButton.Click += (_, _) => QEqualizer.QEqualizerBandAdd();
+        QButton.QButtonAttach(pAddButton, QButtonLook.QButtonLookPanel);
 
         pEqualizerStack = new StackPanel();
         pEqualizerStack.Children.Add(PInspectorFieldBuild(
@@ -135,9 +135,9 @@ public sealed partial class PInspector
             Height = PInspectorFieldHeight,
             Margin = new Thickness(6, 0, 0, 8),
             VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonPanelCreate(),
             ToolTip = QEqualizer.QEqualizerRemoveTip
         };
+        QButton.QButtonAttach(pRemoveButton, QButtonLook.QButtonLookPanel);
 
         var pRow = new Grid
         {

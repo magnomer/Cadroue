@@ -18,7 +18,7 @@ public sealed partial class PInspector
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        PInteraction.PInteractionButtonAttach(pSwitch);
+        QInteractionClick.QInteractionClickAttach(pSwitch);
         QCheckbox.QCheckboxAttach(pSwitch);
         return pSwitch;
     }

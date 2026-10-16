@@ -29,7 +29,6 @@ public static class QPickerControl
         Control lHost,
         IReadOnlyList<QPickerItem> lItems,
         string lEmptyText,
-        RoutedEventHandler lClick,
         Action<IReadOnlyList<string>>? lChanged = null)
     {
         ArgumentNullException.ThrowIfNull(lHost);
@@ -42,7 +41,7 @@ public static class QPickerControl
         ToggleButton lArrow = (ToggleButton)lHost.Template.FindName(QPickerControlArrow, lHost);
         Popup lPopup = (Popup)lHost.Template.FindName(QLook.QLookPopupPart, lHost);
         Panel lList = (Panel)lHost.Template.FindName(QPickerControlList, lHost);
-        lArrow.AddHandler(ButtonBase.ClickEvent, lClick, handledEventsToo: true);
+        QInteractionClick.QInteractionClickAttach(lArrow);
         lArrow.Checked += (_, _) => lPopup.IsOpen = true;
         lArrow.Unchecked += (_, _) => lPopup.IsOpen = false;
         lPopup.PlacementTarget = lHost;
@@ -63,7 +62,7 @@ public static class QPickerControl
             CheckBox lBox = QContract.QContractSheetFind<CheckBox>(QPickerControlRow);
             lBox.Content = lItem.QPickerItemLabel;
             lBox.IsChecked = lItem.QPickerItemChecked;
-            lBox.AddHandler(ButtonBase.ClickEvent, lClick, handledEventsToo: true);
+            QInteractionClick.QInteractionClickAttach(lBox);
             QCheckbox.QCheckboxAttach(lBox);
             lBox.Checked += (_, _) => lToggle(lItem.QPickerItemToken, true);
             lBox.Unchecked += (_, _) => lToggle(lItem.QPickerItemToken, false);
