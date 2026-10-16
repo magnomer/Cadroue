@@ -37,7 +37,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pWhitebalanceMethod);
+        QDropdown.QDropdownAttach(pWhitebalanceMethod);
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Average", "Inspector.Video.WhitebalanceMethodAverage"));
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(

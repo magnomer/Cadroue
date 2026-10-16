@@ -150,7 +150,7 @@ public sealed class PFunnelRules : PPanel
             SystemParameters.MinimumHorizontalDragDistance,
             SystemParameters.MinimumVerticalDragDistance);
         pFunnelGhosts[pStart](this, pRow);
-        PGhost.PGhostSync(pRow);
+        QGhostLayer.QGhostLayerSync(pRow);
         lFunnel.QFunnelDrag.QFunnelDragMove(pCurrent.Y, lFunnel.QFunnelRules.Select(PFunnelCenterRead).ToList());
         pEvent.Handled = true;
     }
@@ -158,7 +158,7 @@ public sealed class PFunnelRules : PPanel
     private void PFunnelGhostShow(PFunnelRuleRow pRow)
     {
         pRow.Opacity = 0.72;
-        PGhost.PGhostShow(pRow, lFunnel.QFunnelDrag.QFunnelGhost);
+        QGhostLayer.QGhostLayerShow(pRow, lFunnel.QFunnelDrag.QFunnelGhost);
     }
 
     private double PFunnelCenterRead(QFunnelRule lRule)
@@ -182,7 +182,7 @@ public sealed class PFunnelRules : PPanel
     private void PFunnelDragClear(PFunnelRuleRow pRow)
     {
         pRow.Opacity = 1;
-        PGhost.PGhostClear(pRow);
+        QGhostLayer.QGhostLayerClear(pRow);
         lFunnel.QFunnelDrag.QFunnelDragClear();
     }
 

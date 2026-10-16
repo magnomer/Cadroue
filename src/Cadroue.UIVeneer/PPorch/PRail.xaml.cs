@@ -196,7 +196,7 @@ public partial class PRail : UserControl
             SystemParameters.MinimumHorizontalDragDistance,
             SystemParameters.MinimumVerticalDragDistance);
         pRailGhosts[pStart](this, pTabElement);
-        PGhost.PGhostSync(pTabElement);
+        QGhostLayer.QGhostLayerSync(pTabElement);
         Point pItemsPoint = e.GetPosition(pTabItemsControl);
         lRail.QRailDragMove(
             lRail.QRailPointerResolve(pItemsPoint.X, pItemsPoint.Y),
@@ -207,7 +207,7 @@ public partial class PRail : UserControl
     private void PTabGhostShow(FrameworkElement pTabElement)
     {
         pTabElement.Opacity = 0.72;
-        PGhost.PGhostShow(pTabElement, lRail.QRailGhost);
+        QGhostLayer.QGhostLayerShow(pTabElement, lRail.QRailGhost);
     }
 
     private double PTabCenterRead(QStripTab lStripTab)
@@ -308,7 +308,7 @@ public partial class PRail : UserControl
     private static void PTabDragClear(FrameworkElement? pTabElement)
     {
         pTabElement?.SetValue(OpacityProperty, 1.0);
-        PGhost.PGhostClear(pTabElement);
+        QGhostLayer.QGhostLayerClear(pTabElement);
         Mouse.Capture(null);
     }
 

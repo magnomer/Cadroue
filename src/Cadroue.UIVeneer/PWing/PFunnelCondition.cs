@@ -140,7 +140,7 @@ internal sealed class PFunnelCondition : Grid
             FontSize = 12,
             FontFamily = pFunnelFontFamily
         };
-        PTextbox.PTextboxApply(pField);
+        QTextbox.QTextboxAttach(pField);
         pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
         return pField;
     }

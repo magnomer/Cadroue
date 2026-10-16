@@ -159,7 +159,7 @@ internal sealed class PFlowName
             FontSize = PSection.PSectionNameSize,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        PTextbox.PTextboxApply(pFieldBox);
+        QTextbox.QTextboxAttach(pFieldBox);
         return pFieldBox;
     }
 

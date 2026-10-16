@@ -37,7 +37,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pCurveChannel);
+        QDropdown.QDropdownAttach(pCurveChannel);
         pCurveChannel.Items.Add(new LLocalizationChoice(
             "Master", "Inspector.Video.CurveChannelMaster"));
         pCurveChannel.Items.Add(new LLocalizationChoice(

@@ -233,7 +233,7 @@ public sealed class PGroupCard
         QGhost lGhost = lGroup.QGroupDrag.QGroupGhost;
         lGroup.QGroupDrag.QGroupDragClear();
         pRowBorder.ReleaseMouseCapture();
-        PGhost.PGhostDragRun(
+        QGhostLayer.QGhostLayerRun(
             pRowBorder,
             lGhost,
             () => DragDrop.DoDragDrop(pRowBorder, pData, DragDropEffects.Move));

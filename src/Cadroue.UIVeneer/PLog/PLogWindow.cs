@@ -301,7 +301,7 @@ public sealed class PLogWindow : Window
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
-        PDropdown.PDropdownApply(pLogCombo);
+        QDropdown.QDropdownAttach(pLogCombo);
         return pLogCombo;
     }
 

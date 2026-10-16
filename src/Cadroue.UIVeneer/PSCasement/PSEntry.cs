@@ -1,6 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -15,7 +15,7 @@ internal static class PSEntry
             Height = PSField.PSFieldControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        PTextbox.PTextboxApply(pTextBox);
+        QTextbox.QTextboxAttach(pTextBox);
         pTextBox.Padding = new Thickness(6, 0, 10, 0);
         return pTextBox;
     }

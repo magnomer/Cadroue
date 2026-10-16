@@ -190,7 +190,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pCombo);
+        QDropdown.QDropdownAttach(pCombo);
         return pCombo;
     }
 }

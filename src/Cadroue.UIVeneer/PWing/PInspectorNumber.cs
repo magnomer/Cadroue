@@ -25,7 +25,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PTextbox.PTextboxApply(pNumberBox);
+        QTextbox.QTextboxAttach(pNumberBox);
         pNumberBox.TextAlignment = TextAlignment.Center;
         pNumberBox.Padding = new Thickness(4, 0, 4, 0);
         pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
@@ -42,7 +42,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PTextbox.PTextboxApply(pDecimalBox);
+        QTextbox.QTextboxAttach(pDecimalBox);
         pDecimalBox.TextAlignment = TextAlignment.Center;
         pDecimalBox.Padding = new Thickness(4, 0, 4, 0);
         pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
@@ -72,7 +72,7 @@ public sealed partial class PInspector
             FontSize = 12,
             FontFamily = pInspectorFontFamily
         };
-        PDropdown.PDropdownApply(pCombo);
+        QDropdown.QDropdownAttach(pCombo);
         pNames.ToList().ForEach(pName => pCombo.Items.Add(pName));
         pCombo.SelectionChanged += (_, _) => pSelect(pCombo.SelectedIndex);
         return pCombo;

@@ -1,0 +1,38 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="PTextboxLine" Color="#D9DEE7" />
+    <SolidColorBrush x:Key="PTextboxText" Color="#1D2A3D" />
+    <SolidColorBrush x:Key="PTextboxAccent" Color="#4C86F7" />
+
+    <Style x:Key="PTextbox" TargetType="TextBox">
+        <Setter Property="Background" Value="White" />
+        <Setter Property="Foreground" Value="{StaticResource PTextboxText}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PTextboxLine}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,0,10,0" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Left" />
+        <Setter Property="SelectionBrush" Value="{StaticResource PTextboxAccent}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Hidden" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Hidden" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="PTextboxFrame"
+                            Background="White"
+                            BorderBrush="{StaticResource PTextboxLine}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          HorizontalAlignment="Stretch"
+                                          VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

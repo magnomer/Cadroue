@@ -140,7 +140,7 @@ public sealed class PListRow
     {
         var pDragData = new DataObject(PList.PListDragKind, lList.QListDrag.QListDragPaths.ToArray());
         PListRowBorder.ReleaseMouseCapture();
-        PGhost.PGhostDragRun(
+        QGhostLayer.QGhostLayerRun(
             PListRowBorder,
             lList.QListDrag.QListGhost,
             () => DragDrop.DoDragDrop(PListRowBorder, pDragData, DragDropEffects.Copy));
