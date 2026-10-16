@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 
 namespace Cadroue.UIDeportment;
@@ -12,7 +13,10 @@ internal static class QLookFact
             | QLookFactSelect(lElement is ToggleButton { IsChecked: true }, QLookCue.QLookCueChecked)
             | QLookFactSelect(lElement is ToggleButton { IsChecked: null }, QLookCue.QLookCueMixed)
             | QLookFactSelect(!lElement.IsEnabled, QLookCue.QLookCueDisabled)
-            | QLookFactSelect(lElement is Thumb { IsDragging: true }, QLookCue.QLookCueDrag);
+            | QLookFactSelect(lElement is Thumb { IsDragging: true }, QLookCue.QLookCueDrag)
+            | QLookFactSelect(lElement is ComboBox { IsDropDownOpen: true }, QLookCue.QLookCueExpanded)
+            | QLookFactSelect(lElement is ListBoxItem { IsSelected: true }, QLookCue.QLookCueSelected)
+            | QLookFactSelect(lElement is ButtonBase { IsPressed: true }, QLookCue.QLookCuePressed);
     }
 
     private static QLookCue QLookFactSelect(bool lShown, QLookCue lCue)

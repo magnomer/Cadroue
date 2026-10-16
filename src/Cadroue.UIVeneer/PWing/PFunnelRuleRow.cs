@@ -101,7 +101,7 @@ public sealed class PFunnelRuleRow : Border
             FontFamily = pFunnelFontFamily,
             Margin = new Thickness(0, 0, 0, 8)
         };
-        PTextbox.PTextboxApply(pField);
+        QTextbox.QTextboxAttach(pField);
         pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelRegexSet(PFunnelRule, pField.Text);
         return pField;
     }
@@ -137,7 +137,7 @@ public sealed class PFunnelRuleRow : Border
             SelectedValuePath = "PActionRelayId",
             ItemTemplate = PFunnelTemplateBuild()
         };
-        PDropdown.PDropdownApply(pCombo);
+        QDropdown.QDropdownAttach(pCombo);
         pCombo.DropDownOpened += (_, _) => PFunnelRelayUpdate();
         pCombo.SelectionChanged += PFunnelRelayHandle;
         return pCombo;

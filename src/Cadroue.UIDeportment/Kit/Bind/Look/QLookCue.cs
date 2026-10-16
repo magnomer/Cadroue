@@ -16,4 +16,10 @@ internal enum QLookCue
     QLookCueDisabled = 1 << 4,
 
     QLookCueDrag = 1 << 5,
+
+    QLookCueExpanded = 1 << 6,
+
+    QLookCueSelected = 1 << 7,
+
+    QLookCuePressed = 1 << 8,
 }

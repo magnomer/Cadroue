@@ -43,6 +43,23 @@ internal static class QLookSheet
 
         new("PScrollbarThumb", QLookCue.QLookCueHover, "PScrollbarKnob", Border.BackgroundProperty, "PScrollbarAccent"),
         new("PScrollbarThumb", QLookCue.QLookCueDrag, "PScrollbarKnob", Border.BackgroundProperty, "PScrollbarDeep"),
+
+        new("PDropdown", QLookCue.QLookCueFocus, "PDropdownFrame", Border.BorderBrushProperty, "PDropdownAccent"),
+        new("PDropdown", QLookCue.QLookCueExpanded, "PDropdownFrame", Border.BorderBrushProperty, "PDropdownAccent"),
+
+        new("PDropdownRow", QLookCue.QLookCueHover, "PDropdownRowFrame",
+            Border.BackgroundProperty, "PDropdownHighlight"),
+        new("PDropdownRow", QLookCue.QLookCueSelected, "PDropdownRowFrame",
+            Border.BackgroundProperty, "PDropdownHighlight"),
+        new("PDropdownRow", QLookCue.QLookCueSelected, "PDropdownRowMark",
+            UIElement.VisibilityProperty, "PDropdownVisible"),
+
+        new("PDropdownRowButton", QLookCue.QLookCueHover, "PDropdownRowPlate",
+            Border.BackgroundProperty, "PDropdownHover"),
+        new("PDropdownRowButton", QLookCue.QLookCuePressed, "PDropdownRowPlate",
+            Border.BackgroundProperty, "PDropdownPressed"),
+
+        new("PTextbox", QLookCue.QLookCueFocus, "PTextboxFrame", Border.BorderBrushProperty, "PTextboxAccent"),
     ];
 
     internal static IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> QLookSheetResolve(

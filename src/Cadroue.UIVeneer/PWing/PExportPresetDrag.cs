@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.Application;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -14,8 +15,7 @@ public sealed partial class PExport
             pPresetRowDragging.Opacity = pPresetOpacityOrigin;
         }
 
-        pPresetDragGhost?.PGhostClear();
-        pPresetDragGhost = null;
+        QGhostLayer.QGhostLayerClear(pPresetRowDragging);
         pPresetRowDragging = null;
         pExportDragOrigin = null;
         QExport.QExportDragClear();
@@ -43,10 +43,10 @@ public sealed partial class PExport
         if (QExport.QExportDragMove())
         {
             pPresetRow.Opacity = 0.42;
-            pPresetDragGhost = PHouse.PGhost.PGhostShow(pPresetRow, QExport.QExportGhost);
+            QGhostLayer.QGhostLayerShow(pPresetRow, QExport.QExportGhost);
         }
 
-        pPresetDragGhost?.PGhostCursorSync();
+        QGhostLayer.QGhostLayerSync(pPresetRow);
         PExportLiveMove(lPresetName, PExportIndexResolve(pCurrent), pPresetRow);
         pEvent.Handled = true;
     }

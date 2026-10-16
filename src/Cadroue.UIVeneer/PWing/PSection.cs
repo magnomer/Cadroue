@@ -137,14 +137,14 @@ public sealed class PSection : UserControl
     {
         Border pRow = PSectionRowRead(lIndex).PSectionRowBorder;
         pRow.Opacity = PSectionDragOpacity;
-        PGhost.PGhostShow(pRow, QSection.QSectionDrag.QSectionGhost);
+        QGhostLayer.QGhostLayerShow(pRow, QSection.QSectionDrag.QSectionGhost);
     }
 
     private void PSectionDragHide(int lIndex)
     {
         Border pRow = PSectionRowRead(lIndex).PSectionRowBorder;
         pRow.Opacity = 1;
-        PGhost.PGhostClear(pRow);
+        QGhostLayer.QGhostLayerClear(pRow);
     }
 
     private void PSectionRowMove(int lSource, int lInsert)
@@ -172,7 +172,7 @@ public sealed class PSection : UserControl
             PLook.PLookPressed[pEvent.LeftButton],
             PSectionRowsRead().Select(PSectionTopRead).ToList(),
             PSectionRowsRead().Select(PSectionHeightRead).ToList());
-        PGhost.PGhostSync(PSectionDragRead());
+        QGhostLayer.QGhostLayerSync(PSectionDragRead());
         pEvent.Handled = pHandled;
     }
 

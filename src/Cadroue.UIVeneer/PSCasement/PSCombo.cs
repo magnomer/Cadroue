@@ -2,7 +2,7 @@ using System.Collections;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Application;
-using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -37,7 +37,7 @@ internal static class PSCombo
             Height = PSField.PSFieldControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
-        PDropdown.PDropdownApply(pCombo);
+        QDropdown.QDropdownAttach(pCombo);
         pCombo.SelectionChanged += (_, _) => pChoice(pCombo.SelectedIndex);
         return pCombo;
     }

@@ -43,7 +43,7 @@ internal static class PInteraction
             ReferenceEquals(pElement, pEvent.OriginalSource),
             pType,
             () => PInteractionLabelRead(pElement, pContent),
-            () => PNameplate.PNameplateResolve(pElement),
+            () => QNameplateTree.QNameplateTreeRead(pElement),
             typeof(ToggleButton).IsInstanceOfType(pElement),
             (pElement as ToggleButton)?.IsChecked);
 

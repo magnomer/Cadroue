@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:Double x:Key="PGhostFaded">0.72</sys:Double>
+
+    <Rectangle x:Key="PGhostImage"
+               x:Shared="False"
+               Opacity="{StaticResource PGhostFaded}"
+               IsHitTestVisible="False">
+        <Rectangle.Fill>
+            <ImageBrush Stretch="Fill" />
+        </Rectangle.Fill>
+    </Rectangle>
+</ResourceDictionary>

@@ -25,7 +25,6 @@ public sealed partial class PExport : UserControl
     private Point? pExportDragOrigin;
     private Border? pPresetRowDragging;
     private double pPresetOpacityOrigin;
-    private PGhost? pPresetDragGhost;
     private TextBox? pExportBoxCurrent;
 
     public QExport QExport { get; }

@@ -31,6 +31,28 @@ internal static class QLook
             lThumb.DragCompleted += (_, _) => QLookStateApply(lElement, lStyle);
         }
 
+        if (lElement is ComboBox lCombo)
+        {
+            lCombo.DropDownOpened += (_, _) => QLookStateApply(lElement, lStyle);
+            lCombo.DropDownClosed += (_, _) => QLookStateApply(lElement, lStyle);
+        }
+
+        if (lElement is ListBoxItem lItem)
+        {
+            lItem.Selected += lRouted;
+            lItem.Unselected += lRouted;
+        }
+
+        if (lElement is ButtonBase)
+        {
+            lElement.AddHandler(UIElement.MouseDownEvent, lRouted, true);
+            lElement.AddHandler(UIElement.MouseUpEvent, lRouted, true);
+            lElement.AddHandler(UIElement.MouseMoveEvent, lRouted, true);
+            lElement.AddHandler(UIElement.LostMouseCaptureEvent, lRouted, true);
+            lElement.AddHandler(UIElement.KeyDownEvent, lRouted, true);
+            lElement.AddHandler(UIElement.KeyUpEvent, lRouted, true);
+        }
+
         _ = lElement.ApplyTemplate();
         QLookStateApply(lElement, lStyle);
     }

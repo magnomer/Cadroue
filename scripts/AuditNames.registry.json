@@ -316,6 +316,9 @@
     "Zoom"
   ],
   "exempt": {
+    "PART_ContentHost": ["*"],
+    "PART_EditableTextBox": ["*"],
+    "PART_Popup": ["*"],
     "PART_Track": ["*"]
   }
 }

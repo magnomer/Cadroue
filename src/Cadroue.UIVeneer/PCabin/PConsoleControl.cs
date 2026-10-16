@@ -42,7 +42,7 @@ public static class PConsoleControl
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
-        PDropdown.PDropdownActionApply(
+        QDropdown.QDropdownActionAttach(
             pRelayCombo,
             QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DeleteTooltip"));
         pRelayCombo.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ComboTooltip");

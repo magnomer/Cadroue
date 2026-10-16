@@ -57,7 +57,7 @@ public partial class PProgram : System.Windows.Application
     public void PProgramWindowShow(QWindow lWindow)
     {
         PWindow pWindow = new(lWindow);
-        PNameplate.PNameplateAttach();
+        QNameplateTip.QNameplateTipAttach();
         MainWindow = pWindow;
         MainWindow.Show();
     }
