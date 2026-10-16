@@ -6,25 +6,16 @@ namespace Cadroue.UIDeportment;
 
 internal static class QLook
 {
-    internal sealed record QLookSetter(
-        string QLookSetterStyle,
-        QLookCue QLookSetterCue,
-        string QLookSetterPart,
-        DependencyProperty QLookSetterProperty,
-        string QLookSetterKey);
-
     internal static void QLookAttach(FrameworkElement lElement, string lStyle)
     {
         ArgumentNullException.ThrowIfNull(lElement);
         ArgumentException.ThrowIfNullOrEmpty(lStyle);
 
-        IReadOnlyList<QLookSetter> lRows =
-            [.. QLookSheet.QLookSheetState.Where(lRow => lRow.QLookSetterStyle == lStyle)];
-        RoutedEventHandler lRouted = (_, _) => QLookStateApply(lElement, lRows);
-        DependencyPropertyChangedEventHandler lChanged = (_, _) => QLookStateApply(lElement, lRows);
+        RoutedEventHandler lRouted = (_, _) => QLookStateApply(lElement, lStyle);
+        DependencyPropertyChangedEventHandler lChanged = (_, _) => QLookStateApply(lElement, lStyle);
 
-        lElement.MouseEnter += (_, _) => QLookStateApply(lElement, lRows);
-        lElement.MouseLeave += (_, _) => QLookStateApply(lElement, lRows);
+        lElement.MouseEnter += (_, _) => QLookStateApply(lElement, lStyle);
+        lElement.MouseLeave += (_, _) => QLookStateApply(lElement, lStyle);
         lElement.IsKeyboardFocusWithinChanged += lChanged;
         lElement.IsEnabledChanged += lChanged;
         if (lElement is ToggleButton lToggle)
@@ -36,37 +27,18 @@ internal static class QLook
 
         if (lElement is Thumb lThumb)
         {
-            lThumb.DragStarted += (_, _) => QLookStateApply(lElement, lRows);
-            lThumb.DragCompleted += (_, _) => QLookStateApply(lElement, lRows);
+            lThumb.DragStarted += (_, _) => QLookStateApply(lElement, lStyle);
+            lThumb.DragCompleted += (_, _) => QLookStateApply(lElement, lStyle);
         }
 
         _ = lElement.ApplyTemplate();
-        QLookStateApply(lElement, lRows);
+        QLookStateApply(lElement, lStyle);
     }
 
-    private static void QLookStateApply(FrameworkElement lElement, IReadOnlyList<QLookSetter> lRows)
+    private static void QLookStateApply(FrameworkElement lElement, string lStyle)
     {
-        QLookCue lActive = QLookCueRead(lElement.IsMouseOver, QLookCue.QLookCueHover)
-            | QLookCueRead(lElement.IsKeyboardFocusWithin, QLookCue.QLookCueFocus)
-            | QLookCueRead(lElement is ToggleButton { IsChecked: true }, QLookCue.QLookCueChecked)
-            | QLookCueRead(lElement is ToggleButton { IsChecked: null }, QLookCue.QLookCueMixed)
-            | QLookCueRead(!lElement.IsEnabled, QLookCue.QLookCueDisabled)
-            | QLookCueRead(lElement is Thumb { IsDragging: true }, QLookCue.QLookCueDrag);
-
-        Dictionary<(string, DependencyProperty), QLookSetter?> lWinners = [];
-        foreach (QLookSetter lRow in lRows)
-        {
-            (string, DependencyProperty) lSlot = (lRow.QLookSetterPart, lRow.QLookSetterProperty);
-            if ((lActive & lRow.QLookSetterCue) == lRow.QLookSetterCue)
-            {
-                lWinners[lSlot] = lRow;
-            }
-            else
-            {
-                lWinners.TryAdd(lSlot, null);
-            }
-        }
-
+        IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> lWinners =
+            QLookSheet.QLookSheetResolve(lStyle, QLookFact.QLookFactRead(lElement));
         foreach (((string lPart, DependencyProperty lProperty), QLookSetter? lWinner) in lWinners)
         {
             if ((lElement as Control)?.Template?.FindName(lPart, lElement) is not FrameworkElement lTarget)
@@ -83,10 +55,5 @@ internal static class QLook
                 lTarget.SetResourceReference(lProperty, lWinner.QLookSetterKey);
             }
         }
-    }
-
-    private static QLookCue QLookCueRead(bool lShown, QLookCue lCue)
-    {
-        return lShown ? lCue : QLookCue.QLookCueBase;
     }
 }

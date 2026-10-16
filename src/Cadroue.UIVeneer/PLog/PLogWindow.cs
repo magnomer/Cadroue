@@ -44,7 +44,7 @@ public sealed class PLogWindow : Window
         MinHeight = 380;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
         Content = PLogContentBuild();
 
         QLog.QLogFilesChanged += PLogFilesApply;
@@ -267,7 +267,7 @@ public sealed class PLogWindow : Window
         ScrollViewer.SetHorizontalScrollBarVisibility(pLogFeedList, ScrollBarVisibility.Disabled);
         VirtualizingPanel.SetIsVirtualizing(pLogFeedList, true);
         VirtualizingPanel.SetVirtualizationMode(pLogFeedList, VirtualizationMode.Recycling);
-        PScrollbar.PScrollbarApply(pLogFeedList);
+        QScrollbar.QScrollbarAttach(pLogFeedList);
         pLogFeedList.AddHandler(
             ScrollViewer.ScrollChangedEvent,
             new ScrollChangedEventHandler(PLogScrollHandle));

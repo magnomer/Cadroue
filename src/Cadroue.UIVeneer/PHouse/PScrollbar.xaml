@@ -1,0 +1,97 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <sys:Double x:Key="PScrollbarThickness">10</sys:Double>
+    <SolidColorBrush x:Key="PScrollbarPale" Color="#D9DEE7" />
+    <SolidColorBrush x:Key="PScrollbarAccent" Color="#4C86F7" />
+    <SolidColorBrush x:Key="PScrollbarDeep" Color="#2F6BDB" />
+
+    <ControlTemplate x:Key="PScrollbarPage" TargetType="RepeatButton">
+        <Border Background="Transparent" />
+    </ControlTemplate>
+
+    <Style x:Key="PScrollbarThumb" TargetType="Thumb">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border Background="Transparent" Padding="3">
+                        <Border x:Name="PScrollbarKnob"
+                                Background="{StaticResource PScrollbarPale}"
+                                CornerRadius="2" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PScrollbar" TargetType="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Width" Value="{StaticResource PScrollbarThickness}" />
+        <Setter Property="MinWidth" Value="{StaticResource PScrollbarThickness}" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="PScrollbarBack"
+                                              Template="{StaticResource PScrollbarPage}"
+                                              Focusable="False"
+                                              OverridesDefaultStyle="True" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="PScrollbarAhead"
+                                              Template="{StaticResource PScrollbarPage}"
+                                              Focusable="False"
+                                              OverridesDefaultStyle="True" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="PScrollbarThumb"
+                                       Style="{StaticResource PScrollbarThumb}"
+                                       Focusable="False"
+                                       OverridesDefaultStyle="True" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="PScrollbarHorizontal" TargetType="ScrollBar" BasedOn="{StaticResource PScrollbar}">
+        <Setter Property="Width" Value="Auto" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="Height" Value="{StaticResource PScrollbarThickness}" />
+        <Setter Property="MinHeight" Value="{StaticResource PScrollbarThickness}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ScrollBar">
+                    <Grid Background="Transparent" SnapsToDevicePixels="True">
+                        <Track x:Name="PART_Track" IsDirectionReversed="False">
+                            <Track.DecreaseRepeatButton>
+                                <RepeatButton x:Name="PScrollbarBack"
+                                              Template="{StaticResource PScrollbarPage}"
+                                              Focusable="False"
+                                              OverridesDefaultStyle="True" />
+                            </Track.DecreaseRepeatButton>
+                            <Track.IncreaseRepeatButton>
+                                <RepeatButton x:Name="PScrollbarAhead"
+                                              Template="{StaticResource PScrollbarPage}"
+                                              Focusable="False"
+                                              OverridesDefaultStyle="True" />
+                            </Track.IncreaseRepeatButton>
+                            <Track.Thumb>
+                                <Thumb x:Name="PScrollbarThumb"
+                                       Style="{StaticResource PScrollbarThumb}"
+                                       Focusable="False"
+                                       OverridesDefaultStyle="True" />
+                            </Track.Thumb>
+                        </Track>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

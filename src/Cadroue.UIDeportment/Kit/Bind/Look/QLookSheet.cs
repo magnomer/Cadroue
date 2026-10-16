@@ -7,7 +7,7 @@ namespace Cadroue.UIDeportment;
 
 internal static class QLookSheet
 {
-    internal static readonly IReadOnlyList<QLook.QLookSetter> QLookSheetState =
+    internal static readonly IReadOnlyList<QLookSetter> QLookSheetState =
     [
         new("PCheckbox", QLookCue.QLookCueHover, "PCheckboxBox", Border.BorderBrushProperty, "PCheckboxAccent"),
         new("PCheckbox", QLookCue.QLookCueHover, "PCheckboxBox", Border.BackgroundProperty, "PCheckboxSoft"),
@@ -32,5 +32,36 @@ internal static class QLookSheet
         new("PSliderThumb", QLookCue.QLookCueHover, "PSliderKnob", Shape.FillProperty, "PSliderSoft"),
         new("PSliderThumb", QLookCue.QLookCueDrag, "PSliderKnob", Shape.StrokeProperty, "PSliderDeep"),
         new("PSliderThumb", QLookCue.QLookCueDrag, "PSliderKnob", Shape.StrokeThicknessProperty, "PSliderHeavy"),
+
+        new("PRadio", QLookCue.QLookCueHover, "PRadioSegmentBox", Border.BackgroundProperty, "PRadioSoft"),
+        new("PRadio", QLookCue.QLookCueChecked, "PRadioSegmentBox", Border.BackgroundProperty, "PRadioAccent"),
+        new("PRadio", QLookCue.QLookCueChecked, "PRadioSegmentLabel",
+            TextElement.ForegroundProperty, "PRadioBright"),
+        new("PRadio", QLookCue.QLookCueChecked | QLookCue.QLookCueHover, "PRadioSegmentBox",
+            Border.BackgroundProperty, "PRadioDeep"),
+        new("PRadio", QLookCue.QLookCueDisabled, "PRadioSegmentBox", UIElement.OpacityProperty, "PRadioFaded"),
+
+        new("PScrollbarThumb", QLookCue.QLookCueHover, "PScrollbarKnob", Border.BackgroundProperty, "PScrollbarAccent"),
+        new("PScrollbarThumb", QLookCue.QLookCueDrag, "PScrollbarKnob", Border.BackgroundProperty, "PScrollbarDeep"),
     ];
+
+    internal static IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> QLookSheetResolve(
+        string lStyle, QLookCue lActive)
+    {
+        Dictionary<(string, DependencyProperty), QLookSetter?> lWinners = [];
+        foreach (QLookSetter lRow in QLookSheetState.Where(lRow => lRow.QLookSetterStyle == lStyle))
+        {
+            (string, DependencyProperty) lSlot = (lRow.QLookSetterPart, lRow.QLookSetterProperty);
+            if ((lActive & lRow.QLookSetterCue) == lRow.QLookSetterCue)
+            {
+                lWinners[lSlot] = lRow;
+            }
+            else
+            {
+                lWinners.TryAdd(lSlot, null);
+            }
+        }
+
+        return lWinners;
+    }
 }

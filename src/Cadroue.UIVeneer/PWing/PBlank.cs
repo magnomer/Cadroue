@@ -113,7 +113,7 @@ public sealed partial class PInspector
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Color"),
             "PBlankType",
             () => QBlank.QBlankTypeSet(LDetectorType.LDetectorTypeColor));
-        Border pBlankType = PRadio.PRadioSegmentBuild(pBlankBlack, pBlankColor);
+        Border pBlankType = QRadio.QRadioSegmentBuild(pBlankBlack, pBlankColor);
         pBlankType.Margin = new Thickness(0, 0, 0, 10);
         return pBlankType;
     }

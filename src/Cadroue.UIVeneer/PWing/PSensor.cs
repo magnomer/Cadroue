@@ -104,7 +104,7 @@ public sealed partial class PInspector
         List<RadioButton> pRadios = lGroup.QSensorGroupNames
             .Select((pName, pIndex) => PSensorRadioBuild(pName, pGroupName, () => pSelect(pIndex)))
             .ToList();
-        Border pRow = PRadio.PRadioSegmentBuild(pRadios.ToArray());
+        Border pRow = QRadio.QRadioSegmentBuild(pRadios.ToArray());
         UIElement pField = PInspectorFieldBuild(lGroup.QSensorGroupLabel, pRow, true);
         pField.Visibility = PLook.PLookVisible[lGroup.QSensorGroupShown];
         pStack.Children.Add(pField);

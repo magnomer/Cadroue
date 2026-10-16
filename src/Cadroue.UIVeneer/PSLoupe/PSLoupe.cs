@@ -90,7 +90,7 @@ internal sealed class PSLoupe : Window
         MinHeight = PSLoupeHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, PSCasement.PSCasementBandFill);
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
 
         psLoupeFlyleafHost = new FlyleafHost
         {
