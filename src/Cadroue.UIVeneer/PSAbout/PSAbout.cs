@@ -43,7 +43,7 @@ internal sealed class PSAbout : Window
         MinHeight = PSAboutHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
         lsAbout.QSAboutErrorShown += PSAboutErrorShow;
         Content = PSAboutBuild();
         SizeToContent = SizeToContent.Height;

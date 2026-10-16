@@ -27,7 +27,7 @@ public sealed class PRoster : UserControl
     {
         QRoster = lRoster;
         FocusVisualStyle = null;
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
         ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
         pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
         {
@@ -124,7 +124,7 @@ public sealed class PRoster : UserControl
         Border pOptionRow = PRosterBandBuild(pOptions);
         Border pColumnHeader = PRosterBandBuild(PRosterHeaderBuild());
 
-        PScrollbar.PScrollbarApply(pRosterQueuePanel);
+        QScrollbar.QScrollbarAttach(pRosterQueuePanel);
         pRosterQueuePanel.AddHandler(
             ScrollViewer.ScrollChangedEvent,
             new ScrollChangedEventHandler((pSender, pArgs) => pColumnHeader.Padding = new Thickness(

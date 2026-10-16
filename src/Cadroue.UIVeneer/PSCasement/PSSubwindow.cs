@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
@@ -20,7 +21,7 @@ internal static class PSSubwindow
         pWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         pWindow.UseLayoutRounding = true;
         pWindow.SnapsToDevicePixels = true;
-        PScrollbar.PScrollbarApply(pWindow);
+        QScrollbar.QScrollbarAttach(pWindow);
         pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, PSSubwindowCaption);
     }
 

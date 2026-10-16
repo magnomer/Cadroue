@@ -8,6 +8,8 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="PHouse/PCheckbox.xaml" />
                 <ResourceDictionary Source="PHouse/PSlider.xaml" />
+                <ResourceDictionary Source="PHouse/PRadio.xaml" />
+                <ResourceDictionary Source="PHouse/PScrollbar.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
         </ResourceDictionary>

@@ -45,7 +45,7 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvageSeparate = PClinicRadioBuild("Clinic.Salvage.Mode.Separate");
         pClinicSalvageRejoin.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeRejoin);
         pClinicSalvageSeparate.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeSeparate);
-        Border pModeSegment = PRadio.PRadioSegmentBuild(pClinicSalvageRejoin, pClinicSalvageSeparate);
+        Border pModeSegment = QRadio.QRadioSegmentBuild(pClinicSalvageRejoin, pClinicSalvageSeparate);
         pModeSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
         var pBasisHeading = new TextBlock
@@ -62,7 +62,7 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvageFixed = PClinicRadioBuild("Clinic.Salvage.Basis.Fixed");
         pClinicSalvageSource.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisSource);
         pClinicSalvageFixed.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisFixed);
-        Border pBasisSegment = PRadio.PRadioSegmentBuild(pClinicSalvageSource, pClinicSalvageFixed);
+        Border pBasisSegment = QRadio.QRadioSegmentBuild(pClinicSalvageSource, pClinicSalvageFixed);
         pBasisSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
         pClinicSalvageDescription = new TextBlock

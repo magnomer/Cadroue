@@ -56,7 +56,7 @@ internal sealed class PPicker : UserControl
     {
         lPickerItems = lItems;
         PPickerEmptyText = pEmptyText;
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
 
         pPickerSummary = new TextBlock
         {

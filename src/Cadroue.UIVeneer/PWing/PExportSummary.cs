@@ -36,7 +36,7 @@ public sealed partial class PExport : UserControl
         QExport = lExport;
         QExport.QExportPresetsChanged += PExportPresetsUpdate;
         FocusVisualStyle = null;
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
         pPresetRowPanel = new StackPanel();
         pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
         pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;

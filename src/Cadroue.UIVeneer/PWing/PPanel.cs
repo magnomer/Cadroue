@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
@@ -15,7 +16,7 @@ public class PPanel : UserControl
     public PPanel(string pPanelTitle)
     {
         FocusVisualStyle = null;
-        PScrollbar.PScrollbarApply(this);
+        QScrollbar.QScrollbarAttach(this);
         Content = PPanelBorderBuild(new TextBlock
         {
             Text = pPanelTitle,
