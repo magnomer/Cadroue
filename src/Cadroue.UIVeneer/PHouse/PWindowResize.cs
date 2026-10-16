@@ -30,24 +30,24 @@ public partial class PWindow
     private void PResizePressHandle(object sender, MouseButtonEventArgs e)
     {
         Point pPoint = e.GetPosition(this);
-        Point pPointer = PSash.PSashPointerRead(this, pPoint);
+        Point pPointer = QSashPointer.QSashPointerRead(this, pPoint);
         e.Handled = lSash.QSashPressHandle(
             PLook.PLookNormal[WindowState],
-            PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject),
+            QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
             pPoint.Y,
             pPointer.X,
             pPointer.Y,
-            PSash.PSashBoundsRead(this));
+            QSashWindow.QSashWindowRead(this));
     }
 
     private void PResizeMoveHandle(object sender, MouseEventArgs e)
     {
         Point pPoint = e.GetPosition(this);
-        Point pPointer = PSash.PSashPointerRead(this, pPoint);
+        Point pPointer = QSashPointer.QSashPointerRead(this, pPoint);
         e.Handled = lSash.QSashMoveHandle(
             PLook.PLookNormal[WindowState],
-            PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject),
+            QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
             pPoint.Y,
             ActualWidth,
@@ -82,5 +82,5 @@ public partial class PWindow
     private static void PResizeRenderApply(bool pActive) =>
         RenderOptions.ProcessRenderMode = PLook.PLookRender[pActive];
 
-    private void PResizeBoundsApply(QSashBounds lBounds) => PSash.PSashBoundsApply(this, lBounds);
+    private void PResizeBoundsApply(QSashBounds lBounds) => QSashWindow.QSashWindowApply(this, lBounds);
 }

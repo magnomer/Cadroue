@@ -166,7 +166,7 @@ public partial class PToolbar : UserControl
     private void PChromeDragRun(MouseEventArgs e)
     {
         Mouse.Capture(null);
-        PSash.PSashDragMove(Window.GetWindow(this)!, e, PChromeButtonHeight);
+        QSashWindow.QSashWindowMove(Window.GetWindow(this)!, e, PChromeButtonHeight);
         lChrome.QChromeReset();
     }
 
@@ -178,7 +178,7 @@ public partial class PToolbar : UserControl
 
     private bool PChromeCaptionCheck(DependencyObject? pChromeSource) =>
         QChrome.QChromeCaptionResolve(
-            PSash.PSashInteractiveCheck(pChromeSource),
+            QSashGuard.QSashGuardCheck(pChromeSource),
             QWalk.QWalkParentCheck(pChromeSource, QSender.QSenderItemCheck<QStripTab>),
             QWalk.QWalkParentCheck(pChromeSource, PChromeSelfMatch));
 

@@ -241,7 +241,7 @@ public partial class PRail : UserControl
             pWindowPoint.Y,
             pWindow.ActualWidth,
             pWindow.ActualHeight);
-        Point pDipPoint = PSash.PSashDipRead(pWindow).Transform(pDevicePoint);
+        Point pDipPoint = QSashPointer.QSashPointerResolve(pWindow, pDevicePoint);
         QRailRelayOutcome lOutcome = await lRail.QRailRelayRun(
             lStripTab, pInside, pDipPoint.X, pDipPoint.Y, pDevicePoint.X, pDevicePoint.Y);
         pRailOutcomes[lOutcome](pWindow);

@@ -216,7 +216,7 @@ public partial class PWindow : Window
 
     private void PWindowPositionRestore(LFrameState lFrame)
     {
-        PSash.PSashPlacementRestore(
+        QSashWindow.QSashWindowRestore(
             this,
             lFrame.LFrameLeft,
             lFrame.LFrameTop,

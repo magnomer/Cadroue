@@ -1,5 +1,5 @@
 using System.Windows;
-using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 using System.Windows.Input;
 
 namespace Cadroue.UIVeneer;
@@ -29,7 +29,7 @@ internal sealed class PSGrabber
             pPlacementKey, out double pLeft, out double pTop, out double pWidthStored, out double pHeightStored);
         double pWidth = Math.Max(pStored ? pWidthStored : pWindow.Width, pWindow.MinWidth);
         double pHeight = Math.Max(pStored ? pHeightStored : pWindow.Height, pWindow.MinHeight);
-        PSash.PSashPlacementRestore(
+        QSashWindow.QSashWindowRestore(
             pWindow,
             pStored ? pLeft : null,
             pStored ? pTop : null,
@@ -72,7 +72,7 @@ internal sealed class PSGrabber
         int pDirection = PSGrabberDirectionRead(e.GetPosition(psGrabberWindow));
         if (psGrabberWindow.WindowState != WindowState.Normal
             || pDirection == 0
-            || PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject))
+            || QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject))
         {
             return;
         }
@@ -100,7 +100,7 @@ internal sealed class PSGrabber
         }
 
         int pDirection = psGrabberWindow.WindowState == WindowState.Normal
-            && !PSash.PSashInteractiveCheck(e.OriginalSource as DependencyObject)
+            && !QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject)
             ? PSGrabberDirectionRead(e.GetPosition(psGrabberWindow))
             : 0;
         PSGrabberCursorApply(pDirection);
