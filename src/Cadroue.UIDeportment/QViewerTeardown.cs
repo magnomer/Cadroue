@@ -5,13 +5,13 @@ public sealed class QViewerTeardown
     private readonly QViewer qViewer;
     private readonly QViewerMedia qViewerMedia;
     private readonly Action qViewerProbe;
-    private readonly Action<string, Exception?> qViewerTrace;
+    private readonly Action<string, Exception> qViewerTrace;
 
     public QViewerTeardown(
         QViewer lOwner,
         QViewerMedia lMedia,
         Action lProbeDispose,
-        Action<string, Exception?> lErrorRecord)
+        Action<string, Exception> lErrorRecord)
     {
         qViewer = lOwner;
         qViewerMedia = lMedia;
@@ -40,7 +40,7 @@ public sealed class QViewerTeardown
         }
         catch (Exception lException)
         {
-            qViewerTrace($"Viewer close stage '{lStage}' failed", lException);
+            qViewerTrace(lStage, lException);
         }
     }
 }

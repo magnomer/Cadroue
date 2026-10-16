@@ -33,8 +33,9 @@ public sealed class QAudioTab
     private readonly QList qAudioList;
     private readonly LDocket qAudioDocket;
 
-    public QAudioTab(CUsher lUsher, LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QAudioTab(CUsher lUsher, CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList)
     {
+        QAudioInspector = new QInspector(lInspector);
         QAudioStore = new QAudioTabPlan(this, lUsher, lList);
         qAudioPreset = lPreset;
         qAudioSections = QAudioInspector.QInspectorAudio;
@@ -57,7 +58,7 @@ public sealed class QAudioTab
     public event Action? QAudioPresetIncompatible;
     public event Action? QAudioViewerDeferred;
 
-    public QInspector QAudioInspector { get; } = new();
+    public QInspector QAudioInspector { get; }
 
     public QProcessing QAudioProcessing { get; } = new();
 

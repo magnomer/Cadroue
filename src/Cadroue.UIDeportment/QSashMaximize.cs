@@ -27,7 +27,7 @@ public static class QSashMaximize
             return IntPtr.Zero;
         }
 
-        if (!QSashScreen.QSashScreenFind(lWindowHandle, out QSashBounds lArea, out QSashBounds lWork))
+        if (!QSashScreen.QSashScreenFind(lWindowHandle, null, out QSashBounds lArea, out QSashBounds lWork))
         {
             return IntPtr.Zero;
         }
@@ -65,17 +65,4 @@ public static class QSashMaximize
         internal QSashPoint QSashMinimumTrack;
         internal QSashPoint QSashMaximumTrack;
     }
-}
-
-// The maximized position, relative to the monitor, and size, in device pixels.
-public readonly record struct QSashLimits(double QSashX, double QSashY, double QSashWidth, double QSashHeight)
-{
-    public static QSashLimits QSashLimitsResolve(
-        double lBoundsLeft,
-        double lBoundsTop,
-        double lWorkLeft,
-        double lWorkTop,
-        double lWorkRight,
-        double lWorkBottom) =>
-        new(lWorkLeft - lBoundsLeft, lWorkTop - lBoundsTop, lWorkRight - lWorkLeft, lWorkBottom - lWorkTop);
 }

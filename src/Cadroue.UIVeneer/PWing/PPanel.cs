@@ -1,15 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
 public class PPanel : UserControl
 {
-    protected static readonly Brush PPanelLineBrush = QPanel.QPanelLineRead();
-    protected static readonly Brush PPanelTextBrush = QPanel.QPanelTextRead();
-
     public PPanel(string pPanelTitle)
     {
         QPanel.QPanelAttach(this);
@@ -18,7 +14,7 @@ public class PPanel : UserControl
             Text = pPanelTitle,
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             FontSize = 18
         });
     }

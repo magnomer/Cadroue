@@ -8,7 +8,8 @@ internal static class TAuditDemeanorSetting
             ["Cadroue.UIDemeanor>Cadroue.Conduct"] =
                 [
                     "CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch",
-                    "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo",
+                    "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma",
+                    "CViewer",
                 ],
         };
 }

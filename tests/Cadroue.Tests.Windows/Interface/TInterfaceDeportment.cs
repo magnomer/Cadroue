@@ -31,14 +31,20 @@ internal static partial class TInterface
     internal static void TToneCapableSet(QTone tone, bool capable) => tone.QToneCapableSet(capable);
     internal static LWorkVideoStep TToneStepRead(QTone tone, LColorKind kind) => tone.QToneStepRead(kind);
 
-    internal static QGamma TGammaCreate() => new();
-    internal static void TGammaAttach(QGamma gamma, Action handler) => gamma.QGammaChanged += handler;
-    internal static void TGammaValueSet(QGamma gamma, int index, double value) => gamma.QGammaValueSet(index, value);
-    internal static void TGammaReset(QGamma gamma) => gamma.QGammaReset();
-    internal static void TGammaCapableSet(QGamma gamma, bool capable, bool preview) =>
-        gamma.QGammaCapableSet(capable, preview);
-    internal static LWorkGammaSettings TGammaValueRead(QGamma gamma) => gamma.QGammaValue;
-    internal static bool TGammaPreviewRead(QGamma gamma) => gamma.QGammaPreview;
+    internal static CGamma TGammaCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorGamma;
+    internal static void TGammaAttach(CGamma gamma, Action handler) => gamma.CGammaChanged += handler;
+    internal static void TGammaValueSet(CGamma gamma, int index, double value) => gamma.CGammaValueSet(index, value);
+    internal static void TGammaReset(CGamma gamma) => gamma.CGammaReset();
+    internal static void TGammaCapableSet(CGamma gamma, bool capable, bool preview) =>
+        gamma.CGammaCapableSet(capable, preview);
+    internal static LWorkGammaSettings TGammaValueRead(CGamma gamma) =>
+        new(
+            gamma.CGammaValues[0],
+            gamma.CGammaValues[1],
+            gamma.CGammaValues[2],
+            gamma.CGammaValues[3],
+            gamma.CGammaValues[4]);
+    internal static bool TGammaPreviewRead(CGamma gamma) => gamma.CGammaPreview;
 
     internal static QExposure TExposureCreate() => new();
     internal static void TExposureAttach(QExposure exposure, Action handler) => exposure.QExposureChanged += handler;
@@ -260,17 +266,22 @@ internal static partial class TInterface
             new LUsherOutlet(),
             new LLineageOutlet(),
             new LWorkspaceOutlet(),
-            new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
+            new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
+            new LViewerOutlet(
+                lPath => System.IO.Path.GetFileName(lPath),
+                () => System.DateTimeOffset.Now,
+                System.Environment.NewLine));
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(
             TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
             TAtelierCreate().CAtelierWorkspaceCreate,
+            TAtelierCreate().CAtelierInspectorCreate,
             title,
             number);
     internal static QStripTab TStripTabCreate(string key) =>
         new(
             key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate());
+            TAtelierCreate().CAtelierWorkspaceCreate(), TAtelierCreate().CAtelierInspectorCreate());
     internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
         strip.QStripSelectChanged += handler;
     internal static void TStripTabAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabChanged += handler;

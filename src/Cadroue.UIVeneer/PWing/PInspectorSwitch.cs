@@ -15,7 +15,7 @@ public sealed partial class PInspector
             ToolTip = pSwitchTip,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center
         };
         QInteractionClick.QInteractionClickAttach(pSwitch);
@@ -26,7 +26,7 @@ public sealed partial class PInspector
     private static UIElement PInspectorSeparatorBuild() => new Border
     {
         Height = 1,
-        Background = PPanelLineBrush,
+        Background = QPanel.QPanelLineRead(),
         Margin = new Thickness(0, 12, 0, 12)
     };
 }

@@ -1,0 +1,43 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+    <FontFamily x:Key="PToolFont">Segoe UI</FontFamily>
+    <SolidColorBrush x:Key="PToolText" Color="#566273" />
+    <SolidColorBrush x:Key="PToolMuted" Color="#8A939E" />
+    <SolidColorBrush x:Key="PToolLine" Color="#D9DEE7" />
+    <sys:Double x:Key="PToolDimmed">0.4</sys:Double>
+
+    <Grid x:Key="PField" x:Shared="False" Height="34" Margin="0,0,0,8">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock x:Name="PFieldLabel"
+                   Grid.Column="0"
+                   Width="80"
+                   FontSize="12"
+                   FontFamily="{StaticResource PToolFont}"
+                   Foreground="{StaticResource PToolText}"
+                   VerticalAlignment="Center" />
+        <Slider x:Name="PFieldSlider" Grid.Column="1" VerticalAlignment="Center" />
+        <TextBlock x:Name="PFieldUnit"
+                   Grid.Column="2"
+                   FontSize="11"
+                   FontFamily="{StaticResource PToolFont}"
+                   Foreground="{StaticResource PToolMuted}"
+                   VerticalAlignment="Center"
+                   Margin="8,0,8,0" />
+        <TextBox x:Name="PFieldValue"
+                 Grid.Column="3"
+                 Text="0"
+                 Width="68"
+                 Height="26"
+                 FontSize="12"
+                 FontFamily="{StaticResource PToolFont}"
+                 TextAlignment="Center"
+                 Padding="4,0,4,0"
+                 VerticalAlignment="Center" />
+    </Grid>
+</ResourceDictionary>

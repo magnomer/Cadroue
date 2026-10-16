@@ -1,7 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
@@ -43,33 +42,17 @@ public sealed class QViewerSource
 
     public void QViewerSourceOpen(string lSourcePath)
     {
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer source open requested '{System.IO.Path.GetFileName(lSourcePath)}'",
-            $"command={(qViewer.QViewerCommandActive ? "active" : "INACTIVE")}, unloaded={qViewer.QViewerUnloaded}, "
-            + $"engine={qViewer.QViewerEngine}, path={lSourcePath}");
-
-        if (!qViewer.QViewerCommandActive || string.IsNullOrWhiteSpace(lSourcePath))
+        if (qViewer.QViewerWorkspace.CWorkspaceRequestResolve(
+                lSourcePath,
+                qViewer.QViewerCommandActive,
+                qViewer.QViewerUnloaded,
+                qViewer.QViewerEngine.ToString(),
+                QViewerSourceResolve) is not { } lLoadPath)
         {
-            string lRefusal = qViewer.QViewerCommandActive
-                ? "empty path"
-                : "viewer command inactive (tab not the front workspace)";
-            LTraceLog.LTraceWarningRecord($"Viewer source open refused: {lRefusal}");
             return;
         }
 
-        qViewer.QViewerWorkspace.CWorkspaceRequestSet(lSourcePath);
-        if (LLibrarian.LLibrarianFileCheck(lSourcePath))
-        {
-            if (QViewerSidecarResolve(lSourcePath) is not { } lResolvedPath)
-            {
-                LTraceLog.LTraceWarningRecord(
-                    "Viewer source open refused: sidecar (.cad) source could not be resolved");
-                return;
-            }
-
-            lSourcePath = lResolvedPath;
-        }
-
+        lSourcePath = lLoadPath;
         LPreference.LPreferenceMediaSet(lSourcePath);
         if (!QViewerCropPersistent)
         {
@@ -78,6 +61,10 @@ public sealed class QViewerSource
 
         _ = qViewer.QViewerMedia.QViewerLoadStart(lSourcePath);
     }
+
+    // A sidecar (.cad) path resolves to its media through the ask and locate chain; any other path loads as given.
+    private string? QViewerSourceResolve(string lPath) =>
+        LLibrarian.LLibrarianFileCheck(lPath) ? QViewerSidecarResolve(lPath) : lPath;
 
     private string? QViewerSidecarResolve(string lSidecarPath)
     {

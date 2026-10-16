@@ -64,7 +64,7 @@ public sealed partial class PInspector : PPanel
         var pHeader = new Border
         {
             Padding = new Thickness(12, 5, 6, 5),
-            BorderBrush = PPanelLineBrush,
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
             Child = pHeaderGrid
@@ -88,7 +88,8 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PToneBrightnessBuild());
         pBody.Children.Add(PToneContrastBuild());
         pBody.Children.Add(PToneSaturationBuild());
-        pBody.Children.Add(PGammaBuild());
+        var pGamma = new QGamma(QInspector);
+        pBody.Children.Add(pGamma.QGammaBody);
         pBody.Children.Add(PExposureBuild());
         pBody.Children.Add(PCurveBuild());
         pBody.Children.Add(PWhitebalanceBuild());
@@ -103,7 +104,7 @@ public sealed partial class PInspector : PPanel
         pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
         pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
         QSensor.QSensorChanged += PSensorUpdate;
-        pInspectorSections = PInspectorSectionsCreate();
+        pInspectorSections = PInspectorSectionsCreate(pGamma);
 
         var pScroll = new ScrollViewer
         {
@@ -143,8 +144,6 @@ public sealed partial class PInspector : PPanel
 
     public QTone QTone => QInspector.QInspectorVideo.QInspectorTone;
 
-    public QGamma QGamma => QInspector.QInspectorVideo.QInspectorGamma;
-
     public QExposure QExposure => QInspector.QInspectorVideo.QInspectorExposure;
 
     public QCurve QCurve => QInspector.QInspectorVideo.QInspectorCurve;
@@ -168,7 +167,6 @@ public sealed partial class PInspector : PPanel
     private void PInspectorAttach()
     {
         QTone.QToneChanged += PToneUpdate;
-        QGamma.QGammaChanged += PGammaUpdate;
         QExposure.QExposureChanged += PExposureUpdate;
         QCurve.QCurveChanged += PCurveUpdate;
         QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
@@ -180,7 +178,6 @@ public sealed partial class PInspector : PPanel
         QEqualizer.QEqualizerChanged += PEqualizerUpdate;
         QSkip.QSkipChanged += PSkipUpdate;
         PToneUpdate();
-        PGammaUpdate();
         PExposureUpdate();
         PCurveUpdate();
         PWhitebalanceUpdate();
@@ -224,13 +221,13 @@ public sealed partial class PInspector : PPanel
         pSection.PInspectorSectionPersistent.Visibility = PLook.PLookVisible[pShown];
     }
 
-    private List<PInspectorSection> PInspectorSectionsCreate() =>
+    private List<PInspectorSection> PInspectorSectionsCreate(QGamma pGamma) =>
     [
         new("Crop", pInspectorCropBody, pInspectorPersistentBox),
         new("Brightness", pInspectorBrightnessBody, pInspectorBrightnessPersistent),
         new("Contrast", pInspectorContrastBody, pInspectorContrastPersistent),
         new("Saturation", pInspectorSaturationBody, pInspectorSaturationPersistent),
-        new("Gamma", pGammaBody, pGammaPersistent),
+        new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
         new("Exposure", pExposureBody, pExposurePersistent),
         new("Curve", pCurveBody, pCurvePersistent),
         new("Whitebalance", pWhitebalanceBody, pWhitebalancePersistent),
@@ -249,7 +246,7 @@ public sealed partial class PInspector : PPanel
         pPersistentPanel.Children.Add(new Border
         {
             Height = 1,
-            Background = PPanelLineBrush,
+            Background = QPanel.QPanelLineRead(),
             Margin = new Thickness(12, 0, 12, 12)
         });
         pInspectorSections.ForEach(pSection => PInspectorPersistentAdd(pPersistentPanel, pSection));
@@ -332,7 +329,7 @@ public sealed partial class PInspector : PPanel
         Width = PInspectorLabelWidth,
         FontSize = 12,
         FontFamily = pInspectorFontFamily,
-        Foreground = PPanelTextBrush,
+        Foreground = QPanel.QPanelTextRead(),
         VerticalAlignment = VerticalAlignment.Center
     };
 }

@@ -91,7 +91,7 @@ public sealed class QEditTabColor
 
         qEditProcessing.QProcessingEnabledSet(
             "Gamma", lEqCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.GammaRequiresEq"));
-        qEditInspector.QInspectorVideo.QInspectorGamma.QGammaCapableSet(lEqCapable, lEqCapable && lPreviewMpv);
+        qEditInspector.QInspectorVideo.QInspectorGamma.CGammaCapableSet(lEqCapable, QEditMpvCheck());
 
         QEditColorUpdate();
         QEditColorApply();

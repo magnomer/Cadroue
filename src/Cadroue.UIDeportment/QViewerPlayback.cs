@@ -1,15 +1,10 @@
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class QViewerPlayback
 {
     private readonly QViewer qViewer;
-    private bool qViewerDragActive;
-    private readonly List<string> qViewerSeekTrace = [];
-    private int qViewerTraceCount;
-    private TimeSpan qViewerTraceFinal;
 
     public QViewerPlayback(QViewer lOwner)
     {
@@ -160,14 +155,8 @@ public sealed class QViewerPlayback
         }
 
         qViewer.QViewerEndSet(false);
-        try
+        if (!qViewer.QViewerTrace.CViewerSeekRun(lPosition, QViewerAccurateSeek))
         {
-            QViewerAccurateSeek(lPosition);
-        }
-        catch (Exception lSeekException)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Preview seek to {lPosition:hh\\:mm\\:ss\\.fff} was rejected: {lSeekException.Message}");
             return;
         }
 
@@ -178,17 +167,13 @@ public sealed class QViewerPlayback
     {
         if (qViewer.QViewerMpvActive)
         {
-            QViewerSeekRecord(lPosition, "mpv engine seeks directly");
+            qViewer.QViewerTrace.CViewerSeekRecord(lPosition, true, false);
             QPlayer.QPlayerSeek(lPosition);
             return;
         }
 
         bool lWasRunning = QPlayer.QPlayerAccurateSet();
-        QViewerSeekRecord(
-            lPosition,
-            lWasRunning
-                ? "a seek was still running; queued for Flyleaf to conflate"
-                : "no seek was in flight");
+        qViewer.QViewerTrace.CViewerSeekRecord(lPosition, false, lWasRunning);
         QPlayer.QPlayerSeek(lPosition);
     }
 
@@ -254,55 +239,5 @@ public sealed class QViewerPlayback
         QViewerClockRun(false);
         QPlayer.QPlayerPause();
         qViewer.QViewerPlaybackUpdate(false, null);
-    }
-
-    public void QViewerDragSet(bool lDragging)
-    {
-        if (lDragging)
-        {
-            if (!qViewerDragActive)
-            {
-                qViewerSeekTrace.Clear();
-                qViewerTraceCount = 0;
-            }
-            qViewerDragActive = true;
-            return;
-        }
-
-        qViewerDragActive = false;
-        if (qViewerTraceCount == 0)
-        {
-            return;
-        }
-
-        string lSummary = qViewerTraceCount == 1
-            ? $"Seek accurate to {qViewerTraceFinal:hh\\:mm\\:ss\\.fff}"
-            : $"Seek accurate while dragging to {qViewerTraceFinal:hh\\:mm\\:ss\\.fff} ({qViewerTraceCount} requests)";
-        LTrace.LTraceRecord(LTraceKind.LTraceUi, lSummary, string.Join(Environment.NewLine, qViewerSeekTrace));
-        qViewerSeekTrace.Clear();
-        qViewerTraceCount = 0;
-    }
-
-    public void QViewerSeekRecord(TimeSpan lPosition, string lDetail)
-    {
-        string lSummary = $"Seek accurate to {lPosition:hh\\:mm\\:ss\\.fff}";
-        if (!qViewerDragActive)
-        {
-            LTrace.LTraceRecord(LTraceKind.LTraceUi, lSummary, lDetail);
-            return;
-        }
-
-        if (!LTrace.LTraceCheck(LTraceKind.LTraceUi))
-        {
-            return;
-        }
-
-        string lTime = DateTimeOffset.Now.ToString(
-            "HH:mm:ss.fff",
-            System.Globalization.CultureInfo.InvariantCulture);
-        qViewerSeekTrace.Add($"{lTime}  {lSummary}");
-        qViewerSeekTrace.Add($"{new string(' ', 14)}{lDetail}");
-        qViewerTraceCount++;
-        qViewerTraceFinal = lPosition;
     }
 }

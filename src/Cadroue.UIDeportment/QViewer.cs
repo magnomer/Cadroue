@@ -27,6 +27,7 @@ public sealed class QViewer
     public QViewer(CUsher lUsher, CWorkspace lWorkspace)
     {
         QViewerWorkspace = lWorkspace;
+        QViewerTrace = lWorkspace.CWorkspaceViewer;
         QViewerAudio = new QViewerAudio(QPlayer);
         QViewerAudio.QViewerAudioChanged += QViewerAudioHandle;
         QViewerHost = new QViewerHost(this);
@@ -50,6 +51,9 @@ public sealed class QViewer
 
     // The workspace that holds this viewer's tenure; drivers and tabs ask it directly.
     public CWorkspace QViewerWorkspace { get; }
+
+    // The viewer's trace gate, built with its workspace; every viewer driver writes its records through it.
+    public CViewer QViewerTrace { get; }
 
     public QPlayer QPlayer { get; } = new();
 
@@ -206,19 +210,7 @@ public sealed class QViewer
 
     public void QViewerFilterUpdate()
     {
-        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
-        {
-            return;
-        }
-
-        string lFilter = LPreview.LPreviewFilterResolve(QViewerRenderRead());
-        bool lChanged = lFilter != QPlayer.QPlayerFilterApplied;
-        if (!QPlayer.QPlayerFilterApply(lFilter) || !lChanged)
-        {
-            return;
-        }
-
-        if (QViewerPlaying)
+        if (!QViewerFilterApply())
         {
             return;
         }
@@ -229,8 +221,26 @@ public sealed class QViewer
         }
         catch (Exception lRefreshException)
         {
-            LTraceLog.LTraceErrorRecord($"mpv rejected paused preview refresh: {lRefreshException.Message}");
+            QViewerTrace.CViewerRefreshRecord(lRefreshException);
         }
+    }
+
+    // The preview filter goes to mpv; true when the filter changed on a paused player, which then needs a refresh.
+    public bool QViewerFilterApply()
+    {
+        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
+        {
+            return false;
+        }
+
+        string lFilter = LPreview.LPreviewFilterResolve(QViewerRenderRead());
+        bool lChanged = lFilter != QPlayer.QPlayerFilterApplied;
+        if (!QPlayer.QPlayerFilterApply(lFilter) || !lChanged)
+        {
+            return false;
+        }
+
+        return !QViewerPlaying;
     }
 
     public void QViewerPreviewApply()
@@ -250,10 +260,11 @@ public sealed class QViewer
     public void QViewerRotateSet(LRotateFlip lRotateFlip)
     {
         qViewerPreview = qViewerPreview.LRotateFlipChange(lRotateFlip);
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer rotate/flip set: rotate {lRotateFlip.LRotateKind}, "
-            + $"H {lRotateFlip.LRotateFlipHorizontal}, V {lRotateFlip.LRotateFlipVertical}, "
-            + $"player {(QPlayer.QPlayerReady ? "ready" : "none")}, overlay remapped");
+        QViewerTrace.CViewerRotatedRecord(
+            lRotateFlip.LRotateKind.ToString(),
+            lRotateFlip.LRotateFlipHorizontal,
+            lRotateFlip.LRotateFlipVertical,
+            QPlayer.QPlayerReady);
         QViewerPreviewApply();
         QCrop.QCropOverlayUpdate();
     }
@@ -276,7 +287,7 @@ public sealed class QViewer
             }
             catch (Exception lException)
             {
-                LTraceLog.LTraceErrorRecord("Viewer media notice handler failed", lException);
+                QViewerTrace.CViewerNoticeRecord(lException);
             }
         }
     }

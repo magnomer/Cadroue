@@ -6,6 +6,7 @@ namespace Cadroue.UIDeportment;
 public sealed class QWorkspaceMode
 {
     private readonly CUsher qWorkspaceUsher;
+    private readonly CInspector qWorkspaceInspector;
     private readonly LPresetSelection qWorkspacePreset;
     private readonly QViewer? qWorkspaceViewer;
     private readonly QList? qWorkspaceList;
@@ -14,12 +15,14 @@ public sealed class QWorkspaceMode
     public QWorkspaceMode(
         QWorkspaceFacts qWorkspaceKey,
         CUsher lUsher,
+        CInspector lInspector,
         LPresetSelection lPreset,
         QViewer? lViewer,
         QList? lList,
         QFlow? lFlow)
     {
         qWorkspaceUsher = lUsher;
+        qWorkspaceInspector = lInspector;
         qWorkspacePreset = lPreset;
         qWorkspaceViewer = lViewer;
         qWorkspaceList = lList;
@@ -39,7 +42,8 @@ public sealed class QWorkspaceMode
 
     public QSplitTab QSplitTabCreate()
     {
-        QSplitTab lSplitTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceFlow!);
+        QSplitTab lSplitTab = new(
+            qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceFlow!);
         QWorkspaceAction!.QActionExecuted += lSplitTab.QSplitRun;
         QWorkspaceAction.QActionAllAdded += lSplitTab.QSplitAllRun;
         QWorkspaceAction.QActionItemsAdded += lSplitTab.QSplitItemsRun;
@@ -49,7 +53,8 @@ public sealed class QWorkspaceMode
 
     public QEditTab QEditTabCreate()
     {
-        QEditTab lEditTab = new(qWorkspaceUsher, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+        QEditTab lEditTab = new(
+            qWorkspaceUsher, qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
         QWorkspaceAction!.QActionExecuted += lEditTab.QEditRun;
         QWorkspaceAction.QActionAllAdded += lEditTab.QEditAllRun;
         QWorkspaceAction.QActionItemsAdded += lEditTab.QEditItemsRun;
@@ -69,7 +74,8 @@ public sealed class QWorkspaceMode
 
     public QAudioTab QAudioTabCreate()
     {
-        QAudioTab lAudioTab = new(qWorkspaceUsher, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+        QAudioTab lAudioTab = new(
+            qWorkspaceUsher, qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
         QWorkspaceAction!.QActionExecuted += lAudioTab.QAudioRun;
         QWorkspaceAction.QActionAllAdded += lAudioTab.QAudioAllRun;
         QWorkspaceAction.QActionItemsAdded += lAudioTab.QAudioItemsRun;

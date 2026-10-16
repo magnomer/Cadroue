@@ -21,6 +21,18 @@ public static class LRigFactoryTrace
             message => LTraceLog.LTraceWarningRecord(message),
             LTraceLog.LTraceErrorRecord,
             LTraceLog.LTraceFfmpegRecord,
-            () => LTrace.LTraceVerbose);
+            () => LTrace.LTraceVerbose,
+            LTraceDetailRecord);
+    }
+
+    private static void LTraceDetailRecord(bool lUi, string lSummary, string? lDetail)
+    {
+        if (lUi)
+        {
+            LTrace.LTraceRecord(LTraceKind.LTraceUi, lSummary, lDetail);
+            return;
+        }
+
+        LTraceLog.LTraceInfoRecord(lSummary, lDetail);
     }
 }

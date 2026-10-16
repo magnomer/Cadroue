@@ -17,6 +17,7 @@ public sealed class LEngine
         LTraceEngine.LTraceErrorSeam = lRig.LRigTrace.LRigTraceError;
         LTraceEngine.LTraceFfmpegSeam = lRig.LRigTrace.LRigTraceFfmpeg;
         LTraceEngine.LTraceVerboseSeam = lRig.LRigTrace.LRigTraceVerbose;
+        LTraceEngine.LTraceDetailSeam = lRig.LRigTrace.LRigTraceDetail;
         LDepotEngine.LDepotAudioSeam = lRig.LRigDepot.LRigDepotAudio;
         LDepotEngine.LDepotMergeSeam = lRig.LRigDepot.LRigDepotMerge;
         LDepotEngine.LDepotBridgeSeam = lRig.LRigDepot.LRigDepotBridge;

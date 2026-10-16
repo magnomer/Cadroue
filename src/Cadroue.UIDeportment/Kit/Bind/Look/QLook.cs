@@ -55,6 +55,7 @@ internal static class QLook
             {
                 lHighlight.RemoveValueChanged(lElement, lShifted);
                 lHighlight.AddValueChanged(lElement, lShifted);
+                QLookStateApply(lElement, lStyle);
             };
             lElement.Unloaded += (_, _) => lHighlight.RemoveValueChanged(lElement, lShifted);
         }

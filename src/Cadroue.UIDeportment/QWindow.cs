@@ -31,7 +31,12 @@ public sealed class QWindow
         QWindowUsher = lAtelier.CAtelierUsher;
         QWindowInfo = lAtelier.CAtelierInfo;
         qWindowWorkspaceSource = lAtelier.CAtelierWorkspaceCreate;
-        qStrip = new QStrip(QWindowUsher, QWindowInfo, lAtelier.CAtelierLineage, qWindowWorkspaceSource);
+        qStrip = new QStrip(
+            QWindowUsher,
+            QWindowInfo,
+            lAtelier.CAtelierLineage,
+            qWindowWorkspaceSource,
+            lAtelier.CAtelierInspectorCreate);
         QWindowScene = new QWindowScene(qStrip);
         QWindowScene.QWindowSceneAdded += QWindowTabRaise;
         QWindowScene.QWindowSceneRestored += QWindowFunnelRaise;

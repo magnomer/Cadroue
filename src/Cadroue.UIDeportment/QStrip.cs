@@ -19,11 +19,17 @@ public sealed class QStrip
     private readonly CInfo qStripInfo;
     private readonly CLineage qStripLineage;
     private readonly Func<CWorkspace> qStripWorkspaceSource;
+    private readonly Func<CInspector> qStripInspectorSource;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
-    public QStrip(CUsher lUsher, CInfo lInfo, CLineage lLineage, Func<CWorkspace> lWorkspaceSource)
-        : this(lUsher, lInfo, lLineage, lWorkspaceSource, QStripTitleResolve, QStripNumberResolve)
+    public QStrip(
+        CUsher lUsher,
+        CInfo lInfo,
+        CLineage lLineage,
+        Func<CWorkspace> lWorkspaceSource,
+        Func<CInspector> lInspectorSource)
+        : this(lUsher, lInfo, lLineage, lWorkspaceSource, lInspectorSource, QStripTitleResolve, QStripNumberResolve)
     {
     }
 
@@ -32,6 +38,7 @@ public sealed class QStrip
         CInfo lInfo,
         CLineage lLineage,
         Func<CWorkspace> lWorkspaceSource,
+        Func<CInspector> lInspectorSource,
         Func<string, string> lTitleSource,
         Func<string, int, string> lNumberSource)
     {
@@ -39,6 +46,7 @@ public sealed class QStrip
         qStripInfo = lInfo;
         qStripLineage = lLineage;
         qStripWorkspaceSource = lWorkspaceSource;
+        qStripInspectorSource = lInspectorSource;
         qStripTitleSource = lTitleSource;
         qStripNumberSource = lNumberSource;
         QStripSeparator = new QStripSeparator(this, qStripTabs);
@@ -81,7 +89,13 @@ public sealed class QStrip
         QStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : QStripDefaultKey;
 
     public QStripTab QStripTabCreate(string lKey) =>
-        new(QStripKeyResolve(lKey), qStripUsher, qStripInfo, qStripLineage, qStripWorkspaceSource());
+        new(
+            QStripKeyResolve(lKey),
+            qStripUsher,
+            qStripInfo,
+            qStripLineage,
+            qStripWorkspaceSource(),
+            qStripInspectorSource());
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 

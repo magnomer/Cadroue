@@ -9,20 +9,16 @@ public static class QStripIcon
     private static readonly IReadOnlyDictionary<string, ImageSource> qStripIcons =
         QStrip.QStripKeysRead().ToDictionary(lKey => lKey, lKey => QStripIconLoad(lKey, null));
 
-    private static readonly IReadOnlyDictionary<string, ImageSource> qStripActiveIcons =
-        QStrip.QStripKeysRead().ToDictionary(
-            lKey => lKey, lKey => QStripIconLoad(lKey, QContract.QContractSheetFind<Brush>(QStripAccentKey)));
-
-    private static readonly IReadOnlyDictionary<bool, IReadOnlyDictionary<string, ImageSource>> qStripIconSets =
-        new Dictionary<bool, IReadOnlyDictionary<string, ImageSource>>
-        {
-            [false] = qStripIcons,
-            [true] = qStripActiveIcons,
-        };
+    private static readonly Lazy<IReadOnlyDictionary<string, ImageSource>> qStripActiveIcons =
+        new(
+            () => QStrip.QStripKeysRead().ToDictionary(
+                lKey => lKey, lKey => QStripIconLoad(lKey, QContract.QContractSheetFind<Brush>(QStripAccentKey))),
+            LazyThreadSafetyMode.PublicationOnly);
 
     public static ImageSource QStripIconRead(string lKey) => qStripIcons[lKey];
 
-    public static ImageSource QStripIconRead(string lKey, bool lActive) => qStripIconSets[lActive][lKey];
+    public static ImageSource QStripIconRead(string lKey, bool lActive) =>
+        lActive ? qStripActiveIcons.Value[lKey] : qStripIcons[lKey];
 
     public static ImageSource? QStripIconFind(string lKey) => qStripIcons.GetValueOrDefault(lKey);
 

@@ -5,4 +5,9 @@ public sealed record LWorkGammaSettings(
     double LWorkGammaRed,
     double LWorkGammaGreen,
     double LWorkGammaBlue,
-    double LWorkGammaHighlight);
+    double LWorkGammaHighlight)
+{
+    // The five values in slot order: midtone, red, green, blue, highlight protection.
+    public IReadOnlyList<double> LWorkSlotRead() =>
+        [LWorkGammaGlobal, LWorkGammaRed, LWorkGammaGreen, LWorkGammaBlue, LWorkGammaHighlight];
+}
