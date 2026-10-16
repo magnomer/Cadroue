@@ -237,21 +237,22 @@ public sealed class PFunnelRules : PPanel
 
     private static Button PFunnelButtonBuild(string pIconPath, string pTooltipKey)
     {
-        return new Button
-        {
-            Content = new Image
+        return QButton.QButtonBuild(
+            new Button
             {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pFunnelIconBrush),
-                Stretch = Stretch.Uniform
+                Content = new Image
+                {
+                    Width = 20,
+                    Height = 20,
+                    Source = QIcon.QIconRead(pIconPath, pFunnelIconBrush),
+                    Stretch = Stretch.Uniform
+                },
+                Width = 28,
+                Height = 26,
+                Margin = new Thickness(0, 0, 2, 0),
+                ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey)
             },
-            Width = 28,
-            Height = 26,
-            Margin = new Thickness(0, 0, 2, 0),
-            Style = PButton.PButtonPanelCreate(),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey)
-        };
+            QButtonLook.QButtonLookPanel);
     }
 
     private void PFunnelMenuShow(UIElement pTarget)
@@ -269,10 +270,7 @@ public sealed class PFunnelRules : PPanel
         pRemainderItem.IsEnabled = !lFunnel.QFunnelRemainderCheck();
         pRemainderItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormRemainder);
 
-        var pAddMenu = PMenu.PMenuContextCreate();
-        pAddMenu.PlacementTarget = pTarget;
-        pAddMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Top;
-        pAddMenu.VerticalOffset = -4;
+        var pAddMenu = QMenu.QMenuBuild(pTarget, QMenuSide.QMenuSideAbove);
         pAddMenu.Items.Add(pFilenameItem);
         pAddMenu.Items.Add(pRegexItem);
         pAddMenu.Items.Add(pRemainderItem);

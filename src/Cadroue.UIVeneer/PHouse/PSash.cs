@@ -28,10 +28,10 @@ internal static class PSash
     ];
 
     internal static bool PSashInteractiveCheck(DependencyObject? pSource) =>
-        PWalk.PWalkParentCheck(pSource, PSashInteractiveMatch);
+        QWalk.QWalkParentCheck(pSource, PSashInteractiveMatch);
 
     private static bool PSashInteractiveMatch(DependencyObject pNode) =>
-        PWalk.PWalkTypeCheck(pNode, PSashInteractiveTypes);
+        QWalkType.QWalkTypeMatch(pNode, PSashInteractiveTypes);
 
     internal static void PSashAttach(Window pWindow) =>
         PSashSourceRun(pWindow, PSashHookApply);

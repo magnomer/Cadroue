@@ -142,10 +142,10 @@ public sealed partial class PInspector
             MinWidth = 90,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonWhiteCreate()
+            VerticalAlignment = VerticalAlignment.Center
         };
         pSensorRunButton.Click += (_, _) => QSensor.QSensorRunHandle();
+        QButton.QButtonAttach(pSensorRunButton, QButtonLook.QButtonLookWhite);
 
         var pSensorRunGrid = new Grid();
         pSensorRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });

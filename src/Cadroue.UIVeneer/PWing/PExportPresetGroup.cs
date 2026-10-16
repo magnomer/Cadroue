@@ -38,10 +38,10 @@ public sealed partial class PExport
                 ? "ExportPreset.Group.Expand"
                 : "ExportPreset.Group.Collapse"),
             Width = 22,
-            Height = 20,
-            Style = PExportStyleRead()
+            Height = 20
         };
         pToggleButton.Click += (_, _) => pToggle();
+        QButton.QButtonAttach(pToggleButton, QButtonLook.QButtonLookPanel);
         Grid.SetColumn(pToggleButton, 1);
         pGrid.Children.Add(pToggleButton);
 

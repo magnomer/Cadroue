@@ -26,7 +26,7 @@ public static class PConsoleControl
             FocusVisualStyle = null,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.AutoResume.Tooltip")
         };
-        PInteraction.PInteractionButtonAttach(pAutoBox);
+        QInteractionClick.QInteractionClickAttach(pAutoBox);
         QCheckbox.QCheckboxAttach(pAutoBox);
         pAutoBox.Checked += pChange;
         pAutoBox.Unchecked += pChange;
@@ -73,10 +73,10 @@ public static class PConsoleControl
             Padding = new Thickness(0),
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonWhiteCreate(),
             ToolTip = pTooltip
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookWhite);
         return pButton;
     }
 
@@ -94,10 +94,10 @@ public static class PConsoleControl
             Width = PConsoleSwitchWidth,
             VerticalAlignment = VerticalAlignment.Stretch,
             Visibility = Visibility.Collapsed,
-            Style = PConsoleButtonCreate(),
             ToolTip = pTooltip
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookFaded);
         return pButton;
     }
 
@@ -132,20 +132,11 @@ public static class PConsoleControl
             Height = PRosterTheme.PRosterButtonSize,
             Margin = new Thickness(0, 0, 4, 0),
             Content = pStack,
-            Style = PConsoleButtonCreate(),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead($"Console.Button.{pLabelKey}Tooltip")
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookFaded);
         return pButton;
-    }
-
-    private static Style PConsoleButtonCreate()
-    {
-        Style pStyle = PButton.PButtonCommandCreate();
-        var pDisabled = new Trigger { Property = UIElement.IsEnabledProperty, Value = false };
-        pDisabled.Setters.Add(new Setter(UIElement.OpacityProperty, PRosterTheme.PRosterDisabledOpacity));
-        pStyle.Triggers.Add(pDisabled);
-        return pStyle;
     }
 
     internal static TextBlock PConsoleLabelBuild(Brush pBrush, double pFontSize) => new()

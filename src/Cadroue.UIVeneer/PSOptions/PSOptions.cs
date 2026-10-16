@@ -63,8 +63,7 @@ internal sealed partial class PSOptions : Window
         QPickerControl.QPickerControlAttach(
             psOptionsTabPicker,
             QPicker.QPickerItemsCreate(PSOptionsTabItems, lsOptionsDraft.LPreferenceStartupTabs),
-            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"),
-            PInteraction.PInteractionButtonHandle);
+            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"));
         psMediaBox = PSOptionsCheckBuild(
             QLocalizationCatalog.QLocalizationTextRead("Options.Startup.OpenLastMedia"),
             lsOptionsDraft.LPreferenceMediaAutomatic);

@@ -19,7 +19,6 @@ internal sealed class PLogRow : INotifyPropertyChanged
     internal const double PLogTimeWidth = 84;
     internal const double PLogBadgeWidth = 78;
     internal const double PLogRowHeight = 26;
-    internal const double PLogChipHeight = 22;
     private const double PLogDetailIndent = 162;
 
     private static readonly PLogBadge PLogBadgeInfo =
@@ -79,17 +78,7 @@ internal sealed class PLogRow : INotifyPropertyChanged
     {
         pLogFeed.ItemTemplate = PLogTemplateBuild();
         pLogFeed.ItemContainerStyle = PLogStyleBuild();
-        pLogFeed.Resources["PLogChipStyle"] = PLogChipBuild();
-    }
-
-    private static Style PLogChipBuild()
-    {
-        var pLogChipStyle = new Style(typeof(Button), PButton.PButtonWhiteCreate());
-        pLogChipStyle.Setters.Add(new Setter(FrameworkElement.HeightProperty, PLogChipHeight));
-        pLogChipStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 0, 10, 0)));
-        pLogChipStyle.Setters.Add(new Setter(Control.FontSizeProperty, 11d));
-        pLogChipStyle.Seal();
-        return pLogChipStyle;
+        QButton.QButtonChipAttach(pLogFeed);
     }
 
     private static Style PLogStyleBuild()
@@ -164,7 +153,7 @@ internal sealed class PLogRow : INotifyPropertyChanged
                     Content=""{Binding PLogChipText}""
                     Visibility=""{Binding PLogChipShown}""
                     VerticalAlignment=""Center""
-                    Style=""{DynamicResource PLogChipStyle}"" />
+                    Style=""{DynamicResource PButtonChip}"" />
         </Grid>
         <Border Visibility=""{Binding PLogDetailShown}""
                 Background=""#F4F7FB""

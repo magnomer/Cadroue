@@ -126,7 +126,6 @@ internal sealed partial class PSOptions
     {
         var pButton = new Button
         {
-            Style = PButton.PButtonIconCreate(),
             Margin = new Thickness(0, 0, 6, 0),
             ToolTip = pTip,
             Content = new Image
@@ -138,6 +137,7 @@ internal sealed partial class PSOptions
             }
         };
         pButton.Click += (_, _) => pClick();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookIcon);
         return pButton;
     }
 
@@ -257,7 +257,6 @@ internal sealed partial class PSOptions
     {
         var pButton = new Button
         {
-            Style = PButton.PButtonIconCreate(),
             Width = PSSpectrumRemoveSize,
             MinWidth = PSSpectrumRemoveSize,
             Height = PSSpectrumRemoveSize,
@@ -273,6 +272,7 @@ internal sealed partial class PSOptions
             }
         };
         pButton.Click += (_, pEvent) => { pEvent.Handled = true; PSSpectrumRemove(pName); };
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookIcon);
         return pButton;
     }
 

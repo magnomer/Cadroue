@@ -112,10 +112,10 @@ internal sealed class PSLoupe : Window
         {
             Width = PSLoupeButtonSize,
             Height = PSLoupeButtonSize,
-            Content = psLoupePlayImage,
-            Style = PButton.PButtonPanelCreate()
+            Content = psLoupePlayImage
         };
         psLoupePlayButton.Click += PSLoupePlayHandle;
+        QButton.QButtonAttach(psLoupePlayButton, QButtonLook.QButtonLookPanel);
         psLoupeSegments = QSLoupe.QSLoupeButtonsRead().ToDictionary(
             lButton => lButton.QSLoupeButtonKind, PSLoupeSegmentBuild);
         Content = PSDialog.PSDialogBuild(this, Title, PSLoupeBodyBuild());
@@ -192,10 +192,10 @@ internal sealed class PSLoupe : Window
             Height = 24,
             MinWidth = 52,
             Padding = new Thickness(10, 0, 10, 0),
-            FontSize = 11,
-            Style = PButton.PButtonPanelCreate()
+            FontSize = 11
         };
         pButton.Click += (_, _) => QSLoupe.QSLoupeFloatSet(lButton.QSLoupeButtonKind);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 

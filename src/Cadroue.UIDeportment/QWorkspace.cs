@@ -85,13 +85,12 @@ public sealed class QWorkspace
         Func<QSource, UIElement> lSourceFactory,
         Func<QInfo, UIElement> lInfoFactory,
         Action lExportHandler,
-        Func<Style> lExportStyle,
         Func<ImageSource> lExportIcon,
         Action lSurfaceClose,
         Action lFlowClose,
         Action lViewerClose) =>
         QWorkspaceFrame = new QWorkspaceFrame(
-            this, lSurface, lFrameFactory, lSourceFactory, lInfoFactory, lExportHandler, lExportStyle, lExportIcon,
+            this, lSurface, lFrameFactory, lSourceFactory, lInfoFactory, lExportHandler, lExportIcon,
             lSurfaceClose, lFlowClose, lViewerClose);
 
     public void QWorkspaceFlowApply() => qWorkspacePair?.QWorkspaceFlowApply();

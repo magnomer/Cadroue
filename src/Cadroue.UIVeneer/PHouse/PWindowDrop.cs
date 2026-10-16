@@ -48,10 +48,10 @@ public partial class PWindow
 
     private static QWindowDrag PDropDragRead(DragEventArgs dragEvent) => new(
         dragEvent.Data.GetData(DataFormats.FileDrop) as string[],
-        PWalk.PWalkParentCheck(dragEvent.OriginalSource as DependencyObject, PDropGroupMatch),
+        QWalk.QWalkParentCheck(dragEvent.OriginalSource as DependencyObject, PDropGroupMatch),
         dragEvent.OriginalSource?.GetType().Name,
         dragEvent.AllowedEffects.HasFlag(DragDropEffects.Copy),
         dragEvent.Data);
 
-    private static bool PDropGroupMatch(DependencyObject pNode) => PWalk.PWalkTypeCheck(pNode, PDropGroupTypes);
+    private static bool PDropGroupMatch(DependencyObject pNode) => QWalkType.QWalkTypeMatch(pNode, PDropGroupTypes);
 }

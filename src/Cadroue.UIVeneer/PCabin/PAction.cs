@@ -101,7 +101,7 @@ public sealed class PAction : UserControl
             FocusVisualStyle = null,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AutoRelay.Tooltip")
         };
-        PInteraction.PInteractionButtonAttach(pAutoBox);
+        QInteractionClick.QInteractionClickAttach(pAutoBox);
         QCheckbox.QCheckboxAttach(pAutoBox);
         pAutoBox.Checked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
         pAutoBox.Unchecked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
@@ -132,14 +132,15 @@ public sealed class PAction : UserControl
             Foreground = new SolidColorBrush(Color.FromRgb(0x0D, 0x1B, 0x2F))
         });
 
-        return new Button
-        {
-            Width = 58,
-            Height = 58,
-            Content = pStack,
-            Style = PButton.PButtonCommandCreate(),
-            ToolTip = pLabelText
-        };
+        return QButton.QButtonBuild(
+            new Button
+            {
+                Width = 58,
+                Height = 58,
+                Content = pStack,
+                ToolTip = pLabelText
+            },
+            QButtonLook.QButtonLookCommand);
     }
 
     private Button PActionRelayBuild()
@@ -239,7 +240,7 @@ public sealed class PAction : UserControl
 
     private void PActionOpenHandle(object pSender, RoutedEventArgs pArgs)
     {
-        ContextMenu pRelayMenu = PMenu.PMenuCreate(pActionRelayButton);
+        ContextMenu pRelayMenu = QMenu.QMenuBuild(pActionRelayButton, QMenuSide.QMenuSideBelow);
         QAction.QActionMenuRead().ToList().ForEach(lOption => PActionRowAppend(pRelayMenu, lOption));
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;

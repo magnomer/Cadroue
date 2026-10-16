@@ -86,7 +86,7 @@ internal sealed partial class PSEncoder
             IsChecked = pReactive,
             VerticalAlignment = VerticalAlignment.Center
         };
-        PInteraction.PInteractionButtonAttach(pReactiveBox);
+        QInteractionClick.QInteractionClickAttach(pReactiveBox);
         QCheckbox.QCheckboxAttach(pReactiveBox);
         return pReactiveBox;
     }

@@ -4,9 +4,9 @@ using System.Windows.Media.Media3D;
 
 namespace Cadroue.UIDeportment;
 
-internal static class QWalk
+public static class QWalk
 {
-    internal static DependencyObject? QWalkParentFind(DependencyObject? lStart, Func<DependencyObject, bool> lTest)
+    public static DependencyObject? QWalkParentFind(DependencyObject? lStart, Func<DependencyObject, bool> lTest)
     {
         DependencyObject? lNode = lStart;
         while (lNode is not null)
@@ -23,4 +23,7 @@ internal static class QWalk
 
         return null;
     }
+
+    public static bool QWalkParentCheck(DependencyObject? lStart, Func<DependencyObject, bool> lTest) =>
+        QWalkParentFind(lStart, lTest) is not null;
 }

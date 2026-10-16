@@ -158,10 +158,10 @@ public sealed class PCompass : UserControl
         {
             Width = 58,
             Height = 58,
-            Content = pStack,
-            Style = PHouse.PButton.PButtonCommandCreate()
+            Content = pStack
         };
         pButton.Click += (_, _) => QCompass.QCompassRun(lButton.QCompassButtonKey);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookCommand);
         pCompassFaces.Add(lButton.QCompassButtonKey, new PCompassFace(pButton, pImage, pLabel));
         PCompassFaceApply(lButton);
         return pButton;
@@ -203,10 +203,10 @@ public sealed class PCompass : UserControl
             Width = 58,
             Height = 58,
             Content = pStack,
-            Style = PHouse.PButton.PButtonCommandCreate(),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Compass.Waveform.Tooltip")
         };
         pButton.Click += (_, _) => QCompass.QCompassWaveformToggle();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookCommand);
         return pButton;
     }
 

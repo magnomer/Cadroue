@@ -322,10 +322,10 @@ public sealed class PProcessing : PPanel
             },
             ToolTip = pTooltip,
             Width = 28,
-            Height = 26,
-            Style = PButton.PButtonPanelCreate()
+            Height = 26
         };
         pButton.Click += (_, _) => pClick();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 }

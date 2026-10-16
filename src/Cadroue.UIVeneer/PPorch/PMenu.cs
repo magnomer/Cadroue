@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -11,7 +10,6 @@ namespace Cadroue.UIVeneer.PPorch;
 
 internal static class PMenu
 {
-    private static readonly Brush pMenuLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
     private static readonly Brush pMenuTextBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
     private static readonly Brush pMenuHighlightBrush = new SolidColorBrush(Color.FromRgb(0xEC, 0xF3, 0xFF));
 
@@ -19,30 +17,9 @@ internal static class PMenu
 
     static PMenu()
     {
-        pMenuLineBrush.Freeze();
         pMenuTextBrush.Freeze();
         pMenuHighlightBrush.Freeze();
     }
-
-    internal static ContextMenu PMenuCreate(UIElement pMenuTarget) => new()
-    {
-        PlacementTarget = pMenuTarget,
-        Placement = PlacementMode.Bottom,
-        VerticalOffset = 4,
-
-        HasDropShadow = true,
-        Background = Brushes.Transparent,
-        BorderThickness = new Thickness(0),
-        Template = PMenuTemplateCreate()
-    };
-
-    internal static ContextMenu PMenuContextCreate() => new()
-    {
-        HasDropShadow = true,
-        Background = Brushes.Transparent,
-        BorderThickness = new Thickness(0),
-        Template = PMenuTemplateCreate()
-    };
 
     internal static ImageSource PMenuIconRead(string pMenuIconPath)
         => QIcon.QIconRead(pMenuIconPath, pMenuTextBrush);
@@ -68,27 +45,12 @@ internal static class PMenu
         Stretch = Stretch.Uniform
     };
 
-    private static ControlTemplate PMenuTemplateCreate()
-    {
-        var pTemplate = new ControlTemplate(typeof(ContextMenu));
-        var pCard = new FrameworkElementFactory(typeof(Border));
-        pCard.SetValue(Border.BackgroundProperty, Brushes.White);
-        pCard.SetValue(Border.BorderBrushProperty, pMenuLineBrush);
-        pCard.SetValue(Border.BorderThicknessProperty, new Thickness(1));
-        pCard.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
-        pCard.SetValue(Border.PaddingProperty, new Thickness(4));
-        pCard.SetValue(UIElement.SnapsToDevicePixelsProperty, true);
-        pCard.AppendChild(new FrameworkElementFactory(typeof(ItemsPresenter)));
-        pTemplate.VisualTree = pCard;
-        return pTemplate;
-    }
-
     private static Style PMenuStyleCreate()
     {
         var pStyle = new Style(typeof(MenuItem));
         pStyle.Setters.Add(new EventSetter(
             MenuItem.ClickEvent,
-            new RoutedEventHandler(PInteraction.PInteractionMenuHandle))
+            new RoutedEventHandler(QInteractionClick.QInteractionClickHandle))
         {
             HandledEventsToo = true
         });

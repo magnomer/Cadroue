@@ -55,7 +55,7 @@ public sealed partial class PInspector
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pLoudnessTwoPass);
+        QInteractionClick.QInteractionClickAttach(pLoudnessTwoPass);
         QCheckbox.QCheckboxAttach(pLoudnessTwoPass);
         PInspectorSwitchAttach(pLoudnessTwoPass, QLoudness.QLoudnessTwopassSet);
 

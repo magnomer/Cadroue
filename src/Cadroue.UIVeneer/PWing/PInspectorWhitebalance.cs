@@ -90,10 +90,10 @@ public sealed partial class PInspector
             Padding = new Thickness(8, 0, 8, 0),
             FontSize = 11,
             FontFamily = pInspectorFontFamily,
-            Style = PButton.PButtonPanelCreate(),
             HorizontalAlignment = HorizontalAlignment.Right
         };
         pWhitebalanceReset.Click += (_, _) => QWhitebalance.QWhitebalanceReset();
+        QButton.QButtonAttach(pWhitebalanceReset, QButtonLook.QButtonLookPanel);
         pWhitebalanceStack.Children.Add(pWhitebalanceReset);
         pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
         return pWhitebalanceBody;

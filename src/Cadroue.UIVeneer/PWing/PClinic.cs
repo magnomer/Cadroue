@@ -183,10 +183,10 @@ public sealed class PClinic : PPanel
             MinWidth = 90,
             FontSize = 12,
             FontFamily = pClinicFontFamily,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PButton.PButtonWhiteCreate()
+            VerticalAlignment = VerticalAlignment.Center
         };
         pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisExecuted?.Invoke();
+        QButton.QButtonAttach(pClinicDiagnosisButton, QButtonLook.QButtonLookWhite);
 
         var pRunGrid = new Grid();
         pRunGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
@@ -247,7 +247,7 @@ public sealed class PClinic : PPanel
             Foreground = PPanelTextBrush,
             VerticalContentAlignment = VerticalAlignment.Center
         };
-        PInteraction.PInteractionButtonAttach(pSwitch);
+        QInteractionClick.QInteractionClickAttach(pSwitch);
         QCheckbox.QCheckboxAttach(pSwitch);
         return pSwitch;
     }
@@ -317,10 +317,10 @@ public sealed class PClinic : PPanel
             },
             ToolTip = pTooltip,
             Width = 28,
-            Height = 26,
-            Style = PButton.PButtonPanelCreate()
+            Height = 26
         };
         pButton.Click += (_, _) => pClick();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 }

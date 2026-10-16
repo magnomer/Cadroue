@@ -24,10 +24,10 @@ public sealed partial class PExport
             ToolTip = pTooltip,
             Width = 22,
             Height = 20,
-            Margin = new Thickness(2, 0, 0, 0),
-            Style = PExportStyleRead()
+            Margin = new Thickness(2, 0, 0, 0)
         };
         pButton.Click += pClick;
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 

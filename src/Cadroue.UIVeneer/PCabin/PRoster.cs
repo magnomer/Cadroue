@@ -28,7 +28,7 @@ public sealed class PRoster : UserControl
         QRoster = lRoster;
         FocusVisualStyle = null;
         QScrollbar.QScrollbarAttach(this);
-        ContextMenu pRosterMenu = PMenu.PMenuContextCreate();
+        ContextMenu pRosterMenu = QMenu.QMenuBuild();
         pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
         {
             ItemsSource = QRoster.QRosterFeed.QRosterEntries
@@ -158,7 +158,7 @@ public sealed class PRoster : UserControl
             IsChecked = PLook.PLookChecked[pChecked],
             Margin = new Thickness(pLeftMargin, 0, 0, 0)
         };
-        PInteraction.PInteractionButtonAttach(pBox);
+        QInteractionClick.QInteractionClickAttach(pBox);
         QCheckbox.QCheckboxAttach(pBox);
         return pBox;
     }

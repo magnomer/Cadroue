@@ -105,10 +105,10 @@ public sealed partial class PInspector
             MinWidth = 64,
             Padding = new Thickness(8, 0, 8, 0),
             FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            Style = PButton.PButtonPanelCreate()
+            FontFamily = pInspectorFontFamily
         };
         pButton.Click += (_, _) => pClick();
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
 

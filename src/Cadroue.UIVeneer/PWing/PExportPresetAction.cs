@@ -8,8 +8,6 @@ namespace Cadroue.UIVeneer.PWing;
 
 public sealed partial class PExport
 {
-    private static Style? pExportButtonStyle;
-
     public static void PExportIncompatibleShow() => PSAnnouncement.PSAnnouncementShow(
         null,
         QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Incompatible.Title"),
@@ -82,7 +80,6 @@ public sealed partial class PExport
             Width = 28,
             Height = 26,
             Margin = new Thickness(0, 0, 2, 0),
-            Style = PExportStyleRead(),
             IsEnabled = pEnabled
         };
         if (pClick is not null)
@@ -90,12 +87,7 @@ public sealed partial class PExport
             pButton.Click += pClick;
         }
 
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
-    }
-
-    private static Style PExportStyleRead()
-    {
-        pExportButtonStyle ??= PButton.PButtonPanelCreate();
-        return pExportButtonStyle;
     }
 }

@@ -37,10 +37,10 @@ public sealed class QSource
 
     private Button QSourceBrowse => QContract.QContractFind<Button>(qSourceSurface, "pSourceBrowse");
 
-    public UserControl QSourceAttach(UserControl lSurface, Func<Style> lButtonStyle)
+    public UserControl QSourceAttach(UserControl lSurface)
     {
         qSourceSurface = lSurface;
-        QSourceBrowse.Style = lButtonStyle();
+        QButton.QButtonAttach(QSourceBrowse, QButtonLook.QButtonLookSource);
         QSourcePathBox.KeyDown += QSourceKeyHandle;
         QSourcePathBox.TextChanged += QSourceTextHandle;
         QSourcePlaceholder.Text = QSourcePlaceholderRead();
