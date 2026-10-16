@@ -29,7 +29,7 @@ public partial class PWindow
             GetForegroundWindow,
             PShortcutViewerMatch,
             PShortcutInputCheck,
-            PShortcutKeyRead,
+            QShortcut.QShortcutVirtualFormat,
             GetKeyState));
     }
 
@@ -38,9 +38,6 @@ public partial class PWindow
 
     private static bool PShortcutInputCheck() =>
         PWalk.PWalkParentCheck(Keyboard.FocusedElement as DependencyObject, PShortcutInputMatch);
-
-    private static string PShortcutKeyRead(int pVirtualKey) =>
-        PShortcut.PShortcutKeyFormat(KeyInterop.KeyFromVirtualKey(pVirtualKey));
 
     private static bool PShortcutInputMatch(DependencyObject pNode) => PWalk.PWalkTypeCheck(pNode, PShortcutInputTypes);
 }

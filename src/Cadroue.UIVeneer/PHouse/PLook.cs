@@ -104,13 +104,6 @@ public static class PLook
             [QWindowDropEffect.QWindowDropFile] = DragDropEffects.Copy,
         };
 
-    public static readonly IReadOnlyDictionary<bool, DragDropEffects> PLookCopyEffect =
-        new Dictionary<bool, DragDropEffects>
-        {
-            [true] = DragDropEffects.Copy,
-            [false] = DragDropEffects.None,
-        };
-
     public static readonly IReadOnlyDictionary<bool, GridLength> PLookRailWidth = new Dictionary<bool, GridLength>
     {
         [true] = new GridLength(PPorch.PRail.PRailWidth),

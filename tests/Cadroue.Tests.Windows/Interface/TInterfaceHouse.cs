@@ -167,7 +167,7 @@ internal static partial class TInterface
 
     internal static IReadOnlyList<QPickerItem> TPickerItemsCreate(
         IReadOnlyList<string> tokens, IReadOnlyList<string> selected) =>
-        QPicker.QPickerItemsCreate(tokens, selected);
+        QPicker.QPickerItemsCreate([.. tokens.Select(token => new LLocalizationChoice(token))], selected);
     internal static (string, bool) TPickerSummaryResolve(IReadOnlyList<string> labels, string empty) =>
         QPicker.QPickerSummaryResolve(labels, empty);
 

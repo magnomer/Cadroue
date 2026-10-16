@@ -60,6 +60,13 @@ internal static class QLookSheet
             Border.BackgroundProperty, "PDropdownPressed"),
 
         new("PTextbox", QLookCue.QLookCueFocus, "PTextboxFrame", Border.BorderBrushProperty, "PTextboxAccent"),
+
+        new("PToken", QLookCue.QLookCueFocus, "PTokenFrame", Border.BorderBrushProperty, "PTokenAccent"),
+
+        new("PTokenChip", QLookCue.QLookCueHover, "PTokenChipFrame", Border.BackgroundProperty, "PTokenHover"),
+        new("PTokenChip", QLookCue.QLookCuePressed, "PTokenChipFrame", Border.BackgroundProperty, "PTokenPressed"),
+
+        new("PPicker", QLookCue.QLookCueExpanded, "PPickerFrame", Border.BorderBrushProperty, "PPickerAccent"),
     ];
 
     internal static IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> QLookSheetResolve(

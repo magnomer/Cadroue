@@ -54,15 +54,17 @@ internal sealed partial class PSOptions : Window
             lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation",
             () => psOptionsRecordNotice?.Invoke(),
             PSOptionsRecordItems);
-        psOptionsTabPicker = new PPicker(
-            PSOptionsTabItems,
-            lsOptionsDraft.LPreferenceStartupTabs,
-            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"))
+        psOptionsTabPicker = new Control
         {
             MinWidth = 260,
             Height = PSField.PSFieldControlHeight,
             HorizontalAlignment = HorizontalAlignment.Left
         };
+        QPickerControl.QPickerControlAttach(
+            psOptionsTabPicker,
+            QPicker.QPickerItemsCreate(PSOptionsTabItems, lsOptionsDraft.LPreferenceStartupTabs),
+            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"),
+            PInteraction.PInteractionButtonHandle);
         psMediaBox = PSOptionsCheckBuild(
             QLocalizationCatalog.QLocalizationTextRead("Options.Startup.OpenLastMedia"),
             lsOptionsDraft.LPreferenceMediaAutomatic);
@@ -205,7 +207,7 @@ internal sealed partial class PSOptions : Window
         lsOptionsDraft.LPreferenceStartupMode = PSField.PSModeTextRead(psOptionsStartupMode);
         lsOptionsDraft.LPreferenceRecordWorkspace =
             string.Equals(PSField.PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
-        lsOptionsDraft.LPreferenceStartupTabs = psOptionsTabPicker.PPickerSelectionRead().ToList();
+        lsOptionsDraft.LPreferenceStartupTabs = QPickerControl.QPickerControlRead(psOptionsTabPicker).ToList();
         lsOptionsDraft.LPreferenceMediaAutomatic = psMediaBox.IsChecked == true;
         lsOptionsDraft.LPreferenceConfirmDestructive = psOptionsConfirmBox.IsChecked == true;
         lsOptionsDraft.LPreferenceRelayEmpty = psRelayClearBox.IsChecked == true;

@@ -2,7 +2,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PHouse;
+using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -35,7 +35,7 @@ internal sealed partial class PSEncoder
         try
         {
             var pData = new DataObject();
-            pData.SetData(PToken.PTokenDataKind, pToken);
+            pData.SetData(QTokenControl.QTokenControlKind, pToken);
             pData.SetData(DataFormats.Text, pToken);
             _ = DragDrop.DoDragDrop(pChip, pData, DragDropEffects.Copy);
         }

@@ -269,6 +269,6 @@ internal sealed partial class PSEncoder
 
     private void PSNameTokenInsert(string pToken)
     {
-        psNameBox.PTokenInsert(pToken);
+        QTokenControl.QTokenControlInsert(psNameBox, pToken);
     }
 }
