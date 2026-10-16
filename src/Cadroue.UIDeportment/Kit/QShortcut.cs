@@ -1,11 +1,11 @@
 using System.Windows.Input;
 using Cadroue.Infrastructure;
 
-namespace Cadroue.UIVeneer.PHouse;
+namespace Cadroue.UIDeportment;
 
-public static class PShortcut
+public static class QShortcut
 {
-    private static readonly IReadOnlyDictionary<Key, string> PShortcutKeyNames = new Dictionary<Key, string>
+    private static readonly IReadOnlyDictionary<Key, string> QShortcutKeyNames = new Dictionary<Key, string>
     {
         [Key.A] = "A",
         [Key.B] = "B",
@@ -109,14 +109,23 @@ public static class PShortcut
         [Key.OemQuotes] = "'",
     };
 
-    public static string PShortcutGestureFormat(Key pShortcutKey, ModifierKeys pShortcutModifiers) =>
-        LBinding.LBindingGestureFormat(
-            PShortcutKeyFormat(pShortcutKey),
-            pShortcutModifiers.HasFlag(ModifierKeys.Control),
-            pShortcutModifiers.HasFlag(ModifierKeys.Alt),
-            pShortcutModifiers.HasFlag(ModifierKeys.Shift),
-            pShortcutModifiers.HasFlag(ModifierKeys.Windows));
+    public static string QShortcutGestureFormat(Key lKey, ModifierKeys lModifiers) =>
+        QShortcutGestureFormat(QShortcutKeyFormat(lKey), lModifiers);
 
-    public static string PShortcutKeyFormat(Key pShortcutKey) =>
-        PShortcutKeyNames.GetValueOrDefault(pShortcutKey, string.Empty);
+    internal static string QShortcutGestureFormat(string lKeyName, ModifierKeys lModifiers) =>
+        LBinding.LBindingGestureFormat(
+            lKeyName,
+            lModifiers.HasFlag(ModifierKeys.Control),
+            lModifiers.HasFlag(ModifierKeys.Alt),
+            lModifiers.HasFlag(ModifierKeys.Shift),
+            lModifiers.HasFlag(ModifierKeys.Windows));
+
+    internal static string? QShortcutTokenFind(string lGesture) =>
+        LBinding.LBindingTokenFind(LBinding.LBindingCurrent, lGesture);
+
+    public static string QShortcutVirtualFormat(int lVirtualKey) =>
+        QShortcutKeyFormat(KeyInterop.KeyFromVirtualKey(lVirtualKey));
+
+    private static string QShortcutKeyFormat(Key lKey) =>
+        QShortcutKeyNames.GetValueOrDefault(lKey, string.Empty);
 }

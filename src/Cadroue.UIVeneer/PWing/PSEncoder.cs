@@ -21,7 +21,7 @@ internal sealed partial class PSEncoder : Window
 
     private readonly QSEncoder lsEncoder;
     private readonly System.Action psEncoderSummary;
-    private readonly PToken psNameBox;
+    private readonly RichTextBox psNameBox;
 
     private LPreset lsExportSpecificEdit => lsEncoder.QSEncoderDraft;
     private readonly ListBox psOutputContainerCombo;
@@ -106,11 +106,9 @@ internal sealed partial class PSEncoder : Window
         lsEncoder.QSEncoderHelpAttach(PSEncoderHelpHandle);
         lsEncoder.QSEncoderSizeChanged += PSVideoSizeApply;
         psEncoderSummary = pRefresh;
-        psNameBox = new PToken(lsEncoder.QSEncoderTokenCreate())
-        {
-            PTokenText = lsExportSpecificEdit.LPresetDisplay,
-            MinWidth = 320
-        };
+        psNameBox = new RichTextBox { MinWidth = 320 };
+        QTokenControl.QTokenControlAttach(
+            psNameBox, lsEncoder.QSEncoderTokenCreate(), lsExportSpecificEdit.LPresetDisplay);
         psOutputContainerCombo = PSField.PSListBuild(lsExportSpecificEdit.LPresetContainer,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("MP4", "Encoder.Container.MP4"),
@@ -209,7 +207,7 @@ internal sealed partial class PSEncoder : Window
 
     private void PSEncoderApply()
     {
-        lsExportSpecificEdit.LPresetDisplay = psNameBox.PTokenText;
+        lsExportSpecificEdit.LPresetDisplay = QTokenControl.QTokenControlRead(psNameBox);
         lsExportSpecificEdit.LPresetContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
         lsExportSpecificEdit.LPresetExtension = PSCombo.PSComboTextRead(psOutputExtensionCombo);
         lsExportSpecificEdit.LPresetCollision = PSCombo.PSComboTextRead(psOutputCollisionCombo);

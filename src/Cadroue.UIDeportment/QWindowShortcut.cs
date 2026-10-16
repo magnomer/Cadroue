@@ -1,4 +1,4 @@
-using Cadroue.Infrastructure;
+using System.Windows.Input;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
@@ -73,14 +73,19 @@ public sealed class QWindowShortcut
             return false;
         }
 
-        string lGesture = LBinding.LBindingGestureFormat(
+        string lGesture = QShortcut.QShortcutGestureFormat(
             lPress.QWindowPressKey(lPress.QWindowPressVirtual),
-            QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutControl)),
-            QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutAlt)),
-            QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutShift)),
-            QWindowDownCheck(lPress.QWindowPressState(QWindowLeftWin))
-                || QWindowDownCheck(lPress.QWindowPressState(QWindowRightWin)));
-        string? lToken = LBinding.LBindingTokenFind(LBinding.LBindingCurrent, lGesture);
+            QWindowModifierSelect(
+                    QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutControl)), ModifierKeys.Control)
+                | QWindowModifierSelect(
+                    QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutAlt)), ModifierKeys.Alt)
+                | QWindowModifierSelect(
+                    QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutShift)), ModifierKeys.Shift)
+                | QWindowModifierSelect(
+                    QWindowDownCheck(lPress.QWindowPressState(QWindowLeftWin))
+                        || QWindowDownCheck(lPress.QWindowPressState(QWindowRightWin)),
+                    ModifierKeys.Windows));
+        string? lToken = QShortcut.QShortcutTokenFind(lGesture);
         return lToken is not null && QWindowShortcutRun(lToken);
     }
 
@@ -137,4 +142,7 @@ public sealed class QWindowShortcut
     }
 
     private static bool QWindowDownCheck(short lState) => (lState & QWindowDownMask) != 0;
+
+    private static ModifierKeys QWindowModifierSelect(bool lDown, ModifierKeys lModifier) =>
+        lDown ? lModifier : ModifierKeys.None;
 }

@@ -77,7 +77,7 @@ internal sealed class PSKeymapChord : Button
 
         lsKeymap.QSKeymapPendingSet(
             lsKeymapChord,
-            PShortcut.PShortcutGestureFormat(psKeymapChordKey, Keyboard.Modifiers));
+            QShortcut.QShortcutGestureFormat(psKeymapChordKey, Keyboard.Modifiers));
     }
 
     private void PSKeymapTextUpdate()

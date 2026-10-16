@@ -20,7 +20,7 @@ public sealed class PLogWindow : Window
     private readonly ObservableCollection<PLogRow> pLogRowsShown = new();
     private readonly ListBox pLogFeed;
     private readonly ComboBox pLogFileCombo;
-    private readonly PPicker pLogCategoryPicker;
+    private readonly Control pLogCategoryPicker;
     private readonly CheckBox pLogVerboseBox;
     private readonly DispatcherTimer pLogFlushTimer;
     private readonly PSGrabber pLogGrabber;
@@ -234,23 +234,23 @@ public sealed class PLogWindow : Window
         return pLogFilterRow;
     }
 
-    private PPicker PLogCategoryBuild()
+    private Control PLogCategoryBuild()
     {
-        var pLogPicker = new PPicker(
-            QLog.QLogCategoriesRead(),
-            Array.Empty<string>(),
-            QLocalizationCatalog.QLocalizationTextRead("Log.Category.All"))
+        var pLogPicker = new Control
         {
             Width = 200,
             Height = PSField.PSFieldControlHeight,
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
-        pLogPicker.PPickerChanged += PLogCategoryHandle;
+        QPickerControl.QPickerControlAttach(
+            pLogPicker,
+            QPicker.QPickerItemsCreate(QLog.QLogCategoriesRead(), Array.Empty<string>()),
+            QLocalizationCatalog.QLocalizationTextRead("Log.Category.All"),
+            PInteraction.PInteractionButtonHandle,
+            QLog.QLogCategorySet);
         return pLogPicker;
     }
-
-    private void PLogCategoryHandle() => QLog.QLogCategorySet(pLogCategoryPicker.PPickerSelectionRead());
 
     private ListBox PLogFeedBuild()
     {

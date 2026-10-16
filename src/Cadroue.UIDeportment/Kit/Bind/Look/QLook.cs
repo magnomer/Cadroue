@@ -6,6 +6,8 @@ namespace Cadroue.UIDeportment;
 
 internal static class QLook
 {
+    internal const string QLookPopupPart = "PART_Popup";
+
     internal static void QLookAttach(FrameworkElement lElement, string lStyle)
     {
         ArgumentNullException.ThrowIfNull(lElement);
@@ -52,8 +54,19 @@ internal static class QLook
             lElement.AddHandler(UIElement.KeyDownEvent, lRouted, true);
             lElement.AddHandler(UIElement.KeyUpEvent, lRouted, true);
         }
+        else
+        {
+            lElement.PreviewMouseLeftButtonDown += lRouted.Invoke;
+            lElement.PreviewMouseLeftButtonUp += lRouted.Invoke;
+        }
 
         _ = lElement.ApplyTemplate();
+        if ((lElement as Control)?.Template?.FindName(QLookPopupPart, lElement) is Popup lPopup)
+        {
+            lPopup.Opened += (_, _) => QLookStateApply(lElement, lStyle);
+            lPopup.Closed += (_, _) => QLookStateApply(lElement, lStyle);
+        }
+
         QLookStateApply(lElement, lStyle);
     }
 

@@ -33,7 +33,7 @@ internal sealed partial class PSOptions
 
     private readonly Border psOptionsStartupMode;
     private Action? psOptionsStartupPicker;
-    private readonly PPicker psOptionsTabPicker;
+    private readonly Control psOptionsTabPicker;
     private readonly CheckBox psMediaBox;
     private readonly CheckBox psOptionsConfirmBox;
     private readonly CheckBox psRelayClearBox;
