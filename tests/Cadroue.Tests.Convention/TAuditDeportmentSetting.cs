@@ -8,7 +8,8 @@ internal static class TAuditDeportmentSetting
             ["Cadroue.UIDeportment>Cadroue.Conduct"] =
                 [
                     "CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch",
-                    "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo",
+                    "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma",
+                    "CViewer",
                 ],
         };
 }

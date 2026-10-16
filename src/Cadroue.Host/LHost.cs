@@ -14,7 +14,11 @@ Thread thread = new(() =>
         new LUsherOutlet(),
         new LLineageOutlet(),
         new LWorkspaceOutlet(),
-        new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead));
+        new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
+        new LViewerOutlet(
+            lPath => System.IO.Path.GetFileName(lPath),
+            () => System.DateTimeOffset.Now,
+            System.Environment.NewLine));
     QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
 
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);

@@ -5,4 +5,5 @@ public sealed record LRigTrace(
     Action<string> LRigTraceWarning,
     Action<string, Exception?> LRigTraceError,
     Action<string, string?> LRigTraceFfmpeg,
-    Func<bool> LRigTraceVerbose);
+    Func<bool> LRigTraceVerbose,
+    Action<bool, string, string?> LRigTraceDetail);

@@ -13,8 +13,9 @@ public sealed class QEditTab
     private readonly QList qEditList;
     private readonly LDocket qEditDocket;
 
-    public QEditTab(CUsher lUsher, LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QEditTab(CUsher lUsher, CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList)
     {
+        QEditInspector = new QInspector(lInspector);
         qEditPreset = lPreset;
         qEditViewer = lViewer;
         qEditList = lList;
@@ -52,7 +53,7 @@ public sealed class QEditTab
     public event Action? QEditHistogramDeferred;
     public event Action? QEditColorDeferred;
 
-    public QInspector QEditInspector { get; } = new();
+    public QInspector QEditInspector { get; }
 
     public QProcessing QEditProcessing { get; } = new();
 
@@ -295,7 +296,7 @@ public sealed class QEditTab
         QEditViewerApply();
         if (lApplied is not null)
         {
-            QEditStore.QEditStateSave(lApplied);
+            QEditStore.QEditStateSave(lApplied, _ => lName);
         }
     }
 

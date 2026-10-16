@@ -6,7 +6,7 @@ namespace Cadroue.Tests.Windows;
 
 internal static class TInterfaceInspector
 {
-    internal static QInspector TInspectorCreate() => new();
+    internal static QInspector TInspectorCreate() => new(TInterface.TAtelierCreate().CAtelierInspectorCreate());
     internal static void TInspectorAttach(QInspector inspector, Action handler) =>
         inspector.QInspectorChanged += handler;
     internal static void TInspectorSourceSet(QInspector inspector, double width, double height) =>

@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -18,10 +19,11 @@ public sealed class QInspectorVideo
     private int qInspectorVideoDepth;
     private bool qInspectorVideoPending;
 
-    public QInspectorVideo()
+    public QInspectorVideo(CGamma lGamma)
     {
+        QInspectorGamma = lGamma;
         QInspectorTone.QToneChanged += QInspectorVideoHandle;
-        QInspectorGamma.QGammaChanged += QInspectorVideoHandle;
+        QInspectorGamma.CGammaChanged += QInspectorVideoHandle;
         QInspectorExposure.QExposureChanged += QInspectorVideoHandle;
         QInspectorCurve.QCurveChanged += QInspectorVideoHandle;
         QInspectorWhitebalance.QWhitebalanceChanged += QInspectorVideoHandle;
@@ -32,7 +34,7 @@ public sealed class QInspectorVideo
 
     public QTone QInspectorTone { get; } = new();
 
-    public QGamma QInspectorGamma { get; } = new();
+    public CGamma QInspectorGamma { get; }
 
     public QExposure QInspectorExposure { get; } = new();
 
@@ -42,7 +44,7 @@ public sealed class QInspectorVideo
 
     public LWorkVideoStep QInspectorStepRead(LColorKind lKind) => lKind switch
     {
-        LColorKind.LColorKindGamma => QInspectorGamma.QGammaStep,
+        LColorKind.LColorKindGamma => QInspectorGammaBuild(),
         LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalanceStep,
         LColorKind.LColorKindExposure => QInspectorExposure.QExposureStep,
         LColorKind.LColorKindCurve => QInspectorCurve.QCurveStepRead(),
@@ -74,7 +76,7 @@ public sealed class QInspectorVideo
                 ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
             QInspectorTone.QToneStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindSaturation)
                 ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
-            QInspectorGamma.QGammaStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
+            QInspectorGammaAccept(QInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
                 ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
             QInspectorWhitebalance.QWhitebalanceStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindWhitebalance)
                 ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
@@ -94,7 +96,7 @@ public sealed class QInspectorVideo
 
     public bool QInspectorPersistentCheck(LColorKind lKind) => lKind switch
     {
-        LColorKind.LColorKindGamma => QInspectorGamma.QGammaPersistent,
+        LColorKind.LColorKindGamma => QInspectorGamma.CGammaPersistent,
         LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalancePersistent,
         LColorKind.LColorKindExposure => QInspectorExposure.QExposurePersistent,
         LColorKind.LColorKindCurve => QInspectorCurve.QCurvePersistent,
@@ -106,7 +108,7 @@ public sealed class QInspectorVideo
         switch (lKind)
         {
             case LColorKind.LColorKindGamma:
-                QInspectorGamma.QGammaPersistentSet(lPersistent);
+                QInspectorGamma.CGammaPersistentSet(lPersistent);
                 break;
             case LColorKind.LColorKindWhitebalance:
                 QInspectorWhitebalance.QWhitebalancePersistentSet(lPersistent);
@@ -145,6 +147,19 @@ public sealed class QInspectorVideo
 
         QInspectorVideoChanged?.Invoke();
     }
+
+    // The gamma gate holds plain values; the step is built from them and read back into them here.
+    private LWorkVideoStep QInspectorGammaBuild() =>
+        LWorkVideoStep.LWorkGammaCreate(
+            QInspectorGamma.CGammaActive,
+            QInspectorGamma.CGammaValues[0],
+            QInspectorGamma.CGammaValues[1],
+            QInspectorGamma.CGammaValues[2],
+            QInspectorGamma.CGammaValues[3],
+            QInspectorGamma.CGammaValues[4]);
+
+    private void QInspectorGammaAccept(LWorkVideoStep lStep) =>
+        QInspectorGamma.CGammaStepSet(lStep.LWorkStepActive, lStep.LWorkGammaRead().LWorkSlotRead());
 
     private static LWorkVideoStep? QInspectorStepFind(LWorkVideo lVideo, LColorKind lKind) =>
         lVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

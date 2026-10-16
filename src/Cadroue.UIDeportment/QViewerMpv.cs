@@ -112,9 +112,22 @@ public sealed class QViewerMpv
             return;
         }
 
-        qViewer.QViewerFilterUpdate();
-        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
-        qViewer.QViewerMedia.QViewerCommitApply();
+        // A refresh mpv rejects is recorded by the workspace as it spends the intent; the audio goes on as the
+        // player starts.
+        Exception? lRefreshException = null;
+        if (qViewer.QViewerFilterApply())
+        {
+            try
+            {
+                QPlayer.QPlayerUpdate();
+            }
+            catch (Exception lException)
+            {
+                lRefreshException = lException;
+            }
+        }
+
+        qViewer.QViewerMedia.QViewerCommitApply(lRefreshException);
     }
 
     private async Task QViewerMpvRebuild(

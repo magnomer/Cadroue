@@ -1,7 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
@@ -15,7 +14,8 @@ public sealed class QViewerMedia
     {
         qViewer = lOwner;
         QViewerLoupe = new QViewerLoupe(lOwner, this);
-        QViewerTeardown = new QViewerTeardown(lOwner, this, qViewerProbe.Dispose, LTraceLog.LTraceErrorRecord);
+        QViewerTeardown = new QViewerTeardown(
+            lOwner, this, qViewerProbe.Dispose, lOwner.QViewerTrace.CViewerStageRecord);
     }
 
     public event Action? QViewerPlayerCreated;
@@ -87,9 +87,7 @@ public sealed class QViewerMedia
         qViewer.QCrop.QCropHide();
         qViewer.QViewerPreviewApply();
 
-        LTraceLog.LTraceInfoRecord(string.IsNullOrWhiteSpace(lClosedPath)
-            ? "Media closed"
-            : $"Media closed '{System.IO.Path.GetFileName(lClosedPath)}' [{lClosedPath}]");
+        qViewer.QViewerTrace.CViewerClosedRecord(lClosedPath);
 
         qViewer.QViewerMediaRaise(new LCargo(string.Empty, null, false, false, null, null));
         return true;
@@ -112,8 +110,7 @@ public sealed class QViewerMedia
         QPlayer.QPlayerAccurateReset();
         qViewer.QViewerResumeSet(false);
         qViewer.QViewerPlaybackUpdate(false, null);
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer host detached: player {(QPlayer.QPlayerReady ? "released" : "none")}");
+        qViewer.QViewerTrace.CViewerDetachedRecord(QPlayer.QPlayerReady);
         QPlayer.QPlayerDispose();
     }
 
@@ -146,15 +143,8 @@ public sealed class QViewerMedia
             return Task.CompletedTask;
         }
 
-        if (lFresh)
-        {
-            qViewer.QViewerWorkspace.CWorkspaceStart(lSourcePath);
-        }
-
         qViewerProbe.LMediaLoadTail = !qViewer.QViewerMpvActive;
-        LTraceLog.LTraceInfoRecord(
-            $"Video load start serial={lSerial} '{System.IO.Path.GetFileName(lSourcePath)}'",
-            $"engine={qViewer.QViewerEngine}, probing (ffprobe)…");
+        qViewer.QViewerWorkspace.CWorkspaceLoadStart(lSourcePath, lFresh, lSerial, qViewer.QViewerEngine.ToString());
         return QViewerProbeRun(lSourcePath);
     }
 
@@ -162,14 +152,13 @@ public sealed class QViewerMedia
     {
         LMediaLoadOutcome lOutcome = await qViewerProbe.LMediaLoadStart(lSourcePath);
         int lSerial = qViewer.QViewerLoadSerial;
-        LTraceLog.LTraceInfoRecord(
-            $"Video probe outcome {lOutcome.LMediaLoadKind} '{System.IO.Path.GetFileName(lOutcome.LMediaLoadPath)}'",
-            lOutcome.LMediaLoadError);
-        if (qViewer.QViewerUnloaded || !qViewer.QViewerWorkspace.CWorkspaceIntentMatch(lOutcome.LMediaLoadPath))
+        if (!qViewer.QViewerWorkspace.CWorkspaceOutcomeMatch(
+                lOutcome.LMediaLoadKind.ToString(),
+                lOutcome.LMediaLoadPath,
+                lOutcome.LMediaLoadError,
+                lSerial,
+                qViewer.QViewerUnloaded))
         {
-            LTraceLog.LTraceInfoRecord(
-                "Video probe outcome discarded (stale/superseded): "
-                + $"serial={lSerial}, unloaded={qViewer.QViewerUnloaded}");
             return;
         }
 
@@ -247,9 +236,8 @@ public sealed class QViewerMedia
                 QPlayer.QPlayerDispose();
             }
 
-            LTraceLog.LTraceInfoRecord(
-                "Player open discarded (stale/superseded): "
-                + $"serial got={lSerial} now={qViewer.QViewerLoadSerial}, unloaded={qViewer.QViewerUnloaded}");
+            qViewer.QViewerTrace.CViewerDiscardedRecord(
+                lSerial, qViewer.QViewerLoadSerial, qViewer.QViewerUnloaded);
             return;
         }
 
@@ -270,18 +258,10 @@ public sealed class QViewerMedia
     {
         LMediaTrace.LMediaOpenRecord(lCargo, QPlayer.QPlayerReady);
         QPlayer.QPlayerAccurateReset();
-        if (lReused && QPlayer.QPlayerReady)
+        qViewer.QViewerTrace.CViewerPlayerRecord(lReused, QPlayer.QPlayerReady);
+        if (!QPlayer.QPlayerReady)
         {
-            LTraceLog.LTraceInfoRecord("Viewer player reused: same player kept on the host, no swap chain rebuild");
-        }
-        else
-        {
-            LTraceLog.LTraceInfoRecord(
-                $"Viewer player swapped: next {(QPlayer.QPlayerReady ? "ready" : "none")}");
-            if (!QPlayer.QPlayerReady)
-            {
-                QPlayer.QPlayerDispose();
-            }
+            QPlayer.QPlayerDispose();
         }
 
         QViewerHost.QViewerHostShow(QPlayer.QPlayerReady);
@@ -294,11 +274,10 @@ public sealed class QViewerMedia
         }
 
         LRotateFlip lRotate = qViewer.QViewerPreview.LRotateFlip;
-        LTraceLog.LTraceInfoRecord(
-            $"Viewer preview restored: rotate {lRotate.LRotateKind}, "
-            + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}");
+        qViewer.QViewerTrace.CViewerPreviewRecord(
+            lRotate.LRotateKind.ToString(), lRotate.LRotateFlipHorizontal, lRotate.LRotateFlipVertical);
         QPlayer.QPlayerPreviewApply(qViewer.QViewerPreview, "preview restored");
-        QViewerCommitApply();
+        QViewerCommitApply(null);
     }
 
     public void QViewerCargoApply(LCargo lCargo)
@@ -312,23 +291,29 @@ public sealed class QViewerMedia
         qViewer.QViewerMediaRaise(lCargo);
     }
 
-    // The player holds the committed media: the workspace spends its intent, and the autoplay
-    // preference, read at each commit, decides an intent that left the play state open.
-    public void QViewerCommitApply() =>
-        qViewer.QViewerWorkspace.CWorkspaceCommitApply(LPreference.LPreferenceStateCurrent.LPreferenceAutoplay);
+    // The player holds the committed media: the workspace records a preview refresh mpv rejected on the way and
+    // spends its intent, and the autoplay preference, read at each commit, decides an intent that left the play
+    // state open.
+    public void QViewerCommitApply(Exception? lRefreshException) =>
+        qViewer.QViewerWorkspace.CWorkspaceCommitApply(
+            LPreference.LPreferenceStateCurrent.LPreferenceAutoplay, lRefreshException);
 
-    // The workspace spent the committed intent: the player starts at its place, playing.
+    // The workspace spent the committed intent: the player starts at its place, playing, with the mpv audio
+    // filter applied first (nothing for Flyleaf).
     public void QViewerCommitPlay(TimeSpan lPosition)
     {
+        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
         QViewerCommitSeek(lPosition);
         QPlayer.QPlayerPlay();
         qViewer.QViewerPlaybackUpdate(true, lPosition);
         qViewer.QViewerPlayback.QViewerClockRun(true);
     }
 
-    // The workspace spent the committed intent: the player waits at its place, paused.
+    // The workspace spent the committed intent: the player waits at its place, paused, with the mpv audio filter
+    // applied first (nothing for Flyleaf).
     public void QViewerCommitPause(TimeSpan lPosition)
     {
+        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
         QViewerCommitSeek(lPosition);
         QPlayer.QPlayerPause();
         qViewer.QViewerPlaybackUpdate(false, lPosition);

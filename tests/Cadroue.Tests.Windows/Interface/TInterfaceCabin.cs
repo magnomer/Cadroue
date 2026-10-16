@@ -38,7 +38,7 @@ internal static partial class TInterface
         QConsoleScene.QConsoleNameCreate(baseName, names);
 
     internal static QEditTab TEditTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list);
     internal static QInspector TEditInspectorRead(QEditTab tab) => tab.QEditInspector;
     internal static QProcessing TEditProcessingRead(QEditTab tab) => tab.QEditProcessing;
     internal static void TEditClose(QEditTab tab) => tab.QEditClose();
@@ -81,7 +81,7 @@ internal static partial class TInterface
     }
 
     internal static QSplitTab TSplitTabCreate(LPresetSelection preset, QViewer viewer, QList list, QFlow flow) =>
-        new(preset, viewer, list, flow);
+        new(TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list, flow);
     internal static QInspector TSplitInspectorRead(QSplitTab tab) => tab.QSplitInspector;
     internal static QProcessing TSplitProcessingRead(QSplitTab tab) => tab.QSplitProcessing;
     internal static IReadOnlyList<QProcessingRow> TSplitRowsRead() => QSplitTab.QSplitRows;
@@ -179,7 +179,7 @@ internal static partial class TInterface
     }
 
     internal static QAudioTab TAudioTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list);
     internal static QInspector TAudioInspectorRead(QAudioTab tab) => tab.QAudioInspector;
     internal static QProcessing TAudioProcessingRead(QAudioTab tab) => tab.QAudioProcessing;
     internal static IReadOnlyList<QProcessingRow> TAudioRowsRead() => QAudioTab.QAudioRows;

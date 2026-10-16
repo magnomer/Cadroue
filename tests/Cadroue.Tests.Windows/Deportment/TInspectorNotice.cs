@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -39,7 +40,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void GammaSlot_ChangesOnlyThatSlot_ResetRaisesOnce()
     {
-        QGamma gamma = TInterface.TGammaCreate();
+        CGamma gamma = TInterface.TGammaCreate();
         int notices = 0;
         TInterface.TGammaAttach(gamma, () => notices++);
 

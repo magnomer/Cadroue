@@ -18,7 +18,6 @@ public sealed record QViewerEnginePlan(
 public sealed class QViewerRenderer
 {
     private readonly QViewer qViewer;
-    private bool qViewerOverlayShown;
 
     public QViewerRenderer(QViewer lOwner)
     {
@@ -33,29 +32,7 @@ public sealed class QViewerRenderer
 
     public bool QViewerOverlayHandle(bool lHostVisible, double lWidth, double lHeight)
     {
-        bool lShow = qViewer.QViewerMpvShown && lHostVisible && lWidth > 0 && lHeight > 0;
-        if (!lShow)
-        {
-            if (qViewerOverlayShown)
-            {
-                LTraceLog.LTraceInfoRecord(
-                    $"mpv overlay closed (host {(lHostVisible ? "visible" : "hidden")}, "
-                    + $"shown={qViewer.QViewerMpvShown}, size {lWidth:0}x{lHeight:0})");
-            }
-
-            qViewerOverlayShown = false;
-            return false;
-        }
-
-        if (!qViewerOverlayShown)
-        {
-            LTraceLog.LTraceInfoRecord(
-                "mpv overlay opened",
-                $"top-level transparent window over {lWidth:0}x{lHeight:0}");
-        }
-
-        qViewerOverlayShown = true;
-        return true;
+        return qViewer.QViewerTrace.CViewerOverlayCheck(lHostVisible, qViewer.QViewerMpvShown, lWidth, lHeight);
     }
 
     public QViewerEnginePlan QViewerEngineRead()

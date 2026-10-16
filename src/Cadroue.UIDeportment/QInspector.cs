@@ -1,5 +1,6 @@
 using System.Globalization;
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -49,8 +50,10 @@ public sealed class QInspector
     private string? qInspectorOwnerPath;
     private string? qInspectorFailurePath;
 
-    public QInspector()
+    public QInspector(CInspector lInspector)
     {
+        QInspectorGate = lInspector;
+        QInspectorVideo = new QInspectorVideo(QInspectorGate.CInspectorGamma);
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorRatio = new QInspectorRatio(this, QInspectorCrop);
@@ -74,7 +77,9 @@ public sealed class QInspector
 
     public QInspectorRatio QInspectorRatio { get; }
 
-    public QInspectorVideo QInspectorVideo { get; } = new();
+    public CInspector QInspectorGate { get; }
+
+    public QInspectorVideo QInspectorVideo { get; }
 
     public QSkip QInspectorSkip { get; } = new();
 
@@ -327,7 +332,7 @@ public sealed class QInspector
             QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindBrightness),
             QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindContrast),
             QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindSaturation),
-            QInspectorVideo.QInspectorGamma.QGammaPersistent,
+            QInspectorVideo.QInspectorGamma.CGammaPersistent,
             QInspectorVideo.QInspectorExposure.QExposurePersistent,
             QInspectorVideo.QInspectorCurve.QCurvePersistent,
             QInspectorVideo.QInspectorWhitebalance.QWhitebalancePersistent,

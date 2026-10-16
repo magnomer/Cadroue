@@ -46,7 +46,7 @@ internal static partial class TInterface
         CAtelier atelier = TAtelierCreate();
         QWorkspace workspace = new(
             key, atelier.CAtelierUsher, atelier.CAtelierInfo, atelier.CAtelierLineage,
-            atelier.CAtelierWorkspaceCreate());
+            atelier.CAtelierWorkspaceCreate(), atelier.CAtelierInspectorCreate());
         if (preset is not null)
         {
             workspace.QWorkspacePresetAccept(preset);
@@ -127,7 +127,7 @@ internal static partial class TInterface
     internal static QStripTab TStripKeyCreate(string key) =>
         new QStrip(
             TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate).QStripTabCreate(key);
+            TAtelierCreate().CAtelierWorkspaceCreate, TAtelierCreate().CAtelierInspectorCreate).QStripTabCreate(key);
     internal static string TStripKeyResolve(string key) => QStrip.QStripKeyResolve(key);
     internal static bool TStripCloseConfirm(QStrip strip, QStripTab? tab) =>
         strip.QStripClosure.QStripCloseConfirm(tab);

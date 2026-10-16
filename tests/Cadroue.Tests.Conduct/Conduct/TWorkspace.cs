@@ -17,7 +17,8 @@ public sealed class TWorkspace
         {
             tWorkspaceHeard.Add($"{kind}:{position.TotalSeconds}");
         }
-        tWorkspaceArea = new CAtelier(new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort())
+        tWorkspaceArea = new CAtelier(
+                new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort(), new TViewerPort())
             .CAtelierWorkspaceCreate();
         tWorkspaceArea.CWorkspaceOpened += path => tWorkspaceHeard.Add("open:" + path);
         tWorkspaceArea.CWorkspacePlayed += () => tWorkspaceHeard.Add("play");
@@ -32,7 +33,8 @@ public sealed class TWorkspace
     [Fact]
     public void AtelierWorkspaceCreate_EachCall_GivesItsOwnWorkspace()
     {
-        CAtelier atelier = new(new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort());
+        CAtelier atelier = new(
+            new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort(), new TViewerPort());
 
         Assert.NotSame(atelier.CAtelierWorkspaceCreate(), atelier.CAtelierWorkspaceCreate());
     }
@@ -211,8 +213,8 @@ public sealed class TWorkspace
         tWorkspaceHeard.Clear();
 
         tWorkspaceArea.CWorkspaceMediaSet("full:a", true);
-        tWorkspaceArea.CWorkspaceCommitApply(true);
-        tWorkspaceArea.CWorkspaceCommitApply(true);
+        tWorkspaceArea.CWorkspaceCommitApply(true, null);
+        tWorkspaceArea.CWorkspaceCommitApply(true, null);
 
         Assert.Null(tWorkspaceArea.CWorkspaceIntent);
         Assert.Equal(["commit-pause:3", "commit-play:0"], tWorkspaceHeard);

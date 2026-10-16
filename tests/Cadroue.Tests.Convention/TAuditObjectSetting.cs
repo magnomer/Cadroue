@@ -92,7 +92,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.UIVeneer.PSFader"] = 2,
         ["Cadroue.UIVeneer.PSOptions"] = 9,
         ["Cadroue.UIVeneer.PWing.PExport"] = 10,
-        ["Cadroue.UIVeneer.PWing.PInspector"] = 25,
+        ["Cadroue.UIVeneer.PWing.PInspector"] = 24,
         ["Cadroue.UIVeneer.PWing.PSEncoder"] = 17,
         ["Cadroue.UIVeneer.PWing.PSMonitor"] = 2,
     };

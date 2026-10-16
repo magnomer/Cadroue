@@ -17,30 +17,20 @@ internal static class QSashScreen
         Matrix lToDevice = (PresentationSource.FromVisual(lWindow) as HwndSource)!.CompositionTarget.TransformToDevice;
         Point lTopLeft = lToDevice.Transform(new Point(lBounds.QSashLeft, lBounds.QSashTop));
         Point lBottomRight = lToDevice.Transform(new Point(lBounds.QSashRight, lBounds.QSashBottom));
-        var lNativeBounds = new QSashRect
-        {
-            QSashLeft = (int)Math.Floor(lTopLeft.X),
-            QSashTop = (int)Math.Floor(lTopLeft.Y),
-            QSashRight = (int)Math.Ceiling(lBottomRight.X),
-            QSashBottom = (int)Math.Ceiling(lBottomRight.Y)
-        };
-        IntPtr lMonitor = MonitorFromRect(ref lNativeBounds, QSashScreenNearest);
-        if (lMonitor == IntPtr.Zero)
-        {
-            lMonitor = MonitorFromWindow(new WindowInteropHelper(lWindow).Handle, QSashScreenNearest);
-        }
-
-        var lMonitorInfo = new QSashMonitor { QSashSize = Marshal.SizeOf<QSashMonitor>() };
-        if (lMonitor == IntPtr.Zero || !GetMonitorInfo(lMonitor, ref lMonitorInfo))
+        QSashBounds lNear = QSashBounds.QSashCornersCreate(
+            Math.Floor(lTopLeft.X),
+            Math.Floor(lTopLeft.Y),
+            Math.Ceiling(lBottomRight.X),
+            Math.Ceiling(lBottomRight.Y));
+        if (!QSashScreenFind(new WindowInteropHelper(lWindow).Handle, lNear, out _, out QSashBounds lWork))
         {
             Rect lWorkArea = SystemParameters.WorkArea;
             return new QSashBounds(lWorkArea.Left, lWorkArea.Top, lWorkArea.Width, lWorkArea.Height);
         }
 
-        Point lWorkTopLeft = QSashPointer.QSashPointerResolve(
-            lWindow, new Point(lMonitorInfo.QSashWork.QSashLeft, lMonitorInfo.QSashWork.QSashTop));
+        Point lWorkTopLeft = QSashPointer.QSashPointerResolve(lWindow, new Point(lWork.QSashLeft, lWork.QSashTop));
         Point lWorkBottomRight = QSashPointer.QSashPointerResolve(
-            lWindow, new Point(lMonitorInfo.QSashWork.QSashRight, lMonitorInfo.QSashWork.QSashBottom));
+            lWindow, new Point(lWork.QSashRight, lWork.QSashBottom));
         return QSashBounds.QSashCornersCreate(
             lWorkTopLeft.X,
             lWorkTopLeft.Y,
@@ -48,10 +38,32 @@ internal static class QSashScreen
             lWorkBottomRight.Y);
     }
 
-    // Both areas are in device pixels; false when no monitor answers.
-    internal static bool QSashScreenFind(IntPtr lWindowHandle, out QSashBounds lArea, out QSashBounds lWork)
+    // The monitor nearest the device-pixel bounds when given, else the one nearest the window. Both areas are in
+    // device pixels; false when no monitor answers.
+    internal static bool QSashScreenFind(
+        IntPtr lWindowHandle,
+        QSashBounds? lNear,
+        out QSashBounds lArea,
+        out QSashBounds lWork)
     {
-        IntPtr lMonitor = MonitorFromWindow(lWindowHandle, QSashScreenNearest);
+        IntPtr lMonitor = IntPtr.Zero;
+        if (lNear is QSashBounds lBounds)
+        {
+            var lNativeBounds = new QSashRect
+            {
+                QSashLeft = (int)lBounds.QSashLeft,
+                QSashTop = (int)lBounds.QSashTop,
+                QSashRight = (int)lBounds.QSashRight,
+                QSashBottom = (int)lBounds.QSashBottom
+            };
+            lMonitor = MonitorFromRect(ref lNativeBounds, QSashScreenNearest);
+        }
+
+        if (lMonitor == IntPtr.Zero)
+        {
+            lMonitor = MonitorFromWindow(lWindowHandle, QSashScreenNearest);
+        }
+
         var lMonitorInfo = new QSashMonitor { QSashSize = Marshal.SizeOf<QSashMonitor>() };
         if (lMonitor == IntPtr.Zero || !GetMonitorInfo(lMonitor, ref lMonitorInfo))
         {

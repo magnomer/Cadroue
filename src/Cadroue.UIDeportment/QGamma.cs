@@ -1,97 +1,110 @@
-using Cadroue.Core;
+using System.Windows.Controls;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The gamma tool's wiring: fills fresh PGamma copies, hands every input to the gate and shows the gate's state.
 public sealed class QGamma
 {
-    private static readonly double[] qGammaLeast = { -100, -100, -100, -100, 0 };
+    private const string QGammaSheet = "PGamma";
 
-    private LWorkVideoStep qGammaStep = LWorkVideoStep.LWorkGammaCreate(false, 0);
-    private bool qGammaPersistent;
-    private bool qGammaCapable;
-    private bool qGammaPreview;
+    private const string QGammaPersistentSheet = "PGammaPersistent";
 
-    public event Action? QGammaChanged;
+    private const string QGammaActivePart = "PGammaActive";
 
-    public LWorkVideoStep QGammaStep => qGammaStep;
+    private const string QGammaStackPart = "PGammaStack";
 
-    public LWorkGammaSettings QGammaValue => qGammaStep.LWorkGammaRead();
+    private const string QGammaDefaultPart = "PGammaDefault";
 
-    public bool QGammaPersistent => qGammaPersistent;
+    private const double QGammaMost = 100;
 
-    public bool QGammaCapable => qGammaCapable;
+    private const double QGammaOrigin = 0;
 
-    public bool QGammaPreview => qGammaPreview;
+    private const string QGammaPattern = "0.#";
 
-    public double QGammaLeastRead(int lIndex) => qGammaLeast[lIndex];
-
-    public double QGammaValueRead(int lIndex) => lIndex switch
+    private static readonly string[] qGammaLabelKeys =
     {
-        1 => QGammaValue.LWorkGammaRed,
-        2 => QGammaValue.LWorkGammaGreen,
-        3 => QGammaValue.LWorkGammaBlue,
-        4 => QGammaValue.LWorkGammaHighlight,
-        _ => QGammaValue.LWorkGammaGlobal
+        "Inspector.Video.Midtone",
+        "Inspector.Video.RedGamma",
+        "Inspector.Video.GreenGamma",
+        "Inspector.Video.BlueGamma",
+        "Inspector.Video.HighlightProtection"
     };
 
-    public void QGammaStepSet(LWorkVideoStep lStep)
-    {
-        LWorkGammaSettings lValue = lStep.LWorkGammaRead();
-        LWorkVideoStep lNormal = LWorkVideoStep.LWorkGammaCreate(
-            lStep.LWorkStepActive,
-            lValue.LWorkGammaGlobal,
-            lValue.LWorkGammaRed,
-            lValue.LWorkGammaGreen,
-            lValue.LWorkGammaBlue,
-            lValue.LWorkGammaHighlight);
-        if (qGammaStep == lNormal)
-        {
-            return;
-        }
+    private static readonly string[] qGammaUnits = { "", "", "", "", "%" };
 
-        qGammaStep = lNormal;
-        QGammaChanged?.Invoke();
+    private readonly QInspector qGammaInspector;
+    private readonly CGamma qGammaGate;
+    private readonly CheckBox qGammaActive;
+    private readonly StackPanel qGammaStack;
+    private readonly Grid[] qGammaFields = new Grid[5];
+    private readonly List<int> qGammaSlots = [0, 1, 2, 3, 4];
+
+    public QGamma(QInspector lInspector)
+    {
+        qGammaInspector = lInspector;
+        qGammaGate = lInspector.QInspectorVideo.QInspectorGamma;
+        QGammaBody = QContract.QContractSheetFind<StackPanel>(QGammaSheet);
+        QGammaPersistent = QContract.QContractSheetFind<CheckBox>(QGammaPersistentSheet);
+        qGammaActive = QContract.QContractFind<CheckBox>(QGammaBody, QGammaActivePart);
+        qGammaStack = QContract.QContractFind<StackPanel>(QGammaBody, QGammaStackPart);
+
+        qGammaActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qGammaActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyGamma");
+        QGammaPersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QGammaPersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistGamma");
+        QTool.QToolSwitchAttach(qGammaActive, qGammaGate.CGammaActiveSet);
+        QTool.QToolSwitchAttach(QGammaPersistent, qGammaGate.CGammaPersistentSet);
+        qGammaSlots.ForEach(QGammaFieldBuild);
+
+        Button lDefault = QContract.QContractFind<Button>(QGammaBody, QGammaDefaultPart);
+        lDefault.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaReset");
+        lDefault.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaResetTooltip");
+        lDefault.Click += (_, _) => qGammaGate.CGammaReset();
+        QButton.QButtonAttach(lDefault, QButtonLook.QButtonLookPanel);
+
+        qGammaGate.CGammaChanged += QGammaUpdate;
+        QGammaUpdate();
     }
 
-    public void QGammaActiveSet(bool lActive) =>
-        QGammaStepSet(qGammaStep with { LWorkStepActive = lActive });
+    public StackPanel QGammaBody { get; }
 
-    public void QGammaValueSet(int lIndex, double lValue)
+    public CheckBox QGammaPersistent { get; }
+
+    private void QGammaFieldBuild(int lSlot)
     {
-        LWorkGammaSettings lCurrent = QGammaValue;
-        QGammaStepSet(LWorkVideoStep.LWorkGammaCreate(
-            qGammaStep.LWorkStepActive,
-            lIndex == 0 ? lValue : lCurrent.LWorkGammaGlobal,
-            lIndex == 1 ? lValue : lCurrent.LWorkGammaRed,
-            lIndex == 2 ? lValue : lCurrent.LWorkGammaGreen,
-            lIndex == 3 ? lValue : lCurrent.LWorkGammaBlue,
-            lIndex == 4 ? lValue : lCurrent.LWorkGammaHighlight));
+        double lLeast = qGammaGate.CGammaLeasts[lSlot];
+        qGammaFields[lSlot] = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead(qGammaLabelKeys[lSlot]),
+            qGammaUnits[lSlot],
+            lLeast,
+            QGammaMost,
+            QGammaOrigin);
+        QField.QFieldAttach(
+            qGammaFields[lSlot],
+            lLeast,
+            QGammaMost,
+            () => qGammaGate.CGammaValues[lSlot],
+            lNumber => qGammaGate.CGammaValueSet(lSlot, lNumber));
+        qGammaStack.Children.Insert(lSlot, qGammaFields[lSlot]);
     }
 
-    public void QGammaReset() =>
-        QGammaStepSet(LWorkVideoStep.LWorkGammaCreate(qGammaStep.LWorkStepActive, 0));
+    private void QGammaFieldUpdate(int lSlot) =>
+        QField.QFieldUpdate(qGammaFields[lSlot], qGammaGate.CGammaValues[lSlot], QGammaPattern);
 
-    public void QGammaPersistentSet(bool lPersistent)
+    private void QGammaUpdate()
     {
-        if (qGammaPersistent == lPersistent)
-        {
-            return;
-        }
-
-        qGammaPersistent = lPersistent;
-        QGammaChanged?.Invoke();
-    }
-
-    public void QGammaCapableSet(bool lCapable, bool lPreview)
-    {
-        bool lPreviewShown = lCapable && lPreview;
-        if (qGammaCapable == lCapable && qGammaPreview == lPreviewShown)
-        {
-            return;
-        }
-
-        qGammaCapable = lCapable;
-        qGammaPreview = lPreviewShown;
-        QGammaChanged?.Invoke();
+        QTool.QToolSwitchUpdate(qGammaActive, qGammaGate.CGammaActive);
+        QTool.QToolSwitchUpdate(QGammaPersistent, qGammaGate.CGammaPersistent);
+        qGammaSlots.ForEach(QGammaFieldUpdate);
+        QInspectorTip lTip = qGammaInspector.QInspectorTipResolve(
+            qGammaGate.CGammaActive,
+            qGammaGate.CGammaCapable,
+            qGammaGate.CGammaPreview,
+            "Inspector.Video.GammaRequiresEq",
+            "Inspector.Video.GammaPreviewMpv",
+            "Inspector.Video.ApplyGamma",
+            "Inspector.Video.PersistGamma");
+        QTool.QToolTipApply(qGammaActive, QGammaPersistent, qGammaStack, QGammaBody, lTip);
     }
 }

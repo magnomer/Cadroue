@@ -11,11 +11,17 @@ public sealed class QStripTab : INotifyPropertyChanged
     private const string QStripMergeKey = "Merge";
     private const string QStripWorklistKey = "Worklist";
 
-    public QStripTab(string lKey, CUsher lUsher, CInfo lInfo, CLineage lLineage, CWorkspace lWorkspace)
+    public QStripTab(
+        string lKey,
+        CUsher lUsher,
+        CInfo lInfo,
+        CLineage lLineage,
+        CWorkspace lWorkspace,
+        CInspector lInspector)
     {
         QStripTabId = Guid.NewGuid();
         QStripTabKey = lKey;
-        QStripTabWorkspace = new QWorkspace(lKey, lUsher, lInfo, lLineage, lWorkspace);
+        QStripTabWorkspace = new QWorkspace(lKey, lUsher, lInfo, lLineage, lWorkspace, lInspector);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

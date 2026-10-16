@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.ShellEngine;
 
@@ -22,8 +23,9 @@ public sealed class QSplitTab
     private readonly LDocket qSplitDocket;
     private readonly QFlow qSplitFlow;
 
-    public QSplitTab(LPresetSelection lPreset, QViewer lViewer, QList lList, QFlow lFlow)
+    public QSplitTab(CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList, QFlow lFlow)
     {
+        QSplitInspector = new QInspector(lInspector);
         qSplitPreset = lPreset;
         qSplitViewer = lViewer;
         qSplitList = lList;
@@ -47,7 +49,7 @@ public sealed class QSplitTab
 
     public event Action? QSplitPresetMissing;
 
-    public QInspector QSplitInspector { get; } = new();
+    public QInspector QSplitInspector { get; }
 
     public QProcessing QSplitProcessing { get; } = new();
 

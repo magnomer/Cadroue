@@ -13,7 +13,8 @@ public sealed class TPlacementGate
 
     public TPlacementGate()
     {
-        tPlacementArea = new CAtelier(new TUsherPort(), new TLineagePort(), new TWorkspacePort(), tPlacementPort)
+        tPlacementArea = new CAtelier(
+                new TUsherPort(), new TLineagePort(), new TWorkspacePort(), tPlacementPort, new TViewerPort())
             .CAtelierPlacement;
     }
 

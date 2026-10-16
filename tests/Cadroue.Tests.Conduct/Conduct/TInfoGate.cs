@@ -9,7 +9,8 @@ public sealed class TInfoGate
 
     public TInfoGate()
     {
-        tInfoArea = new CAtelier(new TUsherPort(), new TLineagePort(), new TWorkspacePort(), new TPlacementPort())
+        tInfoArea = new CAtelier(
+                new TUsherPort(), new TLineagePort(), new TWorkspacePort(), new TPlacementPort(), new TViewerPort())
             .CAtelierInfo;
     }
 

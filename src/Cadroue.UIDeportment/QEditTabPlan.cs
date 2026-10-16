@@ -74,9 +74,11 @@ public sealed class QEditTabPlan
             ? LEdit.LEditPlanRead(lSourcePath, LLibrarian.LLibrarianEditLoad)
             : null;
 
-    public void QEditStateSave() => QEditStateSave(QEditStateRead());
+    public void QEditStateSave() => QEditStateSave(QEditStateRead(), qEditUsher.CUsherNameRead);
 
-    public void QEditStateSave(LEditPlan lPlan)
+    // The plan is saved for the held source; the name is read only for a plan that is written, so a caller that
+    // already holds the source's name hands it in rather than asking the usher again.
+    public void QEditStateSave(LEditPlan lPlan, Func<string, string> lNameRead)
     {
         if (qEditInspector.QInspectorSaveSuspended
             || qEditViewer.QViewerWorkspace.CWorkspaceSource is not { } lSourcePath
@@ -90,7 +92,7 @@ public sealed class QEditTabPlan
             return;
         }
 
-        string lName = qEditUsher.CUsherNameRead(lSourcePath);
+        string lName = lNameRead(lSourcePath);
         string lSummary = QEditPlanFormat(lPlan);
         if (!LEdit.LEditPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianEditSave))
         {

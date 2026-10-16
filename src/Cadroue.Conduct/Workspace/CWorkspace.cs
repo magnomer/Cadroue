@@ -19,11 +19,16 @@ public sealed class CWorkspace
     // The intent the last commit consumed, spent once when the player takes the committed media.
     private CWorkspaceIntent? _cWorkspaceCommitIntent;
 
-    internal CWorkspace(LWorkspacePort port)
+    internal CWorkspace(LWorkspacePort port, CViewer viewer)
     {
         ArgumentNullException.ThrowIfNull(port);
+        ArgumentNullException.ThrowIfNull(viewer);
         _cWorkspacePort = port;
+        CWorkspaceViewer = viewer;
     }
+
+    // The viewer's trace gate, built with this workspace; the workspace writes its rejects through it.
+    public CViewer CWorkspaceViewer { get; }
 
     // A path asked and not held: the drivers open it.
     public event Action<string>? CWorkspaceOpened;
@@ -63,10 +68,16 @@ public sealed class CWorkspace
         CWorkspaceMedia = present;
     }
 
-    // The player takes the committed media: the intent its commit consumed is raised once, at its place
-    // and play state, or at the start with the given default play state when none was pending.
-    public void CWorkspaceCommitApply(bool autoplay)
+    // The player takes the committed media: a preview refresh the player rejected on the way is recorded first,
+    // then the intent its commit consumed is raised once, at its place and play state, or at the start with the
+    // given default play state when none was pending.
+    public void CWorkspaceCommitApply(bool autoplay, Exception? refresh)
     {
+        if (refresh is not null)
+        {
+            CWorkspaceViewer.CViewerRefreshRecord(refresh);
+        }
+
         CWorkspaceIntent? committed = _cWorkspaceCommitIntent;
         _cWorkspaceCommitIntent = null;
         TimeSpan position = committed?.CWorkspaceIntentPosition ?? TimeSpan.Zero;
@@ -193,5 +204,54 @@ public sealed class CWorkspace
         ArgumentNullException.ThrowIfNull(kept);
         return _cWorkspacePort.LWorkspaceClearRead(
             kept, CWorkspaceSource, CWorkspaceIntent?.CWorkspaceIntentPath, CWorkspaceLoaded);
+    }
+
+    // A probe outcome is traced as it arrives; it lands only while the viewer is loaded and its path is still
+    // pending, and a discarded one is traced too.
+    public bool CWorkspaceOutcomeMatch(string kind, string path, string? error, int serial, bool unloaded)
+    {
+        CWorkspaceViewer.CViewerProbeRecord(kind, path, error);
+        if (!unloaded && CWorkspaceIntentMatch(path))
+        {
+            return true;
+        }
+
+        CWorkspaceViewer.CViewerSupersededRecord(serial, unloaded);
+        return false;
+    }
+
+    // An open request is traced as it arrives; it is taken only while the viewer's command is active and its path
+    // is set, and a refused one is traced too. A taken request is held as asked, then the driver's resolve turns a
+    // sidecar into its media; an unresolved one is traced. The answer is the path to load, or null.
+    public string? CWorkspaceRequestResolve(
+        string path, bool active, bool unloaded, string engine, Func<string, string?> resolve)
+    {
+        ArgumentNullException.ThrowIfNull(resolve);
+        CWorkspaceViewer.CViewerRequestedRecord(path, active, unloaded, engine);
+        if (!active || string.IsNullOrWhiteSpace(path))
+        {
+            CWorkspaceViewer.CViewerRefusedRecord(active);
+            return null;
+        }
+
+        CWorkspaceRequestSet(path);
+        if (resolve(path) is { } resolved)
+        {
+            return resolved;
+        }
+
+        CWorkspaceViewer.CViewerUnresolvedRecord();
+        return null;
+    }
+
+    // A load starts: a fresh one replaces the pending intent, a restore keeps it; each start is traced.
+    public void CWorkspaceLoadStart(string path, bool fresh, int serial, string engine)
+    {
+        if (fresh)
+        {
+            CWorkspaceStart(path);
+        }
+
+        CWorkspaceViewer.CViewerLoadRecord(serial, path, engine);
     }
 }

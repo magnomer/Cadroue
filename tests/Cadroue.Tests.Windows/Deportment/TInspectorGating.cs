@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -40,14 +41,14 @@ public sealed class TInspectorGating
     [Fact]
     public void Capable_Off_TurnsPreviewOff()
     {
-        QGamma gamma = TInterface.TGammaCreate();
+        CGamma gamma = TInterface.TGammaCreate();
 
         TInterface.TGammaCapableSet(gamma, true, true);
         Assert.True(TInterface.TGammaPreviewRead(gamma));
 
         TInterface.TGammaCapableSet(gamma, false, true);
 
-        Assert.False(gamma.QGammaCapable);
+        Assert.False(gamma.CGammaCapable);
         Assert.False(TInterface.TGammaPreviewRead(gamma));
     }
 

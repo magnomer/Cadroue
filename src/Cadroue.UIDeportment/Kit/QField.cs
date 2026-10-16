@@ -1,0 +1,76 @@
+using System.Windows.Controls;
+using System.Windows.Input;
+
+namespace Cadroue.UIDeportment;
+
+// An inspector field row from a fresh PField copy: label, slider, unit and number box, with their commits.
+public static class QField
+{
+    private const string QFieldSheet = "PField";
+
+    private const string QFieldLabelPart = "PFieldLabel";
+
+    private const string QFieldSliderPart = "PFieldSlider";
+
+    private const string QFieldUnitPart = "PFieldUnit";
+
+    private const string QFieldValuePart = "PFieldValue";
+
+    private static readonly IReadOnlyDictionary<Key, bool> qFieldHandled = new Dictionary<Key, bool>
+    {
+        [Key.Enter] = true,
+    };
+
+    public static Grid QFieldBuild(string lLabel, string lUnit, double lLeast, double lMost, double lOrigin)
+    {
+        Grid lField = QContract.QContractSheetFind<Grid>(QFieldSheet);
+        QContract.QContractFind<TextBlock>(lField, QFieldLabelPart).Text = lLabel;
+        QContract.QContractFind<TextBlock>(lField, QFieldUnitPart).Text = lUnit;
+
+        Slider lSlider = QContract.QContractFind<Slider>(lField, QFieldSliderPart);
+        lSlider.Minimum = lLeast;
+        lSlider.Maximum = lMost;
+        lSlider.Value = lOrigin;
+        QSlider.QSliderAttach(lSlider);
+        QSlider.QSliderResetAttach(lSlider, () => lOrigin);
+
+        TextBox lValue = QContract.QContractFind<TextBox>(lField, QFieldValuePart);
+        QTextbox.QTextboxAttach(lValue);
+        lValue.PreviewTextInput += (_, lEvent) => lEvent.Handled = !QInspector.QInspectorDecimalCheck(lEvent.Text);
+        return lField;
+    }
+
+    public static void QFieldAttach(
+        Grid lField, double? lLeast, double? lMost, Func<double> lRead, Action<double> lSet)
+    {
+        Slider lSlider = QContract.QContractFind<Slider>(lField, QFieldSliderPart);
+        TextBox lValue = QContract.QContractFind<TextBox>(lField, QFieldValuePart);
+        var lValueKeys = new Dictionary<Key, Action>
+        {
+            [Key.Enter] = () => QFieldCommit(lValue, lLeast, lMost, lRead, lSet),
+        };
+        lSlider.ValueChanged += (_, _) =>
+            QInspector.QInspectorSlideCommit(lSlider.Value, lRead(), lSlider.Minimum, lSlider.Maximum, lSet);
+        lValue.LostFocus += (_, _) => QFieldCommit(lValue, lLeast, lMost, lRead, lSet);
+        lValue.KeyDown += (_, lKeyEvent) =>
+        {
+            lValueKeys.GetValueOrDefault(lKeyEvent.Key)?.Invoke();
+            lKeyEvent.Handled = qFieldHandled.GetValueOrDefault(lKeyEvent.Key);
+        };
+    }
+
+    public static void QFieldUpdate(Grid lField, double lNumber, string lFormat)
+    {
+        Slider lSlider = QContract.QContractFind<Slider>(lField, QFieldSliderPart);
+        TextBox lValue = QContract.QContractFind<TextBox>(lField, QFieldValuePart);
+        lSlider.Value = Math.Clamp(lNumber, lSlider.Minimum, lSlider.Maximum);
+        lValue.Text = QInspector.QInspectorValueFormat(lValue.Text, lNumber, lFormat);
+    }
+
+    private static void QFieldCommit(
+        TextBox lValue, double? lLeast, double? lMost, Func<double> lRead, Action<double> lSet)
+    {
+        lSet(QInspector.QInspectorValueCommit(lValue.Text, lRead(), lLeast, lMost));
+        lValue.CaretIndex = lValue.Text.Length;
+    }
+}

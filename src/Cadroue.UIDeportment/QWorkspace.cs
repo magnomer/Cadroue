@@ -16,7 +16,13 @@ public sealed class QWorkspace
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
 
-    public QWorkspace(string lKey, CUsher lUsher, CInfo lInfo, CLineage lLineage, CWorkspace lWorkspace)
+    public QWorkspace(
+        string lKey,
+        CUsher lUsher,
+        CInfo lInfo,
+        CLineage lLineage,
+        CWorkspace lWorkspace,
+        CInspector lInspector)
     {
         qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
@@ -31,7 +37,7 @@ public sealed class QWorkspace
         QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
         QWorkspacePresetAccept(QWorkspacePreset);
         QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
-        QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher,
+        QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher, lInspector,
             QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
         QWorkspaceRelay = new QWorkspaceRelay(this);
     }
