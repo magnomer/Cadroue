@@ -55,7 +55,7 @@ public sealed partial class PInspector
         Height = PInspectorFieldHeight,
         Padding = new Thickness(7, 0, 7, 0),
         Background = new SolidColorBrush(Color.FromRgb(0xF7, 0xF9, 0xFC)),
-        BorderBrush = PPanelLineBrush,
+        BorderBrush = QPanel.QPanelLineRead(),
         BorderThickness = new Thickness(1),
         CornerRadius = new CornerRadius(8),
         HorizontalAlignment = HorizontalAlignment.Center,

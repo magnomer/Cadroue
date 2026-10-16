@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace Cadroue.UIDeportment;
 
@@ -10,6 +11,39 @@ public static class QMenu
     private const string QMenuBelowStyle = "PMenuBelow";
 
     private const string QMenuAboveStyle = "PMenuAbove";
+
+    private const string QMenuItemStyle = "PMenuItem";
+
+    private const string QMenuItemIcon = "PMenuItemIcon";
+
+    private const string QMenuInkSheet = "PMenuInk";
+
+    public static ImageSource QMenuIconRead(string lPath)
+        => QIcon.QIconRead(lPath, QContract.QContractSheetFind<Brush>(QMenuInkSheet));
+
+    public static MenuItem QMenuItemBuild(string lText) => QMenuItemBuild(lText, null);
+
+    public static MenuItem QMenuItemBuild(string lText, ImageSource? lIcon)
+    {
+        MenuItem lItem = new()
+        {
+            Header = lText,
+            Style = QContract.QContractSheetFind<Style>(QMenuItemStyle),
+        };
+        if (lIcon is not null)
+        {
+            Image lImage = QContract.QContractSheetFind<Image>(QMenuItemIcon);
+            lImage.Source = lIcon;
+            lItem.Icon = lImage;
+        }
+
+        lItem.AddHandler(
+            MenuItem.ClickEvent,
+            new RoutedEventHandler(QInteractionClick.QInteractionClickHandle),
+            handledEventsToo: true);
+        QLook.QLookAttach(lItem, QMenuItemStyle);
+        return lItem;
+    }
 
     public static ContextMenu QMenuBuild() => new()
     {

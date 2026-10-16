@@ -234,7 +234,7 @@ public sealed class PAction : UserControl
     private void PActionFaceUpdate()
     {
         pActionRelayLabel.Text = QAction.QActionFaceText;
-        pActionRelayIcon.Source = PTabIcon.PTabIconFind(QAction.QActionFaceIcon);
+        pActionRelayIcon.Source = QStripIcon.QStripIconFind(QAction.QActionFaceIcon);
         pActionRelayIcon.Visibility = PLook.PLookVisible[QAction.QActionFaceShown];
     }
 
@@ -248,9 +248,9 @@ public sealed class PAction : UserControl
 
     private void PActionRowAppend(ContextMenu pRelayMenu, QActionOption lOption)
     {
-        MenuItem pRelayItem = PMenu.PMenuItemCreate(
+        MenuItem pRelayItem = QMenu.QMenuItemBuild(
             lOption.QActionOptionTitle,
-            PTabIcon.PTabIconFind(lOption.QActionOptionKey));
+            QStripIcon.QStripIconFind(lOption.QActionOptionKey));
         pRelayItem.Click += (_, _) => QAction.QActionRelaySelect(lOption.QActionOptionId);
         pRelayMenu.Items.Add(pRelayItem);
     }

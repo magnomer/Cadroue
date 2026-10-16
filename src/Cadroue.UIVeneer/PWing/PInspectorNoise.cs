@@ -41,7 +41,7 @@ public sealed partial class PInspector
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Noise.TrackTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 8, 0, 0)
         };

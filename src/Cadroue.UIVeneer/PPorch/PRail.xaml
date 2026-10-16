@@ -1,13 +1,12 @@
 <UserControl x:Class="Cadroue.UIVeneer.PPorch.PRail"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:pToolbar="clr-namespace:Cadroue.UIVeneer.PPorch"
              xmlns:lDeportment="clr-namespace:Cadroue.UIDeportment;assembly=Cadroue.UIDeportment"
              SnapsToDevicePixels="True"
              UseLayoutRounding="True">
     <UserControl.Resources>
-        <pToolbar:PTabIcon x:Key="pTabIcon" />
-        <pToolbar:PTabIcon x:Key="pTabIconActive" PTabIconActive="True" />
+        <lDeportment:QStripImage x:Key="pTabIcon" />
+        <lDeportment:QStripImage x:Key="pTabIconActive" QStripImageActive="True" />
         <Style x:Key="pTabTextStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
             <Setter Property="Foreground" Value="#2B3443" />

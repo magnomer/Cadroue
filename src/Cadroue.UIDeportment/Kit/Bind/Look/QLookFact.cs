@@ -21,6 +21,7 @@ internal static class QLookFact
                 QLookCue.QLookCueExpanded)
             | QLookFactSelect(lElement is ListBoxItem { IsSelected: true }, QLookCue.QLookCueSelected)
             | QLookFactSelect(lElement is ButtonBase { IsPressed: true }, QLookCue.QLookCuePressed)
+            | QLookFactSelect(lElement is MenuItem { IsHighlighted: true }, QLookCue.QLookCueHighlighted)
             | QLookFactSelect(
                 lElement is not ButtonBase && lElement.IsMouseOver && Mouse.LeftButton == MouseButtonState.Pressed,
                 QLookCue.QLookCuePressed);

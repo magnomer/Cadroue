@@ -53,7 +53,7 @@ public sealed partial class PInspector
         {
             Height = 160,
             Margin = new Thickness(0, 0, 0, 8),
-            BorderBrush = PPanelLineBrush,
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(1),
             Background = new SolidColorBrush(Color.FromRgb(0xF6, 0xF8, 0xFA)),
             Child = PCurveCanvasBuild()

@@ -8,7 +8,7 @@ using Microsoft.Win32;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PList : PPanel
+public sealed class PList : UserControl
 {
     private const double PListActionGap = 16;
 
@@ -30,8 +30,9 @@ public sealed class PList : PPanel
 
     public QList QList { get; }
 
-    public PList(QList lList) : base("")
+    public PList(QList lList)
     {
+        QPanel.QPanelAttach(this);
         QList = lList;
         pListRowPanel = new StackPanel();
 
@@ -78,7 +79,7 @@ public sealed class PList : PPanel
         FocusVisualStyle = null;
         Focusable = true;
         KeyDown += PListKeyHandle;
-        Content = PPanelBorderBuild(pBodyHost);
+        Content = QPanel.QPanelBuild(pBodyHost);
         QList.QListChanged += PListRowsRebuild;
         QList.QListPathChanged += PListSelectionUpdate;
         QList.QListMinimizeChanged += PListMinimizeHandle;

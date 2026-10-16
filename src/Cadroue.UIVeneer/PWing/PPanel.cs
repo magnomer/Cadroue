@@ -2,21 +2,17 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
 public class PPanel : UserControl
 {
-    protected static readonly Brush PPanelLineBrush = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7));
-    protected static readonly Brush PPanelTextBrush = new SolidColorBrush(Color.FromRgb(0x56, 0x62, 0x73));
-    protected static readonly CornerRadius PPanelCornerRadius = new(10);
-    protected static readonly Thickness PPanelOuterMargin = new(8);
+    protected static readonly Brush PPanelLineBrush = QPanel.QPanelLineRead();
+    protected static readonly Brush PPanelTextBrush = QPanel.QPanelTextRead();
 
     public PPanel(string pPanelTitle)
     {
-        FocusVisualStyle = null;
-        QScrollbar.QScrollbarAttach(this);
+        QPanel.QPanelAttach(this);
         Content = PPanelBorderBuild(new TextBlock
         {
             Text = pPanelTitle,
@@ -27,37 +23,5 @@ public class PPanel : UserControl
         });
     }
 
-    public static Border PPanelBorderBuild(UIElement pPanelContent)
-    {
-        var pContentBorder = new Border
-        {
-            Background = Brushes.White,
-            CornerRadius = new CornerRadius(9),
-            Child = pPanelContent,
-            SnapsToDevicePixels = true
-        };
-        PPanelClipApply(pContentBorder, 9);
-
-        return new Border
-        {
-            Margin = PPanelOuterMargin,
-            BorderBrush = PPanelLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = Brushes.White,
-            CornerRadius = PPanelCornerRadius,
-            Child = pContentBorder,
-            SnapsToDevicePixels = true
-        };
-    }
-
-    protected static void PPanelClipApply(Border pBorder, double pRadius)
-    {
-        pBorder.SizeChanged += (_, _) =>
-        {
-            pBorder.Clip = new RectangleGeometry(
-                new Rect(0, 0, pBorder.ActualWidth, pBorder.ActualHeight),
-                pRadius,
-                pRadius);
-        };
-    }
+    public static Border PPanelBorderBuild(UIElement pPanelContent) => QPanel.QPanelBuild(pPanelContent);
 }

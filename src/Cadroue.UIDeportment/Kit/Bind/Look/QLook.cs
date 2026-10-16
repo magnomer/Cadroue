@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -43,6 +44,19 @@ internal static class QLook
         {
             lItem.Selected += lRouted;
             lItem.Unselected += lRouted;
+        }
+
+        if (lElement is MenuItem)
+        {
+            DependencyPropertyDescriptor lHighlight =
+                DependencyPropertyDescriptor.FromProperty(MenuItem.IsHighlightedProperty, typeof(MenuItem));
+            EventHandler lShifted = (_, _) => QLookStateApply(lElement, lStyle);
+            lElement.Loaded += (_, _) =>
+            {
+                lHighlight.RemoveValueChanged(lElement, lShifted);
+                lHighlight.AddValueChanged(lElement, lShifted);
+            };
+            lElement.Unloaded += (_, _) => lHighlight.RemoveValueChanged(lElement, lShifted);
         }
 
         if (lElement is ButtonBase)

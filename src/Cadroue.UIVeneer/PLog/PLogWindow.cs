@@ -84,7 +84,7 @@ public sealed class PLogWindow : Window
 
     private void PLogOwnerPlace()
     {
-        (Left, Top) = QSash.QSashCenterResolve(
+        (Left, Top) = QSashCenter.QSashCenterResolve(
             PLook.PLookManual[WindowStartupLocation],
             new QSashBounds(Left, Top, Width, Height),
             new QSashBounds(pLogOwner.Left, pLogOwner.Top, pLogOwner.ActualWidth, pLogOwner.ActualHeight));

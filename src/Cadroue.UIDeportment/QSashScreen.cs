@@ -5,15 +5,11 @@ using System.Windows.Media;
 
 namespace Cadroue.UIDeportment;
 
-// The Win32 monitor reads: the work area of the monitor nearest a window's bounds, and the maximize extent kept
-// to the work area of the window's monitor.
+// The Win32 monitor reads: the work area of the monitor nearest a window's bounds, and the monitor and work
+// areas of the monitor nearest a window handle.
 internal static class QSashScreen
 {
-    private const int QSashScreenMessage = 0x0024;
     private const uint QSashScreenNearest = 0x00000002;
-
-    internal static void QSashScreenAttach(Window lWindow) =>
-        HwndSource.FromHwnd(new WindowInteropHelper(lWindow).Handle)?.AddHook(QSashScreenHandle);
 
     // The system work area stands in when no monitor answers.
     internal static QSashBounds QSashScreenRead(Window lWindow, QSashBounds lBounds)
@@ -52,47 +48,29 @@ internal static class QSashScreen
             lWorkBottomRight.Y);
     }
 
-    private static IntPtr QSashScreenHandle(
-        IntPtr lWindowHandle,
-        int lMessage,
-        IntPtr lWParam,
-        IntPtr lLParam,
-        ref bool lHandled)
+    // Both areas are in device pixels; false when no monitor answers.
+    internal static bool QSashScreenFind(IntPtr lWindowHandle, out QSashBounds lArea, out QSashBounds lWork)
     {
-        if (lMessage != QSashScreenMessage)
-        {
-            return IntPtr.Zero;
-        }
-
         IntPtr lMonitor = MonitorFromWindow(lWindowHandle, QSashScreenNearest);
         var lMonitorInfo = new QSashMonitor { QSashSize = Marshal.SizeOf<QSashMonitor>() };
         if (lMonitor == IntPtr.Zero || !GetMonitorInfo(lMonitor, ref lMonitorInfo))
         {
-            return IntPtr.Zero;
+            lArea = default;
+            lWork = default;
+            return false;
         }
 
-        QSashLimits lLimits = QSash.QSashLimitsResolve(
+        lArea = QSashBounds.QSashCornersCreate(
             lMonitorInfo.QSashArea.QSashLeft,
             lMonitorInfo.QSashArea.QSashTop,
+            lMonitorInfo.QSashArea.QSashRight,
+            lMonitorInfo.QSashArea.QSashBottom);
+        lWork = QSashBounds.QSashCornersCreate(
             lMonitorInfo.QSashWork.QSashLeft,
             lMonitorInfo.QSashWork.QSashTop,
             lMonitorInfo.QSashWork.QSashRight,
             lMonitorInfo.QSashWork.QSashBottom);
-        QSashExtent lWindowLimits = Marshal.PtrToStructure<QSashExtent>(lLParam);
-        lWindowLimits.QSashPosition.QSashX = (int)lLimits.QSashX;
-        lWindowLimits.QSashPosition.QSashY = (int)lLimits.QSashY;
-        lWindowLimits.QSashSize.QSashX = (int)lLimits.QSashWidth;
-        lWindowLimits.QSashSize.QSashY = (int)lLimits.QSashHeight;
-        Marshal.StructureToPtr(lWindowLimits, lLParam, false);
-        lHandled = true;
-        return IntPtr.Zero;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct QSashPoint
-    {
-        internal int QSashX;
-        internal int QSashY;
+        return true;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -111,16 +89,6 @@ internal static class QSashScreen
         internal QSashRect QSashArea;
         internal QSashRect QSashWork;
         internal uint QSashFlags;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct QSashExtent
-    {
-        internal QSashPoint QSashReserved;
-        internal QSashPoint QSashSize;
-        internal QSashPoint QSashPosition;
-        internal QSashPoint QSashMinimumTrack;
-        internal QSashPoint QSashMaximumTrack;
     }
 
     [DllImport("user32.dll")]

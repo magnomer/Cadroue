@@ -73,7 +73,7 @@ public sealed class PSection : UserControl
 
         FocusVisualStyle = null;
         QScrollbar.QScrollbarAttach(this);
-        Content = PPanel.PPanelBorderBuild(pBodyHost);
+        Content = QPanel.QPanelBuild(pBodyHost);
         PSectionRebuild();
         QSection.QSectionChanged += PSectionRebuild;
         QSection.QSectionSelectApplied += PSectionSelectApply;
