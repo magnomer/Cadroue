@@ -137,7 +137,7 @@ public sealed class PRoster : UserControl
         pRoot.Children.Add(pOptionRow);
         pRoot.Children.Add(pColumnHeader);
         pRoot.Children.Add(pRosterQueuePanel);
-        return PPanel.PPanelBorderBuild(pRoot);
+        return QPanel.QPanelBuild(pRoot);
     }
 
     private static Border PRosterBandBuild(UIElement pChild) => new()

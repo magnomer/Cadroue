@@ -6,7 +6,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PClinic : PPanel
+public sealed class PClinic : UserControl
 {
     private static readonly FontFamily pClinicFontFamily = new("Segoe UI");
     private static readonly Brush pClinicTitleBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
@@ -36,8 +36,9 @@ public sealed class PClinic : PPanel
 
     public QClinic QClinic { get; }
 
-    public PClinic(QClinic lClinic) : base("")
+    public PClinic(QClinic lClinic)
     {
+        QPanel.QPanelAttach(this);
         QClinic = lClinic;
         pClinicSalvage = new PClinicSalvage(QClinic);
         pClinicTitleLabel = new TextBlock
@@ -66,7 +67,7 @@ public sealed class PClinic : PPanel
         var pHeader = new Border
         {
             Padding = new Thickness(12, 5, 6, 5),
-            BorderBrush = PPanelLineBrush,
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(0, 0, 0, 1),
             Background = Brushes.White,
             Child = pHeaderGrid
@@ -104,7 +105,7 @@ public sealed class PClinic : PPanel
         {
             FontSize = 12,
             FontFamily = pClinicFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 8)
         };
@@ -202,7 +203,7 @@ public sealed class PClinic : PPanel
         var pPersistentRow = new Border
         {
             Padding = new Thickness(12, 6, 12, 8),
-            BorderBrush = PPanelLineBrush,
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White,
             Child = pRunStack
@@ -224,7 +225,7 @@ public sealed class PClinic : PPanel
         pBodyHost.Children.Add(pClinicStripBody);
 
         FocusVisualStyle = null;
-        Content = PPanelBorderBuild(pBodyHost);
+        Content = QPanel.QPanelBuild(pBodyHost);
         QClinic.QClinicChanged += PClinicUpdate;
         QClinic.QClinicMinimizeChanged += PClinicMinimizeHandle;
         PClinicUpdate();
@@ -244,7 +245,7 @@ public sealed class PClinic : PPanel
             ToolTip = pSwitchTip,
             FontSize = 12,
             FontFamily = pClinicFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center
         };
         QInteractionClick.QInteractionClickAttach(pSwitch);
@@ -300,7 +301,7 @@ public sealed class PClinic : PPanel
     private static UIElement PClinicSeparatorBuild() => new Border
     {
         Height = 1,
-        Background = PPanelLineBrush,
+        Background = QPanel.QPanelLineRead(),
         Margin = new Thickness(0, 10, 0, 10)
     };
 

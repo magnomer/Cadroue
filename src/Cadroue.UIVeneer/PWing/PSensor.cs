@@ -163,7 +163,7 @@ public sealed partial class PInspector
         pSensorRunRow = new Border
         {
             Padding = new Thickness(12, 6, 12, 8),
-            BorderBrush = PPanelLineBrush,
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White,
             Child = pSensorRunStack,

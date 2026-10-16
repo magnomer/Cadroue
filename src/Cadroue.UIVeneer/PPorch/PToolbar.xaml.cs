@@ -166,7 +166,7 @@ public partial class PToolbar : UserControl
     private void PChromeDragRun(MouseEventArgs e)
     {
         Mouse.Capture(null);
-        QSashWindow.QSashWindowMove(Window.GetWindow(this)!, e, PChromeButtonHeight);
+        QSashDrag.QSashDragMove(Window.GetWindow(this)!, e, PChromeButtonHeight);
         lChrome.QChromeReset();
     }
 
@@ -197,7 +197,7 @@ public partial class PToolbar : UserControl
         PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAsset/PMenu/PMenuShortcuts.svg");
         PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAsset/PMenu/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAsset/PMenu/PMenuAbout.svg");
-        MenuItem pDebugItem = PMenu.PMenuItemCreate("Debug");
+        MenuItem pDebugItem = QMenu.QMenuItemBuild("Debug");
         pDebugItem.Visibility = PLook.PLookVisible[QChrome.QChromeDebugVisible];
         pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
         pLogoMenu.Items.Add(pDebugItem);
@@ -212,9 +212,9 @@ public partial class PToolbar : UserControl
         string pLogoMenuKey,
         string pLogoMenuIconPath)
     {
-        MenuItem pLogoMenuItem = PMenu.PMenuItemCreate(
+        MenuItem pLogoMenuItem = QMenu.QMenuItemBuild(
             QLocalizationCatalog.QLocalizationTextRead(pLogoMenuKey),
-            PMenu.PMenuIconRead(pLogoMenuIconPath));
+            QMenu.QMenuIconRead(pLogoMenuIconPath));
         pLogoMenuItem.Click += (_, _) => pLogoActions[pLogoMenuToken](this);
         pLogoMenu.Items.Add(pLogoMenuItem);
     }

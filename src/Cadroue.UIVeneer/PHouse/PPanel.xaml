@@ -1,0 +1,23 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="PPanelLine" Color="#D9DEE7" />
+    <SolidColorBrush x:Key="PPanelText" Color="#566273" />
+    <Thickness x:Key="PPanelMargin">8</Thickness>
+
+    <Style x:Key="PPanel" TargetType="UserControl">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+
+    <Border x:Key="PPanelFrame"
+            x:Shared="False"
+            Margin="{StaticResource PPanelMargin}"
+            BorderBrush="{StaticResource PPanelLine}"
+            BorderThickness="1"
+            Background="White"
+            CornerRadius="10"
+            SnapsToDevicePixels="True">
+        <Border Background="White"
+                CornerRadius="9"
+                SnapsToDevicePixels="True" />
+    </Border>
+</ResourceDictionary>

@@ -14,7 +14,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PViewer : PPanel
+public sealed class PViewer : UserControl
 {
     private static readonly IReadOnlyDictionary<bool, Action<Config>> pViewerProcessors =
         new Dictionary<bool, Action<Config>>
@@ -99,8 +99,8 @@ public sealed class PViewer : PPanel
     public QPlayer QPlayer => QViewer.QPlayer;
 
     public PViewer(QViewer lViewer)
-        : base("")
     {
+        QPanel.QPanelAttach(this);
         QViewer = lViewer;
         AllowDrop = true;
         Focusable = true;
@@ -151,8 +151,8 @@ public sealed class PViewer : PPanel
         pViewerFrame.Children.Add(pViewerEngineSurface);
         Content = new Border
         {
-            Margin = PPanelOuterMargin,
-            BorderBrush = PPanelLineBrush,
+            Margin = QPanel.QPanelMarginRead(),
+            BorderBrush = QPanel.QPanelLineRead(),
             BorderThickness = new Thickness(1),
             Background = Brushes.White,
             CornerRadius = new CornerRadius(0),

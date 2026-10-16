@@ -152,7 +152,7 @@ public sealed class PFunnelRuleRow : Border
     }
 
     private static PActionRelayOption PFunnelOptionBuild(QFunnelTarget lTarget) =>
-        new(lTarget.QFunnelTargetId, lTarget.QFunnelTargetTitle, PTabIcon.PTabIconFind(lTarget.QFunnelTargetKey));
+        new(lTarget.QFunnelTargetId, lTarget.QFunnelTargetTitle, QStripIcon.QStripIconFind(lTarget.QFunnelTargetKey));
 
     private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs) =>
         lFunnel.QFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);

@@ -17,6 +17,8 @@
                 <ResourceDictionary Source="PHouse/PPicker.xaml" />
                 <ResourceDictionary Source="PHouse/PButton.xaml" />
                 <ResourceDictionary Source="PHouse/PMenu.xaml" />
+                <ResourceDictionary Source="PHouse/PStrip.xaml" />
+                <ResourceDictionary Source="PHouse/PPanel.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
         </ResourceDictionary>

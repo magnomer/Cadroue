@@ -7,7 +7,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PProcessing : PPanel
+public sealed class PProcessing : UserControl
 {
     private static readonly FontFamily pProcessingFontFamily = new("Segoe UI");
     private static readonly Brush pProcessingIconBrush = new SolidColorBrush(Color.FromRgb(0x1D, 0x2A, 0x3D));
@@ -45,8 +45,9 @@ public sealed class PProcessing : PPanel
 
     public QProcessing QProcessing { get; }
 
-    public PProcessing(QProcessing lProcessing) : base("")
+    public PProcessing(QProcessing lProcessing)
     {
+        QPanel.QPanelAttach(this);
         QProcessing = lProcessing;
         QProcessing.QProcessingChanged += PProcessingUpdate;
         QProcessing.QProcessingOrderChanged += PProcessingOrderUpdate;
@@ -95,7 +96,7 @@ public sealed class PProcessing : PPanel
         pBodyHost.Children.Add(pProcessingStripBody);
 
         FocusVisualStyle = null;
-        Content = PPanelBorderBuild(pBodyHost);
+        Content = QPanel.QPanelBuild(pBodyHost);
         PProcessingUpdate();
     }
 

@@ -29,7 +29,8 @@ internal sealed class PSGrabber
             pPlacementKey, out double pLeft, out double pTop, out double pWidthStored, out double pHeightStored);
         double pWidth = Math.Max(pStored ? pWidthStored : pWindow.Width, pWindow.MinWidth);
         double pHeight = Math.Max(pStored ? pHeightStored : pWindow.Height, pWindow.MinHeight);
-        QSashWindow.QSashWindowRestore(
+        QSashMaximize.QSashMaximizeAttach(pWindow);
+        QSashPlacement.QSashPlacementRestore(
             pWindow,
             pStored ? pLeft : null,
             pStored ? pTop : null,

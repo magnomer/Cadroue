@@ -39,7 +39,7 @@ internal static class PRosterDetail
         DockPanel.SetDock(pHeader, Dock.Top);
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pScroll);
-        return PPanel.PPanelBorderBuild(pRoot);
+        return QPanel.QPanelBuild(pRoot);
     }
 
     public static void PRosterDetailUpdate(StackPanel pPanel, QRoster lRoster)

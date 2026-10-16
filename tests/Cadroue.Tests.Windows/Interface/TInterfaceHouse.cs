@@ -129,7 +129,7 @@ internal static partial class TInterface
         double minHeight,
         double maxWidth,
         double maxHeight) =>
-        QSash.QSashBoundsClamp(bounds, work, minWidth, minHeight, maxWidth, maxHeight);
+        QSashBounds.QSashBoundsClamp(bounds, work, minWidth, minHeight, maxWidth, maxHeight);
     internal static QSashBounds TSashPlacementResolve(
         double? left,
         double? top,
@@ -140,7 +140,7 @@ internal static partial class TInterface
         double minHeight,
         double workLeft,
         double workTop) =>
-        QSash.QSashPlacementResolve(left, top, width, height, current, minWidth, minHeight, workLeft, workTop);
+        QSashPlacement.QSashPlacementResolve(left, top, width, height, current, minWidth, minHeight, workLeft, workTop);
     internal static (double, double) TSashRelayResolve(
         double dropLeft,
         double dropTop,
@@ -148,9 +148,9 @@ internal static partial class TInterface
         double screenTop,
         double screenWidth,
         double screenHeight) =>
-        QSash.QSashRelayResolve(dropLeft, dropTop, screenLeft, screenTop, screenWidth, screenHeight);
+        QSashRelay.QSashRelayResolve(dropLeft, dropTop, screenLeft, screenTop, screenWidth, screenHeight);
     internal static (double, double) TSashCenterResolve(bool manual, QSashBounds window, QSashBounds owner) =>
-        QSash.QSashCenterResolve(manual, window, owner);
+        QSashCenter.QSashCenterResolve(manual, window, owner);
 
     internal static IReadOnlyList<QTokenPart> TTokenParse(string text) => QToken.QTokenParse(text);
     internal static QTokenPart TTokenPartResolve(string token) => QToken.QTokenPartResolve(token);

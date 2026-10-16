@@ -97,6 +97,8 @@ internal static class QLookSheet
         new("PButtonExit", QLookCue.QLookCueHover, "PButtonFace", TextElement.ForegroundProperty, "PButtonInk"),
         new("PButtonExit", QLookCue.QLookCuePressed, "PButtonPlate", Border.BackgroundProperty, "PButtonExitPressed"),
         new("PButtonExit", QLookCue.QLookCuePressed, "PButtonFace", TextElement.ForegroundProperty, "PButtonInk"),
+
+        new("PMenuItem", QLookCue.QLookCueHighlighted, "PMenuItemBox", Border.BackgroundProperty, "PMenuHighlight"),
     ];
 
     internal static IReadOnlyDictionary<(string, DependencyProperty), QLookSetter?> QLookSheetResolve(

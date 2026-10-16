@@ -200,7 +200,7 @@ internal static class PSCasement
             return;
         }
 
-        QSashWindow.QSashWindowMove(pWindow, e, pBandHeight);
+        QSashDrag.QSashDragMove(pWindow, e, pBandHeight);
     }
 
     internal static void PSCasementMaximizeToggle(Window pWindow) =>

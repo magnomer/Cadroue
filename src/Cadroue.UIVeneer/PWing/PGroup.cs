@@ -7,7 +7,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PGroup : PPanel
+public sealed class PGroup : UserControl
 {
     internal const string PGroupMoveKind = "CadroueGroupMove";
 
@@ -52,8 +52,9 @@ public sealed class PGroup : PPanel
 
     public QGroup QGroup { get; }
 
-    public PGroup(QGroup lGroup) : base("")
+    public PGroup(QGroup lGroup)
     {
+        QPanel.QPanelAttach(this);
         QGroup = lGroup;
         pGroupRowPanel = new StackPanel();
         pGroupActionHost = new Border
@@ -107,7 +108,7 @@ public sealed class PGroup : PPanel
         pBodyHost.Children.Add(pGroupFullBody);
         pBodyHost.Children.Add(pGroupStripBody);
 
-        Content = PPanelBorderBuild(pBodyHost);
+        Content = QPanel.QPanelBuild(pBodyHost);
         PGroupActionUpdate();
         PGroupRebuild();
         QGroup.QGroupChanged += PGroupRebuild;

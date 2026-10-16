@@ -8,7 +8,7 @@ using Cadroue.UIVeneer.PPorch;
 
 namespace Cadroue.UIVeneer.PWing;
 
-public sealed class PFunnelRules : PPanel
+public sealed class PFunnelRules : UserControl
 {
     private const string pFunnelAddIcon = "/PAsset/PPanel/PFunnelAdd.svg";
     private const string pFunnelRemoveIcon = "/PAsset/PPanel/PFunnelRemove.svg";
@@ -44,8 +44,9 @@ public sealed class PFunnelRules : PPanel
     private readonly TextBlock pFunnelEmptyNotice;
     private readonly Dictionary<QFunnelRule, PFunnelRuleRow> pFunnelRows = new();
 
-    public PFunnelRules(QFunnel lFunnelOwner) : base("")
+    public PFunnelRules(QFunnel lFunnelOwner)
     {
+        QPanel.QPanelAttach(this);
         lFunnel = lFunnelOwner;
         MinWidth = 300;
         pFunnelRowGrid = new Grid { Margin = new Thickness(12, 12, 12, 12) };
@@ -82,7 +83,7 @@ public sealed class PFunnelRules : PPanel
         pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
 
-        Content = PPanelBorderBuild(pRoot);
+        Content = QPanel.QPanelBuild(pRoot);
         lFunnel.QFunnelRuleCreated += PFunnelRowAdd;
         lFunnel.QFunnelRuleDeleted += PFunnelRowRemove;
         lFunnel.QFunnelChanged += PFunnelRowsUpdate;
@@ -257,15 +258,15 @@ public sealed class PFunnelRules : PPanel
 
     private void PFunnelMenuShow(UIElement pTarget)
     {
-        MenuItem pFilenameItem = PMenu.PMenuItemCreate(
+        MenuItem pFilenameItem = QMenu.QMenuItemBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Filename"));
         pFilenameItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormFilename);
 
-        MenuItem pRegexItem = PMenu.PMenuItemCreate(
+        MenuItem pRegexItem = QMenu.QMenuItemBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Regex"));
         pRegexItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormRegex);
 
-        MenuItem pRemainderItem = PMenu.PMenuItemCreate(
+        MenuItem pRemainderItem = QMenu.QMenuItemBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remainder"));
         pRemainderItem.IsEnabled = !lFunnel.QFunnelRemainderCheck();
         pRemainderItem.Click += (_, _) => lFunnel.QFunnelRuleAdd(QFunnelForm.QFunnelFormRemainder);

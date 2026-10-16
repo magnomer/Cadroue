@@ -34,7 +34,7 @@ public sealed partial class PInspector
             Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.FixedRatio"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(PInspectorLabelWidth, 8, 0, 0)
         };
@@ -49,7 +49,7 @@ public sealed partial class PInspector
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.LenientTooltip"),
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalContentAlignment = VerticalAlignment.Center,
             IsEnabled = false,
             Margin = new Thickness(PInspectorLabelWidth, 4, 0, 0)
@@ -141,7 +141,7 @@ public sealed partial class PInspector
             Content = pFlipLabel,
             FontSize = 12,
             FontFamily = pInspectorFontFamily,
-            Foreground = PPanelTextBrush,
+            Foreground = QPanel.QPanelTextRead(),
             VerticalAlignment = VerticalAlignment.Center,
             VerticalContentAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 14, 0)

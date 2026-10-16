@@ -36,37 +36,40 @@ public static class QButton
     {
         ArgumentNullException.ThrowIfNull(lButton);
 
-        (Style lStyle, string lSheet, bool lRecorded) = lLook switch
+        (Style lStyle, string lSheet) = lLook switch
         {
             QButtonLook.QButtonLookSource =>
-                (QContract.QContractSheetFind<Style>(QButtonSourceStyle), QButtonSourceStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonSourceStyle), QButtonSourceStyle),
             QButtonLook.QButtonLookCommand =>
-                (QContract.QContractSheetFind<Style>(QButtonCommandStyle), QButtonCommandStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonCommandStyle), QButtonCommandStyle),
             QButtonLook.QButtonLookFaded =>
-                (QContract.QContractSheetFind<Style>(QButtonFadedStyle), QButtonFadedStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonFadedStyle), QButtonFadedStyle),
             QButtonLook.QButtonLookPanel =>
-                (QContract.QContractSheetFind<Style>(QButtonPanelStyle), QButtonPanelStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonPanelStyle), QButtonPanelStyle),
             QButtonLook.QButtonLookWhite =>
-                (QContract.QContractSheetFind<Style>(QButtonWhiteStyle), QButtonWhiteStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonWhiteStyle), QButtonWhiteStyle),
             QButtonLook.QButtonLookIcon =>
-                (QContract.QContractSheetFind<Style>(QButtonIconStyle), QButtonWhiteStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonIconStyle), QButtonWhiteStyle),
             QButtonLook.QButtonLookChip =>
-                (QContract.QContractSheetFind<Style>(QButtonChipStyle), QButtonWhiteStyle, true),
+                (QContract.QContractSheetFind<Style>(QButtonChipStyle), QButtonWhiteStyle),
             QButtonLook.QButtonLookChrome =>
-                (QContract.QContractSheetFind<Style>(QButtonChromeStyle), QButtonChromeStyle, false),
+                (QContract.QContractSheetFind<Style>(QButtonChromeStyle), QButtonChromeStyle),
             QButtonLook.QButtonLookFirst =>
-                (QContract.QContractSheetFind<Style>(QButtonFirstStyle), QButtonChromeStyle, false),
+                (QContract.QContractSheetFind<Style>(QButtonFirstStyle), QButtonChromeStyle),
             QButtonLook.QButtonLookExit =>
-                (QContract.QContractSheetFind<Style>(QButtonExitStyle), QButtonExitStyle, false),
+                (QContract.QContractSheetFind<Style>(QButtonExitStyle), QButtonExitStyle),
             QButtonLook.QButtonLookLast =>
-                (QContract.QContractSheetFind<Style>(QButtonLastStyle), QButtonExitStyle, false),
+                (QContract.QContractSheetFind<Style>(QButtonLastStyle), QButtonExitStyle),
             _ => throw new ArgumentOutOfRangeException(nameof(lLook)),
         };
 
         lButton.Style = lStyle;
         QButtonPartAttach(lButton);
         QLook.QLookAttach(lButton, lSheet);
-        if (lRecorded)
+
+        // The Chrome and Exit families stay unrecorded; every other look records its clicks.
+        if (lLook is not (QButtonLook.QButtonLookChrome or QButtonLook.QButtonLookFirst
+            or QButtonLook.QButtonLookExit or QButtonLook.QButtonLookLast))
         {
             QInteractionClick.QInteractionClickAttach(lButton);
         }

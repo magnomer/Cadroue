@@ -118,7 +118,7 @@ public sealed class QWindow
     {
         if (LRelayChannel.LRelayPayloadRead() is { } lRelay)
         {
-            (double lLeft, double lTop) = QSash.QSashRelayResolve(
+            (double lLeft, double lTop) = QSashRelay.QSashRelayResolve(
                 lRelay.LRelayDropLeft, lRelay.LRelayDropTop, lScreenLeft, lScreenTop, lScreenWidth, lScreenHeight);
             QWindowPlaced?.Invoke(lLeft, lTop);
             QWindowRelayAccept(lRelay);

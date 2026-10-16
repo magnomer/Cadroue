@@ -73,7 +73,7 @@ internal static class PRosterRow
 
     private static MenuItem PRosterItemBuild(QRosterItem lItem)
     {
-        MenuItem pItem = PMenu.PMenuItemCreate(lItem.QRosterItemText, PTabIcon.PTabIconFind(lItem.QRosterItemIcon));
+        MenuItem pItem = QMenu.QMenuItemBuild(lItem.QRosterItemText, QStripIcon.QStripIconFind(lItem.QRosterItemIcon));
         pItem.IsEnabled = lItem.QRosterItemEnabled;
         pItem.Click += (_, _) => lItem.QRosterItemAction();
         return pItem;

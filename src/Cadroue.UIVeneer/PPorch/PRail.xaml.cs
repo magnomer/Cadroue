@@ -322,9 +322,9 @@ public partial class PRail : UserControl
 
     private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey)
     {
-        MenuItem pTabAddMenuItem = PMenu.PMenuItemCreate(
+        MenuItem pTabAddMenuItem = QMenu.QMenuItemBuild(
             QStrip.QStripTitleResolve(pTabLayoutKey),
-            PTabIcon.PTabIconRead(pTabLayoutKey));
+            QStripIcon.QStripIconRead(pTabLayoutKey));
         pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }

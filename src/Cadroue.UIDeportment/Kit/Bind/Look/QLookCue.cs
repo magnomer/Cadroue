@@ -22,4 +22,6 @@ internal enum QLookCue
     QLookCueSelected = 1 << 7,
 
     QLookCuePressed = 1 << 8,
+
+    QLookCueHighlighted = 1 << 9,
 }
