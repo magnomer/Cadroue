@@ -1,5 +1,6 @@
 using Cadroue.Conduct;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -16,15 +17,18 @@ public sealed class QInspectorVideo
         LColorKind.LColorKindCurve
     };
 
+    private readonly CInspector qInspectorVideoGate;
     private int qInspectorVideoDepth;
     private bool qInspectorVideoPending;
 
-    public QInspectorVideo(CGamma lGamma)
+    public QInspectorVideo(CInspector lInspector)
     {
-        QInspectorGamma = lGamma;
+        qInspectorVideoGate = lInspector;
+        QInspectorGamma = lInspector.CInspectorGamma;
+        QInspectorExposure = lInspector.CInspectorExposure;
         QInspectorTone.QToneChanged += QInspectorVideoHandle;
         QInspectorGamma.CGammaChanged += QInspectorVideoHandle;
-        QInspectorExposure.QExposureChanged += QInspectorVideoHandle;
+        QInspectorExposure.CExposureChanged += QInspectorVideoHandle;
         QInspectorCurve.QCurveChanged += QInspectorVideoHandle;
         QInspectorWhitebalance.QWhitebalanceChanged += QInspectorVideoHandle;
     }
@@ -36,7 +40,7 @@ public sealed class QInspectorVideo
 
     public CGamma QInspectorGamma { get; }
 
-    public QExposure QInspectorExposure { get; } = new();
+    public CExposure QInspectorExposure { get; }
 
     public QCurve QInspectorCurve { get; } = new();
 
@@ -46,7 +50,7 @@ public sealed class QInspectorVideo
     {
         LColorKind.LColorKindGamma => QInspectorGammaBuild(),
         LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalanceStep,
-        LColorKind.LColorKindExposure => QInspectorExposure.QExposureStep,
+        LColorKind.LColorKindExposure => QInspectorExposureBuild(),
         LColorKind.LColorKindCurve => QInspectorCurve.QCurveStepRead(),
         _ => QInspectorTone.QToneStepRead(lKind)
     };
@@ -76,12 +80,9 @@ public sealed class QInspectorVideo
                 ?? LWorkVideoStep.LWorkContrastCreate(false, 100));
             QInspectorTone.QToneStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindSaturation)
                 ?? LWorkVideoStep.LWorkSaturationCreate(false, 100));
-            QInspectorGammaAccept(QInspectorStepFind(lVideo, LColorKind.LColorKindGamma)
-                ?? LWorkVideoStep.LWorkGammaCreate(false, 0));
             QInspectorWhitebalance.QWhitebalanceStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindWhitebalance)
                 ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
-            QInspectorExposure.QExposureStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindExposure)
-                ?? LWorkVideoStep.LWorkExposureCreate(false, 0));
+            qInspectorVideoGate.CInspectorVideoAccept(new LInspectorOutlet(lVideo));
             QInspectorCurve.QCurveStepSet(QInspectorStepFind(lVideo, LColorKind.LColorKindCurve)
                 ?? LWorkVideoStep.LWorkCurveCreate(false));
             qInspectorVideoPending = true;
@@ -98,7 +99,7 @@ public sealed class QInspectorVideo
     {
         LColorKind.LColorKindGamma => QInspectorGamma.CGammaPersistent,
         LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalancePersistent,
-        LColorKind.LColorKindExposure => QInspectorExposure.QExposurePersistent,
+        LColorKind.LColorKindExposure => QInspectorExposure.CExposurePersistent,
         LColorKind.LColorKindCurve => QInspectorCurve.QCurvePersistent,
         _ => QInspectorTone.QTonePersistentRead(lKind)
     };
@@ -114,7 +115,7 @@ public sealed class QInspectorVideo
                 QInspectorWhitebalance.QWhitebalancePersistentSet(lPersistent);
                 break;
             case LColorKind.LColorKindExposure:
-                QInspectorExposure.QExposurePersistentSet(lPersistent);
+                QInspectorExposure.CExposurePersistentSet(lPersistent);
                 break;
             case LColorKind.LColorKindCurve:
                 QInspectorCurve.QCurvePersistentSet(lPersistent);
@@ -148,7 +149,7 @@ public sealed class QInspectorVideo
         QInspectorVideoChanged?.Invoke();
     }
 
-    // The gamma gate holds plain values; the step is built from them and read back into them here.
+    // The gamma gate holds plain values; the step is built from them here. A plan is read back through the gate.
     private LWorkVideoStep QInspectorGammaBuild() =>
         LWorkVideoStep.LWorkGammaCreate(
             QInspectorGamma.CGammaActive,
@@ -158,8 +159,9 @@ public sealed class QInspectorVideo
             QInspectorGamma.CGammaValues[3],
             QInspectorGamma.CGammaValues[4]);
 
-    private void QInspectorGammaAccept(LWorkVideoStep lStep) =>
-        QInspectorGamma.CGammaStepSet(lStep.LWorkStepActive, lStep.LWorkGammaRead().LWorkSlotRead());
+    // The exposure gate holds plain values; the step is built from them here.
+    private LWorkVideoStep QInspectorExposureBuild() =>
+        LWorkVideoStep.LWorkExposureCreate(QInspectorExposure.CExposureActive, QInspectorExposure.CExposureValue);
 
     private static LWorkVideoStep? QInspectorStepFind(LWorkVideo lVideo, LColorKind lKind) =>
         lVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

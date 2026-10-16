@@ -1,17 +1,22 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class QInspectorAudio
 {
     private readonly QSkip qInspectorSkip;
+    private readonly CInspector qInspectorAudioGate;
     private int qInspectorAudioDepth;
 
-    public QInspectorAudio(QSkip lSkip)
+    public QInspectorAudio(QSkip lSkip, CInspector lInspector)
     {
         qInspectorSkip = lSkip;
-        QInspectorVolume.QVolumeChanged += QInspectorAudioRaise;
+        qInspectorAudioGate = lInspector;
+        QInspectorVolume = lInspector.CInspectorVolume;
+        QInspectorVolume.CVolumeChanged += QInspectorAudioRaise;
         QInspectorLoudness.QLoudnessChanged += QInspectorAudioRaise;
         QInspectorNoise.QNoiseChanged += QInspectorAudioRaise;
         QInspectorHighpass.QFilterChanged += QInspectorAudioRaise;
@@ -21,7 +26,7 @@ public sealed class QInspectorAudio
 
     public event Action? QInspectorAudioChanged;
 
-    public QVolume QInspectorVolume { get; } = new();
+    public CVolume QInspectorVolume { get; }
 
     public QLoudness QInspectorLoudness { get; } = new();
 
@@ -40,7 +45,7 @@ public sealed class QInspectorAudio
         LAudioKind.LAudioKindHighpass => QInspectorHighpass.QFilterStep,
         LAudioKind.LAudioKindLowpass => QInspectorLowpass.QFilterStep,
         LAudioKind.LAudioKindEqualizer => QInspectorEqualizer.QEqualizerStepRead(),
-        _ => QInspectorVolume.QVolumeStep
+        _ => QInspectorVolumeBuild()
     };
 
     public LWorkAudio QInspectorAudioRead(IEnumerable<LAudioKind> lOrder) =>
@@ -57,8 +62,7 @@ public sealed class QInspectorAudio
             ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38));
         QInspectorEqualizer.QEqualizerStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindEqualizer)
             ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()));
-        QInspectorVolume.QVolumeStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindVolume)
-            ?? LWorkAudioStep.LWorkVolumeCreate(false, 0));
+        qInspectorAudioGate.CInspectorAudioAccept(new LInspectorOutlet(lPlan));
         QInspectorLoudness.QLoudnessStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindLeveling)
             ?? LAudio.LAudioNormalizeCreate());
         qInspectorAudioDepth--;
@@ -66,7 +70,7 @@ public sealed class QInspectorAudio
     }
 
     public bool QInspectorPersistentCheck() =>
-        QInspectorVolume.QVolumePersistent
+        QInspectorVolume.CVolumePersistent
         || QInspectorLoudness.QLoudnessPersistent
         || QInspectorNoise.QNoisePersistent
         || QInspectorHighpass.QFilterPersistent
@@ -90,7 +94,7 @@ public sealed class QInspectorAudio
                     QInspectorNoise.QNoisePersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindVolume:
-                    QInspectorVolume.QVolumePersistentSet(true);
+                    QInspectorVolume.CVolumePersistentSet(true);
                     break;
                 case LAudioKind.LAudioKindLeveling:
                     QInspectorLoudness.QLoudnessPersistentSet(true);
@@ -122,9 +126,9 @@ public sealed class QInspectorAudio
             lSteps.Add(QInspectorNoise.QNoiseStep);
         }
 
-        if (QInspectorVolume.QVolumePersistent)
+        if (QInspectorVolume.CVolumePersistent)
         {
-            lSteps.Add(QInspectorVolume.QVolumeStep);
+            lSteps.Add(QInspectorVolumeBuild());
         }
 
         if (QInspectorLoudness.QLoudnessPersistent)
@@ -152,6 +156,10 @@ public sealed class QInspectorAudio
 
         QInspectorAudioChanged?.Invoke();
     }
+
+    // The volume gate holds plain values; the step is built from them here. A plan is read back through the gate.
+    private LWorkAudioStep QInspectorVolumeBuild() =>
+        LWorkAudioStep.LWorkVolumeCreate(QInspectorVolume.CVolumeActive, QInspectorVolume.CVolumeGain);
 
     private static LWorkAudioStep? QInspectorStepFind(LWorkAudio lPlan, LAudioKind lKind) =>
         lPlan.LWorkAudioSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

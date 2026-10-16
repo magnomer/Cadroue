@@ -90,10 +90,12 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PToneSaturationBuild());
         var pGamma = new QGamma(QInspector);
         pBody.Children.Add(pGamma.QGammaBody);
-        pBody.Children.Add(PExposureBuild());
+        var pExposure = new QExposure(QInspector);
+        pBody.Children.Add(pExposure.QExposureBody);
         pBody.Children.Add(PCurveBuild());
         pBody.Children.Add(PWhitebalanceBuild());
-        pBody.Children.Add(PVolumeBodyBuild());
+        var pVolume = new QVolume(QInspector);
+        pBody.Children.Add(pVolume.QVolumeBody);
         pBody.Children.Add(PLoudnessBodyBuild());
         pBody.Children.Add(PNoiseBodyBuild());
         pBody.Children.Add(PFilterHighBuild());
@@ -104,7 +106,7 @@ public sealed partial class PInspector : PPanel
         pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
         pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
         QSensor.QSensorChanged += PSensorUpdate;
-        pInspectorSections = PInspectorSectionsCreate(pGamma);
+        pInspectorSections = PInspectorSectionsCreate(pGamma, pExposure, pVolume);
 
         var pScroll = new ScrollViewer
         {
@@ -144,13 +146,9 @@ public sealed partial class PInspector : PPanel
 
     public QTone QTone => QInspector.QInspectorVideo.QInspectorTone;
 
-    public QExposure QExposure => QInspector.QInspectorVideo.QInspectorExposure;
-
     public QCurve QCurve => QInspector.QInspectorVideo.QInspectorCurve;
 
     public QWhitebalance QWhitebalance => QInspector.QInspectorVideo.QInspectorWhitebalance;
-
-    public QVolume QVolume => QInspector.QInspectorAudio.QInspectorVolume;
 
     public QLoudness QLoudness => QInspector.QInspectorAudio.QInspectorLoudness;
 
@@ -167,10 +165,8 @@ public sealed partial class PInspector : PPanel
     private void PInspectorAttach()
     {
         QTone.QToneChanged += PToneUpdate;
-        QExposure.QExposureChanged += PExposureUpdate;
         QCurve.QCurveChanged += PCurveUpdate;
         QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
-        QVolume.QVolumeChanged += PVolumeUpdate;
         QLoudness.QLoudnessChanged += PLoudnessUpdate;
         QNoise.QNoiseChanged += PNoiseUpdate;
         LFilterHigh.QFilterChanged += () => PFilterUpdate(pInspectorHighPass);
@@ -178,10 +174,8 @@ public sealed partial class PInspector : PPanel
         QEqualizer.QEqualizerChanged += PEqualizerUpdate;
         QSkip.QSkipChanged += PSkipUpdate;
         PToneUpdate();
-        PExposureUpdate();
         PCurveUpdate();
         PWhitebalanceUpdate();
-        PVolumeUpdate();
         PLoudnessUpdate();
         PNoiseUpdate();
         PFilterUpdate(pInspectorHighPass);
@@ -221,17 +215,17 @@ public sealed partial class PInspector : PPanel
         pSection.PInspectorSectionPersistent.Visibility = PLook.PLookVisible[pShown];
     }
 
-    private List<PInspectorSection> PInspectorSectionsCreate(QGamma pGamma) =>
+    private List<PInspectorSection> PInspectorSectionsCreate(QGamma pGamma, QExposure pExposure, QVolume pVolume) =>
     [
         new("Crop", pInspectorCropBody, pInspectorPersistentBox),
         new("Brightness", pInspectorBrightnessBody, pInspectorBrightnessPersistent),
         new("Contrast", pInspectorContrastBody, pInspectorContrastPersistent),
         new("Saturation", pInspectorSaturationBody, pInspectorSaturationPersistent),
         new("Gamma", pGamma.QGammaBody, pGamma.QGammaPersistent),
-        new("Exposure", pExposureBody, pExposurePersistent),
+        new("Exposure", pExposure.QExposureBody, pExposure.QExposurePersistent),
         new("Curve", pCurveBody, pCurvePersistent),
         new("Whitebalance", pWhitebalanceBody, pWhitebalancePersistent),
-        new("Volume", pInspectorVolumeBody, pInspectorVolumePersistent),
+        new("Volume", pVolume.QVolumeBody, pVolume.QVolumePersistent),
         new("Normalize", pLoudnessBody, pLoudnessPersistent),
         new("Noise Reduction", pNoiseBody, pNoisePersistent),
         new("High Pass", pInspectorHighPass.PInspectorPassBody, pInspectorHighPass.PInspectorPassPersistent),

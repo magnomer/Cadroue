@@ -57,6 +57,28 @@ public sealed class TPreset : IDisposable
         return new TPresetSelectionResult(ok, selection.LPresetSelectionName);
     }
 
+    // A selection of the named preset under the key; the preset's video mode is its name.
+    public bool TPresetSupportedRead(string name, string key)
+    {
+        Func<LPresetDocument, LEncoding>? output = LPresetSelection.LPresetOutputSeam;
+        LPresetDraft.LPresetLoadSeam = preset => new LPresetDocument
+        {
+            LPresetName = preset,
+            LPresetVideo = new LPresetVideoEntry { LPresetMode = preset }
+        };
+        LPresetSelection.LPresetOutputSeam = LPreset.LPresetSelectionResolve;
+        LPresetSelection selection = new(name, key);
+        try
+        {
+            return selection.LPresetSelectionSupported;
+        }
+        finally
+        {
+            selection.LPresetSelectionClose();
+            LPresetSelection.LPresetOutputSeam = output;
+        }
+    }
+
     public string TPresetSeamChange(string current, string old, string renamed)
     {
         LPresetSelection selection = new(current, string.Empty);

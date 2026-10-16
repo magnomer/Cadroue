@@ -17,11 +17,12 @@ public sealed class QStripTab : INotifyPropertyChanged
         CInfo lInfo,
         CLineage lLineage,
         CWorkspace lWorkspace,
-        CInspector lInspector)
+        CInspector lInspector,
+        CEdit lEdit)
     {
         QStripTabId = Guid.NewGuid();
         QStripTabKey = lKey;
-        QStripTabWorkspace = new QWorkspace(lKey, lUsher, lInfo, lLineage, lWorkspace, lInspector);
+        QStripTabWorkspace = new QWorkspace(lKey, lUsher, lInfo, lLineage, lWorkspace, lInspector, lEdit);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

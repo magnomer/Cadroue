@@ -8,7 +8,7 @@ internal static class TAuditEngineSetting
             ["Cadroue.Conduct>Cadroue.ShellEngine"] =
                 [
                     "LUsherPort", "LLineagePort", "LLineageAnswer", "LLineageGroup", "LLineageBatch", "LLineageStep",
-                    "LWorkspacePort", "LPlacementPort", "LViewerPort",
+                    "LWorkspacePort", "LPlacementPort", "LViewerPort", "LEditPort", "LInspectorPort",
                 ],
         };
 }

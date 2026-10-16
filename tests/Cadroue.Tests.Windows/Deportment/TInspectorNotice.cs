@@ -63,7 +63,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ExposureValue_ClampsToStops_SameValueIsSilent()
     {
-        QExposure exposure = TInterface.TExposureCreate();
+        CExposure exposure = TInterface.TExposureCreate();
         int notices = 0;
         TInterface.TExposureAttach(exposure, () => notices++);
 
@@ -91,7 +91,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void VolumeGain_ClampsAndStaysQuietOnRepeat()
     {
-        QVolume volume = TInterface.TVolumeCreate();
+        CVolume volume = TInterface.TVolumeCreate();
         int notices = 0;
         TInterface.TVolumeAttach(volume, () => notices++);
 

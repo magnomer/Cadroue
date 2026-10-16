@@ -21,6 +21,8 @@
                 <ResourceDictionary Source="PHouse/PPanel.xaml" />
                 <ResourceDictionary Source="PHouse/PTool.xaml" />
                 <ResourceDictionary Source="PWing/PGamma.xaml" />
+                <ResourceDictionary Source="PWing/PExposure.xaml" />
+                <ResourceDictionary Source="PWing/PVolume.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
         </ResourceDictionary>

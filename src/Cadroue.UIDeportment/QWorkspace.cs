@@ -22,7 +22,8 @@ public sealed class QWorkspace
         CInfo lInfo,
         CLineage lLineage,
         CWorkspace lWorkspace,
-        CInspector lInspector)
+        CInspector lInspector,
+        CEdit lEdit)
     {
         qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
@@ -37,7 +38,7 @@ public sealed class QWorkspace
         QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
         QWorkspacePresetAccept(QWorkspacePreset);
         QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
-        QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher, lInspector,
+        QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher, lInspector, lEdit,
             QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
         QWorkspaceRelay = new QWorkspaceRelay(this);
     }

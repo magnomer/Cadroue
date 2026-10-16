@@ -9,7 +9,8 @@ internal static class TAuditDemeanorSetting
                 [
                     "CAtelier", "CUsher", "CLineage", "CLineageAnswer", "CLineageEntry", "CLineageBatch",
                     "CLineageStep", "CWorkspace", "CWorkspaceIntent", "CPlacement", "CInfo", "CInspector", "CGamma",
-                    "CViewer",
+                    "CExposure", "CVolume",
+                    "CViewer", "CEdit", "CEditVerdict",
                 ],
         };
 }

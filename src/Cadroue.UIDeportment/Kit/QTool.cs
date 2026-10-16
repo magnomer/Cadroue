@@ -20,15 +20,20 @@ public static class QTool
 
     public static void QToolSwitchUpdate(CheckBox lSwitch, bool lChecked) => lSwitch.IsChecked = lChecked;
 
+    public static void QToolStackUpdate(FrameworkElement lStack, bool lEnabled)
+    {
+        lStack.IsEnabled = lEnabled;
+        lStack.Opacity = lEnabled
+            ? QToolLit
+            : (double)QContract.QContractSheetFind<object>(QToolDimmedSheet);
+    }
+
     public static void QToolTipApply(
         CheckBox lApply, CheckBox lPersistent, FrameworkElement lStack, FrameworkElement lBody, QInspectorTip lTip)
     {
         lApply.IsEnabled = lTip.QInspectorTipEnabled;
         lPersistent.IsEnabled = lTip.QInspectorTipEnabled;
-        lStack.IsEnabled = lTip.QInspectorTipEnabled;
-        lStack.Opacity = lTip.QInspectorTipEnabled
-            ? QToolLit
-            : (double)QContract.QContractSheetFind<object>(QToolDimmedSheet);
+        QToolStackUpdate(lStack, lTip.QInspectorTipEnabled);
         lBody.ToolTip = lTip.QInspectorTipNotice;
         lApply.ToolTip = lTip.QInspectorTipBox;
         lPersistent.ToolTip = lTip.QInspectorTipPersistent;

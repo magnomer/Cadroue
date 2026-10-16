@@ -45,8 +45,18 @@ public sealed class LPresetSelection
 
     public bool LPresetSelectionValid => LPresetNameCheck(LPresetSelectionName);
 
-    public LEncoding? LPresetSelectionEncoding =>
-        LPresetSelectionValid ? LPresetOutputSeam?.Invoke(LPresetSelectionValue) : null;
+    public LEncoding? LPresetSelectionEncoding => LPresetEncodingRead(LPresetSelectionName);
+
+    // The selected encoding supports this selection's own kind; a selection without a kind, or without an
+    // encoding, accepts any.
+    public bool LPresetSelectionSupported =>
+        LPresetSelectionEncoding is not { } lEncoding
+        || lPresetSelectionKind is not { } lKind
+        || lEncoding.LEncodingSupportCheck(lKind);
+
+    // The encoding a preset name yields: none for a name the catalogue does not hold.
+    public static LEncoding? LPresetEncodingRead(string lPresetName) =>
+        LPresetNameCheck(lPresetName) ? LPresetOutputSeam?.Invoke(LPresetDraft.LPresetDraftRead(lPresetName)) : null;
 
     public void LPresetSelectionAccept(LPresetDocument lPresetValue, string lPresetName)
     {

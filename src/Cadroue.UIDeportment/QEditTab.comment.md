@@ -1,12 +1,12 @@
 # QEditTab.cs
-Hash: `0e9dc1be5983cc8f`
+Hash: `998f07c5e8b3d08a`
 
 ## `public sealed class QEditTab`
 
 Owns the Edit tab's Deportment and wires the inspector, viewer, crop and processing panel together.
 Its siblings hold colour, the stored plan, the crop tool gate and the processing rows.
 
-## `public QEditTab(LPresetSelection lPreset, QInspector lInspector, QViewer lViewer, QList lList, LDocket lDocket, QProcessing lProcessing)`
+## `public QEditTab(CUsher lUsher, CInspector lInspector, CEdit lEdit, LPresetSelection lPreset, QViewer lViewer, QList lList)`
 
 Builds the siblings first, so every subscription below can reach them.
 Each subscription made here is removed in `QEditClose`, in the same order.
@@ -26,7 +26,13 @@ A missing layout starts the inspector minimized.
 
 ## `public void QEditRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)`
 
-Enqueues the selected unlocked file with the current plan, once the preset is valid.
+Hands `CEdit.CEditRun` the preset owner's answers, the current path and every docket item, then acts on the verdict.
+Only a Ran verdict enqueues the selected file with the current plan; the dispatch stays here until the plan can reach a gate.
+
+## `public void QEditItemsRun(IReadOnlyList<string>? lPaths, Guid lRelayTarget, Guid lSourceTab)`
+
+Hands `CEdit.CEditAllRun` the preset owner's answers and every docket item, which picks and dispatches the run.
+No paths runs every unlocked item; the Add All action subscribes with no paths.
 
 ## `public void QEditPathHandle(string? lPath)`
 
@@ -38,7 +44,7 @@ Any neutral pick is cancelled first, even when the selection clears.
 Applies the carried or sidecar plan to a newly opened media file.
 The carried plan wins, and only a winning carried plan is saved back to the sidecar.
 
-## `private bool QEditPresetCheck()`
+## `private bool QEditVerdictApply(CEditVerdict lVerdict)`
 
-Refuses an enqueue when the preset is missing or cannot encode Edit work.
-Each refusal raises its own notice, so the Veneer shows the matching message.
+Raises the notice of a refused preset, missing or incompatible, so the Veneer shows the matching message.
+Answers true only for a run that went.

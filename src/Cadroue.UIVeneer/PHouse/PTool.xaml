@@ -5,6 +5,7 @@
     <SolidColorBrush x:Key="PToolText" Color="#566273" />
     <SolidColorBrush x:Key="PToolMuted" Color="#8A939E" />
     <SolidColorBrush x:Key="PToolLine" Color="#D9DEE7" />
+    <SolidColorBrush x:Key="PToolWarn" Color="#C25A1E" />
     <sys:Double x:Key="PToolDimmed">0.4</sys:Double>
 
     <Grid x:Key="PField" x:Shared="False" Height="34" Margin="0,0,0,8">

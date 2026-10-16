@@ -46,10 +46,11 @@ internal static partial class TInterface
             gamma.CGammaValues[4]);
     internal static bool TGammaPreviewRead(CGamma gamma) => gamma.CGammaPreview;
 
-    internal static QExposure TExposureCreate() => new();
-    internal static void TExposureAttach(QExposure exposure, Action handler) => exposure.QExposureChanged += handler;
-    internal static void TExposureValueSet(QExposure exposure, double value) => exposure.QExposureValueSet(value);
-    internal static LWorkVideoStep TExposureStepRead(QExposure exposure) => exposure.QExposureStep;
+    internal static CExposure TExposureCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorExposure;
+    internal static void TExposureAttach(CExposure exposure, Action handler) => exposure.CExposureChanged += handler;
+    internal static void TExposureValueSet(CExposure exposure, double value) => exposure.CExposureValueSet(value);
+    internal static LWorkVideoStep TExposureStepRead(CExposure exposure) =>
+        LWorkVideoStep.LWorkExposureCreate(exposure.CExposureActive, exposure.CExposureValue);
 
     internal static QCurve TCurveCreate() => new();
     internal static void TCurveAttach(QCurve curve, Action handler) => curve.QCurveChanged += handler;
@@ -165,11 +166,11 @@ internal static partial class TInterface
     internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(QEqualizer equalizer) => equalizer.QEqualizerBands;
     internal static LWorkAudioStep TEqualizerStepRead(QEqualizer equalizer) => equalizer.QEqualizerStepRead();
 
-    internal static QVolume TVolumeCreate() => new();
-    internal static void TVolumeAttach(QVolume volume, Action handler) => volume.QVolumeChanged += handler;
-    internal static void TVolumeGainSet(QVolume volume, double gain) => volume.QVolumeGainSet(gain);
-    internal static void TVolumeActiveSet(QVolume volume, bool active) => volume.QVolumeActiveSet(active);
-    internal static double TVolumeGainRead(QVolume volume) => volume.QVolumeGain;
+    internal static CVolume TVolumeCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorVolume;
+    internal static void TVolumeAttach(CVolume volume, Action handler) => volume.CVolumeChanged += handler;
+    internal static void TVolumeGainSet(CVolume volume, double gain) => volume.CVolumeGainSet(gain);
+    internal static void TVolumeActiveSet(CVolume volume, bool active) => volume.CVolumeActiveSet(active);
+    internal static double TVolumeGainRead(CVolume volume) => volume.CVolumeGain;
 
     internal static QSkip TSkipCreate() => new();
     internal static void TSkipAttach(QSkip skip, Action handler) => skip.QSkipChanged += handler;
@@ -270,18 +271,21 @@ internal static partial class TInterface
             new LViewerOutlet(
                 lPath => System.IO.Path.GetFileName(lPath),
                 () => System.DateTimeOffset.Now,
-                System.Environment.NewLine));
+                System.Environment.NewLine),
+            new LEditOutlet());
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
         new(
             TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
             TAtelierCreate().CAtelierWorkspaceCreate,
             TAtelierCreate().CAtelierInspectorCreate,
+            TAtelierCreate().CAtelierEdit,
             title,
             number);
     internal static QStripTab TStripTabCreate(string key) =>
         new(
             key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate(), TAtelierCreate().CAtelierInspectorCreate());
+            TAtelierCreate().CAtelierWorkspaceCreate(), TAtelierCreate().CAtelierInspectorCreate(),
+            TAtelierCreate().CAtelierEdit);
     internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
         strip.QStripSelectChanged += handler;
     internal static void TStripTabAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabChanged += handler;

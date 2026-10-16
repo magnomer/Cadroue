@@ -9,13 +9,19 @@ public sealed class CAtelier
     private readonly LViewerPort _cAtelierViewerPort;
 
     internal CAtelier(
-        LUsherPort usher, LLineagePort lineage, LWorkspacePort workspace, LPlacementPort placement, LViewerPort viewer)
+        LUsherPort usher,
+        LLineagePort lineage,
+        LWorkspacePort workspace,
+        LPlacementPort placement,
+        LViewerPort viewer,
+        LEditPort edit)
     {
         ArgumentNullException.ThrowIfNull(usher);
         ArgumentNullException.ThrowIfNull(lineage);
         ArgumentNullException.ThrowIfNull(workspace);
         ArgumentNullException.ThrowIfNull(placement);
         ArgumentNullException.ThrowIfNull(viewer);
+        ArgumentNullException.ThrowIfNull(edit);
 
         CAtelierUsher = new CUsher(usher);
         CAtelierLineage = new CLineage(lineage);
@@ -23,6 +29,7 @@ public sealed class CAtelier
         _cAtelierViewerPort = viewer;
         CAtelierPlacement = new CPlacement(placement);
         CAtelierInfo = new CInfo();
+        CAtelierEdit = new CEdit(edit);
     }
 
     public CUsher CAtelierUsher { get; }
@@ -32,6 +39,8 @@ public sealed class CAtelier
     public CPlacement CAtelierPlacement { get; }
 
     public CInfo CAtelierInfo { get; }
+
+    public CEdit CAtelierEdit { get; }
 
     // A viewer's workspace with the viewer's own trace gate: both hold state for one viewer.
     public CWorkspace CAtelierWorkspaceCreate() => new(_cAtelierWorkspacePort, new CViewer(_cAtelierViewerPort));

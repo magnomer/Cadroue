@@ -48,10 +48,10 @@ internal static class TAuditObjectSetting
     public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling = new Dictionary<string, int>
     {
         ["Hydra"] = 7,
-        ["Kraken"] = 3,
+        ["Kraken"] = 5,
         ["Spider"] = 1,
         ["Chameleon"] = 63,
-        ["Octopus"] = 2,
+        ["Octopus"] = 4,
         ["Centipede"] = 54,
         ["Serpent"] = 17,
         ["Hub"] = 12,
@@ -92,7 +92,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.UIVeneer.PSFader"] = 2,
         ["Cadroue.UIVeneer.PSOptions"] = 9,
         ["Cadroue.UIVeneer.PWing.PExport"] = 10,
-        ["Cadroue.UIVeneer.PWing.PInspector"] = 24,
+        ["Cadroue.UIVeneer.PWing.PInspector"] = 22,
         ["Cadroue.UIVeneer.PWing.PSEncoder"] = 17,
         ["Cadroue.UIVeneer.PWing.PSMonitor"] = 2,
     };

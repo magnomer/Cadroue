@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
@@ -38,7 +39,13 @@ internal static partial class TInterface
         QConsoleScene.QConsoleNameCreate(baseName, names);
 
     internal static QEditTab TEditTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list);
+        new(
+            TAtelierCreate().CAtelierUsher,
+            TAtelierCreate().CAtelierInspectorCreate(),
+            TAtelierCreate().CAtelierEdit,
+            preset,
+            viewer,
+            list);
     internal static QInspector TEditInspectorRead(QEditTab tab) => tab.QEditInspector;
     internal static QProcessing TEditProcessingRead(QEditTab tab) => tab.QEditProcessing;
     internal static void TEditClose(QEditTab tab) => tab.QEditClose();
@@ -212,8 +219,8 @@ internal static partial class TInterface
         LLibrarian.LLibrarianAudioWriter = writer;
     }
 
-    internal static void TVolumePersistentSet(QVolume volume, bool persistent) =>
-        volume.QVolumePersistentSet(persistent);
+    internal static void TVolumePersistentSet(CVolume volume, bool persistent) =>
+        volume.CVolumePersistentSet(persistent);
 
     internal static QMergeTab TMergeTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(TAtelierCreate().CAtelierUsher, preset, viewer, list);

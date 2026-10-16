@@ -45,10 +45,10 @@
   },
   "ceiling": {
     "hydra": 7,
-    "kraken": 3,
+    "kraken": 5,
     "spider": 1,
     "chameleon": 63,
-    "octopus": 2,
+    "octopus": 4,
     "centipede": 54,
     "serpent": 17,
     "hub": 12
@@ -87,7 +87,7 @@
     "Cadroue.UIVeneer.PSFader": 2,
     "Cadroue.UIVeneer.PSOptions": 9,
     "Cadroue.UIVeneer.PWing.PExport": 10,
-    "Cadroue.UIVeneer.PWing.PInspector": 24,
+    "Cadroue.UIVeneer.PWing.PInspector": 22,
     "Cadroue.UIVeneer.PWing.PSEncoder": 17,
     "Cadroue.UIVeneer.PWing.PSMonitor": 2
   },

@@ -103,7 +103,7 @@ public sealed class TInspectorPlanApplication
             inspector.QInspectorAudio, Interface.TInterface.TWorkAudioCreate([volume], false));
 
         Assert.Equal(1, notices);
-        Assert.Equal(3, inspector.QInspectorAudio.QInspectorVolume.QVolumeGain);
+        Assert.Equal(3, inspector.QInspectorAudio.QInspectorVolume.CVolumeGain);
     }
 
     [Fact]

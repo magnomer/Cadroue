@@ -7,6 +7,7 @@ public sealed class QWorkspaceMode
 {
     private readonly CUsher qWorkspaceUsher;
     private readonly CInspector qWorkspaceInspector;
+    private readonly CEdit qWorkspaceEdit;
     private readonly LPresetSelection qWorkspacePreset;
     private readonly QViewer? qWorkspaceViewer;
     private readonly QList? qWorkspaceList;
@@ -16,6 +17,7 @@ public sealed class QWorkspaceMode
         QWorkspaceFacts qWorkspaceKey,
         CUsher lUsher,
         CInspector lInspector,
+        CEdit lEdit,
         LPresetSelection lPreset,
         QViewer? lViewer,
         QList? lList,
@@ -23,6 +25,7 @@ public sealed class QWorkspaceMode
     {
         qWorkspaceUsher = lUsher;
         qWorkspaceInspector = lInspector;
+        qWorkspaceEdit = lEdit;
         qWorkspacePreset = lPreset;
         qWorkspaceViewer = lViewer;
         qWorkspaceList = lList;
@@ -54,9 +57,10 @@ public sealed class QWorkspaceMode
     public QEditTab QEditTabCreate()
     {
         QEditTab lEditTab = new(
-            qWorkspaceUsher, qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+            qWorkspaceUsher, qWorkspaceInspector, qWorkspaceEdit, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
         QWorkspaceAction!.QActionExecuted += lEditTab.QEditRun;
-        QWorkspaceAction.QActionAllAdded += lEditTab.QEditAllRun;
+        QWorkspaceAction.QActionAllAdded += (lRelayTarget, lSourceTab) =>
+            lEditTab.QEditItemsRun(null, lRelayTarget, lSourceTab);
         QWorkspaceAction.QActionItemsAdded += lEditTab.QEditItemsRun;
         QWorkspaceAction.QActionListAttach(qWorkspaceList!);
         return lEditTab;

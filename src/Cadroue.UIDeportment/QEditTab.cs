@@ -8,14 +8,17 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QEditTab
 {
+    private readonly CEdit qEditGate;
     private readonly LPresetSelection qEditPreset;
     private readonly QViewer qEditViewer;
     private readonly QList qEditList;
     private readonly LDocket qEditDocket;
 
-    public QEditTab(CUsher lUsher, CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QEditTab(
+        CUsher lUsher, CInspector lInspector, CEdit lEdit, LPresetSelection lPreset, QViewer lViewer, QList lList)
     {
         QEditInspector = new QInspector(lInspector);
+        qEditGate = lEdit;
         qEditPreset = lPreset;
         qEditViewer = lViewer;
         qEditList = lList;
@@ -140,9 +143,17 @@ public sealed class QEditTab
         }
     }
 
+    // The gate decides whether the selected item runs; the dispatch stays here until the edit plan can reach a gate.
     public void QEditRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
     {
-        if (!QEditPresetCheck() || QEditSelectedRead() is not { } lSelected)
+        (CEditVerdict lVerdict, string? lPath, Guid lBatch) = qEditGate.CEditRun(
+            qEditPreset.LPresetSelectionValid,
+            qEditPreset.LPresetSelectionSupported,
+            qEditList.QListPathCurrent,
+            qEditDocket.LDocketItemsRead()
+                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+                .ToArray());
+        if (!QEditVerdictApply(lVerdict))
         {
             return;
         }
@@ -151,48 +162,28 @@ public sealed class QEditTab
             LEdit.LEditWorkResolve(QEditStore.QEditStateRead(), QEditColor.QEditEqCheck());
         LMessenger.LMessengerEditDescribe(
             lPriority,
-            lSelected.LDocketEntryPath,
+            lPath,
             qEditViewer.QViewerDuration,
             lCrop,
             lVideo,
             qEditPreset.LPresetSelectionEncoding,
             lRelayTarget,
             lSourceTab,
-            lSelected.LDocketEntryBatch);
+            lBatch);
     }
 
-    public void QEditAllRun(Guid lRelayTarget, Guid lSourceTab)
-    {
-        if (!QEditPresetCheck())
-        {
-            return;
-        }
-
-        LMessenger.LMessengerEditDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qEditDocket.LDocketUnlockedRead().Select(QEditSourceCreate).ToArray(),
-            qEditPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
-    }
-
-    public void QEditItemsRun(IReadOnlyList<string> lPaths, Guid lRelayTarget, Guid lSourceTab)
-    {
-        if (!QEditPresetCheck())
-        {
-            return;
-        }
-
-        LMessenger.LMessengerEditDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qEditDocket.LDocketUnlockedRead()
-                .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(QEditSourceCreate)
+    // No paths runs every unlocked item; the gate picks the items and dispatches.
+    public void QEditItemsRun(IReadOnlyList<string>? lPaths, Guid lRelayTarget, Guid lSourceTab) =>
+        QEditVerdictApply(qEditGate.CEditAllRun(
+            qEditPreset.LPresetSelectionValid,
+            qEditPreset.LPresetSelectionSupported,
+            qEditPreset.LPresetSelectionName,
+            qEditDocket.LDocketItemsRead()
+                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
                 .ToArray(),
-            qEditPreset.LPresetSelectionEncoding,
+            lPaths,
             lRelayTarget,
-            lSourceTab);
-    }
+            lSourceTab));
 
     public void QEditPathHandle(string? lPath)
     {
@@ -323,30 +314,18 @@ public sealed class QEditTab
         QEditColor.QEditColorApply();
     }
 
-    private bool QEditPresetCheck()
+    // A preset verdict raises its notice; only a run that went answers true.
+    private bool QEditVerdictApply(CEditVerdict lVerdict)
     {
-        if (!qEditPreset.LPresetSelectionValid)
+        if (lVerdict == CEditVerdict.CEditVerdictMissing)
         {
             QEditPresetMissing?.Invoke();
-            return false;
         }
-
-        if (qEditPreset.LPresetSelectionEncoding is { } lEncoding
-            && !lEncoding.LEncodingSupportCheck(LWorkKind.LWorkKindEdit))
+        else if (lVerdict == CEditVerdict.CEditVerdictIncompatible)
         {
             QEditPresetIncompatible?.Invoke();
-            return false;
         }
 
-        return true;
+        return lVerdict == CEditVerdict.CEditVerdictRan;
     }
-
-    private LDocketEntry? QEditSelectedRead() =>
-        qEditList.QListPathCurrent is { } lPath
-        && qEditDocket.LDocketItemFind(lPath) is { LDocketEntryLocked: false } lItem
-            ? lItem
-            : null;
-
-    private static LWorkSource QEditSourceCreate(LDocketEntry lItem) =>
-        new(lItem.LDocketEntryPath, lItem.LDocketEntryBatch);
 }

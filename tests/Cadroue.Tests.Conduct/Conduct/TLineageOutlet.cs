@@ -111,7 +111,8 @@ public sealed class TLineageOutlet
                 TInterface.TLineageOutletCreate(),
                 new TWorkspacePort(),
                 new TPlacementPort(),
-                new TViewerPort())
+                new TViewerPort(),
+                new TEditPort())
             .CAtelierLineage
             .CLineageTitleRead(work.TWorkItem.LWorkBatchId, work.TWorkItem.LWorkRelaySource, work.TWorkItem.LWorkTab);
 

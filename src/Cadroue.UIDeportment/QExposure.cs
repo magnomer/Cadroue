@@ -1,63 +1,86 @@
-using Cadroue.Core;
+using System.Windows.Controls;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The exposure tool's wiring: fills fresh PExposure copies, hands every input to the gate and shows the gate's state.
 public sealed class QExposure
 {
-    private LWorkVideoStep qExposureStep = LWorkVideoStep.LWorkExposureCreate(false, 0);
-    private bool qExposurePersistent;
-    private bool qExposureCapable;
-    private bool qExposurePreview;
+    private const string QExposureSheet = "PExposure";
 
-    public event Action? QExposureChanged;
+    private const string QExposurePersistentSheet = "PExposurePersistent";
 
-    public LWorkVideoStep QExposureStep => qExposureStep;
+    private const string QExposureActivePart = "PExposureActive";
 
-    public bool QExposurePersistent => qExposurePersistent;
+    private const string QExposureStackPart = "PExposureStack";
 
-    public bool QExposureCapable => qExposureCapable;
+    private const double QExposureLeast = -3;
 
-    public bool QExposurePreview => qExposurePreview;
+    private const double QExposureMost = 3;
 
-    public void QExposureStepSet(LWorkVideoStep lStep)
+    private const double QExposureOrigin = 0;
+
+    private const string QExposureUnit = "EV";
+
+    private const string QExposurePattern = "0.#";
+
+    private readonly QInspector qExposureInspector;
+    private readonly CExposure qExposureGate;
+    private readonly CheckBox qExposureActive;
+    private readonly StackPanel qExposureStack;
+    private readonly Grid qExposureField;
+
+    public QExposure(QInspector lInspector)
     {
-        LWorkVideoStep lNormal = LWorkVideoStep.LWorkExposureCreate(lStep.LWorkStepActive, lStep.LWorkStepValue);
-        if (qExposureStep == lNormal)
-        {
-            return;
-        }
+        qExposureInspector = lInspector;
+        qExposureGate = lInspector.QInspectorVideo.QInspectorExposure;
+        QExposureBody = QContract.QContractSheetFind<StackPanel>(QExposureSheet);
+        QExposurePersistent = QContract.QContractSheetFind<CheckBox>(QExposurePersistentSheet);
+        qExposureActive = QContract.QContractFind<CheckBox>(QExposureBody, QExposureActivePart);
+        qExposureStack = QContract.QContractFind<StackPanel>(QExposureBody, QExposureStackPart);
 
-        qExposureStep = lNormal;
-        QExposureChanged?.Invoke();
+        qExposureActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qExposureActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyExposure");
+        QExposurePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QExposurePersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistExposure");
+        QTool.QToolSwitchAttach(qExposureActive, qExposureGate.CExposureActiveSet);
+        QTool.QToolSwitchAttach(QExposurePersistent, qExposureGate.CExposurePersistentSet);
+
+        qExposureField = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
+            QExposureUnit,
+            QExposureLeast,
+            QExposureMost,
+            QExposureOrigin);
+        QField.QFieldAttach(
+            qExposureField,
+            QExposureLeast,
+            QExposureMost,
+            () => qExposureGate.CExposureValue,
+            qExposureGate.CExposureValueSet);
+        qExposureStack.Children.Insert(0, qExposureField);
+
+        qExposureGate.CExposureChanged += QExposureUpdate;
+        QExposureUpdate();
     }
 
-    public void QExposureActiveSet(bool lActive) =>
-        QExposureStepSet(LWorkVideoStep.LWorkExposureCreate(lActive, qExposureStep.LWorkStepValue));
+    public StackPanel QExposureBody { get; }
 
-    public void QExposureValueSet(double lValue) =>
-        QExposureStepSet(LWorkVideoStep.LWorkExposureCreate(qExposureStep.LWorkStepActive, lValue));
+    public CheckBox QExposurePersistent { get; }
 
-    public void QExposurePersistentSet(bool lPersistent)
+    private void QExposureUpdate()
     {
-        if (qExposurePersistent == lPersistent)
-        {
-            return;
-        }
-
-        qExposurePersistent = lPersistent;
-        QExposureChanged?.Invoke();
-    }
-
-    public void QExposureCapableSet(bool lCapable, bool lPreview)
-    {
-        bool lPreviewShown = lCapable && lPreview;
-        if (qExposureCapable == lCapable && qExposurePreview == lPreviewShown)
-        {
-            return;
-        }
-
-        qExposureCapable = lCapable;
-        qExposurePreview = lPreviewShown;
-        QExposureChanged?.Invoke();
+        QTool.QToolSwitchUpdate(qExposureActive, qExposureGate.CExposureActive);
+        QTool.QToolSwitchUpdate(QExposurePersistent, qExposureGate.CExposurePersistent);
+        QField.QFieldUpdate(qExposureField, qExposureGate.CExposureValue, QExposurePattern);
+        QInspectorTip lTip = qExposureInspector.QInspectorTipResolve(
+            qExposureGate.CExposureActive,
+            qExposureGate.CExposureCapable,
+            qExposureGate.CExposurePreview,
+            "Inspector.Video.ExposureRequiresEq",
+            "Inspector.Video.ExposurePreviewMpv",
+            "Inspector.Video.ApplyExposure",
+            "Inspector.Video.PersistExposure");
+        QTool.QToolTipApply(qExposureActive, QExposurePersistent, qExposureStack, QExposureBody, lTip);
     }
 }

@@ -76,7 +76,6 @@ public sealed class QEditTabColor
         qEditProcessing.QProcessingEnabledSet(
             "Exposure", lExposureCapable, QLocalizationCatalog.QLocalizationTextRead(
                 "Inspector.Video.ExposureRequiresEq"));
-        qEditInspector.QInspectorVideo.QInspectorExposure.QExposureCapableSet(lExposureCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Curve", lCurveCapable, QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.CurveRequiresEq"));
@@ -91,7 +90,7 @@ public sealed class QEditTabColor
 
         qEditProcessing.QProcessingEnabledSet(
             "Gamma", lEqCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.GammaRequiresEq"));
-        qEditInspector.QInspectorVideo.QInspectorGamma.CGammaCapableSet(lEqCapable, QEditMpvCheck());
+        qEditInspector.QInspectorGate.CInspectorCapableSet(lEqCapable, lExposureCapable, QEditMpvCheck());
 
         QEditColorUpdate();
         QEditColorApply();

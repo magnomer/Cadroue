@@ -1,49 +1,83 @@
-using Cadroue.Core;
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The volume tool's wiring: fills fresh PVolume copies, hands every input to the gate and shows the gate's state.
 public sealed class QVolume
 {
-    private LWorkAudioStep qVolumeStep = LWorkAudioStep.LWorkVolumeCreate(false, 0);
-    private bool qVolumePersistent;
+    private const string QVolumeSheet = "PVolume";
 
-    public event Action? QVolumeChanged;
+    private const string QVolumePersistentSheet = "PVolumePersistent";
 
-    public LWorkAudioStep QVolumeStep => qVolumeStep;
+    private const string QVolumeActivePart = "PVolumeActive";
 
-    public double QVolumeGain => ((LWorkVolumeStep)qVolumeStep).LWorkVolumeGain;
+    private const string QVolumeStackPart = "PVolumeStack";
 
-    public bool QVolumePersistent => qVolumePersistent;
+    private const string QVolumeClipPart = "PVolumeClip";
 
-    public bool QVolumeClipShown => QVolumeGain > 0;
+    private const double QVolumeLeast = -24;
 
-    public void QVolumeStepSet(LWorkAudioStep lStep)
+    private const double QVolumeMost = 24;
+
+    private const double QVolumeOrigin = 0;
+
+    private const string QVolumeUnit = "dB";
+
+    private const string QVolumePattern = "0.#";
+
+    private readonly CVolume qVolumeGate;
+    private readonly CheckBox qVolumeActive;
+    private readonly StackPanel qVolumeStack;
+    private readonly TextBlock qVolumeClip;
+    private readonly Grid qVolumeField;
+
+    public QVolume(QInspector lInspector)
     {
-        double lGain = lStep is LWorkVolumeStep lVolume ? lVolume.LWorkVolumeGain : 0;
-        LWorkAudioStep lNormal = LWorkAudioStep.LWorkVolumeCreate(lStep.LWorkStepActive, lGain);
-        if (qVolumeStep == lNormal)
-        {
-            return;
-        }
+        qVolumeGate = lInspector.QInspectorAudio.QInspectorVolume;
+        QVolumeBody = QContract.QContractSheetFind<StackPanel>(QVolumeSheet);
+        QVolumePersistent = QContract.QContractSheetFind<CheckBox>(QVolumePersistentSheet);
+        qVolumeActive = QContract.QContractFind<CheckBox>(QVolumeBody, QVolumeActivePart);
+        qVolumeStack = QContract.QContractFind<StackPanel>(QVolumeBody, QVolumeStackPart);
+        qVolumeClip = QContract.QContractFind<TextBlock>(QVolumeBody, QVolumeClipPart);
 
-        qVolumeStep = lNormal;
-        QVolumeChanged?.Invoke();
+        qVolumeActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qVolumeActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ApplyTooltip");
+        QVolumePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QVolumePersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.PersistentTooltip");
+        qVolumeClip.Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ClipNotice");
+        QTool.QToolSwitchAttach(qVolumeActive, qVolumeGate.CVolumeActiveSet);
+        QTool.QToolSwitchAttach(QVolumePersistent, qVolumeGate.CVolumePersistentSet);
+
+        qVolumeField = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.Gain"),
+            QVolumeUnit,
+            QVolumeLeast,
+            QVolumeMost,
+            QVolumeOrigin);
+        QField.QFieldAttach(
+            qVolumeField,
+            QVolumeLeast,
+            QVolumeMost,
+            () => qVolumeGate.CVolumeGain,
+            qVolumeGate.CVolumeGainSet);
+        qVolumeStack.Children.Insert(0, qVolumeField);
+
+        qVolumeGate.CVolumeChanged += QVolumeUpdate;
+        QVolumeUpdate();
     }
 
-    public void QVolumeActiveSet(bool lActive) =>
-        QVolumeStepSet(LWorkAudioStep.LWorkVolumeCreate(lActive, QVolumeGain));
+    public StackPanel QVolumeBody { get; }
 
-    public void QVolumeGainSet(double lGain) =>
-        QVolumeStepSet(LWorkAudioStep.LWorkVolumeCreate(qVolumeStep.LWorkStepActive, lGain));
+    public CheckBox QVolumePersistent { get; }
 
-    public void QVolumePersistentSet(bool lPersistent)
+    private void QVolumeUpdate()
     {
-        if (qVolumePersistent == lPersistent)
-        {
-            return;
-        }
-
-        qVolumePersistent = lPersistent;
-        QVolumeChanged?.Invoke();
+        QTool.QToolSwitchUpdate(qVolumeActive, qVolumeGate.CVolumeActive);
+        QTool.QToolSwitchUpdate(QVolumePersistent, qVolumeGate.CVolumePersistent);
+        QField.QFieldUpdate(qVolumeField, qVolumeGate.CVolumeGain, QVolumePattern);
+        QTool.QToolStackUpdate(qVolumeStack, qVolumeGate.CVolumeActive);
+        qVolumeClip.Visibility = qVolumeGate.CVolumeClipShown ? Visibility.Visible : Visibility.Collapsed;
     }
 }

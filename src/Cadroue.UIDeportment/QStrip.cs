@@ -20,6 +20,7 @@ public sealed class QStrip
     private readonly CLineage qStripLineage;
     private readonly Func<CWorkspace> qStripWorkspaceSource;
     private readonly Func<CInspector> qStripInspectorSource;
+    private readonly CEdit qStripEdit;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
@@ -28,8 +29,10 @@ public sealed class QStrip
         CInfo lInfo,
         CLineage lLineage,
         Func<CWorkspace> lWorkspaceSource,
-        Func<CInspector> lInspectorSource)
-        : this(lUsher, lInfo, lLineage, lWorkspaceSource, lInspectorSource, QStripTitleResolve, QStripNumberResolve)
+        Func<CInspector> lInspectorSource,
+        CEdit lEdit)
+        : this(
+            lUsher, lInfo, lLineage, lWorkspaceSource, lInspectorSource, lEdit, QStripTitleResolve, QStripNumberResolve)
     {
     }
 
@@ -39,6 +42,7 @@ public sealed class QStrip
         CLineage lLineage,
         Func<CWorkspace> lWorkspaceSource,
         Func<CInspector> lInspectorSource,
+        CEdit lEdit,
         Func<string, string> lTitleSource,
         Func<string, int, string> lNumberSource)
     {
@@ -47,6 +51,7 @@ public sealed class QStrip
         qStripLineage = lLineage;
         qStripWorkspaceSource = lWorkspaceSource;
         qStripInspectorSource = lInspectorSource;
+        qStripEdit = lEdit;
         qStripTitleSource = lTitleSource;
         qStripNumberSource = lNumberSource;
         QStripSeparator = new QStripSeparator(this, qStripTabs);
@@ -95,7 +100,8 @@ public sealed class QStrip
             qStripInfo,
             qStripLineage,
             qStripWorkspaceSource(),
-            qStripInspectorSource());
+            qStripInspectorSource(),
+            qStripEdit);
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 

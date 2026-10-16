@@ -53,11 +53,11 @@ public sealed class QInspector
     public QInspector(CInspector lInspector)
     {
         QInspectorGate = lInspector;
-        QInspectorVideo = new QInspectorVideo(QInspectorGate.CInspectorGamma);
+        QInspectorVideo = new QInspectorVideo(QInspectorGate);
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorRatio = new QInspectorRatio(this, QInspectorCrop);
-        QInspectorAudio = new QInspectorAudio(QInspectorSkip);
+        QInspectorAudio = new QInspectorAudio(QInspectorSkip, QInspectorGate);
         QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
         QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
         QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
@@ -333,10 +333,10 @@ public sealed class QInspector
             QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindContrast),
             QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindSaturation),
             QInspectorVideo.QInspectorGamma.CGammaPersistent,
-            QInspectorVideo.QInspectorExposure.QExposurePersistent,
+            QInspectorVideo.QInspectorExposure.CExposurePersistent,
             QInspectorVideo.QInspectorCurve.QCurvePersistent,
             QInspectorVideo.QInspectorWhitebalance.QWhitebalancePersistent,
-            QInspectorAudio.QInspectorVolume.QVolumePersistent,
+            QInspectorAudio.QInspectorVolume.CVolumePersistent,
             QInspectorAudio.QInspectorLoudness.QLoudnessPersistent,
             QInspectorAudio.QInspectorNoise.QNoisePersistent,
             QInspectorAudio.QInspectorHighpass.QFilterPersistent,
