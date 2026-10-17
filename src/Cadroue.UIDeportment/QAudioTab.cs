@@ -192,7 +192,7 @@ public sealed class QAudioTab
     private string QAudioGraphFormat()
     {
         LWorkAudio lPlan = QAudioStore.QAudioPlanRead();
-        return lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(QAudioRateRead());
+        return lPlan.LWorkAudioSkip ? string.Empty : LWorkAudioFilter.LWorkAudioFormat(lPlan, QAudioRateRead());
     }
 
     private void QAudioMediaHandle(LCargo lCargo)

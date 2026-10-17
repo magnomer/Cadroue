@@ -241,7 +241,7 @@ public sealed class QRail
         {
             QRailRelayOutcome lOutcome = QRailOutcomeResolve(
                 lTab,
-                await LRelayChannel.LRelayDispatch(lRelayFilePath, lDeviceX, lDeviceY));
+                await LRelayDelivery.LRelayDispatch(lRelayFilePath, lDeviceX, lDeviceY));
             QRailRelayRecord(lTab, lOutcome);
             if (lOutcome == QRailRelayOutcome.QRailRelayRelayed)
             {

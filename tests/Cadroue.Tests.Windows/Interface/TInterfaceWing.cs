@@ -219,7 +219,7 @@ internal static partial class TInterface
     internal static void TInfoAttach(QInfo info, Action handler) => info.QInfoChanged += handler;
     internal static void TInfoDetach(QInfo info) => info.QInfoDetach();
     internal static IReadOnlyList<LInfoRow> TInfoRowsRead(QInfo info) =>
-        LInfoReport.LInfoReportRead(info.QInfoViewer.QViewerCargo, LMediaProbe.LMediaAvailabilityCurrent);
+        LInfoReport.LInfoReportRead(info.QInfoViewer.QViewerCargo, LMediaAvailability.LMediaAvailabilityCurrent);
     internal static UserControl TInfoFaceAttach(QInfo info, UserControl surface) =>
         QInfoFace.QInfoFaceAttach(info, surface);
 

@@ -21,6 +21,7 @@ public sealed class LLineageFacade
         LScheduleLineageAnswer lAnswer = LScheduleLineagePlan.LScheduleLineageResolve(
             lSchedule,
             lIds,
+            LLineageEngine.LLineageWorkSeam,
             LLineageEngine.LLineageFileSeam,
             LUsherEnvironmentEngine.LUsherPathSeam,
             LUsherTextEngine.LUsherNameSeam,
@@ -38,7 +39,8 @@ public sealed class LLineageFacade
     {
         LScheduleContract? lSchedule = LStation.LStationSchedule;
         return LLineageBatchCreate(
-            LScheduleLineagePlan.LScheduleBatchResolve(lSchedule, lBatchId, LUsherEnvironmentEngine.LUsherPathSeam),
+            LScheduleLineagePlan.LScheduleBatchResolve(
+                lSchedule, lBatchId, LLineageEngine.LLineageWorkSeam, LUsherEnvironmentEngine.LUsherPathSeam),
             lSchedule is null ? [] : LScheduleLookup.LScheduleBatchRead(lSchedule, lBatchId));
     }
 
@@ -58,8 +60,9 @@ public sealed class LLineageFacade
     private LLineageBatch LLineageBatchCreate(LScheduleLineageBatch lBatch, IReadOnlyList<LWorkItem> lItems)
     {
         TimeSpan[] lSpans = lItems
-            .Where(lItem => lItem.LWorkStartTime is not null)
-            .Select(lItem => (lItem.LWorkFinishTime ?? TimeProvider.System.GetUtcNow()) - lItem.LWorkStartTime!.Value)
+            .Where(lItem => lItem.LWorkRunState.LWorkStartTime is not null)
+            .Select(lItem => (lItem.LWorkRunState.LWorkFinishTime ?? TimeProvider.System.GetUtcNow())
+                - lItem.LWorkRunState.LWorkStartTime!.Value)
             .Where(lSpan => lSpan >= TimeSpan.Zero)
             .ToArray();
         TimeSpan lTotal = lSpans.Aggregate(TimeSpan.Zero, (lSum, lSpan) => lSum + lSpan);

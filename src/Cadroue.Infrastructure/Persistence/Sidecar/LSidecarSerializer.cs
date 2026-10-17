@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
@@ -111,55 +110,6 @@ internal static class LSidecarSerializer
             LSidecarCacheNormalize(lSidecarCache);
             return lSidecarCache;
         }
-    }
-
-    internal static LSidecar LSidecarCreate(LSidecarCoreDocument lSidecarCore, LSidecarCacheDocument? lSidecarCache)
-    {
-        LSidecarCacheDocument? lSidecarValid = lSidecarCache is not null
-            && LSidecarSource.LSidecarCacheMatch(
-                lSidecarCore.LSidecarSource,
-                lSidecarCache.LSidecarLength,
-                lSidecarCache.LSidecarPartialHash)
-                ? LSidecarCacheValidate(lSidecarCache)
-                : null;
-        return new LSidecar
-        {
-            LSidecarVersion = lSidecarCore.LSidecarVersion,
-            LSidecarSource = lSidecarCore.LSidecarSource,
-            LSidecarSections = lSidecarCore.LSidecarSections,
-            LSidecarEdit = lSidecarCore.LSidecarEdit,
-            LSidecarAudio = lSidecarCore.LSidecarAudio,
-            LSidecarLoudness = lSidecarCore.LSidecarLoudness,
-            LSidecarKeyframeDeltas = lSidecarValid?.LSidecarKeyframeDeltas ?? new(),
-            LSidecarScannedSpans = lSidecarValid?.LSidecarScannedSpans ?? new(),
-            LSidecarSpanGrid = lSidecarValid?.LSidecarSpanGrid ?? 0,
-            LSidecarWaveform = lSidecarValid?.LSidecarWaveform
-        };
-    }
-
-    internal static LSidecarCacheDocument? LSidecarCacheValidate(LSidecarCacheDocument? lSidecarCache)
-    {
-        if (lSidecarCache is not { LSidecarKeyframeCount: > 0 })
-        {
-            return lSidecarCache;
-        }
-
-        IReadOnlyList<long> lSidecarKeyframes = LSidecarKeyframe.LSidecarKeyframeParse(
-            lSidecarCache.LSidecarKeyframeDeltas);
-        if (LSidecarKeyframe.LSidecarKeyframeCheck(
-                lSidecarKeyframes,
-                lSidecarCache.LSidecarKeyframeCount,
-                lSidecarCache.LSidecarKeyframeLast))
-        {
-            return lSidecarCache;
-        }
-
-        lSidecarCache.LSidecarKeyframeDeltas = new();
-        lSidecarCache.LSidecarScannedSpans = new();
-        lSidecarCache.LSidecarSpanGrid = 0;
-        lSidecarCache.LSidecarKeyframeCount = 0;
-        lSidecarCache.LSidecarKeyframeLast = 0;
-        return lSidecarCache;
     }
 
     private static LSidecarMember? LSidecarMemberRead<LSidecarMember>(JsonElement lSidecarRoot, string lSidecarName)

@@ -7,11 +7,16 @@ using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
-public static partial class LInventory
+internal sealed record LInventoryProcess(
+    bool LInventoryProcessSuccess,
+    string LInventoryProcessOut,
+    string LInventoryProcessError)
 {
     private const int LInventoryTimeout = 20000;
 
-    private static async Task<LInventoryProcess> LInventoryProcessRead(params string[] lInventoryArguments)
+    public static readonly LInventoryProcess LInventoryProcessFailure = new(false, string.Empty, string.Empty);
+
+    internal static async Task<LInventoryProcess> LInventoryProcessRead(params string[] lInventoryArguments)
     {
         try
         {
@@ -34,15 +39,7 @@ public static partial class LInventory
                 or OperationCanceledException
                 or IOException)
         {
-            return LInventoryProcess.LInventoryProcessFailure;
+            return LInventoryProcessFailure;
         }
-    }
-
-    private sealed record LInventoryProcess(
-        bool LInventoryProcessSuccess,
-        string LInventoryProcessOut,
-        string LInventoryProcessError)
-    {
-        public static readonly LInventoryProcess LInventoryProcessFailure = new(false, string.Empty, string.Empty);
     }
 }

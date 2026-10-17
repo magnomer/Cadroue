@@ -10,14 +10,14 @@ public sealed class LFlyleafInstallResult
     public string LFlyleafInstallMessage { get; init; } = string.Empty;
 }
 
-public static partial class LFlyleaf
+public static class LFlyleafInstall
 {
     private const string LFlyleafRepositoryUrl = "https://github.com/SuRGeoNix/Flyleaf.git";
 
     public static async Task<LFlyleafInstallResult> LFlyleafInstallStart(IProgress<double>? lProgress = null)
     {
-        string lRoot = LFlyleafRootRead();
-        string lSource = Path.Combine(lRoot, LFlyleafSourceName);
+        string lRoot = LFlyleafFolder.LFlyleafRootRead();
+        string lSource = Path.Combine(lRoot, LFlyleafFolder.LFlyleafSourceName);
         Directory.CreateDirectory(lRoot);
 
         try
@@ -44,7 +44,7 @@ public static partial class LFlyleaf
 
             lProgress?.Report(0.95);
             string lAssemblyFolder = LFlyleafRuntimeCreate(lSource);
-            LFlyleafRecordSave(new LFlyleafDocument
+            LFlyleafFolder.LFlyleafRecordSave(new LFlyleafDocument
             {
                 LFlyleafAssemblyFolder = lAssemblyFolder,
                 LFlyleafSourceFolder = lSource
@@ -146,10 +146,10 @@ public static partial class LFlyleaf
             : Path.GetDirectoryName(lAssembly)!;
     }
 
-    private static string LFlyleafRuntimeCreate(string lSource)
+    internal static string LFlyleafRuntimeCreate(string lSource)
     {
         string lBuiltFolder = LFlyleafBuiltFind(lSource);
-        string lRuntimeFolder = Path.Combine(LFlyleafRootRead(), LFlyleafRuntimeName);
+        string lRuntimeFolder = Path.Combine(LFlyleafFolder.LFlyleafRootRead(), LFlyleafFolder.LFlyleafRuntimeName);
         Directory.CreateDirectory(lRuntimeFolder);
 
         foreach (string lFile in Directory.EnumerateFiles(lBuiltFolder, "*", SearchOption.TopDirectoryOnly))
@@ -160,7 +160,7 @@ public static partial class LFlyleaf
         return lRuntimeFolder;
     }
 
-    private static string? LFlyleafSourceFind(string lSource)
+    internal static string? LFlyleafSourceFind(string lSource)
     {
         string? lAssembly = LFlyleafAssemblyFind(lSource);
         return lAssembly is null ? null : Path.GetDirectoryName(lAssembly);

@@ -4,7 +4,7 @@ public sealed record LPieceResult(List<LPiece> LPieceSections, int? LPieceActive
 
 public sealed record LPieceDivision(List<LPiece> LPieceSections, int LPieceFirst, int LPieceSecond);
 
-public readonly partial record struct LPiece
+public static class LPiecePlan
 {
     public static IReadOnlyList<LPiece> LPieceValidSelect(IReadOnlyList<LPiece> lPieceSections, TimeSpan lPieceDuration)
     {
@@ -282,19 +282,5 @@ public readonly partial record struct LPiece
         lPieceList.Insert(lPieceIndex, new LPiece(lPieceCursor, lPiece.LPieceEnd, lPieceColorIndex, string.Empty));
         lPieceList.Insert(lPieceIndex, lPiece with { LPieceEnd = lPieceCursor, LPieceDetected = false });
         return new LPieceDivision(lPieceList, lPieceIndex, lPieceIndex + 1);
-    }
-
-    public static List<LPiece> LPieceLosslesscutCreate(
-        IReadOnlyList<LSidecarSectionEntry> lPieceSections,
-        int lPieceColorOffset,
-        int lPiecePaletteCount)
-    {
-        int lPiecePalette = Math.Max(1, lPiecePaletteCount);
-        return lPieceSections
-            .Select((lPieceSection, lPieceIndex) => LPieceCreate(lPieceSection) with
-            {
-                LPieceColorIndex = (lPieceColorOffset + lPieceIndex) % lPiecePalette
-            })
-            .ToList();
     }
 }

@@ -19,27 +19,6 @@ public sealed class LPresetDocument
     public string LPresetLocationCustom { get; set; } = string.Empty;
     public LPresetVideoEntry LPresetVideo { get; set; } = new();
     public LPresetAudioEntry LPresetAudio { get; set; } = new();
-
-    public LPresetDocument LPresetRecordNormalize()
-    {
-        var lPresetDefault = new LPresetDocument();
-        LPresetName ??= lPresetDefault.LPresetName;
-        LPresetDisplay ??= lPresetDefault.LPresetDisplay;
-        LPresetContainer ??= lPresetDefault.LPresetContainer;
-        LPresetExtension ??= lPresetDefault.LPresetExtension;
-        LPresetCollision ??= lPresetDefault.LPresetCollision;
-        LPresetCollisionSuffix ??= lPresetDefault.LPresetCollisionSuffix;
-        LPresetOutputSuffix ??= lPresetDefault.LPresetOutputSuffix;
-        LPresetSourceSuffix ??= lPresetDefault.LPresetSourceSuffix;
-        LPresetLocation ??= lPresetDefault.LPresetLocation;
-        LPresetLocationFolder ??= lPresetDefault.LPresetLocationFolder;
-        LPresetLocationSubfolder ??= lPresetDefault.LPresetLocationSubfolder;
-        LPresetLocationSibling ??= lPresetDefault.LPresetLocationSibling;
-        LPresetLocationCustom ??= lPresetDefault.LPresetLocationCustom;
-        LPresetVideo = (LPresetVideo ?? new LPresetVideoEntry()).LPresetVideoNormalize();
-        LPresetAudio = (LPresetAudio ?? new LPresetAudioEntry()).LPresetAudioNormalize();
-        return this;
-    }
 }
 
 public sealed class LPresetVideoEntry
@@ -55,41 +34,6 @@ public sealed class LPresetVideoEntry
     public string LPresetFps { get; set; } = "Same as source";
     public string LPresetPixelLayout { get; set; } = "Auto";
     public Dictionary<string, string> LPresetExtras { get; set; } = new();
-
-    public LPresetVideoEntry LPresetVideoNormalize()
-    {
-        var lPresetDefault = new LPresetVideoEntry();
-        LPresetStream ??= lPresetDefault.LPresetStream;
-        LPresetMode ??= lPresetDefault.LPresetMode;
-        LPresetEncoder = LRepertoireVideo.LRepertoireTextNormalize(LPresetEncoder ?? lPresetDefault.LPresetEncoder);
-        LPresetRateControl ??= lPresetDefault.LPresetRateControl;
-        LPresetQuality ??= lPresetDefault.LPresetQuality;
-        LPresetSpeedPreset ??= lPresetDefault.LPresetSpeedPreset;
-        LPresetSize ??= lPresetDefault.LPresetSize;
-        LPresetFps ??= lPresetDefault.LPresetFps;
-        LPresetPixelLayout ??= lPresetDefault.LPresetPixelLayout;
-        LPresetExtras = LPresetExtrasNormalize(LPresetExtras);
-        return this;
-    }
-
-    internal static Dictionary<string, string> LPresetExtrasNormalize(Dictionary<string, string>? lPresetExtras)
-    {
-        var lPresetNormalized = new Dictionary<string, string>(StringComparer.Ordinal);
-        if (lPresetExtras is null)
-        {
-            return lPresetNormalized;
-        }
-
-        foreach ((string lPresetKey, string lPresetValue) in lPresetExtras)
-        {
-            if (!string.IsNullOrEmpty(lPresetKey))
-            {
-                lPresetNormalized[lPresetKey] = lPresetValue ?? string.Empty;
-            }
-        }
-
-        return lPresetNormalized;
-    }
 }
 
 public sealed class LPresetAudioEntry
@@ -103,21 +47,6 @@ public sealed class LPresetAudioEntry
     public Dictionary<string, string> LPresetExtras { get; set; } = new();
     public string LPresetSampleRate { get; set; } = "Same as source";
     public string LPresetChannels { get; set; } = "Same as source";
-
-    public LPresetAudioEntry LPresetAudioNormalize()
-    {
-        var lPresetDefault = new LPresetAudioEntry();
-        LPresetStream ??= lPresetDefault.LPresetStream;
-        LPresetMode ??= lPresetDefault.LPresetMode;
-        LPresetEncoder ??= lPresetDefault.LPresetEncoder;
-        LPresetRateControl ??= lPresetDefault.LPresetRateControl;
-        LPresetQuality ??= lPresetDefault.LPresetQuality;
-        LPresetSpeed ??= lPresetDefault.LPresetSpeed;
-        LPresetSampleRate ??= lPresetDefault.LPresetSampleRate;
-        LPresetChannels ??= lPresetDefault.LPresetChannels;
-        LPresetExtras = LPresetVideoEntry.LPresetExtrasNormalize(LPresetExtras);
-        return this;
-    }
 }
 
 public enum LPresetOutcome

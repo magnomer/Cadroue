@@ -22,13 +22,13 @@ public static class LBastion
         return lBastionCohorts;
     }
 
-    private static bool LBastionItemCheck(LWorkItem lBastionItem) => lBastionItem.LWorkStateCurrent switch
+    private static bool LBastionItemCheck(LWorkItem lBastionItem) => lBastionItem.LWorkRunState.LWorkStateCurrent switch
     {
         LWorkState.LWorkStateRunning => true,
         LWorkState.LWorkStateDone =>
             lBastionItem.LWorkRelayTarget != Guid.Empty
             && lBastionItem.LWorkRelayTarget != LCartographer.LCartographerFinishTarget
-            && lBastionItem.LWorkOwnerProcess == Environment.ProcessId
+            && lBastionItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId
             && !LCartographer.LCartographerDeliveredCheck(lBastionItem.LWorkId),
         _ => false
     };

@@ -19,18 +19,18 @@ internal static partial class TInterface
 
     internal static LConsoleSceneOutlet TSceneOutletCreate() =>
         new(new LSceneStore(
-            LScene.LSceneCatalogueLoad,
-            () => LScene.LSceneNames,
+            LSceneCatalogue.LSceneCatalogueLoad,
+            () => LSceneCatalogue.LSceneNames,
             () => LScene.LSceneActiveName,
             LScene.LSceneActiveSet,
-            LScene.LSceneRead,
-            LScene.LSceneMatch,
-            LScene.LSceneSave,
-            LScene.LSceneDelete,
-            LScene.LSceneFileResolve,
-            LScene.LSceneFileSave,
-            LScene.LSceneFileLoad,
-            LScene.LSceneStemResolve,
+            LSceneCatalogue.LSceneRead,
+            LSceneCanonical.LSceneMatch,
+            LSceneCatalogue.LSceneSave,
+            LSceneCatalogue.LSceneDelete,
+            LSceneFile.LSceneFileResolve,
+            LSceneFile.LSceneFileSave,
+            LSceneFile.LSceneFileLoad,
+            LSceneFile.LSceneStemResolve,
             lMessage => LTraceLog.LTraceLoadingRecord(lMessage)));
     internal static QConsoleScene TConsoleSceneCreate() =>
         new(TAtelierCreate().CAtelierConsoleCreate().CConsoleScene, new QEnvoy());
@@ -41,7 +41,7 @@ internal static partial class TInterface
         scene.QConsoleFocusCleared += handler;
     internal static void TConsolePressHandle(QConsoleScene scene, bool dropOpen, bool focusWithin, bool inside) =>
         scene.QConsolePressHandle(dropOpen, focusWithin, inside);
-    internal static string TConsoleStemResolve(string name, string path) => LScene.LSceneStemResolve(name, path);
+    internal static string TConsoleStemResolve(string name, string path) => LSceneFile.LSceneStemResolve(name, path);
     internal static string TConsoleNameCreate(string baseName, IReadOnlyList<string> names) =>
         LConsoleSceneOutlet.LConsoleSceneCreate(baseName, names);
 

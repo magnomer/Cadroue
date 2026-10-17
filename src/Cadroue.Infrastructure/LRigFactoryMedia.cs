@@ -8,11 +8,11 @@ public static class LRigFactoryMedia
     public static LRigMedia LRigMediaCreate()
     {
         return new LRigMedia(
-            LMedia.LMediaFfprobeRead,
-            LMedia.LMediaLoudnessRead,
+            LMediaFfprobe.LMediaFfprobeRead,
+            LMediaLoudness.LMediaLoudnessRead,
             LKeyframeSeeker.LKeyframeRangeScan,
-            LMedia.LMediaScanClaim,
-            LMedia.LMediaScanRelease,
+            LMediaSlot.LMediaScanClaim,
+            LMediaSlot.LMediaScanRelease,
             LMedia.LMediaFileRead,
             LMedia.LMediaCheck);
     }

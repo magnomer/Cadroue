@@ -49,15 +49,15 @@ public sealed class TSummaryPlan
         TScheduleWork first = schedule.TWorkCreate(batch, "one");
         TScheduleWork second = schedule.TWorkCreate(batch, "two", parent: first);
         first.TWorkItem.LWorkSourceBytes = 4_194_304;
-        first.TWorkItem.LWorkOutputBytes = 3_145_728;
-        first.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        first.TWorkItem.LWorkStartTime = DateTimeOffset.UnixEpoch;
-        first.TWorkItem.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
+        first.TWorkItem.LWorkRunState.LWorkOutputBytes = 3_145_728;
+        first.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        first.TWorkItem.LWorkRunState.LWorkStartTime = DateTimeOffset.UnixEpoch;
+        first.TWorkItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
         second.TWorkItem.LWorkSourceBytes = 3_145_728;
-        second.TWorkItem.LWorkOutputBytes = 1_048_576;
-        second.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        second.TWorkItem.LWorkStartTime = DateTimeOffset.UnixEpoch;
-        second.TWorkItem.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
+        second.TWorkItem.LWorkRunState.LWorkOutputBytes = 1_048_576;
+        second.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        second.TWorkItem.LWorkRunState.LWorkStartTime = DateTimeOffset.UnixEpoch;
+        second.TWorkItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.UnixEpoch.AddSeconds(2);
         schedule.TScheduleAdd(first, second);
 
         QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
@@ -78,8 +78,8 @@ public sealed class TSummaryPlan
         LWorkItem one = schedule.TWorkCreate(batch, "one").TWorkItem;
         LWorkItem two = schedule.TWorkCreate(batch, "two").TWorkItem;
         one.LWorkSourceBytes = 1_048_576;
-        one.LWorkOutputBytes = 512;
-        one.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        one.LWorkRunState.LWorkOutputBytes = 512;
+        one.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
         schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
         QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
@@ -100,9 +100,9 @@ public sealed class TSummaryPlan
         one.TWorkItem.LWorkSourceBytes = 1_048_576;
         two.TWorkItem.LWorkSourceBytes = 2_097_152;
         var other = TInterfaceRoster.TStationCreate(schedule.TScheduleRead());
-        two.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
-        two.TWorkItem.LWorkOwnerRunner = TInterfaceRoster.TStationRunnerRead(other);
-        two.TWorkItem.LWorkOwnerProcess = Environment.ProcessId;
+        two.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        two.TWorkItem.LWorkRunState.LWorkOwnerRunner = TInterfaceRoster.TStationRunnerRead(other);
+        two.TWorkItem.LWorkRunState.LWorkOwnerProcess = Environment.ProcessId;
         schedule.TScheduleAdd(one, two);
 
         QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);

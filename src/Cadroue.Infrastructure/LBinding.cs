@@ -2,48 +2,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LBindingCommand(
-    string LBindingCommandToken,
-    string LBindingCommandKey,
-    string LBindingCommandScope,
-    string LBindingCommandGesture);
-
 public static class LBinding
 {
-    public const string LBindingScopeGlobal = "Global";
-    public const string LBindingScopeTab = "Tab";
-    public const string LBindingScopeFlow = "Flow";
-    public const string LBindingScopeSplit = "Split";
-
-    private static readonly LBindingCommand[] lBindingCatalog =
-    {
-        new("Show", "Chrome.Shortcuts.Show", LBindingScopeGlobal, "Ctrl+/"),
-        new("PlayPause", "Chrome.Shortcuts.PlayPause", LBindingScopeGlobal, "Space"),
-        new("UnloadAll", "Chrome.Shortcuts.UnloadAll", LBindingScopeGlobal, "Shift+Delete"),
-        new("Undo", "Chrome.Shortcuts.Undo", LBindingScopeTab, "Ctrl+Z"),
-        new("Redo", "Chrome.Shortcuts.Redo", LBindingScopeTab, "Ctrl+Y"),
-        new("Unload", "Chrome.Shortcuts.Unload", LBindingScopeTab, "F4"),
-        new("ZoomIn", "Chrome.Shortcuts.ZoomIn", LBindingScopeFlow, "C"),
-        new("ZoomOut", "Chrome.Shortcuts.ZoomOut", LBindingScopeFlow, "V"),
-        new("KeyframePrevious", "Chrome.Shortcuts.KeyframePrevious", LBindingScopeFlow, "E"),
-        new("KeyframeNearest", "Chrome.Shortcuts.KeyframeNearest", LBindingScopeFlow, "W"),
-        new("KeyframeNext", "Chrome.Shortcuts.KeyframeNext", LBindingScopeFlow, "R"),
-        new("SectionAdd", "Chrome.Shortcuts.SectionAdd", LBindingScopeSplit, "Q"),
-        new("SectionStart", "Chrome.Shortcuts.SectionStart", LBindingScopeSplit, "D"),
-        new("SectionSplit", "Chrome.Shortcuts.SectionSplit", LBindingScopeSplit, "S"),
-        new("SectionEnd", "Chrome.Shortcuts.SectionEnd", LBindingScopeSplit, "F"),
-        new("SectionDelete", "Chrome.Shortcuts.SectionDelete", LBindingScopeSplit, "Delete"),
-        new("SectionRename", "Chrome.Shortcuts.SectionRename", LBindingScopeSplit, "A")
-    };
-
-    private static readonly string[] lBindingScopes =
-    {
-        LBindingScopeGlobal,
-        LBindingScopeTab,
-        LBindingScopeFlow,
-        LBindingScopeSplit
-    };
-
     public static List<LBindingEntry> LBindingCurrent { get; private set; } = LBindingNormalize(null);
 
     public static void LBindingLoad() =>
@@ -54,11 +14,15 @@ public static class LBinding
         List<LBindingEntry> lBindingPrevious = LBindingCurrent;
         LBindingCurrent = LBindingNormalize(lBindingRecords);
         LBindingStore.LBindingSave(LBindingCurrent);
+        LBindingChangeRecord(lBindingPrevious, LBindingCurrent);
+    }
 
-        int lBindingChanged = LBindingCurrent.Count(lBindingNext =>
+    private static void LBindingChangeRecord(List<LBindingEntry> lBindingPrevious, List<LBindingEntry> lBindingNext)
+    {
+        int lBindingChanged = lBindingNext.Count(lBindingEntry =>
             !string.Equals(
-                LBindingGestureRead(lBindingPrevious, lBindingNext.LBindingRecordToken),
-                lBindingNext.LBindingRecordGesture,
+                LBindingGestureRead(lBindingPrevious, lBindingEntry.LBindingRecordToken),
+                lBindingEntry.LBindingRecordGesture,
                 StringComparison.Ordinal));
         if (lBindingChanged > 0)
         {
@@ -86,43 +50,12 @@ public static class LBinding
         return lBindingPrefix + lBindingKeyName;
     }
 
-    public static IReadOnlyList<LBindingCommand> LBindingCatalogRead() => lBindingCatalog;
-
-    public static IReadOnlyList<string> LBindingScopesRead() => lBindingScopes;
-
-    public static IEnumerable<LBindingCommand> LBindingScopeRead(string lBindingScope) =>
-        lBindingCatalog.Where(lBindingCommand =>
-            string.Equals(lBindingCommand.LBindingCommandScope, lBindingScope, StringComparison.Ordinal));
-
-    public static string LBindingLabelRead(string lBindingScope) => lBindingScope switch
-    {
-        LBindingScopeTab => "Chrome.Shortcuts.ScopeTab",
-        LBindingScopeFlow => "Chrome.Shortcuts.ScopeFlow",
-        LBindingScopeSplit => "Chrome.Shortcuts.ScopeSplit",
-        _ => "Chrome.Shortcuts.ScopeGlobal"
-    };
-
-    public static List<LBindingEntry> LBindingDefaultCreate() =>
-        lBindingCatalog
-            .Select(lBindingCommand => new LBindingEntry
-            {
-                LBindingRecordToken = lBindingCommand.LBindingCommandToken,
-                LBindingRecordGesture = lBindingCommand.LBindingCommandGesture
-            })
-            .ToList();
-
-    public static string LBindingDefaultRead(string lBindingToken) =>
-        lBindingCatalog
-            .FirstOrDefault(lBindingCommand =>
-                string.Equals(lBindingCommand.LBindingCommandToken, lBindingToken, StringComparison.Ordinal))
-            ?.LBindingCommandGesture ?? string.Empty;
-
     public static List<LBindingEntry> LBindingNormalize(List<LBindingEntry>? lBindingRecords)
     {
         var lBindingResult = new List<LBindingEntry>();
         var lBindingTaken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (LBindingCommand lBindingCommand in lBindingCatalog)
+        foreach (LBindingCommand lBindingCommand in LBindingCatalog.LBindingCatalogRead())
         {
             LBindingEntry? lBindingStored = lBindingRecords?.FirstOrDefault(lBindingEntry =>
                 string.Equals(

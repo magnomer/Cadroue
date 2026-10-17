@@ -20,7 +20,7 @@ public sealed class TBastion
             "output",
             TWorkOutput.TWorkOutputCreate())
         {
-            LWorkStateCurrent = state
+            LWorkRunState = { LWorkStateCurrent = state }
         };
     }
 

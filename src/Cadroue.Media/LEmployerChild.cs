@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace Cadroue.Media;
 
@@ -14,9 +13,9 @@ public static class LEmployerChild
         lock (lEmployerGate)
         {
             lEmployerChildren[lEmployerWorkId] = lEmployerProcess;
-            if (lEmployerHeld.Contains(lEmployerWorkId) && LEmployerProcessCheck(lEmployerProcess))
+            if (lEmployerHeld.Contains(lEmployerWorkId) && LEmployerProcess.LEmployerProcessCheck(lEmployerProcess))
             {
-                LEmployerProcessSuspend(lEmployerProcess);
+                LEmployerProcess.LEmployerProcessSuspend(lEmployerProcess);
             }
         }
     }
@@ -39,8 +38,8 @@ public static class LEmployerChild
             }
 
             if (lEmployerChildren.TryGetValue(lEmployerWorkId, out Process? lEmployerProcess)
-                && LEmployerProcessCheck(lEmployerProcess)
-                && !LEmployerProcessSuspend(lEmployerProcess))
+                && LEmployerProcess.LEmployerProcessCheck(lEmployerProcess)
+                && !LEmployerProcess.LEmployerProcessSuspend(lEmployerProcess))
             {
                 return false;
             }
@@ -60,8 +59,8 @@ public static class LEmployerChild
             }
 
             if (lEmployerChildren.TryGetValue(lEmployerWorkId, out Process? lEmployerProcess)
-                && LEmployerProcessCheck(lEmployerProcess)
-                && !LEmployerProcessResume(lEmployerProcess))
+                && LEmployerProcess.LEmployerProcessCheck(lEmployerProcess)
+                && !LEmployerProcess.LEmployerProcessResume(lEmployerProcess))
             {
                 return false;
             }
@@ -76,49 +75,7 @@ public static class LEmployerChild
         lock (lEmployerGate)
         {
             return lEmployerChildren.TryGetValue(lEmployerWorkId, out Process? lEmployerProcess)
-                && LEmployerProcessCheck(lEmployerProcess);
-        }
-    }
-
-    private static bool LEmployerProcessCheck(Process lEmployerProcess)
-    {
-        try
-        {
-            return !lEmployerProcess.HasExited;
-        }
-        catch (InvalidOperationException)
-        {
-            return false;
-        }
-    }
-
-    [DllImport("ntdll.dll", SetLastError = true)]
-    private static extern int NtSuspendProcess(IntPtr lRunnerProcessHandle);
-
-    [DllImport("ntdll.dll", SetLastError = true)]
-    private static extern int NtResumeProcess(IntPtr lRunnerProcessHandle);
-
-    private static bool LEmployerProcessSuspend(Process lEmployerProcess)
-    {
-        try
-        {
-            return NtSuspendProcess(lEmployerProcess.Handle) == 0;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    private static bool LEmployerProcessResume(Process lEmployerProcess)
-    {
-        try
-        {
-            return NtResumeProcess(lEmployerProcess.Handle) == 0;
-        }
-        catch (Exception)
-        {
-            return false;
+                && LEmployerProcess.LEmployerProcessCheck(lEmployerProcess);
         }
     }
 }

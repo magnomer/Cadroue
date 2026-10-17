@@ -35,7 +35,7 @@ public sealed class QSOptions
     public event Action<bool>? QSOptionsMpvChanged;
 
     public QSOptions(CUsher lUsher)
-        : this(lUsher, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpv.LMpvAvailableCheck())
+        : this(lUsher, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpvAvailability.LMpvAvailableCheck())
     {
     }
 
@@ -97,10 +97,10 @@ public sealed class QSOptions
     }
 
     public static string QSOptionsMpvResolve() =>
-        LMpv.LMpvInstalledCheck() ? "Options.System.ReinstallMpv" : "Options.System.DownloadMpv";
+        LMpvInstall.LMpvInstalledCheck() ? "Options.System.ReinstallMpv" : "Options.System.DownloadMpv";
 
     public static string QSOptionsFlyleafResolve() =>
-        LFlyleaf.LFlyleafInstalledCheck() ? "Options.System.ReinstallFlyleaf" : "Options.System.InstallFlyleaf";
+        LFlyleafFolder.LFlyleafInstalledCheck() ? "Options.System.ReinstallFlyleaf" : "Options.System.InstallFlyleaf";
 
     public static string QSOptionsFfmpegResolve(string lFolder)
     {

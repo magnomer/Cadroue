@@ -4,7 +4,7 @@ namespace Cadroue.Infrastructure;
 
 public static class LScheduleLineage
 {
-    internal static Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
+    public static Guid LScheduleLineageRead(LWorkItem lWorkItem) =>
         lWorkItem.LWorkLineage == Guid.Empty
             ? LScheduleRootRead(lWorkItem)
             : lWorkItem.LWorkLineage;
@@ -25,20 +25,23 @@ public static class LScheduleLineage
 
     private static Guid LScheduleRootRead(LWorkItem lWorkItem)
     {
-        string lScheduleKey;
+        string lScheduleKey = LScheduleKeyRead(lWorkItem.LWorkSourcePath);
+        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
+            System.Text.Encoding.UTF8.GetBytes($"{lWorkItem.LWorkBatchId:N}|{lScheduleKey}"));
+        return new Guid(lScheduleHash.AsSpan(0, 16));
+    }
+
+    private static string LScheduleKeyRead(string lSchedulePath)
+    {
         try
         {
-            lScheduleKey = Path.GetFullPath(lWorkItem.LWorkSourcePath).ToLowerInvariant();
+            return Path.GetFullPath(lSchedulePath).ToLowerInvariant();
         }
         catch (Exception lScheduleError) when (
             lScheduleError is ArgumentException or IOException or NotSupportedException)
         {
-            lScheduleKey = lWorkItem.LWorkSourcePath.ToLowerInvariant();
+            return lSchedulePath.ToLowerInvariant();
         }
-
-        byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
-            System.Text.Encoding.UTF8.GetBytes($"{lWorkItem.LWorkBatchId:N}|{lScheduleKey}"));
-        return new Guid(lScheduleHash.AsSpan(0, 16));
     }
 
     private static LWorkItem? LScheduleParentFind(
@@ -97,17 +100,7 @@ public static class LScheduleLineage
             return Guid.NewGuid();
         }
 
-        string lScheduleKey;
-        try
-        {
-            lScheduleKey = Path.GetFullPath(lWorkFilePath).ToLowerInvariant();
-        }
-        catch (Exception lScheduleError) when (
-            lScheduleError is ArgumentException or IOException or NotSupportedException)
-        {
-            lScheduleKey = lWorkFilePath.ToLowerInvariant();
-        }
-
+        string lScheduleKey = LScheduleKeyRead(lWorkFilePath);
         byte[] lScheduleHash = System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(lScheduleKey));
         return new Guid(lScheduleHash.AsSpan(0, 16));

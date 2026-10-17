@@ -65,14 +65,14 @@ internal sealed class TScheduleRecovery : IDisposable
     }
 
     internal int TScheduleSave(params TScheduleRecoveryWork[] work) =>
-        TScheduleRead().LScheduleAdd(work.Select(item => item.TWorkItem).ToArray());
+        new LScheduleIntake(TScheduleRead()).LScheduleAcceptedAdd(work.Select(item => item.TWorkItem).ToArray()).Count;
 
     internal bool TScheduleMove(Guid batchId, params TScheduleRecoveryWork[] work) =>
-        TScheduleRead().LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
+        new LScheduleIntake(TScheduleRead()).LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
 
     internal TScheduleRecoveryWork TScheduleNextClaim()
     {
-        LWorkItem workItem = TScheduleRead().LScheduleClaim(Guid.NewGuid())
+        LWorkItem workItem = new LScheduleLease(TScheduleRead()).LScheduleClaim(Guid.NewGuid())
             ?? throw new InvalidOperationException("The recovered schedule had no claimable work.");
         TScheduleRead().LScheduleLoad();
         return new TScheduleRecoveryWork(workItem);
@@ -80,16 +80,16 @@ internal sealed class TScheduleRecovery : IDisposable
 
     internal void TScheduleCommit(TScheduleRecoveryWork work, bool succeeded, string message = "")
     {
-        TScheduleRead().LScheduleCommit(work.TWorkItem, succeeded, message);
+        new LScheduleTransition(TScheduleRead()).LScheduleCommit(work.TWorkItem, succeeded, message);
         TScheduleRead().LScheduleLoad();
     }
 
     internal bool TScheduleCancel(TScheduleRecoveryWork work) =>
-        TScheduleRead().LScheduleItemCancel(work.TWorkItem);
+        new LScheduleTransition(TScheduleRead()).LScheduleItemCancel(work.TWorkItem);
 
-    internal bool TScheduleReset(Guid workId) => TScheduleRead().LScheduleItemReset(workId);
+    internal bool TScheduleReset(Guid workId) => new LScheduleTransition(TScheduleRead()).LScheduleItemReset(workId);
 
-    internal bool TScheduleRemove(Guid workId) => TScheduleRead().LScheduleRemove(workId);
+    internal bool TScheduleRemove(Guid workId) => new LScheduleRemover(TScheduleRead()).LScheduleRemove(workId);
 
     internal IReadOnlyList<TScheduleRecovered> TScheduleItemsRead() =>
         TScheduleRead().LScheduleRecords.Select(TScheduleSnapshotCreate).ToArray();
@@ -141,7 +141,10 @@ internal sealed class TScheduleRecovery : IDisposable
     {
         try
         {
-            tSchedule?.LScheduleAllClear();
+            if (tSchedule is not null)
+            {
+                new LScheduleRemover(tSchedule).LScheduleAllClear();
+            }
         }
         finally
         {
@@ -176,8 +179,8 @@ internal sealed class TScheduleRecovery : IDisposable
         new(
             workItem.LWorkId,
             workItem.LWorkBatchId,
-            TScheduleRead().LScheduleLineageRead(workItem),
+            LScheduleLineage.LScheduleLineageRead(workItem),
             workItem.LWorkOutputName,
-            workItem.LWorkStateCurrent,
-            workItem.LWorkMessage);
+            workItem.LWorkRunState.LWorkStateCurrent,
+            workItem.LWorkRunState.LWorkMessage);
 }

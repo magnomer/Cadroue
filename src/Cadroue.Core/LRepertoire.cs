@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Cadroue.Core;
 
-public static partial class LRepertoireCatalog
+public static class LRepertoireCatalog
 {
     public static readonly IReadOnlyList<string> LRepertoireContainerNames =
         ["MP4", "Matroska", "MOV", "WebM", "AVI", "MPEG-TS", "FLV", "Ogg"];

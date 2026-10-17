@@ -31,10 +31,10 @@ public sealed class TRosterRowText
         LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
 
         Assert.Equal("-", TInterfaceRoster.TRosterProgressFormat(work));
-        work.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
         Assert.StartsWith("0", TInterfaceRoster.TRosterProgressFormat(work));
-        work.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-        work.LWorkProgress = 0.5;
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+        work.LWorkRunState.LWorkProgress = 0.5;
         Assert.StartsWith("50", TInterfaceRoster.TRosterProgressFormat(work));
     }
 
@@ -45,11 +45,11 @@ public sealed class TRosterRowText
         LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "one").TWorkItem;
 
         Assert.Equal("-", TInterfaceRoster.TRosterOwnerFormat(work, true));
-        work.LWorkOwnerRunner = Guid.NewGuid();
-        work.LWorkOwnerProcess = Environment.ProcessId;
+        work.LWorkRunState.LWorkOwnerRunner = Guid.NewGuid();
+        work.LWorkRunState.LWorkOwnerProcess = Environment.ProcessId;
         string thisTab = TInterfaceRoster.TRosterOwnerFormat(work, true);
         string otherTab = TInterfaceRoster.TRosterOwnerFormat(work, false);
-        work.LWorkOwnerProcess = Environment.ProcessId + 1;
+        work.LWorkRunState.LWorkOwnerProcess = Environment.ProcessId + 1;
         string otherWindow = TInterfaceRoster.TRosterOwnerFormat(work, false);
         Assert.NotEqual(thisTab, otherTab);
         Assert.NotEqual(otherTab, otherWindow);
@@ -87,9 +87,9 @@ public sealed class TRosterRowText
         Guid batch = Guid.NewGuid();
         TScheduleWork created = schedule.TWorkCreate(batch, "one", LWorkPriority.LWorkPriorityHigh);
         LWorkItem work = created.TWorkItem;
-        work.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
         work.LWorkSourceBytes = 200;
-        work.LWorkOutputBytes = 100;
+        work.LWorkRunState.LWorkOutputBytes = 100;
         schedule.TScheduleAdd(created);
         QRosterRow row = TInterfaceRoster.TRosterRowCreate(
             TInterfaceRoster.TRosterLineageRead(schedule.TScheduleRead(), [work]),

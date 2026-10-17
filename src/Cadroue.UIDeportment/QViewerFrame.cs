@@ -30,7 +30,7 @@ public sealed class QViewerFrame
 
         TimeSpan lTime = qViewer.QViewerTimeRead();
         int lClaim = qViewer.QViewerTrace.CViewerSerial;
-        LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lTime, lWidth, lHeight);
+        LMediaFrame? lFrame = await LMediaStill.LMediaFrameStart(lPath, lTime, lWidth, lHeight);
         if (qViewer.QViewerTrace.CViewerUnloaded || lClaim != qViewer.QViewerTrace.CViewerSerial)
         {
             return;

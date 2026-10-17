@@ -29,14 +29,14 @@ public static class LTrial
             return new LTrialResult(false, "ffmpeg not resolved");
         }
 
-        await LMedia.LMediaScanClaim(lToken).ConfigureAwait(false);
+        await LMediaSlot.LMediaScanClaim(lToken).ConfigureAwait(false);
         try
         {
             return await LTrialProcessRun(lFfmpeg, lEncoder, lKind, lToken).ConfigureAwait(false);
         }
         finally
         {
-            LMedia.LMediaScanRelease();
+            LMediaSlot.LMediaScanRelease();
         }
     }
 

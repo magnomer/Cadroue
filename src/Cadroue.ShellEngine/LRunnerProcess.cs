@@ -132,7 +132,7 @@ public sealed class LRunnerProcess
     {
         lRunnerProcessPost(() =>
         {
-            pWorkItem.LWorkMessage = pMessage;
+            pWorkItem.LWorkRunState.LWorkMessage = pMessage;
             lRunnerProcessSchedule.LScheduleItemRaise(pWorkItem, LScheduleNotice.LScheduleNoticeStatus);
         });
     }

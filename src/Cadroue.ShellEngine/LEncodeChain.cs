@@ -28,7 +28,7 @@ internal static class LEncodeChain
     internal static string? LEncodeChainBuild(
         LWorkAudio lWorkAudio, LEncodeChainMode lChainMode, int lTwoPassIndex, int lChainRate)
     {
-        string lGraph = lWorkAudio.LWorkAudioFormat(lChainRate);
+        string lGraph = LWorkAudioFilter.LWorkAudioFormat(lWorkAudio, lChainRate);
         if (lGraph.Length == 0)
         {
             return null;

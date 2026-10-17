@@ -119,11 +119,19 @@ public sealed class LEngine
         LUsherEngine.LUsherExplorerSeam = lRig.LRigUsher.LRigUsherExplorer;
         LUsherEngine.LUsherLinkSeam = lRig.LRigUsher.LRigUsherLink;
         LLineageEngine.LLineageFileSeam = lRig.LRigLineage.LRigLineageFile;
+        LLineageEngine.LLineageWorkSeam = lRig.LRigLineage.LRigLineageWork;
         LStation.LStationSchedule = LEngineSchedule;
+        LStation.LStationIntake = lRig.LRigScheduleIntake;
+        LStation.LStationLease = lRig.LRigScheduleLease;
+        LStation.LStationTransition = lRig.LRigScheduleTransition;
+        LStation.LStationMeasurement = lRig.LRigScheduleMeasurement;
+        LStation.LStationRemover = lRig.LRigScheduleRemover;
         LStation.LStationProgramSource = lRig.LRigTool.LRigToolProgram;
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
         LMessenger.LMessengerScheduleSource = () => LEngineSchedule;
         LCartographer.LCartographerScheduleContract = LEngineSchedule;
+        LCartographer.LCartographerScheduleIntake = lRig.LRigScheduleIntake;
+        LCartographer.LCartographerScheduleRemover = lRig.LRigScheduleRemover;
         LMessenger.LMessengerRouteSource =
             (lMessengerItems, lMessengerTarget, lMessengerSource, lMessengerPlan) =>
                 LCartographer.LCartographerAccept(

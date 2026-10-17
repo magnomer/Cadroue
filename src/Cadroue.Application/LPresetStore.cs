@@ -27,14 +27,14 @@ public sealed partial class LPreset
         {
             foreach (LPresetDocument lRecord in lGroup.LPresetGroupPresets)
             {
-                LPresetNativeAdd(lRecord.LPresetRecordNormalize(), lGroup.LPresetGroupName);
+                LPresetNativeAdd(LPresetRange.LPresetRecordNormalize(lRecord), lGroup.LPresetGroupName);
             }
         }
         LPresetCatalog lStoredCatalog = LPresetLoadSeam?.Invoke()
             ?? new LPresetCatalog(LPresetOutcome.LPresetMissing, []);
         foreach (LPresetDocument lRecord in lStoredCatalog.LPresetRecords)
         {
-            lRecord.LPresetRecordNormalize();
+            LPresetRange.LPresetRecordNormalize(lRecord);
         }
 
         LPresetBlocked = lStoredCatalog.LPresetOutcome == LPresetOutcome.LPresetUnreadable;
@@ -153,7 +153,7 @@ public sealed partial class LPreset
 
             foreach (LPresetDocument lPresetRecord in lPresetCatalog.LPresetRecords)
             {
-                lPresetRecord.LPresetRecordNormalize();
+                LPresetRange.LPresetRecordNormalize(lPresetRecord);
             }
 
             lPresetMerged = LPresetMergeCreate(LPresetBaseline, lPresetLocal, lPresetCatalog.LPresetRecords);

@@ -38,17 +38,17 @@ public sealed class TMpvResult : IDisposable
     [Fact]
     public void LMpvResultRead_SameStamp_ReturnsSavedOutcome()
     {
-        LMpv.LMpvResultSave(LMpvProbe.LMpvProbeUsable, "stamp-a");
+        LMpvResult.LMpvResultSave(LMpvProbe.LMpvProbeUsable, "stamp-a");
 
-        Assert.Equal(LMpvProbe.LMpvProbeUsable, LMpv.LMpvResultRead("stamp-a"));
+        Assert.Equal(LMpvProbe.LMpvProbeUsable, LMpvResult.LMpvResultRead("stamp-a"));
     }
 
     [Fact]
     public void LMpvResultRead_ChangedStamp_ReturnsUnknown()
     {
-        LMpv.LMpvResultSave(LMpvProbe.LMpvProbeUsable, "stamp-a");
+        LMpvResult.LMpvResultSave(LMpvProbe.LMpvProbeUsable, "stamp-a");
 
-        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpv.LMpvResultRead("stamp-b"));
+        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpvResult.LMpvResultRead("stamp-b"));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class TMpvResult : IDisposable
     {
         TMpvResultDelete();
 
-        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpv.LMpvResultRead("stamp-a"));
+        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpvResult.LMpvResultRead("stamp-a"));
     }
 
     [Fact]
@@ -65,14 +65,14 @@ public sealed class TMpvResult : IDisposable
         Directory.CreateDirectory(Path.GetDirectoryName(TMpvResultPath)!);
         File.WriteAllText(TMpvResultPath, "{ not valid json ]");
 
-        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpv.LMpvResultRead("stamp-a"));
+        Assert.Equal(LMpvProbe.LMpvProbeUnknown, LMpvResult.LMpvResultRead("stamp-a"));
     }
 
     [Fact]
     public void LMpvStampCreate_DifferentAppVersion_ProducesDifferentStamp()
     {
-        string tFirst = LMpv.LMpvStampCreate("1.0.0", "libmpv-2.dll");
-        string tSecond = LMpv.LMpvStampCreate("2.0.0", "libmpv-2.dll");
+        string tFirst = LMpvResult.LMpvStampCreate("1.0.0", "libmpv-2.dll");
+        string tSecond = LMpvResult.LMpvStampCreate("2.0.0", "libmpv-2.dll");
 
         Assert.NotEqual(tFirst, tSecond);
     }

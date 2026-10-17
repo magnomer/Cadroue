@@ -7,7 +7,7 @@ public static class LRigFactoryPreset
     public static void LRigPresetAttach()
     {
         LPreset.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
-        LPreset.LPresetNativeSeam = LPresetStore.LPresetNativeLoad;
+        LPreset.LPresetNativeSeam = LPresetNative.LPresetNativeLoad;
         LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
         LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
         LPresetDraft.LPresetLoadSeam = LPreset.LPresetSelectionRead;

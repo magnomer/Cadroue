@@ -35,7 +35,7 @@ internal sealed partial class LJob
                     double pFraction = lJobBlockMicroseconds / 1_000_000d / lJobTotalSeconds;
                     lJobOwner.LRunnerDispatch(() =>
                     {
-                        lJobItem.LWorkProgress = pFraction;
+                        lJobItem.LWorkRunState.LWorkProgress = pFraction;
                         lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
                     });
                 }
@@ -44,7 +44,7 @@ internal sealed partial class LJob
                 {
                     lJobOwner.LRunnerDispatch(() =>
                     {
-                        lJobItem.LWorkProgress = 1;
+                        lJobItem.LWorkRunState.LWorkProgress = 1;
                         lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
                     });
                 }

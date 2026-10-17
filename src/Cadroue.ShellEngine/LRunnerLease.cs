@@ -6,10 +6,10 @@ namespace Cadroue.ShellEngine;
 internal sealed class LRunnerLease
 {
     private readonly Guid lRunnerLeaseId;
-    private readonly LScheduleContract lRunnerLeaseSchedule;
+    private readonly LScheduleLeaseContract lRunnerLeaseSchedule;
     private readonly ConcurrentDictionary<Guid, System.Timers.Timer> lRunnerLeaseTimers = new();
 
-    internal LRunnerLease(LScheduleContract lSchedule, Guid lRunnerId)
+    internal LRunnerLease(LScheduleLeaseContract lSchedule, Guid lRunnerId)
     {
         lRunnerLeaseSchedule = lSchedule;
         lRunnerLeaseId = lRunnerId;

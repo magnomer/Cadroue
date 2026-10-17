@@ -71,12 +71,12 @@ public sealed class QSSpectrum
     public QSSpectrumResult QSSpectrumImport(string lSourcePath, out string lTargetPath)
     {
         lTargetPath = string.Empty;
-        if (LSectionPalette.LSectionPaletteRead(lSourcePath) is not { } lFile)
+        if (LSectionPaletteStore.LSectionPaletteRead(lSourcePath) is not { } lFile)
         {
             return QSSpectrumResult.QSSpectrumResultInvalid;
         }
 
-        LSectionImportResult lResult = LSectionPalette.LSectionPaletteImport(
+        LSectionImportResult lResult = LSectionPaletteStore.LSectionPaletteImport(
             qsSpectrumFolder(), lSourcePath, lFile.LSectionPaletteName, out lTargetPath);
         return QSSpectrumResultResolve(lResult);
     }
@@ -89,7 +89,7 @@ public sealed class QSSpectrum
     };
 
     public bool QSSpectrumSave(string lTargetPath, string lName, string[] lColors) =>
-        LSectionPalette.LSectionPaletteSave(lTargetPath, lName, lColors);
+        LSectionPaletteStore.LSectionPaletteSave(lTargetPath, lName, lColors);
 
     public bool QSSpectrumRemove(string lName, bool lNative, string? lPath)
     {
@@ -101,10 +101,10 @@ public sealed class QSSpectrum
         if (lNative)
         {
             string lFolder = qsSpectrumFolder();
-            string[] lHidden = QSSpectrumHiddenResolve(LSectionPalette.LSectionHiddenLoad(lFolder), lName);
-            LSectionPalette.LSectionHiddenSave(lFolder, lHidden);
+            string[] lHidden = QSSpectrumHiddenResolve(LSectionPaletteStore.LSectionHiddenLoad(lFolder), lName);
+            LSectionPaletteStore.LSectionHiddenSave(lFolder, lHidden);
         }
-        else if (lPath is null || !LSectionPalette.LSectionPaletteDelete(lPath))
+        else if (lPath is null || !LSectionPaletteStore.LSectionPaletteDelete(lPath))
         {
             return false;
         }

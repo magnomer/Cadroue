@@ -68,15 +68,15 @@ public sealed class TRosterDetailRows
         TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
         schedule.TScheduleAdd(added);
         LWorkItem work = added.TWorkItem;
-        work.LWorkStateCurrent = LWorkState.LWorkStateRunning;
-        work.LWorkStartTime = DateTimeOffset.Now.AddSeconds(-10);
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        work.LWorkRunState.LWorkStartTime = DateTimeOffset.Now.AddSeconds(-10);
         work.LWorkSourceBytes = 4_000_000;
 
         QRosterDetail before = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.Empty(before.QRosterDetailBars);
         Assert.Empty(before.QRosterDetailMeters);
 
-        work.LWorkOutputBytes = 1_000_000;
+        work.LWorkRunState.LWorkOutputBytes = 1_000_000;
         QRosterDetail after = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         QRosterBar bar = Assert.Single(after.QRosterDetailBars);
         Assert.False(bar.QRosterBarOver);
@@ -110,8 +110,8 @@ public sealed class TRosterDetailRows
         TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "one");
         schedule.TScheduleAdd(added);
         LWorkItem work = added.TWorkItem;
-        work.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-        work.LWorkMessage = "boom";
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+        work.LWorkRunState.LWorkMessage = "boom";
 
         QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         QRosterDetailRow failure = Assert.Single(detail.QRosterDetailFailures);
@@ -119,7 +119,7 @@ public sealed class TRosterDetailRows
         Assert.Equal(QRosterDetail.QRosterValueFail, failure.QRosterDetailKey);
         Assert.Equal(7, detail.QRosterDetailRecords.Count);
 
-        work.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        work.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
         QRosterDetail done = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.Empty(done.QRosterDetailFailures);
         Assert.Equal(8, done.QRosterDetailRecords.Count);

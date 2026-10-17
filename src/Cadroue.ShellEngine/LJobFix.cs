@@ -154,9 +154,9 @@ internal sealed partial class LJob
         string pOutput = pStage.LEncodeStagePath;
         lJobOwner.LRunnerDispatch(() =>
         {
-            lJobItem.LWorkProgress = 0;
-            lJobItem.LWorkStageCurrent = pStage.LEncodeStageKind;
-            lJobItem.LWorkMessage = pStageCount > 1
+            lJobItem.LWorkRunState.LWorkProgress = 0;
+            lJobItem.LWorkRunState.LWorkStageCurrent = pStage.LEncodeStageKind;
+            lJobItem.LWorkRunState.LWorkMessage =pStageCount > 1
                 ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
                 : string.Empty;
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
@@ -203,7 +203,7 @@ internal sealed partial class LJob
             $"Validating '{lJobItem.LWorkOutputName}': re-probed '{Path.GetFileName(pOutput)}' → {lJobValidateState}");
         lJobOwner.LRunnerDispatch(() =>
         {
-            lJobItem.LWorkProgress = 1;
+            lJobItem.LWorkRunState.LWorkProgress = 1;
             lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
         });
         return (0, string.Empty);

@@ -106,7 +106,7 @@ public static partial class LCartographer
 
     public static bool LCartographerDeliverableCheck(LWorkItem lCartographerItem)
     {
-        if (lCartographerItem.LWorkStateCurrent != LWorkState.LWorkStateDone
+        if (lCartographerItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateDone
             || lCartographerItem.LWorkRelayTarget == Guid.Empty
             || lCartographerDelivered.Contains(lCartographerItem.LWorkId)
             || lCartographerMissing.Contains(lCartographerItem.LWorkId))
@@ -114,9 +114,9 @@ public static partial class LCartographer
             return false;
         }
 
-        return lCartographerItem.LWorkOwnerProcess == Environment.ProcessId
+        return lCartographerItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId
             || LCartographerOwnershipCheck(lCartographerItem) && !LCartographerOwnerSeam(
-                lCartographerItem.LWorkOwnerProcess, lCartographerItem.LWorkOwnerStamp);
+                lCartographerItem.LWorkRunState.LWorkOwnerProcess, lCartographerItem.LWorkRunState.LWorkOwnerStamp);
     }
 
     public static bool LCartographerItemDispatch(

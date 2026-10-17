@@ -129,9 +129,9 @@ public static class LSeal
                 continue;
             }
 
-            bool lSealProducing = lSealItem.LWorkStateCurrent != LWorkState.LWorkStateDone;
-            bool lSealUndelivered = lSealItem.LWorkStateCurrent == LWorkState.LWorkStateDone
-                && lSealItem.LWorkOwnerProcess == Environment.ProcessId
+            bool lSealProducing = lSealItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateDone;
+            bool lSealUndelivered = lSealItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone
+                && lSealItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId
                 && !LSealDeliveredCheck(lSealItem.LWorkId);
             if ((lSealProducing || lSealUndelivered) && LSealReachCheck(lSealItem.LWorkRelayTarget, lSealNode))
             {

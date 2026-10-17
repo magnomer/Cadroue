@@ -1,5 +1,4 @@
 using Cadroue.Core;
-using Cadroue.Media;
 
 namespace Cadroue.Infrastructure;
 
@@ -7,41 +6,6 @@ internal static class LSidecarCacheStore
 {
     internal static LSidecarCacheDocument? LSidecarCacheRead(string lSidecarSourcePath) =>
         LSidecarCacheLoad(LSidecarPath.LSidecarPathRead(lSidecarSourcePath), null);
-
-    internal static bool LSidecarDiagnosisSave(
-        string lSidecarSourcePath,
-        LKeyframeSourceIdentity lSidecarIdentity,
-        IReadOnlyCollection<LSidecarDossier> lSidecarDossiers) =>
-        LSidecarCacheChange(lSidecarSourcePath, lSidecarIdentity, lSidecarCache =>
-            lSidecarCache.LSidecarDiagnosis = new LSidecarDiagnosisEntry
-            {
-                LSidecarLength = lSidecarIdentity.LKeyframeSourceLength,
-                LSidecarPartialHash = lSidecarIdentity.LKeyframePartialHash,
-                LSidecarDossiers = lSidecarDossiers.ToList(),
-                LSidecarScannedKinds = Enum.GetValues<LFlawKind>().ToList()
-            });
-
-    internal static IReadOnlyList<LSidecarDossier>? LSidecarDiagnosisRead(string lSidecarSourcePath)
-    {
-        if (LSidecarCacheRead(lSidecarSourcePath) is not { LSidecarDiagnosis: { } lSidecarDiagnosis })
-        {
-            return null;
-        }
-
-        if (lSidecarDiagnosis.LSidecarScannedKinds.Count == 0)
-        {
-            return null;
-        }
-
-        var lSidecarFingerprint = new LSidecarSourceEntry
-        {
-            LSidecarLength = lSidecarDiagnosis.LSidecarLength,
-            LSidecarPartialHash = lSidecarDiagnosis.LSidecarPartialHash
-        };
-        return LSidecarSource.LSidecarSourceMatch(lSidecarSourcePath, lSidecarFingerprint)
-            ? lSidecarDiagnosis.LSidecarDossiers
-            : null;
-    }
 
     internal static LSidecarCacheDocument? LSidecarCacheLoad(string lSidecarPreciousPath, string? lSidecarPreciousJson)
     {

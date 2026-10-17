@@ -49,7 +49,7 @@ public sealed class QLog
 
     public IReadOnlyList<LLocalizationChoice> QLogCategoriesRead() =>
         Enum.GetValues<LTraceKind>()
-            .Select(lKind => new LLocalizationChoice(LTraceEntry.LTraceKindRead(lKind), QLogRow.QLogKeyRead(lKind)))
+            .Select(lKind => new LLocalizationChoice(LTraceText.LTraceKindRead(lKind), QLogRow.QLogKeyRead(lKind)))
             .ToArray();
 
     public void QLogAttach()
@@ -142,7 +142,7 @@ public sealed class QLog
         }
 
         QLogIndexSet(lIndex);
-        QLogFileSet(QLogFiles[lIndex].QLogFilePath, LTraceWriter.LTracePathRead());
+        QLogFileSet(QLogFiles[lIndex].QLogFilePath, LTraceFolder.LTracePathRead());
         LTraceReadResult<string> lRead = QLogTextRead(out long lCommitted);
         if (!lRead.LTraceReadSuccess)
         {
@@ -165,7 +165,7 @@ public sealed class QLog
             return;
         }
 
-        if (!QLogLiveSet(LTraceWriter.LTracePathRead()))
+        if (!QLogLiveSet(LTraceFolder.LTracePathRead()))
         {
             return;
         }
@@ -176,7 +176,7 @@ public sealed class QLog
 
     public void QLogTextCopy()
     {
-        LTraceReadResult<string> lRead = LTraceWriter.LTraceFileRead(qLogFilePath);
+        LTraceReadResult<string> lRead = LTraceReader.LTraceFileRead(qLogFilePath);
         if (!lRead.LTraceReadSuccess)
         {
             QLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
@@ -188,7 +188,7 @@ public sealed class QLog
 
     public void QLogFolderOpen()
     {
-        if (qLogUsher.CUsherPathOpen(qLogFilePath, LTraceWriter.LTraceFolderRead()) is { } lError)
+        if (qLogUsher.CUsherPathOpen(qLogFilePath, LTraceFolder.LTraceFolderRead()) is { } lError)
         {
             QLogErrorRaise("Log.Error.Open", lError);
         }
@@ -199,8 +199,8 @@ public sealed class QLog
 
     private (string, List<string>) QLogFilesRead()
     {
-        string lCurrentPath = LTraceWriter.LTracePathRead();
-        LTraceReadResult<List<string>> lFilesResult = LTraceWriter.LTraceFilesRead();
+        string lCurrentPath = LTraceFolder.LTracePathRead();
+        LTraceReadResult<List<string>> lFilesResult = LTraceReader.LTraceFilesRead();
         List<string> lFiles = lFilesResult.LTraceReadValue;
         if (!lFilesResult.LTraceReadSuccess)
         {
@@ -268,10 +268,10 @@ public sealed class QLog
         lCommitted = qLogSnapshot;
         if (qLogFileLive)
         {
-            return LTraceWriter.LTraceWriterRead(out lCommitted);
+            return LTraceReader.LTraceTextRead(out lCommitted);
         }
 
-        return LTraceWriter.LTraceFileRead(qLogFilePath);
+        return LTraceReader.LTraceFileRead(qLogFilePath);
     }
 
     private void QLogSnapshotApply(long lCommitted)
@@ -288,13 +288,13 @@ public sealed class QLog
     private void QLogRowsReset() => qLogRowsAll.Clear();
 
     private static IEnumerable<QLogRow> QLogRowsParse(string lText) =>
-        LTraceEntry.LTraceEntryParse(lText).Select(lEntry => new QLogRow(lEntry));
+        LTraceText.LTraceEntryParse(lText).Select(lEntry => new QLogRow(lEntry));
 
     private void QLogRowsAdd(IEnumerable<QLogRow> lRows) => qLogRowsAll.AddRange(lRows);
 
     private void QLogLiveSync()
     {
-        string lCurrentPath = LTraceWriter.LTracePathRead();
+        string lCurrentPath = LTraceFolder.LTracePathRead();
         if (qLogFileLive && !QLogFileCheck(lCurrentPath))
         {
             QLogFilesUpdate(true);
@@ -330,7 +330,7 @@ public sealed class QLog
     }
 
     private static LTraceKind[] QLogKindsParse(IReadOnlyList<string> lTokens) =>
-        lTokens.Select(LTraceEntry.LTraceKindFind).ToArray();
+        lTokens.Select(LTraceText.LTraceKindFind).ToArray();
 
     private void QLogFilterSet(LTraceKind[] lKinds)
     {

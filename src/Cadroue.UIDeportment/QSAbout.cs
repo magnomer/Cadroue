@@ -65,7 +65,7 @@ public sealed class QSAbout
 
     private void QSAboutTapReset() => qsAboutTapCount = 0;
 
-    public static string QSAboutVersionRead() => LTraceLog.LTraceVersionRead();
+    public static string QSAboutVersionRead() => LProgramVersion.LProgramVersionRead();
 
     public void QSAboutNoticeOpen()
     {

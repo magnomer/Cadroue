@@ -130,7 +130,7 @@ internal static class LSubsidiary
             return;
         }
 
-        if (LStation.LStationSchedule is not { } lSubsidiarySchedule)
+        if (LStation.LStationMeasurement is not { } lSubsidiarySchedule)
         {
             return;
         }
@@ -167,7 +167,7 @@ internal static class LSubsidiary
             }
         }
 
-        if (LStation.LStationSchedule is not { } lSubsidiarySchedule)
+        if (LStation.LStationMeasurement is not { } lSubsidiarySchedule)
         {
             return;
         }

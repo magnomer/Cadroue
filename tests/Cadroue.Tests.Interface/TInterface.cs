@@ -64,40 +64,40 @@ internal static partial class TInterface
         LSeries.LSeriesResolve(paths, strict, nameMode);
 
     internal static IReadOnlyList<LPiece> TPieceValidSelect(IReadOnlyList<LPiece> sections, TimeSpan duration) =>
-        LPiece.LPieceValidSelect(sections, duration);
+        LPiecePlan.LPieceValidSelect(sections, duration);
 
     internal static bool TPieceInsideCheck(
         IReadOnlyList<LPiece> sections, TimeSpan time, int skipIndex, bool overlapAllowed) =>
-        LPiece.LPieceInsideCheck(sections, time, skipIndex, overlapAllowed);
+        LPiecePlan.LPieceInsideCheck(sections, time, skipIndex, overlapAllowed);
 
     internal static TimeSpan TPieceLimitRead(
         IReadOnlyList<LPiece> sections, TimeSpan from, TimeSpan ceiling, int skipIndex, bool overlapAllowed) =>
-        LPiece.LPieceLimitRead(sections, from, ceiling, skipIndex, overlapAllowed);
+        LPiecePlan.LPieceLimitRead(sections, from, ceiling, skipIndex, overlapAllowed);
 
     internal static TimeSpan TPieceFloorRead(
         IReadOnlyList<LPiece> sections, TimeSpan until, int skipIndex, bool overlapAllowed) =>
-        LPiece.LPieceFloorRead(sections, until, skipIndex, overlapAllowed);
+        LPiecePlan.LPieceFloorRead(sections, until, skipIndex, overlapAllowed);
 
     internal static LPieceResult? TPieceAdd(
         IReadOnlyList<LPiece> sections, TimeSpan cursor, TimeSpan duration, int colorIndex, bool overlapAllowed) =>
-        LPiece.LPieceAdd(sections, cursor, duration, colorIndex, overlapAllowed);
+        LPiecePlan.LPieceAdd(sections, cursor, duration, colorIndex, overlapAllowed);
 
     internal static LPieceResult? TPieceEndCreate(
         IReadOnlyList<LPiece> sections, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
-        LPiece.LPieceEndCreate(sections, cursor, colorIndex, overlapAllowed);
+        LPiecePlan.LPieceEndCreate(sections, cursor, colorIndex, overlapAllowed);
 
     internal static LPieceResult? TPieceStartSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, TimeSpan duration,
         int colorIndex, bool overlapAllowed) =>
-        LPiece.LPieceOriginSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
+        LPiecePlan.LPieceOriginSet(sections, activeIndex, cursor, duration, colorIndex, overlapAllowed);
 
     internal static LPieceResult? TPieceEndSet(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex, bool overlapAllowed) =>
-        LPiece.LPieceEndSet(sections, activeIndex, cursor, colorIndex, overlapAllowed);
+        LPiecePlan.LPieceEndSet(sections, activeIndex, cursor, colorIndex, overlapAllowed);
 
     internal static bool TPieceIntersectCheck(
         IReadOnlyList<LPiece> sections, TimeSpan origin, TimeSpan end, int skipIndex, bool overlapAllowed) =>
-        LPiece.LPieceIntersectCheck(sections, origin, end, skipIndex, overlapAllowed);
+        LPiecePlan.LPieceIntersectCheck(sections, origin, end, skipIndex, overlapAllowed);
 
     internal static LSegment TSegmentCreate() => new();
 
@@ -133,7 +133,7 @@ internal static partial class TInterface
 
     internal static LPieceDivision? TPieceDivide(
         IReadOnlyList<LPiece> sections, int? activeIndex, TimeSpan cursor, int colorIndex) =>
-        LPiece.LPieceDivide(sections, activeIndex, cursor, colorIndex);
+        LPiecePlan.LPieceDivide(sections, activeIndex, cursor, colorIndex);
 
     internal static LSpool TSpoolCreate(TimeSpan duration) => new(duration);
     internal static TimeSpan TSpoolStepResolve(LSpool spool, int count) => spool.LSpoolStepResolve(count);
@@ -152,15 +152,15 @@ internal static partial class TInterface
     internal static LKeyframeMoveResult TKeyframeMoveResolve(
         IReadOnlyCollection<long> keyframes, IReadOnlySet<int> scannedSpans,
         TimeSpan duration, TimeSpan cursor, int direction, IReadOnlySet<int>? failedSpans = null) =>
-        LKeyframeOrchestrator.LKeyframeMoveResolve(keyframes, scannedSpans, duration, cursor, direction, failedSpans);
+        LKeyframeStep.LKeyframeStepFind(keyframes, scannedSpans, duration, cursor, direction, failedSpans);
 
-    internal static LPreferenceState TPreferenceDefaultCreate() => LPreferenceState.LPreferenceDefaultCreate();
+    internal static LPreferenceState TPreferenceDefaultCreate() => LPreferenceDefault.LPreferenceDefaultCreate();
     internal static LPreferenceState TPreferenceCreate(int cleanupDays = 30) =>
         new() { LPreferenceCleanupDays = cleanupDays };
     internal static LPreferenceState TPreferenceClone(LPreferenceState state) => state.LPreferenceClone();
-    internal static void TPreferenceNormalize(LPreferenceState state) => state.LPreferenceNormalize();
+    internal static void TPreferenceNormalize(LPreferenceState state) => LPreferenceRange.LPreferenceNormalize(state);
     internal static IEnumerable<string> TPreferenceDifferenceRead(LPreferenceState state, LPreferenceState before) =>
-        state.LPreferenceDifferenceRead(before);
+        LPreferenceDifference.LPreferenceDifferenceRead(state, before);
     internal static bool TPreferenceFoldedRead(
         LPreferenceState state,
         string groupName,
@@ -200,24 +200,25 @@ internal static partial class TInterface
         LRetention.LRetentionSweptCheck(relativePath);
     internal static IReadOnlyList<Guid> TScheduleRemovableResolve(
         IEnumerable<Guid> workIds, IReadOnlyDictionary<Guid, LWorkState> states) =>
-        LSchedule.LScheduleRemovableResolve(workIds, states);
+        LScheduleRemover.LScheduleRemovableResolve(workIds, states);
     internal static bool TJobCollisionCheck(string output, IReadOnlyList<string> sources) =>
         LJob.LJobCollisionCheck(output, sources);
     internal static IReadOnlyList<string> TEncodeGeometryRead(LWorkCrop crop) => LEncodeVideo.LEncodeGeometryRead(crop);
 
     internal static IReadOnlyList<LSectionPaletteFile> TSectionPaletteLoad(string folder) =>
-        LSectionPalette.LSectionPaletteLoad(folder);
-    internal static LSectionPaletteFile? TSectionPaletteRead(string path) => LSectionPalette.LSectionPaletteRead(path);
+        LSectionPaletteStore.LSectionPaletteLoad(folder);
+    internal static LSectionPaletteFile? TSectionPaletteRead(string path) =>
+        LSectionPaletteStore.LSectionPaletteRead(path);
     internal static bool TSectionPaletteSave(string path, string name, string[] colors) =>
-        LSectionPalette.LSectionPaletteSave(path, name, colors);
-    internal static bool TSectionPaletteDelete(string path) => LSectionPalette.LSectionPaletteDelete(path);
+        LSectionPaletteStore.LSectionPaletteSave(path, name, colors);
+    internal static bool TSectionPaletteDelete(string path) => LSectionPaletteStore.LSectionPaletteDelete(path);
     internal static LSectionImportResult TSectionPaletteImport(
         string folder, string source, string name, out string target) =>
-        LSectionPalette.LSectionPaletteImport(folder, source, name, out target);
+        LSectionPaletteStore.LSectionPaletteImport(folder, source, name, out target);
     internal static IReadOnlyList<string> TSectionHiddenLoad(string folder) =>
-        LSectionPalette.LSectionHiddenLoad(folder);
+        LSectionPaletteStore.LSectionHiddenLoad(folder);
     internal static bool TSectionHiddenSave(string folder, IReadOnlyList<string> hidden) =>
-        LSectionPalette.LSectionHiddenSave(folder, hidden);
+        LSectionPaletteStore.LSectionHiddenSave(folder, hidden);
     internal static string? TSectionHexNormalize(string hex) => LSectionPalette.LSectionHexNormalize(hex);
     internal static string TSectionColorRead(int index) => LSectionPalette.LSectionColorRead(index);
     internal static IReadOnlyList<string> TSectionColorsRead(string name) => LSectionPalette.LSectionColorsRead(name);
@@ -227,7 +228,7 @@ internal static partial class TInterface
 
     internal static Task<LMediaScanResult> TMediaPathScan(
         IReadOnlyList<string> paths, CancellationToken token = default) =>
-        LMedia.LMediaPathScan(paths, token);
+        LMediaPath.LMediaPathScan(paths, token);
 
     internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);
     internal static bool TUsherFolderExist(string? path) => LUsher.LUsherFolderExist(path);
@@ -255,6 +256,7 @@ internal static partial class TInterface
         LScheduleLineagePlan.LScheduleLineageResolve(
             schedule,
             ids,
+            LLineageEngine.LLineageWorkSeam,
             LLineageEngine.LLineageFileSeam,
             LUsherEnvironmentEngine.LUsherPathSeam,
             LUsherTextEngine.LUsherNameSeam,
@@ -264,6 +266,7 @@ internal static partial class TInterface
         LScheduleLineagePlan.LScheduleLineageResolve(
             schedule,
             ids,
+            LLineageEngine.LLineageWorkSeam,
             LLineageEngine.LLineageFileSeam,
             pathResolve,
             LUsherTextEngine.LUsherNameSeam,
@@ -273,6 +276,7 @@ internal static partial class TInterface
         LScheduleLineagePlan.LScheduleLineageResolve(
             schedule,
             ids,
+            LLineageEngine.LLineageWorkSeam,
             LLineageEngine.LLineageFileSeam,
             LUsherEnvironmentEngine.LUsherPathSeam,
             LUsherTextEngine.LUsherNameSeam,
@@ -336,11 +340,11 @@ internal static partial class TInterface
         LDetectorMetricMode? metric,
         IReadOnlyDictionary<LDetectorKind, string> presets) => new(steps, blank, still, luminance, metric, presets);
     internal static LSidecarSplitEntry TDetectorSidecarFormat(LDetectorBundle set) =>
-        LDetectorBundle.LDetectorSidecarFormat(set);
+        LDetectorRow.LDetectorSidecarFormat(set);
     internal static LDetectorBundle TDetectorSidecarParse(LSidecarSplitEntry record) =>
-        LDetectorBundle.LDetectorSidecarParse(record);
+        LDetectorRow.LDetectorSidecarParse(record);
     internal static List<LSceneDetector> TDetectorSceneFormat(LDetectorBundle set) =>
-        LDetectorBundle.LDetectorSceneFormat(set);
+        LDetectorRow.LDetectorSceneFormat(set);
     internal static LDetectorBundle TDetectorSceneParse(IReadOnlyList<LSceneDetector> detectors) =>
-        LDetectorBundle.LDetectorSceneParse(detectors);
+        LDetectorRow.LDetectorSceneParse(detectors);
 }

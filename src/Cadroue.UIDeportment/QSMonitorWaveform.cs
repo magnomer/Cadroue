@@ -158,7 +158,7 @@ public sealed class QSMonitorWaveform : IDisposable
 
             lPath = qMonitorSourcePath;
             lDuration = qMonitorDuration;
-            lGraph = qMonitorPlan.LWorkAudioFormat(qMonitorRate);
+            lGraph = LWorkAudioFilter.LWorkAudioFormat(qMonitorPlan, qMonitorRate);
             qMonitorFailed = false;
             if (!QSMonitorScanCheck(lGraph, lPath, lDuration))
             {

@@ -145,7 +145,7 @@ public sealed class QSDiagnosis
     {
         try
         {
-            return await LInventory.LInventoryFeatureRead(lFilters);
+            return await LInventoryFeature.LInventoryFeatureRead(lFilters);
         }
         catch (Exception lException)
         {

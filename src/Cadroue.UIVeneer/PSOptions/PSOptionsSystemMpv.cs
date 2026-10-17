@@ -24,7 +24,7 @@ internal sealed partial class PSOptions
     private void PSSystemMpvAttach(Button pDownload, Button pBrowse, ProgressBar pProgress, Progress<double> pFeed)
     {
         pDownload.Click += async (_, _) => await PSSystemMpvRun(pDownload, pProgress, pFeed);
-        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpvInstall.LMpvRootRead(), string.Empty);
     }
 
     private async Task PSSystemMpvRun(Button pDownload, ProgressBar pProgress, Progress<double> pFeed)
@@ -33,7 +33,7 @@ internal sealed partial class PSOptions
         LMpvInstallResult pResult;
         try
         {
-            pResult = await LMpv.LMpvInstallStart(pFeed);
+            pResult = await LMpvInstall.LMpvInstallStart(pFeed);
         }
         finally
         {

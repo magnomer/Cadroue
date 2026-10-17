@@ -13,4 +13,9 @@ public sealed record LRig(
     LRigLineage LRigLineage,
     LRigPreview LRigPreview,
     LRigFlow LRigFlow,
-    LScheduleContract LRigSchedule);
+    LScheduleContract LRigSchedule,
+    LScheduleIntakeContract LRigScheduleIntake,
+    LScheduleLeaseContract LRigScheduleLease,
+    LScheduleTransitionContract LRigScheduleTransition,
+    LScheduleMeasurementContract LRigScheduleMeasurement,
+    LScheduleRemoverContract LRigScheduleRemover);

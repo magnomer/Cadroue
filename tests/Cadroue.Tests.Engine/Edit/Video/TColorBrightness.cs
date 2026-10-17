@@ -18,7 +18,7 @@ public sealed class TColorBrightness
         LWorkVideoStep step = TInterface.TWorkBrightnessCreate(true, amount);
 
         Assert.Equal(amount, step.LWorkStepValue);
-        Assert.Equal(expectedFfmpeg, step.LWorkFfmpegValue);
+        Assert.Equal(expectedFfmpeg, LWorkVideoFilter.LWorkFfmpegResolve(step));
     }
 
     [Theory]
@@ -30,6 +30,6 @@ public sealed class TColorBrightness
         LWorkVideoStep step = TInterface.TWorkBrightnessCreate(true, amount);
 
         Assert.Equal(amount, step.LWorkStepValue);
-        Assert.Equal(expectedFfmpeg, step.LWorkFfmpegValue);
+        Assert.Equal(expectedFfmpeg, LWorkVideoFilter.LWorkFfmpegResolve(step));
     }
 }

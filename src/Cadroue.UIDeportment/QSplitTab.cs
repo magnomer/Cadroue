@@ -85,7 +85,7 @@ public sealed class QSplitTab
 
     public LSceneTabEntry QSplitLayoutRead(LSceneTabEntry lLayout)
     {
-        lLayout.LSceneDetectors = LDetectorBundle.LDetectorSceneFormat(QSplitStateRead());
+        lLayout.LSceneDetectors = LDetectorRow.LDetectorSceneFormat(QSplitStateRead());
         lLayout.LSceneDetectPersistent = QSplitInspector.QInspectorSensor.QSensorPersistent;
         return lLayout;
     }
@@ -99,7 +99,7 @@ public sealed class QSplitTab
             return;
         }
 
-        QSplitStateApply(LDetectorBundle.LDetectorSceneParse(lLayout.LSceneDetectors));
+        QSplitStateApply(LDetectorRow.LDetectorSceneParse(lLayout.LSceneDetectors));
         QSplitInspector.QInspectorSensor.QSensorPersistentSet(lLayout.LSceneDetectPersistent);
         QSplitActiveUpdate();
     }
@@ -213,7 +213,7 @@ public sealed class QSplitTab
             return;
         }
 
-        LSidecarSplitEntry lRecord = LDetectorBundle.LDetectorSidecarFormat(QSplitStateRead());
+        LSidecarSplitEntry lRecord = LDetectorRow.LDetectorSidecarFormat(QSplitStateRead());
         if (!lRecord.LSidecarSplitActive && LLibrarian.LLibrarianSplitLoad(lPath) is null)
         {
             return;
@@ -229,7 +229,7 @@ public sealed class QSplitTab
             return;
         }
 
-        QSplitStateApply(LDetectorBundle.LDetectorSidecarParse(lRecord));
+        QSplitStateApply(LDetectorRow.LDetectorSidecarParse(lRecord));
         QSplitActiveUpdate();
     }
 

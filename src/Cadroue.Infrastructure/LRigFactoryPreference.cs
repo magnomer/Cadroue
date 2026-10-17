@@ -10,9 +10,9 @@ public static class LRigFactoryPreference
         LPreference.LPreferenceLoadSeam = LPreferenceStateStore.LPreferenceStateLoad;
         LPreference.LPreferenceSaveSeam = LPreferenceStateStore.LPreferenceStateSave;
         LPreference.LPreferenceTraceSeam = LTraceLog.LTraceInfoRecord;
-        LRenderer.LRendererFolderSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
+        LRendererFolder.LRendererFolderSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceFfmpegFolder;
         LRenderer.LRendererEngineSeam = () => LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine;
-        LRenderer.LRendererTextSeam = LLocalization.LLocalizationTextRead;
+        LRendererError.LRendererTextSeam = LLocalization.LLocalizationTextRead;
         LSectionPalette.LSectionPaletteSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceSectionPalette;
     }
 }

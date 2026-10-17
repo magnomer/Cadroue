@@ -184,6 +184,6 @@ public sealed class QEditTabPlan
                 ", ",
                 lVideo.LWorkVideoSteps
                     .Where(lStep => lStep.LWorkStepActive)
-                    .Select(lStep => lStep.LWorkDiagnosticRead()))
+                    .Select(LWorkVideoDiagnostic.LWorkDiagnosticRead))
             : "video inactive";
 }

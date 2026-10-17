@@ -18,7 +18,7 @@ public static class LRigFactoryCheckup
     public static LRigCheckup LRigCheckupCreate()
     {
         return new LRigCheckup(
-            LCheckup.LCheckupCachedRead,
-            LCheckup.LCheckupCachedSave);
+            LCheckupCache.LCheckupCachedRead,
+            LCheckupCache.LCheckupCachedSave);
     }
 }

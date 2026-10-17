@@ -20,6 +20,8 @@ public sealed class LConsoleFacade
 
     private static LScheduleContract LConsoleSchedule => LStation.LStationSchedule!;
 
+    private static LScheduleRemoverContract LConsoleRemover => LStation.LStationRemover!;
+
     public Action LConsoleAttach(Action lChanged, Action lDeferred, Action<Predicate<LStation>, double> lProgressed)
     {
         LScheduleContract lSchedule = LConsoleSchedule;
@@ -46,7 +48,9 @@ public sealed class LConsoleFacade
             return;
         }
 
-        lProgressed(lStation => lStation.LStationRunner.LRunnerOwnerCheck(lWorkItem), lWorkItem.LWorkProgress);
+        lProgressed(
+            lStation => lStation.LStationRunner.LRunnerOwnerCheck(lWorkItem),
+            lWorkItem.LWorkRunState.LWorkProgress);
     }
 
     public void LConsoleLoad() => LConsoleSchedule.LScheduleLoad();
@@ -68,14 +72,14 @@ public sealed class LConsoleFacade
             lSchedule.LScheduleDoneCount,
             lSchedule.LSchedulePendingRead().Count,
             lRunningItems.Length,
-            lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress),
+            lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkRunState.LWorkProgress),
             lFirst?.LWorkOutputName ?? string.Empty,
-            lFirst?.LWorkStageCurrent.ToString() ?? string.Empty,
-            lFirst?.LWorkProgress ?? 0,
+            lFirst?.LWorkRunState.LWorkStageCurrent.ToString() ?? string.Empty,
+            lFirst?.LWorkRunState.LWorkProgress ?? 0,
             lCurrent.LStationSelectionRead()
-                .Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
-            lRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone),
-            lRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
+                .Any(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateRunning),
+            lRecords.Any(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone),
+            lRecords.Any(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateRunning),
             lCurrent.LStationLabel,
             string.Equals(lCurrent.LStationLabel, LConsoleInternalLabel, StringComparison.Ordinal),
             Array.IndexOf(lBoard, lCurrent) + 1,
@@ -84,7 +88,7 @@ public sealed class LConsoleFacade
 
     private static LWorkItem[] LConsoleRunningRead(LStation lStation, LScheduleContract lSchedule) =>
         lSchedule.LScheduleRecords
-            .Where(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning
+            .Where(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateRunning
                 && lStation.LStationRunner.LRunnerOwnerCheck(lWorkItem))
             .ToArray();
 
@@ -179,7 +183,7 @@ public sealed class LConsoleFacade
         LStation? lStation)
     {
         LStation lCurrent = LConsoleStationResolve(lStation);
-        LScheduleContract lSchedule = LConsoleSchedule;
+        LScheduleRemoverContract lSchedule = LConsoleRemover;
         IReadOnlyList<Guid> lRemovable = lSchedule.LScheduleRemovableRead(
             lCurrent.LStationSelectionRead().Select(lWorkItem => lWorkItem.LWorkId));
         if (lRemovable.Count == 0)
@@ -195,7 +199,7 @@ public sealed class LConsoleFacade
             lOutcomes.Values.Count(lOutcome => lOutcome == LScheduleRemoval.LScheduleRemovalBlocked));
     }
 
-    public void LConsoleDoneClear() => LConsoleSchedule.LScheduleDoneClear();
+    public void LConsoleDoneClear() => LConsoleRemover.LScheduleDoneClear();
 
     public bool LConsoleActiveCheck() => LStation.LStationActiveCheck();
 
@@ -203,7 +207,7 @@ public sealed class LConsoleFacade
     {
         await LConsoleBoardCancel();
         LMessenger.LMessengerMeasureCancel();
-        LConsoleSchedule.LScheduleAllClear();
+        LConsoleRemover.LScheduleAllClear();
     }
 
     private static Task LConsoleBoardCancel()

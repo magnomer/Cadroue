@@ -147,7 +147,7 @@ public sealed class LCheckup : IDisposable
 
         if (!lCheckupForce)
         {
-            IReadOnlyList<LDossier>? lCheckupCached = LCheckupCachedRead(lCheckupPath);
+            IReadOnlyList<LDossier>? lCheckupCached = LCheckupCache.LCheckupCachedRead(lCheckupPath);
             if (lCheckupCached is not null)
             {
                 LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupCached, lCheckupToken);
@@ -158,7 +158,7 @@ public sealed class LCheckup : IDisposable
         try
         {
             IReadOnlyList<LDossier> lCheckupScanned;
-            await LMedia.LMediaScanClaim(lCheckupToken).ConfigureAwait(false);
+            await LMediaSlot.LMediaScanClaim(lCheckupToken).ConfigureAwait(false);
             try
             {
                 lCheckupScanned = LCheckupScannerSeam is { } lCheckupScanner
@@ -172,7 +172,7 @@ public sealed class LCheckup : IDisposable
             }
             finally
             {
-                LMedia.LMediaScanRelease();
+                LMediaSlot.LMediaScanRelease();
             }
 
             if (lCheckupToken.IsCancellationRequested)
@@ -180,7 +180,7 @@ public sealed class LCheckup : IDisposable
                 return;
             }
 
-            await LCheckupCachedSave(lCheckupPath, lCheckupScanned).ConfigureAwait(false);
+            await LCheckupCache.LCheckupCachedSave(lCheckupPath, lCheckupScanned).ConfigureAwait(false);
             LCheckupResultsPublish(lCheckupPath, lCheckupTargets, lCheckupScanned, lCheckupToken);
         }
         catch (OperationCanceledException)
@@ -201,49 +201,6 @@ public sealed class LCheckup : IDisposable
                 LCheckupPublish(new LCheckupResult(lCheckupPath, lCheckupKind, LCheckupOutcome.LCheckupOutcomeFailed));
             }
         }
-    }
-
-    public static IReadOnlyList<LDossier>? LCheckupCachedRead(string lCheckupPath)
-    {
-        IReadOnlyList<LSidecarDossier>? lCheckupStored = LLibrarian.LLibrarianDiagnosisLoad(lCheckupPath);
-        if (lCheckupStored is null)
-        {
-            return null;
-        }
-
-        var lCheckupDossiers = new List<LDossier>(lCheckupStored.Count);
-        foreach (LSidecarDossier lCheckupDto in lCheckupStored)
-        {
-            lCheckupDossiers.Add(LCheckupDossier.LCheckupDossierResolve(lCheckupDto));
-        }
-
-        return lCheckupDossiers;
-    }
-
-    public static async Task LCheckupCachedSave(string lCheckupPath, IReadOnlyList<LDossier> lCheckupDossiers)
-    {
-        TimeSpan lCheckupDuration = await LLibrarian.LLibrarianDurationResolve(lCheckupPath).ConfigureAwait(false);
-        LKeyframeSourceIdentity lCheckupIdentity;
-        try
-        {
-            lCheckupIdentity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(lCheckupPath, lCheckupDuration);
-        }
-        catch (Exception lCheckupException) when (
-            lCheckupException is ArgumentException
-                or FileNotFoundException
-                or IOException
-                or UnauthorizedAccessException)
-        {
-            return;
-        }
-
-        var lCheckupDtos = new List<LSidecarDossier>(lCheckupDossiers.Count);
-        foreach (LDossier lCheckupDossier in lCheckupDossiers)
-        {
-            lCheckupDtos.Add(LCheckupDossier.LCheckupDossierResolve(lCheckupDossier));
-        }
-
-        LLibrarian.LLibrarianDiagnosisSave(lCheckupPath, lCheckupIdentity, lCheckupDtos);
     }
 
     private void LCheckupResultsPublish(

@@ -6,7 +6,7 @@ internal static class LScheduleStore
 {
     private static readonly HashSet<string> lScheduleRejectedPaths = new(StringComparer.OrdinalIgnoreCase);
 
-    internal static LWorkDocument? LScheduleRecordParse(string lScheduleRecordJson)
+    private static LWorkDocument? LScheduleRecordParse(string lScheduleRecordJson)
     {
         try
         {
@@ -15,6 +15,31 @@ internal static class LScheduleStore
         catch (Exception)
         {
             return null;
+        }
+    }
+
+    internal static IEnumerable<LScheduleEntry> LScheduleIndexRead()
+    {
+        foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
+        {
+            if (LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
+            {
+                yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
+            }
+        }
+    }
+
+    internal static IEnumerable<LScheduleEntry> LScheduleFolderRead()
+    {
+        foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
+        {
+            foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
+            {
+                if (LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
+                {
+                    yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
+                }
+            }
         }
     }
 
@@ -98,7 +123,7 @@ internal static class LScheduleStore
     private static bool LScheduleFileSave(string lDepotFilePath, string lDepotContent)
     {
         string lDepotTempPath = lDepotFilePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        LDepotWatch.LDepotOwnAdd(lDepotFilePath);
+        LDepotOwnership.LDepotOwnershipAdd(lDepotFilePath);
         try
         {
             File.WriteAllText(lDepotTempPath, lDepotContent);
@@ -126,8 +151,8 @@ internal static class LScheduleStore
     {
         string lDepotFromPath = LDepot.LDepotFileRead(lDepotFrom, lWorkId);
         string lDepotToPath = LDepot.LDepotFileRead(lDepotTo, lWorkId);
-        LDepotWatch.LDepotOwnAdd(lDepotFromPath);
-        LDepotWatch.LDepotOwnAdd(lDepotToPath);
+        LDepotOwnership.LDepotOwnershipAdd(lDepotFromPath);
+        LDepotOwnership.LDepotOwnershipAdd(lDepotToPath);
 
         try
         {

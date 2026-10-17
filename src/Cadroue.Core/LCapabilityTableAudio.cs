@@ -1,6 +1,8 @@
+using static Cadroue.Core.LCapabilityFamily;
+
 namespace Cadroue.Core;
 
-public static partial class LCapabilityTable
+public static class LCapabilityTableAudio
 {
     public static LCapabilityCodec LCapabilityAudioFallback { get; } = new(
         "audio",

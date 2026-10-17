@@ -4,9 +4,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LScheduleEntry(LDepotFolder LScheduleEntryFolder, LWorkDocument LScheduleEntryWork);
-
-public sealed partial class LSchedule : LScheduleContract
+public sealed class LSchedule : LScheduleContract
 {
     private readonly ObservableCollection<LWorkItem> lScheduleItems = new();
     private readonly Dictionary<Guid, LWorkItem> lScheduleLiveItems = new();
@@ -23,24 +21,35 @@ public sealed partial class LSchedule : LScheduleContract
     public event Action<LWorkItem, LScheduleNotice>? LScheduleItemChanged;
 
     public int LScheduleDoneCount =>
-        lScheduleItems.Count(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone);
+        lScheduleItems.Count(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone);
+
+    internal static string LScheduleIdShorten(Guid lWorkId) => lWorkId.ToString("N")[..8];
 
     public void LScheduleChangeRaise() => LScheduleChanged?.Invoke(this);
 
     public void LScheduleItemRaise(LWorkItem lWorkItem, LScheduleNotice lScheduleNotice) =>
         LScheduleItemChanged?.Invoke(lWorkItem, lScheduleNotice);
 
+    internal void LScheduleItemAdd(LWorkItem lWorkItem) => lScheduleItems.Add(lWorkItem);
+
+    internal LWorkItem? LScheduleLiveRead(Guid lWorkId) =>
+        lScheduleLiveItems.TryGetValue(lWorkId, out LWorkItem? lWorkLive) ? lWorkLive : null;
+
+    internal void LScheduleLiveSet(LWorkItem lWorkItem) => lScheduleLiveItems[lWorkItem.LWorkId] = lWorkItem;
+
+    internal void LScheduleLiveRemove(Guid lWorkId) => lScheduleLiveItems.Remove(lWorkId);
+
     public void LScheduleLoad()
     {
         LDepotIndex.LDepotIndexCreate();
-        LScheduleStaleClaim();
+        LScheduleStale.LScheduleStaleClaim();
         IReadOnlyList<LScheduleEntry>? lScheduleRebuilt = LDepotIndex.LDepotDirty
             ? LDepotIndex.LDepotIndexRebuild()
             : null;
 
         LScheduleItemsBuild(LDepotIndex.LDepotDirty
-            ? LScheduleFolderRead()
-            : lScheduleRebuilt ?? LScheduleIndexRead());
+            ? LScheduleStore.LScheduleFolderRead()
+            : lScheduleRebuilt ?? LScheduleStore.LScheduleIndexRead());
     }
 
     private void LScheduleItemsBuild(IEnumerable<LScheduleEntry> lScheduleEntries)
@@ -49,7 +58,7 @@ public sealed partial class LSchedule : LScheduleContract
         var lScheduleRunningIds = new HashSet<Guid>();
         foreach ((LDepotFolder lDepotFolder, LWorkDocument lWorkRecord) in lScheduleEntries)
         {
-            if (!LScheduleScopeMatch(lWorkRecord))
+            if (!LScheduleScope.LScheduleScopeMatch(lWorkRecord))
             {
                 continue;
             }
@@ -63,7 +72,9 @@ public sealed partial class LSchedule : LScheduleContract
             }
 
             LWorkItem lWorkItem = lWorkRecord.LWorkItemCreate();
-            lWorkItem.LWorkStateCurrent = LScheduleStateRead(lDepotFolder, lWorkItem.LWorkStateCurrent);
+            LWorkRunState lWorkRunState = lWorkItem.LWorkRunState;
+            lWorkRunState.LWorkStateCurrent =
+                LScheduleEntry.LScheduleStateRead(lDepotFolder, lWorkRunState.LWorkStateCurrent);
             lScheduleLoaded.Add(lWorkItem);
         }
 
@@ -84,55 +95,8 @@ public sealed partial class LSchedule : LScheduleContract
         LScheduleChanged?.Invoke(this);
     }
 
-    private IEnumerable<LScheduleEntry> LScheduleIndexRead()
-    {
-        foreach ((LDepotFolder lDepotFolder, string lDepotRecord) in LDepotIndex.LDepotRecordsRead())
-        {
-            if (LScheduleStore.LScheduleRecordParse(lDepotRecord) is { } lWorkRecord)
-            {
-                yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
-            }
-        }
-    }
-
-    private static IEnumerable<LScheduleEntry> LScheduleFolderRead()
-    {
-        foreach (LDepotFolder lDepotFolder in Enum.GetValues<LDepotFolder>())
-        {
-            foreach (string lDepotFilePath in LDepot.LDepotFilesRead(lDepotFolder))
-            {
-                if (LScheduleStore.LScheduleRecordRead(lDepotFilePath) is { } lWorkRecord)
-                {
-                    yield return new LScheduleEntry(lDepotFolder, lWorkRecord);
-                }
-            }
-        }
-    }
-
     public IReadOnlyList<LWorkItem> LSchedulePendingRead() =>
         lScheduleItems
-            .Where(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStatePending)
+            .Where(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStatePending)
             .ToArray();
-
-    public bool LSchedulePendingExist() =>
-        LDepot.LDepotFilesRead(LDepotFolder.LDepotFolderScheduled)
-            .Select(LScheduleStore.LScheduleRecordRead)
-            .Any(lWorkRecord => lWorkRecord is { } lScheduleRecord && LScheduleClaimMatch(lScheduleRecord));
-
-    private static LWorkState LScheduleStateRead(LDepotFolder lDepotFolder, LWorkState lScheduleFileState) =>
-        lDepotFolder switch
-        {
-            LDepotFolder.LDepotFolderRunning => LWorkState.LWorkStateRunning,
-            LDepotFolder.LDepotFolderDone => LScheduleTerminalRead(lScheduleFileState, LWorkState.LWorkStateDone),
-            LDepotFolder.LDepotFolderFailed => LScheduleTerminalRead(lScheduleFileState, LWorkState.LWorkStateFailed),
-            LDepotFolder.LDepotFolderCancelled => LWorkState.LWorkStateCancelled,
-            _ => lScheduleFileState == LWorkState.LWorkStateRunning ? LWorkState.LWorkStatePending : lScheduleFileState
-        };
-
-    private static LWorkState LScheduleTerminalRead(LWorkState lScheduleFileState, LWorkState lScheduleFolderState) =>
-        lScheduleFileState is LWorkState.LWorkStatePartial
-            or LWorkState.LWorkStateUnresolved
-            or LWorkState.LWorkStateBlocked
-            ? lScheduleFileState
-            : lScheduleFolderState;
 }

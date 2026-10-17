@@ -30,12 +30,12 @@ public sealed class TPreset : IDisposable
 
     public string TPresetImportRead(string stored, string path) => LPreset.LPresetNameResolve(stored, path);
 
-    public IReadOnlyList<LPresetGroup> TPresetNativeLoad() => LPresetStore.LPresetNativeLoad();
+    public IReadOnlyList<LPresetGroup> TPresetNativeLoad() => LPresetNative.LPresetNativeLoad();
 
     public IReadOnlyList<LPresetGroup> TPresetNativeLoad(string folderPath) =>
-        LPresetStore.LPresetNativeLoad(folderPath);
+        LPresetNative.LPresetNativeLoad(folderPath);
 
-    public bool TPresetFormatCheck() => LPresetStore.LPresetNativeLoad()
+    public bool TPresetFormatCheck() => LPresetNative.LPresetNativeLoad()
         .SelectMany(group => group.LPresetGroupPresets)
         .All(record => record.LPresetVideo is not null
             && record.LPresetAudio is not null

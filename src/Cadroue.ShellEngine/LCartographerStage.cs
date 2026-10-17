@@ -202,12 +202,13 @@ public static partial class LCartographer
         foreach (LWorkItem lCartographerItem in lCartographerSchedule)
         {
             if (lCartographerItem.LWorkBatchId != lCartographerBatch
-                || lCartographerItem.LWorkStateCurrent is LWorkState.LWorkStateFailed or LWorkState.LWorkStateCancelled)
+                || lCartographerItem.LWorkRunState.LWorkStateCurrent
+                    is LWorkState.LWorkStateFailed or LWorkState.LWorkStateCancelled)
             {
                 continue;
             }
 
-            if (lCartographerItem.LWorkStateCurrent == LWorkState.LWorkStateDone
+            if (lCartographerItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && (lCartographerPlan.LCartographerDeliveredWork.Contains(lCartographerItem.LWorkId)
                     || lCartographerMerge.LCartographerPendingInputs.Any(lCartographerInput => string.Equals(
                         lCartographerInput.LCartographerPath,

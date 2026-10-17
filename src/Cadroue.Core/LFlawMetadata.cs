@@ -7,9 +7,9 @@ public static class LFlawMetadata
     public static LDossier? LFlawMetadataResolve(string lFlawProbeReport)
     {
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
-            LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
+            LFlawSection.LFlawSectionRead(lFlawProbeReport, "STREAM");
         IReadOnlyDictionary<string, string>? lFlawFormat =
-            LFlaw.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
+            LFlawSection.LFlawSectionRead(lFlawProbeReport, "FORMAT").FirstOrDefault();
         if (lFlawFormat is null)
         {
             return null;

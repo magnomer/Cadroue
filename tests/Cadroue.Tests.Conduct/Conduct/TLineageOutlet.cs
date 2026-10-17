@@ -20,8 +20,8 @@ public sealed class TLineageOutlet
         TScheduleWork first = schedule.TWorkCreate(batch, "one");
         TScheduleWork second = schedule.TWorkCreate(batch, "two", parent: first);
         first.TWorkItem.LWorkSourceBytes = 1000;
-        first.TWorkItem.LWorkOutputBytes = 800;
-        second.TWorkItem.LWorkOutputBytes = 400;
+        first.TWorkItem.LWorkRunState.LWorkOutputBytes = 800;
+        second.TWorkItem.LWorkRunState.LWorkOutputBytes = 400;
         schedule.TScheduleAdd(first, second);
         Guid[] ids = [second.TWorkId, first.TWorkId];
 

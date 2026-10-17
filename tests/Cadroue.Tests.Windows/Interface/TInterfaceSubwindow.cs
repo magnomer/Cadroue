@@ -69,8 +69,8 @@ internal static partial class TInterface
     internal static List<LBindingEntry> TKeymapRecordsRead(QSKeymap keymap) => keymap.QSKeymapRecordsRead();
     internal static string TBindingGestureFormat(string key, bool ctrl, bool alt, bool shift, bool win) =>
         LBinding.LBindingGestureFormat(key, ctrl, alt, shift, win);
-    internal static string TBindingDefaultRead(string token) => LBinding.LBindingDefaultRead(token);
-    internal static IReadOnlyList<LBindingCommand> TBindingCatalogRead() => LBinding.LBindingCatalogRead();
+    internal static string TBindingDefaultRead(string token) => LBindingCatalog.LBindingDefaultRead(token);
+    internal static IReadOnlyList<LBindingCommand> TBindingCatalogRead() => LBindingCatalog.LBindingCatalogRead();
 
     internal static QSMonitor TMonitorCreate() => new();
     internal static void TMonitorCursorAttach(QSMonitor monitor, Action<TimeSpan> handler) =>

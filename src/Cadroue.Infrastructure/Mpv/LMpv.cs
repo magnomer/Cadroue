@@ -1,5 +1,3 @@
-using System.IO;
-using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -8,21 +6,20 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial class LMpv : IDisposable
+public sealed class LMpv : IDisposable
 {
-    private const string LMpvLibraryFile = "libmpv-2.dll";
     private const string LMpvDecodeThreads = "4";
-    private const uint LMpvMonitorNearest = 2;
-    private const int LMpvMonitorSize = 104;
-    private const int LMpvMonitorOffset = 40;
-    private const int LMpvDeviceSize = 840;
-    private const int LMpvDeviceOffset = 4;
-    private const int LMpvAdapterOffset = 68;
+    private const int LMpvFormatDouble = 5;
+    private const int LMpvFormatFlag = 3;
+
+    private const int LMpvEventNone = 0;
+    private const int LMpvEventShutdown = 1;
+    private const int LMpvEventStarted = 6;
+    private const int LMpvEventEnd = 7;
+    private const int LMpvEventLoaded = 8;
 
     private static readonly TimeSpan LMpvTeardownBudget = TimeSpan.FromSeconds(5);
 
-    private static bool lMpvResolverActive;
-    private static readonly object lMpvResolverGate = new();
     private static readonly object lMpvTeardownGate = new();
     private static Task? lMpvTeardownTask;
 
@@ -33,53 +30,10 @@ public sealed partial class LMpv : IDisposable
 
     public LMpv()
     {
-        LMpvResolverAttach();
+        LMpvLibrary.LMpvLibraryAttach();
     }
 
-    public string LMpvLibraryPath { get; } = LMpvLibraryRead();
-
-    public bool LMpvContextActive => lMpvContext != nint.Zero;
-
-    public static string LMpvLibraryRead()
-    {
-        string? lInstallFolder = LMpvFolderRead();
-        if (lInstallFolder is not null)
-        {
-            return Path.Combine(lInstallFolder, LMpvLibraryFile);
-        }
-
-        string lFolder = LRenderer.LRendererFolderCurrent;
-        if (!string.IsNullOrWhiteSpace(lFolder))
-        {
-            string lCandidate = Path.Combine(lFolder, LMpvLibraryFile);
-            if (File.Exists(lCandidate))
-            {
-                return lCandidate;
-            }
-        }
-
-        return LMpvLibraryFile;
-    }
-
-    public static bool LMpvLibraryCheck()
-    {
-        string lPath = LMpvLibraryRead();
-        if (Path.IsPathRooted(lPath))
-        {
-            return File.Exists(lPath);
-        }
-
-        if (!NativeLibrary.TryLoad(lPath, out nint lHandle))
-        {
-            return false;
-        }
-
-        NativeLibrary.Free(lHandle);
-        return true;
-    }
-
-    public static bool LMpvAvailableCheck() =>
-        LMpvLibraryCheck() && LMpvResultRead() == LMpvProbe.LMpvProbeUsable;
+    public string LMpvLibraryPath { get; } = LMpvLibrary.LMpvLibraryRead();
 
     public void LMpvContextCreate(nint lWindowHandle)
     {
@@ -119,7 +73,7 @@ public sealed partial class LMpv : IDisposable
         {
             LMpvOptionSet("wid", lWindowHandle.ToString());
             LMpvOptionSet("vd-lavc-threads", LMpvDecodeThreads);
-            if (LMpvAdapterRead(lWindowHandle) is { Length: > 0 } lAdapter)
+            if (LMpvAdapter.LMpvAdapterRead(lWindowHandle) is { Length: > 0 } lAdapter)
             {
                 LMpvOptionSet("d3d11-adapter", lAdapter);
             }
@@ -189,6 +143,171 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
+    public void LMpvOpen(string lPath)
+    {
+        LMpvCommandRun("loadfile", lPath);
+    }
+
+    public void LMpvSeek(TimeSpan lPosition)
+    {
+        string lSeconds = lPosition.TotalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        LMpvCommandRun("seek", lSeconds, "absolute+exact");
+    }
+
+    public void LMpvStop()
+    {
+        LMpvCommandRun("stop");
+    }
+
+    public void LMpvPlaySet(bool lPlaying)
+    {
+        LMpvPropertySet("pause", lPlaying ? "no" : "yes");
+    }
+
+    public void LMpvVolumeSet(double lVolume)
+    {
+        double lLinear = Math.Clamp(lVolume, 0, 100) / 100.0;
+        double lCurved = 100.0 * Math.Cbrt(lLinear);
+        LMpvPropertySet("volume", lCurved.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    public void LMpvFilterSet(string lFilterChain)
+    {
+        LMpvPropertySet("vf", lFilterChain ?? string.Empty);
+    }
+
+    public void LMpvAudioSet(string lFilterChain)
+    {
+        LMpvPropertySet("af", string.IsNullOrEmpty(lFilterChain)
+            ? string.Empty
+            : "lavfi=[" + lFilterChain + "]");
+    }
+
+    public TimeSpan LMpvTimeRead()
+    {
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_get_property(lMpvContext, "time-pos", LMpvFormatDouble, out double lSeconds);
+        if (lResult < 0 || double.IsNaN(lSeconds) || lSeconds < 0)
+        {
+            return TimeSpan.Zero;
+        }
+
+        return TimeSpan.FromSeconds(lSeconds);
+    }
+
+    public bool LMpvEndedRead()
+    {
+        LMpvContextValidate();
+        int lResult = LMpvNative.mpv_get_property_flag(lMpvContext, "eof-reached", LMpvFormatFlag, out int lFlag);
+        return lResult >= 0 && lFlag != 0;
+    }
+
+    public LMpvProbe LMpvMediaCheck(string lPath, TimeSpan lBudget, CancellationToken lToken)
+    {
+        CancellationTokenSource lScan = CancellationTokenSource.CreateLinkedTokenSource(lToken);
+        CancellationTokenSource? lPrevious = Interlocked.Exchange(ref lMpvScanCancellation, lScan);
+        lPrevious?.Cancel();
+        lock (lMpvScanGate)
+        {
+            try
+            {
+                if (lScan.IsCancellationRequested)
+                {
+                    return LMpvProbe.LMpvProbeUnusable;
+                }
+
+                LMpvEventClear();
+                LMpvOpen(lPath);
+                return LMpvLoadedScan(lBudget, lScan.Token);
+            }
+            finally
+            {
+                lPrevious?.Dispose();
+                if (Interlocked.CompareExchange(ref lMpvScanCancellation, null, lScan) == lScan)
+                {
+                    lScan.Dispose();
+                }
+            }
+        }
+    }
+
+    public void LMpvScanCancel()
+    {
+        try
+        {
+            Volatile.Read(ref lMpvScanCancellation)?.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+    }
+
+    public void LMpvEventClear()
+    {
+        LMpvContextValidate();
+        while (true)
+        {
+            nint lEvent = LMpvNative.mpv_wait_event(lMpvContext, 0);
+            if (lEvent == nint.Zero)
+            {
+                return;
+            }
+
+            if (Marshal.ReadInt32(lEvent) == LMpvEventNone)
+            {
+                return;
+            }
+        }
+    }
+
+    public LMpvProbe LMpvLoadedScan(TimeSpan lBudget, CancellationToken lToken)
+    {
+        LMpvContextValidate();
+        DateTime lDeadline = DateTime.UtcNow + lBudget;
+        bool lStarted = false;
+        while (true)
+        {
+            if (lToken.IsCancellationRequested)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
+            double lRemaining = (lDeadline - DateTime.UtcNow).TotalSeconds;
+            if (lRemaining <= 0)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
+            nint lEvent = LMpvNative.mpv_wait_event(lMpvContext, Math.Min(0.1, lRemaining));
+            if (lEvent == nint.Zero)
+            {
+                continue;
+            }
+
+            int lEventId = Marshal.ReadInt32(lEvent);
+            if (lEventId == LMpvEventStarted)
+            {
+                lStarted = true;
+                continue;
+            }
+
+            if (lEventId == LMpvEventLoaded)
+            {
+                return LMpvProbe.LMpvProbeUsable;
+            }
+
+            if (lEventId == LMpvEventShutdown)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+
+            if (lEventId == LMpvEventEnd && lStarted)
+            {
+                return LMpvProbe.LMpvProbeUnusable;
+            }
+        }
+    }
+
     public void LMpvDispose()
     {
         LMpvScanCancel();
@@ -204,6 +323,11 @@ public sealed partial class LMpv : IDisposable
         }
     }
 
+    public void Dispose()
+    {
+        LMpvDispose();
+    }
+
     private static void LMpvTeardownStart(nint lContext)
     {
         lock (lMpvTeardownGate)
@@ -215,57 +339,6 @@ public sealed partial class LMpv : IDisposable
                 TaskContinuationOptions.LongRunning,
                 TaskScheduler.Default);
         }
-    }
-
-    private static string? LMpvAdapterRead(nint lWindowHandle)
-    {
-        nint lMonitor = Marshal.AllocHGlobal(LMpvMonitorSize);
-        nint lDevice = Marshal.AllocHGlobal(LMpvDeviceSize);
-        try
-        {
-            Marshal.WriteInt32(lMonitor, LMpvMonitorSize);
-            if (!GetMonitorInfo(MonitorFromWindow(lWindowHandle, LMpvMonitorNearest), lMonitor))
-            {
-                return null;
-            }
-
-            string? lMonitorName = Marshal.PtrToStringUni(lMonitor + LMpvMonitorOffset);
-            for (uint lIndex = 0; ; lIndex++)
-            {
-                Marshal.WriteInt32(lDevice, LMpvDeviceSize);
-                if (!EnumDisplayDevices(null, lIndex, lDevice, 0))
-                {
-                    return null;
-                }
-
-                if (string.Equals(
-                    Marshal.PtrToStringUni(lDevice + LMpvDeviceOffset),
-                    lMonitorName,
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    return Marshal.PtrToStringUni(lDevice + LMpvAdapterOffset);
-                }
-            }
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(lMonitor);
-            Marshal.FreeHGlobal(lDevice);
-        }
-    }
-
-    [DllImport("user32.dll")]
-    private static extern nint MonitorFromWindow(nint hwnd, uint dwFlags);
-
-    [DllImport("user32.dll", EntryPoint = "GetMonitorInfoW")]
-    private static extern bool GetMonitorInfo(nint hMonitor, nint lpmi);
-
-    [DllImport("user32.dll", CharSet = CharSet.Unicode, EntryPoint = "EnumDisplayDevicesW")]
-    private static extern bool EnumDisplayDevices(string? lpDevice, uint iDevNum, nint lpDisplayDevice, uint dwFlags);
-
-    public void Dispose()
-    {
-        LMpvDispose();
     }
 
     private void LMpvContextValidate()
@@ -293,42 +366,5 @@ public sealed partial class LMpv : IDisposable
         Marshal.Copy(lBytes, 0, lPointer, lBytes.Length);
         Marshal.WriteByte(lPointer, lBytes.Length, 0);
         return lPointer;
-    }
-
-    private static void LMpvResolverAttach()
-    {
-        if (lMpvResolverActive)
-        {
-            return;
-        }
-
-        lock (lMpvResolverGate)
-        {
-            if (lMpvResolverActive)
-            {
-                return;
-            }
-
-            NativeLibrary.SetDllImportResolver(typeof(LMpvNative).Assembly, LMpvResolve);
-            lMpvResolverActive = true;
-        }
-    }
-
-    private static nint LMpvResolve(string lLibraryName, Assembly lAssembly, DllImportSearchPath? lSearchPath)
-    {
-        if (!string.Equals(lLibraryName, LMpvNative.LMpvLibraryName, StringComparison.Ordinal))
-        {
-            return nint.Zero;
-        }
-
-        string lResolvedPath = LMpvLibraryRead();
-        if (File.Exists(lResolvedPath) && NativeLibrary.TryLoad(lResolvedPath, out nint lLoaded))
-        {
-            return lLoaded;
-        }
-
-        return NativeLibrary.TryLoad(LMpvLibraryFile, lAssembly, lSearchPath, out nint lFallback)
-            ? lFallback
-            : nint.Zero;
     }
 }

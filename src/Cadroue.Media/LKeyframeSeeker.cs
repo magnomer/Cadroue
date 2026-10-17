@@ -28,7 +28,8 @@ public static class LKeyframeSeeker
             return Array.Empty<LKeyframeEntry>();
 
         cancellationToken.ThrowIfCancellationRequested();
-        LMediaInfo mediaInfo = await LMedia.LMediaFfprobeRead(sourcePath, cancellationToken).ConfigureAwait(false);
+        LMediaInfo mediaInfo = await LMediaFfprobe.LMediaFfprobeRead(sourcePath, cancellationToken)
+            .ConfigureAwait(false);
         LKeyframeSpanResult result = await LKeyframeSpanScan(
             sourcePath, mediaInfo.LMediaStartTime.TotalSeconds, scanStartTime, scanEndTime, cancellationToken)
             .ConfigureAwait(false);
@@ -42,7 +43,7 @@ public static class LKeyframeSeeker
         TimeSpan scanEndTime,
         CancellationToken cancellationToken = default)
     {
-        await LMedia.LMediaScanClaim(cancellationToken).ConfigureAwait(false);
+        await LMediaSlot.LMediaScanClaim(cancellationToken).ConfigureAwait(false);
         try
         {
             return await LKeyframeSpanScan(
@@ -56,7 +57,7 @@ public static class LKeyframeSeeker
         }
         finally
         {
-            LMedia.LMediaScanRelease();
+            LMediaSlot.LMediaScanRelease();
         }
     }
 
@@ -145,14 +146,9 @@ public static class LKeyframeSeeker
             .ToArray();
     }
 
-    private static string LKeyframeFailureFormat(int exitCode, string errorText)
-    {
-        string diagnostic = string.IsNullOrWhiteSpace(errorText)
-            ? "No ffprobe diagnostic message was returned."
-            : errorText.Trim();
-        return $"ffprobe packet scan failed with exit code {exitCode}. "
-            + (diagnostic.Length <= 2000 ? diagnostic : diagnostic[..2000]);
-    }
+    private static string LKeyframeFailureFormat(int exitCode, string errorText) =>
+        $"ffprobe packet scan failed with exit code {exitCode}. "
+            + LMediaFailure.LMediaDiagnosticNormalize(errorText);
 
     private static int LKeyframeLineParse(
         string line,

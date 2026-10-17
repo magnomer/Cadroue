@@ -43,8 +43,9 @@ internal static partial class TInterface
     internal static LLevelingDefault TLevelingDefaultRead() => LLevelingCatalog.LLevelingDefaultRead();
 
     internal static IReadOnlyList<LRepertoireAudio> TRepertoireAudioRead() =>
-        LRepertoireCatalog.LRepertoireAudioCandidates;
-    internal static string? TRepertoireAudioResolve(string text) => LRepertoireCatalog.LRepertoireAudioResolve(text);
+        LRepertoireAudioCatalog.LRepertoireAudioCandidates;
+    internal static string? TRepertoireAudioResolve(string text) =>
+        LRepertoireAudioCatalog.LRepertoireAudioResolve(text);
     internal static string TRepertoireAudioFind(string codecName) => LRepertoireCatalog.LRepertoireAudioFind(codecName);
     internal static IReadOnlyList<LRepertoireEncoder> TRepertoireEncodersRead() =>
         LRepertoireVideo.LRepertoireEncodersRead();
@@ -55,9 +56,9 @@ internal static partial class TInterface
         codec.LCapabilityModeFind(label);
     internal static IEnumerable<LCapabilityCodec> TCapabilityTableRead() =>
         LCapabilityTable.LCapabilityMap.Values
-            .Concat(LCapabilityTable.LCapabilityAudioMap.Values)
+            .Concat(LCapabilityTableAudio.LCapabilityAudioMap.Values)
             .Append(LCapabilityTable.LCapabilityFallback)
-            .Append(LCapabilityTable.LCapabilityAudioFallback);
+            .Append(LCapabilityTableAudio.LCapabilityAudioFallback);
 
     internal static LTrialResult TTrialResultCreate(bool success, string message) => new(success, message);
     internal static Task TTrialSetStart(Func<string, Task<LTrialResult>> trial) => LTrialCatalog.LTrialSetStart(trial);

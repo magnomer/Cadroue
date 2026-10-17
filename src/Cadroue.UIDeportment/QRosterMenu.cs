@@ -95,7 +95,7 @@ public sealed class QRosterMenu
 
         lStrip.QStripSelect(lTargetTab);
         lTargetOwner.LDocketPathsAdd(
-            (await LMedia.LMediaPathScan(qRosterGate.CRosterMenuPaths).ConfigureAwait(true)).LMediaScanPaths,
+            (await LMediaPath.LMediaPathScan(qRosterGate.CRosterMenuPaths).ConfigureAwait(true)).LMediaScanPaths,
             LGate.LGateBatchCreate());
     }
 }

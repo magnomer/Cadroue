@@ -32,8 +32,8 @@ public sealed class QProgram
         Action<bool> lFlyleafVerbose)
     {
         QPlacement.QPlacementRootSeam = LDepot.LDepotRootRead;
-        LRelayChannel.LRelayStartupRead(lArgs);
-        LRenderer.LRendererSettingsLoad();
+        LRelayStartup.LRelayStartupRead(lArgs);
+        LRendererFolder.LRendererSettingsLoad();
 
         QProgramSeamAttach(lResourceNames, lResourceRead, lDebounceRestart);
         LPreference.LPreferenceLoad();
@@ -49,7 +49,7 @@ public sealed class QProgram
         LFlyleaf.LFlyleafResolverAttach();
         QPlacement.QPlacementImport(lPlacementKeys.Select(lPlacementKey => (lPlacementKey, lPlacementKey)).ToArray());
 
-        LRenderer.LRendererToolAttach();
+        LRendererFolder.LRendererToolAttach();
         LPreset.LPresetPrepare();
         qProgramStation(lDispatch);
         LAutopsy.LAutopsyProseAttach();
@@ -81,7 +81,7 @@ public sealed class QProgram
     private static void QProgramStartRecord()
     {
         LTraceLog.LTraceLoadingRecord(
-            $"Application started: version {LTraceLog.LTraceVersionRead()}, process {Environment.ProcessId}");
+            $"Application started: version {LProgramVersion.LProgramVersionRead()}, process {Environment.ProcessId}");
         LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive
             ? "Local Flyleaf preview engine active"
             : "NuGet Flyleaf preview engine active");
@@ -93,7 +93,7 @@ public sealed class QProgram
         Action<Action> lDefer)
     {
         LRenderer.LRendererFlyleafSeam = lFlyleafStart;
-        LRenderer.LRendererVerboseSeam = lFlyleafVerbose;
+        LRendererLog.LRendererVerboseSeam = lFlyleafVerbose;
         LRenderer.LRendererDispatchSeam = lDefer;
         qProgramDeferSeam = lDefer;
     }
@@ -216,7 +216,7 @@ public sealed class QProgram
     {
         try
         {
-            int lScheduleRecovered = QScheduleCurrent.LScheduleStaleClaim();
+            int lScheduleRecovered = LScheduleStale.LScheduleStaleClaim();
             if (lScheduleRecovered > 0)
             {
                 LTraceLog.LTraceInfoRecord(

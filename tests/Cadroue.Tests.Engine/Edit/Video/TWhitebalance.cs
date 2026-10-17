@@ -20,7 +20,7 @@ public sealed class TWhitebalance
 
         Assert.Equal(expectedPercent, step.LWorkStepValue);
         Assert.Equal(expectedPercent, settings.LWorkWhitebalanceSaturation);
-        Assert.Equal(expectedFactor, step.LWorkFfmpegValue, 12);
+        Assert.Equal(expectedFactor, LWorkVideoFilter.LWorkFfmpegResolve(step), 12);
     }
 
     [Fact]

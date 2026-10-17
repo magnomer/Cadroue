@@ -24,7 +24,9 @@ internal static class LSalvageExtract
             return Array.Empty<string>();
         }
 
-        string lSalvageFolder = lSalvageItem.LWorkOutput.LEncodingFolderRead(lSalvageItem.LWorkSourcePath);
+        string lSalvageFolder = LEncodingPath.LEncodingFolderRead(
+            lSalvageItem.LWorkOutput,
+            lSalvageItem.LWorkSourcePath);
         if (!string.IsNullOrWhiteSpace(lSalvageFolder))
         {
             Directory.CreateDirectory(lSalvageFolder);

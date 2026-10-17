@@ -7,10 +7,7 @@ namespace Cadroue.Infrastructure;
 public static class LSentinel
 {
     private static readonly TimeSpan LSentinelLeaseExpiry =
-        TimeSpan.FromSeconds(LSchedule.LScheduleLeaseSeconds * 3);
-
-    private static readonly HashSet<Guid> lSentinelLiveRunners = new();
-    private static readonly object lSentinelRunnerLock = new();
+        TimeSpan.FromSeconds(LScheduleLease.LScheduleLeaseSeconds * 3);
 
     private static readonly long lSentinelStamp = LSentinelStampResolve();
 
@@ -23,7 +20,7 @@ public static class LSentinel
 
     public static bool LSentinelOwnerCheck(int lProcessId, long lOwnerStamp, Guid lRunnerId) =>
         lProcessId == Environment.ProcessId
-            ? LSentinelRunnerCheck(lRunnerId)
+            ? LSentinelRunner.LSentinelRunnerCheck(lRunnerId)
             : LSentinelProcessCheck(lProcessId, lOwnerStamp);
 
     private static long LSentinelStampResolve()
@@ -38,30 +35,6 @@ public static class LSentinel
                 or System.ComponentModel.Win32Exception)
         {
             return 0;
-        }
-    }
-
-    public static void LSentinelRunnerAdd(Guid lRunnerId)
-    {
-        lock (lSentinelRunnerLock)
-        {
-            lSentinelLiveRunners.Add(lRunnerId);
-        }
-    }
-
-    public static void LSentinelRunnerRemove(Guid lRunnerId)
-    {
-        lock (lSentinelRunnerLock)
-        {
-            lSentinelLiveRunners.Remove(lRunnerId);
-        }
-    }
-
-    public static bool LSentinelRunnerCheck(Guid lRunnerId)
-    {
-        lock (lSentinelRunnerLock)
-        {
-            return lSentinelLiveRunners.Contains(lRunnerId);
         }
     }
 

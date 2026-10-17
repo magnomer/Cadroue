@@ -47,7 +47,7 @@ public sealed class QFlowLosslesscut
             return;
         }
 
-        IReadOnlyList<string> lPaths = LLosslesscut.LLosslesscutAdjacentRead(qFlow.QFlowSourcePath!);
+        IReadOnlyList<string> lPaths = LLosslesscutAdjacent.LLosslesscutAdjacentRead(qFlow.QFlowSourcePath!);
         for (int lIndex = 0; lIndex < lPaths.Count; lIndex++)
         {
             string lPath = lPaths[lIndex];
@@ -99,7 +99,7 @@ public sealed class QFlowLosslesscut
             return;
         }
 
-        LLosslesscutResult lResult = LLosslesscut.LLosslesscutValidate(
+        LLosslesscutResult lResult = LLosslesscutSegment.LLosslesscutValidate(
             lProject, qFlow.QFlowSourcePath!, qFlow.QFlowDuration);
         if (!lResult.LLosslesscutResultAgreement
             && QFlowLosslesscutRaise(QFlowConfirmCreate(

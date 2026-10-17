@@ -7,10 +7,6 @@ namespace Cadroue.Core;
 
 public static class LClassifier
 {
-    private const int lClassifierCacheLimit = 64;
-    private static readonly TimeSpan lClassifierTimeout = TimeSpan.FromMilliseconds(250);
-    private static readonly Dictionary<string, Regex?> lClassifierCache = new(StringComparer.Ordinal);
-
     public static Action<string>? LClassifierFaultSource { get; set; }
 
     public static int LClassifierRouteRead(
@@ -54,7 +50,14 @@ public static class LClassifier
                 return false;
             }
 
-            if (LClassifierRegexRead(lClassifierRule.LSceneFunnelRegex) is not { } lClassifierRegex)
+            Regex? lClassifierRegex = LClassifierPattern.LClassifierPatternRead(
+                lClassifierRule.LSceneFunnelRegex, out string? lClassifierFault);
+            if (lClassifierFault is not null)
+            {
+                LClassifierFaultSource?.Invoke(lClassifierFault);
+            }
+
+            if (lClassifierRegex is null)
             {
                 return false;
             }
@@ -68,6 +71,7 @@ public static class LClassifier
             }
             catch (RegexMatchTimeoutException)
             {
+                TimeSpan lClassifierTimeout = LClassifierPattern.LClassifierPatternTimeout;
                 LClassifierFaultSource?.Invoke(
                     $"Funnel rule pattern gave up after {lClassifierTimeout.TotalMilliseconds:F0} ms "
                         + "and matched nothing: "
@@ -114,48 +118,5 @@ public static class LClassifier
         }
 
         return lClassifierHasResult && lClassifierResult;
-    }
-
-    private static Regex? LClassifierRegexRead(string lClassifierPattern)
-    {
-        lock (lClassifierCache)
-        {
-            if (lClassifierCache.TryGetValue(lClassifierPattern, out Regex? lClassifierCached))
-            {
-                return lClassifierCached;
-            }
-        }
-
-        Regex? lClassifierRegex = null;
-        string? lClassifierFault = null;
-        try
-        {
-            lClassifierRegex = new Regex(
-                lClassifierPattern,
-                RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,
-                lClassifierTimeout);
-        }
-        catch (ArgumentException lClassifierError)
-        {
-            lClassifierFault = $"Funnel rule pattern is invalid and matches nothing: {lClassifierPattern} "
-                + $"({lClassifierError.Message})";
-        }
-
-        lock (lClassifierCache)
-        {
-            if (lClassifierCache.Count >= lClassifierCacheLimit)
-            {
-                lClassifierCache.Clear();
-            }
-
-            lClassifierCache[lClassifierPattern] = lClassifierRegex;
-        }
-
-        if (lClassifierFault is not null)
-        {
-            LClassifierFaultSource?.Invoke(lClassifierFault);
-        }
-
-        return lClassifierRegex;
     }
 }

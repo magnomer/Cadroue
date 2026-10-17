@@ -51,7 +51,7 @@ public sealed class QViewfinder
 
     public void QViewfinderDrawRecord()
     {
-        LTrace.LTraceTimelineAdd(
+        LTraceTimeline.LTraceTimelineAdd(
             "Viewfinder",
             qFlow.QFlowCursor,
             qFlow.QFlowSourcePath,

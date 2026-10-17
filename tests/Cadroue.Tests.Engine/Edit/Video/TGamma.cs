@@ -19,7 +19,7 @@ public sealed class TGamma
         LWorkVideoStep step = TInterface.TWorkGammaCreate(true, value);
 
         Assert.Equal(expectedDisplay, step.LWorkStepValue);
-        Assert.Equal(expectedFfmpeg, step.LWorkFfmpegValue, 12);
+        Assert.Equal(expectedFfmpeg, LWorkVideoFilter.LWorkFfmpegResolve(step), 12);
     }
 
     [Fact]

@@ -33,17 +33,17 @@ internal sealed class TScene : IDisposable
     internal TSceneValue TSceneRecordCreate(string name, int marker = 1) =>
         new(TSceneSample.TSceneCreate(name, marker));
 
-    internal void TSceneSave(TSceneValue scene) => LScene.LSceneSave(scene.TSceneData);
+    internal void TSceneSave(TSceneValue scene) => LSceneCatalogue.LSceneSave(scene.TSceneData);
 
     internal TSceneValue? TSceneRead(string name)
     {
-        LSceneDocument? scene = LScene.LSceneRead(name);
+        LSceneDocument? scene = LSceneCatalogue.LSceneRead(name);
         return scene is null ? null : new TSceneValue(scene);
     }
 
-    internal bool TSceneDelete(string name) => LScene.LSceneDelete(name);
+    internal bool TSceneDelete(string name) => LSceneCatalogue.LSceneDelete(name);
 
-    internal IReadOnlyList<string> TSceneNames => LScene.LSceneNames;
+    internal IReadOnlyList<string> TSceneNames => LSceneCatalogue.LSceneNames;
 
     internal void TSceneDiskLoad() => LScene.LSceneRootSet(tSceneRoot);
 
@@ -53,9 +53,9 @@ internal sealed class TScene : IDisposable
     internal TSceneValue TSceneExternalMatch(TSceneValue scene)
     {
         string path = Path.Combine(tSceneRoot, "external.cadroue-scene");
-        LScene.LSceneFileSave(scene.TSceneData, path);
+        LSceneFile.LSceneFileSave(scene.TSceneData, path);
         return new TSceneValue(
-            LScene.LSceneFileLoad(path)
+            LSceneFile.LSceneFileLoad(path)
             ?? throw new InvalidDataException("Production returned no scene for a scene file it saved."));
     }
 
@@ -69,12 +69,12 @@ internal sealed class TScene : IDisposable
 
     internal static LSidecarAudioEntry TSceneAudioCreate() => new();
 
-    internal static LSceneDocument TSceneNormalize(LSceneDocument? raw) => LScene.LSceneNormalize(raw);
+    internal static LSceneDocument TSceneNormalize(LSceneDocument? raw) => LSceneCanonical.LSceneNormalize(raw);
 
-    internal static int TSceneVersionCurrent => LScene.LSceneVersionCurrent;
+    internal static int TSceneVersionCurrent => LSceneCanonical.LSceneVersionCurrent;
 
     internal static IReadOnlyList<LSceneDocument> TSceneCatalogueNormalize(List<LSceneDocument>? raw) =>
-        LScene.LSceneCatalogueNormalize(raw);
+        LSceneCatalogue.LSceneCatalogueNormalize(raw);
 
     internal void TSceneMalformSave()
     {
@@ -82,7 +82,7 @@ internal sealed class TScene : IDisposable
     }
 
     internal bool TSceneMatch(TSceneValue left, TSceneValue right) =>
-        LScene.LSceneMatch(left.TSceneData, right.TSceneData);
+        LSceneCanonical.LSceneMatch(left.TSceneData, right.TSceneData);
 
     internal void TSceneFieldChange(TSceneValue scene)
     {

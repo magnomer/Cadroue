@@ -1,0 +1,158 @@
+namespace Cadroue.Core;
+
+internal static class LCapabilityFamily
+{
+    private const string LCapabilityBitrateLabel = "Target bitrate";
+
+    internal static LCapabilityQuality LCapabilityBitrateCreate(
+        string lDefault = "8M", string lOption = "-b:v", double lMinimum = 100, double lMaximum = 100000) =>
+        new(LCapabilityBitrateLabel, lOption, lDefault, lMinimum, lMaximum);
+
+    internal static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo) =>
+        Enumerable.Range(lFrom, lTo - lFrom + 1).Select(lValue => (LCapabilityChoice)lValue.ToString()).ToArray();
+
+    internal static LCapabilityChoice[] LCapabilityNumbersCreate(int lFrom, int lTo, bool lHigherFaster)
+    {
+        LCapabilityChoice[] lNumbers = LCapabilityNumbersCreate(lFrom, lTo);
+        if (lHigherFaster)
+        {
+            Array.Reverse(lNumbers);
+        }
+
+        return lNumbers;
+    }
+
+    private static readonly LCapabilityChoice[] LCapabilityLibxPresets =
+    [
+        new("ultrafast", "Ultrafast"), new("superfast", "Superfast"), new("veryfast", "Very fast"),
+        new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"), new("slow", "Slow"),
+        new("slower", "Slower"), new("veryslow", "Very slow"), new("placebo", "Placebo (slowest)")
+    ];
+
+    private static readonly LCapabilityChoice[] LCapabilityQsvPresets =
+    [
+        new("veryfast", "Very fast"), new("faster", "Faster"), new("fast", "Fast"), new("medium", "Medium"),
+        new("slow", "Slow"), new("slower", "Slower"), new("veryslow", "Very slow")
+    ];
+
+    private static readonly LCapabilityChoice[] LCapabilityNvencPresets =
+    [
+        new("p1", "P1 (fastest)"), new("p2", "P2"), new("p3", "P3"), new("p4", "P4 (default)"),
+        new("p5", "P5"), new("p6", "P6"), new("p7", "P7 (slowest)")
+    ];
+
+    internal const string LCapabilityCbrArgument =
+        "-minrate {quality} -maxrate {quality} -bufsize {quality}";
+
+    internal static LCapabilityCodec LCapabilityLibxCreate(
+        string lEncoder, string lCrfDefault, string lLosslessArgument) => new(
+        lEncoder,
+        [
+            new("CRF (constant quality)", new("CRF", "-crf", lCrfDefault, 0, 51)),
+            new("CQP (constant quantizer)", new("QP", "-qp", lCrfDefault, 0, 51)),
+            new("Target bitrate (ABR)", LCapabilityBitrateCreate()),
+            new("Two-pass bitrate", LCapabilityBitrateCreate(), "", 2),
+            new("CBR", LCapabilityBitrateCreate(), LCapabilityCbrArgument),
+            new("Lossless", null, lLosslessArgument)
+        ],
+        new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityLibxPresets),
+        [new LCapabilityExtra("Tune", "-tune", "none",
+            [new("none", "None"), new("film", "Film"), new("animation", "Animation"), new("grain", "Grain"),
+             new("stillimage", "Still image"), new("fastdecode", "Fast decode"), new("zerolatency", "Zero latency")])],
+        $"{lEncoder} CRF default is {lCrfDefault}. Lossless uses -crf 0 (x264) or -x265-params lossless=1 (x265).");
+
+    internal static LCapabilityCodec LCapabilityQsvCreate(string lEncoder) => new(
+        lEncoder,
+        [
+            new("ICQ (constant quality)", new("Global quality", "-global_quality", "23", 1, 51)),
+            new("LA-ICQ (lookahead quality)",
+                new("Global quality", "-global_quality", "23", 1, 51), "-look_ahead 1"),
+            new("CQP (constant quantizer)", new("QP", "-q", "23", 0, 51)),
+            new("VBR (target bitrate)", LCapabilityBitrateCreate()),
+            new("CBR", LCapabilityBitrateCreate(), "-maxrate {quality}")
+        ],
+        new LCapabilitySpeed("Speed preset", "-preset", "medium", LCapabilityQsvPresets),
+        [new LCapabilityExtra("Low power", "-low_power", "auto",
+            [new("auto", "Auto"), new("1", "On"), new("0", "Off")])],
+        "QSV has no -rc option: the mode follows from which of -b:v, -global_quality and -look_ahead is set. " +
+        "Preset numbering is inverted (veryslow=1, veryfast=7).");
+
+    internal static LCapabilityCodec LCapabilityNvencCreate(string lEncoder) => new(
+        lEncoder,
+        [
+            new("Constant quality (VBR + CQ)", new("CQ", "-cq", "23", 0, 51), "-rc vbr -b:v 0"),
+            new("CQP (constant quantizer)", new("QP", "-qp", "23", 0, 51), "-rc constqp"),
+            new("VBR (target bitrate)", LCapabilityBitrateCreate(), "-rc vbr"),
+            new("CBR", LCapabilityBitrateCreate(), "-rc cbr"),
+            new("Lossless", null, "-tune lossless", 1, ["-tune"])
+        ],
+        new LCapabilitySpeed("Speed preset", "-preset", "p4", LCapabilityNvencPresets),
+        [new LCapabilityExtra("Tune", "-tune", "hq",
+            [new("hq", "High quality"), new("uhq", "Ultra-high quality"), new("ll", "Low latency"),
+             new("ull", "Ultra-low latency"), new("lossless", "Lossless")])],
+        "NVENC -cq 0 means automatic. Legacy presets (slow/medium/fast/hp/hq/ll/llhq/llhp/lossless) still parse " +
+        "but are deprecated in favour of p1-p7.");
+
+    internal static LCapabilityCodec LCapabilityAmfCreate(string lEncoder) => new(
+        lEncoder,
+        [
+            new("CQP (constant quantizer)", new("QP (I-frame)", "-qp_i", "22", 0, 51), "-rc cqp"),
+            new("QVBR (quality VBR)",
+                new("QVBR quality level", "-qvbr_quality_level", "23", 0, 51), "-rc qvbr"),
+            new("Peak-constrained VBR", LCapabilityBitrateCreate(), "-rc vbr_peak"),
+            new("Latency-constrained VBR", LCapabilityBitrateCreate(), "-rc vbr_latency"),
+            new("CBR", LCapabilityBitrateCreate(), "-rc cbr"),
+            new("High-quality VBR", LCapabilityBitrateCreate(), "-rc hqvbr"),
+            new("High-quality CBR", LCapabilityBitrateCreate(), "-rc hqcbr")
+        ],
+        new LCapabilitySpeed("Quality preset", "-quality", "balanced",
+            [new("speed", "Speed"), new("balanced", "Balanced"), new("quality", "Quality")]),
+        [new LCapabilityExtra("Usage", "-usage", "transcoding",
+            [new("transcoding", "Transcoding"), new("ultralowlatency", "Ultra-low latency"),
+             new("lowlatency", "Low latency"), new("webcam", "Webcam"), new("high_quality", "High quality"),
+             new("lowlatency_high_quality", "Low latency, high quality")])],
+        "AMF uses -qp_i/-qp_p/-qp_b rather than a single quantizer. There is no -preset in the x264 sense.");
+
+    internal static LCapabilityCodec LCapabilityMfCreate(string lEncoder) => new(
+        lEncoder,
+        [
+            new("Quality", new("Quality", "-quality", "75", 0, 100, true), "-rate_control quality"),
+            new("CBR", LCapabilityBitrateCreate(), "-rate_control cbr"),
+            new("Peak-constrained VBR", LCapabilityBitrateCreate(), "-rate_control pc_vbr"),
+            new("Unconstrained VBR", LCapabilityBitrateCreate(), "-rate_control u_vbr"),
+            new("Low-delay VBR", LCapabilityBitrateCreate(), "-rate_control ld_vbr"),
+            new("Global VBR", LCapabilityBitrateCreate(), "-rate_control g_vbr"),
+            new("Global low-delay VBR", LCapabilityBitrateCreate(), "-rate_control gld_vbr"),
+            new("Encoder default", null, "-rate_control default")
+        ],
+        null,
+        [new LCapabilityExtra("Scenario", "-scenario", "default",
+            [new("default", "Default"), new("display_remoting", "Display remoting"),
+             new("video_conference", "Video conference"), new("archive", "Archive"),
+             new("live_streaming", "Live streaming"), new("camera_record", "Camera record")])],
+        "Media Foundation quality is 0-100 and HIGHER is better - the opposite of CRF. It has no speed preset.");
+
+    internal static LCapabilityCodec LCapabilityQscaleCreate(
+        string lEncoder, string lDefault, double lMinimum, double lMaximum, string lNotice) => new(
+        lEncoder,
+        [
+            new("Constant quantizer (qscale)", new("qscale", "-q:v", lDefault, lMinimum, lMaximum)),
+            new("Target bitrate", LCapabilityBitrateCreate("4M"))
+        ],
+        null,
+        null,
+        lNotice);
+
+    internal static LCapabilityCodec LCapabilityWebpCreate(string lEncoder) => new(
+        lEncoder,
+        [
+            new("Lossy quality", new("Quality", "-quality", "75", 0, 100, true)),
+            new("Lossless", null, "-lossless 1")
+        ],
+        null,
+        [new LCapabilityExtra("Content preset", "-preset", "default",
+            [new("none", "None"), new("default", "Default"), new("picture", "Picture"), new("photo", "Photo"),
+             new("drawing", "Drawing"), new("icon", "Icon"), new("text", "Text")])],
+        "WebP quality is 0-100 and HIGHER is better. Its -preset picks a content type (photo, drawing, icon...), " +
+        "not an encoding speed.");
+}

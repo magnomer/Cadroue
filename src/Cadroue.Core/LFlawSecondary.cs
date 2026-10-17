@@ -19,13 +19,13 @@ public static class LFlawSecondary
         string lFlawStreamReport, string lFlawChapterReport, string lFlawSecondaryError)
     {
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
-            LFlaw.LFlawSectionRead(lFlawStreamReport, "STREAM");
+            LFlawSection.LFlawSectionRead(lFlawStreamReport, "STREAM");
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawSecondaryStreams = lFlawStreams
             .Where(lFlawStream => lFlawStream.TryGetValue("codec_type", out string? lFlawType)
                 && lFlawSecondaryKinds.Contains(lFlawType.ToLowerInvariant()))
             .ToList();
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawChapters =
-            LFlaw.LFlawSectionRead(lFlawChapterReport, "CHAPTER");
+            LFlawSection.LFlawSectionRead(lFlawChapterReport, "CHAPTER");
 
         if (lFlawSecondaryStreams.Count == 0 && lFlawChapters.Count == 0)
         {

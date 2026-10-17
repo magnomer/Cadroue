@@ -18,7 +18,7 @@ public static class LSalvage
             return Array.Empty<LSalvageOutput>();
         }
 
-        string lSalvageFolder = lSalvageOutput.LEncodingFolderRead(lSalvageSourcePath);
+        string lSalvageFolder = LEncodingPath.LEncodingFolderRead(lSalvageOutput, lSalvageSourcePath);
         string lSalvageStem = Path.GetFileNameWithoutExtension(lSalvageSourcePath);
 
         if (lSalvageMode == LSalvageMode.LSalvageModeRejoin || lSalvageSpans.Count == 1)
@@ -71,20 +71,20 @@ public static class LSalvage
             .Replace("{SectionName}", "Salvage", StringComparison.OrdinalIgnoreCase)
             .Replace(
                 "{SectionStart}",
-                LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanOrigin),
+                LEncodingPath.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanOrigin),
                 StringComparison.OrdinalIgnoreCase)
             .Replace(
                 "{SectionEnd}",
-                LEncoding.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanLimit),
+                LEncodingPath.LEncodingTimeFormat(lSalvageSpan.LSalvageSpanLimit),
                 StringComparison.OrdinalIgnoreCase)
             .Replace(
                 "{SectionDuration}",
-                LEncoding.LEncodingTimeFormat(lSalvageDuration),
+                LEncodingPath.LEncodingTimeFormat(lSalvageDuration),
                 StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", string.Empty, StringComparison.OrdinalIgnoreCase);
 
-        return LEncoding.LEncodingShorten(lSalvageResolved);
+        return LEncodingPath.LEncodingShorten(lSalvageResolved);
     }
 
     private static string LSalvageNameResolve(

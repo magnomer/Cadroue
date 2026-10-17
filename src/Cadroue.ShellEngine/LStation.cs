@@ -12,6 +12,16 @@ public sealed class LStation
 
     public static LScheduleContract? LStationSchedule { get; set; }
 
+    public static LScheduleIntakeContract? LStationIntake { get; set; }
+
+    public static LScheduleLeaseContract? LStationLease { get; set; }
+
+    public static LScheduleTransitionContract? LStationTransition { get; set; }
+
+    public static LScheduleMeasurementContract? LStationMeasurement { get; set; }
+
+    public static LScheduleRemoverContract? LStationRemover { get; set; }
+
     public static Action<Action>? LStationPost { get; set; }
 
     public static Func<string>? LStationProgramSource { get; set; }
@@ -21,7 +31,8 @@ public sealed class LStation
     private LStation(string lStationLabel)
     {
         LStationLabel = lStationLabel;
-        LStationRunner = new LRunner(LStationSchedule!, LStationPost!)
+        LStationRunner = new LRunner(
+            LStationSchedule!, LStationIntake!, LStationLease!, LStationTransition!, LStationPost!)
         {
             LRunnerProgramPath = LStationProgramSource!()
         };
@@ -152,7 +163,7 @@ public sealed class LStation
         if (!lStationAutoActive
             || LStationRunner.LRunnerRunning
             || LStationRunner.LRunnerPaused
-            || !LStationSchedule!.LSchedulePendingExist())
+            || !LStationLease!.LSchedulePendingExist())
         {
             return;
         }

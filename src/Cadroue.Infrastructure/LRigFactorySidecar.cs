@@ -6,29 +6,29 @@ public static class LRigFactorySidecar
 {
     public static void LRigSidecarAttach()
     {
-        LLibrarian.LLibrarianCoreReader = LSidecarStore.LSidecarCoreRead;
+        LLibrarian.LLibrarianCoreReader = LSidecarField.LSidecarCoreRead;
         LLibrarian.LLibrarianKeyframesSeam = LSidecarStore.LSidecarKeyframesRead;
-        LLibrarian.LLibrarianWaveformReader = LSidecarStore.LSidecarWaveformRead;
-        LLibrarian.LLibrarianEditReader = LSidecarStore.LSidecarEditRead;
-        LLibrarian.LLibrarianAudioReader = LSidecarStore.LSidecarAudioRead;
-        LLibrarian.LLibrarianSplitReader = LSidecarStore.LSidecarSplitRead;
-        LLibrarian.LLibrarianFixReader = LSidecarStore.LSidecarFixRead;
-        LLibrarian.LLibrarianDiagnosisReader = LSidecarStore.LSidecarDiagnosisRead;
-        LLibrarian.LLibrarianLoudnessReader = LSidecarStore.LSidecarLoudnessRead;
-        LLibrarian.LLibrarianDurationReader = LSidecarStore.LSidecarDurationRead;
-        LLibrarian.LLibrarianDurationResolver = LSidecarStore.LSidecarDurationResolve;
-        LLibrarian.LLibrarianEditWriter = LSidecarStore.LSidecarEditSave;
-        LLibrarian.LLibrarianAudioWriter = LSidecarStore.LSidecarAudioSave;
-        LLibrarian.LLibrarianSplitWriter = LSidecarStore.LSidecarSplitSave;
-        LLibrarian.LLibrarianFixWriter = LSidecarStore.LSidecarFixSave;
-        LLibrarian.LLibrarianDiagnosisWriter = LSidecarStore.LSidecarDiagnosisSave;
-        LLibrarian.LLibrarianLoudnessWriter = LSidecarStore.LSidecarLoudnessSave;
-        LLibrarian.LLibrarianWaveformWriter = LSidecarStore.LSidecarWaveformSave;
+        LLibrarian.LLibrarianWaveformReader = LSidecarField.LSidecarWaveformRead;
+        LLibrarian.LLibrarianEditReader = LSidecarField.LSidecarEditRead;
+        LLibrarian.LLibrarianAudioReader = LSidecarField.LSidecarAudioRead;
+        LLibrarian.LLibrarianSplitReader = LSidecarField.LSidecarSplitRead;
+        LLibrarian.LLibrarianFixReader = LSidecarField.LSidecarFixRead;
+        LLibrarian.LLibrarianDiagnosisReader = LSidecarField.LSidecarDiagnosisRead;
+        LLibrarian.LLibrarianLoudnessReader = LSidecarField.LSidecarLoudnessRead;
+        LLibrarian.LLibrarianDurationReader = LSidecarDuration.LSidecarDurationRead;
+        LLibrarian.LLibrarianDurationResolver = LSidecarDuration.LSidecarDurationResolve;
+        LLibrarian.LLibrarianEditWriter = LSidecarField.LSidecarEditSave;
+        LLibrarian.LLibrarianAudioWriter = LSidecarField.LSidecarAudioSave;
+        LLibrarian.LLibrarianSplitWriter = LSidecarField.LSidecarSplitSave;
+        LLibrarian.LLibrarianFixWriter = LSidecarField.LSidecarFixSave;
+        LLibrarian.LLibrarianDiagnosisWriter = LSidecarField.LSidecarDiagnosisSave;
+        LLibrarian.LLibrarianLoudnessWriter = LSidecarField.LSidecarLoudnessSave;
+        LLibrarian.LLibrarianWaveformWriter = LSidecarField.LSidecarWaveformSave;
         LLibrarian.LLibrarianFileChecker = LSidecarPath.LSidecarFileCheck;
         LLibrarian.LLibrarianSourceResolver = LSidecarStore.LSidecarSourceResolve;
         LLibrarian.LLibrarianSourceMatcher = LSidecarStore.LSidecarSourceMatch;
-        LSegment.LSegmentLoadSeam = LSidecarStore.LSidecarSectionsRead;
-        LSegment.LSegmentSaveSeam = LSidecarStore.LSidecarSectionsSave;
-        LSidecarStore.LSidecarCoreSeam = LLibrarian.LLibrarianLoad;
+        LSegment.LSegmentLoadSeam = LSidecarField.LSidecarSectionsRead;
+        LSegment.LSegmentSaveSeam = LSidecarField.LSidecarSectionsSave;
+        LSidecarField.LSidecarCoreSeam = LLibrarian.LLibrarianLoad;
     }
 }

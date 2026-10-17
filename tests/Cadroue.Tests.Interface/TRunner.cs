@@ -56,7 +56,12 @@ internal sealed class TRunner : IDisposable
         tRunnerSchedule.LScheduleLoad();
         for (int worker = 0; worker < Math.Max(1, workerCount); worker++)
         {
-            tRunnerList.Add(new LRunner(tRunnerSchedule, action =>
+            tRunnerList.Add(new LRunner(
+                tRunnerSchedule,
+                new LScheduleIntake(tRunnerSchedule),
+                new LScheduleLease(tRunnerSchedule),
+                new LScheduleTransition(tRunnerSchedule),
+                action =>
             {
                 lock (tRunnerScheduleGate)
                 {
@@ -113,7 +118,7 @@ internal sealed class TRunner : IDisposable
 
         lock (tRunnerScheduleGate)
         {
-            if (tRunnerSchedule.LScheduleAdd([workItem]) != 1)
+            if (new LScheduleIntake(tRunnerSchedule).LScheduleAcceptedAdd([workItem]).Count != 1)
             {
                 throw new InvalidOperationException($"Controlled work '{name}' was not admitted to the schedule.");
             }
@@ -140,7 +145,7 @@ internal sealed class TRunner : IDisposable
     {
         lock (tRunnerScheduleGate)
         {
-            return tRunnerSchedule.LScheduleRemove(workId);
+            return new LScheduleRemover(tRunnerSchedule).LScheduleRemove(workId);
         }
     }
 
@@ -247,7 +252,7 @@ internal sealed class TRunner : IDisposable
         TInterface.TInterfaceTraceAttach();
         lock (tRunnerScheduleGate)
         {
-            tRunnerSchedule.LScheduleBatchRemove(
+            new LScheduleRemover(tRunnerSchedule).LScheduleBatchRemove(
                 tRunnerSchedule.LScheduleRecords.Select(item => item.LWorkId).ToArray());
         }
 
@@ -299,7 +304,7 @@ internal sealed class TRunner : IDisposable
     private static TRunnerWork TRunnerSnapshotCreate(LWorkItem item) => new(
         item.LWorkId,
         item.LWorkOutputName,
-        item.LWorkStateCurrent switch
+        item.LWorkRunState.LWorkStateCurrent switch
         {
             LWorkState.LWorkStateRunning => TRunnerWorkState.TRunnerRunning,
             LWorkState.LWorkStateDone => TRunnerWorkState.TRunnerDone,
@@ -307,10 +312,10 @@ internal sealed class TRunner : IDisposable
             LWorkState.LWorkStateCancelled => TRunnerWorkState.TRunnerCancelled,
             _ => TRunnerWorkState.TRunnerPending
         },
-        item.LWorkProgress,
-        item.LWorkAttemptCount,
+        item.LWorkRunState.LWorkProgress,
+        item.LWorkRunState.LWorkAttemptCount,
         File.Exists(item.LWorkOutputPath),
-        item.LWorkMessage);
+        item.LWorkRunState.LWorkMessage);
 
     private const string TRunnerScript = """
         param([string]$controlRoot, [string]$outputPath)

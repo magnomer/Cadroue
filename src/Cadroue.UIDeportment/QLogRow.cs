@@ -28,7 +28,7 @@ public sealed class QLogRow
         QLogRowSummary = lEntry.LTraceEntrySummary;
         QLogRowDetail = lEntry.LTraceEntryDetail ?? string.Empty;
         QLogRowDetailed = lEntry.LTraceEntryDetailed;
-        QLogRowSpan = lEntry.LTraceEntrySpan is double lSpan ? LTraceEntry.LTraceSpanFormat(lSpan) : string.Empty;
+        QLogRowSpan = lEntry.LTraceEntrySpan is double lSpan ? LTraceText.LTraceSpanFormat(lSpan) : string.Empty;
     }
 
     public LTraceKind QLogRowCategory { get; }

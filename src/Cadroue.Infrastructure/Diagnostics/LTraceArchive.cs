@@ -5,32 +5,24 @@ using System.Linq;
 
 namespace Cadroue.Infrastructure;
 
-public static partial class LTraceWriter
+public static class LTraceArchive
 {
     public const string LTraceArchiveSuffix = ".gz";
 
     private const int LTraceArchiveKeep = 20;
     private const int LTraceArchiveDays = 14;
 
-    private static void LTraceArchiveRun()
-    {
-        lock (lTraceWriterLock)
-        {
-            LTraceArchiveUpdate();
-        }
-    }
-
-    private static void LTraceArchiveUpdate()
+    internal static void LTraceArchiveUpdate()
     {
         try
         {
-            string lTraceFolder = LTraceFolderRead();
+            string lTraceFolder = LTraceFolder.LTraceFolderRead();
             if (!Directory.Exists(lTraceFolder))
             {
                 return;
             }
 
-            string lTraceCurrent = LTracePathRead();
+            string lTraceCurrent = LTraceFolder.LTracePathRead();
             foreach (string lTraceStale in Directory.GetFiles(lTraceFolder, "Cadroue-*"))
             {
                 if (!lTraceStale.EndsWith(".log", StringComparison.OrdinalIgnoreCase)

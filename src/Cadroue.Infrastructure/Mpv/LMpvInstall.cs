@@ -20,7 +20,7 @@ internal sealed class LMpvInstallDocument
     public string LMpvInstallFolder { get; set; } = string.Empty;
 }
 
-public sealed partial class LMpv
+public static class LMpvInstall
 {
     private const string LMpvRootFolder = "local-mpv";
     private const string LMpvInstallName = "runtime";
@@ -49,7 +49,7 @@ public sealed partial class LMpv
             LMpvInstallDocument? lRecord =
                 JsonSerializer.Deserialize<LMpvInstallDocument>(File.ReadAllText(lRecordPath));
             string? lFolder = lRecord?.LMpvInstallFolder;
-            if (!string.IsNullOrWhiteSpace(lFolder) && File.Exists(Path.Combine(lFolder, LMpvLibraryFile)))
+            if (!string.IsNullOrWhiteSpace(lFolder) && File.Exists(Path.Combine(lFolder, LMpvLibrary.LMpvLibraryFile)))
             {
                 return lFolder;
             }
@@ -81,10 +81,10 @@ public sealed partial class LMpv
             await LMpvArchiveRead(lArchivePath, lInstallFolder);
 
             lProgress?.Report(0.95);
-            string lDll = Path.Combine(lInstallFolder, LMpvLibraryFile);
+            string lDll = Path.Combine(lInstallFolder, LMpvLibrary.LMpvLibraryFile);
             if (!File.Exists(lDll))
             {
-                throw new FileNotFoundException($"{LMpvLibraryFile} was not found in the mpv archive.");
+                throw new FileNotFoundException($"{LMpvLibrary.LMpvLibraryFile} was not found in the mpv archive.");
             }
 
             LMpvRecordSave(new LMpvInstallDocument { LMpvInstallFolder = lInstallFolder });
@@ -197,7 +197,7 @@ public sealed partial class LMpv
 
         await LMpvExtractRun(
             "tar",
-            $"-xf \"{lArchivePath}\" -C \"{lInstallFolder}\" {LMpvLibraryFile}",
+            $"-xf \"{lArchivePath}\" -C \"{lInstallFolder}\" {LMpvLibrary.LMpvLibraryFile}",
             lInstallFolder);
     }
 
@@ -205,13 +205,14 @@ public sealed partial class LMpv
     {
         using ZipArchive lArchive = ZipFile.OpenRead(lArchivePath);
         ZipArchiveEntry? lEntry = lArchive.Entries
-            .FirstOrDefault(lItem => string.Equals(lItem.Name, LMpvLibraryFile, StringComparison.OrdinalIgnoreCase));
+            .FirstOrDefault(lItem =>
+                string.Equals(lItem.Name, LMpvLibrary.LMpvLibraryFile, StringComparison.OrdinalIgnoreCase));
         if (lEntry is null)
         {
-            throw new FileNotFoundException($"{LMpvLibraryFile} was not found in the mpv archive.");
+            throw new FileNotFoundException($"{LMpvLibrary.LMpvLibraryFile} was not found in the mpv archive.");
         }
 
-        lEntry.ExtractToFile(Path.Combine(lInstallFolder, LMpvLibraryFile), true);
+        lEntry.ExtractToFile(Path.Combine(lInstallFolder, LMpvLibrary.LMpvLibraryFile), true);
     }
 
     private static async Task LMpvExtractRun(string lFileName, string lArguments, string lWorkingDirectory)

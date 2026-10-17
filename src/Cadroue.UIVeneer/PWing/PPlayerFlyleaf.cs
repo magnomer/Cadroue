@@ -43,7 +43,7 @@ internal sealed class PPlayerFlyleaf
     private void PPlayerHostSet() => pPlayerHost.Player = pPlayer;
 
     private void PPlayerSetupRecord() =>
-        LRenderer.LRendererSetupRecord(
+        LRendererTrace.LRendererSetupRecord(
             PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream),
             pPlayer.Config.Video.MaxOutputFps,
             pPlayer.Config.Decoder.VideoThreads,
@@ -90,7 +90,8 @@ internal sealed class PPlayerFlyleaf
         new Dictionary<bool, Action<OpenCompletedArgs>>
         {
             [true] = _ => { },
-            [false] = pResult => throw new InvalidOperationException(LRenderer.LRendererErrorResolve(pResult.Error)),
+            [false] = pResult =>
+                throw new InvalidOperationException(LRendererError.LRendererErrorResolve(pResult.Error)),
         };
 
     private static readonly HashSet<Status> pPlayerEnded = [Status.Ended];
@@ -126,7 +127,7 @@ internal sealed class PPlayerFlyleaf
     private void PPlayerProcessorApply(string pReason)
     {
         VideoProcessors pWas = PPlayerProcessorSet();
-        LRenderer.LRendererProcessorRecord(pWas.ToString(), pReason);
+        LRendererTrace.LRendererProcessorRecord(pWas.ToString(), pReason);
     }
 
     private VideoProcessors PPlayerProcessorSet()
@@ -151,7 +152,7 @@ internal sealed class PPlayerFlyleaf
         });
 
     private void PPlayerFactsRecord(string pReason, double? pMilliseconds) =>
-        LRenderer.LRendererFactsRecord(pReason, PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream), pMilliseconds);
+        LRendererTrace.LRendererFactsRecord(pReason, PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream), pMilliseconds);
 
     private LRendererFacts PPlayerFactsRead(VideoStream? pPlayerStream) => new(
         pPlayer.Config.Video.VideoProcessor.ToString(),

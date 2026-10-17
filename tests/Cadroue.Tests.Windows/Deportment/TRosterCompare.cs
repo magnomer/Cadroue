@@ -51,7 +51,7 @@ public sealed class TRosterCompare
         LWorkItem work = added.TWorkItem;
         work.LWorkSourceMeasured = true;
         work.LWorkSourceMedia = Interface.TInterface.TWorkMediaCreate(3840, 2160, 60, 10_000, true);
-        work.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true);
+        work.LWorkRunState.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true);
 
         QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.Equal("3840 x 2160", detail.QRosterDetailCompares[2].QRosterCompareSource.QRosterLineText);
@@ -82,7 +82,7 @@ public sealed class TRosterCompare
             LWorkMediaBitrate = 192_000,
             LWorkMediaLoudness = -23
         };
-        work.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true) with
+        work.LWorkRunState.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true) with
         {
             LWorkMediaSamplerate = 44100,
             LWorkMediaCodec = "opus",

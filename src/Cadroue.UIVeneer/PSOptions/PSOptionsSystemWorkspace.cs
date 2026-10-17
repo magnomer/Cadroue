@@ -88,7 +88,7 @@ internal sealed partial class PSOptions
     {
         if (psWorkspaceSize is not null)
         {
-            psWorkspaceSize.Text = PSSystemSizeFormat(LDepot.LDepotSizeRead());
+            psWorkspaceSize.Text = PSSystemSizeFormat(LDepotUpkeep.LDepotSizeRead());
         }
     }
 
@@ -124,7 +124,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        int pRemoved = LDepot.LDepotFolderClear(
+        int pRemoved = LDepotUpkeep.LDepotFolderClear(
             LDepotFolder.LDepotFolderScheduled,
             LDepotFolder.LDepotFolderDone,
             LDepotFolder.LDepotFolderFailed,
@@ -146,7 +146,7 @@ internal sealed partial class PSOptions
         }
 
         string pWorkspaceRoot = LDepot.LDepotRootRead();
-        if (LDepotRelocation.LDepotRunningCheck(pWorkspaceRoot))
+        if (LDepot.LDepotRunningCheck(pWorkspaceRoot))
         {
             PSWarning.PSWarningShow(
                 this,
@@ -164,7 +164,7 @@ internal sealed partial class PSOptions
             return;
         }
 
-        LDepot.LDepotWorkspaceReset();
+        LDepotUpkeep.LDepotWorkspaceReset();
         LDepotIndex.LDepotIndexRebuild();
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();

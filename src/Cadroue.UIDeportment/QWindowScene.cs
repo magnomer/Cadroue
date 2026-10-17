@@ -64,7 +64,7 @@ public sealed class QWindowScene
             catch
             {
                 lAllClose();
-                QWindowSceneRestore(LScene.LSceneNormalize(null));
+                QWindowSceneRestore(LSceneCanonical.LSceneNormalize(null));
             }
         }
         finally

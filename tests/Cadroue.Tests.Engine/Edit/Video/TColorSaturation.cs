@@ -33,6 +33,6 @@ public sealed class TColorSaturation
     {
         var step = TInterface.TWorkSaturationCreate(true, 150);
 
-        Assert.Equal(1.5, step.LWorkFfmpegValue);
+        Assert.Equal(1.5, LWorkVideoFilter.LWorkFfmpegResolve(step));
     }
 }

@@ -40,10 +40,10 @@ public sealed record LRosterJob(
     public static LRosterJob LRosterJobCreate(
         LWorkItem lWorkItem, bool lOwned, string lTitle, Func<DateTimeOffset> lClock)
     {
-        bool lFailed = lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateFailed;
-        bool lMessage = !string.IsNullOrWhiteSpace(lWorkItem.LWorkMessage);
+        bool lFailed = lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateFailed;
+        bool lMessage = !string.IsNullOrWhiteSpace(lWorkItem.LWorkRunState.LWorkMessage);
         LWorkMedia? lSourceInfo = lWorkItem.LWorkSourceMedia;
-        LWorkMedia? lOutputInfo = lWorkItem.LWorkOutputMedia;
+        LWorkMedia? lOutputInfo = lWorkItem.LWorkRunState.LWorkOutputMedia;
         bool lSourceAudio = (lSourceInfo?.LWorkMediaSamplerate ?? 0) > 0;
         bool lOutputAudio = (lOutputInfo?.LWorkMediaSamplerate ?? 0) > 0;
         double? lSourceLoudness = lSourceAudio ? lSourceInfo?.LWorkMediaLoudness : null;
@@ -51,12 +51,12 @@ public sealed record LRosterJob(
             ? (lOutputAudio ? lOutputInfo?.LWorkMediaLoudness : null)
             : lSourceLoudness;
         return new LRosterJob(
-            lFailed && lMessage ? lWorkItem.LWorkMessage : null,
-            !lFailed && lMessage ? lWorkItem.LWorkMessage : null,
+            lFailed && lMessage ? lWorkItem.LWorkRunState.LWorkMessage : null,
+            !lFailed && lMessage ? lWorkItem.LWorkRunState.LWorkMessage : null,
             string.IsNullOrWhiteSpace(lTitle) ? null : lTitle,
             LRosterSpentRead(lWorkItem, lClock),
             lWorkItem.LWorkSourceMeasured,
-            lWorkItem.LWorkOutputBytes is { } lBytes && lBytes >= 0 ? lBytes : null,
+            lWorkItem.LWorkRunState.LWorkOutputBytes is { } lBytes && lBytes >= 0 ? lBytes : null,
             LRosterSide.LRosterSideCreate(
                 lSourceInfo, lWorkItem.LWorkSourcePath, lSourceLoudness, lSourceInfo?.LWorkMediaDuration),
             LRosterSide.LRosterSideCreate(
@@ -67,22 +67,22 @@ public sealed record LRosterJob(
             lSourceAudio || lOutputAudio,
             lWorkItem.LWorkMergeSources.Count > 1 ? lWorkItem.LWorkMergeSources : [lWorkItem.LWorkSourcePath],
             lWorkItem.LWorkCreateTime,
-            lWorkItem.LWorkStartTime,
-            lWorkItem.LWorkFinishTime,
-            lWorkItem.LWorkAttemptCount,
-            lWorkItem.LWorkOwnerRunner == Guid.Empty
+            lWorkItem.LWorkRunState.LWorkStartTime,
+            lWorkItem.LWorkRunState.LWorkFinishTime,
+            lWorkItem.LWorkRunState.LWorkAttemptCount,
+            lWorkItem.LWorkRunState.LWorkOwnerRunner == Guid.Empty
                 ? null
                 : lOwned
                     ? "ThisTab"
-                    : lWorkItem.LWorkOwnerProcess == Environment.ProcessId ? "OtherTab" : "OtherWindow",
-            lWorkItem.LWorkStateCurrent switch
+                    : lWorkItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId ? "OtherTab" : "OtherWindow",
+            lWorkItem.LWorkRunState.LWorkStateCurrent switch
             {
                 LWorkState.LWorkStateDone => "Done",
                 LWorkState.LWorkStateFailed => "Failed",
                 LWorkState.LWorkStateUnresolved => "Unresolved",
                 LWorkState.LWorkStatePartial => "Partial",
                 LWorkState.LWorkStateBlocked => "Blocked",
-                _ => lWorkItem.LWorkPhaseCurrent switch
+                _ => lWorkItem.LWorkRunState.LWorkPhaseCurrent switch
                 {
                     LWorkPhase.LWorkPhaseEncoding => "Processing",
                     LWorkPhase.LWorkPhaseStarted => "Started",
@@ -97,12 +97,12 @@ public sealed record LRosterJob(
     // The time an item has spent since its start, up to its finish; the clock is read only while it runs.
     private static TimeSpan? LRosterSpentRead(LWorkItem lWorkItem, Func<DateTimeOffset> lClock)
     {
-        if (lWorkItem.LWorkStartTime is not { } lStarted)
+        if (lWorkItem.LWorkRunState.LWorkStartTime is not { } lStarted)
         {
             return null;
         }
 
-        TimeSpan lSpent = (lWorkItem.LWorkFinishTime ?? lClock()) - lStarted;
+        TimeSpan lSpent = (lWorkItem.LWorkRunState.LWorkFinishTime ?? lClock()) - lStarted;
         return lSpent < TimeSpan.Zero ? null : lSpent;
     }
 }

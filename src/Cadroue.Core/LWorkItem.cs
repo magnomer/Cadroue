@@ -2,8 +2,6 @@ namespace Cadroue.Core;
 
 public sealed class LWorkItem
 {
-    private double lWorkProgress;
-
     public LWorkItem(
         Guid lWorkBatchId,
         LWorkKind lWorkKind,
@@ -57,7 +55,8 @@ public sealed class LWorkItem
     public TimeSpan LWorkLength =>
         LWorkDuration > TimeSpan.Zero
             ? LWorkDuration
-            : (LWorkOutputMedia ?? (LWorkMergeSources.Count > 1 ? null : LWorkSourceMedia))?.LWorkMediaDuration
+            : (LWorkRunState.LWorkOutputMedia
+                    ?? (LWorkMergeSources.Count > 1 ? null : LWorkSourceMedia))?.LWorkMediaDuration
                 ?? TimeSpan.Zero;
 
     public string LWorkOutputName { get; private set; }
@@ -98,12 +97,6 @@ public sealed class LWorkItem
 
     public DateTimeOffset LWorkCreateTime { get; }
 
-    public DateTimeOffset? LWorkStartTime { get; set; }
-
-    public DateTimeOffset? LWorkFinishTime { get; set; }
-
-    public long? LWorkOutputBytes { get; set; }
-
     public long? LWorkSourceBytes { get; set; }
 
     public IReadOnlyList<long> LWorkMergeBytes { get; set; } = Array.Empty<long>();
@@ -112,33 +105,7 @@ public sealed class LWorkItem
 
     public bool LWorkSourceMeasured { get; set; }
 
-    public LWorkMedia? LWorkOutputMedia { get; set; }
-
-    public int LWorkOwnerProcess { get; set; }
-
-    public long LWorkOwnerStamp { get; set; }
-
-    public Guid LWorkOwnerRunner { get; set; }
-
     public Guid LWorkSignet { get; set; }
 
-    public LWorkPhase LWorkPhaseCurrent { get; set; }
-
-    public LWorkStage LWorkStageCurrent { get; set; }
-
-    public int LWorkAttemptCount { get; set; }
-
-    public int LWorkRecoverCount { get; set; }
-
-    public int LWorkRetryCount { get; set; }
-
-    public LWorkState LWorkStateCurrent { get; set; } = LWorkState.LWorkStatePending;
-
-    public string LWorkMessage { get; set; } = string.Empty;
-
-    public double LWorkProgress
-    {
-        get => lWorkProgress;
-        set => lWorkProgress = value < 0 ? 0 : value > 1 ? 1 : value;
-    }
+    public LWorkRunState LWorkRunState { get; } = new();
 }

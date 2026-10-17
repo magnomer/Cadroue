@@ -23,7 +23,7 @@ public static class LRigFactoryTrace
             LTraceLog.LTraceFfmpegRecord,
             () => LTrace.LTraceVerbose,
             LTraceDetailRecord,
-            LTrace.LTraceTimelineAdd);
+            LTraceTimeline.LTraceTimelineAdd);
     }
 
     private static void LTraceDetailRecord(bool lUi, string lSummary, string? lDetail)

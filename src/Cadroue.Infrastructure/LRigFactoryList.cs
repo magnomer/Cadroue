@@ -16,7 +16,7 @@ public static class LRigFactoryList
     private static async Task<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)> LRigListScan(
         IReadOnlyList<string> lPaths, CancellationToken lToken)
     {
-        LMediaScanResult lScan = await LMedia.LMediaPathScan(lPaths, lToken);
+        LMediaScanResult lScan = await LMediaPath.LMediaPathScan(lPaths, lToken);
         return (lScan.LMediaScanPaths,
             lScan.LMediaScanNotices.Select(lNotice => (lNotice.LMediaScanFolder, lNotice.LMediaScanReason)).ToArray());
     }

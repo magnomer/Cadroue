@@ -65,10 +65,10 @@ internal sealed partial class LJob
                 LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
                 lJobOwner.LRunnerDispatch(() =>
                 {
-                    lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                    lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                    lJobItem.LWorkMessage = pJobInvalid;
-                    lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobInvalid);
+                    lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+                    lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                    lJobItem.LWorkRunState.LWorkMessage = pJobInvalid;
+                    lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pJobInvalid);
                     lJobOwner.lRunnerSchedule.LScheduleLoad();
                 });
                 lJobOwner.LRunnerFailureApply();
@@ -78,9 +78,9 @@ internal sealed partial class LJob
             lJobOwner.LRunnerLease.LRunnerLeaseStart(lJobItem);
             lJobOwner.LRunnerDispatch(() =>
             {
-                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
-                lJobItem.LWorkProgress = 0;
-                lJobItem.LWorkMessage = string.Empty;
+                lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+                lJobItem.LWorkRunState.LWorkProgress = 0;
+                lJobItem.LWorkRunState.LWorkMessage = string.Empty;
                 lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
             });
 
@@ -96,17 +96,17 @@ internal sealed partial class LJob
                 LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
                 lJobOwner.LRunnerDispatch(() =>
                 {
-                    lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                    lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                    lJobItem.LWorkMessage = pJobCollision;
-                    lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pJobCollision);
+                    lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+                    lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                    lJobItem.LWorkRunState.LWorkMessage = pJobCollision;
+                    lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pJobCollision);
                     lJobOwner.lRunnerSchedule.LScheduleLoad();
                 });
                 lJobOwner.LRunnerFailureApply();
                 return;
             }
 
-            lJobOwner.lRunnerSchedule.LScheduleOutputCommit(
+            lJobOwner.lRunnerScheduleLease.LScheduleOutputCommit(
                 lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobItem.LWorkOutputPath, lJobItem.LWorkOutputName);
 
             lJobItem.LWorkSourceMedia ??=
@@ -114,8 +114,8 @@ internal sealed partial class LJob
                     .ConfigureAwait(false);
 
             lJobDirectory = pDirectory;
-            lJobItem.LWorkStartTime = DateTimeOffset.Now;
-            lJobItem.LWorkFinishTime = null;
+            lJobItem.LWorkRunState.LWorkStartTime = DateTimeOffset.Now;
+            lJobItem.LWorkRunState.LWorkFinishTime = null;
             LRunner.LRunnerRecord(
                 $"Encode started '{lJobItem.LWorkOutputName}': {lJobItem.LWorkKind} at {lJobItem.LWorkPriority}, " +
                 $"{lJobItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{lJobItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
@@ -214,19 +214,19 @@ internal sealed partial class LJob
                 pSourceMedia).ConfigureAwait(false);
             lJobOwner.LRunnerDispatch(() =>
             {
-                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                lJobItem.LWorkOutputBytes = pOutputBytes;
+                lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+                lJobItem.LWorkRunState.LWorkOutputBytes = pOutputBytes;
                 lJobItem.LWorkSourceBytes = pSourceBytes;
                 lJobItem.LWorkMergeBytes = pMergeBytes;
                 lJobItem.LWorkSourceMedia = pSourceMedia;
-                lJobItem.LWorkOutputMedia = pOutputMedia;
-                lJobItem.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkProgress;
-                lJobItem.LWorkStateCurrent = pTerminalState;
-                lJobItem.LWorkMessage = pExitClean
+                lJobItem.LWorkRunState.LWorkOutputMedia = pOutputMedia;
+                lJobItem.LWorkRunState.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkRunState.LWorkProgress;
+                lJobItem.LWorkRunState.LWorkStateCurrent = pTerminalState;
+                lJobItem.LWorkRunState.LWorkMessage = pExitClean
                     ? lJobValidateState is null ? string.Empty : lJobValidateMessage
                     : pFailureMessage;
 
-                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkMessage);
+                lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkRunState.LWorkMessage);
                 LJobSalvageRecord();
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
             });
@@ -249,8 +249,8 @@ internal sealed partial class LJob
                 $"job kept as cancelled (restartable), continuing with the queue");
             lJobOwner.LRunnerDispatch(() =>
             {
-                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                lJobOwner.lRunnerSchedule.LScheduleItemCancel(lJobItem);
+                lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+                lJobOwner.lRunnerTransition.LScheduleItemCancel(lJobItem);
             });
         }
         catch (OperationCanceledException)
@@ -259,7 +259,7 @@ internal sealed partial class LJob
                 $"Encode stopped '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
                 $"returned to the queue");
             await LJobAttemptClear().ConfigureAwait(false);
-            lJobOwner.LRunnerDispatch(() => lJobOwner.lRunnerSchedule.LScheduleItemRelease(
+            lJobOwner.LRunnerDispatch(() => lJobOwner.lRunnerScheduleLease.LScheduleItemRelease(
                 lJobItem.LWorkId, lJobOwner.LRunnerIdentity, string.Empty));
         }
         catch (Exception pException)
@@ -279,10 +279,10 @@ internal sealed partial class LJob
 
             lJobOwner.LRunnerDispatch(() =>
             {
-                lJobItem.LWorkFinishTime = DateTimeOffset.Now;
-                lJobItem.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                lJobItem.LWorkMessage = pException.Message;
-                lJobOwner.lRunnerSchedule.LScheduleCommit(lJobItem, false, pException.Message);
+                lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+                lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+                lJobItem.LWorkRunState.LWorkMessage = pException.Message;
+                lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pException.Message);
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
             });
 

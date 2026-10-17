@@ -42,7 +42,7 @@ public static class LFlawFfvone
     public static bool LFlawFfvoneCheck(string lFlawProbeReport)
     {
         IReadOnlyList<IReadOnlyDictionary<string, string>> lFlawStreams =
-            LFlaw.LFlawSectionRead(lFlawProbeReport, "STREAM");
+            LFlawSection.LFlawSectionRead(lFlawProbeReport, "STREAM");
         return lFlawStreams.Any(lFlawStream =>
             lFlawStream.TryGetValue("codec_name", out string? lFlawCodec)
             && string.Equals(lFlawCodec, "ffv1", StringComparison.OrdinalIgnoreCase));

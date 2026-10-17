@@ -10,7 +10,7 @@ public sealed record LWorkVideo(IReadOnlyList<LWorkVideoStep> LWorkVideoSteps)
     public bool LWorkVideoActive => LWorkVideoSteps.Any(lStep =>
         lStep.LWorkStepActive
         && (lStep.LWorkStepKind != LColorKind.LColorKindCurve
-            || lStep.LWorkCurveFormat().Length > 0));
+            || lStep.LWorkCurveRead().LWorkCurveActive));
 
     private static IReadOnlyList<LWorkVideoStep> LWorkStepsNormalize(
         IReadOnlyList<LWorkVideoStep> lWorkSteps) =>

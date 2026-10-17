@@ -118,7 +118,7 @@ public static partial class LMessenger
                 lMessengerDuration = TimeSpan.MaxValue;
             }
 
-            IReadOnlyList<LPiece> lMessengerPieces = LPiece.LPieceValidSelect(
+            IReadOnlyList<LPiece> lMessengerPieces = LPiecePlan.LPieceValidSelect(
                 lMessengerSidecar.LSidecarSections.Select(LPiece.LPieceCreate).ToArray(),
                 lMessengerDuration);
             if (lMessengerPieces.Count < lMessengerSidecar.LSidecarSections.Count)

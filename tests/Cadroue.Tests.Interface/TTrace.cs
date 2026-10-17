@@ -49,7 +49,7 @@ internal sealed class TTrace : IDisposable
     internal IReadOnlyList<TTraceEntry> TTracePersistRead()
     {
         LTraceWriter.LTraceWriterPersist();
-        return LTraceEntry.LTraceEntryParse(LTraceLog.LTraceTextRead())
+        return LTraceText.LTraceEntryParse(LTraceReader.LTraceTextRead())
             .Select(TEntryCreate)
             .ToArray();
     }
@@ -89,9 +89,9 @@ internal sealed class TTrace : IDisposable
         string trigger,
         double milliseconds,
         int glyphCount = 0) =>
-        LTrace.LTraceTimelineAdd(surface, cursor, sourcePath, trigger, milliseconds, glyphCount);
+        LTraceTimeline.LTraceTimelineAdd(surface, cursor, sourcePath, trigger, milliseconds, glyphCount);
 
-    internal void TTraceDrawCommit() => LTrace.LTraceDrawTick();
+    internal void TTraceDrawCommit() => LTraceTimeline.LTraceDrawTick();
 
     internal void TTraceReset()
     {
@@ -103,7 +103,7 @@ internal sealed class TTrace : IDisposable
     internal bool TTraceLogExist()
     {
         LTraceWriter.LTraceWriterPersist();
-        return File.Exists(LTraceLog.LTracePathFind());
+        return File.Exists(LTraceFolder.LTracePathRead());
     }
 
     public void Dispose()
@@ -145,7 +145,7 @@ internal sealed class TTrace : IDisposable
         new(
             entry.LTraceEntryTime,
             entry.LTraceEntryDelta,
-            LTraceEntry.LTraceKindRead(entry.LTraceEntryKind),
+            LTraceText.LTraceKindRead(entry.LTraceEntryKind),
             entry.LTraceEntrySummary,
             entry.LTraceEntryDetail,
             entry.LTraceEntrySpan);

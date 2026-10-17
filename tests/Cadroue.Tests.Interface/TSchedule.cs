@@ -28,6 +28,11 @@ internal sealed class TSchedule : IDisposable
     private readonly string tScheduleRoot;
     private readonly string _tSchedulePrevious;
     private readonly LSchedule tSchedule;
+    private readonly LScheduleIntake tScheduleIntake;
+    private readonly LScheduleLease tScheduleLease;
+    private readonly LScheduleTransition tScheduleTransition;
+    private readonly LScheduleMeasurement tScheduleMeasurement;
+    private readonly LScheduleRemover tScheduleRemover;
     private int tScheduleSequence;
 
     internal TSchedule()
@@ -40,6 +45,11 @@ internal sealed class TSchedule : IDisposable
         _tSchedulePrevious = LDepot.LDepotRootRead();
         LDepot.LDepotRootSet(tScheduleRoot);
         tSchedule = new LSchedule();
+        tScheduleIntake = new LScheduleIntake(tSchedule);
+        tScheduleLease = new LScheduleLease(tSchedule);
+        tScheduleTransition = new LScheduleTransition(tSchedule);
+        tScheduleMeasurement = new LScheduleMeasurement(tSchedule);
+        tScheduleRemover = new LScheduleRemover(tSchedule);
         tSchedule.LScheduleLoad();
     }
 
@@ -83,7 +93,7 @@ internal sealed class TSchedule : IDisposable
     }
 
     internal void TScheduleDurationSet(Guid workId, TimeSpan duration) =>
-        tSchedule.LScheduleDurationSet(workId, duration);
+        tScheduleMeasurement.LScheduleDurationSet(workId, duration);
 
     internal TimeSpan TScheduleReloadRead(Guid workId)
     {
@@ -93,7 +103,7 @@ internal sealed class TSchedule : IDisposable
     }
 
     internal int TScheduleAdd(params TScheduleWork[] work) =>
-        tSchedule.LScheduleAdd(work.Select(item => item.TWorkItem).ToArray());
+        tScheduleIntake.LScheduleAcceptedAdd(work.Select(item => item.TWorkItem).ToArray()).Count;
 
     internal TScheduleWork TWorkMergeCreate(Guid batchId, string name, IReadOnlyList<string> sources)
     {
@@ -127,21 +137,24 @@ internal sealed class TSchedule : IDisposable
             TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created)
         {
-            LWorkStateCurrent = LWorkState.LWorkStateDone,
-            LWorkOutputBytes = 123
+            LWorkRunState =
+            {
+                LWorkStateCurrent = LWorkState.LWorkStateDone,
+                LWorkOutputBytes = 123
+            }
         };
         return new TScheduleWork(derived);
     }
 
     internal int TScheduleDeliverAdd(params TScheduleWork[] work) =>
-        tSchedule.LScheduleDeliveredAdd(work.Select(item => item.TWorkItem).ToArray()).Count;
+        tScheduleIntake.LScheduleDeliveredAdd(work.Select(item => item.TWorkItem).ToArray()).Count;
 
-    internal Guid TLineageRead(TScheduleWork work) => tSchedule.LScheduleLineageRead(work.TWorkItem);
+    internal Guid TLineageRead(TScheduleWork work) => LScheduleLineage.LScheduleLineageRead(work.TWorkItem);
 
     internal void TScheduleDiskLoad() => tSchedule.LScheduleLoad();
 
     internal bool TScheduleMove(Guid batchId, params TScheduleWork[] work) =>
-        tSchedule.LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
+        tScheduleIntake.LScheduleOrderSet(batchId, work.Select(item => item.TWorkId).ToArray());
 
     internal IReadOnlyList<TScheduleItem> TSchedulePendingRead() =>
         tSchedule.LSchedulePendingRead().Select(TScheduleSnapshotCreate).ToArray();
@@ -151,7 +164,7 @@ internal sealed class TSchedule : IDisposable
 
     internal TScheduleWork TScheduleNextClaim()
     {
-        LWorkItem workItem = tSchedule.LScheduleClaim(Guid.NewGuid())
+        LWorkItem workItem = tScheduleLease.LScheduleClaim(Guid.NewGuid())
             ?? throw new InvalidOperationException("The schedule had no claimable work.");
         tSchedule.LScheduleLoad();
         return new TScheduleWork(workItem);
@@ -159,7 +172,7 @@ internal sealed class TSchedule : IDisposable
 
     internal TScheduleWork? TScheduleTryClaim()
     {
-        LWorkItem? workItem = tSchedule.LScheduleClaim(Guid.NewGuid());
+        LWorkItem? workItem = tScheduleLease.LScheduleClaim(Guid.NewGuid());
         if (workItem is null)
         {
             return null;
@@ -171,35 +184,35 @@ internal sealed class TSchedule : IDisposable
 
     internal void TScheduleCommit(TScheduleWork work, bool succeeded, string message = "")
     {
-        tSchedule.LScheduleCommit(work.TWorkItem, succeeded, message);
+        tScheduleTransition.LScheduleCommit(work.TWorkItem, succeeded, message);
         tSchedule.LScheduleLoad();
     }
 
     internal bool TScheduleCancel(TScheduleWork work) =>
-        tSchedule.LScheduleItemCancel(work.TWorkItem);
+        tScheduleTransition.LScheduleItemCancel(work.TWorkItem);
 
     internal int TScheduleCancel(params TScheduleWork[] work) =>
-        work.Count(item => tSchedule.LScheduleItemCancel(item.TWorkItem));
+        work.Count(item => tScheduleTransition.LScheduleItemCancel(item.TWorkItem));
 
     internal bool TScheduleReset(TScheduleWork work) =>
-        tSchedule.LScheduleItemReset(work.TWorkId);
+        tScheduleTransition.LScheduleItemReset(work.TWorkId);
 
     internal int TScheduleEligibleRemove(params TScheduleWork[] work)
     {
-        IReadOnlyList<Guid> removable = tSchedule.LScheduleRemovableRead(
+        IReadOnlyList<Guid> removable = tScheduleRemover.LScheduleRemovableRead(
             work.Select(item => item.TWorkId));
-        return tSchedule.LScheduleBatchRemove(removable).Values
+        return tScheduleRemover.LScheduleBatchRemove(removable).Values
             .Count(outcome => outcome == LScheduleRemoval.LScheduleRemovalRemoved);
     }
 
-    internal int TScheduleDoneClear() => tSchedule.LScheduleDoneClear();
+    internal int TScheduleDoneClear() => tScheduleRemover.LScheduleDoneClear();
 
-    internal int TScheduleAllClear() => tSchedule.LScheduleAllClear();
+    internal int TScheduleAllClear() => tScheduleRemover.LScheduleAllClear();
 
     internal IReadOnlyList<TScheduleItem> TScheduleOrderRead()
     {
         var claimed = new List<TScheduleItem>();
-        while (tSchedule.LScheduleClaim(Guid.NewGuid()) is { } workItem)
+        while (tScheduleLease.LScheduleClaim(Guid.NewGuid()) is { } workItem)
         {
             claimed.Add(TScheduleSnapshotCreate(workItem));
         }
@@ -209,7 +222,7 @@ internal sealed class TSchedule : IDisposable
 
     public void Dispose()
     {
-        tSchedule.LScheduleBatchRemove(
+        tScheduleRemover.LScheduleBatchRemove(
             tSchedule.LScheduleRecords.Select(workItem => workItem.LWorkId).ToArray());
         LDepotIndex.LDepotIndexRelease();
         LDepot.LDepotRootSet(_tSchedulePrevious);
@@ -228,6 +241,6 @@ internal sealed class TSchedule : IDisposable
             workItem.LWorkBatchId,
             workItem.LWorkOutputName,
             workItem.LWorkPriority,
-            workItem.LWorkStateCurrent,
-            workItem.LWorkMessage);
+            workItem.LWorkRunState.LWorkStateCurrent,
+            workItem.LWorkRunState.LWorkMessage);
 }

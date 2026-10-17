@@ -10,7 +10,7 @@ internal static class PProgramFlyleaf
     {
         EngineConfig pConfig = new() { UIRefresh = false, UIRefreshInterval = 250 };
         PProgramLogApply(pConfig, LTrace.LTraceVerbose);
-        pConfig.FFmpegPath = LRenderer.LRendererFfmpegResolve(pConfig.FFmpegPath);
+        pConfig.FFmpegPath = LRendererFolder.LRendererFfmpegResolve(pConfig.FFmpegPath);
         Engine.Start(pConfig);
     }
 
@@ -19,6 +19,6 @@ internal static class PProgramFlyleaf
     private static void PProgramLogApply(EngineConfig pConfig, bool pVerbose)
     {
         pConfig.LogLevel = PLook.PLookFlyleafLog[pVerbose];
-        pConfig.LogOutput = LRenderer.LRendererLogResolve(pVerbose);
+        pConfig.LogOutput = LRendererLog.LRendererLogResolve(pVerbose);
     }
 }

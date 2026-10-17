@@ -17,7 +17,7 @@ public enum LTraceKind
 }
 
 
-public static partial class LTrace
+public static class LTrace
 {
     private static readonly object lTraceStampLock = new();
     private static readonly object lTraceVerboseLock = new();
@@ -46,15 +46,11 @@ public static partial class LTrace
                 if (value)
                 {
                     Volatile.Write(ref lTraceVerbose, true);
-                    LTraceTimerSet(true);
+                    LTraceTimeline.LTraceDrawStart();
                 }
                 else
                 {
-                    lock (lTraceDrawLock)
-                    {
-                        LTraceTimerSet(false);
-                        Volatile.Write(ref lTraceVerbose, false);
-                    }
+                    LTraceTimeline.LTraceDrawStop(() => Volatile.Write(ref lTraceVerbose, false));
                 }
 
                 LTraceVerboseCallback?.Invoke(value);
@@ -92,7 +88,7 @@ public static partial class LTrace
         double? lTraceMilliseconds = null) =>
         LTraceRecord(lTraceKind, lTraceSummary, lTraceDetail, lTraceMilliseconds, false, 1);
 
-    private static void LTraceRecord(
+    internal static void LTraceRecord(
         LTraceKind lTraceKind,
         string lTraceSummary,
         string? lTraceDetail,
@@ -133,13 +129,23 @@ public static partial class LTrace
             lTraceMilliseconds);
 
         LTraceWriter.LTraceWriterRecord(
-            LTraceEntry.LTraceEntryFormat(lTraceEntry),
+            LTraceText.LTraceEntryFormat(lTraceEntry),
             lTraceSequence =>
             {
                 LTraceCommittedAppended?.Invoke(lTraceSequence, lTraceEntry);
                 LTraceAppended?.Invoke(lTraceEntry);
             },
             lTraceLossWeight);
+    }
+
+    public static void LTraceReset()
+    {
+        LTraceTimeline.LTraceDrawReset();
+
+        lock (lTraceStampLock)
+        {
+            lTracePreviousStamp = -1;
+        }
     }
 
     private static string LTraceDeltaFormat(DateTimeOffset lTraceNow)

@@ -54,34 +54,7 @@ public static class LMediaEndCache
         };
 
         string lMediaJson = JsonSerializer.Serialize(lMediaRecord, new JsonSerializerOptions { WriteIndented = true });
-        string lMediaTempPath = lMediaCachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try
-        {
-            string? lMediaFolder = Path.GetDirectoryName(lMediaCachePath);
-            if (!string.IsNullOrWhiteSpace(lMediaFolder))
-            {
-                Directory.CreateDirectory(lMediaFolder);
-            }
-
-            File.WriteAllText(lMediaTempPath, lMediaJson);
-            File.Move(lMediaTempPath, lMediaCachePath, overwrite: true);
-            return true;
-        }
-        catch (Exception lMediaException) when (lMediaException is IOException or UnauthorizedAccessException)
-        {
-            try
-            {
-                if (File.Exists(lMediaTempPath))
-                {
-                    File.Delete(lMediaTempPath);
-                }
-            }
-            catch (Exception lMediaCleanup) when (lMediaCleanup is IOException or UnauthorizedAccessException)
-            {
-            }
-
-            return false;
-        }
+        return LMediaCache.LMediaCacheSave(lMediaCachePath, lMediaJson);
     }
 
     private static bool LMediaEndMatch(LKeyframeSourceIdentity lMediaIdentity, LMediaEndDocument lMediaRecord) =>
@@ -97,7 +70,7 @@ public static class LMediaEndCache
     private static string LMediaEndResolve(LKeyframeSourceIdentity lMediaIdentity)
     {
         return Path.Combine(
-            LKeyframeCacheStore.LKeyframeHomeRead(),
+            LMediaCache.LMediaHomeRead(),
             LMediaEndStore,
             lMediaIdentity.LKeyframeCacheKey + ".json");
     }

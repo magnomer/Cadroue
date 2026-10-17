@@ -6,6 +6,9 @@ namespace Cadroue.ShellEngine;
 public sealed class LRunner
 {
     internal readonly LScheduleContract lRunnerSchedule;
+    internal readonly LScheduleIntakeContract lRunnerIntake;
+    internal readonly LScheduleLeaseContract lRunnerScheduleLease;
+    internal readonly LScheduleTransitionContract lRunnerTransition;
     private readonly Action<Action> lRunnerPost;
     internal readonly ConcurrentDictionary<Guid, LJob> lRunnerJobs = new();
     private readonly ConcurrentDictionary<Guid, byte> lRunnerCancelled = new();
@@ -17,11 +20,19 @@ public sealed class LRunner
 
     private static readonly TimeSpan lRunnerPollInterval = TimeSpan.FromMilliseconds(500);
 
-    public LRunner(LScheduleContract lSchedule, Action<Action> lRunnerPostAction)
+    public LRunner(
+        LScheduleContract lSchedule,
+        LScheduleIntakeContract lIntake,
+        LScheduleLeaseContract lLease,
+        LScheduleTransitionContract lTransition,
+        Action<Action> lRunnerPostAction)
     {
         lRunnerSchedule = lSchedule;
+        lRunnerIntake = lIntake;
+        lRunnerScheduleLease = lLease;
+        lRunnerTransition = lTransition;
         lRunnerPost = lRunnerPostAction;
-        LRunnerLease = new LRunnerLease(lSchedule, lRunnerId);
+        LRunnerLease = new LRunnerLease(lLease, lRunnerId);
         LRunnerProcess = new LRunnerProcess(lRunnerGate, lSchedule, lRunnerPostAction);
         LRunnerAddSeam(lRunnerId);
     }
@@ -67,10 +78,10 @@ public sealed class LRunner
     public Guid LRunnerIdentity => lRunnerId;
 
     public bool LRunnerOwnerCheck(LWorkItem lWorkItem) =>
-        lRunnerSchedule.LScheduleOwnerCheck(lWorkItem, lRunnerId);
+        lRunnerScheduleLease.LScheduleOwnerCheck(lWorkItem, lRunnerId);
 
     public bool LRunnerForeignCheck(LWorkItem lWorkItem) =>
-        lRunnerSchedule.LScheduleForeignCheck(lWorkItem, lRunnerId);
+        lRunnerScheduleLease.LScheduleForeignCheck(lWorkItem, lRunnerId);
 
     public bool LRunnerPaused { get; private set; }
 
@@ -176,13 +187,13 @@ public sealed class LRunner
 
     public void LRunnerPhaseSet(LWorkItem lWorkItem, LWorkPhase lRunnerPhase)
     {
-        if (lWorkItem.LWorkPhaseCurrent == lRunnerPhase)
+        if (lWorkItem.LWorkRunState.LWorkPhaseCurrent == lRunnerPhase)
         {
             return;
         }
 
-        lWorkItem.LWorkPhaseCurrent = lRunnerPhase;
-        lRunnerSchedule.LSchedulePhaseSet(lWorkItem.LWorkId, lRunnerId, lRunnerPhase);
+        lWorkItem.LWorkRunState.LWorkPhaseCurrent = lRunnerPhase;
+        lRunnerScheduleLease.LSchedulePhaseSet(lWorkItem.LWorkId, lRunnerId, lRunnerPhase);
     }
 
     private void LRunnerBatchStart()
@@ -209,14 +220,14 @@ public sealed class LRunner
                 bool pPending = false;
                 LRunnerDispatch(() =>
                 {
-                    pNext = lRunnerSchedule.LScheduleClaim(lRunnerId);
+                    pNext = lRunnerScheduleLease.LScheduleClaim(lRunnerId);
                     if (pNext is not null)
                     {
                         lRunnerSchedule.LScheduleLoad();
                     }
                     else
                     {
-                        pPending = lRunnerSchedule.LSchedulePendingExist();
+                        pPending = lRunnerScheduleLease.LSchedulePendingExist();
                     }
                 });
 
@@ -289,7 +300,7 @@ public sealed class LRunner
         {
             if (lRunnerCurrent)
             {
-                lRunnerSchedule.LScheduleRelease(lRunnerId);
+                lRunnerScheduleLease.LScheduleRelease(lRunnerId);
                 LRunnerRunning = false;
             }
 

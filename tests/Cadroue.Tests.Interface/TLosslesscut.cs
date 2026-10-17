@@ -39,7 +39,8 @@ internal sealed class TLosslesscut : IDisposable
         private LLosslesscutProject TLosslesscutData { get; }
 
         internal TLosslesscutResult TLosslesscutValidate(string sourcePath, TimeSpan duration) =>
-            TLosslesscutResultCreate(LLosslesscut.LLosslesscutValidate(TLosslesscutData, sourcePath, duration));
+            TLosslesscutResultCreate(
+                LLosslesscutSegment.LLosslesscutValidate(TLosslesscutData, sourcePath, duration));
     }
 
     internal sealed record TSection(long TSectionStartMilliseconds, long TSectionEndMilliseconds, string TSectionName);
@@ -96,7 +97,7 @@ internal sealed class TLosslesscut : IDisposable
     }
 
     internal IReadOnlyList<string> TLosslesscutAdjacentRead(string sourcePath) =>
-        LLosslesscut.LLosslesscutAdjacentRead(sourcePath);
+        LLosslesscutAdjacent.LLosslesscutAdjacentRead(sourcePath);
 
     public void Dispose()
     {

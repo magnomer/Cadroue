@@ -42,7 +42,7 @@ public static partial class LConvert
             TimeSpan lConvertDuration = lConvertMedia?.LWorkMediaDuration
                 ?? lDurationRead(lConvertSourcePath);
 
-            string lConvertFolder = lConvertOutput.LEncodingFolderRead(lConvertSourcePath);
+            string lConvertFolder = LEncodingPath.LEncodingFolderRead(lConvertOutput, lConvertSourcePath);
             string lConvertOutputName = LConvertNameCreate(
                 lConvertOutput,
                 lConvertSourcePath,
@@ -83,12 +83,12 @@ public static partial class LConvert
             ? "{OriginalName}"
             : lConvertOutput.LEncodingNamePattern;
 
-        string lConvertStem = LEncoding.LEncodingNameFormat(
+        string lConvertStem = LEncodingPath.LEncodingNameFormat(
             lConvertPattern,
             lConvertMarker => LConvertMarkerRead(lConvertMarker, lConvertSourceStem, lConvertDuration, lConvertStamp));
 
-        string lConvertBaseName = LEncoding.LEncodingNameNormalize(lConvertStem);
-        string lConvertExtension = lConvertOutput.LEncodingExtensionResolve(lConvertSourcePath);
+        string lConvertBaseName = LEncodingPath.LEncodingNameNormalize(lConvertStem);
+        string lConvertExtension = LEncodingPath.LEncodingExtensionResolve(lConvertOutput, lConvertSourcePath);
         if (LConvertSourceMatch(
                 Path.Combine(lConvertFolder, LConvertNameFormat(lConvertBaseName, lConvertExtension)),
                 lConvertSourcePath))
@@ -96,7 +96,11 @@ public static partial class LConvert
             lConvertBaseName = $"{lConvertBaseName}_convert";
         }
 
-        return LEncoding.LEncodingNameClaim(lConvertTakenPaths, lConvertFolder, lConvertBaseName, lConvertExtension);
+        return LEncodingPath.LEncodingNameClaim(
+            lConvertTakenPaths,
+            lConvertFolder,
+            lConvertBaseName,
+            lConvertExtension);
     }
 
     private static string? LConvertMarkerRead(
@@ -128,13 +132,13 @@ public static partial class LConvert
 
         if (lConvertMarker.Equals("SectionStart", StringComparison.OrdinalIgnoreCase))
         {
-            return LEncoding.LEncodingTimeFormat(TimeSpan.Zero);
+            return LEncodingPath.LEncodingTimeFormat(TimeSpan.Zero);
         }
 
         if (lConvertMarker.Equals("SectionEnd", StringComparison.OrdinalIgnoreCase)
             || lConvertMarker.Equals("SectionDuration", StringComparison.OrdinalIgnoreCase))
         {
-            return LEncoding.LEncodingTimeFormat(lConvertDuration);
+            return LEncodingPath.LEncodingTimeFormat(lConvertDuration);
         }
 
         if (lConvertMarker.Equals("Date", StringComparison.OrdinalIgnoreCase))

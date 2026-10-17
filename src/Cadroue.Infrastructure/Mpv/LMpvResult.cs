@@ -7,7 +7,7 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial class LMpv
+public static class LMpvResult
 {
     private const string LMpvResultFile = "mpvprobe.json";
 
@@ -65,7 +65,7 @@ public sealed partial class LMpv
         }
     }
 
-    public static LMpvResultDocument? LMpvResultLoad()
+    private static LMpvResultDocument? LMpvResultLoad()
     {
         string lPath = LMpvPathResolve();
         if (!File.Exists(lPath))
@@ -84,7 +84,7 @@ public sealed partial class LMpv
         }
     }
 
-    public static string LMpvStampRead() => LMpvStampCreate(LMpvVersionRead(), LMpvLibraryRead());
+    private static string LMpvStampRead() => LMpvStampCreate(LMpvVersionRead(), LMpvLibrary.LMpvLibraryRead());
 
     public static string LMpvStampCreate(string lAppVersion, string lLibraryPath)
     {

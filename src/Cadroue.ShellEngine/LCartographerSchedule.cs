@@ -10,6 +10,10 @@ public static partial class LCartographer
 
     public static LScheduleContract? LCartographerScheduleContract { get; set; }
 
+    public static LScheduleIntakeContract? LCartographerScheduleIntake { get; set; }
+
+    public static LScheduleRemoverContract? LCartographerScheduleRemover { get; set; }
+
     public static Func<IReadOnlyList<LWorkItem>, bool>? LCartographerLockSeam { get; set; }
 
     private static IReadOnlyList<LWorkItem> LCartographerScheduleRead() =>
@@ -36,18 +40,20 @@ public static partial class LCartographer
         Guid lCartographerSource = default,
         LCartographerPlanDocument? lCartographerPreparedPlan = null)
     {
-        if (lCartographerItems.Count == 0 || LCartographerScheduleContract is not { } lCartographerSchedule)
+        if (lCartographerItems.Count == 0
+            || LCartographerScheduleIntake is not { } lCartographerIntake
+            || LCartographerScheduleRemover is not { } lCartographerRemover)
         {
             return 0;
         }
 
         IReadOnlyList<Guid> lCartographerCreatedPlans = LCartographerRelaySet(
             lCartographerItems, lCartographerTarget, lCartographerSource, lCartographerPreparedPlan);
-        IReadOnlyList<LWorkItem> lCartographerAccepted = lCartographerSchedule.LScheduleAcceptedAdd(lCartographerItems);
+        IReadOnlyList<LWorkItem> lCartographerAccepted = lCartographerIntake.LScheduleAcceptedAdd(lCartographerItems);
         if (lCartographerAccepted.Count > 0
             && LCartographerLockSeam?.Invoke(lCartographerAccepted) == false)
         {
-            lCartographerSchedule.LScheduleBatchRemove(
+            lCartographerRemover.LScheduleBatchRemove(
                 lCartographerAccepted.Select(lCartographerItem => lCartographerItem.LWorkId).ToArray());
             LTraceEngine.LTraceWarningSeam(
                 $"Work admission withdrew {lCartographerAccepted.Count} item(s): " +
@@ -198,7 +204,8 @@ public static partial class LCartographer
     }
 
     private static bool LCartographerActiveCheck(LWorkItem lCartographerItem) =>
-        lCartographerItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
+        lCartographerItem.LWorkRunState.LWorkStateCurrent
+            is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
 
     private static IEnumerable<string> LCartographerSourcesRead(LWorkItem lCartographerItem) =>
         lCartographerItem.LWorkMergeSources.Prepend(lCartographerItem.LWorkSourcePath);

@@ -32,7 +32,7 @@ public static partial class LAudio
         }
 
         TimeSpan lAudioDuration = lAudioDurationRead(lAudioSourcePath);
-        string lAudioFolder = lAudioOutput.LEncodingFolderRead(lAudioSourcePath);
+        string lAudioFolder = LEncodingPath.LEncodingFolderRead(lAudioOutput, lAudioSourcePath);
         string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : LGate.LGateBatchCreate();
 
@@ -59,7 +59,7 @@ public static partial class LAudio
     private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LEncoding lAudioOutput)
     {
         string lAudioStem = Path.GetFileNameWithoutExtension(lAudioSourcePath);
-        string lAudioExtension = lAudioOutput.LEncodingExtensionResolve(lAudioSourcePath);
+        string lAudioExtension = LEncodingPath.LEncodingExtensionResolve(lAudioOutput, lAudioSourcePath);
         string lAudioBaseName = string.IsNullOrWhiteSpace(lAudioExtension)
             ? lAudioStem
             : $"{lAudioStem}.{lAudioExtension}";

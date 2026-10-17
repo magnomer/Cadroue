@@ -1,6 +1,6 @@
 namespace Cadroue.Core;
 
-public readonly partial record struct LPiece(
+public readonly record struct LPiece(
     TimeSpan LPieceOrigin,
     TimeSpan LPieceEnd,
     int LPieceColorIndex,
@@ -39,6 +39,20 @@ public readonly partial record struct LPiece(
             LPieceHidden = lPieceRecord.LSidecarHidden,
             LPieceDetected = lPieceRecord.LSidecarDetected
         };
+
+    public static List<LPiece> LPieceLosslesscutCreate(
+        IReadOnlyList<LSidecarSectionEntry> lPieceSections,
+        int lPieceColorOffset,
+        int lPiecePaletteCount)
+    {
+        int lPiecePalette = Math.Max(1, lPiecePaletteCount);
+        return lPieceSections
+            .Select((lPieceSection, lPieceIndex) => LPieceCreate(lPieceSection) with
+            {
+                LPieceColorIndex = (lPieceColorOffset + lPieceIndex) % lPiecePalette
+            })
+            .ToList();
+    }
 
     public LSidecarSectionEntry LPieceRecordCreate() => new()
     {

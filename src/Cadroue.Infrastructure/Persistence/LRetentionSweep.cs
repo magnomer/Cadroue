@@ -31,7 +31,7 @@ public static class LRetentionSweep
             return 0;
         }
 
-        if (LDepotRelocation.LDepotRunningCheck(lRetentionRoot))
+        if (LDepot.LDepotRunningCheck(lRetentionRoot))
         {
             LTraceLog.LTraceInfoRecord("Retention sweep skipped: a job is running");
             return 0;
@@ -54,6 +54,12 @@ public static class LRetentionSweep
             }
         }
 
+        LRetentionIndexRebuild(lRetentionRoot);
+        return lRetentionRemoved;
+    }
+
+    private static void LRetentionIndexRebuild(string lRetentionRoot)
+    {
         try
         {
             LDepotIndex.LDepotIndexRebuild(lRetentionRoot);
@@ -63,8 +69,6 @@ public static class LRetentionSweep
         {
             LTraceLog.LTraceInfoRecord("Retention sweep could not rebuild the index", lRetentionException.Message);
         }
-
-        return lRetentionRemoved;
     }
 
     private static string[] LRetentionFolderRead(string lRetentionFolder)

@@ -10,6 +10,7 @@ public static class LScheduleLineagePlan
     public static LScheduleLineageAnswer LScheduleLineageResolve(
         LScheduleContract lSchedule,
         IReadOnlyList<Guid> lIds,
+        Func<LWorkItem, Guid> lLineageRead,
         Func<string, Guid> lFileRead,
         Func<string, string> lPathResolve,
         Func<string, string> lNameRead,
@@ -17,7 +18,7 @@ public static class LScheduleLineagePlan
     {
         return LScheduleLineageResolve(
             LScheduleLookup.LScheduleRecordsRead(lSchedule, lIds),
-            lSchedule.LScheduleLineageRead,
+            lLineageRead,
             lFileRead,
             lPathResolve,
             lNameRead,
@@ -83,7 +84,10 @@ public static class LScheduleLineagePlan
     }
 
     public static LScheduleLineageBatch LScheduleBatchResolve(
-        LScheduleContract? lSchedule, Guid lBatchId, Func<string, string> lPathResolve)
+        LScheduleContract? lSchedule,
+        Guid lBatchId,
+        Func<LWorkItem, Guid> lLineageRead,
+        Func<string, string> lPathResolve)
     {
         if (lSchedule is null)
         {
@@ -95,7 +99,7 @@ public static class LScheduleLineagePlan
             LScheduleKeysRead(lPathResolve, lBatchItems),
             lBatchId,
             lBatchItems,
-            LScheduleIdsRead(lBatchItems, lSchedule.LScheduleLineageRead));
+            LScheduleIdsRead(lBatchItems, lLineageRead));
     }
 
     private static Guid[] LScheduleIdsRead(IReadOnlyList<LWorkItem> lBatchItems, Func<LWorkItem, Guid> lLineageRead) =>
@@ -132,7 +136,7 @@ public static class LScheduleLineagePlan
             }
 
             if (LScheduleKeyMatch(lPathKeys, lWorkItem.LWorkOutputPath, lSubject)
-                && lWorkItem.LWorkOutputBytes is { } lOutput)
+                && lWorkItem.LWorkRunState.LWorkOutputBytes is { } lOutput)
             {
                 return lOutput;
             }

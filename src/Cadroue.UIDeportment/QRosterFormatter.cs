@@ -73,12 +73,12 @@ public static class QRosterFormatter
 
     public static TimeSpan? QRosterSpentRead(LWorkItem lWorkItem)
     {
-        if (lWorkItem.LWorkStartTime is not { } lStarted)
+        if (lWorkItem.LWorkRunState.LWorkStartTime is not { } lStarted)
         {
             return null;
         }
 
-        DateTimeOffset lFinished = lWorkItem.LWorkFinishTime ?? DateTimeOffset.Now;
+        DateTimeOffset lFinished = lWorkItem.LWorkRunState.LWorkFinishTime ?? DateTimeOffset.Now;
         TimeSpan lSpent = lFinished - lStarted;
         return lSpent < TimeSpan.Zero ? null : lSpent;
     }

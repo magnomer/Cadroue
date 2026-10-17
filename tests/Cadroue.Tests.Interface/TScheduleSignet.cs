@@ -49,7 +49,7 @@ internal sealed class TScheduleSignet : IDisposable
             Path.Combine(tScheduleRoot, name + ".output"),
             TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created);
-        tSchedule.LScheduleAdd(new[] { workItem });
+        new LScheduleIntake(tSchedule).LScheduleAcceptedAdd(new[] { workItem });
         return workItem.LWorkId;
     }
 
@@ -67,7 +67,7 @@ internal sealed class TScheduleSignet : IDisposable
             Path.Combine(tScheduleRoot, name + ".output"),
             TWorkOutput.TWorkOutputCreate(),
             lWorkCreateTime: created);
-        tSchedule.LScheduleAdd(new[] { workItem }, Guid.NewGuid());
+        new LScheduleIntake(tSchedule).LScheduleAcceptedAdd(new[] { workItem }, Guid.NewGuid());
         string filePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderScheduled, workItem.LWorkId);
         LWorkDocument record = LScheduleStore.LScheduleRecordRead(filePath)!;
         record.LWorkRelayProcess = relayProcess;
@@ -76,9 +76,9 @@ internal sealed class TScheduleSignet : IDisposable
         return workItem.LWorkId;
     }
 
-    internal bool TSignetClaimCheck() => tSchedule.LScheduleClaim(Guid.NewGuid()) is not null;
+    internal bool TSignetClaimCheck() => new LScheduleLease(tSchedule).LScheduleClaim(Guid.NewGuid()) is not null;
 
-    internal Guid? TSignetClaimRead() => tSchedule.LScheduleClaim(Guid.NewGuid())?.LWorkId;
+    internal Guid? TSignetClaimRead() => new LScheduleLease(tSchedule).LScheduleClaim(Guid.NewGuid())?.LWorkId;
 
     internal IReadOnlyList<Guid> TSignetDisplayRead()
     {
@@ -89,7 +89,7 @@ internal sealed class TScheduleSignet : IDisposable
     public void Dispose()
     {
         LSignet.LSignetSource = null;
-        tSchedule.LScheduleAllClear();
+        new LScheduleRemover(tSchedule).LScheduleAllClear();
         LPreference.LPreferenceStateSet(tSignetPreference);
         LDepotIndex.LDepotIndexRelease();
         LDepot.LDepotRootSet(tSignetDepotRoot);

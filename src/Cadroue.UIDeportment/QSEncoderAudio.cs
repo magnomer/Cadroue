@@ -51,7 +51,7 @@ public sealed partial class QSEncoder
     public static string[] QSEncoderAudioRead(string lContainer, string lKeep)
     {
         bool lKnown = LRepertoireCatalog.LRepertoireContainerNames.Contains(lContainer);
-        string[] lItems = LRepertoireCatalog.LRepertoireAudioCandidates
+        string[] lItems = LRepertoireAudioCatalog.LRepertoireAudioCandidates
             .Where(lCandidate => QSEncoderAudioCheck(lCandidate.LRepertoireText)
                 && (!lKnown || LRepertoireCatalog.LRepertoireAudioCheck(lCandidate.LRepertoireName, lContainer)))
             .Select(lCandidate => lCandidate.LRepertoireText)
@@ -61,7 +61,7 @@ public sealed partial class QSEncoder
             return lItems;
         }
 
-        string? lName = LRepertoireCatalog.LRepertoireAudioResolve(lKeep);
+        string? lName = LRepertoireAudioCatalog.LRepertoireAudioResolve(lKeep);
         bool lFits = lName is not null
             && (!lKnown || LRepertoireCatalog.LRepertoireAudioCheck(lName, lContainer));
         return lFits ? [lKeep, .. lItems] : lItems;
@@ -69,7 +69,7 @@ public sealed partial class QSEncoder
 
     public static bool QSEncoderAudioCheck(string lText)
     {
-        if (LRepertoireCatalog.LRepertoireAudioResolve(lText) is not { } lName)
+        if (LRepertoireAudioCatalog.LRepertoireAudioResolve(lText) is not { } lName)
         {
             return true;
         }
@@ -98,7 +98,7 @@ public sealed partial class QSEncoder
         var lAvailable = new List<string>();
         var lNames = new List<string>();
         var lRows = new List<QSVerdictRow>();
-        IReadOnlyList<LRepertoireAudio> lCandidates = LRepertoireCatalog.LRepertoireAudioCandidates;
+        IReadOnlyList<LRepertoireAudio> lCandidates = LRepertoireAudioCatalog.LRepertoireAudioCandidates;
         int lDone = 0;
         foreach (LRepertoireAudio lCandidate in lCandidates)
         {
@@ -122,7 +122,7 @@ public sealed partial class QSEncoder
     private void QSEncoderAudioInsert(List<string> lAvailable)
     {
         if (!lAvailable.Contains(qsEncoderAudioEncoder)
-            && LRepertoireCatalog.LRepertoireAudioResolve(qsEncoderAudioEncoder) is not null)
+            && LRepertoireAudioCatalog.LRepertoireAudioResolve(qsEncoderAudioEncoder) is not null)
         {
             lAvailable.Insert(0, qsEncoderAudioEncoder);
         }

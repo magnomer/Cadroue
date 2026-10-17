@@ -260,7 +260,7 @@ internal sealed partial class PSOptions
     private void PSSystemFlyleafAttach(Button pInstall, Button pBrowse, ProgressBar pProgress, Progress<double> pFeed)
     {
         pInstall.Click += async (_, _) => await PSSystemFlyleafRun(pInstall, pProgress, pFeed);
-        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleaf.LFlyleafRootRead(), string.Empty);
+        pBrowse.Click += (_, _) => PSSystemFolderOpen(LFlyleafFolder.LFlyleafRootRead(), string.Empty);
     }
 
     private async Task PSSystemFlyleafRun(Button pInstall, ProgressBar pProgress, Progress<double> pFeed)
@@ -269,7 +269,7 @@ internal sealed partial class PSOptions
         LFlyleafInstallResult pResult;
         try
         {
-            pResult = await LFlyleaf.LFlyleafInstallStart(pFeed);
+            pResult = await LFlyleafInstall.LFlyleafInstallStart(pFeed);
         }
         finally
         {

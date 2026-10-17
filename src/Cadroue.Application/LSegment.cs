@@ -51,7 +51,7 @@ public sealed class LSegment
             LSegmentLoadSeam?.Invoke(lSegmentSource) ?? Array.Empty<LSidecarSectionEntry>();
         if (lSegmentRecords.Count == 0) return;
 
-        IReadOnlyList<LPiece> lSegmentList = LPiece.LPieceValidSelect(
+        IReadOnlyList<LPiece> lSegmentList = LPiecePlan.LPieceValidSelect(
             lSegmentRecords.Select(LPiece.LPieceCreate).ToArray(),
             lSegmentDuration);
         if (lSegmentList.Count < lSegmentRecords.Count)
@@ -90,7 +90,7 @@ public sealed class LSegment
 
     public bool LSegmentBoundSet(IReadOnlyList<LPiece> lSegmentSections, int? lSegmentSelect, TimeSpan lSegmentDuration)
     {
-        IReadOnlyList<LPiece> lSegmentValid = LPiece.LPieceValidSelect(lSegmentSections, lSegmentDuration);
+        IReadOnlyList<LPiece> lSegmentValid = LPiecePlan.LPieceValidSelect(lSegmentSections, lSegmentDuration);
         return LSegmentSet(lSegmentValid, lSegmentSelect);
     }
 
@@ -121,7 +121,7 @@ public sealed class LSegment
         int lSegmentColorIndex,
         bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceAdd(
+        if (LPiecePlan.LPieceAdd(
                 lSegmentPieces,
                 lSegmentCursor,
                 lSegmentDuration,
@@ -137,7 +137,7 @@ public sealed class LSegment
         int lSegmentColorIndex,
         bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceOriginSet(
+        if (LPiecePlan.LPieceOriginSet(
                 lSegmentPieces,
                 lSegmentIndexActive,
                 lSegmentCursor,
@@ -152,7 +152,7 @@ public sealed class LSegment
 
     public bool? LSegmentEndSet(TimeSpan lSegmentCursor, int lSegmentColorIndex, bool lSegmentOverlapAllowed)
     {
-        if (LPiece.LPieceEndSet(
+        if (LPiecePlan.LPieceEndSet(
                 lSegmentPieces,
                 lSegmentIndexActive,
                 lSegmentCursor,
@@ -166,7 +166,7 @@ public sealed class LSegment
 
     public void LSegmentDivide(TimeSpan lSegmentCursor, int lSegmentColorIndex)
     {
-        if (LPiece.LPieceDivide(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex)
+        if (LPiecePlan.LPieceDivide(lSegmentPieces, lSegmentIndexActive, lSegmentCursor, lSegmentColorIndex)
             is not { } lSegmentPlan) return;
         LSegmentApply(lSegmentPlan.LPieceSections, lSegmentPlan.LPieceFirst);
     }

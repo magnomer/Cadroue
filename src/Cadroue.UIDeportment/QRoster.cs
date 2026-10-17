@@ -19,6 +19,7 @@ public sealed class QRoster
     private readonly CLineage qRosterLineage;
     private readonly CRoster qRosterGate;
     private readonly LScheduleContract qSchedule;
+    private readonly LScheduleRemoverContract qScheduleRemover;
     private readonly LStation qStation;
     private readonly List<Guid> qRosterOrderedIds = [];
     private readonly HashSet<Guid> qRosterPresentIds = [];
@@ -27,12 +28,18 @@ public sealed class QRoster
     private QColumnPlan? qRosterPlan;
 
     public QRoster(
-        CUsher lUsher, CLineage lLineage, LScheduleContract lScheduleOwner, LStation lStationOwner, CRoster lRoster)
+        CUsher lUsher,
+        CLineage lLineage,
+        LScheduleContract lScheduleOwner,
+        LScheduleRemoverContract lRemoverOwner,
+        LStation lStationOwner,
+        CRoster lRoster)
     {
         qRosterUsher = lUsher;
         qRosterLineage = lLineage;
         qRosterGate = lRoster;
         qSchedule = lScheduleOwner;
+        qScheduleRemover = lRemoverOwner;
         qStation = lStationOwner;
         QRosterCollapse = new QRosterCollapse(QRosterCardUpdate);
         QRosterDeferral = new QRosterDeferral(() => qRosterClosed, () => QRosterDetailApplied?.Invoke());
@@ -59,6 +66,7 @@ public sealed class QRoster
         lAtelier.CAtelierUsher,
         lAtelier.CAtelierLineage,
         QProgram.QScheduleCurrent,
+        LStation.LStationRemover!,
         LStation.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")),
         lAtelier.CAtelierRosterCreate());
 
@@ -173,7 +181,8 @@ public sealed class QRoster
     }
 
     private bool QRosterRunningCheck() =>
-        qSchedule.LScheduleRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning);
+        qSchedule.LScheduleRecords.Any(lWorkItem =>
+            lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateRunning);
 
     private bool QRosterMeasuringCheck()
     {
@@ -250,15 +259,16 @@ public sealed class QRoster
 
     private bool QRosterVisibleCheck(LWorkItem lWorkItem)
     {
-        if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning
-            || lWorkItem.LWorkOwnerRunner == Guid.Empty
+        LWorkRunState lWorkRunState = lWorkItem.LWorkRunState;
+        if (lWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateRunning
+            || lWorkRunState.LWorkOwnerRunner == Guid.Empty
             || QRosterOwnerCheck(lWorkItem))
         {
             return true;
         }
 
         return !LSentinel.LSentinelOwnerCheck(
-            lWorkItem.LWorkOwnerProcess, lWorkItem.LWorkOwnerStamp, lWorkItem.LWorkOwnerRunner);
+            lWorkRunState.LWorkOwnerProcess, lWorkRunState.LWorkOwnerStamp, lWorkRunState.LWorkOwnerRunner);
     }
 
     public bool QRosterOwnerCheck(LWorkItem lWorkItem) => qStation.LStationRunner.LRunnerOwnerCheck(lWorkItem);
@@ -289,7 +299,7 @@ public sealed class QRoster
     internal CLineageBatch QRosterSummaryRead() => qRosterLineage.CLineageBatchRead(QRosterSelection.QRosterCardId);
 
     public void QRosterRemove(Guid lBatchId) =>
-        QRosterRemoval.QRosterRemoveConfirm(qSchedule.LScheduleRemovableRead(QRosterMembersRead(lBatchId)));
+        QRosterRemoval.QRosterRemoveConfirm(qScheduleRemover.LScheduleRemovableRead(QRosterMembersRead(lBatchId)));
 
     private IEnumerable<Guid> QRosterMembersRead(Guid lBatchId) =>
         qSchedule.LScheduleRecords
@@ -297,7 +307,8 @@ public sealed class QRoster
             .Select(lWorkItem => lWorkItem.LWorkId);
 
     private void QRosterBatchRemove(IReadOnlyList<Guid> lRemovable) =>
-        QRosterRemoval.QRosterWarningRaise(QConsole.QConsoleRemovalFormat(qSchedule.LScheduleBatchRemove(lRemovable)));
+        QRosterRemoval.QRosterWarningRaise(
+            QConsole.QConsoleRemovalFormat(qScheduleRemover.LScheduleBatchRemove(lRemovable)));
 
     private bool QRosterBatchCheck(Guid lBatchId) =>
         qRosterBatches.Exists(lBatch => lBatch.QRosterBatchId == lBatchId);

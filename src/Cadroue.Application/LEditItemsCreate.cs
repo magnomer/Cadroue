@@ -19,7 +19,7 @@ public static partial class LEdit
             return null;
         }
 
-        string lEditFolder = lEditOutput.LEncodingFolderRead(lEditSourcePath);
+        string lEditFolder = LEncodingPath.LEncodingFolderRead(lEditOutput, lEditSourcePath);
         string lEditOutputName = LEditNameCreate(lEditOutput, lEditSourcePath, lEditFolder, lEditDuration);
 
         return new LWorkItem(
@@ -85,7 +85,7 @@ public static partial class LEdit
         {
             string lVideoSteps = string.Join(", ", lEditWorkDescription.LEditVideo.LWorkVideoSteps
                 .Where(lStep => lStep.LWorkStepActive)
-                .Select(lStep => lStep.LWorkDiagnosticRead()));
+                .Select(LWorkVideoDiagnostic.LWorkDiagnosticRead));
             lInfoLog($"Edit job '{lEditOutputName}' video: {lVideoSteps}");
         }
 
@@ -137,22 +137,21 @@ public static partial class LEdit
             : lEditOutput.LEncodingNamePattern;
 
         DateTimeOffset lEditStamp = DateTimeOffset.Now;
+        string lEditOrigin = LEncodingPath.LEncodingTimeFormat(TimeSpan.Zero);
+        string lEditLength = LEncodingPath.LEncodingTimeFormat(lEditDuration);
         string lEditStem = lEditPattern
             .Replace("{Prefix}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{Suffix}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{OriginalName}", lEditSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", "01", StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", "Edit", StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lEditDuration), StringComparison.OrdinalIgnoreCase)
-            .Replace(
-                "{SectionDuration}",
-                LEncoding.LEncodingTimeFormat(lEditDuration),
-                StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", lEditOrigin, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", lEditLength, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", lEditLength, StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lEditStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lEditStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lEditStem = LEncoding.LEncodingShorten(lEditStem);
+        lEditStem = LEncodingPath.LEncodingShorten(lEditStem);
 
         string lEditBaseName = LEditNameNormalize(lEditStem);
         string lEditFileName = LEditNameFormat(lEditOutput, lEditBaseName, lEditSourcePath);
@@ -163,7 +162,7 @@ public static partial class LEdit
 
     private static string LEditNameFormat(LEncoding lEditOutput, string lEditBaseName, string lEditSourcePath)
     {
-        string lEditExtension = lEditOutput.LEncodingExtensionResolve(lEditSourcePath);
+        string lEditExtension = LEncodingPath.LEncodingExtensionResolve(lEditOutput, lEditSourcePath);
         return string.IsNullOrWhiteSpace(lEditExtension)
             ? lEditBaseName
             : $"{lEditBaseName}.{lEditExtension}";

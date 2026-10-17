@@ -6,7 +6,7 @@ namespace Cadroue.Application;
 
 public static class LPreference
 {
-    private static LPreferenceState lPreferenceCurrent = LPreferenceState.LPreferenceDefaultCreate();
+    private static LPreferenceState lPreferenceCurrent = LPreferenceDefault.LPreferenceDefaultCreate();
 
     public static LPreferenceState LPreferenceStateCurrent
     {
@@ -35,8 +35,8 @@ public static class LPreference
     public static void LPreferenceLoad()
     {
         LPreferenceState lPreferenceLoaded = LPreferenceLoadSeam?.Invoke()
-            ?? LPreferenceState.LPreferenceDefaultCreate();
-        lPreferenceLoaded.LPreferenceNormalize();
+            ?? LPreferenceDefault.LPreferenceDefaultCreate();
+        LPreferenceRange.LPreferenceNormalize(lPreferenceLoaded);
         LPreferenceStateCurrent = lPreferenceLoaded;
         LPreferenceStateCurrent.LPreferenceLanguage =
             LPreferenceLanguageNormalize(LPreferenceStateCurrent.LPreferenceLanguage);
@@ -44,9 +44,10 @@ public static class LPreference
 
     public static bool LPreferenceStateSet(LPreferenceState lPreferenceState)
     {
-        lPreferenceState.LPreferenceNormalize();
+        LPreferenceRange.LPreferenceNormalize(lPreferenceState);
         lPreferenceState.LPreferenceLanguage = LPreferenceLanguageNormalize(lPreferenceState.LPreferenceLanguage);
-        foreach (string lPreferenceChange in lPreferenceState.LPreferenceDifferenceRead(LPreferenceStateCurrent))
+        foreach (string lPreferenceChange in
+            LPreferenceDifference.LPreferenceDifferenceRead(lPreferenceState, LPreferenceStateCurrent))
         {
             LPreferenceTraceSeam?.Invoke($"Preference changed — {lPreferenceChange}");
         }
@@ -60,7 +61,7 @@ public static class LPreference
             return false;
         }
 
-        LPreferenceStateCurrent.LPreferenceNormalize();
+        LPreferenceRange.LPreferenceNormalize(LPreferenceStateCurrent);
         if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) ?? true)
         {
             return true;
@@ -82,7 +83,7 @@ public static class LPreference
 
     public static void LPreferenceVolumeSet(double lPreferenceVolume)
     {
-        double lVolume = LPreferenceState.LPreferenceVolumeClamp(lPreferenceVolume);
+        double lVolume = LPreferenceRange.LPreferenceVolumeClamp(lPreferenceVolume);
         if (Math.Abs(lVolume - LPreferenceStateCurrent.LPreferenceVolume) < 0.0001)
         {
             return;
@@ -153,7 +154,7 @@ public static class LPreference
 
     public static void LPreferenceSaveCommit()
     {
-        LPreferenceStateCurrent.LPreferenceNormalize();
+        LPreferenceRange.LPreferenceNormalize(LPreferenceStateCurrent);
         if (LPreferenceSaveSeam?.Invoke(LPreferenceStateCurrent) == false)
         {
             LPreferenceTraceSeam?.Invoke("Preference kept — the deferred change could not be saved");
@@ -162,7 +163,8 @@ public static class LPreference
 
         if (lPreferenceBaseline is { } lPreferenceWas)
         {
-            foreach (string lPreferenceChange in LPreferenceStateCurrent.LPreferenceDifferenceRead(lPreferenceWas))
+            foreach (string lPreferenceChange in
+                LPreferenceDifference.LPreferenceDifferenceRead(LPreferenceStateCurrent, lPreferenceWas))
             {
                 LPreferenceTraceSeam?.Invoke($"Preference saved — {lPreferenceChange}");
             }

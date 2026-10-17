@@ -100,20 +100,20 @@ public static class LCapability
     {
         if (string.IsNullOrWhiteSpace(lEncoder))
         {
-            return LCapabilityTable.LCapabilityAudioFallback;
+            return LCapabilityTableAudio.LCapabilityAudioFallback;
         }
 
-        if (LCapabilityTable.LCapabilityAudioMap.TryGetValue(lEncoder, out LCapabilityCodec? lCodec))
+        if (LCapabilityTableAudio.LCapabilityAudioMap.TryGetValue(lEncoder, out LCapabilityCodec? lCodec))
         {
             return lCodec;
         }
 
         if (lEncoder.StartsWith("pcm_", StringComparison.OrdinalIgnoreCase))
         {
-            return LCapabilityTable.LCapabilityAudioUncompressed;
+            return LCapabilityTableAudio.LCapabilityAudioUncompressed;
         }
 
-        return LCapabilityTable.LCapabilityAudioFallback;
+        return LCapabilityTableAudio.LCapabilityAudioFallback;
     }
 
     public static string LCapabilityNameRead(string? lEncoderText)

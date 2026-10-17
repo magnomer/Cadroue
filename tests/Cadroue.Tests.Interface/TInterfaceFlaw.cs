@@ -26,13 +26,13 @@ internal static partial class TInterface
         LFlawIndex.LFlawIndexResolve(indexedError, ignidxError, seekError);
 
     internal static LDossier? TFlawFramingResolve(string copyError, string probeReport) =>
-        LFlawStream.LFlawFramingResolve(copyError, probeReport);
+        LFlawFraming.LFlawFramingResolve(copyError, probeReport);
 
     internal static LDossier? TFlawConfigResolve(string probeReport, string decodeError) =>
-        LFlawStream.LFlawConfigResolve(probeReport, decodeError);
+        LFlawConfig.LFlawConfigResolve(probeReport, decodeError);
 
     internal static LDossier? TFlawTimingResolve(string packetReport) =>
-        LFlawStream.LFlawTimingResolve(packetReport);
+        LFlawTiming.LFlawTimingResolve(packetReport);
 
     internal static LDossier? TFlawSecondaryResolve(string streamReport, string chapterReport, string secondaryError) =>
         LFlawSecondary.LFlawSecondaryResolve(streamReport, chapterReport, secondaryError);

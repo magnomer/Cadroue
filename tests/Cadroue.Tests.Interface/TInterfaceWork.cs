@@ -69,7 +69,8 @@ internal static partial class TInterface
     internal static LWorkCurvePoint TWorkPointCreate(double input, double output) =>
         new(input, output);
     internal static LWorkCurveSettings TWorkCurveRead(LWorkVideoStep step) => step.LWorkCurveRead();
-    internal static string TWorkCurveFormat(LWorkVideoStep step) => step.LWorkCurveFormat();
+    internal static string TWorkCurveFormat(LWorkVideoStep step) =>
+        LWorkVideoFilter.LWorkCurveFormat(step.LWorkCurveRead());
     internal static LWorkVideoStep TWorkMalformedCreate(
         LWhitebalanceMethod method, double value, double saturation) =>
         new(LColorKind.LColorKindWhitebalance, true, value)
@@ -102,7 +103,8 @@ internal static partial class TInterface
                 LWorkSampleRed = sampleRed
             }
         };
-    internal static string TWorkDiagnosticRead(LWorkVideoStep step) => step.LWorkDiagnosticRead();
+    internal static string TWorkDiagnosticRead(LWorkVideoStep step) =>
+        LWorkVideoDiagnostic.LWorkDiagnosticRead(step);
     internal static LWorkItem? TWorkRecordMatch(LWorkItem work)
     {
         string json = LWorkDocument.LWorkRecordCreate(work).LWorkJsonCreate();
@@ -139,5 +141,6 @@ internal static partial class TInterface
         LWorkAudioStep.LWorkLowCreate(active, frequency, stages, poles, resonance);
     internal static LWorkAudioStep TWorkEqualizerCreate(bool active, IReadOnlyList<LWorkBand> bands) =>
         LWorkAudioStep.LWorkEqualizerCreate(active, bands);
-    internal static string TWorkAudioFormat(LWorkAudio audio, int rate = 0) => audio.LWorkAudioFormat(rate);
+    internal static string TWorkAudioFormat(LWorkAudio audio, int rate = 0) =>
+        LWorkAudioFilter.LWorkAudioFormat(audio, rate);
 }

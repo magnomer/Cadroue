@@ -1,18 +1,7 @@
-using System.Reflection;
-
-using Cadroue.Core;
-using Cadroue.Media;
-
 namespace Cadroue.Infrastructure;
 
 public static class LTraceLog
 {
-    public const string LTraceLogFolder = LTraceWriter.LTraceFolderName;
-
-    public static string LTraceFolderFind() => LTraceWriter.LTraceFolderRead();
-
-    public static string LTracePathFind() => LTraceWriter.LTracePathRead();
-
     public static void LTraceInfoRecord(string lMessage)
     {
         LTrace.LTraceRecord(LTraceKind.LTraceInfo, lMessage);
@@ -48,21 +37,9 @@ public static class LTraceLog
         LTrace.LTraceRecord(LTraceKind.LTraceInteraction, lMessage, lDetail);
     }
 
-    public static string LTraceTextRead() => LTraceWriter.LTraceWriterRead();
-
     public static void LTraceClear()
     {
         LTraceWriter.LTraceWriterClear();
         LTrace.LTraceReset();
-    }
-
-    public static string LTraceVersionRead()
-    {
-        Assembly lAssembly = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-        string lVersion = lAssembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
-            ?? lAssembly.GetName().Version?.ToString()
-            ?? string.Empty;
-        int lBuildMark = lVersion.IndexOf('+');
-        return lBuildMark < 0 ? lVersion : lVersion[..lBuildMark];
     }
 }

@@ -130,7 +130,7 @@ public sealed class QCompass
 
     public void QCompassVolumeSet(double lRaw)
     {
-        double lVolume = LPreferenceState.LPreferenceVolumeClamp(lRaw);
+        double lVolume = LPreferenceRange.LPreferenceVolumeClamp(lRaw);
         if (lVolume == QCompassVolume)
         {
             return;
@@ -140,7 +140,7 @@ public sealed class QCompass
     }
 
     public static string QCompassVolumeFormat(double lRaw) =>
-        Math.Round(LPreferenceState.LPreferenceVolumeClamp(lRaw)).ToString("0");
+        Math.Round(LPreferenceRange.LPreferenceVolumeClamp(lRaw)).ToString("0");
 
     public static double QCompassFillResolve(double lHostWidth, double lRaw)
     {
@@ -149,7 +149,7 @@ public sealed class QCompass
             return 0;
         }
 
-        double lRate = (LPreferenceState.LPreferenceVolumeClamp(lRaw) - QCompassVolumeMinimum)
+        double lRate = (LPreferenceRange.LPreferenceVolumeClamp(lRaw) - QCompassVolumeMinimum)
             / (QCompassVolumeMaximum - QCompassVolumeMinimum);
         return Math.Max(0, lHostWidth * lRate);
     }

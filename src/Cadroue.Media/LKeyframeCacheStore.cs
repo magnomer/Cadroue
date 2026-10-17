@@ -71,34 +71,7 @@ public static class LKeyframeCacheStore
         };
 
         string json = JsonSerializer.Serialize(record, new JsonSerializerOptions { WriteIndented = true });
-        string tempPath = cachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
-        try
-        {
-            string? cacheFolder = Path.GetDirectoryName(cachePath);
-            if (!string.IsNullOrWhiteSpace(cacheFolder))
-            {
-                Directory.CreateDirectory(cacheFolder);
-            }
-
-            File.WriteAllText(tempPath, json);
-            File.Move(tempPath, cachePath, overwrite: true);
-            return true;
-        }
-        catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
-        {
-            try
-            {
-                if (File.Exists(tempPath))
-                {
-                    File.Delete(tempPath);
-                }
-            }
-            catch (Exception cleanup) when (cleanup is IOException or UnauthorizedAccessException)
-            {
-            }
-
-            return false;
-        }
+        return LMediaCache.LMediaCacheSave(cachePath, json);
     }
 
     private static bool LKeyframeCacheMatch(LKeyframeSourceIdentity identity, LKeyframeCacheDocument record)
@@ -113,21 +86,9 @@ public static class LKeyframeCacheStore
     private static string LKeyframePathCreate(LKeyframeSourceIdentity identity)
     {
         return Path.Combine(
-            LKeyframeHomeRead(),
+            LMediaCache.LMediaHomeRead(),
             LKeyframeSubFolder,
             identity.LKeyframeCacheKey + ".json");
-    }
-
-    public static string LKeyframeHomeRead()
-    {
-        string? lKeyframeHome = AppContext.GetData(LDepotHome.LDepotHomeKey) as string;
-        if (!string.IsNullOrWhiteSpace(lKeyframeHome))
-        {
-            return lKeyframeHome.Trim();
-        }
-
-        string lKeyframeApplicationData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        return Path.Combine(lKeyframeApplicationData, LDepotHome.LDepotHomeFolder);
     }
 
     private sealed class LKeyframeCacheDocument

@@ -16,15 +16,16 @@ internal sealed class TScout : IDisposable
         Directory.CreateDirectory(tScoutRoot);
     }
 
-    internal static LMediaInfo TScoutProbeParse(string output) => LMedia.LMediaFfprobeParse(output);
+    internal static LMediaInfo TScoutProbeParse(string output) => LMediaFfprobe.LMediaFfprobeParse(output);
 
     internal static ProcessStartInfo TScoutProbeCreate(string sourcePath) =>
-        new LEmployer(LTool.LToolFfprobeRead()).LEmployerInfoCreate(null, LMedia.LMediaFfprobeCreate(sourcePath));
+        new LEmployer(LTool.LToolFfprobeRead())
+            .LEmployerInfoCreate(null, LMediaFfprobe.LMediaFfprobeCreate(sourcePath));
 
     internal static ProcessStartInfo TScoutStreamCreate(string sourcePath) =>
         new LEmployer(LTool.LToolFfprobeRead()).LEmployerInfoCreate(null, LScoutStream.LScoutStreamCreate(sourcePath));
 
-    internal static TimeSpan? TScoutEndParse(string output, TimeSpan start) => LMedia.LMediaEndParse(output, start);
+    internal static TimeSpan? TScoutEndParse(string output, TimeSpan start) => LMediaEnd.LMediaEndParse(output, start);
 
     internal LWorkMedia? TMediaRead(string path, CancellationToken cancellationToken = default) =>
         LScout.LScoutMediaRead(path, cancellationToken).GetAwaiter().GetResult();
@@ -125,7 +126,7 @@ internal sealed class TScoutProbe : IDisposable
         try
         {
             string output = tScoutReader(sourcePath, cancellationToken);
-            return Task.FromResult(LMedia.LMediaFfprobeParse(output));
+            return Task.FromResult(LMediaFfprobe.LMediaFfprobeParse(output));
         }
         finally
         {

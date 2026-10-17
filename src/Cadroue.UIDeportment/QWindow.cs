@@ -118,7 +118,7 @@ public sealed class QWindow
 
     public void QWindowTabsStart()
     {
-        if (LRelayChannel.LRelayPayloadRead() is null)
+        if (LRelayStartup.LRelayPayloadRead() is null)
         {
             QWindowStartupRestore(LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
         }
@@ -126,13 +126,13 @@ public sealed class QWindow
 
     public void QWindowRelayStart(double lScreenLeft, double lScreenTop, double lScreenWidth, double lScreenHeight)
     {
-        if (LRelayChannel.LRelayPayloadRead() is { } lRelay)
+        if (LRelayStartup.LRelayPayloadRead() is { } lRelay)
         {
             (double lLeft, double lTop) = QSashRelay.QSashRelayResolve(
                 lRelay.LRelayDropLeft, lRelay.LRelayDropTop, lScreenLeft, lScreenTop, lScreenWidth, lScreenHeight);
             QWindowPlaced?.Invoke(lLeft, lTop);
             QWindowRelayAccept(lRelay);
-            LRelayChannel.LRelayStartupCommit();
+            LRelayStartup.LRelayStartupCommit();
             return;
         }
 

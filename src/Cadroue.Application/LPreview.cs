@@ -30,18 +30,19 @@ public static class LPreview
 
     public static LColor LPreviewColorResolve(LWorkVideo lVideo)
     {
-        double lBrightness = (lVideo.LWorkVideoSteps
+        LWorkVideoStep? lBrightnessStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindBrightness
-                && lStep.LWorkStepActive)
-            ?.LWorkFfmpegValue ?? 0) * LPreviewBrightnessFactor;
-        double lContrast = lVideo.LWorkVideoSteps
+                && lStep.LWorkStepActive);
+        double lBrightness = (lBrightnessStep is null ? 0 : LWorkVideoFilter.LWorkFfmpegResolve(lBrightnessStep))
+            * LPreviewBrightnessFactor;
+        LWorkVideoStep? lContrastStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindContrast
-                && lStep.LWorkStepActive)
-            ?.LWorkFfmpegValue ?? 1;
-        double lSaturation = lVideo.LWorkVideoSteps
+                && lStep.LWorkStepActive);
+        double lContrast = lContrastStep is null ? 1 : LWorkVideoFilter.LWorkFfmpegResolve(lContrastStep);
+        LWorkVideoStep? lSaturationStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindSaturation
-                && lStep.LWorkStepActive)
-            ?.LWorkFfmpegValue ?? 1;
+                && lStep.LWorkStepActive);
+        double lSaturation = lSaturationStep is null ? 1 : LWorkVideoFilter.LWorkFfmpegResolve(lSaturationStep);
         LWorkVideoStep? lGammaStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindGamma
                 && lStep.LWorkStepActive);
@@ -49,19 +50,19 @@ public static class LPreview
         LWorkVideoStep? lWhitebalanceStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindWhitebalance
                 && lStep.LWorkStepActive);
-        double lExposure = lVideo.LWorkVideoSteps
+        LWorkVideoStep? lExposureStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindExposure
-                && lStep.LWorkStepActive)
-            ?.LWorkFfmpegValue ?? 0;
+                && lStep.LWorkStepActive);
+        double lExposure = lExposureStep is null ? 0 : LWorkVideoFilter.LWorkFfmpegResolve(lExposureStep);
         LWorkVideoStep? lCurveStep = lVideo.LWorkVideoSteps
             .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindCurve
                 && lStep.LWorkStepActive);
         return new LColor(lBrightness, lContrast, lSaturation, 0)
         {
-            LColorGamma = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
-            LColorGammaRed = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaRed),
-            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaGreen),
-            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoStep.LWorkGammaResolve(lGamma.LWorkGammaBlue),
+            LColorGamma = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
+            LColorGammaRed = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaRed),
+            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaGreen),
+            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaBlue),
             LColorHighlightProtection = lGamma?.LWorkGammaHighlight ?? 0,
             LColorExposure = lExposure,
             LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead(),
@@ -101,7 +102,7 @@ public static class LPreview
         LColor lColor = lPreviewState.LColor;
         if (lColor.LColorWhitebalance is { } lWhitebalance)
         {
-            lFilters.AddRange(lWhitebalance.LWorkWhitebalanceFormat());
+            lFilters.AddRange(LWorkVideoFilter.LWorkWhitebalanceFormat(lWhitebalance));
         }
 
         if (lColor.LColorExposure != 0)
@@ -158,7 +159,7 @@ public static class LPreview
 
         if (lColor.LColorCurve is { } lCurve)
         {
-            string lCurveFilter = lCurve.LWorkCurveFormat();
+            string lCurveFilter = LWorkVideoFilter.LWorkCurveFormat(lCurve);
             if (lCurveFilter.Length > 0)
             {
                 lFilters.Add(lCurveFilter);

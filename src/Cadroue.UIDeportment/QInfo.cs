@@ -24,17 +24,17 @@ public sealed class QInfo
     private void QInfoAttach()
     {
         QInfoViewer.QViewerMediaChanged += QInfoMediaHandle;
-        LMediaProbe.LMediaAvailabilityReady += QInfoAvailabilityHandle;
+        LMediaAvailability.LMediaAvailabilityReady += QInfoAvailabilityHandle;
     }
 
-    public void QInfoDetach() => LMediaProbe.LMediaAvailabilityReady -= QInfoAvailabilityHandle;
+    public void QInfoDetach() => LMediaAvailability.LMediaAvailabilityReady -= QInfoAvailabilityHandle;
 
     private void QInfoMediaHandle(LCargo lCargo)
     {
         qInfoGate.CInfoProbeDefer(
             lCargo.LCargoSourcePath,
-            LMediaProbe.LMediaAvailabilityCurrent,
-            () => LMediaProbe.LMediaAvailabilityDefer());
+            LMediaAvailability.LMediaAvailabilityCurrent,
+            () => LMediaAvailability.LMediaAvailabilityDefer());
         QInfoChanged?.Invoke();
     }
 

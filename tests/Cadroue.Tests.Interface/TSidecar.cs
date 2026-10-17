@@ -37,7 +37,7 @@ internal sealed class TSidecar : IDisposable
     internal static TSidecarData? TSidecarCoreParse(string json)
     {
         LSidecarCoreDocument? core = LSidecarSerializer.LSidecarCoreParse(json);
-        return core is null ? null : TSidecarDataCreate(LSidecarSerializer.LSidecarCreate(core, null));
+        return core is null ? null : TSidecarDataCreate(LSidecarStore.LSidecarCreate(core, null));
     }
 
     internal static int TSectionCountParse(string json) =>
@@ -76,9 +76,9 @@ internal sealed class TSidecar : IDisposable
     }
 
     internal bool TLoudnessSave(string sourcePath, double loudness) =>
-        LSidecarStore.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarPending.LSidecarPersist();
+        LSidecarField.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarPending.LSidecarPersist();
 
-    internal double TLoudnessRead(string sourcePath) => LSidecarStore.LSidecarLoudnessRead(sourcePath);
+    internal double TLoudnessRead(string sourcePath) => LSidecarField.LSidecarLoudnessRead(sourcePath);
 
     internal void TSidecarLocationSet(bool locationMode) =>
         LSidecarPath.LSidecarFolderSet(tSidecarRoot, !locationMode);
@@ -101,7 +101,7 @@ internal sealed class TSidecar : IDisposable
         int bucketMilliseconds,
         long durationMilliseconds,
         string peaks) =>
-        LSidecarStore.LSidecarWaveformSave(
+        LSidecarField.LSidecarWaveformSave(
             sourcePath,
             new LSidecarWaveformEntry
             {
@@ -129,7 +129,7 @@ internal sealed class TSidecar : IDisposable
         string sourcePath,
         TimeSpan duration,
         IReadOnlyCollection<TSidecarDossier> dossiers) =>
-        LSidecarCacheStore.LSidecarDiagnosisSave(
+        LSidecarField.LSidecarDiagnosisSave(
             sourcePath,
             LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration),
             dossiers
@@ -141,7 +141,7 @@ internal sealed class TSidecar : IDisposable
                 .ToList());
 
     internal IReadOnlyList<TSidecarDossier>? TDiagnosisRead(string sourcePath) =>
-        LSidecarCacheStore.LSidecarDiagnosisRead(sourcePath)
+        LSidecarField.LSidecarDiagnosisRead(sourcePath)
             ?.Select(dossier => new TSidecarDossier(dossier.LSidecarDefect, dossier.LSidecarKind.ToString()))
             .ToList();
 

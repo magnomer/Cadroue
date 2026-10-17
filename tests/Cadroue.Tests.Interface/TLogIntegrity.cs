@@ -33,9 +33,9 @@ internal static class TLogIntegrity
 
         try
         {
-            LTraceReadResult<string> empty = LTraceWriter.LTraceFileRead(emptyPath);
-            LTraceReadResult<string> corrupt = LTraceWriter.LTraceFileRead(corruptPath);
-            LTraceReadResult<string> missing = LTraceWriter.LTraceFileRead(missingPath);
+            LTraceReadResult<string> empty = LTraceReader.LTraceFileRead(emptyPath);
+            LTraceReadResult<string> corrupt = LTraceReader.LTraceFileRead(corruptPath);
+            LTraceReadResult<string> missing = LTraceReader.LTraceFileRead(missingPath);
             return new TLogReadResult(
                 empty.LTraceReadSuccess,
                 empty.LTraceReadValue,
@@ -65,7 +65,7 @@ internal static class TLogIntegrity
             }
 
             using var stream = new FileStream(
-                LTraceWriter.LTracePathRead(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
+                LTraceFolder.LTracePathRead(), FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
             using var reader = new StreamReader(stream, Encoding.UTF8);
             observedText = reader.ReadToEnd();
             observed.Set();
@@ -133,7 +133,7 @@ internal static class TLogIntegrity
             LTraceWriter.LTraceWriterPersist();
             bool moved = LDepotRelocation.LDepotFolderMove(source, target);
             LTraceLog.LTraceInfoRecord("after workspace move");
-            string text = LTraceWriter.LTraceWriterRead();
+            string text = LTraceReader.LTraceTextRead();
             return new TLogMoveResult(moved, LDepot.LDepotRootRead(), Directory.Exists(source), text);
         }
         finally
@@ -188,7 +188,7 @@ internal static class TLogIntegrity
             moveContinue.Set();
             bool moved = move.GetAwaiter().GetResult();
             LTraceLog.LTraceInfoRecord("after concurrent workspace move");
-            string text = LTraceWriter.LTraceWriterRead();
+            string text = LTraceReader.LTraceTextRead();
             return new TLogMoveResult(moved, LDepot.LDepotRootRead(), Directory.Exists(source), text);
         }
         finally
@@ -236,15 +236,15 @@ internal static class TLogIntegrity
     {
         string folder = Path.Combine(Path.GetTempPath(), "Cadroue.Tests", "log-archive", Guid.NewGuid().ToString("N"));
         string source = Path.Combine(folder, "Cadroue-20000101-000000-1.log");
-        string archive = source + LTraceWriter.LTraceArchiveSuffix;
+        string archive = source + LTraceArchive.LTraceArchiveSuffix;
         Directory.CreateDirectory(folder);
         File.WriteAllText(source, "archive payload", Encoding.UTF8);
 
         try
         {
             Parallel.Invoke(
-                () => LTraceWriter.LTraceArchiveSave(source),
-                () => LTraceWriter.LTraceArchiveSave(source));
+                () => LTraceArchive.LTraceArchiveSave(source),
+                () => LTraceArchive.LTraceArchiveSave(source));
 
             string text = string.Empty;
             if (File.Exists(archive))
@@ -291,7 +291,7 @@ internal static class TLogIntegrity
 
             LDepot.LDepotRootSet(recoveredRoot);
             LTraceLog.LTraceInfoRecord("entry after recovery");
-            string text = LTraceWriter.LTraceWriterRead();
+            string text = LTraceReader.LTraceTextRead();
             return new TLogLossResult(text, summaries.ToArray());
         }
         finally

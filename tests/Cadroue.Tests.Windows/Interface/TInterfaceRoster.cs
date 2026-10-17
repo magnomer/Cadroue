@@ -18,7 +18,13 @@ internal static class TInterfaceRoster
 
     internal static void TStationAttach(LScheduleContract schedule)
     {
+        var owner = (LSchedule)schedule;
         LStation.LStationSchedule = schedule;
+        LStation.LStationIntake = new LScheduleIntake(owner);
+        LStation.LStationLease = new LScheduleLease(owner);
+        LStation.LStationTransition = new LScheduleTransition(owner);
+        LStation.LStationMeasurement = new LScheduleMeasurement(owner);
+        LStation.LStationRemover = new LScheduleRemover(owner);
         LStation.LStationPost = action => action();
         LStation.LStationProgramSource = () => "ffmpeg";
         LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
@@ -27,7 +33,13 @@ internal static class TInterfaceRoster
     internal static QRoster TRosterCreate(LScheduleContract schedule, LStation station)
     {
         CAtelier atelier = TInterface.TAtelierCreate();
-        return new(atelier.CAtelierUsher, atelier.CAtelierLineage, schedule, station, atelier.CAtelierRosterCreate());
+        return new(
+            atelier.CAtelierUsher,
+            atelier.CAtelierLineage,
+            schedule,
+            new LScheduleRemover((LSchedule)schedule),
+            station,
+            atelier.CAtelierRosterCreate());
     }
     internal static void TRosterClose(QRoster roster) => roster.QRosterClose();
     internal static void TRosterRebuild(QRoster roster) => roster.QRosterRebuild();
@@ -79,7 +91,7 @@ internal static class TInterfaceRoster
     {
         using var schedule = new TSchedule();
         LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "state").TWorkItem;
-        work.LWorkStateCurrent = state;
+        work.LWorkRunState.LWorkStateCurrent = state;
         return TRosterRowRead(work, false);
     }
     private static QRosterRow TRosterRowRead(LWorkItem work, bool owned) =>
@@ -100,8 +112,8 @@ internal static class TInterfaceRoster
         TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "phase");
         schedule.TScheduleAdd(added);
         LWorkItem work = added.TWorkItem;
-        work.LWorkStateCurrent = state;
-        work.LWorkPhaseCurrent = phase;
+        work.LWorkRunState.LWorkStateCurrent = state;
+        work.LWorkRunState.LWorkPhaseCurrent = phase;
         return TRosterDetailCreate(schedule.TScheduleRead(), work).QRosterDetailRecords[5].QRosterDetailValue;
     }
     internal static string TRosterSpanFormat(TimeSpan span) => QRosterRow.QRosterSpanFormat(span);

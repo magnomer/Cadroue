@@ -97,5 +97,5 @@ public sealed class QViewerAudio
     }
 
     private void QViewerVolumeChange(double lVolume) =>
-        qViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
+        qViewerVolume = LPreferenceRange.LPreferenceVolumeClamp(lVolume);
 }

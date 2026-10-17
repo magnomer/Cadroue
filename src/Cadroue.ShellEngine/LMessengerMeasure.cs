@@ -6,7 +6,7 @@ public static partial class LMessenger
 {
     private static void LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
-        if (LMessengerScheduleSource?.Invoke() is { } lMessengerSchedule)
+        if (LStation.LStationMeasurement is { } lMessengerSchedule)
         {
             foreach (LWorkItem lMessengerItem in lMessengerItems)
             {
@@ -17,7 +17,7 @@ public static partial class LMessenger
         LSubsidiary.LSubsidiarySourceDefer(lMessengerItems);
     }
 
-    private static void LMessengerBytesSet(LScheduleContract lMessengerSchedule, LWorkItem lMessengerItem)
+    private static void LMessengerBytesSet(LScheduleMeasurementContract lMessengerSchedule, LWorkItem lMessengerItem)
     {
         if (lMessengerItem.LWorkMergeSources.Count > 1)
         {

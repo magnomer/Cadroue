@@ -8,14 +8,14 @@ internal sealed partial class LJob
     {
         if (!lJobOwner.LRunnerRetryAllowed
             || lJobOwner.LRunnerRetryMaximum <= 0
-            || lJobItem.LWorkRetryCount >= lJobOwner.LRunnerRetryMaximum)
+            || lJobItem.LWorkRunState.LWorkRetryCount >= lJobOwner.LRunnerRetryMaximum)
         {
             return false;
         }
 
         await LJobAttemptClear().ConfigureAwait(false);
         int pRetry = 0;
-        lJobOwner.LRunnerDispatch(() => pRetry = lJobOwner.lRunnerSchedule.LScheduleRetryRelease(
+        lJobOwner.LRunnerDispatch(() => pRetry = lJobOwner.lRunnerScheduleLease.LScheduleRetryRelease(
             lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobOwner.LRunnerRetryMaximum, pJobReason));
         if (pRetry == 0)
         {

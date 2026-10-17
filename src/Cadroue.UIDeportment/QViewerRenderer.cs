@@ -41,7 +41,7 @@ public sealed class QViewerRenderer
     public QViewerEnginePlan QViewerEngineRead()
     {
         bool lMpv = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
-        bool lInstalled = LMpv.LMpvAvailableCheck();
+        bool lInstalled = LMpvAvailability.LMpvAvailableCheck();
         return new QViewerEnginePlan(
             new QViewerEngineChoice(
                 LRenderer.LRendererFlyleafToken,
@@ -61,7 +61,7 @@ public sealed class QViewerRenderer
     public void QViewerEngineSelect(string lKey)
     {
         bool lMpv = string.Equals(lKey, LRenderer.LRendererMpvToken, StringComparison.Ordinal);
-        if (lMpv && !LMpv.LMpvAvailableCheck())
+        if (lMpv && !LMpvAvailability.LMpvAvailableCheck())
         {
             return;
         }

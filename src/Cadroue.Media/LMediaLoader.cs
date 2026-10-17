@@ -32,7 +32,7 @@ public sealed class LMediaLoader : IDisposable
     {
         lMediaLoadReader = (lMediaLoadPath, lMediaLoadToken) =>
             Task.Run(
-                () => LMedia.LMediaPreviewRead(lMediaLoadPath, lMediaLoadToken, LMediaLoadTail),
+                () => LMediaPreview.LMediaPreviewRead(lMediaLoadPath, lMediaLoadToken, LMediaLoadTail),
                 lMediaLoadToken);
     }
 
@@ -71,7 +71,7 @@ public sealed class LMediaLoader : IDisposable
         string lMediaLoadPath,
         CancellationToken lMediaLoadToken = default)
     {
-        if (LMediaPathResolve(lMediaLoadPath) is not { } lMediaLoadResolvedPath)
+        if (LMediaPath.LMediaPathResolve(lMediaLoadPath) is not { } lMediaLoadResolvedPath)
         {
             return LMediaLoadCancel(lMediaLoadPath ?? string.Empty, "The media path is invalid.");
         }
@@ -179,18 +179,6 @@ public sealed class LMediaLoader : IDisposable
                 lMediaLoadRequestGeneration,
                 lMediaLoadResolvedPath,
                 lMediaLoadException.Message);
-        }
-    }
-
-    public static string? LMediaPathResolve(string lMediaPath)
-    {
-        try
-        {
-            return string.IsNullOrWhiteSpace(lMediaPath) ? string.Empty : Path.GetFullPath(lMediaPath);
-        }
-        catch (Exception lMediaPathException) when (lMediaPathException is ArgumentException or NotSupportedException)
-        {
-            return null;
         }
     }
 

@@ -8,7 +8,6 @@ namespace Cadroue.Media;
 public sealed class LEmployer
 {
     private const int LEmployerErrorLimit = 256 * 1024;
-    private static readonly TimeSpan lEmployerExitWait = TimeSpan.FromSeconds(5);
     private static readonly TimeSpan lEmployerPulseWait = TimeSpan.FromMilliseconds(500);
     private readonly string lEmployerProgramPath;
     private readonly string lEmployerArgumentPrefix;
@@ -140,7 +139,7 @@ public sealed class LEmployer
         lEmployerToken.ThrowIfCancellationRequested();
         using var lEmployerProcess = new Process { StartInfo = lEmployerInfo };
         lEmployerProcess.Start();
-        LCustody.LCustodyAttach(lEmployerProcess);
+        LCustodyJob.LCustodyAttach(lEmployerProcess);
         LEmployerPriorityApply(lEmployerProcess);
         lEmployerAttach?.Invoke(lEmployerProcess);
 
@@ -162,11 +161,11 @@ public sealed class LEmployer
         }
         catch (OperationCanceledException) when (lEmployerCancel.IsCancellationRequested)
         {
-            if (!await LEmployerProcessInterrupt(lEmployerProcess).ConfigureAwait(false))
+            if (!await LEmployerProcess.LEmployerProcessInterrupt(lEmployerProcess).ConfigureAwait(false))
             {
                 throw new InvalidOperationException(
                     $"the process '{lEmployerProgramPath}' did not terminate within " +
-                    $"{lEmployerExitWait.TotalSeconds:0} s of cancellation");
+                    $"{LEmployerProcess.LEmployerExitWait.TotalSeconds:0} s of cancellation");
             }
 
             if (lEmployerToken.IsCancellationRequested)
@@ -178,7 +177,7 @@ public sealed class LEmployer
         }
         catch (Exception)
         {
-            await LEmployerProcessInterrupt(lEmployerProcess).ConfigureAwait(false);
+            await LEmployerProcess.LEmployerProcessInterrupt(lEmployerProcess).ConfigureAwait(false);
             throw;
         }
         finally
@@ -229,37 +228,6 @@ public sealed class LEmployer
         }
         catch (OperationCanceledException)
         {
-        }
-    }
-
-    private static async Task<bool> LEmployerProcessInterrupt(Process lEmployerProcess)
-    {
-        try
-        {
-            if (!lEmployerProcess.HasExited)
-            {
-                lEmployerProcess.Kill(true);
-            }
-        }
-        catch (Exception lEmployerException)
-            when (lEmployerException is InvalidOperationException or System.ComponentModel.Win32Exception)
-        {
-        }
-
-        try
-        {
-            using var lEmployerWait = new CancellationTokenSource(lEmployerExitWait);
-            await lEmployerProcess.WaitForExitAsync(lEmployerWait.Token).ConfigureAwait(false);
-            return true;
-        }
-        catch (OperationCanceledException)
-        {
-            return false;
-        }
-        catch (Exception lEmployerException)
-            when (lEmployerException is InvalidOperationException or System.ComponentModel.Win32Exception)
-        {
-            return true;
         }
     }
 

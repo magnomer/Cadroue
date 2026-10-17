@@ -1,49 +1,16 @@
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using System.Text.Json;
-using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-internal sealed class LFlyleafDocument
+public static class LFlyleaf
 {
-    public string LFlyleafAssemblyFolder { get; set; } = string.Empty;
-
-    public string LFlyleafSourceFolder { get; set; } = string.Empty;
-}
-
-public static partial class LFlyleaf
-{
-    private const string LFlyleafRootFolder = "local-flyleaf";
-    private const string LFlyleafSourceName = "source";
-    private const string LFlyleafRuntimeName = "runtime";
-    private const string LFlyleafRecordName = "local-flyleaf.json";
-
     private static string? lFlyleafAssemblyFolder;
     private static readonly ConcurrentDictionary<string, string> lFlyleafLoadedPaths =
         new(StringComparer.OrdinalIgnoreCase);
     private static bool lFlyleafResolverActive;
-
-    [ModuleInitializer]
-    internal static void LFlyleafModuleStart()
-    {
-        try
-        {
-            LPreferenceState lPreferenceState = LPreferenceStateStore.LPreferenceStateLoad()
-                ?? LPreferenceState.LPreferenceDefaultCreate();
-            lPreferenceState.LPreferenceNormalize();
-            LDepot.LDepotRootSet(lPreferenceState.LPreferenceWorkspaceFolder);
-            LTrace.LTraceVerbose = lPreferenceState.LPreferenceLogVerbose;
-            LFlyleafResolverAttach();
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Local Flyleaf module initialization failed", lException);
-        }
-    }
 
     public static bool LFlyleafActive =>
         LFlyleafLoadedCheck("FlyleafLib");
@@ -61,8 +28,6 @@ public static partial class LFlyleaf
         return lLoadedPath.StartsWith(lLocalFolder + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static string LFlyleafRootRead() => Path.Combine(LDepot.LDepotRootRead(), LFlyleafRootFolder);
-
     public static void LFlyleafResolverAttach()
     {
         if (lFlyleafResolverActive)
@@ -71,7 +36,7 @@ public static partial class LFlyleaf
         }
 
         lFlyleafResolverActive = true;
-        lFlyleafAssemblyFolder = LFlyleafFolderRead();
+        lFlyleafAssemblyFolder = LFlyleafFolder.LFlyleafFolderRead();
         LFlyleafShadowApply(lFlyleafAssemblyFolder is not null);
         LFlyleafLoad("FlyleafLib");
         LFlyleafLoad("FlyleafLib.Controls.WPF");
@@ -183,69 +148,5 @@ public static partial class LFlyleaf
         {
             LTraceLog.LTraceErrorRecord($"Local Flyleaf load probe failed: {lAssemblyPath}", lException);
         }
-    }
-
-    public static bool LFlyleafInstalledCheck() => LFlyleafFolderValidate(LFlyleafFolderRead());
-
-    public static string? LFlyleafFolderRead()
-    {
-        try
-        {
-            string lRecordPath = LFlyleafRecordFind();
-            if (!File.Exists(lRecordPath))
-            {
-                return null;
-            }
-
-            LFlyleafDocument? lRecord = JsonSerializer.Deserialize<LFlyleafDocument>(File.ReadAllText(lRecordPath));
-            if (LFlyleafFolderValidate(lRecord?.LFlyleafAssemblyFolder))
-            {
-                return lRecord!.LFlyleafAssemblyFolder;
-            }
-
-            if (!string.IsNullOrWhiteSpace(lRecord?.LFlyleafSourceFolder)
-                && Directory.Exists(lRecord.LFlyleafSourceFolder)
-                && LFlyleafSourceFind(lRecord.LFlyleafSourceFolder) is not null)
-            {
-                lRecord.LFlyleafAssemblyFolder = LFlyleafRuntimeCreate(lRecord.LFlyleafSourceFolder);
-                LFlyleafRecordSave(lRecord);
-                return lRecord.LFlyleafAssemblyFolder;
-            }
-
-            return null;
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    private static bool LFlyleafFolderValidate(string? lAssemblyFolder)
-    {
-        if (string.IsNullOrWhiteSpace(lAssemblyFolder)
-            || !File.Exists(Path.Combine(lAssemblyFolder, "FlyleafLib.dll"))
-            || !File.Exists(Path.Combine(lAssemblyFolder, "FlyleafLib.deps.json")))
-        {
-            return false;
-        }
-
-        string lFolder = Path.GetFullPath(lAssemblyFolder);
-        string lRuntimeFolder = Path.GetFullPath(Path.Combine(LFlyleafRootRead(), LFlyleafRuntimeName));
-        return string.Equals(lFolder, lRuntimeFolder, StringComparison.OrdinalIgnoreCase)
-            && !lFolder.Contains(
-                $"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}",
-                StringComparison.OrdinalIgnoreCase)
-            && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}ref", StringComparison.OrdinalIgnoreCase)
-            && !lFolder.EndsWith($"{Path.DirectorySeparatorChar}refint", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string LFlyleafRecordFind() =>
-        Path.Combine(LFlyleafRootRead(), LFlyleafRecordName);
-
-    private static void LFlyleafRecordSave(LFlyleafDocument lRecord)
-    {
-        File.WriteAllText(
-            LFlyleafRecordFind(),
-            JsonSerializer.Serialize(lRecord, new JsonSerializerOptions { WriteIndented = true }));
     }
 }

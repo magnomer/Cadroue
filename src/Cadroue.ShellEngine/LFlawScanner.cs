@@ -157,17 +157,17 @@ public static class LFlawScanner
                 lFlawDossiers.Add(lFlawIndex with { LDossierKind = LFlawKind.LFlawKindIndex });
             }
 
-            if (LFlawStream.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
+            if (LFlawFraming.LFlawFramingResolve(lFlawCopyError, lFlawMetaReport) is { } lFlawFraming)
             {
                 lFlawDossiers.Add(lFlawFraming with { LDossierKind = LFlawKind.LFlawKindFraming });
             }
 
-            if (LFlawStream.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
+            if (LFlawConfig.LFlawConfigResolve(lFlawMetaReport, lFlawDecodeError) is { } lFlawConfig)
             {
                 lFlawDossiers.Add(lFlawConfig with { LDossierKind = LFlawKind.LFlawKindConfig });
             }
 
-            if (LFlawStream.LFlawTimingResolve(lFlawPacketReport) is { } lFlawTiming)
+            if (LFlawTiming.LFlawTimingResolve(lFlawPacketReport) is { } lFlawTiming)
             {
                 lFlawDossiers.Add(lFlawTiming with { LDossierKind = LFlawKind.LFlawKindTiming });
             }

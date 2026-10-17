@@ -190,7 +190,7 @@ public sealed class QViewerNeutral
         int lNeutralClaim,
         LNeutralTarget lTarget)
     {
-        LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lPosition, lWidth, lHeight);
+        LMediaFrame? lFrame = await LMediaStill.LMediaFrameStart(lPath, lPosition, lWidth, lHeight);
         if (qViewer.QViewerTrace.CViewerUnloaded
             || lLoadClaim != qViewer.QViewerTrace.CViewerSerial
             || lNeutralClaim != qViewerSerial)

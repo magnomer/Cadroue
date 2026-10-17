@@ -34,7 +34,7 @@ public sealed class QSKeymap
     public QSKeymap(List<LBindingEntry>? lRecords)
     {
         List<LBindingEntry> lDraft = LBinding.LBindingNormalize(lRecords);
-        foreach (LBindingCommand lCommand in LBinding.LBindingCatalogRead())
+        foreach (LBindingCommand lCommand in LBindingCatalog.LBindingCatalogRead())
         {
             string lToken = lCommand.LBindingCommandToken;
             qsKeymapChords[lToken] = new QSKeymapChord(lToken, LBinding.LBindingGestureRead(lDraft, lToken));
@@ -117,7 +117,7 @@ public sealed class QSKeymap
     {
         foreach (QSKeymapChord lChord in qsKeymapChords.Values)
         {
-            QSKeymapChordSet(lChord, LBinding.LBindingDefaultRead(lChord.QSKeymapChordToken));
+            QSKeymapChordSet(lChord, LBindingCatalog.LBindingDefaultRead(lChord.QSKeymapChordToken));
         }
     }
 

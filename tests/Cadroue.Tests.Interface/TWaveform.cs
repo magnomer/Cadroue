@@ -72,7 +72,7 @@ internal sealed class TWaveform : IDisposable
     {
         LKeyframeSourceIdentity identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
         if (!LSidecarStore.LSidecarSave(identity, Array.Empty<long>(), Array.Empty<int>(), 1_000)
-            || !LSidecarStore.LSidecarWaveformSave(sourcePath, LWaveform.LWaveformRecordCreate(peaks, duration))
+            || !LSidecarField.LSidecarWaveformSave(sourcePath, LWaveform.LWaveformRecordCreate(peaks, duration))
             || !LSidecarPending.LSidecarPersist())
         {
             return null;

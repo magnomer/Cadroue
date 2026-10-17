@@ -8,8 +8,8 @@ public static class LRigFactorySentinel
     {
         return new LRigSentinel(
             LSentinel.LSentinelOwnerCheck,
-            LSentinel.LSentinelRunnerAdd,
-            LSentinel.LSentinelRunnerRemove,
-            LSchedule.LScheduleLeaseSeconds);
+            LSentinelRunner.LSentinelRunnerAdd,
+            LSentinelRunner.LSentinelRunnerRemove,
+            LScheduleLease.LScheduleLeaseSeconds);
     }
 }

@@ -19,9 +19,9 @@ public sealed class TLineageEntries
         TScheduleWork second = schedule.TWorkCreate(batch, "two", parent: first);
         TScheduleWork third = schedule.TWorkCreate(batch, "three", parent: second);
         first.TWorkItem.LWorkSourceBytes = 1000;
-        first.TWorkItem.LWorkOutputBytes = 800;
-        second.TWorkItem.LWorkOutputBytes = 400;
-        third.TWorkItem.LWorkOutputBytes = 200;
+        first.TWorkItem.LWorkRunState.LWorkOutputBytes = 800;
+        second.TWorkItem.LWorkRunState.LWorkOutputBytes = 400;
+        third.TWorkItem.LWorkRunState.LWorkOutputBytes = 200;
         LWorkItem[] items = [first.TWorkItem, second.TWorkItem, third.TWorkItem];
         schedule.TScheduleAdd(first);
         schedule.TScheduleAdd(second);
@@ -65,12 +65,12 @@ public sealed class TLineageEntries
         Guid secondRelay = Guid.NewGuid();
         TScheduleWork first = schedule.TWorkCreate(batch, "one");
         first.TWorkItem.LWorkSourceBytes = 1000;
-        first.TWorkItem.LWorkOutputBytes = 800;
+        first.TWorkItem.LWorkRunState.LWorkOutputBytes = 800;
         first.TWorkItem.LWorkRelaySource = firstRelay;
         first.TWorkItem.LWorkTab = "First tab";
         schedule.TScheduleAdd(first);
         TScheduleWork second = schedule.TWorkCreate(batch, "two", parent: first);
-        second.TWorkItem.LWorkOutputBytes = 400;
+        second.TWorkItem.LWorkRunState.LWorkOutputBytes = 400;
         second.TWorkItem.LWorkRelaySource = secondRelay;
         second.TWorkItem.LWorkTab = "Second tab";
         schedule.TScheduleAdd(second);
@@ -183,11 +183,11 @@ public sealed class TLineageEntries
         TScheduleWork three = schedule.TWorkCreate(finished, "three");
         TScheduleWork four = schedule.TWorkCreate(finished, "four");
         TScheduleWork five = schedule.TWorkCreate(pending, "five");
-        one.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        two.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateRunning;
-        three.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        four.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStateDone;
-        five.TWorkItem.LWorkStateCurrent = LWorkState.LWorkStatePending;
+        one.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        two.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateRunning;
+        three.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        four.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateDone;
+        five.TWorkItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStatePending;
         schedule.TScheduleAdd(one, two, three, four, five);
 
         IReadOnlyList<CLineageBatch> batches = TInterfaceRoster.TRosterLineageRead(

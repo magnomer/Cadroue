@@ -48,7 +48,9 @@ public sealed record LScheduleLineageStep(
             return LScheduleRatioRead(lWorkItem);
         }
 
-        if (lOriginBytes is not { } lOriginWhole || lOriginWhole <= 0 || lWorkItem.LWorkOutputBytes is not { } lOutput)
+        if (lOriginBytes is not { } lOriginWhole
+            || lOriginWhole <= 0
+            || lWorkItem.LWorkRunState.LWorkOutputBytes is not { } lOutput)
         {
             return null;
         }
@@ -58,7 +60,7 @@ public sealed record LScheduleLineageStep(
 
     private static double? LScheduleRatioRead(LWorkItem lWorkItem)
     {
-        if (lWorkItem.LWorkOutputBytes is not { } lOutputWhole
+        if (lWorkItem.LWorkRunState.LWorkOutputBytes is not { } lOutputWhole
             || LScheduleSourceRead(lWorkItem) is not { } lSourceWhole
             || lSourceWhole <= 0)
         {

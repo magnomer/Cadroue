@@ -57,26 +57,27 @@ public sealed class LRosterFacade
         if (LRosterRestartCheck(lItem))
         {
             IReadOnlyList<LWorkItem> lTargets = LRosterTargetsRead(lItem, lChosen, LRosterRestartCheck);
-            return (true, false, lTargets.Count, [], () => LRosterRestartRun(lSchedule, lTargets));
+            return (true, false, lTargets.Count, [], () => LRosterRestartRun(LStation.LStationTransition!, lTargets));
         }
 
         if (LRosterCancelCheck(lItem))
         {
             IReadOnlyList<LWorkItem> lTargets = LRosterTargetsRead(lItem, lChosen, LRosterCancelCheck);
-            return (false, true, lTargets.Count, [], () => LRosterCancelRun(lSchedule, lStation, lTargets));
+            return (false, true, lTargets.Count, [],
+                () => LRosterCancelRun(LStation.LStationTransition!, lStation, lTargets));
         }
 
-        IReadOnlyList<string> lPaths = lItem.LWorkStateCurrent == LWorkState.LWorkStateDone
+        IReadOnlyList<string> lPaths = lItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone
             ? LRosterPathsRead(lItem, lChosen)
             : [];
         return (false, false, lPaths.Count, lPaths, () => { });
     }
 
     private static bool LRosterRestartCheck(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed;
+        lWorkItem.LWorkRunState.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed;
 
     private static bool LRosterCancelCheck(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
+        lWorkItem.LWorkRunState.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
 
     private static IReadOnlyList<LWorkItem> LRosterTargetsRead(
         LWorkItem lClicked, IReadOnlyList<LWorkItem> lChosen, Func<LWorkItem, bool> lStateCheck)
@@ -87,7 +88,7 @@ public sealed class LRosterFacade
             : lTargets;
     }
 
-    private static void LRosterRestartRun(LScheduleContract lSchedule, IReadOnlyList<LWorkItem> lTargets)
+    private static void LRosterRestartRun(LScheduleTransitionContract lSchedule, IReadOnlyList<LWorkItem> lTargets)
     {
         foreach (LWorkItem lWorkItem in lTargets)
         {
@@ -96,11 +97,11 @@ public sealed class LRosterFacade
     }
 
     private static void LRosterCancelRun(
-        LScheduleContract lSchedule, LStation lStation, IReadOnlyList<LWorkItem> lTargets)
+        LScheduleTransitionContract lSchedule, LStation lStation, IReadOnlyList<LWorkItem> lTargets)
     {
         foreach (LWorkItem lWorkItem in lTargets)
         {
-            if (lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
+            if (lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateRunning)
             {
                 lStation.LStationRunner.LRunnerJobCancel(lWorkItem.LWorkId);
             }
@@ -121,7 +122,7 @@ public sealed class LRosterFacade
         var lRelayPaths = new List<string>();
         foreach (LWorkItem lRelayItem in lRelayItems)
         {
-            if (lRelayItem.LWorkStateCurrent == LWorkState.LWorkStateDone
+            if (lRelayItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && LRosterFileRead(lRelayItem) is { } lRelayPath
                 && !lRelayPaths.Contains(lRelayPath, StringComparer.OrdinalIgnoreCase))
             {

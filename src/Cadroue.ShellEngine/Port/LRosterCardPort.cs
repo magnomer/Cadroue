@@ -26,9 +26,9 @@ public sealed record LRosterRow(
             lWorkItem.LWorkId,
             lWorkItem.LWorkPriority == LWorkPriority.LWorkPriorityHigh,
             lWorkItem.LWorkLength,
-            lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning,
-            lWorkItem.LWorkProgress,
-            lWorkItem.LWorkStateCurrent switch
+            lWorkItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateRunning,
+            lWorkItem.LWorkRunState.LWorkProgress,
+            lWorkItem.LWorkRunState.LWorkStateCurrent switch
             {
                 LWorkState.LWorkStatePending => "Pending",
                 LWorkState.LWorkStateRunning => "Running",
@@ -40,7 +40,7 @@ public sealed record LRosterRow(
                 LWorkState.LWorkStateCancelled => "Cancelled",
                 _ => "Pending"
             },
-            lWorkItem.LWorkOwnerRunner != Guid.Empty,
+            lWorkItem.LWorkRunState.LWorkOwnerRunner != Guid.Empty,
             lOwned,
-            lWorkItem.LWorkOwnerProcess == Environment.ProcessId);
+            lWorkItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId);
 }

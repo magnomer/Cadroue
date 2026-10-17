@@ -4,15 +4,6 @@ using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed record LDepotIndexRow(
-    Guid LLedgerWorkId,
-    LDepotFolder LLedgerFolder,
-    LWorkState LLedgerState,
-    LWorkPriority LLedgerPriority,
-    DateTimeOffset LLedgerCreateTime,
-    int LLedgerProcessId,
-    string LLedgerOutputName);
-
 public sealed record LDepotEntry(LDepotFolder LDepotEntryFolder, string LDepotEntryJson);
 
 public static class LDepotIndex
@@ -85,14 +76,7 @@ public static class LDepotIndex
                     folder = $folder, state = $state, priority = $priority,
                     owner_pid = $owner, output_name = $name, record = $record;
                 """;
-            lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
-            lDepotCommand.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-            lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
-            lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
-            lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
-            lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
-            lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
-            lDepotCommand.Parameters.AddWithValue("$record", lWorkRecord.LWorkJsonCreate());
+            LDepotRowApply(lDepotCommand, lWorkRecord, lDepotFolder);
             lDepotCommand.ExecuteNonQuery();
         }
         catch (Exception lDepotException) when (lDepotException is SqliteException or IOException)
@@ -156,34 +140,6 @@ public static class LDepotIndex
         => LTraceLog.LTraceWarningRecord(
             $"Queue index {lDepotDetail} (the index rebuilds from the work folders): {lDepotException.Message}");
 
-    public static IReadOnlyList<LDepotIndexRow> LDepotIndexRead()
-    {
-        var lDepotRows = new List<LDepotIndexRow>();
-        using SqliteConnection lDepotConnection = LDepotConnectionOpen();
-        using SqliteCommand lDepotCommand = lDepotConnection.CreateCommand();
-        lDepotCommand.CommandText = """
-            SELECT work_id, folder, state, priority, create_time, owner_pid, output_name
-            FROM work ORDER BY create_time;
-            """;
-
-        using SqliteDataReader lDepotReader = lDepotCommand.ExecuteReader();
-        while (lDepotReader.Read())
-        {
-            lDepotRows.Add(new LDepotIndexRow(
-                Guid.TryParse(lDepotReader.GetString(0), out Guid lWorkId) ? lWorkId : Guid.Empty,
-                LDepotEnumRead(lDepotReader.GetString(1), LDepotFolder.LDepotFolderScheduled),
-                LDepotEnumRead(lDepotReader.GetString(2), LWorkState.LWorkStatePending),
-                LDepotEnumRead(lDepotReader.GetString(3), LWorkPriority.LWorkPriorityNormal),
-                DateTimeOffset.TryParse(lDepotReader.GetString(4), out DateTimeOffset lCreate)
-                    ? lCreate
-                    : DateTimeOffset.MinValue,
-                lDepotReader.GetInt32(5),
-                lDepotReader.GetString(6)));
-        }
-
-        return lDepotRows;
-    }
-
     public static IReadOnlyList<LScheduleEntry> LDepotIndexRebuild(string? lDepotRoot = null)
     {
         lDepotRoot ??= LDepot.LDepotRootRead();
@@ -219,14 +175,7 @@ public static class LDepotIndex
                             (work_id, folder, state, priority, create_time, owner_pid, output_name, record)
                         VALUES ($id, $folder, $state, $priority, $create, $owner, $name, $record);
                         """;
-                    lDepotInsert.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
-                    lDepotInsert.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
-                    lDepotInsert.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
-                    lDepotInsert.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
-                    lDepotInsert.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
-                    lDepotInsert.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
-                    lDepotInsert.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
-                    lDepotInsert.Parameters.AddWithValue("$record", lWorkRecord.LWorkJsonCreate());
+                    LDepotRowApply(lDepotInsert, lWorkRecord, lDepotFolder);
                     lDepotInsert.ExecuteNonQuery();
                 }
             }
@@ -275,6 +224,19 @@ public static class LDepotIndex
         {
             LDepotIndexRecord("compaction failed", lDepotException);
         }
+    }
+
+    private static void LDepotRowApply(
+        SqliteCommand lDepotCommand, LWorkDocument lWorkRecord, LDepotFolder lDepotFolder)
+    {
+        lDepotCommand.Parameters.AddWithValue("$id", lWorkRecord.LWorkId.ToString("N"));
+        lDepotCommand.Parameters.AddWithValue("$folder", lDepotFolder.ToString());
+        lDepotCommand.Parameters.AddWithValue("$state", lWorkRecord.LWorkStateName);
+        lDepotCommand.Parameters.AddWithValue("$priority", lWorkRecord.LWorkPriorityName);
+        lDepotCommand.Parameters.AddWithValue("$create", lWorkRecord.LWorkCreateTime.ToString("O"));
+        lDepotCommand.Parameters.AddWithValue("$owner", lWorkRecord.LWorkOwnerProcess);
+        lDepotCommand.Parameters.AddWithValue("$name", lWorkRecord.LWorkOutputName);
+        lDepotCommand.Parameters.AddWithValue("$record", lWorkRecord.LWorkJsonCreate());
     }
 
     private static SqliteConnection LDepotConnectionOpen(string? lDepotRoot = null)

@@ -28,7 +28,7 @@ public static partial class LMerge
             }
 
             string lMergeBasePath = lMergeSources[0];
-            string lMergeFolder = lMergeOutput.LEncodingFolderRead(lMergeBasePath);
+            string lMergeFolder = LEncodingPath.LEncodingFolderRead(lMergeOutput, lMergeBasePath);
             string lMergeName = LMergeNameCreate(
                 lMergeOutput,
                 lMergeBasePath,
@@ -109,7 +109,7 @@ public static partial class LMerge
             .Replace("{Date}", lMergeStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lMergeStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lMergeStemName = LEncoding.LEncodingShorten(lMergeStemName);
+        lMergeStemName = LEncodingPath.LEncodingShorten(lMergeStemName);
 
         string lMergeBaseName = LMergeNameNormalize(lMergeStemName);
         string lMergeUniqueName = lMergeBaseName;
@@ -120,7 +120,7 @@ public static partial class LMerge
             lMergeAttempt++;
         }
 
-        string lMergeExtension = lMergeOutput.LEncodingExtensionResolve(lMergeBasePath);
+        string lMergeExtension = LEncodingPath.LEncodingExtensionResolve(lMergeOutput, lMergeBasePath);
         return string.IsNullOrWhiteSpace(lMergeExtension)
             ? lMergeUniqueName
             : $"{lMergeUniqueName}.{lMergeExtension}";

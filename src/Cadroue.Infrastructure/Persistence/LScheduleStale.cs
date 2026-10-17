@@ -4,6 +4,8 @@ namespace Cadroue.Infrastructure;
 
 internal static class LScheduleStale
 {
+    internal const int LScheduleAttemptLimit = 3;
+
     internal static int LScheduleStaleClaim()
     {
         LDepotIndex.LDepotIndexCreate();
@@ -17,10 +19,10 @@ internal static class LScheduleStale
                 continue;
             }
 
-            LSchedule.LSchedulePartialRemove(lWorkRecord);
+            LScheduleTransition.LSchedulePartialRemove(lWorkRecord);
             string lSchedulePhase = LSchedulePhaseFormat(lWorkRecord.LWorkPhaseName);
 
-            if (lWorkRecord.LWorkRecoverCount >= LSchedule.LScheduleAttemptLimit)
+            if (lWorkRecord.LWorkRecoverCount >= LScheduleAttemptLimit)
             {
                 if (LScheduleFailedSet(
                         lWorkRecord,
@@ -39,7 +41,7 @@ internal static class LScheduleStale
             }
 
             lWorkRecord.LWorkRecoverCount++;
-            if (LSchedule.LScheduleRecordRelease(
+            if (LScheduleLease.LScheduleRecordRelease(
                     lWorkRecord,
                     $"Recovered after an unexpected stop while {lSchedulePhase} " +
                     $"(attempt {lWorkRecord.LWorkRecoverCount})."))
@@ -49,7 +51,7 @@ internal static class LScheduleStale
                     $"Schedule: work '{lWorkRecord.LWorkOutputName}' " +
                     $"[{LSchedule.LScheduleIdShorten(lWorkRecord.LWorkId)}] " +
                     $"returned to the queue: stopped unexpectedly while {lSchedulePhase} " +
-                    $"(attempt {lWorkRecord.LWorkRecoverCount} of {LSchedule.LScheduleAttemptLimit})");
+                    $"(attempt {lWorkRecord.LWorkRecoverCount} of {LScheduleAttemptLimit})");
             }
         }
 
@@ -63,7 +65,7 @@ internal static class LScheduleStale
 
     private static bool LScheduleFailedSet(LWorkDocument lWorkRecord, string lScheduleMessage)
     {
-        LSchedule.LScheduleOwnerClear(lWorkRecord);
+        LScheduleLease.LScheduleOwnerClear(lWorkRecord);
         lWorkRecord.LWorkStateName = nameof(LWorkState.LWorkStateFailed);
         lWorkRecord.LWorkMessage = lScheduleMessage;
         return LScheduleStore.LScheduleRecordMove(

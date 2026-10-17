@@ -4,17 +4,11 @@ namespace Cadroue.Infrastructure;
 
 public static class LDepotRelocation
 {
-    public static bool LDepotRunningCheck(string lDepotRoot)
-    {
-        string lDepotRunning = LDepot.LDepotFolderRead(LDepotFolder.LDepotFolderRunning, lDepotRoot);
-        return Directory.Exists(lDepotRunning) && Directory.EnumerateFiles(lDepotRunning).Any();
-    }
-
     public static bool LDepotFolderMove(string lDepotPrevious, string lDepotNext)
     {
         try
         {
-            if (LDepotRunningCheck(lDepotPrevious))
+            if (LDepot.LDepotRunningCheck(lDepotPrevious))
             {
                 LTraceLog.LTraceErrorRecord(
                     $"Workspace kept at {lDepotPrevious}: a job is running, so nothing was moved");

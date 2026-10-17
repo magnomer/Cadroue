@@ -22,6 +22,7 @@ public static class LRigFactory
 
     public static LRig LRigFactoryCreate()
     {
+        var lRigSchedule = new LSchedule();
         return new LRig(
             LRigFactoryTrace.LRigTraceCreate(),
             LRigFactoryUsher.LRigUsherCreate(),
@@ -38,6 +39,11 @@ public static class LRigFactory
                 LRigFactoryKeyframe.LRigKeyframeCreate,
                 LRigFactoryWaveform.LRigWaveformCreate,
                 () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
-            new LSchedule());
+            lRigSchedule,
+            new LScheduleIntake(lRigSchedule),
+            new LScheduleLease(lRigSchedule),
+            new LScheduleTransition(lRigSchedule),
+            new LScheduleMeasurement(lRigSchedule),
+            new LScheduleRemover(lRigSchedule));
     }
 }

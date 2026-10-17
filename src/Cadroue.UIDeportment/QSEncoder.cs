@@ -73,11 +73,11 @@ public sealed partial class QSEncoder
         QSEncoderTrialCancel();
     }
 
-    private void QSEncoderInventoryAttach() => LInventory.LInventoryHelpReady += QSEncoderHelpHandle;
+    private void QSEncoderInventoryAttach() => LInventoryHelp.LInventoryHelpReady += QSEncoderHelpHandle;
 
     private void QSEncoderHelpDetach()
     {
-        LInventory.LInventoryHelpReady -= QSEncoderHelpHandle;
+        LInventoryHelp.LInventoryHelpReady -= QSEncoderHelpHandle;
         qsEncoderHelpHandler = null;
     }
 

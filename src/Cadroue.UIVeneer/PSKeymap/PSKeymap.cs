@@ -76,15 +76,15 @@ internal sealed class PSKeymap : Window
     private UIElement PSKeymapBuild() =>
         PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
             PSSheetTabWidth,
-            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeGlobal, PSSheetGlobalIcon),
-            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeTab, PSSheetTabIcon),
-            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeFlow, PSSheetFlowIcon),
-            PSKeymapSheetBuild(Cadroue.Infrastructure.LBinding.LBindingScopeSplit, PSSheetSplitIcon)));
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBindingCatalog.LBindingScopeGlobal, PSSheetGlobalIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBindingCatalog.LBindingScopeTab, PSSheetTabIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBindingCatalog.LBindingScopeFlow, PSSheetFlowIcon),
+            PSKeymapSheetBuild(Cadroue.Infrastructure.LBindingCatalog.LBindingScopeSplit, PSSheetSplitIcon)));
 
     private TabItem PSKeymapSheetBuild(string pScope, string pIconPath)
     {
         string pScopeTitle = QLocalizationCatalog.QLocalizationTextRead(
-            Cadroue.Infrastructure.LBinding.LBindingLabelRead(pScope));
+            Cadroue.Infrastructure.LBindingCatalog.LBindingLabelRead(pScope));
         return PSSheet.PSSheetBuild(
             pScopeTitle,
             pIconPath,
@@ -94,7 +94,7 @@ internal sealed class PSKeymap : Window
     private UIElement PSKeymapScopeBuild(string pScope, string pScopeTitle)
     {
         var pRows = new List<UIElement>();
-        foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBinding.LBindingScopeRead(pScope))
+        foreach (LBindingCommand pCommand in Cadroue.Infrastructure.LBindingCatalog.LBindingScopeRead(pScope))
         {
             pRows.Add(PSKeymapRowBuild(pCommand));
         }

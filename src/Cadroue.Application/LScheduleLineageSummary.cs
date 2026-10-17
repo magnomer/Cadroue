@@ -47,7 +47,7 @@ internal static class LScheduleLineageSummary
             lSources.Count,
             lOutputs.Count,
             lIds,
-            lBatchItems.All(lWorkItem => lWorkItem.LWorkStateCurrent is not
+            lBatchItems.All(lWorkItem => lWorkItem.LWorkRunState.LWorkStateCurrent is not
                 (LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning)));
     }
 
@@ -177,11 +177,11 @@ internal static class LScheduleLineageSummary
         var lSeenOutputs = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkItem lWorkItem in lBatchItems)
         {
-            if (lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateDone
+            if (lWorkItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateDone
                 || LScheduleKeyFind(lPathKeys, lWorkItem.LWorkOutputPath) is not { } lOutputKey
                 || lConsumed.Contains(lOutputKey)
                 || !lSeenOutputs.Add(lOutputKey)
-                || lWorkItem.LWorkOutputBytes is not { } lOutputWhole)
+                || lWorkItem.LWorkRunState.LWorkOutputBytes is not { } lOutputWhole)
             {
                 continue;
             }

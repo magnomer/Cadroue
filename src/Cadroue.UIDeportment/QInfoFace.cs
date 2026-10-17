@@ -44,7 +44,7 @@ public static class QInfoFace
         UIElementCollection items = QContract.QContractFind<StackPanel>(surface, "pInfoItems").Children;
         items.Clear();
         foreach (LInfoRow row in LInfoReport.LInfoReportRead(
-                     info.QInfoViewer.QViewerCargo, LMediaProbe.LMediaAvailabilityCurrent))
+                     info.QInfoViewer.QViewerCargo, LMediaAvailability.LMediaAvailabilityCurrent))
         {
             items.Add(qInfoFaceSheets[row.LInfoRowKind](surface, row.LInfoRowCaption));
         }

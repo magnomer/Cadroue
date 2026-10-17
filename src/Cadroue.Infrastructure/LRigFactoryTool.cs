@@ -10,6 +10,6 @@ public static class LRigFactoryTool
         return new LRigTool(
             LTool.LToolFfmpegRead,
             LTool.LToolFfprobeRead,
-            () => LRenderer.LRendererProgramCurrent);
+            () => LRendererFolder.LRendererProgramCurrent);
     }
 }

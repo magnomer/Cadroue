@@ -17,7 +17,7 @@ internal sealed partial class LJob
 
         Guid pLineage = lJobItem.LWorkLineage != Guid.Empty
             ? lJobItem.LWorkLineage
-            : lJobOwner.lRunnerSchedule.LScheduleLineageRead(lJobItem);
+            : LLineageEngine.LLineageWorkSeam(lJobItem);
 
         var pItems = new List<LWorkItem>(lJobSalvaged.Count);
         foreach (string pPath in lJobSalvaged)
@@ -26,7 +26,7 @@ internal sealed partial class LJob
             pItems.Add(LJobSalvageCreate(pPath, pBytes, pLineage));
         }
 
-        lJobOwner.lRunnerSchedule.LScheduleDeliveredAdd(pItems);
+        lJobOwner.lRunnerIntake.LScheduleDeliveredAdd(pItems);
     }
 
     private LWorkItem LJobSalvageCreate(string pPath, long pBytes, Guid pLineage) =>
@@ -48,14 +48,17 @@ internal sealed partial class LJob
             LWorkRelayStamp = lJobItem.LWorkRelayStamp,
             LWorkTab = lJobItem.LWorkTab,
             LWorkSignet = lJobItem.LWorkSignet,
-            LWorkOwnerProcess = Environment.ProcessId,
-            LWorkOwnerStamp = lJobItem.LWorkOwnerStamp,
-            LWorkOwnerRunner = lJobItem.LWorkOwnerRunner,
-            LWorkStartTime = lJobItem.LWorkStartTime,
-            LWorkFinishTime = DateTimeOffset.Now,
-            LWorkOutputBytes = pBytes,
             LWorkSourceBytes = lJobItem.LWorkSourceBytes,
-            LWorkStateCurrent = LWorkState.LWorkStateDone,
-            LWorkProgress = 1
+            LWorkRunState =
+            {
+                LWorkOwnerProcess = Environment.ProcessId,
+                LWorkOwnerStamp = lJobItem.LWorkRunState.LWorkOwnerStamp,
+                LWorkOwnerRunner = lJobItem.LWorkRunState.LWorkOwnerRunner,
+                LWorkStartTime = lJobItem.LWorkRunState.LWorkStartTime,
+                LWorkFinishTime = DateTimeOffset.Now,
+                LWorkOutputBytes = pBytes,
+                LWorkStateCurrent = LWorkState.LWorkStateDone,
+                LWorkProgress = 1
+            }
         };
 }

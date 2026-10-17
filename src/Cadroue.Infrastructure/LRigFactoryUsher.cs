@@ -14,8 +14,8 @@ public static class LRigFactoryUsher
             LUsher.LUsherNameRead,
             LUsher.LUsherStemRead,
             LUsher.LUsherExtensionRead,
-            LUsher.LUsherPathOpen,
-            LUsher.LUsherFolderOpen,
-            LUsher.LUsherLinkOpen);
+            LUsherShell.LUsherPathOpen,
+            LUsherShell.LUsherFolderOpen,
+            LUsherShell.LUsherLinkOpen);
     }
 }

@@ -1,47 +1,21 @@
+using System.IO;
 using Cadroue.Media;
 
 using Cadroue.Core;
 
 namespace Cadroue.Infrastructure;
 
-public sealed partial class LKeyframeOrchestrator : IDisposable
+public sealed class LKeyframeOrchestrator : IDisposable
 {
-    private sealed record LKeyframeSignature(int LKeyframeSignatureCount, int LKeyframeSignatureSpans);
-
-    private const int LKeyframeGridMilliseconds = 10000;
-    private const int LKeyframeLegacyMilliseconds = 20000;
     private readonly object lKeyframeLock = new();
     private readonly object lKeyframeDispatchGate = new();
-    private readonly SortedSet<long> lKeyframeStorage = new();
-    private readonly HashSet<int> lKeyframeScannedSpans = new();
-    private const int LKeyframeRetryLimit = 3;
-    private static readonly TimeSpan LKeyframeScanLimit = TimeSpan.FromMinutes(1);
-
-    private const int LKeyframeSaveCount = 10;
-
-    private int lKeyframeUnsavedCount;
-    private LKeyframeSignature lKeyframeSavedSignature = new(-1, -1);
-    private readonly Dictionary<int, int> lKeyframeFailedCounts = new();
-    private readonly Dictionary<int, int> lKeyframeAttempts = new();
+    private readonly LKeyframeSession lKeyframeSession = new();
+    private readonly LKeyframeCache lKeyframeCache;
+    private readonly LKeyframePlan lKeyframePlan;
     private CancellationTokenSource? lKeyframeCancelSource;
-    private LKeyframeSourceIdentity? lKeyframeSourceIdentity;
-    private TimeSpan lKeyframeDuration;
-    private LKeyframeKind lKeyframeKind;
-    private double lKeyframeRate;
-    private double lKeyframeStartSeconds;
-    private TimeSpan lKeyframeCursor;
-    private bool lKeyframePaused;
-    private int lKeyframeLead = 1;
-    private bool lKeyframeReachBefore;
-    private bool lKeyframeReachAfter;
-    private bool lKeyframeWorkerActive;
-    private int lKeyframeWorkerSerial;
-    private int lKeyframeRequestSerial;
     private long lKeyframeNoticeSerial;
     private long lKeyframeNoticeCeiling = -1;
     private bool lKeyframeDisposed;
-    private readonly Func<string, double, TimeSpan, TimeSpan, CancellationToken, Task<LKeyframeSpanResult>>
-        lKeyframeScanner;
 
     public LKeyframeOrchestrator()
         : this(LKeyframeSeeker.LKeyframeLaneScan)
@@ -51,12 +25,15 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     internal LKeyframeOrchestrator(
         Func<string, double, TimeSpan, TimeSpan, CancellationToken, Task<LKeyframeSpanResult>> scanner)
     {
-        lKeyframeScanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
+        ArgumentNullException.ThrowIfNull(scanner);
+        lKeyframeCache = new LKeyframeCache(lKeyframeLock, lKeyframeSession);
+        lKeyframePlan = new LKeyframePlan(
+            lKeyframeLock, lKeyframeSession, lKeyframeCache, scanner, LKeyframeNoticePublish);
     }
 
     public event Action<LKeyframeNotice>? LKeyframeNoticeReady;
 
-    public int LKeyframeCurrentSerial => lKeyframeRequestSerial;
+    public int LKeyframeCurrentSerial => lKeyframeSession.LKeyframeSessionSerial;
 
     public static TimeSpan LKeyframeSearchDuration =>
         LKeyframeView.LKeyframeRangeBefore + LKeyframeView.LKeyframeRangeAfter;
@@ -74,28 +51,20 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         LKeyframeSourceIdentity? identity;
         lock (lKeyframeLock)
         {
-            serial = ++lKeyframeRequestSerial;
-            if (cursor != lKeyframeCursor)
-            {
-                lKeyframeReachBefore = false;
-                lKeyframeReachAfter = false;
-            }
-
-            lKeyframeCursor = cursor;
-            lKeyframePaused = false;
-
-            identity = lKeyframeSourceIdentity;
-            if (LKeyframeSourceCheck(sourcePath, duration))
+            serial = lKeyframeSession.LKeyframeRequestStart(cursor);
+            identity = lKeyframeSession.LKeyframeSessionSource;
+            if (lKeyframeSession.LKeyframeChangeCheck(sourcePath, duration))
             {
                 lKeyframeCancelSource?.Cancel();
                 lKeyframeCancelSource?.Dispose();
                 lKeyframeCancelSource = new CancellationTokenSource();
                 identity = null;
-                LKeyframeStateClear();
-                lKeyframeDuration = duration;
-                lKeyframeKind = LKeyframeCodec.LKeyframeKindResolve(mediaInfo);
-                lKeyframeRate = mediaInfo.LMediaVideoRate;
-                lKeyframeStartSeconds = mediaInfo.LMediaStartTime.TotalSeconds;
+                lKeyframePlan.LKeyframePlanReset();
+                lKeyframeSession.LKeyframeSessionOpen(
+                    duration,
+                    LKeyframeCodec.LKeyframeKindResolve(mediaInfo),
+                    mediaInfo.LMediaVideoRate,
+                    mediaInfo.LMediaStartTime.TotalSeconds);
             }
 
             lKeyframeCancelSource ??= new CancellationTokenSource();
@@ -106,7 +75,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         LKeyframeNoticePublish(serial);
         if (identity is not null)
         {
-            LKeyframePlanStart(identity.LKeyframeSourcePath, cancel.Token);
+            lKeyframePlan.LKeyframePlanStart(identity.LKeyframeSourcePath, cancel.Token);
         }
     }
 
@@ -114,7 +83,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         lock (lKeyframeLock)
         {
-            lKeyframePaused = true;
+            lKeyframeSession.LKeyframeSessionSuspend();
         }
     }
 
@@ -122,15 +91,7 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
     {
         lock (lKeyframeLock)
         {
-            if (cursor == lKeyframeCursor)
-            {
-                return;
-            }
-
-            lKeyframeCursor = cursor;
-            lKeyframePaused = true;
-            lKeyframeReachBefore = false;
-            lKeyframeReachAfter = false;
+            lKeyframeSession.LKeyframeSessionSync(cursor);
         }
     }
 
@@ -159,106 +120,106 @@ public sealed partial class LKeyframeOrchestrator : IDisposable
         return cursor - previous.LKeyframeTarget.Value <= next.LKeyframeTarget.Value - cursor ? previous : next;
     }
 
+    public void LKeyframeSidecarSave()
+    {
+        lKeyframeCache.LKeyframeCacheCommit();
+    }
+
+    public void Dispose()
+    {
+        if (lKeyframeDisposed)
+        {
+            return;
+        }
+
+        lKeyframeDisposed = true;
+        lKeyframeCancelSource?.Cancel();
+        lKeyframeCancelSource?.Dispose();
+        lKeyframeCancelSource = null;
+    }
+
     private LKeyframeMoveResult LKeyframeMoveFind(TimeSpan cursor, int direction)
     {
         lock (lKeyframeLock)
         {
-            LKeyframeMoveResult result = LKeyframeMoveResolve(
-                lKeyframeStorage,
-                lKeyframeScannedSpans,
-                lKeyframeDuration,
-                cursor,
-                direction,
-                LKeyframeFailureRead(),
-                lKeyframeKind,
-                lKeyframeRate);
-            bool reach = !result.LKeyframeReady && !result.LKeyframeFailed;
-            lKeyframeLead = direction;
-            if (direction < 0)
-            {
-                lKeyframeReachBefore = reach;
-            }
-            else
-            {
-                lKeyframeReachAfter = reach;
-            }
-
-            return result;
+            return lKeyframeSession.LKeyframeTargetFind(cursor, direction);
         }
     }
 
-    private HashSet<int> LKeyframeFailureRead() =>
-        lKeyframeFailedCounts
-            .Where(pair => pair.Value >= LKeyframeRetryLimit)
-            .Select(pair => pair.Key)
-            .ToHashSet();
-
-    internal static LKeyframeMoveResult LKeyframeMoveResolve(
-        IReadOnlyCollection<long> keyframes,
-        IReadOnlySet<int> scannedSpans,
-        TimeSpan duration,
-        TimeSpan cursor,
-        int direction,
-        IReadOnlySet<int>? failedSpans = null,
-        LKeyframeKind kind = LKeyframeKind.LKeyframeKindInter,
-        double rate = 0)
+    private LKeyframeSourceIdentity? LKeyframeIdentityLoad(string sourcePath, TimeSpan duration, int serial)
     {
-        if (kind != LKeyframeKind.LKeyframeKindInter)
+        LKeyframeSourceIdentity identity;
+        try
         {
-            return LKeyframeMoveResult.LKeyframeReadyCreate(
-                LKeyframeFrameResolve(duration, cursor, direction, kind, rate));
+            identity = LKeyframeSourceIdentity.LKeyframeIdentityCreate(sourcePath, duration);
+        }
+        catch (Exception exception)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Keyframe scan skipped: source identity could not be read for '{Path.GetFileName(sourcePath)}'",
+                exception.Message);
+            return null;
         }
 
-        long durationMs = Math.Max(0, (long)Math.Ceiling(duration.TotalMilliseconds));
-        long cursorMs = Math.Clamp((long)Math.Round(cursor.TotalMilliseconds), 0, durationMs);
-        long rangeStartMs = direction < 0 ? 0 : cursorMs;
-        long rangeEndMs = direction < 0 ? cursorMs : durationMs;
-
-        if (rangeEndMs <= rangeStartMs)
+        (long[] keyframes, int[] scannedSpans) = LKeyframeCache.LKeyframeCacheLoad(identity);
+        lock (lKeyframeLock)
         {
-            return LKeyframeMoveResult.LKeyframeReadyCreate(null);
-        }
-
-        long? target = direction < 0
-            ? keyframes.Where(ms => ms >= rangeStartMs && ms < cursorMs).Select(ms => (long?)ms).Max()
-            : keyframes.Where(ms => ms > cursorMs && ms < rangeEndMs).Select(ms => (long?)ms).Min();
-
-        long coverageStartMs = direction < 0 ? target ?? rangeStartMs : cursorMs;
-        long coverageEndMs = direction < 0 ? cursorMs : target is null ? rangeEndMs : target.Value + 1;
-        int firstSpan = (int)(coverageStartMs / LKeyframeGridMilliseconds);
-        int lastSpan = (int)((coverageEndMs - 1) / LKeyframeGridMilliseconds);
-        bool pending = false;
-        for (int span = firstSpan; span <= lastSpan; span++)
-        {
-            if (failedSpans?.Contains(span) == true)
+            if (serial != lKeyframeSession.LKeyframeSessionSerial)
             {
-                return LKeyframeMoveResult.LKeyframeFailedCreate();
+                return null;
             }
 
-            pending |= !scannedSpans.Contains(span);
+            lKeyframeSession.LKeyframeSourceSet(identity, keyframes, scannedSpans);
         }
 
-        return pending
-            ? LKeyframeMoveResult.LKeyframePending
-            : LKeyframeMoveResult.LKeyframeReadyCreate(
-                target is null ? null : TimeSpan.FromMilliseconds(target.Value));
+        return identity;
     }
 
-    private static TimeSpan? LKeyframeFrameResolve(
-        TimeSpan duration, TimeSpan cursor, int direction, LKeyframeKind kind, double rate)
+    private void LKeyframeNoticePublish(int serial)
     {
-        TimeSpan frame = LKeyframeCodec.LKeyframeFrameResolve(rate);
-        if (kind != LKeyframeKind.LKeyframeKindIntra || frame <= TimeSpan.Zero)
+        LKeyframeNotice notice;
+        long lKeyframeStamp;
+        lock (lKeyframeLock)
         {
-            return null;
-        }
+            if (serial != lKeyframeSession.LKeyframeSessionSerial)
+            {
+                return;
+            }
 
-        TimeSpan target = direction < 0 ? cursor - frame : cursor + frame;
-        if (target < TimeSpan.Zero || target > duration)
+            notice = lKeyframeSession.LKeyframeNoticeCreate(serial);
+            lKeyframeStamp = ++lKeyframeNoticeSerial;
+        }
+        LKeyframeNoticeDispatch(notice, lKeyframeStamp);
+    }
+
+    private void LKeyframeNoticeDispatch(LKeyframeNotice notice, long stamp)
+    {
+        lock (lKeyframeDispatchGate)
         {
-            return null;
-        }
+            if (stamp <= lKeyframeNoticeCeiling)
+            {
+                return;
+            }
 
-        return target;
+            lKeyframeNoticeCeiling = stamp;
+
+            var noticeReady = LKeyframeNoticeReady;
+            if (noticeReady is null)
+            {
+                return;
+            }
+
+            foreach (var handler in noticeReady.GetInvocationList())
+            {
+                try
+                {
+                    ((Action<LKeyframeNotice>)handler)(notice);
+                }
+                catch (Exception ex)
+                {
+                    LTraceLog.LTraceErrorRecord("Keyframe notice handler failed", ex);
+                }
+            }
+        }
     }
 }

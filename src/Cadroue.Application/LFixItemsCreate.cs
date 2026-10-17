@@ -39,7 +39,7 @@ public static partial class LFix
 
             TimeSpan lFixDuration = lFixMedia?.LWorkMediaDuration ?? lDurationRead(lFixSourcePath);
 
-            string lFixFolder = lFixOutput.LEncodingFolderRead(lFixSourcePath);
+            string lFixFolder = LEncodingPath.LEncodingFolderRead(lFixOutput, lFixSourcePath);
             string lFixOutputName = LFixNameCreate(lFixOutput, lFixSourcePath, lFixFolder, lFixDuration);
 
             LWorkFix lFixPlanCurrent = LWorkFix.LWorkFixCreate();
@@ -82,22 +82,21 @@ public static partial class LFix
             : lFixOutput.LEncodingNamePattern;
 
         DateTimeOffset lFixStamp = DateTimeOffset.Now;
+        string lFixOrigin = LEncodingPath.LEncodingTimeFormat(TimeSpan.Zero);
+        string lFixLength = LEncodingPath.LEncodingTimeFormat(lFixDuration);
         string lFixStem = lFixPattern
             .Replace("{Prefix}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{Suffix}", string.Empty, StringComparison.OrdinalIgnoreCase)
             .Replace("{OriginalName}", lFixSourceStem, StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionNumber}", "01", StringComparison.OrdinalIgnoreCase)
             .Replace("{SectionName}", "Fix", StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionStart}", LEncoding.LEncodingTimeFormat(TimeSpan.Zero), StringComparison.OrdinalIgnoreCase)
-            .Replace("{SectionEnd}", LEncoding.LEncodingTimeFormat(lFixDuration), StringComparison.OrdinalIgnoreCase)
-            .Replace(
-                "{SectionDuration}",
-                LEncoding.LEncodingTimeFormat(lFixDuration),
-                StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionStart}", lFixOrigin, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionEnd}", lFixLength, StringComparison.OrdinalIgnoreCase)
+            .Replace("{SectionDuration}", lFixLength, StringComparison.OrdinalIgnoreCase)
             .Replace("{Date}", lFixStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lFixStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lFixStem = LEncoding.LEncodingShorten(lFixStem);
+        lFixStem = LEncodingPath.LEncodingShorten(lFixStem);
 
         string lFixBaseName = LFixNameNormalize(lFixStem);
         string lFixFileName = LFixNameFormat(lFixBaseName, lFixSourcePath);

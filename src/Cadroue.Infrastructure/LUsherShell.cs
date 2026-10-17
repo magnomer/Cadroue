@@ -1,0 +1,74 @@
+using System.Diagnostics;
+
+namespace Cadroue.Infrastructure;
+
+public static class LUsherShell
+{
+    public static string? LUsherPathOpen(string lUsherPath, string? lUsherFallback = null)
+    {
+        try
+        {
+            if (File.Exists(lUsherPath))
+            {
+                Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{lUsherPath}\"")
+                {
+                    UseShellExecute = true
+                });
+                return null;
+            }
+
+            string? lUsherFolder = lUsherFallback ?? Path.GetDirectoryName(lUsherPath);
+            if (string.IsNullOrWhiteSpace(lUsherFolder))
+            {
+                return null;
+            }
+
+            if (lUsherFallback is not null)
+            {
+                Directory.CreateDirectory(lUsherFolder);
+            }
+            else if (!Directory.Exists(lUsherFolder))
+            {
+                return null;
+            }
+
+            Process.Start(new ProcessStartInfo(lUsherFolder) { UseShellExecute = true });
+            return null;
+        }
+        catch (Exception lUsherException)
+        {
+            return lUsherException.Message;
+        }
+    }
+
+    public static string? LUsherFolderOpen(string lUsherFolder)
+    {
+        if (!LUsher.LUsherFolderExist(lUsherFolder))
+        {
+            return null;
+        }
+
+        try
+        {
+            Process.Start(new ProcessStartInfo("explorer.exe", $"\"{lUsherFolder}\"") { UseShellExecute = true });
+            return null;
+        }
+        catch (Exception lUsherException)
+        {
+            return lUsherException.Message;
+        }
+    }
+
+    public static string? LUsherLinkOpen(string lUsherTarget)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(lUsherTarget) { UseShellExecute = true });
+            return null;
+        }
+        catch (Exception lUsherException)
+        {
+            return lUsherException.Message;
+        }
+    }
+}

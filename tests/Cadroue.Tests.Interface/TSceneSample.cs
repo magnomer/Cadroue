@@ -9,7 +9,7 @@ internal static class TSceneSample
     {
         return new LSceneDocument
         {
-            LSceneVersion = LScene.LSceneVersionCurrent,
+            LSceneVersion = LSceneCanonical.LSceneVersionCurrent,
             LSceneName = name,
             LSceneLayoutKeys = new() { $"layout-{marker}", $"layout-{marker + 1}" },
             LSceneTabNames = new() { $"tab-{marker}", $"tab-{marker + 1}" },

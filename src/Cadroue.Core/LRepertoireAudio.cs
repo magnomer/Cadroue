@@ -5,7 +5,7 @@ namespace Cadroue.Core;
 
 public sealed record LRepertoireAudio(string LRepertoireText, string LRepertoireName);
 
-public static partial class LRepertoireCatalog
+public static class LRepertoireAudioCatalog
 {
     public static readonly IReadOnlyList<LRepertoireAudio> LRepertoireAudioCandidates =
     [

@@ -15,14 +15,14 @@ public sealed class TProcessing
     public bool TProcessingLiveCheck()
     {
         Guid runnerId = Guid.NewGuid();
-        LSentinel.LSentinelRunnerAdd(runnerId);
+        LSentinelRunner.LSentinelRunnerAdd(runnerId);
         try
         {
             return LSentinel.LSentinelOwnerCheck(Environment.ProcessId, LSentinel.LSentinelStampRead(), runnerId);
         }
         finally
         {
-            LSentinel.LSentinelRunnerRemove(runnerId);
+            LSentinelRunner.LSentinelRunnerRemove(runnerId);
         }
     }
 

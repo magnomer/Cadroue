@@ -12,14 +12,15 @@ public sealed class LRosterCardFacade
 
     public IReadOnlyList<LRosterRow> LRosterCardRead(IReadOnlyList<Guid> lIds, Guid lRunner)
     {
-        if (LStation.LStationSchedule is not { } lSchedule)
+        if (LStation.LStationSchedule is not { } lSchedule
+            || LStation.LStationLease is not { } lLease)
         {
             return [];
         }
 
         return LScheduleLookup.LScheduleRecordsRead(lSchedule, lIds)
             .Select(lWorkItem => LRosterRow.LRosterRowCreate(
-                lWorkItem, lSchedule.LScheduleOwnerCheck(lWorkItem, lRunner)))
+                lWorkItem, lLease.LScheduleOwnerCheck(lWorkItem, lRunner)))
             .ToArray();
     }
 }

@@ -7,8 +7,8 @@ public static class LRigFactoryDepot
 {
     public static void LRigDepotAttach()
     {
-        LSchedule.LScheduleSharedSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
-        LSchedule.LScheduleTimeSeam = LGate.LGateTimeRead;
+        LScheduleScope.LScheduleSharedSeam = () => LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
+        LScheduleLease.LScheduleTimeSeam = LGate.LGateTimeRead;
         LRetentionSweep.LRetentionSweptSeam = LRetention.LRetentionSweptCheck;
         LRetentionSweep.LRetentionExpiredSeam = LRetention.LRetentionExpiredCheck;
     }
