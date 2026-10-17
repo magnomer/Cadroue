@@ -1,36 +1,32 @@
-using Cadroue.Core;
-
 namespace Cadroue.ShellEngine;
 
-// One flow's waveform scan: the calls over one scanner the rig hands in. Whether a scan runs and when its notice
-// reaches the readers is the gate's.
+// The engine's face for one flow's waveform scan: every member forwards to the same-named member of that flow's
+// waveform facade, which the flow outlet has the engine make. It rejects a null facade and keeps it for every forward.
 public sealed class LWaveformOutlet : LWaveformPort
 {
-    private readonly LRigWaveform _lWaveformOutletRig;
+    private readonly LWaveformFacade _lWaveformOutletEngine;
 
-    public LWaveformOutlet(LRigWaveform lRig)
+    internal LWaveformOutlet(LWaveformFacade lFacade)
     {
-        ArgumentNullException.ThrowIfNull(lRig);
-        _lWaveformOutletRig = lRig;
-        lRig.LRigWaveformAttachment(LWaveformHandle);
+        ArgumentNullException.ThrowIfNull(lFacade);
+        _lWaveformOutletEngine = lFacade;
     }
 
-    public event Action? LWaveformArrived;
+    public event Action? LWaveformArrived
+    {
+        add => _lWaveformOutletEngine.LWaveformArrived += value;
+        remove => _lWaveformOutletEngine.LWaveformArrived -= value;
+    }
 
-    public bool LWaveformPeaksCheck() => _lWaveformOutletRig.LRigWaveformPeaks().Length > 0;
+    public bool LWaveformPeaksCheck() => _lWaveformOutletEngine.LWaveformPeaksCheck();
 
     public void LWaveformStart(string? lSource, TimeSpan lDuration, bool lAudio) =>
-        _lWaveformOutletRig.LRigWaveformScanner(lSource, lDuration, lAudio);
+        _lWaveformOutletEngine.LWaveformStart(lSource, lDuration, lAudio);
 
-    public void LWaveformClear() => _lWaveformOutletRig.LRigWaveformClearance();
+    public void LWaveformClear() => _lWaveformOutletEngine.LWaveformClear();
 
-    public double[]? LWaveformRangeRead(TimeSpan lStart, TimeSpan lEnd, int lColumns)
-    {
-        byte[] lPeaks = _lWaveformOutletRig.LRigWaveformPeaks();
-        return lPeaks.Length == 0 ? null : _lWaveformOutletRig.LRigWaveformRange(lPeaks, lStart, lEnd, lColumns);
-    }
+    public double[]? LWaveformRangeRead(TimeSpan lStart, TimeSpan lEnd, int lColumns) =>
+        _lWaveformOutletEngine.LWaveformRangeRead(lStart, lEnd, lColumns);
 
-    public void LWaveformClose() => _lWaveformOutletRig.LRigWaveformDisposal();
-
-    private void LWaveformHandle() => LWaveformArrived?.Invoke();
+    public void LWaveformClose() => _lWaveformOutletEngine.LWaveformClose();
 }

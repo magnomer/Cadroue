@@ -34,10 +34,7 @@ Thread thread = new(() =>
         LAtelierMerge = new LMergeOutlet(engine),
         LAtelierNoise = new LNoiseOutlet(engine),
         LAtelierConsole = new LConsoleOutlet(engine),
-        LAtelierFlow = new LFlowOutlet(
-            rig.LRigKeyframe,
-            rig.LRigWaveform,
-            () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
+        LAtelierFlow = new LFlowOutlet(engine),
         LAtelierMap = new LMapOutlet(engine),
         LAtelierRosterDetail = new LRosterDetailOutlet(engine),
         LAtelierWhitebalance = new LWhitebalanceOutlet(engine),

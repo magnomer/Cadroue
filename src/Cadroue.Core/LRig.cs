@@ -12,6 +12,5 @@ public sealed record LRig(
     LRigCheckup LRigCheckup,
     LRigLineage LRigLineage,
     LRigPreview LRigPreview,
-    Func<LRigWaveform> LRigWaveform,
-    Func<LRigKeyframe> LRigKeyframe,
+    LRigFlow LRigFlow,
     LScheduleContract LRigSchedule);

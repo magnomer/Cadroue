@@ -49,6 +49,8 @@ public sealed class LEngine
 
     public LRosterDetailFacade LEngineRosterDetail { get; }
 
+    public LFlowFacade LEngineFlow { get; }
+
     public LEngine(LRig lRig)
     {
         ArgumentNullException.ThrowIfNull(lRig);
@@ -75,6 +77,7 @@ public sealed class LEngine
         LEngineRelay = new LRelayFacade(lRig.LRigMedia, lRig.LRigTrace);
         LEngineLineage = new LLineageFacade();
         LEngineRosterDetail = new LRosterDetailFacade();
+        LEngineFlow = new LFlowFacade(lRig.LRigFlow);
         LTraceEngine.LTraceInfoSeam = lRig.LRigTrace.LRigTraceInfo;
         LTraceEngine.LTraceWarningSeam = lMessage => lRig.LRigTrace.LRigTraceWarning(lMessage, null);
         LTraceEngine.LTraceErrorSeam = lRig.LRigTrace.LRigTraceError;

@@ -3,60 +3,47 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-// The flow gate's reads and range edits: the preferences it starts and turns from, a media record, a section's names
-// and the height the panel was left at as plain values, and the zoom and step over its range. The rig hands in how one
-// flow's keyframe and waveform scans are made, and the host how the height is read, since the scanners and the frame
-// store live below the engine.
+// The engine's face for the flow gate: every member forwards to the same-named member of the engine's flow facade,
+// and each per-flow facade it makes comes back wrapped in that flow's outlet. It rejects a null engine and keeps it for
+// every forward.
 public sealed class LFlowOutlet : LFlowPort
 {
-    private readonly Func<LRigKeyframe> _lFlowOutletKeyframe;
-    private readonly Func<LRigWaveform> _lFlowOutletWaveform;
-    private readonly Func<double> _lFlowOutletHeight;
+    private readonly LEngine _lFlowOutletEngine;
 
-    public LFlowOutlet(Func<LRigKeyframe> lKeyframe, Func<LRigWaveform> lWaveform, Func<double> lHeight)
+    public LFlowOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lKeyframe);
-        ArgumentNullException.ThrowIfNull(lWaveform);
-        ArgumentNullException.ThrowIfNull(lHeight);
-        _lFlowOutletKeyframe = lKeyframe;
-        _lFlowOutletWaveform = lWaveform;
-        _lFlowOutletHeight = lHeight;
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lFlowOutletEngine = lEngine;
     }
 
-    public bool LFlowWaveformRead() => LPreference.LPreferenceStateCurrent.LPreferenceWaveform;
+    public bool LFlowWaveformRead() => _lFlowOutletEngine.LEngineFlow.LFlowWaveformRead();
 
-    // The map row leads unless the preference puts the viewfinder first.
-    public bool LFlowOrderRead() => LPreference.LPreferenceStateCurrent.LPreferenceTimelineOrder != "ViewfinderFirst";
+    public bool LFlowOrderRead() => _lFlowOutletEngine.LEngineFlow.LFlowOrderRead();
 
-    public string LFlowWheelRead() => LPreference.LPreferenceStateCurrent.LPreferenceWheelAction;
+    public string LFlowWheelRead() => _lFlowOutletEngine.LEngineFlow.LFlowWheelRead();
 
-    public bool LFlowDragRead() => LPreference.LPreferenceStateCurrent.LPreferenceDragPaused;
+    public bool LFlowDragRead() => _lFlowOutletEngine.LEngineFlow.LFlowDragRead();
 
-    public void LFlowRangeZoom(LSpool lRange, TimeSpan lCursor, int lSteps) => lRange.LSpoolZoom(lCursor, lSteps);
+    public void LFlowRangeZoom(LSpool lRange, TimeSpan lCursor, int lSteps) =>
+        _lFlowOutletEngine.LEngineFlow.LFlowRangeZoom(lRange, lCursor, lSteps);
 
-    public TimeSpan LFlowStepResolve(LSpool lRange, int lSteps) => lRange.LSpoolStepResolve(lSteps);
+    public TimeSpan LFlowStepResolve(LSpool lRange, int lSteps) =>
+        _lFlowOutletEngine.LEngineFlow.LFlowStepResolve(lRange, lSteps);
 
-    public (string LFlowName, string LFlowPrefix, string LFlowSuffix)? LFlowNameRead(LSegment lSegment, int lIndex)
-    {
-        IReadOnlyList<LPiece> lSections = lSegment.LSegmentListRead();
-        if (lIndex >= lSections.Count)
-        {
-            return null;
-        }
-
-        LPiece lPiece = lSections[lIndex];
-        return (lPiece.LPieceName, lPiece.LPiecePrefix, lPiece.LPieceSuffix);
-    }
+    public (string LFlowName, string LFlowPrefix, string LFlowSuffix)? LFlowNameRead(LSegment lSegment, int lIndex) =>
+        _lFlowOutletEngine.LEngineFlow.LFlowNameRead(lSegment, lIndex);
 
     public (TimeSpan LFlowDuration, bool LFlowAudio, LSpool LFlowRange) LFlowMediaRead(LMediaInfo lMedia) =>
-        (lMedia.LMediaInfoDuration, lMedia.LMediaAudioPresent, new LSpool(lMedia.LMediaInfoDuration));
+        _lFlowOutletEngine.LEngineFlow.LFlowMediaRead(lMedia);
 
-    public LSectionPort LFlowSectionCreate(Func<string> lSource) => new LSectionOutlet(lSource);
+    public LSectionPort LFlowSectionCreate(Func<string> lSource) =>
+        new LSectionOutlet(_lFlowOutletEngine.LEngineFlow.LFlowSectionCreate(lSource));
 
     public LKeyframePort LFlowKeyframeCreate(Func<string> lSource) =>
-        new LKeyframeOutlet(lSource, _lFlowOutletKeyframe());
+        new LKeyframeOutlet(_lFlowOutletEngine.LEngineFlow.LFlowKeyframeCreate(lSource));
 
-    public LWaveformPort LFlowWaveformCreate() => new LWaveformOutlet(_lFlowOutletWaveform());
+    public LWaveformPort LFlowWaveformCreate() =>
+        new LWaveformOutlet(_lFlowOutletEngine.LEngineFlow.LFlowWaveformCreate());
 
-    public double LFlowHeightRead() => _lFlowOutletHeight();
+    public double LFlowHeightRead() => _lFlowOutletEngine.LEngineFlow.LFlowHeightRead();
 }

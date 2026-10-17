@@ -34,8 +34,10 @@ public static class LRigFactory
             LRigFactoryCheckup.LRigCheckupCreate(),
             LRigFactoryLineage.LRigLineageCreate(),
             LRigFactoryPreview.LRigPreviewCreate(),
-            LRigFactoryWaveform.LRigWaveformCreate,
-            LRigFactoryKeyframe.LRigKeyframeCreate,
+            new LRigFlow(
+                LRigFactoryKeyframe.LRigKeyframeCreate,
+                LRigFactoryWaveform.LRigWaveformCreate,
+                () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
             new LSchedule());
     }
 }

@@ -211,10 +211,7 @@ internal static partial class TInterface
             LAtelierMerge = new LMergeOutlet(Interface.TInterface.TInterfaceEngine),
             LAtelierNoise = new LNoiseOutlet(Interface.TInterface.TInterfaceEngine),
             LAtelierConsole = new LConsoleOutlet(Interface.TInterface.TInterfaceEngine),
-            LAtelierFlow = new LFlowOutlet(
-                LRigFactoryKeyframe.LRigKeyframeCreate,
-                LRigFactoryWaveform.LRigWaveformCreate,
-                () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
+            LAtelierFlow = new LFlowOutlet(Interface.TInterface.TInterfaceEngine),
             LAtelierMap = new LMapOutlet(Interface.TInterface.TInterfaceEngine),
             LAtelierRosterDetail = new LRosterDetailOutlet(Interface.TInterface.TInterfaceEngine),
             LAtelierWhitebalance = new LWhitebalanceOutlet(Interface.TInterface.TInterfaceEngine),
