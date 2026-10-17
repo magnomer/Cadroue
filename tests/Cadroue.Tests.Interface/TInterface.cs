@@ -28,7 +28,7 @@ internal static partial class TInterface
     {
         LRigTrace rigTrace = LRigFactory.LRigFactoryCreate().LRigTrace;
         LTraceEngine.LTraceInfoSeam = rigTrace.LRigTraceInfo;
-        LTraceEngine.LTraceWarningSeam = rigTrace.LRigTraceWarning;
+        LTraceEngine.LTraceWarningSeam = message => rigTrace.LRigTraceWarning(message, null);
         LTraceEngine.LTraceErrorSeam = rigTrace.LRigTraceError;
         LTraceEngine.LTraceFfmpegSeam = rigTrace.LRigTraceFfmpeg;
         LTraceEngine.LTraceVerboseSeam = rigTrace.LRigTraceVerbose;
@@ -232,11 +232,11 @@ internal static partial class TInterface
     internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);
     internal static bool TUsherFolderExist(string? path) => LUsher.LUsherFolderExist(path);
     internal static string? TUsherPathOpen(string path, string? fallback, string? failure) =>
-        new LUsherOutlet().LUsherPathOpen(path, fallback, failure);
+        new LUsherOutlet(TInterfaceEngine).LUsherPathOpen(path, fallback, failure);
     internal static string? TUsherLinkOpen(string target, string? failure) =>
-        new LUsherOutlet().LUsherLinkOpen(target, failure);
-    internal static string TUsherNameRead(string path) => new LUsherOutlet().LUsherNameRead(path);
-    internal static string TUsherStemRead(string path) => new LUsherOutlet().LUsherStemRead(path);
+        new LUsherOutlet(TInterfaceEngine).LUsherLinkOpen(target, failure);
+    internal static string TUsherNameRead(string path) => new LUsherOutlet(TInterfaceEngine).LUsherNameRead(path);
+    internal static string TUsherStemRead(string path) => new LUsherOutlet(TInterfaceEngine).LUsherStemRead(path);
 
     internal static LLineageAnswer TLineageResolve(LScheduleContract schedule, IReadOnlyList<Guid> ids)
     {
@@ -244,7 +244,7 @@ internal static partial class TInterface
         LStation.LStationSchedule = schedule;
         try
         {
-            return new LLineageOutlet(TimeProvider.System.GetUtcNow).LLineageResolve(ids);
+            return new LLineageOutlet(TInterfaceEngine).LLineageResolve(ids);
         }
         finally
         {
@@ -278,7 +278,7 @@ internal static partial class TInterface
             LUsherTextEngine.LUsherNameSeam,
             extensionRead);
     internal static string TLineageTitleRead(LLineageStep step) =>
-        new LLineageOutlet(TimeProvider.System.GetUtcNow)
+        new LLineageOutlet(TInterfaceEngine)
             .LLineageTitleRead(step.LLineageStepBatch, step.LLineageStepRelay, step.LLineageStepTab);
     internal static LLineageAnswer TLineageAnswerCreate(
         IReadOnlyList<LLineageGroup> groups, IReadOnlyList<LLineageBatch> batches, IReadOnlyList<LLineageStep> steps) =>
@@ -297,7 +297,7 @@ internal static partial class TInterface
         Guid id, Guid batch, Guid relay, string tab, string kind, bool subject, string? name, long? source,
         double? ratio, string sourceExtension, string outputExtension) =>
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
-    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet(TimeProvider.System.GetUtcNow);
+    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet(TInterfaceEngine);
     internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
     internal static LClinicPort TClinicResultCreate(string path, string kind, string outcome) =>
         new LClinicOutlet(new LCheckupResult(

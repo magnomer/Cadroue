@@ -30,6 +30,8 @@ public interface LInspectorPort
 
     LWorkAudio LInspectorAudioRead();
 
+    LWorkVideo LInspectorVideoRead();
+
     (LWorkCrop LInspectorCrop, bool LInspectorActive) LInspectorCropRead();
 
     (bool LInspectorFixed, bool LInspectorLenient, int LInspectorWidth, int LInspectorHeight) LInspectorRatioRead();

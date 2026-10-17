@@ -232,7 +232,7 @@ public sealed class QInspector
     public void QInspectorPlanApply(LEditPlan lPlan, bool lCropKept, bool lSkipKept) =>
         QInspectorPlanApply(new LInspectorOutlet(lPlan, lCropKept, lSkipKept), lPlan.LEditVideo);
 
-    // One gate call sets the plan; the curve, not gated yet, takes its step after.
+    // One gate call sets the plan; the curve, whose plan step the gate does not read yet, takes its step after.
     private void QInspectorPlanApply(LInspectorPort lPlan, LWorkVideo lVideo)
     {
         QInspectorVideo.QInspectorVideoSuspend();

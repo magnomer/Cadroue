@@ -48,6 +48,8 @@ public sealed record LAtelierPort
 
     public required LLoudnessPort LAtelierLoudness { get; init; }
 
+    public required LVideoPort LAtelierVideo { get; init; }
+
     public required LConsoleScenePort LAtelierScene { get; init; }
 
     // Each list's own port, built for it over the name reader its traces use.

@@ -1,18 +1,15 @@
-using Cadroue.Application;
-using Cadroue.Core;
-
 namespace Cadroue.ShellEngine;
 
-// The merge dispatch: the preset's encoding is read by its name, the group records and the priority are built here,
-// and every warning text is worded here for the warning sink the host hands in; which groups run is the gate's.
+// The engine's face for the merge gate: every member forwards to the same-named member of the engine's merge facade.
+// It rejects a null engine and keeps it for every forward.
 public sealed class LMergeOutlet : LMergePort
 {
-    private readonly Action<string> _lMergeOutletWarning;
+    private readonly LEngine _lMergeOutletEngine;
 
-    public LMergeOutlet(Action<string> lWarning)
+    public LMergeOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lWarning);
-        _lMergeOutletWarning = lWarning;
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lMergeOutletEngine = lEngine;
     }
 
     public int LMergeRun(
@@ -22,31 +19,12 @@ public sealed class LMergeOutlet : LMergePort
         bool lUrgent,
         Guid lRelayTarget,
         Guid lSourceTab,
-        IReadOnlyDictionary<string, Guid> lRelays)
-    {
-        LMergeSkipRecord(lSkipped);
-        return LMessenger.LMessengerMergeDescribe(
-            lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
-            lGroups.Select(lGroup => new LWorkGroup(lGroup.LMergeName, lGroup.LMergePaths)).ToArray(),
-            LPresetSelection.LPresetEncodingRead(lPresetName),
-            lRelayTarget,
-            lSourceTab,
-            lRelays);
-    }
+        IReadOnlyDictionary<string, Guid> lRelays) =>
+        _lMergeOutletEngine.LEngineMerge.LMergeRun(
+            lPresetName, lGroups, lSkipped, lUrgent, lRelayTarget, lSourceTab, lRelays);
 
-    public void LMergeSkipRecord(IReadOnlyList<(string LMergeName, int LMergeLocked, int LMergeCount)> lSkipped)
-    {
-        foreach ((string lName, int lLocked, int lCount) in lSkipped)
-        {
-            _lMergeOutletWarning(
-                $"Merge skipped group '{lName}': "
-                + $"{lLocked} of {lCount} file(s) still in the worklist");
-        }
-    }
+    public void LMergeSkipRecord(IReadOnlyList<(string LMergeName, int LMergeLocked, int LMergeCount)> lSkipped) =>
+        _lMergeOutletEngine.LEngineMerge.LMergeSkipRecord(lSkipped);
 
-    public void LMergeHeldRecord(Guid lSourceTab) =>
-        _lMergeOutletWarning(
-            "Merge held relayed files in tab "
-            + $"'{LMessenger.LMessengerTitleSource?.Invoke(lSourceTab) ?? string.Empty}': "
-            + "no valid export preset is selected");
+    public void LMergeHeldRecord(Guid lSourceTab) => _lMergeOutletEngine.LEngineMerge.LMergeHeldRecord(lSourceTab);
 }

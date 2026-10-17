@@ -1,22 +1,22 @@
-using Cadroue.Application;
-using Cadroue.Core;
-
 namespace Cadroue.ShellEngine;
 
-// The convert dispatch: the preset's encoding is read by its name, the source records and the priority are built
-// here; which sources run, and whether any run at all, is the gate's. The dispatch is not awaited.
+// The engine's face for the convert gate: every member forwards to the same-named member of the engine's convert
+// facade. It rejects a null engine and keeps it for every forward.
 public sealed class LConvertOutlet : LConvertPort
 {
+    private readonly LEngine _lConvertOutletEngine;
+
+    public LConvertOutlet(LEngine lEngine)
+    {
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lConvertOutletEngine = lEngine;
+    }
+
     public void LConvertRun(
         string lPresetName,
         IReadOnlyList<(string LConvertPath, Guid LConvertBatch)> lSources,
         bool lUrgent,
         Guid lRelayTarget,
         Guid lSourceTab) =>
-        _ = LMessenger.LMessengerConvertDescribe(
-            lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
-            lSources.Select(lSource => new LWorkSource(lSource.LConvertPath, lSource.LConvertBatch)).ToArray(),
-            LPresetSelection.LPresetEncodingRead(lPresetName),
-            lRelayTarget,
-            lSourceTab);
+        _lConvertOutletEngine.LEngineConvert.LConvertRun(lPresetName, lSources, lUrgent, lRelayTarget, lSourceTab);
 }

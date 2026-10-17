@@ -24,7 +24,7 @@ public sealed class QEditTab
         qEditList = lList;
         qEditDocket = lList.QListDocket;
         QEditColor = new QEditTabColor(QEditInspector, QEditProcessing, lViewer);
-        QEditStore = new QEditTabPlan(lUsher, QEditInspector, lViewer, qEditDocket, QEditColor);
+        QEditStore = new QEditTabPlan(lUsher, QEditInspector, lViewer, lList.QListGate, QEditColor);
         QEditCrop = new QEditTabCrop(QEditInspector, QEditProcessing, lViewer, QEditStore);
         QEditTool = new QEditTool(QEditInspector, lViewer);
         QEditProcessing.QProcessingOrderedSet(false);

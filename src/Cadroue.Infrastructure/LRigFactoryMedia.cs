@@ -12,6 +12,8 @@ public static class LRigFactoryMedia
             LMedia.LMediaLoudnessRead,
             LKeyframeSeeker.LKeyframeRangeScan,
             LMedia.LMediaScanClaim,
-            LMedia.LMediaScanRelease);
+            LMedia.LMediaScanRelease,
+            LMedia.LMediaFileRead,
+            LMedia.LMediaCheck);
     }
 }

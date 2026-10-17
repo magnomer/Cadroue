@@ -55,11 +55,9 @@ public sealed class QInspectorAudio
         _ => QInspectorVolumeBuild()
     };
 
-    public LWorkAudio QInspectorAudioRead(IEnumerable<LAudioKind> lOrder) =>
-        new(lOrder.Select(QInspectorStepRead).ToList())
-        {
-            LWorkAudioSkip = qInspectorAudioGate.CInspectorSkip.CSkipActive
-        };
+    // The gate answers the plan of its tools in the order of these processing steps, with the skip switch.
+    public LWorkAudio QInspectorAudioRead(IReadOnlyList<string> lProcessing) =>
+        qInspectorAudioGate.CInspectorAudioRead(lProcessing).LInspectorAudioRead();
 
     public void QInspectorAudioApply(LWorkAudio lPlan)
     {
@@ -102,13 +100,13 @@ public sealed class QInspectorAudio
 
     // The engine builds the equalizer step from the gate's plain values, as the volume step above.
     private LWorkAudioStep QInspectorEqualizerBuild() =>
-        LEqualizerOutlet.LEqualizerStepCreate(
+        LEqualizerPort.LEqualizerStepCreate(
             qInspectorAudioGate.CInspectorEqualizer.CEqualizerActive,
             qInspectorAudioGate.CInspectorEqualizer.CEqualizerBands);
 
     // The engine builds the noise step from the gate's plain values, as the equalizer step above.
     private LWorkAudioStep QInspectorNoiseBuild() =>
-        LNoiseOutlet.LNoiseStepCreate(
+        LNoisePort.LNoiseStepCreate(
             qInspectorAudioGate.CInspectorNoise.CNoiseActive,
             qInspectorAudioGate.CInspectorNoise.CNoiseValues,
             qInspectorAudioGate.CInspectorNoise.CNoiseTrack,
@@ -116,7 +114,7 @@ public sealed class QInspectorAudio
 
     // The engine builds the leveling step from the gate's plain values, as the noise step below.
     private LWorkAudioStep QInspectorLevelingBuild() =>
-        LLoudnessOutlet.LLoudnessStepCreate(
+        LLoudnessPort.LLoudnessStepCreate(
             qInspectorAudioGate.CInspectorLoudness.CLoudnessActive,
             qInspectorAudioGate.CInspectorLoudness.CLoudnessDynamic,
             qInspectorAudioGate.CInspectorLoudness.CLoudnessValues,
@@ -124,5 +122,5 @@ public sealed class QInspectorAudio
 
     // The engine builds a pass step from its gate's plain values, as the noise step above.
     private static LWorkAudioStep QInspectorFilterBuild(CFilter lFilter, bool lHigh) =>
-        LFilterOutlet.LFilterStepCreate(lHigh, lFilter.CFilterActive, lFilter.CFilterValues, lFilter.CFilterPoles);
+        LFilterPort.LFilterStepCreate(lHigh, lFilter.CFilterActive, lFilter.CFilterValues, lFilter.CFilterPoles);
 }

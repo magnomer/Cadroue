@@ -1,23 +1,17 @@
-using Cadroue.Core;
-
 namespace Cadroue.ShellEngine;
 
-// The preview facts the tone gate decides its notice from: whether Flyleaf runs and whether the preview engine is mpv,
-// each from a platform read the host hands in.
+// The engine's face for the tone gate: every member forwards to the same-named member of the engine's tone facade.
+// It rejects a null engine and keeps it for every forward.
 public sealed class LToneOutlet : LTonePort
 {
-    private readonly Func<bool> _lToneOutletFlyleaf;
+    private readonly LEngine _lToneOutletEngine;
 
-    private readonly Func<LPreviewEngine> _lToneOutletEngine;
-
-    public LToneOutlet(Func<bool> lFlyleaf, Func<LPreviewEngine> lEngine)
+    public LToneOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lFlyleaf);
         ArgumentNullException.ThrowIfNull(lEngine);
-        _lToneOutletFlyleaf = lFlyleaf;
         _lToneOutletEngine = lEngine;
     }
 
     public (bool LToneFlyleaf, bool LToneMpv) LTonePreviewRead() =>
-        (_lToneOutletFlyleaf(), _lToneOutletEngine() == LPreviewEngine.LPreviewEngineMpv);
+        _lToneOutletEngine.LEngineTone.LTonePreviewRead();
 }

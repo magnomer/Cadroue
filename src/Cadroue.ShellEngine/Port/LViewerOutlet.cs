@@ -1,145 +1,83 @@
 namespace Cadroue.ShellEngine;
 
-// The viewer trace texts, and the platform reads the host hands in (a file's name, the clock, the line break).
-// A word chosen by a value is chosen here; whether and which record is the gate's.
+// The engine's face for the viewer gate: every member forwards to the same-named member of the engine's viewer
+// facade. It rejects a null engine and keeps it for every forward.
 public sealed class LViewerOutlet : LViewerPort
 {
-    private readonly Func<string, string?> _lViewerOutletName;
+    private readonly LEngine _lViewerOutletEngine;
 
-    private readonly Func<DateTimeOffset> _lViewerOutletClock;
-
-    private readonly string _lViewerOutletBreak;
-
-    public LViewerOutlet(Func<string, string?> lName, Func<DateTimeOffset> lClock, string lBreak)
+    public LViewerOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lName);
-        ArgumentNullException.ThrowIfNull(lClock);
-        ArgumentNullException.ThrowIfNull(lBreak);
-        _lViewerOutletName = lName;
-        _lViewerOutletClock = lClock;
-        _lViewerOutletBreak = lBreak;
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lViewerOutletEngine = lEngine;
     }
 
-    public bool LViewerVerboseRead() => LTraceEngine.LTraceVerboseSeam();
+    public bool LViewerVerboseRead() => _lViewerOutletEngine.LEngineViewer.LViewerVerboseRead();
 
     public void LViewerRefreshRecord(string lReason) =>
-        LTraceEngine.LTraceErrorSeam($"mpv rejected paused preview refresh: {lReason}", null);
+        _lViewerOutletEngine.LEngineViewer.LViewerRefreshRecord(lReason);
 
     public void LViewerRotatedRecord(string lRotate, bool lHorizontal, bool lVertical, bool lReady) =>
-        LTraceEngine.LTraceInfoSeam(
-            $"Viewer rotate/flip set: rotate {lRotate}, "
-            + $"H {lHorizontal}, V {lVertical}, "
-            + $"player {(lReady ? "ready" : "none")}, overlay remapped");
+        _lViewerOutletEngine.LEngineViewer.LViewerRotatedRecord(lRotate, lHorizontal, lVertical, lReady);
 
     public void LViewerNoticeRecord(Exception lFailure) =>
-        LTraceEngine.LTraceErrorSeam("Viewer media notice handler failed", lFailure);
+        _lViewerOutletEngine.LEngineViewer.LViewerNoticeRecord(lFailure);
 
     public void LViewerHostRecord(int lStamp, string lStage, string lDetail) =>
-        LTraceEngine.LTraceDetailSeam(
-            true, $"Viewer host [{lStamp}] {lStage}", lDetail);
+        _lViewerOutletEngine.LEngineViewer.LViewerHostRecord(lStamp, lStage, lDetail);
 
     public void LViewerStageRecord(string lStage, Exception lFailure) =>
-        LTraceEngine.LTraceErrorSeam($"Viewer close stage '{lStage}' failed", lFailure);
+        _lViewerOutletEngine.LEngineViewer.LViewerStageRecord(lStage, lFailure);
 
     public void LViewerClosedRecord(string lPath) =>
-        LTraceEngine.LTraceInfoSeam(string.IsNullOrWhiteSpace(lPath)
-            ? "Media closed"
-            : $"Media closed '{_lViewerOutletName(lPath)}' [{lPath}]");
+        _lViewerOutletEngine.LEngineViewer.LViewerClosedRecord(lPath);
 
     public void LViewerDetachedRecord(bool lReady) =>
-        LTraceEngine.LTraceInfoSeam($"Viewer host detached: player {(lReady ? "released" : "none")}");
+        _lViewerOutletEngine.LEngineViewer.LViewerDetachedRecord(lReady);
 
     public void LViewerLoadRecord(int lSerial, string lPath, string lEngine) =>
-        LTraceEngine.LTraceDetailSeam(
-            false,
-            $"Video load start serial={lSerial} '{_lViewerOutletName(lPath)}'",
-            $"engine={lEngine}, probing (ffprobe)…");
+        _lViewerOutletEngine.LEngineViewer.LViewerLoadRecord(lSerial, lPath, lEngine);
 
     public void LViewerProbeRecord(string lKind, string lPath, string? lError) =>
-        LTraceEngine.LTraceDetailSeam(false, $"Video probe outcome {lKind} '{_lViewerOutletName(lPath)}'", lError);
+        _lViewerOutletEngine.LEngineViewer.LViewerProbeRecord(lKind, lPath, lError);
 
     public void LViewerSupersededRecord(int lSerial, bool lUnloaded) =>
-        LTraceEngine.LTraceInfoSeam(
-            "Video probe outcome discarded (stale/superseded): "
-            + $"serial={lSerial}, unloaded={lUnloaded}");
+        _lViewerOutletEngine.LEngineViewer.LViewerSupersededRecord(lSerial, lUnloaded);
 
     public void LViewerDiscardedRecord(int lSerial, int lCurrent, bool lUnloaded) =>
-        LTraceEngine.LTraceInfoSeam(
-            "Player open discarded (stale/superseded): "
-            + $"serial got={lSerial} now={lCurrent}, unloaded={lUnloaded}");
+        _lViewerOutletEngine.LEngineViewer.LViewerDiscardedRecord(lSerial, lCurrent, lUnloaded);
 
-    public void LViewerReusedRecord() =>
-        LTraceEngine.LTraceInfoSeam("Viewer player reused: same player kept on the host, no swap chain rebuild");
+    public void LViewerReusedRecord() => _lViewerOutletEngine.LEngineViewer.LViewerReusedRecord();
 
     public void LViewerSwappedRecord(bool lReady) =>
-        LTraceEngine.LTraceInfoSeam($"Viewer player swapped: next {(lReady ? "ready" : "none")}");
+        _lViewerOutletEngine.LEngineViewer.LViewerSwappedRecord(lReady);
 
     public void LViewerPreviewRecord(string lRotate, bool lHorizontal, bool lVertical) =>
-        LTraceEngine.LTraceInfoSeam(
-            $"Viewer preview restored: rotate {lRotate}, "
-            + $"H {lHorizontal}, V {lVertical}");
+        _lViewerOutletEngine.LEngineViewer.LViewerPreviewRecord(lRotate, lHorizontal, lVertical);
 
     public void LViewerRejectedRecord(TimeSpan lPosition, string lReason) =>
-        LTraceEngine.LTraceErrorSeam(
-            $"Preview seek to {lPosition:hh\\:mm\\:ss\\.fff} was rejected: {lReason}", null);
+        _lViewerOutletEngine.LEngineViewer.LViewerRejectedRecord(lPosition, lReason);
 
     public void LViewerSeekRecord(TimeSpan lPosition, bool lDirect, bool lRunning) =>
-        LTraceEngine.LTraceDetailSeam(
-            true, LViewerSummaryFormat(lPosition), LViewerDetailFormat(lDirect, lRunning));
+        _lViewerOutletEngine.LEngineViewer.LViewerSeekRecord(lPosition, lDirect, lRunning);
 
-    // One buffered drag seek, stamped now: its summary line, then its detail line indented under the stamp.
-    public string LViewerSeekFormat(TimeSpan lPosition, bool lDirect, bool lRunning)
-    {
-        string lTime = _lViewerOutletClock().ToString(
-            "HH:mm:ss.fff",
-            System.Globalization.CultureInfo.InvariantCulture);
-        return $"{lTime}  {LViewerSummaryFormat(lPosition)}"
-            + _lViewerOutletBreak
-            + $"{new string(' ', 14)}{LViewerDetailFormat(lDirect, lRunning)}";
-    }
+    public string LViewerSeekFormat(TimeSpan lPosition, bool lDirect, bool lRunning) =>
+        _lViewerOutletEngine.LEngineViewer.LViewerSeekFormat(lPosition, lDirect, lRunning);
 
     public void LViewerDragRecord(TimeSpan lFinal, IReadOnlyList<string> lLines) =>
-        LTraceEngine.LTraceDetailSeam(
-            true,
-            lLines.Count == 1
-                ? $"Seek accurate to {lFinal:hh\\:mm\\:ss\\.fff}"
-                : $"Seek accurate while dragging to {lFinal:hh\\:mm\\:ss\\.fff} ({lLines.Count} requests)",
-            string.Join(_lViewerOutletBreak, lLines));
+        _lViewerOutletEngine.LEngineViewer.LViewerDragRecord(lFinal, lLines);
 
     public void LViewerHiddenRecord(bool lHostVisible, bool lMpvShown, double lWidth, double lHeight) =>
-        LTraceEngine.LTraceInfoSeam(
-            $"mpv overlay closed (host {(lHostVisible ? "visible" : "hidden")}, "
-            + $"shown={lMpvShown}, size {lWidth:0}x{lHeight:0})");
+        _lViewerOutletEngine.LEngineViewer.LViewerHiddenRecord(lHostVisible, lMpvShown, lWidth, lHeight);
 
     public void LViewerShownRecord(double lWidth, double lHeight) =>
-        LTraceEngine.LTraceDetailSeam(
-            false,
-            "mpv overlay opened",
-            $"top-level transparent window over {lWidth:0}x{lHeight:0}");
+        _lViewerOutletEngine.LEngineViewer.LViewerShownRecord(lWidth, lHeight);
 
     public void LViewerRequestedRecord(string lPath, bool lActive, bool lUnloaded, string lEngine) =>
-        LTraceEngine.LTraceDetailSeam(
-            false,
-            $"Viewer source open requested '{_lViewerOutletName(lPath)}'",
-            $"command={(lActive ? "active" : "INACTIVE")}, unloaded={lUnloaded}, "
-            + $"engine={lEngine}, path={lPath}");
+        _lViewerOutletEngine.LEngineViewer.LViewerRequestedRecord(lPath, lActive, lUnloaded, lEngine);
 
     public void LViewerRefusedRecord(bool lActive) =>
-        LTraceEngine.LTraceWarningSeam("Viewer source open refused: " + (lActive
-            ? "empty path"
-            : "viewer command inactive (tab not the front workspace)"));
+        _lViewerOutletEngine.LEngineViewer.LViewerRefusedRecord(lActive);
 
-    public void LViewerUnresolvedRecord() =>
-        LTraceEngine.LTraceWarningSeam(
-            "Viewer source open refused: sidecar (.cad) source could not be resolved");
-
-    private static string LViewerSummaryFormat(TimeSpan lPosition) =>
-        $"Seek accurate to {lPosition:hh\\:mm\\:ss\\.fff}";
-
-    private static string LViewerDetailFormat(bool lDirect, bool lRunning) =>
-        lDirect
-            ? "mpv engine seeks directly"
-            : lRunning
-                ? "a seek was still running; queued for Flyleaf to conflate"
-                : "no seek was in flight";
+    public void LViewerUnresolvedRecord() => _lViewerOutletEngine.LEngineViewer.LViewerUnresolvedRecord();
 }

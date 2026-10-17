@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 // The noise reduction rules for its gate, on values in slot order: reduction, smoothing, floor, residual,
@@ -21,4 +23,8 @@ public interface LNoisePort
     (IReadOnlyList<double> LNoiseValues, int LNoiseType)? LNoisePresetRead(string lToken);
 
     string? LNoiseMatchFind(IReadOnlyList<double> lValues, int lType);
+
+    // The audio step for the gate's switch, values, tracking and type; static, since it reads only the values given.
+    static LWorkAudioStep LNoiseStepCreate(bool lActive, IReadOnlyList<double> lValues, bool lTrack, int lType) =>
+        LNoiseFacade.LNoiseStepCreate(lActive, lValues, lTrack, lType);
 }

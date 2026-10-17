@@ -28,6 +28,7 @@ public sealed class QInspectorVideo
         QInspectorGamma = lInspector.CInspectorGamma;
         QInspectorExposure = lInspector.CInspectorExposure;
         QInspectorWhitebalance = lInspector.CInspectorWhitebalance;
+        QInspectorCurve = new QCurve(lInspector.CInspectorCurve);
         QInspectorVideoAttach();
     }
 
@@ -49,7 +50,7 @@ public sealed class QInspectorVideo
 
     public CExposure QInspectorExposure { get; }
 
-    public QCurve QInspectorCurve { get; } = new();
+    public QCurve QInspectorCurve { get; }
 
     public CWhitebalance QInspectorWhitebalance { get; }
 
@@ -57,7 +58,7 @@ public sealed class QInspectorVideo
     {
         LColorKind.LColorKindGamma => QInspectorGammaBuild(),
         LColorKind.LColorKindWhitebalance =>
-            LWhitebalanceOutlet.LWhitebalanceStepCreate(QInspectorWhitebalance.CWhitebalanceAnswer),
+            LWhitebalancePort.LWhitebalanceStepCreate(QInspectorWhitebalance.CWhitebalanceAnswer),
         LColorKind.LColorKindExposure => QInspectorExposureBuild(),
         LColorKind.LColorKindCurve => QInspectorCurve.QCurveStepRead(),
         LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
@@ -66,6 +67,11 @@ public sealed class QInspectorVideo
             QInspectorTone.CToneActives[2], QInspectorTone.CToneValues[2]),
         _ => LWorkVideoStep.LWorkBrightnessCreate(QInspectorTone.CToneActives[0], QInspectorTone.CToneValues[0])
     };
+
+    // The gate answers the plan of its tools in the order of these processing steps; without the mpv-only filters it
+    // leaves out their steps.
+    public LWorkVideo QInspectorVideoRead(IReadOnlyList<string> lProcessing, bool lMpvOnlyCapable) =>
+        qInspectorVideoGate.CInspectorVideoRead(lProcessing, lMpvOnlyCapable).LInspectorVideoRead();
 
     public void QInspectorVideoSuspend() => qInspectorVideoDepth++;
 
@@ -95,7 +101,8 @@ public sealed class QInspectorVideo
         }
     }
 
-    // The curve is not gated yet: it takes the plan's curve step here, after the gate set the other video tools.
+    // The gate does not read a plan's curve yet: the curve takes the plan's curve step here, after the gate set the
+    // other video tools.
     public void QInspectorCurveApply(LWorkVideo lVideo)
     {
         qInspectorVideoDepth++;
@@ -159,8 +166,8 @@ public sealed class QInspectorVideo
         }
     }
 
-    public LWorkVideo QInspectorPersistentRead() =>
-        new(qInspectorKinds.Where(QInspectorPersistentCheck).Select(QInspectorStepRead).ToList());
+    // The gate answers the carried plan of its tools.
+    public LWorkVideo QInspectorPersistentRead() => qInspectorVideoGate.CInspectorCarriedRead().LInspectorVideoRead();
 
     private void QInspectorVideoHandle()
     {

@@ -24,12 +24,10 @@ public sealed class QAudioTabPlan
         QAudioFanoutSave(lAdded.Select(lItem => lItem.LDocketEntryPath).ToArray());
 
     public void QAudioPersistentSave() =>
-        QAudioFanoutSave(
-            qAudioList.QListDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath).ToArray());
+        QAudioFanoutSave(qAudioList.QListGate.CListUnlockedRead());
 
     public LWorkAudio QAudioPlanRead() =>
-        qAudioTab.QAudioInspector.QInspectorAudio.QInspectorAudioRead(
-            qAudioTab.QAudioProcessing.QProcessingSteps.Select(QAudioTab.QAudioKindRead).OfType<LAudioKind>());
+        qAudioTab.QAudioInspector.QInspectorAudio.QInspectorAudioRead(qAudioTab.QAudioProcessing.QProcessingSteps);
 
     public void QAudioStateSave()
     {

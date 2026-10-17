@@ -15,7 +15,7 @@ internal static partial class TInterface
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
         QConsole.QConsoleRemovalFormat(outcomes);
     internal static int TConsoleIndexResolve(int index, int step, int count) =>
-        LConsoleOutlet.LConsoleIndexResolve(index, step, count);
+        LConsoleFacade.LConsoleIndexResolve(index, step, count);
 
     internal static LConsoleSceneOutlet TSceneOutletCreate() =>
         new(new LSceneStore(

@@ -1,23 +1,25 @@
 namespace Cadroue.ShellEngine;
 
+// The engine's face for the workspace gate: every member forwards to the same-named member of the engine's
+// workspace facade. It rejects a null engine and keeps it for every forward.
 public sealed class LWorkspaceOutlet : LWorkspacePort
 {
-    public (bool LWorkspaceLoadCancelled, bool LWorkspaceMediaClosed) LWorkspaceRemovalRead(
-        IReadOnlyCollection<string> lRemoved, string? lIntent, string? lSource) =>
-        (lIntent is not null && lRemoved.Contains(lIntent, StringComparer.OrdinalIgnoreCase),
-            lSource is not null && lRemoved.Contains(lSource, StringComparer.OrdinalIgnoreCase));
+    private readonly LEngine _lWorkspaceOutletEngine;
 
-    public (bool LWorkspaceMediaClosed, bool LWorkspaceLoadCancelled, bool LWorkspaceMediaCleared) LWorkspaceClearRead(
-        IReadOnlyCollection<string> lProtected, string? lSource, string? lIntent, bool lLoaded)
+    public LWorkspaceOutlet(LEngine lEngine)
     {
-        HashSet<string> lKept = lProtected.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        bool lIntentKept = lIntent is not null && lKept.Contains(lIntent);
-        bool lHeld = (lSource is not null && lKept.Contains(lSource)) || lIntentKept;
-        bool lCancelled = lHeld && lIntent is not null && !lIntentKept;
-        return (!lHeld, lCancelled, (!lHeld && lLoaded) || lCancelled);
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lWorkspaceOutletEngine = lEngine;
     }
 
-    // The full load path; a path the system cannot resolve loads as given.
+    public (bool LWorkspaceLoadCancelled, bool LWorkspaceMediaClosed) LWorkspaceRemovalRead(
+        IReadOnlyCollection<string> lRemoved, string? lIntent, string? lSource) =>
+        _lWorkspaceOutletEngine.LEngineWorkspace.LWorkspaceRemovalRead(lRemoved, lIntent, lSource);
+
+    public (bool LWorkspaceMediaClosed, bool LWorkspaceLoadCancelled, bool LWorkspaceMediaCleared) LWorkspaceClearRead(
+        IReadOnlyCollection<string> lProtected, string? lSource, string? lIntent, bool lLoaded) =>
+        _lWorkspaceOutletEngine.LEngineWorkspace.LWorkspaceClearRead(lProtected, lSource, lIntent, lLoaded);
+
     public string LWorkspacePathResolve(string lPath) =>
-        string.IsNullOrWhiteSpace(lPath) ? string.Empty : LUsherEnvironmentEngine.LUsherPathSeam(lPath);
+        _lWorkspaceOutletEngine.LEngineWorkspace.LWorkspacePathResolve(lPath);
 }

@@ -72,6 +72,10 @@ internal sealed class TInspectorPort : LInspectorPort
     public LWorkAudio LInspectorAudioRead() =>
         throw new NotSupportedException("The gate never reads the audio record.");
 
+    // The gate hands a plan read on unread; only its owner reads the video record.
+    public LWorkVideo LInspectorVideoRead() =>
+        throw new NotSupportedException("The gate never reads the video record.");
+
     public (bool LInspectorActive, bool LInspectorDynamic, IReadOnlyList<double> LInspectorValues,
         bool LInspectorTwoPass, string? LInspectorPreset) LInspectorLevelingRead()
     {

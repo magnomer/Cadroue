@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 // The equalizer rules for its gate. Each edit answers the whole band list with the preset it matches, or null.
@@ -23,4 +25,8 @@ public interface LEqualizerPort
         IReadOnlyList<(double, double)> lBands, int lIndex);
 
     (IReadOnlyList<(double, double)> LEqualizerBands, string? LEqualizerPreset)? LEqualizerPresetRead(string lToken);
+
+    // The audio step for the gate's switch and bands; static, since it reads only the values given.
+    static LWorkAudioStep LEqualizerStepCreate(bool lActive, IReadOnlyList<(double, double)> lBands) =>
+        LEqualizerFacade.LEqualizerStepCreate(lActive, lBands);
 }

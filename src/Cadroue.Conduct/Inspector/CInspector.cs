@@ -10,6 +10,7 @@ namespace Cadroue.Conduct;
 public sealed class CInspector
 {
     private readonly LAudioPort _cInspectorAudioPort;
+    private readonly LVideoPort _cInspectorVideoPort;
     private LInspectorPort? _cInspectorAudioPlan;
 
     internal CInspector(
@@ -20,10 +21,13 @@ public sealed class CInspector
         LWhitebalancePort whitebalance,
         LFilterPort filter,
         LAudioPort audio,
-        LLoudnessPort loudness)
+        LLoudnessPort loudness,
+        LVideoPort video)
     {
         ArgumentNullException.ThrowIfNull(audio);
+        ArgumentNullException.ThrowIfNull(video);
         _cInspectorAudioPort = audio;
+        _cInspectorVideoPort = video;
         CInspectorTone = new CTone(tone);
         CInspectorEqualizer = new CEqualizer(equalizer);
         CInspectorClinic = new CClinic(clinic);
@@ -41,6 +45,8 @@ public sealed class CInspector
     public CGamma CInspectorGamma { get; } = new();
 
     public CExposure CInspectorExposure { get; } = new();
+
+    public CCurve CInspectorCurve { get; } = new();
 
     public CVolume CInspectorVolume { get; } = new();
 
@@ -163,6 +169,56 @@ public sealed class CInspector
             equalizer,
             CInspectorSkip.CSkipPersistent && CInspectorSkip.CSkipActive);
     }
+
+    // The audio plan in the caller's order: a step from every gated audio tool's held values for each processing step
+    // that names one, with the skip switch as it stands, built by the engine and answered as a plan read.
+    public LInspectorPort CInspectorAudioRead(IReadOnlyList<string> processing) =>
+        _cInspectorAudioPort.LAudioPlanCreate(
+            processing,
+            (CInspectorHighpass.CFilterActive, CInspectorHighpass.CFilterValues, CInspectorHighpass.CFilterPoles),
+            (CInspectorLowpass.CFilterActive, CInspectorLowpass.CFilterValues, CInspectorLowpass.CFilterPoles),
+            (CInspectorNoise.CNoiseActive, CInspectorNoise.CNoiseValues, CInspectorNoise.CNoiseTrack,
+                CInspectorNoise.CNoiseType),
+            (CInspectorVolume.CVolumeActive, CInspectorVolume.CVolumeGain),
+            (CInspectorLoudness.CLoudnessActive, CInspectorLoudness.CLoudnessDynamic,
+                CInspectorLoudness.CLoudnessValues, CInspectorLoudness.CLoudnessTwoPass),
+            (CInspectorEqualizer.CEqualizerActive, CInspectorEqualizer.CEqualizerBands),
+            CInspectorSkip.CSkipActive);
+
+    // The video plan in the caller's order: a step from every video tool's held values for each processing step that
+    // names one, built by the engine and answered as a plan read. Without the mpv-only filters, gamma, white balance
+    // and exposure are left out.
+    public LInspectorPort CInspectorVideoRead(IReadOnlyList<string> processing, bool mpvOnly)
+    {
+        ArgumentNullException.ThrowIfNull(processing);
+        return _cInspectorVideoPort.LVideoPlanCreate(
+            processing,
+            CInspectorToneRead(0),
+            CInspectorToneRead(1),
+            CInspectorToneRead(2),
+            mpvOnly ? (CInspectorGamma.CGammaActive, CInspectorGamma.CGammaValues) : null,
+            mpvOnly ? CInspectorWhitebalance.CWhitebalanceAnswer : null,
+            mpvOnly ? (CInspectorExposure.CExposureActive, CInspectorExposure.CExposureValue) : null,
+            (CInspectorCurve.CCurveActive, CInspectorCurve.CCurveChannels));
+    }
+
+    // The carried video plan: each video tool the user keeps, from its held values, in the tools' order, built by the
+    // engine and answered as a plan read.
+    public LInspectorPort CInspectorCarriedRead() =>
+        _cInspectorVideoPort.LVideoPersistentCreate(
+            CInspectorTone.CTonePersistents[0] ? CInspectorToneRead(0) : null,
+            CInspectorTone.CTonePersistents[1] ? CInspectorToneRead(1) : null,
+            CInspectorTone.CTonePersistents[2] ? CInspectorToneRead(2) : null,
+            CInspectorGamma.CGammaPersistent ? (CInspectorGamma.CGammaActive, CInspectorGamma.CGammaValues) : null,
+            CInspectorWhitebalance.CWhitebalancePersistent ? CInspectorWhitebalance.CWhitebalanceAnswer : null,
+            CInspectorExposure.CExposurePersistent
+                ? (CInspectorExposure.CExposureActive, CInspectorExposure.CExposureValue)
+                : null,
+            CInspectorCurve.CCurvePersistent ? (CInspectorCurve.CCurveActive, CInspectorCurve.CCurveChannels) : null);
+
+    // A tone slot's switch and value: 0 brightness, 1 contrast, 2 saturation.
+    private (bool, double) CInspectorToneRead(int slot) =>
+        (CInspectorTone.CToneActives[slot], CInspectorTone.CToneValues[slot]);
 
     // Each gated audio tool the held audio plan carries a step for is kept.
     private void CInspectorToolsApply()

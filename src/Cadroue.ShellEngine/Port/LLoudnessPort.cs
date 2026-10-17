@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 // The leveling rules for its gate. Values run in one slot order: target, peak, range, then frame, smoothness,
@@ -20,4 +22,9 @@ public interface LLoudnessPort
     IReadOnlyList<double>? LLoudnessPresetRead(bool lDynamic, string lToken, IReadOnlyList<double> lValues);
 
     string? LLoudnessMatchFind(bool lDynamic, IReadOnlyList<double> lValues);
+
+    // The leveling step for the gate's switch, mode, values and two-pass; static, since it reads only the values given.
+    static LWorkAudioStep LLoudnessStepCreate(
+        bool lActive, bool lDynamic, IReadOnlyList<double> lValues, bool lTwoPass) =>
+        LLoudnessFacade.LLoudnessStepCreate(lActive, lDynamic, lValues, lTwoPass);
 }

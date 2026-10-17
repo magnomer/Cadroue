@@ -3,43 +3,42 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-// The map gate's port over the engine range: reads and edits go to the range, the scans to the keyframe view, and each
-// drawn map to the trace timeline the host hands in.
+// The engine's face for the map gate: every member forwards to the same-named member of the engine's map facade.
+// It rejects a null engine and keeps it for every forward.
 public sealed class LMapOutlet : LMapPort
 {
-    private readonly Action<string, TimeSpan, string?, string, double, int> _lMapOutletTimeline;
+    private readonly LEngine _lMapOutletEngine;
 
-    public LMapOutlet(Action<string, TimeSpan, string?, string, double, int> lTimeline)
+    public LMapOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lTimeline);
-        _lMapOutletTimeline = lTimeline;
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lMapOutletEngine = lEngine;
     }
 
     public (TimeSpan LMapOrigin, TimeSpan LMapLimit, TimeSpan LMapDuration) LMapRangeRead(LSpool lRange) =>
-        (lRange.LSpoolRangeOrigin, lRange.LSpoolRangeLimit, lRange.LSpoolDuration);
+        _lMapOutletEngine.LEngineMap.LMapRangeRead(lRange);
 
-    public double LMapRatioResolve(LSpool lRange, TimeSpan lTime) => lRange.LSpoolRatioResolve(lTime);
+    public double LMapRatioResolve(LSpool lRange, TimeSpan lTime) =>
+        _lMapOutletEngine.LEngineMap.LMapRatioResolve(lRange, lTime);
 
-    public TimeSpan LMapTimeResolve(LSpool lRange, double lRatio) => lRange.LSpoolTimeResolve(lRatio);
+    public TimeSpan LMapTimeResolve(LSpool lRange, double lRatio) =>
+        _lMapOutletEngine.LEngineMap.LMapTimeResolve(lRange, lRatio);
 
-    public void LMapOriginSet(LSpool lRange, TimeSpan lOrigin) => lRange.LSpoolStartSet(lOrigin);
+    public void LMapOriginSet(LSpool lRange, TimeSpan lOrigin) =>
+        _lMapOutletEngine.LEngineMap.LMapOriginSet(lRange, lOrigin);
 
-    public void LMapLimitSet(LSpool lRange, TimeSpan lLimit) => lRange.LSpoolEndSet(lLimit);
+    public void LMapLimitSet(LSpool lRange, TimeSpan lLimit) =>
+        _lMapOutletEngine.LEngineMap.LMapLimitSet(lRange, lLimit);
 
-    public void LMapBodyMove(LSpool lRange, TimeSpan lStep) => lRange.LSpoolMove(lStep);
+    public void LMapBodyMove(LSpool lRange, TimeSpan lStep) => _lMapOutletEngine.LEngineMap.LMapBodyMove(lRange, lStep);
 
     public IReadOnlyList<(TimeSpan LMapOrigin, TimeSpan LMapEnd, int LMapColor, bool LMapHidden)> LMapSectionsRead(
-        LSegment lSegment) =>
-        lSegment.LSegmentListRead()
-            .Select(lPiece => (lPiece.LPieceOrigin, lPiece.LPieceEnd, lPiece.LPieceColorIndex, lPiece.LPieceHidden))
-            .ToArray();
+        LSegment lSegment) => _lMapOutletEngine.LEngineMap.LMapSectionsRead(lSegment);
 
     public IReadOnlyList<(TimeSpan LMapOrigin, TimeSpan LMapLimit)> LMapCoverageRead(
         IReadOnlyList<LKeyframeScanRange> lRanges, LSpool lRange) =>
-        LKeyframeView.LKeyframeCoverageResolve(lRanges, lRange, true)
-            .Select(lScan => (lScan.LKeyframeRangeOrigin, lScan.LKeyframeRangeLimit))
-            .ToArray();
+        _lMapOutletEngine.LEngineMap.LMapCoverageRead(lRanges, lRange);
 
     public void LMapDrawRecord(TimeSpan lCursor, string? lSource, string lTrigger, double lMilliseconds, int lGlyphs) =>
-        _lMapOutletTimeline("Map", lCursor, lSource, lTrigger, lMilliseconds, lGlyphs);
+        _lMapOutletEngine.LEngineMap.LMapDrawRecord(lCursor, lSource, lTrigger, lMilliseconds, lGlyphs);
 }

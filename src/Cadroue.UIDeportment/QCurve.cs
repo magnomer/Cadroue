@@ -1,43 +1,40 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
+// The curve section's wiring: the gate holds the switch, the points and the keep switch; the channel and point shown,
+// the histogram, the drag and what the editor can run stay here. A point edit is resolved here and handed to the gate
+// as the channel's new points.
 public sealed class QCurve
 {
-    private readonly List<LWorkCurvePoint>[] qCurveChannels =
-    {
-        QCurveIdentityCreate(),
-        QCurveIdentityCreate(),
-        QCurveIdentityCreate(),
-        QCurveIdentityCreate()
-    };
-
-    private bool qCurveActive;
+    private readonly CCurve qCurveGate;
     private int qCurveChannel;
     private int qCurveSelected = 1;
-    private bool qCurvePersistent;
     private bool qCurveCapable;
     private bool qCurvePreview;
     private LHistogramCounts? qCurveHistogram;
     private bool qCurveDragActive;
 
-    public QCurve()
+    public QCurve(CCurve lCurve)
     {
+        qCurveGate = lCurve;
         QCurveCanvas = new QCurveCanvas(this);
+        qCurveGate.CCurveChanged += QCurveGateHandle;
     }
 
     public event Action? QCurveChanged;
 
     public QCurveCanvas QCurveCanvas { get; }
 
-    public bool QCurveActive => qCurveActive;
+    public bool QCurveActive => qCurveGate.CCurveActive;
 
     public int QCurveChannel => qCurveChannel;
 
     public int QCurveSelected => qCurveSelected;
 
-    public bool QCurvePersistent => qCurvePersistent;
+    public bool QCurvePersistent => qCurveGate.CCurvePersistent;
 
     public bool QCurveCapable => qCurveCapable;
 
@@ -47,64 +44,22 @@ public sealed class QCurve
 
     public bool QCurveDragActive => qCurveDragActive;
 
-    public IReadOnlyList<LWorkCurvePoint> QCurvePoints => qCurveChannels[qCurveChannel];
+    public IReadOnlyList<LWorkCurvePoint> QCurvePoints => QCurvePointsRead(qCurveChannel);
 
-    public LWorkCurvePoint QCurvePointRead() => qCurveChannels[qCurveChannel][qCurveSelected];
+    public LWorkCurvePoint QCurvePointRead() => QCurvePoints[qCurveSelected];
 
     public double QCurveInputPercent => QCurvePointRead().LWorkCurveInput * 100;
 
     public double QCurveOutputPercent => QCurvePointRead().LWorkCurveOutput * 100;
 
     public LWorkVideoStep QCurveStepRead() => LWorkVideoStep.LWorkCurveCreate(
-        qCurveActive,
-        qCurveChannels[0].ToArray(),
-        qCurveChannels[1].ToArray(),
-        qCurveChannels[2].ToArray(),
-        qCurveChannels[3].ToArray());
+        qCurveGate.CCurveActive, QCurvePointsRead(0), QCurvePointsRead(1), QCurvePointsRead(2), QCurvePointsRead(3));
 
-    public void QCurveStepSet(LWorkVideoStep lStep)
-    {
-        LWorkCurveSettings lCurve = lStep.LWorkCurveRead();
-        bool lPointsChanged = QCurvePointsCheck(lCurve);
-        if (!lPointsChanged && qCurveActive == lStep.LWorkStepActive)
-        {
-            return;
-        }
+    // The step's points, held as the step holds them, go to the gate with its switch.
+    public void QCurveStepSet(LWorkVideoStep lStep) =>
+        qCurveGate.CCurveStepSet(lStep.LWorkStepActive, QCurveChannelsRead(lStep.LWorkCurveRead()));
 
-        QCurveStepApply(lStep.LWorkStepActive, lPointsChanged ? lCurve : null);
-    }
-
-    private bool QCurvePointsCheck(LWorkCurveSettings lCurve) =>
-        !qCurveChannels[0].SequenceEqual(lCurve.LWorkCurveMaster)
-        || !qCurveChannels[1].SequenceEqual(lCurve.LWorkCurveRed)
-        || !qCurveChannels[2].SequenceEqual(lCurve.LWorkCurveGreen)
-        || !qCurveChannels[3].SequenceEqual(lCurve.LWorkCurveBlue);
-
-    private void QCurveStepApply(bool lActive, LWorkCurveSettings? lCurve)
-    {
-        qCurveActive = lActive;
-        if (lCurve is not null)
-        {
-            qCurveChannels[0] = lCurve.LWorkCurveMaster.ToList();
-            qCurveChannels[1] = lCurve.LWorkCurveRed.ToList();
-            qCurveChannels[2] = lCurve.LWorkCurveGreen.ToList();
-            qCurveChannels[3] = lCurve.LWorkCurveBlue.ToList();
-            QCurveSelectedClamp();
-        }
-
-        QCurveChanged?.Invoke();
-    }
-
-    public void QCurveActiveSet(bool lActive)
-    {
-        if (qCurveActive == lActive)
-        {
-            return;
-        }
-
-        qCurveActive = lActive;
-        QCurveChanged?.Invoke();
-    }
+    public void QCurveActiveSet(bool lActive) => qCurveGate.CCurveActiveSet(lActive);
 
     public void QCurveChannelSelect(int lChannel)
     {
@@ -117,7 +72,7 @@ public sealed class QCurve
     }
 
     private int? QCurveChannelResolve(int lChannel) =>
-        lChannel < 0 ? null : Math.Clamp(lChannel, 0, qCurveChannels.Length - 1);
+        lChannel < 0 ? null : Math.Clamp(lChannel, 0, qCurveGate.CCurveChannels.Count - 1);
 
     private void QCurveChannelChange(int lClamped)
     {
@@ -151,8 +106,7 @@ public sealed class QCurve
 
     private LWorkCurvePoint QCurvePointClamp(double lInput, double lOutput)
     {
-        double lClampedInput = LColorCurve.LColorCurveClamp(
-            qCurveChannels[qCurveChannel], qCurveSelected, QCurveUnitClamp(lInput));
+        double lClampedInput = LColorCurve.LColorCurveClamp(QCurvePoints, qCurveSelected, QCurveUnitClamp(lInput));
         return new LWorkCurvePoint(lClampedInput, QCurveUnitClamp(lOutput));
     }
 
@@ -160,14 +114,12 @@ public sealed class QCurve
 
     private void QCurvePointChange(LWorkCurvePoint lPoint)
     {
-        List<LWorkCurvePoint> lPoints = qCurveChannels[qCurveChannel];
-        if (lPoints[qCurveSelected] == lPoint)
+        if (QCurvePointRead() == lPoint)
         {
             return;
         }
 
-        lPoints[qCurveSelected] = lPoint;
-        QCurveChanged?.Invoke();
+        QCurveChannelApply(lPoints => lPoints[qCurveSelected] = lPoint);
     }
 
     public void QCurvePointCommit(string lInputText, string lOutputText)
@@ -227,8 +179,7 @@ public sealed class QCurve
 
     private void QCurvePointInsert(double lInput, double lOutput)
     {
-        qCurveSelected = LColorCurve.LColorCurveInsert(qCurveChannels[qCurveChannel], lInput, lOutput);
-        QCurveChanged?.Invoke();
+        QCurveChannelApply(lPoints => qCurveSelected = LColorCurve.LColorCurveInsert(lPoints, lInput, lOutput));
     }
 
     public void QCurvePointDelete()
@@ -243,34 +194,18 @@ public sealed class QCurve
 
     private bool QCurveRemovableCheck()
     {
-        List<LWorkCurvePoint> lPoints = qCurveChannels[qCurveChannel];
+        IReadOnlyList<LWorkCurvePoint> lPoints = QCurvePoints;
         return lPoints.Count > 2 && qCurveSelected > 0 && qCurveSelected < lPoints.Count - 1;
     }
 
     private void QCurvePointRemove()
     {
-        qCurveChannels[qCurveChannel].RemoveAt(qCurveSelected);
-        QCurveSelectedClamp();
-        QCurveChanged?.Invoke();
+        QCurveChannelApply(lPoints => lPoints.RemoveAt(qCurveSelected));
     }
 
-    public void QCurveChannelReset()
-    {
-        qCurveChannels[qCurveChannel] = QCurveIdentityCreate();
-        QCurveSelectedClamp();
-        QCurveChanged?.Invoke();
-    }
+    public void QCurveChannelReset() => qCurveGate.CCurveChannelReset(qCurveChannel);
 
-    public void QCurveReset()
-    {
-        for (int lIndex = 0; lIndex < qCurveChannels.Length; lIndex++)
-        {
-            qCurveChannels[lIndex] = QCurveIdentityCreate();
-        }
-
-        QCurveSelectedClamp();
-        QCurveChanged?.Invoke();
-    }
+    public void QCurveReset() => qCurveGate.CCurveReset();
 
     public void QCurveHistogramSet(LHistogramCounts? lHistogram)
     {
@@ -283,16 +218,7 @@ public sealed class QCurve
         QCurveChanged?.Invoke();
     }
 
-    public void QCurvePersistentSet(bool lPersistent)
-    {
-        if (qCurvePersistent == lPersistent)
-        {
-            return;
-        }
-
-        qCurvePersistent = lPersistent;
-        QCurveChanged?.Invoke();
-    }
+    public void QCurvePersistentSet(bool lPersistent) => qCurveGate.CCurvePersistentSet(lPersistent);
 
     public void QCurveCapableSet(bool lCapable, bool lPreview) =>
         QCurveCapableChange(lCapable, QCurvePreviewResolve(lCapable, lPreview));
@@ -313,6 +239,33 @@ public sealed class QCurve
 
     private void QCurveSelectedClamp() => qCurveSelected = QCurveIndexClamp(qCurveSelected);
 
-    private static List<LWorkCurvePoint> QCurveIdentityCreate() =>
-        new() { new LWorkCurvePoint(0, 0), new LWorkCurvePoint(1, 1) };
+    // Any change of the gate's points or switches keeps the shown point inside its channel, then is told on.
+    private void QCurveGateHandle()
+    {
+        QCurveSelectedClamp();
+        QCurveChanged?.Invoke();
+    }
+
+    // The shown channel's points take the edit, then go to the gate whole.
+    private void QCurveChannelApply(Action<List<LWorkCurvePoint>> lEdit)
+    {
+        List<LWorkCurvePoint> lPoints = QCurvePointsRead(qCurveChannel);
+        lEdit(lPoints);
+        qCurveGate.CCurveChannelSet(qCurveChannel, QCurvePairsRead(lPoints));
+    }
+
+    private static (double, double)[][] QCurveChannelsRead(LWorkCurveSettings lCurve) =>
+        new[]
+        {
+            QCurvePairsRead(lCurve.LWorkCurveMaster),
+            QCurvePairsRead(lCurve.LWorkCurveRed),
+            QCurvePairsRead(lCurve.LWorkCurveGreen),
+            QCurvePairsRead(lCurve.LWorkCurveBlue)
+        };
+
+    private List<LWorkCurvePoint> QCurvePointsRead(int lChannel) =>
+        qCurveGate.CCurveChannels[lChannel].Select(lPoint => new LWorkCurvePoint(lPoint.Item1, lPoint.Item2)).ToList();
+
+    private static (double, double)[] QCurvePairsRead(IEnumerable<LWorkCurvePoint> lPoints) =>
+        lPoints.Select(lPoint => (lPoint.LWorkCurveInput, lPoint.LWorkCurveOutput)).ToArray();
 }

@@ -18,11 +18,12 @@ public static class LRigFactoryTrace
     {
         return new LRigTrace(
             LTraceLog.LTraceInfoRecord,
-            message => LTraceLog.LTraceWarningRecord(message),
+            LTraceLog.LTraceWarningRecord,
             LTraceLog.LTraceErrorRecord,
             LTraceLog.LTraceFfmpegRecord,
             () => LTrace.LTraceVerbose,
-            LTraceDetailRecord);
+            LTraceDetailRecord,
+            LTrace.LTraceTimelineAdd);
     }
 
     private static void LTraceDetailRecord(bool lUi, string lSummary, string? lDetail)

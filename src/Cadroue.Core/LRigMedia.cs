@@ -5,4 +5,6 @@ public sealed record LRigMedia(
     Func<string, CancellationToken, Task<double?>> LRigMediaLoudness,
     Func<string, TimeSpan, TimeSpan, CancellationToken, Task<IReadOnlyList<LKeyframeEntry>>> LRigMediaKeyframe,
     Func<CancellationToken, Task> LRigMediaAdmission,
-    Action LRigMediaDischarge);
+    Action LRigMediaDischarge,
+    Func<string, IReadOnlyList<string>> LRigMediaFiles,
+    Func<string, bool> LRigMediaSupported);

@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 // The white balance math the gate asks for: the step as Core keeps it, and each neutral reading as plain values.
@@ -26,6 +28,14 @@ public interface LWhitebalancePort
 
     (int LWhitebalanceSize, int LWhitebalanceStride, byte[] LWhitebalancePixels) LWhitebalanceBitmapRead(
         int lSize, double lValue);
+
+    // The plan step an answer stands for; static, since it reads only the answer given.
+    static LWorkVideoStep LWhitebalanceStepCreate(LWhitebalanceAnswer lAnswer) =>
+        LWhitebalanceFacade.LWhitebalanceStepCreate(lAnswer);
+
+    // The Core method a token names; the viewer's estimate takes it. An unknown token throws.
+    static LWhitebalanceMethod LWhitebalanceMethodRead(string lToken) =>
+        LWhitebalanceFacade.LWhitebalanceMethodRead(lToken);
 }
 
 // One white balance step as plain values. The token names the method: Average, Minmax, Median or Manual.

@@ -8,10 +8,10 @@ namespace Cadroue.Tests.Interface;
 internal static partial class TInterface
 {
     internal static IReadOnlyList<string> TContourTokensRead() => LContourCatalog.LContourTokensRead();
-    internal static LEqualizerPort TEqualizerOutletCreate() => new LEqualizerOutlet();
-    internal static LNoisePort TNoiseOutletCreate() => new LNoiseOutlet();
-    internal static LFilterPort TFilterOutletCreate() => new LFilterOutlet();
-    internal static LLoudnessPort TLoudnessOutletCreate() => new LLoudnessOutlet();
+    internal static LEqualizerPort TEqualizerOutletCreate() => new LEqualizerOutlet(TInterfaceEngine);
+    internal static LNoisePort TNoiseOutletCreate() => new LNoiseOutlet(TInterfaceEngine);
+    internal static LFilterPort TFilterOutletCreate() => new LFilterOutlet(TInterfaceEngine);
+    internal static LLoudnessPort TLoudnessOutletCreate() => new LLoudnessOutlet(TInterfaceEngine);
     internal static double[]? TContourGainsRead(string token) => LContourCatalog.LContourGainsRead(token);
     internal static bool TContourMatch(
         IReadOnlyList<double> frequencies, IReadOnlyList<double> gains, double[] expected) =>

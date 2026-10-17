@@ -68,6 +68,9 @@ public sealed class CList
             .Where(_cListSelected.Contains)
             .ToArray();
 
+    // The unlocked paths in docket order.
+    public IReadOnlyList<string> CListUnlockedRead() => _cListPort.LListUnlockedRead();
+
     public bool CListSelectionCheck(string path) => _cListSelected.Contains(path);
 
     public bool CListLockCheck() => CListPathCurrent is { } current && _cListPort.LListLockCheck(current);
@@ -365,10 +368,7 @@ public sealed class CList
     private void CListSelectedSet(IEnumerable<string> paths)
     {
         _cListSelected.Clear();
-        foreach (string path in paths)
-        {
-            _cListSelected.Add(path);
-        }
+        _cListSelected.UnionWith(paths);
     }
 
     private bool CListPluralCheck(string path) => _cListSelected.Contains(path) && _cListSelected.Count > 1;

@@ -15,37 +15,36 @@ Thread thread = new(() =>
     application.PProgramAttach(LTraceLog.LTraceErrorRecord, QProgram.QProgramDebounceTick);
     LRigFactory.LRigFactoryAttach(LFlawScanner.LFlawScanRun);
     LRig rig = LRigFactory.LRigFactoryCreate();
+    LEngine engine = new(rig);
     CAtelier atelier = new(new LAtelierPort
     {
-        LAtelierUsher = new LUsherOutlet(),
-        LAtelierLineage = new LLineageOutlet(TimeProvider.System.GetUtcNow),
-        LAtelierWorkspace = new LWorkspaceOutlet(),
+        LAtelierUsher = new LUsherOutlet(engine),
+        LAtelierLineage = new LLineageOutlet(engine),
+        LAtelierWorkspace = new LWorkspaceOutlet(engine),
         LAtelierPlacement = new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
-        LAtelierViewer = new LViewerOutlet(
-            lPath => System.IO.Path.GetFileName(lPath),
-            () => System.DateTimeOffset.Now,
-            System.Environment.NewLine),
-        LAtelierEdit = new LEditOutlet(LTraceLog.LTraceWarningRecord),
-        LAtelierRoster = new LRosterOutlet(),
+        LAtelierViewer = new LViewerOutlet(engine),
+        LAtelierEdit = new LEditOutlet(engine),
+        LAtelierRoster = new LRosterOutlet(engine),
         LAtelierFix = new LFixOutlet(),
-        LAtelierConvert = new LConvertOutlet(),
-        LAtelierTone = new LToneOutlet(() => LFlyleaf.LFlyleafActive, LRenderer.LRendererEngineRead),
-        LAtelierEqualizer = new LEqualizerOutlet(),
+        LAtelierConvert = new LConvertOutlet(engine),
+        LAtelierTone = new LToneOutlet(engine),
+        LAtelierEqualizer = new LEqualizerOutlet(engine),
         LAtelierClinic = new LClinicOutlet(),
-        LAtelierRosterCard = new LRosterCardOutlet(),
-        LAtelierMerge = new LMergeOutlet(lMessage => LTraceLog.LTraceWarningRecord(lMessage)),
-        LAtelierNoise = new LNoiseOutlet(),
-        LAtelierConsole = new LConsoleOutlet(() => LRenderer.LRendererProgramCurrent),
+        LAtelierRosterCard = new LRosterCardOutlet(engine),
+        LAtelierMerge = new LMergeOutlet(engine),
+        LAtelierNoise = new LNoiseOutlet(engine),
+        LAtelierConsole = new LConsoleOutlet(engine),
         LAtelierFlow = new LFlowOutlet(
             rig.LRigKeyframe,
             rig.LRigWaveform,
             () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
-        LAtelierMap = new LMapOutlet(LTrace.LTraceTimelineAdd),
-        LAtelierRosterDetail = new LRosterDetailOutlet(() => System.DateTimeOffset.Now),
-        LAtelierWhitebalance = new LWhitebalanceOutlet(),
-        LAtelierFilter = new LFilterOutlet(),
-        LAtelierAudio = new LAudioOutlet(),
-        LAtelierLoudness = new LLoudnessOutlet(),
+        LAtelierMap = new LMapOutlet(engine),
+        LAtelierRosterDetail = new LRosterDetailOutlet(engine),
+        LAtelierWhitebalance = new LWhitebalanceOutlet(engine),
+        LAtelierFilter = new LFilterOutlet(engine),
+        LAtelierAudio = new LAudioOutlet(engine),
+        LAtelierLoudness = new LLoudnessOutlet(engine),
+        LAtelierVideo = new LVideoOutlet(engine),
         LAtelierScene = new LConsoleSceneOutlet(new LSceneStore(
             LScene.LSceneCatalogueLoad,
             () => LScene.LSceneNames,
@@ -61,15 +60,10 @@ Thread thread = new(() =>
             LScene.LSceneStemResolve,
             lMessage => LTraceLog.LTraceLoadingRecord(lMessage))),
         LAtelierList = LListOutlet.LListOutletCreate(LRigFactoryList.LRigListCreate()),
-        LAtelierRelay = new LRelayOutlet(
-            LMedia.LMediaFileRead,
-            LMedia.LMediaCheck,
-            LTraceLog.LTraceInfoRecord,
-            LTraceLog.LTraceWarningRecord),
+        LAtelierRelay = new LRelayOutlet(engine),
     });
     QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
 
-    LEngine engine = new(rig);
     QProgram program = new(engine.LEngineSchedule, engine.LEngineStationAttach);
 
     application.Startup += (_, e) =>

@@ -1,34 +1,32 @@
-using System.Globalization;
-
 namespace Cadroue.ShellEngine;
 
+// The engine's face for the usher gate: every member forwards to the same-named member of the engine's usher
+// facade. It rejects a null engine and keeps it for every forward.
 public sealed class LUsherOutlet : LUsherPort
 {
-    public bool LUsherFileExist(string? lPath) => LUsherDiskEngine.LUsherFileSeam(lPath);
+    private readonly LEngine _lUsherOutletEngine;
 
-    public bool LUsherFolderExist(string? lFolder) => LUsherDiskEngine.LUsherFolderSeam(lFolder);
+    public LUsherOutlet(LEngine lEngine)
+    {
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lUsherOutletEngine = lEngine;
+    }
 
-    public string LUsherNameRead(string lPath) => LUsherTextEngine.LUsherNameSeam(lPath);
+    public bool LUsherFileExist(string? lPath) => _lUsherOutletEngine.LEngineUsher.LUsherFileExist(lPath);
 
-    public string LUsherStemRead(string lPath) => LUsherTextEngine.LUsherStemSeam(lPath);
+    public bool LUsherFolderExist(string? lFolder) => _lUsherOutletEngine.LEngineUsher.LUsherFolderExist(lFolder);
 
-    public string LUsherProgramResolve(string lName) => LUsherEnvironmentEngine.LUsherProgramSeam(lName);
+    public string LUsherNameRead(string lPath) => _lUsherOutletEngine.LEngineUsher.LUsherNameRead(lPath);
+
+    public string LUsherStemRead(string lPath) => _lUsherOutletEngine.LEngineUsher.LUsherStemRead(lPath);
+
+    public string LUsherProgramResolve(string lName) => _lUsherOutletEngine.LEngineUsher.LUsherProgramResolve(lName);
 
     public string? LUsherPathOpen(string lPath, string? lFallback, string? lFailure) =>
-        LUsherFailureRecord(lPath, LUsherEngine.LUsherRevealSeam(lPath, lFallback), lFailure);
+        _lUsherOutletEngine.LEngineUsher.LUsherPathOpen(lPath, lFallback, lFailure);
 
-    public string? LUsherFolderOpen(string lFolder) => LUsherEngine.LUsherExplorerSeam(lFolder);
+    public string? LUsherFolderOpen(string lFolder) => _lUsherOutletEngine.LEngineUsher.LUsherFolderOpen(lFolder);
 
     public string? LUsherLinkOpen(string lTarget, string? lFailure) =>
-        LUsherFailureRecord(lTarget, LUsherEngine.LUsherLinkSeam(lTarget), lFailure);
-
-    private static string? LUsherFailureRecord(string lTarget, string? lError, string? lFailure)
-    {
-        if (lError is not null && lFailure is not null)
-        {
-            LTraceEngine.LTraceErrorSeam(string.Format(CultureInfo.InvariantCulture, lFailure, lTarget, lError), null);
-        }
-
-        return lError;
-    }
+        _lUsherOutletEngine.LEngineUsher.LUsherLinkOpen(lTarget, lFailure);
 }

@@ -10,15 +10,15 @@ public sealed class QEditTabPlan
     private readonly CUsher qEditUsher;
     private readonly QInspector qEditInspector;
     private readonly QViewer qEditViewer;
-    private readonly LDocket qEditDocket;
+    private readonly CList qEditList;
     private readonly QEditTabColor qEditColor;
 
-    public QEditTabPlan(CUsher lUsher, QInspector lInspector, QViewer lViewer, LDocket lDocket, QEditTabColor lColor)
+    public QEditTabPlan(CUsher lUsher, QInspector lInspector, QViewer lViewer, CList lList, QEditTabColor lColor)
     {
         qEditUsher = lUsher;
         qEditInspector = lInspector;
         qEditViewer = lViewer;
-        qEditDocket = lDocket;
+        qEditList = lList;
         qEditColor = lColor;
     }
 
@@ -82,7 +82,7 @@ public sealed class QEditTabPlan
     {
         if (qEditInspector.QInspectorSaveSuspended
             || qEditViewer.QViewerWorkspace.CWorkspaceSource is not { } lSourcePath
-            || qEditDocket.LDocketLockCheck(lSourcePath))
+            || qEditList.CListLockCheck(lSourcePath))
         {
             return;
         }
@@ -104,8 +104,7 @@ public sealed class QEditTabPlan
         QEditPersistentSave();
     }
 
-    public void QEditPersistentSave() =>
-        QEditPersistentSave(qEditDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath));
+    public void QEditPersistentSave() => QEditPersistentSave(qEditList.CListUnlockedRead());
 
     public void QEditItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
         QEditPersistentSave(lAdded.Select(lItem => lItem.LDocketEntryPath));

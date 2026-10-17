@@ -1,21 +1,19 @@
-using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-// The roster card's rows, read from the station's schedule. With no schedule there is nothing to show.
+// The engine's face for the roster card gate: every member forwards to the same-named member of the engine's
+// roster card facade. It rejects a null engine and keeps it for every forward.
 public sealed class LRosterCardOutlet : LRosterCardPort
 {
-    public IReadOnlyList<LRosterRow> LRosterCardRead(IReadOnlyList<Guid> lIds, Guid lRunner)
-    {
-        if (LStation.LStationSchedule is not { } lSchedule)
-        {
-            return [];
-        }
+    private readonly LEngine _lCardOutletEngine;
 
-        return LScheduleLookup.LScheduleRecordsRead(lSchedule, lIds)
-            .Select(lWorkItem => LRosterRow.LRosterRowCreate(
-                lWorkItem, lSchedule.LScheduleOwnerCheck(lWorkItem, lRunner)))
-            .ToArray();
+    public LRosterCardOutlet(LEngine lEngine)
+    {
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lCardOutletEngine = lEngine;
     }
+
+    public IReadOnlyList<LRosterRow> LRosterCardRead(IReadOnlyList<Guid> lIds, Guid lRunner) =>
+        _lCardOutletEngine.LEngineRosterCard.LRosterCardRead(lIds, lRunner);
 }

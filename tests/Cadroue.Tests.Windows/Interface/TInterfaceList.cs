@@ -51,13 +51,9 @@ internal static class TInterfaceList
 
     internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
 
-    // As the host builds it, over the media scan and the trace log.
+    // As the host builds it, over the engine.
     internal static LRelayPort TRelayOutletCreate() =>
-        new LRelayOutlet(
-            Cadroue.Media.LMedia.LMediaFileRead,
-            Cadroue.Media.LMedia.LMediaCheck,
-            Cadroue.Infrastructure.LTraceLog.LTraceInfoRecord,
-            Cadroue.Infrastructure.LTraceLog.LTraceWarningRecord);
+        new LRelayOutlet(Interface.TInterface.TInterfaceEngine);
 
     // The strip's relay gate takes the engine's delivery seams; each helper below calls the seam the engine calls.
     internal static void TListRelayAttach(QStrip strip) => strip.QStripRelay.QStripListAttach();

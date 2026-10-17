@@ -66,7 +66,7 @@ internal static partial class TInterface
     internal static LWorkVideoStep TExposureStepRead(CExposure exposure) =>
         LWorkVideoStep.LWorkExposureCreate(exposure.CExposureActive, exposure.CExposureValue);
 
-    internal static QCurve TCurveCreate() => new();
+    internal static QCurve TCurveCreate() => new(TAtelierCreate().CAtelierInspectorCreate().CInspectorCurve);
     internal static void TCurveAttach(QCurve curve, Action handler) => curve.QCurveChanged += handler;
     internal static void TCurveChannelSelect(QCurve curve, int channel) => curve.QCurveChannelSelect(channel);
     internal static void TCurvePointAdd(QCurve curve, double input, double output) =>
@@ -99,7 +99,7 @@ internal static partial class TInterface
         whitebalance.CWhitebalanceChanged += handler;
     internal static void TWhitebalanceEstimateAttach(CWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
         whitebalance.CWhitebalanceEstimateChanged +=
-            token => handler(LWhitebalanceOutlet.LWhitebalanceMethodRead(token));
+            token => handler(LWhitebalancePort.LWhitebalanceMethodRead(token));
     internal static void TWhitebalanceEstimateStart(CWhitebalance whitebalance) =>
         whitebalance.CWhitebalanceEstimateStart();
     internal static void TWhitebalanceSampleSet(CWhitebalance whitebalance, LNeutralSample sample) =>
@@ -120,7 +120,7 @@ internal static partial class TInterface
     internal static LWorkWhitebalanceSettings TWhitebalanceValueRead(CWhitebalance whitebalance) =>
         TWhitebalanceStepRead(whitebalance).LWorkWhitebalanceRead();
     internal static LWorkVideoStep TWhitebalanceStepRead(CWhitebalance whitebalance) =>
-        LWhitebalanceOutlet.LWhitebalanceStepCreate(whitebalance.CWhitebalanceAnswer);
+        LWhitebalancePort.LWhitebalanceStepCreate(whitebalance.CWhitebalanceAnswer);
     internal static bool TWhitebalanceManualRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceManual;
     internal static bool TWhitebalanceToolRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceArmed;
     internal static LNeutralTarget TWhitebalanceTargetRead(CWhitebalance whitebalance) =>
@@ -147,7 +147,7 @@ internal static partial class TInterface
     internal static string? TNoiseTokenRead(CNoise noise) => noise.CNoiseToken;
     internal static string? TNoiseMatchRead(CNoise noise) => noise.CNoisePreset;
     internal static LWorkNoiseStep TNoiseStepRead(CNoise noise) =>
-        (LWorkNoiseStep)LNoiseOutlet.LNoiseStepCreate(
+        (LWorkNoiseStep)LNoisePort.LNoiseStepCreate(
             noise.CNoiseActive, noise.CNoiseValues, noise.CNoiseTrack, noise.CNoiseType);
 
     internal static QSensor TSensorCreate() => new();
@@ -181,7 +181,7 @@ internal static partial class TInterface
     internal static string? TLoudnessTokenRead(CLoudness loudness) => loudness.CLoudnessToken;
     internal static string? TLoudnessMatchRead(CLoudness loudness) => loudness.CLoudnessPreset;
     internal static LWorkNormalizeStep TLoudnessStepRead(CLoudness loudness) =>
-        (LWorkNormalizeStep)LLoudnessOutlet.LLoudnessStepCreate(
+        (LWorkNormalizeStep)LLoudnessPort.LLoudnessStepCreate(
             loudness.CLoudnessActive, loudness.CLoudnessDynamic, loudness.CLoudnessValues, loudness.CLoudnessTwoPass);
 
     internal static CFilter TFilterCreate(bool high) => high
@@ -209,7 +209,7 @@ internal static partial class TInterface
     internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(CEqualizer equalizer) =>
         equalizer.CEqualizerBands.Select(band => new LWorkBand(band.CEqualizerFrequency, band.CEqualizerGain)).ToList();
     internal static LWorkAudioStep TEqualizerStepRead(CEqualizer equalizer) =>
-        LEqualizerOutlet.LEqualizerStepCreate(equalizer.CEqualizerActive, equalizer.CEqualizerBands);
+        LEqualizerPort.LEqualizerStepCreate(equalizer.CEqualizerActive, equalizer.CEqualizerBands);
 
     internal static CVolume TVolumeCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorVolume;
     internal static void TVolumeAttach(CVolume volume, Action handler) => volume.CVolumeChanged += handler;

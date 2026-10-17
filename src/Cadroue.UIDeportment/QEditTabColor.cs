@@ -38,19 +38,8 @@ public sealed class QEditTabColor
         qEditViewer.QViewerColorSet(LPreview.LPreviewColorResolve(lVideo));
     }
 
-    public LWorkVideo QEditVideoRead(bool lMpvOnlyCapable = true)
-    {
-        var lSteps = new List<LWorkVideoStep>();
-        foreach (string lStep in qEditProcessing.QProcessingSteps)
-        {
-            if (LColor.LColorKindParse(lStep) is { } lKind)
-            {
-                lSteps.Add(qEditInspector.QInspectorVideo.QInspectorStepRead(lKind));
-            }
-        }
-
-        return LEdit.LEditVideoCreate(lSteps, lMpvOnlyCapable);
-    }
+    public LWorkVideo QEditVideoRead(bool lMpvOnlyCapable = true) =>
+        qEditInspector.QInspectorVideo.QInspectorVideoRead(qEditProcessing.QProcessingSteps, lMpvOnlyCapable);
 
     public bool QEditEqCheck() => QEditFilterCheck("eq");
 
@@ -106,7 +95,7 @@ public sealed class QEditTabColor
 
     // The gate asks for an estimate by method token; the viewer starts it.
     public void QEditEstimateHandle(string lToken) =>
-        qEditViewer.QViewerNeutral.QViewerEstimateStart(LWhitebalanceOutlet.LWhitebalanceMethodRead(lToken));
+        qEditViewer.QViewerNeutral.QViewerEstimateStart(LWhitebalancePort.LWhitebalanceMethodRead(lToken));
 
     // The viewer's picker and the gate's picker follow each other; the gate holds the target as whether it is white.
     public void QEditTargetHandle(bool lArmed, LNeutralTarget lTarget) =>

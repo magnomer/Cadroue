@@ -17,16 +17,6 @@ public sealed class QAudioTab
         new("Normalize", "/PAsset/PPanel/PProcessingNormalize.svg", "Processing.Step.Normalize"),
     ];
 
-    private static readonly IReadOnlyDictionary<string, LAudioKind> qAudioKinds = new Dictionary<string, LAudioKind>
-    {
-        ["Volume"] = LAudioKind.LAudioKindVolume,
-        ["Normalize"] = LAudioKind.LAudioKindLeveling,
-        ["Noise Reduction"] = LAudioKind.LAudioKindDenoise,
-        ["High Pass"] = LAudioKind.LAudioKindHighpass,
-        ["Low Pass"] = LAudioKind.LAudioKindLowpass,
-        ["Equalizer"] = LAudioKind.LAudioKindEqualizer,
-    };
-
     private readonly LPresetSelection qAudioPreset;
     private readonly QInspectorAudio qAudioSections;
     private readonly QViewer qAudioViewer;
@@ -60,8 +50,8 @@ public sealed class QAudioTab
 
     public QAudioTabPlan QAudioStore { get; }
 
-    public static LAudioKind? QAudioKindRead(string lStep) =>
-        qAudioKinds.TryGetValue(lStep, out LAudioKind lKind) ? lKind : null;
+    // The engine reads which audio tool a step names.
+    public static LAudioKind? QAudioKindRead(string lStep) => LAudioPort.LAudioKindRead(lStep);
 
     public void QAudioClose()
     {

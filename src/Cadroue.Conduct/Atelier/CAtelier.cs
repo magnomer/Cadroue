@@ -21,6 +21,7 @@ public sealed class CAtelier
     private readonly LFilterPort _cAtelierFilterPort;
     private readonly LAudioPort _cAtelierAudioPort;
     private readonly LLoudnessPort _cAtelierLoudnessPort;
+    private readonly LVideoPort _cAtelierVideoPort;
     private readonly LConsoleScenePort _cAtelierScenePort;
     private readonly Func<Func<string, string>, LListPort> _cAtelierListPort;
 
@@ -50,6 +51,7 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierFilter);
         ArgumentNullException.ThrowIfNull(port.LAtelierAudio);
         ArgumentNullException.ThrowIfNull(port.LAtelierLoudness);
+        ArgumentNullException.ThrowIfNull(port.LAtelierVideo);
         ArgumentNullException.ThrowIfNull(port.LAtelierScene);
         ArgumentNullException.ThrowIfNull(port.LAtelierList);
         ArgumentNullException.ThrowIfNull(port.LAtelierRelay);
@@ -78,6 +80,7 @@ public sealed class CAtelier
         _cAtelierFilterPort = port.LAtelierFilter;
         _cAtelierAudioPort = port.LAtelierAudio;
         _cAtelierLoudnessPort = port.LAtelierLoudness;
+        _cAtelierVideoPort = port.LAtelierVideo;
         _cAtelierScenePort = port.LAtelierScene;
         _cAtelierListPort = port.LAtelierList;
         CAtelierRelay = new CRelay(port.LAtelierRelay, CAtelierUsher);
@@ -118,7 +121,8 @@ public sealed class CAtelier
             _cAtelierWhitebalancePort,
             _cAtelierFilterPort,
             _cAtelierAudioPort,
-            _cAtelierLoudnessPort);
+            _cAtelierLoudnessPort,
+            _cAtelierVideoPort);
 
     // A roster's preference gate with the roster's own card and detail gates.
     public CRoster CAtelierRosterCreate() =>

@@ -104,11 +104,11 @@ public sealed class LInspectorOutlet : LInspectorPort
     {
         LWorkAudioStep lStep = LInspectorAudioFind(LAudioKind.LAudioKindEqualizer)
             ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate());
-        IReadOnlyList<(double, double)> lBands = LEqualizerOutlet.LEqualizerPairsRead(
+        IReadOnlyList<(double, double)> lBands = LEqualizerFacade.LEqualizerPairsRead(
             lStep is LWorkEqualizerStep lEqualizer
                 ? lEqualizer.LWorkEqualizerBands
                 : LWorkEqualizerStep.LWorkBandsCreate());
-        return (lStep.LWorkStepActive, lBands, LEqualizerOutlet.LEqualizerMatchFind(lBands));
+        return (lStep.LWorkStepActive, lBands, LEqualizerFacade.LEqualizerMatchFind(lBands));
     }
 
     // Noise values in the noise gate's slot order, held inside their ranges; a step that is not a noise step reads
@@ -121,15 +121,15 @@ public sealed class LInspectorOutlet : LInspectorPort
         var lSource = lStep as LWorkNoiseStep
             ?? (LWorkNoiseStep)LWorkAudioStep.LWorkNoiseCreate(
                 lStep.LWorkStepActive, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);
-        var lNoise = new LNoiseOutlet();
-        IReadOnlyList<double> lValues = lNoise.LNoiseNormalize(LNoiseOutlet.LNoiseValuesRead(lSource));
-        int lType = LNoiseOutlet.LNoiseTypeRead(lSource);
+        var lNoise = new LNoiseFacade();
+        IReadOnlyList<double> lValues = lNoise.LNoiseNormalize(LNoiseFacade.LNoiseValuesRead(lSource));
+        int lType = LNoiseFacade.LNoiseTypeRead(lSource);
         return (
             lSource.LWorkStepActive, lValues, lSource.LWorkNoiseTrack, lType, lNoise.LNoiseMatchFind(lValues, lType));
     }
 
     public LWhitebalanceAnswer LInspectorWhitebalanceRead() =>
-        LWhitebalanceOutlet.LWhitebalanceAnswerRead(
+        LWhitebalanceFacade.LWhitebalanceAnswerRead(
             LInspectorVideoFind(LColorKind.LColorKindWhitebalance) ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
     // A side's values in the filter gate's slot order, held inside their ranges; a plan without the side's step reads
     // as the side's default step switched off, and a step that is not a pass step as that default with its switch.
@@ -140,9 +140,9 @@ public sealed class LInspectorOutlet : LInspectorPort
         LWorkAudioStep lStep = LInspectorAudioFind(lKind) ?? LPassband.LPassbandStepCreate(lHigh, false);
         var lSource = lStep as LWorkPassStep
             ?? (LWorkPassStep)LPassband.LPassbandStepCreate(lHigh, lStep.LWorkStepActive);
-        var lFilter = new LFilterOutlet();
+        var lFilter = new LFilterFacade();
         (IReadOnlyList<double> lValues, int lPoles) =
-            lFilter.LFilterNormalize(lHigh, LFilterOutlet.LFilterValuesRead(lSource), lSource.LWorkPassPoles);
+            lFilter.LFilterNormalize(lHigh, LFilterFacade.LFilterValuesRead(lSource), lSource.LWorkPassPoles);
         return (lSource.LWorkStepActive, lValues, lPoles, lFilter.LFilterMatchFind(lHigh, lValues, lPoles));
     }
 
@@ -152,12 +152,12 @@ public sealed class LInspectorOutlet : LInspectorPort
         bool LInspectorTwoPass, string? LInspectorPreset) LInspectorLevelingRead()
     {
         LWorkAudioStep lStep = LInspectorAudioFind(LAudioKind.LAudioKindLeveling)
-            ?? LLoudnessOutlet.LLoudnessDefaultCreate(false);
+            ?? LLoudnessFacade.LLoudnessDefaultCreate(false);
         LWorkNormalizeStep lSource = lStep as LWorkNormalizeStep
-            ?? LLoudnessOutlet.LLoudnessDefaultCreate(lStep.LWorkStepActive);
-        var lLoudness = new LLoudnessOutlet();
+            ?? LLoudnessFacade.LLoudnessDefaultCreate(lStep.LWorkStepActive);
+        var lLoudness = new LLoudnessFacade();
         bool lDynamic = lSource.LWorkNormalizeMode == LLeveling.LLevelingDynamic;
-        IReadOnlyList<double> lValues = lLoudness.LLoudnessNormalize(LLoudnessOutlet.LLoudnessValuesRead(lSource));
+        IReadOnlyList<double> lValues = lLoudness.LLoudnessNormalize(LLoudnessFacade.LLoudnessValuesRead(lSource));
         return (lSource.LWorkStepActive, lDynamic, lValues, lSource.LWorkTwoPass,
             lLoudness.LLoudnessMatchFind(lDynamic, lValues));
     }
@@ -174,6 +174,9 @@ public sealed class LInspectorOutlet : LInspectorPort
 
     // The audio plan as the read holds it.
     public LWorkAudio LInspectorAudioRead() => _lInspectorAudio;
+
+    // The video plan as the read holds it.
+    public LWorkVideo LInspectorVideoRead() => _lInspectorVideo;
 
     private LWorkVideoStep? LInspectorVideoFind(LColorKind lKind) =>
         _lInspectorVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

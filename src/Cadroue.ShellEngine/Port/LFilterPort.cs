@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.ShellEngine;
 
 // The high- and low-pass rules for their gate; each member takes the side, true for the high pass. Values run in slot
@@ -20,4 +22,8 @@ public interface LFilterPort
     (IReadOnlyList<double> LFilterValues, int LFilterPoles)? LFilterPresetRead(bool lHigh, string lToken);
 
     string? LFilterMatchFind(bool lHigh, IReadOnlyList<double> lValues, int lPoles);
+
+    // The audio step for the gate's side, switch, values and poles; static, since it reads only the values given.
+    static LWorkAudioStep LFilterStepCreate(bool lHigh, bool lActive, IReadOnlyList<double> lValues, int lPoles) =>
+        LFilterFacade.LFilterStepCreate(lHigh, lActive, lValues, lPoles);
 }

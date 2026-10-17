@@ -1,19 +1,15 @@
-using Cadroue.Application;
-using Cadroue.Core;
-
 namespace Cadroue.ShellEngine;
 
-// The edit dispatch: the preset's encoding is read by its name and the source records are built here; which sources
-// run, and whether any run at all, is the gate's. The persistent audio save merges and writes each sidecar here and
-// traces the failures through the warning the host hands in; whether it runs is the gate's.
+// The engine's face for the edit gate: every member forwards to the same-named member of the engine's edit facade.
+// It rejects a null engine and keeps it for every forward.
 public sealed class LEditOutlet : LEditPort
 {
-    private readonly Action<string, string?> _lEditOutletWarning;
+    private readonly LEngine _lEditOutletEngine;
 
-    public LEditOutlet(Action<string, string?> lWarning)
+    public LEditOutlet(LEngine lEngine)
     {
-        ArgumentNullException.ThrowIfNull(lWarning);
-        _lEditOutletWarning = lWarning;
+        ArgumentNullException.ThrowIfNull(lEngine);
+        _lEditOutletEngine = lEngine;
     }
 
     public void LEditAllRun(
@@ -21,42 +17,12 @@ public sealed class LEditOutlet : LEditPort
         IReadOnlyList<(string LEditPath, Guid LEditBatch)> lSources,
         Guid lRelayTarget,
         Guid lSourceTab) =>
-        LMessenger.LMessengerEditDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            lSources.Select(lSource => new LWorkSource(lSource.LEditPath, lSource.LEditBatch)).ToArray(),
-            LPresetSelection.LPresetEncodingRead(lPresetName),
-            lRelayTarget,
-            lSourceTab);
+        _lEditOutletEngine.LEngineEdit.LEditAllRun(lPresetName, lSources, lRelayTarget, lSourceTab);
 
     public void LEditAudioSave(
         LInspectorPort lPersistent,
         IReadOnlyList<string> lPaths,
         bool lSkipPersistent,
-        bool lSkipApply)
-    {
-        LWorkAudio lPlan = lPersistent.LInspectorAudioRead();
-        var lFailed = new List<string>();
-        foreach (string lPath in lPaths)
-        {
-            bool lStored = LAudio.LAudioPlanSave(
-                lPath,
-                LAudio.LAudioPlanResolve(
-                    LAudio.LAudioPlanRead(lPath, LLibrarian.LLibrarianAudioLoad),
-                    lPlan,
-                    lSkipPersistent,
-                    lSkipApply),
-                LLibrarian.LLibrarianAudioSave);
-            if (!lStored)
-            {
-                lFailed.Add(lPath);
-            }
-        }
-
-        if (lFailed.Count > 0)
-        {
-            _lEditOutletWarning(
-                $"Audio persistent save failed for {lFailed.Count} file(s): those sidecars were not written",
-                string.Join(Environment.NewLine, lFailed));
-        }
-    }
+        bool lSkipApply) =>
+        _lEditOutletEngine.LEngineEdit.LEditAudioSave(lPersistent, lPaths, lSkipPersistent, lSkipApply);
 }
