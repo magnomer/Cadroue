@@ -46,20 +46,39 @@ public sealed class PFlow : UserControl
     public PFlow(QFlow lFlow)
     {
         QFlow = lFlow;
+        PFlowLookApply();
+        pFlowLosslesscutShows = PFlowLosslesscutCreate();
+        pViewfinder = new PViewfinder(QFlow.QFlowViewfinder);
+        pMap = new PMap(QFlow.QFlowMap);
+        pDivider = new PDivider(this, QFlow.QFlowDivider);
+        pFlowName = new PFlowName(QFlow, pViewfinder);
+        QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
+        PFlowAttach();
+        pFlowViewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
+        pFlowMapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
+        Grid reelGrid = PFlowReelBuild();
+        PFlowOrderApply();
+        PFlowRootBuild(reelGrid);
+        PFlowHeightSet(LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
+    }
+
+    private void PFlowLookApply()
+    {
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         MinHeight = QDivider.QDividerMinimum;
-        pFlowLosslesscutShows = new Dictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>>
+    }
+
+    private Dictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>> PFlowLosslesscutCreate() =>
+        new()
         {
             [QFlowLosslesscutKind.QFlowKindDecision] = PFlowConfirmShow,
             [QFlowLosslesscutKind.QFlowKindChoice] = PFlowSelectShow,
             [QFlowLosslesscutKind.QFlowKindNotice] = PFlowNoticeShow,
             [QFlowLosslesscutKind.QFlowKindWarning] = PFlowWarningShow,
         };
-        pViewfinder = new PViewfinder(QFlow.QFlowViewfinder);
-        pMap = new PMap(QFlow.QFlowMap);
-        pDivider = new PDivider(this, QFlow.QFlowDivider);
-        pFlowName = new PFlowName(QFlow, pViewfinder);
-        QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
+
+    private void PFlowAttach()
+    {
         QFlow.QFlowAttachApplied += PFlowLabelsApply;
         QFlow.QFlowClearApplied += PFlowLabelsApply;
         QFlow.QFlowSpool.QFlowSpoolApplied += PFlowLabelsApply;
@@ -71,9 +90,10 @@ public sealed class PFlow : UserControl
         QFlow.QFlowLosslesscut.QFlowLosslesscutAsk += PFlowLosslesscutHandle;
         pKeyframeRequestTimer.Tick += PFlowTimerHandle;
         pKeyframeResumeTimer.Tick += PFlowTimerHandle;
+    }
 
-        pFlowViewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
-        pFlowMapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
+    private Grid PFlowReelBuild()
+    {
         Grid reelGrid = new() { Margin = new Thickness(8, 0, 8, 8) };
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(5, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(37, GridUnitType.Star) });
@@ -82,14 +102,16 @@ public sealed class PFlow : UserControl
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8, GridUnitType.Star) });
         reelGrid.Children.Add(pFlowMapReel);
         reelGrid.Children.Add(pFlowViewfinderReel);
-        PFlowOrderApply();
+        return reelGrid;
+    }
 
+    private void PFlowRootBuild(Grid reelGrid)
+    {
         DockPanel root = new() { LastChildFill = true };
         DockPanel.SetDock(pDivider, Dock.Top);
         root.Children.Add(pDivider);
         root.Children.Add(reelGrid);
         Content = root;
-        Height = LFrameStore.LFrameStateCurrent.LFrameFlowHeight;
     }
 
     public void PFlowHeightSet(double pFlowHeight) => Height = pFlowHeight;
@@ -110,10 +132,15 @@ public sealed class PFlow : UserControl
     {
         QFlow.QFlowClose();
         PFlowTimerReset();
-        pKeyframeRequestTimer.Tick -= PFlowTimerHandle;
-        pKeyframeResumeTimer.Tick -= PFlowTimerHandle;
+        PFlowTimerDetach();
         pDivider.PDividerDetach();
         pFlowName.PFlowNameDetach();
+    }
+
+    private void PFlowTimerDetach()
+    {
+        pKeyframeRequestTimer.Tick -= PFlowTimerHandle;
+        pKeyframeResumeTimer.Tick -= PFlowTimerHandle;
     }
 
     public void PFlowOrderApply()

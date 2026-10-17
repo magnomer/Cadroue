@@ -17,11 +17,11 @@ public sealed partial class PExport : UserControl
     private static readonly Brush PHeaderTextBrush = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A));
 
     private readonly LPresetSelection lPresetOwner;
-    private readonly TextBlock pExportSummaryBox;
-    private readonly TextBlock pExportSummaryVideo;
-    private readonly TextBlock pExportSummaryAudio;
-    private readonly TextBlock pExportSummaryOutput;
-    private readonly StackPanel pPresetRowPanel;
+    private TextBlock pExportSummaryBox = null!;
+    private TextBlock pExportSummaryVideo = null!;
+    private TextBlock pExportSummaryAudio = null!;
+    private TextBlock pExportSummaryOutput = null!;
+    private StackPanel pPresetRowPanel = null!;
     private Point? pExportDragOrigin;
     private Border? pPresetRowDragging;
     private double pPresetOpacityOrigin;
@@ -33,13 +33,16 @@ public sealed partial class PExport : UserControl
     {
         this.lPresetOwner = lPresetOwner;
         QExport = lExport;
-        QExport.QExportPresetsChanged += PExportPresetsUpdate;
+        PExportBuild();
+        PExportPresetsUpdate();
+        PExportAttach();
+    }
+
+    private void PExportBuild()
+    {
         FocusVisualStyle = null;
         QScrollbar.QScrollbarAttach(this);
         pPresetRowPanel = new StackPanel();
-        pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
-        pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
-        pPresetRowPanel.LostMouseCapture += PExportLostHandle;
 
         var pPanel = new Grid();
         pPanel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -81,10 +84,15 @@ public sealed partial class PExport : UserControl
 
         Grid.SetRow(pBody, 1);
         pPanel.Children.Add(pBody);
-
-        PExportPresetsUpdate();
         Content = PExportFrameBuild(pPanel);
+    }
 
+    private void PExportAttach()
+    {
+        QExport.QExportPresetsChanged += PExportPresetsUpdate;
+        pPresetRowPanel.PreviewMouseMove += PExportMoveHandle;
+        pPresetRowPanel.MouseLeftButtonUp += PExportUpHandle;
+        pPresetRowPanel.LostMouseCapture += PExportLostHandle;
         Loaded += (_, _) => QExport.QExportAttach();
         Unloaded += (_, _) => QExport.QExportDetach();
     }
@@ -93,42 +101,48 @@ public sealed partial class PExport : UserControl
 
     private static Border PExportFrameBuild(UIElement pContent)
     {
-        var pInnerBorder = new Border
-        {
-            Background = PExportSoftBrush,
-            CornerRadius = new CornerRadius(9),
-            Child = pContent,
-            SnapsToDevicePixels = true
-        };
+        Border pInnerBorder = PExportInnerBuild(pContent);
         PExportClipApply(pInnerBorder, 9);
-
-        return new Border
-        {
-            Margin = new Thickness(8),
-            BorderBrush = PLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = PExportSoftBrush,
-            CornerRadius = new CornerRadius(10),
-            Child = pInnerBorder,
-            SnapsToDevicePixels = true
-        };
+        return PExportOuterBuild(pInnerBorder);
     }
 
-    private static void PExportClipApply(Border pBorder, double pRadius)
+    private static Border PExportInnerBuild(UIElement pContent) => new()
     {
-        pBorder.SizeChanged += (_, _) =>
-        {
-            pBorder.Clip = new RectangleGeometry(
-                new Rect(0, 0, pBorder.ActualWidth, pBorder.ActualHeight),
-                pRadius,
-                pRadius);
-        };
-    }
+        Background = PExportSoftBrush,
+        CornerRadius = new CornerRadius(9),
+        Child = pContent,
+        SnapsToDevicePixels = true
+    };
+
+    private static Border PExportOuterBuild(Border pInnerBorder) => new()
+    {
+        Margin = new Thickness(8),
+        BorderBrush = PLineBrush,
+        BorderThickness = new Thickness(1),
+        Background = PExportSoftBrush,
+        CornerRadius = new CornerRadius(10),
+        Child = pInnerBorder,
+        SnapsToDevicePixels = true
+    };
+
+    private static void PExportClipApply(Border pBorder, double pRadius) =>
+        pBorder.SizeChanged += (_, _) => PExportClipUpdate(pBorder, pRadius);
+
+    private static void PExportClipUpdate(Border pBorder, double pRadius) =>
+        pBorder.Clip = new RectangleGeometry(
+            new Rect(0, 0, pBorder.ActualWidth, pBorder.ActualHeight),
+            pRadius,
+            pRadius);
 
     private void PExportPresetsUpdate()
     {
         LPreset lWorking = PExportWorkingRead();
         PExportPresetRebuild();
+        PExportSummarySet(lWorking);
+    }
+
+    private void PExportSummarySet(LPreset lWorking)
+    {
         pExportSummaryBox.Text = lWorking.LPresetContainer;
         pExportSummaryVideo.Text = lWorking.LPresetVideoSummary;
         pExportSummaryAudio.Text = lWorking.LPresetAudioSummary;

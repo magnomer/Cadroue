@@ -37,19 +37,29 @@ public sealed class QSource
 
     private Button QSourceBrowse => QContract.QContractFind<Button>(qSourceSurface, "pSourceBrowse");
 
+    // Subscriptions sit before the placeholder writes; those writes raise none of the subscribed events.
     public UserControl QSourceAttach(UserControl lSurface)
     {
-        qSourceSurface = lSurface;
+        QSourceSurfaceSet(lSurface);
         QButton.QButtonAttach(QSourceBrowse, QButtonLook.QButtonLookSource);
-        QSourcePathBox.KeyDown += QSourceKeyHandle;
-        QSourcePathBox.TextChanged += QSourceTextHandle;
-        QSourcePlaceholder.Text = QSourcePlaceholderRead();
-        QSourceBrowse.Click += QSourceBrowseHandle;
+        QSourceHandlersAttach();
+        QSourcePlaceholderApply(QSourcePlaceholderRead());
         QSourcePlaceholderSync();
-        QSourcePathApplied += QSourcePathApply;
-        QSourceRefuse += QWarningNotice.QWarningPublish;
         return qSourceSurface;
     }
+
+    private void QSourceSurfaceSet(UserControl lSurface) => qSourceSurface = lSurface;
+
+    private void QSourceHandlersAttach()
+    {
+        QSourcePathBox.KeyDown += QSourceKeyHandle;
+        QSourcePathBox.TextChanged += QSourceTextHandle;
+        QSourceBrowse.Click += QSourceBrowseHandle;
+        QSourcePathApplied += QSourcePathApply;
+        QSourceRefuse += QWarningNotice.QWarningPublish;
+    }
+
+    private void QSourcePlaceholderApply(string lText) => QSourcePlaceholder.Text = lText;
 
     public string QSourcePath => qSourcePath;
 
@@ -118,20 +128,27 @@ public sealed class QSource
 
     private void QSourceBrowseHandle(object sender, RoutedEventArgs e)
     {
-        var lDialog = new OpenFileDialog
+        OpenFileDialog lDialog = QSourceDialogBuild();
+        QSourceDialogOpen(lDialog.ShowDialog(), lDialog.FileName);
+    }
+
+    private OpenFileDialog QSourceDialogBuild() =>
+        new()
         {
             Title = QSourceTitleRead(),
             Filter = QSourceFilterRead()
         };
-        QSourceDialogOpen(lDialog.ShowDialog(), lDialog.FileName);
-    }
 
     private void QSourceKeyHandle(object sender, KeyEventArgs e) =>
         e.Handled = QSourceKeyRun(e.Key.ToString(), QSourcePathBox.Text);
 
     private void QSourcePlaceholderSync() =>
-        QSourcePlaceholder.Visibility =
-            QSourcePlaceholderCheck(QSourcePathBox.Text) ? Visibility.Visible : Visibility.Collapsed;
+        QSourceVisibilityApply(QSourceVisibilityResolve(QSourcePathBox.Text));
+
+    private static Visibility QSourceVisibilityResolve(string lText) =>
+        QSourcePlaceholderCheck(lText) ? Visibility.Visible : Visibility.Collapsed;
+
+    private void QSourceVisibilityApply(Visibility lVisibility) => QSourcePlaceholder.Visibility = lVisibility;
 
     private void QSourceMediaHandle(LCargo lCargo)
     {

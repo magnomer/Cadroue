@@ -32,6 +32,13 @@ internal static class PRosterRow
 
     public static Border PRosterRowBuild(QRoster lRoster, QRosterRow lRow, ContextMenu pMenu)
     {
+        Border pRow = PRosterBodyBuild(lRow, pMenu);
+        PRosterRowAttach(pRow, lRoster, lRow, pMenu);
+        return pRow;
+    }
+
+    private static Border PRosterBodyBuild(QRosterRow lRow, ContextMenu pMenu)
+    {
         Grid pGrid = PRosterColumnsCreate();
         pGrid.MinHeight = 29;
         pGrid.Children.Add(PRosterStepBuild(lRow));
@@ -42,7 +49,7 @@ internal static class PRosterRow
         PRosterCellAdd(pGrid, 5, lRow.QRosterRowState, PRosterTheme.PRosterStateBrushes[lRow.QRosterRowKey]);
         PRosterCellAdd(pGrid, 6, lRow.QRosterRowOwner, PRosterTheme.PRosterMutedBrush);
 
-        var pRow = new Border
+        return new Border
         {
             Padding = new Thickness(12, 0, 12, 0),
             Background = PRosterTheme.PRosterRowShades[lRow.QRosterRowShade],
@@ -50,16 +57,21 @@ internal static class PRosterRow
             Child = pGrid,
             ContextMenu = pMenu
         };
+    }
+
+    private static void PRosterRowAttach(Border pRow, QRoster lRoster, QRosterRow lRow, ContextMenu pMenu)
+    {
         pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.QRosterSelection.QRosterStepSelect(
             lRow.QRosterRowId,
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
             Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
-        pRow.MouseEnter += (_, _) => pRow.Background = PRosterTheme.PRosterRowHovers[lRow.QRosterRowShade];
-        pRow.MouseLeave += (_, _) => pRow.Background = PRosterTheme.PRosterRowShades[lRow.QRosterRowShade];
+        pRow.MouseEnter += (_, _) => PRosterShadeSet(pRow, PRosterTheme.PRosterRowHovers[lRow.QRosterRowShade]);
+        pRow.MouseLeave += (_, _) => PRosterShadeSet(pRow, PRosterTheme.PRosterRowShades[lRow.QRosterRowShade]);
         pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuApply(
             pMenu, lRoster.QRosterMenu.QRosterMenuRead(lRow.QRosterRowId, PWindow.PWindowStripRead()?.QStrip), pArgs);
-        return pRow;
     }
+
+    private static void PRosterShadeSet(Border pRow, Brush pShade) => pRow.Background = pShade;
 
     private static void PRosterMenuApply(
         ContextMenu pMenu,
@@ -68,16 +80,28 @@ internal static class PRosterRow
     {
         pMenu.Items.Clear();
         lItems.ToList().ForEach(lItem => pMenu.Items.Add(PRosterItemBuild(lItem)));
-        pArgs.Handled = pMenu.Items.IsEmpty;
+        PRosterHandledSet(pMenu, pArgs);
     }
+
+    private static void PRosterHandledSet(ContextMenu pMenu, ContextMenuEventArgs pArgs) =>
+        pArgs.Handled = pMenu.Items.IsEmpty;
 
     private static MenuItem PRosterItemBuild(QRosterItem lItem)
     {
-        MenuItem pItem = QMenu.QMenuItemBuild(lItem.QRosterItemText, QStripIcon.QStripIconFind(lItem.QRosterItemIcon));
-        pItem.IsEnabled = lItem.QRosterItemEnabled;
-        pItem.Click += (_, _) => lItem.QRosterItemAction();
+        MenuItem pItem = PRosterChoiceBuild(lItem);
+        PRosterItemAttach(pItem, lItem);
         return pItem;
     }
+
+    private static MenuItem PRosterChoiceBuild(QRosterItem lItem)
+    {
+        MenuItem pItem = QMenu.QMenuItemBuild(lItem.QRosterItemText, QStripIcon.QStripIconFind(lItem.QRosterItemIcon));
+        pItem.IsEnabled = lItem.QRosterItemEnabled;
+        return pItem;
+    }
+
+    private static void PRosterItemAttach(MenuItem pItem, QRosterItem lItem) =>
+        pItem.Click += (_, _) => lItem.QRosterItemAction();
 
     private static Grid PRosterStepBuild(QRosterRow lRow)
     {

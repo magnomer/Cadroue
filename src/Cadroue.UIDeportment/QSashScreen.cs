@@ -14,20 +14,37 @@ internal static class QSashScreen
     // The system work area stands in when no monitor answers.
     internal static QSashBounds QSashScreenRead(Window lWindow, QSashBounds lBounds)
     {
+        QSashBounds lNear = QSashDeviceResolve(lWindow, lBounds);
+        if (!QSashScreenFind(new WindowInteropHelper(lWindow).Handle, lNear, out _, out QSashBounds lWork))
+        {
+            return QSashAreaRead();
+        }
+
+        return QSashLogicalResolve(lWindow, lWork);
+    }
+
+    // The bounds in device pixels, widened outward to whole pixels.
+    private static QSashBounds QSashDeviceResolve(Window lWindow, QSashBounds lBounds)
+    {
         Matrix lToDevice = (PresentationSource.FromVisual(lWindow) as HwndSource)!.CompositionTarget.TransformToDevice;
         Point lTopLeft = lToDevice.Transform(new Point(lBounds.QSashLeft, lBounds.QSashTop));
         Point lBottomRight = lToDevice.Transform(new Point(lBounds.QSashRight, lBounds.QSashBottom));
-        QSashBounds lNear = QSashBounds.QSashCornersCreate(
+        return QSashBounds.QSashCornersCreate(
             Math.Floor(lTopLeft.X),
             Math.Floor(lTopLeft.Y),
             Math.Ceiling(lBottomRight.X),
             Math.Ceiling(lBottomRight.Y));
-        if (!QSashScreenFind(new WindowInteropHelper(lWindow).Handle, lNear, out _, out QSashBounds lWork))
-        {
-            Rect lWorkArea = SystemParameters.WorkArea;
-            return new QSashBounds(lWorkArea.Left, lWorkArea.Top, lWorkArea.Width, lWorkArea.Height);
-        }
+    }
 
+    private static QSashBounds QSashAreaRead()
+    {
+        Rect lWorkArea = SystemParameters.WorkArea;
+        return new QSashBounds(lWorkArea.Left, lWorkArea.Top, lWorkArea.Width, lWorkArea.Height);
+    }
+
+    // A device-pixel work area as device-independent pixels.
+    private static QSashBounds QSashLogicalResolve(Window lWindow, QSashBounds lWork)
+    {
         Point lWorkTopLeft = QSashPointer.QSashPointerResolve(lWindow, new Point(lWork.QSashLeft, lWork.QSashTop));
         Point lWorkBottomRight = QSashPointer.QSashPointerResolve(
             lWindow, new Point(lWork.QSashRight, lWork.QSashBottom));

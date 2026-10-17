@@ -42,11 +42,7 @@ public static class QInteractionClick
             return;
         }
 
-        (FrameworkElement lElement, object? lContent, string lType) = lSender switch
-        {
-            MenuItem lItem => ((FrameworkElement)lItem, (object?)lItem.Header, nameof(MenuItem)),
-            _ => ((ButtonBase)lSender, ((ButtonBase)lSender).Content, lSender.GetType().Name),
-        };
+        (FrameworkElement lElement, object? lContent, string lType) = QInteractionClickResolve(lSender);
         QInteraction.QInteractionRecord(
             ReferenceEquals(lElement, lEvent.OriginalSource),
             lType,
@@ -55,4 +51,10 @@ public static class QInteractionClick
             typeof(ToggleButton).IsInstanceOfType(lElement),
             (lElement as ToggleButton)?.IsChecked);
     }
+
+    private static (FrameworkElement, object?, string) QInteractionClickResolve(object lSender) => lSender switch
+    {
+        MenuItem lItem => ((FrameworkElement)lItem, (object?)lItem.Header, nameof(MenuItem)),
+        _ => ((ButtonBase)lSender, ((ButtonBase)lSender).Content, lSender.GetType().Name),
+    };
 }

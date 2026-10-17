@@ -51,6 +51,13 @@ public sealed partial class PInspector
 
     private Canvas PCurveCanvasBuild()
     {
+        Canvas pCanvas = PCurvePlotBuild();
+        PCurveCanvasAttach();
+        return pCanvas;
+    }
+
+    private Canvas PCurvePlotBuild()
+    {
         pCurveCanvas = new Canvas
         {
             Width = PCurveCanvasSize,
@@ -59,10 +66,14 @@ public sealed partial class PInspector
             HorizontalAlignment = HorizontalAlignment.Center,
             VerticalAlignment = VerticalAlignment.Center
         };
+        return pCurveCanvas;
+    }
+
+    private void PCurveCanvasAttach()
+    {
         pCurveCanvas.MouseLeftButtonDown += PCurvePressHandle;
         pCurveCanvas.MouseMove += PCurveMoveHandle;
         pCurveCanvas.MouseLeftButtonUp += PCurveReleaseHandle;
-        return pCurveCanvas;
     }
 
     private void PCurvePressHandle(object pSender, MouseButtonEventArgs pArgs)

@@ -12,6 +12,41 @@ public sealed partial class PExport
 {
     private Border PExportGroupBuild(string pLabel, bool pCollapsed, Action pToggle)
     {
+        (string pIconPath, string pTipKey) = PExportFoldResolve(pCollapsed);
+        Button pToggleButton = PExportFoldBuild(pIconPath, pTipKey);
+        PExportToggleAttach(pToggleButton, pToggle);
+        return PExportHeaderBuild(pLabel, pToggleButton);
+    }
+
+    private static (string pIconPath, string pIconTipKey) PExportFoldResolve(bool pCollapsed) =>
+        pCollapsed
+            ? (PExportExpandIcon, "ExportPreset.Group.Expand")
+            : (PExportCollapseIcon, "ExportPreset.Group.Collapse");
+
+    private static Button PExportFoldBuild(string pIconPath, string pTipKey)
+    {
+        var pToggleButton = new Button
+        {
+            Content = new Image
+            {
+                Width = 16,
+                Height = 16,
+                Source = QIcon.QIconRead(pIconPath, PExportMutedBrush),
+                Stretch = Stretch.Uniform
+            },
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTipKey),
+            Width = 22,
+            Height = 20
+        };
+        QButton.QButtonAttach(pToggleButton, QButtonLook.QButtonLookPanel);
+        return pToggleButton;
+    }
+
+    private static void PExportToggleAttach(Button pToggleButton, Action pToggle) =>
+        pToggleButton.Click += (_, _) => pToggle();
+
+    private static Border PExportHeaderBuild(string pLabel, Button pToggleButton)
+    {
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -25,23 +60,6 @@ public sealed partial class PExport
             VerticalAlignment = VerticalAlignment.Center
         });
 
-        var pToggleButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 16,
-                Height = 16,
-                Source = QIcon.QIconRead(pCollapsed ? PExportExpandIcon : PExportCollapseIcon, PExportMutedBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pCollapsed
-                ? "ExportPreset.Group.Expand"
-                : "ExportPreset.Group.Collapse"),
-            Width = 22,
-            Height = 20
-        };
-        pToggleButton.Click += (_, _) => pToggle();
-        QButton.QButtonAttach(pToggleButton, QButtonLook.QButtonLookPanel);
         Grid.SetColumn(pToggleButton, 1);
         pGrid.Children.Add(pToggleButton);
 

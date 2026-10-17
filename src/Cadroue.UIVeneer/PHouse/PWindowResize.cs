@@ -19,13 +19,22 @@ public partial class PWindow
 
     private void PResizeHandlersRemove()
     {
+        PResizeDetach();
+        PResizeCursorClear();
+    }
+
+    private void PResizeDetach()
+    {
         PreviewMouseMove -= PResizeMoveHandle;
         PreviewMouseLeftButtonDown -= PResizePressHandle;
         PreviewMouseLeftButtonUp -= PResizeReleaseHandle;
         LostMouseCapture -= PResizeCaptureHandle;
         MouseLeave -= PResizeLeaveHandle;
-        Mouse.OverrideCursor = null;
     }
+
+    private static void PResizeCursorClear() => Mouse.OverrideCursor = null;
+
+    private static void PResizeCursorApply(int pSash) => Mouse.OverrideCursor = PLook.PLookCursor[pSash];
 
     private void PResizePressHandle(object sender, MouseButtonEventArgs e)
     {
@@ -56,7 +65,7 @@ public partial class PWindow
             pPointer.Y,
             MinWidth,
             MinHeight);
-        Mouse.OverrideCursor = PLook.PLookCursor[lSash.QSashDirection];
+        PResizeCursorApply(lSash.QSashDirection);
     }
 
     private void PResizeLeaveHandle(object sender, MouseEventArgs e)
@@ -72,7 +81,7 @@ public partial class PWindow
     private void PResizeCaptureHandle(object sender, MouseEventArgs e)
     {
         lSash.QSashCaptureHandle();
-        Mouse.OverrideCursor = null;
+        PResizeCursorClear();
     }
 
     private void PResizeCaptureStart() => Mouse.Capture(this);

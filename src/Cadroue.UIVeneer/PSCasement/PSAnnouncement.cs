@@ -11,13 +11,29 @@ internal sealed class PSAnnouncement : Window
 
     private PSAnnouncement(Window? pOwner, string pTitle, string pMessage)
     {
-        Title = pTitle;
+        PSAnnouncementTitleSet(pTitle);
+        PSAnnouncementFrameApply();
+        PSAnnouncementOwnerApply(PSAnnouncementOwnerResolve(pOwner));
+        PSDialog.PSDialogLocationAttach(this);
+        PSAnnouncementBuild(pTitle, pMessage);
+    }
+
+    private void PSAnnouncementTitleSet(string pTitle) => Title = pTitle;
+
+    private void PSAnnouncementFrameApply()
+    {
         Width = PSAnnouncementWidth;
         SizeToContent = SizeToContent.Height;
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         PSDialog.PSDialogApply(this, PSDialogTheme.PSDialogThemeBlue);
-        Window? pResolvedOwner = pOwner ?? System.Windows.Application.Current?.MainWindow;
+    }
+
+    private static Window? PSAnnouncementOwnerResolve(Window? pOwner) =>
+        pOwner ?? System.Windows.Application.Current?.MainWindow;
+
+    private void PSAnnouncementOwnerApply(Window? pResolvedOwner)
+    {
         if (pResolvedOwner is not null && pResolvedOwner != this)
         {
             Owner = pResolvedOwner;
@@ -26,17 +42,26 @@ internal sealed class PSAnnouncement : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
-        PSDialog.PSDialogLocationAttach(this);
-        Content = PSAnnouncementBuild(pTitle, pMessage);
     }
 
     internal static void PSAnnouncementShow(Window? pOwner, string pTitle, string pMessage) =>
         new PSAnnouncement(pOwner, pTitle, pMessage).ShowDialog();
 
-    private UIElement PSAnnouncementBuild(string pTitle, string pMessage) =>
-        PSDialog.PSDialogBuild(this, pTitle, PSAnnouncementBodyBuild(pMessage), PSDialogTheme.PSDialogThemeBlue);
+    private void PSAnnouncementBuild(string pTitle, string pMessage) =>
+        Content = PSDialog.PSDialogBuild(
+            this, pTitle, PSAnnouncementBodyBuild(pMessage), PSDialogTheme.PSDialogThemeBlue);
 
     private DockPanel PSAnnouncementBodyBuild(string pMessage)
+    {
+        Button pConfirm = PSFooter.PSFooterButtonBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
+        PSAnnouncementConfirmAttach(pConfirm);
+        return PSAnnouncementPanelBuild(pMessage, pConfirm);
+    }
+
+    private void PSAnnouncementConfirmAttach(Button pConfirm) => pConfirm.Click += (_, _) => Close();
+
+    private static DockPanel PSAnnouncementPanelBuild(string pMessage, Button pConfirm)
     {
         var pBody = new DockPanel
         {
@@ -49,10 +74,6 @@ internal sealed class PSAnnouncement : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-
-        Button pConfirm = PSFooter.PSFooterButtonBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
-        pConfirm.Click += (_, _) => Close();
 
         pFooter.Children.Add(pConfirm);
         DockPanel.SetDock(pFooter, Dock.Bottom);

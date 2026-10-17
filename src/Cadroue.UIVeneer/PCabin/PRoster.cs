@@ -26,13 +26,9 @@ public sealed class PRoster : UserControl
     public PRoster(QRoster lRoster, LSceneTabEntry? lPreferenceTabLayout = null)
     {
         QRoster = lRoster;
-        FocusVisualStyle = null;
-        QScrollbar.QScrollbarAttach(this);
+        PRosterStyleApply();
         ContextMenu pRosterMenu = QMenu.QMenuBuild();
-        pRosterQueuePanel = new PRosterQueue(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
-        {
-            ItemsSource = QRoster.QRosterFeed.QRosterEntries
-        };
+        pRosterQueuePanel = PRosterQueueBuild(pRosterMenu);
         pRosterDetailTitle = PRosterTitleBuild(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.JobDetail"));
         pRosterSharedBox = PRosterOptionBuild(
             QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Shared"), QRoster.QRosterShared, 0);
@@ -40,18 +36,8 @@ public sealed class PRoster : UserControl
             QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.CollapseCompleted"), QRoster.QRosterCollapseDone,
                 18);
         pRosterLayout = PRosterBuild(lPreferenceTabLayout);
-        Content = new Grid { Margin = new Thickness(8, 8, 8, 8), Children = { pRosterBody } };
-
-        pRosterSharedBox.Checked += PRosterSharedHandle;
-        pRosterSharedBox.Unchecked += PRosterSharedHandle;
-        pRosterCompletedBox.Checked += PRosterCompletedHandle;
-        pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
-        QRoster.QRosterDetailApplied += PRosterDetailUpdate;
-        QRoster.QRosterDeferral.QRosterDeferralRaised += PRosterDetailDefer;
-        QRoster.QRosterRemoval.QRosterWarningShown += PRosterWarningShow;
-        IsVisibleChanged += PRosterVisibleHandle;
-        Unloaded += PRosterUnloadHandle;
-        pRosterElapsedTimer.Tick += PRosterElapsedTick;
+        Content = PRosterFrameBuild();
+        PRosterEventsAttach();
         pRosterElapsedTimer.Start();
 
         QRoster.QRosterRebuild();
@@ -63,6 +49,34 @@ public sealed class PRoster : UserControl
     public double PRosterWidthRead() => QRoster.QRosterWidthResolve(pRosterLayout.PColumnTotalRead());
 
     public void PRosterClose() => pRosterElapsedTimer.Stop();
+
+    private void PRosterStyleApply()
+    {
+        FocusVisualStyle = null;
+        QScrollbar.QScrollbarAttach(this);
+    }
+
+    private PRosterQueue PRosterQueueBuild(ContextMenu pRosterMenu) =>
+        new(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
+        {
+            ItemsSource = QRoster.QRosterFeed.QRosterEntries
+        };
+
+    private Grid PRosterFrameBuild() => new() { Margin = new Thickness(8, 8, 8, 8), Children = { pRosterBody } };
+
+    private void PRosterEventsAttach()
+    {
+        pRosterSharedBox.Checked += PRosterSharedHandle;
+        pRosterSharedBox.Unchecked += PRosterSharedHandle;
+        pRosterCompletedBox.Checked += PRosterCompletedHandle;
+        pRosterCompletedBox.Unchecked += PRosterCompletedHandle;
+        QRoster.QRosterDetailApplied += PRosterDetailUpdate;
+        QRoster.QRosterDeferral.QRosterDeferralRaised += PRosterDetailDefer;
+        QRoster.QRosterRemoval.QRosterWarningShown += PRosterWarningShow;
+        IsVisibleChanged += PRosterVisibleHandle;
+        Unloaded += PRosterUnloadHandle;
+        pRosterElapsedTimer.Tick += PRosterElapsedTick;
+    }
 
     private void PRosterUnloadHandle(object pSender, RoutedEventArgs pArguments) => PRosterClose();
 
@@ -90,46 +104,82 @@ public sealed class PRoster : UserControl
 
     private PColumn PRosterBuild(LSceneTabEntry? lPreferenceTabLayout)
     {
+        (ColumnDefinition pLeftColumn, ColumnDefinition pRightColumn) = PRosterColumnsBuild();
+        PRosterQueueAdd();
+        PColumn pLayout = PColumn.PColumnAttach(
+            pRosterBody,
+            new[] { pLeftColumn, pRightColumn },
+            QRoster.QRosterPlanCreate(
+                [pLeftColumn.MinWidth, pRightColumn.MinWidth], lPreferenceTabLayout?.LScenePanelWidths));
+        PRosterSplitterAdd(pLayout);
+        PRosterDetailAdd();
+        return pLayout;
+    }
+
+    private (ColumnDefinition, ColumnDefinition) PRosterColumnsBuild()
+    {
         var pLeftColumn = new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star), MinWidth = 320 };
         var pRightColumn = new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 240 };
         pRosterBody.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         pRosterBody.ColumnDefinitions.Add(pLeftColumn);
         pRosterBody.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(6) });
         pRosterBody.ColumnDefinitions.Add(pRightColumn);
+        return (pLeftColumn, pRightColumn);
+    }
 
+    private void PRosterQueueAdd()
+    {
         UIElement pQueue = PRosterPanelBuild();
         Grid.SetColumn(pQueue, 0);
         pRosterBody.Children.Add(pQueue);
+    }
 
-        PColumn pLayout = PColumn.PColumnAttach(
-            pRosterBody,
-            new[] { pLeftColumn, pRightColumn },
-            QRoster.QRosterPlanCreate(
-                [pLeftColumn.MinWidth, pRightColumn.MinWidth], lPreferenceTabLayout?.LScenePanelWidths));
+    private void PRosterSplitterAdd(PColumn pLayout)
+    {
         UIElement pSplitter = pLayout.PColumnSplitterBuild(0);
         Grid.SetColumn(pSplitter, 1);
         pRosterBody.Children.Add(pSplitter);
+    }
 
+    private void PRosterDetailAdd()
+    {
         UIElement pDetail = PRosterDetail.PRosterDetailBuild(pRosterDetailTitle, pRosterDetailPanel);
         Grid.SetColumn(pDetail, 2);
         pRosterBody.Children.Add(pDetail);
-        return pLayout;
     }
 
     private UIElement PRosterPanelBuild()
     {
+        StackPanel pOptions = PRosterOptionsBuild();
+        Border pOptionRow = PRosterBandBuild(pOptions);
+        Border pColumnHeader = PRosterBandBuild(PRosterHeaderBuild());
+        QScrollbar.QScrollbarAttach(pRosterQueuePanel);
+        PRosterScrollAttach(pColumnHeader);
+        return PRosterDockBuild(pOptionRow, pColumnHeader);
+    }
+
+    private StackPanel PRosterOptionsBuild()
+    {
         var pOptions = new StackPanel { Orientation = Orientation.Horizontal };
         pOptions.Children.Add(pRosterSharedBox);
         pOptions.Children.Add(pRosterCompletedBox);
-        Border pOptionRow = PRosterBandBuild(pOptions);
-        Border pColumnHeader = PRosterBandBuild(PRosterHeaderBuild());
+        return pOptions;
+    }
 
-        QScrollbar.QScrollbarAttach(pRosterQueuePanel);
+    private void PRosterScrollAttach(Border pColumnHeader) =>
         pRosterQueuePanel.AddHandler(
             ScrollViewer.ScrollChangedEvent,
-            new ScrollChangedEventHandler((pSender, pArgs) => pColumnHeader.Padding = new Thickness(
-                21, 10, 5 + ((ScrollViewer)pArgs.OriginalSource).ActualWidth - pArgs.ViewportWidth, 10)));
+            new ScrollChangedEventHandler((pSender, pArgs) =>
+                PRosterPaddingSet(pColumnHeader, PRosterPaddingResolve(pArgs))));
 
+    private static Thickness PRosterPaddingResolve(ScrollChangedEventArgs pArgs) =>
+        new(21, 10, 5 + ((ScrollViewer)pArgs.OriginalSource).ActualWidth - pArgs.ViewportWidth, 10);
+
+    private static void PRosterPaddingSet(Border pColumnHeader, Thickness pPadding) =>
+        pColumnHeader.Padding = pPadding;
+
+    private UIElement PRosterDockBuild(Border pOptionRow, Border pColumnHeader)
+    {
         var pRoot = new DockPanel { LastChildFill = true };
         Grid.SetIsSharedSizeScope(pRoot, true);
         DockPanel.SetDock(pOptionRow, Dock.Top);
@@ -151,17 +201,19 @@ public sealed class PRoster : UserControl
 
     private static CheckBox PRosterOptionBuild(string pText, bool pChecked, double pLeftMargin)
     {
-        var pBox = new CheckBox
-        {
-            Content = pText,
-            FontSize = PRosterTheme.PRosterRowSize,
-            IsChecked = PLook.PLookChecked[pChecked],
-            Margin = new Thickness(pLeftMargin, 0, 0, 0)
-        };
+        CheckBox pBox = PRosterBoxBuild(pText, pChecked, pLeftMargin);
         QInteractionClick.QInteractionClickAttach(pBox);
         QCheckbox.QCheckboxAttach(pBox);
         return pBox;
     }
+
+    private static CheckBox PRosterBoxBuild(string pText, bool pChecked, double pLeftMargin) => new()
+    {
+        Content = pText,
+        FontSize = PRosterTheme.PRosterRowSize,
+        IsChecked = PLook.PLookChecked[pChecked],
+        Margin = new Thickness(pLeftMargin, 0, 0, 0)
+    };
 
     private static Grid PRosterHeaderBuild()
     {

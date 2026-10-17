@@ -54,17 +54,27 @@ internal sealed partial class PSEncoder
 
     private void PSLocationCustomRead()
     {
-        string pCurrent = psLocationFolderBox.Text.Trim();
+        string pCurrent = PSLocationCurrentRead();
+        string? pFolder = PSLocationDialogShow(pCurrent);
+        if (pFolder is not null)
+        {
+            PSLocationFolderSet(pFolder);
+        }
+    }
+
+    private string PSLocationCurrentRead() => psLocationFolderBox.Text.Trim();
+
+    private string? PSLocationDialogShow(string pCurrent)
+    {
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
             Title = QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Choose"),
             InitialDirectory = lsEncoder.QSEncoderInitialResolve(pCurrent)
         };
-        if (pDialog.ShowDialog() == true)
-        {
-            psLocationFolderBox.Text = pDialog.FolderName;
-        }
+        return pDialog.ShowDialog() == true ? pDialog.FolderName : null;
     }
+
+    private void PSLocationFolderSet(string pFolder) => psLocationFolderBox.Text = pFolder;
 
     private void PSLocationModeUpdate()
     {

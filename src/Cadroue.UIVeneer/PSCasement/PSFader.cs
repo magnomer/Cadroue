@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,7 +12,6 @@ namespace Cadroue.UIVeneer;
 internal static partial class PSFader
 {
     private const double PSFaderWidth = 220;
-    private const double PSFaderBitrateTicks = 1000;
 
     internal static UIElement PSFaderQualityBuild(
         double pMinimum,
@@ -21,121 +21,92 @@ internal static partial class PSFader
         TextBox pReadout,
         bool pHigherBetter)
     {
-        double pStart = double.TryParse(pValue, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
-            && double.IsFinite(pParsed)
-            ? PSFaderQualityNormalize(pParsed, pMinimum, pMaximum, pStep)
-            : pMinimum;
-
-        double PSFaderQualityResolve(double pPosition) => pHigherBetter ? pPosition : pMinimum + pMaximum - pPosition;
-
-        var pSlider = new Slider
-        {
-            Minimum = pMinimum,
-            Maximum = pMaximum,
-            SmallChange = pStep,
-            LargeChange = pStep,
-            TickFrequency = pStep,
-            IsSnapToTickEnabled = true,
-            Value = PSFaderQualityResolve(pStart),
-            Width = PSFaderWidth,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        QSlider.QSliderAttach(pSlider);
-
-        pReadout.Text = PSFaderValueFormat(pStart, pStep);
-
-        bool pSync = false;
-        void PSFaderQualityCommit()
-        {
-            double pQuality;
-            if (!double.TryParse(
-                    pReadout.Text.Trim(),
-                    NumberStyles.Float,
-                    CultureInfo.InvariantCulture,
-                    out double pTyped)
-                || !double.IsFinite(pTyped))
-            {
-                pQuality = PSFaderQualityResolve(pSlider.Value);
-            }
-            else
-            {
-                pQuality = PSFaderQualityNormalize(pTyped, pMinimum, pMaximum, pStep);
-            }
-
-            pSync = true;
-            pSlider.Value = PSFaderQualityResolve(pQuality);
-            pReadout.Text = PSFaderValueFormat(pQuality, pStep);
-            pReadout.CaretIndex = pReadout.Text.Length;
-            pSync = false;
-        }
-
-        pSlider.ValueChanged += (_, _) =>
-        {
-            if (!pSync)
-            {
-                pReadout.Text = PSFaderValueFormat(PSFaderQualityResolve(pSlider.Value), pStep);
-            }
-        };
-        pReadout.KeyDown += (_, pEvent) =>
-        {
-            if (pEvent.Key == Key.Return)
-            {
-                PSFaderQualityCommit();
-                pEvent.Handled = true;
-            }
-        };
-        pReadout.LostKeyboardFocus += (_, _) => PSFaderQualityCommit();
+        double pStart = PSFaderQualityParse(pValue, pMinimum, pMinimum, pMaximum, pStep);
+        Slider pSlider = PSFaderStepBuild(
+            pMinimum, pMaximum, pStep, PSFaderQualityResolve(pStart, pHigherBetter, pMinimum, pMaximum));
+        PSFaderReadoutSet(pReadout, PSFaderValueFormat(pStart, pStep));
+        var pSync = new StrongBox<bool>(false);
+        PSFaderQualityAttach(pSlider, pReadout, pSync, pMinimum, pMaximum, pStep, pHigherBetter);
         return PSFaderRowBuild(pSlider, pReadout);
     }
 
-    internal static UIElement PSFaderBitrateBuild(
-        double pMinimumKbps,
-        double pMaximumKbps,
-        string pValue,
-        TextBox pReadout)
+    private static double PSFaderQualityParse(
+        string pText,
+        double pFallback,
+        double pMinimum,
+        double pMaximum,
+        double pStep) =>
+        double.TryParse(pText, NumberStyles.Float, CultureInfo.InvariantCulture, out double pParsed)
+            && double.IsFinite(pParsed)
+            ? PSFaderQualityNormalize(pParsed, pMinimum, pMaximum, pStep)
+            : pFallback;
+
+    private static double PSFaderQualityResolve(
+        double pPosition,
+        bool pHigherBetter,
+        double pMinimum,
+        double pMaximum) =>
+        pHigherBetter ? pPosition : pMinimum + pMaximum - pPosition;
+
+    private static void PSFaderQualityAttach(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        double pMinimum,
+        double pMaximum,
+        double pStep,
+        bool pHigherBetter)
     {
-        double pStartKbps = Math.Clamp(PSFaderBitrateParse(pValue) ?? pMinimumKbps, pMinimumKbps, pMaximumKbps);
-
-        var pSlider = new Slider
-        {
-            Minimum = 0,
-            Maximum = PSFaderBitrateTicks,
-            SmallChange = 1,
-            LargeChange = 50,
-            Value = PSFaderPositionResolve(pStartKbps, pMinimumKbps, pMaximumKbps),
-            Width = PSFaderWidth,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        QSlider.QSliderAttach(pSlider);
-        pReadout.Text = PSFaderBitrateFormat(pStartKbps);
-
-        bool pSync = false;
         pSlider.ValueChanged += (_, _) =>
-        {
-            if (pSync)
-            {
-                return;
-            }
+            PSFaderQualityHandle(pSlider, pReadout, pSync, pMinimum, pMaximum, pStep, pHigherBetter);
+        pReadout.KeyDown += (_, pEvent) => PSFaderReturnHandle(
+            pEvent,
+            () => PSFaderQualityCommit(pSlider, pReadout, pSync, pMinimum, pMaximum, pStep, pHigherBetter));
+        pReadout.LostKeyboardFocus += (_, _) =>
+            PSFaderQualityCommit(pSlider, pReadout, pSync, pMinimum, pMaximum, pStep, pHigherBetter);
+    }
 
-            pSync = true;
-            pReadout.Text = PSFaderBitrateFormat(PSFaderBitrateResolve(pSlider.Value, pMinimumKbps, pMaximumKbps));
-            pSync = false;
-        };
-        pReadout.TextChanged += (_, _) =>
+    private static void PSFaderQualityHandle(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        double pMinimum,
+        double pMaximum,
+        double pStep,
+        bool pHigherBetter)
+    {
+        if (pSync.Value)
         {
-            if (pSync || PSFaderBitrateParse(pReadout.Text) is not double pKbps)
-            {
-                return;
-            }
+            return;
+        }
 
-            pSync = true;
-            pSlider.Value = PSFaderPositionResolve(
-                Math.Clamp(pKbps, pMinimumKbps, pMaximumKbps),
-                pMinimumKbps,
-                pMaximumKbps);
-            pSync = false;
-        };
-        return PSFaderRowBuild(pSlider, pReadout);
+        PSFaderReadoutSet(
+            pReadout,
+            PSFaderValueFormat(PSFaderQualityResolve(pSlider.Value, pHigherBetter, pMinimum, pMaximum), pStep));
+    }
+
+    private static void PSFaderQualityCommit(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        double pMinimum,
+        double pMaximum,
+        double pStep,
+        bool pHigherBetter)
+    {
+        double pQuality = PSFaderQualityParse(
+            pReadout.Text.Trim(),
+            PSFaderQualityResolve(pSlider.Value, pHigherBetter, pMinimum, pMaximum),
+            pMinimum,
+            pMaximum,
+            pStep);
+        PSFaderSyncSet(pSync, true);
+        PSFaderPairSet(
+            pSlider,
+            pReadout,
+            PSFaderQualityResolve(pQuality, pHigherBetter, pMinimum, pMaximum),
+            PSFaderValueFormat(pQuality, pStep));
+        PSFaderSyncSet(pSync, false);
     }
 
     internal static UIElement PSFaderLayoutBuild(
@@ -145,15 +116,35 @@ internal static partial class PSFader
         TextBox pReadout,
         UIElement? pNotice = null)
     {
-        int pLast = Math.Max(pLabels.Count - 1, 0);
-        int pStart = Math.Clamp(pIndex, 0, pLast);
+        int pLast = PSFaderLastResolve(pLabels);
+        int pStart = PSFaderIndexClamp(pIndex, pLast);
+        DoubleCollection pTicks = PSFaderTicksCreate(pLast);
+        PSFaderLayoutApply(pSlider, pLast, pTicks, pStart);
+        PSFaderEditApply(pReadout, true);
+        PSFaderReadoutSet(pReadout, PSFaderLabelResolve(pLabels, pStart));
+        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pStart));
+        PSFaderLayoutAttach(pSlider, pReadout, pLabels, pLast, pNotice);
+        return PSFaderRowBuild(pSlider, pReadout);
+    }
 
+    private static int PSFaderLastResolve(IReadOnlyList<string> pLabels) => Math.Max(pLabels.Count - 1, 0);
+
+    private static int PSFaderIndexClamp(double pPosition, int pLast) =>
+        Math.Clamp((int)Math.Round(pPosition), 0, pLast);
+
+    private static DoubleCollection PSFaderTicksCreate(int pLast)
+    {
         var pTicks = new DoubleCollection();
         for (int pTick = 0; pTick <= pLast; pTick++)
         {
             pTicks.Add(pTick);
         }
 
+        return pTicks;
+    }
+
+    private static void PSFaderLayoutApply(Slider pSlider, int pLast, DoubleCollection pTicks, int pStart)
+    {
         pSlider.Minimum = 0;
         pSlider.Maximum = pLast;
         pSlider.SmallChange = 1;
@@ -166,26 +157,29 @@ internal static partial class PSFader
         pSlider.VerticalAlignment = VerticalAlignment.Center;
         QSlider.QSliderAttach(pSlider);
         pSlider.IsSnapToTickEnabled = true;
+    }
 
-        pReadout.IsReadOnly = true;
-        pReadout.Text = pLabels.Count > 0 ? pLabels[pStart] : string.Empty;
+    private static string PSFaderLabelResolve(IReadOnlyList<string> pLabels, int pAt) =>
+        pLabels.Count > 0 ? pLabels[pAt] : string.Empty;
 
-        if (pNotice is not null)
-        {
-            pNotice.Visibility = pStart <= 0 ? Visibility.Visible : Visibility.Collapsed;
-        }
+    private static void PSFaderLayoutAttach(
+        Slider pSlider,
+        TextBox pReadout,
+        IReadOnlyList<string> pLabels,
+        int pLast,
+        UIElement? pNotice) =>
+        pSlider.ValueChanged += (_, _) => PSFaderLayoutHandle(pSlider, pReadout, pLabels, pLast, pNotice);
 
-        pSlider.ValueChanged += (_, _) =>
-        {
-            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, pLast);
-            pReadout.Text = pLabels.Count > 0 ? pLabels[pAt] : string.Empty;
-            if (pNotice is not null)
-            {
-                pNotice.Visibility = pAt <= 0 ? Visibility.Visible : Visibility.Collapsed;
-            }
-        };
-
-        return PSFaderRowBuild(pSlider, pReadout);
+    private static void PSFaderLayoutHandle(
+        Slider pSlider,
+        TextBox pReadout,
+        IReadOnlyList<string> pLabels,
+        int pLast,
+        UIElement? pNotice)
+    {
+        int pAt = PSFaderIndexClamp(pSlider.Value, pLast);
+        PSFaderReadoutSet(pReadout, PSFaderLabelResolve(pLabels, pAt));
+        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pAt));
     }
 
     internal static UIElement PSFaderRowBuild(Slider pSlider, TextBox pReadout)
@@ -206,20 +200,61 @@ internal static partial class PSFader
 
     internal static Slider PSFaderCreate(double pMinimum, double pMaximum, double pValue)
     {
+        double pTop = Math.Max(pMaximum, pMinimum);
+        return PSFaderStepBuild(pMinimum, pTop, 1, Math.Clamp(pValue, pMinimum, pTop));
+    }
+
+    private static Slider PSFaderStepBuild(double pMinimum, double pMaximum, double pStep, double pValue)
+    {
         var pSlider = new Slider
         {
             Minimum = pMinimum,
-            Maximum = Math.Max(pMaximum, pMinimum),
-            SmallChange = 1,
-            LargeChange = 1,
-            TickFrequency = 1,
+            Maximum = pMaximum,
+            SmallChange = pStep,
+            LargeChange = pStep,
+            TickFrequency = pStep,
             IsSnapToTickEnabled = true,
-            Value = Math.Clamp(pValue, pMinimum, Math.Max(pMaximum, pMinimum)),
+            Value = pValue,
             Width = PSFaderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
         QSlider.QSliderAttach(pSlider);
         return pSlider;
+    }
+
+    private static void PSFaderReadoutSet(TextBox pReadout, string pText) => pReadout.Text = pText;
+
+    private static void PSFaderSliderSet(Slider pSlider, double pPosition) => pSlider.Value = pPosition;
+
+    private static void PSFaderPairSet(Slider pSlider, TextBox pReadout, double pPosition, string pText)
+    {
+        pSlider.Value = pPosition;
+        pReadout.Text = pText;
+        pReadout.CaretIndex = pReadout.Text.Length;
+    }
+
+    private static void PSFaderSyncSet(StrongBox<bool> pSync, bool pActive) => pSync.Value = pActive;
+
+    private static void PSFaderEditApply(TextBox pReadout, bool pReadOnly) => pReadout.IsReadOnly = pReadOnly;
+
+    private static Visibility PSFaderNoticeResolve(double pAt) =>
+        pAt <= 0 ? Visibility.Visible : Visibility.Collapsed;
+
+    private static void PSFaderNoticeSet(UIElement? pNotice, Visibility pVisibility)
+    {
+        if (pNotice is not null)
+        {
+            pNotice.Visibility = pVisibility;
+        }
+    }
+
+    private static void PSFaderReturnHandle(KeyEventArgs pEvent, Action pCommit)
+    {
+        if (pEvent.Key == Key.Return)
+        {
+            pCommit();
+            pEvent.Handled = true;
+        }
     }
 
     internal static UIElement PSFaderRowBuild(Slider pSlider, FrameworkElement pTrailing)
@@ -235,44 +270,6 @@ internal static partial class PSFader
         pRow.Children.Add(pSlider);
         pRow.Children.Add(pTrailing);
         return pRow;
-    }
-
-    private static double PSFaderPositionResolve(double pKbps, double pMinimum, double pMaximum) =>
-        Math.Log(pKbps / pMinimum) / Math.Log(pMaximum / pMinimum) * PSFaderBitrateTicks;
-
-    private static double PSFaderBitrateResolve(double pPosition, double pMinimum, double pMaximum) =>
-        pMinimum * Math.Pow(pMaximum / pMinimum, pPosition / PSFaderBitrateTicks);
-
-    private static double? PSFaderBitrateParse(string pText)
-    {
-        pText = pText.Trim();
-        if (pText.Length == 0)
-        {
-            return null;
-        }
-
-        char pUnit = pText[^1];
-        string pNumber = char.IsDigit(pUnit) || pUnit == '.' ? pText : pText[..^1];
-        if (!double.TryParse(pNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out double pValue)
-            || pValue <= 0)
-        {
-            return null;
-        }
-
-        return pUnit switch
-        {
-            'k' or 'K' => pValue,
-            'm' or 'M' => pValue * 1000,
-            _ => pValue / 1000
-        };
-    }
-
-    private static string PSFaderBitrateFormat(double pKbps)
-    {
-        double pRounded = Math.Round(pKbps);
-        return pRounded >= 1000
-            ? (pRounded / 1000).ToString("0.##", CultureInfo.InvariantCulture) + "M"
-            : ((long)pRounded).ToString(CultureInfo.InvariantCulture) + "k";
     }
 
     private static string PSFaderValueFormat(double pValue, double pStep) =>

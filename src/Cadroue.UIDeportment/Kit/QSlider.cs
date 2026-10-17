@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 
 namespace Cadroue.UIDeportment;
 
@@ -16,11 +17,8 @@ public static class QSlider
     {
         ArgumentNullException.ThrowIfNull(lSlider);
 
-        lSlider.IsMoveToPointEnabled = true;
-        lSlider.IsSnapToTickEnabled = false;
-        lSlider.Style = QContract.QContractSheetFind<Style>(QSliderStyle);
-        QLook.QLookAttach(lSlider, QSliderStyle);
-        QLook.QLookAttach(QSliderThumbFind(lSlider), QSliderThumbStyle);
+        QSliderPointerSet(lSlider);
+        QSliderLookAttach(lSlider);
     }
 
     public static void QSliderResetAttach(Slider lSlider, Func<double> lDefaultRead)
@@ -28,11 +26,30 @@ public static class QSlider
         ArgumentNullException.ThrowIfNull(lSlider);
 
         QSliderThumbFind(lSlider).PreviewMouseDoubleClick += (_, lEvent) =>
-        {
-            lSlider.Value = lDefaultRead();
-            lEvent.Handled = true;
-        };
+            QSliderResetHandle(lSlider, lDefaultRead, lEvent);
     }
+
+    private static void QSliderPointerSet(Slider lSlider)
+    {
+        lSlider.IsMoveToPointEnabled = true;
+        lSlider.IsSnapToTickEnabled = false;
+    }
+
+    private static void QSliderLookAttach(Slider lSlider)
+    {
+        lSlider.Style = QContract.QContractSheetFind<Style>(QSliderStyle);
+        QLook.QLookAttach(lSlider, QSliderStyle);
+        QLook.QLookAttach(QSliderThumbFind(lSlider), QSliderThumbStyle);
+    }
+
+    private static void QSliderResetHandle(Slider lSlider, Func<double> lDefaultRead, MouseButtonEventArgs lEvent)
+    {
+        QSliderValueReset(lSlider, lDefaultRead);
+        lEvent.Handled = true;
+    }
+
+    private static void QSliderValueReset(Slider lSlider, Func<double> lDefaultRead) =>
+        lSlider.Value = lDefaultRead();
 
     private static Thumb QSliderThumbFind(Slider lSlider)
     {

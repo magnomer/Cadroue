@@ -20,20 +20,17 @@ public partial class PWindow : Window
     public PWindow(QWindow lWindowRoot)
     {
         InitializeComponent();
-        Title = QLocalizationCatalog.QLocalizationTextRead("Program.Window.Title");
-        FontSize = PWindowFontSize;
+        PWindowLookApply();
         lWindow = lWindowRoot;
         lSash = lWindow.QWindowPart.QWindowPartSash;
         pStrip = new PStrip(lWindow.QWindowStrip);
         pRail = new PRail(pStrip);
         lWindow.QWindowDispatcherAttach(PWindowDispatch);
         pConsole.PConsoleAttach(lWindow.QWindowPart.QWindowPartConsole);
-        PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
-        Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
+        PWindowConsoleAttach();
         PWindowNoticesAttach();
         pStrip.QStrip.QStripDeck.QDeckAttach(pDeck);
-        Width = LFrameStore.LFrameStateCurrent.LFrameWidth;
-        Height = LFrameStore.LFrameStateCurrent.LFrameHeight;
+        PWindowSizeSet(LFrameStore.LFrameStateCurrent);
         lWindow.QWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
         pToolbar.PToolbarLogoSet(lWindow.QWindowLogo);
@@ -50,8 +47,37 @@ public partial class PWindow : Window
             SystemParameters.VirtualScreenHeight);
         PDropHandlersAdd();
         PResizeHandlersAdd();
+        PWindowCloseAttach();
+    }
+
+    private void PWindowLookApply()
+    {
+        Title = QLocalizationCatalog.QLocalizationTextRead("Program.Window.Title");
+        FontSize = PWindowFontSize;
+    }
+
+    private void PWindowConsoleAttach()
+    {
+        PreviewMouseDown += pConsole.PConsoleSceneRead().PConsolePressHandle;
+        Deactivated += pConsole.PConsoleSceneRead().PConsoleDeactivateHandle;
+    }
+
+    private void PWindowSizeSet(LFrameState lFrame)
+    {
+        Width = lFrame.LFrameWidth;
+        Height = lFrame.LFrameHeight;
+    }
+
+    private void PWindowCloseAttach()
+    {
         Closing += PWindowExitHandle;
         Closed += PWindowCloseHandle;
+    }
+
+    private void PWindowCloseDetach()
+    {
+        Closing -= PWindowExitHandle;
+        Closed -= PWindowCloseHandle;
     }
 
     public QWindow QWindow => lWindow;
@@ -155,17 +181,21 @@ public partial class PWindow : Window
     private void PWindowLayoutApply(bool pVertical)
     {
         pToolbar.PToolbarTabSet(null);
-        pTabRailHost.Content = null;
+        PWindowRailSet(null);
         pConsole.PConsoleSceneSet(false);
         pToolbar.PToolbarSceneSet(null);
         pRail.PRailApply(pVertical);
         pToolbar.PToolbarVerticalSet(pVertical);
-        pTabRailColumn.Width = PLook.PLookRailWidth[pVertical];
+        PWindowColumnApply(pVertical);
     }
+
+    private void PWindowRailSet(PRail? pContent) => pTabRailHost.Content = pContent;
+
+    private void PWindowColumnApply(bool pVertical) => pTabRailColumn.Width = PLook.PLookRailWidth[pVertical];
 
     private void PWindowVerticalApply()
     {
-        pTabRailHost.Content = pRail;
+        PWindowRailSet(pRail);
         pToolbar.PToolbarSceneSet(pConsole.PConsoleSceneRead());
         PWindowWidthApply();
     }
@@ -232,16 +262,20 @@ public partial class PWindow : Window
             new QSashBounds(Left, Top, Width, Height),
             new QSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
         lWindow.QWindowClose();
+        PWindowNoticesDetach();
+        PDropHandlersRemove();
+        PResizeHandlersRemove();
+        lWindow.QWindowTabSet(null, null);
+        pStrip.QStrip.QStripDeck.QDeckAllClose();
+        PWindowCloseDetach();
+    }
+
+    private void PWindowNoticesDetach()
+    {
         QAskNotice.QAskRaised -= PWindowAskHandle;
         QWarningNotice.QWarningRaised -= PWindowWarningHandle;
         pStrip.QStrip.QStripSelectChanged -= PWindowTabHandle;
         pToolbar.PToolbarOptionsApplied -= lWindow.QWindowOptionsApply;
         ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
-        PDropHandlersRemove();
-        PResizeHandlersRemove();
-        lWindow.QWindowTabSet(null, null);
-        pStrip.QStrip.QStripDeck.QDeckAllClose();
-        Closing -= PWindowExitHandle;
-        Closed -= PWindowCloseHandle;
     }
 }

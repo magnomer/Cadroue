@@ -48,7 +48,7 @@ public sealed class QConsoleScene
 
     public void QConsoleSceneStart()
     {
-        qConsoleSceneName = LScene.LSceneActiveName;
+        QConsoleSceneSet(LScene.LSceneActiveName);
         QConsoleSceneUpdate();
     }
 
@@ -60,10 +60,10 @@ public sealed class QConsoleScene
     }
 
     public void QConsoleSceneUpdate() =>
-        QConsoleSceneApplied?.Invoke(
-            LScene.LSceneRead(qConsoleSceneName) is not null ? qConsoleSceneName : null,
-            qConsoleSceneName,
-            QConsoleDirtyCheck());
+        QConsoleSceneApplied?.Invoke(QConsoleStoredRead(), qConsoleSceneName, QConsoleDirtyCheck());
+
+    private string? QConsoleStoredRead() =>
+        LScene.LSceneRead(qConsoleSceneName) is not null ? qConsoleSceneName : null;
 
     public void QConsoleMarkUpdate() => QConsoleMarkApplied?.Invoke(QConsoleDirtyCheck());
 
@@ -91,7 +91,7 @@ public sealed class QConsoleScene
     {
         if (lSceneName is not null)
         {
-            qConsoleReloadName = lSceneName;
+            QConsoleReloadSet(lSceneName);
         }
     }
 
@@ -104,11 +104,11 @@ public sealed class QConsoleScene
 
         if (lDropOpen)
         {
-            qConsoleReloadName = lSceneName;
+            QConsoleReloadSet(lSceneName);
             return;
         }
 
-        qConsoleReloadName = null;
+        QConsoleReloadSet(null);
         QConsoleSceneLoad(lSceneName);
     }
 
@@ -131,14 +131,17 @@ public sealed class QConsoleScene
             return;
         }
 
-        var lAsk = new QAsk(
+        QAskNotice.QAskPublish(
+            QConsoleLoadCreate(lSceneName), lAnswer => QConsoleSceneRun(lAnswer, lSceneName, lScene));
+    }
+
+    private static QAsk QConsoleLoadCreate(string lSceneName) =>
+        new(
             QLocalizationCatalog.QLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
             QLocalizationCatalog.QLocalizationTextRead("Terms.Load"))
         {
             QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.LoadTitle")
         };
-        QAskNotice.QAskPublish(lAsk, lAnswer => QConsoleSceneRun(lAnswer, lSceneName, lScene));
-    }
 
     private void QConsoleSceneRun(bool lAnswer, string lSceneName, LSceneDocument lScene)
     {
@@ -157,7 +160,7 @@ public sealed class QConsoleScene
 
     private void QConsoleSceneSelect(string lSceneName)
     {
-        qConsoleSceneName = lSceneName;
+        QConsoleSceneSet(lSceneName);
         LScene.LSceneActiveSet(lSceneName);
         QConsoleSceneUpdate();
     }
@@ -169,7 +172,7 @@ public sealed class QConsoleScene
             return false;
         }
 
-        qConsoleReloadName = null;
+        QConsoleReloadSet(null);
         if (!LScene.LSceneDelete(lSceneName))
         {
             return true;
@@ -177,7 +180,7 @@ public sealed class QConsoleScene
 
         if (QConsoleSceneCheck(lSceneName))
         {
-            qConsoleSceneName = string.Empty;
+            QConsoleSceneSet(string.Empty);
             LScene.LSceneActiveSet(string.Empty);
         }
 
@@ -188,12 +191,10 @@ public sealed class QConsoleScene
 
     public void QConsoleSceneSave(string? lText)
     {
-        string lSceneName = (lText ?? string.Empty).Trim();
+        string lSceneName = QConsoleNameParse(lText);
         if (lSceneName.Length == 0)
         {
-            QConsoleNoticeShown?.Invoke(
-                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTitle"),
-                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.NameRequired"));
+            QConsoleNoticeRaise();
             return;
         }
 
@@ -207,6 +208,13 @@ public sealed class QConsoleScene
         QConsoleSceneSelect(lSceneName);
         LTraceLog.LTraceInfoRecord($"Scene saved '{lSceneName}'");
     }
+
+    private static string QConsoleNameParse(string? lText) => (lText ?? string.Empty).Trim();
+
+    private void QConsoleNoticeRaise() =>
+        QConsoleNoticeShown?.Invoke(
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTitle"),
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.NameRequired"));
 
     public void QConsolePressHandle(bool lDropOpen, bool lFocusWithin, bool lInsideCombo)
     {
@@ -228,7 +236,7 @@ public sealed class QConsoleScene
 
     private LSceneDocument? QConsoleExportResolve(string? lText)
     {
-        string lSceneName = (lText ?? string.Empty).Trim();
+        string lSceneName = QConsoleNameParse(lText);
         LSceneDocument? lScene = lSceneName.Length > 0 ? LScene.LSceneRead(lSceneName) : null;
         if (lScene is not null)
         {
@@ -286,11 +294,14 @@ public sealed class QConsoleScene
             return;
         }
 
-        lScene.LSceneName = QConsoleNameCreate(QConsoleStemResolve(lScene.LSceneName, lPath), LScene.LSceneNames);
+        QConsoleNameSet(lScene, lPath);
         LScene.LSceneSave(lScene);
         QConsoleSceneRebuild();
         LTraceLog.LTraceLoadingRecord($"Scene imported '{lScene.LSceneName}'");
     }
+
+    private static void QConsoleNameSet(LSceneDocument lScene, string lPath) =>
+        lScene.LSceneName = QConsoleNameCreate(QConsoleStemResolve(lScene.LSceneName, lPath), LScene.LSceneNames);
 
     public static string QConsoleStemResolve(string lSceneName, string lPath)
     {
@@ -317,8 +328,10 @@ public sealed class QConsoleScene
 
     private void QConsoleErrorRaise(string lMessageKey, string lDetail, string lTitleKey) =>
         QConsoleWarningShown?.Invoke(
-            QLocalizationCatalog.QLocalizationTextRead(lTitleKey),
-            lDetail.Length > 0
-                ? QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail)
-                : QLocalizationCatalog.QLocalizationTextRead(lMessageKey));
+            QLocalizationCatalog.QLocalizationTextRead(lTitleKey), QConsoleErrorFormat(lMessageKey, lDetail));
+
+    private static string QConsoleErrorFormat(string lMessageKey, string lDetail) =>
+        lDetail.Length > 0
+            ? QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail)
+            : QLocalizationCatalog.QLocalizationTextRead(lMessageKey);
 }

@@ -181,15 +181,25 @@ public sealed class QWorkspaceFrame
     private static FrameworkElement QWorkspaceGridBuild(QWorkspaceFrame lFrame)
     {
         UserControl lRoot = lFrame.qWorkspaceFrameFactory();
-        QContract.QContractFind<Border>(lRoot, "pWorkspaceSource").Child =
-            lFrame.qWorkspaceSourceFactory(lFrame.qWorkspace.QWorkspaceSource!);
-        QContract.QContractFind<Border>(lRoot, "pWorkspaceInfo").Child =
-            lFrame.qWorkspaceInfoFactory(lFrame.qWorkspace.QWorkspaceInfo!);
-        QContract.QContractFind<Border>(lRoot, "pWorkspaceSurface").Child = lFrame.qWorkspaceFrameSurface;
+        lFrame.QWorkspacePanelsPlace(lRoot);
         Button lExport = QContract.QContractFind<Button>(lRoot, "pWorkspaceExport");
-        lExport.Click += (_, _) => lFrame.qWorkspaceExportHandler();
+        lFrame.QWorkspaceExportAttach(lExport);
         QButton.QButtonAttach(lExport, QButtonLook.QButtonLookSource);
-        QContract.QContractFind<Image>(lRoot, "pWorkspaceExportIcon").Source = lFrame.qWorkspaceExportIcon();
+        lFrame.QWorkspaceIconApply(lRoot);
         return lRoot;
     }
+
+    private void QWorkspacePanelsPlace(UserControl lRoot)
+    {
+        QContract.QContractFind<Border>(lRoot, "pWorkspaceSource").Child =
+            qWorkspaceSourceFactory(qWorkspace.QWorkspaceSource!);
+        QContract.QContractFind<Border>(lRoot, "pWorkspaceInfo").Child =
+            qWorkspaceInfoFactory(qWorkspace.QWorkspaceInfo!);
+        QContract.QContractFind<Border>(lRoot, "pWorkspaceSurface").Child = qWorkspaceFrameSurface;
+    }
+
+    private void QWorkspaceExportAttach(Button lExport) => lExport.Click += (_, _) => qWorkspaceExportHandler();
+
+    private void QWorkspaceIconApply(UserControl lRoot) =>
+        QContract.QContractFind<Image>(lRoot, "pWorkspaceExportIcon").Source = qWorkspaceExportIcon();
 }

@@ -16,6 +16,11 @@ public sealed class QInspectorAudio
         qInspectorSkip = lSkip;
         qInspectorAudioGate = lInspector;
         QInspectorVolume = lInspector.CInspectorVolume;
+        QInspectorAudioAttach();
+    }
+
+    private void QInspectorAudioAttach()
+    {
         QInspectorVolume.CVolumeChanged += QInspectorAudioRaise;
         QInspectorLoudness.QLoudnessChanged += QInspectorAudioRaise;
         QInspectorNoise.QNoiseChanged += QInspectorAudioRaise;
@@ -54,17 +59,12 @@ public sealed class QInspectorAudio
     public void QInspectorAudioApply(LWorkAudio lPlan)
     {
         qInspectorAudioDepth++;
-        QInspectorHighpass.QFilterStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindHighpass)
-            ?? LPassband.LPassbandStepCreate(true, false));
-        QInspectorLowpass.QFilterStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindLowpass)
-            ?? LPassband.LPassbandStepCreate(false, false));
-        QInspectorNoise.QNoiseStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindDenoise)
-            ?? LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38));
-        QInspectorEqualizer.QEqualizerStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindEqualizer)
-            ?? LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()));
+        QInspectorHighpass.QFilterStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindHighpass));
+        QInspectorLowpass.QFilterStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindLowpass));
+        QInspectorNoise.QNoiseStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindDenoise));
+        QInspectorEqualizer.QEqualizerStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindEqualizer));
         qInspectorAudioGate.CInspectorAudioAccept(new LInspectorOutlet(lPlan));
-        QInspectorLoudness.QLoudnessStepSet(QInspectorStepFind(lPlan, LAudioKind.LAudioKindLeveling)
-            ?? LAudio.LAudioNormalizeCreate());
+        QInspectorLoudness.QLoudnessStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindLeveling));
         qInspectorAudioDepth--;
         QInspectorAudioChanged?.Invoke();
     }
@@ -160,6 +160,25 @@ public sealed class QInspectorAudio
     // The volume gate holds plain values; the step is built from them here. A plan is read back through the gate.
     private LWorkAudioStep QInspectorVolumeBuild() =>
         LWorkAudioStep.LWorkVolumeCreate(QInspectorVolume.CVolumeActive, QInspectorVolume.CVolumeGain);
+
+    private static LWorkAudioStep QInspectorStepResolve(LWorkAudio lPlan, LAudioKind lKind)
+    {
+        if (QInspectorStepFind(lPlan, lKind) is { } lStep)
+        {
+            return lStep;
+        }
+
+        return lKind switch
+        {
+            LAudioKind.LAudioKindHighpass => LPassband.LPassbandStepCreate(true, false),
+            LAudioKind.LAudioKindLowpass => LPassband.LPassbandStepCreate(false, false),
+            LAudioKind.LAudioKindDenoise =>
+                LWorkAudioStep.LWorkNoiseCreate(false, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38),
+            LAudioKind.LAudioKindEqualizer =>
+                LWorkAudioStep.LWorkEqualizerCreate(false, LWorkEqualizerStep.LWorkBandsCreate()),
+            _ => LAudio.LAudioNormalizeCreate()
+        };
+    }
 
     private static LWorkAudioStep? QInspectorStepFind(LWorkAudio lPlan, LAudioKind lKind) =>
         lPlan.LWorkAudioSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

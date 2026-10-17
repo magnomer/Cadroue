@@ -60,24 +60,32 @@ public sealed class QSMonitorWaveform : IDisposable
 
     public void QSMonitorSourceOpen(string? lPath, TimeSpan lDuration, int lRate = 0)
     {
+        QSMonitorSourceSet(lPath, lDuration, lRate);
+        qMonitorOrchestrator.LWaveformStart(lPath, lDuration, lRate > 0);
+    }
+
+    private void QSMonitorSourceSet(string? lPath, TimeSpan lDuration, int lRate)
+    {
         lock (qMonitorLock)
         {
             qMonitorSourcePath = lPath;
             qMonitorDuration = lDuration;
             qMonitorRate = lRate;
         }
-
-        qMonitorOrchestrator.LWaveformStart(lPath, lDuration, lRate > 0);
     }
 
     public void QSMonitorPlanApply(LWorkAudio lPlan)
+    {
+        QSMonitorPlanSet(lPlan);
+        QSMonitorAfterStart();
+    }
+
+    private void QSMonitorPlanSet(LWorkAudio lPlan)
     {
         lock (qMonitorLock)
         {
             qMonitorPlan = lPlan;
         }
-
-        QSMonitorAfterStart();
     }
 
     public void QSMonitorUpdate()
@@ -87,14 +95,7 @@ public sealed class QSMonitorWaveform : IDisposable
 
     private void QSMonitorPeaksHandle(LWaveformNotice lNotice)
     {
-        lock (qMonitorLock)
-        {
-            qMonitorBefore = LWaveform.LWaveformEnvelopeRead(lNotice.LWaveformPeaks);
-            qMonitorAfter = qMonitorBefore;
-            qMonitorPending = lNotice.LWaveformPending;
-            qMonitorFailed = !lNotice.LWaveformPending && lNotice.LWaveformPeaks.Length == 0;
-        }
-
+        QSMonitorPeaksSet(lNotice);
         QSMonitorPublish();
         if (lNotice.LWaveformPeaks.Length > 0)
         {
@@ -102,17 +103,47 @@ public sealed class QSMonitorWaveform : IDisposable
         }
     }
 
+    private void QSMonitorPeaksSet(LWaveformNotice lNotice)
+    {
+        lock (qMonitorLock)
+        {
+            qMonitorBefore = LWaveform.LWaveformEnvelopeRead(lNotice.LWaveformPeaks);
+            qMonitorAfter = qMonitorBefore;
+            qMonitorPending = lNotice.LWaveformPending;
+            qMonitorFailed = QSMonitorFailedCheck(lNotice);
+        }
+    }
+
+    private static bool QSMonitorFailedCheck(LWaveformNotice lNotice) =>
+        !lNotice.LWaveformPending && lNotice.LWaveformPeaks.Length == 0;
+
     private void QSMonitorAfterStart()
     {
-        CancellationToken lToken;
-        string? lPath;
-        TimeSpan lDuration;
-        string lGraph;
+        if (!QSMonitorAfterPrepare(
+            out string? lPath, out TimeSpan lDuration, out string lGraph, out CancellationToken lToken))
+        {
+            return;
+        }
+
+        QSMonitorPublish();
+        if (lPath is not null)
+        {
+            QSMonitorAfterScan(lPath, lDuration, lGraph, lToken);
+        }
+    }
+
+    private bool QSMonitorAfterPrepare(
+        out string? lPath, out TimeSpan lDuration, out string lGraph, out CancellationToken lToken)
+    {
+        lPath = null;
+        lDuration = TimeSpan.Zero;
+        lGraph = string.Empty;
+        lToken = CancellationToken.None;
         lock (qMonitorLock)
         {
             if (qMonitorDisposed)
             {
-                return;
+                return false;
             }
 
             qMonitorCancelSource?.Cancel();
@@ -122,16 +153,14 @@ public sealed class QSMonitorWaveform : IDisposable
 
             if (qMonitorBefore.Length == 0)
             {
-                return;
+                return false;
             }
 
             lPath = qMonitorSourcePath;
             lDuration = qMonitorDuration;
             lGraph = qMonitorPlan.LWorkAudioFormat(qMonitorRate);
             qMonitorFailed = false;
-            if (string.IsNullOrEmpty(lGraph)
-                || string.IsNullOrWhiteSpace(lPath)
-                || lDuration <= TimeSpan.Zero)
+            if (!QSMonitorScanCheck(lGraph, lPath, lDuration))
             {
                 qMonitorAfter = qMonitorBefore;
                 qMonitorPending = false;
@@ -143,12 +172,13 @@ public sealed class QSMonitorWaveform : IDisposable
             }
         }
 
-        QSMonitorPublish();
-        if (lPath is not null)
-        {
-            QSMonitorAfterScan(lPath, lDuration, lGraph, lToken);
-        }
+        return true;
     }
+
+    private static bool QSMonitorScanCheck(string lGraph, string? lPath, TimeSpan lDuration) =>
+        !(string.IsNullOrEmpty(lGraph)
+            || string.IsNullOrWhiteSpace(lPath)
+            || lDuration <= TimeSpan.Zero);
 
     private void QSMonitorAfterScan(string lPath, TimeSpan lDuration, string lGraph, CancellationToken lToken)
     {
@@ -159,14 +189,7 @@ public sealed class QSMonitorWaveform : IDisposable
                 await Task.Delay(QSMonitorDebounceMs, lToken).ConfigureAwait(false);
                 LWaveformScanResult lScanned = await LWaveformScanner.LWaveformScan(lPath, lDuration, lToken, lGraph)
                     .ConfigureAwait(false);
-                if (!lScanned.LWaveformComplete)
-                {
-                    LTrace.LTraceRecord(
-                        LTraceKind.LTraceWarning,
-                        $"Monitor after-scan unavailable for {System.IO.Path.GetFileName(lPath)}",
-                        lScanned.LWaveformDetail);
-                }
-
+                QSMonitorScanRecord(lPath, lScanned);
                 QSMonitorAfterApply(
                     lToken,
                     LWaveform.LWaveformEnvelopeRead(lScanned.LWaveformPeaks),
@@ -200,15 +223,37 @@ public sealed class QSMonitorWaveform : IDisposable
         QSMonitorPublish();
     }
 
+    private static void QSMonitorScanRecord(string lPath, LWaveformScanResult lScanned)
+    {
+        if (!lScanned.LWaveformComplete)
+        {
+            LTrace.LTraceRecord(
+                LTraceKind.LTraceWarning,
+                $"Monitor after-scan unavailable for {System.IO.Path.GetFileName(lPath)}",
+                lScanned.LWaveformDetail);
+        }
+    }
+
     private void QSMonitorPublish() => QSMonitorReady?.Invoke();
 
     public void Dispose()
+    {
+        if (!QSMonitorScanRelease())
+        {
+            return;
+        }
+
+        QSMonitorPeaksDetach();
+        qMonitorOrchestrator.Dispose();
+    }
+
+    private bool QSMonitorScanRelease()
     {
         lock (qMonitorLock)
         {
             if (qMonitorDisposed)
             {
-                return;
+                return false;
             }
 
             qMonitorDisposed = true;
@@ -217,7 +262,8 @@ public sealed class QSMonitorWaveform : IDisposable
             qMonitorCancelSource = null;
         }
 
-        qMonitorOrchestrator.LWaveformReady -= QSMonitorPeaksHandle;
-        qMonitorOrchestrator.Dispose();
+        return true;
     }
+
+    private void QSMonitorPeaksDetach() => qMonitorOrchestrator.LWaveformReady -= QSMonitorPeaksHandle;
 }

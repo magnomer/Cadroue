@@ -139,9 +139,9 @@ public sealed class QLoudness
 
     public void QLoudnessModeSelect(int lIndex)
     {
-        if (lIndex >= 0 && lIndex < QLoudnessModeKeys.Length)
+        if (QLoudnessModeResolve(lIndex) is { } lMode)
         {
-            QLoudnessModeSet(lIndex == 1 ? LLeveling.LLevelingDynamic : LLeveling.LLevelingLoudness);
+            QLoudnessModeSet(lMode);
         }
     }
 
@@ -176,14 +176,7 @@ public sealed class QLoudness
     }
 
     public void QLoudnessValueSet(int lIndex, double lValue) =>
-        QLoudnessStepApply(
-            QLoudnessNormalize(qLoudnessStep with
-            {
-                LWorkNormalizeTarget = lIndex == 0 ? lValue : qLoudnessStep.LWorkNormalizeTarget,
-                LWorkNormalizePeak = lIndex == 1 ? lValue : qLoudnessStep.LWorkNormalizePeak,
-                LWorkNormalizeRange = lIndex == 2 ? lValue : qLoudnessStep.LWorkNormalizeRange
-            }),
-            qLoudnessToken);
+        QLoudnessStepApply(QLoudnessValueResolve(lIndex, lValue), QLoudnessToken);
 
     public void QLoudnessDynamicSet(int lIndex, double lValue) =>
         QLoudnessStepApply(
@@ -195,17 +188,7 @@ public sealed class QLoudness
 
     public void QLoudnessPresetSelect(string lToken)
     {
-        LWorkNormalizeStep? lNormal = QLoudnessDynamic
-            ? QDynamic.QDynamicPresetApply(qLoudnessStep, lToken)
-            : LLevelingCatalog.LLevelingLoudnessRead(lToken) is { } lPreset
-                ? qLoudnessStep with
-                {
-                    LWorkNormalizeTarget = lPreset.LLevelingTarget,
-                    LWorkNormalizePeak = lPreset.LLevelingPeak,
-                    LWorkNormalizeRange = lPreset.LLevelingRange
-                }
-                : null;
-        if (lNormal is not null)
+        if (QLoudnessPresetResolve(lToken) is { } lNormal)
         {
             QLoudnessStepApply(QLoudnessNormalize(lNormal), lToken);
         }
@@ -221,6 +204,31 @@ public sealed class QLoudness
         qLoudnessPersistent = lPersistent;
         QLoudnessChanged?.Invoke();
     }
+
+    private static LLeveling? QLoudnessModeResolve(int lIndex) =>
+        lIndex >= 0 && lIndex < QLoudnessModeKeys.Length
+            ? lIndex == 1 ? LLeveling.LLevelingDynamic : LLeveling.LLevelingLoudness
+            : null;
+
+    private LWorkNormalizeStep QLoudnessValueResolve(int lIndex, double lValue) =>
+        QLoudnessNormalize(qLoudnessStep with
+        {
+            LWorkNormalizeTarget = lIndex == 0 ? lValue : qLoudnessStep.LWorkNormalizeTarget,
+            LWorkNormalizePeak = lIndex == 1 ? lValue : qLoudnessStep.LWorkNormalizePeak,
+            LWorkNormalizeRange = lIndex == 2 ? lValue : qLoudnessStep.LWorkNormalizeRange
+        });
+
+    private LWorkNormalizeStep? QLoudnessPresetResolve(string lToken) =>
+        QLoudnessDynamic
+            ? QDynamic.QDynamicPresetApply(qLoudnessStep, lToken)
+            : LLevelingCatalog.LLevelingLoudnessRead(lToken) is { } lPreset
+                ? qLoudnessStep with
+                {
+                    LWorkNormalizeTarget = lPreset.LLevelingTarget,
+                    LWorkNormalizePeak = lPreset.LLevelingPeak,
+                    LWorkNormalizeRange = lPreset.LLevelingRange
+                }
+                : null;
 
     private void QLoudnessStepApply(LWorkNormalizeStep lNormal, string? lToken)
     {

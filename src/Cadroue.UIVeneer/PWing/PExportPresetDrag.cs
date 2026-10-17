@@ -10,18 +10,38 @@ public sealed partial class PExport
 {
     private void PExportDragClear()
     {
+        PExportOpacityRestore();
+        QGhostLayer.QGhostLayerClear(pPresetRowDragging);
+        PExportDragReset();
+        QExport.QExportDragClear();
+    }
+
+    private void PExportOpacityRestore()
+    {
         if (pPresetRowDragging is not null)
         {
             pPresetRowDragging.Opacity = pPresetOpacityOrigin;
         }
-
-        QGhostLayer.QGhostLayerClear(pPresetRowDragging);
-        pPresetRowDragging = null;
-        pExportDragOrigin = null;
-        QExport.QExportDragClear();
     }
 
-    private void PExportMoveHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
+    private void PExportDragSet(Border pRowBorder)
+    {
+        pPresetRowDragging = pRowBorder;
+        pPresetOpacityOrigin = pRowBorder.Opacity;
+    }
+
+    private void PExportOriginSet(Point? pOrigin) => pExportDragOrigin = pOrigin;
+
+    private void PExportDragReset()
+    {
+        pPresetRowDragging = null;
+        pExportDragOrigin = null;
+    }
+
+    private void PExportMoveHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent) =>
+        pEvent.Handled = PExportDragHandle(pEvent) || pEvent.Handled;
+
+    private bool PExportDragHandle(System.Windows.Input.MouseEventArgs pEvent)
     {
         if (QExport.QExportDragging is not { } lPresetName
             || pPresetRowDragging is not { } pPresetRow
@@ -29,33 +49,40 @@ public sealed partial class PExport
             || pExportDragOrigin is not Point pStart
             || pEvent.LeftButton != System.Windows.Input.MouseButtonState.Pressed)
         {
-            return;
+            return false;
         }
 
         Point pCurrent = pEvent.GetPosition(pPresetRowPanel);
-        if (!QExport.QExportDragActive
-            && Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
-            && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance)
+        if (!QExport.QExportDragActive && PExportThresholdCheck(pCurrent, pStart))
         {
-            return;
+            return false;
         }
 
         if (QExport.QExportDragMove())
         {
-            pPresetRow.Opacity = 0.42;
+            PExportGhostApply(pPresetRow);
             QGhostLayer.QGhostLayerShow(pPresetRow, QExport.QExportGhost);
         }
 
         QGhostLayer.QGhostLayerSync(pPresetRow);
         PExportLiveMove(lPresetName, PExportIndexResolve(pCurrent), pPresetRow);
-        pEvent.Handled = true;
+        return true;
     }
 
-    private void PExportUpHandle(object pSender, System.Windows.Input.MouseButtonEventArgs pEvent)
+    private static bool PExportThresholdCheck(Point pCurrent, Point pStart) =>
+        Math.Abs(pCurrent.X - pStart.X) < SystemParameters.MinimumHorizontalDragDistance
+        && Math.Abs(pCurrent.Y - pStart.Y) < SystemParameters.MinimumVerticalDragDistance;
+
+    private static void PExportGhostApply(Border pPresetRow) => pPresetRow.Opacity = 0.42;
+
+    private void PExportUpHandle(object pSender, System.Windows.Input.MouseButtonEventArgs pEvent) =>
+        pEvent.Handled = PExportDropHandle() || pEvent.Handled;
+
+    private bool PExportDropHandle()
     {
         if (pPresetRowDragging is null || QExport.QExportDragging is not { } lPresetName)
         {
-            return;
+            return false;
         }
 
         bool pDragMoved = QExport.QExportDragActive;
@@ -68,7 +95,7 @@ public sealed partial class PExport
             PExportPresetSelect(lPresetName);
         }
 
-        pEvent.Handled = true;
+        return true;
     }
 
     private void PExportLostHandle(object pSender, System.Windows.Input.MouseEventArgs pEvent)
@@ -105,22 +132,32 @@ public sealed partial class PExport
             return false;
         }
 
-        lTargetIndex = Math.Clamp(lTargetIndex, 0, pPresetRowPanel.Children.Count);
-        int lInsertIndex = lSourceIndex < lTargetIndex ? lTargetIndex - 1 : lTargetIndex;
+        (int lInsertIndex, int lDataTargetIndex) = PExportTargetResolve(lSourceIndex, lTargetIndex);
         if (lSourceIndex == lInsertIndex)
         {
             return false;
         }
 
-        int lDataTargetIndex = lTargetIndex - PExportHeaderRead(lTargetIndex);
         if (!LPreset.LPresetMove(lPresetName, lDataTargetIndex))
         {
             return false;
         }
 
+        PExportRowMove(lSourceIndex, lInsertIndex, pPresetRow);
+        return true;
+    }
+
+    private (int lPresetInsertIndex, int lPresetTargetIndex) PExportTargetResolve(int lSourceIndex, int lTargetIndex)
+    {
+        lTargetIndex = Math.Clamp(lTargetIndex, 0, pPresetRowPanel.Children.Count);
+        int lInsertIndex = lSourceIndex < lTargetIndex ? lTargetIndex - 1 : lTargetIndex;
+        return (lInsertIndex, lTargetIndex - PExportHeaderRead(lTargetIndex));
+    }
+
+    private void PExportRowMove(int lSourceIndex, int lInsertIndex, UIElement pPresetRow)
+    {
         pPresetRowPanel.Children.RemoveAt(lSourceIndex);
         pPresetRowPanel.Children.Insert(lInsertIndex, pPresetRow);
-        return true;
     }
 
     private int PExportHeaderRead(int lChildIndex)

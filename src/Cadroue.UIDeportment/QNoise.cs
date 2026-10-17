@@ -123,38 +123,21 @@ public sealed class QNoise
 
     public void QNoiseStepSet(LWorkAudioStep lStep)
     {
-        LWorkNoiseStep lSource = lStep as LWorkNoiseStep ?? QNoiseDefaultCreate(lStep.LWorkStepActive);
-        LWorkNoiseStep lNormal = QNoiseNormalize(
-            lSource.LWorkStepActive,
-            lSource.LWorkNoiseReduction,
-            lSource.LWorkNoiseFloor,
-            lSource.LWorkNoiseTrack,
-            lSource.LWorkNoiseType,
-            lSource.LWorkNoiseSmooth,
-            lSource.LWorkNoiseAdaptivity,
-            lSource.LWorkNoiseResidual);
-        string? lToken = LGrainCatalog.LGrainMatch(
-            lNormal.LWorkNoiseReduction,
-            lNormal.LWorkNoiseFloor,
-            lNormal.LWorkNoiseSmooth,
-            lNormal.LWorkNoiseAdaptivity,
-            lNormal.LWorkNoiseResidual,
-            lNormal.LWorkNoiseType);
-        if (qNoiseStep == lNormal && qNoiseToken == lToken)
-        {
-            return;
-        }
-
-        qNoiseStep = lNormal;
-        qNoiseToken = lToken;
-        QNoiseChanged?.Invoke();
+        LWorkNoiseStep lSource = QNoiseSourceResolve(lStep);
+        LWorkNoiseStep lNormal = QNoiseSourceNormalize(lSource);
+        QNoiseStateApply(lNormal, QNoiseTokenResolve(lNormal));
     }
 
     public void QNoiseActiveSet(bool lActive) =>
-        QNoiseStepApply(qNoiseStep with { LWorkStepActive = lActive });
+        QNoiseStepApply(QNoiseActiveCreate(lActive));
 
     public void QNoiseValueSet(int lIndex, double lValue) =>
-        QNoiseStepApply(QNoiseNormalize(
+        QNoiseStepApply(QNoiseValueNormalize(lIndex, lValue));
+
+    private LWorkNoiseStep QNoiseActiveCreate(bool lActive) => qNoiseStep with { LWorkStepActive = lActive };
+
+    private LWorkNoiseStep QNoiseValueNormalize(int lIndex, double lValue) =>
+        QNoiseNormalize(
             qNoiseStep.LWorkStepActive,
             lIndex == 0 ? lValue : qNoiseStep.LWorkNoiseReduction,
             lIndex == 1 ? lValue : qNoiseStep.LWorkNoiseFloor,
@@ -162,18 +145,23 @@ public sealed class QNoise
             qNoiseStep.LWorkNoiseType,
             lIndex == 2 ? lValue : qNoiseStep.LWorkNoiseSmooth,
             lIndex == 3 ? lValue : qNoiseStep.LWorkNoiseAdaptivity,
-            lIndex == 4 ? lValue : qNoiseStep.LWorkNoiseResidual));
+            lIndex == 4 ? lValue : qNoiseStep.LWorkNoiseResidual);
 
     public void QNoiseTypeSet(LGrain lType) =>
-        QNoiseStepApply(qNoiseStep with { LWorkNoiseType = lType });
+        QNoiseStepApply(QNoiseTypeCreate(lType));
+
+    private LWorkNoiseStep QNoiseTypeCreate(LGrain lType) => qNoiseStep with { LWorkNoiseType = lType };
 
     public void QNoiseTypeSelect(int lIndex)
     {
-        if (lIndex >= 0 && lIndex < QNoiseTypes.Length)
+        if (QNoiseTypeResolve(lIndex) is { } lType)
         {
-            QNoiseTypeSet(QNoiseTypes[lIndex]);
+            QNoiseTypeSet(lType);
         }
     }
+
+    private static LGrain? QNoiseTypeResolve(int lIndex) =>
+        lIndex >= 0 && lIndex < QNoiseTypes.Length ? QNoiseTypes[lIndex] : null;
 
     public void QNoiseChoiceSelect(int lIndex)
     {
@@ -185,7 +173,9 @@ public sealed class QNoise
     }
 
     public void QNoiseTrackSet(bool lTrack) =>
-        QNoiseStepApply(qNoiseStep with { LWorkNoiseTrack = lTrack });
+        QNoiseStepApply(QNoiseTrackCreate(lTrack));
+
+    private LWorkNoiseStep QNoiseTrackCreate(bool lTrack) => qNoiseStep with { LWorkNoiseTrack = lTrack };
 
     public void QNoisePresetSelect(string lToken)
     {
@@ -194,23 +184,7 @@ public sealed class QNoise
             return;
         }
 
-        LWorkNoiseStep lNormal = QNoiseNormalize(
-            qNoiseStep.LWorkStepActive,
-            lPreset.LGrainReduction,
-            lPreset.LGrainFloor,
-            qNoiseStep.LWorkNoiseTrack,
-            lPreset.LGrainType,
-            lPreset.LGrainSmooth,
-            lPreset.LGrainAdaptivity,
-            lPreset.LGrainResidual);
-        if (qNoiseStep == lNormal && qNoiseToken == lToken)
-        {
-            return;
-        }
-
-        qNoiseStep = lNormal;
-        qNoiseToken = lToken;
-        QNoiseChanged?.Invoke();
+        QNoiseStateApply(QNoisePresetNormalize(lPreset), lToken);
     }
 
     public void QNoisePersistentSet(bool lPersistent)
@@ -234,6 +208,51 @@ public sealed class QNoise
         qNoiseStep = lNormal;
         QNoiseChanged?.Invoke();
     }
+
+    private void QNoiseStateApply(LWorkNoiseStep lNormal, string? lToken)
+    {
+        if (qNoiseStep == lNormal && qNoiseToken == lToken)
+        {
+            return;
+        }
+
+        qNoiseStep = lNormal;
+        qNoiseToken = lToken;
+        QNoiseChanged?.Invoke();
+    }
+
+    private static LWorkNoiseStep QNoiseSourceResolve(LWorkAudioStep lStep) =>
+        lStep as LWorkNoiseStep ?? QNoiseDefaultCreate(lStep.LWorkStepActive);
+
+    private static LWorkNoiseStep QNoiseSourceNormalize(LWorkNoiseStep lSource) =>
+        QNoiseNormalize(
+            lSource.LWorkStepActive,
+            lSource.LWorkNoiseReduction,
+            lSource.LWorkNoiseFloor,
+            lSource.LWorkNoiseTrack,
+            lSource.LWorkNoiseType,
+            lSource.LWorkNoiseSmooth,
+            lSource.LWorkNoiseAdaptivity,
+            lSource.LWorkNoiseResidual);
+
+    private LWorkNoiseStep QNoisePresetNormalize(LGrainPreset lPreset) =>
+        QNoiseNormalize(
+            qNoiseStep.LWorkStepActive,
+            lPreset.LGrainReduction,
+            lPreset.LGrainFloor,
+            qNoiseStep.LWorkNoiseTrack,
+            lPreset.LGrainType,
+            lPreset.LGrainSmooth,
+            lPreset.LGrainAdaptivity,
+            lPreset.LGrainResidual);
+
+    private static string? QNoiseTokenResolve(LWorkNoiseStep lNormal) => LGrainCatalog.LGrainMatch(
+        lNormal.LWorkNoiseReduction,
+        lNormal.LWorkNoiseFloor,
+        lNormal.LWorkNoiseSmooth,
+        lNormal.LWorkNoiseAdaptivity,
+        lNormal.LWorkNoiseResidual,
+        lNormal.LWorkNoiseType);
 
     private static LWorkNoiseStep QNoiseDefaultCreate(bool lActive) =>
         QNoiseNormalize(lActive, 12, -50, false, LGrain.LGrainWhite, 6, 0.5, -38);

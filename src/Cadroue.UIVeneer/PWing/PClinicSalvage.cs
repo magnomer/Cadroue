@@ -12,24 +12,29 @@ public sealed class PClinicSalvage : StackPanel
     private static readonly FontFamily pClinicSalvageFont = new("Segoe UI");
 
     private readonly QClinic lClinic;
-    private readonly CheckBox pClinicSalvageActive;
-    private readonly CheckBox pClinicSalvagePersistent;
-    private readonly RadioButton pClinicSalvageRejoin;
-    private readonly RadioButton pClinicSalvageSeparate;
-    private readonly RadioButton pClinicSalvageSource;
-    private readonly RadioButton pClinicSalvageFixed;
-    private readonly TextBlock pClinicSalvageDescription;
+    private CheckBox pClinicSalvageActive = null!;
+    private CheckBox pClinicSalvagePersistent = null!;
+    private RadioButton pClinicSalvageRejoin = null!;
+    private RadioButton pClinicSalvageSeparate = null!;
+    private RadioButton pClinicSalvageSource = null!;
+    private RadioButton pClinicSalvageFixed = null!;
+    private TextBlock pClinicSalvageDescription = null!;
 
     public PClinicSalvage(QClinic lClinicOwner)
     {
         lClinic = lClinicOwner;
+        PClinicSalvageBuild();
+        PClinicSalvageAttach();
+        PClinicSalvageUpdate();
+    }
+
+    private void PClinicSalvageBuild()
+    {
         Visibility = Visibility.Collapsed;
 
         pClinicSalvageActive = PClinic.PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Apply.Tooltip"));
-        pClinicSalvageActive.Checked += (_, _) => lClinic.QSalvageActiveSet(true);
-        pClinicSalvageActive.Unchecked += (_, _) => lClinic.QSalvageActiveSet(false);
 
         var pModeLabel = new TextBlock
         {
@@ -43,8 +48,6 @@ public sealed class PClinicSalvage : StackPanel
 
         pClinicSalvageRejoin = PClinicRadioBuild("Clinic.Salvage.Mode.Rejoin");
         pClinicSalvageSeparate = PClinicRadioBuild("Clinic.Salvage.Mode.Separate");
-        pClinicSalvageRejoin.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeRejoin);
-        pClinicSalvageSeparate.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeSeparate);
         Border pModeSegment = QRadio.QRadioSegmentBuild(pClinicSalvageRejoin, pClinicSalvageSeparate);
         pModeSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -60,8 +63,6 @@ public sealed class PClinicSalvage : StackPanel
 
         pClinicSalvageSource = PClinicRadioBuild("Clinic.Salvage.Basis.Source");
         pClinicSalvageFixed = PClinicRadioBuild("Clinic.Salvage.Basis.Fixed");
-        pClinicSalvageSource.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisSource);
-        pClinicSalvageFixed.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisFixed);
         Border pBasisSegment = QRadio.QRadioSegmentBuild(pClinicSalvageSource, pClinicSalvageFixed);
         pBasisSegment.HorizontalAlignment = HorizontalAlignment.Left;
 
@@ -77,15 +78,24 @@ public sealed class PClinicSalvage : StackPanel
         pClinicSalvagePersistent = PClinic.PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Salvage.Persistent.Tooltip"));
-        pClinicSalvagePersistent.Checked += (_, _) => lClinic.QSalvagePersistentSet(true);
-        pClinicSalvagePersistent.Unchecked += (_, _) => lClinic.QSalvagePersistentSet(false);
 
         Children.Add(pModeLabel);
         Children.Add(pModeSegment);
         Children.Add(pBasisHeading);
         Children.Add(pBasisSegment);
         Children.Add(pClinicSalvageDescription);
-        PClinicSalvageUpdate();
+    }
+
+    private void PClinicSalvageAttach()
+    {
+        pClinicSalvageActive.Checked += (_, _) => lClinic.QSalvageActiveSet(true);
+        pClinicSalvageActive.Unchecked += (_, _) => lClinic.QSalvageActiveSet(false);
+        pClinicSalvageRejoin.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeRejoin);
+        pClinicSalvageSeparate.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeSeparate);
+        pClinicSalvageSource.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisSource);
+        pClinicSalvageFixed.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisFixed);
+        pClinicSalvagePersistent.Checked += (_, _) => lClinic.QSalvagePersistentSet(true);
+        pClinicSalvagePersistent.Unchecked += (_, _) => lClinic.QSalvagePersistentSet(false);
     }
 
     public CheckBox PClinicSalvageActive => pClinicSalvageActive;

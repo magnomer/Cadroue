@@ -78,6 +78,21 @@ public sealed class QBlank
 
     public void QBlankWheelSet(double lX, double lY)
     {
+        (double lWheelX, double lWheelY) = QBlankWheelClamp(lX, lY);
+        double lBrightness = QBlankBrightnessResolve();
+        QBlankColorApply(lWheelX, lWheelY, lBrightness);
+    }
+
+    public void QBlankSampleSet(int lRed, int lGreen, int lBlue)
+    {
+        QBlankPickSet(false);
+        LNeutralWheel lWheel = LNeutral.LNeutralWheelResolve(lRed, lGreen, lBlue);
+        QBlankColorApply(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY, QBlankValueResolve(lRed, lGreen, lBlue));
+    }
+
+    // A point outside the wheel is pulled back onto its rim.
+    private static (double QBlankWheelX, double QBlankWheelY) QBlankWheelClamp(double lX, double lY)
+    {
         double lReach = Math.Sqrt((lX * lX) + (lY * lY));
         if (lReach > 1)
         {
@@ -85,18 +100,16 @@ public sealed class QBlank
             lY /= lReach;
         }
 
-        double lBrightness = qBlankStep.LDetectorBlankBrightness <= 0.0001
-            ? LDetectorBlank.LDetectorBlankValue
-            : qBlankStep.LDetectorBlankBrightness;
-        QBlankColorApply(lX, lY, lBrightness);
+        return (lX, lY);
     }
 
-    public void QBlankSampleSet(int lRed, int lGreen, int lBlue)
-    {
-        QBlankPickSet(false);
-        LNeutralWheel lWheel = LNeutral.LNeutralWheelResolve(lRed, lGreen, lBlue);
-        QBlankColorApply(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY, Math.Max(lRed, Math.Max(lGreen, lBlue)) / 255.0);
-    }
+    private double QBlankBrightnessResolve() =>
+        qBlankStep.LDetectorBlankBrightness <= 0.0001
+            ? LDetectorBlank.LDetectorBlankValue
+            : qBlankStep.LDetectorBlankBrightness;
+
+    private static double QBlankValueResolve(int lRed, int lGreen, int lBlue) =>
+        Math.Max(lRed, Math.Max(lGreen, lBlue)) / 255.0;
 
     public void QBlankPickSet(bool lPicking)
     {
@@ -109,7 +122,10 @@ public sealed class QBlank
         QBlankPickChanged?.Invoke(lPicking);
     }
 
-    private void QBlankColorApply(double lX, double lY, double lBrightness)
+    private void QBlankColorApply(double lX, double lY, double lBrightness) =>
+        QBlankStepSet(QBlankColorCreate(lX, lY, lBrightness));
+
+    private LDetectorBlank QBlankColorCreate(double lX, double lY, double lBrightness)
     {
         double lHue = Math.Atan2(lY, lX) * (180.0 / Math.PI);
         if (lHue < 0)
@@ -117,12 +133,12 @@ public sealed class QBlank
             lHue += 360;
         }
 
-        QBlankStepSet(qBlankStep with
+        return qBlankStep with
         {
             LDetectorBlankType = LDetectorType.LDetectorTypeColor,
             LDetectorBlankHue = lHue,
             LDetectorBlankSaturation = Math.Clamp(Math.Sqrt((lX * lX) + (lY * lY)), 0, 1),
             LDetectorBlankBrightness = lBrightness
-        });
+        };
     }
 }

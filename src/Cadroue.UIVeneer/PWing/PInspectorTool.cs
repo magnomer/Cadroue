@@ -10,6 +10,13 @@ public sealed partial class PInspector
 {
     private ToggleButton PInspectorToolBuild()
     {
+        ToggleButton pToolButton = PCropToolBuild();
+        PCropToolAttach(pToolButton);
+        return pToolButton;
+    }
+
+    private ToggleButton PCropToolBuild()
+    {
         pInspectorToolIcon = new Image
         {
             Width = 18,
@@ -18,7 +25,7 @@ public sealed partial class PInspector
             Stretch = Stretch.Uniform
         };
 
-        var pToolButton = new ToggleButton
+        return new ToggleButton
         {
             Content = pInspectorToolIcon,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.DrawTooltip"),
@@ -27,13 +34,18 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PInspectorToolCreate()
         };
-        pToolButton.Checked += (_, _) =>
-        {
-            QWhitebalance.QWhitebalanceToolSet(false, QWhitebalance.QWhitebalanceTarget);
-            QInspector.QInspectorToolSet(true);
-        };
+    }
+
+    private void PCropToolAttach(ToggleButton pToolButton)
+    {
+        pToolButton.Checked += (_, _) => PCropToolHandle();
         pToolButton.Unchecked += (_, _) => QInspector.QInspectorToolSet(false);
-        return pToolButton;
+    }
+
+    private void PCropToolHandle()
+    {
+        QWhitebalance.QWhitebalanceToolSet(false, QWhitebalance.QWhitebalanceTarget);
+        QInspector.QInspectorToolSet(true);
     }
 
     private static Style PInspectorToolCreate() => PInspectorToolCreate(typeof(ToggleButton));

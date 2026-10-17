@@ -28,9 +28,7 @@ internal sealed class PColumn
         this.pColumnGrid = pColumnGrid;
         this.pColumnItems = pColumnItems;
         this.lColumnPlan = lColumnPlan;
-        lColumnPlan.QColumnPlanChanged += PColumnPlanApply;
-        lColumnPlan.QColumnWidthChanged += pWidthNotify;
-        pColumnGrid.LayoutUpdated += PColumnLayoutHandle;
+        PColumnEventsAttach(pWidthNotify);
         PColumnPlanApply();
     }
 
@@ -55,16 +53,28 @@ internal sealed class PColumn
 
     public Thumb PColumnSplitterBuild(int pLeftPanelIndex)
     {
-        var pThumb = new Thumb
-        {
-            Cursor = Cursors.SizeWE,
-            Background = Brushes.Transparent,
-            Focusable = false,
-            Template = PColumnThumbCreate()
-        };
-        pThumb.DragDelta += (_, pEvent) => PColumnDragHandle(pLeftPanelIndex, pEvent.HorizontalChange);
+        Thumb pThumb = PColumnGripBuild();
+        PColumnDragAttach(pThumb, pLeftPanelIndex);
         return pThumb;
     }
+
+    private void PColumnEventsAttach(Action? pWidthNotify)
+    {
+        lColumnPlan.QColumnPlanChanged += PColumnPlanApply;
+        lColumnPlan.QColumnWidthChanged += pWidthNotify;
+        pColumnGrid.LayoutUpdated += PColumnLayoutHandle;
+    }
+
+    private static Thumb PColumnGripBuild() => new()
+    {
+        Cursor = Cursors.SizeWE,
+        Background = Brushes.Transparent,
+        Focusable = false,
+        Template = PColumnThumbCreate()
+    };
+
+    private void PColumnDragAttach(Thumb pThumb, int pLeftPanelIndex) =>
+        pThumb.DragDelta += (_, pEvent) => PColumnDragHandle(pLeftPanelIndex, pEvent.HorizontalChange);
 
     private void PColumnLayoutHandle(object? pSender, EventArgs pEvent) =>
         lColumnPlan.QColumnLayoutHandle(PColumnSlotRead(), pColumnGrid.ActualWidth);
@@ -86,8 +96,11 @@ internal sealed class PColumn
     private static void PColumnSlotApply(ColumnDefinition pColumn, QColumnSlot lSlot)
     {
         pColumn.MinWidth = lSlot.QColumnSlotMinimum;
-        pColumn.Width = new GridLength(lSlot.QColumnSlotWidth, pColumnUnits[lSlot.QColumnSlotStar]);
+        pColumn.Width = PColumnLengthResolve(lSlot);
     }
+
+    private static GridLength PColumnLengthResolve(QColumnSlot lSlot) =>
+        new(lSlot.QColumnSlotWidth, pColumnUnits[lSlot.QColumnSlotStar]);
 
     private double PColumnSlotRead() => LayoutInformation.GetLayoutSlot(pColumnGrid).Width;
 

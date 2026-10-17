@@ -60,9 +60,14 @@ public sealed class QFlowKeyframe
         qKeyframeOrchestrator.LKeyframeSuspend();
         if (lResume && qFlow.QFlowCommandActive && !qFlow.QFlowUnloaded)
         {
-            qFlowResumePending = true;
-            QFlowTimerResumed?.Invoke(QFlowResumeDelay);
+            QFlowResumeStart();
         }
+    }
+
+    private void QFlowResumeStart()
+    {
+        qFlowResumePending = true;
+        QFlowTimerResumed?.Invoke(QFlowResumeDelay);
     }
 
     public void QFlowKeyframeReset()
@@ -102,6 +107,11 @@ public sealed class QFlowKeyframe
     public void QFlowKeyframeClose()
     {
         QFlowKeyframeReset();
+        QFlowKeyframeDetach();
+    }
+
+    private void QFlowKeyframeDetach()
+    {
         qKeyframeOrchestrator.LKeyframeNoticeReady -= QFlowKeyframeHandle;
         qKeyframeOrchestrator.Dispose();
     }
@@ -124,13 +134,18 @@ public sealed class QFlowKeyframe
         }
 
         QFlowKeyframeRecord(lNotice);
-        qFlowEntries = lNotice.LKeyframeList;
-        qFlowRanges = lNotice.LKeyframeRanges;
-        QFlowKeyframeChanged?.Invoke(lNotice.LKeyframeList, lNotice.LKeyframeRanges);
+        QFlowEntriesSet(lNotice);
         if (qFlow.QFlowKeyframeDirection is int lDirection)
         {
             QFlowKeyframeMove(lDirection, false);
         }
+    }
+
+    private void QFlowEntriesSet(LKeyframeNotice lNotice)
+    {
+        qFlowEntries = lNotice.LKeyframeList;
+        qFlowRanges = lNotice.LKeyframeRanges;
+        QFlowKeyframeChanged?.Invoke(lNotice.LKeyframeList, lNotice.LKeyframeRanges);
     }
 
     private void QFlowKeyframeRecord(LKeyframeNotice lNotice)
@@ -168,12 +183,7 @@ public sealed class QFlowKeyframe
         }
 
         TimeSpan lCursor = qFlow.QFlowCursor;
-        LKeyframeMoveResult lResult = lDirection switch
-        {
-            < 0 => qKeyframeOrchestrator.LKeyframePreviousMove(lCursor),
-            > 0 => qKeyframeOrchestrator.LKeyframeNextMove(lCursor),
-            _ => qKeyframeOrchestrator.LKeyframeNearestMove(lCursor)
-        };
+        LKeyframeMoveResult lResult = QFlowTargetResolve(lDirection, lCursor);
         if (lResult.LKeyframeFailed)
         {
             qFlow.QFlowDirectionSet(null);
@@ -200,4 +210,11 @@ public sealed class QFlowKeyframe
             qFlow.QFlowCursorPropagate(lTarget, true, true);
         }
     }
+
+    private LKeyframeMoveResult QFlowTargetResolve(int lDirection, TimeSpan lCursor) => lDirection switch
+    {
+        < 0 => qKeyframeOrchestrator.LKeyframePreviousMove(lCursor),
+        > 0 => qKeyframeOrchestrator.LKeyframeNextMove(lCursor),
+        _ => qKeyframeOrchestrator.LKeyframeNearestMove(lCursor)
+    };
 }

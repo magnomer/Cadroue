@@ -121,26 +121,36 @@ public sealed class QSDiagnosis
 
     public async Task QSDiagnosisProbeStart()
     {
-        int lGeneration = ++qsDiagnosisGeneration;
+        int lGeneration = QSDiagnosisGenerationStart();
         QSDiagnosisFeatureSet(null);
-        string[] lFilters = qsDiagnosisVideoItems.Concat(qsDiagnosisAudioItems)
+        string[] lFilters = QSDiagnosisFiltersRead();
+        LInventoryFeature lFeature = await QSDiagnosisFeatureRead(lFilters);
+        if (QSDiagnosisGenerationCheck(lGeneration))
+        {
+            QSDiagnosisFeatureSet(lFeature);
+        }
+    }
+
+    private int QSDiagnosisGenerationStart() => ++qsDiagnosisGeneration;
+
+    private bool QSDiagnosisGenerationCheck(int lGeneration) => lGeneration == qsDiagnosisGeneration;
+
+    private static string[] QSDiagnosisFiltersRead() =>
+        qsDiagnosisVideoItems.Concat(qsDiagnosisAudioItems)
             .SelectMany(lItem => lItem.QSDiagnosisFilters)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-        LInventoryFeature lFeature;
+
+    private static async Task<LInventoryFeature> QSDiagnosisFeatureRead(string[] lFilters)
+    {
         try
         {
-            lFeature = await LInventory.LInventoryFeatureRead(lFilters);
+            return await LInventory.LInventoryFeatureRead(lFilters);
         }
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord("Diagnosis probe failed", lException);
-            lFeature = new LInventoryFeature(string.Empty, string.Empty, new Dictionary<string, bool>());
-        }
-
-        if (lGeneration == qsDiagnosisGeneration)
-        {
-            QSDiagnosisFeatureSet(lFeature);
+            return new LInventoryFeature(string.Empty, string.Empty, new Dictionary<string, bool>());
         }
     }
 

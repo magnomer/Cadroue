@@ -86,13 +86,7 @@ public sealed class QMap
     public QMap(QFlow lOwner)
     {
         qFlow = lOwner;
-        qFlow.QFlowAttachApplied += () => QMapTriggerApply("attach");
-        qFlow.QFlowClearApplied += () => QMapTriggerApply("clear");
-        qFlow.QFlowCursorApplied += () => QMapTriggerApply("cursor");
-        qFlow.QFlowSpool.QFlowSpoolApplied += () => QMapTriggerApply("spool");
-        qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QMapTriggerApply("sections");
-        qFlow.QFlowKeyframe.QFlowKeyframeChanged += (_, _) => QMapTriggerApply("keyframes");
-        qFlow.QFlowWaveform.QFlowWaveformUpdated += _ => QMapTriggerApply("waveform");
+        QMapFlowAttach();
     }
 
     public event Action? QMapFrameApplied;
@@ -112,19 +106,85 @@ public sealed class QMap
 
     public QMapFrame QMapFrameResolve(double lWidth, double lHeight)
     {
-        qMapGlyphCount = 0;
-        var lUnder = new List<QMapShape>();
-        var lOver = new List<QMapShape>();
-        var lFrame = new QMapFrame(lUnder, qMapOutlineEmpty, [], lOver, []);
-        if (lWidth <= 0 || lHeight <= 0)
+        QMapGlyphSet(0);
+        (QMapFrame lFrame, LSpool? lSpool, double lCoverageTop, double lRailHeight) =
+            QMapBaseResolve(lWidth, lHeight);
+        QMapGlyphSet(lFrame.QMapFrameBands.Count);
+        if (lSpool is null)
         {
             return lFrame;
+        }
+
+        return QMapOverResolve(lFrame, lSpool, lWidth, lCoverageTop, lRailHeight);
+    }
+
+    public QMapHitKind QMapHoverResolve(double lX, double lY, double lWidth, double lHeight)
+    {
+        QMapHitKind lHoverKind = QMapHitResolve(lX, lY, lWidth, lHeight);
+        QMapHoverSet(lHoverKind);
+        return lHoverKind;
+    }
+
+    public QMapHitKind QMapLeaveResolve() =>
+        qMapDragKind == QMapHitKind.QMapHitNone ? QMapHitKind.QMapHitNone : qMapHoverKind;
+
+    public bool QMapPressHandle(double lX, double lY, double lWidth, double lHeight)
+    {
+        if (qFlow.QFlowRange is not { } lSpool || lWidth <= 0)
+        {
+            return false;
+        }
+
+        QMapDragStart(lX, lY, lWidth, lHeight);
+        QMapPressDispatch(lSpool, lX, lWidth);
+        return true;
+    }
+
+    public bool QMapMoveHandle(double lX, double lWidth)
+    {
+        if (qFlow.QFlowRange is not { } lSpool || !QMapDragCheck() || lWidth <= 0)
+        {
+            return false;
+        }
+
+        QMapMoveDispatch(lSpool, lX, lWidth);
+        return true;
+    }
+
+    public void QMapDragClear()
+    {
+        bool lDragging = QMapDragCheck();
+        QMapDragReset();
+        if (lDragging)
+        {
+            qFlow.QFlowWheel.QFlowDragHandle(false);
+        }
+    }
+
+    private void QMapFlowAttach()
+    {
+        qFlow.QFlowAttachApplied += () => QMapTriggerApply("attach");
+        qFlow.QFlowClearApplied += () => QMapTriggerApply("clear");
+        qFlow.QFlowCursorApplied += () => QMapTriggerApply("cursor");
+        qFlow.QFlowSpool.QFlowSpoolApplied += () => QMapTriggerApply("spool");
+        qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QMapTriggerApply("sections");
+        qFlow.QFlowKeyframe.QFlowKeyframeChanged += (_, _) => QMapTriggerApply("keyframes");
+        qFlow.QFlowWaveform.QFlowWaveformUpdated += _ => QMapTriggerApply("waveform");
+    }
+
+    private (QMapFrame, LSpool?, double, double) QMapBaseResolve(double lWidth, double lHeight)
+    {
+        var lUnder = new List<QMapShape>();
+        var lFrame = new QMapFrame(lUnder, qMapOutlineEmpty, [], new List<QMapShape>(), []);
+        if (lWidth <= 0 || lHeight <= 0)
+        {
+            return (lFrame, null, 0, 0);
         }
 
         lUnder.Add(new QMapShape(QMapShapeKind.QMapShapeBackground, 0, 0, lWidth, lHeight, 0));
         if (qFlow.QFlowRange is not { } lSpool || lSpool.LSpoolDuration <= TimeSpan.Zero || lHeight < QMapRenderLeast)
         {
-            return lFrame;
+            return (lFrame, null, 0, 0);
         }
 
         double lCoverageBottom = Math.Max(0, lHeight - 1);
@@ -133,7 +193,7 @@ public sealed class QMap
         double lRailHeight = Math.Max(0, lRailBottom - QMapRailTop);
         if (lRailHeight <= 0)
         {
-            return lFrame;
+            return (lFrame, null, 0, 0);
         }
 
         byte[] lPeaks = qFlow.QFlowWaveform.QFlowWaveformPeaks;
@@ -146,8 +206,14 @@ public sealed class QMap
                 lPeaks, lWidth, QMapRailTop, lRailHeight, TimeSpan.Zero, lSpool.LSpoolDuration)
             : qMapOutlineEmpty;
         IReadOnlyList<QMapBand> lBands = QMapBandsResolve(lSpool, lWidth, lRailHeight);
-        qMapGlyphCount = lBands.Count;
+        QMapFrame lBase = lFrame with { QMapFrameWaveform = lOutline, QMapFrameBands = lBands };
+        return (lBase, lSpool, lCoverageTop, lRailHeight);
+    }
 
+    private QMapFrame QMapOverResolve(
+        QMapFrame lFrame, LSpool lSpool, double lWidth, double lCoverageTop, double lRailHeight)
+    {
+        var lOver = new List<QMapShape>();
         lOver.Add(new QMapShape(
             QMapShapeKind.QMapShapeCoverage, 0, lCoverageTop, lWidth, lCoverageTop + QMapCoverageHeight, 0));
         QMapCoverageAdd(lOver, lSpool, lWidth, lCoverageTop);
@@ -162,29 +228,23 @@ public sealed class QMap
             lCursor.Add(Math.Clamp(lSpool.LSpoolRatioResolve(qFlow.QFlowCursor), 0, 1) * lWidth);
         }
 
-        return lFrame with { QMapFrameWaveform = lOutline, QMapFrameBands = lBands, QMapFrameCursor = lCursor };
+        return lFrame with { QMapFrameOver = lOver, QMapFrameCursor = lCursor };
     }
 
-    public QMapHitKind QMapHoverResolve(double lX, double lY, double lWidth, double lHeight)
+    private void QMapGlyphSet(int lGlyphCount) => qMapGlyphCount = lGlyphCount;
+
+    private void QMapHoverSet(QMapHitKind lHoverKind) => qMapHoverKind = lHoverKind;
+
+    private void QMapDragStart(double lX, double lY, double lWidth, double lHeight)
     {
-        qMapHoverKind = QMapHitResolve(lX, lY, lWidth, lHeight);
-        return qMapHoverKind;
-    }
-
-    public QMapHitKind QMapLeaveResolve() =>
-        qMapDragKind == QMapHitKind.QMapHitNone ? QMapHitKind.QMapHitNone : qMapHoverKind;
-
-    public bool QMapPressHandle(double lX, double lY, double lWidth, double lHeight)
-    {
-        if (qFlow.QFlowRange is not { } lSpool || lWidth <= 0)
-        {
-            return false;
-        }
-
         qMapDragOrigin = lX;
         qMapPreviousX = lX;
         qMapDragKind = QMapHitResolve(lX, lY, lWidth, lHeight);
         qMapHoverKind = qMapDragKind;
+    }
+
+    private void QMapPressDispatch(LSpool lSpool, double lX, double lWidth)
+    {
         switch (qMapDragKind)
         {
             case QMapHitKind.QMapHitOrigin:
@@ -200,18 +260,11 @@ public sealed class QMap
         {
             qFlow.QFlowCursorSeek(QMapTimeResolve(lSpool, lX, lWidth));
         }
-
-        return true;
     }
 
-    public bool QMapMoveHandle(double lX, double lWidth)
+    private void QMapMoveDispatch(LSpool lSpool, double lX, double lWidth)
     {
-        if (qFlow.QFlowRange is not { } lSpool || qMapDragKind == QMapHitKind.QMapHitNone || lWidth <= 0)
-        {
-            return false;
-        }
-
-        TimeSpan lDragDelta = lSpool.LSpoolTimeResolve((lX - qMapDragOrigin) / lWidth);
+        TimeSpan lDragDelta = QMapDeltaResolve(lSpool, lX, lWidth);
         switch (qMapDragKind)
         {
             case QMapHitKind.QMapHitOrigin:
@@ -223,27 +276,27 @@ public sealed class QMap
                 qFlow.QFlowSpool.QFlowSpoolHandle();
                 break;
             case QMapHitKind.QMapHitBody:
-                lSpool.LSpoolMove(lSpool.LSpoolTimeResolve((lX - qMapPreviousX) / lWidth));
-                qMapPreviousX = lX;
+                lSpool.LSpoolMove(QMapStepResolve(lSpool, lX, lWidth));
+                QMapPreviousSet(lX);
                 qFlow.QFlowSpool.QFlowSpoolHandle();
                 break;
             case QMapHitKind.QMapHitCursor:
                 qFlow.QFlowCursorSeek(QMapTimeResolve(lSpool, lX, lWidth));
                 break;
         }
-
-        return true;
     }
 
-    public void QMapDragClear()
-    {
-        bool lDragging = qMapDragKind != QMapHitKind.QMapHitNone;
-        qMapDragKind = QMapHitKind.QMapHitNone;
-        if (lDragging)
-        {
-            qFlow.QFlowWheel.QFlowDragHandle(false);
-        }
-    }
+    private TimeSpan QMapDeltaResolve(LSpool lSpool, double lX, double lWidth) =>
+        lSpool.LSpoolTimeResolve((lX - qMapDragOrigin) / lWidth);
+
+    private TimeSpan QMapStepResolve(LSpool lSpool, double lX, double lWidth) =>
+        lSpool.LSpoolTimeResolve((lX - qMapPreviousX) / lWidth);
+
+    private void QMapPreviousSet(double lX) => qMapPreviousX = lX;
+
+    private bool QMapDragCheck() => qMapDragKind != QMapHitKind.QMapHitNone;
+
+    private void QMapDragReset() => qMapDragKind = QMapHitKind.QMapHitNone;
 
     private void QMapTriggerApply(string lTrigger)
     {

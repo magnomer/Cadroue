@@ -29,7 +29,7 @@ public sealed class QViewerSource
     {
         qViewer = lOwner;
         qViewerUsher = lUsher;
-        qViewer.QViewerOpenRequest += QViewerSourceOpen;
+        QViewerSourceAttach();
     }
 
     public event Action<QViewerAsk, Action<bool>>? QViewerSourceAsk;
@@ -37,6 +37,8 @@ public sealed class QViewerSource
     public event Action<IReadOnlyList<string>>? QViewerPathsDrop;
 
     private bool QViewerCropPersistent => qViewer.QCrop.QCropPersistent;
+
+    private void QViewerSourceAttach() => qViewer.QViewerOpenRequest += QViewerSourceOpen;
 
     public void QViewerSourceDetach() => qViewer.QViewerOpenRequest -= QViewerSourceOpen;
 

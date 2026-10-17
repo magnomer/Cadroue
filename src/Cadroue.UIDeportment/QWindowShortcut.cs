@@ -61,27 +61,34 @@ public sealed class QWindowShortcut
             return true;
         }
 
+        if (!QWindowKeydownCheck(lPress))
+        {
+            return false;
+        }
+
+        string? lToken = QShortcut.QShortcutTokenFind(QWindowGestureFormat(lPress));
+        return lToken is not null && QWindowShortcutRun(lToken);
+    }
+
+    private static bool QWindowKeydownCheck(QWindowPress lPress)
+    {
         if (lPress.QWindowPressMessage != QWindowShortcutKeydown
             && lPress.QWindowPressMessage != QWindowShortcutSyskeydown)
         {
             return false;
         }
 
-        if (lPress.QWindowPressModal || !QWindowSurfaceCheck(lPress) || lPress.QWindowPressInput())
-        {
-            return false;
-        }
+        return !lPress.QWindowPressModal && QWindowSurfaceCheck(lPress) && !lPress.QWindowPressInput();
+    }
 
-        string lGesture = QShortcut.QShortcutGestureFormat(
+    private static string QWindowGestureFormat(QWindowPress lPress) =>
+        QShortcut.QShortcutGestureFormat(
             lPress.QWindowPressKey(lPress.QWindowPressVirtual),
             QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutControl)),
             QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutAlt)),
             QWindowDownCheck(lPress.QWindowPressState(QWindowShortcutShift)),
             QWindowDownCheck(lPress.QWindowPressState(QWindowLeftWin))
                 || QWindowDownCheck(lPress.QWindowPressState(QWindowRightWin)));
-        string? lToken = QShortcut.QShortcutTokenFind(lGesture);
-        return lToken is not null && QWindowShortcutRun(lToken);
-    }
 
     public bool QWindowShortcutRun(string lToken)
     {

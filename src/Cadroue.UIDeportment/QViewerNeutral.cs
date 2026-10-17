@@ -52,9 +52,12 @@ public sealed class QViewerNeutral
             return;
         }
 
-        qViewerSerial++;
+        QViewerSerialUpdate();
         QViewerNeutralReset();
     }
+
+    // A new claim: a sample still in flight under the old one is dropped when it lands.
+    private void QViewerSerialUpdate() => qViewerSerial++;
 
     public void QViewerNeutralCancel() => QViewerToolSet(false, qViewerTarget);
 
@@ -116,7 +119,7 @@ public sealed class QViewerNeutral
     }
 
     public void QViewerEstimateStart(LWhitebalanceMethod lMethod) =>
-        qViewer.QViewerFrameRead(lFrame => QViewerEstimateChanged?.Invoke(lFrame is null
+        qViewer.QViewerFrame.QViewerFrameRead(lFrame => QViewerEstimateChanged?.Invoke(lFrame is null
             ? new LNeutralWheel(0, 0, false)
             : LNeutral.LNeutralAnalyzeResolve(
                 lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight, lMethod)));
@@ -125,14 +128,11 @@ public sealed class QViewerNeutral
     {
         if (QViewerNeutralArmed)
         {
-            qViewerTarget = lTarget;
+            QViewerTargetSet(lTarget);
             return;
         }
 
-        qViewerSerial++;
-        qViewerTarget = lTarget;
-        qViewerPlayingHeld = qViewer.QViewerPlaying;
-        qViewerTool = QViewerTool.QViewerToolNeutral;
+        QViewerArmSet(lTarget, qViewer.QViewerPlaying);
         if (qViewerPlayingHeld)
         {
             qViewer.QViewerPlayback.QViewerPause();
@@ -142,18 +142,35 @@ public sealed class QViewerNeutral
         QViewerToolRaise(true);
     }
 
+    private void QViewerTargetSet(LNeutralTarget lTarget) => qViewerTarget = lTarget;
+
+    // The picker arms under a new claim, holding the target and whether the player was playing.
+    private void QViewerArmSet(LNeutralTarget lTarget, bool lPlaying)
+    {
+        qViewerSerial++;
+        qViewerTarget = lTarget;
+        qViewerPlayingHeld = lPlaying;
+        qViewerTool = QViewerTool.QViewerToolNeutral;
+    }
+
     private void QViewerNeutralReset()
     {
         qViewer.QCropDrag.QCropCaptureRelease();
-        qViewerTool = QViewerTool.QViewerToolNone;
-        bool lResume = qViewerPlayingHeld;
-        qViewerPlayingHeld = false;
-        if (lResume)
+        if (QViewerArmRelease())
         {
             qViewer.QViewerPlayback.QViewerPlay();
         }
 
         QViewerToolRaise(false);
+    }
+
+    // The picker disarms; true when the player was playing as it armed.
+    private bool QViewerArmRelease()
+    {
+        qViewerTool = QViewerTool.QViewerToolNone;
+        bool lResume = qViewerPlayingHeld;
+        qViewerPlayingHeld = false;
+        return lResume;
     }
 
     private void QViewerToolRaise(bool lArmed)

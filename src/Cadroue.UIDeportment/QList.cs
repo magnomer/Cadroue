@@ -29,10 +29,7 @@ public sealed class QList
         QListDrag = new QListDrag(this);
         QListFace = new QListFace(this, qListUsher);
         QListSuccessor = new QListSuccessor();
-        qListDocket.LDocketChanged += QListDocketHandle;
-        qListDocket.LDocketAdded += QListAddHandle;
-        qListDocket.LDocketDelivered += QListDeliveredHandle;
-        qListDocket.LDocketRemoved += QListRemoveHandle;
+        QListDocketAttach();
     }
 
     public LDocket QListDocket => qListDocket;
@@ -135,9 +132,7 @@ public sealed class QList
 
     public void QListRemove()
     {
-        IReadOnlyList<string> lRemovedPaths = QListSelectionRead()
-            .Where(lListPath => !QListLockCheck(lListPath))
-            .ToArray();
+        IReadOnlyList<string> lRemovedPaths = QListRemovableRead();
         if (lRemovedPaths.Count == 0)
         {
             return;
@@ -151,9 +146,7 @@ public sealed class QList
 
     public void QListClear()
     {
-        string[] lRemovedPaths = qListDocket.LDocketUnlockedRead()
-            .Select(lListItem => lListItem.LDocketEntryPath)
-            .ToArray();
+        string[] lRemovedPaths = QListUnlockedRead();
         if (lRemovedPaths.Length > 0)
         {
             qListDocket.LDocketPathsRemove(lRemovedPaths);
@@ -175,7 +168,7 @@ public sealed class QList
 
     public bool QListKeyRun(string lKey, bool lControl)
     {
-        if (!string.Equals(lKey, "A", StringComparison.Ordinal) || !lControl)
+        if (!QListKeyCheck(lKey, lControl))
         {
             return false;
         }
@@ -206,7 +199,7 @@ public sealed class QList
 
     public void QListPressSelect(string lListPath, bool lShift, bool lControl)
     {
-        qListPressPath = null;
+        QListPressReset();
         if (lShift)
         {
             QListRangeSelect(lListPath);
@@ -219,11 +212,9 @@ public sealed class QList
             return;
         }
 
-        if (qListSelected.Contains(lListPath) && qListSelected.Count > 1)
+        if (QListPluralCheck(lListPath))
         {
-            qListPressPath = lListPath;
-            qListPathAnchor = lListPath;
-            QListCurrentApply(lListPath);
+            QListPressSet(lListPath);
             return;
         }
 
@@ -232,12 +223,12 @@ public sealed class QList
 
     public void QListReleaseSelect()
     {
-        if (qListPressPath is { } lCollapsePath)
+        if (QListPressPath is { } lCollapsePath)
         {
             QListSelect(lCollapsePath);
         }
 
-        qListPressPath = null;
+        QListPressReset();
     }
 
     public void QListPressReset() => qListPressPath = null;
@@ -250,12 +241,7 @@ public sealed class QList
             return;
         }
 
-        qListSelected.Clear();
-        foreach (string lPath in lPaths)
-        {
-            qListSelected.Add(lPath);
-        }
-
+        QListSelectedSet(lPaths);
         QListCurrentApply(QListCurrentResolve());
     }
 
@@ -290,6 +276,32 @@ public sealed class QList
     {
         QListRemovedApply(lRemoved);
         QListClearChanged?.Invoke(lRemoved);
+        QListSuccessorSelect();
+    }
+
+    private void QListDocketAttach()
+    {
+        qListDocket.LDocketChanged += QListDocketHandle;
+        qListDocket.LDocketAdded += QListAddHandle;
+        qListDocket.LDocketDelivered += QListDeliveredHandle;
+        qListDocket.LDocketRemoved += QListRemoveHandle;
+    }
+
+    private IReadOnlyList<string> QListRemovableRead() =>
+        QListSelectionRead()
+            .Where(lListPath => !QListLockCheck(lListPath))
+            .ToArray();
+
+    private string[] QListUnlockedRead() =>
+        qListDocket.LDocketUnlockedRead()
+            .Select(lListItem => lListItem.LDocketEntryPath)
+            .ToArray();
+
+    private static bool QListKeyCheck(string lKey, bool lControl) =>
+        string.Equals(lKey, "A", StringComparison.Ordinal) && lControl;
+
+    private void QListSuccessorSelect()
+    {
         if (qListPathCurrent is { } lCurrentPath && qListDocket.LDocketItemFind(lCurrentPath) is null)
         {
             QListSelect(QListSuccessor.QListPathSuccessor);
@@ -311,10 +323,21 @@ public sealed class QList
 
     private void QListRangeSelect(string lListPath)
     {
+        if (QListRangeRead(lListPath) is not { } lRange)
+        {
+            return;
+        }
+
+        QListSelectedSet(lRange);
+        QListCurrentApply(lListPath);
+    }
+
+    private IEnumerable<string>? QListRangeRead(string lListPath)
+    {
         int lRowIndex = QListIndexRead(lListPath);
         if (lRowIndex < 0)
         {
-            return;
+            return null;
         }
 
         int lAnchorIndex = QListIndexRead(qListPathAnchor ?? qListPathCurrent);
@@ -324,12 +347,27 @@ public sealed class QList
         }
 
         IReadOnlyList<string> lPaths = qListDocket.LDocketPathsRead();
-        qListSelected.Clear();
-        for (int lIndex = Math.Min(lAnchorIndex, lRowIndex); lIndex <= Math.Max(lAnchorIndex, lRowIndex); lIndex++)
-        {
-            qListSelected.Add(lPaths[lIndex]);
-        }
+        int lFirst = Math.Min(lAnchorIndex, lRowIndex);
+        return Enumerable.Range(lFirst, Math.Max(lAnchorIndex, lRowIndex) - lFirst + 1)
+            .Select(lIndex => lPaths[lIndex]);
+    }
 
+    private void QListSelectedSet(IEnumerable<string> lPaths)
+    {
+        qListSelected.Clear();
+        foreach (string lPath in lPaths)
+        {
+            qListSelected.Add(lPath);
+        }
+    }
+
+    private bool QListPluralCheck(string lListPath) =>
+        qListSelected.Contains(lListPath) && qListSelected.Count > 1;
+
+    private void QListPressSet(string lListPath)
+    {
+        qListPressPath = lListPath;
+        qListPathAnchor = lListPath;
         QListCurrentApply(lListPath);
     }
 

@@ -26,23 +26,30 @@ internal sealed class PSGrabber
     internal static void PSGrabberPlacementRestore(Window pWindow, string pPlacementKey)
     {
         bool pStored = Cadroue.UIDeportment.QPlacement.QPlacementRead(
-            pPlacementKey, out double pLeft, out double pTop, out double pWidthStored, out double pHeightStored);
+            pPlacementKey, out double pLeftStored, out double pTopStored,
+            out double pWidthStored, out double pHeightStored);
+        (double? pLeft, double? pTop, double pWidth, double pHeight) = PSGrabberStoredResolve(
+            pWindow, pStored, pLeftStored, pTopStored, pWidthStored, pHeightStored);
+        QSashMaximize.QSashMaximizeAttach(pWindow);
+        QSashPlacement.QSashPlacementRestore(pWindow, pLeft, pTop, pWidth, pHeight);
+    }
+
+    private static (double?, double?, double, double) PSGrabberStoredResolve(
+        Window pWindow,
+        bool pStored,
+        double pLeft,
+        double pTop,
+        double pWidthStored,
+        double pHeightStored)
+    {
         double pWidth = Math.Max(pStored ? pWidthStored : pWindow.Width, pWindow.MinWidth);
         double pHeight = Math.Max(pStored ? pHeightStored : pWindow.Height, pWindow.MinHeight);
-        QSashMaximize.QSashMaximizeAttach(pWindow);
-        QSashPlacement.QSashPlacementRestore(
-            pWindow,
-            pStored ? pLeft : null,
-            pStored ? pTop : null,
-            pWidth,
-            pHeight);
+        return (pStored ? pLeft : null, pStored ? pTop : null, pWidth, pHeight);
     }
 
     internal static void PSGrabberPlacementSave(Window pWindow, string pPlacementKey)
     {
-        Rect pBounds = pWindow.WindowState == WindowState.Normal
-            ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
-            : pWindow.RestoreBounds;
+        Rect pBounds = PSGrabberRectResolve(pWindow);
         Cadroue.UIDeportment.QPlacement.QPlacementSave(
             pPlacementKey,
             pBounds.Left,
@@ -50,6 +57,11 @@ internal sealed class PSGrabber
             pBounds.Width,
             pBounds.Height);
     }
+
+    private static Rect PSGrabberRectResolve(Window pWindow) =>
+        pWindow.WindowState == WindowState.Normal
+            ? new Rect(pWindow.Left, pWindow.Top, pWindow.Width, pWindow.Height)
+            : pWindow.RestoreBounds;
 
     internal void PSGrabberAttach()
     {
@@ -78,6 +90,13 @@ internal sealed class PSGrabber
             return;
         }
 
+        PSGrabberStartSet(pDirection, e);
+        PSGrabberCursorApply(pDirection);
+        PSGrabberPressAccept(e);
+    }
+
+    private void PSGrabberStartSet(int pDirection, MouseButtonEventArgs e)
+    {
         psGrabberActive = true;
         psGrabberDirection = pDirection;
         psGrabberStartPointer = PSGrabberPointerRead(e);
@@ -86,7 +105,10 @@ internal sealed class PSGrabber
             psGrabberWindow.Top,
             psGrabberWindow.ActualWidth,
             psGrabberWindow.ActualHeight);
-        PSGrabberCursorApply(pDirection);
+    }
+
+    private void PSGrabberPressAccept(MouseButtonEventArgs e)
+    {
         Mouse.Capture(psGrabberWindow);
         e.Handled = true;
     }
@@ -95,17 +117,24 @@ internal sealed class PSGrabber
     {
         if (psGrabberActive)
         {
-            PSGrabberApply(PSGrabberPointerRead(e));
-            e.Handled = true;
+            PSGrabberDragAccept(e);
             return;
         }
 
-        int pDirection = psGrabberWindow.WindowState == WindowState.Normal
+        PSGrabberCursorApply(PSGrabberHoverRead(e));
+    }
+
+    private void PSGrabberDragAccept(MouseEventArgs e)
+    {
+        PSGrabberApply(PSGrabberPointerRead(e));
+        e.Handled = true;
+    }
+
+    private int PSGrabberHoverRead(MouseEventArgs e) =>
+        psGrabberWindow.WindowState == WindowState.Normal
             && !QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject)
             ? PSGrabberDirectionRead(e.GetPosition(psGrabberWindow))
             : 0;
-        PSGrabberCursorApply(pDirection);
-    }
 
     private void PSGrabberCursorApply(int pDirection)
     {
@@ -120,14 +149,21 @@ internal sealed class PSGrabber
             return;
         }
 
-        psGrabberActive = false;
+        PSGrabberActiveSet(false);
+        PSGrabberReleaseAccept(e);
+    }
+
+    private void PSGrabberActiveSet(bool pActive) => psGrabberActive = pActive;
+
+    private static void PSGrabberReleaseAccept(MouseButtonEventArgs e)
+    {
         Mouse.Capture(null);
         e.Handled = true;
     }
 
     private void PSGrabberCaptureHandle(object sender, MouseEventArgs e)
     {
-        psGrabberActive = false;
+        PSGrabberActiveSet(false);
         PSGrabberCursorApply(0);
     }
 
@@ -171,6 +207,12 @@ internal sealed class PSGrabber
 
     private void PSGrabberApply(Point pPointer)
     {
+        (double pLeft, double pTop, double pWidth, double pHeight) = PSGrabberDragResolve(pPointer);
+        PSGrabberBoundsSet(pLeft, pTop, pWidth, pHeight);
+    }
+
+    private (double, double, double, double) PSGrabberDragResolve(Point pPointer)
+    {
         double pDx = pPointer.X - psGrabberStartPointer.X;
         double pDy = pPointer.Y - psGrabberStartPointer.Y;
         double pLeft = psGrabberStartBounds.Left;
@@ -200,6 +242,11 @@ internal sealed class PSGrabber
             pHeight = Math.Max(psGrabberWindow.MinHeight, psGrabberStartBounds.Height + pDy);
         }
 
+        return (pLeft, pTop, pWidth, pHeight);
+    }
+
+    private void PSGrabberBoundsSet(double pLeft, double pTop, double pWidth, double pHeight)
+    {
         psGrabberWindow.Left = pLeft;
         psGrabberWindow.Top = pTop;
         psGrabberWindow.Width = pWidth;

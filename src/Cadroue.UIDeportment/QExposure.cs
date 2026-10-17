@@ -43,8 +43,6 @@ public sealed class QExposure
         qExposureActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyExposure");
         QExposurePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
         QExposurePersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistExposure");
-        QTool.QToolSwitchAttach(qExposureActive, qExposureGate.CExposureActiveSet);
-        QTool.QToolSwitchAttach(QExposurePersistent, qExposureGate.CExposurePersistentSet);
 
         qExposureField = QField.QFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
@@ -52,21 +50,28 @@ public sealed class QExposure
             QExposureLeast,
             QExposureMost,
             QExposureOrigin);
-        QField.QFieldAttach(
-            qExposureField,
-            QExposureLeast,
-            QExposureMost,
-            () => qExposureGate.CExposureValue,
-            qExposureGate.CExposureValueSet);
         qExposureStack.Children.Insert(0, qExposureField);
 
-        qExposureGate.CExposureChanged += QExposureUpdate;
+        QExposureAttach();
         QExposureUpdate();
     }
 
     public StackPanel QExposureBody { get; }
 
     public CheckBox QExposurePersistent { get; }
+
+    private void QExposureAttach()
+    {
+        QTool.QToolSwitchAttach(qExposureActive, qExposureGate.CExposureActiveSet);
+        QTool.QToolSwitchAttach(QExposurePersistent, qExposureGate.CExposurePersistentSet);
+        QField.QFieldAttach(
+            qExposureField,
+            QExposureLeast,
+            QExposureMost,
+            () => qExposureGate.CExposureValue,
+            qExposureGate.CExposureValueSet);
+        qExposureGate.CExposureChanged += QExposureUpdate;
+    }
 
     private void QExposureUpdate()
     {

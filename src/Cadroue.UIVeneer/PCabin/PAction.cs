@@ -34,35 +34,17 @@ public sealed class PAction : UserControl
     public PAction(QAction lAction)
     {
         QAction = lAction;
-        var pPanel = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center
-        };
         Button pAddListButton = PActionButtonBuild("AddList", "PActionAddList.svg", "Action.AddList");
         pActionAllButton = PActionButtonBuild("AddAll", "PActionAddAll.svg", "Action.AddAll");
         Button pExecuteButton = PActionButtonBuild("Execute", "PActionExecute.svg", "Action.Execute");
-        pAddListButton.Click += (_, _) => QAction.QActionListRun();
-        pActionAllButton.Click += (_, _) => QAction.QActionAllRun();
-        pExecuteButton.Click += (_, _) => QAction.QActionHighRun();
-        pActionAllButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.Tooltip");
+        PActionButtonsAttach(pAddListButton, pExecuteButton);
+        PActionTipSet();
         pActionRelayIcon = PActionIconBuild();
         pActionRelayLabel = PActionLabelBuild();
         pActionRelayButton = PActionRelayBuild();
         pActionAutoBox = PActionAutoBuild();
-        pPanel.Children.Add(pAddListButton);
-        pPanel.Children.Add(new Border { Width = 2 });
-        pPanel.Children.Add(pActionAllButton);
-        pPanel.Children.Add(new Border { Width = 2 });
-        pPanel.Children.Add(pExecuteButton);
-        pPanel.Children.Add(new Border { Width = 12 });
-        pPanel.Children.Add(pActionRelayButton);
-        pPanel.Children.Add(new Border { Width = 6 });
-        pPanel.Children.Add(pActionAutoBox);
-        Content = new Border { Child = pPanel };
-        QAction.QActionFaceChanged += PActionFaceUpdate;
-        QAction.QActionEmptyRaised += PActionEmptyShow;
+        Content = PActionPanelBuild(pAddListButton, pExecuteButton);
+        PActionEventsAttach();
         PActionFaceUpdate();
     }
 
@@ -73,7 +55,7 @@ public sealed class PAction : UserControl
     public void PActionAutoApply(bool lActionAutoRelay)
     {
         QAction.QActionAutoSet(lActionAutoRelay);
-        pActionAutoBox.IsChecked = lActionAutoRelay;
+        PActionBoxSet(lActionAutoRelay);
     }
 
     public void PActionAllSet(bool pActionAllAllowed, string pActionAllTooltip)
@@ -83,6 +65,44 @@ public sealed class PAction : UserControl
         pActionAllButton.ToolTip = pActionAllTooltip;
     }
 
+    private void PActionButtonsAttach(Button pAddListButton, Button pExecuteButton)
+    {
+        pAddListButton.Click += (_, _) => QAction.QActionListRun();
+        pActionAllButton.Click += (_, _) => QAction.QActionAllRun();
+        pExecuteButton.Click += (_, _) => QAction.QActionHighRun();
+    }
+
+    private void PActionTipSet() =>
+        pActionAllButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.Tooltip");
+
+    private Border PActionPanelBuild(Button pAddListButton, Button pExecuteButton)
+    {
+        var pPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pPanel.Children.Add(pAddListButton);
+        pPanel.Children.Add(new Border { Width = 2 });
+        pPanel.Children.Add(pActionAllButton);
+        pPanel.Children.Add(new Border { Width = 2 });
+        pPanel.Children.Add(pExecuteButton);
+        pPanel.Children.Add(new Border { Width = 12 });
+        pPanel.Children.Add(pActionRelayButton);
+        pPanel.Children.Add(new Border { Width = 6 });
+        pPanel.Children.Add(pActionAutoBox);
+        return new Border { Child = pPanel };
+    }
+
+    private void PActionEventsAttach()
+    {
+        QAction.QActionFaceChanged += PActionFaceUpdate;
+        QAction.QActionEmptyRaised += PActionEmptyShow;
+    }
+
+    private void PActionBoxSet(bool lActionAutoRelay) => pActionAutoBox.IsChecked = lActionAutoRelay;
+
     private static void PActionEmptyShow() => PSWarning.PSWarningShow(
         null,
         QLocalizationCatalog.QLocalizationTextRead("Action.Empty.Title"),
@@ -90,7 +110,16 @@ public sealed class PAction : UserControl
 
     private CheckBox PActionAutoBuild()
     {
-        var pAutoBox = new CheckBox
+        CheckBox pAutoBox = PActionBoxBuild();
+        QInteractionClick.QInteractionClickAttach(pAutoBox);
+        QCheckbox.QCheckboxAttach(pAutoBox);
+        PActionBoxAttach(pAutoBox);
+        return pAutoBox;
+    }
+
+    private static CheckBox PActionBoxBuild()
+    {
+        return new CheckBox
         {
             Content = QLocalizationCatalog.QLocalizationTextRead("Action.AutoRelay.Label"),
             FontSize = 12,
@@ -101,11 +130,12 @@ public sealed class PAction : UserControl
             FocusVisualStyle = null,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Action.AutoRelay.Tooltip")
         };
-        QInteractionClick.QInteractionClickAttach(pAutoBox);
-        QCheckbox.QCheckboxAttach(pAutoBox);
+    }
+
+    private void PActionBoxAttach(CheckBox pAutoBox)
+    {
         pAutoBox.Checked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
         pAutoBox.Unchecked += (_, _) => QAction.QActionAutoSet(pAutoBox.IsChecked);
-        return pAutoBox;
     }
 
     private static Button PActionButtonBuild(string pActionToken, string pIconAssetName, string pLabelKey)
@@ -144,6 +174,15 @@ public sealed class PAction : UserControl
     }
 
     private Button PActionRelayBuild()
+    {
+        Button pButton = PActionFrameBuild();
+        PActionOpenAttach(pButton);
+        return pButton;
+    }
+
+    private void PActionOpenAttach(Button pButton) => pButton.Click += PActionOpenHandle;
+
+    private Button PActionFrameBuild()
     {
         var pChevron = new System.Windows.Shapes.Path
         {
@@ -185,7 +224,6 @@ public sealed class PAction : UserControl
         };
         System.Windows.Automation.AutomationProperties.SetName(
             pButton, QLocalizationCatalog.QLocalizationTextRead("Action.Relay.Name"));
-        pButton.Click += PActionOpenHandle;
         return pButton;
     }
 
@@ -242,6 +280,11 @@ public sealed class PAction : UserControl
     {
         ContextMenu pRelayMenu = QMenu.QMenuBuild(pActionRelayButton, QMenuSide.QMenuSideBelow);
         QAction.QActionMenuRead().ToList().ForEach(lOption => PActionRowAppend(pRelayMenu, lOption));
+        PActionMenuShow(pRelayMenu, pArgs);
+    }
+
+    private static void PActionMenuShow(ContextMenu pRelayMenu, RoutedEventArgs pArgs)
+    {
         pRelayMenu.IsOpen = true;
         pArgs.Handled = true;
     }
@@ -251,7 +294,10 @@ public sealed class PAction : UserControl
         MenuItem pRelayItem = QMenu.QMenuItemBuild(
             lOption.QActionOptionTitle,
             QStripIcon.QStripIconFind(lOption.QActionOptionKey));
-        pRelayItem.Click += (_, _) => QAction.QActionRelaySelect(lOption.QActionOptionId);
+        PActionItemAttach(pRelayItem, lOption);
         pRelayMenu.Items.Add(pRelayItem);
     }
+
+    private void PActionItemAttach(MenuItem pRelayItem, QActionOption lOption) =>
+        pRelayItem.Click += (_, _) => QAction.QActionRelaySelect(lOption.QActionOptionId);
 }

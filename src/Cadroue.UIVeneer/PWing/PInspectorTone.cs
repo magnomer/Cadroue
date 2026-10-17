@@ -34,6 +34,20 @@ public sealed partial class PInspector
 
     private StackPanel PToneBrightnessBuild()
     {
+        StackPanel pBody = PInspectorBrightnessBuild();
+        PToneAttach(
+            LColorKind.LColorKindBrightness,
+            pToneBrightnessBox,
+            pInspectorBrightnessPersistent,
+            pInspectorBrightnessSlider,
+            pInspectorBrightnessValue,
+            null,
+            null);
+        return pBody;
+    }
+
+    private StackPanel PInspectorBrightnessBuild()
+    {
         pToneBrightnessBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyBrightness"));
@@ -47,14 +61,6 @@ public sealed partial class PInspector
         pInspectorBrightnessValue = PInspectorDecimalBuild();
         pInspectorBrightnessValue.Text = "0";
         pInspectorBrightnessStack = new StackPanel();
-        PToneAttach(
-            LColorKind.LColorKindBrightness,
-            pToneBrightnessBox,
-            pInspectorBrightnessPersistent,
-            pInspectorBrightnessSlider,
-            pInspectorBrightnessValue,
-            null,
-            null);
         pInspectorBrightnessStack.Children.Add(
             PInspectorSliderBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
@@ -67,6 +73,20 @@ public sealed partial class PInspector
 
     private StackPanel PToneContrastBuild()
     {
+        StackPanel pBody = PInspectorContrastBuild();
+        PToneAttach(
+            LColorKind.LColorKindContrast,
+            pToneContrastBox,
+            pInspectorContrastPersistent,
+            pInspectorContrastSlider,
+            pInspectorContrastValue,
+            0,
+            200);
+        return pBody;
+    }
+
+    private StackPanel PInspectorContrastBuild()
+    {
         pToneContrastBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyContrast"));
@@ -77,14 +97,6 @@ public sealed partial class PInspector
         pInspectorContrastValue = PInspectorDecimalBuild();
         pInspectorContrastValue.Text = "100";
         pInspectorContrastStack = new StackPanel();
-        PToneAttach(
-            LColorKind.LColorKindContrast,
-            pToneContrastBox,
-            pInspectorContrastPersistent,
-            pInspectorContrastSlider,
-            pInspectorContrastValue,
-            0,
-            200);
         pInspectorContrastStack.Children.Add(
             PInspectorSliderBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
@@ -107,6 +119,20 @@ public sealed partial class PInspector
 
     private StackPanel PToneSaturationBuild()
     {
+        StackPanel pBody = PInspectorSaturationBuild();
+        PToneAttach(
+            LColorKind.LColorKindSaturation,
+            pToneSaturationBox,
+            pInspectorSaturationPersistent,
+            pInspectorSaturationSlider,
+            pInspectorSaturationValue,
+            0,
+            200);
+        return pBody;
+    }
+
+    private StackPanel PInspectorSaturationBuild()
+    {
         pToneSaturationBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplySaturation"));
@@ -117,14 +143,6 @@ public sealed partial class PInspector
         pInspectorSaturationValue = PInspectorDecimalBuild();
         pInspectorSaturationValue.Text = "100";
         pInspectorSaturationStack = new StackPanel();
-        PToneAttach(
-            LColorKind.LColorKindSaturation,
-            pToneSaturationBox,
-            pInspectorSaturationPersistent,
-            pInspectorSaturationSlider,
-            pInspectorSaturationValue,
-            0,
-            200);
         pInspectorSaturationStack.Children.Add(
             PInspectorSliderBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),

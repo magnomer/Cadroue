@@ -1,7 +1,6 @@
 using Cadroue.Core;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Markup;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PBench;
@@ -43,15 +42,35 @@ public sealed class PCompass : UserControl
     public PCompass(PFlow pFlow, PViewer pViewer, QCompass lCompass)
     {
         QCompass = lCompass;
-        pCompassLinePanel = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
-        pCompassVolumeText = new TextBlock
-        {
-            Width = 32,
-            FontSize = 11,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextAlignment = TextAlignment.Right
-        };
-        pCompassVolumeSlider = new Slider
+        pCompassLinePanel = PCompassLineBuild();
+        pCompassVolumeText = PCompassTextBuild();
+        pCompassVolumeSlider = PCompassKnobBuild();
+        pCompassTrackFill = PCompassFillBuild();
+        pCompassSliderHost = PCompassHostBuild();
+        pCompassWaveformIcon = PCompassGlyphBuild();
+        pCompassGroups = PCompassGroupsBuild();
+        pCompassSectionGroups = QCompass.QCompassSectionRead().Select(PCompassGroupRead).ToList();
+        PCompassEventsAttach(pFlow, pViewer);
+        PCompassEditApply(QCompass.QCompassEditActive);
+        PCompassValueHandle(QCompass.QCompassVolume);
+        PCompassWaveformApply(QCompass.QCompassWaveformActive);
+        Content = PCompassFrameBuild();
+        PCompassSizeAttach();
+    }
+
+    private static WrapPanel PCompassLineBuild() => new() { VerticalAlignment = VerticalAlignment.Center };
+
+    private static TextBlock PCompassTextBuild() => new()
+    {
+        Width = 32,
+        FontSize = 11,
+        VerticalAlignment = VerticalAlignment.Center,
+        TextAlignment = TextAlignment.Right
+    };
+
+    private Slider PCompassKnobBuild()
+    {
+        return new Slider
         {
             Width = 132,
             Minimum = QCompass.QCompassVolumeMinimum,
@@ -59,51 +78,58 @@ public sealed class PCompass : UserControl
             VerticalAlignment = VerticalAlignment.Center,
             Focusable = false,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Compass.Volume.Label"),
-            Style = PCompassSliderBuild()
+            Style = PCompassSlider.PCompassSliderBuild()
         };
-        pCompassTrackFill = new Border
-        {
-            Height = 4,
-            CornerRadius = new CornerRadius(2),
-            Background = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED)),
-            HorizontalAlignment = HorizontalAlignment.Left,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        pCompassSliderHost = new Grid { Width = 132, Height = 22, VerticalAlignment = VerticalAlignment.Center };
-        pCompassWaveformIcon = new Image
-        {
-            Width = 24,
-            Height = 24,
-            Stretch = Stretch.Uniform,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
+    }
 
+    private static Border PCompassFillBuild() => new()
+    {
+        Height = 4,
+        CornerRadius = new CornerRadius(2),
+        Background = new SolidColorBrush(Color.FromRgb(0x2F, 0x80, 0xED)),
+        HorizontalAlignment = HorizontalAlignment.Left,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static Grid PCompassHostBuild() =>
+        new() { Width = 132, Height = 22, VerticalAlignment = VerticalAlignment.Center };
+
+    private static Image PCompassGlyphBuild() => new()
+    {
+        Width = 24,
+        Height = 24,
+        Stretch = Stretch.Uniform,
+        HorizontalAlignment = HorizontalAlignment.Center
+    };
+
+    private List<StackPanel> PCompassGroupsBuild()
+    {
         List<StackPanel> pGroups = QCompass.QCompassGroupsRead().Select(PCompassGroupBuild).ToList();
         StackPanel pVolumeGroup = PCompassGroupBuild();
         pVolumeGroup.Children.Add(PCompassVolumeBuild());
         pVolumeGroup.Children.Add(PCompassWaveformBuild());
         pGroups.Add(pVolumeGroup);
         pGroups.ForEach(pGroup => pCompassLinePanel.Children.Add(pGroup));
-        pCompassGroups = pGroups;
-        pCompassSectionGroups = QCompass.QCompassSectionRead().Select(PCompassGroupRead).ToList();
+        return pGroups;
+    }
 
+    private void PCompassEventsAttach(PFlow pFlow, PViewer pViewer)
+    {
         pCompassVolumeSlider.ValueChanged += (_, _) => PCompassVolumeHandle();
         pViewer.QViewer.QViewerAudio.QViewerVolumeChanged += PCompassValueHandle;
         pViewer.QViewer.QViewerPlayingChanged += PCompassPlayingApply;
         pFlow.QFlow.QFlowEdit.QFlowEditChanged += PCompassEditApply;
         pFlow.QFlow.QFlowWaveformChanged += PCompassWaveformApply;
-        PCompassEditApply(QCompass.QCompassEditActive);
-        PCompassValueHandle(QCompass.QCompassVolume);
-        PCompassWaveformApply(QCompass.QCompassWaveformActive);
-
-        Content = new Border
-        {
-            MinHeight = 72,
-            Child = pCompassLinePanel,
-            SnapsToDevicePixels = true
-        };
-        pCompassLinePanel.SizeChanged += PCompassSizeHandle;
     }
+
+    private Border PCompassFrameBuild() => new()
+    {
+        MinHeight = 72,
+        Child = pCompassLinePanel,
+        SnapsToDevicePixels = true
+    };
+
+    private void PCompassSizeAttach() => pCompassLinePanel.SizeChanged += PCompassSizeHandle;
 
     private StackPanel PCompassGroupBuild(QCompassGroup lGroup)
     {
@@ -117,25 +143,39 @@ public sealed class PCompass : UserControl
 
     private StackPanel PCompassGroupBuild()
     {
-        var pGroup = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        var pSeparator = new Border
-        {
-            Width = 1,
-            Margin = new Thickness(1, 14, 1, 12),
-            Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC))
-        };
+        StackPanel pGroup = PCompassStackBuild();
+        Border pSeparator = PCompassSeparatorBuild();
         pCompassSeparators.Add(pSeparator);
         pGroup.Children.Add(pSeparator);
         return pGroup;
     }
 
+    private static StackPanel PCompassStackBuild() => new()
+    {
+        Orientation = Orientation.Horizontal,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static Border PCompassSeparatorBuild() => new()
+    {
+        Width = 1,
+        Margin = new Thickness(1, 14, 1, 12),
+        Background = new SolidColorBrush(Color.FromRgb(0xDD, 0xE3, 0xEC))
+    };
+
     private StackPanel PCompassGroupRead(int pIndex) => pCompassGroups[pIndex];
 
     private Button PCompassButtonBuild(QCompassButton lButton)
+    {
+        PCompassFace pFace = PCompassFaceBuild();
+        PCompassClickAttach(pFace.PCompassFaceButton, lButton);
+        QButton.QButtonAttach(pFace.PCompassFaceButton, QButtonLook.QButtonLookCommand);
+        pCompassFaces.Add(lButton.QCompassButtonKey, pFace);
+        PCompassFaceApply(lButton);
+        return pFace.PCompassFaceButton;
+    }
+
+    private static PCompassFace PCompassFaceBuild()
     {
         var pImage = new Image
         {
@@ -160,12 +200,11 @@ public sealed class PCompass : UserControl
             Height = 58,
             Content = pStack
         };
-        pButton.Click += (_, _) => QCompass.QCompassRun(lButton.QCompassButtonKey);
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookCommand);
-        pCompassFaces.Add(lButton.QCompassButtonKey, new PCompassFace(pButton, pImage, pLabel));
-        PCompassFaceApply(lButton);
-        return pButton;
+        return new PCompassFace(pButton, pImage, pLabel);
     }
+
+    private void PCompassClickAttach(Button pButton, QCompassButton lButton) =>
+        pButton.Click += (_, _) => QCompass.QCompassRun(lButton.QCompassButtonKey);
 
     private void PCompassFaceApply(QCompassButton lButton)
     {
@@ -187,6 +226,17 @@ public sealed class PCompass : UserControl
 
     private Button PCompassWaveformBuild()
     {
+        Button pButton = PCompassSwitchBuild();
+        PCompassSwitchAttach(pButton);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookCommand);
+        return pButton;
+    }
+
+    private void PCompassSwitchAttach(Button pButton) =>
+        pButton.Click += (_, _) => QCompass.QCompassWaveformToggle();
+
+    private Button PCompassSwitchBuild()
+    {
         var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         pStack.Children.Add(pCompassWaveformIcon);
         pStack.Children.Add(new Border { Height = 1 });
@@ -205,8 +255,6 @@ public sealed class PCompass : UserControl
             Content = pStack,
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Compass.Waveform.Tooltip")
         };
-        pButton.Click += (_, _) => QCompass.QCompassWaveformToggle();
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookCommand);
         return pButton;
     }
 
@@ -221,6 +269,15 @@ public sealed class PCompass : UserControl
     private static void PCompassSeparatorApply(Border pSeparator, double lOpacity) => pSeparator.Opacity = lOpacity;
 
     private Border PCompassVolumeBuild()
+    {
+        Border pVolume = PCompassPanelBuild();
+        PCompassHostAttach();
+        return pVolume;
+    }
+
+    private void PCompassHostAttach() => pCompassSliderHost.SizeChanged += (_, _) => PCompassTrackUpdate();
+
+    private Border PCompassPanelBuild()
     {
         var pGrid = new Grid
         {
@@ -253,7 +310,6 @@ public sealed class PCompass : UserControl
         pCompassSliderHost.Children.Add(pTrackBase);
         pCompassSliderHost.Children.Add(pCompassTrackFill);
         pCompassSliderHost.Children.Add(pCompassVolumeSlider);
-        pCompassSliderHost.SizeChanged += (_, _) => PCompassTrackUpdate();
 
         Grid.SetColumn(pIcon, 0);
         Grid.SetColumn(pLabel, 1);
@@ -275,10 +331,12 @@ public sealed class PCompass : UserControl
 
     private void PCompassVolumeHandle()
     {
-        pCompassVolumeText.Text = QCompass.QCompassVolumeFormat(pCompassVolumeSlider.Value);
+        PCompassTextApply(pCompassVolumeSlider.Value);
         PCompassTrackUpdate();
         QCompass.QCompassVolumeSet(pCompassVolumeSlider.Value);
     }
+
+    private void PCompassTextApply(double lVolume) => pCompassVolumeText.Text = QCompass.QCompassVolumeFormat(lVolume);
 
     private void PCompassTrackUpdate() =>
         pCompassTrackFill.Width = QCompass.QCompassFillResolve(
@@ -295,51 +353,5 @@ public sealed class PCompass : UserControl
             Stretch = Stretch.Uniform,
             VerticalAlignment = VerticalAlignment.Center
         };
-    }
-
-    private static Style PCompassSliderBuild()
-    {
-        const string pXaml = @"<Style xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'
-               xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml'
-               TargetType='{x:Type Slider}'>
-  <Setter Property='Template'>
-    <Setter.Value>
-      <ControlTemplate TargetType='{x:Type Slider}'>
-        <Grid Height='22' Background='Transparent'>
-          <Track x:Name='PART_Track' Focusable='False' VerticalAlignment='Center'>
-            <Track.DecreaseRepeatButton>
-              <RepeatButton Command='{x:Static Slider.DecreaseLarge}' Focusable='False'>
-                <RepeatButton.Template>
-                  <ControlTemplate TargetType='{x:Type RepeatButton}'>
-                    <Border Background='Transparent'/>
-                  </ControlTemplate>
-                </RepeatButton.Template>
-              </RepeatButton>
-            </Track.DecreaseRepeatButton>
-            <Track.IncreaseRepeatButton>
-              <RepeatButton Command='{x:Static Slider.IncreaseLarge}' Focusable='False'>
-                <RepeatButton.Template>
-                  <ControlTemplate TargetType='{x:Type RepeatButton}'>
-                    <Border Background='Transparent'/>
-                  </ControlTemplate>
-                </RepeatButton.Template>
-              </RepeatButton>
-            </Track.IncreaseRepeatButton>
-            <Track.Thumb>
-              <Thumb Width='18' Height='18' Focusable='False'>
-                <Thumb.Template>
-                  <ControlTemplate TargetType='{x:Type Thumb}'>
-                    <Ellipse Fill='White' Stroke='#C9D3E0' StrokeThickness='1'/>
-                  </ControlTemplate>
-                </Thumb.Template>
-              </Thumb>
-            </Track.Thumb>
-          </Track>
-        </Grid>
-      </ControlTemplate>
-    </Setter.Value>
-  </Setter>
-</Style>";
-        return (Style)XamlReader.Parse(pXaml);
     }
 }

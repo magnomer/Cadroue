@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Core;
@@ -76,63 +77,91 @@ internal sealed partial class PSEncoder
         }
         else
         {
-            psVideoFpsNotice.Visibility = Visibility.Collapsed;
+            PSVideoHintSet(psVideoFpsNotice,false);
         }
 
         Slider pSlider = PSFader.PSFaderCreate(0, psVideoFpsScale.Length - 1, PSVideoFpsResolve(psVideoFpsCustom.Text));
-
-        bool pSync = false;
-        pSlider.ValueChanged += (_, _) =>
-        {
-            if (pSync)
-            {
-                return;
-            }
-
-            int pAt = Math.Clamp((int)Math.Round(pSlider.Value), 0, psVideoFpsScale.Length - 1);
-            pSync = true;
-            if (pAt == 0)
-            {
-                PSVideoFpsApply();
-            }
-            else
-            {
-                psVideoFpsCustom.Text = psVideoFpsScale[pAt].PSVideoScaleValue;
-                psVideoFpsCustom.Foreground = PSField.PSFieldText;
-                psVideoFpsNotice.Visibility = Visibility.Collapsed;
-            }
-            psVideoFpsCustom.CaretIndex = psVideoFpsCustom.Text.Length;
-            pSync = false;
-        };
-        psVideoFpsCustom.TextChanged += (_, _) =>
-        {
-            if (pSync)
-            {
-                return;
-            }
-
-            bool pSource = PSVideoSourceCheck(psVideoFpsCustom.Text);
-            pSync = true;
-            pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
-            psVideoFpsCustom.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
-            psVideoFpsNotice.Visibility = pSource ? Visibility.Visible : Visibility.Collapsed;
-            pSync = false;
-        };
-
+        PSVideoFpsAttach(pSlider);
         pHost.Children.Add(PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Field.FPS"),
             PSFader.PSFaderRowBuild(pSlider, psVideoFpsCustom)));
         pHost.Children.Add(psVideoFpsNotice);
     }
 
-    private void PSVideoFpsApply()
+    private void PSVideoFpsAttach(Slider pSlider)
     {
-        psVideoFpsCustom.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source");
-        psVideoFpsCustom.Foreground = PSField.PSFieldMuted;
-        if (psVideoFpsNotice is not null)
+        var pSync = new StrongBox<bool>(false);
+        pSlider.ValueChanged += (_, _) => PSVideoSlideHandle(pSlider, pSync);
+        psVideoFpsCustom.TextChanged += (_, _) => PSVideoFpsHandle(pSlider, pSync);
+    }
+
+    private void PSVideoSlideHandle(Slider pSlider, StrongBox<bool> pSync)
+    {
+        if (pSync.Value)
         {
-            psVideoFpsNotice.Visibility = Visibility.Visible;
+            return;
+        }
+
+        int pAt = PSVideoFpsClamp(pSlider.Value);
+        pSync.Value = true;
+        if (pAt == 0)
+        {
+            PSVideoFpsApply();
+        }
+        else
+        {
+            PSVideoScaleSet(pAt);
+            PSVideoInkApply(psVideoFpsCustom, false);
+            PSVideoHintSet(psVideoFpsNotice,false);
+        }
+
+        PSVideoCaretSet();
+        pSync.Value = false;
+    }
+
+    private void PSVideoFpsHandle(Slider pSlider, StrongBox<bool> pSync)
+    {
+        if (pSync.Value)
+        {
+            return;
+        }
+
+        bool pSource = PSVideoSourceCheck(psVideoFpsCustom.Text);
+        pSync.Value = true;
+        PSVideoFpsSelect(pSlider);
+        PSVideoInkApply(psVideoFpsCustom, pSource);
+        PSVideoHintSet(psVideoFpsNotice,pSource);
+        pSync.Value = false;
+    }
+
+    private static int PSVideoFpsClamp(double pValue) =>
+        Math.Clamp((int)Math.Round(pValue), 0, psVideoFpsScale.Length - 1);
+
+    private void PSVideoScaleSet(int pAt) => psVideoFpsCustom.Text = psVideoFpsScale[pAt].PSVideoScaleValue;
+
+    private void PSVideoCaretSet() => psVideoFpsCustom.CaretIndex = psVideoFpsCustom.Text.Length;
+
+    private void PSVideoFpsSelect(Slider pSlider) => pSlider.Value = PSVideoFpsResolve(psVideoFpsCustom.Text);
+
+    private static void PSVideoHintSet(UIElement? pNotice, bool pShown)
+    {
+        if (pNotice is not null)
+        {
+            pNotice.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
         }
     }
+
+    private static void PSVideoInkApply(Control pBox, bool pMuted) =>
+        pBox.Foreground = pMuted ? PSField.PSFieldMuted : PSField.PSFieldText;
+
+    private void PSVideoFpsApply()
+    {
+        PSVideoFpsSet();
+        PSVideoInkApply(psVideoFpsCustom, true);
+        PSVideoHintSet(psVideoFpsNotice,true);
+    }
+
+    private void PSVideoFpsSet() =>
+        psVideoFpsCustom.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source");
 
     private string PSVideoFpsRead()
     {

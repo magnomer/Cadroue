@@ -23,7 +23,7 @@ public sealed class QFunnelCriterion
     public void QFunnelTextSet(QFunnelRule lRule, QFunnelKind lKind, string lText)
     {
         LSceneFunnelCondition lMatch = QFunnelMatchRead(lRule, lKind);
-        string lTrimmed = lText.Trim();
+        string lTrimmed = QFunnelTextNormalize(lText);
         if (lMatch.LSceneFunnelText == lTrimmed)
         {
             return;
@@ -62,7 +62,7 @@ public sealed class QFunnelCriterion
 
     public void QFunnelRegexSet(QFunnelRule lRule, string lRegex)
     {
-        string lTrimmed = lRegex.Trim();
+        string lTrimmed = QFunnelTextNormalize(lRegex);
         if (lRule.QFunnelRuleRegex == lTrimmed)
         {
             return;
@@ -85,4 +85,6 @@ public sealed class QFunnelCriterion
 
     private static string QFunnelEchoResolve(string lStored, string lShown) =>
         lShown.Trim() == lStored ? lShown : lStored;
+
+    private static string QFunnelTextNormalize(string lText) => lText.Trim();
 }

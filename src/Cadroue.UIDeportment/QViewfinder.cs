@@ -24,6 +24,12 @@ public sealed class QViewfinder
     public QViewfinder(QFlow lOwner)
     {
         qFlow = lOwner;
+        QViewfinderTriggersAttach();
+    }
+
+    // Every flow change that alters the drawing asks a new frame, naming its trigger for the draw record.
+    private void QViewfinderTriggersAttach()
+    {
         qFlow.QFlowAttachApplied += () => QViewfinderTriggerApply("attach");
         qFlow.QFlowClearApplied += () => QViewfinderTriggerApply("clear");
         qFlow.QFlowCursorApplied += () => QViewfinderTriggerApply("cursor");
@@ -56,7 +62,17 @@ public sealed class QViewfinder
 
     public QViewfinderFrame QViewfinderFrameResolve(double lWidth, double lHeight)
     {
-        qViewfinderGlyphCount = 0;
+        QViewfinderGlyphSet(0);
+        (QViewfinderFrame lFrame, int lGlyphCount) = QViewfinderLayoutResolve(lWidth, lHeight);
+        QViewfinderGlyphSet(lGlyphCount);
+        return lFrame;
+    }
+
+    private void QViewfinderGlyphSet(int lGlyphCount) => qViewfinderGlyphCount = lGlyphCount;
+
+    // The frame's shapes for this size, with the count of glyphs it draws; an empty frame counts none.
+    private (QViewfinderFrame, int) QViewfinderLayoutResolve(double lWidth, double lHeight)
+    {
         var lUnder = new List<QViewfinderShape>
         {
             new(QViewfinderShapeKind.QViewfinderShapeBackground, 0, 0, lWidth, lHeight)
@@ -64,7 +80,7 @@ public sealed class QViewfinder
         var lFrame = new QViewfinderFrame(lUnder, qViewfinderOutlineEmpty, [], [], [], [], []);
         if (qFlow.QFlowRange is not { } lSpool || lWidth <= 0 || lHeight < QViewfinderRenderLeast)
         {
-            return lFrame;
+            return (lFrame, 0);
         }
 
         double lCoverageTop = Math.Max(0, Math.Max(0, lHeight - 1) - QViewfinderCoverageHeight);
@@ -72,7 +88,7 @@ public sealed class QViewfinder
         double lRailHeight = lRailBottom - lRailTop;
         if (lRailHeight <= 0)
         {
-            return lFrame;
+            return (lFrame, 0);
         }
 
         byte[] lPeaks = qFlow.QFlowWaveform.QFlowWaveformPeaks;
@@ -92,7 +108,7 @@ public sealed class QViewfinder
         double lRangeSeconds = (lRangeEnd - lRangeStart).TotalSeconds;
         if (lRangeSeconds <= 0)
         {
-            return lFrame;
+            return (lFrame, 0);
         }
 
         QFlowWaveformOutline lOutline = lWaveformActive
@@ -114,8 +130,8 @@ public sealed class QViewfinder
             lCursor.Add(new QViewfinderCursor(lCursorX, QCursor.QCursorTimeFormat(lTime)));
         }
 
-        qViewfinderGlyphCount = lTicks.Count + lBands.Count * 2 + lCursor.Count;
-        return lFrame with
+        int lGlyphCount = lTicks.Count + lBands.Count * 2 + lCursor.Count;
+        return (lFrame with
         {
             QViewfinderFrameWaveform = lOutline,
             QViewfinderFrameTicks = lTicks,
@@ -123,7 +139,7 @@ public sealed class QViewfinder
             QViewfinderFrameOver = lOver,
             QViewfinderFrameKeyframes = lKeyframes,
             QViewfinderFrameCursor = lCursor
-        };
+        }, lGlyphCount);
     }
 
     public QViewfinderPoint QViewfinderPopupResolve(int lIndex, double lWidth, double lHeight)
@@ -169,21 +185,33 @@ public sealed class QViewfinder
         }
 
         TimeSpan lTime = QViewfinderTimeResolve(lSpool, lX, lWidth);
-        IReadOnlyList<LPiece> lSections = qFlow.QFlowSection.QFlowSectionsRead();
-        for (int lIndex = lSections.Count - 1; lIndex >= 0; lIndex--)
+        int lHit = QViewfinderHitFind(qFlow.QFlowSection.QFlowSectionsRead(), lTime);
+        if (lHit >= 0)
         {
-            if (lTime >= lSections[lIndex].LPieceOrigin && lTime <= lSections[lIndex].LPieceEnd)
-            {
-                qFlow.QFlowSection.QFlowSectionSelect(lIndex);
-                break;
-            }
+            qFlow.QFlowSection.QFlowSectionSelect(lHit);
         }
 
-        qViewfinderDragActive = true;
+        QViewfinderDragSet(true);
         qFlow.QFlowWheel.QFlowDragHandle(true);
         qFlow.QFlowCursorSeek(lTime);
         return true;
     }
+
+    // The topmost section holding the time, or -1.
+    private static int QViewfinderHitFind(IReadOnlyList<LPiece> lSections, TimeSpan lTime)
+    {
+        for (int lIndex = lSections.Count - 1; lIndex >= 0; lIndex--)
+        {
+            if (lTime >= lSections[lIndex].LPieceOrigin && lTime <= lSections[lIndex].LPieceEnd)
+            {
+                return lIndex;
+            }
+        }
+
+        return -1;
+    }
+
+    private void QViewfinderDragSet(bool lDragActive) => qViewfinderDragActive = lDragActive;
 
     public bool QViewfinderMoveHandle(double lX, double lWidth)
     {
@@ -199,7 +227,7 @@ public sealed class QViewfinder
     public void QViewfinderDragClear()
     {
         bool lDragging = qViewfinderDragActive;
-        qViewfinderDragActive = false;
+        QViewfinderDragSet(false);
         if (lDragging)
         {
             qFlow.QFlowWheel.QFlowDragHandle(false);
@@ -208,9 +236,11 @@ public sealed class QViewfinder
 
     private void QViewfinderTriggerApply(string lTrigger)
     {
-        qViewfinderTrigger = lTrigger;
+        QViewfinderTriggerSet(lTrigger);
         QViewfinderFrameApplied?.Invoke();
     }
+
+    private void QViewfinderTriggerSet(string lTrigger) => qViewfinderTrigger = lTrigger;
 
     private static TimeSpan QViewfinderTimeResolve(LSpool lSpool, double lX, double lWidth)
     {

@@ -11,13 +11,29 @@ internal sealed class PSWarning : Window
 
     private PSWarning(Window? pOwner, string pTitle, string pMessage)
     {
-        Title = pTitle;
+        PSWarningTitleSet(pTitle);
+        PSWarningFrameApply();
+        PSWarningOwnerApply(PSWarningOwnerResolve(pOwner));
+        PSDialog.PSDialogLocationAttach(this);
+        PSWarningBuild(pTitle, pMessage);
+    }
+
+    private void PSWarningTitleSet(string pTitle) => Title = pTitle;
+
+    private void PSWarningFrameApply()
+    {
         Width = PSWarningWidth;
         SizeToContent = SizeToContent.Height;
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         PSDialog.PSDialogApply(this, PSDialogTheme.PSDialogThemeOrange);
-        Window? pResolvedOwner = pOwner ?? System.Windows.Application.Current?.MainWindow;
+    }
+
+    private static Window? PSWarningOwnerResolve(Window? pOwner) =>
+        pOwner ?? System.Windows.Application.Current?.MainWindow;
+
+    private void PSWarningOwnerApply(Window? pResolvedOwner)
+    {
         if (pResolvedOwner is not null && pResolvedOwner != this)
         {
             Owner = pResolvedOwner;
@@ -26,17 +42,33 @@ internal sealed class PSWarning : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
-        PSDialog.PSDialogLocationAttach(this);
-        Content = PSWarningBuild(pTitle, pMessage);
     }
 
     internal static void PSWarningShow(Window? pOwner, string pTitle, string pMessage) =>
         new PSWarning(pOwner, pTitle, pMessage).ShowDialog();
 
-    private UIElement PSWarningBuild(string pTitle, string pMessage) =>
-        PSDialog.PSDialogBuild(this, pTitle, PSWarningBodyBuild(pMessage), PSDialogTheme.PSDialogThemeOrange);
+    private void PSWarningBuild(string pTitle, string pMessage) =>
+        Content = PSDialog.PSDialogBuild(
+            this, pTitle, PSWarningBodyBuild(pMessage), PSDialogTheme.PSDialogThemeOrange);
 
     private DockPanel PSWarningBodyBuild(string pMessage)
+    {
+        Button pConfirm = PSFooter.PSFooterButtonBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
+        PSWarningConfirmApply(pConfirm);
+        PSWarningConfirmAttach(pConfirm);
+        return PSWarningPanelBuild(pMessage, pConfirm);
+    }
+
+    private static void PSWarningConfirmApply(Button pConfirm)
+    {
+        pConfirm.Foreground = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
+        pConfirm.BorderBrush = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
+    }
+
+    private void PSWarningConfirmAttach(Button pConfirm) => pConfirm.Click += (_, _) => Close();
+
+    private static DockPanel PSWarningPanelBuild(string pMessage, Button pConfirm)
     {
         var pBody = new DockPanel
         {
@@ -49,12 +81,6 @@ internal sealed class PSWarning : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-
-        Button pConfirm = PSFooter.PSFooterButtonBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
-        pConfirm.Foreground = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
-        pConfirm.BorderBrush = new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18));
-        pConfirm.Click += (_, _) => Close();
 
         pFooter.Children.Add(pConfirm);
         DockPanel.SetDock(pFooter, Dock.Bottom);

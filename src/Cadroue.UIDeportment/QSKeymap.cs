@@ -62,7 +62,7 @@ public sealed class QSKeymap
 
     public void QSKeymapPendingSet(QSKeymapChord lChord, string lGesture)
     {
-        if (!lChord.QSKeymapChordActive || lGesture.Length == 0)
+        if (!QSKeymapPendingCheck(lChord, lGesture))
         {
             return;
         }
@@ -70,6 +70,9 @@ public sealed class QSKeymap
         lChord.QSKeymapChordPending = lGesture;
         QSKeymapChordChanged?.Invoke(lChord);
     }
+
+    private static bool QSKeymapPendingCheck(QSKeymapChord lChord, string lGesture) =>
+        lChord.QSKeymapChordActive && lGesture.Length != 0;
 
     public void QSKeymapChordCancel(QSKeymapChord lChord)
     {
@@ -80,26 +83,35 @@ public sealed class QSKeymap
 
     public void QSKeymapChordCommit(QSKeymapChord lChord)
     {
-        lChord.QSKeymapChordActive = false;
         string lPending = lChord.QSKeymapChordPending;
+        QSKeymapGestureCommit(lChord);
         if (lPending.Length == 0)
         {
-            QSKeymapChordChanged?.Invoke(lChord);
             return;
         }
 
-        lChord.QSKeymapChordGesture = lPending;
-        lChord.QSKeymapChordPending = string.Empty;
-        QSKeymapChordChanged?.Invoke(lChord);
-        foreach (QSKeymapChord lOther in qsKeymapChords.Values)
+        foreach (QSKeymapChord lOther in QSKeymapConflictFind(lChord, lPending))
         {
-            if (!ReferenceEquals(lOther, lChord)
-                && string.Equals(lOther.QSKeymapChordGesture, lPending, StringComparison.OrdinalIgnoreCase))
-            {
-                QSKeymapChordSet(lOther, string.Empty);
-            }
+            QSKeymapChordSet(lOther, string.Empty);
         }
     }
+
+    private void QSKeymapGestureCommit(QSKeymapChord lChord)
+    {
+        lChord.QSKeymapChordActive = false;
+        string lPending = lChord.QSKeymapChordPending;
+        if (lPending.Length != 0)
+        {
+            lChord.QSKeymapChordGesture = lPending;
+            lChord.QSKeymapChordPending = string.Empty;
+        }
+
+        QSKeymapChordChanged?.Invoke(lChord);
+    }
+
+    private IEnumerable<QSKeymapChord> QSKeymapConflictFind(QSKeymapChord lChord, string lPending) =>
+        qsKeymapChords.Values.Where(lOther => !ReferenceEquals(lOther, lChord)
+            && string.Equals(lOther.QSKeymapChordGesture, lPending, StringComparison.OrdinalIgnoreCase));
 
     public void QSKeymapDefaultApply()
     {

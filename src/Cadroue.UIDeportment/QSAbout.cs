@@ -42,17 +42,28 @@ public sealed class QSAbout
 
     public bool QSAboutTapChange(DateTime lNow)
     {
-        qsAboutTapCount = (lNow - qsAboutTapLast).TotalSeconds > QSAboutTapWindow ? 1 : qsAboutTapCount + 1;
-        qsAboutTapLast = lNow;
-        if (qsAboutTapCount < QSAboutTapTarget)
+        int lCount = QSAboutTapResolve(lNow);
+        QSAboutTapSet(lCount, lNow);
+        if (lCount < QSAboutTapTarget)
         {
             return false;
         }
 
-        qsAboutTapCount = 0;
+        QSAboutTapReset();
         LPreference.LPreferenceDeveloperSet(!QSAboutDeveloper);
         return true;
     }
+
+    private int QSAboutTapResolve(DateTime lNow) =>
+        (lNow - qsAboutTapLast).TotalSeconds > QSAboutTapWindow ? 1 : qsAboutTapCount + 1;
+
+    private void QSAboutTapSet(int lCount, DateTime lNow)
+    {
+        qsAboutTapCount = lCount;
+        qsAboutTapLast = lNow;
+    }
+
+    private void QSAboutTapReset() => qsAboutTapCount = 0;
 
     public static string QSAboutVersionRead() => LTraceLog.LTraceVersionRead();
 

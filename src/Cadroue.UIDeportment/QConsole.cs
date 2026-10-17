@@ -94,7 +94,7 @@ public sealed class QConsole
             return;
         }
 
-        qConsoleProgressPending = true;
+        QConsolePendingSet(true);
         QConsoleUpdateDeferred?.Invoke();
     }
 
@@ -102,7 +102,20 @@ public sealed class QConsole
 
     public bool QConsoleProgressSet(double lTarget)
     {
-        double lClamped = Math.Clamp(lTarget, 0, 1);
+        double lClamped = QConsoleProgressClamp(lTarget);
+        if (!QConsoleFractionSet(lClamped))
+        {
+            return false;
+        }
+
+        QConsoleProgressRaise();
+        return true;
+    }
+
+    private static double QConsoleProgressClamp(double lTarget) => Math.Clamp(lTarget, 0, 1);
+
+    private bool QConsoleFractionSet(double lClamped)
+    {
         if (lClamped.Equals(qConsoleProgress))
         {
             return false;
@@ -110,18 +123,26 @@ public sealed class QConsole
 
         qConsoleBackward = lClamped < qConsoleProgress;
         qConsoleProgress = lClamped;
-        QConsoleProgressApplied?.Invoke(lClamped, lClamped > 0 && !qConsoleBackward);
         return true;
     }
 
+    private void QConsoleProgressRaise() =>
+        QConsoleProgressApplied?.Invoke(qConsoleProgress, qConsoleProgress > 0 && !qConsoleBackward);
+
     public void QConsoleUpdate()
     {
-        qConsoleProgressPending = false;
+        QConsolePendingSet(false);
         LWorkItem[] lRunningItems = QConsoleStation.QConsoleRunningRead();
-        QConsoleProgressSet(
-            lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress));
+        QConsoleProgressSet(QConsoleProgressResolve(lRunningItems));
         bool lRunning = QConsoleStation.QConsoleRunning;
-        QConsoleStatusApplied?.Invoke(QConsoleLine.QConsoleStatusResolve(
+        QConsoleStatusApplied?.Invoke(QConsoleStatusRead(lRunningItems, lRunning));
+    }
+
+    private static double QConsoleProgressResolve(LWorkItem[] lRunningItems) =>
+        lRunningItems.Length == 0 ? 0 : lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress);
+
+    private QConsoleStatus QConsoleStatusRead(LWorkItem[] lRunningItems, bool lRunning) =>
+        QConsoleLine.QConsoleStatusResolve(
             lRunningItems,
             lRunning,
             QConsoleStation.QConsoleSuspended,
@@ -131,8 +152,7 @@ public sealed class QConsole
             QConsoleStation.QConsoleSelectionRead(),
             QConsoleStation.QConsoleSwitchShown,
             QConsoleStation.QConsoleAutoActive,
-            QConsoleStation.QConsoleLabelFormat()));
-    }
+            QConsoleStation.QConsoleLabelFormat());
 
     public void QConsoleStart() => QConsoleStation.QConsoleStart();
 
@@ -142,11 +162,13 @@ public sealed class QConsole
 
     public void QConsoleAutoSet(bool? lChecked)
     {
-        if (QConsoleStation.QConsoleAutoSet(lChecked == true))
+        if (QConsoleStation.QConsoleAutoSet(QConsoleCheckedResolve(lChecked)))
         {
             QConsoleUpdate();
         }
     }
+
+    private static bool QConsoleCheckedResolve(bool? lChecked) => lChecked == true;
 
     public void QConsoleCancel()
     {
@@ -156,18 +178,23 @@ public sealed class QConsole
             return;
         }
 
+        QAskNotice.QAskPublish(
+            QConsoleCancelCreate(lRunningItems), lAnswer => QConsoleCancelRun(lAnswer, lRunningItems));
+    }
+
+    private static QAsk QConsoleCancelCreate(LWorkItem[] lRunningItems)
+    {
         string lSubject = lRunningItems.Length > 1
             ? QLocalizationCatalog.QLocalizationFormat("Console.Cancel.MultipleSubject", lRunningItems.Length)
             : QLocalizationCatalog.QLocalizationFormat("Console.Cancel.SingleSubject",
                 lRunningItems[0].LWorkOutputName);
-        var lAsk = new QAsk(
+        return new QAsk(
             QLocalizationCatalog.QLocalizationFormat("Console.Cancel.Confirm", lSubject),
             QLocalizationCatalog.QLocalizationTextRead("Terms.Stop"))
         {
             QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Cancel.Title"),
             QAskDismiss = QLocalizationCatalog.QLocalizationTextRead("Console.Cancel.Keep")
         };
-        QAskNotice.QAskPublish(lAsk, lAnswer => QConsoleCancelRun(lAnswer, lRunningItems));
     }
 
     private void QConsoleCancelRun(bool lAnswer, LWorkItem[] lRunningItems)

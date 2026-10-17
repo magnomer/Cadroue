@@ -29,9 +29,14 @@ public static class QInfoFace
     public static UserControl QInfoFaceAttach(QInfo info, UserControl surface)
     {
         QInfoFaceApply(info, surface);
+        QInfoHandlerAttach(info, surface);
+        return surface;
+    }
+
+    private static void QInfoHandlerAttach(QInfo info, UserControl surface)
+    {
         info.QInfoChanged += () => surface.Dispatcher.BeginInvoke(() => QInfoFaceApply(info, surface));
         surface.Unloaded += (_, _) => info.QInfoDetach();
-        return surface;
     }
 
     private static void QInfoFaceApply(QInfo info, UserControl surface)

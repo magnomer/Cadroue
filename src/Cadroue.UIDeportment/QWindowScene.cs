@@ -77,20 +77,11 @@ public sealed class QWindowScene
 
     internal void QWindowSceneRestore(LSceneDocument lScene)
     {
-        IReadOnlyList<string> lKeys = lScene.LSceneDefaultTabs ? QWindowDefaultKeys : lScene.LSceneLayoutKeys;
+        IReadOnlyList<string> lKeys = QWindowKeysResolve(lScene);
         qStrip.QStripUpdateSuspend();
         try
         {
-            for (int lIndex = 0; lIndex < lKeys.Count; lIndex++)
-            {
-                QWindowSceneAdded?.Invoke(new QWindowTab(
-                    lKeys[lIndex],
-                    lIndex < lScene.LSceneTabExports.Count
-                        ? LPreset.LPresetStateCreate(lScene.LSceneTabExports[lIndex])
-                        : null,
-                    lIndex < lScene.LSceneTabLayouts.Count ? lScene.LSceneTabLayouts[lIndex] : null,
-                    lIndex < lScene.LSceneTabNames.Count ? lScene.LSceneTabNames[lIndex] : null));
-            }
+            QWindowTabsAdd(lScene, lKeys);
         }
         finally
         {
@@ -100,27 +91,37 @@ public sealed class QWindowScene
         QWindowSlotsApply(lScene.LSceneTabRelays);
         qStrip.QStripTitleUpdate();
         QWindowSceneRestored?.Invoke();
-        if (qStrip.QStripTabs.Count == 0)
-        {
-            qStrip.QStripSelect(null);
-            return;
-        }
-
-        int lSelectIndex = Math.Clamp(lScene.LSceneTabIndex, 0, qStrip.QStripTabs.Count - 1);
-        qStrip.QStripSelect(qStrip.QStripTabs[lSelectIndex]);
+        qStrip.QStripSelect(QWindowSelectedResolve(lScene.LSceneTabIndex));
     }
+
+    private static IReadOnlyList<string> QWindowKeysResolve(LSceneDocument lScene) =>
+        lScene.LSceneDefaultTabs ? QWindowDefaultKeys : lScene.LSceneLayoutKeys;
+
+    private void QWindowTabsAdd(LSceneDocument lScene, IReadOnlyList<string> lKeys)
+    {
+        for (int lIndex = 0; lIndex < lKeys.Count; lIndex++)
+        {
+            QWindowSceneAdded?.Invoke(QWindowTabResolve(lScene, lKeys[lIndex], lIndex));
+        }
+    }
+
+    private static QWindowTab QWindowTabResolve(LSceneDocument lScene, string lKey, int lIndex) => new(
+        lKey,
+        lIndex < lScene.LSceneTabExports.Count
+            ? LPreset.LPresetStateCreate(lScene.LSceneTabExports[lIndex])
+            : null,
+        lIndex < lScene.LSceneTabLayouts.Count ? lScene.LSceneTabLayouts[lIndex] : null,
+        lIndex < lScene.LSceneTabNames.Count ? lScene.LSceneTabNames[lIndex] : null);
+
+    private QStripTab? QWindowSelectedResolve(int lIndex) => qStrip.QStripTabs.Count == 0
+        ? null
+        : qStrip.QStripTabs[Math.Clamp(lIndex, 0, qStrip.QStripTabs.Count - 1)];
 
     private void QWindowSlotsApply(IReadOnlyList<int> lSlots)
     {
         foreach ((Guid lSource, Guid lTarget) in LCartographer.LCartographerAssignmentResolve(QWindowIdsRead(), lSlots))
         {
-            if (qStrip.QStripTabFind(lSource) is null)
-            {
-                continue;
-            }
-
-            if (lTarget != LCartographer.LCartographerFinishTarget
-                && qStrip.QStripTabFind(lTarget)?.QStripTabDocket is null)
+            if (!QWindowSlotCheck(lSource, lTarget))
             {
                 continue;
             }
@@ -130,6 +131,11 @@ public sealed class QWindowScene
         }
     }
 
+    private bool QWindowSlotCheck(Guid lSource, Guid lTarget) =>
+        qStrip.QStripTabFind(lSource) is not null
+        && (lTarget == LCartographer.LCartographerFinishTarget
+            || qStrip.QStripTabFind(lTarget)?.QStripTabDocket is not null);
+
     internal void QWindowLoadingRecord(string? lSceneName)
     {
         if (!string.IsNullOrWhiteSpace(lSceneName))
@@ -138,13 +144,15 @@ public sealed class QWindowScene
         }
 
         int lCount = qStrip.QStripTabs.Count;
-        string? lDetail = lCount == 0
-            ? null
-            : string.Join(
-                Environment.NewLine,
-                qStrip.QStripTabs.Select(lTab => $"Tab '{lTab.QStripTabTitle}' ({lTab.QStripTabKey}) opened"));
+        string? lDetail = QWindowTabsDescribe();
         LTraceLog.LTraceLoadingRecord($"{lCount} {(lCount == 1 ? "tab" : "tabs")} opened", lDetail);
     }
+
+    private string? QWindowTabsDescribe() => qStrip.QStripTabs.Count == 0
+        ? null
+        : string.Join(
+            Environment.NewLine,
+            qStrip.QStripTabs.Select(lTab => $"Tab '{lTab.QStripTabTitle}' ({lTab.QStripTabKey}) opened"));
 
     private List<Guid> QWindowIdsRead() => qStrip.QStripTabs.Select(lTab => lTab.QStripTabId).ToList();
 }

@@ -58,11 +58,7 @@ public sealed class QInspector
         QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorRatio = new QInspectorRatio(this, QInspectorCrop);
         QInspectorAudio = new QInspectorAudio(QInspectorSkip, QInspectorGate);
-        QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
-        QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
-        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
-        QInspectorAudio.QInspectorAudioChanged += QInspectorPersistentHandle;
-        QInspectorSkip.QSkipChanged += QInspectorPersistentHandle;
+        QInspectorAttach();
         qInspectorPersistentMask = QInspectorPersistentResolve();
     }
 
@@ -125,7 +121,7 @@ public sealed class QInspector
 
     public void QInspectorSaveSuspend() => qInspectorSaveDepth++;
 
-    public void QInspectorSaveResume() => qInspectorSaveDepth = Math.Max(0, qInspectorSaveDepth - 1);
+    public void QInspectorSaveResume() => qInspectorSaveDepth = QInspectorDepthClamp(qInspectorSaveDepth - 1);
 
     public void QInspectorMinimizedSet(bool lMinimized)
     {
@@ -154,9 +150,18 @@ public sealed class QInspector
 
     public void QInspectorSourceSet(double lSourceWidth, double lSourceHeight)
     {
+        (bool lPresent, double lWidth, double lHeight) = QInspectorSourceNormalize(lSourceWidth, lSourceHeight);
+        QInspectorSourceApply(lPresent, lWidth, lHeight);
+    }
+
+    private static (bool, double, double) QInspectorSourceNormalize(double lSourceWidth, double lSourceHeight)
+    {
         bool lPresent = lSourceWidth > 0 && lSourceHeight > 0;
-        double lWidth = lPresent ? lSourceWidth : 0;
-        double lHeight = lPresent ? lSourceHeight : 0;
+        return (lPresent, lPresent ? lSourceWidth : 0, lPresent ? lSourceHeight : 0);
+    }
+
+    private void QInspectorSourceApply(bool lPresent, double lWidth, double lHeight)
+    {
         if (qInspectorSourcePresent == lPresent
             && qInspectorSourceWidth == lWidth
             && qInspectorSourceHeight == lHeight)
@@ -302,6 +307,17 @@ public sealed class QInspector
         {
             QInspectorToolSet(false);
         }
+    }
+
+    private static int QInspectorDepthClamp(int lDepth) => Math.Max(0, lDepth);
+
+    private void QInspectorAttach()
+    {
+        QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
+        QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
+        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
+        QInspectorAudio.QInspectorAudioChanged += QInspectorPersistentHandle;
+        QInspectorSkip.QSkipChanged += QInspectorPersistentHandle;
     }
 
     private void QInspectorNeutralHandle(bool lArmed, LNeutralTarget lTarget)

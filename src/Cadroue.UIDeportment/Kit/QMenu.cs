@@ -25,23 +25,8 @@ public static class QMenu
 
     public static MenuItem QMenuItemBuild(string lText, ImageSource? lIcon)
     {
-        MenuItem lItem = new()
-        {
-            Header = lText,
-            Style = QContract.QContractSheetFind<Style>(QMenuItemStyle),
-        };
-        if (lIcon is not null)
-        {
-            Image lImage = QContract.QContractSheetFind<Image>(QMenuItemIcon);
-            lImage.Source = lIcon;
-            lItem.Icon = lImage;
-        }
-
-        lItem.AddHandler(
-            MenuItem.ClickEvent,
-            new RoutedEventHandler(QInteractionClick.QInteractionClickHandle),
-            handledEventsToo: true);
-        QLook.QLookAttach(lItem, QMenuItemStyle);
+        MenuItem lItem = QMenuItemCreate(lText, lIcon);
+        QMenuItemAttach(lItem);
         return lItem;
     }
 
@@ -60,4 +45,30 @@ public static class QMenu
             _ => throw new ArgumentOutOfRangeException(nameof(lSide)),
         },
     };
+
+    private static MenuItem QMenuItemCreate(string lText, ImageSource? lIcon)
+    {
+        MenuItem lItem = new()
+        {
+            Header = lText,
+            Style = QContract.QContractSheetFind<Style>(QMenuItemStyle),
+        };
+        if (lIcon is not null)
+        {
+            Image lImage = QContract.QContractSheetFind<Image>(QMenuItemIcon);
+            lImage.Source = lIcon;
+            lItem.Icon = lImage;
+        }
+
+        return lItem;
+    }
+
+    private static void QMenuItemAttach(MenuItem lItem)
+    {
+        lItem.AddHandler(
+            MenuItem.ClickEvent,
+            new RoutedEventHandler(QInteractionClick.QInteractionClickHandle),
+            handledEventsToo: true);
+        QLook.QLookAttach(lItem, QMenuItemStyle);
+    }
 }

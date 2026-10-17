@@ -20,12 +20,24 @@ public static class QGhostLayer
         Func<DragDropEffects> lDragBody)
     {
         QGhostAdorner lAdorner = QGhostLayerAdd(lSource, lGhost);
-        GiveFeedbackEventHandler lFeedback = (_, lEvent) =>
+        GiveFeedbackEventHandler lFeedback = QGhostFeedbackCreate(lAdorner);
+        return QGhostFeedbackRun(lSource, lFeedback, lDragBody, lAdorner.QGhostAdornerRemove);
+    }
+
+    private static GiveFeedbackEventHandler QGhostFeedbackCreate(QGhostAdorner lAdorner) =>
+        (_, lEvent) =>
         {
             lAdorner.QGhostAdornerSync();
             lEvent.UseDefaultCursors = true;
             lEvent.Handled = true;
         };
+
+    private static DragDropEffects QGhostFeedbackRun(
+        FrameworkElement lSource,
+        GiveFeedbackEventHandler lFeedback,
+        Func<DragDropEffects> lDragBody,
+        Action lRelease)
+    {
         lSource.GiveFeedback += lFeedback;
         try
         {
@@ -34,7 +46,7 @@ public static class QGhostLayer
         finally
         {
             lSource.GiveFeedback -= lFeedback;
-            lAdorner.QGhostAdornerRemove();
+            lRelease();
         }
     }
 

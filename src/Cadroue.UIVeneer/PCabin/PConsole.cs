@@ -54,12 +54,8 @@ public sealed class PConsole : UserControl
 
     public PConsole()
     {
-        FocusVisualStyle = null;
-        pConsoleProgressWrites = new Dictionary<bool, Action<double>>
-        {
-            [true] = PConsoleGlideApply,
-            [false] = PConsoleProgressSet,
-        };
+        PConsoleStyleApply();
+        pConsoleProgressWrites = PConsoleWritesCreate();
         pConsoleProgress = PConsoleIndicator.PConsoleProgressBuild();
         pConsoleStatus = PConsoleControl.PConsoleLabelBuild(
             PRosterTheme.PRosterTextBrush, PConsoleControl.PConsoleStatusSize);
@@ -100,25 +96,52 @@ public sealed class PConsole : UserControl
 
     public void PConsoleAttach(QConsole lConsoleOwner)
     {
-        lConsole = lConsoleOwner;
+        PConsoleOwnerSet(lConsoleOwner);
+        PConsoleSceneBuild();
+        PConsoleContentsSet();
+        PConsoleEventsAttach();
+        lConsole.QConsoleStation.QConsoleWatchStart();
+        PConsoleUnloadAttach();
+
+        lConsole.QConsoleUpdate();
+        Dispatcher.BeginInvoke(new Action(lConsole.QConsoleScheduleLoad));
+    }
+
+    private void PConsoleStyleApply() => FocusVisualStyle = null;
+
+    private Dictionary<bool, Action<double>> PConsoleWritesCreate() => new()
+    {
+        [true] = PConsoleGlideApply,
+        [false] = PConsoleProgressSet,
+    };
+
+    private void PConsoleOwnerSet(QConsole lConsoleOwner) => lConsole = lConsoleOwner;
+
+    private void PConsoleSceneBuild()
+    {
         pConsoleScene = new PConsoleScene(lConsole.QConsoleScene);
         pConsoleSceneHost.Content = pConsoleScene;
+    }
+
+    private void PConsoleContentsSet() =>
         pConsoleSceneContents = new Dictionary<bool, UIElement?>
         {
             [true] = pConsoleScene,
             [false] = null,
         };
+
+    private void PConsoleEventsAttach()
+    {
         lConsole.QConsoleStatusApplied += PConsoleStatusApply;
         lConsole.QConsoleProgressApplied += PConsoleProgressApply;
         lConsole.QConsoleUpdateDeferred += PConsoleUpdateDefer;
         lConsole.QConsoleWarningShown += PConsoleWarningShow;
         lConsole.QConsoleStation.QConsoleWatchChanged += PConsoleWatchHandle;
-        lConsole.QConsoleStation.QConsoleWatchStart();
-        Unloaded += PConsoleUnloadHandle;
-
-        lConsole.QConsoleUpdate();
-        Dispatcher.BeginInvoke(new Action(lConsole.QConsoleScheduleLoad));
     }
+
+    private void PConsoleUnloadAttach() => Unloaded += PConsoleUnloadHandle;
+
+    private void PConsoleUnloadDetach() => Unloaded -= PConsoleUnloadHandle;
 
     public PConsoleScene PConsoleSceneRead() => pConsoleScene;
 
@@ -164,7 +187,7 @@ public sealed class PConsole : UserControl
     private void PConsoleUnloadHandle(object pSender, RoutedEventArgs pArguments)
     {
         lConsole.QConsoleClose();
-        Unloaded -= PConsoleUnloadHandle;
+        PConsoleUnloadDetach();
     }
 
     private void PConsoleStatusApply(QConsoleStatus lStatus)

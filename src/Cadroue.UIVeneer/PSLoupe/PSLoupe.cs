@@ -76,12 +76,37 @@ internal sealed class PSLoupe : Window
     private PSLoupe(Window pOwner, QSLoupe lLoupe)
     {
         QSLoupe = lLoupe;
-        psLoupeOwners = new Dictionary<bool, Window?>
+        psLoupeOwners = PSLoupeOwnerCreate(pOwner);
+        QSLoupe.QSLoupeFloatRestore();
+        PSLoupeWindowApply(pOwner);
+        QScrollbar.QScrollbarAttach(this);
+        psLoupeFlyleafHost = PSLoupeFlyleafBuild();
+        psLoupeMpvHost = PSLoupeViewerBuild();
+        psLoupePlayImage = PSLoupeImageBuild();
+        psLoupePlayButton = PSLoupePlayBuild(psLoupePlayImage);
+        PSLoupePlayAttach();
+        QButton.QButtonAttach(psLoupePlayButton, QButtonLook.QButtonLookPanel);
+        psLoupeSegments = QSLoupe.QSLoupeButtonsRead().ToDictionary(
+            lButton => lButton.QSLoupeButtonKind, PSLoupeSegmentBuild);
+        Content = PSDialog.PSDialogBuild(this, Title, PSLoupeBodyBuild());
+        PSLoupePlayApply(QSLoupe.QSLoupePlaying);
+        PSLoupeFloatApply();
+        PSLoupeHandlerAttach();
+        PSLoupeLoadedAttach();
+        psLoupeGrabber = new PSGrabber(this);
+        psLoupeGrabber.PSGrabberAttach();
+        PSLoupeWindowAttach();
+    }
+
+    private static IReadOnlyDictionary<bool, Window?> PSLoupeOwnerCreate(Window pOwner) =>
+        new Dictionary<bool, Window?>
         {
             [true] = pOwner,
             [false] = null,
         };
-        QSLoupe.QSLoupeFloatRestore();
+
+    private void PSLoupeWindowApply(Window pOwner)
+    {
         Title = QLocalizationCatalog.QLocalizationTextRead("Loupe.Window.Title");
         Owner = pOwner;
         Width = PSLoupeWidthDefault;
@@ -90,48 +115,61 @@ internal sealed class PSLoupe : Window
         MinHeight = PSLoupeHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, PSCasement.PSCasementBandFill);
-        QScrollbar.QScrollbarAttach(this);
+    }
 
-        psLoupeFlyleafHost = new FlyleafHost
-        {
-            VideoBackground = Brushes.Black,
-            ToggleFullScreenOnDoubleClick = AvailableWindows.None,
-            AttachedDragMove = AttachedDragMoveOptions.None,
-            Visibility = Visibility.Collapsed
-        };
-        psLoupeMpvHost = new PViewerMpvHost { Visibility = Visibility.Collapsed };
-        psLoupePlayImage = new Image
-        {
-            Width = PSLoupeIconSize,
-            Height = PSLoupeIconSize,
-            Stretch = Stretch.Uniform,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        psLoupePlayButton = new Button
-        {
-            Width = PSLoupeButtonSize,
-            Height = PSLoupeButtonSize,
-            Content = psLoupePlayImage
-        };
-        psLoupePlayButton.Click += PSLoupePlayHandle;
-        QButton.QButtonAttach(psLoupePlayButton, QButtonLook.QButtonLookPanel);
-        psLoupeSegments = QSLoupe.QSLoupeButtonsRead().ToDictionary(
-            lButton => lButton.QSLoupeButtonKind, PSLoupeSegmentBuild);
-        Content = PSDialog.PSDialogBuild(this, Title, PSLoupeBodyBuild());
-        PSLoupePlayApply(QSLoupe.QSLoupePlaying);
-        PSLoupeFloatApply();
+    private static FlyleafHost PSLoupeFlyleafBuild() => new()
+    {
+        VideoBackground = Brushes.Black,
+        ToggleFullScreenOnDoubleClick = AvailableWindows.None,
+        AttachedDragMove = AttachedDragMoveOptions.None,
+        Visibility = Visibility.Collapsed
+    };
 
+    private static PViewerMpvHost PSLoupeViewerBuild() => new() { Visibility = Visibility.Collapsed };
+
+    private static Image PSLoupeImageBuild() => new()
+    {
+        Width = PSLoupeIconSize,
+        Height = PSLoupeIconSize,
+        Stretch = Stretch.Uniform,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static Button PSLoupePlayBuild(Image pPlayImage) => new()
+    {
+        Width = PSLoupeButtonSize,
+        Height = PSLoupeButtonSize,
+        Content = pPlayImage
+    };
+
+    private void PSLoupePlayAttach() => psLoupePlayButton.Click += PSLoupePlayHandle;
+
+    private void PSLoupeHandlerAttach()
+    {
         psLoupeClock.Tick += PSLoupeClockHandle;
         QSLoupe.QSLoupePlayingChanged += PSLoupePlayApply;
         QSLoupe.QSLoupeFloatChanged += PSLoupeFloatApply;
         QSLoupe.QSLoupeEngineCreated += PSLoupeEngineCreate;
         QSLoupe.QSLoupeCloseApplied += Close;
-        Loaded += PSLoupeLoadedHandle;
-        psLoupeGrabber = new PSGrabber(this);
-        psLoupeGrabber.PSGrabberAttach();
-        Closed += PSLoupeCloseHandle;
     }
+
+    private void PSLoupeHandlerDetach()
+    {
+        psLoupeClock.Tick -= PSLoupeClockHandle;
+        QSLoupe.QSLoupePlayingChanged -= PSLoupePlayApply;
+        QSLoupe.QSLoupeFloatChanged -= PSLoupeFloatApply;
+        QSLoupe.QSLoupeEngineCreated -= PSLoupeEngineCreate;
+        QSLoupe.QSLoupeCloseApplied -= Close;
+    }
+
+    private void PSLoupeLoadedAttach() => Loaded += PSLoupeLoadedHandle;
+
+    private void PSLoupeLoadedDetach() => Loaded -= PSLoupeLoadedHandle;
+
+    private void PSLoupeWindowAttach() => Closed += PSLoupeCloseHandle;
+
+    private void PSLoupeWindowDetach() => Closed -= PSLoupeCloseHandle;
 
     private DockPanel PSLoupeBodyBuild()
     {
@@ -186,18 +224,23 @@ internal sealed class PSLoupe : Window
 
     private Button PSLoupeSegmentBuild(QSLoupeButton lButton)
     {
-        var pButton = new Button
-        {
-            Content = lButton.QSLoupeButtonText,
-            Height = 24,
-            MinWidth = 52,
-            Padding = new Thickness(10, 0, 10, 0),
-            FontSize = 11
-        };
-        pButton.Click += (_, _) => QSLoupe.QSLoupeFloatSet(lButton.QSLoupeButtonKind);
+        Button pButton = PSLoupeSegmentCreate(lButton);
+        PSLoupeSegmentAttach(pButton, lButton);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PSLoupeSegmentCreate(QSLoupeButton lButton) => new()
+    {
+        Content = lButton.QSLoupeButtonText,
+        Height = 24,
+        MinWidth = 52,
+        Padding = new Thickness(10, 0, 10, 0),
+        FontSize = 11
+    };
+
+    private void PSLoupeSegmentAttach(Button pButton, QSLoupeButton lButton) =>
+        pButton.Click += (_, _) => QSLoupe.QSLoupeFloatSet(lButton.QSLoupeButtonKind);
 
     private void PSLoupeSegmentApply(QSLoupeButton lButton) =>
         psLoupeSegments[lButton.QSLoupeButtonKind].Background = psLoupeSegmentFills[lButton.QSLoupeButtonSelected];
@@ -205,6 +248,11 @@ internal sealed class PSLoupe : Window
     private void PSLoupeFloatApply()
     {
         QSLoupe.QSLoupeButtonsRead().ToList().ForEach(PSLoupeSegmentApply);
+        PSLoupeOwnerApply();
+    }
+
+    private void PSLoupeOwnerApply()
+    {
         Owner = psLoupeOwners[QSLoupe.QSLoupeOwned];
         Topmost = QSLoupe.QSLoupeTopmost;
     }
@@ -212,15 +260,25 @@ internal sealed class PSLoupe : Window
     private void PSLoupePlayApply(bool lPlaying)
     {
         psLoupeClockRuns[lPlaying](psLoupeClock);
-        psLoupePlayImage.Source = QIcon.QIconRead(QSLoupe.QSLoupePlayIcon, psLoupePlayTints[QSLoupe.QSLoupePlayTinted]);
-        psLoupePlayButton.ToolTip = QSLoupe.QSLoupePlayTip;
+        PSLoupeIconApply();
+        PSLoupeTipShow();
     }
+
+    private void PSLoupeIconApply() =>
+        psLoupePlayImage.Source = QIcon.QIconRead(QSLoupe.QSLoupePlayIcon, psLoupePlayTints[QSLoupe.QSLoupePlayTinted]);
+
+    private void PSLoupeTipShow() => psLoupePlayButton.ToolTip = QSLoupe.QSLoupePlayTip;
 
     private void PSLoupeEngineCreate()
     {
+        PSLoupeHostApply();
+        psLoupeEngineCreates[QSLoupe.QSLoupeMpvActive](this);
+    }
+
+    private void PSLoupeHostApply()
+    {
         psLoupeMpvHost.Visibility = PLook.PLookVisible[QSLoupe.QSLoupeMpvActive];
         psLoupeFlyleafHost.Visibility = PLook.PLookVisible[QSLoupe.QSLoupeFlyleafActive];
-        psLoupeEngineCreates[QSLoupe.QSLoupeMpvActive](this);
     }
 
     private void PSLoupeFlyleafCreate()
@@ -236,7 +294,7 @@ internal sealed class PSLoupe : Window
 
     private void PSLoupeLoadedHandle(object pSender, RoutedEventArgs pEvent)
     {
-        Loaded -= PSLoupeLoadedHandle;
+        PSLoupeLoadedDetach();
         PSGrabber.PSGrabberPlacementRestore(this, PSLoupePlacementKey);
         PSLoupeFloatApply();
         _ = QSLoupe.QSLoupeStart();
@@ -249,19 +307,15 @@ internal sealed class PSLoupe : Window
     private void PSLoupeCloseHandle(object? pSender, EventArgs pEvent)
     {
         QSLoupe.QSLoupeClose();
-        Loaded -= PSLoupeLoadedHandle;
+        PSLoupeLoadedDetach();
         psLoupeClock.Stop();
-        psLoupeClock.Tick -= PSLoupeClockHandle;
-        QSLoupe.QSLoupePlayingChanged -= PSLoupePlayApply;
-        QSLoupe.QSLoupeFloatChanged -= PSLoupeFloatApply;
-        QSLoupe.QSLoupeEngineCreated -= PSLoupeEngineCreate;
-        QSLoupe.QSLoupeCloseApplied -= Close;
+        PSLoupeHandlerDetach();
         PSGrabber.PSGrabberPlacementSave(this, PSLoupePlacementKey);
         psLoupeGrabber.PSGrabberDetach();
         PSLoupeStageRun("flyleaf host", PSLoupeFlyleafDispose);
         PSLoupeStageRun("mpv host", psLoupeMpvHost.Dispose);
         QSLoupe.QSLoupeDetach();
-        Closed -= PSLoupeCloseHandle;
+        PSLoupeWindowDetach();
     }
 
     private void PSLoupeFlyleafDispose()

@@ -22,11 +22,20 @@ internal sealed partial class PSOptions
 
     private static Slider PSOptionsSliderBuild(double pValue, double pMinimum, double pMaximum)
     {
+        double pClamped = PSOptionsSliderClamp(pValue, pMinimum, pMaximum);
+        return PSOptionsSliderCreate(pClamped, pMinimum, pMaximum);
+    }
+
+    private static double PSOptionsSliderClamp(double pValue, double pMinimum, double pMaximum) =>
+        Math.Clamp(pValue, pMinimum, pMaximum);
+
+    private static Slider PSOptionsSliderCreate(double pValue, double pMinimum, double pMaximum)
+    {
         var pSlider = new Slider
         {
             Minimum = pMinimum,
             Maximum = pMaximum,
-            Value = Math.Clamp(pValue, pMinimum, pMaximum),
+            Value = pValue,
             Width = 260
         };
         QSlider.QSliderAttach(pSlider);
@@ -35,16 +44,30 @@ internal sealed partial class PSOptions
 
     private static UIElement PSOptionsFieldBuild(string pLabel, Slider pSlider, string pUnit)
     {
-        var pValueText = new TextBlock
-        {
-            Foreground = PSField.PSFieldText,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(12, 0, 0, 0),
-            MinWidth = 48,
-            Text = PSOptionsNumberFormat(pSlider.Value) + pUnit
-        };
-        pSlider.ValueChanged += (_, _) => pValueText.Text = PSOptionsNumberFormat(pSlider.Value) + pUnit;
+        TextBlock pValueText = PSOptionsValueBuild();
+        PSOptionsValueUpdate(pValueText, pSlider, pUnit);
+        PSOptionsValueAttach(pValueText, pSlider, pUnit);
+        return PSOptionsRowBuild(pLabel, pSlider, pValueText);
+    }
 
+    private static TextBlock PSOptionsValueBuild() => new()
+    {
+        Foreground = PSField.PSFieldText,
+        VerticalAlignment = VerticalAlignment.Center,
+        Margin = new Thickness(12, 0, 0, 0),
+        MinWidth = 48
+    };
+
+    private static void PSOptionsValueUpdate(TextBlock pValueText, Slider pSlider, string pUnit) =>
+        PSOptionsValueShow(pValueText, PSOptionsValueFormat(pSlider.Value, pUnit));
+
+    private static void PSOptionsValueAttach(TextBlock pValueText, Slider pSlider, string pUnit) =>
+        pSlider.ValueChanged += (_, _) => PSOptionsValueUpdate(pValueText, pSlider, pUnit);
+
+    private static void PSOptionsValueShow(TextBlock pValueText, string pText) => pValueText.Text = pText;
+
+    private static UIElement PSOptionsRowBuild(string pLabel, Slider pSlider, TextBlock pValueText)
+    {
         var pRow = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -55,5 +78,14 @@ internal sealed partial class PSOptions
         return PSField.PSFieldBuild(pLabel, pRow);
     }
 
+    private static string PSOptionsValueFormat(double pValue, string pUnit) => PSOptionsNumberFormat(pValue) + pUnit;
+
     private static string PSOptionsNumberFormat(double pValue) => $"{Math.Round(pValue):0}";
+
+    private static int PSOptionsNumberNormalize(double pValue) => (int)Math.Round(pValue);
+
+    private static bool PSOptionsCheckRead(CheckBox pCheck) => pCheck.IsChecked == true;
+
+    private static bool PSOptionsModeCheck(Border pMode, string pKey) =>
+        string.Equals(PSField.PSModeTextRead(pMode), pKey, StringComparison.Ordinal);
 }

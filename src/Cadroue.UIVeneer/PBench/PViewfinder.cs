@@ -69,6 +69,12 @@ public sealed class PViewfinder : FrameworkElement
     {
         QViewfinder.QViewfinderDrawStart();
         QViewfinderFrame lFrame = QViewfinder.QViewfinderFrameResolve(ActualWidth, ActualHeight);
+        PViewfinderFrameDraw(drawingContext, lFrame);
+        QViewfinder.QViewfinderDrawRecord();
+    }
+
+    private void PViewfinderFrameDraw(DrawingContext drawingContext, QViewfinderFrame lFrame)
+    {
         lFrame.QViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         drawingContext.DrawGeometry(
             pViewfinderBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QViewfinderFrameWaveform));
@@ -77,7 +83,6 @@ public sealed class PViewfinder : FrameworkElement
         lFrame.QViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         PViewfinderKeyframesDraw(drawingContext, lFrame.QViewfinderFrameKeyframes);
         lFrame.QViewfinderFrameCursor.ToList().ForEach(lCursor => PViewfinderCursorDraw(drawingContext, lCursor));
-        QViewfinder.QViewfinderDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

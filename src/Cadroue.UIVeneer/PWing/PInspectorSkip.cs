@@ -12,15 +12,20 @@ public sealed partial class PInspector
 
     private StackPanel PSkipBodyBuild()
     {
+        StackPanel pBody = PSkipPanelBuild();
+        PSkipAttach();
+        return pBody;
+    }
+
+    private StackPanel PSkipPanelBuild()
+    {
         pSkipApplyBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.ApplyTooltip"));
-        PInspectorSwitchAttach(pSkipApplyBox, QSkip.QSkipActiveSet);
 
         pSkipPersistentBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Skip.PersistentTooltip"));
-        PInspectorSwitchAttach(pSkipPersistentBox, QSkip.QSkipPersistentSet);
 
         var pSkipNote = new TextBlock
         {
@@ -41,6 +46,12 @@ public sealed partial class PInspector
         pSkipBody.Children.Add(PInspectorSeparatorBuild());
         pSkipBody.Children.Add(pSkipNote);
         return pSkipBody;
+    }
+
+    private void PSkipAttach()
+    {
+        PInspectorSwitchAttach(pSkipApplyBox, QSkip.QSkipActiveSet);
+        PInspectorSwitchAttach(pSkipPersistentBox, QSkip.QSkipPersistentSet);
     }
 
     private void PSkipUpdate()

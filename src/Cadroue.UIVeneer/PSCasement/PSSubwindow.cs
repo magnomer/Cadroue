@@ -14,6 +14,13 @@ internal static class PSSubwindow
 
     internal static void PSSubwindowApply(Window pWindow)
     {
+        PSSubwindowFrameApply(pWindow);
+        QScrollbar.QScrollbarAttach(pWindow);
+        PSSubwindowDwmAttach(pWindow);
+    }
+
+    private static void PSSubwindowFrameApply(Window pWindow)
+    {
         pWindow.WindowStyle = WindowStyle.None;
         pWindow.ResizeMode = ResizeMode.NoResize;
         pWindow.Background = PSSubwindowBackground;
@@ -21,9 +28,10 @@ internal static class PSSubwindow
         pWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         pWindow.UseLayoutRounding = true;
         pWindow.SnapsToDevicePixels = true;
-        QScrollbar.QScrollbarAttach(pWindow);
-        pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, PSSubwindowCaption);
     }
+
+    private static void PSSubwindowDwmAttach(Window pWindow) =>
+        pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, PSSubwindowCaption);
 
     internal static Grid PSSubwindowBuild(Window pWindow, double pStripWidth, UIElement pSheetControl)
     {

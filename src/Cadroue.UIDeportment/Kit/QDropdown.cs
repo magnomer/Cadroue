@@ -41,10 +41,7 @@ public static class QDropdown
     {
         ArgumentNullException.ThrowIfNull(lCombo);
 
-        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdownStyle);
-        lCombo.ItemContainerStyle = QDropdownHookBuild(
-            QContract.QContractSheetFind<Style>(QDropdownRowStyle),
-            (lSender, _) => QDropdownRowLoad((ComboBoxItem)lSender));
+        QDropdownStyleApply(lCombo);
         _ = lCombo.ApplyTemplate();
         QDropdownPartAttach(lCombo, QDropdownArrowPart, ToggleButton.IsCheckedProperty, "IsDropDownOpen");
         QDropdownPartAttach(lCombo, QDropdownSurfacePart, ToggleButton.IsCheckedProperty, "IsDropDownOpen");
@@ -61,14 +58,27 @@ public static class QDropdown
     {
         ArgumentNullException.ThrowIfNull(lCombo);
 
-        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdownEditableStyle);
-        lCombo.ItemContainerStyle = QDropdownHookBuild(
-            QContract.QContractSheetFind<Style>(QDropdownActionStyle),
-            (lSender, _) => QDropdownActionLoad((ComboBoxItem)lSender, lActionTooltip));
+        QDropdownActionApply(lCombo, lActionTooltip);
         _ = lCombo.ApplyTemplate();
         QDropdownPartAttach(lCombo, QDropdownArrowPart, ToggleButton.IsCheckedProperty, "IsDropDownOpen");
         QDropdownPopupAttach(lCombo);
         QLook.QLookAttach(lCombo, QDropdownStyle);
+    }
+
+    private static void QDropdownStyleApply(ComboBox lCombo)
+    {
+        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdownStyle);
+        lCombo.ItemContainerStyle = QDropdownHookBuild(
+            QContract.QContractSheetFind<Style>(QDropdownRowStyle),
+            (lSender, _) => QDropdownRowLoad((ComboBoxItem)lSender));
+    }
+
+    private static void QDropdownActionApply(ComboBox lCombo, string lActionTooltip)
+    {
+        lCombo.Style = QContract.QContractSheetFind<Style>(QDropdownEditableStyle);
+        lCombo.ItemContainerStyle = QDropdownHookBuild(
+            QContract.QContractSheetFind<Style>(QDropdownActionStyle),
+            (lSender, _) => QDropdownActionLoad((ComboBoxItem)lSender, lActionTooltip));
     }
 
     private static Style QDropdownHookBuild(Style lRowStyle, RoutedEventHandler lLoad)
@@ -100,14 +110,25 @@ public static class QDropdown
 
     private static void QDropdownActionLoad(ComboBoxItem lRow, string lActionTooltip)
     {
-        lRow.Style = QContract.QContractSheetFind<Style>(QDropdownActionStyle);
+        QDropdownRowApply(lRow);
         QLook.QLookAttach(lRow, QDropdownRowStyle);
 
         Button lButton = (Button)lRow.Template.FindName(QDropdownButtonPart, lRow);
-        lButton.ToolTip = lActionTooltip;
-        AutomationProperties.SetName(lButton, lActionTooltip);
-        ((Image)lRow.Template.FindName(QDropdownMinusPart, lRow)).Source =
-            QIcon.QIconRead(QDropdownMinusIcon, QContract.QContractSheetFind<Brush>(QDropdownTextKey));
+        QDropdownTooltipSet(lButton, lActionTooltip);
+        QDropdownMinusApply(lRow);
         QLook.QLookAttach(lButton, QDropdownButtonStyle);
     }
+
+    private static void QDropdownRowApply(ComboBoxItem lRow) =>
+        lRow.Style = QContract.QContractSheetFind<Style>(QDropdownActionStyle);
+
+    private static void QDropdownTooltipSet(Button lButton, string lActionTooltip)
+    {
+        lButton.ToolTip = lActionTooltip;
+        AutomationProperties.SetName(lButton, lActionTooltip);
+    }
+
+    private static void QDropdownMinusApply(ComboBoxItem lRow) =>
+        ((Image)lRow.Template.FindName(QDropdownMinusPart, lRow)).Source =
+            QIcon.QIconRead(QDropdownMinusIcon, QContract.QContractSheetFind<Brush>(QDropdownTextKey));
 }

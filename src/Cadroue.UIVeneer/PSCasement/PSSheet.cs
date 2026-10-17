@@ -17,6 +17,14 @@ internal static class PSSheet
 
     internal static TabControl PSSheetControlBuild(double pTabWidth, params TabItem[] pSheets)
     {
+        TabControl pTabs = PSSheetTabsBuild(pTabWidth, pSheets);
+        PSSheetSelectionAttach(pTabs);
+        PSSheetSeparatorUpdate(pTabs);
+        return pTabs;
+    }
+
+    private static TabControl PSSheetTabsBuild(double pTabWidth, TabItem[] pSheets)
+    {
         var pTabs = new TabControl
         {
             Background = Brushes.White,
@@ -31,10 +39,11 @@ internal static class PSSheet
             pTabs.Items.Add(pSheet);
         }
 
-        pTabs.SelectionChanged += (_, _) => PSSheetSeparatorUpdate(pTabs);
-        PSSheetSeparatorUpdate(pTabs);
         return pTabs;
     }
+
+    private static void PSSheetSelectionAttach(TabControl pTabs) =>
+        pTabs.SelectionChanged += (_, _) => PSSheetSeparatorUpdate(pTabs);
 
     internal static void PSSheetSeparatorUpdate(TabControl pTabs)
     {
@@ -43,12 +52,15 @@ internal static class PSSheet
         {
             if (pTabs.Items[pIndex] is TabItem pTabItem)
             {
-                pTabItem.Tag = pIndex < pTabs.Items.Count - 1
-                    && pIndex != pSelectedIndex
-                    && pIndex != pSelectedIndex - 1;
+                pTabItem.Tag = PSSheetSeparatorResolve(pIndex, pTabs.Items.Count, pSelectedIndex);
             }
         }
     }
+
+    private static bool PSSheetSeparatorResolve(int pIndex, int pCount, int pSelectedIndex) =>
+        pIndex < pCount - 1
+            && pIndex != pSelectedIndex
+            && pIndex != pSelectedIndex - 1;
 
     internal static TabItem PSSheetBuild(string pTitle, string? pIconPath, UIElement pContent) =>
         new() { Header = PSSheetHeaderBuild(pTitle, pIconPath), Content = pContent };

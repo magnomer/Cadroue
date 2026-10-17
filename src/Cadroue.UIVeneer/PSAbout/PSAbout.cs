@@ -36,6 +36,18 @@ internal sealed class PSAbout : Window
     private PSAbout(Window pOwner, QSAbout lsAboutOwner)
     {
         lsAbout = lsAboutOwner;
+        PSAboutLookApply(pOwner);
+        QScrollbar.QScrollbarAttach(this);
+        lsAbout.QSAboutErrorShown += PSAboutErrorShow;
+        PSAboutContentApply();
+        PSAboutLoadAttach();
+        psAboutGrabber = new PSGrabber(this);
+        psAboutGrabber.PSGrabberAttach();
+        PSAboutCloseAttach();
+    }
+
+    private void PSAboutLookApply(Window pOwner)
+    {
         Title = QLocalizationCatalog.QLocalizationTextRead("About.Window.Title");
         Owner = pOwner;
         Width = PSAboutWidthDefault;
@@ -43,24 +55,37 @@ internal sealed class PSAbout : Window
         MinHeight = PSAboutHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        QScrollbar.QScrollbarAttach(this);
-        lsAbout.QSAboutErrorShown += PSAboutErrorShow;
+    }
+
+    private void PSAboutContentApply()
+    {
         Content = PSAboutBuild();
         SizeToContent = SizeToContent.Height;
-        Loaded += PSAboutLoadedHandle;
-        psAboutGrabber = new PSGrabber(this);
-        psAboutGrabber.PSGrabberAttach();
-        Closed += PSAboutCloseHandle;
     }
+
+    private void PSAboutLoadAttach() => Loaded += PSAboutLoadedHandle;
+
+    private void PSAboutLoadDetach() => Loaded -= PSAboutLoadedHandle;
+
+    private void PSAboutCloseAttach() => Closed += PSAboutCloseHandle;
+
+    private void PSAboutCloseDetach() => Closed -= PSAboutCloseHandle;
 
     private void PSAboutLoadedHandle(object pSender, RoutedEventArgs pEvent)
     {
-        Loaded -= PSAboutLoadedHandle;
-        double pContentHeight = ActualHeight;
-        SizeToContent = SizeToContent.Manual;
-        Height = Math.Max(pContentHeight, MinHeight);
+        PSAboutLoadDetach();
+        PSAboutHeightApply();
         PSGrabber.PSGrabberPlacementRestore(this, PSAboutPlacementKey);
     }
+
+    private void PSAboutHeightApply()
+    {
+        double pContentHeight = ActualHeight;
+        SizeToContent = SizeToContent.Manual;
+        Height = PSAboutHeightClamp(pContentHeight);
+    }
+
+    private double PSAboutHeightClamp(double pContentHeight) => Math.Max(pContentHeight, MinHeight);
 
     private UIElement PSAboutBuild() =>
         PSDialog.PSDialogBuild(this, null, PSAboutRootBuild());
@@ -79,7 +104,7 @@ internal sealed class PSAbout : Window
             Margin = new Thickness(12)
         };
         Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("About.Button.Close"));
-        pClose.Click += (_, _) => Close();
+        PSAboutButtonAttach(pClose);
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
@@ -90,6 +115,8 @@ internal sealed class PSAbout : Window
         pRoot.Children.Add(PSSheet.PSSheetScrollBuild(pBody));
         return pRoot;
     }
+
+    private void PSAboutButtonAttach(Button pClose) => pClose.Click += (_, _) => Close();
 
     private UIElement PSAboutHeaderBuild()
     {
@@ -107,7 +134,7 @@ internal sealed class PSAbout : Window
             Stretch = Stretch.Uniform,
             Margin = new Thickness(0, 0, 0, 12)
         };
-        pLogo.MouseLeftButtonUp += PSAboutTapHandle;
+        PSAboutLogoAttach(pLogo);
         pHeader.Children.Add(pLogo);
 
         psAboutDeveloper = new TextBlock
@@ -117,7 +144,7 @@ internal sealed class PSAbout : Window
             Foreground = PSField.PSFieldText,
             HorizontalAlignment = HorizontalAlignment.Center,
             Margin = new Thickness(0, 0, 0, 4),
-            Visibility = lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed
+            Visibility = PSAboutDeveloperRead()
         };
         pHeader.Children.Add(psAboutDeveloper);
 
@@ -139,6 +166,11 @@ internal sealed class PSAbout : Window
         pHeader.Children.Add(PSAboutLinkBuild(QSAbout.QSAboutProjectUrl, HorizontalAlignment.Center));
         return pHeader;
     }
+
+    private void PSAboutLogoAttach(Image pLogo) => pLogo.MouseLeftButtonUp += PSAboutTapHandle;
+
+    private Visibility PSAboutDeveloperRead() =>
+        lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
 
     private UIElement PSAboutCreditBuild()
     {
@@ -174,7 +206,7 @@ internal sealed class PSAbout : Window
             "About.Licenses.Label")));
 
         var pLink = new Hyperlink(new Run(QLocalizationCatalog.QLocalizationTextRead("About.Licenses.Link")));
-        pLink.Click += PSAboutNoticeHandle;
+        PSAboutNoticeAttach(pLink);
 
         var pText = new TextBlock
         {
@@ -188,6 +220,8 @@ internal sealed class PSAbout : Window
         return pRow;
     }
 
+    private void PSAboutNoticeAttach(Hyperlink pLink) => pLink.Click += PSAboutNoticeHandle;
+
     private void PSAboutNoticeHandle(object pSender, RoutedEventArgs pEvent)
     {
         pEvent.Handled = true;
@@ -197,7 +231,7 @@ internal sealed class PSAbout : Window
     private TextBlock PSAboutLinkBuild(string pUrl, HorizontalAlignment pAlignment)
     {
         var pLink = new Hyperlink(new Run(pUrl)) { NavigateUri = new Uri(pUrl) };
-        pLink.RequestNavigate += PSAboutLinkHandle;
+        PSAboutLinkAttach(pLink);
 
         var pText = new TextBlock
         {
@@ -209,13 +243,17 @@ internal sealed class PSAbout : Window
         return pText;
     }
 
+    private void PSAboutLinkAttach(Hyperlink pLink) => pLink.RequestNavigate += PSAboutLinkHandle;
+
     private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)
     {
         if (lsAbout.QSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
         {
-            psAboutDeveloper.Visibility = lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
+            PSAboutDeveloperShow(psAboutDeveloper);
         }
     }
+
+    private void PSAboutDeveloperShow(TextBlock pDeveloper) => pDeveloper.Visibility = PSAboutDeveloperRead();
 
     private void PSAboutLinkHandle(object pSender, RequestNavigateEventArgs pEvent)
     {
@@ -231,10 +269,10 @@ internal sealed class PSAbout : Window
 
     private void PSAboutCloseHandle(object? pSender, EventArgs pEvent)
     {
-        Loaded -= PSAboutLoadedHandle;
+        PSAboutLoadDetach();
         PSGrabber.PSGrabberPlacementSave(this, PSAboutPlacementKey);
         psAboutGrabber.PSGrabberDetach();
-        Closed -= PSAboutCloseHandle;
+        PSAboutCloseDetach();
     }
 
 }

@@ -25,6 +25,17 @@ internal sealed partial class PSMonitor
 
     private Button PSMonitorPlayBuild()
     {
+        PSMonitorFaceBuild();
+        PSMonitorPlayAttach();
+        PSMonitorFaceApply();
+        return psMonitorPlayButton;
+    }
+
+    private void PSMonitorPlayAttach() =>
+        psMonitorPlayButton.Click += (_, _) => psMonitorSource.QSMonitorPlayHandle();
+
+    private void PSMonitorFaceBuild()
+    {
         psMonitorPlayImage = new Image { Width = 18, Height = 18, Stretch = Stretch.Uniform };
         psMonitorPlayButton = new Button
         {
@@ -37,9 +48,6 @@ internal sealed partial class PSMonitor
             Cursor = Cursors.Hand,
             Content = psMonitorPlayImage
         };
-        psMonitorPlayButton.Click += (_, _) => psMonitorSource.QSMonitorPlayHandle();
-        PSMonitorFaceApply();
-        return psMonitorPlayButton;
     }
 
     private void PSMonitorPlayingApply(bool pPlaying) => PSMonitorFaceApply();
@@ -47,9 +55,15 @@ internal sealed partial class PSMonitor
     private void PSMonitorFaceApply()
     {
         QSMonitorFace lFace = psMonitorSource.QSMonitorFaceRead();
-        psMonitorPlayImage.Source = QIcon.QIconRead(
-            $"/PAsset/PCompass/{lFace.QSMonitorFaceIcon}", psMonitorAxisFill);
-        psMonitorPlayButton.ToolTip = lFace.QSMonitorFaceTip;
+        PSMonitorFaceSet(PSMonitorIconFormat(lFace.QSMonitorFaceIcon), lFace.QSMonitorFaceTip);
+    }
+
+    private static string PSMonitorIconFormat(string pIcon) => $"/PAsset/PCompass/{pIcon}";
+
+    private void PSMonitorFaceSet(string pIconPath, string pTip)
+    {
+        psMonitorPlayImage.Source = QIcon.QIconRead(pIconPath, psMonitorAxisFill);
+        psMonitorPlayButton.ToolTip = pTip;
     }
 
     private UIElement PSMonitorZoomBuild()
@@ -70,7 +84,16 @@ internal sealed partial class PSMonitor
 
     private static Button PSMonitorButtonBuild(string pIconPath, string pTooltipKey, Action pAction)
     {
-        var psButton = new Button
+        Button psButton = PSMonitorTileBuild(pIconPath, pTooltipKey);
+        PSMonitorClickAttach(psButton, pAction);
+        return psButton;
+    }
+
+    private static void PSMonitorClickAttach(Button psButton, Action pAction) => psButton.Click += (_, _) => pAction();
+
+    private static Button PSMonitorTileBuild(string pIconPath, string pTooltipKey)
+    {
+        return new Button
         {
             Width = 34,
             Height = 34,
@@ -88,24 +111,37 @@ internal sealed partial class PSMonitor
                 Source = QIcon.QIconRead(pIconPath, psMonitorAxisFill)
             }
         };
-        psButton.Click += (_, _) => pAction();
-        return psButton;
     }
 
     private void PSMonitorZoomApply()
     {
         QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorScrollRead();
+        PSMonitorScrollSet(lScroll);
+        PSMonitorUpdate();
+    }
+
+    private void PSMonitorScrollSet(QSMonitorScrollbar lScroll)
+    {
         psMonitorScrollbar.ViewportSize = lScroll.QSMonitorScrollViewport;
         psMonitorScrollbar.Maximum = lScroll.QSMonitorScrollMaximum;
         psMonitorScrollbar.Value = lScroll.QSMonitorScrollValue;
         psMonitorScrollbar.IsEnabled = lScroll.QSMonitorScrollEnabled;
         psMonitorScrollbar.Opacity = lScroll.QSMonitorScrollOpacity;
-        PSMonitorUpdate();
     }
 
     private RadioButton PSMonitorRadioBuild(string pLabelKey, string pTooltipKey, bool pBypass)
     {
-        var psRadio = new RadioButton
+        RadioButton psRadio = PSMonitorOptionBuild(pLabelKey, pTooltipKey);
+        PSMonitorRadioAttach(psRadio, pBypass);
+        return psRadio;
+    }
+
+    private void PSMonitorRadioAttach(RadioButton psRadio, bool pBypass) =>
+        psRadio.Checked += (_, _) => psMonitorSource.QSMonitorRadioHandle(pBypass);
+
+    private static RadioButton PSMonitorOptionBuild(string pLabelKey, string pTooltipKey)
+    {
+        return new RadioButton
         {
             Content = QLocalizationCatalog.QLocalizationTextRead(pLabelKey),
             GroupName = "PSMonitorAudio",
@@ -119,8 +155,6 @@ internal sealed partial class PSMonitor
             HorizontalAlignment = HorizontalAlignment.Left,
             VerticalAlignment = VerticalAlignment.Top
         };
-        psRadio.Checked += (_, _) => psMonitorSource.QSMonitorRadioHandle(pBypass);
-        return psRadio;
     }
 
     private void PSMonitorSeekStart(object pSender, MouseButtonEventArgs pEvent)

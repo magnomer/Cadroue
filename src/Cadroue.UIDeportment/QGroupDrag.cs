@@ -25,12 +25,17 @@ public sealed class QGroupDrag
 
     public void QGroupPressHandle(int lGroupIndex, string lPath, double lX, double lY, double lGrabX, double lGrabY)
     {
+        QGroupPressSet(lGroupIndex, lPath, lX, lY, lGrabX, lGrabY);
+        QGroupItemOpened?.Invoke(lPath);
+    }
+
+    private void QGroupPressSet(int lGroupIndex, string lPath, double lX, double lY, double lGrabX, double lGrabY)
+    {
         qGroupDragOrigin = true;
         qGroupDragX = lX;
         qGroupDragY = lY;
         qGroupGhost = new QGhost(lGrabX, lGrabY);
         qGroup.QGroupDragSet(lGroupIndex, lPath);
-        QGroupItemOpened?.Invoke(lPath);
     }
 
     public bool QGroupDragResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed)
@@ -75,11 +80,17 @@ public sealed class QGroupDrag
             return true;
         }
 
-        string lName = QLocalizationCatalog.QLocalizationFormat("Group.Default.Name", qGroup.QGroupRecords.Count + 1);
-        return lMoveIndex is { } lSourceIndex && lMovePath is { } lPath
+        string lName = QGroupNameCreate();
+        return QGroupPanelAdd(lName, lMoveIndex, lMovePath, lListPaths);
+    }
+
+    private string QGroupNameCreate() =>
+        QLocalizationCatalog.QLocalizationFormat("Group.Default.Name", qGroup.QGroupRecords.Count + 1);
+
+    private bool QGroupPanelAdd(string lName, int? lMoveIndex, string? lMovePath, string[]? lListPaths) =>
+        lMoveIndex is { } lSourceIndex && lMovePath is { } lPath
             ? qGroup.QGroupAdd([lPath], lName, lSourceIndex)
             : qGroup.QGroupAdd(lListPaths ?? [], lName);
-    }
 
     private bool QGroupExternalAccept(string[]? lFilePaths)
     {

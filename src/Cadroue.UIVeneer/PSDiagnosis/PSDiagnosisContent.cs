@@ -23,6 +23,27 @@ internal sealed partial class PSDiagnosis
 
     private UIElement PSDiagnosisBannerBuild()
     {
+        Button pRecheck = PSDiagnosisRecheckBuild();
+        PSDiagnosisRecheckAttach(pRecheck);
+        return PSDiagnosisBarBuild(pRecheck);
+    }
+
+    private static Button PSDiagnosisRecheckBuild()
+    {
+        Button pRecheck = PSInline.PSInlineButtonBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Recheck"),
+            110,
+            new Thickness(0));
+        pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
+        Grid.SetColumn(pRecheck, 1);
+        return pRecheck;
+    }
+
+    private void PSDiagnosisRecheckAttach(Button pRecheck) =>
+        pRecheck.Click += (_, _) => _ = lsDiagnosis.QSDiagnosisReset();
+
+    private Grid PSDiagnosisBarBuild(Button pRecheck)
+    {
         var pBar = new Grid { Margin = new Thickness(PSDiagnosisInset, 12, PSDiagnosisInset, 10) };
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pBar.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
@@ -51,14 +72,6 @@ internal sealed partial class PSDiagnosis
         pLeft.Children.Add(psDiagnosisSummaryDot);
         pLeft.Children.Add(psDiagnosisSummaryText);
         pBar.Children.Add(pLeft);
-
-        Button pRecheck = PSInline.PSInlineButtonBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Recheck"),
-            110,
-            new Thickness(0));
-        pRecheck.HorizontalAlignment = HorizontalAlignment.Right;
-        pRecheck.Click += (_, _) => _ = lsDiagnosis.QSDiagnosisReset();
-        Grid.SetColumn(pRecheck, 1);
         pBar.Children.Add(pRecheck);
         return pBar;
     }
@@ -154,6 +167,13 @@ internal sealed partial class PSDiagnosis
 
     private (Border PSDiagnosisBadge, TextBlock PSDiagnosisText) PSDiagnosisBadgeBuild()
     {
+        (Border pBadge, TextBlock pText) = PSDiagnosisBadgeCreate();
+        PSDiagnosisBadgeApply(pBadge, pText, QSDiagnosisState.QSDiagnosisStateChecking);
+        return (pBadge, pText);
+    }
+
+    private static (Border PSDiagnosisBadge, TextBlock PSDiagnosisText) PSDiagnosisBadgeCreate()
+    {
         var pText = new TextBlock { FontWeight = FontWeights.SemiBold, FontSize = 11 };
         var pBadge = new Border
         {
@@ -163,31 +183,44 @@ internal sealed partial class PSDiagnosis
             VerticalAlignment = VerticalAlignment.Center,
             Child = pText
         };
-        PSDiagnosisBadgeApply(pBadge, pText, QSDiagnosisState.QSDiagnosisStateChecking);
         return (pBadge, pText);
     }
 
     private static void PSDiagnosisBadgeApply(Border pBadge, TextBlock pText, QSDiagnosisState pState)
+    {
+        PSDiagnosisTintApply(pBadge, pText, pState);
+        PSDiagnosisBadgeShow(pText, PSDiagnosisBadgeFormat(pState));
+    }
+
+    private static void PSDiagnosisTintApply(Border pBadge, TextBlock pText, QSDiagnosisState pState)
     {
         switch (pState)
         {
             case QSDiagnosisState.QSDiagnosisStateReady:
                 pBadge.Background = PSDiagnosisReadyFill;
                 pText.Foreground = PSDiagnosisReadyInk;
-                pText.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Available");
                 break;
             case QSDiagnosisState.QSDiagnosisStateMissing:
                 pBadge.Background = PSDiagnosisMissingFill;
                 pText.Foreground = PSDiagnosisMissingInk;
-                pText.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Unavailable");
                 break;
             default:
                 pBadge.Background = PSDiagnosisNeutralFill;
                 pText.Foreground = PSField.PSFieldMuted;
-                pText.Text = "…";
                 break;
         }
     }
+
+    private static string PSDiagnosisBadgeFormat(QSDiagnosisState pState) => pState switch
+    {
+        QSDiagnosisState.QSDiagnosisStateReady =>
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Available"),
+        QSDiagnosisState.QSDiagnosisStateMissing =>
+            QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Unavailable"),
+        _ => "…"
+    };
+
+    private static void PSDiagnosisBadgeShow(TextBlock pText, string pLabel) => pText.Text = pLabel;
 
     private void PSDiagnosisResultApply()
     {
@@ -199,47 +232,67 @@ internal sealed partial class PSDiagnosis
 
         bool pChecking = lsDiagnosis.QSDiagnosisChecking;
         bool pReady = lsDiagnosis.QSDiagnosisReady;
-        psDiagnosisVersionValue.Text = pChecking ? "…" : pReady ? lsDiagnosis.QSDiagnosisVersion : "—";
-        psDiagnosisLocationValue.Text = pChecking
+        PSDiagnosisValueShow(PSDiagnosisVersionFormat(pChecking, pReady), PSDiagnosisLocationFormat(pChecking));
+        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.QSDiagnosisProgramState);
+        PSDiagnosisCheckApply();
+        PSDiagnosisSummaryApply(lsDiagnosis.QSDiagnosisMood, lsDiagnosis.QSDiagnosisMissing);
+    }
+
+    private string PSDiagnosisVersionFormat(bool pChecking, bool pReady) =>
+        pChecking ? "…" : pReady ? lsDiagnosis.QSDiagnosisVersion : "—";
+
+    private string PSDiagnosisLocationFormat(bool pChecking) =>
+        pChecking
             ? "…"
             : lsDiagnosis.QSDiagnosisLocation.Length == 0
                 ? QLocalizationCatalog.QLocalizationTextRead("Diagnosis.LocationPath")
                 : lsDiagnosis.QSDiagnosisLocation;
-        PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.QSDiagnosisProgramState);
+
+    private void PSDiagnosisValueShow(string pVersion, string pLocation)
+    {
+        psDiagnosisVersionValue.Text = pVersion;
+        psDiagnosisLocationValue.Text = pLocation;
+    }
+
+    private void PSDiagnosisCheckApply()
+    {
         foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
         {
             PSDiagnosisBadgeApply(pBadge, pText, lsDiagnosis.QSDiagnosisStateRead(pFilters));
         }
-
-        PSDiagnosisSummaryApply(lsDiagnosis.QSDiagnosisMood, lsDiagnosis.QSDiagnosisMissing);
     }
 
     private void PSDiagnosisSummaryApply(QSDiagnosisMood pMood, int pMissing)
     {
-        switch (pMood)
-        {
-            case QSDiagnosisMood.QSDiagnosisMoodReady:
-                psDiagnosisSummaryDot.Fill = PSDiagnosisReadyDot;
-                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Ready");
-                break;
-            case QSDiagnosisMood.QSDiagnosisMoodWarning:
-                psDiagnosisSummaryDot.Fill = PSDiagnosisWarnDot;
-                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationFormat("Diagnosis.Summary.Missing",
-                    pMissing);
-                break;
-            case QSDiagnosisMood.QSDiagnosisMoodMissing:
-                psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
-                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationFormat("Diagnosis.Summary.Missing",
-                    pMissing);
-                break;
-            case QSDiagnosisMood.QSDiagnosisMoodAbsent:
-                psDiagnosisSummaryDot.Fill = PSDiagnosisMissingDot;
-                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.NoProgram");
-                break;
-            default:
-                psDiagnosisSummaryDot.Fill = PSDiagnosisNeutralFill;
-                psDiagnosisSummaryText.Text = QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Checking");
-                break;
-        }
+        PSSummaryLookApply(pMood);
+        PSDiagnosisSummaryShow(PSDiagnosisSummaryFormat(pMood, pMissing));
     }
+
+    private void PSSummaryLookApply(QSDiagnosisMood pMood)
+    {
+        psDiagnosisSummaryDot.Fill = pMood switch
+        {
+            QSDiagnosisMood.QSDiagnosisMoodReady => PSDiagnosisReadyDot,
+            QSDiagnosisMood.QSDiagnosisMoodWarning => PSDiagnosisWarnDot,
+            QSDiagnosisMood.QSDiagnosisMoodMissing => PSDiagnosisMissingDot,
+            QSDiagnosisMood.QSDiagnosisMoodAbsent => PSDiagnosisMissingDot,
+            _ => PSDiagnosisNeutralFill
+        };
+    }
+
+    private static string PSDiagnosisSummaryFormat(QSDiagnosisMood pMood, int pMissing) => pMood switch
+    {
+        QSDiagnosisMood.QSDiagnosisMoodReady => QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Ready"),
+        QSDiagnosisMood.QSDiagnosisMoodWarning => QLocalizationCatalog.QLocalizationFormat(
+            "Diagnosis.Summary.Missing",
+            pMissing),
+        QSDiagnosisMood.QSDiagnosisMoodMissing => QLocalizationCatalog.QLocalizationFormat(
+            "Diagnosis.Summary.Missing",
+            pMissing),
+        QSDiagnosisMood.QSDiagnosisMoodAbsent => QLocalizationCatalog.QLocalizationTextRead(
+            "Diagnosis.Summary.NoProgram"),
+        _ => QLocalizationCatalog.QLocalizationTextRead("Diagnosis.Summary.Checking")
+    };
+
+    private void PSDiagnosisSummaryShow(string pSummary) => psDiagnosisSummaryText.Text = pSummary;
 }

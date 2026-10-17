@@ -126,7 +126,7 @@ public sealed class QEditTabColor
         qEditViewer.QViewerNeutral.QViewerEstimateStart(lMethod);
     }
 
-    public void QEditHistogramRun() => qEditViewer.QViewerFrameRead(QEditHistogramApply);
+    public void QEditHistogramRun() => qEditViewer.QViewerFrame.QViewerFrameRead(QEditHistogramApply);
 
     public void QEditEstimateApply(LNeutralWheel lEstimate) =>
         qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceEstimateSet(lEstimate);

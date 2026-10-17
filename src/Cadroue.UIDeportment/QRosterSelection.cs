@@ -33,11 +33,16 @@ public sealed class QRosterSelection
 
     public void QRosterStepSelect(Guid lId, bool lRange, bool lToggle)
     {
-        var lPresent = new QRosterPick(
-            QRosterCurrentId, Guid.Empty, qRosterPick.QRosterPickIds.Where(qRosterItem).ToHashSet());
-        qRosterPick = QRosterPickResolve(lPresent, qRosterOrder(), lId, lRange, lToggle);
+        QRosterPick lPresent = QRosterPresentRead();
+        QRosterPick lNext = QRosterPickResolve(lPresent, qRosterOrder(), lId, lRange, lToggle);
+        QRosterPickSet(lNext);
         qRosterSelection();
     }
+
+    private QRosterPick QRosterPresentRead() =>
+        new(QRosterCurrentId, Guid.Empty, qRosterPick.QRosterPickIds.Where(qRosterItem).ToHashSet());
+
+    private void QRosterPickSet(QRosterPick lPick) => qRosterPick = lPick;
 
     private static QRosterPick QRosterPickResolve(
         QRosterPick lPresent, IReadOnlyList<Guid> lOrder, Guid lId, bool lRange, bool lToggle)
@@ -78,7 +83,7 @@ public sealed class QRosterSelection
 
     public void QRosterCardSelect(Guid lBatchId)
     {
-        qRosterPick = new QRosterPick(Guid.Empty, lBatchId, new HashSet<Guid>());
+        QRosterPickSet(new QRosterPick(Guid.Empty, lBatchId, new HashSet<Guid>()));
         qRosterSelection();
     }
 }

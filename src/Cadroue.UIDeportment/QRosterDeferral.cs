@@ -18,21 +18,23 @@ public sealed class QRosterDeferral
 
     public void QRosterDeferralRaise()
     {
-        if (qRosterDeferralPending)
+        if (QRosterDeferralPending)
         {
             return;
         }
 
-        qRosterDeferralPending = true;
+        QRosterPendingSet(true);
         QRosterDeferralRaised?.Invoke();
     }
 
     public void QRosterDeferralRun()
     {
-        qRosterDeferralPending = false;
+        QRosterPendingSet(false);
         if (!qRosterDeferralClosed())
         {
             qRosterDeferralDetail();
         }
     }
+
+    private void QRosterPendingSet(bool lPending) => qRosterDeferralPending = lPending;
 }

@@ -83,14 +83,7 @@ public sealed class QFilter
 
     public void QFilterStepSet(LWorkAudioStep lStep)
     {
-        LWorkPassStep lSource = lStep as LWorkPassStep
-            ?? (LWorkPassStep)LPassband.LPassbandStepCreate(qFilterHigh, lStep.LWorkStepActive);
-        LWorkPassStep lNormal = QFilterNormalize(
-            lSource.LWorkStepActive,
-            lSource.LWorkPassFrequency,
-            lSource.LWorkPassStages,
-            lSource.LWorkPassPoles,
-            lSource.LWorkPassResonance);
+        LWorkPassStep lNormal = QFilterStepResolve(lStep);
         QFilterStepApply(lNormal, LPassband.LPassbandMatch(
             qFilterHigh,
             lNormal.LWorkPassFrequency,
@@ -134,9 +127,9 @@ public sealed class QFilter
 
     public void QFilterPolesSelect(int lIndex)
     {
-        if (lIndex >= 0 && lIndex < QFilterPoleNames.Count)
+        if (QFilterPolesResolve(lIndex) is { } lPoles)
         {
-            QFilterPolesSet(lIndex == 0 ? 1 : 2);
+            QFilterPolesSet(lPoles);
         }
     }
 
@@ -199,6 +192,23 @@ public sealed class QFilter
         qFilterToken = lToken;
         QFilterChanged?.Invoke();
     }
+
+    // A step that is not a pass step becomes this filter's default step; either way it is normalized.
+    private LWorkPassStep QFilterStepResolve(LWorkAudioStep lStep)
+    {
+        LWorkPassStep lSource = lStep as LWorkPassStep
+            ?? (LWorkPassStep)LPassband.LPassbandStepCreate(qFilterHigh, lStep.LWorkStepActive);
+        return QFilterNormalize(
+            lSource.LWorkStepActive,
+            lSource.LWorkPassFrequency,
+            lSource.LWorkPassStages,
+            lSource.LWorkPassPoles,
+            lSource.LWorkPassResonance);
+    }
+
+    // The pole count of a listed choice; null for an index out of range.
+    private static int? QFilterPolesResolve(int lIndex) =>
+        lIndex >= 0 && lIndex < QFilterPoleNames.Count ? (lIndex == 0 ? 1 : 2) : null;
 
     private LWorkPassStep QFilterNormalize(
         bool lActive, double lFrequency, int lStages, int lPoles, double lResonance) =>

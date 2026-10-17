@@ -23,7 +23,7 @@ public sealed class PMergeTab : PTabSurface
         QMergeTab = lWorkspace.QWorkspaceMode.QMergeTabCreate();
         pGroup = new PGroup(QMergeTab.QMergeGroup);
         pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        QMergeTab.QMergePresetMissing += PExport.PExportMissingShow;
+        PMergeEventsAttach();
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
@@ -54,4 +54,6 @@ public sealed class PMergeTab : PTabSurface
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QMergeTab.QMergeLayoutRead(PTabLayoutCreate());
+
+    private void PMergeEventsAttach() => QMergeTab.QMergePresetMissing += PExport.PExportMissingShow;
 }

@@ -34,8 +34,17 @@ public sealed partial class PInspector
 
     private PSensorSection PSensorBuild(QSensorPlan lPlan)
     {
+        PSensorSection pSection = PSensorSectionBuild(lPlan);
+        PInspectorSwitchAttach(
+            pSection.PSensorSwitch,
+            pEnabled => QSensor.QSensorEnabledSet(lPlan.QSensorPlanKind, pEnabled));
+        PSensorSectionUpdate(pSection);
+        return pSection;
+    }
+
+    private PSensorSection PSensorSectionBuild(QSensorPlan lPlan)
+    {
         CheckBox pApply = PInspectorSwitchBuild(lPlan.QSensorPlanSwitch, lPlan.QSensorPlanTip);
-        PInspectorSwitchAttach(pApply, pEnabled => QSensor.QSensorEnabledSet(lPlan.QSensorPlanKind, pEnabled));
         var pStack = new StackPanel();
         List<RadioButton> pMetrics = PSensorRadiosBuild(pStack, lPlan.QSensorPlanMetric, QSensor.QSensorMetricSelect);
         ComboBox pPreset = PInspectorChoiceBuild(
@@ -57,9 +66,7 @@ public sealed partial class PInspector
         pBody.Children.Add(pApply);
         pBody.Children.Add(PInspectorSeparatorBuild());
         pBody.Children.Add(pStack);
-        var pSection = new PSensorSection(lPlan, pBody, pStack, pApply, pRows, pModes, pSpeeds, pMetrics, pPreset);
-        PSensorSectionUpdate(pSection);
-        return pSection;
+        return new PSensorSection(lPlan, pBody, pStack, pApply, pRows, pModes, pSpeeds, pMetrics, pPreset);
     }
 
     private PInspectorRow PSensorRowBuild(QSensorPlan lPlan, QInspectorRow lRow) => PInspectorRowBuild(
@@ -113,27 +120,44 @@ public sealed partial class PInspector
 
     private static RadioButton PSensorRadioBuild(string pText, string pGroup, Action pSelect)
     {
-        var pRadio = new RadioButton
-        {
-            Content = pText,
-            GroupName = pGroup,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily,
-            VerticalContentAlignment = VerticalAlignment.Center
-        };
-        pRadio.Checked += (_, _) => pSelect();
+        RadioButton pRadio = PSensorOptionBuild(pText, pGroup);
+        PSensorOptionAttach(pRadio, pSelect);
         return pRadio;
     }
 
+    private static RadioButton PSensorOptionBuild(string pText, string pGroup) => new()
+    {
+        Content = pText,
+        GroupName = pGroup,
+        FontSize = 12,
+        FontFamily = pInspectorFontFamily,
+        VerticalContentAlignment = VerticalAlignment.Center
+    };
+
+    private static void PSensorOptionAttach(RadioButton pRadio, Action pSelect) =>
+        pRadio.Checked += (_, _) => pSelect();
+
     private UIElement PSensorRunBuild()
+    {
+        Border pRunRow = PSensorStripBuild();
+        PSensorRunAttach();
+        return pRunRow;
+    }
+
+    private void PSensorRunAttach()
+    {
+        PInspectorSwitchAttach(pSensorRunPersistent, QSensor.QSensorPersistentSet);
+        QSensor.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
+        QSensor.QSensorRunningChanged += _ => pSensorRunButton.Content = QSensor.QSensorRunText;
+        pSensorRunButton.Click += (_, _) => QSensor.QSensorRunHandle();
+    }
+
+    private Border PSensorStripBuild()
     {
         pSensorRunPersistent = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.PersistentTooltip"));
         pSensorRunPersistent.VerticalAlignment = VerticalAlignment.Center;
-        PInspectorSwitchAttach(pSensorRunPersistent, QSensor.QSensorPersistentSet);
-        QSensor.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
-        QSensor.QSensorRunningChanged += _ => pSensorRunButton.Content = QSensor.QSensorRunText;
 
         pSensorRunButton = new Button
         {
@@ -144,7 +168,6 @@ public sealed partial class PInspector
             FontFamily = pInspectorFontFamily,
             VerticalAlignment = VerticalAlignment.Center
         };
-        pSensorRunButton.Click += (_, _) => QSensor.QSensorRunHandle();
         QButton.QButtonAttach(pSensorRunButton, QButtonLook.QButtonLookWhite);
 
         var pSensorRunGrid = new Grid();

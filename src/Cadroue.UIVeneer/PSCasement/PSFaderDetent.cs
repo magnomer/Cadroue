@@ -1,7 +1,7 @@
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -20,17 +20,36 @@ internal static partial class PSFader
         UIElement? pNotice = null)
     {
         double pMax = Math.Max(pMaximum, 1);
-        double pStart = int.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pParsed)
+        double pStart = PSFaderHzParse(pValue, pRates, pSnap);
+        DoubleCollection pTicks = PSFaderTicksCreate(pRates);
+        Slider pSlider = PSFaderRateBuild(pMax, pTicks, pSnap, Math.Min(pStart, pMax));
+        PSFaderEditApply(pReadout, pSnap);
+        PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pStart, pZeroLabel));
+        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pStart));
+        var pSync = new StrongBox<bool>(false);
+        PSFaderDetentAttach(pSlider, pReadout, pSync, pRates, pSnap, pMax, pZeroLabel, pNotice);
+        return PSFaderRowBuild(pSlider, pReadout);
+    }
+
+    private static double PSFaderHzParse(string pValue, IReadOnlyList<int> pRates, bool pSnap) =>
+        int.TryParse(pValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pParsed)
             && pParsed > 0
                 ? PSFaderDetentResolve(pParsed, pRates, pSnap)
                 : 0;
 
+    private static DoubleCollection PSFaderTicksCreate(IReadOnlyList<int> pRates)
+    {
         var pTicks = new DoubleCollection { 0 };
         foreach (int pRate in pRates)
         {
             pTicks.Add(pRate);
         }
 
+        return pTicks;
+    }
+
+    private static Slider PSFaderRateBuild(double pMax, DoubleCollection pTicks, bool pSnap, double pPosition)
+    {
         var pSlider = new Slider
         {
             Minimum = 0,
@@ -40,70 +59,83 @@ internal static partial class PSFader
             Ticks = pTicks,
             TickPlacement = System.Windows.Controls.Primitives.TickPlacement.BottomRight,
             IsSnapToTickEnabled = pSnap,
-            Value = Math.Min(pStart, pMax),
+            Value = pPosition,
             Width = PSFaderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
         QSlider.QSliderAttach(pSlider);
         pSlider.IsSnapToTickEnabled = true;
-        pReadout.IsReadOnly = pSnap;
-        pReadout.Text = PSFaderDetentFormat(pStart, pZeroLabel);
+        return pSlider;
+    }
 
-        void PSFaderDetentApply(double pAt)
+    private static void PSFaderDetentAttach(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        IReadOnlyList<int> pRates,
+        bool pSnap,
+        double pMax,
+        string pZeroLabel,
+        UIElement? pNotice)
+    {
+        pSlider.ValueChanged += (_, _) => PSFaderDetentHandle(pSlider, pReadout, pSync, pZeroLabel, pNotice);
+        pReadout.KeyDown += (_, pEvent) => PSFaderReturnHandle(
+            pEvent,
+            () => PSFaderDetentCommit(pSlider, pReadout, pSync, pRates, pSnap, pMax, pZeroLabel, pNotice));
+        pReadout.LostKeyboardFocus += (_, _) =>
+            PSFaderDetentCommit(pSlider, pReadout, pSync, pRates, pSnap, pMax, pZeroLabel, pNotice);
+    }
+
+    private static void PSFaderDetentHandle(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        string pZeroLabel,
+        UIElement? pNotice)
+    {
+        if (!pSync.Value)
         {
-            if (pNotice is not null)
-            {
-                pNotice.Visibility = pAt <= 0 ? Visibility.Visible : Visibility.Collapsed;
-            }
+            PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pSlider.Value, pZeroLabel));
         }
 
-        PSFaderDetentApply(pStart);
+        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pSlider.Value));
+    }
 
-        bool pSync = false;
-        void PSFaderDetentCommit()
+    private static void PSFaderDetentCommit(
+        Slider pSlider,
+        TextBox pReadout,
+        StrongBox<bool> pSync,
+        IReadOnlyList<int> pRates,
+        bool pSnap,
+        double pMax,
+        string pZeroLabel,
+        UIElement? pNotice)
+    {
+        double pResolved = PSFaderDetentParse(pReadout.Text.Trim(), pZeroLabel, pSlider.Value, pRates, pSnap);
+        PSFaderSyncSet(pSync, true);
+        PSFaderPairSet(pSlider, pReadout, Math.Min(pResolved, pMax), PSFaderDetentFormat(pResolved, pZeroLabel));
+        PSFaderSyncSet(pSync, false);
+        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pResolved));
+    }
+
+    private static double PSFaderDetentParse(
+        string pTyped,
+        string pZeroLabel,
+        double pFallback,
+        IReadOnlyList<int> pRates,
+        bool pSnap)
+    {
+        if (pTyped.Length == 0 || string.Equals(pTyped, pZeroLabel, StringComparison.OrdinalIgnoreCase))
         {
-            string pTyped = pReadout.Text.Trim();
-            double pResolved;
-            if (pTyped.Length == 0 || string.Equals(pTyped, pZeroLabel, StringComparison.OrdinalIgnoreCase))
-            {
-                pResolved = 0;
-            }
-            else if (int.TryParse(pTyped, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pHz) && pHz > 0)
-            {
-                pResolved = PSFaderDetentResolve(pHz, pRates, pSnap);
-            }
-            else
-            {
-                pResolved = pSlider.Value;
-            }
-
-            pSync = true;
-            pSlider.Value = Math.Min(pResolved, pMax);
-            pReadout.Text = PSFaderDetentFormat(pResolved, pZeroLabel);
-            pReadout.CaretIndex = pReadout.Text.Length;
-            pSync = false;
-            PSFaderDetentApply(pResolved);
+            return 0;
         }
 
-        pSlider.ValueChanged += (_, _) =>
+        if (int.TryParse(pTyped, NumberStyles.Integer, CultureInfo.InvariantCulture, out int pHz) && pHz > 0)
         {
-            if (!pSync)
-            {
-                pReadout.Text = PSFaderDetentFormat(pSlider.Value, pZeroLabel);
-            }
+            return PSFaderDetentResolve(pHz, pRates, pSnap);
+        }
 
-            PSFaderDetentApply(pSlider.Value);
-        };
-        pReadout.KeyDown += (_, pEvent) =>
-        {
-            if (pEvent.Key == Key.Return)
-            {
-                PSFaderDetentCommit();
-                pEvent.Handled = true;
-            }
-        };
-        pReadout.LostKeyboardFocus += (_, _) => PSFaderDetentCommit();
-        return PSFaderRowBuild(pSlider, pReadout);
+        return pFallback;
     }
 
     private static double PSFaderDetentResolve(double pHz, IReadOnlyList<int> pRates, bool pSnap)

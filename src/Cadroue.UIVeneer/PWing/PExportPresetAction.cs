@@ -66,14 +66,20 @@ public sealed partial class PExport
 
     private Button PExportButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler? pClick)
     {
-        bool pEnabled = pClick is not null;
+        Button pButton = PExportIconBuild(pIconPath, pTooltip, pClick is not null);
+        PExportClickAttach(pButton, pClick);
+        return pButton;
+    }
+
+    private static Button PExportIconBuild(string pIconPath, string pTooltip, bool pEnabled)
+    {
         var pButton = new Button
         {
             Content = new Image
             {
                 Width = 20,
                 Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pEnabled ? PExportTextBrush : PExportMutedBrush),
+                Source = QIcon.QIconRead(pIconPath, PExportBrushRead(pEnabled)),
                 Stretch = Stretch.Uniform
             },
             ToolTip = pTooltip,
@@ -82,12 +88,17 @@ public sealed partial class PExport
             Margin = new Thickness(0, 0, 2, 0),
             IsEnabled = pEnabled
         };
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
+        return pButton;
+    }
+
+    private static Brush PExportBrushRead(bool pEnabled) => pEnabled ? PExportTextBrush : PExportMutedBrush;
+
+    private static void PExportClickAttach(Button pButton, RoutedEventHandler? pClick)
+    {
         if (pClick is not null)
         {
             pButton.Click += pClick;
         }
-
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
-        return pButton;
     }
 }

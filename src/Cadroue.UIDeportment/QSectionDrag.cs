@@ -39,12 +39,7 @@ public sealed class QSectionDrag
             return false;
         }
 
-        qSectionDragIndex = lIndex;
-        qSectionDragActive = false;
-        qSectionDragOrigin = true;
-        qSectionDragX = lX;
-        qSectionDragY = lY;
-        qSectionGhost = new QGhost(lGrabX, lGrabY);
+        QSectionDragPrepare(lIndex, lX, lY, lGrabX, lGrabY);
         return true;
     }
 
@@ -62,19 +57,12 @@ public sealed class QSectionDrag
             return false;
         }
 
-        if (!qSectionDragActive
-            && Math.Abs(lX - qSectionDragX) < lMinimumX
-            && Math.Abs(lY - qSectionDragY) < lMinimumY)
+        if (!qSectionDragActive && QSectionStillCheck(lX, lY, lMinimumX, lMinimumY))
         {
             return false;
         }
 
-        if (!qSectionDragActive)
-        {
-            qSectionDragActive = true;
-            QSectionDragStarted?.Invoke(lDragIndex);
-        }
-
+        QSectionDragStart(lDragIndex);
         QSectionLiveMove(lDragIndex, QSectionIndexResolve(lY, lTops, lHeights));
         return true;
     }
@@ -125,15 +113,50 @@ public sealed class QSectionDrag
         QSectionDragClear();
     }
 
-    private void QSectionLiveMove(int lSource, int lTarget)
+    private void QSectionDragPrepare(int lIndex, double lX, double lY, double lGrabX, double lGrabY)
     {
-        lTarget = Math.Clamp(lTarget, 0, qSection.QSectionRowCount);
-        int lInsert = lSource < lTarget ? lTarget - 1 : lTarget;
-        if (lSource == lInsert || !qFlow.QFlowSection.QFlowSectionMove(lSource, lTarget))
+        qSectionDragIndex = lIndex;
+        qSectionDragActive = false;
+        qSectionDragOrigin = true;
+        qSectionDragX = lX;
+        qSectionDragY = lY;
+        qSectionGhost = new QGhost(lGrabX, lGrabY);
+    }
+
+    private bool QSectionStillCheck(double lX, double lY, double lMinimumX, double lMinimumY) =>
+        Math.Abs(lX - qSectionDragX) < lMinimumX
+        && Math.Abs(lY - qSectionDragY) < lMinimumY;
+
+    private void QSectionDragStart(int lDragIndex)
+    {
+        if (qSectionDragActive)
         {
             return;
         }
 
+        qSectionDragActive = true;
+        QSectionDragStarted?.Invoke(lDragIndex);
+    }
+
+    private void QSectionLiveMove(int lSource, int lTarget)
+    {
+        (int lClamped, int lInsert) = QSectionMoveResolve(lSource, lTarget);
+        if (lSource == lInsert || !qFlow.QFlowSection.QFlowSectionMove(lSource, lClamped))
+        {
+            return;
+        }
+
+        QSectionDragUpdate(lSource, lInsert);
+    }
+
+    private (int, int) QSectionMoveResolve(int lSource, int lTarget)
+    {
+        int lClamped = Math.Clamp(lTarget, 0, qSection.QSectionRowCount);
+        return (lClamped, lSource < lClamped ? lClamped - 1 : lClamped);
+    }
+
+    private void QSectionDragUpdate(int lSource, int lInsert)
+    {
         qSectionDragIndex = lInsert;
         QSectionRowMoved?.Invoke(lSource, lInsert);
     }

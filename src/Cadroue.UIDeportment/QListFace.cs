@@ -49,10 +49,7 @@ public sealed class QListFace
             QListRow[] lRows = lGroup
                 .Select((lEntry, lIndex) => QListRowCreate(lEntry, lIndex < lGroup.Length - 1))
                 .ToArray();
-            string lTitle = lGroup.Length == 1
-                ? QLocalizationCatalog.QLocalizationTextRead("List.Locked.SummaryOne")
-                : QLocalizationCatalog.QLocalizationFormat("List.Locked.SummaryMany", lGroup.Length);
-            lCards.Add(new QListCard(true, lTitle, lRows));
+            lCards.Add(new QListCard(true, QListTitleRead(lGroup.Length), lRows));
         }
 
         return lCards;
@@ -70,6 +67,11 @@ public sealed class QListFace
             _ => "Plain"
         };
     }
+
+    private static string QListTitleRead(int lCount) =>
+        lCount == 1
+            ? QLocalizationCatalog.QLocalizationTextRead("List.Locked.SummaryOne")
+            : QLocalizationCatalog.QLocalizationFormat("List.Locked.SummaryMany", lCount);
 
     private QListRow QListRowCreate(LDocketEntry lItem, bool lLast)
     {

@@ -20,7 +20,7 @@ public sealed class PConvertTab : PTabSurface
         pList = new PList(lWorkspace.QWorkspaceList!);
         QConvertTab = lWorkspace.QWorkspaceMode.QConvertTabCreate();
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
-        QConvertTab.QConvertPresetMissing += PExport.PExportMissingShow;
+        PConvertEventsAttach();
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pExport);
         pTabGrid = PTabGridBuild(
@@ -42,4 +42,6 @@ public sealed class PConvertTab : PTabSurface
     public override PList? PTabList => pList;
 
     public override LSceneTabEntry PTabLayoutRead() => PTabLayoutCreate();
+
+    private void PConvertEventsAttach() => QConvertTab.QConvertPresetMissing += PExport.PExportMissingShow;
 }

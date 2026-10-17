@@ -39,14 +39,19 @@ public sealed class QFunnelDrag
             return false;
         }
 
-        if (Math.Abs(lX - qFunnelDragX) < lMinimumX && Math.Abs(lY - qFunnelDragY) < lMinimumY)
+        if (!QFunnelThresholdCheck(lX, lY, lMinimumX, lMinimumY))
         {
             return false;
         }
 
-        qFunnelDragActive = true;
+        QFunnelDragStart();
         return true;
     }
+
+    private bool QFunnelThresholdCheck(double lX, double lY, double lMinimumX, double lMinimumY) =>
+        !(Math.Abs(lX - qFunnelDragX) < lMinimumX && Math.Abs(lY - qFunnelDragY) < lMinimumY);
+
+    private void QFunnelDragStart() => qFunnelDragActive = true;
 
     public void QFunnelDragMove(double lPointer, IReadOnlyList<double> lCenters)
     {

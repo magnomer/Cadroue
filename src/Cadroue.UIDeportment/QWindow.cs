@@ -39,10 +39,15 @@ public sealed class QWindow
             lAtelier.CAtelierInspectorCreate,
             lAtelier.CAtelierEdit);
         QWindowScene = new QWindowScene(qStrip);
-        QWindowScene.QWindowSceneAdded += QWindowTabRaise;
-        QWindowScene.QWindowSceneRestored += QWindowFunnelRaise;
+        QWindowSceneAttach();
         QWindowLogo = new QLogoMenu(QWindowUsher);
         QWindowPart = new QWindowPart(this);
+    }
+
+    private void QWindowSceneAttach()
+    {
+        QWindowScene.QWindowSceneAdded += QWindowTabRaise;
+        QWindowScene.QWindowSceneRestored += QWindowFunnelRaise;
     }
 
     public QStrip QWindowStrip => qStrip;
@@ -101,8 +106,7 @@ public sealed class QWindow
             QWindowTabDetached?.Invoke(lPrevious);
         }
 
-        qWindowTab = lTab;
-        qWindowViewer = lViewer;
+        QWindowCurrentSet(lTab, lViewer);
         if (lTab is null)
         {
             return;
@@ -110,6 +114,12 @@ public sealed class QWindow
 
         QWindowTabAttached?.Invoke(lTab, LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
         QWindowVolumeSync(LPreference.LPreferenceStateCurrent);
+    }
+
+    private void QWindowCurrentSet(QStripTab? lTab, QViewer? lViewer)
+    {
+        qWindowTab = lTab;
+        qWindowViewer = lViewer;
     }
 
     public void QWindowTabsStart()
@@ -139,7 +149,7 @@ public sealed class QWindow
     {
         if (qWindowViewer is null)
         {
-            QStripTab? lMediaTab = qStrip.QStripTabs.FirstOrDefault(lTab => !lTab.QStripTabWorklist);
+            QStripTab? lMediaTab = QWindowMediaFind();
             if (lMediaTab is not null)
             {
                 qStrip.QStripSelect(lMediaTab);
@@ -151,6 +161,8 @@ public sealed class QWindow
             QWindowMediaOpened?.Invoke(lPath);
         }
     }
+
+    private QStripTab? QWindowMediaFind() => qStrip.QStripTabs.FirstOrDefault(lTab => !lTab.QStripTabWorklist);
 
     public void QWindowOptionsApply()
     {
@@ -180,25 +192,37 @@ public sealed class QWindow
 
     public void QWindowFrameSave(bool lNormal, QSashBounds lBounds, QSashBounds lRestore)
     {
-        QSashBounds lFrame = lNormal ? lBounds : lRestore;
-        if (lFrame.QSashWidth > 0 && lFrame.QSashHeight > 0)
+        if (QWindowFrameResolve(lNormal, lBounds, lRestore) is { } lState)
         {
-            LFrameStore.LFrameSave(new LFrameState
-            {
-                LFrameLeft = lFrame.QSashLeft,
-                LFrameTop = lFrame.QSashTop,
-                LFrameWidth = lFrame.QSashWidth,
-                LFrameHeight = lFrame.QSashHeight,
-                LFrameFlowHeight = LFrameStore.LFrameStateCurrent.LFrameFlowHeight
-            });
+            LFrameStore.LFrameSave(lState);
         }
+    }
+
+    private static LFrameState? QWindowFrameResolve(bool lNormal, QSashBounds lBounds, QSashBounds lRestore)
+    {
+        QSashBounds lFrame = lNormal ? lBounds : lRestore;
+        if (!(lFrame.QSashWidth > 0 && lFrame.QSashHeight > 0))
+        {
+            return null;
+        }
+
+        return new LFrameState
+        {
+            LFrameLeft = lFrame.QSashLeft,
+            LFrameTop = lFrame.QSashTop,
+            LFrameWidth = lFrame.QSashWidth,
+            LFrameHeight = lFrame.QSashHeight,
+            LFrameFlowHeight = LFrameStore.LFrameStateCurrent.LFrameFlowHeight
+        };
     }
 
     public void QWindowClose()
     {
         LScene.LSceneStateSave(QWindowScene.QWindowSceneRead(LScene.LSceneActiveName));
-        LRelayChannel.LRelayAcceptSeam = null;
+        QWindowDispatcherDetach();
     }
+
+    private static void QWindowDispatcherDetach() => LRelayChannel.LRelayAcceptSeam = null;
 
     public void QWindowRelayAccept(LRelay lRelay)
     {
@@ -240,11 +264,7 @@ public sealed class QWindow
         {
             if (lPreference.LPreferenceStartupMode == "DefaultTab")
             {
-                foreach (string lKey in lPreference.LPreferenceStartupTabs)
-                {
-                    QWindowTabAdded?.Invoke(new QWindowTab(lKey, null, null, null));
-                }
-
+                QWindowDefaultAdd(lPreference.LPreferenceStartupTabs);
                 qStrip.QStripSelect(qStrip.QStripTabs.FirstOrDefault());
                 QWindowScene.QWindowLoadingRecord(null);
                 return;
@@ -256,6 +276,14 @@ public sealed class QWindow
         finally
         {
             LTrace.LTraceLoadingSet(false);
+        }
+    }
+
+    private void QWindowDefaultAdd(IReadOnlyList<string> lKeys)
+    {
+        foreach (string lKey in lKeys)
+        {
+            QWindowTabAdded?.Invoke(new QWindowTab(lKey, null, null, null));
         }
     }
 

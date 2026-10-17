@@ -28,27 +28,7 @@ public sealed class QEditTab
         QEditCrop = new QEditTabCrop(QEditInspector, QEditProcessing, lViewer, QEditStore);
         QEditTool = new QEditTool(QEditInspector, lViewer);
         QEditProcessing.QProcessingOrderedSet(false);
-        QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
-        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCropboxHandle;
-        QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
-        QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
-        QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
-        QEditInspector.QInspectorSkip.QSkipActiveChanged += QEditSkipHandle;
-        lWhitebalance.QWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
-        lViewer.QViewerMediaChanged += QEditMediaHandle;
-        lViewer.QViewerEngineChanged += QEditColor.QEditCapableHandle;
-        lViewer.QViewerEngineChanged += lViewer.QViewerNeutral.QViewerNeutralCancel;
-        lViewer.QViewerNeutral.QViewerToolChanged += lWhitebalance.QWhitebalanceToolSet;
-        lViewer.QViewerNeutral.QViewerNeutralChanged += QEditColor.QEditNeutralHandle;
-        lViewer.QViewerNeutral.QViewerEstimateChanged += QEditColor.QEditEstimateApply;
-        lWhitebalance.QWhitebalanceToolChanged += lViewer.QViewerNeutral.QViewerToolSet;
-        lViewer.QCrop.QCropVideoChanged += QEditCrop.QEditCropShow;
-        QEditProcessing.QProcessingStepChanged += QEditStepHandle;
-        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
-        lList.QListPathChanged += QEditPathHandle;
-        lViewer.QViewerOpenNotice += QEditOpenHandle;
-        lList.QListItemsAdded += QEditStore.QEditItemsHandle;
-        lList.QListLockChanged += QEditTool.QEditLockHandle;
+        QEditAttach();
     }
 
     public event Action? QEditPresetMissing;
@@ -67,6 +47,31 @@ public sealed class QEditTab
     public QEditTabCrop QEditCrop { get; }
 
     public QEditTool QEditTool { get; }
+
+    private void QEditAttach()
+    {
+        QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
+        QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCropboxHandle;
+        QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
+        QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
+        QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
+        QEditInspector.QInspectorSkip.QSkipActiveChanged += QEditSkipHandle;
+        lWhitebalance.QWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
+        qEditViewer.QViewerMediaChanged += QEditMediaHandle;
+        qEditViewer.QViewerEngineChanged += QEditColor.QEditCapableHandle;
+        qEditViewer.QViewerEngineChanged += qEditViewer.QViewerNeutral.QViewerNeutralCancel;
+        qEditViewer.QViewerNeutral.QViewerToolChanged += lWhitebalance.QWhitebalanceToolSet;
+        qEditViewer.QViewerNeutral.QViewerNeutralChanged += QEditColor.QEditNeutralHandle;
+        qEditViewer.QViewerNeutral.QViewerEstimateChanged += QEditColor.QEditEstimateApply;
+        lWhitebalance.QWhitebalanceToolChanged += qEditViewer.QViewerNeutral.QViewerToolSet;
+        qEditViewer.QCrop.QCropVideoChanged += QEditCrop.QEditCropShow;
+        QEditProcessing.QProcessingStepChanged += QEditStepHandle;
+        qEditViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = qEditList.QListPathsAdd(lDropPaths);
+        qEditList.QListPathChanged += QEditPathHandle;
+        qEditViewer.QViewerOpenNotice += QEditOpenHandle;
+        qEditList.QListItemsAdded += QEditStore.QEditItemsHandle;
+        qEditList.QListLockChanged += QEditTool.QEditLockHandle;
+    }
 
     public void QEditClose()
     {

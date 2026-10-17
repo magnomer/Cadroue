@@ -36,13 +36,26 @@ internal sealed class PSVerdict : Window
     {
         psVerdictCurrent?.Close();
         var psVerdict = new PSVerdict(pOwner, pVerdict);
-        psVerdictCurrent = psVerdict;
+        PSVerdictCurrentSet(psVerdict);
         psVerdict.Show();
     }
+
+    private static void PSVerdictCurrentSet(PSVerdict? psVerdict) => psVerdictCurrent = psVerdict;
 
     private PSVerdict(Window pOwner, QSVerdict pVerdict)
     {
         lsVerdict = pVerdict;
+        PSVerdictWindowApply(pOwner, pVerdict);
+        QScrollbar.QScrollbarAttach(this);
+        Content = PSVerdictBuild();
+        PSGrabber.PSGrabberPlacementRestore(this, PSVerdictPlacementKey);
+        psVerdictGrabber = new PSGrabber(this);
+        psVerdictGrabber.PSGrabberAttach();
+        PSVerdictWindowAttach();
+    }
+
+    private void PSVerdictWindowApply(Window pOwner, QSVerdict pVerdict)
+    {
         Title = pVerdict.QSVerdictTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;
@@ -52,18 +65,26 @@ internal sealed class PSVerdict : Window
         MinHeight = PSVerdictHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        QScrollbar.QScrollbarAttach(this);
-        Content = PSVerdictBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSVerdictPlacementKey);
-        psVerdictGrabber = new PSGrabber(this);
-        psVerdictGrabber.PSGrabberAttach();
-        Closed += PSVerdictCloseHandle;
     }
+
+    private void PSVerdictWindowAttach() => Closed += PSVerdictCloseHandle;
+
+    private void PSVerdictWindowDetach() => Closed -= PSVerdictCloseHandle;
 
     private UIElement PSVerdictBuild() =>
         PSDialog.PSDialogBuild(this, lsVerdict.QSVerdictTitle, PSVerdictRootBuild());
 
     private DockPanel PSVerdictRootBuild()
+    {
+        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Encoder.Verification.Close"));
+        PSVerdictFooterAttach(pClose);
+        return PSVerdictFrameBuild(pClose);
+    }
+
+    private void PSVerdictFooterAttach(Button pClose) => pClose.Click += (_, _) => Close();
+
+    private DockPanel PSVerdictFrameBuild(Button pClose)
     {
         var pRoot = new DockPanel
         {
@@ -76,9 +97,6 @@ internal sealed class PSVerdict : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
-            "Encoder.Verification.Close"));
-        pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
@@ -149,6 +167,21 @@ internal sealed class PSVerdict : Window
 
     private UIElement PSVerdictRowBuild(QSVerdictRow pEntry)
     {
+        (StackPanel pRow, Grid pRowGrid) = PSVerdictRowCreate(pEntry);
+        if (!QSVerdict.QSVerdictDetailCheck(pEntry))
+        {
+            return pRow;
+        }
+
+        Border pDetail = PSVerdictDetailBuild(pEntry);
+        Button pChip = PSVerdictChipBuild(false);
+        PSVerdictChipAttach(pChip, pDetail);
+        PSVerdictDetailAdd(pRow, pRowGrid, pChip, pDetail);
+        return pRow;
+    }
+
+    private static (StackPanel PSVerdictRow, Grid PSVerdictGrid) PSVerdictRowCreate(QSVerdictRow pEntry)
+    {
         Grid pRowGrid = PSVerdictGridBuild();
         pRowGrid.MinHeight = PSField.PSFieldChipHeight;
         pRowGrid.Margin = new Thickness(0, 0, 0, PSVerdictRowGap);
@@ -158,40 +191,48 @@ internal sealed class PSVerdict : Window
 
         var pRow = new StackPanel();
         pRow.Children.Add(pRowGrid);
-        if (!QSVerdict.QSVerdictDetailCheck(pEntry))
+        return (pRow, pRowGrid);
+    }
+
+    private static Border PSVerdictDetailBuild(QSVerdictRow pEntry) => new()
+    {
+        Background = PSVerdictDetailFill,
+        CornerRadius = new CornerRadius(4),
+        Padding = new Thickness(10, 6, 10, 6),
+        Margin = new Thickness(0, 0, 0, PSVerdictRowGap),
+        Visibility = Visibility.Collapsed,
+        Child = new TextBlock
         {
-            return pRow;
+            Text = pEntry.QSVerdictMessage,
+            Foreground = PSField.PSFieldMuted,
+            FontFamily = PSVerdictDetailFont,
+            TextWrapping = TextWrapping.Wrap
         }
+    };
 
-        var pDetail = new Border
-        {
-            Background = PSVerdictDetailFill,
-            CornerRadius = new CornerRadius(4),
-            Padding = new Thickness(10, 6, 10, 6),
-            Margin = new Thickness(0, 0, 0, PSVerdictRowGap),
-            Visibility = Visibility.Collapsed,
-            Child = new TextBlock
-            {
-                Text = pEntry.QSVerdictMessage,
-                Foreground = PSField.PSFieldMuted,
-                FontFamily = PSVerdictDetailFont,
-                TextWrapping = TextWrapping.Wrap
-            }
-        };
+    private static void PSVerdictChipAttach(Button pChip, Border pDetail) =>
+        pChip.Click += (_, _) => PSVerdictDetailToggle(pDetail, pChip);
 
-        Button pChip = PSVerdictChipBuild(false);
+    private static void PSVerdictDetailAdd(StackPanel pRow, Grid pRowGrid, Button pChip, Border pDetail)
+    {
         pChip.HorizontalAlignment = HorizontalAlignment.Left;
-        pChip.Click += (_, _) =>
-        {
-            bool pShown = pDetail.Visibility == Visibility.Visible;
-            pDetail.Visibility = pShown ? Visibility.Collapsed : Visibility.Visible;
-            pChip.Content = PSVerdictChipFormat(!pShown);
-        };
-
         PSVerdictCellAdd(pRowGrid, 3, pChip);
         pRow.Children.Add(pDetail);
-        return pRow;
     }
+
+    private static void PSVerdictDetailToggle(Border pDetail, Button pChip)
+    {
+        bool pShown = PSVerdictDetailCheck(pDetail);
+        PSVerdictDetailApply(pDetail, !pShown);
+        PSVerdictChipShow(pChip, PSVerdictChipFormat(!pShown));
+    }
+
+    private static bool PSVerdictDetailCheck(Border pDetail) => pDetail.Visibility == Visibility.Visible;
+
+    private static void PSVerdictDetailApply(Border pDetail, bool pShown) =>
+        pDetail.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
+
+    private static void PSVerdictChipShow(Button pChip, string pText) => pChip.Content = pText;
 
     private static void PSVerdictCellAdd(Grid pGrid, int pColumn, UIElement pCell)
     {
@@ -208,9 +249,24 @@ internal sealed class PSVerdict : Window
         Margin = new Thickness(0, 0, 10, 0)
     };
 
-    private static UIElement PSVerdictBadgeBuild(bool pSuccess) => new Border
+    private static UIElement PSVerdictBadgeBuild(bool pSuccess)
     {
-        Background = pSuccess ? PSVerdictPassFill : PSVerdictFailFill,
+        (Brush pFill, Brush pInk) = PSVerdictTintRead(pSuccess);
+        string pLabel = PSVerdictBadgeFormat(pSuccess);
+        return PSVerdictBadgeCreate(pFill, pInk, pLabel);
+    }
+
+    private static (Brush PSVerdictFill, Brush PSVerdictInk) PSVerdictTintRead(bool pSuccess) =>
+        (pSuccess ? PSVerdictPassFill : PSVerdictFailFill, pSuccess ? PSVerdictPassInk : PSVerdictFailInk);
+
+    private static string PSVerdictBadgeFormat(bool pSuccess) =>
+        QLocalizationCatalog.QLocalizationTextRead(pSuccess
+            ? "Encoder.Verification.Available"
+            : "Encoder.Verification.Unavailable");
+
+    private static Border PSVerdictBadgeCreate(Brush pFill, Brush pInk, string pLabel) => new()
+    {
+        Background = pFill,
         CornerRadius = new CornerRadius(3),
         Padding = new Thickness(8, 1, 8, 1),
         HorizontalAlignment = HorizontalAlignment.Left,
@@ -218,10 +274,8 @@ internal sealed class PSVerdict : Window
         Margin = new Thickness(0, 0, 10, 0),
         Child = new TextBlock
         {
-            Text = QLocalizationCatalog.QLocalizationTextRead(pSuccess
-                ? "Encoder.Verification.Available"
-                : "Encoder.Verification.Unavailable"),
-            Foreground = pSuccess ? PSVerdictPassInk : PSVerdictFailInk,
+            Text = pLabel,
+            Foreground = pInk,
             FontWeight = FontWeights.SemiBold
         }
     };
@@ -251,10 +305,10 @@ internal sealed class PSVerdict : Window
     {
         PSGrabber.PSGrabberPlacementSave(this, PSVerdictPlacementKey);
         psVerdictGrabber.PSGrabberDetach();
-        Closed -= PSVerdictCloseHandle;
+        PSVerdictWindowDetach();
         if (ReferenceEquals(psVerdictCurrent, this))
         {
-            psVerdictCurrent = null;
+            PSVerdictCurrentSet(null);
         }
     }
 }

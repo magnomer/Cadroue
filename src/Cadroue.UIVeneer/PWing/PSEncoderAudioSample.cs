@@ -12,15 +12,28 @@ internal sealed partial class PSEncoder
 
     private void PSAudioSampleRebuild()
     {
-        string pStored = psAudioSampleReadout is null
-            ? lsExportSpecificEdit.LPresetAudio.LPresetSampleRate
-            : PSAudioSampleRead();
+        string pStored = PSAudioHertzRead();
         string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
         IReadOnlyList<int> pRates = LInventory.LInventorySampleRead(pEncoder);
+        (IReadOnlyList<int> pTicks, bool pDiscrete, double pMaximum) = PSAudioScaleResolve(pRates);
+        PSAudioDetentRebuild(pTicks, pDiscrete, pMaximum, pStored);
+    }
+
+    private string PSAudioHertzRead() => psAudioSampleReadout is null
+        ? lsExportSpecificEdit.LPresetAudio.LPresetSampleRate
+        : PSAudioSampleRead();
+
+    private static (IReadOnlyList<int> PSAudioTicks, bool PSAudioDiscrete, double PSAudioMaximum) PSAudioScaleResolve(
+        IReadOnlyList<int> pRates)
+    {
         bool pDiscrete = pRates.Count > 0;
         IReadOnlyList<int> pTicks = pDiscrete ? pRates : psAudioSampleStandard;
         double pMaximum = pTicks.Count > 0 ? pTicks[^1] : 48000;
+        return (pTicks, pDiscrete, pMaximum);
+    }
 
+    private void PSAudioDetentRebuild(IReadOnlyList<int> pTicks, bool pDiscrete, double pMaximum, string pStored)
+    {
         psAudioSampleReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));

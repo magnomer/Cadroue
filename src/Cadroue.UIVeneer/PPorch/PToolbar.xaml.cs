@@ -197,14 +197,25 @@ public partial class PToolbar : UserControl
         PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAsset/PMenu/PMenuShortcuts.svg");
         PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAsset/PMenu/PMenuLog.svg");
         PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAsset/PMenu/PMenuAbout.svg");
-        MenuItem pDebugItem = QMenu.QMenuItemBuild("Debug");
-        pDebugItem.Visibility = PLook.PLookVisible[QChrome.QChromeDebugVisible];
-        pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
-        pLogoMenu.Items.Add(pDebugItem);
+        PLogoDebugAppend(pLogoMenu);
         PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAsset/PMenu/PMenuExit.svg");
 
         pLogoMenu.IsOpen = true;
     }
+
+    private void PLogoDebugAppend(ContextMenu pLogoMenu)
+    {
+        MenuItem pDebugItem = QMenu.QMenuItemBuild("Debug");
+        PLogoDebugShow(pDebugItem);
+        PLogoDebugAttach(pDebugItem);
+        pLogoMenu.Items.Add(pDebugItem);
+    }
+
+    private static void PLogoDebugShow(MenuItem pDebugItem) =>
+        pDebugItem.Visibility = PLook.PLookVisible[QChrome.QChromeDebugVisible];
+
+    private void PLogoDebugAttach(MenuItem pDebugItem) =>
+        pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
 
     private void PLogoItemAppend(
         ContextMenu pLogoMenu,
@@ -215,7 +226,10 @@ public partial class PToolbar : UserControl
         MenuItem pLogoMenuItem = QMenu.QMenuItemBuild(
             QLocalizationCatalog.QLocalizationTextRead(pLogoMenuKey),
             QMenu.QMenuIconRead(pLogoMenuIconPath));
-        pLogoMenuItem.Click += (_, _) => pLogoActions[pLogoMenuToken](this);
+        PLogoItemAttach(pLogoMenuItem, pLogoMenuToken);
         pLogoMenu.Items.Add(pLogoMenuItem);
     }
+
+    private void PLogoItemAttach(MenuItem pLogoMenuItem, string pLogoMenuToken) =>
+        pLogoMenuItem.Click += (_, _) => pLogoActions[pLogoMenuToken](this);
 }

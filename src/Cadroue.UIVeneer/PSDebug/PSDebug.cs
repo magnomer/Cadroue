@@ -138,16 +138,30 @@ internal sealed class PSDebug : Window
             return;
         }
 
-        psDebugCurrent = new PSDebug(pOwner, qLogoMenuOwner);
-        psDebugCurrent.Show();
+        var pDebug = new PSDebug(pOwner, qLogoMenuOwner);
+        PSDebugCurrentSet(pDebug);
+        pDebug.Show();
     }
+
+    private static void PSDebugCurrentSet(PSDebug? pDebug) => psDebugCurrent = pDebug;
 
     private PSDebug(Window pOwner, QLogoMenu qLogoMenuOwner)
     {
         psDebugApplicationOwner = (PWindow)pOwner;
         qLogoMenu = qLogoMenuOwner;
-        Title = "Debug";
-        Owner = pOwner;
+        PSDebugTitleSet();
+        PSDebugOwnerApply(pOwner);
+        PSDebugFrameApply();
+        PSDebugBuild();
+        PSDebugClosedAttach();
+    }
+
+    private void PSDebugTitleSet() => Title = "Debug";
+
+    private void PSDebugOwnerApply(Window pOwner) => Owner = pOwner;
+
+    private void PSDebugFrameApply()
+    {
         Width = PSDebugWidth;
         Height = PSDebugHeight;
         MinWidth = 520;
@@ -155,11 +169,11 @@ internal sealed class PSDebug : Window
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
         Background = Brushes.White;
         FontSize = PSField.PSFieldFontSize;
-        Content = PSDebugBuild();
-        Closed += (_, _) => psDebugCurrent = null;
     }
 
-    private UIElement PSDebugBuild()
+    private void PSDebugClosedAttach() => Closed += (_, _) => PSDebugCurrentSet(null);
+
+    private void PSDebugBuild()
     {
         var pRoot = new StackPanel { Margin = new Thickness(18) };
         pRoot.Children.Add(PSDebugHeadingBuild("Subwindows"));
@@ -208,7 +222,7 @@ internal sealed class PSDebug : Window
         }
         pRoot.Children.Add(pMessages);
 
-        return new ScrollViewer
+        Content = new ScrollViewer
         {
             Content = pRoot,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
@@ -272,8 +286,11 @@ internal sealed class PSDebug : Window
         var pFlow = new PFlow(qPair.QWorkspaceFlow);
         var pViewer = new PViewer(qPair.QWorkspaceViewer);
         Window pMonitor = PSMonitor.PSMonitorShow(Owner, pSource, pFlow, pViewer);
-        pMonitor.Closed += (_, _) => pSource.Dispose();
+        PSDebugMonitorAttach(pMonitor, pSource);
     }
+
+    private static void PSDebugMonitorAttach(Window pMonitor, QSMonitor pSource) =>
+        pMonitor.Closed += (_, _) => pSource.Dispose();
 
     private static TextBlock PSDebugHeadingBuild(string pText) => new()
     {
@@ -292,16 +309,20 @@ internal sealed class PSDebug : Window
 
     private static void PSDebugButtonAdd(Panel pPanel, string pText, Action pAction)
     {
-        var pButton = new Button
-        {
-            Content = pText,
-            MinWidth = 150,
-            MinHeight = 34,
-            Margin = new Thickness(0, 0, 8, 8),
-            Padding = new Thickness(10, 5, 10, 5),
-            HorizontalContentAlignment = HorizontalAlignment.Left
-        };
-        pButton.Click += (_, _) => pAction();
+        Button pButton = PSDebugButtonBuild(pText);
+        PSDebugClickAttach(pButton, pAction);
         pPanel.Children.Add(pButton);
     }
+
+    private static Button PSDebugButtonBuild(string pText) => new()
+    {
+        Content = pText,
+        MinWidth = 150,
+        MinHeight = 34,
+        Margin = new Thickness(0, 0, 8, 8),
+        Padding = new Thickness(10, 5, 10, 5),
+        HorizontalContentAlignment = HorizontalAlignment.Left
+    };
+
+    private static void PSDebugClickAttach(Button pButton, Action pAction) => pButton.Click += (_, _) => pAction();
 }

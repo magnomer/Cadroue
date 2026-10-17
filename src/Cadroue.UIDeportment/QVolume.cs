@@ -41,30 +41,16 @@ public sealed class QVolume
         qVolumeActive = QContract.QContractFind<CheckBox>(QVolumeBody, QVolumeActivePart);
         qVolumeStack = QContract.QContractFind<StackPanel>(QVolumeBody, QVolumeStackPart);
         qVolumeClip = QContract.QContractFind<TextBlock>(QVolumeBody, QVolumeClipPart);
-
-        qVolumeActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
-        qVolumeActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ApplyTooltip");
-        QVolumePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
-        QVolumePersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.PersistentTooltip");
-        qVolumeClip.Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ClipNotice");
-        QTool.QToolSwitchAttach(qVolumeActive, qVolumeGate.CVolumeActiveSet);
-        QTool.QToolSwitchAttach(QVolumePersistent, qVolumeGate.CVolumePersistentSet);
-
         qVolumeField = QField.QFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.Gain"),
             QVolumeUnit,
             QVolumeLeast,
             QVolumeMost,
             QVolumeOrigin);
-        QField.QFieldAttach(
-            qVolumeField,
-            QVolumeLeast,
-            QVolumeMost,
-            () => qVolumeGate.CVolumeGain,
-            qVolumeGate.CVolumeGainSet);
         qVolumeStack.Children.Insert(0, qVolumeField);
 
-        qVolumeGate.CVolumeChanged += QVolumeUpdate;
+        QVolumeTextShow();
+        QVolumeHandlersAttach();
         QVolumeUpdate();
     }
 
@@ -72,12 +58,38 @@ public sealed class QVolume
 
     public CheckBox QVolumePersistent { get; }
 
+    private void QVolumeTextShow()
+    {
+        qVolumeActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qVolumeActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ApplyTooltip");
+        QVolumePersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QVolumePersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.PersistentTooltip");
+        qVolumeClip.Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Volume.ClipNotice");
+    }
+
+    // Every input goes to the gate, and every gate change comes back to the controls.
+    private void QVolumeHandlersAttach()
+    {
+        QTool.QToolSwitchAttach(qVolumeActive, qVolumeGate.CVolumeActiveSet);
+        QTool.QToolSwitchAttach(QVolumePersistent, qVolumeGate.CVolumePersistentSet);
+        QField.QFieldAttach(
+            qVolumeField,
+            QVolumeLeast,
+            QVolumeMost,
+            () => qVolumeGate.CVolumeGain,
+            qVolumeGate.CVolumeGainSet);
+        qVolumeGate.CVolumeChanged += QVolumeUpdate;
+    }
+
     private void QVolumeUpdate()
     {
         QTool.QToolSwitchUpdate(qVolumeActive, qVolumeGate.CVolumeActive);
         QTool.QToolSwitchUpdate(QVolumePersistent, qVolumeGate.CVolumePersistent);
         QField.QFieldUpdate(qVolumeField, qVolumeGate.CVolumeGain, QVolumePattern);
         QTool.QToolStackUpdate(qVolumeStack, qVolumeGate.CVolumeActive);
-        qVolumeClip.Visibility = qVolumeGate.CVolumeClipShown ? Visibility.Visible : Visibility.Collapsed;
+        qVolumeClip.Visibility = QVolumeClipResolve(qVolumeGate.CVolumeClipShown);
     }
+
+    private static Visibility QVolumeClipResolve(bool lClipShown) =>
+        lClipShown ? Visibility.Visible : Visibility.Collapsed;
 }

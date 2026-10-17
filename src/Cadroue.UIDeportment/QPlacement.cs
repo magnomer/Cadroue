@@ -25,6 +25,16 @@ public static class QPlacement
         out double lHeight)
     {
         LPlacement? lPlacement = QPlacementFind(lPlacementKey);
+        return QPlacementResolve(lPlacement, out lLeft, out lTop, out lWidth, out lHeight);
+    }
+
+    private static bool QPlacementResolve(
+        LPlacement? lPlacement,
+        out double lLeft,
+        out double lTop,
+        out double lWidth,
+        out double lHeight)
+    {
         lLeft = lPlacement?.LPlacementLeft ?? 0;
         lTop = lPlacement?.LPlacementTop ?? 0;
         lWidth = lPlacement?.LPlacementWidth ?? 0;

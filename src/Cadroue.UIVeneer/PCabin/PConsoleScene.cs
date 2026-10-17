@@ -28,6 +28,13 @@ public sealed class PConsoleScene : UserControl
     {
         lScene = lSceneOwner;
         pConsoleRelayCombo = PConsoleControl.PConsoleComboBuild();
+        Content = PConsolePanelBuild();
+        PConsoleEventsAttach();
+        lScene.QConsoleSceneRebuild();
+    }
+
+    private StackPanel PConsolePanelBuild()
+    {
         var pControls = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -46,8 +53,11 @@ public sealed class PConsoleScene : UserControl
             "PExportImport.svg",
             QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportTooltip"),
             PConsoleImportHandle));
-        Content = pControls;
+        return pControls;
+    }
 
+    private void PConsoleEventsAttach()
+    {
         pConsoleRelayCombo.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PConsoleDeleteHandle));
         pConsoleRelayCombo.SelectionChanged += PConsoleSelectHandle;
         pConsoleRelayCombo.DropDownOpened += PConsoleOpenHandle;
@@ -64,7 +74,6 @@ public sealed class PConsoleScene : UserControl
         Loaded += PConsoleCaretAttach;
         Loaded += PConsoleLoadHandle;
         Unloaded += PConsoleUnloadHandle;
-        lScene.QConsoleSceneRebuild();
     }
 
     private void PConsoleLoadHandle(object pSender, RoutedEventArgs pArguments)
@@ -116,28 +125,32 @@ public sealed class PConsoleScene : UserControl
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        var pDialog = new SaveFileDialog
-        {
-            Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
-            Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-            DefaultExt = "json",
-            AddExtension = true,
-            FileName = lScene.QConsoleFileResolve(pConsoleRelayCombo.Text)
-        };
+        SaveFileDialog pDialog = PConsoleExportBuild();
         lScene.QConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
     }
 
+    private SaveFileDialog PConsoleExportBuild() => new()
+    {
+        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
+        DefaultExt = "json",
+        AddExtension = true,
+        FileName = lScene.QConsoleFileResolve(pConsoleRelayCombo.Text)
+    };
+
     private void PConsoleImportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        var pDialog = new OpenFileDialog
-        {
-            Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
-            Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-            DefaultExt = "json",
-            CheckFileExists = true
-        };
+        OpenFileDialog pDialog = PConsoleImportBuild();
         lScene.QConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
     }
+
+    private static OpenFileDialog PConsoleImportBuild() => new()
+    {
+        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
+        DefaultExt = "json",
+        CheckFileExists = true
+    };
 
     private void PConsoleListApply(IReadOnlyList<string> pNames) => pConsoleRelayCombo.ItemsSource = pNames;
 
@@ -157,9 +170,11 @@ public sealed class PConsoleScene : UserControl
     private TextBox? PConsoleBoxRead() =>
         pConsoleRelayCombo.Template.FindName(PConsoleEditablePart, pConsoleRelayCombo) as TextBox;
 
+    private void PConsoleLoadedDetach() => Loaded -= PConsoleCaretAttach;
+
     private void PConsoleCaretAttach(object pSender, RoutedEventArgs pArguments)
     {
-        Loaded -= PConsoleCaretAttach;
+        PConsoleLoadedDetach();
         pConsoleRelayCombo.ApplyTemplate();
         TextBox? pEditableBox = PConsoleBoxRead();
         pEditableBox?.SetValue(TextBoxBase.IsReadOnlyProperty, true);

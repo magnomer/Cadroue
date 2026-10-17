@@ -11,41 +11,83 @@ internal sealed partial class PSEncoder
     private void PSNameDragRun(FrameworkElement pChip, string pToken, Point pGrabOffset)
     {
         var pRoot = Content as UIElement;
-        AdornerLayer? pLayer = pRoot is null ? null : AdornerLayer.GetAdornerLayer(pRoot);
-        PSNameDragAdorner? pDragAdorner = null;
-        if (pRoot is not null && pLayer is not null)
-        {
-            pDragAdorner = new PSNameDragAdorner(pRoot, pChip, pGrabOffset);
-            pLayer.Add(pDragAdorner);
-        }
-
-        void PSNameFeedbackHandle(object pSender, GiveFeedbackEventArgs pEvent)
-        {
-            if (pDragAdorner is null || pRoot is null || !PSNameCursorRead(out PSNamePoint pCursor))
-            {
-                return;
-            }
-
-            pDragAdorner.PSNameDragMove(pRoot.PointFromScreen(new Point(pCursor.PSNameX, pCursor.PSNameY)));
-            pEvent.UseDefaultCursors = true;
-            pEvent.Handled = true;
-        }
-
-        pChip.GiveFeedback += PSNameFeedbackHandle;
+        AdornerLayer? pLayer = PSNameLayerRead(pRoot);
+        PSNameDragAdorner? pDragAdorner = PSNameAdornerAdd(pRoot, pLayer, pChip, pGrabOffset);
+        GiveFeedbackEventHandler pFeedback = PSNameFeedbackAttach(pChip, pRoot, pDragAdorner);
         try
         {
-            var pData = new DataObject();
-            pData.SetData(QTokenControl.QTokenControlKind, pToken);
-            pData.SetData(DataFormats.Text, pToken);
-            _ = DragDrop.DoDragDrop(pChip, pData, DragDropEffects.Copy);
+            PSNameDragStart(pChip, PSNameDataCreate(pToken));
         }
         finally
         {
-            pChip.GiveFeedback -= PSNameFeedbackHandle;
-            if (pDragAdorner is not null)
-            {
-                pLayer?.Remove(pDragAdorner);
-            }
+            PSNameFeedbackDetach(pChip, pFeedback);
+            PSNameAdornerRemove(pLayer, pDragAdorner);
+        }
+    }
+
+    private static AdornerLayer? PSNameLayerRead(UIElement? pRoot) =>
+        pRoot is null ? null : AdornerLayer.GetAdornerLayer(pRoot);
+
+    private static PSNameDragAdorner? PSNameAdornerAdd(
+        UIElement? pRoot,
+        AdornerLayer? pLayer,
+        FrameworkElement pChip,
+        Point pGrabOffset)
+    {
+        if (pRoot is null || pLayer is null)
+        {
+            return null;
+        }
+
+        var pDragAdorner = new PSNameDragAdorner(pRoot, pChip, pGrabOffset);
+        pLayer.Add(pDragAdorner);
+        return pDragAdorner;
+    }
+
+    private static GiveFeedbackEventHandler PSNameFeedbackAttach(
+        FrameworkElement pChip,
+        UIElement? pRoot,
+        PSNameDragAdorner? pDragAdorner)
+    {
+        GiveFeedbackEventHandler pFeedback = (_, pEvent) => PSNameFeedbackHandle(pRoot, pDragAdorner, pEvent);
+        pChip.GiveFeedback += pFeedback;
+        return pFeedback;
+    }
+
+    private static void PSNameFeedbackHandle(
+        UIElement? pRoot,
+        PSNameDragAdorner? pDragAdorner,
+        GiveFeedbackEventArgs pEvent)
+    {
+        if (pDragAdorner is null || pRoot is null || !PSNameCursorRead(out PSNamePoint pCursor))
+        {
+            return;
+        }
+
+        pDragAdorner.PSNameDragMove(pRoot.PointFromScreen(new Point(pCursor.PSNameX, pCursor.PSNameY)));
+        pEvent.UseDefaultCursors = true;
+        pEvent.Handled = true;
+    }
+
+    private static DataObject PSNameDataCreate(string pToken)
+    {
+        var pData = new DataObject();
+        pData.SetData(QTokenControl.QTokenControlKind, pToken);
+        pData.SetData(DataFormats.Text, pToken);
+        return pData;
+    }
+
+    private static void PSNameDragStart(FrameworkElement pChip, DataObject pData) =>
+        _ = DragDrop.DoDragDrop(pChip, pData, DragDropEffects.Copy);
+
+    private static void PSNameFeedbackDetach(FrameworkElement pChip, GiveFeedbackEventHandler pFeedback) =>
+        pChip.GiveFeedback -= pFeedback;
+
+    private static void PSNameAdornerRemove(AdornerLayer? pLayer, PSNameDragAdorner? pDragAdorner)
+    {
+        if (pDragAdorner is not null)
+        {
+            pLayer?.Remove(pDragAdorner);
         }
     }
 

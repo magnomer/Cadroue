@@ -37,6 +37,27 @@ public sealed class PLogWindow : Window
         pLogVerboseBox = PLogVerboseBuild();
         pLogFeed = PLogFeedBuild();
 
+        PLogLookApply();
+        QScrollbar.QScrollbarAttach(this);
+        Content = PLogContentBuild();
+
+        PLogAttach();
+        QLog.QLogAttach();
+
+        pLogFlushTimer = PLogTimerCreate();
+        PLogTimerAttach();
+        pLogFlushTimer.Start();
+
+        PSGrabber.PSGrabberPlacementRestore(this, PLogPlacementKey);
+        pLogGrabber = new PSGrabber(this);
+        pLogGrabber.PSGrabberAttach();
+        pLogOwner.Closed += PLogOwnerHandle;
+        PLogOwnerPlace();
+        PLogCloseAttach();
+    }
+
+    private void PLogLookApply()
+    {
         Title = QLocalizationCatalog.QLocalizationTextRead("Log.Window.Title");
         Width = 860;
         Height = 560;
@@ -44,9 +65,10 @@ public sealed class PLogWindow : Window
         MinHeight = 380;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        QScrollbar.QScrollbarAttach(this);
-        Content = PLogContentBuild();
+    }
 
+    private void PLogAttach()
+    {
         QLog.QLogFilesChanged += PLogFilesApply;
         QLog.QLogRowsRebuilt += PLogRowsReset;
         QLog.QLogRowAppended += PLogRowAppend;
@@ -56,30 +78,39 @@ public sealed class PLogWindow : Window
         QLog.QLogCopied += PLogTextCopy;
         pLogFileCombo.SelectionChanged += PLogFileHandle;
         pLogFileCombo.DropDownOpened += PLogFilesHandle;
-        QLog.QLogAttach();
+    }
 
-        pLogFlushTimer = new DispatcherTimer(DispatcherPriority.Background)
-        {
-            Interval = TimeSpan.FromMilliseconds(PLogFlushMilliseconds)
-        };
-        pLogFlushTimer.Tick += PLogFlushHandle;
-        pLogFlushTimer.Start();
+    private static DispatcherTimer PLogTimerCreate() => new(DispatcherPriority.Background)
+    {
+        Interval = TimeSpan.FromMilliseconds(PLogFlushMilliseconds)
+    };
 
-        PSGrabber.PSGrabberPlacementRestore(this, PLogPlacementKey);
-        pLogGrabber = new PSGrabber(this);
-        pLogGrabber.PSGrabberAttach();
-        pLogOwner.Closed += PLogOwnerHandle;
-        PLogOwnerPlace();
-        Closed += PLogCloseHandle;
+    private void PLogTimerAttach() => pLogFlushTimer.Tick += PLogFlushHandle;
+
+    private void PLogTimerDetach() => pLogFlushTimer.Tick -= PLogFlushHandle;
+
+    private void PLogCloseAttach() => Closed += PLogCloseHandle;
+
+    private void PLogDetach()
+    {
+        pLogFileCombo.SelectionChanged -= PLogFileHandle;
+        pLogFileCombo.DropDownOpened -= PLogFilesHandle;
+        Closed -= PLogCloseHandle;
+        pLogOwner.Closed -= PLogOwnerHandle;
     }
 
     public static void PLogWindowShow(Window pOwner, Func<QLog> lLogCreate)
     {
         PLogWindow pWindow = System.Windows.Application.Current.Windows.OfType<PLogWindow>().FirstOrDefault()
             ?? new PLogWindow(pOwner, lLogCreate());
-        pWindow.WindowState = PLook.PLookUnminimized[pWindow.WindowState];
-        pWindow.Show();
-        pWindow.Activate();
+        pWindow.PLogFrontShow();
+    }
+
+    private void PLogFrontShow()
+    {
+        WindowState = PLook.PLookUnminimized[WindowState];
+        Show();
+        Activate();
     }
 
     private void PLogOwnerPlace()
@@ -162,14 +193,11 @@ public sealed class PLogWindow : Window
     private void PLogCloseHandle(object? sender, EventArgs e)
     {
         pLogFlushTimer.Stop();
-        pLogFlushTimer.Tick -= PLogFlushHandle;
+        PLogTimerDetach();
         PSGrabber.PSGrabberPlacementSave(this, PLogPlacementKey);
         pLogGrabber.PSGrabberDetach();
         QLog.QLogDetach();
-        pLogFileCombo.SelectionChanged -= PLogFileHandle;
-        pLogFileCombo.DropDownOpened -= PLogFilesHandle;
-        Closed -= PLogCloseHandle;
-        pLogOwner.Closed -= PLogOwnerHandle;
+        PLogDetach();
     }
 
     private UIElement PLogContentBuild()
@@ -210,7 +238,7 @@ public sealed class PLogWindow : Window
             PLogOpenIcon,
             QLocalizationCatalog.QLocalizationTextRead("Log.Button.Open"),
             new Thickness(0, 0, 8, 0));
-        pLogOpenButton.Click += (_, _) => QLog.QLogFolderOpen();
+        PLogClickAttach(pLogOpenButton, (_, _) => QLog.QLogFolderOpen());
         Button pLogCopyButton = PLogButtonBuild(
             QLocalizationCatalog.QLocalizationTextRead("Log.Button.Copy"),
             (_, _) => QLog.QLogTextCopy());
@@ -267,11 +295,16 @@ public sealed class PLogWindow : Window
         VirtualizingPanel.SetIsVirtualizing(pLogFeedList, true);
         VirtualizingPanel.SetVirtualizationMode(pLogFeedList, VirtualizationMode.Recycling);
         QScrollbar.QScrollbarAttach(pLogFeedList);
+        PLogFeedAttach(pLogFeedList);
+        return pLogFeedList;
+    }
+
+    private void PLogFeedAttach(ListBox pLogFeedList)
+    {
         pLogFeedList.AddHandler(
             ScrollViewer.ScrollChangedEvent,
             new ScrollChangedEventHandler(PLogScrollHandle));
         pLogFeedList.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PLogDetailToggle));
-        return pLogFeedList;
     }
 
     private CheckBox PLogVerboseBuild()
@@ -286,9 +319,14 @@ public sealed class PLogWindow : Window
 
         QInteractionClick.QInteractionClickAttach(pLogVerbose);
         QCheckbox.QCheckboxAttach(pLogVerbose);
+        PLogVerboseAttach(pLogVerbose);
+        return pLogVerbose;
+    }
+
+    private void PLogVerboseAttach(CheckBox pLogVerbose)
+    {
         pLogVerbose.Checked += (_, _) => QLog.QLogVerboseSet(true);
         pLogVerbose.Unchecked += (_, _) => QLog.QLogVerboseSet(false);
-        return pLogVerbose;
     }
 
     private static ComboBox PLogComboBuild(double pLogWidth)
@@ -314,8 +352,11 @@ public sealed class PLogWindow : Window
             Margin = new Thickness(0, 0, 8, 0),
             VerticalAlignment = VerticalAlignment.Center
         };
-        pLogButton.Click += pLogClick;
+        PLogClickAttach(pLogButton, pLogClick);
         QButton.QButtonAttach(pLogButton, QButtonLook.QButtonLookWhite);
         return pLogButton;
     }
+
+    private static void PLogClickAttach(Button pLogButton, RoutedEventHandler pLogClick) =>
+        pLogButton.Click += pLogClick;
 }

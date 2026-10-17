@@ -66,20 +66,27 @@ public sealed class QRail
             return false;
         }
 
-        if (lClickCount >= 2 && lNameHit)
+        if (QRailEditCheck(lClickCount, lNameHit))
         {
             QRailDragClear();
             qStrip.QStripEditSet(lTab, true);
             return false;
         }
 
+        QRailDragPrepare(lTab, lX, lY, lOffsetX, lOffsetY);
+        qStrip.QStripSelect(lTab);
+        return true;
+    }
+
+    private static bool QRailEditCheck(int lClickCount, bool lNameHit) => lClickCount >= 2 && lNameHit;
+
+    private void QRailDragPrepare(QStripTab lTab, double lX, double lY, double lOffsetX, double lOffsetY)
+    {
         qRailDragTab = lTab;
         qRailDragX = lX;
         qRailDragY = lY;
         qRailGhost = new QGhost(lOffsetX, lOffsetY);
         qRailDragActive = false;
-        qStrip.QStripSelect(lTab);
-        return true;
     }
 
     public bool QRailMoveCheck(bool lLeftPressed) => qRailDragTab is not null && lLeftPressed;
@@ -102,13 +109,15 @@ public sealed class QRail
 
     public void QRailDragMove(double lPointer, IReadOnlyList<double> lCenters)
     {
-        if (qRailDragTab is not { } lTab || !qRailDragActive)
+        if (QRailDragRead() is not { } lTab)
         {
             return;
         }
 
         qStrip.QStripMove(lTab, QRailIndexResolve(lPointer, lCenters));
     }
+
+    private QStripTab? QRailDragRead() => qRailDragActive ? qRailDragTab : null;
 
     public QStripTab? QRailReleaseResolve()
     {
@@ -211,54 +220,86 @@ public sealed class QRail
         double lDeviceX,
         double lDeviceY)
     {
-        if (lTab is null || lInside || lTab.QStripTabPending || lTab.QStripTabWorkspace is not { } lWorkspace)
+        if (lTab is null || QRailWorkspaceResolve(lTab, lInside) is not { } lWorkspace)
         {
             return QRailRelayOutcome.QRailRelaySkipped;
         }
 
         if (lTab.QStripTabBusy)
         {
-            LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' kept: the worklist is still working");
+            QRailRelayRecord(lTab, QRailRelayOutcome.QRailRelayBusy);
             return QRailRelayOutcome.QRailRelayBusy;
         }
 
-        LRelay lRelay = lWorkspace.QWorkspaceRelay.QWorkspaceRelayCreate(lTab.QStripTabCustom, lDipX, lDipY);
-        string lRelayFilePath;
-        try
+        if (QRailRelaySave(lWorkspace, lTab, lDipX, lDipY) is not { } lRelayFilePath)
         {
-            lRelayFilePath = LRelayStore.LRelayFileSave(lRelay);
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Relay payload could not be written; tab kept", lException);
             return QRailRelayOutcome.QRailRelaySkipped;
         }
 
         qStrip.QStripPendingSet(lTab, true);
         try
         {
-            switch (await LRelayChannel.LRelayDispatch(lRelayFilePath, lDeviceX, lDeviceY))
+            QRailRelayOutcome lOutcome = QRailOutcomeResolve(
+                lTab,
+                await LRelayChannel.LRelayDispatch(lRelayFilePath, lDeviceX, lDeviceY));
+            QRailRelayRecord(lTab, lOutcome);
+            if (lOutcome == QRailRelayOutcome.QRailRelayRelayed)
             {
-                case LRelayOutcome.LRelayOutcomeExisting:
-                case LRelayOutcome.LRelayOutcomeLaunched:
-                    if (lTab.QStripTabBusy)
-                    {
-                        LTraceLog.LTraceInfoRecord(
-                            $"Tab '{lTab.QStripTabTitle}' copied: the worklist started working during the relay");
-                        return QRailRelayOutcome.QRailRelayCopied;
-                    }
-
-                    LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' relayed");
-                    qStrip.QStripClosure.QStripClose(lTab);
-                    return QRailRelayOutcome.QRailRelayRelayed;
-                default:
-                    LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' kept: the other window did not take it");
-                    return QRailRelayOutcome.QRailRelayKept;
+                qStrip.QStripClosure.QStripClose(lTab);
             }
+
+            return lOutcome;
         }
         finally
         {
             qStrip.QStripPendingSet(lTab, false);
+        }
+    }
+
+    private static QWorkspace? QRailWorkspaceResolve(QStripTab lTab, bool lInside) =>
+        lInside || lTab.QStripTabPending ? null : lTab.QStripTabWorkspace;
+
+    private static string? QRailRelaySave(QWorkspace lWorkspace, QStripTab lTab, double lDipX, double lDipY)
+    {
+        LRelay lRelay = lWorkspace.QWorkspaceRelay.QWorkspaceRelayCreate(lTab.QStripTabCustom, lDipX, lDipY);
+        try
+        {
+            return LRelayStore.LRelayFileSave(lRelay);
+        }
+        catch (Exception lException)
+        {
+            LTraceLog.LTraceErrorRecord("Relay payload could not be written; tab kept", lException);
+            return null;
+        }
+    }
+
+    private static QRailRelayOutcome QRailOutcomeResolve(
+        QStripTab lTab,
+        LRelayOutcome lDispatched) => lDispatched switch
+    {
+        LRelayOutcome.LRelayOutcomeExisting or LRelayOutcome.LRelayOutcomeLaunched => lTab.QStripTabBusy
+            ? QRailRelayOutcome.QRailRelayCopied
+            : QRailRelayOutcome.QRailRelayRelayed,
+        _ => QRailRelayOutcome.QRailRelayKept
+    };
+
+    private static void QRailRelayRecord(QStripTab lTab, QRailRelayOutcome lOutcome)
+    {
+        switch (lOutcome)
+        {
+            case QRailRelayOutcome.QRailRelayBusy:
+                LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' kept: the worklist is still working");
+                break;
+            case QRailRelayOutcome.QRailRelayCopied:
+                LTraceLog.LTraceInfoRecord(
+                    $"Tab '{lTab.QStripTabTitle}' copied: the worklist started working during the relay");
+                break;
+            case QRailRelayOutcome.QRailRelayRelayed:
+                LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' relayed");
+                break;
+            case QRailRelayOutcome.QRailRelayKept:
+                LTraceLog.LTraceInfoRecord($"Tab '{lTab.QStripTabTitle}' kept: the other window did not take it");
+                break;
         }
     }
 }

@@ -15,9 +15,19 @@ internal sealed class PDivider : Border
     {
         pDividerHost = pHost;
         lDivider = lOwner;
+        PDividerLookApply();
+        PDividerAttach();
+    }
+
+    private void PDividerLookApply()
+    {
         Height = 8;
         Background = new SolidColorBrush(Color.FromRgb(0xF3, 0xF3, 0xF3));
         Cursor = Cursors.SizeNS;
+    }
+
+    private void PDividerAttach()
+    {
         MouseLeftButtonDown += PDividerPressHandle;
         MouseLeftButtonUp += PDividerReleaseHandle;
         LostMouseCapture += PDividerCaptureHandle;
@@ -34,10 +44,15 @@ internal sealed class PDivider : Border
     private void PDividerPressHandle(object sender, MouseButtonEventArgs e)
     {
         lDivider.QDividerPressHandle(e.GetPosition(Window.GetWindow(this)).Y, pDividerHost.ActualHeight);
-        MouseMove -= PDividerMoveHandle;
-        MouseMove += PDividerMoveHandle;
+        PDividerMoveAttach();
         CaptureMouse();
         e.Handled = true;
+    }
+
+    private void PDividerMoveAttach()
+    {
+        MouseMove -= PDividerMoveHandle;
+        MouseMove += PDividerMoveHandle;
     }
 
     private void PDividerMoveHandle(object sender, MouseEventArgs e)
@@ -57,8 +72,10 @@ internal sealed class PDivider : Border
 
     private void PDividerClear()
     {
-        MouseMove -= PDividerMoveHandle;
+        PDividerMoveDetach();
         lDivider.QDividerRelease();
         ReleaseMouseCapture();
     }
+
+    private void PDividerMoveDetach() => MouseMove -= PDividerMoveHandle;
 }

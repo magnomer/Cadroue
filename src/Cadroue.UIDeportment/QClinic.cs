@@ -117,7 +117,9 @@ public sealed class QClinic
 
     public void QClinicSaveSuspend() => qClinicSaveDepth++;
 
-    public void QClinicSaveResume() => qClinicSaveDepth = Math.Max(0, qClinicSaveDepth - 1);
+    public void QClinicSaveResume() => qClinicSaveDepth = QClinicDepthClamp(qClinicSaveDepth - 1);
+
+    private static int QClinicDepthClamp(int lDepth) => Math.Max(0, lDepth);
 
     public LWorkFixSalvage QClinicSalvage => qClinicSalvage;
 
@@ -160,19 +162,25 @@ public sealed class QClinic
 
     public void QClinicSourceSet(string? lSourcePath)
     {
-        qClinicSource = string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
+        qClinicSource = QClinicSourceNormalize(lSourcePath);
         QClinicChanged?.Invoke();
     }
+
+    private static string? QClinicSourceNormalize(string? lSourcePath) =>
+        string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
 
     public void QClinicStepSet(string? lStepName)
     {
         qClinicStep = lStepName;
-        qClinicKind = QClinicKinds
+        qClinicKind = QClinicKindFind(lStepName);
+        QClinicChanged?.Invoke();
+    }
+
+    private static LFlawKind? QClinicKindFind(string? lStepName) =>
+        QClinicKinds
             .Where(lEntry => lEntry.QClinicKindName == lStepName)
             .Select(lEntry => (LFlawKind?)lEntry.QClinicKindValue)
             .FirstOrDefault();
-        QClinicChanged?.Invoke();
-    }
 
     public void QClinicActiveSet(bool lActive)
     {
@@ -287,12 +295,14 @@ public sealed class QClinic
 
     public void QClinicProgressSet(string lPath, double lValue)
     {
-        qClinicProgress[lPath] = Math.Clamp(lValue, 0, 1);
+        qClinicProgress[lPath] = QClinicProgressClamp(lValue);
         if (QClinicSourceMatch(lPath))
         {
             QClinicChanged?.Invoke();
         }
     }
+
+    private static double QClinicProgressClamp(double lValue) => Math.Clamp(lValue, 0, 1);
 
     private bool QClinicSourceMatch(string lPath) =>
         string.Equals(lPath, qClinicSource, StringComparison.OrdinalIgnoreCase);

@@ -32,18 +32,9 @@ public sealed class PFunnelRuleRow : Border
         pFunnelRelayCombo = PFunnelRelayBuild();
         pFunnelRegexField = PFunnelRegexBuild();
         pFunnelWholeBox = PFunnelWholeBuild();
-        pFunnelRegexStack = new StackPanel
-        {
-            Visibility = PLook.PLookVisible[lFunnelRule.QFunnelRulePattern]
-        };
-        pFunnelRegexStack.Children.Add(pFunnelRegexField);
-        pFunnelRegexStack.Children.Add(pFunnelWholeBox);
+        pFunnelRegexStack = PFunnelStackBuild(lFunnelRule.QFunnelRulePattern);
         pFunnelConditions = QFunnel.QFunnelConditions.Select(PFunnelConditionBuild).ToList();
-
-        var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
-        pBody.Children.Add(pFunnelRegexStack);
-        pFunnelConditions.ForEach(pCondition => pBody.Children.Add(pCondition));
-        pBody.Children.Add(PFunnelTargetBuild());
+        StackPanel pBody = PFunnelBodyBuild();
 
         pFunnelFrame = new PFunnelRuleFrame(
             pBody,
@@ -51,20 +42,48 @@ public sealed class PFunnelRuleRow : Border
             () => lFunnelOwner.QFunnelRuleRemove(lFunnelRule),
             () => lFunnelOwner.QFunnelCollapsedToggle(lFunnelRule));
 
-        var pCard = new DockPanel { LastChildFill = true };
-        DockPanel.SetDock(pFunnelFrame.PFunnelHeader, Dock.Top);
-        pCard.Children.Add(pFunnelFrame.PFunnelHeader);
-        pCard.Children.Add(pBody);
+        PFunnelBorderApply();
+        PFunnelCardBuild(pBody);
+        PFunnelRowUpdate();
+    }
 
+    private StackPanel PFunnelStackBuild(bool pPattern)
+    {
+        var pStack = new StackPanel
+        {
+            Visibility = PLook.PLookVisible[pPattern]
+        };
+        pStack.Children.Add(pFunnelRegexField);
+        pStack.Children.Add(pFunnelWholeBox);
+        return pStack;
+    }
+
+    private StackPanel PFunnelBodyBuild()
+    {
+        var pBody = new StackPanel { Margin = new Thickness(10, 8, 10, 10) };
+        pBody.Children.Add(pFunnelRegexStack);
+        pFunnelConditions.ForEach(pCondition => pBody.Children.Add(pCondition));
+        pBody.Children.Add(PFunnelTargetBuild());
+        return pBody;
+    }
+
+    private void PFunnelBorderApply()
+    {
         Margin = new Thickness(0, 0, 0, 10);
         Background = Brushes.White;
         BorderBrush = pFunnelLineBrush;
         BorderThickness = new Thickness(1);
         CornerRadius = new CornerRadius(8);
         SnapsToDevicePixels = true;
-        Child = pCard;
+    }
 
-        PFunnelRowUpdate();
+    private void PFunnelCardBuild(StackPanel pBody)
+    {
+        var pCard = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(pFunnelFrame.PFunnelHeader, Dock.Top);
+        pCard.Children.Add(pFunnelFrame.PFunnelHeader);
+        pCard.Children.Add(pBody);
+        Child = pCard;
     }
 
     public QFunnelRule PFunnelRule { get; }
@@ -78,10 +97,15 @@ public sealed class PFunnelRuleRow : Border
     public void PFunnelRowUpdate()
     {
         pFunnelFrame.PFunnelCollapsedSet(PFunnelRule.QFunnelRuleCollapsed);
-        pFunnelRegexField.Text = lFunnel.QFunnelCriterion.QFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
-        pFunnelWholeBox.IsChecked = PFunnelRule.QFunnelRuleWhole;
+        PFunnelRegexShow();
         pFunnelConditions.ForEach(PFunnelConditionApply);
         PFunnelRelayUpdate();
+    }
+
+    private void PFunnelRegexShow()
+    {
+        pFunnelRegexField.Text = lFunnel.QFunnelCriterion.QFunnelRegexResolve(PFunnelRule, pFunnelRegexField.Text);
+        pFunnelWholeBox.IsChecked = PFunnelRule.QFunnelRuleWhole;
     }
 
     private static void PFunnelConditionApply(PFunnelCondition pCondition) => pCondition.PFunnelConditionUpdate();
@@ -94,62 +118,93 @@ public sealed class PFunnelRuleRow : Border
 
     private TextBox PFunnelRegexBuild()
     {
-        var pField = new TextBox
-        {
-            Height = PFunnelFieldHeight,
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            Margin = new Thickness(0, 0, 0, 8)
-        };
+        TextBox pField = PFunnelRegexCreate();
         QTextbox.QTextboxAttach(pField);
-        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelRegexSet(PFunnelRule, pField.Text);
+        PFunnelRegexAttach(pField);
         return pField;
     }
 
+    private static TextBox PFunnelRegexCreate() => new()
+    {
+        Height = PFunnelFieldHeight,
+        FontSize = 12,
+        FontFamily = pFunnelFontFamily,
+        Margin = new Thickness(0, 0, 0, 8)
+    };
+
+    private void PFunnelRegexAttach(TextBox pField) =>
+        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelRegexSet(PFunnelRule, pField.Text);
+
     private CheckBox PFunnelWholeBuild()
     {
-        var pBox = new CheckBox
-        {
-            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Whole"),
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            Foreground = pFunnelTitleBrush,
-            Margin = new Thickness(2, 0, 0, 0)
-        };
+        CheckBox pBox = PFunnelWholeCreate();
         QInteractionClick.QInteractionClickAttach(pBox);
         QCheckbox.QCheckboxAttach(pBox);
+        PFunnelWholeAttach(pBox);
+        return pBox;
+    }
+
+    private static CheckBox PFunnelWholeCreate() => new()
+    {
+        Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Whole"),
+        FontSize = 12,
+        FontFamily = pFunnelFontFamily,
+        Foreground = pFunnelTitleBrush,
+        Margin = new Thickness(2, 0, 0, 0)
+    };
+
+    private void PFunnelWholeAttach(CheckBox pBox)
+    {
         pBox.Checked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, true);
         pBox.Unchecked += (_, _) => lFunnel.QFunnelCriterion.QFunnelWholeSet(PFunnelRule, false);
-        return pBox;
     }
 
     private ComboBox PFunnelRelayBuild()
     {
-        var pCombo = new ComboBox
-        {
-            Height = PFunnelFieldHeight,
-            MinWidth = 120,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            FocusVisualStyle = null,
-            SelectedValuePath = "PActionRelayId",
-            ItemTemplate = PFunnelTemplateBuild()
-        };
+        ComboBox pCombo = PFunnelRelayCreate();
         QDropdown.QDropdownAttach(pCombo);
+        PFunnelRelayAttach(pCombo);
+        return pCombo;
+    }
+
+    private static ComboBox PFunnelRelayCreate() => new()
+    {
+        Height = PFunnelFieldHeight,
+        MinWidth = 120,
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        VerticalContentAlignment = VerticalAlignment.Center,
+        FontSize = 12,
+        FontFamily = pFunnelFontFamily,
+        FocusVisualStyle = null,
+        SelectedValuePath = "PActionRelayId",
+        ItemTemplate = PFunnelTemplateBuild()
+    };
+
+    private void PFunnelRelayAttach(ComboBox pCombo)
+    {
         pCombo.DropDownOpened += (_, _) => PFunnelRelayUpdate();
         pCombo.SelectionChanged += PFunnelRelayHandle;
-        return pCombo;
     }
 
     private void PFunnelRelayUpdate()
     {
-        pFunnelRelayCombo.SelectionChanged -= PFunnelRelayHandle;
-        pFunnelRelayCombo.ItemsSource = lFunnel.QFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
-        pFunnelRelayCombo.SelectedValue = PFunnelRule.QFunnelRuleTarget;
-        pFunnelRelayCombo.SelectionChanged += PFunnelRelayHandle;
+        PFunnelSelectionDetach();
+        PFunnelRelayShow();
+        PFunnelSelectionAttach();
     }
+
+    private void PFunnelSelectionDetach() => pFunnelRelayCombo.SelectionChanged -= PFunnelRelayHandle;
+
+    private void PFunnelSelectionAttach() => pFunnelRelayCombo.SelectionChanged += PFunnelRelayHandle;
+
+    private void PFunnelRelayShow()
+    {
+        pFunnelRelayCombo.ItemsSource = PFunnelOptionsResolve();
+        pFunnelRelayCombo.SelectedValue = PFunnelRule.QFunnelRuleTarget;
+    }
+
+    private List<PActionRelayOption> PFunnelOptionsResolve() =>
+        lFunnel.QFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
 
     private static PActionRelayOption PFunnelOptionBuild(QFunnelTarget lTarget) =>
         new(lTarget.QFunnelTargetId, lTarget.QFunnelTargetTitle, QStripIcon.QStripIconFind(lTarget.QFunnelTargetKey));

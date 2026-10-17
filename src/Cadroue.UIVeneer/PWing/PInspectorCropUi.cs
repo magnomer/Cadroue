@@ -10,14 +10,19 @@ public sealed partial class PInspector
 {
     private StackPanel PCropBodyBuild()
     {
+        StackPanel pBody = PCropPanelBuild();
+        PCropBodyAttach();
+        return pBody;
+    }
+
+    private StackPanel PCropPanelBuild()
+    {
         pInspectorInsetLeft = PInspectorInsetBuild(0);
         pInspectorInsetRight = PInspectorInsetBuild(2);
         pInspectorInsetTop = PInspectorInsetBuild(1);
         pInspectorInsetBottom = PInspectorInsetBuild(3);
         pInspectorRatioWidth = PInspectorNumberBuild();
         pInspectorRatioHeight = PInspectorNumberBuild();
-        pInspectorRatioWidth.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioWidth);
-        pInspectorRatioHeight.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioHeight);
         pInspectorRatioPreset = PInspectorRatioBuild();
         pInspectorResolution = new TextBlock
         {
@@ -40,8 +45,6 @@ public sealed partial class PInspector
         };
         QInteractionClick.QInteractionClickAttach(pInspectorRatioFixed);
         QCheckbox.QCheckboxAttach(pInspectorRatioFixed);
-        PInspectorSwitchAttach(
-            pInspectorRatioFixed, QInspector.QInspectorRatio.QInspectorFixedSet);
 
         pInspectorRatioLenient = new CheckBox
         {
@@ -56,8 +59,6 @@ public sealed partial class PInspector
         };
         QInteractionClick.QInteractionClickAttach(pInspectorRatioLenient);
         QCheckbox.QCheckboxAttach(pInspectorRatioLenient);
-        PInspectorSwitchAttach(
-            pInspectorRatioLenient, QInspector.QInspectorRatio.QInspectorLenientSet);
 
         pInspectorRatioNotice = new TextBlock
         {
@@ -72,21 +73,15 @@ public sealed partial class PInspector
         pInspectorFlipHorizontal = PCropCheckBuild(QLocalizationCatalog.QLocalizationTextRead(
             "Inspector.Crop.Horizontal"));
         pInspectorFlipVertical = PCropCheckBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Vertical"));
-        PInspectorSwitchAttach(
-            pInspectorFlipHorizontal, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(true, pFlipped));
-        PInspectorSwitchAttach(
-            pInspectorFlipVertical, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(false, pFlipped));
         pInspectorRotateCombo = PInspectorRotateBuild();
         pInspectorCropTool = PInspectorToolBuild();
 
         pInspectorApplyBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ApplyTooltip"));
-        PInspectorSwitchAttach(pInspectorApplyBox, QInspectorCrop.QInspectorApplySet);
         pInspectorPersistentBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.PersistentTooltip"));
-        PInspectorSwitchAttach(pInspectorPersistentBox, QInspectorCrop.QInspectorPersistentSet);
 
         pInspectorCropStack = new StackPanel();
         pInspectorCropStack.Children.Add(
@@ -114,6 +109,22 @@ public sealed partial class PInspector
         return pInspectorCropBody;
     }
 
+    private void PCropBodyAttach()
+    {
+        pInspectorRatioWidth.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioWidth);
+        pInspectorRatioHeight.TextChanged += (_, _) => PInspectorRatioCommit(pInspectorRatioHeight);
+        PInspectorSwitchAttach(
+            pInspectorRatioFixed, QInspector.QInspectorRatio.QInspectorFixedSet);
+        PInspectorSwitchAttach(
+            pInspectorRatioLenient, QInspector.QInspectorRatio.QInspectorLenientSet);
+        PInspectorSwitchAttach(
+            pInspectorFlipHorizontal, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(true, pFlipped));
+        PInspectorSwitchAttach(
+            pInspectorFlipVertical, pFlipped => QInspector.QInspectorOrientation.QInspectorFlipSet(false, pFlipped));
+        PInspectorSwitchAttach(pInspectorApplyBox, QInspectorCrop.QInspectorApplySet);
+        PInspectorSwitchAttach(pInspectorPersistentBox, QInspectorCrop.QInspectorPersistentSet);
+    }
+
     private void PInspectorRatioCommit(TextBox pRatioBox) =>
         QInspector.QInspectorRatio.QInspectorRatioCommit(
             pInspectorRatioWidth.Text, pInspectorRatioHeight.Text, pRatioBox.IsKeyboardFocusWithin);
@@ -121,10 +132,13 @@ public sealed partial class PInspector
     private TextBox PInspectorInsetBuild(int pEdge)
     {
         TextBox pInsetBox = PInspectorNumberBuild();
-        pInsetBox.TextChanged += (_, _) =>
-            QInspectorCrop.QInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
+        PInspectorInsetAttach(pInsetBox, pEdge);
         return pInsetBox;
     }
+
+    private void PInspectorInsetAttach(TextBox pInsetBox, int pEdge) =>
+        pInsetBox.TextChanged += (_, _) =>
+            QInspectorCrop.QInspectorEdgeCommit(pEdge, pInsetBox.Text, pInsetBox.IsKeyboardFocusWithin);
 
     private UIElement PCropFlipBuild()
     {
@@ -153,18 +167,34 @@ public sealed partial class PInspector
 
     private ComboBox PInspectorRotateBuild()
     {
+        ComboBox pRotateCombo = PCropRotateBuild();
+        PCropRotateAttach(pRotateCombo);
+        return pRotateCombo;
+    }
+
+    private static ComboBox PCropRotateBuild()
+    {
         ComboBox pRotateCombo = PInspectorComboBuild();
         pRotateCombo.Items.Add(new LLocalizationChoice("None", "Inspector.Crop.None"));
         pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise90", "Inspector.Crop.Clockwise90"));
         pRotateCombo.Items.Add(new LLocalizationChoice("Degrees180", "Inspector.Crop.Degrees180"));
         pRotateCombo.Items.Add(new LLocalizationChoice("Clockwise270", "Inspector.Crop.Clockwise270"));
         pRotateCombo.SelectedIndex = 0;
-        pRotateCombo.SelectionChanged += (_, _) =>
-            QInspector.QInspectorOrientation.QInspectorRotateSelect(pRotateCombo.SelectedIndex);
         return pRotateCombo;
     }
 
+    private void PCropRotateAttach(ComboBox pRotateCombo) =>
+        pRotateCombo.SelectionChanged += (_, _) =>
+            QInspector.QInspectorOrientation.QInspectorRotateSelect(pRotateCombo.SelectedIndex);
+
     private ComboBox PInspectorRatioBuild()
+    {
+        ComboBox pPresetCombo = PCropPresetBuild();
+        PCropPresetAttach(pPresetCombo);
+        return pPresetCombo;
+    }
+
+    private static ComboBox PCropPresetBuild()
     {
         ComboBox pPresetCombo = PInspectorComboBuild();
         pPresetCombo.Items.Add(new LLocalizationChoice("Custom", "Inspector.Crop.RatioCustom"));
@@ -175,10 +205,12 @@ public sealed partial class PInspector
         pPresetCombo.Items.Add("1:1");
         pPresetCombo.Items.Add("21:9");
         pPresetCombo.SelectedIndex = 0;
-        pPresetCombo.SelectionChanged += (_, _) =>
-            QInspector.QInspectorRatio.QInspectorPresetSelect(pPresetCombo.SelectedIndex);
         return pPresetCombo;
     }
+
+    private void PCropPresetAttach(ComboBox pPresetCombo) =>
+        pPresetCombo.SelectionChanged += (_, _) =>
+            QInspector.QInspectorRatio.QInspectorPresetSelect(pPresetCombo.SelectedIndex);
 
     private static ComboBox PInspectorComboBuild()
     {

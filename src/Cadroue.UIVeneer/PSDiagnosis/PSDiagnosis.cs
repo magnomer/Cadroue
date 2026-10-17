@@ -42,13 +42,28 @@ internal sealed partial class PSDiagnosis : Window
         }
 
         var psDiagnosis = new PSDiagnosis(pOwner, lsDiagnosisCreate());
-        psDiagnosisCurrent = psDiagnosis;
+        PSDiagnosisCurrentSet(psDiagnosis);
         psDiagnosis.Show();
     }
+
+    private static void PSDiagnosisCurrentSet(PSDiagnosis? psDiagnosis) => psDiagnosisCurrent = psDiagnosis;
 
     private PSDiagnosis(Window pOwner, QSDiagnosis lsDiagnosisOwner)
     {
         lsDiagnosis = lsDiagnosisOwner;
+        PSDiagnosisWindowApply(pOwner);
+        QScrollbar.QScrollbarAttach(this);
+        Content = PSDiagnosisBuild();
+        PSGrabber.PSGrabberPlacementRestore(this, PSDiagnosisPlacementKey);
+        psDiagnosisGrabber = new PSGrabber(this);
+        psDiagnosisGrabber.PSGrabberAttach();
+        PSDiagnosisWindowAttach();
+        PSDiagnosisResultAttach();
+        _ = lsDiagnosis.QSDiagnosisProbeStart();
+    }
+
+    private void PSDiagnosisWindowApply(Window pOwner)
+    {
         Title = lsDiagnosis.QSDiagnosisTitle;
         Owner = pOwner.Owner ?? pOwner;
         ShowInTaskbar = true;
@@ -58,20 +73,30 @@ internal sealed partial class PSDiagnosis : Window
         MinHeight = PSDiagnosisHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        QScrollbar.QScrollbarAttach(this);
-        Content = PSDiagnosisBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSDiagnosisPlacementKey);
-        psDiagnosisGrabber = new PSGrabber(this);
-        psDiagnosisGrabber.PSGrabberAttach();
-        Closed += PSDiagnosisCloseHandle;
-        lsDiagnosis.QSDiagnosisChanged += PSDiagnosisResultApply;
-        _ = lsDiagnosis.QSDiagnosisProbeStart();
     }
+
+    private void PSDiagnosisWindowAttach() => Closed += PSDiagnosisCloseHandle;
+
+    private void PSDiagnosisWindowDetach() => Closed -= PSDiagnosisCloseHandle;
+
+    private void PSDiagnosisResultAttach() => lsDiagnosis.QSDiagnosisChanged += PSDiagnosisResultApply;
+
+    private void PSDiagnosisResultDetach() => lsDiagnosis.QSDiagnosisChanged -= PSDiagnosisResultApply;
 
     private UIElement PSDiagnosisBuild() =>
         PSDialog.PSDialogBuild(this, lsDiagnosis.QSDiagnosisTitle, PSDiagnosisRootBuild());
 
     private DockPanel PSDiagnosisRootBuild()
+    {
+        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Diagnosis.Button.Close"));
+        PSDiagnosisFooterAttach(pClose);
+        return PSDiagnosisFrameBuild(pClose);
+    }
+
+    private void PSDiagnosisFooterAttach(Button pClose) => pClose.Click += (_, _) => Close();
+
+    private DockPanel PSDiagnosisFrameBuild(Button pClose)
     {
         var pRoot = new DockPanel
         {
@@ -84,9 +109,6 @@ internal sealed partial class PSDiagnosis : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button pClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
-            "Diagnosis.Button.Close"));
-        pClose.Click += (_, _) => Close();
         pFooter.Children.Add(pClose);
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
@@ -111,13 +133,13 @@ internal sealed partial class PSDiagnosis : Window
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
         lsDiagnosis.QSDiagnosisClose();
-        lsDiagnosis.QSDiagnosisChanged -= PSDiagnosisResultApply;
+        PSDiagnosisResultDetach();
         PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
-        Closed -= PSDiagnosisCloseHandle;
+        PSDiagnosisWindowDetach();
         if (ReferenceEquals(psDiagnosisCurrent, this))
         {
-            psDiagnosisCurrent = null;
+            PSDiagnosisCurrentSet(null);
         }
     }
 }

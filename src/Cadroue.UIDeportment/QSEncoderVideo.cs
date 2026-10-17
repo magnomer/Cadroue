@@ -51,14 +51,9 @@ public sealed partial class QSEncoder
     private void QSEncoderVideoPrepare()
     {
         qsEncoderVideoEncoder = qsEncoderDraft.LPresetVideo.LPresetEncoder;
-        string[] lModes = QSEncoderVideoCodec.LCapabilityModeLabels;
-        string lStored = qsEncoderDraft.LPresetVideo.LPresetRateControl;
-        qsEncoderVideoRate = lModes.Contains(lStored) ? lStored : lModes[0];
-        string[] lParts = qsEncoderDraft.LPresetVideo.LPresetSize.Split(
-            ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (lParts.Length == 2
-            && int.TryParse(lParts[0], out int lWidth) && lWidth > 0
-            && int.TryParse(lParts[1], out int lHeight) && lHeight > 0)
+        qsEncoderVideoRate = QSEncoderRateResolve(
+            QSEncoderVideoCodec.LCapabilityModeLabels, qsEncoderDraft.LPresetVideo.LPresetRateControl);
+        if (QSEncoderSizeParse(qsEncoderDraft.LPresetVideo.LPresetSize) is (int lWidth, int lHeight))
         {
             qsEncoderWidth = lWidth;
             qsEncoderHeight = lHeight;
@@ -66,12 +61,25 @@ public sealed partial class QSEncoder
         }
     }
 
+    private static (int, int)? QSEncoderSizeParse(string lSize)
+    {
+        string[] lParts = lSize.Split(
+            ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (lParts.Length == 2
+            && int.TryParse(lParts[0], out int lWidth) && lWidth > 0
+            && int.TryParse(lParts[1], out int lHeight) && lHeight > 0)
+        {
+            return (lWidth, lHeight);
+        }
+
+        return null;
+    }
+
     public bool QSEncoderVideoSet(string lEncoder, string lRate)
     {
         bool lEncoderChanged = !string.Equals(qsEncoderVideoEncoder, lEncoder, StringComparison.Ordinal);
         qsEncoderVideoEncoder = lEncoder;
-        string[] lModes = QSEncoderVideoCodec.LCapabilityModeLabels;
-        string lResolved = lModes.Contains(lRate) ? lRate : lModes[0];
+        string lResolved = QSEncoderRateResolve(QSEncoderVideoCodec.LCapabilityModeLabels, lRate);
         if (!lEncoderChanged && string.Equals(qsEncoderVideoRate, lResolved, StringComparison.Ordinal))
         {
             return false;
@@ -118,10 +126,23 @@ public sealed partial class QSEncoder
     public async Task<IReadOnlyList<string>> QSEncoderVideoScan(IProgress<double> lFeed)
     {
         CancellationToken lToken = QSEncoderScanStart(LTrialKind.LTrialKindVideo);
+        IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireVideo.LRepertoireEncodersRead();
+        (List<string> lAvailable, HashSet<string> lNames, List<QSVerdictRow> lRows) =
+            await QSEncoderVideoRun(lCandidates, lFeed, lToken);
+        lToken.ThrowIfCancellationRequested();
+        LTrialCatalog.LTrialSetApply(lNames);
+        QSEncoderVideoInsert(lAvailable, lCandidates);
+        QSEncoderVerdictSet(LTrialKind.LTrialKindVideo, lRows);
+        QSVerdict.QSVerdictRecord("video", lRows);
+        return lAvailable;
+    }
+
+    private static async Task<(List<string>, HashSet<string>, List<QSVerdictRow>)> QSEncoderVideoRun(
+        IReadOnlyList<LRepertoireEncoder> lCandidates, IProgress<double> lFeed, CancellationToken lToken)
+    {
         var lAvailable = new List<string>();
         var lNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var lRows = new List<QSVerdictRow>();
-        IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireVideo.LRepertoireEncodersRead();
         int lTotal = lCandidates.Sum(lCandidate => lCandidate.LRepertoireTokens.Count);
         int lDone = 0;
         foreach (LRepertoireEncoder lCandidate in lCandidates)
@@ -139,7 +160,7 @@ public sealed partial class QSEncoder
                 lRows.Add(new QSVerdictRow(
                     lCandidate.LRepertoireText, lEncoder, lResult.LTrialSuccess, lResult.LTrialMessage));
                 lDone++;
-                lFeed.Report(lTotal == 0 ? 1 : (double)lDone / lTotal);
+                lFeed.Report(QSEncoderProgressResolve(lDone, lTotal));
             }
 
             if (lCandidateAvailable)
@@ -148,18 +169,17 @@ public sealed partial class QSEncoder
             }
         }
 
-        lToken.ThrowIfCancellationRequested();
-        LTrialCatalog.LTrialSetApply(lNames);
+        return (lAvailable, lNames, lRows);
+    }
+
+    private void QSEncoderVideoInsert(List<string> lAvailable, IReadOnlyList<LRepertoireEncoder> lCandidates)
+    {
         if (!lAvailable.Contains(qsEncoderVideoEncoder)
             && lCandidates.Any(lCandidate => string.Equals(
                 lCandidate.LRepertoireText, qsEncoderVideoEncoder, StringComparison.Ordinal)))
         {
             lAvailable.Insert(0, qsEncoderVideoEncoder);
         }
-
-        qsEncoderVideoResults = lRows;
-        QSVerdict.QSVerdictRecord("video", lRows);
-        return lAvailable;
     }
 
     public static int QSEncoderTierResolve(int lWidth, int lHeight)
@@ -178,7 +198,7 @@ public sealed partial class QSEncoder
 
     public bool QSEncoderTierSelect(int lTier)
     {
-        lTier = Math.Clamp(lTier, 0, qsEncoderTiers.Length - 1);
+        lTier = QSEncoderTierClamp(lTier);
         if (lTier == qsEncoderSizeTier)
         {
             return false;
@@ -191,13 +211,21 @@ public sealed partial class QSEncoder
         return true;
     }
 
-    public bool QSEncoderSizeSet(int lWidth, int lHeight)
+    private static int QSEncoderTierClamp(int lTier) => Math.Clamp(lTier, 0, qsEncoderTiers.Length - 1);
+
+    private static (int, int, int) QSEncoderSizeNormalize(int lWidth, int lHeight)
     {
         lWidth = Math.Max(0, lWidth);
         lHeight = Math.Max(0, lHeight);
         int lTier = lWidth == 0 && lHeight == 0
             ? 0
             : lWidth > 0 && lHeight > 0 ? QSEncoderTierResolve(lWidth, lHeight) : -1;
+        return (lWidth, lHeight, lTier);
+    }
+
+    public bool QSEncoderSizeSet(int lWidth, int lHeight)
+    {
+        (lWidth, lHeight, int lTier) = QSEncoderSizeNormalize(lWidth, lHeight);
         if (lWidth == qsEncoderWidth && lHeight == qsEncoderHeight && lTier == qsEncoderSizeTier)
         {
             return false;

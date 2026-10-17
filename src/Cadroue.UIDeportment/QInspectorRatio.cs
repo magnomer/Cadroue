@@ -44,11 +44,9 @@ public sealed class QInspectorRatio
         }
 
         LCropboxRatio lRatio = qInspectorCrop.QInspectorCropbox.LCropboxStateRatio;
+        (int lRatioWidth, int lRatioHeight) = QInspectorRatioParse(lWidthText, lHeightText);
         qInspectorCrop.QInspectorCropbox.LCropboxRatioSet(
-            lRatio.LCropboxRatioFixed,
-            lRatio.LCropboxRatioLenient,
-            (int)Math.Round(QInspectorCrop.QInspectorNumberParse(lWidthText)),
-            (int)Math.Round(QInspectorCrop.QInspectorNumberParse(lHeightText)));
+            lRatio.LCropboxRatioFixed, lRatio.LCropboxRatioLenient, lRatioWidth, lRatioHeight);
     }
 
     public void QInspectorFixedSet(bool lFixed) => QInspectorRatioCommit(lFixed, null);
@@ -86,25 +84,14 @@ public sealed class QInspectorRatio
             return;
         }
 
-        LWorkCrop lCrop = qInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
-        LCropbox? lPreset = qInspectorCrop.QInspectorBoundsResolve(lRatioWidth, lRatioHeight);
-        LWorkCrop lFitted = lPreset is { } lCropbox
-            ? QInspectorCrop.QInspectorEdgesResolve(lCrop, new LCropboxEdges(
-                lCropbox.LCropboxX,
-                lCropbox.LCropboxY,
-                qInspector.QInspectorSourceWidth - lCropbox.LCropboxRight,
-                qInspector.QInspectorSourceHeight - lCropbox.LCropboxBottom))
-            : lCrop;
-        qInspectorCrop.QInspectorEdgeClear();
-        qInspectorCrop.QInspectorCropbox.LCropboxStateSet(
-            lFitted, qInspectorCrop.QInspectorActive, true, lRatio.LCropboxRatioLenient, lRatioWidth, lRatioHeight);
+        LWorkCrop lFitted = QInspectorFitResolve(lRatioWidth, lRatioHeight);
+        QInspectorPresetApply(lFitted, lRatio.LCropboxRatioLenient, lRatioWidth, lRatioHeight);
     }
 
     public void QInspectorRatioApply(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
     {
-        bool lValid = lRatioWidth > 0 && lRatioHeight > 0;
-        qInspectorCrop.QInspectorCropbox.LCropboxRatioSet(
-            lRatioFixed && lValid, lRatioLenient && lRatioFixed && lValid, lRatioWidth, lRatioHeight);
+        (bool lFixed, bool lLenient) = QInspectorRatioNormalize(lRatioFixed, lRatioLenient, lRatioWidth, lRatioHeight);
+        qInspectorCrop.QInspectorCropbox.LCropboxRatioSet(lFixed, lLenient, lRatioWidth, lRatioHeight);
     }
 
     public void QInspectorRatioReset()
@@ -119,12 +106,50 @@ public sealed class QInspectorRatio
     private void QInspectorRatioCommit(bool? lFixed, bool? lLenient)
     {
         LCropboxRatio lRatio = qInspectorCrop.QInspectorCropbox.LCropboxStateRatio;
+        (bool lRatioFixed, bool lRatioLenient) = QInspectorRatioResolve(lRatio, lFixed, lLenient);
+        QInspectorRatioSet(lRatioFixed, lRatioLenient, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
+    }
+
+    private static (int, int) QInspectorRatioParse(string lWidthText, string lHeightText) =>
+        ((int)Math.Round(QInspectorCrop.QInspectorNumberParse(lWidthText)),
+            (int)Math.Round(QInspectorCrop.QInspectorNumberParse(lHeightText)));
+
+    private static (bool, bool) QInspectorRatioNormalize(
+        bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
+    {
+        bool lValid = lRatioWidth > 0 && lRatioHeight > 0;
+        return (lRatioFixed && lValid, lRatioLenient && lRatioFixed && lValid);
+    }
+
+    private static (bool, bool) QInspectorRatioResolve(LCropboxRatio lRatio, bool? lFixed, bool? lLenient)
+    {
         bool lRatioFixed = lFixed ?? lRatio.LCropboxRatioFixed;
+        return (lRatioFixed, lRatioFixed && (lLenient ?? lRatio.LCropboxRatioLenient));
+    }
+
+    private void QInspectorRatioSet(bool lRatioFixed, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
+    {
         qInspectorCrop.QInspectorEdgeClear();
-        qInspectorCrop.QInspectorCropbox.LCropboxRatioSet(
-            lRatioFixed,
-            lRatioFixed && (lLenient ?? lRatio.LCropboxRatioLenient),
-            lRatio.LCropboxRatioWidth,
-            lRatio.LCropboxRatioHeight);
+        qInspectorCrop.QInspectorCropbox.LCropboxRatioSet(lRatioFixed, lRatioLenient, lRatioWidth, lRatioHeight);
+    }
+
+    private LWorkCrop QInspectorFitResolve(int lRatioWidth, int lRatioHeight)
+    {
+        LWorkCrop lCrop = qInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
+        LCropbox? lPreset = qInspectorCrop.QInspectorBoundsResolve(lRatioWidth, lRatioHeight);
+        return lPreset is { } lCropbox
+            ? QInspectorCrop.QInspectorEdgesResolve(lCrop, new LCropboxEdges(
+                lCropbox.LCropboxX,
+                lCropbox.LCropboxY,
+                qInspector.QInspectorSourceWidth - lCropbox.LCropboxRight,
+                qInspector.QInspectorSourceHeight - lCropbox.LCropboxBottom))
+            : lCrop;
+    }
+
+    private void QInspectorPresetApply(LWorkCrop lFitted, bool lRatioLenient, int lRatioWidth, int lRatioHeight)
+    {
+        qInspectorCrop.QInspectorEdgeClear();
+        qInspectorCrop.QInspectorCropbox.LCropboxStateSet(
+            lFitted, qInspectorCrop.QInspectorActive, true, lRatioLenient, lRatioWidth, lRatioHeight);
     }
 }

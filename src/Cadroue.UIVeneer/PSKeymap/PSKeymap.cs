@@ -41,12 +41,25 @@ internal sealed class PSKeymap : Window
     {
         lsKeymap = lsKeymapOwner;
         psKeymapCallback = pApplyCallback;
+        PSKeymapButtonBuild();
+        PSKeymapWindowApply(pOwner);
+        Content = PSKeymapBuild();
+        PSGrabber.PSGrabberPlacementRestore(this, PSKeymapPlacementKey);
+        psKeymapGrabber = new PSGrabber(this);
+        psKeymapGrabber.PSGrabberAttach();
+        PSKeymapWindowAttach();
+    }
 
+    private void PSKeymapButtonBuild()
+    {
         foreach (QSKeymapChord pChord in lsKeymap.QSKeymapChords)
         {
             psKeymapChords[pChord.QSKeymapChordToken] = new PSKeymapChord(lsKeymap, pChord);
         }
+    }
 
+    private void PSKeymapWindowApply(Window pOwner)
+    {
         Title = QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Title");
         Owner = pOwner;
         Width = PSKeymapWidthDefault;
@@ -54,12 +67,11 @@ internal sealed class PSKeymap : Window
         MinWidth = PSKeymapWidthMinimum;
         MinHeight = PSKeymapHeightMinimum;
         PSSubwindow.PSSubwindowApply(this);
-        Content = PSKeymapBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSKeymapPlacementKey);
-        psKeymapGrabber = new PSGrabber(this);
-        psKeymapGrabber.PSGrabberAttach();
-        Closed += PSKeymapCloseHandle;
     }
+
+    private void PSKeymapWindowAttach() => Closed += PSKeymapCloseHandle;
+
+    private void PSKeymapWindowDetach() => Closed -= PSKeymapCloseHandle;
 
     private UIElement PSKeymapBuild() =>
         PSSubwindow.PSSubwindowBuild(this, PSSheetStripWidth, PSSheet.PSSheetControlBuild(
@@ -124,14 +136,48 @@ internal sealed class PSKeymap : Window
 
     private UIElement PSKeymapRootBuild(UIElement pSheetContent)
     {
-        var pRoot = new DockPanel { Background = Brushes.White };
-        var pFooter = new DockPanel { Margin = new Thickness(12) };
+        Button pReset = PSKeymapResetBuild();
+        Button pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Apply"));
+        Button pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Button.OK"));
+        Button pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "Options.Button.Cancel"));
+        PSKeymapFooterAttach(pReset, pApply, pOk, pCancel);
+        return PSKeymapFrameBuild(pSheetContent, pReset, pApply, pOk, pCancel);
+    }
 
+    private static Button PSKeymapResetBuild()
+    {
         Button pReset = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
             "Chrome.Shortcuts.Reset"));
         pReset.Width = 140;
-        pReset.Click += (_, _) => PSKeymapDefaultApply();
         DockPanel.SetDock(pReset, Dock.Left);
+        return pReset;
+    }
+
+    private void PSKeymapFooterAttach(Button pReset, Button pApply, Button pOk, Button pCancel)
+    {
+        pReset.Click += (_, _) => PSKeymapDefaultApply();
+        pApply.Click += (_, _) => PSKeymapApply();
+        pOk.Click += (_, _) => PSKeymapConfirm();
+        pCancel.Click += (_, _) => Close();
+    }
+
+    private void PSKeymapConfirm()
+    {
+        PSKeymapApply();
+        Close();
+    }
+
+    private static DockPanel PSKeymapFrameBuild(
+        UIElement pSheetContent,
+        Button pReset,
+        Button pApply,
+        Button pOk,
+        Button pCancel)
+    {
+        var pRoot = new DockPanel { Background = Brushes.White };
+        var pFooter = new DockPanel { Margin = new Thickness(12) };
         pFooter.Children.Add(pReset);
 
         var pButtons = new StackPanel
@@ -139,14 +185,6 @@ internal sealed class PSKeymap : Window
             Orientation = Orientation.Horizontal,
             HorizontalAlignment = HorizontalAlignment.Right
         };
-        Button pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
-            "Options.Button.Apply"));
-        Button pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Button.OK"));
-        Button pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
-            "Options.Button.Cancel"));
-        pApply.Click += (_, _) => PSKeymapApply();
-        pOk.Click += (_, _) => { PSKeymapApply(); Close(); };
-        pCancel.Click += (_, _) => Close();
         pButtons.Children.Add(pApply);
         pButtons.Children.Add(pOk);
         pButtons.Children.Add(pCancel);
@@ -170,6 +208,6 @@ internal sealed class PSKeymap : Window
     {
         PSGrabber.PSGrabberPlacementSave(this, PSKeymapPlacementKey);
         psKeymapGrabber.PSGrabberDetach();
-        Closed -= PSKeymapCloseHandle;
+        PSKeymapWindowDetach();
     }
 }

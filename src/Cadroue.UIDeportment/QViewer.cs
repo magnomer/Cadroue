@@ -29,7 +29,6 @@ public sealed class QViewer
         QViewerWorkspace = lWorkspace;
         QViewerTrace = lWorkspace.CWorkspaceViewer;
         QViewerAudio = new QViewerAudio(QPlayer);
-        QViewerAudio.QViewerAudioChanged += QViewerAudioHandle;
         QViewerHost = new QViewerHost(this);
         QViewerPlayback = new QViewerPlayback(this);
         QViewerMedia = new QViewerMedia(this);
@@ -37,8 +36,16 @@ public sealed class QViewer
         QViewerRenderer = new QViewerRenderer(this);
         QViewerMpv = new QViewerMpv(this);
         QViewerNeutral = new QViewerNeutral(this);
+        QViewerFrame = new QViewerFrame(this);
         QCrop = new QCrop(this);
         QCropDrag = new QCropDrag(this);
+        QViewerHandlersAttach(lWorkspace);
+    }
+
+    // The viewer's handlers: its audio tool and the workspace's open, restore, playback and commit notices.
+    private void QViewerHandlersAttach(CWorkspace lWorkspace)
+    {
+        QViewerAudio.QViewerAudioChanged += QViewerAudioHandle;
         lWorkspace.CWorkspaceOpened += QViewerOpenHandle;
         lWorkspace.CWorkspaceRestored += QViewerMedia.QViewerLoadRestore;
         lWorkspace.CWorkspacePlayed += QViewerPlayback.QViewerPlayApply;
@@ -72,6 +79,8 @@ public sealed class QViewer
     public QViewerMpv QViewerMpv { get; }
 
     public QViewerNeutral QViewerNeutral { get; }
+
+    public QViewerFrame QViewerFrame { get; }
 
     public QCrop QCrop { get; }
 
@@ -151,9 +160,11 @@ public sealed class QViewer
     // A closing viewer ends its tenure: the workspace forgets the media it held.
     public void QViewerUnloadSet()
     {
-        qViewerUnloaded = true;
+        QViewerUnloadedSet();
         QViewerWorkspace.CWorkspaceMediaClear();
     }
+
+    private void QViewerUnloadedSet() => qViewerUnloaded = true;
 
     public void QViewerEndSet(bool lEndReached) => qViewerEndReached = lEndReached;
 
@@ -181,14 +192,25 @@ public sealed class QViewer
 
     public void QViewerEngineSet(LPreviewEngine lEngine)
     {
-        if (qViewerEngine == lEngine)
+        if (!QViewerEngineChange(lEngine))
         {
             return;
         }
 
-        qViewerEngine = lEngine;
         QViewerAudio.QViewerCapableSet(QViewerAudioCapable);
         QViewerEngineChanged?.Invoke();
+    }
+
+    // Stores the engine; true when it differs from the one held.
+    private bool QViewerEngineChange(LPreviewEngine lEngine)
+    {
+        if (qViewerEngine == lEngine)
+        {
+            return false;
+        }
+
+        qViewerEngine = lEngine;
+        return true;
     }
 
     private void QViewerAudioHandle()
@@ -215,6 +237,12 @@ public sealed class QViewer
             return;
         }
 
+        QViewerRefreshRun();
+    }
+
+    // The paused player redraws with the new filter; a refused refresh is recorded.
+    private void QViewerRefreshRun()
+    {
         try
         {
             QPlayer.QPlayerUpdate();
@@ -259,7 +287,7 @@ public sealed class QViewer
 
     public void QViewerRotateSet(LRotateFlip lRotateFlip)
     {
-        qViewerPreview = qViewerPreview.LRotateFlipChange(lRotateFlip);
+        QViewerPreviewSet(qViewerPreview.LRotateFlipChange(lRotateFlip));
         QViewerTrace.CViewerRotatedRecord(
             lRotateFlip.LRotateKind.ToString(),
             lRotateFlip.LRotateFlipHorizontal,
@@ -271,13 +299,21 @@ public sealed class QViewer
 
     public void QViewerColorSet(LColor lColor)
     {
-        qViewerPreview = qViewerPreview.LColorChange(lColor);
+        QViewerPreviewSet(qViewerPreview.LColorChange(lColor));
         QViewerPreviewApply();
     }
 
     public void QViewerMediaRaise(LCargo lCargo)
     {
-        QViewerCargo = lCargo;
+        QViewerCargoSet(lCargo);
+        QViewerMediaDispatch(lCargo);
+    }
+
+    private void QViewerCargoSet(LCargo lCargo) => QViewerCargo = lCargo;
+
+    // Each media handler hears the cargo on its own: one handler's failure is recorded and the rest still hear it.
+    private void QViewerMediaDispatch(LCargo lCargo)
+    {
         Delegate[] lHandlers = QViewerMediaChanged?.GetInvocationList() ?? Array.Empty<Delegate>();
         foreach (Action<LCargo> lHandler in lHandlers.Cast<Action<LCargo>>())
         {
@@ -295,64 +331,49 @@ public sealed class QViewer
     public void QViewerPlaybackUpdate(bool? lPlaying, TimeSpan? lPosition)
     {
         LPlaybackState lState = qViewerPreview.LPlaybackState;
-        bool lPlayingNow = lPlaying ?? lState.LPlaybackStatePlaying;
-        qViewerPreview = qViewerPreview.LPlaybackStateChange(
-            new LPlaybackState(lPlayingNow, lPosition ?? lState.LPlaybackPosition));
-        if (lPlayingNow != lState.LPlaybackStatePlaying)
+        LPlaybackState lNext = QViewerPlaybackResolve(lState, lPlaying, lPosition);
+        QViewerPreviewSet(qViewerPreview.LPlaybackStateChange(lNext));
+        if (lNext.LPlaybackStatePlaying != lState.LPlaybackStatePlaying)
         {
-            QViewerPlayingChanged?.Invoke(lPlayingNow);
+            QViewerPlayingChanged?.Invoke(lNext.LPlaybackStatePlaying);
         }
     }
 
+    // The playback state after an update: each part not given keeps its held value.
+    private static LPlaybackState QViewerPlaybackResolve(LPlaybackState lState, bool? lPlaying, TimeSpan? lPosition) =>
+        new(lPlaying ?? lState.LPlaybackStatePlaying, lPosition ?? lState.LPlaybackPosition);
+
     public void QViewerMediaCommit(LCargo lCargo, bool lCropPersistent)
     {
-        qViewerMediaInfo = lCargo.LCargoMediaInfo;
+        QViewerInfoSet(lCargo.LCargoMediaInfo);
         QViewerWorkspace.CWorkspaceMediaSet(lCargo.LCargoSourcePath, lCargo.LCargoMediaInfo is not null);
-        qViewerPreview = qViewerPreview.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        QViewerCommitSet(QViewerCommitResolve(qViewerPreview, lCropPersistent));
+    }
+
+    private void QViewerInfoSet(LMediaInfo? lMediaInfo) => qViewerMediaInfo = lMediaInfo;
+
+    // The preview a fresh media starts from: stopped, its crop kept only when the crop is persistent.
+    private static LPreviewState QViewerCommitResolve(LPreviewState lPreview, bool lCropPersistent)
+    {
+        LPreviewState lStopped = lPreview.LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+        return lCropPersistent ? lStopped : lStopped.LCropboxChange(null);
+    }
+
+    private void QViewerCommitSet(LPreviewState lPreview)
+    {
+        qViewerPreview = lPreview;
         qViewerEndReached = false;
-        if (!lCropPersistent)
-        {
-            qViewerPreview = qViewerPreview.LCropboxChange(null);
-        }
     }
 
     public void QViewerMediaClose()
     {
-        qViewerLoadSerial++;
-        qViewerMediaInfo = null;
+        QViewerSerialChange();
+        QViewerInfoSet(null);
         QViewerWorkspace.CWorkspaceMediaClear();
-        qViewerPreview = qViewerPreview
+        QViewerPreviewSet(qViewerPreview
             .LCropboxChange(null)
-            .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate());
+            .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate()));
     }
 
     public TimeSpan QViewerTimeRead() => QPlayer.QPlayerReady ? QPlayer.QPlayerTimeRead() : QViewerPosition;
-
-    public async void QViewerFrameRead(Action<LMediaFrame?> lFrameApply)
-    {
-        if (QViewerMediaInfo is not { LMediaVideoPresent: true } lMediaInfo)
-        {
-            lFrameApply(null);
-            return;
-        }
-
-        int lWidth = lMediaInfo.LMediaVideoWidth;
-        int lHeight = lMediaInfo.LMediaVideoHeight;
-        string? lPath = QViewerWorkspace.CWorkspaceSource;
-        if (lWidth <= 0 || lHeight <= 0 || string.IsNullOrWhiteSpace(lPath))
-        {
-            lFrameApply(null);
-            return;
-        }
-
-        TimeSpan lTime = QViewerTimeRead();
-        int lClaim = qViewerLoadSerial;
-        LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lTime, lWidth, lHeight);
-        if (qViewerUnloaded || lClaim != qViewerLoadSerial)
-        {
-            return;
-        }
-
-        lFrameApply(lFrame);
-    }
 }

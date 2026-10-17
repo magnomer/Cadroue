@@ -89,16 +89,29 @@ internal sealed class PFunnelCondition : Grid
         pFunnelOrLabel = PFunnelLabelBuild(QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Or"));
         pFunnelAndSegment = PFunnelSegmentBuild(pFunnelAndLabel, () => PFunnelModeSet(true));
         pFunnelOrSegment = PFunnelSegmentBuild(pFunnelOrLabel, () => PFunnelModeSet(false));
-        pFunnelJoin = PFunnelJoinBuild();
-        pFunnelJoin.Visibility = PLook.PLookVisible[lCondition.QFunnelConditionJoin];
+        pFunnelJoin = PFunnelJoinBuild(lCondition.QFunnelConditionJoin);
+        PFunnelLayoutBuild(lCondition.QFunnelConditionLabel);
+        PFunnelConditionUpdate();
+    }
 
+    public void PFunnelConditionUpdate()
+    {
+        LSceneFunnelCondition lMatch = lFunnel.QFunnelCriterion.QFunnelMatchRead(lFunnelRule, lFunnelKind);
+        PFunnelFieldShow();
+        PFunnelCaseApply(lMatch.LSceneFunnelCase);
+        PFunnelCaseShow(lMatch.LSceneFunnelCase);
+        PFunnelJoinApply(lMatch.LSceneFunnelJoin);
+    }
+
+    private void PFunnelLayoutBuild(string pLabelKey)
+    {
         Margin = new Thickness(0, 0, 0, 8);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
         var pLabel = new TextBlock
         {
-            Text = QLocalizationCatalog.QLocalizationTextRead(lCondition.QFunnelConditionLabel),
+            Text = QLocalizationCatalog.QLocalizationTextRead(pLabelKey),
             FontSize = 11,
             FontFamily = pFunnelFontFamily,
             Foreground = pFunnelMutedBrush,
@@ -121,29 +134,28 @@ internal sealed class PFunnelCondition : Grid
 
         SetRow(pLine, 1);
         Children.Add(pLine);
-        PFunnelConditionUpdate();
     }
 
-    public void PFunnelConditionUpdate()
-    {
-        LSceneFunnelCondition lMatch = lFunnel.QFunnelCriterion.QFunnelMatchRead(lFunnelRule, lFunnelKind);
+    private void PFunnelFieldShow() =>
         pFunnelField.Text = lFunnel.QFunnelCriterion.QFunnelTextResolve(lFunnelRule, lFunnelKind, pFunnelField.Text);
-        PFunnelCaseApply(lMatch.LSceneFunnelCase);
-        PFunnelJoinApply(lMatch.LSceneFunnelJoin);
-    }
 
     private TextBox PFunnelFieldBuild()
     {
-        var pField = new TextBox
-        {
-            Height = PFunnelFieldHeight,
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily
-        };
+        TextBox pField = PFunnelFieldCreate();
         QTextbox.QTextboxAttach(pField);
-        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
+        PFunnelFieldAttach(pField);
         return pField;
     }
+
+    private static TextBox PFunnelFieldCreate() => new()
+    {
+        Height = PFunnelFieldHeight,
+        FontSize = 12,
+        FontFamily = pFunnelFontFamily
+    };
+
+    private void PFunnelFieldAttach(TextBox pField) =>
+        pField.TextChanged += (_, _) => lFunnel.QFunnelCriterion.QFunnelTextSet(lFunnelRule, lFunnelKind, pField.Text);
 
     private static TextBlock PFunnelMonoBuild() => new()
     {
@@ -156,31 +168,40 @@ internal sealed class PFunnelCondition : Grid
 
     private Border PFunnelCaseBuild(TextBlock pLabel)
     {
-        var pHost = new Border
-        {
-            Width = PFunnelCaseWidth,
-            Height = PFunnelFieldHeight,
-            Margin = new Thickness(6, 0, 0, 0),
-            BorderThickness = new Thickness(1),
-            CornerRadius = new CornerRadius(6),
-            Background = Brushes.White,
-            Cursor = Cursors.Hand,
-            SnapsToDevicePixels = true,
-            Child = pLabel
-        };
-        pHost.MouseLeftButtonUp += (_, _) => lFunnel.QFunnelCriterion.QFunnelCaseToggle(lFunnelRule, lFunnelKind);
+        Border pHost = PFunnelCaseCreate(pLabel);
+        PFunnelCaseAttach(pHost);
         return pHost;
     }
+
+    private static Border PFunnelCaseCreate(TextBlock pLabel) => new()
+    {
+        Width = PFunnelCaseWidth,
+        Height = PFunnelFieldHeight,
+        Margin = new Thickness(6, 0, 0, 0),
+        BorderThickness = new Thickness(1),
+        CornerRadius = new CornerRadius(6),
+        Background = Brushes.White,
+        Cursor = Cursors.Hand,
+        SnapsToDevicePixels = true,
+        Child = pLabel
+    };
+
+    private void PFunnelCaseAttach(Border pHost) =>
+        pHost.MouseLeftButtonUp += (_, _) => lFunnel.QFunnelCriterion.QFunnelCaseToggle(lFunnelRule, lFunnelKind);
 
     private void PFunnelCaseApply(bool pOn)
     {
         pFunnelCaseButton.BorderBrush = pFunnelCaseBorders[pOn];
-        pFunnelCaseButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelCaseTooltips[pOn]);
-        pFunnelCaseLabel.Text = pFunnelCaseTexts[pOn];
         pFunnelCaseLabel.Foreground = pFunnelCaseForegrounds[pOn];
     }
 
-    private Border PFunnelJoinBuild()
+    private void PFunnelCaseShow(bool pOn)
+    {
+        pFunnelCaseButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelCaseTooltips[pOn]);
+        pFunnelCaseLabel.Text = pFunnelCaseTexts[pOn];
+    }
+
+    private Border PFunnelJoinBuild(bool pJoined)
     {
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -203,6 +224,7 @@ internal sealed class PFunnelCondition : Grid
             CornerRadius = new CornerRadius(6),
             Background = Brushes.White,
             SnapsToDevicePixels = true,
+            Visibility = PLook.PLookVisible[pJoined],
             Child = pGrid
         };
     }
@@ -224,15 +246,20 @@ internal sealed class PFunnelCondition : Grid
 
     private static Border PFunnelSegmentBuild(TextBlock pLabel, Action pClick)
     {
-        var pSegment = new Border
-        {
-            Padding = new Thickness(4, 3, 4, 3),
-            Cursor = Cursors.Hand,
-            Child = pLabel
-        };
-        pSegment.MouseLeftButtonUp += (_, _) => pClick();
+        Border pSegment = PFunnelSegmentCreate(pLabel);
+        PFunnelSegmentAttach(pSegment, pClick);
         return pSegment;
     }
+
+    private static Border PFunnelSegmentCreate(TextBlock pLabel) => new()
+    {
+        Padding = new Thickness(4, 3, 4, 3),
+        Cursor = Cursors.Hand,
+        Child = pLabel
+    };
+
+    private static void PFunnelSegmentAttach(Border pSegment, Action pClick) =>
+        pSegment.MouseLeftButtonUp += (_, _) => pClick();
 
     private static void PFunnelSegmentApply(Border pSegment, TextBlock pLabel, bool pActive)
     {

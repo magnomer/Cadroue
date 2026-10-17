@@ -34,7 +34,7 @@ public sealed class QFlowWheel
                 QFlowZoom(lSteps);
                 break;
             case "Volume":
-                QFlowVolumeAdjusted?.Invoke(lSteps * QCursor.QCursorVolumeStep);
+                QFlowVolumeAdjusted?.Invoke(QFlowVolumeResolve(lSteps));
                 break;
             default:
                 QFlowWheelSeek(lSteps);
@@ -43,6 +43,8 @@ public sealed class QFlowWheel
 
         return true;
     }
+
+    private static double QFlowVolumeResolve(int lSteps) => lSteps * QCursor.QCursorVolumeStep;
 
     public void QFlowZoom(int lSteps)
     {
@@ -80,7 +82,7 @@ public sealed class QFlowWheel
                 return;
             }
 
-            qFlowDragPaused = true;
+            QFlowPausedSet(true);
             qFlow.QFlowPauseRaise();
             return;
         }
@@ -90,7 +92,7 @@ public sealed class QFlowWheel
             return;
         }
 
-        qFlowDragPaused = false;
+        QFlowPausedSet(false);
         qFlow.QFlowPlayRaise();
     }
 

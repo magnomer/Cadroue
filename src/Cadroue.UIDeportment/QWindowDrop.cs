@@ -46,45 +46,58 @@ public sealed class QWindowDrop
     {
         if (!lDrag.QWindowDragGroup)
         {
-            QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out _, out _);
-            QWindowDropAppend(
-                lDrag,
-                "Drag entered window: "
-                + (lEffect == QWindowDropEffect.QWindowDropNone
-                    ? "will REFUSE (forbidden cursor)"
-                    : $"will accept ({lEffect})"),
-                $"originalSource={lDrag.QWindowDragSource ?? "null"}, "
-                + $"list={(qWindow.QWindowListPresent ? "present" : "NULL")}, "
-                + $"viewer={(qWindow.QWindowViewerPresent ? "present" : "NULL")}, "
-                + $"audioTab={qWindow.QWindowAudioAllowed}, groupAncestor={lDrag.QWindowDragGroup}");
+            QWindowEnterAppend(lDrag);
         }
 
         QWindowOverHandle(lDrag);
+    }
+
+    private void QWindowEnterAppend(QWindowDrag lDrag)
+    {
+        QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out _, out _);
+        QWindowDropAppend(
+            lDrag,
+            "Drag entered window: "
+            + (lEffect == QWindowDropEffect.QWindowDropNone
+                ? "will REFUSE (forbidden cursor)"
+                : $"will accept ({lEffect})"),
+            $"originalSource={lDrag.QWindowDragSource ?? "null"}, "
+            + $"list={(qWindow.QWindowListPresent ? "present" : "NULL")}, "
+            + $"viewer={(qWindow.QWindowViewerPresent ? "present" : "NULL")}, "
+            + $"audioTab={qWindow.QWindowAudioAllowed}, groupAncestor={lDrag.QWindowDragGroup}");
     }
 
     public void QWindowOverHandle(QWindowDrag lDrag)
     {
         if (lDrag.QWindowDragGroup)
         {
-            qWindowDropLast = null;
+            QWindowLastClear();
             QWindowDropSet(QWindowDropEffect.QWindowDropNone, false);
             return;
         }
 
         QWindowDropStart(lDrag);
         QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out string lReason, out _);
-        if (lEffect != qWindowDropLast)
-        {
-            qWindowDropLast = lEffect;
-            QWindowDropAppend(
-                lDrag,
-                "Drag over: "
-                + (lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED (forbidden cursor)" : lEffect.ToString()),
-                lReason);
-        }
-
+        QWindowOverAppend(lDrag, lEffect, lReason);
         QWindowDropSet(lEffect, true);
     }
+
+    private void QWindowOverAppend(QWindowDrag lDrag, QWindowDropEffect lEffect, string lReason)
+    {
+        if (lEffect == qWindowDropLast)
+        {
+            return;
+        }
+
+        qWindowDropLast = lEffect;
+        QWindowDropAppend(
+            lDrag,
+            "Drag over: "
+            + (lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED (forbidden cursor)" : lEffect.ToString()),
+            lReason);
+    }
+
+    private void QWindowLastClear() => qWindowDropLast = null;
 
     public void QWindowDropHandle(QWindowDrag lDrag)
     {
@@ -94,15 +107,12 @@ public sealed class QWindowDrop
             return;
         }
 
-        qWindowDropLast = null;
+        QWindowLastClear();
         QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out string lReason, out string lName);
         QWindowDropSet(lEffect, true);
 
-        string lTarget = qWindow.QWindowListPresent ? "list" : qWindow.QWindowViewerPresent ? "viewer" : "none";
-        QWindowDropAppend(
-            lDrag,
-            $"Drop released: {(lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED" : "accepted")} onto {lTarget}",
-            lReason);
+        string lTarget = QWindowTargetRead();
+        QWindowReleaseAppend(lDrag, lEffect, lTarget, lReason);
 
         if (lEffect == QWindowDropEffect.QWindowDropNone)
         {
@@ -138,6 +148,15 @@ public sealed class QWindowDrop
         QWindowDropAppend(lDrag, $"Drop into viewer: opened {lName}");
         QWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
     }
+
+    private string QWindowTargetRead() =>
+        qWindow.QWindowListPresent ? "list" : qWindow.QWindowViewerPresent ? "viewer" : "none";
+
+    private void QWindowReleaseAppend(QWindowDrag lDrag, QWindowDropEffect lEffect, string lTarget, string lReason) =>
+        QWindowDropAppend(
+            lDrag,
+            $"Drop released: {(lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED" : "accepted")} onto {lTarget}",
+            lReason);
 
     private void QWindowDropSet(QWindowDropEffect lEffect, bool lHandled)
     {

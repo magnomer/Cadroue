@@ -20,34 +20,40 @@ internal sealed partial class PSOptions
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
             190,
             new Thickness(0));
-        pRecordClear.Click += (_, _) => PSSystemRecordClear();
-
-        var pRecordButtonRow = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        pRecordButtonRow.Children.Add(pRecordClear);
-
+        PSSystemRecordAttach(pRecordClear);
         var pRecordBesideNotice = (TextBlock)PSNotice.PSNoticeBuild(string.Empty);
-        void PSSystemNoticeUpdate()
-        {
-            lsOptionsDraft.LPreferenceRecordWorkspace =
-                string.Equals(PSField.PSModeTextRead(psOptionsRecordMode), "Workspace", StringComparison.Ordinal);
-            pRecordBesideNotice.Text = QLocalizationCatalog.QLocalizationFormat(
-                lsOptions.QSOptionsRecordResolve(), QSOptions.QSOptionsSidecarRead());
-        }
-        PSSystemNoticeUpdate();
-        psOptionsRecordNotice = PSSystemNoticeUpdate;
+        PSSystemNoticeUpdate(pRecordBesideNotice);
+        PSSystemNoticeAttach(pRecordBesideNotice);
+        return PSSystemPlateBuild(pRecordClear, pRecordBesideNotice);
+    }
 
-        return PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecord"),
+    private void PSSystemRecordAttach(Button pRecordClear) => pRecordClear.Click += (_, _) => PSSystemRecordClear();
+
+    private void PSSystemNoticeUpdate(TextBlock pRecordBesideNotice)
+    {
+        PSSystemDraftUpdate(PSOptionsModeCheck(psOptionsRecordMode, "Workspace"));
+        PSSystemNoticeShow(
+            pRecordBesideNotice,
+            QLocalizationCatalog.QLocalizationFormat(
+                lsOptions.QSOptionsRecordResolve(), QSOptions.QSOptionsSidecarRead()));
+    }
+
+    private void PSSystemDraftUpdate(bool pWorkspace) => lsOptionsDraft.LPreferenceRecordWorkspace = pWorkspace;
+
+    private static void PSSystemNoticeShow(TextBlock pRecordBesideNotice, string pText) =>
+        pRecordBesideNotice.Text = pText;
+
+    private void PSSystemNoticeAttach(TextBlock pRecordBesideNotice) =>
+        psOptionsRecordNotice = () => PSSystemNoticeUpdate(pRecordBesideNotice);
+
+    private UIElement PSSystemPlateBuild(Button pRecordClear, TextBlock pRecordBesideNotice) =>
+        PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecord"),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
                 psOptionsRecordMode),
             pRecordBesideNotice,
             PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecordScope")),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Maintenance"),
-                pRecordButtonRow));
-    }
+                PSSystemRowBuild(pRecordClear)));
 
     private void PSSystemRecordClear()
     {

@@ -23,6 +23,13 @@ public sealed partial class PInspector
 
     private UIElement PWhitebalanceWheelBuild()
     {
+        UIElement pWheel = PWhitebalancePaletteBuild();
+        PWhitebalanceWheelAttach();
+        return pWheel;
+    }
+
+    private UIElement PWhitebalancePaletteBuild()
+    {
         pWhitebalanceWheelCanvas = new Canvas
         {
             Width = PWhitebalanceWheelSize,
@@ -59,10 +66,6 @@ public sealed partial class PInspector
         };
         pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelDot);
 
-        pWhitebalanceWheelCanvas.MouseLeftButtonDown += PWhitebalancePressHandle;
-        pWhitebalanceWheelCanvas.MouseMove += PWhitebalanceWheelHandle;
-        pWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) => pWhitebalanceWheelCanvas.ReleaseMouseCapture();
-
         pWhitebalanceWheelBrightness = new Slider
         {
             Minimum = 0,
@@ -74,8 +77,6 @@ public sealed partial class PInspector
             Margin = new Thickness(0, 6, 0, 0)
         };
         QSlider.QSliderAttach(pWhitebalanceWheelBrightness);
-        pWhitebalanceWheelBrightness.ValueChanged += (_, _) =>
-            pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
 
         return new StackPanel
         {
@@ -84,6 +85,17 @@ public sealed partial class PInspector
             Children = { pWhitebalanceWheelCanvas, pWhitebalanceWheelBrightness }
         };
     }
+
+    private void PWhitebalanceWheelAttach()
+    {
+        pWhitebalanceWheelCanvas.MouseLeftButtonDown += PWhitebalancePressHandle;
+        pWhitebalanceWheelCanvas.MouseMove += PWhitebalanceWheelHandle;
+        pWhitebalanceWheelCanvas.MouseLeftButtonUp += (_, _) => pWhitebalanceWheelCanvas.ReleaseMouseCapture();
+        pWhitebalanceWheelBrightness.ValueChanged += (_, _) => PWhitebalanceBrightnessHandle();
+    }
+
+    private void PWhitebalanceBrightnessHandle() =>
+        pWhitebalanceWheelImage.Source = PWhitebalanceWheelDraw(pWhitebalanceWheelBrightness.Value);
 
     private void PWhitebalancePressHandle(object pSender, MouseButtonEventArgs pWheelMouse)
     {

@@ -49,6 +49,11 @@ public sealed class QPlayer
         }
 
         qPlayerSeam?.QPlayerDisposeSeam();
+        QPlayerSeamSet(lSeam);
+    }
+
+    private void QPlayerSeamSet(QPlayerSeam? lSeam)
+    {
         qPlayerSeam = lSeam;
         QPlayerAppliedReset();
     }
@@ -93,11 +98,14 @@ public sealed class QPlayer
     public void QPlayerPreviewApply(LPreviewState lState, string lReason)
     {
         LPreviewApplication lApplication = LPreview.LPreviewApplicationResolve(lState, lReason);
-        qPlayerSeam?.QPlayerPreviewSeam(lApplication with
+        qPlayerSeam?.QPlayerPreviewSeam(QPlayerContrastResolve(lApplication));
+    }
+
+    private static LPreviewApplication QPlayerContrastResolve(LPreviewApplication lApplication) =>
+        lApplication with
         {
             LPreviewContrast = LFlyleaf.LFlyleafActive ? lApplication.LPreviewContrast : 0
-        });
-    }
+        };
 
     public bool QPlayerAccurateSet()
     {
@@ -112,8 +120,15 @@ public sealed class QPlayer
 
     public bool QPlayerSeekCommit(int lSeekMilliseconds)
     {
-        qPlayerAccurateActive = false;
-        if (!qPlayerRendererPending || lSeekMilliseconds < 0)
+        QPlayerAccurateReset();
+        return QPlayerSeekCheck(lSeekMilliseconds) && QPlayerRendererCommit();
+    }
+
+    private static bool QPlayerSeekCheck(int lSeekMilliseconds) => lSeekMilliseconds >= 0;
+
+    private bool QPlayerRendererCommit()
+    {
+        if (!qPlayerRendererPending)
         {
             return false;
         }
@@ -132,7 +147,7 @@ public sealed class QPlayer
 
     public bool QPlayerFilterApply(string lFilter)
     {
-        if (lFilter == qPlayerFilterApplied)
+        if (QPlayerFilterMatch(lFilter))
         {
             return true;
         }
@@ -140,7 +155,7 @@ public sealed class QPlayer
         try
         {
             qPlayerSeam?.QPlayerFilterSeam?.Invoke(lFilter);
-            qPlayerFilterApplied = lFilter;
+            QPlayerFilterSet(lFilter);
             return true;
         }
         catch (Exception lFilterException)
@@ -159,7 +174,7 @@ public sealed class QPlayer
         try
         {
             qPlayerSeam?.QPlayerFilterSeam?.Invoke(string.Empty);
-            qPlayerFilterApplied = string.Empty;
+            QPlayerFilterSet(string.Empty);
         }
         catch (Exception lClearException)
         {
@@ -170,7 +185,7 @@ public sealed class QPlayer
 
     public void QPlayerAudioApply(string lAudio)
     {
-        if (lAudio == qPlayerAudioApplied)
+        if (QPlayerAudioMatch(lAudio))
         {
             return;
         }
@@ -178,7 +193,7 @@ public sealed class QPlayer
         try
         {
             qPlayerSeam?.QPlayerAudioSeam?.Invoke(lAudio);
-            qPlayerAudioApplied = lAudio;
+            QPlayerAudioSet(lAudio);
         }
         catch (Exception lAudioException)
         {
@@ -186,6 +201,14 @@ public sealed class QPlayer
                 $"mpv rejected audio filter '{lAudio}': {lAudioException.Message}");
         }
     }
+
+    private bool QPlayerFilterMatch(string lFilter) => lFilter == qPlayerFilterApplied;
+
+    private void QPlayerFilterSet(string lFilter) => qPlayerFilterApplied = lFilter;
+
+    private bool QPlayerAudioMatch(string lAudio) => lAudio == qPlayerAudioApplied;
+
+    private void QPlayerAudioSet(string lAudio) => qPlayerAudioApplied = lAudio;
 
     public void QPlayerAppliedReset()
     {

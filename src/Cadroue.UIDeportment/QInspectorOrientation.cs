@@ -62,13 +62,18 @@ public sealed class QInspectorOrientation
             return;
         }
 
-        qInspector.QInspectorCrop.QInspectorCropbox.LCropboxCropSet(lCrop.LWorkEdgeActive
+        LWorkCrop lTurned = QInspectorOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical);
+        qInspector.QInspectorCrop.QInspectorCropbox.LCropboxCropSet(lTurned);
+    }
+
+    private static LWorkCrop QInspectorOrientationResolve(
+        LWorkCrop lCrop, int lRotation, bool lFlipHorizontal, bool lFlipVertical) =>
+        lCrop.LWorkEdgeActive
             ? LCropbox.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
             : lCrop with
             {
                 LWorkCropRotation = lRotation,
                 LWorkFlipHorizontal = lFlipHorizontal,
                 LWorkFlipVertical = lFlipVertical
-            });
-    }
+            };
 }

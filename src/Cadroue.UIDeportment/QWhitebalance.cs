@@ -126,13 +126,16 @@ public sealed class QWhitebalance
 
     public void QWhitebalanceMethodSelect(int lIndex)
     {
-        if (lIndex < 0 || lIndex >= qWhitebalanceMethods.Length)
+        if (QWhitebalanceMethodResolve(lIndex) is not { } lMethod)
         {
             return;
         }
 
-        QWhitebalanceMethodSet(qWhitebalanceMethods[lIndex]);
+        QWhitebalanceMethodSet(lMethod);
     }
+
+    private static LWhitebalanceMethod? QWhitebalanceMethodResolve(int lIndex) =>
+        lIndex < 0 || lIndex >= qWhitebalanceMethods.Length ? null : qWhitebalanceMethods[lIndex];
 
     public void QWhitebalanceMethodSet(LWhitebalanceMethod lMethod)
     {
@@ -190,7 +193,17 @@ public sealed class QWhitebalance
 
     public void QWhitebalanceEstimateSet(LNeutralWheel lEstimate)
     {
-        if (QWhitebalanceManual || qWhitebalanceEstimate == lEstimate)
+        if (QWhitebalanceManual)
+        {
+            return;
+        }
+
+        QWhitebalanceEstimateChange(lEstimate);
+    }
+
+    private void QWhitebalanceEstimateChange(LNeutralWheel lEstimate)
+    {
+        if (qWhitebalanceEstimate == lEstimate)
         {
             return;
         }
@@ -201,19 +214,24 @@ public sealed class QWhitebalance
 
     public void QWhitebalanceToolSet(bool lArmed, LNeutralTarget lTarget)
     {
-        bool lChanged = QWhitebalanceToolApply(lArmed && qWhitebalanceCapable, lTarget);
+        bool lChanged = QWhitebalanceToolApply(QWhitebalanceArmedResolve(lArmed), lTarget);
         QWhitebalanceRaise(lChanged);
     }
 
+    private bool QWhitebalanceArmedResolve(bool lArmed) => lArmed && qWhitebalanceCapable;
+
     public void QWhitebalanceToolToggle(LNeutralTarget lTarget, bool lChecked)
     {
-        if (!lChecked && !(qWhitebalanceToolArmed && qWhitebalanceTarget == lTarget))
+        if (!QWhitebalanceToggleCheck(lTarget, lChecked))
         {
             return;
         }
 
         QWhitebalanceToolSet(lChecked, lTarget);
     }
+
+    private bool QWhitebalanceToggleCheck(LNeutralTarget lTarget, bool lChecked) =>
+        lChecked || (qWhitebalanceToolArmed && qWhitebalanceTarget == lTarget);
 
     public void QWhitebalanceWheelHandle(bool lPressed, double lX, double lY, double lSize)
     {
@@ -241,10 +259,7 @@ public sealed class QWhitebalance
 
     public void QWhitebalanceCapableSet(bool lCapable, bool lPreview)
     {
-        bool lPreviewShown = lCapable && lPreview;
-        bool lChanged = qWhitebalanceCapable != lCapable || qWhitebalancePreview != lPreviewShown;
-        qWhitebalanceCapable = lCapable;
-        qWhitebalancePreview = lPreviewShown;
+        bool lChanged = QWhitebalanceCapableApply(lCapable, QWhitebalancePreviewResolve(lCapable, lPreview));
         if (!lCapable)
         {
             lChanged |= QWhitebalanceToolApply(false);
@@ -253,27 +268,68 @@ public sealed class QWhitebalance
         QWhitebalanceRaise(lChanged);
     }
 
+    private static bool QWhitebalancePreviewResolve(bool lCapable, bool lPreview) => lCapable && lPreview;
+
+    private bool QWhitebalanceCapableApply(bool lCapable, bool lPreviewShown)
+    {
+        bool lChanged = qWhitebalanceCapable != lCapable || qWhitebalancePreview != lPreviewShown;
+        qWhitebalanceCapable = lCapable;
+        qWhitebalancePreview = lPreviewShown;
+        return lChanged;
+    }
+
     private bool QWhitebalanceStepApply(LWorkVideoStep lNormal)
+    {
+        LWhitebalanceMethod lPrevious = QWhitebalanceMethod;
+        if (!QWhitebalanceStepChange(lNormal))
+        {
+            return false;
+        }
+
+        if (lPrevious != QWhitebalanceMethod && !QWhitebalanceManual)
+        {
+            QWhitebalanceEstimateReset();
+        }
+
+        return true;
+    }
+
+    private bool QWhitebalanceStepChange(LWorkVideoStep lNormal)
     {
         if (qWhitebalanceStep == lNormal)
         {
             return false;
         }
 
-        LWhitebalanceMethod lPrevious = QWhitebalanceMethod;
         qWhitebalanceStep = lNormal;
-        if (lPrevious != QWhitebalanceMethod && !QWhitebalanceManual)
+        return true;
+    }
+
+    private void QWhitebalanceEstimateReset()
+    {
+        qWhitebalanceEstimate = new LNeutralWheel(0, 0, false);
+        QWhitebalanceEstimateChanged?.Invoke(QWhitebalanceMethod);
+    }
+
+    private bool QWhitebalanceToolApply(bool lArmed, LNeutralTarget? lTarget = null)
+    {
+        if (!QWhitebalanceToolChange(lArmed, QWhitebalanceTargetResolve(lTarget)))
         {
-            qWhitebalanceEstimate = new LNeutralWheel(0, 0, false);
-            QWhitebalanceEstimateChanged?.Invoke(QWhitebalanceMethod);
+            return false;
+        }
+
+        if (!lArmed)
+        {
+            QWhitebalanceStatusApply(string.Empty);
         }
 
         return true;
     }
 
-    private bool QWhitebalanceToolApply(bool lArmed, LNeutralTarget? lTarget = null)
+    private LNeutralTarget QWhitebalanceTargetResolve(LNeutralTarget? lTarget) => lTarget ?? qWhitebalanceTarget;
+
+    private bool QWhitebalanceToolChange(bool lArmed, LNeutralTarget lNext)
     {
-        LNeutralTarget lNext = lTarget ?? qWhitebalanceTarget;
         if (qWhitebalanceToolArmed == lArmed && (!lArmed || qWhitebalanceTarget == lNext))
         {
             return false;
@@ -282,11 +338,6 @@ public sealed class QWhitebalance
         qWhitebalanceToolArmed = lArmed;
         qWhitebalanceTarget = lNext;
         qWhitebalanceToolPending = true;
-        if (!lArmed)
-        {
-            qWhitebalanceStatus = string.Empty;
-        }
-
         return true;
     }
 

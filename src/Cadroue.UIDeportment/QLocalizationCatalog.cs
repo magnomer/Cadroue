@@ -76,18 +76,30 @@ public sealed class QLocalizationCatalog : INotifyPropertyChanged
         IReadOnlyDictionary<string, string> fallback,
         Action<string, Exception?> trace)
     {
-        QLocalizationCatalogCurrent.qLocalizationCatalogTexts = texts;
-        QLocalizationCatalogCurrent.qLocalizationCatalogFallback = fallback;
-        QLocalizationCatalogCurrent.qLocalizationCatalogTrace = trace;
-        if (resources is not null && !texts.All(pair => Equals(resources[pair.Key], pair.Value)))
+        QLocalizationCatalogSet(texts, fallback, trace);
+        if (QLocalizationStaleFind(resources, texts) is { } stale)
         {
-            QLocalizationResourceApply(resources, texts);
+            QLocalizationResourceApply(stale, texts);
         }
 
         QLocalizationCatalogCurrent.PropertyChanged?.Invoke(
             QLocalizationCatalogCurrent,
             new PropertyChangedEventArgs("Item[]"));
     }
+
+    private static void QLocalizationCatalogSet(
+        IReadOnlyDictionary<string, string> texts,
+        IReadOnlyDictionary<string, string> fallback,
+        Action<string, Exception?> trace)
+    {
+        QLocalizationCatalogCurrent.qLocalizationCatalogTexts = texts;
+        QLocalizationCatalogCurrent.qLocalizationCatalogFallback = fallback;
+        QLocalizationCatalogCurrent.qLocalizationCatalogTrace = trace;
+    }
+
+    private static ResourceDictionary? QLocalizationStaleFind(
+        ResourceDictionary? resources, IReadOnlyDictionary<string, string> texts) =>
+        resources is not null && !texts.All(pair => Equals(resources[pair.Key], pair.Value)) ? resources : null;
 
     private static string? QLocalizationFallbackFind(string key)
     {

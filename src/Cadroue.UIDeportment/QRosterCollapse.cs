@@ -26,7 +26,7 @@ public sealed class QRosterCollapse
 
     public bool QRosterCollapseToggle(Guid lBatchId)
     {
-        bool lCollapsed = !qRosterCollapsedIds.Contains(lBatchId);
+        bool lCollapsed = !QRosterCollapsedCheck(lBatchId);
         QRosterCollapseSet(lBatchId, lCollapsed);
         qRosterCard(lBatchId);
         return lCollapsed;

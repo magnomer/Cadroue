@@ -35,7 +35,7 @@ public sealed class QWorkspace
             : null;
         QWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
-        QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
+        QWorkspacePresetAttach();
         QWorkspacePresetAccept(QWorkspacePreset);
         QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
         QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher, lInspector, lEdit,
@@ -108,6 +108,15 @@ public sealed class QWorkspace
 
     public void QWorkspaceAttach(Func<LSceneTabEntry> lLayoutSource)
     {
+        QWorkspaceHandlersAttach(lLayoutSource);
+        QWorkspaceHistoryReset();
+        QWorkspaceHistoryAttach();
+    }
+
+    private void QWorkspacePresetAttach() => QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
+
+    private void QWorkspaceHandlersAttach(Func<LSceneTabEntry> lLayoutSource)
+    {
         qWorkspaceLayoutSource = lLayoutSource;
         if (QWorkspaceViewer is { } lViewer)
         {
@@ -127,35 +136,45 @@ public sealed class QWorkspace
         }
 
         qWorkspacePair?.QWorkspacePairAttach();
-        qWorkspaceHistory.LHistoryReset(QWorkspaceSnapshotRead());
-        QWorkspacePreset.LPresetChanged += QWorkspaceHistoryAdd;
     }
+
+    private void QWorkspaceHistoryAttach() => QWorkspacePreset.LPresetChanged += QWorkspaceHistoryAdd;
 
     public void QWorkspaceClose()
     {
         try
         {
-            if (QWorkspaceViewer is not null)
-            {
-                QWorkspaceViewer.QViewerMediaChanged -= QWorkspaceMediaHandle;
-            }
-
-            if (QWorkspaceFlow is not null)
-            {
-                QWorkspaceFlow.QFlowSection.QFlowSectionChanged -= QWorkspaceSectionHandle;
-                QWorkspaceFlow.QFlowMediaChanged -= QWorkspaceHistoryReset;
-            }
-
-            qWorkspacePair?.QWorkspacePairDetach();
+            QWorkspaceHandlersDetach();
             QWorkspaceRelay.QWorkspaceRelayClose();
-            QWorkspacePreset.LPresetChanged -= QWorkspaceHistoryAdd;
-            QWorkspacePresetOwner.LPresetSelectionChanged -= QWorkspacePresetHandle;
+            QWorkspacePresetDetach();
             QWorkspacePresetOwner.LPresetSelectionClose();
         }
         finally
         {
             QWorkspaceRoster?.QRosterClose();
         }
+    }
+
+    private void QWorkspaceHandlersDetach()
+    {
+        if (QWorkspaceViewer is not null)
+        {
+            QWorkspaceViewer.QViewerMediaChanged -= QWorkspaceMediaHandle;
+        }
+
+        if (QWorkspaceFlow is not null)
+        {
+            QWorkspaceFlow.QFlowSection.QFlowSectionChanged -= QWorkspaceSectionHandle;
+            QWorkspaceFlow.QFlowMediaChanged -= QWorkspaceHistoryReset;
+        }
+
+        qWorkspacePair?.QWorkspacePairDetach();
+    }
+
+    private void QWorkspacePresetDetach()
+    {
+        QWorkspacePreset.LPresetChanged -= QWorkspaceHistoryAdd;
+        QWorkspacePresetOwner.LPresetSelectionChanged -= QWorkspacePresetHandle;
     }
 
     public LStation? QWorkspaceStation => QWorkspaceRoster?.QRosterStation;
@@ -205,9 +224,7 @@ public sealed class QWorkspace
 
     public bool QWorkspaceMediaClear(IReadOnlySet<Guid> lCohorts)
     {
-        string[] lKept = QWorkspaceDocket?.LDocketProtectedRead(lCohorts)
-            .Select(lEntry => lEntry.LDocketEntryPath)
-            .ToArray() ?? [];
+        string[] lKept = QWorkspaceKeptRead(lCohorts);
         (bool lClosed, bool lCancelled, bool lCleared) = qWorkspaceGate.CWorkspaceClearRead(lKept);
         if (lClosed)
         {
@@ -222,6 +239,11 @@ public sealed class QWorkspace
         int lStaleRemoved = QWorkspaceDocket?.LDocketStaleRemove(lCohorts) ?? 0;
         return lCleared || lStaleRemoved > 0;
     }
+
+    private string[] QWorkspaceKeptRead(IReadOnlySet<Guid> lCohorts) =>
+        QWorkspaceDocket?.LDocketProtectedRead(lCohorts)
+            .Select(lEntry => lEntry.LDocketEntryPath)
+            .ToArray() ?? [];
 
     private void QWorkspaceMediaHandle(LCargo lCargo)
     {

@@ -22,18 +22,31 @@ public static class QTool
 
     public static void QToolStackUpdate(FrameworkElement lStack, bool lEnabled)
     {
-        lStack.IsEnabled = lEnabled;
-        lStack.Opacity = lEnabled
-            ? QToolLit
-            : (double)QContract.QContractSheetFind<object>(QToolDimmedSheet);
+        QToolEnabledApply(lStack, lEnabled);
+        QToolOpacityApply(lStack, QToolOpacityResolve(lEnabled));
     }
 
     public static void QToolTipApply(
         CheckBox lApply, CheckBox lPersistent, FrameworkElement lStack, FrameworkElement lBody, QInspectorTip lTip)
     {
-        lApply.IsEnabled = lTip.QInspectorTipEnabled;
-        lPersistent.IsEnabled = lTip.QInspectorTipEnabled;
+        QToolEnabledApply(lApply, lTip.QInspectorTipEnabled);
+        QToolEnabledApply(lPersistent, lTip.QInspectorTipEnabled);
         QToolStackUpdate(lStack, lTip.QInspectorTipEnabled);
+        QToolHintApply(lApply, lPersistent, lBody, lTip);
+    }
+
+    private static void QToolEnabledApply(FrameworkElement lElement, bool lEnabled) => lElement.IsEnabled = lEnabled;
+
+    private static void QToolOpacityApply(FrameworkElement lElement, double lOpacity) => lElement.Opacity = lOpacity;
+
+    private static double QToolOpacityResolve(bool lEnabled) =>
+        lEnabled
+            ? QToolLit
+            : (double)QContract.QContractSheetFind<object>(QToolDimmedSheet);
+
+    private static void QToolHintApply(
+        CheckBox lApply, CheckBox lPersistent, FrameworkElement lBody, QInspectorTip lTip)
+    {
         lBody.ToolTip = lTip.QInspectorTipNotice;
         lApply.ToolTip = lTip.QInspectorTipBox;
         lPersistent.ToolTip = lTip.QInspectorTipPersistent;

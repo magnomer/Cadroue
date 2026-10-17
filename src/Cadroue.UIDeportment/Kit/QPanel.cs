@@ -26,10 +26,8 @@ public static class QPanel
 
     public static Border QPanelBuild(UIElement lContent)
     {
-        Border lFrame = QContract.QContractSheetFind<Border>(QPanelFrameHost);
-        Border lInner = (Border)lFrame.Child;
-        lInner.Child = lContent;
-        QPanelClipApply(lInner);
+        Border lFrame = QPanelFrameBuild(lContent);
+        QPanelClipApply((Border)lFrame.Child);
         return lFrame;
     }
 
@@ -41,13 +39,26 @@ public static class QPanel
 
     private static void QPanelClipApply(Border lBorder)
     {
-        double lRadius = lBorder.CornerRadius.TopLeft;
-        lBorder.SizeChanged += (_, _) =>
-        {
-            lBorder.Clip = new RectangleGeometry(
-                new Rect(0, 0, lBorder.ActualWidth, lBorder.ActualHeight),
-                lRadius,
-                lRadius);
-        };
+        double lRadius = QPanelRadiusRead(lBorder);
+        QPanelClipAttach(lBorder, lRadius);
     }
+
+    private static double QPanelRadiusRead(Border lBorder) => lBorder.CornerRadius.TopLeft;
+
+    private static void QPanelClipAttach(Border lBorder, double lRadius) =>
+        lBorder.SizeChanged += (_, _) => QPanelClipUpdate(lBorder, lRadius);
+
+    private static Border QPanelFrameBuild(UIElement lContent)
+    {
+        Border lFrame = QContract.QContractSheetFind<Border>(QPanelFrameHost);
+        Border lInner = (Border)lFrame.Child;
+        lInner.Child = lContent;
+        return lFrame;
+    }
+
+    private static void QPanelClipUpdate(Border lBorder, double lRadius) =>
+        lBorder.Clip = new RectangleGeometry(
+            new Rect(0, 0, lBorder.ActualWidth, lBorder.ActualHeight),
+            lRadius,
+            lRadius);
 }

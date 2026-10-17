@@ -35,16 +35,7 @@ public sealed class PEditTab : PTabSurface
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QEditProcessing.QEditRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
-        pViewer.QViewer.QViewerPlayback.QViewerClockTicked += PEditHistogramDefer;
-
-        QEditTab.QEditPresetMissing += PExport.PExportMissingShow;
-        QEditTab.QEditPresetIncompatible += PExport.PExportIncompatibleShow;
-        QEditTab.QEditHistogramDeferred += PEditHistogramDefer;
-        QEditTab.QEditColorDeferred += PEditColorDefer;
-        pEditColorTimer.Tick += PEditColorTick;
-        pEditHistogramTimer.Tick += PEditHistogramTick;
+        PEditEventsAttach();
         QEditTab.QEditColor.QEditCapableHandle();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
@@ -78,6 +69,20 @@ public sealed class PEditTab : PTabSurface
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QEditTab.QEditLayoutRead(PTabLayoutCreate());
+
+    private void PEditEventsAttach()
+    {
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pViewer.QViewer.QViewerPlayback.QViewerClockTicked += PEditHistogramDefer;
+
+        QEditTab.QEditPresetMissing += PExport.PExportMissingShow;
+        QEditTab.QEditPresetIncompatible += PExport.PExportIncompatibleShow;
+        QEditTab.QEditHistogramDeferred += PEditHistogramDefer;
+        QEditTab.QEditColorDeferred += PEditColorDefer;
+        pEditColorTimer.Tick += PEditColorTick;
+        pEditHistogramTimer.Tick += PEditHistogramTick;
+    }
 
     private void PEditHistogramDefer(TimeSpan lPosition) => PEditHistogramDefer();
 

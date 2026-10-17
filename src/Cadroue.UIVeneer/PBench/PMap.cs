@@ -78,13 +78,18 @@ public sealed class PMap : FrameworkElement
     {
         QMap.QMapDrawStart();
         QMapFrame lFrame = QMap.QMapFrameResolve(ActualWidth, ActualHeight);
+        PMapFrameDraw(drawingContext, lFrame);
+        QMap.QMapDrawRecord();
+    }
+
+    private void PMapFrameDraw(DrawingContext drawingContext, QMapFrame lFrame)
+    {
         lFrame.QMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
         drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QMapFrameWaveform));
         lFrame.QMapFrameBands.ToList().ForEach(lBand => PMapBandDraw(drawingContext, lBand));
         lFrame.QMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
         lFrame.QMapFrameCursor.ToList().ForEach(lCursorX =>
             PCursor.PCursorDraw(drawingContext, lCursorX, PCursor.PCursorHeadHeight, ActualHeight));
-        QMap.QMapDrawRecord();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -99,15 +104,17 @@ public sealed class PMap : FrameworkElement
     {
         base.OnMouseMove(e);
         Point pPoint = e.GetPosition(this);
-        Cursor = pMapCursors[QMap.QMapHoverResolve(pPoint.X, pPoint.Y, ActualWidth, ActualHeight)];
+        PMapCursorApply(QMap.QMapHoverResolve(pPoint.X, pPoint.Y, ActualWidth, ActualHeight));
         e.Handled = QMap.QMapMoveHandle(pPoint.X, ActualWidth);
     }
 
     protected override void OnMouseLeave(MouseEventArgs e)
     {
         base.OnMouseLeave(e);
-        Cursor = pMapCursors[QMap.QMapLeaveResolve()];
+        PMapCursorApply(QMap.QMapLeaveResolve());
     }
+
+    private void PMapCursorApply(QMapHitKind lHit) => Cursor = pMapCursors[lHit];
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {

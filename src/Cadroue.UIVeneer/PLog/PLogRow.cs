@@ -39,10 +39,12 @@ internal sealed class PLogRow : INotifyPropertyChanged
     internal PLogRow(QLogRow lRow)
     {
         QLogRow = lRow;
-        PLogBadge pLogBadge = PLogBadges.GetValueOrDefault(lRow.QLogRowKey, PLogBadgeInfo);
+        PLogBadge pLogBadge = PLogBadgeRead(lRow.QLogRowKey);
         PLogBadgeFill = pLogBadge.PLogBadgeFill;
         PLogBadgeText = pLogBadge.PLogBadgeInk;
     }
+
+    private static PLogBadge PLogBadgeRead(string pLogKey) => PLogBadges.GetValueOrDefault(pLogKey, PLogBadgeInfo);
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

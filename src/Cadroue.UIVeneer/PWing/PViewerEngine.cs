@@ -45,6 +45,13 @@ internal static class PViewerEngine
 
     private static Border PViewerChoiceBuild(QViewerEngineChoice lChoice, Action<string> pChoose)
     {
+        Border pChoice = PViewerChoiceCreate(lChoice);
+        PViewerChoiceAttach(pChoice, lChoice, pChoose);
+        return pChoice;
+    }
+
+    private static Border PViewerChoiceCreate(QViewerEngineChoice lChoice)
+    {
         var pLabel = new TextBlock
         {
             Text = lChoice.QViewerChoiceText,
@@ -55,7 +62,7 @@ internal static class PViewerEngine
             VerticalAlignment = VerticalAlignment.Center,
             HorizontalAlignment = HorizontalAlignment.Center
         };
-        var pChoice = new Border
+        return new Border
         {
             Background = pViewerChoiceFill[lChoice.QViewerChoiceActive],
             Padding = new Thickness(12, 3, 12, 3),
@@ -64,7 +71,8 @@ internal static class PViewerEngine
             ToolTip = lChoice.QViewerChoiceTip,
             Child = pLabel
         };
-        pChoice.MouseLeftButtonUp += (_, _) => pChoose(lChoice.QViewerChoiceKey);
-        return pChoice;
     }
+
+    private static void PViewerChoiceAttach(Border pChoice, QViewerEngineChoice lChoice, Action<string> pChoose) =>
+        pChoice.MouseLeftButtonUp += (_, _) => pChoose(lChoice.QViewerChoiceKey);
 }

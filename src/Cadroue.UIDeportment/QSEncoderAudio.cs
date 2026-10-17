@@ -29,17 +29,15 @@ public sealed partial class QSEncoder
     private void QSEncoderAudioPrepare()
     {
         qsEncoderAudioEncoder = qsEncoderDraft.LPresetAudio.LPresetEncoder;
-        string[] lModes = QSEncoderAudioCodec.LCapabilityModeLabels;
-        string lStored = qsEncoderDraft.LPresetAudio.LPresetRateControl;
-        qsEncoderAudioRate = lModes.Contains(lStored) ? lStored : lModes[0];
+        qsEncoderAudioRate = QSEncoderRateResolve(
+            QSEncoderAudioCodec.LCapabilityModeLabels, qsEncoderDraft.LPresetAudio.LPresetRateControl);
     }
 
     public bool QSEncoderAudioSet(string lEncoder, string lRate)
     {
         bool lEncoderChanged = !string.Equals(qsEncoderAudioEncoder, lEncoder, StringComparison.Ordinal);
         qsEncoderAudioEncoder = lEncoder;
-        string[] lModes = QSEncoderAudioCodec.LCapabilityModeLabels;
-        string lResolved = lModes.Contains(lRate) ? lRate : lModes[0];
+        string lResolved = QSEncoderRateResolve(QSEncoderAudioCodec.LCapabilityModeLabels, lRate);
         if (!lEncoderChanged && string.Equals(qsEncoderAudioRate, lResolved, StringComparison.Ordinal))
         {
             return false;
@@ -84,6 +82,19 @@ public sealed partial class QSEncoder
     public async Task<IReadOnlyList<string>> QSEncoderAudioScan(IProgress<double> lFeed)
     {
         CancellationToken lToken = QSEncoderScanStart(LTrialKind.LTrialKindAudio);
+        (List<string> lAvailable, List<string> lNames, List<QSVerdictRow> lRows) =
+            await QSEncoderAudioRun(lFeed, lToken);
+        lToken.ThrowIfCancellationRequested();
+        LTrialCatalog.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
+        QSEncoderAudioInsert(lAvailable);
+        QSEncoderVerdictSet(LTrialKind.LTrialKindAudio, lRows);
+        QSVerdict.QSVerdictRecord("audio", lRows);
+        return lAvailable;
+    }
+
+    private static async Task<(List<string>, List<string>, List<QSVerdictRow>)> QSEncoderAudioRun(
+        IProgress<double> lFeed, CancellationToken lToken)
+    {
         var lAvailable = new List<string>();
         var lNames = new List<string>();
         var lRows = new List<QSVerdictRow>();
@@ -102,19 +113,18 @@ public sealed partial class QSEncoder
             }
 
             lDone++;
-            lFeed.Report(lCandidates.Count == 0 ? 1 : (double)lDone / lCandidates.Count);
+            lFeed.Report(QSEncoderProgressResolve(lDone, lCandidates.Count));
         }
 
-        lToken.ThrowIfCancellationRequested();
-        LTrialCatalog.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
+        return (lAvailable, lNames, lRows);
+    }
+
+    private void QSEncoderAudioInsert(List<string> lAvailable)
+    {
         if (!lAvailable.Contains(qsEncoderAudioEncoder)
             && LRepertoireCatalog.LRepertoireAudioResolve(qsEncoderAudioEncoder) is not null)
         {
             lAvailable.Insert(0, qsEncoderAudioEncoder);
         }
-
-        qsEncoderAudioResults = lRows;
-        QSVerdict.QSVerdictRecord("audio", lRows);
-        return lAvailable;
     }
 }

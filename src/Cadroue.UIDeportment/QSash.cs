@@ -75,14 +75,19 @@ public sealed class QSash
             return false;
         }
 
+        QSashStartSet(lDirection, lPointerX, lPointerY, lBounds);
+        QSashActiveChanged?.Invoke(true);
+        QSashCaptureStarted?.Invoke();
+        return true;
+    }
+
+    private void QSashStartSet(int lDirection, double lPointerX, double lPointerY, QSashBounds lBounds)
+    {
         qSashActive = true;
         qSashDirection = lDirection;
         qSashStartX = lPointerX;
         qSashStartY = lPointerY;
         qSashOrigin = lBounds;
-        QSashActiveChanged?.Invoke(true);
-        QSashCaptureStarted?.Invoke();
-        return true;
     }
 
     public bool QSashMoveHandle(
@@ -97,28 +102,39 @@ public sealed class QSash
         double lMinimumWidth,
         double lMinimumHeight)
     {
-        if (qSashActive)
+        if (QSashActive)
         {
             QSashBoundsChanged?.Invoke(QSashMoveResolve(lPointerX, lPointerY, lMinimumWidth, lMinimumHeight));
             return true;
         }
 
-        qSashDirection = lNormal && !lInteractive
-            ? QSashDirectionResolve(lX, lY, lWidth, lHeight)
-            : QSashNone;
+        QSashDirectionSet(QSashHoverResolve(lNormal, lInteractive, lX, lY, lWidth, lHeight));
         return false;
     }
+
+    private int QSashHoverResolve(
+        bool lNormal,
+        bool lInteractive,
+        double lX,
+        double lY,
+        double lWidth,
+        double lHeight) =>
+        lNormal && !lInteractive
+            ? QSashDirectionResolve(lX, lY, lWidth, lHeight)
+            : QSashNone;
+
+    private void QSashDirectionSet(int lDirection) => qSashDirection = lDirection;
 
     public int QSashLeaveResolve() => qSashActive ? qSashDirection : QSashNone;
 
     public bool QSashReleaseHandle()
     {
-        if (!qSashActive)
+        if (!QSashActive)
         {
             return false;
         }
 
-        qSashActive = false;
+        QSashActiveSet(false);
         QSashActiveChanged?.Invoke(false);
         QSashCaptureStopped?.Invoke();
         return true;
@@ -126,14 +142,16 @@ public sealed class QSash
 
     public void QSashCaptureHandle()
     {
-        if (!qSashActive)
+        if (!QSashActive)
         {
             return;
         }
 
-        qSashActive = false;
+        QSashActiveSet(false);
         QSashActiveChanged?.Invoke(false);
     }
+
+    private void QSashActiveSet(bool lActive) => qSashActive = lActive;
 
     public QSashBounds QSashMoveResolve(double lPointerX, double lPointerY, double lMinimumWidth, double lMinimumHeight)
     {

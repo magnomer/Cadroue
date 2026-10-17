@@ -51,8 +51,7 @@ public sealed class QSection
         qSectionSelected = new HashSet<int>(qFlow.QFlowSection.QFlowSelectedRead());
         qSectionRowCount = qSectionPieces.Count;
         QSectionDrag = new QSectionDrag(this, qFlow);
-        qFlow.QFlowSection.QFlowSectionChanged += QSectionUpdateHandle;
-        qFlow.QFlowEdit.QFlowEditChanged += QSectionEditHandle;
+        QSectionFlowAttach();
     }
 
     public QSectionDrag QSectionDrag { get; }
@@ -168,12 +167,11 @@ public sealed class QSection
 
     public void QSectionEditCommit()
     {
-        if (qSectionEditIndex is not int lIndex)
+        if (QSectionEditRelease() is not int lIndex)
         {
             return;
         }
 
-        qSectionEditIndex = null;
         qFlow.QFlowSection.QFlowNameSet(
             lIndex, qSectionEditName.Trim(), qSectionEditPrefix.Trim(), qSectionEditSuffix.Trim());
         QSectionRebuildRaise();
@@ -230,12 +228,33 @@ public sealed class QSection
         qFlow.QFlowSection.QFlowSectionClear();
     }
 
+    private void QSectionFlowAttach()
+    {
+        qFlow.QFlowSection.QFlowSectionChanged += QSectionUpdateHandle;
+        qFlow.QFlowEdit.QFlowEditChanged += QSectionEditHandle;
+    }
+
+    private int? QSectionEditRelease()
+    {
+        int? lIndex = qSectionEditIndex;
+        qSectionEditIndex = null;
+        return lIndex;
+    }
+
+    private bool QSectionSameCheck(LPiece[] lNext) =>
+        qSectionPieces.SequenceEqual(lNext) && qSectionRowCount == lNext.Length;
+
+    private void QSectionPieceSet(LPiece[] lNext)
+    {
+        qSectionPieces = lNext;
+        qSectionSelected = new HashSet<int>(qFlow.QFlowSection.QFlowSelectedRead());
+    }
+
     private void QSectionUpdateHandle(IReadOnlyList<LPiece> lPieces, int? lSelected)
     {
         LPiece[] lNext = lPieces.ToArray();
-        bool lSame = qSectionPieces.SequenceEqual(lNext) && qSectionRowCount == lNext.Length;
-        qSectionPieces = lNext;
-        qSectionSelected = new HashSet<int>(qFlow.QFlowSection.QFlowSelectedRead());
+        bool lSame = QSectionSameCheck(lNext);
+        QSectionPieceSet(lNext);
         if (QSectionDrag.QSectionDragActive)
         {
             return;

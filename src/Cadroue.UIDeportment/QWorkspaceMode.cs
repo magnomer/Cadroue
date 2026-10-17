@@ -47,74 +47,109 @@ public sealed class QWorkspaceMode
     {
         QSplitTab lSplitTab = new(
             qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceFlow!);
-        QWorkspaceAction!.QActionExecuted += lSplitTab.QSplitRun;
-        QWorkspaceAction.QActionAllAdded += lSplitTab.QSplitAllRun;
-        QWorkspaceAction.QActionItemsAdded += lSplitTab.QSplitItemsRun;
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QSplitTabAttach(lSplitTab);
         return lSplitTab;
+    }
+
+    private void QSplitTabAttach(QSplitTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QSplitRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QSplitAllRun;
+        QWorkspaceAction.QActionItemsAdded += lTab.QSplitItemsRun;
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 
     public QEditTab QEditTabCreate()
     {
         QEditTab lEditTab = new(
             qWorkspaceUsher, qWorkspaceInspector, qWorkspaceEdit, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += lEditTab.QEditRun;
-        QWorkspaceAction.QActionAllAdded += (lRelayTarget, lSourceTab) =>
-            lEditTab.QEditItemsRun(null, lRelayTarget, lSourceTab);
-        QWorkspaceAction.QActionItemsAdded += lEditTab.QEditItemsRun;
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QEditTabAttach(lEditTab);
         return lEditTab;
+    }
+
+    private void QEditTabAttach(QEditTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QEditRun;
+        QWorkspaceAction.QActionAllAdded += (lRelayTarget, lSourceTab) =>
+            lTab.QEditItemsRun(null, lRelayTarget, lSourceTab);
+        QWorkspaceAction.QActionItemsAdded += lTab.QEditItemsRun;
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 
     public QFixTab QFixTabCreate()
     {
         QFixTab lFixTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += lFixTab.QFixRun;
-        QWorkspaceAction.QActionAllAdded += lFixTab.QFixAllRun;
-        QWorkspaceAction.QActionItemsAdded += lFixTab.QFixItemsRun;
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QFixTabAttach(lFixTab);
         return lFixTab;
+    }
+
+    private void QFixTabAttach(QFixTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QFixRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QFixAllRun;
+        QWorkspaceAction.QActionItemsAdded += lTab.QFixItemsRun;
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 
     public QAudioTab QAudioTabCreate()
     {
         QAudioTab lAudioTab = new(
             qWorkspaceUsher, qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += lAudioTab.QAudioRun;
-        QWorkspaceAction.QActionAllAdded += lAudioTab.QAudioAllRun;
-        QWorkspaceAction.QActionItemsAdded += lAudioTab.QAudioItemsRun;
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QAudioTabAttach(lAudioTab);
         return lAudioTab;
+    }
+
+    private void QAudioTabAttach(QAudioTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QAudioRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QAudioAllRun;
+        QWorkspaceAction.QActionItemsAdded += lTab.QAudioItemsRun;
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 
     public QConvertTab QConvertTabCreate()
     {
         QConvertTab lConvertTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += lConvertTab.QConvertRun;
-        QWorkspaceAction.QActionAllAdded += lConvertTab.QConvertAllRun;
-        QWorkspaceAction.QActionItemsAdded += lConvertTab.QConvertItemsRun;
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QConvertTabAttach(lConvertTab);
         return lConvertTab;
+    }
+
+    private void QConvertTabAttach(QConvertTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QConvertRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QConvertAllRun;
+        QWorkspaceAction.QActionItemsAdded += lTab.QConvertItemsRun;
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 
     public QMergeTab QMergeTabCreate()
     {
         QMergeTab lMergeTab = new(qWorkspaceUsher, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += lMergeTab.QMergeRun;
-        QWorkspaceAction.QActionAllAdded += lMergeTab.QMergeAllRun;
-        QWorkspaceAction.QActionCohortAdded += lMergeTab.QMergeCohortRun;
-        QWorkspaceAction.QActionEligibleAttach(lMergeTab.QMergeEligibleRead);
+        QMergeTabAttach(lMergeTab);
         return lMergeTab;
+    }
+
+    private void QMergeTabAttach(QMergeTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += lTab.QMergeRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QMergeAllRun;
+        QWorkspaceAction.QActionCohortAdded += lTab.QMergeCohortRun;
+        QWorkspaceAction.QActionEligibleAttach(lTab.QMergeEligibleRead);
     }
 
     public QFunnelTab QFunnelTabCreate()
     {
         QFunnelTab lFunnelTab = new(qWorkspaceViewer!, qWorkspaceList!);
-        QWorkspaceAction!.QActionExecuted += (_, _, _) => lFunnelTab.QFunnelRun();
-        QWorkspaceAction.QActionAllAdded += (_, _) => lFunnelTab.QFunnelAllRun();
-        QWorkspaceAction.QActionItemsAdded += (lPaths, _, _) => lFunnelTab.QFunnelItemsRun(lPaths);
-        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
-        QWorkspaceAction.QActionEligibleAttach(lFunnelTab.QFunnelEligibleRead);
+        QFunnelTabAttach(lFunnelTab);
         return lFunnelTab;
+    }
+
+    private void QFunnelTabAttach(QFunnelTab lTab)
+    {
+        QWorkspaceAction!.QActionExecuted += (_, _, _) => lTab.QFunnelRun();
+        QWorkspaceAction.QActionAllAdded += (_, _) => lTab.QFunnelAllRun();
+        QWorkspaceAction.QActionItemsAdded += (lPaths, _, _) => lTab.QFunnelItemsRun(lPaths);
+        QWorkspaceAction.QActionListAttach(qWorkspaceList!);
+        QWorkspaceAction.QActionEligibleAttach(lTab.QFunnelEligibleRead);
     }
 }

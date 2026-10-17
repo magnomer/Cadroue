@@ -36,13 +36,18 @@ public sealed class QRoster
         QRosterDeferral = new QRosterDeferral(() => qRosterClosed, () => QRosterDetailApplied?.Invoke());
         QRosterSelection = new QRosterSelection(
             qRosterPresentIds.Contains, QRosterBatchCheck, () => qRosterOrderedIds, QRosterSelectRaise);
+        QRosterRemoval = new QRosterRemoval();
+        QRosterAttach();
+        QRosterMenu = new QRosterMenu(lUsher, qSchedule, qStation, QRosterSelectionRead);
+        QRosterFeed = new QRosterFeed();
+    }
+
+    private void QRosterAttach()
+    {
         qStation.LStationSelectionSource = QRosterSelectionRead;
         qSchedule.LScheduleChanged += QRosterScheduleHandle;
         qSchedule.LScheduleItemChanged += QRosterItemHandle;
-        QRosterRemoval = new QRosterRemoval();
         QRosterRemoval.QRosterRemovalConfirmed += QRosterBatchRemove;
-        QRosterMenu = new QRosterMenu(lUsher, qSchedule, qStation, QRosterSelectionRead);
-        QRosterFeed = new QRosterFeed();
     }
 
     public static QRoster QRosterCreate(CUsher lUsher, CLineage lLineage) => new(
@@ -77,15 +82,22 @@ public sealed class QRoster
 
     public void QRosterClose()
     {
-        if (qRosterClosed)
+        if (QRosterClosed)
         {
             return;
         }
 
-        qRosterClosed = true;
+        QRosterClosedSet(true);
+        QRosterDetach();
+        qStation.LStationClose();
+    }
+
+    private void QRosterClosedSet(bool lClosed) => qRosterClosed = lClosed;
+
+    private void QRosterDetach()
+    {
         qSchedule.LScheduleChanged -= QRosterScheduleHandle;
         qSchedule.LScheduleItemChanged -= QRosterItemHandle;
-        qStation.LStationClose();
     }
 
     public string? QRosterPathOpen(string lPath) =>
@@ -166,10 +178,21 @@ public sealed class QRoster
 
     public void QRosterRebuild()
     {
-        LWorkItem[] lItems = qSchedule.LScheduleRecords.Where(QRosterVisibleCheck).ToArray();
-        CLineageAnswer lAnswer =
-            qRosterLineage.CLineageRead(lItems.Select(lWorkItem => lWorkItem.LWorkId).ToArray());
+        LWorkItem[] lItems = QRosterVisibleRead();
+        CLineageAnswer lAnswer = QRosterLineageRead(lItems);
         QRosterCompletedSync(lAnswer.CLineageBatches);
+        QRosterBatchesSet(lAnswer, lItems);
+        QRosterCollapse.QRosterStaleRemove(QRosterBatchesRead());
+        QRosterCardsUpdate();
+    }
+
+    private LWorkItem[] QRosterVisibleRead() => qSchedule.LScheduleRecords.Where(QRosterVisibleCheck).ToArray();
+
+    private CLineageAnswer QRosterLineageRead(LWorkItem[] lItems) =>
+        qRosterLineage.CLineageRead(lItems.Select(lWorkItem => lWorkItem.LWorkId).ToArray());
+
+    private void QRosterBatchesSet(CLineageAnswer lAnswer, LWorkItem[] lItems)
+    {
         qRosterBatches.Clear();
         qRosterBatches.AddRange(lAnswer.CLineageBatches.Select(
             lBatch => new QRosterBatch(lBatch.CLineageBatchId, lAnswer, lItems, lBatch.CLineageBatchCompleted)));
@@ -177,9 +200,9 @@ public sealed class QRoster
         qRosterOrderedIds.AddRange(lAnswer.CLineageBatches.SelectMany(lBatch => lBatch.CLineageBatchIds));
         qRosterPresentIds.Clear();
         qRosterPresentIds.UnionWith(qRosterOrderedIds);
-        QRosterCollapse.QRosterStaleRemove(qRosterBatches.Select(lBatch => lBatch.QRosterBatchId).ToHashSet());
-        QRosterCardsUpdate();
     }
+
+    private HashSet<Guid> QRosterBatchesRead() => qRosterBatches.Select(lBatch => lBatch.QRosterBatchId).ToHashSet();
 
     private void QRosterCompletedSync(IReadOnlyList<CLineageBatch> lBatches)
     {
@@ -194,7 +217,7 @@ public sealed class QRoster
 
     private void QRosterCardUpdate(Guid lBatchId)
     {
-        int lIndex = qRosterBatches.FindIndex(lBatch => lBatch.QRosterBatchId == lBatchId);
+        int lIndex = QRosterBatchFind(lBatchId);
         if (lIndex < 0)
         {
             return;
@@ -202,6 +225,9 @@ public sealed class QRoster
 
         QRosterFeed.QRosterCardSet(lIndex, QRosterCardCreate(qRosterBatches[lIndex]));
     }
+
+    private int QRosterBatchFind(Guid lBatchId) =>
+        qRosterBatches.FindIndex(lBatch => lBatch.QRosterBatchId == lBatchId);
 
     private QRosterCard QRosterCardCreate(QRosterBatch lBatch) => QRosterCard.QRosterCardCreate(
         qRosterLineage,
@@ -260,10 +286,13 @@ public sealed class QRoster
 
     internal CLineageBatch QRosterSummaryRead() => qRosterLineage.CLineageBatchRead(QRosterSelection.QRosterCardId);
 
-    public void QRosterRemove(Guid lBatchId) => QRosterRemoval.QRosterRemoveConfirm(
-        qSchedule.LScheduleRemovableRead(qSchedule.LScheduleRecords
+    public void QRosterRemove(Guid lBatchId) =>
+        QRosterRemoval.QRosterRemoveConfirm(qSchedule.LScheduleRemovableRead(QRosterMembersRead(lBatchId)));
+
+    private IEnumerable<Guid> QRosterMembersRead(Guid lBatchId) =>
+        qSchedule.LScheduleRecords
             .Where(lWorkItem => lWorkItem.LWorkBatchId == lBatchId)
-            .Select(lWorkItem => lWorkItem.LWorkId)));
+            .Select(lWorkItem => lWorkItem.LWorkId);
 
     private void QRosterBatchRemove(IReadOnlyList<Guid> lRemovable) =>
         QRosterRemoval.QRosterWarningRaise(QConsole.QConsoleRemovalFormat(qSchedule.LScheduleBatchRemove(lRemovable)));
@@ -280,35 +309,47 @@ public sealed class QRoster
 
     public bool QRosterSharedSet(bool? lChecked)
     {
-        bool lShared = lChecked == true;
+        bool lShared = QRosterCheckedNormalize(lChecked);
         if (lShared == QRosterShared)
         {
             return false;
         }
 
-        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        lNext.LPreferenceWorklistShared = lShared;
-        LPreference.LPreferenceStateSet(lNext);
+        QRosterSharedSave(lShared);
         qSchedule.LScheduleLoad();
         return true;
     }
 
+    private static bool QRosterCheckedNormalize(bool? lChecked) => lChecked == true;
+
+    private static void QRosterSharedSave(bool lShared)
+    {
+        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+        lNext.LPreferenceWorklistShared = lShared;
+        LPreference.LPreferenceStateSet(lNext);
+    }
+
     public bool QRosterDoneSet(bool? lChecked)
     {
-        bool lCollapseDone = lChecked == true;
+        bool lCollapseDone = QRosterCheckedNormalize(lChecked);
         if (lCollapseDone == QRosterCollapseDone)
         {
             return false;
         }
 
-        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        lNext.LPreferenceCollapseDone = lCollapseDone;
-        LPreference.LPreferenceStateSet(lNext);
+        QRosterDoneSave(lCollapseDone);
         if (lCollapseDone)
         {
             QRosterRebuild();
         }
 
         return true;
+    }
+
+    private static void QRosterDoneSave(bool lCollapseDone)
+    {
+        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
+        lNext.LPreferenceCollapseDone = lCollapseDone;
+        LPreference.LPreferenceStateSet(lNext);
     }
 }

@@ -124,14 +124,25 @@ public partial class PRail : UserControl
         lRail = pStripOwner.QStrip.QStripRail;
         InitializeComponent();
         DataContext = pStripOwner.QStrip;
+        PRailAttach();
+        PRailApply(false);
+    }
+
+    private void PRailAttach()
+    {
         Loaded += PRailLoadHandle;
         Unloaded += PRailUnloadHandle;
-        PRailApply(false);
     }
 
     public void PRailApply(bool pVertical)
     {
         lRail.QStrip.QStripSeparator.QStripVerticalSet(pVertical);
+        PRailLookApply(pVertical);
+        PRailTemplateApply(pVertical);
+    }
+
+    private void PRailLookApply(bool pVertical)
+    {
         Width = pRailWidths[pVertical];
         Height = pRailHeights[pVertical];
         HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -140,6 +151,10 @@ public partial class PRail : UserControl
         pTabRoot.BorderThickness = pRailBorders[pVertical];
         pTabViewport.VerticalScrollBarVisibility = pRailScrollbars[pVertical];
         pTabStack.Orientation = pRailOrientations[pVertical];
+    }
+
+    private void PRailTemplateApply(bool pVertical)
+    {
         pTabItemsControl.ItemsPanel = (ItemsPanelTemplate)FindResource(pRailPanelKeys[pVertical]);
         pTabItemsControl.ItemTemplate = (DataTemplate)FindResource(pRailTemplateKeys[pVertical]);
         pTabAddButton.Style = (Style)FindResource(pRailAddKeys[pVertical]);
@@ -262,10 +277,15 @@ public partial class PRail : UserControl
     private void PTabLoadHandle(object sender, RoutedEventArgs e)
     {
         var pNameBox = (TextBox)sender;
+        PTabAutomationSet(pNameBox);
+        PTabVisibleAttach(pNameBox);
+    }
+
+    private static void PTabAutomationSet(TextBox pNameBox) =>
         System.Windows.Automation.AutomationProperties.SetName(
             pNameBox, QLocalizationCatalog.QLocalizationTextRead("Tab.Rename.Name"));
-        pNameBox.IsVisibleChanged += PTabVisibleHandle;
-    }
+
+    private static void PTabVisibleAttach(TextBox pNameBox) => pNameBox.IsVisibleChanged += PTabVisibleHandle;
 
     private void PTabOutsideHandle(object sender, MouseButtonEventArgs e)
     {
@@ -287,10 +307,18 @@ public partial class PRail : UserControl
             DispatcherPriority.Input,
             new Action(() =>
             {
-                pNameBox.Text = QSender.QSenderItemRead<QStripTab>(pNameBox)!.QStripTabTitle;
-                pNameBox.SelectAll();
-                pNameBox.Focus();
+                PTabNameShow(pNameBox);
+                PTabNameSelect(pNameBox);
             }));
+
+    private static void PTabNameShow(TextBox pNameBox) =>
+        pNameBox.Text = QSender.QSenderItemRead<QStripTab>(pNameBox)!.QStripTabTitle;
+
+    private static void PTabNameSelect(TextBox pNameBox)
+    {
+        pNameBox.SelectAll();
+        pNameBox.Focus();
+    }
 
     private void PTabKeyHandle(object sender, KeyEventArgs e)
     {
@@ -325,9 +353,12 @@ public partial class PRail : UserControl
         MenuItem pTabAddMenuItem = QMenu.QMenuItemBuild(
             QStrip.QStripTitleResolve(pTabLayoutKey),
             QStripIcon.QStripIconRead(pTabLayoutKey));
-        pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
+        PTabItemAttach(pTabAddMenuItem, pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);
     }
+
+    private void PTabItemAttach(MenuItem pTabAddMenuItem, string pTabLayoutKey) =>
+        pTabAddMenuItem.Click += (_, _) => PTabLayoutAdd(pTabLayoutKey);
 
     private void PTabLayoutAdd(string pTabLayoutKey) =>
         lRail.QStrip.QStripSelect(pStrip.PStripAdd(lRail.QStrip.QStripTabCreate(pTabLayoutKey)));

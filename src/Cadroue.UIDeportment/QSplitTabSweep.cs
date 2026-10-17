@@ -65,21 +65,14 @@ public sealed class QSplitTabSweep
         }
 
         var lSource = new CancellationTokenSource();
-        qSplitSweepSource = lSource;
+        QSplitSweepSet(lSource);
         qSplitInspector.QInspectorSensor.QSensorRunningSet(true);
         qSplitFlow.QFlowEdit.QFlowEditSet(false);
         QSplitBusyApplied?.Invoke(true);
         QSplitProgressApplied?.Invoke(0);
         try
         {
-            for (int lStage = 0; lStage < lSteps.Count; lStage++)
-            {
-                double lOffset = lStage;
-                var lProgress = new Progress<double>(
-                    lValue => QSplitProgressApplied?.Invoke((lOffset + lValue) / lSteps.Count));
-                await lSteps[lStage](lProgress, lSource.Token);
-            }
-
+            await QSplitStepsRun(lSteps, lSource.Token);
             if (!qSplitFlow.QFlowSection.QFlowCombineApply(lExcluded, lKept, lBoundaries))
             {
                 QSplitFailRaised?.Invoke(
@@ -102,10 +95,26 @@ public sealed class QSplitTabSweep
             QSplitBusyApplied?.Invoke(false);
             qSplitFlow.QFlowEdit.QFlowEditSet(!QSplitLockedCheck());
             qSplitInspector.QInspectorSensor.QSensorRunningSet(false);
-            qSplitSweepSource = null;
+            QSplitSweepSet(null);
             lSource.Dispose();
         }
     }
+
+    private void QSplitSweepSet(CancellationTokenSource? lSource) => qSplitSweepSource = lSource;
+
+    private async Task QSplitStepsRun(IReadOnlyList<QSplitSweepStep> lSteps, CancellationToken lToken)
+    {
+        for (int lStage = 0; lStage < lSteps.Count; lStage++)
+        {
+            double lOffset = lStage;
+            var lProgress = new Progress<double>(
+                lValue => QSplitProgressApplied?.Invoke(QSplitProgressResolve(lOffset, lValue, lSteps.Count)));
+            await lSteps[lStage](lProgress, lToken);
+        }
+    }
+
+    private static double QSplitProgressResolve(double lOffset, double lValue, int lCount) =>
+        (lOffset + lValue) / lCount;
 
     private IReadOnlyList<QSplitSweepStep> QSplitStepsCreate(
         string lPath,

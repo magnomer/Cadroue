@@ -64,7 +64,11 @@ public static class QSashPlacement
             lWindow.MinHeight,
             lWindow.MaxWidth,
             lWindow.MaxHeight);
+        QSashPlacementSet(lWindow, lBounds);
+    }
 
+    private static void QSashPlacementSet(Window lWindow, QSashBounds lBounds)
+    {
         lWindow.WindowStartupLocation = WindowStartupLocation.Manual;
         lWindow.Width = lBounds.QSashWidth;
         lWindow.Height = lBounds.QSashHeight;

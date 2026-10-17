@@ -35,9 +35,7 @@ public sealed class QProgram
         LRelayChannel.LRelayStartupRead(lArgs);
         LRenderer.LRendererSettingsLoad();
 
-        LLocalization.LLocalizationNamesSeam = lResourceNames;
-        LLocalization.LLocalizationTextSeam = lResourceRead;
-        LPreference.LPreferenceDebounceSeam = lDebounceRestart;
+        QProgramSeamAttach(lResourceNames, lResourceRead, lDebounceRestart);
         LPreference.LPreferenceLoad();
         LFrameStore.LFrameLoad();
         LBinding.LBindingLoad();
@@ -57,24 +55,47 @@ public sealed class QProgram
         LAutopsy.LAutopsyProseAttach();
         LInventory.LInventoryPrepareStart();
         LTrialCatalog.LTrialSetStart();
-        LTraceLog.LTraceLoadingRecord(
-            $"Application started: version {LTraceLog.LTraceVersionRead()}, process {Environment.ProcessId}");
-        LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive
-            ? "Local Flyleaf preview engine active"
-            : "NuGet Flyleaf preview engine active");
+        QProgramStartRecord();
         _ = QProgramDepotApply();
         LSectionPalette.LSectionRegistryLoad();
         LRetentionSweep.LRetentionSweepStart(
             LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive,
             LPreference.LPreferenceStateCurrent.LPreferenceCleanupDays);
         QProgramStaleClaim();
+        QProgramRendererAttach(lFlyleafStart, lFlyleafVerbose, lDefer);
+        LRenderer.LRendererEngineStart();
+        LRelayStore.LRelayStaleClear();
+        LRelayChannel.LRelayChannelStart();
+    }
+
+    private static void QProgramSeamAttach(
+        Func<IEnumerable<string>> lResourceNames,
+        Func<string, string?> lResourceRead,
+        Action lDebounceRestart)
+    {
+        LLocalization.LLocalizationNamesSeam = lResourceNames;
+        LLocalization.LLocalizationTextSeam = lResourceRead;
+        LPreference.LPreferenceDebounceSeam = lDebounceRestart;
+    }
+
+    private static void QProgramStartRecord()
+    {
+        LTraceLog.LTraceLoadingRecord(
+            $"Application started: version {LTraceLog.LTraceVersionRead()}, process {Environment.ProcessId}");
+        LTraceLog.LTraceLoadingRecord(LFlyleaf.LFlyleafActive
+            ? "Local Flyleaf preview engine active"
+            : "NuGet Flyleaf preview engine active");
+    }
+
+    private static void QProgramRendererAttach(
+        Action lFlyleafStart,
+        Action<bool> lFlyleafVerbose,
+        Action<Action> lDefer)
+    {
         LRenderer.LRendererFlyleafSeam = lFlyleafStart;
         LRenderer.LRendererVerboseSeam = lFlyleafVerbose;
         LRenderer.LRendererDispatchSeam = lDefer;
         qProgramDeferSeam = lDefer;
-        LRenderer.LRendererEngineStart();
-        LRelayStore.LRelayStaleClear();
-        LRelayChannel.LRelayChannelStart();
     }
 
     public void QProgramClose(int lExitCode)
@@ -120,10 +141,15 @@ public sealed class QProgram
             return false;
         }
 
+        QProgramLanguageSet(lLocalizationLanguage);
+        return true;
+    }
+
+    private static void QProgramLanguageSet(string lLocalizationLanguage)
+    {
         LPreferenceState lLocalizationPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lLocalizationPreference.LPreferenceLanguage = lLocalizationLanguage;
         LPreference.LPreferenceStateSet(lLocalizationPreference);
-        return true;
     }
 
     private bool QProgramDepotHandle()
@@ -149,29 +175,41 @@ public sealed class QProgram
                 return true;
             }
 
-            if (qDepotRootApplied is string lDepotPrevious
-                && !LDepotRelocation.LDepotFolderMove(lDepotPrevious, lDepotRoot))
+            if (!QProgramDepotPrepare(lDepotRoot))
             {
                 return false;
             }
 
-            if (qDepotRootApplied is null)
-            {
-                LDepot.LDepotRootSet(lDepotRoot);
-            }
-
-            LDepotIndex.LDepotIndexCreate();
-            qDepotRootApplied = lDepotRoot;
+            QProgramDepotSet(lDepotRoot);
             QProgramSidecarApply();
             LTraceLog.LTraceLoadingRecord($"Workspace at {lDepotRoot}");
             return true;
         }
         catch (Exception lException)
         {
-            qDepotRootApplied = null;
+            QProgramDepotSet(null);
             LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
             return false;
         }
+    }
+
+    private void QProgramDepotSet(string? lDepotRoot) => qDepotRootApplied = lDepotRoot;
+
+    private bool QProgramDepotPrepare(string lDepotRoot)
+    {
+        if (qDepotRootApplied is string lDepotPrevious
+            && !LDepotRelocation.LDepotFolderMove(lDepotPrevious, lDepotRoot))
+        {
+            return false;
+        }
+
+        if (qDepotRootApplied is null)
+        {
+            LDepot.LDepotRootSet(lDepotRoot);
+        }
+
+        LDepotIndex.LDepotIndexCreate();
+        return true;
     }
 
     private static void QProgramStaleClaim()

@@ -20,9 +20,14 @@ public sealed partial class PInspector
         StackPanel pBody,
         QInspectorTip pTip)
     {
-        pBox.IsEnabled = pTip.QInspectorTipEnabled;
-        pPersistent.IsEnabled = pTip.QInspectorTipEnabled;
+        PInspectorEnabledApply(pBox, pTip.QInspectorTipEnabled);
+        PInspectorEnabledApply(pPersistent, pTip.QInspectorTipEnabled);
         PInspectorSectionUpdate(pStack, pTip.QInspectorTipEnabled);
+        PInspectorTipApply(pBox, pPersistent, pBody, pTip);
+    }
+
+    private static void PInspectorTipApply(CheckBox pBox, CheckBox pPersistent, StackPanel pBody, QInspectorTip pTip)
+    {
         pBody.ToolTip = pTip.QInspectorTipNotice;
         pBox.ToolTip = pTip.QInspectorTipBox;
         pPersistent.ToolTip = pTip.QInspectorTipPersistent;
@@ -33,9 +38,15 @@ public sealed partial class PInspector
 
     private static void PInspectorValueUpdate(Slider pSlider, TextBox pValue, double pNumber, string pFormat)
     {
-        pSlider.Value = Math.Clamp(pNumber, pSlider.Minimum, pSlider.Maximum);
+        double pClamped = PInspectorValueClamp(pSlider, pNumber);
+        PInspectorSliderSet(pSlider, pClamped);
         PInspectorTextSet(pValue, pNumber, pFormat);
     }
+
+    private static double PInspectorValueClamp(Slider pSlider, double pNumber) =>
+        Math.Clamp(pNumber, pSlider.Minimum, pSlider.Maximum);
+
+    private static void PInspectorSliderSet(Slider pSlider, double pNumber) => pSlider.Value = pNumber;
 
     private static void PInspectorSwitchUpdate(CheckBox pBox, bool pChecked) =>
         pBox.IsChecked = PLook.PLookChecked[pChecked];
@@ -101,6 +112,8 @@ public sealed partial class PInspector
         TextBox pValue, double? pMinimum, double? pMaximum, Func<double> pRead, Action<double> pSet)
     {
         pSet(QInspector.QInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
-        pValue.CaretIndex = pValue.Text.Length;
+        PInspectorCaretPlace(pValue);
     }
+
+    private static void PInspectorCaretPlace(TextBox pValue) => pValue.CaretIndex = pValue.Text.Length;
 }

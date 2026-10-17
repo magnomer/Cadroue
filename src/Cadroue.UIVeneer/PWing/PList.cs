@@ -22,7 +22,7 @@ public sealed class PList : UserControl
     public const double PListStripWidth = 48;
     public const string PListDragKind = "CadrouePaths";
 
-    private readonly StackPanel pListRowPanel;
+    private readonly StackPanel pListRowPanel = new();
     private readonly TextBlock pListEmptyNotice;
     private readonly List<PListRow> pListRows = [];
     private readonly UIElement pListFullBody;
@@ -34,20 +34,28 @@ public sealed class PList : UserControl
     {
         QPanel.QPanelAttach(this);
         QList = lList;
-        pListRowPanel = new StackPanel();
+        pListEmptyNotice = PListNoticeBuild();
+        pListFullBody = PListFullBuild();
+        pListStripBody = PListStripBuild();
+        PListHostBuild();
+        PListAttach();
+        PListRowsRebuild();
+    }
 
-        pListEmptyNotice = new TextBlock
-        {
-            Text = QLocalizationCatalog.QLocalizationTextRead("List.Empty.Notice"),
-            FontSize = 12,
-            FontFamily = pListFontFamily,
-            Foreground = pListMutedBrush,
-            TextWrapping = TextWrapping.Wrap,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(16, 24, 16, 16)
-        };
+    private static TextBlock PListNoticeBuild() => new()
+    {
+        Text = QLocalizationCatalog.QLocalizationTextRead("List.Empty.Notice"),
+        FontSize = 12,
+        FontFamily = pListFontFamily,
+        Foreground = pListMutedBrush,
+        TextWrapping = TextWrapping.Wrap,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        TextAlignment = TextAlignment.Center,
+        Margin = new Thickness(16, 24, 16, 16)
+    };
 
+    private DockPanel PListFullBuild()
+    {
         var pBody = new Grid();
         pBody.Children.Add(pListEmptyNotice);
         pBody.Children.Add(pListRowPanel);
@@ -67,28 +75,37 @@ public sealed class PList : UserControl
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pActionBar);
         pRoot.Children.Add(pScroll);
+        return pRoot;
+    }
 
-        pListFullBody = pRoot;
-        pListStripBody = PListStripBuild();
-        pListStripBody.Visibility = Visibility.Collapsed;
-
+    private void PListHostBuild()
+    {
         var pBodyHost = new Grid();
         pBodyHost.Children.Add(pListFullBody);
         pBodyHost.Children.Add(pListStripBody);
 
         FocusVisualStyle = null;
         Focusable = true;
-        KeyDown += PListKeyHandle;
         Content = QPanel.QPanelBuild(pBodyHost);
+    }
+
+    private void PListAttach()
+    {
+        KeyDown += PListKeyHandle;
         QList.QListChanged += PListRowsRebuild;
         QList.QListPathChanged += PListSelectionUpdate;
         QList.QListMinimizeChanged += PListMinimizeHandle;
-        PListRowsRebuild();
     }
 
     public void PListClose() => QList.QListClose();
 
     private void PListRowsRebuild()
+    {
+        PListPanelRebuild();
+        PListNoticeApply();
+    }
+
+    private void PListPanelRebuild()
     {
         pListRowPanel.Children.Clear();
         pListRows.Clear();
@@ -96,8 +113,9 @@ public sealed class PList : UserControl
             .Select(PListCardBuild)
             .ToList()
             .ForEach(pCard => pListRowPanel.Children.Add(pCard));
-        pListEmptyNotice.Visibility = PLook.PLookVisible[QList.QListEmpty];
     }
+
+    private void PListNoticeApply() => pListEmptyNotice.Visibility = PLook.PLookVisible[QList.QListEmpty];
 
     private UIElement PListCardBuild(QListCard lCard) => pListCards[lCard.QListCardLocked](this, lCard);
 
@@ -184,7 +202,7 @@ public sealed class PList : UserControl
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
-        var pStrip = new StackPanel { Background = Brushes.White };
+        var pStrip = new StackPanel { Background = Brushes.White, Visibility = Visibility.Collapsed };
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
     }
@@ -275,24 +293,28 @@ public sealed class PList : UserControl
 
     private static Button PListButtonBuild(string pIconPath, string pTooltip, Action pClick)
     {
-        var pButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pListIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = pTooltip,
-            Width = 28,
-            Height = 26,
-            Margin = new Thickness(0, 0, 2, 0)
-        };
-        pButton.Click += (_, _) => pClick();
+        Button pButton = PListIconBuild(pIconPath, pTooltip);
+        PListClickAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PListIconBuild(string pIconPath, string pTooltip) => new()
+    {
+        Content = new Image
+        {
+            Width = 20,
+            Height = 20,
+            Source = QIcon.QIconRead(pIconPath, pListIconBrush),
+            Stretch = Stretch.Uniform
+        },
+        ToolTip = pTooltip,
+        Width = 28,
+        Height = 26,
+        Margin = new Thickness(0, 0, 2, 0)
+    };
+
+    private static void PListClickAttach(Button pButton, Action pClick) => pButton.Click += (_, _) => pClick();
 
     private void PListFilesOpen()
     {

@@ -41,42 +41,63 @@ public sealed partial class PExport
     private void PExportPresetRebuild()
     {
         LPreset lWorking = PExportWorkingRead();
-        pExportBoxCurrent = null;
-        pPresetRowPanel.Children.Clear();
+        PExportBoxSet(null);
+        PExportListBuild(lWorking, PExportOrderResolve());
+    }
+
+    private static List<(string pPresetName, string? pGroupHeader, bool pGroupUserHeader, bool pGroupCollapsed)>
+        PExportOrderResolve()
+    {
+        var pOrder =
+            new List<(string pPresetName, string? pGroupHeader, bool pGroupUserHeader, bool pGroupCollapsed)>();
         string? pNativeGroupCurrent = null;
         bool pUserHeaderAdded = false;
         foreach (string lPresetName in LPreset.LPresetNames)
         {
             bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
             string? pGroupName = pPresetNative ? LPreset.LPresetGroupRead(lPresetName) : null;
-            if (pPresetNative
+            bool pGroupHeader = pPresetNative
                 && pGroupName is not null
-                && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase))
-            {
-                pPresetRowPanel.Children.Add(PExportGroupBuild(
-                    pGroupName,
-                    LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName),
-                    () => PExportGroupToggle(pGroupName)));
-                pNativeGroupCurrent = pGroupName;
-            }
-            else if (!pPresetNative && !pUserHeaderAdded)
-            {
-                pPresetRowPanel.Children.Add(PExportGroupBuild(
-                    QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Group.User"),
-                    LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
-                        PExportUserGroup,
-                        false),
-                    PExportUserToggle));
-                pUserHeaderAdded = true;
-            }
-
-            Border pRow = PExportRowBuild(lPresetName, lWorking);
+                && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase);
+            bool pUserHeader = !pPresetNative && !pUserHeaderAdded;
+            pNativeGroupCurrent = pGroupHeader ? pGroupName : pNativeGroupCurrent;
+            pUserHeaderAdded = pUserHeaderAdded || pUserHeader;
             bool pCollapsed = pPresetNative && pGroupName is not null
                 ? LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName)
                 : LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(
                     PExportUserGroup,
                     false);
-            pRow.Visibility = pCollapsed ? Visibility.Collapsed : Visibility.Visible;
+            pOrder.Add((lPresetName, pGroupHeader ? pGroupName : null, pUserHeader, pCollapsed));
+        }
+
+        return pOrder;
+    }
+
+    private void PExportListBuild(
+        LPreset lWorking,
+        List<(string pPresetName, string? pGroupHeader, bool pGroupUserHeader, bool pGroupCollapsed)> pOrder)
+    {
+        pPresetRowPanel.Children.Clear();
+        foreach ((string lPresetName, string? pGroupHeader, bool pUserHeader, bool pCollapsed) in pOrder)
+        {
+            if (pGroupHeader is not null)
+            {
+                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                    pGroupHeader,
+                    pCollapsed,
+                    () => PExportGroupToggle(pGroupHeader)));
+            }
+
+            if (pUserHeader)
+            {
+                pPresetRowPanel.Children.Add(PExportGroupBuild(
+                    QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Group.User"),
+                    pCollapsed,
+                    PExportUserToggle));
+            }
+
+            Border pRow = PExportRowBuild(lPresetName, lWorking);
+            pRow.Visibility = PLook.PLookVisible[!pCollapsed];
             pPresetRowPanel.Children.Add(pRow);
         }
     }

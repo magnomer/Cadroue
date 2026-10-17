@@ -39,14 +39,20 @@ public static class QSashMaximize
             lWork.QSashTop,
             lWork.QSashRight,
             lWork.QSashBottom);
+        QSashExtentApply(lLParam, lLimits);
+        lHandled = true;
+        return IntPtr.Zero;
+    }
+
+    // The limits written into the min-max message's extent.
+    private static void QSashExtentApply(IntPtr lLParam, QSashLimits lLimits)
+    {
         QSashExtent lWindowLimits = Marshal.PtrToStructure<QSashExtent>(lLParam);
         lWindowLimits.QSashPosition.QSashX = (int)lLimits.QSashX;
         lWindowLimits.QSashPosition.QSashY = (int)lLimits.QSashY;
         lWindowLimits.QSashSize.QSashX = (int)lLimits.QSashWidth;
         lWindowLimits.QSashSize.QSashY = (int)lLimits.QSashHeight;
         Marshal.StructureToPtr(lWindowLimits, lLParam, false);
-        lHandled = true;
-        return IntPtr.Zero;
     }
 
     [StructLayout(LayoutKind.Sequential)]

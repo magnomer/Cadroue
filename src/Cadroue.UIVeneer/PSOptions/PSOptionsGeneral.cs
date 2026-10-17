@@ -66,6 +66,14 @@ internal sealed partial class PSOptions
 
     private UIElement PSOptionsStartupBuild()
     {
+        StackPanel pRow = PSGeneralRowBuild();
+        PSOptionsPickerUpdate();
+        PSOptionsPickerAttach();
+        return PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.General.OpenWith"), pRow);
+    }
+
+    private StackPanel PSGeneralRowBuild()
+    {
         psOptionsTabPicker.Margin = new Thickness(12, 0, 0, 0);
         psOptionsTabPicker.VerticalAlignment = VerticalAlignment.Center;
 
@@ -76,17 +84,16 @@ internal sealed partial class PSOptions
         };
         pRow.Children.Add(psOptionsStartupMode);
         pRow.Children.Add(psOptionsTabPicker);
-
-        void PSOptionsPickerUpdate() =>
-            psOptionsTabPicker.Visibility =
-                string.Equals(PSField.PSModeTextRead(psOptionsStartupMode), "DefaultTab", StringComparison.Ordinal)
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
-        PSOptionsPickerUpdate();
-        psOptionsStartupPicker = PSOptionsPickerUpdate;
-
-        return PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.General.OpenWith"), pRow);
+        return pRow;
     }
+
+    private void PSOptionsPickerUpdate() =>
+        PSOptionsPickerApply(PSOptionsModeCheck(psOptionsStartupMode, "DefaultTab"));
+
+    private void PSOptionsPickerApply(bool pShown) =>
+        psOptionsTabPicker.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
+
+    private void PSOptionsPickerAttach() => psOptionsStartupPicker = PSOptionsPickerUpdate;
 
     private static LLocalizationChoice[] PSOptionsLanguagesRead() =>
         LLocalization.LLocalizationLanguagesRead()

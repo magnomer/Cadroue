@@ -18,10 +18,15 @@ public partial class PWindow
     protected override void OnSourceInitialized(EventArgs e)
     {
         base.OnSourceInitialized(e);
+        PWindowMessageAttach();
+        PWindowDwmApply();
+    }
+
+    private void PWindowMessageAttach()
+    {
         HwndSource? pWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
         pWindowSource?.AddHook(PWindowMessageHook);
         ComponentDispatcher.ThreadPreprocessMessage += PShortcutMessageHandle;
-        PWindowDwmApply();
     }
 
     protected override void OnContentRendered(EventArgs e)

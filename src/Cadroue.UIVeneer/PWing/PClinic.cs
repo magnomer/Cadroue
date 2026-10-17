@@ -18,20 +18,20 @@ public sealed class PClinic : UserControl
     public event Action<bool>? PClinicMinimizeChanged;
     public event Action? PClinicDiagnosisExecuted;
 
-    private readonly UIElement pClinicFullBody;
-    private readonly UIElement pClinicStripBody;
-    private readonly TextBlock pClinicTitleLabel;
-    private readonly TextBlock pClinicEmptyNotice;
-    private readonly UIElement pClinicItemBody;
-    private readonly StackPanel pClinicToggleRow;
-    private readonly TextBlock pClinicItemSimple;
-    private readonly TextBlock pClinicItemTechnical;
-    private readonly UIElement pClinicResultBody;
-    private readonly TextBlock pClinicResultText;
-    private readonly ProgressBar pClinicDiagnosisProgress;
-    private readonly CheckBox pClinicApplyBox;
-    private readonly CheckBox pClinicPersistentBox;
-    private readonly Button pClinicDiagnosisButton;
+    private UIElement pClinicFullBody = null!;
+    private UIElement pClinicStripBody = null!;
+    private TextBlock pClinicTitleLabel = null!;
+    private TextBlock pClinicEmptyNotice = null!;
+    private UIElement pClinicItemBody = null!;
+    private StackPanel pClinicToggleRow = null!;
+    private TextBlock pClinicItemSimple = null!;
+    private TextBlock pClinicItemTechnical = null!;
+    private UIElement pClinicResultBody = null!;
+    private TextBlock pClinicResultText = null!;
+    private ProgressBar pClinicDiagnosisProgress = null!;
+    private CheckBox pClinicApplyBox = null!;
+    private CheckBox pClinicPersistentBox = null!;
+    private Button pClinicDiagnosisButton = null!;
     private readonly PClinicSalvage pClinicSalvage;
 
     public QClinic QClinic { get; }
@@ -41,6 +41,13 @@ public sealed class PClinic : UserControl
         QPanel.QPanelAttach(this);
         QClinic = lClinic;
         pClinicSalvage = new PClinicSalvage(QClinic);
+        PClinicFrameBuild();
+        PClinicAttach();
+        PClinicUpdate();
+    }
+
+    private void PClinicFrameBuild()
+    {
         pClinicTitleLabel = new TextBlock
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Clinic.Header.Title"),
@@ -76,8 +83,6 @@ public sealed class PClinic : UserControl
         pClinicApplyBox = PClinicSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Apply.Tooltip"));
-        pClinicApplyBox.Checked += (_, _) => QClinic.QClinicActiveSet(true);
-        pClinicApplyBox.Unchecked += (_, _) => QClinic.QClinicActiveSet(false);
 
         pClinicToggleRow = new StackPanel
         {
@@ -168,8 +173,6 @@ public sealed class PClinic : UserControl
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Clinic.Persistent.Tooltip"));
         pClinicPersistentBox.IsEnabled = false;
-        pClinicPersistentBox.Checked += (_, _) => QClinic.QClinicPersistentSet(true);
-        pClinicPersistentBox.Unchecked += (_, _) => QClinic.QClinicPersistentSet(false);
         pClinicSalvage.PClinicSalvagePersistent.Visibility = Visibility.Collapsed;
         pClinicPersistentBox.VerticalAlignment = VerticalAlignment.Center;
         var pPersistentStack = new Grid { VerticalAlignment = VerticalAlignment.Center };
@@ -186,7 +189,6 @@ public sealed class PClinic : UserControl
             FontFamily = pClinicFontFamily,
             VerticalAlignment = VerticalAlignment.Center
         };
-        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisExecuted?.Invoke();
         QButton.QButtonAttach(pClinicDiagnosisButton, QButtonLook.QButtonLookWhite);
 
         var pRunGrid = new Grid();
@@ -226,9 +228,17 @@ public sealed class PClinic : UserControl
 
         FocusVisualStyle = null;
         Content = QPanel.QPanelBuild(pBodyHost);
+    }
+
+    private void PClinicAttach()
+    {
+        pClinicApplyBox.Checked += (_, _) => QClinic.QClinicActiveSet(true);
+        pClinicApplyBox.Unchecked += (_, _) => QClinic.QClinicActiveSet(false);
+        pClinicPersistentBox.Checked += (_, _) => QClinic.QClinicPersistentSet(true);
+        pClinicPersistentBox.Unchecked += (_, _) => QClinic.QClinicPersistentSet(false);
+        pClinicDiagnosisButton.Click += (_, _) => PClinicDiagnosisExecuted?.Invoke();
         QClinic.QClinicChanged += PClinicUpdate;
         QClinic.QClinicMinimizeChanged += PClinicMinimizeHandle;
-        PClinicUpdate();
     }
 
     public bool PClinicMinimizedCheck() => QClinic.QClinicMinimized;
@@ -255,10 +265,17 @@ public sealed class PClinic : UserControl
 
     private void PClinicMinimizeHandle(bool pClinicMinimized)
     {
+        PClinicMinimizedApply(pClinicMinimized);
+        PClinicMinimizeRaise(pClinicMinimized);
+    }
+
+    private void PClinicMinimizedApply(bool pClinicMinimized)
+    {
         pClinicFullBody.Visibility = PLook.PLookVisible[!pClinicMinimized];
         pClinicStripBody.Visibility = PLook.PLookVisible[pClinicMinimized];
-        PClinicMinimizeChanged?.Invoke(pClinicMinimized);
     }
+
+    private void PClinicMinimizeRaise(bool pClinicMinimized) => PClinicMinimizeChanged?.Invoke(pClinicMinimized);
 
     private void PClinicUpdate()
     {
@@ -307,6 +324,13 @@ public sealed class PClinic : UserControl
 
     private static Button PClinicButtonBuild(string pIconPath, string pTooltip, Action pClick)
     {
+        Button pButton = PClinicIconBuild(pIconPath, pTooltip);
+        PClinicClickAttach(pButton, pClick);
+        return pButton;
+    }
+
+    private static Button PClinicIconBuild(string pIconPath, string pTooltip)
+    {
         var pButton = new Button
         {
             Content = new Image
@@ -320,8 +344,9 @@ public sealed class PClinic : UserControl
             Width = 28,
             Height = 26
         };
-        pButton.Click += (_, _) => pClick();
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static void PClinicClickAttach(Button pButton, Action pClick) => pButton.Click += (_, _) => pClick();
 }

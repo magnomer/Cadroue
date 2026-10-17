@@ -10,6 +10,14 @@ internal sealed partial class PSEncoder
 {
     private void PSVideoResolutionBuild(Panel pHost)
     {
+        PSVideoSizeBuild(pHost);
+        PSVideoSizeAttach();
+        PSVideoSizeApply();
+        PSVideoReactiveApply();
+    }
+
+    private void PSVideoSizeBuild(Panel pHost)
+    {
         psVideoResolutionValue = new TextBlock
         {
             Foreground = PSField.PSFieldText,
@@ -37,19 +45,19 @@ internal sealed partial class PSEncoder
         psVideoSizeNotice = PSNotice.PSNoticeBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.SizeSource"));
         pHost.Children.Add(psVideoSizeNotice);
+    }
 
-        psVideoResolutionSlider.ValueChanged += (_, _) =>
+    private void PSVideoSizeAttach()
+    {
+        psVideoResolutionSlider!.ValueChanged += (_, _) =>
             lsEncoder.QSEncoderTierSelect((int)Math.Round(psVideoResolutionSlider.Value));
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
-        psVideoWidthSlider.Loaded += (_, _) => PSVideoKnobApply();
-        psVideoHeightSlider.Loaded += (_, _) => PSVideoKnobApply();
+        psVideoWidthSlider!.Loaded += (_, _) => PSVideoKnobApply();
+        psVideoHeightSlider!.Loaded += (_, _) => PSVideoKnobApply();
         psVideoWidthSlider.ValueChanged += (_, _) => PSVideoDimensionChange(psVideoWidthSlider, psVideoWidthBox);
         psVideoHeightSlider.ValueChanged += (_, _) => PSVideoDimensionChange(psVideoHeightSlider, psVideoHeightBox);
-        psVideoWidthBox.TextChanged += (_, _) => PSVideoDimensionChange();
-        psVideoHeightBox.TextChanged += (_, _) => PSVideoDimensionChange();
-
-        PSVideoSizeApply();
-        PSVideoReactiveApply();
+        psVideoWidthBox!.TextChanged += (_, _) => PSVideoDimensionChange();
+        psVideoHeightBox!.TextChanged += (_, _) => PSVideoDimensionChange();
     }
 
     private static UIElement PSVideoDimensionBuild(TextBlock pLabel, UIElement pContent)
@@ -70,13 +78,23 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        int pValue = (int)Math.Round(pSlider.Value);
-        string pText = pValue > 0 ? pValue.ToString(CultureInfo.InvariantCulture) : string.Empty;
-        if (!string.Equals(pBox.Text.Trim(), pText, StringComparison.Ordinal))
+        string pText = PSVideoValueFormat(pSlider.Value);
+        if (PSVideoTextCheck(pBox, pText))
         {
-            pBox.Text = pText;
+            PSVideoBoxSet(pBox, pText);
         }
     }
+
+    private static string PSVideoValueFormat(double pRaw)
+    {
+        int pValue = (int)Math.Round(pRaw);
+        return pValue > 0 ? pValue.ToString(CultureInfo.InvariantCulture) : string.Empty;
+    }
+
+    private static bool PSVideoTextCheck(TextBox pBox, string pText) =>
+        !string.Equals(pBox.Text.Trim(), pText, StringComparison.Ordinal);
+
+    private static void PSVideoBoxSet(TextBox pBox, string pText) => pBox.Text = pText;
 
     private void PSVideoDimensionChange()
     {
@@ -101,35 +119,48 @@ internal sealed partial class PSEncoder
     private void PSVideoSizeApply()
     {
         int pTier = lsEncoder.QSEncoderSizeTier;
-        bool pSource = pTier == 0;
-        bool pCustom = pTier < 0;
+        bool pSource = PSVideoNativeCheck(pTier);
+        bool pCustom = PSVideoCustomCheck(pTier);
+        PSVideoDimensionApply(psVideoWidthBox, () => lsEncoder.QSEncoderWidth, pSource);
+        PSVideoDimensionApply(psVideoHeightBox, () => lsEncoder.QSEncoderHeight, pSource);
+        PSVideoTierSet(pTier, pSource, pCustom);
+        PSVideoHintSet(psVideoSizeNotice, pSource);
+        PSVideoSlidersSet(pTier);
+        PSVideoKnobApply();
+    }
 
-        if (psVideoWidthBox is not null)
+    private static bool PSVideoNativeCheck(int pTier) => pTier == 0;
+
+    private static bool PSVideoCustomCheck(int pTier) => pTier < 0;
+
+    private static void PSVideoDimensionApply(TextBox? pBox, Func<int> pValue, bool pSource)
+    {
+        if (pBox is null)
         {
-            psVideoWidthBox.Text = PSVideoDimensionFormat(lsEncoder.QSEncoderWidth, pSource);
-            psVideoWidthBox.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
+            return;
         }
 
-        if (psVideoHeightBox is not null)
-        {
-            psVideoHeightBox.Text = PSVideoDimensionFormat(lsEncoder.QSEncoderHeight, pSource);
-            psVideoHeightBox.Foreground = pSource ? PSField.PSFieldMuted : PSField.PSFieldText;
-        }
+        PSVideoBoxSet(pBox, PSVideoDimensionFormat(pValue(), pSource));
+        PSVideoInkApply(pBox, pSource);
+    }
 
+    private static string PSVideoTierFormat(int pTier, bool pSource, bool pCustom) =>
+        pCustom
+            ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Value.Custom")
+            : pSource
+                ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
+                : QSEncoder.QSEncoderTiers[pTier].QSEncoderTierLabel;
+
+    private void PSVideoTierSet(int pTier, bool pSource, bool pCustom)
+    {
         if (psVideoResolutionValue is not null)
         {
-            psVideoResolutionValue.Text = pCustom
-                ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Value.Custom")
-                : pSource
-                    ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
-                    : QSEncoder.QSEncoderTiers[pTier].QSEncoderTierLabel;
+            psVideoResolutionValue.Text = PSVideoTierFormat(pTier, pSource, pCustom);
         }
+    }
 
-        if (psVideoSizeNotice is not null)
-        {
-            psVideoSizeNotice.Visibility = pSource ? Visibility.Visible : Visibility.Collapsed;
-        }
-
+    private void PSVideoSlidersSet(int pTier)
+    {
         if (pTier >= 0 && psVideoResolutionSlider is not null)
         {
             psVideoResolutionSlider.Value = pTier;
@@ -137,21 +168,21 @@ internal sealed partial class PSEncoder
 
         if (psVideoWidthSlider is not null)
         {
-            psVideoWidthSlider.Value = Math.Min(lsEncoder.QSEncoderWidth, QSEncoder.QSEncoderDimensionMost);
+            psVideoWidthSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderWidth);
         }
 
         if (psVideoHeightSlider is not null)
         {
-            psVideoHeightSlider.Value = Math.Min(lsEncoder.QSEncoderHeight, QSEncoder.QSEncoderDimensionMost);
+            psVideoHeightSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderHeight);
         }
-
-        PSVideoKnobApply();
     }
+
+    private static int PSVideoKnobClamp(int pValue) => Math.Min(pValue, QSEncoder.QSEncoderDimensionMost);
 
     private void PSVideoKnobApply()
     {
-        PSVideoThumbApply(psVideoResolutionSlider, lsEncoder.QSEncoderSizeTier >= 0);
-        bool pDimension = lsEncoder.QSEncoderSizeTier != 0;
+        PSVideoThumbApply(psVideoResolutionSlider, !PSVideoCustomCheck(lsEncoder.QSEncoderSizeTier));
+        bool pDimension = !PSVideoNativeCheck(lsEncoder.QSEncoderSizeTier);
         PSVideoThumbApply(psVideoWidthSlider, pDimension);
         PSVideoThumbApply(psVideoHeightSlider, pDimension);
     }
@@ -177,10 +208,25 @@ internal sealed partial class PSEncoder
             return;
         }
 
+        (string pWidthKey, string pHeightKey) = PSVideoAxisResolve();
+        PSVideoAxisSet(psVideoWidthLabel, psVideoHeightLabel, pWidthKey, pHeightKey);
+    }
+
+    private (string, string) PSVideoAxisResolve()
+    {
         bool pReactive = psVideoReactiveBox.IsChecked == true;
-        psVideoWidthLabel.Text = QLocalizationCatalog.QLocalizationTextRead(
-            pReactive ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width");
-        psVideoHeightLabel.Text = QLocalizationCatalog.QLocalizationTextRead(
+        return (
+            pReactive ? "Encoder.Video.Field.AxisX" : "Encoder.Video.Field.Width",
             pReactive ? "Encoder.Video.Field.AxisY" : "Encoder.Video.Field.Height");
+    }
+
+    private static void PSVideoAxisSet(
+        TextBlock pWidthLabel,
+        TextBlock pHeightLabel,
+        string pWidthKey,
+        string pHeightKey)
+    {
+        pWidthLabel.Text = QLocalizationCatalog.QLocalizationTextRead(pWidthKey);
+        pHeightLabel.Text = QLocalizationCatalog.QLocalizationTextRead(pHeightKey);
     }
 }

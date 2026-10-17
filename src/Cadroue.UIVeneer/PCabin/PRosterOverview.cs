@@ -193,7 +193,18 @@ internal static class PRosterOverview
 
     private static Button PRosterOpenBuild(QRoster lRoster, string pPath)
     {
-        var pButton = new Button
+        Button pButton = PRosterLinkBuild();
+        PRosterOpenAttach(pButton, lRoster, pPath);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
+        return pButton;
+    }
+
+    private static void PRosterOpenAttach(Button pButton, QRoster lRoster, string pPath) =>
+        pButton.Click += (_, _) => lRoster.QRosterPathOpen(pPath);
+
+    private static Button PRosterLinkBuild()
+    {
+        return new Button
         {
             Content = new Image
             {
@@ -208,9 +219,6 @@ internal static class PRosterOverview
             Margin = new Thickness(0, 0, 0, 4),
             ToolTip = QLocalizationCatalog.QLocalizationTextRead("Roster.Explorer.Tooltip")
         };
-        pButton.Click += (_, _) => lRoster.QRosterPathOpen(pPath);
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
-        return pButton;
     }
 
     private static TextBlock PRosterLineBuild(QRosterLine lLine) => new()

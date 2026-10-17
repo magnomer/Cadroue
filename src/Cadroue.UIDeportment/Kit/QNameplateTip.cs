@@ -32,12 +32,7 @@ public static class QNameplateTip
             lElement.ToolTip,
             lElement.GetValue(QNameplateTipOwned) as bool?);
         lElement.SetValue(QNameplateTipOwned, lOwned);
-        lElement.SetCurrentValue(
-            FrameworkElement.ToolTipProperty,
-            QNameplate.QNameplateTipResolve(
-                lOwned,
-                lElement.ToolTip,
-                () => QNameplateTree.QNameplateTreeRead(lElement)));
+        QNameplateTipShow(lElement, lOwned);
     }
 
     private static void QNameplateTipOpen(object lSender, ToolTipEventArgs lEvent)
@@ -45,11 +40,14 @@ public static class QNameplateTip
         var lElement = (FrameworkElement)lSender;
         bool? lOwned = lElement.GetValue(QNameplateTipOwned) as bool?;
         lEvent.Handled = QNameplate.QNameplateTipCheck(lOwned);
+        QNameplateTipShow(lElement, lOwned);
+    }
+
+    private static void QNameplateTipShow(FrameworkElement lElement, bool? lOwned) =>
         lElement.SetCurrentValue(
             FrameworkElement.ToolTipProperty,
             QNameplate.QNameplateTipResolve(
                 lOwned,
                 lElement.ToolTip,
                 () => QNameplateTree.QNameplateTreeRead(lElement)));
-    }
 }

@@ -93,16 +93,25 @@ public sealed class QSLoupe
         qLoupeButtons.Select(QSLoupeButtonResolve).ToList();
 
     public void QSLoupeFloatRestore() =>
-        qLoupeFloat = qLoupeFloatKinds.GetValueOrDefault(
-            LPreference.LPreferenceStateCurrent.LPreferenceLoupeFloat, QSLoupeFloat.QSLoupeFloatOwner);
+        qLoupeFloat = QSLoupeFloatResolve(LPreference.LPreferenceStateCurrent.LPreferenceLoupeFloat);
 
     public void QSLoupeFloatSet(QSLoupeFloat lFloat)
     {
-        qLoupeFloat = lFloat;
+        QSLoupeFloatCommit(lFloat);
+        QSLoupeFloatPersist(lFloat);
+        QSLoupeFloatChanged?.Invoke();
+    }
+
+    private static QSLoupeFloat QSLoupeFloatResolve(string lToken) =>
+        qLoupeFloatKinds.GetValueOrDefault(lToken, QSLoupeFloat.QSLoupeFloatOwner);
+
+    private void QSLoupeFloatCommit(QSLoupeFloat lFloat) => qLoupeFloat = lFloat;
+
+    private static void QSLoupeFloatPersist(QSLoupeFloat lFloat)
+    {
         LPreferenceState lPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lPreference.LPreferenceLoupeFloat = qLoupeFloatTokens[lFloat];
         LPreference.LPreferenceStateSet(lPreference);
-        QSLoupeFloatChanged?.Invoke();
     }
 
     public void QSLoupeViewerAttach()
@@ -124,8 +133,9 @@ public sealed class QSLoupe
             return;
         }
 
-        qLoupeSource = lViewer.QViewerWorkspace.CWorkspaceSource;
-        if (string.IsNullOrWhiteSpace(qLoupeSource))
+        string? lSource = lViewer.QViewerWorkspace.CWorkspaceSource;
+        QSLoupeSourceSet(lSource);
+        if (string.IsNullOrWhiteSpace(lSource))
         {
             return;
         }
@@ -133,7 +143,7 @@ public sealed class QSLoupe
         try
         {
             QSLoupeEngineCreated?.Invoke();
-            await QPlayer.QPlayerOpenStart(qLoupeSource);
+            await QPlayer.QPlayerOpenStart(lSource);
             if (qLoupeClosed)
             {
                 return;
@@ -163,9 +173,20 @@ public sealed class QSLoupe
         }
     }
 
+    private void QSLoupeSourceSet(string? lSource) => qLoupeSource = lSource;
+
     public void QSLoupeClose()
     {
-        qLoupeClosed = true;
+        QSLoupeClosedSet();
+        QSLoupeViewerDetach();
+        QSLoupeFinalSet();
+        QPlayer.QPlayerDispose();
+    }
+
+    private void QSLoupeClosedSet() => qLoupeClosed = true;
+
+    private void QSLoupeViewerDetach()
+    {
         if (qLoupeViewer is { } lViewer)
         {
             lViewer.QViewerPreviewChanged -= QSLoupePreviewHandle;
@@ -175,17 +196,21 @@ public sealed class QSLoupe
             lViewer.QViewerPlayback.QViewerLoupeVolume -= QSLoupeVolumeSet;
             lViewer.QViewerMedia.QViewerLoupeClosed -= QSLoupeCloseHandle;
         }
+    }
 
+    private void QSLoupeFinalSet()
+    {
         qLoupeFinal = QPlayer.QPlayerTimeRead();
         qLoupePlayingFinal = QSLoupeResumeCheck();
-        QPlayer.QPlayerDispose();
     }
 
     public void QSLoupeDetach()
     {
         qLoupeViewer?.QViewerMedia.QViewerLoupe.QViewerLoupeDetach(qLoupeFinal, qLoupePlayingFinal);
-        qLoupeViewer = null;
+        QSLoupeViewerClear();
     }
+
+    private void QSLoupeViewerClear() => qLoupeViewer = null;
 
     public void QSLoupePlayToggle()
     {
@@ -213,7 +238,7 @@ public sealed class QSLoupe
         if (qLoupeEnded)
         {
             QPlayer.QPlayerSeek(TimeSpan.Zero);
-            qLoupeEnded = false;
+            QSLoupeEndSet(false);
         }
 
         QPlayer.QPlayerPlay();
@@ -238,7 +263,7 @@ public sealed class QSLoupe
             return;
         }
 
-        qLoupeEnded = false;
+        QSLoupeEndSet(false);
         QPlayer.QPlayerSeek(lPosition);
     }
 
@@ -261,7 +286,7 @@ public sealed class QSLoupe
 
         if (QPlayer.QPlayerEndedRead())
         {
-            qLoupeEnded = true;
+            QSLoupeEndSet(true);
             QSLoupePlayingSet(false);
             return;
         }
@@ -276,6 +301,15 @@ public sealed class QSLoupe
 
     public void QSLoupePlayingSet(bool lPlaying)
     {
+        QSLoupePlayingUpdate(lPlaying);
+        if (!qLoupeClosed)
+        {
+            qLoupeViewer?.QViewerPlayback.QViewerLoupeSync(QPlayer.QPlayerTimeRead(), lPlaying);
+        }
+    }
+
+    private void QSLoupePlayingUpdate(bool lPlaying)
+    {
         qLoupePlaying = lPlaying;
         if (lPlaying)
         {
@@ -283,10 +317,6 @@ public sealed class QSLoupe
         }
 
         QSLoupePlayingChanged?.Invoke(lPlaying);
-        if (!qLoupeClosed)
-        {
-            qLoupeViewer?.QViewerPlayback.QViewerLoupeSync(QPlayer.QPlayerTimeRead(), lPlaying);
-        }
     }
 
     private QSLoupeButton QSLoupeButtonResolve((QSLoupeFloat, string) lButton) => new(

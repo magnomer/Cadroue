@@ -28,12 +28,7 @@ public sealed class QConvertTab
             return;
         }
 
-        _ = LMessenger.LMessengerConvertDescribe(
-            lPriority,
-            QConvertSelectedRead() is { } lSelected ? [QConvertSourceCreate(lSelected)] : [],
-            qConvertPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
+        QConvertDescribe(lPriority, QConvertSelectedCreate(), lRelayTarget, lSourceTab);
     }
 
     public void QConvertAllRun(Guid lRelayTarget, Guid lSourceTab)
@@ -43,12 +38,7 @@ public sealed class QConvertTab
             return;
         }
 
-        _ = LMessenger.LMessengerConvertDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qConvertDocket.LDocketUnlockedRead().Select(QConvertSourceCreate).ToArray(),
-            qConvertPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
+        QConvertDescribe(LWorkPriority.LWorkPriorityNormal, QConvertUnlockedCreate(), lRelayTarget, lSourceTab);
     }
 
     public void QConvertItemsRun(IReadOnlyList<string> lPaths, Guid lRelayTarget, Guid lSourceTab)
@@ -58,15 +48,7 @@ public sealed class QConvertTab
             return;
         }
 
-        _ = LMessenger.LMessengerConvertDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qConvertDocket.LDocketUnlockedRead()
-                .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(QConvertSourceCreate)
-                .ToArray(),
-            qConvertPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
+        QConvertDescribe(LWorkPriority.LWorkPriorityNormal, QConvertItemsCreate(lPaths), lRelayTarget, lSourceTab);
     }
 
     private bool QConvertPresetCheck()
@@ -85,6 +67,27 @@ public sealed class QConvertTab
         && qConvertDocket.LDocketItemFind(lPath) is { LDocketEntryLocked: false } lItem
             ? lItem
             : null;
+
+    private void QConvertDescribe(
+        LWorkPriority lPriority, IReadOnlyList<LWorkSource> lSources, Guid lRelayTarget, Guid lSourceTab) =>
+        _ = LMessenger.LMessengerConvertDescribe(
+            lPriority,
+            lSources,
+            qConvertPreset.LPresetSelectionEncoding,
+            lRelayTarget,
+            lSourceTab);
+
+    private LWorkSource[] QConvertSelectedCreate() =>
+        QConvertSelectedRead() is { } lSelected ? [QConvertSourceCreate(lSelected)] : [];
+
+    private LWorkSource[] QConvertUnlockedCreate() =>
+        qConvertDocket.LDocketUnlockedRead().Select(QConvertSourceCreate).ToArray();
+
+    private LWorkSource[] QConvertItemsCreate(IReadOnlyList<string> lPaths) =>
+        qConvertDocket.LDocketUnlockedRead()
+            .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+            .Select(QConvertSourceCreate)
+            .ToArray();
 
     private static LWorkSource QConvertSourceCreate(LDocketEntry lItem) =>
         new(lItem.LDocketEntryPath, lItem.LDocketEntryBatch);

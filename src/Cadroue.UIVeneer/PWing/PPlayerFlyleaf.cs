@@ -24,12 +24,25 @@ internal sealed class PPlayerFlyleaf
         pPlayerHost = pHost;
         lPlayer = lPlayerOwner;
         pPlayer = new Player(pConfig);
+        PPlayerFilterPrepare();
+        PPlayerSeekAttach();
+        PPlayerHostSet();
+        PPlayerSetupRecord();
+    }
+
+    private void PPlayerFilterPrepare()
+    {
         PPlayerFilterAdd(FLFilters.Brightness, -100, 100, -0.5f, 0.5f);
         PPlayerFilterAdd(FLFilters.Contrast, -100, 100, 0f, 2f);
         PPlayerFilterAdd(FLFilters.Saturation, -100, 100, 0f, 2f);
         PPlayerFilterAdd(FLFilters.Hue, -180, 180, -3.14f, 3.14f);
-        pPlayer.SeekCompleted += PPlayerSeekHandle;
-        pPlayerHost.Player = pPlayer;
+    }
+
+    private void PPlayerSeekAttach() => pPlayer.SeekCompleted += PPlayerSeekHandle;
+
+    private void PPlayerHostSet() => pPlayerHost.Player = pPlayer;
+
+    private void PPlayerSetupRecord() =>
         LRenderer.LRendererSetupRecord(
             PPlayerFactsRead(pPlayer.VideoDecoder.VideoStream),
             pPlayer.Config.Video.MaxOutputFps,
@@ -37,8 +50,7 @@ internal sealed class PPlayerFlyleaf
             pPlayer.Config.Decoder.MaxVideoFrames,
             pPlayer.Config.Video.ClearScreen,
             pPlayer.Config.Video.SwsForce,
-            lPlayerOwner.QPlayerCreateRead());
-    }
+            lPlayer.QPlayerCreateRead());
 
     public static nint PPlayerHandleRead(System.Windows.Window? pWindow)
     {
@@ -97,6 +109,11 @@ internal sealed class PPlayerFlyleaf
     private void PPlayerPreviewApply(LPreviewApplication pApplication)
     {
         PPlayerProcessorApply(pApplication.LPreviewReason);
+        PPlayerVideoApply(pApplication);
+    }
+
+    private void PPlayerVideoApply(LPreviewApplication pApplication)
+    {
         pPlayer.Config.Video.FLFilters[FLFilters.Brightness].Value = pApplication.LPreviewBrightness;
         pPlayer.Config.Video.FLFilters[FLFilters.Contrast].Value = pApplication.LPreviewContrast;
         pPlayer.Config.Video.FLFilters[FLFilters.Saturation].Value = pApplication.LPreviewSaturation;
@@ -108,9 +125,15 @@ internal sealed class PPlayerFlyleaf
 
     private void PPlayerProcessorApply(string pReason)
     {
+        VideoProcessors pWas = PPlayerProcessorSet();
+        LRenderer.LRendererProcessorRecord(pWas.ToString(), pReason);
+    }
+
+    private VideoProcessors PPlayerProcessorSet()
+    {
         VideoProcessors pWas = pPlayer.Config.Video.VideoProcessor;
         pPlayer.Config.Video.VideoProcessor = VideoProcessors.Flyleaf;
-        LRenderer.LRendererProcessorRecord(pWas.ToString(), pReason);
+        return pWas;
     }
 
     private void PPlayerFilterAdd(
@@ -146,7 +169,14 @@ internal sealed class PPlayerFlyleaf
 
     private void PPlayerDispose()
     {
-        pPlayer.SeekCompleted -= PPlayerSeekHandle;
+        PPlayerSeekDetach();
+        PPlayerEngineDispose();
+    }
+
+    private void PPlayerSeekDetach() => pPlayer.SeekCompleted -= PPlayerSeekHandle;
+
+    private void PPlayerEngineDispose()
+    {
         pPlayerHost.Player = null;
         try
         {

@@ -109,37 +109,50 @@ internal sealed partial class PSOptions
     private void PSSpectrumListBuild()
     {
         LSectionPalette.LSectionRegistryLoad();
+        PSSpectrumListClear();
+        IReadOnlyList<string> pNames = LSectionPalette.LSectionNamesRead();
+        PSSpectrumListAppend(pNames);
+        lsSpectrum.QSSpectrumNamesSet(pNames);
+    }
+
+    private void PSSpectrumListClear()
+    {
         psSpectrumRows.Clear();
         psSpectrumList.Children.Clear();
-        IReadOnlyList<string> pNames = LSectionPalette.LSectionNamesRead();
+    }
+
+    private void PSSpectrumListAppend(IReadOnlyList<string> pNames)
+    {
         foreach (string pName in pNames)
         {
             Border pRow = PSSpectrumRowBuild(pName);
             psSpectrumRows[pName] = pRow;
             psSpectrumList.Children.Add(PSSpectrumLineBuild(pName, pRow));
         }
-
-        lsSpectrum.QSSpectrumNamesSet(pNames);
     }
 
     private static Button PSSpectrumButtonBuild(string pIconPath, string pTip, Action pClick)
     {
-        var pButton = new Button
-        {
-            Margin = new Thickness(0, 0, 6, 0),
-            ToolTip = pTip,
-            Content = new Image
-            {
-                Source = QIcon.QIconRead(pIconPath, PSField.PSFieldText),
-                Width = 18,
-                Height = 18,
-                Stretch = Stretch.Uniform
-            }
-        };
-        pButton.Click += (_, _) => pClick();
+        Button pButton = PSSpectrumButtonCreate(pIconPath, pTip);
+        PSSpectrumButtonAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookIcon);
         return pButton;
     }
+
+    private static Button PSSpectrumButtonCreate(string pIconPath, string pTip) => new()
+    {
+        Margin = new Thickness(0, 0, 6, 0),
+        ToolTip = pTip,
+        Content = new Image
+        {
+            Source = QIcon.QIconRead(pIconPath, PSField.PSFieldText),
+            Width = 18,
+            Height = 18,
+            Stretch = Stretch.Uniform
+        }
+    };
+
+    private static void PSSpectrumButtonAttach(Button pButton, Action pClick) => pButton.Click += (_, _) => pClick();
 
     private void PSSpectrumLoad()
     {
@@ -155,17 +168,10 @@ internal sealed partial class PSOptions
         }
 
         QSSpectrumResult pResult = lsSpectrum.QSSpectrumImport(pDialog.FileName, out string pTargetPath);
-        string? pLoadedName = pResult == QSSpectrumResult.QSSpectrumResultLoaded
-            ? LSectionPalette.LSectionNameFind(pTargetPath)
-            : null;
+        string? pLoadedName = PSSpectrumNameFind(pResult, pTargetPath);
         if (pLoadedName is null)
         {
-            string pMessageKey = pResult switch
-            {
-                QSSpectrumResult.QSSpectrumResultReserved => "Options.Timeline.ReservedPalette",
-                QSSpectrumResult.QSSpectrumResultFailed => "Options.Timeline.PaletteCopyFailed",
-                _ => "Options.Timeline.InvalidPalette"
-            };
+            string pMessageKey = PSSpectrumMessageResolve(pResult);
             PSWarning.PSWarningShow(
                 this,
                 QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTitle"),
@@ -177,13 +183,25 @@ internal sealed partial class PSOptions
         lsSpectrum.QSSpectrumSelect(pLoadedName);
     }
 
+    private static string? PSSpectrumNameFind(QSSpectrumResult pResult, string pTargetPath) =>
+        pResult == QSSpectrumResult.QSSpectrumResultLoaded
+            ? LSectionPalette.LSectionNameFind(pTargetPath)
+            : null;
+
+    private static string PSSpectrumMessageResolve(QSSpectrumResult pResult) => pResult switch
+    {
+        QSSpectrumResult.QSSpectrumResultReserved => "Options.Timeline.ReservedPalette",
+        QSSpectrumResult.QSSpectrumResultFailed => "Options.Timeline.PaletteCopyFailed",
+        _ => "Options.Timeline.InvalidPalette"
+    };
+
     private void PSSpectrumSave()
     {
         var pDialog = new SaveFileDialog
         {
             Title = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.SaveTitle"),
             Filter = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.JsonFilter"),
-            FileName = $"{lsSpectrum.QSSpectrumName}.json",
+            FileName = PSSpectrumFileFormat(),
             InitialDirectory = lsSpectrum.QSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() == true)
@@ -193,7 +211,16 @@ internal sealed partial class PSOptions
         }
     }
 
+    private string PSSpectrumFileFormat() => $"{lsSpectrum.QSSpectrumName}.json";
+
     private Border PSSpectrumRowBuild(string pName)
+    {
+        Border pRow = PSSpectrumRowCreate(pName);
+        PSSpectrumRowAttach(pRow, pName);
+        return pRow;
+    }
+
+    private static Border PSSpectrumRowCreate(string pName)
     {
         var pLabel = new TextBlock
         {
@@ -235,10 +262,14 @@ internal sealed partial class PSOptions
             Cursor = Cursors.Hand,
             Child = pContent
         };
+        return pRow;
+    }
+
+    private void PSSpectrumRowAttach(Border pRow, string pName)
+    {
         pRow.MouseLeftButtonDown += (_, _) => PSSpectrumSelect(pName);
         pRow.MouseEnter += (_, _) => PSSpectrumHoverApply(pName, true);
         pRow.MouseLeave += (_, _) => PSSpectrumHoverApply(pName, false);
-        return pRow;
     }
 
     private UIElement PSSpectrumLineBuild(string pName, Border pRow)
@@ -255,35 +286,51 @@ internal sealed partial class PSOptions
 
     private Button PSSpectrumRemoveBuild(string pName)
     {
-        var pButton = new Button
-        {
-            Width = PSSpectrumRemoveSize,
-            MinWidth = PSSpectrumRemoveSize,
-            Height = PSSpectrumRemoveSize,
-            Margin = new Thickness(8, 0, 0, 6),
-            VerticalAlignment = VerticalAlignment.Center,
-            ToolTip = QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
-            Content = new Image
-            {
-                Source = QIcon.QIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
-                Width = 18,
-                Height = 18,
-                Stretch = Stretch.Uniform
-            }
-        };
-        pButton.Click += (_, pEvent) => { pEvent.Handled = true; PSSpectrumRemove(pName); };
+        Button pButton = PSSpectrumRemoveCreate(pName);
+        PSSpectrumRemoveAttach(pButton, pName);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookIcon);
         return pButton;
     }
+
+    private static Button PSSpectrumRemoveCreate(string pName) => new()
+    {
+        Width = PSSpectrumRemoveSize,
+        MinWidth = PSSpectrumRemoveSize,
+        Height = PSSpectrumRemoveSize,
+        Margin = new Thickness(8, 0, 0, 6),
+        VerticalAlignment = VerticalAlignment.Center,
+        ToolTip = QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveTooltip", pName),
+        Content = new Image
+        {
+            Source = QIcon.QIconRead(PSSpectrumRemoveIcon, PSField.PSFieldText),
+            Width = 18,
+            Height = 18,
+            Stretch = Stretch.Uniform
+        }
+    };
+
+    private void PSSpectrumRemoveAttach(Button pButton, string pName) =>
+        pButton.Click += (_, pEvent) => PSSpectrumRemoveHandle(pEvent, pName);
+
+    private void PSSpectrumRemoveHandle(RoutedEventArgs pEvent, string pName)
+    {
+        PSSpectrumClickClaim(pEvent);
+        PSSpectrumRemove(pName);
+    }
+
+    private static void PSSpectrumClickClaim(RoutedEventArgs pEvent) => pEvent.Handled = true;
+
+    private static string PSSpectrumConfirmFormat(string pName) =>
+        LSectionPalette.LSectionNativeCheck(pName)
+            ? QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
+            : QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName);
 
     private void PSSpectrumRemove(string pName)
     {
         bool pConfirmed = PSAlert.PSAlertConfirm(
             this,
             QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.RemoveTitle"),
-            LSectionPalette.LSectionNativeCheck(pName)
-                ? QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveBuiltInConfirm", pName)
-                : QLocalizationCatalog.QLocalizationFormat("Options.Timeline.RemoveWorkspaceConfirm", pName),
+            PSSpectrumConfirmFormat(pName),
             QLocalizationCatalog.QLocalizationTextRead("Terms.Remove"));
         if (!pConfirmed
             || !lsSpectrum.QSSpectrumRemove(

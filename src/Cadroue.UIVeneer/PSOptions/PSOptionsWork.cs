@@ -16,10 +16,21 @@ internal sealed partial class PSOptions
             QLocalizationCatalog.QLocalizationTextRead("Options.Work.RetryLimit"),
             psOptionsRetrySlider,
             string.Empty);
-        pRetryRow.IsEnabled = psOptionsRetryBox.IsChecked == true;
-        psOptionsRetryBox.Checked += (_, _) => pRetryRow.IsEnabled = true;
-        psOptionsRetryBox.Unchecked += (_, _) => pRetryRow.IsEnabled = false;
+        PSOptionsRetryApply(pRetryRow, PSOptionsCheckRead(psOptionsRetryBox));
+        PSOptionsRetryAttach(pRetryRow);
+        return PSWorkPanelBuild(pRetryRow);
+    }
 
+    private static void PSOptionsRetryApply(UIElement pRetryRow, bool pEnabled) => pRetryRow.IsEnabled = pEnabled;
+
+    private void PSOptionsRetryAttach(UIElement pRetryRow)
+    {
+        psOptionsRetryBox.Checked += (_, _) => PSOptionsRetryApply(pRetryRow, true);
+        psOptionsRetryBox.Unchecked += (_, _) => PSOptionsRetryApply(pRetryRow, false);
+    }
+
+    private UIElement PSWorkPanelBuild(UIElement pRetryRow)
+    {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.Failure"),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.OnFailure"),

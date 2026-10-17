@@ -61,7 +61,10 @@ public sealed class QSOptions
     public bool QSOptionsFolderExist(string lFolder) => qsOptionsUsher.CUsherFolderExist(lFolder);
 
     public string? QSOptionsFolderOpen(string lFolder, string lFallback) =>
-        qsOptionsUsher.CUsherFolderOpen(string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder);
+        qsOptionsUsher.CUsherFolderOpen(QSOptionsFolderResolve(lFolder, lFallback));
+
+    private static string QSOptionsFolderResolve(string lFolder, string lFallback) =>
+        string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder;
 
     public string QSOptionsEngineRead() =>
         qsOptionsMpvEnabled && string.Equals(qsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
@@ -76,18 +79,21 @@ public sealed class QSOptions
 
     public async Task QSOptionsMpvUpdate()
     {
-        bool lUsable;
+        bool lUsable = await QSOptionsUsableCheck();
+        QSOptionsMpvSet(lUsable);
+    }
+
+    private static async Task<bool> QSOptionsUsableCheck()
+    {
         try
         {
-            lUsable = await LRenderer.LRendererMpvCheck();
+            return await LRenderer.LRendererMpvCheck();
         }
         catch (Exception lException)
         {
             LTraceLog.LTraceErrorRecord("Options mpv check failed", lException);
-            lUsable = false;
+            return false;
         }
-
-        QSOptionsMpvSet(lUsable);
     }
 
     public static string QSOptionsMpvResolve() =>
@@ -161,12 +167,14 @@ public sealed class QSOptions
     public bool QSOptionsApply()
     {
         bool lSaved = LPreference.LPreferenceStateSet(qsOptionsDraft.LPreferenceClone());
-        LRenderer.LRendererEngineSet(
-            string.Equals(qsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
-                ? LPreviewEngine.LPreviewEngineMpv
-                : LPreviewEngine.LPreviewEngineFlyleaf);
+        LRenderer.LRendererEngineSet(QSOptionsPreviewResolve());
         return lSaved;
     }
+
+    private LPreviewEngine QSOptionsPreviewResolve() =>
+        string.Equals(qsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
+            ? LPreviewEngine.LPreviewEngineMpv
+            : LPreviewEngine.LPreviewEngineFlyleaf;
 
     public bool QSOptionsRestartCheck() =>
         !string.Equals(

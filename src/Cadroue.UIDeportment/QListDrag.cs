@@ -30,39 +30,67 @@ public sealed class QListDrag
             return false;
         }
 
-        qListDragOrigin = true;
-        qListDragX = lX;
-        qListDragY = lY;
-        qListGhost = new QGhost(lGrabX, lGrabY);
-        qListDragPath = lListPath;
+        QListDragStart(lListPath, lX, lY, lGrabX, lGrabY);
         return true;
     }
 
     public bool QListDragResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed)
     {
-        if (!qListDragOrigin || qListDragPath is not { } lDragPath || !lPressed)
+        if (QListThresholdResolve(lX, lY, lMinimumX, lMinimumY, lPressed) is not { } lDragPath)
         {
             return false;
         }
 
-        if (Math.Abs(lX - qListDragX) < lMinimumX && Math.Abs(lY - qListDragY) < lMinimumY)
-        {
-            return false;
-        }
-
-        qListDragPaths = qList.QListSelectionCheck(lDragPath)
-            ? qList.QListSelectionRead().Where(lListPath => !qList.QListLockCheck(lListPath)).ToArray()
-            : [lDragPath];
-        qListDragOrigin = false;
-        qListDragPath = null;
+        IReadOnlyList<string> lDragged = QListDraggedRead(lDragPath);
+        QListDragApply(lDragged);
         qList.QListPressReset();
-        return qListDragPaths.Count > 0;
+        return lDragged.Count > 0;
     }
 
     public void QListReleaseHandle()
     {
+        QListDragClear();
+        qList.QListReleaseSelect();
+    }
+
+    private void QListDragStart(string lListPath, double lX, double lY, double lGrabX, double lGrabY)
+    {
+        qListDragOrigin = true;
+        qListDragX = lX;
+        qListDragY = lY;
+        qListGhost = new QGhost(lGrabX, lGrabY);
+        qListDragPath = lListPath;
+    }
+
+    private string? QListThresholdResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed)
+    {
+        if (!qListDragOrigin || qListDragPath is not { } lDragPath || !lPressed)
+        {
+            return null;
+        }
+
+        if (Math.Abs(lX - qListDragX) < lMinimumX && Math.Abs(lY - qListDragY) < lMinimumY)
+        {
+            return null;
+        }
+
+        return lDragPath;
+    }
+
+    private IReadOnlyList<string> QListDraggedRead(string lDragPath) =>
+        qList.QListSelectionCheck(lDragPath)
+            ? qList.QListSelectionRead().Where(lListPath => !qList.QListLockCheck(lListPath)).ToArray()
+            : [lDragPath];
+
+    private void QListDragApply(IReadOnlyList<string> lDragged)
+    {
+        qListDragPaths = lDragged;
+        QListDragClear();
+    }
+
+    private void QListDragClear()
+    {
         qListDragOrigin = false;
         qListDragPath = null;
-        qList.QListReleaseSelect();
     }
 }

@@ -12,13 +12,29 @@ internal sealed class PSAlert : Window
 
     private PSAlert(Window? pOwner, string pTitle, string pQuestion, string pAction, string? pCancel)
     {
-        Title = pTitle;
+        PSAlertTitleSet(pTitle);
+        PSAlertFrameApply();
+        PSAlertOwnerApply(PSAlertOwnerResolve(pOwner));
+        PSDialog.PSDialogLocationAttach(this);
+        PSAlertBuild(pTitle, pQuestion, pAction, pCancel);
+    }
+
+    private void PSAlertTitleSet(string pTitle) => Title = pTitle;
+
+    private void PSAlertFrameApply()
+    {
         Width = PSAlertWidth;
         SizeToContent = SizeToContent.Height;
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         PSDialog.PSDialogApply(this, PSDialogTheme.PSDialogThemeRed);
-        Window? pResolvedOwner = pOwner ?? System.Windows.Application.Current?.MainWindow;
+    }
+
+    private static Window? PSAlertOwnerResolve(Window? pOwner) =>
+        pOwner ?? System.Windows.Application.Current?.MainWindow;
+
+    private void PSAlertOwnerApply(Window? pResolvedOwner)
+    {
         if (pResolvedOwner is not null && pResolvedOwner != this)
         {
             Owner = pResolvedOwner;
@@ -27,8 +43,6 @@ internal sealed class PSAlert : Window
         {
             WindowStartupLocation = WindowStartupLocation.CenterScreen;
         }
-        PSDialog.PSDialogLocationAttach(this);
-        Content = PSAlertBuild(pTitle, pQuestion, pAction, pCancel);
     }
 
     internal static bool PSAlertConfirm(
@@ -42,14 +56,54 @@ internal sealed class PSAlert : Window
     internal static void PSAlertConfirm(Window? pOwner, QAsk lAsk, Action<bool> lAnswer) =>
         lAnswer(PSAlertConfirm(pOwner, lAsk.QAskTitle, lAsk.QAskQuestion, lAsk.QAskAction, lAsk.QAskDismiss));
 
-    private UIElement PSAlertBuild(string pTitle, string pQuestion, string pAction, string? pCancel) =>
-        PSDialog.PSDialogBuild(
+    private void PSAlertBuild(string pTitle, string pQuestion, string pAction, string? pCancel) =>
+        Content = PSDialog.PSDialogBuild(
             this,
             pTitle,
             PSAlertBodyBuild(pQuestion, pAction, pCancel),
             PSDialogTheme.PSDialogThemeRed);
 
     private DockPanel PSAlertBodyBuild(string pQuestion, string pAction, string? pCancel)
+    {
+        Button pCancelButton = PSAlertCancelBuild(pCancel);
+        Button pConfirm = PSAlertConfirmBuild(pAction);
+        return PSAlertPanelBuild(pQuestion, pCancelButton, pConfirm);
+    }
+
+    private Button PSAlertCancelBuild(string? pCancel)
+    {
+        Button pCancelButton = PSFooter.PSFooterButtonBuild(PSAlertCancelResolve(pCancel));
+        PSAlertEscapeSet(pCancelButton);
+        PSAlertCancelAttach(pCancelButton);
+        return pCancelButton;
+    }
+
+    private static string PSAlertCancelResolve(string? pCancel) =>
+        pCancel ?? QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel");
+
+    private static void PSAlertEscapeSet(Button pCancelButton) => pCancelButton.IsCancel = true;
+
+    private void PSAlertCancelAttach(Button pCancelButton) => pCancelButton.Click += (_, _) => Close();
+
+    private Button PSAlertConfirmBuild(string pAction)
+    {
+        Button pConfirm = PSFooter.PSFooterButtonBuild(pAction);
+        PSAlertConfirmApply(pConfirm);
+        PSAlertConfirmAttach(pConfirm);
+        return pConfirm;
+    }
+
+    private static void PSAlertConfirmApply(Button pConfirm)
+    {
+        pConfirm.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
+        pConfirm.BorderBrush = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
+    }
+
+    private void PSAlertConfirmAttach(Button pConfirm) => pConfirm.Click += PSAlertConfirmHandle;
+
+    private void PSAlertConfirmHandle(object sender, RoutedEventArgs e) => DialogResult = true;
+
+    private static DockPanel PSAlertPanelBuild(string pQuestion, Button pCancelButton, Button pConfirm)
     {
         var pBody = new DockPanel
         {
@@ -62,16 +116,6 @@ internal sealed class PSAlert : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-
-        Button pCancelButton = PSFooter.PSFooterButtonBuild(
-            pCancel ?? QLocalizationCatalog.QLocalizationTextRead("Terms.Cancel"));
-        pCancelButton.IsCancel = true;
-        pCancelButton.Click += (_, _) => Close();
-
-        Button pConfirm = PSFooter.PSFooterButtonBuild(pAction);
-        pConfirm.Foreground = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
-        pConfirm.BorderBrush = new SolidColorBrush(Color.FromRgb(0xE8, 0x11, 0x23));
-        pConfirm.Click += (_, _) => DialogResult = true;
 
         pFooter.Children.Add(pCancelButton);
         pFooter.Children.Add(pConfirm);

@@ -35,11 +35,14 @@ public static class QAskNotice
 
     internal static QAsk? QAskCreate(Func<string> lQuestionRead, string lActionKey, string lTitleKey) =>
         LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
-            ? new QAsk(
-                lQuestionRead(),
-                QLocalizationCatalog.QLocalizationTextRead(lActionKey))
-            {
-                QAskTitle = QLocalizationCatalog.QLocalizationTextRead(lTitleKey)
-            }
+            ? QAskRecordCreate(lQuestionRead, lActionKey, lTitleKey)
             : null;
+
+    private static QAsk QAskRecordCreate(Func<string> lQuestionRead, string lActionKey, string lTitleKey) =>
+        new(
+            lQuestionRead(),
+            QLocalizationCatalog.QLocalizationTextRead(lActionKey))
+        {
+            QAskTitle = QLocalizationCatalog.QLocalizationTextRead(lTitleKey)
+        };
 }

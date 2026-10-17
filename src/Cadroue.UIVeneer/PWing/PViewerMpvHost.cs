@@ -33,11 +33,16 @@ internal sealed class PViewerMpvHost : HwndHost
     {
         if (PViewerMpvHwnd == nint.Zero)
         {
-            Visibility = System.Windows.Visibility.Visible;
-            UpdateLayout();
+            PViewerVisibleApply();
         }
 
         return PViewerMpvHwnd;
+    }
+
+    private void PViewerVisibleApply()
+    {
+        Visibility = System.Windows.Visibility.Visible;
+        UpdateLayout();
     }
 
     protected override HandleRef BuildWindowCore(HandleRef lParent)
@@ -65,6 +70,8 @@ internal sealed class PViewerMpvHost : HwndHost
             DestroyWindow(lWindow.Handle);
         }
 
-        PViewerMpvHwnd = nint.Zero;
+        PViewerHwndReset();
     }
+
+    private void PViewerHwndReset() => PViewerMpvHwnd = nint.Zero;
 }

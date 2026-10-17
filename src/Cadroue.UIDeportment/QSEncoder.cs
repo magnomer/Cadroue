@@ -26,7 +26,7 @@ public sealed partial class QSEncoder
         qsEncoderSmart = lSmart;
         QSEncoderVideoPrepare();
         QSEncoderAudioPrepare();
-        LInventory.LInventoryHelpReady += QSEncoderHelpHandle;
+        QSEncoderInventoryAttach();
     }
 
     public LPreset QSEncoderDraft => qsEncoderDraft;
@@ -50,10 +50,39 @@ public sealed partial class QSEncoder
         return lSlot.Token;
     }
 
+    private void QSEncoderVerdictSet(LTrialKind lKind, IReadOnlyList<QSVerdictRow> lRows)
+    {
+        if (lKind == LTrialKind.LTrialKindAudio)
+        {
+            qsEncoderAudioResults = lRows;
+            return;
+        }
+
+        qsEncoderVideoResults = lRows;
+    }
+
+    private static string QSEncoderRateResolve(string[] lModes, string lRate) =>
+        lModes.Contains(lRate) ? lRate : lModes[0];
+
+    private static double QSEncoderProgressResolve(int lDone, int lTotal) =>
+        lTotal == 0 ? 1 : (double)lDone / lTotal;
+
     public void QSEncoderClose()
+    {
+        QSEncoderHelpDetach();
+        QSEncoderTrialCancel();
+    }
+
+    private void QSEncoderInventoryAttach() => LInventory.LInventoryHelpReady += QSEncoderHelpHandle;
+
+    private void QSEncoderHelpDetach()
     {
         LInventory.LInventoryHelpReady -= QSEncoderHelpHandle;
         qsEncoderHelpHandler = null;
+    }
+
+    private void QSEncoderTrialCancel()
+    {
         qsEncoderVideoTrial?.Cancel();
         qsEncoderAudioTrial?.Cancel();
     }
@@ -75,16 +104,28 @@ public sealed partial class QSEncoder
 
     public string QSEncoderSuffixSelect(string lPolicy, string lSuffixShown)
     {
-        if (qsEncoderSuffixMode is not null
-            && QSEncoderSuffixCheck(qsEncoderSuffixMode)
-            && !string.Equals(qsEncoderSuffixMode, lPolicy, StringComparison.Ordinal))
+        if (QSEncoderSuffixFind(lPolicy) is { } lPrevious)
         {
-            qsEncoderDraft.LPresetSuffixSet(qsEncoderSuffixMode, lSuffixShown.Trim());
+            qsEncoderDraft.LPresetSuffixSet(lPrevious, lSuffixShown.Trim());
         }
 
-        qsEncoderSuffixMode = lPolicy;
-        return QSEncoderSuffixCheck(lPolicy) ? qsEncoderDraft.LPresetSuffixRead(lPolicy) : lSuffixShown;
+        QSEncoderSuffixSet(lPolicy);
+        if (!QSEncoderSuffixCheck(lPolicy))
+        {
+            return lSuffixShown;
+        }
+
+        return qsEncoderDraft.LPresetSuffixRead(lPolicy);
     }
+
+    private string? QSEncoderSuffixFind(string lPolicy) =>
+        qsEncoderSuffixMode is not null
+        && QSEncoderSuffixCheck(qsEncoderSuffixMode)
+        && !string.Equals(qsEncoderSuffixMode, lPolicy, StringComparison.Ordinal)
+            ? qsEncoderSuffixMode
+            : null;
+
+    private void QSEncoderSuffixSet(string lPolicy) => qsEncoderSuffixMode = lPolicy;
 
     public string QSEncoderSuffixNormalize(string lPolicy, string lSuffixShown)
     {
@@ -121,15 +162,22 @@ public sealed partial class QSEncoder
     public string QSEncoderLocationSelect(string lMode, string lFolderShown)
     {
         string lFolder = lFolderShown;
-        if (qsEncoderLocationMode is not null && !string.Equals(qsEncoderLocationMode, lMode, StringComparison.Ordinal))
+        if (QSEncoderLocationFind(lMode) is { } lPrevious)
         {
-            qsEncoderDraft.LPresetLocationSet(qsEncoderLocationMode, lFolderShown.Trim());
+            qsEncoderDraft.LPresetLocationSet(lPrevious, lFolderShown.Trim());
             lFolder = qsEncoderDraft.LPresetLocationRead(lMode);
         }
 
-        qsEncoderLocationMode = lMode;
+        QSEncoderLocationSet(lMode);
         return lFolder;
     }
+
+    private string? QSEncoderLocationFind(string lMode) =>
+        qsEncoderLocationMode is not null && !string.Equals(qsEncoderLocationMode, lMode, StringComparison.Ordinal)
+            ? qsEncoderLocationMode
+            : null;
+
+    private void QSEncoderLocationSet(string lMode) => qsEncoderLocationMode = lMode;
 
     public string QSEncoderNoticeResolve(string lMode)
     {
@@ -143,15 +191,22 @@ public sealed partial class QSEncoder
 
     public void QSEncoderApply()
     {
-        qsEncoderDraft.LPresetDisplay = string.IsNullOrWhiteSpace(qsEncoderDraft.LPresetDisplay)
-            ? "{OriginalName}_export"
-            : qsEncoderDraft.LPresetDisplay.Trim();
+        string lDisplay = QSEncoderDisplayNormalize(qsEncoderDraft.LPresetDisplay);
+        QSEncoderDraftUpdate(lDisplay);
+        qsEncoderSource.LPresetCopy(qsEncoderDraft);
+    }
+
+    private static string QSEncoderDisplayNormalize(string lDisplay) =>
+        string.IsNullOrWhiteSpace(lDisplay) ? "{OriginalName}_export" : lDisplay.Trim();
+
+    private void QSEncoderDraftUpdate(string lDisplay)
+    {
+        qsEncoderDraft.LPresetDisplay = lDisplay;
         qsEncoderDraft.LPresetVideo.LPresetStream = "Include";
         qsEncoderDraft.LPresetVideo.LPresetEncoder = qsEncoderVideoEncoder;
         qsEncoderDraft.LPresetVideo.LPresetRateControl = qsEncoderVideoRate;
         qsEncoderDraft.LPresetVideo.LPresetSize = QSEncoderSizeFormat();
         qsEncoderDraft.LPresetAudio.LPresetEncoder = qsEncoderAudioEncoder;
         qsEncoderDraft.LPresetAudio.LPresetRateControl = qsEncoderAudioRate;
-        qsEncoderSource.LPresetCopy(qsEncoderDraft);
     }
 }

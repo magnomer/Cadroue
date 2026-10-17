@@ -125,7 +125,11 @@ public sealed class QStrip
 
     public void QStripUpdateSuspend() => qStripSuspendDepth++;
 
-    public void QStripUpdateResume() => qStripSuspendDepth = Math.Max(0, qStripSuspendDepth - 1);
+    public void QStripUpdateResume() => QStripDepthSet(QStripDepthResolve());
+
+    private int QStripDepthResolve() => Math.Max(0, qStripSuspendDepth - 1);
+
+    private void QStripDepthSet(int lDepth) => qStripSuspendDepth = lDepth;
 
     public void QStripAdd(QStripTab lTab)
     {
@@ -159,9 +163,7 @@ public sealed class QStrip
             return;
         }
 
-        IReadOnlyList<LTabsetSlot> lSlots = qStripTabs
-            .Select(lTab => new LTabsetSlot(lTab.QStripTabId, lTab.QStripTabKey, lTab.QStripTabCustom))
-            .ToList();
+        IReadOnlyList<LTabsetSlot> lSlots = QStripSlotsCreate();
         foreach (LTabsetTitlePlan lPlan in LTabset.LTabsetTitleResolve(lSlots))
         {
             if (QStripTabFind(lPlan.LTabsetId) is not { } lTab)
@@ -169,25 +171,32 @@ public sealed class QStrip
                 continue;
             }
 
-            string lTitle = lPlan.LTabsetCustom
-                ? lTab.QStripTabCustom
-                : lPlan.LTabsetNumbered
-                    ? qStripNumberSource(qStripTitleSource(lTab.QStripTabKey), lPlan.LTabsetOrdinal)
-                    : qStripTitleSource(lTab.QStripTabKey);
+            string lTitle = QStripTitleFormat(lTab, lPlan);
             QStripTitleSet(lTab, lTitle);
         }
 
         QStripTitleChanged?.Invoke();
     }
 
+    private IReadOnlyList<LTabsetSlot> QStripSlotsCreate() =>
+        qStripTabs
+            .Select(lTab => new LTabsetSlot(lTab.QStripTabId, lTab.QStripTabKey, lTab.QStripTabCustom))
+            .ToList();
+
+    private string QStripTitleFormat(QStripTab lTab, LTabsetTitlePlan lPlan) =>
+        lPlan.LTabsetCustom
+            ? lTab.QStripTabCustom
+            : lPlan.LTabsetNumbered
+                ? qStripNumberSource(qStripTitleSource(lTab.QStripTabKey), lPlan.LTabsetOrdinal)
+                : qStripTitleSource(lTab.QStripTabKey);
+
     public bool QStripNameSet(QStripTab lTab, string? lName)
     {
-        bool lHadCustom = lTab.QStripTabCustom.Length > 0;
-        string lTrimmed = (lName ?? string.Empty).Trim();
-        if (lTrimmed.Length == 0
-            || string.Equals(lTrimmed, qStripTitleSource(lTab.QStripTabKey), StringComparison.Ordinal))
+        bool lHadCustom = QStripCustomCheck(lTab);
+        string lTrimmed = QStripNameNormalize(lName);
+        if (QStripStandardCheck(lTab, lTrimmed))
         {
-            lTab.QStripTabCustom = string.Empty;
+            QStripCustomSet(lTab, string.Empty);
             QStripTitleUpdate();
             if (lHadCustom)
             {
@@ -197,15 +206,28 @@ public sealed class QStrip
             return false;
         }
 
-        var lTaken = qStripTabs
-            .Where(lOther => !ReferenceEquals(lOther, lTab))
-            .Select(lOther => lOther.QStripTabTitle)
-            .ToList();
-        lTab.QStripTabCustom = LTabset.LTabsetNameResolve(lTaken, lTrimmed, qStripNumberSource);
+        List<string> lTaken = QStripTakenRead(lTab);
+        QStripCustomSet(lTab, LTabset.LTabsetNameResolve(lTaken, lTrimmed, qStripNumberSource));
         QStripTitleUpdate();
         LTraceLog.LTraceInfoRecord($"Tab renamed to '{lTab.QStripTabTitle}' ({lTab.QStripTabKey})");
         return true;
     }
+
+    private static bool QStripCustomCheck(QStripTab lTab) => lTab.QStripTabCustom.Length > 0;
+
+    private static string QStripNameNormalize(string? lName) => (lName ?? string.Empty).Trim();
+
+    private bool QStripStandardCheck(QStripTab lTab, string lTrimmed) =>
+        lTrimmed.Length == 0
+        || string.Equals(lTrimmed, qStripTitleSource(lTab.QStripTabKey), StringComparison.Ordinal);
+
+    private List<string> QStripTakenRead(QStripTab lTab) =>
+        qStripTabs
+            .Where(lOther => !ReferenceEquals(lOther, lTab))
+            .Select(lOther => lOther.QStripTabTitle)
+            .ToList();
+
+    private static void QStripCustomSet(QStripTab lTab, string lCustom) => lTab.QStripTabCustom = lCustom;
 
     public void QStripEditSet(QStripTab lTab, bool lEditing)
     {
@@ -233,16 +255,22 @@ public sealed class QStrip
     {
         foreach (QStripTab lItem in qStripTabs)
         {
-            bool lSelected = ReferenceEquals(lItem, lTab);
-            if (lItem.QStripTabSelected != lSelected)
-            {
-                lItem.QStripTabSelected = lSelected;
-                QStripTabRaise(lItem);
-            }
+            QStripChosenSet(lItem, ReferenceEquals(lItem, lTab));
         }
 
         QStripSelectedSet(lTab);
         QStripSeparator.QStripSeparatorUpdate();
+    }
+
+    private void QStripChosenSet(QStripTab lTab, bool lSelected)
+    {
+        if (lTab.QStripTabSelected == lSelected)
+        {
+            return;
+        }
+
+        lTab.QStripTabSelected = lSelected;
+        QStripTabRaise(lTab);
     }
 
     public bool QStripMove(QStripTab lTab, int lTargetIndex)

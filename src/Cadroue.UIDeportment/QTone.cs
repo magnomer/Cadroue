@@ -37,6 +37,11 @@ public sealed class QTone
     public void QToneStepSet(LWorkVideoStep lStep)
     {
         LWorkVideoStep lNormal = QToneNormalize(lStep.LWorkStepKind, lStep.LWorkStepActive, lStep.LWorkStepValue);
+        QToneStepChange(lNormal);
+    }
+
+    private void QToneStepChange(LWorkVideoStep lNormal)
+    {
         if (QToneStepRead(lNormal.LWorkStepKind) == lNormal)
         {
             return;

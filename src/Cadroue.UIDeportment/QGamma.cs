@@ -49,21 +49,16 @@ public sealed class QGamma
         qGammaActive = QContract.QContractFind<CheckBox>(QGammaBody, QGammaActivePart);
         qGammaStack = QContract.QContractFind<StackPanel>(QGammaBody, QGammaStackPart);
 
-        qGammaActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
-        qGammaActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyGamma");
-        QGammaPersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
-        QGammaPersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistGamma");
+        QGammaSwitchBuild();
         QTool.QToolSwitchAttach(qGammaActive, qGammaGate.CGammaActiveSet);
         QTool.QToolSwitchAttach(QGammaPersistent, qGammaGate.CGammaPersistentSet);
         qGammaSlots.ForEach(QGammaFieldBuild);
 
-        Button lDefault = QContract.QContractFind<Button>(QGammaBody, QGammaDefaultPart);
-        lDefault.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaReset");
-        lDefault.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaResetTooltip");
-        lDefault.Click += (_, _) => qGammaGate.CGammaReset();
+        Button lDefault = QGammaDefaultBuild();
+        QGammaDefaultAttach(lDefault);
         QButton.QButtonAttach(lDefault, QButtonLook.QButtonLookPanel);
 
-        qGammaGate.CGammaChanged += QGammaUpdate;
+        QGammaGateAttach();
         QGammaUpdate();
     }
 
@@ -71,23 +66,45 @@ public sealed class QGamma
 
     public CheckBox QGammaPersistent { get; }
 
+    private void QGammaSwitchBuild()
+    {
+        qGammaActive.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply");
+        qGammaActive.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyGamma");
+        QGammaPersistent.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent");
+        QGammaPersistent.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistGamma");
+    }
+
+    private Button QGammaDefaultBuild()
+    {
+        Button lDefault = QContract.QContractFind<Button>(QGammaBody, QGammaDefaultPart);
+        lDefault.Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaReset");
+        lDefault.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.GammaResetTooltip");
+        return lDefault;
+    }
+
+    private void QGammaDefaultAttach(Button lDefault) => lDefault.Click += (_, _) => qGammaGate.CGammaReset();
+
+    private void QGammaGateAttach() => qGammaGate.CGammaChanged += QGammaUpdate;
+
     private void QGammaFieldBuild(int lSlot)
     {
-        double lLeast = qGammaGate.CGammaLeasts[lSlot];
-        qGammaFields[lSlot] = QField.QFieldBuild(
-            QLocalizationCatalog.QLocalizationTextRead(qGammaLabelKeys[lSlot]),
-            qGammaUnits[lSlot],
-            lLeast,
-            QGammaMost,
-            QGammaOrigin);
+        QGammaFieldCreate(lSlot);
         QField.QFieldAttach(
             qGammaFields[lSlot],
-            lLeast,
+            qGammaGate.CGammaLeasts[lSlot],
             QGammaMost,
             () => qGammaGate.CGammaValues[lSlot],
             lNumber => qGammaGate.CGammaValueSet(lSlot, lNumber));
         qGammaStack.Children.Insert(lSlot, qGammaFields[lSlot]);
     }
+
+    private void QGammaFieldCreate(int lSlot) =>
+        qGammaFields[lSlot] = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead(qGammaLabelKeys[lSlot]),
+            qGammaUnits[lSlot],
+            qGammaGate.CGammaLeasts[lSlot],
+            QGammaMost,
+            QGammaOrigin);
 
     private void QGammaFieldUpdate(int lSlot) =>
         QField.QFieldUpdate(qGammaFields[lSlot], qGammaGate.CGammaValues[lSlot], QGammaPattern);

@@ -82,9 +82,12 @@ public static class QIcon
     {
         string qIconResolvedPath = QIconPathResolve(qIconPath, qIconWidth);
         Uri qIconUri = QIconUriCreate(qIconResolvedPath);
-        string qIconCacheKey = $"{qIconUri.AbsoluteUri}|{qIconTintBrush}";
+        string qIconCacheKey = QIconKeyFormat(qIconUri, qIconTintBrush);
         return qIconCache.GetOrAdd(qIconCacheKey, _ => QIconCreate(qIconResolvedPath, qIconUri, qIconTintBrush));
     }
+
+    private static string QIconKeyFormat(Uri qIconUri, Brush? qIconTintBrush) =>
+        $"{qIconUri.AbsoluteUri}|{qIconTintBrush}";
 
     private static bool QIconSvgCheck(string qIconPath) => qIconKinds[QIconExtensionRead(qIconPath)];
 
@@ -153,6 +156,16 @@ public static class QIcon
             return qIconBitmap;
         }
 
+        if (QIconBoundsResolve(qIconBitmap) is not { } qIconBounds)
+        {
+            return qIconBitmap;
+        }
+
+        return QIconCropBuild(qIconBitmap, qIconBounds);
+    }
+
+    private static Int32Rect? QIconBoundsResolve(BitmapSource qIconBitmap)
+    {
         int qIconPixelWidth = qIconBitmap.PixelWidth;
         int qIconPixelHeight = qIconBitmap.PixelHeight;
         var qIconPixels = new byte[qIconPixelWidth * qIconPixelHeight * 4];
@@ -182,12 +195,15 @@ public static class QIcon
         if (qIconRight < qIconLeft
             || (qIconRight - qIconLeft + 1) * (qIconBottom - qIconTop + 1) == qIconPixelWidth * qIconPixelHeight)
         {
-            return qIconBitmap;
+            return null;
         }
 
-        var qIconCropped = new CroppedBitmap(
-            qIconBitmap,
-            new Int32Rect(qIconLeft, qIconTop, qIconRight - qIconLeft + 1, qIconBottom - qIconTop + 1));
+        return new Int32Rect(qIconLeft, qIconTop, qIconRight - qIconLeft + 1, qIconBottom - qIconTop + 1);
+    }
+
+    private static BitmapSource QIconCropBuild(BitmapSource qIconBitmap, Int32Rect qIconBounds)
+    {
+        var qIconCropped = new CroppedBitmap(qIconBitmap, qIconBounds);
         qIconCropped.Freeze();
         return qIconCropped;
     }

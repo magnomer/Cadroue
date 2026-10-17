@@ -13,24 +13,34 @@ internal sealed partial class PSEncoder
 
     private void PSAudioChannelRebuild()
     {
-        string pStored = psAudioChannelReadout is null
-            ? lsExportSpecificEdit.LPresetAudio.LPresetChannels
-            : PSAudioChannelRead();
+        string pStored = PSAudioLayoutRead();
         string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
-        IReadOnlyList<string> pLayouts = LInventory.LInventoryLayoutRead(pEncoder);
-        if (pLayouts.Count == 0)
-        {
-            pLayouts = psAudioChannelStandard;
-        }
+        IReadOnlyList<string> pLayouts = PSAudioLayoutsResolve(LInventory.LInventoryLayoutRead(pEncoder));
+        PSAudioLayoutsSet(pLayouts);
+        PSAudioLayoutRebuild(PSAudioCaptionsResolve(pLayouts), PSAudioPositionResolve(pLayouts, pStored));
+    }
 
-        psAudioChannelLayouts = pLayouts;
+    private string PSAudioLayoutRead() => psAudioChannelReadout is null
+        ? lsExportSpecificEdit.LPresetAudio.LPresetChannels
+        : PSAudioChannelRead();
 
+    private static IReadOnlyList<string> PSAudioLayoutsResolve(IReadOnlyList<string> pLayouts) =>
+        pLayouts.Count == 0 ? psAudioChannelStandard : pLayouts;
+
+    private void PSAudioLayoutsSet(IReadOnlyList<string> pLayouts) => psAudioChannelLayouts = pLayouts;
+
+    private static List<string> PSAudioCaptionsResolve(IReadOnlyList<string> pLayouts)
+    {
         var pLabels = new List<string>(pLayouts.Count + 1)
         {
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
         };
         pLabels.AddRange(pLayouts);
+        return pLabels;
+    }
 
+    private static int PSAudioPositionResolve(IReadOnlyList<string> pLayouts, string pStored)
+    {
         int pIndex = 0;
         for (int pAt = 0; pAt < pLayouts.Count; pAt++)
         {
@@ -41,6 +51,11 @@ internal sealed partial class PSEncoder
             }
         }
 
+        return pIndex;
+    }
+
+    private void PSAudioLayoutRebuild(List<string> pLabels, int pIndex)
+    {
         psAudioChannelSlider = new Slider();
         psAudioChannelReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(

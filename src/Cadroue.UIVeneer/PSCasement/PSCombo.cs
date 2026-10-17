@@ -29,6 +29,13 @@ internal static class PSCombo
 
     private static ComboBox PSComboShapeBuild(IEnumerable pItems, object? pSelected, Action<int> pChoice)
     {
+        ComboBox pCombo = PSComboControlBuild(pItems, pSelected);
+        PSComboChoiceAttach(pCombo, pChoice);
+        return pCombo;
+    }
+
+    private static ComboBox PSComboControlBuild(IEnumerable pItems, object? pSelected)
+    {
         var pCombo = new ComboBox
         {
             ItemsSource = pItems,
@@ -38,9 +45,11 @@ internal static class PSCombo
             HorizontalAlignment = HorizontalAlignment.Left
         };
         QDropdown.QDropdownAttach(pCombo);
-        pCombo.SelectionChanged += (_, _) => pChoice(pCombo.SelectedIndex);
         return pCombo;
     }
+
+    private static void PSComboChoiceAttach(ComboBox pCombo, Action<int> pChoice) =>
+        pCombo.SelectionChanged += (_, _) => pChoice(pCombo.SelectedIndex);
 
     private static void PSComboIdleHandle(int pIndex)
     {

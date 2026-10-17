@@ -39,19 +39,12 @@ public sealed class QAudioTab
         QAudioStore = new QAudioTabPlan(this, lUsher, lList);
         qAudioPreset = lPreset;
         qAudioSections = QAudioInspector.QInspectorAudio;
-        QAudioInspector.QInspectorPersistentChanged += QAudioStore.QAudioPersistentSave;
-        qAudioSections.QInspectorAudioChanged += QAudioChangeHandle;
-        QAudioInspector.QInspectorSkip.QSkipActiveChanged += QAudioSkipHandle;
         qAudioViewer = lViewer;
         qAudioList = lList;
         qAudioDocket = lList.QListDocket;
+        QAudioInspectorAttach();
         QAudioProcessing.QProcessingOrderedSet(true);
-        QAudioProcessing.QProcessingOrderChanged += QAudioStore.QAudioStateSave;
-        lViewer.QViewerMediaChanged += QAudioMediaHandle;
-        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
-        lViewer.QViewerOpenNotice += QAudioOpenHandle;
-        lList.QListItemsAdded += QAudioStore.QAudioItemsHandle;
-        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+        QAudioViewerAttach(lViewer, lList);
     }
 
     public event Action? QAudioPresetMissing;
@@ -71,13 +64,35 @@ public sealed class QAudioTab
 
     public void QAudioClose()
     {
+        QAudioDetach();
+        QAudioMonitor.Dispose();
+    }
+
+    private void QAudioInspectorAttach()
+    {
+        QAudioInspector.QInspectorPersistentChanged += QAudioStore.QAudioPersistentSave;
+        qAudioSections.QInspectorAudioChanged += QAudioChangeHandle;
+        QAudioInspector.QInspectorSkip.QSkipActiveChanged += QAudioSkipHandle;
+    }
+
+    private void QAudioViewerAttach(QViewer lViewer, QList lList)
+    {
+        QAudioProcessing.QProcessingOrderChanged += QAudioStore.QAudioStateSave;
+        lViewer.QViewerMediaChanged += QAudioMediaHandle;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        lViewer.QViewerOpenNotice += QAudioOpenHandle;
+        lList.QListItemsAdded += QAudioStore.QAudioItemsHandle;
+        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+    }
+
+    private void QAudioDetach()
+    {
         QAudioInspector.QInspectorPersistentChanged -= QAudioStore.QAudioPersistentSave;
         qAudioSections.QInspectorAudioChanged -= QAudioChangeHandle;
         QAudioInspector.QInspectorSkip.QSkipActiveChanged -= QAudioSkipHandle;
         QAudioProcessing.QProcessingOrderChanged -= QAudioStore.QAudioStateSave;
         qAudioViewer.QViewerMediaChanged -= QAudioMediaHandle;
         qAudioViewer.QViewerOpenNotice -= QAudioOpenHandle;
-        QAudioMonitor.Dispose();
     }
 
     public LSceneTabEntry QAudioLayoutRead(LSceneTabEntry lLayout)
@@ -159,10 +174,7 @@ public sealed class QAudioTab
         QAudioStore.QAudioStateSave();
         LMessenger.LMessengerAudioDescribe(
             LWorkPriority.LWorkPriorityNormal,
-            qAudioDocket.LDocketUnlockedRead()
-                .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(QAudioSourceCreate)
-                .ToArray(),
+            QAudioSourcesRead(lPaths),
             qAudioPreset.LPresetSelectionEncoding,
             lRelayTarget,
             lSourceTab);
@@ -185,11 +197,12 @@ public sealed class QAudioTab
         QAudioViewerDeferred?.Invoke();
     }
 
-    public void QAudioViewerApply()
+    public void QAudioViewerApply() => qAudioViewer.QViewerAudio.QViewerGraphSet(QAudioGraphFormat());
+
+    private string QAudioGraphFormat()
     {
         LWorkAudio lPlan = QAudioStore.QAudioPlanRead();
-        qAudioViewer.QViewerAudio.QViewerGraphSet(
-            lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(QAudioRateRead()));
+        return lPlan.LWorkAudioSkip ? string.Empty : lPlan.LWorkAudioFormat(QAudioRateRead());
     }
 
     private void QAudioMediaHandle(LCargo lCargo)
@@ -198,10 +211,13 @@ public sealed class QAudioTab
         QAudioStore.QAudioPlanRestore(lCargo.LCargoSourcePath, lOwnerFirst);
         QAudioMonitor.QSMonitorWaveform.QSMonitorSourceOpen(
             lCargo.LCargoSourcePath,
-            lCargo.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero,
+            QAudioDurationRead(lCargo),
             QAudioRateRead());
         QAudioMonitor.QSMonitorWaveform.QSMonitorPlanApply(QAudioStore.QAudioPlanRead());
     }
+
+    private static TimeSpan QAudioDurationRead(LCargo lCargo) =>
+        lCargo.LCargoMediaInfo?.LMediaInfoDuration ?? TimeSpan.Zero;
 
     private int QAudioRateRead() => qAudioViewer.QViewerMediaInfo?.LMediaSampleRate ?? 0;
 
@@ -213,8 +229,7 @@ public sealed class QAudioTab
             return false;
         }
 
-        if (qAudioPreset.LPresetSelectionEncoding is { } lEncoding
-            && !lEncoding.LEncodingSupportCheck(LWorkKind.LWorkKindAudio))
+        if (!QAudioEncodingCheck())
         {
             QAudioPresetIncompatible?.Invoke();
             return false;
@@ -222,6 +237,17 @@ public sealed class QAudioTab
 
         return true;
     }
+
+    // A preset with no encoding passes; an encoding passes only when it supports audio work.
+    private bool QAudioEncodingCheck() =>
+        qAudioPreset.LPresetSelectionEncoding is not { } lEncoding
+        || lEncoding.LEncodingSupportCheck(LWorkKind.LWorkKindAudio);
+
+    private LWorkSource[] QAudioSourcesRead(IReadOnlyList<string> lPaths) =>
+        qAudioDocket.LDocketUnlockedRead()
+            .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
+            .Select(QAudioSourceCreate)
+            .ToArray();
 
     private LDocketEntry? QAudioSelectedRead() =>
         qAudioList.QListPathCurrent is { } lPath

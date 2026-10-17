@@ -28,13 +28,19 @@ public sealed class PCrop : Canvas
             [false] = pCrop => pCrop.ReleaseMouseCapture(),
         };
 
-    private readonly Rectangle pCropBox;
-    private readonly System.Windows.Shapes.Path pCropShade;
-    private readonly Rectangle[] pCropHandles;
+    private Rectangle pCropBox = null!;
+    private System.Windows.Shapes.Path pCropShade = null!;
+    private Rectangle[] pCropHandles = null!;
 
     public PCrop(QViewer lViewer)
     {
         QViewer = lViewer;
+        PCropBuild();
+        PCropAttach();
+    }
+
+    private void PCropBuild()
+    {
         Background = new SolidColorBrush(Color.FromArgb(1, 0, 0, 0));
         Focusable = true;
         AllowDrop = true;
@@ -56,7 +62,11 @@ public sealed class PCrop : Canvas
         Children.Add(pCropShade);
         Children.Add(pCropBox);
         pCropHandles = Enumerable.Range(0, QCrop.QCropHandleCount).Select(PCropHandleBuild).ToArray();
+    }
 
+    private void PCropAttach()
+    {
+        Enumerable.Range(0, pCropHandles.Length).ToList().ForEach(PCropGripAttach);
         pCropBox.MouseLeftButtonDown += PCropBodyHandle;
         MouseLeftButtonDown += PCropPressHandle;
         MouseMove += PCropMoveHandle;
@@ -99,24 +109,35 @@ public sealed class PCrop : Canvas
             Cursor = pCropHandleCursors[pIndex],
             Visibility = Visibility.Collapsed
         };
-        pHandle.MouseLeftButtonDown += (_, pEvent) =>
-            pEvent.Handled = QCropDrag.QCropGripHandle(pIndex, pEvent.GetPosition(this).X, pEvent.GetPosition(this).Y);
         Children.Add(pHandle);
         return pHandle;
     }
 
+    private void PCropGripAttach(int pIndex) =>
+        pCropHandles[pIndex].MouseLeftButtonDown += (_, pEvent) =>
+            pEvent.Handled = QCropDrag.QCropGripHandle(pIndex, pEvent.GetPosition(this).X, pEvent.GetPosition(this).Y);
+
     private void PCropApply()
     {
-        QCropBox lBox = QCrop.QCropBoxRead();
+        PCropBoxPlace(QCrop.QCropBoxRead());
+        PCropCursorApply();
+        QCrop.QCropHandlesRead().ToList().ForEach(PCropHandlePlace);
+        PCropShadeApply(QCrop.QCropShadeRead());
+    }
+
+    private void PCropBoxPlace(QCropBox lBox)
+    {
         SetLeft(pCropBox, lBox.QCropBoxX);
         SetTop(pCropBox, lBox.QCropBoxY);
         pCropBox.Width = lBox.QCropBoxWidth;
         pCropBox.Height = lBox.QCropBoxHeight;
         pCropBox.Visibility = PLook.PLookVisible[lBox.QCropBoxShown];
+    }
+
+    private void PCropCursorApply()
+    {
         pCropBox.Cursor = PLook.PLookSizeAll[QCrop.QCropEditable];
         Cursor = PLook.PLookCross[QCrop.QCropCrossShown];
-        QCrop.QCropHandlesRead().ToList().ForEach(PCropHandlePlace);
-        PCropShadeApply(QCrop.QCropShadeRead());
     }
 
     private void PCropHandlePlace(QCropGrip lHandle)
@@ -129,11 +150,22 @@ public sealed class PCrop : Canvas
 
     private void PCropShadeApply(QCropShade lShade)
     {
+        GeometryGroup pShadeGeometry = PCropGeometryBuild(lShade);
+        PCropShadeSet(pShadeGeometry, lShade.QCropShadeShown);
+    }
+
+    private static GeometryGroup PCropGeometryBuild(QCropShade lShade)
+    {
         var pShadeGeometry = new GeometryGroup { FillRule = FillRule.EvenOdd };
         pShadeGeometry.Children.Add(new RectangleGeometry(PCropRectBuild(lShade.QCropShadeVideo)));
         pShadeGeometry.Children.Add(new RectangleGeometry(PCropRectBuild(lShade.QCropShadeBox)));
+        return pShadeGeometry;
+    }
+
+    private void PCropShadeSet(GeometryGroup pShadeGeometry, bool pShown)
+    {
         pCropShade.Data = pShadeGeometry;
-        pCropShade.Visibility = PLook.PLookVisible[lShade.QCropShadeShown];
+        pCropShade.Visibility = PLook.PLookVisible[pShown];
     }
 
     private static Rect PCropRectBuild(LCropbox lCropbox) =>

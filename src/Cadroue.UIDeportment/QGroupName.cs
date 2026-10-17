@@ -97,15 +97,27 @@ public sealed class QGroupName
 
     private bool QGroupNameApply(int lIndex, string lName)
     {
+        if (QGroupNameValidate(lIndex, lName) is not { } lTrimmed)
+        {
+            return false;
+        }
+
+        QGroupEntrySet(lIndex, lTrimmed);
+        return true;
+    }
+
+    private string? QGroupNameValidate(int lIndex, string lName)
+    {
         string lTrimmed = lName.Trim();
         if (!QGroupIndexCheck(lIndex)
             || lTrimmed.Length == 0
             || string.Equals(lTrimmed, qGroup.QGroupRecords[lIndex].QGroupRecordName, StringComparison.Ordinal))
         {
-            return false;
+            return null;
         }
 
-        qGroup.QGroupRecords[lIndex].QGroupRecordName = lTrimmed;
-        return true;
+        return lTrimmed;
     }
+
+    private void QGroupEntrySet(int lIndex, string lName) => qGroup.QGroupRecords[lIndex].QGroupRecordName = lName;
 }

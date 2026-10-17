@@ -46,11 +46,21 @@ public sealed class LCapsule
             return;
         }
 
-        var placements = new Dictionary<string, LPlacement>(LCapsuleRead(root), StringComparer.Ordinal)
+        Dictionary<string, LPlacement> placements = LCapsuleCatalogCreate(LCapsuleRead(root), key, placement);
+        LCapsuleFileSave(root, placements);
+    }
+
+    private static Dictionary<string, LPlacement> LCapsuleCatalogCreate(
+        IReadOnlyDictionary<string, LPlacement> current,
+        string key,
+        LPlacement placement) =>
+        new(current, StringComparer.Ordinal)
         {
             [key] = placement
         };
 
+    private static void LCapsuleFileSave(string? root, Dictionary<string, LPlacement> placements)
+    {
         string path = LCapsulePathRead(root);
         string pending = path + ".tmp";
         try
@@ -83,7 +93,7 @@ public sealed class LCapsule
         string path = LCapsulePathRead(root);
         if (string.IsNullOrWhiteSpace(root) || !File.Exists(path))
         {
-            return new Dictionary<string, LPlacement>(StringComparer.Ordinal);
+            return LCapsuleEmptyCreate();
         }
 
         try
@@ -97,6 +107,8 @@ public sealed class LCapsule
             throw new InvalidDataException(path, exception);
         }
     }
+
+    private static Dictionary<string, LPlacement> LCapsuleEmptyCreate() => new(StringComparer.Ordinal);
 
     private static void LCapsuleQuarantineRun(string path)
     {

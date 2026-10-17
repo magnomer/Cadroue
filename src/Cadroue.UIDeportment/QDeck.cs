@@ -37,8 +37,18 @@ public sealed class QDeck
 
     public void QDeckAttach(UserControl lSurface)
     {
-        qDeckSurface = lSurface;
-        QDeckNotice.Text = qDeckText("Deck.Empty.Notice");
+        QDeckSurfaceSet(lSurface);
+        QDeckNoticeSet();
+        QDeckHandlersAttach();
+        QDeckNoticeApply();
+    }
+
+    private void QDeckSurfaceSet(UserControl lSurface) => qDeckSurface = lSurface;
+
+    private void QDeckNoticeSet() => QDeckNotice.Text = qDeckText("Deck.Empty.Notice");
+
+    private void QDeckHandlersAttach()
+    {
         qDeckSurface.Unloaded += QDeckUnloadHandle;
         qStrip.QStripTabChanged += QDeckTabHandle;
         qStrip.QStripTabAdded += QDeckAddHandle;
@@ -46,7 +56,6 @@ public sealed class QDeck
         QDeckHidden += QDeckHideHandle;
         QDeckRevealed += QDeckShowHandle;
         QDeckEmptyChanged += QDeckNoticeApply;
-        QDeckNoticeApply();
     }
 
     public void QDeckBuilderAdd(string lKey, QDeckBuilder lBuilder) =>
@@ -86,7 +95,7 @@ public sealed class QDeck
             QDeckHidden?.Invoke(lPrevious);
         }
 
-        qDeckShown = lTab;
+        QDeckShownSet(lTab);
         if (lTab is not null)
         {
             QDeckRevealed?.Invoke(lTab);
@@ -94,6 +103,8 @@ public sealed class QDeck
 
         QDeckEmptyChanged?.Invoke();
     }
+
+    private void QDeckShownSet(QStripTab? lTab) => qDeckShown = lTab;
 
     private void QDeckUnloadHandle(object sender, RoutedEventArgs e)
     {
@@ -109,9 +120,12 @@ public sealed class QDeck
     private void QDeckAddHandle(QStripTab lStripTab)
     {
         FrameworkElement lWorkspace = lStripTab.QStripTabWorkspace.QWorkspaceView!;
-        lWorkspace.Visibility = Visibility.Collapsed;
+        QDeckWorkspaceHide(lWorkspace);
         QDeckGrid.Children.Add(lWorkspace);
     }
+
+    private static void QDeckWorkspaceHide(FrameworkElement lWorkspace) =>
+        lWorkspace.Visibility = Visibility.Collapsed;
 
     private void QDeckCloseHandle(QStripTab lStripTab)
     {
@@ -129,6 +143,7 @@ public sealed class QDeck
     private void QDeckShowHandle(QStripTab lStripTab) =>
         lStripTab.QStripTabWorkspace.QWorkspaceView?.SetValue(UIElement.VisibilityProperty, Visibility.Visible);
 
-    private void QDeckNoticeApply() =>
-        QDeckNotice.Visibility = QDeckEmpty ? Visibility.Visible : Visibility.Collapsed;
+    private void QDeckNoticeApply() => QDeckNotice.Visibility = QDeckNoticeResolve();
+
+    private Visibility QDeckNoticeResolve() => QDeckEmpty ? Visibility.Visible : Visibility.Collapsed;
 }

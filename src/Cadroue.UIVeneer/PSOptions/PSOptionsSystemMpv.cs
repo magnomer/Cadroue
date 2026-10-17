@@ -16,53 +16,48 @@ internal sealed partial class PSOptions
             QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
             new Thickness(0));
         ProgressBar pProgress = PSSystemProgressBuild();
-        var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
-        pDownload.Click += async (_, _) =>
-        {
-            pDownload.IsEnabled = false;
-            pProgress.Value = 0;
-            pProgress.Visibility = Visibility.Visible;
-            LMpvInstallResult pResult;
-            try
-            {
-                pResult = await LMpv.LMpvInstallStart(pFeed);
-            }
-            finally
-            {
-                pProgress.Visibility = Visibility.Collapsed;
-            }
+        var pFeed = new Progress<double>(pValue => PSSystemProgressApply(pProgress, pValue));
+        PSSystemMpvAttach(pDownload, pBrowse, pProgress, pFeed);
+        return PSSystemLineBuild(pDownload, pBrowse, pProgress);
+    }
 
-            pDownload.Content = PSSystemMpvFormat();
-            pDownload.IsEnabled = true;
-            await lsOptions.QSOptionsMpvUpdate();
-            string pMpvTitle = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv");
-            if (pResult.LMpvInstallSuccess)
-            {
-                PSAnnouncement.PSAnnouncementShow(
-                    this,
-                    pMpvTitle,
-                    QLocalizationCatalog.QLocalizationTextRead("Mpv.Local.Install.Completed"));
-            }
-            else
-            {
-                PSWarning.PSWarningShow(
-                    this,
-                    pMpvTitle,
-                    QLocalizationCatalog.QLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
-            }
-        };
+    private void PSSystemMpvAttach(Button pDownload, Button pBrowse, ProgressBar pProgress, Progress<double> pFeed)
+    {
+        pDownload.Click += async (_, _) => await PSSystemMpvRun(pDownload, pProgress, pFeed);
         pBrowse.Click += (_, _) => PSSystemFolderOpen(LMpv.LMpvRootRead(), string.Empty);
+    }
 
-        var pButtons = new StackPanel
+    private async Task PSSystemMpvRun(Button pDownload, ProgressBar pProgress, Progress<double> pFeed)
+    {
+        PSSystemBusyApply(pDownload, pProgress);
+        LMpvInstallResult pResult;
+        try
         {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        pButtons.Children.Add(pDownload);
-        pButtons.Children.Add(pBrowse);
-        pButtons.Children.Add(pProgress);
+            pResult = await LMpv.LMpvInstallStart(pFeed);
+        }
+        finally
+        {
+            PSSystemProgressHide(pProgress);
+        }
 
-        return PSField.PSFieldBuild(string.Empty, pButtons);
+        PSSystemInstallShow(pDownload, PSSystemMpvFormat());
+        PSSystemIdleApply(pDownload);
+        await lsOptions.QSOptionsMpvUpdate();
+        string pMpvTitle = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv");
+        if (pResult.LMpvInstallSuccess)
+        {
+            PSAnnouncement.PSAnnouncementShow(
+                this,
+                pMpvTitle,
+                QLocalizationCatalog.QLocalizationTextRead("Mpv.Local.Install.Completed"));
+        }
+        else
+        {
+            PSWarning.PSWarningShow(
+                this,
+                pMpvTitle,
+                QLocalizationCatalog.QLocalizationFormat("Mpv.Local.Install.Failed", pResult.LMpvInstallMessage));
+        }
     }
 
     private static string PSSystemMpvFormat() =>

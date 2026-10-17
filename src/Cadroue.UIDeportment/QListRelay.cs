@@ -14,18 +14,8 @@ public static class QListRelay
 
     public static void QListRelayAttach(QStrip lStrip, CUsher lUsher)
     {
-        qListStrip = lStrip;
-        qListUsher = lUsher;
-        LCartographer.LCartographerLockSeam = QListSourceClaim;
-        LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
-            QListDeliveredAdd,
-            QListDeliveredCommit,
-            QListDeliveredRemove,
-            QAction.QActionAccept,
-            QListBatchRemove,
-            QListSourceRelease,
-            LMedia.LMediaCheck);
-        LMessenger.LMessengerDeliverSource = QListDeliverRun;
+        QListRelaySet(lStrip, lUsher);
+        QListSeamAttach();
     }
 
     public static bool QListDeliveredAdd(Guid lTargetTab, string lPath, Guid lBatch) =>
@@ -36,23 +26,12 @@ public static class QListRelay
 
     public static void QListDeliveredRemove(LWorkItem lWorkItem, bool lForce)
     {
-        if ((!lForce && !LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty)
-            || qListStrip?.QStripTabFind(lWorkItem) is not { } lSource)
+        if (QListSourceFind(lWorkItem, lForce) is not { } lSource)
         {
             return;
         }
 
-        var lDropPaths = new List<string> { lWorkItem.LWorkSourcePath };
-        lDropPaths.AddRange(lWorkItem.LWorkMergeSources);
-        if (lSource.QStripTabDocket is { } lOwner)
-        {
-            int lDrained = lOwner.LDocketPathsRemove(lDropPaths);
-            if (lDrained > 0)
-            {
-                LTraceLog.LTraceInfoRecord(
-                    $"Relay removed {lDrained} source file(s) from tab '{lSource.QStripTabTitle}' after delivery");
-            }
-        }
+        QListSourceRemove(lSource, QListDropRead(lWorkItem));
     }
 
     public static void QListBatchRemove(IReadOnlyList<Guid> lRemovedBatches)
@@ -70,47 +49,115 @@ public static class QListRelay
                 continue;
             }
 
-            LDocketEntry[] lDeparted = lOwner.LDocketItemsRead()
-                .Where(lItem => lRemovedSet.Contains(lItem.LDocketEntryBatch))
-                .ToArray();
-            (string, Guid)[] lOrphans = lDeparted
-                .Where(lItem => lItem.LDocketEntryLocked && !lItem.LDocketEntryDelivered)
-                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch))
-                .ToArray();
-            string[] lRemovedPaths = lDeparted
-                .Where(lItem => lItem.LDocketEntryDelivered)
-                .Select(lItem => lItem.LDocketEntryPath)
-                .ToArray();
-
-            int lReleased = lOrphans.Length == 0 ? 0 : lOwner.LDocketRelease(lOrphans);
-            if (lReleased > 0)
-            {
-                LTraceLog.LTraceInfoRecord(
-                    $"Relay unlocked {lReleased} source file(s) in tab '{lTab.QStripTabTitle}' "
-                    + "after their work left the worklist unfinished");
-            }
-
-            if (lRemovedPaths.Length == 0)
-            {
-                continue;
-            }
-
-            lOwner.LDocketPathsRemove(lRemovedPaths);
-            LTraceLog.LTraceInfoRecord(
-                $"Relay removed {lRemovedPaths.Length} delivered file(s) from tab '{lTab.QStripTabTitle}' "
-                + "after their batch left the worklist");
+            ((string, Guid)[] lOrphans, string[] lRemovedPaths) = QListDepartedRead(lOwner, lRemovedSet);
+            QListDepartedRemove(lTab, lOwner, lOrphans, lRemovedPaths);
         }
     }
 
     public static void QListSourceRelease(
         IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> lUnlocks)
     {
-        if (lUnlocks.Count == 0 || qListStrip is not { } lStrip)
+        (IReadOnlyList<(QStripTab, (string, Guid)[])> lOwned, List<(string, Guid)> lOrphans, QStrip? lStrip) =
+            QListReleasesResolve(lUnlocks);
+        QListReleasesApply(lOwned, lOrphans, lStrip);
+    }
+
+    public static bool QListSourceClaim(IReadOnlyList<LWorkItem> lAccepted) =>
+        QListClaimsApply(QListClaimsRead(lAccepted));
+
+    private static void QListRelaySet(QStrip lStrip, CUsher lUsher)
+    {
+        qListStrip = lStrip;
+        qListUsher = lUsher;
+    }
+
+    private static void QListSeamAttach()
+    {
+        LCartographer.LCartographerLockSeam = QListSourceClaim;
+        LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
+            QListDeliveredAdd,
+            QListDeliveredCommit,
+            QListDeliveredRemove,
+            QAction.QActionAccept,
+            QListBatchRemove,
+            QListSourceRelease,
+            LMedia.LMediaCheck);
+        LMessenger.LMessengerDeliverSource = QListDeliverRun;
+    }
+
+    private static QStripTab? QListSourceFind(LWorkItem lWorkItem, bool lForce) =>
+        !lForce && !LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty
+            ? null
+            : qListStrip?.QStripTabFind(lWorkItem);
+
+    private static List<string> QListDropRead(LWorkItem lWorkItem)
+    {
+        var lDropPaths = new List<string> { lWorkItem.LWorkSourcePath };
+        lDropPaths.AddRange(lWorkItem.LWorkMergeSources);
+        return lDropPaths;
+    }
+
+    private static void QListSourceRemove(QStripTab lSource, List<string> lDropPaths)
+    {
+        if (lSource.QStripTabDocket is { } lOwner)
+        {
+            int lDrained = lOwner.LDocketPathsRemove(lDropPaths);
+            if (lDrained > 0)
+            {
+                LTraceLog.LTraceInfoRecord(
+                    $"Relay removed {lDrained} source file(s) from tab '{lSource.QStripTabTitle}' after delivery");
+            }
+        }
+    }
+
+    private static ((string, Guid)[], string[]) QListDepartedRead(LDocket lOwner, HashSet<Guid> lRemovedSet)
+    {
+        LDocketEntry[] lDeparted = lOwner.LDocketItemsRead()
+            .Where(lItem => lRemovedSet.Contains(lItem.LDocketEntryBatch))
+            .ToArray();
+        (string, Guid)[] lOrphans = lDeparted
+            .Where(lItem => lItem.LDocketEntryLocked && !lItem.LDocketEntryDelivered)
+            .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch))
+            .ToArray();
+        string[] lRemovedPaths = lDeparted
+            .Where(lItem => lItem.LDocketEntryDelivered)
+            .Select(lItem => lItem.LDocketEntryPath)
+            .ToArray();
+        return (lOrphans, lRemovedPaths);
+    }
+
+    private static void QListDepartedRemove(
+        QStripTab lTab, LDocket lOwner, (string, Guid)[] lOrphans, string[] lRemovedPaths)
+    {
+        int lReleased = lOrphans.Length == 0 ? 0 : lOwner.LDocketRelease(lOrphans);
+        if (lReleased > 0)
+        {
+            LTraceLog.LTraceInfoRecord(
+                $"Relay unlocked {lReleased} source file(s) in tab '{lTab.QStripTabTitle}' "
+                + "after their work left the worklist unfinished");
+        }
+
+        if (lRemovedPaths.Length == 0)
         {
             return;
         }
 
+        lOwner.LDocketPathsRemove(lRemovedPaths);
+        LTraceLog.LTraceInfoRecord(
+            $"Relay removed {lRemovedPaths.Length} delivered file(s) from tab '{lTab.QStripTabTitle}' "
+            + "after their batch left the worklist");
+    }
+
+    private static (IReadOnlyList<(QStripTab, (string, Guid)[])>, List<(string, Guid)>, QStrip?)
+        QListReleasesResolve(IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> lUnlocks)
+    {
+        var lOwned = new List<(QStripTab, (string, Guid)[])>();
         var lOrphans = new List<(string, Guid)>();
+        if (lUnlocks.Count == 0 || qListStrip is not { } lStrip)
+        {
+            return (lOwned, lOrphans, null);
+        }
+
         foreach (IGrouping<QStripTab?, (string PListPath, Guid PListBatch, LWorkItem PListOwner)> lGroup
             in lUnlocks.GroupBy(lUnlock => lStrip.QStripTabFind(lUnlock.PListOwner)))
         {
@@ -120,14 +167,27 @@ public static class QListRelay
                 .ToArray();
             if (lGroup.Key is { } lTab)
             {
-                lTab.QStripTabDocket?.LDocketRelease(lReleases);
+                lOwned.Add((lTab, lReleases));
                 continue;
             }
 
             lOrphans.AddRange(lReleases);
         }
 
-        if (lOrphans.Count == 0)
+        return (lOwned, lOrphans, lStrip);
+    }
+
+    private static void QListReleasesApply(
+        IReadOnlyList<(QStripTab, (string, Guid)[])> lOwned,
+        List<(string, Guid)> lOrphans,
+        QStrip? lStrip)
+    {
+        foreach ((QStripTab lTab, (string, Guid)[] lReleases) in lOwned)
+        {
+            lTab.QStripTabDocket?.LDocketRelease(lReleases);
+        }
+
+        if (lOrphans.Count == 0 || lStrip is null)
         {
             return;
         }
@@ -138,12 +198,12 @@ public static class QListRelay
         }
     }
 
-    public static bool QListSourceClaim(IReadOnlyList<LWorkItem> lAccepted)
+    private static IReadOnlyList<(LDocket, (string, Guid)[])> QListClaimsRead(IReadOnlyList<LWorkItem> lAccepted)
     {
-        bool lClaimed = true;
+        var lClaims = new List<(LDocket, (string, Guid)[])>();
         if (qListStrip is not { } lStrip)
         {
-            return lClaimed;
+            return lClaims;
         }
 
         foreach (IGrouping<QStripTab?, LWorkItem> lGroup in lAccepted.GroupBy(lStrip.QStripTabFind))
@@ -153,20 +213,36 @@ public static class QListRelay
                 continue;
             }
 
-            var lLocks = new List<(string, Guid)>();
-            foreach (LWorkItem lItem in lGroup)
-            {
-                lLocks.Add((lItem.LWorkSourcePath, lItem.LWorkBatchId));
-                foreach (string lMergeSource in lItem.LWorkMergeSources)
-                {
-                    lLocks.Add((lMergeSource, lItem.LWorkBatchId));
-                }
-            }
+            lClaims.Add((lOwner, QListLocksRead(lGroup)));
+        }
 
-            lClaimed &= lOwner.LDocketClaim(lLocks.Distinct().ToArray());
+        return lClaims;
+    }
+
+    private static bool QListClaimsApply(IReadOnlyList<(LDocket, (string, Guid)[])> lClaims)
+    {
+        bool lClaimed = true;
+        foreach ((LDocket lOwner, (string, Guid)[] lLocks) in lClaims)
+        {
+            lClaimed &= lOwner.LDocketClaim(lLocks);
         }
 
         return lClaimed;
+    }
+
+    private static (string, Guid)[] QListLocksRead(IEnumerable<LWorkItem> lGroup)
+    {
+        var lLocks = new List<(string, Guid)>();
+        foreach (LWorkItem lItem in lGroup)
+        {
+            lLocks.Add((lItem.LWorkSourcePath, lItem.LWorkBatchId));
+            foreach (string lMergeSource in lItem.LWorkMergeSources)
+            {
+                lLocks.Add((lMergeSource, lItem.LWorkBatchId));
+            }
+        }
+
+        return lLocks.Distinct().ToArray();
     }
 
     private static bool QListDeliverRun(Guid lTarget, string lPath, Guid lCohort)
@@ -184,8 +260,7 @@ public static class QListRelay
     {
         if (qListStrip is not { } lStrip || qListUsher is not { } lUsher)
         {
-            string lPathName = lPath[(lPath.LastIndexOfAny(['\\', '/', ':']) + 1)..];
-            LTraceLog.LTraceWarningRecord($"Relay skipped '{lPathName}': the destination tab is gone");
+            LTraceLog.LTraceWarningRecord($"Relay skipped '{QListLeafRead(lPath)}': the destination tab is gone");
             return false;
         }
 
@@ -216,4 +291,6 @@ public static class QListRelay
             : $"Relay added '{lName}' to tab '{lTarget.QStripTabTitle}'");
         return true;
     }
+
+    private static string QListLeafRead(string lPath) => lPath[(lPath.LastIndexOfAny(['\\', '/', ':']) + 1)..];
 }

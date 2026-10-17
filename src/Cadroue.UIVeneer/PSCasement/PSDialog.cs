@@ -24,22 +24,33 @@ internal static class PSDialog
 
     private static void PSDialogApply(Window pWindow, Brush pBackground, int pCaption)
     {
+        PSDialogFrameApply(pWindow, pBackground);
+        PSDialogDwmAttach(pWindow, pCaption);
+    }
+
+    private static void PSDialogFrameApply(Window pWindow, Brush pBackground)
+    {
         pWindow.WindowStyle = WindowStyle.None;
         pWindow.Background = pBackground;
         pWindow.FontSize = PSField.PSFieldFontSize;
         pWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
         pWindow.UseLayoutRounding = true;
         pWindow.SnapsToDevicePixels = true;
-        pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, pCaption);
     }
+
+    private static void PSDialogDwmAttach(Window pWindow, int pCaption) =>
+        pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, pCaption);
 
     private const string PSDialogPlacementKey = "PSDialog";
 
     internal static void PSDialogLocationAttach(Window pWindow)
     {
         PSDialogLocationRestore(pWindow);
-        pWindow.Closed += (_, _) => PSDialogLocationSave(pWindow);
+        PSDialogClosedAttach(pWindow);
     }
+
+    private static void PSDialogClosedAttach(Window pWindow) =>
+        pWindow.Closed += (_, _) => PSDialogLocationSave(pWindow);
 
     private static void PSDialogLocationRestore(Window pWindow)
     {
@@ -49,6 +60,11 @@ internal static class PSDialog
             return;
         }
 
+        PSDialogLocationPlace(pWindow, pLeft, pTop);
+    }
+
+    private static void PSDialogLocationPlace(Window pWindow, double pLeft, double pTop)
+    {
         pWindow.WindowStartupLocation = WindowStartupLocation.Manual;
         pWindow.Left = pLeft;
         pWindow.Top = pTop;
@@ -56,12 +72,15 @@ internal static class PSDialog
 
     private static void PSDialogLocationSave(Window pWindow)
     {
-        Rect pBounds = pWindow.WindowState == WindowState.Normal
-            ? new Rect(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight)
-            : pWindow.RestoreBounds;
+        Rect pBounds = PSDialogBoundsResolve(pWindow);
         Cadroue.UIDeportment.QPlacement.QPlacementSave(
             PSDialogPlacementKey, pBounds.Left, pBounds.Top, pBounds.Width, pBounds.Height);
     }
+
+    private static Rect PSDialogBoundsResolve(Window pWindow) =>
+        pWindow.WindowState == WindowState.Normal
+            ? new Rect(pWindow.Left, pWindow.Top, pWindow.ActualWidth, pWindow.ActualHeight)
+            : pWindow.RestoreBounds;
 
     internal static Grid PSDialogBuild(Window pWindow, string? pTitle, FrameworkElement pBody) =>
         PSDialogBuild(pWindow, pTitle, pBody, PSHeadline.PSHeadlineBandBlue);

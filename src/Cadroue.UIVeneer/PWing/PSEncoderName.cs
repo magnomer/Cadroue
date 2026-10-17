@@ -81,76 +81,47 @@ internal sealed partial class PSEncoder
 
     private UIElement PSNameTokenBuild(string pLabel, string pToken)
     {
-        var pText = new TextBlock
-        {
-            Text = pLabel,
-            Foreground = PSEncoderTextBrush,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
-        var pBorder = new Border
-        {
-            MinHeight = PSField.PSFieldChipHeight,
-            BorderBrush = PLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = Brushes.White,
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(10, 0, 10, 0),
-            Margin = new Thickness(0, 0, 6, 6),
-            Cursor = Cursors.Hand,
-            Child = pText
-        };
-
-        Point? pDragStart = null;
-        Point psNameGrabOffset = default;
-        bool pDragStarted = false;
-        pBorder.PreviewMouseLeftButtonDown += (_, e) =>
-        {
-            pDragStart = e.GetPosition(null);
-            psNameGrabOffset = e.GetPosition(pBorder);
-            pDragStarted = false;
-            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
-        };
-        pBorder.MouseEnter += (_, _) =>
-        {
-            if (!pDragStarted)
-            {
-                pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
-            }
-        };
-        pBorder.MouseLeave += (_, _) => pBorder.Background = Brushes.White;
-        pBorder.MouseLeftButtonUp += (_, _) =>
-        {
-            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
-            if (pDragStarted)
-            {
-                pDragStarted = false;
-                return;
-            }
-
-            PSNameTokenInsert(pToken);
-        };
-        pBorder.PreviewMouseMove += (_, e) =>
-        {
-            if (e.LeftButton != MouseButtonState.Pressed || pDragStart is null || pDragStarted)
-            {
-                return;
-            }
-
-            Point pCurrent = e.GetPosition(null);
-            if (Math.Abs(pCurrent.X - pDragStart.Value.X) < 4 && Math.Abs(pCurrent.Y - pDragStart.Value.Y) < 4)
-            {
-                return;
-            }
-
-            pDragStarted = true;
-            PSNameDragRun(pBorder, pToken, psNameGrabOffset);
-            pBorder.Background = Brushes.White;
-        };
+        Border pBorder = PSNameChipBuild(PSNameLabelBuild(pLabel), 10);
+        PSNameChipAttach(pBorder, () => pToken, null);
         return pBorder;
     }
 
     private UIElement PSNameOperatorBuild(string pWord, string pKind)
+    {
+        TextBox psNumberBox = PSNameCountBuild();
+        PSNameCountAttach(psNumberBox);
+        Border pBorder = PSNameChipBuild(PSNameContentBuild(pWord, psNumberBox), 6);
+        PSNameChipAttach(pBorder, () => PSNameOperatorFormat(pKind, psNumberBox.Text), psNumberBox);
+        return pBorder;
+    }
+
+    private static TextBlock PSNameLabelBuild(string pLabel) => new()
+    {
+        Text = pLabel,
+        Foreground = PSEncoderTextBrush,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static TextBox PSNameCountBuild() => new()
+    {
+        Text = "1",
+        Width = 26,
+        MaxLength = 3,
+        TextAlignment = TextAlignment.Center,
+        VerticalContentAlignment = VerticalAlignment.Center,
+        BorderThickness = new Thickness(0),
+        Background = Brushes.Transparent,
+        Margin = new Thickness(4, 0, 0, 0)
+    };
+
+    private static void PSNameCountAttach(TextBox psNumberBox)
+    {
+        psNumberBox.PreviewTextInput += (_, e) => e.Handled = !PSNameDigitsCheck(e.Text);
+        psNumberBox.LostFocus += (_, _) => psNumberBox.Text = PSNameCountRead(psNumberBox.Text).ToString();
+    }
+
+    private static StackPanel PSNameContentBuild(string pWord, TextBox psNumberBox)
     {
         var pWordText = new TextBlock
         {
@@ -158,95 +129,137 @@ internal sealed partial class PSEncoder
             Foreground = PSEncoderTextBrush,
             VerticalAlignment = VerticalAlignment.Center
         };
-        var psNumberBox = new TextBox
-        {
-            Text = "1",
-            Width = 26,
-            MaxLength = 3,
-            TextAlignment = TextAlignment.Center,
-            VerticalContentAlignment = VerticalAlignment.Center,
-            BorderThickness = new Thickness(0),
-            Background = Brushes.Transparent,
-            Margin = new Thickness(4, 0, 0, 0)
-        };
-        psNumberBox.PreviewTextInput += (_, e) => e.Handled = !PSNameDigitsCheck(e.Text);
-        psNumberBox.LostFocus += (_, _) => psNumberBox.Text = PSNameCountRead(psNumberBox.Text).ToString();
-
         var pContent = new StackPanel { Orientation = Orientation.Horizontal };
         pContent.Children.Add(pWordText);
         pContent.Children.Add(psNumberBox);
+        return pContent;
+    }
 
-        var pBorder = new Border
+    private static Border PSNameChipBuild(UIElement pChild, double pPaddingRight) => new()
+    {
+        MinHeight = PSField.PSFieldChipHeight,
+        BorderBrush = PLineBrush,
+        BorderThickness = new Thickness(1),
+        Background = Brushes.White,
+        CornerRadius = new CornerRadius(8),
+        Padding = new Thickness(10, 0, pPaddingRight, 0),
+        Margin = new Thickness(0, 0, 6, 6),
+        Cursor = Cursors.Hand,
+        Child = pChild
+    };
+
+    private static string PSNameOperatorFormat(string pKind, string pCount) =>
+        $"{{{pKind}:{PSNameCountRead(pCount)}}}";
+
+    private void PSNameChipAttach(Border pBorder, Func<string> pToken, UIElement? pCountBox)
+    {
+        var pGrip = new PSNameGrip();
+        pBorder.PreviewMouseLeftButtonDown += (_, e) => PSNamePressHandle(pBorder, pGrip, pCountBox, e);
+        pBorder.MouseEnter += (_, _) => PSNameEnterHandle(pBorder, pGrip);
+        pBorder.MouseLeave += (_, _) => PSNameRestApply(pBorder);
+        pBorder.MouseLeftButtonUp += (_, _) => PSNameReleaseHandle(pBorder, pGrip, pToken, pCountBox);
+        pBorder.PreviewMouseMove += (_, e) => PSNameMoveHandle(pBorder, pGrip, pToken, e);
+    }
+
+    private static void PSNamePressHandle(Border pBorder, PSNameGrip pGrip, UIElement? pCountBox, MouseEventArgs e)
+    {
+        if (!PSNameGripSet(pBorder, pGrip, pCountBox, e))
         {
-            MinHeight = PSField.PSFieldChipHeight,
-            BorderBrush = PLineBrush,
-            BorderThickness = new Thickness(1),
-            Background = Brushes.White,
-            CornerRadius = new CornerRadius(8),
-            Padding = new Thickness(10, 0, 6, 0),
-            Margin = new Thickness(0, 0, 6, 6),
-            Cursor = Cursors.Hand,
-            Child = pContent
-        };
+            return;
+        }
 
-        string PSNameOperatorFormat() => $"{{{pKind}:{PSNameCountRead(psNumberBox.Text)}}}";
+        PSNamePressedApply(pBorder);
+    }
 
-        Point? pDragStart = null;
-        Point psOperatorGrabOffset = default;
-        bool pDragStarted = false;
-        pBorder.PreviewMouseLeftButtonDown += (_, e) =>
+    private static void PSNameEnterHandle(Border pBorder, PSNameGrip pGrip)
+    {
+        if (pGrip.PSNameGripActive)
         {
-            if (psNumberBox.IsMouseOver)
-            {
-                pDragStart = null;
-                return;
-            }
+            return;
+        }
 
-            pDragStart = e.GetPosition(null);
-            psOperatorGrabOffset = e.GetPosition(pBorder);
-            pDragStarted = false;
-            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
-        };
-        pBorder.MouseEnter += (_, _) =>
+        PSNameHoverApply(pBorder);
+    }
+
+    private void PSNameReleaseHandle(Border pBorder, PSNameGrip pGrip, Func<string> pToken, UIElement? pCountBox)
+    {
+        PSNameHoverApply(pBorder);
+        if (!PSNameGripRelease(pGrip, pCountBox))
         {
-            if (!pDragStarted)
-            {
-                pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
-            }
-        };
-        pBorder.MouseLeave += (_, _) => pBorder.Background = Brushes.White;
-        pBorder.MouseLeftButtonUp += (_, _) =>
+            return;
+        }
+
+        PSNameTokenInsert(pToken());
+    }
+
+    private void PSNameMoveHandle(Border pBorder, PSNameGrip pGrip, Func<string> pToken, MouseEventArgs e)
+    {
+        if (!PSNameGripMove(pGrip, e))
         {
-            pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
-            if (pDragStarted)
-            {
-                pDragStarted = false;
-                return;
-            }
+            return;
+        }
 
-            if (!psNumberBox.IsMouseOver)
-            {
-                PSNameTokenInsert(PSNameOperatorFormat());
-            }
-        };
-        pBorder.PreviewMouseMove += (_, e) =>
+        PSNameDragRun(pBorder, pToken(), pGrip.PSNameGripOffset);
+        PSNameRestApply(pBorder);
+    }
+
+    private static bool PSNameGripSet(Border pBorder, PSNameGrip pGrip, UIElement? pCountBox, MouseEventArgs e)
+    {
+        if (pCountBox is { IsMouseOver: true })
         {
-            if (e.LeftButton != MouseButtonState.Pressed || pDragStart is null || pDragStarted)
-            {
-                return;
-            }
+            pGrip.PSNameGripOrigin = null;
+            return false;
+        }
 
-            Point pCurrent = e.GetPosition(null);
-            if (Math.Abs(pCurrent.X - pDragStart.Value.X) < 4 && Math.Abs(pCurrent.Y - pDragStart.Value.Y) < 4)
-            {
-                return;
-            }
+        pGrip.PSNameGripOrigin = e.GetPosition(null);
+        pGrip.PSNameGripOffset = e.GetPosition(pBorder);
+        pGrip.PSNameGripActive = false;
+        return true;
+    }
 
-            pDragStarted = true;
-            PSNameDragRun(pBorder, PSNameOperatorFormat(), psOperatorGrabOffset);
-            pBorder.Background = Brushes.White;
-        };
-        return pBorder;
+    private static bool PSNameGripRelease(PSNameGrip pGrip, UIElement? pCountBox)
+    {
+        if (pGrip.PSNameGripActive)
+        {
+            pGrip.PSNameGripActive = false;
+            return false;
+        }
+
+        return pCountBox is not { IsMouseOver: true };
+    }
+
+    private static bool PSNameGripMove(PSNameGrip pGrip, MouseEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed
+            || pGrip.PSNameGripOrigin is not Point pOrigin
+            || pGrip.PSNameGripActive)
+        {
+            return false;
+        }
+
+        Point pCurrent = e.GetPosition(null);
+        if (Math.Abs(pCurrent.X - pOrigin.X) < 4 && Math.Abs(pCurrent.Y - pOrigin.Y) < 4)
+        {
+            return false;
+        }
+
+        pGrip.PSNameGripActive = true;
+        return true;
+    }
+
+    private static void PSNamePressedApply(Border pBorder) =>
+        pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF0, 0xF4, 0xFA));
+
+    private static void PSNameHoverApply(Border pBorder) =>
+        pBorder.Background = new SolidColorBrush(Color.FromRgb(0xF8, 0xFA, 0xFC));
+
+    private static void PSNameRestApply(Border pBorder) => pBorder.Background = Brushes.White;
+
+    private sealed class PSNameGrip
+    {
+        internal Point? PSNameGripOrigin;
+        internal Point PSNameGripOffset;
+        internal bool PSNameGripActive;
     }
 
     private static bool PSNameDigitsCheck(string pText)

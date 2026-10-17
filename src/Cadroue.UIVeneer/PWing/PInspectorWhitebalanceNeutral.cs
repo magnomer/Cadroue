@@ -106,28 +106,50 @@ public sealed partial class PInspector
 
     private ToggleButton PWhitebalancePickerBuild(LNeutralTarget pTarget, Image pPickerIcon, string pTooltipKey)
     {
-        var pPickerTool = new ToggleButton
-        {
-            Content = pPickerIcon,
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
-            Width = 32,
-            Height = 32,
-            VerticalAlignment = VerticalAlignment.Center,
-            Style = PInspectorToolCreate(typeof(ToggleButton))
-        };
+        ToggleButton pPickerTool = PWhitebalanceToggleBuild(pPickerIcon, pTooltipKey);
+        PWhitebalancePickerAttach(pPickerTool, pTarget);
+        return pPickerTool;
+    }
+
+    private static ToggleButton PWhitebalanceToggleBuild(Image pPickerIcon, string pTooltipKey) => new()
+    {
+        Content = pPickerIcon,
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead(pTooltipKey),
+        Width = 32,
+        Height = 32,
+        VerticalAlignment = VerticalAlignment.Center,
+        Style = PInspectorToolCreate(typeof(ToggleButton))
+    };
+
+    private void PWhitebalancePickerAttach(ToggleButton pPickerTool, LNeutralTarget pTarget)
+    {
         pPickerTool.Checked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, true);
         pPickerTool.Unchecked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, false);
-        return pPickerTool;
     }
 
     private void PWhitebalanceToolUpdate()
     {
+        PWhitebalanceToolApply();
+        PWhitebalanceIconApply();
+        PWhitebalanceStatusApply();
+    }
+
+    private void PWhitebalanceToolApply()
+    {
         pInspectorNeutralTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceGreyArmed];
         pInspectorWhiteTool.IsChecked = PLook.PLookChecked[QWhitebalance.QWhitebalanceWhiteArmed];
+    }
+
+    private void PWhitebalanceIconApply()
+    {
         pInspectorNeutralIcon.Source = QIcon.QIconRead(
             PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceGreyArmed]);
         pInspectorWhiteIcon.Source = QIcon.QIconRead(
             PPickerIcon, PInspectorPickBrush[QWhitebalance.QWhitebalanceWhiteArmed]);
+    }
+
+    private void PWhitebalanceStatusApply()
+    {
         pInspectorNeutralStatus.Text = QWhitebalance.QWhitebalanceGuideRead();
         pInspectorNeutralStatus.Visibility = PLook.PLookVisible[QWhitebalance.QWhitebalanceGuideShown];
     }
@@ -135,11 +157,19 @@ public sealed partial class PInspector
     private void PWhitebalanceReadoutUpdate()
     {
         QWhitebalanceReadout pReadout = QWhitebalance.QWhitebalanceReadoutRead();
-        pInspectorNeutralGroup.Visibility = PLook.PLookVisible[pReadout.QWhitebalanceReadoutSampled];
+        PWhitebalanceGroupApply(pReadout.QWhitebalanceReadoutSampled);
+        PWhitebalanceSwatchApply(pReadout);
+        PWhitebalanceReadoutApply(pReadout.QWhitebalanceReadoutText);
+    }
+
+    private void PWhitebalanceGroupApply(bool pSampled) =>
+        pInspectorNeutralGroup.Visibility = PLook.PLookVisible[pSampled];
+
+    private void PWhitebalanceSwatchApply(QWhitebalanceReadout pReadout) =>
         pInspectorNeutralSwatch.Fill = new SolidColorBrush(Color.FromRgb(
             pReadout.QWhitebalanceReadoutRed,
             pReadout.QWhitebalanceReadoutGreen,
             pReadout.QWhitebalanceReadoutBlue));
-        pInspectorNeutralReadout.Text = pReadout.QWhitebalanceReadoutText;
-    }
+
+    private void PWhitebalanceReadoutApply(string pReadoutText) => pInspectorNeutralReadout.Text = pReadoutText;
 }

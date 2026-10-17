@@ -106,7 +106,9 @@ public sealed class QFlow
     public string QFlowSourceFormat() =>
         string.IsNullOrWhiteSpace(qFlowSourcePath) ? "(no media)" : qFlowUsher.CUsherNameRead(qFlowSourcePath);
 
-    public void QFlowPaletteApply(int lPaletteCount) => qFlowPaletteCount = Math.Max(1, lPaletteCount);
+    public void QFlowPaletteApply(int lPaletteCount) => qFlowPaletteCount = QFlowPaletteClamp(lPaletteCount);
+
+    private static int QFlowPaletteClamp(int lPaletteCount) => Math.Max(1, lPaletteCount);
 
     public void QFlowAttach(LMediaInfo lMediaInfo, string? lSourcePath, TimeSpan lCursorTime)
     {
@@ -118,7 +120,7 @@ public sealed class QFlow
         QFlowKeyframe.QFlowKeyframeReset();
         QFlowKeyframe.QFlowKeyframeClear();
         bool lSameSource = QFlowSourceMatch(lSourcePath);
-        TimeSpan lResumeAt = lSameSource ? qFlowCursor : lCursorTime;
+        TimeSpan lResumeAt = QFlowResumeResolve(lSameSource, lCursorTime);
         QFlowSourceSet(lMediaInfo, lSourcePath);
         QFlowCursorSet(lResumeAt);
         QFlowSection.QFlowSectionAttach();
@@ -132,6 +134,9 @@ public sealed class QFlow
             QFlowCursorChanged?.Invoke(qFlowCursor);
         }
     }
+
+    private TimeSpan QFlowResumeResolve(bool lSameSource, TimeSpan lCursorTime) =>
+        lSameSource ? qFlowCursor : lCursorTime;
 
     public bool QFlowClear()
     {
@@ -159,7 +164,7 @@ public sealed class QFlow
             return;
         }
 
-        qFlowUnloaded = true;
+        QFlowUnloadSet();
         QFlowName.QFlowNameHide();
         QFlowKeyframe.QFlowKeyframeClose();
         QFlowWaveform.QFlowWaveformClose();
@@ -167,12 +172,15 @@ public sealed class QFlow
 
     public void QFlowSourceSet(LMediaInfo lMediaInfo, string? lSourcePath)
     {
-        qFlowSourcePath = string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
+        qFlowSourcePath = QFlowPathNormalize(lSourcePath);
         qFlowMediaInfo = lMediaInfo;
         qFlowRange = new LSpool(lMediaInfo.LMediaInfoDuration);
         qFlowWaveformAudio = lMediaInfo.LMediaAudioPresent;
         qFlowKeyframeDirection = null;
     }
+
+    private static string? QFlowPathNormalize(string? lSourcePath) =>
+        string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
 
     public bool QFlowSourceMatch(string? lSourcePath) =>
         !string.IsNullOrWhiteSpace(lSourcePath)
@@ -225,7 +233,7 @@ public sealed class QFlow
 
     public void QFlowCursorPropagate(TimeSpan lCursor, bool lViewerSeek, bool lKeyframeRestart)
     {
-        qFlowKeyframeDirection = null;
+        QFlowDirectionSet(null);
         QFlowCursorSet(lCursor);
         QFlowCursorApplied?.Invoke();
         if (lKeyframeRestart)
@@ -284,7 +292,7 @@ public sealed class QFlow
 
     public void QFlowCommandSet(bool lCommandActive)
     {
-        qFlowCommandActive = lCommandActive;
+        QFlowCommandApply(lCommandActive);
         if (lCommandActive)
         {
             QFlowKeyframe.QFlowKeyframeDefer();
@@ -293,12 +301,26 @@ public sealed class QFlow
 
         QFlowKeyframe.QFlowKeyframeReset();
         QFlowKeyframe.QFlowKeyframeSuspend(false);
-        qFlowKeyframeDirection = null;
+        QFlowDirectionSet(null);
     }
+
+    private void QFlowCommandApply(bool lCommandActive) => qFlowCommandActive = lCommandActive;
 
     public void QFlowUnloadSet() => qFlowUnloaded = true;
 
     public bool QFlowWaveformSet(bool lWaveformActive)
+    {
+        if (!QFlowWaveformChange(lWaveformActive))
+        {
+            return false;
+        }
+
+        QFlowWaveform.QFlowWaveformApply();
+        QFlowWaveform.QFlowWaveformStart();
+        return true;
+    }
+
+    private bool QFlowWaveformChange(bool lWaveformActive)
     {
         if (qFlowWaveformActive == lWaveformActive)
         {
@@ -307,8 +329,6 @@ public sealed class QFlow
 
         qFlowWaveformActive = lWaveformActive;
         QFlowWaveformChanged?.Invoke(lWaveformActive);
-        QFlowWaveform.QFlowWaveformApply();
-        QFlowWaveform.QFlowWaveformStart();
         return true;
     }
 

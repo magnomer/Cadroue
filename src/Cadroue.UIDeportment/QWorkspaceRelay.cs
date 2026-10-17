@@ -61,11 +61,7 @@ public sealed class QWorkspaceRelay
 
     public void QWorkspaceRelayApply(LRelay lRelay)
     {
-        qWorkspaceRelayPath = lRelay.LRelaySourcePath;
-        qWorkspaceRelayPayload =
-            qWorkspace.QWorkspaceViewer is not null && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath)
-                ? lRelay
-                : null;
+        QWorkspacePendingSet(lRelay.LRelaySourcePath, QWorkspacePayloadResolve(lRelay));
         if (qWorkspace.QWorkspaceDocket is not null && lRelay.LRelayPaths.Count > 0)
         {
             QWorkspacePathsAdded?.Invoke(lRelay.LRelayPaths);
@@ -75,10 +71,20 @@ public sealed class QWorkspaceRelay
         QWorkspaceSourceRun();
     }
 
+    private LRelay? QWorkspacePayloadResolve(LRelay lRelay) =>
+        qWorkspace.QWorkspaceViewer is not null && !string.IsNullOrWhiteSpace(lRelay.LRelaySourcePath)
+            ? lRelay
+            : null;
+
+    private void QWorkspacePendingSet(string lPath, LRelay? lPayload)
+    {
+        qWorkspaceRelayPath = lPath;
+        qWorkspaceRelayPayload = lPayload;
+    }
+
     public void QWorkspaceSourceRun()
     {
-        string lPath = qWorkspaceRelayPath;
-        qWorkspaceRelayPath = string.Empty;
+        string lPath = QWorkspacePathClaim();
         if (string.IsNullOrWhiteSpace(lPath) || qWorkspace.QWorkspaceViewer is null)
         {
             return;
@@ -92,6 +98,13 @@ public sealed class QWorkspaceRelay
         }
 
         QWorkspaceSourceOpened?.Invoke(lPath);
+    }
+
+    private string QWorkspacePathClaim()
+    {
+        string lPath = qWorkspaceRelayPath;
+        qWorkspaceRelayPath = string.Empty;
+        return lPath;
     }
 
     public void QWorkspaceRelayRestore(LRelay lRelay, TimeSpan lDuration)
@@ -129,7 +142,7 @@ public sealed class QWorkspaceRelay
             return;
         }
 
-        qWorkspaceRelayPayload = null;
+        QWorkspaceRelayClose();
         if (lCargo.LCargoMediaInfo is { } lMediaInfo)
         {
             QWorkspaceRelayDeferred?.Invoke(lRelay, lMediaInfo.LMediaInfoDuration);

@@ -35,6 +35,11 @@ public sealed class QPlayerMpv
     private void QPlayerOpen(string lSourcePath)
     {
         LMpvProbe lLoaded = qPlayerMpvLibrary.LMpvMediaCheck(lSourcePath, qPlayerMpvBudget, CancellationToken.None);
+        QPlayerProbeCheck(lLoaded, lSourcePath);
+    }
+
+    private static void QPlayerProbeCheck(LMpvProbe lLoaded, string lSourcePath)
+    {
         if (lLoaded != LMpvProbe.LMpvProbeUsable)
         {
             throw new InvalidOperationException(

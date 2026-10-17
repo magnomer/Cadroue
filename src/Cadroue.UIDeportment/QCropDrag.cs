@@ -38,10 +38,21 @@ public sealed class QCropDrag
 
     public void QCropDragClear()
     {
-        qCropPress = false;
-        qCropPointActive = false;
-        QCropCaptureApplied?.Invoke(false);
+        QCropPressSet(false);
+        QCropPointClear();
+        QCropCaptureRelease();
     }
+
+    private void QCropPressSet(bool lPress) => qCropPress = lPress;
+
+    private void QCropPointSet(double lX, double lY)
+    {
+        qCropPointX = lX;
+        qCropPointY = lY;
+        qCropPointActive = true;
+    }
+
+    private void QCropPointClear() => qCropPointActive = false;
 
     public bool QCropGripHandle(int lIndex, double lX, double lY)
     {
@@ -84,9 +95,7 @@ public sealed class QCropDrag
             return false;
         }
 
-        qCropPointX = lX;
-        qCropPointY = lY;
-        qCropPointActive = true;
+        QCropPointSet(lX, lY);
         QCrop.QCropDrawSet();
         QCrop.QCropShownSet(true);
         QCropCaptureApplied?.Invoke(true);
@@ -121,8 +130,8 @@ public sealed class QCropDrag
         if (qCropPress)
         {
             QCropDragApply(lX, lY);
-            qCropPress = false;
-            QCropCaptureApplied?.Invoke(false);
+            QCropPressSet(false);
+            QCropCaptureRelease();
             QCrop.QCropVideoCommit();
             return true;
         }
@@ -133,8 +142,8 @@ public sealed class QCropDrag
         }
 
         QCropBoxPlace(qCropPointX, qCropPointY, lX, lY);
-        qCropPointActive = false;
-        QCropCaptureApplied?.Invoke(false);
+        QCropPointClear();
+        QCropCaptureRelease();
         QCrop.QCropOverlayUpdate();
         QCrop.QCropVideoCommit();
         return true;
@@ -153,18 +162,28 @@ public sealed class QCropDrag
 
     private void QCropDragStart(double lGrabX, double lGrabY)
     {
-        QCropBox lBox = QCrop.QCropBoxRead();
+        QCropOriginSet(QCrop.QCropBoxRead(), lGrabX, lGrabY);
+        QCropPressSet(true);
+        QCropCaptureApplied?.Invoke(true);
+    }
+
+    private void QCropOriginSet(QCropBox lBox, double lGrabX, double lGrabY)
+    {
         qCropOriginX = lBox.QCropBoxX;
         qCropOriginY = lBox.QCropBoxY;
         qCropOriginWidth = lBox.QCropBoxWidth;
         qCropOriginHeight = lBox.QCropBoxHeight;
         qCropGrabX = lGrabX;
         qCropGrabY = lGrabY;
-        qCropPress = true;
-        QCropCaptureApplied?.Invoke(true);
     }
 
     private void QCropDragApply(double lDragX, double lDragY)
+    {
+        QCrop.QCropBoxSet(QCropDragResolve(lDragX, lDragY));
+        QCrop.QCropOverlayUpdate();
+    }
+
+    private LCropbox QCropDragResolve(double lDragX, double lDragY)
     {
         LCropbox lVideo = QCrop.QCropVideoRead();
         var lOrigin = new LCropbox(qCropOriginX, qCropOriginY, qCropOriginWidth, qCropOriginHeight);
@@ -181,7 +200,6 @@ public sealed class QCropDrag
                 QCrop.QCropRatioWidth, QCrop.QCropRatioHeight, lVideo, QCropSizeMinimum);
         }
 
-        QCrop.QCropBoxSet(lResult);
-        QCrop.QCropOverlayUpdate();
+        return lResult;
     }
 }

@@ -46,21 +46,41 @@ internal static class PRosterCard
 
     private static Border PRosterHeaderBuild(QRoster lRoster, QRosterCard lCard)
     {
+        TextBlock pTitleCell = PRosterCaptionBuild(lCard);
+        PRosterTitleAttach(pTitleCell, lRoster, lCard);
+        Border pHeader = PRosterBannerBuild(lRoster, lCard, pTitleCell);
+        PRosterBannerAttach(pHeader, lCard);
+        return pHeader;
+    }
+
+    private static TextBlock PRosterCaptionBuild(QRosterCard lCard) => new()
+    {
+        Text = lCard.QRosterCardTitle,
+        FontSize = PRosterTheme.PRosterRowSize,
+        FontWeight = FontWeights.SemiBold,
+        Foreground = PRosterTheme.PRosterTitleBrushes[lCard.QRosterCardKey],
+        VerticalAlignment = VerticalAlignment.Center,
+        TextTrimming = TextTrimming.CharacterEllipsis,
+        Cursor = Cursors.Hand
+    };
+
+    private static void PRosterTitleAttach(TextBlock pTitleCell, QRoster lRoster, QRosterCard lCard) =>
+        pTitleCell.MouseLeftButtonUp += (_, _) => lRoster.QRosterSelection.QRosterCardSelect(lCard.QRosterCardBatch);
+
+    private static void PRosterBannerAttach(Border pHeader, QRosterCard lCard)
+    {
+        pHeader.MouseEnter += (_, _) => PRosterFillSet(pHeader, PRosterTheme.PRosterCardHovers[lCard.QRosterCardKey]);
+        pHeader.MouseLeave += (_, _) => PRosterFillSet(pHeader, PRosterTheme.PRosterCardFills[lCard.QRosterCardKey]);
+    }
+
+    private static void PRosterFillSet(Border pHeader, Brush pFill) => pHeader.Background = pFill;
+
+    private static Border PRosterBannerBuild(QRoster lRoster, QRosterCard lCard, TextBlock pTitleCell)
+    {
         var pGrid = new Grid();
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
-        var pTitleCell = new TextBlock
-        {
-            Text = lCard.QRosterCardTitle,
-            FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PRosterTheme.PRosterTitleBrushes[lCard.QRosterCardKey],
-            VerticalAlignment = VerticalAlignment.Center,
-            TextTrimming = TextTrimming.CharacterEllipsis,
-            Cursor = Cursors.Hand
-        };
-        pTitleCell.MouseLeftButtonUp += (_, _) => lRoster.QRosterSelection.QRosterCardSelect(lCard.QRosterCardBatch);
         Grid.SetColumn(pTitleCell, 0);
         pGrid.Children.Add(pTitleCell);
 
@@ -70,7 +90,7 @@ internal static class PRosterCard
         Grid.SetColumn(pControls, 1);
         pGrid.Children.Add(pControls);
 
-        var pHeader = new Border
+        return new Border
         {
             Padding = new Thickness(12, 6, 6, 6),
             Background = PRosterTheme.PRosterCardFills[lCard.QRosterCardKey],
@@ -79,79 +99,120 @@ internal static class PRosterCard
             CornerRadius = PRosterTheme.PRosterHeaderCorners[lCard.QRosterCardCollapsed],
             Child = pGrid
         };
-        pHeader.MouseEnter += (_, _) => pHeader.Background = PRosterTheme.PRosterCardHovers[lCard.QRosterCardKey];
-        pHeader.MouseLeave += (_, _) => pHeader.Background = PRosterTheme.PRosterCardFills[lCard.QRosterCardKey];
-        return pHeader;
     }
 
     private static Border PRosterToggleBuild(QRoster lRoster, QRosterCard lCard)
     {
         string pIconPath = PRosterTheme.PRosterToggleIcons[lCard.QRosterCardCollapsed];
         Brush pControlBrush = PRosterTheme.PRosterControlBrushes[lCard.QRosterCardKey];
-        var pIcon = new Image
-        {
-            Source = QIcon.QIconRead(pIconPath, pControlBrush),
-            Width = 20,
-            Height = 20,
-            Stretch = Stretch.Uniform,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
+        Image pIcon = PRosterIconBuild(pIconPath, pControlBrush);
         Border pButton = PRosterControlBuild(pIcon, lCard.QRosterCardTooltip);
-        pButton.Margin = new Thickness(0, 0, 2, 0);
-        pButton.MouseEnter += (_, _) =>
-        {
-            pButton.Background = PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey];
-            pIcon.Source = QIcon.QIconRead(pIconPath, PRosterTheme.PRosterTextBrush);
-        };
-        pButton.MouseLeave += (_, _) =>
-        {
-            pButton.Background = Brushes.Transparent;
-            pIcon.Source = QIcon.QIconRead(pIconPath, pControlBrush);
-        };
-        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterCollapse.QRosterCollapseToggle(lCard.QRosterCardBatch);
+        PRosterMarginSet(pButton);
+        PRosterToggleAttach(lRoster, lCard, pButton, pIcon, pIconPath, pControlBrush);
         return pButton;
+    }
+
+    private static Image PRosterIconBuild(string pIconPath, Brush pControlBrush) => new()
+    {
+        Source = QIcon.QIconRead(pIconPath, pControlBrush),
+        Width = 20,
+        Height = 20,
+        Stretch = Stretch.Uniform,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static void PRosterMarginSet(Border pButton) => pButton.Margin = new Thickness(0, 0, 2, 0);
+
+    private static void PRosterToggleAttach(
+        QRoster lRoster,
+        QRosterCard lCard,
+        Border pButton,
+        Image pIcon,
+        string pIconPath,
+        Brush pControlBrush)
+    {
+        pButton.MouseEnter += (_, _) => PRosterIconApply(
+            pButton,
+            PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey],
+            pIcon,
+            pIconPath,
+            PRosterTheme.PRosterTextBrush);
+        pButton.MouseLeave += (_, _) =>
+            PRosterIconApply(pButton, Brushes.Transparent, pIcon, pIconPath, pControlBrush);
+        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterCollapse.QRosterCollapseToggle(lCard.QRosterCardBatch);
+    }
+
+    private static void PRosterIconApply(
+        Border pButton,
+        Brush pFill,
+        Image pIcon,
+        string pIconPath,
+        Brush pIconBrush)
+    {
+        pButton.Background = pFill;
+        pIcon.Source = QIcon.QIconRead(pIconPath, pIconBrush);
     }
 
     private static Border PRosterCloseBuild(QRoster lRoster, QRosterCard lCard)
     {
         Brush pControlBrush = PRosterTheme.PRosterControlBrushes[lCard.QRosterCardKey];
-        var pGlyph = new TextBlock
-        {
-            Text = "✕",
-            FontSize = PRosterTheme.PRosterRowSize,
-            Foreground = pControlBrush,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center
-        };
+        TextBlock pGlyph = PRosterGlyphBuild(pControlBrush);
         Border pButton = PRosterControlBuild(pGlyph, QLocalizationCatalog.QLocalizationTextRead("Roster.Card.Remove"));
-        pButton.MouseEnter += (_, _) =>
-        {
-            pButton.Background = PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey];
-            pGlyph.Foreground = PRosterTheme.PRosterFailBrush;
-        };
-        pButton.MouseLeave += (_, _) =>
-        {
-            pButton.Background = Brushes.Transparent;
-            pGlyph.Foreground = pControlBrush;
-        };
-        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterRemove(lCard.QRosterCardBatch);
+        PRosterCloseAttach(lRoster, lCard, pButton, pGlyph, pControlBrush);
         return pButton;
+    }
+
+    private static TextBlock PRosterGlyphBuild(Brush pControlBrush) => new()
+    {
+        Text = "✕",
+        FontSize = PRosterTheme.PRosterRowSize,
+        Foreground = pControlBrush,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static void PRosterCloseAttach(
+        QRoster lRoster,
+        QRosterCard lCard,
+        Border pButton,
+        TextBlock pGlyph,
+        Brush pControlBrush)
+    {
+        pButton.MouseEnter += (_, _) => PRosterGlyphApply(
+            pButton,
+            PRosterTheme.PRosterControlHovers[lCard.QRosterCardKey],
+            pGlyph,
+            PRosterTheme.PRosterFailBrush);
+        pButton.MouseLeave += (_, _) => PRosterGlyphApply(pButton, Brushes.Transparent, pGlyph, pControlBrush);
+        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterRemove(lCard.QRosterCardBatch);
+    }
+
+    private static void PRosterGlyphApply(Border pButton, Brush pFill, TextBlock pGlyph, Brush pGlyphBrush)
+    {
+        pButton.Background = pFill;
+        pGlyph.Foreground = pGlyphBrush;
     }
 
     private static Border PRosterControlBuild(UIElement pContent, string pTooltip)
     {
-        var pButton = new Border
-        {
-            Width = 20,
-            Height = 20,
-            CornerRadius = new CornerRadius(4),
-            Background = Brushes.Transparent,
-            Cursor = Cursors.Hand,
-            ToolTip = pTooltip,
-            Child = pContent
-        };
-        pButton.MouseLeftButtonDown += (_, pArgs) => pArgs.Handled = true;
+        Border pButton = PRosterButtonBuild(pContent, pTooltip);
+        PRosterPressAttach(pButton);
         return pButton;
     }
+
+    private static Border PRosterButtonBuild(UIElement pContent, string pTooltip) => new()
+    {
+        Width = 20,
+        Height = 20,
+        CornerRadius = new CornerRadius(4),
+        Background = Brushes.Transparent,
+        Cursor = Cursors.Hand,
+        ToolTip = pTooltip,
+        Child = pContent
+    };
+
+    private static void PRosterPressAttach(Border pButton) => pButton.MouseLeftButtonDown += PRosterPressHandle;
+
+    private static void PRosterPressHandle(object pSender, MouseButtonEventArgs pArgs) => pArgs.Handled = true;
 }

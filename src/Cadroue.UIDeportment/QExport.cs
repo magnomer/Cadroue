@@ -51,9 +51,14 @@ public sealed class QExport
 
     public void QExportAttach()
     {
+        QExportHandlerAttach();
+        QExportSync();
+    }
+
+    private void QExportHandlerAttach()
+    {
         LPreset.LPresetStoreChanged += QExportSync;
         qExportOwner.LPresetSelectionChanged += QExportUpdate;
-        QExportSync();
     }
 
     public void QExportDetach()
@@ -73,17 +78,13 @@ public sealed class QExport
     public void QExportUpdate()
     {
         qExportSelected = QExportNameNormalize(qExportOwner.LPresetSelectionName);
-        if (!string.Equals(qExportEditing, qExportSelected, StringComparison.OrdinalIgnoreCase))
-        {
-            qExportEditing = null;
-        }
-
+        qExportEditing = QExportEditingResolve();
         QExportPresetsChanged?.Invoke();
     }
 
     public void QExportSelect(string lPresetName)
     {
-        qExportSelected = lPresetName;
+        QExportSelectedSet(lPresetName);
         qExportOwner.LPresetSelectionSelect(lPresetName);
     }
 
@@ -94,13 +95,12 @@ public sealed class QExport
             QExportSelect(lPresetName);
         }
 
-        qExportEditing = lPresetName;
-        QExportPresetsChanged?.Invoke();
+        QExportEditingSet(lPresetName);
     }
 
     public void QExportEditCancel()
     {
-        qExportEditing = null;
+        QExportEditingClear();
         QExportSync();
     }
 
@@ -111,11 +111,25 @@ public sealed class QExport
             return false;
         }
 
-        qExportEditing = null;
+        QExportEditingClear();
         qExportOwner.LPresetSelectionCommit(lOldName, lNewName);
         QExportSync();
         return true;
     }
+
+    private void QExportSelectedSet(string lPresetName) => qExportSelected = lPresetName;
+
+    private void QExportEditingSet(string lPresetName)
+    {
+        qExportEditing = lPresetName;
+        QExportPresetsChanged?.Invoke();
+    }
+
+    private void QExportEditingClear() => qExportEditing = null;
+
+    // Editing survives only while it names the selected preset.
+    private string? QExportEditingResolve() =>
+        string.Equals(qExportEditing, qExportSelected, StringComparison.OrdinalIgnoreCase) ? qExportEditing : null;
 
     public void QExportDragStart(string lPresetName, double lGrabX, double lGrabY)
     {
@@ -137,14 +151,21 @@ public sealed class QExport
 
     public bool QExportDragClear()
     {
-        bool lMoved = qExportDragActive;
-        qExportDragging = null;
-        qExportDragActive = false;
+        bool lMoved = QExportDragReset();
         if (lMoved)
         {
             QExportSync();
         }
 
+        return lMoved;
+    }
+
+    // Ends the drag; answers whether it had moved.
+    private bool QExportDragReset()
+    {
+        bool lMoved = qExportDragActive;
+        qExportDragging = null;
+        qExportDragActive = false;
         return lMoved;
     }
 

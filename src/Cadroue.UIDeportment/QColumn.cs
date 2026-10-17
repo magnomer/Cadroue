@@ -25,17 +25,11 @@ public sealed class QColumn
         qColumnWeights = QColumnWeightCreate(lStoredWidths, lCount);
         qColumnStoredWeights = qColumnWeights.ToArray();
         qColumnHiddenFlags = new bool[lCount];
-        qColumnCompactFlags = new bool[lCount];
-        for (int lIndex = 0; lCompactPanels is not null && lIndex < lCount && lIndex < lCompactPanels.Count; lIndex++)
-        {
-            qColumnCompactFlags[lIndex] = lCompactPanels[lIndex];
-        }
-
+        qColumnCompactFlags = QColumnCompactCreate(lCompactPanels, lCount);
         qColumnFixedWidths = new double[lCount];
         qColumnPixelWidths = new double[lCount];
-        qColumnFlexIndex = lFlexIndex >= 0 && lFlexIndex < lCount ? lFlexIndex : -1;
-        qColumnDefaultsPending =
-            !QColumnStoredCheck(lStoredWidths, lCount) && qColumnCompactFlags.Any(lCompact => lCompact);
+        qColumnFlexIndex = QColumnFlexNormalize(lFlexIndex, lCount);
+        qColumnDefaultsPending = QColumnDefaultsCheck(lStoredWidths, lCount, qColumnCompactFlags);
     }
 
     public int QColumnCount => qColumnMinimumWidths.Length;
@@ -59,7 +53,7 @@ public sealed class QColumn
 
     public bool QColumnAppliedSet(double lAvailableWidth)
     {
-        if (lAvailableWidth <= 0 || Math.Abs(lAvailableWidth - qColumnAppliedWidth) < 0.5)
+        if (!QColumnAppliedCheck(lAvailableWidth))
         {
             return false;
         }
@@ -81,7 +75,7 @@ public sealed class QColumn
 
     public bool QColumnWidthSet(int lIndex, double lFixedWidth)
     {
-        if (lIndex < 0 || lIndex >= QColumnCount)
+        if (!QColumnIndexCheck(lIndex))
         {
             return false;
         }
@@ -104,7 +98,7 @@ public sealed class QColumn
             }
 
             qColumnFixedWidths[lIndex] = 0;
-            qColumnWeights[lIndex] = qColumnStoredWeights[lIndex] > 0 ? qColumnStoredWeights[lIndex] : 1;
+            qColumnWeights[lIndex] = QColumnStoredResolve(lIndex);
         }
 
         qColumnAppliedWidth = -1;
@@ -113,7 +107,7 @@ public sealed class QColumn
 
     public bool QColumnHiddenSet(int lIndex, bool lHidden)
     {
-        if (lIndex < 0 || lIndex >= QColumnCount || qColumnHiddenFlags[lIndex] == lHidden)
+        if (!QColumnIndexCheck(lIndex) || qColumnHiddenFlags[lIndex] == lHidden)
         {
             return false;
         }
@@ -127,12 +121,21 @@ public sealed class QColumn
         else
         {
             qColumnHiddenFlags[lIndex] = false;
-            qColumnWeights[lIndex] = qColumnStoredWeights[lIndex] > 0 ? qColumnStoredWeights[lIndex] : 1;
+            qColumnWeights[lIndex] = QColumnStoredResolve(lIndex);
         }
 
         qColumnAppliedWidth = -1;
         return true;
     }
+
+    // A width change below half a pixel leaves the applied width as it is.
+    private bool QColumnAppliedCheck(double lAvailableWidth) =>
+        !(lAvailableWidth <= 0 || Math.Abs(lAvailableWidth - qColumnAppliedWidth) < 0.5);
+
+    private bool QColumnIndexCheck(int lIndex) => lIndex >= 0 && lIndex < QColumnCount;
+
+    private double QColumnStoredResolve(int lIndex) =>
+        qColumnStoredWeights[lIndex] > 0 ? qColumnStoredWeights[lIndex] : 1;
 
     private void QColumnStoredSet(int lIndex)
     {
@@ -251,6 +254,24 @@ public sealed class QColumn
         int lLeftIndex, double lDelta, double[] lWidths, IReadOnlyList<double> lMinimumWidths) =>
         QColumnWidth.QColumnDragResolve(
             QColumnFlexCheck() ? qColumnFlexIndex : -1, lLeftIndex, lDelta, lWidths, lMinimumWidths);
+
+    private static bool[] QColumnCompactCreate(IReadOnlyList<bool>? lCompactPanels, int lCount)
+    {
+        var lCompactFlags = new bool[lCount];
+        for (int lIndex = 0; lCompactPanels is not null && lIndex < lCount && lIndex < lCompactPanels.Count; lIndex++)
+        {
+            lCompactFlags[lIndex] = lCompactPanels[lIndex];
+        }
+
+        return lCompactFlags;
+    }
+
+    private static int QColumnFlexNormalize(int lFlexIndex, int lCount) =>
+        lFlexIndex >= 0 && lFlexIndex < lCount ? lFlexIndex : -1;
+
+    private static bool QColumnDefaultsCheck(
+        IReadOnlyList<double>? lStoredWidths, int lCount, IReadOnlyList<bool> lCompactFlags) =>
+        !QColumnStoredCheck(lStoredWidths, lCount) && lCompactFlags.Any(lCompact => lCompact);
 
     private static bool QColumnStoredCheck(IReadOnlyList<double>? lStoredWidths, int lCount) =>
         lStoredWidths is not null

@@ -63,11 +63,22 @@ public sealed partial class PInspector
 
     private void PInspectorCropAttach()
     {
-        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += PInspectorCropUpdate;
+        PCropChangeAttach();
         PInspectorCropUpdate();
     }
 
+    private void PCropChangeAttach() =>
+        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += PInspectorCropUpdate;
+
     private void PInspectorCropUpdate()
+    {
+        PCropStateApply();
+        PInspectorSectionUpdate(pInspectorCropStack, QInspectorCrop.QInspectorCropEnabled);
+        PInspectorRatioUpdate();
+        PInspectorToolUpdate();
+    }
+
+    private void PCropStateApply()
     {
         QInspectorCrop lCrop = QInspectorCrop;
         pInspectorApplyBox.IsChecked = PLook.PLookChecked[lCrop.QInspectorActive];
@@ -88,9 +99,6 @@ public sealed partial class PInspector
         pInspectorRotateCombo.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
         pInspectorFlipHorizontal.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
         pInspectorFlipVertical.ToolTip = QInspector.QInspectorOrientation.QInspectorOrientationTip;
-        PInspectorSectionUpdate(pInspectorCropStack, lCrop.QInspectorCropEnabled);
-        PInspectorRatioUpdate();
-        PInspectorToolUpdate();
     }
 
     private void PInspectorRatioUpdate()
@@ -112,8 +120,16 @@ public sealed partial class PInspector
 
     private void PInspectorToolUpdate()
     {
-        QInspectorCrop lCrop = QInspectorCrop;
+        PCropToolApply();
+        PCropFaceApply();
+    }
+
+    private void PCropToolApply() =>
         pInspectorCropTool.IsChecked = PLook.PLookChecked[QInspector.QInspectorToolArmed];
+
+    private void PCropFaceApply()
+    {
+        QInspectorCrop lCrop = QInspectorCrop;
         pInspectorCropTool.Background = pInspectorToolFaces[lCrop.QInspectorToolKey];
         pInspectorToolIcon.Source = QIcon.QIconRead(PCropIcon, pInspectorToolInks[lCrop.QInspectorToolActive]);
     }

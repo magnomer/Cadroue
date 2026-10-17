@@ -206,29 +206,7 @@ public sealed class QViewerMedia
         }
 
         bool lCreated = !QPlayer.QPlayerReady;
-        string? lPreviewError = null;
-        var lChronometer = new QChronometer();
-        lChronometer.QChronometerStart();
-        try
-        {
-            if (lCreated)
-            {
-                QViewerPlayerCreated?.Invoke();
-            }
-
-            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
-            double lBeforeOpen = lChronometer.QChronometerRead();
-            await QPlayer.QPlayerOpenStart(lSourcePath);
-            QPlayer.QPlayerFactsRecord(
-                $"Player opened '{System.IO.Path.GetFileName(lSourcePath)}'",
-                lChronometer.QChronometerRead() - lBeforeOpen);
-        }
-        catch (Exception lException)
-        {
-            lPreviewError = lException.Message;
-            QPlayer.QPlayerDispose();
-        }
-
+        string? lPreviewError = await QViewerPlayerOpen(lSourcePath, lCreated);
         if (!qViewer.QViewerSerialCheck(lSerial))
         {
             if (lCreated)
@@ -252,6 +230,35 @@ public sealed class QViewerMedia
             new LCargo(
                 lSourcePath, lMediaInfo, lMediaInfo is not null, QPlayer.QPlayerReady, lFfmpegError, lPreviewError),
             !lCreated);
+    }
+
+    // The Flyleaf player opens the path, timed for its record; the failure's message comes back, the player disposed.
+    private async Task<string?> QViewerPlayerOpen(string lSourcePath, bool lCreated)
+    {
+        var lChronometer = new QChronometer();
+        lChronometer.QChronometerStart();
+        try
+        {
+            if (lCreated)
+            {
+                QViewerPlayerCreated?.Invoke();
+            }
+
+            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
+            double lBeforeOpen = lChronometer.QChronometerRead();
+            await QPlayer.QPlayerOpenStart(lSourcePath);
+            QPlayer.QPlayerFactsRecord(
+                $"Player opened '{System.IO.Path.GetFileName(lSourcePath)}'",
+                lChronometer.QChronometerRead() - lBeforeOpen);
+        }
+        catch (Exception lException)
+        {
+            string lPreviewError = lException.Message;
+            QPlayer.QPlayerDispose();
+            return lPreviewError;
+        }
+
+        return null;
     }
 
     private void QViewerFlyleafCommit(LCargo lCargo, bool lReused)

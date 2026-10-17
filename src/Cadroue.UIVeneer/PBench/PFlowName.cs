@@ -42,24 +42,36 @@ internal sealed class PFlowName
     {
         lFlow = lOwner;
         pViewfinder = pHost;
-        pFlowNameKeys = new Dictionary<Key, Action>
-        {
-            [Key.Enter] = PFlowNameCommit,
-            [Key.Escape] = lFlow.QFlowName.QFlowNameHide,
-        };
-        pFlowStepKeys = new Dictionary<string, Action<object>> { [","] = PFlowStepRun };
-        pFlowSteps = new Dictionary<object, Action>
-        {
-            [pFlowNameBox] = PFlowPrefixShow,
-            [pFlowPrefixBox] = PFlowSuffixShow,
-        };
+        pFlowNameKeys = PFlowKeysCreate();
+        pFlowStepKeys = PFlowInputsCreate();
+        pFlowSteps = PFlowStepsCreate();
+        pFlowNamePopup = PFlowPopupBuild();
+        PFlowNameAttach();
+    }
+
+    private Dictionary<Key, Action> PFlowKeysCreate() => new()
+    {
+        [Key.Enter] = PFlowNameCommit,
+        [Key.Escape] = lFlow.QFlowName.QFlowNameHide,
+    };
+
+    private Dictionary<string, Action<object>> PFlowInputsCreate() => new() { [","] = PFlowStepRun };
+
+    private Dictionary<object, Action> PFlowStepsCreate() => new()
+    {
+        [pFlowNameBox] = PFlowPrefixShow,
+        [pFlowPrefixBox] = PFlowSuffixShow,
+    };
+
+    private Popup PFlowPopupBuild()
+    {
         var pFieldPanel = new StackPanel { Orientation = Orientation.Horizontal };
         pFieldPanel.Children.Add(pFlowNameBox);
         pFieldPanel.Children.Add(pFlowPrefixSeparator);
         pFieldPanel.Children.Add(pFlowPrefixBox);
         pFieldPanel.Children.Add(pFlowSuffixSeparator);
         pFieldPanel.Children.Add(pFlowSuffixBox);
-        pFlowNamePopup = new Popup
+        return new Popup
         {
             PlacementTarget = pViewfinder,
             Placement = PlacementMode.Center,
@@ -75,6 +87,10 @@ internal sealed class PFlowName
                 Child = pFieldPanel
             }
         };
+    }
+
+    private void PFlowNameAttach()
+    {
         pFlowNameBox.KeyDown += PFlowNameHandle;
         pFlowPrefixBox.KeyDown += PFlowNameHandle;
         pFlowSuffixBox.KeyDown += PFlowNameHandle;
@@ -93,17 +109,27 @@ internal sealed class PFlowName
 
     private void PFlowNameShow(QFlowNamePrompt lPrompt)
     {
+        PFlowFieldsShow(lPrompt);
+        QViewfinderPoint lOffset = pViewfinder.QViewfinder.QViewfinderPopupResolve(
+            lPrompt.QFlowNameIndex, pViewfinder.ActualWidth, pViewfinder.ActualHeight);
+        PFlowPopupOpen(lOffset);
+        PFlowFieldSelect(pFlowNameBox);
+    }
+
+    private void PFlowFieldsShow(QFlowNamePrompt lPrompt)
+    {
         pFlowNameBox.Text = lPrompt.QFlowNameText;
         pFlowPrefixBox.Text = lPrompt.QFlowNamePrefix;
         pFlowSuffixBox.Text = lPrompt.QFlowNameSuffix;
         PFlowAffixShow(pFlowPrefixBox, pFlowPrefixSeparator, lPrompt.QFlowPrefixShown);
         PFlowAffixShow(pFlowSuffixBox, pFlowSuffixSeparator, lPrompt.QFlowSuffixShown);
-        QViewfinderPoint lOffset = pViewfinder.QViewfinder.QViewfinderPopupResolve(
-            lPrompt.QFlowNameIndex, pViewfinder.ActualWidth, pViewfinder.ActualHeight);
+    }
+
+    private void PFlowPopupOpen(QViewfinderPoint lOffset)
+    {
         pFlowNamePopup.HorizontalOffset = lOffset.QViewfinderPointX;
         pFlowNamePopup.VerticalOffset = lOffset.QViewfinderPointY;
         pFlowNamePopup.IsOpen = true;
-        PFlowFieldSelect(pFlowNameBox);
     }
 
     private void PFlowNameHide() => pFlowNamePopup.IsOpen = false;

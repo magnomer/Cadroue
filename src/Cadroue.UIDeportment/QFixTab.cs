@@ -44,13 +44,7 @@ public sealed class QFixTab
         qFixList = lList;
         qFixDocket = lList.QListDocket;
         QFixProcessing.QProcessingOrderedSet(false);
-        QFixClinic.QClinicPlanChanged += QFixChangeHandle;
-        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
-        lViewer.QViewerOpenNotice += QFixOpenHandle;
-        lViewer.QViewerOpenRequest += QFixPlanRestore;
-        lList.QListItemsAdded += QFixItemsHandle;
-        lList.QListClearChanged += QFixClearHandle;
-        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+        QFixAttach();
     }
 
     public event Action? QFixPresetMissing;
@@ -63,10 +57,26 @@ public sealed class QFixTab
 
     public void QFixClose()
     {
+        QFixDetach();
+        QFixCheckup.Dispose();
+    }
+
+    private void QFixAttach()
+    {
+        QFixClinic.QClinicPlanChanged += QFixChangeHandle;
+        qFixList.QListPathChanged += qFixViewer.QViewerWorkspace.CWorkspaceOpen;
+        qFixViewer.QViewerOpenNotice += QFixOpenHandle;
+        qFixViewer.QViewerOpenRequest += QFixPlanRestore;
+        qFixList.QListItemsAdded += QFixItemsHandle;
+        qFixList.QListClearChanged += QFixClearHandle;
+        qFixViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = qFixList.QListPathsAdd(lDropPaths);
+    }
+
+    private void QFixDetach()
+    {
         QFixClinic.QClinicPlanChanged -= QFixChangeHandle;
         qFixViewer.QViewerOpenNotice -= QFixOpenHandle;
         qFixViewer.QViewerOpenRequest -= QFixPlanRestore;
-        QFixCheckup.Dispose();
     }
 
     public LSceneTabEntry QFixLayoutRead(LSceneTabEntry lLayout)
@@ -177,12 +187,16 @@ public sealed class QFixTab
 
     public void QFixClearHandle(IReadOnlyList<string> lRemoved)
     {
+        QFixCheckupCancel(lRemoved);
+        QFixClinic.QClinicResultsRemove(lRemoved);
+    }
+
+    private void QFixCheckupCancel(IReadOnlyList<string> lRemoved)
+    {
         foreach (string lPath in lRemoved)
         {
             QFixCheckup.LCheckupSourceCancel(lPath);
         }
-
-        QFixClinic.QClinicResultsRemove(lRemoved);
     }
 
     public void QFixCheckupHandle(LCheckupResult lResult)
@@ -254,13 +268,15 @@ public sealed class QFixTab
         LWorkFix lPlan = QFixClinic.QClinicPlanRead();
         foreach (QFixRow lRow in QFixKinds)
         {
-            bool lActive = lPlan.LWorkFixSteps.Any(
-                lStep => lStep.LWorkFixKind == lRow.QFixRowKind && lStep.LWorkFixRepair);
-            QFixProcessing.QProcessingActiveSet(lRow.QFixRowStep.QProcessingRowKey, lActive);
+            QFixProcessing.QProcessingActiveSet(lRow.QFixRowStep.QProcessingRowKey, QFixActiveCheck(lPlan, lRow));
         }
 
         QFixProcessing.QProcessingActiveSet(QFixSalvageKey, lPlan.LWorkFixSalvage.LWorkSalvageActive);
     }
+
+    // A fix row is active when the plan repairs its flaw kind.
+    private static bool QFixActiveCheck(LWorkFix lPlan, QFixRow lRow) =>
+        lPlan.LWorkFixSteps.Any(lStep => lStep.LWorkFixKind == lRow.QFixRowKind && lStep.LWorkFixRepair);
 
     private void QFixPersistentSave(IEnumerable<string> lPaths)
     {

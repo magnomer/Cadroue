@@ -37,32 +37,60 @@ public sealed class QRosterMenu
 
     public IReadOnlyList<QRosterItem> QRosterMenuRead(Guid lId, QStrip? lStrip)
     {
-        if (qSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lId) is not { } lClicked)
+        if (QRosterClickFind(lId) is not { } lClicked)
         {
             return QRosterMenuNone;
         }
 
         if (QRosterRestartCheck(lClicked))
         {
-            IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterRestartCheck);
-            return [QRosterItemCreate(
-                lTargets.Count, "Roster.Menu.Restart", "Roster.Menu.RestartMany", () => QRosterRestartRun(lTargets))];
+            return QRosterRestartRead(lClicked);
         }
 
         if (QRosterCancelCheck(lClicked))
         {
-            IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterCancelCheck);
-            return [QRosterItemCreate(
-                lTargets.Count, "Roster.Menu.Cancel", "Roster.Menu.CancelMany", () => QRosterCancelRun(lTargets))];
+            return QRosterCancelRead(lClicked);
         }
 
+        return QRosterRelayRead(lClicked, lStrip);
+    }
+
+    private LWorkItem? QRosterClickFind(Guid lId) =>
+        qSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lId);
+
+    private IReadOnlyList<QRosterItem> QRosterRestartRead(LWorkItem lClicked)
+    {
+        IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterRestartCheck);
+        return [QRosterItemCreate(
+            lTargets.Count, "Roster.Menu.Restart", "Roster.Menu.RestartMany", () => QRosterRestartRun(lTargets))];
+    }
+
+    private IReadOnlyList<QRosterItem> QRosterCancelRead(LWorkItem lClicked)
+    {
+        IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterCancelCheck);
+        return [QRosterItemCreate(
+            lTargets.Count, "Roster.Menu.Cancel", "Roster.Menu.CancelMany", () => QRosterCancelRun(lTargets))];
+    }
+
+    private IReadOnlyList<QRosterItem> QRosterRelayRead(LWorkItem lClicked, QStrip? lStrip)
+    {
         IReadOnlyList<string> lRelayPaths = QRosterPathsRead(lClicked);
         if (lClicked.LWorkStateCurrent != LWorkState.LWorkStateDone || lRelayPaths.Count == 0 || lStrip is null)
         {
             return QRosterMenuNone;
         }
 
-        QRosterItem[] lTargetItems = lStrip.QStripTabs
+        QRosterItem[] lTargetItems = QRosterTabsRead(lStrip, lRelayPaths);
+        if (lTargetItems.Length == 0)
+        {
+            return QRosterMenuNone;
+        }
+
+        return [QRosterHeaderCreate(lRelayPaths.Count), .. lTargetItems];
+    }
+
+    private static QRosterItem[] QRosterTabsRead(QStrip lStrip, IReadOnlyList<string> lRelayPaths) =>
+        lStrip.QStripTabs
             .Where(lStripTab => lStripTab.QStripTabDocket is not null)
             .Select(lStripTab => new QRosterItem(
                 lStripTab.QStripTabTitle,
@@ -70,20 +98,14 @@ public sealed class QRosterMenu
                 true,
                 () => _ = QRosterRelayRun(lStrip, lStripTab, lRelayPaths)))
             .ToArray();
-        if (lTargetItems.Length == 0)
-        {
-            return QRosterMenuNone;
-        }
 
-        QRosterItem lHeader = new(
-            lRelayPaths.Count > 1
-                ? QLocalizationCatalog.QLocalizationFormat("Roster.Relay.Many", lRelayPaths.Count)
-                : QLocalizationCatalog.QLocalizationTextRead("Roster.Relay.One"),
-            string.Empty,
-            false,
-            () => { });
-        return [lHeader, .. lTargetItems];
-    }
+    private static QRosterItem QRosterHeaderCreate(int lCount) => new(
+        lCount > 1
+            ? QLocalizationCatalog.QLocalizationFormat("Roster.Relay.Many", lCount)
+            : QLocalizationCatalog.QLocalizationTextRead("Roster.Relay.One"),
+        string.Empty,
+        false,
+        () => { });
 
     private static bool QRosterRestartCheck(LWorkItem lWorkItem) =>
         lWorkItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed;

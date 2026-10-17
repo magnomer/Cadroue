@@ -94,12 +94,16 @@ public sealed class QEqualizer
         qEqualizerBands.Select(lBand => lBand.LWorkBandFrequency).ToArray(),
         qEqualizerBands.Select(lBand => lBand.LWorkBandGain).ToArray());
 
-    public void QEqualizerStepSet(LWorkAudioStep lStep)
+    public void QEqualizerStepSet(LWorkAudioStep lStep) =>
+        QEqualizerBandsApply(lStep.LWorkStepActive, QEqualizerBandsResolve(lStep), null);
+
+    // A step that is not an equalizer carries the default bands.
+    private static List<LWorkBand> QEqualizerBandsResolve(LWorkAudioStep lStep)
     {
         IReadOnlyList<LWorkBand> lBands = lStep is LWorkEqualizerStep lEqualizer
             ? lEqualizer.LWorkEqualizerBands
             : LWorkEqualizerStep.LWorkBandsCreate();
-        QEqualizerBandsApply(lStep.LWorkStepActive, lBands.ToList(), null);
+        return lBands.ToList();
     }
 
     public void QEqualizerActiveSet(bool lActive)
@@ -115,46 +119,75 @@ public sealed class QEqualizer
 
     public void QEqualizerBandSet(int lIndex, double lFrequency, double lGain)
     {
+        if (QEqualizerReplacedResolve(lIndex, lFrequency, lGain) is { } lBands)
+        {
+            QEqualizerBandsApply(qEqualizerActive, lBands, qEqualizerToken);
+        }
+    }
+
+    public void QEqualizerBandAdd() =>
+        QEqualizerBandsApply(qEqualizerActive, QEqualizerAddedResolve(), qEqualizerToken);
+
+    public void QEqualizerBandRemove(int lIndex)
+    {
+        if (QEqualizerRemovedResolve(lIndex) is { } lBands)
+        {
+            QEqualizerBandsApply(qEqualizerActive, lBands, qEqualizerToken);
+        }
+    }
+
+    public void QEqualizerPresetSelect(string lToken)
+    {
+        if (QEqualizerPresetResolve(lToken) is { } lBands)
+        {
+            QEqualizerBandsApply(qEqualizerActive, lBands, lToken);
+        }
+    }
+
+    // The bands with one band replaced by its normal form; null for an index out of range or an unchanged band.
+    private List<LWorkBand>? QEqualizerReplacedResolve(int lIndex, double lFrequency, double lGain)
+    {
         if (lIndex < 0 || lIndex >= qEqualizerBands.Count)
         {
-            return;
+            return null;
         }
 
         LWorkBand lBand = QEqualizerNormalize(lFrequency, lGain);
         if (qEqualizerBands[lIndex] == lBand)
         {
-            return;
+            return null;
         }
 
         List<LWorkBand> lBands = qEqualizerBands.ToList();
         lBands[lIndex] = lBand;
-        QEqualizerBandsApply(qEqualizerActive, lBands, qEqualizerToken);
+        return lBands;
     }
 
-    public void QEqualizerBandAdd()
+    private List<LWorkBand> QEqualizerAddedResolve()
     {
         List<LWorkBand> lBands = qEqualizerBands.ToList();
         lBands.Add(new LWorkBand(LContourCatalog.LContourFrequencyDefault, 0));
-        QEqualizerBandsApply(qEqualizerActive, lBands, qEqualizerToken);
+        return lBands;
     }
 
-    public void QEqualizerBandRemove(int lIndex)
+    private List<LWorkBand>? QEqualizerRemovedResolve(int lIndex)
     {
         if (lIndex < 0 || lIndex >= qEqualizerBands.Count)
         {
-            return;
+            return null;
         }
 
         List<LWorkBand> lBands = qEqualizerBands.ToList();
         lBands.RemoveAt(lIndex);
-        QEqualizerBandsApply(qEqualizerActive, lBands, qEqualizerToken);
+        return lBands;
     }
 
-    public void QEqualizerPresetSelect(string lToken)
+    // The preset's gains laid on the band grid; null for an unknown preset.
+    private static List<LWorkBand>? QEqualizerPresetResolve(string lToken)
     {
         if (LContourCatalog.LContourGainsRead(lToken) is not { } lGains)
         {
-            return;
+            return null;
         }
 
         double[] lGrid = LContourCatalog.LContourBandGrid;
@@ -164,7 +197,7 @@ public sealed class QEqualizer
             lBands.Add(new LWorkBand(lGrid[lIndex], lGains[lIndex]));
         }
 
-        QEqualizerBandsApply(qEqualizerActive, lBands, lToken);
+        return lBands;
     }
 
     public void QEqualizerPersistentSet(bool lPersistent)

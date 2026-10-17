@@ -49,15 +49,24 @@ public sealed class QAction
 
     public void QActionRelayAttach(QStrip lStrip, QStripTab lStripTab)
     {
-        qActionRelayStrip = lStrip;
-        qActionSourceTab = lStripTab.QStripTabId;
+        QActionRelaySet(lStrip, lStripTab);
         lStripTab.QStripActionAttach(this);
         LCartographer.LCartographerStart();
-        lStrip.QStripTitleChanged += QActionTargetUpdate;
+        QActionTitleAttach(lStrip);
         QActionTargetUpdate();
     }
 
-    public void QActionAutoSet(bool? lChecked) => qActionAutoRelay = lChecked == true;
+    private void QActionRelaySet(QStrip lStrip, QStripTab lStripTab)
+    {
+        qActionRelayStrip = lStrip;
+        qActionSourceTab = lStripTab.QStripTabId;
+    }
+
+    private void QActionTitleAttach(QStrip lStrip) => lStrip.QStripTitleChanged += QActionTargetUpdate;
+
+    public void QActionAutoSet(bool? lChecked) => qActionAutoRelay = QActionAutoNormalize(lChecked);
+
+    private static bool QActionAutoNormalize(bool? lChecked) => lChecked == true;
 
     public void QActionRelayApply(Guid lTarget)
     {
@@ -162,9 +171,7 @@ public sealed class QAction
             }
             else
             {
-                LTraceLog.LTraceWarningRecord(
-                    $"Relay left '{System.IO.Path.GetFileName(lPath)}' unprocessed: "
-                    + "the destination tab closed or left Auto Relay before it ran");
+                QActionRelayRecord(lPath);
             }
         }
         finally
@@ -173,6 +180,11 @@ public sealed class QAction
             LSeal.LSealRun();
         }
     }
+
+    private static void QActionRelayRecord(string lPath) =>
+        LTraceLog.LTraceWarningRecord(
+            $"Relay left '{System.IO.Path.GetFileName(lPath)}' unprocessed: "
+            + "the destination tab closed or left Auto Relay before it ran");
 
     private static QAction? QActionAutoFind(Guid lTargetTab) =>
         qActionStrip?.QStripTabFind(lTargetTab)
@@ -184,15 +196,16 @@ public sealed class QAction
 
     private void QActionFaceUpdate()
     {
-        if (qActionRelayTarget != Guid.Empty
-            && qActionRelayTarget != LCartographer.LCartographerFinishTarget
-            && QActionOptionFind() is null)
-        {
-            qActionRelayTarget = Guid.Empty;
-        }
-
+        qActionRelayTarget = QActionTargetNormalize();
         QActionFaceChanged?.Invoke();
     }
+
+    private Guid QActionTargetNormalize() =>
+        qActionRelayTarget != Guid.Empty
+        && qActionRelayTarget != LCartographer.LCartographerFinishTarget
+        && QActionOptionFind() is null
+            ? Guid.Empty
+            : qActionRelayTarget;
 
     private string QActionKeyRead() =>
         qActionRelayTarget == LCartographer.LCartographerFinishTarget ? "Action.Relay.Finish" : "Action.Relay.None";
@@ -204,7 +217,7 @@ public sealed class QAction
 
     private bool QActionEligibleResolve(bool lSelected)
     {
-        bool lAllowed = QActionEligibleCheck(lSelected ? QActionSelectionRead() : Array.Empty<string>());
+        bool lAllowed = QActionEligibleCheck(QActionChosenRead(lSelected));
         if (!lAllowed)
         {
             QActionEmptyRaised?.Invoke();
@@ -212,6 +225,9 @@ public sealed class QAction
 
         return lAllowed;
     }
+
+    private IReadOnlyList<string> QActionChosenRead(bool lSelected) =>
+        lSelected ? QActionSelectionRead() : Array.Empty<string>();
 
     private IReadOnlyList<string> QActionSelectionRead() => qActionSelectionSource?.Invoke() ?? Array.Empty<string>();
 

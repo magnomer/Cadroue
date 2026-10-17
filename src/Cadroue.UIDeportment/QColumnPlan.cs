@@ -70,13 +70,9 @@ public sealed class QColumnPlan
         }
 
         double[] lMinimumWidths = qColumn.QColumnMinimumRead(lAvailableWidth);
-        Array.Copy(lMinimumWidths, qColumnMinimums, lMinimumWidths.Length);
-        bool lCommitted = qColumn.QColumnDefaultsRead()
-            && qColumn.QColumnDefaultResolve(lAvailableWidth, lMinimumWidths) is { } lDefaultWidths
-            && qColumn.QColumnWeightsCommit(lDefaultWidths);
-        bool lCreated = qColumn.QColumnFlexCheck()
-            && !qColumn.QColumnPixelsReady
-            && qColumn.QColumnPixelsCreate(lAvailableWidth);
+        QColumnMinimumSet(lMinimumWidths);
+        bool lCommitted = QColumnDefaultsCommit(lAvailableWidth, lMinimumWidths);
+        bool lCreated = QColumnPixelsPrepare(lAvailableWidth);
         QColumnPlanChanged?.Invoke();
         if (lCommitted || lCreated)
         {
@@ -91,7 +87,7 @@ public sealed class QColumnPlan
         double lActualWidth,
         IReadOnlyList<double> lActualWidths)
     {
-        if (lLeftIndex < 0 || lLeftIndex >= qColumn.QColumnCount - 1 || Math.Abs(lDelta) <= 0)
+        if (!QColumnDragCheck(lLeftIndex, lDelta))
         {
             return;
         }
@@ -113,6 +109,25 @@ public sealed class QColumnPlan
         QColumnPlanChanged?.Invoke();
         QColumnWidthChanged?.Invoke();
     }
+
+    private void QColumnMinimumSet(double[] lMinimumWidths) =>
+        Array.Copy(lMinimumWidths, qColumnMinimums, lMinimumWidths.Length);
+
+    // Pending defaults are committed once, when the panel widths resolve.
+    private bool QColumnDefaultsCommit(double lAvailableWidth, double[] lMinimumWidths) =>
+        qColumn.QColumnDefaultsRead()
+        && qColumn.QColumnDefaultResolve(lAvailableWidth, lMinimumWidths) is { } lDefaultWidths
+        && qColumn.QColumnWeightsCommit(lDefaultWidths);
+
+    // The flex column's pixel widths are created once, at the first layout that has them active.
+    private bool QColumnPixelsPrepare(double lAvailableWidth) =>
+        qColumn.QColumnFlexCheck()
+        && !qColumn.QColumnPixelsReady
+        && qColumn.QColumnPixelsCreate(lAvailableWidth);
+
+    // A drag needs a splitter with a column on each side and a real movement.
+    private bool QColumnDragCheck(int lLeftIndex, double lDelta) =>
+        !(lLeftIndex < 0 || lLeftIndex >= qColumn.QColumnCount - 1 || Math.Abs(lDelta) <= 0);
 
     public static double QColumnGridResolve(double lSlotWidth, double lActualWidth) =>
         double.IsNaN(lSlotWidth) || double.IsInfinity(lSlotWidth) || lSlotWidth <= 0 ? lActualWidth : lSlotWidth;

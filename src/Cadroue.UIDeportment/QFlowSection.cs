@@ -300,9 +300,11 @@ public sealed class QFlowSection
 
         IReadOnlyList<LPiece> lSections = LSweep.LSweepCombineResolve(
             qSegment.LSegmentListRead(), lExcluded, lKept, lBoundaries, lSpool.LSpoolDuration, qFlow.QFlowPaletteCount);
-        int? lSelect = lSections.Count > 0 ? 0 : null;
+        int? lSelect = QFlowSelectionResolve(lSections);
         return qSegment.LSegmentBoundSet(lSections, lSelect, lSpool.LSpoolDuration);
     }
+
+    private static int? QFlowSelectionResolve(IReadOnlyList<LPiece> lSections) => lSections.Count > 0 ? 0 : null;
 
     private void QFlowSegmentHandle(IReadOnlyList<LPiece> lSections, int? lActive)
     {

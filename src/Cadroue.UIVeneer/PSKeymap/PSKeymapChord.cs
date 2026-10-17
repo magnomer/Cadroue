@@ -17,16 +17,22 @@ internal sealed class PSKeymapChord : Button
     {
         lsKeymap = psKeymapOwner;
         lsKeymapChord = psKeymapChordState;
+        PSChordLookApply();
+        PSKeymapChordAttach();
+        PSKeymapTextUpdate();
+    }
 
+    private void PSChordLookApply()
+    {
         Width = PSKeymapChordWidth;
         Height = PSField.PSFieldControlHeight;
         HorizontalAlignment = HorizontalAlignment.Right;
         VerticalAlignment = VerticalAlignment.Center;
         Focusable = true;
         QButton.QButtonAttach(this, QButtonLook.QButtonLookWhite);
-        lsKeymap.QSKeymapChordChanged += PSKeymapChordHandle;
-        PSKeymapTextUpdate();
     }
+
+    private void PSKeymapChordAttach() => lsKeymap.QSKeymapChordChanged += PSKeymapChordHandle;
 
     private void PSKeymapChordHandle(QSKeymapChord psKeymapChanged)
     {
@@ -60,9 +66,18 @@ internal sealed class PSKeymapChord : Button
             return;
         }
 
-        e.Handled = true;
-        Key psKeymapChordKey = e.Key == Key.System ? e.SystemKey : e.Key;
+        Key psKeymapChordKey = PSChordKeyClaim(e);
+        PSChordKeyHandle(psKeymapChordKey);
+    }
 
+    private static Key PSChordKeyClaim(KeyEventArgs e)
+    {
+        e.Handled = true;
+        return e.Key == Key.System ? e.SystemKey : e.Key;
+    }
+
+    private void PSChordKeyHandle(Key psKeymapChordKey)
+    {
         if (psKeymapChordKey == Key.Escape)
         {
             lsKeymap.QSKeymapChordCancel(lsKeymapChord);
@@ -80,18 +95,21 @@ internal sealed class PSKeymapChord : Button
             QShortcut.QShortcutGestureFormat(psKeymapChordKey, Keyboard.Modifiers));
     }
 
-    private void PSKeymapTextUpdate()
+    private void PSKeymapTextUpdate() => PSKeymapTextShow(PSKeymapTextFormat());
+
+    private string PSKeymapTextFormat()
     {
         if (lsKeymapChord.QSKeymapChordActive)
         {
-            Content = lsKeymapChord.QSKeymapChordPending.Length > 0
+            return lsKeymapChord.QSKeymapChordPending.Length > 0
                 ? lsKeymapChord.QSKeymapChordPending
                 : QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Capture");
-            return;
         }
 
-        Content = lsKeymapChord.QSKeymapChordGesture.Length > 0
+        return lsKeymapChord.QSKeymapChordGesture.Length > 0
             ? lsKeymapChord.QSKeymapChordGesture
             : QLocalizationCatalog.QLocalizationTextRead("Chrome.Shortcuts.Unassigned");
     }
+
+    private void PSKeymapTextShow(string pText) => Content = pText;
 }

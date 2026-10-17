@@ -67,23 +67,25 @@ public sealed partial class PInspector
 
     private UIElement PInspectorResetBuild()
     {
-        var pResetButton = new Button
-        {
-            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Reset"),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ResetTooltip"),
-            Height = PInspectorFieldHeight,
-            MinWidth = 64,
-            Padding = new Thickness(8, 0, 8, 0),
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Bottom,
-            Margin = new Thickness(3)
-        };
-        pResetButton.Click += (_, _) => QInspectorCrop.QInspectorEdgeReset();
+        Button pResetButton = PCropCaptionBuild();
+        PInspectorClickAttach(pResetButton, () => QInspectorCrop.QInspectorEdgeReset());
         QButton.QButtonAttach(pResetButton, QButtonLook.QButtonLookPanel);
         return pResetButton;
     }
+
+    private static Button PCropCaptionBuild() => new()
+    {
+        Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.Reset"),
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Crop.ResetTooltip"),
+        Height = PInspectorFieldHeight,
+        MinWidth = 64,
+        Padding = new Thickness(8, 0, 8, 0),
+        FontSize = 11,
+        FontFamily = pInspectorFontFamily,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Bottom,
+        Margin = new Thickness(3)
+    };
 
     private static void PInspectorCellAdd(Grid pCropGrid, UIElement pCell, int pRow, int pColumn)
     {

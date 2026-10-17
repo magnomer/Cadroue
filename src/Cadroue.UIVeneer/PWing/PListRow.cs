@@ -65,6 +65,12 @@ public sealed class PListRow
         pListPanel = pPanel;
         lList = pPanel.QList;
         PListRowPath = lRow.QListRowPath;
+        PListRowBorder = PListBorderBuild(lRow);
+        PListRowAttach();
+    }
+
+    private static Border PListBorderBuild(QListRow lRow)
+    {
         var pRowContent = new StackPanel { Orientation = Orientation.Horizontal };
         pRowContent.Children.Add(new Image
         {
@@ -85,7 +91,7 @@ public sealed class PListRow
             TextTrimming = TextTrimming.CharacterEllipsis
         });
 
-        PListRowBorder = new Border
+        return new Border
         {
             Padding = new Thickness(12, 5, 12, 5),
             Background = pListBackgrounds[lRow.QListRowState],
@@ -96,6 +102,10 @@ public sealed class PListRow
             Child = pRowContent,
             Tag = lRow.QListRowPath
         };
+    }
+
+    private void PListRowAttach()
+    {
         PListRowBorder.MouseLeftButtonDown += PListPressHandle;
         PListRowBorder.MouseMove += PListMoveHandle;
         PListRowBorder.MouseLeftButtonUp += PListReleaseHandle;

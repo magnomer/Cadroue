@@ -34,38 +34,15 @@ public static class QPickerControl
         ArgumentNullException.ThrowIfNull(lHost);
         ArgumentNullException.ThrowIfNull(lItems);
 
-        QScrollbar.QScrollbarAttach(lHost);
-        lHost.Style = QContract.QContractSheetFind<Style>(QPickerControlStyle);
-        _ = lHost.ApplyTemplate();
-
-        ToggleButton lArrow = (ToggleButton)lHost.Template.FindName(QPickerControlArrow, lHost);
-        Popup lPopup = (Popup)lHost.Template.FindName(QLook.QLookPopupPart, lHost);
-        Panel lList = (Panel)lHost.Template.FindName(QPickerControlList, lHost);
-        QInteractionClick.QInteractionClickAttach(lArrow);
-        lArrow.Checked += (_, _) => lPopup.IsOpen = true;
-        lArrow.Unchecked += (_, _) => lPopup.IsOpen = false;
-        lPopup.PlacementTarget = lHost;
-        lPopup.Closed += (_, _) => lArrow.IsChecked = false;
-        _ = ((FrameworkElement)lHost.Template.FindName(QPickerControlSheet, lHost)).SetBinding(
-            FrameworkElement.MinWidthProperty,
-            new Binding(nameof(FrameworkElement.ActualWidth)) { Source = lHost });
-
-        lHost.Tag = lItems;
-        Action<string, bool> lToggle = (lToken, lChecked) =>
-        {
-            lHost.Tag = QPicker.QPickerItemSet((IReadOnlyList<QPickerItem>)lHost.Tag, lToken, lChecked);
-            QPickerControlUpdate(lHost, lEmptyText);
-            lChanged?.Invoke(QPickerControlRead(lHost));
-        };
+        QPickerStyleApply(lHost);
+        (ToggleButton lArrow, Popup lPopup, Panel lList) = QPickerPartsBuild(lHost);
+        QPickerPopupAttach(lArrow, lPopup);
+        QPickerItemsSet(lHost, lItems);
         foreach (QPickerItem lItem in lItems)
         {
             CheckBox lBox = QContract.QContractSheetFind<CheckBox>(QPickerControlRow);
-            lBox.Content = lItem.QPickerItemLabel;
-            lBox.IsChecked = lItem.QPickerItemChecked;
-            QInteractionClick.QInteractionClickAttach(lBox);
-            QCheckbox.QCheckboxAttach(lBox);
-            lBox.Checked += (_, _) => lToggle(lItem.QPickerItemToken, true);
-            lBox.Unchecked += (_, _) => lToggle(lItem.QPickerItemToken, false);
+            QPickerRowUpdate(lBox, lItem);
+            QPickerRowAttach(lBox, lHost, lItem.QPickerItemToken, lEmptyText, lChanged);
             lList.Children.Add(lBox);
         }
 
@@ -77,14 +54,82 @@ public static class QPickerControl
     {
         ArgumentNullException.ThrowIfNull(lHost);
 
-        return QPicker.QPickerSelectionRead((IReadOnlyList<QPickerItem>)lHost.Tag);
+        return QPicker.QPickerSelectionRead(QPickerItemsRead(lHost));
     }
+
+    private static void QPickerStyleApply(Control lHost)
+    {
+        QScrollbar.QScrollbarAttach(lHost);
+        lHost.Style = QContract.QContractSheetFind<Style>(QPickerControlStyle);
+    }
+
+    private static (ToggleButton, Popup, Panel) QPickerPartsBuild(Control lHost)
+    {
+        _ = lHost.ApplyTemplate();
+
+        ToggleButton lArrow = (ToggleButton)lHost.Template.FindName(QPickerControlArrow, lHost);
+        Popup lPopup = (Popup)lHost.Template.FindName(QLook.QLookPopupPart, lHost);
+        Panel lList = (Panel)lHost.Template.FindName(QPickerControlList, lHost);
+        lPopup.PlacementTarget = lHost;
+        _ = ((FrameworkElement)lHost.Template.FindName(QPickerControlSheet, lHost)).SetBinding(
+            FrameworkElement.MinWidthProperty,
+            new Binding(nameof(FrameworkElement.ActualWidth)) { Source = lHost });
+        return (lArrow, lPopup, lList);
+    }
+
+    private static void QPickerPopupAttach(ToggleButton lArrow, Popup lPopup)
+    {
+        QInteractionClick.QInteractionClickAttach(lArrow);
+        lArrow.Checked += (_, _) => lPopup.IsOpen = true;
+        lArrow.Unchecked += (_, _) => lPopup.IsOpen = false;
+        lPopup.Closed += (_, _) => lArrow.IsChecked = false;
+    }
+
+    private static void QPickerRowUpdate(CheckBox lBox, QPickerItem lItem)
+    {
+        lBox.Content = lItem.QPickerItemLabel;
+        lBox.IsChecked = lItem.QPickerItemChecked;
+    }
+
+    private static void QPickerRowAttach(
+        CheckBox lBox,
+        Control lHost,
+        string lToken,
+        string lEmptyText,
+        Action<IReadOnlyList<string>>? lChanged)
+    {
+        QInteractionClick.QInteractionClickAttach(lBox);
+        QCheckbox.QCheckboxAttach(lBox);
+        lBox.Checked += (_, _) => QPickerRowHandle(lHost, lToken, true, lEmptyText, lChanged);
+        lBox.Unchecked += (_, _) => QPickerRowHandle(lHost, lToken, false, lEmptyText, lChanged);
+    }
+
+    private static void QPickerRowHandle(
+        Control lHost,
+        string lToken,
+        bool lChecked,
+        string lEmptyText,
+        Action<IReadOnlyList<string>>? lChanged)
+    {
+        QPickerItemsSet(lHost, QPicker.QPickerItemSet(QPickerItemsRead(lHost), lToken, lChecked));
+        QPickerControlUpdate(lHost, lEmptyText);
+        lChanged?.Invoke(QPickerControlRead(lHost));
+    }
+
+    private static IReadOnlyList<QPickerItem> QPickerItemsRead(Control lHost) => (IReadOnlyList<QPickerItem>)lHost.Tag;
+
+    private static void QPickerItemsSet(Control lHost, IReadOnlyList<QPickerItem> lItems) => lHost.Tag = lItems;
 
     private static void QPickerControlUpdate(Control lHost, string lEmptyText)
     {
-        (string lText, bool lEmpty) = QPicker.QPickerSummaryRead((IReadOnlyList<QPickerItem>)lHost.Tag, lEmptyText);
+        (string lText, bool lEmpty) = QPicker.QPickerSummaryRead(QPickerItemsRead(lHost), lEmptyText);
         TextBlock lSummary = (TextBlock)lHost.Template.FindName(QPickerControlSummary, lHost);
-        lSummary.Text = lText;
-        lSummary.SetResourceReference(TextBlock.ForegroundProperty, QPickerControlBrushes[lEmpty]);
+        QPickerSummaryUpdate(lSummary, lText);
+        QPickerSummaryApply(lSummary, lEmpty);
     }
+
+    private static void QPickerSummaryUpdate(TextBlock lSummary, string lText) => lSummary.Text = lText;
+
+    private static void QPickerSummaryApply(TextBlock lSummary, bool lEmpty) =>
+        lSummary.SetResourceReference(TextBlock.ForegroundProperty, QPickerControlBrushes[lEmpty]);
 }

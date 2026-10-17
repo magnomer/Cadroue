@@ -9,8 +9,7 @@ public sealed class QLog
 {
     private const int QLogRowMaximum = 5000;
     private readonly CUsher qLogUsher;
-    private readonly List<(long QLogSequence, LTraceEntry QLogEntry)> qLogPending = [];
-    private readonly object qLogPendingLock = new();
+    private readonly QLogPending qLogPending = new();
     private readonly List<QLogRow> qLogRowsAll = [];
     private readonly List<QLogRow> qLogRowsShown = [];
     private readonly List<QLogFile> qLogFiles = [];
@@ -55,11 +54,11 @@ public sealed class QLog
 
     public void QLogAttach()
     {
-        LTrace.LTraceCommittedAppended += QLogAppendHandle;
+        qLogPending.QLogPendingAttach();
         QLogFilesUpdate();
     }
 
-    public void QLogDetach() => LTrace.LTraceCommittedAppended -= QLogAppendHandle;
+    public void QLogDetach() => qLogPending.QLogPendingDetach();
 
     public bool QLogFileCheck(string lPath) =>
         string.Equals(qLogFilePath, lPath, StringComparison.OrdinalIgnoreCase);
@@ -110,12 +109,7 @@ public sealed class QLog
 
     public void QLogCategorySet(IReadOnlyList<string> lTokens)
     {
-        qLogCategories.Clear();
-        foreach (string lToken in lTokens)
-        {
-            qLogCategories.Add(LTraceEntry.LTraceKindFind(lToken));
-        }
-
+        QLogFilterSet(QLogKindsParse(lTokens));
         QLogRowsApply();
     }
 
@@ -134,115 +128,41 @@ public sealed class QLog
 
     public void QLogFilesUpdate(bool lFollowCurrent = false)
     {
-        string lCurrentPath = LTraceWriter.LTracePathRead();
-        LTraceReadResult<List<string>> lFilesResult = LTraceWriter.LTraceFilesRead();
-        List<string> lFiles = lFilesResult.LTraceReadValue;
-        if (!lFilesResult.LTraceReadSuccess)
-        {
-            QLogErrorRaise("Log.Error.List", lFilesResult.LTraceReadError);
-        }
-
-        if (!lFiles.Contains(lCurrentPath, StringComparer.OrdinalIgnoreCase))
-        {
-            lFiles.Insert(0, lCurrentPath);
-        }
-
-        string lSelectedPath = !lFollowCurrent && qLogFiles.Count > 0
-            ? qLogFiles[Math.Clamp(qLogFileIndex, 0, qLogFiles.Count - 1)].QLogFilePath
-            : lCurrentPath;
-        if (!lFiles.Contains(lSelectedPath, StringComparer.OrdinalIgnoreCase))
-        {
-            lSelectedPath = lCurrentPath;
-        }
-
-        if (qLogFiles.Select(lFile => lFile.QLogFilePath).SequenceEqual(lFiles, StringComparer.OrdinalIgnoreCase))
-        {
-            return;
-        }
-
-        qLogFiles.Clear();
-        qLogFileIndex = 0;
-        foreach (string lFile in lFiles)
-        {
-            bool lCurrent = string.Equals(lFile, lCurrentPath, StringComparison.OrdinalIgnoreCase);
-            if (string.Equals(lFile, lSelectedPath, StringComparison.OrdinalIgnoreCase))
-            {
-                qLogFileIndex = qLogFiles.Count;
-            }
-
-            qLogFiles.Add(new QLogFile(
-                lFile,
-                lCurrent
-                    ? QLocalizationCatalog.QLocalizationTextRead("Log.File.Current")
-                    : qLogUsher.CUsherStemRead(lFile)));
-        }
-
-        QLogFilesChanged?.Invoke();
+        (string lCurrentPath, List<string> lFiles) = QLogFilesRead();
+        QLogCurrentInsert(lFiles, lCurrentPath);
+        string lSelectedPath = QLogSelectedResolve(lFiles, lCurrentPath, lFollowCurrent);
+        QLogFilesApply(lFiles, lCurrentPath, lSelectedPath);
     }
 
     public void QLogFileSelect(int lIndex)
     {
-        if (lIndex < 0 || lIndex >= qLogFiles.Count)
+        if (!QLogIndexCheck(lIndex))
         {
             return;
         }
 
-        qLogFileIndex = lIndex;
-        QLogFileSet(qLogFiles[lIndex].QLogFilePath, LTraceWriter.LTracePathRead());
-        LTraceReadResult<string> lRead;
-        long lCommitted = qLogSnapshot;
-        if (qLogFileLive)
-        {
-            lRead = LTraceWriter.LTraceWriterRead(out lCommitted);
-        }
-        else
-        {
-            lRead = LTraceWriter.LTraceFileRead(qLogFilePath);
-        }
-
+        QLogIndexSet(lIndex);
+        QLogFileSet(QLogFiles[lIndex].QLogFilePath, LTraceWriter.LTracePathRead());
+        LTraceReadResult<string> lRead = QLogTextRead(out long lCommitted);
         if (!lRead.LTraceReadSuccess)
         {
             QLogErrorRaise("Log.Error.Read", lRead.LTraceReadError);
             return;
         }
 
-        if (qLogFileLive)
-        {
-            QLogSnapshotSet(lCommitted);
-            lock (qLogPendingLock)
-            {
-                qLogPending.RemoveAll(lItem => QLogSnapshotCheck(lItem.QLogSequence));
-            }
-        }
-
-        qLogRowsAll.Clear();
-        qLogRowsAll.AddRange(LTraceEntry.LTraceEntryParse(lRead.LTraceReadValue).Select(lEntry => new QLogRow(lEntry)));
+        QLogSnapshotApply(lCommitted);
+        QLogRowsReset();
+        QLogRowsAdd(QLogRowsParse(lRead.LTraceReadValue));
         QLogExcessRemove();
         QLogRowsApply();
     }
 
     public void QLogTick()
     {
-        string lCurrentPath = LTraceWriter.LTracePathRead();
-        if (qLogFileLive && !QLogFileCheck(lCurrentPath))
+        QLogLiveSync();
+        if (qLogPending.QLogPendingRemove() is not { } lBatch)
         {
-            QLogFilesUpdate(true);
-            if (!QLogFileCheck(lCurrentPath))
-            {
-                QLogFileSelect(qLogFileIndex);
-            }
-        }
-
-        List<(long QLogSequence, LTraceEntry QLogEntry)> lBatch;
-        lock (qLogPendingLock)
-        {
-            if (qLogPending.Count == 0)
-            {
-                return;
-            }
-
-            lBatch = new List<(long, LTraceEntry)>(qLogPending);
-            qLogPending.Clear();
+            return;
         }
 
         if (!QLogLiveSet(LTraceWriter.LTracePathRead()))
@@ -250,27 +170,7 @@ public sealed class QLog
             return;
         }
 
-        foreach ((long lSequence, LTraceEntry lEntry) in lBatch)
-        {
-            if (QLogSnapshotCheck(lSequence))
-            {
-                continue;
-            }
-
-            var lRow = new QLogRow(lEntry);
-            qLogRowsAll.Add(lRow);
-            if (QLogCategoryCheck(lRow))
-            {
-                qLogRowsShown.Add(lRow);
-                QLogRowAppended?.Invoke(lRow);
-            }
-        }
-
-        if (qLogRowsAll.Count > QLogRowMaximum)
-        {
-            QLogExcessRemove();
-        }
-
+        QLogBatchAppend(lBatch);
         QLogScrollRaise();
     }
 
@@ -297,11 +197,147 @@ public sealed class QLog
     public void QLogErrorRaise(string lMessageKey, string lDetail) =>
         QLogErrorShown?.Invoke(QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail));
 
-    private void QLogAppendHandle(long lSequence, LTraceEntry lEntry)
+    private (string, List<string>) QLogFilesRead()
     {
-        lock (qLogPendingLock)
+        string lCurrentPath = LTraceWriter.LTracePathRead();
+        LTraceReadResult<List<string>> lFilesResult = LTraceWriter.LTraceFilesRead();
+        List<string> lFiles = lFilesResult.LTraceReadValue;
+        if (!lFilesResult.LTraceReadSuccess)
         {
-            qLogPending.Add((lSequence, lEntry));
+            QLogErrorRaise("Log.Error.List", lFilesResult.LTraceReadError);
+        }
+
+        return (lCurrentPath, lFiles);
+    }
+
+    private static void QLogCurrentInsert(List<string> lFiles, string lCurrentPath)
+    {
+        if (!lFiles.Contains(lCurrentPath, StringComparer.OrdinalIgnoreCase))
+        {
+            lFiles.Insert(0, lCurrentPath);
+        }
+    }
+
+    private string QLogSelectedResolve(List<string> lFiles, string lCurrentPath, bool lFollowCurrent)
+    {
+        string lSelectedPath = !lFollowCurrent && qLogFiles.Count > 0
+            ? qLogFiles[Math.Clamp(qLogFileIndex, 0, qLogFiles.Count - 1)].QLogFilePath
+            : lCurrentPath;
+        if (!lFiles.Contains(lSelectedPath, StringComparer.OrdinalIgnoreCase))
+        {
+            lSelectedPath = lCurrentPath;
+        }
+
+        return lSelectedPath;
+    }
+
+    private void QLogFilesApply(List<string> lFiles, string lCurrentPath, string lSelectedPath)
+    {
+        if (qLogFiles.Select(lFile => lFile.QLogFilePath).SequenceEqual(lFiles, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        qLogFiles.Clear();
+        qLogFileIndex = 0;
+        foreach (string lFile in lFiles)
+        {
+            bool lCurrent = string.Equals(lFile, lCurrentPath, StringComparison.OrdinalIgnoreCase);
+            if (string.Equals(lFile, lSelectedPath, StringComparison.OrdinalIgnoreCase))
+            {
+                qLogFileIndex = qLogFiles.Count;
+            }
+
+            qLogFiles.Add(new QLogFile(lFile, QLogLabelRead(lFile, lCurrent)));
+        }
+
+        QLogFilesChanged?.Invoke();
+    }
+
+    private string QLogLabelRead(string lFile, bool lCurrent) =>
+        lCurrent
+            ? QLocalizationCatalog.QLocalizationTextRead("Log.File.Current")
+            : qLogUsher.CUsherStemRead(lFile);
+
+    private bool QLogIndexCheck(int lIndex) => lIndex >= 0 && lIndex < qLogFiles.Count;
+
+    private void QLogIndexSet(int lIndex) => qLogFileIndex = lIndex;
+
+    private LTraceReadResult<string> QLogTextRead(out long lCommitted)
+    {
+        lCommitted = qLogSnapshot;
+        if (qLogFileLive)
+        {
+            return LTraceWriter.LTraceWriterRead(out lCommitted);
+        }
+
+        return LTraceWriter.LTraceFileRead(qLogFilePath);
+    }
+
+    private void QLogSnapshotApply(long lCommitted)
+    {
+        if (!qLogFileLive)
+        {
+            return;
+        }
+
+        QLogSnapshotSet(lCommitted);
+        qLogPending.QLogPendingClear(QLogSnapshotCheck);
+    }
+
+    private void QLogRowsReset() => qLogRowsAll.Clear();
+
+    private static IEnumerable<QLogRow> QLogRowsParse(string lText) =>
+        LTraceEntry.LTraceEntryParse(lText).Select(lEntry => new QLogRow(lEntry));
+
+    private void QLogRowsAdd(IEnumerable<QLogRow> lRows) => qLogRowsAll.AddRange(lRows);
+
+    private void QLogLiveSync()
+    {
+        string lCurrentPath = LTraceWriter.LTracePathRead();
+        if (qLogFileLive && !QLogFileCheck(lCurrentPath))
+        {
+            QLogFilesUpdate(true);
+            if (!QLogFileCheck(lCurrentPath))
+            {
+                QLogFileSelect(qLogFileIndex);
+            }
+        }
+    }
+
+    private void QLogBatchAppend(List<(long QLogSequence, LTraceEntry QLogEntry)> lBatch)
+    {
+        foreach ((long lSequence, LTraceEntry lEntry) in lBatch)
+        {
+            if (QLogSnapshotCheck(lSequence))
+            {
+                continue;
+            }
+
+            var lRow = new QLogRow(lEntry);
+            qLogRowsAll.Add(lRow);
+            if (QLogCategoryCheck(lRow))
+            {
+                qLogRowsShown.Add(lRow);
+                QLogRowAppended?.Invoke(lRow);
+            }
+        }
+
+        if (qLogRowsAll.Count > QLogRowMaximum)
+        {
+            QLogExcessRemove();
+        }
+    }
+
+    private static LTraceKind[] QLogKindsParse(IReadOnlyList<string> lTokens) =>
+        lTokens.Select(LTraceEntry.LTraceKindFind).ToArray();
+
+    private void QLogFilterSet(LTraceKind[] lKinds)
+    {
+        qLogCategories.Clear();
+        foreach (LTraceKind lKind in lKinds)
+        {
+            qLogCategories.Add(lKind);
         }
     }
 

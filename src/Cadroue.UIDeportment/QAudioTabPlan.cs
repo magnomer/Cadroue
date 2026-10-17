@@ -50,14 +50,17 @@ public sealed class QAudioTabPlan
         }
         else if (lInspector.QInspectorFailureSet(lSourcePath))
         {
-            LTraceLog.LTraceWarningRecord(
-                $"Audio edit not saved for '{
-                    qAudioUsher.CUsherNameRead(lSourcePath)}': the sidecar could not be written",
-                lSourcePath);
+            QAudioFailureRecord(lSourcePath);
         }
 
         QAudioPersistentSave();
     }
+
+    private void QAudioFailureRecord(string lSourcePath) =>
+        LTraceLog.LTraceWarningRecord(
+            $"Audio edit not saved for '{
+                qAudioUsher.CUsherNameRead(lSourcePath)}': the sidecar could not be written",
+            lSourcePath);
 
     public void QAudioPlanRestore(string lSourcePath, bool lOwnerFirst)
     {
@@ -68,16 +71,8 @@ public sealed class QAudioTabPlan
         try
         {
             LWorkAudio? lSaved = LAudio.LAudioPlanRead(lSourcePath, LLibrarian.LLibrarianAudioLoad);
-            LWorkAudio? lPersistent = lSections.QInspectorPersistentCheck()
-                ? lSections.QInspectorPersistentRead()
-                : null;
-            if (lSaved is null && lPersistent is null && lOwnerFirst
-                && QAudioPlanRead() is { LWorkAudioActive: true } lPending)
-            {
-                lSaved = lPending;
-                lAdopted = true;
-            }
-
+            LWorkAudio? lPersistent = QAudioPersistentRead(lSections);
+            (lSaved, lAdopted) = QAudioSavedResolve(lSaved, lPersistent, lOwnerFirst);
             LWorkAudio lResolved = LAudio.LAudioPlanResolve(
                 lSaved,
                 lPersistent,
@@ -100,15 +95,43 @@ public sealed class QAudioTabPlan
         }
     }
 
-    public void QAudioActiveUpdate()
+    public void QAudioActiveUpdate() => QAudioActiveApply(QAudioActiveRead());
+
+    private static LWorkAudio? QAudioPersistentRead(QInspectorAudio lSections) =>
+        lSections.QInspectorPersistentCheck()
+            ? lSections.QInspectorPersistentRead()
+            : null;
+
+    // With no saved and no persistent plan, the owner's first visit adopts the pending active plan.
+    private (LWorkAudio? QAudioSaved, bool QAudioAdopted) QAudioSavedResolve(
+        LWorkAudio? lSaved,
+        LWorkAudio? lPersistent,
+        bool lOwnerFirst) =>
+        lSaved is null && lPersistent is null && lOwnerFirst
+        && QAudioPlanRead() is { LWorkAudioActive: true } lPending
+            ? (lPending, true)
+            : (lSaved, false);
+
+    private IReadOnlyList<(string QAudioStep, bool QAudioActive)> QAudioActiveRead()
     {
+        var lStates = new List<(string QAudioStep, bool QAudioActive)>();
         foreach (string lStep in qAudioTab.QAudioProcessing.QProcessingSteps)
         {
             if (QAudioTab.QAudioKindRead(lStep) is { } lKind)
             {
-                qAudioTab.QAudioProcessing.QProcessingActiveSet(
-                    lStep, qAudioTab.QAudioInspector.QInspectorAudio.QInspectorStepRead(lKind).LWorkStepActive);
+                lStates.Add(
+                    (lStep, qAudioTab.QAudioInspector.QInspectorAudio.QInspectorStepRead(lKind).LWorkStepActive));
             }
+        }
+
+        return lStates;
+    }
+
+    private void QAudioActiveApply(IReadOnlyList<(string QAudioStep, bool QAudioActive)> lStates)
+    {
+        foreach ((string lStep, bool lActive) in lStates)
+        {
+            qAudioTab.QAudioProcessing.QProcessingActiveSet(lStep, lActive);
         }
     }
 
@@ -124,6 +147,24 @@ public sealed class QAudioTabPlan
         LWorkAudio lPersistent = lSections.QInspectorPersistentRead();
         bool lSkipPersistent = lInspector.QInspectorSkip.QSkipPersistent;
         bool lSkipApply = lInspector.QInspectorSkip.QSkipActive;
+        IReadOnlyList<string> lFailed = QAudioPathsSave(lPaths, lPersistent, lSkipPersistent, lSkipApply);
+        if (lFailed.Count > 0)
+        {
+            QAudioFanoutRecord(lFailed);
+        }
+    }
+
+    private static void QAudioFanoutRecord(IReadOnlyList<string> lFailed) =>
+        LTraceLog.LTraceWarningRecord(
+            $"Audio persistent save failed for {lFailed.Count} file(s): those sidecars were not written",
+            string.Join(Environment.NewLine, lFailed));
+
+    private static IReadOnlyList<string> QAudioPathsSave(
+        IEnumerable<string> lPaths,
+        LWorkAudio lPersistent,
+        bool lSkipPersistent,
+        bool lSkipApply)
+    {
         var lFailed = new List<string>();
         foreach (string lPath in lPaths)
         {
@@ -141,11 +182,6 @@ public sealed class QAudioTabPlan
             }
         }
 
-        if (lFailed.Count > 0)
-        {
-            LTraceLog.LTraceWarningRecord(
-                $"Audio persistent save failed for {lFailed.Count} file(s): those sidecars were not written",
-                string.Join(Environment.NewLine, lFailed));
-        }
+        return lFailed;
     }
 }

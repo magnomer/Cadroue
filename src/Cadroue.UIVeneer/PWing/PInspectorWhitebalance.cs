@@ -21,23 +21,20 @@ public sealed partial class PInspector
 
     private StackPanel PWhitebalanceBuild()
     {
+        StackPanel pBody = PWhitebalancePanelBuild();
+        PWhitebalanceAttach();
+        return pBody;
+    }
+
+    private StackPanel PWhitebalancePanelBuild()
+    {
         pWhitebalanceBox = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ApplyWhitebalance"));
         pWhitebalancePersistent = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
-        PInspectorSwitchAttach(pWhitebalanceBox, QWhitebalance.QWhitebalanceActiveSet);
-        PInspectorSwitchAttach(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistentSet);
-        pWhitebalanceMethod = new ComboBox
-        {
-            Height = PInspectorFieldHeight,
-            Width = 140,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
-        QDropdown.QDropdownAttach(pWhitebalanceMethod);
+        pWhitebalanceMethod = PInspectorComboBuild();
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Average", "Inspector.Video.WhitebalanceMethodAverage"));
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
@@ -47,19 +44,10 @@ public sealed partial class PInspector
         pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
             "Custom", "Inspector.Video.WhitebalanceMethodCustom"));
         pWhitebalanceMethod.SelectedIndex = 2;
-        pWhitebalanceMethod.SelectionChanged += (_, _) =>
-            QWhitebalance.QWhitebalanceMethodSelect(pWhitebalanceMethod.SelectedIndex);
 
         pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
         pWhitebalanceSaturationValue = PInspectorDecimalBuild();
         pWhitebalanceSaturationValue.Text = "100";
-        PInspectorValueAttach(
-            pWhitebalanceSaturationSlider,
-            pWhitebalanceSaturationValue,
-            0,
-            300,
-            () => QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
-            QWhitebalance.QWhitebalanceSaturationSet);
         pWhitebalanceStack = new StackPanel();
         pWhitebalanceMethodField = PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
@@ -81,34 +69,49 @@ public sealed partial class PInspector
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 2, 0, 8)
         });
-        var pWhitebalanceReset = new Button
-        {
-            Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceReset"),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip"),
-            Height = 28,
-            MinWidth = 64,
-            Padding = new Thickness(8, 0, 8, 0),
-            FontSize = 11,
-            FontFamily = pInspectorFontFamily,
-            HorizontalAlignment = HorizontalAlignment.Right
-        };
-        pWhitebalanceReset.Click += (_, _) => QWhitebalance.QWhitebalanceReset();
-        QButton.QButtonAttach(pWhitebalanceReset, QButtonLook.QButtonLookPanel);
-        pWhitebalanceStack.Children.Add(pWhitebalanceReset);
+        pWhitebalanceStack.Children.Add(PWhitebalanceResetBuild());
         pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
         return pWhitebalanceBody;
     }
 
-    private void PWhitebalanceUpdate()
+    private void PWhitebalanceAttach()
     {
-        PInspectorSwitchUpdate(pWhitebalanceBox, QWhitebalance.QWhitebalanceStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistent);
-        pWhitebalanceMethod.SelectedIndex = QWhitebalance.QWhitebalanceMethodIndex;
-        PInspectorValueUpdate(
+        PInspectorSwitchAttach(pWhitebalanceBox, QWhitebalance.QWhitebalanceActiveSet);
+        PInspectorSwitchAttach(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistentSet);
+        pWhitebalanceMethod.SelectionChanged += (_, _) =>
+            QWhitebalance.QWhitebalanceMethodSelect(pWhitebalanceMethod.SelectedIndex);
+        PInspectorValueAttach(
             pWhitebalanceSaturationSlider,
             pWhitebalanceSaturationValue,
-            QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
-            "0.#");
+            0,
+            300,
+            () => QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
+            QWhitebalance.QWhitebalanceSaturationSet);
+    }
+
+    private Button PWhitebalanceResetBuild()
+    {
+        Button pWhitebalanceReset = PWhitebalanceCaptionBuild();
+        PInspectorClickAttach(pWhitebalanceReset, () => QWhitebalance.QWhitebalanceReset());
+        QButton.QButtonAttach(pWhitebalanceReset, QButtonLook.QButtonLookPanel);
+        return pWhitebalanceReset;
+    }
+
+    private static Button PWhitebalanceCaptionBuild() => new()
+    {
+        Content = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceReset"),
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceResetTooltip"),
+        Height = 28,
+        MinWidth = 64,
+        Padding = new Thickness(8, 0, 8, 0),
+        FontSize = 11,
+        FontFamily = pInspectorFontFamily,
+        HorizontalAlignment = HorizontalAlignment.Right
+    };
+
+    private void PWhitebalanceUpdate()
+    {
+        PWhitebalanceStateApply();
         QInspectorTip pTip = QInspector.QInspectorTipResolve(
             QWhitebalance.QWhitebalanceStep.LWorkStepActive,
             QWhitebalance.QWhitebalanceCapable,
@@ -119,6 +122,26 @@ public sealed partial class PInspector
             "Inspector.Video.PersistWhitebalance");
         PInspectorSectionApply(
             pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pTip);
+        PWhitebalancePickerApply(pTip);
+        PWhitebalanceToolUpdate();
+        PWhitebalanceReadoutUpdate();
+        PWhitebalanceWheelPlace();
+    }
+
+    private void PWhitebalanceStateApply()
+    {
+        PInspectorSwitchUpdate(pWhitebalanceBox, QWhitebalance.QWhitebalanceStep.LWorkStepActive);
+        PInspectorSwitchUpdate(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistent);
+        pWhitebalanceMethod.SelectedIndex = QWhitebalance.QWhitebalanceMethodIndex;
+        PInspectorValueUpdate(
+            pWhitebalanceSaturationSlider,
+            pWhitebalanceSaturationValue,
+            QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
+            "0.#");
+    }
+
+    private void PWhitebalancePickerApply(QInspectorTip pTip)
+    {
         pInspectorNeutralTool.IsEnabled = QWhitebalance.QWhitebalanceCapable;
         pInspectorNeutralTool.ToolTip = QInspector.QInspectorNoticeRead(
             pTip, "Inspector.Video.WhitebalancePickTooltip");
@@ -127,8 +150,5 @@ public sealed partial class PInspector
             pTip, "Inspector.Video.WhitebalancePickWhiteTooltip");
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
         ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
-        PWhitebalanceToolUpdate();
-        PWhitebalanceReadoutUpdate();
-        PWhitebalanceWheelPlace();
     }
 }

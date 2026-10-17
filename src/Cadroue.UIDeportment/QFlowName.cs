@@ -34,16 +34,23 @@ public sealed class QFlowName
         }
 
         QFlowNameHide();
-        qFlowNameIndex = lIndex;
-        LPiece lPiece = lSections[lIndex];
-        QFlowNameShown?.Invoke(new QFlowNamePrompt(
+        QFlowNameShow(QFlowPromptCreate(lIndex, lSections[lIndex]));
+        return true;
+    }
+
+    private static QFlowNamePrompt QFlowPromptCreate(int lIndex, LPiece lPiece) =>
+        new(
             lIndex,
             lPiece.LPieceName,
             lPiece.LPiecePrefix,
             lPiece.LPieceSuffix,
             !string.IsNullOrEmpty(lPiece.LPiecePrefix),
-            !string.IsNullOrEmpty(lPiece.LPieceSuffix)));
-        return true;
+            !string.IsNullOrEmpty(lPiece.LPieceSuffix));
+
+    private void QFlowNameShow(QFlowNamePrompt lPrompt)
+    {
+        qFlowNameIndex = lPrompt.QFlowNameIndex;
+        QFlowNameShown?.Invoke(lPrompt);
     }
 
     public void QFlowNameHide()
@@ -61,11 +68,14 @@ public sealed class QFlowName
     {
         if (qFlowNameIndex is int lIndex)
         {
-            qFlow.QFlowSection.QFlowNameSet(lIndex, lName.Trim(), lPrefix.Trim(), lSuffix.Trim());
+            qFlow.QFlowSection.QFlowNameSet(
+                lIndex, QFlowNameNormalize(lName), QFlowNameNormalize(lPrefix), QFlowNameNormalize(lSuffix));
         }
 
         QFlowNameHide();
     }
+
+    private static string QFlowNameNormalize(string lText) => lText.Trim();
 
     public static double QFlowOffsetResolve(bool lEmpty, double lOrigin, double lSize, double lHostSize) =>
         lEmpty ? 0 : lOrigin + lSize / 2 - lHostSize / 2;

@@ -16,11 +16,16 @@ public sealed class QInfo
     {
         qInfoGate = lInfo;
         QInfoViewer = lViewer;
-        lViewer.QViewerMediaChanged += QInfoMediaHandle;
-        LMediaProbe.LMediaAvailabilityReady += QInfoAvailabilityHandle;
+        QInfoAttach();
     }
 
     public QViewer QInfoViewer { get; }
+
+    private void QInfoAttach()
+    {
+        QInfoViewer.QViewerMediaChanged += QInfoMediaHandle;
+        LMediaProbe.LMediaAvailabilityReady += QInfoAvailabilityHandle;
+    }
 
     public void QInfoDetach() => LMediaProbe.LMediaAvailabilityReady -= QInfoAvailabilityHandle;
 

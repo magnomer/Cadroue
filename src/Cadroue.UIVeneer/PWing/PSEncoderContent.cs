@@ -11,6 +11,28 @@ internal sealed partial class PSEncoder
 
     private UIElement PSEncoderRootBuild(UIElement pTabContent)
     {
+        var pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Apply"));
+        var pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.OK"));
+        var pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Cancel"));
+        PSEncoderFooterAttach(pApply, pOk, pCancel);
+        return PSEncoderLayoutBuild(pTabContent, pApply, pOk, pCancel);
+    }
+
+    private void PSEncoderFooterAttach(Button pApply, Button pOk, Button pCancel)
+    {
+        pApply.Click += (_, _) => PSEncoderApply();
+        pOk.Click += (_, _) => PSEncoderOkHandle();
+        pCancel.Click += (_, _) => Close();
+    }
+
+    private void PSEncoderOkHandle()
+    {
+        PSEncoderApply();
+        DialogResult = true;
+    }
+
+    private UIElement PSEncoderLayoutBuild(UIElement pTabContent, Button pApply, Button pOk, Button pCancel)
+    {
         var pRoot = new DockPanel { Background = Brushes.White };
         var pFooter = new StackPanel
         {
@@ -18,12 +40,6 @@ internal sealed partial class PSEncoder
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        var pApply = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Apply"));
-        var pOk = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.OK"));
-        var pCancel = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Cancel"));
-        pApply.Click += (_, _) => PSEncoderApply();
-        pOk.Click += (_, _) => { PSEncoderApply(); DialogResult = true; };
-        pCancel.Click += (_, _) => Close();
         pFooter.Children.Add(pApply);
         pFooter.Children.Add(pOk);
         pFooter.Children.Add(pCancel);

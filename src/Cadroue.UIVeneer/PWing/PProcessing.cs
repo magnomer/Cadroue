@@ -35,7 +35,7 @@ public sealed class PProcessing : UserControl
     public event Action<bool>? PProcessingMinimizeChanged;
     public event Action? PProcessingMonitorShown;
 
-    private readonly StackPanel pProcessingRowPanel;
+    private readonly StackPanel pProcessingRowPanel = new();
     private readonly UIElement pProcessingFullBody;
     private readonly UIElement pProcessingStripBody;
     private readonly UIElement pProcessingActionBar;
@@ -49,34 +49,55 @@ public sealed class PProcessing : UserControl
     {
         QPanel.QPanelAttach(this);
         QProcessing = lProcessing;
+        PProcessingAttach();
+        UIElement pHeader = PProcessingHeaderBuild();
+        pProcessingMonitorButton = PProcessingMonitorBuild();
+        pProcessingActionBar = PProcessingActionBuild();
+        pProcessingSkipRow = PProcessingSkipBuild();
+        PProcessingPanelAttach();
+        pProcessingFullBody = PProcessingFullBuild(pHeader);
+        pProcessingStripBody = PProcessingStripBuild();
+        PProcessingHostBuild();
+        PProcessingUpdate();
+    }
+
+    private void PProcessingAttach()
+    {
         QProcessing.QProcessingChanged += PProcessingUpdate;
         QProcessing.QProcessingOrderChanged += PProcessingOrderUpdate;
         QProcessing.QProcessingMinimizeChanged += PProcessingMinimizeHandle;
         QProcessing.QProcessingStepChanged += PProcessingStepHandle;
         QProcessing.QProcessingDragCanceled += PProcessingCaptureClear;
-        UIElement pHeader = PProcessingHeaderBuild();
+    }
 
-        pProcessingRowPanel = new StackPanel();
+    private void PProcessingPanelAttach()
+    {
         pProcessingRowPanel.PreviewMouseMove += PProcessingMoveHandle;
         pProcessingRowPanel.MouseLeftButtonUp += PProcessingUpHandle;
         pProcessingRowPanel.LostMouseCapture += PProcessingLostHandle;
+        pProcessingSkipRow.PProcessingRowBorder.MouseLeftButtonUp += (_, _) =>
+            QProcessing.QProcessingStepSelect(QProcessing.QProcessingSkipStep);
+    }
 
+    private Button PProcessingMonitorBuild()
+    {
+        Button pMonitorButton = PProcessingButtonBuild(
+            PProcessingMonitorIcon,
+            QLocalizationCatalog.QLocalizationTextRead("NormalizePreview.Button.Tooltip"),
+            () => PProcessingMonitorShown?.Invoke());
+        pMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
+        pMonitorButton.Visibility = Visibility.Collapsed;
+        return pMonitorButton;
+    }
+
+    private DockPanel PProcessingFullBuild(UIElement pHeader)
+    {
         var pScroll = new ScrollViewer
         {
             Content = pProcessingRowPanel,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
-
-        pProcessingMonitorButton = PProcessingButtonBuild(
-            PProcessingMonitorIcon,
-            QLocalizationCatalog.QLocalizationTextRead("NormalizePreview.Button.Tooltip"),
-            () => PProcessingMonitorShown?.Invoke());
-        pProcessingMonitorButton.HorizontalAlignment = HorizontalAlignment.Right;
-        pProcessingMonitorButton.Visibility = Visibility.Collapsed;
-        pProcessingActionBar = PProcessingActionBuild();
-        pProcessingActionBar.Visibility = Visibility.Collapsed;
-        pProcessingSkipRow = PProcessingSkipBuild();
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
@@ -86,18 +107,17 @@ public sealed class PProcessing : UserControl
         DockPanel.SetDock(pProcessingSkipRow.PProcessingRowBorder, Dock.Bottom);
         pRoot.Children.Add(pProcessingSkipRow.PProcessingRowBorder);
         pRoot.Children.Add(pScroll);
+        return pRoot;
+    }
 
-        pProcessingFullBody = pRoot;
-        pProcessingStripBody = PProcessingStripBuild();
-        pProcessingStripBody.Visibility = Visibility.Collapsed;
-
+    private void PProcessingHostBuild()
+    {
         var pBodyHost = new Grid();
         pBodyHost.Children.Add(pProcessingFullBody);
         pBodyHost.Children.Add(pProcessingStripBody);
 
         FocusVisualStyle = null;
         Content = QPanel.QPanelBuild(pBodyHost);
-        PProcessingUpdate();
     }
 
     public bool PProcessingMinimizedCheck() => QProcessing.QProcessingMinimized;
@@ -117,7 +137,13 @@ public sealed class PProcessing : UserControl
 
     private PProcessingRow PProcessingStepBuild(QProcessingRow lRow)
     {
-        string pStepName = lRow.QProcessingRowKey;
+        PProcessingRow pRow = PProcessingRowBuild(lRow);
+        PProcessingStepAttach(lRow.QProcessingRowKey, pRow.PProcessingRowBorder);
+        return pRow;
+    }
+
+    private static PProcessingRow PProcessingRowBuild(QProcessingRow lRow)
+    {
         var pRow = new PProcessingRow(
             lRow.QProcessingRowIcon,
             QLocalizationCatalog.QLocalizationTextRead(lRow.QProcessingRowLabel),
@@ -126,12 +152,16 @@ public sealed class PProcessing : UserControl
         Border pBorder = pRow.PProcessingRowBorder;
         pBorder.Focusable = true;
         ToolTipService.SetShowOnDisabled(pBorder, true);
-        pBorder.MouseLeftButtonDown += (_, pEvent) => PProcessingPressHandle(pStepName, pEvent);
-        pBorder.KeyDown += (_, pEvent) => PProcessingKeyHandle(pStepName, pEvent);
         return pRow;
     }
 
-    private PProcessingRow PProcessingSkipBuild()
+    private void PProcessingStepAttach(string pStepName, Border pBorder)
+    {
+        pBorder.MouseLeftButtonDown += (_, pEvent) => PProcessingPressHandle(pStepName, pEvent);
+        pBorder.KeyDown += (_, pEvent) => PProcessingKeyHandle(pStepName, pEvent);
+    }
+
+    private static PProcessingRow PProcessingSkipBuild()
     {
         var pRow = new PProcessingRow(
             PProcessingSkipIcon,
@@ -139,8 +169,6 @@ public sealed class PProcessing : UserControl
             pProcessingSkipPadding,
             pProcessingSkipLine);
         pRow.PProcessingRowBorder.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Processing.Skip.Tooltip");
-        pRow.PProcessingRowBorder.MouseLeftButtonUp += (_, _) =>
-            QProcessing.QProcessingStepSelect(QProcessing.QProcessingSkipStep);
         return pRow;
     }
 
@@ -193,19 +221,29 @@ public sealed class PProcessing : UserControl
 
     private void PProcessingMinimizeHandle(bool pProcessingMinimized)
     {
-        pProcessingFullBody.Visibility = PLook.PLookVisible[!pProcessingMinimized];
-        pProcessingStripBody.Visibility = PLook.PLookVisible[pProcessingMinimized];
+        PProcessingBodyApply(pProcessingMinimized);
         PProcessingMinimizeChanged?.Invoke(pProcessingMinimized);
     }
 
+    private void PProcessingBodyApply(bool pProcessingMinimized)
+    {
+        pProcessingFullBody.Visibility = PLook.PLookVisible[!pProcessingMinimized];
+        pProcessingStripBody.Visibility = PLook.PLookVisible[pProcessingMinimized];
+    }
+
     private void PProcessingOrderUpdate()
+    {
+        PProcessingPanelRebuild();
+        PProcessingUpdate();
+    }
+
+    private void PProcessingPanelRebuild()
     {
         pProcessingRowPanel.Children.Clear();
         QProcessing.QProcessingSteps
             .Select(PProcessingBorderRead)
             .ToList()
             .ForEach(pBorder => pProcessingRowPanel.Children.Add(pBorder));
-        PProcessingUpdate();
     }
 
     private void PProcessingUpdate()
@@ -292,7 +330,8 @@ public sealed class PProcessing : UserControl
             BorderBrush = pProcessingLineBrush,
             BorderThickness = new Thickness(0, 1, 0, 0),
             Background = Brushes.White,
-            Child = pActionGrid
+            Child = pActionGrid,
+            Visibility = Visibility.Collapsed
         };
     }
 
@@ -305,28 +344,33 @@ public sealed class PProcessing : UserControl
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
-        var pStrip = new StackPanel { Background = Brushes.White };
+        var pStrip = new StackPanel { Background = Brushes.White, Visibility = Visibility.Collapsed };
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
     }
 
     private static Button PProcessingButtonBuild(string pIconPath, string pTooltip, Action pClick)
     {
-        var pButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pProcessingIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = pTooltip,
-            Width = 28,
-            Height = 26
-        };
-        pButton.Click += (_, _) => pClick();
+        Button pButton = PProcessingIconBuild(pIconPath, pTooltip);
+        PProcessingClickAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PProcessingIconBuild(string pIconPath, string pTooltip) => new()
+    {
+        Content = new Image
+        {
+            Width = 20,
+            Height = 20,
+            Source = QIcon.QIconRead(pIconPath, pProcessingIconBrush),
+            Stretch = Stretch.Uniform
+        },
+        ToolTip = pTooltip,
+        Width = 28,
+        Height = 26
+    };
+
+    private static void PProcessingClickAttach(Button pButton, Action pClick) =>
+        pButton.Click += (_, _) => pClick();
 }

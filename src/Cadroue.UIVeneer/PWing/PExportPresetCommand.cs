@@ -53,22 +53,9 @@ public sealed partial class PExport
     private void PExportPresetSave(object sender, RoutedEventArgs e)
     {
         LPresetDocument lPresetValue = lPresetOwner.LPresetSelectionValue;
-        string lPresetName = string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
-            ? QExport.QExportSelected ?? string.Empty
-            : lPresetValue.LPresetName;
-
+        string lPresetName = PExportNameResolve(lPresetValue);
         string pFileName = LPreset.LPresetFileFormat(lPresetName);
-
-        var pDialog = new SaveFileDialog
-        {
-            Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Export"),
-            Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
-            DefaultExt = "json",
-            AddExtension = true,
-            FileName = string.IsNullOrWhiteSpace(pFileName)
-                ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.DefaultFile")
-                : $"{pFileName}.json"
-        };
+        SaveFileDialog pDialog = PExportSaveBuild(PExportFileResolve(pFileName));
 
         if (pDialog.ShowDialog() != true)
         {
@@ -90,15 +77,36 @@ public sealed partial class PExport
         }
     }
 
+    private string PExportNameResolve(LPresetDocument lPresetValue) =>
+        string.IsNullOrWhiteSpace(lPresetValue.LPresetName)
+            ? QExport.QExportSelected ?? string.Empty
+            : lPresetValue.LPresetName;
+
+    private static string PExportFileResolve(string pFileName) =>
+        string.IsNullOrWhiteSpace(pFileName)
+            ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.DefaultFile")
+            : $"{pFileName}.json";
+
+    private static SaveFileDialog PExportSaveBuild(string pFileName) => new()
+    {
+        Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Export"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
+        DefaultExt = "json",
+        AddExtension = true,
+        FileName = pFileName
+    };
+
+    private static OpenFileDialog PExportOpenBuild() => new()
+    {
+        Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Import"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
+        DefaultExt = "json",
+        CheckFileExists = true
+    };
+
     private void PExportPresetLoad(object sender, RoutedEventArgs e)
     {
-        var pDialog = new OpenFileDialog
-        {
-            Title = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Import"),
-            Filter = QLocalizationCatalog.QLocalizationTextRead("ExportPreset.Dialog.Filter"),
-            DefaultExt = "json",
-            CheckFileExists = true
-        };
+        OpenFileDialog pDialog = PExportOpenBuild();
 
         if (pDialog.ShowDialog() != true)
         {
@@ -130,12 +138,9 @@ public sealed partial class PExport
 
         string lImportedName = LPreset.LPresetNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
 
-        string lPresetName = LPreset.LPresetNameCreate(
-            string.IsNullOrWhiteSpace(lImportedName)
-                ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ImportedName")
-                : lImportedName);
+        string lPresetName = LPreset.LPresetNameCreate(PExportImportResolve(lImportedName));
 
-        lImportedRecord.LPresetName = lPresetName;
+        PExportRecordSet(lImportedRecord, lPresetName);
         if (!LPreset.LPresetSave(lPresetName, LPreset.LPresetStateCreate(lImportedRecord)))
         {
             PExportFailureShow(lPresetName);
@@ -145,9 +150,22 @@ public sealed partial class PExport
         lPresetOwner.LPresetSelectionSelect(lPresetName);
     }
 
+    private static string PExportImportResolve(string lImportedName) =>
+        string.IsNullOrWhiteSpace(lImportedName)
+            ? QLocalizationCatalog.QLocalizationTextRead("ExportPreset.ImportedName")
+            : lImportedName;
+
+    private static void PExportRecordSet(LPresetDocument lImportedRecord, string lPresetName) =>
+        lImportedRecord.LPresetName = lPresetName;
+
     private void PExportModificationApply(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
+        PExportSelectedSave();
+    }
+
+    private void PExportSelectedSave()
+    {
         if (QExport.QExportSelected is not string lPresetName)
         {
             return;
@@ -164,6 +182,11 @@ public sealed partial class PExport
     private void PExportModificationRestore(object sender, RoutedEventArgs e)
     {
         e.Handled = true;
+        PExportSelectedRestore();
+    }
+
+    private void PExportSelectedRestore()
+    {
         if (QExport.QExportSelected is not string)
         {
             return;
@@ -179,7 +202,7 @@ public sealed partial class PExport
             return;
         }
 
-        pExportBoxCurrent = null;
+        PExportBoxSet(null);
         QExport.QExportNameCommit(lOldPresetName, lNewPresetName);
     }
 
@@ -187,16 +210,21 @@ public sealed partial class PExport
     {
         var pButton = (Button)sender;
         LPreset pWorking = PExportWorkingRead();
-        var psEncoder = new PSEncoder(
-            QExport.QExportEncoderCreate(pWorking),
-            () => lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate())
-        {
-            Owner = Window.GetWindow(pButton)
-        };
+        PSEncoder psEncoder = PExportEncoderBuild(pWorking, pButton);
 
         if (psEncoder.ShowDialog() == true)
         {
-            lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate();
+            PExportWorkingSet(pWorking);
         }
     }
+
+    private PSEncoder PExportEncoderBuild(LPreset pWorking, Button pButton) => new(
+        QExport.QExportEncoderCreate(pWorking),
+        () => PExportWorkingSet(pWorking))
+    {
+        Owner = Window.GetWindow(pButton)
+    };
+
+    private void PExportWorkingSet(LPreset pWorking) =>
+        lPresetOwner.LPresetSelectionValue = pWorking.LPresetRecordCreate();
 }

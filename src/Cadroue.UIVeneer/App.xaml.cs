@@ -58,6 +58,11 @@ public partial class PProgram : System.Windows.Application
     {
         PWindow pWindow = new(lWindow);
         QNameplateTip.QNameplateTipAttach();
+        PProgramMainShow(pWindow);
+    }
+
+    private void PProgramMainShow(PWindow pWindow)
+    {
         MainWindow = pWindow;
         MainWindow.Show();
     }

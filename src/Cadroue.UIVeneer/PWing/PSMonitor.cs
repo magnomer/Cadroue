@@ -57,6 +57,22 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource = pSource;
         psMonitorFlow = pFlow;
         psMonitorViewer = pViewer;
+        PSMonitorChromePrepare(pOwner);
+        QScrollbar.QScrollbarAttach(this);
+        psMonitorTimer = PSMonitorTimerCreate();
+        Content = PSMonitorBuild();
+        PSGrabber.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
+        psMonitorGrabber = new PSGrabber(this);
+        psMonitorGrabber.PSGrabberAttach();
+        PSMonitorHandlersAttach();
+        psMonitorSource.QSMonitorViewerAttach(psMonitorViewer.QViewer);
+        psMonitorSource.QSMonitorCursorSet(pFlow.QFlow.QFlowCursor);
+        psMonitorSource.QSMonitorWaveform.QSMonitorUpdate();
+        PSMonitorZoomApply();
+    }
+
+    private void PSMonitorChromePrepare(Window? pOwner)
+    {
         Title = QLocalizationCatalog.QLocalizationTextRead("NormalizePreview.Window.Title");
         Owner = pOwner;
         ShowInTaskbar = true;
@@ -66,15 +82,13 @@ internal sealed partial class PSMonitor : Window
         MinHeight = PSMonitorHeightMinimum;
         ResizeMode = ResizeMode.NoResize;
         PSDialog.PSDialogApply(this, new SolidColorBrush(Color.FromRgb(0xDC, 0xE8, 0xF7)));
-        QScrollbar.QScrollbarAttach(this);
+    }
 
-        psMonitorTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(30) };
+    private static DispatcherTimer PSMonitorTimerCreate() => new() { Interval = TimeSpan.FromMilliseconds(30) };
+
+    private void PSMonitorHandlersAttach()
+    {
         psMonitorTimer.Tick += PSMonitorTickHandle;
-
-        Content = PSMonitorBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
-        psMonitorGrabber = new PSGrabber(this);
-        psMonitorGrabber.PSGrabberAttach();
         psMonitorSource.QSMonitorWaveform.QSMonitorReady += PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged += PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged += PSMonitorPlayingApply;
@@ -85,16 +99,22 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource.QSMonitorPauseApplied += psMonitorFlow.QFlow.QFlowPauseRaise;
         psMonitorFlow.QFlow.QFlowCursorChanged += PSMonitorCursorHandle;
         Closed += PSMonitorCloseHandle;
-        psMonitorSource.QSMonitorViewerAttach(psMonitorViewer.QViewer);
-        psMonitorSource.QSMonitorCursorSet(pFlow.QFlow.QFlowCursor);
-        psMonitorSource.QSMonitorWaveform.QSMonitorUpdate();
-        PSMonitorZoomApply();
     }
 
     private UIElement PSMonitorBuild() =>
         PSDialog.PSDialogBuild(this, Title, PSMonitorRootBuild());
 
     private DockPanel PSMonitorRootBuild()
+    {
+        Button psClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
+            "NormalizePreview.Close"));
+        PSMonitorCloseAttach(psClose);
+        return PSMonitorLayoutBuild(psClose);
+    }
+
+    private void PSMonitorCloseAttach(Button psClose) => psClose.Click += (_, _) => Close();
+
+    private DockPanel PSMonitorLayoutBuild(Button psClose)
     {
         var psMonitor = new DockPanel { Background = Brushes.White };
         var psFooter = new StackPanel
@@ -103,9 +123,6 @@ internal sealed partial class PSMonitor : Window
             HorizontalAlignment = HorizontalAlignment.Right,
             Margin = new Thickness(12)
         };
-        Button psClose = PSFooter.PSFooterButtonBuild(QLocalizationCatalog.QLocalizationTextRead(
-            "NormalizePreview.Close"));
-        psClose.Click += (_, _) => Close();
         psFooter.Children.Add(psClose);
         DockPanel.SetDock(psFooter, Dock.Bottom);
         psMonitor.Children.Add(psFooter);
@@ -123,6 +140,16 @@ internal sealed partial class PSMonitor : Window
     }
 
     private UIElement PSMonitorContentBuild()
+    {
+        Grid psMonitor = PSMonitorGridBuild();
+        PSMonitorScrollAttach();
+        return psMonitor;
+    }
+
+    private void PSMonitorScrollAttach() =>
+        psMonitorScrollbar.ValueChanged += (_, pEvent) => psMonitorSource.QSMonitorOffsetSet(pEvent.NewValue);
+
+    private Grid PSMonitorGridBuild()
     {
         var psMonitor = new Grid();
         psMonitor.RowDefinitions.Add(new RowDefinition
@@ -180,13 +207,31 @@ internal sealed partial class PSMonitor : Window
             IsEnabled = false,
             Opacity = 0.35
         };
-        psMonitorScrollbar.ValueChanged += (_, pEvent) => psMonitorSource.QSMonitorOffsetSet(pEvent.NewValue);
         Grid.SetRow(psMonitorScrollbar, 3);
         psMonitor.Children.Add(psMonitorScrollbar);
         return psMonitor;
     }
 
     private Grid PSMonitorRailBuild(RadioButton pRadio, out Canvas pCanvas, out TextBlock pStatus, out Border pHead)
+    {
+        Grid psRail = PSMonitorLaneBuild(pRadio, out pCanvas, out pStatus, out pHead);
+        PSMonitorCanvasAttach(pCanvas);
+        return psRail;
+    }
+
+    private void PSMonitorCanvasAttach(Canvas psCanvas)
+    {
+        psCanvas.SizeChanged += (_, _) => PSMonitorUpdate();
+        psCanvas.MouseLeftButtonDown += PSMonitorSeekStart;
+        psCanvas.MouseMove += PSMonitorSeekHandle;
+        psCanvas.MouseLeftButtonUp += (_, _) => psCanvas.ReleaseMouseCapture();
+    }
+
+    private static Grid PSMonitorLaneBuild(
+        RadioButton pRadio,
+        out Canvas pCanvas,
+        out TextBlock pStatus,
+        out Border pHead)
     {
         var psRail = new Grid
         {
@@ -195,10 +240,6 @@ internal sealed partial class PSMonitor : Window
         };
 
         var psCanvas = new Canvas { Background = Brushes.Transparent };
-        psCanvas.SizeChanged += (_, _) => PSMonitorUpdate();
-        psCanvas.MouseLeftButtonDown += PSMonitorSeekStart;
-        psCanvas.MouseMove += PSMonitorSeekHandle;
-        psCanvas.MouseLeftButtonUp += (_, _) => psCanvas.ReleaseMouseCapture();
         psRail.Children.Add(psCanvas);
         pCanvas = psCanvas;
 
@@ -252,10 +293,18 @@ internal sealed partial class PSMonitor : Window
 
     private void PSMonitorRailDraw(Canvas pCanvas, TextBlock pStatus, Brush pFill, bool pAfter)
     {
-        pStatus.Text = psMonitorSource.QSMonitorWaveform.QSMonitorStatusRead(pAfter);
+        PSMonitorStatusSet(pStatus, pAfter);
         pCanvas.Children.Clear();
         QSMonitorFrame lFrame = psMonitorSource.QSMonitorFrameResolve(
             pAfter, pCanvas.ActualWidth, pCanvas.ActualHeight);
+        PSMonitorFrameDraw(pCanvas, pFill, lFrame);
+    }
+
+    private void PSMonitorStatusSet(TextBlock pStatus, bool pAfter) =>
+        pStatus.Text = psMonitorSource.QSMonitorWaveform.QSMonitorStatusRead(pAfter);
+
+    private static void PSMonitorFrameDraw(Canvas pCanvas, Brush pFill, QSMonitorFrame lFrame)
+    {
         lFrame.QSMonitorFrameLines.ToList().ForEach(pY => PSMonitorLineDraw(pCanvas, pY));
         lFrame.QSMonitorFrameLabels.ToList().ForEach(lLabel => PSMonitorLabelDraw(pCanvas, lLabel));
         pCanvas.Children.Add(new System.Windows.Shapes.Path
@@ -293,6 +342,15 @@ internal sealed partial class PSMonitor : Window
 
     private void PSMonitorCloseHandle(object? pSender, EventArgs pEvent)
     {
+        PSMonitorHandlersDetach();
+        psMonitorSource.QSMonitorViewerDetach();
+        psMonitorTimer.Stop();
+        PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);
+        psMonitorGrabber.PSGrabberDetach();
+    }
+
+    private void PSMonitorHandlersDetach()
+    {
         psMonitorSource.QSMonitorWaveform.QSMonitorReady -= PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged -= PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged -= PSMonitorPlayingApply;
@@ -301,11 +359,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource.QSMonitorSeekApplied -= psMonitorFlow.QFlow.QFlowCursorSeek;
         psMonitorSource.QSMonitorPlayApplied -= psMonitorFlow.QFlow.QFlowPlayRaise;
         psMonitorSource.QSMonitorPauseApplied -= psMonitorFlow.QFlow.QFlowPauseRaise;
-        psMonitorSource.QSMonitorViewerDetach();
         psMonitorFlow.QFlow.QFlowCursorChanged -= PSMonitorCursorHandle;
-        psMonitorTimer.Stop();
         psMonitorTimer.Tick -= PSMonitorTickHandle;
-        PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);
-        psMonitorGrabber.PSGrabberDetach();
     }
 }

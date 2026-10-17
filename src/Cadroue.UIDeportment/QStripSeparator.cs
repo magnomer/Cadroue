@@ -24,7 +24,7 @@ public sealed class QStripSeparator
             return;
         }
 
-        qStripVertical = lVertical;
+        QStripAxisSet(lVertical);
         QStripHoverClear(null);
     }
 
@@ -35,7 +35,7 @@ public sealed class QStripSeparator
             return;
         }
 
-        qStripHovered = lTab;
+        QStripHoveredSet(lTab);
         QStripSeparatorUpdate();
     }
 
@@ -46,7 +46,7 @@ public sealed class QStripSeparator
             return;
         }
 
-        qStripHovered = null;
+        QStripHoveredSet(null);
         QStripSeparatorUpdate();
     }
 
@@ -54,28 +54,41 @@ public sealed class QStripSeparator
     {
         if (lTab is null || ReferenceEquals(qStripHovered, lTab))
         {
-            qStripHovered = null;
+            QStripHoveredSet(null);
         }
     }
 
     public void QStripSeparatorUpdate()
     {
-        int lSelectedIndex = qStrip.QStripSelected is null ? -1 : qStripTabs.IndexOf(qStrip.QStripSelected);
-        int lHoveredIndex = qStripHovered is null ? -1 : qStripTabs.IndexOf(qStripHovered);
+        int lSelectedIndex = QStripIndexRead(qStrip.QStripSelected);
+        int lHoveredIndex = QStripIndexRead(qStripHovered);
         for (int lIndex = 0; lIndex < qStripTabs.Count; lIndex++)
         {
-            bool lSeparator = lIndex < qStripTabs.Count - 1
-                && lIndex != lSelectedIndex
-                && lIndex != lSelectedIndex - 1
-                && lIndex != lHoveredIndex
-                && lIndex != lHoveredIndex - 1;
-            if (qStripTabs[lIndex].QStripTabSeparator == lSeparator)
-            {
-                continue;
-            }
-
-            qStripTabs[lIndex].QStripTabSeparator = lSeparator;
-            qStrip.QStripTabRaise(qStripTabs[lIndex]);
+            QStripSeparatorSet(qStripTabs[lIndex], QStripSeparatorCheck(lIndex, lSelectedIndex, lHoveredIndex));
         }
+    }
+
+    private void QStripAxisSet(bool lVertical) => qStripVertical = lVertical;
+
+    private void QStripHoveredSet(QStripTab? lTab) => qStripHovered = lTab;
+
+    private int QStripIndexRead(QStripTab? lTab) => lTab is null ? -1 : qStripTabs.IndexOf(lTab);
+
+    private bool QStripSeparatorCheck(int lIndex, int lSelectedIndex, int lHoveredIndex) =>
+        lIndex < qStripTabs.Count - 1
+        && lIndex != lSelectedIndex
+        && lIndex != lSelectedIndex - 1
+        && lIndex != lHoveredIndex
+        && lIndex != lHoveredIndex - 1;
+
+    private void QStripSeparatorSet(QStripTab lTab, bool lSeparator)
+    {
+        if (lTab.QStripTabSeparator == lSeparator)
+        {
+            return;
+        }
+
+        lTab.QStripTabSeparator = lSeparator;
+        qStrip.QStripTabRaise(lTab);
     }
 }

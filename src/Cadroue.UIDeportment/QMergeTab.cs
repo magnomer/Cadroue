@@ -16,13 +16,7 @@ public sealed class QMergeTab
         qMergePreset = lPreset;
         qMergeDocket = lList.QListDocket;
         QMergeGroup = new QGroup(lUsher, QMergeSelection);
-        QMergeGroup.QGroupSourceAttach(QMergePathsRead);
-        qMergeDocket.LDocketChanged += QMergeDocketHandle;
-        qMergeDocket.LDocketRemoved += QMergeGroup.QGroupPathsRemove;
-        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
-        QMergeGroup.QGroupDrag.QGroupItemOpened += lViewer.QViewerWorkspace.CWorkspaceOpen;
-        QMergeGroup.QGroupDrag.QGroupPathsRequest += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
-        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+        QMergeHandlersAttach(lViewer, lList);
     }
 
     public event Action? QMergePresetMissing;
@@ -47,9 +41,10 @@ public sealed class QMergeTab
 
     public void QMergeLayoutApply(LSceneTabEntry? lLayout)
     {
-        QMergeSelection.LGroupAutoChange(lLayout?.LSceneGroupAuto ?? false);
-        QMergeSelection.LGroupStrictChange(lLayout?.LSceneGroupStrict ?? true);
-        QMergeSelection.LGroupModeChange(lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
+        (bool lAuto, bool lStrict, LSeriesNameMode lMode) = QMergeLayoutResolve(lLayout);
+        QMergeSelection.LGroupAutoChange(lAuto);
+        QMergeSelection.LGroupStrictChange(lStrict);
+        QMergeSelection.LGroupModeChange(lMode);
     }
 
     public void QMergeRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
@@ -137,6 +132,22 @@ public sealed class QMergeTab
 
         return lGroups;
     }
+
+    private void QMergeHandlersAttach(QViewer lViewer, QList lList)
+    {
+        QMergeGroup.QGroupSourceAttach(QMergePathsRead);
+        qMergeDocket.LDocketChanged += QMergeDocketHandle;
+        qMergeDocket.LDocketRemoved += QMergeGroup.QGroupPathsRemove;
+        lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        QMergeGroup.QGroupDrag.QGroupItemOpened += lViewer.QViewerWorkspace.CWorkspaceOpen;
+        QMergeGroup.QGroupDrag.QGroupPathsRequest += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+        lViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = lList.QListPathsAdd(lDropPaths);
+    }
+
+    private static (bool, bool, LSeriesNameMode) QMergeLayoutResolve(LSceneTabEntry? lLayout) =>
+        (lLayout?.LSceneGroupAuto ?? false,
+            lLayout?.LSceneGroupStrict ?? true,
+            lLayout?.LSceneGroupMode ?? LSeriesNameMode.LSeriesNameBase);
 
     private void QMergeDocketHandle(IReadOnlyList<LDocketEntry> lEntries)
     {

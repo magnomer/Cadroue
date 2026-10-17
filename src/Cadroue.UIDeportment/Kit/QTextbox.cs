@@ -14,11 +14,19 @@ public static class QTextbox
     {
         ArgumentNullException.ThrowIfNull(lBox);
 
+        QTextboxStyleApply(lBox);
+        QTextboxHostBuild(lBox);
+        QLook.QLookAttach(lBox, QTextboxStyle);
+    }
+
+    private static void QTextboxStyleApply(TextBox lBox) =>
         lBox.Style = QContract.QContractSheetFind<Style>(QTextboxStyle);
+
+    private static void QTextboxHostBuild(TextBox lBox)
+    {
         _ = lBox.ApplyTemplate();
         _ = ((FrameworkElement)lBox.Template.FindName(QTextboxHostPart, lBox)).SetBinding(
             FrameworkElement.MarginProperty,
             new Binding(nameof(Control.Padding)) { Source = lBox });
-        QLook.QLookAttach(lBox, QTextboxStyle);
     }
 }

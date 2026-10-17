@@ -57,31 +57,45 @@ public sealed class PGroup : UserControl
         QPanel.QPanelAttach(this);
         QGroup = lGroup;
         pGroupRowPanel = new StackPanel();
-        pGroupActionHost = new Border
-        {
-            BorderBrush = pGroupLineBrush,
-            BorderThickness = new Thickness(0, 1, 0, 0),
-            Background = Brushes.White
-        };
+        pGroupActionHost = PGroupHostBuild();
+        pGroupEmptyNotice = PGroupNoticeBuild();
+        ScrollViewer pScroll = PGroupScrollBuild();
+        PGroupScrollAttach(pScroll);
+        pGroupFullBody = PGroupRootBuild(pScroll);
+        pGroupStripBody = PGroupStripBuild();
+        PGroupFrameBuild();
+        PGroupActionUpdate();
+        PGroupRebuild();
+        PGroupHandlerAttach();
+    }
 
-        pGroupEmptyNotice = new TextBlock
-        {
-            Text = QLocalizationCatalog.QLocalizationTextRead("Group.Empty.Notice"),
-            FontSize = 12,
-            FontFamily = pGroupFontFamily,
-            Foreground = pGroupMutedBrush,
-            TextWrapping = TextWrapping.Wrap,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextAlignment = TextAlignment.Center,
-            Margin = new Thickness(16, 24, 16, 16),
-            IsHitTestVisible = false
-        };
+    private static Border PGroupHostBuild() => new()
+    {
+        BorderBrush = pGroupLineBrush,
+        BorderThickness = new Thickness(0, 1, 0, 0),
+        Background = Brushes.White
+    };
 
+    private static TextBlock PGroupNoticeBuild() => new()
+    {
+        Text = QLocalizationCatalog.QLocalizationTextRead("Group.Empty.Notice"),
+        FontSize = 12,
+        FontFamily = pGroupFontFamily,
+        Foreground = pGroupMutedBrush,
+        TextWrapping = TextWrapping.Wrap,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        TextAlignment = TextAlignment.Center,
+        Margin = new Thickness(16, 24, 16, 16),
+        IsHitTestVisible = false
+    };
+
+    private ScrollViewer PGroupScrollBuild()
+    {
         var pBody = new Grid();
         pBody.Children.Add(pGroupEmptyNotice);
         pBody.Children.Add(pGroupRowPanel);
 
-        var pScroll = new ScrollViewer
+        return new ScrollViewer
         {
             Content = pBody,
             Background = Brushes.Transparent,
@@ -89,9 +103,16 @@ public sealed class PGroup : UserControl
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled
         };
+    }
+
+    private void PGroupScrollAttach(ScrollViewer pScroll)
+    {
         pScroll.DragOver += PGroupOverHandle;
         pScroll.Drop += PGroupDropHandle;
+    }
 
+    private DockPanel PGroupRootBuild(ScrollViewer pScroll)
+    {
         var pRoot = new DockPanel { LastChildFill = true };
         UIElement pHeader = PGroupHeaderBuild();
         DockPanel.SetDock(pHeader, Dock.Top);
@@ -99,18 +120,19 @@ public sealed class PGroup : UserControl
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pGroupActionHost);
         pRoot.Children.Add(pScroll);
+        return pRoot;
+    }
 
-        pGroupFullBody = pRoot;
-        pGroupStripBody = PGroupStripBuild();
-        pGroupStripBody.Visibility = Visibility.Collapsed;
-
+    private void PGroupFrameBuild()
+    {
         var pBodyHost = new Grid();
         pBodyHost.Children.Add(pGroupFullBody);
         pBodyHost.Children.Add(pGroupStripBody);
-
         Content = QPanel.QPanelBuild(pBodyHost);
-        PGroupActionUpdate();
-        PGroupRebuild();
+    }
+
+    private void PGroupHandlerAttach()
+    {
         QGroup.QGroupChanged += PGroupRebuild;
         QGroup.QGroupFaceChanged += PGroupActionUpdate;
         QGroup.QGroupMinimizeChanged += PGroupMinimizeHandle;
@@ -121,13 +143,20 @@ public sealed class PGroup : UserControl
 
     private void PGroupRebuild()
     {
+        PGroupRowsBuild();
+        PGroupEmptyApply();
+    }
+
+    private void PGroupRowsBuild()
+    {
         pGroupRowPanel.Children.Clear();
         QGroup.QGroupFace.QGroupCardsRead()
             .Select(PGroupCardBuild)
             .ToList()
             .ForEach(pCard => pGroupRowPanel.Children.Add(pCard));
-        pGroupEmptyNotice.Visibility = PLook.PLookVisible[QGroup.QGroupEmpty];
     }
+
+    private void PGroupEmptyApply() => pGroupEmptyNotice.Visibility = PLook.PLookVisible[QGroup.QGroupEmpty];
 
     private Border PGroupCardBuild(QGroupCard lCard) => new PGroupCard(this, lCard).PGroupCardBorder;
 
@@ -227,6 +256,13 @@ public sealed class PGroup : UserControl
 
     private static Border PGroupSegmentBuild(QGroupSide lSide, Action pGroupClick)
     {
+        Border pSegment = PGroupSegmentCreate(lSide);
+        PGroupSegmentAttach(pSegment, pGroupClick);
+        return pSegment;
+    }
+
+    private static Border PGroupSegmentCreate(QGroupSide lSide)
+    {
         var pLabel = new TextBlock
         {
             Text = lSide.QGroupSideText,
@@ -238,7 +274,7 @@ public sealed class PGroup : UserControl
             HorizontalAlignment = HorizontalAlignment.Center
         };
 
-        var pSegment = new Border
+        return new Border
         {
             Background = pGroupSegmentFills[lSide.QGroupSideActive],
             Padding = new Thickness(12, 3, 12, 3),
@@ -246,9 +282,10 @@ public sealed class PGroup : UserControl
             ToolTip = lSide.QGroupSideTip,
             Child = pLabel
         };
-        pSegment.MouseLeftButtonUp += (_, _) => pGroupClick();
-        return pSegment;
     }
+
+    private static void PGroupSegmentAttach(Border pSegment, Action pGroupClick) =>
+        pSegment.MouseLeftButtonUp += (_, _) => pGroupClick();
 
     private UIElement PGroupHeaderBuild()
     {
@@ -295,31 +332,35 @@ public sealed class PGroup : UserControl
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
-        var pStrip = new StackPanel { Background = Brushes.White };
+        var pStrip = new StackPanel { Background = Brushes.White, Visibility = Visibility.Collapsed };
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
     }
 
     internal static Button PGroupButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler pClick)
     {
-        var pButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pGroupIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = pTooltip,
-            Width = 28,
-            Height = 26,
-            Margin = new Thickness(0, 0, 2, 0)
-        };
-        pButton.Click += pClick;
+        Button pButton = PGroupButtonCreate(pIconPath, pTooltip);
+        PGroupButtonAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PGroupButtonCreate(string pIconPath, string pTooltip) => new()
+    {
+        Content = new Image
+        {
+            Width = 20,
+            Height = 20,
+            Source = QIcon.QIconRead(pIconPath, pGroupIconBrush),
+            Stretch = Stretch.Uniform
+        },
+        ToolTip = pTooltip,
+        Width = 28,
+        Height = 26,
+        Margin = new Thickness(0, 0, 2, 0)
+    };
+
+    private static void PGroupButtonAttach(Button pButton, RoutedEventHandler pClick) => pButton.Click += pClick;
 
     internal static void PGroupOverHandle(object pSender, DragEventArgs pEvent)
     {

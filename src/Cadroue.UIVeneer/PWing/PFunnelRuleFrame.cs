@@ -53,33 +53,45 @@ internal sealed class PFunnelRuleFrame
     {
         pFunnelBody = pBody;
         pFunnelFold = pFold;
-        pFunnelOrderBadge = new TextBlock
-        {
-            FontSize = 12,
-            FontFamily = pFunnelFontFamily,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = Brushes.White,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextAlignment = TextAlignment.Center
-        };
+        pFunnelOrderBadge = PFunnelBadgeBuild();
         pFunnelFoldButton = PFunnelFoldBuild();
         pFunnelTitleBar = PFunnelTitleBuild(QLocalizationCatalog.QLocalizationTextRead(pTitleKey), pRemove);
     }
 
     public Border PFunnelHeader => pFunnelTitleBar;
 
-    public void PFunnelOrderSet(int pOrder) => pFunnelOrderBadge.Text = pOrder.ToString();
+    public void PFunnelOrderSet(int pOrder) => pFunnelOrderBadge.Text = PFunnelOrderFormat(pOrder);
 
     public void PFunnelSelectSet(bool pSelected) => pFunnelTitleBar.Background = pFunnelSelectBrushes[pSelected];
 
     public void PFunnelCollapsedSet(bool pCollapsed)
     {
+        PFunnelCollapsedApply(pCollapsed);
+        PFunnelTipShow(pCollapsed);
+    }
+
+    private static TextBlock PFunnelBadgeBuild() => new()
+    {
+        FontSize = 12,
+        FontFamily = pFunnelFontFamily,
+        FontWeight = FontWeights.SemiBold,
+        Foreground = Brushes.White,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        VerticalAlignment = VerticalAlignment.Center,
+        TextAlignment = TextAlignment.Center
+    };
+
+    private static string PFunnelOrderFormat(int pOrder) => pOrder.ToString();
+
+    private void PFunnelCollapsedApply(bool pCollapsed)
+    {
         pFunnelBody.Visibility = PLook.PLookVisible[!pCollapsed];
         pFunnelTitleBar.BorderThickness = pFunnelHeaderBorders[pCollapsed];
         pFunnelFoldButton.Content = pFunnelGlyphs[pCollapsed];
-        pFunnelFoldButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[pCollapsed]);
     }
+
+    private void PFunnelTipShow(bool pCollapsed) =>
+        pFunnelFoldButton.ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[pCollapsed]);
 
     private Border PFunnelTitleBuild(string pTitle, Action pRemove)
     {
@@ -128,19 +140,23 @@ internal sealed class PFunnelRuleFrame
 
     private Button PFunnelFoldBuild()
     {
-        var pButton = new Button
-        {
-            Width = 20,
-            Height = 20,
-            Padding = new Thickness(0),
-            Cursor = Cursors.Hand,
-            Content = pFunnelGlyphs[false],
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[false])
-        };
-        pButton.Click += (_, _) => pFunnelFold();
+        Button pButton = PFunnelFoldCreate();
+        PFunnelFoldAttach(pButton);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookChrome);
         return pButton;
     }
+
+    private Button PFunnelFoldCreate() => new()
+    {
+        Width = 20,
+        Height = 20,
+        Padding = new Thickness(0),
+        Cursor = Cursors.Hand,
+        Content = pFunnelGlyphs[false],
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead(pFunnelFoldTooltips[false])
+    };
+
+    private void PFunnelFoldAttach(Button pButton) => pButton.Click += (_, _) => pFunnelFold();
 
     private static Canvas PFunnelGlyphBuild() => new()
     {
@@ -184,23 +200,27 @@ internal sealed class PFunnelRuleFrame
         return pCanvas;
     }
 
-    private Button PFunnelRemoveBuild(Action pRemove)
+    private static Button PFunnelRemoveBuild(Action pRemove)
     {
-        var pButton = new Button
-        {
-            Width = 20,
-            Height = 20,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            VerticalAlignment = VerticalAlignment.Center,
-            Content = "×",
-            FontSize = 15,
-            Foreground = pFunnelMutedBrush,
-            Padding = new Thickness(0),
-            Cursor = Cursors.Hand,
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remove")
-        };
-        pButton.Click += (_, _) => pRemove();
+        Button pButton = PFunnelRemoveCreate();
+        PFunnelRemoveAttach(pButton, pRemove);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookChrome);
         return pButton;
     }
+
+    private static Button PFunnelRemoveCreate() => new()
+    {
+        Width = 20,
+        Height = 20,
+        HorizontalAlignment = HorizontalAlignment.Right,
+        VerticalAlignment = VerticalAlignment.Center,
+        Content = "×",
+        FontSize = 15,
+        Foreground = pFunnelMutedBrush,
+        Padding = new Thickness(0),
+        Cursor = Cursors.Hand,
+        ToolTip = QLocalizationCatalog.QLocalizationTextRead("Inspector.Funnel.Remove")
+    };
+
+    private static void PFunnelRemoveAttach(Button pButton, Action pRemove) => pButton.Click += (_, _) => pRemove();
 }

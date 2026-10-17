@@ -68,10 +68,16 @@ public sealed class QViewerRenderer
             return;
         }
 
+        QViewerEngineSave(lKey);
+        LRenderer.LRendererEngineSet(lMpv ? LPreviewEngine.LPreviewEngineMpv : LPreviewEngine.LPreviewEngineFlyleaf);
+    }
+
+    // The chosen engine's key goes into a fresh preference record, which replaces the current one.
+    private static void QViewerEngineSave(string lKey)
+    {
         LPreferenceState lPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lPreference.LPreferencePreviewEngine = lKey;
         LPreference.LPreferenceStateSet(lPreference);
-        LRenderer.LRendererEngineSet(lMpv ? LPreviewEngine.LPreviewEngineMpv : LPreviewEngine.LPreviewEngineFlyleaf);
     }
 
     public void QViewerEngineHandle()

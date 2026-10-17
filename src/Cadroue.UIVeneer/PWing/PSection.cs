@@ -20,7 +20,7 @@ public sealed class PSection : UserControl
     private const double PSectionDragOpacity = 0.72;
 
     private readonly TextBlock pSectionCountLabel;
-    private readonly StackPanel pSectionRowPanel;
+    private readonly StackPanel pSectionRowPanel = new();
     private readonly UIElement pSectionActionBar;
     private readonly UIElement pSectionFullBody;
     private readonly UIElement pSectionStripBody;
@@ -30,23 +30,39 @@ public sealed class PSection : UserControl
     public PSection(QSection lSection)
     {
         QSection = lSection;
-        pSectionCountLabel = new TextBlock
-        {
-            Text = QSection.QSectionTitleRead(),
-            FontSize = 12,
-            FontFamily = pSectionFontFamily,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
-            VerticalAlignment = VerticalAlignment.Center
-        };
-
+        pSectionCountLabel = PSectionCountBuild();
         UIElement pHeader = PSectionHeaderBuild();
+        PSectionPanelAttach();
+        pSectionActionBar = PSectionActionBuild();
+        PSectionActionApply(QSection.QSectionEditable);
+        pSectionFullBody = PSectionFullBuild(pHeader);
+        pSectionStripBody = PSectionStripBuild();
+        PSectionHostBuild();
+        PSectionRebuild();
+        PSectionAttach();
+    }
 
-        pSectionRowPanel = new StackPanel();
+    private TextBlock PSectionCountBuild() => new()
+    {
+        Text = QSection.QSectionTitleRead(),
+        FontSize = 12,
+        FontFamily = pSectionFontFamily,
+        FontWeight = FontWeights.SemiBold,
+        Foreground = new SolidColorBrush(Color.FromRgb(0x26, 0x36, 0x4A)),
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private void PSectionPanelAttach()
+    {
         pSectionRowPanel.PreviewMouseMove += PSectionMoveHandle;
         pSectionRowPanel.MouseLeftButtonUp += PSectionUpHandle;
         pSectionRowPanel.LostMouseCapture += PSectionLostHandle;
+    }
 
+    private void PSectionActionApply(bool lEditable) => pSectionActionBar.IsEnabled = lEditable;
+
+    private DockPanel PSectionFullBuild(UIElement pHeader)
+    {
         var pScroll = new ScrollViewer
         {
             Content = pSectionRowPanel,
@@ -56,17 +72,15 @@ public sealed class PSection : UserControl
 
         var pRoot = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(pHeader, Dock.Top);
-        pSectionActionBar = PSectionActionBuild();
-        pSectionActionBar.IsEnabled = QSection.QSectionEditable;
         DockPanel.SetDock(pSectionActionBar, Dock.Bottom);
         pRoot.Children.Add(pHeader);
         pRoot.Children.Add(pSectionActionBar);
         pRoot.Children.Add(pScroll);
+        return pRoot;
+    }
 
-        pSectionFullBody = pRoot;
-        pSectionStripBody = PSectionStripBuild();
-        pSectionStripBody.Visibility = Visibility.Collapsed;
-
+    private void PSectionHostBuild()
+    {
         var pBodyHost = new Grid();
         pBodyHost.Children.Add(pSectionFullBody);
         pBodyHost.Children.Add(pSectionStripBody);
@@ -74,7 +88,10 @@ public sealed class PSection : UserControl
         FocusVisualStyle = null;
         QScrollbar.QScrollbarAttach(this);
         Content = QPanel.QPanelBuild(pBodyHost);
-        PSectionRebuild();
+    }
+
+    private void PSectionAttach()
+    {
         QSection.QSectionChanged += PSectionRebuild;
         QSection.QSectionSelectApplied += PSectionSelectApply;
         QSection.QSectionEnabledApplied += PSectionEnabledApply;
@@ -99,8 +116,15 @@ public sealed class PSection : UserControl
 
     private void PSectionRebuild()
     {
+        PSectionTitleApply();
+        PSectionPanelRebuild();
+    }
+
+    private void PSectionTitleApply() => pSectionCountLabel.Text = QSection.QSectionTitleRead();
+
+    private void PSectionPanelRebuild()
+    {
         pSectionRowPanel.Children.Clear();
-        pSectionCountLabel.Text = QSection.QSectionTitleRead();
         QSection.QSectionRowsRead()
             .Select(PSectionRowBuild)
             .ToList()
@@ -123,8 +147,8 @@ public sealed class PSection : UserControl
 
     private void PSectionEnabledApply(bool lEditable)
     {
-        pSectionActionBar.IsEnabled = lEditable;
-        pSectionRowPanel.ReleaseMouseCapture();
+        PSectionActionApply(lEditable);
+        PSectionCaptureRelease();
     }
 
     private void PSectionMinimizeHandle(bool pSectionMinimized)
@@ -149,10 +173,15 @@ public sealed class PSection : UserControl
 
     private void PSectionRowMove(int lSource, int lInsert)
     {
+        PSectionRowInsert(lSource, lInsert);
+        PSectionRowsRead().ForEach(PSectionNumberApply);
+    }
+
+    private void PSectionRowInsert(int lSource, int lInsert)
+    {
         UIElement pRow = pSectionRowPanel.Children[lSource];
         pSectionRowPanel.Children.RemoveAt(lSource);
         pSectionRowPanel.Children.Insert(lInsert, pRow);
-        PSectionRowsRead().ForEach(PSectionNumberApply);
     }
 
     private void PSectionNumberApply(PSectionRow pRow) =>
@@ -227,7 +256,7 @@ public sealed class PSection : UserControl
         pMaximizeButton.Margin = new Thickness(0, 6, 0, 0);
         pMaximizeButton.HorizontalAlignment = HorizontalAlignment.Center;
 
-        var pStrip = new StackPanel { Background = Brushes.White };
+        var pStrip = new StackPanel { Background = Brushes.White, Visibility = Visibility.Collapsed };
         pStrip.Children.Add(pMaximizeButton);
         return pStrip;
     }
@@ -274,22 +303,26 @@ public sealed class PSection : UserControl
 
     private static Button PSectionButtonBuild(string pIconPath, string pTooltip, RoutedEventHandler pClick)
     {
-        var pButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pSectionIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = pTooltip,
-            Width = 28,
-            Height = 26,
-            Margin = new Thickness(0, 0, 2, 0)
-        };
-        pButton.Click += pClick;
+        Button pButton = PSectionIconBuild(pIconPath, pTooltip);
+        PSectionClickAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PSectionIconBuild(string pIconPath, string pTooltip) => new()
+    {
+        Content = new Image
+        {
+            Width = 20,
+            Height = 20,
+            Source = QIcon.QIconRead(pIconPath, pSectionIconBrush),
+            Stretch = Stretch.Uniform
+        },
+        ToolTip = pTooltip,
+        Width = 28,
+        Height = 26,
+        Margin = new Thickness(0, 0, 2, 0)
+    };
+
+    private static void PSectionClickAttach(Button pButton, RoutedEventHandler pClick) => pButton.Click += pClick;
 }

@@ -32,6 +32,11 @@ public sealed class QFlowEdit
             qFlow.QFlowName.QFlowNameHide();
         }
 
+        return QFlowEditChange(lSectionEditable);
+    }
+
+    private bool QFlowEditChange(bool lSectionEditable)
+    {
         if (qFlowSectionEditable == lSectionEditable)
         {
             return false;

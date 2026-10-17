@@ -28,31 +28,10 @@ public sealed class QViewerMpv
             return;
         }
 
-        string? lPreviewError = null;
-        try
+        (bool lCurrent, string? lPreviewError) = await QViewerMpvOpen(lSourcePath, lSerial);
+        if (!lCurrent)
         {
-            if (!QPlayer.QPlayerReady)
-            {
-                qViewer.QViewerMedia.QViewerPlayerRaise();
-                QPlayer.QPlayerAppliedReset();
-            }
-
-            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
-            if (!qViewer.QViewerSerialCheck(lSerial))
-            {
-                return;
-            }
-
-            if (QViewerCropPersistent)
-            {
-                QPlayer.QPlayerFilterApply(LPreview.LPreviewFilterResolve(qViewer.QViewerRenderRead()));
-            }
-
-            await QPlayer.QPlayerOpenStart(lSourcePath);
-        }
-        catch (Exception lException)
-        {
-            lPreviewError = lException.Message;
+            return;
         }
 
         if (!qViewer.QViewerSerialCheck(lSerial))
@@ -75,6 +54,38 @@ public sealed class QViewerMpv
             QPlayer.QPlayerReady,
             lFfmpegError,
             null));
+    }
+
+    // The mpv player opens the path; false when a newer load overtook it before the open, else the failure's message.
+    private async Task<(bool, string?)> QViewerMpvOpen(string lSourcePath, int lSerial)
+    {
+        try
+        {
+            if (!QPlayer.QPlayerReady)
+            {
+                qViewer.QViewerMedia.QViewerPlayerRaise();
+                QPlayer.QPlayerAppliedReset();
+            }
+
+            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
+            if (!qViewer.QViewerSerialCheck(lSerial))
+            {
+                return (false, null);
+            }
+
+            if (QViewerCropPersistent)
+            {
+                QPlayer.QPlayerFilterApply(LPreview.LPreviewFilterResolve(qViewer.QViewerRenderRead()));
+            }
+
+            await QPlayer.QPlayerOpenStart(lSourcePath);
+        }
+        catch (Exception lException)
+        {
+            return (true, lException.Message);
+        }
+
+        return (true, null);
     }
 
     private void QViewerMpvRestore()
@@ -114,20 +125,28 @@ public sealed class QViewerMpv
 
         // A refresh mpv rejects is recorded by the workspace as it spends the intent; the audio goes on as the
         // player starts.
-        Exception? lRefreshException = null;
-        if (qViewer.QViewerFilterApply())
+        Exception? lRefreshException = QViewerRefreshApply();
+        qViewer.QViewerMedia.QViewerCommitApply(lRefreshException);
+    }
+
+    // The preview filter goes to mpv and a paused player refreshes; the refused refresh comes back for the record.
+    private Exception? QViewerRefreshApply()
+    {
+        if (!qViewer.QViewerFilterApply())
         {
-            try
-            {
-                QPlayer.QPlayerUpdate();
-            }
-            catch (Exception lException)
-            {
-                lRefreshException = lException;
-            }
+            return null;
         }
 
-        qViewer.QViewerMedia.QViewerCommitApply(lRefreshException);
+        try
+        {
+            QPlayer.QPlayerUpdate();
+        }
+        catch (Exception lException)
+        {
+            return lException;
+        }
+
+        return null;
     }
 
     private async Task QViewerMpvRebuild(

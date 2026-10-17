@@ -99,11 +99,8 @@ public sealed class QSMonitor : IDisposable
 
     public void QSMonitorViewerAttach(QViewer lViewer)
     {
-        qMonitorViewer = lViewer;
-        lViewer.QViewerPlayback.QViewerClockTicked += QSMonitorCursorSet;
-        lViewer.QViewerAudio.QViewerBypassChanged += QSMonitorBypassSet;
-        lViewer.QViewerPlayingChanged += QSMonitorPlayingSet;
-        QSMonitorBypassApplied += lViewer.QViewerAudio.QViewerBypassSet;
+        QSMonitorViewerSet(lViewer);
+        QSMonitorHandlerAttach(lViewer);
         QSMonitorBypassSet(lViewer.QViewerAudio.QViewerBypass);
         QSMonitorPlayingSet(lViewer.QViewerPlaying);
     }
@@ -115,11 +112,26 @@ public sealed class QSMonitor : IDisposable
             return;
         }
 
+        QSMonitorHandlerDetach(lViewer);
+        QSMonitorViewerSet(null);
+    }
+
+    private void QSMonitorViewerSet(QViewer? lViewer) => qMonitorViewer = lViewer;
+
+    private void QSMonitorHandlerAttach(QViewer lViewer)
+    {
+        lViewer.QViewerPlayback.QViewerClockTicked += QSMonitorCursorSet;
+        lViewer.QViewerAudio.QViewerBypassChanged += QSMonitorBypassSet;
+        lViewer.QViewerPlayingChanged += QSMonitorPlayingSet;
+        QSMonitorBypassApplied += lViewer.QViewerAudio.QViewerBypassSet;
+    }
+
+    private void QSMonitorHandlerDetach(QViewer lViewer)
+    {
         lViewer.QViewerPlayback.QViewerClockTicked -= QSMonitorCursorSet;
         lViewer.QViewerAudio.QViewerBypassChanged -= QSMonitorBypassSet;
         lViewer.QViewerPlayingChanged -= QSMonitorPlayingSet;
         QSMonitorBypassApplied -= lViewer.QViewerAudio.QViewerBypassSet;
-        qMonitorViewer = null;
     }
 
     public void QSMonitorBypassSet(bool lBypass)
@@ -154,16 +166,24 @@ public sealed class QSMonitor : IDisposable
 
     public void QSMonitorZoom(double lFactor, double lMost)
     {
-        double lCenter = qMonitorOffset + 1.0 / qMonitorScale / 2;
-        qMonitorScale = Math.Clamp(qMonitorScale * lFactor, 1, lMost);
-        double lViewport = 1.0 / qMonitorScale;
-        qMonitorOffset = Math.Clamp(lCenter - lViewport / 2, 0, 1 - lViewport);
+        (qMonitorScale, qMonitorOffset) = QSMonitorZoomResolve(lFactor, lMost);
         QSMonitorZoomChanged?.Invoke();
     }
 
+    private (double, double) QSMonitorZoomResolve(double lFactor, double lMost)
+    {
+        double lCenter = qMonitorOffset + 1.0 / qMonitorScale / 2;
+        double lScale = Math.Clamp(qMonitorScale * lFactor, 1, lMost);
+        double lViewport = 1.0 / lScale;
+        return (lScale, Math.Clamp(lCenter - lViewport / 2, 0, 1 - lViewport));
+    }
+
+    private double QSMonitorOffsetClamp(double lOffset) =>
+        Math.Clamp(lOffset, 0, Math.Max(0, 1 - 1.0 / qMonitorScale));
+
     public void QSMonitorOffsetSet(double lOffset)
     {
-        double lNormal = Math.Clamp(lOffset, 0, Math.Max(0, 1 - 1.0 / qMonitorScale));
+        double lNormal = QSMonitorOffsetClamp(lOffset);
         if (Math.Abs(lNormal - qMonitorOffset) <= double.Epsilon)
         {
             return;

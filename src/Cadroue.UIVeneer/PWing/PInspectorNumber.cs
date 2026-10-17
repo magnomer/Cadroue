@@ -17,38 +17,44 @@ public sealed partial class PInspector
 
     private static TextBox PInspectorNumberBuild()
     {
-        var pNumberBox = new TextBox
-        {
-            Text = "0",
-            Width = PInspectorInsetWidth,
-            Height = PInspectorFieldHeight,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
+        TextBox pNumberBox = PInspectorEntryBuild("0");
         QTextbox.QTextboxAttach(pNumberBox);
-        pNumberBox.TextAlignment = TextAlignment.Center;
-        pNumberBox.Padding = new Thickness(4, 0, 4, 0);
-        pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
-            pNumberEvent.Handled = !QInspector.QInspectorDigitCheck(pNumberEvent.Text);
+        PInspectorPaddingApply(pNumberBox);
+        PInspectorDigitAttach(pNumberBox);
         return pNumberBox;
     }
 
     private static TextBox PInspectorDecimalBuild()
     {
-        var pDecimalBox = new TextBox
-        {
-            Width = PInspectorInsetWidth,
-            Height = PInspectorFieldHeight,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
+        TextBox pDecimalBox = PInspectorEntryBuild(string.Empty);
         QTextbox.QTextboxAttach(pDecimalBox);
-        pDecimalBox.TextAlignment = TextAlignment.Center;
-        pDecimalBox.Padding = new Thickness(4, 0, 4, 0);
-        pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
-            pDecimalEvent.Handled = !QInspector.QInspectorDecimalCheck(pDecimalEvent.Text);
+        PInspectorPaddingApply(pDecimalBox);
+        PInspectorDecimalAttach(pDecimalBox);
         return pDecimalBox;
     }
+
+    private static TextBox PInspectorEntryBuild(string pText) => new()
+    {
+        Text = pText,
+        Width = PInspectorInsetWidth,
+        Height = PInspectorFieldHeight,
+        FontSize = 12,
+        FontFamily = pInspectorFontFamily
+    };
+
+    private static void PInspectorPaddingApply(TextBox pEntryBox)
+    {
+        pEntryBox.TextAlignment = TextAlignment.Center;
+        pEntryBox.Padding = new Thickness(4, 0, 4, 0);
+    }
+
+    private static void PInspectorDigitAttach(TextBox pNumberBox) =>
+        pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
+            pNumberEvent.Handled = !QInspector.QInspectorDigitCheck(pNumberEvent.Text);
+
+    private static void PInspectorDecimalAttach(TextBox pDecimalBox) =>
+        pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
+            pDecimalEvent.Handled = !QInspector.QInspectorDecimalCheck(pDecimalEvent.Text);
 
     private static double PInspectorDecimalRead(TextBox pDecimalBox, double pFallback) =>
         QInspector.QInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
@@ -58,25 +64,29 @@ public sealed partial class PInspector
 
     private static void PInspectorSectionUpdate(FrameworkElement pStack, bool pEnabled)
     {
-        pStack.IsEnabled = pEnabled;
-        pStack.Opacity = PLook.PLookOpacity[pEnabled];
+        PInspectorEnabledApply(pStack, pEnabled);
+        PInspectorOpacityApply(pStack, pEnabled);
     }
+
+    private static void PInspectorEnabledApply(FrameworkElement pElement, bool pEnabled) =>
+        pElement.IsEnabled = pEnabled;
+
+    private static void PInspectorOpacityApply(FrameworkElement pElement, bool pEnabled) =>
+        pElement.Opacity = PLook.PLookOpacity[pEnabled];
 
     private static ComboBox PInspectorChoiceBuild(IReadOnlyList<string> pNames, Action<int> pSelect)
     {
-        var pCombo = new ComboBox
-        {
-            Height = PInspectorFieldHeight,
-            Width = 140,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            FontSize = 12,
-            FontFamily = pInspectorFontFamily
-        };
-        QDropdown.QDropdownAttach(pCombo);
-        pNames.ToList().ForEach(pName => pCombo.Items.Add(pName));
-        pCombo.SelectionChanged += (_, _) => pSelect(pCombo.SelectedIndex);
+        ComboBox pCombo = PInspectorComboBuild();
+        PInspectorChoiceAppend(pCombo, pNames);
+        PInspectorChoiceAttach(pCombo, pSelect);
         return pCombo;
     }
+
+    private static void PInspectorChoiceAppend(ComboBox pCombo, IReadOnlyList<string> pNames) =>
+        pNames.ToList().ForEach(pName => pCombo.Items.Add(pName));
+
+    private static void PInspectorChoiceAttach(ComboBox pCombo, Action<int> pSelect) =>
+        pCombo.SelectionChanged += (_, _) => pSelect(pCombo.SelectedIndex);
 
     private static void PInspectorChoiceApply(ComboBox pCombo, QInspectorChoice lChoice)
     {

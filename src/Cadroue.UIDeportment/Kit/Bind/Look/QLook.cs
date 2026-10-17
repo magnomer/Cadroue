@@ -13,7 +13,14 @@ internal static class QLook
     {
         ArgumentNullException.ThrowIfNull(lElement);
         ArgumentException.ThrowIfNullOrEmpty(lStyle);
+        QLookHandlersAttach(lElement, lStyle);
+        _ = lElement.ApplyTemplate();
+        QLookPopupAttach(lElement, lStyle);
+        QLookStateApply(lElement, lStyle);
+    }
 
+    private static void QLookHandlersAttach(FrameworkElement lElement, string lStyle)
+    {
         RoutedEventHandler lRouted = (_, _) => QLookStateApply(lElement, lStyle);
         DependencyPropertyChangedEventHandler lChanged = (_, _) => QLookStateApply(lElement, lStyle);
 
@@ -74,15 +81,15 @@ internal static class QLook
             lElement.PreviewMouseLeftButtonDown += lRouted.Invoke;
             lElement.PreviewMouseLeftButtonUp += lRouted.Invoke;
         }
+    }
 
-        _ = lElement.ApplyTemplate();
+    private static void QLookPopupAttach(FrameworkElement lElement, string lStyle)
+    {
         if ((lElement as Control)?.Template?.FindName(QLookPopupPart, lElement) is Popup lPopup)
         {
             lPopup.Opened += (_, _) => QLookStateApply(lElement, lStyle);
             lPopup.Closed += (_, _) => QLookStateApply(lElement, lStyle);
         }
-
-        QLookStateApply(lElement, lStyle);
     }
 
     private static void QLookStateApply(FrameworkElement lElement, string lStyle)

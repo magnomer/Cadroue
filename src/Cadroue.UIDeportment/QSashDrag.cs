@@ -10,10 +10,32 @@ public static class QSashDrag
     {
         Point lPointer = lEvent.GetPosition(lWindow);
         Point lPointerDip = QSashPointer.QSashPointerRead(lWindow, lPointer);
+        (double lRestoreWidth, double lActualWidth, bool lMaximized) = QSashDragRead(lWindow);
+        QSashNormalApply(lWindow, lMaximized);
+        QSashOriginApply(lWindow, lMaximized, lPointer, lPointerDip, lActualWidth, lRestoreWidth, lBandHeight);
+        lWindow.DragMove();
+    }
+
+    // The window's extent before the restore changes it.
+    private static (double, double, bool) QSashDragRead(Window lWindow)
+    {
         Rect lRestoreBounds = lWindow.RestoreBounds;
         double lActualWidth = lWindow.ActualWidth;
         bool lMaximized = lWindow.WindowState == WindowState.Maximized;
+        return (lRestoreBounds.Width, lActualWidth, lMaximized);
+    }
+
+    private static void QSashNormalApply(Window lWindow, bool lMaximized) =>
         lWindow.WindowState = lMaximized ? WindowState.Normal : lWindow.WindowState;
+
+    private static void QSashOriginApply(
+        Window lWindow,
+        bool lMaximized,
+        Point lPointer,
+        Point lPointerDip,
+        double lActualWidth,
+        double lRestoreWidth,
+        double lBandHeight) =>
         (lWindow.Left, lWindow.Top) = QSashDragResolve(
             lMaximized,
             lWindow.Left,
@@ -23,11 +45,9 @@ public static class QSashDrag
             lPointerDip.X,
             lPointerDip.Y,
             lActualWidth,
-            lRestoreBounds.Width,
+            lRestoreWidth,
             lWindow.Width,
             lBandHeight);
-        lWindow.DragMove();
-    }
 
     // The restored window keeps the pointer at the same share of its width, and at most half the band down.
     public static (double QSashLeft, double QSashTop) QSashDragResolve(

@@ -138,12 +138,11 @@ public sealed class QCrop
 
     public void QCropActiveSet(bool lActive)
     {
-        if (qCropActive == lActive)
+        if (!QCropActiveChange(lActive))
         {
             return;
         }
 
-        qCropActive = lActive;
         if (!lActive)
         {
             QCropToolSet(false);
@@ -155,22 +154,43 @@ public sealed class QCrop
         qViewer.QViewerPreviewApply();
     }
 
+    private bool QCropActiveChange(bool lActive)
+    {
+        if (qCropActive == lActive)
+        {
+            return false;
+        }
+
+        qCropActive = lActive;
+        return true;
+    }
+
     public void QCropPersistentSet(bool lPersistent) => qCropPersistent = lPersistent;
 
     public void QCropLockSet(bool lLocked)
     {
-        if (qCropLocked == lLocked)
+        if (!QCropLockChange(lLocked))
         {
             return;
         }
 
-        qCropLocked = lLocked;
         if (lLocked)
         {
             qViewer.QCropDrag.QCropDragClear();
         }
 
         QCropOverlayUpdate();
+    }
+
+    private bool QCropLockChange(bool lLocked)
+    {
+        if (qCropLocked == lLocked)
+        {
+            return false;
+        }
+
+        qCropLocked = lLocked;
+        return true;
     }
 
     public void QCropToolSet(bool lArmed)
@@ -181,27 +201,39 @@ public sealed class QCrop
             lNeutral.QViewerNeutralCancel();
         }
 
-        lNeutral.QViewerToolApply(lArmed
-            ? QViewerTool.QViewerToolCrop
-            : lNeutral.QViewerTool == QViewerTool.QViewerToolCrop ? QViewerTool.QViewerToolNone : lNeutral.QViewerTool);
+        lNeutral.QViewerToolApply(QCropToolResolve(lArmed, lNeutral.QViewerTool));
         QCropOverlayUpdate();
     }
 
+    private static QViewerTool QCropToolResolve(bool lArmed, QViewerTool lTool) =>
+        lArmed
+            ? QViewerTool.QViewerToolCrop
+            : lTool == QViewerTool.QViewerToolCrop ? QViewerTool.QViewerToolNone : lTool;
+
     public void QCropRatioSet(double lWidth, double lHeight)
     {
+        (double lRatioWidth, double lRatioHeight) = QCropRatioNormalize(lWidth, lHeight);
+        qCropRatioWidth = lRatioWidth;
+        qCropRatioHeight = lRatioHeight;
+    }
+
+    private static (double, double) QCropRatioNormalize(double lWidth, double lHeight)
+    {
         bool lValid = lWidth > 0 && lHeight > 0;
-        qCropRatioWidth = lValid ? lWidth : 0;
-        qCropRatioHeight = lValid ? lHeight : 0;
+        return (lValid ? lWidth : 0, lValid ? lHeight : 0);
     }
 
     public void QCropGripSet(int lEdgeX, int lEdgeY)
     {
         qCropEdgeX = lEdgeX;
         qCropEdgeY = lEdgeY;
-        qCropDrive = lEdgeX != 0 && lEdgeY != 0 ? -1 : lEdgeX != 0 ? 0 : 1;
+        qCropDrive = QCropDriveResolve(lEdgeX, lEdgeY);
         qCropAnchorX = -lEdgeX;
         qCropAnchorY = -lEdgeY;
     }
+
+    private static int QCropDriveResolve(int lEdgeX, int lEdgeY) =>
+        lEdgeX != 0 && lEdgeY != 0 ? -1 : lEdgeX != 0 ? 0 : 1;
 
     public void QCropBodySet()
     {
@@ -227,6 +259,15 @@ public sealed class QCrop
             return;
         }
 
+        QCropRectRecord(lClamped);
+        qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(lClamped));
+        QCropBoxUpdate();
+        QCropBoxRestore();
+        qViewer.QViewerFilterUpdate();
+    }
+
+    private void QCropRectRecord(LCropbox lClamped)
+    {
         LCropboxSize lDisplay = QCropDisplayRead();
         bool lFull = lClamped.LCropboxWidth >= lDisplay.LCropboxSizeWidth
             && lClamped.LCropboxHeight >= lDisplay.LCropboxSizeHeight;
@@ -235,21 +276,21 @@ public sealed class QCrop
             + $"{lClamped.LCropboxWidth:0}x{lClamped.LCropboxHeight:0} "
             + $"over display {lDisplay.LCropboxSizeWidth:0}x{lDisplay.LCropboxSizeHeight:0}"
             + (lFull ? " (full frame)" : string.Empty));
-
-        qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(lClamped));
-        QCropBoxUpdate();
-        QCropBoxRestore();
-        qViewer.QViewerFilterUpdate();
     }
 
     public void QCropHide()
     {
-        qCropBoxShown = false;
-        qCropBoxWidth = 0;
-        qCropBoxHeight = 0;
+        QCropBoxClear();
         qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(null));
         QCropOverlayUpdate();
         qViewer.QViewerFilterUpdate();
+    }
+
+    private void QCropBoxClear()
+    {
+        qCropBoxShown = false;
+        qCropBoxWidth = 0;
+        qCropBoxHeight = 0;
     }
 
     public void QCropOverlayUpdate() => QCropApplied?.Invoke();
@@ -258,9 +299,16 @@ public sealed class QCrop
 
     public void QCropSizeHandle(double lWidth, double lHeight)
     {
-        qCropAreaWidth = Math.Max(0, lWidth);
-        qCropAreaHeight = Math.Max(0, lHeight);
+        QCropAreaSet(QCropAreaClamp(lWidth), QCropAreaClamp(lHeight));
         QCropBoxRestore();
+    }
+
+    private static double QCropAreaClamp(double lLength) => Math.Max(0, lLength);
+
+    private void QCropAreaSet(double lWidth, double lHeight)
+    {
+        qCropAreaWidth = lWidth;
+        qCropAreaHeight = lHeight;
     }
 
     public void QCropBoxSet(LCropbox lBox)

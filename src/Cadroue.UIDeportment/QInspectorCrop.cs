@@ -12,7 +12,7 @@ public sealed class QInspectorCrop
     public QInspectorCrop(QInspector lOwner)
     {
         qInspector = lOwner;
-        QInspectorCropbox.LCropboxStateChanged += QInspectorCropHandle;
+        QInspectorCropAttach();
     }
 
     public LCropboxState QInspectorCropbox { get; } = new();
@@ -87,6 +87,12 @@ public sealed class QInspectorCrop
         }
 
         qInspectorEdgeLock.LCropboxEdgeSet(lSide, !string.IsNullOrWhiteSpace(lText));
+        LCropboxEdges lInsets = QInspectorInsetsResolve(lSide, lText);
+        QInspectorEdgesSet(lInsets);
+    }
+
+    private LCropboxEdges QInspectorInsetsResolve(int lSide, string lText)
+    {
         LWorkCrop lCrop = QInspectorCropbox.LCropboxStateCrop;
         double[] lEdges = { lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lCrop.LWorkCropRight, lCrop.LWorkCropBottom };
         lEdges[lSide] = Math.Max(0, QInspectorNumberParse(lText));
@@ -103,7 +109,7 @@ public sealed class QInspectorCrop
                 lSide is 0 or 2) ?? lInsets;
         }
 
-        QInspectorEdgesSet(lInsets);
+        return lInsets;
     }
 
     public void QInspectorEdgeReset()
@@ -127,6 +133,12 @@ public sealed class QInspectorCrop
     public void QInspectorCropSet(LCropbox? lDrawn, int lDriveAxis, int lAnchorX, int lAnchorY)
     {
         qInspectorEdgeLock.LCropboxEdgeClear();
+        LCropboxEdges lInsets = QInspectorDrawnResolve(lDrawn, lDriveAxis, lAnchorX, lAnchorY);
+        QInspectorEdgesSet(lInsets);
+    }
+
+    private LCropboxEdges QInspectorDrawnResolve(LCropbox? lDrawn, int lDriveAxis, int lAnchorX, int lAnchorY)
+    {
         LCropbox? lSnapped = lDrawn is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lDesired
             ? LCropbox.LCropboxFitResolve(
                 lDesired,
@@ -138,15 +150,14 @@ public sealed class QInspectorCrop
             : lDrawn;
         if (lSnapped is not { LCropboxWidth: > 0, LCropboxHeight: > 0 } lRect)
         {
-            QInspectorEdgesSet(new LCropboxEdges(0, 0, 0, 0));
-            return;
+            return new LCropboxEdges(0, 0, 0, 0);
         }
 
-        QInspectorEdgesSet(new LCropboxEdges(
+        return new LCropboxEdges(
             lRect.LCropboxX,
             lRect.LCropboxY,
             qInspector.QInspectorSourceWidth - lRect.LCropboxX - lRect.LCropboxWidth,
-            qInspector.QInspectorSourceHeight - lRect.LCropboxY - lRect.LCropboxHeight));
+            qInspector.QInspectorSourceHeight - lRect.LCropboxY - lRect.LCropboxHeight);
     }
 
     public void QInspectorCropApply(LWorkCrop lCrop, bool lApply)
@@ -167,6 +178,8 @@ public sealed class QInspectorCrop
         qInspector.QInspectorToolSet(false);
         QInspectorCropbox.LCropboxStateReset();
     }
+
+    private void QInspectorCropAttach() => QInspectorCropbox.LCropboxStateChanged += QInspectorCropHandle;
 
     private void QInspectorCropHandle()
     {

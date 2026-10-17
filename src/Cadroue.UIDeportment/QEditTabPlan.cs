@@ -117,6 +117,17 @@ public sealed class QEditTabPlan
             return;
         }
 
+        List<string> lFailed = QEditCarriedSave(lPaths, lCarried);
+        if (lFailed.Count > 0)
+        {
+            LTraceLog.LTraceWarningRecord(
+                $"Persistent Edit state could not be saved for {lFailed.Count} file(s)", string.Join(", ", lFailed));
+        }
+    }
+
+    // Merges the carried plan into each path's saved plan; answers the names of the paths that failed.
+    private List<string> QEditCarriedSave(IEnumerable<string> lPaths, LEditPlan lCarried)
+    {
         bool lCropPersistent = qEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent;
         bool lSkipPersistent = qEditInspector.QInspectorSkip.QSkipPersistent;
         var lFailed = new List<string>();
@@ -136,11 +147,7 @@ public sealed class QEditTabPlan
             }
         }
 
-        if (lFailed.Count > 0)
-        {
-            LTraceLog.LTraceWarningRecord(
-                $"Persistent Edit state could not be saved for {lFailed.Count} file(s)", string.Join(", ", lFailed));
-        }
+        return lFailed;
     }
 
     public static string QEditRectFormat(LCropbox? lRect) =>

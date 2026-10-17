@@ -36,6 +36,23 @@ public static class QButton
     {
         ArgumentNullException.ThrowIfNull(lButton);
 
+        string lSheet = QButtonStyleApply(lButton, lLook);
+        QButtonPartAttach(lButton);
+        QLook.QLookAttach(lButton, lSheet);
+
+        if (QButtonRecordCheck(lLook))
+        {
+            QInteractionClick.QInteractionClickAttach(lButton);
+        }
+    }
+
+    // The Chrome and Exit families stay unrecorded; every other look records its clicks.
+    private static bool QButtonRecordCheck(QButtonLook lLook) =>
+        lLook is not (QButtonLook.QButtonLookChrome or QButtonLook.QButtonLookFirst
+            or QButtonLook.QButtonLookExit or QButtonLook.QButtonLookLast);
+
+    private static string QButtonStyleApply(Button lButton, QButtonLook lLook)
+    {
         (Style lStyle, string lSheet) = lLook switch
         {
             QButtonLook.QButtonLookSource =>
@@ -64,15 +81,7 @@ public static class QButton
         };
 
         lButton.Style = lStyle;
-        QButtonPartAttach(lButton);
-        QLook.QLookAttach(lButton, lSheet);
-
-        // The Chrome and Exit families stay unrecorded; every other look records its clicks.
-        if (lLook is not (QButtonLook.QButtonLookChrome or QButtonLook.QButtonLookFirst
-            or QButtonLook.QButtonLookExit or QButtonLook.QButtonLookLast))
-        {
-            QInteractionClick.QInteractionClickAttach(lButton);
-        }
+        return lSheet;
     }
 
     public static Button QButtonBuild(Button lButton, QButtonLook lLook)

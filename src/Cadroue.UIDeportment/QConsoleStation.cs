@@ -45,14 +45,12 @@ public sealed class QConsoleStation
 
     public LStation QConsoleStationRead()
     {
-        LStation[] lBoard = LStation.LStationBoardRead();
-        if (qStation is null || !lBoard.Contains(qStation))
-        {
-            qStation = lBoard[0];
-        }
-
+        qStation = QConsoleStationResolve(qStation, LStation.LStationBoardRead());
         return qStation;
     }
+
+    private static LStation QConsoleStationResolve(LStation? lStation, LStation[] lBoard) =>
+        lStation is null || !lBoard.Contains(lStation) ? lBoard[0] : lStation;
 
     public bool QConsoleStationSet(LStation lStationNext)
     {
@@ -74,9 +72,12 @@ public sealed class QConsoleStation
             return;
         }
 
-        qStation = lBoard[QConsoleIndexResolve(Array.IndexOf(lBoard, QConsoleStationRead()), lStep, lBoard.Length)];
+        QConsoleCurrentSet(
+            lBoard[QConsoleIndexResolve(Array.IndexOf(lBoard, QConsoleStationRead()), lStep, lBoard.Length)]);
         QConsoleStationChanged?.Invoke();
     }
+
+    private void QConsoleCurrentSet(LStation lStation) => qStation = lStation;
 
     public static int QConsoleIndexResolve(int lIndex, int lStep, int lCount) =>
         ((lIndex + lStep) % lCount + lCount) % lCount;

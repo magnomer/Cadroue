@@ -28,11 +28,7 @@ public sealed class PFixTab : PTabSurface
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
         QFixTab.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;
-        pClinic.PClinicDiagnosisExecuted += QFixTab.QFixDiagnosisRun;
-        QFixTab.QFixCheckup.LCheckupReady += PFixCheckupHandle;
-        QFixTab.QFixCheckup.LCheckupProgress += PFixProgressHandle;
-        QFixTab.QFixPresetMissing += PExport.PExportMissingShow;
+        PFixEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pClinic, pExport);
@@ -58,12 +54,26 @@ public sealed class PFixTab : PTabSurface
     public override void PTabClose()
     {
         base.PTabClose();
-        QFixTab.QFixCheckup.LCheckupReady -= PFixCheckupHandle;
-        QFixTab.QFixCheckup.LCheckupProgress -= PFixProgressHandle;
+        PFixEventsDetach();
         QFixTab.QFixClose();
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QFixTab.QFixLayoutRead(PTabLayoutCreate());
+
+    private void PFixEventsAttach()
+    {
+        pProcessing.PProcessingStepChanged += pClinic.PClinicStepShow;
+        pClinic.PClinicDiagnosisExecuted += QFixTab.QFixDiagnosisRun;
+        QFixTab.QFixCheckup.LCheckupReady += PFixCheckupHandle;
+        QFixTab.QFixCheckup.LCheckupProgress += PFixProgressHandle;
+        QFixTab.QFixPresetMissing += PExport.PExportMissingShow;
+    }
+
+    private void PFixEventsDetach()
+    {
+        QFixTab.QFixCheckup.LCheckupReady -= PFixCheckupHandle;
+        QFixTab.QFixCheckup.LCheckupProgress -= PFixProgressHandle;
+    }
 
     private void PFixCheckupHandle(LCheckupResult lResult) =>
         Dispatcher.BeginInvoke(() => QFixTab.QFixCheckupHandle(lResult));

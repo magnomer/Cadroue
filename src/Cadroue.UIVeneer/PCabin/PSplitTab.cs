@@ -28,14 +28,10 @@ public sealed class PSplitTab : PTabSurface
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
         QSplitTab.QSplitRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        PSplitStepsAttach();
 
         pInspector.PSensorRunShow();
-        QSplitTab.QSplitPresetMissing += PExport.PExportMissingShow;
-        QSplitTab.QSplitSweep.QSplitBusyApplied += PSplitBusyApply;
-        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PSensorProgressApply;
-        QSplitTab.QSplitSweep.QSplitFailRaised += PSplitFailShow;
+        PSplitEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
@@ -63,6 +59,20 @@ public sealed class PSplitTab : PTabSurface
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QSplitTab.QSplitLayoutRead(PTabLayoutCreate());
+
+    private void PSplitStepsAttach()
+    {
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+    }
+
+    private void PSplitEventsAttach()
+    {
+        QSplitTab.QSplitPresetMissing += PExport.PExportMissingShow;
+        QSplitTab.QSplitSweep.QSplitBusyApplied += PSplitBusyApply;
+        QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PSensorProgressApply;
+        QSplitTab.QSplitSweep.QSplitFailRaised += PSplitFailShow;
+    }
 
     private void PSplitBusyApply(bool pBusy)
     {

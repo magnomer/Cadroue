@@ -27,18 +27,13 @@ public sealed class PAudioTab : PTabSurface
         pProcessing = new PProcessing(QAudioTab.QAudioProcessing);
         pInspector = new PInspector(QAudioTab.QAudioInspector);
         QAudioTab.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
-        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
-        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
-        pProcessing.PProcessingMonitorShown += PAudioMonitorShow;
+        PAudioStepsAttach();
         pProcessing.PProcessingMonitorSet();
 
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.AudioAll.Tooltip"));
 
-        QAudioTab.QAudioPresetMissing += PExport.PExportMissingShow;
-        QAudioTab.QAudioPresetIncompatible += PExport.PExportIncompatibleShow;
-        QAudioTab.QAudioViewerDeferred += PAudioViewerDefer;
-        pAudioViewerTimer.Tick += PAudioViewerTick;
+        PAudioEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
         PTabLockAttach(pList, pProcessing, pInspector, pExport);
@@ -69,6 +64,21 @@ public sealed class PAudioTab : PTabSurface
     }
 
     public override LSceneTabEntry PTabLayoutRead() => QAudioTab.QAudioLayoutRead(PTabLayoutCreate());
+
+    private void PAudioStepsAttach()
+    {
+        pProcessing.PProcessingStepChanged += pInspector.PInspectorStepShow;
+        pProcessing.PProcessingStepOpened += _ => pInspector.PInspectorMinimizeSet(false);
+        pProcessing.PProcessingMonitorShown += PAudioMonitorShow;
+    }
+
+    private void PAudioEventsAttach()
+    {
+        QAudioTab.QAudioPresetMissing += PExport.PExportMissingShow;
+        QAudioTab.QAudioPresetIncompatible += PExport.PExportIncompatibleShow;
+        QAudioTab.QAudioViewerDeferred += PAudioViewerDefer;
+        pAudioViewerTimer.Tick += PAudioViewerTick;
+    }
 
     private void PAudioMonitorShow() =>
         PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), QAudioTab.QAudioMonitor, pFlow, pViewer);

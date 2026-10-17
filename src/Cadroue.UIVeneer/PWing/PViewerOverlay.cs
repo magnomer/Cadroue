@@ -52,31 +52,45 @@ internal sealed class PViewerOverlay
         pViewerOverlayHost = pHost;
         lViewerRenderer = lRenderer;
         pViewerOverlayWindow = System.Windows.Application.Current.MainWindow;
-        pViewerOverlayPopup = new Popup
-        {
-            PlacementTarget = pHost,
-            Placement = PlacementMode.Relative,
-            AllowsTransparency = true,
-            StaysOpen = true,
-            IsOpen = false
-        };
+        pViewerOverlayPopup = PViewerPopupBuild(pHost);
+        PViewerOverlayAttach();
+    }
+
+    private static Popup PViewerPopupBuild(PViewerMpvHost pHost) => new()
+    {
+        PlacementTarget = pHost,
+        Placement = PlacementMode.Relative,
+        AllowsTransparency = true,
+        StaysOpen = true,
+        IsOpen = false
+    };
+
+    private void PViewerOverlayAttach()
+    {
         pViewerOverlayHost.SizeChanged += PViewerOverlayHandle;
         pViewerOverlayHost.IsVisibleChanged += PViewerVisibleHandle;
         pViewerOverlayWindow.LocationChanged += PViewerOverlayHandle;
         pViewerOverlayWindow.SizeChanged += PViewerOverlayHandle;
     }
 
-    public void PViewerChildSet(FrameworkElement? pChild) => pViewerOverlayPopup.Child = pChild;
-
-    public void PViewerOverlayDispose()
+    private void PViewerOverlayDetach()
     {
         pViewerOverlayHost.SizeChanged -= PViewerOverlayHandle;
         pViewerOverlayHost.IsVisibleChanged -= PViewerVisibleHandle;
         pViewerOverlayWindow.LocationChanged -= PViewerOverlayHandle;
         pViewerOverlayWindow.SizeChanged -= PViewerOverlayHandle;
-        pViewerOverlayPopup.IsOpen = false;
-        pViewerOverlayPopup.Child = null;
     }
+
+    public void PViewerChildSet(FrameworkElement? pChild) => pViewerOverlayPopup.Child = pChild;
+
+    public void PViewerOverlayDispose()
+    {
+        PViewerOverlayDetach();
+        PViewerPopupHide();
+        PViewerChildSet(null);
+    }
+
+    private void PViewerPopupHide() => pViewerOverlayPopup.IsOpen = false;
 
     private void PViewerOverlayHandle(object? pSender, EventArgs pEvent) => PViewerOverlayPlace();
 
@@ -92,10 +106,22 @@ internal sealed class PViewerOverlay
     private void PViewerOverlayOpen()
     {
         var pChild = (FrameworkElement)pViewerOverlayPopup.Child;
+        PViewerChildApply(pChild);
+        PViewerPopupShow();
+        PViewerOrderApply(pChild);
+        PViewerNudgeApply();
+    }
+
+    private void PViewerChildApply(FrameworkElement pChild)
+    {
         pChild.Width = pViewerOverlayHost.ActualWidth;
         pChild.Height = pViewerOverlayHost.ActualHeight;
-        pViewerOverlayPopup.IsOpen = true;
-        PViewerOrderApply(pChild);
+    }
+
+    private void PViewerPopupShow() => pViewerOverlayPopup.IsOpen = true;
+
+    private void PViewerNudgeApply()
+    {
         pViewerOverlayPopup.HorizontalOffset = PViewerOverlayNudge;
         pViewerOverlayPopup.HorizontalOffset = 0;
     }

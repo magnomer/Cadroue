@@ -35,10 +35,18 @@ public sealed partial class PInspector
 
     private StackPanel PBlankBuild()
     {
+        StackPanel pBody = PBlankBodyBuild();
+        PBlankWheelUpdate();
+        PBlankAttach();
+        PBlankUpdate();
+        return pBody;
+    }
+
+    private StackPanel PBlankBodyBuild()
+    {
         pBlankSwitch = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Apply"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Detector.ApplyTooltip"));
-        PInspectorSwitchAttach(pBlankSwitch, QBlank.QBlankEnabledSet);
         pBlankStack = new StackPanel();
         pBlankBody = new StackPanel
         {
@@ -59,7 +67,6 @@ public sealed partial class PInspector
         {
             Children = { PBlankPickerBuild(), PBlankWheelBuild() }
         };
-        pBlankBrightnessSlider.ValueChanged += (_, _) => PBlankWheelUpdate();
         pStack.Children.Add(PBlankTypeBuild());
         pStack.Children.Add(pBlankColorArea);
 
@@ -96,11 +103,20 @@ public sealed partial class PInspector
         pBlankBody.Children.Add(pBlankSwitch);
         pBlankBody.Children.Add(PInspectorSeparatorBuild());
         pBlankBody.Children.Add(pStack);
+        return pBlankBody;
+    }
 
+    private void PBlankAttach()
+    {
+        PInspectorSwitchAttach(pBlankSwitch, QBlank.QBlankEnabledSet);
+        pBlankPicker.Checked += (_, _) => QBlank.QBlankPickSet(true);
+        pBlankPicker.Unchecked += (_, _) => QBlank.QBlankPickSet(false);
+        pBlankWheelCanvas.MouseLeftButtonDown += PBlankPressHandle;
+        pBlankWheelCanvas.MouseMove += PBlankWheelHandle;
+        pBlankWheelCanvas.MouseLeftButtonUp += (_, _) => pBlankWheelCanvas.ReleaseMouseCapture();
+        pBlankBrightnessSlider.ValueChanged += (_, _) => PBlankWheelUpdate();
         QBlank.QBlankChanged += PBlankUpdate;
         QBlank.QBlankPickChanged += PBlankPickUpdate;
-        PBlankUpdate();
-        return pBlankBody;
     }
 
     private UIElement PBlankTypeBuild()
@@ -136,8 +152,6 @@ public sealed partial class PInspector
             VerticalAlignment = VerticalAlignment.Center,
             Style = PInspectorToolCreate(typeof(ToggleButton))
         };
-        pBlankPicker.Checked += (_, _) => QBlank.QBlankPickSet(true);
-        pBlankPicker.Unchecked += (_, _) => QBlank.QBlankPickSet(false);
 
         return PInspectorFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Blank.Picker"),
@@ -161,7 +175,6 @@ public sealed partial class PInspector
             IsHitTestVisible = false
         };
         pBlankWheelCanvas.Children.Add(pBlankWheelImage);
-        PBlankWheelUpdate();
         pBlankWheelDot = new Ellipse
         {
             Width = 11,
@@ -173,10 +186,6 @@ public sealed partial class PInspector
             Visibility = Visibility.Collapsed
         };
         pBlankWheelCanvas.Children.Add(pBlankWheelDot);
-
-        pBlankWheelCanvas.MouseLeftButtonDown += PBlankPressHandle;
-        pBlankWheelCanvas.MouseMove += PBlankWheelHandle;
-        pBlankWheelCanvas.MouseLeftButtonUp += (_, _) => pBlankWheelCanvas.ReleaseMouseCapture();
 
         return new StackPanel
         {
@@ -212,9 +221,14 @@ public sealed partial class PInspector
 
     private void PBlankPickUpdate(bool pPicking)
     {
-        pBlankPicker.IsChecked = PLook.PLookChecked[pPicking];
-        pBlankPickerIcon.Source = QIcon.QIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
+        PBlankPickerSet(pPicking);
+        PBlankIconApply(pPicking);
     }
+
+    private void PBlankPickerSet(bool pPicking) => pBlankPicker.IsChecked = PLook.PLookChecked[pPicking];
+
+    private void PBlankIconApply(bool pPicking) =>
+        pBlankPickerIcon.Source = QIcon.QIconRead(PPickerIcon, PInspectorPickBrush[pPicking]);
 
     private void PBlankUpdate()
     {

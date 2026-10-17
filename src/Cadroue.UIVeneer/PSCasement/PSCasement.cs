@@ -59,18 +59,28 @@ internal static class PSCasement
         return pCasementBrush;
     }
 
-    internal static void PSCasementEscapeAttach(Window pWindow)
-    {
-        pWindow.KeyDown += (_, e) =>
-        {
-            if (e.Key != Key.Escape)
-            {
-                return;
-            }
+    internal static void PSCasementEscapeAttach(Window pWindow) =>
+        pWindow.KeyDown += (_, e) => PSCasementEscapeHandle(pWindow, e);
 
-            e.Handled = true;
-            pWindow.Close();
-        };
+    private static void PSCasementEscapeHandle(Window pWindow, KeyEventArgs e)
+    {
+        if (!PSCasementEscapeAccept(e))
+        {
+            return;
+        }
+
+        pWindow.Close();
+    }
+
+    private static bool PSCasementEscapeAccept(KeyEventArgs e)
+    {
+        if (e.Key != Key.Escape)
+        {
+            return false;
+        }
+
+        e.Handled = true;
+        return true;
     }
 
     internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth) =>
@@ -115,41 +125,60 @@ internal static class PSCasement
         Brush pBandFill)
     {
         PSCasementEscapeAttach(pWindow);
+        (double pScale, double pButtonWidth, double pButtonHeight) = PSCasementSizeResolve(pBandHeight);
+        Border pLeadArea = PSCasementLeadBuild();
+        PSCasementDragAttach(pLeadArea, pWindow, pCloseOnly, pBandHeight);
+        Border pDragArea = PSCasementDragBuild(pStripWidth);
+        PSCasementDragAttach(pDragArea, pWindow, pCloseOnly, pBandHeight);
+        if (!string.IsNullOrWhiteSpace(pTitle))
+        {
+            PSCasementTitleBuild(pDragArea, pTitle, pTitleFont);
+        }
+
+        StackPanel pButtons = PSCasementStripBuild(pWindow, pCloseOnly, pButtonWidth, pButtonHeight, pScale, pBandFill);
+        return PSCasementGridBuild(pBandHeight, pLeadArea, pDragArea, pButtons);
+    }
+
+    private static (double, double, double) PSCasementSizeResolve(double pBandHeight)
+    {
         double pScale = pBandHeight / PSCasementBandHeight;
         double pButtonHeight = pBandHeight - PSCasementContentOverlap;
         double pButtonWidth = PSCasementButtonWidth * pScale;
-        var pGrid = new Grid { Height = pBandHeight, VerticalAlignment = VerticalAlignment.Top };
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSCasementLeadColumn) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var pLeadArea = new Border { Background = Brushes.Transparent };
-        pLeadArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly, pBandHeight);
-        pGrid.Children.Add(pLeadArea);
+        return (pScale, pButtonWidth, pButtonHeight);
+    }
 
-        var pDragArea = new Border
+    private static Border PSCasementLeadBuild() => new() { Background = Brushes.Transparent };
+
+    private static Border PSCasementDragBuild(double pStripWidth) => new()
+    {
+        Background = Brushes.Transparent,
+        HorizontalAlignment = HorizontalAlignment.Stretch,
+        Margin = new Thickness(pStripWidth, 0, 0, 0)
+    };
+
+    private static void PSCasementDragAttach(Border pArea, Window pWindow, bool pCloseOnly, double pBandHeight) =>
+        pArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly, pBandHeight);
+
+    private static void PSCasementTitleBuild(Border pDragArea, string pTitle, double pTitleFont) =>
+        pDragArea.Child = new TextBlock
         {
-            Background = Brushes.Transparent,
-            HorizontalAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(pStripWidth, 0, 0, 0)
+            Text = pTitle,
+            FontSize = pTitleFont,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43)),
+            VerticalAlignment = VerticalAlignment.Center,
+            HorizontalAlignment = HorizontalAlignment.Left,
+            IsHitTestVisible = false
         };
-        pDragArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly, pBandHeight);
-        if (!string.IsNullOrWhiteSpace(pTitle))
-        {
-            pDragArea.Child = new TextBlock
-            {
-                Text = pTitle,
-                FontSize = pTitleFont,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = new SolidColorBrush(Color.FromRgb(0x2B, 0x34, 0x43)),
-                VerticalAlignment = VerticalAlignment.Center,
-                HorizontalAlignment = HorizontalAlignment.Left,
-                IsHitTestVisible = false
-            };
-        }
 
-        Grid.SetColumn(pDragArea, 1);
-        pGrid.Children.Add(pDragArea);
-
+    private static StackPanel PSCasementStripBuild(
+        Window pWindow,
+        bool pCloseOnly,
+        double pButtonWidth,
+        double pButtonHeight,
+        double pScale,
+        Brush pBandFill)
+    {
         var pButtons = new StackPanel
         {
             Orientation = Orientation.Horizontal,
@@ -160,7 +189,7 @@ internal static class PSCasement
         {
             pButtons.Children.Add(PSCasementButtonBuild(
                 PSCasementMinimizeBuild(),
-                (_, _) => pWindow.WindowState = WindowState.Minimized,
+                (_, _) => PSCasementMinimizeApply(pWindow),
                 pButtonWidth, pButtonHeight, pScale));
             pButtons.Children.Add(PSCasementButtonBuild(
                 PSCasementMaximizeBuild(),
@@ -173,10 +202,24 @@ internal static class PSCasement
             (_, _) => pWindow.Close(),
             pButtonWidth, pButtonHeight, pScale,
             pLook: QButtonLook.QButtonLookExit));
+        return pButtons;
+    }
+
+    private static Grid PSCasementGridBuild(double pBandHeight, Border pLeadArea, Border pDragArea, StackPanel pButtons)
+    {
+        var pGrid = new Grid { Height = pBandHeight, VerticalAlignment = VerticalAlignment.Top };
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(PSCasementLeadColumn) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        pGrid.Children.Add(pLeadArea);
+        Grid.SetColumn(pDragArea, 1);
+        pGrid.Children.Add(pDragArea);
         Grid.SetColumn(pButtons, 2);
         pGrid.Children.Add(pButtons);
         return pGrid;
     }
+
+    private static void PSCasementMinimizeApply(Window pWindow) => pWindow.WindowState = WindowState.Minimized;
 
     private static void PSCasementDragHandle(
         Window pWindow,
@@ -204,7 +247,10 @@ internal static class PSCasement
     }
 
     internal static void PSCasementMaximizeToggle(Window pWindow) =>
-        pWindow.WindowState = pWindow.WindowState == WindowState.Maximized
+        pWindow.WindowState = PSCasementStateResolve(pWindow.WindowState);
+
+    private static WindowState PSCasementStateResolve(WindowState pState) =>
+        pState == WindowState.Maximized
             ? WindowState.Normal
             : WindowState.Maximized;
 
@@ -216,21 +262,29 @@ internal static class PSCasement
         double pScale,
         QButtonLook pLook = QButtonLook.QButtonLookChrome)
     {
+        PSCasementScaleApply(pIcon, pScale);
+        Button pButton = PSCasementCaptionBuild(pIcon, pWidth, pHeight);
+        PSCasementClickAttach(pButton, pClick);
+        QButton.QButtonAttach(pButton, pLook);
+        return pButton;
+    }
+
+    private static void PSCasementScaleApply(UIElement pIcon, double pScale)
+    {
         if (pScale != 1 && pIcon is FrameworkElement pGlyph)
         {
             pGlyph.LayoutTransform = new ScaleTransform(pScale, pScale);
         }
-
-        var pButton = new Button
-        {
-            Width = pWidth,
-            Height = pHeight,
-            Content = pIcon
-        };
-        pButton.Click += pClick;
-        QButton.QButtonAttach(pButton, pLook);
-        return pButton;
     }
+
+    private static Button PSCasementCaptionBuild(UIElement pIcon, double pWidth, double pHeight) => new()
+    {
+        Width = pWidth,
+        Height = pHeight,
+        Content = pIcon
+    };
+
+    private static void PSCasementClickAttach(Button pButton, RoutedEventHandler pClick) => pButton.Click += pClick;
 
     private static Canvas PSCasementMinimizeBuild()
     {

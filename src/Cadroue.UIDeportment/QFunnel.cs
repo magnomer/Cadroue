@@ -46,15 +46,18 @@ public sealed class QFunnel
 
     public void QFunnelStripAttach(QStrip lStrip, Guid lSelf)
     {
-        if (qFunnelStrip is { } lPrevious)
-        {
-            lPrevious.QStripChanged -= QFunnelTargetsNormalize;
-        }
-
-        qFunnelStrip = lStrip;
-        qFunnelSelf = lSelf;
-        lStrip.QStripChanged += QFunnelTargetsNormalize;
+        QFunnelStripDetach();
+        QFunnelSelfSet(lSelf);
+        QFunnelStripHook(lStrip);
         QFunnelTargetsNormalize();
+    }
+
+    private void QFunnelSelfSet(Guid lSelf) => qFunnelSelf = lSelf;
+
+    private void QFunnelStripHook(QStrip lStrip)
+    {
+        qFunnelStrip = lStrip;
+        lStrip.QStripChanged += QFunnelTargetsNormalize;
     }
 
     public void QFunnelStripDetach()
@@ -112,15 +115,21 @@ public sealed class QFunnel
         }
 
         qFunnelRules.RemoveAt(lIndex);
-        if (ReferenceEquals(qFunnelSelected, lRule))
-        {
-            qFunnelSelected = qFunnelRules.Count == 0
-                ? null
-                : qFunnelRules[Math.Clamp(lIndex, 0, qFunnelRules.Count - 1)];
-        }
-
+        qFunnelSelected = QFunnelSelectedResolve(lRule, lIndex);
         QFunnelRuleDeleted?.Invoke(lRule);
         QFunnelChanged?.Invoke();
+    }
+
+    private QFunnelRule? QFunnelSelectedResolve(QFunnelRule lRemoved, int lIndex)
+    {
+        if (!ReferenceEquals(qFunnelSelected, lRemoved))
+        {
+            return qFunnelSelected;
+        }
+
+        return qFunnelRules.Count == 0
+            ? null
+            : qFunnelRules[Math.Clamp(lIndex, 0, qFunnelRules.Count - 1)];
     }
 
     public bool QFunnelRuleMove(QFunnelRule lRule, int lTargetIndex)
@@ -131,8 +140,7 @@ public sealed class QFunnel
             return false;
         }
 
-        lTargetIndex = Math.Clamp(lTargetIndex, 0, qFunnelRules.Count);
-        int lInsertIndex = lSourceIndex < lTargetIndex ? lTargetIndex - 1 : lTargetIndex;
+        int lInsertIndex = QFunnelInsertResolve(lSourceIndex, lTargetIndex);
         if (lSourceIndex == lInsertIndex)
         {
             return false;
@@ -142,6 +150,12 @@ public sealed class QFunnel
         qFunnelRules.Insert(lInsertIndex, lRule);
         QFunnelChanged?.Invoke();
         return true;
+    }
+
+    private int QFunnelInsertResolve(int lSourceIndex, int lTargetIndex)
+    {
+        int lClamped = Math.Clamp(lTargetIndex, 0, qFunnelRules.Count);
+        return lSourceIndex < lClamped ? lClamped - 1 : lClamped;
     }
 
     public void QFunnelRuleSelect(QFunnelRule lRule)
@@ -166,27 +180,32 @@ public sealed class QFunnel
         qFunnelSelected = null;
         foreach (LSceneFunnelRule lRecord in lRecords)
         {
-            QFunnelForm lForm = lRecord.LSceneFunnelRemainder
-                ? QFunnelForm.QFunnelFormRemainder
-                : lRecord.LSceneFunnelType == (int)QFunnelForm.QFunnelFormRegex
-                    ? QFunnelForm.QFunnelFormRegex
-                    : QFunnelForm.QFunnelFormFilename;
-            var lRule = new QFunnelRule(lForm)
-            {
-                QFunnelRuleContains = lRecord.LSceneFunnelContains.LSceneFunnelClone(),
-                QFunnelRulePrefix = lRecord.LSceneFunnelPrefix.LSceneFunnelClone(),
-                QFunnelRuleEnd = lRecord.LSceneFunnelEnd.LSceneFunnelClone(),
-                QFunnelRuleExtension = lRecord.LSceneFunnelExtension.LSceneFunnelClone(),
-                QFunnelRuleRegex = lRecord.LSceneFunnelRegex,
-                QFunnelRuleWhole = lRecord.LSceneFunnelWhole,
-                QFunnelRulePending = lRecord.LSceneFunnelTarget
-            };
+            QFunnelRule lRule = QFunnelRuleParse(lRecord);
             qFunnelRules.Add(lRule);
             qFunnelSelected = lRule;
             QFunnelRuleCreated?.Invoke(lRule);
         }
 
         QFunnelChanged?.Invoke();
+    }
+
+    private static QFunnelRule QFunnelRuleParse(LSceneFunnelRule lRecord)
+    {
+        QFunnelForm lForm = lRecord.LSceneFunnelRemainder
+            ? QFunnelForm.QFunnelFormRemainder
+            : lRecord.LSceneFunnelType == (int)QFunnelForm.QFunnelFormRegex
+                ? QFunnelForm.QFunnelFormRegex
+                : QFunnelForm.QFunnelFormFilename;
+        return new QFunnelRule(lForm)
+        {
+            QFunnelRuleContains = lRecord.LSceneFunnelContains.LSceneFunnelClone(),
+            QFunnelRulePrefix = lRecord.LSceneFunnelPrefix.LSceneFunnelClone(),
+            QFunnelRuleEnd = lRecord.LSceneFunnelEnd.LSceneFunnelClone(),
+            QFunnelRuleExtension = lRecord.LSceneFunnelExtension.LSceneFunnelClone(),
+            QFunnelRuleRegex = lRecord.LSceneFunnelRegex,
+            QFunnelRuleWhole = lRecord.LSceneFunnelWhole,
+            QFunnelRulePending = lRecord.LSceneFunnelTarget
+        };
     }
 
     public void QFunnelTargetsResolve() =>
@@ -196,10 +215,12 @@ public sealed class QFunnel
     {
         foreach (QFunnelRule lRule in qFunnelRules)
         {
-            int lPending = lRule.QFunnelRulePending;
-            QFunnelTargetSet(lRule, lPending >= 0 && lPending < lTabIds.Count ? lTabIds[lPending] : Guid.Empty);
+            QFunnelTargetSet(lRule, QFunnelPendingResolve(lRule.QFunnelRulePending, lTabIds));
         }
     }
+
+    private static Guid QFunnelPendingResolve(int lPending, IReadOnlyList<Guid> lTabIds) =>
+        lPending >= 0 && lPending < lTabIds.Count ? lTabIds[lPending] : Guid.Empty;
 
     public void QFunnelTargetSelect(QFunnelRule lRule, int lIndex)
     {

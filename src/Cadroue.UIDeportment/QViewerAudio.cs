@@ -38,7 +38,9 @@ public sealed class QViewerAudio
 
     public void QViewerCapableSet(bool lCapable) => qViewerCapable = lCapable;
 
-    public void QViewerFilterSet(string? lFilter) => qViewerAudioFilter = lFilter ?? string.Empty;
+    public void QViewerFilterSet(string? lFilter) => qViewerAudioFilter = QViewerFilterNormalize(lFilter);
+
+    private static string QViewerFilterNormalize(string? lFilter) => lFilter ?? string.Empty;
 
     public string QViewerAudioResolve() => qViewerBypass ? string.Empty : qViewerAudioFilter;
 
@@ -50,14 +52,25 @@ public sealed class QViewerAudio
 
     public void QViewerBypassSet(bool lBypass)
     {
-        if (qViewerBypass == lBypass)
+        if (!QViewerBypassChange(lBypass))
         {
             return;
         }
 
-        qViewerBypass = lBypass;
         QViewerBypassChanged?.Invoke(lBypass);
         QViewerAudioChanged?.Invoke();
+    }
+
+    // Stores the bypass; true when it differs from the one held.
+    private bool QViewerBypassChange(bool lBypass)
+    {
+        if (qViewerBypass == lBypass)
+        {
+            return false;
+        }
+
+        qViewerBypass = lBypass;
+        return true;
     }
 
     public void QViewerBypassToggle() => QViewerBypassSet(!qViewerBypass);
@@ -74,7 +87,7 @@ public sealed class QViewerAudio
 
     public void QViewerVolumeApply(double lVolume)
     {
-        qViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
+        QViewerVolumeChange(lVolume);
         if (LPreference.LPreferenceStateCurrent.LPreferenceVolumeUnified)
         {
             LPreference.LPreferenceVolumeSet(qViewerVolume);
@@ -82,4 +95,7 @@ public sealed class QViewerAudio
 
         QViewerVolumeChanged?.Invoke(qViewerVolume);
     }
+
+    private void QViewerVolumeChange(double lVolume) =>
+        qViewerVolume = LPreferenceState.LPreferenceVolumeClamp(lVolume);
 }

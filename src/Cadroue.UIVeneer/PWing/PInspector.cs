@@ -27,17 +27,27 @@ public sealed partial class PInspector : PPanel
 
     public QInspector QInspector { get; }
 
-    private readonly TextBlock pInspectorTitleLabel;
-    private readonly TextBlock pInspectorEmptyNotice;
-    private readonly List<PInspectorSection> pInspectorSections;
-    private readonly UIElement pInspectorPersistentRow;
-    private readonly UIElement pInspectorFullBody;
-    private readonly UIElement pInspectorStripBody;
-    private readonly ScrollViewer pInspectorSectionsHost;
+    private TextBlock pInspectorTitleLabel = null!;
+    private TextBlock pInspectorEmptyNotice = null!;
+    private List<PInspectorSection> pInspectorSections = null!;
+    private UIElement pInspectorPersistentRow = null!;
+    private UIElement pInspectorFullBody = null!;
+    private UIElement pInspectorStripBody = null!;
+    private ScrollViewer pInspectorSectionsHost = null!;
 
     public PInspector(QInspector lInspector) : base("")
     {
         QInspector = lInspector;
+        (Border pHeader, Grid pBody) = PInspectorBodyBuild();
+        pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
+        PInspectorFrameBuild(pHeader, pBody);
+        PInspectorChangeAttach();
+        PInspectorAttach();
+        PInspectorUpdate();
+    }
+
+    private (Border, Grid) PInspectorBodyBuild()
+    {
         pInspectorTitleLabel = new TextBlock
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Header.Title"),
@@ -103,10 +113,13 @@ public sealed partial class PInspector : PPanel
         pBody.Children.Add(PEqualizerBodyBuild());
         pBody.Children.Add(PSkipBodyBuild());
         pBody.Children.Add(PBlankBuild());
-        pSensorSections = QSensor.QSensorPlans.Select(PSensorBuild).ToList();
-        pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
-        QSensor.QSensorChanged += PSensorUpdate;
         pInspectorSections = PInspectorSectionsCreate(pGamma, pExposure, pVolume);
+        return (pHeader, pBody);
+    }
+
+    private void PInspectorFrameBuild(Border pHeader, Grid pBody)
+    {
+        pSensorSections.ForEach(pSection => pBody.Children.Add(pSection.PSensorBody));
 
         var pScroll = new ScrollViewer
         {
@@ -139,9 +152,12 @@ public sealed partial class PInspector : PPanel
 
         FocusVisualStyle = null;
         Content = PPanelBorderBuild(pBodyHost);
+    }
+
+    private void PInspectorChangeAttach()
+    {
+        QSensor.QSensorChanged += PSensorUpdate;
         QInspector.QInspectorChanged += PInspectorUpdate;
-        PInspectorAttach();
-        PInspectorUpdate();
     }
 
     public QTone QTone => QInspector.QInspectorVideo.QInspectorTone;
@@ -164,6 +180,13 @@ public sealed partial class PInspector : PPanel
 
     private void PInspectorAttach()
     {
+        PInspectorStepAttach();
+        PInspectorStepUpdate();
+        PInspectorCropAttach();
+    }
+
+    private void PInspectorStepAttach()
+    {
         QTone.QToneChanged += PToneUpdate;
         QCurve.QCurveChanged += PCurveUpdate;
         QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
@@ -173,6 +196,10 @@ public sealed partial class PInspector : PPanel
         LFilterLow.QFilterChanged += () => PFilterUpdate(pInspectorLowPass);
         QEqualizer.QEqualizerChanged += PEqualizerUpdate;
         QSkip.QSkipChanged += PSkipUpdate;
+    }
+
+    private void PInspectorStepUpdate()
+    {
         PToneUpdate();
         PCurveUpdate();
         PWhitebalanceUpdate();
@@ -182,7 +209,6 @@ public sealed partial class PInspector : PPanel
         PFilterUpdate(pInspectorLowPass);
         PEqualizerUpdate();
         PSkipUpdate();
-        PInspectorCropAttach();
     }
 
     public bool PInspectorMinimizedCheck() => QInspector.QInspectorMinimized;
@@ -270,23 +296,28 @@ public sealed partial class PInspector : PPanel
 
     private static Button PInspectorButtonBuild(string pIconPath, string pTooltip, Action pClick)
     {
-        var pButton = new Button
-        {
-            Content = new Image
-            {
-                Width = 20,
-                Height = 20,
-                Source = QIcon.QIconRead(pIconPath, pInspectorIconBrush),
-                Stretch = Stretch.Uniform
-            },
-            ToolTip = pTooltip,
-            Width = 28,
-            Height = 26
-        };
-        pButton.Click += (_, _) => pClick();
+        Button pButton = PInspectorGlyphBuild(pIconPath, pTooltip);
+        PInspectorClickAttach(pButton, pClick);
         QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
         return pButton;
     }
+
+    private static Button PInspectorGlyphBuild(string pIconPath, string pTooltip) => new()
+    {
+        Content = new Image
+        {
+            Width = 20,
+            Height = 20,
+            Source = QIcon.QIconRead(pIconPath, pInspectorIconBrush),
+            Stretch = Stretch.Uniform
+        },
+        ToolTip = pTooltip,
+        Width = 28,
+        Height = 26
+    };
+
+    private static void PInspectorClickAttach(Button pButton, Action pClick) =>
+        pButton.Click += (_, _) => pClick();
 
     private static UIElement PInspectorFieldBuild(string pFieldLabel, UIElement pFieldContent)
     {

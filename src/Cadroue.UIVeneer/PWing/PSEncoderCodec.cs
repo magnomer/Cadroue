@@ -14,41 +14,74 @@ internal sealed partial class PSEncoder
     private void PSVideoEncoderUpdate()
     {
         bool pAvailable = QSEncoder.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
-        psVideoEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
+        PSVideoNoticeApply(pAvailable);
         if (!pAvailable)
         {
-            psVideoEncoderNotice.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.Unavailable");
+            PSVideoReasonSet();
         }
     }
+
+    private void PSVideoNoticeApply(bool pAvailable) =>
+        psVideoEncoderNotice.Visibility = pAvailable ? Visibility.Collapsed : Visibility.Visible;
+
+    private void PSVideoReasonSet() =>
+        psVideoEncoderNotice.Text = QLocalizationCatalog.QLocalizationTextRead("Encoder.Video.Notice.Unavailable");
 
     private void PSCodecContainerHandle()
     {
         string pContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
-        string pCurrent = psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
+        string pCurrent = PSCodecCurrentRead();
         string[] pItems = QSEncoder.QSEncoderVideoRead(pContainer, pCurrent);
-        psVideoEncoderCombo.ItemsSource = pItems;
-        psVideoEncoderCombo.SelectedItem = pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
+        PSCodecItemsApply(psVideoEncoderCombo, pItems, PSCodecSelectResolve(pItems, pCurrent));
         PSVideoEncoderUpdate();
+    }
+
+    private string PSCodecCurrentRead() => psVideoEncoderCombo.SelectedItem as string ?? string.Empty;
+
+    private static string? PSCodecSelectResolve(IReadOnlyList<string> pItems, string pCurrent) =>
+        pItems.Contains(pCurrent) ? pCurrent : pItems.FirstOrDefault();
+
+    private static void PSCodecItemsApply(ComboBox pCombo, IReadOnlyList<string> pItems, string? pSelected)
+    {
+        pCombo.ItemsSource = pItems;
+        pCombo.SelectedItem = pSelected;
     }
 
     private async Task PSCodecVerifyHandle(ComboBox pCombo, Button pButton, IProgress<double> pFeed)
     {
-        pButton.IsEnabled = false;
-        pButton.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Checking");
-        IReadOnlyList<string> pAvailable;
-        try
-        {
-            pAvailable = await lsEncoder.QSEncoderVideoScan(pFeed);
-        }
-        catch (OperationCanceledException)
+        PSCodecBusyApply(pButton);
+        IReadOnlyList<string>? pAvailable = await PSCodecScan(pFeed);
+        if (pAvailable is null)
         {
             return;
         }
 
         string pSelected = lsEncoder.QSEncoderVideoEncoder;
-        pCombo.ItemsSource = pAvailable;
-        pCombo.SelectedItem = pAvailable.Contains(pSelected) ? pSelected : pAvailable.FirstOrDefault();
+        PSCodecItemsApply(pCombo, pAvailable, PSCodecSelectResolve(pAvailable, pSelected));
         PSVideoEncoderUpdate();
+        PSCodecReadyApply(pButton);
+    }
+
+    private static void PSCodecBusyApply(Button pButton)
+    {
+        pButton.IsEnabled = false;
+        pButton.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.Checking");
+    }
+
+    private async Task<IReadOnlyList<string>?> PSCodecScan(IProgress<double> pFeed)
+    {
+        try
+        {
+            return await lsEncoder.QSEncoderVideoScan(pFeed);
+        }
+        catch (OperationCanceledException)
+        {
+            return null;
+        }
+    }
+
+    private static void PSCodecReadyApply(Button pButton)
+    {
         pButton.Content = QLocalizationCatalog.QLocalizationTextRead("Encoder.Button.Verify");
         pButton.IsEnabled = true;
     }
