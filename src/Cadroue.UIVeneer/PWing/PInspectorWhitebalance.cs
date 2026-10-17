@@ -1,7 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
 
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -12,17 +11,25 @@ public sealed partial class PInspector
     private CheckBox pWhitebalanceBox = null!;
     private CheckBox pWhitebalancePersistent = null!;
     private ComboBox pWhitebalanceMethod = null!;
-    private Slider pWhitebalanceSaturationSlider = null!;
-    private TextBox pWhitebalanceSaturationValue = null!;
     private StackPanel pWhitebalanceStack = null!;
     private StackPanel pWhitebalanceBody = null!;
-    private UIElement pWhitebalanceMethodField = null!;
-    private UIElement pWhitebalanceSaturationField = null!;
 
+    // The panel's parts first; the driver then fills the method rows and the saturation field and takes the inputs,
+    // and the wheel is drawn at its slider's brightness.
     private StackPanel PWhitebalanceBuild()
     {
         StackPanel pBody = PWhitebalancePanelBuild();
-        PWhitebalanceAttach();
+        QWhitebalance = new QWhitebalance(
+            QInspector,
+            pWhitebalanceBox,
+            pWhitebalancePersistent,
+            pWhitebalanceMethod,
+            pWhitebalanceStack,
+            pWhitebalanceBody,
+            [pInspectorNeutralTool, pInspectorWhiteTool],
+            pWhitebalanceWheelDot,
+            PWhitebalanceWheelSize);
+        PWhitebalanceBrightnessHandle();
         return pBody;
     }
 
@@ -35,32 +42,12 @@ public sealed partial class PInspector
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistWhitebalance"));
         pWhitebalanceMethod = PInspectorComboBuild();
-        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
-            "Average", "Inspector.Video.WhitebalanceMethodAverage"));
-        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
-            "Minmax", "Inspector.Video.WhitebalanceMethodMinmax"));
-        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
-            "Median", "Inspector.Video.WhitebalanceMethodMedian"));
-        pWhitebalanceMethod.Items.Add(new LLocalizationChoice(
-            "Custom", "Inspector.Video.WhitebalanceMethodCustom"));
-        pWhitebalanceMethod.SelectedIndex = 2;
-
-        pWhitebalanceSaturationSlider = PToneSliderBuild(0, 300, 100);
-        pWhitebalanceSaturationValue = PInspectorDecimalBuild();
-        pWhitebalanceSaturationValue.Text = "100";
         pWhitebalanceStack = new StackPanel();
-        pWhitebalanceMethodField = PInspectorFieldBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
-            pWhitebalanceMethod);
-        pWhitebalanceSaturationField = PInspectorSliderBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
-            pWhitebalanceSaturationSlider,
-            "%",
-            pWhitebalanceSaturationValue);
         pWhitebalanceStack.Children.Add(PToneNeutralBuild());
         pWhitebalanceStack.Children.Add(PWhitebalanceWheelBuild());
-        pWhitebalanceStack.Children.Add(pWhitebalanceMethodField);
-        pWhitebalanceStack.Children.Add(pWhitebalanceSaturationField);
+        pWhitebalanceStack.Children.Add(PInspectorFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceMethod"),
+            pWhitebalanceMethod));
         pWhitebalanceStack.Children.Add(new TextBlock
         {
             Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceWarning"),
@@ -72,21 +59,6 @@ public sealed partial class PInspector
         pWhitebalanceStack.Children.Add(PWhitebalanceResetBuild());
         pWhitebalanceBody = PToneBodyBuild(pWhitebalanceBox, pWhitebalanceStack);
         return pWhitebalanceBody;
-    }
-
-    private void PWhitebalanceAttach()
-    {
-        PInspectorSwitchAttach(pWhitebalanceBox, QWhitebalance.QWhitebalanceActiveSet);
-        PInspectorSwitchAttach(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistentSet);
-        pWhitebalanceMethod.SelectionChanged += (_, _) =>
-            QWhitebalance.QWhitebalanceMethodSelect(pWhitebalanceMethod.SelectedIndex);
-        PInspectorValueAttach(
-            pWhitebalanceSaturationSlider,
-            pWhitebalanceSaturationValue,
-            0,
-            300,
-            () => QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
-            QWhitebalance.QWhitebalanceSaturationSet);
     }
 
     private Button PWhitebalanceResetBuild()
@@ -109,35 +81,12 @@ public sealed partial class PInspector
         HorizontalAlignment = HorizontalAlignment.Right
     };
 
+    // The driver paints the section, the fields and the wheel dot; the picker row is painted here.
     private void PWhitebalanceUpdate()
     {
-        PWhitebalanceStateApply();
-        QInspectorTip pTip = QInspector.QInspectorTipResolve(
-            QWhitebalance.QWhitebalanceStep.LWorkStepActive,
-            QWhitebalance.QWhitebalanceCapable,
-            QWhitebalance.QWhitebalancePreview,
-            "Inspector.Video.WhitebalanceRequiresEq",
-            "Inspector.Video.WhitebalancePreviewMpv",
-            "Inspector.Video.ApplyWhitebalance",
-            "Inspector.Video.PersistWhitebalance");
-        PInspectorSectionApply(
-            pWhitebalanceBox, pWhitebalancePersistent, pWhitebalanceStack, pWhitebalanceBody, pTip);
-        PWhitebalancePickerApply(pTip);
+        PWhitebalancePickerApply(QWhitebalance.QWhitebalanceTip);
         PWhitebalanceToolUpdate();
         PWhitebalanceReadoutUpdate();
-        PWhitebalanceWheelPlace();
-    }
-
-    private void PWhitebalanceStateApply()
-    {
-        PInspectorSwitchUpdate(pWhitebalanceBox, QWhitebalance.QWhitebalanceStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pWhitebalancePersistent, QWhitebalance.QWhitebalancePersistent);
-        pWhitebalanceMethod.SelectedIndex = QWhitebalance.QWhitebalanceMethodIndex;
-        PInspectorValueUpdate(
-            pWhitebalanceSaturationSlider,
-            pWhitebalanceSaturationValue,
-            QWhitebalance.QWhitebalanceValue.LWorkWhitebalanceSaturation,
-            "0.#");
     }
 
     private void PWhitebalancePickerApply(QInspectorTip pTip)

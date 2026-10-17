@@ -1,4 +1,4 @@
-using Cadroue.Core;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
@@ -17,72 +17,34 @@ public sealed record QConsoleStatus(
     bool QConsoleStatusAuto,
     string QConsoleStatusStation);
 
+// The console's wording: reads the gate's texts through the catalog and splits the status line around its accent.
 public static class QConsoleLine
 {
-    internal static QConsoleStatus QConsoleStatusResolve(
-        LWorkItem[] lRunningItems,
-        bool lRunning,
-        bool lSuspended,
-        IReadOnlyList<LWorkItem> lRecords,
-        int lDoneCount,
-        int lPendingCount,
-        IReadOnlyList<LWorkItem> lSelection,
-        bool lBoard,
-        bool lAuto,
-        string lStation)
-    {
-        int lTotal = lRecords.Count;
-        bool lPaused = !lRunning && !lSuspended;
-        string lRunState = QLocalizationCatalog.QLocalizationTextRead(
-            lSuspended ? "Console.State.Suspended" : lRunning ? "Console.State.Running" : "Console.State.Paused");
-        return new QConsoleStatus(
+    internal static QConsoleStatus QConsoleStatusCreate(CConsoleStatus lStatus) =>
+        new(
             QConsoleRunsResolve(
-                QConsoleLineFormat(lRunningItems, lTotal, lRunState, lDoneCount, lPendingCount),
-                lTotal > 0 && lPaused ? lRunState : null),
-            lRunning,
-            lTotal > 0,
-            lRunningItems.Length > 0,
-            lRunning || lSuspended,
-            lSelection.Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
-            lRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateDone),
-            lRecords.Any(lWorkItem => lWorkItem.LWorkStateCurrent != LWorkState.LWorkStateRunning),
-            lBoard,
-            lAuto,
-            lStation);
-    }
+                QConsoleTextRead(lStatus.CConsoleStatusLine),
+                lStatus.CConsoleStatusAccent is { } lAccent ? QConsoleTextRead(lAccent) : null),
+            lStatus.CConsoleStatusRunning,
+            lStatus.CConsoleStatusLoaded,
+            lStatus.CConsoleStatusBusy,
+            lStatus.CConsoleStatusActive,
+            lStatus.CConsoleStatusRemovable,
+            lStatus.CConsoleStatusDone,
+            lStatus.CConsoleStatusClearable,
+            lStatus.CConsoleStatusBoard,
+            lStatus.CConsoleStatusAuto,
+            QConsoleArgumentRead(lStatus.CConsoleStatusStation).ToString() ?? string.Empty);
 
-    private static string QConsoleLineFormat(
-        LWorkItem[] lRunningItems, int lTotal, string lRunState, int lDoneCount, int lPendingCount)
-    {
-        if (lTotal == 0)
-        {
-            return QLocalizationCatalog.QLocalizationTextRead("Console.Status.Empty");
-        }
+    // A text without arguments is read as plain text; with them it is formatted, each nested text worded first.
+    public static string QConsoleTextRead(CConsoleText lText) =>
+        lText.CConsoleTextArguments is { } lArguments
+            ? QLocalizationCatalog.QLocalizationFormat(
+                lText.CConsoleTextKey, lArguments.Select(QConsoleArgumentRead).ToArray())
+            : QLocalizationCatalog.QLocalizationTextRead(lText.CConsoleTextKey);
 
-        string lDoneText = QLocalizationCatalog.QLocalizationFormat("Console.Done.Format", lDoneCount, lTotal);
-        if (lRunningItems.Length == 0)
-        {
-            return QLocalizationCatalog.QLocalizationFormat("Console.Status.Pending", lRunState, lDoneText,
-                lPendingCount);
-        }
-
-        if (lRunningItems.Length > 1)
-        {
-            return QLocalizationCatalog.QLocalizationFormat(
-                "Console.Status.MultipleRunning",
-                lRunningItems.Length,
-                lRunningItems.Average(lWorkItem => lWorkItem.LWorkProgress),
-                lDoneText);
-        }
-
-        LWorkItem lRunningItem = lRunningItems[0];
-        return QLocalizationCatalog.QLocalizationFormat(
-            "Console.Status.Running",
-            lRunningItem.LWorkOutputName,
-            lDoneText,
-            QConsoleStageFormat(lRunningItem.LWorkStageCurrent),
-            lRunningItem.LWorkProgress);
-    }
+    private static object QConsoleArgumentRead(object lArgument) =>
+        lArgument is CConsoleText lText ? QConsoleTextRead(lText) : lArgument;
 
     public static IReadOnlyList<QConsoleSpan> QConsoleRunsResolve(string lLine, string? lAccent)
     {
@@ -107,15 +69,4 @@ public static class QConsoleLine
 
         return lRuns;
     }
-
-    private static string QConsoleStageFormat(LWorkStage lWorkStage) =>
-        QLocalizationCatalog.QLocalizationTextRead(lWorkStage switch
-        {
-            LWorkStage.LWorkStageExtract => "Console.Stage.Extract",
-            LWorkStage.LWorkStageAnalyze => "Console.Stage.Analyze",
-            LWorkStage.LWorkStageProcess => "Console.Stage.Process",
-            LWorkStage.LWorkStageMux => "Console.Stage.Mux",
-            LWorkStage.LWorkStagePassthrough => "Console.Stage.Copy",
-            _ => "Console.Stage.Encode"
-        });
 }

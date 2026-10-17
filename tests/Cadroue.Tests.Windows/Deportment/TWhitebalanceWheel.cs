@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.UIDeportment;
 
 using Xunit;
@@ -13,7 +14,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_RightOfCentre_TurnsManualAndPlacesDotThere()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize - 6, TNeutralSize / 2, TNeutralSize);
@@ -30,7 +31,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_Unpressed_OrIncapable_Ignored()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize - 6, TNeutralSize / 2, TNeutralSize);
         Assert.False(TInterface.TWhitebalanceManualRead(whitebalance));
@@ -44,7 +45,7 @@ public sealed class TWhitebalanceWheel
     [Fact]
     public void Press_OutsideDisc_ClampsToRim()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceWheelHandle(whitebalance, true, TNeutralSize * 3, TNeutralSize / 2, TNeutralSize);

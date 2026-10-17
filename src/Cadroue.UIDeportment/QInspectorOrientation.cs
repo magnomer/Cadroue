@@ -1,29 +1,27 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
+// The orientation tools' wiring: the rotate choice and both flips show the crop gate's turn and hand their raw input
+// to it.
 public sealed class QInspectorOrientation
 {
-    private static readonly int[] qInspectorRotations = { 0, 90, 180, 270 };
-
     private readonly QInspector qInspector;
+    private readonly CCrop qInspectorOrientationGate;
 
     public QInspectorOrientation(QInspector lOwner)
     {
         qInspector = lOwner;
+        qInspectorOrientationGate = lOwner.QInspectorGate.CInspectorCrop;
     }
 
-    public int QInspectorRotateIndex => Math.Max(
-        0,
-        Array.IndexOf(
-            qInspectorRotations, qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop.LWorkCropRotation));
+    public int QInspectorRotateIndex => qInspectorOrientationGate.CCropRotateIndex;
 
-    public bool QInspectorFlipHorizontal =>
-        qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop.LWorkFlipHorizontal;
+    public bool QInspectorFlipHorizontal => qInspectorOrientationGate.CCropFlipHorizontal;
 
-    public bool QInspectorFlipVertical =>
-        qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop.LWorkFlipVertical;
+    public bool QInspectorFlipVertical => qInspectorOrientationGate.CCropFlipVertical;
 
     public string? QInspectorOrientationTip => qInspector.QInspectorOrientationCapable
         ? null
@@ -32,48 +30,8 @@ public sealed class QInspectorOrientation
     public LRotateFlip QInspectorRotateRead() => LRotateFlip.LRotateCropResolve(
         qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop);
 
-    public void QInspectorRotateSelect(int lIndex)
-    {
-        if (lIndex < 0)
-        {
-            return;
-        }
+    public void QInspectorRotateSelect(int lIndex) => qInspectorOrientationGate.CCropRotateSelect(lIndex);
 
-        LWorkCrop lCrop = qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
-        QInspectorOrientationSet(qInspectorRotations[lIndex], lCrop.LWorkFlipHorizontal, lCrop.LWorkFlipVertical);
-    }
-
-    public void QInspectorFlipSet(bool lHorizontal, bool lFlipped)
-    {
-        LWorkCrop lCrop = qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
-        QInspectorOrientationSet(
-            lCrop.LWorkCropRotation,
-            lHorizontal ? lFlipped : lCrop.LWorkFlipHorizontal,
-            lHorizontal ? lCrop.LWorkFlipVertical : lFlipped);
-    }
-
-    private void QInspectorOrientationSet(int lRotation, bool lFlipHorizontal, bool lFlipVertical)
-    {
-        LWorkCrop lCrop = qInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateCrop;
-        if (lCrop.LWorkCropRotation == lRotation
-            && lCrop.LWorkFlipHorizontal == lFlipHorizontal
-            && lCrop.LWorkFlipVertical == lFlipVertical)
-        {
-            return;
-        }
-
-        LWorkCrop lTurned = QInspectorOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical);
-        qInspector.QInspectorCrop.QInspectorCropbox.LCropboxCropSet(lTurned);
-    }
-
-    private static LWorkCrop QInspectorOrientationResolve(
-        LWorkCrop lCrop, int lRotation, bool lFlipHorizontal, bool lFlipVertical) =>
-        lCrop.LWorkEdgeActive
-            ? LCropbox.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
-            : lCrop with
-            {
-                LWorkCropRotation = lRotation,
-                LWorkFlipHorizontal = lFlipHorizontal,
-                LWorkFlipVertical = lFlipVertical
-            };
+    public void QInspectorFlipSet(bool lHorizontal, bool lFlipped) =>
+        qInspectorOrientationGate.CCropFlipSet(lHorizontal, lFlipped);
 }

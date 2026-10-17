@@ -1,19 +1,23 @@
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
 public sealed class QWindowPart
 {
     private const double QWindowPartBorder = 8;
 
-    public QWindowPart(QWindow lOwner)
+    public QWindowPart(QWindow lOwner, CConsole lConsole)
     {
+        QWindowPartEnvoy = new QEnvoy();
         QWindowPartDrop = new QWindowDrop(lOwner);
         QWindowPartShortcut = new QWindowShortcut(lOwner);
         lOwner.QWindowStrip.QStripRelay.QStripRelayAttach();
         QWindowPartChrome = new QChrome();
         QWindowPartSash = new QSash(QWindowPartBorder);
-        QWindowPartConsole = new QConsole();
-        QWindowPartConsole.QConsoleWindowAttach(lOwner.QWindowScene, lOwner.QWindowStrip);
+        QWindowPartConsole = new QConsole(lConsole, QWindowPartEnvoy, lOwner.QWindowScene, lOwner.QWindowStrip);
     }
+
+    public QEnvoy QWindowPartEnvoy { get; }
 
     public QWindowDrop QWindowPartDrop { get; }
 

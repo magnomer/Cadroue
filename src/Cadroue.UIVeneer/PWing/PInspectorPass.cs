@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -56,32 +55,31 @@ public sealed partial class PInspector
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Pass.PersistentTooltip"));
 
-        ComboBox pPreset = PInspectorChoiceBuild(
-            lOwner.QFilterChoiceRead().QInspectorChoiceNames, lOwner.QFilterChoiceSelect);
+        ComboBox pPreset = PInspectorChoiceBuild(lOwner.QFilterChoiceNames, lOwner.QFilterChoiceSelect);
 
         Slider pFrequency = PInspectorSliderBuild(
-            lOwner.QFilterFloor,
-            lOwner.QFilterCeiling,
-            lOwner.QFilterStep.LWorkPassFrequency,
+            lOwner.QFilterLeasts[0],
+            lOwner.QFilterMosts[0],
+            lOwner.QFilterValueRead(0),
             () => lOwner.QFilterDefaultRead(0));
         TextBox pValue = PInspectorDecimalBuild();
 
         Slider pStages = PInspectorSliderBuild(
-            LPassband.LPassbandStagesLeast,
-            LPassband.LPassbandStagesMost,
+            lOwner.QFilterLeasts[1],
+            lOwner.QFilterMosts[1],
             1,
             () => lOwner.QFilterDefaultRead(1));
         pStages.IsSnapToTickEnabled = true;
         pStages.TickFrequency = 1;
         TextBox pStageValue = PInspectorDecimalBuild();
 
-        ComboBox pPoles = PInspectorChoiceBuild(lOwner.QFilterPoles, lOwner.QFilterPolesSelect);
+        ComboBox pPoles = PInspectorChoiceBuild(lOwner.QFilterPoleNames, lOwner.QFilterPolesSelect);
         pPoles.Width = 120;
 
         Slider pResonanceSlider = PInspectorSliderBuild(
-            LPassband.LPassbandResonanceLeast,
-            LPassband.LPassbandResonanceMost,
-            lOwner.QFilterStep.LWorkPassResonance,
+            lOwner.QFilterLeasts[2],
+            lOwner.QFilterMosts[2],
+            lOwner.QFilterValueRead(2),
             () => lOwner.QFilterDefaultRead(2));
         TextBox pResonance = PInspectorDecimalBuild();
 
@@ -136,50 +134,38 @@ public sealed partial class PInspector
         PInspectorValueAttach(
             pPass.PInspectorPassFrequency,
             pPass.PInspectorPassValue,
-            lOwner.QFilterFloor,
-            lOwner.QFilterCeiling,
-            () => lOwner.QFilterStep.LWorkPassFrequency,
-            lOwner.QFilterFrequencySet);
+            lOwner.QFilterLeasts[0],
+            lOwner.QFilterMosts[0],
+            () => lOwner.QFilterValueRead(0),
+            pNumber => lOwner.QFilterValueSet(0, pNumber));
         PInspectorValueAttach(
             pPass.PInspectorPassStages,
             pPass.PFilterStageValue,
-            LPassband.LPassbandStagesLeast,
-            LPassband.LPassbandStagesMost,
-            () => lOwner.QFilterStep.LWorkPassStages,
-            pNumber => lOwner.QFilterStagesSet((int)Math.Round(pNumber)));
+            lOwner.QFilterLeasts[1],
+            lOwner.QFilterMosts[1],
+            () => lOwner.QFilterValueRead(1),
+            pNumber => lOwner.QFilterValueSet(1, pNumber));
         PInspectorValueAttach(
             pPass.PFilterResonanceSlider,
             pPass.PInspectorPassResonance,
-            LPassband.LPassbandResonanceLeast,
-            LPassband.LPassbandResonanceMost,
-            () => lOwner.QFilterStep.LWorkPassResonance,
-            lOwner.QFilterResonanceSet);
+            lOwner.QFilterLeasts[2],
+            lOwner.QFilterMosts[2],
+            () => lOwner.QFilterValueRead(2),
+            pNumber => lOwner.QFilterValueSet(2, pNumber));
     }
 
-    private static void PFilterUpdate(PInspectorPass pPass)
-    {
-        QFilter lOwner = pPass.PFilterOwner;
-        bool lActive = lOwner.QFilterStep.LWorkStepActive;
-        PFilterStateApply(pPass, lActive);
-        PInspectorSectionUpdate(pPass.PFilterResonanceRow, lOwner.QFilterResonanceActive);
-        PInspectorChoiceApply(pPass.PInspectorPassPreset, lOwner.QFilterChoiceRead());
-        PInspectorSectionUpdate(pPass.PInspectorPassStack, lActive);
-    }
-
-    private static void PFilterStateApply(PInspectorPass pPass, bool lActive)
-    {
-        QFilter lOwner = pPass.PFilterOwner;
-        PInspectorSwitchUpdate(pPass.PFilterApplyBox, lActive);
-        PInspectorSwitchUpdate(pPass.PInspectorPassPersistent, lOwner.QFilterPersistent);
-        PInspectorValueUpdate(
-            pPass.PInspectorPassFrequency, pPass.PInspectorPassValue, lOwner.QFilterStep.LWorkPassFrequency, "0");
-        PInspectorValueUpdate(
-            pPass.PInspectorPassStages, pPass.PFilterStageValue, lOwner.QFilterStep.LWorkPassStages, "0");
-        PInspectorValueUpdate(
-            pPass.PFilterResonanceSlider,
-            pPass.PInspectorPassResonance,
-            lOwner.QFilterStep.LWorkPassResonance,
-            "0.###");
-        pPass.PInspectorPassPoles.SelectedIndex = lOwner.QFilterPolesIndex;
-    }
+    // The driver paints the section; rows come in the gate's slot order.
+    private static void PFilterUpdate(PInspectorPass pPass) =>
+        pPass.PFilterOwner.QFilterUpdate(
+            pPass.PFilterApplyBox,
+            pPass.PInspectorPassPersistent,
+            [
+                (pPass.PInspectorPassFrequency, pPass.PInspectorPassValue),
+                (pPass.PInspectorPassStages, pPass.PFilterStageValue),
+                (pPass.PFilterResonanceSlider, pPass.PInspectorPassResonance)
+            ],
+            pPass.PInspectorPassPoles,
+            pPass.PFilterResonanceRow,
+            pPass.PInspectorPassPreset,
+            pPass.PInspectorPassStack);
 }

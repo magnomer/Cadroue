@@ -24,7 +24,7 @@ public sealed class TListSelection
         TInterfaceList.TListPressSelect(list, @"C:\b.mp4", false, false);
 
         Assert.Equal(@"C:\b.mp4", list.QListPathCurrent);
-        Assert.Equal(@"C:\b.mp4", list.QListPathAnchor);
+        Assert.Equal(@"C:\b.mp4", list.QListGate.CListPathAnchor);
         Assert.Equal([@"C:\b.mp4"], TInterfaceList.TListSelectionRead(list));
         Assert.Equal([@"C:\b.mp4"], notices);
     }
@@ -39,7 +39,7 @@ public sealed class TListSelection
 
         Assert.Equal([@"C:\a.mp4", @"C:\b.mp4", @"C:\c.mp4"], TInterfaceList.TListSelectionRead(list));
         Assert.Equal(@"C:\a.mp4", list.QListPathCurrent);
-        Assert.Equal(@"C:\c.mp4", list.QListPathAnchor);
+        Assert.Equal(@"C:\c.mp4", list.QListGate.CListPathAnchor);
     }
 
     [Fact]
@@ -67,12 +67,12 @@ public sealed class TListSelection
 
         TInterfaceList.TListPressSelect(list, @"C:\b.mp4", false, false);
 
-        Assert.Equal(@"C:\b.mp4", list.QListPressPath);
+        Assert.Equal(@"C:\b.mp4", list.QListGate.CListPressPath);
         Assert.Equal(3, TInterfaceList.TListSelectionRead(list).Count);
 
         TInterfaceList.TListReleaseSelect(list);
 
-        Assert.Null(list.QListPressPath);
+        Assert.Null(list.QListGate.CListPressPath);
         Assert.Equal([@"C:\b.mp4"], TInterfaceList.TListSelectionRead(list));
     }
 
@@ -125,7 +125,7 @@ public sealed class TListSelection
         TInterfaceList.TDocketPathsRemove(docket, @"C:\c.mp4");
 
         Assert.Equal(@"C:\a.mp4", list.QListPathCurrent);
-        Assert.Equal(@"C:\a.mp4", list.QListPathAnchor);
+        Assert.Equal(@"C:\a.mp4", list.QListGate.CListPathAnchor);
         Assert.Equal([@"C:\a.mp4"], TInterfaceList.TListSelectionRead(list));
         Assert.Empty(notices);
     }
@@ -207,12 +207,12 @@ public sealed class TListSelection
         Assert.Equal([@"C:\a.mp4", @"C:\b.mp4"], list.QListDrag.QListDragPaths);
         TInterface.TGhostPointSet(list.QListDrag.QListGhost, 13, 14);
         Assert.Equal(10, list.QListDrag.QListGhost.QGhostLeft);
-        Assert.Null(list.QListDrag.QListDragPath);
+        Assert.Null(list.QListGate.CListDragPath);
         Assert.False(TInterfaceList.TListDragResolve(list, 60, 60, 4, true));
 
         Assert.True(TInterfaceList.TListPressHandle(list, @"C:\a.mp4", false, false, 0, 0, 0, 0));
         TInterfaceList.TListReleaseHandle(list);
-        Assert.Null(list.QListDrag.QListDragPath);
+        Assert.Null(list.QListGate.CListDragPath);
         Assert.Equal([@"C:\a.mp4"], TInterfaceList.TListSelectionRead(list));
     }
 

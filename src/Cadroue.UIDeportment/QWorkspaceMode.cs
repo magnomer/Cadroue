@@ -8,24 +8,29 @@ public sealed class QWorkspaceMode
     private readonly CUsher qWorkspaceUsher;
     private readonly CInspector qWorkspaceInspector;
     private readonly CEdit qWorkspaceEdit;
+    private readonly CFix qWorkspaceFix;
+    private readonly CMerge qWorkspaceMerge;
+    private readonly CConvert qWorkspaceConvert;
     private readonly LPresetSelection qWorkspacePreset;
     private readonly QViewer? qWorkspaceViewer;
     private readonly QList? qWorkspaceList;
     private readonly QFlow? qWorkspaceFlow;
 
+    // Each tab gate is read from the atelier here, its one reader: a new tab's gate is one field and one line below.
     public QWorkspaceMode(
         QWorkspaceFacts qWorkspaceKey,
-        CUsher lUsher,
-        CInspector lInspector,
-        CEdit lEdit,
+        CAtelier lAtelier,
         LPresetSelection lPreset,
         QViewer? lViewer,
         QList? lList,
         QFlow? lFlow)
     {
-        qWorkspaceUsher = lUsher;
-        qWorkspaceInspector = lInspector;
-        qWorkspaceEdit = lEdit;
+        qWorkspaceFix = lAtelier.CAtelierFix;
+        qWorkspaceMerge = lAtelier.CAtelierMerge;
+        qWorkspaceConvert = lAtelier.CAtelierConvert;
+        qWorkspaceUsher = lAtelier.CAtelierUsher;
+        qWorkspaceInspector = lAtelier.CAtelierInspectorCreate();
+        qWorkspaceEdit = lAtelier.CAtelierEdit;
         qWorkspacePreset = lPreset;
         qWorkspaceViewer = lViewer;
         qWorkspaceList = lList;
@@ -78,7 +83,8 @@ public sealed class QWorkspaceMode
 
     public QFixTab QFixTabCreate()
     {
-        QFixTab lFixTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+        QFixTab lFixTab = new(
+            qWorkspaceInspector, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceFix);
         QFixTabAttach(lFixTab);
         return lFixTab;
     }
@@ -109,7 +115,7 @@ public sealed class QWorkspaceMode
 
     public QConvertTab QConvertTabCreate()
     {
-        QConvertTab lConvertTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+        QConvertTab lConvertTab = new(qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceConvert);
         QConvertTabAttach(lConvertTab);
         return lConvertTab;
     }
@@ -124,7 +130,8 @@ public sealed class QWorkspaceMode
 
     public QMergeTab QMergeTabCreate()
     {
-        QMergeTab lMergeTab = new(qWorkspaceUsher, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+        QMergeTab lMergeTab = new(
+            qWorkspaceUsher, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!, qWorkspaceMerge);
         QMergeTabAttach(lMergeTab);
         return lMergeTab;
     }

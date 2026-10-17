@@ -50,20 +50,21 @@ public sealed class QEditTab
 
     private void QEditAttach()
     {
-        QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
+        CWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
         QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
         QEditInspector.QInspectorSkip.QSkipActiveChanged += QEditSkipHandle;
-        lWhitebalance.QWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
+        lWhitebalance.CWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
+        qEditViewer.QViewerMediaChanged += QEditColor.QEditEstimateStart;
         qEditViewer.QViewerMediaChanged += QEditMediaHandle;
         qEditViewer.QViewerEngineChanged += QEditColor.QEditCapableHandle;
         qEditViewer.QViewerEngineChanged += qEditViewer.QViewerNeutral.QViewerNeutralCancel;
-        qEditViewer.QViewerNeutral.QViewerToolChanged += lWhitebalance.QWhitebalanceToolSet;
+        qEditViewer.QViewerNeutral.QViewerToolChanged += QEditColor.QEditTargetHandle;
         qEditViewer.QViewerNeutral.QViewerNeutralChanged += QEditColor.QEditNeutralHandle;
         qEditViewer.QViewerNeutral.QViewerEstimateChanged += QEditColor.QEditEstimateApply;
-        lWhitebalance.QWhitebalanceToolChanged += qEditViewer.QViewerNeutral.QViewerToolSet;
+        lWhitebalance.CWhitebalanceToolChanged += QEditColor.QEditTargetApply;
         qEditViewer.QCrop.QCropVideoChanged += QEditCrop.QEditCropShow;
         QEditProcessing.QProcessingStepChanged += QEditStepHandle;
         qEditViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = qEditList.QListPathsAdd(lDropPaths);
@@ -75,21 +76,22 @@ public sealed class QEditTab
 
     public void QEditClose()
     {
-        QWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
+        CWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
         QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged -= QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged -= QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged -= QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged -= QEditTool.QEditToolHandle;
         QEditInspector.QInspectorSkip.QSkipActiveChanged -= QEditSkipHandle;
-        lWhitebalance.QWhitebalanceEstimateChanged -= QEditColor.QEditEstimateHandle;
+        lWhitebalance.CWhitebalanceEstimateChanged -= QEditColor.QEditEstimateHandle;
+        qEditViewer.QViewerMediaChanged -= QEditColor.QEditEstimateStart;
         qEditViewer.QViewerMediaChanged -= QEditMediaHandle;
         qEditViewer.QViewerOpenNotice -= QEditOpenHandle;
         qEditViewer.QViewerEngineChanged -= QEditColor.QEditCapableHandle;
         qEditViewer.QViewerEngineChanged -= qEditViewer.QViewerNeutral.QViewerNeutralCancel;
-        qEditViewer.QViewerNeutral.QViewerToolChanged -= lWhitebalance.QWhitebalanceToolSet;
+        qEditViewer.QViewerNeutral.QViewerToolChanged -= QEditColor.QEditTargetHandle;
         qEditViewer.QViewerNeutral.QViewerNeutralChanged -= QEditColor.QEditNeutralHandle;
         qEditViewer.QViewerNeutral.QViewerEstimateChanged -= QEditColor.QEditEstimateApply;
-        lWhitebalance.QWhitebalanceToolChanged -= qEditViewer.QViewerNeutral.QViewerToolSet;
+        lWhitebalance.CWhitebalanceToolChanged -= QEditColor.QEditTargetApply;
         qEditViewer.QCrop.QCropVideoChanged -= QEditCrop.QEditCropShow;
         QEditProcessing.QProcessingStepChanged -= QEditStepHandle;
     }
@@ -149,7 +151,7 @@ public sealed class QEditTab
     }
 
     // The gate decides whether the selected item runs; the dispatch stays here until the edit plan can reach a gate.
-    public void QEditRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
+    public void QEditRun(bool lUrgent, Guid lRelayTarget, Guid lSourceTab)
     {
         (CEditVerdict lVerdict, string? lPath, Guid lBatch) = qEditGate.CEditRun(
             qEditPreset.LPresetSelectionValid,
@@ -166,7 +168,7 @@ public sealed class QEditTab
         (LWorkCrop lCrop, LWorkVideo lVideo) =
             LEdit.LEditWorkResolve(QEditStore.QEditStateRead(), QEditColor.QEditEqCheck());
         LMessenger.LMessengerEditDescribe(
-            lPriority,
+            lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lPath,
             qEditViewer.QViewerDuration,
             lCrop,
@@ -238,7 +240,6 @@ public sealed class QEditTab
 
     private void QEditMediaHandle(LCargo lCargo)
     {
-        QEditColor.QEditEstimateHandle(QEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceMethod);
         QEditHistogramDeferred?.Invoke();
         string? lPath = qEditViewer.QViewerWorkspace.CWorkspaceSource;
         QEditCropRestore(lPath is null ? "(no media)" : QEditStore.QEditNameRead(lPath));

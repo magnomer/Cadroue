@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
@@ -18,10 +19,12 @@ public sealed record QViewerEnginePlan(
 public sealed class QViewerRenderer
 {
     private readonly QViewer qViewer;
+    private readonly CViewer qViewerTrace;
 
     public QViewerRenderer(QViewer lOwner)
     {
         qViewer = lOwner;
+        qViewerTrace = lOwner.QViewerTrace;
     }
 
     public event Action? QViewerHostApplied;
@@ -32,7 +35,7 @@ public sealed class QViewerRenderer
 
     public bool QViewerOverlayHandle(bool lHostVisible, double lWidth, double lHeight)
     {
-        return qViewer.QViewerTrace.CViewerOverlayCheck(lHostVisible, qViewer.QViewerMpvShown, lWidth, lHeight);
+        return qViewerTrace.CViewerOverlayCheck(lHostVisible, qViewer.QViewerMpvShown, lWidth, lHeight);
     }
 
     public QViewerEnginePlan QViewerEngineRead()
@@ -82,12 +85,12 @@ public sealed class QViewerRenderer
 
     public void QViewerEngineHandle()
     {
-        if (qViewer.QViewerUnloaded || !qViewer.QViewerCommandActive)
+        if (qViewerTrace.CViewerUnloaded || !qViewerTrace.CViewerCommandActive)
         {
             return;
         }
 
-        if (qViewer.QViewerMpvActive == (LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv))
+        if (qViewerTrace.CViewerMpvActive == (LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv))
         {
             return;
         }
@@ -98,7 +101,7 @@ public sealed class QViewerRenderer
     public bool QViewerEngineUpdate()
     {
         bool lWantMpv = LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
-        if (lWantMpv == qViewer.QViewerMpvActive)
+        if (lWantMpv == qViewerTrace.CViewerMpvActive)
         {
             return false;
         }
@@ -110,7 +113,7 @@ public sealed class QViewerRenderer
 
     public void QViewerEngineApply(bool lMpv)
     {
-        qViewer.QViewerMpvSet(lMpv);
+        qViewerTrace.CViewerMpvSet(lMpv);
         QPlayer.QPlayerAppliedReset();
         qViewer.QViewerEngineSet(lMpv ? LPreviewEngine.LPreviewEngineMpv : LPreviewEngine.LPreviewEngineFlyleaf);
         QViewerHostApplied?.Invoke();

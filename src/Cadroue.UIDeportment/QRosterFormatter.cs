@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
@@ -6,14 +7,6 @@ public static class QRosterFormatter
 {
     public static string QRosterExtrasFormat(IEnumerable<KeyValuePair<string, string>> lExtras) =>
         string.Join("  ", lExtras.Select(lExtra => $"{lExtra.Key} {lExtra.Value}"));
-
-    public static bool QRosterReencodeCheck(string lMode) =>
-        !string.Equals(lMode, "Copy", StringComparison.OrdinalIgnoreCase)
-        && !string.Equals(lMode, "Exclude", StringComparison.OrdinalIgnoreCase);
-
-    public static string QRosterUnknownFormat(LWorkItem lWorkItem) =>
-        QLocalizationCatalog.QLocalizationTextRead(
-            lWorkItem.LWorkSourceMeasured ? "Roster.Value.Unknown" : "Roster.Value.Measuring");
 
     public static string QRosterRateFormat(double? lRatePerSecond) =>
         lRatePerSecond is { } lRate && lRate > 0
@@ -30,11 +23,6 @@ public static class QRosterFormatter
             ? lValue.ToString("yyyy-MM-dd HH:mm:ss")
             : QLocalizationCatalog.QLocalizationTextRead("Roster.Value.NotYet");
 
-    public static string QRosterSpentFormat(LWorkItem lWorkItem) =>
-        QRosterSpentRead(lWorkItem) is { } lSpent
-            ? QRosterElapsedFormat(lSpent)
-            : QLocalizationCatalog.QLocalizationTextRead("Roster.Value.NotYet");
-
     public static string QRosterElapsedFormat(TimeSpan lSpent)
     {
         if (lSpent < TimeSpan.Zero)
@@ -48,11 +36,6 @@ public static class QRosterFormatter
             ? $"{lHours}:{lRounded.Minutes:00}:{lRounded.Seconds:00}"
             : $"{lRounded.Minutes:00}:{lRounded.Seconds:00}";
     }
-
-    public static string QRosterSpeedFormat(LWorkItem lWorkItem) =>
-        QRosterSpentRead(lWorkItem) is { } lSpent
-            ? QRosterSpeedFormat(lSpent, lWorkItem.LWorkOutputBytes)
-            : QLocalizationCatalog.QLocalizationTextRead("Roster.Value.NotYet");
 
     public static string QRosterSpeedFormat(TimeSpan lSpent, long? lBytes) =>
         lSpent.TotalSeconds > 0 && lBytes is { } lWhole && lWhole > 0
@@ -100,27 +83,21 @@ public static class QRosterFormatter
         return lSpent < TimeSpan.Zero ? null : lSpent;
     }
 
-    public static string QRosterCodecFormat(LWorkMedia? lMediaInfo) =>
-        lMediaInfo is { LWorkMediaSamplerate: > 0 } && !string.IsNullOrWhiteSpace(lMediaInfo.LWorkMediaCodec)
-            ? lMediaInfo.LWorkMediaCodec.ToUpperInvariant()
-            : "-";
+    public static string QRosterCodecFormat(CRosterSide lSide) =>
+        lSide.CRosterSideCodec is { } lCodec ? lCodec.ToUpperInvariant() : "-";
 
-    public static string QRosterBitrateFormat(LWorkMedia? lMediaInfo) =>
-        lMediaInfo is { LWorkMediaSamplerate: > 0, LWorkMediaBitrate: > 0 }
-            ? $"{Math.Round(lMediaInfo.LWorkMediaBitrate / 1000d)}k"
-            : "-";
+    public static string QRosterBitrateFormat(CRosterSide lSide) =>
+        lSide.CRosterSideKilobits is { } lKilobits ? $"{lKilobits}k" : "-";
 
-    public static string QRosterSampleFormat(LWorkMedia? lMediaInfo) =>
-        lMediaInfo is { LWorkMediaSamplerate: > 0 }
-            ? $"{lMediaInfo.LWorkMediaSamplerate} Hz"
-            : "-";
+    public static string QRosterSampleFormat(CRosterSide lSide) =>
+        lSide.CRosterSideSamplerate is { } lSamplerate ? $"{lSamplerate} Hz" : "-";
 
     public static string QRosterLoudnessFormat(double? lLoudness) =>
         lLoudness is { } lLufs ? $"{lLufs:0.#} LUFS" : "-";
 
-    public static string QRosterDimensionFormat(LWorkMedia lMediaInfo) =>
-        lMediaInfo.LWorkMediaVideo
-            ? $"{lMediaInfo.LWorkMediaWidth} x {lMediaInfo.LWorkMediaHeight}"
+    public static string QRosterDimensionFormat(CRosterSide lSide) =>
+        lSide.CRosterSideVideo
+            ? $"{lSide.CRosterSideWidth} x {lSide.CRosterSideHeight}"
             : QLocalizationCatalog.QLocalizationTextRead("Roster.AudioOnly");
 
     public static string QRosterSizeFormat(string lVideoSize) =>
@@ -128,9 +105,9 @@ public static class QRosterFormatter
             ? QLocalizationCatalog.QLocalizationTextRead("Roster.Value.Unknown")
             : lVideoSize.Replace("x", " x ").Replace("X", " x ").Replace("×", " x ");
 
-    public static string QRosterFpsFormat(LWorkMedia lMediaInfo) =>
-        lMediaInfo.LWorkMediaVideo
-            ? $"{lMediaInfo.LWorkMediaFramerate:0.###} fps"
+    public static string QRosterFpsFormat(CRosterSide lSide) =>
+        lSide.CRosterSideVideo
+            ? $"{lSide.CRosterSideFramerate:0.###} fps"
             : QLocalizationCatalog.QLocalizationTextRead("Roster.AudioOnly");
 
     public static string QRosterFpsFormat(string lVideoFps) =>

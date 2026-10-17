@@ -62,26 +62,18 @@ public sealed class TMergeTabGroups
     }
 
     [Fact]
-    public void GroupsRead_SkipsLockedAndEmpty_FiltersByCohort()
+    public void EligibleRead_SkipsLockedGroups_PathsReadSkipsLockedFiles()
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
         (QMergeTab tab, LDocket docket) = TMergeBuild();
-        Guid cohort = Guid.NewGuid();
         TInterfaceList.TDocketPathsAdd(docket, TMergeFirst, TMergeSecond);
         TInterfaceList.TDocketDeliveredAdd(docket, TMergeThird, true);
         TInterface.TGroupAdd(tab.QMergeGroup, [TMergeFirst, TMergeSecond], "Pair");
         TInterface.TGroupAdd(tab.QMergeGroup, [TMergeThird], "Locked");
 
-        IReadOnlyList<LWorkGroup> groups = TInterface.TMergeGroupsRead(tab);
-        IReadOnlyList<LWorkGroup> cohortGroups = TInterface.TMergeGroupsRead(tab, cohort);
-
-        Assert.Single(groups);
-        Assert.Equal("Pair", groups[0].LWorkGroupName);
-        Assert.Empty(cohortGroups);
         Assert.Equal([TMergeFirst, TMergeSecond], TInterface.TMergeEligibleRead(tab));
         Assert.Equal([TMergeFirst, TMergeSecond], TInterface.TMergePathsRead(tab));
-        Assert.Equal(2, TInterface.TMergeRelaysRead(tab).Count);
         TInterface.TMergeClose(tab);
     }
 
@@ -94,7 +86,7 @@ public sealed class TMergeTabGroups
         int missing = 0;
         TInterface.TMergeMissingAttach(tab, () => missing++);
 
-        TInterface.TMergeRun(tab, LWorkPriority.LWorkPriorityNormal);
+        TInterface.TMergeRun(tab, false);
         int relayed = TInterface.TMergeCohortRun(tab, Guid.NewGuid());
 
         Assert.Equal(1, missing);

@@ -24,7 +24,7 @@ public sealed class TTabEnqueue
         int missing = 0;
         TInterface.TConvertMissingAttach(tab, () => missing++);
 
-        TInterface.TConvertRun(tab, LWorkPriority.LWorkPriorityHigh);
+        TInterface.TConvertRun(tab, true);
         TInterface.TConvertAllRun(tab);
         TInterface.TConvertItemsRun(tab, TTabClip);
 

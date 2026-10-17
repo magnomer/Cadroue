@@ -56,7 +56,7 @@ public sealed class QInspector
         QInspectorVideo = new QInspectorVideo(QInspectorGate);
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
-        QInspectorRatio = new QInspectorRatio(this, QInspectorCrop);
+        QInspectorRatio = new QInspectorRatio(this);
         QInspectorAudio = new QInspectorAudio(QInspectorSkip, QInspectorGate);
         QInspectorAttach();
         qInspectorPersistentMask = QInspectorPersistentResolve();
@@ -299,8 +299,7 @@ public sealed class QInspector
     {
         if (qInspectorMinimized || qInspectorStep != "Whitebalance")
         {
-            QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolSet(
-                false, QInspectorVideo.QInspectorWhitebalance.QWhitebalanceTarget);
+            QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolCancel();
         }
 
         if (qInspectorStep != "Crop")
@@ -314,13 +313,13 @@ public sealed class QInspector
     private void QInspectorAttach()
     {
         QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
-        QInspectorVideo.QInspectorWhitebalance.QWhitebalanceToolChanged += QInspectorNeutralHandle;
+        QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolChanged += QInspectorNeutralHandle;
         QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
         QInspectorAudio.QInspectorAudioChanged += QInspectorPersistentHandle;
         QInspectorSkip.QSkipChanged += QInspectorPersistentHandle;
     }
 
-    private void QInspectorNeutralHandle(bool lArmed, LNeutralTarget lTarget)
+    private void QInspectorNeutralHandle(bool lArmed, bool lWhite)
     {
         if (lArmed)
         {
@@ -345,18 +344,18 @@ public sealed class QInspector
         bool[] lFlags =
         {
             QInspectorCrop.QInspectorPersistent,
-            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindBrightness),
-            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindContrast),
-            QInspectorVideo.QInspectorTone.QTonePersistentRead(LColorKind.LColorKindSaturation),
+            QInspectorVideo.QInspectorTone.CTonePersistents[0],
+            QInspectorVideo.QInspectorTone.CTonePersistents[1],
+            QInspectorVideo.QInspectorTone.CTonePersistents[2],
             QInspectorVideo.QInspectorGamma.CGammaPersistent,
             QInspectorVideo.QInspectorExposure.CExposurePersistent,
             QInspectorVideo.QInspectorCurve.QCurvePersistent,
-            QInspectorVideo.QInspectorWhitebalance.QWhitebalancePersistent,
+            QInspectorVideo.QInspectorWhitebalance.CWhitebalancePersistent,
             QInspectorAudio.QInspectorVolume.CVolumePersistent,
             QInspectorAudio.QInspectorLoudness.QLoudnessPersistent,
             QInspectorAudio.QInspectorNoise.QNoisePersistent,
-            QInspectorAudio.QInspectorHighpass.QFilterPersistent,
-            QInspectorAudio.QInspectorLowpass.QFilterPersistent,
+            QInspectorGate.CInspectorHighpass.CFilterPersistent,
+            QInspectorGate.CInspectorLowpass.CFilterPersistent,
             QInspectorAudio.QInspectorEqualizer.QEqualizerPersistent,
             QInspectorSkip.QSkipPersistent
         };

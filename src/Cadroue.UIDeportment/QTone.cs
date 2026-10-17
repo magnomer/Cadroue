@@ -1,112 +1,128 @@
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The tone tools' wiring: fills each section's field row from the gate's range and origin, hands every input to the
+// gate and shows its state. Slots follow the gate: 0 brightness, 1 contrast, 2 saturation.
 public sealed class QTone
 {
-    private LWorkVideoStep qToneBrightness = LWorkVideoStep.LWorkBrightnessCreate(false, 0);
-    private LWorkVideoStep qToneContrast = LWorkVideoStep.LWorkContrastCreate(false, 100);
-    private LWorkVideoStep qToneSaturation = LWorkVideoStep.LWorkSaturationCreate(false, 100);
-    private bool qToneBrightnessPersistent;
-    private bool qToneContrastPersistent;
-    private bool qToneSaturationPersistent;
-    private bool qToneCapable = true;
+    private const string QTonePattern = "0.#";
 
-    public event Action? QToneChanged;
+    private static readonly string[] qToneUnits = { string.Empty, "%", "%" };
 
-    public bool QToneCapable => qToneCapable;
-
-    public bool QToneNoticeShown =>
-        !LFlyleaf.LFlyleafActive && LRenderer.LRendererEngineRead() != LPreviewEngine.LPreviewEngineMpv;
-
-    public LWorkVideoStep QToneStepRead(LColorKind lKind) => lKind switch
+    private static readonly string[] qToneRequireKeys =
     {
-        LColorKind.LColorKindContrast => qToneContrast,
-        LColorKind.LColorKindSaturation => qToneSaturation,
-        _ => qToneBrightness
+        "Inspector.Video.BrightnessRequiresEq",
+        "Inspector.Video.ContrastRequiresEq",
+        "Inspector.Video.SaturationRequiresEq"
     };
 
-    public bool QTonePersistentRead(LColorKind lKind) => lKind switch
+    private static readonly string[] qToneApplyKeys =
     {
-        LColorKind.LColorKindContrast => qToneContrastPersistent,
-        LColorKind.LColorKindSaturation => qToneSaturationPersistent,
-        _ => qToneBrightnessPersistent
+        "Inspector.Video.ApplyBrightness",
+        "Inspector.Video.ApplyContrast",
+        "Inspector.Video.ApplySaturation"
     };
 
-    public void QToneStepSet(LWorkVideoStep lStep)
+    private static readonly string[] qTonePersistKeys =
     {
-        LWorkVideoStep lNormal = QToneNormalize(lStep.LWorkStepKind, lStep.LWorkStepActive, lStep.LWorkStepValue);
-        QToneStepChange(lNormal);
-    }
-
-    private void QToneStepChange(LWorkVideoStep lNormal)
-    {
-        if (QToneStepRead(lNormal.LWorkStepKind) == lNormal)
-        {
-            return;
-        }
-
-        switch (lNormal.LWorkStepKind)
-        {
-            case LColorKind.LColorKindContrast:
-                qToneContrast = lNormal;
-                break;
-            case LColorKind.LColorKindSaturation:
-                qToneSaturation = lNormal;
-                break;
-            default:
-                qToneBrightness = lNormal;
-                break;
-        }
-
-        QToneChanged?.Invoke();
-    }
-
-    public void QToneActiveSet(LColorKind lKind, bool lActive) =>
-        QToneStepSet(QToneNormalize(lKind, lActive, QToneStepRead(lKind).LWorkStepValue));
-
-    public void QToneValueSet(LColorKind lKind, double lValue) =>
-        QToneStepSet(QToneNormalize(lKind, QToneStepRead(lKind).LWorkStepActive, lValue));
-
-    public void QTonePersistentSet(LColorKind lKind, bool lPersistent)
-    {
-        if (QTonePersistentRead(lKind) == lPersistent)
-        {
-            return;
-        }
-
-        switch (lKind)
-        {
-            case LColorKind.LColorKindContrast:
-                qToneContrastPersistent = lPersistent;
-                break;
-            case LColorKind.LColorKindSaturation:
-                qToneSaturationPersistent = lPersistent;
-                break;
-            default:
-                qToneBrightnessPersistent = lPersistent;
-                break;
-        }
-
-        QToneChanged?.Invoke();
-    }
-
-    public void QToneCapableSet(bool lCapable)
-    {
-        if (qToneCapable == lCapable)
-        {
-            return;
-        }
-
-        qToneCapable = lCapable;
-        QToneChanged?.Invoke();
-    }
-
-    private static LWorkVideoStep QToneNormalize(LColorKind lKind, bool lActive, double lValue) => lKind switch
-    {
-        LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(lActive, lValue),
-        LColorKind.LColorKindSaturation => LWorkVideoStep.LWorkSaturationCreate(lActive, lValue),
-        _ => LWorkVideoStep.LWorkBrightnessCreate(lActive, lValue)
+        "Inspector.Video.PersistBrightness",
+        "Inspector.Video.PersistContrast",
+        "Inspector.Video.PersistSaturation"
     };
+
+    private readonly QInspector qToneInspector;
+    private readonly CTone qToneGate;
+    private readonly IReadOnlyList<CheckBox> qToneSwitches;
+    private readonly IReadOnlyList<CheckBox> qTonePersistent;
+    private readonly IReadOnlyList<StackPanel> qToneStacks;
+    private readonly IReadOnlyList<StackPanel> qToneBodies;
+    private readonly Grid[] qToneFields = new Grid[3];
+    private readonly List<int> qToneSlots = [0, 1, 2];
+
+    // Each section's parts in slot order: its switches, the stack the field row heads, and the body the tip lands on.
+    public QTone(
+        QInspector lInspector,
+        IReadOnlyList<CheckBox> lSwitches,
+        IReadOnlyList<CheckBox> lPersistent,
+        IReadOnlyList<StackPanel> lStacks,
+        IReadOnlyList<StackPanel> lBodies)
+    {
+        qToneInspector = lInspector;
+        qToneGate = lInspector.QInspectorVideo.QInspectorTone;
+        qToneSwitches = lSwitches;
+        qTonePersistent = lPersistent;
+        qToneStacks = lStacks;
+        qToneBodies = lBodies;
+
+        qToneSlots.ForEach(QToneFieldBuild);
+        qToneSlots.ForEach(QToneActiveAttach);
+        qToneSlots.ForEach(QTonePersistentAttach);
+        QToneNoticeBuild(qToneStacks[1]);
+
+        qToneGate.CToneChanged += QToneUpdate;
+        QToneUpdate();
+    }
+
+    // The contrast preview notice under its field row, shown as the gate answers once at build.
+    private void QToneNoticeBuild(StackPanel lStack) =>
+        lStack.Children.Add(new TextBlock
+        {
+            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ContrastPreview"),
+            Foreground = new SolidColorBrush(Color.FromRgb(0x64, 0x70, 0x82)),
+            TextWrapping = TextWrapping.Wrap,
+            Margin = new Thickness(0, 2, 0, 0),
+            Visibility = qToneGate.CToneNoticeShown ? Visibility.Visible : Visibility.Collapsed
+        });
+
+    private void QToneFieldBuild(int lSlot)
+    {
+        qToneFields[lSlot] = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
+            qToneUnits[lSlot],
+            qToneGate.CToneLeasts[lSlot],
+            qToneGate.CToneMosts[lSlot],
+            qToneGate.CToneOrigins[lSlot]);
+        qToneStacks[lSlot].Children.Insert(0, qToneFields[lSlot]);
+        QField.QFieldAttach(
+            qToneFields[lSlot],
+            null,
+            null,
+            () => qToneGate.CToneValues[lSlot],
+            lNumber => qToneGate.CToneValueSet(lSlot, lNumber));
+    }
+
+    private void QToneActiveAttach(int lSlot) =>
+        QToneSwitchAttach(qToneSwitches[lSlot], lActive => qToneGate.CToneActiveSet(lSlot, lActive));
+
+    private void QTonePersistentAttach(int lSlot) =>
+        QToneSwitchAttach(qTonePersistent[lSlot], lFlag => qToneGate.CTonePersistentSet(lSlot, lFlag));
+
+    private static void QToneSwitchAttach(CheckBox lSwitch, Action<bool> lSet)
+    {
+        lSwitch.Checked += (_, _) => lSet(true);
+        lSwitch.Unchecked += (_, _) => lSet(false);
+    }
+
+    private void QToneUpdate() => qToneSlots.ForEach(QToneSlotUpdate);
+
+    private void QToneSlotUpdate(int lSlot)
+    {
+        QTool.QToolSwitchUpdate(qToneSwitches[lSlot], qToneGate.CToneActives[lSlot]);
+        QTool.QToolSwitchUpdate(qTonePersistent[lSlot], qToneGate.CTonePersistents[lSlot]);
+        QField.QFieldUpdate(qToneFields[lSlot], qToneGate.CToneValues[lSlot], QTonePattern);
+        QInspectorTip lTip = qToneInspector.QInspectorTipResolve(
+            qToneGate.CToneActives[lSlot],
+            qToneGate.CToneCapable,
+            true,
+            qToneRequireKeys[lSlot],
+            string.Empty,
+            qToneApplyKeys[lSlot],
+            qTonePersistKeys[lSlot]);
+        QTool.QToolTipApply(
+            qToneSwitches[lSlot], qTonePersistent[lSlot], qToneStacks[lSlot], qToneBodies[lSlot], lTip);
+    }
 }

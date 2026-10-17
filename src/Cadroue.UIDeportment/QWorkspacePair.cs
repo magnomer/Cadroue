@@ -9,7 +9,7 @@ public sealed class QWorkspacePair
     public QWorkspacePair(QWorkspaceFacts qWorkspaceKey, CUsher lUsher, CInfo lInfo, CWorkspace lWorkspace)
     {
         qWorkspacePairSection = qWorkspaceKey.QWorkspaceSectionVisible;
-        QWorkspaceFlow = new QFlow(lUsher);
+        QWorkspaceFlow = new QFlow(lUsher, lWorkspace.CWorkspaceFlow);
         QWorkspaceViewer = new QViewer(lUsher, lWorkspace);
         QWorkspaceViewer.QViewerEligibleSet(
             qWorkspaceKey.QWorkspaceAudioOnly, qWorkspaceKey.QWorkspaceEdit, qWorkspaceKey.QWorkspaceEdit);

@@ -1,18 +1,24 @@
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using Cadroue.Conduct;
+using Microsoft.Win32;
 
 namespace Cadroue.UIDeportment;
 
+// The scene strip's wiring: hands the list's and each command's input to the scene gate, asks through the window's
+// envoy, paints the gate's names, scene and mark, builds the file dialogs and words the gate's notices and warnings.
+// Each member below the paint handlers that forwards one call stays for its surface caller.
 public sealed class QConsoleScene
 {
-    private string? qConsoleReloadName;
-    private string qConsoleSceneName = string.Empty;
-    private QWindowScene? qWindowScene;
-    private QStrip? qStrip;
+    private readonly CConsoleScene qConsoleSceneGate;
+    private readonly CEnvoy qConsoleSceneEnvoy;
 
-    public string? QConsoleReloadName => qConsoleReloadName;
-
-    public string QConsoleSceneName => qConsoleSceneName;
+    public QConsoleScene(CConsoleScene lGate, CEnvoy lEnvoy)
+    {
+        qConsoleSceneGate = lGate;
+        qConsoleSceneEnvoy = lEnvoy;
+        lGate.CConsoleSceneListed += QConsoleNamesRaise;
+        lGate.CConsoleSceneChanged += QConsoleSceneRaise;
+        lGate.CConsoleSceneMarked += QConsoleMarkRaise;
+    }
 
     public event Action<IReadOnlyList<string>>? QConsoleNamesApplied;
 
@@ -26,195 +32,51 @@ public sealed class QConsoleScene
 
     public event Action<string, string>? QConsoleWarningShown;
 
-    public void QConsoleWindowAttach(QWindowScene lSceneOwner, QStrip lStripOwner)
-    {
-        qWindowScene = lSceneOwner;
-        qStrip = lStripOwner;
-    }
+    public void QConsoleWindowAttach(QWindowScene lSceneOwner, QStrip lStripOwner) =>
+        qConsoleSceneGate.CConsoleSceneAttach(
+            lSceneOwner.QWindowSceneRead,
+            lSceneOwner.QWindowSceneApply,
+            lStripOwner.QStripClosure.QStripAllClose,
+            () => lStripOwner.QStripBusyCheck());
 
-    public void QConsoleReloadSet(string? lReloadName) => qConsoleReloadName = lReloadName;
+    private void QConsoleNamesRaise() => QConsoleNamesApplied?.Invoke(qConsoleSceneGate.CConsoleSceneNames);
 
-    public string? QConsoleReloadRead()
-    {
-        string? lReloadName = qConsoleReloadName;
-        qConsoleReloadName = null;
-        return lReloadName;
-    }
+    private void QConsoleSceneRaise() =>
+        QConsoleSceneApplied?.Invoke(
+            qConsoleSceneGate.CConsoleSceneSelected,
+            qConsoleSceneGate.CConsoleSceneName,
+            qConsoleSceneGate.CConsoleSceneDirty);
 
-    public void QConsoleSceneSet(string lSceneName) => qConsoleSceneName = lSceneName;
+    private void QConsoleMarkRaise() => QConsoleMarkApplied?.Invoke(qConsoleSceneGate.CConsoleSceneDirty);
 
-    public bool QConsoleSceneCheck(string lSceneName) =>
-        string.Equals(qConsoleSceneName, lSceneName, StringComparison.OrdinalIgnoreCase);
+    public void QConsoleReloadSet(string? lReloadName) => qConsoleSceneGate.CConsoleSceneSet(lReloadName);
 
-    public void QConsoleSceneStart()
-    {
-        QConsoleSceneSet(LScene.LSceneActiveName);
-        QConsoleSceneUpdate();
-    }
+    public void QConsoleSceneStart() => qConsoleSceneGate.CConsoleSceneStart();
 
-    public void QConsoleSceneRebuild()
-    {
-        LScene.LSceneCatalogueLoad();
-        QConsoleNamesApplied?.Invoke(LScene.LSceneNames);
-        QConsoleSceneUpdate();
-    }
+    public void QConsoleSceneRebuild() => qConsoleSceneGate.CConsoleSceneRebuild();
 
-    public void QConsoleSceneUpdate() =>
-        QConsoleSceneApplied?.Invoke(QConsoleStoredRead(), qConsoleSceneName, QConsoleDirtyCheck());
+    public void QConsoleMarkUpdate() => qConsoleSceneGate.CConsoleSceneCheck();
 
-    private string? QConsoleStoredRead() =>
-        LScene.LSceneRead(qConsoleSceneName) is not null ? qConsoleSceneName : null;
+    public void QConsoleTickHandle(bool lFocusWithin) => qConsoleSceneGate.CConsoleSceneTick(lFocusWithin);
 
-    public void QConsoleMarkUpdate() => QConsoleMarkApplied?.Invoke(QConsoleDirtyCheck());
+    public void QConsoleRowHandle(string? lSceneName) => qConsoleSceneGate.CConsoleSceneAccept(lSceneName);
 
-    public void QConsoleTickHandle(bool lFocusWithin)
-    {
-        if (qConsoleSceneName.Length > 0 && !lFocusWithin)
-        {
-            QConsoleMarkUpdate();
-        }
-    }
+    public void QConsoleSelectHandle(object? lSelected, bool lDropOpen) =>
+        qConsoleSceneGate.CConsoleSceneSelect(lSelected, lDropOpen, qConsoleSceneEnvoy);
 
-    public bool QConsoleDirtyCheck()
-    {
-        if (qConsoleSceneName.Length == 0
-            || LScene.LSceneRead(qConsoleSceneName) is not { } lSceneStored
-            || qWindowScene is null)
-        {
-            return false;
-        }
+    public void QConsoleCloseHandle() => qConsoleSceneGate.CConsoleSceneClose(qConsoleSceneEnvoy);
 
-        return !LScene.LSceneMatch(lSceneStored, qWindowScene.QWindowSceneRead(qConsoleSceneName));
-    }
-
-    public void QConsoleRowHandle(string? lSceneName)
-    {
-        if (lSceneName is not null)
-        {
-            QConsoleReloadSet(lSceneName);
-        }
-    }
-
-    public void QConsoleSelectHandle(object? lSelected, bool lDropOpen)
-    {
-        if (lSelected is not string lSceneName || QConsoleSceneCheck(lSceneName))
-        {
-            return;
-        }
-
-        if (lDropOpen)
-        {
-            QConsoleReloadSet(lSceneName);
-            return;
-        }
-
-        QConsoleReloadSet(null);
-        QConsoleSceneLoad(lSceneName);
-    }
-
-    public void QConsoleCloseHandle()
-    {
-        if (QConsoleReloadRead() is { } lSceneName)
-        {
-            QConsoleSceneLoad(lSceneName);
-            return;
-        }
-
-        QConsoleSceneUpdate();
-    }
-
-    public void QConsoleSceneLoad(string lSceneName)
-    {
-        if (LScene.LSceneRead(lSceneName) is not { } lScene)
-        {
-            QConsoleSceneUpdate();
-            return;
-        }
-
-        QAskNotice.QAskPublish(
-            QConsoleLoadCreate(lSceneName), lAnswer => QConsoleSceneRun(lAnswer, lSceneName, lScene));
-    }
-
-    private static QAsk QConsoleLoadCreate(string lSceneName) =>
-        new(
-            QLocalizationCatalog.QLocalizationFormat("Console.Scene.LoadConfirm", lSceneName),
-            QLocalizationCatalog.QLocalizationTextRead("Terms.Load"))
-        {
-            QAskTitle = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.LoadTitle")
-        };
-
-    private void QConsoleSceneRun(bool lAnswer, string lSceneName, LSceneDocument lScene)
-    {
-        if (lAnswer && qWindowScene is { } lSceneOwner && qStrip is { } lStripOwner
-            && lSceneOwner.QWindowSceneApply(
-                lScene,
-                lStripOwner.QStripClosure.QStripCloseConfirm(),
-                lStripOwner.QStripClosure.QStripAllClose))
-        {
-            QConsoleSceneSelect(lSceneName);
-            return;
-        }
-
-        QConsoleSceneUpdate();
-    }
-
-    private void QConsoleSceneSelect(string lSceneName)
-    {
-        QConsoleSceneSet(lSceneName);
-        LScene.LSceneActiveSet(lSceneName);
-        QConsoleSceneUpdate();
-    }
-
-    public bool QConsoleDeleteHandle(string? lSceneName)
-    {
-        if (lSceneName is null)
-        {
-            return false;
-        }
-
-        QConsoleReloadSet(null);
-        if (!LScene.LSceneDelete(lSceneName))
-        {
-            return true;
-        }
-
-        if (QConsoleSceneCheck(lSceneName))
-        {
-            QConsoleSceneSet(string.Empty);
-            LScene.LSceneActiveSet(string.Empty);
-        }
-
-        QConsoleSceneRebuild();
-        LTraceLog.LTraceInfoRecord($"Scene deleted '{lSceneName}'");
-        return true;
-    }
+    public bool QConsoleDeleteHandle(string? lSceneName) => qConsoleSceneGate.CConsoleSceneDelete(lSceneName);
 
     public void QConsoleSceneSave(string? lText)
     {
-        string lSceneName = QConsoleNameParse(lText);
-        if (lSceneName.Length == 0)
+        if (!qConsoleSceneGate.CConsoleSceneSave(lText))
         {
-            QConsoleNoticeRaise();
-            return;
+            QConsoleNoticeShown?.Invoke(
+                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTitle"),
+                QLocalizationCatalog.QLocalizationTextRead("Console.Scene.NameRequired"));
         }
-
-        if (qWindowScene is not { } lSceneOwner)
-        {
-            return;
-        }
-
-        LScene.LSceneSave(lSceneOwner.QWindowSceneRead(lSceneName));
-        QConsoleSceneRebuild();
-        QConsoleSceneSelect(lSceneName);
-        LTraceLog.LTraceInfoRecord($"Scene saved '{lSceneName}'");
     }
-
-    private static string QConsoleNameParse(string? lText) => (lText ?? string.Empty).Trim();
-
-    private void QConsoleNoticeRaise() =>
-        QConsoleNoticeShown?.Invoke(
-            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.SaveTitle"),
-            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.NameRequired"));
 
     public void QConsolePressHandle(bool lDropOpen, bool lFocusWithin, bool lInsideCombo)
     {
@@ -234,104 +96,42 @@ public sealed class QConsoleScene
         }
     }
 
-    private LSceneDocument? QConsoleExportResolve(string? lText)
+    public SaveFileDialog QConsoleExportBuild(string? lText) => new()
     {
-        string lSceneName = QConsoleNameParse(lText);
-        LSceneDocument? lScene = lSceneName.Length > 0 ? LScene.LSceneRead(lSceneName) : null;
-        if (lScene is not null)
-        {
-            return lScene;
-        }
+        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
+        DefaultExt = qConsoleSceneGate.CConsoleSceneExtension,
+        AddExtension = true,
+        FileName = qConsoleSceneGate.CConsoleSceneResolve(
+            lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName"))
+    };
 
-        return qWindowScene?.QWindowSceneRead(
-            lSceneName.Length > 0 ? lSceneName : QLocalizationCatalog.QLocalizationTextRead(
-                "Console.Scene.DefaultName"));
-    }
-
-    public string QConsoleFileResolve(string? lText) =>
-        LScene.LSceneFileResolve(
-            QConsoleExportResolve(lText)?.LSceneName ?? string.Empty,
-            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName"));
-
-    public void QConsoleExportCommit(bool? lConfirmed, string lPath, string? lText)
+    public OpenFileDialog QConsoleImportBuild() => new()
     {
-        if (lConfirmed != true || QConsoleExportResolve(lText) is not { } lScene)
-        {
-            return;
-        }
+        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
+        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
+        DefaultExt = qConsoleSceneGate.CConsoleSceneExtension,
+        CheckFileExists = true
+    };
 
-        try
-        {
-            LScene.LSceneFileSave(lScene, lPath);
-        }
-        catch (Exception lError)
-        {
-            QConsoleErrorRaise("Console.Scene.Error.Write", lError.Message, "Console.Scene.Dialog.Export");
-        }
-    }
+    public void QConsoleExportCommit(bool? lConfirmed, string lPath, string? lText) =>
+        QConsoleErrorRaise(
+            qConsoleSceneGate.CConsoleScenePersist(
+                lConfirmed, lPath, lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName")),
+            "Console.Scene.Dialog.Export");
 
-    public void QConsoleImportCommit(bool? lConfirmed, string lPath)
+    public void QConsoleImportCommit(bool? lConfirmed, string lPath) =>
+        QConsoleErrorRaise(
+            qConsoleSceneGate.CConsoleSceneImport(
+                lConfirmed, lPath, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportedName")),
+            "Console.Scene.Dialog.Import");
+
+    private void QConsoleErrorRaise(CConsoleText? lMessage, string lTitleKey)
     {
-        if (lConfirmed != true)
+        if (lMessage is not null)
         {
-            return;
-        }
-
-        LSceneDocument? lScene;
-        try
-        {
-            lScene = LScene.LSceneFileLoad(lPath);
-        }
-        catch (Exception lError)
-        {
-            QConsoleErrorRaise("Console.Scene.Error.Read", lError.Message, "Console.Scene.Dialog.Import");
-            return;
-        }
-
-        if (lScene is null)
-        {
-            QConsoleErrorRaise("Console.Scene.Error.Invalid", string.Empty, "Console.Scene.Dialog.Import");
-            return;
-        }
-
-        QConsoleNameSet(lScene, lPath);
-        LScene.LSceneSave(lScene);
-        QConsoleSceneRebuild();
-        LTraceLog.LTraceLoadingRecord($"Scene imported '{lScene.LSceneName}'");
-    }
-
-    private static void QConsoleNameSet(LSceneDocument lScene, string lPath) =>
-        lScene.LSceneName = QConsoleNameCreate(QConsoleStemResolve(lScene.LSceneName, lPath), LScene.LSceneNames);
-
-    public static string QConsoleStemResolve(string lSceneName, string lPath)
-    {
-        string lName = LScene.LSceneStemResolve(lSceneName, lPath);
-        return lName.Length > 0 ? lName : QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportedName");
-    }
-
-    public static string QConsoleNameCreate(string lBaseName, IReadOnlyList<string> lNames)
-    {
-        if (!lNames.Any(lName => string.Equals(lName, lBaseName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return lBaseName;
-        }
-
-        for (int lIndex = 2; ; lIndex++)
-        {
-            string lCandidate = $"{lBaseName} {lIndex}";
-            if (!lNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
-            {
-                return lCandidate;
-            }
+            QConsoleWarningShown?.Invoke(
+                QLocalizationCatalog.QLocalizationTextRead(lTitleKey), QConsoleLine.QConsoleTextRead(lMessage));
         }
     }
-
-    private void QConsoleErrorRaise(string lMessageKey, string lDetail, string lTitleKey) =>
-        QConsoleWarningShown?.Invoke(
-            QLocalizationCatalog.QLocalizationTextRead(lTitleKey), QConsoleErrorFormat(lMessageKey, lDetail));
-
-    private static string QConsoleErrorFormat(string lMessageKey, string lDetail) =>
-        lDetail.Length > 0
-            ? QLocalizationCatalog.QLocalizationFormat(lMessageKey, lDetail)
-            : QLocalizationCatalog.QLocalizationTextRead(lMessageKey);
 }

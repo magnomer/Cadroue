@@ -8,7 +8,12 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static QFlow TFlowCreate() => new(TAtelierCreate().CAtelierUsher);
+    internal static QFlow TFlowCreate()
+    {
+        Cadroue.Conduct.CAtelier atelier = TAtelierCreate();
+        return new(atelier.CAtelierUsher, atelier.CAtelierWorkspaceCreate().CWorkspaceFlow);
+    }
+
     internal static void TFlowEditAttach(QFlow flow, Action<bool> handler) =>
         flow.QFlowEdit.QFlowEditChanged += handler;
     internal static void TFlowSourceSet(QFlow flow, LMediaInfo media, string? path) => flow.QFlowSourceSet(media, path);
@@ -116,39 +121,20 @@ internal static partial class TInterface
         flow.QFlowKeyframe.QFlowTimerResumed += resume;
         flow.QFlowKeyframe.QFlowTimerStopped += reset;
     }
-    internal static void TFlowKeyframeAttach(
-        QFlow flow,
-        Action<LKeyframeNotice> ready,
-        Action<IReadOnlyList<LKeyframeEntry>, IReadOnlyList<LKeyframeScanRange>> change)
-    {
-        flow.QFlowKeyframe.QFlowKeyframeReady += ready;
-        flow.QFlowKeyframe.QFlowKeyframeChanged += change;
-    }
     internal static bool TFlowResumeCheck(QFlow flow) => flow.QFlowKeyframe.QFlowResumePending;
     internal static void TFlowKeyframeDefer(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeDefer();
     internal static void TFlowKeyframeSuspend(QFlow flow, bool resume) =>
         flow.QFlowKeyframe.QFlowKeyframeSuspend(resume);
-    internal static void TFlowKeyframeReset(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeReset();
     internal static void TFlowKeyframeTick(QFlow flow) => flow.QFlowKeyframe.QFlowKeyframeTick();
-    internal static void TFlowKeyframeMove(QFlow flow, int direction) =>
-        flow.QFlowKeyframe.QFlowKeyframeMove(direction);
-    internal static void TFlowKeyframeApply(QFlow flow, LKeyframeNotice notice) =>
-        flow.QFlowKeyframe.QFlowKeyframeApply(notice);
-    internal static LKeyframeNotice TKeyframeNoticeCreate(
-        int serial, IReadOnlyList<LKeyframeEntry> list, IReadOnlyList<LKeyframeScanRange> ranges, LKeyframeKind kind) =>
-        new(serial, list, ranges, kind);
 
-    internal static void TFlowWaveformAttach(QFlow flow, Action ready, Action<byte[]> update)
+    internal static void TFlowWaveformAttach(QFlow flow, Action ready, Action update)
     {
         flow.QFlowWaveform.QFlowWaveformReady += ready;
         flow.QFlowWaveform.QFlowWaveformUpdated += update;
     }
     internal static bool TFlowWaveformSet(QFlow flow, bool active) => flow.QFlowWaveformSet(active);
     internal static void TFlowWaveformApply(QFlow flow) => flow.QFlowWaveform.QFlowWaveformApply();
-    internal static byte[] TFlowPeaksRead(QFlow flow) => flow.QFlowWaveform.QFlowWaveformPeaks;
-    internal static QFlowWaveformOutline TFlowOutlineResolve(
-        byte[] peaks, double width, double top, double height, TimeSpan start, TimeSpan end) =>
-        QFlowWaveform.QFlowOutlineResolve(peaks, width, top, height, start, end);
+    internal static bool TFlowWaveformCheck(QFlow flow) => flow.QFlowWaveform.QFlowWaveformGate.CWaveformShown;
 
     internal static QDivider TDividerCreate() => new();
     internal static void TDividerPressHandle(QDivider divider, double y, double height) =>

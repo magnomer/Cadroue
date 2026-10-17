@@ -1,5 +1,4 @@
 using Cadroue.Conduct;
-using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
@@ -33,31 +32,35 @@ public sealed record QRosterRow
 
     public required string QRosterRowShade { get; init; }
 
-    public static QRosterRow QRosterRowCreate(
-        CLineage lLineage,
-        LWorkItem lWorkItem,
-        CLineageStep lStep,
-        bool lLast,
-        bool lStage,
-        bool lOwned,
-        string lShade)
+    // Paints the gate's row: its wording keys through the catalog, its span and lineage step in the roster's words.
+    public static QRosterRow QRosterRowCreate(CLineage lLineage, CRosterRow lRow, string lShade)
     {
         return new QRosterRow
         {
-            QRosterRowId = lWorkItem.LWorkId,
-            QRosterRowStep = QLineage.QLineageStepFormat(lLineage, lStep),
-            QRosterRowPriority = QRosterPriorityFormat(lWorkItem.LWorkPriority),
-            QRosterRowLength = QRosterSpanFormat(lWorkItem.LWorkLength),
-            QRosterRowProgress = QRosterProgressFormat(lWorkItem),
-            QRosterRowRatio = QLineage.QLineageRatioFormat(lStep),
-            QRosterRowState = QRosterStateFormat(lWorkItem.LWorkStateCurrent),
-            QRosterRowKey = QRosterKeyRead(lWorkItem.LWorkStateCurrent),
-            QRosterRowOwner = QRosterOwnerFormat(lWorkItem, lOwned),
-            QRosterRowLast = lLast,
-            QRosterRowStage = lStage,
+            QRosterRowId = lRow.CRosterRowId,
+            QRosterRowStep = QLineage.QLineageStepFormat(lLineage, lRow.CRosterRowStep),
+            QRosterRowPriority = QLocalizationCatalog.QLocalizationTextRead(lRow.CRosterRowPriority),
+            QRosterRowLength = QRosterSpanFormat(lRow.CRosterRowLength),
+            QRosterRowProgress = lRow.CRosterRowProgress,
+            QRosterRowRatio = QLineage.QLineageRatioFormat(lRow.CRosterRowStep),
+            QRosterRowState = QLocalizationCatalog.QLocalizationTextRead(lRow.CRosterRowState),
+            QRosterRowKey = lRow.CRosterRowTone,
+            QRosterRowOwner = lRow.CRosterRowOwner is { } lOwner
+                ? QLocalizationCatalog.QLocalizationTextRead(lOwner)
+                : "-",
+            QRosterRowLast = lRow.CRosterRowLast,
+            QRosterRowStage = lRow.CRosterRowStage,
             QRosterRowShade = lShade
         };
     }
+
+    // The row's click: the roster's selection takes this row's step with the held modifier keys.
+    public void QRosterRowSelect(QRoster lRoster, bool lRange, bool lToggle) =>
+        lRoster.QRosterSelection.QRosterStepSelect(QRosterRowId, lRange, lToggle);
+
+    // The items the row's context menu offers as it opens.
+    public IReadOnlyList<QRosterItem> QRosterRowOpen(QRoster lRoster, QStrip? lStrip) =>
+        lRoster.QRosterMenu.QRosterMenuRead(QRosterRowId, lStrip);
 
     public static string QRosterShadeResolve(bool lSelected, bool lCardSelected, bool lStage)
     {
@@ -69,73 +72,5 @@ public sealed record QRosterRow
         return !lCardSelected && lStage ? QRosterShadeStage : QRosterShadePlain;
     }
 
-    public static string QRosterOwnerFormat(LWorkItem lWorkItem, bool lOwned)
-    {
-        if (lWorkItem.LWorkOwnerRunner == Guid.Empty)
-        {
-            return "-";
-        }
-
-        if (lOwned)
-        {
-            return QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.ThisTab");
-        }
-
-        return lWorkItem.LWorkOwnerProcess == Environment.ProcessId
-            ? QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.OtherTab")
-            : QLocalizationCatalog.QLocalizationTextRead("Roster.Owner.OtherWindow");
-    }
-
-    public static string QRosterProgressFormat(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning || lWorkItem.LWorkProgress > 0
-            ? $"{lWorkItem.LWorkProgress:P0}"
-            : "-";
-
-    public static string QRosterPriorityFormat(LWorkPriority lPriority) =>
-        lPriority == LWorkPriority.LWorkPriorityHigh
-            ? QLocalizationCatalog.QLocalizationTextRead("Roster.Priority.High")
-            : QLocalizationCatalog.QLocalizationTextRead("Roster.Priority.Normal");
-
     public static string QRosterSpanFormat(TimeSpan lSpan) => $"{lSpan:hh\\:mm\\:ss}";
-
-    public static string QRosterKeyRead(LWorkState lWorkState) => lWorkState switch
-    {
-        LWorkState.LWorkStatePending => "Pending",
-        LWorkState.LWorkStateRunning => "Running",
-        LWorkState.LWorkStateDone => "Done",
-        LWorkState.LWorkStateFailed => "Failed",
-        LWorkState.LWorkStateUnresolved => "Unresolved",
-        LWorkState.LWorkStatePartial => "Partial",
-        LWorkState.LWorkStateBlocked => "Blocked",
-        LWorkState.LWorkStateCancelled => "Cancelled",
-        _ => "Pending"
-    };
-
-    public static string QRosterStateFormat(LWorkState lWorkState) => lWorkState switch
-    {
-        LWorkState.LWorkStatePending => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Pending"),
-        LWorkState.LWorkStateRunning => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Running"),
-        LWorkState.LWorkStateDone => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Done"),
-        LWorkState.LWorkStateFailed => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Failed"),
-        LWorkState.LWorkStateUnresolved => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Unresolved"),
-        LWorkState.LWorkStatePartial => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Partial"),
-        LWorkState.LWorkStateBlocked => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Blocked"),
-        LWorkState.LWorkStateCancelled => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Cancelled"),
-        _ => lWorkState.ToString()
-    };
-
-    public static string QRosterPhaseFormat(LWorkState lWorkState, LWorkPhase lWorkPhase) => lWorkState switch
-    {
-        LWorkState.LWorkStateDone => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Done"),
-        LWorkState.LWorkStateFailed => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Failed"),
-        LWorkState.LWorkStateUnresolved => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Unresolved"),
-        LWorkState.LWorkStatePartial => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Partial"),
-        LWorkState.LWorkStateBlocked => QLocalizationCatalog.QLocalizationTextRead("Roster.State.Blocked"),
-        _ => lWorkPhase switch
-        {
-            LWorkPhase.LWorkPhaseEncoding => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.Processing"),
-            LWorkPhase.LWorkPhaseStarted => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.Started"),
-            _ => QLocalizationCatalog.QLocalizationTextRead("Roster.Phase.NotStarted")
-        }
-    };
 }

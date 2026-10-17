@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -10,33 +11,32 @@ public sealed class TNoisePreset
     [Fact]
     public void Rows_InDisplayOrder_CarryFormats()
     {
-        QNoise noise = TInterface.TNoiseCreate();
-        IReadOnlyList<QInspectorRow> rows = noise.QNoiseRows;
+        IReadOnlyList<QInspectorRow> rows = new QNoise(TInterface.TNoiseCreate()).QNoiseRows;
 
-        Assert.Equal(new[] { 0, 2, 1, 4, 3 }, rows.Select(row => row.QInspectorRowIndex));
-        Assert.Equal("0.###", rows.Single(row => row.QInspectorRowIndex == 3).QInspectorRowPattern);
+        Assert.Equal(new[] { 0, 1, 2, 3, 4 }, rows.Select(row => row.QInspectorRowIndex));
+        Assert.Equal("0.###", rows.Single(row => row.QInspectorRowIndex == 4).QInspectorRowPattern);
         Assert.Equal(
-            LGrainCatalog.LGrainFloorLeast, rows.Single(row => row.QInspectorRowIndex == 1).QInspectorRowLeast);
+            LGrainCatalog.LGrainFloorLeast, rows.Single(row => row.QInspectorRowIndex == 2).QInspectorRowLeast);
     }
 
     [Fact]
     public void TypeSelect_MapsIndex_AndReadsBack()
     {
-        QNoise noise = TInterface.TNoiseCreate();
-        Assert.Equal(0, noise.QNoiseTypeIndex);
-        Assert.Equal(3, noise.QNoiseTypeNames.Count);
+        CNoise noise = TInterface.TNoiseCreate();
+        Assert.Equal(0, noise.CNoiseType);
+        Assert.Equal(3, new QNoise(noise).QNoiseTypeNames.Count);
 
         TInterface.TNoiseTypeSelect(noise, 2);
         Assert.Equal(LGrain.LGrainShellac, TInterface.TNoiseStepRead(noise).LWorkNoiseType);
-        Assert.Equal(2, noise.QNoiseTypeIndex);
+        Assert.Equal(2, noise.CNoiseType);
         TInterface.TNoiseTypeSelect(noise, 5);
-        Assert.Equal(2, noise.QNoiseTypeIndex);
+        Assert.Equal(2, noise.CNoiseType);
     }
 
     [Fact]
     public void Choice_MediumByDefault_SelectAndDrift()
     {
-        QNoise noise = TInterface.TNoiseCreate();
+        CNoise noise = TInterface.TNoiseCreate();
         QInspectorChoice choice = TInterface.TNoiseChoiceRead(noise);
         Assert.Equal(1, choice.QInspectorChoiceIndex);
         Assert.Equal(LGrainCatalog.LGrainPresets.Count, choice.QInspectorChoiceCustom);

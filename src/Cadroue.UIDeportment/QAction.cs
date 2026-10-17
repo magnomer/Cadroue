@@ -17,7 +17,8 @@ public sealed class QAction
     private Guid qActionRelayTarget;
     private bool qActionAutoRelay;
 
-    public event Action<LWorkPriority, Guid, Guid>? QActionExecuted;
+    // The urgent choice is raw input: true from the execute button, false from the list button.
+    public event Action<bool, Guid, Guid>? QActionExecuted;
     public event Action<Guid, Guid>? QActionAllAdded;
     public event Func<Guid, Guid, Guid, int>? QActionCohortAdded;
     public event Action<IReadOnlyList<string>, Guid, Guid>? QActionItemsAdded;
@@ -124,7 +125,7 @@ public sealed class QAction
     {
         if (QActionEligibleResolve(true))
         {
-            QActionExecuted?.Invoke(LWorkPriority.LWorkPriorityHigh, qActionRelayTarget, qActionSourceTab);
+            QActionExecuted?.Invoke(true, qActionRelayTarget, qActionSourceTab);
         }
     }
 
@@ -141,7 +142,7 @@ public sealed class QAction
             return;
         }
 
-        QActionExecuted?.Invoke(LWorkPriority.LWorkPriorityNormal, qActionRelayTarget, qActionSourceTab);
+        QActionExecuted?.Invoke(false, qActionRelayTarget, qActionSourceTab);
     }
 
     public void QActionItemsRun(IReadOnlyList<string> lPaths) =>

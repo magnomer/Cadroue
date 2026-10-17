@@ -8,7 +8,9 @@ internal sealed class TViewerPort : LViewerPort
 {
     public List<string> TViewerCalls { get; } = [];
 
-    public bool LViewerVerboseRead() => false;
+    public bool TViewerVerbose { get; set; }
+
+    public bool LViewerVerboseRead() => TViewerVerbose;
 
     public void LViewerRefreshRecord(string lReason) => TViewerCalls.Add($"refresh:{lReason}");
 

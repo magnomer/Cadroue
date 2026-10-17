@@ -120,7 +120,7 @@ public sealed class TActionFace
     public void Runs_GateOnEligible_RaiseEmptyOtherwise()
     {
         QAction action = TInterface.TActionCreate();
-        List<LWorkPriority> runs = [];
+        List<bool> runs = [];
         int alls = 0;
         int empties = 0;
         List<string> items = [];
@@ -144,7 +144,7 @@ public sealed class TActionFace
         TInterface.TActionListRun(action);
 
         Assert.Equal(1, alls);
-        Assert.Equal([LWorkPriority.LWorkPriorityHigh, LWorkPriority.LWorkPriorityNormal], runs);
+        Assert.Equal([true, false], runs);
         Assert.Empty(items);
     }
 
@@ -158,7 +158,7 @@ public sealed class TActionFace
         QAction action = TInterface.TActionCreate();
         TInterface.TActionListAttach(action, list);
         List<string> items = [];
-        List<LWorkPriority> runs = [];
+        List<bool> runs = [];
         TInterface.TActionItemsAttach(action, paths => items.AddRange(paths));
         TInterface.TActionRunAttach(action, runs.Add);
 

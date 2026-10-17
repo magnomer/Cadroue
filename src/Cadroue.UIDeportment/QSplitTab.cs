@@ -102,7 +102,7 @@ public sealed class QSplitTab
         QSplitActiveUpdate();
     }
 
-    public void QSplitRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
+    public void QSplitRun(bool lUrgent, Guid lRelayTarget, Guid lSourceTab)
     {
         if (!QSplitPresetCheck() || QSplitSelectedRead() is not { } lSelected)
         {
@@ -110,7 +110,7 @@ public sealed class QSplitTab
         }
 
         LMessenger.LMessengerSplitDescribe(
-            lPriority,
+            lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSelected.LDocketEntryPath,
             qSplitFlow.QFlowSection.QFlowSplitRead(),
             qSplitPreset.LPresetSelectionEncoding,

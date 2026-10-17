@@ -1,8 +1,10 @@
 using System.Windows.Controls;
 
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Media;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests.Windows;
@@ -59,35 +61,32 @@ internal static partial class TInterface
     internal static int TProcessingIndexResolve(double y, IReadOnlyList<double> tops, IReadOnlyList<double> heights) =>
         QProcessing.QProcessingIndexResolve(y, tops, heights);
 
-    internal static QClinic TClinicCreate() => new();
-    internal static void TClinicPlanAttach(QClinic clinic, Action handler) => clinic.QClinicPlanChanged += handler;
-    internal static void TClinicStepSet(QClinic clinic, string? step) => clinic.QClinicStepSet(step);
-    internal static void TClinicActiveSet(QClinic clinic, bool active) => clinic.QClinicActiveSet(active);
-    internal static void TClinicSalvageSet(QClinic clinic, LWorkFixSalvage salvage) =>
-        clinic.QClinicSalvageSet(salvage);
-    internal static void TSalvageActiveSet(QClinic clinic, bool active) => clinic.QSalvageActiveSet(active);
-    internal static void TSalvagePersistentSet(QClinic clinic, bool persistent) =>
-        clinic.QSalvagePersistentSet(persistent);
-    internal static void TSalvageModeSet(QClinic clinic, LSalvageMode mode) => clinic.QSalvageModeSet(mode);
-    internal static void TSalvageBasisSet(QClinic clinic, LSalvageBasis basis) => clinic.QSalvageBasisSet(basis);
+    internal static void TClinicStepSet(CClinic clinic, string? step) => clinic.CClinicStepSet(step);
     internal static LWorkFixSalvage TClinicSalvageCreate(
         bool active, LSalvageMode mode, LSalvageBasis basis, bool persistent) =>
         new(active, mode, basis, persistent);
-    internal static LWorkFix TClinicPlanRead(QClinic clinic) => clinic.QClinicPlanRead();
-    internal static void TClinicPlanApply(QClinic clinic, LWorkFix plan) => clinic.QClinicPlanApply(plan);
-    internal static bool TClinicRepairCheck(QClinic clinic) => clinic.QClinicRepairCheck();
-    internal static void TClinicChangeAttach(QClinic clinic, Action handler) => clinic.QClinicChanged += handler;
-    internal static void TClinicSourceSet(QClinic clinic, string? path) => clinic.QClinicSourceSet(path);
-    internal static void TClinicResultSet(QClinic clinic, string path, LFlawKind kind, LCheckupOutcome outcome) =>
-        clinic.QClinicResultSet(path, kind, new LCheckupResult(path, kind, outcome));
-    internal static void TClinicProgressSet(QClinic clinic, string path, double value) =>
-        clinic.QClinicProgressSet(path, value);
-    internal static void TClinicResultsRemove(QClinic clinic, params string[] paths) =>
-        clinic.QClinicResultsRemove(paths);
-    internal static LCheckupOutcome TClinicOutcomeRead(QClinic clinic) => clinic.QClinicResultRead().LCheckupOutcome;
-    internal static double TClinicProgressRead(QClinic clinic) => clinic.QClinicProgressRead();
-    internal static string TClinicSimpleRead(QClinic clinic) => clinic.QClinicSimpleRead();
-    internal static string TClinicTitleRead(QClinic clinic) => clinic.QClinicTitleRead();
+    internal static LWorkFix TClinicPlanRead(CClinic clinic)
+    {
+        LClinicOutlet plan = new();
+        clinic.CClinicPlanApply(plan);
+        return plan.LClinicPlan;
+    }
+
+    internal static void TClinicPlanApply(CClinic clinic, LWorkFix plan) =>
+        clinic.CClinicPlanAccept(new LClinicOutlet(plan));
+    internal static void TClinicSourceSet(CClinic clinic, string? path) => clinic.CClinicSourceSet(path);
+    internal static LCheckupOutcome TClinicOutcomeRead(CClinic clinic) =>
+        Enum.Parse<LCheckupOutcome>(clinic.CClinicResultFormat(
+        [
+            nameof(LCheckupOutcome.LCheckupOutcomeUntested),
+            nameof(LCheckupOutcome.LCheckupOutcomeScanning),
+            nameof(LCheckupOutcome.LCheckupOutcomeClean),
+            nameof(LCheckupOutcome.LCheckupOutcomeFailed),
+            string.Empty,
+            string.Empty,
+            string.Empty
+        ]));
+    internal static double TClinicProgressRead(CClinic clinic) => clinic.CClinicProgressRead();
 
     internal static void TCurvePressHandle(QCurve curve, double x, double y, double size) =>
         curve.QCurvePressHandle(x, y, size);
@@ -109,25 +108,31 @@ internal static partial class TInterface
     internal static IReadOnlyList<QCurvePoint> TCurveHistogramRead(QCurve curve, double size) =>
         curve.QCurveCanvas.QCurveHistogramRead(size);
 
-    internal static void TWhitebalanceToolAttach(QWhitebalance whitebalance, Action<bool, LNeutralTarget> handler) =>
-        whitebalance.QWhitebalanceToolChanged += handler;
-    internal static void TWhitebalanceToolToggle(QWhitebalance whitebalance, LNeutralTarget target, bool state) =>
-        whitebalance.QWhitebalanceToolToggle(target, state);
-    internal static bool TWhitebalanceGreyRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceGreyArmed;
-    internal static bool TWhitebalanceWhiteRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceWhiteArmed;
-    internal static string TWhitebalanceGuideRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceGuideRead();
-    internal static void TWhitebalanceStatusSet(QWhitebalance whitebalance, string status) =>
-        whitebalance.QWhitebalanceStatusSet(status);
-    internal static QWhitebalanceReadout TWhitebalanceReadoutRead(QWhitebalance whitebalance) =>
-        whitebalance.QWhitebalanceReadoutRead();
-    internal static void TWhitebalanceMethodSelect(QWhitebalance whitebalance, int index) =>
-        whitebalance.QWhitebalanceMethodSelect(index);
-    internal static int TWhitebalanceIndexRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceMethodIndex;
+    internal static void TWhitebalanceToolAttach(CWhitebalance whitebalance, Action<bool, LNeutralTarget> handler) =>
+        whitebalance.CWhitebalanceToolChanged += (armed, white) =>
+            handler(armed, white ? LNeutralTarget.LNeutralTargetWhite : LNeutralTarget.LNeutralTargetGrey);
+    internal static void TWhitebalanceToolToggle(CWhitebalance whitebalance, LNeutralTarget target, bool state) =>
+        whitebalance.CWhitebalanceToolToggle(target == LNeutralTarget.LNeutralTargetWhite, state);
+    internal static bool TWhitebalanceGreyRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceGreyArmed;
+    internal static bool TWhitebalanceWhiteRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceWhiteArmed;
+    internal static string TWhitebalanceGuideRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceGuideShown
+        ? QLocalizationCatalog.QLocalizationTextRead(whitebalance.CWhitebalanceGuideKey)
+        : string.Empty;
+    internal static void TWhitebalanceStatusSet(CWhitebalance whitebalance, string status) =>
+        whitebalance.CWhitebalanceStatusSet(status);
+    internal static (bool, int, int, int) TWhitebalanceReadoutRead(CWhitebalance whitebalance) =>
+        whitebalance.CWhitebalanceReadoutRead();
+    internal static void TWhitebalanceMethodSelect(CWhitebalance whitebalance, int index) =>
+        whitebalance.CWhitebalanceMethodSelect(index);
+    internal static int TWhitebalanceIndexRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceMethodIndex;
     internal static void TWhitebalanceWheelHandle(
-        QWhitebalance whitebalance, bool pressed, double x, double y, double size) =>
-        whitebalance.QWhitebalanceWheelHandle(pressed, x, y, size);
-    internal static LNeutralDot TWhitebalanceDotRead(QWhitebalance whitebalance, double size, double dot) =>
-        whitebalance.QWhitebalanceDotRead(size, dot);
+        CWhitebalance whitebalance, bool pressed, double x, double y, double size) =>
+        whitebalance.CWhitebalanceWheelHandle(pressed, x, y, size);
+    internal static LNeutralDot TWhitebalanceDotRead(CWhitebalance whitebalance, double size, double dot)
+    {
+        (double left, double top, bool present) = whitebalance.CWhitebalanceDotRead(size, dot);
+        return new LNeutralDot(left, top, present);
+    }
 
     internal static void TBlankWheelHandle(QBlank blank, bool pressed, double x, double y, double size) =>
         blank.QBlankWheelHandle(pressed, x, y, size);
@@ -174,28 +179,35 @@ internal static partial class TInterface
     internal static void TLoudnessChoiceSelect(QLoudness loudness, bool dynamic, int index) =>
         loudness.QLoudnessChoiceSelect(dynamic, index);
 
-    internal static double TNoiseValueRead(QNoise noise, int index) => noise.QNoiseValueRead(index);
-    internal static double TNoiseDefaultRead(QNoise noise, int index) => noise.QNoiseDefaultRead(index);
-    internal static void TNoiseTypeSelect(QNoise noise, int index) => noise.QNoiseTypeSelect(index);
-    internal static QInspectorChoice TNoiseChoiceRead(QNoise noise) => noise.QNoiseChoiceRead();
-    internal static void TNoiseChoiceSelect(QNoise noise, int index) => noise.QNoiseChoiceSelect(index);
+    internal static double TNoiseValueRead(CNoise noise, int index) => noise.CNoiseValueRead(index);
+    internal static double TNoiseDefaultRead(CNoise noise, int index) => noise.CNoiseDefaultRead(index);
+    internal static void TNoiseTypeSelect(CNoise noise, int index) => noise.CNoiseTypeSelect(index);
+    internal static QInspectorChoice TNoiseChoiceRead(CNoise noise) => new QNoise(noise).QNoiseChoiceRead();
+    internal static void TNoiseChoiceSelect(CNoise noise, int index) => noise.CNoiseChoiceSelect(index);
 
-    internal static QInspectorChoice TFilterChoiceRead(QFilter filter) => filter.QFilterChoiceRead();
-    internal static void TFilterChoiceSelect(QFilter filter, int index) => filter.QFilterChoiceSelect(index);
-    internal static void TFilterPolesSelect(QFilter filter, int index) => filter.QFilterPolesSelect(index);
+    internal static IReadOnlyList<string> TFilterNamesRead(CFilter filter) => new QFilter(filter).QFilterChoiceNames;
+    internal static int TFilterChosenRead(CFilter filter) =>
+        filter.CFilterChoices.ToList().FindIndex(row => row.CChoiceChosen);
+    internal static int TFilterPoleRead(CFilter filter) =>
+        filter.CFilterPoleChoices.ToList().FindIndex(row => row.CChoiceChosen);
+    internal static void TFilterChoiceSelect(CFilter filter, int index) => filter.CFilterChoiceSelect(index);
+    internal static void TFilterPolesSelect(CFilter filter, int index) => filter.CFilterPolesSelect(index);
 
-    internal static void TEqualizerRowsAttach(QEqualizer equalizer, Action handler) =>
-        equalizer.QEqualizerRowsChanged += handler;
-    internal static string TEqualizerFrequencyCommit(QEqualizer equalizer, int index, string text) =>
-        equalizer.QEqualizerFrequencyCommit(index, text);
-    internal static string TEqualizerFrequencyRead(QEqualizer equalizer, int index) =>
-        equalizer.QEqualizerFrequencyRead(index);
-    internal static double TEqualizerGainRead(QEqualizer equalizer, int index) => equalizer.QEqualizerGainRead(index);
-    internal static void TEqualizerGainSet(QEqualizer equalizer, int index, double gain) =>
-        equalizer.QEqualizerGainSet(index, gain);
-    internal static QInspectorChoice TEqualizerChoiceRead(QEqualizer equalizer) => equalizer.QEqualizerChoiceRead();
-    internal static void TEqualizerChoiceSelect(QEqualizer equalizer, int index) =>
-        equalizer.QEqualizerChoiceSelect(index);
+    internal static void TEqualizerRowsAttach(CEqualizer equalizer, Action handler) =>
+        new QEqualizer(equalizer).QEqualizerRowsChanged += handler;
+    internal static IReadOnlyList<QEqualizerBand> TEqualizerRowsRead(CEqualizer equalizer) =>
+        new QEqualizer(equalizer).QEqualizerRows;
+    internal static string TEqualizerFrequencyCommit(CEqualizer equalizer, int index, string text) =>
+        new QEqualizer(equalizer).QEqualizerFrequencyCommit(index, text);
+    internal static string TEqualizerFrequencyRead(CEqualizer equalizer, int index) =>
+        new QEqualizer(equalizer).QEqualizerFrequencyRead(index);
+    internal static double TEqualizerGainRead(CEqualizer equalizer, int index) => equalizer.CEqualizerGainRead(index);
+    internal static void TEqualizerGainSet(CEqualizer equalizer, int index, double gain) =>
+        new QEqualizer(equalizer).QEqualizerGainSet(index, gain);
+    internal static QInspectorChoice TEqualizerChoiceRead(CEqualizer equalizer) =>
+        new QEqualizer(equalizer).QEqualizerChoiceRead();
+    internal static void TEqualizerChoiceSelect(CEqualizer equalizer, int index) =>
+        new QEqualizer(equalizer).QEqualizerChoiceSelect(index);
 
     internal static LDetectorBound TDetectorThresholdRead(LDetectorKind kind) => LDetector.LDetectorThresholdRead(kind);
 

@@ -297,6 +297,10 @@ internal static partial class TInterface
         double? ratio, string sourceExtension, string outputExtension) =>
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
     internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet();
+    internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
+    internal static LClinicPort TClinicResultCreate(string path, string kind, string outcome) =>
+        new LClinicOutlet(new LCheckupResult(
+            path, Enum.Parse<LFlawKind>($"LFlawKind{kind}"), Enum.Parse<LCheckupOutcome>($"LCheckupOutcome{outcome}")));
 
     internal static void TLocalizationSeamSet(
         Func<IEnumerable<string>>? names, Func<string, string?>? text, Action<string, Exception?>? trace)

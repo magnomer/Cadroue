@@ -2,6 +2,7 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -67,7 +68,6 @@ public sealed class QEditTabColor
         qEditProcessing.QProcessingEnabledSet("Brightness", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Contrast", lEqCapable, lEqNotice);
         qEditProcessing.QProcessingEnabledSet("Saturation", lEqCapable, lEqNotice);
-        qEditInspector.QInspectorVideo.QInspectorTone.QToneCapableSet(lEqCapable);
 
         qEditProcessing.QProcessingEnabledSet(
             "Crop", lCropCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.RequiresCrop"));
@@ -85,51 +85,43 @@ public sealed class QEditTabColor
             "Whitebalance",
             lWhitebalanceCapable,
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceRequiresEq"));
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceCapableSet(
-            lWhitebalanceCapable, lPreviewMpv);
 
         qEditProcessing.QProcessingEnabledSet(
             "Gamma", lEqCapable, QLocalizationCatalog.QLocalizationTextRead("Processing.Step.GammaRequiresEq"));
-        qEditInspector.QInspectorGate.CInspectorCapableSet(lEqCapable, lExposureCapable, QEditMpvCheck());
+        qEditInspector.QInspectorGate.CInspectorCapableSet(
+            lEqCapable, lExposureCapable, lWhitebalanceCapable, QEditMpvCheck());
 
         QEditColorUpdate();
         QEditColorApply();
     }
 
-    public void QEditNeutralHandle(LNeutralSample lSample)
-    {
-        switch (LNeutral.LNeutralStatusResolve(lSample.LNeutralOutcome))
-        {
-            case LNeutralStatus.LNeutralStatusValid:
-                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceSampleSet(lSample);
-                return;
-            case LNeutralStatus.LNeutralStatusDecode:
-                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
-                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceDecode"));
-                LTraceLog.LTraceInfoRecord("Whitebalance pick: frame decode failed");
-                return;
-            default:
-                qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStatusSet(
-                    QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceInvalid"));
-                LTraceLog.LTraceInfoRecord($"Whitebalance pick: invalid sample ({lSample.LNeutralOutcome})");
-                return;
-        }
-    }
+    // The viewer's pick goes to the gate whole: the gate applies it or keeps its failure status; a failure is traced.
+    public void QEditNeutralHandle(LNeutralSample lSample) =>
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceSampleAccept(
+            new LWhitebalanceSampleOutlet(lSample, LTraceLog.LTraceInfoRecord));
 
-    public void QEditEstimateHandle(LWhitebalanceMethod lMethod)
-    {
-        if (lMethod == LWhitebalanceMethod.LWhitebalanceMethodManual)
-        {
-            return;
-        }
+    // New media asks the gate for a fresh estimate.
+    public void QEditEstimateStart(LCargo lCargo) =>
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceEstimateStart();
 
-        qEditViewer.QViewerNeutral.QViewerEstimateStart(lMethod);
-    }
+    // The gate asks for an estimate by method token; the viewer starts it.
+    public void QEditEstimateHandle(string lToken) =>
+        qEditViewer.QViewerNeutral.QViewerEstimateStart(LWhitebalanceOutlet.LWhitebalanceMethodRead(lToken));
+
+    // The viewer's picker and the gate's picker follow each other; the gate holds the target as whether it is white.
+    public void QEditTargetHandle(bool lArmed, LNeutralTarget lTarget) =>
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolSet(
+            lArmed, lTarget == LNeutralTarget.LNeutralTargetWhite);
+
+    public void QEditTargetApply(bool lArmed, bool lWhite) =>
+        qEditViewer.QViewerNeutral.QViewerToolSet(
+            lArmed, lWhite ? LNeutralTarget.LNeutralTargetWhite : LNeutralTarget.LNeutralTargetGrey);
 
     public void QEditHistogramRun() => qEditViewer.QViewerFrame.QViewerFrameRead(QEditHistogramApply);
 
     public void QEditEstimateApply(LNeutralWheel lEstimate) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceEstimateSet(lEstimate);
+        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceEstimateSet(
+            lEstimate.LNeutralWheelX, lEstimate.LNeutralWheelY, lEstimate.LNeutralWheelPresent);
 
     public void QEditHistogramApply(LMediaFrame? lFrame) =>
         qEditInspector.QInspectorVideo.QInspectorCurve.QCurveHistogramSet(lFrame is null

@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
@@ -13,13 +14,13 @@ public sealed class TFixTabCheckup
     private const string TFixSource = @"C:\media\clip.mp4";
     private const string TFixStranger = @"C:\media\stranger.mp4";
 
-    private static (QFixTab, QClinic, QList, LDocket) TFixBuild()
+    private static (QFixTab, CClinic, QList, LDocket) TFixBuild()
     {
         QList list = TInterfaceList.TListCreate();
         LDocket docket = list.QListDocket;
         QFixTab tab = TInterface.TFixTabCreate(
             TInterface.TPresetSelectionCreate("Alpha"), TInterfaceViewer.TViewerCreate(), list);
-        QClinic clinic = TInterface.TFixClinicRead(tab);
+        CClinic clinic = TInterface.TFixClinicRead(tab);
         TInterfaceList.TDocketPathsAdd(docket, TFixSource);
         TInterface.TClinicSourceSet(clinic, TFixSource);
         TInterface.TClinicStepSet(clinic, "Container");
@@ -31,7 +32,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _) = TFixBuild();
 
         TInterface.TFixCheckupHandle(
             tab, TFixStranger, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
@@ -48,7 +49,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _) = TFixBuild();
         TInterface.TFixCheckupHandle(
             tab, TFixSource, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeScanning);
 
@@ -65,7 +66,7 @@ public sealed class TFixTabCheckup
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _) = TFixBuild();
         TInterface.TFixCheckupHandle(
             tab, TFixSource, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeClean);
 

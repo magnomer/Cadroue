@@ -125,32 +125,15 @@ public sealed class PConsoleScene : UserControl
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        SaveFileDialog pDialog = PConsoleExportBuild();
+        SaveFileDialog pDialog = lScene.QConsoleExportBuild(pConsoleRelayCombo.Text);
         lScene.QConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
     }
 
-    private SaveFileDialog PConsoleExportBuild() => new()
-    {
-        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
-        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = "json",
-        AddExtension = true,
-        FileName = lScene.QConsoleFileResolve(pConsoleRelayCombo.Text)
-    };
-
     private void PConsoleImportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        OpenFileDialog pDialog = PConsoleImportBuild();
+        OpenFileDialog pDialog = lScene.QConsoleImportBuild();
         lScene.QConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
     }
-
-    private static OpenFileDialog PConsoleImportBuild() => new()
-    {
-        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
-        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = "json",
-        CheckFileExists = true
-    };
 
     private void PConsoleListApply(IReadOnlyList<string> pNames) => pConsoleRelayCombo.ItemsSource = pNames;
 

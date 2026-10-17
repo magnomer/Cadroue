@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -8,9 +9,9 @@ namespace Cadroue.Tests.Windows;
 
 public sealed class TWhitebalanceTool
 {
-    private static QWhitebalance TWhitebalanceCapableCreate()
+    private static CWhitebalance TWhitebalanceCapableCreate()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
         return whitebalance;
     }
@@ -18,7 +19,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Toggle_GreyThenWhite_OneArmedAtATime()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetGrey, true);
         Assert.True(TInterface.TWhitebalanceGreyRead(whitebalance));
@@ -32,7 +33,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Toggle_UncheckOfOtherTarget_Ignored()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetWhite, true);
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetGrey, false);
@@ -45,7 +46,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void ToolNotice_FiresOncePerChange_WithTarget()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
         var notices = new List<(bool, LNeutralTarget)>();
         TInterface.TWhitebalanceToolAttach(whitebalance, (armed, target) => notices.Add((armed, target)));
 
@@ -63,7 +64,7 @@ public sealed class TWhitebalanceTool
     [Fact]
     public void Guide_ArmedShowsGuide_DisarmedShowsStatus()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
         Assert.Equal(string.Empty, TInterface.TWhitebalanceGuideRead(whitebalance));
 
         TInterface.TWhitebalanceToolToggle(whitebalance, LNeutralTarget.LNeutralTargetWhite, true);
@@ -75,26 +76,24 @@ public sealed class TWhitebalanceTool
     }
 
     [Fact]
-    public void Readout_EmptyUntilSampled_ThenBytesAndText()
+    public void Readout_EmptyUntilSampled_ThenColour()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
-        QWhitebalanceReadout before = TInterface.TWhitebalanceReadoutRead(whitebalance);
-        Assert.False(before.QWhitebalanceReadoutSampled);
-        Assert.Equal(string.Empty, before.QWhitebalanceReadoutText);
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        (bool unsampled, _, _, _) = TInterface.TWhitebalanceReadoutRead(whitebalance);
+        Assert.False(unsampled);
 
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(120, 128, 140, 1.1, 1, 0.9));
-        QWhitebalanceReadout after = TInterface.TWhitebalanceReadoutRead(whitebalance);
+        (bool sampled, int red, _, int blue) = TInterface.TWhitebalanceReadoutRead(whitebalance);
 
-        Assert.True(after.QWhitebalanceReadoutSampled);
-        Assert.Equal((byte)120, after.QWhitebalanceReadoutRed);
-        Assert.Equal((byte)140, after.QWhitebalanceReadoutBlue);
-        Assert.NotEqual(string.Empty, after.QWhitebalanceReadoutText);
+        Assert.True(sampled);
+        Assert.Equal(120, red);
+        Assert.Equal(140, blue);
     }
 
     [Fact]
     public void MethodSelect_MapsIndex_IgnoresNegative()
     {
-        QWhitebalance whitebalance = TWhitebalanceCapableCreate();
+        CWhitebalance whitebalance = TWhitebalanceCapableCreate();
         Assert.Equal(2, TInterface.TWhitebalanceIndexRead(whitebalance));
 
         TInterface.TWhitebalanceMethodSelect(whitebalance, 0);

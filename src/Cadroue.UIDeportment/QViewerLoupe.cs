@@ -3,12 +3,10 @@ namespace Cadroue.UIDeportment;
 public sealed class QViewerLoupe
 {
     private readonly QViewer qViewer;
-    private readonly QViewerMedia qViewerMedia;
 
-    public QViewerLoupe(QViewer lOwner, QViewerMedia lMedia)
+    public QViewerLoupe(QViewer lOwner)
     {
         qViewer = lOwner;
-        qViewerMedia = lMedia;
     }
 
     public QSLoupe QViewerLoupeCreate() => new(qViewer);
@@ -16,23 +14,21 @@ public sealed class QViewerLoupe
     public void QViewerLoupeAttach()
     {
         qViewer.QViewerLoupeSet(true);
-        qViewer.QViewerHost.QViewerHostShow(false);
-        qViewerMedia.QViewerCommandApply(false);
+        qViewer.QViewerTrace.CViewerLoupeAttach(
+            qViewer.QViewerRenderer.QViewerHostRaise, qViewer.QViewerPlayback.QViewerSuspend);
     }
 
+    // The gate turns the command on, shows the host and hands the loupe's place and play state to the workspace;
+    // the renderer's restore and raise and the player's resume stay here as the commands it runs.
     public void QViewerLoupeDetach(TimeSpan lPosition, bool lPlaying)
     {
         qViewer.QViewerLoupeSet(false);
         qViewer.QViewerResumeSet(lPlaying);
-        qViewerMedia.QViewerCommandApply(true);
-        qViewer.QViewerHost.QViewerHostShow(true);
-        qViewer.QViewerPlayback.QViewerSeek(lPosition);
-        if (lPlaying)
-        {
-            qViewer.QViewerPlayback.QViewerPlay();
-            return;
-        }
-
-        qViewer.QViewerPlayback.QViewerPause();
+        qViewer.QViewerWorkspace.CWorkspaceLoupeDetach(
+            lPosition,
+            lPlaying,
+            qViewer.QViewerRenderer.QViewerEngineRestore,
+            qViewer.QViewerPlayback.QViewerResume,
+            qViewer.QViewerRenderer.QViewerHostRaise);
     }
 }

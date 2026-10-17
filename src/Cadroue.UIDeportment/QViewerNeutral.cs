@@ -109,7 +109,7 @@ public sealed class QViewerNeutral
         }
 
         TimeSpan lTime = qViewer.QViewerTimeRead();
-        int lLoadClaim = qViewer.QViewerLoadSerial;
+        int lLoadClaim = qViewer.QViewerTrace.CViewerSerial;
         int lNeutralClaim = qViewerSerial;
         LNeutralTarget lTarget = qViewerTarget;
         QViewerNeutralReset();
@@ -191,8 +191,8 @@ public sealed class QViewerNeutral
         LNeutralTarget lTarget)
     {
         LMediaFrame? lFrame = await LMedia.LMediaFrameStart(lPath, lPosition, lWidth, lHeight);
-        if (qViewer.QViewerUnloaded
-            || lLoadClaim != qViewer.QViewerLoadSerial
+        if (qViewer.QViewerTrace.CViewerUnloaded
+            || lLoadClaim != qViewer.QViewerTrace.CViewerSerial
             || lNeutralClaim != qViewerSerial)
         {
             return;

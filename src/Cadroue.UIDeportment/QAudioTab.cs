@@ -130,7 +130,7 @@ public sealed class QAudioTab
         QAudioStore.QAudioActiveUpdate();
     }
 
-    public void QAudioRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
+    public void QAudioRun(bool lUrgent, Guid lRelayTarget, Guid lSourceTab)
     {
         if (!QAudioPresetCheck() || QAudioSelectedRead() is not { } lSelected)
         {
@@ -139,7 +139,7 @@ public sealed class QAudioTab
 
         QAudioStore.QAudioStateSave();
         LMessenger.LMessengerAudioDescribe(
-            lPriority,
+            lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSelected.LDocketEntryPath,
             QAudioStore.QAudioPlanRead(),
             qAudioPreset.LPresetSelectionEncoding,

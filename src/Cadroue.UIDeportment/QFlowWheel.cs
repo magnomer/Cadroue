@@ -1,100 +1,41 @@
-using Cadroue.Application;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The wheel and drag wiring: hands each wheel turn and drag to the flow gate and relays its answers to the spool and
+// the viewer. It keeps no wheel or drag state, only the viewer's playing seam.
 public sealed class QFlowWheel
 {
     private readonly QFlow qFlow;
-    private bool qFlowDragPaused;
+    private readonly CFlow qFlowWheelGate;
     private Func<bool>? qFlowPlayingSource;
 
-    public QFlowWheel(QFlow lOwner)
+    public QFlowWheel(QFlow lOwner, CFlow lGate)
     {
         qFlow = lOwner;
+        qFlowWheelGate = lGate;
+        lGate.CFlowZoomed += QFlowZoomRaise;
+        lGate.CFlowDragChanged += QFlowDragRaise;
+        lGate.CFlowVolumeAdjusted += QFlowVolumeRaise;
     }
 
     public event Action<bool>? QFlowDragChanged;
     public event Action<double>? QFlowVolumeAdjusted;
 
-    public bool QFlowDragPaused => qFlowDragPaused;
-
+    // The viewer's playing seam, handed on unread for the gate to ask.
     public void QFlowPlayingAttach(Func<bool>? lPlayingSource) => qFlowPlayingSource = lPlayingSource;
 
-    public bool QFlowWheelHandle(int lDelta)
-    {
-        if (!qFlow.QFlowCommandActive || lDelta == 0)
-        {
-            return false;
-        }
+    // The raw turn and its count of wheel notches; the gate decides what the turn does.
+    public bool QFlowWheelHandle(int lDelta) =>
+        qFlowWheelGate.CFlowWheelRun(lDelta, QCursor.QCursorWheelResolve(lDelta));
 
-        int lSteps = QCursor.QCursorWheelResolve(lDelta);
-        switch (LPreference.LPreferenceStateCurrent.LPreferenceWheelAction)
-        {
-            case "Zoom":
-                QFlowZoom(lSteps);
-                break;
-            case "Volume":
-                QFlowVolumeAdjusted?.Invoke(QFlowVolumeResolve(lSteps));
-                break;
-            default:
-                QFlowWheelSeek(lSteps);
-                break;
-        }
+    public void QFlowZoom(int lSteps) => qFlowWheelGate.CFlowZoom(lSteps);
 
-        return true;
-    }
+    public void QFlowDragHandle(bool lDragging) => qFlowWheelGate.CFlowDragSet(lDragging, qFlowPlayingSource);
 
-    private static double QFlowVolumeResolve(int lSteps) => lSteps * QCursor.QCursorVolumeStep;
+    private void QFlowZoomRaise() => qFlow.QFlowSpool.QFlowSpoolHandle();
 
-    public void QFlowZoom(int lSteps)
-    {
-        if (qFlow.QFlowRange is not { } lSpool)
-        {
-            return;
-        }
+    private void QFlowDragRaise(bool lDragging) => QFlowDragChanged?.Invoke(lDragging);
 
-        lSpool.LSpoolZoom(qFlow.QFlowCursor, lSteps);
-        qFlow.QFlowSpool.QFlowSpoolHandle();
-    }
-
-    private void QFlowWheelSeek(int lSteps)
-    {
-        if (qFlow.QFlowRange is not { } lSpool)
-        {
-            return;
-        }
-
-        qFlow.QFlowCursorSeek(qFlow.QFlowCursorClamp(qFlow.QFlowCursor + lSpool.LSpoolStepResolve(lSteps)));
-    }
-
-    public void QFlowDragHandle(bool lDragging)
-    {
-        QFlowDragChanged?.Invoke(lDragging);
-        if (!qFlow.QFlowCommandActive || !LPreference.LPreferenceStateCurrent.LPreferenceDragPaused)
-        {
-            return;
-        }
-
-        if (lDragging)
-        {
-            if (qFlowDragPaused || qFlowPlayingSource?.Invoke() != true)
-            {
-                return;
-            }
-
-            QFlowPausedSet(true);
-            qFlow.QFlowPauseRaise();
-            return;
-        }
-
-        if (!qFlowDragPaused)
-        {
-            return;
-        }
-
-        QFlowPausedSet(false);
-        qFlow.QFlowPlayRaise();
-    }
-
-    public void QFlowPausedSet(bool lDragPaused) => qFlowDragPaused = lDragPaused;
+    private void QFlowVolumeRaise(double lVolume) => QFlowVolumeAdjusted?.Invoke(lVolume);
 }

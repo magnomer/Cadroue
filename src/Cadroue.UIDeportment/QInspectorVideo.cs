@@ -24,24 +24,26 @@ public sealed class QInspectorVideo
     public QInspectorVideo(CInspector lInspector)
     {
         qInspectorVideoGate = lInspector;
+        QInspectorTone = lInspector.CInspectorTone;
         QInspectorGamma = lInspector.CInspectorGamma;
         QInspectorExposure = lInspector.CInspectorExposure;
+        QInspectorWhitebalance = lInspector.CInspectorWhitebalance;
         QInspectorVideoAttach();
     }
 
     private void QInspectorVideoAttach()
     {
-        QInspectorTone.QToneChanged += QInspectorVideoHandle;
+        QInspectorTone.CToneChanged += QInspectorVideoHandle;
         QInspectorGamma.CGammaChanged += QInspectorVideoHandle;
         QInspectorExposure.CExposureChanged += QInspectorVideoHandle;
         QInspectorCurve.QCurveChanged += QInspectorVideoHandle;
-        QInspectorWhitebalance.QWhitebalanceChanged += QInspectorVideoHandle;
+        QInspectorWhitebalance.CWhitebalanceChanged += QInspectorVideoHandle;
     }
 
     public event Action? QInspectorSectionChanged;
     public event Action? QInspectorVideoChanged;
 
-    public QTone QInspectorTone { get; } = new();
+    public CTone QInspectorTone { get; }
 
     public CGamma QInspectorGamma { get; }
 
@@ -49,15 +51,20 @@ public sealed class QInspectorVideo
 
     public QCurve QInspectorCurve { get; } = new();
 
-    public QWhitebalance QInspectorWhitebalance { get; } = new();
+    public CWhitebalance QInspectorWhitebalance { get; }
 
     public LWorkVideoStep QInspectorStepRead(LColorKind lKind) => lKind switch
     {
         LColorKind.LColorKindGamma => QInspectorGammaBuild(),
-        LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalanceStep,
+        LColorKind.LColorKindWhitebalance =>
+            LWhitebalanceOutlet.LWhitebalanceStepCreate(QInspectorWhitebalance.CWhitebalanceAnswer),
         LColorKind.LColorKindExposure => QInspectorExposureBuild(),
         LColorKind.LColorKindCurve => QInspectorCurve.QCurveStepRead(),
-        _ => QInspectorTone.QToneStepRead(lKind)
+        LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(
+            QInspectorTone.CToneActives[1], QInspectorTone.CToneValues[1]),
+        LColorKind.LColorKindSaturation => LWorkVideoStep.LWorkSaturationCreate(
+            QInspectorTone.CToneActives[2], QInspectorTone.CToneValues[2]),
+        _ => LWorkVideoStep.LWorkBrightnessCreate(QInspectorTone.CToneActives[0], QInspectorTone.CToneValues[0])
     };
 
     public void QInspectorVideoSuspend() => qInspectorVideoDepth++;
@@ -79,11 +86,6 @@ public sealed class QInspectorVideo
         qInspectorVideoDepth++;
         try
         {
-            QInspectorTone.QToneStepSet(QInspectorStepResolve(lVideo, LColorKind.LColorKindBrightness));
-            QInspectorTone.QToneStepSet(QInspectorStepResolve(lVideo, LColorKind.LColorKindContrast));
-            QInspectorTone.QToneStepSet(QInspectorStepResolve(lVideo, LColorKind.LColorKindSaturation));
-            QInspectorWhitebalance.QWhitebalanceStepSet(
-                QInspectorStepResolve(lVideo, LColorKind.LColorKindWhitebalance));
             qInspectorVideoGate.CInspectorVideoAccept(new LInspectorOutlet(lVideo));
             QInspectorCurve.QCurveStepSet(QInspectorStepResolve(lVideo, LColorKind.LColorKindCurve));
             qInspectorVideoPending = true;
@@ -99,10 +101,12 @@ public sealed class QInspectorVideo
     public bool QInspectorPersistentCheck(LColorKind lKind) => lKind switch
     {
         LColorKind.LColorKindGamma => QInspectorGamma.CGammaPersistent,
-        LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.QWhitebalancePersistent,
+        LColorKind.LColorKindWhitebalance => QInspectorWhitebalance.CWhitebalancePersistent,
         LColorKind.LColorKindExposure => QInspectorExposure.CExposurePersistent,
         LColorKind.LColorKindCurve => QInspectorCurve.QCurvePersistent,
-        _ => QInspectorTone.QTonePersistentRead(lKind)
+        LColorKind.LColorKindContrast => QInspectorTone.CTonePersistents[1],
+        LColorKind.LColorKindSaturation => QInspectorTone.CTonePersistents[2],
+        _ => QInspectorTone.CTonePersistents[0]
     };
 
     public void QInspectorPersistentSet(LColorKind lKind, bool lPersistent)
@@ -113,7 +117,7 @@ public sealed class QInspectorVideo
                 QInspectorGamma.CGammaPersistentSet(lPersistent);
                 break;
             case LColorKind.LColorKindWhitebalance:
-                QInspectorWhitebalance.QWhitebalancePersistentSet(lPersistent);
+                QInspectorWhitebalance.CWhitebalancePersistentSet(lPersistent);
                 break;
             case LColorKind.LColorKindExposure:
                 QInspectorExposure.CExposurePersistentSet(lPersistent);
@@ -121,8 +125,14 @@ public sealed class QInspectorVideo
             case LColorKind.LColorKindCurve:
                 QInspectorCurve.QCurvePersistentSet(lPersistent);
                 break;
+            case LColorKind.LColorKindContrast:
+                QInspectorTone.CTonePersistentSet(1, lPersistent);
+                break;
+            case LColorKind.LColorKindSaturation:
+                QInspectorTone.CTonePersistentSet(2, lPersistent);
+                break;
             default:
-                QInspectorTone.QTonePersistentSet(lKind, lPersistent);
+                QInspectorTone.CTonePersistentSet(0, lPersistent);
                 break;
         }
     }
@@ -171,14 +181,7 @@ public sealed class QInspectorVideo
             return lStep;
         }
 
-        return lKind switch
-        {
-            LColorKind.LColorKindBrightness => LWorkVideoStep.LWorkBrightnessCreate(false, 0),
-            LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(false, 100),
-            LColorKind.LColorKindSaturation => LWorkVideoStep.LWorkSaturationCreate(false, 100),
-            LColorKind.LColorKindWhitebalance => LWorkVideoStep.LWorkWhitebalanceCreate(false),
-            _ => LWorkVideoStep.LWorkCurveCreate(false)
-        };
+        return LWorkVideoStep.LWorkCurveCreate(false);
     }
 
     private static LWorkVideoStep? QInspectorStepFind(LWorkVideo lVideo, LColorKind lKind) =>

@@ -1,125 +1,63 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
+// The sections' wiring: hands each section input to the section gate with the editable switch and relays its change.
+// The store and its records pass through here only for the readers not yet moved to a gate.
 public sealed class QFlowSection
 {
     private readonly QFlow qFlow;
-    private readonly LSegment qSegment = new();
+    private readonly CSection qFlowSectionGate;
 
-    public QFlowSection(QFlow lOwner)
+    public QFlowSection(QFlow lOwner, CSection lGate)
     {
         qFlow = lOwner;
-        qSegment.LSegmentNotice += QFlowSegmentHandle;
-        qSegment.LSegmentFaultNotice += QFlowFaultHandle;
+        qFlowSectionGate = lGate;
+        qFlowSectionGate.CSectionChanged += QFlowSectionHandle;
     }
 
     public event Action<IReadOnlyList<LPiece>, int?>? QFlowSectionChanged;
 
-    public LSegment QFlowSegment => qSegment;
+    public LSegment QFlowSegment => qFlowSectionGate.CSectionSegment;
 
-    public IReadOnlyList<LPiece> QFlowSectionsRead() => qSegment.LSegmentListRead();
+    public IReadOnlyList<LPiece> QFlowSectionsRead() => qFlowSectionGate.CSectionSegment.LSegmentListRead();
 
-    public int? QFlowSelectionRead() => qSegment.LSegmentSelectionRead();
+    public int? QFlowSelectionRead() => qFlowSectionGate.CSectionSelection;
 
-    public IReadOnlyList<int> QFlowSelectedRead() => qSegment.LSegmentSelectedRead();
+    public IReadOnlyList<int> QFlowSelectedRead() => qFlowSectionGate.CSectionSelected;
 
     public IReadOnlyList<LSplitSectionDescription> QFlowSplitRead() =>
-        qSegment.LSegmentListRead().Select(lSection => lSection.LPieceDescribe()).ToArray();
+        qFlowSectionGate.CSectionSegment.LSegmentListRead().Select(lSection => lSection.LPieceDescribe()).ToArray();
 
-    public bool QFlowEmptyCheck() =>
-        qSegment.LSegmentListRead().Count == 0 && qSegment.LSegmentSelectionRead() is null;
+    public bool QFlowEmptyCheck() => qFlowSectionGate.CSectionEmpty;
 
-    public void QFlowSectionAttach()
-    {
-        qSegment.LSegmentSourceSet(qFlow.QFlowSourcePath);
-        qSegment.LSegmentReset();
-        qFlow.QFlowEdit.QFlowSectionSelect(qSegment.LSegmentSelectionRead());
-    }
+    // The flow's attach has reset the sections; the edit follows their selection.
+    public void QFlowSectionAttach() => qFlow.QFlowEdit.QFlowSectionSelect(qFlowSectionGate.CSectionSelection);
 
     public void QFlowSectionLoad()
     {
-        qSegment.LSegmentLoad(qFlow.QFlowDuration);
+        qFlowSectionGate.CSectionLoad();
         QFlowSectionRaise();
     }
 
-    public void QFlowSectionReset()
-    {
-        qSegment.LSegmentSourceSet(null);
-        qSegment.LSegmentReset();
-    }
+    public void QFlowSectionReset() => qFlowSectionGate.CSectionReset();
 
     public void QFlowSectionRaise() =>
-        QFlowSectionChanged?.Invoke(qSegment.LSegmentListRead(), qSegment.LSegmentSelectionRead());
+        QFlowSectionChanged?.Invoke(
+            qFlowSectionGate.CSectionSegment.LSegmentListRead(), qFlowSectionGate.CSectionSelection);
 
-    public void QFlowSectionAdd()
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable || !qFlow.QFlowSourceCheck())
-        {
-            return;
-        }
+    public void QFlowSectionAdd() => qFlowSectionGate.CSectionAdd(qFlow.QFlowEdit.QFlowSectionEditable);
 
-        qFlow.QFlowEdit.QFlowFiredSet(false);
-        qSegment.LSegmentAdd(qFlow.QFlowCursor, qFlow.QFlowDuration, QFlowColorRead(), QFlowOverlapRead());
-        if (qFlow.QFlowEdit.QFlowSegmentFired)
-        {
-            QFlowSectionRecord("added", qSegment.LSegmentSelectionRead()!.Value);
-        }
-    }
+    public void QFlowStartSet() => qFlowSectionGate.CSectionStartSet(qFlow.QFlowEdit.QFlowSectionEditable);
 
-    public void QFlowStartSet()
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable || !qFlow.QFlowSourceCheck())
-        {
-            return;
-        }
+    public void QFlowEndSet() => qFlowSectionGate.CSectionEndSet(qFlow.QFlowEdit.QFlowSectionEditable);
 
-        if (qSegment.LSegmentStartSet(qFlow.QFlowCursor, qFlow.QFlowDuration, QFlowColorRead(), QFlowOverlapRead())
-            is not bool lAdded)
-        {
-            return;
-        }
+    public void QFlowSectionDivide() => qFlowSectionGate.CSectionDivide(qFlow.QFlowEdit.QFlowSectionEditable);
 
-        QFlowSectionRecord(lAdded ? "added" : "start set", qSegment.LSegmentSelectionRead()!.Value);
-    }
-
-    public void QFlowEndSet()
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable || !qFlow.QFlowSourceCheck())
-        {
-            return;
-        }
-
-        if (qSegment.LSegmentEndSet(qFlow.QFlowCursor, QFlowColorRead(), QFlowOverlapRead()) is not bool lAdded)
-        {
-            return;
-        }
-
-        QFlowSectionRecord(lAdded ? "added" : "end set", qSegment.LSegmentSelectionRead()!.Value);
-    }
-
-    public void QFlowSectionDivide()
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable)
-        {
-            return;
-        }
-
-        qFlow.QFlowEdit.QFlowFiredSet(false);
-        qSegment.LSegmentDivide(qFlow.QFlowCursor, QFlowColorRead());
-        if (!qFlow.QFlowEdit.QFlowSegmentFired)
-        {
-            return;
-        }
-
-        int lFirst = qSegment.LSegmentSelectionRead()!.Value;
-        QFlowSectionRecord($"split at {qFlow.QFlowCursor:hh\\:mm\\:ss\\.fff}, left half", lFirst);
-        QFlowSectionRecord("split, right half", lFirst + 1);
-    }
-
+    // Asks through QAskNotice, so it waits for the ask port; the confirmed run is the gate's.
     public void QFlowSectionDelete()
     {
         if (!qFlow.QFlowEdit.QFlowSectionEditable)
@@ -127,8 +65,8 @@ public sealed class QFlowSection
             return;
         }
 
-        IReadOnlyList<int> lSelected = qSegment.LSegmentSelectedRead();
-        int lApproved = qSegment.LSegmentVersionRead();
+        IReadOnlyList<int> lSelected = qFlowSectionGate.CSectionSelected;
+        int lApproved = qFlowSectionGate.CSectionVersion;
         if (lSelected.Count == 0)
         {
             return;
@@ -146,20 +84,10 @@ public sealed class QFlowSection
             return;
         }
 
-        if (lApproved != qSegment.LSegmentVersionRead())
-        {
-            LTraceLog.LTraceWarningRecord("Section delete skipped: sections changed while confirming");
-            return;
-        }
-
-        foreach (int lIndex in lSelected)
-        {
-            QFlowSectionRecord("deleted", lIndex);
-        }
-
-        qSegment.LSegmentDelete(lSelected, lApproved);
+        qFlowSectionGate.CSectionDelete(lSelected, lApproved);
     }
 
+    // Asks through QAskNotice, so it waits for the ask port; the confirmed run is the gate's.
     public void QFlowSectionClear()
     {
         if (!qFlow.QFlowEdit.QFlowSectionEditable)
@@ -167,8 +95,8 @@ public sealed class QFlowSection
             return;
         }
 
-        int lCount = qSegment.LSegmentListRead().Count;
-        int lApproved = qSegment.LSegmentVersionRead();
+        int lCount = qFlowSectionGate.CSectionCount;
+        int lApproved = qFlowSectionGate.CSectionVersion;
         if (lCount == 0)
         {
             return;
@@ -186,164 +114,45 @@ public sealed class QFlowSection
             return;
         }
 
-        if (!qSegment.LSegmentClear(lApproved))
-        {
-            LTraceLog.LTraceWarningRecord("Section clear skipped: sections changed while confirming");
-            return;
-        }
-
-        LTraceLog.LTraceInfoRecord($"Sections cleared: {lCount} section(s) removed");
+        qFlowSectionGate.CSectionClear(lCount, lApproved);
     }
 
-    public void QFlowSectionSelect(int lIndex) => qSegment.LSegmentSelect(lIndex);
+    public void QFlowSectionSelect(int lIndex) => qFlowSectionGate.CSectionSelect(lIndex);
 
-    public void QFlowSelectToggle(int lIndex) => qSegment.LSegmentSelectToggle(lIndex);
+    public void QFlowSelectToggle(int lIndex) => qFlowSectionGate.CSectionSelectToggle(lIndex);
 
-    public void QFlowRangeSelect(int lIndex) => qSegment.LSegmentRangeSelect(lIndex);
+    public void QFlowRangeSelect(int lIndex) => qFlowSectionGate.CSectionRangeSelect(lIndex);
 
     public void QFlowSectionSeek(int lIndex, bool lEnd)
     {
-        IReadOnlyList<LPiece> lSections = qSegment.LSegmentListRead();
-        if (!qFlow.QFlowCommandActive || qFlow.QFlowRange is null || lIndex < 0 || lIndex >= lSections.Count)
+        if (qFlowSectionGate.CSectionSeek(lIndex, lEnd) is not { } lTarget)
         {
             return;
         }
 
-        qSegment.LSegmentSelect(lIndex);
-        LPiece lTarget = lSections[lIndex];
-        qFlow.QFlowCursorPropagate(lEnd ? lTarget.LPieceEnd : lTarget.LPieceOrigin, true, true);
+        qFlow.QFlowCursorPropagate(lTarget, true, true);
     }
 
-    public void QFlowSectionToggle(int lIndex)
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable)
-        {
-            return;
-        }
+    public void QFlowSectionToggle(int lIndex) =>
+        qFlowSectionGate.CSectionToggle(qFlow.QFlowEdit.QFlowSectionEditable, lIndex);
 
-        qFlow.QFlowEdit.QFlowFiredSet(false);
-        qSegment.LSegmentToggle(lIndex);
-        if (!qFlow.QFlowEdit.QFlowSegmentFired)
-        {
-            return;
-        }
+    public bool QFlowSectionMove(int lSource, int lTarget) =>
+        qFlowSectionGate.CSectionMove(qFlow.QFlowEdit.QFlowSectionEditable, lSource, lTarget);
 
-        bool lHidden = qSegment.LSegmentListRead()[lIndex].LPieceHidden;
-        QFlowSectionRecord(lHidden ? "turned off" : "turned on", lIndex);
-    }
+    public bool QFlowSectionSort() => qFlowSectionGate.CSectionSort(qFlow.QFlowEdit.QFlowSectionEditable);
 
-    public bool QFlowSectionMove(int lSource, int lTarget)
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable)
-        {
-            return false;
-        }
-
-        if (qSegment.LSegmentMove(lSource, lTarget) is not int lInsert)
-        {
-            return false;
-        }
-
-        QFlowSectionRecord($"moved from #{lSource + 1} to", lInsert);
-        return true;
-    }
-
-    public bool QFlowSectionSort()
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable)
-        {
-            return false;
-        }
-
-        qFlow.QFlowEdit.QFlowFiredSet(false);
-        qSegment.LSegmentSort();
-        if (!qFlow.QFlowEdit.QFlowSegmentFired)
-        {
-            return false;
-        }
-
-        LTraceLog.LTraceInfoRecord($"Sections sorted by name: {qSegment.LSegmentListRead().Count} section(s)");
-        return true;
-    }
-
-    public void QFlowNameSet(int lIndex, string lName, string? lPrefix, string? lSuffix)
-    {
-        if (!qFlow.QFlowEdit.QFlowSectionEditable)
-        {
-            return;
-        }
-
-        IReadOnlyList<LPiece> lSections = qSegment.LSegmentListRead();
-        if (lIndex < 0 || lIndex >= lSections.Count)
-        {
-            return;
-        }
-
-        string lWas = lSections[lIndex].LPieceName;
-        qFlow.QFlowEdit.QFlowFiredSet(false);
-        qSegment.LSegmentNameSet(lIndex, lName, lPrefix, lSuffix);
-        if (qFlow.QFlowEdit.QFlowSegmentFired)
-        {
-            QFlowSectionRecord(string.IsNullOrEmpty(lWas) ? "named" : $"renamed from '{lWas}' to", lIndex);
-        }
-    }
+    public void QFlowNameSet(int lIndex, string lName, string? lPrefix, string? lSuffix) =>
+        qFlowSectionGate.CSectionNameSet(qFlow.QFlowEdit.QFlowSectionEditable, lIndex, lName, lPrefix, lSuffix);
 
     public bool QFlowCombineApply(
         IReadOnlyList<LSweepSpan> lExcluded,
         IReadOnlyList<LSweepSpan> lKept,
-        IReadOnlyList<LSweepBoundary> lBoundaries)
+        IReadOnlyList<LSweepBoundary> lBoundaries) =>
+        qFlowSectionGate.CSectionCombineApply(lExcluded, lKept, lBoundaries);
+
+    private void QFlowSectionHandle()
     {
-        if (qFlow.QFlowUnloaded || qFlow.QFlowRange is not { } lSpool)
-        {
-            return false;
-        }
-
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepCombineResolve(
-            qSegment.LSegmentListRead(), lExcluded, lKept, lBoundaries, lSpool.LSpoolDuration, qFlow.QFlowPaletteCount);
-        int? lSelect = QFlowSelectionResolve(lSections);
-        return qSegment.LSegmentBoundSet(lSections, lSelect, lSpool.LSpoolDuration);
+        qFlow.QFlowEdit.QFlowSectionSelect(qFlowSectionGate.CSectionSelection);
+        QFlowSectionRaise();
     }
-
-    private static int? QFlowSelectionResolve(IReadOnlyList<LPiece> lSections) => lSections.Count > 0 ? 0 : null;
-
-    private void QFlowSegmentHandle(IReadOnlyList<LPiece> lSections, int? lActive)
-    {
-        qFlow.QFlowEdit.QFlowFiredSet(true);
-        qFlow.QFlowEdit.QFlowSectionSelect(lActive);
-        QFlowSectionChanged?.Invoke(lSections, lActive);
-    }
-
-    private void QFlowFaultHandle(LSegmentFault lFault, int lCount)
-    {
-        string lSource = qFlow.QFlowSourceFormat();
-        LTraceLog.LTraceWarningRecord(lFault switch
-        {
-            LSegmentFault.LSegmentFaultCeiling =>
-                $"Section change refused in '{lSource}': {lCount} section(s) exceed the {LPiece.LPieceCeiling} limit",
-            LSegmentFault.LSegmentFaultInvalid =>
-                $"Section restore in '{lSource}' dropped {lCount} invalid saved section(s)",
-            _ => $"Section save failed in '{lSource}': {lCount} section(s) kept in memory only"
-        });
-    }
-
-    private void QFlowSectionRecord(string lAction, int lIndex)
-    {
-        IReadOnlyList<LPiece> lSections = qSegment.LSegmentListRead();
-        string lSource = qFlow.QFlowSourceFormat();
-        if (lIndex < 0 || lIndex >= lSections.Count)
-        {
-            LTraceLog.LTraceInfoRecord($"Section {lAction} in '{lSource}': {lSections.Count} section(s) remain");
-            return;
-        }
-
-        LPiece lSection = lSections[lIndex];
-        string lName = string.IsNullOrEmpty(lSection.LPieceName) ? "unnamed" : $"'{lSection.LPieceName}'";
-        LTraceLog.LTraceInfoRecord(
-            $"Section {lAction} #{lIndex + 1} of {lSections.Count} in '{lSource}': {lName} "
-            + $"{lSection.LPieceOrigin:hh\\:mm\\:ss\\.fff}-{lSection.LPieceEnd:hh\\:mm\\:ss\\.fff}");
-    }
-
-    private int QFlowColorRead() => qSegment.LSegmentListRead().Count % qFlow.QFlowPaletteCount;
-
-    private static bool QFlowOverlapRead() => LPreference.LPreferenceStateCurrent.LPreferenceOverlapAllowed;
 }

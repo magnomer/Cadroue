@@ -260,7 +260,7 @@ public sealed class TAudioTabPlan
         int missing = 0;
         TInterface.TAudioMissingAttach(tab, () => missing++);
 
-        TInterface.TAudioRun(tab, LWorkPriority.LWorkPriorityNormal);
+        TInterface.TAudioRun(tab, false);
         TInterface.TAudioAllRun(tab);
 
         Assert.Equal(2, missing);

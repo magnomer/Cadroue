@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
@@ -13,13 +14,13 @@ public sealed class TFixTabPlan
     private const string TFixSource = @"C:\media\clip.mp4";
     private const string TFixOther = @"C:\media\other.mp4";
 
-    private static (QFixTab, QClinic, QViewer, LDocket, QProcessing) TFixBuild(string preset = "Alpha")
+    private static (QFixTab, CClinic, QViewer, LDocket, QProcessing) TFixBuild(string preset = "Alpha")
     {
         QViewer viewer = TInterfaceViewer.TViewerCreate();
         QList list = TInterfaceList.TListCreate();
         LDocket docket = list.QListDocket;
         QFixTab tab = TInterface.TFixTabCreate(TInterface.TPresetSelectionCreate(preset), viewer, list);
-        QClinic clinic = TInterface.TFixClinicRead(tab);
+        CClinic clinic = TInterface.TFixClinicRead(tab);
         QProcessing processing = TInterface.TFixProcessingRead(tab);
         foreach (QProcessingRow row in TInterface.TFixRowsRead())
         {
@@ -58,7 +59,7 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _, _) = TFixBuild();
         TInterface.TClinicPlanApply(clinic, TFixPlanCreate(LFlawKind.LFlawKindIndex, true, false));
 
         Assert.Null(TInterface.TFixLayoutRead(tab).LSceneInspector);
@@ -69,7 +70,7 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab source, QClinic sourceClinic, _, _, _) = TFixBuild();
+        (QFixTab source, CClinic sourceClinic, _, _, _) = TFixBuild();
         TInterface.TClinicPlanApply(
             sourceClinic,
             TInterface.TFixPlanCreate(
@@ -78,7 +79,7 @@ public sealed class TFixTabPlan
                     true, LSalvageMode.LSalvageModeSeparate, LSalvageBasis.LSalvageBasisSource, true)));
 
         LSceneTabEntry layout = TInterface.TFixLayoutRead(source);
-        (QFixTab target, QClinic targetClinic, _, _, QProcessing processing) = TFixBuild();
+        (QFixTab target, CClinic targetClinic, _, _, QProcessing processing) = TFixBuild();
         TInterface.TFixLayoutApply(target, layout);
         LWorkFix plan = TInterface.TClinicPlanRead(targetClinic);
 
@@ -98,11 +99,11 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _, _) = TFixBuild();
 
         TInterface.TFixLayoutApply(tab, null);
 
-        Assert.True(clinic.QClinicMinimized);
+        Assert.True(clinic.CClinicMinimized);
     }
 
     [Fact]
@@ -110,7 +111,7 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, QViewer viewer, LDocket docket, _) = TFixBuild();
+        (QFixTab tab, CClinic clinic, QViewer viewer, LDocket docket, _) = TFixBuild();
         var written = new List<string>();
         TInterface.TFixLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
@@ -166,7 +167,7 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (QFixTab tab, QClinic clinic, _, _, QProcessing processing) = TFixBuild();
+        (QFixTab tab, CClinic clinic, _, _, QProcessing processing) = TFixBuild();
         LSidecarFixEntry saved = TInterface.TFixRecordCreate(TFixPlanCreate(LFlawKind.LFlawKindIndex, true, false));
         TInterface.TFixLibrarianAttach(_ => saved, (_, _) => true);
         try
@@ -191,7 +192,7 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (_, QClinic clinic, _, LDocket docket, _) = TFixBuild();
+        (_, CClinic clinic, _, LDocket docket, _) = TFixBuild();
         var written = new List<string>();
         TInterface.TFixLibrarianAttach(_ => null, (path, _) => { written.Add(path); return true; });
         try
@@ -212,14 +213,14 @@ public sealed class TFixTabPlan
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
-        (_, QClinic clinic, QViewer viewer, _, _) = TFixBuild();
+        (_, CClinic clinic, QViewer viewer, _, _) = TFixBuild();
         TInterfaceViewer.TViewerRequestSet(viewer, TFixSource);
         TFixSourceSet(viewer, TFixSource);
 
         TInterface.TFixPathHandle(viewer, "  ");
         TInterface.TFixPathHandle(viewer, TFixSource);
 
-        Assert.Null(clinic.QClinicSource);
+        Assert.Null(clinic.CClinicSource);
     }
 
     [Fact]
@@ -231,7 +232,7 @@ public sealed class TFixTabPlan
         int missing = 0;
         TInterface.TFixMissingAttach(tab, () => missing++);
 
-        TInterface.TFixRun(tab, LWorkPriority.LWorkPriorityNormal);
+        TInterface.TFixRun(tab, false);
         TInterface.TFixAllRun(tab);
 
         Assert.Equal(2, missing);

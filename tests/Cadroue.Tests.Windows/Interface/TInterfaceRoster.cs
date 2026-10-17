@@ -3,6 +3,7 @@ using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
+using Cadroue.Tests.Interface;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests.Windows;
@@ -26,7 +27,7 @@ internal static class TInterfaceRoster
     internal static QRoster TRosterCreate(LScheduleContract schedule, LStation station)
     {
         CAtelier atelier = TInterface.TAtelierCreate();
-        return new(atelier.CAtelierUsher, atelier.CAtelierLineage, schedule, station);
+        return new(atelier.CAtelierUsher, atelier.CAtelierLineage, schedule, station, atelier.CAtelierRosterCreate());
     }
     internal static void TRosterClose(QRoster roster) => roster.QRosterClose();
     internal static void TRosterRebuild(QRoster roster) => roster.QRosterRebuild();
@@ -61,13 +62,48 @@ internal static class TInterfaceRoster
     internal static IReadOnlyList<LWorkItem> TRosterSelectionRead(QRoster roster) => roster.QRosterSelectionRead();
     internal static void TRosterElapsedTick(QRoster roster, bool visible) => roster.QRosterElapsedTick(visible);
     internal static void TRosterDetailRun(QRoster roster) => roster.QRosterDeferral.QRosterDeferralRun();
-    internal static string TRosterOwnerFormat(LWorkItem work, bool owned) => QRosterRow.QRosterOwnerFormat(work, owned);
-    internal static string TRosterProgressFormat(LWorkItem work) => QRosterRow.QRosterProgressFormat(work);
-    internal static string TRosterPriorityFormat(LWorkPriority priority) => QRosterRow.QRosterPriorityFormat(priority);
-    internal static string TRosterStateFormat(LWorkState state) => QRosterRow.QRosterStateFormat(state);
-    internal static string TRosterKeyRead(LWorkState state) => QRosterRow.QRosterKeyRead(state);
-    internal static string TRosterPhaseFormat(LWorkState state, LWorkPhase phase) =>
-        QRosterRow.QRosterPhaseFormat(state, phase);
+    internal static string TRosterOwnerFormat(LWorkItem work, bool owned) =>
+        TRosterRowRead(work, owned).QRosterRowOwner;
+    internal static string TRosterProgressFormat(LWorkItem work) => TRosterRowRead(work, false).QRosterRowProgress;
+    internal static string TRosterPriorityFormat(LWorkPriority priority)
+    {
+        using var schedule = new TSchedule();
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "priority", priority);
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
+        return TRosterDetailCreate(schedule.TScheduleRead(), work).QRosterDetailRecords[6].QRosterDetailValue;
+    }
+    internal static string TRosterStateFormat(LWorkState state) => TRosterStateRead(state).QRosterRowState;
+    internal static string TRosterKeyRead(LWorkState state) => TRosterStateRead(state).QRosterRowKey;
+    private static QRosterRow TRosterStateRead(LWorkState state)
+    {
+        using var schedule = new TSchedule();
+        LWorkItem work = schedule.TWorkCreate(Guid.NewGuid(), "state").TWorkItem;
+        work.LWorkStateCurrent = state;
+        return TRosterRowRead(work, false);
+    }
+    private static QRosterRow TRosterRowRead(LWorkItem work, bool owned) =>
+        QRosterRow.QRosterRowCreate(
+            TInterface.TAtelierCreate().CAtelierLineage,
+            CRosterRow.CRosterRowCreate(
+                LRosterRow.LRosterRowCreate(work, owned),
+                new CLineageStep(
+                    work.LWorkId, work.LWorkBatchId, Guid.Empty, string.Empty, "Edit", true, null, null, null,
+                    string.Empty, string.Empty),
+                last: true,
+                stage: false,
+                selected: false),
+            QRosterRow.QRosterShadePlain);
+    internal static string TRosterPhaseFormat(LWorkState state, LWorkPhase phase)
+    {
+        using var schedule = new TSchedule();
+        TScheduleWork added = schedule.TWorkCreate(Guid.NewGuid(), "phase");
+        schedule.TScheduleAdd(added);
+        LWorkItem work = added.TWorkItem;
+        work.LWorkStateCurrent = state;
+        work.LWorkPhaseCurrent = phase;
+        return TRosterDetailCreate(schedule.TScheduleRead(), work).QRosterDetailRecords[5].QRosterDetailValue;
+    }
     internal static string TRosterSpanFormat(TimeSpan span) => QRosterRow.QRosterSpanFormat(span);
     internal static string TRosterShadeResolve(bool selected, bool cardSelected, bool stage) =>
         QRosterRow.QRosterShadeResolve(selected, cardSelected, stage);
@@ -75,11 +111,12 @@ internal static class TInterfaceRoster
         CLineageAnswer answer, LWorkItem work, bool last, bool stage, bool owned, string shade) =>
         QRosterRow.QRosterRowCreate(
             TInterface.TAtelierCreate().CAtelierLineage,
-            work,
-            answer.CLineageSteps.First(step => step.CLineageStepId == work.LWorkId),
-            last,
-            stage,
-            owned,
+            CRosterRow.CRosterRowCreate(
+                LRosterRow.LRosterRowCreate(work, owned),
+                answer.CLineageSteps.First(step => step.CLineageStepId == work.LWorkId),
+                last,
+                stage,
+                selected: false),
             shade);
     internal static string TRosterTitleFormat(CLineageAnswer answer)
     {
@@ -115,18 +152,22 @@ internal static class TInterfaceRoster
     internal static QRosterDetailKind TRosterKindRead(QRoster roster) =>
         QRosterDetail.QRosterKindRead(roster);
     internal static QRosterDetail TRosterDetailRead(QRoster roster) => QRosterDetail.QRosterDetailRead(roster);
-    internal static QRosterDetail TRosterDetailCreate(LScheduleContract schedule, LWorkItem work, string owner)
+    // The detail the roster's gate answers for this item, read on a station of its schedule.
+    internal static QRosterDetail TRosterDetailCreate(LScheduleContract schedule, LWorkItem work)
     {
-        CAtelier atelier = TInterface.TAtelierCreate();
         CLineageStep step = TRosterLineageRead(schedule, [work]).CLineageSteps.Single(
             item => item.CLineageStepId == work.LWorkId);
-        return QRosterDetail.QRosterDetailCreate(
-            work,
-            owner,
-            step.CLineageStepSource,
-            atelier.CAtelierLineage.CLineageTitleRead(
-                step.CLineageStepBatch, step.CLineageStepRelay, step.CLineageStepTab),
-            [step.CLineageSourceExtension, step.CLineageOutputExtension]);
+        LScheduleContract? previous = LStation.LStationSchedule;
+        try
+        {
+            CRoster gate = TInterface.TAtelierCreate().CAtelierRosterCreate();
+            gate.CRosterAttach(TStationCreate(schedule));
+            return QRosterDetail.QRosterDetailCreate(gate.CRosterDetail.CRosterDetailRead(work.LWorkId, _ => step));
+        }
+        finally
+        {
+            LStation.LStationSchedule = previous;
+        }
     }
     internal static void TStripTitleAttach(QStrip? strip) =>
         LCartographer.LCartographerTitleSource = strip is null ? null : strip.QStripRelay.QStripTitleRead;
@@ -135,13 +176,11 @@ internal static class TInterfaceRoster
     internal static QRosterCompareRow TRosterCompareCreate(string source, string output) =>
         QRosterDetail.QRosterCompareCreate(source, output);
     internal static string TRosterMebiFormat(long? bytes) => QRosterFormatter.QRosterMebiFormat(bytes);
-    internal static string TRosterSpentFormat(LWorkItem work) => QRosterFormatter.QRosterSpentFormat(work);
-    internal static string TRosterSpeedFormat(LWorkItem work) => QRosterFormatter.QRosterSpeedFormat(work);
     internal static string TRosterElapsedFormat(TimeSpan spent) =>
         QRosterFormatter.QRosterElapsedFormat(spent);
     internal static string TRosterClockFormat(TimeSpan span) => QRosterFormatter.QRosterClockFormat(span);
     internal static string TRosterStampFormat(DateTimeOffset? stamp) => QRosterFormatter.QRosterStampFormat(stamp);
-    internal static bool TRosterReencodeCheck(string mode) => QRosterFormatter.QRosterReencodeCheck(mode);
+    internal static bool TRosterReencodeCheck(string mode) => LRosterEncoding.LRosterEncodingCheck(mode);
     internal static QSummary TSummaryRead(LScheduleContract schedule, Guid batchId)
     {
         QRoster roster = TRosterCreate(schedule, TStationCreate(schedule));

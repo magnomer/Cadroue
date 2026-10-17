@@ -1,312 +1,136 @@
-using Cadroue.Application;
-using Cadroue.Core;
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
-public readonly record struct QClinicKind(LFlawKind QClinicKindValue, string QClinicKindName);
-
+// The clinic's wiring: hands every input to the clinic gate, shows the gate's wording keys through the catalog and
+// paints the gate's salvage answer. The members that only pass a gate answer or input on serve PClinic until its
+// painting moves here.
 public sealed class QClinic
 {
-    public const string QClinicSalvageStep = "Salvage";
+    private readonly CClinic qClinicGate;
 
-    public static readonly IReadOnlyList<QClinicKind> QClinicKinds = new QClinicKind[]
+    public QClinic(CClinic lClinic)
     {
-        new(LFlawKind.LFlawKindContainer, "Container"),
-        new(LFlawKind.LFlawKindTruncation, "Truncation"),
-        new(LFlawKind.LFlawKindTransport, "Transport"),
-        new(LFlawKind.LFlawKindMetadata, "Metadata"),
-        new(LFlawKind.LFlawKindIndex, "Index"),
-        new(LFlawKind.LFlawKindFraming, "Framing"),
-        new(LFlawKind.LFlawKindConfig, "Config"),
-        new(LFlawKind.LFlawKindTiming, "Timing"),
-        new(LFlawKind.LFlawKindSecondary, "Secondary"),
-        new(LFlawKind.LFlawKindCoded, "Coded"),
-        new(LFlawKind.LFlawKindFfvone, "Ffvone")
-    };
-
-    private readonly Dictionary<LFlawKind, LWorkFixStep> qClinicSteps = new();
-    private readonly Dictionary<string, Dictionary<LFlawKind, LCheckupResult>> qClinicResults =
-        new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, double> qClinicProgress = new(StringComparer.OrdinalIgnoreCase);
-    private LWorkFixSalvage qClinicSalvage = LWorkFixSalvage.LWorkSalvageCreate();
-    private string? qClinicSource;
-    private string? qClinicStep;
-    private LFlawKind? qClinicKind;
-    private bool qClinicMinimized;
-    private int qClinicSaveDepth;
-
-    public event Action? QClinicChanged;
-    public event Action? QClinicPlanChanged;
-    public event Action<bool>? QClinicMinimizeChanged;
-
-    public QClinic()
-    {
-        foreach ((LFlawKind lKind, string _) in QClinicKinds)
-        {
-            qClinicSteps[lKind] = new LWorkFixStep(lKind, false, false);
-        }
+        ArgumentNullException.ThrowIfNull(lClinic);
+        qClinicGate = lClinic;
     }
 
-    public string? QClinicSource => qClinicSource;
-
-    public string? QClinicStep => qClinicStep;
-
-    public LFlawKind? QClinicKind => qClinicKind;
-
-    public bool QClinicSalvageShown => qClinicStep == QClinicSalvageStep;
-
-    public bool QClinicStepShown => qClinicKind is not null;
-
-    public bool QClinicKnown => QClinicSalvageShown || QClinicStepShown;
-
-    public bool QClinicPersistentAllowed => QClinicKnown && !QClinicSalvageShown;
-
-    public bool QClinicRepairChecked => QClinicStepShown && QClinicStepRead().LWorkFixRepair;
-
-    public bool QClinicPersistentChecked => QClinicStepShown && QClinicStepRead().LWorkFixPersistent;
-
-    public bool QClinicResultShown => !QClinicSalvageShown && QClinicStepShown;
-
-    public bool QClinicScanShown => QClinicResultShown && QClinicScanCheck();
-
-    public double QClinicProgressValue => QClinicScanShown ? QClinicProgressRead() : 0;
-
-    public bool QClinicSalvageActive => qClinicSalvage.LWorkSalvageActive;
-
-    public bool QClinicSalvagePersistent => qClinicSalvage.LWorkSalvagePersistent;
-
-    public bool QClinicSalvageSeparate => qClinicSalvage.LWorkSalvageMode == LSalvageMode.LSalvageModeSeparate;
-
-    public bool QClinicSalvageRejoin => !QClinicSalvageSeparate;
-
-    public bool QClinicSalvageFixed => qClinicSalvage.LWorkSalvageBasis == LSalvageBasis.LSalvageBasisFixed;
-
-    public bool QClinicSalvageSource => !QClinicSalvageFixed;
-
-    public string QClinicSalvageText => QLocalizationCatalog.QLocalizationTextRead(!QClinicRepairCheck()
-        ? "Clinic.Salvage.Basis.None"
-        : QClinicSalvageFixed
-            ? "Clinic.Salvage.Basis.Fixed.Description"
-            : "Clinic.Salvage.Basis.Source.Description");
-
-    public string QClinicTitleRead() =>
-        QLocalizationCatalog.QLocalizationTextRead(
-            QClinicKnown ? $"Processing.Step.{qClinicStep}" : "Clinic.Header.Title");
-
-    public string QClinicSimpleRead() =>
-        QClinicKnown ? QLocalizationCatalog.QLocalizationTextRead($"Clinic.Step.{qClinicStep}.Simple") : string.Empty;
-
-    public string QClinicTechnicalRead() =>
-        QClinicKnown ? QLocalizationCatalog.QLocalizationTextRead(
-            $"Clinic.Step.{qClinicStep}.Technical") : string.Empty;
-
-    public string QClinicResultFormat() => LCheckupFormatter.LCheckupBodyFormat(
-        QClinicResultRead(),
-        new LCheckupStrings(
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Empty"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Scanning"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Clean"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Failed"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Defect"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Evidence"),
-            QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Repair")));
-
-    public bool QClinicMinimized => qClinicMinimized;
-
-    public bool QClinicSaveSuspended => qClinicSaveDepth > 0;
-
-    public void QClinicSaveSuspend() => qClinicSaveDepth++;
-
-    public void QClinicSaveResume() => qClinicSaveDepth = QClinicDepthClamp(qClinicSaveDepth - 1);
-
-    private static int QClinicDepthClamp(int lDepth) => Math.Max(0, lDepth);
-
-    public LWorkFixSalvage QClinicSalvage => qClinicSalvage;
-
-    public LWorkFixStep QClinicStepRead() =>
-        qClinicKind is { } lKind ? qClinicSteps[lKind] : new LWorkFixStep(LFlawKind.LFlawKindContainer, false, false);
-
-    public bool QClinicRepairCheck() => qClinicSteps.Values.Any(lStep => lStep.LWorkFixRepair);
-
-    public bool QClinicScanCheck() =>
-        QClinicResultRead().LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning;
-
-    public double QClinicProgressRead() =>
-        qClinicSource is { } lSource && qClinicProgress.TryGetValue(lSource, out double lValue) ? lValue : 0;
-
-    public LCheckupResult QClinicResultRead()
+    public event Action? QClinicChanged
     {
-        if (qClinicKind is not { } lKind)
-        {
-            return new LCheckupResult(
-                qClinicSource ?? string.Empty, LFlawKind.LFlawKindContainer, LCheckupOutcome.LCheckupOutcomeUntested);
-        }
-
-        return qClinicSource is { } lSource
-            && qClinicResults.TryGetValue(lSource, out Dictionary<LFlawKind, LCheckupResult>? lKinds)
-            && lKinds.TryGetValue(lKind, out LCheckupResult lStored)
-            ? lStored
-            : new LCheckupResult(qClinicSource ?? string.Empty, lKind, LCheckupOutcome.LCheckupOutcomeUntested);
+        add => qClinicGate.CClinicChanged += value;
+        remove => qClinicGate.CClinicChanged -= value;
     }
 
-    public void QClinicMinimizedSet(bool lMinimized)
+    public event Action<bool>? QClinicMinimizeChanged
     {
-        if (qClinicMinimized == lMinimized)
-        {
-            return;
-        }
-
-        qClinicMinimized = lMinimized;
-        QClinicMinimizeChanged?.Invoke(lMinimized);
+        add => qClinicGate.CClinicMinimizeChanged += value;
+        remove => qClinicGate.CClinicMinimizeChanged -= value;
     }
 
-    public void QClinicSourceSet(string? lSourcePath)
+    public bool QClinicSalvageShown => qClinicGate.CClinicSalvageShown;
+
+    public bool QClinicKnown => qClinicGate.CClinicKnown;
+
+    public bool QClinicPersistentAllowed => qClinicGate.CClinicPersistentAllowed;
+
+    public bool QClinicRepairChecked => qClinicGate.CClinicRepairChecked;
+
+    public bool QClinicPersistentChecked => qClinicGate.CClinicPersistentChecked;
+
+    public bool QClinicResultShown => qClinicGate.CClinicResultShown;
+
+    public bool QClinicScanShown => qClinicGate.CClinicScanShown;
+
+    public double QClinicProgressValue => qClinicGate.CClinicProgressValue;
+
+    public bool QClinicMinimized => qClinicGate.CClinicMinimized;
+
+    public string QClinicTitleRead() => QLocalizationCatalog.QLocalizationTextRead(qClinicGate.CClinicTitleKey);
+
+    public string QClinicSimpleRead() => QClinicTextRead(qClinicGate.CClinicSimpleKey);
+
+    public string QClinicTechnicalRead() => QClinicTextRead(qClinicGate.CClinicTechnicalKey);
+
+    public string QClinicResultFormat() => qClinicGate.CClinicResultFormat(
+    [
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Empty"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Scanning"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Clean"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Failed"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Defect"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Evidence"),
+        QLocalizationCatalog.QLocalizationTextRead("Clinic.Result.Repair")
+    ]);
+
+    public void QClinicMinimizedSet(bool lMinimized) => qClinicGate.CClinicMinimizedSet(lMinimized);
+
+    public void QClinicStepSet(string? lStepName) => qClinicGate.CClinicStepSet(lStepName);
+
+    public void QClinicActiveSet(bool lActive) => qClinicGate.CClinicRepairSet(lActive);
+
+    public void QClinicPersistentSet(bool lPersistent) => qClinicGate.CClinicPersistentSet(lPersistent);
+
+    // Each salvage switch and choice hands its raw state to the gate.
+    public void QClinicSalvageAttach(
+        CheckBox lActive,
+        CheckBox lPersistent,
+        RadioButton lRejoin,
+        RadioButton lSeparate,
+        RadioButton lSource,
+        RadioButton lFixed)
     {
-        qClinicSource = QClinicSourceNormalize(lSourcePath);
-        QClinicChanged?.Invoke();
+        lActive.Checked += QClinicActiveHandle;
+        lActive.Unchecked += QClinicActiveHandle;
+        lRejoin.Checked += QClinicRejoinHandle;
+        lSeparate.Checked += QClinicSeparateHandle;
+        lSource.Checked += QClinicSourceHandle;
+        lFixed.Checked += QClinicFixedHandle;
+        lPersistent.Checked += QClinicPersistentHandle;
+        lPersistent.Unchecked += QClinicPersistentHandle;
     }
 
-    private static string? QClinicSourceNormalize(string? lSourcePath) =>
-        string.IsNullOrWhiteSpace(lSourcePath) ? null : lSourcePath;
+    private void QClinicActiveHandle(object lSender, RoutedEventArgs lArgs) =>
+        qClinicGate.CSalvageActiveSet(((CheckBox)lSender).IsChecked == true);
 
-    public void QClinicStepSet(string? lStepName)
+    private void QClinicRejoinHandle(object lSender, RoutedEventArgs lArgs) => qClinicGate.CSalvageModeSet(false);
+
+    private void QClinicSeparateHandle(object lSender, RoutedEventArgs lArgs) => qClinicGate.CSalvageModeSet(true);
+
+    private void QClinicSourceHandle(object lSender, RoutedEventArgs lArgs) => qClinicGate.CSalvageBasisSet(false);
+
+    private void QClinicFixedHandle(object lSender, RoutedEventArgs lArgs) => qClinicGate.CSalvageBasisSet(true);
+
+    private void QClinicPersistentHandle(object lSender, RoutedEventArgs lArgs) =>
+        qClinicGate.CSalvagePersistentSet(((CheckBox)lSender).IsChecked == true);
+
+    // The salvage body paints the gate's one salvage answer.
+    public void QClinicSalvageUpdate(
+        UIElement lBody,
+        CheckBox lActive,
+        CheckBox lPersistent,
+        RadioButton lRejoin,
+        RadioButton lSeparate,
+        RadioButton lSource,
+        RadioButton lFixed,
+        TextBlock lDescription)
     {
-        qClinicStep = lStepName;
-        qClinicKind = QClinicKindFind(lStepName);
-        QClinicChanged?.Invoke();
+        var lSalvage = qClinicGate.CClinicSalvageRead();
+        lBody.Visibility = QClinicVisibilityResolve(lSalvage.CClinicShown);
+        lActive.IsChecked = lSalvage.CClinicActive;
+        lPersistent.IsChecked = lSalvage.CClinicPersistent;
+        lSeparate.IsChecked = lSalvage.CClinicSeparate;
+        lRejoin.IsChecked = !lSalvage.CClinicSeparate;
+        lFixed.IsEnabled = lSalvage.CClinicFixable;
+        lFixed.IsChecked = lSalvage.CClinicFixed;
+        lSource.IsChecked = !lSalvage.CClinicFixed;
+        lDescription.Text = QLocalizationCatalog.QLocalizationTextRead(lSalvage.CClinicDescription);
     }
 
-    private static LFlawKind? QClinicKindFind(string? lStepName) =>
-        QClinicKinds
-            .Where(lEntry => lEntry.QClinicKindName == lStepName)
-            .Select(lEntry => (LFlawKind?)lEntry.QClinicKindValue)
-            .FirstOrDefault();
+    private static string QClinicTextRead(string? lKey) =>
+        lKey is null ? string.Empty : QLocalizationCatalog.QLocalizationTextRead(lKey);
 
-    public void QClinicActiveSet(bool lActive)
-    {
-        if (qClinicKind is not { } lKind || qClinicSteps[lKind].LWorkFixRepair == lActive)
-        {
-            return;
-        }
-
-        qClinicSteps[lKind] = qClinicSteps[lKind] with { LWorkFixRepair = lActive };
-        qClinicSalvage = QClinicSalvageNormalize(qClinicSalvage);
-        QClinicChanged?.Invoke();
-        QClinicPlanChanged?.Invoke();
-    }
-
-    public void QClinicPersistentSet(bool lPersistent)
-    {
-        if (qClinicKind is not { } lKind || qClinicSteps[lKind].LWorkFixPersistent == lPersistent)
-        {
-            return;
-        }
-
-        qClinicSteps[lKind] = qClinicSteps[lKind] with { LWorkFixPersistent = lPersistent };
-        QClinicChanged?.Invoke();
-        QClinicPlanChanged?.Invoke();
-    }
-
-    public void QSalvageActiveSet(bool lActive) =>
-        QClinicSalvageSet(qClinicSalvage with { LWorkSalvageActive = lActive });
-
-    public void QSalvagePersistentSet(bool lPersistent) =>
-        QClinicSalvageSet(qClinicSalvage with { LWorkSalvagePersistent = lPersistent });
-
-    public void QSalvageModeSet(LSalvageMode lMode) =>
-        QClinicSalvageSet(qClinicSalvage with { LWorkSalvageMode = lMode });
-
-    public void QSalvageBasisSet(LSalvageBasis lBasis) =>
-        QClinicSalvageSet(qClinicSalvage with { LWorkSalvageBasis = lBasis });
-
-    public void QClinicSalvageSet(LWorkFixSalvage lSalvage)
-    {
-        LWorkFixSalvage lNormal = QClinicSalvageNormalize(lSalvage);
-        if (qClinicSalvage == lNormal)
-        {
-            return;
-        }
-
-        qClinicSalvage = lNormal;
-        QClinicChanged?.Invoke();
-        QClinicPlanChanged?.Invoke();
-    }
-
-    public LWorkFix QClinicPlanRead()
-    {
-        var lSteps = new List<LWorkFixStep>();
-        foreach ((LFlawKind lKind, string _) in QClinicKinds)
-        {
-            lSteps.Add(qClinicSteps[lKind]);
-        }
-
-        return new LWorkFix(lSteps) { LWorkFixSalvage = qClinicSalvage };
-    }
-
-    public void QClinicPlanApply(LWorkFix lPlan)
-    {
-        foreach (LWorkFixStep lStep in lPlan.LWorkFixSteps)
-        {
-            qClinicSteps[lStep.LWorkFixKind] = lStep;
-        }
-
-        qClinicSalvage = QClinicSalvageNormalize(lPlan.LWorkFixSalvage);
-        QClinicChanged?.Invoke();
-    }
-
-    public void QClinicResultSet(string lPath, LFlawKind lKind, LCheckupResult lResult)
-    {
-        if (!qClinicResults.TryGetValue(lPath, out Dictionary<LFlawKind, LCheckupResult>? lKinds))
-        {
-            lKinds = new Dictionary<LFlawKind, LCheckupResult>();
-            qClinicResults[lPath] = lKinds;
-        }
-
-        lKinds[lKind] = lResult;
-        if (lResult.LCheckupOutcome == LCheckupOutcome.LCheckupOutcomeScanning)
-        {
-            qClinicProgress[lPath] = 0;
-        }
-        else
-        {
-            qClinicProgress.Remove(lPath);
-        }
-
-        if (QClinicSourceMatch(lPath) && qClinicKind == lKind)
-        {
-            QClinicChanged?.Invoke();
-        }
-    }
-
-    public void QClinicResultsRemove(IReadOnlyList<string> lPaths)
-    {
-        bool lShown = false;
-        foreach (string lPath in lPaths)
-        {
-            lShown |= qClinicResults.Remove(lPath) && QClinicSourceMatch(lPath);
-            qClinicProgress.Remove(lPath);
-        }
-
-        if (lShown)
-        {
-            QClinicChanged?.Invoke();
-        }
-    }
-
-    public void QClinicProgressSet(string lPath, double lValue)
-    {
-        qClinicProgress[lPath] = QClinicProgressClamp(lValue);
-        if (QClinicSourceMatch(lPath))
-        {
-            QClinicChanged?.Invoke();
-        }
-    }
-
-    private static double QClinicProgressClamp(double lValue) => Math.Clamp(lValue, 0, 1);
-
-    private bool QClinicSourceMatch(string lPath) =>
-        string.Equals(lPath, qClinicSource, StringComparison.OrdinalIgnoreCase);
-
-    private LWorkFixSalvage QClinicSalvageNormalize(LWorkFixSalvage lSalvage) =>
-        QClinicRepairCheck() ? lSalvage : lSalvage with { LWorkSalvageBasis = LSalvageBasis.LSalvageBasisSource };
+    private static Visibility QClinicVisibilityResolve(bool lShown) =>
+        lShown ? Visibility.Visible : Visibility.Collapsed;
 }

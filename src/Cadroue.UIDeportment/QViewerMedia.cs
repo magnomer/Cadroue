@@ -13,9 +13,8 @@ public sealed class QViewerMedia
     public QViewerMedia(QViewer lOwner)
     {
         qViewer = lOwner;
-        QViewerLoupe = new QViewerLoupe(lOwner, this);
-        QViewerTeardown = new QViewerTeardown(
-            lOwner, this, qViewerProbe.Dispose, lOwner.QViewerTrace.CViewerStageRecord);
+        QViewerLoupe = new QViewerLoupe(lOwner);
+        QViewerTeardown = new QViewerTeardown(lOwner, this);
     }
 
     public event Action? QViewerPlayerCreated;
@@ -34,36 +33,22 @@ public sealed class QViewerMedia
 
     public void QViewerPlayerRaise() => QViewerPlayerCreated?.Invoke();
 
-    public void QViewerCommandApply(bool lCommandActive)
-    {
-        if (qViewer.QViewerUnloaded || qViewer.QViewerCommandActive == lCommandActive)
-        {
-            return;
-        }
+    public void QViewerProbeDispose() => qViewerProbe.Dispose();
 
-        QViewerHost.QViewerHostRecord($"command set {(lCommandActive ? "on" : "off")}");
-        if (!lCommandActive)
-        {
-            qViewer.QViewerPlayback.QViewerSuspend();
-            qViewer.QViewerCommandSet(false);
-            qViewer.QViewerSerialChange();
-            return;
-        }
-
-        qViewer.QViewerCommandSet(true);
-        if (QViewerRenderer.QViewerEngineRestore())
-        {
-            return;
-        }
-
-        qViewer.QViewerPlayback.QViewerResume();
-    }
+    // The gate decides and orders the change; the player's suspend, the renderer's restore and the player's resume
+    // stay here as the commands it runs.
+    public void QViewerCommandApply(bool lCommandActive) =>
+        qViewer.QViewerTrace.CViewerCommandSet(
+            lCommandActive,
+            qViewer.QViewerPlayback.QViewerSuspend,
+            QViewerRenderer.QViewerEngineRestore,
+            qViewer.QViewerPlayback.QViewerResume);
 
     public event Action? QViewerLoupeClosed;
 
     public bool QViewerMediaClose(bool lForce)
     {
-        if (qViewer.QViewerUnloaded || (!lForce && !qViewer.QViewerCommandActive))
+        if (qViewer.QViewerTrace.CViewerUnloaded || (!lForce && !qViewer.QViewerTrace.CViewerCommandActive))
         {
             return false;
         }
@@ -100,7 +85,7 @@ public sealed class QViewerMedia
             return false;
         }
 
-        qViewer.QViewerSerialChange();
+        qViewer.QViewerTrace.CViewerSerialChange();
         return true;
     }
 
@@ -123,13 +108,13 @@ public sealed class QViewerMedia
 
     private Task QViewerLoadRun(string lSourcePath, bool lFresh)
     {
-        if (!qViewer.QViewerCommandActive)
+        if (!qViewer.QViewerTrace.CViewerCommandActive)
         {
             return Task.CompletedTask;
         }
 
         QViewerRenderer.QViewerEngineUpdate();
-        int lSerial = qViewer.QViewerSerialChange();
+        int lSerial = qViewer.QViewerTrace.CViewerSerialChange();
         qViewer.QViewerPlayback.QViewerClockRun(false);
         qViewer.QViewerResumeSet(false);
         if (QPlayer.QPlayerReady)
@@ -138,12 +123,12 @@ public sealed class QViewerMedia
             qViewer.QViewerPlaybackUpdate(false, null);
         }
 
-        if (!qViewer.QViewerSerialCheck(lSerial))
+        if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
         {
             return Task.CompletedTask;
         }
 
-        qViewerProbe.LMediaLoadTail = !qViewer.QViewerMpvActive;
+        qViewerProbe.LMediaLoadTail = !qViewer.QViewerTrace.CViewerMpvActive;
         qViewer.QViewerWorkspace.CWorkspaceLoadStart(lSourcePath, lFresh, lSerial, qViewer.QViewerEngine.ToString());
         return QViewerProbeRun(lSourcePath);
     }
@@ -151,13 +136,13 @@ public sealed class QViewerMedia
     private async Task QViewerProbeRun(string lSourcePath)
     {
         LMediaLoadOutcome lOutcome = await qViewerProbe.LMediaLoadStart(lSourcePath);
-        int lSerial = qViewer.QViewerLoadSerial;
+        int lSerial = qViewer.QViewerTrace.CViewerSerial;
         if (!qViewer.QViewerWorkspace.CWorkspaceOutcomeMatch(
                 lOutcome.LMediaLoadKind.ToString(),
                 lOutcome.LMediaLoadPath,
                 lOutcome.LMediaLoadError,
                 lSerial,
-                qViewer.QViewerUnloaded))
+                qViewer.QViewerTrace.CViewerUnloaded))
         {
             return;
         }
@@ -182,7 +167,7 @@ public sealed class QViewerMedia
 
     private void QViewerCargoCommit(LCargo lCargo)
     {
-        if (qViewer.QViewerMpvActive)
+        if (qViewer.QViewerTrace.CViewerMpvActive)
         {
             qViewer.QViewerMpv.QViewerMpvCommit(lCargo);
             return;
@@ -192,7 +177,7 @@ public sealed class QViewerMedia
     }
 
     private Task QViewerMediaApply(string lSourcePath, LMediaInfo? lMediaInfo, string? lFfmpegError, int lSerial) =>
-        qViewer.QViewerMpvActive
+        qViewer.QViewerTrace.CViewerMpvActive
             ? qViewer.QViewerMpv.QViewerMpvApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial)
             : QViewerFlyleafApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial);
 
@@ -207,7 +192,7 @@ public sealed class QViewerMedia
 
         bool lCreated = !QPlayer.QPlayerReady;
         string? lPreviewError = await QViewerPlayerOpen(lSourcePath, lCreated);
-        if (!qViewer.QViewerSerialCheck(lSerial))
+        if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
         {
             if (lCreated)
             {
@@ -215,7 +200,7 @@ public sealed class QViewerMedia
             }
 
             qViewer.QViewerTrace.CViewerDiscardedRecord(
-                lSerial, qViewer.QViewerLoadSerial, qViewer.QViewerUnloaded);
+                lSerial, qViewer.QViewerTrace.CViewerSerial, qViewer.QViewerTrace.CViewerUnloaded);
             return;
         }
 
@@ -309,7 +294,7 @@ public sealed class QViewerMedia
     // filter applied first (nothing for Flyleaf).
     public void QViewerCommitPlay(TimeSpan lPosition)
     {
-        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
+        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerTrace.CViewerMpvActive);
         QViewerCommitSeek(lPosition);
         QPlayer.QPlayerPlay();
         qViewer.QViewerPlaybackUpdate(true, lPosition);
@@ -320,7 +305,7 @@ public sealed class QViewerMedia
     // applied first (nothing for Flyleaf).
     public void QViewerCommitPause(TimeSpan lPosition)
     {
-        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerMpvActive);
+        qViewer.QViewerAudio.QViewerAudioApply(qViewer.QViewerTrace.CViewerMpvActive);
         QViewerCommitSeek(lPosition);
         QPlayer.QPlayerPause();
         qViewer.QViewerPlaybackUpdate(false, lPosition);

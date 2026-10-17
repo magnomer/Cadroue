@@ -1,8 +1,5 @@
-using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -10,41 +7,18 @@ public sealed partial class PInspector
 {
     private CheckBox pToneBrightnessBox = null!;
     private CheckBox pInspectorBrightnessPersistent = null!;
-    private Slider pInspectorBrightnessSlider = null!;
-    private TextBox pInspectorBrightnessValue = null!;
     private StackPanel pInspectorBrightnessStack = null!;
     private StackPanel pInspectorBrightnessBody = null!;
 
     private CheckBox pToneContrastBox = null!;
     private CheckBox pInspectorContrastPersistent = null!;
-    private Slider pInspectorContrastSlider = null!;
-    private TextBox pInspectorContrastValue = null!;
     private StackPanel pInspectorContrastStack = null!;
     private StackPanel pInspectorContrastBody = null!;
 
     private CheckBox pToneSaturationBox = null!;
     private CheckBox pInspectorSaturationPersistent = null!;
-    private Slider pInspectorSaturationSlider = null!;
-    private TextBox pInspectorSaturationValue = null!;
     private StackPanel pInspectorSaturationStack = null!;
     private StackPanel pInspectorSaturationBody = null!;
-
-    private const double PToneBrightnessLeast = -100;
-    private const double PToneBrightnessMost = 100;
-
-    private StackPanel PToneBrightnessBuild()
-    {
-        StackPanel pBody = PInspectorBrightnessBuild();
-        PToneAttach(
-            LColorKind.LColorKindBrightness,
-            pToneBrightnessBox,
-            pInspectorBrightnessPersistent,
-            pInspectorBrightnessSlider,
-            pInspectorBrightnessValue,
-            null,
-            null);
-        return pBody;
-    }
 
     private StackPanel PInspectorBrightnessBuild()
     {
@@ -54,35 +28,9 @@ public sealed partial class PInspector
         pInspectorBrightnessPersistent = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistBrightness"));
-        pInspectorBrightnessSlider = PToneSliderBuild(
-            PToneBrightnessLeast,
-            PToneBrightnessMost,
-            0);
-        pInspectorBrightnessValue = PInspectorDecimalBuild();
-        pInspectorBrightnessValue.Text = "0";
         pInspectorBrightnessStack = new StackPanel();
-        pInspectorBrightnessStack.Children.Add(
-            PInspectorSliderBuild(
-                QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
-                pInspectorBrightnessSlider,
-                string.Empty,
-                pInspectorBrightnessValue));
         pInspectorBrightnessBody = PToneBodyBuild(pToneBrightnessBox, pInspectorBrightnessStack);
         return pInspectorBrightnessBody;
-    }
-
-    private StackPanel PToneContrastBuild()
-    {
-        StackPanel pBody = PInspectorContrastBuild();
-        PToneAttach(
-            LColorKind.LColorKindContrast,
-            pToneContrastBox,
-            pInspectorContrastPersistent,
-            pInspectorContrastSlider,
-            pInspectorContrastValue,
-            0,
-            200);
-        return pBody;
     }
 
     private StackPanel PInspectorContrastBuild()
@@ -93,42 +41,9 @@ public sealed partial class PInspector
         pInspectorContrastPersistent = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistContrast"));
-        pInspectorContrastSlider = PToneSliderBuild(0, 200, 100);
-        pInspectorContrastValue = PInspectorDecimalBuild();
-        pInspectorContrastValue.Text = "100";
         pInspectorContrastStack = new StackPanel();
-        pInspectorContrastStack.Children.Add(
-            PInspectorSliderBuild(
-                QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
-                pInspectorContrastSlider,
-                "%",
-                pInspectorContrastValue));
-        pInspectorContrastStack.Children.Add(new TextBlock
-        {
-            Text = QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.ContrastPreview"),
-            Foreground = new System.Windows.Media.SolidColorBrush(
-                System.Windows.Media.Color.FromRgb(0x64, 0x70, 0x82)),
-            TextWrapping = TextWrapping.Wrap,
-            Margin = new Thickness(0, 2, 0, 0),
-            Visibility = PLook.PLookVisible[QTone.QToneNoticeShown]
-        });
-
         pInspectorContrastBody = PToneBodyBuild(pToneContrastBox, pInspectorContrastStack);
         return pInspectorContrastBody;
-    }
-
-    private StackPanel PToneSaturationBuild()
-    {
-        StackPanel pBody = PInspectorSaturationBuild();
-        PToneAttach(
-            LColorKind.LColorKindSaturation,
-            pToneSaturationBox,
-            pInspectorSaturationPersistent,
-            pInspectorSaturationSlider,
-            pInspectorSaturationValue,
-            0,
-            200);
-        return pBody;
     }
 
     private StackPanel PInspectorSaturationBuild()
@@ -139,79 +54,17 @@ public sealed partial class PInspector
         pInspectorSaturationPersistent = PInspectorSwitchBuild(
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Persistent"),
             QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.PersistSaturation"));
-        pInspectorSaturationSlider = PToneSliderBuild(0, 200, 100);
-        pInspectorSaturationValue = PInspectorDecimalBuild();
-        pInspectorSaturationValue.Text = "100";
         pInspectorSaturationStack = new StackPanel();
-        pInspectorSaturationStack.Children.Add(
-            PInspectorSliderBuild(
-                QLocalizationCatalog.QLocalizationTextRead("Inspector.Common.Amount"),
-                pInspectorSaturationSlider,
-                "%",
-                pInspectorSaturationValue));
         pInspectorSaturationBody = PToneBodyBuild(pToneSaturationBox, pInspectorSaturationStack);
         return pInspectorSaturationBody;
     }
 
-    private void PToneAttach(
-        LColorKind pKind,
-        CheckBox pApply,
-        CheckBox pPersistent,
-        Slider pSlider,
-        TextBox pValue,
-        double? pMinimum,
-        double? pMaximum)
-    {
-        PInspectorSwitchAttach(pApply, pActive => QTone.QToneActiveSet(pKind, pActive));
-        PInspectorSwitchAttach(pPersistent, pFlag => QTone.QTonePersistentSet(pKind, pFlag));
-        PInspectorValueAttach(
-            pSlider,
-            pValue,
-            pMinimum,
-            pMaximum,
-            () => QTone.QToneStepRead(pKind).LWorkStepValue,
-            pNumber => QTone.QToneValueSet(pKind, pNumber));
-    }
-
-    private void PToneUpdate()
-    {
-        PToneSectionUpdate(
-            LColorKind.LColorKindBrightness,
-            pToneBrightnessBox, pInspectorBrightnessPersistent, pInspectorBrightnessSlider,
-            pInspectorBrightnessValue, pInspectorBrightnessStack, pInspectorBrightnessBody,
-            "Inspector.Video.BrightnessRequiresEq",
-            "Inspector.Video.ApplyBrightness", "Inspector.Video.PersistBrightness");
-        PToneSectionUpdate(
-            LColorKind.LColorKindContrast,
-            pToneContrastBox, pInspectorContrastPersistent, pInspectorContrastSlider,
-            pInspectorContrastValue, pInspectorContrastStack, pInspectorContrastBody,
-            "Inspector.Video.ContrastRequiresEq",
-            "Inspector.Video.ApplyContrast", "Inspector.Video.PersistContrast");
-        PToneSectionUpdate(
-            LColorKind.LColorKindSaturation,
-            pToneSaturationBox, pInspectorSaturationPersistent, pInspectorSaturationSlider,
-            pInspectorSaturationValue, pInspectorSaturationStack, pInspectorSaturationBody,
-            "Inspector.Video.SaturationRequiresEq",
-            "Inspector.Video.ApplySaturation", "Inspector.Video.PersistSaturation");
-    }
-
-    private void PToneSectionUpdate(
-        LColorKind pKind,
-        CheckBox pApply,
-        CheckBox pPersistent,
-        Slider pSlider,
-        TextBox pValue,
-        StackPanel pStack,
-        StackPanel pBody,
-        string pDisabledKey,
-        string pApplyKey,
-        string pPersistKey)
-    {
-        LWorkVideoStep pStep = QTone.QToneStepRead(pKind);
-        PInspectorSwitchUpdate(pApply, pStep.LWorkStepActive);
-        PInspectorSwitchUpdate(pPersistent, QTone.QTonePersistentRead(pKind));
-        PInspectorValueUpdate(pSlider, pValue, pStep.LWorkStepValue, "0.#");
-        PInspectorSectionApply(pApply, pPersistent, pStack, pBody, QInspector.QInspectorTipResolve(
-            pStep.LWorkStepActive, QTone.QToneCapable, true, pDisabledKey, string.Empty, pApplyKey, pPersistKey));
-    }
+    // The tone driver takes every tone section's parts in slot order: brightness, contrast, saturation.
+    private void PToneBuild() =>
+        _ = new QTone(
+            QInspector,
+            [pToneBrightnessBox, pToneContrastBox, pToneSaturationBox],
+            [pInspectorBrightnessPersistent, pInspectorContrastPersistent, pInspectorSaturationPersistent],
+            [pInspectorBrightnessStack, pInspectorContrastStack, pInspectorSaturationStack],
+            [pInspectorBrightnessBody, pInspectorContrastBody, pInspectorSaturationBody]);
 }

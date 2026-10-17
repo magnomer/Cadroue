@@ -19,16 +19,21 @@ public sealed class CWorkspace
     // The intent the last commit consumed, spent once when the player takes the committed media.
     private CWorkspaceIntent? _cWorkspaceCommitIntent;
 
-    internal CWorkspace(LWorkspacePort port, CViewer viewer)
+    internal CWorkspace(LWorkspacePort port, CViewer viewer, CFlow flow)
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(viewer);
+        ArgumentNullException.ThrowIfNull(flow);
         _cWorkspacePort = port;
         CWorkspaceViewer = viewer;
+        CWorkspaceFlow = flow;
     }
 
     // The viewer's trace gate, built with this workspace; the workspace writes its rejects through it.
     public CViewer CWorkspaceViewer { get; }
+
+    // The flow gate of the same viewer, built with this workspace; the workspace only carries it to its drivers.
+    public CFlow CWorkspaceFlow { get; }
 
     // A path asked and not held: the drivers open it.
     public event Action<string>? CWorkspaceOpened;
@@ -91,6 +96,30 @@ public sealed class CWorkspace
         CWorkspaceSource = null;
         CWorkspaceIntent = null;
         CWorkspaceMedia = false;
+    }
+
+    // The viewer closes once: its tenure ends, the media it held is forgotten and every pending load is outdated,
+    // then the driver's probe and player stages run in turn, a failing one traced.
+    public void CWorkspaceClose(Action probe, Action player)
+    {
+        ArgumentNullException.ThrowIfNull(probe);
+        ArgumentNullException.ThrowIfNull(player);
+        if (CWorkspaceViewer.CViewerUnloaded)
+        {
+            return;
+        }
+
+        CWorkspaceViewer.CViewerUnloadedSet();
+        CWorkspaceMediaClear();
+        CWorkspaceViewer.CViewerStageRun("media probe", probe);
+        CWorkspaceViewer.CViewerStageRun("player", player);
+    }
+
+    // The viewer closes its media: every pending load is outdated and the media it held is forgotten.
+    public void CWorkspaceMediaClose()
+    {
+        CWorkspaceViewer.CViewerSerialChange();
+        CWorkspaceMediaClear();
     }
 
     // The path the user asked for, before a sidecar resolves it to its media.
@@ -188,6 +217,25 @@ public sealed class CWorkspace
 
         CWorkspaceIntent = pending with { CWorkspaceIntentPosition = position };
         CWorkspaceIntentSought?.Invoke(position);
+    }
+
+    // The loupe hands the viewer back: the command turns on as in CViewerCommandSet, the host shows, and while the
+    // command is active the viewer seeks to the loupe's place, then plays or pauses as the loupe did.
+    public void CWorkspaceLoupeDetach(
+        TimeSpan position, bool playing, Func<bool> restore, Action resume, Action raise)
+    {
+        ArgumentNullException.ThrowIfNull(restore);
+        ArgumentNullException.ThrowIfNull(resume);
+        ArgumentNullException.ThrowIfNull(raise);
+        CWorkspaceViewer.CViewerRestoreRun(restore, resume);
+        CWorkspaceViewer.CViewerHostShow(true, raise);
+        if (!CWorkspaceViewer.CViewerCommandActive)
+        {
+            return;
+        }
+
+        CWorkspaceSeek(position);
+        CWorkspacePlay(playing);
     }
 
     public (bool CWorkspaceLoadCancelled, bool CWorkspaceMediaClosed) CWorkspaceRemovalRead(

@@ -79,26 +79,20 @@ public sealed partial class PInspector
         PInspectorSwitchAttach(pNoiseTrack, QNoise.QNoiseTrackSet);
     }
 
-    private PInspectorRow PNoiseRowBuild(QInspectorRow lRow) => PInspectorRowBuild(
+    // Each row hands its own position in the list to the driver.
+    private PInspectorRow PNoiseRowBuild(QInspectorRow lRow, int pRow) => PInspectorRowBuild(
         lRow,
-        () => QNoise.QNoiseValueRead(lRow.QInspectorRowIndex),
-        () => QNoise.QNoiseDefaultRead(lRow.QInspectorRowIndex),
-        pNumber => QNoise.QNoiseValueSet(lRow.QInspectorRowIndex, pNumber));
+        () => QNoise.QNoiseValueRead(pRow),
+        () => QNoise.QNoiseDefaultRead(pRow),
+        pNumber => QNoise.QNoiseValueSet(pRow, pNumber));
 
-    private void PNoiseUpdate()
-    {
-        bool lActive = QNoise.QNoiseStep.LWorkStepActive;
-        PNoiseStateApply(lActive);
-        PInspectorSectionUpdate(pNoiseStack, lActive);
-    }
-
-    private void PNoiseStateApply(bool lActive)
-    {
-        PInspectorSwitchUpdate(pNoiseApplyBox, lActive);
-        PInspectorSwitchUpdate(pNoisePersistent, QNoise.QNoisePersistent);
-        PInspectorSwitchUpdate(pNoiseTrack, QNoise.QNoiseStep.LWorkNoiseTrack);
-        pNoiseRows.ForEach(pRow => PInspectorRowUpdate(pRow, QNoise.QNoiseValueRead(pRow.PInspectorRowIndex)));
-        pNoiseType.SelectedIndex = QNoise.QNoiseTypeIndex;
-        PInspectorChoiceApply(pNoisePreset, QNoise.QNoiseChoiceRead());
-    }
+    private void PNoiseUpdate() =>
+        QNoise.QNoiseUpdate(
+            pNoiseApplyBox,
+            pNoisePersistent,
+            pNoiseTrack,
+            pNoiseRows.Select(pRow => (pRow.PInspectorRowSlider, pRow.PInspectorRowValue)).ToList(),
+            pNoiseType,
+            pNoisePreset,
+            pNoiseStack);
 }

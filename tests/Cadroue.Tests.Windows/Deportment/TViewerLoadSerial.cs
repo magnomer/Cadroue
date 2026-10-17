@@ -44,7 +44,7 @@ public sealed class TViewerLoadSerial
 
         TInterfaceViewer.TViewerUnloadSet(viewer);
 
-        Assert.True(viewer.QViewerUnloaded);
+        Assert.True(viewer.QViewerTrace.CViewerUnloaded);
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, serial));
         Assert.False(TInterfaceViewer.TViewerSerialCheck(viewer, TInterfaceViewer.TViewerSerialChange(viewer)));
     }

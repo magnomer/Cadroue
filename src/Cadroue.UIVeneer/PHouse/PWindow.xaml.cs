@@ -117,6 +117,10 @@ public partial class PWindow : Window
             PWindowMediaClear);
         QAskNotice.QAskRaised += PWindowAskHandle;
         QWarningNotice.QWarningRaised += PWindowWarningHandle;
+        lWindow.QWindowPart.QWindowPartEnvoy.QEnvoyAttach(
+            PWindowAskHandle,
+            PWindowWarningHandle,
+            (lTitle, lMessage) => PSWarning.PSWarningShow(this, lTitle, lMessage));
         lSash.QSashCaptureStarted += PResizeCaptureStart;
         lSash.QSashCaptureStopped += PResizeCaptureStop;
         lSash.QSashActiveChanged += PResizeRenderApply;

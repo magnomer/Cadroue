@@ -30,7 +30,7 @@ public sealed class TRosterCompare
         schedule.TScheduleAdd(added);
         LWorkItem work = added.TWorkItem;
 
-        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.Equal(7, detail.QRosterDetailCompares.Count);
         QRosterCompareRow head = detail.QRosterDetailCompares[0];
         Assert.Equal(QRosterDetail.QRosterLineHead, head.QRosterCompareSource.QRosterLineKey);
@@ -38,7 +38,7 @@ public sealed class TRosterCompare
         string measuring = detail.QRosterDetailCompares[1].QRosterCompareSource.QRosterLineText;
 
         work.LWorkSourceMeasured = true;
-        QRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        QRosterDetail measured = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.NotEqual(measuring, measured.QRosterDetailCompares[1].QRosterCompareSource.QRosterLineText);
     }
 
@@ -53,7 +53,7 @@ public sealed class TRosterCompare
         work.LWorkSourceMedia = Interface.TInterface.TWorkMediaCreate(3840, 2160, 60, 10_000, true);
         work.LWorkOutputMedia = Interface.TInterface.TWorkMediaCreate(1920, 1080, 30, 5_000, true);
 
-        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.Equal("3840 x 2160", detail.QRosterDetailCompares[2].QRosterCompareSource.QRosterLineText);
         Assert.Equal("1920 x 1080", detail.QRosterDetailCompares[2].QRosterCompareOutput.QRosterLineText);
         Assert.Equal(
@@ -90,7 +90,7 @@ public sealed class TRosterCompare
             LWorkMediaLoudness = -16
         };
 
-        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work, "-");
+        QRosterDetail detail = TInterfaceRoster.TRosterDetailCreate(schedule.TScheduleRead(), work);
         Assert.True(detail.QRosterDetailSound);
         Assert.Equal(4, detail.QRosterDetailSounds.Count);
         Assert.Equal("AAC", detail.QRosterDetailSounds[0].QRosterCompareSource.QRosterLineText);

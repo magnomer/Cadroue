@@ -1,5 +1,3 @@
-using Cadroue.Application;
-
 namespace Cadroue.UIDeportment;
 
 public sealed record QAsk(string QAskQuestion, string QAskAction)
@@ -34,7 +32,7 @@ public static class QAskNotice
         QAskCreate(() => QLocalizationCatalog.QLocalizationTextRead(lQuestionKey), lActionKey, lTitleKey);
 
     internal static QAsk? QAskCreate(Func<string> lQuestionRead, string lActionKey, string lTitleKey) =>
-        LPreference.LPreferenceStateCurrent.LPreferenceConfirmDestructive
+        QEnvoy.QEnvoyDestructiveCheck()
             ? QAskRecordCreate(lQuestionRead, lActionKey, lTitleKey)
             : null;
 

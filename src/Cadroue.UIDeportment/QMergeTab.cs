@@ -1,18 +1,18 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Infrastructure;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class QMergeTab
 {
+    private readonly CMerge qMergeGate;
     private readonly LPresetSelection qMergePreset;
     private readonly LDocket qMergeDocket;
 
-    public QMergeTab(CUsher lUsher, LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QMergeTab(CUsher lUsher, LPresetSelection lPreset, QViewer lViewer, QList lList, CMerge lMerge)
     {
+        qMergeGate = lMerge;
         qMergePreset = lPreset;
         qMergeDocket = lList.QListDocket;
         QMergeGroup = new QGroup(lUsher, QMergeSelection);
@@ -47,91 +47,51 @@ public sealed class QMergeTab
         QMergeSelection.LGroupModeChange(lMode);
     }
 
-    public void QMergeRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
+    // Each run gesture is one gate call; the gate answers false when the preset is missing, which raises the notice.
+    public void QMergeRun(bool lUrgent, Guid lRelayTarget, Guid lSourceTab)
     {
-        if (!QMergePresetCheck())
+        if (!qMergeGate.CMergeRun(
+                qMergePreset.LPresetSelectionValid,
+                qMergePreset.LPresetSelectionName,
+                QMergeRecordsRead(),
+                QMergeItemsRead(),
+                lUrgent,
+                lRelayTarget,
+                lSourceTab))
         {
-            return;
+            QMergePresetMissing?.Invoke();
         }
-
-        LMessenger.LMessengerMergeDescribe(
-            lPriority,
-            QMergeGroupsRead(),
-            qMergePreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab,
-            QMergeRelaysRead());
     }
 
     public void QMergeAllRun(Guid lRelayTarget, Guid lSourceTab) =>
-        QMergeRun(LWorkPriority.LWorkPriorityNormal, lRelayTarget, lSourceTab);
+        QMergeRun(false, lRelayTarget, lSourceTab);
 
-    public int QMergeCohortRun(Guid lCohort, Guid lRelayTarget, Guid lSourceTab)
-    {
-        if (!qMergePreset.LPresetSelectionValid)
-        {
-            LTraceLog.LTraceWarningRecord(
-                "Merge held relayed files in tab "
-                + $"'{LMessenger.LMessengerTitleSource?.Invoke(lSourceTab) ?? string.Empty}': "
-                + "no valid export preset is selected");
-            return 0;
-        }
-
-        return LMessenger.LMessengerMergeDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            QMergeGroupsRead(lCohort),
-            qMergePreset.LPresetSelectionEncoding,
+    public int QMergeCohortRun(Guid lCohort, Guid lRelayTarget, Guid lSourceTab) =>
+        qMergeGate.CMergeCohortRun(
+            qMergePreset.LPresetSelectionValid,
+            qMergePreset.LPresetSelectionName,
+            QMergeRecordsRead(),
+            QMergeItemsRead(),
+            lCohort,
             lRelayTarget,
-            lSourceTab,
-            QMergeRelaysRead());
-    }
+            lSourceTab);
 
     public IReadOnlyList<string> QMergePathsRead() =>
         qMergeDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath).ToArray();
 
     public IReadOnlyList<string> QMergeEligibleRead() =>
-        QMergeGroupsRead().SelectMany(lGroup => lGroup.LWorkGroupPaths).ToArray();
+        qMergeGate.CMergeEligibleRead(QMergeRecordsRead(), QMergeItemsRead());
 
-    public IReadOnlyDictionary<string, Guid> QMergeRelaysRead()
-    {
-        var lRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (LDocketEntry lItem in qMergeDocket.LDocketUnlockedRead())
-        {
-            lRelays[lItem.LDocketEntryPath] = lItem.LDocketEntryBatch;
-        }
+    // The group list's raw rows, each group's path list as the list holds it.
+    private IReadOnlyList<(string, IReadOnlyList<string>)> QMergeRecordsRead() =>
+        QMergeGroup.QGroupRecords
+            .Select(lRecord => (lRecord.QGroupRecordName, (IReadOnlyList<string>)lRecord.QGroupRecordPaths))
+            .ToArray();
 
-        return lRelays;
-    }
-
-    public IReadOnlyList<LWorkGroup> QMergeGroupsRead(Guid lCohort = default)
-    {
-        var lGroups = new List<LWorkGroup>();
-        foreach (QGroupEntry lRecord in QMergeGroup.QGroupRecords)
-        {
-            if (lCohort != Guid.Empty
-                && !lRecord.QGroupRecordPaths.All(lPath =>
-                    qMergeDocket.LDocketItemFind(lPath)?.LDocketEntryBatch == lCohort))
-            {
-                continue;
-            }
-
-            string[] lLocked = lRecord.QGroupRecordPaths.Where(qMergeDocket.LDocketLockCheck).ToArray();
-            if (lLocked.Length > 0)
-            {
-                LTraceLog.LTraceWarningRecord(
-                    $"Merge skipped group '{lRecord.QGroupRecordName}': "
-                    + $"{lLocked.Length} of {lRecord.QGroupRecordPaths.Count} file(s) still in the worklist");
-                continue;
-            }
-
-            if (lRecord.QGroupRecordPaths.Count > 0)
-            {
-                lGroups.Add(new LWorkGroup(lRecord.QGroupRecordName, lRecord.QGroupRecordPaths));
-            }
-        }
-
-        return lGroups;
-    }
+    private IReadOnlyList<(string, Guid, bool)> QMergeItemsRead() =>
+        qMergeDocket.LDocketItemsRead()
+            .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+            .ToArray();
 
     private void QMergeHandlersAttach(QViewer lViewer, QList lList)
     {
@@ -157,14 +117,4 @@ public sealed class QMergeTab
         }
     }
 
-    private bool QMergePresetCheck()
-    {
-        if (qMergePreset.LPresetSelectionValid)
-        {
-            return true;
-        }
-
-        QMergePresetMissing?.Invoke();
-        return false;
-    }
 }

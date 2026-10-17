@@ -19,10 +19,15 @@ internal static class TInterfaceViewer
     internal static void TViewerBypassAttach(QViewer viewer, Action<bool> handler) =>
         viewer.QViewerAudio.QViewerBypassChanged += handler;
     internal static void TViewerEngineAttach(QViewer viewer, Action handler) => viewer.QViewerEngineChanged += handler;
-    internal static int TViewerSerialChange(QViewer viewer) => viewer.QViewerSerialChange();
-    internal static bool TViewerSerialCheck(QViewer viewer, int serial) => viewer.QViewerSerialCheck(serial);
-    internal static void TViewerCommandSet(QViewer viewer, bool active) => viewer.QViewerCommandSet(active);
-    internal static void TViewerUnloadSet(QViewer viewer) => viewer.QViewerUnloadSet();
+    internal static int TViewerSerialChange(QViewer viewer) => viewer.QViewerTrace.CViewerSerialChange();
+    internal static bool TViewerSerialCheck(QViewer viewer, int serial) =>
+        viewer.QViewerTrace.CViewerSerialCheck(serial);
+    // The command changes through its gate, with no player to suspend, restore or resume.
+    internal static void TViewerCommandSet(QViewer viewer, bool active) =>
+        viewer.QViewerTrace.CViewerCommandSet(active, () => { }, () => true, () => { });
+    // The viewer closes through its gate, with no probe or player stage.
+    internal static void TViewerUnloadSet(QViewer viewer) =>
+        viewer.QViewerWorkspace.CWorkspaceClose(() => { }, () => { });
     internal static void TViewerEndSet(QViewer viewer, bool reached) => viewer.QViewerEndSet(reached);
     internal static void TViewerAllowSet(QViewer viewer, bool allowed) => viewer.QViewerAllowSet(allowed);
     internal static void TViewerFilterSet(QViewer viewer, string? filter) =>
@@ -46,14 +51,14 @@ internal static class TInterfaceViewer
     // The viewer's command is off for the ask, so a raised open is refused before it changes anything.
     internal static bool TViewerSourceMatch(QViewer viewer, string path)
     {
-        bool active = viewer.QViewerCommandActive;
+        bool active = viewer.QViewerTrace.CViewerCommandActive;
         int heard = 0;
         void TViewerNoticeRecord(string _) => heard++;
-        viewer.QViewerCommandSet(false);
+        TViewerCommandSet(viewer, false);
         viewer.QViewerOpenNotice += TViewerNoticeRecord;
         viewer.QViewerWorkspace.CWorkspaceOpen(path);
         viewer.QViewerOpenNotice -= TViewerNoticeRecord;
-        viewer.QViewerCommandSet(active);
+        TViewerCommandSet(viewer, active);
         return heard == 0;
     }
     internal static void TViewerPreviewSet(QViewer viewer, LPreviewState preview) => viewer.QViewerPreviewSet(preview);
@@ -100,8 +105,9 @@ internal static class TInterfaceViewer
     internal static QViewerSource TViewerSourceRead(QViewer viewer) => viewer.QViewerSource;
     internal static QViewerRenderer TViewerRendererRead(QViewer viewer) => viewer.QViewerRenderer;
     internal static void TViewerLoupeSet(QViewer viewer, bool active) => viewer.QViewerLoupeSet(active);
-    internal static void TViewerMpvSet(QViewer viewer, bool mpv) => viewer.QViewerMpvSet(mpv);
-    internal static void TViewerHostSet(QViewer viewer, bool visible) => viewer.QViewerHostSet(visible);
+    internal static void TViewerMpvSet(QViewer viewer, bool mpv) => viewer.QViewerTrace.CViewerMpvSet(mpv);
+    internal static void TViewerHostSet(QViewer viewer, bool visible) =>
+        viewer.QViewerTrace.CViewerHostShow(visible, () => { });
     internal static QViewerSwitch TViewerSwitchRead(QViewer viewer) =>
         viewer.QViewerAudio.QViewerSwitchRead();
     internal static bool TViewerSurfaceMatch(QViewer viewer, nint foreground, nint surface, nint overlay) =>

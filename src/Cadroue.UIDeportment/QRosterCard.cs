@@ -1,6 +1,5 @@
 using System.Globalization;
 using Cadroue.Conduct;
-using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
@@ -121,30 +120,20 @@ public sealed record QRosterCard
         return lSteps;
     }
 
+    // The gate answers the batch and its files in one call; the card picks its brushes and wording from that answer.
     public static QRosterCard QRosterCardCreate(
         CLineage lLineage,
+        CRosterCard lGate,
         Guid lBatchId,
         CLineageAnswer lAnswer,
-        IReadOnlyList<LWorkItem> lItems,
+        Guid lRunner,
         bool lSelected,
-        bool lCompleted,
         bool lCollapsed,
-        Func<LWorkItem, bool> lOwnerCheck,
         Func<Guid, bool> lSelectedCheck)
     {
-        CLineageBatch lRecord = lAnswer.CLineageBatches.First(lBatch => lBatch.CLineageBatchId == lBatchId);
-        var lLookup = new Dictionary<Guid, LWorkItem>();
-        foreach (LWorkItem lWorkItem in lItems)
-        {
-            lLookup.TryAdd(lWorkItem.LWorkId, lWorkItem);
-        }
-
-        var lSteps = new Dictionary<Guid, CLineageStep>();
-        foreach (CLineageStep lStep in lAnswer.CLineageSteps)
-        {
-            lSteps.TryAdd(lStep.CLineageStepId, lStep);
-        }
-
+        (CLineageBatch lRecord, IReadOnlyList<CRosterFile> lFiles) =
+            lGate.CRosterCardRead(lBatchId, lAnswer, lRunner, lSelectedCheck);
+        bool lCompleted = lRecord.CLineageBatchCompleted;
         return new QRosterCard
         {
             QRosterCardBatch = lBatchId,
@@ -154,18 +143,7 @@ public sealed record QRosterCard
             QRosterCardCollapsed = lCollapsed,
             QRosterCardTooltip = QLocalizationCatalog.QLocalizationTextRead(
                 lCollapsed ? "Roster.Card.Expand" : "Roster.Card.Collapse"),
-            QRosterCardFiles = lAnswer.CLineageEntries
-                .Where(lEntry => lEntry.CLineageEntryBatch == lBatchId)
-                .Select(lEntry => QRosterFileCreate(
-                    lLineage,
-                    lEntry,
-                    lLookup,
-                    lSteps,
-                    lRecord.CLineageBatchStages,
-                    lSelected,
-                    lOwnerCheck,
-                    lSelectedCheck))
-                .ToArray()
+            QRosterCardFiles = lFiles.Select(lFile => QRosterFileCreate(lLineage, lFile, lSelected)).ToArray()
         };
     }
 
@@ -178,31 +156,15 @@ public sealed record QRosterCard
             : QLocalizationCatalog.QLocalizationFormat("Roster.Card.Many", lTitle, lInitialCount);
     }
 
-    private static QRosterFile QRosterFileCreate(
-        CLineage lLineage,
-        CLineageEntry lEntry,
-        IReadOnlyDictionary<Guid, LWorkItem> lLookup,
-        IReadOnlyDictionary<Guid, CLineageStep> lSteps,
-        IReadOnlySet<Guid> lStageIds,
-        bool lCardSelected,
-        Func<LWorkItem, bool> lOwnerCheck,
-        Func<Guid, bool> lSelectedCheck)
-    {
-        IReadOnlyList<Guid> lIds = lEntry.CLineageEntryIds;
-        bool lStage = lIds.Count > 0 && lStageIds.Contains(lIds[^1]);
-        return new QRosterFile(
-            QLineage.QLineageTitleFormat(lEntry),
-            QRosterRow.QRosterShadeResolve(false, lCardSelected, lStage),
-            lIds.Select((lId, lIndex) => QRosterRow.QRosterRowCreate(
+    private static QRosterFile QRosterFileCreate(CLineage lLineage, CRosterFile lFile, bool lCardSelected) =>
+        new(
+            QLineage.QLineageTitleFormat(lFile.CRosterFileEntry),
+            QRosterRow.QRosterShadeResolve(false, lCardSelected, lFile.CRosterFileStage),
+            lFile.CRosterFileRows.Select(lRow => QRosterRow.QRosterRowCreate(
                 lLineage,
-                lLookup[lId],
-                lSteps[lId],
-                lIndex == lIds.Count - 1,
-                lStageIds.Contains(lId),
-                lOwnerCheck(lLookup[lId]),
+                lRow,
                 QRosterRow.QRosterShadeResolve(
-                    lSelectedCheck(lId),
+                    lRow.CRosterRowSelected,
                     lCardSelected,
-                    lStageIds.Contains(lId)))).ToArray());
-    }
+                    lRow.CRosterRowStage))).ToArray());
 }

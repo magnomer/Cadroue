@@ -30,7 +30,7 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (!qViewer.QViewerCommandActive)
+        if (!qViewer.QViewerTrace.CViewerCommandActive)
         {
             return;
         }
@@ -71,7 +71,7 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (!qViewer.QViewerCommandActive)
+        if (!qViewer.QViewerTrace.CViewerCommandActive)
         {
             return;
         }
@@ -107,7 +107,7 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (!qViewer.QViewerCommandActive)
+        if (!qViewer.QViewerTrace.CViewerCommandActive)
         {
             return;
         }
@@ -138,7 +138,7 @@ public sealed class QViewerPlayback
             return;
         }
 
-        if (!qViewer.QViewerCommandActive)
+        if (!qViewer.QViewerTrace.CViewerCommandActive)
         {
             return;
         }
@@ -165,7 +165,7 @@ public sealed class QViewerPlayback
 
     public void QViewerAccurateSeek(TimeSpan lPosition)
     {
-        if (qViewer.QViewerMpvActive)
+        if (qViewer.QViewerTrace.CViewerMpvActive)
         {
             qViewer.QViewerTrace.CViewerSeekRecord(lPosition, true, false);
             QPlayer.QPlayerSeek(lPosition);
@@ -216,7 +216,7 @@ public sealed class QViewerPlayback
 
     public void QViewerTick()
     {
-        if (!qViewer.QViewerCommandActive || !QPlayer.QPlayerReady)
+        if (!qViewer.QViewerTrace.CViewerCommandActive || !QPlayer.QPlayerReady)
         {
             return;
         }

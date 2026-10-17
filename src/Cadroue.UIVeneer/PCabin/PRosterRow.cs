@@ -61,14 +61,14 @@ internal static class PRosterRow
 
     private static void PRosterRowAttach(Border pRow, QRoster lRoster, QRosterRow lRow, ContextMenu pMenu)
     {
-        pRow.PreviewMouseLeftButtonDown += (_, _) => lRoster.QRosterSelection.QRosterStepSelect(
-            lRow.QRosterRowId,
+        pRow.PreviewMouseLeftButtonDown += (_, _) => lRow.QRosterRowSelect(
+            lRoster,
             Keyboard.Modifiers.HasFlag(ModifierKeys.Shift),
             Keyboard.Modifiers.HasFlag(ModifierKeys.Control));
         pRow.MouseEnter += (_, _) => PRosterShadeSet(pRow, PRosterTheme.PRosterRowHovers[lRow.QRosterRowShade]);
         pRow.MouseLeave += (_, _) => PRosterShadeSet(pRow, PRosterTheme.PRosterRowShades[lRow.QRosterRowShade]);
         pRow.ContextMenuOpening += (_, pArgs) => PRosterMenuApply(
-            pMenu, lRoster.QRosterMenu.QRosterMenuRead(lRow.QRosterRowId, PWindow.PWindowStripRead()?.QStrip), pArgs);
+            pMenu, lRow.QRosterRowOpen(lRoster, PWindow.PWindowStripRead()?.QStrip), pArgs);
     }
 
     private static void PRosterShadeSet(Border pRow, Brush pShade) => pRow.Background = pShade;

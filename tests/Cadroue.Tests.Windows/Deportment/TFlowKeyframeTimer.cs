@@ -91,25 +91,6 @@ public sealed class TFlowKeyframeTimer
     }
 
     [Fact]
-    public void Apply_IgnoresStaleSerials_AndForwardsTheCurrentOne()
-    {
-        QFlow flow = TFlowBuild();
-        List<int> counts = [];
-        TInterface.TFlowKeyframeAttach(flow, notice => { }, (entries, ranges) => counts.Add(entries.Count));
-        LKeyframeEntry[] entries = [new(TimeSpan.FromSeconds(2))];
-        LKeyframeScanRange[] ranges = [new(TimeSpan.Zero, TimeSpan.FromSeconds(10))];
-
-        TInterface.TFlowKeyframeApply(
-            flow, TInterface.TKeyframeNoticeCreate(7, entries, ranges, LKeyframeKind.LKeyframeKindInter));
-        Assert.Empty(counts);
-
-        TInterface.TFlowKeyframeApply(
-            flow, TInterface.TKeyframeNoticeCreate(0, entries, ranges, LKeyframeKind.LKeyframeKindInter));
-        Assert.Equal([1], counts);
-        Assert.Equal("LKeyframeKindInter/1/1/10", flow.QFlowStamp.QFlowKeyframeStamp);
-    }
-
-    [Fact]
     public void Shortcut_RunsOnlyWithCommandAndSpool()
     {
         QFlow flow = TFlowBuild();

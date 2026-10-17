@@ -50,10 +50,10 @@ public sealed class TViewerEngine
         (QViewer viewer, QViewerRenderer renderer) = TViewerBuild();
         int hostApplies = 0;
         TInterfaceViewer.TViewerHostAttach(renderer, () => hostApplies++);
-        bool mpv = viewer.QViewerMpvActive;
+        bool mpv = viewer.QViewerTrace.CViewerMpvActive;
 
         Assert.False(TInterfaceViewer.TViewerEngineUpdate(renderer));
-        Assert.Equal(mpv, viewer.QViewerMpvActive);
+        Assert.Equal(mpv, viewer.QViewerTrace.CViewerMpvActive);
         Assert.Equal(0, hostApplies);
     }
 

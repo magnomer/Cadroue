@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cadroue.Conduct;
+using Cadroue.Tests.Interface;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -17,9 +18,7 @@ public sealed class TWorkspace
         {
             tWorkspaceHeard.Add($"{kind}:{position.TotalSeconds}");
         }
-        tWorkspaceArea = new CAtelier(
-                new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort(), new TViewerPort(),
-                new TEditPort())
+        tWorkspaceArea = TAtelier.TAtelierCreate(port => port with { LAtelierWorkspace = tWorkspacePort })
             .CAtelierWorkspaceCreate();
         tWorkspaceArea.CWorkspaceOpened += path => tWorkspaceHeard.Add("open:" + path);
         tWorkspaceArea.CWorkspacePlayed += () => tWorkspaceHeard.Add("play");
@@ -34,9 +33,7 @@ public sealed class TWorkspace
     [Fact]
     public void AtelierWorkspaceCreate_EachCall_GivesItsOwnWorkspace()
     {
-        CAtelier atelier = new(
-            new TUsherPort(), new TLineagePort(), tWorkspacePort, new TPlacementPort(), new TViewerPort(),
-            new TEditPort());
+        CAtelier atelier = TAtelier.TAtelierCreate(port => port with { LAtelierWorkspace = tWorkspacePort });
 
         Assert.NotSame(atelier.CAtelierWorkspaceCreate(), atelier.CAtelierWorkspaceCreate());
     }

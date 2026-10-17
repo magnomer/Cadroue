@@ -1,6 +1,8 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.Tests.Windows;
@@ -188,4 +190,38 @@ internal static partial class TInterface
     internal static void TLogCategorySet(QLog log, IReadOnlyList<string> tokens) => log.QLogCategorySet(tokens);
     internal static void TLogResetAttach(QLog log, Action handler) => log.QLogRowsRebuilt += handler;
     internal static string TLogKeyRead(LTraceKind kind) => QLogRow.QLogKeyRead(kind);
+
+    // The atelier as the host builds it.
+    internal static CAtelier TAtelierCreate() =>
+        new(new LAtelierPort
+        {
+            LAtelierUsher = new LUsherOutlet(),
+            LAtelierLineage = new LLineageOutlet(),
+            LAtelierWorkspace = new LWorkspaceOutlet(),
+            LAtelierPlacement = new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
+            LAtelierViewer = new LViewerOutlet(
+                lPath => System.IO.Path.GetFileName(lPath),
+                () => System.DateTimeOffset.Now,
+                System.Environment.NewLine),
+            LAtelierEdit = new LEditOutlet(),
+            LAtelierRoster = new LRosterOutlet(),
+            LAtelierFix = new LFixOutlet(),
+            LAtelierConvert = new LConvertOutlet(),
+            LAtelierTone = new LToneOutlet(() => LFlyleaf.LFlyleafActive, LRenderer.LRendererEngineRead),
+            LAtelierEqualizer = new LEqualizerOutlet(),
+            LAtelierClinic = new LClinicOutlet(),
+            LAtelierRosterCard = new LRosterCardOutlet(),
+            LAtelierMerge = new LMergeOutlet(lMessage => LTraceLog.LTraceWarningRecord(lMessage)),
+            LAtelierNoise = new LNoiseOutlet(),
+            LAtelierConsole = new LConsoleOutlet(() => LRenderer.LRendererProgramCurrent),
+            LAtelierFlow = new LFlowOutlet(
+                LRigFactoryKeyframe.LRigKeyframeCreate,
+                LRigFactoryWaveform.LRigWaveformCreate,
+                () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
+            LAtelierRosterDetail = new LRosterDetailOutlet(() => System.DateTimeOffset.Now),
+            LAtelierWhitebalance = new LWhitebalanceOutlet(),
+            LAtelierFilter = new LFilterOutlet(),
+            LAtelierScene = TSceneOutletCreate(),
+            LAtelierList = TInterfaceList.TListOutletCreate,
+        });
 }

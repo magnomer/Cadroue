@@ -95,9 +95,10 @@ public sealed partial class PInspector : PPanel
         var pBody = new Grid();
         pBody.Children.Add(pInspectorEmptyNotice);
         pBody.Children.Add(PCropBodyBuild());
-        pBody.Children.Add(PToneBrightnessBuild());
-        pBody.Children.Add(PToneContrastBuild());
-        pBody.Children.Add(PToneSaturationBuild());
+        pBody.Children.Add(PInspectorBrightnessBuild());
+        pBody.Children.Add(PInspectorContrastBuild());
+        pBody.Children.Add(PInspectorSaturationBuild());
+        PToneBuild();
         var pGamma = new QGamma(QInspector);
         pBody.Children.Add(pGamma.QGammaBody);
         var pExposure = new QExposure(QInspector);
@@ -160,11 +161,9 @@ public sealed partial class PInspector : PPanel
         QInspector.QInspectorChanged += PInspectorUpdate;
     }
 
-    public QTone QTone => QInspector.QInspectorVideo.QInspectorTone;
-
     public QCurve QCurve => QInspector.QInspectorVideo.QInspectorCurve;
 
-    public QWhitebalance QWhitebalance => QInspector.QInspectorVideo.QInspectorWhitebalance;
+    public QWhitebalance QWhitebalance { get; private set; } = null!;
 
     public QLoudness QLoudness => QInspector.QInspectorAudio.QInspectorLoudness;
 
@@ -187,7 +186,6 @@ public sealed partial class PInspector : PPanel
 
     private void PInspectorStepAttach()
     {
-        QTone.QToneChanged += PToneUpdate;
         QCurve.QCurveChanged += PCurveUpdate;
         QWhitebalance.QWhitebalanceChanged += PWhitebalanceUpdate;
         QLoudness.QLoudnessChanged += PLoudnessUpdate;
@@ -200,7 +198,6 @@ public sealed partial class PInspector : PPanel
 
     private void PInspectorStepUpdate()
     {
-        PToneUpdate();
         PCurveUpdate();
         PWhitebalanceUpdate();
         PLoudnessUpdate();

@@ -43,6 +43,7 @@ internal static class TAuditNameRegistry
         "Casement",
         "Checkbox",
         "Checkup",
+        "Choice",
         "Chord",
         "Chrome",
         "Chronometer",

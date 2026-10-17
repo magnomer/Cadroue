@@ -1,4 +1,5 @@
 using Cadroue.Conduct;
+using Cadroue.Tests.Interface;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -10,9 +11,7 @@ public sealed class TUsher
 
     public TUsher()
     {
-        tUsherArea = new CAtelier(
-                tUsherPort, new TLineagePort(), new TWorkspacePort(), new TPlacementPort(), new TViewerPort(),
-                new TEditPort())
+        tUsherArea = TAtelier.TAtelierCreate(port => port with { LAtelierUsher = tUsherPort })
             .CAtelierUsher;
     }
 

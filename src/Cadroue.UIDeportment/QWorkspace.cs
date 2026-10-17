@@ -16,30 +16,27 @@ public sealed class QWorkspace
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
 
-    public QWorkspace(
-        string lKey,
-        CUsher lUsher,
-        CInfo lInfo,
-        CLineage lLineage,
-        CWorkspace lWorkspace,
-        CInspector lInspector,
-        CEdit lEdit)
+    // The tab hands its own workspace gate; every other gate is read from the atelier by the driver that uses it.
+    public QWorkspace(string lKey, CWorkspace lWorkspace, CAtelier lAtelier)
     {
+        CUsher lUsher = lAtelier.CAtelierUsher;
         qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
         QWorkspaceFacts = new QWorkspaceFacts(lKey);
-        QWorkspaceRoster = QWorkspaceFacts.QWorkspaceWorklist ? QRoster.QRosterCreate(lUsher, lLineage) : null;
-        QWorkspaceList = QWorkspaceFacts.QWorkspaceListPresent ? new QList(lUsher) : null;
+        QWorkspaceRoster = QWorkspaceFacts.QWorkspaceWorklist
+            ? QRoster.QRosterCreate(lAtelier)
+            : null;
+        QWorkspaceList = QWorkspaceFacts.QWorkspaceListPresent ? new QList(lAtelier) : null;
         qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent
-            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lInfo, lWorkspace)
+            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lAtelier.CAtelierInfo, qWorkspaceGate)
             : null;
         QWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
         QWorkspacePresetAttach();
         QWorkspacePresetAccept(QWorkspacePreset);
         QWorkspaceExport = new QExport(lUsher, QWorkspacePresetOwner, QWorkspaceFacts);
-        QWorkspaceMode = new QWorkspaceMode(QWorkspaceFacts, lUsher, lInspector, lEdit,
-            QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
+        QWorkspaceMode = new QWorkspaceMode(
+            QWorkspaceFacts, lAtelier, QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
         QWorkspaceRelay = new QWorkspaceRelay(this);
     }
 

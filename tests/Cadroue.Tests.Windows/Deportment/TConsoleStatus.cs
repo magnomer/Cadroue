@@ -38,23 +38,6 @@ public sealed class TConsoleStatus
     }
 
     [Fact]
-    public void Progress_RaisesGlideOnlyForwardAboveZero()
-    {
-        QConsole console = TInterface.TConsoleCreate();
-        var applied = new List<(double, bool)>();
-        TInterface.TConsoleProgressAttach(console, (value, glide) => applied.Add((value, glide)));
-
-        Assert.True(TInterface.TConsoleProgressSet(console, 0.5));
-        Assert.False(TInterface.TConsoleProgressSet(console, 0.5));
-        Assert.True(TInterface.TConsoleProgressSet(console, 2));
-        Assert.True(TInterface.TConsoleProgressSet(console, 0.25));
-        Assert.True(TInterface.TConsoleProgressSet(console, 0));
-
-        Assert.Equal([(0.5, true), (1, true), (0.25, false), (0, false)], applied);
-        Assert.Equal(0, console.QConsoleProgress);
-    }
-
-    [Fact]
     public void Removal_IsSilent_WhenEveryItemWasRemoved()
     {
         var outcomes = new Dictionary<Guid, LScheduleRemoval>

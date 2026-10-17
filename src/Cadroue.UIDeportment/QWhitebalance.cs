@@ -1,371 +1,195 @@
 using System.Globalization;
-using Cadroue.Application;
-using Cadroue.Core;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The white balance tool's wiring: fills the method rows and the saturation field from the gate, hands every input to
+// the gate and paints the section and the wheel dot. The members the surface still calls answer from the gate.
 public sealed class QWhitebalance
 {
-    private static readonly LWhitebalanceMethod[] qWhitebalanceMethods =
+    private const string QWhitebalancePattern = "0.#";
+
+    private readonly QInspector qWhitebalanceInspector;
+    private readonly CWhitebalance qWhitebalanceGate;
+    private readonly CheckBox qWhitebalanceSwitch;
+    private readonly CheckBox qWhitebalancePersistent;
+    private readonly ComboBox qWhitebalanceMethod;
+    private readonly StackPanel qWhitebalanceStack;
+    private readonly StackPanel qWhitebalanceBody;
+    private readonly Ellipse qWhitebalanceDot;
+    private readonly int qWhitebalanceSize;
+    private readonly Grid qWhitebalanceField;
+
+    // The section's parts: its switches, the method combo whose field row the saturation field follows, the stack
+    // and body the tip lands on, the grey and white picker buttons in that order, and the dot on a wheel that size.
+    public QWhitebalance(
+        QInspector lInspector,
+        CheckBox lSwitch,
+        CheckBox lPersistent,
+        ComboBox lMethod,
+        StackPanel lStack,
+        StackPanel lBody,
+        IReadOnlyList<ToggleButton> lPickers,
+        Ellipse lDot,
+        int lSize)
     {
-        LWhitebalanceMethod.LWhitebalanceMethodAverage,
-        LWhitebalanceMethod.LWhitebalanceMethodMinmax,
-        LWhitebalanceMethod.LWhitebalanceMethodMedian,
-        LWhitebalanceMethod.LWhitebalanceMethodManual
-    };
+        qWhitebalanceInspector = lInspector;
+        qWhitebalanceGate = lInspector.QInspectorVideo.QInspectorWhitebalance;
+        qWhitebalanceSwitch = lSwitch;
+        qWhitebalancePersistent = lPersistent;
+        qWhitebalanceMethod = lMethod;
+        qWhitebalanceStack = lStack;
+        qWhitebalanceBody = lBody;
+        qWhitebalanceDot = lDot;
+        qWhitebalanceSize = lSize;
 
-    private LWorkVideoStep qWhitebalanceStep = LWorkVideoStep.LWorkWhitebalanceCreate(false);
-    private bool qWhitebalancePersistent;
-    private bool qWhitebalanceCapable;
-    private bool qWhitebalancePreview;
-    private LNeutralWheel qWhitebalanceEstimate = new(0, 0, false);
-    private bool qWhitebalanceToolArmed;
-    private bool qWhitebalanceToolPending;
-    private LNeutralTarget qWhitebalanceTarget = LNeutralTarget.LNeutralTargetGrey;
-    private string qWhitebalanceStatus = string.Empty;
+        QWhitebalanceMethodBuild();
+        qWhitebalanceField = QWhitebalanceFieldBuild();
+        QWhitebalanceActiveAttach();
+        QWhitebalancePersistentAttach();
+        QWhitebalancePickerAttach(lPickers[0], false);
+        QWhitebalancePickerAttach(lPickers[1], true);
 
-    public event Action? QWhitebalanceChanged;
-
-    public event Action<LWhitebalanceMethod>? QWhitebalanceEstimateChanged;
-
-    public event Action<bool, LNeutralTarget>? QWhitebalanceToolChanged;
-
-    public LWorkVideoStep QWhitebalanceStep => qWhitebalanceStep;
-
-    public LWorkWhitebalanceSettings QWhitebalanceValue => qWhitebalanceStep.LWorkWhitebalanceRead();
-
-    public LWhitebalanceMethod QWhitebalanceMethod => QWhitebalanceValue.LWorkWhitebalanceMethod;
-
-    public int QWhitebalanceMethodIndex => Array.IndexOf(qWhitebalanceMethods, QWhitebalanceMethod);
-
-    public bool QWhitebalanceManual =>
-        QWhitebalanceMethod == LWhitebalanceMethod.LWhitebalanceMethodManual;
-
-    public bool QWhitebalancePersistent => qWhitebalancePersistent;
-
-    public bool QWhitebalanceCapable => qWhitebalanceCapable;
-
-    public bool QWhitebalancePreview => qWhitebalancePreview;
-
-    public bool QWhitebalanceToolArmed => qWhitebalanceToolArmed;
-
-    public bool QWhitebalanceGreyArmed =>
-        qWhitebalanceToolArmed && qWhitebalanceTarget == LNeutralTarget.LNeutralTargetGrey;
-
-    public bool QWhitebalanceWhiteArmed =>
-        qWhitebalanceToolArmed && qWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite;
-
-    public LNeutralTarget QWhitebalanceTarget => qWhitebalanceTarget;
-
-    public string QWhitebalanceStatus => qWhitebalanceStatus;
-
-    public bool QWhitebalanceGuideShown => QWhitebalanceGuideRead().Length > 0;
-
-    public string QWhitebalanceGuideRead() => qWhitebalanceToolArmed
-        ? QLocalizationCatalog.QLocalizationTextRead(qWhitebalanceTarget == LNeutralTarget.LNeutralTargetWhite
-            ? "Inspector.Video.WhitebalanceGuideWhite"
-            : "Inspector.Video.WhitebalanceGuide")
-        : qWhitebalanceStatus;
-
-    public LNeutralWheel QWhitebalanceWheelRead()
-    {
-        LWorkWhitebalanceSettings lValue = QWhitebalanceValue;
-        return QWhitebalanceManual
-            ? LNeutral.LNeutralWheelResolve(lValue.LWorkSampleRed, lValue.LWorkSampleGreen, lValue.LWorkSampleBlue)
-            : qWhitebalanceEstimate;
+        qWhitebalanceGate.CWhitebalanceChanged += QWhitebalanceUpdate;
+        QWhitebalanceUpdate();
     }
 
-    public LNeutralDot QWhitebalanceDotRead(double lSize, double lDot) =>
-        LNeutral.LNeutralDotResolve(QWhitebalanceWheelRead(), lSize, lDot);
+    public event Action? QWhitebalanceChanged
+    {
+        add => qWhitebalanceGate.CWhitebalanceChanged += value;
+        remove => qWhitebalanceGate.CWhitebalanceChanged -= value;
+    }
+
+    public bool QWhitebalanceCapable => qWhitebalanceGate.CWhitebalanceCapable;
+
+    public bool QWhitebalanceGreyArmed => qWhitebalanceGate.CWhitebalanceGreyArmed;
+
+    public bool QWhitebalanceWhiteArmed => qWhitebalanceGate.CWhitebalanceWhiteArmed;
+
+    public bool QWhitebalanceGuideShown => qWhitebalanceGate.CWhitebalanceGuideShown;
+
+    public QInspectorTip QWhitebalanceTip => qWhitebalanceInspector.QInspectorTipResolve(
+        qWhitebalanceGate.CWhitebalanceActive,
+        qWhitebalanceGate.CWhitebalanceCapable,
+        qWhitebalanceGate.CWhitebalancePreview,
+        "Inspector.Video.WhitebalanceRequiresEq",
+        "Inspector.Video.WhitebalancePreviewMpv",
+        "Inspector.Video.ApplyWhitebalance",
+        "Inspector.Video.PersistWhitebalance");
+
+    public string QWhitebalanceGuideRead() => qWhitebalanceGate.CWhitebalanceGuideShown
+        ? QLocalizationCatalog.QLocalizationTextRead(qWhitebalanceGate.CWhitebalanceGuideKey)
+        : string.Empty;
 
     public QWhitebalanceReadout QWhitebalanceReadoutRead()
     {
-        LWorkWhitebalanceSettings lValue = QWhitebalanceValue;
-        LNeutralDisplay lDisplay = LNeutral.LNeutralDisplayResolve(
-            QWhitebalanceManual, lValue.LWorkSampleRed, lValue.LWorkSampleGreen, lValue.LWorkSampleBlue);
+        (bool lSampled, int lRed, int lGreen, int lBlue) = qWhitebalanceGate.CWhitebalanceReadoutRead();
         return new QWhitebalanceReadout(
-            lDisplay.LNeutralDisplaySampled,
-            (byte)lDisplay.LNeutralDisplayRed,
-            (byte)lDisplay.LNeutralDisplayGreen,
-            (byte)lDisplay.LNeutralDisplayBlue,
-            lDisplay.LNeutralDisplaySampled
+            lSampled,
+            (byte)lRed,
+            (byte)lGreen,
+            (byte)lBlue,
+            lSampled
                 ? string.Format(
                     CultureInfo.InvariantCulture,
                     QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSample"),
-                    lDisplay.LNeutralDisplayRed,
-                    lDisplay.LNeutralDisplayGreen,
-                    lDisplay.LNeutralDisplayBlue)
+                    lRed,
+                    lGreen,
+                    lBlue)
                 : string.Empty);
     }
 
-    public void QWhitebalanceStepSet(LWorkVideoStep lStep)
+    // The colour wheel at the given size and brightness.
+    public ImageSource QWhitebalanceWheelDraw(int lSize, double lValue)
     {
-        LWorkWhitebalanceSettings lValue = lStep.LWorkWhitebalanceRead();
-        QWhitebalanceRaise(QWhitebalanceStepApply(LWorkVideoStep.LWorkWhitebalanceCreate(
-            lStep.LWorkStepActive,
-            lValue.LWorkWhitebalanceMethod,
-            lValue.LWorkWhitebalanceSaturation,
-            lValue.LWorkWhitebalanceRed,
-            lValue.LWorkWhitebalanceGreen,
-            lValue.LWorkWhitebalanceBlue,
-            lValue.LWorkSampleRed,
-            lValue.LWorkSampleGreen,
-            lValue.LWorkSampleBlue)));
+        (int lSide, int lStride, byte[] lPixels) = qWhitebalanceGate.CWhitebalanceBitmapRead(lSize, lValue);
+        var lBitmap = new WriteableBitmap(lSide, lSide, 96, 96, PixelFormats.Bgra32, null);
+        lBitmap.WritePixels(new Int32Rect(0, 0, lSide, lSide), lPixels, lStride, 0);
+        lBitmap.Freeze();
+        return lBitmap;
     }
 
-    public void QWhitebalanceActiveSet(bool lActive)
+    public void QWhitebalanceReset() => qWhitebalanceGate.CWhitebalanceReset();
+
+    public void QWhitebalanceToolCancel() => qWhitebalanceGate.CWhitebalanceToolCancel();
+
+    public void QWhitebalanceWheelHandle(bool lPressed, double lX, double lY, double lSize) =>
+        qWhitebalanceGate.CWhitebalanceWheelHandle(lPressed, lX, lY, lSize);
+
+    // The combo shows each method row's wording in the gate's order and selects the gate's method.
+    private void QWhitebalanceMethodBuild()
     {
-        bool lChanged = QWhitebalanceStepApply(qWhitebalanceStep with { LWorkStepActive = lActive });
-        if (!lActive)
+        foreach (string lKey in qWhitebalanceGate.CWhitebalanceMethodKeys)
         {
-            lChanged |= QWhitebalanceToolApply(false);
+            qWhitebalanceMethod.Items.Add(QLocalizationCatalog.QLocalizationTextRead(lKey));
         }
 
-        QWhitebalanceRaise(lChanged);
+        qWhitebalanceMethod.SelectedIndex = qWhitebalanceGate.CWhitebalanceMethodIndex;
+        qWhitebalanceMethod.SelectionChanged += (_, _) =>
+            qWhitebalanceGate.CWhitebalanceMethodSelect(qWhitebalanceMethod.SelectedIndex);
     }
 
-    public void QWhitebalanceMethodSelect(int lIndex)
+    // The saturation field row, placed right after the method combo's field row.
+    private Grid QWhitebalanceFieldBuild()
     {
-        if (QWhitebalanceMethodResolve(lIndex) is not { } lMethod)
-        {
-            return;
-        }
-
-        QWhitebalanceMethodSet(lMethod);
+        Grid lField = QField.QFieldBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Inspector.Video.WhitebalanceSaturation"),
+            "%",
+            qWhitebalanceGate.CWhitebalanceSaturationLeast,
+            qWhitebalanceGate.CWhitebalanceSaturationMost,
+            qWhitebalanceGate.CWhitebalanceSaturationOrigin);
+        int lRow = qWhitebalanceStack.Children.IndexOf((UIElement)qWhitebalanceMethod.Parent);
+        qWhitebalanceStack.Children.Insert(lRow + 1, lField);
+        QField.QFieldAttach(
+            lField,
+            qWhitebalanceGate.CWhitebalanceSaturationLeast,
+            qWhitebalanceGate.CWhitebalanceSaturationMost,
+            () => qWhitebalanceGate.CWhitebalanceSaturation,
+            qWhitebalanceGate.CWhitebalanceSaturationSet);
+        return lField;
     }
 
-    private static LWhitebalanceMethod? QWhitebalanceMethodResolve(int lIndex) =>
-        lIndex < 0 || lIndex >= qWhitebalanceMethods.Length ? null : qWhitebalanceMethods[lIndex];
+    private void QWhitebalanceActiveAttach() =>
+        QWhitebalanceSwitchAttach(qWhitebalanceSwitch, lActive => qWhitebalanceGate.CWhitebalanceActiveSet(lActive));
 
-    public void QWhitebalanceMethodSet(LWhitebalanceMethod lMethod)
+    private void QWhitebalancePersistentAttach() =>
+        QWhitebalanceSwitchAttach(
+            qWhitebalancePersistent, lFlag => qWhitebalanceGate.CWhitebalancePersistentSet(lFlag));
+
+    private void QWhitebalancePickerAttach(ToggleButton lPicker, bool lWhite) =>
+        QWhitebalanceSwitchAttach(lPicker, lArmed => qWhitebalanceGate.CWhitebalanceToolToggle(lWhite, lArmed));
+
+    // A switch or picker button hands its check and uncheck to the gate.
+    private static void QWhitebalanceSwitchAttach(ToggleButton lSwitch, Action<bool> lSet)
     {
-        LWorkWhitebalanceSettings lValue = QWhitebalanceValue;
-        QWhitebalanceRaise(QWhitebalanceStepApply(LWorkVideoStep.LWorkWhitebalanceCreate(
-            qWhitebalanceStep.LWorkStepActive,
-            lMethod,
-            lValue.LWorkWhitebalanceSaturation,
-            lValue.LWorkWhitebalanceRed,
-            lValue.LWorkWhitebalanceGreen,
-            lValue.LWorkWhitebalanceBlue,
-            lValue.LWorkSampleRed,
-            lValue.LWorkSampleGreen,
-            lValue.LWorkSampleBlue)));
+        lSwitch.Checked += (_, _) => lSet(true);
+        lSwitch.Unchecked += (_, _) => lSet(false);
     }
 
-    public void QWhitebalanceSaturationSet(double lSaturation)
+    private void QWhitebalanceUpdate()
     {
-        LWorkWhitebalanceSettings lValue = QWhitebalanceValue;
-        QWhitebalanceRaise(QWhitebalanceStepApply(LWorkVideoStep.LWorkWhitebalanceCreate(
-            qWhitebalanceStep.LWorkStepActive,
-            lValue.LWorkWhitebalanceMethod,
-            lSaturation,
-            lValue.LWorkWhitebalanceRed,
-            lValue.LWorkWhitebalanceGreen,
-            lValue.LWorkWhitebalanceBlue,
-            lValue.LWorkSampleRed,
-            lValue.LWorkSampleGreen,
-            lValue.LWorkSampleBlue)));
+        QTool.QToolSwitchUpdate(qWhitebalanceSwitch, qWhitebalanceGate.CWhitebalanceActive);
+        QTool.QToolSwitchUpdate(qWhitebalancePersistent, qWhitebalanceGate.CWhitebalancePersistent);
+        qWhitebalanceMethod.SelectedIndex = qWhitebalanceGate.CWhitebalanceMethodIndex;
+        QField.QFieldUpdate(qWhitebalanceField, qWhitebalanceGate.CWhitebalanceSaturation, QWhitebalancePattern);
+        QTool.QToolTipApply(
+            qWhitebalanceSwitch, qWhitebalancePersistent, qWhitebalanceStack, qWhitebalanceBody, QWhitebalanceTip);
+        QWhitebalanceWheelPlace();
     }
 
-    public void QWhitebalanceSampleSet(LNeutralSample lSample)
+    private void QWhitebalanceWheelPlace()
     {
-        bool lChanged = QWhitebalanceToolApply(false);
-        lChanged |= QWhitebalanceStatusApply(string.Empty);
-        lChanged |= QWhitebalanceStepApply(LWorkVideoStep.LWorkWhitebalanceCreate(
-            true,
-            LWhitebalanceMethod.LWhitebalanceMethodManual,
-            QWhitebalanceValue.LWorkWhitebalanceSaturation,
-            lSample.LNeutralRedGain,
-            lSample.LNeutralGreenGain,
-            lSample.LNeutralBlueGain,
-            lSample.LNeutralRed,
-            lSample.LNeutralGreen,
-            lSample.LNeutralBlue));
-        QWhitebalanceRaise(lChanged);
-    }
-
-    public void QWhitebalanceReset()
-    {
-        bool lChanged = QWhitebalanceToolApply(false);
-        lChanged |= QWhitebalanceStepApply(LWorkVideoStep.LWorkWhitebalanceCreate(qWhitebalanceStep.LWorkStepActive));
-        QWhitebalanceRaise(lChanged);
-    }
-
-    public void QWhitebalanceEstimateSet(LNeutralWheel lEstimate)
-    {
-        if (QWhitebalanceManual)
-        {
-            return;
-        }
-
-        QWhitebalanceEstimateChange(lEstimate);
-    }
-
-    private void QWhitebalanceEstimateChange(LNeutralWheel lEstimate)
-    {
-        if (qWhitebalanceEstimate == lEstimate)
-        {
-            return;
-        }
-
-        qWhitebalanceEstimate = lEstimate;
-        QWhitebalanceChanged?.Invoke();
-    }
-
-    public void QWhitebalanceToolSet(bool lArmed, LNeutralTarget lTarget)
-    {
-        bool lChanged = QWhitebalanceToolApply(QWhitebalanceArmedResolve(lArmed), lTarget);
-        QWhitebalanceRaise(lChanged);
-    }
-
-    private bool QWhitebalanceArmedResolve(bool lArmed) => lArmed && qWhitebalanceCapable;
-
-    public void QWhitebalanceToolToggle(LNeutralTarget lTarget, bool lChecked)
-    {
-        if (!QWhitebalanceToggleCheck(lTarget, lChecked))
-        {
-            return;
-        }
-
-        QWhitebalanceToolSet(lChecked, lTarget);
-    }
-
-    private bool QWhitebalanceToggleCheck(LNeutralTarget lTarget, bool lChecked) =>
-        lChecked || (qWhitebalanceToolArmed && qWhitebalanceTarget == lTarget);
-
-    public void QWhitebalanceWheelHandle(bool lPressed, double lX, double lY, double lSize)
-    {
-        if (!lPressed || !qWhitebalanceCapable)
-        {
-            return;
-        }
-
-        LNeutralWheel lWheel = LNeutral.LNeutralCanvasResolve(lX, lY, lSize);
-        QWhitebalanceSampleSet(LNeutral.LNeutralColorResolve(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY));
-    }
-
-    public void QWhitebalanceStatusSet(string lStatus) => QWhitebalanceRaise(QWhitebalanceStatusApply(lStatus));
-
-    public void QWhitebalancePersistentSet(bool lPersistent)
-    {
-        if (qWhitebalancePersistent == lPersistent)
-        {
-            return;
-        }
-
-        qWhitebalancePersistent = lPersistent;
-        QWhitebalanceChanged?.Invoke();
-    }
-
-    public void QWhitebalanceCapableSet(bool lCapable, bool lPreview)
-    {
-        bool lChanged = QWhitebalanceCapableApply(lCapable, QWhitebalancePreviewResolve(lCapable, lPreview));
-        if (!lCapable)
-        {
-            lChanged |= QWhitebalanceToolApply(false);
-        }
-
-        QWhitebalanceRaise(lChanged);
-    }
-
-    private static bool QWhitebalancePreviewResolve(bool lCapable, bool lPreview) => lCapable && lPreview;
-
-    private bool QWhitebalanceCapableApply(bool lCapable, bool lPreviewShown)
-    {
-        bool lChanged = qWhitebalanceCapable != lCapable || qWhitebalancePreview != lPreviewShown;
-        qWhitebalanceCapable = lCapable;
-        qWhitebalancePreview = lPreviewShown;
-        return lChanged;
-    }
-
-    private bool QWhitebalanceStepApply(LWorkVideoStep lNormal)
-    {
-        LWhitebalanceMethod lPrevious = QWhitebalanceMethod;
-        if (!QWhitebalanceStepChange(lNormal))
-        {
-            return false;
-        }
-
-        if (lPrevious != QWhitebalanceMethod && !QWhitebalanceManual)
-        {
-            QWhitebalanceEstimateReset();
-        }
-
-        return true;
-    }
-
-    private bool QWhitebalanceStepChange(LWorkVideoStep lNormal)
-    {
-        if (qWhitebalanceStep == lNormal)
-        {
-            return false;
-        }
-
-        qWhitebalanceStep = lNormal;
-        return true;
-    }
-
-    private void QWhitebalanceEstimateReset()
-    {
-        qWhitebalanceEstimate = new LNeutralWheel(0, 0, false);
-        QWhitebalanceEstimateChanged?.Invoke(QWhitebalanceMethod);
-    }
-
-    private bool QWhitebalanceToolApply(bool lArmed, LNeutralTarget? lTarget = null)
-    {
-        if (!QWhitebalanceToolChange(lArmed, QWhitebalanceTargetResolve(lTarget)))
-        {
-            return false;
-        }
-
-        if (!lArmed)
-        {
-            QWhitebalanceStatusApply(string.Empty);
-        }
-
-        return true;
-    }
-
-    private LNeutralTarget QWhitebalanceTargetResolve(LNeutralTarget? lTarget) => lTarget ?? qWhitebalanceTarget;
-
-    private bool QWhitebalanceToolChange(bool lArmed, LNeutralTarget lNext)
-    {
-        if (qWhitebalanceToolArmed == lArmed && (!lArmed || qWhitebalanceTarget == lNext))
-        {
-            return false;
-        }
-
-        qWhitebalanceToolArmed = lArmed;
-        qWhitebalanceTarget = lNext;
-        qWhitebalanceToolPending = true;
-        return true;
-    }
-
-    private bool QWhitebalanceStatusApply(string lStatus)
-    {
-        if (qWhitebalanceStatus == lStatus)
-        {
-            return false;
-        }
-
-        qWhitebalanceStatus = lStatus;
-        return true;
-    }
-
-    private void QWhitebalanceRaise(bool lChanged)
-    {
-        if (lChanged)
-        {
-            QWhitebalanceChanged?.Invoke();
-        }
-
-        if (!qWhitebalanceToolPending)
-        {
-            return;
-        }
-
-        qWhitebalanceToolPending = false;
-        QWhitebalanceToolChanged?.Invoke(qWhitebalanceToolArmed, qWhitebalanceTarget);
+        (double lLeft, double lTop, bool lPresent) =
+            qWhitebalanceGate.CWhitebalanceDotRead(qWhitebalanceSize, qWhitebalanceDot.Width);
+        Canvas.SetLeft(qWhitebalanceDot, lLeft);
+        Canvas.SetTop(qWhitebalanceDot, lTop);
+        qWhitebalanceDot.Visibility = lPresent ? Visibility.Visible : Visibility.Collapsed;
     }
 }
 

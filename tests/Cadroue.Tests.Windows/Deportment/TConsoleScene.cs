@@ -7,45 +7,10 @@ namespace Cadroue.Tests.Windows;
 public sealed class TConsoleScene
 {
     [Fact]
-    public void Reload_IsConsumedOnce()
-    {
-        QConsoleScene scene = TInterface.TConsoleSceneCreate();
-        TInterface.TConsoleReloadSet(scene, "Night");
-
-        Assert.Equal("Night", scene.QConsoleReloadName);
-        Assert.Equal("Night", TInterface.TConsoleReloadRead(scene));
-        Assert.Null(TInterface.TConsoleReloadRead(scene));
-    }
-
-    [Fact]
-    public void Row_KeepsTheReloadName_WhenTheSenderCarriesNone()
-    {
-        QConsoleScene scene = TInterface.TConsoleSceneCreate();
-        TInterface.TConsoleRowHandle(scene, "Night");
-        TInterface.TConsoleRowHandle(scene, null);
-
-        Assert.Equal("Night", scene.QConsoleReloadName);
-    }
-
-    [Fact]
-    public void Scene_MatchesIgnoringCase()
-    {
-        QConsoleScene scene = TInterface.TConsoleSceneCreate();
-        Assert.False(TInterface.TConsoleSceneCheck(scene, string.Empty) && scene.QConsoleSceneName.Length > 0);
-
-        TInterface.TConsoleSceneSet(scene, "Daily");
-        Assert.True(TInterface.TConsoleSceneCheck(scene, "daily"));
-        Assert.False(TInterface.TConsoleSceneCheck(scene, "Weekly"));
-    }
-
-    [Fact]
     public void Dirty_IsFalse_WithoutANameOrAWindow()
     {
-        QConsoleScene scene = TInterface.TConsoleSceneCreate();
-        Assert.False(TInterface.TConsoleDirtyCheck(scene));
-
-        TInterface.TConsoleSceneSet(scene, "Unknown scene");
-        Assert.False(TInterface.TConsoleDirtyCheck(scene));
+        Assert.False(TInterface.TConsoleDirtyCheck(string.Empty));
+        Assert.False(TInterface.TConsoleDirtyCheck("Unknown scene"));
     }
 
     [Fact]
@@ -76,7 +41,7 @@ public sealed class TConsoleScene
     {
         Assert.Equal("Night", TInterface.TConsoleStemResolve("  Night ", "C:/scenes/other.json"));
         Assert.Equal("other", TInterface.TConsoleStemResolve("   ", "C:/scenes/other.json"));
-        Assert.NotEmpty(TInterface.TConsoleStemResolve(string.Empty, "C:/scenes/.json"));
+        Assert.Empty(TInterface.TConsoleStemResolve(string.Empty, "C:/scenes/.json"));
     }
 
     [Fact]

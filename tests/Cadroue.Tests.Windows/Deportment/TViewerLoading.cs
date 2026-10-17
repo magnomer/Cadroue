@@ -52,11 +52,11 @@ public sealed class TViewerLoading
     {
         (QViewer viewer, QViewerMedia media, _) = TViewerBuild();
         TInterfaceViewer.TViewerCommandSet(viewer, false);
-        int serial = viewer.QViewerLoadSerial;
+        int serial = viewer.QViewerTrace.CViewerSerial;
 
         await TInterfaceViewer.TViewerLoadStart(media, "clip.mp4");
 
-        Assert.Equal(serial, viewer.QViewerLoadSerial);
+        Assert.Equal(serial, viewer.QViewerTrace.CViewerSerial);
         Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
@@ -80,7 +80,7 @@ public sealed class TViewerLoading
         Assert.Equal("clip.mp4", viewer.QViewerWorkspace.CWorkspaceSource);
         Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
         Assert.False(viewer.QViewerPlaying);
-        Assert.True(viewer.QViewerHostVisible);
+        Assert.True(viewer.QViewerTrace.CViewerHostVisible);
         Assert.True(viewer.QPlayer.QPlayerRendererPending);
     }
 
@@ -100,7 +100,7 @@ public sealed class TViewerLoading
         Assert.Single(cargos);
         Assert.False(cargos[0].LCargoPreviewAvailable);
         Assert.Equal("engine refused", cargos[0].LCargoPreviewError);
-        Assert.False(viewer.QViewerHostVisible);
+        Assert.False(viewer.QViewerTrace.CViewerHostVisible);
         Assert.Same(info, viewer.QViewerMediaInfo);
     }
 
@@ -160,7 +160,7 @@ public sealed class TViewerLoading
         Assert.Equal(string.Empty, cargos[1].LCargoSourcePath);
         Assert.Null(viewer.QViewerWorkspace.CWorkspaceSource);
         Assert.False(viewer.QPlayer.QPlayerReady);
-        Assert.False(viewer.QViewerHostVisible);
+        Assert.False(viewer.QViewerTrace.CViewerHostVisible);
         Assert.Equal(2, cropResets);
         Assert.False(TInterfaceViewer.TViewerMediaClose(media, true));
     }
@@ -173,11 +173,11 @@ public sealed class TViewerLoading
         Assert.False(TInterfaceViewer.TViewerLoadCancel(media));
 
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, null);
-        int serial = viewer.QViewerLoadSerial;
+        int serial = viewer.QViewerTrace.CViewerSerial;
 
         Assert.True(TInterfaceViewer.TViewerLoadCancel(media));
         Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
-        Assert.Equal(serial + 1, viewer.QViewerLoadSerial);
+        Assert.Equal(serial + 1, viewer.QViewerTrace.CViewerSerial);
     }
 
     [Fact]
@@ -195,13 +195,13 @@ public sealed class TViewerLoading
 
         TInterfaceViewer.TViewerCommandApply(media, false);
 
-        Assert.False(viewer.QViewerCommandActive);
+        Assert.False(viewer.QViewerTrace.CViewerCommandActive);
         Assert.True(viewer.QViewerResumeInactive);
         Assert.Equal("stop", clock[^1]);
 
         TInterfaceViewer.TViewerCommandApply(media, true);
 
-        Assert.True(viewer.QViewerCommandActive);
+        Assert.True(viewer.QViewerTrace.CViewerCommandActive);
         Assert.False(viewer.QViewerResumeInactive);
         Assert.True(viewer.QViewerPlaying);
         Assert.Equal("start", clock[^1]);
@@ -211,13 +211,13 @@ public sealed class TViewerLoading
     public void Close_Unloads_AndIgnoresLaterCalls()
     {
         (QViewer viewer, QViewerMedia media, _) = TViewerBuild();
-        int serial = viewer.QViewerLoadSerial;
+        int serial = viewer.QViewerTrace.CViewerSerial;
 
         TInterfaceViewer.TViewerClose(media);
         TInterfaceViewer.TViewerClose(media);
 
-        Assert.True(viewer.QViewerUnloaded);
-        Assert.Equal(serial + 1, viewer.QViewerLoadSerial);
+        Assert.True(viewer.QViewerTrace.CViewerUnloaded);
+        Assert.Equal(serial + 1, viewer.QViewerTrace.CViewerSerial);
         Assert.False(TInterfaceViewer.TViewerMediaClose(media, true));
     }
 }

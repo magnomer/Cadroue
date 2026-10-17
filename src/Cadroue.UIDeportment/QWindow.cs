@@ -31,17 +31,11 @@ public sealed class QWindow
         QWindowUsher = lAtelier.CAtelierUsher;
         QWindowInfo = lAtelier.CAtelierInfo;
         qWindowWorkspaceSource = lAtelier.CAtelierWorkspaceCreate;
-        qStrip = new QStrip(
-            QWindowUsher,
-            QWindowInfo,
-            lAtelier.CAtelierLineage,
-            qWindowWorkspaceSource,
-            lAtelier.CAtelierInspectorCreate,
-            lAtelier.CAtelierEdit);
+        qStrip = new QStrip(lAtelier);
         QWindowScene = new QWindowScene(qStrip);
         QWindowSceneAttach();
         QWindowLogo = new QLogoMenu(QWindowUsher);
-        QWindowPart = new QWindowPart(this);
+        QWindowPart = new QWindowPart(this, lAtelier.CAtelierConsoleCreate());
     }
 
     private void QWindowSceneAttach()

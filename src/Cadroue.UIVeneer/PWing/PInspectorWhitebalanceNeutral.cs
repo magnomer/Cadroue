@@ -4,7 +4,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -27,12 +26,10 @@ public sealed partial class PInspector
     {
         pInspectorNeutralIcon = PWhitebalanceIconBuild();
         pInspectorWhiteIcon = PWhitebalanceIconBuild();
-        pInspectorNeutralTool = PWhitebalancePickerBuild(
-            LNeutralTarget.LNeutralTargetGrey,
+        pInspectorNeutralTool = PWhitebalanceToggleBuild(
             pInspectorNeutralIcon,
             "Inspector.Video.WhitebalancePickTooltip");
-        pInspectorWhiteTool = PWhitebalancePickerBuild(
-            LNeutralTarget.LNeutralTargetWhite,
+        pInspectorWhiteTool = PWhitebalanceToggleBuild(
             pInspectorWhiteIcon,
             "Inspector.Video.WhitebalancePickWhiteTooltip");
 
@@ -104,13 +101,6 @@ public sealed partial class PInspector
         Stretch = Stretch.Uniform
     };
 
-    private ToggleButton PWhitebalancePickerBuild(LNeutralTarget pTarget, Image pPickerIcon, string pTooltipKey)
-    {
-        ToggleButton pPickerTool = PWhitebalanceToggleBuild(pPickerIcon, pTooltipKey);
-        PWhitebalancePickerAttach(pPickerTool, pTarget);
-        return pPickerTool;
-    }
-
     private static ToggleButton PWhitebalanceToggleBuild(Image pPickerIcon, string pTooltipKey) => new()
     {
         Content = pPickerIcon,
@@ -120,12 +110,6 @@ public sealed partial class PInspector
         VerticalAlignment = VerticalAlignment.Center,
         Style = PInspectorToolCreate(typeof(ToggleButton))
     };
-
-    private void PWhitebalancePickerAttach(ToggleButton pPickerTool, LNeutralTarget pTarget)
-    {
-        pPickerTool.Checked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, true);
-        pPickerTool.Unchecked += (_, _) => QWhitebalance.QWhitebalanceToolToggle(pTarget, false);
-    }
 
     private void PWhitebalanceToolUpdate()
     {

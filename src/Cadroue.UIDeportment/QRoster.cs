@@ -1,5 +1,4 @@
 using Cadroue.Conduct;
-using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -18,6 +17,7 @@ public sealed class QRoster
 
     private readonly CUsher qRosterUsher;
     private readonly CLineage qRosterLineage;
+    private readonly CRoster qRosterGate;
     private readonly LScheduleContract qSchedule;
     private readonly LStation qStation;
     private readonly List<Guid> qRosterOrderedIds = [];
@@ -26,10 +26,12 @@ public sealed class QRoster
     private bool qRosterClosed;
     private QColumnPlan? qRosterPlan;
 
-    public QRoster(CUsher lUsher, CLineage lLineage, LScheduleContract lScheduleOwner, LStation lStationOwner)
+    public QRoster(
+        CUsher lUsher, CLineage lLineage, LScheduleContract lScheduleOwner, LStation lStationOwner, CRoster lRoster)
     {
         qRosterUsher = lUsher;
         qRosterLineage = lLineage;
+        qRosterGate = lRoster;
         qSchedule = lScheduleOwner;
         qStation = lStationOwner;
         QRosterCollapse = new QRosterCollapse(QRosterCardUpdate);
@@ -38,7 +40,8 @@ public sealed class QRoster
             qRosterPresentIds.Contains, QRosterBatchCheck, () => qRosterOrderedIds, QRosterSelectRaise);
         QRosterRemoval = new QRosterRemoval();
         QRosterAttach();
-        QRosterMenu = new QRosterMenu(lUsher, qSchedule, qStation, QRosterSelectionRead);
+        lRoster.CRosterAttach(lStationOwner);
+        QRosterMenu = new QRosterMenu(lRoster);
         QRosterFeed = new QRosterFeed();
     }
 
@@ -48,13 +51,16 @@ public sealed class QRoster
         qSchedule.LScheduleChanged += QRosterScheduleHandle;
         qSchedule.LScheduleItemChanged += QRosterItemHandle;
         QRosterRemoval.QRosterRemovalConfirmed += QRosterBatchRemove;
+        qRosterGate.CRosterChanged += QRosterRebuild;
     }
 
-    public static QRoster QRosterCreate(CUsher lUsher, CLineage lLineage) => new(
-        lUsher,
-        lLineage,
+    // The worklist's roster reads its own gates from the atelier.
+    public static QRoster QRosterCreate(CAtelier lAtelier) => new(
+        lAtelier.CAtelierUsher,
+        lAtelier.CAtelierLineage,
         QProgram.QScheduleCurrent,
-        LStation.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")));
+        LStation.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")),
+        lAtelier.CAtelierRosterCreate());
 
     public event Action? QRosterDetailApplied;
 
@@ -76,9 +82,12 @@ public sealed class QRoster
 
     public IReadOnlyList<Guid> QRosterOrderedIds => qRosterOrderedIds;
 
-    public bool QRosterShared => LPreference.LPreferenceStateCurrent.LPreferenceWorklistShared;
+    public bool QRosterShared => qRosterGate.CRosterShared;
 
-    public bool QRosterCollapseDone => LPreference.LPreferenceStateCurrent.LPreferenceCollapseDone;
+    public bool QRosterCollapseDone => qRosterGate.CRosterDone;
+
+    // The detail's gate, which the roster's gate holds and hands the roster's station.
+    public CRosterDetail QRosterDetailGate => qRosterGate.CRosterDetail;
 
     public void QRosterClose()
     {
@@ -231,13 +240,12 @@ public sealed class QRoster
 
     private QRosterCard QRosterCardCreate(QRosterBatch lBatch) => QRosterCard.QRosterCardCreate(
         qRosterLineage,
+        qRosterGate.CRosterCard,
         lBatch.QRosterBatchId,
         lBatch.QRosterBatchAnswer,
-        lBatch.QRosterBatchItems,
+        qStation.LStationRunner.LRunnerIdentity,
         QRosterSelection.QRosterCardCheck(lBatch.QRosterBatchId),
-        lBatch.QRosterBatchCompleted,
         QRosterCollapse.QRosterCollapsedCheck(lBatch.QRosterBatchId),
-        QRosterOwnerCheck,
         QRosterSelection.QRosterSelectedCheck);
 
     private bool QRosterVisibleCheck(LWorkItem lWorkItem)
@@ -254,9 +262,6 @@ public sealed class QRoster
     }
 
     public bool QRosterOwnerCheck(LWorkItem lWorkItem) => qStation.LStationRunner.LRunnerOwnerCheck(lWorkItem);
-
-    public string QRosterOwnerFormat(LWorkItem lWorkItem) =>
-        QRosterRow.QRosterOwnerFormat(lWorkItem, QRosterOwnerCheck(lWorkItem));
 
     public LWorkItem? QRosterSelectRead()
     {
@@ -281,9 +286,6 @@ public sealed class QRoster
             .SelectMany(lBatch => lBatch.QRosterBatchAnswer.CLineageSteps)
             .First(lStep => lStep.CLineageStepId == lWorkId);
 
-    internal string QRosterTitleRead(CLineageStep lStep) =>
-        qRosterLineage.CLineageTitleRead(lStep.CLineageStepBatch, lStep.CLineageStepRelay, lStep.CLineageStepTab);
-
     internal CLineageBatch QRosterSummaryRead() => qRosterLineage.CLineageBatchRead(QRosterSelection.QRosterCardId);
 
     public void QRosterRemove(Guid lBatchId) =>
@@ -307,49 +309,7 @@ public sealed class QRoster
         qStation.LStationSelectionRaise();
     }
 
-    public bool QRosterSharedSet(bool? lChecked)
-    {
-        bool lShared = QRosterCheckedNormalize(lChecked);
-        if (lShared == QRosterShared)
-        {
-            return false;
-        }
+    public bool QRosterSharedSet(bool? lChecked) => qRosterGate.CRosterSharedSet(lChecked);
 
-        QRosterSharedSave(lShared);
-        qSchedule.LScheduleLoad();
-        return true;
-    }
-
-    private static bool QRosterCheckedNormalize(bool? lChecked) => lChecked == true;
-
-    private static void QRosterSharedSave(bool lShared)
-    {
-        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        lNext.LPreferenceWorklistShared = lShared;
-        LPreference.LPreferenceStateSet(lNext);
-    }
-
-    public bool QRosterDoneSet(bool? lChecked)
-    {
-        bool lCollapseDone = QRosterCheckedNormalize(lChecked);
-        if (lCollapseDone == QRosterCollapseDone)
-        {
-            return false;
-        }
-
-        QRosterDoneSave(lCollapseDone);
-        if (lCollapseDone)
-        {
-            QRosterRebuild();
-        }
-
-        return true;
-    }
-
-    private static void QRosterDoneSave(bool lCollapseDone)
-    {
-        LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        lNext.LPreferenceCollapseDone = lCollapseDone;
-        LPreference.LPreferenceStateSet(lNext);
-    }
+    public bool QRosterDoneSet(bool? lChecked) => qRosterGate.CRosterDoneSet(lChecked);
 }

@@ -1,5 +1,6 @@
 using Cadroue.Application;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.Tests.Interface;
 
@@ -10,19 +11,26 @@ internal static class TInterfaceList
     internal static LDocket TDocketCreate() => new();
     internal static int TDocketPathsAdd(LDocket docket, params string[] paths) => docket.LDocketPathsAdd(paths);
     internal static int TDocketPathsRemove(LDocket docket, params string[] paths) => docket.LDocketPathsRemove(paths);
-    internal static QList TListCreate() => new(TInterface.TAtelierCreate().CAtelierUsher);
+    internal static QList TListCreate() => new(TInterface.TAtelierCreate());
+
+    // As the host builds it: one list's docket over the media scan.
+    internal static LListPort TListOutletCreate(Func<string, string> name) => new LListOutlet(name, TListScan);
+
+    private static async Task<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)> TListScan(
+        IReadOnlyList<string> paths, System.Threading.CancellationToken token)
+    {
+        Cadroue.Media.LMediaScanResult scan = await Cadroue.Media.LMedia.LMediaPathScan(paths, token);
+        return (scan.LMediaScanPaths,
+            scan.LMediaScanNotices.Select(notice => (notice.LMediaScanFolder, notice.LMediaScanReason)).ToArray());
+    }
+
     internal static void TListPathAttach(QList list, Action<string?> handler) => list.QListPathChanged += handler;
-    internal static void TListSelect(QList list, string? path) => list.QListSelect(path);
+    internal static void TListSelect(QList list, string? path) => list.QListGate.CListSelect(path);
     internal static void TListPressSelect(QList list, string path, bool shift, bool control) =>
-        list.QListPressSelect(path, shift, control);
-    internal static void TListReleaseSelect(QList list) => list.QListReleaseSelect();
-    internal static void TListAllSelect(QList list) => list.QListAllSelect();
+        list.QListGate.CListPressSelect(path, shift, control);
+    internal static void TListReleaseSelect(QList list) => list.QListGate.CListReleaseSelect();
+    internal static void TListAllSelect(QList list) => list.QListGate.CListAllSelect();
     internal static IReadOnlyList<string> TListSelectionRead(QList list) => list.QListSelectionRead();
-    internal static void TListSuccessorSet(QList list, params string[] removed) =>
-        list.QListSuccessor.QListSuccessorSet(
-            removed, list.QListDocket.LDocketPathsRead(), list.QListIndexRead(removed[0]));
-    internal static void TListSuccessorReset(QList list) => list.QListSuccessor.QListSuccessorReset();
-    internal static void TListRemovedApply(QList list, params string[] removed) => list.QListRemovedApply(removed);
     internal static void TListChangeAttach(QList list, Action handler) => list.QListChanged += handler;
     internal static void TListClearAttach(QList list, Action<IReadOnlyList<string>> handler) =>
         list.QListClearChanged += handler;

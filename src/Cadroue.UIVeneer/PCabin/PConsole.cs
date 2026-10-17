@@ -5,7 +5,6 @@ using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
-using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -13,9 +12,6 @@ namespace Cadroue.UIVeneer.PCabin;
 
 public sealed class PConsole : UserControl
 {
-    private static readonly Duration pConsoleProgressGlide =
-        new(TimeSpan.FromSeconds(LEncode.LEncodeStatsPeriod));
-
     private static readonly IReadOnlyDictionary<bool, Brush> pConsoleRunBrushes = new Dictionary<bool, Brush>
     {
         [true] = PRosterTheme.PRosterDoneBrush,
@@ -232,7 +228,7 @@ public sealed class PConsole : UserControl
             new DoubleAnimation
             {
                 To = pValue,
-                Duration = pConsoleProgressGlide,
+                Duration = lConsole.QConsoleProgressGlide,
                 FillBehavior = FillBehavior.HoldEnd
             });
 

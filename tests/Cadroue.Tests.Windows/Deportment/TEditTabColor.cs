@@ -65,11 +65,11 @@ public sealed class TEditTabColor
         Assert.Equal(LWhitebalanceMethod.LWhitebalanceMethodManual, value.LWorkWhitebalanceMethod);
         Assert.Equal(1.1, value.LWorkWhitebalanceRed);
         Assert.Equal(0.9, value.LWorkWhitebalanceBlue);
-        Assert.True(inspector.QInspectorVideo.QInspectorWhitebalance.QWhitebalanceStep.LWorkStepActive);
+        Assert.True(inspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceActive);
     }
 
     [Fact]
-    public void EstimateHandle_ManualStaysQuiet_AutomaticAsksViewer()
+    public void EstimateHandle_AutomaticAsksViewer_ManualStaysQuiet()
     {
         using TPreset presets = new();
         presets.TPresetSeedCreate("Alpha");
@@ -78,13 +78,15 @@ public sealed class TEditTabColor
         var asked = new List<LNeutralWheel>();
         TInterfaceViewer.TViewerEstimateAttach(TInterfaceViewer.TViewerNeutralRead(viewer), asked.Add);
 
-        TInterface.TEditEstimateHandle(tab, LWhitebalanceMethod.LWhitebalanceMethodManual);
-        TInterface.TEditEstimateHandle(tab, LWhitebalanceMethod.LWhitebalanceMethodMedian);
+        TInterface.TEditEstimateHandle(tab, "Median");
         TInterface.TEditEstimateApply(tab, 0.25, -0.5, true);
+        LNeutralWheel wheel = TInterface.TWhitebalanceWheelRead(inspector.QInspectorVideo.QInspectorWhitebalance);
+        TInterface.TWhitebalanceMethodSet(
+            inspector.QInspectorVideo.QInspectorWhitebalance, LWhitebalanceMethod.LWhitebalanceMethodManual);
+        TInterface.TWhitebalanceEstimateStart(inspector.QInspectorVideo.QInspectorWhitebalance);
 
         Assert.Single(asked);
         Assert.False(asked[0].LNeutralWheelPresent);
-        LNeutralWheel wheel = TInterface.TWhitebalanceWheelRead(inspector.QInspectorVideo.QInspectorWhitebalance);
         Assert.True(wheel.LNeutralWheelPresent);
         Assert.Equal(0.25, wheel.LNeutralWheelX);
     }

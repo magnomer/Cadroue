@@ -110,9 +110,7 @@ internal sealed class PFlowName
     private void PFlowNameShow(QFlowNamePrompt lPrompt)
     {
         PFlowFieldsShow(lPrompt);
-        QViewfinderPoint lOffset = pViewfinder.QViewfinder.QViewfinderPopupResolve(
-            lPrompt.QFlowNameIndex, pViewfinder.ActualWidth, pViewfinder.ActualHeight);
-        PFlowPopupOpen(lOffset);
+        PFlowPopupOpen(lFlow.QFlowName.QFlowPopupResolve(pViewfinder.ActualWidth, pViewfinder.ActualHeight));
         PFlowFieldSelect(pFlowNameBox);
     }
 

@@ -3,8 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PBench;
@@ -59,7 +57,7 @@ public sealed class PFlow : UserControl
         Grid reelGrid = PFlowReelBuild();
         PFlowOrderApply();
         PFlowRootBuild(reelGrid);
-        PFlowHeightSet(LFrameStore.LFrameStateCurrent.LFrameFlowHeight);
+        PFlowHeightSet(QFlow.QFlowHeight);
     }
 
     private void PFlowLookApply()
@@ -203,8 +201,8 @@ public sealed class PFlow : UserControl
 
     private void PFlowTimerHandle(object? sender, EventArgs e) => QFlow.QFlowKeyframe.QFlowKeyframeTick();
 
-    private void PFlowKeyframeHandle(LKeyframeNotice lNotice) =>
-        Dispatcher.InvokeAsync(() => QFlow.QFlowKeyframe.QFlowKeyframeApply(lNotice), DispatcherPriority.Background);
+    private void PFlowKeyframeHandle() =>
+        Dispatcher.InvokeAsync(QFlow.QFlowKeyframe.QFlowKeyframeApply, DispatcherPriority.Background);
 
     private void PFlowWaveformHandle() =>
         Dispatcher.InvokeAsync(QFlow.QFlowWaveform.QFlowWaveformApply, DispatcherPriority.Background);

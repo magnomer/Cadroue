@@ -8,13 +8,8 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QViewer
 {
-    private int qViewerLoadSerial;
-    private bool qViewerMpvActive;
-    private bool qViewerHostVisible;
     private bool qViewerLoupeActive;
     private LPreviewEngine qViewerEngine = LPreviewEngine.LPreviewEngineFlyleaf;
-    private bool qViewerCommandActive;
-    private bool qViewerUnloaded;
     private bool qViewerEndReached;
     private bool qViewerResumeInactive;
     private bool qViewerAudioAllowed;
@@ -95,27 +90,23 @@ public sealed class QViewer
     public event Action<string>? QViewerOpenNotice;
     public event Action<string>? QViewerOpenRequest;
 
-    public int QViewerLoadSerial => qViewerLoadSerial;
+    // Kept for the surface (PViewer); the drivers read the gate.
+    public bool QViewerMpvActive => QViewerTrace.CViewerMpvActive;
 
-    public bool QViewerMpvActive => qViewerMpvActive;
+    // Kept for the surface (PViewer); the drivers read the gate.
+    public bool QViewerHostVisible => QViewerTrace.CViewerHostVisible;
 
-    public bool QViewerHostVisible => qViewerHostVisible;
+    public bool QViewerMpvShown => QViewerTrace.CViewerHostVisible && QViewerTrace.CViewerMpvActive;
 
-    public bool QViewerMpvShown => qViewerHostVisible && qViewerMpvActive;
+    public bool QViewerFlyleafShown => QViewerTrace.CViewerHostVisible && !QViewerTrace.CViewerMpvActive;
 
-    public bool QViewerFlyleafShown => qViewerHostVisible && !qViewerMpvActive;
-
-    public bool QViewerAudioShown => qViewerHostVisible && qViewerAudioEligible;
+    public bool QViewerAudioShown => QViewerTrace.CViewerHostVisible && qViewerAudioEligible;
 
     public bool QViewerAudioCapable => qViewerEngine == LPreviewEngine.LPreviewEngineMpv;
 
     public bool QViewerLoupeActive => qViewerLoupeActive;
 
     public LPreviewEngine QViewerEngine => qViewerEngine;
-
-    public bool QViewerCommandActive => qViewerCommandActive;
-
-    public bool QViewerUnloaded => qViewerUnloaded;
 
     public bool QViewerEndReached => qViewerEndReached;
 
@@ -144,27 +135,7 @@ public sealed class QViewer
 
     public bool QViewerVideoPresent => QViewerMediaInfo is { LMediaVideoPresent: true };
 
-    public int QViewerSerialChange() => ++qViewerLoadSerial;
-
-    public bool QViewerSerialCheck(int lSerial) =>
-        !qViewerUnloaded && lSerial == qViewerLoadSerial && qViewerCommandActive;
-
-    public void QViewerMpvSet(bool lMpvActive) => qViewerMpvActive = lMpvActive;
-
-    public void QViewerHostSet(bool lHostVisible) => qViewerHostVisible = lHostVisible;
-
     public void QViewerLoupeSet(bool lLoupeActive) => qViewerLoupeActive = lLoupeActive;
-
-    public void QViewerCommandSet(bool lCommandActive) => qViewerCommandActive = lCommandActive;
-
-    // A closing viewer ends its tenure: the workspace forgets the media it held.
-    public void QViewerUnloadSet()
-    {
-        QViewerUnloadedSet();
-        QViewerWorkspace.CWorkspaceMediaClear();
-    }
-
-    private void QViewerUnloadedSet() => qViewerUnloaded = true;
 
     public void QViewerEndSet(bool lEndReached) => qViewerEndReached = lEndReached;
 
@@ -215,7 +186,7 @@ public sealed class QViewer
 
     private void QViewerAudioHandle()
     {
-        QViewerAudio.QViewerAudioApply(qViewerMpvActive);
+        QViewerAudio.QViewerAudioApply(QViewerTrace.CViewerMpvActive);
         QViewerPreviewRaise();
     }
 
@@ -256,7 +227,7 @@ public sealed class QViewer
     // The preview filter goes to mpv; true when the filter changed on a paused player, which then needs a refresh.
     public bool QViewerFilterApply()
     {
-        if (!qViewerMpvActive || !QPlayer.QPlayerReady)
+        if (!QViewerTrace.CViewerMpvActive || !QPlayer.QPlayerReady)
         {
             return false;
         }
@@ -273,7 +244,7 @@ public sealed class QViewer
 
     public void QViewerPreviewApply()
     {
-        if (qViewerMpvActive)
+        if (QViewerTrace.CViewerMpvActive)
         {
             QViewerFilterUpdate();
             QViewerPreviewRaise();
@@ -367,9 +338,8 @@ public sealed class QViewer
 
     public void QViewerMediaClose()
     {
-        QViewerSerialChange();
         QViewerInfoSet(null);
-        QViewerWorkspace.CWorkspaceMediaClear();
+        QViewerWorkspace.CWorkspaceMediaClose();
         QViewerPreviewSet(qViewerPreview
             .LCropboxChange(null)
             .LPlaybackStateChange(LPlaybackState.LPlaybackStoppedCreate()));

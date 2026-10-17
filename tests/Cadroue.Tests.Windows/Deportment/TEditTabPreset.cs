@@ -19,7 +19,7 @@ public sealed class TEditTabPreset
         int missing = 0;
         TInterface.TEditMissingAttach(tab, () => missing++);
 
-        TInterface.TEditRun(tab, LWorkPriority.LWorkPriorityNormal);
+        TInterface.TEditRun(tab, false);
 
         Assert.Equal(1, missing);
     }

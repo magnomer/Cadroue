@@ -12,7 +12,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ToneValue_RaisesOnceOnChange_NeverOnSameValue()
     {
-        QTone tone = TInterface.TToneCreate();
+        CTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
@@ -26,7 +26,7 @@ public sealed class TInspectorNotice
     [Fact]
     public void ToneContrast_ClampsToRange_ThenStaysQuiet()
     {
-        QTone tone = TInterface.TToneCreate();
+        CTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 

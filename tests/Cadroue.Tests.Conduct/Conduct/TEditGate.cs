@@ -1,5 +1,6 @@
 using System;
 using Cadroue.Conduct;
+using Cadroue.Tests.Interface;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -24,9 +25,7 @@ public sealed class TEditGate
 
     public TEditGate()
     {
-        tEditGate = new CAtelier(
-                new TUsherPort(), new TLineagePort(), new TWorkspacePort(), new TPlacementPort(), new TViewerPort(),
-                tEditPort)
+        tEditGate = TAtelier.TAtelierCreate(port => port with { LAtelierEdit = tEditPort })
             .CAtelierEdit;
     }
 

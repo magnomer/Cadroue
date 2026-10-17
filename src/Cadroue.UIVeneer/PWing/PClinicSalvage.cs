@@ -1,9 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using Cadroue.Core;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PWing;
 
@@ -86,34 +84,27 @@ public sealed class PClinicSalvage : StackPanel
         Children.Add(pClinicSalvageDescription);
     }
 
-    private void PClinicSalvageAttach()
-    {
-        pClinicSalvageActive.Checked += (_, _) => lClinic.QSalvageActiveSet(true);
-        pClinicSalvageActive.Unchecked += (_, _) => lClinic.QSalvageActiveSet(false);
-        pClinicSalvageRejoin.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeRejoin);
-        pClinicSalvageSeparate.Checked += (_, _) => lClinic.QSalvageModeSet(LSalvageMode.LSalvageModeSeparate);
-        pClinicSalvageSource.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisSource);
-        pClinicSalvageFixed.Checked += (_, _) => lClinic.QSalvageBasisSet(LSalvageBasis.LSalvageBasisFixed);
-        pClinicSalvagePersistent.Checked += (_, _) => lClinic.QSalvagePersistentSet(true);
-        pClinicSalvagePersistent.Unchecked += (_, _) => lClinic.QSalvagePersistentSet(false);
-    }
+    private void PClinicSalvageAttach() => lClinic.QClinicSalvageAttach(
+        pClinicSalvageActive,
+        pClinicSalvagePersistent,
+        pClinicSalvageRejoin,
+        pClinicSalvageSeparate,
+        pClinicSalvageSource,
+        pClinicSalvageFixed);
 
     public CheckBox PClinicSalvageActive => pClinicSalvageActive;
 
     public CheckBox PClinicSalvagePersistent => pClinicSalvagePersistent;
 
-    public void PClinicSalvageUpdate()
-    {
-        Visibility = PLook.PLookVisible[lClinic.QClinicSalvageShown];
-        pClinicSalvageActive.IsChecked = lClinic.QClinicSalvageActive;
-        pClinicSalvagePersistent.IsChecked = lClinic.QClinicSalvagePersistent;
-        pClinicSalvageSeparate.IsChecked = lClinic.QClinicSalvageSeparate;
-        pClinicSalvageRejoin.IsChecked = lClinic.QClinicSalvageRejoin;
-        pClinicSalvageFixed.IsEnabled = lClinic.QClinicRepairCheck();
-        pClinicSalvageFixed.IsChecked = lClinic.QClinicSalvageFixed;
-        pClinicSalvageSource.IsChecked = lClinic.QClinicSalvageSource;
-        pClinicSalvageDescription.Text = lClinic.QClinicSalvageText;
-    }
+    public void PClinicSalvageUpdate() => lClinic.QClinicSalvageUpdate(
+        this,
+        pClinicSalvageActive,
+        pClinicSalvagePersistent,
+        pClinicSalvageRejoin,
+        pClinicSalvageSeparate,
+        pClinicSalvageSource,
+        pClinicSalvageFixed,
+        pClinicSalvageDescription);
 
     private static RadioButton PClinicRadioBuild(string pKey) => new()
     {

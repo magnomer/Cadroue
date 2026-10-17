@@ -113,13 +113,13 @@ public sealed class TViewerSource
         string path = Path.Combine(Path.GetTempPath(), $"cadroue-same-{Guid.NewGuid():N}.mp4");
         TInterfaceViewer.TViewerRequestSet(viewer, path);
         TInterfaceViewer.TViewerIntentSet(viewer, path, TimeSpan.Zero, null);
-        int serial = viewer.QViewerLoadSerial;
+        int serial = viewer.QViewerTrace.CViewerSerial;
 
         TInterfaceViewer.TViewerPathHandle(viewer, path);
-        Assert.Equal(serial, viewer.QViewerLoadSerial);
+        Assert.Equal(serial, viewer.QViewerTrace.CViewerSerial);
 
         TInterfaceViewer.TViewerPathHandle(viewer, Path.Combine(Path.GetTempPath(), "cadroue-other.mp4"));
-        Assert.NotEqual(serial, viewer.QViewerLoadSerial);
+        Assert.NotEqual(serial, viewer.QViewerTrace.CViewerSerial);
     }
 
     [Fact]

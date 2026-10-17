@@ -33,6 +33,8 @@ public static class LRigFactory
             LRigFactorySentinel.LRigSentinelCreate(),
             LRigFactoryCheckup.LRigCheckupCreate(),
             LRigFactoryLineage.LRigLineageCreate(),
+            LRigFactoryWaveform.LRigWaveformCreate,
+            LRigFactoryKeyframe.LRigKeyframeCreate,
             new LSchedule());
     }
 }

@@ -10,33 +10,40 @@ namespace Cadroue.Tests.Windows;
 
 internal static partial class TInterface
 {
-    internal static QConsole TConsoleCreate() => new();
-    internal static bool TConsoleProgressSet(QConsole console, double target) => console.QConsoleProgressSet(target);
-    internal static void TConsoleProgressAttach(QConsole console, Action<double, bool> handler) =>
-        console.QConsoleProgressApplied += handler;
     internal static IReadOnlyList<QConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
         QConsoleLine.QConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
         QConsole.QConsoleRemovalFormat(outcomes);
     internal static int TConsoleIndexResolve(int index, int step, int count) =>
-        QConsoleStation.QConsoleIndexResolve(index, step, count);
+        LConsoleOutlet.LConsoleIndexResolve(index, step, count);
 
-    internal static QConsoleScene TConsoleSceneCreate() => new();
-    internal static void TConsoleReloadSet(QConsoleScene scene, string? name) => scene.QConsoleReloadSet(name);
-    internal static string? TConsoleReloadRead(QConsoleScene scene) => scene.QConsoleReloadRead();
-    internal static void TConsoleRowHandle(QConsoleScene scene, string? name) => scene.QConsoleRowHandle(name);
-    internal static void TConsoleSceneSet(QConsoleScene scene, string name) => scene.QConsoleSceneSet(name);
-    internal static bool TConsoleSceneCheck(QConsoleScene scene, string name) => scene.QConsoleSceneCheck(name);
-    internal static bool TConsoleDirtyCheck(QConsoleScene scene) => scene.QConsoleDirtyCheck();
+    internal static LConsoleSceneOutlet TSceneOutletCreate() =>
+        new(new LSceneStore(
+            LScene.LSceneCatalogueLoad,
+            () => LScene.LSceneNames,
+            () => LScene.LSceneActiveName,
+            LScene.LSceneActiveSet,
+            LScene.LSceneRead,
+            LScene.LSceneMatch,
+            LScene.LSceneSave,
+            LScene.LSceneDelete,
+            LScene.LSceneFileResolve,
+            LScene.LSceneFileSave,
+            LScene.LSceneFileLoad,
+            LScene.LSceneStemResolve,
+            lMessage => LTraceLog.LTraceLoadingRecord(lMessage)));
+    internal static QConsoleScene TConsoleSceneCreate() =>
+        new(TAtelierCreate().CAtelierConsoleCreate().CConsoleScene, new QEnvoy());
+    internal static bool TConsoleDirtyCheck(string name) =>
+        TSceneOutletCreate().LConsoleSceneRead(name, null).LConsoleSceneDirty;
     internal static bool TConsoleDeleteHandle(QConsoleScene scene, string? name) => scene.QConsoleDeleteHandle(name);
     internal static void TConsoleFocusAttach(QConsoleScene scene, Action handler) =>
         scene.QConsoleFocusCleared += handler;
     internal static void TConsolePressHandle(QConsoleScene scene, bool dropOpen, bool focusWithin, bool inside) =>
         scene.QConsolePressHandle(dropOpen, focusWithin, inside);
-    internal static string TConsoleStemResolve(string name, string path) =>
-        QConsoleScene.QConsoleStemResolve(name, path);
+    internal static string TConsoleStemResolve(string name, string path) => LScene.LSceneStemResolve(name, path);
     internal static string TConsoleNameCreate(string baseName, IReadOnlyList<string> names) =>
-        QConsoleScene.QConsoleNameCreate(baseName, names);
+        LConsoleSceneOutlet.LConsoleSceneCreate(baseName, names);
 
     internal static QEditTab TEditTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(
@@ -58,7 +65,7 @@ internal static partial class TInterface
     internal static void TEditPathHandle(QEditTab tab, string? path) => tab.QEditPathHandle(path);
     internal static void TEditHistogramAttach(QEditTab tab, Action handler) => tab.QEditHistogramDeferred += handler;
     internal static void TEditMissingAttach(QEditTab tab, Action handler) => tab.QEditPresetMissing += handler;
-    internal static void TEditRun(QEditTab tab, LWorkPriority priority) => tab.QEditRun(priority, default, default);
+    internal static void TEditRun(QEditTab tab, bool urgent) => tab.QEditRun(urgent, default, default);
     internal static LEditPlan TEditStateRead(QEditTab tab) => tab.QEditStore.QEditStateRead();
     internal static LEditPlan? TEditCarriedRead(QEditTab tab) => tab.QEditStore.QEditCarriedRead();
     internal static void TEditStateSave(QEditTab tab) => tab.QEditStore.QEditStateSave();
@@ -74,8 +81,7 @@ internal static partial class TInterface
     internal static void TEditColorApply(QEditTab tab) => tab.QEditColor.QEditColorApply();
     internal static void TEditNeutralHandle(QEditTab tab, LNeutralSample sample) =>
         tab.QEditColor.QEditNeutralHandle(sample);
-    internal static void TEditEstimateHandle(QEditTab tab, LWhitebalanceMethod method) =>
-        tab.QEditColor.QEditEstimateHandle(method);
+    internal static void TEditEstimateHandle(QEditTab tab, string token) => tab.QEditColor.QEditEstimateHandle(token);
     internal static void TEditEstimateApply(QEditTab tab, double x, double y, bool present) =>
         tab.QEditColor.QEditEstimateApply(new LNeutralWheel(x, y, present));
     internal static void TEditHistogramApply(QEditTab tab, int width, int height, byte[]? pixels) =>
@@ -104,7 +110,7 @@ internal static partial class TInterface
     internal static void TSplitStateLoad(QSplitTab tab, string path) => tab.QSplitStateLoad(path);
     internal static LDetectorBundle TSplitStateRead(QSplitTab tab) => tab.QSplitStateRead();
     internal static void TSplitMissingAttach(QSplitTab tab, Action handler) => tab.QSplitPresetMissing += handler;
-    internal static void TSplitRun(QSplitTab tab, LWorkPriority priority) => tab.QSplitRun(priority, default, default);
+    internal static void TSplitRun(QSplitTab tab, bool urgent) => tab.QSplitRun(urgent, default, default);
     internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(QSplitTab tab) => tab.QSplitSweep.QSplitStepsRead();
     internal static Task TSplitSweepStart(QSplitTab tab) => tab.QSplitSweep.QSplitSweepStart();
     internal static void TSplitSweepCancel(QSplitTab tab) => tab.QSplitSweep.QSplitSweepCancel();
@@ -142,8 +148,8 @@ internal static partial class TInterface
     internal static LDetectorKind? TSensorKindRead(string? name) => QSensor.QSensorKindRead(name);
 
     internal static QFixTab TFixTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(preset, viewer, list);
-    internal static QClinic TFixClinicRead(QFixTab tab) => tab.QFixClinic;
+        new(TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list, TAtelierCreate().CAtelierFix);
+    internal static CClinic TFixClinicRead(QFixTab tab) => tab.QFixClinicGate;
     internal static QProcessing TFixProcessingRead(QFixTab tab) => tab.QFixProcessing;
     internal static IReadOnlyList<QProcessingRow> TFixRowsRead() => QFixTab.QFixRows;
     internal static IReadOnlyList<QFixRow> TFixKindsRead() => QFixTab.QFixKinds;
@@ -158,15 +164,15 @@ internal static partial class TInterface
         tab.QFixProgressHandle(path, progress);
     internal static void TFixClearHandle(QFixTab tab, params string[] removed) => tab.QFixClearHandle(removed);
     internal static void TFixChangeHandle(QFixTab tab) => tab.QFixChangeHandle();
-    internal static void TFixStateSave(QFixTab tab) => tab.QFixStateSave();
+    internal static void TFixStateSave(QFixTab tab) => tab.QFixChangeHandle();
     internal static void TFixPlanRestore(QFixTab tab, string path) => tab.QFixPlanRestore(path);
     internal static void TFixMissingAttach(QFixTab tab, Action handler) => tab.QFixPresetMissing += handler;
-    internal static void TFixRun(QFixTab tab, LWorkPriority priority) => tab.QFixRun(priority, default, default);
+    internal static void TFixRun(QFixTab tab, bool urgent) => tab.QFixRun(urgent, default, default);
     internal static void TFixAllRun(QFixTab tab) => tab.QFixAllRun(default, default);
     internal static void TFixCheckupAttach(QFixTab tab, Action<LCheckupResult> handler) =>
         tab.QFixCheckup.LCheckupReady += handler;
-    internal static void TClinicSaveSuspend(QClinic clinic) => clinic.QClinicSaveSuspend();
-    internal static void TClinicSaveResume(QClinic clinic) => clinic.QClinicSaveResume();
+    internal static void TClinicSaveSuspend(CClinic clinic) => clinic.CClinicSaveSuspend();
+    internal static void TClinicSaveResume(CClinic clinic) => clinic.CClinicSaveResume();
     internal static void TFixScannerAttach(Action<string>? scanner)
     {
         LLibrarian.LLibrarianDiagnosisReader = scanner is null ? null : _ => null;
@@ -210,7 +216,7 @@ internal static partial class TInterface
     internal static void TAudioMissingAttach(QAudioTab tab, Action handler) => tab.QAudioPresetMissing += handler;
     internal static void TAudioIncompatibleAttach(QAudioTab tab, Action handler) =>
         tab.QAudioPresetIncompatible += handler;
-    internal static void TAudioRun(QAudioTab tab, LWorkPriority priority) => tab.QAudioRun(priority, default, default);
+    internal static void TAudioRun(QAudioTab tab, bool urgent) => tab.QAudioRun(urgent, default, default);
     internal static void TAudioAllRun(QAudioTab tab) => tab.QAudioAllRun(default, default);
     internal static void TAudioLibrarianAttach(
         Func<string, LSidecarAudioEntry?>? reader, Func<string, LSidecarAudioEntry?, bool>? writer)
@@ -222,18 +228,18 @@ internal static partial class TInterface
     internal static void TVolumePersistentSet(CVolume volume, bool persistent) =>
         volume.CVolumePersistentSet(persistent);
 
-    internal static QMergeTab TMergeTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(TAtelierCreate().CAtelierUsher, preset, viewer, list);
+    internal static QMergeTab TMergeTabCreate(LPresetSelection preset, QViewer viewer, QList list)
+    {
+        CAtelier atelier = TAtelierCreate();
+        return new(atelier.CAtelierUsher, preset, viewer, list, atelier.CAtelierMerge);
+    }
     internal static void TMergeLayoutApply(QMergeTab tab, LSceneTabEntry? layout) => tab.QMergeLayoutApply(layout);
     internal static void TMergeClose(QMergeTab tab) => tab.QMergeClose();
     internal static LSceneTabEntry TMergeLayoutRead(QMergeTab tab) => tab.QMergeLayoutRead(new LSceneTabEntry());
-    internal static IReadOnlyList<LWorkGroup> TMergeGroupsRead(QMergeTab tab, Guid cohort = default) =>
-        tab.QMergeGroupsRead(cohort);
-    internal static IReadOnlyDictionary<string, Guid> TMergeRelaysRead(QMergeTab tab) => tab.QMergeRelaysRead();
     internal static IReadOnlyList<string> TMergePathsRead(QMergeTab tab) => tab.QMergePathsRead();
     internal static IReadOnlyList<string> TMergeEligibleRead(QMergeTab tab) => tab.QMergeEligibleRead();
     internal static void TMergeMissingAttach(QMergeTab tab, Action handler) => tab.QMergePresetMissing += handler;
-    internal static void TMergeRun(QMergeTab tab, LWorkPriority priority) => tab.QMergeRun(priority, default, default);
+    internal static void TMergeRun(QMergeTab tab, bool urgent) => tab.QMergeRun(urgent, default, default);
     internal static int TMergeCohortRun(QMergeTab tab, Guid cohort) => tab.QMergeCohortRun(cohort, default, default);
 
     internal static void TGroupAutoChange(LGroupSelection selection, bool auto) => selection.LGroupAutoChange(auto);
@@ -241,10 +247,10 @@ internal static partial class TInterface
         selection.LGroupStrictChange(strict);
 
     internal static QConvertTab TConvertTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(preset, viewer, list);
+        new(preset, viewer, list, TAtelierCreate().CAtelierConvert);
     internal static void TConvertMissingAttach(QConvertTab tab, Action handler) => tab.QConvertPresetMissing += handler;
-    internal static void TConvertRun(QConvertTab tab, LWorkPriority priority) =>
-        tab.QConvertRun(priority, default, default);
+    internal static void TConvertRun(QConvertTab tab, bool urgent) =>
+        tab.QConvertRun(urgent, default, default);
     internal static void TConvertAllRun(QConvertTab tab) => tab.QConvertAllRun(default, default);
     internal static void TConvertItemsRun(QConvertTab tab, params string[] paths) =>
         tab.QConvertItemsRun(paths, default, default);
@@ -276,8 +282,8 @@ internal static partial class TInterface
     internal static void TActionRelayApply(QAction action, Guid target) => action.QActionRelayApply(target);
     internal static IReadOnlyList<QActionOption> TActionOptionsRead(QAction action) => action.QActionOptionsRead();
     internal static IReadOnlyList<QActionOption> TActionMenuRead(QAction action) => action.QActionMenuRead();
-    internal static void TActionRunAttach(QAction action, Action<LWorkPriority> handler) =>
-        action.QActionExecuted += (priority, _, _) => handler(priority);
+    internal static void TActionRunAttach(QAction action, Action<bool> handler) =>
+        action.QActionExecuted += (urgent, _, _) => handler(urgent);
     internal static void TActionAllAttach(QAction action, Action handler) =>
         action.QActionAllAdded += (_, _) => handler();
     internal static void TActionItemsAttach(QAction action, Action<IReadOnlyList<string>> handler) =>

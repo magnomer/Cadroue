@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
@@ -32,13 +33,17 @@ public sealed class QFixTab
                 QFixSalvageKey, "/PAsset/PPanel/PProcessingFixSalvage.svg", "Processing.Step.Salvage"))
             .ToList();
 
+    private readonly CFix qFixGate;
     private readonly LPresetSelection qFixPreset;
     private readonly QViewer qFixViewer;
     private readonly QList qFixList;
     private readonly LDocket qFixDocket;
 
-    public QFixTab(LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QFixTab(CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList, CFix lFix)
     {
+        QFixClinicGate = lInspector.CInspectorClinic;
+        QFixClinic = new QClinic(QFixClinicGate);
+        qFixGate = lFix;
         qFixPreset = lPreset;
         qFixViewer = lViewer;
         qFixList = lList;
@@ -49,7 +54,9 @@ public sealed class QFixTab
 
     public event Action? QFixPresetMissing;
 
-    public QClinic QFixClinic { get; } = new();
+    public CClinic QFixClinicGate { get; }
+
+    public QClinic QFixClinic { get; }
 
     public QProcessing QFixProcessing { get; } = new();
 
@@ -63,7 +70,7 @@ public sealed class QFixTab
 
     private void QFixAttach()
     {
-        QFixClinic.QClinicPlanChanged += QFixChangeHandle;
+        QFixClinicGate.CClinicPlanChanged += QFixChangeHandle;
         qFixList.QListPathChanged += qFixViewer.QViewerWorkspace.CWorkspaceOpen;
         qFixViewer.QViewerOpenNotice += QFixOpenHandle;
         qFixViewer.QViewerOpenRequest += QFixPlanRestore;
@@ -74,14 +81,14 @@ public sealed class QFixTab
 
     private void QFixDetach()
     {
-        QFixClinic.QClinicPlanChanged -= QFixChangeHandle;
+        QFixClinicGate.CClinicPlanChanged -= QFixChangeHandle;
         qFixViewer.QViewerOpenNotice -= QFixOpenHandle;
         qFixViewer.QViewerOpenRequest -= QFixPlanRestore;
     }
 
     public LSceneTabEntry QFixLayoutRead(LSceneTabEntry lLayout)
     {
-        LWorkFix lPlan = QFixClinic.QClinicPlanRead();
+        LWorkFix lPlan = QFixPlanRead();
         LWorkFix lPersistent = LFix.LFixPersistentResolve(lPlan);
         bool lSalvagePersistent = lPlan.LWorkFixSalvage.LWorkSalvagePersistent;
         if (lPersistent.LWorkFixSteps.Any() || lSalvagePersistent)
@@ -96,83 +103,61 @@ public sealed class QFixTab
         return lLayout;
     }
 
-    public void QFixLayoutApply(LSceneTabEntry? lLayout)
+    // The layout's persistent plan becomes an engine record here until the layout reaches the gate through a port.
+    public void QFixLayoutApply(LSceneTabEntry? lLayout) =>
+        QFixActiveApply(qFixGate.CFixLayoutApply(
+            QFixClinicGate,
+            lLayout is null,
+            lLayout?.LSceneInspector is { LSceneInspectorFix: { } lRecord } lInspector
+                ? new LClinicOutlet(LFix.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage))
+                : null));
+
+    // Each run gesture is one gate call; the gate answers false when the preset is missing, which raises the notice.
+    public void QFixRun(bool lUrgent, Guid lRelayTarget, Guid lSourceTab)
     {
-        if (lLayout is null)
+        if (!qFixGate.CFixRun(
+                qFixPreset.LPresetSelectionValid,
+                qFixPreset.LPresetSelectionName,
+                qFixList.QListPathCurrent,
+                qFixDocket.LDocketItemsRead()
+                    .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+                    .ToArray(),
+                lUrgent,
+                lRelayTarget,
+                lSourceTab))
         {
-            QFixClinic.QClinicMinimizedSet(true);
+            QFixPresetMissing?.Invoke();
         }
-
-        if (lLayout?.LSceneInspector is { LSceneInspectorFix: { } lRecord } lInspector)
-        {
-            QFixClinic.QClinicSaveSuspend();
-            try
-            {
-                QFixClinic.QClinicPlanApply(LFix.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage));
-            }
-            finally
-            {
-                QFixClinic.QClinicSaveResume();
-            }
-        }
-
-        QFixActiveUpdate();
     }
 
-    public void QFixRun(LWorkPriority lPriority, Guid lRelayTarget, Guid lSourceTab)
+    public void QFixAllRun(Guid lRelayTarget, Guid lSourceTab) => QFixItemsRun(null, lRelayTarget, lSourceTab);
+
+    // No paths runs every unlocked item; the gate picks the items and dispatches.
+    public void QFixItemsRun(IReadOnlyList<string>? lPaths, Guid lRelayTarget, Guid lSourceTab)
     {
-        if (!QFixPresetCheck())
+        if (!qFixGate.CFixAllRun(
+                qFixPreset.LPresetSelectionValid,
+                qFixPreset.LPresetSelectionName,
+                qFixDocket.LDocketItemsRead()
+                    .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+                    .ToArray(),
+                lPaths,
+                lRelayTarget,
+                lSourceTab))
         {
-            return;
+            QFixPresetMissing?.Invoke();
         }
-
-        LMessenger.LMessengerFixDescribe(
-            lPriority,
-            QFixSelectedRead() is { } lSelected ? [QFixSourceCreate(lSelected)] : [],
-            qFixPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
-    }
-
-    public void QFixAllRun(Guid lRelayTarget, Guid lSourceTab)
-    {
-        if (!QFixPresetCheck())
-        {
-            return;
-        }
-
-        LMessenger.LMessengerFixDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qFixDocket.LDocketUnlockedRead().Select(QFixSourceCreate).ToArray(),
-            qFixPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
-    }
-
-    public void QFixItemsRun(IReadOnlyList<string> lPaths, Guid lRelayTarget, Guid lSourceTab)
-    {
-        if (!QFixPresetCheck())
-        {
-            return;
-        }
-
-        LMessenger.LMessengerFixDescribe(
-            LWorkPriority.LWorkPriorityNormal,
-            qFixDocket.LDocketUnlockedRead()
-                .Where(lItem => lPaths.Contains(lItem.LDocketEntryPath, StringComparer.OrdinalIgnoreCase))
-                .Select(QFixSourceCreate)
-                .ToArray(),
-            qFixPreset.LPresetSelectionEncoding,
-            lRelayTarget,
-            lSourceTab);
     }
 
     // Before the viewer opens a new path: the plan of the source it leaves is saved, then the clinic follows.
-    private void QFixOpenHandle(string lPath)
-    {
-        QFixStateSave();
-        QFixClinic.QClinicSourceSet(lPath);
-    }
+    private void QFixOpenHandle(string lPath) =>
+        qFixGate.CFixSourceOpen(
+            QFixClinicGate,
+            qFixViewer.QViewerWorkspace,
+            qFixDocket.LDocketItemsRead()
+                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+                .ToArray(),
+            lPath);
 
     public void QFixDiagnosisRun()
     {
@@ -188,7 +173,7 @@ public sealed class QFixTab
     public void QFixClearHandle(IReadOnlyList<string> lRemoved)
     {
         QFixCheckupCancel(lRemoved);
-        QFixClinic.QClinicResultsRemove(lRemoved);
+        QFixClinicGate.CClinicResultsRemove(lRemoved);
     }
 
     private void QFixCheckupCancel(IReadOnlyList<string> lRemoved)
@@ -203,7 +188,7 @@ public sealed class QFixTab
     {
         if (QFixListedCheck(lResult.LCheckupSource))
         {
-            QFixClinic.QClinicResultSet(lResult.LCheckupSource, lResult.LCheckupKind, lResult);
+            QFixClinicGate.CClinicResultAccept(new LClinicOutlet(lResult));
         }
     }
 
@@ -211,114 +196,48 @@ public sealed class QFixTab
     {
         if (QFixListedCheck(lPath))
         {
-            QFixClinic.QClinicProgressSet(lPath, lProgress);
+            QFixClinicGate.CClinicProgressSet(lPath, lProgress);
         }
     }
 
     private void QFixItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
-        QFixPersistentSave(lAdded.Select(lItem => lItem.LDocketEntryPath));
+        qFixGate.CFixPersistentSave(QFixClinicGate, lAdded.Select(lItem => lItem.LDocketEntryPath).ToArray());
 
-    public void QFixChangeHandle()
+    // A plan change saves the plan of the open source; the gate answers which steps the plan has on.
+    public void QFixChangeHandle() =>
+        QFixActiveApply(qFixGate.CFixStateSave(
+            QFixClinicGate,
+            qFixViewer.QViewerWorkspace,
+            qFixDocket.LDocketItemsRead()
+                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+                .ToArray()));
+
+    public void QFixPlanRestore(string lSourcePath) =>
+        QFixActiveApply(qFixGate.CFixPlanRestore(QFixClinicGate, lSourcePath));
+
+    private void QFixActiveApply(IReadOnlyList<(string CFixStep, bool CFixActive)> lSteps)
     {
-        QFixActiveUpdate();
-        QFixStateSave();
+        foreach ((string lStep, bool lActive) in lSteps)
+        {
+            QFixProcessing.QProcessingActiveSet(lStep, lActive);
+        }
     }
 
-    public void QFixStateSave()
+    // The gate hands its plan to an empty engine record, which builds the fix plan.
+    private LWorkFix QFixPlanRead()
     {
-        if (QFixClinic.QClinicSaveSuspended
-            || qFixViewer.QViewerWorkspace.CWorkspaceSource is not { } lSourcePath
-            || qFixDocket.LDocketLockCheck(lSourcePath))
-        {
-            return;
-        }
-
-        LWorkFix lPlan = QFixClinic.QClinicPlanRead();
-        if (!lPlan.LWorkFixActive && LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad) is null)
-        {
-            return;
-        }
-
-        LFix.LFixPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianFixSave);
-        QFixPersistentSave();
-    }
-
-    public void QFixPersistentSave() =>
-        QFixPersistentSave(qFixDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath));
-
-    public void QFixPlanRestore(string lSourcePath)
-    {
-        QFixClinic.QClinicSaveSuspend();
-        try
-        {
-            LWorkFix? lSaved = LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad);
-            LWorkFix lPersistent = LFix.LFixPersistentResolve(QFixClinic.QClinicPlanRead());
-            QFixClinic.QClinicPlanApply(LFix.LFixPlanResolve(lSaved, lPersistent));
-        }
-        finally
-        {
-            QFixClinic.QClinicSaveResume();
-        }
-
-        QFixActiveUpdate();
-    }
-
-    public void QFixActiveUpdate()
-    {
-        LWorkFix lPlan = QFixClinic.QClinicPlanRead();
-        foreach (QFixRow lRow in QFixKinds)
-        {
-            QFixProcessing.QProcessingActiveSet(lRow.QFixRowStep.QProcessingRowKey, QFixActiveCheck(lPlan, lRow));
-        }
-
-        QFixProcessing.QProcessingActiveSet(QFixSalvageKey, lPlan.LWorkFixSalvage.LWorkSalvageActive);
-    }
-
-    // A fix row is active when the plan repairs its flaw kind.
-    private static bool QFixActiveCheck(LWorkFix lPlan, QFixRow lRow) =>
-        lPlan.LWorkFixSteps.Any(lStep => lStep.LWorkFixKind == lRow.QFixRowKind && lStep.LWorkFixRepair);
-
-    private void QFixPersistentSave(IEnumerable<string> lPaths)
-    {
-        if (QFixClinic.QClinicSaveSuspended)
-        {
-            return;
-        }
-
-        LWorkFix lPersistent = LFix.LFixPersistentResolve(QFixClinic.QClinicPlanRead());
-        if (!lPersistent.LWorkFixSteps.Any())
-        {
-            return;
-        }
-
-        foreach (string lPath in lPaths)
-        {
-            LWorkFix? lSaved = LFix.LFixPlanRead(lPath, LLibrarian.LLibrarianFixLoad);
-            LFix.LFixPlanSave(lPath, LFix.LFixPlanResolve(lSaved, lPersistent), LLibrarian.LLibrarianFixSave);
-        }
+        LClinicOutlet lPlan = new();
+        QFixClinicGate.CClinicPlanApply(lPlan);
+        return lPlan.LClinicPlan;
     }
 
     private bool QFixListedCheck(string lPath) => qFixDocket.LDocketItemFind(lPath) is not null;
-
-    private bool QFixPresetCheck()
-    {
-        if (qFixPreset.LPresetSelectionValid)
-        {
-            return true;
-        }
-
-        QFixPresetMissing?.Invoke();
-        return false;
-    }
 
     private LDocketEntry? QFixSelectedRead() =>
         qFixList.QListPathCurrent is { } lPath
         && qFixDocket.LDocketItemFind(lPath) is { LDocketEntryLocked: false } lItem
             ? lItem
             : null;
-
-    private static LWorkSource QFixSourceCreate(LDocketEntry lItem) =>
-        new(lItem.LDocketEntryPath, lItem.LDocketEntryBatch);
 
     private static QFixRow QFixRowCreate(LFlawKind lKind, string lName, string? lIcon = null) =>
         new(lKind, new QProcessingRow(

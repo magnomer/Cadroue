@@ -2,10 +2,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -42,7 +40,6 @@ public sealed partial class PInspector
         {
             Width = PWhitebalanceWheelSize,
             Height = PWhitebalanceWheelSize,
-            Source = PWhitebalanceWheelDraw(),
             IsHitTestVisible = false
         };
         pWhitebalanceWheelCanvas.Children.Add(pWhitebalanceWheelImage);
@@ -110,28 +107,7 @@ public sealed partial class PInspector
             PLook.PLookPressed[pWheelMouse.LeftButton], pWheelPoint.X, pWheelPoint.Y, PWhitebalanceWheelSize);
     }
 
-    private void PWhitebalanceWheelPlace()
-    {
-        LNeutralDot pDot = QWhitebalance.QWhitebalanceDotRead(PWhitebalanceWheelSize, pWhitebalanceWheelDot.Width);
-        Canvas.SetLeft(pWhitebalanceWheelDot, pDot.LNeutralDotLeft);
-        Canvas.SetTop(pWhitebalanceWheelDot, pDot.LNeutralDotTop);
-        pWhitebalanceWheelDot.Visibility = PLook.PLookVisible[pDot.LNeutralDotPresent];
-    }
-
-    private static ImageSource PWhitebalanceWheelDraw() =>
-        PWhitebalanceWheelDraw(PWhitebalanceWheelValue);
-
-    private static ImageSource PWhitebalanceWheelDraw(double pWheelValue)
-    {
-        LNeutralBitmap pWheel = LNeutral.LNeutralBitmapResolve(PWhitebalanceWheelSize, pWheelValue);
-        var pWheelBitmap = new WriteableBitmap(
-            pWheel.LNeutralBitmapSize, pWheel.LNeutralBitmapSize, 96, 96, PixelFormats.Bgra32, null);
-        pWheelBitmap.WritePixels(
-            new Int32Rect(0, 0, pWheel.LNeutralBitmapSize, pWheel.LNeutralBitmapSize),
-            pWheel.LNeutralBitmapPixels,
-            pWheel.LNeutralBitmapStride,
-            0);
-        pWheelBitmap.Freeze();
-        return pWheelBitmap;
-    }
+    // The driver draws the wheel; the blank tool's wheel shares it.
+    private ImageSource PWhitebalanceWheelDraw(double pWheelValue) =>
+        QWhitebalance.QWhitebalanceWheelDraw(PWhitebalanceWheelSize, pWheelValue);
 }

@@ -1,9 +1,6 @@
 using Cadroue.Conduct;
 using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -17,86 +14,60 @@ public sealed class QRosterMenu
 {
     private static readonly IReadOnlyList<QRosterItem> QRosterMenuNone = [];
 
-    private readonly LScheduleContract qSchedule;
-    private readonly LStation qStation;
-    private readonly Func<IReadOnlyList<LWorkItem>> qRosterSelectionSource;
+    private readonly CRoster qRosterGate;
 
-    private readonly CUsher qRosterUsher;
-
-    public QRosterMenu(
-        CUsher lUsher,
-        LScheduleContract lScheduleOwner,
-        LStation lStationOwner,
-        Func<IReadOnlyList<LWorkItem>> lSelectionSource)
+    public QRosterMenu(CRoster lRoster)
     {
-        qRosterUsher = lUsher;
-        qSchedule = lScheduleOwner;
-        qStation = lStationOwner;
-        qRosterSelectionSource = lSelectionSource;
+        qRosterGate = lRoster;
     }
 
     public IReadOnlyList<QRosterItem> QRosterMenuRead(Guid lId, QStrip? lStrip)
     {
-        if (QRosterClickFind(lId) is not { } lClicked)
+        qRosterGate.CRosterMenuRead(lId);
+        return QRosterItemsRead(
+            qRosterGate.CRosterMenuRestartable,
+            qRosterGate.CRosterMenuCancellable,
+            qRosterGate.CRosterMenuRelay,
+            qRosterGate.CRosterMenuCount,
+            lStrip);
+    }
+
+    // Paints the gate's answer: one run item worded for its count, or the relay header over the strip's tabs.
+    private IReadOnlyList<QRosterItem> QRosterItemsRead(
+        bool lRestart, bool lCancel, bool lRelay, int lCount, QStrip? lStrip)
+    {
+        if (lRestart)
+        {
+            return [QRosterItemCreate(lCount, "Roster.Menu.Restart", "Roster.Menu.RestartMany")];
+        }
+
+        if (lCancel)
+        {
+            return [QRosterItemCreate(lCount, "Roster.Menu.Cancel", "Roster.Menu.CancelMany")];
+        }
+
+        if (!lRelay || lStrip is null)
         {
             return QRosterMenuNone;
         }
 
-        if (QRosterRestartCheck(lClicked))
-        {
-            return QRosterRestartRead(lClicked);
-        }
-
-        if (QRosterCancelCheck(lClicked))
-        {
-            return QRosterCancelRead(lClicked);
-        }
-
-        return QRosterRelayRead(lClicked, lStrip);
-    }
-
-    private LWorkItem? QRosterClickFind(Guid lId) =>
-        qSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lId);
-
-    private IReadOnlyList<QRosterItem> QRosterRestartRead(LWorkItem lClicked)
-    {
-        IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterRestartCheck);
-        return [QRosterItemCreate(
-            lTargets.Count, "Roster.Menu.Restart", "Roster.Menu.RestartMany", () => QRosterRestartRun(lTargets))];
-    }
-
-    private IReadOnlyList<QRosterItem> QRosterCancelRead(LWorkItem lClicked)
-    {
-        IReadOnlyList<LWorkItem> lTargets = QRosterTargetsRead(lClicked, QRosterCancelCheck);
-        return [QRosterItemCreate(
-            lTargets.Count, "Roster.Menu.Cancel", "Roster.Menu.CancelMany", () => QRosterCancelRun(lTargets))];
-    }
-
-    private IReadOnlyList<QRosterItem> QRosterRelayRead(LWorkItem lClicked, QStrip? lStrip)
-    {
-        IReadOnlyList<string> lRelayPaths = QRosterPathsRead(lClicked);
-        if (lClicked.LWorkStateCurrent != LWorkState.LWorkStateDone || lRelayPaths.Count == 0 || lStrip is null)
-        {
-            return QRosterMenuNone;
-        }
-
-        QRosterItem[] lTargetItems = QRosterTabsRead(lStrip, lRelayPaths);
+        QRosterItem[] lTargetItems = QRosterTabsRead(lStrip);
         if (lTargetItems.Length == 0)
         {
             return QRosterMenuNone;
         }
 
-        return [QRosterHeaderCreate(lRelayPaths.Count), .. lTargetItems];
+        return [QRosterHeaderCreate(lCount), .. lTargetItems];
     }
 
-    private static QRosterItem[] QRosterTabsRead(QStrip lStrip, IReadOnlyList<string> lRelayPaths) =>
+    private QRosterItem[] QRosterTabsRead(QStrip lStrip) =>
         lStrip.QStripTabs
             .Where(lStripTab => lStripTab.QStripTabDocket is not null)
             .Select(lStripTab => new QRosterItem(
                 lStripTab.QStripTabTitle,
                 lStripTab.QStripTabKey,
                 true,
-                () => _ = QRosterRelayRun(lStrip, lStripTab, lRelayPaths)))
+                () => _ = QRosterRelayRun(lStrip, lStripTab)))
             .ToArray();
 
     private static QRosterItem QRosterHeaderCreate(int lCount) => new(
@@ -107,79 +78,15 @@ public sealed class QRosterMenu
         false,
         () => { });
 
-    private static bool QRosterRestartCheck(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkStateCurrent is LWorkState.LWorkStateCancelled or LWorkState.LWorkStateFailed;
-
-    private static bool QRosterCancelCheck(LWorkItem lWorkItem) =>
-        lWorkItem.LWorkStateCurrent is LWorkState.LWorkStatePending or LWorkState.LWorkStateRunning;
-
-    private IReadOnlyList<LWorkItem> QRosterTargetsRead(LWorkItem lClicked, Func<LWorkItem, bool> lStateCheck)
-    {
-        LWorkItem[] lTargets = qRosterSelectionSource().Where(lStateCheck).ToArray();
-        return lTargets.Length == 0 || !lTargets.Any(lWorkItem => ReferenceEquals(lWorkItem, lClicked))
-            ? [lClicked]
-            : lTargets;
-    }
-
-    private static QRosterItem QRosterItemCreate(int lCount, string lOneKey, string lManyKey, Action lRun) => new(
+    private QRosterItem QRosterItemCreate(int lCount, string lOneKey, string lManyKey) => new(
         lCount > 1
             ? QLocalizationCatalog.QLocalizationFormat(lManyKey, lCount)
             : QLocalizationCatalog.QLocalizationTextRead(lOneKey),
         string.Empty,
         true,
-        lRun);
+        qRosterGate.CRosterMenuRun);
 
-    private void QRosterRestartRun(IReadOnlyList<LWorkItem> lTargets)
-    {
-        foreach (LWorkItem lWorkItem in lTargets)
-        {
-            qSchedule.LScheduleItemReset(lWorkItem.LWorkId);
-        }
-    }
-
-    private void QRosterCancelRun(IReadOnlyList<LWorkItem> lTargets)
-    {
-        foreach (LWorkItem lWorkItem in lTargets)
-        {
-            if (lWorkItem.LWorkStateCurrent == LWorkState.LWorkStateRunning)
-            {
-                qStation.LStationRunner.LRunnerJobCancel(lWorkItem.LWorkId);
-            }
-            else
-            {
-                qSchedule.LScheduleItemCancel(lWorkItem);
-            }
-        }
-    }
-
-    private IReadOnlyList<string> QRosterPathsRead(LWorkItem lClicked)
-    {
-        IReadOnlyList<LWorkItem> lSelected = qRosterSelectionSource();
-        IEnumerable<LWorkItem> lRelayItems =
-            lSelected.Count > 1 && lSelected.Any(lWorkItem => ReferenceEquals(lWorkItem, lClicked))
-                ? lSelected
-                : [lClicked];
-        var lRelayPaths = new List<string>();
-        foreach (LWorkItem lRelayItem in lRelayItems)
-        {
-            if (lRelayItem.LWorkStateCurrent == LWorkState.LWorkStateDone
-                && QRosterFileRead(lRelayItem) is { } lRelayPath
-                && !lRelayPaths.Contains(lRelayPath, StringComparer.OrdinalIgnoreCase))
-            {
-                lRelayPaths.Add(lRelayPath);
-            }
-        }
-
-        return lRelayPaths;
-    }
-
-    private string? QRosterFileRead(LWorkItem lWorkItem) =>
-        !string.IsNullOrWhiteSpace(lWorkItem.LWorkOutputPath) && qRosterUsher.CUsherFileExist(lWorkItem.LWorkOutputPath)
-            ? lWorkItem.LWorkOutputPath
-            : null;
-
-    private static async Task QRosterRelayRun(
-        QStrip lStrip, QStripTab lTargetTab, IReadOnlyList<string> lRelayPaths)
+    private async Task QRosterRelayRun(QStrip lStrip, QStripTab lTargetTab)
     {
         if (lTargetTab.QStripTabDocket is not { } lTargetOwner)
         {
@@ -188,7 +95,7 @@ public sealed class QRosterMenu
 
         lStrip.QStripSelect(lTargetTab);
         lTargetOwner.LDocketPathsAdd(
-            (await LMedia.LMediaPathScan(lRelayPaths).ConfigureAwait(true)).LMediaScanPaths,
+            (await LMedia.LMediaPathScan(qRosterGate.CRosterMenuPaths).ConfigureAwait(true)).LMediaScanPaths,
             LGate.LGateBatchCreate());
     }
 }

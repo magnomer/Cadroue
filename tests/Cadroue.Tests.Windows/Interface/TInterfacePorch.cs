@@ -44,9 +44,7 @@ internal static partial class TInterface
     internal static QWorkspace TWorkspaceCreate(string key, LPreset? preset)
     {
         CAtelier atelier = TAtelierCreate();
-        QWorkspace workspace = new(
-            key, atelier.CAtelierUsher, atelier.CAtelierInfo, atelier.CAtelierLineage,
-            atelier.CAtelierWorkspaceCreate(), atelier.CAtelierInspectorCreate(), atelier.CAtelierEdit);
+        QWorkspace workspace = new(key, atelier.CAtelierWorkspaceCreate(), atelier);
         if (preset is not null)
         {
             workspace.QWorkspacePresetAccept(preset);
@@ -125,10 +123,7 @@ internal static partial class TInterface
     internal static void TDeckClose(QDeck deck) => deck.QDeckClose();
 
     internal static QStripTab TStripKeyCreate(string key) =>
-        new QStrip(
-            TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate, TAtelierCreate().CAtelierInspectorCreate,
-            TAtelierCreate().CAtelierEdit).QStripTabCreate(key);
+        new QStrip(TAtelierCreate()).QStripTabCreate(key);
     internal static string TStripKeyResolve(string key) => QStrip.QStripKeyResolve(key);
     internal static bool TStripCloseConfirm(QStrip strip, QStripTab? tab) =>
         strip.QStripClosure.QStripCloseConfirm(tab);

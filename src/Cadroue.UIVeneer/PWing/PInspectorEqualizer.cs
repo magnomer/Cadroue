@@ -124,7 +124,10 @@ public sealed partial class PInspector
         pFrequencyBox.Text = lBand.QEqualizerBandFrequency;
 
         Slider pSlider = PInspectorSliderBuild(
-            QEqualizer.QEqualizerGainLeast, QEqualizer.QEqualizerGainMost, lBand.QEqualizerBandGain, static () => 0);
+            QEqualizer.QEqualizerGainLeast,
+            QEqualizer.QEqualizerGainMost,
+            lBand.QEqualizerBandGain,
+            () => QEqualizer.QEqualizerGainOrigin);
 
         TextBox pValueBox = PInspectorDecimalBuild();
         pValueBox.Width = pEqualizerValueWidth;

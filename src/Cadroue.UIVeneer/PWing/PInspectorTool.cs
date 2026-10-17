@@ -44,7 +44,7 @@ public sealed partial class PInspector
 
     private void PCropToolHandle()
     {
-        QWhitebalance.QWhitebalanceToolSet(false, QWhitebalance.QWhitebalanceTarget);
+        QWhitebalance.QWhitebalanceToolCancel();
         QInspector.QInspectorToolSet(true);
     }
 

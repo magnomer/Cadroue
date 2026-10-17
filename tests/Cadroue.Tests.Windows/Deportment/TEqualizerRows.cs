@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -10,8 +11,8 @@ public sealed class TEqualizerRows
     [Fact]
     public void Rows_MirrorBands_WithIndexAndText()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
-        IReadOnlyList<QEqualizerBand> rows = equalizer.QEqualizerRows;
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
+        IReadOnlyList<QEqualizerBand> rows = TInterface.TEqualizerRowsRead(equalizer);
 
         Assert.Equal(TInterface.TEqualizerBandsRead(equalizer).Count, rows.Count);
         Assert.Equal(Enumerable.Range(0, rows.Count), rows.Select(row => row.QEqualizerBandIndex));
@@ -21,7 +22,7 @@ public sealed class TEqualizerRows
     [Fact]
     public void RowsChange_OnlyWhenCountChanges()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
         int rows = 0;
         int changes = 0;
         TInterface.TEqualizerRowsAttach(equalizer, () => rows++);
@@ -41,7 +42,7 @@ public sealed class TEqualizerRows
     [Fact]
     public void FrequencyCommit_ParsesAndEchoes_OneChange()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
         int changes = 0;
         TInterface.TEqualizerAttach(equalizer, () => changes++);
 
@@ -59,7 +60,7 @@ public sealed class TEqualizerRows
     [Fact]
     public void Choice_SelectByIndex_ThenGainEditBreaksMatch()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
         IReadOnlyList<string> tokens = Interface.TInterface.TContourTokensRead();
 
         TInterface.TEqualizerChoiceSelect(equalizer, 1);

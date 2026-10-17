@@ -1,4 +1,5 @@
 using Cadroue.Application;
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -11,7 +12,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Sample_TurnsManualAndActive_WithGains()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         int notices = 0;
         TInterface.TWhitebalanceAttach(whitebalance, () => notices++);
 
@@ -29,7 +30,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Reset_ReturnsToMedian_AndAsksForEstimate()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(120, 128, 140, 1.1, 1, 0.9));
         var requests = new List<LWhitebalanceMethod>();
         TInterface.TWhitebalanceEstimateAttach(whitebalance, requests.Add);
@@ -47,7 +48,7 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void MethodChange_ToAutomatic_RequestsEstimateOnce()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         var requests = new List<LWhitebalanceMethod>();
         TInterface.TWhitebalanceEstimateAttach(whitebalance, requests.Add);
 
@@ -62,14 +63,14 @@ public sealed class TWhitebalanceSample
     [Fact]
     public void Picker_SwitchesTarget_DisarmsOnSample()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
 
         TInterface.TWhitebalanceToolSet(whitebalance, true, LNeutralTarget.LNeutralTargetGrey);
         TInterface.TWhitebalanceToolSet(whitebalance, true, LNeutralTarget.LNeutralTargetWhite);
 
         Assert.True(TInterface.TWhitebalanceToolRead(whitebalance));
-        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, whitebalance.QWhitebalanceTarget);
+        Assert.Equal(LNeutralTarget.LNeutralTargetWhite, TInterface.TWhitebalanceTargetRead(whitebalance));
 
         TInterface.TWhitebalanceSampleSet(whitebalance, TInterface.TNeutralSampleCreate(200, 200, 200, 1, 1, 1));
 

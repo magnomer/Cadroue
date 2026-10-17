@@ -1,4 +1,5 @@
 using Cadroue.Conduct;
+using Cadroue.Tests.Interface;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -9,9 +10,7 @@ public sealed class TInfoGate
 
     public TInfoGate()
     {
-        tInfoArea = new CAtelier(
-                new TUsherPort(), new TLineagePort(), new TWorkspacePort(), new TPlacementPort(), new TViewerPort(),
-                new TEditPort())
+        tInfoArea = TAtelier.TAtelierCreate()
             .CAtelierInfo;
     }
 

@@ -168,8 +168,8 @@ public sealed class QMap
         qFlow.QFlowCursorApplied += () => QMapTriggerApply("cursor");
         qFlow.QFlowSpool.QFlowSpoolApplied += () => QMapTriggerApply("spool");
         qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QMapTriggerApply("sections");
-        qFlow.QFlowKeyframe.QFlowKeyframeChanged += (_, _) => QMapTriggerApply("keyframes");
-        qFlow.QFlowWaveform.QFlowWaveformUpdated += _ => QMapTriggerApply("waveform");
+        qFlow.QFlowKeyframe.QFlowKeyframeChanged += () => QMapTriggerApply("keyframes");
+        qFlow.QFlowWaveform.QFlowWaveformUpdated += () => QMapTriggerApply("waveform");
     }
 
     private (QMapFrame, LSpool?, double, double) QMapBaseResolve(double lWidth, double lHeight)
@@ -196,15 +196,12 @@ public sealed class QMap
             return (lFrame, null, 0, 0);
         }
 
-        byte[] lPeaks = qFlow.QFlowWaveform.QFlowWaveformPeaks;
-        bool lWaveformActive = lPeaks.Length > 0;
+        bool lWaveformActive = qFlow.QFlowWaveform.QFlowWaveformGate.CWaveformShown;
         lUnder.Add(new QMapShape(
             lWaveformActive ? QMapShapeKind.QMapShapeWaveform : QMapShapeKind.QMapShapeRail,
             0, QMapRailTop, lWidth, lRailBottom, 3));
-        QFlowWaveformOutline lOutline = lWaveformActive
-            ? QFlowWaveform.QFlowOutlineResolve(
-                lPeaks, lWidth, QMapRailTop, lRailHeight, TimeSpan.Zero, lSpool.LSpoolDuration)
-            : qMapOutlineEmpty;
+        QFlowWaveformOutline lOutline = qFlow.QFlowWaveform.QFlowOutlineResolve(
+            lWidth, QMapRailTop, lRailHeight, TimeSpan.Zero, lSpool.LSpoolDuration);
         IReadOnlyList<QMapBand> lBands = QMapBandsResolve(lSpool, lWidth, lRailHeight);
         QMapFrame lBase = lFrame with { QMapFrameWaveform = lOutline, QMapFrameBands = lBands };
         return (lBase, lSpool, lCoverageTop, lRailHeight);

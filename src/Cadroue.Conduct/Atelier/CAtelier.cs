@@ -7,29 +7,69 @@ public sealed class CAtelier
 {
     private readonly LWorkspacePort _cAtelierWorkspacePort;
     private readonly LViewerPort _cAtelierViewerPort;
+    private readonly LRosterPort _cAtelierRosterPort;
+    private readonly LTonePort _cAtelierTonePort;
+    private readonly LEqualizerPort _cAtelierEqualizerPort;
+    private readonly LClinicPort _cAtelierClinicPort;
+    private readonly LRosterCardPort _cAtelierCardPort;
+    private readonly LNoisePort _cAtelierNoisePort;
+    private readonly LConsolePort _cAtelierConsolePort;
+    private readonly LFlowPort _cAtelierFlowPort;
+    private readonly LRosterDetailPort _cAtelierDetailPort;
+    private readonly LWhitebalancePort _cAtelierWhitebalancePort;
+    private readonly LFilterPort _cAtelierFilterPort;
+    private readonly LConsoleScenePort _cAtelierScenePort;
+    private readonly Func<Func<string, string>, LListPort> _cAtelierListPort;
 
-    internal CAtelier(
-        LUsherPort usher,
-        LLineagePort lineage,
-        LWorkspacePort workspace,
-        LPlacementPort placement,
-        LViewerPort viewer,
-        LEditPort edit)
+    internal CAtelier(LAtelierPort port)
     {
-        ArgumentNullException.ThrowIfNull(usher);
-        ArgumentNullException.ThrowIfNull(lineage);
-        ArgumentNullException.ThrowIfNull(workspace);
-        ArgumentNullException.ThrowIfNull(placement);
-        ArgumentNullException.ThrowIfNull(viewer);
-        ArgumentNullException.ThrowIfNull(edit);
+        ArgumentNullException.ThrowIfNull(port);
+        ArgumentNullException.ThrowIfNull(port.LAtelierUsher);
+        ArgumentNullException.ThrowIfNull(port.LAtelierLineage);
+        ArgumentNullException.ThrowIfNull(port.LAtelierWorkspace);
+        ArgumentNullException.ThrowIfNull(port.LAtelierPlacement);
+        ArgumentNullException.ThrowIfNull(port.LAtelierViewer);
+        ArgumentNullException.ThrowIfNull(port.LAtelierEdit);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRoster);
+        ArgumentNullException.ThrowIfNull(port.LAtelierFix);
+        ArgumentNullException.ThrowIfNull(port.LAtelierConvert);
+        ArgumentNullException.ThrowIfNull(port.LAtelierTone);
+        ArgumentNullException.ThrowIfNull(port.LAtelierEqualizer);
+        ArgumentNullException.ThrowIfNull(port.LAtelierClinic);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRosterCard);
+        ArgumentNullException.ThrowIfNull(port.LAtelierMerge);
+        ArgumentNullException.ThrowIfNull(port.LAtelierNoise);
+        ArgumentNullException.ThrowIfNull(port.LAtelierConsole);
+        ArgumentNullException.ThrowIfNull(port.LAtelierFlow);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRosterDetail);
+        ArgumentNullException.ThrowIfNull(port.LAtelierWhitebalance);
+        ArgumentNullException.ThrowIfNull(port.LAtelierFilter);
+        ArgumentNullException.ThrowIfNull(port.LAtelierScene);
+        ArgumentNullException.ThrowIfNull(port.LAtelierList);
 
-        CAtelierUsher = new CUsher(usher);
-        CAtelierLineage = new CLineage(lineage);
-        _cAtelierWorkspacePort = workspace;
-        _cAtelierViewerPort = viewer;
-        CAtelierPlacement = new CPlacement(placement);
+        CAtelierUsher = new CUsher(port.LAtelierUsher);
+        CAtelierLineage = new CLineage(port.LAtelierLineage);
+        _cAtelierWorkspacePort = port.LAtelierWorkspace;
+        _cAtelierViewerPort = port.LAtelierViewer;
+        CAtelierPlacement = new CPlacement(port.LAtelierPlacement);
         CAtelierInfo = new CInfo();
-        CAtelierEdit = new CEdit(edit);
+        CAtelierEdit = new CEdit(port.LAtelierEdit);
+        _cAtelierRosterPort = port.LAtelierRoster;
+        CAtelierFix = new CFix(port.LAtelierFix);
+        CAtelierConvert = new CConvert(port.LAtelierConvert);
+        _cAtelierTonePort = port.LAtelierTone;
+        _cAtelierEqualizerPort = port.LAtelierEqualizer;
+        _cAtelierClinicPort = port.LAtelierClinic;
+        _cAtelierCardPort = port.LAtelierRosterCard;
+        CAtelierMerge = new CMerge(port.LAtelierMerge);
+        _cAtelierNoisePort = port.LAtelierNoise;
+        _cAtelierConsolePort = port.LAtelierConsole;
+        _cAtelierFlowPort = port.LAtelierFlow;
+        _cAtelierDetailPort = port.LAtelierRosterDetail;
+        _cAtelierWhitebalancePort = port.LAtelierWhitebalance;
+        _cAtelierFilterPort = port.LAtelierFilter;
+        _cAtelierScenePort = port.LAtelierScene;
+        _cAtelierListPort = port.LAtelierList;
     }
 
     public CUsher CAtelierUsher { get; }
@@ -42,8 +82,32 @@ public sealed class CAtelier
 
     public CEdit CAtelierEdit { get; }
 
-    // A viewer's workspace with the viewer's own trace gate: both hold state for one viewer.
-    public CWorkspace CAtelierWorkspaceCreate() => new(_cAtelierWorkspacePort, new CViewer(_cAtelierViewerPort));
+    public CFix CAtelierFix { get; }
 
-    public CInspector CAtelierInspectorCreate() => new();
+    public CConvert CAtelierConvert { get; }
+
+    public CMerge CAtelierMerge { get; }
+
+    // A viewer's workspace with the viewer's own trace gate and the flow beside it: each holds state for one viewer.
+    public CWorkspace CAtelierWorkspaceCreate() =>
+        new(_cAtelierWorkspacePort, new CViewer(_cAtelierViewerPort), new CFlow(_cAtelierFlowPort, CAtelierUsher));
+
+    public CInspector CAtelierInspectorCreate() =>
+        new(
+            _cAtelierTonePort,
+            _cAtelierEqualizerPort,
+            _cAtelierClinicPort,
+            _cAtelierNoisePort,
+            _cAtelierWhitebalancePort,
+            _cAtelierFilterPort);
+
+    // A roster's preference gate with the roster's own card and detail gates.
+    public CRoster CAtelierRosterCreate() =>
+        new(_cAtelierRosterPort, new CRosterCard(_cAtelierCardPort), new CRosterDetail(_cAtelierDetailPort));
+
+    // A window's console: it holds the station it shows and the progress it glides to.
+    public CConsole CAtelierConsoleCreate() => new(_cAtelierConsolePort, _cAtelierScenePort);
+
+    // A tab's list over its own docket.
+    public CList CAtelierListCreate() => new(_cAtelierListPort, CAtelierUsher);
 }

@@ -34,7 +34,7 @@ public sealed class QViewerMpv
             return;
         }
 
-        if (!qViewer.QViewerSerialCheck(lSerial))
+        if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
         {
             QViewerMpvRestore();
             return;
@@ -68,7 +68,7 @@ public sealed class QViewerMpv
             }
 
             QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
-            if (!qViewer.QViewerSerialCheck(lSerial))
+            if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
             {
                 return (false, null);
             }
@@ -90,7 +90,7 @@ public sealed class QViewerMpv
 
     private void QViewerMpvRestore()
     {
-        if (qViewer.QViewerUnloaded || !qViewer.QViewerMpvActive)
+        if (qViewer.QViewerTrace.CViewerUnloaded || !qViewer.QViewerTrace.CViewerMpvActive)
         {
             return;
         }
@@ -165,7 +165,7 @@ public sealed class QViewerMpv
         }
 
         qViewer.QViewerRenderer.QViewerEngineApply(false);
-        if (!qViewer.QViewerSerialCheck(lSerial))
+        if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
         {
             return;
         }

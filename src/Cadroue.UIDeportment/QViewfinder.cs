@@ -35,8 +35,8 @@ public sealed class QViewfinder
         qFlow.QFlowCursorApplied += () => QViewfinderTriggerApply("cursor");
         qFlow.QFlowSpool.QFlowSpoolApplied += () => QViewfinderTriggerApply("spool");
         qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QViewfinderTriggerApply("sections");
-        qFlow.QFlowKeyframe.QFlowKeyframeChanged += (_, _) => QViewfinderTriggerApply("keyframes");
-        qFlow.QFlowWaveform.QFlowWaveformUpdated += _ => QViewfinderTriggerApply("waveform");
+        qFlow.QFlowKeyframe.QFlowKeyframeChanged += () => QViewfinderTriggerApply("keyframes");
+        qFlow.QFlowWaveform.QFlowWaveformUpdated += () => QViewfinderTriggerApply("waveform");
     }
 
     public event Action? QViewfinderFrameApplied;
@@ -91,8 +91,7 @@ public sealed class QViewfinder
             return (lFrame, 0);
         }
 
-        byte[] lPeaks = qFlow.QFlowWaveform.QFlowWaveformPeaks;
-        bool lWaveformActive = lPeaks.Length > 0;
+        bool lWaveformActive = qFlow.QFlowWaveform.QFlowWaveformGate.CWaveformShown;
         lUnder.Add(new QViewfinderShape(
             lWaveformActive ? QViewfinderShapeKind.QViewfinderShapeWaveform : QViewfinderShapeKind.QViewfinderShapeRail,
             0, lRailTop, lWidth, lRailBottom));
@@ -111,9 +110,8 @@ public sealed class QViewfinder
             return (lFrame, 0);
         }
 
-        QFlowWaveformOutline lOutline = lWaveformActive
-            ? QFlowWaveform.QFlowOutlineResolve(lPeaks, lWidth, lRailTop, lRailHeight, lRangeStart, lRangeEnd)
-            : qViewfinderOutlineEmpty;
+        QFlowWaveformOutline lOutline =
+            qFlow.QFlowWaveform.QFlowOutlineResolve(lWidth, lRailTop, lRailHeight, lRangeStart, lRangeEnd);
         IReadOnlyList<QViewfinderGraduation> lTicks =
             QViewfinderRuler.QViewfinderTicksResolve(lWidth, lRangeStart, lRangeSeconds);
         IReadOnlyList<QViewfinderBand> lBands =

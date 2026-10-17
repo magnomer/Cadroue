@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -10,7 +11,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoisePreset_RoundTripsThroughValues()
     {
-        QNoise noise = TInterface.TNoiseCreate();
+        CNoise noise = TInterface.TNoiseCreate();
 
         TInterface.TNoisePresetSelect(noise, "Strong");
 
@@ -22,7 +23,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoiseValueDrift_KeepsBaseToken_LosesMatch()
     {
-        QNoise noise = TInterface.TNoiseCreate();
+        CNoise noise = TInterface.TNoiseCreate();
         TInterface.TNoisePresetSelect(noise, "Strong");
 
         TInterface.TNoiseValueSet(noise, 0, 20);
@@ -38,7 +39,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void NoiseStepApply_TakesMatchAsToken()
     {
-        QNoise noise = TInterface.TNoiseCreate();
+        CNoise noise = TInterface.TNoiseCreate();
 
         TInterface.TNoiseStepSet(
             noise, Interface.TInterface.TWorkNoiseCreate(true, 10, -50, false, LGrain.LGrainWhite, 5, 0.8, -40));
@@ -86,8 +87,8 @@ public sealed class TInspectorPreset
     [Fact]
     public void FilterPreset_HighAndLow_MatchTheirOwnTables()
     {
-        QFilter high = TInterface.TFilterCreate(true);
-        QFilter low = TInterface.TFilterCreate(false);
+        CFilter high = TInterface.TFilterCreate(true);
+        CFilter low = TInterface.TFilterCreate(false);
 
         Assert.Equal("Voice", TInterface.TFilterTokenRead(high));
         Assert.Equal("Air tame", TInterface.TFilterTokenRead(low));
@@ -98,7 +99,7 @@ public sealed class TInspectorPreset
         Assert.Equal("Rumble", TInterface.TFilterMatchRead(high));
         Assert.Equal("Air tame", TInterface.TFilterTokenRead(low));
 
-        TInterface.TFilterFrequencySet(high, TInterface.TFilterStepRead(high).LWorkPassFrequency + 10);
+        TInterface.TFilterFrequencySet(high, TInterface.TFilterValueRead(high, 0) + 10);
         Assert.Null(TInterface.TFilterMatchRead(high));
         Assert.Equal("Rumble", TInterface.TFilterTokenRead(high));
     }
@@ -106,7 +107,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerPreset_BandsFollowGrid_EditBreaksMatch()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
         Assert.Equal("Flat", TInterface.TEqualizerTokenRead(equalizer));
 
         TInterface.TEqualizerPresetSelect(equalizer, "Bright");
@@ -126,7 +127,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerBandSet_SameBand_IsSilent()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
         int notices = 0;
         TInterface.TEqualizerAttach(equalizer, () => notices++);
 
@@ -141,7 +142,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void EqualizerBandSet_OutOfRangeBand_StoresClampedValue()
     {
-        QEqualizer equalizer = TInterface.TEqualizerCreate();
+        CEqualizer equalizer = TInterface.TEqualizerCreate();
 
         TInterface.TEqualizerBandSet(equalizer, 0, 5, 99);
 

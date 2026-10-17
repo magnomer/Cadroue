@@ -55,7 +55,7 @@ public sealed class TInspectorGating
     [Fact]
     public void ToneCapable_RepeatedValue_IsSilent()
     {
-        QTone tone = TInterface.TToneCreate();
+        CTone tone = TInterface.TToneCreate();
         int notices = 0;
         TInterface.TToneAttach(tone, () => notices++);
 
@@ -63,13 +63,13 @@ public sealed class TInspectorGating
         TInterface.TToneCapableSet(tone, false);
 
         Assert.Equal(1, notices);
-        Assert.False(tone.QToneCapable);
+        Assert.False(tone.CToneCapable);
     }
 
     [Fact]
     public void WhitebalanceCapable_Off_DisarmsPicker()
     {
-        QWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
+        CWhitebalance whitebalance = TInterface.TWhitebalanceCreate();
         TInterface.TWhitebalanceCapableSet(whitebalance, true, true);
         TInterface.TWhitebalanceToolSet(whitebalance, true, Cadroue.Application.LNeutralTarget.LNeutralTargetWhite);
         Assert.True(TInterface.TWhitebalanceToolRead(whitebalance));

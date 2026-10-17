@@ -24,12 +24,26 @@ internal static partial class TInterface
         new(global, red, green, blue, highlight);
     internal static LWorkCurveSettings TCurveSettingsRead(LWorkVideoStep step) => step.LWorkCurveRead();
 
-    internal static QTone TToneCreate() => new();
-    internal static void TToneAttach(QTone tone, Action handler) => tone.QToneChanged += handler;
-    internal static void TToneValueSet(QTone tone, LColorKind kind, double value) => tone.QToneValueSet(kind, value);
-    internal static void TToneActiveSet(QTone tone, LColorKind kind, bool active) => tone.QToneActiveSet(kind, active);
-    internal static void TToneCapableSet(QTone tone, bool capable) => tone.QToneCapableSet(capable);
-    internal static LWorkVideoStep TToneStepRead(QTone tone, LColorKind kind) => tone.QToneStepRead(kind);
+    internal static CTone TToneCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorTone;
+    internal static void TToneAttach(CTone tone, Action handler) => tone.CToneChanged += handler;
+    internal static void TToneValueSet(CTone tone, LColorKind kind, double value) =>
+        tone.CToneValueSet(TToneSlotRead(kind), value);
+    internal static void TToneActiveSet(CTone tone, LColorKind kind, bool active) =>
+        tone.CToneActiveSet(TToneSlotRead(kind), active);
+    internal static void TToneCapableSet(CTone tone, bool capable) => tone.CToneCapableSet(capable);
+    internal static LWorkVideoStep TToneStepRead(CTone tone, LColorKind kind) => kind switch
+    {
+        LColorKind.LColorKindContrast => LWorkVideoStep.LWorkContrastCreate(tone.CToneActives[1], tone.CToneValues[1]),
+        LColorKind.LColorKindSaturation =>
+            LWorkVideoStep.LWorkSaturationCreate(tone.CToneActives[2], tone.CToneValues[2]),
+        _ => LWorkVideoStep.LWorkBrightnessCreate(tone.CToneActives[0], tone.CToneValues[0])
+    };
+    private static int TToneSlotRead(LColorKind kind) => kind switch
+    {
+        LColorKind.LColorKindContrast => 1,
+        LColorKind.LColorKindSaturation => 2,
+        _ => 0
+    };
 
     internal static CGamma TGammaCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorGamma;
     internal static void TGammaAttach(CGamma gamma, Action handler) => gamma.CGammaChanged += handler;
@@ -79,39 +93,62 @@ internal static partial class TInterface
     internal static LDetectorBlank TBlankStepCreate(LDetectorType type) =>
         LDetectorBlank.LDetectorBlankCreate() with { LDetectorBlankType = type };
 
-    internal static QWhitebalance TWhitebalanceCreate() => new();
-    internal static void TWhitebalanceAttach(QWhitebalance whitebalance, Action handler) =>
-        whitebalance.QWhitebalanceChanged += handler;
-    internal static void TWhitebalanceEstimateAttach(QWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
-        whitebalance.QWhitebalanceEstimateChanged += handler;
-    internal static void TWhitebalanceSampleSet(QWhitebalance whitebalance, LNeutralSample sample) =>
-        whitebalance.QWhitebalanceSampleSet(sample);
-    internal static void TWhitebalanceMethodSet(QWhitebalance whitebalance, LWhitebalanceMethod method) =>
-        whitebalance.QWhitebalanceMethodSet(method);
-    internal static void TWhitebalanceReset(QWhitebalance whitebalance) => whitebalance.QWhitebalanceReset();
-    internal static void TWhitebalanceToolSet(QWhitebalance whitebalance, bool armed, LNeutralTarget target) =>
-        whitebalance.QWhitebalanceToolSet(armed, target);
-    internal static void TWhitebalanceCapableSet(QWhitebalance whitebalance, bool capable, bool preview) =>
-        whitebalance.QWhitebalanceCapableSet(capable, preview);
-    internal static LWorkWhitebalanceSettings TWhitebalanceValueRead(QWhitebalance whitebalance) =>
-        whitebalance.QWhitebalanceValue;
-    internal static LWorkVideoStep TWhitebalanceStepRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceStep;
-    internal static bool TWhitebalanceManualRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceManual;
-    internal static bool TWhitebalanceToolRead(QWhitebalance whitebalance) => whitebalance.QWhitebalanceToolArmed;
-    internal static LNeutralWheel TWhitebalanceWheelRead(QWhitebalance whitebalance) =>
-        whitebalance.QWhitebalanceWheelRead();
+    internal static CWhitebalance TWhitebalanceCreate() =>
+        TAtelierCreate().CAtelierInspectorCreate().CInspectorWhitebalance;
+    internal static void TWhitebalanceAttach(CWhitebalance whitebalance, Action handler) =>
+        whitebalance.CWhitebalanceChanged += handler;
+    internal static void TWhitebalanceEstimateAttach(CWhitebalance whitebalance, Action<LWhitebalanceMethod> handler) =>
+        whitebalance.CWhitebalanceEstimateChanged +=
+            token => handler(LWhitebalanceOutlet.LWhitebalanceMethodRead(token));
+    internal static void TWhitebalanceEstimateStart(CWhitebalance whitebalance) =>
+        whitebalance.CWhitebalanceEstimateStart();
+    internal static void TWhitebalanceSampleSet(CWhitebalance whitebalance, LNeutralSample sample) =>
+        whitebalance.CWhitebalanceSampleAccept(new LWhitebalanceSampleOutlet(sample, _ => { }));
+    internal static void TWhitebalanceMethodSet(CWhitebalance whitebalance, LWhitebalanceMethod method) =>
+        whitebalance.CWhitebalanceMethodSelect(method switch
+        {
+            LWhitebalanceMethod.LWhitebalanceMethodAverage => 0,
+            LWhitebalanceMethod.LWhitebalanceMethodMinmax => 1,
+            LWhitebalanceMethod.LWhitebalanceMethodMedian => 2,
+            _ => 3
+        });
+    internal static void TWhitebalanceReset(CWhitebalance whitebalance) => whitebalance.CWhitebalanceReset();
+    internal static void TWhitebalanceToolSet(CWhitebalance whitebalance, bool armed, LNeutralTarget target) =>
+        whitebalance.CWhitebalanceToolSet(armed, target == LNeutralTarget.LNeutralTargetWhite);
+    internal static void TWhitebalanceCapableSet(CWhitebalance whitebalance, bool capable, bool preview) =>
+        whitebalance.CWhitebalanceCapableSet(capable, preview);
+    internal static LWorkWhitebalanceSettings TWhitebalanceValueRead(CWhitebalance whitebalance) =>
+        TWhitebalanceStepRead(whitebalance).LWorkWhitebalanceRead();
+    internal static LWorkVideoStep TWhitebalanceStepRead(CWhitebalance whitebalance) =>
+        LWhitebalanceOutlet.LWhitebalanceStepCreate(whitebalance.CWhitebalanceAnswer);
+    internal static bool TWhitebalanceManualRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceManual;
+    internal static bool TWhitebalanceToolRead(CWhitebalance whitebalance) => whitebalance.CWhitebalanceArmed;
+    internal static LNeutralTarget TWhitebalanceTargetRead(CWhitebalance whitebalance) =>
+        whitebalance.CWhitebalanceWhite ? LNeutralTarget.LNeutralTargetWhite : LNeutralTarget.LNeutralTargetGrey;
+    internal static LNeutralWheel TWhitebalanceWheelRead(CWhitebalance whitebalance)
+    {
+        (double x, double y, bool present) = whitebalance.CWhitebalanceWheelRead();
+        return new LNeutralWheel(x, y, present);
+    }
     internal static LNeutralSample TNeutralSampleCreate(
         int red, int green, int blue, double redGain, double greenGain, double blueGain) =>
         new(LNeutralOutcome.LNeutralOutcomeResolved, red, green, blue, redGain, greenGain, blueGain);
 
-    internal static QNoise TNoiseCreate() => new();
-    internal static void TNoiseAttach(QNoise noise, Action handler) => noise.QNoiseChanged += handler;
-    internal static void TNoisePresetSelect(QNoise noise, string token) => noise.QNoisePresetSelect(token);
-    internal static void TNoiseValueSet(QNoise noise, int index, double value) => noise.QNoiseValueSet(index, value);
-    internal static void TNoiseStepSet(QNoise noise, LWorkAudioStep step) => noise.QNoiseStepSet(step);
-    internal static string? TNoiseTokenRead(QNoise noise) => noise.QNoiseToken;
-    internal static string? TNoiseMatchRead(QNoise noise) => noise.QNoiseMatchRead();
-    internal static LWorkNoiseStep TNoiseStepRead(QNoise noise) => noise.QNoiseStep;
+    internal static CNoise TNoiseCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorNoise;
+    internal static void TNoiseAttach(CNoise noise, Action handler) => noise.CNoiseChanged += handler;
+    internal static void TNoisePresetSelect(CNoise noise, string token) => noise.CNoisePresetSelect(token);
+    internal static void TNoiseValueSet(CNoise noise, int index, double value) => noise.CNoiseValueSet(index, value);
+    internal static void TNoiseStepSet(CNoise noise, LWorkAudioStep step)
+    {
+        (bool active, IReadOnlyList<double> values, bool track, int type, string? preset) =
+            new LInspectorOutlet(new LWorkAudio(new List<LWorkAudioStep> { step })).LInspectorNoiseRead();
+        noise.CNoiseStepSet(active, values, track, type, preset);
+    }
+    internal static string? TNoiseTokenRead(CNoise noise) => noise.CNoiseToken;
+    internal static string? TNoiseMatchRead(CNoise noise) => noise.CNoisePreset;
+    internal static LWorkNoiseStep TNoiseStepRead(CNoise noise) =>
+        (LWorkNoiseStep)LNoiseOutlet.LNoiseStepCreate(
+            noise.CNoiseActive, noise.CNoiseValues, noise.CNoiseTrack, noise.CNoiseType);
 
     internal static QSensor TSensorCreate() => new();
     internal static IReadOnlyList<string> TDetectorTokensRead(LDetectorKind kind) =>
@@ -144,27 +181,32 @@ internal static partial class TInterface
     internal static string? TLoudnessMatchRead(QLoudness loudness) => loudness.QLoudnessMatchRead();
     internal static LWorkNormalizeStep TLoudnessStepRead(QLoudness loudness) => loudness.QLoudnessStep;
 
-    internal static QFilter TFilterCreate(bool high) => new(high);
-    internal static void TFilterAttach(QFilter filter, Action handler) => filter.QFilterChanged += handler;
-    internal static void TFilterPresetSelect(QFilter filter, string token) => filter.QFilterPresetSelect(token);
-    internal static void TFilterFrequencySet(QFilter filter, double frequency) => filter.QFilterFrequencySet(frequency);
-    internal static string? TFilterTokenRead(QFilter filter) => filter.QFilterToken;
-    internal static string? TFilterMatchRead(QFilter filter) => filter.QFilterMatchRead();
-    internal static LWorkPassStep TFilterStepRead(QFilter filter) => filter.QFilterStep;
+    internal static CFilter TFilterCreate(bool high) => high
+        ? TAtelierCreate().CAtelierInspectorCreate().CInspectorHighpass
+        : TAtelierCreate().CAtelierInspectorCreate().CInspectorLowpass;
+    internal static void TFilterAttach(CFilter filter, Action handler) => filter.CFilterChanged += handler;
+    internal static void TFilterPresetSelect(CFilter filter, string token) => filter.CFilterPresetSelect(token);
+    internal static void TFilterFrequencySet(CFilter filter, double frequency) => filter.CFilterValueSet(0, frequency);
+    internal static string? TFilterTokenRead(CFilter filter) => filter.CFilterToken;
+    internal static string? TFilterMatchRead(CFilter filter) => filter.CFilterPreset;
+    internal static double TFilterValueRead(CFilter filter, int slot) => filter.CFilterValueRead(slot);
 
-    internal static QEqualizer TEqualizerCreate() => new();
-    internal static void TEqualizerAttach(QEqualizer equalizer, Action handler) =>
-        equalizer.QEqualizerChanged += handler;
-    internal static void TEqualizerPresetSelect(QEqualizer equalizer, string token) =>
-        equalizer.QEqualizerPresetSelect(token);
-    internal static void TEqualizerBandSet(QEqualizer equalizer, int index, double frequency, double gain) =>
-        equalizer.QEqualizerBandSet(index, frequency, gain);
-    internal static void TEqualizerBandAdd(QEqualizer equalizer) => equalizer.QEqualizerBandAdd();
-    internal static void TEqualizerBandRemove(QEqualizer equalizer, int index) => equalizer.QEqualizerBandRemove(index);
-    internal static string? TEqualizerTokenRead(QEqualizer equalizer) => equalizer.QEqualizerToken;
-    internal static string? TEqualizerMatchRead(QEqualizer equalizer) => equalizer.QEqualizerMatchRead();
-    internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(QEqualizer equalizer) => equalizer.QEqualizerBands;
-    internal static LWorkAudioStep TEqualizerStepRead(QEqualizer equalizer) => equalizer.QEqualizerStepRead();
+    internal static CEqualizer TEqualizerCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorEqualizer;
+    internal static void TEqualizerAttach(CEqualizer equalizer, Action handler) =>
+        equalizer.CEqualizerChanged += handler;
+    internal static void TEqualizerPresetSelect(CEqualizer equalizer, string token) =>
+        equalizer.CEqualizerPresetSelect(token);
+    internal static void TEqualizerBandSet(CEqualizer equalizer, int index, double frequency, double gain) =>
+        equalizer.CEqualizerBandSet(index, frequency, gain);
+    internal static void TEqualizerBandAdd(CEqualizer equalizer) => new QEqualizer(equalizer).QEqualizerBandAdd();
+    internal static void TEqualizerBandRemove(CEqualizer equalizer, int index) =>
+        new QEqualizer(equalizer).QEqualizerBandRemove(index);
+    internal static string? TEqualizerTokenRead(CEqualizer equalizer) => equalizer.CEqualizerToken;
+    internal static string? TEqualizerMatchRead(CEqualizer equalizer) => equalizer.CEqualizerPreset;
+    internal static IReadOnlyList<LWorkBand> TEqualizerBandsRead(CEqualizer equalizer) =>
+        equalizer.CEqualizerBands.Select(band => new LWorkBand(band.CEqualizerFrequency, band.CEqualizerGain)).ToList();
+    internal static LWorkAudioStep TEqualizerStepRead(CEqualizer equalizer) =>
+        LEqualizerOutlet.LEqualizerStepCreate(equalizer.CEqualizerActive, equalizer.CEqualizerBands);
 
     internal static CVolume TVolumeCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorVolume;
     internal static void TVolumeAttach(CVolume volume, Action handler) => volume.CVolumeChanged += handler;
@@ -262,30 +304,9 @@ internal static partial class TInterface
     internal static bool TExportDragClear(QExport export) => export.QExportDragClear();
     internal static void TExportSync(QExport export) => export.QExportSync();
 
-    internal static CAtelier TAtelierCreate() =>
-        new(
-            new LUsherOutlet(),
-            new LLineageOutlet(),
-            new LWorkspaceOutlet(),
-            new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
-            new LViewerOutlet(
-                lPath => System.IO.Path.GetFileName(lPath),
-                () => System.DateTimeOffset.Now,
-                System.Environment.NewLine),
-            new LEditOutlet());
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
-        new(
-            TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate,
-            TAtelierCreate().CAtelierInspectorCreate,
-            TAtelierCreate().CAtelierEdit,
-            title,
-            number);
-    internal static QStripTab TStripTabCreate(string key) =>
-        new(
-            key, TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInfo, TAtelierCreate().CAtelierLineage,
-            TAtelierCreate().CAtelierWorkspaceCreate(), TAtelierCreate().CAtelierInspectorCreate(),
-            TAtelierCreate().CAtelierEdit);
+        new(TAtelierCreate(), title, number);
+    internal static QStripTab TStripTabCreate(string key) => new(key, TAtelierCreate());
     internal static void TStripSelectAttach(QStrip strip, Action<QStripTab?> handler) =>
         strip.QStripSelectChanged += handler;
     internal static void TStripTabAttach(QStrip strip, Action<QStripTab> handler) => strip.QStripTabChanged += handler;

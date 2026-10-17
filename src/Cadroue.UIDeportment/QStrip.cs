@@ -15,43 +15,19 @@ public sealed class QStrip
     private readonly ObservableCollection<QStripTab> qStripTabs = [];
     private readonly Func<string, string> qStripTitleSource;
     private readonly Func<string, int, string> qStripNumberSource;
-    private readonly CUsher qStripUsher;
-    private readonly CInfo qStripInfo;
-    private readonly CLineage qStripLineage;
-    private readonly Func<CWorkspace> qStripWorkspaceSource;
-    private readonly Func<CInspector> qStripInspectorSource;
-    private readonly CEdit qStripEdit;
+    private readonly CAtelier qStripAtelier;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
-    public QStrip(
-        CUsher lUsher,
-        CInfo lInfo,
-        CLineage lLineage,
-        Func<CWorkspace> lWorkspaceSource,
-        Func<CInspector> lInspectorSource,
-        CEdit lEdit)
-        : this(
-            lUsher, lInfo, lLineage, lWorkspaceSource, lInspectorSource, lEdit, QStripTitleResolve, QStripNumberResolve)
+    public QStrip(CAtelier lAtelier)
+        : this(lAtelier, QStripTitleResolve, QStripNumberResolve)
     {
     }
 
-    public QStrip(
-        CUsher lUsher,
-        CInfo lInfo,
-        CLineage lLineage,
-        Func<CWorkspace> lWorkspaceSource,
-        Func<CInspector> lInspectorSource,
-        CEdit lEdit,
-        Func<string, string> lTitleSource,
-        Func<string, int, string> lNumberSource)
+    // A tab reads each gate it needs from the atelier, so a new gate leaves the strip as it is.
+    public QStrip(CAtelier lAtelier, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
     {
-        qStripUsher = lUsher;
-        qStripInfo = lInfo;
-        qStripLineage = lLineage;
-        qStripWorkspaceSource = lWorkspaceSource;
-        qStripInspectorSource = lInspectorSource;
-        qStripEdit = lEdit;
+        qStripAtelier = lAtelier;
         qStripTitleSource = lTitleSource;
         qStripNumberSource = lNumberSource;
         QStripSeparator = new QStripSeparator(this, qStripTabs);
@@ -63,7 +39,7 @@ public sealed class QStrip
             LCartographer.LCartographerTabRemove);
         QStripRail = new QRail(this);
         QStripDeck = new QDeck(this, QLocalizationCatalog.QLocalizationTextRead);
-        QStripRelay = new QStripRelay(this, lUsher);
+        QStripRelay = new QStripRelay(this, lAtelier.CAtelierUsher);
     }
 
     public event Action? QStripChanged;
@@ -93,15 +69,7 @@ public sealed class QStrip
     public static string QStripKeyResolve(string lKey) =>
         QStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : QStripDefaultKey;
 
-    public QStripTab QStripTabCreate(string lKey) =>
-        new(
-            QStripKeyResolve(lKey),
-            qStripUsher,
-            qStripInfo,
-            qStripLineage,
-            qStripWorkspaceSource(),
-            qStripInspectorSource(),
-            qStripEdit);
+    public QStripTab QStripTabCreate(string lKey) => new(QStripKeyResolve(lKey), qStripAtelier);
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Cadroue.Conduct;
+using Cadroue.Tests.Interface;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -13,9 +14,7 @@ public sealed class TPlacementGate
 
     public TPlacementGate()
     {
-        tPlacementArea = new CAtelier(
-                new TUsherPort(), new TLineagePort(), new TWorkspacePort(), tPlacementPort, new TViewerPort(),
-                new TEditPort())
+        tPlacementArea = TAtelier.TAtelierCreate(port => port with { LAtelierPlacement = tPlacementPort })
             .CAtelierPlacement;
     }
 

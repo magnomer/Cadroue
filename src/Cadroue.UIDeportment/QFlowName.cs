@@ -1,81 +1,54 @@
-using Cadroue.Core;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
 public sealed record QFlowNamePrompt(
-    int QFlowNameIndex,
     string QFlowNameText,
     string QFlowNamePrefix,
     string QFlowNameSuffix,
     bool QFlowPrefixShown,
     bool QFlowSuffixShown);
 
+// The rename wiring: hands each rename input to the rename gate, relays its prompt to the surface and places the
+// prompt over the section the gate holds. It keeps no rename state.
 public sealed class QFlowName
 {
     private readonly QFlow qFlow;
-    private int? qFlowNameIndex;
+    private readonly CFlowName qFlowNameGate;
 
-    public QFlowName(QFlow lOwner)
+    public QFlowName(QFlow lOwner, CFlowName lGate)
     {
         qFlow = lOwner;
+        qFlowNameGate = lGate;
+        lGate.CFlowNameShown += QFlowNameRaise;
+        lGate.CFlowNameClosed += QFlowCloseRaise;
     }
 
     public event Action<QFlowNamePrompt>? QFlowNameShown;
     public event Action? QFlowNameClosed;
 
-    public int? QFlowNameIndex => qFlowNameIndex;
+    public int? QFlowNameIndex => qFlowNameGate.CFlowNameIndex;
 
-    public bool QFlowNameStart()
-    {
-        IReadOnlyList<LPiece> lSections = qFlow.QFlowSection.QFlowSectionsRead();
-        if (qFlow.QFlowSection.QFlowSelectionRead() is not int lIndex || lIndex >= lSections.Count)
-        {
-            return false;
-        }
+    public bool QFlowNameStart() => qFlowNameGate.CFlowNameStart();
 
-        QFlowNameHide();
-        QFlowNameShow(QFlowPromptCreate(lIndex, lSections[lIndex]));
-        return true;
-    }
+    public void QFlowNameHide() => qFlowNameGate.CFlowNameHide();
 
-    private static QFlowNamePrompt QFlowPromptCreate(int lIndex, LPiece lPiece) =>
-        new(
-            lIndex,
-            lPiece.LPieceName,
-            lPiece.LPiecePrefix,
-            lPiece.LPieceSuffix,
-            !string.IsNullOrEmpty(lPiece.LPiecePrefix),
-            !string.IsNullOrEmpty(lPiece.LPieceSuffix));
+    public void QFlowNameCommit(string lName, string lPrefix, string lSuffix) =>
+        qFlowNameGate.CFlowNameCommit(qFlow.QFlowEdit.QFlowSectionEditable, lName, lPrefix, lSuffix);
 
-    private void QFlowNameShow(QFlowNamePrompt lPrompt)
-    {
-        qFlowNameIndex = lPrompt.QFlowNameIndex;
-        QFlowNameShown?.Invoke(lPrompt);
-    }
+    // The prompt's place over the section the open rename shows, in a host of this size.
+    public QViewfinderPoint QFlowPopupResolve(double lWidth, double lHeight) =>
+        qFlow.QFlowViewfinder.QViewfinderPopupResolve(qFlowNameGate.CFlowNameIndex ?? -1, lWidth, lHeight);
 
-    public void QFlowNameHide()
-    {
-        if (qFlowNameIndex is null)
-        {
-            return;
-        }
+    private void QFlowNameRaise() =>
+        QFlowNameShown?.Invoke(new QFlowNamePrompt(
+            qFlowNameGate.CFlowNameText,
+            qFlowNameGate.CFlowNamePrefix,
+            qFlowNameGate.CFlowNameSuffix,
+            qFlowNameGate.CFlowPrefixShown,
+            qFlowNameGate.CFlowSuffixShown));
 
-        qFlowNameIndex = null;
-        QFlowNameClosed?.Invoke();
-    }
-
-    public void QFlowNameCommit(string lName, string lPrefix, string lSuffix)
-    {
-        if (qFlowNameIndex is int lIndex)
-        {
-            qFlow.QFlowSection.QFlowNameSet(
-                lIndex, QFlowNameNormalize(lName), QFlowNameNormalize(lPrefix), QFlowNameNormalize(lSuffix));
-        }
-
-        QFlowNameHide();
-    }
-
-    private static string QFlowNameNormalize(string lText) => lText.Trim();
+    private void QFlowCloseRaise() => QFlowNameClosed?.Invoke();
 
     public static double QFlowOffsetResolve(bool lEmpty, double lOrigin, double lSize, double lHostSize) =>
         lEmpty ? 0 : lOrigin + lSize / 2 - lHostSize / 2;

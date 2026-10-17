@@ -46,8 +46,8 @@ public sealed class QViewerSource
     {
         if (qViewer.QViewerWorkspace.CWorkspaceRequestResolve(
                 lSourcePath,
-                qViewer.QViewerCommandActive,
-                qViewer.QViewerUnloaded,
+                qViewer.QViewerTrace.CViewerCommandActive,
+                qViewer.QViewerTrace.CViewerUnloaded,
                 qViewer.QViewerEngine.ToString(),
                 QViewerSourceResolve) is not { } lLoadPath)
         {
