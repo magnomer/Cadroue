@@ -4,7 +4,6 @@ public sealed class QFlowEdit
 {
     private readonly QFlow qFlow;
     private int? qFlowSectionIndex;
-    private bool qFlowSectionEditable = true;
     private bool qFlowSegmentFired;
 
     public QFlowEdit(QFlow lOwner)
@@ -16,36 +15,22 @@ public sealed class QFlowEdit
 
     public int? QFlowSectionIndex => qFlowSectionIndex;
 
-    public bool QFlowSectionEditable => qFlowSectionEditable;
+    // The switch lives on the sections gate, its single home.
+    public bool QFlowSectionEditable => qFlow.QFlowSection.QFlowSectionGate.CSectionEditable;
 
     public bool QFlowSegmentFired => qFlowSegmentFired;
 
     public bool QFlowEditCheck() =>
-        qFlow.QFlowSectionActive && qFlowSectionEditable;
+        qFlow.QFlowSectionActive && QFlowSectionEditable;
 
     public void QFlowSectionSelect(int? lSectionIndex) => qFlowSectionIndex = lSectionIndex;
 
-    public bool QFlowEditSet(bool lSectionEditable)
-    {
-        if (!lSectionEditable)
-        {
-            qFlow.QFlowName.QFlowNameHide();
-        }
+    // The gate turns the switch, hides the name editor when it turns off and tells each turn.
+    public bool QFlowEditSet(bool lSectionEditable) =>
+        qFlow.QFlowSection.QFlowSectionGate.CSectionEditableSet(lSectionEditable);
 
-        return QFlowEditChange(lSectionEditable);
-    }
-
-    private bool QFlowEditChange(bool lSectionEditable)
-    {
-        if (qFlowSectionEditable == lSectionEditable)
-        {
-            return false;
-        }
-
-        qFlowSectionEditable = lSectionEditable;
-        QFlowEditChanged?.Invoke(lSectionEditable);
-        return true;
-    }
+    // The gate's turn, relayed to the panels.
+    public void QFlowEditRaise(bool lSectionEditable) => QFlowEditChanged?.Invoke(lSectionEditable);
 
     public void QFlowFiredSet(bool lSegmentFired) => qFlowSegmentFired = lSegmentFired;
 }

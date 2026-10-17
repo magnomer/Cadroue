@@ -61,7 +61,7 @@ public sealed class QSplitTab
         QSplitInspector.QInspectorSensor.QSensorPersistentChanged += QSplitPersistentHandle;
         QSplitInspector.QInspectorBlank.QBlankPickChanged += QSplitPickHandle;
         lViewer.QViewerNeutral.QViewerNeutralChanged += QSplitSampleHandle;
-        QSplitInspector.QInspectorSensor.QSensorRunApplied += () => _ = QSplitSweep.QSplitSweepStart();
+        QSplitInspector.QInspectorSensor.QSensorRunApplied += QSplitRunHandle;
         QSplitInspector.QInspectorSensor.QSensorStopApplied += QSplitSweep.QSplitSweepCancel;
         lList.QListPathChanged += lViewer.QViewerWorkspace.CWorkspaceOpen;
         lViewer.QViewerOpenRequest += QSplitOpenHandle;
@@ -78,6 +78,8 @@ public sealed class QSplitTab
         qSplitViewer.QViewerNeutral.QViewerNeutralChanged -= QSplitSampleHandle;
         qSplitViewer.QViewerOpenRequest -= QSplitOpenHandle;
     }
+
+    private void QSplitRunHandle() => _ = QSplitSweep.QSplitSweepStart();
 
     public void QSplitStart() => qSplitFlow.QFlowEdit.QFlowEditSet(!QSplitLockedCheck());
 

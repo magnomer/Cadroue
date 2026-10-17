@@ -103,8 +103,8 @@ internal static class TInterfaceInspector
     internal static void TInspectorAudioApply(QInspectorAudio audio, LWorkAudio plan) =>
         audio.QInspectorAudioApply(plan);
     internal static bool TInspectorPersistentCheck(QInspectorAudio audio) => audio.QInspectorPersistentCheck();
-    internal static void TInspectorPersistentApply(QInspectorAudio audio, LWorkAudio plan, bool skipPersistent) =>
-        audio.QInspectorPersistentApply(plan, skipPersistent);
+    internal static void TInspectorPersistentApply(QInspectorAudio audio, bool skipPersistent) =>
+        audio.QInspectorPersistentApply(skipPersistent);
     internal static LWorkAudio TInspectorPersistentRead(QInspectorAudio audio) => audio.QInspectorPersistentRead();
     internal static void TInspectorAudioAttach(QInspectorAudio audio, Action handler) =>
         audio.QInspectorAudioChanged += handler;

@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using Cadroue.Conduct;
@@ -28,12 +27,13 @@ public sealed class QFilter
 
     public IReadOnlyList<double> QFilterMosts => qFilterGate.CFilterMosts;
 
-    // Each preset row shows its wording; the custom row's wording takes the preset it drifted from.
+    // Each preset row shows its wording; the custom row's wording takes the preset it drifted from. A broken
+    // translation of that wording is traced by the catalog and shown in English or raw, never thrown.
     public IReadOnlyList<string> QFilterChoiceNames => qFilterGate.CFilterChoices
-        .Select(static lRow => string.Format(
-            CultureInfo.CurrentCulture,
-            QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey),
-            QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceBasis ?? lRow.CChoiceKey)))
+        .Select(static lRow => lRow.CChoiceBasis is { } lBasis
+            ? QLocalizationCatalog.QLocalizationFormat(
+                lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
+            : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
         .ToList();
 
     public IReadOnlyList<string> QFilterPoleNames => qFilterGate.CFilterPoleChoices

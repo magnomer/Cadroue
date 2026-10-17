@@ -192,7 +192,13 @@ internal static partial class TInterface
     }
 
     internal static QAudioTab TAudioTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
-        new(TAtelierCreate().CAtelierUsher, TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list);
+        new(
+            TAtelierCreate().CAtelierUsher,
+            TAtelierCreate().CAtelierInspectorCreate(),
+            TAtelierCreate().CAtelierEdit,
+            preset,
+            viewer,
+            list);
     internal static QInspector TAudioInspectorRead(QAudioTab tab) => tab.QAudioInspector;
     internal static QProcessing TAudioProcessingRead(QAudioTab tab) => tab.QAudioProcessing;
     internal static IReadOnlyList<QProcessingRow> TAudioRowsRead() => QAudioTab.QAudioRows;

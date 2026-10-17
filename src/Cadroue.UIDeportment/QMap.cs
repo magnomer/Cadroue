@@ -1,5 +1,4 @@
-using Cadroue.Core;
-using Cadroue.Infrastructure;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
@@ -64,334 +63,148 @@ public sealed record QMapFrame(
     IReadOnlyList<QMapShape> QMapFrameOver,
     IReadOnlyList<double> QMapFrameCursor);
 
+// The map's wiring: hands pointer input and the surface's size to the map gate, paints its frame as shapes and
+// relays its drag and range notices to the flow. It holds no map state.
 public sealed class QMap
 {
-    private const double QMapRenderLeast = 12;
-    internal const double QMapRailTop = 3;
-    private const double QMapCoverageHeight = 3;
-    internal const double QMapHandleWidth = 12;
-    private const double QMapSectionInset = 1;
+    internal const double QMapRailTop = CMap.CMapRailTop;
+    internal const double QMapHandleWidth = CMap.CMapHandleWidth;
 
-    private static readonly QFlowWaveformOutline qMapOutlineEmpty = new(0, 0, []);
+    private static readonly IReadOnlyDictionary<CMapHit, QMapHitKind> qMapHits = new Dictionary<CMapHit, QMapHitKind>
+    {
+        [CMapHit.CMapHitNone] = QMapHitKind.QMapHitNone,
+        [CMapHit.CMapHitOrigin] = QMapHitKind.QMapHitOrigin,
+        [CMapHit.CMapHitLimit] = QMapHitKind.QMapHitLimit,
+        [CMapHit.CMapHitBody] = QMapHitKind.QMapHitBody,
+        [CMapHit.CMapHitCursor] = QMapHitKind.QMapHitCursor,
+    };
 
     private readonly QFlow qFlow;
-    private QMapHitKind qMapDragKind;
-    private QMapHitKind qMapHoverKind;
-    private double qMapDragOrigin;
-    private double qMapPreviousX;
-    private string qMapTrigger = "attach";
-    private int qMapGlyphCount;
     private readonly QChronometer qMapChronometer = new();
 
-    public QMap(QFlow lOwner)
+    public QMap(QFlow lOwner, CMap lGate)
     {
         qFlow = lOwner;
+        QMapGate = lGate;
+        lGate.CMapDragChanged += QMapDragRaise;
+        lGate.CMapSpoolChanged += QMapSpoolRaise;
         QMapFlowAttach();
     }
 
     public event Action? QMapFrameApplied;
 
-    public QMapHitKind QMapDragKind => qMapDragKind;
+    public CMap QMapGate { get; }
 
-    public string QMapTrigger => qMapTrigger;
-
-    public int QMapGlyphCount => qMapGlyphCount;
-
-    public void QMapDrawStart() => qMapChronometer.QChronometerStart();
-
-    public void QMapDrawRecord() =>
-        LTrace.LTraceTimelineAdd(
-            "Map", qFlow.QFlowCursor, qFlow.QFlowSourcePath, qMapTrigger,
-            qMapChronometer.QChronometerRead(), qMapGlyphCount);
-
-    public QMapFrame QMapFrameResolve(double lWidth, double lHeight)
+    // One draw: the timer starts, the gate's frame is painted as shapes, and the gate records the draw with its time.
+    public void QMapDraw(double lWidth, double lHeight, Action<QMapFrame> lPaint)
     {
-        QMapGlyphSet(0);
-        (QMapFrame lFrame, LSpool? lSpool, double lCoverageTop, double lRailHeight) =
-            QMapBaseResolve(lWidth, lHeight);
-        QMapGlyphSet(lFrame.QMapFrameBands.Count);
-        if (lSpool is null)
-        {
-            return lFrame;
-        }
-
-        return QMapOverResolve(lFrame, lSpool, lWidth, lCoverageTop, lRailHeight);
+        qMapChronometer.QChronometerStart();
+        QMapGate.CMapDraw(
+            lWidth,
+            lHeight,
+            lFrame => lPaint(QMapFrameBuild(lFrame, lWidth, lHeight)),
+            qMapChronometer.QChronometerRead);
     }
 
-    public QMapHitKind QMapHoverResolve(double lX, double lY, double lWidth, double lHeight)
-    {
-        QMapHitKind lHoverKind = QMapHitResolve(lX, lY, lWidth, lHeight);
-        QMapHoverSet(lHoverKind);
-        return lHoverKind;
-    }
+    public QMapHitKind QMapHoverResolve(double lX, double lY, double lWidth, double lHeight) =>
+        qMapHits[QMapGate.CMapHoverResolve(lX, lY, lWidth, lHeight)];
 
-    public QMapHitKind QMapLeaveResolve() =>
-        qMapDragKind == QMapHitKind.QMapHitNone ? QMapHitKind.QMapHitNone : qMapHoverKind;
+    public QMapHitKind QMapLeaveResolve() => qMapHits[QMapGate.CMapLeaveResolve()];
 
-    public bool QMapPressHandle(double lX, double lY, double lWidth, double lHeight)
-    {
-        if (qFlow.QFlowRange is not { } lSpool || lWidth <= 0)
-        {
-            return false;
-        }
+    public bool QMapPressHandle(double lX, double lY, double lWidth, double lHeight) =>
+        QMapGate.CMapPressHandle(lX, lY, lWidth, lHeight);
 
-        QMapDragStart(lX, lY, lWidth, lHeight);
-        QMapPressDispatch(lSpool, lX, lWidth);
-        return true;
-    }
+    public bool QMapMoveHandle(double lX, double lWidth) => QMapGate.CMapMoveHandle(lX, lWidth);
 
-    public bool QMapMoveHandle(double lX, double lWidth)
-    {
-        if (qFlow.QFlowRange is not { } lSpool || !QMapDragCheck() || lWidth <= 0)
-        {
-            return false;
-        }
+    public void QMapDragClear() => QMapGate.CMapDragClear();
 
-        QMapMoveDispatch(lSpool, lX, lWidth);
-        return true;
-    }
-
-    public void QMapDragClear()
-    {
-        bool lDragging = QMapDragCheck();
-        QMapDragReset();
-        if (lDragging)
-        {
-            qFlow.QFlowWheel.QFlowDragHandle(false);
-        }
-    }
-
+    // Each flow notice that redraws the map is its own handler, naming itself as the draw's trigger.
     private void QMapFlowAttach()
     {
-        qFlow.QFlowAttachApplied += () => QMapTriggerApply("attach");
-        qFlow.QFlowClearApplied += () => QMapTriggerApply("clear");
-        qFlow.QFlowCursorApplied += () => QMapTriggerApply("cursor");
-        qFlow.QFlowSpool.QFlowSpoolApplied += () => QMapTriggerApply("spool");
-        qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QMapTriggerApply("sections");
-        qFlow.QFlowKeyframe.QFlowKeyframeChanged += () => QMapTriggerApply("keyframes");
-        qFlow.QFlowWaveform.QFlowWaveformUpdated += () => QMapTriggerApply("waveform");
+        qFlow.QFlowAttachApplied += QMapAttachHandle;
+        qFlow.QFlowClearApplied += QMapClearHandle;
+        qFlow.QFlowCursorApplied += QMapCursorHandle;
+        qFlow.QFlowSpool.QFlowSpoolApplied += QMapSpoolHandle;
+        qFlow.QFlowSection.QFlowSectionChanged += (_, _) => QMapSectionsHandle();
+        qFlow.QFlowKeyframe.QFlowKeyframeChanged += QMapKeyframesHandle;
+        qFlow.QFlowWaveform.QFlowWaveformUpdated += QMapWaveformHandle;
     }
 
-    private (QMapFrame, LSpool?, double, double) QMapBaseResolve(double lWidth, double lHeight)
-    {
-        var lUnder = new List<QMapShape>();
-        var lFrame = new QMapFrame(lUnder, qMapOutlineEmpty, [], new List<QMapShape>(), []);
-        if (lWidth <= 0 || lHeight <= 0)
-        {
-            return (lFrame, null, 0, 0);
-        }
+    private void QMapAttachHandle() => QMapTriggerApply("attach");
 
-        lUnder.Add(new QMapShape(QMapShapeKind.QMapShapeBackground, 0, 0, lWidth, lHeight, 0));
-        if (qFlow.QFlowRange is not { } lSpool || lSpool.LSpoolDuration <= TimeSpan.Zero || lHeight < QMapRenderLeast)
-        {
-            return (lFrame, null, 0, 0);
-        }
+    private void QMapClearHandle() => QMapTriggerApply("clear");
 
-        double lCoverageBottom = Math.Max(0, lHeight - 1);
-        double lCoverageTop = Math.Max(0, lCoverageBottom - QMapCoverageHeight);
-        double lRailBottom = Math.Max(QMapRailTop, lCoverageTop - 2);
-        double lRailHeight = Math.Max(0, lRailBottom - QMapRailTop);
-        if (lRailHeight <= 0)
-        {
-            return (lFrame, null, 0, 0);
-        }
+    private void QMapCursorHandle() => QMapTriggerApply("cursor");
 
-        bool lWaveformActive = qFlow.QFlowWaveform.QFlowWaveformGate.CWaveformShown;
-        lUnder.Add(new QMapShape(
-            lWaveformActive ? QMapShapeKind.QMapShapeWaveform : QMapShapeKind.QMapShapeRail,
-            0, QMapRailTop, lWidth, lRailBottom, 3));
-        QFlowWaveformOutline lOutline = qFlow.QFlowWaveform.QFlowOutlineResolve(
-            lWidth, QMapRailTop, lRailHeight, TimeSpan.Zero, lSpool.LSpoolDuration);
-        IReadOnlyList<QMapBand> lBands = QMapBandsResolve(lSpool, lWidth, lRailHeight);
-        QMapFrame lBase = lFrame with { QMapFrameWaveform = lOutline, QMapFrameBands = lBands };
-        return (lBase, lSpool, lCoverageTop, lRailHeight);
-    }
+    private void QMapSpoolHandle() => QMapTriggerApply("spool");
 
-    private QMapFrame QMapOverResolve(
-        QMapFrame lFrame, LSpool lSpool, double lWidth, double lCoverageTop, double lRailHeight)
-    {
-        var lOver = new List<QMapShape>();
-        lOver.Add(new QMapShape(
-            QMapShapeKind.QMapShapeCoverage, 0, lCoverageTop, lWidth, lCoverageTop + QMapCoverageHeight, 0));
-        QMapCoverageAdd(lOver, lSpool, lWidth, lCoverageTop);
+    private void QMapSectionsHandle() => QMapTriggerApply("sections");
 
-        var lCursor = new List<double>();
-        double lBodyLeft = QMapSpoolResolve(lSpool, lSpool.LSpoolRangeOrigin, lWidth);
-        double lBodyRight = QMapSpoolResolve(lSpool, lSpool.LSpoolRangeLimit, lWidth);
-        double lBodyWidth = Math.Max(0, Math.Max(lBodyLeft, lBodyRight) - Math.Min(lBodyLeft, lBodyRight));
-        if (lBodyWidth > 0)
-        {
-            QMapNavigator.QMapNavigatorAdd(lOver, Math.Min(lBodyLeft, lBodyRight), lBodyWidth, lRailHeight, lWidth);
-            lCursor.Add(Math.Clamp(lSpool.LSpoolRatioResolve(qFlow.QFlowCursor), 0, 1) * lWidth);
-        }
+    private void QMapKeyframesHandle() => QMapTriggerApply("keyframes");
 
-        return lFrame with { QMapFrameOver = lOver, QMapFrameCursor = lCursor };
-    }
-
-    private void QMapGlyphSet(int lGlyphCount) => qMapGlyphCount = lGlyphCount;
-
-    private void QMapHoverSet(QMapHitKind lHoverKind) => qMapHoverKind = lHoverKind;
-
-    private void QMapDragStart(double lX, double lY, double lWidth, double lHeight)
-    {
-        qMapDragOrigin = lX;
-        qMapPreviousX = lX;
-        qMapDragKind = QMapHitResolve(lX, lY, lWidth, lHeight);
-        qMapHoverKind = qMapDragKind;
-    }
-
-    private void QMapPressDispatch(LSpool lSpool, double lX, double lWidth)
-    {
-        switch (qMapDragKind)
-        {
-            case QMapHitKind.QMapHitOrigin:
-                qFlow.QFlowSpool.QFlowDragSet(lSpool.LSpoolRangeOrigin);
-                break;
-            case QMapHitKind.QMapHitLimit:
-                qFlow.QFlowSpool.QFlowDragSet(lSpool.LSpoolRangeLimit);
-                break;
-        }
-
-        qFlow.QFlowWheel.QFlowDragHandle(true);
-        if (qMapDragKind == QMapHitKind.QMapHitCursor)
-        {
-            qFlow.QFlowCursorSeek(QMapTimeResolve(lSpool, lX, lWidth));
-        }
-    }
-
-    private void QMapMoveDispatch(LSpool lSpool, double lX, double lWidth)
-    {
-        TimeSpan lDragDelta = QMapDeltaResolve(lSpool, lX, lWidth);
-        switch (qMapDragKind)
-        {
-            case QMapHitKind.QMapHitOrigin:
-                lSpool.LSpoolStartSet(qFlow.QFlowSpool.QFlowDragTime + lDragDelta);
-                qFlow.QFlowSpool.QFlowSpoolHandle();
-                break;
-            case QMapHitKind.QMapHitLimit:
-                lSpool.LSpoolEndSet(qFlow.QFlowSpool.QFlowDragTime + lDragDelta);
-                qFlow.QFlowSpool.QFlowSpoolHandle();
-                break;
-            case QMapHitKind.QMapHitBody:
-                lSpool.LSpoolMove(QMapStepResolve(lSpool, lX, lWidth));
-                QMapPreviousSet(lX);
-                qFlow.QFlowSpool.QFlowSpoolHandle();
-                break;
-            case QMapHitKind.QMapHitCursor:
-                qFlow.QFlowCursorSeek(QMapTimeResolve(lSpool, lX, lWidth));
-                break;
-        }
-    }
-
-    private TimeSpan QMapDeltaResolve(LSpool lSpool, double lX, double lWidth) =>
-        lSpool.LSpoolTimeResolve((lX - qMapDragOrigin) / lWidth);
-
-    private TimeSpan QMapStepResolve(LSpool lSpool, double lX, double lWidth) =>
-        lSpool.LSpoolTimeResolve((lX - qMapPreviousX) / lWidth);
-
-    private void QMapPreviousSet(double lX) => qMapPreviousX = lX;
-
-    private bool QMapDragCheck() => qMapDragKind != QMapHitKind.QMapHitNone;
-
-    private void QMapDragReset() => qMapDragKind = QMapHitKind.QMapHitNone;
+    private void QMapWaveformHandle() => QMapTriggerApply("waveform");
 
     private void QMapTriggerApply(string lTrigger)
     {
-        qMapTrigger = lTrigger;
+        QMapGate.CMapTriggerSet(lTrigger);
         QMapFrameApplied?.Invoke();
     }
 
-    private static TimeSpan QMapTimeResolve(LSpool lSpool, double lX, double lWidth) =>
-        lSpool.LSpoolTimeResolve(Math.Clamp(lX / lWidth, 0, 1));
+    private void QMapDragRaise(bool lDragging) => qFlow.QFlowWheel.QFlowDragHandle(lDragging);
 
-    private static double QMapSpoolResolve(LSpool lSpool, TimeSpan lTime, double lWidth) =>
-        Math.Clamp(lSpool.LSpoolRatioResolve(lTime), 0, 1) * lWidth;
+    private void QMapSpoolRaise() => qFlow.QFlowSpool.QFlowSpoolHandle();
 
-    private QMapHitKind QMapHitResolve(double lX, double lY, double lWidth, double lHeight)
+    // The gate's frame as the surface's shapes: the background and the rail under the bands, then the coverage strip,
+    // its scans and the navigator over them.
+    private static QMapFrame QMapFrameBuild(CMapFrame lFrame, double lWidth, double lHeight)
     {
-        if (qFlow.QFlowRange is not { } lSpool || lWidth <= 0)
+        var lUnder = new List<QMapShape>();
+        var lOver = new List<QMapShape>();
+        if (lFrame.CMapFrameSized)
         {
-            return QMapHitKind.QMapHitNone;
+            lUnder.Add(new QMapShape(QMapShapeKind.QMapShapeBackground, 0, 0, lWidth, lHeight, 0));
         }
 
-        double lOriginX = QMapSpoolResolve(lSpool, lSpool.LSpoolRangeOrigin, lWidth);
-        double lLimitX = QMapSpoolResolve(lSpool, lSpool.LSpoolRangeLimit, lWidth);
-        double lBodyLeft = Math.Min(lOriginX, lLimitX);
-        double lBodyWidth = Math.Max(0, Math.Max(lOriginX, lLimitX) - lBodyLeft);
-        double lCoverageTop = Math.Max(0, Math.Max(0, lHeight - 1) - QMapCoverageHeight);
-        double lRailBottom = Math.Max(QMapRailTop, lCoverageTop - 2);
-        double lHandleWidth = Math.Min(QMapHandleWidth, lBodyWidth);
-        bool lInsideY = lY >= QMapRailTop && lY <= lRailBottom;
-        if (lInsideY && lX >= lBodyLeft && lX <= lBodyLeft + lHandleWidth)
+        if (lFrame.CMapFrameRailed)
         {
-            return QMapHitKind.QMapHitOrigin;
+            lUnder.Add(new QMapShape(
+                lFrame.CMapFrameWaveform ? QMapShapeKind.QMapShapeWaveform : QMapShapeKind.QMapShapeRail,
+                0, QMapRailTop, lWidth, lFrame.CMapFrameBottom, 3));
+            QMapCoverageAdd(lOver, lFrame, lWidth);
         }
 
-        if (lInsideY && lX >= lBodyLeft + lBodyWidth - lHandleWidth && lX <= lBodyLeft + lBodyWidth)
-        {
-            return QMapHitKind.QMapHitLimit;
-        }
-
-        (double lMoveLeft, double lMoveWidth, double lMoveHeight) =
-            QMapNavigator.LMapMoveResolve(lBodyLeft, lBodyWidth, lRailBottom - QMapRailTop, lHandleWidth, lWidth);
-        bool lInsideMove = lMoveWidth > 0
-            && lX >= lMoveLeft && lX <= lMoveLeft + lMoveWidth
-            && lY >= QMapRailTop && lY <= QMapRailTop + lMoveHeight;
-        return lInsideMove ? QMapHitKind.QMapHitBody : QMapHitKind.QMapHitCursor;
+        (double lOriginX, double lOriginY, IReadOnlyList<(double, double)> lPoints) = lFrame.CMapFrameOutline;
+        return new QMapFrame(
+            lUnder,
+            new QFlowWaveformOutline(
+                lOriginX,
+                lOriginY,
+                lPoints.Select(lPoint => new QFlowWaveformPoint(lPoint.Item1, lPoint.Item2)).ToArray()),
+            lFrame.CMapFrameBands.Select(QMapBandBuild).ToArray(),
+            lOver,
+            lFrame.CMapFrameCursor);
     }
 
-    private IReadOnlyList<QMapBand> QMapBandsResolve(LSpool lSpool, double lWidth, double lRailHeight)
+    private static void QMapCoverageAdd(List<QMapShape> lOver, CMapFrame lFrame, double lWidth)
     {
-        IReadOnlyList<LPiece> lSections = qFlow.QFlowSection.QFlowSectionsRead();
-        double lDurationSeconds = lSpool.LSpoolDuration.TotalSeconds;
-        var lBands = new List<QMapBand>(lSections.Count);
-        double lTop = QMapRailTop + QMapSectionInset;
-        double lHeight = Math.Max(4, lRailHeight - QMapSectionInset * 2);
-        for (int lIndex = 0; lIndex < lSections.Count; lIndex++)
+        (double lTop, double lBottom) = lFrame.CMapFrameCoverage;
+        lOver.Add(new QMapShape(QMapShapeKind.QMapShapeCoverage, 0, lTop, lWidth, lBottom, 0));
+        lOver.AddRange(lFrame.CMapFrameScans.Select(lScan =>
+            new QMapShape(QMapShapeKind.QMapShapeScanned, lScan.Item1, lTop, lScan.Item1 + lScan.Item2, lBottom, 0)));
+        if (lFrame.CMapFrameBody is { } lBody)
         {
-            LPiece lSection = lSections[lIndex];
-            if (lSection.LPieceEnd <= lSection.LPieceOrigin)
-            {
-                continue;
-            }
-
-            double lLeft = Math.Clamp(lSection.LPieceOrigin.TotalSeconds / lDurationSeconds * lWidth, 0, lWidth);
-            double lRight = Math.Clamp(lSection.LPieceEnd.TotalSeconds / lDurationSeconds * lWidth, 0, lWidth);
-            lBands.Add(new QMapBand(
-                lLeft,
-                lTop,
-                lLeft + Math.Max(1, lRight - lLeft),
-                lTop + lHeight,
-                lSection.LPieceColorIndex,
-                $"{lIndex + 1}",
-                !lSection.LPieceHidden,
-                lIndex == qFlow.QFlowEdit.QFlowSectionIndex));
-        }
-
-        return lBands;
-    }
-
-    private void QMapCoverageAdd(List<QMapShape> lOver, LSpool lSpool, double lWidth, double lCoverageTop)
-    {
-        double lDurationSeconds = lSpool.LSpoolDuration.TotalSeconds;
-        IReadOnlyList<LKeyframeScanRange> lRanges = qFlow.QFlowKeyframe.QFlowKeyframeRanges;
-        foreach (LKeyframeScanRange lRange in LKeyframeView.LKeyframeCoverageResolve(lRanges, lSpool, true))
-        {
-            double lLeft = Math.Clamp(lRange.LKeyframeRangeOrigin.TotalSeconds / lDurationSeconds * lWidth, 0, lWidth);
-            double lRight = Math.Clamp(lRange.LKeyframeRangeLimit.TotalSeconds / lDurationSeconds * lWidth, 0, lWidth);
-            double lScanWidth = Math.Min(Math.Max(1, lRight - lLeft), Math.Max(0, lWidth - lLeft));
-            if (lScanWidth <= 0)
-            {
-                continue;
-            }
-
-            lOver.Add(new QMapShape(
-                QMapShapeKind.QMapShapeScanned,
-                lLeft,
-                lCoverageTop,
-                lLeft + lScanWidth,
-                lCoverageTop + QMapCoverageHeight,
-                0));
+            QMapNavigator.QMapNavigatorAdd(lOver, lBody.Item1, lBody.Item2, lBody.Item3, lWidth);
         }
     }
+
+    private static QMapBand QMapBandBuild(CMapBand lBand) =>
+        new(
+            lBand.CMapBandLeft,
+            lBand.CMapBandTop,
+            lBand.CMapBandRight,
+            lBand.CMapBandBottom,
+            lBand.CMapBandColor,
+            lBand.CMapBandBadge,
+            lBand.CMapBandShown,
+            lBand.CMapBandSelected);
 }

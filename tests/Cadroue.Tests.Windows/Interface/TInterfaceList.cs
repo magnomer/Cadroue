@@ -14,15 +14,8 @@ internal static class TInterfaceList
     internal static QList TListCreate() => new(TInterface.TAtelierCreate());
 
     // As the host builds it: one list's docket over the media scan.
-    internal static LListPort TListOutletCreate(Func<string, string> name) => new LListOutlet(name, TListScan);
-
-    private static async Task<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)> TListScan(
-        IReadOnlyList<string> paths, System.Threading.CancellationToken token)
-    {
-        Cadroue.Media.LMediaScanResult scan = await Cadroue.Media.LMedia.LMediaPathScan(paths, token);
-        return (scan.LMediaScanPaths,
-            scan.LMediaScanNotices.Select(notice => (notice.LMediaScanFolder, notice.LMediaScanReason)).ToArray());
-    }
+    internal static LListPort TListOutletCreate(Func<string, string> name) =>
+        LListOutlet.LListOutletCreate(Cadroue.Infrastructure.LRigFactoryList.LRigListCreate())(name);
 
     internal static void TListPathAttach(QList list, Action<string?> handler) => list.QListPathChanged += handler;
     internal static void TListSelect(QList list, string? path) => list.QListGate.CListSelect(path);
@@ -58,19 +51,29 @@ internal static class TInterfaceList
 
     internal static IReadOnlyList<LDocketEntry> TDocketItemsRead(LDocket docket) => docket.LDocketItemsRead();
 
-    internal static void TListRelayAttach(QStrip strip) =>
-        QListRelay.QListRelayAttach(strip, TInterface.TAtelierCreate().CAtelierUsher);
+    // As the host builds it, over the media scan and the trace log.
+    internal static LRelayPort TRelayOutletCreate() =>
+        new LRelayOutlet(
+            Cadroue.Media.LMedia.LMediaFileRead,
+            Cadroue.Media.LMedia.LMediaCheck,
+            Cadroue.Infrastructure.LTraceLog.LTraceInfoRecord,
+            Cadroue.Infrastructure.LTraceLog.LTraceWarningRecord);
+
+    // The strip's relay gate takes the engine's delivery seams; each helper below calls the seam the engine calls.
+    internal static void TListRelayAttach(QStrip strip) => strip.QStripRelay.QStripListAttach();
     internal static bool TListDeliveredAdd(Guid tab, string path, Guid batch) =>
-        QListRelay.QListDeliveredAdd(tab, path, batch);
+        LCartographer.LCartographerDeliverySeam!.LCartographerTabIntake(tab, path, batch);
     internal static bool TListDeliveredCommit(Guid tab, string path, Guid batch) =>
-        QListRelay.QListDeliveredCommit(tab, path, batch);
+        LCartographer.LCartographerDeliverySeam!.LCartographerTabTrack(tab, path, batch);
     internal static void TListDeliveredRemove(LWorkItem work, bool force) =>
-        QListRelay.QListDeliveredRemove(work, force);
-    internal static void TListBatchRemove(params Guid[] batches) => QListRelay.QListBatchRemove(batches);
-    internal static bool TListSourceClaim(params LWorkItem[] accepted) => QListRelay.QListSourceClaim(accepted);
+        LCartographer.LCartographerDeliverySeam!.LCartographerSourceDrop(work, force);
+    internal static void TListBatchRemove(params Guid[] batches) =>
+        LCartographer.LCartographerDeliverySeam!.LCartographerBatchEvict(batches);
+    internal static bool TListSourceClaim(params LWorkItem[] accepted) =>
+        LCartographer.LCartographerLockSeam!(accepted);
     internal static void TListSourceRelease(
         IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> unlocks) =>
-        QListRelay.QListSourceRelease(unlocks);
+        LCartographer.LCartographerDeliverySeam!.LCartographerSourceUnlock(unlocks);
 
     internal static int TDocketDeliveredAdd(LDocket docket, string path, Guid batch, bool locked) =>
         docket.LDocketDeliveredAdd([path], batch, locked);

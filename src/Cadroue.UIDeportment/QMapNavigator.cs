@@ -1,3 +1,5 @@
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
 public static class QMapNavigator
@@ -58,7 +60,7 @@ public static class QMapNavigator
             lRight - lSideWidth / 2, lTop + lGripInset, lRight - lSideWidth / 2, lBottom - lGripInset, 0));
 
         (double lMoveLeft, double lMoveWidth, double lMoveHeight) =
-            LMapMoveResolve(lBodyLeft, lBodyWidth, lBodyHeight, lGrabWidth, lWidth);
+            CMap.CMapMoveResolve(lBodyLeft, lBodyWidth, lBodyHeight, lGrabWidth, lWidth);
         double lGripWidth = Math.Min(lMoveWidth, lMoveWidth * QMapGripRate);
         double lGripHeight = Math.Min(lMoveHeight, lPaintHeight) - QMapGripInset * 2;
         if (lMoveWidth > 0 && lMoveHeight > 0 && lGripWidth > 0 && lGripHeight > 0)
@@ -103,23 +105,5 @@ public static class QMapNavigator
                 lOver.Add(new QMapShape(QMapShapeKind.QMapShapeDot, lX, lY, lX, lY, 1.3));
             }
         }
-    }
-
-    internal static (double, double, double) LMapMoveResolve(
-        double lBodyLeft, double lBodyWidth, double lBodyHeight, double lSideWidth, double lWidth)
-    {
-        double lMoveHeight = Math.Clamp(lBodyHeight, 1, 16);
-        double lSpaceWidth = Math.Max(0, lBodyWidth - lSideWidth * 2);
-        if (lSpaceWidth <= 0)
-        {
-            return (0, 0, 0);
-        }
-
-        double lMoveWidth = Math.Clamp(lBodyWidth * 0.42, Math.Min(72, lSpaceWidth), Math.Min(320, lSpaceWidth));
-        double lCentered = lBodyLeft + (lBodyWidth - lMoveWidth) / 2;
-        double lLeftMinimum = lBodyLeft + lSideWidth;
-        double lLeftMaximum = lBodyLeft + lBodyWidth - lSideWidth - lMoveWidth;
-        double lMoveLeft = lLeftMaximum < lLeftMinimum ? lCentered : Math.Clamp(lCentered, lLeftMinimum, lLeftMaximum);
-        return (Math.Clamp(lMoveLeft, 0, Math.Max(0, lWidth - lMoveWidth)), lMoveWidth, lMoveHeight);
     }
 }

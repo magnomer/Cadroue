@@ -18,6 +18,10 @@ public interface LSectionPort
 
     int LSectionVersionRead();
 
+    // Each section's name, affixes, span, colour and whether it is hidden, in store order.
+    IReadOnlyList<(string LSectionName, string LSectionPrefix, string LSectionSuffix, TimeSpan LSectionOrigin,
+        TimeSpan LSectionEnd, int LSectionColor, bool LSectionHidden)> LSectionRowsRead();
+
     void LSectionAttach(string? lSource);
 
     void LSectionLoad(TimeSpan lDuration);

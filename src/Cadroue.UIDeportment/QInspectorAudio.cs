@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.ShellEngine;
@@ -7,15 +6,14 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QInspectorAudio
 {
-    private readonly QSkip qInspectorSkip;
     private readonly CInspector qInspectorAudioGate;
     private int qInspectorAudioDepth;
 
-    public QInspectorAudio(QSkip lSkip, CInspector lInspector)
+    public QInspectorAudio(CInspector lInspector)
     {
-        qInspectorSkip = lSkip;
         qInspectorAudioGate = lInspector;
         QInspectorVolume = lInspector.CInspectorVolume;
+        QInspectorLoudness = new QLoudness(lInspector.CInspectorLoudness);
         QInspectorEqualizer = new QEqualizer(lInspector.CInspectorEqualizer);
         QInspectorNoise = new QNoise(lInspector.CInspectorNoise);
         QInspectorHighpass = new QFilter(lInspector.CInspectorHighpass);
@@ -26,7 +24,7 @@ public sealed class QInspectorAudio
     private void QInspectorAudioAttach()
     {
         QInspectorVolume.CVolumeChanged += QInspectorAudioRaise;
-        QInspectorLoudness.QLoudnessChanged += QInspectorAudioRaise;
+        qInspectorAudioGate.CInspectorLoudness.CLoudnessChanged += QInspectorAudioRaise;
         QInspectorNoise.QNoiseChanged += QInspectorAudioRaise;
         qInspectorAudioGate.CInspectorHighpass.CFilterChanged += QInspectorAudioRaise;
         qInspectorAudioGate.CInspectorLowpass.CFilterChanged += QInspectorAudioRaise;
@@ -37,7 +35,7 @@ public sealed class QInspectorAudio
 
     public CVolume QInspectorVolume { get; }
 
-    public QLoudness QInspectorLoudness { get; } = new();
+    public QLoudness QInspectorLoudness { get; }
 
     public QNoise QInspectorNoise { get; }
 
@@ -49,7 +47,7 @@ public sealed class QInspectorAudio
 
     public LWorkAudioStep QInspectorStepRead(LAudioKind lKind) => lKind switch
     {
-        LAudioKind.LAudioKindLeveling => QInspectorLoudness.QLoudnessStep,
+        LAudioKind.LAudioKindLeveling => QInspectorLevelingBuild(),
         LAudioKind.LAudioKindDenoise => QInspectorNoiseBuild(),
         LAudioKind.LAudioKindHighpass => QInspectorFilterBuild(qInspectorAudioGate.CInspectorHighpass, true),
         LAudioKind.LAudioKindLowpass => QInspectorFilterBuild(qInspectorAudioGate.CInspectorLowpass, false),
@@ -58,94 +56,35 @@ public sealed class QInspectorAudio
     };
 
     public LWorkAudio QInspectorAudioRead(IEnumerable<LAudioKind> lOrder) =>
-        new(lOrder.Select(QInspectorStepRead).ToList()) { LWorkAudioSkip = qInspectorSkip.QSkipActive };
+        new(lOrder.Select(QInspectorStepRead).ToList())
+        {
+            LWorkAudioSkip = qInspectorAudioGate.CInspectorSkip.CSkipActive
+        };
 
     public void QInspectorAudioApply(LWorkAudio lPlan)
     {
         qInspectorAudioDepth++;
         qInspectorAudioGate.CInspectorAudioAccept(new LInspectorOutlet(lPlan));
-        QInspectorLoudness.QLoudnessStepSet(QInspectorStepResolve(lPlan, LAudioKind.LAudioKindLeveling));
         qInspectorAudioDepth--;
         QInspectorAudioChanged?.Invoke();
     }
 
     public bool QInspectorPersistentCheck() =>
         QInspectorVolume.CVolumePersistent
-        || QInspectorLoudness.QLoudnessPersistent
+        || qInspectorAudioGate.CInspectorLoudness.CLoudnessPersistent
         || QInspectorNoise.QNoisePersistent
         || qInspectorAudioGate.CInspectorHighpass.CFilterPersistent
         || qInspectorAudioGate.CInspectorLowpass.CFilterPersistent
         || QInspectorEqualizer.QEqualizerPersistent
-        || qInspectorSkip.QSkipPersistent;
+        || qInspectorAudioGate.CInspectorSkip.CSkipPersistent;
 
-    public void QInspectorPersistentApply(LWorkAudio lPlan, bool lSkipPersistent)
-    {
-        foreach (LWorkAudioStep lStep in lPlan.LWorkAudioSteps)
-        {
-            switch (lStep.LWorkStepKind)
-            {
-                case LAudioKind.LAudioKindHighpass:
-                    qInspectorAudioGate.CInspectorHighpass.CFilterPersistentSet(true);
-                    break;
-                case LAudioKind.LAudioKindLowpass:
-                    qInspectorAudioGate.CInspectorLowpass.CFilterPersistentSet(true);
-                    break;
-                case LAudioKind.LAudioKindDenoise:
-                    QInspectorNoise.QNoisePersistentSet(true);
-                    break;
-                case LAudioKind.LAudioKindVolume:
-                    QInspectorVolume.CVolumePersistentSet(true);
-                    break;
-                case LAudioKind.LAudioKindLeveling:
-                    QInspectorLoudness.QLoudnessPersistentSet(true);
-                    break;
-                case LAudioKind.LAudioKindEqualizer:
-                    QInspectorEqualizer.QEqualizerPersistentSet(true);
-                    break;
-            }
-        }
+    // The plan was applied just before: the gate keeps each gated tool of the plan it holds, then the skip switch.
+    public void QInspectorPersistentApply(bool lSkipPersistent) =>
+        qInspectorAudioGate.CInspectorPersistentAccept(lSkipPersistent);
 
-        qInspectorSkip.QSkipPersistentSet(lSkipPersistent);
-    }
-
-    public LWorkAudio QInspectorPersistentRead()
-    {
-        var lSteps = new List<LWorkAudioStep>();
-        if (qInspectorAudioGate.CInspectorHighpass.CFilterPersistent)
-        {
-            lSteps.Add(QInspectorFilterBuild(qInspectorAudioGate.CInspectorHighpass, true));
-        }
-
-        if (qInspectorAudioGate.CInspectorLowpass.CFilterPersistent)
-        {
-            lSteps.Add(QInspectorFilterBuild(qInspectorAudioGate.CInspectorLowpass, false));
-        }
-
-        if (QInspectorNoise.QNoisePersistent)
-        {
-            lSteps.Add(QInspectorNoiseBuild());
-        }
-
-        if (QInspectorVolume.CVolumePersistent)
-        {
-            lSteps.Add(QInspectorVolumeBuild());
-        }
-
-        if (QInspectorLoudness.QLoudnessPersistent)
-        {
-            lSteps.Add(QInspectorLoudness.QLoudnessStep);
-        }
-
-        if (QInspectorEqualizer.QEqualizerPersistent)
-        {
-            lSteps.Add(QInspectorEqualizerBuild());
-        }
-
-        return new LWorkAudio(lSteps)
-        {
-            LWorkAudioSkip = qInspectorSkip.QSkipPersistent && qInspectorSkip.QSkipActive
-        };
-    }
+    // The gate answers the kept plan of its tools with the kept skip switch.
+    public LWorkAudio QInspectorPersistentRead() =>
+        qInspectorAudioGate.CInspectorPersistentRead().LInspectorAudioRead();
 
     private void QInspectorAudioRaise()
     {
@@ -175,13 +114,15 @@ public sealed class QInspectorAudio
             qInspectorAudioGate.CInspectorNoise.CNoiseTrack,
             qInspectorAudioGate.CInspectorNoise.CNoiseType);
 
+    // The engine builds the leveling step from the gate's plain values, as the noise step below.
+    private LWorkAudioStep QInspectorLevelingBuild() =>
+        LLoudnessOutlet.LLoudnessStepCreate(
+            qInspectorAudioGate.CInspectorLoudness.CLoudnessActive,
+            qInspectorAudioGate.CInspectorLoudness.CLoudnessDynamic,
+            qInspectorAudioGate.CInspectorLoudness.CLoudnessValues,
+            qInspectorAudioGate.CInspectorLoudness.CLoudnessTwoPass);
+
     // The engine builds a pass step from its gate's plain values, as the noise step above.
     private static LWorkAudioStep QInspectorFilterBuild(CFilter lFilter, bool lHigh) =>
         LFilterOutlet.LFilterStepCreate(lHigh, lFilter.CFilterActive, lFilter.CFilterValues, lFilter.CFilterPoles);
-
-    private static LWorkAudioStep QInspectorStepResolve(LWorkAudio lPlan, LAudioKind lKind) =>
-        QInspectorStepFind(lPlan, lKind) ?? LAudio.LAudioNormalizeCreate();
-
-    private static LWorkAudioStep? QInspectorStepFind(LWorkAudio lPlan, LAudioKind lKind) =>
-        lPlan.LWorkAudioSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);
 }

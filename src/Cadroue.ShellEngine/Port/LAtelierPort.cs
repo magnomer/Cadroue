@@ -37,13 +37,21 @@ public sealed record LAtelierPort
 
     public required LFlowPort LAtelierFlow { get; init; }
 
+    public required LMapPort LAtelierMap { get; init; }
+
     public required LRosterDetailPort LAtelierRosterDetail { get; init; }
 
     public required LWhitebalancePort LAtelierWhitebalance { get; init; }
     public required LFilterPort LAtelierFilter { get; init; }
 
+    public required LAudioPort LAtelierAudio { get; init; }
+
+    public required LLoudnessPort LAtelierLoudness { get; init; }
+
     public required LConsoleScenePort LAtelierScene { get; init; }
 
     // Each list's own port, built for it over the name reader its traces use.
     public required Func<Func<string, string>, LListPort> LAtelierList { get; init; }
+
+    public required LRelayPort LAtelierRelay { get; init; }
 }

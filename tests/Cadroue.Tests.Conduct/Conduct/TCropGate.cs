@@ -258,4 +258,44 @@ public sealed class TCropGate
 
         Assert.Equal(call is null ? [] : [call], tCropPort.TCropCalls);
     }
+
+    [Fact]
+    public void CropNotice_NoSourceOrFreeRatio_ShowsNone()
+    {
+        tCropPort.TCropSource = (false, 1920, 1080);
+        Assert.Null(tCropGate.CCropNotice);
+
+        tCropPort.TCropSource = (true, 1920, 1080);
+        Assert.Null(tCropGate.CCropNotice);
+        Assert.DoesNotContain(tCropPort.TCropCalls, call => call.StartsWith("notice", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void CropNotice_NoSize_FrameOrRatioError()
+    {
+        tCropPort.TCropSource = (true, 0, 1080);
+        Assert.Equal(("Inspector.Crop.FrameError", (int?)null), tCropGate.CCropNotice);
+
+        tCropPort.TCropSource = (true, 1920, 1080);
+        tCropPort.TCropState = (true, false, true, false, 0, 9);
+        Assert.Equal(("Inspector.Crop.RatioError", (int?)null), tCropGate.CCropNotice);
+    }
+
+    [Fact]
+    public void CropNotice_FixedRatioRunOver_NamesTheSide_UnlessTolerated()
+    {
+        tCropPort.TCropState = (true, false, true, false, 16, 9);
+        tCropPort.TCropNotice = (true, 12, true);
+        Assert.Equal(("Inspector.Crop.WidthMismatch", (int?)12), tCropGate.CCropNotice);
+        Assert.Contains("notice 1920x1080", tCropPort.TCropCalls);
+
+        tCropPort.TCropNotice = (true, 12, false);
+        Assert.Equal(("Inspector.Crop.HeightMismatch", (int?)12), tCropGate.CCropNotice);
+
+        tCropPort.TCropState = (true, false, true, true, 16, 9);
+        Assert.Null(tCropGate.CCropNotice);
+
+        tCropPort.TCropNotice = (false, 0, true);
+        Assert.Null(tCropGate.CCropNotice);
+    }
 }

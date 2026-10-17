@@ -50,6 +50,18 @@ public sealed class LCropOutlet : LCropPort
 
     public (bool LCropPresent, double LCropWidth, double LCropHeight) LCropSourceRead() => _lCropOutletSource();
 
+    // A crop size against the held ratio: whether the lenient tolerance accepts it, and the whole pixels it runs over
+    // the ratio, with true when the excess is on the width.
+    public (bool LCropTolerated, int LCropExcess, bool LCropWide) LCropNoticeRead(double lWidth, double lHeight)
+    {
+        LCropboxRatio lRatio = _lCropOutletState.LCropboxStateRatio;
+        bool lTolerated = LCropbox.LCropboxToleranceCheck(
+            lWidth, lHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
+        (int lExcess, bool lWide) = LCropbox.LCropboxExcessResolve(
+            lWidth, lHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
+        return (lTolerated, lExcess, lWide);
+    }
+
     public bool LCropRectCheck() => LCropRectRead() is not null;
 
     public (int LCropWidth, int LCropHeight) LCropRatioNormalize(int lWidth, int lHeight)
@@ -157,6 +169,14 @@ public sealed class LCropOutlet : LCropPort
         _lCropOutletLock.LCropboxEdgeClear();
         _lCropOutletState.LCropboxCropSet(lCrop);
         _lCropOutletState.LCropboxApplySet(lApply);
+    }
+
+    // A plan's crop is applied as the plan holds it, with whether it applies.
+    public void LCropWorkApply(LInspectorPort lPlan)
+    {
+        ArgumentNullException.ThrowIfNull(lPlan);
+        (LWorkCrop lCrop, bool lApply) = lPlan.LInspectorCropRead();
+        LCropWorkApply(lCrop, lApply);
     }
 
     private static (int, int, int, int) LCropEdgesRead(LWorkCrop lCrop) =>

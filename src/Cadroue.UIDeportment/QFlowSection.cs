@@ -17,9 +17,13 @@ public sealed class QFlowSection
         qFlow = lOwner;
         qFlowSectionGate = lGate;
         qFlowSectionGate.CSectionChanged += QFlowSectionHandle;
+        qFlowSectionGate.CSectionEditableChanged += QFlowEditableHandle;
     }
 
     public event Action<IReadOnlyList<LPiece>, int?>? QFlowSectionChanged;
+
+    // The sections gate, handed on to the drivers that call it themselves.
+    public CSection QFlowSectionGate => qFlowSectionGate;
 
     public LSegment QFlowSegment => qFlowSectionGate.CSectionSegment;
 
@@ -149,6 +153,8 @@ public sealed class QFlowSection
         IReadOnlyList<LSweepSpan> lKept,
         IReadOnlyList<LSweepBoundary> lBoundaries) =>
         qFlowSectionGate.CSectionCombineApply(lExcluded, lKept, lBoundaries);
+
+    private void QFlowEditableHandle(bool lEditable) => qFlow.QFlowEdit.QFlowEditRaise(lEditable);
 
     private void QFlowSectionHandle()
     {

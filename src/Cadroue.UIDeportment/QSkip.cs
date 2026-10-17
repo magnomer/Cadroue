@@ -1,37 +1,28 @@
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
+// The skip tool's wiring: answers the gate's switches and hands each switch to the gate.
 public sealed class QSkip
 {
-    private bool qSkipActive;
-    private bool qSkipPersistent;
+    private readonly CSkip qSkipGate;
 
-    public event Action? QSkipChanged;
-    public event Action? QSkipActiveChanged;
-
-    public bool QSkipActive => qSkipActive;
-
-    public bool QSkipPersistent => qSkipPersistent;
-
-    public void QSkipActiveSet(bool lActive)
+    public QSkip(CSkip lGate)
     {
-        if (qSkipActive == lActive)
-        {
-            return;
-        }
-
-        qSkipActive = lActive;
-        QSkipChanged?.Invoke();
-        QSkipActiveChanged?.Invoke();
+        qSkipGate = lGate;
     }
 
-    public void QSkipPersistentSet(bool lPersistent)
+    public event Action? QSkipChanged
     {
-        if (qSkipPersistent == lPersistent)
-        {
-            return;
-        }
-
-        qSkipPersistent = lPersistent;
-        QSkipChanged?.Invoke();
+        add => qSkipGate.CSkipChanged += value;
+        remove => qSkipGate.CSkipChanged -= value;
     }
+
+    public bool QSkipActive => qSkipGate.CSkipActive;
+
+    public bool QSkipPersistent => qSkipGate.CSkipPersistent;
+
+    public void QSkipActiveSet(bool lActive) => qSkipGate.CSkipActiveSet(lActive);
+
+    public void QSkipPersistentSet(bool lPersistent) => qSkipGate.CSkipPersistentSet(lPersistent);
 }

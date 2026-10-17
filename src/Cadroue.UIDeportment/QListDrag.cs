@@ -18,16 +18,12 @@ public sealed class QListDrag
 
     public IReadOnlyList<string> QListDragPaths => qListDragGate.CListDragPaths;
 
+    // The grab point is kept on every press: only a press the gate lets a drag start from is ever dragged.
     public bool QListPressHandle(
         string lListPath, bool lShift, bool lControl, double lX, double lY, double lGrabX, double lGrabY)
     {
-        if (!qListDragGate.CListPressHandle(lListPath, lShift, lControl, lX, lY))
-        {
-            return false;
-        }
-
         qListGhost = new QGhost(lGrabX, lGrabY);
-        return true;
+        return qListDragGate.CListPressHandle(lListPath, lShift, lControl, lX, lY);
     }
 
     public bool QListDragResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed) =>

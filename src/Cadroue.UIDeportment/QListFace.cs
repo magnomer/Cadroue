@@ -1,4 +1,3 @@
-using Cadroue.Application;
 using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
@@ -13,73 +12,56 @@ public sealed record QListRow(
 
 public sealed record QListCard(bool QListCardLocked, string QListCardTitle, IReadOnlyList<QListRow> QListCardRows);
 
+// The list's cards and row looks: paints the list gate's cards with their wording and maps a row's marks to its look.
+// Both reads serve the Veneer list (PList).
 public sealed class QListFace
 {
-    private readonly QList qList;
-    private readonly CUsher qListUsher;
+    private readonly CList qListGate;
 
-    public QListFace(QList lOwner, CUsher lUsher)
+    public QListFace(CList lGate)
     {
-        qList = lOwner;
-        qListUsher = lUsher;
+        qListGate = lGate;
     }
 
-    public IReadOnlyList<QListCard> QListCardsRead()
-    {
-        var lCards = new List<QListCard>();
-        var lShown = new HashSet<Guid>();
-        IReadOnlyList<LDocketEntry> lEntries = qList.QListDocket.LDocketItemsRead();
-        foreach (LDocketEntry lItem in lEntries)
+    // A row's look by whether it is locked and whether it is selected.
+    private static readonly IReadOnlyDictionary<(bool, bool), string> QListLooks =
+        new Dictionary<(bool, bool), string>
         {
-            if (!lItem.LDocketEntryLocked)
-            {
-                lCards.Add(new QListCard(false, string.Empty, [QListRowCreate(lItem, true)]));
-                continue;
-            }
+            [(true, true)] = "LockedSelected",
+            [(true, false)] = "Locked",
+            [(false, true)] = "Selected",
+            [(false, false)] = "Plain",
+        };
 
-            if (!lShown.Add(lItem.LDocketEntryBatch))
-            {
-                continue;
-            }
+    // The line a locked row's tip adds under its path.
+    private static string QListTip => QLocalizationCatalog.QLocalizationTextRead("List.Locked.Tooltip");
 
-            LDocketEntry[] lGroup = lEntries
-                .Where(lCandidate => lCandidate.LDocketEntryLocked
-                    && lCandidate.LDocketEntryBatch == lItem.LDocketEntryBatch)
-                .ToArray();
-            QListRow[] lRows = lGroup
-                .Select((lEntry, lIndex) => QListRowCreate(lEntry, lIndex < lGroup.Length - 1))
-                .ToArray();
-            lCards.Add(new QListCard(true, QListTitleRead(lGroup.Length), lRows));
-        }
-
-        return lCards;
-    }
+    public IReadOnlyList<QListCard> QListCardsRead() =>
+        qListGate.CListCardsRead()
+            .Select(lCard => new QListCard(
+                lCard.CListCardLocked,
+                (lCard.CListCardLocked, lCard.CListCardRows.Count) switch
+                {
+                    (false, _) => string.Empty,
+                    (true, 1) => QLocalizationCatalog.QLocalizationTextRead("List.Locked.SummaryOne"),
+                    (true, int lCount) => QLocalizationCatalog.QLocalizationFormat("List.Locked.SummaryMany", lCount)
+                },
+                lCard.CListCardRows
+                    .Select(lRow => new QListRow(
+                        lRow.CListRowPath,
+                        lRow.CListRowName,
+                        lRow.CListRowLocked
+                            ? $"{lRow.CListRowPath}\n{QListTip}"
+                            : lRow.CListRowPath,
+                        QListLooks[(lRow.CListRowLocked, lRow.CListRowSelected)],
+                        lRow.CListRowLocked,
+                        lRow.CListRowLast))
+                    .ToArray()))
+            .ToArray();
 
     public string QListStateRead(string lListPath)
     {
-        bool lLocked = qList.QListDocket.LDocketLockCheck(lListPath);
-        bool lSelected = qList.QListSelectionCheck(lListPath);
-        return (lLocked, lSelected) switch
-        {
-            (true, true) => "LockedSelected",
-            (true, false) => "Locked",
-            (false, true) => "Selected",
-            _ => "Plain"
-        };
-    }
-
-    private static string QListTitleRead(int lCount) =>
-        lCount == 1
-            ? QLocalizationCatalog.QLocalizationTextRead("List.Locked.SummaryOne")
-            : QLocalizationCatalog.QLocalizationFormat("List.Locked.SummaryMany", lCount);
-
-    private QListRow QListRowCreate(LDocketEntry lItem, bool lLast)
-    {
-        string lPath = lItem.LDocketEntryPath;
-        string lTip = lItem.LDocketEntryLocked
-            ? $"{lPath}\n{QLocalizationCatalog.QLocalizationTextRead("List.Locked.Tooltip")}"
-            : lPath;
-        return new QListRow(
-            lPath, qListUsher.CUsherNameRead(lPath), lTip, QListStateRead(lPath), lItem.LDocketEntryLocked, lLast);
+        CListRow lRow = qListGate.CListRowRead(lListPath);
+        return QListLooks[(lRow.CListRowLocked, lRow.CListRowSelected)];
     }
 }

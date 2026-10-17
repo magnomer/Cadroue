@@ -87,6 +87,20 @@ public sealed class QInspectorVideo
         try
         {
             qInspectorVideoGate.CInspectorVideoAccept(new LInspectorOutlet(lVideo));
+            QInspectorCurveApply(lVideo);
+        }
+        finally
+        {
+            QInspectorVideoResume();
+        }
+    }
+
+    // The curve is not gated yet: it takes the plan's curve step here, after the gate set the other video tools.
+    public void QInspectorCurveApply(LWorkVideo lVideo)
+    {
+        qInspectorVideoDepth++;
+        try
+        {
             QInspectorCurve.QCurveStepSet(QInspectorStepResolve(lVideo, LColorKind.LColorKindCurve));
             qInspectorVideoPending = true;
         }

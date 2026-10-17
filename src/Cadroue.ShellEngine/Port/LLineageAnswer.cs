@@ -25,7 +25,12 @@ public sealed record LLineageBatch(
     int LLineageSourceCount,
     int LLineageOutputCount,
     IReadOnlyList<Guid> LLineageBatchIds,
-    bool LLineageBatchCompleted);
+    bool LLineageBatchCompleted)
+{
+    // The time the batch's started items spent, each to its finish or to now while it runs; an item whose span runs
+    // backwards is left out. None when no item counts or the total is not above zero.
+    public TimeSpan? LLineageBatchSpent { get; init; }
+}
 
 public sealed record LLineageStep(
     Guid LLineageStepId,

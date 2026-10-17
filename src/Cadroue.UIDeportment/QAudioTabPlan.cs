@@ -9,20 +9,23 @@ public sealed class QAudioTabPlan
 {
     private readonly QAudioTab qAudioTab;
     private readonly CUsher qAudioUsher;
+    private readonly CEdit qAudioGate;
     private readonly QList qAudioList;
 
-    public QAudioTabPlan(QAudioTab lTab, CUsher lUsher, QList lList)
+    public QAudioTabPlan(QAudioTab lTab, CUsher lUsher, CEdit lEdit, QList lList)
     {
         qAudioTab = lTab;
         qAudioUsher = lUsher;
+        qAudioGate = lEdit;
         qAudioList = lList;
     }
 
     public void QAudioItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
-        QAudioFanoutSave(lAdded.Select(lItem => lItem.LDocketEntryPath));
+        QAudioFanoutSave(lAdded.Select(lItem => lItem.LDocketEntryPath).ToArray());
 
     public void QAudioPersistentSave() =>
-        QAudioFanoutSave(qAudioList.QListDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath));
+        QAudioFanoutSave(
+            qAudioList.QListDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath).ToArray());
 
     public LWorkAudio QAudioPlanRead() =>
         qAudioTab.QAudioInspector.QInspectorAudio.QInspectorAudioRead(
@@ -79,7 +82,6 @@ public sealed class QAudioTabPlan
                 lInspector.QInspectorSkip.QSkipPersistent,
                 lInspector.QInspectorSkip.QSkipActive);
             lSections.QInspectorAudioApply(lResolved);
-            lInspector.QInspectorSkip.QSkipActiveSet(lResolved.LWorkAudioSkip);
         }
         finally
         {
@@ -135,53 +137,8 @@ public sealed class QAudioTabPlan
         }
     }
 
-    private void QAudioFanoutSave(IEnumerable<string> lPaths)
-    {
-        QInspector lInspector = qAudioTab.QAudioInspector;
-        QInspectorAudio lSections = lInspector.QInspectorAudio;
-        if (lInspector.QInspectorSaveSuspended || !lSections.QInspectorPersistentCheck())
-        {
-            return;
-        }
-
-        LWorkAudio lPersistent = lSections.QInspectorPersistentRead();
-        bool lSkipPersistent = lInspector.QInspectorSkip.QSkipPersistent;
-        bool lSkipApply = lInspector.QInspectorSkip.QSkipActive;
-        IReadOnlyList<string> lFailed = QAudioPathsSave(lPaths, lPersistent, lSkipPersistent, lSkipApply);
-        if (lFailed.Count > 0)
-        {
-            QAudioFanoutRecord(lFailed);
-        }
-    }
-
-    private static void QAudioFanoutRecord(IReadOnlyList<string> lFailed) =>
-        LTraceLog.LTraceWarningRecord(
-            $"Audio persistent save failed for {lFailed.Count} file(s): those sidecars were not written",
-            string.Join(Environment.NewLine, lFailed));
-
-    private static IReadOnlyList<string> QAudioPathsSave(
-        IEnumerable<string> lPaths,
-        LWorkAudio lPersistent,
-        bool lSkipPersistent,
-        bool lSkipApply)
-    {
-        var lFailed = new List<string>();
-        foreach (string lPath in lPaths)
-        {
-            bool lStored = LAudio.LAudioPlanSave(
-                lPath,
-                LAudio.LAudioPlanResolve(
-                    LAudio.LAudioPlanRead(lPath, LLibrarian.LLibrarianAudioLoad),
-                    lPersistent,
-                    lSkipPersistent,
-                    lSkipApply),
-                LLibrarian.LLibrarianAudioSave);
-            if (!lStored)
-            {
-                lFailed.Add(lPath);
-            }
-        }
-
-        return lFailed;
-    }
+    // The gate decides whether the kept audio plan is saved into these paths; the save suspension is the inspector's.
+    private void QAudioFanoutSave(IReadOnlyList<string> lPaths) =>
+        qAudioGate.CEditAudioSave(
+            qAudioTab.QAudioInspector.QInspectorGate, qAudioTab.QAudioInspector.QInspectorSaveSuspended, lPaths);
 }

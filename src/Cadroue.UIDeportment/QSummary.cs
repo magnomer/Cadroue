@@ -21,11 +21,10 @@ public sealed class QSummary
 
     public static QSummary QSummaryRead(QRoster lRoster)
     {
-        IReadOnlyList<LWorkItem> lBatchItems = lRoster.QRosterBatchRead();
         CLineageBatch lBatch = lRoster.QRosterSummaryRead();
         long? lSourceBytes = lBatch.CLineageSourceTotal;
         long? lOutputBytes = lBatch.CLineageOutputTotal;
-        string? lMeter = QSummaryMeterFormat(lBatchItems, lOutputBytes);
+        string? lMeter = QSummaryMeterFormat(lBatch.CLineageBatchSpent, lOutputBytes);
         return new QSummary
         {
             QSummaryMeters = lMeter is null ? [] : [lMeter],
@@ -51,28 +50,13 @@ public sealed class QSummary
     private static QRosterCompareRow QSummaryCompareCreate(string lSource, string lOutput, string lKey) =>
         new(new QRosterLine(lSource, lKey), new QRosterLine(lOutput, lKey));
 
-    public static string? QSummaryMeterFormat(IReadOnlyList<LWorkItem> lBatchItems, long? lOutputBytes)
-    {
-        TimeSpan lSpentTotal = TimeSpan.Zero;
-        bool lAnySpent = false;
-        foreach (LWorkItem lWorkItem in lBatchItems)
-        {
-            if (QRosterFormatter.QRosterSpentRead(lWorkItem) is { } lSpent)
-            {
-                lSpentTotal += lSpent;
-                lAnySpent = true;
-            }
-        }
-
-        if (!lAnySpent || lSpentTotal.TotalSeconds <= 0)
-        {
-            return null;
-        }
-
-        return QRosterFormatter.QRosterMeterFormat(
-            QRosterFormatter.QRosterElapsedFormat(lSpentTotal),
-            QRosterFormatter.QRosterSpeedFormat(lSpentTotal, lOutputBytes));
-    }
+    // The meter shows the gate's spent time for the batch; no spent time shows no meter.
+    public static string? QSummaryMeterFormat(TimeSpan? lSpent, long? lOutputBytes) =>
+        lSpent is { } lSpentTotal
+            ? QRosterFormatter.QRosterMeterFormat(
+                QRosterFormatter.QRosterElapsedFormat(lSpentTotal),
+                QRosterFormatter.QRosterSpeedFormat(lSpentTotal, lOutputBytes))
+            : null;
 
     public static string QSummaryFilesFormat(int lCount) =>
         lCount == 1

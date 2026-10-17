@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -10,18 +7,6 @@ using Cadroue.Media;
 using Cadroue.ShellEngine;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer;
-
-// One list's docket over the media scan, its traces naming a path as the list gate does.
-static LListPort LListOutletCreate(Func<string, string> lName) => new LListOutlet(lName, LListScan);
-
-// The media paths under the requested ones, and each folder skipped with its reason.
-static async Task<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)> LListScan(
-    IReadOnlyList<string> lPaths, CancellationToken lToken)
-{
-    LMediaScanResult lScan = await LMedia.LMediaPathScan(lPaths, lToken);
-    return (lScan.LMediaScanPaths,
-        lScan.LMediaScanNotices.Select(lNotice => (lNotice.LMediaScanFolder, lNotice.LMediaScanReason)).ToArray());
-}
 
 int code = 1;
 Thread thread = new(() =>
@@ -33,14 +18,14 @@ Thread thread = new(() =>
     CAtelier atelier = new(new LAtelierPort
     {
         LAtelierUsher = new LUsherOutlet(),
-        LAtelierLineage = new LLineageOutlet(),
+        LAtelierLineage = new LLineageOutlet(TimeProvider.System.GetUtcNow),
         LAtelierWorkspace = new LWorkspaceOutlet(),
         LAtelierPlacement = new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
         LAtelierViewer = new LViewerOutlet(
             lPath => System.IO.Path.GetFileName(lPath),
             () => System.DateTimeOffset.Now,
             System.Environment.NewLine),
-        LAtelierEdit = new LEditOutlet(),
+        LAtelierEdit = new LEditOutlet(LTraceLog.LTraceWarningRecord),
         LAtelierRoster = new LRosterOutlet(),
         LAtelierFix = new LFixOutlet(),
         LAtelierConvert = new LConvertOutlet(),
@@ -55,9 +40,12 @@ Thread thread = new(() =>
             rig.LRigKeyframe,
             rig.LRigWaveform,
             () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
+        LAtelierMap = new LMapOutlet(LTrace.LTraceTimelineAdd),
         LAtelierRosterDetail = new LRosterDetailOutlet(() => System.DateTimeOffset.Now),
         LAtelierWhitebalance = new LWhitebalanceOutlet(),
         LAtelierFilter = new LFilterOutlet(),
+        LAtelierAudio = new LAudioOutlet(),
+        LAtelierLoudness = new LLoudnessOutlet(),
         LAtelierScene = new LConsoleSceneOutlet(new LSceneStore(
             LScene.LSceneCatalogueLoad,
             () => LScene.LSceneNames,
@@ -72,7 +60,12 @@ Thread thread = new(() =>
             LScene.LSceneFileLoad,
             LScene.LSceneStemResolve,
             lMessage => LTraceLog.LTraceLoadingRecord(lMessage))),
-        LAtelierList = LListOutletCreate,
+        LAtelierList = LListOutlet.LListOutletCreate(LRigFactoryList.LRigListCreate()),
+        LAtelierRelay = new LRelayOutlet(
+            LMedia.LMediaFileRead,
+            LMedia.LMediaCheck,
+            LTraceLog.LTraceInfoRecord,
+            LTraceLog.LTraceWarningRecord),
     });
     QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
 

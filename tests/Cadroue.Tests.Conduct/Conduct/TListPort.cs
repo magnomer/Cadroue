@@ -7,10 +7,12 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-// A docket in memory: an add or removal tells the changes the engine tells, in its order.
+// A docket in memory: an add or removal tells the changes the engine tells, in its order. The locked paths of one add
+// are one batch.
 internal sealed class TListPort : LListPort
 {
-    private readonly List<(string TListPath, bool TListLocked)> tListEntries = [];
+    private readonly List<(string TListPath, bool TListLocked, int TListBatch)> tListEntries = [];
+    private int tListBatch;
 
     public event Action? LListChanged;
 
@@ -29,7 +31,8 @@ internal sealed class TListPort : LListPort
     // Adds the paths as the user's add does; a locked path is a delivered one.
     public void TListPathsAdd(bool locked, params string[] paths)
     {
-        tListEntries.AddRange(paths.Select(path => (path, locked)));
+        tListBatch++;
+        tListEntries.AddRange(paths.Select(path => (path, locked, tListBatch)));
         LListChanged?.Invoke();
         LListAdded?.Invoke(paths);
         LListEntriesAdded?.Invoke([]);
@@ -44,6 +47,28 @@ internal sealed class TListPort : LListPort
 
     public bool LListLockCheck(string lPath) =>
         tListEntries.Any(entry => entry.TListLocked && TListMatch(entry.TListPath, lPath));
+
+    public IReadOnlyList<(bool LListLocked, IReadOnlyList<string> LListPaths)> LListCardsRead()
+    {
+        var cards = new List<(bool, IReadOnlyList<string>)>();
+        var shown = new HashSet<int>();
+        foreach ((string path, bool locked, int batch) in tListEntries)
+        {
+            if (!locked)
+            {
+                cards.Add((false, [path]));
+            }
+            else if (shown.Add(batch))
+            {
+                cards.Add((true, tListEntries
+                    .Where(entry => entry.TListLocked && entry.TListBatch == batch)
+                    .Select(entry => entry.TListPath)
+                    .ToArray()));
+            }
+        }
+
+        return cards;
+    }
 
     public Task<int> LListPathsAdd(IReadOnlyList<string> lPaths)
     {

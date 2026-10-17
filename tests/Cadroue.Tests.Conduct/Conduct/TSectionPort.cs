@@ -37,6 +37,12 @@ internal sealed class TSectionPort : LSectionPort
 
     public int LSectionVersionRead() => TSectionVersion;
 
+    public IReadOnlyList<(string LSectionName, string LSectionPrefix, string LSectionSuffix, TimeSpan LSectionOrigin,
+        TimeSpan LSectionEnd, int LSectionColor, bool LSectionHidden)> TSectionRows { get; set; } = [];
+
+    public IReadOnlyList<(string LSectionName, string LSectionPrefix, string LSectionSuffix, TimeSpan LSectionOrigin,
+        TimeSpan LSectionEnd, int LSectionColor, bool LSectionHidden)> LSectionRowsRead() => TSectionRows;
+
     public void LSectionAttach(string? lSource) => TSectionCalls.Add($"attach:{lSource ?? "null"}");
 
     public void LSectionLoad(TimeSpan lDuration) => TSectionCalls.Add($"load:{lDuration.TotalSeconds}");

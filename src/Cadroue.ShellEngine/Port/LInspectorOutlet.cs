@@ -1,19 +1,25 @@
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
 // One plan read for the inspector gate: each tool's step as plain values, or the Core default step when the plan has
-// none. A video plan answers the audio tools from an empty audio plan, and the reverse.
+// none. A video plan answers the audio tools from an empty audio plan, and the reverse. An edit plan is a video plan
+// with its crop, ratio and skip; any other plan answers the empty edit plan's crop and ratio.
 public sealed class LInspectorOutlet : LInspectorPort
 {
     private readonly LWorkVideo _lInspectorVideo;
     private readonly LWorkAudio _lInspectorAudio;
+    private readonly LEditPlan _lInspectorEdit;
+    private readonly bool _lInspectorSkip;
+    private readonly (bool?, bool?) _lInspectorKeep;
 
     public LInspectorOutlet(LWorkVideo lVideo)
     {
         ArgumentNullException.ThrowIfNull(lVideo);
         _lInspectorVideo = lVideo;
         _lInspectorAudio = new LWorkAudio(new List<LWorkAudioStep>());
+        _lInspectorEdit = LEditPlan.LEditEmptyCreate();
     }
 
     public LInspectorOutlet(LWorkAudio lAudio)
@@ -21,7 +27,42 @@ public sealed class LInspectorOutlet : LInspectorPort
         ArgumentNullException.ThrowIfNull(lAudio);
         _lInspectorVideo = LWorkVideo.LWorkVideoCreate();
         _lInspectorAudio = lAudio;
+        _lInspectorEdit = LEditPlan.LEditEmptyCreate();
+        _lInspectorSkip = lAudio.LWorkAudioSkip;
     }
+
+    public LInspectorOutlet(LEditPlan lPlan)
+    {
+        ArgumentNullException.ThrowIfNull(lPlan);
+        _lInspectorVideo = lPlan.LEditVideo;
+        _lInspectorAudio = new LWorkAudio(new List<LWorkAudioStep>());
+        _lInspectorEdit = lPlan;
+        _lInspectorSkip = lPlan.LEditSkip;
+    }
+
+    // A kept layout's edit plan: its crop counts only when the crop is kept, and the skip switch is kept as told.
+    public LInspectorOutlet(LEditPlan lPlan, bool lCropKept, bool lSkipKept)
+        : this(lPlan)
+    {
+        _lInspectorKeep = (lCropKept, lSkipKept);
+    }
+
+    // What the plan keeps: a null crop applies without keeping, true applies and keeps, false leaves the crop as it
+    // is; a null skip leaves the kept switch as it is.
+    public (bool? LInspectorCrop, bool? LInspectorSkip) LInspectorKeepRead() => _lInspectorKeep;
+
+    // The edit plan's crop and whether it applies.
+    public (LWorkCrop LInspectorCrop, bool LInspectorActive) LInspectorCropRead() =>
+        (_lInspectorEdit.LEditCrop, _lInspectorEdit.LEditCropActive);
+
+    // The edit plan's ratio as stored; the gate decides whether it holds.
+    public (bool LInspectorFixed, bool LInspectorLenient, int LInspectorWidth, int LInspectorHeight)
+        LInspectorRatioRead() =>
+        (_lInspectorEdit.LEditRatioFixed, _lInspectorEdit.LEditRatioLenient, _lInspectorEdit.LEditRatioWidth,
+            _lInspectorEdit.LEditRatioHeight);
+
+    // Whether the plan skips processing; a bare video plan never does.
+    public bool LInspectorSkipRead() => _lInspectorSkip;
 
     public (bool LInspectorActive, IReadOnlyList<double> LInspectorValues) LInspectorGammaRead()
     {
@@ -104,6 +145,35 @@ public sealed class LInspectorOutlet : LInspectorPort
             lFilter.LFilterNormalize(lHigh, LFilterOutlet.LFilterValuesRead(lSource), lSource.LWorkPassPoles);
         return (lSource.LWorkStepActive, lValues, lPoles, lFilter.LFilterMatchFind(lHigh, lValues, lPoles));
     }
+
+    // The leveling values in the leveling gate's slot order, held inside their ranges; a plan without a leveling step
+    // reads as the default step switched off, and a step that is not a leveling step as that default with its switch.
+    public (bool LInspectorActive, bool LInspectorDynamic, IReadOnlyList<double> LInspectorValues,
+        bool LInspectorTwoPass, string? LInspectorPreset) LInspectorLevelingRead()
+    {
+        LWorkAudioStep lStep = LInspectorAudioFind(LAudioKind.LAudioKindLeveling)
+            ?? LLoudnessOutlet.LLoudnessDefaultCreate(false);
+        LWorkNormalizeStep lSource = lStep as LWorkNormalizeStep
+            ?? LLoudnessOutlet.LLoudnessDefaultCreate(lStep.LWorkStepActive);
+        var lLoudness = new LLoudnessOutlet();
+        bool lDynamic = lSource.LWorkNormalizeMode == LLeveling.LLevelingDynamic;
+        IReadOnlyList<double> lValues = lLoudness.LLoudnessNormalize(LLoudnessOutlet.LLoudnessValuesRead(lSource));
+        return (lSource.LWorkStepActive, lDynamic, lValues, lSource.LWorkTwoPass,
+            lLoudness.LLoudnessMatchFind(lDynamic, lValues));
+    }
+
+    // Which of the gated audio tools the plan carries a step for.
+    public (bool LInspectorHighpass, bool LInspectorLowpass, bool LInspectorNoise, bool LInspectorVolume,
+        bool LInspectorEqualizer, bool LInspectorLeveling) LInspectorPresentRead() =>
+        (LInspectorAudioFind(LAudioKind.LAudioKindHighpass) is not null,
+            LInspectorAudioFind(LAudioKind.LAudioKindLowpass) is not null,
+            LInspectorAudioFind(LAudioKind.LAudioKindDenoise) is not null,
+            LInspectorAudioFind(LAudioKind.LAudioKindVolume) is not null,
+            LInspectorAudioFind(LAudioKind.LAudioKindEqualizer) is not null,
+            LInspectorAudioFind(LAudioKind.LAudioKindLeveling) is not null);
+
+    // The audio plan as the read holds it.
+    public LWorkAudio LInspectorAudioRead() => _lInspectorAudio;
 
     private LWorkVideoStep? LInspectorVideoFind(LColorKind lKind) =>
         _lInspectorVideo.LWorkVideoSteps.FirstOrDefault(lStep => lStep.LWorkStepKind == lKind);

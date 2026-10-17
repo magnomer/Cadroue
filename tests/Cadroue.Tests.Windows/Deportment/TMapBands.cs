@@ -38,12 +38,12 @@ public sealed class TMapBands
         Assert.True(bands[0].QMapBandSelected);
         Assert.False(bands[1].QMapBandSelected);
         Assert.True(bands[0].QMapBandShown);
-        Assert.Equal(2, map.QMapGlyphCount);
+        Assert.Equal(2, TInterface.TMapGlyphRead(map));
 
         TInterface.TFlowSectionToggle(flow, 1);
         bands = TInterface.TMapFrameResolve(map, 600, 40).QMapFrameBands;
         Assert.False(bands[1].QMapBandShown);
-        Assert.Equal("sections", map.QMapTrigger);
+        Assert.Equal("sections", TInterface.TMapTriggerRead(map));
     }
 
     [Fact]

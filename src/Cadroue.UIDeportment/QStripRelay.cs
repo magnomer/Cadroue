@@ -6,12 +6,12 @@ namespace Cadroue.UIDeportment;
 public sealed class QStripRelay
 {
     private readonly QStrip qStrip;
-    private readonly CUsher qStripUsher;
+    private readonly CRelay qStripRelayGate;
 
-    public QStripRelay(QStrip lOwner, CUsher lUsher)
+    public QStripRelay(QStrip lOwner, CRelay lRelay)
     {
         qStrip = lOwner;
-        qStripUsher = lUsher;
+        qStripRelayGate = lRelay;
     }
 
     public void QStripRelayAttach()
@@ -23,8 +23,18 @@ public sealed class QStripRelay
         LSeal.LSealNodesSource = QStripSealRead;
         LSeal.LSealFireSeam = QStripNodeRun;
         QAction.QActionStripAttach(qStrip);
-        QListRelay.QListRelayAttach(qStrip, qStripUsher);
+        QStripListAttach();
     }
+
+    // The relay gate reads this strip's open tabs at every call, each by id with its list, and names a tab by the
+    // title the engine reads too; an arrival goes to the target tab's action.
+    public void QStripListAttach() =>
+        qStripRelayGate.CRelayAttach(
+            () => qStrip.QStripTabs
+                .Select(lTab => (lTab.QStripTabId, lTab.QStripTabWorkspace.QWorkspaceList?.QListGate))
+                .ToArray(),
+            QStripTitleRead,
+            QAction.QActionAccept);
 
     public string QStripTitleRead(Guid lId) =>
         qStrip.QStripTabFind(lId)?.QStripTabTitle ?? LCartographer.LCartographerStageRead(lId);

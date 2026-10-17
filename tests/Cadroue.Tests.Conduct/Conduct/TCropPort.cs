@@ -42,6 +42,14 @@ internal sealed class TCropPort : LCropPort
 
     public bool LCropRectCheck() => TCropRect;
 
+    public (bool LCropTolerated, int LCropExcess, bool LCropWide) TCropNotice { get; set; }
+
+    public (bool LCropTolerated, int LCropExcess, bool LCropWide) LCropNoticeRead(double lWidth, double lHeight)
+    {
+        TCropCalls.Add($"notice {lWidth}x{lHeight}");
+        return TCropNotice;
+    }
+
     public (int LCropWidth, int LCropHeight) LCropRatioNormalize(int lWidth, int lHeight)
     {
         TCropCalls.Add($"normalize {lWidth}x{lHeight}");
@@ -59,6 +67,8 @@ internal sealed class TCropPort : LCropPort
     public void LCropEdgeReset() => TCropCalls.Add("edge reset");
 
     public void LCropApplySet(bool lApply, bool lRatioReset) => TCropCalls.Add($"apply {lApply} {lRatioReset}");
+
+    public void LCropWorkApply(LInspectorPort lPlan) => TCropCalls.Add("work");
 
     public void LCropPersistentSet(bool lPersistent) => TCropCalls.Add($"persistent {lPersistent}");
 

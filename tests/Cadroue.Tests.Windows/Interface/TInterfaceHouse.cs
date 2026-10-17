@@ -196,14 +196,14 @@ internal static partial class TInterface
         new(new LAtelierPort
         {
             LAtelierUsher = new LUsherOutlet(),
-            LAtelierLineage = new LLineageOutlet(),
+            LAtelierLineage = new LLineageOutlet(TimeProvider.System.GetUtcNow),
             LAtelierWorkspace = new LWorkspaceOutlet(),
             LAtelierPlacement = new LPlacementOutlet(LPreferenceStateStore.LPreferencePlacementRead),
             LAtelierViewer = new LViewerOutlet(
                 lPath => System.IO.Path.GetFileName(lPath),
                 () => System.DateTimeOffset.Now,
                 System.Environment.NewLine),
-            LAtelierEdit = new LEditOutlet(),
+            LAtelierEdit = new LEditOutlet(LTraceLog.LTraceWarningRecord),
             LAtelierRoster = new LRosterOutlet(),
             LAtelierFix = new LFixOutlet(),
             LAtelierConvert = new LConvertOutlet(),
@@ -218,10 +218,14 @@ internal static partial class TInterface
                 LRigFactoryKeyframe.LRigKeyframeCreate,
                 LRigFactoryWaveform.LRigWaveformCreate,
                 () => LFrameStore.LFrameStateCurrent.LFrameFlowHeight),
+            LAtelierMap = new LMapOutlet(LTrace.LTraceTimelineAdd),
             LAtelierRosterDetail = new LRosterDetailOutlet(() => System.DateTimeOffset.Now),
             LAtelierWhitebalance = new LWhitebalanceOutlet(),
             LAtelierFilter = new LFilterOutlet(),
+            LAtelierAudio = new LAudioOutlet(),
+            LAtelierLoudness = new LLoudnessOutlet(),
             LAtelierScene = TSceneOutletCreate(),
             LAtelierList = TInterfaceList.TListOutletCreate,
+            LAtelierRelay = TInterfaceList.TRelayOutletCreate(),
         });
 }

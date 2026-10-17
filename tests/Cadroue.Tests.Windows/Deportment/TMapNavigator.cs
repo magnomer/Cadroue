@@ -40,14 +40,14 @@ public sealed class TMapNavigator
         TInterface.TFlowPlayAttach(flow, () => { }, () => { }, drags.Add, _ => { });
 
         Assert.True(TInterface.TMapPressHandle(map, 250, 5, 600, 40));
-        Assert.Equal(QMapHitKind.QMapHitBody, map.QMapDragKind);
+        Assert.Equal(Cadroue.Conduct.CMapHit.CMapHitBody, TInterface.TMapDragRead(map));
         Assert.True(TInterface.TMapMoveHandle(map, 260, 600));
         Assert.Equal(TimeSpan.FromSeconds(11), flow.QFlowRange!.LSpoolRangeOrigin);
         Assert.Equal(TimeSpan.FromSeconds(41), flow.QFlowRange.LSpoolRangeLimit);
         Assert.Equal(QMapHitKind.QMapHitBody, TInterface.TMapLeaveResolve(map));
 
         TInterface.TMapDragClear(map);
-        Assert.Equal(QMapHitKind.QMapHitNone, map.QMapDragKind);
+        Assert.Equal(Cadroue.Conduct.CMapHit.CMapHitNone, TInterface.TMapDragRead(map));
         Assert.False(TInterface.TMapMoveHandle(map, 300, 600));
         Assert.Equal([true, false], drags);
     }
@@ -67,7 +67,7 @@ public sealed class TMapNavigator
         TInterface.TMapDragClear(map);
 
         TInterface.TMapPressHandle(map, 50, 30, 600, 40);
-        Assert.Equal(QMapHitKind.QMapHitCursor, map.QMapDragKind);
+        Assert.Equal(Cadroue.Conduct.CMapHit.CMapHitCursor, TInterface.TMapDragRead(map));
         Assert.Equal(TimeSpan.FromSeconds(5), flow.QFlowCursor);
         TInterface.TMapMoveHandle(map, 600, 600);
         Assert.Equal(TimeSpan.FromSeconds(60), flow.QFlowCursor);
@@ -98,7 +98,7 @@ public sealed class TMapNavigator
 
         TInterface.TFlowCursorSeek(flow, TimeSpan.FromSeconds(30));
         Assert.Equal(1, redraws);
-        Assert.Equal("cursor", map.QMapTrigger);
+        Assert.Equal("cursor", TInterface.TMapTriggerRead(map));
         Assert.Equal([300], TInterface.TMapFrameResolve(map, 600, 40).QMapFrameCursor);
 
         Assert.Empty(TInterface.TMapFrameResolve(map, 600, 8).QMapFrameOver);

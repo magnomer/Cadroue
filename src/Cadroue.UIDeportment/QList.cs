@@ -16,7 +16,7 @@ public sealed class QList
     {
         QListGate = lAtelier.CAtelierListCreate();
         QListDrag = new QListDrag(QListGate);
-        QListFace = new QListFace(this, lAtelier.CAtelierUsher);
+        QListFace = new QListFace(QListGate);
     }
 
     public event Action? QListChanged

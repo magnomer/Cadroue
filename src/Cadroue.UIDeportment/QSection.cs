@@ -1,4 +1,4 @@
-using Cadroue.Core;
+using Cadroue.Conduct;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
@@ -22,6 +22,8 @@ public sealed record QSectionRow(
     bool QSectionRowSelected,
     bool QSectionRowEditing);
 
+// The sections panel's wiring: paints the section gate's rows with their wording and times, hands each row input to
+// the gate with the editable switch, and relays the gate's tells. Only the panel's minimized state is its own.
 public sealed class QSection
 {
     private const string QSectionReturnKey = "Return";
@@ -29,15 +31,8 @@ public sealed class QSection
     private const string QSectionStepText = ",";
 
     private readonly QFlow qFlow;
-    private IReadOnlyList<LPiece> qSectionPieces;
-    private HashSet<int> qSectionSelected;
-    private int qSectionRowCount;
+    private readonly CSection qSectionGate;
     private bool qSectionMinimized;
-    private int? qSectionEditIndex;
-    private int qSectionEditSerial;
-    private string qSectionEditName = string.Empty;
-    private string qSectionEditPrefix = string.Empty;
-    private string qSectionEditSuffix = string.Empty;
 
     public event Action? QSectionChanged;
     public event Action? QSectionSelectApplied;
@@ -47,10 +42,8 @@ public sealed class QSection
     public QSection(QFlow lOwner)
     {
         qFlow = lOwner;
-        qSectionPieces = qFlow.QFlowSection.QFlowSectionsRead().ToArray();
-        qSectionSelected = new HashSet<int>(qFlow.QFlowSection.QFlowSelectedRead());
-        qSectionRowCount = qSectionPieces.Count;
-        QSectionDrag = new QSectionDrag(this, qFlow);
+        qSectionGate = qFlow.QFlowSection.QFlowSectionGate;
+        QSectionDrag = new QSectionDrag(qSectionGate.CSectionDrag);
         QSectionFlowAttach();
     }
 
@@ -60,13 +53,10 @@ public sealed class QSection
 
     public bool QSectionEditable => qFlow.QFlowEdit.QFlowSectionEditable;
 
-    public int QSectionRowCount => qSectionRowCount;
-
     public bool QSectionMinimized => qSectionMinimized;
 
-    public int? QSectionEditIndex => qSectionEditIndex;
-
-    public int QSectionEditSerial => qSectionEditSerial;
+    // Forwarded for the row surface's editor.
+    public int QSectionEditSerial => qSectionGate.CSectionEdit.CSectionEditSerial;
 
     public static int QSectionCountRead() => LSectionPalette.LSectionActiveCount;
 
@@ -79,15 +69,16 @@ public sealed class QSection
     public static bool QSectionStepCheck(string lText) =>
         string.Equals(lText, QSectionStepText, StringComparison.Ordinal);
 
-    public bool QSectionSelectedCheck(int lIndex) => qSectionSelected.Contains(lIndex);
+    // Forwarded for the panel surface's selection repaint.
+    public bool QSectionSelectedCheck(int lIndex) => qSectionGate.CSectionSelectedCheck(lIndex);
 
     public string QSectionTitleRead() =>
-        qSectionPieces.Count == 0
-            ? QLocalizationCatalog.QLocalizationTextRead("Section.Header.Title")
-            : QLocalizationCatalog.QLocalizationFormat("Section.Header.Count", qSectionPieces.Count);
+        qSectionGate.CSectionHeldCount is int lCount
+            ? QLocalizationCatalog.QLocalizationFormat("Section.Header.Count", lCount)
+            : QLocalizationCatalog.QLocalizationTextRead("Section.Header.Title");
 
     public IReadOnlyList<QSectionRow> QSectionRowsRead() =>
-        qSectionPieces.Select(QSectionRowCreate).ToArray();
+        qSectionGate.CSectionRowsRead().Select(QSectionRowCreate).ToArray();
 
     public bool QSectionMinimizedSet(bool lMinimized)
     {
@@ -101,222 +92,96 @@ public sealed class QSection
         return true;
     }
 
-    public void QSectionToggleHandle(int lIndex)
-    {
-        QSectionDrag.QSectionDragClear();
-        QSectionEditCommit();
-        if (QSectionEditable)
-        {
-            qFlow.QFlowSection.QFlowSectionToggle(lIndex);
-        }
-    }
+    public void QSectionToggleHandle(int lIndex) => qSectionGate.CSectionToggleHandle(lIndex);
 
-    public bool QSectionSeekHandle(int lIndex, int lClickCount, bool lEnd)
-    {
-        if (lClickCount < 2)
-        {
-            return false;
-        }
+    public bool QSectionSeekHandle(int lIndex, int lClickCount, bool lEnd) =>
+        qSectionGate.CSectionSeekHandle(lIndex, lClickCount, lEnd);
 
-        QSectionDrag.QSectionDragClear();
-        if (lIndex < 0)
-        {
-            return false;
-        }
+    public bool QSectionRenameHandle(int lIndex, int lClickCount) =>
+        qSectionGate.CSectionRenameHandle(lIndex, lClickCount);
 
-        QSectionEditCommit();
-        qFlow.QFlowSection.QFlowSectionSeek(lIndex, lEnd);
-        return true;
-    }
+    public void QSectionTextSet(string lName, string lPrefix, string lSuffix) =>
+        qSectionGate.CSectionEdit.CSectionEditSet(lName, lPrefix, lSuffix);
 
-    public bool QSectionRenameHandle(int lIndex, int lClickCount)
-    {
-        if (lClickCount < 2 || !QSectionEditable)
-        {
-            return false;
-        }
-
-        QSectionDrag.QSectionDragClear();
-        if (lIndex < 0)
-        {
-            return false;
-        }
-
-        qFlow.QFlowSection.QFlowSectionSelect(lIndex);
-        QSectionEditStart(lIndex);
-        return true;
-    }
-
-    public void QSectionEditStart(int lIndex)
-    {
-        LPiece lPiece = qSectionPieces[lIndex];
-        qSectionEditIndex = lIndex;
-        qSectionEditSerial++;
-        qSectionEditName = lPiece.LPieceName;
-        qSectionEditPrefix = lPiece.LPiecePrefix;
-        qSectionEditSuffix = lPiece.LPieceSuffix;
-        QSectionRebuildRaise();
-    }
-
-    public void QSectionTextSet(string lName, string lPrefix, string lSuffix)
-    {
-        qSectionEditName = lName;
-        qSectionEditPrefix = lPrefix;
-        qSectionEditSuffix = lSuffix;
-    }
-
-    public void QSectionEditCommit()
-    {
-        if (QSectionEditRelease() is not int lIndex)
-        {
-            return;
-        }
-
-        qFlow.QFlowSection.QFlowNameSet(
-            lIndex, qSectionEditName.Trim(), qSectionEditPrefix.Trim(), qSectionEditSuffix.Trim());
-        QSectionRebuildRaise();
-    }
-
-    public void QSectionEditCancel()
-    {
-        qSectionEditIndex = null;
-        QSectionRebuildRaise();
-    }
-
+    // The editor's keys: Return commits, Escape drops; any other key is not the editor's.
     public bool QSectionKeyRun(string lKey)
     {
         if (string.Equals(lKey, QSectionReturnKey, StringComparison.Ordinal))
         {
-            QSectionEditCommit();
+            qSectionGate.CSectionEdit.CSectionEditCommit();
             return true;
         }
 
         if (string.Equals(lKey, QSectionEscapeKey, StringComparison.Ordinal))
         {
-            QSectionEditCancel();
+            qSectionGate.CSectionEdit.CSectionEditCancel();
             return true;
         }
 
         return false;
     }
 
-    public void QSectionBlurHandle(int lSerial, bool lFocusInside)
-    {
-        if (lSerial != qSectionEditSerial || lFocusInside)
-        {
-            return;
-        }
+    public void QSectionBlurHandle(int lSerial, bool lFocusInside) =>
+        qSectionGate.CSectionEdit.CSectionEditHandle(lSerial, lFocusInside);
 
-        QSectionEditCommit();
-    }
-
+    // The delete asks through QAskNotice, so it waits for the ask port; the pending edit is committed first.
     public void QSectionDeleteRun()
     {
-        QSectionEditCommit();
+        qSectionGate.CSectionEdit.CSectionEditCommit();
         qFlow.QFlowSection.QFlowSectionDelete();
     }
 
-    public void QSectionSortRun()
-    {
-        QSectionEditCommit();
-        qFlow.QFlowSection.QFlowSectionSort();
-    }
+    public void QSectionSortRun() => qSectionGate.CSectionSortRun();
 
+    // The clear asks through QAskNotice, so it waits for the ask port; the pending edit is committed first.
     public void QSectionClearRun()
     {
-        QSectionEditCommit();
+        qSectionGate.CSectionEdit.CSectionEditCommit();
         qFlow.QFlowSection.QFlowSectionClear();
     }
 
     private void QSectionFlowAttach()
     {
-        qFlow.QFlowSection.QFlowSectionChanged += QSectionUpdateHandle;
+        qSectionGate.CSectionChanged += QSectionUpdateHandle;
         qFlow.QFlowEdit.QFlowEditChanged += QSectionEditHandle;
+        qSectionGate.CSectionRowsChanged += QSectionChangeRaise;
+        qSectionGate.CSectionSelectApplied += QSectionSelectRaise;
+        qSectionGate.CSectionRowsSync();
     }
 
-    private int? QSectionEditRelease()
-    {
-        int? lIndex = qSectionEditIndex;
-        qSectionEditIndex = null;
-        return lIndex;
-    }
-
-    private bool QSectionSameCheck(LPiece[] lNext) =>
-        qSectionPieces.SequenceEqual(lNext) && qSectionRowCount == lNext.Length;
-
-    private void QSectionPieceSet(LPiece[] lNext)
-    {
-        qSectionPieces = lNext;
-        qSectionSelected = new HashSet<int>(qFlow.QFlowSection.QFlowSelectedRead());
-    }
-
-    private void QSectionUpdateHandle(IReadOnlyList<LPiece> lPieces, int? lSelected)
-    {
-        LPiece[] lNext = lPieces.ToArray();
-        bool lSame = QSectionSameCheck(lNext);
-        QSectionPieceSet(lNext);
-        if (QSectionDrag.QSectionDragActive)
-        {
-            return;
-        }
-
-        if (lSame)
-        {
-            QSectionSelectApplied?.Invoke();
-            return;
-        }
-
-        QSectionRebuildRaise();
-    }
+    private void QSectionUpdateHandle() => qSectionGate.CSectionRowsUpdate();
 
     private void QSectionEditHandle(bool lEditable)
     {
         QSectionEnabledApplied?.Invoke(lEditable);
-        if (lEditable)
-        {
-            return;
-        }
-
-        QSectionDrag.QSectionDragClear();
-        if (qSectionEditIndex is not null)
-        {
-            QSectionEditCancel();
-        }
+        qSectionGate.CSectionEditableHandle(lEditable);
     }
 
-    public void QSectionRebuildRaise()
-    {
-        qSectionRowCount = qSectionPieces.Count;
-        QSectionChanged?.Invoke();
-    }
+    private void QSectionChangeRaise() => QSectionChanged?.Invoke();
 
-    private QSectionRow QSectionRowCreate(LPiece lPiece, int lIndex)
-    {
-        bool lUnnamed = string.IsNullOrEmpty(lPiece.LPieceName);
-        TimeSpan lSpan = lPiece.LPieceEnd - lPiece.LPieceOrigin;
-        string[] lAffixes = new[] { lPiece.LPiecePrefix, lPiece.LPieceSuffix }
-            .Where(lAffix => !string.IsNullOrEmpty(lAffix))
-            .Select(lAffix => $"  /  {lAffix}")
-            .ToArray();
-        return new QSectionRow(
-            lIndex,
-            QSectionNumberRead(lIndex),
-            lPiece.LPieceName,
-            lUnnamed ? QLocalizationCatalog.QLocalizationFormat("Section.DefaultName", lIndex + 1) : lPiece.LPieceName,
-            lUnnamed,
-            lPiece.LPiecePrefix,
-            lPiece.LPieceSuffix,
-            !string.IsNullOrEmpty(lPiece.LPiecePrefix),
-            !string.IsNullOrEmpty(lPiece.LPieceSuffix),
-            lAffixes,
-            QSectionTimeFormat(lPiece.LPieceOrigin),
-            QSectionTimeFormat(lPiece.LPieceEnd),
-            $"  ({QSectionTimeFormat(lSpan < TimeSpan.Zero ? TimeSpan.Zero : lSpan)})",
-            lPiece.LPieceColorIndex,
-            lPiece.LPieceHidden,
-            qSectionSelected.Contains(lIndex),
-            qSectionEditIndex == lIndex);
-    }
+    private void QSectionSelectRaise() => QSectionSelectApplied?.Invoke();
+
+    private static QSectionRow QSectionRowCreate(CSectionRow lRow) =>
+        new(
+            lRow.CSectionRowIndex,
+            QSectionNumberRead(lRow.CSectionRowIndex),
+            lRow.CSectionRowName,
+            lRow.CSectionRowUnnamed
+                ? QLocalizationCatalog.QLocalizationFormat("Section.DefaultName", lRow.CSectionRowIndex + 1)
+                : lRow.CSectionRowName,
+            lRow.CSectionRowUnnamed,
+            lRow.CSectionRowPrefix,
+            lRow.CSectionRowSuffix,
+            lRow.CSectionRowPrefixed,
+            lRow.CSectionRowSuffixed,
+            lRow.CSectionRowAffixes.Select(lAffix => $"  /  {lAffix}").ToArray(),
+            QSectionTimeFormat(lRow.CSectionRowOrigin),
+            QSectionTimeFormat(lRow.CSectionRowEnd),
+            $"  ({QSectionTimeFormat(lRow.CSectionRowSpan)})",
+            lRow.CSectionRowColor,
+            lRow.CSectionRowHidden,
+            lRow.CSectionRowSelected,
+            lRow.CSectionRowEditing);
 
     private static string QSectionTimeFormat(TimeSpan lTime) =>
         lTime.TotalHours >= 1

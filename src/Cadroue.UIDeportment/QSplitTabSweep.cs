@@ -67,13 +67,13 @@ public sealed class QSplitTabSweep
         var lSource = new CancellationTokenSource();
         QSplitSweepSet(lSource);
         qSplitInspector.QInspectorSensor.QSensorRunningSet(true);
-        qSplitFlow.QFlowEdit.QFlowEditSet(false);
         QSplitBusyApplied?.Invoke(true);
         QSplitProgressApplied?.Invoke(0);
         try
         {
-            await QSplitStepsRun(lSteps, lSource.Token);
-            if (!qSplitFlow.QFlowSection.QFlowCombineApply(lExcluded, lKept, lBoundaries))
+            // The gate turns the editable switch off for the scan and back by the lock, then applies the result.
+            if (!await qSplitFlow.QFlowSection.QFlowSectionGate.CSectionSweepRun(
+                    () => QSplitStepsRun(lSteps, lSource.Token), lExcluded, lKept, lBoundaries, QSplitLockedCheck))
             {
                 QSplitFailRaised?.Invoke(
                     QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.FailTitle"),
@@ -93,7 +93,6 @@ public sealed class QSplitTabSweep
         finally
         {
             QSplitBusyApplied?.Invoke(false);
-            qSplitFlow.QFlowEdit.QFlowEditSet(!QSplitLockedCheck());
             qSplitInspector.QInspectorSensor.QSensorRunningSet(false);
             QSplitSweepSet(null);
             lSource.Dispose();

@@ -28,7 +28,11 @@ public sealed record CLineageBatch(
     int CLineageSourceCount,
     int CLineageOutputCount,
     IReadOnlyList<Guid> CLineageBatchIds,
-    bool CLineageBatchCompleted);
+    bool CLineageBatchCompleted)
+{
+    // The engine's spent time for the batch; none when no item counts.
+    public TimeSpan? CLineageBatchSpent { get; init; }
+}
 
 public sealed record CLineageStep(
     Guid CLineageStepId,

@@ -1,280 +1,149 @@
-using Cadroue.Core;
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
+// The leveling tool's wiring: paints the gate's mode, values and preset rows onto the section's parts, and hands every
+// input to the gate. Each list runs in mode order, loudness first; rows follow the gate's rows of the mode: target,
+// peak, range, or frame, smoothness, maximum gain, compression.
 public sealed class QLoudness
 {
-    private static readonly string[] QLoudnessModeKeys =
+    private const string QLoudnessPattern = "0.###";
+
+    private static readonly string[][] qLoudnessLabelKeys =
     {
-        "Inspector.Normalize.Loudness", "Inspector.Normalize.Dynamic"
+        new[] { "Inspector.Normalize.Target", "Inspector.Normalize.Peak", "Inspector.Normalize.Range" },
+        new[]
+        {
+            "Inspector.Dynamic.Frame",
+            "Inspector.Dynamic.Smoothness",
+            "Inspector.Dynamic.MaxGain",
+            "Inspector.Dynamic.Compress"
+        }
     };
 
-    private static readonly string[] QLoudnessLabelKeys =
+    private static readonly string[][] qLoudnessUnits =
     {
-        "Inspector.Normalize.Target", "Inspector.Normalize.Peak", "Inspector.Normalize.Range"
+        new[] { "LUFS", "dBTP", "LU" },
+        new[] { "ms", "g", "×", "s" }
     };
 
-    private static readonly string[] QLoudnessUnits = { "LUFS", "dBTP", "LU" };
+    private readonly CLoudness qLoudnessGate;
 
-    private static readonly double[] QLoudnessLeast =
+    public QLoudness(CLoudness lGate)
     {
-        LLevelingCatalog.LLevelingTargetLeast, LLevelingCatalog.LLevelingPeakLeast, LLevelingCatalog.LLevelingRangeLeast
-    };
-
-    private static readonly double[] QLoudnessMost =
-    {
-        LLevelingCatalog.LLevelingTargetMost, LLevelingCatalog.LLevelingPeakMost, LLevelingCatalog.LLevelingRangeMost
-    };
-
-    private LWorkNormalizeStep qLoudnessStep = QLoudnessDefaultCreate(false);
-    private string? qLoudnessToken;
-    private bool qLoudnessPersistent;
-
-    public QLoudness()
-    {
-        qLoudnessToken = QLoudnessMatchRead();
+        qLoudnessGate = lGate;
     }
 
-    public event Action? QLoudnessChanged;
+    public event Action? QLoudnessChanged
+    {
+        add => qLoudnessGate.CLoudnessChanged += value;
+        remove => qLoudnessGate.CLoudnessChanged -= value;
+    }
 
-    public LWorkNormalizeStep QLoudnessStep => qLoudnessStep;
+    public IReadOnlyList<string> QLoudnessModeNames => qLoudnessGate.CLoudnessModes
+        .Select(static lRow => QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
+        .ToList();
 
-    public string? QLoudnessToken => qLoudnessToken;
-
-    public bool QLoudnessPersistent => qLoudnessPersistent;
-
-    public bool QLoudnessDynamic => qLoudnessStep.LWorkNormalizeMode == LLeveling.LLevelingDynamic;
-
-    public int QLoudnessModeIndex => QLoudnessDynamic ? 1 : 0;
-
-    public IReadOnlyList<string> QLoudnessModeNames =>
-        QLoudnessModeKeys.Select(QLocalizationCatalog.QLocalizationTextRead).ToList();
-
-    public IReadOnlyList<QInspectorRow> QLoudnessRowsRead(bool lDynamic) => lDynamic
-        ? QDynamic.QDynamicRowsRead()
-        : QLoudnessLabelKeys
+    public IReadOnlyList<QInspectorRow> QLoudnessRowsRead(bool lDynamic)
+    {
+        int lMode = lDynamic ? 1 : 0;
+        IReadOnlyList<double> lLeasts = qLoudnessGate.CLoudnessLeasts[lMode];
+        IReadOnlyList<double> lMosts = qLoudnessGate.CLoudnessMosts[lMode];
+        return qLoudnessLabelKeys[lMode]
             .Select((lKey, lIndex) => QInspectorPlan.QInspectorRowCreate(
-                lIndex, lKey, QLoudnessUnits[lIndex], "0.###", QLoudnessLeast[lIndex], QLoudnessMost[lIndex]))
+                lIndex, lKey, qLoudnessUnits[lMode][lIndex], QLoudnessPattern, lLeasts[lIndex], lMosts[lIndex]))
             .ToList();
+    }
 
-    public double QLoudnessValueRead(bool lDynamic, int lIndex) => lDynamic
-        ? QDynamic.QDynamicValueRead(qLoudnessStep, lIndex)
-        : lIndex switch
-        {
-            1 => qLoudnessStep.LWorkNormalizePeak,
-            2 => qLoudnessStep.LWorkNormalizeRange,
-            _ => qLoudnessStep.LWorkNormalizeTarget
-        };
+    // The combo shows each row's wording and selects the row the gate marked chosen.
+    public QInspectorChoice QLoudnessChoiceRead(bool lDynamic) =>
+        QLoudnessChoiceBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic));
 
-    public double QLoudnessDefaultRead(bool lDynamic, int lIndex)
+    public double QLoudnessValueRead(bool lDynamic, int lIndex) => qLoudnessGate.CLoudnessValueRead(lDynamic, lIndex);
+
+    public double QLoudnessDefaultRead(bool lDynamic, int lIndex) =>
+        qLoudnessGate.CLoudnessDefaultRead(lDynamic, lIndex);
+
+    public void QLoudnessValueSet(bool lDynamic, int lIndex, double lValue) =>
+        qLoudnessGate.CLoudnessValueSet(lDynamic, lIndex, lValue);
+
+    public void QLoudnessActiveSet(bool lActive) => qLoudnessGate.CLoudnessActiveSet(lActive);
+
+    public void QLoudnessPersistentSet(bool lPersistent) => qLoudnessGate.CLoudnessPersistentSet(lPersistent);
+
+    public void QLoudnessTwopassSet(bool lTwoPass) => qLoudnessGate.CLoudnessTwopassSet(lTwoPass);
+
+    public void QLoudnessModeSelect(int lIndex) => qLoudnessGate.CLoudnessModeSelect(lIndex);
+
+    public void QLoudnessChoiceSelect(bool lDynamic, int lIndex) =>
+        qLoudnessGate.CLoudnessChoiceSelect(lDynamic, lIndex);
+
+    // The section's parts take the gate's state: the switches, the mode, which mode's stack and preset row show, each
+    // row's slider and number, each preset combo, then the panel is lit while the tool applies. Every list runs in
+    // mode order; a combo's custom row is the gate's last row and the combo's last item.
+    public void QLoudnessUpdate(
+        CheckBox lApply,
+        CheckBox lPersistent,
+        CheckBox lTwoPass,
+        ComboBox lMode,
+        IReadOnlyList<UIElement> lStacks,
+        IReadOnlyList<UIElement> lPresetRows,
+        IReadOnlyList<IReadOnlyList<(Slider QLoudnessSlider, TextBox QLoudnessValue)>> lRows,
+        IReadOnlyList<ComboBox> lPresets,
+        FrameworkElement lPanel)
     {
-        if (lDynamic)
+        QTool.QToolSwitchUpdate(lApply, qLoudnessGate.CLoudnessActive);
+        QTool.QToolSwitchUpdate(lPersistent, qLoudnessGate.CLoudnessPersistent);
+        QTool.QToolSwitchUpdate(lTwoPass, qLoudnessGate.CLoudnessTwoPass);
+        IReadOnlyList<CChoice> lModes = qLoudnessGate.CLoudnessModes;
+        lMode.SelectedIndex = lModes.ToList().FindIndex(lRow => lRow.CChoiceChosen);
+        for (int lShown = 0; lShown < lStacks.Count; lShown++)
         {
-            return QDynamic.QDynamicDefaultRead(qLoudnessToken, lIndex);
+            Visibility lLook = lModes[lShown].CChoiceChosen ? Visibility.Visible : Visibility.Collapsed;
+            lStacks[lShown].Visibility = lLook;
+            lPresetRows[lShown].Visibility = lLook;
         }
 
-        LLevelingDefault lDefault = LLevelingCatalog.LLevelingDefaultRead();
-        LLevelingLoudnessPreset? lPreset = QLoudnessPresetRead();
-        return lIndex switch
+        IReadOnlyList<IReadOnlyList<double>> lValues = qLoudnessGate.CLoudnessRows;
+        for (int lList = 0; lList < lRows.Count; lList++)
         {
-            1 => lPreset?.LLevelingPeak ?? lDefault.LLevelingPeak,
-            2 => lPreset?.LLevelingRange ?? lDefault.LLevelingRange,
-            _ => lPreset?.LLevelingTarget ?? lDefault.LLevelingTarget
-        };
-    }
-
-    public QInspectorChoice QLoudnessChoiceRead(bool lDynamic) => lDynamic
-        ? QInspectorPlan.QInspectorChoiceRead(
-            LLevelingCatalog.LLevelingDynamicTokens,
-            QDynamic.QDynamicKeyRead,
-            qLoudnessToken,
-            QDynamic.QDynamicMatch(qLoudnessStep))
-        : QInspectorPlan.QInspectorChoiceRead(
-            LLevelingCatalog.LLevelingLoudnessTokens,
-            QLoudnessKeyRead,
-            qLoudnessToken,
-            LLevelingCatalog.LLevelingLoudnessMatch(
-                qLoudnessStep.LWorkNormalizeTarget,
-                qLoudnessStep.LWorkNormalizePeak,
-                qLoudnessStep.LWorkNormalizeRange));
-
-    public static string QLoudnessKeyRead(string lToken) => lToken switch
-    {
-        "Loud" => "Inspector.Normalize.Loud",
-        "Streaming" => "Inspector.Normalize.Streaming",
-        "Podcast" => "Inspector.Normalize.Podcast",
-        "Dialogue" => "Inspector.Normalize.Dialogue",
-        "Audiobook" => "Inspector.Normalize.Audiobook",
-        "Broadcast" => "Inspector.Normalize.Broadcast",
-        "TV" => "Inspector.Normalize.TV",
-        "Film" => "Inspector.Normalize.Film",
-        _ => "Inspector.Common.Custom"
-    };
-
-    public LLevelingLoudnessPreset? QLoudnessPresetRead() =>
-        qLoudnessToken is { } lToken ? LLevelingCatalog.LLevelingLoudnessRead(lToken) : null;
-
-    public string? QLoudnessMatchRead() => QLoudnessDynamic
-        ? QDynamic.QDynamicMatch(qLoudnessStep)
-        : LLevelingCatalog.LLevelingLoudnessMatch(
-            qLoudnessStep.LWorkNormalizeTarget,
-            qLoudnessStep.LWorkNormalizePeak,
-            qLoudnessStep.LWorkNormalizeRange);
-
-    public void QLoudnessStepSet(LWorkAudioStep lStep)
-    {
-        LWorkNormalizeStep lSource = lStep as LWorkNormalizeStep ?? QLoudnessDefaultCreate(lStep.LWorkStepActive);
-        LWorkNormalizeStep lNormal = QLoudnessNormalize(lSource);
-        QLoudnessStepApply(lNormal, QLoudnessTokenResolve(lNormal, null));
-    }
-
-    public void QLoudnessActiveSet(bool lActive) =>
-        QLoudnessStepApply(qLoudnessStep with { LWorkStepActive = lActive }, qLoudnessToken);
-
-    public void QLoudnessModeSet(LLeveling lMode)
-    {
-        LWorkNormalizeStep lNormal = qLoudnessStep with { LWorkNormalizeMode = lMode };
-        QLoudnessStepApply(lNormal, QLoudnessTokenResolve(lNormal, null));
-    }
-
-    public void QLoudnessModeSelect(int lIndex)
-    {
-        if (QLoudnessModeResolve(lIndex) is { } lMode)
-        {
-            QLoudnessModeSet(lMode);
-        }
-    }
-
-    public void QLoudnessValueSet(bool lDynamic, int lIndex, double lValue)
-    {
-        if (lDynamic)
-        {
-            QLoudnessDynamicSet(lIndex, lValue);
-        }
-        else
-        {
-            QLoudnessValueSet(lIndex, lValue);
-        }
-    }
-
-    public void QLoudnessChoiceSelect(bool lDynamic, int lIndex)
-    {
-        if (lDynamic != QLoudnessDynamic)
-        {
-            return;
+            for (int lRow = 0; lRow < lRows[lList].Count; lRow++)
+            {
+                QLoudnessRowUpdate(lRows[lList][lRow], lValues[lList][lRow]);
+            }
         }
 
-        string? lToken = QInspectorPlan.QInspectorChoiceResolve(
-            lDynamic ? LLevelingCatalog.LLevelingDynamicTokens : LLevelingCatalog.LLevelingLoudnessTokens,
-            lIndex,
-            qLoudnessToken,
-            QLoudnessMatchRead());
-        if (lToken is not null)
+        IReadOnlyList<IReadOnlyList<CChoice>> lChoices = qLoudnessGate.CLoudnessChoices;
+        for (int lList = 0; lList < lPresets.Count; lList++)
         {
-            QLoudnessPresetSelect(lToken);
-        }
-    }
-
-    public void QLoudnessValueSet(int lIndex, double lValue) =>
-        QLoudnessStepApply(QLoudnessValueResolve(lIndex, lValue), QLoudnessToken);
-
-    public void QLoudnessDynamicSet(int lIndex, double lValue) =>
-        QLoudnessStepApply(
-            QLoudnessNormalize(QDynamic.QDynamicValueSet(qLoudnessStep, lIndex, lValue)),
-            qLoudnessToken);
-
-    public void QLoudnessTwopassSet(bool lTwoPass) =>
-        QLoudnessStepApply(qLoudnessStep with { LWorkTwoPass = lTwoPass }, qLoudnessToken);
-
-    public void QLoudnessPresetSelect(string lToken)
-    {
-        if (QLoudnessPresetResolve(lToken) is { } lNormal)
-        {
-            QLoudnessStepApply(QLoudnessNormalize(lNormal), lToken);
-        }
-    }
-
-    public void QLoudnessPersistentSet(bool lPersistent)
-    {
-        if (qLoudnessPersistent == lPersistent)
-        {
-            return;
+            QInspectorChoice lChoice = QLoudnessChoiceBuild(lChoices[lList]);
+            lPresets[lList].Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
+            lPresets[lList].SelectedIndex = lChoice.QInspectorChoiceIndex;
         }
 
-        qLoudnessPersistent = lPersistent;
-        QLoudnessChanged?.Invoke();
+        QTool.QToolStackUpdate(lPanel, qLoudnessGate.CLoudnessActive);
     }
 
-    private static LLeveling? QLoudnessModeResolve(int lIndex) =>
-        lIndex >= 0 && lIndex < QLoudnessModeKeys.Length
-            ? lIndex == 1 ? LLeveling.LLevelingDynamic : LLeveling.LLevelingLoudness
-            : null;
-
-    private LWorkNormalizeStep QLoudnessValueResolve(int lIndex, double lValue) =>
-        QLoudnessNormalize(qLoudnessStep with
-        {
-            LWorkNormalizeTarget = lIndex == 0 ? lValue : qLoudnessStep.LWorkNormalizeTarget,
-            LWorkNormalizePeak = lIndex == 1 ? lValue : qLoudnessStep.LWorkNormalizePeak,
-            LWorkNormalizeRange = lIndex == 2 ? lValue : qLoudnessStep.LWorkNormalizeRange
-        });
-
-    private LWorkNormalizeStep? QLoudnessPresetResolve(string lToken) =>
-        QLoudnessDynamic
-            ? QDynamic.QDynamicPresetApply(qLoudnessStep, lToken)
-            : LLevelingCatalog.LLevelingLoudnessRead(lToken) is { } lPreset
-                ? qLoudnessStep with
-                {
-                    LWorkNormalizeTarget = lPreset.LLevelingTarget,
-                    LWorkNormalizePeak = lPreset.LLevelingPeak,
-                    LWorkNormalizeRange = lPreset.LLevelingRange
-                }
-                : null;
-
-    private void QLoudnessStepApply(LWorkNormalizeStep lNormal, string? lToken)
+    private static void QLoudnessRowUpdate((Slider QLoudnessSlider, TextBox QLoudnessValue) lRow, double lNumber)
     {
-        if (qLoudnessStep == lNormal && qLoudnessToken == lToken)
-        {
-            return;
-        }
-
-        qLoudnessStep = lNormal;
-        qLoudnessToken = lToken;
-        QLoudnessChanged?.Invoke();
+        lRow.QLoudnessSlider.Value =
+            Math.Clamp(lNumber, lRow.QLoudnessSlider.Minimum, lRow.QLoudnessSlider.Maximum);
+        lRow.QLoudnessValue.Text =
+            QInspector.QInspectorValueFormat(lRow.QLoudnessValue.Text, lNumber, QLoudnessPattern);
     }
 
-    private static string? QLoudnessTokenResolve(LWorkNormalizeStep lStep, string? lFallback) =>
-        (lStep.LWorkNormalizeMode == LLeveling.LLevelingDynamic
-            ? QDynamic.QDynamicMatch(lStep)
-            : LLevelingCatalog.LLevelingLoudnessMatch(
-                lStep.LWorkNormalizeTarget, lStep.LWorkNormalizePeak, lStep.LWorkNormalizeRange))
-        ?? lFallback;
-
-    private static LWorkNormalizeStep QLoudnessDefaultCreate(bool lActive)
+    private static QInspectorChoice QLoudnessChoiceBuild(IReadOnlyList<CChoice> lRows)
     {
-        LLevelingDefault lDefault = LLevelingCatalog.LLevelingDefaultRead();
-        return (LWorkNormalizeStep)LWorkAudioStep.LWorkNormalizeCreate(
-            lActive,
-            LLeveling.LLevelingLoudness,
-            lDefault.LLevelingTarget,
-            lDefault.LLevelingPeak,
-            lDefault.LLevelingRange,
-            lDefault.LLevelingTwoPass,
-            lDefault.LLevelingFrame,
-            lDefault.LLevelingGauss,
-            lDefault.LLevelingMaxGain,
-            lDefault.LLevelingCompress);
+        List<string> lNames = lRows
+            .Select(static lRow => lRow.CChoiceBasis is { } lBasis
+                ? QLocalizationCatalog.QLocalizationFormat(
+                    lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
+                : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
+            .ToList();
+        int lCustom = lRows.Count - 1;
+        int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
+        return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
     }
-
-    private static LWorkNormalizeStep QLoudnessNormalize(LWorkNormalizeStep lStep) =>
-        (LWorkNormalizeStep)LWorkAudioStep.LWorkNormalizeCreate(
-            lStep.LWorkStepActive,
-            lStep.LWorkNormalizeMode,
-            lStep.LWorkNormalizeTarget,
-            lStep.LWorkNormalizePeak,
-            lStep.LWorkNormalizeRange,
-            lStep.LWorkTwoPass,
-            lStep.LWorkNormalizeFrame,
-            lStep.LWorkNormalizeGauss,
-            lStep.LWorkNormalizeGain,
-            lStep.LWorkNormalizeCompress);
 }

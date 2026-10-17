@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 using Cadroue.Core;
 using Cadroue.UIDeportment;
 
@@ -10,7 +11,7 @@ public sealed class TLoudnessPreset
     [Fact]
     public void Rows_ThreeLoudness_FourDynamic()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
+        CLoudness loudness = TInterface.TLoudnessCreate();
 
         Assert.Equal(3, TInterface.TLoudnessRowsRead(loudness, false).Count);
         Assert.Equal(4, TInterface.TLoudnessRowsRead(loudness, true).Count);
@@ -22,25 +23,25 @@ public sealed class TLoudnessPreset
     [Fact]
     public void ModeSelect_SwitchesIndex_AndChoiceFamily()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
-        Assert.Equal(0, loudness.QLoudnessModeIndex);
+        CLoudness loudness = TInterface.TLoudnessCreate();
+        Assert.Equal(0, TInterface.TLoudnessModeRead(loudness));
 
         TInterface.TLoudnessModeSelect(loudness, 1);
-        Assert.True(loudness.QLoudnessDynamic);
-        Assert.Equal(1, loudness.QLoudnessModeIndex);
+        Assert.True(loudness.CLoudnessDynamic);
+        Assert.Equal(1, TInterface.TLoudnessModeRead(loudness));
         Assert.Equal(
             LLevelingCatalog.LLevelingDynamicTokens.Count + 1,
             TInterface.TLoudnessChoiceRead(loudness, true).QInspectorChoiceNames.Count);
         Assert.Equal(
             LLevelingCatalog.LLevelingLoudnessTokens.Count + 1,
             TInterface.TLoudnessChoiceRead(loudness, false).QInspectorChoiceNames.Count);
-        Assert.Equal(2, loudness.QLoudnessModeNames.Count);
+        Assert.Equal(2, TInterface.TLoudnessNamesRead(loudness).Count);
     }
 
     [Fact]
     public void ChoiceSelect_OnlyForActiveMode()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
+        CLoudness loudness = TInterface.TLoudnessCreate();
 
         TInterface.TLoudnessChoiceSelect(loudness, true, 0);
         Assert.Equal(TInterface.TLoudnessMatchRead(loudness), TInterface.TLoudnessTokenRead(loudness));
@@ -53,7 +54,7 @@ public sealed class TLoudnessPreset
     [Fact]
     public void ValueSet_ByModeAndIndex_DefaultsFollowToken()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
+        CLoudness loudness = TInterface.TLoudnessCreate();
 
         TInterface.TLoudnessValueSet(loudness, false, 1, -3);
         Assert.Equal(-3, TInterface.TLoudnessValueRead(loudness, false, 1));

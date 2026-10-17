@@ -165,19 +165,23 @@ internal static partial class TInterface
         sensor.QSensorStopApplied += stop;
     }
 
-    internal static IReadOnlyList<QInspectorRow> TLoudnessRowsRead(QLoudness loudness, bool dynamic) =>
-        loudness.QLoudnessRowsRead(dynamic);
-    internal static double TLoudnessValueRead(QLoudness loudness, bool dynamic, int index) =>
-        loudness.QLoudnessValueRead(dynamic, index);
-    internal static double TLoudnessDefaultRead(QLoudness loudness, bool dynamic, int index) =>
-        loudness.QLoudnessDefaultRead(dynamic, index);
-    internal static void TLoudnessValueSet(QLoudness loudness, bool dynamic, int index, double value) =>
-        loudness.QLoudnessValueSet(dynamic, index, value);
-    internal static void TLoudnessModeSelect(QLoudness loudness, int index) => loudness.QLoudnessModeSelect(index);
-    internal static QInspectorChoice TLoudnessChoiceRead(QLoudness loudness, bool dynamic) =>
-        loudness.QLoudnessChoiceRead(dynamic);
-    internal static void TLoudnessChoiceSelect(QLoudness loudness, bool dynamic, int index) =>
-        loudness.QLoudnessChoiceSelect(dynamic, index);
+    internal static IReadOnlyList<QInspectorRow> TLoudnessRowsRead(CLoudness loudness, bool dynamic) =>
+        new QLoudness(loudness).QLoudnessRowsRead(dynamic);
+    internal static double TLoudnessValueRead(CLoudness loudness, bool dynamic, int index) =>
+        loudness.CLoudnessValueRead(dynamic, index);
+    internal static double TLoudnessDefaultRead(CLoudness loudness, bool dynamic, int index) =>
+        loudness.CLoudnessDefaultRead(dynamic, index);
+    internal static void TLoudnessValueSet(CLoudness loudness, bool dynamic, int index, double value) =>
+        loudness.CLoudnessValueSet(dynamic, index, value);
+    internal static void TLoudnessModeSelect(CLoudness loudness, int index) => loudness.CLoudnessModeSelect(index);
+    internal static QInspectorChoice TLoudnessChoiceRead(CLoudness loudness, bool dynamic) =>
+        new QLoudness(loudness).QLoudnessChoiceRead(dynamic);
+    internal static void TLoudnessChoiceSelect(CLoudness loudness, bool dynamic, int index) =>
+        loudness.CLoudnessChoiceSelect(dynamic, index);
+    internal static int TLoudnessModeRead(CLoudness loudness) =>
+        loudness.CLoudnessModes.ToList().FindIndex(row => row.CChoiceChosen);
+    internal static IReadOnlyList<string> TLoudnessNamesRead(CLoudness loudness) =>
+        new QLoudness(loudness).QLoudnessModeNames;
 
     internal static double TNoiseValueRead(CNoise noise, int index) => noise.CNoiseValueRead(index);
     internal static double TNoiseDefaultRead(CNoise noise, int index) => noise.CNoiseDefaultRead(index);
@@ -263,8 +267,10 @@ internal static partial class TInterface
         section.QSectionRenameHandle(index, clicks);
     internal static void TSectionTextSet(QSection section, string name, string prefix, string suffix) =>
         section.QSectionTextSet(name, prefix, suffix);
-    internal static void TSectionEditCommit(QSection section) => section.QSectionEditCommit();
-    internal static void TSectionEditCancel(QSection section) => section.QSectionEditCancel();
+    internal static int? TSectionEditRead(QSection section) =>
+        section.QFlow.QFlowSection.QFlowSectionGate.CSectionEdit.CSectionEditIndex;
+    internal static int? TSectionDragRead(QSection section) =>
+        section.QFlow.QFlowSection.QFlowSectionGate.CSectionDrag.CSectionDragIndex;
     internal static bool TSectionKeyRun(QSection section, string key) => section.QSectionKeyRun(key);
     internal static void TSectionBlurHandle(QSection section, int serial, bool inside) =>
         section.QSectionBlurHandle(serial, inside);

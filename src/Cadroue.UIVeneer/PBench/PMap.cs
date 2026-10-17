@@ -74,13 +74,8 @@ public sealed class PMap : FrameworkElement
         QMap.QMapFrameApplied += InvalidateVisual;
     }
 
-    protected override void OnRender(DrawingContext drawingContext)
-    {
-        QMap.QMapDrawStart();
-        QMapFrame lFrame = QMap.QMapFrameResolve(ActualWidth, ActualHeight);
-        PMapFrameDraw(drawingContext, lFrame);
-        QMap.QMapDrawRecord();
-    }
+    protected override void OnRender(DrawingContext drawingContext) =>
+        QMap.QMapDraw(ActualWidth, ActualHeight, lFrame => PMapFrameDraw(drawingContext, lFrame));
 
     private void PMapFrameDraw(DrawingContext drawingContext, QMapFrame lFrame)
     {

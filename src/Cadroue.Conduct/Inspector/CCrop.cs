@@ -68,6 +68,48 @@ public sealed class CCrop
         }
     }
 
+    // The notice the crop shows, as a wording key and the pixel excess it formats; none when the crop needs no notice.
+    // A crop without a size and a fixed ratio without a size are errors; a fixed ratio the crop runs over by whole
+    // pixels names the side, unless the ratio is lenient and tolerates it.
+    public (string CCropNoticeKey, int? CCropNoticeExcess)? CCropNotice
+    {
+        get
+        {
+            LCropPort lPort = CCropPortRead();
+            if (!lPort.LCropSourceRead().LCropPresent)
+            {
+                return null;
+            }
+
+            double lWidth = CCropWidth;
+            double lHeight = CCropHeight;
+            if (lWidth <= 0 || lHeight <= 0)
+            {
+                return ("Inspector.Crop.FrameError", null);
+            }
+
+            var lState = lPort.LCropStateRead();
+            if (!lState.LCropFixed)
+            {
+                return null;
+            }
+
+            if (lState.LCropWidth <= 0 || lState.LCropHeight <= 0)
+            {
+                return ("Inspector.Crop.RatioError", null);
+            }
+
+            var lNotice = lPort.LCropNoticeRead(lWidth, lHeight);
+            if ((lState.LCropLenient && lNotice.LCropTolerated) || lNotice.LCropExcess <= 0)
+            {
+                return null;
+            }
+
+            return (lNotice.LCropWide ? "Inspector.Crop.WidthMismatch" : "Inspector.Crop.HeightMismatch",
+                lNotice.LCropExcess);
+        }
+    }
+
     // The whole size the applied crop leaves; none without a source or without a size.
     public (double CCropWidth, double CCropHeight)? CCropResolution
     {
@@ -195,6 +237,26 @@ public sealed class CCrop
     {
         bool lValid = width > 0 && height > 0;
         CCropPortRead().LCropRatioSet(ratioFixed && lValid, lenient && ratioFixed && lValid, width, height, false);
+    }
+
+    // A plan sets the crop as it holds it, then its ratio as a ratio apply, then keeps the crop when it says so. A
+    // plan whose crop is not kept leaves the crop as it is.
+    public void CCropPlanAccept(LInspectorPort plan)
+    {
+        ArgumentNullException.ThrowIfNull(plan);
+        bool? kept = plan.LInspectorKeepRead().LInspectorCrop;
+        if (kept == false)
+        {
+            return;
+        }
+
+        CCropPortRead().LCropWorkApply(plan);
+        (bool ratioFixed, bool lenient, int width, int height) = plan.LInspectorRatioRead();
+        CCropRatioApply(ratioFixed, lenient, width, height);
+        if (kept == true)
+        {
+            CCropPortRead().LCropPersistentSet(true);
+        }
     }
 
     // No choice asks for nothing. The custom choice drops a preset ratio; a preset fits the crop to its ratio, unless

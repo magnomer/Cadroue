@@ -117,30 +117,18 @@ public sealed partial class PInspector
         () => QLoudness.QLoudnessDefaultRead(pDynamic, lRow.QInspectorRowIndex),
         pNumber => QLoudness.QLoudnessValueSet(pDynamic, lRow.QInspectorRowIndex, pNumber));
 
-    private void PLoudnessRowUpdate(bool pDynamic, PInspectorRow pRow) =>
-        PInspectorRowUpdate(pRow, QLoudness.QLoudnessValueRead(pDynamic, pRow.PInspectorRowIndex));
+    private void PLoudnessUpdate() =>
+        QLoudness.QLoudnessUpdate(
+            pLoudnessApplyBox,
+            pLoudnessPersistent,
+            pLoudnessTwoPass,
+            pLoudnessMode,
+            [pLoudnessStack, pDynamicStack],
+            [pLoudnessPresetRow, pDynamicPresetRow],
+            [PLoudnessRowsRead(pLoudnessRows), PLoudnessRowsRead(pDynamicRows)],
+            [pLoudnessPreset, pDynamicPreset],
+            pLoudnessPanel);
 
-    private void PLoudnessUpdate()
-    {
-        bool lActive = QLoudness.QLoudnessStep.LWorkStepActive;
-        bool lDynamic = QLoudness.QLoudnessDynamic;
-        PLoudnessStateApply(lActive, lDynamic);
-        PInspectorSectionUpdate(pLoudnessPanel, lActive);
-    }
-
-    private void PLoudnessStateApply(bool lActive, bool lDynamic)
-    {
-        PInspectorSwitchUpdate(pLoudnessApplyBox, lActive);
-        PInspectorSwitchUpdate(pLoudnessPersistent, QLoudness.QLoudnessPersistent);
-        PInspectorSwitchUpdate(pLoudnessTwoPass, QLoudness.QLoudnessStep.LWorkTwoPass);
-        pLoudnessMode.SelectedIndex = QLoudness.QLoudnessModeIndex;
-        pLoudnessStack.Visibility = PLook.PLookVisible[!lDynamic];
-        pLoudnessPresetRow.Visibility = PLook.PLookVisible[!lDynamic];
-        pDynamicStack.Visibility = PLook.PLookVisible[lDynamic];
-        pDynamicPresetRow.Visibility = PLook.PLookVisible[lDynamic];
-        pLoudnessRows.ForEach(pRow => PLoudnessRowUpdate(false, pRow));
-        pDynamicRows.ForEach(pRow => PLoudnessRowUpdate(true, pRow));
-        PInspectorChoiceApply(pLoudnessPreset, QLoudness.QLoudnessChoiceRead(false));
-        PInspectorChoiceApply(pDynamicPreset, QLoudness.QLoudnessChoiceRead(true));
-    }
+    private static IReadOnlyList<(Slider, TextBox)> PLoudnessRowsRead(List<PInspectorRow> pRows) =>
+        pRows.Select(pRow => (pRow.PInspectorRowSlider, pRow.PInspectorRowValue)).ToList();
 }

@@ -244,7 +244,7 @@ internal static partial class TInterface
         LStation.LStationSchedule = schedule;
         try
         {
-            return new LLineageOutlet().LLineageResolve(ids);
+            return new LLineageOutlet(TimeProvider.System.GetUtcNow).LLineageResolve(ids);
         }
         finally
         {
@@ -278,7 +278,8 @@ internal static partial class TInterface
             LUsherTextEngine.LUsherNameSeam,
             extensionRead);
     internal static string TLineageTitleRead(LLineageStep step) =>
-        new LLineageOutlet().LLineageTitleRead(step.LLineageStepBatch, step.LLineageStepRelay, step.LLineageStepTab);
+        new LLineageOutlet(TimeProvider.System.GetUtcNow)
+            .LLineageTitleRead(step.LLineageStepBatch, step.LLineageStepRelay, step.LLineageStepTab);
     internal static LLineageAnswer TLineageAnswerCreate(
         IReadOnlyList<LLineageGroup> groups, IReadOnlyList<LLineageBatch> batches, IReadOnlyList<LLineageStep> steps) =>
         new(groups, batches, steps);
@@ -296,7 +297,7 @@ internal static partial class TInterface
         Guid id, Guid batch, Guid relay, string tab, string kind, bool subject, string? name, long? source,
         double? ratio, string sourceExtension, string outputExtension) =>
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
-    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet();
+    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet(TimeProvider.System.GetUtcNow);
     internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
     internal static LClinicPort TClinicResultCreate(string path, string kind, string outcome) =>
         new LClinicOutlet(new LCheckupResult(

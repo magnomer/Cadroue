@@ -51,7 +51,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void LoudnessMode_SwitchesPresetFamily()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
+        CLoudness loudness = TInterface.TLoudnessCreate();
         Assert.Equal("Audiobook", TInterface.TLoudnessTokenRead(loudness));
 
         TInterface.TLoudnessModeSet(loudness, LLeveling.LLevelingDynamic);
@@ -69,7 +69,7 @@ public sealed class TInspectorPreset
     [Fact]
     public void LoudnessPreset_SetsTargetPeakRange()
     {
-        QLoudness loudness = TInterface.TLoudnessCreate();
+        CLoudness loudness = TInterface.TLoudnessCreate();
         int notices = 0;
         TInterface.TLoudnessAttach(loudness, () => notices++);
 

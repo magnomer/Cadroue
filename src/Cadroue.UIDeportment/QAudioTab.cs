@@ -33,10 +33,11 @@ public sealed class QAudioTab
     private readonly QList qAudioList;
     private readonly LDocket qAudioDocket;
 
-    public QAudioTab(CUsher lUsher, CInspector lInspector, LPresetSelection lPreset, QViewer lViewer, QList lList)
+    public QAudioTab(
+        CUsher lUsher, CInspector lInspector, CEdit lEdit, LPresetSelection lPreset, QViewer lViewer, QList lList)
     {
         QAudioInspector = new QInspector(lInspector);
-        QAudioStore = new QAudioTabPlan(this, lUsher, lList);
+        QAudioStore = new QAudioTabPlan(this, lUsher, lEdit, lList);
         qAudioPreset = lPreset;
         qAudioSections = QAudioInspector.QInspectorAudio;
         qAudioViewer = lViewer;
@@ -72,7 +73,7 @@ public sealed class QAudioTab
     {
         QAudioInspector.QInspectorPersistentChanged += QAudioStore.QAudioPersistentSave;
         qAudioSections.QInspectorAudioChanged += QAudioChangeHandle;
-        QAudioInspector.QInspectorSkip.QSkipActiveChanged += QAudioSkipHandle;
+        QAudioInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged += QAudioSkipHandle;
     }
 
     private void QAudioViewerAttach(QViewer lViewer, QList lList)
@@ -89,7 +90,7 @@ public sealed class QAudioTab
     {
         QAudioInspector.QInspectorPersistentChanged -= QAudioStore.QAudioPersistentSave;
         qAudioSections.QInspectorAudioChanged -= QAudioChangeHandle;
-        QAudioInspector.QInspectorSkip.QSkipActiveChanged -= QAudioSkipHandle;
+        QAudioInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged -= QAudioSkipHandle;
         QAudioProcessing.QProcessingOrderChanged -= QAudioStore.QAudioStateSave;
         qAudioViewer.QViewerMediaChanged -= QAudioMediaHandle;
         qAudioViewer.QViewerOpenNotice -= QAudioOpenHandle;
@@ -118,8 +119,7 @@ public sealed class QAudioTab
             {
                 LWorkAudio lPlan = LAudio.LAudioPersistentRead(lRecord);
                 qAudioSections.QInspectorAudioApply(lPlan);
-                qAudioSections.QInspectorPersistentApply(lPlan, lInspector.LSceneInspectorSkip);
-                QAudioInspector.QInspectorSkip.QSkipActiveSet(lPlan.LWorkAudioSkip);
+                qAudioSections.QInspectorPersistentApply(lInspector.LSceneInspectorSkip);
             }
             finally
             {

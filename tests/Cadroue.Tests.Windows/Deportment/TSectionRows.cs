@@ -72,7 +72,7 @@ public sealed class TSectionRows
 
         Assert.False(TInterface.TSectionRenameHandle(section, 0, 1));
         Assert.True(TInterface.TSectionRenameHandle(section, 0, 2));
-        Assert.Equal(0, section.QSectionEditIndex);
+        Assert.Equal(0, TInterface.TSectionEditRead(section));
         Assert.True(TInterface.TSectionRowsRead(section)[0].QSectionRowEditing);
         int serial = section.QSectionEditSerial;
 
@@ -83,7 +83,7 @@ public sealed class TSectionRows
         Assert.Equal("gamma", piece.LPieceName);
         Assert.Equal("p", piece.LPiecePrefix);
         Assert.Equal("s", piece.LPieceSuffix);
-        Assert.Null(section.QSectionEditIndex);
+        Assert.Null(TInterface.TSectionEditRead(section));
 
         TInterface.TSectionBlurHandle(section, serial, false);
         Assert.Equal("gamma", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
@@ -107,12 +107,12 @@ public sealed class TSectionRows
         TInterface.TSectionTextSet(section, "kept", "", "");
 
         TInterface.TSectionBlurHandle(section, serial - 1, false);
-        Assert.Equal(0, section.QSectionEditIndex);
+        Assert.Equal(0, TInterface.TSectionEditRead(section));
         TInterface.TSectionBlurHandle(section, serial, true);
-        Assert.Equal(0, section.QSectionEditIndex);
+        Assert.Equal(0, TInterface.TSectionEditRead(section));
         TInterface.TSectionBlurHandle(section, serial, false);
 
-        Assert.Null(section.QSectionEditIndex);
+        Assert.Null(TInterface.TSectionEditRead(section));
         Assert.Equal("kept", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
     }
 
@@ -137,14 +137,14 @@ public sealed class TSectionRows
 
         Assert.Equal([0], starts);
         Assert.Equal([(0, 1)], moves);
-        Assert.Equal(1, section.QSectionDrag.QSectionDragIndex);
+        Assert.Equal(1, TInterface.TSectionDragRead(section));
         Assert.Equal("beta", TInterface.TFlowSectionsRead(flow)[0].LPieceName);
         Assert.Equal(0, rebuilds);
 
         Assert.True(TInterface.TSectionReleaseHandle(section, false, false));
         Assert.Equal([1], ends);
         Assert.Equal(1, rebuilds);
-        Assert.Null(section.QSectionDrag.QSectionDragIndex);
+        Assert.Null(TInterface.TSectionDragRead(section));
         Assert.False(TInterface.TSectionReleaseHandle(section, false, false));
     }
 
@@ -172,7 +172,7 @@ public sealed class TSectionRows
 
         TInterface.TSectionPressHandle(section, 0, 1, 5, 5);
         TInterface.TSectionLostHandle(section);
-        Assert.Null(section.QSectionDrag.QSectionDragIndex);
+        Assert.Null(TInterface.TSectionDragRead(section));
     }
 
     [Fact]
@@ -187,7 +187,7 @@ public sealed class TSectionRows
 
         Assert.Equal([false], enabled);
         Assert.False(section.QSectionEditable);
-        Assert.Null(section.QSectionEditIndex);
+        Assert.Null(TInterface.TSectionEditRead(section));
         Assert.False(TInterface.TSectionRenameHandle(section, 0, 2));
         Assert.True(TInterface.TSectionPressHandle(section, 0, 1, 5, 5));
         Assert.False(TInterface.TSectionMoveHandle(section, 50, 50, 4, true, [0, 30], [30, 30]));

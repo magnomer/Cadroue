@@ -24,12 +24,10 @@ public enum CFlowAction
 // read it and keep no copy. A media record passes through unread; the port answers it as plain values.
 public sealed class CFlow
 {
-    private const double CFlowVolumeStep = 5;
-
     private readonly LFlowPort _cFlowPort;
     private readonly CUsher _cFlowUsher;
 
-    internal CFlow(LFlowPort port, CUsher usher)
+    internal CFlow(LFlowPort port, LMapPort map, CUsher usher)
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(usher);
@@ -40,20 +38,19 @@ public sealed class CFlow
         CFlowKeyframe = new CKeyframe(port.LFlowKeyframeCreate(CFlowSourceFormat), this);
         CFlowWaveform = new CWaveform(port.LFlowWaveformCreate(), this);
         CFlowName = new CFlowName(port, CFlowSection);
+        CFlowMap = new CMap(map, this);
+        CFlowWheel = new CFlowWheel(port, this);
     }
 
     public CSection CFlowSection { get; }
-
     public CKeyframe CFlowKeyframe { get; }
-
     public CWaveform CFlowWaveform { get; }
-
     public CFlowName CFlowName { get; }
+    public CMap CFlowMap { get; }
+    public CFlowWheel CFlowWheel { get; }
 
     public event Action<bool>? CFlowWaveformChanged;
-
     public event Action? CFlowPlayed;
-
     public event Action? CFlowPaused;
 
     // The flow moved its cursor itself, as a keyframe move does.
@@ -61,11 +58,6 @@ public sealed class CFlow
 
     // The flow asks the viewer to seek to its cursor.
     public event Action<TimeSpan>? CFlowCursorSought;
-
-    // A zoom changed the range: its readers follow it.
-    public event Action? CFlowZoomed;
-
-    public event Action<double>? CFlowVolumeAdjusted;
 
     // Told at every drag start and end, whether or not commands run.
     public event Action<bool>? CFlowDragChanged;
@@ -334,41 +326,6 @@ public sealed class CFlow
 
     public void CFlowDirectionSet(int? direction) => CFlowKeyframeDirection = direction;
 
-    // A wheel turn while commands run, in raw units and in steps: it zooms, changes the volume or seeks a step.
-    public bool CFlowWheelRun(int delta, int steps)
-    {
-        if (!CFlowCommandActive || delta == 0)
-        {
-            return false;
-        }
-
-        switch (_cFlowPort.LFlowWheelRead())
-        {
-            case "Zoom":
-                CFlowZoom(steps);
-                break;
-            case "Volume":
-                CFlowVolumeAdjusted?.Invoke(steps * CFlowVolumeStep);
-                break;
-            default:
-                CFlowWheelSeek(steps);
-                break;
-        }
-
-        return true;
-    }
-
-    public void CFlowZoom(int steps)
-    {
-        if (CFlowRange is not { } range)
-        {
-            return;
-        }
-
-        _cFlowPort.LFlowRangeZoom(range, CFlowCursor, steps);
-        CFlowZoomed?.Invoke();
-    }
-
     // While commands run and the preference asks, a drag start pauses playing media; its end plays what it paused.
     public void CFlowDragSet(bool dragging, Func<bool>? playing)
     {
@@ -397,15 +354,5 @@ public sealed class CFlow
 
         CFlowDragPaused = false;
         CFlowPlayRaise();
-    }
-
-    private void CFlowWheelSeek(int steps)
-    {
-        if (CFlowRange is not { } range)
-        {
-            return;
-        }
-
-        CFlowCursorSeek(CFlowCursorClamp(CFlowCursor + _cFlowPort.LFlowStepResolve(range, steps)));
     }
 }

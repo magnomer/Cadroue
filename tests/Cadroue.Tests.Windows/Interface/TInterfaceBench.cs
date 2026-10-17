@@ -156,8 +156,16 @@ internal static partial class TInterface
 
     internal static QMap TMapRead(QFlow flow) => flow.QFlowMap;
     internal static void TMapFrameAttach(QMap map, Action handler) => map.QMapFrameApplied += handler;
-    internal static QMapFrame TMapFrameResolve(QMap map, double width, double height) =>
-        map.QMapFrameResolve(width, height);
+    internal static QMapFrame TMapFrameResolve(QMap map, double width, double height)
+    {
+        QMapFrame? frame = null;
+        map.QMapDraw(width, height, painted => frame = painted);
+        return frame!;
+    }
+
+    internal static Cadroue.Conduct.CMapHit TMapDragRead(QMap map) => map.QMapGate.CMapDragKind;
+    internal static string TMapTriggerRead(QMap map) => map.QMapGate.CMapTrigger;
+    internal static int TMapGlyphRead(QMap map) => map.QMapGate.CMapGlyphCount;
     internal static IReadOnlyList<QMapBadge> TMapBadgeResolve(QMap map, QMapBand band, double width, double height) =>
         QMapText.QMapBadgeResolve(band, width, height);
     internal static QMapHitKind TMapHoverResolve(QMap map, double x, double y, double width, double height) =>

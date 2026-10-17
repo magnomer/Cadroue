@@ -3,7 +3,6 @@ namespace Cadroue.UIDeportment;
 public sealed class QFlowSpool
 {
     private readonly QFlow qFlow;
-    private TimeSpan qFlowDragTime;
 
     public QFlowSpool(QFlow lOwner)
     {
@@ -12,8 +11,6 @@ public sealed class QFlowSpool
 
     public event Action? QFlowSpoolApplied;
 
-    public TimeSpan QFlowDragTime => qFlowDragTime;
-
     public string QFlowLabelOrigin => QCursor.QCursorTimeFormat(qFlow.QFlowRange?.LSpoolRangeOrigin ?? TimeSpan.Zero);
 
     public string QFlowLabelLimit => QCursor.QCursorTimeFormat(qFlow.QFlowRange?.LSpoolRangeLimit ?? TimeSpan.Zero);
@@ -21,8 +18,6 @@ public sealed class QFlowSpool
     public string QFlowLabelZero => QCursor.QCursorTimeFormat(TimeSpan.Zero);
 
     public string QFlowLabelDuration => QCursor.QCursorTimeFormat(qFlow.QFlowDuration);
-
-    public void QFlowDragSet(TimeSpan lDragTime) => qFlowDragTime = lDragTime;
 
     public void QFlowRangeSet(TimeSpan lOrigin, TimeSpan lLimit)
     {

@@ -26,7 +26,7 @@ public sealed class QFlow
         QFlowName = new QFlowName(this, lGate.CFlowName);
         QFlowWheel = new QFlowWheel(this, lGate);
         QFlowViewfinder = new QViewfinder(this);
-        QFlowMap = new QMap(this);
+        QFlowMap = new QMap(this, lGate.CFlowMap);
         QFlowDivider = new QDivider();
         QFlowGateAttach();
     }

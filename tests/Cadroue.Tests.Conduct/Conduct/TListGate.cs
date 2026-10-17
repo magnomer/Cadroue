@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Cadroue.Conduct;
+using Cadroue.Core;
+using Cadroue.ShellEngine;
 using Xunit;
 
 namespace Cadroue.Tests;
@@ -160,6 +163,75 @@ public sealed class TListGate
         tListPort.TListPathsAdd(false, "C:/a.mp4", "C:/b.mp4");
         tListGate.CListListedSelect("C:/B.MP4");
         Assert.Equal("C:/B.MP4", tListGate.CListPathCurrent);
+    }
+
+    [Fact]
+    public void ListCardsRead_UnlockedPathsAlone_LockedBatchTogether_RowsNamedAndMarked()
+    {
+        tListPort.TListPathsAdd(false, "C:/a.mp4");
+        tListPort.TListPathsAdd(true, "C:/x.mp4", "C:/y.mp4");
+        tListPort.TListPathsAdd(false, "C:/b.mp4");
+        tListGate.CListSelect("C:/y.mp4");
+
+        IReadOnlyList<CListCard> cards = tListGate.CListCardsRead();
+
+        Assert.Equal([false, true, false], cards.Select(card => card.CListCardLocked));
+        Assert.Equal(
+            new CListRow("C:/a.mp4", tListPort.TListName!("C:/a.mp4"), false, false, true),
+            cards[0].CListCardRows.Single());
+        Assert.Equal(
+            [
+                new CListRow("C:/x.mp4", tListPort.TListName!("C:/x.mp4"), true, false, true),
+                new CListRow("C:/y.mp4", tListPort.TListName!("C:/y.mp4"), true, true, false),
+            ],
+            cards[1].CListCardRows);
+        Assert.Equal("C:/b.mp4", cards[2].CListCardRows.Single().CListRowPath);
+    }
+
+    [Fact]
+    public void ListRowRead_MarksLockAndSelection()
+    {
+        tListPort.TListPathsAdd(true, "C:/locked.mp4");
+        tListPort.TListPathsAdd(false, "C:/a.mp4");
+
+        CListRow locked = tListGate.CListRowRead("C:/locked.mp4");
+        CListRow plain = tListGate.CListRowRead("C:/a.mp4");
+
+        Assert.True(locked.CListRowLocked);
+        Assert.False(locked.CListRowSelected);
+        Assert.False(plain.CListRowLocked);
+        Assert.True(plain.CListRowSelected);
+    }
+
+    // The outlet traces through the rig it is given, so a list's traces stand before any engine attaches its own.
+    [Fact]
+    public async Task ListOutlet_TracesThroughTheRig()
+    {
+        var traces = new List<string>();
+        var rig = new LRigList(
+            (paths, _) => Task.FromResult<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)>(
+                (paths, [("C:/skip", "denied")])),
+            (message, detail) => traces.Add($"info {message} | {detail}"),
+            (message, detail) => traces.Add($"warning {message} | {detail}"),
+            (message, exception) => traces.Add($"error {message}"));
+        LListPort outlet = LListOutlet.LListOutletCreate(rig)(path => $"name:{path}");
+
+        int added = await outlet.LListPathsAdd(["C:/a.mp4"]);
+
+        Assert.Equal(1, added);
+        Assert.Equal(
+            [
+                "info List add requested: 1 path(s) | name:C:/a.mp4",
+                "warning List skipped folder 'C:/skip': denied | ",
+                "info List scan resolved 1 media path(s); adding to docket | ",
+                "info List add handled: 1 entry(ies), selecting 'name:C:/a.mp4' and notifying subscribers | ",
+                "info List add subscribers notified | ",
+                "info List add committed: 1 entry(ies) | ",
+            ],
+            traces);
+        (bool locked, IReadOnlyList<string> paths) = Assert.Single(outlet.LListCardsRead());
+        Assert.False(locked);
+        Assert.Equal(["C:/a.mp4"], paths);
     }
 
     [Fact]

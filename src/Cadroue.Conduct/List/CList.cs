@@ -12,6 +12,7 @@ namespace Cadroue.Conduct;
 public sealed class CList
 {
     private readonly LListPort _cListPort;
+    private readonly CUsher _cListUsher;
     private readonly HashSet<string> _cListSelected = new(StringComparer.OrdinalIgnoreCase);
     private string? _cListSuccessor;
     private bool _cListDragOrigin;
@@ -23,6 +24,7 @@ public sealed class CList
     {
         ArgumentNullException.ThrowIfNull(port);
         ArgumentNullException.ThrowIfNull(usher);
+        _cListUsher = usher;
         _cListPort = port(usher.CUsherNameRead);
         _cListPort.LListChanged += CListChangeHandle;
         _cListPort.LListAdded += CListAddHandle;
@@ -71,6 +73,20 @@ public sealed class CList
     public bool CListLockCheck() => CListPathCurrent is { } current && _cListPort.LListLockCheck(current);
 
     public bool CListLockCheck(string path) => _cListPort.LListLockCheck(path);
+
+    // The docket's cards in docket order, each row named and marked locked and selected.
+    public IReadOnlyList<CListCard> CListCardsRead() =>
+        _cListPort.LListCardsRead()
+            .Select(card => new CListCard(
+                card.LListLocked,
+                card.LListPaths
+                    .Select((path, index) => CListRowCreate(
+                        path, card.LListLocked, !card.LListLocked || index < card.LListPaths.Count - 1))
+                    .ToArray()))
+            .ToArray();
+
+    // One path's row, as its card shows it alone.
+    public CListRow CListRowRead(string path) => CListRowCreate(path, _cListPort.LListLockCheck(path), true);
 
     public async Task<int> CListPathsAdd(IEnumerable<string> paths)
     {
@@ -240,6 +256,9 @@ public sealed class CList
 
         return -1;
     }
+
+    private CListRow CListRowCreate(string path, bool locked, bool last) =>
+        new(path, _cListUsher.CUsherNameRead(path), locked, _cListSelected.Contains(path), last);
 
     private void CListChangeHandle()
     {

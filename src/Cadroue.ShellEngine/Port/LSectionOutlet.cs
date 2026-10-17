@@ -31,6 +31,13 @@ public sealed class LSectionOutlet : LSectionPort
 
     public int LSectionVersionRead() => _lSectionOutletSegment.LSegmentVersionRead();
 
+    public IReadOnlyList<(string LSectionName, string LSectionPrefix, string LSectionSuffix, TimeSpan LSectionOrigin,
+        TimeSpan LSectionEnd, int LSectionColor, bool LSectionHidden)> LSectionRowsRead() =>
+        _lSectionOutletSegment.LSegmentListRead()
+            .Select(lSection => (lSection.LPieceName, lSection.LPiecePrefix, lSection.LPieceSuffix,
+                lSection.LPieceOrigin, lSection.LPieceEnd, lSection.LPieceColorIndex, lSection.LPieceHidden))
+            .ToArray();
+
     public void LSectionAttach(string? lSource)
     {
         _lSectionOutletSegment.LSegmentSourceSet(lSource);

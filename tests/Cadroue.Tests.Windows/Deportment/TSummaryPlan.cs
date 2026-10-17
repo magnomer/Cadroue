@@ -82,11 +82,12 @@ public sealed class TSummaryPlan
         one.LWorkStateCurrent = LWorkState.LWorkStateRunning;
         schedule.TScheduleAdd(new TScheduleWork(one), new TScheduleWork(two));
 
-        QRosterCompareRow sizes =
-            TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch).QSummaryCompares[1];
+        QSummary summary = TInterfaceRoster.TSummaryRead(schedule.TScheduleRead(), batch);
+        QRosterCompareRow sizes = summary.QSummaryCompares[1];
         Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.QRosterCompareSource.QRosterLineText);
         Assert.Equal(TInterfaceRoster.TRosterMebiFormat(null), sizes.QRosterCompareOutput.QRosterLineText);
-        Assert.Null(TInterfaceRoster.TSummaryMeterFormat([one, two], null));
+        Assert.Empty(summary.QSummaryMeters);
+        Assert.Null(TInterfaceRoster.TSummaryMeterFormat(null, null));
     }
 
     [Fact]

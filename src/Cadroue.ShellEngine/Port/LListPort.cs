@@ -28,6 +28,10 @@ public interface LListPort
 
     bool LListLockCheck(string lPath);
 
+    // The docket's cards in docket order: each unlocked path alone, each locked batch's paths together where its
+    // first path stands.
+    IReadOnlyList<(bool LListLocked, IReadOnlyList<string> LListPaths)> LListCardsRead();
+
     // Scans the paths for media and adds what it finds; answers the count added, 0 when the scan is cancelled or fails.
     Task<int> LListPathsAdd(IReadOnlyList<string> lPaths);
 

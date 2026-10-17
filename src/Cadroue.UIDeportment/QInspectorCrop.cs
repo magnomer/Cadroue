@@ -96,11 +96,7 @@ public sealed class QInspectorCrop
         }
     }
 
-    private string? QInspectorNoticeResolve() => QInspectorNotice.QInspectorNoticeResolve(
-        qInspector.QInspectorSourcePresent,
-        qInspectorCropGate.CCropWidth,
-        qInspectorCropGate.CCropHeight,
-        QInspectorCropbox.LCropboxStateRatio);
+    private string? QInspectorNoticeResolve() => QInspectorNotice.QInspectorNoticeResolve(qInspectorCropGate);
 
     // Typed text that already reads as the number stays as typed; an empty field stays empty at 0.
     internal static string QInspectorWholeFormat(string lText, double lNumber)

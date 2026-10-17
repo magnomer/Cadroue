@@ -2,6 +2,7 @@ using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -57,7 +58,8 @@ public sealed class QInspector
         QInspectorCrop = new QInspectorCrop(this);
         QInspectorOrientation = new QInspectorOrientation(this);
         QInspectorRatio = new QInspectorRatio(this);
-        QInspectorAudio = new QInspectorAudio(QInspectorSkip, QInspectorGate);
+        QInspectorSkip = new QSkip(QInspectorGate.CInspectorSkip);
+        QInspectorAudio = new QInspectorAudio(QInspectorGate);
         QInspectorAttach();
         qInspectorPersistentMask = QInspectorPersistentResolve();
     }
@@ -77,7 +79,7 @@ public sealed class QInspector
 
     public QInspectorVideo QInspectorVideo { get; }
 
-    public QSkip QInspectorSkip { get; } = new();
+    public QSkip QInspectorSkip { get; }
 
     public QInspectorAudio QInspectorAudio { get; }
 
@@ -223,16 +225,21 @@ public sealed class QInspector
         return true;
     }
 
-    public void QInspectorPlanApply(LEditPlan lPlan)
+    public void QInspectorPlanApply(LEditPlan lPlan) =>
+        QInspectorPlanApply(new LInspectorOutlet(lPlan), lPlan.LEditVideo);
+
+    // A kept layout's plan: the gate applies the crop only when it is kept and keeps the skip switch as told.
+    public void QInspectorPlanApply(LEditPlan lPlan, bool lCropKept, bool lSkipKept) =>
+        QInspectorPlanApply(new LInspectorOutlet(lPlan, lCropKept, lSkipKept), lPlan.LEditVideo);
+
+    // One gate call sets the plan; the curve, not gated yet, takes its step after.
+    private void QInspectorPlanApply(LInspectorPort lPlan, LWorkVideo lVideo)
     {
         QInspectorVideo.QInspectorVideoSuspend();
         try
         {
-            QInspectorCrop.QInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
-            QInspectorRatio.QInspectorRatioApply(
-                lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
-            QInspectorVideo.QInspectorVideoApply(lPlan.LEditVideo);
-            QInspectorSkip.QSkipActiveSet(lPlan.LEditSkip);
+            QInspectorGate.CInspectorEditAccept(lPlan);
+            QInspectorVideo.QInspectorCurveApply(lVideo);
         }
         finally
         {
@@ -352,7 +359,7 @@ public sealed class QInspector
             QInspectorVideo.QInspectorCurve.QCurvePersistent,
             QInspectorVideo.QInspectorWhitebalance.CWhitebalancePersistent,
             QInspectorAudio.QInspectorVolume.CVolumePersistent,
-            QInspectorAudio.QInspectorLoudness.QLoudnessPersistent,
+            QInspectorGate.CInspectorLoudness.CLoudnessPersistent,
             QInspectorAudio.QInspectorNoise.QNoisePersistent,
             QInspectorGate.CInspectorHighpass.CFilterPersistent,
             QInspectorGate.CInspectorLowpass.CFilterPersistent,

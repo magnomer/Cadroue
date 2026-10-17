@@ -139,63 +139,6 @@ public sealed class TFlowGate
     }
 
     [Fact]
-    public void FlowWheelRun_StoppedOrStill_RefusesWithoutReading()
-    {
-        Assert.False(tFlowGate.CFlowWheelRun(120, 1));
-
-        tFlowGate.CFlowCommandSet(true);
-
-        Assert.False(tFlowGate.CFlowWheelRun(0, -1));
-        Assert.DoesNotContain("wheel", tFlowPort.TFlowCalls);
-    }
-
-    [Fact]
-    public void FlowWheelRun_Seek_MovesTheCursorByTheStepAndSeeks()
-    {
-        TimeSpan? sought = null;
-        tFlowGate.CFlowCursorSought += cursor => sought = cursor;
-        tFlowGate.CFlowCommandSet(true);
-        tFlowGate.CFlowAttach(null!, "full:a", TimeSpan.FromSeconds(10));
-
-        Assert.True(tFlowGate.CFlowWheelRun(-240, -2));
-
-        Assert.Equal(TimeSpan.FromSeconds(6), tFlowGate.CFlowCursor);
-        Assert.Equal(TimeSpan.FromSeconds(6), sought);
-        Assert.Contains("step:-2", tFlowPort.TFlowCalls);
-    }
-
-    [Fact]
-    public void FlowWheelRun_Zoom_ZoomsAboutTheCursorAndTells()
-    {
-        int zoomed = 0;
-        tFlowGate.CFlowZoomed += () => zoomed++;
-        tFlowPort.TFlowWheel = "Zoom";
-        tFlowGate.CFlowCommandSet(true);
-        tFlowGate.CFlowZoom(1);
-        tFlowGate.CFlowAttach(null!, "full:a", TimeSpan.FromSeconds(30));
-
-        Assert.True(tFlowGate.CFlowWheelRun(120, 1));
-
-        Assert.Equal(1, zoomed);
-        Assert.Contains("zoom:30:1", tFlowPort.TFlowCalls);
-        Cadroue.Core.LSpool range = tFlowGate.CFlowRange!;
-        Assert.True(range.LSpoolRangeLimit - range.LSpoolRangeOrigin < TimeSpan.FromSeconds(60));
-    }
-
-    [Fact]
-    public void FlowWheelRun_Volume_AsksFiveAStep()
-    {
-        double? volume = null;
-        tFlowGate.CFlowVolumeAdjusted += change => volume = change;
-        tFlowPort.TFlowWheel = "Volume";
-        tFlowGate.CFlowCommandSet(true);
-
-        Assert.True(tFlowGate.CFlowWheelRun(-120, -1));
-
-        Assert.Equal(-5, volume);
-    }
-
-    [Fact]
     public void FlowDragSet_Playing_PausesOnceAndPlaysAtTheEnd()
     {
         int paused = 0;

@@ -15,9 +15,12 @@ public sealed class CAtelier
     private readonly LNoisePort _cAtelierNoisePort;
     private readonly LConsolePort _cAtelierConsolePort;
     private readonly LFlowPort _cAtelierFlowPort;
+    private readonly LMapPort _cAtelierMapPort;
     private readonly LRosterDetailPort _cAtelierDetailPort;
     private readonly LWhitebalancePort _cAtelierWhitebalancePort;
     private readonly LFilterPort _cAtelierFilterPort;
+    private readonly LAudioPort _cAtelierAudioPort;
+    private readonly LLoudnessPort _cAtelierLoudnessPort;
     private readonly LConsoleScenePort _cAtelierScenePort;
     private readonly Func<Func<string, string>, LListPort> _cAtelierListPort;
 
@@ -41,11 +44,15 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierNoise);
         ArgumentNullException.ThrowIfNull(port.LAtelierConsole);
         ArgumentNullException.ThrowIfNull(port.LAtelierFlow);
+        ArgumentNullException.ThrowIfNull(port.LAtelierMap);
         ArgumentNullException.ThrowIfNull(port.LAtelierRosterDetail);
         ArgumentNullException.ThrowIfNull(port.LAtelierWhitebalance);
         ArgumentNullException.ThrowIfNull(port.LAtelierFilter);
+        ArgumentNullException.ThrowIfNull(port.LAtelierAudio);
+        ArgumentNullException.ThrowIfNull(port.LAtelierLoudness);
         ArgumentNullException.ThrowIfNull(port.LAtelierScene);
         ArgumentNullException.ThrowIfNull(port.LAtelierList);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRelay);
 
         CAtelierUsher = new CUsher(port.LAtelierUsher);
         CAtelierLineage = new CLineage(port.LAtelierLineage);
@@ -65,11 +72,15 @@ public sealed class CAtelier
         _cAtelierNoisePort = port.LAtelierNoise;
         _cAtelierConsolePort = port.LAtelierConsole;
         _cAtelierFlowPort = port.LAtelierFlow;
+        _cAtelierMapPort = port.LAtelierMap;
         _cAtelierDetailPort = port.LAtelierRosterDetail;
         _cAtelierWhitebalancePort = port.LAtelierWhitebalance;
         _cAtelierFilterPort = port.LAtelierFilter;
+        _cAtelierAudioPort = port.LAtelierAudio;
+        _cAtelierLoudnessPort = port.LAtelierLoudness;
         _cAtelierScenePort = port.LAtelierScene;
         _cAtelierListPort = port.LAtelierList;
+        CAtelierRelay = new CRelay(port.LAtelierRelay, CAtelierUsher);
     }
 
     public CUsher CAtelierUsher { get; }
@@ -88,9 +99,15 @@ public sealed class CAtelier
 
     public CMerge CAtelierMerge { get; }
 
+    // The one relay across every tab of the window, keyed by tab id.
+    public CRelay CAtelierRelay { get; }
+
     // A viewer's workspace with the viewer's own trace gate and the flow beside it: each holds state for one viewer.
     public CWorkspace CAtelierWorkspaceCreate() =>
-        new(_cAtelierWorkspacePort, new CViewer(_cAtelierViewerPort), new CFlow(_cAtelierFlowPort, CAtelierUsher));
+        new(
+            _cAtelierWorkspacePort,
+            new CViewer(_cAtelierViewerPort),
+            new CFlow(_cAtelierFlowPort, _cAtelierMapPort, CAtelierUsher));
 
     public CInspector CAtelierInspectorCreate() =>
         new(
@@ -99,7 +116,9 @@ public sealed class CAtelier
             _cAtelierClinicPort,
             _cAtelierNoisePort,
             _cAtelierWhitebalancePort,
-            _cAtelierFilterPort);
+            _cAtelierFilterPort,
+            _cAtelierAudioPort,
+            _cAtelierLoudnessPort);
 
     // A roster's preference gate with the roster's own card and detail gates.
     public CRoster CAtelierRosterCreate() =>

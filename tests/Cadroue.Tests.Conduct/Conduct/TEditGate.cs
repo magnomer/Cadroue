@@ -20,13 +20,60 @@ public sealed class TEditGate
         (@"C:\c.mp4", TEditBatchC, false),
     ];
 
+    private static readonly string[] TEditPaths = [@"C:\a.mp4", @"C:\c.mp4"];
+
     private readonly TEditPort tEditPort = new();
+    private readonly TAudioPort tEditAudio = new();
     private readonly CEdit tEditGate;
+    private readonly CInspector tEditInspector;
 
     public TEditGate()
     {
-        tEditGate = TAtelier.TAtelierCreate(port => port with { LAtelierEdit = tEditPort })
-            .CAtelierEdit;
+        CAtelier atelier =
+            TAtelier.TAtelierCreate(port => port with { LAtelierEdit = tEditPort, LAtelierAudio = tEditAudio });
+        tEditGate = atelier.CAtelierEdit;
+        tEditInspector = atelier.CAtelierInspectorCreate();
+    }
+
+    [Fact]
+    public void EditAudioSave_NothingKept_AsksNoPort()
+    {
+        tEditGate.CEditAudioSave(tEditInspector, false, TEditPaths);
+
+        Assert.Empty(tEditPort.TEditCalls);
+        Assert.Empty(tEditAudio.TAudioCalls);
+    }
+
+    [Fact]
+    public void EditAudioSave_Suspended_AsksNoPortEvenWhenKept()
+    {
+        tEditInspector.CInspectorVolume.CVolumePersistentSet(true);
+
+        tEditGate.CEditAudioSave(tEditInspector, true, TEditPaths);
+
+        Assert.Empty(tEditPort.TEditCalls);
+    }
+
+    [Fact]
+    public void EditAudioSave_ToolKept_SavesThePersistentPlanIntoEveryPathOnce()
+    {
+        tEditInspector.CInspectorVolume.CVolumePersistentSet(true);
+        tEditInspector.CInspectorSkip.CSkipActiveSet(true);
+
+        tEditGate.CEditAudioSave(tEditInspector, false, TEditPaths);
+
+        Assert.Equal([@"audio:C:\a.mp4,C:\c.mp4|False|True"], tEditPort.TEditCalls);
+        Assert.Same(tEditAudio.TAudioPlan, tEditPort.TEditPersistent);
+    }
+
+    [Fact]
+    public void EditAudioSave_SkipKeptAlone_SavesWithTheSkipKept()
+    {
+        tEditInspector.CInspectorSkip.CSkipPersistentSet(true);
+
+        tEditGate.CEditAudioSave(tEditInspector, false, []);
+
+        Assert.Equal(["audio:|True|False"], tEditPort.TEditCalls);
     }
 
     [Fact]

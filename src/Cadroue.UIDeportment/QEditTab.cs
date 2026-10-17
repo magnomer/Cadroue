@@ -55,7 +55,7 @@ public sealed class QEditTab
         QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
-        QEditInspector.QInspectorSkip.QSkipActiveChanged += QEditSkipHandle;
+        QEditInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged += QEditSkipHandle;
         lWhitebalance.CWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
         qEditViewer.QViewerMediaChanged += QEditColor.QEditEstimateStart;
         qEditViewer.QViewerMediaChanged += QEditMediaHandle;
@@ -81,7 +81,7 @@ public sealed class QEditTab
         QEditInspector.QInspectorVideo.QInspectorVideoChanged -= QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged -= QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged -= QEditTool.QEditToolHandle;
-        QEditInspector.QInspectorSkip.QSkipActiveChanged -= QEditSkipHandle;
+        QEditInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged -= QEditSkipHandle;
         lWhitebalance.CWhitebalanceEstimateChanged -= QEditColor.QEditEstimateHandle;
         qEditViewer.QViewerMediaChanged -= QEditColor.QEditEstimateStart;
         qEditViewer.QViewerMediaChanged -= QEditMediaHandle;
@@ -133,16 +133,8 @@ public sealed class QEditTab
         try
         {
             LEditPlan lPlan = LEdit.LEditPersistentRead(lRecord);
-            if (lPersistent.LSceneInspectorCrop)
-            {
-                QEditCropApply(lPlan);
-                QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxPersistentSet(true);
-            }
-
-            QEditInspector.QInspectorVideo.QInspectorVideoApply(lPlan.LEditVideo);
             QEditInspector.QInspectorVideo.QInspectorPersistentApply(lPlan.LEditVideo);
-            QEditInspector.QInspectorSkip.QSkipActiveSet(lPlan.LEditSkip);
-            QEditInspector.QInspectorSkip.QSkipPersistentSet(lPersistent.LSceneInspectorSkip);
+            QEditInspector.QInspectorPlanApply(lPlan, lPersistent.LSceneInspectorCrop, lPersistent.LSceneInspectorSkip);
         }
         finally
         {
@@ -295,13 +287,6 @@ public sealed class QEditTab
         {
             QEditStore.QEditStateSave(lApplied, _ => lName);
         }
-    }
-
-    private void QEditCropApply(LEditPlan lPlan)
-    {
-        QEditInspector.QInspectorCrop.QInspectorCropApply(lPlan.LEditCrop, lPlan.LEditCropActive);
-        QEditInspector.QInspectorRatio.QInspectorRatioApply(
-            lPlan.LEditRatioFixed, lPlan.LEditRatioLenient, lPlan.LEditRatioWidth, lPlan.LEditRatioHeight);
     }
 
     private void QEditViewerApply()

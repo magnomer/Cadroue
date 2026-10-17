@@ -168,18 +168,21 @@ internal static partial class TInterface
         sensor.QSensorPreset.QSensorMatchRead(kind);
     internal static LDetectorStep TSensorStepRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorStepRead(kind);
 
-    internal static QLoudness TLoudnessCreate() => new();
-    internal static void TLoudnessAttach(QLoudness loudness, Action handler) => loudness.QLoudnessChanged += handler;
-    internal static void TLoudnessPresetSelect(QLoudness loudness, string token) =>
-        loudness.QLoudnessPresetSelect(token);
-    internal static void TLoudnessModeSet(QLoudness loudness, LLeveling mode) => loudness.QLoudnessModeSet(mode);
-    internal static void TLoudnessValueSet(QLoudness loudness, int index, double value) =>
-        loudness.QLoudnessValueSet(index, value);
-    internal static void TLoudnessDynamicSet(QLoudness loudness, int index, double value) =>
-        loudness.QLoudnessDynamicSet(index, value);
-    internal static string? TLoudnessTokenRead(QLoudness loudness) => loudness.QLoudnessToken;
-    internal static string? TLoudnessMatchRead(QLoudness loudness) => loudness.QLoudnessMatchRead();
-    internal static LWorkNormalizeStep TLoudnessStepRead(QLoudness loudness) => loudness.QLoudnessStep;
+    internal static CLoudness TLoudnessCreate() => TAtelierCreate().CAtelierInspectorCreate().CInspectorLoudness;
+    internal static void TLoudnessAttach(CLoudness loudness, Action handler) => loudness.CLoudnessChanged += handler;
+    internal static void TLoudnessPresetSelect(CLoudness loudness, string token) =>
+        loudness.CLoudnessPresetSelect(token);
+    internal static void TLoudnessModeSet(CLoudness loudness, LLeveling mode) =>
+        loudness.CLoudnessModeSelect(mode == LLeveling.LLevelingDynamic ? 1 : 0);
+    internal static void TLoudnessValueSet(CLoudness loudness, int index, double value) =>
+        loudness.CLoudnessValueSet(false, index, value);
+    internal static void TLoudnessDynamicSet(CLoudness loudness, int index, double value) =>
+        loudness.CLoudnessValueSet(true, index, value);
+    internal static string? TLoudnessTokenRead(CLoudness loudness) => loudness.CLoudnessToken;
+    internal static string? TLoudnessMatchRead(CLoudness loudness) => loudness.CLoudnessPreset;
+    internal static LWorkNormalizeStep TLoudnessStepRead(CLoudness loudness) =>
+        (LWorkNormalizeStep)LLoudnessOutlet.LLoudnessStepCreate(
+            loudness.CLoudnessActive, loudness.CLoudnessDynamic, loudness.CLoudnessValues, loudness.CLoudnessTwoPass);
 
     internal static CFilter TFilterCreate(bool high) => high
         ? TAtelierCreate().CAtelierInspectorCreate().CInspectorHighpass
@@ -214,7 +217,7 @@ internal static partial class TInterface
     internal static void TVolumeActiveSet(CVolume volume, bool active) => volume.CVolumeActiveSet(active);
     internal static double TVolumeGainRead(CVolume volume) => volume.CVolumeGain;
 
-    internal static QSkip TSkipCreate() => new();
+    internal static QSkip TSkipCreate() => new(TAtelierCreate().CAtelierInspectorCreate().CInspectorSkip);
     internal static void TSkipAttach(QSkip skip, Action handler) => skip.QSkipChanged += handler;
     internal static void TSkipActiveSet(QSkip skip, bool active) => skip.QSkipActiveSet(active);
     internal static void TSkipPersistentSet(QSkip skip, bool persistent) => skip.QSkipPersistentSet(persistent);

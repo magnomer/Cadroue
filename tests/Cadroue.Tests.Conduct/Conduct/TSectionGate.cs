@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cadroue.Conduct;
 using Xunit;
 
@@ -10,6 +11,8 @@ public sealed class TSectionGate
     private readonly CFlow tSectionFlow;
     private readonly CSection tSectionGate;
     private int tSectionChanges;
+    private int tSectionRowTells;
+    private int tSectionSelectTells;
 
     public TSectionGate()
     {
@@ -68,6 +71,32 @@ public sealed class TSectionGate
         tSectionGate.CSectionReset();
 
         Assert.Equal(["attach:full:a", "load:60", "attach:null"], TSectionPortRead().TSectionCalls);
+    }
+
+    [Fact]
+    public void FlowAttach_SilentStore_GateTellsOnce()
+    {
+        tSectionFlow.CFlowCommandSet(true);
+        tSectionFlow.CFlowAttach(null!, "full:a", TimeSpan.Zero);
+
+        Assert.Equal(1, tSectionChanges);
+    }
+
+    [Fact]
+    public void SectionReset_SilentStore_GateTellsOnce()
+    {
+        tSectionGate.CSectionReset();
+
+        Assert.Equal(1, tSectionChanges);
+    }
+
+    [Fact]
+    public void EditableSet_AnswersWhetherTheSwitchTurned()
+    {
+        Assert.True(tSectionGate.CSectionEditable);
+        Assert.False(tSectionGate.CSectionEditableSet(true));
+        Assert.True(tSectionGate.CSectionEditableSet(false));
+        Assert.False(tSectionGate.CSectionEditable);
     }
 
     [Fact]
@@ -198,5 +227,160 @@ public sealed class TSectionGate
         Assert.Equal(
             ["select:1", "selectToggle:2", "rangeSelect:3", "delete:1,2:7", "clear:3:7"],
             TSectionPortRead().TSectionCalls);
+    }
+
+    private void TSectionRowsSync()
+    {
+        TSectionPortRead().TSectionCount = 2;
+        TSectionPortRead().TSectionSelected = [1];
+        TSectionPortRead().TSectionRows =
+        [
+            ("", "p", "", TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), 2, false),
+            ("b", "", "", TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(4), 0, true)
+        ];
+        tSectionGate.CSectionRowsSync();
+        tSectionGate.CSectionRowsChanged += () => tSectionRowTells++;
+        tSectionGate.CSectionSelectApplied += () => tSectionSelectTells++;
+    }
+
+    [Fact]
+    public void RowsSync_HeldRows_AnswerFlagsAffixesSpanAndSelection()
+    {
+        Assert.Null(tSectionGate.CSectionHeldCount);
+        TSectionRowsSync();
+
+        IReadOnlyList<CSectionRow> rows = tSectionGate.CSectionRowsRead();
+
+        Assert.Equal(2, tSectionGate.CSectionHeldCount);
+        Assert.True(rows[0].CSectionRowUnnamed);
+        Assert.True(rows[0].CSectionRowPrefixed);
+        Assert.False(rows[0].CSectionRowSuffixed);
+        Assert.Equal(["p"], rows[0].CSectionRowAffixes);
+        Assert.Equal(TimeSpan.FromSeconds(2), rows[0].CSectionRowSpan);
+        Assert.False(rows[0].CSectionRowSelected);
+        Assert.Equal("b", rows[1].CSectionRowName);
+        Assert.Equal(TimeSpan.Zero, rows[1].CSectionRowSpan);
+        Assert.True(rows[1].CSectionRowHidden);
+        Assert.True(rows[1].CSectionRowSelected);
+        Assert.True(tSectionGate.CSectionSelectedCheck(1));
+        Assert.Equal(0, tSectionRowTells);
+    }
+
+    [Fact]
+    public void RowsUpdate_SameRowsTellSelection_ChangedRowsTellRebuild()
+    {
+        TSectionRowsSync();
+
+        tSectionGate.CSectionRowsUpdate();
+        TSectionPortRead().TSectionRows = [("c", "", "", TimeSpan.Zero, TimeSpan.FromSeconds(1), 1, false)];
+        tSectionGate.CSectionRowsUpdate();
+
+        Assert.Equal((1, 1), (tSectionRowTells, tSectionSelectTells));
+        Assert.Equal(1, tSectionGate.CSectionHeldCount);
+    }
+
+    [Fact]
+    public void Rename_DoublePressWhileEditable_SelectsAndOpensTheEditor()
+    {
+        TSectionRowsSync();
+        CSectionEdit edit = tSectionGate.CSectionEdit;
+
+        Assert.False(tSectionGate.CSectionRenameHandle(0, 1));
+        tSectionGate.CSectionEditableSet(false);
+        Assert.False(tSectionGate.CSectionRenameHandle(0, 2));
+        tSectionGate.CSectionEditableSet(true);
+        Assert.False(tSectionGate.CSectionRenameHandle(-1, 2));
+        Assert.Null(edit.CSectionEditIndex);
+        Assert.True(tSectionGate.CSectionRenameHandle(0, 2));
+
+        Assert.Equal(0, edit.CSectionEditIndex);
+        Assert.True(tSectionGate.CSectionRowsRead()[0].CSectionRowEditing);
+        Assert.False(tSectionGate.CSectionRowsRead()[1].CSectionRowEditing);
+        Assert.Equal(["select:0"], TSectionPortRead().TSectionCalls);
+        Assert.Equal(1, tSectionRowTells);
+    }
+
+    [Fact]
+    public void EditableOff_DropsTheEditWithoutNaming()
+    {
+        TSectionRowsSync();
+        tSectionGate.CSectionRenameHandle(1, 2);
+
+        tSectionGate.CSectionEditableHandle(true);
+        Assert.Equal(1, tSectionGate.CSectionEdit.CSectionEditIndex);
+        tSectionGate.CSectionEditableHandle(false);
+        tSectionGate.CSectionEdit.CSectionEditCommit();
+
+        Assert.Null(tSectionGate.CSectionEdit.CSectionEditIndex);
+        Assert.Equal(["select:1"], TSectionPortRead().TSectionCalls);
+    }
+
+    [Fact]
+    public void ToggleSeekAndSort_CommitThePendingEditFirst()
+    {
+        TSectionLoad();
+        TSectionRowsSync();
+        TSectionPortRead().TSectionBound = TimeSpan.FromSeconds(3);
+        tSectionGate.CSectionRenameHandle(0, 2);
+        tSectionGate.CSectionToggleHandle(1);
+
+        Assert.False(tSectionGate.CSectionSeekHandle(0, 1, false));
+        Assert.False(tSectionGate.CSectionSeekHandle(-1, 2, false));
+        Assert.True(tSectionGate.CSectionSeekHandle(1, 2, true));
+        tSectionGate.CSectionSortRun();
+
+        Assert.Equal(["select:0", "name:0::p:", "toggle:1", "seek:1:True", "sort"], TSectionPortRead().TSectionCalls);
+        Assert.Equal(TimeSpan.FromSeconds(3), tSectionFlow.CFlowCursor);
+    }
+
+    [Fact]
+    public void Drag_PastTheThreshold_MovesLive_ReleaseTellsRebuild()
+    {
+        TSectionRowsSync();
+        CSectionDrag drag = tSectionGate.CSectionDrag;
+        List<string> tells = [];
+        drag.CSectionDragStarted += index => tells.Add($"start:{index}");
+        drag.CSectionDragMoved += (source, insert) => tells.Add($"moved:{source}:{insert}");
+        drag.CSectionDragEnd += index => tells.Add($"end:{index}");
+
+        Assert.False(drag.CSectionDragPrepare(0, 2, 5, 5));
+        Assert.True(drag.CSectionDragPrepare(0, 1, 5, 5));
+        Assert.False(drag.CSectionDragMove(6, 6, 4, 4, true, [0, 30], [30, 30]));
+        Assert.False(drag.CSectionDragMove(6, 50, 4, 4, false, [0, 30], [30, 30]));
+        tSectionGate.CSectionEditableSet(false);
+        Assert.False(drag.CSectionDragMove(6, 50, 4, 4, true, [0, 30], [30, 30]));
+        tSectionGate.CSectionEditableSet(true);
+        Assert.True(drag.CSectionDragMove(6, 50, 4, 4, true, [0, 30], [30, 30]));
+        tSectionGate.CSectionRowsUpdate();
+        Assert.Equal(1, drag.CSectionDragRead());
+        Assert.True(drag.CSectionDragCommit(false, false));
+
+        Assert.False(drag.CSectionDragCommit(false, false));
+        Assert.Equal(["start:0", "moved:0:1", "end:1"], tells);
+        Assert.Equal(["move:0:2"], TSectionPortRead().TSectionCalls);
+        Assert.Equal((1, 0), (tSectionRowTells, tSectionSelectTells));
+        Assert.Equal(-1, drag.CSectionDragRead());
+    }
+
+    [Fact]
+    public void Release_Unmoved_SelectsByModifiers_LostCaptureEndsTheDrag()
+    {
+        TSectionRowsSync();
+        CSectionDrag drag = tSectionGate.CSectionDrag;
+        List<int> ends = [];
+        drag.CSectionDragEnd += ends.Add;
+
+        foreach ((bool shift, bool control) in new[] { (true, false), (false, true), (false, false) })
+        {
+            drag.CSectionDragPrepare(1, 1, 0, 0);
+            Assert.True(drag.CSectionDragCommit(shift, control));
+        }
+
+        drag.CSectionDragPrepare(0, 1, 0, 0);
+        drag.CSectionDragReset();
+
+        Assert.Equal(["rangeSelect:1", "selectToggle:1", "select:1"], TSectionPortRead().TSectionCalls);
+        Assert.Equal([1, 1, 1, 0], ends);
+        Assert.Null(drag.CSectionDragIndex);
     }
 }

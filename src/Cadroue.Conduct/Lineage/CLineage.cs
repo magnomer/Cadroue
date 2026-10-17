@@ -53,7 +53,10 @@ public sealed class CLineage
             batch.LLineageSourceCount,
             batch.LLineageOutputCount,
             batch.LLineageBatchIds.ToArray(),
-            batch.LLineageBatchCompleted);
+            batch.LLineageBatchCompleted)
+        {
+            CLineageBatchSpent = batch.LLineageBatchSpent
+        };
 
     private static CLineageStep CLineageStepCreate(LLineageStep step) =>
         new(

@@ -17,6 +17,8 @@ public interface LCropPort
 
     bool LCropRectCheck();
 
+    (bool LCropTolerated, int LCropExcess, bool LCropWide) LCropNoticeRead(double lWidth, double lHeight);
+
     (int LCropWidth, int LCropHeight) LCropRatioNormalize(int lWidth, int lHeight);
 
     void LCropRotateSet(int lRotation);
@@ -28,6 +30,8 @@ public interface LCropPort
     void LCropEdgeReset();
 
     void LCropApplySet(bool lApply, bool lRatioReset);
+
+    void LCropWorkApply(LInspectorPort lPlan);
 
     void LCropPersistentSet(bool lPersistent);
 

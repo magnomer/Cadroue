@@ -11,6 +11,7 @@ internal static partial class TInterface
     internal static LEqualizerPort TEqualizerOutletCreate() => new LEqualizerOutlet();
     internal static LNoisePort TNoiseOutletCreate() => new LNoiseOutlet();
     internal static LFilterPort TFilterOutletCreate() => new LFilterOutlet();
+    internal static LLoudnessPort TLoudnessOutletCreate() => new LLoudnessOutlet();
     internal static double[]? TContourGainsRead(string token) => LContourCatalog.LContourGainsRead(token);
     internal static bool TContourMatch(
         IReadOnlyList<double> frequencies, IReadOnlyList<double> gains, double[] expected) =>

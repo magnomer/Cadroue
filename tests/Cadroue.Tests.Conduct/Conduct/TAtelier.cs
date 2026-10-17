@@ -28,11 +28,15 @@ internal static class TAtelier
             LAtelierNoise = new TNoisePort(),
             LAtelierConsole = new TConsolePort(),
             LAtelierFlow = new TFlowPort(),
+            LAtelierMap = new TMapPort(),
             LAtelierRosterDetail = new TRosterDetailPort(),
             LAtelierWhitebalance = new TWhitebalancePort(),
             LAtelierFilter = new TFilterPort(),
+            LAtelierAudio = new TAudioPort(),
+            LAtelierLoudness = new TLoudnessPort(),
             LAtelierScene = new TConsoleScenePort(),
             LAtelierList = new TListPort().TListCreate,
+            LAtelierRelay = new TRelayPort(),
         };
         return new CAtelier(port is null ? ports : port(ports));
     }

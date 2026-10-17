@@ -14,9 +14,9 @@ public sealed class QFlowWheel
     {
         qFlow = lOwner;
         qFlowWheelGate = lGate;
-        lGate.CFlowZoomed += QFlowZoomRaise;
+        lGate.CFlowWheel.CFlowWheelZoomed += QFlowZoomRaise;
         lGate.CFlowDragChanged += QFlowDragRaise;
-        lGate.CFlowVolumeAdjusted += QFlowVolumeRaise;
+        lGate.CFlowWheel.CFlowWheelAdjusted += QFlowVolumeRaise;
     }
 
     public event Action<bool>? QFlowDragChanged;
@@ -27,9 +27,9 @@ public sealed class QFlowWheel
 
     // The raw turn and its count of wheel notches; the gate decides what the turn does.
     public bool QFlowWheelHandle(int lDelta) =>
-        qFlowWheelGate.CFlowWheelRun(lDelta, QCursor.QCursorWheelResolve(lDelta));
+        qFlowWheelGate.CFlowWheel.CFlowWheelRun(lDelta, QCursor.QCursorWheelResolve(lDelta));
 
-    public void QFlowZoom(int lSteps) => qFlowWheelGate.CFlowZoom(lSteps);
+    public void QFlowZoom(int lSteps) => qFlowWheelGate.CFlowWheel.CFlowWheelZoom(lSteps);
 
     public void QFlowDragHandle(bool lDragging) => qFlowWheelGate.CFlowDragSet(lDragging, qFlowPlayingSource);
 

@@ -39,7 +39,7 @@ public sealed class QStrip
             LCartographer.LCartographerTabRemove);
         QStripRail = new QRail(this);
         QStripDeck = new QDeck(this, QLocalizationCatalog.QLocalizationTextRead);
-        QStripRelay = new QStripRelay(this, lAtelier.CAtelierUsher);
+        QStripRelay = new QStripRelay(this, lAtelier.CAtelierRelay);
     }
 
     public event Action? QStripChanged;
@@ -72,24 +72,6 @@ public sealed class QStrip
     public QStripTab QStripTabCreate(string lKey) => new(QStripKeyResolve(lKey), qStripAtelier);
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
-
-    public QStripTab? QStripTabFind(LWorkItem lWorkItem)
-    {
-        Guid lSourceTab = lWorkItem.LWorkRelaySource;
-        if (lSourceTab == Guid.Empty)
-        {
-            return null;
-        }
-
-        if (LCartographerPlanStore.LCartographerPlanRead(lWorkItem.LWorkBatchId, out LCartographerPlanDocument lPlan)
-            && lPlan.LCartographerStages.FirstOrDefault(lStage => lStage.LCartographerStageId == lSourceTab)
-                is { } lSourceStage)
-        {
-            lSourceTab = lSourceStage.LCartographerOriginalTab;
-        }
-
-        return QStripTabFind(lSourceTab);
-    }
 
     public void QStripUpdateSuspend() => qStripSuspendDepth++;
 

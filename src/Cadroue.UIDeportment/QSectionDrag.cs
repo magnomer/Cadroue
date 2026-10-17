@@ -1,46 +1,36 @@
+using Cadroue.Conduct;
+
 namespace Cadroue.UIDeportment;
 
+// The section rows' drag wiring: hands each press, move, release and lost capture to the drag gate, keeps the ghost's
+// grab point and relays the gate's tells.
 public sealed class QSectionDrag
 {
-    private readonly QSection qSection;
-    private readonly QFlow qFlow;
-    private bool qSectionDragActive;
-    private bool qSectionDragOrigin;
-    private double qSectionDragX;
-    private double qSectionDragY;
+    private readonly CSectionDrag qSectionDragGate;
     private QGhost qSectionGhost = new(0, 0);
-    private int? qSectionDragIndex;
 
     public event Action<int>? QSectionDragStarted;
     public event Action<int>? QSectionDragEnd;
     public event Action<int, int>? QSectionRowMoved;
 
-    public QSectionDrag(QSection lOwner, QFlow lFlowOwner)
+    public QSectionDrag(CSectionDrag lGate)
     {
-        qSection = lOwner;
-        qFlow = lFlowOwner;
+        qSectionDragGate = lGate;
+        qSectionDragGate.CSectionDragStarted += QSectionStartRaise;
+        qSectionDragGate.CSectionDragEnd += QSectionEndRaise;
+        qSectionDragGate.CSectionDragMoved += QSectionMoveRaise;
     }
-
-    public bool QSectionDragActive => qSectionDragActive;
-
-    public int? QSectionDragIndex => qSectionDragIndex;
 
     public QGhost QSectionGhost => qSectionGhost;
 
-    public int QSectionDragRead() => qSectionDragIndex ?? -1;
+    // Forwarded for the panel surface's dragged row.
+    public int QSectionDragRead() => qSectionDragGate.CSectionDragRead();
 
-    public bool QSectionDragCheck() =>
-        qSection.QSectionEditable && qSectionDragIndex is not null && qSection.QSectionEditIndex is null;
-
+    // The grab point is kept on every press: only a press the gate readies a drag from is ever dragged.
     public bool QSectionPressHandle(int lIndex, int lClickCount, double lX, double lY, double lGrabX, double lGrabY)
     {
-        if (lClickCount >= 2)
-        {
-            return false;
-        }
-
-        QSectionDragPrepare(lIndex, lX, lY, lGrabX, lGrabY);
-        return true;
+        qSectionGhost = new QGhost(lGrabX, lGrabY);
+        return qSectionDragGate.CSectionDragPrepare(lIndex, lClickCount, lX, lY);
     }
 
     public bool QSectionMoveHandle(
@@ -50,135 +40,17 @@ public sealed class QSectionDrag
         double lMinimumY,
         bool lPressed,
         IReadOnlyList<double> lTops,
-        IReadOnlyList<double> lHeights)
-    {
-        if (!QSectionDragCheck() || !qSectionDragOrigin || qSectionDragIndex is not int lDragIndex || !lPressed)
-        {
-            return false;
-        }
+        IReadOnlyList<double> lHeights) =>
+        qSectionDragGate.CSectionDragMove(lX, lY, lMinimumX, lMinimumY, lPressed, lTops, lHeights);
 
-        if (!qSectionDragActive && QSectionStillCheck(lX, lY, lMinimumX, lMinimumY))
-        {
-            return false;
-        }
+    public bool QSectionReleaseHandle(bool lShift, bool lControl) =>
+        qSectionDragGate.CSectionDragCommit(lShift, lControl);
 
-        QSectionDragStart(lDragIndex);
-        QSectionLiveMove(lDragIndex, QSectionIndexResolve(lY, lTops, lHeights));
-        return true;
-    }
+    public void QSectionLostHandle() => qSectionDragGate.CSectionDragReset();
 
-    public bool QSectionReleaseHandle(bool lShift, bool lControl)
-    {
-        if (!qSectionDragOrigin || qSectionDragIndex is not int lIndex)
-        {
-            return false;
-        }
+    private void QSectionStartRaise(int lIndex) => QSectionDragStarted?.Invoke(lIndex);
 
-        bool lMoved = qSectionDragActive;
-        QSectionDragEnd?.Invoke(lIndex);
-        QSectionDragClear();
-        if (lMoved)
-        {
-            qSection.QSectionRebuildRaise();
-            return true;
-        }
+    private void QSectionEndRaise(int lIndex) => QSectionDragEnd?.Invoke(lIndex);
 
-        if (lIndex >= 0 && qSection.QSectionEditIndex != lIndex)
-        {
-            qSection.QSectionEditCommit();
-            if (lShift)
-            {
-                qFlow.QFlowSection.QFlowRangeSelect(lIndex);
-            }
-            else if (lControl)
-            {
-                qFlow.QFlowSection.QFlowSelectToggle(lIndex);
-            }
-            else
-            {
-                qFlow.QFlowSection.QFlowSectionSelect(lIndex);
-            }
-        }
-
-        return true;
-    }
-
-    public void QSectionLostHandle()
-    {
-        if (qSectionDragIndex is int lIndex)
-        {
-            QSectionDragEnd?.Invoke(lIndex);
-        }
-
-        QSectionDragClear();
-    }
-
-    private void QSectionDragPrepare(int lIndex, double lX, double lY, double lGrabX, double lGrabY)
-    {
-        qSectionDragIndex = lIndex;
-        qSectionDragActive = false;
-        qSectionDragOrigin = true;
-        qSectionDragX = lX;
-        qSectionDragY = lY;
-        qSectionGhost = new QGhost(lGrabX, lGrabY);
-    }
-
-    private bool QSectionStillCheck(double lX, double lY, double lMinimumX, double lMinimumY) =>
-        Math.Abs(lX - qSectionDragX) < lMinimumX
-        && Math.Abs(lY - qSectionDragY) < lMinimumY;
-
-    private void QSectionDragStart(int lDragIndex)
-    {
-        if (qSectionDragActive)
-        {
-            return;
-        }
-
-        qSectionDragActive = true;
-        QSectionDragStarted?.Invoke(lDragIndex);
-    }
-
-    private void QSectionLiveMove(int lSource, int lTarget)
-    {
-        (int lClamped, int lInsert) = QSectionMoveResolve(lSource, lTarget);
-        if (lSource == lInsert || !qFlow.QFlowSection.QFlowSectionMove(lSource, lClamped))
-        {
-            return;
-        }
-
-        QSectionDragUpdate(lSource, lInsert);
-    }
-
-    private (int, int) QSectionMoveResolve(int lSource, int lTarget)
-    {
-        int lClamped = Math.Clamp(lTarget, 0, qSection.QSectionRowCount);
-        return (lClamped, lSource < lClamped ? lClamped - 1 : lClamped);
-    }
-
-    private void QSectionDragUpdate(int lSource, int lInsert)
-    {
-        qSectionDragIndex = lInsert;
-        QSectionRowMoved?.Invoke(lSource, lInsert);
-    }
-
-    private int QSectionIndexResolve(double lY, IReadOnlyList<double> lTops, IReadOnlyList<double> lHeights)
-    {
-        int lTarget = 0;
-        for (int lIndex = 0; lIndex < lTops.Count; lIndex++)
-        {
-            if (lY > lTops[lIndex] + lHeights[lIndex] / 2)
-            {
-                lTarget = lIndex + 1;
-            }
-        }
-
-        return Math.Clamp(lTarget, 0, qSection.QSectionRowCount);
-    }
-
-    public void QSectionDragClear()
-    {
-        qSectionDragIndex = null;
-        qSectionDragActive = false;
-        qSectionDragOrigin = false;
-    }
+    private void QSectionMoveRaise(int lSource, int lInsert) => QSectionRowMoved?.Invoke(lSource, lInsert);
 }

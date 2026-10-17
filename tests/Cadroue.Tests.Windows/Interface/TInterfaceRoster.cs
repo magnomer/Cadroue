@@ -210,7 +210,7 @@ internal static class TInterfaceRoster
     }
     internal static Guid TStationRunnerRead(LStation station) => station.LStationRunner.LRunnerIdentity;
     internal static void TStationClose(LStation station) => station.LStationClose();
-    internal static string? TSummaryMeterFormat(IReadOnlyList<LWorkItem> items, long? output) =>
-        QSummary.QSummaryMeterFormat(items, output);
+    internal static string? TSummaryMeterFormat(TimeSpan? spent, long? output) =>
+        QSummary.QSummaryMeterFormat(spent, output);
     internal static string TSummaryFilesFormat(int count) => QSummary.QSummaryFilesFormat(count);
 }
