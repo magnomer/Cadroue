@@ -52,7 +52,7 @@ public sealed class TLogRows
         TInterface.TLogCategorySet(log, []);
 
         Assert.Equal(2, resets);
-        Assert.Empty(log.QLogRowsShown);
+        Assert.Empty(log.QLogFeed.QLogRowsShown);
     }
 
     [Fact]

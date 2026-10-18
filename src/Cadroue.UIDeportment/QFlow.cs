@@ -78,10 +78,6 @@ public sealed class QFlow
 
     public bool QFlowWaveformActive => qFlowGate.CFlowWaveformActive;
 
-    public bool QFlowWaveformAudio => qFlowGate.CFlowWaveformAudio;
-
-    public int? QFlowKeyframeDirection => qFlowGate.CFlowKeyframe.CKeyframeDirection;
-
     public int QFlowPaletteCount => qFlowGate.CFlowPaletteCount;
 
     public TimeSpan QFlowDuration => qFlowGate.CFlowDuration;
@@ -176,8 +172,6 @@ public sealed class QFlow
 
     private void QFlowRangeClear() => QFlowEdit.QFlowSectionSelect(null);
 
-    public TimeSpan QFlowCursorClamp(TimeSpan lCursor) => qFlowGate.CFlowCursorClamp(lCursor);
-
     public void QFlowCursorSet(TimeSpan lCursor) => qFlowGate.CFlowCursorSet(lCursor);
 
     public void QFlowCursorUpdate(TimeSpan lCursor) => qFlowGate.CFlowCursorUpdate(lCursor);
@@ -217,7 +211,4 @@ public sealed class QFlow
     public void QFlowUnloadSet() => qFlowGate.CFlowUnloadSet();
 
     public bool QFlowWaveformSet(bool lWaveformActive) => qFlowGate.CFlowWaveformSet(lWaveformActive);
-
-    public void QFlowDirectionSet(int? lKeyframeDirection) =>
-        qFlowGate.CFlowKeyframe.CKeyframeDirectionSet(lKeyframeDirection);
 }

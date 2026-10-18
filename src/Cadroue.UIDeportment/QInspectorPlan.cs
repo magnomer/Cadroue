@@ -1,3 +1,4 @@
+using Cadroue.Conduct;
 
 namespace Cadroue.UIDeportment;
 
@@ -38,6 +39,20 @@ public static class QInspectorPlan
         lNames.Add(lText);
         int lIndex = lMatch is null ? -1 : lTokens.ToList().IndexOf(lMatch);
         return new QInspectorChoice(lNames, lIndex < 0 ? lTokens.Count : lIndex, lTokens.Count, lText);
+    }
+
+    // A gate's preset rows as a combo: each row's wording, the row the gate marked chosen, and its last row as custom.
+    public static QInspectorChoice QInspectorChoiceBuild(IReadOnlyList<CChoice> lRows)
+    {
+        List<string> lNames = lRows
+            .Select(static lRow => lRow.CChoiceBasis is { } lBasis
+                ? QLocalizationCatalog.QLocalizationFormat(
+                    lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
+                : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
+            .ToList();
+        int lCustom = lRows.Count - 1;
+        int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
+        return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
     }
 
     public static string? QInspectorChoiceResolve(

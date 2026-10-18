@@ -1,16 +1,11 @@
-using System.Collections;
 using System.ComponentModel;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Windows;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class QLocalizationCatalog : INotifyPropertyChanged
 {
-    private static readonly ConditionalWeakTable<ResourceDictionary, ResourceDictionary> qLocalizationCatalogMerged =
-        [];
-
     private IReadOnlyDictionary<string, string> qLocalizationCatalogTexts =
         new Dictionary<string, string>(StringComparer.Ordinal);
 
@@ -77,10 +72,7 @@ public sealed class QLocalizationCatalog : INotifyPropertyChanged
         Action<string, Exception?> trace)
     {
         QLocalizationCatalogSet(texts, fallback, trace);
-        if (QLocalizationStaleFind(resources, texts) is { } stale)
-        {
-            QLocalizationResourceApply(stale, texts);
-        }
+        QLocalizationDictionary.QLocalizationDictionaryApply(resources, texts);
 
         QLocalizationCatalogCurrent.PropertyChanged?.Invoke(
             QLocalizationCatalogCurrent,
@@ -97,45 +89,10 @@ public sealed class QLocalizationCatalog : INotifyPropertyChanged
         QLocalizationCatalogCurrent.qLocalizationCatalogTrace = trace;
     }
 
-    private static ResourceDictionary? QLocalizationStaleFind(
-        ResourceDictionary? resources, IReadOnlyDictionary<string, string> texts) =>
-        resources is not null && !texts.All(pair => Equals(resources[pair.Key], pair.Value)) ? resources : null;
-
     private static string? QLocalizationFallbackFind(string key)
     {
         return QLocalizationCatalogCurrent.qLocalizationCatalogFallback.TryGetValue(key, out string? text)
             ? text
             : null;
-    }
-
-    private static void QLocalizationResourceApply(
-        ResourceDictionary resources, IReadOnlyDictionary<string, string> texts)
-    {
-        ResourceDictionary catalog = new();
-        qLocalizationCatalogMerged.TryGetValue(resources, out ResourceDictionary? previous);
-        if (previous is not null)
-        {
-            foreach (DictionaryEntry entry in previous)
-            {
-                catalog[entry.Key] = entry.Value;
-            }
-        }
-
-        foreach ((string key, string value) in texts)
-        {
-            catalog[key] = value;
-        }
-
-        int index = previous is null ? -1 : resources.MergedDictionaries.IndexOf(previous);
-        if (index < 0)
-        {
-            resources.MergedDictionaries.Add(catalog);
-        }
-        else
-        {
-            resources.MergedDictionaries[index] = catalog;
-        }
-
-        qLocalizationCatalogMerged.AddOrUpdate(resources, catalog);
     }
 }

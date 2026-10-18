@@ -48,23 +48,17 @@ public sealed class QEditTab
 
     public QEditTool QEditTool { get; }
 
+    // The color piece subscribes first, so on a shared event its handler runs before this tab's.
     private void QEditAttach()
     {
-        CWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
         QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged += QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged += QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged += QEditTool.QEditToolHandle;
         QEditInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged += QEditSkipHandle;
-        lWhitebalance.CWhitebalanceEstimateChanged += QEditColor.QEditEstimateHandle;
-        qEditViewer.QViewerMediaChanged += QEditColor.QEditEstimateStart;
+        QEditColor.QEditColorAttach();
         qEditViewer.QViewerMediaChanged += QEditMediaHandle;
-        qEditViewer.QViewerEngineChanged += QEditColor.QEditCapableHandle;
         qEditViewer.QViewerEngineChanged += qEditViewer.QViewerNeutral.QViewerNeutralCancel;
-        qEditViewer.QViewerNeutral.QViewerToolChanged += QEditColor.QEditTargetHandle;
-        qEditViewer.QViewerNeutral.QViewerNeutralChanged += QEditColor.QEditNeutralHandle;
-        qEditViewer.QViewerNeutral.QViewerEstimateChanged += QEditColor.QEditEstimateApply;
-        lWhitebalance.CWhitebalanceToolChanged += QEditColor.QEditTargetApply;
         qEditViewer.QCrop.QCropVideoChanged += QEditCrop.QEditCropShow;
         QEditProcessing.QProcessingStepChanged += QEditStepHandle;
         qEditViewer.QViewerSource.QViewerPathsDrop += lDropPaths => _ = qEditList.QListPathsAdd(lDropPaths);
@@ -76,22 +70,15 @@ public sealed class QEditTab
 
     public void QEditClose()
     {
-        CWhitebalance lWhitebalance = QEditInspector.QInspectorVideo.QInspectorWhitebalance;
         QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStateChanged -= QEditCropboxHandle;
         QEditInspector.QInspectorVideo.QInspectorVideoChanged -= QEditChangeHandle;
         QEditInspector.QInspectorPersistentChanged -= QEditStore.QEditPersistentSave;
         QEditInspector.QInspectorToolChanged -= QEditTool.QEditToolHandle;
         QEditInspector.QInspectorGate.CInspectorSkip.CSkipActiveChanged -= QEditSkipHandle;
-        lWhitebalance.CWhitebalanceEstimateChanged -= QEditColor.QEditEstimateHandle;
-        qEditViewer.QViewerMediaChanged -= QEditColor.QEditEstimateStart;
+        QEditColor.QEditColorClose();
         qEditViewer.QViewerMediaChanged -= QEditMediaHandle;
         qEditViewer.QViewerOpenNotice -= QEditOpenHandle;
-        qEditViewer.QViewerEngineChanged -= QEditColor.QEditCapableHandle;
         qEditViewer.QViewerEngineChanged -= qEditViewer.QViewerNeutral.QViewerNeutralCancel;
-        qEditViewer.QViewerNeutral.QViewerToolChanged -= QEditColor.QEditTargetHandle;
-        qEditViewer.QViewerNeutral.QViewerNeutralChanged -= QEditColor.QEditNeutralHandle;
-        qEditViewer.QViewerNeutral.QViewerEstimateChanged -= QEditColor.QEditEstimateApply;
-        lWhitebalance.CWhitebalanceToolChanged -= QEditColor.QEditTargetApply;
         qEditViewer.QCrop.QCropVideoChanged -= QEditCrop.QEditCropShow;
         QEditProcessing.QProcessingStepChanged -= QEditStepHandle;
     }
@@ -201,7 +188,7 @@ public sealed class QEditTab
         LTraceLog.LTraceInfoRecord(
             $"Edit click '{QEditStore.QEditNameRead(lPath)}': "
             + $"persistent {(QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent ? "on" : "off")}, "
-            + $"inspector now {QEditTabPlan.QEditCropFormat(QEditInspector.QInspectorCrop.QInspectorCropRead())}");
+            + $"inspector now {QEditTabTrace.QEditCropFormat(QEditInspector.QInspectorCrop.QInspectorCropRead())}");
     }
 
     public void QEditSkipHandle()
@@ -257,8 +244,8 @@ public sealed class QEditTab
             LTraceLog.LTraceInfoRecord(
                 $"Edit media ready '{lName}': display {QEditCrop.QEditSourceFormat()}, "
                 + $"persistent {(lPersistent is null ? "off" : "on")}, "
-                + $"carried {QEditTabPlan.QEditPlanFormat(lPersistent)}, "
-                + $"sidecar {QEditTabPlan.QEditPlanFormat(lSaved)}");
+                + $"carried {QEditTabTrace.QEditPlanFormat(lPersistent)}, "
+                + $"sidecar {QEditTabTrace.QEditPlanFormat(lSaved)}");
             QEditInspector.QInspectorCrop.QInspectorCropReset();
 
             bool lCarryWins = lPersistent is not null;
@@ -269,7 +256,7 @@ public sealed class QEditTab
                 QEditInspector.QInspectorSkip.QSkipPersistent);
             LTraceLog.LTraceInfoRecord(
                 $"Edit applying {(lCarryWins ? "persistent" : "sidecar")} plan to '{lName}': "
-                + $"{QEditTabPlan.QEditPlanFormat(lPlan)}");
+                + $"{QEditTabTrace.QEditPlanFormat(lPlan)}");
             qEditViewer.QViewerRotateSet(LRotateFlip.LRotateCropResolve(lPlan.LEditCrop));
             QEditCrop.QEditSourceSync();
 
@@ -299,7 +286,7 @@ public sealed class QEditTab
         LTraceLog.LTraceInfoRecord(
             $"Edit viewer push: rotate {lRotate.LRotateKind}, "
             + $"H {lRotate.LRotateFlipHorizontal}, V {lRotate.LRotateFlipVertical}, "
-            + $"{QEditTabPlan.QEditRectFormat(lRect)}");
+            + $"{QEditTabTrace.QEditRectFormat(lRect)}");
         qEditViewer.QViewerRotateSet(lRotate);
         qEditViewer.QCrop.QCropRectSet(lRect);
         QEditColor.QEditColorApply();

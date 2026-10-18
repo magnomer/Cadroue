@@ -19,18 +19,14 @@ public sealed class QCrop
     public const double QCropHandleSize = 10;
     public const int QCropHandleCount = 8;
 
-    private static readonly int[] qCropGripX = [-1, 0, 1, 1, 1, 0, -1, -1];
-    private static readonly int[] qCropGripY = [-1, -1, -1, 0, 1, 1, 1, 0];
+    // Each handle's edge on either axis, by handle index: the handles paint from it and a grip drives from it.
+    internal static readonly int[] QCropGripX = [-1, 0, 1, 1, 1, 0, -1, -1];
+    internal static readonly int[] QCropGripY = [-1, -1, -1, 0, 1, 1, 1, 0];
 
     private readonly QViewer qViewer;
     private bool qCropActive = true;
     private bool qCropPersistent;
     private bool qCropLocked;
-    private int qCropEdgeX;
-    private int qCropEdgeY;
-    private int qCropDrive = -1;
-    private int qCropAnchorX = -1;
-    private int qCropAnchorY = -1;
     private double qCropRatioWidth;
     private double qCropRatioHeight;
     private double qCropAreaWidth;
@@ -55,16 +51,6 @@ public sealed class QCrop
 
     public bool QCropLocked => qCropLocked;
 
-    public int QCropEdgeX => qCropEdgeX;
-
-    public int QCropEdgeY => qCropEdgeY;
-
-    public int QCropDrive => qCropDrive;
-
-    public int QCropAnchorX => qCropAnchorX;
-
-    public int QCropAnchorY => qCropAnchorY;
-
     public double QCropRatioWidth => qCropRatioWidth;
 
     public double QCropRatioHeight => qCropRatioHeight;
@@ -77,8 +63,6 @@ public sealed class QCrop
     public bool QCropCrossShown =>
         qViewer.QViewerNeutral.QViewerTool == QViewerTool.QViewerToolNeutral
         || (qViewer.QViewerNeutral.QViewerTool == QViewerTool.QViewerToolCrop && !qCropLocked);
-
-    public bool QCropMoveCheck() => qCropEdgeX == 0 && qCropEdgeY == 0;
 
     public QCropBox QCropBoxRead() => new(qCropBoxX, qCropBoxY, qCropBoxWidth, qCropBoxHeight, qCropBoxShown);
 
@@ -223,32 +207,6 @@ public sealed class QCrop
         return (lValid ? lWidth : 0, lValid ? lHeight : 0);
     }
 
-    public void QCropGripSet(int lEdgeX, int lEdgeY)
-    {
-        qCropEdgeX = lEdgeX;
-        qCropEdgeY = lEdgeY;
-        qCropDrive = QCropDriveResolve(lEdgeX, lEdgeY);
-        qCropAnchorX = -lEdgeX;
-        qCropAnchorY = -lEdgeY;
-    }
-
-    private static int QCropDriveResolve(int lEdgeX, int lEdgeY) =>
-        lEdgeX != 0 && lEdgeY != 0 ? -1 : lEdgeX != 0 ? 0 : 1;
-
-    public void QCropBodySet()
-    {
-        qCropEdgeX = 0;
-        qCropEdgeY = 0;
-        QCropDrawSet();
-    }
-
-    public void QCropDrawSet()
-    {
-        qCropDrive = -1;
-        qCropAnchorX = -1;
-        qCropAnchorY = -1;
-    }
-
     public void QCropRectSet(LCropbox? lCropbox)
     {
         LCropbox? lClamped = QCropSourceClamp(lCropbox);
@@ -328,8 +286,8 @@ public sealed class QCrop
 
     private QCropGrip QCropHandleResolve(int lIndex)
     {
-        int lEdgeX = qCropGripX[lIndex];
-        int lEdgeY = qCropGripY[lIndex];
+        int lEdgeX = QCropGripX[lIndex];
+        int lEdgeY = QCropGripY[lIndex];
         double lPointX = lEdgeX == 0
             ? qCropBoxX + (qCropBoxWidth / 2)
             : lEdgeX < 0 ? qCropBoxX : qCropBoxX + qCropBoxWidth;

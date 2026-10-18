@@ -188,7 +188,7 @@ internal static partial class TInterface
     internal static bool TLogSnapshotCheck(QLog log, long sequence) => log.QLogSnapshotCheck(sequence);
     internal static bool TLogExpandToggle(QLog log, QLogRow? row) => log.QLogExpandToggle(row);
     internal static void TLogCategorySet(QLog log, IReadOnlyList<string> tokens) => log.QLogCategorySet(tokens);
-    internal static void TLogResetAttach(QLog log, Action handler) => log.QLogRowsRebuilt += handler;
+    internal static void TLogResetAttach(QLog log, Action handler) => log.QLogFeed.QLogRowsRebuilt += handler;
     internal static string TLogKeyRead(LTraceKind kind) => QLogRow.QLogKeyRead(kind);
 
     // The atelier as the host builds it.

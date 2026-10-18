@@ -15,7 +15,6 @@ public sealed class QWhitebalance
 {
     private const string QWhitebalancePattern = "0.#";
 
-    private readonly QInspector qWhitebalanceInspector;
     private readonly CWhitebalance qWhitebalanceGate;
     private readonly CheckBox qWhitebalanceSwitch;
     private readonly CheckBox qWhitebalancePersistent;
@@ -39,7 +38,6 @@ public sealed class QWhitebalance
         Ellipse lDot,
         int lSize)
     {
-        qWhitebalanceInspector = lInspector;
         qWhitebalanceGate = lInspector.QInspectorVideo.QInspectorWhitebalance;
         qWhitebalanceSwitch = lSwitch;
         qWhitebalancePersistent = lPersistent;
@@ -74,7 +72,7 @@ public sealed class QWhitebalance
 
     public bool QWhitebalanceGuideShown => qWhitebalanceGate.CWhitebalanceGuideShown;
 
-    public QInspectorTip QWhitebalanceTip => qWhitebalanceInspector.QInspectorTipResolve(
+    public QInspectorTip QWhitebalanceTip => QInspectorTip.QInspectorTipResolve(
         qWhitebalanceGate.CWhitebalanceActive,
         qWhitebalanceGate.CWhitebalanceCapable,
         qWhitebalanceGate.CWhitebalancePreview,

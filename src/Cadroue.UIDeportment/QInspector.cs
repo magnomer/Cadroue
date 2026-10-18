@@ -1,4 +1,3 @@
-using System.Globalization;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
@@ -47,7 +46,7 @@ public sealed class QInspector
     private bool qInspectorOrientationCapable = true;
     private bool qInspectorToolArmed;
     private int qInspectorSaveDepth;
-    private int qInspectorPersistentMask;
+    private readonly QInspectorPersistence qInspectorPersistence;
     private string? qInspectorOwnerPath;
     private string? qInspectorFailurePath;
 
@@ -61,11 +60,18 @@ public sealed class QInspector
         QInspectorSkip = new QSkip(QInspectorGate.CInspectorSkip);
         QInspectorAudio = new QInspectorAudio(QInspectorGate);
         QInspectorAttach();
-        qInspectorPersistentMask = QInspectorPersistentResolve();
+        qInspectorPersistence = new QInspectorPersistence(this);
     }
 
     public event Action? QInspectorChanged;
-    public event Action? QInspectorPersistentChanged;
+
+    // Raised once when the set of kept tools changes; the persistence watch decides it.
+    public event Action? QInspectorPersistentChanged
+    {
+        add => qInspectorPersistence.QInspectorPersistenceChanged += value;
+        remove => qInspectorPersistence.QInspectorPersistenceChanged -= value;
+    }
+
     public event Action<bool>? QInspectorToolChanged;
     public event Action<bool>? QInspectorMinimizeChanged;
 
@@ -247,61 +253,6 @@ public sealed class QInspector
         }
     }
 
-    public QInspectorTip QInspectorTipResolve(
-        bool lActive,
-        bool lCapable,
-        bool lPreviewAvailable,
-        string lDisabledKey,
-        string lPreviewKey,
-        string lApplyKey,
-        string lPersistKey)
-    {
-        string? lNotice = !lCapable
-            ? QLocalizationCatalog.QLocalizationTextRead(lDisabledKey)
-            : !lPreviewAvailable && lPreviewKey.Length > 0
-                ? QLocalizationCatalog.QLocalizationTextRead(lPreviewKey)
-                : null;
-        return new QInspectorTip(
-            lCapable && lActive,
-            lNotice,
-            lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lApplyKey),
-            lNotice ?? QLocalizationCatalog.QLocalizationTextRead(lPersistKey));
-    }
-
-    public string QInspectorNoticeRead(QInspectorTip lTip, string lKey) =>
-        lTip.QInspectorTipNotice ?? QLocalizationCatalog.QLocalizationTextRead(lKey);
-
-    public static bool QInspectorDigitCheck(string lText) => lText.All(char.IsDigit);
-
-    public static bool QInspectorDecimalCheck(string lText) =>
-        lText.All(lChar => char.IsDigit(lChar) || lChar == '.' || lChar == '-');
-
-    public static double QInspectorValueCommit(string lText, double lCurrent, double? lLeast, double? lMost)
-    {
-        double lParsed = double.TryParse(lText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lValue)
-            ? lValue
-            : lCurrent;
-        return lLeast is double lMin && lMost is double lMax ? Math.Clamp(lParsed, lMin, lMax) : lParsed;
-    }
-
-    public static string QInspectorValueFormat(string lText, double lNumber, string lFormat)
-    {
-        string lShown = lNumber.ToString(lFormat, CultureInfo.InvariantCulture);
-        bool lSame = lText == lShown
-            || (double.TryParse(lText, NumberStyles.Float, CultureInfo.InvariantCulture, out double lParsed)
-                && lParsed == lNumber);
-        return lSame ? lText : lShown;
-    }
-
-    public static void QInspectorSlideCommit(
-        double lSlider, double lCurrent, double lLeast, double lMost, Action<double> lSet)
-    {
-        if (lSlider != Math.Clamp(lCurrent, lLeast, lMost))
-        {
-            lSet(lSlider);
-        }
-    }
-
     private void QInspectorToolsNormalize()
     {
         if (qInspectorMinimized || qInspectorStep != "Whitebalance")
@@ -317,14 +268,8 @@ public sealed class QInspector
 
     private static int QInspectorDepthClamp(int lDepth) => Math.Max(0, lDepth);
 
-    private void QInspectorAttach()
-    {
-        QInspectorVideo.QInspectorSectionChanged += QInspectorPersistentHandle;
+    private void QInspectorAttach() =>
         QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolChanged += QInspectorNeutralHandle;
-        QInspectorCrop.QInspectorCropbox.LCropboxStateChanged += QInspectorPersistentHandle;
-        QInspectorAudio.QInspectorAudioChanged += QInspectorPersistentHandle;
-        QInspectorSkip.QSkipChanged += QInspectorPersistentHandle;
-    }
 
     private void QInspectorNeutralHandle(bool lArmed, bool lWhite)
     {
@@ -333,45 +278,4 @@ public sealed class QInspector
             QInspectorToolSet(false);
         }
     }
-
-    private void QInspectorPersistentHandle()
-    {
-        int lMask = QInspectorPersistentResolve();
-        if (lMask == qInspectorPersistentMask)
-        {
-            return;
-        }
-
-        qInspectorPersistentMask = lMask;
-        QInspectorPersistentChanged?.Invoke();
-    }
-
-    private int QInspectorPersistentResolve()
-    {
-        bool[] lFlags =
-        {
-            QInspectorCrop.QInspectorPersistent,
-            QInspectorVideo.QInspectorTone.CTonePersistents[0],
-            QInspectorVideo.QInspectorTone.CTonePersistents[1],
-            QInspectorVideo.QInspectorTone.CTonePersistents[2],
-            QInspectorVideo.QInspectorGamma.CGammaPersistent,
-            QInspectorVideo.QInspectorExposure.CExposurePersistent,
-            QInspectorVideo.QInspectorCurve.QCurvePersistent,
-            QInspectorVideo.QInspectorWhitebalance.CWhitebalancePersistent,
-            QInspectorAudio.QInspectorVolume.CVolumePersistent,
-            QInspectorGate.CInspectorLoudness.CLoudnessPersistent,
-            QInspectorAudio.QInspectorNoise.QNoisePersistent,
-            QInspectorGate.CInspectorHighpass.CFilterPersistent,
-            QInspectorGate.CInspectorLowpass.CFilterPersistent,
-            QInspectorAudio.QInspectorEqualizer.QEqualizerPersistent,
-            QInspectorSkip.QSkipPersistent
-        };
-        return lFlags.Select((lFlag, lIndex) => lFlag ? 1 << lIndex : 0).Sum();
-    }
 }
-
-public sealed record QInspectorTip(
-    bool QInspectorTipEnabled,
-    string? QInspectorTipNotice,
-    string QInspectorTipBox,
-    string QInspectorTipPersistent);

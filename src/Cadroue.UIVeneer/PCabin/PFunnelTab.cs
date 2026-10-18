@@ -43,9 +43,9 @@ public sealed class PFunnelTab : PTabSurface
     public override PList? PTabList => pList;
 
     public override void PTabStripAttach(QStrip lStrip, QStripTab lStripTab) =>
-        QFunnelTab.QFunnel.QFunnelStripAttach(lStrip, lStripTab.QStripTabId);
+        QFunnelTab.QFunnel.QFunnelRelay.QFunnelStripAttach(lStrip, lStripTab.QStripTabId);
 
-    public override void PTabTargetsResolve() => QFunnelTab.QFunnel.QFunnelTargetsResolve();
+    public override void PTabTargetsResolve() => QFunnelTab.QFunnel.QFunnelRelay.QFunnelTargetsResolve();
 
     public override void PTabClose()
     {

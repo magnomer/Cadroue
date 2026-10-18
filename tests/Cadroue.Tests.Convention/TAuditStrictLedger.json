@@ -556,7 +556,7 @@
     "src/Cadroue.UIVeneer/PWing/PViewerControl.cs": 0
   },
   "Sharing": {
-    "src/Cadroue.UIDeportment/QAction.cs": 1,
+    "src/Cadroue.UIDeportment/QActionRelay.cs": 1,
     "src/Cadroue.UIDeportment/QAsk.cs": 1,
     "src/Cadroue.UIDeportment/QListRelay.cs": 2,
     "src/Cadroue.UIDeportment/QProgram.cs": 1,

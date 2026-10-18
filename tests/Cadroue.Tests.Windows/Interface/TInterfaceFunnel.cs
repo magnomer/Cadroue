@@ -20,13 +20,13 @@ internal static class TInterfaceFunnel
     internal static void TFunnelTextSet(QFunnel funnel, QFunnelRule rule, QFunnelKind kind, string text) =>
         funnel.QFunnelCriterion.QFunnelTextSet(rule, kind, text);
     internal static void TFunnelTargetSet(QFunnel funnel, QFunnelRule rule, Guid target) =>
-        funnel.QFunnelTargetSet(rule, target);
+        funnel.QFunnelRelay.QFunnelTargetSet(rule, target);
     internal static void TFunnelTargetsResolve(QFunnel funnel, params Guid[] tabs) =>
-        funnel.QFunnelTargetsResolve(tabs);
+        funnel.QFunnelRelay.QFunnelTargetsResolve(tabs);
     internal static void TFunnelRulesRestore(QFunnel funnel, params LSceneFunnelRule[] records) =>
         funnel.QFunnelRulesRestore(records);
     internal static LSceneFunnelRule TFunnelRecordCreate(QFunnel funnel, QFunnelRule rule) =>
-        funnel.QFunnelRecordCreate(rule);
+        QFunnelScene.QFunnelSceneCreate(rule);
     internal static LSceneFunnelRule TFunnelRecordCreate(int type, bool remainder, int target, string regex = "") =>
         new()
         {
@@ -46,16 +46,18 @@ internal static class TInterfaceFunnel
     internal static void TFunnelAllRun(QFunnelTab tab) => tab.QFunnelAllRun();
     internal static void TFunnelItemsRun(QFunnelTab tab, params string[] paths) => tab.QFunnelItemsRun(paths);
     internal static void TFunnelStripAttach(QFunnel funnel, QStrip strip, Guid self) =>
-        funnel.QFunnelStripAttach(strip, self);
-    internal static void TFunnelStripDetach(QFunnel funnel) => funnel.QFunnelStripDetach();
-    internal static void TFunnelTargetsResolve(QFunnel funnel) => funnel.QFunnelTargetsResolve();
-    internal static IReadOnlyList<QFunnelTarget> TFunnelTargetsRead(QFunnel funnel) => funnel.QFunnelTargetsRead();
-    internal static IReadOnlyList<QFunnelTarget> TFunnelOptionsRead(QFunnel funnel) => funnel.QFunnelOptionsRead();
+        funnel.QFunnelRelay.QFunnelStripAttach(strip, self);
+    internal static void TFunnelStripDetach(QFunnel funnel) => funnel.QFunnelRelay.QFunnelStripDetach();
+    internal static void TFunnelTargetsResolve(QFunnel funnel) => funnel.QFunnelRelay.QFunnelTargetsResolve();
+    internal static IReadOnlyList<QFunnelTarget> TFunnelTargetsRead(QFunnel funnel) =>
+        funnel.QFunnelRelay.QFunnelTargetsRead();
+    internal static IReadOnlyList<QFunnelTarget> TFunnelOptionsRead(QFunnel funnel) =>
+        funnel.QFunnelRelay.QFunnelOptionsRead();
     internal static IReadOnlyList<QFunnelSlot> TFunnelSlotsRead(QFunnel funnel) => funnel.QFunnelSlotsRead();
-    internal static int TFunnelIndexRead(QFunnel funnel, Guid target) => funnel.QFunnelIndexRead(target);
+    internal static int TFunnelIndexRead(QFunnel funnel, Guid target) => funnel.QFunnelRelay.QFunnelIndexRead(target);
     internal static void TFunnelSelectedRemove(QFunnel funnel) => funnel.QFunnelSelectedRemove();
     internal static void TFunnelTargetSelect(QFunnel funnel, QFunnelRule rule, int index) =>
-        funnel.QFunnelTargetSelect(rule, index);
+        funnel.QFunnelRelay.QFunnelTargetSelect(rule, index);
     internal static string TFunnelTextResolve(QFunnel funnel, QFunnelRule rule, QFunnelKind kind, string shown) =>
         funnel.QFunnelCriterion.QFunnelTextResolve(rule, kind, shown);
     internal static string TFunnelRegexResolve(QFunnel funnel, QFunnelRule rule, string shown) =>

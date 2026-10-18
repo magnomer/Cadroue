@@ -52,12 +52,7 @@ public sealed class QEqualizer
     public QInspectorChoice QEqualizerChoiceRead()
     {
         IReadOnlyList<CChoice> lRows = qEqualizerGate.CEqualizerChoices;
-        List<string> lNames = lRows
-            .Select(static lRow => lRow.CChoiceBasis is { } lBasis
-                ? QLocalizationCatalog.QLocalizationFormat(
-                    lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
-                : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
-            .ToList();
+        List<string> lNames = lRows.Select(QChoice.QChoiceTextRead).ToList();
         int lCustom = lRows.Count - 1;
         int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
         return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
@@ -69,7 +64,7 @@ public sealed class QEqualizer
         .ToString(QEqualizerFrequencyPattern, CultureInfo.InvariantCulture);
 
     public string QEqualizerFrequencyCommit(int lIndex, string lText) =>
-        QInspector.QInspectorValueFormat(
+        QInspectorField.QInspectorValueFormat(
             lText, qEqualizerGate.CEqualizerFrequencyCommit(lIndex, lText), QEqualizerFrequencyPattern);
 
     public void QEqualizerGainSet(int lIndex, double lGain) => qEqualizerGate.CEqualizerGainSet(lIndex, lGain);

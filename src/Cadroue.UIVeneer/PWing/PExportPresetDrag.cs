@@ -13,7 +13,7 @@ public sealed partial class PExport
         PExportOpacityRestore();
         QGhostLayer.QGhostLayerClear(pPresetRowDragging);
         PExportDragReset();
-        QExport.QExportDragClear();
+        QExport.QExportDrag.QExportDragClear();
     }
 
     private void PExportOpacityRestore()
@@ -43,7 +43,7 @@ public sealed partial class PExport
 
     private bool PExportDragHandle(System.Windows.Input.MouseEventArgs pEvent)
     {
-        if (QExport.QExportDragging is not { } lPresetName
+        if (QExport.QExportDrag.QExportDragging is not { } lPresetName
             || pPresetRowDragging is not { } pPresetRow
             || QExport.QExportEditing is not null
             || pExportDragOrigin is not Point pStart
@@ -53,15 +53,15 @@ public sealed partial class PExport
         }
 
         Point pCurrent = pEvent.GetPosition(pPresetRowPanel);
-        if (!QExport.QExportDragActive && PExportThresholdCheck(pCurrent, pStart))
+        if (!QExport.QExportDrag.QExportDragActive && PExportThresholdCheck(pCurrent, pStart))
         {
             return false;
         }
 
-        if (QExport.QExportDragMove())
+        if (QExport.QExportDrag.QExportDragMove())
         {
             PExportGhostApply(pPresetRow);
-            QGhostLayer.QGhostLayerShow(pPresetRow, QExport.QExportGhost);
+            QGhostLayer.QGhostLayerShow(pPresetRow, QExport.QExportDrag.QExportGhost);
         }
 
         QGhostLayer.QGhostLayerSync(pPresetRow);
@@ -80,12 +80,12 @@ public sealed partial class PExport
 
     private bool PExportDropHandle()
     {
-        if (pPresetRowDragging is null || QExport.QExportDragging is not { } lPresetName)
+        if (pPresetRowDragging is null || QExport.QExportDrag.QExportDragging is not { } lPresetName)
         {
             return false;
         }
 
-        bool pDragMoved = QExport.QExportDragActive;
+        bool pDragMoved = QExport.QExportDrag.QExportDragActive;
         PExportDragClear();
         pPresetRowPanel.ReleaseMouseCapture();
 

@@ -27,7 +27,6 @@ internal static partial class TInterface
     internal static bool TFlowEditCheck(QFlow flow) => flow.QFlowEdit.QFlowEditCheck();
     internal static bool TFlowSourceCheck(QFlow flow) => flow.QFlowSourceCheck();
     internal static bool TFlowScanCheck(QFlow flow) => flow.QFlowScanCheck();
-    internal static bool TFlowStampSet(QFlow flow, string stamp) => flow.QFlowStamp.QFlowStampSet(stamp);
     internal static bool TFlowLosslesscutSet(QFlow flow, string path) => flow.QFlowStamp.QFlowLosslesscutSet(path);
     internal static void TFlowAttach(QFlow flow, LMediaInfo media, string? path, TimeSpan cursor) =>
         flow.QFlowAttach(media, path, cursor);

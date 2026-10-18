@@ -92,11 +92,9 @@ public sealed partial class PInspector
     private void PWhitebalancePickerApply(QInspectorTip pTip)
     {
         pInspectorNeutralTool.IsEnabled = QWhitebalance.QWhitebalanceCapable;
-        pInspectorNeutralTool.ToolTip = QInspector.QInspectorNoticeRead(
-            pTip, "Inspector.Video.WhitebalancePickTooltip");
+        pInspectorNeutralTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickTooltip");
         pInspectorWhiteTool.IsEnabled = QWhitebalance.QWhitebalanceCapable;
-        pInspectorWhiteTool.ToolTip = QInspector.QInspectorNoticeRead(
-            pTip, "Inspector.Video.WhitebalancePickWhiteTooltip");
+        pInspectorWhiteTool.ToolTip = pTip.QInspectorNoticeRead("Inspector.Video.WhitebalancePickWhiteTooltip");
         ToolTipService.SetShowOnDisabled(pInspectorNeutralTool, true);
         ToolTipService.SetShowOnDisabled(pInspectorWhiteTool, true);
     }

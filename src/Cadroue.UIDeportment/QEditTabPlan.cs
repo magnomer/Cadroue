@@ -94,7 +94,7 @@ public sealed class QEditTabPlan
         }
 
         string lName = lNameRead(lSourcePath);
-        string lSummary = QEditPlanFormat(lPlan);
+        string lSummary = QEditTabTrace.QEditPlanFormat(lPlan);
         if (!LEditSidecar.LEditSidecarSave(lSourcePath, lPlan, LLibrarian.LLibrarianEditSave))
         {
             LTraceLog.LTraceWarningRecord($"Edit plan could not be saved for '{lName}'", lSummary);
@@ -149,42 +149,4 @@ public sealed class QEditTabPlan
 
         return lFailed;
     }
-
-    public static string QEditRectFormat(LCropbox? lRect) =>
-        lRect is { } lBox
-            ? $"rect {lBox.LCropboxX:0},{lBox.LCropboxY:0} {lBox.LCropboxWidth:0}x{lBox.LCropboxHeight:0}"
-            : "rect none";
-
-    public static string QEditCropFormat(LWorkCrop? lCrop)
-    {
-        if (lCrop is not { } lValue)
-        {
-            return "none";
-        }
-
-        if (!lValue.LWorkCropActive)
-        {
-            return "inactive";
-        }
-
-        string lEdges = lValue.LWorkEdgeActive
-            ? $"edges {lValue.LWorkCropLeft}/{lValue.LWorkCropTop}/{lValue.LWorkCropRight}/{lValue.LWorkCropBottom}"
-            : "no edges";
-        string lFlip = lValue.LWorkFlipHorizontal || lValue.LWorkFlipVertical
-            ? $"flip {(lValue.LWorkFlipHorizontal ? "H" : "")}{(lValue.LWorkFlipVertical ? "V" : "")}"
-            : "no flip";
-        return $"{lEdges}, rotate {lValue.LWorkCropRotation}, {lFlip}";
-    }
-
-    public static string QEditPlanFormat(LEditPlan? lPlan) =>
-        lPlan is null ? "none" : $"{QEditCropFormat(lPlan.LEditCrop)}, {QEditVideoFormat(lPlan.LEditVideo)}";
-
-    public static string QEditVideoFormat(LWorkVideo lVideo) =>
-        lVideo.LWorkVideoActive
-            ? string.Join(
-                ", ",
-                lVideo.LWorkVideoSteps
-                    .Where(lStep => lStep.LWorkStepActive)
-                    .Select(LWorkVideoDiagnostic.LWorkDiagnosticRead))
-            : "video inactive";
 }

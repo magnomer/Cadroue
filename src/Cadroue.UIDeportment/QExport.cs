@@ -11,9 +11,6 @@ public sealed class QExport
     private readonly string qExportNotice;
     private string? qExportSelected;
     private string? qExportEditing;
-    private string? qExportDragging;
-    private bool qExportDragActive;
-    private QGhost qExportGhost = new(0, 0);
 
     public event Action? QExportPresetsChanged;
 
@@ -24,17 +21,14 @@ public sealed class QExport
         qExportSmartAllowed = qWorkspaceKey.QWorkspaceSmart;
         qExportNotice = qWorkspaceKey.QWorkspaceNotice;
         qExportSelected = QExportNameNormalize(lExportSelection.LPresetSelectionName);
+        QExportDrag = new QExportDrag(this);
     }
+
+    public QExportDrag QExportDrag { get; }
 
     public string? QExportSelected => qExportSelected;
 
     public string? QExportEditing => qExportEditing;
-
-    public string? QExportDragging => qExportDragging;
-
-    public bool QExportDragActive => qExportDragActive;
-
-    public QGhost QExportGhost => qExportGhost;
 
     public bool QExportSelectedCheck(string lPresetName) =>
         string.Equals(lPresetName, qExportSelected, StringComparison.OrdinalIgnoreCase);
@@ -69,7 +63,7 @@ public sealed class QExport
 
     public void QExportSync()
     {
-        if (qExportEditing is null && !qExportDragActive)
+        if (qExportEditing is null && !QExportDrag.QExportDragActive)
         {
             QExportUpdate();
         }
@@ -130,44 +124,6 @@ public sealed class QExport
     // Editing survives only while it names the selected preset.
     private string? QExportEditingResolve() =>
         string.Equals(qExportEditing, qExportSelected, StringComparison.OrdinalIgnoreCase) ? qExportEditing : null;
-
-    public void QExportDragStart(string lPresetName, double lGrabX, double lGrabY)
-    {
-        qExportDragging = lPresetName;
-        qExportDragActive = false;
-        qExportGhost = new QGhost(lGrabX, lGrabY);
-    }
-
-    public bool QExportDragMove()
-    {
-        if (qExportDragging is null || qExportEditing is not null)
-        {
-            return false;
-        }
-
-        qExportDragActive = true;
-        return true;
-    }
-
-    public bool QExportDragClear()
-    {
-        bool lMoved = QExportDragReset();
-        if (lMoved)
-        {
-            QExportSync();
-        }
-
-        return lMoved;
-    }
-
-    // Ends the drag; answers whether it had moved.
-    private bool QExportDragReset()
-    {
-        bool lMoved = qExportDragActive;
-        qExportDragging = null;
-        qExportDragActive = false;
-        return lMoved;
-    }
 
     private static string? QExportNameNormalize(string lPresetName) =>
         string.IsNullOrEmpty(lPresetName) ? null : lPresetName;

@@ -79,7 +79,7 @@ public sealed partial class PInspector
     private void PCurvePressHandle(object pSender, MouseButtonEventArgs pArgs)
     {
         Point pPixel = pArgs.GetPosition(pCurveCanvas);
-        QCurve.QCurvePressHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
+        QCurve.QCurveDrag.QCurvePressHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
         pCurveCanvas.CaptureMouse();
         pArgs.Handled = true;
     }
@@ -87,12 +87,12 @@ public sealed partial class PInspector
     private void PCurveMoveHandle(object pSender, MouseEventArgs pArgs)
     {
         Point pPixel = pArgs.GetPosition(pCurveCanvas);
-        pArgs.Handled = QCurve.QCurveMoveHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
+        pArgs.Handled = QCurve.QCurveDrag.QCurveMoveHandle(pPixel.X, pPixel.Y, PCurveCanvasSize);
     }
 
     private void PCurveReleaseHandle(object pSender, MouseButtonEventArgs pArgs)
     {
-        pArgs.Handled = QCurve.QCurveReleaseHandle();
+        pArgs.Handled = QCurve.QCurveDrag.QCurveReleaseHandle();
         pCurveCanvas.ReleaseMouseCapture();
     }
 

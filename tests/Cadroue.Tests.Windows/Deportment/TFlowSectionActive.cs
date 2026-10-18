@@ -69,13 +69,9 @@ public sealed class TFlowSectionActive
     }
 
     [Fact]
-    public void StampAndLosslesscut_ReportChangesOnly()
+    public void Losslesscut_ReportChangesOnly()
     {
         QFlow flow = TFlowBuild();
-
-        Assert.True(TInterface.TFlowStampSet(flow, "a/1/1"));
-        Assert.False(TInterface.TFlowStampSet(flow, "a/1/1"));
-        Assert.True(TInterface.TFlowStampSet(flow, "a/2/1"));
 
         Assert.True(TInterface.TFlowLosslesscutSet(flow, "C:\\media\\clip.mp4"));
         Assert.False(TInterface.TFlowLosslesscutSet(flow, "c:\\media\\CLIP.mp4"));

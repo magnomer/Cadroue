@@ -19,7 +19,7 @@ public sealed class QFunnelTab
 
     public QFunnel QFunnel { get; } = new();
 
-    public void QFunnelClose() => QFunnel.QFunnelStripDetach();
+    public void QFunnelClose() => QFunnel.QFunnelRelay.QFunnelStripDetach();
 
     public IReadOnlyList<string> QFunnelEligibleRead() => qFunnelDocket.LDocketPathsRead();
 
@@ -58,11 +58,11 @@ public sealed class QFunnelTab
             return;
         }
 
-        var lLive = QFunnel.QFunnelTargetsRead().Select(lTarget => lTarget.QFunnelTargetId).ToHashSet();
+        var lLive = QFunnel.QFunnelRelay.QFunnelTargetsRead().Select(lTarget => lTarget.QFunnelTargetId).ToHashSet();
         IReadOnlyList<QFunnelRule> lRules = QFunnel.QFunnelRules;
         LMessengerFunnel.LMessengerFunnelDescribe(
-            QFunnel.QFunnelSelf,
-            lRules.Select(QFunnel.QFunnelRecordCreate).ToList(),
+            QFunnel.QFunnelRelay.QFunnelSelf,
+            lRules.Select(QFunnelScene.QFunnelSceneCreate).ToList(),
             lRules
                 .Select(lRule => lLive.Contains(lRule.QFunnelRuleTarget) ? lRule.QFunnelRuleTarget : Guid.Empty)
                 .ToList(),
@@ -71,8 +71,8 @@ public sealed class QFunnelTab
 
     private LSceneFunnelRule QFunnelLayoutCreate(QFunnelRule lRule)
     {
-        LSceneFunnelRule lRecord = QFunnel.QFunnelRecordCreate(lRule);
-        lRecord.LSceneFunnelTarget = QFunnel.QFunnelIndexRead(lRule.QFunnelRuleTarget);
+        LSceneFunnelRule lRecord = QFunnelScene.QFunnelSceneCreate(lRule);
+        lRecord.LSceneFunnelTarget = QFunnel.QFunnelRelay.QFunnelIndexRead(lRule.QFunnelRuleTarget);
         return lRecord;
     }
 }

@@ -36,9 +36,10 @@ public sealed class QEditTabCrop
     {
         QEditSourceSync();
         LTraceLog.LTraceInfoRecord(
-            $"Edit crop from viewer: {QEditTabPlan.QEditRectFormat(qEditViewer.QViewerPreview.LCropbox)}");
+            $"Edit crop from viewer: {QEditTabTrace.QEditRectFormat(qEditViewer.QViewerPreview.LCropbox)}");
+        QCropDrag lDrag = qEditViewer.QCropDrag;
         qEditInspector.QInspectorCrop.QInspectorCropSet(
-            qEditViewer.QViewerPreview.LCropbox, qEditCrop.QCropDrive, qEditCrop.QCropAnchorX, qEditCrop.QCropAnchorY);
+            qEditViewer.QViewerPreview.LCropbox, lDrag.QCropDrive, lDrag.QCropAnchorX, lDrag.QCropAnchorY);
     }
 
     public void QEditCropStart()

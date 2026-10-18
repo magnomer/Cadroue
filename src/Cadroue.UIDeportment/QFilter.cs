@@ -27,14 +27,9 @@ public sealed class QFilter
 
     public IReadOnlyList<double> QFilterMosts => qFilterGate.CFilterMosts;
 
-    // Each preset row shows its wording; the custom row's wording takes the preset it drifted from. A broken
-    // translation of that wording is traced by the catalog and shown in English or raw, never thrown.
-    public IReadOnlyList<string> QFilterChoiceNames => qFilterGate.CFilterChoices
-        .Select(static lRow => lRow.CChoiceBasis is { } lBasis
-            ? QLocalizationCatalog.QLocalizationFormat(
-                lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
-            : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
-        .ToList();
+    // Each preset row shows its wording; the custom row's wording takes the preset it drifted from.
+    public IReadOnlyList<string> QFilterChoiceNames =>
+        qFilterGate.CFilterChoices.Select(QChoice.QChoiceTextRead).ToList();
 
     public IReadOnlyList<string> QFilterPoleNames => qFilterGate.CFilterPoleChoices
         .Select(static lRow => QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
@@ -84,6 +79,6 @@ public sealed class QFilter
         (Slider QFilterSlider, TextBox QFilterValue) lRow, double lNumber, string lPattern)
     {
         lRow.QFilterSlider.Value = Math.Clamp(lNumber, lRow.QFilterSlider.Minimum, lRow.QFilterSlider.Maximum);
-        lRow.QFilterValue.Text = QInspector.QInspectorValueFormat(lRow.QFilterValue.Text, lNumber, lPattern);
+        lRow.QFilterValue.Text = QInspectorField.QInspectorValueFormat(lRow.QFilterValue.Text, lNumber, lPattern);
     }
 }

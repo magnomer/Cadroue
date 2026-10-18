@@ -37,15 +37,15 @@ internal static class TInterfaceInspector
     internal static bool TInspectorSectionCheck(QInspector inspector, string key) =>
         inspector.QInspectorSectionCheck(key);
     internal static double TInspectorValueCommit(string text, double current, double? least, double? most) =>
-        QInspector.QInspectorValueCommit(text, current, least, most);
+        QInspectorField.QInspectorValueCommit(text, current, least, most);
     internal static string TInspectorValueFormat(string text, double number, string format) =>
-        QInspector.QInspectorValueFormat(text, number, format);
+        QInspectorField.QInspectorValueFormat(text, number, format);
     internal static void TInspectorSlideCommit(
         double slider, double current, double least, double most, Action<double> set) =>
-        QInspector.QInspectorSlideCommit(slider, current, least, most, set);
+        QInspectorField.QInspectorSlideCommit(slider, current, least, most, set);
     internal static QInspectorTip TInspectorTipResolve(
         QInspector inspector, bool active, bool capable, bool preview, string disabled, string previewKey) =>
-        inspector.QInspectorTipResolve(
+        QInspectorTip.QInspectorTipResolve(
             active, capable, preview, disabled, previewKey, "Inspector.Common.Apply", "Inspector.Common.Persistent");
     internal static void TInspectorPresetSelect(QInspector inspector, int index) =>
         inspector.QInspectorRatio.QInspectorPresetSelect(index);

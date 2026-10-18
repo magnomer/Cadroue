@@ -51,19 +51,7 @@ public sealed class QNoise
         .ToList();
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
-    public QInspectorChoice QNoiseChoiceRead()
-    {
-        IReadOnlyList<CChoice> lRows = qNoiseGate.CNoiseChoices;
-        List<string> lNames = lRows
-            .Select(static lRow => lRow.CChoiceBasis is { } lBasis
-                ? QLocalizationCatalog.QLocalizationFormat(
-                    lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
-                : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
-            .ToList();
-        int lCustom = lRows.Count - 1;
-        int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
-        return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
-    }
+    public QInspectorChoice QNoiseChoiceRead() => QInspectorPlan.QInspectorChoiceBuild(qNoiseGate.CNoiseChoices);
 
     public double QNoiseValueRead(int lRow) => qNoiseGate.CNoiseValueRead(lRow);
 
@@ -97,7 +85,9 @@ public sealed class QNoise
         QTool.QToolSwitchUpdate(lTrack, qNoiseGate.CNoiseTrack);
         for (int lRow = 0; lRow < lRows.Count; lRow++)
         {
-            QNoiseRowUpdate(lRows[lRow], qNoiseGate.CNoiseValueRead(lRow), qNoisePatterns[lRow]);
+            (Slider lSlider, TextBox lValue) = lRows[lRow];
+            QInspectorField.QInspectorFieldUpdate(
+                lSlider, lValue, qNoiseGate.CNoiseValueRead(lRow), qNoisePatterns[lRow]);
         }
 
         lType.SelectedIndex = qNoiseGate.CNoiseTypes.ToList().FindIndex(lRow => lRow.CChoiceChosen);
@@ -105,12 +95,5 @@ public sealed class QNoise
         lPreset.Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
         lPreset.SelectedIndex = lChoice.QInspectorChoiceIndex;
         QTool.QToolStackUpdate(lStack, qNoiseGate.CNoiseActive);
-    }
-
-    private static void QNoiseRowUpdate(
-        (Slider QNoiseSlider, TextBox QNoiseValue) lRow, double lNumber, string lPattern)
-    {
-        lRow.QNoiseSlider.Value = Math.Clamp(lNumber, lRow.QNoiseSlider.Minimum, lRow.QNoiseSlider.Maximum);
-        lRow.QNoiseValue.Text = QInspector.QInspectorValueFormat(lRow.QNoiseValue.Text, lNumber, lPattern);
     }
 }

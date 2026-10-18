@@ -1,18 +1,12 @@
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
 public sealed class QDeck
 {
-    public delegate FrameworkElement QDeckBuilder(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout);
-
     private readonly QStrip qStrip;
     private readonly Func<string, string> qDeckText;
-    private readonly ConditionalWeakTable<QStripTab, FrameworkElement> qDeckSurfaces = new();
-    private readonly Dictionary<string, QDeckBuilder> qDeckBuilders = [];
     private QStripTab? qDeckShown;
     private UserControl qDeckSurface = null!;
 
@@ -20,6 +14,7 @@ public sealed class QDeck
     {
         qStrip = lStripOwner;
         qDeckText = lLocalization;
+        QDeckIndex = new QDeckIndex(lStripOwner);
         qStrip.QStripSelectChanged += QDeckSelectHandle;
     }
 
@@ -30,6 +25,10 @@ public sealed class QDeck
     public bool QDeckEmpty => qStrip.QStripSelected is null;
 
     public QStripTab? QDeckShown => qDeckShown;
+
+    public QDeckCatalog QDeckCatalog { get; } = new();
+
+    public QDeckIndex QDeckIndex { get; }
 
     private Grid QDeckGrid => QContract.QContractFind<Grid>(qDeckSurface, "pDeckGrid");
 
@@ -58,25 +57,9 @@ public sealed class QDeck
         QDeckEmptyChanged += QDeckNoticeApply;
     }
 
-    public void QDeckBuilderAdd(string lKey, QDeckBuilder lBuilder) =>
-        qDeckBuilders.Add(lKey, lBuilder);
-
-    public FrameworkElement QDeckSurfaceBuild(QStripTab lStripTab, LSceneTabEntry? lPreferenceTabLayout) =>
-        qDeckBuilders[lStripTab.QStripTabKey](lStripTab.QStripTabWorkspace, lPreferenceTabLayout);
-
-    public void QDeckSurfaceAdd(QStripTab lStripTab, FrameworkElement lSurface) =>
-        qDeckSurfaces.Add(lStripTab, lSurface);
-
-    public TSurface? QDeckSurfaceRead<TSurface>(QStripTab? lStripTab)
-        where TSurface : FrameworkElement =>
-        lStripTab is not null && qStrip.QStripTabs.Contains(lStripTab)
-            && qDeckSurfaces.TryGetValue(lStripTab, out var lSurface)
-                ? lSurface as TSurface
-                : null;
-
     public void QDeckSurfaceClose(QStripTab lStripTab)
     {
-        if (QDeckSurfaceRead<FrameworkElement>(lStripTab) is null)
+        if (QDeckIndex.QDeckSurfaceRead<FrameworkElement>(lStripTab) is null)
         {
             return;
         }

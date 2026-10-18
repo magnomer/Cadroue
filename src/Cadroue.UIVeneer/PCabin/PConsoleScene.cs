@@ -70,7 +70,7 @@ public sealed class PConsoleScene : UserControl
         lScene.QConsoleMarkApplied += PConsoleMarkApply;
         lScene.QConsoleFocusCleared += PConsoleFocusClear;
         lScene.QConsoleNoticeShown += PConsoleNoticeShow;
-        lScene.QConsoleWarningShown += PConsoleWarningShow;
+        lScene.QConsoleFile.QConsoleWarningShown += PConsoleWarningShow;
         Loaded += PConsoleCaretAttach;
         Loaded += PConsoleLoadHandle;
         Unloaded += PConsoleUnloadHandle;
@@ -125,14 +125,14 @@ public sealed class PConsoleScene : UserControl
 
     private void PConsoleExportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        SaveFileDialog pDialog = lScene.QConsoleExportBuild(pConsoleRelayCombo.Text);
-        lScene.QConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
+        SaveFileDialog pDialog = lScene.QConsoleFile.QConsoleExportBuild(pConsoleRelayCombo.Text);
+        lScene.QConsoleFile.QConsoleExportCommit(pDialog.ShowDialog(), pDialog.FileName, pConsoleRelayCombo.Text);
     }
 
     private void PConsoleImportHandle(object pSender, RoutedEventArgs pArguments)
     {
-        OpenFileDialog pDialog = lScene.QConsoleImportBuild();
-        lScene.QConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
+        OpenFileDialog pDialog = lScene.QConsoleFile.QConsoleImportBuild();
+        lScene.QConsoleFile.QConsoleImportCommit(pDialog.ShowDialog(), pDialog.FileName);
     }
 
     private void PConsoleListApply(IReadOnlyList<string> pNames) => pConsoleRelayCombo.ItemsSource = pNames;

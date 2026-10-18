@@ -10,6 +10,23 @@ public sealed class QGroupEntry
     public string QGroupRecordName { get; set; } = string.Empty;
 
     public List<string> QGroupRecordPaths { get; } = [];
+
+    // A group holds each file once; the place is clamped into the list. Answers whether the file went in.
+    public bool QGroupEntryInsert(string lPath, int lInsertAt)
+    {
+        if (QGroupPositionResolve(lPath, lInsertAt) is not { } lPosition)
+        {
+            return false;
+        }
+
+        QGroupRecordPaths.Insert(lPosition, lPath);
+        return true;
+    }
+
+    private int? QGroupPositionResolve(string lPath, int lInsertAt) =>
+        QGroupRecordPaths.Any(lExisting => string.Equals(lExisting, lPath, StringComparison.OrdinalIgnoreCase))
+            ? null
+            : Math.Clamp(lInsertAt, 0, QGroupRecordPaths.Count);
 }
 
 public sealed class QGroup
@@ -19,8 +36,6 @@ public sealed class QGroup
     private readonly List<QGroupEntry> qGroupRecords = [];
     private Func<IReadOnlyList<string>> qGroupSource = () => [];
     private bool qGroupMinimized;
-    private int? qGroupSourceIndex;
-    private string? qGroupDragPath;
 
     public event Action? QGroupChanged;
     public event Action? QGroupFaceChanged;
@@ -50,12 +65,6 @@ public sealed class QGroup
 
     public bool QGroupEmpty => qGroupRecords.Count == 0;
 
-    public bool QGroupMinimized => qGroupMinimized;
-
-    public int? QGroupSourceIndex => qGroupSourceIndex;
-
-    public string? QGroupDragPath => qGroupDragPath;
-
     public void QGroupMinimizedSet(bool lMinimized)
     {
         if (qGroupMinimized == lMinimized)
@@ -65,12 +74,6 @@ public sealed class QGroup
 
         qGroupMinimized = lMinimized;
         QGroupMinimizeChanged?.Invoke(lMinimized);
-    }
-
-    public void QGroupDragSet(int? lSourceIndex, string? lDragPath)
-    {
-        qGroupSourceIndex = lSourceIndex;
-        qGroupDragPath = lDragPath;
     }
 
     public void QGroupSort()
@@ -118,7 +121,7 @@ public sealed class QGroup
 
         int lRemovedIndex = QGroupPathRemove(lSourceIndex, lPath);
         int lTargetAt = QGroupIndexAdjust(lSourceIndex, lTargetIndex, lRemovedIndex, lInsertAt);
-        bool lInserted = QGroupPathInsert(qGroupRecords[lTargetIndex].QGroupRecordPaths, lPath, lTargetAt);
+        bool lInserted = qGroupRecords[lTargetIndex].QGroupEntryInsert(lPath, lTargetAt);
         QGroupMoveRecord(lSourceIndex, lPath, lTargetIndex, lInserted);
         QGroupRecordsRaise();
         return true;
@@ -219,11 +222,11 @@ public sealed class QGroup
 
     private int QGroupTargetInsert(int lTargetIndex, IReadOnlyList<string> lPaths, int lInsertAt)
     {
-        List<string> lTargetPaths = qGroupRecords[lTargetIndex].QGroupRecordPaths;
+        QGroupEntry lTarget = qGroupRecords[lTargetIndex];
         int lInsertedCount = 0;
         foreach (string lPath in lPaths)
         {
-            if (QGroupPathInsert(lTargetPaths, lPath, lInsertAt + lInsertedCount))
+            if (lTarget.QGroupEntryInsert(lPath, lInsertAt + lInsertedCount))
             {
                 lInsertedCount++;
             }
@@ -246,7 +249,7 @@ public sealed class QGroup
         var lRecord = new QGroupEntry { QGroupRecordName = lName };
         foreach (string lPath in lNewPaths)
         {
-            QGroupPathInsert(lRecord.QGroupRecordPaths, lPath, lRecord.QGroupRecordPaths.Count);
+            lRecord.QGroupEntryInsert(lPath, lRecord.QGroupRecordPaths.Count);
         }
 
         qGroupRecords.Add(lRecord);
@@ -266,7 +269,7 @@ public sealed class QGroup
             return;
         }
 
-        QGroupDragSet(null, null);
+        QGroupDrag.QGroupSourceClear();
         QGroupRecordsRaise();
     }
 
@@ -318,20 +321,4 @@ public sealed class QGroup
         QGroupName.QGroupEditClear();
         QGroupChanged?.Invoke();
     }
-
-    private static bool QGroupPathInsert(List<string> lPaths, string lPath, int lInsertAt)
-    {
-        if (QGroupPositionResolve(lPaths, lPath, lInsertAt) is not { } lPosition)
-        {
-            return false;
-        }
-
-        lPaths.Insert(lPosition, lPath);
-        return true;
-    }
-
-    private static int? QGroupPositionResolve(List<string> lPaths, string lPath, int lInsertAt) =>
-        lPaths.Any(lExisting => string.Equals(lExisting, lPath, StringComparison.OrdinalIgnoreCase))
-            ? null
-            : Math.Clamp(lInsertAt, 0, lPaths.Count);
 }

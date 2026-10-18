@@ -1,10 +1,9 @@
 using Cadroue.Conduct;
-using Microsoft.Win32;
 
 namespace Cadroue.UIDeportment;
 
 // The scene strip's wiring: hands the list's and each command's input to the scene gate, asks through the window's
-// envoy, paints the gate's names, scene and mark, builds the file dialogs and words the gate's notices and warnings.
+// envoy, paints the gate's names, scene and mark and words the gate's notices; QConsoleFile owns the file dialogs.
 // Each member below the paint handlers that forwards one call stays for its surface caller.
 public sealed class QConsoleScene
 {
@@ -15,6 +14,7 @@ public sealed class QConsoleScene
     {
         qConsoleSceneGate = lGate;
         qConsoleSceneEnvoy = lEnvoy;
+        QConsoleFile = new QConsoleFile(lGate.CConsoleSceneFile);
         lGate.CConsoleSceneListed += QConsoleNamesRaise;
         lGate.CConsoleSceneChanged += QConsoleSceneRaise;
         lGate.CConsoleSceneMarked += QConsoleMarkRaise;
@@ -30,7 +30,7 @@ public sealed class QConsoleScene
 
     public event Action<string, string>? QConsoleNoticeShown;
 
-    public event Action<string, string>? QConsoleWarningShown;
+    public QConsoleFile QConsoleFile { get; }
 
     public void QConsoleWindowAttach(QWindowScene lSceneOwner, QStrip lStripOwner) =>
         qConsoleSceneGate.CConsoleSceneAttach(
@@ -93,45 +93,6 @@ public sealed class QConsoleScene
         if (lFocusWithin)
         {
             QConsoleFocusCleared?.Invoke();
-        }
-    }
-
-    public SaveFileDialog QConsoleExportBuild(string? lText) => new()
-    {
-        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
-        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneExtension,
-        AddExtension = true,
-        FileName = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneResolve(
-            lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName"))
-    };
-
-    public OpenFileDialog QConsoleImportBuild() => new()
-    {
-        Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
-        Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneExtension,
-        CheckFileExists = true
-    };
-
-    public void QConsoleExportCommit(bool? lConfirmed, string lPath, string? lText) =>
-        QConsoleErrorRaise(
-            qConsoleSceneGate.CConsoleSceneFile.CConsoleScenePersist(
-                lConfirmed, lPath, lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName")),
-            "Console.Scene.Dialog.Export");
-
-    public void QConsoleImportCommit(bool? lConfirmed, string lPath) =>
-        QConsoleErrorRaise(
-            qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneImport(
-                lConfirmed, lPath, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportedName")),
-            "Console.Scene.Dialog.Import");
-
-    private void QConsoleErrorRaise(CConsoleText? lMessage, string lTitleKey)
-    {
-        if (lMessage is not null)
-        {
-            QConsoleWarningShown?.Invoke(
-                QLocalizationCatalog.QLocalizationTextRead(lTitleKey), QConsoleLine.QConsoleTextRead(lMessage));
         }
     }
 }

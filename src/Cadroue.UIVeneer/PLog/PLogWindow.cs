@@ -69,10 +69,10 @@ public sealed class PLogWindow : Window
 
     private void PLogAttach()
     {
-        QLog.QLogFilesChanged += PLogFilesApply;
-        QLog.QLogRowsRebuilt += PLogRowsReset;
-        QLog.QLogRowAppended += PLogRowAppend;
-        QLog.QLogRowsRemoved += PLogRowsRemove;
+        QLog.QLogFolder.QLogFilesChanged += PLogFilesApply;
+        QLog.QLogFeed.QLogRowsRebuilt += PLogRowsReset;
+        QLog.QLogFeed.QLogRowAppended += PLogRowAppend;
+        QLog.QLogFeed.QLogRowsRemoved += PLogRowsRemove;
         QLog.QLogScrolled += PLogFeedScroll;
         QLog.QLogErrorShown += PLogErrorShow;
         QLog.QLogCopied += PLogTextCopy;
@@ -134,8 +134,8 @@ public sealed class PLogWindow : Window
     private void PLogFilesApply()
     {
         pLogFileCombo.Items.Clear();
-        QLog.QLogFiles.ToList().ForEach(PLogItemAdd);
-        pLogFileCombo.SelectedIndex = QLog.QLogFileIndex;
+        QLog.QLogFolder.QLogFiles.ToList().ForEach(PLogItemAdd);
+        pLogFileCombo.SelectedIndex = QLog.QLogFolder.QLogFileIndex;
     }
 
     private void PLogItemAdd(QLogFile lFile) =>
@@ -144,7 +144,7 @@ public sealed class PLogWindow : Window
     private void PLogRowsReset()
     {
         pLogRowsShown.Clear();
-        QLog.QLogRowsShown.ToList().ForEach(PLogRowAppend);
+        QLog.QLogFeed.QLogRowsShown.ToList().ForEach(PLogRowAppend);
     }
 
     private void PLogRowAppend(QLogRow lRow) => pLogRowsShown.Add(new PLogRow(lRow));

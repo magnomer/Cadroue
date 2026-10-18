@@ -1,6 +1,5 @@
 using Cadroue.Application;
 using Cadroue.Conduct;
-using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 

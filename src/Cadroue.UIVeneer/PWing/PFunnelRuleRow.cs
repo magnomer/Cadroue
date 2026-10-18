@@ -204,13 +204,13 @@ public sealed class PFunnelRuleRow : Border
     }
 
     private List<PActionRelayOption> PFunnelOptionsResolve() =>
-        lFunnel.QFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
+        lFunnel.QFunnelRelay.QFunnelOptionsRead().Select(PFunnelOptionBuild).ToList();
 
     private static PActionRelayOption PFunnelOptionBuild(QFunnelTarget lTarget) =>
         new(lTarget.QFunnelTargetId, lTarget.QFunnelTargetTitle, QStripIcon.QStripIconFind(lTarget.QFunnelTargetKey));
 
     private void PFunnelRelayHandle(object pSender, SelectionChangedEventArgs pArgs) =>
-        lFunnel.QFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);
+        lFunnel.QFunnelRelay.QFunnelTargetSelect(PFunnelRule, pFunnelRelayCombo.SelectedIndex);
 
     private static DataTemplate PFunnelTemplateBuild()
     {

@@ -308,7 +308,7 @@ public sealed class QRoster
 
     private void QRosterBatchRemove(IReadOnlyList<Guid> lRemovable) =>
         QRosterRemoval.QRosterWarningRaise(
-            QConsole.QConsoleRemovalFormat(qScheduleRemover.LScheduleBatchRemove(lRemovable)));
+            QConsoleLine.QConsoleRemovalFormat(qScheduleRemover.LScheduleBatchRemove(lRemovable)));
 
     private bool QRosterBatchCheck(Guid lBatchId) =>
         qRosterBatches.Exists(lBatch => lBatch.QRosterBatchId == lBatchId);

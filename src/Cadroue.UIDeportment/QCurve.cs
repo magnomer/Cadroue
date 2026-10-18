@@ -5,8 +5,8 @@ using Cadroue.Core;
 namespace Cadroue.UIDeportment;
 
 // The curve section's wiring: the gate holds the switch, the points and the keep switch; the channel and point shown,
-// the histogram, the drag and what the editor can run stay here. A point edit is resolved here and handed to the gate
-// as the channel's new points.
+// the histogram and what the editor can run stay here; QCurveDrag owns the drag. A point edit is resolved here and
+// handed to the gate as the channel's new points.
 public sealed class QCurve
 {
     private readonly CCurve qCurveGate;
@@ -15,18 +15,20 @@ public sealed class QCurve
     private bool qCurveCapable;
     private bool qCurvePreview;
     private LHistogramCounts? qCurveHistogram;
-    private bool qCurveDragActive;
 
     public QCurve(CCurve lCurve)
     {
         qCurveGate = lCurve;
         QCurveCanvas = new QCurveCanvas(this);
+        QCurveDrag = new QCurveDrag(this);
         qCurveGate.CCurveChanged += QCurveGateHandle;
     }
 
     public event Action? QCurveChanged;
 
     public QCurveCanvas QCurveCanvas { get; }
+
+    public QCurveDrag QCurveDrag { get; }
 
     public bool QCurveActive => qCurveGate.CCurveActive;
 
@@ -41,8 +43,6 @@ public sealed class QCurve
     public bool QCurvePreview => qCurvePreview;
 
     public LHistogramCounts? QCurveHistogram => qCurveHistogram;
-
-    public bool QCurveDragActive => qCurveDragActive;
 
     public IReadOnlyList<LWorkCurvePoint> QCurvePoints => QCurvePointsRead(qCurveChannel);
 
@@ -131,48 +131,7 @@ public sealed class QCurve
     }
 
     private static double QCurvePercentParse(string lText, double lValue) =>
-        QInspector.QInspectorValueCommit(lText, lValue * 100, null, null) / 100;
-
-    public void QCurvePressHandle(double lX, double lY, double lSize)
-    {
-        int lHit = QCurveCanvas.QCurveHitFind(lX, lY, lSize);
-        if (lHit < 0)
-        {
-            (double lInput, double lOutput) = QCurveCanvas.QCurveValueResolve(lX, lY, lSize);
-            QCurvePointAdd(lInput, lOutput);
-        }
-        else
-        {
-            QCurvePointSelect(lHit);
-        }
-
-        QCurveDragSet(true);
-    }
-
-    private void QCurveDragSet(bool lActive) => qCurveDragActive = lActive;
-
-    public bool QCurveMoveHandle(double lX, double lY, double lSize)
-    {
-        if (!qCurveDragActive)
-        {
-            return false;
-        }
-
-        (double lInput, double lOutput) = QCurveCanvas.QCurveValueResolve(lX, lY, lSize);
-        QCurvePointSet(lInput, lOutput);
-        return true;
-    }
-
-    public bool QCurveReleaseHandle()
-    {
-        if (!qCurveDragActive)
-        {
-            return false;
-        }
-
-        qCurveDragActive = false;
-        return true;
-    }
+        QInspectorField.QInspectorValueCommit(lText, lValue * 100, null, null) / 100;
 
     public void QCurvePointAdd(double lInput, double lOutput) =>
         QCurvePointInsert(QCurveUnitClamp(lInput), QCurveUnitClamp(lOutput));

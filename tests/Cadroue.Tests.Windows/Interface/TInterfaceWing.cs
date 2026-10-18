@@ -38,7 +38,7 @@ internal static partial class TInterface
     internal static bool TProcessingIndexMove(QProcessing processing, int from, int to) =>
         processing.QProcessingIndexMove(from, to);
     internal static void TProcessingDragStart(QProcessing processing, string step, double x, double y) =>
-        processing.QProcessingDragStart(step, x, y);
+        processing.QProcessingDrag.QProcessingDragStart(step, x, y);
     internal static void TProcessingDragMove(
         QProcessing processing,
         double x,
@@ -46,8 +46,9 @@ internal static partial class TInterface
         bool pressed,
         IReadOnlyList<double> tops,
         IReadOnlyList<double> heights) =>
-        processing.QProcessingDragMove(x, y, pressed, 4, 4, tops, heights);
-    internal static void TProcessingDragClear(QProcessing processing) => processing.QProcessingDragClear();
+        processing.QProcessingDrag.QProcessingDragMove(x, y, pressed, 4, 4, tops, heights);
+    internal static void TProcessingDragClear(QProcessing processing) =>
+        processing.QProcessingDrag.QProcessingDragClear();
     internal static void TProcessingRowAdd(QProcessing processing, string key) =>
         processing.QProcessingRowAdd(new QProcessingRow(key, string.Empty, key));
     internal static double TProcessingOpacityRead(QProcessing processing, string step) =>
@@ -89,11 +90,11 @@ internal static partial class TInterface
     internal static double TClinicProgressRead(CClinic clinic) => clinic.CClinicProgressRead();
 
     internal static void TCurvePressHandle(QCurve curve, double x, double y, double size) =>
-        curve.QCurvePressHandle(x, y, size);
+        curve.QCurveDrag.QCurvePressHandle(x, y, size);
     internal static bool TCurveMoveHandle(QCurve curve, double x, double y, double size) =>
-        curve.QCurveMoveHandle(x, y, size);
-    internal static bool TCurveReleaseHandle(QCurve curve) => curve.QCurveReleaseHandle();
-    internal static bool TCurveDragRead(QCurve curve) => curve.QCurveDragActive;
+        curve.QCurveDrag.QCurveMoveHandle(x, y, size);
+    internal static bool TCurveReleaseHandle(QCurve curve) => curve.QCurveDrag.QCurveReleaseHandle();
+    internal static bool TCurveDragRead(QCurve curve) => curve.QCurveDrag.QCurveDragActive;
     internal static void TCurvePointCommit(QCurve curve, string input, string output) =>
         curve.QCurvePointCommit(input, output);
     internal static double TCurveInputRead(QCurve curve) => curve.QCurveInputPercent;

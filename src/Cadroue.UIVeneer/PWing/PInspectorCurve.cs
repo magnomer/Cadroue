@@ -122,7 +122,7 @@ public sealed partial class PInspector
     private void PCurveUpdate()
     {
         PCurveStateApply();
-        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, QInspector.QInspectorTipResolve(
+        PInspectorSectionApply(pCurveBox, pCurvePersistent, pCurveStack, pCurveBody, QInspectorTip.QInspectorTipResolve(
             QCurve.QCurveActive,
             QCurve.QCurveCapable,
             QCurve.QCurvePreview,

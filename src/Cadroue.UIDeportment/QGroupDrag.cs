@@ -5,6 +5,8 @@ public sealed class QGroupDrag
 {
     private readonly QGroup qGroup;
     private bool qGroupDragOrigin;
+    private int? qGroupSourceIndex;
+    private string? qGroupDragPath;
     private double qGroupDragX;
     private double qGroupDragY;
     private QGhost qGroupGhost = new(0, 0);
@@ -19,9 +21,9 @@ public sealed class QGroupDrag
 
     public QGhost QGroupGhost => qGroupGhost;
 
-    public int QGroupDragIndex => qGroup.QGroupSourceIndex ?? -1;
+    public int QGroupDragIndex => qGroupSourceIndex ?? -1;
 
-    public string QGroupDragPath => qGroup.QGroupDragPath ?? string.Empty;
+    public string QGroupDragPath => qGroupDragPath ?? string.Empty;
 
     public void QGroupPressHandle(int lGroupIndex, string lPath, double lX, double lY, double lGrabX, double lGrabY)
     {
@@ -35,12 +37,13 @@ public sealed class QGroupDrag
         qGroupDragX = lX;
         qGroupDragY = lY;
         qGroupGhost = new QGhost(lGrabX, lGrabY);
-        qGroup.QGroupDragSet(lGroupIndex, lPath);
+        qGroupSourceIndex = lGroupIndex;
+        qGroupDragPath = lPath;
     }
 
     public bool QGroupDragResolve(double lX, double lY, double lMinimumX, double lMinimumY, bool lPressed)
     {
-        if (!qGroupDragOrigin || qGroup.QGroupSourceIndex is null || qGroup.QGroupDragPath is null || !lPressed)
+        if (!qGroupDragOrigin || qGroupSourceIndex is null || qGroupDragPath is null || !lPressed)
         {
             return false;
         }
@@ -51,7 +54,14 @@ public sealed class QGroupDrag
     public void QGroupDragClear()
     {
         qGroupDragOrigin = false;
-        qGroup.QGroupDragSet(null, null);
+        QGroupSourceClear();
+    }
+
+    // The held file is let go; a removed file can no longer be dragged.
+    internal void QGroupSourceClear()
+    {
+        qGroupSourceIndex = null;
+        qGroupDragPath = null;
     }
 
     public bool QGroupCardAccept(

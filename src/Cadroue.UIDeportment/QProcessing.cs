@@ -16,10 +16,11 @@ public sealed class QProcessing
     private bool qProcessingMinimized;
     private bool qProcessingOrdered;
     private bool qProcessingSkipActive;
-    private int? qProcessingDragIndex;
-    private double qProcessingDragX;
-    private double qProcessingDragY;
-    private bool qProcessingDragActive;
+
+    public QProcessing()
+    {
+        QProcessingDrag = new QProcessingDrag(this, () => QProcessingChanged?.Invoke());
+    }
 
     public event Action? QProcessingChanged;
     public event Action? QProcessingOrderChanged;
@@ -39,9 +40,7 @@ public sealed class QProcessing
 
     public bool QProcessingSkipActive => qProcessingSkipActive;
 
-    public int? QProcessingDragIndex => qProcessingDragIndex;
-
-    public bool QProcessingDragActive => qProcessingDragActive;
+    public QProcessingDrag QProcessingDrag { get; }
 
     public bool QProcessingSkipSelected => qProcessingStep == QProcessingSkipStep;
 
@@ -64,7 +63,8 @@ public sealed class QProcessing
             return QProcessingDisabledOpacity;
         }
 
-        return qProcessingDragActive && qProcessingDragIndex == qProcessingSteps.IndexOf(lStep)
+        return QProcessingDrag.QProcessingDragActive
+            && QProcessingDrag.QProcessingDragIndex == qProcessingSteps.IndexOf(lStep)
             ? QProcessingDragOpacity
             : 1;
     }
@@ -88,75 +88,7 @@ public sealed class QProcessing
         }
     }
 
-    public void QProcessingDragStart(string lStep, double lX, double lY)
-    {
-        QProcessingStepSelect(lStep);
-        QProcessingDragPrepare(lStep, lX, lY);
-    }
-
-    private void QProcessingDragPrepare(string lStep, double lX, double lY)
-    {
-        qProcessingDragIndex = qProcessingSteps.IndexOf(lStep);
-        qProcessingDragX = lX;
-        qProcessingDragY = lY;
-        qProcessingDragActive = false;
-    }
-
-    public void QProcessingDragMove(
-        double lX,
-        double lY,
-        bool lPressed,
-        double lMinimumX,
-        double lMinimumY,
-        IReadOnlyList<double> lTops,
-        IReadOnlyList<double> lHeights)
-    {
-        if (QProcessingDragResolve(lX, lY, lPressed, lMinimumX, lMinimumY) is not int lDragIndex)
-        {
-            return;
-        }
-
-        QProcessingDragApply();
-        QProcessingIndexMove(lDragIndex, QProcessingIndexResolve(lY, lTops, lHeights));
-    }
-
-    private int? QProcessingDragResolve(double lX, double lY, bool lPressed, double lMinimumX, double lMinimumY)
-    {
-        if (!qProcessingOrdered || qProcessingDragIndex is not int lDragIndex || !lPressed)
-        {
-            return null;
-        }
-
-        if (!qProcessingDragActive
-            && Math.Abs(lX - qProcessingDragX) < lMinimumX
-            && Math.Abs(lY - qProcessingDragY) < lMinimumY)
-        {
-            return null;
-        }
-
-        return lDragIndex;
-    }
-
-    private void QProcessingDragApply()
-    {
-        bool lStarted = !qProcessingDragActive;
-        qProcessingDragActive = true;
-        if (lStarted)
-        {
-            QProcessingChanged?.Invoke();
-        }
-    }
-
-    public void QProcessingDragClear()
-    {
-        bool lShown = qProcessingDragActive;
-        qProcessingDragIndex = null;
-        qProcessingDragActive = false;
-        if (lShown)
-        {
-            QProcessingChanged?.Invoke();
-        }
-    }
+    internal int QProcessingIndexRead(string lStep) => qProcessingSteps.IndexOf(lStep);
 
     public static int QProcessingIndexResolve(double lY, IReadOnlyList<double> lTops, IReadOnlyList<double> lHeights)
     {
@@ -206,9 +138,9 @@ public sealed class QProcessing
 
     private void QProcessingDragCancel(string lStep, bool lEnabled)
     {
-        if (!lEnabled && qProcessingDragIndex == qProcessingSteps.IndexOf(lStep))
+        if (!lEnabled && QProcessingDrag.QProcessingDragIndex == qProcessingSteps.IndexOf(lStep))
         {
-            QProcessingDragClear();
+            QProcessingDrag.QProcessingDragClear();
             QProcessingDragCanceled?.Invoke();
         }
     }
@@ -299,11 +231,7 @@ public sealed class QProcessing
         string lStep = qProcessingSteps[lFrom];
         qProcessingSteps.RemoveAt(lFrom);
         qProcessingSteps.Insert(lTo, lStep);
-        if (qProcessingDragIndex == lFrom)
-        {
-            qProcessingDragIndex = lTo;
-        }
-
+        QProcessingDrag.QProcessingDragAdjust(lFrom, lTo);
         QProcessingOrderChanged?.Invoke();
     }
 }

@@ -59,7 +59,7 @@ public sealed class TProcessingOrder
         Assert.True(TInterface.TProcessingIndexMove(processing, 0, 2));
 
         Assert.Equal(["B", "C", "A"], processing.QProcessingSteps);
-        Assert.Equal(2, processing.QProcessingDragIndex);
+        Assert.Equal(2, processing.QProcessingDrag.QProcessingDragIndex);
         Assert.False(TInterface.TProcessingIndexMove(processing, 2, 2));
         Assert.False(TInterface.TProcessingIndexMove(processing, 2, 5));
     }
@@ -87,22 +87,22 @@ public sealed class TProcessingOrder
         int baseline = changes;
 
         TInterface.TProcessingDragMove(processing, 12, 12, true, [0, 20, 40], [20, 20, 20]);
-        Assert.False(processing.QProcessingDragActive);
+        Assert.False(processing.QProcessingDrag.QProcessingDragActive);
         Assert.Equal(baseline, changes);
 
         TInterface.TProcessingDragMove(processing, 12, 55, false, [0, 20, 40], [20, 20, 20]);
-        Assert.False(processing.QProcessingDragActive);
+        Assert.False(processing.QProcessingDrag.QProcessingDragActive);
 
         TInterface.TProcessingDragMove(processing, 12, 55, true, [0, 20, 40], [20, 20, 20]);
-        Assert.True(processing.QProcessingDragActive);
+        Assert.True(processing.QProcessingDrag.QProcessingDragActive);
         Assert.Equal(["B", "C", "A"], processing.QProcessingSteps);
         Assert.Equal(0.72, TInterface.TProcessingOpacityRead(processing, "A"));
         Assert.Equal(1, TInterface.TProcessingOpacityRead(processing, "B"));
         Assert.Equal("3", TInterface.TProcessingNumberRead(processing, "A"));
 
         TInterface.TProcessingDragClear(processing);
-        Assert.False(processing.QProcessingDragActive);
-        Assert.Null(processing.QProcessingDragIndex);
+        Assert.False(processing.QProcessingDrag.QProcessingDragActive);
+        Assert.Null(processing.QProcessingDrag.QProcessingDragIndex);
         Assert.Equal(1, TInterface.TProcessingOpacityRead(processing, "A"));
     }
 
@@ -122,7 +122,7 @@ public sealed class TProcessingOrder
         TInterface.TProcessingEnabledSet(processing, "A", false, "busy");
 
         Assert.Equal(1, cancels);
-        Assert.Null(processing.QProcessingDragIndex);
+        Assert.Null(processing.QProcessingDrag.QProcessingDragIndex);
         Assert.Equal(0.4, TInterface.TProcessingOpacityRead(processing, "A"));
         Assert.Equal(2, TInterface.TProcessingIndexResolve(100, [0, 20, 40], [20, 20, 20]));
         Assert.Equal(1, TInterface.TProcessingIndexResolve(25, [0, 20, 40], [20, 20, 20]));

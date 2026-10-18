@@ -22,7 +22,7 @@ public sealed class QStripRelay
         LMessenger.LMessengerDrainSource = QStripPathsRemove;
         LSeal.LSealNodesSource = QStripSealRead;
         LSeal.LSealFireSeam = QStripNodeRun;
-        QAction.QActionStripAttach(qStrip);
+        QActionRelay.QActionStripAttach(qStrip);
         QStripListAttach();
     }
 
@@ -34,7 +34,7 @@ public sealed class QStripRelay
                 .Select(lTab => (lTab.QStripTabId, lTab.QStripTabWorkspace.QWorkspaceList?.QListGate))
                 .ToArray(),
             QStripTitleRead,
-            QAction.QActionAccept);
+            QActionRelay.QActionAccept);
 
     public string QStripTitleRead(Guid lId) =>
         qStrip.QStripTabFind(lId)?.QStripTabTitle ?? LCartographerTitle.LCartographerStageRead(lId);

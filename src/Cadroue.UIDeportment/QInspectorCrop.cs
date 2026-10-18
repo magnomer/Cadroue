@@ -63,7 +63,7 @@ public sealed class QInspectorCrop
         : "—";
 
     public string QInspectorEdgeFormat(int lSide, string lText) =>
-        QInspectorWholeFormat(lText, qInspectorCropGate.CCropEdgeRead(lSide));
+        QInspectorField.QInspectorWholeFormat(lText, qInspectorCropGate.CCropEdgeRead(lSide));
 
     public void QInspectorEdgeCommit(int lSide, string lText, bool lTyped) =>
         qInspectorCropGate.CCropEdgeCommit(lSide, lText, lTyped);
@@ -97,17 +97,4 @@ public sealed class QInspectorCrop
     }
 
     private string? QInspectorNoticeResolve() => QInspectorNotice.QInspectorNoticeResolve(qInspectorCropGate);
-
-    // Typed text that already reads as the number stays as typed; an empty field stays empty at 0.
-    internal static string QInspectorWholeFormat(string lText, double lNumber)
-    {
-        if ((string.IsNullOrWhiteSpace(lText) && lNumber == 0)
-            || (double.TryParse(lText, NumberStyles.Integer, CultureInfo.InvariantCulture, out double lShown)
-                && lShown == lNumber))
-        {
-            return lText;
-        }
-
-        return Math.Max(0, Math.Round(lNumber)).ToString(CultureInfo.InvariantCulture);
-    }
 }

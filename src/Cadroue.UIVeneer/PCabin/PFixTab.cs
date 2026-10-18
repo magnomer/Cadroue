@@ -27,7 +27,7 @@ public sealed class PFixTab : PTabSurface
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.EditAll.Tooltip"));
 
-        QFixTab.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        QFixCatalog.QFixRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         PFixEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);

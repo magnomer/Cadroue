@@ -13,7 +13,7 @@ public sealed class TCropAnchor
     [InlineData(1, 1, -1, -1, -1)]
     public void Grip_DrivesFromEdge_AnchorsOpposite(int edgeX, int edgeY, int drive, int anchorX, int anchorY)
     {
-        QCrop crop = TInterfaceCrop.TCropCreate();
+        QCropDrag crop = TInterfaceCrop.TCropDragCreate();
 
         TInterfaceCrop.TCropGripSet(crop, edgeX, edgeY);
 
@@ -28,7 +28,7 @@ public sealed class TCropAnchor
     [Fact]
     public void Body_ClearsEdges_MovesWholeBox()
     {
-        QCrop crop = TInterfaceCrop.TCropCreate();
+        QCropDrag crop = TInterfaceCrop.TCropDragCreate();
         TInterfaceCrop.TCropGripSet(crop, 1, 0);
 
         TInterfaceCrop.TCropBodySet(crop);
@@ -42,7 +42,7 @@ public sealed class TCropAnchor
     [Fact]
     public void Draw_ResetsAnchor_KeepsEdges()
     {
-        QCrop crop = TInterfaceCrop.TCropCreate();
+        QCropDrag crop = TInterfaceCrop.TCropDragCreate();
         TInterfaceCrop.TCropGripSet(crop, 0, 1);
 
         TInterfaceCrop.TCropDrawSet(crop);

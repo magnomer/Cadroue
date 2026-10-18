@@ -106,12 +106,12 @@ public sealed partial class PInspector
     }
 
     private static void PInspectorSlideCommit(Slider pSlider, Func<double> pRead, Action<double> pSet) =>
-        QInspector.QInspectorSlideCommit(pSlider.Value, pRead(), pSlider.Minimum, pSlider.Maximum, pSet);
+        QInspectorField.QInspectorSlideCommit(pSlider.Value, pRead(), pSlider.Minimum, pSlider.Maximum, pSet);
 
     private static void PInspectorValueCommit(
         TextBox pValue, double? pMinimum, double? pMaximum, Func<double> pRead, Action<double> pSet)
     {
-        pSet(QInspector.QInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
+        pSet(QInspectorField.QInspectorValueCommit(pValue.Text, pRead(), pMinimum, pMaximum));
         PInspectorCaretPlace(pValue);
     }
 

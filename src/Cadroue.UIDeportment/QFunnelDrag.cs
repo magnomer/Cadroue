@@ -14,8 +14,6 @@ public sealed class QFunnelDrag
         qFunnel = lOwner;
     }
 
-    public QFunnelRule? QFunnelDragRule => qFunnelDragRule;
-
     public bool QFunnelDragActive => qFunnelDragActive;
 
     public QGhost QFunnelGhost => qFunnelGhost;

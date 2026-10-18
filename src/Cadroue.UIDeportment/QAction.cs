@@ -1,6 +1,4 @@
 using Cadroue.Application;
-using Cadroue.Core;
-using Cadroue.Infrastructure;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
@@ -9,7 +7,6 @@ public sealed record QActionOption(Guid QActionOptionId, string QActionOptionTit
 
 public sealed class QAction
 {
-    private static QStrip? qActionStrip;
     private Func<IReadOnlyList<string>>? qActionEligibleSource;
     private Func<IReadOnlyList<string>>? qActionSelectionSource;
     private QStrip? qActionRelayStrip;
@@ -34,8 +31,6 @@ public sealed class QAction
     public string QActionFaceIcon => QActionOptionFind()?.QActionOptionKey ?? string.Empty;
 
     public bool QActionFaceShown => QActionOptionFind() is not null;
-
-    public static void QActionStripAttach(QStrip lStrip) => qActionStrip = lStrip;
 
     public void QActionDocketAttach(LDocket lDocket) =>
         qActionEligibleSource = () => lDocket.LDocketUnlockedRead().Select(lItem => lItem.LDocketEntryPath).ToArray();
@@ -150,48 +145,6 @@ public sealed class QAction
 
     public bool QActionCohortRun(Guid lCohort) =>
         qActionAutoRelay && QActionCohortAdded?.Invoke(lCohort, qActionRelayTarget, qActionSourceTab) > 0;
-
-    public static void QActionAccept(Guid lTargetTab, string lPath, Guid lCohort)
-    {
-        if (QActionAutoFind(lTargetTab) is null)
-        {
-            return;
-        }
-
-        LSealPending.LSealPendingAdd(lCohort);
-        QProgram.QProgramDefer(() => QActionAcceptRun(lTargetTab, lPath, lCohort));
-    }
-
-    private static void QActionAcceptRun(Guid lTargetTab, string lPath, Guid lCohort)
-    {
-        try
-        {
-            if (QActionAutoFind(lTargetTab) is { } lAction)
-            {
-                lAction.QActionItemsRun(new[] { lPath });
-            }
-            else
-            {
-                QActionRelayRecord(lPath);
-            }
-        }
-        finally
-        {
-            LSealPending.LSealPendingRemove(lCohort);
-            LSeal.LSealRun();
-        }
-    }
-
-    private static void QActionRelayRecord(string lPath) =>
-        LTraceLog.LTraceWarningRecord(
-            $"Relay left '{System.IO.Path.GetFileName(lPath)}' unprocessed: "
-            + "the destination tab closed or left Auto Relay before it ran");
-
-    private static QAction? QActionAutoFind(Guid lTargetTab) =>
-        qActionStrip?.QStripTabFind(lTargetTab)
-            is { QStripTabMerge: false, QStripTabAction: { QActionAutoRelay: true } lAction }
-            ? lAction
-            : null;
 
     private void QActionTargetUpdate() =>
         QActionRelayApply(LCartographerRoute.LCartographerTargetRead(qActionSourceTab));

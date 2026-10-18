@@ -13,7 +13,7 @@ internal static partial class TInterface
     internal static IReadOnlyList<QConsoleSpan> TConsoleRunsResolve(string line, string? accent) =>
         QConsoleLine.QConsoleRunsResolve(line, accent);
     internal static string? TConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> outcomes) =>
-        QConsole.QConsoleRemovalFormat(outcomes);
+        QConsoleLine.QConsoleRemovalFormat(outcomes);
     internal static int TConsoleIndexResolve(int index, int step, int count) =>
         LConsoleFacade.LConsoleIndexResolve(index, step, count);
 
@@ -70,9 +70,9 @@ internal static partial class TInterface
     internal static LEditPlan? TEditCarriedRead(QEditTab tab) => tab.QEditStore.QEditCarriedRead();
     internal static void TEditStateSave(QEditTab tab) => tab.QEditStore.QEditStateSave();
     internal static void TEditPersistentSave(QEditTab tab) => tab.QEditStore.QEditPersistentSave();
-    internal static string TEditPlanFormat(LEditPlan? plan) => QEditTabPlan.QEditPlanFormat(plan);
-    internal static string TEditCropFormat(LWorkCrop? crop) => QEditTabPlan.QEditCropFormat(crop);
-    internal static string TEditRectFormat(LCropbox? rect) => QEditTabPlan.QEditRectFormat(rect);
+    internal static string TEditPlanFormat(LEditPlan? plan) => QEditTabTrace.QEditPlanFormat(plan);
+    internal static string TEditCropFormat(LWorkCrop? crop) => QEditTabTrace.QEditCropFormat(crop);
+    internal static string TEditRectFormat(LCropbox? rect) => QEditTabTrace.QEditRectFormat(rect);
     internal static LWorkVideo TEditVideoRead(QEditTab tab, bool mpvOnlyCapable) =>
         tab.QEditColor.QEditVideoRead(mpvOnlyCapable);
     internal static void TEditColorUpdate(QEditTab tab) => tab.QEditColor.QEditColorUpdate();
@@ -80,10 +80,11 @@ internal static partial class TInterface
         viewer.QViewerPreviewChanged += () => handler(viewer.QViewerPreview.LColor);
     internal static void TEditColorApply(QEditTab tab) => tab.QEditColor.QEditColorApply();
     internal static void TEditNeutralHandle(QEditTab tab, LNeutralSample sample) =>
-        tab.QEditColor.QEditNeutralHandle(sample);
-    internal static void TEditEstimateHandle(QEditTab tab, string token) => tab.QEditColor.QEditEstimateHandle(token);
+        tab.QEditColor.QEditWhitebalance.QEditNeutralHandle(sample);
+    internal static void TEditEstimateHandle(QEditTab tab, string token) =>
+        tab.QEditColor.QEditWhitebalance.QEditEstimateHandle(token);
     internal static void TEditEstimateApply(QEditTab tab, double x, double y, bool present) =>
-        tab.QEditColor.QEditEstimateApply(new LNeutralWheel(x, y, present));
+        tab.QEditColor.QEditWhitebalance.QEditEstimateApply(new LNeutralWheel(x, y, present));
     internal static void TEditHistogramApply(QEditTab tab, int width, int height, byte[]? pixels) =>
         tab.QEditColor.QEditHistogramApply(pixels is null ? null : new LMediaFrame(width, height, pixels));
     internal static void TEditLibrarianAttach(
@@ -151,8 +152,8 @@ internal static partial class TInterface
         new(TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list, TAtelierCreate().CAtelierFix);
     internal static CClinic TFixClinicRead(QFixTab tab) => tab.QFixClinicGate;
     internal static QProcessing TFixProcessingRead(QFixTab tab) => tab.QFixProcessing;
-    internal static IReadOnlyList<QProcessingRow> TFixRowsRead() => QFixTab.QFixRows;
-    internal static IReadOnlyList<QFixRow> TFixKindsRead() => QFixTab.QFixKinds;
+    internal static IReadOnlyList<QProcessingRow> TFixRowsRead() => QFixCatalog.QFixRows;
+    internal static IReadOnlyList<QFixRow> TFixKindsRead() => QFixCatalog.QFixKinds;
     internal static void TFixClose(QFixTab tab) => tab.QFixClose();
     internal static LSceneTabEntry TFixLayoutRead(QFixTab tab) => tab.QFixLayoutRead(new LSceneTabEntry());
     internal static void TFixLayoutApply(QFixTab tab, LSceneTabEntry? layout) => tab.QFixLayoutApply(layout);
@@ -201,7 +202,7 @@ internal static partial class TInterface
             list);
     internal static QInspector TAudioInspectorRead(QAudioTab tab) => tab.QAudioInspector;
     internal static QProcessing TAudioProcessingRead(QAudioTab tab) => tab.QAudioProcessing;
-    internal static IReadOnlyList<QProcessingRow> TAudioRowsRead() => QAudioTab.QAudioRows;
+    internal static IReadOnlyList<QProcessingRow> TAudioRowsRead() => QAudioProcessing.QAudioRows;
     internal static LAudioKind? TAudioKindRead(string step) => QAudioTab.QAudioKindRead(step);
     internal static void TAudioClose(QAudioTab tab) => tab.QAudioClose();
     internal static LSceneTabEntry TAudioLayoutRead(QAudioTab tab) => tab.QAudioLayoutRead(new LSceneTabEntry());
@@ -280,7 +281,7 @@ internal static partial class TInterface
         action.QActionEligibleAttach(source);
     internal static bool TActionEligibleCheck(QAction action, params string[] chosen) =>
         action.QActionEligibleCheck(chosen);
-    internal static void TActionStripAttach(QStrip strip) => QAction.QActionStripAttach(strip);
+    internal static void TActionStripAttach(QStrip strip) => QActionRelay.QActionStripAttach(strip);
     internal static void TActionListAttach(QAction action, QList list) => action.QActionListAttach(list);
     internal static void TActionRelayAttach(QAction action, QStrip strip, QStripTab tab) =>
         action.QActionRelayAttach(strip, tab);
@@ -313,7 +314,7 @@ internal static partial class TInterface
     internal static void TActionListRun(QAction action) => action.QActionListRun();
     internal static bool TActionCohortRun(QAction action, Guid cohort) => action.QActionCohortRun(cohort);
     internal static void TActionAccept(Guid target, string path, Guid cohort) =>
-        QAction.QActionAccept(target, path, cohort);
+        QActionRelay.QActionAccept(target, path, cohort);
 
     internal static QCompass TCompassCreate(QFlow flow, QViewer viewer, bool sections) => new(flow, viewer, sections);
     internal static IReadOnlyList<QCompassGroup> TCompassGroupsRead(QCompass compass) => compass.QCompassGroupsRead();

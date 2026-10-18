@@ -10,7 +10,6 @@ public sealed class QProgram
 {
     private static Action<Action>? qProgramDeferSeam;
     private readonly Action<Action<Action>> qProgramStation;
-    private string? qDepotRootApplied;
 
     public QProgram(LScheduleContract lSchedule, Action<Action<Action>> lStation)
     {
@@ -19,6 +18,8 @@ public sealed class QProgram
     }
 
     public static LScheduleContract QScheduleCurrent { get; private set; } = null!;
+
+    public QProgramDepot QProgramDepot { get; } = new();
 
     public void QProgramStart(
         string[] lArgs,
@@ -43,7 +44,7 @@ public sealed class QProgram
         QProgramLanguageLoad(LPreference.LPreferenceStateCurrent.LPreferenceLanguage);
         QProgramLanguageNormalize();
 
-        LPreference.LPreferenceDepotCallback = QProgramDepotHandle;
+        LPreference.LPreferenceDepotCallback = QProgramDepot.QProgramDepotHandle;
         LDepot.LDepotRootSet(LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
         LTrace.LTraceVerbose = LPreference.LPreferenceStateCurrent.LPreferenceLogVerbose;
         LFlyleaf.LFlyleafResolverAttach();
@@ -56,7 +57,7 @@ public sealed class QProgram
         LInventory.LInventoryPrepareStart();
         LTrialCatalog.LTrialSetStart();
         QProgramStartRecord();
-        _ = QProgramDepotApply();
+        _ = QProgramDepot.QProgramDepotApply();
         LSectionPalette.LSectionRegistryLoad();
         LRetentionSweep.LRetentionSweepStart(
             LPreference.LPreferenceStateCurrent.LPreferenceCleanupActive,
@@ -150,66 +151,6 @@ public sealed class QProgram
         LPreferenceState lLocalizationPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lLocalizationPreference.LPreferenceLanguage = lLocalizationLanguage;
         LPreference.LPreferenceStateSet(lLocalizationPreference);
-    }
-
-    private bool QProgramDepotHandle()
-    {
-        bool lDepotApplied = QProgramDepotApply();
-        QProgramSidecarApply();
-        return lDepotApplied;
-    }
-
-    public static void QProgramSidecarApply() =>
-        LSidecarPath.LSidecarFolderApply(LPreference.LPreferenceStateCurrent.LPreferenceRecordWorkspace);
-
-    public string? QProgramDepotRoot => qDepotRootApplied;
-
-    public bool QProgramDepotApply()
-    {
-        try
-        {
-            string lDepotRoot = LDepot.LDepotRootResolve(
-                LPreference.LPreferenceStateCurrent.LPreferenceWorkspaceFolder);
-            if (string.Equals(lDepotRoot, qDepotRootApplied, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-
-            if (!QProgramDepotPrepare(lDepotRoot))
-            {
-                return false;
-            }
-
-            QProgramDepotSet(lDepotRoot);
-            QProgramSidecarApply();
-            LTraceLog.LTraceLoadingRecord($"Workspace at {lDepotRoot}");
-            return true;
-        }
-        catch (Exception lException)
-        {
-            QProgramDepotSet(null);
-            LTraceLog.LTraceErrorRecord("Workspace folder could not be prepared", lException);
-            return false;
-        }
-    }
-
-    private void QProgramDepotSet(string? lDepotRoot) => qDepotRootApplied = lDepotRoot;
-
-    private bool QProgramDepotPrepare(string lDepotRoot)
-    {
-        if (qDepotRootApplied is string lDepotPrevious
-            && !LDepotRelocation.LDepotFolderMove(lDepotPrevious, lDepotRoot))
-        {
-            return false;
-        }
-
-        if (qDepotRootApplied is null)
-        {
-            LDepot.LDepotRootSet(lDepotRoot);
-        }
-
-        LDepotIndex.LDepotIndexCreate();
-        return true;
     }
 
     private static void QProgramStaleClaim()

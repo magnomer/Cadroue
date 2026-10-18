@@ -1,24 +1,9 @@
 namespace Cadroue.UIDeportment;
 
+// The source the LosslessCut offer last looked at; it answers only when a new source arrives.
 public sealed class QFlowStamp
 {
-    private string? qFlowKeyframeStamp;
     private string qFlowLosslesscutPath = string.Empty;
-
-    public string? QFlowKeyframeStamp => qFlowKeyframeStamp;
-
-    public string QFlowLosslesscutPath => qFlowLosslesscutPath;
-
-    public bool QFlowStampSet(string lKeyframeStamp)
-    {
-        if (string.Equals(qFlowKeyframeStamp, lKeyframeStamp, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        qFlowKeyframeStamp = lKeyframeStamp;
-        return true;
-    }
 
     public bool QFlowLosslesscutSet(string lLosslesscutPath)
     {

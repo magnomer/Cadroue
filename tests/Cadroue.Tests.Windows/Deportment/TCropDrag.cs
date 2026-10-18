@@ -70,7 +70,7 @@ public sealed class TCropDrag
 
         Assert.True(TInterfaceCrop.TCropGripHandle(drag, 4, 300, 200));
         Assert.True(drag.QCropPress);
-        Assert.Equal((1, 1), (crop.QCropEdgeX, crop.QCropEdgeY));
+        Assert.Equal((1, 1), (drag.QCropEdgeX, drag.QCropEdgeY));
         Assert.True(TInterfaceCrop.TCropMoveHandle(drag, true, 340, 240));
         Assert.Equal((100, 100, 240, 140), TCropBoxResolve(crop));
         Assert.True(TInterfaceCrop.TCropReleaseHandle(drag, 340, 240));

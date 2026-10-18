@@ -13,7 +13,7 @@ public sealed class QInspectorRatio
     }
 
     public string QInspectorRatioFormat(bool lWidth, string lText) =>
-        QInspectorCrop.QInspectorWholeFormat(lText, qInspectorRatioGate.CCropRatioRead(lWidth));
+        QInspectorField.QInspectorWholeFormat(lText, qInspectorRatioGate.CCropRatioRead(lWidth));
 
     public void QInspectorRatioCommit(string lWidthText, string lHeightText, bool lTyped) =>
         qInspectorRatioGate.CCropRatioCommit(lWidthText, lHeightText, lTyped);

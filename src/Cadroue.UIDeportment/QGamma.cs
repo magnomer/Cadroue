@@ -33,7 +33,6 @@ public sealed class QGamma
 
     private static readonly string[] qGammaUnits = { "", "", "", "", "%" };
 
-    private readonly QInspector qGammaInspector;
     private readonly CGamma qGammaGate;
     private readonly CheckBox qGammaActive;
     private readonly StackPanel qGammaStack;
@@ -42,7 +41,6 @@ public sealed class QGamma
 
     public QGamma(QInspector lInspector)
     {
-        qGammaInspector = lInspector;
         qGammaGate = lInspector.QInspectorVideo.QInspectorGamma;
         QGammaBody = QContract.QContractSheetFind<StackPanel>(QGammaSheet);
         QGammaPersistent = QContract.QContractSheetFind<CheckBox>(QGammaPersistentSheet);
@@ -114,7 +112,7 @@ public sealed class QGamma
         QTool.QToolSwitchUpdate(qGammaActive, qGammaGate.CGammaActive);
         QTool.QToolSwitchUpdate(QGammaPersistent, qGammaGate.CGammaPersistent);
         qGammaSlots.ForEach(QGammaFieldUpdate);
-        QInspectorTip lTip = qGammaInspector.QInspectorTipResolve(
+        QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
             qGammaGate.CGammaActive,
             qGammaGate.CGammaCapable,
             qGammaGate.CGammaPreview,

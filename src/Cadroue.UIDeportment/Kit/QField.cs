@@ -54,7 +54,7 @@ public static class QField
     }
 
     private static void QFieldInputHandle(object lSender, TextCompositionEventArgs lEvent) =>
-        lEvent.Handled = !QInspector.QInspectorDecimalCheck(lEvent.Text);
+        lEvent.Handled = !QInspectorField.QInspectorDecimalCheck(lEvent.Text);
 
     public static void QFieldAttach(
         Grid lField, double? lLeast, double? lMost, Func<double> lRead, Action<double> lSet)
@@ -66,7 +66,7 @@ public static class QField
             [Key.Enter] = () => QFieldCommit(lValue, lLeast, lMost, lRead, lSet),
         };
         lSlider.ValueChanged += (_, _) =>
-            QInspector.QInspectorSlideCommit(lSlider.Value, lRead(), lSlider.Minimum, lSlider.Maximum, lSet);
+            QInspectorField.QInspectorSlideCommit(lSlider.Value, lRead(), lSlider.Minimum, lSlider.Maximum, lSet);
         lValue.LostFocus += (_, _) => QFieldCommit(lValue, lLeast, lMost, lRead, lSet);
         lValue.KeyDown += (_, lKeyEvent) => QFieldKeyHandle(lKeyEvent, lValueKeys);
     }
@@ -81,14 +81,13 @@ public static class QField
     {
         Slider lSlider = QContract.QContractFind<Slider>(lField, QFieldSliderPart);
         TextBox lValue = QContract.QContractFind<TextBox>(lField, QFieldValuePart);
-        lSlider.Value = Math.Clamp(lNumber, lSlider.Minimum, lSlider.Maximum);
-        lValue.Text = QInspector.QInspectorValueFormat(lValue.Text, lNumber, lFormat);
+        QInspectorField.QInspectorFieldUpdate(lSlider, lValue, lNumber, lFormat);
     }
 
     private static void QFieldCommit(
         TextBox lValue, double? lLeast, double? lMost, Func<double> lRead, Action<double> lSet)
     {
-        lSet(QInspector.QInspectorValueCommit(lValue.Text, lRead(), lLeast, lMost));
+        lSet(QInspectorField.QInspectorValueCommit(lValue.Text, lRead(), lLeast, lMost));
         QFieldCaretSet(lValue);
     }
 

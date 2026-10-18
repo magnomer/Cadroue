@@ -26,7 +26,7 @@ public sealed class PAudioTab : PTabSurface
         QAudioTab = lWorkspace.QWorkspaceMode.QAudioTabCreate();
         pProcessing = new PProcessing(QAudioTab.QAudioProcessing);
         pInspector = new PInspector(QAudioTab.QAudioInspector);
-        QAudioTab.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
+        QAudioProcessing.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
         PAudioStepsAttach();
         pProcessing.PProcessingMonitorSet();
 

@@ -24,7 +24,6 @@ public sealed class QExposure
 
     private const string QExposurePattern = "0.#";
 
-    private readonly QInspector qExposureInspector;
     private readonly CExposure qExposureGate;
     private readonly CheckBox qExposureActive;
     private readonly StackPanel qExposureStack;
@@ -32,7 +31,6 @@ public sealed class QExposure
 
     public QExposure(QInspector lInspector)
     {
-        qExposureInspector = lInspector;
         qExposureGate = lInspector.QInspectorVideo.QInspectorExposure;
         QExposureBody = QContract.QContractSheetFind<StackPanel>(QExposureSheet);
         QExposurePersistent = QContract.QContractSheetFind<CheckBox>(QExposurePersistentSheet);
@@ -78,7 +76,7 @@ public sealed class QExposure
         QTool.QToolSwitchUpdate(qExposureActive, qExposureGate.CExposureActive);
         QTool.QToolSwitchUpdate(QExposurePersistent, qExposureGate.CExposurePersistent);
         QField.QFieldUpdate(qExposureField, qExposureGate.CExposureValue, QExposurePattern);
-        QInspectorTip lTip = qExposureInspector.QInspectorTipResolve(
+        QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
             qExposureGate.CExposureActive,
             qExposureGate.CExposureCapable,
             qExposureGate.CExposurePreview,

@@ -59,7 +59,7 @@ public sealed class QLoudness
 
     // The combo shows each row's wording and selects the row the gate marked chosen.
     public QInspectorChoice QLoudnessChoiceRead(bool lDynamic) =>
-        QLoudnessChoiceBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic));
+        QInspectorPlan.QInspectorChoiceBuild(qLoudnessGate.CLoudnessChoicesRead(lDynamic));
 
     public double QLoudnessValueRead(bool lDynamic, int lIndex) => qLoudnessGate.CLoudnessValueRead(lDynamic, lIndex);
 
@@ -111,39 +111,19 @@ public sealed class QLoudness
         {
             for (int lRow = 0; lRow < lRows[lList].Count; lRow++)
             {
-                QLoudnessRowUpdate(lRows[lList][lRow], lValues[lList][lRow]);
+                (Slider lSlider, TextBox lValue) = lRows[lList][lRow];
+                QInspectorField.QInspectorFieldUpdate(lSlider, lValue, lValues[lList][lRow], QLoudnessPattern);
             }
         }
 
         IReadOnlyList<IReadOnlyList<CChoice>> lChoices = qLoudnessGate.CLoudnessChoices;
         for (int lList = 0; lList < lPresets.Count; lList++)
         {
-            QInspectorChoice lChoice = QLoudnessChoiceBuild(lChoices[lList]);
+            QInspectorChoice lChoice = QInspectorPlan.QInspectorChoiceBuild(lChoices[lList]);
             lPresets[lList].Items[lChoice.QInspectorChoiceCustom] = lChoice.QInspectorChoiceText;
             lPresets[lList].SelectedIndex = lChoice.QInspectorChoiceIndex;
         }
 
         QTool.QToolStackUpdate(lPanel, qLoudnessGate.CLoudnessActive);
-    }
-
-    private static void QLoudnessRowUpdate((Slider QLoudnessSlider, TextBox QLoudnessValue) lRow, double lNumber)
-    {
-        lRow.QLoudnessSlider.Value =
-            Math.Clamp(lNumber, lRow.QLoudnessSlider.Minimum, lRow.QLoudnessSlider.Maximum);
-        lRow.QLoudnessValue.Text =
-            QInspector.QInspectorValueFormat(lRow.QLoudnessValue.Text, lNumber, QLoudnessPattern);
-    }
-
-    private static QInspectorChoice QLoudnessChoiceBuild(IReadOnlyList<CChoice> lRows)
-    {
-        List<string> lNames = lRows
-            .Select(static lRow => lRow.CChoiceBasis is { } lBasis
-                ? QLocalizationCatalog.QLocalizationFormat(
-                    lRow.CChoiceKey, QLocalizationCatalog.QLocalizationTextRead(lBasis))
-                : QLocalizationCatalog.QLocalizationTextRead(lRow.CChoiceKey))
-            .ToList();
-        int lCustom = lRows.Count - 1;
-        int lChosen = lRows.ToList().FindIndex(lRow => lRow.CChoiceChosen);
-        return new QInspectorChoice(lNames, lChosen, lCustom, lNames[lCustom]);
     }
 }

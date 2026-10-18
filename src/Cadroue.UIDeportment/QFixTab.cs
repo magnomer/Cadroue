@@ -6,33 +6,8 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record QFixRow(LFlawKind QFixRowKind, QProcessingRow QFixRowStep);
-
 public sealed class QFixTab
 {
-    private const string QFixSalvageKey = "Salvage";
-
-    public static readonly IReadOnlyList<QFixRow> QFixKinds =
-    [
-        QFixRowCreate(LFlawKind.LFlawKindTruncation, "Truncation"),
-        QFixRowCreate(LFlawKind.LFlawKindIndex, "Index"),
-        QFixRowCreate(LFlawKind.LFlawKindContainer, "Container"),
-        QFixRowCreate(LFlawKind.LFlawKindTiming, "Timing"),
-        QFixRowCreate(LFlawKind.LFlawKindMetadata, "Metadata"),
-        QFixRowCreate(LFlawKind.LFlawKindCoded, "Coded"),
-        QFixRowCreate(LFlawKind.LFlawKindFraming, "Framing"),
-        QFixRowCreate(LFlawKind.LFlawKindConfig, "Config", "Configuration"),
-        QFixRowCreate(LFlawKind.LFlawKindTransport, "Transport"),
-        QFixRowCreate(LFlawKind.LFlawKindSecondary, "Secondary"),
-        QFixRowCreate(LFlawKind.LFlawKindFfvone, "Ffvone"),
-    ];
-
-    public static readonly IReadOnlyList<QProcessingRow> QFixRows =
-        QFixKinds.Select(lRow => lRow.QFixRowStep)
-            .Append(new QProcessingRow(
-                QFixSalvageKey, "/PAsset/PPanel/PProcessingFixSalvage.svg", "Processing.Step.Salvage"))
-            .ToList();
-
     private readonly CFix qFixGate;
     private readonly CFixPlan qFixPlanGate;
     private readonly LPresetSelection qFixPreset;
@@ -121,9 +96,7 @@ public sealed class QFixTab
                 qFixPreset.LPresetSelectionValid,
                 qFixPreset.LPresetSelectionName,
                 qFixList.QListPathCurrent,
-                qFixDocket.LDocketItemsRead()
-                    .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
-                    .ToArray(),
+                QFixItemsRead(),
                 lUrgent,
                 lRelayTarget,
                 lSourceTab))
@@ -140,9 +113,7 @@ public sealed class QFixTab
         if (!qFixGate.CFixAllRun(
                 qFixPreset.LPresetSelectionValid,
                 qFixPreset.LPresetSelectionName,
-                qFixDocket.LDocketItemsRead()
-                    .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
-                    .ToArray(),
+                QFixItemsRead(),
                 lPaths,
                 lRelayTarget,
                 lSourceTab))
@@ -153,13 +124,7 @@ public sealed class QFixTab
 
     // Before the viewer opens a new path: the plan of the source it leaves is saved, then the clinic follows.
     private void QFixOpenHandle(string lPath) =>
-        qFixPlanGate.CFixSourceOpen(
-            QFixClinicGate,
-            qFixViewer.QViewerWorkspace,
-            qFixDocket.LDocketItemsRead()
-                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
-                .ToArray(),
-            lPath);
+        qFixPlanGate.CFixSourceOpen(QFixClinicGate, qFixViewer.QViewerWorkspace, QFixItemsRead(), lPath);
 
     public void QFixDiagnosisRun()
     {
@@ -169,7 +134,9 @@ public sealed class QFixTab
         }
 
         QFixCheckup.LCheckupStart(
-            [lSelected.LDocketEntryPath], QFixKinds.Select(lRow => lRow.QFixRowKind).ToArray(), lCheckupForce: true);
+            [lSelected.LDocketEntryPath],
+            QFixCatalog.QFixKinds.Select(lRow => lRow.QFixRowKind).ToArray(),
+            lCheckupForce: true);
     }
 
     public void QFixClearHandle(IReadOnlyList<string> lRemoved)
@@ -207,12 +174,8 @@ public sealed class QFixTab
 
     // A plan change saves the plan of the open source; the gate answers which steps the plan has on.
     public void QFixChangeHandle() =>
-        QFixActiveApply(qFixPlanGate.CFixStateSave(
-            QFixClinicGate,
-            qFixViewer.QViewerWorkspace,
-            qFixDocket.LDocketItemsRead()
-                .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
-                .ToArray()));
+        QFixActiveApply(
+            qFixPlanGate.CFixStateSave(QFixClinicGate, qFixViewer.QViewerWorkspace, QFixItemsRead()));
 
     public void QFixPlanRestore(string lSourcePath) =>
         QFixActiveApply(qFixPlanGate.CFixPlanRestore(QFixClinicGate, lSourcePath));
@@ -233,6 +196,12 @@ public sealed class QFixTab
         return lPlan.LClinicPlan;
     }
 
+    // Every listed item as the fix gates take it: path, batch and lock.
+    private (string CFixPath, Guid CFixBatch, bool CFixLocked)[] QFixItemsRead() =>
+        qFixDocket.LDocketItemsRead()
+            .Select(lItem => (lItem.LDocketEntryPath, lItem.LDocketEntryBatch, lItem.LDocketEntryLocked))
+            .ToArray();
+
     private bool QFixListedCheck(string lPath) => qFixDocket.LDocketItemFind(lPath) is not null;
 
     private LDocketEntry? QFixSelectedRead() =>
@@ -240,8 +209,4 @@ public sealed class QFixTab
         && qFixDocket.LDocketItemFind(lPath) is { LDocketEntryLocked: false } lItem
             ? lItem
             : null;
-
-    private static QFixRow QFixRowCreate(LFlawKind lKind, string lName, string? lIcon = null) =>
-        new(lKind, new QProcessingRow(
-            lName, $"/PAsset/PPanel/PProcessingFix{lIcon ?? lName}.svg", $"Processing.Step.{lName}"));
 }

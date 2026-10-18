@@ -145,7 +145,7 @@ public partial class PWindow : Window
     private void PWindowFunnelUpdate() => pStrip.QStrip.QStripTabs.ToList().ForEach(PWindowFunnelResolve);
 
     private void PWindowFunnelResolve(QStripTab lStripTab) =>
-        pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lStripTab)?.PTabTargetsResolve();
+        pStrip.QStrip.QStripDeck.QDeckIndex.QDeckSurfaceRead<PTabSurface>(lStripTab)?.PTabTargetsResolve();
 
     private void PWindowPlace(double pLeft, double pTop)
     {
@@ -168,7 +168,7 @@ public partial class PWindow : Window
 
     private void PWindowTabAttach(QStripTab lTab, double pFlowHeight)
     {
-        PTabSurface? pSurface = pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lTab);
+        PTabSurface? pSurface = pStrip.QStrip.QStripDeck.QDeckIndex.QDeckSurfaceRead<PTabSurface>(lTab);
         lTab.QStripTabWorkspace.QWorkspaceFlowApply();
         pSurface?.PTabFlow?.PFlowLayoutApply(pFlowHeight);
         lTab.QStripTabWorkspace.QWorkspaceViewerApply();
@@ -178,7 +178,8 @@ public partial class PWindow : Window
 
     private void PWindowTabDetach(QStripTab lTab)
     {
-        pStrip.QStrip.QStripDeck.QDeckSurfaceRead<PTabSurface>(lTab)?.PTabWidthChanged -= PWindowWidthApply;
+        pStrip.QStrip.QStripDeck.QDeckIndex.QDeckSurfaceRead<PTabSurface>(lTab)?.PTabWidthChanged -=
+            PWindowWidthApply;
         lTab.QStripTabWorkspace.QWorkspaceCommandReset();
     }
 

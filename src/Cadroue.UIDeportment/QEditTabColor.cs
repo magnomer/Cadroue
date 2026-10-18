@@ -2,7 +2,6 @@ using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.Media;
-using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
@@ -17,6 +16,22 @@ public sealed class QEditTabColor
         qEditInspector = lInspector;
         qEditProcessing = lProcessing;
         qEditViewer = lViewer;
+        QEditWhitebalance = new QEditTabWhitebalance(lInspector, lViewer);
+    }
+
+    public QEditTabWhitebalance QEditWhitebalance { get; }
+
+    // The color piece wires its own relay, then rechecks what the preview can draw on each engine change.
+    public void QEditColorAttach()
+    {
+        QEditWhitebalance.QEditWhitebalanceAttach();
+        qEditViewer.QViewerEngineChanged += QEditCapableHandle;
+    }
+
+    public void QEditColorClose()
+    {
+        QEditWhitebalance.QEditWhitebalanceClose();
+        qEditViewer.QViewerEngineChanged -= QEditCapableHandle;
     }
 
     public void QEditColorUpdate()
@@ -84,33 +99,7 @@ public sealed class QEditTabColor
         QEditColorApply();
     }
 
-    // The viewer's pick goes to the gate whole: the gate applies it or keeps its failure status; a failure is traced.
-    public void QEditNeutralHandle(LNeutralSample lSample) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceSampleAccept(
-            new LWhitebalanceSampleOutlet(lSample, LTraceLog.LTraceInfoRecord));
-
-    // New media asks the gate for a fresh estimate.
-    public void QEditEstimateStart(LCargo lCargo) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceEstimateStart();
-
-    // The gate asks for an estimate by method token; the viewer starts it.
-    public void QEditEstimateHandle(string lToken) =>
-        qEditViewer.QViewerNeutral.QViewerEstimateStart(LWhitebalancePort.LWhitebalanceMethodRead(lToken));
-
-    // The viewer's picker and the gate's picker follow each other; the gate holds the target as whether it is white.
-    public void QEditTargetHandle(bool lArmed, LNeutralTarget lTarget) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceToolSet(
-            lArmed, lTarget == LNeutralTarget.LNeutralTargetWhite);
-
-    public void QEditTargetApply(bool lArmed, bool lWhite) =>
-        qEditViewer.QViewerNeutral.QViewerToolSet(
-            lArmed, lWhite ? LNeutralTarget.LNeutralTargetWhite : LNeutralTarget.LNeutralTargetGrey);
-
     public void QEditHistogramRun() => qEditViewer.QViewerFrame.QViewerFrameRead(QEditHistogramApply);
-
-    public void QEditEstimateApply(LNeutralWheel lEstimate) =>
-        qEditInspector.QInspectorVideo.QInspectorWhitebalance.CWhitebalanceEstimateSet(
-            lEstimate.LNeutralWheelX, lEstimate.LNeutralWheelY, lEstimate.LNeutralWheelPresent);
 
     public void QEditHistogramApply(LMediaFrame? lFrame) =>
         qEditInspector.QInspectorVideo.QInspectorCurve.QCurveHistogramSet(lFrame is null

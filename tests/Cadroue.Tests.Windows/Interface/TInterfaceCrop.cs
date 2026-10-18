@@ -22,10 +22,11 @@ internal static class TInterfaceCrop
         CAtelier atelier = TInterface.TAtelierCreate();
         return new QViewer(atelier.CAtelierUsher, atelier.CAtelierWorkspaceCreate()).QCrop;
     }
-    internal static void TCropGripSet(QCrop crop, int edgeX, int edgeY) => crop.QCropGripSet(edgeX, edgeY);
-    internal static void TCropBodySet(QCrop crop) => crop.QCropBodySet();
-    internal static void TCropDrawSet(QCrop crop) => crop.QCropDrawSet();
-    internal static bool TCropMoveCheck(QCrop crop) => crop.QCropMoveCheck();
+    internal static QCropDrag TCropDragCreate() => TInterfaceViewer.TViewerCreate().QCropDrag;
+    internal static void TCropGripSet(QCropDrag drag, int edgeX, int edgeY) => drag.QCropGripSet(edgeX, edgeY);
+    internal static void TCropBodySet(QCropDrag drag) => drag.QCropBodySet();
+    internal static void TCropDrawSet(QCropDrag drag) => drag.QCropDrawSet();
+    internal static bool TCropMoveCheck(QCropDrag drag) => drag.QCropMoveCheck();
     internal static void TCropRatioSet(QCrop crop, double width, double height) =>
         crop.QCropRatioSet(width, height);
     internal static void TCropLockSet(QCrop crop, bool locked) => crop.QCropLockSet(locked);

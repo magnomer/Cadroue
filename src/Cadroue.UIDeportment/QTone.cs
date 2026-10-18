@@ -34,7 +34,6 @@ public sealed class QTone
         "Inspector.Video.PersistSaturation"
     };
 
-    private readonly QInspector qToneInspector;
     private readonly CTone qToneGate;
     private readonly IReadOnlyList<CheckBox> qToneSwitches;
     private readonly IReadOnlyList<CheckBox> qTonePersistent;
@@ -51,7 +50,6 @@ public sealed class QTone
         IReadOnlyList<StackPanel> lStacks,
         IReadOnlyList<StackPanel> lBodies)
     {
-        qToneInspector = lInspector;
         qToneGate = lInspector.QInspectorVideo.QInspectorTone;
         qToneSwitches = lSwitches;
         qTonePersistent = lPersistent;
@@ -114,7 +112,7 @@ public sealed class QTone
         QTool.QToolSwitchUpdate(qToneSwitches[lSlot], qToneGate.CToneActives[lSlot]);
         QTool.QToolSwitchUpdate(qTonePersistent[lSlot], qToneGate.CTonePersistents[lSlot]);
         QField.QFieldUpdate(qToneFields[lSlot], qToneGate.CToneValues[lSlot], QTonePattern);
-        QInspectorTip lTip = qToneInspector.QInspectorTipResolve(
+        QInspectorTip lTip = QInspectorTip.QInspectorTipResolve(
             qToneGate.CToneActives[lSlot],
             qToneGate.CToneCapable,
             true,

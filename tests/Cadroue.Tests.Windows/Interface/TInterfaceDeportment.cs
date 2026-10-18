@@ -302,9 +302,10 @@ internal static partial class TInterface
     internal static void TExportEditCancel(QExport export) => export.QExportEditCancel();
     internal static bool TExportNameCommit(QExport export, string oldName, string newName) =>
         export.QExportNameCommit(oldName, newName);
-    internal static void TExportDragStart(QExport export, string name) => export.QExportDragStart(name, 0, 0);
-    internal static bool TExportDragMove(QExport export) => export.QExportDragMove();
-    internal static bool TExportDragClear(QExport export) => export.QExportDragClear();
+    internal static void TExportDragStart(QExport export, string name) =>
+        export.QExportDrag.QExportDragStart(name, 0, 0);
+    internal static bool TExportDragMove(QExport export) => export.QExportDrag.QExportDragMove();
+    internal static bool TExportDragClear(QExport export) => export.QExportDrag.QExportDragClear();
     internal static void TExportSync(QExport export) => export.QExportSync();
 
     internal static QStrip TStripCreate(Func<string, string> title, Func<string, int, string> number) =>
@@ -378,8 +379,8 @@ internal static partial class TInterface
     internal static QProgram TProgramCreate() => new(
         Interface.TInterface.TInterfaceEngine.LEngineSchedule,
         LEngineSeam.LEngineStationAttach);
-    internal static bool TProgramDepotApply(QProgram program) => program.QProgramDepotApply();
-    internal static string? TProgramDepotRead(QProgram program) => program.QProgramDepotRoot;
+    internal static bool TProgramDepotApply(QProgram program) => program.QProgramDepot.QProgramDepotApply();
+    internal static string? TProgramDepotRead(QProgram program) => program.QProgramDepot.QProgramDepotRoot;
     internal static bool TProgramLanguageNormalize() => QProgram.QProgramLanguageNormalize();
     internal static void TProgramLanguageLoad(string? language) => QProgram.QProgramLanguageLoad(language);
     internal static string TLocalizationCatalogRead(string key) => QLocalizationCatalog.QLocalizationTextRead(key);

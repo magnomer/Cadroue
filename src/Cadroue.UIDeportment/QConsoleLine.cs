@@ -1,4 +1,5 @@
 using Cadroue.Conduct;
+using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
@@ -45,6 +46,25 @@ public static class QConsoleLine
 
     private static object QConsoleArgumentRead(object lArgument) =>
         lArgument is CConsoleText lText ? QConsoleTextRead(lText) : lArgument;
+
+    // The roster's removal warning, until the roster's own gate words it.
+    public static string? QConsoleRemovalFormat(IReadOnlyDictionary<Guid, LScheduleRemoval> lOutcomes)
+    {
+        int lHeld = lOutcomes.Values.Count(lOutcome => lOutcome == LScheduleRemoval.LScheduleRemovalHeld);
+        int lBlocked = lOutcomes.Values.Count(lOutcome => lOutcome == LScheduleRemoval.LScheduleRemovalBlocked);
+        if (lHeld == 0 && lBlocked == 0)
+        {
+            return null;
+        }
+
+        string lDetail = lHeld > 0 && lBlocked > 0
+            ? QLocalizationCatalog.QLocalizationFormat("Console.Remove.HeldAndBlocked", lHeld, lBlocked)
+            : lHeld > 0
+                ? QLocalizationCatalog.QLocalizationFormat("Console.Remove.Held", lHeld)
+                : QLocalizationCatalog.QLocalizationFormat("Console.Remove.Blocked", lBlocked);
+        return QLocalizationCatalog.QLocalizationFormat(
+            "Console.Remove.Partial", lOutcomes.Count - lHeld - lBlocked, lOutcomes.Count, lDetail);
+    }
 
     public static IReadOnlyList<QConsoleSpan> QConsoleRunsResolve(string lLine, string? lAccent)
     {

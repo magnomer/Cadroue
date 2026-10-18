@@ -83,13 +83,13 @@ public sealed class TExportPresetSelection
         Assert.False(TInterface.TExportDragMove(export));
         TInterface.TExportDragStart(export, "Alpha");
         Assert.True(TInterface.TExportDragMove(export));
-        Assert.True(export.QExportDragActive);
+        Assert.True(export.QExportDrag.QExportDragActive);
 
         TInterface.TExportSync(export);
         Assert.Equal(0, rebuilds);
 
         Assert.True(TInterface.TExportDragClear(export));
-        Assert.Null(export.QExportDragging);
+        Assert.Null(export.QExportDrag.QExportDragging);
         Assert.Equal(1, rebuilds);
         Assert.False(TInterface.TExportDragClear(export));
     }

@@ -175,7 +175,7 @@ public sealed class PProcessing : UserControl
     private void PProcessingPressHandle(string pStepName, MouseButtonEventArgs pEvent)
     {
         Point pPoint = pEvent.GetPosition(pProcessingRowPanel);
-        QProcessing.QProcessingDragStart(pStepName, pPoint.X, pPoint.Y);
+        QProcessing.QProcessingDrag.QProcessingDragStart(pStepName, pPoint.X, pPoint.Y);
         pEvent.Handled = true;
     }
 
@@ -189,7 +189,7 @@ public sealed class PProcessing : UserControl
     private void PProcessingMoveHandle(object pSender, MouseEventArgs pEvent)
     {
         Point pPoint = pEvent.GetPosition(pProcessingRowPanel);
-        QProcessing.QProcessingDragMove(
+        QProcessing.QProcessingDrag.QProcessingDragMove(
             pPoint.X,
             pPoint.Y,
             PLook.PLookPressed[pEvent.LeftButton],
@@ -199,9 +199,11 @@ public sealed class PProcessing : UserControl
             QProcessing.QProcessingSteps.Select(PProcessingHeightRead).ToList());
     }
 
-    private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent) => QProcessing.QProcessingDragClear();
+    private void PProcessingUpHandle(object pSender, MouseButtonEventArgs pEvent) =>
+        QProcessing.QProcessingDrag.QProcessingDragClear();
 
-    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent) => QProcessing.QProcessingDragClear();
+    private void PProcessingLostHandle(object pSender, MouseEventArgs pEvent) =>
+        QProcessing.QProcessingDrag.QProcessingDragClear();
 
     private static void PProcessingCaptureClear() => Mouse.Capture(null);
 

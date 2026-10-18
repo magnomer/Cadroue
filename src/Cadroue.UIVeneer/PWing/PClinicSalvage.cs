@@ -84,7 +84,7 @@ public sealed class PClinicSalvage : StackPanel
         Children.Add(pClinicSalvageDescription);
     }
 
-    private void PClinicSalvageAttach() => lClinic.QClinicSalvageAttach(
+    private void PClinicSalvageAttach() => lClinic.QClinicSalvage.QClinicSalvageAttach(
         pClinicSalvageActive,
         pClinicSalvagePersistent,
         pClinicSalvageRejoin,
@@ -96,7 +96,7 @@ public sealed class PClinicSalvage : StackPanel
 
     public CheckBox PClinicSalvagePersistent => pClinicSalvagePersistent;
 
-    public void PClinicSalvageUpdate() => lClinic.QClinicSalvageUpdate(
+    public void PClinicSalvageUpdate() => lClinic.QClinicSalvage.QClinicSalvageUpdate(
         this,
         pClinicSalvageActive,
         pClinicSalvagePersistent,

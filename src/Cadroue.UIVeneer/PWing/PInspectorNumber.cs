@@ -50,17 +50,17 @@ public sealed partial class PInspector
 
     private static void PInspectorDigitAttach(TextBox pNumberBox) =>
         pNumberBox.PreviewTextInput += (_, pNumberEvent) =>
-            pNumberEvent.Handled = !QInspector.QInspectorDigitCheck(pNumberEvent.Text);
+            pNumberEvent.Handled = !QInspectorField.QInspectorDigitCheck(pNumberEvent.Text);
 
     private static void PInspectorDecimalAttach(TextBox pDecimalBox) =>
         pDecimalBox.PreviewTextInput += (_, pDecimalEvent) =>
-            pDecimalEvent.Handled = !QInspector.QInspectorDecimalCheck(pDecimalEvent.Text);
+            pDecimalEvent.Handled = !QInspectorField.QInspectorDecimalCheck(pDecimalEvent.Text);
 
     private static double PInspectorDecimalRead(TextBox pDecimalBox, double pFallback) =>
-        QInspector.QInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
+        QInspectorField.QInspectorValueCommit(pDecimalBox.Text, pFallback, null, null);
 
     private static void PInspectorTextSet(TextBox pValueBox, double pNumber, string pFormat) =>
-        pValueBox.Text = QInspector.QInspectorValueFormat(pValueBox.Text, pNumber, pFormat);
+        pValueBox.Text = QInspectorField.QInspectorValueFormat(pValueBox.Text, pNumber, pFormat);
 
     private static void PInspectorSectionUpdate(FrameworkElement pStack, bool pEnabled)
     {

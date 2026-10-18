@@ -90,12 +90,12 @@ public sealed partial class PExport
         if (pPresetNative || PExportSourceCheck(pEvent.OriginalSource))
         {
             PExportOriginSet(null);
-            QExport.QExportDragClear();
+            QExport.QExportDrag.QExportDragClear();
             return false;
         }
 
         Point pGrabPoint = pEvent.GetPosition(pRowBorder);
-        QExport.QExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
+        QExport.QExportDrag.QExportDragStart(lPresetName, pGrabPoint.X, pGrabPoint.Y);
         PExportDragSet(pRowBorder);
         PExportOriginSet(pEvent.GetPosition(pPresetRowPanel));
         pPresetRowPanel.CaptureMouse();
