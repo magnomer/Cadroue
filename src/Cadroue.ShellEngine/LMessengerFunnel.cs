@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerFunnel
 {
     public static int LMessengerFunnelDescribe(
         Guid lMessengerSourceTab,
@@ -25,14 +25,14 @@ public static partial class LMessenger
             }
 
             Guid lMessengerTarget = lMessengerTargets[lMessengerMatch];
-            if (LCartographer.LCartographerCycleCheck(lMessengerSourceTab, lMessengerTarget, lMessengerName))
+            if (LCartographerRoute.LCartographerCycleCheck(lMessengerSourceTab, lMessengerTarget, lMessengerName))
             {
                 LTraceEngine.LTraceWarningSeam(
                     $"Funnel refused '{lMessengerName}': its rule route loops back through automatic funnels");
                 continue;
             }
 
-            if (LMessengerDeliverSource?.Invoke(lMessengerTarget, lMessengerPath, lMessengerCohort) == true)
+            if (LMessenger.LMessengerDeliverSource?.Invoke(lMessengerTarget, lMessengerPath, lMessengerCohort) == true)
             {
                 lMessengerRelayed.Add(lMessengerPath);
             }
@@ -41,7 +41,7 @@ public static partial class LMessenger
         if (Cadroue.Application.LPreference.LPreferenceStateCurrent.LPreferenceRelayEmpty
             && lMessengerRelayed.Count > 0)
         {
-            LMessengerDrainSource?.Invoke(lMessengerSourceTab, lMessengerRelayed);
+            LMessenger.LMessengerDrainSource?.Invoke(lMessengerSourceTab, lMessengerRelayed);
         }
 
         LSeal.LSealRun();

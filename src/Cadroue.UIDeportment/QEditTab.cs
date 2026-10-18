@@ -159,7 +159,7 @@ public sealed class QEditTab
 
         (LWorkCrop lCrop, LWorkVideo lVideo) =
             LEditPlan.LEditWorkResolve(QEditStore.QEditStateRead(), QEditColor.QEditEqCheck());
-        LMessenger.LMessengerEditDescribe(
+        LMessengerEdit.LMessengerEditDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lPath,
             qEditViewer.QViewerDuration,

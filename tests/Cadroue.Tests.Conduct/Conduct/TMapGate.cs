@@ -19,8 +19,8 @@ public sealed class TMapGate
             .CAtelierWorkspaceCreate()
             .CWorkspaceFlow;
         tMapGate = tMapFlow.CFlowMap;
-        tMapGate.CMapDragChanged += tMapDrags.Add;
-        tMapGate.CMapSpoolChanged += () => tMapSpools++;
+        tMapGate.CMapDrag.CMapDragChanged += tMapDrags.Add;
+        tMapGate.CMapDrag.CMapSpoolChanged += () => tMapSpools++;
     }
 
     [Fact]
@@ -76,8 +76,8 @@ public sealed class TMapGate
     [Fact]
     public void MapPress_NoRange_Refuses()
     {
-        Assert.False(tMapGate.CMapPressHandle(103, 10, 600, 40));
-        Assert.False(tMapGate.CMapMoveHandle(160, 600));
+        Assert.False(tMapGate.CMapDrag.CMapPressHandle(103, 10, 600, 40));
+        Assert.False(tMapGate.CMapDrag.CMapMoveHandle(160, 600));
         Assert.Empty(tMapDrags);
     }
 
@@ -86,12 +86,12 @@ public sealed class TMapGate
     {
         TMapRangeSet();
 
-        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapHoverResolve(103, 10, 600, 40));
-        Assert.Equal(CMapHit.CMapHitLimit, tMapGate.CMapHoverResolve(397, 10, 600, 40));
-        Assert.Equal(CMapHit.CMapHitBody, tMapGate.CMapHoverResolve(250, 5, 600, 40));
-        Assert.Equal(CMapHit.CMapHitCursor, tMapGate.CMapHoverResolve(50, 10, 600, 40));
-        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapHoverResolve(50, 10, 0, 40));
-        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapLeaveResolve());
+        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapDrag.CMapHoverResolve(103, 10, 600, 40));
+        Assert.Equal(CMapHit.CMapHitLimit, tMapGate.CMapDrag.CMapHoverResolve(397, 10, 600, 40));
+        Assert.Equal(CMapHit.CMapHitBody, tMapGate.CMapDrag.CMapHoverResolve(250, 5, 600, 40));
+        Assert.Equal(CMapHit.CMapHitCursor, tMapGate.CMapDrag.CMapHoverResolve(50, 10, 600, 40));
+        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapDrag.CMapHoverResolve(50, 10, 0, 40));
+        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapDrag.CMapLeaveResolve());
     }
 
     [Fact]
@@ -99,14 +99,14 @@ public sealed class TMapGate
     {
         TMapRangeSet();
 
-        Assert.True(tMapGate.CMapPressHandle(103, 10, 600, 40));
-        Assert.True(tMapGate.CMapMoveHandle(163, 600));
+        Assert.True(tMapGate.CMapDrag.CMapPressHandle(103, 10, 600, 40));
+        Assert.True(tMapGate.CMapDrag.CMapMoveHandle(163, 600));
 
-        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapDragKind);
+        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapDrag.CMapDragKind);
         Assert.Equal(["origin 00:00:16"], tMapPort.TMapCalls);
         Assert.Equal([true], tMapDrags);
         Assert.Equal(1, tMapSpools);
-        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapLeaveResolve());
+        Assert.Equal(CMapHit.CMapHitOrigin, tMapGate.CMapDrag.CMapLeaveResolve());
     }
 
     [Fact]
@@ -114,9 +114,9 @@ public sealed class TMapGate
     {
         TMapRangeSet();
 
-        tMapGate.CMapPressHandle(250, 5, 600, 40);
-        tMapGate.CMapMoveHandle(280, 600);
-        tMapGate.CMapMoveHandle(280, 600);
+        tMapGate.CMapDrag.CMapPressHandle(250, 5, 600, 40);
+        tMapGate.CMapDrag.CMapMoveHandle(280, 600);
+        tMapGate.CMapDrag.CMapMoveHandle(280, 600);
 
         Assert.Equal(["move 00:00:03", "move 00:00:00"], tMapPort.TMapCalls);
         Assert.Equal(2, tMapSpools);
@@ -128,9 +128,9 @@ public sealed class TMapGate
         TMapRangeSet();
         tMapFlow.CFlowCommandSet(true);
 
-        tMapGate.CMapPressHandle(50, 10, 600, 40);
+        tMapGate.CMapDrag.CMapPressHandle(50, 10, 600, 40);
 
-        Assert.Equal(CMapHit.CMapHitCursor, tMapGate.CMapDragKind);
+        Assert.Equal(CMapHit.CMapHitCursor, tMapGate.CMapDrag.CMapDragKind);
         Assert.Equal(TimeSpan.FromSeconds(5), tMapFlow.CFlowCursor);
         Assert.Equal([true], tMapDrags);
         Assert.Empty(tMapPort.TMapCalls);
@@ -140,14 +140,14 @@ public sealed class TMapGate
     public void MapDragClear_TellsTheEndOnce()
     {
         TMapRangeSet();
-        tMapGate.CMapPressHandle(250, 5, 600, 40);
+        tMapGate.CMapDrag.CMapPressHandle(250, 5, 600, 40);
 
-        tMapGate.CMapDragClear();
-        tMapGate.CMapDragClear();
+        tMapGate.CMapDrag.CMapDragClear();
+        tMapGate.CMapDrag.CMapDragClear();
 
         Assert.Equal([true, false], tMapDrags);
-        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapDragKind);
-        Assert.False(tMapGate.CMapMoveHandle(300, 600));
+        Assert.Equal(CMapHit.CMapHitNone, tMapGate.CMapDrag.CMapDragKind);
+        Assert.False(tMapGate.CMapDrag.CMapMoveHandle(300, 600));
     }
 
     [Fact]

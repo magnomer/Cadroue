@@ -241,7 +241,7 @@ public sealed class TWhitebalanceGate
             TInspectorWhitebalance = new LWhitebalanceAnswer(true, "Average", 400, 2, 2, 2, 9, 9, 9)
         };
 
-        tWhitebalanceInspector.CInspectorVideoAccept(plan);
+        tWhitebalanceInspector.CInspectorVideo.CInspectorVideoAccept(plan);
 
         LWhitebalanceAnswer answer = tWhitebalanceGate.CWhitebalanceAnswer;
         Assert.Equal(new LWhitebalanceAnswer(true, "Average", 300, 1, 1, 1, 0, 0, 0), answer);

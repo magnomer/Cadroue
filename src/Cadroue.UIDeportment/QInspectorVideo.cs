@@ -71,7 +71,7 @@ public sealed class QInspectorVideo
     // The gate answers the plan of its tools in the order of these processing steps; without the mpv-only filters it
     // leaves out their steps.
     public LWorkVideo QInspectorVideoRead(IReadOnlyList<string> lProcessing, bool lMpvOnlyCapable) =>
-        qInspectorVideoGate.CInspectorVideoRead(lProcessing, lMpvOnlyCapable).LInspectorVideoRead();
+        qInspectorVideoGate.CInspectorVideo.CInspectorVideoRead(lProcessing, lMpvOnlyCapable).LInspectorVideoRead();
 
     public void QInspectorVideoSuspend() => qInspectorVideoDepth++;
 
@@ -92,7 +92,7 @@ public sealed class QInspectorVideo
         qInspectorVideoDepth++;
         try
         {
-            qInspectorVideoGate.CInspectorVideoAccept(new LInspectorOutlet(lVideo));
+            qInspectorVideoGate.CInspectorVideo.CInspectorVideoAccept(new LInspectorOutlet(lVideo));
             QInspectorCurveApply(lVideo);
         }
         finally
@@ -167,7 +167,8 @@ public sealed class QInspectorVideo
     }
 
     // The gate answers the carried plan of its tools.
-    public LWorkVideo QInspectorPersistentRead() => qInspectorVideoGate.CInspectorCarriedRead().LInspectorVideoRead();
+    public LWorkVideo QInspectorPersistentRead() =>
+        qInspectorVideoGate.CInspectorVideo.CInspectorCarriedRead().LInspectorVideoRead();
 
     private void QInspectorVideoHandle()
     {

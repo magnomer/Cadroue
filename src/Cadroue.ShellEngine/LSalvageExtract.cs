@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO;
 
 using Cadroue.Application;
 using Cadroue.Core;
@@ -60,7 +59,7 @@ internal static class LSalvageExtract
             return false;
         }
 
-        string lSalvageTemp = LSalvageTempResolve(lSalvageOutputPath);
+        string lSalvageTemp = LSalvageTemp.LSalvageTempResolve(lSalvageOutputPath);
         string lSalvageProgram = LToolEngine.LToolFfmpegSeam();
         LEmployerResult lSalvageResult;
         try
@@ -79,7 +78,7 @@ internal static class LSalvageExtract
         }
         catch (OperationCanceledException)
         {
-            await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
+            await LSalvageTemp.LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
             throw;
         }
 
@@ -88,30 +87,42 @@ internal static class LSalvageExtract
             && new FileInfo(lSalvageTemp).Length > 0
             && await LScout.LScoutMediaRead(lSalvageTemp, lSalvageToken).ConfigureAwait(false) is not null)
         {
-            try
-            {
-                File.Move(lSalvageTemp, lSalvageOutputPath, true);
-                LRunner.LRunnerRecord(
-                    $"Salvaged '{Path.GetFileName(lSalvageOutputPath)}' "
-                    + $"[{lSalvageOrigin:hh\\:mm\\:ss\\.fff}-{lSalvageSpan.LSalvageSpanLimit:hh\\:mm\\:ss\\.fff}] "
-                    + $"from '{Path.GetFileName(lSalvageSource)}'");
-                return true;
-            }
-            catch (Exception lSalvageException) when (lSalvageException is IOException or UnauthorizedAccessException)
-            {
-                LRunner.LRunnerRecord(
-                    $"Salvage could not place the recovered output '{Path.GetFileName(lSalvageOutputPath)}'",
-                    lSalvageException);
-                await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
-                return false;
-            }
+            return await LSalvageOutputPlace(
+                lSalvageSource, lSalvageTemp, lSalvageOutputPath, lSalvageOrigin, lSalvageSpan.LSalvageSpanLimit)
+                .ConfigureAwait(false);
         }
 
-        LRunner.LRunnerRecord(
+        LRunnerTrace.LRunnerRecord(
             $"Salvage discarded an unreadable span for '{Path.GetFileName(lSalvageOutputPath)}' " +
             $"(exit {lSalvageResult.LEmployerExit})");
-        await LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
+        await LSalvageTemp.LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
         return false;
+    }
+
+    private static async Task<bool> LSalvageOutputPlace(
+        string lSalvageSource,
+        string lSalvageTemp,
+        string lSalvageOutputPath,
+        TimeSpan lSalvageOrigin,
+        TimeSpan lSalvageLimit)
+    {
+        try
+        {
+            File.Move(lSalvageTemp, lSalvageOutputPath, true);
+            LRunnerTrace.LRunnerRecord(
+                $"Salvaged '{Path.GetFileName(lSalvageOutputPath)}' "
+                + $"[{lSalvageOrigin:hh\\:mm\\:ss\\.fff}-{lSalvageLimit:hh\\:mm\\:ss\\.fff}] "
+                + $"from '{Path.GetFileName(lSalvageSource)}'");
+            return true;
+        }
+        catch (Exception lSalvageException) when (lSalvageException is IOException or UnauthorizedAccessException)
+        {
+            LRunnerTrace.LRunnerRecord(
+                $"Salvage could not place the recovered output '{Path.GetFileName(lSalvageOutputPath)}'",
+                lSalvageException);
+            await LSalvageTemp.LSalvageTempClear(lSalvageTemp).ConfigureAwait(false);
+            return false;
+        }
     }
 
     private static string LSalvageArgumentBuild(
@@ -127,46 +138,4 @@ internal static class LSalvageExtract
 
     private static string LSalvageSecondsFormat(TimeSpan lSalvageTime) =>
         lSalvageTime.TotalSeconds.ToString("0.#######", CultureInfo.InvariantCulture);
-
-    private static string LSalvageTempResolve(string lSalvageOutputPath)
-    {
-        string lSalvageFolder = Path.GetDirectoryName(lSalvageOutputPath) ?? string.Empty;
-        string lSalvageStem = Path.GetFileNameWithoutExtension(lSalvageOutputPath);
-        string lSalvageExtension = Path.GetExtension(lSalvageOutputPath);
-
-        for (int lSalvageIndex = 0; ; lSalvageIndex++)
-        {
-            string lSalvageName = lSalvageIndex == 0
-                ? $"{lSalvageStem}.cadsalvage{lSalvageExtension}"
-                : $"{lSalvageStem}.cadsalvage ({lSalvageIndex + 1}){lSalvageExtension}";
-            string lSalvageCandidate = Path.Combine(lSalvageFolder, lSalvageName);
-            if (!File.Exists(lSalvageCandidate))
-            {
-                return lSalvageCandidate;
-            }
-        }
-    }
-
-    private static async Task LSalvageTempClear(string lSalvageTemp)
-    {
-        for (int lSalvageAttempt = 0; lSalvageAttempt < 5; lSalvageAttempt++)
-        {
-            try
-            {
-                if (!File.Exists(lSalvageTemp))
-                {
-                    return;
-                }
-
-                File.Delete(lSalvageTemp);
-                return;
-            }
-            catch (Exception lSalvageException) when (lSalvageException is IOException or UnauthorizedAccessException)
-            {
-                await Task.Delay(200).ConfigureAwait(false);
-            }
-        }
-
-        LRunner.LRunnerRecord($"Could not delete the salvage temporary '{lSalvageTemp}'; it may remain on disk.", null);
-    }
 }

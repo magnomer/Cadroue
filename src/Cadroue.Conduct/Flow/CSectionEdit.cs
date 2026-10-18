@@ -3,21 +3,24 @@ using System;
 namespace Cadroue.Conduct;
 
 // The sections' one pending name edit: the row its editor holds, the edit's serial and the text as typed, and when
-// the edit is committed or dropped. CSection makes one and answers the editable switch, the name set the commit runs
-// and the rows' rebuild.
+// the edit is committed or dropped. CSectionList makes one and answers the rows' rebuild; CSection answers the
+// editable switch and the name set the commit runs.
 public sealed class CSectionEdit
 {
-    private readonly CSection _cSectionEditOwner;
+    private readonly CSection _cSectionEditSection;
+    private readonly CSectionList _cSectionEditList;
     private int? _cSectionEditIndex;
     private int _cSectionEditSerial;
     private string _cSectionEditName = string.Empty;
     private string _cSectionEditPrefix = string.Empty;
     private string _cSectionEditSuffix = string.Empty;
 
-    internal CSectionEdit(CSection owner)
+    internal CSectionEdit(CSection section, CSectionList list)
     {
-        ArgumentNullException.ThrowIfNull(owner);
-        _cSectionEditOwner = owner;
+        ArgumentNullException.ThrowIfNull(section);
+        ArgumentNullException.ThrowIfNull(list);
+        _cSectionEditSection = section;
+        _cSectionEditList = list;
     }
 
     // The row in the editor; null while none is edited.
@@ -43,19 +46,19 @@ public sealed class CSectionEdit
         }
 
         _cSectionEditIndex = null;
-        _cSectionEditOwner.CSectionNameSet(
-            _cSectionEditOwner.CSectionEditable,
+        _cSectionEditSection.CSectionNameSet(
+            _cSectionEditSection.CSectionEditable,
             index,
             _cSectionEditName.Trim(),
             _cSectionEditPrefix.Trim(),
             _cSectionEditSuffix.Trim());
-        _cSectionEditOwner.CSectionRowsRaise();
+        _cSectionEditList.CSectionRowsRaise();
     }
 
     public void CSectionEditCancel()
     {
         _cSectionEditIndex = null;
-        _cSectionEditOwner.CSectionRowsRaise();
+        _cSectionEditList.CSectionRowsRaise();
     }
 
     // Handles the editor losing focus: only the live editor, with focus outside its boxes, commits.
@@ -77,6 +80,6 @@ public sealed class CSectionEdit
         _cSectionEditName = name;
         _cSectionEditPrefix = prefix;
         _cSectionEditSuffix = suffix;
-        _cSectionEditOwner.CSectionRowsRaise();
+        _cSectionEditList.CSectionRowsRaise();
     }
 }

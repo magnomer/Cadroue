@@ -17,7 +17,7 @@ public sealed class TAudioGate
     [Fact]
     public void InspectorPersistentRead_NothingKept_AsksOnceWithNoTool()
     {
-        var plan = tAudioGate.CInspectorPersistentRead();
+        var plan = tAudioGate.CInspectorAudio.CInspectorPersistentRead();
 
         Assert.Same(tAudioPort.TAudioPlan, plan);
         Assert.Equal(["persistent"], tAudioPort.TAudioCalls);
@@ -34,7 +34,7 @@ public sealed class TAudioGate
         tAudioGate.CInspectorEqualizer.CEqualizerActiveSet(true);
         tAudioGate.CInspectorEqualizer.CEqualizerPersistentSet(true);
 
-        tAudioGate.CInspectorPersistentRead();
+        tAudioGate.CInspectorAudio.CInspectorPersistentRead();
 
         var (highpass, lowpass, noise, volume, leveling, equalizer) = tAudioPort.TAudioTools;
         Assert.NotNull(highpass);
@@ -54,10 +54,10 @@ public sealed class TAudioGate
     public void InspectorPersistentAccept_Plan_KeepsEachToolItCarries()
     {
         TInspectorPort plan = new() { TInspectorPresent = (true, false, true, false, true, false) };
-        tAudioGate.CInspectorAudioAccept(plan);
+        tAudioGate.CInspectorAudio.CInspectorAudioAccept(plan);
         plan.TInspectorCalls.Clear();
 
-        tAudioGate.CInspectorPersistentAccept(false);
+        tAudioGate.CInspectorAudio.CInspectorPersistentAccept(false);
 
         Assert.Equal(["present"], plan.TInspectorCalls);
         Assert.True(tAudioGate.CInspectorHighpass.CFilterPersistent);
@@ -72,9 +72,9 @@ public sealed class TAudioGate
     {
         tAudioGate.CInspectorLowpass.CFilterPersistentSet(true);
 
-        tAudioGate.CInspectorAudioAccept(new TInspectorPort());
+        tAudioGate.CInspectorAudio.CInspectorAudioAccept(new TInspectorPort());
 
-        tAudioGate.CInspectorPersistentAccept(false);
+        tAudioGate.CInspectorAudio.CInspectorPersistentAccept(false);
 
         Assert.True(tAudioGate.CInspectorLowpass.CFilterPersistent);
     }
@@ -82,7 +82,7 @@ public sealed class TAudioGate
     [Fact]
     public void InspectorPersistentAccept_NoPlanYet_KeepsNothing()
     {
-        tAudioGate.CInspectorPersistentAccept(false);
+        tAudioGate.CInspectorAudio.CInspectorPersistentAccept(false);
 
         Assert.False(tAudioGate.CInspectorHighpass.CFilterPersistent);
         Assert.False(tAudioGate.CInspectorVolume.CVolumePersistent);

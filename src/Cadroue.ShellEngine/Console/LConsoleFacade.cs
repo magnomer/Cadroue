@@ -18,9 +18,9 @@ public sealed class LConsoleFacade
         _lConsoleFacadeTool = lTool;
     }
 
-    private static LScheduleContract LConsoleSchedule => LStation.LStationSchedule!;
+    private static LScheduleContract LConsoleSchedule => LStationEngine.LStationSchedule!;
 
-    private static LScheduleRemoverContract LConsoleRemover => LStation.LStationRemover!;
+    private static LScheduleRemoverContract LConsoleRemover => LStationEngine.LStationRemover!;
 
     public Action LConsoleAttach(Action lChanged, Action lDeferred, Action<Predicate<LStation>, double> lProgressed)
     {
@@ -30,12 +30,12 @@ public sealed class LConsoleFacade
             (lWorkItem, lNotice) => LConsoleItemRaise(lWorkItem, lNotice, lDeferred, lProgressed);
         lSchedule.LScheduleChanged += lScheduleHandle;
         lSchedule.LScheduleItemChanged += lItemHandle;
-        LStation.LStationChanged += lChanged;
+        LStationBoard.LStationChanged += lChanged;
         return () =>
         {
             lSchedule.LScheduleChanged -= lScheduleHandle;
             lSchedule.LScheduleItemChanged -= lItemHandle;
-            LStation.LStationChanged -= lChanged;
+            LStationBoard.LStationChanged -= lChanged;
         };
     }
 
@@ -62,7 +62,7 @@ public sealed class LConsoleFacade
         LWorkItem[] lRunningItems = LConsoleRunningRead(lCurrent, lSchedule);
         LWorkItem? lFirst = lRunningItems.FirstOrDefault();
         IReadOnlyList<LWorkItem> lRecords = lSchedule.LScheduleRecords;
-        LStation[] lBoard = LStation.LStationBoardRead();
+        LStation[] lBoard = LStationBoard.LStationBoardRead();
         return new LConsoleAnswer(
             lCurrent,
             lCurrent.LStationRunner.LRunnerRunning,
@@ -94,13 +94,13 @@ public sealed class LConsoleFacade
 
     public LStation LConsoleStationResolve(LStation? lStation)
     {
-        LStation[] lBoard = LStation.LStationBoardRead();
+        LStation[] lBoard = LStationBoard.LStationBoardRead();
         return lStation is null || !lBoard.Contains(lStation) ? lBoard[0] : lStation;
     }
 
     public LStation? LConsoleStationMove(LStation? lStation, int lStep)
     {
-        LStation[] lBoard = LStation.LStationBoardRead();
+        LStation[] lBoard = LStationBoard.LStationBoardRead();
         if (lBoard.Length <= 1)
         {
             return null;
@@ -201,19 +201,19 @@ public sealed class LConsoleFacade
 
     public void LConsoleDoneClear() => LConsoleRemover.LScheduleDoneClear();
 
-    public bool LConsoleActiveCheck() => LStation.LStationActiveCheck();
+    public bool LConsoleActiveCheck() => LStationBoard.LStationActiveCheck();
 
     public async Task LConsoleAllClear()
     {
         await LConsoleBoardCancel();
-        LMessenger.LMessengerMeasureCancel();
+        LMessengerMeasure.LMessengerMeasureCancel();
         LConsoleRemover.LScheduleAllClear();
     }
 
     private static Task LConsoleBoardCancel()
     {
         var lDraining = new List<Task>();
-        foreach (LStation lBoardStation in LStation.LStationBoardRead())
+        foreach (LStation lBoardStation in LStationBoard.LStationBoardRead())
         {
             lBoardStation.LStationAutoActive = false;
             lDraining.Add(lBoardStation.LStationRunner.LRunnerCancel());

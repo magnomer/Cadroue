@@ -163,7 +163,7 @@ internal static partial class TInterface
         return frame!;
     }
 
-    internal static Cadroue.Conduct.CMapHit TMapDragRead(QMap map) => map.QMapGate.CMapDragKind;
+    internal static Cadroue.Conduct.CMapHit TMapDragRead(QMap map) => map.QMapGate.CMapDrag.CMapDragKind;
     internal static string TMapTriggerRead(QMap map) => map.QMapGate.CMapTrigger;
     internal static int TMapGlyphRead(QMap map) => map.QMapGate.CMapGlyphCount;
     internal static IReadOnlyList<QMapBadge> TMapBadgeResolve(QMap map, QMapBand band, double width, double height) =>

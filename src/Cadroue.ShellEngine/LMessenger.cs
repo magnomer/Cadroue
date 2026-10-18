@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessenger
 {
     public static Func<Guid, string>? LMessengerTitleSource { get; set; }
 
@@ -19,10 +19,21 @@ public static partial class LMessenger
 
     public static Action<Guid, IReadOnlyList<string>>? LMessengerDrainSource { get; set; }
 
-    private static string LMessengerTitleRead(Guid lMessengerRelaySource) =>
+    internal static string LMessengerTitleRead(Guid lMessengerRelaySource) =>
         LMessengerTitleSource?.Invoke(lMessengerRelaySource) ?? string.Empty;
 
-    private static int LMessengerDispatch(
+    internal static IReadOnlyDictionary<string, Guid> LMessengerRelayRead(IReadOnlyList<LWorkSource> lMessengerSources)
+    {
+        var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        foreach (LWorkSource lMessengerSource in lMessengerSources)
+        {
+            lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
+        }
+
+        return lMessengerRelays;
+    }
+
+    internal static int LMessengerDispatch(
         IReadOnlyList<LWorkItem> lMessengerItems,
         Guid lMessengerRelayTarget,
         Guid lMessengerRelaySource,
@@ -33,9 +44,9 @@ public static partial class LMessenger
             lMessengerRelaySource,
             lMessengerPlan) ?? 0;
 
-    private static void LMessengerDefer(Action lMessengerAction)
+    internal static void LMessengerDefer(Action lMessengerAction)
     {
-        if (LStation.LStationPost is { } lMessengerPost)
+        if (LStationEngine.LStationPost is { } lMessengerPost)
         {
             lMessengerPost(lMessengerAction);
             return;

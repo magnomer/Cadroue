@@ -83,7 +83,7 @@ public sealed class QSplitTabSweep
         catch (OperationCanceledException)
         {
         }
-        catch (Exception lException) when (LSweep.LSweepFaultCheck(lException))
+        catch (Exception lException) when (LSweepProcess.LSweepFaultCheck(lException))
         {
             LTraceLog.LTraceErrorRecord($"Detection failed for '{lSelected.LDocketEntryPath}'", lException);
             QSplitFailRaised?.Invoke(
@@ -137,7 +137,7 @@ public sealed class QSplitTabSweep
         {
             TimeSpan lSceneMinimum = TimeSpan.FromSeconds(lScene.LDetectorStepMinimum);
             lSteps.Add(async (lProgress, lToken) => lBoundaries.AddRange(
-                (await LSweep.LSweepSceneScan(
+                (await LSweepScene.LSweepSceneScan(
                     lPath,
                     LDetector.LDetectorThresholdResolve(lScene.LDetectorStepThreshold),
                     lDuration,
@@ -153,7 +153,7 @@ public sealed class QSplitTabSweep
                 ? lKept
                 : lExcluded;
             lSteps.Add(async (lProgress, lToken) => lTarget.AddRange(
-                await LSweep.LSweepStillScan(
+                await LSweepStill.LSweepStillScan(
                     lPath,
                     lStill.LDetectorStepThreshold,
                     lStill.LDetectorStepMinimum,
@@ -167,7 +167,7 @@ public sealed class QSplitTabSweep
         {
             LDetectorLuminanceMode lSpeed = lSensor.QSensorSpeed;
             lSteps.Add(async (lProgress, lToken) => lBoundaries.AddRange(
-                (await LSweep.LSweepLuminanceScan(
+                (await LSweepLuminance.LSweepLuminanceScan(
                     lPath,
                     lLuminance.LDetectorStepWindow,
                     lLuminance.LDetectorStepThreshold,
@@ -183,7 +183,7 @@ public sealed class QSplitTabSweep
         if (lSilence.LDetectorStepEnabled)
         {
             lSteps.Add(async (lProgress, lToken) => lExcluded.AddRange(
-                await LSweep.LSweepSilenceScan(
+                await LSweepSilence.LSweepSilenceScan(
                     lPath,
                     lSilence.LDetectorStepThreshold,
                     lSilence.LDetectorStepMinimum,
@@ -197,7 +197,7 @@ public sealed class QSplitTabSweep
         {
             LDetectorMetricMode lMetric = lSensor.QSensorMetric;
             lSteps.Add(async (lProgress, lToken) => lBoundaries.AddRange(
-                (await LSweep.LSweepVolumeScan(
+                (await LSweepVolume.LSweepVolumeScan(
                     lPath,
                     lVolume.LDetectorStepWindow,
                     lVolume.LDetectorStepThreshold,

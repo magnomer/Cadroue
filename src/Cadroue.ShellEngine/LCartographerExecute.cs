@@ -3,7 +3,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LCartographer
+public static class LCartographerExecute
 {
     public static Task<IReadOnlyList<string>> LCartographerStageRun(LCartographerStagePlan lCartographerPlan)
     {
@@ -46,7 +46,7 @@ public static partial class LCartographer
         LWorkSource[] lCartographerSources = lCartographerPaths
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
-        await LMessenger.LMessengerConvertDescribe(
+        await LMessengerConvert.LMessengerConvertDescribe(
             LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOutput,
             lCartographerTarget, lCartographerSource).ConfigureAwait(true);
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
@@ -63,13 +63,13 @@ public static partial class LCartographer
         foreach (string lCartographerPath in lCartographerPaths)
         {
             IReadOnlyList<LSplitSectionDescription> lCartographerSections =
-                await LMessenger.LMessengerSplitRead(lCartographerPath).ConfigureAwait(true);
+                await LMessengerSplit.LMessengerSplitRead(lCartographerPath).ConfigureAwait(true);
             if (lCartographerSections.Count == 0)
             {
                 continue;
             }
 
-            int lCartographerAdded = LMessenger.LMessengerSplitDescribe(
+            int lCartographerAdded = LMessengerSplit.LMessengerSplitDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerSections,
                 lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch);
             if (lCartographerAdded > 0)
@@ -114,7 +114,7 @@ public static partial class LCartographer
             lCartographerRelays[lCartographerPath] = lCartographerBatch;
         }
 
-        int lCartographerAdded = LMessenger.LMessengerMergeDescribe(
+        int lCartographerAdded = LMessengerMerge.LMessengerMergeDescribe(
             LWorkPriority.LWorkPriorityNormal, lCartographerGroups, lCartographerOutput,
             lCartographerTarget, lCartographerSource, lCartographerRelays);
         if (lCartographerAdded == 0)
@@ -147,7 +147,7 @@ public static partial class LCartographer
         var lCartographerAcknowledged = new List<string>();
         foreach (string lCartographerPath in lCartographerPaths)
         {
-            int lCartographerAdded = LMessenger.LMessengerEditDescribe(
+            int lCartographerAdded = LMessengerEdit.LMessengerEditDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath,
                 LLibrarian.LLibrarianDurationRead(lCartographerPath),
                 lCartographerCrop, lCartographerVideo, lCartographerOutput,
@@ -171,7 +171,7 @@ public static partial class LCartographer
         LWorkSource[] lCartographerSources = lCartographerPaths
             .Select(lCartographerPath => new LWorkSource(lCartographerPath, lCartographerBatch))
             .ToArray();
-        LMessenger.LMessengerFixDescribe(
+        LMessengerFix.LMessengerFixDescribe(
             LWorkPriority.LWorkPriorityNormal, lCartographerSources, lCartographerOutput,
             lCartographerTarget, lCartographerSource);
         return LCartographerAcknowledgedRead(lCartographerBatch, lCartographerSource, lCartographerPaths);
@@ -192,7 +192,7 @@ public static partial class LCartographer
 
         foreach (string lCartographerPath in lCartographerPaths)
         {
-            LMessenger.LMessengerAudioDescribe(
+            LMessengerAudio.LMessengerAudioDescribe(
                 LWorkPriority.LWorkPriorityNormal, lCartographerPath, lCartographerProcessing,
                 lCartographerOutput, lCartographerTarget, lCartographerSource, lCartographerBatch);
         }
@@ -212,10 +212,10 @@ public static partial class LCartographer
             .ToArray();
     }
 
-    private static HashSet<string> LCartographerRepresentedRead(Guid lCartographerBatch, Guid lCartographerSource)
+    internal static HashSet<string> LCartographerRepresentedRead(Guid lCartographerBatch, Guid lCartographerSource)
     {
         var lCartographerRepresented = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (LWorkItem lCartographerWork in LCartographerScheduleRead())
+        foreach (LWorkItem lCartographerWork in LCartographerSchedule.LCartographerScheduleRead())
         {
             if (lCartographerWork.LWorkBatchId != lCartographerBatch
                 || lCartographerWork.LWorkRelaySource != lCartographerSource)

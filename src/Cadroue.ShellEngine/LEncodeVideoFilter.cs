@@ -7,24 +7,25 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal static partial class LEncodeVideo
+internal static class LEncodeVideoFilter
 {
-    private static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
+    internal static void LEncodeFilterAppend(StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput)
     {
-        var lFilters = new List<string>(LEncodeGeometryRead(lWorkItem.LWorkCrop, lWorkItem.LWorkSourceMedia));
+        var lFilters = new List<string>(
+            LEncodeVideoGeometry.LEncodeGeometryRead(lWorkItem.LWorkCrop, lWorkItem.LWorkSourceMedia));
 
         bool lRgbDomain = LEncodeFiltersAppend(lFilters, lWorkItem.LWorkVideo);
 
-        if (LEncodeSizeCheck(lOutput.LEncodingVideo)
-            && LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize) is { } lSize)
+        if (LEncodeVideoGeometry.LEncodeSizeCheck(lOutput.LEncodingVideo)
+            && LEncodeVideoGeometry.LEncodeSizeRead(lOutput.LEncodingVideo.LEncodingSize) is { } lSize)
         {
-            lFilters.Add(LEncodeScaleResolve(lSize, lOutput.LEncodingVideo.LEncodingSizeReactive));
+            lFilters.Add(LEncodeVideoGeometry.LEncodeScaleResolve(lSize, lOutput.LEncodingVideo.LEncodingSizeReactive));
             lFilters.Add("setsar=1");
         }
 
         if (lRgbDomain)
         {
-            lFilters.AddRange(LEncodeColorNormalize(lWorkItem, lOutput));
+            lFilters.AddRange(LEncodeVideoColor.LEncodeColorNormalize(lWorkItem, lOutput));
         }
 
         if (lFilters.Count > 0)
@@ -39,7 +40,7 @@ internal static partial class LEncodeVideo
             lArguments.Append(CultureInfo.InvariantCulture, $" -r {lFps}");
         }
 
-        string lPixel = LEncodePixelResolve(lWorkItem, lOutput.LEncodingVideo);
+        string lPixel = LEncodeVideoPixel.LEncodePixelResolve(lWorkItem, lOutput.LEncodingVideo);
         if (lPixel.Length > 0)
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" -pix_fmt {LEncode.LEncodeValueFormat(lPixel)}");

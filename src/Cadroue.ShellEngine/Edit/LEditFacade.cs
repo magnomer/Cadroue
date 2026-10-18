@@ -16,7 +16,7 @@ public sealed class LEditFacade
         IReadOnlyList<(string LEditPath, Guid LEditBatch)> lSources,
         Guid lRelayTarget,
         Guid lSourceTab) =>
-        LMessenger.LMessengerEditDescribe(
+        LMessengerEdit.LMessengerEditDescribe(
             LWorkPriority.LWorkPriorityNormal,
             lSources.Select(lSource => new LWorkSource(lSource.LEditPath, lSource.LEditBatch)).ToArray(),
             LPresetSelection.LPresetEncodingRead(lPresetName),

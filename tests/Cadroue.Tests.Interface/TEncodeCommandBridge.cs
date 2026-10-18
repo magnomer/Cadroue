@@ -120,7 +120,7 @@ internal sealed partial class TEncodeCommand
 
     internal static IReadOnlyList<LEncodeStage> TBridgeResolve(
         LWorkItem work, params double[] keyframes) =>
-        LEncode.LEncodeBridgeResolve(
+        LEncodeSmart.LEncodeBridgeResolve(
             work, keyframes.Select(TimeSpan.FromSeconds).ToArray()).GetAwaiter().GetResult();
 
     internal static bool? TAudioIntervalRead(string source, double origin, double end) =>
@@ -133,20 +133,20 @@ internal sealed partial class TEncodeCommand
 
     private static IReadOnlyList<LEncodeStage> TBridgeSmartBuild(
         LWorkItem work, LBridgePlan plan, LBridgeStream? source, string? intermediateExtension = null) =>
-        LEncode.LEncodeSmartBuild(
+        LEncodeSmart.LEncodeSmartBuild(
             work,
             plan,
             source,
             intermediateExtension,
-            LEncode.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
+            LEncodeSmart.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
 
     private static IReadOnlyList<LEncodeStage> TBridgeSmartResolve(
         LWorkItem work, LBridgePlan plan, LBridgeStream? source) =>
-        LEncode.LEncodeSmartResolve(
+        LEncodeSmart.LEncodeSmartResolve(
             work,
             plan,
             source,
-            LEncode.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
+            LEncodeSmart.LEncodeIntervalRead(work, plan).GetAwaiter().GetResult());
 
     internal static string TToolFfmpegRead() => LTool.LToolFfmpegRead();
 

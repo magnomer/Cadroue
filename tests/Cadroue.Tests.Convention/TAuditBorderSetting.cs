@@ -47,9 +47,9 @@ internal static class TAuditBorderSetting
     public static readonly IReadOnlyDictionary<string, int> TAuditBorderCeiling = new Dictionary<string, int>
     {
         ["Leaking:Cadroue.UIDemeanor>Cadroue.Core"] = 0,
-        ["Leaking:Cadroue.UIDemeanor>Cadroue.ShellEngine"] = 2,
+        ["Leaking:Cadroue.UIDemeanor>Cadroue.ShellEngine"] = 1,
         ["Leaking:Cadroue.UIDeportment>Cadroue.Core"] = 0,
-        ["Leaking:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 2,
+        ["Leaking:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 1,
         ["Leapfrogging:Cadroue.Conduct>Cadroue.Core"] = 0,
         ["Leapfrogging:Cadroue.ShellEngine>Cadroue.Core"] = 846,
         ["Trespassing:Cadroue.Infrastructure>Cadroue.Application"] = 67,

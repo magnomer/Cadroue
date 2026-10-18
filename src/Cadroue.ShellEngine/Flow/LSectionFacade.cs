@@ -190,7 +190,7 @@ public sealed class LSectionFacade
         TimeSpan lDuration,
         int lPalette)
     {
-        IReadOnlyList<LPiece> lSections = LSweep.LSweepCombineResolve(
+        IReadOnlyList<LPiece> lSections = LSweepCombine.LSweepCombineResolve(
             _lSectionFacadeSegment.LSegmentListRead(), lExcluded, lKept, lBoundaries, lDuration, lPalette);
         int? lSelect = lSections.Count > 0 ? 0 : null;
         return _lSectionFacadeSegment.LSegmentBoundSet(lSections, lSelect, lDuration);

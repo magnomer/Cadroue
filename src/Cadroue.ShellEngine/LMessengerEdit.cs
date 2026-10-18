@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerEdit
 {
     public static int LMessengerEditDescribe(
         LWorkPriority lMessengerPriority,
@@ -23,7 +23,7 @@ public static partial class LMessenger
         LEditWorkDescription lMessengerDescription = new(
             lMessengerSourcePath, lMessengerDuration, lMessengerCrop, lMessengerVideo,
             lMessengerOutput);
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LEdit.LEditItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
             lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
@@ -34,11 +34,12 @@ public static partial class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded =
+            LMessenger.LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceEngine.LTraceInfoSeam(
             $"Edit queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        LMessengerSourceResolve(lMessengerItems);
+        LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
     public static int LMessengerEditDescribe(
@@ -62,17 +63,18 @@ public static partial class LMessenger
             LInventoryEngine.LInventoryFilterSeam("eq"),
             Cadroue.Application.LGate.LGateBatchCreate());
 
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         foreach (LWorkItem lMessengerItem in lMessengerItems)
         {
             lMessengerItem.LWorkTab = lMessengerTab;
         }
 
-        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded =
+            LMessenger.LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceEngine.LTraceInfoSeam(
             $"Edit Add All: {lMessengerSources.Count} listed, {lMessengerAdded} queued");
 
-        LMessengerSourceResolve(lMessengerItems);
+        LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

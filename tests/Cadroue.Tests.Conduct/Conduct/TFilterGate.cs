@@ -127,7 +127,7 @@ public sealed class TFilterGate
             TInspectorFilter = (true, new List<double> { 60, 4, 0.707 }, 2, "Wind")
         };
 
-        tFilterInspector.CInspectorAudioAccept(plan);
+        tFilterInspector.CInspectorAudio.CInspectorAudioAccept(plan);
 
         Assert.True(tFilterGate.CFilterActive);
         Assert.Equal("Wind", tFilterGate.CFilterToken);

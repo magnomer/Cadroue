@@ -108,7 +108,7 @@ public sealed class TLoudnessGate
     {
         TInspectorPort plan = new() { TInspectorLeveling = (true, true, [-21, -2, 6, 200, 15, 12, 8], false, "Voice") };
 
-        tLoudnessInspector.CInspectorAudioAccept(plan);
+        tLoudnessInspector.CInspectorAudio.CInspectorAudioAccept(plan);
 
         Assert.Contains("leveling", plan.TInspectorCalls);
         Assert.True(tLoudnessGate.CLoudnessActive);
@@ -120,10 +120,10 @@ public sealed class TLoudnessGate
     [Fact]
     public void InspectorPersistentAccept_PlanCarriesLeveling_KeepsIt()
     {
-        tLoudnessInspector.CInspectorAudioAccept(
+        tLoudnessInspector.CInspectorAudio.CInspectorAudioAccept(
             new TInspectorPort { TInspectorPresent = (false, false, false, false, false, true) });
 
-        tLoudnessInspector.CInspectorPersistentAccept(false);
+        tLoudnessInspector.CInspectorAudio.CInspectorPersistentAccept(false);
 
         Assert.True(tLoudnessGate.CLoudnessPersistent);
     }
@@ -134,7 +134,7 @@ public sealed class TLoudnessGate
         tLoudnessGate.CLoudnessActiveSet(true);
         tLoudnessGate.CLoudnessPersistentSet(true);
 
-        tLoudnessInspector.CInspectorPersistentRead();
+        tLoudnessInspector.CInspectorAudio.CInspectorPersistentRead();
 
         var leveling = tLoudnessAudio.TAudioTools.Item5;
         Assert.NotNull(leveling);

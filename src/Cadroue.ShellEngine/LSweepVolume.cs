@@ -1,10 +1,8 @@
-using System.Globalization;
-
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LSweep
+public static class LSweepVolume
 {
     private const double LSweepVolumeFloor = -70.0;
 
@@ -28,15 +26,15 @@ public static partial class LSweep
                 continue;
             }
 
-            double? lSweepAt = LSweepFieldRead(lSweepLine, "pts_time:");
+            double? lSweepAt = LSweepField.LSweepFieldRead(lSweepLine, "pts_time:");
             if (lSweepAt is { } lSweepPts)
             {
                 lSweepTime = lSweepPts;
                 continue;
             }
 
-            double? lSweepLoudness = LSweepLoudnessRead(lSweepLine, "lavfi.r128.M=")
-                ?? LSweepLoudnessRead(lSweepLine, "lavfi.astats.Overall.RMS_level=");
+            double? lSweepLoudness = LSweepField.LSweepFieldRead(lSweepLine, "lavfi.r128.M=")
+                ?? LSweepField.LSweepFieldRead(lSweepLine, "lavfi.astats.Overall.RMS_level=");
             if (lSweepLoudness is { } lSweepValue && lSweepValue > LSweepVolumeFloor && lSweepTime is { } lSweepStamp)
             {
                 lSweepSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lSweepStamp), lSweepValue));
@@ -44,30 +42,6 @@ public static partial class LSweep
         }
 
         return lSweepSamples;
-    }
-
-    private static double? LSweepLoudnessRead(string lSweepLine, string lSweepKey)
-    {
-        int lSweepAt = lSweepLine.IndexOf(lSweepKey, StringComparison.Ordinal);
-        if (lSweepAt < 0)
-        {
-            return null;
-        }
-
-        int lSweepFrom = lSweepAt + lSweepKey.Length;
-        int lSweepTo = lSweepFrom;
-        while (lSweepTo < lSweepLine.Length && !char.IsWhiteSpace(lSweepLine[lSweepTo]))
-        {
-            lSweepTo++;
-        }
-
-        ReadOnlySpan<char> lSweepToken = lSweepLine.AsSpan(lSweepFrom, lSweepTo - lSweepFrom);
-        if (double.TryParse(lSweepToken, NumberStyles.Float, CultureInfo.InvariantCulture, out double lSweepValue))
-        {
-            return lSweepValue;
-        }
-
-        return null;
     }
 
     public static async Task<IReadOnlyList<TimeSpan>> LSweepVolumeScan(
@@ -86,13 +60,13 @@ public static partial class LSweep
         }
 
         IReadOnlyList<LSweepSample> lSweepSamples = LSweepVolumeParse(
-            await LSweepLinesRead(
+            await LSweepProcess.LSweepLinesRead(
                 LSweepVolumeFormat(lSweepSource, lSweepMode),
                 lSweepDuration,
                 lSweepToken,
                 lSweepProgress)
                 .ConfigureAwait(false));
-        return LSweepMinimumResolve(
-            LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
+        return LSweepDelta.LSweepMinimumResolve(
+            LSweepDelta.LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
     }
 }

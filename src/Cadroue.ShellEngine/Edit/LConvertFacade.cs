@@ -17,7 +17,7 @@ public sealed class LConvertFacade
         bool lUrgent,
         Guid lRelayTarget,
         Guid lSourceTab) =>
-        _ = LMessenger.LMessengerConvertDescribe(
+        _ = LMessengerConvert.LMessengerConvertDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSources.Select(lSource => new LWorkSource(lSource.LConvertPath, lSource.LConvertBatch)).ToArray(),
             LPresetSelection.LPresetEncodingRead(lPresetName),

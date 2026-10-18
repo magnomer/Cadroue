@@ -1,43 +1,45 @@
 using System.Diagnostics;
+
+using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJobStage
 {
-    private async Task<(int, string)> LJobStagesRun()
+    private readonly LRunner lJobOwner;
+    private readonly LWorkItem lJobItem;
+    private readonly CancellationToken lJobToken;
+    private readonly LJobReservation lJobReservation;
+    private readonly LJobVerdict lJobVerdict;
+    private readonly Stopwatch lJobClock;
+    private readonly string lJobDirectory;
+    private readonly double lJobRunSeconds;
+    private readonly List<LEncodeStage> lJobStagesDone = new();
+
+    internal LJobStage(
+        LRunner lJobRunner,
+        LWorkItem lJobWorkItem,
+        CancellationToken lJobStopToken,
+        LJobReservation lJobWorkReservation,
+        LJobVerdict lJobWorkVerdict,
+        Stopwatch lJobRunClock,
+        string lJobRunDirectory,
+        double lJobTotalSeconds)
     {
-        if (!LEncode.LEncodeSmartCheck(lJobItem))
-        {
-            return await LJobSmartRun().ConfigureAwait(false);
-        }
-
-        if (string.Equals(
-            lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
-        {
-            LRunner.LRunnerRecord(
-                lJobItem.LWorkKind != LWorkKind.LWorkKindSplit
-                    ? $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
-                        $"smart encoding applies to split tabs only; encoding the full requested interval"
-                    : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
-                        $"the item has edits or an fps change; encoding the full requested interval");
-        }
-
-        if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
-        {
-            return await LJobFixRun().ConfigureAwait(false);
-        }
-
-        IReadOnlyList<LEncodeStage> pStages = LEncode.LEncodeStagesBuild(lJobItem);
-        if (pStages.Count == 0)
-        {
-            throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
-        }
-
-        return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
+        lJobOwner = lJobRunner;
+        lJobItem = lJobWorkItem;
+        lJobToken = lJobStopToken;
+        lJobReservation = lJobWorkReservation;
+        lJobVerdict = lJobWorkVerdict;
+        lJobClock = lJobRunClock;
+        lJobDirectory = lJobRunDirectory;
+        lJobRunSeconds = lJobTotalSeconds;
     }
 
-    private async Task<(int, string)> LJobBatchRun(
+    internal IReadOnlyList<LEncodeStage> LJobStagesDone => lJobStagesDone;
+
+    internal async Task<(int, string)> LJobBatchRun(
         IReadOnlyList<LEncodeStage> pStages,
         int pBaseNumber,
         int pTotalCount)
@@ -111,8 +113,7 @@ internal sealed partial class LJob
             }
 
             (pExitCode, pJobError) = await LJobStageRun(
-                pStage, pStageArguments, pBaseNumber + pStageIndex + 1, pTotalCount, lJobRunSeconds,
-                lJobClock, lJobDirectory).ConfigureAwait(false);
+                pStage, pStageArguments, pBaseNumber + pStageIndex + 1, pTotalCount).ConfigureAwait(false);
 
             if (pStage.LEncodeStageMeasure)
             {
@@ -132,35 +133,22 @@ internal sealed partial class LJob
         LEncodeStage pStage,
         string pStageArguments,
         int pStageNumber,
-        int pStageCount,
-        double pTotalSeconds,
-        Stopwatch pJobClock,
-        string pDirectory)
+        int pStageCount)
     {
         string pExecutableArguments = lJobOwner.LRunnerArgumentTransform?.Invoke(pStageArguments)
             ?? pStageArguments;
-        lJobOwner.LRunnerDispatch(() =>
-        {
-            lJobItem.LWorkRunState.LWorkProgress = 0;
-            lJobItem.LWorkRunState.LWorkStageCurrent = pStage.LEncodeStageKind;
-            lJobItem.LWorkRunState.LWorkMessage =pStageCount > 1
-                ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
-                : string.Empty;
-            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
-        });
-        LRunner.LRunnerRecord(
+        LJobStageRaise(pStage, pStageNumber, pStageCount);
+        LRunnerTrace.LRunnerRecord(
             $"{pStage.LEncodeStageLabel} '{lJobItem.LWorkOutputName}': " +
             $"{lJobOwner.LRunnerProgramPath} {pExecutableArguments}");
-        LRunner.LRunnerFfmpegRecord(
+        LRunnerTrace.LRunnerFfmpegRecord(
             $"{pStage.LEncodeStageLabel} command for '{lJobItem.LWorkOutputName}'",
             $"{lJobOwner.LRunnerProgramPath} {pExecutableArguments}\n"
-            + $"working folder {(string.IsNullOrWhiteSpace(pDirectory) ? "(process default)" : pDirectory)}\n"
+            + $"working folder {(string.IsNullOrWhiteSpace(lJobDirectory) ? "(process default)" : lJobDirectory)}\n"
             + $"source {lJobItem.LWorkSourcePath}\n"
             + $"output {pStage.LEncodeStagePath}");
 
-        lJobTotalSeconds = pTotalSeconds;
-        lJobBlockMicroseconds = -1;
-        lJobProgressBlock = LRunner.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
+        var pProgress = new LJobProgress(lJobOwner, lJobItem, lJobRunSeconds);
 
         Guid pWorkId = lJobItem.LWorkId;
         lJobOwner.LRunnerProcess.LRunnerProcessAttach(lJobItem);
@@ -173,14 +161,122 @@ internal sealed partial class LJob
             pExecutableArguments,
             lJobToken,
             pWorkId,
-            LJobOutputRead,
-            LJobStderrRead).ConfigureAwait(false);
+            pProgress.LJobOutputRead,
+            pProgress.LJobStderrRead).ConfigureAwait(false);
 
-        LRunner.LRunnerFfmpegRecord(
+        LRunnerTrace.LRunnerFfmpegRecord(
             $"Exit code {pJobResult.LEmployerExit} for '{lJobItem.LWorkOutputName}' [{pStage.LEncodeStageLabel}]",
-            $"ran for {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}");
+            $"ran for {lJobClock.Elapsed:hh\\:mm\\:ss\\.fff}");
 
         lJobOwner.LRunnerProcess.LRunnerProcessDetach(pWorkId);
         return (pJobResult.LEmployerExit, pJobResult.LEmployerError);
+    }
+
+    private void LJobStageRaise(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkRunState.LWorkProgress = 0;
+            lJobItem.LWorkRunState.LWorkStageCurrent = pStage.LEncodeStageKind;
+            lJobItem.LWorkRunState.LWorkMessage =pStageCount > 1
+                ? $"Stage {pStageNumber}/{pStageCount}: {pStage.LEncodeStageLabel}"
+                : string.Empty;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeStatus);
+        });
+    }
+
+    private void LJobProgressRaise(double pProgress)
+    {
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkRunState.LWorkProgress = pProgress;
+            lJobOwner.lRunnerSchedule.LScheduleItemRaise(lJobItem, LScheduleNotice.LScheduleNoticeProgress);
+        });
+    }
+
+    private (int, string) LJobCopyRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        string pSource = pStage.LEncodeStageArguments;
+        string pOutput = pStage.LEncodeStagePath;
+        LJobStageRaise(pStage, pStageNumber, pStageCount);
+
+        try
+        {
+            long pSourceBytes = new FileInfo(pSource).Length;
+            File.Copy(pSource, pOutput, true);
+            long pOutputBytes = new FileInfo(pOutput).Length;
+            LRunnerTrace.LRunnerRecord(
+                $"Copying '{lJobItem.LWorkOutputName}': copied {pSourceBytes:N0} bytes from " +
+                $"'{Path.GetFileName(pSource)}' to '{pOutput}' ({pOutputBytes:N0} bytes)");
+            LJobProgressRaise(1);
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunnerTrace.LRunnerRecord($"Copy failed for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, pException.Message);
+        }
+    }
+
+    private (int, string) LJobLeadingRun(LEncodeStage pStage)
+    {
+        try
+        {
+            byte[] pBytes = File.ReadAllBytes(pStage.LEncodeStagePath);
+            if (LBridgeLeading.LBridgeLeadingNormalize(pBytes))
+            {
+                File.WriteAllBytes(pStage.LEncodeStagePath, pBytes);
+                LRunnerTrace.LRunnerRecord(
+                    $"Smart encoding neutralized the copied middle's leading keyframe " +
+                    $"for '{lJobItem.LWorkOutputName}'");
+            }
+
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunnerTrace.LRunnerRecord(
+                $"Smart encoding could not adjust the copied middle for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, "copied middle could not be adjusted");
+        }
+    }
+
+    private async Task<(int, string)> LJobRepairRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        string pOutput = pStage.LEncodeStagePath;
+        string pTemp = lJobReservation.LJobPathResolve(pOutput, ".cadfix");
+        string pArguments = LEncodeFix.LEncodeRepairBuild(
+            pOutput, pStage.LEncodeStageInput, pStage.LEncodeStageArguments, pTemp);
+        LEncodeStage pRepairStage = pStage with { LEncodeStagePath = pTemp };
+
+        (int pExit, string pError) = await LJobStageRun(
+            pRepairStage, pArguments, pStageNumber, pStageCount).ConfigureAwait(false);
+        if (pExit != 0)
+        {
+            return (pExit, pError);
+        }
+
+        try
+        {
+            File.Move(pTemp, pOutput, true);
+            LRunnerTrace.LRunnerRecord(
+                $"Repairing '{lJobItem.LWorkOutputName}': applied '{pStage.LEncodeStageArguments}' " +
+                $"to '{Path.GetFileName(pOutput)}'");
+            return (0, string.Empty);
+        }
+        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
+        {
+            LRunnerTrace.LRunnerRecord(
+                $"Repair could not replace the output for '{lJobItem.LWorkOutputName}'", pException);
+            return (1, pException.Message);
+        }
+    }
+
+    private async Task<(int, string)> LJobValidateRun(LEncodeStage pStage, int pStageNumber, int pStageCount)
+    {
+        LJobStageRaise(pStage, pStageNumber, pStageCount);
+        await lJobVerdict.LJobVerdictResolve(pStage.LEncodeStagePath).ConfigureAwait(false);
+        LJobProgressRaise(1);
+        return (0, string.Empty);
     }
 }

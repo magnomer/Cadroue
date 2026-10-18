@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO;
 
 using Cadroue.Core;
 
@@ -48,7 +47,7 @@ internal static class LSalvageScanner
         }
         catch (Exception lSalvageException)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Salvage scan could not examine '{Path.GetFileName(lSalvageSource)}'", lSalvageException);
             return Array.Empty<LSalvageSpan>();
         }

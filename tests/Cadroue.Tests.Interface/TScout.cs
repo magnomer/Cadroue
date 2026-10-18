@@ -37,10 +37,10 @@ internal sealed class TScout : IDisposable
             sourcePath,
             outputPath,
             TEncodeCommand.TOutputCreate());
-        return LScout.LScoutInputRead(work);
+        return LScoutBytes.LScoutInputRead(work);
     }
 
-    internal long? TOutputBytesRead(string outputPath) => LScout.LScoutBytesRead(outputPath);
+    internal long? TOutputBytesRead(string outputPath) => LScoutBytes.LScoutBytesRead(outputPath);
 
     internal string TScoutFileCreate(string name, int length)
     {

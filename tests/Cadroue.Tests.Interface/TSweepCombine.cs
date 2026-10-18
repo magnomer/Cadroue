@@ -14,7 +14,7 @@ public sealed class TSweepCombine
     {
         var lUser = new LPiece(TimeSpan.Zero, TimeSpan.FromSeconds(10), 0, "keep") { LPieceDetected = false };
 
-        IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
+        IReadOnlyList<LPiece> lResult = LSweepCombine.LSweepCombineResolve(
             new[] { lUser },
             new[] { new LSweepSpan(TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(3)) },
             new[] { new LSweepSpan(TimeSpan.FromSeconds(6), TimeSpan.FromSeconds(7)) },
@@ -55,7 +55,7 @@ public sealed class TSweepCombine
     [Fact]
     public void LSweepCombineResolve_DropsSceneCutBelowMinimumButKeepsZeroMinimum()
     {
-        IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
+        IReadOnlyList<LPiece> lResult = LSweepCombine.LSweepCombineResolve(
             Array.Empty<LPiece>(),
             Array.Empty<LSweepSpan>(),
             Array.Empty<LSweepSpan>(),
@@ -84,7 +84,7 @@ public sealed class TSweepCombine
             .Select(lIndex => new LSweepBoundary(TimeSpan.FromSeconds(lIndex), TimeSpan.Zero))
             .ToArray();
 
-        IReadOnlyList<LPiece> lResult = LSweep.LSweepCombineResolve(
+        IReadOnlyList<LPiece> lResult = LSweepCombine.LSweepCombineResolve(
             new[] { lUser },
             Array.Empty<LSweepSpan>(),
             Array.Empty<LSweepSpan>(),

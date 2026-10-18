@@ -31,7 +31,7 @@ public sealed class QSection
     private const string QSectionStepText = ",";
 
     private readonly QFlow qFlow;
-    private readonly CSection qSectionGate;
+    private readonly CSectionList qSectionGate;
     private bool qSectionMinimized;
 
     public event Action? QSectionChanged;
@@ -42,7 +42,7 @@ public sealed class QSection
     public QSection(QFlow lOwner)
     {
         qFlow = lOwner;
-        qSectionGate = qFlow.QFlowSection.QFlowSectionGate;
+        qSectionGate = qFlow.QFlowSection.QFlowSectionGate.CSectionList;
         QSectionDrag = new QSectionDrag(qSectionGate.CSectionDrag);
         QSectionFlowAttach();
     }
@@ -142,7 +142,7 @@ public sealed class QSection
 
     private void QSectionFlowAttach()
     {
-        qSectionGate.CSectionChanged += QSectionUpdateHandle;
+        qFlow.QFlowSection.QFlowSectionGate.CSectionChanged += QSectionUpdateHandle;
         qFlow.QFlowEdit.QFlowEditChanged += QSectionEditHandle;
         qSectionGate.CSectionRowsChanged += QSectionChangeRaise;
         qSectionGate.CSectionSelectApplied += QSectionSelectRaise;

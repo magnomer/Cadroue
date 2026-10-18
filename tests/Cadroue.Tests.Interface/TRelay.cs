@@ -6,7 +6,7 @@ public sealed class TRelay : IDisposable
 {
     private readonly HashSet<Guid> tRelayTabs = new();
 
-    public int TRelayFinishSlot => LCartographer.LCartographerFinishSlot;
+    public int TRelayFinishSlot => LCartographerSlot.LCartographerFinishSlot;
 
     public Guid TRelayFinishDestination => LCartographer.LCartographerFinishTarget;
 
@@ -14,21 +14,21 @@ public sealed class TRelay : IDisposable
     {
         tRelayTabs.Add(source);
         tRelayTabs.Add(destination);
-        LCartographer.LCartographerTargetSet(source, destination);
+        LCartographerRoute.LCartographerTargetSet(source, destination);
     }
 
     public void TRelayFinishSet(Guid source)
     {
         tRelayTabs.Add(source);
-        LCartographer.LCartographerTargetSet(source, LCartographer.LCartographerFinishTarget);
+        LCartographerRoute.LCartographerTargetSet(source, LCartographer.LCartographerFinishTarget);
     }
 
     public IReadOnlyList<int> TRelaySlotResolve(IReadOnlyList<Guid> tabs) =>
-        LCartographer.LCartographerSlotResolve(tabs);
+        LCartographerSlot.LCartographerSlotResolve(tabs);
 
     public IReadOnlyList<LCartographerAssignment> TRelayAssignResolve(
         IReadOnlyList<Guid> tabs, IReadOnlyList<int> slots) =>
-        LCartographer.LCartographerAssignmentResolve(tabs, slots);
+        LCartographerSlot.LCartographerAssignmentResolve(tabs, slots);
 
     public bool TRelayFinishCheck(Guid destination) => destination == TRelayFinishDestination;
 
@@ -36,7 +36,7 @@ public sealed class TRelay : IDisposable
     {
         foreach (Guid tRelayTab in tRelayTabs)
         {
-            LCartographer.LCartographerTabRemove(tRelayTab);
+            LCartographerRoute.LCartographerTabRemove(tRelayTab);
         }
     }
 }

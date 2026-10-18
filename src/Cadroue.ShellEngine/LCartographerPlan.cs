@@ -3,9 +3,14 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LCartographer
+public static class LCartographerPlan
 {
     public static Func<IReadOnlyList<LCartographerTab>>? LCartographerTabsSource { get; set; }
+
+    public static LCartographerPlanDocument? LCartographerPlanPrepare(Guid lCartographerTarget) =>
+        lCartographerTarget == Guid.Empty || lCartographerTarget == LCartographer.LCartographerFinishTarget
+            ? null
+            : LCartographerPlanCreate(Guid.Empty, lCartographerTarget);
 
     public static LCartographerPlanDocument? LCartographerPlanCreate(Guid lCartographerPlanId, Guid lCartographerTarget)
     {
@@ -22,7 +27,7 @@ public static partial class LCartographer
 
         Guid LCartographerStageCreate(Guid lCartographerTabId)
         {
-            if (lCartographerTabId == Guid.Empty || lCartographerTabId == LCartographerFinishTarget)
+            if (lCartographerTabId == Guid.Empty || lCartographerTabId == LCartographer.LCartographerFinishTarget)
             {
                 return lCartographerTabId;
             }
@@ -31,7 +36,7 @@ public static partial class LCartographer
             {
                 LTraceEngine.LTraceWarningSeam(
                     "Relay cycle refused: a stage relays back into an ancestor; the loop is terminated");
-                return LCartographerFinishTarget;
+                return LCartographer.LCartographerFinishTarget;
             }
 
             if (lCartographerStages.TryGetValue(
@@ -78,7 +83,7 @@ public static partial class LCartographer
             else
             {
                 lCartographerStage.LCartographerNextStage = LCartographerStageCreate(
-                    LCartographerTargetRead(lCartographerTabId));
+                    LCartographerRoute.LCartographerTargetRead(lCartographerTabId));
             }
 
             lCartographerActive.Remove(lCartographerTabId);

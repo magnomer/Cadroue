@@ -111,7 +111,7 @@ public sealed class QSplitTab
             return;
         }
 
-        LMessenger.LMessengerSplitDescribe(
+        LMessengerSplit.LMessengerSplitDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSelected.LDocketEntryPath,
             qSplitFlow.QFlowSection.QFlowSplitRead(),
@@ -128,7 +128,7 @@ public sealed class QSplitTab
             return;
         }
 
-        _ = LMessenger.LMessengerSplitDescribe(
+        _ = LMessengerSplit.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
             qSplitDocket.LDocketUnlockedRead().Select(QSplitSourceCreate).ToArray(),
             qSplitPreset.LPresetSelectionEncoding,
@@ -143,7 +143,7 @@ public sealed class QSplitTab
             return;
         }
 
-        _ = LMessenger.LMessengerSplitDescribe(
+        _ = LMessengerSplit.LMessengerSplitDescribe(
             LWorkPriority.LWorkPriorityNormal,
             QSplitSourcesResolve(lPaths),
             qSplitPreset.LPresetSelectionEncoding,

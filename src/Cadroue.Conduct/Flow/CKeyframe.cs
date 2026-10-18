@@ -41,6 +41,9 @@ public sealed class CKeyframe
 
     public bool CKeyframeResumePending { get; private set; }
 
+    // The direction of a keyframe move that waits for its notice: -1 previous, 0 nearest, 1 next; null when none waits.
+    public int? CKeyframeDirection { get; private set; }
+
     // The engine's keyframes, passed through unread, only for the readers not yet moved to a gate.
     public IReadOnlyList<LKeyframeEntry> CKeyframeEntries => _cKeyframePort.LKeyframeEntries;
 
@@ -93,6 +96,9 @@ public sealed class CKeyframe
             _cKeyframeFlow.CFlowDuration);
     }
 
+    // The flow drops the waiting move when its cursor, source or commands change; a driver may set one.
+    public void CKeyframeDirectionSet(int? direction) => CKeyframeDirection = direction;
+
     public void CKeyframeSync(TimeSpan cursor) => _cKeyframePort.LKeyframeSync(cursor);
 
     public void CKeyframeClear() => _cKeyframePort.LKeyframeClear();
@@ -117,7 +123,7 @@ public sealed class CKeyframe
         }
 
         CKeyframeChanged?.Invoke();
-        if (_cKeyframeFlow.CFlowKeyframeDirection is int direction)
+        if (CKeyframeDirection is int direction)
         {
             CKeyframeMove(direction, false);
         }
@@ -154,13 +160,13 @@ public sealed class CKeyframe
             _cKeyframePort.LKeyframeMove(direction, _cKeyframeFlow.CFlowCursor);
         if (failed)
         {
-            _cKeyframeFlow.CFlowDirectionSet(null);
+            CKeyframeDirection = null;
             return;
         }
 
         if (!ready)
         {
-            _cKeyframeFlow.CFlowDirectionSet(direction);
+            CKeyframeDirection = direction;
             if (requestScan)
             {
                 CKeyframeRun();
@@ -169,7 +175,7 @@ public sealed class CKeyframe
             return;
         }
 
-        _cKeyframeFlow.CFlowDirectionSet(null);
+        CKeyframeDirection = null;
         if (target is { } landing)
         {
             _cKeyframeFlow.CFlowCursorPropagate(landing, true, true);

@@ -12,7 +12,7 @@ public sealed class TSweepLuminance
     [Fact]
     public void LSweepLuminanceFormat_FullKeepsEveryFrameFullResolution()
     {
-        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFull);
+        string lArgs = LSweepLuminance.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFull);
 
         Assert.DoesNotContain("scale=", lArgs);
         Assert.DoesNotContain("-skip_frame", lArgs);
@@ -22,7 +22,8 @@ public sealed class TSweepLuminance
     [Fact]
     public void LSweepLuminanceFormat_NormalDownscalesButDecodesEveryFrame()
     {
-        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceNormal);
+        string lArgs = LSweepLuminance.LSweepLuminanceFormat(
+            "clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceNormal);
 
         Assert.Contains("scale=", lArgs);
         Assert.DoesNotContain("-skip_frame", lArgs);
@@ -31,7 +32,7 @@ public sealed class TSweepLuminance
     [Fact]
     public void LSweepLuminanceFormat_FastDownscalesAndSkipsToKeyframes()
     {
-        string lArgs = LSweep.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFast);
+        string lArgs = LSweepLuminance.LSweepLuminanceFormat("clip.mp4", LDetectorLuminanceMode.LDetectorLuminanceFast);
 
         Assert.Contains("scale=", lArgs);
         Assert.Contains("-skip_frame nokey", lArgs);
@@ -51,7 +52,7 @@ public sealed class TSweepLuminance
             "frame:2    pts_time:1.000000"
         };
 
-        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepLuminanceParse(lLines);
+        IReadOnlyList<LSweepSample> lSamples = LSweepLuminance.LSweepLuminanceParse(lLines);
 
         Assert.Equal(2, lSamples.Count);
         Assert.Equal(TimeSpan.Zero, lSamples[0].LSweepSampleTime);
@@ -69,7 +70,7 @@ public sealed class TSweepLuminance
             lSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lIndex * 0.1), 158.0));
         }
 
-        Assert.Empty(LSweep.LSweepLuminanceResolve(lSamples, 0.5, 0));
+        Assert.Empty(LSweepLuminance.LSweepLuminanceResolve(lSamples, 0.5, 0));
     }
 
     [Fact]
@@ -82,7 +83,7 @@ public sealed class TSweepLuminance
             lSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lIndex * 0.1), lLuma));
         }
 
-        IReadOnlyList<TimeSpan> lBoundaries = LSweep.LSweepLuminanceResolve(lSamples, 0.5, 10);
+        IReadOnlyList<TimeSpan> lBoundaries = LSweepLuminance.LSweepLuminanceResolve(lSamples, 0.5, 10);
 
         TimeSpan lBoundary = Assert.Single(lBoundaries);
         Assert.Equal(TimeSpan.FromSeconds(1.0), lBoundary);
@@ -98,7 +99,7 @@ public sealed class TSweepLuminance
             lSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lIndex * 0.1), lLuma));
         }
 
-        Assert.Empty(LSweep.LSweepLuminanceResolve(lSamples, 0.5, 10));
+        Assert.Empty(LSweepLuminance.LSweepLuminanceResolve(lSamples, 0.5, 10));
     }
 
     [Fact]
@@ -112,7 +113,7 @@ public sealed class TSweepLuminance
             lSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lIndex * 0.04), lLuma));
         }
 
-        IReadOnlyList<TimeSpan> lBoundaries = LSweep.LSweepLuminanceResolve(lSamples, 0.5, 10);
+        IReadOnlyList<TimeSpan> lBoundaries = LSweepLuminance.LSweepLuminanceResolve(lSamples, 0.5, 10);
 
         TimeSpan lBoundary = Assert.Single(lBoundaries);
         Assert.Equal(lSamples[lHalf].LSweepSampleTime, lBoundary);
@@ -129,7 +130,7 @@ public sealed class TSweepLuminance
             TimeSpan.FromSeconds(3.2)
         };
 
-        IReadOnlyList<TimeSpan> lKept = LSweep.LSweepMinimumResolve(lBoundaries, 0.5);
+        IReadOnlyList<TimeSpan> lKept = LSweepDelta.LSweepMinimumResolve(lBoundaries, 0.5);
 
         Assert.Equal(new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3) }, lKept);
     }
@@ -139,7 +140,7 @@ public sealed class TSweepLuminance
     {
         var lBoundaries = new[] { TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1.1) };
 
-        Assert.Equal(lBoundaries, LSweep.LSweepMinimumResolve(lBoundaries, 0));
+        Assert.Equal(lBoundaries, LSweepDelta.LSweepMinimumResolve(lBoundaries, 0));
     }
 
     [Fact]
@@ -152,7 +153,7 @@ public sealed class TSweepLuminance
             lSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lIndex * 0.1), lLevel));
         }
 
-        IReadOnlyList<TimeSpan> lBoundaries = LSweep.LSweepBoundaryResolve(lSamples, 0.5, 6);
+        IReadOnlyList<TimeSpan> lBoundaries = LSweepDelta.LSweepBoundaryResolve(lSamples, 0.5, 6);
 
         TimeSpan lBoundary = Assert.Single(lBoundaries);
         Assert.Equal(TimeSpan.FromSeconds(1.0), lBoundary);
@@ -161,6 +162,6 @@ public sealed class TSweepLuminance
     [Fact]
     public void LSweepBoundaryResolve_EmptyInputYieldsNoBoundary()
     {
-        Assert.Empty(LSweep.LSweepBoundaryResolve(Array.Empty<LSweepSample>(), 0.5, 6));
+        Assert.Empty(LSweepDelta.LSweepBoundaryResolve(Array.Empty<LSweepSample>(), 0.5, 6));
     }
 }

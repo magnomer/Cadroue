@@ -47,14 +47,14 @@ internal static class TAuditObjectSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling = new Dictionary<string, int>
     {
-        ["Hydra"] = 6,
-        ["Kraken"] = 5,
+        ["Hydra"] = 4,
+        ["Kraken"] = 4,
         ["Spider"] = 1,
         ["Chameleon"] = 63,
-        ["Octopus"] = 4,
+        ["Octopus"] = 3,
         ["Centipede"] = 54,
-        ["Serpent"] = 13,
-        ["Hub"] = 12,
+        ["Serpent"] = 8,
+        ["Hub"] = 8,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling = new Dictionary<string, int>
@@ -79,13 +79,13 @@ internal static class TAuditObjectSetting
         ["Cadroue.Infrastructure.LTrace"] = 1,
         ["Cadroue.Infrastructure.LTraceWriter"] = 1,
         ["Cadroue.Media.LMedia"] = 1,
-        ["Cadroue.ShellEngine.LCartographer"] = 8,
-        ["Cadroue.ShellEngine.LEncode"] = 5,
-        ["Cadroue.ShellEngine.LEncodeVideo"] = 4,
-        ["Cadroue.ShellEngine.LJob"] = 10,
-        ["Cadroue.ShellEngine.LMessenger"] = 9,
+        ["Cadroue.ShellEngine.LCartographer"] = 1,
+        ["Cadroue.ShellEngine.LEncode"] = 1,
+        ["Cadroue.ShellEngine.LEncodeVideo"] = 1,
+        ["Cadroue.ShellEngine.LJob"] = 1,
+        ["Cadroue.ShellEngine.LMessenger"] = 1,
         ["Cadroue.ShellEngine.LRunner"] = 1,
-        ["Cadroue.ShellEngine.LSweep"] = 7,
+        ["Cadroue.ShellEngine.LSweep"] = 1,
         ["Cadroue.UIDeportment.QSEncoder"] = 3,
         ["Cadroue.UIVeneer.PHouse.PWindow"] = 5,
         ["Cadroue.UIVeneer.PSDiagnosis"] = 2,

@@ -17,15 +17,15 @@ public sealed class TSectionEditGate
             .CAtelierWorkspaceCreate()
             .CWorkspaceFlow
             .CFlowSection;
-        tSectionEditGate = tSectionEditOwner.CSectionEdit;
+        tSectionEditGate = tSectionEditOwner.CSectionList.CSectionEdit;
         TSectionEditRead().TSectionCount = 2;
         TSectionEditRead().TSectionRows =
         [
             ("", "p", "", TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(3), 2, false),
             ("b", "", "", TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(4), 0, true)
         ];
-        tSectionEditOwner.CSectionRowsSync();
-        tSectionEditOwner.CSectionRowsChanged += () => tSectionEditTells++;
+        tSectionEditOwner.CSectionList.CSectionRowsSync();
+        tSectionEditOwner.CSectionList.CSectionRowsChanged += () => tSectionEditTells++;
     }
 
     private TSectionPort TSectionEditRead() => tSectionEditPort.TFlowSection;
@@ -35,10 +35,10 @@ public sealed class TSectionEditGate
     {
         int serial = tSectionEditGate.CSectionEditSerial;
 
-        tSectionEditOwner.CSectionRenameHandle(1, 2);
+        tSectionEditOwner.CSectionList.CSectionRenameHandle(1, 2);
         Assert.Equal(serial + 1, tSectionEditGate.CSectionEditSerial);
         tSectionEditGate.CSectionEditCommit();
-        tSectionEditOwner.CSectionRenameHandle(0, 2);
+        tSectionEditOwner.CSectionList.CSectionRenameHandle(0, 2);
 
         Assert.Equal(serial + 2, tSectionEditGate.CSectionEditSerial);
         Assert.Equal(0, tSectionEditGate.CSectionEditIndex);
@@ -48,7 +48,7 @@ public sealed class TSectionEditGate
     [Fact]
     public void Handle_OnlyTheLiveEditorWithFocusOutside_CommitsTrimmed()
     {
-        tSectionEditOwner.CSectionRenameHandle(0, 2);
+        tSectionEditOwner.CSectionList.CSectionRenameHandle(0, 2);
         int serial = tSectionEditGate.CSectionEditSerial;
         tSectionEditGate.CSectionEditSet(" a ", "p ", " s");
 
@@ -58,7 +58,7 @@ public sealed class TSectionEditGate
         tSectionEditGate.CSectionEditHandle(serial, false);
 
         Assert.Null(tSectionEditGate.CSectionEditIndex);
-        Assert.False(tSectionEditOwner.CSectionRowsRead()[0].CSectionRowEditing);
+        Assert.False(tSectionEditOwner.CSectionList.CSectionRowsRead()[0].CSectionRowEditing);
         Assert.Equal(["select:0", "name:0:a:p:s"], TSectionEditRead().TSectionCalls);
         Assert.Equal(2, tSectionEditTells);
     }
@@ -75,7 +75,7 @@ public sealed class TSectionEditGate
     [Fact]
     public void Commit_WhileNotEditable_NamesNothing_ClosesTheEditor()
     {
-        tSectionEditOwner.CSectionRenameHandle(1, 2);
+        tSectionEditOwner.CSectionList.CSectionRenameHandle(1, 2);
         tSectionEditGate.CSectionEditSet("c", "", "");
         tSectionEditOwner.CSectionEditableSet(false);
 
@@ -89,7 +89,7 @@ public sealed class TSectionEditGate
     [Fact]
     public void Cancel_DropsTheTextWithoutNaming_TellsRebuild()
     {
-        tSectionEditOwner.CSectionRenameHandle(0, 2);
+        tSectionEditOwner.CSectionList.CSectionRenameHandle(0, 2);
         tSectionEditGate.CSectionEditSet("c", "", "");
 
         tSectionEditGate.CSectionEditCancel();

@@ -108,7 +108,7 @@ public sealed class TToneGate
     {
         TInspectorPort plan = new() { TInspectorTone = ([true, true, false], [12, 150, 80]) };
 
-        tToneInspector.CInspectorVideoAccept(plan);
+        tToneInspector.CInspectorVideo.CInspectorVideoAccept(plan);
 
         Assert.Equal([true, true, false], tToneGate.CToneActives);
         Assert.Equal([12d, 150d, 80d], tToneGate.CToneValues);

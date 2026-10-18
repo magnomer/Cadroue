@@ -66,8 +66,8 @@ public sealed class QRoster
         lAtelier.CAtelierUsher,
         lAtelier.CAtelierLineage,
         QProgram.QScheduleCurrent,
-        LStation.LStationRemover!,
-        LStation.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")),
+        LStationEngine.LStationRemover!,
+        LStationBoard.LStationCreate(QLocalizationCatalog.QLocalizationTextRead("Roster.Title.Worklist")),
         lAtelier.CAtelierRosterCreate());
 
     public event Action? QRosterDetailApplied;

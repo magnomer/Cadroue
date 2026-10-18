@@ -12,7 +12,6 @@ public sealed class CNoise
 {
     private const string _cNoiseCustomToken = "Custom";
     private const string _cNoiseCustomKey = "Inspector.Common.Custom";
-    private const string _cNoiseCustomBased = "Inspector.Common.PresetCustom";
 
     private readonly LNoisePort _cNoisePort;
     private readonly IReadOnlyList<string> _cNoiseTokens;
@@ -55,23 +54,8 @@ public sealed class CNoise
     public IReadOnlyList<double> CNoiseMosts => _cNoisePort.LNoiseMosts;
 
     // One row per preset and a custom row last. The custom row shows the preset it drifted from, when there is one.
-    public IReadOnlyList<CChoice> CNoiseChoices
-    {
-        get
-        {
-            string? preset = CNoisePreset;
-            List<CChoice> rows = _cNoiseTokens
-                .Select(token => new CChoice(token, CNoiseKeyRead(token), null, token == preset))
-                .ToList();
-            bool drifted = preset is null && _cNoiseToken is not null;
-            rows.Add(new CChoice(
-                null,
-                drifted ? _cNoiseCustomBased : _cNoiseCustomKey,
-                drifted ? CNoiseKeyRead(_cNoiseToken!) : null,
-                !rows.Any(row => row.CChoiceChosen)));
-            return rows;
-        }
-    }
+    public IReadOnlyList<CChoice> CNoiseChoices =>
+        CChoicePreset.CChoicePresetRead(_cNoiseTokens, CNoisePreset, _cNoiseToken, CNoiseKeyRead);
 
     // One row per noise type, the held type chosen.
     public IReadOnlyList<CChoice> CNoiseTypes =>

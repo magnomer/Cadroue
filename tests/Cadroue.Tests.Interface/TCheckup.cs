@@ -71,7 +71,7 @@ internal static class TCheckup
         double start,
         double end,
         IProgress<double> progress) =>
-        LFlawScanner.LFlawProgressApply(line, duration, start, end, progress);
+        LFlawStage.LFlawProgressApply(line, duration, start, end, progress);
 }
 
 internal readonly record struct TCheckupJobResult(string TCheckupPath, bool TCheckupCompleted, bool TCheckupClean);

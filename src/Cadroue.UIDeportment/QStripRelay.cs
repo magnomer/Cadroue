@@ -16,8 +16,8 @@ public sealed class QStripRelay
 
     public void QStripRelayAttach()
     {
-        LCartographer.LCartographerTabsSource = QStripCartographerRead;
-        LCartographer.LCartographerTitleSource = QStripTitleRead;
+        LCartographerPlan.LCartographerTabsSource = QStripCartographerRead;
+        LCartographerTitle.LCartographerTitleSource = QStripTitleRead;
         LMessenger.LMessengerTitleSource = QStripTitleRead;
         LMessenger.LMessengerDrainSource = QStripPathsRemove;
         LSeal.LSealNodesSource = QStripSealRead;
@@ -37,7 +37,7 @@ public sealed class QStripRelay
             QAction.QActionAccept);
 
     public string QStripTitleRead(Guid lId) =>
-        qStrip.QStripTabFind(lId)?.QStripTabTitle ?? LCartographer.LCartographerStageRead(lId);
+        qStrip.QStripTabFind(lId)?.QStripTabTitle ?? LCartographerTitle.LCartographerStageRead(lId);
 
     public IReadOnlyList<QStripTab> QStripRelayRead(Guid lSourceTab) =>
         qStrip.QStripTabs

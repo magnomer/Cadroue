@@ -19,6 +19,4 @@ public interface LScheduleLeaseContract
     int LScheduleRetryRelease(Guid lWorkId, Guid lRunnerId, int lScheduleRetryMaximum, string lScheduleReason);
 
     bool LScheduleOwnerCheck(LWorkItem lWorkItem, Guid lRunnerId);
-
-    bool LScheduleForeignCheck(LWorkItem lWorkItem, Guid lRunnerId);
 }

@@ -20,7 +20,7 @@ public sealed class TInspectorGate
             TInspectorVolume = (true, 6),
         };
 
-        tInspectorGate.CInspectorVideoAccept(plan);
+        tInspectorGate.CInspectorVideo.CInspectorVideoAccept(plan);
 
         Assert.Equal(["tone", "whitebalance", "gamma", "exposure"], plan.TInspectorCalls);
         Assert.True(tInspectorGate.CInspectorGamma.CGammaActive);
@@ -41,7 +41,7 @@ public sealed class TInspectorGate
             TInspectorEqualizer = (true, [(100, 3), (2000, -4)], null),
         };
 
-        tInspectorGate.CInspectorAudioAccept(plan);
+        tInspectorGate.CInspectorAudio.CInspectorAudioAccept(plan);
 
         Assert.Equal(
             ["highpass", "lowpass", "noise", "equalizer", "volume", "leveling", "skip"], plan.TInspectorCalls);
@@ -56,8 +56,8 @@ public sealed class TInspectorGate
     [Fact]
     public void InspectorAccept_NoPlan_Throws()
     {
-        Assert.Throws<ArgumentNullException>(() => tInspectorGate.CInspectorVideoAccept(null!));
-        Assert.Throws<ArgumentNullException>(() => tInspectorGate.CInspectorAudioAccept(null!));
+        Assert.Throws<ArgumentNullException>(() => tInspectorGate.CInspectorVideo.CInspectorVideoAccept(null!));
+        Assert.Throws<ArgumentNullException>(() => tInspectorGate.CInspectorAudio.CInspectorAudioAccept(null!));
         Assert.Throws<ArgumentNullException>(() => tInspectorGate.CInspectorEditAccept(null!));
     }
 

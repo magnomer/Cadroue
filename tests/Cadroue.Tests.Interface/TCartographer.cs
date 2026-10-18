@@ -57,19 +57,20 @@ internal static class TCartographer
                 spec.TCartographerFunnel));
         }
 
-        LCartographer.LCartographerTabsSource = () => tabs;
+        LCartographerPlan.LCartographerTabsSource = () => tabs;
         try
         {
             for (int index = 0; index < specs.Count; index++)
             {
                 if (!specs[index].TCartographerFunnel && specs[index].TCartographerProcessingTarget >= 0)
                 {
-                    LCartographer.LCartographerTargetSet(ids[index], ids[specs[index].TCartographerProcessingTarget]);
+                    LCartographerRoute.LCartographerTargetSet(
+                        ids[index], ids[specs[index].TCartographerProcessingTarget]);
                 }
             }
 
             LCartographerPlanDocument plan =
-                LCartographer.LCartographerPlanCreate(Guid.NewGuid(), ids[entryIndex])
+                LCartographerPlan.LCartographerPlanCreate(Guid.NewGuid(), ids[entryIndex])
                 ?? throw new InvalidOperationException("Production returned no relay plan.");
 
             var stages = plan.LCartographerStages
@@ -86,10 +87,10 @@ internal static class TCartographer
         }
         finally
         {
-            LCartographer.LCartographerTabsSource = null;
+            LCartographerPlan.LCartographerTabsSource = null;
             foreach (Guid id in ids)
             {
-                LCartographer.LCartographerTabRemove(id);
+                LCartographerRoute.LCartographerTabRemove(id);
             }
         }
     }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 using Cadroue.Application;
@@ -7,7 +6,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LEncode
+public static class LEncodeFix
 {
     public static IReadOnlyList<LEncodeStage> LEncodeFixBuild(
         LWorkItem lWorkItem, IReadOnlyList<LDossier> lFixRepairable, bool lFixCopy)
@@ -81,15 +80,15 @@ public static partial class LEncode
     internal static string LEncodeRepairBuild(string lInputPath, string lInput, string lRemedy, string lOutputPath)
     {
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
+        LEncode.LEncodeHeaderAppend(lArguments);
         if (!string.IsNullOrWhiteSpace(lInput))
         {
             lArguments.Append(CultureInfo.InvariantCulture, $" {lInput.Trim()}");
         }
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lInputPath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lInputPath)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" {lRemedy}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lOutputPath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lOutputPath)}");
         return lArguments.ToString();
     }
 }

@@ -105,14 +105,14 @@ public sealed class TKeyframeGate
         TKeyframePortRead().TKeyframeAnswer = (false, false, null);
         tKeyframeGate.CKeyframeNextMove();
 
-        Assert.Equal(1, tKeyframeFlow.CFlowKeyframeDirection);
+        Assert.Equal(1, tKeyframeGate.CKeyframeDirection);
         Assert.Equal(["move:1:5", "start:full:a:5:60"], TKeyframePortRead().TKeyframeCalls);
 
         TKeyframePortRead().TKeyframeAnswer = (false, true, TimeSpan.FromSeconds(8));
         TKeyframePortRead().TKeyframeRaise(TKeyframeNoticeCreate(0));
         tKeyframeGate.CKeyframeApply();
 
-        Assert.Null(tKeyframeFlow.CFlowKeyframeDirection);
+        Assert.Null(tKeyframeGate.CKeyframeDirection);
         Assert.Equal(TimeSpan.FromSeconds(8), tKeyframeFlow.CFlowCursor);
         Assert.Equal(["stop", "arrive", "change", "moved", "stop", "sought:8"], tKeyframeTold);
     }
@@ -121,11 +121,11 @@ public sealed class TKeyframeGate
     public void KeyframeMove_Failed_DropsTheWaitingMove()
     {
         TKeyframeLoad();
-        tKeyframeFlow.CFlowDirectionSet(-1);
+        tKeyframeGate.CKeyframeDirectionSet(-1);
         TKeyframePortRead().TKeyframeAnswer = (true, false, null);
         tKeyframeGate.CKeyframeNearestMove();
 
-        Assert.Null(tKeyframeFlow.CFlowKeyframeDirection);
+        Assert.Null(tKeyframeGate.CKeyframeDirection);
         Assert.Equal(["move:0:5"], TKeyframePortRead().TKeyframeCalls);
         Assert.Empty(tKeyframeTold);
     }

@@ -66,7 +66,7 @@ internal static class TInterfaceList
     internal static void TListBatchRemove(params Guid[] batches) =>
         LCartographer.LCartographerDeliverySeam!.LCartographerBatchEvict(batches);
     internal static bool TListSourceClaim(params LWorkItem[] accepted) =>
-        LCartographer.LCartographerLockSeam!(accepted);
+        LCartographerSchedule.LCartographerLockSeam!(accepted);
     internal static void TListSourceRelease(
         IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)> unlocks) =>
         LCartographer.LCartographerDeliverySeam!.LCartographerSourceUnlock(unlocks);

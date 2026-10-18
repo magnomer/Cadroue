@@ -1,42 +1,31 @@
-using System.IO;
-
 using Cadroue.Application;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJobSmart
 {
-    private (int, string) LJobLeadingRun(LEncodeStage pStage)
-    {
-        try
-        {
-            byte[] pBytes = File.ReadAllBytes(pStage.LEncodeStagePath);
-            if (LBridgeLeading.LBridgeLeadingNormalize(pBytes))
-            {
-                File.WriteAllBytes(pStage.LEncodeStagePath, pBytes);
-                LRunner.LRunnerRecord(
-                    $"Smart encoding neutralized the copied middle's leading keyframe " +
-                    $"for '{lJobItem.LWorkOutputName}'");
-            }
+    private readonly LRunner lJobOwner;
+    private readonly LWorkItem lJobItem;
+    private readonly CancellationToken lJobToken;
+    private readonly LJobStage lJobStage;
 
-            return (0, string.Empty);
-        }
-        catch (Exception pException) when (pException is IOException or UnauthorizedAccessException)
-        {
-            LRunner.LRunnerRecord(
-                $"Smart encoding could not adjust the copied middle for '{lJobItem.LWorkOutputName}'", pException);
-            return (1, "copied middle could not be adjusted");
-        }
+    internal LJobSmart(
+        LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobStopToken, LJobStage lJobWorkStage)
+    {
+        lJobOwner = lJobRunner;
+        lJobItem = lJobWorkItem;
+        lJobToken = lJobStopToken;
+        lJobStage = lJobWorkStage;
     }
 
-    private async Task<(int, string)> LJobSmartRun()
+    internal async Task<(int, string)> LJobSmartRun()
     {
         LBridgeStream? pSource =
             await LScoutStream.LScoutStreamRead(lJobItem.LWorkSourcePath, lJobToken).ConfigureAwait(false);
         if (pSource is null)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Smart encoding failed for '{lJobItem.LWorkOutputName}': the source stream could not be read");
             return (1, "source stream unreadable");
         }
@@ -56,22 +45,22 @@ internal sealed partial class LJob
 
         if (pPlan.LBridgeOutcome != LBridgeOutcome.LBridgeOutcomeSmart)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Smart encoding not usable for '{lJobItem.LWorkOutputName}': encoding the requested interval");
-            return await LJobBatchRun(LEncode.LEncodeWholeBuild(lJobItem), 0, 1).ConfigureAwait(false);
+            return await lJobStage.LJobBatchRun(LEncodeSmart.LEncodeWholeBuild(lJobItem), 0, 1).ConfigureAwait(false);
         }
 
         LScoutAudioInterval? pAudio =
-            await LEncode.LEncodeIntervalRead(lJobItem, pPlan, lJobToken).ConfigureAwait(false);
+            await LEncodeSmart.LEncodeIntervalRead(lJobItem, pPlan, lJobToken).ConfigureAwait(false);
         IReadOnlyList<LEncodeStage> pStages =
-            LEncode.LEncodeSmartBuild(lJobItem, pPlan, pSource, lAudioInterval: pAudio);
+            LEncodeSmart.LEncodeSmartBuild(lJobItem, pPlan, pSource, lAudioInterval: pAudio);
         if (pStages.Count == 0)
         {
             return (1, $"smart encoding unsupported for source codec '{pSource.LBridgeCodec}'");
         }
 
-        LRunner.LRunnerRecord(
+        LRunnerTrace.LRunnerRecord(
             $"Smart encoding applied for '{lJobItem.LWorkOutputName}': {pStages.Count} stage(s)");
-        return await LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
+        return await lJobStage.LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
     }
 }

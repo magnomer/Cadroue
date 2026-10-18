@@ -12,7 +12,7 @@ public sealed class TSweepSilence
     [Fact]
     public void LSweepSilenceFormat_EmitsSilencedetectMapsAudioAndDisablesVideo()
     {
-        string lArgs = LSweep.LSweepSilenceFormat("in.mp4", -30, 0.5);
+        string lArgs = LSweepSilence.LSweepSilenceFormat("in.mp4", -30, 0.5);
 
         Assert.Contains("silencedetect=noise=-30dB:d=0.5", lArgs);
         Assert.Contains("0:a:0", lArgs);
@@ -29,7 +29,7 @@ public sealed class TSweepSilence
         };
 
         LSweepSpan lInterval =
-            Assert.Single(LSweep.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
+            Assert.Single(LSweepSilence.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
         Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.LSweepSpanOrigin);
         Assert.Equal(TimeSpan.FromSeconds(15.75), lInterval.LSweepSpanEnd);
     }
@@ -43,7 +43,7 @@ public sealed class TSweepSilence
         };
 
         LSweepSpan lInterval =
-            Assert.Single(LSweep.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
+            Assert.Single(LSweepSilence.LSweepSilenceParse(lLines, TimeSpan.FromSeconds(20)));
         Assert.Equal(TimeSpan.FromSeconds(12.5), lInterval.LSweepSpanOrigin);
         Assert.Equal(TimeSpan.FromSeconds(20), lInterval.LSweepSpanEnd);
     }
@@ -51,7 +51,7 @@ public sealed class TSweepSilence
     [Fact]
     public void LSweepSilenceParse_ReturnsEmptyWithoutLines()
     {
-        Assert.Empty(LSweep.LSweepSilenceParse(Array.Empty<string>(), TimeSpan.FromSeconds(20)));
+        Assert.Empty(LSweepSilence.LSweepSilenceParse(Array.Empty<string>(), TimeSpan.FromSeconds(20)));
     }
 
 }

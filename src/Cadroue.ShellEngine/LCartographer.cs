@@ -1,4 +1,3 @@
-using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
@@ -30,7 +29,7 @@ public sealed record LCartographerDelivery(
     Action<IReadOnlyList<(string PListPath, Guid PListBatch, LWorkItem PListOwner)>> LCartographerSourceUnlock,
     Func<string, bool> LCartographerMediaValid);
 
-public static partial class LCartographer
+public static class LCartographer
 {
     public static Func<int, long, bool> LCartographerOwnerSeam { get; set; } = (_, _) => false;
 
@@ -234,7 +233,7 @@ public static partial class LCartographer
             return true;
         }
 
-        if (!LCartographerStageAccept(
+        if (!LCartographerStage.LCartographerStageAccept(
             lCartographerPlan, lCartographerStage, lCartographerItem.LWorkOutputPath,
             lCartographerItem.LWorkRelaySource, lCartographerItem.LWorkBatchId, lCartographerSeam))
         {

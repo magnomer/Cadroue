@@ -60,7 +60,7 @@ public sealed class QFunnelTab
 
         var lLive = QFunnel.QFunnelTargetsRead().Select(lTarget => lTarget.QFunnelTargetId).ToHashSet();
         IReadOnlyList<QFunnelRule> lRules = QFunnel.QFunnelRules;
-        LMessenger.LMessengerFunnelDescribe(
+        LMessengerFunnel.LMessengerFunnelDescribe(
             QFunnel.QFunnelSelf,
             lRules.Select(QFunnel.QFunnelRecordCreate).ToList(),
             lRules

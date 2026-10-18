@@ -4,20 +4,23 @@ using System.Collections.Generic;
 namespace Cadroue.Conduct;
 
 // The section rows' drag: a press readies it, a move past the threshold starts it and moves the row live to the slot
-// under the pointer, and a release ends it or, unmoved, selects the row by its modifiers. CSection makes one and
-// answers the editor, the painted row count and the edits the drag runs.
+// under the pointer, and a release ends it or, unmoved, selects the row by its modifiers. CSectionList makes one and
+// answers the editor and the painted row count; CSection answers the editable switch and the edits the drag runs.
 public sealed class CSectionDrag
 {
-    private readonly CSection _cSectionDragOwner;
+    private readonly CSection _cSectionDragSection;
+    private readonly CSectionList _cSectionDragList;
     private bool _cSectionDragActive;
     private bool _cSectionDragOrigin;
     private double _cSectionDragX;
     private double _cSectionDragY;
 
-    internal CSectionDrag(CSection owner)
+    internal CSectionDrag(CSection section, CSectionList list)
     {
-        ArgumentNullException.ThrowIfNull(owner);
-        _cSectionDragOwner = owner;
+        ArgumentNullException.ThrowIfNull(section);
+        ArgumentNullException.ThrowIfNull(list);
+        _cSectionDragSection = section;
+        _cSectionDragList = list;
     }
 
     // Told with the dragged row when a drag starts.
@@ -64,7 +67,7 @@ public sealed class CSectionDrag
         IReadOnlyList<double> tops,
         IReadOnlyList<double> heights)
     {
-        bool editable = _cSectionDragOwner.CSectionEditable;
+        bool editable = _cSectionDragSection.CSectionEditable;
         if (!CSectionDragCheck(editable) || !_cSectionDragOrigin || CSectionDragIndex is not int dragIndex || !pressed)
         {
             return false;
@@ -96,24 +99,24 @@ public sealed class CSectionDrag
         CSectionDragClear();
         if (moved)
         {
-            _cSectionDragOwner.CSectionRowsRaise();
+            _cSectionDragList.CSectionRowsRaise();
             return true;
         }
 
-        if (index >= 0 && _cSectionDragOwner.CSectionEdit.CSectionEditIndex != index)
+        if (index >= 0 && _cSectionDragList.CSectionEdit.CSectionEditIndex != index)
         {
-            _cSectionDragOwner.CSectionEdit.CSectionEditCommit();
+            _cSectionDragList.CSectionEdit.CSectionEditCommit();
             if (shift)
             {
-                _cSectionDragOwner.CSectionRangeSelect(index);
+                _cSectionDragSection.CSectionRangeSelect(index);
             }
             else if (control)
             {
-                _cSectionDragOwner.CSectionSelectToggle(index);
+                _cSectionDragSection.CSectionSelectToggle(index);
             }
             else
             {
-                _cSectionDragOwner.CSectionSelect(index);
+                _cSectionDragSection.CSectionSelect(index);
             }
         }
 
@@ -139,7 +142,7 @@ public sealed class CSectionDrag
     }
 
     private bool CSectionDragCheck(bool editable) =>
-        editable && CSectionDragIndex is not null && _cSectionDragOwner.CSectionEdit.CSectionEditIndex is null;
+        editable && CSectionDragIndex is not null && _cSectionDragList.CSectionEdit.CSectionEditIndex is null;
 
     private void CSectionDragStart(int dragIndex)
     {
@@ -155,9 +158,9 @@ public sealed class CSectionDrag
     // The row goes to the slot before the target; the move the engine refuses leaves the drag where it was.
     private void CSectionDragUpdate(bool editable, int source, int target)
     {
-        int clamped = Math.Clamp(target, 0, _cSectionDragOwner.CSectionRowCount);
+        int clamped = Math.Clamp(target, 0, _cSectionDragList.CSectionRowCount);
         int insert = source < clamped ? clamped - 1 : clamped;
-        if (source == insert || !_cSectionDragOwner.CSectionMove(editable, source, clamped))
+        if (source == insert || !_cSectionDragSection.CSectionMove(editable, source, clamped))
         {
             return;
         }
@@ -178,6 +181,6 @@ public sealed class CSectionDrag
             }
         }
 
-        return Math.Clamp(target, 0, _cSectionDragOwner.CSectionRowCount);
+        return Math.Clamp(target, 0, _cSectionDragList.CSectionRowCount);
     }
 }

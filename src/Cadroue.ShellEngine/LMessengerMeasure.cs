@@ -2,11 +2,11 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerMeasure
 {
-    private static void LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
+    internal static void LMessengerSourceResolve(IReadOnlyList<LWorkItem> lMessengerItems)
     {
-        if (LStation.LStationMeasurement is { } lMessengerSchedule)
+        if (LStationEngine.LStationMeasurement is { } lMessengerSchedule)
         {
             foreach (LWorkItem lMessengerItem in lMessengerItems)
             {
@@ -24,7 +24,7 @@ public static partial class LMessenger
             var lMessengerMergeBytes = new List<long>(lMessengerItem.LWorkMergeSources.Count);
             foreach (string lMessengerSource in lMessengerItem.LWorkMergeSources)
             {
-                lMessengerMergeBytes.Add(LScout.LScoutBytesRead(lMessengerSource) ?? 0);
+                lMessengerMergeBytes.Add(LScoutBytes.LScoutBytesRead(lMessengerSource) ?? 0);
             }
 
             lMessengerSchedule.LScheduleBytesSet(lMessengerItem.LWorkId, null, lMessengerMergeBytes);
@@ -32,7 +32,7 @@ public static partial class LMessenger
         }
 
         lMessengerSchedule.LScheduleBytesSet(
-            lMessengerItem.LWorkId, LScout.LScoutBytesRead(lMessengerItem.LWorkSourcePath), Array.Empty<long>());
+            lMessengerItem.LWorkId, LScoutBytes.LScoutBytesRead(lMessengerItem.LWorkSourcePath), Array.Empty<long>());
     }
 
     public static void LMessengerMeasureCancel() => LSubsidiary.LSubsidiaryCancel();

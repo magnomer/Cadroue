@@ -13,7 +13,6 @@ public sealed class CLoudness
 {
     private const string _cLoudnessCustomToken = "Custom";
     private const string _cLoudnessCustomKey = "Inspector.Common.Custom";
-    private const string _cLoudnessCustomBased = "Inspector.Common.PresetCustom";
     private const int _cLoudnessDynamicFirst = 3;
     private const int _cLoudnessLevelCount = 3;
     private const int _cLoudnessDynamicCount = 4;
@@ -88,20 +87,12 @@ public sealed class CLoudness
 
     // One row per preset of the mode and a custom row last, each mode matched on its own slots whatever the held
     // mode. The custom row shows the preset it drifted from, when there is one.
-    public IReadOnlyList<CChoice> CLoudnessChoicesRead(bool dynamic)
-    {
-        string? preset = _cLoudnessPort.LLoudnessMatchFind(dynamic, _cLoudnessValues);
-        List<CChoice> rows = CLoudnessTokensRead(dynamic)
-            .Select(token => new CChoice(token, CLoudnessKeyRead(dynamic, token), null, token == preset))
-            .ToList();
-        bool drifted = preset is null && _cLoudnessToken is not null;
-        rows.Add(new CChoice(
-            null,
-            drifted ? _cLoudnessCustomBased : _cLoudnessCustomKey,
-            drifted ? CLoudnessKeyRead(dynamic, _cLoudnessToken!) : null,
-            !rows.Any(row => row.CChoiceChosen)));
-        return rows;
-    }
+    public IReadOnlyList<CChoice> CLoudnessChoicesRead(bool dynamic) =>
+        CChoicePreset.CChoicePresetRead(
+            CLoudnessTokensRead(dynamic),
+            _cLoudnessPort.LLoudnessMatchFind(dynamic, _cLoudnessValues),
+            _cLoudnessToken,
+            token => CLoudnessKeyRead(dynamic, token));
 
     // A row out of range reads as the mode's first row.
     public double CLoudnessValueRead(bool dynamic, int index) =>

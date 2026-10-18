@@ -123,7 +123,7 @@ public sealed class TNoiseGate
             TInspectorNoise = (true, new List<double> { 10, 5, -50, -40, 0.8 }, false, 0, "Dialogue")
         };
 
-        tNoiseInspector.CInspectorAudioAccept(plan);
+        tNoiseInspector.CInspectorAudio.CInspectorAudioAccept(plan);
 
         Assert.True(tNoiseGate.CNoiseActive);
         Assert.Equal("Dialogue", tNoiseGate.CNoiseToken);

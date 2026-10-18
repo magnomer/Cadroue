@@ -11,7 +11,6 @@ public sealed record LSealNode(
 public static class LSeal
 {
     private static readonly HashSet<(Guid lSealCohort, Guid lSealNode)> lSealFired = new();
-    private static readonly Dictionary<Guid, int> lSealPending = new();
     private static bool lSealSweeping;
 
     public static Func<IReadOnlyList<LSealNode>?>? LSealNodesSource { get; set; }
@@ -21,39 +20,6 @@ public static class LSeal
     private static IReadOnlyList<LWorkItem> LSealScheduleRead() =>
         (IReadOnlyList<LWorkItem>?)LMessenger.LMessengerScheduleSource?.Invoke()?.LScheduleRecords
             ?? Array.Empty<LWorkItem>();
-
-    private static bool LSealDeliveredCheck(Guid lSealWorkId) =>
-        LCartographer.LCartographerDeliveredCheck(lSealWorkId);
-
-    public static void LSealPendingAdd(Guid lSealCohort)
-    {
-        if (lSealCohort == Guid.Empty)
-        {
-            return;
-        }
-
-        lSealPending[lSealCohort] = LSealPendingRead(lSealCohort) + 1;
-    }
-
-    public static void LSealPendingRemove(Guid lSealCohort)
-    {
-        if (!lSealPending.TryGetValue(lSealCohort, out int lSealCount))
-        {
-            return;
-        }
-
-        if (lSealCount <= 1)
-        {
-            lSealPending.Remove(lSealCohort);
-        }
-        else
-        {
-            lSealPending[lSealCohort] = lSealCount - 1;
-        }
-    }
-
-    public static int LSealPendingRead(Guid lSealCohort) =>
-        lSealPending.TryGetValue(lSealCohort, out int lSealCount) ? lSealCount : 0;
 
     public static void LSealRun()
     {
@@ -117,7 +83,7 @@ public static class LSeal
         IReadOnlyList<LWorkItem> lSealItems,
         IReadOnlyList<LSealNode> lSealNodes)
     {
-        if (LSealPendingRead(lSealCohort) > 0)
+        if (LSealPending.LSealPendingRead(lSealCohort) > 0)
         {
             return false;
         }
@@ -132,7 +98,7 @@ public static class LSeal
             bool lSealProducing = lSealItem.LWorkRunState.LWorkStateCurrent != LWorkState.LWorkStateDone;
             bool lSealUndelivered = lSealItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone
                 && lSealItem.LWorkRunState.LWorkOwnerProcess == Environment.ProcessId
-                && !LSealDeliveredCheck(lSealItem.LWorkId);
+                && !LCartographer.LCartographerDeliveredCheck(lSealItem.LWorkId);
             if ((lSealProducing || lSealUndelivered) && LSealReachCheck(lSealItem.LWorkRelayTarget, lSealNode))
             {
                 return false;
@@ -171,7 +137,7 @@ public static class LSeal
                 return true;
             }
 
-            lSealCurrent = LCartographer.LCartographerTargetRead(lSealCurrent);
+            lSealCurrent = LCartographerRoute.LCartographerTargetRead(lSealCurrent);
         }
 
         return false;

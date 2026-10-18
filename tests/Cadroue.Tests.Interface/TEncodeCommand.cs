@@ -71,7 +71,7 @@ internal sealed partial class TEncodeCommand : IDisposable
             lWorkCrop: crop, lWorkVideo: video, lWorkAudio: audio, lWorkMergeSources: mergeSources);
 
     internal static IReadOnlyList<LEncodeStage> TEncodeStagesBuild(LWorkItem work) =>
-        LEncode.LEncodeStagesBuild(work);
+        LEncodePlan.LEncodeStagesBuild(work);
 
     internal static void TSourcePixelApply(LWorkItem work, string pixel) =>
         work.LWorkSourceMedia = new LWorkMedia(1920, 1080, 30, 120_000, true)

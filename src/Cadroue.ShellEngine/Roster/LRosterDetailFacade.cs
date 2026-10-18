@@ -16,7 +16,7 @@ public sealed class LRosterDetailFacade
         ArgumentNullException.ThrowIfNull(lStation);
         ArgumentNullException.ThrowIfNull(lPlace);
         if (lWorkId == Guid.Empty
-            || LStation.LStationSchedule is not { } lSchedule
+            || LStationEngine.LStationSchedule is not { } lSchedule
             || lSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lWorkId) is not { } lItem)
         {
             return null;
@@ -25,6 +25,6 @@ public sealed class LRosterDetailFacade
         (Guid lBatch, Guid lRelay, string lTab) = lPlace();
         bool lOwned = lStation.LStationRunner.LRunnerOwnerCheck(lItem);
         return LRosterJob.LRosterJobCreate(
-            lItem, lOwned, LCartographer.LCartographerTitleRead(lBatch, lRelay, lTab), () => DateTimeOffset.Now);
+            lItem, lOwned, LCartographerTitle.LCartographerTitleRead(lBatch, lRelay, lTab), () => DateTimeOffset.Now);
     }
 }

@@ -3,26 +3,20 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJob
 {
     private readonly LRunner lJobOwner;
     private readonly LWorkItem lJobItem;
     private readonly CancellationTokenSource lJobSource;
     private readonly CancellationToken lJobToken;
+    private readonly LJobReservation lJobReservation = new();
+    private readonly LJobCollision lJobCollision;
+    private readonly LJobFile lJobFile;
+    private readonly LJobVerdict lJobVerdict;
+    private readonly LJobSalvage lJobSalvage;
+    private readonly LJobMeasure lJobMeasure;
+    private LJobStage? lJobStage;
     private volatile bool lJobCancelled;
-
-    private double lJobTotalSeconds;
-    private long lJobBlockMicroseconds = -1;
-    private System.Text.StringBuilder? lJobProgressBlock;
-
-    private readonly List<LEncodeStage> lJobStagesDone = new();
-    private readonly List<string> lJobReserved = new();
-    private Stopwatch lJobClock = null!;
-    private string lJobDirectory = string.Empty;
-    private double lJobRunSeconds;
-    private string lJobFinalPath = string.Empty;
-    private LWorkState? lJobValidateState;
-    private string lJobValidateMessage = string.Empty;
 
     internal LJob(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobStopToken)
     {
@@ -30,6 +24,11 @@ internal sealed partial class LJob
         lJobItem = lJobWorkItem;
         lJobSource = CancellationTokenSource.CreateLinkedTokenSource(lJobStopToken);
         lJobToken = lJobSource.Token;
+        lJobCollision = new LJobCollision(lJobItem, lJobReservation);
+        lJobFile = new LJobFile(lJobItem, lJobCollision);
+        lJobVerdict = new LJobVerdict(lJobOwner, lJobItem, lJobToken);
+        lJobSalvage = new LJobSalvage(lJobOwner, lJobItem, lJobToken);
+        lJobMeasure = new LJobMeasure(lJobOwner, lJobItem, lJobToken);
     }
 
     internal Task LJobCompletion { get; private set; } = Task.CompletedTask;
@@ -51,7 +50,6 @@ internal sealed partial class LJob
     private async Task LJobRun()
     {
         var pJobClock = Stopwatch.StartNew();
-        lJobClock = pJobClock;
         if (lJobOwner.LRunnerPendingRemove(lJobItem.LWorkId))
         {
             LJobCancel();
@@ -59,19 +57,12 @@ internal sealed partial class LJob
 
         try
         {
-            string pJobInvalid = await LJobValidate().ConfigureAwait(false);
+            string pJobInvalid = await new LJobPreflight(lJobOwner, lJobItem, lJobToken, lJobCollision)
+                .LJobValidate().ConfigureAwait(false);
             if (pJobInvalid.Length > 0)
             {
-                LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
-                lJobOwner.LRunnerDispatch(() =>
-                {
-                    lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
-                    lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                    lJobItem.LWorkRunState.LWorkMessage = pJobInvalid;
-                    lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pJobInvalid);
-                    lJobOwner.lRunnerSchedule.LScheduleLoad();
-                });
-                lJobOwner.LRunnerFailureApply();
+                LRunnerTrace.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobInvalid}");
+                LJobFailureCommit(pJobInvalid);
                 return;
             }
 
@@ -90,19 +81,11 @@ internal sealed partial class LJob
                 Directory.CreateDirectory(pDirectory);
             }
 
-            string pJobCollision = LJobCollisionApply();
+            string pJobCollision = lJobCollision.LJobCollisionApply();
             if (pJobCollision.Length > 0)
             {
-                LRunner.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
-                lJobOwner.LRunnerDispatch(() =>
-                {
-                    lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
-                    lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                    lJobItem.LWorkRunState.LWorkMessage = pJobCollision;
-                    lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pJobCollision);
-                    lJobOwner.lRunnerSchedule.LScheduleLoad();
-                });
-                lJobOwner.LRunnerFailureApply();
+                LRunnerTrace.LRunnerRecord($"Encode skipped '{lJobItem.LWorkOutputName}': {pJobCollision}");
+                LJobFailureCommit(pJobCollision);
                 return;
             }
 
@@ -113,64 +96,33 @@ internal sealed partial class LJob
                 await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
                     .ConfigureAwait(false);
 
-            lJobDirectory = pDirectory;
             lJobItem.LWorkRunState.LWorkStartTime = DateTimeOffset.Now;
             lJobItem.LWorkRunState.LWorkFinishTime = null;
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Encode started '{lJobItem.LWorkOutputName}': {lJobItem.LWorkKind} at {lJobItem.LWorkPriority}, " +
                 $"{lJobItem.LWorkOrigin:hh\\:mm\\:ss\\.fff}-{lJobItem.LWorkEnd:hh\\:mm\\:ss\\.fff} " +
                 $"from '{Path.GetFileName(lJobItem.LWorkSourcePath)}' to '{lJobItem.LWorkOutputPath}'");
 
-            double pTotalSeconds = lJobItem.LWorkKind switch
-            {
-                LWorkKind.LWorkKindAudio =>
-                    (await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
-                        .ConfigureAwait(false))
-                        ?.LWorkMediaDuration.TotalSeconds ?? 0,
-                LWorkKind.LWorkKindMerge =>
-                    await LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken, lJobOwner.LRunnerLevel)
-                        .ConfigureAwait(false),
-                _ => lJobItem.LWorkDuration.TotalSeconds
-            };
-
-            if (pTotalSeconds <= 0 && lJobItem.LWorkKind != LWorkKind.LWorkKindMerge)
-            {
-                pTotalSeconds = (lJobItem.LWorkSourceMedia
-                    ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
-                        .ConfigureAwait(false))
-                    ?.LWorkMediaDuration.TotalSeconds ?? 0;
-            }
-
-            lJobRunSeconds = pTotalSeconds;
-            (int pExitCode, string pJobError) = await LJobStagesRun().ConfigureAwait(false);
+            double pTotalSeconds = await lJobMeasure.LJobSecondsRead().ConfigureAwait(false);
+            lJobStage = new LJobStage(
+                lJobOwner, lJobItem, lJobToken, lJobReservation, lJobVerdict, pJobClock, pDirectory, pTotalSeconds);
+            (int pExitCode, string pJobError) = await LJobStagesRun(lJobStage).ConfigureAwait(false);
             lJobToken.ThrowIfCancellationRequested();
 
             string pFailureMessage = string.Empty;
             if (pExitCode == 0)
             {
-                LJobStageCommit();
-                LRunner.LRunnerRecord(
+                lJobCollision.LJobStageCommit();
+                LRunnerTrace.LRunnerRecord(
                     $"Encode finished '{lJobItem.LWorkOutputName}' in {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff} " +
                     $"[{lJobItem.LWorkOutputPath}]");
             }
             else
             {
-                string pTail = LJobTailRead(pJobError);
+                string pTail = LJobFailure.LJobTailRead(pJobError);
                 LAutopsyResult pAutopsy = LAutopsy.LAutopsyResolve(pExitCode);
-                string pSymbol = pAutopsy.LAutopsyResultSymbol is { Length: > 0 } pAutopsySymbol
-                    ? $" {pAutopsySymbol}"
-                    : string.Empty;
-
-                LRunner.LRunnerRecord(
-                    $"Encode failed '{lJobItem.LWorkOutputName}': {pAutopsy.LAutopsyResultTechnical} " +
-                    $"(exit {pAutopsy.LAutopsyResultCode}{pSymbol}) " +
-                    $"after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}. {pTail}");
-
-                pFailureMessage = pAutopsy.LAutopsyResultVisible
-                    ? pAutopsy.LAutopsyResultAction is { Length: > 0 } pAutopsyAction
-                        ? $"{pAutopsy.LAutopsyResultSimple} {pAutopsyAction}"
-                        : pAutopsy.LAutopsyResultSimple
-                    : $"FFmpeg exited with code {pExitCode}. {LJobTailShorten(pTail)}";
+                LJobFailure.LJobFailureRecord(lJobItem, pAutopsy, pTail, pJobClock.Elapsed);
+                pFailureMessage = LJobFailure.LJobFailureDescribe(pAutopsy, pExitCode, pTail);
 
                 if (await LJobRetryStart(pFailureMessage).ConfigureAwait(false))
                 {
@@ -180,9 +132,9 @@ internal sealed partial class LJob
 
             bool pExitClean = pExitCode == 0;
             LWorkState pTerminalState = pExitClean
-                ? lJobValidateState ?? LWorkState.LWorkStateDone
+                ? lJobVerdict.LJobValidateState ?? LWorkState.LWorkStateDone
                 : LWorkState.LWorkStateFailed;
-            long? pOutputBytes = LScout.LScoutBytesRead(lJobItem.LWorkOutputPath);
+            long? pOutputBytes = LScoutBytes.LScoutBytesRead(lJobItem.LWorkOutputPath);
             if (pTerminalState == LWorkState.LWorkStateDone && pOutputBytes is not > 0)
             {
                 pExitClean = false;
@@ -190,24 +142,24 @@ internal sealed partial class LJob
                 pFailureMessage = pOutputBytes is null
                     ? "FFmpeg reported success but the output file was not produced."
                     : "FFmpeg reported success but the output file is empty.";
-                LRunner.LRunnerRecord($"Encode failed '{lJobItem.LWorkOutputName}': {pFailureMessage}");
+                LRunnerTrace.LRunnerRecord($"Encode failed '{lJobItem.LWorkOutputName}': {pFailureMessage}");
             }
 
             bool pSucceeded = pTerminalState == LWorkState.LWorkStateDone;
 
             if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix && !pSucceeded)
             {
-                await LJobOutputClear().ConfigureAwait(false);
+                await lJobFile.LJobOutputClear().ConfigureAwait(false);
             }
 
-            long? pSourceBytes = lJobItem.LWorkSourceBytes ?? LScout.LScoutInputRead(lJobItem, lJobToken);
+            long? pSourceBytes = lJobItem.LWorkSourceBytes ?? LScoutBytes.LScoutInputRead(lJobItem);
             IReadOnlyList<long> pMergeBytes = lJobItem.LWorkMergeBytes.Count > 0
                 ? lJobItem.LWorkMergeBytes
-                : LJobMergeRead();
+                : lJobMeasure.LJobMergeRead();
             LWorkMedia? pSourceMedia = lJobItem.LWorkSourceMedia
                 ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
                     .ConfigureAwait(false);
-            LWorkMedia? pOutputMedia = await LJobOutputResolve(
+            LWorkMedia? pOutputMedia = await lJobMeasure.LJobOutputResolve(
                 await LScout.LScoutMediaRead(lJobItem.LWorkOutputPath, lJobToken, lJobOwner.LRunnerLevel)
                     .ConfigureAwait(false),
                 lJobItem.LWorkOutputPath,
@@ -223,11 +175,11 @@ internal sealed partial class LJob
                 lJobItem.LWorkRunState.LWorkProgress = pSucceeded ? 1 : lJobItem.LWorkRunState.LWorkProgress;
                 lJobItem.LWorkRunState.LWorkStateCurrent = pTerminalState;
                 lJobItem.LWorkRunState.LWorkMessage = pExitClean
-                    ? lJobValidateState is null ? string.Empty : lJobValidateMessage
+                    ? lJobVerdict.LJobValidateState is null ? string.Empty : lJobVerdict.LJobValidateMessage
                     : pFailureMessage;
 
                 lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, pSucceeded, lJobItem.LWorkRunState.LWorkMessage);
-                LJobSalvageRecord();
+                lJobSalvage.LJobSalvageRecord();
                 lJobOwner.lRunnerSchedule.LScheduleLoad();
             });
 
@@ -244,7 +196,7 @@ internal sealed partial class LJob
         }
         catch (OperationCanceledException) when (lJobCancelled)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Encode cancelled '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
                 $"job kept as cancelled (restartable), continuing with the queue");
             lJobOwner.LRunnerDispatch(() =>
@@ -255,7 +207,7 @@ internal sealed partial class LJob
         }
         catch (OperationCanceledException)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Encode stopped '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}; " +
                 $"returned to the queue");
             await LJobAttemptClear().ConfigureAwait(false);
@@ -264,7 +216,7 @@ internal sealed partial class LJob
         }
         catch (Exception pException)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Encode failed '{lJobItem.LWorkOutputName}' after {pJobClock.Elapsed:hh\\:mm\\:ss\\.fff}", pException);
             if (!lJobToken.IsCancellationRequested
                 && await LJobRetryStart(pException.Message).ConfigureAwait(false))
@@ -274,19 +226,10 @@ internal sealed partial class LJob
 
             if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
             {
-                await LJobOutputClear().ConfigureAwait(false);
+                await lJobFile.LJobOutputClear().ConfigureAwait(false);
             }
 
-            lJobOwner.LRunnerDispatch(() =>
-            {
-                lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
-                lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
-                lJobItem.LWorkRunState.LWorkMessage = pException.Message;
-                lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pException.Message);
-                lJobOwner.lRunnerSchedule.LScheduleLoad();
-            });
-
-            lJobOwner.LRunnerFailureApply();
+            LJobFailureCommit(pException.Message);
         }
         finally
         {
@@ -295,12 +238,83 @@ internal sealed partial class LJob
         }
     }
 
+    private async Task<(int, string)> LJobStagesRun(LJobStage pStage)
+    {
+        if (!LEncodeSmart.LEncodeSmartCheck(lJobItem))
+        {
+            return await new LJobSmart(lJobOwner, lJobItem, lJobToken, pStage).LJobSmartRun().ConfigureAwait(false);
+        }
+
+        if (string.Equals(
+            lJobItem.LWorkOutput.LEncodingVideo.LEncodingMode, "Smart", StringComparison.OrdinalIgnoreCase))
+        {
+            LRunnerTrace.LRunnerRecord(
+                lJobItem.LWorkKind != LWorkKind.LWorkKindSplit
+                    ? $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
+                        $"smart encoding applies to split tabs only; encoding the full requested interval"
+                    : $"Smart encoding fallback for '{lJobItem.LWorkOutputName}': " +
+                        $"the item has edits or an fps change; encoding the full requested interval");
+        }
+
+        if (lJobItem.LWorkKind == LWorkKind.LWorkKindFix)
+        {
+            return await new LJobFix(lJobItem, lJobToken, pStage, lJobVerdict, lJobSalvage)
+                .LJobFixRun().ConfigureAwait(false);
+        }
+
+        IReadOnlyList<LEncodeStage> pStages = LEncodePlan.LEncodeStagesBuild(lJobItem);
+        if (pStages.Count == 0)
+        {
+            throw new InvalidOperationException("the stored job produced no encode steps (incomplete or corrupt)");
+        }
+
+        return await pStage.LJobBatchRun(pStages, 0, pStages.Count).ConfigureAwait(false);
+    }
+
+    private void LJobFailureCommit(string pJobFailure)
+    {
+        lJobOwner.LRunnerDispatch(() =>
+        {
+            lJobItem.LWorkRunState.LWorkFinishTime = DateTimeOffset.Now;
+            lJobItem.LWorkRunState.LWorkStateCurrent = LWorkState.LWorkStateFailed;
+            lJobItem.LWorkRunState.LWorkMessage = pJobFailure;
+            lJobOwner.lRunnerTransition.LScheduleCommit(lJobItem, false, pJobFailure);
+            lJobOwner.lRunnerSchedule.LScheduleLoad();
+        });
+        lJobOwner.LRunnerFailureApply();
+    }
+
+    private async Task<bool> LJobRetryStart(string pJobReason)
+    {
+        if (!lJobOwner.LRunnerRetryAllowed
+            || lJobOwner.LRunnerRetryMaximum <= 0
+            || lJobItem.LWorkRunState.LWorkRetryCount >= lJobOwner.LRunnerRetryMaximum)
+        {
+            return false;
+        }
+
+        await LJobAttemptClear().ConfigureAwait(false);
+        int pRetry = 0;
+        lJobOwner.LRunnerDispatch(() => pRetry = lJobOwner.lRunnerScheduleLease.LScheduleRetryRelease(
+            lJobItem.LWorkId, lJobOwner.LRunnerIdentity, lJobOwner.LRunnerRetryMaximum, pJobReason));
+        if (pRetry == 0)
+        {
+            return false;
+        }
+
+        LRunnerTrace.LRunnerRecord(
+            $"Encode requeued '{lJobItem.LWorkOutputName}': {pJobReason} " +
+            $"Retry {pRetry} of {lJobOwner.LRunnerRetryMaximum}.");
+        return true;
+    }
+
     private async Task LJobAttemptClear()
     {
         lJobOwner.LRunnerProcess.LRunnerProcessDetach(lJobItem.LWorkId);
         lJobOwner.LRunnerLease.LRunnerLeaseStop(lJobItem.LWorkId);
-        await LJobTempClear(lJobStagesDone).ConfigureAwait(false);
-        LJobReservedClear();
-        LEncode.LEncodeBridgeClear(lJobItem.LWorkId);
+        await LJobFile.LJobTempClear(lJobStage?.LJobStagesDone ?? Array.Empty<LEncodeStage>())
+            .ConfigureAwait(false);
+        lJobReservation.LJobReservedClear();
+        LEncodeJoin.LEncodeBridgeClear(lJobItem.LWorkId);
     }
 }

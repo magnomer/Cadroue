@@ -13,7 +13,7 @@ public sealed class LLineageFacade
 
     public LLineageAnswer LLineageResolve(IReadOnlyList<Guid> lIds)
     {
-        if (LStation.LStationSchedule is not { } lSchedule)
+        if (LStationEngine.LStationSchedule is not { } lSchedule)
         {
             return new LLineageAnswer([], [], []);
         }
@@ -37,7 +37,7 @@ public sealed class LLineageFacade
 
     public LLineageBatch LLineageBatchResolve(Guid lBatchId)
     {
-        LScheduleContract? lSchedule = LStation.LStationSchedule;
+        LScheduleContract? lSchedule = LStationEngine.LStationSchedule;
         return LLineageBatchCreate(
             LScheduleLineagePlan.LScheduleBatchResolve(
                 lSchedule, lBatchId, LLineageEngine.LLineageWorkSeam, LUsherEnvironmentEngine.LUsherPathSeam),
@@ -45,7 +45,7 @@ public sealed class LLineageFacade
     }
 
     public string LLineageTitleRead(Guid lBatchId, Guid lRelaySource, string lTab) =>
-        LCartographer.LCartographerTitleRead(lBatchId, lRelaySource, lTab);
+        LCartographerTitle.LCartographerTitleRead(lBatchId, lRelaySource, lTab);
 
     private static LLineageGroup LLineageGroupCreate(LScheduleLineageEntry lEntry) =>
         new(

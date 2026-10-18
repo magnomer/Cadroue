@@ -57,12 +57,12 @@ public sealed class QInspectorAudio
 
     // The gate answers the plan of its tools in the order of these processing steps, with the skip switch.
     public LWorkAudio QInspectorAudioRead(IReadOnlyList<string> lProcessing) =>
-        qInspectorAudioGate.CInspectorAudioRead(lProcessing).LInspectorAudioRead();
+        qInspectorAudioGate.CInspectorAudio.CInspectorAudioRead(lProcessing).LInspectorAudioRead();
 
     public void QInspectorAudioApply(LWorkAudio lPlan)
     {
         qInspectorAudioDepth++;
-        qInspectorAudioGate.CInspectorAudioAccept(new LInspectorOutlet(lPlan));
+        qInspectorAudioGate.CInspectorAudio.CInspectorAudioAccept(new LInspectorOutlet(lPlan));
         qInspectorAudioDepth--;
         QInspectorAudioChanged?.Invoke();
     }
@@ -78,11 +78,11 @@ public sealed class QInspectorAudio
 
     // The plan was applied just before: the gate keeps each gated tool of the plan it holds, then the skip switch.
     public void QInspectorPersistentApply(bool lSkipPersistent) =>
-        qInspectorAudioGate.CInspectorPersistentAccept(lSkipPersistent);
+        qInspectorAudioGate.CInspectorAudio.CInspectorPersistentAccept(lSkipPersistent);
 
     // The gate answers the kept plan of its tools with the kept skip switch.
     public LWorkAudio QInspectorPersistentRead() =>
-        qInspectorAudioGate.CInspectorPersistentRead().LInspectorAudioRead();
+        qInspectorAudioGate.CInspectorAudio.CInspectorPersistentRead().LInspectorAudioRead();
 
     private void QInspectorAudioRaise()
     {

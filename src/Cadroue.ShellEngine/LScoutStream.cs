@@ -39,7 +39,7 @@ internal static class LScoutStream
         }
         catch (Exception lScoutException)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Stream properties could not be read '{Path.GetFileName(lScoutMediaPath)}'",
                 lScoutException);
             return null;

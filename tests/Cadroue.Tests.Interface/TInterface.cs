@@ -202,8 +202,9 @@ internal static partial class TInterface
         IEnumerable<Guid> workIds, IReadOnlyDictionary<Guid, LWorkState> states) =>
         LScheduleRemover.LScheduleRemovableResolve(workIds, states);
     internal static bool TJobCollisionCheck(string output, IReadOnlyList<string> sources) =>
-        LJob.LJobCollisionCheck(output, sources);
-    internal static IReadOnlyList<string> TEncodeGeometryRead(LWorkCrop crop) => LEncodeVideo.LEncodeGeometryRead(crop);
+        LJobCollision.LJobCollisionCheck(output, sources);
+    internal static IReadOnlyList<string> TEncodeGeometryRead(LWorkCrop crop) =>
+        LEncodeVideoGeometry.LEncodeGeometryRead(crop);
 
     internal static IReadOnlyList<LSectionPaletteFile> TSectionPaletteLoad(string folder) =>
         LSectionPaletteStore.LSectionPaletteLoad(folder);
@@ -241,15 +242,15 @@ internal static partial class TInterface
 
     internal static LLineageAnswer TLineageResolve(LScheduleContract schedule, IReadOnlyList<Guid> ids)
     {
-        LScheduleContract? previous = LStation.LStationSchedule;
-        LStation.LStationSchedule = schedule;
+        LScheduleContract? previous = LStationEngine.LStationSchedule;
+        LStationEngine.LStationSchedule = schedule;
         try
         {
             return new LLineageOutlet(TInterfaceEngine).LLineageResolve(ids);
         }
         finally
         {
-            LStation.LStationSchedule = previous;
+            LStationEngine.LStationSchedule = previous;
         }
     }
     internal static LScheduleLineageAnswer TLineagePlanRead(LScheduleContract schedule, IReadOnlyList<Guid> ids) =>

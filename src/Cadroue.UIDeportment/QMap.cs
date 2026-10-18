@@ -86,8 +86,8 @@ public sealed class QMap
     {
         qFlow = lOwner;
         QMapGate = lGate;
-        lGate.CMapDragChanged += QMapDragRaise;
-        lGate.CMapSpoolChanged += QMapSpoolRaise;
+        lGate.CMapDrag.CMapDragChanged += QMapDragRaise;
+        lGate.CMapDrag.CMapSpoolChanged += QMapSpoolRaise;
         QMapFlowAttach();
     }
 
@@ -107,16 +107,16 @@ public sealed class QMap
     }
 
     public QMapHitKind QMapHoverResolve(double lX, double lY, double lWidth, double lHeight) =>
-        qMapHits[QMapGate.CMapHoverResolve(lX, lY, lWidth, lHeight)];
+        qMapHits[QMapGate.CMapDrag.CMapHoverResolve(lX, lY, lWidth, lHeight)];
 
-    public QMapHitKind QMapLeaveResolve() => qMapHits[QMapGate.CMapLeaveResolve()];
+    public QMapHitKind QMapLeaveResolve() => qMapHits[QMapGate.CMapDrag.CMapLeaveResolve()];
 
     public bool QMapPressHandle(double lX, double lY, double lWidth, double lHeight) =>
-        QMapGate.CMapPressHandle(lX, lY, lWidth, lHeight);
+        QMapGate.CMapDrag.CMapPressHandle(lX, lY, lWidth, lHeight);
 
-    public bool QMapMoveHandle(double lX, double lWidth) => QMapGate.CMapMoveHandle(lX, lWidth);
+    public bool QMapMoveHandle(double lX, double lWidth) => QMapGate.CMapDrag.CMapMoveHandle(lX, lWidth);
 
-    public void QMapDragClear() => QMapGate.CMapDragClear();
+    public void QMapDragClear() => QMapGate.CMapDrag.CMapDragClear();
 
     // Each flow notice that redraws the map is its own handler, naming itself as the draw's trigger.
     private void QMapFlowAttach()

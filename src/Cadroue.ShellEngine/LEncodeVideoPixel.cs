@@ -3,9 +3,9 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal static partial class LEncodeVideo
+internal static class LEncodeVideoPixel
 {
-    private static string LEncodePixelResolve(LWorkItem lWorkItem, LEncodingVideo lVideo)
+    internal static string LEncodePixelResolve(LWorkItem lWorkItem, LEncodingVideo lVideo)
     {
         string lPixel = lVideo.LEncodingPixel?.Trim() ?? string.Empty;
         if (lPixel.Length > 0 && !string.Equals(lPixel, "Auto", StringComparison.OrdinalIgnoreCase))
@@ -101,25 +101,4 @@ internal static partial class LEncodeVideo
         || lPixel.StartsWith("argb", StringComparison.OrdinalIgnoreCase)
         || lPixel.StartsWith("abgr", StringComparison.OrdinalIgnoreCase)
         || lPixel.StartsWith("ya", StringComparison.OrdinalIgnoreCase);
-
-    private static IReadOnlyList<string> LEncodeColorNormalize(LWorkItem lWorkItem, LEncoding lOutput)
-    {
-        LWorkMedia? lMedia = lWorkItem.LWorkSourceMedia;
-        string lSourcePixel = lMedia?.LWorkMediaPixel ?? string.Empty;
-        string lSourceRange = lMedia?.LWorkMediaRange ?? string.Empty;
-        bool lFullRange = string.Equals(lSourceRange, "pc", StringComparison.OrdinalIgnoreCase)
-            || lSourcePixel.StartsWith("yuvj", StringComparison.OrdinalIgnoreCase);
-
-        string lPixel = lOutput.LEncodingVideo.LEncodingPixel;
-        string lTargetPixel = !string.IsNullOrWhiteSpace(lPixel)
-            && !string.Equals(lPixel, "Auto", StringComparison.OrdinalIgnoreCase)
-                ? lPixel
-                : string.IsNullOrWhiteSpace(lSourcePixel) ? "yuv420p" : lSourcePixel;
-
-        return new[]
-        {
-            "scale=in_range=full:out_range=" + (lFullRange ? "pc" : "tv"),
-            "format=" + lTargetPixel
-        };
-    }
 }

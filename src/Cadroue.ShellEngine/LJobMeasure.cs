@@ -2,9 +2,45 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJobMeasure
 {
-    private IReadOnlyList<long> LJobMergeRead()
+    private readonly LRunner lJobOwner;
+    private readonly LWorkItem lJobItem;
+    private readonly CancellationToken lJobToken;
+
+    internal LJobMeasure(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobStopToken)
+    {
+        lJobOwner = lJobRunner;
+        lJobItem = lJobWorkItem;
+        lJobToken = lJobStopToken;
+    }
+
+    internal async Task<double> LJobSecondsRead()
+    {
+        double pTotalSeconds = lJobItem.LWorkKind switch
+        {
+            LWorkKind.LWorkKindAudio =>
+                (await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false))
+                    ?.LWorkMediaDuration.TotalSeconds ?? 0,
+            LWorkKind.LWorkKindMerge =>
+                await LScout.LScoutMergeRead(lJobItem.LWorkMergeSources, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false),
+            _ => lJobItem.LWorkDuration.TotalSeconds
+        };
+
+        if (pTotalSeconds <= 0 && lJobItem.LWorkKind != LWorkKind.LWorkKindMerge)
+        {
+            pTotalSeconds = (lJobItem.LWorkSourceMedia
+                ?? await LScout.LScoutMediaRead(lJobItem.LWorkSourcePath, lJobToken, lJobOwner.LRunnerLevel)
+                    .ConfigureAwait(false))
+                ?.LWorkMediaDuration.TotalSeconds ?? 0;
+        }
+
+        return pTotalSeconds;
+    }
+
+    internal IReadOnlyList<long> LJobMergeRead()
     {
         if (lJobItem.LWorkMergeSources.Count <= 1)
         {
@@ -14,13 +50,13 @@ internal sealed partial class LJob
         var pMergeBytes = new List<long>(lJobItem.LWorkMergeSources.Count);
         foreach (string pMergeSource in lJobItem.LWorkMergeSources)
         {
-            pMergeBytes.Add(LScout.LScoutBytesRead(pMergeSource) ?? 0);
+            pMergeBytes.Add(LScoutBytes.LScoutBytesRead(pMergeSource) ?? 0);
         }
 
         return pMergeBytes;
     }
 
-    private async Task<LWorkMedia?> LJobOutputResolve(
+    internal async Task<LWorkMedia?> LJobOutputResolve(
         LWorkMedia? pOutputMedia, string pOutputPath, LWorkMedia? pSourceMedia)
     {
         if (pOutputMedia is null)

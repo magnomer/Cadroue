@@ -5,8 +5,7 @@ namespace Cadroue.ShellEngine;
 public static class LBastion
 {
     public static IReadOnlySet<Guid> LBastionCohortsRead() =>
-        LBastionCohortsRead(LCartographer.LCartographerScheduleContract?.LScheduleRecords
-            ?? (IReadOnlyList<LWorkItem>)Array.Empty<LWorkItem>());
+        LBastionCohortsRead(LCartographerSchedule.LCartographerScheduleRead());
 
     public static IReadOnlySet<Guid> LBastionCohortsRead(IReadOnlyList<LWorkItem> lBastionRecords)
     {

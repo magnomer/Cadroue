@@ -59,29 +59,10 @@ public sealed class LRunner
 
     public int LRunnerRetryMaximum { get; set; } = 3;
 
-    internal static void LRunnerRecord(string lRunnerMessage, Exception? lRunnerException = null)
-    {
-        if (lRunnerException is null)
-        {
-            LTraceEngine.LTraceInfoSeam(lRunnerMessage);
-            return;
-        }
-
-        LTraceEngine.LTraceErrorSeam(lRunnerMessage, lRunnerException);
-    }
-
-    internal static bool LRunnerVerboseCheck() => LTraceEngine.LTraceVerboseSeam();
-
-    internal static void LRunnerFfmpegRecord(string lRunnerSummary, string? lRunnerDetail = null)
-        => LTraceEngine.LTraceFfmpegSeam(lRunnerSummary, lRunnerDetail);
-
     public Guid LRunnerIdentity => lRunnerId;
 
     public bool LRunnerOwnerCheck(LWorkItem lWorkItem) =>
         lRunnerScheduleLease.LScheduleOwnerCheck(lWorkItem, lRunnerId);
-
-    public bool LRunnerForeignCheck(LWorkItem lWorkItem) =>
-        lRunnerScheduleLease.LScheduleForeignCheck(lWorkItem, lRunnerId);
 
     public bool LRunnerPaused { get; private set; }
 
@@ -176,7 +157,7 @@ public sealed class LRunner
     {
         if (LRunnerRunning || !lRunnerJobs.IsEmpty)
         {
-            LRunnerRecord($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
+            LRunnerTrace.LRunnerRecord($"Worklist tab closed: releasing work held by runner {lRunnerId:N}");
             await LRunnerCancel().ConfigureAwait(false);
         }
 
@@ -267,7 +248,7 @@ public sealed class LRunner
         }
         catch (Exception lRunnerException)
         {
-            LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 "Worker loop stopped on an unexpected error; the queue resumes on the next change",
                 lRunnerException);
         }
@@ -317,7 +298,7 @@ public sealed class LRunner
 
         LRunnerRunning = false;
         LRunnerPaused = true;
-        LRunnerRecord("Queue paused: a job failed and 'Pause queue on failure' is on");
+        LRunnerTrace.LRunnerRecord("Queue paused: a job failed and 'Pause queue on failure' is on");
     }
 
     internal void LRunnerDispatch(Action pAction) => lRunnerPost(pAction);

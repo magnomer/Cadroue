@@ -4,43 +4,25 @@ namespace Cadroue.ShellEngine;
 
 public sealed class LStation
 {
-    private static readonly List<LStation> lStationRecords = new();
-    private static readonly object lStationBoardLock = new();
-    private static LStation? lStationInternal;
-
     private bool lStationAutoActive;
 
-    public static LScheduleContract? LStationSchedule { get; set; }
-
-    public static LScheduleIntakeContract? LStationIntake { get; set; }
-
-    public static LScheduleLeaseContract? LStationLease { get; set; }
-
-    public static LScheduleTransitionContract? LStationTransition { get; set; }
-
-    public static LScheduleMeasurementContract? LStationMeasurement { get; set; }
-
-    public static LScheduleRemoverContract? LStationRemover { get; set; }
-
-    public static Action<Action>? LStationPost { get; set; }
-
-    public static Func<string>? LStationProgramSource { get; set; }
-
-    public static Func<LPreferenceState>? LStationPreferenceSource { get; set; }
-
-    private LStation(string lStationLabel)
+    internal LStation(string lStationLabel)
     {
         LStationLabel = lStationLabel;
         LStationRunner = new LRunner(
-            LStationSchedule!, LStationIntake!, LStationLease!, LStationTransition!, LStationPost!)
+            LStationEngine.LStationSchedule!,
+            LStationEngine.LStationIntake!,
+            LStationEngine.LStationLease!,
+            LStationEngine.LStationTransition!,
+            LStationEngine.LStationPost!)
         {
-            LRunnerProgramPath = LStationProgramSource!()
+            LRunnerProgramPath = LStationEngine.LStationProgramSource!()
         };
-        lStationAutoActive = LStationPreferenceSource!().LPreferenceAutoActive;
-        LStationSchedule!.LScheduleChanged += LStationScheduleHandle;
+        lStationAutoActive = LStationEngine.LStationPreferenceSource!().LPreferenceAutoActive;
+        LStationEngine.LStationSchedule!.LScheduleChanged += LStationScheduleHandle;
     }
 
-    public string LStationLabel { get; private set; }
+    public string LStationLabel { get; internal set; }
 
     public bool LStationAutoActive
     {
@@ -61,71 +43,7 @@ public sealed class LStation
 
     public Func<IReadOnlyList<LWorkItem>>? LStationSelectionSource { get; set; }
 
-    public static event Action? LStationChanged;
-
-    public static IReadOnlyList<LStation> LStationRecords
-    {
-        get
-        {
-            lock (lStationBoardLock)
-            {
-                return lStationRecords.ToArray();
-            }
-        }
-    }
-
-    public static LStation LStationCreate(string lStationLabel)
-    {
-        LStation lStation;
-        LStation? lStationRetired;
-        lock (lStationBoardLock)
-        {
-            lStation = LStationSeedAccept(lStationLabel);
-            lStationRecords.Add(lStation);
-            lStationRetired = LStationInternalRemove();
-        }
-
-        _ = lStationRetired?.LStationRunner.LRunnerDispose();
-        LStationChanged?.Invoke();
-        return lStation;
-    }
-
-    private static LStation LStationSeedAccept(string lStationLabel)
-    {
-        if (lStationRecords.Count > 0 || lStationInternal is null)
-        {
-            return new LStation(lStationLabel);
-        }
-
-        LStation lStationSeed = lStationInternal;
-        lStationInternal = null;
-        lStationSeed.LStationLabel = lStationLabel;
-        return lStationSeed;
-    }
-
-    public static LStation LStationInternalRead()
-    {
-        lock (lStationBoardLock)
-        {
-            lStationInternal ??= new LStation("Background worklist");
-            return lStationInternal;
-        }
-    }
-
-    public static LStation[] LStationBoardRead()
-    {
-        lock (lStationBoardLock)
-        {
-            if (lStationRecords.Count > 0)
-            {
-                return lStationRecords.ToArray();
-            }
-        }
-
-        return new[] { LStationInternalRead() };
-    }
-
-    public void LStationSelectionRaise() => LStationChanged?.Invoke();
+    public void LStationSelectionRaise() => LStationBoard.LStationBoardRaise();
 
     public IReadOnlyList<LWorkItem> LStationSelectionRead()
     {
@@ -143,19 +61,6 @@ public sealed class LStation
     public bool LStationBusyCheck() =>
         LStationRunner.LRunnerRunning || LStationRunner.LRunnerProcess.LRunnerProcessSuspended;
 
-    public static bool LStationActiveCheck()
-    {
-        foreach (LStation lStation in LStationBoardRead())
-        {
-            if (lStation.LStationBusyCheck())
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private void LStationScheduleHandle(LScheduleContract lSchedule) => LStationAutoApply();
 
     private void LStationAutoApply()
@@ -163,13 +68,13 @@ public sealed class LStation
         if (!lStationAutoActive
             || LStationRunner.LRunnerRunning
             || LStationRunner.LRunnerPaused
-            || !LStationLease!.LSchedulePendingExist())
+            || !LStationEngine.LStationLease!.LSchedulePendingExist())
         {
             return;
         }
 
-        LPreferenceState lPreferenceState = LStationPreferenceSource!();
-        LStationRunner.LRunnerProgramPath = LStationProgramSource!();
+        LPreferenceState lPreferenceState = LStationEngine.LStationPreferenceSource!();
+        LStationRunner.LRunnerProgramPath = LStationEngine.LStationProgramSource!();
         LStationRunner.LRunnerFailurePaused = lPreferenceState.LPreferenceFailurePaused;
         LStationRunner.LRunnerRetryAllowed = lPreferenceState.LPreferenceRetryAllowed;
         LStationRunner.LRunnerRetryMaximum = (int)lPreferenceState.LPreferenceRetryMaximum;
@@ -180,37 +85,14 @@ public sealed class LStation
     {
         lStationAutoActive = false;
         LStationSelectionSource = null;
-        LStationSchedule!.LScheduleChanged -= LStationScheduleHandle;
+        LStationEngine.LStationSchedule!.LScheduleChanged -= LStationScheduleHandle;
 
-        bool lStationRemoved;
-        lock (lStationBoardLock)
-        {
-            lStationRemoved = lStationRecords.Remove(this);
-        }
-
-        if (!lStationRemoved)
+        if (!LStationBoard.LStationBoardRemove(this))
         {
             return;
         }
 
         _ = LStationRunner.LRunnerDispose();
-        LStationChanged?.Invoke();
-    }
-
-    private static LStation? LStationInternalRemove()
-    {
-        if (lStationInternal is null || lStationRecords.Count == 0)
-        {
-            return null;
-        }
-
-        if (lStationInternal.LStationRunner.LRunnerRunning)
-        {
-            return null;
-        }
-
-        LStation lStationRetired = lStationInternal;
-        lStationInternal = null;
-        return lStationRetired;
+        LStationBoard.LStationBoardRaise();
     }
 }

@@ -13,21 +13,21 @@ internal static class TInterfaceRoster
     internal static LStation TStationCreate(LScheduleContract schedule)
     {
         TStationAttach(schedule);
-        return LStation.LStationCreate("Test worklist");
+        return LStationBoard.LStationCreate("Test worklist");
     }
 
     internal static void TStationAttach(LScheduleContract schedule)
     {
         var owner = (LSchedule)schedule;
-        LStation.LStationSchedule = schedule;
-        LStation.LStationIntake = new LScheduleIntake(owner);
-        LStation.LStationLease = new LScheduleLease(owner);
-        LStation.LStationTransition = new LScheduleTransition(owner);
-        LStation.LStationMeasurement = new LScheduleMeasurement(owner);
-        LStation.LStationRemover = new LScheduleRemover(owner);
-        LStation.LStationPost = action => action();
-        LStation.LStationProgramSource = () => "ffmpeg";
-        LStation.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
+        LStationEngine.LStationSchedule = schedule;
+        LStationEngine.LStationIntake = new LScheduleIntake(owner);
+        LStationEngine.LStationLease = new LScheduleLease(owner);
+        LStationEngine.LStationTransition = new LScheduleTransition(owner);
+        LStationEngine.LStationMeasurement = new LScheduleMeasurement(owner);
+        LStationEngine.LStationRemover = new LScheduleRemover(owner);
+        LStationEngine.LStationPost = action => action();
+        LStationEngine.LStationProgramSource = () => "ffmpeg";
+        LStationEngine.LStationPreferenceSource = () => LPreference.LPreferenceStateCurrent;
     }
 
     internal static QRoster TRosterCreate(LScheduleContract schedule, LStation station)
@@ -137,8 +137,8 @@ internal static class TInterfaceRoster
     }
     internal static CLineageAnswer TRosterLineageRead(LScheduleContract schedule, IReadOnlyList<LWorkItem> items)
     {
-        LScheduleContract? previous = LStation.LStationSchedule;
-        LStation.LStationSchedule = schedule;
+        LScheduleContract? previous = LStationEngine.LStationSchedule;
+        LStationEngine.LStationSchedule = schedule;
         try
         {
             return TInterface.TAtelierCreate().CAtelierLineage.CLineageRead(
@@ -146,7 +146,7 @@ internal static class TInterfaceRoster
         }
         finally
         {
-            LStation.LStationSchedule = previous;
+            LStationEngine.LStationSchedule = previous;
         }
     }
     internal static string TLineageStepFormat(CLineageAnswer answer, LWorkItem work) =>
@@ -169,7 +169,7 @@ internal static class TInterfaceRoster
     {
         CLineageStep step = TRosterLineageRead(schedule, [work]).CLineageSteps.Single(
             item => item.CLineageStepId == work.LWorkId);
-        LScheduleContract? previous = LStation.LStationSchedule;
+        LScheduleContract? previous = LStationEngine.LStationSchedule;
         try
         {
             CRoster gate = TInterface.TAtelierCreate().CAtelierRosterCreate();
@@ -178,11 +178,11 @@ internal static class TInterfaceRoster
         }
         finally
         {
-            LStation.LStationSchedule = previous;
+            LStationEngine.LStationSchedule = previous;
         }
     }
     internal static void TStripTitleAttach(QStrip? strip) =>
-        LCartographer.LCartographerTitleSource = strip is null ? null : strip.QStripRelay.QStripTitleRead;
+        LCartographerTitle.LCartographerTitleSource = strip is null ? null : strip.QStripRelay.QStripTitleRead;
     internal static IReadOnlyList<QRosterBar> TRosterBarsCreate(long? source, long? output) =>
         QRosterDetail.QRosterBarsCreate(source, output);
     internal static QRosterCompareRow TRosterCompareCreate(string source, string output) =>

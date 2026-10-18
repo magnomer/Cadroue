@@ -6,7 +6,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal static partial class LEncodeVideo
+internal static class LEncodeVideo
 {
     internal static void LEncodeVideoAppend(
         StringBuilder lArguments, LWorkItem lWorkItem, LEncoding lOutput, int lPass = 0)
@@ -27,7 +27,7 @@ internal static partial class LEncodeVideo
         string lEncoderName = LCapability.LCapabilityNameRead(lOutput.LEncodingVideo.LEncodingEncoder);
         if (string.IsNullOrWhiteSpace(lEncoderName))
         {
-            LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
+            LEncodeVideoFilter.LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
             return;
         }
 
@@ -66,7 +66,7 @@ internal static partial class LEncodeVideo
                 $" {LEncode.LEncodeValueFormat(lExtra.Key)} {LEncode.LEncodeValueFormat(lExtra.Value)}");
         }
 
-        LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
+        LEncodeVideoFilter.LEncodeFilterAppend(lArguments, lWorkItem, lOutput);
     }
 
     private static void LEncodeModeAppend(StringBuilder lArguments, LCapabilityMode lMode, string lQualityValue)
@@ -124,9 +124,5 @@ internal static partial class LEncodeVideo
     internal static bool LEncodeVideoCheck(LWorkItem lWorkItem, LEncoding lOutput) =>
         lWorkItem.LWorkCrop.LWorkCropActive
         || lWorkItem.LWorkVideo.LWorkVideoActive
-        || LEncodeSizeCheck(lOutput.LEncodingVideo);
-
-    private static bool LEncodeSizeCheck(LEncodingVideo lVideo) =>
-        string.Equals(lVideo.LEncodingMode, "Encode", StringComparison.OrdinalIgnoreCase)
-        && LEncodeSizeRead(lVideo.LEncodingSize) is not null;
+        || LEncodeVideoGeometry.LEncodeSizeCheck(lOutput.LEncodingVideo);
 }

@@ -28,7 +28,7 @@ public sealed class LRelayFacade
         Func<IReadOnlyList<(Guid LRelayTab, IReadOnlyList<(string, Guid)> LRelayLocks)>, bool> lClaim,
         Func<Guid, string, Guid, bool> lDeliver)
     {
-        LCartographer.LCartographerLockSeam = lAccepted =>
+        LCartographerSchedule.LCartographerLockSeam = lAccepted =>
             lClaim(lAccepted.Select(lItem => (LRelayTabRead(lItem), LRelayLocksRead(lItem))).ToArray());
         LCartographer.LCartographerDeliverySeam = new LCartographerDelivery(
             lIntake,

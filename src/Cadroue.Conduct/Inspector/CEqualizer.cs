@@ -14,7 +14,6 @@ public sealed class CEqualizer
     private const double _cEqualizerGainOrigin = 0;
     private const string _cEqualizerCustomToken = "Custom";
     private const string _cEqualizerCustomKey = "Inspector.Common.Custom";
-    private const string _cEqualizerCustomBased = "Inspector.Common.PresetCustom";
 
     private readonly LEqualizerPort _cEqualizerPort;
     private readonly IReadOnlyList<string> _cEqualizerTokens;
@@ -56,22 +55,8 @@ public sealed class CEqualizer
     public double CEqualizerGainOrigin => _cEqualizerGainOrigin;
 
     // One row per preset and a custom row last. The custom row shows the preset it drifted from, when there is one.
-    public IReadOnlyList<CChoice> CEqualizerChoices
-    {
-        get
-        {
-            List<CChoice> rows = _cEqualizerTokens
-                .Select(token => new CChoice(token, CEqualizerKeyRead(token), null, token == _cEqualizerPreset))
-                .ToList();
-            bool drifted = _cEqualizerPreset is null && _cEqualizerToken is not null;
-            rows.Add(new CChoice(
-                null,
-                drifted ? _cEqualizerCustomBased : _cEqualizerCustomKey,
-                drifted ? CEqualizerKeyRead(_cEqualizerToken!) : null,
-                !rows.Any(row => row.CChoiceChosen)));
-            return rows;
-        }
-    }
+    public IReadOnlyList<CChoice> CEqualizerChoices =>
+        CChoicePreset.CChoicePresetRead(_cEqualizerTokens, _cEqualizerPreset, _cEqualizerToken, CEqualizerKeyRead);
 
     public double CEqualizerGainRead(int index) =>
         index >= 0 && index < _cEqualizerBands.Count ? _cEqualizerBands[index].CEqualizerGain : 0;

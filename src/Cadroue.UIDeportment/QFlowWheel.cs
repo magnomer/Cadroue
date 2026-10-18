@@ -15,7 +15,7 @@ public sealed class QFlowWheel
         qFlow = lOwner;
         qFlowWheelGate = lGate;
         lGate.CFlowWheel.CFlowWheelZoomed += QFlowZoomRaise;
-        lGate.CFlowDragChanged += QFlowDragRaise;
+        lGate.CFlowDrag.CFlowDragChanged += QFlowDragRaise;
         lGate.CFlowWheel.CFlowWheelAdjusted += QFlowVolumeRaise;
     }
 
@@ -31,7 +31,7 @@ public sealed class QFlowWheel
 
     public void QFlowZoom(int lSteps) => qFlowWheelGate.CFlowWheel.CFlowWheelZoom(lSteps);
 
-    public void QFlowDragHandle(bool lDragging) => qFlowWheelGate.CFlowDragSet(lDragging, qFlowPlayingSource);
+    public void QFlowDragHandle(bool lDragging) => qFlowWheelGate.CFlowDrag.CFlowDragSet(lDragging, qFlowPlayingSource);
 
     private void QFlowZoomRaise() => qFlow.QFlowSpool.QFlowSpoolHandle();
 

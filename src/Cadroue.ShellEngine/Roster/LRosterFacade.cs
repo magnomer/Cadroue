@@ -26,7 +26,7 @@ public sealed class LRosterFacade
         LPreferenceState lNext = LPreference.LPreferenceStateCurrent.LPreferenceClone();
         lNext.LPreferenceWorklistShared = lShared;
         LPreference.LPreferenceStateSet(lNext);
-        LStation.LStationSchedule!.LScheduleLoad();
+        LStationEngine.LStationSchedule!.LScheduleLoad();
         return true;
     }
 
@@ -47,7 +47,7 @@ public sealed class LRosterFacade
         IReadOnlyList<string> LRosterMenuPaths, Action LRosterMenuAction) LRosterMenuRead(
         LStation lStation, Guid lClicked)
     {
-        LScheduleContract lSchedule = LStation.LStationSchedule!;
+        LScheduleContract lSchedule = LStationEngine.LStationSchedule!;
         if (lSchedule.LScheduleRecords.FirstOrDefault(lWorkItem => lWorkItem.LWorkId == lClicked) is not { } lItem)
         {
             return (false, false, 0, [], () => { });
@@ -57,14 +57,15 @@ public sealed class LRosterFacade
         if (LRosterRestartCheck(lItem))
         {
             IReadOnlyList<LWorkItem> lTargets = LRosterTargetsRead(lItem, lChosen, LRosterRestartCheck);
-            return (true, false, lTargets.Count, [], () => LRosterRestartRun(LStation.LStationTransition!, lTargets));
+            return (true, false, lTargets.Count, [],
+                () => LRosterRestartRun(LStationEngine.LStationTransition!, lTargets));
         }
 
         if (LRosterCancelCheck(lItem))
         {
             IReadOnlyList<LWorkItem> lTargets = LRosterTargetsRead(lItem, lChosen, LRosterCancelCheck);
             return (false, true, lTargets.Count, [],
-                () => LRosterCancelRun(LStation.LStationTransition!, lStation, lTargets));
+                () => LRosterCancelRun(LStationEngine.LStationTransition!, lStation, lTargets));
         }
 
         IReadOnlyList<string> lPaths = lItem.LWorkRunState.LWorkStateCurrent == LWorkState.LWorkStateDone

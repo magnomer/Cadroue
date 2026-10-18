@@ -14,7 +14,7 @@ public sealed class LFixOutlet : LFixPort
         bool lUrgent,
         Guid lRelayTarget,
         Guid lSourceTab) =>
-        LMessenger.LMessengerFixDescribe(
+        LMessengerFix.LMessengerFixDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSources.Select(lSource => new LWorkSource(lSource.LFixPath, lSource.LFixBatch)).ToArray(),
             LPresetSelection.LPresetEncodingRead(lPresetName),

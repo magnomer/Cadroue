@@ -1,11 +1,10 @@
-using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LCartographer
+public static class LCartographerStage
 {
-    private static bool LCartographerStageAccept(
+    internal static bool LCartographerStageAccept(
         LCartographerPlanDocument lCartographerPlan,
         LCartographerStageEntry lCartographerStage,
         string lCartographerPath,
@@ -65,12 +64,13 @@ public static partial class LCartographer
             lCartographerStage.LCartographerLayoutKey, "Merge", StringComparison.Ordinal);
         if (lCartographerMerge
             && LCartographerMergeCheck(
-                lCartographerPlan, lCartographerStage, lCartographerBatch, LCartographerScheduleRead()))
+                lCartographerPlan, lCartographerStage, lCartographerBatch,
+                LCartographerSchedule.LCartographerScheduleRead()))
         {
             return true;
         }
 
-        HashSet<string> lCartographerCleared = LCartographerRepresentedRead(
+        HashSet<string> lCartographerCleared = LCartographerExecute.LCartographerRepresentedRead(
             lCartographerBatch, lCartographerStage.LCartographerStageId);
         var lCartographerPaths = new List<string>();
         foreach (string lCartographerPending in lCartographerStage.LCartographerPendingInputs
@@ -90,11 +90,12 @@ public static partial class LCartographer
             lCartographerCleared.Add(lCartographerPending);
         }
 
-        LCartographerStageSet(lCartographerStage.LCartographerStageId, lCartographerStage.LCartographerTitle);
+        LCartographerTitle.LCartographerStageSet(
+            lCartographerStage.LCartographerStageId, lCartographerStage.LCartographerTitle);
         if (lCartographerPaths.Count > 0)
         {
             LCartographerStageCommit(
-                LCartographerStageRun(new LCartographerStagePlan(
+                LCartographerExecute.LCartographerStageRun(new LCartographerStagePlan(
                     lCartographerStage.LCartographerLayoutKey,
                     lCartographerStage.LCartographerExport,
                     lCartographerStage.LCartographerLayout.LSceneTabClone(),
@@ -119,7 +120,7 @@ public static partial class LCartographer
         LCartographerDelivery lCartographerSeam,
         HashSet<Guid> lCartographerVisited)
     {
-        Guid lCartographerTargetId = LCartographerRouteRead(lCartographerStage, lCartographerPath);
+        Guid lCartographerTargetId = LCartographerRoute.LCartographerRouteRead(lCartographerStage, lCartographerPath);
         if (lCartographerPlan.LCartographerStages.FirstOrDefault(
                 lCartographerCandidate => lCartographerCandidate.LCartographerStageId == lCartographerTargetId)
             is not { } lCartographerTarget)
@@ -180,7 +181,7 @@ public static partial class LCartographer
             new HashSet<string>(lCartographerAcknowledged, StringComparer.OrdinalIgnoreCase));
     }
 
-    private static void LCartographerPendingRemove(
+    internal static void LCartographerPendingRemove(
         LCartographerPlanDocument lCartographerPlan,
         LCartographerStageEntry lCartographerStage,
         HashSet<string> lCartographerCleared)

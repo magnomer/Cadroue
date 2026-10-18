@@ -38,7 +38,7 @@ public sealed class TSweep
             "[freezedetect @ 0x1] lavfi.freezedetect.freeze_end: 4.0"
         };
 
-        IReadOnlyList<LSweepSpan> lIntervals = LSweep.LSweepStillParse(lLines);
+        IReadOnlyList<LSweepSpan> lIntervals = LSweepStill.LSweepStillParse(lLines);
 
         LSweepSpan lInterval = Assert.Single(lIntervals);
         Assert.Equal(TimeSpan.FromSeconds(2.5), lInterval.LSweepSpanOrigin);
@@ -54,7 +54,7 @@ public sealed class TSweep
             "frame= 10 fps=0.0"
         };
 
-        Assert.Empty(LSweep.LSweepStillParse(lLines));
+        Assert.Empty(LSweepStill.LSweepStillParse(lLines));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class TSweep
         };
 
         LSweepSpan lInterval =
-            Assert.Single(LSweep.LSweepStillParse(lLines, TimeSpan.FromSeconds(12)));
+            Assert.Single(LSweepStill.LSweepStillParse(lLines, TimeSpan.FromSeconds(12)));
         Assert.Equal(TimeSpan.FromSeconds(8), lInterval.LSweepSpanOrigin);
         Assert.Equal(TimeSpan.FromSeconds(12), lInterval.LSweepSpanEnd);
     }
@@ -81,7 +81,7 @@ public sealed class TSweep
             "[blackdetect @ 0x1] black_start:1.5 black_end:3.0"
         };
 
-        Assert.Empty(LSweep.LSweepStillParse(lLines));
+        Assert.Empty(LSweepStill.LSweepStillParse(lLines));
     }
 
     [Fact]
@@ -96,7 +96,7 @@ public sealed class TSweep
             "[Parsed_metadata_1 @ 0x1] lavfi.scd.score=0.42"
         };
 
-        IReadOnlyList<TimeSpan> lTimes = LSweep.LSweepSceneParse(lLines);
+        IReadOnlyList<TimeSpan> lTimes = LSweepScene.LSweepSceneParse(lLines);
 
         Assert.Equal(2, lTimes.Count);
         Assert.Equal(TimeSpan.FromSeconds(1.25), lTimes[0]);

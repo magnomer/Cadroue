@@ -87,7 +87,7 @@ internal static class TAuditPuritySetting
         ["Foraging:Cadroue.ShellEngine>System.Collections.Concurrent"] = 27,
         ["Foraging:Cadroue.ShellEngine>System.ComponentModel"] = 3,
         ["Foraging:Cadroue.ShellEngine>System.Diagnostics"] = 11,
-        ["Foraging:Cadroue.ShellEngine>System.IO"] = 172,
+        ["Foraging:Cadroue.ShellEngine>System.IO"] = 160,
         ["Foraging:Cadroue.ShellEngine>System.Reflection"] = 3,
         ["Foraging:Cadroue.ShellEngine>System.Runtime.InteropServices"] = 0,
         ["Foraging:Cadroue.ShellEngine>System.Text.Json"] = 43,

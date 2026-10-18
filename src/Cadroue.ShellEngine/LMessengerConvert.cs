@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerConvert
 {
     public static async Task<int> LMessengerConvertDescribe(
         LWorkPriority lMessengerPriority,
@@ -21,16 +21,12 @@ public static partial class LMessenger
             string[] lMessengerSourcePaths = lMessengerSources
                 .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
                 .ToArray();
-            var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-            foreach (LWorkSource lMessengerSource in lMessengerSources)
-            {
-                lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
-            }
+            IReadOnlyDictionary<string, Guid> lMessengerRelays = LMessenger.LMessengerRelayRead(lMessengerSources);
 
             LConvertWorkDescription lMessengerDescription =
                 new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays);
 
-            string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+            string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
             Func<string, TimeSpan> lMessengerDurationRead = await Cadroue.Application.LConvertDuration
                 .LConvertDurationResolve(lMessengerOutput, lMessengerSourcePaths).ConfigureAwait(true);
             IReadOnlyList<LWorkItem> lMessengerItems =
@@ -39,12 +35,13 @@ public static partial class LMessenger
                     lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
                     lMessengerDurationRead);
 
-            int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+            int lMessengerAdded =
+                LMessenger.LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
             LTraceEngine.LTraceInfoSeam(
                 $"Convert queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
                 $"{lMessengerSourcePaths.Length} listed file(s)");
 
-            LMessengerSourceResolve(lMessengerItems);
+            LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
             return lMessengerAdded;
         }
         catch (Exception lMessengerException)

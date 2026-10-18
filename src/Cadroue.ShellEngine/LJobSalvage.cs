@@ -1,14 +1,59 @@
-using System.IO;
-
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJobSalvage
 {
+    private readonly LRunner lJobOwner;
+    private readonly LWorkItem lJobItem;
+    private readonly CancellationToken lJobToken;
     private IReadOnlyList<string> lJobSalvaged = Array.Empty<string>();
 
-    private void LJobSalvageRecord()
+    internal LJobSalvage(LRunner lJobRunner, LWorkItem lJobWorkItem, CancellationToken lJobStopToken)
+    {
+        lJobOwner = lJobRunner;
+        lJobItem = lJobWorkItem;
+        lJobToken = lJobStopToken;
+    }
+
+    internal async Task LJobSalvageRun(LWorkState? pValidateState)
+    {
+        LWorkFixSalvage pSalvage = lJobItem.LWorkFixPlan.LWorkFixSalvage;
+        if (!pSalvage.LWorkSalvageActive)
+        {
+            return;
+        }
+
+        lJobToken.ThrowIfCancellationRequested();
+        bool pHasRepair = lJobItem.LWorkFixPlan.LWorkFixSteps.Any(pStep => pStep.LWorkFixRepair);
+        LSalvageBasis pBasis = pHasRepair
+            ? pSalvage.LWorkSalvageBasis
+            : LSalvageBasis.LSalvageBasisSource;
+        bool pFromFixed = pBasis == LSalvageBasis.LSalvageBasisFixed;
+        bool pRun = !pHasRepair || pFromFixed || pValidateState != LWorkState.LWorkStateDone;
+        if (!pRun)
+        {
+            return;
+        }
+
+        string pInput = pFromFixed && File.Exists(lJobItem.LWorkOutputPath)
+            ? lJobItem.LWorkOutputPath
+            : lJobItem.LWorkSourcePath;
+        IReadOnlyList<LSalvageSpan> pSpans =
+            await LSalvageScanner.LSalvageScanRun(pInput, lJobToken).ConfigureAwait(false);
+        IReadOnlyList<string> pSalvaged =
+            await LSalvageExtract.LSalvageExtractRun(lJobItem, pInput, pSpans, lJobToken).ConfigureAwait(false);
+        if (pSalvaged.Count > 0)
+        {
+            lJobSalvaged = pSalvaged;
+            string pFrom = pInput == lJobItem.LWorkOutputPath ? "repaired result" : "original source";
+            LRunnerTrace.LRunnerRecord(
+                $"Salvage recovered {pSalvaged.Count} output(s) for '{lJobItem.LWorkOutputName}' " +
+                $"from the {pFrom}");
+        }
+    }
+
+    internal void LJobSalvageRecord()
     {
         if (lJobSalvaged.Count == 0)
         {
@@ -22,7 +67,7 @@ internal sealed partial class LJob
         var pItems = new List<LWorkItem>(lJobSalvaged.Count);
         foreach (string pPath in lJobSalvaged)
         {
-            long pBytes = LScout.LScoutBytesRead(pPath) ?? 0;
+            long pBytes = LScoutBytes.LScoutBytesRead(pPath) ?? 0;
             pItems.Add(LJobSalvageCreate(pPath, pBytes, pLineage));
         }
 

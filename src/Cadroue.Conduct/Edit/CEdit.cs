@@ -117,7 +117,7 @@ public sealed class CEdit
         }
 
         _cEditPort.LEditAudioSave(
-            inspector.CInspectorPersistentRead(),
+            inspector.CInspectorAudio.CInspectorPersistentRead(),
             paths,
             inspector.CInspectorSkip.CSkipPersistent,
             inspector.CInspectorSkip.CSkipActive);

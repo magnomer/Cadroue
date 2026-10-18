@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LCartographer
+public static class LCartographerTitle
 {
     public static Func<Guid, string>? LCartographerTitleSource { get; set; }
 
@@ -15,6 +15,9 @@ public static partial class LCartographer
 
     public static void LCartographerStageSet(Guid lCartographerStageId, string lCartographerTitle) =>
         lCartographerStageTitles[lCartographerStageId] = lCartographerTitle;
+
+    public static void LCartographerTitleRemove(Guid lCartographerStageId) =>
+        lCartographerStageTitles.Remove(lCartographerStageId);
 
     public static string LCartographerTitleRead(
         Guid lCartographerBatchId, Guid lCartographerRelaySource, string lCartographerTab)

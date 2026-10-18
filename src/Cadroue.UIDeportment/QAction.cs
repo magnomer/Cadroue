@@ -52,7 +52,7 @@ public sealed class QAction
     {
         QActionRelaySet(lStrip, lStripTab);
         lStripTab.QStripActionAttach(this);
-        LCartographer.LCartographerStart();
+        LCartographerSchedule.LCartographerStart();
         QActionTitleAttach(lStrip);
         QActionTargetUpdate();
     }
@@ -82,7 +82,7 @@ public sealed class QAction
             return;
         }
 
-        LCartographer.LCartographerTargetSet(qActionSourceTab, lTarget);
+        LCartographerRoute.LCartographerTargetSet(qActionSourceTab, lTarget);
         QActionTargetUpdate();
     }
 
@@ -158,7 +158,7 @@ public sealed class QAction
             return;
         }
 
-        LSeal.LSealPendingAdd(lCohort);
+        LSealPending.LSealPendingAdd(lCohort);
         QProgram.QProgramDefer(() => QActionAcceptRun(lTargetTab, lPath, lCohort));
     }
 
@@ -177,7 +177,7 @@ public sealed class QAction
         }
         finally
         {
-            LSeal.LSealPendingRemove(lCohort);
+            LSealPending.LSealPendingRemove(lCohort);
             LSeal.LSealRun();
         }
     }
@@ -193,7 +193,8 @@ public sealed class QAction
             ? lAction
             : null;
 
-    private void QActionTargetUpdate() => QActionRelayApply(LCartographer.LCartographerTargetRead(qActionSourceTab));
+    private void QActionTargetUpdate() =>
+        QActionRelayApply(LCartographerRoute.LCartographerTargetRead(qActionSourceTab));
 
     private void QActionFaceUpdate()
     {

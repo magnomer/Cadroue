@@ -128,7 +128,7 @@ public sealed class QAudioTab
         }
 
         QAudioStore.QAudioStateSave();
-        LMessenger.LMessengerAudioDescribe(
+        LMessengerAudio.LMessengerAudioDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lSelected.LDocketEntryPath,
             QAudioStore.QAudioPlanRead(),
@@ -146,7 +146,7 @@ public sealed class QAudioTab
         }
 
         QAudioStore.QAudioStateSave();
-        LMessenger.LMessengerAudioDescribe(
+        LMessengerAudio.LMessengerAudioDescribe(
             LWorkPriority.LWorkPriorityNormal,
             qAudioDocket.LDocketUnlockedRead().Select(QAudioSourceCreate).ToArray(),
             qAudioPreset.LPresetSelectionEncoding,
@@ -162,7 +162,7 @@ public sealed class QAudioTab
         }
 
         QAudioStore.QAudioStateSave();
-        LMessenger.LMessengerAudioDescribe(
+        LMessengerAudio.LMessengerAudioDescribe(
             LWorkPriority.LWorkPriorityNormal,
             QAudioSourcesRead(lPaths),
             qAudioPreset.LPresetSelectionEncoding,

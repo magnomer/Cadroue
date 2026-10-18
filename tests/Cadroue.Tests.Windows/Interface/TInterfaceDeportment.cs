@@ -377,7 +377,7 @@ internal static partial class TInterface
 
     internal static QProgram TProgramCreate() => new(
         Interface.TInterface.TInterfaceEngine.LEngineSchedule,
-        Interface.TInterface.TInterfaceEngine.LEngineStationAttach);
+        LEngineSeam.LEngineStationAttach);
     internal static bool TProgramDepotApply(QProgram program) => program.QProgramDepotApply();
     internal static string? TProgramDepotRead(QProgram program) => program.QProgramDepotRoot;
     internal static bool TProgramLanguageNormalize() => QProgram.QProgramLanguageNormalize();

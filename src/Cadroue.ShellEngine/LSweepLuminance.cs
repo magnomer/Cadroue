@@ -3,9 +3,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public readonly record struct LSweepSample(TimeSpan LSweepSampleTime, double LSweepSampleLuma);
-
-public static partial class LSweep
+public static class LSweepLuminance
 {
     private const string LSweepLuminanceScale = "scale=-2:108,";
 
@@ -33,14 +31,14 @@ public static partial class LSweep
                 continue;
             }
 
-            double? lSweepAt = LSweepFieldRead(lSweepLine, "pts_time:");
+            double? lSweepAt = LSweepField.LSweepFieldRead(lSweepLine, "pts_time:");
             if (lSweepAt is { } lSweepPts)
             {
                 lSweepTime = lSweepPts;
                 continue;
             }
 
-            double? lSweepLuma = LSweepFieldRead(lSweepLine, "lavfi.signalstats.YAVG=");
+            double? lSweepLuma = LSweepField.LSweepFieldRead(lSweepLine, "lavfi.signalstats.YAVG=");
             if (lSweepLuma is { } lSweepValue && lSweepTime is { } lSweepStamp)
             {
                 lSweepSamples.Add(new LSweepSample(TimeSpan.FromSeconds(lSweepStamp), lSweepValue));
@@ -55,135 +53,32 @@ public static partial class LSweep
         double lSweepWindow,
         double lSweepThreshold)
     {
-        return LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold / 100.0 * 255.0);
+        return LSweepDelta.LSweepBoundaryResolve(lSweepSamples, lSweepWindow, lSweepThreshold / 100.0 * 255.0);
     }
 
-    public static IReadOnlyList<TimeSpan> LSweepBoundaryResolve(
-        IReadOnlyList<LSweepSample> lSweepSamples,
+    public static async Task<IReadOnlyList<TimeSpan>> LSweepLuminanceScan(
+        string lSweepSource,
         double lSweepWindow,
-        double lSweepThresholdUnits)
+        double lSweepThreshold,
+        double lSweepMinimum,
+        LDetectorLuminanceMode lSweepMode,
+        TimeSpan lSweepDuration,
+        CancellationToken lSweepToken,
+        IProgress<double>? lSweepProgress = null)
     {
-        var lSweepBoundaries = new List<TimeSpan>();
-        if (lSweepSamples is null || lSweepSamples.Count < 2)
+        if (string.IsNullOrWhiteSpace(lSweepSource))
         {
-            return lSweepBoundaries;
+            return Array.Empty<TimeSpan>();
         }
 
-        double lSweepSpan = lSweepWindow > 0 ? lSweepWindow : double.Epsilon;
-        const double lSweepFloor = 1e-6;
-
-        int lSweepTotal = lSweepSamples.Count;
-        var lSweepTimes = new double[lSweepTotal];
-        var lSweepPrefix = new double[lSweepTotal + 1];
-        for (int lSweepIndex = 0; lSweepIndex < lSweepTotal; lSweepIndex++)
-        {
-            lSweepTimes[lSweepIndex] = lSweepSamples[lSweepIndex].LSweepSampleTime.TotalSeconds;
-            lSweepPrefix[lSweepIndex + 1] = lSweepPrefix[lSweepIndex] + lSweepSamples[lSweepIndex].LSweepSampleLuma;
-        }
-
-        var lSweepDiffs = new double?[lSweepTotal];
-        for (int lSweepIndex = 0; lSweepIndex < lSweepTotal; lSweepIndex++)
-        {
-            double lSweepAt = lSweepTimes[lSweepIndex];
-            double? lSweepBefore = LSweepMeanResolve(lSweepTimes, lSweepPrefix, lSweepAt - lSweepSpan, lSweepAt);
-            double? lSweepAfter = LSweepMeanResolve(lSweepTimes, lSweepPrefix, lSweepAt, lSweepAt + lSweepSpan);
-            if (lSweepBefore is { } lSweepLeft && lSweepAfter is { } lSweepRight)
-            {
-                lSweepDiffs[lSweepIndex] = Math.Abs(lSweepRight - lSweepLeft);
-            }
-        }
-
-        int lSweepBest = -1;
-        for (int lSweepIndex = 0; lSweepIndex < lSweepSamples.Count; lSweepIndex++)
-        {
-            bool lSweepQualify = lSweepDiffs[lSweepIndex] is { } lSweepDiff
-                && lSweepDiff > lSweepFloor
-                && lSweepDiff >= lSweepThresholdUnits;
-            if (lSweepQualify)
-            {
-                if (lSweepBest < 0 || lSweepDiffs[lSweepIndex] > lSweepDiffs[lSweepBest])
-                {
-                    lSweepBest = lSweepIndex;
-                }
-                continue;
-            }
-
-            if (lSweepBest >= 0)
-            {
-                lSweepBoundaries.Add(lSweepSamples[lSweepBest].LSweepSampleTime);
-                lSweepBest = -1;
-            }
-        }
-
-        if (lSweepBest >= 0)
-        {
-            lSweepBoundaries.Add(lSweepSamples[lSweepBest].LSweepSampleTime);
-        }
-
-        return lSweepBoundaries;
-    }
-
-    public static IReadOnlyList<TimeSpan> LSweepMinimumResolve(
-        IReadOnlyList<TimeSpan> lSweepBoundaries,
-        double lSweepMinimum)
-    {
-        if (lSweepMinimum <= 0 || lSweepBoundaries.Count == 0)
-        {
-            return lSweepBoundaries;
-        }
-
-        var lSweepKept = new List<TimeSpan>();
-        TimeSpan lSweepGap = TimeSpan.FromSeconds(lSweepMinimum);
-        TimeSpan? lSweepLast = null;
-        foreach (TimeSpan lSweepBoundary in lSweepBoundaries)
-        {
-            if (lSweepLast is { } lSweepPrevious && lSweepBoundary - lSweepPrevious < lSweepGap)
-            {
-                continue;
-            }
-
-            lSweepKept.Add(lSweepBoundary);
-            lSweepLast = lSweepBoundary;
-        }
-
-        return lSweepKept;
-    }
-
-    private static double? LSweepMeanResolve(
-        double[] lSweepTimes,
-        double[] lSweepPrefix,
-        double lSweepLow,
-        double lSweepHigh)
-    {
-        int lSweepFrom = LSweepBoundFind(lSweepTimes, lSweepLow);
-        int lSweepTo = LSweepBoundFind(lSweepTimes, lSweepHigh);
-        int lSweepCount = lSweepTo - lSweepFrom;
-        if (lSweepCount <= 0)
-        {
-            return null;
-        }
-
-        double lSweepSum = lSweepPrefix[lSweepTo] - lSweepPrefix[lSweepFrom];
-        return lSweepSum / lSweepCount;
-    }
-
-    private static int LSweepBoundFind(double[] lSweepTimes, double lSweepValue)
-    {
-        int lSweepLow = 0;
-        int lSweepHigh = lSweepTimes.Length;
-        while (lSweepLow < lSweepHigh)
-        {
-            int lSweepMid = lSweepLow + (lSweepHigh - lSweepLow) / 2;
-            if (lSweepTimes[lSweepMid] < lSweepValue)
-            {
-                lSweepLow = lSweepMid + 1;
-            }
-            else
-            {
-                lSweepHigh = lSweepMid;
-            }
-        }
-
-        return lSweepLow;
+        IReadOnlyList<LSweepSample> lSweepSamples = LSweepLuminanceParse(
+            await LSweepProcess.LSweepLinesRead(
+                LSweepLuminanceFormat(lSweepSource, lSweepMode),
+                lSweepDuration,
+                lSweepToken,
+                lSweepProgress)
+                .ConfigureAwait(false));
+        return LSweepDelta.LSweepMinimumResolve(
+            LSweepLuminanceResolve(lSweepSamples, lSweepWindow, lSweepThreshold), lSweepMinimum);
     }
 }

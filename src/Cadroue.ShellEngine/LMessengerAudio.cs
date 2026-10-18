@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerAudio
 {
     public static int LMessengerAudioDescribe(
         LWorkPriority lMessengerPriority,
@@ -18,7 +18,7 @@ public static partial class LMessenger
             return 0;
         }
 
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         LWorkItem? lMessengerItem = Cadroue.Application.LAudio.LAudioItemCreate(
             lMessengerPriority, lMessengerSourcePath, lMessengerProcessing, lMessengerOutput, lMessengerTab,
             lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
@@ -30,14 +30,14 @@ public static partial class LMessenger
             return 0;
         }
 
-        int lMessengerAdded = LMessengerDispatch(
+        int lMessengerAdded = LMessenger.LMessengerDispatch(
             new[] { lMessengerItem },
             lMessengerRelayTarget,
             lMessengerRelaySource);
         LTraceEngine.LTraceInfoSeam(
             $"Audio queued {lMessengerAdded} job at {lMessengerPriority} from " +
             $"'{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        LMessengerSourceResolve(new[] { lMessengerItem });
+        LMessengerMeasure.LMessengerSourceResolve(new[] { lMessengerItem });
         return lMessengerAdded;
     }
     public static int LMessengerAudioDescribe(
@@ -52,7 +52,7 @@ public static partial class LMessenger
             return 0;
         }
 
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         Guid lMessengerLooseBatch = Cadroue.Application.LGate.LGateBatchCreate();
         var lMessengerItems = new List<LWorkItem>();
         foreach (LWorkSource lMessengerSource in lMessengerSources)
@@ -81,8 +81,9 @@ public static partial class LMessenger
             }
         }
 
-        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
-        LMessengerSourceResolve(lMessengerItems);
+        int lMessengerAdded =
+            LMessenger.LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

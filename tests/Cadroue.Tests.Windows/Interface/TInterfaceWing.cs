@@ -268,9 +268,9 @@ internal static partial class TInterface
     internal static void TSectionTextSet(QSection section, string name, string prefix, string suffix) =>
         section.QSectionTextSet(name, prefix, suffix);
     internal static int? TSectionEditRead(QSection section) =>
-        section.QFlow.QFlowSection.QFlowSectionGate.CSectionEdit.CSectionEditIndex;
+        section.QFlow.QFlowSection.QFlowSectionGate.CSectionList.CSectionEdit.CSectionEditIndex;
     internal static int? TSectionDragRead(QSection section) =>
-        section.QFlow.QFlowSection.QFlowSectionGate.CSectionDrag.CSectionDragIndex;
+        section.QFlow.QFlowSection.QFlowSectionGate.CSectionList.CSectionDrag.CSectionDragIndex;
     internal static bool TSectionKeyRun(QSection section, string key) => section.QSectionKeyRun(key);
     internal static void TSectionBlurHandle(QSection section, int serial, bool inside) =>
         section.QSectionBlurHandle(serial, inside);

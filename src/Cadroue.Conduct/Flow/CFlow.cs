@@ -40,6 +40,7 @@ public sealed class CFlow
         CFlowName = new CFlowName(port, CFlowSection);
         CFlowMap = new CMap(map, this);
         CFlowWheel = new CFlowWheel(port, this);
+        CFlowDrag = new CFlowDrag(port, this);
     }
 
     public CSection CFlowSection { get; }
@@ -48,6 +49,7 @@ public sealed class CFlow
     public CFlowName CFlowName { get; }
     public CMap CFlowMap { get; }
     public CFlowWheel CFlowWheel { get; }
+    public CFlowDrag CFlowDrag { get; }
 
     public event Action<bool>? CFlowWaveformChanged;
     public event Action? CFlowPlayed;
@@ -58,9 +60,6 @@ public sealed class CFlow
 
     // The flow asks the viewer to seek to its cursor.
     public event Action<TimeSpan>? CFlowCursorSought;
-
-    // Told at every drag start and end, whether or not commands run.
-    public event Action<bool>? CFlowDragChanged;
 
     public string? CFlowSource { get; private set; }
 
@@ -87,15 +86,10 @@ public sealed class CFlow
 
     public bool CFlowWaveformAudio { get; private set; }
 
-    public int? CFlowKeyframeDirection { get; private set; }
-
     public int CFlowPaletteCount { get; private set; } = 1;
 
     // The last attach took the source it already held at a place past the start: the viewer seeks there.
     public bool CFlowResumed { get; private set; }
-
-    // A drag paused the playing media; the drag's end plays it again.
-    public bool CFlowDragPaused { get; private set; }
 
     public bool CFlowMapFirst => _cFlowPort.LFlowOrderRead();
 
@@ -168,7 +162,7 @@ public sealed class CFlow
         CFlowLoaded = true;
         CFlowDuration = duration < TimeSpan.Zero ? TimeSpan.Zero : duration;
         CFlowWaveformAudio = audio;
-        CFlowKeyframeDirection = null;
+        CFlowKeyframe.CKeyframeDirectionSet(null);
     }
 
     public bool CFlowSourceMatch(string? source) =>
@@ -182,7 +176,7 @@ public sealed class CFlow
         CFlowLoaded = false;
         CFlowDuration = TimeSpan.Zero;
         CFlowCursor = TimeSpan.Zero;
-        CFlowKeyframeDirection = null;
+        CFlowKeyframe.CKeyframeDirectionSet(null);
     }
 
     public TimeSpan CFlowCursorClamp(TimeSpan cursor)
@@ -229,7 +223,7 @@ public sealed class CFlow
 
     public void CFlowCursorPropagate(TimeSpan cursor)
     {
-        CFlowKeyframeDirection = null;
+        CFlowKeyframe.CKeyframeDirectionSet(null);
         CFlowCursorSet(cursor);
     }
 
@@ -302,7 +296,7 @@ public sealed class CFlow
             return;
         }
 
-        CFlowKeyframeDirection = null;
+        CFlowKeyframe.CKeyframeDirectionSet(null);
         CFlowKeyframe.CKeyframeReset();
         CFlowKeyframe.CKeyframeSuspend(false);
     }
@@ -322,37 +316,5 @@ public sealed class CFlow
         CFlowWaveform.CWaveformApply();
         CFlowWaveform.CWaveformStart();
         return true;
-    }
-
-    public void CFlowDirectionSet(int? direction) => CFlowKeyframeDirection = direction;
-
-    // While commands run and the preference asks, a drag start pauses playing media; its end plays what it paused.
-    public void CFlowDragSet(bool dragging, Func<bool>? playing)
-    {
-        CFlowDragChanged?.Invoke(dragging);
-        if (!CFlowCommandActive || !_cFlowPort.LFlowDragRead())
-        {
-            return;
-        }
-
-        if (dragging)
-        {
-            if (CFlowDragPaused || playing?.Invoke() != true)
-            {
-                return;
-            }
-
-            CFlowDragPaused = true;
-            CFlowPauseRaise();
-            return;
-        }
-
-        if (!CFlowDragPaused)
-        {
-            return;
-        }
-
-        CFlowDragPaused = false;
-        CFlowPlayRaise();
     }
 }

@@ -25,7 +25,7 @@ public sealed class LMergeFacade
         IReadOnlyDictionary<string, Guid> lRelays)
     {
         LMergeSkipRecord(lSkipped);
-        return LMessenger.LMessengerMergeDescribe(
+        return LMessengerMerge.LMessengerMergeDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lGroups.Select(lGroup => new LWorkGroup(lGroup.LMergeName, lGroup.LMergePaths)).ToArray(),
             LPresetSelection.LPresetEncodingRead(lPresetName),

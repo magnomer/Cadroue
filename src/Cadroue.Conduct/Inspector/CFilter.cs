@@ -12,7 +12,6 @@ public sealed class CFilter
 {
     private const string _cFilterCustomToken = "Custom";
     private const string _cFilterCustomKey = "Inspector.Common.Custom";
-    private const string _cFilterCustomBased = "Inspector.Common.PresetCustom";
 
     // The pole rows in display order; each label stands as its own wording key, so it reads unchanged.
     private static readonly string[] _cFilterPoleKeys = { "1 (6 dB)", "2 (12 dB)" };
@@ -58,23 +57,8 @@ public sealed class CFilter
     public bool CFilterResonanceActive => _cFilterPoles == 2;
 
     // One row per preset and a custom row last. The custom row shows the preset it drifted from, when there is one.
-    public IReadOnlyList<CChoice> CFilterChoices
-    {
-        get
-        {
-            string? preset = CFilterPreset;
-            List<CChoice> rows = _cFilterTokens
-                .Select(token => new CChoice(token, CFilterKeyRead(token), null, token == preset))
-                .ToList();
-            bool drifted = preset is null && _cFilterToken is not null;
-            rows.Add(new CChoice(
-                null,
-                drifted ? _cFilterCustomBased : _cFilterCustomKey,
-                drifted ? CFilterKeyRead(_cFilterToken!) : null,
-                !rows.Any(row => row.CChoiceChosen)));
-            return rows;
-        }
-    }
+    public IReadOnlyList<CChoice> CFilterChoices =>
+        CChoicePreset.CChoicePresetRead(_cFilterTokens, CFilterPreset, _cFilterToken, CFilterKeyRead);
 
     // One row per pole count, one pole first; the held count chosen.
     public IReadOnlyList<CChoice> CFilterPoleChoices =>

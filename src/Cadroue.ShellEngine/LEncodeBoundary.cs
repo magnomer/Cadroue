@@ -6,9 +6,9 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LEncode
+internal static class LEncodeBoundary
 {
-    private static string LEncodeMatchResolve(LWorkItem lWorkItem, LBridgeStream? lBridgeSource)
+    internal static string LEncodeMatchResolve(LWorkItem lWorkItem, LBridgeStream? lBridgeSource)
     {
         string lCodec = (lBridgeSource?.LBridgeCodec ?? lWorkItem.LWorkSourceMedia?.LWorkMediaCodec ?? string.Empty)
             .ToLowerInvariant();

@@ -12,8 +12,8 @@ public sealed class LRosterCardFacade
 
     public IReadOnlyList<LRosterRow> LRosterCardRead(IReadOnlyList<Guid> lIds, Guid lRunner)
     {
-        if (LStation.LStationSchedule is not { } lSchedule
-            || LStation.LStationLease is not { } lLease)
+        if (LStationEngine.LStationSchedule is not { } lSchedule
+            || LStationEngine.LStationLease is not { } lLease)
         {
             return [];
         }

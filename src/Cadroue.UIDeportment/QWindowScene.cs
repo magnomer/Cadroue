@@ -29,7 +29,7 @@ public sealed class QWindowScene
         LSceneTabLayouts = qStrip.QStripTabs
             .Select(lTab => lTab.QStripLayoutRead() ?? new LSceneTabEntry())
             .ToList(),
-        LSceneTabRelays = LCartographer.LCartographerSlotResolve(QWindowIdsRead()).ToList(),
+        LSceneTabRelays = LCartographerSlot.LCartographerSlotResolve(QWindowIdsRead()).ToList(),
         LSceneTabNames = qStrip.QStripTabs.Select(lTab => lTab.QStripTabCustom).ToList(),
         LSceneTabIndex = qStrip.QStripSelected is null
             ? 0
@@ -119,14 +119,15 @@ public sealed class QWindowScene
 
     private void QWindowSlotsApply(IReadOnlyList<int> lSlots)
     {
-        foreach ((Guid lSource, Guid lTarget) in LCartographer.LCartographerAssignmentResolve(QWindowIdsRead(), lSlots))
+        foreach ((Guid lSource, Guid lTarget) in
+            LCartographerSlot.LCartographerAssignmentResolve(QWindowIdsRead(), lSlots))
         {
             if (!QWindowSlotCheck(lSource, lTarget))
             {
                 continue;
             }
 
-            LCartographer.LCartographerTargetSet(lSource, lTarget);
+            LCartographerRoute.LCartographerTargetSet(lSource, lTarget);
             qStrip.QStripTabFind(lSource)?.QStripTabAction?.QActionRelayApply(lTarget);
         }
     }

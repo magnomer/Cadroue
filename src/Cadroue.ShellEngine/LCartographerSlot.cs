@@ -2,7 +2,7 @@ namespace Cadroue.ShellEngine;
 
 public sealed record LCartographerAssignment(Guid LCartographerSource, Guid LCartographerTarget);
 
-public static partial class LCartographer
+public static class LCartographerSlot
 {
     public const int LCartographerFinishSlot = -2;
 
@@ -11,8 +11,8 @@ public static partial class LCartographer
         var lCartographerSlots = new List<int>(lCartographerTabIds.Count);
         foreach (Guid lCartographerTabId in lCartographerTabIds)
         {
-            Guid lCartographerTarget = LCartographerTargetRead(lCartographerTabId);
-            if (lCartographerTarget == LCartographerFinishTarget)
+            Guid lCartographerTarget = LCartographerRoute.LCartographerTargetRead(lCartographerTabId);
+            if (lCartographerTarget == LCartographer.LCartographerFinishTarget)
             {
                 lCartographerSlots.Add(LCartographerFinishSlot);
                 continue;
@@ -50,7 +50,7 @@ public static partial class LCartographer
             if (lCartographerSlot == LCartographerFinishSlot)
             {
                 lCartographerAssignments.Add(new LCartographerAssignment(
-                    lCartographerTabIds[lCartographerIndex], LCartographerFinishTarget));
+                    lCartographerTabIds[lCartographerIndex], LCartographer.LCartographerFinishTarget));
                 continue;
             }
 

@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerSplit
 {
     public static int LMessengerSplitDescribe(
         LWorkPriority lMessengerPriority,
@@ -20,7 +20,7 @@ public static partial class LMessenger
 
         LSplitWorkDescription lMessengerDescription = new(
             lMessengerSourcePath, lMessengerSections, lMessengerOutput);
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems = Cadroue.Application.LSplit.LSplitItemsCreate(
             lMessengerPriority, lMessengerDescription, lMessengerTab,
             lMessengerMessage => LTraceEngine.LTraceInfoSeam(lMessengerMessage),
@@ -31,13 +31,13 @@ public static partial class LMessenger
             return 0;
         }
 
-        LCartographerPlanDocument? lMessengerPlan = LCartographer.LCartographerPlanPrepare(lMessengerRelayTarget);
-        int lMessengerAdded = LMessengerDispatch(
+        LCartographerPlanDocument? lMessengerPlan = LCartographerPlan.LCartographerPlanPrepare(lMessengerRelayTarget);
+        int lMessengerAdded = LMessenger.LMessengerDispatch(
             lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource, lMessengerPlan);
         LTraceEngine.LTraceInfoSeam(
             $"Split queued {lMessengerAdded} of {lMessengerItems.Count} job(s) at {lMessengerPriority} " +
             $"from '{System.IO.Path.GetFileName(lMessengerSourcePath)}'");
-        LMessengerSourceResolve(lMessengerItems);
+        LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
     public static async Task<int> LMessengerSplitDescribe(
@@ -49,11 +49,7 @@ public static partial class LMessenger
     {
         try
         {
-            var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-            foreach (LWorkSource lMessengerSource in lMessengerSources)
-            {
-                lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
-            }
+            IReadOnlyDictionary<string, Guid> lMessengerRelays = LMessenger.LMessengerRelayRead(lMessengerSources);
             string[] lMessengerSourcePaths = lMessengerSources
                 .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
                 .ToArray();
@@ -62,7 +58,7 @@ public static partial class LMessenger
                 await LMessengerSplitCreate(lMessengerSourcePaths).ConfigureAwait(false);
 
             int lMessengerAdded = 0;
-            LMessengerDefer(() =>
+            LMessenger.LMessengerDefer(() =>
             {
                 foreach (LSplitPlanDescription lMessengerPlan in lMessengerPlans)
                 {

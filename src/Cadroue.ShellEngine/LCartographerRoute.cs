@@ -1,9 +1,8 @@
-using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LCartographer
+public static class LCartographerRoute
 {
     private static readonly Dictionary<Guid, Guid> lCartographerTargets = new();
 
@@ -32,7 +31,7 @@ public static partial class LCartographer
     public static void LCartographerTabRemove(Guid lCartographerTabId)
     {
         lCartographerTargets.Remove(lCartographerTabId);
-        lCartographerStageTitles.Remove(lCartographerTabId);
+        LCartographerTitle.LCartographerTitleRemove(lCartographerTabId);
         foreach (Guid lCartographerSourceTab in lCartographerTargets
             .Where(lCartographerEntry => lCartographerEntry.Value == lCartographerTabId)
             .Select(lCartographerEntry => lCartographerEntry.Key)
@@ -52,84 +51,13 @@ public static partial class LCartographer
         return lCartographerMatch < 0 ? Guid.Empty : lCartographerRules[lCartographerMatch].LCartographerTargetStage;
     }
 
-    public static IReadOnlyList<Guid> LCartographerRelaySet(
-        IReadOnlyList<LWorkItem> lCartographerItems,
-        Guid lCartographerTarget,
-        Guid lCartographerSource,
-        LCartographerPlanDocument? lCartographerPreparedPlan)
-    {
-        var lCartographerCreated = new List<Guid>();
-        foreach (IGrouping<Guid, LWorkItem> lCartographerBatch in lCartographerItems.GroupBy(
-            lCartographerItem => lCartographerItem.LWorkBatchId))
-        {
-            if (LCartographerPlanStore.LCartographerPlanRead(
-                lCartographerBatch.Key, out LCartographerPlanDocument lCartographerExisting))
-            {
-                LCartographerStageEntry? lCartographerSourceStage =
-                    lCartographerExisting.LCartographerStages.FirstOrDefault(
-                        lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerSource
-                            || lCartographerStage.LCartographerOriginalTab == lCartographerSource);
-                LCartographerStageEntry? lCartographerTargetStage =
-                    lCartographerExisting.LCartographerStages.FirstOrDefault(
-                        lCartographerStage => lCartographerStage.LCartographerStageId == lCartographerTarget
-                            || lCartographerStage.LCartographerOriginalTab == lCartographerTarget);
-                Guid lCartographerStableSource = lCartographerSourceStage?.LCartographerStageId ?? lCartographerSource;
-                Guid lCartographerStableTarget = lCartographerSourceStage?.LCartographerNextStage
-                    ?? lCartographerTargetStage?.LCartographerStageId
-                    ?? lCartographerTarget;
-                foreach (LWorkItem lCartographerItem in lCartographerBatch)
-                {
-                    lCartographerItem.LWorkRelayTarget = lCartographerStableTarget;
-                    lCartographerItem.LWorkRelaySource = lCartographerStableSource;
-                }
-
-                continue;
-            }
-
-            if (lCartographerTarget == Guid.Empty || lCartographerTarget == LCartographerFinishTarget)
-            {
-                foreach (LWorkItem lCartographerItem in lCartographerBatch)
-                {
-                    lCartographerItem.LWorkRelayTarget = lCartographerTarget;
-                    lCartographerItem.LWorkRelaySource = lCartographerSource;
-                }
-                continue;
-            }
-
-            LCartographerPlanDocument? lCartographerPlan = lCartographerPreparedPlan is null
-                ? LCartographerPlanCreate(lCartographerBatch.Key, lCartographerTarget)
-                : LCartographerPlanCopy(lCartographerPreparedPlan, lCartographerBatch.Key);
-            if (lCartographerPlan is null || !LCartographerPlanStore.LCartographerPlanSave(lCartographerPlan))
-            {
-                foreach (LWorkItem lCartographerItem in lCartographerBatch)
-                {
-                    lCartographerItem.LWorkRelayTarget = lCartographerTarget;
-                    lCartographerItem.LWorkRelaySource = lCartographerSource;
-                }
-                continue;
-            }
-
-            lCartographerCreated.Add(lCartographerPlan.LCartographerPlanId);
-            foreach (LWorkItem lCartographerItem in lCartographerBatch)
-            {
-                lCartographerItem.LWorkRelayTarget = lCartographerPlan.LCartographerEntryStage;
-                lCartographerItem.LWorkRelaySource = lCartographerSource;
-            }
-            LTraceEngine.LTraceInfoSeam(
-                $"Relay plan {lCartographerPlan.LCartographerPlanId:N} captured " +
-                $"{lCartographerPlan.LCartographerStages.Count} stable stage(s)");
-        }
-
-        return lCartographerCreated;
-    }
-
     public static bool LCartographerCycleCheck(
         Guid lCartographerSourceTab,
         Guid lCartographerTargetTab,
         string lCartographerName)
     {
         IReadOnlyList<LCartographerTab> lCartographerTabs =
-            LCartographerTabsSource?.Invoke() ?? Array.Empty<LCartographerTab>();
+            LCartographerPlan.LCartographerTabsSource?.Invoke() ?? Array.Empty<LCartographerTab>();
         var lCartographerSeen = new HashSet<Guid> { lCartographerSourceTab };
         Guid lCartographerCurrent = lCartographerTargetTab;
         while (lCartographerCurrent != Guid.Empty)

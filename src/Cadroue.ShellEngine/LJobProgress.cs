@@ -4,9 +4,23 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal sealed partial class LJob
+internal sealed class LJobProgress
 {
-    private void LJobOutputRead(string pLine)
+    private readonly LRunner lJobOwner;
+    private readonly LWorkItem lJobItem;
+    private readonly double lJobTotalSeconds;
+    private readonly System.Text.StringBuilder? lJobProgressBlock;
+    private long lJobBlockMicroseconds = -1;
+
+    internal LJobProgress(LRunner lJobRunner, LWorkItem lJobWorkItem, double lJobStageSeconds)
+    {
+        lJobOwner = lJobRunner;
+        lJobItem = lJobWorkItem;
+        lJobTotalSeconds = lJobStageSeconds;
+        lJobProgressBlock = LRunnerTrace.LRunnerVerboseCheck() ? new System.Text.StringBuilder() : null;
+    }
+
+    internal void LJobOutputRead(string pLine)
     {
         int pSeparator = pLine.IndexOf('=');
         if (pSeparator <= 0)
@@ -51,7 +65,7 @@ internal sealed partial class LJob
 
                 if (lJobProgressBlock is not null)
                 {
-                    LRunner.LRunnerFfmpegRecord(
+                    LRunnerTrace.LRunnerFfmpegRecord(
                         $"stdout progress '{lJobItem.LWorkOutputName}'",
                         lJobProgressBlock.ToString());
                     lJobProgressBlock.Clear();
@@ -62,11 +76,11 @@ internal sealed partial class LJob
         }
     }
 
-    private void LJobStderrRead(string pLine)
+    internal void LJobStderrRead(string pLine)
     {
-        if (pLine.Length > 0 && LRunner.LRunnerVerboseCheck())
+        if (pLine.Length > 0 && LRunnerTrace.LRunnerVerboseCheck())
         {
-            LRunner.LRunnerFfmpegRecord($"stderr '{lJobItem.LWorkOutputName}'", pLine);
+            LRunnerTrace.LRunnerFfmpegRecord($"stderr '{lJobItem.LWorkOutputName}'", pLine);
         }
     }
 }

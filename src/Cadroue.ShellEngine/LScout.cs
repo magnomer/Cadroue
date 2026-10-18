@@ -50,7 +50,8 @@ internal static class LScout
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Media could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
+            LRunnerTrace.LRunnerRecord(
+                $"Media could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
             return null;
         }
     }
@@ -89,77 +90,11 @@ internal static class LScout
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord(
+            LRunnerTrace.LRunnerRecord(
                 $"Keyframe interval could not be read '{Path.GetFileName(lScoutMediaPath)}'",
                 lScoutException);
             return null;
         }
-    }
-
-    internal static async Task<bool> LScoutDecodeCheck(
-        LRunner lScoutRunner, string lScoutOutputPath, CancellationToken lScoutToken = default)
-    {
-        if (string.IsNullOrWhiteSpace(lScoutOutputPath) || !File.Exists(lScoutOutputPath))
-        {
-            return false;
-        }
-
-        string lScoutBaseArguments = "-hide_banner -nostdin -v error -xerror "
-            + $"-i {LEncode.LEncodeFormat(lScoutOutputPath)} -f null -";
-        string lScoutArguments = lScoutRunner.LRunnerArgumentTransform?.Invoke(lScoutBaseArguments)
-            ?? lScoutBaseArguments;
-
-        try
-        {
-            LEmployerResult lScoutResult = await LEmployerEngine.LEmployerRunSeam(
-                lScoutRunner.LRunnerProgramPath,
-                lScoutRunner.LRunnerArgumentPrefix,
-                LCustodyFamily.LCustodyFamilyEncode,
-                lScoutRunner.LRunnerLevel,
-                null,
-                lScoutArguments,
-                lScoutToken,
-                null,
-                static _ => { },
-                static _ => { }).ConfigureAwait(false);
-            lScoutToken.ThrowIfCancellationRequested();
-            return lScoutResult.LEmployerExit == 0
-                && string.IsNullOrWhiteSpace(lScoutResult.LEmployerError);
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch
-        {
-            lScoutToken.ThrowIfCancellationRequested();
-            return false;
-        }
-    }
-
-    internal static long? LScoutInputRead(LWorkItem lScoutWorkItem, CancellationToken lScoutToken = default)
-    {
-        if (lScoutWorkItem.LWorkMergeSources.Count > 1)
-        {
-            long lScoutMergeTotal = 0;
-            foreach (string lScoutMergeSource in lScoutWorkItem.LWorkMergeSources)
-            {
-                if (LScoutBytesRead(lScoutMergeSource) is not { } lScoutMergeBytes)
-                {
-                    lScoutMergeTotal = 0;
-                    break;
-                }
-
-                lScoutMergeTotal += lScoutMergeBytes;
-            }
-
-            if (lScoutMergeTotal > 0)
-            {
-                return lScoutMergeTotal;
-            }
-        }
-
-        return lScoutWorkItem.LWorkSourceBytes ?? LScoutBytesRead(lScoutWorkItem.LWorkSourcePath);
     }
 
     internal static async Task<LWorkMedia?> LScoutSourceRead(
@@ -200,26 +135,8 @@ internal static class LScout
         }
         catch (Exception lScoutException) when (lScoutException is not OperationCanceledException)
         {
-            LRunner.LRunnerRecord($"Loudness could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
-            return null;
-        }
-    }
-
-    internal static long? LScoutBytesRead(string lScoutOutputPath)
-    {
-        if (string.IsNullOrWhiteSpace(lScoutOutputPath))
-        {
-            return null;
-        }
-
-        try
-        {
-            var lScoutOutputFile = new FileInfo(lScoutOutputPath);
-            return lScoutOutputFile.Exists ? lScoutOutputFile.Length : null;
-        }
-        catch (Exception lScoutException)
-            when (lScoutException is IOException or UnauthorizedAccessException or ArgumentException)
-        {
+            LRunnerTrace.LRunnerRecord(
+                $"Loudness could not be read '{Path.GetFileName(lScoutMediaPath)}'", lScoutException);
             return null;
         }
     }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.IO;
 using System.Text;
 
 using Cadroue.Application;
@@ -7,9 +6,9 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LEncode
+internal static class LEncodeBridgeStage
 {
-    private static LEncodeStage LEncodeSpanBuild(
+    internal static LEncodeStage LEncodeSpanBuild(
         LWorkItem lWorkItem,
         LBridgeSpan lBridgeSpan,
         string lBridgePath,
@@ -17,27 +16,29 @@ public static partial class LEncode
         LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        LEncode.LEncodeHeaderAppend(lArguments);
+        lArguments.Append(
+            CultureInfo.InvariantCulture, $" -ss {LEncode.LEncodeTimeFormat(lBridgeSpan.LBridgeSpanOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(
             CultureInfo.InvariantCulture,
-            $" -t {LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeMatchResolve(lWorkItem, lBridgeSource)}");
+            $" -t {LEncode.LEncodeTimeFormat(lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin)}");
+        lArguments.Append(
+            CultureInfo.InvariantCulture, $" {LEncodeBoundary.LEncodeMatchResolve(lWorkItem, lBridgeSource)}");
         lArguments.Append(" -an");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, lBridgeLabel, lBridgePath, true);
     }
 
-    private static LEncodeStage LEncodeMiddleBuild(
+    internal static LEncodeStage LEncodeMiddleBuild(
         LWorkItem lWorkItem,
         LBridgeSpan lBridgeSpan,
         string lBridgePath,
         LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
+        LEncode.LEncodeHeaderAppend(lArguments);
         TimeSpan lCopyOrigin = lBridgeSpan.LBridgeSpanOrigin;
         TimeSpan lCopyDuration = lBridgeSpan.LBridgeSpanEnd - lBridgeSpan.LBridgeSpanOrigin;
         if (lBridgeSpan.LBridgeDecodeEnd is TimeSpan lDecodeEnd)
@@ -49,28 +50,29 @@ public static partial class LEncode
             }
         }
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopyOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lCopyDuration)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncode.LEncodeTimeFormat(lCopyOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncode.LEncodeTimeFormat(lCopyDuration)}");
         lArguments.Append(" -copypriorss 0 -c:v copy -an");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource, lBridgePath);
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lBridgePath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lBridgePath)}");
         return new LEncodeStage(
             lArguments.ToString(), LWorkStage.LWorkStageEncode, "Copying middle", lBridgePath, true);
     }
 
-    private static LEncodeStage LEncodeDirectBuild(
+    internal static LEncodeStage LEncodeDirectBuild(
         LWorkItem lWorkItem,
         LBridgeSpan lCopySpan,
         bool lAudioActive,
         LBridgeStream? lBridgeSource)
     {
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lCopySpan.LBridgeSpanOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        LEncode.LEncodeHeaderAppend(lArguments);
+        lArguments.Append(
+            CultureInfo.InvariantCulture, $" -ss {LEncode.LEncodeTimeFormat(lCopySpan.LBridgeSpanOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(CultureInfo.InvariantCulture,
-            $" -t {LEncodeTimeFormat(lCopySpan.LBridgeSpanEnd - lCopySpan.LBridgeSpanOrigin)}");
+            $" -t {LEncode.LEncodeTimeFormat(lCopySpan.LBridgeSpanEnd - lCopySpan.LBridgeSpanOrigin)}");
         lArguments.Append(" -map 0:v:0 -c:v copy -avoid_negative_ts make_zero");
 
         if (lAudioActive)
@@ -94,8 +96,8 @@ public static partial class LEncode
         }
 
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
-        LEncodeMuxerAppend(lArguments, lWorkItem);
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
+        LEncode.LEncodeMuxerAppend(lArguments, lWorkItem);
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(
             lArguments.ToString(),
             LWorkStage.LWorkStageEncode,
@@ -104,15 +106,15 @@ public static partial class LEncode
             false);
     }
 
-    private static LEncodeStage LEncodeAudioBuild(LWorkItem lWorkItem, string lAudioPath)
+    internal static LEncodeStage LEncodeAudioBuild(LWorkItem lWorkItem, string lAudioPath)
     {
         LEncoding lOutput = lWorkItem.LWorkOutput;
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lWorkItem.LWorkSourcePath)}");
+        LEncode.LEncodeHeaderAppend(lArguments);
+        lArguments.Append(CultureInfo.InvariantCulture, $" -ss {LEncode.LEncodeTimeFormat(lWorkItem.LWorkOrigin)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lWorkItem.LWorkSourcePath)}");
         lArguments.Append(" -ss 0");
-        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -t {LEncode.LEncodeTimeFormat(lWorkItem.LWorkDuration)}");
         lArguments.Append(CultureInfo.InvariantCulture, $" -vn -map {LEncodeMapRead(lWorkItem)}");
 
         string lLabel;
@@ -127,7 +129,7 @@ public static partial class LEncode
             lLabel = "Encoding audio";
         }
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lAudioPath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lAudioPath)}");
         return new LEncodeStage(lArguments.ToString(), LWorkStage.LWorkStageEncode, lLabel, lAudioPath, true);
     }
 
@@ -146,31 +148,33 @@ public static partial class LEncode
         TimeSpan lAudioOffset = default,
         LBridgeStream? lBridgeSource = null)
     {
-        string lJoinPath = LEncodeJoinSave(lWorkItem, lBridgeParts);
+        string lJoinPath = LEncodeJoin.LEncodeJoinSave(lWorkItem, lBridgeParts);
         var lArguments = new StringBuilder();
-        LEncodeHeaderAppend(lArguments);
-        lArguments.Append(CultureInfo.InvariantCulture, $" -f concat -safe 0 -i {LEncodeFormat(lJoinPath)}");
+        LEncode.LEncodeHeaderAppend(lArguments);
+        lArguments.Append(CultureInfo.InvariantCulture, $" -f concat -safe 0 -i {LEncode.LEncodeFormat(lJoinPath)}");
 
         if (lAudioPath is null)
         {
             lArguments.Append(" -map 0:v:0 -c copy -an");
             LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
-            LEncodeMuxerAppend(lArguments, lWorkItem);
-            lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
+            LEncode.LEncodeMuxerAppend(lArguments, lWorkItem);
+            lArguments.Append(
+                CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lWorkItem.LWorkOutputPath)}");
             return new LEncodeStage(
                 lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
         }
 
         if (lAudioOffset > TimeSpan.Zero)
         {
-            lArguments.Append(CultureInfo.InvariantCulture, $" -itsoffset {LEncodeTimeFormat(lAudioOffset)}");
+            lArguments.Append(
+                CultureInfo.InvariantCulture, $" -itsoffset {LEncode.LEncodeTimeFormat(lAudioOffset)}");
         }
 
-        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncodeFormat(lAudioPath)}");
+        lArguments.Append(CultureInfo.InvariantCulture, $" -i {LEncode.LEncodeFormat(lAudioPath)}");
         lArguments.Append(" -map 0:v:0 -map 1:a -c copy");
         LEncodeTimescaleAppend(lArguments, lWorkItem, lBridgeSource);
-        LEncodeMuxerAppend(lArguments, lWorkItem);
-        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncodeFormat(lWorkItem.LWorkOutputPath)}");
+        LEncode.LEncodeMuxerAppend(lArguments, lWorkItem);
+        lArguments.Append(CultureInfo.InvariantCulture, $" {LEncode.LEncodeFormat(lWorkItem.LWorkOutputPath)}");
         return new LEncodeStage(
             lArguments.ToString(), LWorkStage.LWorkStageMux, "Joining bridges", lWorkItem.LWorkOutputPath, false);
     }
@@ -188,7 +192,7 @@ public static partial class LEncode
         }
     }
 
-    private static string LEncodeTimescaleRead(
+    internal static string LEncodeTimescaleRead(
         LWorkItem lWorkItem,
         LBridgeStream? lBridgeSource,
         string? lTargetPath = null)
@@ -218,36 +222,5 @@ public static partial class LEncode
         }
 
         return $"-video_track_timescale {lDenominator.ToString(CultureInfo.InvariantCulture)}";
-    }
-
-    private static string LEncodeJoinSave(LWorkItem lWorkItem, IReadOnlyList<string> lBridgeParts)
-    {
-        string lJoinPath = Path.Combine(LDepotEngine.LDepotBridgeSeam(), $"{lWorkItem.LWorkId:N}.concat.txt");
-        var lJoinList = new StringBuilder();
-        foreach (string lPart in lBridgeParts)
-        {
-            string lEscaped = lPart
-                .Replace("\\", "/", StringComparison.Ordinal)
-                .Replace("'", "'\\''", StringComparison.Ordinal);
-            lJoinList.Append(CultureInfo.InvariantCulture, $"file '{lEscaped}'\n");
-        }
-
-        File.WriteAllText(lJoinPath, lJoinList.ToString());
-        return lJoinPath;
-    }
-
-    internal static void LEncodeBridgeClear(Guid lWorkId)
-    {
-        string lJoinPath = Path.Combine(LDepotEngine.LDepotBridgeSeam(), $"{lWorkId:N}.concat.txt");
-        try
-        {
-            if (File.Exists(lJoinPath))
-            {
-                File.Delete(lJoinPath);
-            }
-        }
-        catch (Exception lException) when (lException is IOException or UnauthorizedAccessException)
-        {
-        }
     }
 }

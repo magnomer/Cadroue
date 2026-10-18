@@ -36,7 +36,7 @@ public sealed class QStrip
             qStripTabs,
             QLocalizationCatalog.QLocalizationTextRead,
             LTraceLog.LTraceInfoRecord,
-            LCartographer.LCartographerTabRemove);
+            LCartographerRoute.LCartographerTabRemove);
         QStripRail = new QRail(this);
         QStripDeck = new QDeck(this, QLocalizationCatalog.QLocalizationTextRead);
         QStripRelay = new QStripRelay(this, lAtelier.CAtelierRelay);

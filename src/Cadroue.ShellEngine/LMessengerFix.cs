@@ -2,7 +2,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LMessenger
+public static class LMessengerFix
 {
     public static int LMessengerFixDescribe(
         LWorkPriority lMessengerPriority,
@@ -19,11 +19,10 @@ public static partial class LMessenger
         string[] lMessengerSourcePaths = lMessengerSources
             .Select(lMessengerSource => lMessengerSource.LWorkSourcePath)
             .ToArray();
-        var lMessengerRelays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
+        IReadOnlyDictionary<string, Guid> lMessengerRelays = LMessenger.LMessengerRelayRead(lMessengerSources);
         var lMessengerPlans = new Dictionary<string, LWorkFix>(StringComparer.OrdinalIgnoreCase);
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
-            lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
             if (Cadroue.Application.LFixSidecar.LFixSidecarRead(
                     lMessengerSource.LWorkSourcePath,
                     Cadroue.Application.LLibrarian.LLibrarianFixLoad) is { } lMessengerPlan)
@@ -35,19 +34,20 @@ public static partial class LMessenger
         LFixWorkDescription lMessengerDescription =
             new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays, lMessengerPlans);
 
-        string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
+        string lMessengerTab = LMessenger.LMessengerTitleRead(lMessengerRelaySource);
         IReadOnlyList<LWorkItem> lMessengerItems =
             Cadroue.Application.LFix.LFixItemsCreate(
                 lMessengerPriority, lMessengerDescription, lMessengerTab,
                 lMessengerMessage => LTraceEngine.LTraceErrorSeam(lMessengerMessage, null),
                 Cadroue.Application.LLibrarian.LLibrarianDurationRead);
 
-        int lMessengerAdded = LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
+        int lMessengerAdded =
+            LMessenger.LMessengerDispatch(lMessengerItems, lMessengerRelayTarget, lMessengerRelaySource);
         LTraceEngine.LTraceInfoSeam(
             $"Fix queued {lMessengerAdded} job(s) at {lMessengerPriority} from " +
             $"{lMessengerSourcePaths.Length} listed file(s)");
 
-        LMessengerSourceResolve(lMessengerItems);
+        LMessengerMeasure.LMessengerSourceResolve(lMessengerItems);
         return lMessengerAdded;
     }
 }

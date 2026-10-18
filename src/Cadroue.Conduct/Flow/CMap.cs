@@ -5,16 +5,6 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
-// What a point over the map grabs: the range's origin or limit handle, its body, or the cursor anywhere else.
-public enum CMapHit
-{
-    CMapHitNone,
-    CMapHitOrigin,
-    CMapHitLimit,
-    CMapHitBody,
-    CMapHitCursor,
-}
-
 // One section's band on the map rail, in pixels, with its colour, its number and whether it shows and is selected.
 public sealed record CMapBand(
     double CMapBandLeft,
@@ -42,8 +32,8 @@ public sealed record CMapFrame(
     (double, double, double)? CMapFrameBody,
     IReadOnlyList<double> CMapFrameCursor);
 
-// The map's single home: what a press grabs, the drag it runs on the range, what asked for the last draw and how many
-// bands it drew. The driver hands it raw pointer input and the surface's size and paints its answers.
+// The map's draw: the frame it paints for a size, the rail's geometry, what asked for the last draw and how many bands
+// it drew. It makes the pointer's drag. The driver hands it the surface's size and paints its answers.
 public sealed class CMap
 {
     public const double CMapRailTop = 3;
@@ -57,11 +47,6 @@ public sealed class CMap
 
     private readonly LMapPort _cMapPort;
     private readonly CFlow _cMapFlow;
-    private CMapHit _cMapDragKind;
-    private CMapHit _cMapHoverKind;
-    private double _cMapDragOrigin;
-    private double _cMapDragPrevious;
-    private TimeSpan _cMapDragTime;
     private string _cMapTrigger = "attach";
     private int _cMapGlyphCount;
 
@@ -71,15 +56,10 @@ public sealed class CMap
         ArgumentNullException.ThrowIfNull(flow);
         _cMapPort = port;
         _cMapFlow = flow;
+        CMapDrag = new CMapDrag(port, this, flow);
     }
 
-    // Told at a drag's start and at its end, for the driver to hand on with the viewer's playing seam.
-    public event Action<bool>? CMapDragChanged;
-
-    // A drag edited the range.
-    public event Action? CMapSpoolChanged;
-
-    public CMapHit CMapDragKind => _cMapDragKind;
+    public CMapDrag CMapDrag { get; }
 
     public string CMapTrigger => _cMapTrigger;
 
@@ -116,47 +96,16 @@ public sealed class CMap
             _cMapFlow.CFlowCursor, _cMapFlow.CFlowSource, _cMapTrigger, elapsed(), _cMapGlyphCount);
     }
 
-    public CMapHit CMapHoverResolve(double x, double y, double width, double height)
+    // The rail over a height: the coverage strip's top below it, and the rail's bottom.
+    internal static (double, double) CMapRailResolve(double height)
     {
-        _cMapHoverKind = CMapHitResolve(x, y, width, height);
-        return _cMapHoverKind;
+        double coverageTop = Math.Max(0, Math.Max(0, height - 1) - CMapCoverageHeight);
+        return (coverageTop, Math.Max(CMapRailTop, coverageTop - 2));
     }
 
-    // Leaving keeps what a drag still grabs; with no drag nothing is grabbed.
-    public CMapHit CMapLeaveResolve() => _cMapDragKind == CMapHit.CMapHitNone ? CMapHit.CMapHitNone : _cMapHoverKind;
-
-    public bool CMapPressHandle(double x, double y, double width, double height)
-    {
-        if (_cMapFlow.CFlowRange is not { } range || width <= 0)
-        {
-            return false;
-        }
-
-        CMapDragStart(x, y, width, height);
-        CMapPressDispatch(range, x, width);
-        return true;
-    }
-
-    public bool CMapMoveHandle(double x, double width)
-    {
-        if (_cMapFlow.CFlowRange is not { } range || !CMapDragCheck() || width <= 0)
-        {
-            return false;
-        }
-
-        CMapMoveDispatch(range, x, width);
-        return true;
-    }
-
-    public void CMapDragClear()
-    {
-        bool dragging = CMapDragCheck();
-        _cMapDragKind = CMapHit.CMapHitNone;
-        if (dragging)
-        {
-            CMapDragChanged?.Invoke(false);
-        }
-    }
+    // Where a time sits on a rail of this width.
+    internal double CMapSpoolResolve(LSpool range, TimeSpan time, double width) =>
+        Math.Clamp(_cMapPort.LMapRatioResolve(range, time), 0, 1) * width;
 
     private CMapFrame CMapFrameResolve(double width, double height)
     {
@@ -171,9 +120,7 @@ public sealed class CMap
             return frame;
         }
 
-        double coverageBottom = Math.Max(0, height - 1);
-        double coverageTop = Math.Max(0, coverageBottom - CMapCoverageHeight);
-        double railBottom = Math.Max(CMapRailTop, coverageTop - 2);
+        (double coverageTop, double railBottom) = CMapRailResolve(height);
         double railHeight = Math.Max(0, railBottom - CMapRailTop);
         if (railHeight <= 0)
         {
@@ -221,100 +168,6 @@ public sealed class CMap
             CMapFrameBody = (Math.Min(bodyLeft, bodyRight), bodyWidth, railHeight),
             CMapFrameCursor = [CMapSpoolResolve(range, _cMapFlow.CFlowCursor, width)],
         };
-    }
-
-    private void CMapDragStart(double x, double y, double width, double height)
-    {
-        _cMapDragOrigin = x;
-        _cMapDragPrevious = x;
-        _cMapDragKind = CMapHitResolve(x, y, width, height);
-        _cMapHoverKind = _cMapDragKind;
-    }
-
-    // A handle remembers where its edge stood; the drag is told before a cursor grab seeks.
-    private void CMapPressDispatch(LSpool range, double x, double width)
-    {
-        switch (_cMapDragKind)
-        {
-            case CMapHit.CMapHitOrigin:
-                _cMapDragTime = _cMapPort.LMapRangeRead(range).LMapOrigin;
-                break;
-            case CMapHit.CMapHitLimit:
-                _cMapDragTime = _cMapPort.LMapRangeRead(range).LMapLimit;
-                break;
-        }
-
-        CMapDragChanged?.Invoke(true);
-        if (_cMapDragKind == CMapHit.CMapHitCursor)
-        {
-            _cMapFlow.CFlowCursorSeek(CMapTimeResolve(range, x, width));
-        }
-    }
-
-    private void CMapMoveDispatch(LSpool range, double x, double width)
-    {
-        TimeSpan dragDelta = _cMapPort.LMapTimeResolve(range, (x - _cMapDragOrigin) / width);
-        switch (_cMapDragKind)
-        {
-            case CMapHit.CMapHitOrigin:
-                _cMapPort.LMapOriginSet(range, _cMapDragTime + dragDelta);
-                CMapSpoolChanged?.Invoke();
-                break;
-            case CMapHit.CMapHitLimit:
-                _cMapPort.LMapLimitSet(range, _cMapDragTime + dragDelta);
-                CMapSpoolChanged?.Invoke();
-                break;
-            case CMapHit.CMapHitBody:
-                _cMapPort.LMapBodyMove(range, _cMapPort.LMapTimeResolve(range, (x - _cMapDragPrevious) / width));
-                _cMapDragPrevious = x;
-                CMapSpoolChanged?.Invoke();
-                break;
-            case CMapHit.CMapHitCursor:
-                _cMapFlow.CFlowCursorSeek(CMapTimeResolve(range, x, width));
-                break;
-        }
-    }
-
-    private bool CMapDragCheck() => _cMapDragKind != CMapHit.CMapHitNone;
-
-    private TimeSpan CMapTimeResolve(LSpool range, double x, double width) =>
-        _cMapPort.LMapTimeResolve(range, Math.Clamp(x / width, 0, 1));
-
-    private double CMapSpoolResolve(LSpool range, TimeSpan time, double width) =>
-        Math.Clamp(_cMapPort.LMapRatioResolve(range, time), 0, 1) * width;
-
-    private CMapHit CMapHitResolve(double x, double y, double width, double height)
-    {
-        if (_cMapFlow.CFlowRange is not { } range || width <= 0)
-        {
-            return CMapHit.CMapHitNone;
-        }
-
-        (TimeSpan origin, TimeSpan limit, _) = _cMapPort.LMapRangeRead(range);
-        double originX = CMapSpoolResolve(range, origin, width);
-        double limitX = CMapSpoolResolve(range, limit, width);
-        double bodyLeft = Math.Min(originX, limitX);
-        double bodyWidth = Math.Max(0, Math.Max(originX, limitX) - bodyLeft);
-        double coverageTop = Math.Max(0, Math.Max(0, height - 1) - CMapCoverageHeight);
-        double railBottom = Math.Max(CMapRailTop, coverageTop - 2);
-        double handleWidth = Math.Min(CMapHandleWidth, bodyWidth);
-        bool insideY = y >= CMapRailTop && y <= railBottom;
-        if (insideY && x >= bodyLeft && x <= bodyLeft + handleWidth)
-        {
-            return CMapHit.CMapHitOrigin;
-        }
-
-        if (insideY && x >= bodyLeft + bodyWidth - handleWidth && x <= bodyLeft + bodyWidth)
-        {
-            return CMapHit.CMapHitLimit;
-        }
-
-        (double moveLeft, double moveWidth, double moveHeight) =
-            CMapMoveResolve(bodyLeft, bodyWidth, railBottom - CMapRailTop, handleWidth, width);
-        bool insideMove = moveWidth > 0
-            && x >= moveLeft && x <= moveLeft + moveWidth
-            && y >= CMapRailTop && y <= CMapRailTop + moveHeight;
-        return insideMove ? CMapHit.CMapHitBody : CMapHit.CMapHitCursor;
     }
 
     private IReadOnlyList<CMapBand> CMapBandsResolve(TimeSpan duration, double width, double railHeight)

@@ -5,7 +5,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-internal static partial class LEncodeVideo
+internal static class LEncodeVideoGeometry
 {
     internal static IReadOnlyList<string> LEncodeGeometryRead(LWorkCrop lCrop, LWorkMedia? lMedia = null)
     {
@@ -66,7 +66,7 @@ internal static partial class LEncodeVideo
         return LCropboxInset.LCropboxEdgeNormalize(lCrop, lFrameWidth, lFrameHeight);
     }
 
-    private static string LEncodeScaleResolve(string lSize, bool lReactive)
+    internal static string LEncodeScaleResolve(string lSize, bool lReactive)
     {
         string[] lParts = lSize.Split('x');
         int lWidth = int.Parse(lParts[0], CultureInfo.InvariantCulture);
@@ -85,7 +85,11 @@ internal static partial class LEncodeVideo
             $"scale=w={lShortEdge}+{lEdgeSpan}*gte(iw\\,ih):h={lLongEdge}-{lEdgeSpan}*gte(iw\\,ih)");
     }
 
-    private static string? LEncodeSizeRead(string lSize)
+    internal static bool LEncodeSizeCheck(LEncodingVideo lVideo) =>
+        string.Equals(lVideo.LEncodingMode, "Encode", StringComparison.OrdinalIgnoreCase)
+        && LEncodeSizeRead(lVideo.LEncodingSize) is not null;
+
+    internal static string? LEncodeSizeRead(string lSize)
     {
         if (LEncode.LEncodeSourceCheck(lSize) || string.Equals(lSize, "Custom", StringComparison.OrdinalIgnoreCase))
         {

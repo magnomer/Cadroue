@@ -4,7 +4,7 @@ using Cadroue.Core;
 
 namespace Cadroue.ShellEngine;
 
-public static partial class LSweep
+public static class LSweepStill
 {
     public static string LSweepStillFormat(string lSweepSource, double lSweepTolerance, double lSweepMinimum)
     {
@@ -29,14 +29,14 @@ public static partial class LSweep
                 continue;
             }
 
-            double? lSweepStart = LSweepFieldRead(lSweepLine, "freeze_start: ");
+            double? lSweepStart = LSweepField.LSweepFieldRead(lSweepLine, "freeze_start: ");
             if (lSweepStart is { } lSweepFrom)
             {
                 lSweepPending = lSweepFrom;
                 continue;
             }
 
-            double? lSweepEnd = LSweepFieldRead(lSweepLine, "freeze_end: ");
+            double? lSweepEnd = LSweepField.LSweepFieldRead(lSweepLine, "freeze_end: ");
             if (lSweepEnd is { } lSweepTo && lSweepPending is { } lSweepOpen && lSweepTo > lSweepOpen)
             {
                 lSweepIntervals.Add(new LSweepSpan(TimeSpan.FromSeconds(lSweepOpen), TimeSpan.FromSeconds(lSweepTo)));
@@ -50,5 +50,28 @@ public static partial class LSweep
         }
 
         return lSweepIntervals;
+    }
+
+    public static async Task<IReadOnlyList<LSweepSpan>> LSweepStillScan(
+        string lSweepSource,
+        double lSweepTolerance,
+        double lSweepMinimum,
+        TimeSpan lSweepDuration,
+        CancellationToken lSweepToken,
+        IProgress<double>? lSweepProgress = null)
+    {
+        if (string.IsNullOrWhiteSpace(lSweepSource))
+        {
+            return Array.Empty<LSweepSpan>();
+        }
+
+        return LSweepStillParse(
+            await LSweepProcess.LSweepLinesRead(
+                    LSweepStillFormat(lSweepSource, lSweepTolerance, lSweepMinimum),
+                    lSweepDuration,
+                    lSweepToken,
+                    lSweepProgress)
+                .ConfigureAwait(false),
+            lSweepDuration);
     }
 }

@@ -73,12 +73,12 @@ public sealed class TFlowGate
 
         tFlowGate.CFlowCommandSet(true);
         tFlowGate.CFlowAttach(null!, "full:a", TimeSpan.FromSeconds(4));
-        tFlowGate.CFlowDirectionSet(1);
+        tFlowGate.CFlowKeyframe.CKeyframeDirectionSet(1);
 
         Assert.True(tFlowGate.CFlowClear(sectionsEmpty: true));
         Assert.Null(tFlowGate.CFlowSource);
         Assert.Equal(TimeSpan.Zero, tFlowGate.CFlowCursor);
-        Assert.Null(tFlowGate.CFlowKeyframeDirection);
+        Assert.Null(tFlowGate.CFlowKeyframe.CKeyframeDirection);
         Assert.False(tFlowGate.CFlowClear(sectionsEmpty: true));
     }
 
@@ -103,14 +103,14 @@ public sealed class TFlowGate
         int played = 0;
         tFlowGate.CFlowPlayed += () => played++;
         tFlowGate.CFlowCommandSet(true);
-        tFlowGate.CFlowDirectionSet(-1);
+        tFlowGate.CFlowKeyframe.CKeyframeDirectionSet(-1);
         tFlowGate.CFlowPlayRaise();
 
         tFlowGate.CFlowCommandSet(false);
         tFlowGate.CFlowPlayRaise();
 
         Assert.Equal(1, played);
-        Assert.Null(tFlowGate.CFlowKeyframeDirection);
+        Assert.Null(tFlowGate.CFlowKeyframe.CKeyframeDirection);
         Assert.False(tFlowGate.CFlowCursorUpdate(TimeSpan.FromSeconds(1)));
     }
 
@@ -147,19 +147,19 @@ public sealed class TFlowGate
         List<bool> drags = [];
         tFlowGate.CFlowPaused += () => paused++;
         tFlowGate.CFlowPlayed += () => played++;
-        tFlowGate.CFlowDragChanged += drags.Add;
+        tFlowGate.CFlowDrag.CFlowDragChanged += drags.Add;
         Func<bool> playing = () => ++asked > 0;
         tFlowGate.CFlowCommandSet(true);
 
-        tFlowGate.CFlowDragSet(true, playing);
-        tFlowGate.CFlowDragSet(true, playing);
-        Assert.True(tFlowGate.CFlowDragPaused);
-        tFlowGate.CFlowDragSet(false, playing);
-        tFlowGate.CFlowDragSet(false, playing);
+        tFlowGate.CFlowDrag.CFlowDragSet(true, playing);
+        tFlowGate.CFlowDrag.CFlowDragSet(true, playing);
+        Assert.True(tFlowGate.CFlowDrag.CFlowDragPaused);
+        tFlowGate.CFlowDrag.CFlowDragSet(false, playing);
+        tFlowGate.CFlowDrag.CFlowDragSet(false, playing);
 
         Assert.Equal([true, true, false, false], drags);
         Assert.Equal((1, 1, 1), (paused, played, asked));
-        Assert.False(tFlowGate.CFlowDragPaused);
+        Assert.False(tFlowGate.CFlowDrag.CFlowDragPaused);
     }
 
     [Fact]
@@ -169,12 +169,12 @@ public sealed class TFlowGate
         tFlowGate.CFlowPaused += () => paused++;
         tFlowGate.CFlowCommandSet(true);
 
-        tFlowGate.CFlowDragSet(true, null);
+        tFlowGate.CFlowDrag.CFlowDragSet(true, null);
         tFlowPort.TFlowDrag = false;
-        tFlowGate.CFlowDragSet(true, () => true);
+        tFlowGate.CFlowDrag.CFlowDragSet(true, () => true);
 
         Assert.Equal(0, paused);
-        Assert.False(tFlowGate.CFlowDragPaused);
+        Assert.False(tFlowGate.CFlowDrag.CFlowDragPaused);
     }
 
     [Fact]

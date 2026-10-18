@@ -12,7 +12,7 @@ public sealed class TSweepVolume
     [Fact]
     public void LSweepVolumeFormat_LufsMapsAudioUsesEbur128AndDisablesVideo()
     {
-        string lArgs = LSweep.LSweepVolumeFormat("in.mp4", LDetectorMetricMode.LDetectorMetricLufs);
+        string lArgs = LSweepVolume.LSweepVolumeFormat("in.mp4", LDetectorMetricMode.LDetectorMetricLufs);
 
         Assert.Contains("ebur128=metadata=1,ametadata=print:key=lavfi.r128.M", lArgs);
         Assert.Contains("0:a:0", lArgs);
@@ -23,7 +23,7 @@ public sealed class TSweepVolume
     [Fact]
     public void LSweepVolumeFormat_RmsUsesAstatsRmsLevel()
     {
-        string lArgs = LSweep.LSweepVolumeFormat("in.mp4", LDetectorMetricMode.LDetectorMetricRms);
+        string lArgs = LSweepVolume.LSweepVolumeFormat("in.mp4", LDetectorMetricMode.LDetectorMetricRms);
 
         Assert.Contains("astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level", lArgs);
         Assert.DoesNotContain("ebur128", lArgs);
@@ -41,7 +41,7 @@ public sealed class TSweepVolume
             "lavfi.astats.Overall.RMS_level=-30.000000"
         };
 
-        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
+        IReadOnlyList<LSweepSample> lSamples = LSweepVolume.LSweepVolumeParse(lLines);
 
         Assert.Equal(2, lSamples.Count);
         Assert.Equal(TimeSpan.Zero, lSamples[0].LSweepSampleTime);
@@ -53,7 +53,7 @@ public sealed class TSweepVolume
     [Fact]
     public void LSweepVolumeParse_ReturnsEmptyWithoutLines()
     {
-        Assert.Empty(LSweep.LSweepVolumeParse(Array.Empty<string>()));
+        Assert.Empty(LSweepVolume.LSweepVolumeParse(Array.Empty<string>()));
     }
 
     [Fact]
@@ -67,7 +67,7 @@ public sealed class TSweepVolume
             "lavfi.astats.Overall.RMS_level=-20.000000"
         };
 
-        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
+        IReadOnlyList<LSweepSample> lSamples = LSweepVolume.LSweepVolumeParse(lLines);
 
         LSweepSample lSample = Assert.Single(lSamples);
         Assert.Equal(TimeSpan.FromSeconds(0.5), lSample.LSweepSampleTime);
@@ -85,7 +85,7 @@ public sealed class TSweepVolume
             "lavfi.r128.M=-18.000000"
         };
 
-        IReadOnlyList<LSweepSample> lSamples = LSweep.LSweepVolumeParse(lLines);
+        IReadOnlyList<LSweepSample> lSamples = LSweepVolume.LSweepVolumeParse(lLines);
 
         LSweepSample lSample = Assert.Single(lSamples);
         Assert.Equal(TimeSpan.FromSeconds(0.1), lSample.LSweepSampleTime);

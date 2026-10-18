@@ -11,7 +11,7 @@ internal static class TFlaw
     {
         List<LDossier> dossiers = present.Select(TFlawKindParse).Select(TDossierCreate).ToList();
         LFlawKind[] kinds = requested.Select(TFlawKindParse).ToArray();
-        return LFlawScanner.LFlawKindsResolve(dossiers, kinds)
+        return LFlawSelection.LFlawKindsResolve(dossiers, kinds)
             .Select(dossier => dossier.LDossierKind.ToString())
             .ToList();
     }

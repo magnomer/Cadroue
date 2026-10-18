@@ -61,7 +61,7 @@ Thread thread = new(() =>
     });
     QPlacement.QPlacementGateSeam = atelier.CAtelierPlacement;
 
-    QProgram program = new(engine.LEngineSchedule, engine.LEngineStationAttach);
+    QProgram program = new(engine.LEngineSchedule, LEngineSeam.LEngineStationAttach);
 
     application.Startup += (_, e) =>
     {

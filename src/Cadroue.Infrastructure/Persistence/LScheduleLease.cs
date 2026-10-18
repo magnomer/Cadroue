@@ -156,10 +156,6 @@ public sealed class LScheduleLease : LScheduleLeaseContract
         lWorkItem.LWorkRunState.LWorkOwnerRunner != Guid.Empty
         && lWorkItem.LWorkRunState.LWorkOwnerRunner == lRunnerId;
 
-    public bool LScheduleForeignCheck(LWorkItem lWorkItem, Guid lRunnerId) =>
-        lWorkItem.LWorkRunState.LWorkOwnerRunner != Guid.Empty
-        && lWorkItem.LWorkRunState.LWorkOwnerRunner != lRunnerId;
-
     private static LWorkDocument? LScheduleOwnedRead(Guid lWorkId, Guid lRunnerId)
     {
         string lDepotFilePath = LDepot.LDepotFileRead(LDepotFolder.LDepotFolderRunning, lWorkId);

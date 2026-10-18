@@ -45,7 +45,7 @@ public sealed class TSkipGate
     [Fact]
     public void InspectorPersistentAccept_NoPlanYet_StillKeepsSkipAsTold()
     {
-        tSkipInspector.CInspectorPersistentAccept(true);
+        tSkipInspector.CInspectorAudio.CInspectorPersistentAccept(true);
 
         Assert.True(tSkipGate.CSkipPersistent);
     }
@@ -59,7 +59,7 @@ public sealed class TSkipGate
         tSkipGate.CSkipPersistentSet(persistent);
         tSkipGate.CSkipActiveSet(active);
 
-        tSkipInspector.CInspectorPersistentRead();
+        tSkipInspector.CInspectorAudio.CInspectorPersistentRead();
 
         Assert.Equal(expected, tSkipAudio.TAudioSkip);
     }

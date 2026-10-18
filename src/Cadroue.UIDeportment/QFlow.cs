@@ -80,7 +80,7 @@ public sealed class QFlow
 
     public bool QFlowWaveformAudio => qFlowGate.CFlowWaveformAudio;
 
-    public int? QFlowKeyframeDirection => qFlowGate.CFlowKeyframeDirection;
+    public int? QFlowKeyframeDirection => qFlowGate.CFlowKeyframe.CKeyframeDirection;
 
     public int QFlowPaletteCount => qFlowGate.CFlowPaletteCount;
 
@@ -218,5 +218,6 @@ public sealed class QFlow
 
     public bool QFlowWaveformSet(bool lWaveformActive) => qFlowGate.CFlowWaveformSet(lWaveformActive);
 
-    public void QFlowDirectionSet(int? lKeyframeDirection) => qFlowGate.CFlowDirectionSet(lKeyframeDirection);
+    public void QFlowDirectionSet(int? lKeyframeDirection) =>
+        qFlowGate.CFlowKeyframe.CKeyframeDirectionSet(lKeyframeDirection);
 }
