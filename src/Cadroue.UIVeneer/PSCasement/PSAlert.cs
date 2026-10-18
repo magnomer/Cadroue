@@ -2,7 +2,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
@@ -14,8 +13,8 @@ internal sealed class PSAlert : Window
     {
         PSAlertTitleSet(pTitle);
         PSAlertFrameApply();
-        PSAlertOwnerApply(PSAlertOwnerResolve(pOwner));
-        PSDialog.PSDialogLocationAttach(this);
+        PSDialog.PSDialogOwnerApply(this, pOwner);
+        PSDialogLocation.PSDialogLocationAttach(this);
         PSAlertBuild(pTitle, pQuestion, pAction, pCancel);
     }
 
@@ -28,21 +27,6 @@ internal sealed class PSAlert : Window
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         PSDialog.PSDialogApply(this, PSDialogTheme.PSDialogThemeRed);
-    }
-
-    private static Window? PSAlertOwnerResolve(Window? pOwner) =>
-        pOwner ?? System.Windows.Application.Current?.MainWindow;
-
-    private void PSAlertOwnerApply(Window? pResolvedOwner)
-    {
-        if (pResolvedOwner is not null && pResolvedOwner != this)
-        {
-            Owner = pResolvedOwner;
-        }
-        else
-        {
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        }
     }
 
     internal static bool PSAlertConfirm(
@@ -67,7 +51,8 @@ internal sealed class PSAlert : Window
     {
         Button pCancelButton = PSAlertCancelBuild(pCancel);
         Button pConfirm = PSAlertConfirmBuild(pAction);
-        return PSAlertPanelBuild(pQuestion, pCancelButton, pConfirm);
+        return PSDialogMessage.PSDialogMessageBuild(
+            pQuestion, "/PAsset/PSDialog/PSAlert.svg", Color.FromRgb(0xB4, 0x23, 0x18), pCancelButton, pConfirm);
     }
 
     private Button PSAlertCancelBuild(string? pCancel)
@@ -102,61 +87,4 @@ internal sealed class PSAlert : Window
     private void PSAlertConfirmAttach(Button pConfirm) => pConfirm.Click += PSAlertConfirmHandle;
 
     private void PSAlertConfirmHandle(object sender, RoutedEventArgs e) => DialogResult = true;
-
-    private static DockPanel PSAlertPanelBuild(string pQuestion, Button pCancelButton, Button pConfirm)
-    {
-        var pBody = new DockPanel
-        {
-            Background = Brushes.White
-        };
-
-        var pFooter = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(12)
-        };
-
-        pFooter.Children.Add(pCancelButton);
-        pFooter.Children.Add(pConfirm);
-        DockPanel.SetDock(pFooter, Dock.Bottom);
-        pBody.Children.Add(pFooter);
-
-        pBody.Children.Add(PSAlertContentBuild(pQuestion));
-        return pBody;
-    }
-
-    private static Grid PSAlertContentBuild(string pMessage)
-    {
-        var pContent = new Grid();
-        pContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        var pIcon = new Image
-        {
-            Source = QIcon.QIconRead(
-                "/PAsset/PSDialog/PSAlert.svg",
-                new SolidColorBrush(Color.FromRgb(0xB4, 0x23, 0x18))),
-            Width = 28,
-            Height = 28,
-            Stretch = Stretch.Uniform,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(24, 24, 0, 12)
-        };
-        Grid.SetColumn(pIcon, 0);
-        pContent.Children.Add(pIcon);
-
-        var pMessageText = new TextBlock
-        {
-            Text = pMessage,
-            FontSize = 14,
-            Foreground = PSField.PSFieldText,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(16, 24, 24, 12)
-        };
-        Grid.SetColumn(pMessageText, 1);
-        pContent.Children.Add(pMessageText);
-        return pContent;
-    }
 }

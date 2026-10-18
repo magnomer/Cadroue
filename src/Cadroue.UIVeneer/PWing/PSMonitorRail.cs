@@ -151,7 +151,7 @@ internal sealed class PSMonitorRail
         lFrame.QSMonitorFrameLabels.ToList().ForEach(lLabel => PSMonitorLabelDraw(pCanvas, lLabel));
         pCanvas.Children.Add(new System.Windows.Shapes.Path
         {
-            Data = PFlow.PFlowWaveformBuild(lFrame.QSMonitorFrameOutline),
+            Data = PFlowWaveform.PFlowWaveformBuild(lFrame.QSMonitorFrameOutline),
             Fill = pFill
         });
     }

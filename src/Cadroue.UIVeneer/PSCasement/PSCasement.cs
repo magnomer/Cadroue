@@ -1,10 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
@@ -16,40 +12,6 @@ internal static class PSCasement
     internal const double PSCasementButtonWidth = 48;
     internal const double PSCasementButtonStrip = PSCasementButtonWidth * 3;
 
-    private const int PSCasementDwmPreference = 33;
-    private const int PSCasementDwmRound = 2;
-    private const int PSCasementDwmCaption = 35;
-
-    internal static void PSCasementDwmApply(Window pWindow, int pCaption)
-    {
-        IntPtr pCasementHandle = new System.Windows.Interop.WindowInteropHelper(pWindow).Handle;
-        if (pCasementHandle == IntPtr.Zero)
-        {
-            return;
-        }
-
-        int pCasementCorner = PSCasementDwmRound;
-        _ = DwmSetWindowAttribute(
-            pCasementHandle,
-            PSCasementDwmPreference,
-            ref pCasementCorner,
-            System.Runtime.InteropServices.Marshal.SizeOf<int>());
-
-        int pCasementCaption = pCaption;
-        _ = DwmSetWindowAttribute(
-            pCasementHandle,
-            PSCasementDwmCaption,
-            ref pCasementCaption,
-            System.Runtime.InteropServices.Marshal.SizeOf<int>());
-    }
-
-    [System.Runtime.InteropServices.DllImport("dwmapi.dll")]
-    private static extern int DwmSetWindowAttribute(
-        IntPtr windowHandle,
-        int windowAttribute,
-        ref int attributeValue,
-        int attributeByteSize);
-
     internal static readonly Brush PSCasementBandFill = PSCasementFillCreate();
 
     private static Brush PSCasementFillCreate()
@@ -59,61 +21,15 @@ internal static class PSCasement
         return pCasementBrush;
     }
 
-    internal static void PSCasementEscapeAttach(Window pWindow) =>
-        pWindow.KeyDown += (_, e) => PSCasementEscapeHandle(pWindow, e);
-
-    private static void PSCasementEscapeHandle(Window pWindow, KeyEventArgs e)
-    {
-        if (!PSCasementEscapeAccept(e))
-        {
-            return;
-        }
-
-        pWindow.Close();
-    }
-
-    private static bool PSCasementEscapeAccept(KeyEventArgs e)
-    {
-        if (e.Key != Key.Escape)
-        {
-            return false;
-        }
-
-        e.Handled = true;
-        return true;
-    }
-
     internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth) =>
-        PSCasementOverlayBuild(pWindow, pStripWidth, null);
-
-    internal static UIElement PSCasementOverlayBuild(Window pWindow, double pStripWidth, string? pTitle) =>
-        PSCasementOverlayBuild(pWindow, pStripWidth, pTitle, pCloseOnly: false);
-
-    internal static UIElement PSCasementOverlayBuild(
-        Window pWindow,
-        double pStripWidth,
-        string? pTitle,
-        bool pCloseOnly) =>
-        PSCasementOverlayBuild(pWindow, pStripWidth, pTitle, pCloseOnly, PSCasementBandHeight);
-
-    internal static UIElement PSCasementOverlayBuild(
-        Window pWindow,
-        double pStripWidth,
-        string? pTitle,
-        bool pCloseOnly,
-        double pBandHeight) =>
         PSCasementOverlayBuild(
-            pWindow, pStripWidth, pTitle, pCloseOnly, pBandHeight, 14 * (pBandHeight / PSCasementBandHeight));
-
-    internal static UIElement PSCasementOverlayBuild(
-        Window pWindow,
-        double pStripWidth,
-        string? pTitle,
-        bool pCloseOnly,
-        double pBandHeight,
-        double pTitleFont) =>
-        PSCasementOverlayBuild(
-            pWindow, pStripWidth, pTitle, pCloseOnly, pBandHeight, pTitleFont, PSCasementBandFill);
+            pWindow,
+            pStripWidth,
+            null,
+            pCloseOnly: false,
+            PSCasementBandHeight,
+            14 * (PSCasementBandHeight / PSCasementBandHeight),
+            PSCasementBandFill);
 
     internal static UIElement PSCasementOverlayBuild(
         Window pWindow,
@@ -124,18 +40,19 @@ internal static class PSCasement
         double pTitleFont,
         Brush pBandFill)
     {
-        PSCasementEscapeAttach(pWindow);
+        PSCasementWindow.PSCasementEscapeAttach(pWindow);
         (double pScale, double pButtonWidth, double pButtonHeight) = PSCasementSizeResolve(pBandHeight);
         Border pLeadArea = PSCasementLeadBuild();
-        PSCasementDragAttach(pLeadArea, pWindow, pCloseOnly, pBandHeight);
+        PSCasementWindow.PSCasementDragAttach(pLeadArea, pWindow, pCloseOnly, pBandHeight);
         Border pDragArea = PSCasementDragBuild(pStripWidth);
-        PSCasementDragAttach(pDragArea, pWindow, pCloseOnly, pBandHeight);
+        PSCasementWindow.PSCasementDragAttach(pDragArea, pWindow, pCloseOnly, pBandHeight);
         if (!string.IsNullOrWhiteSpace(pTitle))
         {
             PSCasementTitleBuild(pDragArea, pTitle, pTitleFont);
         }
 
-        StackPanel pButtons = PSCasementStripBuild(pWindow, pCloseOnly, pButtonWidth, pButtonHeight, pScale, pBandFill);
+        StackPanel pButtons = PSCasementButton.PSCasementStripBuild(
+            pWindow, pCloseOnly, pButtonWidth, pButtonHeight, pScale, pBandFill);
         return PSCasementGridBuild(pBandHeight, pLeadArea, pDragArea, pButtons);
     }
 
@@ -156,9 +73,6 @@ internal static class PSCasement
         Margin = new Thickness(pStripWidth, 0, 0, 0)
     };
 
-    private static void PSCasementDragAttach(Border pArea, Window pWindow, bool pCloseOnly, double pBandHeight) =>
-        pArea.MouseLeftButtonDown += (_, e) => PSCasementDragHandle(pWindow, e, pCloseOnly, pBandHeight);
-
     private static void PSCasementTitleBuild(Border pDragArea, string pTitle, double pTitleFont) =>
         pDragArea.Child = new TextBlock
         {
@@ -170,40 +84,6 @@ internal static class PSCasement
             HorizontalAlignment = HorizontalAlignment.Left,
             IsHitTestVisible = false
         };
-
-    private static StackPanel PSCasementStripBuild(
-        Window pWindow,
-        bool pCloseOnly,
-        double pButtonWidth,
-        double pButtonHeight,
-        double pScale,
-        Brush pBandFill)
-    {
-        var pButtons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            VerticalAlignment = VerticalAlignment.Top,
-            Background = pBandFill
-        };
-        if (!pCloseOnly)
-        {
-            pButtons.Children.Add(PSCasementButtonBuild(
-                PSCasementMinimizeBuild(),
-                (_, _) => PSCasementMinimizeApply(pWindow),
-                pButtonWidth, pButtonHeight, pScale));
-            pButtons.Children.Add(PSCasementButtonBuild(
-                PSCasementMaximizeBuild(),
-                (_, _) => PSCasementMaximizeToggle(pWindow),
-                pButtonWidth, pButtonHeight, pScale));
-        }
-
-        pButtons.Children.Add(PSCasementButtonBuild(
-            PSCasementCloseBuild(),
-            (_, _) => pWindow.Close(),
-            pButtonWidth, pButtonHeight, pScale,
-            pLook: QButtonLook.QButtonLookExit));
-        return pButtons;
-    }
 
     private static Grid PSCasementGridBuild(double pBandHeight, Border pLeadArea, Border pDragArea, StackPanel pButtons)
     {
@@ -217,129 +97,5 @@ internal static class PSCasement
         Grid.SetColumn(pButtons, 2);
         pGrid.Children.Add(pButtons);
         return pGrid;
-    }
-
-    private static void PSCasementMinimizeApply(Window pWindow) => pWindow.WindowState = WindowState.Minimized;
-
-    private static void PSCasementDragHandle(
-        Window pWindow,
-        MouseButtonEventArgs e,
-        bool pCloseOnly,
-        double pBandHeight)
-    {
-        if (e.ChangedButton != MouseButton.Left)
-        {
-            return;
-        }
-
-        if (e.ClickCount > 1)
-        {
-            if (pCloseOnly)
-            {
-                return;
-            }
-
-            PSCasementMaximizeToggle(pWindow);
-            return;
-        }
-
-        QSashDrag.QSashDragMove(pWindow, e, pBandHeight);
-    }
-
-    internal static void PSCasementMaximizeToggle(Window pWindow) =>
-        pWindow.WindowState = PSCasementStateResolve(pWindow.WindowState);
-
-    private static WindowState PSCasementStateResolve(WindowState pState) =>
-        pState == WindowState.Maximized
-            ? WindowState.Normal
-            : WindowState.Maximized;
-
-    private static Button PSCasementButtonBuild(
-        UIElement pIcon,
-        RoutedEventHandler pClick,
-        double pWidth,
-        double pHeight,
-        double pScale,
-        QButtonLook pLook = QButtonLook.QButtonLookChrome)
-    {
-        PSCasementScaleApply(pIcon, pScale);
-        Button pButton = PSCasementCaptionBuild(pIcon, pWidth, pHeight);
-        PSCasementClickAttach(pButton, pClick);
-        QButton.QButtonAttach(pButton, pLook);
-        return pButton;
-    }
-
-    private static void PSCasementScaleApply(UIElement pIcon, double pScale)
-    {
-        if (pScale != 1 && pIcon is FrameworkElement pGlyph)
-        {
-            pGlyph.LayoutTransform = new ScaleTransform(pScale, pScale);
-        }
-    }
-
-    private static Button PSCasementCaptionBuild(UIElement pIcon, double pWidth, double pHeight) => new()
-    {
-        Width = pWidth,
-        Height = pHeight,
-        Content = pIcon
-    };
-
-    private static void PSCasementClickAttach(Button pButton, RoutedEventHandler pClick) => pButton.Click += pClick;
-
-    private static Canvas PSCasementMinimizeBuild()
-    {
-        var pCanvas = new Canvas { Width = 18, Height = 16 };
-        pCanvas.Children.Add(PSRuleBuild(2, 12, 14, 12));
-        return pCanvas;
-    }
-
-    private static Canvas PSCasementMaximizeBuild()
-    {
-        var pCanvas = new Canvas { Width = 18, Height = 16 };
-        var pSquare = new System.Windows.Shapes.Rectangle
-        {
-            Width = 12,
-            Height = 12,
-            StrokeThickness = 1.2,
-            Fill = Brushes.Transparent,
-            Margin = new Thickness(2, 2, 0, 0)
-        };
-        PSCasementGlyphAttach(pSquare);
-        pCanvas.Children.Add(pSquare);
-        return pCanvas;
-    }
-
-    private static Canvas PSCasementCloseBuild()
-    {
-        var pCanvas = new Canvas { Width = 18, Height = 16 };
-        pCanvas.Children.Add(PSRuleBuild(2.5, 2.5, 13.5, 13.5));
-        pCanvas.Children.Add(PSRuleBuild(13.5, 2.5, 2.5, 13.5));
-        return pCanvas;
-    }
-
-    private static System.Windows.Shapes.Line PSRuleBuild(double pX1, double pY1, double pX2, double pY2)
-    {
-        var pRule = new System.Windows.Shapes.Line
-        {
-            X1 = pX1,
-            Y1 = pY1,
-            X2 = pX2,
-            Y2 = pY2,
-            StrokeThickness = 1.25,
-            StrokeStartLineCap = PenLineCap.Round,
-            StrokeEndLineCap = PenLineCap.Round
-        };
-        PSCasementGlyphAttach(pRule);
-        return pRule;
-    }
-
-    private static void PSCasementGlyphAttach(System.Windows.Shapes.Shape pGlyph)
-    {
-        pGlyph.SetBinding(System.Windows.Shapes.Shape.StrokeProperty, new System.Windows.Data.Binding
-        {
-            Path = new PropertyPath(TextElement.ForegroundProperty),
-            RelativeSource = new System.Windows.Data.RelativeSource(
-                System.Windows.Data.RelativeSourceMode.FindAncestor, typeof(ContentPresenter), 1)
-        });
     }
 }

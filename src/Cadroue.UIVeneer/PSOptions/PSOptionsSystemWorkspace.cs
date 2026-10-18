@@ -1,114 +1,134 @@
 using System.Windows;
 using System.Windows.Controls;
-using Cadroue.Core;
 using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSOptions
+internal sealed class PSOptionsSystemWorkspace
 {
-    private readonly Border psOptionsRecordMode;
-    private Action? psOptionsRecordNotice;
-    private TextBlock? psWorkspaceSize;
-    private UIElement? psSystemMaintenanceNotice;
-    private readonly List<Button> psSystemMaintenanceButtons = new();
+    internal required TextBox psWorkspaceBox;
+    private readonly Button psSystemDoneButton;
+    private readonly Button psWorkspaceClearButton;
+    private readonly TextBlock psWorkspaceSize = PSWorkspaceSizeBuild();
+    private readonly UIElement psSystemMaintenanceNotice = PSNotice.PSNoticeBuild(
+        QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceUnapplied"));
 
-    private UIElement PSSystemRecordBuild()
+    internal PSOptionsSystemWorkspace()
     {
-        Button pRecordClear = PSInline.PSInlineButtonBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
+        (psSystemDoneButton, psWorkspaceClearButton) = PSSystemClearBuild();
+    }
+
+    internal UIElement PSSystemWorkspaceBuild(QSOptions lsOptions, Window pWindow)
+    {
+        PSWorkspaceSizeUpdate();
+        (Button pWorkspaceBrowse, Button pWorkspaceOpen) = PSWorkspaceButtonBuild();
+        PSWorkspaceButtonAttach(pWorkspaceBrowse, pWorkspaceOpen, lsOptions);
+        PSSystemClearAttach(psSystemDoneButton, psWorkspaceClearButton, pWindow);
+        PSSystemMaintenanceAttach();
+        PSSystemMaintenanceUpdate();
+        UIElement pWorkspaceDefault = PSNotice.PSNoticeBuild(
+            QLocalizationCatalog.QLocalizationFormat("Options.System.DefaultPath", LDepot.LDepotDefaultRead()));
+        PSSystemDefaultUpdate(pWorkspaceDefault);
+        PSSystemDefaultAttach(pWorkspaceDefault);
+        return PSSystemWorkspaceBuild(pWorkspaceBrowse, pWorkspaceOpen, pWorkspaceDefault, psWorkspaceClearButton);
+    }
+
+    internal UIElement PSSystemDoneBuild() => PSOptionsField.PSSystemRowBuild(psSystemDoneButton);
+
+    private static TextBlock PSWorkspaceSizeBuild() => new()
+    {
+        Foreground = PSField.PSFieldMuted,
+        VerticalAlignment = VerticalAlignment.Center
+    };
+
+    private static (Button PSWorkspaceBrowse, Button PSWorkspaceFolder) PSWorkspaceButtonBuild()
+    {
+        Button pWorkspaceBrowse = PSInline.PSInlineIconBuild(
+            PSOptionsFolder.PSOptionsBrowseIcon,
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Browse"),
+            new Thickness(8, 0, 0, 0));
+        Button pWorkspaceOpen = PSInline.PSInlineIconBuild(
+            PSOptionsFolder.PSOptionsOpenIcon,
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.Open"),
+            new Thickness(6, 0, 0, 0));
+        return (pWorkspaceBrowse, pWorkspaceOpen);
+    }
+
+    private void PSWorkspaceButtonAttach(Button pWorkspaceBrowse, Button pWorkspaceOpen, QSOptions lsOptions)
+    {
+        pWorkspaceBrowse.Click += (_, _) => PSOptionsFolder.PSSystemFolderRead(
+            psWorkspaceBox,
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ChooseWorkspace"),
+            LDepot.LDepotDefaultRead());
+        pWorkspaceOpen.Click += (_, _) =>
+            lsOptions.QSOptionsFolderOpen(psWorkspaceBox.Text, LDepot.LDepotDefaultRead());
+    }
+
+    private static (Button PSSystemDone, Button PSSystemWorkspace) PSSystemClearBuild()
+    {
+        Button pDoneClear = PSInline.PSInlineButtonBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDone"),
             190,
             new Thickness(0));
-        PSSystemRecordAttach(pRecordClear);
-        var pRecordBesideNotice = (TextBlock)PSNotice.PSNoticeBuild(string.Empty);
-        PSSystemNoticeUpdate(pRecordBesideNotice);
-        PSSystemNoticeAttach(pRecordBesideNotice);
-        return PSSystemPlateBuild(pRecordClear, pRecordBesideNotice);
+        Button pWorkspaceClear = PSInline.PSInlineButtonBuild(
+            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspace"),
+            190,
+            new Thickness(0));
+        return (pDoneClear, pWorkspaceClear);
     }
 
-    private void PSSystemRecordAttach(Button pRecordClear) => pRecordClear.Click += (_, _) => PSSystemRecordClear();
-
-    private void PSSystemNoticeUpdate(TextBlock pRecordBesideNotice)
+    private void PSSystemClearAttach(Button pDoneClear, Button pWorkspaceClear, Window pWindow)
     {
-        PSSystemDraftUpdate(PSOptionsModeCheck(psOptionsRecordMode, "Workspace"));
-        PSSystemNoticeShow(
-            pRecordBesideNotice,
-            QLocalizationCatalog.QLocalizationFormat(
-                lsOptions.QSOptionsRecordResolve(), QSOptions.QSOptionsSidecarRead()));
+        pDoneClear.Click += (_, _) => PSSystemDoneClear(pWindow);
+        pWorkspaceClear.Click += (_, _) => PSWorkspaceClear(pWindow);
     }
 
-    private void PSSystemDraftUpdate(bool pWorkspace) => lsOptionsDraft.LPreferenceRecordWorkspace = pWorkspace;
+    private void PSSystemMaintenanceAttach() => psWorkspaceBox.TextChanged += (_, _) => PSSystemMaintenanceUpdate();
 
-    private static void PSSystemNoticeShow(TextBlock pRecordBesideNotice, string pText) =>
-        pRecordBesideNotice.Text = pText;
+    private void PSSystemDefaultUpdate(UIElement pWorkspaceDefault) =>
+        PSSystemDefaultApply(pWorkspaceDefault, PSWorkspaceEmptyCheck());
 
-    private void PSSystemNoticeAttach(TextBlock pRecordBesideNotice) =>
-        psOptionsRecordNotice = () => PSSystemNoticeUpdate(pRecordBesideNotice);
+    private bool PSWorkspaceEmptyCheck() => string.IsNullOrWhiteSpace(psWorkspaceBox.Text);
 
-    private UIElement PSSystemPlateBuild(Button pRecordClear, TextBlock pRecordBesideNotice) =>
-        PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecord"),
-            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
-                psOptionsRecordMode),
-            pRecordBesideNotice,
-            PSNotice.PSNoticeBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.FileRecordScope")),
+    private static void PSSystemDefaultApply(UIElement pWorkspaceDefault, bool pShown) =>
+        pWorkspaceDefault.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
+
+    private void PSSystemDefaultAttach(UIElement pWorkspaceDefault) =>
+        psWorkspaceBox.TextChanged += (_, _) => PSSystemDefaultUpdate(pWorkspaceDefault);
+
+    private UIElement PSSystemWorkspaceBuild(
+        Button pWorkspaceBrowse,
+        Button pWorkspaceOpen,
+        UIElement pWorkspaceDefault,
+        Button pWorkspaceClear) =>
+        PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
+            PSField.PSFieldButtonBuild(
+                QLocalizationCatalog.QLocalizationTextRead("Options.System.Location"),
+                psWorkspaceBox,
+                pWorkspaceBrowse,
+                pWorkspaceOpen),
+            pWorkspaceDefault,
+            PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.CurrentSize"),
+                psWorkspaceSize),
             PSField.PSFieldBuild(QLocalizationCatalog.QLocalizationTextRead("Options.System.Maintenance"),
-                PSSystemRowBuild(pRecordClear)));
+                PSOptionsField.PSSystemRowBuild(pWorkspaceClear)),
+            psSystemMaintenanceNotice);
 
-    private void PSSystemRecordClear()
-    {
-        string pRecordFolder = Cadroue.Infrastructure.LSidecarPath.LSidecarFolderRead();
-        if (!lsOptions.QSOptionsFolderExist(pRecordFolder))
-        {
-            PSAnnouncement.PSAnnouncementShow(
-                this,
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.NoFileRecord"));
-            return;
-        }
+    internal void PSWorkspaceSizeUpdate() =>
+        psWorkspaceSize.Text = PSSystemSizeFormat(LDepotUpkeep.LDepotSizeRead());
 
-        if (!PSAlert.PSAlertConfirm(
-                this,
-                QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
-                QLocalizationCatalog.QLocalizationFormat("Options.System.ClearFileRecordConfirm", pRecordFolder),
-                QLocalizationCatalog.QLocalizationTextRead("Terms.Delete")))
-        {
-            return;
-        }
-
-        int pRemoved = Cadroue.Infrastructure.LSidecarPath.LSidecarFolderClear();
-        PSWorkspaceSizeUpdate();
-        PSAnnouncement.PSAnnouncementShow(
-            this,
-            QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearFileRecord"),
-            QLocalizationCatalog.QLocalizationFormat("Options.System.FileRecordsRemoved", pRemoved));
-    }
-
-    private void PSWorkspaceSizeUpdate()
-    {
-        if (psWorkspaceSize is not null)
-        {
-            psWorkspaceSize.Text = PSSystemSizeFormat(LDepotUpkeep.LDepotSizeRead());
-        }
-    }
-
-    private void PSSystemMaintenanceUpdate()
+    internal void PSSystemMaintenanceUpdate()
     {
         bool pApplied = PSWorkspaceAppliedCheck();
-        foreach (Button pButton in psSystemMaintenanceButtons)
-        {
-            pButton.IsEnabled = pApplied;
-        }
-
-        if (psSystemMaintenanceNotice is not null)
-        {
-            psSystemMaintenanceNotice.Visibility = pApplied ? Visibility.Collapsed : Visibility.Visible;
-        }
+        psSystemDoneButton.IsEnabled = pApplied;
+        psWorkspaceClearButton.IsEnabled = pApplied;
+        psSystemMaintenanceNotice.Visibility = pApplied ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private bool PSWorkspaceAppliedCheck() => QSOptions.QSOptionsAppliedCheck(psWorkspaceBox.Text);
 
-    private void PSSystemDoneClear()
+    private void PSSystemDoneClear(Window pWindow)
     {
         if (!PSWorkspaceAppliedCheck())
         {
@@ -116,7 +136,7 @@ internal sealed partial class PSOptions
         }
 
         if (!PSAlert.PSAlertConfirm(
-                this,
+                pWindow,
                 QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
                 QLocalizationCatalog.QLocalizationFormat("Options.System.ClearDoneConfirm", LDepot.LDepotRootRead()),
                 QLocalizationCatalog.QLocalizationTextRead("Terms.Delete")))
@@ -133,12 +153,12 @@ internal sealed partial class PSOptions
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
-            this,
+            pWindow,
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearDoneTitle"),
             QLocalizationCatalog.QLocalizationFormat("Options.System.WorkRecordsRemoved", pRemoved));
     }
 
-    private void PSWorkspaceClear()
+    private void PSWorkspaceClear(Window pWindow)
     {
         if (!PSWorkspaceAppliedCheck())
         {
@@ -149,14 +169,14 @@ internal sealed partial class PSOptions
         if (LDepot.LDepotRunningCheck(pWorkspaceRoot))
         {
             PSWarning.PSWarningShow(
-                this,
+                pWindow,
                 QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
                 QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceRunning"));
             return;
         }
 
         if (!PSAlert.PSAlertConfirm(
-                this,
+                pWindow,
                 QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
                 QLocalizationCatalog.QLocalizationFormat("Options.System.ClearWorkspaceConfirm", pWorkspaceRoot),
                 QLocalizationCatalog.QLocalizationTextRead("Terms.Reset")))
@@ -169,7 +189,7 @@ internal sealed partial class PSOptions
         LDepotIndex.LDepotIndexCompact();
         PSWorkspaceSizeUpdate();
         PSAnnouncement.PSAnnouncementShow(
-            this,
+            pWindow,
             QLocalizationCatalog.QLocalizationTextRead("Options.System.ClearWorkspaceTitle"),
             QLocalizationCatalog.QLocalizationTextRead("Options.System.WorkspaceReset"));
     }

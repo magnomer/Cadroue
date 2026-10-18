@@ -13,8 +13,8 @@ internal sealed class PSWarning : Window
     {
         PSWarningTitleSet(pTitle);
         PSWarningFrameApply();
-        PSWarningOwnerApply(PSWarningOwnerResolve(pOwner));
-        PSDialog.PSDialogLocationAttach(this);
+        PSDialog.PSDialogOwnerApply(this, pOwner);
+        PSDialogLocation.PSDialogLocationAttach(this);
         PSWarningBuild(pTitle, pMessage);
     }
 
@@ -27,21 +27,6 @@ internal sealed class PSWarning : Window
         ResizeMode = ResizeMode.NoResize;
         ShowInTaskbar = false;
         PSDialog.PSDialogApply(this, PSDialogTheme.PSDialogThemeOrange);
-    }
-
-    private static Window? PSWarningOwnerResolve(Window? pOwner) =>
-        pOwner ?? System.Windows.Application.Current?.MainWindow;
-
-    private void PSWarningOwnerApply(Window? pResolvedOwner)
-    {
-        if (pResolvedOwner is not null && pResolvedOwner != this)
-        {
-            Owner = pResolvedOwner;
-        }
-        else
-        {
-            WindowStartupLocation = WindowStartupLocation.CenterScreen;
-        }
     }
 
     internal static void PSWarningShow(Window? pOwner, string pTitle, string pMessage) =>
@@ -57,7 +42,8 @@ internal sealed class PSWarning : Window
             QLocalizationCatalog.QLocalizationTextRead("Terms.OK"));
         PSWarningConfirmApply(pConfirm);
         PSWarningConfirmAttach(pConfirm);
-        return PSWarningPanelBuild(pMessage, pConfirm);
+        return PSDialogMessage.PSDialogMessageBuild(
+            pMessage, "/PAsset/PSDialog/PSWarning.svg", Color.FromRgb(0xB4, 0x6A, 0x18), pConfirm);
     }
 
     private static void PSWarningConfirmApply(Button pConfirm)
@@ -67,60 +53,4 @@ internal sealed class PSWarning : Window
     }
 
     private void PSWarningConfirmAttach(Button pConfirm) => pConfirm.Click += (_, _) => Close();
-
-    private static DockPanel PSWarningPanelBuild(string pMessage, Button pConfirm)
-    {
-        var pBody = new DockPanel
-        {
-            Background = Brushes.White
-        };
-
-        var pFooter = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(12)
-        };
-
-        pFooter.Children.Add(pConfirm);
-        DockPanel.SetDock(pFooter, Dock.Bottom);
-        pBody.Children.Add(pFooter);
-
-        pBody.Children.Add(PSWarningContentBuild(pMessage));
-        return pBody;
-    }
-
-    private static Grid PSWarningContentBuild(string pMessage)
-    {
-        var pContent = new Grid();
-        pContent.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        pContent.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-        var pIcon = new Image
-        {
-            Source = QIcon.QIconRead(
-                "/PAsset/PSDialog/PSWarning.svg",
-                new SolidColorBrush(Color.FromRgb(0xB4, 0x6A, 0x18))),
-            Width = 28,
-            Height = 28,
-            Stretch = Stretch.Uniform,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(24, 24, 0, 12)
-        };
-        Grid.SetColumn(pIcon, 0);
-        pContent.Children.Add(pIcon);
-
-        var pMessageText = new TextBlock
-        {
-            Text = pMessage,
-            FontSize = 14,
-            Foreground = PSField.PSFieldText,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(16, 24, 24, 12)
-        };
-        Grid.SetColumn(pMessageText, 1);
-        pContent.Children.Add(pMessageText);
-        return pContent;
-    }
 }

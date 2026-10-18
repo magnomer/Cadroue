@@ -14,7 +14,6 @@ public sealed class PFixTab : PTabSurface
     private readonly PClinic pClinic;
     private readonly PList pList;
     private readonly PProcessing pProcessing;
-    private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PFixTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -31,15 +30,14 @@ public sealed class PFixTab : PTabSurface
         PFixEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
-        PTabLockAttach(pList, pProcessing, pClinic, pExport);
-        pTabGrid = PTabGridBuild(
+        PTabLock.PTabLockAttach(pList, pProcessing, pClinic, pExport);
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pClinic, pViewer, pExport },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
-        Content = pTabGrid;
         QFixTab.QFixLayoutApply(lPreferenceTabLayout);
     }
 

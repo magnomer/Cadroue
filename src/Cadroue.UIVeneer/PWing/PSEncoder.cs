@@ -48,7 +48,7 @@ internal sealed class PSEncoder : Window
         PSEncoderWindowApply();
         PSSubwindow.PSSubwindowApply(this);
         Content = PSEncoderBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSEncoderPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PSEncoderPlacementKey);
         psEncoderGrabber = new PSGrabber(this);
         psEncoderGrabber.PSGrabberAttach();
         PSCodecProbeDefer();
@@ -193,7 +193,7 @@ internal sealed class PSEncoder : Window
     private void PSEncoderCloseHandle(object? sender, System.EventArgs e)
     {
         lsEncoder.QSEncoderClose();
-        PSGrabber.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PSEncoderPlacementKey);
         psEncoderGrabber.PSGrabberDetach();
         PSEncoderCloseDetach();
     }

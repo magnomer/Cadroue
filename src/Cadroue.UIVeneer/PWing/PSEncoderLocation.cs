@@ -20,7 +20,7 @@ internal sealed class PSEncoderLocation
     internal PSEncoderLocation(QSEncoderLocation lsLocation, LPreset lsDraft)
     {
         lsEncoderLocation = lsLocation;
-        psLocationMode = PSField.PSModeBuild(lsDraft.LPresetLocation, PSLocationModeUpdate,
+        psLocationMode = PSMode.PSModeBuild(lsDraft.LPresetLocation, PSLocationModeUpdate,
             new LLocalizationChoice("Same as source", "Encoder.Location.SourceFolder"),
             new LLocalizationChoice("Subfolder", "Encoder.Location.Subfolder"),
             new LLocalizationChoice("Sibling", "Encoder.Location.Sibling"),
@@ -30,7 +30,7 @@ internal sealed class PSEncoderLocation
             220);
     }
 
-    internal string PSLocationModeRead() => PSField.PSModeTextRead(psLocationMode);
+    internal string PSLocationModeRead() => PSMode.PSModeTextRead(psLocationMode);
 
     internal string PSLocationFolderRead() => PSEncoderValue.PSEncoderTrimRead(psLocationFolderBox);
 
@@ -120,7 +120,7 @@ internal sealed class PSEncoderLocation
 
     internal void PSLocationModeUpdate()
     {
-        string pMode = PSField.PSModeTextRead(psLocationMode);
+        string pMode = PSMode.PSModeTextRead(psLocationMode);
 
         if (psLocationFolderBox is not null)
         {

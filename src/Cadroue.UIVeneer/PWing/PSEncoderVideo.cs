@@ -26,7 +26,7 @@ internal sealed class PSEncoderVideo
         lsEncoderVideo = lsVideo;
         lsEncoderDraft = lsDraft;
         psEncoderWindow = pWindow;
-        psVideoMode = PSField.PSModeBuild(lsDraft.LPresetVideo.LPresetMode, PSVideoScopeUpdate,
+        psVideoMode = PSMode.PSModeBuild(lsDraft.LPresetVideo.LPresetMode, PSVideoScopeUpdate,
             new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
             new LLocalizationChoice("Smart", "Encoder.Codec.Smart"),
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"));
@@ -54,7 +54,7 @@ internal sealed class PSEncoderVideo
 
     internal void PSVideoDraftSet()
     {
-        lsEncoderDraft.LPresetVideo.LPresetMode = PSField.PSModeTextRead(psVideoMode);
+        lsEncoderDraft.LPresetVideo.LPresetMode = PSMode.PSModeTextRead(psVideoMode);
         lsEncoderDraft.LPresetVideo.LPresetQuality = psEncoderVideoRate.PSVideoQualityRead();
         lsEncoderDraft.LPresetVideo.LPresetSpeedPreset = psEncoderVideoRate.PSVideoSpeedRead();
         lsEncoderDraft.LPresetVideo.LPresetSizeReactive = psEncoderVideoResolution.PSVideoReactiveRead();
@@ -76,7 +76,7 @@ internal sealed class PSEncoderVideo
             64,
             new Thickness(6, 0, 0, 0));
         PSVideoLogApply(pLog);
-        ProgressBar pProgress = PSField.PSFieldProgressBuild();
+        ProgressBar pProgress = PSFieldProgress.PSFieldProgressBuild();
         PSVideoPlateAttach(pVerify, pLog, pProgress);
         StackPanel pPanel = PSVideoPanelBuild(pVerify, pLog, pProgress);
         psEncoderVideoRate.PSVideoRowsRebuild();
@@ -145,7 +145,7 @@ internal sealed class PSEncoderVideo
 
     private void PSVideoScopeUpdate()
     {
-        string pMode = PSField.PSModeTextRead(psVideoMode);
+        string pMode = PSMode.PSModeTextRead(psVideoMode);
         bool pEncoded = PSVideoEncodeCheck(pMode);
         PSVideoScopeApply(pEncoded, pMode);
     }

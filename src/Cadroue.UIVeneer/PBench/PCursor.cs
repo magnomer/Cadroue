@@ -72,17 +72,4 @@ internal static class PCursor
             pCursorPen,
             new Point(cursorX, pLine.QCursorLineTop),
             new Point(cursorX, pLine.QCursorLineBottom));
-
-    internal static Rect PCursorChipResolve(
-        double cursorX,
-        double chipWidth,
-        double chipHeight,
-        double lineTop,
-        double lineBottom,
-        double actualWidth)
-    {
-        (double pChipLeft, double pChipTop) = QCursor.QCursorChipResolve(
-            cursorX, chipWidth, chipHeight, lineTop, lineBottom, actualWidth);
-        return new Rect(pChipLeft, pChipTop, chipWidth, chipHeight);
-    }
 }

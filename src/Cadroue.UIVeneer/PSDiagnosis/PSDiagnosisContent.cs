@@ -7,8 +7,10 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSDiagnosis
+internal sealed class PSDiagnosisContent
 {
+    internal const double PSDiagnosisInset = 18;
+
     private const double PSDiagnosisLabelWidth = 170;
 
     private readonly List<(string[] PSDiagnosisFilters, Border PSDiagnosisBadge, TextBlock PSDiagnosisText)>
@@ -21,10 +23,17 @@ internal sealed partial class PSDiagnosis
     private TextBlock psDiagnosisVersionValue = null!;
     private TextBlock psDiagnosisLocationValue = null!;
 
-    private UIElement PSDiagnosisBannerBuild()
+    private static Brush PSDiagnosisBrushCreate(byte pRed, byte pGreen, byte pBlue)
+    {
+        var pBrush = new SolidColorBrush(Color.FromRgb(pRed, pGreen, pBlue));
+        pBrush.Freeze();
+        return pBrush;
+    }
+
+    internal UIElement PSDiagnosisBannerBuild(QSDiagnosis lsDiagnosis)
     {
         Button pRecheck = PSDiagnosisRecheckBuild();
-        PSDiagnosisRecheckAttach(pRecheck);
+        PSDiagnosisRecheckAttach(pRecheck, lsDiagnosis);
         return PSDiagnosisBarBuild(pRecheck);
     }
 
@@ -39,7 +48,7 @@ internal sealed partial class PSDiagnosis
         return pRecheck;
     }
 
-    private void PSDiagnosisRecheckAttach(Button pRecheck) =>
+    private static void PSDiagnosisRecheckAttach(Button pRecheck, QSDiagnosis lsDiagnosis) =>
         pRecheck.Click += (_, _) => _ = lsDiagnosis.QSDiagnosisReset();
 
     private Grid PSDiagnosisBarBuild(Button pRecheck)
@@ -52,7 +61,7 @@ internal sealed partial class PSDiagnosis
         {
             Width = 10,
             Height = 10,
-            Fill = PSDiagnosisNeutralFill,
+            Fill = PSDiagnosisBrushCreate(0xEC, 0xEF, 0xF4),
             VerticalAlignment = VerticalAlignment.Center,
             Margin = new Thickness(0, 0, 8, 0)
         };
@@ -76,7 +85,7 @@ internal sealed partial class PSDiagnosis
         return pBar;
     }
 
-    private UIElement PSDiagnosisContentBuild()
+    internal UIElement PSDiagnosisContentBuild()
     {
         var pBody = new StackPanel { Margin = new Thickness(0, 2, 0, 0) };
         pBody.Children.Add(PSDiagnosisProgramBuild());
@@ -150,7 +159,7 @@ internal sealed partial class PSDiagnosis
 
     private static Border PSDiagnosisChipBuild(string pFilter) => new()
     {
-        Background = PSDiagnosisChipFill,
+        Background = PSDiagnosisBrushCreate(0xF1, 0xF5, 0xFA),
         CornerRadius = new CornerRadius(4),
         Padding = new Thickness(8, 1, 8, 1),
         HorizontalAlignment = HorizontalAlignment.Left,
@@ -159,7 +168,7 @@ internal sealed partial class PSDiagnosis
         Child = new TextBlock
         {
             Text = pFilter,
-            FontFamily = PSDiagnosisChipFont,
+            FontFamily = new FontFamily("Consolas, Cascadia Mono, monospace"),
             FontSize = 11,
             Foreground = PSField.PSFieldMuted
         }
@@ -197,15 +206,15 @@ internal sealed partial class PSDiagnosis
         switch (pState)
         {
             case QSDiagnosisState.QSDiagnosisStateReady:
-                pBadge.Background = PSDiagnosisReadyFill;
-                pText.Foreground = PSDiagnosisReadyInk;
+                pBadge.Background = PSDiagnosisBrushCreate(0xE8, 0xF1, 0xE7);
+                pText.Foreground = PSDiagnosisBrushCreate(0x2E, 0x5B, 0x2B);
                 break;
             case QSDiagnosisState.QSDiagnosisStateMissing:
-                pBadge.Background = PSDiagnosisMissingFill;
-                pText.Foreground = PSDiagnosisMissingInk;
+                pBadge.Background = PSDiagnosisBrushCreate(0xFB, 0xE3, 0xE3);
+                pText.Foreground = PSDiagnosisBrushCreate(0x8C, 0x1D, 0x1D);
                 break;
             default:
-                pBadge.Background = PSDiagnosisNeutralFill;
+                pBadge.Background = PSDiagnosisBrushCreate(0xEC, 0xEF, 0xF4);
                 pText.Foreground = PSField.PSFieldMuted;
                 break;
         }
@@ -222,26 +231,22 @@ internal sealed partial class PSDiagnosis
 
     private static void PSDiagnosisBadgeShow(TextBlock pText, string pLabel) => pText.Text = pLabel;
 
-    private void PSDiagnosisResultApply()
+    internal void PSDiagnosisResultApply(QSDiagnosis lsDiagnosis)
     {
-        if (!Dispatcher.CheckAccess())
-        {
-            Dispatcher.BeginInvoke(PSDiagnosisResultApply);
-            return;
-        }
-
         bool pChecking = lsDiagnosis.QSDiagnosisChecking;
         bool pReady = lsDiagnosis.QSDiagnosisReady;
-        PSDiagnosisValueShow(PSDiagnosisVersionFormat(pChecking, pReady), PSDiagnosisLocationFormat(pChecking));
+        PSDiagnosisValueShow(
+            PSDiagnosisVersionFormat(lsDiagnosis, pChecking, pReady),
+            PSDiagnosisLocationFormat(lsDiagnosis, pChecking));
         PSDiagnosisBadgeApply(psDiagnosisProgramBadge, psDiagnosisProgramText, lsDiagnosis.QSDiagnosisProgramState);
-        PSDiagnosisCheckApply();
+        PSDiagnosisCheckApply(lsDiagnosis);
         PSDiagnosisSummaryApply(lsDiagnosis.QSDiagnosisMood, lsDiagnosis.QSDiagnosisMissing);
     }
 
-    private string PSDiagnosisVersionFormat(bool pChecking, bool pReady) =>
+    private static string PSDiagnosisVersionFormat(QSDiagnosis lsDiagnosis, bool pChecking, bool pReady) =>
         pChecking ? "…" : pReady ? lsDiagnosis.QSDiagnosisVersion : "—";
 
-    private string PSDiagnosisLocationFormat(bool pChecking) =>
+    private static string PSDiagnosisLocationFormat(QSDiagnosis lsDiagnosis, bool pChecking) =>
         pChecking
             ? "…"
             : lsDiagnosis.QSDiagnosisLocation.Length == 0
@@ -254,7 +259,7 @@ internal sealed partial class PSDiagnosis
         psDiagnosisLocationValue.Text = pLocation;
     }
 
-    private void PSDiagnosisCheckApply()
+    private void PSDiagnosisCheckApply(QSDiagnosis lsDiagnosis)
     {
         foreach ((string[] pFilters, Border pBadge, TextBlock pText) in psDiagnosisChecks)
         {
@@ -272,11 +277,11 @@ internal sealed partial class PSDiagnosis
     {
         psDiagnosisSummaryDot.Fill = pMood switch
         {
-            QSDiagnosisMood.QSDiagnosisMoodReady => PSDiagnosisReadyDot,
-            QSDiagnosisMood.QSDiagnosisMoodWarning => PSDiagnosisWarnDot,
-            QSDiagnosisMood.QSDiagnosisMoodMissing => PSDiagnosisMissingDot,
-            QSDiagnosisMood.QSDiagnosisMoodAbsent => PSDiagnosisMissingDot,
-            _ => PSDiagnosisNeutralFill
+            QSDiagnosisMood.QSDiagnosisMoodReady => PSDiagnosisBrushCreate(0x2E, 0xA0, 0x43),
+            QSDiagnosisMood.QSDiagnosisMoodWarning => PSDiagnosisBrushCreate(0xE0, 0xA0, 0x11),
+            QSDiagnosisMood.QSDiagnosisMoodMissing => PSDiagnosisBrushCreate(0xD0, 0x33, 0x33),
+            QSDiagnosisMood.QSDiagnosisMoodAbsent => PSDiagnosisBrushCreate(0xD0, 0x33, 0x33),
+            _ => PSDiagnosisBrushCreate(0xEC, 0xEF, 0xF4)
         };
     }
 

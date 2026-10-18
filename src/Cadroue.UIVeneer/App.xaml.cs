@@ -1,5 +1,3 @@
-using System.Windows.Threading;
-using Cadroue.Application;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 using Cadroue.UIVeneer.PWing;
@@ -8,7 +6,7 @@ namespace Cadroue.UIVeneer;
 
 public partial class PProgram : System.Windows.Application
 {
-    private readonly DispatcherTimer pProgramDebounce = new() { Interval = TimeSpan.FromMilliseconds(700) };
+    private PDebounce pProgramDebounce = null!;
 
     public PProgram()
     {
@@ -20,11 +18,12 @@ public partial class PProgram : System.Windows.Application
 
     public void PProgramAttach(Action<string, Exception?> pFault, Action pTick)
     {
-        pProgramDebounce.Tick += (_, _) =>
-        {
-            pProgramDebounce.Stop();
-            pTick();
-        };
+        pProgramDebounce = new PDebounce(TimeSpan.FromMilliseconds(700), pTick);
+        PProgramFaultAttach(pFault);
+    }
+
+    private void PProgramFaultAttach(Action<string, Exception?> pFault)
+    {
         DispatcherUnhandledException += (_, e) =>
         {
             pFault("Unhandled UI exception", e.Exception);
@@ -43,16 +42,7 @@ public partial class PProgram : System.Windows.Application
 
     public void PProgramDefer(Action pAction) => Dispatcher.BeginInvoke(pAction);
 
-    public static string[] PProgramNamesRead() => typeof(PProgram).Assembly.GetManifestResourceNames();
-
-    public static string? PProgramResourceRead(string pName) =>
-        LLocalizationResource.LLocalizationStreamRead(typeof(PProgram).Assembly.GetManifestResourceStream(pName));
-
-    public void PProgramDebounceDefer()
-    {
-        pProgramDebounce.Stop();
-        pProgramDebounce.Start();
-    }
+    public void PProgramDebounceDefer() => pProgramDebounce.PDebounceDefer();
 
     public void PProgramWindowShow(QWindow lWindow)
     {

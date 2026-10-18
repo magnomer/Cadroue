@@ -1,9 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Media;
-using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
@@ -25,13 +23,12 @@ public sealed class PConsole : UserControl
             [false] = FontWeights.Normal,
         };
 
-    private readonly IReadOnlyDictionary<bool, Action<double>> pConsoleProgressWrites;
     private IReadOnlyDictionary<bool, UIElement?> pConsoleSceneContents = null!;
     private readonly Button pConsolePreviousButton;
     private readonly Button pConsoleNextButton;
     private readonly CheckBox pConsoleAutoBox;
     private readonly TextBlock pConsoleStationLabel;
-    private readonly ProgressBar pConsoleProgress;
+    private readonly PConsoleProgress pConsoleProgress;
     private readonly TextBlock pConsoleStatus;
     private readonly Grid pConsoleRestIcon;
     private readonly Image pConsoleSpinner;
@@ -51,8 +48,7 @@ public sealed class PConsole : UserControl
     public PConsole()
     {
         PConsoleStyleApply();
-        pConsoleProgressWrites = PConsoleWritesCreate();
-        pConsoleProgress = PConsoleIndicator.PConsoleProgressBuild();
+        pConsoleProgress = new PConsoleProgress(() => lConsole.QConsoleProgressGlide);
         pConsoleStatus = PConsoleControl.PConsoleLabelBuild(
             PRosterTheme.PRosterTextBrush, PConsoleControl.PConsoleStatusSize);
         pConsoleRestIcon = PConsoleIndicator.PConsoleRestBuild();
@@ -105,12 +101,6 @@ public sealed class PConsole : UserControl
 
     private void PConsoleStyleApply() => FocusVisualStyle = null;
 
-    private Dictionary<bool, Action<double>> PConsoleWritesCreate() => new()
-    {
-        [true] = PConsoleGlideApply,
-        [false] = PConsoleProgressSet,
-    };
-
     private void PConsoleOwnerSet(QConsole lConsoleOwner) => lConsole = lConsoleOwner;
 
     private void PConsoleSceneBuild()
@@ -129,7 +119,7 @@ public sealed class PConsole : UserControl
     private void PConsoleEventsAttach()
     {
         lConsole.QConsoleStatusApplied += PConsoleStatusApply;
-        lConsole.QConsoleProgressApplied += PConsoleProgressApply;
+        lConsole.QConsoleProgressApplied += pConsoleProgress.PConsoleProgressApply;
         lConsole.QConsoleUpdateDeferred += PConsoleUpdateDefer;
         lConsole.QConsoleWarningShown += PConsoleWarningShow;
         lConsole.QConsoleStation.QConsoleWatchChanged += PConsoleWatchHandle;
@@ -214,24 +204,6 @@ public sealed class PConsole : UserControl
             FontWeight = pConsoleRunWeights[lRun.QConsoleRunAccent]
         });
 
-    private void PConsoleProgressApply(double pValue, bool pGlide) => pConsoleProgressWrites[pGlide](pValue);
-
-    private void PConsoleProgressSet(double pValue)
-    {
-        pConsoleProgress.BeginAnimation(RangeBase.ValueProperty, null);
-        pConsoleProgress.Value = pValue;
-    }
-
-    private void PConsoleGlideApply(double pValue) =>
-        pConsoleProgress.BeginAnimation(
-            RangeBase.ValueProperty,
-            new DoubleAnimation
-            {
-                To = pValue,
-                Duration = lConsole.QConsoleProgressGlide,
-                FillBehavior = FillBehavior.HoldEnd
-            });
-
     private UIElement PConsoleBuild()
     {
         var pButtons = new StackPanel
@@ -287,7 +259,7 @@ public sealed class PConsole : UserControl
         var pStack = new StackPanel();
         pStack.Children.Add(pRow);
         pStack.Children.Add(new Border { Height = 8 });
-        pStack.Children.Add(pConsoleProgress);
+        pStack.Children.Add(pConsoleProgress.PConsoleProgressBar);
 
         var pCard = new Border
         {

@@ -44,14 +44,14 @@
     "hub": { "parts": 5 }
   },
   "ceiling": {
-    "hydra": 1,
-    "kraken": 2,
+    "hydra": 0,
+    "kraken": 1,
     "spider": 0,
-    "chameleon": 59,
-    "octopus": 2,
-    "centipede": 47,
-    "serpent": 3,
-    "hub": 1
+    "chameleon": 58,
+    "octopus": 1,
+    "centipede": 36,
+    "serpent": 0,
+    "hub": 0
   },
   "parts": {
     "Cadroue.Application.LAudio": 1,
@@ -82,10 +82,10 @@
     "Cadroue.ShellEngine.LRunner": 1,
     "Cadroue.ShellEngine.LSweep": 1,
     "Cadroue.UIDeportment.QSEncoder": 1,
-    "Cadroue.UIVeneer.PHouse.PWindow": 5,
-    "Cadroue.UIVeneer.PSDiagnosis": 2,
-    "Cadroue.UIVeneer.PSFader": 2,
-    "Cadroue.UIVeneer.PSOptions": 9,
+    "Cadroue.UIVeneer.PHouse.PWindow": 1,
+    "Cadroue.UIVeneer.PSDiagnosis": 1,
+    "Cadroue.UIVeneer.PSFader": 1,
+    "Cadroue.UIVeneer.PSOptions": 1,
     "Cadroue.UIVeneer.PWing.PExport": 1,
     "Cadroue.UIVeneer.PWing.PInspector": 1,
     "Cadroue.UIVeneer.PWing.PSEncoder": 1,

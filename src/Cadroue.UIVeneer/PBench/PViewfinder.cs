@@ -77,7 +77,7 @@ public sealed class PViewfinder : FrameworkElement
     {
         lFrame.QViewfinderFrameUnder.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));
         drawingContext.DrawGeometry(
-            pViewfinderBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QViewfinderFrameWaveform));
+            pViewfinderBrushWaveform, null, PFlowWaveform.PFlowWaveformBuild(lFrame.QViewfinderFrameWaveform));
         lFrame.QViewfinderFrameTicks.ToList().ForEach(lTick => PViewfinderTickDraw(drawingContext, lTick));
         lFrame.QViewfinderFrameBands.ToList().ForEach(lBand => PViewfinderBandDraw(drawingContext, lBand));
         lFrame.QViewfinderFrameOver.ToList().ForEach(lShape => PViewfinderShapeDraw(drawingContext, lShape));

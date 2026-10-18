@@ -11,7 +11,6 @@ public sealed class PConvertTab : PTabSurface
     private readonly PFlow pFlow;
     private readonly PViewer pViewer;
     private readonly PList pList;
-    private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PConvertTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -22,15 +21,14 @@ public sealed class PConvertTab : PTabSurface
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         PConvertEventsAttach();
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
-        PTabLockAttach(pList, pExport);
-        pTabGrid = PTabGridBuild(
+        PTabLock.PTabLockAttach(pList, pExport);
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pViewer, pExport },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
-        Content = pTabGrid;
     }
 
     public QConvertTab QConvertTab { get; }

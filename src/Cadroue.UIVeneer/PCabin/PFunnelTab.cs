@@ -11,7 +11,6 @@ public sealed class PFunnelTab : PTabSurface
     private readonly PViewer pViewer;
     private readonly PList pList;
     private readonly PFunnelRules pFunnelRules;
-    private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PFunnelTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -23,14 +22,13 @@ public sealed class PFunnelTab : PTabSurface
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.FunnelAll.Tooltip"));
         pAction.PActionRelayHide();
-        pTabGrid = PTabGridBuild(
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pFunnelRules, pViewer },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
-        Content = pTabGrid;
         QFunnelTab.QFunnelLayoutApply(lPreferenceTabLayout);
     }
 

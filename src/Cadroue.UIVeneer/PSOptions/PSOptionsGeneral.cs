@@ -7,9 +7,9 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSOptions
+internal sealed class PSOptionsGeneral
 {
-    private static readonly LLocalizationChoice[] PSOptionsTabItems =
+    internal static readonly LLocalizationChoice[] PSOptionsTabItems =
     {
         new("Split", "Tab.Split"),
         new("Edit", "Tab.Edit"),
@@ -19,28 +19,61 @@ internal sealed partial class PSOptions
         new("Worklist", "Tab.Worklist")
     };
 
-    private static readonly LLocalizationChoice[] PSOptionsStartupItems =
+    internal static readonly LLocalizationChoice[] PSOptionsStartupItems =
     {
         new("LastSession", "Options.Startup.LastSession"),
         new("DefaultTab", "Options.Startup.DefaultTab")
     };
 
-    private static readonly LLocalizationChoice[] PSOptionsTabsItems =
+    internal static readonly LLocalizationChoice[] PSOptionsTabsItems =
     {
         new("Horizontal", "Options.Layout.TabsHorizontal"),
         new("Vertical", "Options.Layout.TabsVertical")
     };
 
-    private readonly Border psOptionsStartupMode;
-    private Action? psOptionsStartupPicker;
-    private readonly Control psOptionsTabPicker;
-    private readonly CheckBox psMediaBox;
-    private readonly CheckBox psOptionsConfirmBox;
-    private readonly CheckBox psRelayClearBox;
-    private readonly Border psOptionsTabsMode;
-    private readonly ComboBox psOptionsLanguageCombo;
+    internal readonly Border psOptionsStartupMode;
+    internal Action? psOptionsStartupPicker;
+    internal readonly Control psOptionsTabPicker;
+    internal readonly CheckBox psMediaBox;
+    internal readonly CheckBox psOptionsConfirmBox;
+    internal readonly CheckBox psRelayClearBox;
+    internal readonly Border psOptionsTabsMode;
+    internal readonly ComboBox psOptionsLanguageCombo;
 
-    private UIElement PSGeneralBuild()
+    internal PSOptionsGeneral(
+        Border psOptionsStartupMode,
+        Control psOptionsTabPicker,
+        CheckBox psMediaBox,
+        CheckBox psOptionsConfirmBox,
+        CheckBox psRelayClearBox,
+        Border psOptionsTabsMode,
+        ComboBox psOptionsLanguageCombo)
+    {
+        this.psOptionsStartupMode = psOptionsStartupMode;
+        this.psOptionsTabPicker = psOptionsTabPicker;
+        this.psMediaBox = psMediaBox;
+        this.psOptionsConfirmBox = psOptionsConfirmBox;
+        this.psRelayClearBox = psRelayClearBox;
+        this.psOptionsTabsMode = psOptionsTabsMode;
+        this.psOptionsLanguageCombo = psOptionsLanguageCombo;
+    }
+
+    internal static Control PSOptionsPickerBuild(IReadOnlyList<QPickerItem> pItems)
+    {
+        var pPicker = new Control
+        {
+            MinWidth = 260,
+            Height = PSField.PSFieldControlHeight,
+            HorizontalAlignment = HorizontalAlignment.Left
+        };
+        QPickerControl.QPickerControlAttach(
+            pPicker,
+            pItems,
+            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"));
+        return pPicker;
+    }
+
+    internal UIElement PSGeneralBuild()
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.General.Startup"),
@@ -88,14 +121,14 @@ internal sealed partial class PSOptions
     }
 
     private void PSOptionsPickerUpdate() =>
-        PSOptionsPickerApply(PSOptionsModeCheck(psOptionsStartupMode, "DefaultTab"));
+        PSOptionsPickerApply(PSOptionsField.PSOptionsModeCheck(psOptionsStartupMode, "DefaultTab"));
 
     private void PSOptionsPickerApply(bool pShown) =>
         psOptionsTabPicker.Visibility = pShown ? Visibility.Visible : Visibility.Collapsed;
 
     private void PSOptionsPickerAttach() => psOptionsStartupPicker = PSOptionsPickerUpdate;
 
-    private static LLocalizationChoice[] PSOptionsLanguagesRead() =>
+    internal static LLocalizationChoice[] PSOptionsLanguagesRead() =>
         LLocalization.LLocalizationLanguagesRead()
             .Select(pLanguage => new LLocalizationChoice(
                 pLanguage.Key,

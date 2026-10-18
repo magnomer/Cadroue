@@ -75,8 +75,8 @@ internal sealed class PSEncoderAudioChannel
         psAudioChannelReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.ChannelSource"));
-        UIElement pRow = PSFader.PSFaderLayoutBuild(psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout,
-            pNotice);
+        UIElement pRow = PSFaderLayout.PSFaderLayoutBuild(
+            psAudioChannelSlider, pLabels, pIndex, psAudioChannelReadout, pNotice);
 
         PSAudioChannelPanel.Children.Clear();
         PSAudioChannelPanel.Children.Add(PSField.PSFieldBuild(

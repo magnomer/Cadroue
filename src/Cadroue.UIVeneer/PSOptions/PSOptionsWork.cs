@@ -4,21 +4,21 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSOptions
+internal sealed class PSOptionsWork
 {
-    private readonly CheckBox psOptionsFailureBox;
-    private readonly CheckBox psOptionsRetryBox;
-    private readonly Slider psOptionsRetrySlider;
+    internal required CheckBox psOptionsFailureBox;
+    internal required CheckBox psOptionsRetryBox;
+    internal required Slider psOptionsRetrySlider;
 
-    private UIElement PSWorkBuild()
+    internal UIElement PSWorkBuild(QSOptions lsOptions)
     {
-        UIElement pRetryRow = PSOptionsFieldBuild(
+        UIElement pRetryRow = PSOptionsField.PSOptionsFieldBuild(
             QLocalizationCatalog.QLocalizationTextRead("Options.Work.RetryLimit"),
             psOptionsRetrySlider,
             string.Empty);
-        PSOptionsRetryApply(pRetryRow, PSOptionsCheckRead(psOptionsRetryBox));
+        PSOptionsRetryApply(pRetryRow, PSOptionsField.PSOptionsCheckRead(psOptionsRetryBox));
         PSOptionsRetryAttach(pRetryRow);
-        return PSWorkPanelBuild(pRetryRow);
+        return PSWorkPanelBuild(pRetryRow, lsOptions);
     }
 
     private static void PSOptionsRetryApply(UIElement pRetryRow, bool pEnabled) => pRetryRow.IsEnabled = pEnabled;
@@ -29,7 +29,7 @@ internal sealed partial class PSOptions
         psOptionsRetryBox.Unchecked += (_, _) => PSOptionsRetryApply(pRetryRow, false);
     }
 
-    private UIElement PSWorkPanelBuild(UIElement pRetryRow)
+    private UIElement PSWorkPanelBuild(UIElement pRetryRow, QSOptions lsOptions)
     {
         var pPanel = new StackPanel();
         pPanel.Children.Add(PSPlate.PSPlateBuild(QLocalizationCatalog.QLocalizationTextRead("Options.Work.Failure"),

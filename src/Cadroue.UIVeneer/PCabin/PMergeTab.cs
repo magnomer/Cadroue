@@ -12,8 +12,6 @@ public sealed class PMergeTab : PTabSurface
     private readonly PViewer pViewer;
     private readonly PList pList;
     private readonly PGroup pGroup;
-    private readonly PAction pAction;
-    private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PMergeTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -22,18 +20,17 @@ public sealed class PMergeTab : PTabSurface
         pList = new PList(lWorkspace.QWorkspaceList!);
         QMergeTab = lWorkspace.QWorkspaceMode.QMergeTabCreate();
         pGroup = new PGroup(QMergeTab.QMergeGroup);
-        pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
+        var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         PMergeEventsAttach();
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
-        PTabLockAttach(pList, pExport);
-        pTabGrid = PTabGridBuild(
+        PTabLock.PTabLockAttach(pList, pExport);
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pGroup, pViewer, pExport },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
-        Content = pTabGrid;
         QMergeTab.QMergeLayoutApply(lPreferenceTabLayout);
     }
 

@@ -67,6 +67,7 @@ internal static class TAuditNameRegistry
         "Cursor",
         "Curve",
         "Custody",
+        "Debounce",
         "Debug",
         "Decision",
         "Deck",

@@ -6,7 +6,7 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer;
 
-internal static partial class PSFader
+internal static class PSFaderBitrate
 {
     private const double PSFaderBitrateTicks = 1000;
 
@@ -18,10 +18,10 @@ internal static partial class PSFader
     {
         double pStartKbps = PSFaderBitrateClamp(PSFaderBitrateParse(pValue), pMinimumKbps, pMaximumKbps);
         Slider pSlider = PSFaderKbpsBuild(PSFaderPositionResolve(pStartKbps, pMinimumKbps, pMaximumKbps));
-        PSFaderReadoutSet(pReadout, PSFaderBitrateFormat(pStartKbps));
+        PSFader.PSFaderReadoutSet(pReadout, PSFaderBitrateFormat(pStartKbps));
         var pSync = new StrongBox<bool>(false);
         PSFaderBitrateAttach(pSlider, pReadout, pSync, pMinimumKbps, pMaximumKbps);
-        return PSFaderRowBuild(pSlider, pReadout);
+        return PSFader.PSFaderRowBuild(pSlider, pReadout);
     }
 
     private static double PSFaderBitrateClamp(double? pKbps, double pMinimum, double pMaximum) =>
@@ -36,7 +36,7 @@ internal static partial class PSFader
             SmallChange = 1,
             LargeChange = 50,
             Value = pPosition,
-            Width = PSFaderWidth,
+            Width = PSFader.PSFaderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
         QSlider.QSliderAttach(pSlider);
@@ -66,9 +66,10 @@ internal static partial class PSFader
             return;
         }
 
-        PSFaderSyncSet(pSync, true);
-        PSFaderReadoutSet(pReadout, PSFaderBitrateFormat(PSFaderBitrateResolve(pSlider.Value, pMinimum, pMaximum)));
-        PSFaderSyncSet(pSync, false);
+        PSFader.PSFaderSyncSet(pSync, true);
+        PSFader.PSFaderReadoutSet(
+            pReadout, PSFaderBitrateFormat(PSFaderBitrateResolve(pSlider.Value, pMinimum, pMaximum)));
+        PSFader.PSFaderSyncSet(pSync, false);
     }
 
     private static void PSFaderKbpsHandle(
@@ -83,12 +84,14 @@ internal static partial class PSFader
             return;
         }
 
-        PSFaderSyncSet(pSync, true);
+        PSFader.PSFaderSyncSet(pSync, true);
         PSFaderSliderSet(
             pSlider,
             PSFaderPositionResolve(PSFaderBitrateClamp(pKbps, pMinimum, pMaximum), pMinimum, pMaximum));
-        PSFaderSyncSet(pSync, false);
+        PSFader.PSFaderSyncSet(pSync, false);
     }
+
+    private static void PSFaderSliderSet(Slider pSlider, double pPosition) => pSlider.Value = pPosition;
 
     private static double PSFaderPositionResolve(double pKbps, double pMinimum, double pMaximum) =>
         Math.Log(pKbps / pMinimum) / Math.Log(pMaximum / pMinimum) * PSFaderBitrateTicks;

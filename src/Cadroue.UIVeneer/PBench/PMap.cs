@@ -80,7 +80,8 @@ public sealed class PMap : FrameworkElement
     private void PMapFrameDraw(DrawingContext drawingContext, QMapFrame lFrame)
     {
         lFrame.QMapFrameUnder.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
-        drawingContext.DrawGeometry(pMapBrushWaveform, null, PFlow.PFlowWaveformBuild(lFrame.QMapFrameWaveform));
+        drawingContext.DrawGeometry(
+            pMapBrushWaveform, null, PFlowWaveform.PFlowWaveformBuild(lFrame.QMapFrameWaveform));
         lFrame.QMapFrameBands.ToList().ForEach(lBand => PMapBandDraw(drawingContext, lBand));
         lFrame.QMapFrameOver.ToList().ForEach(lShape => pMapDraws[lShape.QMapShapeKind](drawingContext, lShape));
         lFrame.QMapFrameCursor.ToList().ForEach(lCursorX =>

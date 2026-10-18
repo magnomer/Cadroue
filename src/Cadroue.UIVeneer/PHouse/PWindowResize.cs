@@ -6,18 +6,26 @@ using Cadroue.UIDeportment;
 
 namespace Cadroue.UIVeneer.PHouse;
 
-public partial class PWindow
+internal sealed class PWindowResize(Window pResizeWindow, QSash lSash)
 {
-    private void PResizeHandlersAdd()
+    public void PResizeSashAttach()
     {
-        PreviewMouseMove += PResizeMoveHandle;
-        PreviewMouseLeftButtonDown += PResizePressHandle;
-        PreviewMouseLeftButtonUp += PResizeReleaseHandle;
-        LostMouseCapture += PResizeCaptureHandle;
-        MouseLeave += PResizeLeaveHandle;
+        lSash.QSashCaptureStarted += PResizeCaptureStart;
+        lSash.QSashCaptureStopped += PResizeCaptureStop;
+        lSash.QSashActiveChanged += PResizeRenderApply;
+        lSash.QSashBoundsChanged += PResizeBoundsApply;
     }
 
-    private void PResizeHandlersRemove()
+    public void PResizeHandlersAdd()
+    {
+        pResizeWindow.PreviewMouseMove += PResizeMoveHandle;
+        pResizeWindow.PreviewMouseLeftButtonDown += PResizePressHandle;
+        pResizeWindow.PreviewMouseLeftButtonUp += PResizeReleaseHandle;
+        pResizeWindow.LostMouseCapture += PResizeCaptureHandle;
+        pResizeWindow.MouseLeave += PResizeLeaveHandle;
+    }
+
+    public void PResizeHandlersRemove()
     {
         PResizeDetach();
         PResizeCursorClear();
@@ -25,11 +33,11 @@ public partial class PWindow
 
     private void PResizeDetach()
     {
-        PreviewMouseMove -= PResizeMoveHandle;
-        PreviewMouseLeftButtonDown -= PResizePressHandle;
-        PreviewMouseLeftButtonUp -= PResizeReleaseHandle;
-        LostMouseCapture -= PResizeCaptureHandle;
-        MouseLeave -= PResizeLeaveHandle;
+        pResizeWindow.PreviewMouseMove -= PResizeMoveHandle;
+        pResizeWindow.PreviewMouseLeftButtonDown -= PResizePressHandle;
+        pResizeWindow.PreviewMouseLeftButtonUp -= PResizeReleaseHandle;
+        pResizeWindow.LostMouseCapture -= PResizeCaptureHandle;
+        pResizeWindow.MouseLeave -= PResizeLeaveHandle;
     }
 
     private static void PResizeCursorClear() => Mouse.OverrideCursor = null;
@@ -38,33 +46,33 @@ public partial class PWindow
 
     private void PResizePressHandle(object sender, MouseButtonEventArgs e)
     {
-        Point pPoint = e.GetPosition(this);
-        Point pPointer = QSashPointer.QSashPointerRead(this, pPoint);
+        Point pPoint = e.GetPosition(pResizeWindow);
+        Point pPointer = QSashPointer.QSashPointerRead(pResizeWindow, pPoint);
         e.Handled = lSash.QSashPressHandle(
-            PLook.PLookNormal[WindowState],
+            PLook.PLookNormal[pResizeWindow.WindowState],
             QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
             pPoint.Y,
             pPointer.X,
             pPointer.Y,
-            QSashWindow.QSashWindowRead(this));
+            QSashWindow.QSashWindowRead(pResizeWindow));
     }
 
     private void PResizeMoveHandle(object sender, MouseEventArgs e)
     {
-        Point pPoint = e.GetPosition(this);
-        Point pPointer = QSashPointer.QSashPointerRead(this, pPoint);
+        Point pPoint = e.GetPosition(pResizeWindow);
+        Point pPointer = QSashPointer.QSashPointerRead(pResizeWindow, pPoint);
         e.Handled = lSash.QSashMoveHandle(
-            PLook.PLookNormal[WindowState],
+            PLook.PLookNormal[pResizeWindow.WindowState],
             QSashGuard.QSashGuardCheck(e.OriginalSource as DependencyObject),
             pPoint.X,
             pPoint.Y,
-            ActualWidth,
-            ActualHeight,
+            pResizeWindow.ActualWidth,
+            pResizeWindow.ActualHeight,
             pPointer.X,
             pPointer.Y,
-            MinWidth,
-            MinHeight);
+            pResizeWindow.MinWidth,
+            pResizeWindow.MinHeight);
         PResizeCursorApply(lSash.QSashDirection);
     }
 
@@ -84,12 +92,12 @@ public partial class PWindow
         PResizeCursorClear();
     }
 
-    private void PResizeCaptureStart() => Mouse.Capture(this);
+    private void PResizeCaptureStart() => Mouse.Capture(pResizeWindow);
 
     private static void PResizeCaptureStop() => Mouse.Capture(null);
 
     private static void PResizeRenderApply(bool pActive) =>
         RenderOptions.ProcessRenderMode = PLook.PLookRender[pActive];
 
-    private void PResizeBoundsApply(QSashBounds lBounds) => QSashWindow.QSashWindowApply(this, lBounds);
+    private void PResizeBoundsApply(QSashBounds lBounds) => QSashWindow.QSashWindowApply(pResizeWindow, lBounds);
 }

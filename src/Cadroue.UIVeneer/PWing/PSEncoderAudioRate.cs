@@ -98,8 +98,8 @@ internal sealed class PSEncoderAudioRate
     private static UIElement PSAudioSliderBuild(
         LCapabilityQuality pQuality, double pMinimum, double pMaximum, string pText, TextBox pBox) =>
         pQuality.LCapabilityQualityBitrate
-            ? PSFader.PSFaderBitrateBuild(pMinimum, pMaximum, pText, pBox)
-            : PSFader.PSFaderQualityBuild(
+            ? PSFaderBitrate.PSFaderBitrateBuild(pMinimum, pMaximum, pText, pBox)
+            : PSFaderQuality.PSFaderQualityBuild(
                 pMinimum,
                 pMaximum,
                 pQuality.LCapabilityQualityStep,

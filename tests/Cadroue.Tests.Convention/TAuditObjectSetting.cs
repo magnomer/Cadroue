@@ -47,14 +47,14 @@ internal static class TAuditObjectSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditObjectCeiling = new Dictionary<string, int>
     {
-        ["Hydra"] = 1,
-        ["Kraken"] = 2,
+        ["Hydra"] = 0,
+        ["Kraken"] = 1,
         ["Spider"] = 0,
-        ["Chameleon"] = 59,
-        ["Octopus"] = 2,
-        ["Centipede"] = 47,
-        ["Serpent"] = 3,
-        ["Hub"] = 1,
+        ["Chameleon"] = 58,
+        ["Octopus"] = 1,
+        ["Centipede"] = 36,
+        ["Serpent"] = 0,
+        ["Hub"] = 0,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling = new Dictionary<string, int>
@@ -87,10 +87,10 @@ internal static class TAuditObjectSetting
         ["Cadroue.ShellEngine.LRunner"] = 1,
         ["Cadroue.ShellEngine.LSweep"] = 1,
         ["Cadroue.UIDeportment.QSEncoder"] = 1,
-        ["Cadroue.UIVeneer.PHouse.PWindow"] = 5,
-        ["Cadroue.UIVeneer.PSDiagnosis"] = 2,
-        ["Cadroue.UIVeneer.PSFader"] = 2,
-        ["Cadroue.UIVeneer.PSOptions"] = 9,
+        ["Cadroue.UIVeneer.PHouse.PWindow"] = 1,
+        ["Cadroue.UIVeneer.PSDiagnosis"] = 1,
+        ["Cadroue.UIVeneer.PSFader"] = 1,
+        ["Cadroue.UIVeneer.PSOptions"] = 1,
         ["Cadroue.UIVeneer.PWing.PExport"] = 1,
         ["Cadroue.UIVeneer.PWing.PInspector"] = 1,
         ["Cadroue.UIVeneer.PWing.PSEncoder"] = 1,

@@ -9,11 +9,9 @@ public sealed class PSplitTab : PTabSurface
 {
     private readonly PFlow pFlow;
     private readonly PViewer pViewer;
-    private readonly PSection pSection;
     private readonly PList pList;
     private readonly PProcessing pProcessing;
     private readonly PInspector pInspector;
-    private readonly System.Windows.Controls.Grid pTabGrid;
 
     public PSplitTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -23,7 +21,7 @@ public sealed class PSplitTab : PTabSurface
         QSplitTab = lWorkspace.QWorkspaceMode.QSplitTabCreate();
         pInspector = new PInspector(QSplitTab.QSplitInspector);
         pProcessing = new PProcessing(QSplitTab.QSplitProcessing);
-        pSection = new PSection(QSplitTab.QSplitSection);
+        var pSection = new PSection(QSplitTab.QSplitSection);
         var pAction = new PAction(lWorkspace.QWorkspaceMode.QWorkspaceAction!);
         pAction.PActionAllSet(true, QLocalizationCatalog.QLocalizationTextRead("Action.AddAll.SplitTooltip"));
 
@@ -34,12 +32,11 @@ public sealed class PSplitTab : PTabSurface
         PSplitEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
-        PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
-        pTabGrid = PTabGridBuild(
+        PTabLock.PTabLockAttach(pList, pSection, pProcessing, pInspector, pExport);
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pSection, pProcessing, pInspector, pViewer, pExport },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!), pAction, pFlow, lPreferenceTabLayout);
-        Content = pTabGrid;
         QSplitTab.QSplitLayoutApply(lPreferenceTabLayout);
         QSplitTab.QSplitStart();
     }

@@ -16,12 +16,6 @@ public static class PLook
         [false] = Visibility.Collapsed,
     };
 
-    public static readonly IReadOnlyDictionary<bool, Visibility> PLookHidden = new Dictionary<bool, Visibility>
-    {
-        [true] = Visibility.Visible,
-        [false] = Visibility.Hidden,
-    };
-
     public static readonly IReadOnlyDictionary<bool, bool?> PLookChecked = new Dictionary<bool, bool?>
     {
         [true] = true,

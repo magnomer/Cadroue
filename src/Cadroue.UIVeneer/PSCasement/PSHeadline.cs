@@ -16,9 +16,6 @@ internal static class PSHeadline
     internal static readonly Brush PSHeadlineBandRed = PSHeadlineFillCreate(0xFC, 0xEA, 0xEA);
     internal static readonly Brush PSHeadlineBandOrange = PSHeadlineFillCreate(0xFC, 0xF2, 0xEA);
 
-    internal static UIElement PSHeadlineBuild(Window pWindow, string? pTitle) =>
-        PSHeadlineBuild(pWindow, pTitle, PSHeadlineBandBlue);
-
     internal static UIElement PSHeadlineBuild(Window pWindow, string? pTitle, Brush pBandFill) =>
         PSCasement.PSCasementOverlayBuild(
             pWindow, 0, pTitle, pCloseOnly: true, PSHeadlineBandHeight, PSHeadlineTitleFont, pBandFill);

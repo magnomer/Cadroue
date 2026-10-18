@@ -51,6 +51,7 @@
     "Cursor",
     "Curve",
     "Custody",
+    "Debounce",
     "Debug",
     "Decision",
     "Deck",

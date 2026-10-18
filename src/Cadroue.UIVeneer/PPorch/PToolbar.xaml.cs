@@ -30,30 +30,23 @@ public partial class PToolbar : UserControl
     private static readonly IReadOnlyDictionary<bool, Action<PToolbar>> pChromeLogos =
         new Dictionary<bool, Action<PToolbar>>
         {
-            [true] = pToolbar => pToolbar.PLogoMenuShow(pToolbar.pLogoHost),
+            [true] = pToolbar => pToolbar.pLogoMenu.PLogoMenuShow(pToolbar.pLogoHost),
             [false] = pToolbar => { },
         };
 
-    private static readonly IReadOnlyDictionary<string, Action<PToolbar>> pLogoActions =
-        new Dictionary<string, Action<PToolbar>>
-        {
-            ["Options"] = pToolbar => pToolbar.PToolbarOptionsShow(),
-            ["Shortcuts"] = pToolbar => pToolbar.PToolbarShortcutShow(),
-            ["Log"] = pToolbar =>
-                PLogWindow.PLogWindowShow(Window.GetWindow(pToolbar)!, pToolbar.qLogoMenu!.QLogoLogCreate),
-            ["About"] = pToolbar =>
-                PSAbout.PSAboutShow(Window.GetWindow(pToolbar)!, pToolbar.qLogoMenu!.QLogoAboutCreate()),
-            ["Exit"] = pToolbar => Window.GetWindow(pToolbar)!.Close(),
-        };
+    private readonly PLogoMenu pLogoMenu;
 
     private QChrome lChrome = null!;
 
-    private QLogoMenu? qLogoMenu;
-
-    public event Action? PToolbarOptionsApplied;
+    public event Action? PToolbarOptionsApplied
+    {
+        add => pLogoMenu.PToolbarOptionsApplied += value;
+        remove => pLogoMenu.PToolbarOptionsApplied -= value;
+    }
 
     public PToolbar()
     {
+        pLogoMenu = new PLogoMenu(this);
         InitializeComponent();
         PChromeButtonsApply();
     }
@@ -80,7 +73,7 @@ public partial class PToolbar : UserControl
 
     public void PToolbarLogoSet(QLogoMenu qLogoMenuOwner)
     {
-        qLogoMenu = qLogoMenuOwner;
+        pLogoMenu.PLogoMenuSet(qLogoMenuOwner);
     }
 
     public void PToolbarChromeSet(QChrome lChromeOwner)
@@ -88,14 +81,9 @@ public partial class PToolbar : UserControl
         lChrome = lChromeOwner;
     }
 
-    private void PToolbarOptionsShow()
-    {
-        PSOptions.PSOptionsShow(Window.GetWindow(this)!, qLogoMenu!.QLogoOptionsCreate(), PToolbarOptionsApplied);
-    }
-
     public void PToolbarShortcutShow()
     {
-        PSKeymap.PSKeymapShow(Window.GetWindow(this)!, qLogoMenu!.QLogoKeymapCreate(), PToolbarOptionsApplied);
+        pLogoMenu.PToolbarShortcutShow();
     }
 
     private void PChromeButtonsApply()
@@ -188,48 +176,4 @@ public partial class PToolbar : UserControl
 
     private bool PChromeLogoCheck(DependencyObject? pChromeSource) =>
         QWalk.QWalkParentCheck(pChromeSource, PChromeLogoMatch);
-
-    private void PLogoMenuShow(FrameworkElement pLogoButton)
-    {
-        ContextMenu pLogoMenu = QMenu.QMenuBuild(pLogoButton, QMenuSide.QMenuSideBelow);
-
-        PLogoItemAppend(pLogoMenu, "Options", "Chrome.Menu.Options", "/PAsset/PMenu/PMenuPreferences.svg");
-        PLogoItemAppend(pLogoMenu, "Shortcuts", "Chrome.Menu.Shortcuts", "/PAsset/PMenu/PMenuShortcuts.svg");
-        PLogoItemAppend(pLogoMenu, "Log", "Chrome.Menu.Log", "/PAsset/PMenu/PMenuLog.svg");
-        PLogoItemAppend(pLogoMenu, "About", "Chrome.Menu.About", "/PAsset/PMenu/PMenuAbout.svg");
-        PLogoDebugAppend(pLogoMenu);
-        PLogoItemAppend(pLogoMenu, "Exit", "Chrome.Menu.Exit", "/PAsset/PMenu/PMenuExit.svg");
-
-        pLogoMenu.IsOpen = true;
-    }
-
-    private void PLogoDebugAppend(ContextMenu pLogoMenu)
-    {
-        MenuItem pDebugItem = QMenu.QMenuItemBuild("Debug");
-        PLogoDebugShow(pDebugItem);
-        PLogoDebugAttach(pDebugItem);
-        pLogoMenu.Items.Add(pDebugItem);
-    }
-
-    private static void PLogoDebugShow(MenuItem pDebugItem) =>
-        pDebugItem.Visibility = PLook.PLookVisible[QChrome.QChromeDebugVisible];
-
-    private void PLogoDebugAttach(MenuItem pDebugItem) =>
-        pDebugItem.Click += (_, _) => PSDebug.PSDebugShow(Window.GetWindow(this)!, qLogoMenu!);
-
-    private void PLogoItemAppend(
-        ContextMenu pLogoMenu,
-        string pLogoMenuToken,
-        string pLogoMenuKey,
-        string pLogoMenuIconPath)
-    {
-        MenuItem pLogoMenuItem = QMenu.QMenuItemBuild(
-            QLocalizationCatalog.QLocalizationTextRead(pLogoMenuKey),
-            QMenu.QMenuIconRead(pLogoMenuIconPath));
-        PLogoItemAttach(pLogoMenuItem, pLogoMenuToken);
-        pLogoMenu.Items.Add(pLogoMenuItem);
-    }
-
-    private void PLogoItemAttach(MenuItem pLogoMenuItem, string pLogoMenuToken) =>
-        pLogoMenuItem.Click += (_, _) => pLogoActions[pLogoMenuToken](this);
 }

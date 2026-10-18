@@ -31,7 +31,7 @@ internal sealed class PSEncoderAudio
             new LLocalizationChoice("Include first audio track", "Encoder.Stream.FirstAudio"),
             new LLocalizationChoice("Include all audio tracks", "Encoder.Stream.AllAudio"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
-        psAudioMode = PSField.PSModeBuild(lsDraft.LPresetAudio.LPresetMode, PSAudioScopeUpdate,
+        psAudioMode = PSMode.PSModeBuild(lsDraft.LPresetAudio.LPresetMode, PSAudioScopeUpdate,
             new LLocalizationChoice("Copy", "Encoder.Codec.Copy"),
             new LLocalizationChoice("Encode", "Encoder.Codec.Encode"),
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
@@ -52,7 +52,7 @@ internal sealed class PSEncoderAudio
     internal void PSAudioDraftSet()
     {
         lsEncoderDraft.LPresetAudio.LPresetStream = PSCombo.PSComboTextRead(psAudioStreamCombo);
-        lsEncoderDraft.LPresetAudio.LPresetMode = PSField.PSModeTextRead(psAudioMode);
+        lsEncoderDraft.LPresetAudio.LPresetMode = PSMode.PSModeTextRead(psAudioMode);
         lsEncoderDraft.LPresetAudio.LPresetQuality = psEncoderAudioRate.PSAudioQualityRead();
         lsEncoderDraft.LPresetAudio.LPresetSpeed = psEncoderAudioRate.PSAudioSpeedRead();
         lsEncoderDraft.LPresetAudio.LPresetExtras = psEncoderAudioRate.PSAudioExtrasRead();
@@ -98,7 +98,7 @@ internal sealed class PSEncoderAudio
             64,
             new Thickness(6, 0, 0, 0));
         PSAudioResultApply(pLog);
-        ProgressBar pProgress = PSField.PSFieldProgressBuild();
+        ProgressBar pProgress = PSFieldProgress.PSFieldProgressBuild();
         PSAudioPlateAttach(pVerify, pLog, pProgress);
         PSAudioEncodeBuild(pVerify, pLog, pProgress);
         psEncoderAudioSample.PSAudioSampleRebuild();
@@ -229,7 +229,7 @@ internal sealed class PSEncoderAudio
     private void PSAudioScopeUpdate()
     {
         string pStream = PSCombo.PSComboTextRead(psAudioStreamCombo);
-        string pMode = PSField.PSModeTextRead(psAudioMode);
+        string pMode = PSMode.PSModeTextRead(psAudioMode);
         bool pExcluded = PSAudioExcludedCheck(pStream, pMode);
         bool pEncoded = PSAudioEncodedCheck(pExcluded, pMode);
         PSAudioScopeApply(pEncoded, PSAudioNoticeFormat(pExcluded));

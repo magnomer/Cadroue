@@ -31,7 +31,7 @@ internal static class PSSubwindow
     }
 
     private static void PSSubwindowDwmAttach(Window pWindow) =>
-        pWindow.SourceInitialized += (_, _) => PSCasement.PSCasementDwmApply(pWindow, PSSubwindowCaption);
+        pWindow.SourceInitialized += (_, _) => PSCasementDwm.PSCasementDwmApply(pWindow, PSSubwindowCaption);
 
     internal static Grid PSSubwindowBuild(Window pWindow, double pStripWidth, UIElement pSheetControl)
     {

@@ -57,7 +57,7 @@ public sealed class PRoster : UserControl
     }
 
     private PRosterQueue PRosterQueueBuild(ContextMenu pRosterMenu) =>
-        new(lEntry => PRosterCard.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
+        new(lEntry => PRosterEntry.PRosterEntryBuild(QRoster, lEntry, pRosterMenu))
         {
             ItemsSource = QRoster.QRosterFeed.QRosterEntries
         };
@@ -129,7 +129,7 @@ public sealed class PRoster : UserControl
 
     private void PRosterQueueAdd()
     {
-        UIElement pQueue = PRosterPanelBuild();
+        UIElement pQueue = PRosterPanel.PRosterPanelBuild(pRosterQueuePanel, pRosterSharedBox, pRosterCompletedBox);
         Grid.SetColumn(pQueue, 0);
         pRosterBody.Children.Add(pQueue);
     }
@@ -148,57 +148,6 @@ public sealed class PRoster : UserControl
         pRosterBody.Children.Add(pDetail);
     }
 
-    private UIElement PRosterPanelBuild()
-    {
-        StackPanel pOptions = PRosterOptionsBuild();
-        Border pOptionRow = PRosterBandBuild(pOptions);
-        Border pColumnHeader = PRosterBandBuild(PRosterHeaderBuild());
-        QScrollbar.QScrollbarAttach(pRosterQueuePanel);
-        PRosterScrollAttach(pColumnHeader);
-        return PRosterDockBuild(pOptionRow, pColumnHeader);
-    }
-
-    private StackPanel PRosterOptionsBuild()
-    {
-        var pOptions = new StackPanel { Orientation = Orientation.Horizontal };
-        pOptions.Children.Add(pRosterSharedBox);
-        pOptions.Children.Add(pRosterCompletedBox);
-        return pOptions;
-    }
-
-    private void PRosterScrollAttach(Border pColumnHeader) =>
-        pRosterQueuePanel.AddHandler(
-            ScrollViewer.ScrollChangedEvent,
-            new ScrollChangedEventHandler((pSender, pArgs) =>
-                PRosterPaddingSet(pColumnHeader, PRosterPaddingResolve(pArgs))));
-
-    private static Thickness PRosterPaddingResolve(ScrollChangedEventArgs pArgs) =>
-        new(21, 10, 5 + ((ScrollViewer)pArgs.OriginalSource).ActualWidth - pArgs.ViewportWidth, 10);
-
-    private static void PRosterPaddingSet(Border pColumnHeader, Thickness pPadding) =>
-        pColumnHeader.Padding = pPadding;
-
-    private UIElement PRosterDockBuild(Border pOptionRow, Border pColumnHeader)
-    {
-        var pRoot = new DockPanel { LastChildFill = true };
-        Grid.SetIsSharedSizeScope(pRoot, true);
-        DockPanel.SetDock(pOptionRow, Dock.Top);
-        DockPanel.SetDock(pColumnHeader, Dock.Top);
-        pRoot.Children.Add(pOptionRow);
-        pRoot.Children.Add(pColumnHeader);
-        pRoot.Children.Add(pRosterQueuePanel);
-        return QPanel.QPanelBuild(pRoot);
-    }
-
-    private static Border PRosterBandBuild(UIElement pChild) => new()
-    {
-        Padding = PRosterTheme.PRosterHeaderPadding,
-        Background = PRosterTheme.PRosterHeaderBrush,
-        BorderBrush = PRosterTheme.PRosterLineBrush,
-        BorderThickness = new Thickness(0, 0, 0, 1),
-        Child = pChild
-    };
-
     private static CheckBox PRosterOptionBuild(string pText, bool pChecked, double pLeftMargin)
     {
         CheckBox pBox = PRosterBoxBuild(pText, pChecked, pLeftMargin);
@@ -214,32 +163,6 @@ public sealed class PRoster : UserControl
         IsChecked = PLook.PLookChecked[pChecked],
         Margin = new Thickness(pLeftMargin, 0, 0, 0)
     };
-
-    private static Grid PRosterHeaderBuild()
-    {
-        Grid pGrid = PRosterRow.PRosterColumnsCreate();
-        PRosterHeadAdd(pGrid, 0, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Step"));
-        PRosterHeadAdd(pGrid, 1, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Priority"));
-        PRosterHeadAdd(pGrid, 2, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Length"));
-        PRosterHeadAdd(pGrid, 3, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Progress"));
-        PRosterHeadAdd(pGrid, 4, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Percentage"));
-        PRosterHeadAdd(pGrid, 5, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.State"));
-        PRosterHeadAdd(pGrid, 6, QLocalizationCatalog.QLocalizationTextRead("Roster.Queue.Owner"));
-        return pGrid;
-    }
-
-    private static void PRosterHeadAdd(Grid pGrid, int pColumn, string pText)
-    {
-        var pCell = new TextBlock
-        {
-            Text = pText,
-            FontSize = PRosterTheme.PRosterRowSize,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = PRosterTheme.PRosterMutedBrush
-        };
-        Grid.SetColumn(pCell, pColumn);
-        pGrid.Children.Add(pCell);
-    }
 
     private static TextBlock PRosterTitleBuild(string pTitle) => new()
     {

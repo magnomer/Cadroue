@@ -90,8 +90,8 @@ internal sealed class PSEncoderVideoRate
             && pQuality.LCapabilityQualityMaximum is double pMaximum)
         {
             UIElement pSliderRow = pQuality.LCapabilityQualityBitrate
-                ? PSFader.PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
-                : PSFader.PSFaderQualityBuild(
+                ? PSFaderBitrate.PSFaderBitrateBuild(pMinimum, pMaximum, pText, psVideoQualityBox)
+                : PSFaderQuality.PSFaderQualityBuild(
                     pMinimum,
                     pMaximum,
                     pQuality.LCapabilityQualityStep,

@@ -1,13 +1,12 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSDiagnosis : Window
+internal sealed class PSDiagnosis : Window
 {
     internal const string PSDiagnosisPlacementKey = "Diagnosis";
 
@@ -15,22 +14,11 @@ internal sealed partial class PSDiagnosis : Window
     private const double PSDiagnosisWidthMinimum = 460;
     private const double PSDiagnosisHeightDefault = 760;
     private const double PSDiagnosisHeightMinimum = 520;
-    private const double PSDiagnosisInset = 18;
-
-    private static readonly Brush PSDiagnosisReadyFill = PSDiagnosisBrushCreate(0xE8, 0xF1, 0xE7);
-    private static readonly Brush PSDiagnosisReadyInk = PSDiagnosisBrushCreate(0x2E, 0x5B, 0x2B);
-    private static readonly Brush PSDiagnosisMissingFill = PSDiagnosisBrushCreate(0xFB, 0xE3, 0xE3);
-    private static readonly Brush PSDiagnosisMissingInk = PSDiagnosisBrushCreate(0x8C, 0x1D, 0x1D);
-    private static readonly Brush PSDiagnosisReadyDot = PSDiagnosisBrushCreate(0x2E, 0xA0, 0x43);
-    private static readonly Brush PSDiagnosisWarnDot = PSDiagnosisBrushCreate(0xE0, 0xA0, 0x11);
-    private static readonly Brush PSDiagnosisMissingDot = PSDiagnosisBrushCreate(0xD0, 0x33, 0x33);
-    private static readonly Brush PSDiagnosisNeutralFill = PSDiagnosisBrushCreate(0xEC, 0xEF, 0xF4);
-    private static readonly Brush PSDiagnosisChipFill = PSDiagnosisBrushCreate(0xF1, 0xF5, 0xFA);
-    private static readonly FontFamily PSDiagnosisChipFont = new("Consolas, Cascadia Mono, monospace");
 
     private static PSDiagnosis? psDiagnosisCurrent;
 
     private readonly QSDiagnosis lsDiagnosis;
+    private readonly PSDiagnosisContent psDiagnosisContent;
     private readonly PSGrabber psDiagnosisGrabber;
 
     internal static void PSDiagnosisShow(Window pOwner, Func<QSDiagnosis> lsDiagnosisCreate)
@@ -51,10 +39,11 @@ internal sealed partial class PSDiagnosis : Window
     private PSDiagnosis(Window pOwner, QSDiagnosis lsDiagnosisOwner)
     {
         lsDiagnosis = lsDiagnosisOwner;
+        psDiagnosisContent = new PSDiagnosisContent();
         PSDiagnosisWindowApply(pOwner);
         QScrollbar.QScrollbarAttach(this);
         Content = PSDiagnosisBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSDiagnosisPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber = new PSGrabber(this);
         psDiagnosisGrabber.PSGrabberAttach();
         PSDiagnosisWindowAttach();
@@ -79,9 +68,9 @@ internal sealed partial class PSDiagnosis : Window
 
     private void PSDiagnosisWindowDetach() => Closed -= PSDiagnosisCloseHandle;
 
-    private void PSDiagnosisResultAttach() => lsDiagnosis.QSDiagnosisChanged += PSDiagnosisResultApply;
+    private void PSDiagnosisResultAttach() => lsDiagnosis.QSDiagnosisChanged += PSDiagnosisResultHandle;
 
-    private void PSDiagnosisResultDetach() => lsDiagnosis.QSDiagnosisChanged -= PSDiagnosisResultApply;
+    private void PSDiagnosisResultDetach() => lsDiagnosis.QSDiagnosisChanged -= PSDiagnosisResultHandle;
 
     private UIElement PSDiagnosisBuild() =>
         PSDialog.PSDialogBuild(this, lsDiagnosis.QSDiagnosisTitle, PSDiagnosisRootBuild());
@@ -113,28 +102,33 @@ internal sealed partial class PSDiagnosis : Window
         DockPanel.SetDock(pFooter, Dock.Bottom);
         pRoot.Children.Add(pFooter);
 
-        UIElement pBanner = PSDiagnosisBannerBuild();
+        UIElement pBanner = psDiagnosisContent.PSDiagnosisBannerBuild(lsDiagnosis);
         DockPanel.SetDock(pBanner, Dock.Top);
         pRoot.Children.Add(pBanner);
 
-        ScrollViewer pScroll = PSSheet.PSSheetScrollBuild(PSDiagnosisContentBuild());
-        pScroll.Margin = new Thickness(PSDiagnosisInset, 0, PSDiagnosisInset, 8);
+        ScrollViewer pScroll = PSSheet.PSSheetScrollBuild(psDiagnosisContent.PSDiagnosisContentBuild());
+        pScroll.Margin = new Thickness(
+            PSDiagnosisContent.PSDiagnosisInset, 0, PSDiagnosisContent.PSDiagnosisInset, 8);
         pRoot.Children.Add(pScroll);
         return pRoot;
     }
 
-    private static Brush PSDiagnosisBrushCreate(byte pRed, byte pGreen, byte pBlue)
+    private void PSDiagnosisResultHandle()
     {
-        var pBrush = new SolidColorBrush(Color.FromRgb(pRed, pGreen, pBlue));
-        pBrush.Freeze();
-        return pBrush;
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(PSDiagnosisResultHandle);
+            return;
+        }
+
+        psDiagnosisContent.PSDiagnosisResultApply(lsDiagnosis);
     }
 
     private void PSDiagnosisCloseHandle(object? pSender, EventArgs pEvent)
     {
         lsDiagnosis.QSDiagnosisClose();
         PSDiagnosisResultDetach();
-        PSGrabber.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PSDiagnosisPlacementKey);
         psDiagnosisGrabber.PSGrabberDetach();
         PSDiagnosisWindowDetach();
         if (ReferenceEquals(psDiagnosisCurrent, this))

@@ -1,5 +1,4 @@
 using System.Windows;
-using Cadroue.Core;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
@@ -7,7 +6,7 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSOptions : Window
+internal sealed class PSOptions : Window
 {
     internal const string PSOptionsPlacementKey = "Options";
 
@@ -27,10 +26,9 @@ internal sealed partial class PSOptions : Window
     private const string PSSheetWorkIcon = "/PAsset/PTab/PSSheetWork.svg";
 
     private readonly QSOptions lsOptions;
-    private readonly QSSpectrum lsSpectrum;
     private readonly Action? psOptionsCallback;
-
-    private LPreferenceState lsOptionsDraft => lsOptions.QSOptionsDraft;
+    private readonly PSOptionsDraft psOptionsDraft;
+    private readonly PSOptionsSystem psOptionsSystem;
     private readonly PSGrabber psOptionsGrabber;
 
     internal static void PSOptionsShow(Window pOwner, QSOptions lsOptionsOwner, Action? pApplyCallback)
@@ -42,114 +40,17 @@ internal sealed partial class PSOptions : Window
     private PSOptions(Window pOwner, QSOptions lsOptionsOwner, Action? pApplyCallback)
     {
         lsOptions = lsOptionsOwner;
-        lsSpectrum = lsOptions.QSOptionsSpectrumCreate();
-        PSOptionsSpectrumAttach();
         psOptionsCallback = pApplyCallback;
-
-        psOptionsStartupMode = PSField.PSModeBuild(
-            lsOptionsDraft.LPreferenceStartupMode,
-            () => psOptionsStartupPicker?.Invoke(),
-            PSOptionsStartupItems);
-        psOptionsRecordMode = PSField.PSModeBuild(
-            PSOptionsRecordResolve(),
-            () => psOptionsRecordNotice?.Invoke(),
-            PSOptionsRecordItems);
-        psOptionsTabPicker = PSOptionsPickerBuild();
-        psMediaBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.OpenLastMedia"),
-            lsOptionsDraft.LPreferenceMediaAutomatic);
-        psOptionsConfirmBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Confirm.Ask"),
-            lsOptionsDraft.LPreferenceConfirmDestructive);
-        psRelayClearBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Relay.ClearCheck"),
-            lsOptionsDraft.LPreferenceRelayEmpty);
-        psOptionsTabsMode = PSField.PSModeBuild(
-            PSOptionsTabsResolve(),
-            () => { },
-            PSOptionsTabsItems);
-        psOptionsLanguageCombo = PSCombo.PSComboBuild(lsOptionsDraft.LPreferenceLanguage, PSOptionsLanguagesRead());
-
-        psOptionsEngineMode = PSField.PSModeBuild(
-            lsOptions.QSOptionsEngineRead(),
-            () => { },
-            out psOptionsEngineEnable,
-            PSOptionsEngineItems);
-        psOptionsEngineEnable("Mpv", lsOptions.QSOptionsMpv.QSOptionsMpvEnabled);
-        PSOptionsMpvAttach();
-        _ = lsOptions.QSOptionsMpv.QSOptionsMpvUpdate();
-
-        psOptionsAutoplayBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Playback.AutoplayCheck"),
-            lsOptionsDraft.LPreferenceAutoplay);
-        psOptionsVolumeMode = PSField.PSModeBuild(
-            lsOptionsDraft.LPreferenceVolumeMode, () => { }, PSOptionsVolumeItems);
-        psOptionsVolumeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceVolume, 0, 100);
-        psOptionsWheelMode = PSField.PSModeBuild(
-            lsOptionsDraft.LPreferenceWheelAction, () => { }, PSOptionsWheelItems);
-        psOptionsDragBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Playback.DragPause"),
-            lsOptionsDraft.LPreferenceDragPaused);
-
-        psOptionsOrderMode = PSField.PSModeBuild(
-            lsOptionsDraft.LPreferenceTimelineOrder, () => { }, PSOptionsOrderItems);
-        psKeyframeSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframePixels, 1, 50);
-        psKeyframeDelaySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceKeyframeDelay, 0, 5000);
-        psOptionsOverlapBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.OverlapCheck"),
-            lsOptionsDraft.LPreferenceOverlapAllowed);
-        psWaveformBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.WaveformCheck"),
-            lsOptionsDraft.LPreferenceWaveform);
-
-        psOptionsFailureBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Work.FailurePause"),
-            lsOptionsDraft.LPreferenceFailurePaused);
-        psOptionsRetryBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.Work.RetryCheck"),
-            lsOptionsDraft.LPreferenceRetryAllowed);
-        psOptionsRetrySlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceRetryMaximum, 0, 10);
-
-        psOptionsCleanupBox = PSOptionsCheckBuild(
-            QLocalizationCatalog.QLocalizationTextRead("Options.System.CleanupCheck"),
-            lsOptionsDraft.LPreferenceCleanupActive);
-        psOptionsCleanupSlider = PSOptionsSliderBuild(lsOptionsDraft.LPreferenceCleanupDays, 1, 365);
-
-        psWorkspaceBox = PSEntry.PSEntryBuild(lsOptionsDraft.LPreferenceWorkspaceFolder, 320);
-        psSystemFfmpegBox = PSEntry.PSEntryBuild(lsOptionsDraft.LPreferenceFfmpegFolder, 320);
+        psOptionsDraft = new PSOptionsDraft(
+            lsOptions, new PSOptionsSpectrum(lsOptions.QSOptionsSpectrumCreate(), this));
+        psOptionsSystem = new PSOptionsSystem(lsOptions, this);
 
         PSOptionsWindowApply(pOwner);
         Content = PSOptionsBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSOptionsPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PSOptionsPlacementKey);
         psOptionsGrabber = new PSGrabber(this);
         psOptionsGrabber.PSGrabberAttach();
         PSOptionsWindowAttach();
-    }
-
-    private void PSOptionsSpectrumAttach() => lsSpectrum.QSSpectrumChanged += PSSpectrumActiveApply;
-
-    private void PSOptionsMpvAttach() =>
-        lsOptions.QSOptionsMpv.QSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
-
-    private string PSOptionsRecordResolve() =>
-        lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation";
-
-    private string PSOptionsTabsResolve() =>
-        lsOptionsDraft.LPreferenceVerticalTabs ? "Vertical" : "Horizontal";
-
-    private Control PSOptionsPickerBuild()
-    {
-        var pPicker = new Control
-        {
-            MinWidth = 260,
-            Height = PSField.PSFieldControlHeight,
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        QPickerControl.QPickerControlAttach(
-            pPicker,
-            QPicker.QPickerItemsCreate(PSOptionsTabItems, lsOptionsDraft.LPreferenceStartupTabs),
-            QLocalizationCatalog.QLocalizationTextRead("Options.Startup.NoTab"));
-        return pPicker;
     }
 
     private void PSOptionsWindowApply(Window pOwner)
@@ -192,23 +93,24 @@ internal sealed partial class PSOptions : Window
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.General"),
                 PSSheetGeneralIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSGeneralBuild()))),
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsGeneral.PSGeneralBuild()))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.System"),
                 PSSheetSystemIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSSystemBuild()))),
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsSystem.PSSystemBuild(lsOptions, this)))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Playback"),
                 PSSheetPlaybackIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSPlaybackBuild()))),
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsPlayback.PSPlaybackBuild(
+                    new PSOptionsSystemFlyleaf(lsOptions, this), new PSOptionsSystemMpv(lsOptions, this))))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Timeline"),
                 PSSheetTimelineIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSTimelineBuild()))),
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsTimeline.PSTimelineBuild()))),
             PSSheet.PSSheetBuild(
                 QLocalizationCatalog.QLocalizationTextRead("Options.Sheet.Work"),
                 PSSheetWorkIcon,
-                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(PSWorkBuild()))));
+                PSOptionsRootBuild(PSSheet.PSSheetScrollBuild(psOptionsDraft.psOptionsWork.PSWorkBuild(lsOptions)))));
     }
 
     private UIElement PSOptionsRootBuild(UIElement pSheetContent)
@@ -255,11 +157,10 @@ internal sealed partial class PSOptions : Window
 
     private void PSOptionsApply()
     {
-        PSOptionsDraftUpdate();
+        psOptionsDraft.PSOptionsDraftUpdate(psOptionsSystem, this);
         bool psOptionsSaved = lsOptions.QSOptionsApply();
         psOptionsCallback?.Invoke();
-        PSSystemMaintenanceUpdate();
-        psOptionsRecordNotice?.Invoke();
+        psOptionsSystem.PSSystemAppliedUpdate();
         if (!psOptionsSaved)
         {
             PSWarning.PSWarningShow(
@@ -278,65 +179,9 @@ internal sealed partial class PSOptions : Window
         }
     }
 
-    private void PSOptionsDraftUpdate()
-    {
-        lsOptionsDraft.LPreferenceStartupMode = PSField.PSModeTextRead(psOptionsStartupMode);
-        lsOptionsDraft.LPreferenceRecordWorkspace = PSOptionsModeCheck(psOptionsRecordMode, "Workspace");
-        lsOptionsDraft.LPreferenceStartupTabs = QPickerControl.QPickerControlRead(psOptionsTabPicker).ToList();
-        lsOptionsDraft.LPreferenceMediaAutomatic = PSOptionsCheckRead(psMediaBox);
-        lsOptionsDraft.LPreferenceConfirmDestructive = PSOptionsCheckRead(psOptionsConfirmBox);
-        lsOptionsDraft.LPreferenceRelayEmpty = PSOptionsCheckRead(psRelayClearBox);
-        lsOptionsDraft.LPreferenceVerticalTabs = PSOptionsModeCheck(psOptionsTabsMode, "Vertical");
-        lsOptionsDraft.LPreferenceLanguage = PSCombo.PSComboTextRead(psOptionsLanguageCombo);
-
-        lsOptionsDraft.LPreferenceAutoplay = PSOptionsCheckRead(psOptionsAutoplayBox);
-        lsOptionsDraft.LPreferenceVolumeMode = PSField.PSModeTextRead(psOptionsVolumeMode);
-        lsOptionsDraft.LPreferenceVolume = psOptionsVolumeSlider.Value;
-        lsOptionsDraft.LPreferenceWheelAction = PSField.PSModeTextRead(psOptionsWheelMode);
-        lsOptionsDraft.LPreferenceDragPaused = PSOptionsCheckRead(psOptionsDragBox);
-        lsOptionsDraft.LPreferencePreviewEngine = PSField.PSModeTextRead(psOptionsEngineMode);
-
-        lsOptionsDraft.LPreferenceTimelineOrder = PSField.PSModeTextRead(psOptionsOrderMode);
-        lsOptionsDraft.LPreferenceKeyframePixels = psKeyframeSlider.Value;
-        lsOptionsDraft.LPreferenceKeyframeDelay = psKeyframeDelaySlider.Value;
-        lsOptionsDraft.LPreferenceSectionPalette = lsSpectrum.QSSpectrumName;
-        lsOptionsDraft.LPreferenceOverlapAllowed = PSOptionsCheckRead(psOptionsOverlapBox);
-        lsOptionsDraft.LPreferenceWaveform = PSOptionsCheckRead(psWaveformBox);
-
-        lsOptionsDraft.LPreferenceFailurePaused = PSOptionsCheckRead(psOptionsFailureBox);
-        lsOptionsDraft.LPreferenceRetryAllowed = PSOptionsCheckRead(psOptionsRetryBox);
-        lsOptionsDraft.LPreferenceRetryMaximum = psOptionsRetrySlider.Value;
-
-        lsOptionsDraft.LPreferenceCleanupActive = PSOptionsCheckRead(psOptionsCleanupBox);
-        lsOptionsDraft.LPreferenceCleanupDays = PSOptionsNumberNormalize(psOptionsCleanupSlider.Value);
-
-        lsOptionsDraft.LPreferenceWorkspaceFolder = PSOptionsWorkspaceResolve(psWorkspaceBox.Text);
-        lsOptionsDraft.LPreferenceFfmpegFolder = psSystemFfmpegBox.Text;
-    }
-
-    private string PSOptionsWorkspaceResolve(string psWorkspaceFolder)
-    {
-        string psWorkspaceKept = QSOptions.QSOptionsWorkspaceResolve(psWorkspaceFolder, out bool psWorkspaceOccupied);
-        if (!psWorkspaceOccupied)
-        {
-            return psWorkspaceKept;
-        }
-
-        PSOptionsWorkspaceShow(psWorkspaceKept);
-        PSWarning.PSWarningShow(
-            this,
-            QLocalizationCatalog.QLocalizationTextRead("Options.System.Workspace"),
-            QLocalizationCatalog.QLocalizationFormat(
-                "Options.System.WorkspaceOccupied",
-                Cadroue.Infrastructure.LDepot.LDepotRootResolve(psWorkspaceFolder)));
-        return psWorkspaceKept;
-    }
-
-    private void PSOptionsWorkspaceShow(string psWorkspaceKept) => psWorkspaceBox.Text = psWorkspaceKept;
-
     private void PSOptionsCloseHandle(object? sender, EventArgs e)
     {
-        PSGrabber.PSGrabberPlacementSave(this, PSOptionsPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PSOptionsPlacementKey);
         psOptionsGrabber.PSGrabberDetach();
         PSOptionsWindowDetach();
     }

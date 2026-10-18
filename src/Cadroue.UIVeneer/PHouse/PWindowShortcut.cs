@@ -5,10 +5,11 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
 using Cadroue.UIDeportment;
+using Cadroue.UIVeneer.PPorch;
 
 namespace Cadroue.UIVeneer.PHouse;
 
-public partial class PWindow
+internal sealed class PWindowShortcut(Window pShortcutWindow, PStrip pShortcutStrip, QWindowShortcut lShortcut)
 {
     private static readonly Type[] PShortcutInputTypes = [typeof(TextBoxBase), typeof(PasswordBox)];
 
@@ -18,14 +19,18 @@ public partial class PWindow
     [DllImport("user32.dll")]
     private static extern short GetKeyState(int virtualKey);
 
+    public void PShortcutAttach() => ComponentDispatcher.ThreadPreprocessMessage += PShortcutMessageHandle;
+
+    public void PShortcutDetach() => ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
+
     private void PShortcutMessageHandle(ref MSG pShortcutMessage, ref bool pShortcutHandled)
     {
-        pShortcutHandled = lWindow.QWindowPart.QWindowPartShortcut.QWindowShortcutHandle(new QWindowPress(
+        pShortcutHandled = lShortcut.QWindowShortcutHandle(new QWindowPress(
             pShortcutHandled,
             pShortcutMessage.message,
             (int)pShortcutMessage.wParam,
             ComponentDispatcher.IsThreadModal,
-            new WindowInteropHelper(this).Handle,
+            new WindowInteropHelper(pShortcutWindow).Handle,
             GetForegroundWindow,
             PShortcutViewerMatch,
             PShortcutInputCheck,
@@ -34,7 +39,7 @@ public partial class PWindow
     }
 
     private bool? PShortcutViewerMatch(nint pForeground) =>
-        pStrip.PStripSelected?.PTabViewer?.PViewerSurfaceMatch(pForeground);
+        pShortcutStrip.PStripSelected?.PTabViewer?.PViewerSurfaceMatch(pForeground);
 
     private static bool PShortcutInputCheck() =>
         QWalk.QWalkParentCheck(Keyboard.FocusedElement as DependencyObject, PShortcutInputMatch);

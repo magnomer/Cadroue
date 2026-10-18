@@ -44,7 +44,7 @@ internal sealed class PSKeymap : Window
         PSKeymapButtonBuild();
         PSKeymapWindowApply(pOwner);
         Content = PSKeymapBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSKeymapPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PSKeymapPlacementKey);
         psKeymapGrabber = new PSGrabber(this);
         psKeymapGrabber.PSGrabberAttach();
         PSKeymapWindowAttach();
@@ -206,7 +206,7 @@ internal sealed class PSKeymap : Window
 
     private void PSKeymapCloseHandle(object? sender, EventArgs e)
     {
-        PSGrabber.PSGrabberPlacementSave(this, PSKeymapPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PSKeymapPlacementKey);
         psKeymapGrabber.PSGrabberDetach();
         PSKeymapWindowDetach();
     }

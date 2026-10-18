@@ -67,7 +67,7 @@ internal static class PRosterDetail
         lDetail.QRosterDetailMeters.ToList().ForEach(
             lMeter => pPanel.Children.Add(PRosterOverview.PRosterMeterBuild(lMeter)));
         lDetail.QRosterDetailBars.ToList().ForEach(lBar => pPanel.Children.Add(PRosterOverview.PRosterBarBuild(lBar)));
-        pPanel.Children.Add(PRosterOverview.PRosterComparisonBuild(lRoster, lDetail));
+        pPanel.Children.Add(PRosterComparison.PRosterComparisonBuild(lRoster, lDetail));
         pPanel.Children.Add(PRosterOverview.PRosterRuleBuild());
 
         pPanel.Children.Add(

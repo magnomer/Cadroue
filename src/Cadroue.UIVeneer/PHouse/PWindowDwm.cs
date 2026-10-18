@@ -1,10 +1,11 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Interop;
 
 namespace Cadroue.UIVeneer.PHouse;
 
-public partial class PWindow
+internal static class PWindowDwm
 {
     private const int PWindowMessageErase = 0x0014;
     private const int PWindowCornerPreference = 33;
@@ -15,32 +16,15 @@ public partial class PWindow
     private const int PWindowIconSmall = 0;
     private const int PWindowIconBig = 1;
 
-    protected override void OnSourceInitialized(EventArgs e)
+    public static void PWindowMessageAttach(Window pWindow)
     {
-        base.OnSourceInitialized(e);
-        PWindowMessageAttach();
-        PWindowDwmApply();
-    }
-
-    private void PWindowMessageAttach()
-    {
-        HwndSource? pWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
+        HwndSource? pWindowSource = HwndSource.FromHwnd(new WindowInteropHelper(pWindow).Handle);
         pWindowSource?.AddHook(PWindowMessageHook);
-        ComponentDispatcher.ThreadPreprocessMessage += PShortcutMessageHandle;
     }
 
-    protected override void OnContentRendered(EventArgs e)
+    public static void PWindowIconApply(Window pWindow)
     {
-        base.OnContentRendered(e);
-        PWindowIconApply();
-        Dispatcher.BeginInvoke(
-            System.Windows.Threading.DispatcherPriority.ApplicationIdle,
-            new Action(PWindowIconApply));
-    }
-
-    private void PWindowIconApply()
-    {
-        IntPtr pWindowHandle = new WindowInteropHelper(this).Handle;
+        IntPtr pWindowHandle = new WindowInteropHelper(pWindow).Handle;
         _ = ExtractIconEx(Environment.ProcessPath!, 0, out IntPtr pIconLarge, out IntPtr pIconSmall, 1);
         _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconSmall), pIconSmall);
         _ = SendMessage(pWindowHandle, PWindowMessageIcon, new IntPtr(PWindowIconBig), pIconLarge);
@@ -57,7 +41,12 @@ public partial class PWindow
     [DllImport("user32.dll")]
     private static extern IntPtr SendMessage(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam);
 
-    private IntPtr PWindowMessageHook(IntPtr windowHandle, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    private static IntPtr PWindowMessageHook(
+        IntPtr windowHandle,
+        int message,
+        IntPtr wParam,
+        IntPtr lParam,
+        ref bool handled)
     {
         if (message == PWindowMessageErase)
         {
@@ -68,9 +57,9 @@ public partial class PWindow
         return IntPtr.Zero;
     }
 
-    private void PWindowDwmApply()
+    public static void PWindowDwmApply(Window pWindow)
     {
-        IntPtr pWindowHandle = new WindowInteropHelper(this).Handle;
+        IntPtr pWindowHandle = new WindowInteropHelper(pWindow).Handle;
         int pWindowCornerPreference = PWindowCornerRound;
         _ = DwmSetWindowAttribute(
             pWindowHandle,

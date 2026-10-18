@@ -9,35 +9,13 @@ namespace Cadroue.UIVeneer.PBench;
 
 public sealed class PFlow : UserControl
 {
-    private static readonly IReadOnlyDictionary<bool, int> pFlowConfirmChoices = new Dictionary<bool, int>
-    {
-        [true] = 0,
-        [false] = -1,
-    };
-
-    private static readonly IReadOnlyDictionary<PSDecisionChoice, int> pFlowSelectChoices =
-        new Dictionary<PSDecisionChoice, int>
-        {
-            [PSDecisionChoice.PSDecisionPrimary] = 0,
-            [PSDecisionChoice.PSDecisionAlternate] = 1,
-            [PSDecisionChoice.PSDecisionDismiss] = -1,
-        };
-
-    private readonly IReadOnlyDictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>>
-        pFlowLosslesscutShows;
-
     private readonly PViewfinder pViewfinder;
     private readonly PMap pMap;
-    private readonly TextBlock pViewfinderLabelLeft = PReelLabelBuild();
-    private readonly TextBlock pViewfinderLabelRight = PReelLabelBuild();
-    private readonly TextBlock pMapLabelLeft = PReelLabelBuild();
-    private readonly TextBlock pMapLabelRight = PReelLabelBuild();
-    private readonly Grid pFlowViewfinderReel;
-    private readonly Grid pFlowMapReel;
+    private readonly PReel pFlowViewfinderReel;
+    private readonly PReel pFlowMapReel;
     private readonly PDivider pDivider;
     private readonly PFlowName pFlowName;
-    private readonly DispatcherTimer pKeyframeRequestTimer = new() { Interval = QFlowKeyframe.QFlowRequestDelay };
-    private readonly DispatcherTimer pKeyframeResumeTimer = new() { Interval = QFlowKeyframe.QFlowResumeDelay };
+    private readonly PFlowKeyframe pFlowKeyframe;
 
     public QFlow QFlow { get; }
 
@@ -45,15 +23,17 @@ public sealed class PFlow : UserControl
     {
         QFlow = lFlow;
         PFlowLookApply();
-        pFlowLosslesscutShows = PFlowLosslesscutCreate();
         pViewfinder = new PViewfinder(QFlow.QFlowViewfinder);
         pMap = new PMap(QFlow.QFlowMap);
         pDivider = new PDivider(this, QFlow.QFlowDivider);
         pFlowName = new PFlowName(QFlow, pViewfinder);
+        pFlowViewfinderReel = new PReel(pViewfinder);
+        pFlowMapReel = new PReel(pMap);
         QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
         PFlowAttach();
-        pFlowViewfinderReel = PReelGridBuild(pViewfinder, pViewfinderLabelLeft, pViewfinderLabelRight);
-        pFlowMapReel = PReelGridBuild(pMap, pMapLabelLeft, pMapLabelRight);
+        pFlowKeyframe = new PFlowKeyframe(QFlow.QFlowKeyframe, Dispatcher);
+        QFlow.QFlowWaveform.QFlowWaveformReady += PFlowWaveformHandle;
+        _ = new PFlowLosslesscut(QFlow.QFlowLosslesscut, this);
         Grid reelGrid = PFlowReelBuild();
         PFlowOrderApply();
         PFlowRootBuild(reelGrid);
@@ -66,28 +46,11 @@ public sealed class PFlow : UserControl
         MinHeight = QDivider.QDividerMinimum;
     }
 
-    private Dictionary<QFlowLosslesscutKind, Action<QFlowLosslesscutPrompt, Action<int>>> PFlowLosslesscutCreate() =>
-        new()
-        {
-            [QFlowLosslesscutKind.QFlowKindDecision] = PFlowConfirmShow,
-            [QFlowLosslesscutKind.QFlowKindChoice] = PFlowSelectShow,
-            [QFlowLosslesscutKind.QFlowKindNotice] = PFlowNoticeShow,
-            [QFlowLosslesscutKind.QFlowKindWarning] = PFlowWarningShow,
-        };
-
     private void PFlowAttach()
     {
         QFlow.QFlowAttachApplied += PFlowLabelsApply;
         QFlow.QFlowClearApplied += PFlowLabelsApply;
         QFlow.QFlowSpool.QFlowSpoolApplied += PFlowLabelsApply;
-        QFlow.QFlowKeyframe.QFlowTimerDeferred += PFlowTimerDefer;
-        QFlow.QFlowKeyframe.QFlowTimerResumed += PFlowTimerResume;
-        QFlow.QFlowKeyframe.QFlowTimerStopped += PFlowTimerReset;
-        QFlow.QFlowKeyframe.QFlowKeyframeReady += PFlowKeyframeHandle;
-        QFlow.QFlowWaveform.QFlowWaveformReady += PFlowWaveformHandle;
-        QFlow.QFlowLosslesscut.QFlowLosslesscutAsk += PFlowLosslesscutHandle;
-        pKeyframeRequestTimer.Tick += PFlowTimerHandle;
-        pKeyframeResumeTimer.Tick += PFlowTimerHandle;
     }
 
     private Grid PFlowReelBuild()
@@ -98,8 +61,8 @@ public sealed class PFlow : UserControl
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(4) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(49, GridUnitType.Star) });
         reelGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(8, GridUnitType.Star) });
-        reelGrid.Children.Add(pFlowMapReel);
-        reelGrid.Children.Add(pFlowViewfinderReel);
+        reelGrid.Children.Add(pFlowMapReel.PReelGrid);
+        reelGrid.Children.Add(pFlowViewfinderReel.PReelGrid);
         return reelGrid;
     }
 
@@ -129,42 +92,21 @@ public sealed class PFlow : UserControl
     public void PFlowClose()
     {
         QFlow.QFlowClose();
-        PFlowTimerReset();
-        PFlowTimerDetach();
+        pFlowKeyframe.PFlowKeyframeClose();
         pDivider.PDividerDetach();
         pFlowName.PFlowNameDetach();
     }
 
-    private void PFlowTimerDetach()
-    {
-        pKeyframeRequestTimer.Tick -= PFlowTimerHandle;
-        pKeyframeResumeTimer.Tick -= PFlowTimerHandle;
-    }
-
     public void PFlowOrderApply()
     {
-        Grid.SetRow(pFlowMapReel, QFlow.QFlowMapRow);
-        Grid.SetRow(pFlowViewfinderReel, QFlow.QFlowViewfinderRow);
+        Grid.SetRow(pFlowMapReel.PReelGrid, QFlow.QFlowMapRow);
+        Grid.SetRow(pFlowViewfinderReel.PReelGrid, QFlow.QFlowViewfinderRow);
     }
 
     public void PFlowPaletteApply()
     {
         QFlow.QFlowPaletteApply(QSection.QSectionCountRead());
         QFlow.QFlowSection.QFlowSectionRaise();
-    }
-
-    public static Geometry PFlowWaveformBuild(QFlowWaveformOutline lOutline)
-    {
-        var pFlowWaveformGeometry = new StreamGeometry();
-        using (StreamGeometryContext pFlowWaveformContext = pFlowWaveformGeometry.Open())
-        {
-            pFlowWaveformContext.BeginFigure(new Point(lOutline.QFlowOutlineX, lOutline.QFlowOutlineY), true, true);
-            lOutline.QFlowOutlinePoints.ToList().ForEach(lPoint =>
-                pFlowWaveformContext.LineTo(new Point(lPoint.QFlowPointX, lPoint.QFlowPointY), false, false));
-        }
-
-        pFlowWaveformGeometry.Freeze();
-        return pFlowWaveformGeometry;
     }
 
     protected override void OnMouseWheel(MouseWheelEventArgs e)
@@ -175,95 +117,10 @@ public sealed class PFlow : UserControl
 
     private void PFlowLabelsApply()
     {
-        pViewfinderLabelLeft.Text = QFlow.QFlowSpool.QFlowLabelOrigin;
-        pViewfinderLabelRight.Text = QFlow.QFlowSpool.QFlowLabelLimit;
-        pMapLabelLeft.Text = QFlow.QFlowSpool.QFlowLabelZero;
-        pMapLabelRight.Text = QFlow.QFlowSpool.QFlowLabelDuration;
+        pFlowViewfinderReel.PReelLabelsSet(QFlow.QFlowSpool.QFlowLabelOrigin, QFlow.QFlowSpool.QFlowLabelLimit);
+        pFlowMapReel.PReelLabelsSet(QFlow.QFlowSpool.QFlowLabelZero, QFlow.QFlowSpool.QFlowLabelDuration);
     }
-
-    private void PFlowTimerDefer()
-    {
-        pKeyframeRequestTimer.Stop();
-        pKeyframeRequestTimer.Start();
-    }
-
-    private void PFlowTimerResume(TimeSpan lDelay)
-    {
-        pKeyframeResumeTimer.Interval = lDelay;
-        pKeyframeResumeTimer.Start();
-    }
-
-    private void PFlowTimerReset()
-    {
-        pKeyframeRequestTimer.Stop();
-        pKeyframeResumeTimer.Stop();
-    }
-
-    private void PFlowTimerHandle(object? sender, EventArgs e) => QFlow.QFlowKeyframe.QFlowKeyframeTick();
-
-    private void PFlowKeyframeHandle() =>
-        Dispatcher.InvokeAsync(QFlow.QFlowKeyframe.QFlowKeyframeApply, DispatcherPriority.Background);
 
     private void PFlowWaveformHandle() =>
         Dispatcher.InvokeAsync(QFlow.QFlowWaveform.QFlowWaveformApply, DispatcherPriority.Background);
-
-    private void PFlowLosslesscutHandle(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
-        pFlowLosslesscutShows[lPrompt.QFlowPromptKind](lPrompt, lAnswer);
-
-    private void PFlowConfirmShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
-        lAnswer(pFlowConfirmChoices[PSDecision.PSDecisionConfirm(
-            Window.GetWindow(this),
-            lPrompt.QFlowPromptTitle,
-            lPrompt.QFlowPromptMessage,
-            lPrompt.QFlowPromptPrimary,
-            lPrompt.QFlowPromptDismiss)]);
-
-    private void PFlowSelectShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer) =>
-        lAnswer(pFlowSelectChoices[PSDecision.PSDecisionSelect(
-            Window.GetWindow(this),
-            lPrompt.QFlowPromptTitle,
-            lPrompt.QFlowPromptMessage,
-            lPrompt.QFlowPromptPrimary,
-            lPrompt.QFlowPromptAlternate,
-            lPrompt.QFlowPromptDismiss)]);
-
-    private void PFlowNoticeShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
-    {
-        PSAnnouncement.PSAnnouncementShow(Window.GetWindow(this), lPrompt.QFlowPromptTitle, lPrompt.QFlowPromptMessage);
-        lAnswer(0);
-    }
-
-    private void PFlowWarningShow(QFlowLosslesscutPrompt lPrompt, Action<int> lAnswer)
-    {
-        PSWarning.PSWarningShow(Window.GetWindow(this), lPrompt.QFlowPromptTitle, lPrompt.QFlowPromptMessage);
-        lAnswer(0);
-    }
-
-    private static Grid PReelGridBuild(FrameworkElement reelBody, TextBlock labelLeft, TextBlock labelRight)
-    {
-        const double labelWidth = 64;
-        labelLeft.HorizontalAlignment = HorizontalAlignment.Right;
-        labelLeft.VerticalAlignment = VerticalAlignment.Center;
-        labelLeft.Margin = new Thickness(0, 0, 6, 0);
-        labelRight.HorizontalAlignment = HorizontalAlignment.Left;
-        labelRight.VerticalAlignment = VerticalAlignment.Center;
-        labelRight.Margin = new Thickness(6, 0, 0, 0);
-        Grid reelGrid = new();
-        reelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
-        reelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        reelGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(labelWidth) });
-        Grid.SetColumn(labelLeft, 0);
-        Grid.SetColumn(reelBody, 1);
-        Grid.SetColumn(labelRight, 2);
-        reelGrid.Children.Add(labelLeft);
-        reelGrid.Children.Add(reelBody);
-        reelGrid.Children.Add(labelRight);
-        return reelGrid;
-    }
-
-    private static TextBlock PReelLabelBuild() => new()
-    {
-        FontSize = 12,
-        Foreground = new SolidColorBrush(Color.FromRgb(0x4A, 0x4A, 0x4A))
-    };
 }

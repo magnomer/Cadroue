@@ -1,14 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer.PCabin;
 
 internal static class PRosterOverview
 {
-    private const string PRosterOpenIcon = "/PAsset/PPanel/PRosterOpen.svg";
     private const double PRosterBarRadius = 4;
 
     public static TextBlock PRosterSectionBuild(string pSectionName) => new()
@@ -85,32 +82,6 @@ internal static class PRosterOverview
         pRow.Children.Add(pPercent);
         pRow.Children.Add(pBar);
         return pRow;
-    }
-
-    public static UIElement PRosterComparisonBuild(QRoster lRoster, QRosterDetail lDetail)
-    {
-        (StackPanel pSourceStack, StackPanel pOutputStack) = PRosterStacksBuild(lDetail.QRosterDetailCompares);
-        pSourceStack.Children.Insert(0, PRosterOpenBuild(lRoster, lDetail.QRosterDetailSource));
-        pOutputStack.Children.Insert(0, PRosterOpenBuild(lRoster, lDetail.QRosterDetailOutput));
-
-        var pRoot = new StackPanel { Margin = new Thickness(0, 10, 0, 0) };
-        Grid.SetIsSharedSizeScope(pRoot, true);
-        pRoot.Children.Add(PRosterGridBuild(pSourceStack, pOutputStack));
-        pRoot.Children.Add(PRosterSoundBuild(lDetail));
-        pRoot.Children.Add(PRosterDividerBuild());
-        pRoot.Children.Add(PRosterPathsBuild(lDetail.QRosterDetailSources, lDetail.QRosterDetailOutputs, 8));
-        return pRoot;
-    }
-
-    private static UIElement PRosterSoundBuild(QRosterDetail lDetail)
-    {
-        (StackPanel pSourceStack, StackPanel pOutputStack) = PRosterStacksBuild(lDetail.QRosterDetailSounds);
-        Grid pGrid = PRosterGridBuild(pSourceStack, pOutputStack);
-        pGrid.Margin = new Thickness(0, 8, 0, 0);
-        var pBlock = new StackPanel { Visibility = PLook.PLookVisible[lDetail.QRosterDetailSound] };
-        pBlock.Children.Add(PRosterDividerBuild());
-        pBlock.Children.Add(pGrid);
-        return pBlock;
     }
 
     public static (StackPanel, StackPanel) PRosterStacksBuild(IReadOnlyList<QRosterCompareRow> lRows)
@@ -190,36 +161,6 @@ internal static class PRosterOverview
         Background = PRosterTheme.PRosterLineBrush,
         Margin = new Thickness(0, 12, 0, 10)
     };
-
-    private static Button PRosterOpenBuild(QRoster lRoster, string pPath)
-    {
-        Button pButton = PRosterLinkBuild();
-        PRosterOpenAttach(pButton, lRoster, pPath);
-        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookPanel);
-        return pButton;
-    }
-
-    private static void PRosterOpenAttach(Button pButton, QRoster lRoster, string pPath) =>
-        pButton.Click += (_, _) => lRoster.QRosterPathOpen(pPath);
-
-    private static Button PRosterLinkBuild()
-    {
-        return new Button
-        {
-            Content = new Image
-            {
-                Width = 16,
-                Height = 16,
-                Source = QIcon.QIconRead(PRosterOpenIcon, PRosterTheme.PRosterTextBrush),
-                Stretch = Stretch.Uniform
-            },
-            Width = 20,
-            Height = PRosterTheme.PRosterRowHeight,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            Margin = new Thickness(0, 0, 0, 4),
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Roster.Explorer.Tooltip")
-        };
-    }
 
     private static TextBlock PRosterLineBuild(QRosterLine lLine) => new()
     {

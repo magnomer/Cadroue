@@ -1,6 +1,5 @@
 using System;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Threading;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
@@ -16,15 +15,19 @@ public partial class PWindow : Window
     private readonly PStrip pStrip;
     private readonly PRail pRail;
     private readonly QWindow lWindow;
-    private readonly QSash lSash;
+    private readonly PWindowDrop pWindowDrop;
+    private readonly PWindowResize pWindowResize;
+    private readonly PWindowShortcut pWindowShortcut;
     public PWindow(QWindow lWindowRoot)
     {
         InitializeComponent();
         PWindowLookApply();
         lWindow = lWindowRoot;
-        lSash = lWindow.QWindowPart.QWindowPartSash;
+        pWindowResize = new PWindowResize(this, lWindow.QWindowPart.QWindowPartSash);
         pStrip = new PStrip(lWindow.QWindowStrip);
         pRail = new PRail(pStrip);
+        pWindowDrop = new PWindowDrop(lWindow.QWindowPart.QWindowPartDrop);
+        pWindowShortcut = new PWindowShortcut(this, pStrip, lWindow.QWindowPart.QWindowPartShortcut);
         lWindow.QWindowRelay.QWindowDispatcherAttach(PWindowDispatch);
         pConsole.PConsoleAttach(lWindow.QWindowPart.QWindowPartConsole);
         PWindowConsoleAttach();
@@ -45,9 +48,26 @@ public partial class PWindow : Window
             SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth,
             SystemParameters.VirtualScreenHeight);
-        PDropHandlersAdd();
-        PResizeHandlersAdd();
+        pWindowDrop.PDropHandlersAdd(this);
+        pWindowResize.PResizeHandlersAdd();
         PWindowCloseAttach();
+    }
+
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        PWindowDwm.PWindowMessageAttach(this);
+        pWindowShortcut.PShortcutAttach();
+        PWindowDwm.PWindowDwmApply(this);
+    }
+
+    protected override void OnContentRendered(EventArgs e)
+    {
+        base.OnContentRendered(e);
+        PWindowDwm.PWindowIconApply(this);
+        Dispatcher.BeginInvoke(
+            DispatcherPriority.ApplicationIdle,
+            new Action(() => PWindowDwm.PWindowIconApply(this)));
     }
 
     private void PWindowLookApply()
@@ -87,9 +107,6 @@ public partial class PWindow : Window
     public static PStrip? PWindowStripRead() =>
         System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.PStrip;
 
-    public static PConsole? PWindowConsoleRead() =>
-        System.Windows.Application.Current.Windows.OfType<PWindow>().FirstOrDefault()?.pConsole;
-
     private void PWindowNoticesAttach()
     {
         lWindow.QWindowTabAdded += PWindowAddHandle;
@@ -121,10 +138,7 @@ public partial class PWindow : Window
             PWindowAskHandle,
             PWindowWarningHandle,
             (lTitle, lMessage) => PSWarning.PSWarningShow(this, lTitle, lMessage));
-        lSash.QSashCaptureStarted += PResizeCaptureStart;
-        lSash.QSashCaptureStopped += PResizeCaptureStop;
-        lSash.QSashActiveChanged += PResizeRenderApply;
-        lSash.QSashBoundsChanged += PResizeBoundsApply;
+        pWindowResize.PResizeSashAttach();
     }
 
     private bool PWindowDispatch(Func<bool> pBody) => Dispatcher.Invoke(pBody);
@@ -270,8 +284,8 @@ public partial class PWindow : Window
             new QSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));
         lWindow.QWindowClose();
         PWindowNoticesDetach();
-        PDropHandlersRemove();
-        PResizeHandlersRemove();
+        pWindowDrop.PDropHandlersRemove(this);
+        pWindowResize.PResizeHandlersRemove();
         lWindow.QWindowTabSet(null, null);
         pStrip.QStrip.QStripDeck.QDeckAllClose();
         PWindowCloseDetach();
@@ -283,6 +297,6 @@ public partial class PWindow : Window
         QWarningNotice.QWarningRaised -= PWindowWarningHandle;
         pStrip.QStrip.QStripSelectChanged -= PWindowTabHandle;
         pToolbar.PToolbarOptionsApplied -= lWindow.QWindowOptionsApply;
-        ComponentDispatcher.ThreadPreprocessMessage -= PShortcutMessageHandle;
+        pWindowShortcut.PShortcutDetach();
     }
 }

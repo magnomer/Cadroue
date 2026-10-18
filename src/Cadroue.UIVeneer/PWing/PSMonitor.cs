@@ -51,7 +51,7 @@ internal sealed class PSMonitor : Window
         psMonitorTimer = PSMonitorTimerCreate();
         psMonitorTransport = new PSMonitorTransport(pSource);
         Content = PSMonitorBuild();
-        PSGrabber.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PSMonitorPlacementKey);
         psMonitorGrabber = new PSGrabber(this);
         psMonitorGrabber.PSGrabberAttach();
         PSMonitorHandlersAttach();
@@ -267,7 +267,7 @@ internal sealed class PSMonitor : Window
         PSMonitorHandlersDetach();
         psMonitorSource.QSMonitorViewerDetach();
         psMonitorTimer.Stop();
-        PSGrabber.PSGrabberPlacementSave(this, PSMonitorPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PSMonitorPlacementKey);
         psMonitorGrabber.PSGrabberDetach();
     }
 

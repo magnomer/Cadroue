@@ -31,7 +31,7 @@ internal sealed class PSEncoderOutput
         lsEncoderSuffix = lsSuffix;
         psOutputContainerHandler = pContainerHandler;
         psEncoderName = new PSEncoderName(pToken, lsDraft.LPresetDisplay, pWindow);
-        psOutputContainerCombo = PSField.PSListBuild(lsDraft.LPresetContainer,
+        psOutputContainerCombo = PSList.PSListBuild(lsDraft.LPresetContainer,
             new LLocalizationChoice("Same as source", "Encoder.Location.Source"),
             new LLocalizationChoice("MP4", "Encoder.Container.MP4"),
             new LLocalizationChoice("Matroska", "Encoder.Container.Matroska"),

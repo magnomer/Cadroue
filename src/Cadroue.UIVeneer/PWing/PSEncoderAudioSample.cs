@@ -51,7 +51,7 @@ internal sealed class PSEncoderAudioSample
         psAudioSampleReadout = PSEntry.PSEntryBuild(string.Empty, 96);
         UIElement pNotice = PSNotice.PSNoticeBuild(
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Audio.Notice.SampleSource"));
-        UIElement pRow = PSFader.PSFaderDetentBuild(
+        UIElement pRow = PSFaderDetent.PSFaderDetentBuild(
             pTicks, pDiscrete, pMaximum,
             QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source"),
             pStored, psAudioSampleReadout, pNotice);

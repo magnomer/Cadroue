@@ -1,11 +1,8 @@
-using System.Collections.ObjectModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Cadroue.Infrastructure;
 using Cadroue.UIDeportment;
 using Cadroue.UIVeneer.PHouse;
 
@@ -17,11 +14,9 @@ public sealed class PLogWindow : Window
     private const int PLogFlushMilliseconds = 200;
     private const string PLogOpenIcon = "/PAsset/PPanel/POpen.svg";
 
-    private readonly ObservableCollection<PLogRow> pLogRowsShown = new();
-    private readonly ListBox pLogFeed;
-    private readonly ComboBox pLogFileCombo;
-    private readonly Control pLogCategoryPicker;
-    private readonly CheckBox pLogVerboseBox;
+    private readonly PLogFolder pLogFolder;
+    private readonly PLogFilter pLogFilter;
+    private readonly PLogFeed pLogFeed;
     private readonly DispatcherTimer pLogFlushTimer;
     private readonly PSGrabber pLogGrabber;
     private readonly Window pLogOwner;
@@ -32,10 +27,9 @@ public sealed class PLogWindow : Window
     {
         QLog = lLog;
         pLogOwner = pOwner;
-        pLogFileCombo = PLogComboBuild(320);
-        pLogCategoryPicker = PLogCategoryBuild();
-        pLogVerboseBox = PLogVerboseBuild();
-        pLogFeed = PLogFeedBuild();
+        pLogFolder = new PLogFolder(lLog);
+        pLogFilter = new PLogFilter(lLog);
+        pLogFeed = new PLogFeed(lLog);
 
         PLogLookApply();
         QScrollbar.QScrollbarAttach(this);
@@ -48,7 +42,7 @@ public sealed class PLogWindow : Window
         PLogTimerAttach();
         pLogFlushTimer.Start();
 
-        PSGrabber.PSGrabberPlacementRestore(this, PLogPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementRestore(this, PLogPlacementKey);
         pLogGrabber = new PSGrabber(this);
         pLogGrabber.PSGrabberAttach();
         pLogOwner.Closed += PLogOwnerHandle;
@@ -69,15 +63,10 @@ public sealed class PLogWindow : Window
 
     private void PLogAttach()
     {
-        QLog.QLogFolder.QLogFilesChanged += PLogFilesApply;
-        QLog.QLogFeed.QLogRowsRebuilt += PLogRowsReset;
-        QLog.QLogFeed.QLogRowAppended += PLogRowAppend;
-        QLog.QLogFeed.QLogRowsRemoved += PLogRowsRemove;
-        QLog.QLogScrolled += PLogFeedScroll;
+        pLogFolder.PLogFolderAttach();
+        pLogFeed.PLogRowsAttach();
         QLog.QLogErrorShown += PLogErrorShow;
         QLog.QLogCopied += PLogTextCopy;
-        pLogFileCombo.SelectionChanged += PLogFileHandle;
-        pLogFileCombo.DropDownOpened += PLogFilesHandle;
     }
 
     private static DispatcherTimer PLogTimerCreate() => new(DispatcherPriority.Background)
@@ -93,8 +82,7 @@ public sealed class PLogWindow : Window
 
     private void PLogDetach()
     {
-        pLogFileCombo.SelectionChanged -= PLogFileHandle;
-        pLogFileCombo.DropDownOpened -= PLogFilesHandle;
+        pLogFolder.PLogFolderDetach();
         Closed -= PLogCloseHandle;
         pLogOwner.Closed -= PLogOwnerHandle;
     }
@@ -124,54 +112,7 @@ public sealed class PLogWindow : Window
 
     private void PLogOwnerHandle(object? sender, EventArgs e) => Close();
 
-    private void PLogFileHandle(object sender, SelectionChangedEventArgs e) =>
-        QLog.QLogFileSelect(pLogFileCombo.SelectedIndex);
-
-    private void PLogFilesHandle(object? sender, EventArgs e) => QLog.QLogFilesUpdate();
-
     private void PLogFlushHandle(object? sender, EventArgs e) => QLog.QLogTick();
-
-    private void PLogFilesApply()
-    {
-        pLogFileCombo.Items.Clear();
-        QLog.QLogFolder.QLogFiles.ToList().ForEach(PLogItemAdd);
-        pLogFileCombo.SelectedIndex = QLog.QLogFolder.QLogFileIndex;
-    }
-
-    private void PLogItemAdd(QLogFile lFile) =>
-        pLogFileCombo.Items.Add(new ComboBoxItem { Content = lFile.QLogFileLabel, Tag = lFile.QLogFilePath });
-
-    private void PLogRowsReset()
-    {
-        pLogRowsShown.Clear();
-        QLog.QLogFeed.QLogRowsShown.ToList().ForEach(PLogRowAppend);
-    }
-
-    private void PLogRowAppend(QLogRow lRow) => pLogRowsShown.Add(new PLogRow(lRow));
-
-    private void PLogRowsRemove(int pCount) => Enumerable.Range(0, pCount).ToList().ForEach(PLogRowRemove);
-
-    private void PLogRowRemove(int pIndex) => pLogRowsShown.RemoveAt(0);
-
-    private void PLogFeedScroll() => pLogFeed.ScrollIntoView(pLogRowsShown.LastOrDefault());
-
-    private void PLogScrollHandle(object sender, ScrollChangedEventArgs e)
-    {
-        ScrollViewer? pViewer = e.OriginalSource as ScrollViewer;
-        QLog.QLogScrollHandle(
-            ReferenceEquals(pViewer?.TemplatedParent, pLogFeed),
-            e.ExtentHeightChange,
-            pViewer?.ScrollableHeight,
-            pViewer?.VerticalOffset,
-            PLogRow.PLogRowHeight);
-    }
-
-    private void PLogDetailToggle(object sender, RoutedEventArgs e)
-    {
-        PLogRow? pRow = QSender.QSenderItemRead<PLogRow>(e.OriginalSource);
-        e.Handled = QLog.QLogExpandToggle(pRow?.QLogRow);
-        pRow?.PLogRowUpdate();
-    }
 
     private void PLogTextCopy(string pText)
     {
@@ -194,7 +135,7 @@ public sealed class PLogWindow : Window
     {
         pLogFlushTimer.Stop();
         PLogTimerDetach();
-        PSGrabber.PSGrabberPlacementSave(this, PLogPlacementKey);
+        PSGrabberPlacement.PSGrabberPlacementSave(this, PLogPlacementKey);
         pLogGrabber.PSGrabberDetach();
         QLog.QLogDetach();
         PLogDetach();
@@ -211,7 +152,7 @@ public sealed class PLogWindow : Window
         DockPanel.SetDock(pLogFileRow, Dock.Top);
         pLogBody.Children.Add(pLogFileRow);
 
-        DockPanel pLogFilterRow = PLogFilterBuild();
+        DockPanel pLogFilterRow = pLogFilter.PLogFilterBuild();
         DockPanel.SetDock(pLogFilterRow, Dock.Top);
         pLogBody.Children.Add(pLogFilterRow);
 
@@ -221,7 +162,7 @@ public sealed class PLogWindow : Window
             BorderThickness = new Thickness(1),
             CornerRadius = new CornerRadius(8),
             Margin = new Thickness(18, 0, 18, 18),
-            Child = pLogFeed
+            Child = pLogFeed.PLogFeedList
         });
 
         return PSDialog.PSDialogBuild(
@@ -243,6 +184,7 @@ public sealed class PLogWindow : Window
             QLocalizationCatalog.QLocalizationTextRead("Log.Button.Copy"),
             (_, _) => QLog.QLogTextCopy());
 
+        ComboBox pLogFileCombo = pLogFolder.PLogFolderCombo;
         DockPanel.SetDock(pLogFileCombo, Dock.Left);
         DockPanel.SetDock(pLogOpenButton, Dock.Left);
         DockPanel.SetDock(pLogCopyButton, Dock.Right);
@@ -250,96 +192,6 @@ public sealed class PLogWindow : Window
         pLogFileRow.Children.Add(pLogOpenButton);
         pLogFileRow.Children.Add(pLogCopyButton);
         return pLogFileRow;
-    }
-
-    private DockPanel PLogFilterBuild()
-    {
-        var pLogFilterRow = new DockPanel { Margin = new Thickness(18, 9, 18, 12), LastChildFill = false };
-        DockPanel.SetDock(pLogCategoryPicker, Dock.Left);
-        DockPanel.SetDock(pLogVerboseBox, Dock.Right);
-        pLogFilterRow.Children.Add(pLogCategoryPicker);
-        pLogFilterRow.Children.Add(pLogVerboseBox);
-        return pLogFilterRow;
-    }
-
-    private Control PLogCategoryBuild()
-    {
-        var pLogPicker = new Control
-        {
-            Width = 200,
-            Height = PSField.PSFieldControlHeight,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
-        };
-        QPickerControl.QPickerControlAttach(
-            pLogPicker,
-            QPicker.QPickerItemsCreate(QLog.QLogCategoriesRead(), Array.Empty<string>()),
-            QLocalizationCatalog.QLocalizationTextRead("Log.Category.All"),
-            QLog.QLogCategorySet);
-        return pLogPicker;
-    }
-
-    private ListBox PLogFeedBuild()
-    {
-        var pLogFeedList = new ListBox
-        {
-            ItemsSource = pLogRowsShown,
-            BorderThickness = new Thickness(0),
-            Background = Brushes.White,
-            HorizontalContentAlignment = HorizontalAlignment.Stretch,
-            Margin = new Thickness(6)
-        };
-
-        PLogRow.PLogRowApply(pLogFeedList);
-        ScrollViewer.SetHorizontalScrollBarVisibility(pLogFeedList, ScrollBarVisibility.Disabled);
-        VirtualizingPanel.SetIsVirtualizing(pLogFeedList, true);
-        VirtualizingPanel.SetVirtualizationMode(pLogFeedList, VirtualizationMode.Recycling);
-        QScrollbar.QScrollbarAttach(pLogFeedList);
-        PLogFeedAttach(pLogFeedList);
-        return pLogFeedList;
-    }
-
-    private void PLogFeedAttach(ListBox pLogFeedList)
-    {
-        pLogFeedList.AddHandler(
-            ScrollViewer.ScrollChangedEvent,
-            new ScrollChangedEventHandler(PLogScrollHandle));
-        pLogFeedList.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(PLogDetailToggle));
-    }
-
-    private CheckBox PLogVerboseBuild()
-    {
-        var pLogVerbose = new CheckBox
-        {
-            Content = QLocalizationCatalog.QLocalizationTextRead("Log.Verbose.Label"),
-            VerticalAlignment = VerticalAlignment.Center,
-            IsChecked = LTrace.LTraceVerbose,
-            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Log.Verbose.Tooltip")
-        };
-
-        QInteractionClick.QInteractionClickAttach(pLogVerbose);
-        QCheckbox.QCheckboxAttach(pLogVerbose);
-        PLogVerboseAttach(pLogVerbose);
-        return pLogVerbose;
-    }
-
-    private void PLogVerboseAttach(CheckBox pLogVerbose)
-    {
-        pLogVerbose.Checked += (_, _) => QLog.QLogVerboseSet(true);
-        pLogVerbose.Unchecked += (_, _) => QLog.QLogVerboseSet(false);
-    }
-
-    private static ComboBox PLogComboBuild(double pLogWidth)
-    {
-        var pLogCombo = new ComboBox
-        {
-            Width = pLogWidth,
-            Height = PSField.PSFieldControlHeight,
-            VerticalAlignment = VerticalAlignment.Center,
-            Margin = new Thickness(0, 0, 8, 0)
-        };
-        QDropdown.QDropdownAttach(pLogCombo);
-        return pLogCombo;
     }
 
     private static Button PLogButtonBuild(string pLogText, RoutedEventHandler pLogClick)

@@ -4,11 +4,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
-internal static partial class PSFader
+internal static class PSFaderDetent
 {
     internal static UIElement PSFaderDetentBuild(
         IReadOnlyList<int> pRates,
@@ -23,12 +22,12 @@ internal static partial class PSFader
         double pStart = PSFaderHzParse(pValue, pRates, pSnap);
         DoubleCollection pTicks = PSFaderTicksCreate(pRates);
         Slider pSlider = PSFaderRateBuild(pMax, pTicks, pSnap, Math.Min(pStart, pMax));
-        PSFaderEditApply(pReadout, pSnap);
-        PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pStart, pZeroLabel));
-        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pStart));
+        PSFader.PSFaderEditApply(pReadout, pSnap);
+        PSFader.PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pStart, pZeroLabel));
+        PSFader.PSFaderNoticeSet(pNotice, PSFader.PSFaderNoticeResolve(pStart));
         var pSync = new StrongBox<bool>(false);
         PSFaderDetentAttach(pSlider, pReadout, pSync, pRates, pSnap, pMax, pZeroLabel, pNotice);
-        return PSFaderRowBuild(pSlider, pReadout);
+        return PSFader.PSFaderRowBuild(pSlider, pReadout);
     }
 
     private static double PSFaderHzParse(string pValue, IReadOnlyList<int> pRates, bool pSnap) =>
@@ -60,7 +59,7 @@ internal static partial class PSFader
             TickPlacement = System.Windows.Controls.Primitives.TickPlacement.BottomRight,
             IsSnapToTickEnabled = pSnap,
             Value = pPosition,
-            Width = PSFaderWidth,
+            Width = PSFader.PSFaderWidth,
             VerticalAlignment = VerticalAlignment.Center
         };
         QSlider.QSliderAttach(pSlider);
@@ -79,7 +78,7 @@ internal static partial class PSFader
         UIElement? pNotice)
     {
         pSlider.ValueChanged += (_, _) => PSFaderDetentHandle(pSlider, pReadout, pSync, pZeroLabel, pNotice);
-        pReadout.KeyDown += (_, pEvent) => PSFaderReturnHandle(
+        pReadout.KeyDown += (_, pEvent) => PSFader.PSFaderReturnHandle(
             pEvent,
             () => PSFaderDetentCommit(pSlider, pReadout, pSync, pRates, pSnap, pMax, pZeroLabel, pNotice));
         pReadout.LostKeyboardFocus += (_, _) =>
@@ -95,10 +94,10 @@ internal static partial class PSFader
     {
         if (!pSync.Value)
         {
-            PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pSlider.Value, pZeroLabel));
+            PSFader.PSFaderReadoutSet(pReadout, PSFaderDetentFormat(pSlider.Value, pZeroLabel));
         }
 
-        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pSlider.Value));
+        PSFader.PSFaderNoticeSet(pNotice, PSFader.PSFaderNoticeResolve(pSlider.Value));
     }
 
     private static void PSFaderDetentCommit(
@@ -112,10 +111,11 @@ internal static partial class PSFader
         UIElement? pNotice)
     {
         double pResolved = PSFaderDetentParse(pReadout.Text.Trim(), pZeroLabel, pSlider.Value, pRates, pSnap);
-        PSFaderSyncSet(pSync, true);
-        PSFaderPairSet(pSlider, pReadout, Math.Min(pResolved, pMax), PSFaderDetentFormat(pResolved, pZeroLabel));
-        PSFaderSyncSet(pSync, false);
-        PSFaderNoticeSet(pNotice, PSFaderNoticeResolve(pResolved));
+        PSFader.PSFaderSyncSet(pSync, true);
+        PSFader.PSFaderPairSet(
+            pSlider, pReadout, Math.Min(pResolved, pMax), PSFaderDetentFormat(pResolved, pZeroLabel));
+        PSFader.PSFaderSyncSet(pSync, false);
+        PSFader.PSFaderNoticeSet(pNotice, PSFader.PSFaderNoticeResolve(pResolved));
     }
 
     private static double PSFaderDetentParse(

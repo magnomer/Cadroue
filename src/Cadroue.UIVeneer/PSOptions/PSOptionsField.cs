@@ -5,9 +5,9 @@ using Cadroue.UIVeneer.PHouse;
 
 namespace Cadroue.UIVeneer;
 
-internal sealed partial class PSOptions
+internal static class PSOptionsField
 {
-    private static CheckBox PSOptionsCheckBuild(string pLabel, bool pChecked)
+    internal static CheckBox PSOptionsCheckBuild(string pLabel, bool pChecked)
     {
         var pCheck = new CheckBox
         {
@@ -20,7 +20,7 @@ internal sealed partial class PSOptions
         return pCheck;
     }
 
-    private static Slider PSOptionsSliderBuild(double pValue, double pMinimum, double pMaximum)
+    internal static Slider PSOptionsSliderBuild(double pValue, double pMinimum, double pMaximum)
     {
         double pClamped = PSOptionsSliderClamp(pValue, pMinimum, pMaximum);
         return PSOptionsSliderCreate(pClamped, pMinimum, pMaximum);
@@ -42,7 +42,7 @@ internal sealed partial class PSOptions
         return pSlider;
     }
 
-    private static UIElement PSOptionsFieldBuild(string pLabel, Slider pSlider, string pUnit)
+    internal static UIElement PSOptionsFieldBuild(string pLabel, Slider pSlider, string pUnit)
     {
         TextBlock pValueText = PSOptionsValueBuild();
         PSOptionsValueUpdate(pValueText, pSlider, pUnit);
@@ -82,10 +82,21 @@ internal sealed partial class PSOptions
 
     private static string PSOptionsNumberFormat(double pValue) => $"{Math.Round(pValue):0}";
 
-    private static int PSOptionsNumberNormalize(double pValue) => (int)Math.Round(pValue);
+    internal static int PSOptionsNumberNormalize(double pValue) => (int)Math.Round(pValue);
 
-    private static bool PSOptionsCheckRead(CheckBox pCheck) => pCheck.IsChecked == true;
+    internal static bool PSOptionsCheckRead(CheckBox pCheck) => pCheck.IsChecked == true;
 
-    private static bool PSOptionsModeCheck(Border pMode, string pKey) =>
-        string.Equals(PSField.PSModeTextRead(pMode), pKey, StringComparison.Ordinal);
+    internal static bool PSOptionsModeCheck(Border pMode, string pKey) =>
+        string.Equals(PSMode.PSModeTextRead(pMode), pKey, StringComparison.Ordinal);
+
+    internal static StackPanel PSSystemRowBuild(Button pButton)
+    {
+        var pRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        pRow.Children.Add(pButton);
+        return pRow;
+    }
 }

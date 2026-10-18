@@ -12,11 +12,7 @@ public sealed class PAudioTab : PTabSurface
     private readonly PList pList;
     private readonly PProcessing pProcessing;
     private readonly PInspector pInspector;
-    private readonly System.Windows.Controls.Grid pTabGrid;
-    private readonly System.Windows.Threading.DispatcherTimer pAudioViewerTimer = new()
-    {
-        Interval = TimeSpan.FromMilliseconds(150)
-    };
+    private readonly PDebounce pAudioViewerTimer;
 
     public PAudioTab(QWorkspace lWorkspace, LSceneTabEntry? lPreferenceTabLayout = null)
     {
@@ -24,6 +20,7 @@ public sealed class PAudioTab : PTabSurface
         pViewer = new PViewer(lWorkspace.QWorkspaceViewer!);
         pList = new PList(lWorkspace.QWorkspaceList!);
         QAudioTab = lWorkspace.QWorkspaceMode.QAudioTabCreate();
+        pAudioViewerTimer = new PDebounce(TimeSpan.FromMilliseconds(150), () => QAudioTab.QAudioViewerApply());
         pProcessing = new PProcessing(QAudioTab.QAudioProcessing);
         pInspector = new PInspector(QAudioTab.QAudioInspector);
         QAudioProcessing.QAudioRows.ToList().ForEach(pProcessing.PProcessingRowAdd);
@@ -36,15 +33,14 @@ public sealed class PAudioTab : PTabSurface
         PAudioEventsAttach();
 
         var pExport = new PExport(lWorkspace.QWorkspaceExport, lWorkspace.QWorkspacePresetOwner);
-        PTabLockAttach(pList, pProcessing, pInspector, pExport);
-        pTabGrid = PTabGridBuild(
+        PTabLock.PTabLockAttach(pList, pProcessing, pInspector, pExport);
+        Content = PTabGridBuild(
             lWorkspace.QWorkspaceMode,
             new System.Windows.UIElement[] { pList, pProcessing, pInspector, pViewer, pExport },
             new PCompass(pFlow, pViewer, lWorkspace.QWorkspaceCompass!),
             pAction,
             pFlow,
             lPreferenceTabLayout);
-        Content = pTabGrid;
         QAudioTab.QAudioLayoutApply(lPreferenceTabLayout);
     }
 
@@ -58,7 +54,7 @@ public sealed class PAudioTab : PTabSurface
 
     public override void PTabClose()
     {
-        pAudioViewerTimer.Stop();
+        pAudioViewerTimer.PDebounceStop();
         base.PTabClose();
         QAudioTab.QAudioClose();
     }
@@ -76,22 +72,9 @@ public sealed class PAudioTab : PTabSurface
     {
         QAudioTab.QAudioPresetMissing += PExportNotice.PExportMissingShow;
         QAudioTab.QAudioPresetIncompatible += PExportNotice.PExportIncompatibleShow;
-        QAudioTab.QAudioViewerDeferred += PAudioViewerDefer;
-        pAudioViewerTimer.Tick += PAudioViewerTick;
+        QAudioTab.QAudioViewerDeferred += pAudioViewerTimer.PDebounceDefer;
     }
 
     private void PAudioMonitorShow() =>
         PSMonitor.PSMonitorShow(System.Windows.Window.GetWindow(this), QAudioTab.QAudioMonitor, pFlow, pViewer);
-
-    private void PAudioViewerDefer()
-    {
-        pAudioViewerTimer.Stop();
-        pAudioViewerTimer.Start();
-    }
-
-    private void PAudioViewerTick(object? pSender, EventArgs pEvent)
-    {
-        pAudioViewerTimer.Stop();
-        QAudioTab.QAudioViewerApply();
-    }
 }
