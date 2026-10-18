@@ -26,11 +26,11 @@ public sealed partial class PExport
     private (bool pPresetNative, bool pPresetSelected, bool pPresetModified, bool pPresetEditing,
         bool pPresetUnsupported) PExportFlagResolve(string lPresetName, LPreset lWorking)
     {
-        bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
+        bool pPresetNative = LPresetTable.LPresetNativeCheck(lPresetName);
         bool pPresetSelected = QExport.QExportSelectedCheck(lPresetName);
         bool pPresetModified = !pPresetNative
             && pPresetSelected
-            && !LPreset.LPresetMatch(lPresetName, lWorking);
+            && !LPresetTable.LPresetMatch(lPresetName, lWorking);
         bool pPresetEditing = QExport.QExportEditingCheck(lPresetName);
         bool pPresetUnsupported = !QExport.QExportSupportCheck(lPresetName, lWorking);
         return (pPresetNative, pPresetSelected, pPresetModified, pPresetEditing, pPresetUnsupported);

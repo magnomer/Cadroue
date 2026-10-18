@@ -14,8 +14,4 @@ public interface LClinicPort
         bool lSeparate,
         bool lFixed,
         bool lPersistent);
-
-    (string LClinicSource, string LClinicKind, bool LClinicScanning) LClinicResultRead();
-
-    string LClinicResultFormat(IReadOnlyList<string> lWording);
 }

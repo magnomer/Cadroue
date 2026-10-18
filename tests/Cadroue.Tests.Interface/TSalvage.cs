@@ -24,12 +24,12 @@ internal static class TSalvage
     internal static LWorkFix TSalvageDefaultCreate() => LWorkFix.LWorkFixCreate();
 
     internal static LWorkFix TSalvagePersistMatch(LWorkFix plan) =>
-        LFix.LFixPersistentRead(
-            LFix.LFixPersistentCreate(plan), plan.LWorkFixSalvage.LWorkSalvagePersistent);
+        LFixSidecar.LFixPersistentRead(
+            LFixSidecar.LFixPersistentCreate(plan), plan.LWorkFixSalvage.LWorkSalvagePersistent);
 
     internal static LWorkFix TSalvagePersistResolve(LWorkFix plan) =>
-        LFix.LFixPersistentResolve(plan);
+        LFixPlan.LFixPersistentResolve(plan);
 
     internal static LWorkFix TSalvagePlanResolve(LWorkFix saved, LWorkFix persistent) =>
-        LFix.LFixPlanResolve(saved, persistent);
+        LFixPlan.LFixPlanResolve(saved, persistent);
 }

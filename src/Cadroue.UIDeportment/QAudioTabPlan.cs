@@ -40,12 +40,13 @@ public sealed class QAudioTabPlan
         }
 
         LWorkAudio lPlan = QAudioPlanRead();
-        if (!lPlan.LWorkAudioActive && LAudio.LAudioPlanRead(lSourcePath, LLibrarian.LLibrarianAudioLoad) is null)
+        if (!lPlan.LWorkAudioActive
+            && LAudioSidecar.LAudioSidecarRead(lSourcePath, LLibrarian.LLibrarianAudioLoad) is null)
         {
             return;
         }
 
-        if (LAudio.LAudioPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianAudioSave))
+        if (LAudioSidecar.LAudioSidecarSave(lSourcePath, lPlan, LLibrarian.LLibrarianAudioSave))
         {
             lInspector.QInspectorFailureSet(null);
         }
@@ -71,10 +72,10 @@ public sealed class QAudioTabPlan
         lInspector.QInspectorSaveSuspend();
         try
         {
-            LWorkAudio? lSaved = LAudio.LAudioPlanRead(lSourcePath, LLibrarian.LLibrarianAudioLoad);
+            LWorkAudio? lSaved = LAudioSidecar.LAudioSidecarRead(lSourcePath, LLibrarian.LLibrarianAudioLoad);
             LWorkAudio? lPersistent = QAudioPersistentRead(lSections);
             (lSaved, lAdopted) = QAudioSavedResolve(lSaved, lPersistent, lOwnerFirst);
-            LWorkAudio lResolved = LAudio.LAudioPlanResolve(
+            LWorkAudio lResolved = LAudioPlan.LAudioPlanResolve(
                 lSaved,
                 lPersistent,
                 lInspector.QInspectorSkip.QSkipPersistent,

@@ -156,7 +156,7 @@ internal sealed partial class LJob
             else
             {
                 string pTail = LJobTailRead(pJobError);
-                LAutopsyResult pAutopsy = LAutopsy.LAutopsyResolve(pExitCode, pTail);
+                LAutopsyResult pAutopsy = LAutopsy.LAutopsyResolve(pExitCode);
                 string pSymbol = pAutopsy.LAutopsyResultSymbol is { Length: > 0 } pAutopsySymbol
                     ? $" {pAutopsySymbol}"
                     : string.Empty;

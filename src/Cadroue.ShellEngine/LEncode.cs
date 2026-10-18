@@ -36,7 +36,7 @@ public static partial class LEncode
         if (lWorkItem.LWorkKind == LWorkKind.LWorkKindFix)
         {
             IReadOnlyList<LDossier> lFixRepairable =
-                LFix.LFixRepairResolve(lWorkItem.LWorkDossiers, lWorkItem.LWorkFixPlan);
+                LFixPlan.LFixRepairResolve(lWorkItem.LWorkDossiers, lWorkItem.LWorkFixPlan);
             return LEncodeFixBuild(lWorkItem, lFixRepairable, true);
         }
 

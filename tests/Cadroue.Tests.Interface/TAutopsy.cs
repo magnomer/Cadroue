@@ -13,7 +13,7 @@ internal readonly record struct TAutopsyResult(
 internal static class TAutopsy
 {
     internal static TAutopsyResult TAutopsyResolve(int exitCode) =>
-        TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode, string.Empty));
+        TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode));
 
     internal static TAutopsyResult TAutopsyProseResolve(
         int exitCode, IReadOnlyDictionary<string, string> prose)
@@ -22,7 +22,7 @@ internal static class TAutopsy
         try
         {
             LAutopsy.LAutopsyProse = (string key, out string value) => prose.TryGetValue(key, out value!);
-            return TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode, string.Empty));
+            return TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode));
         }
         finally
         {
@@ -36,7 +36,7 @@ internal static class TAutopsy
         try
         {
             LAutopsy.LAutopsyProse = null;
-            return TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode, string.Empty));
+            return TAutopsyResultCreate(LAutopsy.LAutopsyResolve(exitCode));
         }
         finally
         {

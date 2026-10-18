@@ -35,7 +35,7 @@ internal static partial class TInterface
         tab.QStripTabWorkspace.QWorkspacePresetAccept(preset);
         tab.QStripTabWorkspace.QWorkspaceAttach(() => new LSceneTabEntry());
     }
-    internal static LPreset TPresetInitialCreate(string key) => LPreset.LPresetInitialCreate(key);
+    internal static LPreset TPresetInitialCreate(string key) => LPresetTable.LPresetInitialCreate(key);
 
     internal static QWindowDrag TWindowDragCreate(
         string[]? paths, bool group, string? source, bool copy, object? data) =>

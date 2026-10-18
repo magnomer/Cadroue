@@ -18,10 +18,6 @@ public sealed class LHistory
 
     public bool LHistorySuspended => lHistorySuspendDepth > 0;
 
-    public bool LHistoryUndoReady => lHistoryPast.Count > 0;
-
-    public bool LHistoryRedoReady => lHistoryFuture.Count > 0;
-
     public void LHistoryReset(LHistoryEntry lHistoryEntry)
     {
         lHistoryPast.Clear();

@@ -57,7 +57,7 @@ public sealed partial class PExport
     private UIElement PExportNameBuild(string lPresetName, bool pPresetModified, bool pPresetUnsupported)
     {
         TextBlock pNameText = PExportTextBuild(lPresetName, pPresetModified, pPresetUnsupported);
-        if (!LPreset.LPresetNativeCheck(lPresetName))
+        if (!LPresetTable.LPresetNativeCheck(lPresetName))
         {
             return pNameText;
         }
@@ -85,8 +85,8 @@ public sealed partial class PExport
     private static string PExportTitleFormat(string lPresetName, bool pPresetModified, bool pPresetUnsupported) =>
         PExportMarkRead(
             pPresetModified
-                ? $"{LPreset.LPresetDisplayRead(lPresetName)} (Modified)"
-                : LPreset.LPresetDisplayRead(lPresetName),
+                ? $"{LPresetNaming.LPresetDisplayRead(lPresetName)} (Modified)"
+                : LPresetNaming.LPresetDisplayRead(lPresetName),
             pPresetUnsupported);
 
     private static FontStyle PExportStyleResolve(bool pPresetModified) =>

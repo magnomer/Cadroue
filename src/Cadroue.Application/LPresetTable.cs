@@ -1,10 +1,11 @@
 using Cadroue.Core;
 using System.Collections.ObjectModel;
-using System.IO;
 
 namespace Cadroue.Application;
 
-public sealed partial class LPreset
+// The preset catalogue in memory and its only writer: the native presets first, then the stored ones in their order.
+// Every edit runs as a transaction that the durable side persists, and is rolled back when it cannot.
+public static class LPresetTable
 {
     private static readonly Dictionary<string, LPreset> LPresetMap = new(StringComparer.OrdinalIgnoreCase);
     private static readonly HashSet<string> LPresetNativeNames = new(StringComparer.OrdinalIgnoreCase);
@@ -19,8 +20,8 @@ public sealed partial class LPreset
         var lPresetState = new LPreset();
         string? lPresetName = lPresetTabKey switch
         {
-            "Split" => LPresetSplitDefault,
-            "Merge" => LPresetMergeDefault,
+            "Split" => LPresetNaming.LPresetSplitDefault,
+            "Merge" => LPresetNaming.LPresetMergeDefault,
             _ => LPresetFirstName
         };
 
@@ -56,7 +57,7 @@ public sealed partial class LPreset
     }
 
     public static bool LPresetMatch(string lPresetName, LPreset lSource) =>
-        LPresetMap.TryGetValue(lPresetName, out var lPreset) && LPresetValueMatch(lPreset, lSource);
+        LPresetMap.TryGetValue(lPresetName, out var lPreset) && LPresetComparison.LPresetValueMatch(lPreset, lSource);
 
     public static bool LPresetSave(string lPresetName, LPreset lSource)
     {
@@ -192,6 +193,15 @@ public sealed partial class LPreset
         });
     }
 
+    public static LPresetDocument? LPresetSelectionRead(string lName) =>
+        LPresetRead(lName)?.LPresetRecordCreate();
+
+    public static bool LPresetSelectionSave(string lName, LPresetDocument lRecord) =>
+        LPresetSave(lName, LPreset.LPresetStateCreate(lRecord));
+
+    public static bool LPresetSelectionSet(string lOldName, string lNewName, LPresetDocument lRecord) =>
+        LPresetNameSet(lOldName, lNewName, LPreset.LPresetStateCreate(lRecord));
+
     public static string? LPresetFirstName => LPresetNames.Count > 0 ? LPresetNames[0] : null;
 
     private static int LPresetIndexRead(string lPresetName)
@@ -213,16 +223,141 @@ public sealed partial class LPreset
     public static string? LPresetGroupRead(string lPresetName) =>
         LPresetGroupMap.TryGetValue(lPresetName, out string? lGroupName) ? lGroupName : null;
 
-    public static string LPresetDisplayRead(string lPresetName) => lPresetName switch
-    {
-        LPresetSplitDefault => "Split",
-        LPresetMergeDefault => "Merge",
-        _ => lPresetName
-    };
-
     private static int LPresetNativeRead() =>
         LPresetNames.Count(LPresetNativeCheck);
 
-    public static IReadOnlyList<string> LPresetExtensionsRead(string lContainer) =>
-        LPresetExtensionTable.TryGetValue(lContainer, out IReadOnlyList<string>? lExtensions) ? lExtensions : [];
+    internal static void LPresetNativeAdd(LPresetDocument lRecord, string lGroupName)
+    {
+        LPreset lPreset = LPreset.LPresetStateCreate(lRecord);
+        if (string.IsNullOrWhiteSpace(lPreset.LPresetName))
+        {
+            return;
+        }
+
+        lPreset.LPresetName = lPreset.LPresetName.Trim();
+        LPresetMap[lPreset.LPresetName] = lPreset.LPresetClone();
+        LPresetNativeNames.Add(lPreset.LPresetName);
+        LPresetGroupMap[lPreset.LPresetName] = lGroupName;
+        LPresetNames.Add(lPreset.LPresetName);
+    }
+
+    internal static void LPresetStoredAdd(LPreset lPreset)
+    {
+        if (string.IsNullOrWhiteSpace(lPreset.LPresetName))
+        {
+            return;
+        }
+
+        string lName = lPreset.LPresetName.Trim();
+        if (LPresetNativeCheck(lName))
+        {
+            return;
+        }
+
+        lPreset.LPresetName = lName;
+        LPresetMap[lName] = lPreset.LPresetClone();
+        LPresetNames.Add(lName);
+    }
+
+    // The stored presets, in their order, as the documents the durable side writes.
+    internal static IReadOnlyList<LPresetDocument> LPresetRecordsCreate()
+    {
+        var lPresets = new List<LPresetDocument>();
+        foreach (string lName in LPresetNames)
+        {
+            if (!LPresetNativeCheck(lName) && LPresetMap.TryGetValue(lName, out LPreset? lPreset))
+            {
+                lPresets.Add(lPreset.LPresetClone().LPresetRecordCreate());
+            }
+        }
+
+        return lPresets;
+    }
+
+    // The merged catalogue the durable side wrote replaces the stored presets; every draft follows its preset.
+    internal static void LPresetMergeApply(IReadOnlyList<LPresetDocument> lPresetRecords)
+    {
+        var lPresetStoredNames = new List<string>();
+        foreach (LPresetDocument lPresetRecord in lPresetRecords)
+        {
+            LPreset lPreset = LPreset.LPresetStateCreate(lPresetRecord);
+            if (string.IsNullOrWhiteSpace(lPreset.LPresetName) || LPresetNativeCheck(lPreset.LPresetName))
+            {
+                continue;
+            }
+
+            lPreset.LPresetName = lPreset.LPresetName.Trim();
+            LPresetMap.TryGetValue(lPreset.LPresetName, out LPreset? lPresetPrevious);
+            LPresetMap[lPreset.LPresetName] = lPreset;
+            lPresetStoredNames.Add(lPreset.LPresetName);
+            LPresetDraft.LPresetDraftSync(
+                lPreset.LPresetName, lPresetRecord, lPresetPrevious?.LPresetRecordCreate());
+        }
+
+        LPresetNamesApply(lPresetStoredNames);
+        foreach (string lName in LPresetMap.Keys.ToArray())
+        {
+            if (!LPresetNativeCheck(lName)
+                && !lPresetStoredNames.Contains(lName, StringComparer.OrdinalIgnoreCase))
+            {
+                LPresetMap.Remove(lName);
+                LPresetDraft.LPresetDraftSync(lName, null, null);
+            }
+        }
+    }
+
+    private static void LPresetNamesApply(IReadOnlyList<string> lPresetStoredNames)
+    {
+        if (LPresetNames.Where(lName => !LPresetNativeCheck(lName))
+            .SequenceEqual(lPresetStoredNames, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        for (int lIndex = LPresetNames.Count - 1; lIndex >= 0; lIndex--)
+        {
+            if (!LPresetNativeCheck(LPresetNames[lIndex]))
+            {
+                LPresetNames.RemoveAt(lIndex);
+            }
+        }
+
+        foreach (string lName in lPresetStoredNames)
+        {
+            LPresetNames.Add(lName);
+        }
+    }
+
+    private static bool LPresetTransactionRun(Func<bool> lPresetMutate)
+    {
+        string[] lPresetNamesBackup = [.. LPresetNames];
+        var lPresetMapBackup = new Dictionary<string, LPreset>(LPresetMap, StringComparer.OrdinalIgnoreCase);
+        if (lPresetMutate() && LPresetPersistence.LPresetPersist())
+        {
+            LPresetStoreChanged?.Invoke();
+            return true;
+        }
+
+        LPresetRestore(lPresetNamesBackup, lPresetMapBackup);
+        return false;
+    }
+
+    private static void LPresetRestore(
+        IReadOnlyList<string> lPresetNamesBackup,
+        Dictionary<string, LPreset> lPresetMapBackup)
+    {
+        LPresetMap.Clear();
+        foreach ((string lName, LPreset lPreset) in lPresetMapBackup)
+        {
+            LPresetMap[lName] = lPreset;
+        }
+
+        LPresetNames.Clear();
+        foreach (string lName in lPresetNamesBackup)
+        {
+            LPresetNames.Add(lName);
+        }
+
+        LPresetStoreChanged?.Invoke();
+    }
 }

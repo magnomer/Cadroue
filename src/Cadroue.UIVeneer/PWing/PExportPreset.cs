@@ -52,10 +52,10 @@ public sealed partial class PExport
             new List<(string pPresetName, string? pGroupHeader, bool pGroupUserHeader, bool pGroupCollapsed)>();
         string? pNativeGroupCurrent = null;
         bool pUserHeaderAdded = false;
-        foreach (string lPresetName in LPreset.LPresetNames)
+        foreach (string lPresetName in LPresetTable.LPresetNames)
         {
-            bool pPresetNative = LPreset.LPresetNativeCheck(lPresetName);
-            string? pGroupName = pPresetNative ? LPreset.LPresetGroupRead(lPresetName) : null;
+            bool pPresetNative = LPresetTable.LPresetNativeCheck(lPresetName);
+            string? pGroupName = pPresetNative ? LPresetTable.LPresetGroupRead(lPresetName) : null;
             bool pGroupHeader = pPresetNative
                 && pGroupName is not null
                 && !string.Equals(pNativeGroupCurrent, pGroupName, StringComparison.OrdinalIgnoreCase);

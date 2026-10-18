@@ -1,12 +1,13 @@
 namespace Cadroue.Application;
 
-public static partial class LNeutral
+// A patch of pixels around one point reduced to its colour and the gains that bring it to the neutral target.
+public static class LNeutralGain
 {
     private const int LNeutralRadius = 5;
     private const int LNeutralDarkFloor = 16;
     private const double LNeutralGainLeast = 0;
     private const double LNeutralGainMost = 2;
-    private const double LNeutralEpsilon = 1e-6;
+    internal const double LNeutralEpsilon = 1e-6;
 
     public static LNeutralSample LNeutralResolve(
         IReadOnlyList<byte> lNeutralPixels,
@@ -57,9 +58,9 @@ public static partial class LNeutral
             return LNeutralFailCreate(LNeutralOutcome.LNeutralOutcomeEmpty);
         }
 
-        int lNeutralRed = LNeutralMedianResolve(lNeutralRedList);
-        int lNeutralGreen = LNeutralMedianResolve(lNeutralGreenList);
-        int lNeutralBlue = LNeutralMedianResolve(lNeutralBlueList);
+        int lNeutralRed = LNeutralChannel.LNeutralMedianResolve(lNeutralRedList);
+        int lNeutralGreen = LNeutralChannel.LNeutralMedianResolve(lNeutralGreenList);
+        int lNeutralBlue = LNeutralChannel.LNeutralMedianResolve(lNeutralBlueList);
 
         if (Math.Max(lNeutralRed, Math.Max(lNeutralGreen, lNeutralBlue)) < LNeutralDarkFloor)
         {
@@ -69,7 +70,7 @@ public static partial class LNeutral
         return LNeutralSampleCreate(lNeutralRed, lNeutralGreen, lNeutralBlue, lNeutralTarget);
     }
 
-    private static LNeutralSample LNeutralSampleCreate(
+    internal static LNeutralSample LNeutralSampleCreate(
         int lNeutralRed, int lNeutralGreen, int lNeutralBlue, LNeutralTarget lNeutralTargetKind)
     {
         double lNeutralRedUnit = LNeutralUnitResolve(lNeutralRed);
@@ -114,21 +115,6 @@ public static partial class LNeutral
 
     private static double LNeutralUnitResolve(int lNeutralChannel) =>
         Math.Clamp(lNeutralChannel, 0, 255) / 255.0;
-
-    private static int LNeutralMedianResolve(List<int> lNeutralValues)
-    {
-        lNeutralValues.Sort();
-        int lNeutralCount = lNeutralValues.Count;
-        int lNeutralMiddle = lNeutralCount / 2;
-        if ((lNeutralCount & 1) == 1)
-        {
-            return lNeutralValues[lNeutralMiddle];
-        }
-
-        return (int)Math.Round(
-            (lNeutralValues[lNeutralMiddle - 1] + lNeutralValues[lNeutralMiddle]) / 2.0,
-            MidpointRounding.AwayFromZero);
-    }
 
     private static LNeutralSample LNeutralFailCreate(LNeutralOutcome lNeutralOutcome) =>
         new(lNeutralOutcome, 0, 0, 0, 1, 1, 1);

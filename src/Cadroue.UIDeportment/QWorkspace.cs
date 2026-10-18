@@ -30,7 +30,7 @@ public sealed class QWorkspace
         qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent
             ? new QWorkspacePair(QWorkspaceFacts, lUsher, lAtelier.CAtelierInfo, qWorkspaceGate)
             : null;
-        QWorkspacePreset = LPreset.LPresetInitialCreate(lKey);
+        QWorkspacePreset = LPresetTable.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
         QWorkspacePresetAttach();
         QWorkspacePresetAccept(QWorkspacePreset);

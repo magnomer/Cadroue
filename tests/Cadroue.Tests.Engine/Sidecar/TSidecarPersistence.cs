@@ -42,12 +42,12 @@ public sealed class TSidecarPersistence
     public void SavingChangedMetadata_ReplacesStaleValue()
     {
         using var sidecar = new TSidecar();
-        string source = sidecar.TSourceCreate("loudness.wav", "loudness source");
+        string source = sidecar.TSourceCreate("rotation.mp4", "rotation source");
 
-        Assert.True(sidecar.TLoudnessSave(source, -23));
-        Assert.True(sidecar.TLoudnessSave(source, -14.25));
+        Assert.True(sidecar.TRotateSave(source, 90));
+        Assert.True(sidecar.TRotateSave(source, 180));
 
-        Assert.Equal(-14.25, sidecar.TSidecarRead(source)?.TSidecarLoudness);
+        Assert.Equal(180, sidecar.TSidecarRead(source)?.TSidecarRotation);
     }
 
     [Fact]
@@ -68,13 +68,13 @@ public sealed class TSidecarPersistence
         string video = sidecar.TSourceCreate("clip.mp4", "video bytes");
         string container = sidecar.TSourceCreate("clip.mkv", "other bytes!");
 
-        Assert.True(sidecar.TLoudnessSave(video, -1));
-        Assert.True(sidecar.TLoudnessSave(container, -2));
+        Assert.True(sidecar.TRotateSave(video, 90));
+        Assert.True(sidecar.TRotateSave(container, 180));
 
         Assert.EndsWith("clip.mp4.cad", sidecar.TSidecarPathRead(video));
         Assert.EndsWith("clip.mkv.cad", sidecar.TSidecarPathRead(container));
-        Assert.Equal(-1, sidecar.TLoudnessRead(video));
-        Assert.Equal(-2, sidecar.TLoudnessRead(container));
+        Assert.Equal(90, sidecar.TRotateRead(video));
+        Assert.Equal(180, sidecar.TRotateRead(container));
     }
 
     [Fact]
@@ -85,11 +85,14 @@ public sealed class TSidecarPersistence
         string video = sidecar.TSourceCreate("legacy.mp4", "legacy bytes");
         sidecar.TSidecarLegacySave(
             video,
-            """{"LSidecarVersion":2,"LSidecarSource":{"LSidecarFileName":"legacy.mp4"},"LSidecarLoudness":-7}""");
+            """
+            {"LSidecarVersion":2,"LSidecarSource":{"LSidecarFileName":"legacy.mp4"},
+            "LSidecarEdit":{"LSidecarRotation":270}}
+            """);
 
         Assert.EndsWith("legacy.mp4.cad", sidecar.TSidecarPathRead(video));
         Assert.False(File.Exists(Path.ChangeExtension(video, ".cad")));
-        Assert.Equal(-7, sidecar.TSidecarRead(video)?.TSidecarLoudness);
+        Assert.Equal(270, sidecar.TSidecarRead(video)?.TSidecarRotation);
     }
 
     [Fact]
@@ -97,17 +100,17 @@ public sealed class TSidecarPersistence
     {
         using var sidecar = new TSidecar();
         string source = sidecar.TSourceCreate("future.mp4", "future source");
-        Assert.True(sidecar.TLoudnessSave(source, -3));
+        Assert.True(sidecar.TRotateSave(source, 90));
 
         JsonObject core = (JsonObject)JsonNode.Parse(sidecar.TSidecarTextRead(source))!;
         core["LSidecarFuture"] = new JsonObject { ["LSidecarValue"] = 42 };
         sidecar.TSidecarTextSave(source, core.ToJsonString());
 
-        Assert.True(sidecar.TLoudnessSave(source, -4));
+        Assert.True(sidecar.TRotateSave(source, 180));
 
         JsonObject saved = (JsonObject)JsonNode.Parse(sidecar.TSidecarTextRead(source))!;
         Assert.Equal(42, (int)saved["LSidecarFuture"]!["LSidecarValue"]!);
-        Assert.Equal(-4, sidecar.TLoudnessRead(source));
+        Assert.Equal(180, sidecar.TRotateRead(source));
     }
 
     [Fact]
@@ -115,13 +118,13 @@ public sealed class TSidecarPersistence
     {
         using var sidecar = new TSidecar();
         string source = sidecar.TSourceCreate("broken.mp4", "broken source");
-        Assert.True(sidecar.TLoudnessSave(source, -3));
+        Assert.True(sidecar.TRotateSave(source, 90));
         sidecar.TSidecarTextSave(source, "{ not json");
 
-        Assert.True(sidecar.TLoudnessSave(source, -6));
+        Assert.True(sidecar.TRotateSave(source, 270));
 
         Assert.Equal(1, sidecar.TSidecarBrokenRead());
-        Assert.Equal(-6, sidecar.TLoudnessRead(source));
+        Assert.Equal(270, sidecar.TRotateRead(source));
     }
 
     [Fact]
@@ -129,9 +132,9 @@ public sealed class TSidecarPersistence
     {
         using var sidecar = new TSidecar();
         string source = sidecar.TSourceCreate("gone.mp4", "gone source");
-        Assert.True(sidecar.TLoudnessSave(source, -3));
+        Assert.True(sidecar.TRotateSave(source, 90));
         File.Delete(source);
 
-        Assert.False(sidecar.TLoudnessSave(source, -8));
+        Assert.False(sidecar.TRotateSave(source, 180));
     }
 }

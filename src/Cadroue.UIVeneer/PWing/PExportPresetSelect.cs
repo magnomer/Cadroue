@@ -17,9 +17,9 @@ public sealed partial class PExport
 
     private void PExportGroupShow(string lPresetName)
     {
-        if (LPreset.LPresetNativeCheck(lPresetName))
+        if (LPresetTable.LPresetNativeCheck(lPresetName))
         {
-            if (LPreset.LPresetGroupRead(lPresetName) is not string pGroupName
+            if (LPresetTable.LPresetGroupRead(lPresetName) is not string pGroupName
                 || !LPreference.LPreferenceStateCurrent.LPreferenceFoldRead(pGroupName))
             {
                 return;

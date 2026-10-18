@@ -15,18 +15,10 @@ public static class LAutopsy
 
     public static LAutopsyProseReader? LAutopsyProse { get; set; }
 
-    internal static LAutopsyResult LAutopsyResolve(int lAutopsyExitCode, string lAutopsyStderrTail)
+    internal static LAutopsyResult LAutopsyResolve(int lAutopsyExitCode)
     {
-        _ = lAutopsyStderrTail;
-
-        long lAutopsyNormalized = lAutopsyExitCode & LAutopsyDwordMask;
-        if (lAutopsyNormalized >= LAutopsySignBoundary)
-        {
-            lAutopsyNormalized -= LAutopsyWraparound;
-        }
-
-        int lAutopsyCode = (int)lAutopsyNormalized;
-        bool lAutopsyMatched = LAutopsySpine.LAutopsySpineRead(
+        int lAutopsyCode = LAutopsyCodeNormalize(lAutopsyExitCode);
+        bool lAutopsyMatched = LAutopsySpineTable.LAutopsySpineRead(
             lAutopsyCode.ToString(System.Globalization.CultureInfo.InvariantCulture),
             out LAutopsySpine lAutopsyEntry);
 
@@ -38,7 +30,7 @@ public static class LAutopsy
         else
         {
             bool lAutopsyNegative = lAutopsyCode < 0;
-            lAutopsyEntry = LAutopsySpine.LAutopsySpineResolve(lAutopsyNegative);
+            lAutopsyEntry = LAutopsySpineTable.LAutopsySpineResolve(lAutopsyNegative);
             lAutopsyProseRoot = lAutopsyNegative
                 ? LAutopsyNegativeProse
                 : LAutopsyPositiveProse;
@@ -55,6 +47,18 @@ public static class LAutopsy
             lAutopsyEntry.LAutopsySpineRetryable,
             lAutopsyEntry.LAutopsySpineSymbol,
             lAutopsyMatched);
+    }
+
+    // The exit code read as a signed 32-bit value, the form the spine keys hold.
+    private static int LAutopsyCodeNormalize(int lAutopsyExitCode)
+    {
+        long lAutopsyNormalized = lAutopsyExitCode & LAutopsyDwordMask;
+        if (lAutopsyNormalized >= LAutopsySignBoundary)
+        {
+            lAutopsyNormalized -= LAutopsyWraparound;
+        }
+
+        return (int)lAutopsyNormalized;
     }
 
     private static string? LAutopsyProseRead(string lAutopsyKey)

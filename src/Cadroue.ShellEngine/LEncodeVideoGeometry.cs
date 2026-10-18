@@ -59,11 +59,11 @@ internal static partial class LEncodeVideo
             return LWorkCrop.LWorkCropCreate();
         }
 
-        (double lFrameWidth, double lFrameHeight) = LCropbox.LCropboxSourceResolve(
+        (double lFrameWidth, double lFrameHeight) = LCropboxOrientation.LCropboxSourceResolve(
             lMedia.LWorkMediaWidth,
             lMedia.LWorkMediaHeight,
-            LCropbox.LCropboxRotatedCheck(lCrop.LWorkCropRotation));
-        return LCropbox.LCropboxEdgeNormalize(lCrop, lFrameWidth, lFrameHeight);
+            LCropboxOrientation.LCropboxRotatedCheck(lCrop.LWorkCropRotation));
+        return LCropboxInset.LCropboxEdgeNormalize(lCrop, lFrameWidth, lFrameHeight);
     }
 
     private static string LEncodeScaleResolve(string lSize, bool lReactive)

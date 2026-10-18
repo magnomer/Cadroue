@@ -31,7 +31,7 @@ public static partial class LMessenger
                 new(lMessengerSourcePaths, lMessengerOutput, null, lMessengerRelays);
 
             string lMessengerTab = LMessengerTitleRead(lMessengerRelaySource);
-            Func<string, TimeSpan> lMessengerDurationRead = await Cadroue.Application.LConvert
+            Func<string, TimeSpan> lMessengerDurationRead = await Cadroue.Application.LConvertDuration
                 .LConvertDurationResolve(lMessengerOutput, lMessengerSourcePaths).ConfigureAwait(true);
             IReadOnlyList<LWorkItem> lMessengerItems =
                 Cadroue.Application.LConvert.LConvertItemsCreate(

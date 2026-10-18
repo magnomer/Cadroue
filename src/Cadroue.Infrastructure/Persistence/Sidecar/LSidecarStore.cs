@@ -84,7 +84,6 @@ public static class LSidecarStore
             LSidecarSections = lSidecarCore.LSidecarSections,
             LSidecarEdit = lSidecarCore.LSidecarEdit,
             LSidecarAudio = lSidecarCore.LSidecarAudio,
-            LSidecarLoudness = lSidecarCore.LSidecarLoudness,
             LSidecarKeyframeDeltas = lSidecarValid?.LSidecarKeyframeDeltas ?? new(),
             LSidecarScannedSpans = lSidecarValid?.LSidecarScannedSpans ?? new(),
             LSidecarSpanGrid = lSidecarValid?.LSidecarSpanGrid ?? 0,

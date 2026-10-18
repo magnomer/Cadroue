@@ -59,7 +59,7 @@ public sealed class LLocalizationAutopsy
     {
         try
         {
-            if (LLocalization.LLocalizationResourceRead(
+            if (LLocalizationResource.LLocalizationResourceRead(
                     LLocalizationAutopsyPrefix + lLocalizationAutopsyCode + LLocalizationAutopsySuffix)
                 is not { } lLocalizationAutopsyJson)
             {

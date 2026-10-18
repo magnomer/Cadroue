@@ -92,7 +92,7 @@ public sealed class QAudioTab
         {
             lLayout.LSceneInspector = new LSceneInspectorEntry
             {
-                LSceneInspectorAudio = LAudio.LAudioPersistentCreate(qAudioSections.QInspectorPersistentRead()),
+                LSceneInspectorAudio = LAudioSidecar.LAudioPersistentCreate(qAudioSections.QInspectorPersistentRead()),
                 LSceneInspectorSkip = QAudioInspector.QInspectorSkip.QSkipPersistent
             };
         }
@@ -107,7 +107,7 @@ public sealed class QAudioTab
             QAudioInspector.QInspectorSaveSuspend();
             try
             {
-                LWorkAudio lPlan = LAudio.LAudioPersistentRead(lRecord);
+                LWorkAudio lPlan = LAudioSidecar.LAudioPersistentRead(lRecord);
                 qAudioSections.QInspectorAudioApply(lPlan);
                 qAudioSections.QInspectorPersistentApply(lInspector.LSceneInspectorSkip);
             }

@@ -71,7 +71,7 @@ public sealed class QEditTabPlan
 
     public LEditPlan? QEditSavedRead() =>
         qEditViewer.QViewerWorkspace.CWorkspaceSource is { } lSourcePath
-            ? LEdit.LEditPlanRead(lSourcePath, LLibrarian.LLibrarianEditLoad)
+            ? LEditSidecar.LEditSidecarRead(lSourcePath, LLibrarian.LLibrarianEditLoad)
             : null;
 
     public void QEditStateSave() => QEditStateSave(QEditStateRead(), qEditUsher.CUsherNameRead);
@@ -87,14 +87,15 @@ public sealed class QEditTabPlan
             return;
         }
 
-        if (lPlan.LEditPlanEmpty && LEdit.LEditPlanRead(lSourcePath, LLibrarian.LLibrarianEditLoad) is null)
+        if (lPlan.LEditPlanEmpty
+            && LEditSidecar.LEditSidecarRead(lSourcePath, LLibrarian.LLibrarianEditLoad) is null)
         {
             return;
         }
 
         string lName = lNameRead(lSourcePath);
         string lSummary = QEditPlanFormat(lPlan);
-        if (!LEdit.LEditPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianEditSave))
+        if (!LEditSidecar.LEditSidecarSave(lSourcePath, lPlan, LLibrarian.LLibrarianEditSave))
         {
             LTraceLog.LTraceWarningRecord($"Edit plan could not be saved for '{lName}'", lSummary);
             return;
@@ -132,10 +133,10 @@ public sealed class QEditTabPlan
         var lFailed = new List<string>();
         foreach (string lPath in lPaths)
         {
-            bool lSaved = LEdit.LEditPlanSave(
+            bool lSaved = LEditSidecar.LEditSidecarSave(
                 lPath,
-                LEdit.LEditPlanResolve(
-                    LEdit.LEditPlanRead(lPath, LLibrarian.LLibrarianEditLoad),
+                LEditPlan.LEditPlanResolve(
+                    LEditSidecar.LEditSidecarRead(lPath, LLibrarian.LLibrarianEditLoad),
                     lCarried,
                     lCropPersistent,
                     lSkipPersistent),

@@ -89,7 +89,7 @@ public sealed class QViewerNeutral
         LCropbox lDisplay = qViewer.QCrop.QCropVideoRead();
         LCropboxSize lShown = qViewer.QCrop.QCropDisplayRead();
         LRotateFlip lRotate = qViewer.QViewerPreview.LRotateFlip;
-        LNeutralPoint lPoint = LNeutral.LNeutralPointResolve(
+        LNeutralPoint lPoint = LNeutralOverlay.LNeutralPointResolve(
             lX, lY,
             lDisplay.LCropboxX, lDisplay.LCropboxY, lDisplay.LCropboxWidth, lDisplay.LCropboxHeight,
             0, 0, lShown.LCropboxSizeWidth, lShown.LCropboxSizeHeight,
@@ -121,7 +121,7 @@ public sealed class QViewerNeutral
     public void QViewerEstimateStart(LWhitebalanceMethod lMethod) =>
         qViewer.QViewerFrame.QViewerFrameRead(lFrame => QViewerEstimateChanged?.Invoke(lFrame is null
             ? new LNeutralWheel(0, 0, false)
-            : LNeutral.LNeutralAnalyzeResolve(
+            : LNeutralAnalysis.LNeutralAnalyzeResolve(
                 lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight, lMethod)));
 
     private void QViewerNeutralStart(LNeutralTarget lTarget)
@@ -200,7 +200,7 @@ public sealed class QViewerNeutral
 
         QViewerNeutralChanged?.Invoke(lFrame is null
             ? new LNeutralSample(LNeutralOutcome.LNeutralOutcomeDecode, 0, 0, 0, 1, 1, 1)
-            : LNeutral.LNeutralResolve(
+            : LNeutralGain.LNeutralResolve(
                 lFrame.LMediaFramePixels, lFrame.LMediaFrameWidth, lFrame.LMediaFrameHeight,
                 lPixelX, lPixelY, lTarget));
     }

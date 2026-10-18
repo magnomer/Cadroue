@@ -97,7 +97,7 @@ public sealed class QPlayer
 
     public void QPlayerPreviewApply(LPreviewState lState, string lReason)
     {
-        LPreviewApplication lApplication = LPreview.LPreviewApplicationResolve(lState, lReason);
+        LPreviewApplication lApplication = LPreviewApplication.LPreviewApplicationResolve(lState, lReason);
         qPlayerSeam?.QPlayerPreviewSeam(QPlayerContrastResolve(lApplication));
     }
 

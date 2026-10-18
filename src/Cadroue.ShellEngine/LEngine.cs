@@ -33,6 +33,8 @@ public sealed class LEngine
 
     public LEditFacade LEngineEdit { get; }
 
+    public LEditAudioFacade LEngineEditAudio { get; }
+
     public LToneFacade LEngineTone { get; }
 
     public LViewerFacade LEngineViewer { get; }
@@ -68,7 +70,8 @@ public sealed class LEngine
         LEngineRosterCard = new LRosterCardFacade();
         LEngineWorkspace = new LWorkspaceFacade();
         LEngineUsher = new LUsherFacade();
-        LEngineEdit = new LEditFacade(lRig.LRigTrace);
+        LEngineEdit = new LEditFacade();
+        LEngineEditAudio = new LEditAudioFacade(lRig.LRigTrace);
         LEngineTone = new LToneFacade(lRig.LRigPreview);
         LEngineViewer = new LViewerFacade(lRig.LRigTrace);
         LEngineMerge = new LMergeFacade(lRig.LRigTrace);

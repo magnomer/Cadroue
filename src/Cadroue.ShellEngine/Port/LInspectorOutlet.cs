@@ -129,7 +129,7 @@ public sealed class LInspectorOutlet : LInspectorPort
     }
 
     public LWhitebalanceAnswer LInspectorWhitebalanceRead() =>
-        LWhitebalanceFacade.LWhitebalanceAnswerRead(
+        LWhitebalanceAnswer.LWhitebalanceAnswerCreate(
             LInspectorVideoFind(LColorKind.LColorKindWhitebalance) ?? LWorkVideoStep.LWorkWhitebalanceCreate(false));
     // A side's values in the filter gate's slot order, held inside their ranges; a plan without the side's step reads
     // as the side's default step switched off, and a step that is not a pass step as that default with its switch.

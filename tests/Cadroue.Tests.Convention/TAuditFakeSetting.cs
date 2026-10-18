@@ -8,7 +8,7 @@ internal static class TAuditFakeSetting
 
     public static readonly IReadOnlyDictionary<string, int> TAuditFakeCeiling = new Dictionary<string, int>
     {
-        ["Orphan"] = 166,
+        ["Orphan"] = 154,
         ["Tested"] = 124,
     };
 

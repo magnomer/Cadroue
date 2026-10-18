@@ -152,8 +152,8 @@ public sealed class QCropDrag
     private void QCropBoxPlace(double lStartX, double lStartY, double lEndX, double lEndY)
     {
         LCropbox lVideo = QCrop.QCropVideoRead();
-        LCropboxPoint lStart = LCropbox.LCropboxPointClamp(lStartX, lStartY, lVideo);
-        LCropboxPoint lEnd = LCropbox.LCropboxPointClamp(lEndX, lEndY, lVideo);
+        LCropboxPoint lStart = LCropboxDisplay.LCropboxPointClamp(lStartX, lStartY, lVideo);
+        LCropboxPoint lEnd = LCropboxDisplay.LCropboxPointClamp(lEndX, lEndY, lVideo);
         QCrop.QCropBoxSet(LCropboxDrag.LCropboxDrawResolve(
             lStart.LCropboxPointX, lStart.LCropboxPointY, lEnd.LCropboxPointX, lEnd.LCropboxPointY,
             QCrop.QCropRatioWidth, QCrop.QCropRatioHeight));
@@ -194,7 +194,7 @@ public sealed class QCropDrag
         }
         else
         {
-            LCropboxPoint lClamped = LCropbox.LCropboxPointClamp(lDragX, lDragY, lVideo);
+            LCropboxPoint lClamped = LCropboxDisplay.LCropboxPointClamp(lDragX, lDragY, lVideo);
             lResult = LCropboxDrag.LCropboxResizeResolve(
                 lOrigin, lClamped.LCropboxPointX, lClamped.LCropboxPointY, QCrop.QCropEdgeX, QCrop.QCropEdgeY,
                 QCrop.QCropRatioWidth, QCrop.QCropRatioHeight, lVideo, QCropSizeMinimum);

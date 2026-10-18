@@ -194,24 +194,4 @@ public static class LSidecarField
                 LSidecarDossiers = lSidecarDossiers.ToList(),
                 LSidecarScannedKinds = Enum.GetValues<LFlawKind>().ToList()
             });
-
-    public static double LSidecarLoudnessRead(string lSidecarSourcePath)
-    {
-        try
-        {
-            return LSidecarCoreRead(lSidecarSourcePath)?.LSidecarLoudness ?? 0;
-        }
-        catch (Exception lException) when (
-            lException is IOException
-                or UnauthorizedAccessException
-                or ArgumentException)
-        {
-            return 0;
-        }
-    }
-
-    public static bool LSidecarLoudnessSave(string lSidecarSourcePath, double lSidecarLoudness) =>
-        LSidecarPending.LSidecarCoreDefer(
-            lSidecarSourcePath,
-            lSidecarCore => lSidecarCore.LSidecarLoudness = lSidecarLoudness);
 }

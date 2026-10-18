@@ -11,7 +11,6 @@ public sealed class LSidecarCoreDocument
     public LSidecarAudioEntry? LSidecarAudio { get; set; }
     public LSidecarSplitEntry? LSidecarSplit { get; set; }
     public LSidecarFixEntry? LSidecarFix { get; set; }
-    public double LSidecarLoudness { get; set; }
 }
 
 public enum LSidecarReadKind

@@ -97,7 +97,7 @@ public sealed class QCrop
             return new LCropboxSize(0, 0);
         }
 
-        return LCropbox.LCropboxSourceResolve(
+        return LCropboxOrientation.LCropboxSourceResolve(
             lMediaInfo.LMediaVideoWidth,
             lMediaInfo.LMediaVideoHeight,
             qViewer.QViewerPreview.LRotateFlip.LRotateKind is LRotateKind.LRotate90 or LRotateKind.LRotate270);
@@ -111,7 +111,7 @@ public sealed class QCrop
         }
 
         LCropboxSize lDisplay = QCropDisplayRead();
-        return LCropbox.LCropboxDisplayResolve(
+        return LCropboxDisplay.LCropboxDisplayResolve(
             lDisplay.LCropboxSizeWidth, lDisplay.LCropboxSizeHeight, qCropAreaWidth, qCropAreaHeight);
     }
 
@@ -129,7 +129,7 @@ public sealed class QCrop
         }
 
         LCropboxSize lDisplay = QCropDisplayRead();
-        return LCropbox.LCropboxPixelResolve(
+        return LCropboxDisplay.LCropboxPixelResolve(
             new LCropbox(qCropBoxX, qCropBoxY, qCropBoxWidth, qCropBoxHeight),
             lVideo,
             lDisplay.LCropboxSizeWidth,
@@ -348,7 +348,7 @@ public sealed class QCrop
         }
 
         LCropboxSize lSource = QCropDisplayRead();
-        LCropbox lClamped = LCropbox.LCropboxRectClamp(
+        LCropbox lClamped = LCropboxDisplay.LCropboxRectClamp(
             lCropbox, new LCropbox(0, 0, lSource.LCropboxSizeWidth, lSource.LCropboxSizeHeight), false);
         return lClamped is { LCropboxWidth: > 0, LCropboxHeight: > 0 } ? lClamped : null;
     }
@@ -370,7 +370,7 @@ public sealed class QCrop
             return;
         }
 
-        QCropBoxSet(LCropbox.LCropboxOverlayResolve(
+        QCropBoxSet(LCropboxDisplay.LCropboxOverlayResolve(
             lCropbox, lVideo, lDisplay.LCropboxSizeWidth, lDisplay.LCropboxSizeHeight));
         QCropOverlayUpdate();
     }

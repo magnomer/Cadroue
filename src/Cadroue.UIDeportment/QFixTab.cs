@@ -89,13 +89,13 @@ public sealed class QFixTab
     public LSceneTabEntry QFixLayoutRead(LSceneTabEntry lLayout)
     {
         LWorkFix lPlan = QFixPlanRead();
-        LWorkFix lPersistent = LFix.LFixPersistentResolve(lPlan);
+        LWorkFix lPersistent = LFixPlan.LFixPersistentResolve(lPlan);
         bool lSalvagePersistent = lPlan.LWorkFixSalvage.LWorkSalvagePersistent;
         if (lPersistent.LWorkFixSteps.Any() || lSalvagePersistent)
         {
             lLayout.LSceneInspector = new LSceneInspectorEntry
             {
-                LSceneInspectorFix = LFix.LFixPersistentCreate(lPersistent),
+                LSceneInspectorFix = LFixSidecar.LFixPersistentCreate(lPersistent),
                 LSceneInspectorSalvage = lSalvagePersistent
             };
         }
@@ -109,7 +109,7 @@ public sealed class QFixTab
             QFixClinicGate,
             lLayout is null,
             lLayout?.LSceneInspector is { LSceneInspectorFix: { } lRecord } lInspector
-                ? new LClinicOutlet(LFix.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage))
+                ? new LClinicOutlet(LFixSidecar.LFixPersistentRead(lRecord, lInspector.LSceneInspectorSalvage))
                 : null));
 
     // Each run gesture is one gate call; the gate answers false when the preset is missing, which raises the notice.
@@ -188,7 +188,7 @@ public sealed class QFixTab
     {
         if (QFixListedCheck(lResult.LCheckupSource))
         {
-            QFixClinicGate.CClinicResultAccept(new LClinicOutlet(lResult));
+            QFixClinicGate.CClinicResultAccept(new LCheckupOutlet(lResult));
         }
     }
 

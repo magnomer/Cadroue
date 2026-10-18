@@ -33,7 +33,7 @@ public sealed record LBridgeStream(
     long LBridgeBitrate,
     string LBridgeTimeBase = "");
 
-public static partial class LBridge
+public static class LBridge
 {
     private static readonly TimeSpan LBridgeTolerance = TimeSpan.FromMilliseconds(1);
 

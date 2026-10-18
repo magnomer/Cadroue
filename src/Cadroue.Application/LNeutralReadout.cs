@@ -1,6 +1,7 @@
 namespace Cadroue.Application;
 
-public static partial class LNeutral
+// What the neutral readout shows: the status a sample outcome reads as, and the swatch a picked colour displays.
+public static class LNeutralReadout
 {
     public static LNeutralStatus LNeutralStatusResolve(LNeutralOutcome lNeutralOutcome) => lNeutralOutcome switch
     {

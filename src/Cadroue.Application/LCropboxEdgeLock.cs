@@ -60,7 +60,7 @@ public sealed class LCropboxEdgeLock
                 return null;
             }
 
-            double lCropboxTargetHeight = LCropbox.LCropboxFloorNormalize(
+            double lCropboxTargetHeight = LCropboxAspect.LCropboxFloorNormalize(
                 lCropboxWidth * lCropboxRatioHeight / lCropboxRatioWidth);
             if (lCropboxTargetHeight <= 0 || lCropboxTargetHeight > lCropboxSourceHeight)
             {
@@ -86,7 +86,7 @@ public sealed class LCropboxEdgeLock
             return null;
         }
 
-        double lCropboxTargetWidth = LCropbox.LCropboxFloorNormalize(
+        double lCropboxTargetWidth = LCropboxAspect.LCropboxFloorNormalize(
             lCropboxHeight * lCropboxRatioWidth / lCropboxRatioHeight);
         if (lCropboxTargetWidth <= 0 || lCropboxTargetWidth > lCropboxSourceWidth)
         {

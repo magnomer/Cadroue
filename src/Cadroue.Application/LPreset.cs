@@ -1,10 +1,13 @@
 using Cadroue.Core;
-using System.IO;
 
 namespace Cadroue.Application;
 
-public sealed partial class LPreset
+// One export preset's values: its slots, its summaries, and its forms as an encoding and as a stored document.
+public sealed class LPreset
 {
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<string>> LPresetExtensionTable =
+        LRepertoireCatalog.LRepertoireExtensionTable;
+
     public string LPresetName { get; set; } = "MP4_H264_AAC_Default";
     public string LPresetDisplay { get; set; } = "{OriginalName}_export";
     public string LPresetContainer { get; set; } = "MP4";
@@ -260,39 +263,11 @@ public sealed partial class LPreset
         _ => "Copy"
     };
 
-    public static string LPresetNameCreate(string lBaseName)
-    {
-        if (!LPresetNames.Any(lName => string.Equals(lName, lBaseName, StringComparison.OrdinalIgnoreCase)))
-        {
-            return lBaseName;
-        }
+    public static LEncoding LPresetSelectionResolve(LPresetDocument lRecord) =>
+        LPresetStateCreate(lRecord).LPresetOutputCreate();
 
-        for (int lIndex = 2; ; lIndex++)
-        {
-            string lCandidate = $"{lBaseName} {lIndex}";
-            if (!LPresetNames.Any(lName => string.Equals(lName, lCandidate, StringComparison.OrdinalIgnoreCase)))
-            {
-                return lCandidate;
-            }
-        }
-    }
-
-    public static string LPresetFileFormat(string lPresetName)
-    {
-        char[] lInvalidCharacters = Path.GetInvalidFileNameChars();
-        return new string(lPresetName
-            .Trim()
-            .Select(lCharacter => lInvalidCharacters.Contains(lCharacter) ? '_' : lCharacter)
-            .ToArray());
-    }
-
-    public static string LPresetNameResolve(string lStoredName, string lFilePath)
-    {
-        string lName = lStoredName.Trim();
-        return string.IsNullOrWhiteSpace(lName)
-            ? Path.GetFileNameWithoutExtension(lFilePath).Trim()
-            : lName;
-    }
+    public static IReadOnlyList<string> LPresetExtensionsRead(string lContainer) =>
+        LPresetExtensionTable.TryGetValue(lContainer, out IReadOnlyList<string>? lExtensions) ? lExtensions : [];
 
     private string LAudioStreamSummary => LPresetAudio.LPresetStream switch
     {

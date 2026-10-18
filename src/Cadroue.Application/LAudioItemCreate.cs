@@ -1,9 +1,8 @@
-using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-public static partial class LAudio
+public static class LAudio
 {
     public static LWorkItem? LAudioItemCreate(
         LWorkPriority lWorkPriority,
@@ -33,7 +32,7 @@ public static partial class LAudio
 
         TimeSpan lAudioDuration = lAudioDurationRead(lAudioSourcePath);
         string lAudioFolder = LEncodingPath.LEncodingFolderRead(lAudioOutput, lAudioSourcePath);
-        string lAudioOutputName = LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
+        string lAudioOutputName = LAudioName.LAudioNameCreate(lAudioSourcePath, lAudioFolder, lAudioOutput);
         Guid lAudioBatch = lAudioBatchId != Guid.Empty ? lAudioBatchId : LGate.LGateBatchCreate();
 
         lInfoLog(
@@ -54,27 +53,5 @@ public static partial class LAudio
         {
             LWorkTab = lAudioTab
         };
-    }
-
-    private static string LAudioNameCreate(string lAudioSourcePath, string lAudioFolder, LEncoding lAudioOutput)
-    {
-        string lAudioStem = Path.GetFileNameWithoutExtension(lAudioSourcePath);
-        string lAudioExtension = LEncodingPath.LEncodingExtensionResolve(lAudioOutput, lAudioSourcePath);
-        string lAudioBaseName = string.IsNullOrWhiteSpace(lAudioExtension)
-            ? lAudioStem
-            : $"{lAudioStem}.{lAudioExtension}";
-
-        string lAudioCandidate = Path.Combine(lAudioFolder, lAudioBaseName);
-        if (!string.Equals(
-                Path.GetFullPath(lAudioCandidate),
-                Path.GetFullPath(lAudioSourcePath),
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return lAudioBaseName;
-        }
-
-        return string.IsNullOrWhiteSpace(lAudioExtension)
-            ? $"{lAudioStem}_audio"
-            : $"{lAudioStem}_audio.{lAudioExtension}";
     }
 }

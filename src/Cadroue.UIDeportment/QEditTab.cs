@@ -108,7 +108,7 @@ public sealed class QEditTab
         {
             lLayout.LSceneInspector = new LSceneInspectorEntry
             {
-                LSceneInspectorEdit = LEdit.LEditPersistentCreate(lCarried),
+                LSceneInspectorEdit = LEditSidecar.LEditPersistentCreate(lCarried),
                 LSceneInspectorCrop = QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent,
                 LSceneInspectorSkip = QEditInspector.QInspectorSkip.QSkipPersistent
             };
@@ -132,7 +132,7 @@ public sealed class QEditTab
         QEditInspector.QInspectorSaveSuspend();
         try
         {
-            LEditPlan lPlan = LEdit.LEditPersistentRead(lRecord);
+            LEditPlan lPlan = LEditSidecar.LEditPersistentRead(lRecord);
             QEditInspector.QInspectorVideo.QInspectorPersistentApply(lPlan.LEditVideo);
             QEditInspector.QInspectorPlanApply(lPlan, lPersistent.LSceneInspectorCrop, lPersistent.LSceneInspectorSkip);
         }
@@ -158,7 +158,7 @@ public sealed class QEditTab
         }
 
         (LWorkCrop lCrop, LWorkVideo lVideo) =
-            LEdit.LEditWorkResolve(QEditStore.QEditStateRead(), QEditColor.QEditEqCheck());
+            LEditPlan.LEditWorkResolve(QEditStore.QEditStateRead(), QEditColor.QEditEqCheck());
         LMessenger.LMessengerEditDescribe(
             lUrgent ? LWorkPriority.LWorkPriorityHigh : LWorkPriority.LWorkPriorityNormal,
             lPath,
@@ -262,7 +262,7 @@ public sealed class QEditTab
             QEditInspector.QInspectorCrop.QInspectorCropReset();
 
             bool lCarryWins = lPersistent is not null;
-            LEditPlan lPlan = LEdit.LEditPlanResolve(
+            LEditPlan lPlan = LEditPlan.LEditPlanResolve(
                 lSaved,
                 lPersistent,
                 QEditInspector.QInspectorCrop.QInspectorCropbox.LCropboxStatePersistent,

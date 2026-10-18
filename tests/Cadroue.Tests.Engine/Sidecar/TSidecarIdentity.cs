@@ -48,14 +48,14 @@ public sealed class TSidecarIdentity
     {
         using var sidecar = new TSidecar();
         string source = sidecar.TSourceCreate("replaced.mp4", "first!");
-        Assert.True(sidecar.TLoudnessSave(source, -20));
-        Assert.Equal(-20, sidecar.TLoudnessRead(source));
+        Assert.True(sidecar.TRotateSave(source, 90));
+        Assert.Equal(90, sidecar.TRotateRead(source));
 
         sidecar.TSidecarSourceSet(source, "second");
 
-        Assert.Equal(0, sidecar.TLoudnessRead(source));
-        Assert.True(sidecar.TLoudnessSave(source, -9));
-        Assert.Equal(-9, sidecar.TLoudnessRead(source));
+        Assert.Equal(0, sidecar.TRotateRead(source));
+        Assert.True(sidecar.TRotateSave(source, 270));
+        Assert.Equal(270, sidecar.TRotateRead(source));
     }
 
     [Fact]
@@ -67,13 +67,13 @@ public sealed class TSidecarIdentity
         Assert.True(sidecar.TWaveformSave(source, 25, 2000, "AQ=="));
 
         sidecar.TSidecarSourceSet(source, "second");
-        Assert.True(sidecar.TLoudnessSave(source, -5));
+        Assert.True(sidecar.TRotateSave(source, 180));
 
         TSidecar.TSidecarData? read = sidecar.TSidecarRead(source);
         Assert.NotNull(read);
         Assert.Empty(read.TSidecarKeyframes);
         Assert.Null(read.TSidecarWave);
-        Assert.Equal(-5, read.TSidecarLoudness);
+        Assert.Equal(180, read.TSidecarRotation);
     }
 
     [Fact]

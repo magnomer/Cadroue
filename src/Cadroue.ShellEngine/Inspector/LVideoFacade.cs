@@ -30,7 +30,7 @@ public sealed class LVideoFacade
         var lSteps = new List<LWorkVideoStep>();
         foreach (string lToken in lProcessing)
         {
-            if (LColor.LColorKindParse(lToken) is { } lKind
+            if (LColorToken.LColorTokenParse(lToken) is { } lKind
                 && lTools.FirstOrDefault(lTool => lTool.LWorkStepKind == lKind) is { } lStep)
             {
                 lSteps.Add(lStep);
@@ -90,7 +90,7 @@ public sealed class LVideoFacade
 
         if (lWhitebalance is not null)
         {
-            lSteps.Add(LWhitebalanceFacade.LWhitebalanceStepCreate(lWhitebalance));
+            lSteps.Add(LWhitebalanceAnswer.LWhitebalanceStepCreate(lWhitebalance));
         }
 
         if (lExposure is { } lStops)

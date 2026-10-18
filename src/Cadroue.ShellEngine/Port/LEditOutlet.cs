@@ -1,7 +1,7 @@
 namespace Cadroue.ShellEngine;
 
-// The engine's face for the edit gate: every member forwards to the same-named member of the engine's edit facade.
-// It rejects a null engine and keeps it for every forward.
+// The engine's face for the edit gate: every member forwards to the same-named member of the engine's edit dispatch
+// or edit audio facade. It rejects a null engine and keeps it for every forward.
 public sealed class LEditOutlet : LEditPort
 {
     private readonly LEngine _lEditOutletEngine;
@@ -24,5 +24,5 @@ public sealed class LEditOutlet : LEditPort
         IReadOnlyList<string> lPaths,
         bool lSkipPersistent,
         bool lSkipApply) =>
-        _lEditOutletEngine.LEngineEdit.LEditAudioSave(lPersistent, lPaths, lSkipPersistent, lSkipApply);
+        _lEditOutletEngine.LEngineEditAudio.LEditAudioSave(lPersistent, lPaths, lSkipPersistent, lSkipApply);
 }

@@ -91,7 +91,7 @@ public sealed class LPresetSelection
         string lName = lNewName.Trim();
         if (string.IsNullOrWhiteSpace(lName)
             || string.Equals(lOldName, lName, StringComparison.OrdinalIgnoreCase)
-            || (LPresetNativeSeam?.Invoke(lOldName) ?? LPreset.LPresetNativeCheck(lOldName))
+            || (LPresetNativeSeam?.Invoke(lOldName) ?? LPresetTable.LPresetNativeCheck(lOldName))
             || LPresetNameCheck(lName))
         {
             return false;
@@ -144,7 +144,7 @@ public sealed class LPresetSelection
             return true;
         }
 
-        LPreset? lPresetValue = lSelected ? lWorking : LPreset.LPresetRead(lPresetName);
+        LPreset? lPresetValue = lSelected ? lWorking : LPresetTable.LPresetRead(lPresetName);
         return lPresetValue is null
             || LEncoding.LEncodingSupportCheck(
                 lKind,
@@ -154,11 +154,11 @@ public sealed class LPresetSelection
     }
 
     private static bool LPresetNameCheck(string lPresetName) =>
-        LPreset.LPresetNames.Any(lName =>
+        LPresetTable.LPresetNames.Any(lName =>
             string.Equals(lName, lPresetName, StringComparison.OrdinalIgnoreCase));
 
     private static string LPresetSelectionResolve(string lPresetName) =>
-        LPresetNameCheck(lPresetName) ? lPresetName : LPreset.LPresetFirstName ?? string.Empty;
+        LPresetNameCheck(lPresetName) ? lPresetName : LPresetTable.LPresetFirstName ?? string.Empty;
 
     private void LPresetDraftHandle(string lPresetName)
     {

@@ -15,7 +15,7 @@ public sealed class CClinic
     private readonly IReadOnlyList<string> _cClinicKinds;
     private readonly Dictionary<string, (bool CClinicRepair, bool CClinicPersistent)> _cClinicSteps =
         new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Dictionary<string, (LClinicPort CClinicResult, bool CClinicScanning)>>
+    private readonly Dictionary<string, Dictionary<string, (LCheckupPort CClinicResult, bool CClinicScanning)>>
         _cClinicResults = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, double> _cClinicProgress = new(StringComparer.OrdinalIgnoreCase);
     private bool _cClinicSalvageActive;
@@ -121,7 +121,7 @@ public sealed class CClinic
     public string CClinicResultFormat(IReadOnlyList<string> wording)
     {
         ArgumentNullException.ThrowIfNull(wording);
-        return CClinicResultFind() is { } stored ? stored.CClinicResult.LClinicResultFormat(wording) : wording[0];
+        return CClinicResultFind() is { } stored ? stored.CClinicResult.LCheckupFormat(wording) : wording[0];
     }
 
     public void CClinicMinimizedSet(bool minimized)
@@ -230,13 +230,13 @@ public sealed class CClinic
     }
 
     // A result replaces its source's result of that kind; a scan restarts the progress, any other outcome ends it.
-    public void CClinicResultAccept(LClinicPort result)
+    public void CClinicResultAccept(LCheckupPort result)
     {
         ArgumentNullException.ThrowIfNull(result);
-        (string source, string kind, bool scanning) = result.LClinicResultRead();
-        if (!_cClinicResults.TryGetValue(source, out Dictionary<string, (LClinicPort, bool)>? kinds))
+        (string source, string kind, bool scanning) = result.LCheckupRead();
+        if (!_cClinicResults.TryGetValue(source, out Dictionary<string, (LCheckupPort, bool)>? kinds))
         {
-            kinds = new Dictionary<string, (LClinicPort, bool)>(StringComparer.Ordinal);
+            kinds = new Dictionary<string, (LCheckupPort, bool)>(StringComparer.Ordinal);
             _cClinicResults[source] = kinds;
         }
 
@@ -302,11 +302,11 @@ public sealed class CClinic
 
     private bool CClinicFixedNormalize(bool fixedBasis) => fixedBasis && CClinicRepairCheck();
 
-    private (LClinicPort CClinicResult, bool CClinicScanning)? CClinicResultFind() =>
+    private (LCheckupPort CClinicResult, bool CClinicScanning)? CClinicResultFind() =>
         _cClinicKind is { } kind
         && _cClinicSource is { } source
-        && _cClinicResults.TryGetValue(source, out Dictionary<string, (LClinicPort, bool)>? kinds)
-        && kinds.TryGetValue(kind, out (LClinicPort, bool) stored)
+        && _cClinicResults.TryGetValue(source, out Dictionary<string, (LCheckupPort, bool)>? kinds)
+        && kinds.TryGetValue(kind, out (LCheckupPort, bool) stored)
             ? stored
             : null;
 

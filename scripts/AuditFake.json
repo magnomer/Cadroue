@@ -3,7 +3,7 @@
   "project": "Cadroue",
   "enforced": true,
   "ceilings": {
-    "Orphan": 166,
+    "Orphan": 154,
     "Tested": 124
   },
   "helper": {

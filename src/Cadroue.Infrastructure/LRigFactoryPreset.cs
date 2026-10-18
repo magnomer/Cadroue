@@ -6,13 +6,13 @@ public static class LRigFactoryPreset
 {
     public static void LRigPresetAttach()
     {
-        LPreset.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
-        LPreset.LPresetNativeSeam = LPresetNative.LPresetNativeLoad;
-        LPreset.LPresetLoadSeam = LPresetStore.LPresetLoad;
-        LPreset.LPresetSaveSeam = LPresetStore.LPresetSave;
-        LPresetDraft.LPresetLoadSeam = LPreset.LPresetSelectionRead;
-        LPresetSelection.LPresetSaveSeam = LPreset.LPresetSelectionSave;
-        LPresetSelection.LPresetRenameSeam = LPreset.LPresetSelectionSet;
+        LPresetPersistence.LPresetTraceSeam = lPresetMessage => LTraceLog.LTraceWarningRecord(lPresetMessage);
+        LPresetPersistence.LPresetNativeSeam = LPresetNative.LPresetNativeLoad;
+        LPresetPersistence.LPresetLoadSeam = LPresetStore.LPresetLoad;
+        LPresetPersistence.LPresetSaveSeam = LPresetStore.LPresetSave;
+        LPresetDraft.LPresetLoadSeam = LPresetTable.LPresetSelectionRead;
+        LPresetSelection.LPresetSaveSeam = LPresetTable.LPresetSelectionSave;
+        LPresetSelection.LPresetRenameSeam = LPresetTable.LPresetSelectionSet;
         LPresetSelection.LPresetOutputSeam = LPreset.LPresetSelectionResolve;
     }
 }

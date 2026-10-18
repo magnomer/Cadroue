@@ -23,7 +23,7 @@ public sealed class TSidecarParsing
                 "LSidecarDurationMilliseconds": 12500,
                 "LSidecarPartialHash": "ABC"
               },
-              "LSidecarLoudness": -16.75
+              "LSidecarEdit": { "LSidecarRotation": 90 }
             }
             """);
 
@@ -32,7 +32,7 @@ public sealed class TSidecarParsing
         Assert.Equal("clip.mp4", parsed.TSidecarFileName);
         Assert.Equal(4096, parsed.TSidecarSourceLength);
         Assert.Equal(12500, parsed.TSidecarDurationMilliseconds);
-        Assert.Equal(-16.75, parsed.TSidecarLoudness);
+        Assert.Equal(90, parsed.TSidecarRotation);
     }
 
     [Fact]
@@ -45,12 +45,15 @@ public sealed class TSidecarParsing
     public void MissingOptionalCacheData_PreservesCoreMetadata()
     {
         TSidecar.TSidecarData? parsed = TSidecar.TSidecarCoreParse(
-            """{"LSidecarSource":{"LSidecarFileName":"voice.wav","LSidecarLength":81},"LSidecarLoudness":-12.5}""");
+            """
+            {"LSidecarSource":{"LSidecarFileName":"voice.wav","LSidecarLength":81},
+            "LSidecarEdit":{"LSidecarRotation":270}}
+            """);
 
         Assert.NotNull(parsed);
         Assert.Equal("voice.wav", parsed.TSidecarFileName);
         Assert.Equal(81, parsed.TSidecarSourceLength);
-        Assert.Equal(-12.5, parsed.TSidecarLoudness);
+        Assert.Equal(270, parsed.TSidecarRotation);
         Assert.Empty(parsed.TSidecarKeyframes);
         Assert.Empty(parsed.TSidecarScannedSpans);
         Assert.Null(parsed.TSidecarWave);

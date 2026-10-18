@@ -22,7 +22,7 @@ public sealed class LWhitebalanceSampleOutlet : LWhitebalanceSamplePort
         LWhitebalanceSampleRead()
     {
         LNeutralSample lSample = _lWhitebalanceSample;
-        string lStatus = LNeutral.LNeutralStatusResolve(lSample.LNeutralOutcome) switch
+        string lStatus = LNeutralReadout.LNeutralStatusResolve(lSample.LNeutralOutcome) switch
         {
             LNeutralStatus.LNeutralStatusValid => "Valid",
             LNeutralStatus.LNeutralStatusDecode => "Decode",

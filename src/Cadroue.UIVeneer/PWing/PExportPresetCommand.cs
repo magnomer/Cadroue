@@ -13,7 +13,7 @@ public sealed partial class PExport
 {
     private void PExportPresetAdd(object sender, RoutedEventArgs e)
     {
-        string lPresetName = LPreset.LPresetNameCreate(QLocalizationCatalog.QLocalizationTextRead(
+        string lPresetName = LPresetNaming.LPresetNameCreate(QLocalizationCatalog.QLocalizationTextRead(
             "ExportPreset.DefaultName"));
         PExportPresetSave(lPresetName);
     }
@@ -39,12 +39,12 @@ public sealed partial class PExport
             return;
         }
 
-        if (LPreset.LPresetNativeCheck(lPresetName))
+        if (LPresetTable.LPresetNativeCheck(lPresetName))
         {
             return;
         }
 
-        if (!LPreset.LPresetDelete(lPresetName))
+        if (!LPresetTable.LPresetDelete(lPresetName))
         {
             PExportFailureShow(lPresetName);
         }
@@ -54,7 +54,7 @@ public sealed partial class PExport
     {
         LPresetDocument lPresetValue = lPresetOwner.LPresetSelectionValue;
         string lPresetName = PExportNameResolve(lPresetValue);
-        string pFileName = LPreset.LPresetFileFormat(lPresetName);
+        string pFileName = LPresetNaming.LPresetFileFormat(lPresetName);
         SaveFileDialog pDialog = PExportSaveBuild(PExportFileResolve(pFileName));
 
         if (pDialog.ShowDialog() != true)
@@ -136,12 +136,12 @@ public sealed partial class PExport
             return;
         }
 
-        string lImportedName = LPreset.LPresetNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
+        string lImportedName = LPresetNaming.LPresetNameResolve(lImportedRecord.LPresetName, pDialog.FileName);
 
-        string lPresetName = LPreset.LPresetNameCreate(PExportImportResolve(lImportedName));
+        string lPresetName = LPresetNaming.LPresetNameCreate(PExportImportResolve(lImportedName));
 
         PExportRecordSet(lImportedRecord, lPresetName);
-        if (!LPreset.LPresetSave(lPresetName, LPreset.LPresetStateCreate(lImportedRecord)))
+        if (!LPresetTable.LPresetSave(lPresetName, LPreset.LPresetStateCreate(lImportedRecord)))
         {
             PExportFailureShow(lPresetName);
             return;
@@ -171,7 +171,7 @@ public sealed partial class PExport
             return;
         }
 
-        if (LPreset.LPresetNativeCheck(lPresetName))
+        if (LPresetTable.LPresetNativeCheck(lPresetName))
         {
             return;
         }

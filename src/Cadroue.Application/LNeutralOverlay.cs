@@ -2,7 +2,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-public static partial class LNeutral
+// A click on the shown frame mapped back, through rotation and flips, to the source pixel it covers.
+public static class LNeutralOverlay
 {
     public static LNeutralPoint LNeutralPointResolve(
         double lNeutralClickX,

@@ -58,7 +58,7 @@ public static partial class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             string lMessengerSourcePath = lMessengerSource.LWorkSourcePath;
-            if (Cadroue.Application.LAudio.LAudioPlanRead(
+            if (Cadroue.Application.LAudioSidecar.LAudioSidecarRead(
                 lMessengerSourcePath,
                 Cadroue.Application.LLibrarian.LLibrarianAudioLoad)
                 is not { LWorkAudioActive: true } lMessengerPlan)

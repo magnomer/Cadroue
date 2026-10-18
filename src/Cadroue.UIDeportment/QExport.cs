@@ -57,13 +57,13 @@ public sealed class QExport
 
     private void QExportHandlerAttach()
     {
-        LPreset.LPresetStoreChanged += QExportSync;
+        LPresetTable.LPresetStoreChanged += QExportSync;
         qExportOwner.LPresetSelectionChanged += QExportUpdate;
     }
 
     public void QExportDetach()
     {
-        LPreset.LPresetStoreChanged -= QExportSync;
+        LPresetTable.LPresetStoreChanged -= QExportSync;
         qExportOwner.LPresetSelectionChanged -= QExportUpdate;
     }
 

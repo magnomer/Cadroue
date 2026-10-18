@@ -75,7 +75,7 @@ public sealed class QViewerMpv
 
             if (QViewerCropPersistent)
             {
-                QPlayer.QPlayerFilterApply(LPreview.LPreviewFilterResolve(qViewer.QViewerRenderRead()));
+                QPlayer.QPlayerFilterApply(LPreviewFilter.LPreviewFilterResolve(qViewer.QViewerRenderRead()));
             }
 
             await QPlayer.QPlayerOpenStart(lSourcePath);

@@ -14,7 +14,8 @@ public sealed class TPreview
 
     public TPreviewResult TPreviewApply(LPreviewState state)
     {
-        LPreviewApplication application = LPreview.LPreviewApplicationResolve(state, "preview color/geometry");
+        LPreviewApplication application =
+            LPreviewApplication.LPreviewApplicationResolve(state, "preview color/geometry");
         return new TPreviewResult(
             application.LPreviewBrightness,
             application.LPreviewContrast,

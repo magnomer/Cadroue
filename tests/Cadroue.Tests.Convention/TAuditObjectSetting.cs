@@ -53,19 +53,19 @@ internal static class TAuditObjectSetting
         ["Chameleon"] = 63,
         ["Octopus"] = 4,
         ["Centipede"] = 54,
-        ["Serpent"] = 15,
+        ["Serpent"] = 13,
         ["Hub"] = 12,
     };
 
     public static readonly IReadOnlyDictionary<string, int> TAuditPartsCeiling = new Dictionary<string, int>
     {
-        ["Cadroue.Application.LAudio"] = 2,
-        ["Cadroue.Application.LBridge"] = 2,
-        ["Cadroue.Application.LCropbox"] = 3,
-        ["Cadroue.Application.LEdit"] = 2,
-        ["Cadroue.Application.LFix"] = 2,
-        ["Cadroue.Application.LNeutral"] = 5,
-        ["Cadroue.Application.LPreset"] = 5,
+        ["Cadroue.Application.LAudio"] = 1,
+        ["Cadroue.Application.LBridge"] = 1,
+        ["Cadroue.Application.LCropbox"] = 1,
+        ["Cadroue.Application.LEdit"] = 1,
+        ["Cadroue.Application.LFix"] = 1,
+        ["Cadroue.Application.LNeutral"] = 1,
+        ["Cadroue.Application.LPreset"] = 1,
         ["Cadroue.Core.LCapabilityTable"] = 1,
         ["Cadroue.Core.LPiece"] = 1,
         ["Cadroue.Core.LRepertoireCatalog"] = 1,

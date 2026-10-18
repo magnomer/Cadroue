@@ -232,7 +232,7 @@ public sealed class QViewer
             return false;
         }
 
-        string lFilter = LPreview.LPreviewFilterResolve(QViewerRenderRead());
+        string lFilter = LPreviewFilter.LPreviewFilterResolve(QViewerRenderRead());
         bool lChanged = lFilter != QPlayer.QPlayerFilterApplied;
         if (!QPlayer.QPlayerFilterApply(lFilter) || !lChanged)
         {

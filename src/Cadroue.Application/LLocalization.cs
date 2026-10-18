@@ -4,13 +4,7 @@ namespace Cadroue.Application;
 
 public static class LLocalization
 {
-    private const string LLocalizationResourcePrefix = "localization.";
-    private const string LLocalizationResourceSuffix = ".json";
     private const string LLocalizationFallbackCode = "en";
-
-    public static Func<IEnumerable<string>>? LLocalizationNamesSeam { get; set; }
-
-    public static Func<string, string?>? LLocalizationTextSeam { get; set; }
 
     public static Action<string, Exception?>? LLocalizationTraceSeam { get; set; }
 
@@ -23,7 +17,7 @@ public static class LLocalization
     {
         lock (lLocalizationGate)
         {
-            lLocalizationFallbackCatalog = LLocalizationCatalogRead(LLocalizationFallbackCode);
+            lLocalizationFallbackCatalog = LLocalizationResource.LLocalizationCatalogRead(LLocalizationFallbackCode);
 
             if (lLocalizationFallbackCatalog is null)
             {
@@ -39,7 +33,8 @@ public static class LLocalization
             }
             else
             {
-                LLocalizationCatalog? lLocalizationSelected = LLocalizationCatalogRead(lLocalizationCode);
+                LLocalizationCatalog? lLocalizationSelected =
+                    LLocalizationResource.LLocalizationCatalogRead(lLocalizationCode);
                 if (lLocalizationSelected is null)
                 {
                     LLocalizationTraceRecord(
@@ -50,20 +45,25 @@ public static class LLocalization
             }
 
             lLocalizationLanguages = null;
-            CultureInfo lLocalizationCulture;
-            try
-            {
-                lLocalizationCulture = CultureInfo.GetCultureInfo(
-                    lLocalizationCurrentCatalog?.LLocalizationCatalogCode ?? LLocalizationFallbackCode);
-            }
-            catch (CultureNotFoundException)
-            {
-                lLocalizationCulture = CultureInfo.GetCultureInfo(LLocalizationFallbackCode);
-            }
-
-            CultureInfo.CurrentUICulture = lLocalizationCulture;
-            CultureInfo.DefaultThreadCurrentUICulture = lLocalizationCulture;
+            LLocalizationCultureApply(
+                lLocalizationCurrentCatalog?.LLocalizationCatalogCode ?? LLocalizationFallbackCode);
         }
+    }
+
+    private static void LLocalizationCultureApply(string lLocalizationCode)
+    {
+        CultureInfo lLocalizationCulture;
+        try
+        {
+            lLocalizationCulture = CultureInfo.GetCultureInfo(lLocalizationCode);
+        }
+        catch (CultureNotFoundException)
+        {
+            lLocalizationCulture = CultureInfo.GetCultureInfo(LLocalizationFallbackCode);
+        }
+
+        CultureInfo.CurrentUICulture = lLocalizationCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = lLocalizationCulture;
     }
 
     public static IReadOnlyDictionary<string, string> LLocalizationTextsRead()
@@ -163,9 +163,10 @@ public static class LLocalization
             }
 
             var lLocalizationResult = new SortedDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string lLocalizationCode in LLocalizationCodesRead())
+            foreach (string lLocalizationCode in LLocalizationResource.LLocalizationCodesRead())
             {
-                LLocalizationCatalog? lLocalizationCatalog = LLocalizationCatalogRead(lLocalizationCode);
+                LLocalizationCatalog? lLocalizationCatalog =
+                    LLocalizationResource.LLocalizationCatalogRead(lLocalizationCode);
                 if (lLocalizationCatalog is not null)
                 {
                     lLocalizationResult[lLocalizationCatalog.LLocalizationCatalogCode] =
@@ -212,50 +213,4 @@ public static class LLocalization
         string lLocalizationMessage,
         Exception? lLocalizationException = null) =>
         LLocalizationTraceSeam?.Invoke(lLocalizationMessage, lLocalizationException);
-
-    public static string? LLocalizationResourceRead(string lLocalizationName) =>
-        LLocalizationTextSeam?.Invoke(lLocalizationName);
-
-    public static string? LLocalizationStreamRead(Stream? lLocalizationStream)
-    {
-        if (lLocalizationStream is null)
-        {
-            return null;
-        }
-
-        using var lLocalizationReader = new StreamReader(lLocalizationStream);
-        return lLocalizationReader.ReadToEnd();
-    }
-
-    private static IEnumerable<string> LLocalizationCodesRead() =>
-        (LLocalizationNamesSeam?.Invoke() ?? Array.Empty<string>())
-            .Where(lLocalizationName =>
-                lLocalizationName.StartsWith(LLocalizationResourcePrefix, StringComparison.Ordinal)
-                && lLocalizationName.EndsWith(LLocalizationResourceSuffix, StringComparison.Ordinal))
-            .Select(lLocalizationName => lLocalizationName[
-                LLocalizationResourcePrefix.Length..^LLocalizationResourceSuffix.Length])
-            .Where(lLocalizationCode => !lLocalizationCode.Contains('.'))
-            .OrderBy(lLocalizationCode => lLocalizationCode, StringComparer.OrdinalIgnoreCase);
-
-    private static LLocalizationCatalog? LLocalizationCatalogRead(string lLocalizationCode)
-    {
-        try
-        {
-            if (LLocalizationResourceRead(
-                    LLocalizationResourcePrefix + lLocalizationCode + LLocalizationResourceSuffix)
-                is not { } lLocalizationJson)
-            {
-                return null;
-            }
-
-            return LLocalizationCatalog.LLocalizationCatalogLoad(lLocalizationCode, lLocalizationJson);
-        }
-        catch (Exception lLocalizationException)
-        {
-            LLocalizationTraceRecord(
-                $"Localization could not be loaded: {lLocalizationCode}",
-                lLocalizationException);
-            return null;
-        }
-    }
 }

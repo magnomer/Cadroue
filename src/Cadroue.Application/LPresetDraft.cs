@@ -27,7 +27,7 @@ public static class LPresetDraft
                 LPresetDrafts.Remove(lPresetName);
             }
 
-            LPresetNameChanged?.Invoke(lPresetName, LPreset.LPresetFirstName ?? string.Empty);
+            LPresetNameChanged?.Invoke(lPresetName, LPresetTable.LPresetFirstName ?? string.Empty);
             return;
         }
 
@@ -35,7 +35,7 @@ public static class LPresetDraft
         {
             if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetDocument? lPresetDraft)
                 || lPresetPrevious is null
-                || !LPreset.LPresetRecordMatch(lPresetPrevious, lPresetDraft))
+                || !LPresetComparison.LPresetRecordMatch(lPresetPrevious, lPresetDraft))
             {
                 return;
             }
@@ -114,7 +114,7 @@ public static class LPresetDraft
         {
             if (!LPresetDrafts.TryGetValue(lPresetName, out LPresetDocument? lPresetDraft)
                 || (LPresetLoadSeam?.Invoke(lPresetName) is { } lPresetStored
-                    && LPreset.LPresetRecordMatch(lPresetStored, lPresetDraft)))
+                    && LPresetComparison.LPresetRecordMatch(lPresetStored, lPresetDraft)))
             {
                 LPresetDrafts[lPresetName] = lPresetValue;
             }

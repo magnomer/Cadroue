@@ -1,9 +1,8 @@
-using System.IO;
 using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-public static partial class LSplit
+public static class LSplit
 {
     public static IReadOnlyList<LWorkItem> LSplitItemsCreate(
         LWorkPriority lWorkPriority,
@@ -106,7 +105,6 @@ public static partial class LSplit
         return lSplitWorkItems;
     }
 
-
     private static string LSplitNameCreate(
         LEncoding lSplitOutput,
         string lSplitSourcePath,
@@ -115,6 +113,30 @@ public static partial class LSplit
         int lSplitIndex,
         DateTimeOffset lSplitStamp,
         HashSet<string> lSplitTakenNames)
+    {
+        string lSplitStem = LSplitStemResolve(lSplitOutput, lSplitSourceStem, lSplitSection, lSplitIndex, lSplitStamp);
+        string lSplitBaseName = LSplitNameNormalize(lSplitStem);
+        string lSplitUniqueName = lSplitBaseName;
+        int lSplitAttempt = 2;
+        while (!lSplitTakenNames.Add(lSplitUniqueName))
+        {
+            lSplitUniqueName = $"{lSplitBaseName}_{lSplitAttempt}";
+            lSplitAttempt++;
+        }
+
+        string lSplitExtension = LEncodingPath.LEncodingExtensionResolve(lSplitOutput, lSplitSourcePath);
+        return string.IsNullOrWhiteSpace(lSplitExtension)
+            ? lSplitUniqueName
+            : $"{lSplitUniqueName}.{lSplitExtension}";
+    }
+
+    // The output pattern with every token of one section filled in, shortened to the path limit.
+    private static string LSplitStemResolve(
+        LEncoding lSplitOutput,
+        string lSplitSourceStem,
+        LSplitSectionDescription lSplitSection,
+        int lSplitIndex,
+        DateTimeOffset lSplitStamp)
     {
         string lSplitSectionName = lSplitSection.LSplitSectionName;
         string lSplitPattern = string.IsNullOrWhiteSpace(lSplitOutput.LEncodingNamePattern)
@@ -146,21 +168,7 @@ public static partial class LSplit
             .Replace("{Date}", lSplitStamp.ToString("yyyy-MM-dd"), StringComparison.OrdinalIgnoreCase)
             .Replace("{Time}", lSplitStamp.ToString("HHmmss"), StringComparison.OrdinalIgnoreCase);
 
-        lSplitStem = LEncodingPath.LEncodingShorten(lSplitStem);
-
-        string lSplitBaseName = LSplitNameNormalize(lSplitStem);
-        string lSplitUniqueName = lSplitBaseName;
-        int lSplitAttempt = 2;
-        while (!lSplitTakenNames.Add(lSplitUniqueName))
-        {
-            lSplitUniqueName = $"{lSplitBaseName}_{lSplitAttempt}";
-            lSplitAttempt++;
-        }
-
-        string lSplitExtension = LEncodingPath.LEncodingExtensionResolve(lSplitOutput, lSplitSourcePath);
-        return string.IsNullOrWhiteSpace(lSplitExtension)
-            ? lSplitUniqueName
-            : $"{lSplitUniqueName}.{lSplitExtension}";
+        return LEncodingPath.LEncodingShorten(lSplitStem);
     }
 
     private static string LSplitNameNormalize(string lSplitName)

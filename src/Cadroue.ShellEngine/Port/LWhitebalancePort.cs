@@ -31,21 +31,9 @@ public interface LWhitebalancePort
 
     // The plan step an answer stands for; static, since it reads only the answer given.
     static LWorkVideoStep LWhitebalanceStepCreate(LWhitebalanceAnswer lAnswer) =>
-        LWhitebalanceFacade.LWhitebalanceStepCreate(lAnswer);
+        LWhitebalanceAnswer.LWhitebalanceStepCreate(lAnswer);
 
     // The Core method a token names; the viewer's estimate takes it. An unknown token throws.
     static LWhitebalanceMethod LWhitebalanceMethodRead(string lToken) =>
-        LWhitebalanceFacade.LWhitebalanceMethodRead(lToken);
+        LWhitebalanceAnswer.LWhitebalanceMethodRead(lToken);
 }
-
-// One white balance step as plain values. The token names the method: Average, Minmax, Median or Manual.
-public sealed record LWhitebalanceAnswer(
-    bool LWhitebalanceActive,
-    string LWhitebalanceToken,
-    double LWhitebalanceSaturation,
-    double LWhitebalanceRed,
-    double LWhitebalanceGreen,
-    double LWhitebalanceBlue,
-    int LWhitebalanceSampleRed,
-    int LWhitebalanceSampleGreen,
-    int LWhitebalanceSampleBlue);

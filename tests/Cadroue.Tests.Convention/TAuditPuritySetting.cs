@@ -72,7 +72,7 @@ internal static class TAuditPuritySetting
         ["Eavesdropping:Cadroue.ShellEngine>System.IO.Path"] = 67,
         ["Foraging:Cadroue.Application>System.Buffers.Binary"] = 3,
         ["Foraging:Cadroue.Application>System.Collections.ObjectModel"] = 17,
-        ["Foraging:Cadroue.Application>System.IO"] = 72,
+        ["Foraging:Cadroue.Application>System.IO"] = 63,
         ["Foraging:Cadroue.Application>System.Security.Cryptography"] = 2,
         ["Foraging:Cadroue.Application>System.Text.Json"] = 22,
         ["Foraging:Cadroue.Core>System.Collections.Concurrent"] = 5,

@@ -18,7 +18,7 @@ internal sealed class TSidecar : IDisposable
         string TSidecarFileName,
         long TSidecarSourceLength,
         long TSidecarDurationMilliseconds,
-        double TSidecarLoudness,
+        int TSidecarRotation,
         IReadOnlyList<long> TSidecarKeyframes,
         IReadOnlyList<int> TSidecarScannedSpans,
         TSidecarWaveform? TSidecarWave);
@@ -75,10 +75,12 @@ internal sealed class TSidecar : IDisposable
         return sidecar is null ? null : TSidecarDataCreate(sidecar);
     }
 
-    internal bool TLoudnessSave(string sourcePath, double loudness) =>
-        LSidecarField.LSidecarLoudnessSave(sourcePath, loudness) && LSidecarPending.LSidecarPersist();
+    internal bool TRotateSave(string sourcePath, int rotation) =>
+        LSidecarField.LSidecarEditSave(sourcePath, new LSidecarEditEntry { LSidecarRotation = rotation })
+        && LSidecarPending.LSidecarPersist();
 
-    internal double TLoudnessRead(string sourcePath) => LSidecarField.LSidecarLoudnessRead(sourcePath);
+    internal int TRotateRead(string sourcePath) =>
+        LSidecarField.LSidecarEditRead(sourcePath)?.LSidecarRotation ?? 0;
 
     internal void TSidecarLocationSet(bool locationMode) =>
         LSidecarPath.LSidecarFolderSet(tSidecarRoot, !locationMode);
@@ -160,7 +162,7 @@ internal sealed class TSidecar : IDisposable
             sidecar.LSidecarSource.LSidecarFileName,
             sidecar.LSidecarSource.LSidecarLength,
             sidecar.LSidecarSource.LSidecarDurationMilliseconds,
-            sidecar.LSidecarLoudness,
+            sidecar.LSidecarEdit?.LSidecarRotation ?? 0,
             sidecar.LSidecarKeyframesRead().ToArray(),
             sidecar.LSidecarScannedSpans.ToArray(),
             sidecar.LSidecarWaveform is { } waveform

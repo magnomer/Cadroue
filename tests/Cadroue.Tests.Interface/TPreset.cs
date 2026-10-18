@@ -8,14 +8,14 @@ internal sealed record TPresetSelectionResult(bool TPresetSelectionOk, string TP
 
 public sealed class TPreset : IDisposable
 {
-    public string TPresetNativeName => LPreset.LPresetSplitDefault;
+    public string TPresetNativeName => LPresetNaming.LPresetSplitDefault;
 
     public void TPresetSeedCreate(params string[] names)
     {
-        LPreset.LPresetNames.Clear();
+        LPresetTable.LPresetNames.Clear();
         foreach (string name in names)
         {
-            LPreset.LPresetNames.Add(name);
+            LPresetTable.LPresetNames.Add(name);
         }
 
         LPresetDraft.LPresetLoadSeam = name => new LPresetDocument { LPresetName = name };
@@ -24,11 +24,11 @@ public sealed class TPreset : IDisposable
             string.Equals(name, TPresetNativeName, StringComparison.OrdinalIgnoreCase);
     }
 
-    public string TPresetNameCreate(string baseName) => LPreset.LPresetNameCreate(baseName);
+    public string TPresetNameCreate(string baseName) => LPresetNaming.LPresetNameCreate(baseName);
 
-    public string TPresetFileRead(string raw) => LPreset.LPresetFileFormat(raw);
+    public string TPresetFileRead(string raw) => LPresetNaming.LPresetFileFormat(raw);
 
-    public string TPresetImportRead(string stored, string path) => LPreset.LPresetNameResolve(stored, path);
+    public string TPresetImportRead(string stored, string path) => LPresetNaming.LPresetNameResolve(stored, path);
 
     public IReadOnlyList<LPresetGroup> TPresetNativeLoad() => LPresetNative.LPresetNativeLoad();
 
@@ -94,7 +94,7 @@ public sealed class TPreset : IDisposable
 
     public void Dispose()
     {
-        LPreset.LPresetNames.Clear();
+        LPresetTable.LPresetNames.Clear();
         LPresetDraft.LPresetLoadSeam = null;
         LPresetSelection.LPresetRenameSeam = null;
         LPresetSelection.LPresetNativeSeam = null;

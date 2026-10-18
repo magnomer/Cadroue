@@ -52,7 +52,7 @@ internal sealed partial class LJob
     private async Task<(int, string)> LJobPassRun()
     {
         IReadOnlyList<LDossier> pRepairable =
-            LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
+            LFixPlan.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
         int pExit = 0;
         string pError = string.Empty;
         HashSet<LFlawKind>? pPrevRemaining = null;
@@ -75,7 +75,7 @@ internal sealed partial class LJob
             IReadOnlyList<LDossier> pRescan =
                 await LFlawScanner.LFlawScanRun(lJobItem.LWorkOutputPath, Array.Empty<LFlawKind>(), lJobToken)
                     .ConfigureAwait(false);
-            var pRemaining = LFix.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
+            var pRemaining = LFixPlan.LFixRepairResolve(pRescan, lJobItem.LWorkFixPlan)
                 .Where(pDossier => pDossier.LDossierRepair != LFlawFfvone.LFlawReport)
                 .ToList();
             if (pRemaining.Count == 0)
@@ -189,7 +189,7 @@ internal sealed partial class LJob
         }
 
         IReadOnlyList<LDossier> pRepairable =
-            LFix.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
+            LFixPlan.LFixRepairResolve(lJobItem.LWorkDossiers, lJobItem.LWorkFixPlan);
         if (lJobValidateState == LWorkState.LWorkStateDone
             && pRepairable.Any(pDossier => pDossier.LDossierRepair == LFlawFfvone.LFlawReport))
         {

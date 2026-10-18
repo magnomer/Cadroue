@@ -138,11 +138,11 @@ public static partial class LCartographer
     {
         LEditPlan lCartographerPlan =
             lCartographerLayout.LSceneInspector?.LSceneInspectorEdit is { } lCartographerRecord
-                ? LEdit.LEditPersistentRead(lCartographerRecord)
+                ? LEditSidecar.LEditPersistentRead(lCartographerRecord)
                 : LEditPlan.LEditEmptyCreate();
         bool lCartographerEqCapable = LInventoryEngine.LInventoryFilterSeam("eq");
         (LWorkCrop lCartographerCrop, LWorkVideo lCartographerVideo) =
-            LEdit.LEditWorkResolve(lCartographerPlan, lCartographerEqCapable);
+            LEditPlan.LEditWorkResolve(lCartographerPlan, lCartographerEqCapable);
 
         var lCartographerAcknowledged = new List<string>();
         foreach (string lCartographerPath in lCartographerPaths)
@@ -187,7 +187,7 @@ public static partial class LCartographer
     {
         LWorkAudio lCartographerProcessing =
             lCartographerLayout.LSceneInspector?.LSceneInspectorAudio is { } lCartographerRecord
-                ? LAudio.LAudioPersistentRead(lCartographerRecord)
+                ? LAudioSidecar.LAudioPersistentRead(lCartographerRecord)
                 : LWorkAudio.LWorkAudioCreate();
 
         foreach (string lCartographerPath in lCartographerPaths)

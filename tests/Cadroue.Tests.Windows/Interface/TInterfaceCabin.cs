@@ -268,10 +268,11 @@ internal static partial class TInterface
         new(kind, repair, persistent);
     internal static LWorkFix TFixPlanCreate(IReadOnlyList<LWorkFixStep> steps, LWorkFixSalvage? salvage = null) =>
         new(steps) { LWorkFixSalvage = salvage ?? LWorkFixSalvage.LWorkSalvageCreate() };
-    internal static LSidecarFixEntry TFixRecordCreate(LWorkFix plan) => LFix.LFixPersistentCreate(plan);
+    internal static LSidecarFixEntry TFixRecordCreate(LWorkFix plan) => LFixSidecar.LFixPersistentCreate(plan);
     internal static LWorkAudio TWorkAudioCreate(bool skip, params LWorkAudioStep[] steps) =>
         new(steps) { LWorkAudioSkip = skip };
-    internal static LSidecarAudioEntry TAudioRecordCreate(LWorkAudio plan) => LAudio.LAudioPersistentCreate(plan);
+    internal static LSidecarAudioEntry TAudioRecordCreate(LWorkAudio plan) =>
+        LAudioSidecar.LAudioPersistentCreate(plan);
 
     internal static QAction TActionCreate() => new();
     internal static void TActionDocketAttach(QAction action, LDocket docket) => action.QActionDocketAttach(docket);

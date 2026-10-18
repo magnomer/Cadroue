@@ -1,6 +1,6 @@
 namespace Cadroue.Application;
 
-public static partial class LBridge
+public static class LBridgeLeading
 {
     private const int LBridgeLeadingCra = 21;
     private const int LBridgeLeadingBla = 16;

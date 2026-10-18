@@ -46,7 +46,7 @@ public partial class PProgram : System.Windows.Application
     public static string[] PProgramNamesRead() => typeof(PProgram).Assembly.GetManifestResourceNames();
 
     public static string? PProgramResourceRead(string pName) =>
-        LLocalization.LLocalizationStreamRead(typeof(PProgram).Assembly.GetManifestResourceStream(pName));
+        LLocalizationResource.LLocalizationStreamRead(typeof(PProgram).Assembly.GetManifestResourceStream(pName));
 
     public void PProgramDebounceDefer()
     {

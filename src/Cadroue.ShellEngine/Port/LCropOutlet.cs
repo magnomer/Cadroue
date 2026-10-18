@@ -55,9 +55,9 @@ public sealed class LCropOutlet : LCropPort
     public (bool LCropTolerated, int LCropExcess, bool LCropWide) LCropNoticeRead(double lWidth, double lHeight)
     {
         LCropboxRatio lRatio = _lCropOutletState.LCropboxStateRatio;
-        bool lTolerated = LCropbox.LCropboxToleranceCheck(
+        bool lTolerated = LCropboxAspect.LCropboxToleranceCheck(
             lWidth, lHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
-        (int lExcess, bool lWide) = LCropbox.LCropboxExcessResolve(
+        (int lExcess, bool lWide) = LCropboxAspect.LCropboxExcessResolve(
             lWidth, lHeight, lRatio.LCropboxRatioWidth, lRatio.LCropboxRatioHeight);
         return (lTolerated, lExcess, lWide);
     }
@@ -66,20 +66,20 @@ public sealed class LCropOutlet : LCropPort
 
     public (int LCropWidth, int LCropHeight) LCropRatioNormalize(int lWidth, int lHeight)
     {
-        LCropboxExtent lExtent = LCropbox.LCropboxRatioNormalize(lWidth, lHeight);
+        LCropboxExtent lExtent = LCropboxAspect.LCropboxRatioNormalize(lWidth, lHeight);
         return (lExtent.LCropboxExtentWidth, lExtent.LCropboxExtentHeight);
     }
 
     public LWorkCrop LCropWorkRead()
     {
         (_, double lWidth, double lHeight) = _lCropOutletSource();
-        return LCropbox.LCropboxEdgeNormalize(_lCropOutletState.LCropboxStateCrop, lWidth, lHeight);
+        return LCropboxInset.LCropboxEdgeNormalize(_lCropOutletState.LCropboxStateCrop, lWidth, lHeight);
     }
 
     public LCropbox? LCropRectRead()
     {
         (_, double lWidth, double lHeight) = _lCropOutletSource();
-        return LCropbox.LCropboxRectResolve(_lCropOutletState.LCropboxStateCrop, lWidth, lHeight);
+        return LCropboxInset.LCropboxRectResolve(_lCropOutletState.LCropboxStateCrop, lWidth, lHeight);
     }
 
     public void LCropRotateSet(int lRotation)
@@ -208,7 +208,7 @@ public sealed class LCropOutlet : LCropPort
     {
         (_, double lWidth, double lHeight) = _lCropOutletSource();
         LCropbox? lSnapped = lDrawn is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lDesired
-            ? LCropbox.LCropboxFitResolve(
+            ? LCropboxAspect.LCropboxFitResolve(
                 lDesired,
                 new LCropbox(0, 0, lWidth, lHeight),
                 _lCropOutletState.LCropboxStateRatio,
@@ -249,7 +249,7 @@ public sealed class LCropOutlet : LCropPort
         double lBoundsWidth = lWidth - lCrop.LWorkCropLeft - lCrop.LWorkCropRight;
         double lBoundsHeight = lHeight - lCrop.LWorkCropTop - lCrop.LWorkCropBottom;
         LCropbox? lPreset = lBoundsWidth > 0 && lBoundsHeight > 0
-            ? LCropbox.LCropboxRatioResolve(
+            ? LCropboxAspect.LCropboxRatioResolve(
                 new LCropbox(lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lBoundsWidth, lBoundsHeight),
                 lRatioWidth,
                 lRatioHeight)
@@ -289,7 +289,7 @@ public sealed class LCropOutlet : LCropPort
     private static LWorkCrop LCropOrientationResolve(
         LWorkCrop lCrop, int lRotation, bool lFlipHorizontal, bool lFlipVertical) =>
         lCrop.LWorkEdgeActive
-            ? LCropbox.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
+            ? LCropboxOrientation.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
             : lCrop with
             {
                 LWorkCropRotation = lRotation,

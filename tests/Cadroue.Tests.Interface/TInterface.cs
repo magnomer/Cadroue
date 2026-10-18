@@ -192,7 +192,7 @@ internal static partial class TInterface
         LBridge.LBridgeRegionResolve(keyframes, origin, end, openEnd);
     internal static bool TBridgeEndCheck(TimeSpan end, TimeSpan duration, double framerate) =>
         LBridge.LBridgeEndCheck(end, duration, framerate);
-    internal static bool TBridgeLeadingNormalize(byte[] bytes) => LBridge.LBridgeLeadingNormalize(bytes);
+    internal static bool TBridgeLeadingNormalize(byte[] bytes) => LBridgeLeading.LBridgeLeadingNormalize(bytes);
 
     internal static bool TRetentionExpiredCheck(DateTime writeUtc, DateTime nowUtc, int days) =>
         LRetention.LRetentionExpiredCheck(writeUtc, nowUtc, days);
@@ -303,15 +303,15 @@ internal static partial class TInterface
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
     internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet(TInterfaceEngine);
     internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
-    internal static LClinicPort TClinicResultCreate(string path, string kind, string outcome) =>
-        new LClinicOutlet(new LCheckupResult(
+    internal static LCheckupPort TClinicResultCreate(string path, string kind, string outcome) =>
+        new LCheckupOutlet(new LCheckupResult(
             path, Enum.Parse<LFlawKind>($"LFlawKind{kind}"), Enum.Parse<LCheckupOutcome>($"LCheckupOutcome{outcome}")));
 
     internal static void TLocalizationSeamSet(
         Func<IEnumerable<string>>? names, Func<string, string?>? text, Action<string, Exception?>? trace)
     {
-        LLocalization.LLocalizationNamesSeam = names;
-        LLocalization.LLocalizationTextSeam = text;
+        LLocalizationResource.LLocalizationNamesSeam = names;
+        LLocalizationResource.LLocalizationTextSeam = text;
         LLocalization.LLocalizationTraceSeam = trace;
     }
     internal static void TLocalizationLoad(string? language) => LLocalization.LLocalizationLoad(language);

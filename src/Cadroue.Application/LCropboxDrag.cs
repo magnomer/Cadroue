@@ -109,7 +109,7 @@ public static class LCropboxDrag
             lCropboxY = lCropboxOrigin.LCropboxY + ((lCropboxOrigin.LCropboxHeight - lCropboxHeight) / 2);
         }
 
-        return LCropbox.LCropboxRectClamp(
+        return LCropboxDisplay.LCropboxRectClamp(
             new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight),
             lCropboxVideo,
             lCropboxRatioLocked);

@@ -24,7 +24,7 @@ public static partial class LMessenger
         foreach (LWorkSource lMessengerSource in lMessengerSources)
         {
             lMessengerRelays[lMessengerSource.LWorkSourcePath] = lMessengerSource.LWorkSourceBatch;
-            if (Cadroue.Application.LFix.LFixPlanRead(
+            if (Cadroue.Application.LFixSidecar.LFixSidecarRead(
                     lMessengerSource.LWorkSourcePath,
                     Cadroue.Application.LLibrarian.LLibrarianFixLoad) is { } lMessengerPlan)
             {

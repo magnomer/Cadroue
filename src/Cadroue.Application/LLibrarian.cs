@@ -8,14 +8,11 @@ namespace Cadroue.Application;
 public static class LLibrarian
 {
     public static Func<string, LSidecarCoreDocument?>? LLibrarianCoreReader;
-    public static Func<string, IReadOnlyList<long>>? LLibrarianKeyframesSeam;
-    public static Func<string, LSidecarWaveformEntry?>? LLibrarianWaveformReader;
     public static Func<string, LSidecarEditEntry?>? LLibrarianEditReader;
     public static Func<string, LSidecarAudioEntry?>? LLibrarianAudioReader;
     public static Func<string, LSidecarSplitEntry?>? LLibrarianSplitReader;
     public static Func<string, LSidecarFixEntry?>? LLibrarianFixReader;
     public static Func<string, IReadOnlyList<LSidecarDossier>?>? LLibrarianDiagnosisReader;
-    public static Func<string, double>? LLibrarianLoudnessReader;
     public static Func<string, TimeSpan>? LLibrarianDurationReader;
     public static Func<string, Task<TimeSpan>>? LLibrarianDurationResolver;
 
@@ -29,17 +26,9 @@ public static class LLibrarian
     public static Func<string, LSidecarFixEntry?, bool>? LLibrarianFixWriter;
     public static Func<string, LKeyframeSourceIdentity, IReadOnlyCollection<LSidecarDossier>, bool>?
         LLibrarianDiagnosisWriter;
-    public static Func<string, double, bool>? LLibrarianLoudnessWriter;
-    public static Func<string, LSidecarWaveformEntry?, bool>? LLibrarianWaveformWriter;
 
     public static LSidecarCoreDocument? LLibrarianLoad(string lLibrarianSourcePath) =>
         LLibrarianCoreReader?.Invoke(lLibrarianSourcePath);
-
-    public static IReadOnlyList<long> LLibrarianKeyframesLoad(string lLibrarianSourcePath) =>
-        LLibrarianKeyframesSeam?.Invoke(lLibrarianSourcePath) ?? Array.Empty<long>();
-
-    public static LSidecarWaveformEntry? LLibrarianWaveformLoad(string lLibrarianSourcePath) =>
-        LLibrarianWaveformReader?.Invoke(lLibrarianSourcePath);
 
     public static LSidecarEditEntry? LLibrarianEditLoad(string lLibrarianSourcePath) =>
         LLibrarianEditReader?.Invoke(lLibrarianSourcePath);
@@ -55,9 +44,6 @@ public static class LLibrarian
 
     public static IReadOnlyList<LSidecarDossier>? LLibrarianDiagnosisLoad(string lLibrarianSourcePath) =>
         LLibrarianDiagnosisReader?.Invoke(lLibrarianSourcePath);
-
-    public static double LLibrarianLoudnessRead(string lLibrarianSourcePath) =>
-        LLibrarianLoudnessReader?.Invoke(lLibrarianSourcePath) ?? 0;
 
     public static TimeSpan LLibrarianDurationRead(string lLibrarianSourcePath) =>
         LLibrarianDurationReader?.Invoke(lLibrarianSourcePath) ?? TimeSpan.Zero;
@@ -91,12 +77,4 @@ public static class LLibrarian
         LKeyframeSourceIdentity lLibrarianIdentity,
         IReadOnlyCollection<LSidecarDossier> lLibrarianDossiers) =>
         LLibrarianDiagnosisWriter?.Invoke(lLibrarianSourcePath, lLibrarianIdentity, lLibrarianDossiers) ?? false;
-
-    public static bool LLibrarianLoudnessSave(string lLibrarianSourcePath, double lLibrarianLoudness) =>
-        LLibrarianLoudnessWriter?.Invoke(lLibrarianSourcePath, lLibrarianLoudness) ?? false;
-
-    public static bool LLibrarianWaveformSave(
-        string lLibrarianSourcePath,
-        LSidecarWaveformEntry? lLibrarianWaveform) =>
-        LLibrarianWaveformWriter?.Invoke(lLibrarianSourcePath, lLibrarianWaveform) ?? false;
 }

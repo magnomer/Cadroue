@@ -25,7 +25,7 @@ public static partial class LSweep
 
     private static string LSweepColorFormat(LDetectorBlank lSweepSpec)
     {
-        (int lSweepRed, int lSweepGreen, int lSweepBlue) = LNeutral.LNeutralRgbResolve(
+        (int lSweepRed, int lSweepGreen, int lSweepBlue) = LNeutralColor.LNeutralRgbResolve(
             lSweepSpec.LDetectorBlankHue,
             lSweepSpec.LDetectorBlankSaturation,
             Math.Max(lSweepSpec.LDetectorBlankBrightness, 0.001));

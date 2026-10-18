@@ -50,7 +50,7 @@ public sealed class QProgram
         QPlacement.QPlacementImport(lPlacementKeys.Select(lPlacementKey => (lPlacementKey, lPlacementKey)).ToArray());
 
         LRendererFolder.LRendererToolAttach();
-        LPreset.LPresetPrepare();
+        LPresetPersistence.LPresetPrepare();
         qProgramStation(lDispatch);
         LAutopsy.LAutopsyProseAttach();
         LInventory.LInventoryPrepareStart();
@@ -73,8 +73,8 @@ public sealed class QProgram
         Func<string, string?> lResourceRead,
         Action lDebounceRestart)
     {
-        LLocalization.LLocalizationNamesSeam = lResourceNames;
-        LLocalization.LLocalizationTextSeam = lResourceRead;
+        LLocalizationResource.LLocalizationNamesSeam = lResourceNames;
+        LLocalizationResource.LLocalizationTextSeam = lResourceRead;
         LPreference.LPreferenceDebounceSeam = lDebounceRestart;
     }
 

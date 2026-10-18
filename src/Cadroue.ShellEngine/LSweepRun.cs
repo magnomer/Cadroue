@@ -173,11 +173,7 @@ public static partial class LSweep
 
     private static string LSweepFaultFormat(LEmployerResult lSweepResult)
     {
-        string[] lSweepTail = lSweepResult.LEmployerError
-            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        LAutopsyResult lSweepAutopsy = LAutopsy.LAutopsyResolve(
-            lSweepResult.LEmployerExit,
-            string.Join(" | ", lSweepTail[^Math.Min(3, lSweepTail.Length)..]));
+        LAutopsyResult lSweepAutopsy = LAutopsy.LAutopsyResolve(lSweepResult.LEmployerExit);
         return lSweepAutopsy.LAutopsyResultVisible
             ? $"{lSweepAutopsy.LAutopsyResultSimple} (exit {lSweepAutopsy.LAutopsyResultCode})"
             : $"{lSweepAutopsy.LAutopsyResultTechnical} (exit {lSweepAutopsy.LAutopsyResultCode})";

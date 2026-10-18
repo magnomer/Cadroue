@@ -63,7 +63,8 @@ public sealed class QBlank
         QBlankStepSet(qBlankStep with { LDetectorBlankMinimum = lMinimum });
 
     public LNeutralDot QBlankDotRead(double lSize, double lDot) =>
-        LNeutral.LNeutralDotResolve(new LNeutralWheel(QBlankWheelX, QBlankWheelY, QBlankWheelPresent), lSize, lDot);
+        LNeutralCanvas.LNeutralDotResolve(
+            new LNeutralWheel(QBlankWheelX, QBlankWheelY, QBlankWheelPresent), lSize, lDot);
 
     public void QBlankWheelHandle(bool lPressed, double lX, double lY, double lSize)
     {
@@ -72,7 +73,7 @@ public sealed class QBlank
             return;
         }
 
-        LNeutralWheel lWheel = LNeutral.LNeutralCanvasResolve(lX, lY, lSize);
+        LNeutralWheel lWheel = LNeutralCanvas.LNeutralCanvasResolve(lX, lY, lSize);
         QBlankWheelSet(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY);
     }
 
@@ -86,7 +87,7 @@ public sealed class QBlank
     public void QBlankSampleSet(int lRed, int lGreen, int lBlue)
     {
         QBlankPickSet(false);
-        LNeutralWheel lWheel = LNeutral.LNeutralWheelResolve(lRed, lGreen, lBlue);
+        LNeutralWheel lWheel = LNeutralColor.LNeutralWheelResolve(lRed, lGreen, lBlue);
         QBlankColorApply(lWheel.LNeutralWheelX, lWheel.LNeutralWheelY, QBlankValueResolve(lRed, lGreen, lBlue));
     }
 

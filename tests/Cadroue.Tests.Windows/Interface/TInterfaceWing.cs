@@ -138,7 +138,7 @@ internal static partial class TInterface
         blank.QBlankWheelHandle(pressed, x, y, size);
     internal static LNeutralDot TBlankDotRead(QBlank blank, double size, double dot) => blank.QBlankDotRead(size, dot);
     internal static LNeutralBitmap TNeutralBitmapResolve(int size, double value) =>
-        LNeutral.LNeutralBitmapResolve(size, value);
+        LNeutralCanvas.LNeutralBitmapResolve(size, value);
 
     internal static IReadOnlyList<QSensorPlan> TSensorPlansRead(QSensor sensor) => sensor.QSensorPlans;
     internal static bool TSensorEnabledRead(QSensor sensor, LDetectorKind kind) => sensor.QSensorEnabledRead(kind);

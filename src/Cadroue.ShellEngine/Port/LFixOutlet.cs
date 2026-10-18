@@ -27,9 +27,10 @@ public sealed class LFixOutlet : LFixPort
         Action<LClinicPort> lPlanApply, string lSourcePath, IReadOnlyList<string> lPaths)
     {
         LWorkFix lPlan = LFixWorkCreate(lPlanApply);
-        if (lPlan.LWorkFixActive || LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad) is not null)
+        if (lPlan.LWorkFixActive
+            || LFixSidecar.LFixSidecarRead(lSourcePath, LLibrarian.LLibrarianFixLoad) is not null)
         {
-            LFix.LFixPlanSave(lSourcePath, lPlan, LLibrarian.LLibrarianFixSave);
+            LFixSidecar.LFixSidecarSave(lSourcePath, lPlan, LLibrarian.LLibrarianFixSave);
             LFixPersistentSave(lPlan, lPaths);
         }
 
@@ -41,14 +42,14 @@ public sealed class LFixOutlet : LFixPort
 
     public LClinicPort LFixPlanRestore(Action<LClinicPort> lPlanApply, string lSourcePath)
     {
-        LWorkFix? lSaved = LFix.LFixPlanRead(lSourcePath, LLibrarian.LLibrarianFixLoad);
-        LWorkFix lPersistent = LFix.LFixPersistentResolve(LFixWorkCreate(lPlanApply));
-        return new LClinicOutlet(LFix.LFixPlanResolve(lSaved, lPersistent));
+        LWorkFix? lSaved = LFixSidecar.LFixSidecarRead(lSourcePath, LLibrarian.LLibrarianFixLoad);
+        LWorkFix lPersistent = LFixPlan.LFixPersistentResolve(LFixWorkCreate(lPlanApply));
+        return new LClinicOutlet(LFixPlan.LFixPlanResolve(lSaved, lPersistent));
     }
 
     private static void LFixPersistentSave(LWorkFix lPlan, IReadOnlyList<string> lPaths)
     {
-        LWorkFix lPersistent = LFix.LFixPersistentResolve(lPlan);
+        LWorkFix lPersistent = LFixPlan.LFixPersistentResolve(lPlan);
         if (!lPersistent.LWorkFixSteps.Any())
         {
             return;
@@ -56,8 +57,9 @@ public sealed class LFixOutlet : LFixPort
 
         foreach (string lPath in lPaths)
         {
-            LWorkFix? lSaved = LFix.LFixPlanRead(lPath, LLibrarian.LLibrarianFixLoad);
-            LFix.LFixPlanSave(lPath, LFix.LFixPlanResolve(lSaved, lPersistent), LLibrarian.LLibrarianFixSave);
+            LWorkFix? lSaved = LFixSidecar.LFixSidecarRead(lPath, LLibrarian.LLibrarianFixLoad);
+            LFixSidecar.LFixSidecarSave(
+                lPath, LFixPlan.LFixPlanResolve(lSaved, lPersistent), LLibrarian.LLibrarianFixSave);
         }
     }
 

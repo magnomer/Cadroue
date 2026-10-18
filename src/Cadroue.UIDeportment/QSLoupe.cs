@@ -337,7 +337,7 @@ public sealed class QSLoupe
     private void QSLoupePreviewApply(QViewer lViewer)
     {
         LPreviewState lState = lViewer.QViewerRenderRead();
-        QPlayer.QPlayerFilterApply(LPreview.LPreviewFilterResolve(lState));
+        QPlayer.QPlayerFilterApply(LPreviewFilter.LPreviewFilterResolve(lState));
         QPlayer.QPlayerAudioApply(lViewer.QViewerAudio.QViewerAudioResolve());
         QPlayer.QPlayerPreviewApply(lState, "preview color/geometry");
     }

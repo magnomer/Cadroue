@@ -12,7 +12,7 @@ internal sealed partial class LJob
         try
         {
             byte[] pBytes = File.ReadAllBytes(pStage.LEncodeStagePath);
-            if (LBridge.LBridgeLeadingNormalize(pBytes))
+            if (LBridgeLeading.LBridgeLeadingNormalize(pBytes))
             {
                 File.WriteAllBytes(pStage.LEncodeStagePath, pBytes);
                 LRunner.LRunnerRecord(

@@ -1,6 +1,6 @@
 namespace Cadroue.Application;
 
-public sealed partial record LCropbox
+public static class LCropboxAspect
 {
     public const double LCropboxTolerance = 0.01;
 

@@ -2,7 +2,8 @@ using Cadroue.Core;
 
 namespace Cadroue.Application;
 
-public static partial class LNeutral
+// A whole frame's visible pixels reduced, by the chosen method, to one point on the neutral wheel.
+public static class LNeutralAnalysis
 {
     public static LNeutralWheel LNeutralAnalyzeResolve(
         IReadOnlyList<byte> lNeutralPixels,
@@ -41,50 +42,19 @@ public static partial class LNeutral
         (int lNeutralRed, int lNeutralGreen, int lNeutralBlue) = lNeutralMethod switch
         {
             LWhitebalanceMethod.LWhitebalanceMethodAverage => (
-                LNeutralMeanResolve(lNeutralRedList),
-                LNeutralMeanResolve(lNeutralGreenList),
-                LNeutralMeanResolve(lNeutralBlueList)),
+                LNeutralChannel.LNeutralMeanResolve(lNeutralRedList),
+                LNeutralChannel.LNeutralMeanResolve(lNeutralGreenList),
+                LNeutralChannel.LNeutralMeanResolve(lNeutralBlueList)),
             LWhitebalanceMethod.LWhitebalanceMethodMinmax => (
-                LNeutralMidResolve(lNeutralRedList),
-                LNeutralMidResolve(lNeutralGreenList),
-                LNeutralMidResolve(lNeutralBlueList)),
+                LNeutralChannel.LNeutralMidResolve(lNeutralRedList),
+                LNeutralChannel.LNeutralMidResolve(lNeutralGreenList),
+                LNeutralChannel.LNeutralMidResolve(lNeutralBlueList)),
             _ => (
-                LNeutralMedianResolve(lNeutralRedList),
-                LNeutralMedianResolve(lNeutralGreenList),
-                LNeutralMedianResolve(lNeutralBlueList))
+                LNeutralChannel.LNeutralMedianResolve(lNeutralRedList),
+                LNeutralChannel.LNeutralMedianResolve(lNeutralGreenList),
+                LNeutralChannel.LNeutralMedianResolve(lNeutralBlueList))
         };
 
-        return LNeutralWheelResolve(lNeutralRed, lNeutralGreen, lNeutralBlue);
-    }
-
-    private static int LNeutralMeanResolve(List<int> lNeutralValues)
-    {
-        long lNeutralSum = 0;
-        foreach (int lNeutralValue in lNeutralValues)
-        {
-            lNeutralSum += lNeutralValue;
-        }
-
-        return (int)Math.Round(lNeutralSum / (double)lNeutralValues.Count);
-    }
-
-    private static int LNeutralMidResolve(List<int> lNeutralValues)
-    {
-        int lNeutralLow = 255;
-        int lNeutralHigh = 0;
-        foreach (int lNeutralValue in lNeutralValues)
-        {
-            if (lNeutralValue < lNeutralLow)
-            {
-                lNeutralLow = lNeutralValue;
-            }
-
-            if (lNeutralValue > lNeutralHigh)
-            {
-                lNeutralHigh = lNeutralValue;
-            }
-        }
-
-        return (int)Math.Round((lNeutralLow + lNeutralHigh) / 2.0);
+        return LNeutralColor.LNeutralWheelResolve(lNeutralRed, lNeutralGreen, lNeutralBlue);
     }
 }

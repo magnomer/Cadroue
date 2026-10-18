@@ -8,6 +8,8 @@ public sealed record LColor(
     double LColorSaturation,
     double LColorHue)
 {
+    public const double LColorBrightnessFactor = 2.5;
+
     public double LColorGamma { get; init; } = 1;
 
     public double LColorGammaRed { get; init; } = 1;
@@ -29,28 +31,47 @@ public sealed record LColor(
         return new LColor(0, 1, 1, 0);
     }
 
-    public static LColorKind? LColorKindParse(string lKindToken) => lKindToken switch
+    public static LColor LColorVideoResolve(LWorkVideo lVideo)
     {
-        "Contrast" => LColorKind.LColorKindContrast,
-        "Brightness" => LColorKind.LColorKindBrightness,
-        "Gamma" => LColorKind.LColorKindGamma,
-        "Whitebalance" => LColorKind.LColorKindWhitebalance,
-        "Saturation" => LColorKind.LColorKindSaturation,
-        "Exposure" => LColorKind.LColorKindExposure,
-        "Curve" => LColorKind.LColorKindCurve,
-        _ => null
-    };
-
-    public static string LColorKindFormat(LColorKind lKind) => lKind switch
-    {
-        LColorKind.LColorKindContrast => "Contrast",
-        LColorKind.LColorKindGamma => "Gamma",
-        LColorKind.LColorKindWhitebalance => "Whitebalance",
-        LColorKind.LColorKindSaturation => "Saturation",
-        LColorKind.LColorKindExposure => "Exposure",
-        LColorKind.LColorKindCurve => "Curve",
-        _ => "Brightness"
-    };
+        LWorkVideoStep? lBrightnessStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindBrightness
+                && lStep.LWorkStepActive);
+        double lBrightness = (lBrightnessStep is null ? 0 : LWorkVideoFilter.LWorkFfmpegResolve(lBrightnessStep))
+            * LColorBrightnessFactor;
+        LWorkVideoStep? lContrastStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindContrast
+                && lStep.LWorkStepActive);
+        double lContrast = lContrastStep is null ? 1 : LWorkVideoFilter.LWorkFfmpegResolve(lContrastStep);
+        LWorkVideoStep? lSaturationStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindSaturation
+                && lStep.LWorkStepActive);
+        double lSaturation = lSaturationStep is null ? 1 : LWorkVideoFilter.LWorkFfmpegResolve(lSaturationStep);
+        LWorkVideoStep? lGammaStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindGamma
+                && lStep.LWorkStepActive);
+        LWorkGammaSettings? lGamma = lGammaStep?.LWorkGammaRead();
+        LWorkVideoStep? lWhitebalanceStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindWhitebalance
+                && lStep.LWorkStepActive);
+        LWorkVideoStep? lExposureStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindExposure
+                && lStep.LWorkStepActive);
+        double lExposure = lExposureStep is null ? 0 : LWorkVideoFilter.LWorkFfmpegResolve(lExposureStep);
+        LWorkVideoStep? lCurveStep = lVideo.LWorkVideoSteps
+            .FirstOrDefault(lStep => lStep.LWorkStepKind == LColorKind.LColorKindCurve
+                && lStep.LWorkStepActive);
+        return new LColor(lBrightness, lContrast, lSaturation, 0)
+        {
+            LColorGamma = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaGlobal),
+            LColorGammaRed = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaRed),
+            LColorGammaGreen = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaGreen),
+            LColorGammaBlue = lGamma is null ? 1 : LWorkVideoFilter.LWorkGammaResolve(lGamma.LWorkGammaBlue),
+            LColorHighlightProtection = lGamma?.LWorkGammaHighlight ?? 0,
+            LColorExposure = lExposure,
+            LColorWhitebalance = lWhitebalanceStep?.LWorkWhitebalanceRead(),
+            LColorCurve = lCurveStep?.LWorkCurveRead()
+        };
+    }
 }
 
 public enum LRotateKind

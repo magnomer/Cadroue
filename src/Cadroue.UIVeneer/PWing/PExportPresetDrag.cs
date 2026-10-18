@@ -138,7 +138,7 @@ public sealed partial class PExport
             return false;
         }
 
-        if (!LPreset.LPresetMove(lPresetName, lDataTargetIndex))
+        if (!LPresetTable.LPresetMove(lPresetName, lDataTargetIndex))
         {
             return false;
         }

@@ -69,8 +69,7 @@ internal static class LSidecarSerializer
                 LSidecarEdit = LSidecarMemberRead<LSidecarEditEntry>(lSidecarRoot, "LSidecarEdit"),
                 LSidecarAudio = LSidecarMemberRead<LSidecarAudioEntry>(lSidecarRoot, "LSidecarAudio"),
                 LSidecarSplit = LSidecarMemberRead<LSidecarSplitEntry>(lSidecarRoot, "LSidecarSplit"),
-                LSidecarFix = LSidecarMemberRead<LSidecarFixEntry>(lSidecarRoot, "LSidecarFix"),
-                LSidecarLoudness = LSidecarDoubleRead(lSidecarRoot, "LSidecarLoudness")
+                LSidecarFix = LSidecarMemberRead<LSidecarFixEntry>(lSidecarRoot, "LSidecarFix")
             };
             LSidecarCoreNormalize(lSidecarCore);
             return lSidecarCore;
@@ -141,13 +140,6 @@ internal static class LSidecarSerializer
         lSidecarRoot.TryGetProperty(lSidecarName, out JsonElement lSidecarElement)
         && lSidecarElement.ValueKind == JsonValueKind.Number
         && lSidecarElement.TryGetInt64(out long lSidecarValue)
-            ? lSidecarValue
-            : 0;
-
-    private static double LSidecarDoubleRead(JsonElement lSidecarRoot, string lSidecarName) =>
-        lSidecarRoot.TryGetProperty(lSidecarName, out JsonElement lSidecarElement)
-        && lSidecarElement.ValueKind == JsonValueKind.Number
-        && lSidecarElement.TryGetDouble(out double lSidecarValue)
             ? lSidecarValue
             : 0;
 

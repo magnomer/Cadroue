@@ -35,7 +35,7 @@ public sealed class QEditTabColor
         LWorkVideo lVideo = qEditInspector.QInspectorSkip.QSkipActive
             ? LWorkVideo.LWorkVideoCreate()
             : QEditVideoRead(QEditMpvCheck());
-        qEditViewer.QViewerColorSet(LPreview.LPreviewColorResolve(lVideo));
+        qEditViewer.QViewerColorSet(LColor.LColorVideoResolve(lVideo));
     }
 
     public LWorkVideo QEditVideoRead(bool lMpvOnlyCapable = true) =>
