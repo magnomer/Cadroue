@@ -1,0 +1,175 @@
+using System.Windows;
+using System.Windows.Controls;
+using Cadroue.UIDeportment;
+
+namespace Cadroue.UIVeneer;
+
+internal static class PRosterOverview
+{
+    private const double PRosterBarRadius = 4;
+
+    public static TextBlock PRosterSectionBuild(string pSectionName) => new()
+    {
+        Text = pSectionName,
+        Foreground = PRosterTheme.PRosterTextBrush,
+        FontSize = PRosterTheme.PRosterRowSize,
+        FontWeight = FontWeights.SemiBold,
+        Margin = new Thickness(0, 0, 0, 6)
+    };
+
+    public static TextBlock PRosterNoteBuild(string pText, Thickness pMargin) => new()
+    {
+        Text = pText,
+        Foreground = PRosterTheme.PRosterMutedBrush,
+        FontSize = PRosterTheme.PRosterRowSize,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = pMargin
+    };
+
+    public static TextBlock PRosterTabBuild(string pTabName) => new()
+    {
+        Text = pTabName,
+        Foreground = PRosterTheme.PRosterAccentBrush,
+        FontSize = PRosterTheme.PRosterRowSize,
+        FontWeight = FontWeights.SemiBold,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(0, 0, 0, 6)
+    };
+
+    public static TextBlock PRosterMeterBuild(string pMeterText) => new()
+    {
+        Text = pMeterText,
+        Foreground = PRosterTheme.PRosterMutedBrush,
+        FontSize = PRosterTheme.PRosterRowSize,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        Margin = new Thickness(0, 0, 0, 2)
+    };
+
+    public static UIElement PRosterBarBuild(QRosterBar lBar)
+    {
+        var pBar = new Grid { Height = 18 };
+        pBar.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(lBar.QRosterBarRest, GridUnitType.Star) });
+        pBar.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = new GridLength(lBar.QRosterBarMark, GridUnitType.Star) });
+
+        var pRestFill = new Border
+        {
+            Background = PRosterTheme.PRosterTrackBrush,
+            CornerRadius = new CornerRadius(PRosterBarRadius, 0, 0, PRosterBarRadius)
+        };
+        var pMarkFill = new Border
+        {
+            Background = PRosterTheme.PRosterMarkBrushes[lBar.QRosterBarOver],
+            CornerRadius = new CornerRadius(0, PRosterBarRadius, PRosterBarRadius, 0)
+        };
+        Grid.SetColumn(pMarkFill, 1);
+        pBar.Children.Add(pRestFill);
+        pBar.Children.Add(pMarkFill);
+
+        var pPercent = new TextBlock
+        {
+            Text = lBar.QRosterBarPercent,
+            Foreground = PRosterTheme.PRosterPercentBrushes[lBar.QRosterBarKey],
+            FontSize = PRosterTheme.PRosterRowSize,
+            FontWeight = FontWeights.SemiBold,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(8, 0, 0, 0)
+        };
+        DockPanel.SetDock(pPercent, Dock.Right);
+
+        var pRow = new DockPanel { Margin = new Thickness(0, 2, 0, 6) };
+        pRow.Children.Add(pPercent);
+        pRow.Children.Add(pBar);
+        return pRow;
+    }
+
+    public static (StackPanel, StackPanel) PRosterStacksBuild(IReadOnlyList<QRosterCompareRow> lRows)
+    {
+        var pSourceStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch };
+        var pOutputStack = new StackPanel { HorizontalAlignment = HorizontalAlignment.Stretch };
+        lRows.ToList().ForEach(lRow => pSourceStack.Children.Add(PRosterLineBuild(lRow.QRosterCompareSource)));
+        lRows.ToList().ForEach(lRow => pOutputStack.Children.Add(PRosterLineBuild(lRow.QRosterCompareOutput)));
+        return (pSourceStack, pOutputStack);
+    }
+
+    public static Grid PRosterGridBuild(UIElement pSource, UIElement pOutput)
+    {
+        var pGrid = new Grid();
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewSource" });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.ColumnDefinitions.Add(
+            new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "RosterOverviewOutput" });
+        Grid.SetColumn(pOutput, 2);
+        pGrid.Children.Add(pSource);
+        pGrid.Children.Add(pOutput);
+        return pGrid;
+    }
+
+    public static Grid PRosterPathsBuild(IReadOnlyList<string> pSources, IReadOnlyList<string> pOutputs, double pTop)
+    {
+        var pSourcePaths = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Left,
+            Margin = new Thickness(0, 0, 8, 0)
+        };
+        pSources.ToList().ForEach(pPath => pSourcePaths.Children.Add(PRosterPathBuild(pPath)));
+
+        var pOutputPaths = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Margin = new Thickness(8, 0, 0, 0)
+        };
+        pOutputs.ToList().ForEach(pPath => pOutputPaths.Children.Add(PRosterPathBuild(pPath)));
+
+        Grid pPathGrid = PRosterHalvesBuild(pSourcePaths, pOutputPaths);
+        pPathGrid.Margin = new Thickness(0, pTop, 0, 0);
+        return pPathGrid;
+    }
+
+    public static Grid PRosterHalvesBuild(UIElement pLeft, UIElement pRight)
+    {
+        var pGrid = new Grid();
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        pGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(pRight, 1);
+        pGrid.Children.Add(pLeft);
+        pGrid.Children.Add(pRight);
+        return pGrid;
+    }
+
+    private static TextBlock PRosterPathBuild(string pPath) => new()
+    {
+        Text = pPath,
+        Foreground = PRosterTheme.PRosterMutedBrush,
+        FontSize = PRosterTheme.PRosterRowSize,
+        TextWrapping = TextWrapping.Wrap,
+        Margin = new Thickness(0, 0, 0, 2)
+    };
+
+    public static Border PRosterDividerBuild() => new()
+    {
+        Height = 1,
+        Background = PRosterTheme.PRosterLineBrush,
+        Margin = new Thickness(0, 8, 0, 0)
+    };
+
+    public static Border PRosterRuleBuild() => new()
+    {
+        Height = 1,
+        Background = PRosterTheme.PRosterLineBrush,
+        Margin = new Thickness(0, 12, 0, 10)
+    };
+
+    private static TextBlock PRosterLineBuild(QRosterLine lLine) => new()
+    {
+        Text = lLine.QRosterLineText,
+        Foreground = PRosterTheme.PRosterLineBrushes[lLine.QRosterLineKey],
+        FontSize = PRosterTheme.PRosterLineSizes[lLine.QRosterLineKey],
+        FontWeight = PRosterTheme.PRosterLineWeights[lLine.QRosterLineKey],
+        TextWrapping = TextWrapping.Wrap,
+        HorizontalAlignment = HorizontalAlignment.Center,
+        Margin = PRosterTheme.PRosterLineMargins[lLine.QRosterLineKey]
+    };
+}

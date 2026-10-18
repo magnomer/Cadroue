@@ -87,14 +87,14 @@ internal static class TAuditObjectSetting
         ["Cadroue.ShellEngine.LRunner"] = 1,
         ["Cadroue.ShellEngine.LSweep"] = 1,
         ["Cadroue.UIDeportment.QSEncoder"] = 1,
-        ["Cadroue.UIVeneer.PHouse.PWindow"] = 1,
+        ["Cadroue.UIVeneer.PWindow"] = 1,
         ["Cadroue.UIVeneer.PSDiagnosis"] = 1,
         ["Cadroue.UIVeneer.PSFader"] = 1,
         ["Cadroue.UIVeneer.PSOptions"] = 1,
-        ["Cadroue.UIVeneer.PWing.PExport"] = 1,
-        ["Cadroue.UIVeneer.PWing.PInspector"] = 1,
-        ["Cadroue.UIVeneer.PWing.PSEncoder"] = 1,
-        ["Cadroue.UIVeneer.PWing.PSMonitor"] = 1,
+        ["Cadroue.UIVeneer.PExport"] = 1,
+        ["Cadroue.UIVeneer.PInspector"] = 1,
+        ["Cadroue.UIVeneer.PSEncoder"] = 1,
+        ["Cadroue.UIVeneer.PSMonitor"] = 1,
     };
 
     public static readonly string[] TAuditObjectInclude =

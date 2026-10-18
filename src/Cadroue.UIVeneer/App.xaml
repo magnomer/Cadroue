@@ -6,23 +6,23 @@
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="PHouse/PCheckbox.xaml" />
-                <ResourceDictionary Source="PHouse/PSlider.xaml" />
-                <ResourceDictionary Source="PHouse/PRadio.xaml" />
-                <ResourceDictionary Source="PHouse/PScrollbar.xaml" />
-                <ResourceDictionary Source="PHouse/PGhost.xaml" />
-                <ResourceDictionary Source="PHouse/PDropdown.xaml" />
-                <ResourceDictionary Source="PHouse/PTextbox.xaml" />
-                <ResourceDictionary Source="PHouse/PToken.xaml" />
-                <ResourceDictionary Source="PHouse/PPicker.xaml" />
-                <ResourceDictionary Source="PHouse/PButton.xaml" />
-                <ResourceDictionary Source="PHouse/PMenu.xaml" />
-                <ResourceDictionary Source="PHouse/PStrip.xaml" />
-                <ResourceDictionary Source="PHouse/PPanel.xaml" />
-                <ResourceDictionary Source="PHouse/PTool.xaml" />
-                <ResourceDictionary Source="PWing/PGamma.xaml" />
-                <ResourceDictionary Source="PWing/PExposure.xaml" />
-                <ResourceDictionary Source="PWing/PVolume.xaml" />
+                <ResourceDictionary Source="Kit/PCheckbox.xaml" />
+                <ResourceDictionary Source="Kit/PSlider.xaml" />
+                <ResourceDictionary Source="Kit/PRadio.xaml" />
+                <ResourceDictionary Source="Kit/PScrollbar.xaml" />
+                <ResourceDictionary Source="Kit/Ghost/PGhost.xaml" />
+                <ResourceDictionary Source="Kit/Dropdown/PDropdown.xaml" />
+                <ResourceDictionary Source="Kit/PTextbox.xaml" />
+                <ResourceDictionary Source="Kit/Token/PToken.xaml" />
+                <ResourceDictionary Source="Kit/Picker/PPicker.xaml" />
+                <ResourceDictionary Source="Kit/Button/PButton.xaml" />
+                <ResourceDictionary Source="Kit/Menu/PMenu.xaml" />
+                <ResourceDictionary Source="Porch/Strip/PStrip.xaml" />
+                <ResourceDictionary Source="Kit/Panel/PPanel.xaml" />
+                <ResourceDictionary Source="Kit/PTool.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PGamma.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PExposure.xaml" />
+                <ResourceDictionary Source="Wing/Inspector/PVolume.xaml" />
             </ResourceDictionary.MergedDictionaries>
             <sys:String x:Key="PIconRoot">pack://application:,,,/Cadroue.UIVeneer;component/</sys:String>
         </ResourceDictionary>

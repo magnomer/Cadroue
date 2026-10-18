@@ -1,6 +1,4 @@
 using Cadroue.UIDeportment;
-using Cadroue.UIVeneer.PHouse;
-using Cadroue.UIVeneer.PWing;
 
 namespace Cadroue.UIVeneer;
 

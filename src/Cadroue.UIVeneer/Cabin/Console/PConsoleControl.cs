@@ -1,0 +1,180 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using Cadroue.UIDeportment;
+
+namespace Cadroue.UIVeneer;
+
+public static class PConsoleControl
+{
+    internal const double PConsoleStatusSize = 13;
+    internal const double PConsoleStationSize = 12;
+    internal const double PConsoleSwitchWidth = 34;
+    internal const double PConsoleSwitchSize = 18;
+
+    internal static CheckBox PConsoleAutoBuild(RoutedEventHandler pChange)
+    {
+        CheckBox pAutoBox = PConsoleBoxBuild();
+        QInteractionClick.QInteractionClickAttach(pAutoBox);
+        QCheckbox.QCheckboxAttach(pAutoBox);
+        PConsoleBoxAttach(pAutoBox, pChange);
+        return pAutoBox;
+    }
+
+    internal static ComboBox PConsoleComboBuild()
+    {
+        ComboBox pRelayCombo = PConsoleDropBuild();
+        QDropdownAction.QDropdownActionAttach(
+            pRelayCombo,
+            QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DeleteTooltip"));
+        PConsoleTipSet(pRelayCombo);
+        return pRelayCombo;
+    }
+
+    internal static Button PConsoleInlineBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)
+    {
+        Button pButton = PConsoleChipBuild(pIconName, pTooltip);
+        PConsoleClickAttach(pButton, pClick);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookWhite);
+        return pButton;
+    }
+
+    internal static Button PConsoleSwitchBuild(string pIconName, string pTooltip, RoutedEventHandler pClick)
+    {
+        Button pButton = PConsoleArrowBuild(pIconName, pTooltip);
+        PConsoleClickAttach(pButton, pClick);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookFaded);
+        return pButton;
+    }
+
+    internal static Button PConsoleButtonBuild(
+        string pLabelKey,
+        string pIconName,
+        Brush pAccentBrush,
+        RoutedEventHandler pClick)
+    {
+        Button pButton = PConsoleCommandBuild(pLabelKey, pIconName, pAccentBrush);
+        PConsoleClickAttach(pButton, pClick);
+        QButton.QButtonAttach(pButton, QButtonLook.QButtonLookFaded);
+        return pButton;
+    }
+
+    private static void PConsoleBoxAttach(CheckBox pAutoBox, RoutedEventHandler pChange)
+    {
+        pAutoBox.Checked += pChange;
+        pAutoBox.Unchecked += pChange;
+    }
+
+    private static void PConsoleClickAttach(Button pButton, RoutedEventHandler pClick) => pButton.Click += pClick;
+
+    private static void PConsoleTipSet(ComboBox pRelayCombo) =>
+        pRelayCombo.ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ComboTooltip");
+
+    private static CheckBox PConsoleBoxBuild()
+    {
+        return new CheckBox
+        {
+            Content = QLocalizationCatalog.QLocalizationTextRead("Console.AutoResume.Label"),
+            FontSize = PConsoleStationSize,
+            Foreground = PRosterTheme.PRosterTextBrush,
+            VerticalAlignment = VerticalAlignment.Center,
+            VerticalContentAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(14, 0, 4, 0),
+            FocusVisualStyle = null,
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead("Console.AutoResume.Tooltip")
+        };
+    }
+
+    private static ComboBox PConsoleDropBuild() => new()
+    {
+        Width = 180,
+        Height = PSField.PSFieldControlHeight,
+        VerticalAlignment = VerticalAlignment.Center,
+        Margin = new Thickness(0, 0, 8, 0)
+    };
+
+    internal static Border PConsoleSeparatorBuild() => new()
+    {
+        Width = 1,
+        Margin = new Thickness(6, 2, 12, 2),
+        VerticalAlignment = VerticalAlignment.Stretch,
+        Background = new SolidColorBrush(Color.FromRgb(0xD9, 0xDE, 0xE7))
+    };
+
+    private static Button PConsoleChipBuild(string pIconName, string pTooltip)
+    {
+        return new Button
+        {
+            Content = new Image
+            {
+                Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
+                Width = PConsoleSwitchSize,
+                Height = PConsoleSwitchSize,
+                Stretch = Stretch.Uniform
+            },
+            Width = 34,
+            Height = PSField.PSFieldControlHeight,
+            Padding = new Thickness(0),
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Center,
+            ToolTip = pTooltip
+        };
+    }
+
+    private static Button PConsoleArrowBuild(string pIconName, string pTooltip)
+    {
+        return new Button
+        {
+            Content = new Image
+            {
+                Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", PRosterTheme.PRosterTextBrush),
+                Width = PConsoleSwitchSize,
+                Height = PConsoleSwitchSize,
+                Stretch = Stretch.Uniform
+            },
+            Width = PConsoleSwitchWidth,
+            VerticalAlignment = VerticalAlignment.Stretch,
+            Visibility = Visibility.Collapsed,
+            ToolTip = pTooltip
+        };
+    }
+
+    private static Button PConsoleCommandBuild(string pLabelKey, string pIconName, Brush pAccentBrush)
+    {
+        var pStack = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        pStack.Children.Add(new Image
+        {
+            Source = QIcon.QIconRead($"/PAsset/PPanel/{pIconName}", pAccentBrush),
+            Width = PRosterTheme.PRosterIconSize,
+            Height = PRosterTheme.PRosterIconSize,
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center
+        });
+        pStack.Children.Add(new Border { Height = 2 });
+        pStack.Children.Add(new TextBlock
+        {
+            Text = QLocalizationCatalog.QLocalizationTextRead($"Console.Button.{pLabelKey}"),
+            FontSize = PRosterTheme.PRosterRowSize,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            TextAlignment = TextAlignment.Center,
+            TextWrapping = TextWrapping.Wrap
+        });
+
+        return new Button
+        {
+            Width = PRosterTheme.PRosterButtonSize,
+            Height = PRosterTheme.PRosterButtonSize,
+            Margin = new Thickness(0, 0, 4, 0),
+            Content = pStack,
+            ToolTip = QLocalizationCatalog.QLocalizationTextRead($"Console.Button.{pLabelKey}Tooltip")
+        };
+    }
+
+    internal static TextBlock PConsoleLabelBuild(Brush pBrush, double pFontSize) => new()
+    {
+        FontSize = pFontSize,
+        Foreground = pBrush,
+        VerticalAlignment = VerticalAlignment.Center,
+        TextTrimming = TextTrimming.CharacterEllipsis
+    };
+}
