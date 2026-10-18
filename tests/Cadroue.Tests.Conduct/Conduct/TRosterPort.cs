@@ -4,7 +4,7 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Tests;
 
-internal sealed class TRosterPort : LRosterPort
+internal sealed class TRosterPort : LRosterPort, LRosterMenuPort
 {
     public bool TRosterShared { get; set; }
 

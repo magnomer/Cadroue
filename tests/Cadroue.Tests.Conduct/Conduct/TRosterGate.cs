@@ -15,7 +15,8 @@ public sealed class TRosterGate
 
     public TRosterGate()
     {
-        CAtelier atelier = TAtelier.TAtelierCreate(port => port with { LAtelierRoster = tRosterPort });
+        CAtelier atelier = TAtelier.TAtelierCreate(
+            port => port with { LAtelierRoster = tRosterPort, LAtelierRosterMenu = tRosterPort });
         tRosterGate = atelier.CAtelierRosterCreate();
         tRosterGate.CRosterChanged += () => tRosterChanges++;
     }

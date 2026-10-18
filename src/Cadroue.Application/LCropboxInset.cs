@@ -60,6 +60,30 @@ public static class LCropboxInset
             : null;
     }
 
+    // The crop's edges as insets, with the side numbered left, top, right, bottom from 0 taking lCropboxEdge.
+    public static LCropboxEdges LCropboxSideResolve(LWorkCrop lCropboxCrop, int lCropboxSide, double lCropboxEdge)
+    {
+        double[] lCropboxEdges =
+        {
+            lCropboxCrop.LWorkCropLeft, lCropboxCrop.LWorkCropTop, lCropboxCrop.LWorkCropRight,
+            lCropboxCrop.LWorkCropBottom
+        };
+        lCropboxEdges[lCropboxSide] = lCropboxEdge;
+        return new LCropboxEdges(lCropboxEdges[0], lCropboxEdges[1], lCropboxEdges[2], lCropboxEdges[3]);
+    }
+
+    // The crop with the insets as its edges, each rounded to a whole pixel and never below zero.
+    public static LWorkCrop LCropboxInsetResolve(LWorkCrop lCropboxCrop, LCropboxEdges lCropboxInsets) =>
+        lCropboxCrop with
+        {
+            LWorkCropLeft = LCropboxInsetNormalize(lCropboxInsets.LCropboxLeft),
+            LWorkCropTop = LCropboxInsetNormalize(lCropboxInsets.LCropboxTop),
+            LWorkCropRight = LCropboxInsetNormalize(lCropboxInsets.LCropboxRight),
+            LWorkCropBottom = LCropboxInsetNormalize(lCropboxInsets.LCropboxBottom)
+        };
+
+    private static int LCropboxInsetNormalize(double lCropboxEdge) => (int)Math.Max(0, Math.Round(lCropboxEdge));
+
     private static int LCropboxEdgeResolve(int lCropboxEdge) =>
         lCropboxEdge <= 0 ? 0 : lCropboxEdge - (lCropboxEdge % 2);
 

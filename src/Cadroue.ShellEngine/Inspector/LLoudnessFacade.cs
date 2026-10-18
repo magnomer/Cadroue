@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 // The leveling rules from the leveling catalogue, on plain values in slot order: target, peak, range, frame,
 // smoothness, maximum gain, compression. Every value is held inside its range; the loudness mode owns slots 0 to 2
 // and the dynamic mode slots 3 to 6.
-public sealed class LLoudnessFacade
+public sealed class LLoudnessFacade : LLoudnessPort
 {
     private const int LLoudnessDynamicFirst = 3;
 

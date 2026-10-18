@@ -30,7 +30,8 @@ public sealed class TFixGate
 
     public TFixGate()
     {
-        CAtelier atelier = TAtelier.TAtelierCreate(port => port with { LAtelierFix = tFixPort });
+        CAtelier atelier =
+            TAtelier.TAtelierCreate(port => port with { LAtelierFix = tFixPort, LAtelierFixPlan = tFixPort });
         tFixGate = atelier.CAtelierFix;
         tFixPlanGate = atelier.CAtelierFix.CFixPlan;
         tFixClinic = atelier.CAtelierInspectorCreate().CInspectorClinic;

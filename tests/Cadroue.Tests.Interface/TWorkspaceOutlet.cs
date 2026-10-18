@@ -5,7 +5,7 @@ namespace Cadroue.Tests.Interface;
 
 public sealed class TWorkspaceOutlet
 {
-    private readonly LWorkspaceOutlet tWorkspaceOutlet = new(TInterface.TInterfaceEngine);
+    private readonly LWorkspacePort tWorkspaceOutlet = TInterface.TInterfaceEngine.LEngineWorkspace;
 
     [Fact]
     public void WorkspaceRemovalRead_IntentRemovedInOtherCase_CancelsTheLoadOnly()

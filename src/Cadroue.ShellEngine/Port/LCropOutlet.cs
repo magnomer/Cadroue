@@ -147,7 +147,9 @@ public sealed class LCropOutlet : LCropPort
     // The preset ratio fixes the crop, fitted inside its present extent, and keeps its leniency and switch.
     public void LCropPresetSet(int lWidth, int lHeight)
     {
-        LWorkCrop lFitted = LCropFitResolve(lWidth, lHeight);
+        LWorkCrop lCrop = _lCropOutletState.LCropboxStateCrop;
+        (_, double lSourceWidth, double lSourceHeight) = _lCropOutletSource();
+        LWorkCrop lFitted = LCropboxAspect.LCropboxPresetResolve(lCrop, lSourceWidth, lSourceHeight, lWidth, lHeight);
         _lCropOutletLock.LCropboxEdgeClear();
         _lCropOutletState.LCropboxStateSet(
             lFitted,
@@ -161,7 +163,9 @@ public sealed class LCropOutlet : LCropPort
     public void LCropDrawnSet(LCropbox? lDrawn, int lDriveAxis, int lAnchorX, int lAnchorY)
     {
         _lCropOutletLock.LCropboxEdgeClear();
-        LCropEdgesApply(LCropDrawnResolve(lDrawn, lDriveAxis, lAnchorX, lAnchorY));
+        (_, double lWidth, double lHeight) = _lCropOutletSource();
+        LCropEdgesApply(LCropboxAspect.LCropboxDrawnResolve(
+            lDrawn, lWidth, lHeight, () => _lCropOutletState.LCropboxStateRatio, lDriveAxis, lAnchorX, lAnchorY));
     }
 
     public void LCropWorkApply(LWorkCrop lCrop, bool lApply)
@@ -184,10 +188,7 @@ public sealed class LCropOutlet : LCropPort
 
     private LCropboxEdges LCropInsetsResolve(int lSide, double lEdge)
     {
-        LWorkCrop lCrop = _lCropOutletState.LCropboxStateCrop;
-        double[] lEdges = { lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lCrop.LWorkCropRight, lCrop.LWorkCropBottom };
-        lEdges[lSide] = lEdge;
-        var lInsets = new LCropboxEdges(lEdges[0], lEdges[1], lEdges[2], lEdges[3]);
+        LCropboxEdges lInsets = LCropboxInset.LCropboxSideResolve(_lCropOutletState.LCropboxStateCrop, lSide, lEdge);
         LCropboxRatio lRatio = _lCropOutletState.LCropboxStateRatio;
         (bool lPresent, double lWidth, double lHeight) = _lCropOutletSource();
         if (lRatio.LCropboxRatioFixed && lPresent)
@@ -204,34 +205,10 @@ public sealed class LCropOutlet : LCropPort
         return lInsets;
     }
 
-    private LCropboxEdges LCropDrawnResolve(LCropbox? lDrawn, int lDriveAxis, int lAnchorX, int lAnchorY)
-    {
-        (_, double lWidth, double lHeight) = _lCropOutletSource();
-        LCropbox? lSnapped = lDrawn is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lDesired
-            ? LCropboxAspect.LCropboxFitResolve(
-                lDesired,
-                new LCropbox(0, 0, lWidth, lHeight),
-                _lCropOutletState.LCropboxStateRatio,
-                lDriveAxis,
-                lAnchorX,
-                lAnchorY) ?? lDesired
-            : lDrawn;
-        if (lSnapped is not { LCropboxWidth: > 0, LCropboxHeight: > 0 } lRect)
-        {
-            return new LCropboxEdges(0, 0, 0, 0);
-        }
-
-        return new LCropboxEdges(
-            lRect.LCropboxX,
-            lRect.LCropboxY,
-            lWidth - lRect.LCropboxX - lRect.LCropboxWidth,
-            lHeight - lRect.LCropboxY - lRect.LCropboxHeight);
-    }
-
     // A fixed ratio keeps the ratio and moves the edges; a free crop drops any ratio it had.
     private void LCropEdgesApply(LCropboxEdges lInsets)
     {
-        LWorkCrop lCrop = LCropEdgesResolve(_lCropOutletState.LCropboxStateCrop, lInsets);
+        LWorkCrop lCrop = LCropboxInset.LCropboxInsetResolve(_lCropOutletState.LCropboxStateCrop, lInsets);
         if (_lCropOutletState.LCropboxStateRatio.LCropboxRatioFixed)
         {
             _lCropOutletState.LCropboxCropSet(lCrop);
@@ -240,38 +217,6 @@ public sealed class LCropOutlet : LCropPort
 
         _lCropOutletState.LCropboxStateSet(lCrop, _lCropOutletState.LCropboxStateActive, false, false, 0, 0);
     }
-
-    // The ratio's largest box inside the present extent, from its top left; no extent leaves the crop as it is.
-    private LWorkCrop LCropFitResolve(int lRatioWidth, int lRatioHeight)
-    {
-        LWorkCrop lCrop = _lCropOutletState.LCropboxStateCrop;
-        (_, double lWidth, double lHeight) = _lCropOutletSource();
-        double lBoundsWidth = lWidth - lCrop.LWorkCropLeft - lCrop.LWorkCropRight;
-        double lBoundsHeight = lHeight - lCrop.LWorkCropTop - lCrop.LWorkCropBottom;
-        LCropbox? lPreset = lBoundsWidth > 0 && lBoundsHeight > 0
-            ? LCropboxAspect.LCropboxRatioResolve(
-                new LCropbox(lCrop.LWorkCropLeft, lCrop.LWorkCropTop, lBoundsWidth, lBoundsHeight),
-                lRatioWidth,
-                lRatioHeight)
-            : null;
-        return lPreset is { } lCropbox
-            ? LCropEdgesResolve(lCrop, new LCropboxEdges(
-                lCropbox.LCropboxX,
-                lCropbox.LCropboxY,
-                lWidth - lCropbox.LCropboxRight,
-                lHeight - lCropbox.LCropboxBottom))
-            : lCrop;
-    }
-
-    private static LWorkCrop LCropEdgesResolve(LWorkCrop lCrop, LCropboxEdges lInsets) => lCrop with
-    {
-        LWorkCropLeft = LCropEdgeNormalize(lInsets.LCropboxLeft),
-        LWorkCropTop = LCropEdgeNormalize(lInsets.LCropboxTop),
-        LWorkCropRight = LCropEdgeNormalize(lInsets.LCropboxRight),
-        LWorkCropBottom = LCropEdgeNormalize(lInsets.LCropboxBottom)
-    };
-
-    private static int LCropEdgeNormalize(double lEdge) => (int)Math.Max(0, Math.Round(lEdge));
 
     private void LCropOrientationApply(int lRotation, bool lFlipHorizontal, bool lFlipVertical)
     {
@@ -283,17 +228,7 @@ public sealed class LCropOutlet : LCropPort
             return;
         }
 
-        _lCropOutletState.LCropboxCropSet(LCropOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical));
+        _lCropOutletState.LCropboxCropSet(
+            LCropboxOrientation.LCropboxOrientedResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical));
     }
-
-    private static LWorkCrop LCropOrientationResolve(
-        LWorkCrop lCrop, int lRotation, bool lFlipHorizontal, bool lFlipVertical) =>
-        lCrop.LWorkEdgeActive
-            ? LCropboxOrientation.LCropboxOrientationResolve(lCrop, lRotation, lFlipHorizontal, lFlipVertical)
-            : lCrop with
-            {
-                LWorkCropRotation = lRotation,
-                LWorkFlipHorizontal = lFlipHorizontal,
-                LWorkFlipVertical = lFlipVertical
-            };
 }

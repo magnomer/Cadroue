@@ -17,7 +17,11 @@ public sealed record LAtelierPort
 
     public required LRosterPort LAtelierRoster { get; init; }
 
+    public required LRosterMenuPort LAtelierRosterMenu { get; init; }
+
     public required LFixPort LAtelierFix { get; init; }
+
+    public required LFixPlanPort LAtelierFixPlan { get; init; }
 
     public required LConvertPort LAtelierConvert { get; init; }
 

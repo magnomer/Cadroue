@@ -4,5 +4,5 @@ namespace Cadroue.Tests.Conduct;
 
 internal static partial class TInterface
 {
-    internal static LVideoPort TVideoOutletCreate() => new LVideoOutlet(Interface.TInterface.TInterfaceEngine);
+    internal static LVideoPort TVideoOutletCreate() => Interface.TInterface.TInterfaceEngine.LEngineVideo;
 }

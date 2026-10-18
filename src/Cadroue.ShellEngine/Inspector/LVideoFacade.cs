@@ -7,7 +7,7 @@ namespace Cadroue.ShellEngine;
 // plan record. Only the tools the gate put in become steps: the persistent plan runs in the tools' order, brightness,
 // contrast, saturation, gamma, white balance, exposure, curve; a plan in the caller's order runs its processing step
 // tokens instead.
-public sealed class LVideoFacade
+public sealed class LVideoFacade : LVideoPort
 {
     internal LVideoFacade()
     {

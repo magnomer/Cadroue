@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 // The persistent audio plan built from the tools' plain values, in plan order: high pass, low pass, noise, volume,
 // leveling, equalizer, with the skip switch set. The plan comes back as a plan read, so the gate hands it on
 // without naming the plan record. A plan in the caller's order runs its processing step tokens instead.
-public sealed class LAudioFacade
+public sealed class LAudioFacade : LAudioPort
 {
     private static readonly IReadOnlyDictionary<string, LAudioKind> _lAudioKinds = new Dictionary<string, LAudioKind>
     {

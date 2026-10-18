@@ -8,7 +8,7 @@ namespace Cadroue.Tests;
 
 // Records each ask; every plan member fills a fresh plan record from the clinic and answers it, except restore,
 // which answers TFixRestored when a test sets one.
-internal sealed class TFixPort : LFixPort
+internal sealed class TFixPort : LFixPort, LFixPlanPort
 {
     public List<string> TFixCalls { get; } = [];
 

@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // One flow's waveform scan: the calls over one scanner the rig hands in. Whether a scan runs and when its notice
 // reaches the readers is the gate's.
-public sealed class LWaveformFacade
+public sealed class LWaveformFacade : LWaveformPort
 {
     private readonly LRigWaveform _lWaveformFacadeRig;
 

@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // The equalizer rules from the contour catalogue, on bands as plain (frequency, gain) pairs. An edited band is
 // held inside the catalogue's ranges; an added band starts at the default frequency with no gain.
-public sealed class LEqualizerFacade
+public sealed class LEqualizerFacade : LEqualizerPort
 {
     internal LEqualizerFacade()
     {

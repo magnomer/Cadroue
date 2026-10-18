@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // The map gate's engine side over the engine range: reads and edits go to the range, the scans to the keyframe view,
 // and each drawn map to the rig's trace timeline.
-public sealed class LMapFacade
+public sealed class LMapFacade : LMapPort
 {
     private readonly LRigTrace _lMapFacadeTrace;
 

@@ -8,6 +8,7 @@ public sealed class CAtelier
     private readonly LWorkspacePort _cAtelierWorkspacePort;
     private readonly LViewerPort _cAtelierViewerPort;
     private readonly LRosterPort _cAtelierRosterPort;
+    private readonly LRosterMenuPort _cAtelierMenuPort;
     private readonly LTonePort _cAtelierTonePort;
     private readonly LEqualizerPort _cAtelierEqualizerPort;
     private readonly LClinicPort _cAtelierClinicPort;
@@ -35,7 +36,9 @@ public sealed class CAtelier
         ArgumentNullException.ThrowIfNull(port.LAtelierViewer);
         ArgumentNullException.ThrowIfNull(port.LAtelierEdit);
         ArgumentNullException.ThrowIfNull(port.LAtelierRoster);
+        ArgumentNullException.ThrowIfNull(port.LAtelierRosterMenu);
         ArgumentNullException.ThrowIfNull(port.LAtelierFix);
+        ArgumentNullException.ThrowIfNull(port.LAtelierFixPlan);
         ArgumentNullException.ThrowIfNull(port.LAtelierConvert);
         ArgumentNullException.ThrowIfNull(port.LAtelierTone);
         ArgumentNullException.ThrowIfNull(port.LAtelierEqualizer);
@@ -64,7 +67,8 @@ public sealed class CAtelier
         CAtelierInfo = new CInfo();
         CAtelierEdit = new CEdit(port.LAtelierEdit);
         _cAtelierRosterPort = port.LAtelierRoster;
-        CAtelierFix = new CFix(port.LAtelierFix);
+        _cAtelierMenuPort = port.LAtelierRosterMenu;
+        CAtelierFix = new CFix(port.LAtelierFix, port.LAtelierFixPlan);
         CAtelierConvert = new CConvert(port.LAtelierConvert);
         _cAtelierTonePort = port.LAtelierTone;
         _cAtelierEqualizerPort = port.LAtelierEqualizer;
@@ -124,9 +128,9 @@ public sealed class CAtelier
             _cAtelierLoudnessPort,
             _cAtelierVideoPort);
 
-    // A roster's preference gate with the roster's own card and detail gates.
+    // A roster's preference gate; it builds the roster's own card, detail and menu gates.
     public CRoster CAtelierRosterCreate() =>
-        new(_cAtelierRosterPort, new CRosterCard(_cAtelierCardPort), new CRosterDetail(_cAtelierDetailPort));
+        new(_cAtelierRosterPort, _cAtelierCardPort, _cAtelierDetailPort, _cAtelierMenuPort);
 
     // A window's console: it holds the station it shows and the progress it glides to.
     public CConsole CAtelierConsoleCreate() => new(_cAtelierConsolePort, _cAtelierScenePort);

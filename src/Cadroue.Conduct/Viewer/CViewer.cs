@@ -6,7 +6,7 @@ namespace Cadroue.Conduct;
 // The viewer's tenure and trace decisions: the tenure state its gates decide from (the load serial, unloaded,
 // command, preview engine and host shown), whether and which record is written, with the state only the records use
 // (the host stamp and detail). The seek trace is CViewerScrub's and the overlay CViewerOverlay's. The words are the
-// outlet's. One per viewer, built with its workspace; the drivers read the state through its properties and keep no
+// port's. One per viewer, built with its workspace; the drivers read the state through its properties and keep no
 // copy.
 public sealed class CViewer
 {

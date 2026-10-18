@@ -7,7 +7,7 @@ namespace Cadroue.ShellEngine;
 // height the panel was left at as plain values, and the zoom and step over its range. Each flow's own section store,
 // keyframe scan and waveform scan are made here; the rig's flow record hands in how one flow's scanners are made and
 // how the height is read, since the scanners and the frame store live below the engine.
-public sealed class LFlowFacade
+public sealed class LFlowFacade : LFlowPort
 {
     private readonly LRigFlow _lFlowFacadeRig;
 
@@ -48,12 +48,12 @@ public sealed class LFlowFacade
     public (TimeSpan LFlowDuration, bool LFlowAudio, LSpool LFlowRange) LFlowMediaRead(LMediaInfo lMedia) =>
         (lMedia.LMediaInfoDuration, lMedia.LMediaAudioPresent, new LSpool(lMedia.LMediaInfoDuration));
 
-    public LSectionFacade LFlowSectionCreate(Func<string> lSource) => new(lSource);
+    public LSectionPort LFlowSectionCreate(Func<string> lSource) => new LSectionFacade(lSource);
 
-    public LKeyframeFacade LFlowKeyframeCreate(Func<string> lSource) =>
-        new(lSource, _lFlowFacadeRig.LRigFlowKeyframe());
+    public LKeyframePort LFlowKeyframeCreate(Func<string> lSource) =>
+        new LKeyframeFacade(lSource, _lFlowFacadeRig.LRigFlowKeyframe());
 
-    public LWaveformFacade LFlowWaveformCreate() => new(_lFlowFacadeRig.LRigFlowWaveform());
+    public LWaveformPort LFlowWaveformCreate() => new LWaveformFacade(_lFlowFacadeRig.LRigFlowWaveform());
 
     public double LFlowHeightRead() => _lFlowFacadeRig.LRigFlowHeight();
 }

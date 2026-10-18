@@ -53,7 +53,7 @@ internal static class TInterfaceList
 
     // As the host builds it, over the engine.
     internal static LRelayPort TRelayOutletCreate() =>
-        new LRelayOutlet(Interface.TInterface.TInterfaceEngine);
+        Interface.TInterface.TInterfaceEngine.LEngineRelay;
 
     // The strip's relay gate takes the engine's delivery seams; each helper below calls the seam the engine calls.
     internal static void TListRelayAttach(QStrip strip) => strip.QStripRelay.QStripListAttach();

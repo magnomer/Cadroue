@@ -234,11 +234,11 @@ internal static partial class TInterface
     internal static bool TUsherFileExist(string? path) => LUsher.LUsherFileExist(path);
     internal static bool TUsherFolderExist(string? path) => LUsher.LUsherFolderExist(path);
     internal static string? TUsherPathOpen(string path, string? fallback, string? failure) =>
-        new LUsherOutlet(TInterfaceEngine).LUsherPathOpen(path, fallback, failure);
+        TInterfaceEngine.LEngineUsher.LUsherPathOpen(path, fallback, failure);
     internal static string? TUsherLinkOpen(string target, string? failure) =>
-        new LUsherOutlet(TInterfaceEngine).LUsherLinkOpen(target, failure);
-    internal static string TUsherNameRead(string path) => new LUsherOutlet(TInterfaceEngine).LUsherNameRead(path);
-    internal static string TUsherStemRead(string path) => new LUsherOutlet(TInterfaceEngine).LUsherStemRead(path);
+        TInterfaceEngine.LEngineUsher.LUsherLinkOpen(target, failure);
+    internal static string TUsherNameRead(string path) => TInterfaceEngine.LEngineUsher.LUsherNameRead(path);
+    internal static string TUsherStemRead(string path) => TInterfaceEngine.LEngineUsher.LUsherStemRead(path);
 
     internal static LLineageAnswer TLineageResolve(LScheduleContract schedule, IReadOnlyList<Guid> ids)
     {
@@ -246,7 +246,7 @@ internal static partial class TInterface
         LStationEngine.LStationSchedule = schedule;
         try
         {
-            return new LLineageOutlet(TInterfaceEngine).LLineageResolve(ids);
+            return TInterfaceEngine.LEngineLineage.LLineageResolve(ids);
         }
         finally
         {
@@ -283,7 +283,7 @@ internal static partial class TInterface
             LUsherTextEngine.LUsherNameSeam,
             extensionRead);
     internal static string TLineageTitleRead(LLineageStep step) =>
-        new LLineageOutlet(TInterfaceEngine)
+        TInterfaceEngine.LEngineLineage
             .LLineageTitleRead(step.LLineageStepBatch, step.LLineageStepRelay, step.LLineageStepTab);
     internal static LLineageAnswer TLineageAnswerCreate(
         IReadOnlyList<LLineageGroup> groups, IReadOnlyList<LLineageBatch> batches, IReadOnlyList<LLineageStep> steps) =>
@@ -302,7 +302,7 @@ internal static partial class TInterface
         Guid id, Guid batch, Guid relay, string tab, string kind, bool subject, string? name, long? source,
         double? ratio, string sourceExtension, string outputExtension) =>
         new(id, batch, relay, tab, kind, subject, name, source, ratio, sourceExtension, outputExtension);
-    internal static LLineagePort TLineageOutletCreate() => new LLineageOutlet(TInterfaceEngine);
+    internal static LLineagePort TLineageOutletCreate() => TInterfaceEngine.LEngineLineage;
     internal static LClinicPort TClinicOutletCreate() => new LClinicOutlet();
     internal static LCheckupPort TClinicResultCreate(string path, string kind, string outcome) =>
         new LCheckupOutlet(new LCheckupResult(

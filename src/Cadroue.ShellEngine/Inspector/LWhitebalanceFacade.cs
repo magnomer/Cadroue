@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // The white balance math for the gate: Core's step rule, through the answer that translates it, and the Application
 // neutral readings, each answered as plain values.
-public sealed class LWhitebalanceFacade
+public sealed class LWhitebalanceFacade : LWhitebalancePort
 {
     internal LWhitebalanceFacade()
     {

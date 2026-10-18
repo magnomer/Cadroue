@@ -1,3 +1,5 @@
+using Cadroue.Core;
+
 namespace Cadroue.Application;
 
 public static class LCropboxAspect
@@ -256,6 +258,65 @@ public static class LCropboxAspect
             0,
             lCropboxMaximumY);
         return new LCropbox(lCropboxX, lCropboxY, lCropboxWidth, lCropboxHeight);
+    }
+
+    // A drawn box snapped to the ratio inside a source of this size, as insets from the source's sides; a box with no
+    // area leaves no insets. The ratio is read only for a box with area.
+    public static LCropboxEdges LCropboxDrawnResolve(
+        LCropbox? lCropboxDrawn,
+        double lCropboxWidth,
+        double lCropboxHeight,
+        Func<LCropboxRatio> lCropboxRatio,
+        int lCropboxDriveAxis,
+        int lCropboxAnchorX,
+        int lCropboxAnchorY)
+    {
+        LCropbox? lCropboxSnapped = lCropboxDrawn is { LCropboxWidth: > 0, LCropboxHeight: > 0 } lCropboxDesired
+            ? LCropboxFitResolve(
+                lCropboxDesired,
+                new LCropbox(0, 0, lCropboxWidth, lCropboxHeight),
+                lCropboxRatio(),
+                lCropboxDriveAxis,
+                lCropboxAnchorX,
+                lCropboxAnchorY) ?? lCropboxDesired
+            : lCropboxDrawn;
+        if (lCropboxSnapped is not { LCropboxWidth: > 0, LCropboxHeight: > 0 } lCropboxRect)
+        {
+            return new LCropboxEdges(0, 0, 0, 0);
+        }
+
+        return new LCropboxEdges(
+            lCropboxRect.LCropboxX,
+            lCropboxRect.LCropboxY,
+            lCropboxWidth - lCropboxRect.LCropboxX - lCropboxRect.LCropboxWidth,
+            lCropboxHeight - lCropboxRect.LCropboxY - lCropboxRect.LCropboxHeight);
+    }
+
+    // The ratio's largest box inside the crop's present extent in a source of this size, from its top left; no extent
+    // leaves the crop as it is.
+    public static LWorkCrop LCropboxPresetResolve(
+        LWorkCrop lCropboxCrop,
+        double lCropboxWidth,
+        double lCropboxHeight,
+        int lCropboxRatioWidth,
+        int lCropboxRatioHeight)
+    {
+        double lCropboxBoundsWidth = lCropboxWidth - lCropboxCrop.LWorkCropLeft - lCropboxCrop.LWorkCropRight;
+        double lCropboxBoundsHeight = lCropboxHeight - lCropboxCrop.LWorkCropTop - lCropboxCrop.LWorkCropBottom;
+        LCropbox? lCropboxPreset = lCropboxBoundsWidth > 0 && lCropboxBoundsHeight > 0
+            ? LCropboxRatioResolve(
+                new LCropbox(
+                    lCropboxCrop.LWorkCropLeft, lCropboxCrop.LWorkCropTop, lCropboxBoundsWidth, lCropboxBoundsHeight),
+                lCropboxRatioWidth,
+                lCropboxRatioHeight)
+            : null;
+        return lCropboxPreset is { } lCropbox
+            ? LCropboxInset.LCropboxInsetResolve(lCropboxCrop, new LCropboxEdges(
+                lCropbox.LCropboxX,
+                lCropbox.LCropboxY,
+                lCropboxWidth - lCropbox.LCropboxRight,
+                lCropboxHeight - lCropbox.LCropboxBottom))
+            : lCropboxCrop;
     }
 
     public static LCropboxExtent LCropboxRatioNormalize(int lCropboxRatioWidth, int lCropboxRatioHeight)

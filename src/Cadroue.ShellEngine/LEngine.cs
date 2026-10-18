@@ -23,7 +23,13 @@ public sealed class LEngine
 
     public LConvertFacade LEngineConvert { get; }
 
+    public LFixFacade LEngineFix { get; }
+
+    public LFixPlanFacade LEngineFixPlan { get; }
+
     public LRosterFacade LEngineRoster { get; }
+
+    public LRosterMenuFacade LEngineRosterMenu { get; }
 
     public LRosterCardFacade LEngineRosterCard { get; }
 
@@ -66,7 +72,10 @@ public sealed class LEngine
         LEngineEqualizer = new LEqualizerFacade();
         LEngineNoise = new LNoiseFacade();
         LEngineConvert = new LConvertFacade();
+        LEngineFix = new LFixFacade();
+        LEngineFixPlan = new LFixPlanFacade();
         LEngineRoster = new LRosterFacade();
+        LEngineRosterMenu = new LRosterMenuFacade();
         LEngineRosterCard = new LRosterCardFacade();
         LEngineWorkspace = new LWorkspaceFacade();
         LEngineUsher = new LUsherFacade();

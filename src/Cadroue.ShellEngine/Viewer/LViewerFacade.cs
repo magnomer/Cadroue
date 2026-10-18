@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // The viewer trace texts, recorded through the rig's trace; a file's name, the clock and the line break are read
 // here. A word chosen by a value is chosen here; whether and which record is the gate's.
-public sealed class LViewerFacade
+public sealed class LViewerFacade : LViewerPort
 {
     private readonly LRigTrace _lViewerFacadeTrace;
 

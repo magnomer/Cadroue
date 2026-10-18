@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Cadroue.ShellEngine;
 
-public sealed class LUsherFacade
+public sealed class LUsherFacade : LUsherPort
 {
     internal LUsherFacade()
     {

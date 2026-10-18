@@ -4,21 +4,19 @@ using Cadroue.ShellEngine;
 namespace Cadroue.Conduct;
 
 // The roster's gate: the worklist preferences it shows and takes from its boxes. CAtelier makes one per roster; it
-// holds the roster's card, detail and menu gates.
+// builds the roster's card, detail and menu gates over their ports.
 // A box left unset reads as unchecked; the engine keeps each preference and answers whether a choice changed it.
 public sealed class CRoster
 {
     private readonly LRosterPort _cRosterPort;
 
-    internal CRoster(LRosterPort port, CRosterCard card, CRosterDetail detail)
+    internal CRoster(LRosterPort port, LRosterCardPort card, LRosterDetailPort detail, LRosterMenuPort menu)
     {
         ArgumentNullException.ThrowIfNull(port);
-        ArgumentNullException.ThrowIfNull(card);
-        ArgumentNullException.ThrowIfNull(detail);
         _cRosterPort = port;
-        CRosterCard = card;
-        CRosterDetail = detail;
-        CRosterMenu = new CRosterMenu(port);
+        CRosterCard = new CRosterCard(card);
+        CRosterDetail = new CRosterDetail(detail);
+        CRosterMenu = new CRosterMenu(menu);
     }
 
     public CRosterCard CRosterCard { get; }

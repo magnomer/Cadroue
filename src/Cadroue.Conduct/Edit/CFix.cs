@@ -10,14 +10,14 @@ public sealed class CFix
 {
     private readonly LFixPort _cFixPort;
 
-    internal CFix(LFixPort port)
+    internal CFix(LFixPort port, LFixPlanPort planPort)
     {
         ArgumentNullException.ThrowIfNull(port);
         _cFixPort = port;
-        CFixPlan = new CFixPlan(port);
+        CFixPlan = new CFixPlan(planPort);
     }
 
-    // The clinic plan's saves, over the same port.
+    // The clinic plan's saves, over the plan port.
     public CFixPlan CFixPlan { get; }
 
     // The single run: the first item whose path is the current one, ignoring case, runs while unlocked. Without a valid

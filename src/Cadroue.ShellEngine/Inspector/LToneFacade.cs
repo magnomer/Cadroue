@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // The preview facts the tone gate decides its notice from: whether Flyleaf runs and whether the preview engine is mpv,
 // each from the rig's preview reads.
-public sealed class LToneFacade
+public sealed class LToneFacade : LTonePort
 {
     private readonly LRigPreview _lToneFacadePreview;
 

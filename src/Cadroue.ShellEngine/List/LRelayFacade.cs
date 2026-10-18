@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // The relay's engine side: the delivery seams, each work item turned into the tab it came from and the paths it holds,
 // the docket edits, and the media scan and the traces the rig holds.
-public sealed class LRelayFacade
+public sealed class LRelayFacade : LRelayPort
 {
     private readonly LRigMedia _lRelayFacadeMedia;
     private readonly LRigTrace _lRelayFacadeTrace;

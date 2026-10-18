@@ -40,6 +40,21 @@ public static class LCropboxOrientation
         };
     }
 
+    // The crop under the new orientation: its edges follow only while any is set.
+    public static LWorkCrop LCropboxOrientedResolve(
+        LWorkCrop lCropbox,
+        int lCropboxRotation,
+        bool lCropboxFlipHorizontal,
+        bool lCropboxFlipVertical) =>
+        lCropbox.LWorkEdgeActive
+            ? LCropboxOrientationResolve(lCropbox, lCropboxRotation, lCropboxFlipHorizontal, lCropboxFlipVertical)
+            : lCropbox with
+            {
+                LWorkCropRotation = lCropboxRotation,
+                LWorkFlipHorizontal = lCropboxFlipHorizontal,
+                LWorkFlipVertical = lCropboxFlipVertical
+            };
+
     private static int[] LCropboxPermutationResolve(
         int lCropboxRotation,
         bool lCropboxFlipHorizontal,

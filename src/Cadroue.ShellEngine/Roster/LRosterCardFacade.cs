@@ -4,7 +4,7 @@ using Cadroue.Core;
 namespace Cadroue.ShellEngine;
 
 // The roster card's rows, read from the station's schedule. With no schedule there is nothing to show.
-public sealed class LRosterCardFacade
+public sealed class LRosterCardFacade : LRosterCardPort
 {
     internal LRosterCardFacade()
     {

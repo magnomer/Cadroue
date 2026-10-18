@@ -43,6 +43,42 @@ public static class LFixSidecar
         string lFixSourcePath, LWorkFix lFixPlan, Func<string, LSidecarFixEntry?, bool> lSidecarSave) =>
         lSidecarSave(lFixSourcePath, LFixPersistentCreate(lFixPlan));
 
+    // The plan is saved to the source unless it is off and the source has none saved, then its persistent part to
+    // every path.
+    public static void LFixStateSave(LWorkFix lPlan, string lSourcePath, IReadOnlyList<string> lPaths)
+    {
+        if (lPlan.LWorkFixActive
+            || LFixSidecarRead(lSourcePath, LLibrarian.LLibrarianFixLoad) is not null)
+        {
+            LFixSidecarSave(lSourcePath, lPlan, LLibrarian.LLibrarianFixSave);
+            LFixPersistentSave(lPlan, lPaths);
+        }
+    }
+
+    // The persistent part of the plan is merged into the plan saved for every path, when it holds a step.
+    public static void LFixPersistentSave(LWorkFix lPlan, IReadOnlyList<string> lPaths)
+    {
+        LWorkFix lPersistent = LFixPlan.LFixPersistentResolve(lPlan);
+        if (!lPersistent.LWorkFixSteps.Any())
+        {
+            return;
+        }
+
+        foreach (string lPath in lPaths)
+        {
+            LWorkFix? lSaved = LFixSidecarRead(lPath, LLibrarian.LLibrarianFixLoad);
+            LFixSidecarSave(lPath, LFixPlan.LFixPlanResolve(lSaved, lPersistent), LLibrarian.LLibrarianFixSave);
+        }
+    }
+
+    // The plan saved for the source under the persistent part of the plan lPlanRead gives, read after the source.
+    public static LWorkFix LFixSidecarRestore(string lSourcePath, Func<LWorkFix> lPlanRead)
+    {
+        LWorkFix? lSaved = LFixSidecarRead(lSourcePath, LLibrarian.LLibrarianFixLoad);
+        LWorkFix lPersistent = LFixPlan.LFixPersistentResolve(lPlanRead());
+        return LFixPlan.LFixPlanResolve(lSaved, lPersistent);
+    }
+
     private static LSidecarFixStep LFixRecordCreate(LWorkFixStep lFixStep) => new()
     {
         LSidecarKind = LFixKindFormat(lFixStep.LWorkFixKind),

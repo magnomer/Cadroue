@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // The noise reduction rules from the grain catalogue, on plain values in slot order: reduction, smoothing, floor,
 // residual, adaptivity. Every value is held inside the catalogue's range; a preset is matched on values and type.
-public sealed class LNoiseFacade
+public sealed class LNoiseFacade : LNoisePort
 {
     internal LNoiseFacade()
     {

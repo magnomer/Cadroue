@@ -6,7 +6,7 @@ namespace Cadroue.ShellEngine;
 // One flow's keyframe scan: the calls over one scanner the rig hands in, the keyframes and ranges of the last
 // current notice, and each scan's trace. The source the traces name comes from the flow gate; whether a scan or a
 // move runs is the gate's.
-public sealed class LKeyframeFacade
+public sealed class LKeyframeFacade : LKeyframePort
 {
     private readonly Func<string> _lKeyframeFacadeSource;
     private readonly LRigKeyframe _lKeyframeFacadeRig;

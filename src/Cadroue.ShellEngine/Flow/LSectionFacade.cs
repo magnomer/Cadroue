@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // One flow's section store, each edit in its order with its trace, and every change it tells. The source the traces
 // name comes from the flow gate. A word chosen by an engine answer is chosen here; whether an edit runs is the gate's.
-public sealed class LSectionFacade
+public sealed class LSectionFacade : LSectionPort
 {
     private readonly LSegment _lSectionFacadeSegment = new();
     private readonly Func<string> _lSectionFacadeSource;

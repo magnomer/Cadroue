@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // The merge dispatch: the preset's encoding is read by its name, the group records and the priority are built here,
 // and every warning text is worded here for the rig's warning; which groups run is the gate's.
-public sealed class LMergeFacade
+public sealed class LMergeFacade : LMergePort
 {
     private readonly LRigTrace _lMergeFacadeTrace;
 

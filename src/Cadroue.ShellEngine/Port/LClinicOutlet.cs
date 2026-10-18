@@ -21,6 +21,15 @@ public sealed class LClinicOutlet : LClinicPort
 
     public LWorkFix LClinicPlan => _lClinicPlan;
 
+    // A fresh record holding the default plan, handed to lPlanApply to fill.
+    public static LClinicOutlet LClinicOutletCreate(Action<LClinicPort> lPlanApply)
+    {
+        ArgumentNullException.ThrowIfNull(lPlanApply);
+        LClinicOutlet lPlan = new();
+        lPlanApply(lPlan);
+        return lPlan;
+    }
+
     public (IReadOnlyList<(string LClinicKind, bool LClinicRepair, bool LClinicPersistent)> LClinicSteps,
         bool LClinicActive,
         bool LClinicSeparate,

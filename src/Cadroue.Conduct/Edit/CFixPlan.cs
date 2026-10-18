@@ -5,13 +5,13 @@ using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
-// When a fix tab's clinic plan is saved, restored or read. CFix makes one over its own port: each plan gate takes the
+// When a fix tab's clinic plan is saved, restored or read. CFix makes one over the plan port: each plan gate takes the
 // tab's clinic.
 public sealed class CFixPlan
 {
-    private readonly LFixPort _cFixPlanPort;
+    private readonly LFixPlanPort _cFixPlanPort;
 
-    internal CFixPlan(LFixPort port)
+    internal CFixPlan(LFixPlanPort port)
     {
         ArgumentNullException.ThrowIfNull(port);
         _cFixPlanPort = port;

@@ -4,7 +4,7 @@ namespace Cadroue.ShellEngine;
 
 // The high- and low-pass rules from the passband catalogue, on plain values in slot order: frequency, stages,
 // resonance. Every value is held inside its side's range, the stages as a whole number and the poles as 1 or 2.
-public sealed class LFilterFacade
+public sealed class LFilterFacade : LFilterPort
 {
     internal LFilterFacade()
     {

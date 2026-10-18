@@ -6,7 +6,7 @@ namespace Cadroue.ShellEngine;
 // The console's engine side over the station board and the shared schedule. A station handle that is null or left
 // the board resolves to the board's first station. The rig's program path, which a runner takes with the retry
 // preferences before each start.
-public sealed class LConsoleFacade
+public sealed class LConsoleFacade : LConsolePort
 {
     private const string LConsoleInternalLabel = "Background worklist";
 

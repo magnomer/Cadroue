@@ -1,6 +1,6 @@
 namespace Cadroue.ShellEngine;
 
-public sealed class LWorkspaceFacade
+public sealed class LWorkspaceFacade : LWorkspacePort
 {
     internal LWorkspaceFacade()
     {

@@ -8,7 +8,7 @@ namespace Cadroue.Conduct;
 // CRoster makes one per roster and hands it the roster's station.
 public sealed class CRosterMenu
 {
-    private readonly LRosterPort _cRosterMenuPort;
+    private readonly LRosterMenuPort _cRosterMenuPort;
     private LStation? _cRosterMenuStation;
     private bool _cRosterMenuRestartable;
     private bool _cRosterMenuCancellable;
@@ -16,7 +16,7 @@ public sealed class CRosterMenu
     private IReadOnlyList<string> _cRosterMenuPaths = [];
     private Action _cRosterMenuAction = () => { };
 
-    internal CRosterMenu(LRosterPort port)
+    internal CRosterMenu(LRosterMenuPort port)
     {
         ArgumentNullException.ThrowIfNull(port);
         _cRosterMenuPort = port;

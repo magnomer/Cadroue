@@ -5,7 +5,7 @@ namespace Cadroue.ShellEngine;
 
 // The lineage reads: the schedule's groups, batches and steps, each batch with the time its items spent, timed by the
 // system clock.
-public sealed class LLineageFacade
+public sealed class LLineageFacade : LLineagePort
 {
     internal LLineageFacade()
     {
