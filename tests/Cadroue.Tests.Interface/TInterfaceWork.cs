@@ -71,6 +71,7 @@ internal static partial class TInterface
     internal static LWorkCurveSettings TWorkCurveRead(LWorkVideoStep step) => step.LWorkCurveRead();
     internal static string TWorkCurveFormat(LWorkVideoStep step) =>
         LWorkVideoFilter.LWorkCurveFormat(step.LWorkCurveRead());
+    internal static double TWorkFfmpegResolve(LWorkVideoStep step) => LWorkVideoFilter.LWorkFfmpegResolve(step);
     internal static LWorkVideoStep TWorkMalformedCreate(
         LWhitebalanceMethod method, double value, double saturation) =>
         new(LColorKind.LColorKindWhitebalance, true, value)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
@@ -24,7 +23,11 @@ public sealed class CEdit
     {
         ArgumentNullException.ThrowIfNull(port);
         _cEditPort = port;
+        CEditAudio = new CEditAudio(port);
     }
+
+    // The audio tab's sidecar saves, over the same port.
+    public CEditAudio CEditAudio { get; }
 
     // The single run: a missing preset before an incompatible one, then the first item whose path is the current one,
     // ignoring case, runs only while unlocked; its path and batch are answered. The driver dispatches that item itself
@@ -36,32 +39,14 @@ public sealed class CEdit
         IReadOnlyList<(string CEditPath, Guid CEditBatch, bool CEditLocked)> items)
     {
         ArgumentNullException.ThrowIfNull(items);
-        if (!presetValid)
+        if (CEditPresetRead(presetValid, presetSupported) is { } refusal)
         {
-            return (CEditVerdict.CEditVerdictMissing, null, Guid.Empty);
+            return (refusal, null, Guid.Empty);
         }
 
-        if (!presetSupported)
-        {
-            return (CEditVerdict.CEditVerdictIncompatible, null, Guid.Empty);
-        }
-
-        if (path is null)
-        {
-            return (CEditVerdict.CEditVerdictEmpty, null, Guid.Empty);
-        }
-
-        foreach ((string itemPath, Guid itemBatch, bool itemLocked) in items)
-        {
-            if (string.Equals(itemPath, path, StringComparison.OrdinalIgnoreCase))
-            {
-                return itemLocked
-                    ? (CEditVerdict.CEditVerdictEmpty, null, Guid.Empty)
-                    : (CEditVerdict.CEditVerdictRan, itemPath, itemBatch);
-            }
-        }
-
-        return (CEditVerdict.CEditVerdictEmpty, null, Guid.Empty);
+        return CDocket.CDocketFind(items, path) is { CDocketLocked: false } item
+            ? (CEditVerdict.CEditVerdictRan, item.CDocketPath, item.CDocketBatch)
+            : (CEditVerdict.CEditVerdictEmpty, null, Guid.Empty);
     }
 
     // Every unlocked item runs, or, given paths, every unlocked item whose path is among them, in docket order. An
@@ -76,50 +61,20 @@ public sealed class CEdit
         Guid sourceTab)
     {
         ArgumentNullException.ThrowIfNull(items);
-        if (!presetValid)
+        if (CEditPresetRead(presetValid, presetSupported) is { } refusal)
         {
-            return CEditVerdict.CEditVerdictMissing;
+            return refusal;
         }
 
-        if (!presetSupported)
-        {
-            return CEditVerdict.CEditVerdictIncompatible;
-        }
-
-        _cEditPort.LEditAllRun(
-            presetName,
-            items
-                .Where(item => !item.CEditLocked
-                    && (paths is null || paths.Contains(item.CEditPath, StringComparer.OrdinalIgnoreCase)))
-                .Select(item => (item.CEditPath, item.CEditBatch))
-                .ToArray(),
-            relayTarget,
-            sourceTab);
+        _cEditPort.LEditAllRun(presetName, CDocket.CDocketUnlockedRead(items, paths), relayTarget, sourceTab);
         return CEditVerdict.CEditVerdictRan;
     }
 
-    // The inspector's persistent audio plan is saved into each path's sidecar, merged with its saved plan, unless
-    // saving is suspended or the user keeps no audio tool and no skip switch. The skip switch rides as kept and on.
-    public void CEditAudioSave(CInspector inspector, bool suspended, IReadOnlyList<string> paths)
-    {
-        ArgumentNullException.ThrowIfNull(inspector);
-        ArgumentNullException.ThrowIfNull(paths);
-        bool kept = inspector.CInspectorVolume.CVolumePersistent
-            || inspector.CInspectorLoudness.CLoudnessPersistent
-            || inspector.CInspectorNoise.CNoisePersistent
-            || inspector.CInspectorHighpass.CFilterPersistent
-            || inspector.CInspectorLowpass.CFilterPersistent
-            || inspector.CInspectorEqualizer.CEqualizerPersistent
-            || inspector.CInspectorSkip.CSkipPersistent;
-        if (suspended || !kept)
-        {
-            return;
-        }
-
-        _cEditPort.LEditAudioSave(
-            inspector.CInspectorAudio.CInspectorPersistentRead(),
-            paths,
-            inspector.CInspectorSkip.CSkipPersistent,
-            inspector.CInspectorSkip.CSkipActive);
-    }
+    // A missing preset is told before an incompatible one; a valid, supported preset refuses nothing.
+    private static CEditVerdict? CEditPresetRead(bool presetValid, bool presetSupported) =>
+        !presetValid
+            ? CEditVerdict.CEditVerdictMissing
+            : !presetSupported
+                ? CEditVerdict.CEditVerdictIncompatible
+                : (CEditVerdict?)null;
 }

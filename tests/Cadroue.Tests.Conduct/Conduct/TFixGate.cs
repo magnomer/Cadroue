@@ -24,6 +24,7 @@ public sealed class TFixGate
 
     private readonly TFixPort tFixPort = new();
     private readonly CFix tFixGate;
+    private readonly CFixPlan tFixPlanGate;
     private readonly CClinic tFixClinic;
     private readonly CWorkspace tFixWorkspace;
 
@@ -31,6 +32,7 @@ public sealed class TFixGate
     {
         CAtelier atelier = TAtelier.TAtelierCreate(port => port with { LAtelierFix = tFixPort });
         tFixGate = atelier.CAtelierFix;
+        tFixPlanGate = atelier.CAtelierFix.CFixPlan;
         tFixClinic = atelier.CAtelierInspectorCreate().CInspectorClinic;
         tFixWorkspace = atelier.CAtelierWorkspaceCreate();
     }
@@ -90,7 +92,7 @@ public sealed class TFixGate
         tFixClinic.CClinicRepairSet(true);
         tFixWorkspace.CWorkspaceMediaSet(@"c:\A.MP4", true);
 
-        var steps = tFixGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
+        var steps = tFixPlanGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
 
         Assert.Equal([@"save|c:\A.MP4|C:\a.mp4,C:\c.mp4"], tFixPort.TFixCalls);
         Assert.Equal(12, steps.Count);
@@ -102,12 +104,12 @@ public sealed class TFixGate
     [Fact]
     public void StateSave_NoSourceLockedOrHeld_OnlyReadsThePlan()
     {
-        tFixGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
+        tFixPlanGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
         tFixWorkspace.CWorkspaceMediaSet(@"C:\B.mp4", true);
-        tFixGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
+        tFixPlanGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
         tFixWorkspace.CWorkspaceMediaSet(@"C:\a.mp4", true);
         tFixClinic.CClinicSaveSuspend();
-        var steps = tFixGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
+        var steps = tFixPlanGate.CFixStateSave(tFixClinic, tFixWorkspace, TFixItems);
 
         Assert.Equal(["create", "create", "create"], tFixPort.TFixCalls);
         Assert.Equal(12, steps.Count);
@@ -119,7 +121,7 @@ public sealed class TFixGate
     {
         tFixWorkspace.CWorkspaceMediaSet(@"C:\c.mp4", true);
 
-        tFixGate.CFixSourceOpen(tFixClinic, tFixWorkspace, TFixItems, @"C:\z.mp4");
+        tFixPlanGate.CFixSourceOpen(tFixClinic, tFixWorkspace, TFixItems, @"C:\z.mp4");
 
         Assert.Equal([@"save|C:\c.mp4|C:\a.mp4,C:\c.mp4"], tFixPort.TFixCalls);
         Assert.Equal(@"C:\z.mp4", tFixClinic.CClinicSource);
@@ -129,9 +131,9 @@ public sealed class TFixGate
     public void PersistentSave_HeldSaves_AskNothing()
     {
         tFixClinic.CClinicSaveSuspend();
-        tFixGate.CFixPersistentSave(tFixClinic, [@"C:\a.mp4"]);
+        tFixPlanGate.CFixPersistentSave(tFixClinic, [@"C:\a.mp4"]);
         tFixClinic.CClinicSaveResume();
-        tFixGate.CFixPersistentSave(tFixClinic, [@"C:\a.mp4", @"C:\c.mp4"]);
+        tFixPlanGate.CFixPersistentSave(tFixClinic, [@"C:\a.mp4", @"C:\c.mp4"]);
 
         Assert.Equal([@"persistent|C:\a.mp4,C:\c.mp4"], tFixPort.TFixCalls);
     }
@@ -140,13 +142,13 @@ public sealed class TFixGate
     public void PlanRestore_ClinicTakesTheAnsweredPlan_StepsReadFromIt()
     {
         LClinicPort restore = TInterface.TClinicOutletCreate();
-        restore.LClinicPlanSet([("Index", true, false)], true, false, false, false);
+        Conduct.TInterface.TClinicPlanSet(restore, [("Index", true, false)], true, false, false, false);
         tFixPort.TFixRestored = restore;
 
-        var steps = tFixGate.CFixPlanRestore(tFixClinic, @"C:\a.mp4");
+        var steps = tFixPlanGate.CFixPlanRestore(tFixClinic, @"C:\a.mp4");
 
         Assert.Equal([@"restore|C:\a.mp4"], tFixPort.TFixCalls);
-        Assert.True(tFixClinic.CClinicRepairCheck());
+        Assert.True(tFixClinic.CClinicSalvageRead().CClinicFixable);
         Assert.True(tFixClinic.CClinicSalvageRead().CClinicActive);
         Assert.Equal([("Index", true), (CClinic.CClinicSalvageStep, true)], steps);
     }
@@ -155,11 +157,11 @@ public sealed class TFixGate
     public void LayoutApply_MissingMinimizes_PlanIsTaken_StepsReadAfter()
     {
         LClinicPort plan = TInterface.TClinicOutletCreate();
-        plan.LClinicPlanSet([("Coded", true, true)], false, false, false, false);
+        Conduct.TInterface.TClinicPlanSet(plan, [("Coded", true, true)], false, false, false, false);
 
-        var none = tFixGate.CFixLayoutApply(tFixClinic, false, null);
-        var missing = tFixGate.CFixLayoutApply(tFixClinic, true, plan);
-        var taken = tFixGate.CFixLayoutApply(tFixClinic, false, plan);
+        var none = tFixPlanGate.CFixLayoutApply(tFixClinic, false, null);
+        var missing = tFixPlanGate.CFixLayoutApply(tFixClinic, true, plan);
+        var taken = tFixPlanGate.CFixLayoutApply(tFixClinic, false, plan);
 
         Assert.Equal(["create", "create", "create"], tFixPort.TFixCalls);
         Assert.True(tFixClinic.CClinicMinimized);

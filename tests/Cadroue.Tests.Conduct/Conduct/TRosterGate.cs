@@ -94,7 +94,7 @@ public sealed class TRosterGate
         LStation station = TRosterStationCreate();
         tRosterGate.CRosterAttach(station);
 
-        tRosterGate.CRosterMenuRead(Guid.NewGuid());
+        tRosterGate.CRosterMenu.CRosterMenuRead(Guid.NewGuid());
 
         Assert.Same(station, tRosterPort.TRosterStation);
     }
@@ -102,14 +102,14 @@ public sealed class TRosterGate
     [Fact]
     public void RosterMenuRead_NotAttached_OffersNothingWithoutAsking()
     {
-        tRosterGate.CRosterMenuRead(Guid.NewGuid());
-        tRosterGate.CRosterMenuRun();
+        tRosterGate.CRosterMenu.CRosterMenuRead(Guid.NewGuid());
+        tRosterGate.CRosterMenu.CRosterMenuRun();
 
-        Assert.False(tRosterGate.CRosterMenuRestartable);
-        Assert.False(tRosterGate.CRosterMenuCancellable);
-        Assert.False(tRosterGate.CRosterMenuRelay);
-        Assert.Equal(0, tRosterGate.CRosterMenuCount);
-        Assert.Empty(tRosterGate.CRosterMenuPaths);
+        Assert.False(tRosterGate.CRosterMenu.CRosterMenuRestartable);
+        Assert.False(tRosterGate.CRosterMenu.CRosterMenuCancellable);
+        Assert.False(tRosterGate.CRosterMenu.CRosterMenuRelay);
+        Assert.Equal(0, tRosterGate.CRosterMenu.CRosterMenuCount);
+        Assert.Empty(tRosterGate.CRosterMenu.CRosterMenuPaths);
         Assert.Empty(tRosterPort.TRosterCalls);
     }
 
@@ -121,13 +121,13 @@ public sealed class TRosterGate
         tRosterGate.CRosterAttach(TRosterStationCreate());
         tRosterPort.TRosterMenu = (true, false, 2, [], () => runs++);
 
-        tRosterGate.CRosterMenuRead(clicked);
-        tRosterGate.CRosterMenuRun();
+        tRosterGate.CRosterMenu.CRosterMenuRead(clicked);
+        tRosterGate.CRosterMenu.CRosterMenuRun();
 
-        Assert.True(tRosterGate.CRosterMenuRestartable);
-        Assert.False(tRosterGate.CRosterMenuCancellable);
-        Assert.False(tRosterGate.CRosterMenuRelay);
-        Assert.Equal(2, tRosterGate.CRosterMenuCount);
+        Assert.True(tRosterGate.CRosterMenu.CRosterMenuRestartable);
+        Assert.False(tRosterGate.CRosterMenu.CRosterMenuCancellable);
+        Assert.False(tRosterGate.CRosterMenu.CRosterMenuRelay);
+        Assert.Equal(2, tRosterGate.CRosterMenu.CRosterMenuCount);
         Assert.Equal(1, runs);
         Assert.Equal([$"menu:{clicked}"], tRosterPort.TRosterCalls);
     }
@@ -138,10 +138,10 @@ public sealed class TRosterGate
         tRosterGate.CRosterAttach(TRosterStationCreate());
         tRosterPort.TRosterMenu = (false, false, 1, ["out.mp4"], () => { });
 
-        tRosterGate.CRosterMenuRead(Guid.NewGuid());
+        tRosterGate.CRosterMenu.CRosterMenuRead(Guid.NewGuid());
 
-        Assert.True(tRosterGate.CRosterMenuRelay);
-        Assert.Equal(1, tRosterGate.CRosterMenuCount);
-        Assert.Equal(["out.mp4"], tRosterGate.CRosterMenuPaths);
+        Assert.True(tRosterGate.CRosterMenu.CRosterMenuRelay);
+        Assert.Equal(1, tRosterGate.CRosterMenu.CRosterMenuCount);
+        Assert.Equal(["out.mp4"], tRosterGate.CRosterMenu.CRosterMenuPaths);
     }
 }

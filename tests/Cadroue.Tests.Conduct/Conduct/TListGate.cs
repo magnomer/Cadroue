@@ -141,16 +141,16 @@ public sealed class TListGate
     public void ListDrag_LockedPressStartsNone_UnlockedCarriesSelection()
     {
         tListPort.TListPathsAdd(true, "C:/locked.mp4");
-        Assert.False(tListGate.CListPressHandle("C:/locked.mp4", false, false, 0, 0));
+        Assert.False(tListGate.CListDrag.CListPressHandle("C:/locked.mp4", false, false, 0, 0));
 
         tListPort.TListPathsAdd(false, "C:/a.mp4", "C:/b.mp4");
         tListGate.CListAllSelect();
-        Assert.True(tListGate.CListPressHandle("C:/a.mp4", false, false, 10, 10));
-        Assert.False(tListGate.CListDragResolve(12, 12, 4, 4, true));
-        Assert.True(tListGate.CListDragResolve(10, 14, 4, 4, true));
+        Assert.True(tListGate.CListDrag.CListPressHandle("C:/a.mp4", false, false, 10, 10));
+        Assert.False(tListGate.CListDrag.CListDragResolve(12, 12, 4, 4, true));
+        Assert.True(tListGate.CListDrag.CListDragResolve(10, 14, 4, 4, true));
 
-        Assert.Equal(["C:/a.mp4", "C:/b.mp4"], tListGate.CListDragPaths);
-        Assert.Null(tListGate.CListDragPath);
+        Assert.Equal(["C:/a.mp4", "C:/b.mp4"], tListGate.CListDrag.CListDragPaths);
+        Assert.Null(tListGate.CListDrag.CListDragPath);
         Assert.Null(tListGate.CListPressPath);
     }
 
@@ -208,15 +208,15 @@ public sealed class TListGate
     public async Task ListOutlet_TracesThroughTheRig()
     {
         var traces = new List<string>();
-        var rig = new LRigList(
+        var rig = Conduct.TInterface.TRigListCreate(
             (paths, _) => Task.FromResult<(IReadOnlyList<string>, IReadOnlyList<(string, string)>)>(
                 (paths, [("C:/skip", "denied")])),
             (message, detail) => traces.Add($"info {message} | {detail}"),
             (message, detail) => traces.Add($"warning {message} | {detail}"),
             (message, exception) => traces.Add($"error {message}"));
-        LListPort outlet = LListOutlet.LListOutletCreate(rig)(path => $"name:{path}");
+        LListPort outlet = Conduct.TInterface.TListOutletCreate(rig, path => $"name:{path}");
 
-        int added = await outlet.LListPathsAdd(["C:/a.mp4"]);
+        int added = await Conduct.TInterface.TListPathsAdd(outlet, ["C:/a.mp4"]);
 
         Assert.Equal(1, added);
         Assert.Equal(
@@ -229,7 +229,7 @@ public sealed class TListGate
                 "info List add committed: 1 entry(ies) | ",
             ],
             traces);
-        (bool locked, IReadOnlyList<string> paths) = Assert.Single(outlet.LListCardsRead());
+        (bool locked, IReadOnlyList<string> paths) = Assert.Single(Conduct.TInterface.TListCardsRead(outlet));
         Assert.False(locked);
         Assert.Equal(["C:/a.mp4"], paths);
     }

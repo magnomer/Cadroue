@@ -100,9 +100,9 @@ public sealed class QConsoleScene
     {
         Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Export"),
         Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = qConsoleSceneGate.CConsoleSceneExtension,
+        DefaultExt = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneExtension,
         AddExtension = true,
-        FileName = qConsoleSceneGate.CConsoleSceneResolve(
+        FileName = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneResolve(
             lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName"))
     };
 
@@ -110,19 +110,19 @@ public sealed class QConsoleScene
     {
         Title = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Import"),
         Filter = QLocalizationCatalog.QLocalizationTextRead("Console.Scene.Dialog.Filter"),
-        DefaultExt = qConsoleSceneGate.CConsoleSceneExtension,
+        DefaultExt = qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneExtension,
         CheckFileExists = true
     };
 
     public void QConsoleExportCommit(bool? lConfirmed, string lPath, string? lText) =>
         QConsoleErrorRaise(
-            qConsoleSceneGate.CConsoleScenePersist(
+            qConsoleSceneGate.CConsoleSceneFile.CConsoleScenePersist(
                 lConfirmed, lPath, lText, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DefaultName")),
             "Console.Scene.Dialog.Export");
 
     public void QConsoleImportCommit(bool? lConfirmed, string lPath) =>
         QConsoleErrorRaise(
-            qConsoleSceneGate.CConsoleSceneImport(
+            qConsoleSceneGate.CConsoleSceneFile.CConsoleSceneImport(
                 lConfirmed, lPath, QLocalizationCatalog.QLocalizationTextRead("Console.Scene.ImportedName")),
             "Console.Scene.Dialog.Import");
 

@@ -90,12 +90,12 @@ public sealed class CMerge
         var skips = new List<(string, int, int)>();
         foreach ((string name, IReadOnlyList<string> paths) in groups)
         {
-            if (cohort != Guid.Empty && !paths.All(path => CMergeItemFind(items, path)?.CMergeBatch == cohort))
+            if (cohort != Guid.Empty && !paths.All(path => CDocket.CDocketFind(items, path)?.CDocketBatch == cohort))
             {
                 continue;
             }
 
-            int locked = paths.Count(path => CMergeItemFind(items, path)?.CMergeLocked == true);
+            int locked = paths.Count(path => CDocket.CDocketFind(items, path)?.CDocketLocked == true);
             if (locked > 0)
             {
                 skips.Add((name, locked, paths.Count));
@@ -111,30 +111,14 @@ public sealed class CMerge
         return (runs, skips);
     }
 
-    // The first item whose path matches, ignoring case.
-    private static (string CMergePath, Guid CMergeBatch, bool CMergeLocked)? CMergeItemFind(
-        IReadOnlyList<(string CMergePath, Guid CMergeBatch, bool CMergeLocked)> items,
-        string path)
-    {
-        foreach (var item in items)
-        {
-            if (string.Equals(item.CMergePath, path, StringComparison.OrdinalIgnoreCase))
-            {
-                return item;
-            }
-        }
-
-        return null;
-    }
-
     // Each unlocked item's batch by its path, ignoring case; a later item replaces an earlier one.
     private static IReadOnlyDictionary<string, Guid> CMergeRelaysRead(
         IReadOnlyList<(string CMergePath, Guid CMergeBatch, bool CMergeLocked)> items)
     {
         var relays = new Dictionary<string, Guid>(StringComparer.OrdinalIgnoreCase);
-        foreach (var item in items.Where(item => !item.CMergeLocked))
+        foreach ((string path, Guid batch) in CDocket.CDocketUnlockedRead(items, null))
         {
-            relays[item.CMergePath] = item.CMergeBatch;
+            relays[path] = batch;
         }
 
         return relays;

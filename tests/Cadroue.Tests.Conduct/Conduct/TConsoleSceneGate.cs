@@ -49,7 +49,7 @@ public sealed class TConsoleSceneGate
         Assert.Equal("Night", tConsoleSceneGate.CConsoleSceneSelected);
         Assert.True(tConsoleSceneGate.CConsoleSceneDirty);
         Assert.Equal(["changed"], tConsoleSceneNotices);
-        Assert.Equal("json", tConsoleSceneGate.CConsoleSceneExtension);
+        Assert.Equal("json", tConsoleSceneGate.CConsoleSceneFile.CConsoleSceneExtension);
     }
 
     [Fact]
@@ -155,41 +155,43 @@ public sealed class TConsoleSceneGate
         Assert.True(tConsoleSceneGate.CConsoleSceneSave("  Day "));
         Assert.Equal(["save Day"], tConsoleScenePort.TConsoleSceneCalls);
         Assert.Equal("Day", tConsoleSceneGate.CConsoleSceneSelected);
-        Assert.Equal("Day.json", tConsoleSceneGate.CConsoleSceneResolve(" Day ", "Scene"));
+        Assert.Equal("Day.json", tConsoleSceneGate.CConsoleSceneFile.CConsoleSceneResolve(" Day ", "Scene"));
     }
 
     [Fact]
     public void Write_WordsTheFault_OnlyAfterAConfirmedDialog()
     {
-        Assert.Null(tConsoleSceneGate.CConsoleScenePersist(false, "a.json", "Day", "Scene"));
-        Assert.Null(tConsoleSceneGate.CConsoleScenePersist(null, "a.json", "Day", "Scene"));
+        CConsoleFile file = tConsoleSceneGate.CConsoleSceneFile;
+        Assert.Null(file.CConsoleScenePersist(false, "a.json", "Day", "Scene"));
+        Assert.Null(file.CConsoleScenePersist(null, "a.json", "Day", "Scene"));
         Assert.Empty(tConsoleScenePort.TConsoleSceneCalls);
 
-        Assert.Null(tConsoleSceneGate.CConsoleScenePersist(true, "a.json", " Day ", "Scene"));
+        Assert.Null(file.CConsoleScenePersist(true, "a.json", " Day ", "Scene"));
         tConsoleScenePort.TConsoleSceneFault = "disk";
         TConsoleSceneCheck(
-            "Console.Scene.Error.Write", ["disk"], tConsoleSceneGate.CConsoleScenePersist(true, "a.json", null, "S"));
+            "Console.Scene.Error.Write", ["disk"], file.CConsoleScenePersist(true, "a.json", null, "S"));
         tConsoleScenePort.TConsoleSceneFault = string.Empty;
         TConsoleSceneCheck(
-            "Console.Scene.Error.Write", null, tConsoleSceneGate.CConsoleScenePersist(true, "a.json", null, "S"));
+            "Console.Scene.Error.Write", null, file.CConsoleScenePersist(true, "a.json", null, "S"));
         Assert.Equal("write Day a.json Scene", tConsoleScenePort.TConsoleSceneCalls[0]);
     }
 
     [Fact]
     public void Import_WordsTheReadFault_OrTheInvalidFile_OrAppliesTheScene()
     {
-        Assert.Null(tConsoleSceneGate.CConsoleSceneImport(false, "a.json", "Imported"));
+        CConsoleFile file = tConsoleSceneGate.CConsoleSceneFile;
+        Assert.Null(file.CConsoleSceneImport(false, "a.json", "Imported"));
         Assert.Empty(tConsoleScenePort.TConsoleSceneCalls);
 
         TConsoleSceneCheck(
-            "Console.Scene.Error.Invalid", null, tConsoleSceneGate.CConsoleSceneImport(true, "a.json", "Imported"));
+            "Console.Scene.Error.Invalid", null, file.CConsoleSceneImport(true, "a.json", "Imported"));
         tConsoleScenePort.TConsoleSceneFault = "locked";
         TConsoleSceneCheck(
-            "Console.Scene.Error.Read", ["locked"], tConsoleSceneGate.CConsoleSceneImport(true, "a.json", "Imported"));
+            "Console.Scene.Error.Read", ["locked"], file.CConsoleSceneImport(true, "a.json", "Imported"));
         tConsoleScenePort.TConsoleSceneFault = null;
         tConsoleScenePort.TConsoleSceneOptional = new(string.Empty, false, false, ["Night"]);
 
-        Assert.Null(tConsoleSceneGate.CConsoleSceneImport(true, "a.json", "Imported"));
+        Assert.Null(file.CConsoleSceneImport(true, "a.json", "Imported"));
         Assert.Equal(["Night"], tConsoleSceneGate.CConsoleSceneNames);
         Assert.Equal("import  a.json Imported", tConsoleScenePort.TConsoleSceneCalls[0]);
     }

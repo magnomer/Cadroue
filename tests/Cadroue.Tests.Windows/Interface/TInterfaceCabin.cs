@@ -195,7 +195,7 @@ internal static partial class TInterface
         new(
             TAtelierCreate().CAtelierUsher,
             TAtelierCreate().CAtelierInspectorCreate(),
-            TAtelierCreate().CAtelierEdit,
+            TAtelierCreate().CAtelierEdit.CEditAudio,
             preset,
             viewer,
             list);

@@ -40,8 +40,10 @@ public sealed class TKeyframeGate
     }
 
     private static LKeyframeNotice TKeyframeNoticeCreate(int serial) =>
-        new(serial, [new LKeyframeEntry(TimeSpan.FromSeconds(2))], [new LKeyframeScanRange(TimeSpan.Zero,
-            TimeSpan.FromSeconds(10))]);
+        new(
+            serial,
+            [Interface.TKeyframeData.TKeyframeEntryCreate(2)],
+            [Interface.TKeyframeData.TKeyframeScanCreate(0, 10)]);
 
     [Fact]
     public void FlowCreate_Keyframe_TracesTheFlowsSourceText()

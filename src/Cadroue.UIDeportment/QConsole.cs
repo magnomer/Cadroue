@@ -21,7 +21,7 @@ public sealed class QConsole
         QConsoleScene = new QConsoleScene(lGate.CConsoleScene, lEnvoy);
         qConsoleGate.CConsoleChanged += QConsoleUpdate;
         qConsoleGate.CConsoleDeferred += QConsoleDefer;
-        qConsoleGate.CConsoleProgressChanged += QConsoleProgressRaise;
+        qConsoleGate.CConsoleProgress.CConsoleProgressChanged += QConsoleProgressRaise;
         lStripOwner.QStripSelectChanged += QConsoleTabHandle;
         QConsoleScene.QConsoleWindowAttach(lSceneOwner, lStripOwner);
     }
@@ -53,7 +53,7 @@ public sealed class QConsole
         qConsoleGate.CConsoleClose();
         qConsoleGate.CConsoleChanged -= QConsoleUpdate;
         qConsoleGate.CConsoleDeferred -= QConsoleDefer;
-        qConsoleGate.CConsoleProgressChanged -= QConsoleProgressRaise;
+        qConsoleGate.CConsoleProgress.CConsoleProgressChanged -= QConsoleProgressRaise;
         QConsoleStation.QConsoleWatchStop();
         qConsoleStrip.QStripSelectChanged -= QConsoleTabHandle;
     }
@@ -63,7 +63,8 @@ public sealed class QConsole
     private void QConsoleDefer() => QConsoleUpdateDeferred?.Invoke();
 
     private void QConsoleProgressRaise() =>
-        QConsoleProgressApplied?.Invoke(qConsoleGate.CConsoleProgress, qConsoleGate.CConsoleGlide);
+        QConsoleProgressApplied?.Invoke(
+            qConsoleGate.CConsoleProgress.CConsoleProgressValue, qConsoleGate.CConsoleProgress.CConsoleProgressGlide);
 
     public void QConsoleUpdate()
     {

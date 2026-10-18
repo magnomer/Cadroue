@@ -7,7 +7,7 @@ using Cadroue.ShellEngine;
 namespace Cadroue.Conduct;
 
 // One list's selection over its docket: the selected paths, the anchor a range runs from, the current path, the
-// pressed path a release collapses to, the path a removal moves on to, and the paths a drag carries. The docket is
+// pressed path a release collapses to and the path a removal moves on to; its drag is CListDrag's. The docket is
 // the engine's, reached through the list port; every path compares without case.
 public sealed class CList
 {
@@ -15,9 +15,6 @@ public sealed class CList
     private readonly CUsher _cListUsher;
     private readonly HashSet<string> _cListSelected = new(StringComparer.OrdinalIgnoreCase);
     private string? _cListSuccessor;
-    private bool _cListDragOrigin;
-    private double _cListDragX;
-    private double _cListDragY;
 
     // The port is built for this list; its traces name a path as the usher does.
     internal CList(Func<Func<string, string>, LListPort> port, CUsher usher)
@@ -30,7 +27,10 @@ public sealed class CList
         _cListPort.LListAdded += CListAddHandle;
         _cListPort.LListEntriesAdded += CListEntriesHandle;
         _cListPort.LListRemoved += CListRemoveHandle;
+        CListDrag = new CListDrag(this);
     }
+
+    public CListDrag CListDrag { get; }
 
     public event Action? CListChanged;
 
@@ -53,12 +53,6 @@ public sealed class CList
 
     // The selected path a plain press landed on while several were selected; the release selects it alone.
     public string? CListPressPath { get; private set; }
-
-    // The path a drag may start from, from an unlocked press until the drag starts or the button is released.
-    public string? CListDragPath { get; private set; }
-
-    // The paths the last drag carried.
-    public IReadOnlyList<string> CListDragPaths { get; private set; } = [];
 
     public bool CListEmpty => _cListPort.LListPathsRead().Count == 0;
 
@@ -195,51 +189,8 @@ public sealed class CList
         CListCurrentApply(CListCurrentResolve());
     }
 
-    // A press at (x, y) selects as CListPressSelect does; a drag may start from it unless the pressed path is locked.
-    public bool CListPressHandle(string path, bool shift, bool control, double x, double y)
-    {
-        CListPressSelect(path, shift, control);
-        if (_cListPort.LListLockCheck(path))
-        {
-            return false;
-        }
-
-        _cListDragOrigin = true;
-        _cListDragX = x;
-        _cListDragY = y;
-        CListDragPath = path;
-        return true;
-    }
-
-    // A move to (x, y), at least the minimum away from the press on one axis with the button held, starts the drag:
-    // it carries the selection's unlocked paths when the pressed path is selected, else the pressed path alone.
-    // Answers whether it carries any.
-    public bool CListDragResolve(double x, double y, double minimumX, double minimumY, bool pressed)
-    {
-        if (!_cListDragOrigin || CListDragPath is not { } dragPath || !pressed)
-        {
-            return false;
-        }
-
-        if (Math.Abs(x - _cListDragX) < minimumX && Math.Abs(y - _cListDragY) < minimumY)
-        {
-            return false;
-        }
-
-        IReadOnlyList<string> dragged = CListSelectionCheck(dragPath)
-            ? CListSelectionRead().Where(path => !_cListPort.LListLockCheck(path)).ToArray()
-            : [dragPath];
-        CListDragPaths = dragged;
-        CListDragClear();
-        CListPressPath = null;
-        return dragged.Count > 0;
-    }
-
-    public void CListReleaseHandle()
-    {
-        CListDragClear();
-        CListReleaseSelect();
-    }
+    // A started drag drops the press a release would collapse to.
+    internal void CListPressClear() => CListPressPath = null;
 
     private int CListIndexRead(string? path)
     {
@@ -390,11 +341,5 @@ public sealed class CList
         CListPathCurrent = path;
         CListPathChanged?.Invoke(path);
         CListLockChanged?.Invoke(CListLockCheck());
-    }
-
-    private void CListDragClear()
-    {
-        _cListDragOrigin = false;
-        CListDragPath = null;
     }
 }

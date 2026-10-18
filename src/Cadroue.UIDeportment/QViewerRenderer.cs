@@ -35,7 +35,7 @@ public sealed class QViewerRenderer
 
     public bool QViewerOverlayHandle(bool lHostVisible, double lWidth, double lHeight)
     {
-        return qViewerTrace.CViewerOverlayCheck(lHostVisible, qViewer.QViewerMpvShown, lWidth, lHeight);
+        return qViewerTrace.CViewerOverlay.CViewerOverlayCheck(lHostVisible, qViewer.QViewerMpvShown, lWidth, lHeight);
     }
 
     public QViewerEnginePlan QViewerEngineRead()

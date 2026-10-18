@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
@@ -35,13 +34,9 @@ public sealed class CConvert
 
         _cConvertPort.LConvertRun(
             presetName,
-            items
-                .Where(item => path is not null
-                    && string.Equals(item.CConvertPath, path, StringComparison.OrdinalIgnoreCase))
-                .Take(1)
-                .Where(item => !item.CConvertLocked)
-                .Select(item => (item.CConvertPath, item.CConvertBatch))
-                .ToArray(),
+            CDocket.CDocketFind(items, path) is { CDocketLocked: false } item
+                ? [(item.CDocketPath, item.CDocketBatch)]
+                : [],
             urgent,
             relayTarget,
             sourceTab);
@@ -66,11 +61,7 @@ public sealed class CConvert
 
         _cConvertPort.LConvertRun(
             presetName,
-            items
-                .Where(item => !item.CConvertLocked
-                    && (paths is null || paths.Contains(item.CConvertPath, StringComparer.OrdinalIgnoreCase)))
-                .Select(item => (item.CConvertPath, item.CConvertBatch))
-                .ToArray(),
+            CDocket.CDocketUnlockedRead(items, paths),
             false,
             relayTarget,
             sourceTab);

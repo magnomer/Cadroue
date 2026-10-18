@@ -73,11 +73,11 @@ public sealed class TRosterCardGate
     [Fact]
     public void RosterCardRead_Rows_AnswerWordingKeysAndLabels()
     {
-        tRosterCardPort.TRosterCardRows.Add(new LRosterRow(
+        tRosterCardPort.TRosterCardRows.Add(Conduct.TInterface.TRosterRowCreate(
             TRosterFirst, true, TimeSpan.FromSeconds(3), false, 0, "Done", false, false, false));
-        tRosterCardPort.TRosterCardRows.Add(new LRosterRow(
+        tRosterCardPort.TRosterCardRows.Add(Conduct.TInterface.TRosterRowCreate(
             TRosterSecond, false, TimeSpan.Zero, true, 0, "Running", true, true, true));
-        tRosterCardPort.TRosterCardRows.Add(new LRosterRow(
+        tRosterCardPort.TRosterCardRows.Add(Conduct.TInterface.TRosterRowCreate(
             TRosterThird, false, TimeSpan.Zero, false, 0.5, "Failed", true, false, true));
 
         (_, IReadOnlyList<CRosterFile> files) =
@@ -103,7 +103,7 @@ public sealed class TRosterCardGate
     [Fact]
     public void RosterCardRead_ClaimedInAnotherProcess_AnswersOtherWindow()
     {
-        tRosterCardPort.TRosterCardRows.Add(new LRosterRow(
+        tRosterCardPort.TRosterCardRows.Add(Conduct.TInterface.TRosterRowCreate(
             TRosterFirst, false, TimeSpan.Zero, true, 0, "Running", true, false, false));
 
         (_, IReadOnlyList<CRosterFile> files) =
@@ -116,7 +116,7 @@ public sealed class TRosterCardGate
     {
         foreach (Guid id in ids)
         {
-            tRosterCardPort.TRosterCardRows.Add(new LRosterRow(
+            tRosterCardPort.TRosterCardRows.Add(Conduct.TInterface.TRosterRowCreate(
                 id, false, TimeSpan.Zero, false, 0, "Pending", false, false, false));
         }
     }

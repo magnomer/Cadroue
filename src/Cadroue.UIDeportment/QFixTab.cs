@@ -34,6 +34,7 @@ public sealed class QFixTab
             .ToList();
 
     private readonly CFix qFixGate;
+    private readonly CFixPlan qFixPlanGate;
     private readonly LPresetSelection qFixPreset;
     private readonly QViewer qFixViewer;
     private readonly QList qFixList;
@@ -44,6 +45,7 @@ public sealed class QFixTab
         QFixClinicGate = lInspector.CInspectorClinic;
         QFixClinic = new QClinic(QFixClinicGate);
         qFixGate = lFix;
+        qFixPlanGate = lFix.CFixPlan;
         qFixPreset = lPreset;
         qFixViewer = lViewer;
         qFixList = lList;
@@ -105,7 +107,7 @@ public sealed class QFixTab
 
     // The layout's persistent plan becomes an engine record here until the layout reaches the gate through a port.
     public void QFixLayoutApply(LSceneTabEntry? lLayout) =>
-        QFixActiveApply(qFixGate.CFixLayoutApply(
+        QFixActiveApply(qFixPlanGate.CFixLayoutApply(
             QFixClinicGate,
             lLayout is null,
             lLayout?.LSceneInspector is { LSceneInspectorFix: { } lRecord } lInspector
@@ -151,7 +153,7 @@ public sealed class QFixTab
 
     // Before the viewer opens a new path: the plan of the source it leaves is saved, then the clinic follows.
     private void QFixOpenHandle(string lPath) =>
-        qFixGate.CFixSourceOpen(
+        qFixPlanGate.CFixSourceOpen(
             QFixClinicGate,
             qFixViewer.QViewerWorkspace,
             qFixDocket.LDocketItemsRead()
@@ -201,11 +203,11 @@ public sealed class QFixTab
     }
 
     private void QFixItemsHandle(IReadOnlyList<LDocketEntry> lAdded) =>
-        qFixGate.CFixPersistentSave(QFixClinicGate, lAdded.Select(lItem => lItem.LDocketEntryPath).ToArray());
+        qFixPlanGate.CFixPersistentSave(QFixClinicGate, lAdded.Select(lItem => lItem.LDocketEntryPath).ToArray());
 
     // A plan change saves the plan of the open source; the gate answers which steps the plan has on.
     public void QFixChangeHandle() =>
-        QFixActiveApply(qFixGate.CFixStateSave(
+        QFixActiveApply(qFixPlanGate.CFixStateSave(
             QFixClinicGate,
             qFixViewer.QViewerWorkspace,
             qFixDocket.LDocketItemsRead()
@@ -213,7 +215,7 @@ public sealed class QFixTab
                 .ToArray()));
 
     public void QFixPlanRestore(string lSourcePath) =>
-        QFixActiveApply(qFixGate.CFixPlanRestore(QFixClinicGate, lSourcePath));
+        QFixActiveApply(qFixPlanGate.CFixPlanRestore(QFixClinicGate, lSourcePath));
 
     private void QFixActiveApply(IReadOnlyList<(string CFixStep, bool CFixActive)> lSteps)
     {

@@ -1,12 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
 public sealed record CLineageAnswer(
     IReadOnlyList<CLineageEntry> CLineageEntries,
     IReadOnlyList<CLineageBatch> CLineageBatches,
-    IReadOnlyList<CLineageStep> CLineageSteps);
+    IReadOnlyList<CLineageStep> CLineageSteps)
+{
+    internal static CLineageAnswer CLineageAnswerCreate(LLineageAnswer answer) =>
+        new(
+            answer.LLineageGroups.Select(CLineageEntry.CLineageEntryCreate).ToArray(),
+            answer.LLineageBatches.Select(CLineageBatch.CLineageBatchCreate).ToArray(),
+            answer.LLineageSteps.Select(CLineageStep.CLineageStepCreate).ToArray());
+}
 
 public sealed record CLineageEntry(
     Guid CLineageEntryBatch,
@@ -14,7 +23,17 @@ public sealed record CLineageEntry(
     string CLineageEntrySubject,
     string? CLineageEntryName,
     IReadOnlyList<Guid> CLineageEntryIds,
-    long? CLineageEntryOrigin);
+    long? CLineageEntryOrigin)
+{
+    internal static CLineageEntry CLineageEntryCreate(LLineageGroup group) =>
+        new(
+            group.LLineageGroupBatch,
+            group.LLineageGroupLineage,
+            group.LLineageGroupSubject,
+            group.LLineageGroupName,
+            group.LLineageGroupIds.ToArray(),
+            group.LLineageGroupOrigin);
+}
 
 public sealed record CLineageBatch(
     Guid CLineageBatchId,
@@ -32,6 +51,24 @@ public sealed record CLineageBatch(
 {
     // The engine's spent time for the batch; none when no item counts.
     public TimeSpan? CLineageBatchSpent { get; init; }
+
+    internal static CLineageBatch CLineageBatchCreate(LLineageBatch batch) =>
+        new(
+            batch.LLineageBatchId,
+            batch.LLineageBatchStages.ToHashSet(),
+            batch.LLineageBatchInitial,
+            batch.LLineageBatchEarliest,
+            batch.LLineageBatchSources.ToArray(),
+            batch.LLineageBatchOutputs.ToArray(),
+            batch.LLineageSourceTotal,
+            batch.LLineageOutputTotal,
+            batch.LLineageSourceCount,
+            batch.LLineageOutputCount,
+            batch.LLineageBatchIds.ToArray(),
+            batch.LLineageBatchCompleted)
+        {
+            CLineageBatchSpent = batch.LLineageBatchSpent
+        };
 }
 
 public sealed record CLineageStep(
@@ -45,4 +82,19 @@ public sealed record CLineageStep(
     long? CLineageStepSource,
     double? CLineageStepRatio,
     string CLineageSourceExtension,
-    string CLineageOutputExtension);
+    string CLineageOutputExtension)
+{
+    internal static CLineageStep CLineageStepCreate(LLineageStep step) =>
+        new(
+            step.LLineageStepId,
+            step.LLineageStepBatch,
+            step.LLineageStepRelay,
+            step.LLineageStepTab,
+            step.LLineageStepKind,
+            step.LLineageStepSubject,
+            step.LLineageStepName,
+            step.LLineageStepSource,
+            step.LLineageStepRatio,
+            step.LLineageSourceExtension,
+            step.LLineageOutputExtension);
+}

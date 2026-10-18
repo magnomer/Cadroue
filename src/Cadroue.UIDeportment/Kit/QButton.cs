@@ -36,7 +36,8 @@ public static class QButton
     {
         ArgumentNullException.ThrowIfNull(lButton);
 
-        string lSheet = QButtonStyleApply(lButton, lLook);
+        (Style lStyle, string lSheet) = QButtonStyleResolve(lLook);
+        lButton.Style = lStyle;
         QButtonPartAttach(lButton);
         QLook.QLookAttach(lButton, lSheet);
 
@@ -51,9 +52,9 @@ public static class QButton
         lLook is not (QButtonLook.QButtonLookChrome or QButtonLook.QButtonLookFirst
             or QButtonLook.QButtonLookExit or QButtonLook.QButtonLookLast);
 
-    private static string QButtonStyleApply(Button lButton, QButtonLook lLook)
-    {
-        (Style lStyle, string lSheet) = lLook switch
+    // A look picks its template style and the look sheet its states follow; a variant follows its family's sheet.
+    private static (Style, string) QButtonStyleResolve(QButtonLook lLook) =>
+        lLook switch
         {
             QButtonLook.QButtonLookSource =>
                 (QContract.QContractSheetFind<Style>(QButtonSourceStyle), QButtonSourceStyle),
@@ -79,10 +80,6 @@ public static class QButton
                 (QContract.QContractSheetFind<Style>(QButtonLastStyle), QButtonExitStyle),
             _ => throw new ArgumentOutOfRangeException(nameof(lLook)),
         };
-
-        lButton.Style = lStyle;
-        return lSheet;
-    }
 
     public static Button QButtonBuild(Button lButton, QButtonLook lLook)
     {

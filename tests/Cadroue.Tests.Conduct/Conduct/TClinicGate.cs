@@ -26,7 +26,7 @@ public sealed class TClinicGate
         tClinicGate.CSalvageModeSet(true);
         tClinicGate.CSalvageBasisSet(true);
 
-        Assert.False(tClinicGate.CClinicRepairCheck());
+        Assert.False(tClinicGate.CClinicSalvageRead().CClinicFixable);
         Assert.False(tClinicGate.CClinicSalvageRead().CClinicFixed);
         Assert.True(tClinicGate.CClinicSalvageRead().CClinicSeparate);
         Assert.Equal(1, plans);
@@ -53,7 +53,7 @@ public sealed class TClinicGate
 
         tClinicGate.CClinicRepairSet(true);
 
-        Assert.False(tClinicGate.CClinicRepairCheck());
+        Assert.False(tClinicGate.CClinicSalvageRead().CClinicFixable);
     }
 
     [Fact]
@@ -72,11 +72,13 @@ public sealed class TClinicGate
         LClinicPort read = TInterface.TClinicOutletCreate();
         restored.CClinicPlanApply(read);
 
-        Assert.True(restored.CClinicRepairCheck());
-        Assert.Equal(plan.LClinicPlanRead().LClinicSteps, read.LClinicPlanRead().LClinicSteps);
-        Assert.True(read.LClinicPlanRead().LClinicActive);
-        Assert.Contains(read.LClinicPlanRead().LClinicSteps, step => step is ("Timing", true, false));
-        Assert.Equal(11, read.LClinicPlanRead().LClinicSteps.Count);
+        Assert.True(restored.CClinicSalvageRead().CClinicFixable);
+        Assert.Equal(
+            Conduct.TInterface.TClinicPlanRead(plan).TClinicSteps,
+            Conduct.TInterface.TClinicPlanRead(read).TClinicSteps);
+        Assert.True(Conduct.TInterface.TClinicPlanRead(read).TClinicActive);
+        Assert.Contains(Conduct.TInterface.TClinicPlanRead(read).TClinicSteps, step => step is ("Timing", true, false));
+        Assert.Equal(11, Conduct.TInterface.TClinicPlanRead(read).TClinicSteps.Count);
         Assert.Equal(0, plans);
     }
 

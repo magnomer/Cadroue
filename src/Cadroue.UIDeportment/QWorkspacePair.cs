@@ -38,7 +38,7 @@ public sealed class QWorkspacePair
         lFlow.QFlowWheel.QFlowPlayingAttach(() => lViewer.QViewerPlaying);
         lViewer.QViewerPlayback.QViewerClockTicked += lFlow.QFlowCursorUpdate;
         lFlow.QFlowCursorChanged += lViewer.QViewerPlayback.QViewerSeek;
-        lFlow.QFlowWheel.QFlowDragChanged += lViewer.QViewerTrace.CViewerDragSet;
+        lFlow.QFlowWheel.QFlowDragChanged += lViewer.QViewerTrace.CViewerScrub.CViewerDragSet;
         lFlow.QFlowPlayed += lViewer.QViewerPlayback.QViewerPlay;
         lFlow.QFlowPaused += lViewer.QViewerPlayback.QViewerPause;
         lFlow.QFlowWheel.QFlowVolumeAdjusted += lViewer.QViewerPlayback.QViewerVolumeAdjust;
@@ -54,7 +54,7 @@ public sealed class QWorkspacePair
 
     public void QWorkspaceCommandReset()
     {
-        QWorkspaceViewer.QViewerTrace.CViewerDragSet(false);
+        QWorkspaceViewer.QViewerTrace.CViewerScrub.CViewerDragSet(false);
         QWorkspaceFlow.QFlowSectionSet(false);
         QWorkspaceFlow.QFlowCommandSet(false);
         QWorkspaceViewer.QViewerMedia.QViewerCommandApply(false);
@@ -66,7 +66,7 @@ public sealed class QWorkspacePair
         QViewer lViewer = QWorkspaceViewer;
         lViewer.QViewerPlayback.QViewerClockTicked -= lFlow.QFlowCursorUpdate;
         lFlow.QFlowCursorChanged -= lViewer.QViewerPlayback.QViewerSeek;
-        lFlow.QFlowWheel.QFlowDragChanged -= lViewer.QViewerTrace.CViewerDragSet;
+        lFlow.QFlowWheel.QFlowDragChanged -= lViewer.QViewerTrace.CViewerScrub.CViewerDragSet;
         lFlow.QFlowPlayed -= lViewer.QViewerPlayback.QViewerPlay;
         lFlow.QFlowPaused -= lViewer.QViewerPlayback.QViewerPause;
         lFlow.QFlowWheel.QFlowVolumeAdjusted -= lViewer.QViewerPlayback.QViewerVolumeAdjust;

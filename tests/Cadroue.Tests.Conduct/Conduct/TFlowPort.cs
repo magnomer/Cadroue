@@ -57,7 +57,7 @@ internal sealed class TFlowPort : LFlowPort
     public void LFlowRangeZoom(LSpool lRange, TimeSpan lCursor, int lSteps)
     {
         TFlowCalls.Add($"zoom:{lCursor.TotalSeconds}:{lSteps}");
-        lRange.LSpoolZoom(lCursor, lSteps);
+        Interface.TInterface.TSpoolZoom(lRange, lCursor, lSteps);
     }
 
     public TimeSpan LFlowStepResolve(LSpool lRange, int lSteps)
@@ -75,7 +75,7 @@ internal sealed class TFlowPort : LFlowPort
     public (TimeSpan LFlowDuration, bool LFlowAudio, LSpool LFlowRange) LFlowMediaRead(LMediaInfo lMedia)
     {
         TFlowCalls.Add("media");
-        return (TFlowMedia.Item1, TFlowMedia.Item2, new LSpool(TFlowMedia.Item1));
+        return (TFlowMedia.Item1, TFlowMedia.Item2, Interface.TInterface.TSpoolCreate(TFlowMedia.Item1));
     }
 
     public LSectionPort LFlowSectionCreate(Func<string> lSource)

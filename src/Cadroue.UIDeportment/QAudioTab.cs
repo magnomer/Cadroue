@@ -24,10 +24,15 @@ public sealed class QAudioTab
     private readonly LDocket qAudioDocket;
 
     public QAudioTab(
-        CUsher lUsher, CInspector lInspector, CEdit lEdit, LPresetSelection lPreset, QViewer lViewer, QList lList)
+        CUsher lUsher,
+        CInspector lInspector,
+        CEditAudio lEditAudio,
+        LPresetSelection lPreset,
+        QViewer lViewer,
+        QList lList)
     {
         QAudioInspector = new QInspector(lInspector);
-        QAudioStore = new QAudioTabPlan(this, lUsher, lEdit, lList);
+        QAudioStore = new QAudioTabPlan(this, lUsher, lEditAudio, lList);
         qAudioPreset = lPreset;
         qAudioSections = QAudioInspector.QInspectorAudio;
         qAudioViewer = lViewer;

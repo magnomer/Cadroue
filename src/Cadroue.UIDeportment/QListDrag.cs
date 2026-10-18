@@ -6,12 +6,12 @@ namespace Cadroue.UIDeportment;
 // passes the gate's dragged paths on.
 public sealed class QListDrag
 {
-    private readonly CList qListDragGate;
+    private readonly CListDrag qListDragGate;
     private QGhost qListGhost = new(0, 0);
 
     public QListDrag(CList lGate)
     {
-        qListDragGate = lGate;
+        qListDragGate = lGate.CListDrag;
     }
 
     public QGhost QListGhost => qListGhost;

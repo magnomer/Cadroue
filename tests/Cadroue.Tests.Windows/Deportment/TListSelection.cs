@@ -207,12 +207,12 @@ public sealed class TListSelection
         Assert.Equal([@"C:\a.mp4", @"C:\b.mp4"], list.QListDrag.QListDragPaths);
         TInterface.TGhostPointSet(list.QListDrag.QListGhost, 13, 14);
         Assert.Equal(10, list.QListDrag.QListGhost.QGhostLeft);
-        Assert.Null(list.QListGate.CListDragPath);
+        Assert.Null(list.QListGate.CListDrag.CListDragPath);
         Assert.False(TInterfaceList.TListDragResolve(list, 60, 60, 4, true));
 
         Assert.True(TInterfaceList.TListPressHandle(list, @"C:\a.mp4", false, false, 0, 0, 0, 0));
         TInterfaceList.TListReleaseHandle(list);
-        Assert.Null(list.QListGate.CListDragPath);
+        Assert.Null(list.QListGate.CListDrag.CListDragPath);
         Assert.Equal([@"C:\a.mp4"], TInterfaceList.TListSelectionRead(list));
     }
 

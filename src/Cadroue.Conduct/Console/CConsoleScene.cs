@@ -6,7 +6,8 @@ namespace Cadroue.Conduct;
 
 // The scene strip's decisions over one window: the scene it names, the one a closing list reloads, whether the
 // catalogue stores the named scene and whether the window left it, the catalogue's names, and each command with its
-// question. The window hands its scene read and apply in at attach; they pass to the engine unread.
+// question. The window hands its scene read and apply in at attach; they pass to the engine unread. The file exchange
+// is CConsoleFile's.
 public sealed class CConsoleScene
 {
     private readonly LConsoleScenePort _cConsoleScenePort;
@@ -22,6 +23,7 @@ public sealed class CConsoleScene
     {
         ArgumentNullException.ThrowIfNull(port);
         _cConsoleScenePort = port;
+        CConsoleSceneFile = new CConsoleFile(port, this);
     }
 
     // Told when the catalogue's names were reloaded.
@@ -32,6 +34,9 @@ public sealed class CConsoleScene
 
     // Told when only the mark may differ.
     public event Action? CConsoleSceneMarked;
+
+    // The scene strip's file exchange.
+    public CConsoleFile CConsoleSceneFile { get; }
 
     public IReadOnlyList<string> CConsoleSceneNames => _cConsoleSceneNames;
 
@@ -46,8 +51,8 @@ public sealed class CConsoleScene
     // The scene a closing list loads, once.
     public string? CConsoleSceneReload => _cConsoleSceneReload;
 
-    // The scene file format the file dialogs offer.
-    public string CConsoleSceneExtension => "json";
+    // The window the window side attached, passed to the engine unread.
+    internal LConsoleWindow? CConsoleSceneWindow => _cConsoleSceneWindow;
 
     // The window's scene read and apply, its closing of every tab, and whether any tab is busy.
     public void CConsoleSceneAttach(
@@ -168,45 +173,6 @@ public sealed class CConsoleScene
         return true;
     }
 
-    // The fallback names the window's scene when the text names none.
-    public string CConsoleSceneResolve(string? text, string fallback) =>
-        _cConsoleScenePort.LConsoleSceneResolve(CConsoleSceneParse(text), fallback, _cConsoleSceneWindow);
-
-    // The warning to show, or null; nothing is written unless the dialog was confirmed.
-    public CConsoleText? CConsoleScenePersist(bool? confirmed, string path, string? text, string fallback)
-    {
-        if (confirmed != true)
-        {
-            return null;
-        }
-
-        return _cConsoleScenePort.LConsoleScenePersist(CConsoleSceneParse(text), path, fallback, _cConsoleSceneWindow)
-            is { } fault
-            ? CConsoleSceneDescribe("Console.Scene.Error.Write", fault)
-            : null;
-    }
-
-    // The warning to show, or null; the fallback names a scene whose file names none.
-    public CConsoleText? CConsoleSceneImport(bool? confirmed, string path, string fallback)
-    {
-        if (confirmed != true)
-        {
-            return null;
-        }
-
-        (LConsoleSceneAnswer? answer, string? fault) =
-            _cConsoleScenePort.LConsoleSceneImport(_cConsoleSceneName, path, fallback, _cConsoleSceneWindow);
-        if (answer is not null)
-        {
-            CConsoleSceneApply(answer);
-            return null;
-        }
-
-        return fault is null
-            ? CConsoleSceneDescribe("Console.Scene.Error.Invalid", string.Empty)
-            : CConsoleSceneDescribe("Console.Scene.Error.Read", fault);
-    }
-
     // Asked whatever the destructive-confirm preference says; the busy question follows only while a tab works.
     private void CConsoleSceneLoad(string target, CEnvoy envoy) =>
         CConsoleSceneApply(
@@ -219,7 +185,7 @@ public sealed class CConsoleScene
                 () => !_cConsoleSceneBusy()
                     || envoy.CEnvoyConfirm("Tab.Close.BusyAllMessage", "Terms.Stop", "Tab.Close.BusyTitle")));
 
-    private void CConsoleSceneApply(LConsoleSceneAnswer answer)
+    internal void CConsoleSceneApply(LConsoleSceneAnswer answer)
     {
         _cConsoleSceneName = answer.LConsoleSceneName;
         _cConsoleSceneStored = answer.LConsoleSceneStored;
@@ -233,9 +199,5 @@ public sealed class CConsoleScene
         CConsoleSceneChanged?.Invoke();
     }
 
-    private static string CConsoleSceneParse(string? text) => (text ?? string.Empty).Trim();
-
-    // A detail-free fault reads its key as plain text.
-    private static CConsoleText CConsoleSceneDescribe(string key, string detail) =>
-        new(key, detail.Length > 0 ? new object[] { detail } : null);
+    internal static string CConsoleSceneParse(string? text) => (text ?? string.Empty).Trim();
 }

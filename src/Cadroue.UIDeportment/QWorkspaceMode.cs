@@ -100,7 +100,12 @@ public sealed class QWorkspaceMode
     public QAudioTab QAudioTabCreate()
     {
         QAudioTab lAudioTab = new(
-            qWorkspaceUsher, qWorkspaceInspector, qWorkspaceEdit, qWorkspacePreset, qWorkspaceViewer!, qWorkspaceList!);
+            qWorkspaceUsher,
+            qWorkspaceInspector,
+            qWorkspaceEdit.CEditAudio,
+            qWorkspacePreset,
+            qWorkspaceViewer!,
+            qWorkspaceList!);
         QAudioTabAttach(lAudioTab);
         return lAudioTab;
     }

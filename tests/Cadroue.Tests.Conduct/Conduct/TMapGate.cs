@@ -161,7 +161,7 @@ public sealed class TMapGate
     private void TMapRangeSet()
     {
         tMapFlow.CFlowSourceSet(null!, "full:a");
-        tMapFlow.CFlowRange!.LSpoolRangeSet(TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(40));
+        Conduct.TInterface.TSpoolRangeSet(tMapFlow.CFlowRange!, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(40));
     }
 
     private CMapFrame TMapFrameRead(double width, double height)

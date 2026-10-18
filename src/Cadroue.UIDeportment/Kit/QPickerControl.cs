@@ -40,14 +40,23 @@ public static class QPickerControl
         QPickerItemsSet(lHost, lItems);
         foreach (QPickerItem lItem in lItems)
         {
-            CheckBox lBox = QContract.QContractSheetFind<CheckBox>(QPickerControlRow);
-            QPickerRowUpdate(lBox, lItem);
-            QPickerRowAttach(lBox, lHost, lItem.QPickerItemToken, lEmptyText, lChanged);
-            lList.Children.Add(lBox);
+            lList.Children.Add(QPickerRowBuild(lHost, lItem, lEmptyText, lChanged));
         }
 
         QLook.QLookAttach(lHost, QPickerControlStyle);
         QPickerControlUpdate(lHost, lEmptyText);
+    }
+
+    private static CheckBox QPickerRowBuild(
+        Control lHost,
+        QPickerItem lItem,
+        string lEmptyText,
+        Action<IReadOnlyList<string>>? lChanged)
+    {
+        CheckBox lBox = QContract.QContractSheetFind<CheckBox>(QPickerControlRow);
+        QPickerRowUpdate(lBox, lItem);
+        QPickerRowAttach(lBox, lHost, lItem.QPickerItemToken, lEmptyText, lChanged);
+        return lBox;
     }
 
     public static IReadOnlyList<string> QPickerControlRead(Control lHost)

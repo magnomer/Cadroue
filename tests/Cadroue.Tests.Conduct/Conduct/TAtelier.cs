@@ -34,7 +34,7 @@ internal static class TAtelier
             LAtelierFilter = new TFilterPort(),
             LAtelierAudio = new TAudioPort(),
             LAtelierLoudness = new TLoudnessPort(),
-            LAtelierVideo = new LVideoOutlet(Interface.TInterface.TInterfaceEngine),
+            LAtelierVideo = Conduct.TInterface.TVideoOutletCreate(),
             LAtelierScene = new TConsoleScenePort(),
             LAtelierList = new TListPort().TListCreate,
             LAtelierRelay = new TRelayPort(),

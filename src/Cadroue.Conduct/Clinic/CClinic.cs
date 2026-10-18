@@ -1,48 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
-// The clinic's decisions for one fix tab: each flaw kind's repair and keep switches, the salvage choices, the shown
-// source and step, every source's checkup results and progress, the minimized panel and the save hold. Flaw kinds
-// travel by name; the engine supplies them, in order, with the default plan.
+// The clinic's decisions for one fix tab's panel: the shown source and step, what the panel shows for them, the
+// minimized panel and the save hold, and the one notice of each change. The plan is CClinicPlan's and the checkup
+// results CClinicCheckup's; this gate aims their changes at the shown step and tells them. Flaw kinds travel by name;
+// the engine supplies them, in order, with the default plan.
 public sealed class CClinic
 {
     public const string CClinicSalvageStep = "Salvage";
 
-    private readonly IReadOnlyList<string> _cClinicKinds;
-    private readonly Dictionary<string, (bool CClinicRepair, bool CClinicPersistent)> _cClinicSteps =
-        new(StringComparer.Ordinal);
-    private readonly Dictionary<string, Dictionary<string, (LCheckupPort CClinicResult, bool CClinicScanning)>>
-        _cClinicResults = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, double> _cClinicProgress = new(StringComparer.OrdinalIgnoreCase);
-    private bool _cClinicSalvageActive;
-    private bool _cClinicSalvageSeparate;
-    private bool _cClinicSalvageFixed;
-    private bool _cClinicSalvagePersistent;
+    private readonly CClinicPlan _cClinicPlan;
+    private readonly CClinicCheckup _cClinicCheckup = new();
     private string? _cClinicSource;
     private string? _cClinicStep;
     private string? _cClinicKind;
     private bool _cClinicMinimized;
     private int _cClinicSaveDepth;
 
-    internal CClinic(LClinicPort plan)
-    {
-        ArgumentNullException.ThrowIfNull(plan);
-        var answer = plan.LClinicPlanRead();
-        _cClinicKinds = answer.LClinicSteps.Select(step => step.LClinicKind).ToArray();
-        foreach ((string kind, bool repair, bool persistent) in answer.LClinicSteps)
-        {
-            _cClinicSteps[kind] = (repair, persistent);
-        }
-
-        _cClinicSalvageActive = answer.LClinicActive;
-        _cClinicSalvageSeparate = answer.LClinicSeparate;
-        _cClinicSalvageFixed = answer.LClinicFixed;
-        _cClinicSalvagePersistent = answer.LClinicPersistent;
-    }
+    internal CClinic(LClinicPort plan) => _cClinicPlan = new CClinicPlan(plan);
 
     public event Action? CClinicChanged;
     public event Action? CClinicPlanChanged;
@@ -62,9 +40,11 @@ public sealed class CClinic
 
     public bool CClinicPersistentAllowed => CClinicKnown && !CClinicSalvageShown;
 
-    public bool CClinicRepairChecked => _cClinicKind is { } kind && _cClinicSteps[kind].CClinicRepair;
+    public bool CClinicRepairChecked =>
+        _cClinicKind is { } kind && _cClinicPlan.CClinicPlanRead(kind) is { CClinicRepair: true };
 
-    public bool CClinicPersistentChecked => _cClinicKind is { } kind && _cClinicSteps[kind].CClinicPersistent;
+    public bool CClinicPersistentChecked =>
+        _cClinicKind is { } kind && _cClinicPlan.CClinicPlanRead(kind) is { CClinicPersistent: true };
 
     public bool CClinicResultShown => !CClinicSalvageShown && CClinicStepShown;
 
@@ -84,14 +64,12 @@ public sealed class CClinic
 
     public string? CClinicTechnicalKey => CClinicKnown ? $"Clinic.Step.{_cClinicStep}.Technical" : null;
 
-    public bool CClinicRepairCheck() => _cClinicSteps.Values.Any(step => step.CClinicRepair);
+    public bool CClinicScanCheck() =>
+        _cClinicCheckup.CClinicResultFind(_cClinicSource, _cClinicKind) is { CClinicScanning: true };
 
-    public bool CClinicScanCheck() => CClinicResultFind() is { CClinicScanning: true };
+    public double CClinicProgressRead() => _cClinicCheckup.CClinicProgressRead(_cClinicSource);
 
-    public double CClinicProgressRead() =>
-        _cClinicSource is { } source && _cClinicProgress.TryGetValue(source, out double value) ? value : 0;
-
-    // The salvage panel in one answer: the fixed basis needs a repair, and the description follows the basis.
+    // The salvage panel in one answer: shown on the salvage step, with the plan's salvage switches.
     public (bool CClinicShown,
         bool CClinicActive,
         bool CClinicPersistent,
@@ -101,19 +79,14 @@ public sealed class CClinic
         string CClinicDescription)
         CClinicSalvageRead()
     {
-        bool fixable = CClinicRepairCheck();
-        string description = !fixable
-            ? "Clinic.Salvage.Basis.None"
-            : _cClinicSalvageFixed
-                ? "Clinic.Salvage.Basis.Fixed.Description"
-                : "Clinic.Salvage.Basis.Source.Description";
+        var salvage = _cClinicPlan.CClinicSalvageRead();
         return (CClinicSalvageShown,
-            _cClinicSalvageActive,
-            _cClinicSalvagePersistent,
-            _cClinicSalvageSeparate,
-            _cClinicSalvageFixed,
-            fixable,
-            description);
+            salvage.CClinicActive,
+            salvage.CClinicPersistent,
+            salvage.CClinicSeparate,
+            salvage.CClinicFixed,
+            salvage.CClinicFixable,
+            salvage.CClinicDescription);
     }
 
     // The wording runs untested, scanning, clean, failed, then the defect, evidence and repair labels; a step with
@@ -121,7 +94,9 @@ public sealed class CClinic
     public string CClinicResultFormat(IReadOnlyList<string> wording)
     {
         ArgumentNullException.ThrowIfNull(wording);
-        return CClinicResultFind() is { } stored ? stored.CClinicResult.LCheckupFormat(wording) : wording[0];
+        return _cClinicCheckup.CClinicResultFind(_cClinicSource, _cClinicKind) is { } stored
+            ? stored.CClinicResult.LCheckupFormat(wording)
+            : wording[0];
     }
 
     public void CClinicMinimizedSet(bool minimized)
@@ -148,65 +123,33 @@ public sealed class CClinic
     public void CClinicStepSet(string? stepName)
     {
         _cClinicStep = stepName;
-        _cClinicKind = stepName is not null && _cClinicSteps.ContainsKey(stepName) ? stepName : null;
+        _cClinicKind = stepName is not null && _cClinicPlan.CClinicPlanRead(stepName) is not null ? stepName : null;
         CClinicChanged?.Invoke();
     }
 
-    public void CClinicRepairSet(bool repair)
-    {
-        if (_cClinicKind is not { } kind || _cClinicSteps[kind].CClinicRepair == repair)
-        {
-            return;
-        }
+    public void CClinicRepairSet(bool repair) =>
+        CClinicPlanRaise(_cClinicKind is { } kind && _cClinicPlan.CClinicRepairSet(kind, repair));
 
-        _cClinicSteps[kind] = _cClinicSteps[kind] with { CClinicRepair = repair };
-        _cClinicSalvageFixed = CClinicFixedNormalize(_cClinicSalvageFixed);
-        CClinicChanged?.Invoke();
-        CClinicPlanChanged?.Invoke();
-    }
+    public void CClinicPersistentSet(bool persistent) =>
+        CClinicPlanRaise(_cClinicKind is { } kind && _cClinicPlan.CClinicPersistentSet(kind, persistent));
 
-    public void CClinicPersistentSet(bool persistent)
-    {
-        if (_cClinicKind is not { } kind || _cClinicSteps[kind].CClinicPersistent == persistent)
-        {
-            return;
-        }
+    public void CSalvageActiveSet(bool active) => CClinicPlanRaise(_cClinicPlan.CSalvageActiveSet(active));
 
-        _cClinicSteps[kind] = _cClinicSteps[kind] with { CClinicPersistent = persistent };
-        CClinicChanged?.Invoke();
-        CClinicPlanChanged?.Invoke();
-    }
+    public void CSalvagePersistentSet(bool persistent) =>
+        CClinicPlanRaise(_cClinicPlan.CSalvagePersistentSet(persistent));
 
-    public void CSalvageActiveSet(bool active) => CClinicSalvageApply(
-        active, _cClinicSalvageSeparate, _cClinicSalvageFixed, _cClinicSalvagePersistent);
+    public void CSalvageModeSet(bool separate) => CClinicPlanRaise(_cClinicPlan.CSalvageModeSet(separate));
 
-    public void CSalvagePersistentSet(bool persistent) => CClinicSalvageApply(
-        _cClinicSalvageActive, _cClinicSalvageSeparate, _cClinicSalvageFixed, persistent);
+    public void CSalvageBasisSet(bool fixedBasis) => CClinicPlanRaise(_cClinicPlan.CSalvageBasisSet(fixedBasis));
 
-    public void CSalvageModeSet(bool separate) => CClinicSalvageApply(
-        _cClinicSalvageActive, separate, _cClinicSalvageFixed, _cClinicSalvagePersistent);
-
-    public void CSalvageBasisSet(bool fixedBasis) => CClinicSalvageApply(
-        _cClinicSalvageActive, _cClinicSalvageSeparate, fixedBasis, _cClinicSalvagePersistent);
-
-    // A plan sets the steps it lists and the salvage; the fixed basis falls back without a repair. An accepted plan
-    // is no user change, so saves hold until it is told.
+    // An accepted plan is no user change, so saves hold until it is told.
     public void CClinicPlanAccept(LClinicPort plan)
     {
         ArgumentNullException.ThrowIfNull(plan);
         CClinicSaveSuspend();
         try
         {
-            var answer = plan.LClinicPlanRead();
-            foreach ((string kind, bool repair, bool persistent) in answer.LClinicSteps)
-            {
-                _cClinicSteps[kind] = (repair, persistent);
-            }
-
-            _cClinicSalvageActive = answer.LClinicActive;
-            _cClinicSalvageSeparate = answer.LClinicSeparate;
-            _cClinicSalvageFixed = CClinicFixedNormalize(answer.LClinicFixed);
-            _cClinicSalvagePersistent = answer.LClinicPersistent;
+            _cClinicPlan.CClinicPlanAccept(plan);
             CClinicChanged?.Invoke();
         }
         finally
@@ -215,41 +158,12 @@ public sealed class CClinic
         }
     }
 
-    // The engine builds the plan: every kind in the engine's order, then the salvage.
-    public void CClinicPlanApply(LClinicPort plan)
-    {
-        ArgumentNullException.ThrowIfNull(plan);
-        plan.LClinicPlanSet(
-            _cClinicKinds
-                .Select(kind => (kind, _cClinicSteps[kind].CClinicRepair, _cClinicSteps[kind].CClinicPersistent))
-                .ToArray(),
-            _cClinicSalvageActive,
-            _cClinicSalvageSeparate,
-            _cClinicSalvageFixed,
-            _cClinicSalvagePersistent);
-    }
+    public void CClinicPlanApply(LClinicPort plan) => _cClinicPlan.CClinicPlanApply(plan);
 
-    // A result replaces its source's result of that kind; a scan restarts the progress, any other outcome ends it.
+    // A result is told when it is the shown source's result of the shown kind.
     public void CClinicResultAccept(LCheckupPort result)
     {
-        ArgumentNullException.ThrowIfNull(result);
-        (string source, string kind, bool scanning) = result.LCheckupRead();
-        if (!_cClinicResults.TryGetValue(source, out Dictionary<string, (LCheckupPort, bool)>? kinds))
-        {
-            kinds = new Dictionary<string, (LCheckupPort, bool)>(StringComparer.Ordinal);
-            _cClinicResults[source] = kinds;
-        }
-
-        kinds[kind] = (result, scanning);
-        if (scanning)
-        {
-            _cClinicProgress[source] = 0;
-        }
-        else
-        {
-            _cClinicProgress.Remove(source);
-        }
-
+        (string source, string kind) = _cClinicCheckup.CClinicResultAccept(result);
         if (CClinicSourceMatch(source) && _cClinicKind == kind)
         {
             CClinicChanged?.Invoke();
@@ -262,8 +176,7 @@ public sealed class CClinic
         bool shown = false;
         foreach (string path in paths)
         {
-            shown |= _cClinicResults.Remove(path) && CClinicSourceMatch(path);
-            _cClinicProgress.Remove(path);
+            shown |= _cClinicCheckup.CClinicResultRemove(path) && CClinicSourceMatch(path);
         }
 
         if (shown)
@@ -274,41 +187,24 @@ public sealed class CClinic
 
     public void CClinicProgressSet(string path, double value)
     {
-        _cClinicProgress[path] = Math.Clamp(value, 0, 1);
+        _cClinicCheckup.CClinicProgressSet(path, value);
         if (CClinicSourceMatch(path))
         {
             CClinicChanged?.Invoke();
         }
     }
 
-    private void CClinicSalvageApply(bool active, bool separate, bool fixedBasis, bool persistent)
+    // A user change to the plan repaints the panel and asks for a save.
+    private void CClinicPlanRaise(bool changed)
     {
-        bool fixedNormal = CClinicFixedNormalize(fixedBasis);
-        if (_cClinicSalvageActive == active
-            && _cClinicSalvageSeparate == separate
-            && _cClinicSalvageFixed == fixedNormal
-            && _cClinicSalvagePersistent == persistent)
+        if (!changed)
         {
             return;
         }
 
-        _cClinicSalvageActive = active;
-        _cClinicSalvageSeparate = separate;
-        _cClinicSalvageFixed = fixedNormal;
-        _cClinicSalvagePersistent = persistent;
         CClinicChanged?.Invoke();
         CClinicPlanChanged?.Invoke();
     }
-
-    private bool CClinicFixedNormalize(bool fixedBasis) => fixedBasis && CClinicRepairCheck();
-
-    private (LCheckupPort CClinicResult, bool CClinicScanning)? CClinicResultFind() =>
-        _cClinicKind is { } kind
-        && _cClinicSource is { } source
-        && _cClinicResults.TryGetValue(source, out Dictionary<string, (LCheckupPort, bool)>? kinds)
-        && kinds.TryGetValue(kind, out (LCheckupPort, bool) stored)
-            ? stored
-            : null;
 
     private bool CClinicSourceMatch(string path) =>
         string.Equals(path, _cClinicSource, StringComparison.OrdinalIgnoreCase);

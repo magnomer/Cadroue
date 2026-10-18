@@ -26,7 +26,7 @@ internal sealed class TWhitebalancePort : LWhitebalancePort, LWhitebalanceSample
     public LWhitebalanceAnswer LWhitebalanceCreate(bool lActive)
     {
         TWhitebalanceCalls.Add("create");
-        return new LWhitebalanceAnswer(lActive, "Median", 100, 1, 1, 1, 0, 0, 0);
+        return Conduct.TInterface.TWhitebalanceAnswerCreate(lActive, "Median", 100, 1, 1, 1, 0, 0, 0);
     }
 
     public LWhitebalanceAnswer LWhitebalanceNormalize(LWhitebalanceAnswer lAnswer)

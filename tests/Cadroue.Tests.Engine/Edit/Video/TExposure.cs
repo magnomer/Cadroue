@@ -33,6 +33,6 @@ public sealed class TExposure
     {
         var step = TInterface.TWorkExposureCreate(true, 1.5);
 
-        Assert.Equal(1.5, LWorkVideoFilter.LWorkFfmpegResolve(step));
+        Assert.Equal(1.5, TInterface.TWorkFfmpegResolve(step));
     }
 }

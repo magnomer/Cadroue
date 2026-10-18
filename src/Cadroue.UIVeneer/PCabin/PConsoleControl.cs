@@ -25,7 +25,7 @@ public static class PConsoleControl
     internal static ComboBox PConsoleComboBuild()
     {
         ComboBox pRelayCombo = PConsoleDropBuild();
-        QDropdown.QDropdownActionAttach(
+        QDropdownAction.QDropdownActionAttach(
             pRelayCombo,
             QLocalizationCatalog.QLocalizationTextRead("Console.Scene.DeleteTooltip"));
         PConsoleTipSet(pRelayCombo);

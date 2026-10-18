@@ -1,13 +1,13 @@
 using System;
-using System.Collections.Generic;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.Conduct;
 
 // The viewer's tenure and trace decisions: the tenure state its gates decide from (the load serial, unloaded,
 // command, preview engine and host shown), whether and which record is written, with the state only the records use
-// (the host stamp and detail, the drag seek buffer, the overlay shown flag). The words are the outlet's. One per
-// viewer, built with its workspace; the drivers read the state through its properties and keep no copy.
+// (the host stamp and detail). The seek trace is CViewerScrub's and the overlay CViewerOverlay's. The words are the
+// outlet's. One per viewer, built with its workspace; the drivers read the state through its properties and keep no
+// copy.
 public sealed class CViewer
 {
     private readonly LViewerPort _cViewerPort;
@@ -29,20 +29,17 @@ public sealed class CViewer
     // Counts every host record asked, so a taken record shows how many went before it.
     private int _cViewerHostStamp;
 
-    // While the wheel drags, the seeks are buffered as lines and written as one record when the drag ends.
-    private bool _cViewerDragActive;
-
-    private readonly List<string> _cViewerSeekLines = [];
-
-    private TimeSpan _cViewerSeekFinal;
-
-    private bool _cViewerOverlayShown;
-
     internal CViewer(LViewerPort port)
     {
         ArgumentNullException.ThrowIfNull(port);
         _cViewerPort = port;
+        CViewerScrub = new CViewerScrub(port);
+        CViewerOverlay = new CViewerOverlay(port);
     }
+
+    public CViewerScrub CViewerScrub { get; }
+
+    public CViewerOverlay CViewerOverlay { get; }
 
     public int CViewerSerial => _cViewerSerial;
 
@@ -196,87 +193,10 @@ public sealed class CViewer
         _cViewerPort.LViewerHostRecord(++_cViewerHostStamp, stage, detail());
     }
 
-    // A drag start opens an empty buffer; a drag end writes the buffered seeks as one record, if any.
-    public void CViewerDragSet(bool dragging)
-    {
-        if (dragging)
-        {
-            if (!_cViewerDragActive)
-            {
-                _cViewerSeekLines.Clear();
-            }
-
-            _cViewerDragActive = true;
-            return;
-        }
-
-        _cViewerDragActive = false;
-        if (_cViewerSeekLines.Count == 0)
-        {
-            return;
-        }
-
-        _cViewerPort.LViewerDragRecord(_cViewerSeekFinal, _cViewerSeekLines);
-        _cViewerSeekLines.Clear();
-    }
-
-    // A seek outside a drag is written at once; inside a drag it is buffered, and only while verbose tracing is on.
-    public void CViewerSeekRecord(TimeSpan position, bool direct, bool running)
-    {
-        if (!_cViewerDragActive)
-        {
-            _cViewerPort.LViewerSeekRecord(position, direct, running);
-            return;
-        }
-
-        if (!_cViewerPort.LViewerVerboseRead())
-        {
-            return;
-        }
-
-        _cViewerSeekLines.Add(_cViewerPort.LViewerSeekFormat(position, direct, running));
-        _cViewerSeekFinal = position;
-    }
-
-    // The overlay shows while mpv is shown over a visible host with a size. Only a change of the shown state is
-    // written: opened when it shows, closed when it hides.
-    public bool CViewerOverlayCheck(bool hostVisible, bool mpvShown, double width, double height)
-    {
-        bool shown = mpvShown && hostVisible && width > 0 && height > 0;
-        if (shown && !_cViewerOverlayShown)
-        {
-            _cViewerPort.LViewerShownRecord(width, height);
-        }
-        else if (!shown && _cViewerOverlayShown)
-        {
-            _cViewerPort.LViewerHiddenRecord(hostVisible, mpvShown, width, height);
-        }
-
-        _cViewerOverlayShown = shown;
-        return shown;
-    }
-
     public void CViewerRefreshRecord(Exception failure)
     {
         ArgumentNullException.ThrowIfNull(failure);
         _cViewerPort.LViewerRefreshRecord(failure.Message);
-    }
-
-    // The driver hands in its seek; a seek the player rejects is traced and answers false. The seek writes its own
-    // record before it runs.
-    public bool CViewerSeekRun(TimeSpan position, Action<TimeSpan> seek)
-    {
-        ArgumentNullException.ThrowIfNull(seek);
-        try
-        {
-            seek(position);
-            return true;
-        }
-        catch (Exception failure)
-        {
-            _cViewerPort.LViewerRejectedRecord(position, failure.Message);
-            return false;
-        }
     }
 
     public void CViewerNoticeRecord(Exception failure) => _cViewerPort.LViewerNoticeRecord(failure);

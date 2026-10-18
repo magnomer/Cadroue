@@ -143,8 +143,10 @@ public sealed class TRosterDetailGate
             TimeSpan.FromSeconds(3),
             true,
             output,
-            new LRosterSide(true, true, 1920, 1080, 25, 2.5, TimeSpan.FromMinutes(1), "aac", 128, 48000, -14, "a.mkv"),
-            new LRosterSide(false, false, 0, 0, 0, null, TimeSpan.Zero, null, null, null, null, "b.mp4"),
+            Conduct.TInterface.TRosterSideCreate(
+                true, true, 1920, 1080, 25, 2.5, TimeSpan.FromMinutes(1), "aac", 128, 48000, -14, "a.mkv"),
+            Conduct.TInterface.TRosterSideCreate(
+                false, false, 0, 0, 0, null, TimeSpan.Zero, null, null, null, null, "b.mp4"),
             true,
             ["a.mkv"],
             DateTimeOffset.UnixEpoch,
@@ -154,7 +156,8 @@ public sealed class TRosterDetailGate
             "OtherTab",
             "Processing",
             true,
-            new LRosterEncoding(
+            Conduct.TInterface.TRosterEncodingCreate(
                 "Encode", "0", true, "x264", "crf", "23", "medium", "yuv420p", "1920x1080", "25", null, "", ""),
-            new LRosterEncoding("Copy", "1", false, "", "", "", null, "", "", "", null, "48000", "2"));
+            Conduct.TInterface.TRosterEncodingCreate(
+                "Copy", "1", false, "", "", "", null, "", "", "", null, "48000", "2"));
 }

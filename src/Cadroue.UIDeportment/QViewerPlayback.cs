@@ -155,7 +155,7 @@ public sealed class QViewerPlayback
         }
 
         qViewer.QViewerEndSet(false);
-        if (!qViewer.QViewerTrace.CViewerSeekRun(lPosition, QViewerAccurateSeek))
+        if (!qViewer.QViewerTrace.CViewerScrub.CViewerSeekRun(lPosition, QViewerAccurateSeek))
         {
             return;
         }
@@ -167,13 +167,13 @@ public sealed class QViewerPlayback
     {
         if (qViewer.QViewerTrace.CViewerMpvActive)
         {
-            qViewer.QViewerTrace.CViewerSeekRecord(lPosition, true, false);
+            qViewer.QViewerTrace.CViewerScrub.CViewerSeekRecord(lPosition, true, false);
             QPlayer.QPlayerSeek(lPosition);
             return;
         }
 
         bool lWasRunning = QPlayer.QPlayerAccurateSet();
-        qViewer.QViewerTrace.CViewerSeekRecord(lPosition, false, lWasRunning);
+        qViewer.QViewerTrace.CViewerScrub.CViewerSeekRecord(lPosition, false, lWasRunning);
         QPlayer.QPlayerSeek(lPosition);
     }
 

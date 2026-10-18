@@ -238,13 +238,14 @@ public sealed class TWhitebalanceGate
     {
         var plan = new TInspectorPort
         {
-            TInspectorWhitebalance = new LWhitebalanceAnswer(true, "Average", 400, 2, 2, 2, 9, 9, 9)
+            TInspectorWhitebalance =
+                Conduct.TInterface.TWhitebalanceAnswerCreate(true, "Average", 400, 2, 2, 2, 9, 9, 9)
         };
 
         tWhitebalanceInspector.CInspectorVideo.CInspectorVideoAccept(plan);
 
         LWhitebalanceAnswer answer = tWhitebalanceGate.CWhitebalanceAnswer;
-        Assert.Equal(new LWhitebalanceAnswer(true, "Average", 300, 1, 1, 1, 0, 0, 0), answer);
+        Assert.Equal(Conduct.TInterface.TWhitebalanceAnswerCreate(true, "Average", 300, 1, 1, 1, 0, 0, 0), answer);
         Assert.Equal(["Average"], tWhitebalanceEstimates);
     }
 

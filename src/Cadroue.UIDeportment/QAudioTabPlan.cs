@@ -9,14 +9,14 @@ public sealed class QAudioTabPlan
 {
     private readonly QAudioTab qAudioTab;
     private readonly CUsher qAudioUsher;
-    private readonly CEdit qAudioGate;
+    private readonly CEditAudio qAudioGate;
     private readonly QList qAudioList;
 
-    public QAudioTabPlan(QAudioTab lTab, CUsher lUsher, CEdit lEdit, QList lList)
+    public QAudioTabPlan(QAudioTab lTab, CUsher lUsher, CEditAudio lEditAudio, QList lList)
     {
         qAudioTab = lTab;
         qAudioUsher = lUsher;
-        qAudioGate = lEdit;
+        qAudioGate = lEditAudio;
         qAudioList = lList;
     }
 

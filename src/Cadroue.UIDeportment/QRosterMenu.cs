@@ -14,11 +14,11 @@ public sealed class QRosterMenu
 {
     private static readonly IReadOnlyList<QRosterItem> QRosterMenuNone = [];
 
-    private readonly CRoster qRosterGate;
+    private readonly CRosterMenu qRosterGate;
 
     public QRosterMenu(CRoster lRoster)
     {
-        qRosterGate = lRoster;
+        qRosterGate = lRoster.CRosterMenu;
     }
 
     public IReadOnlyList<QRosterItem> QRosterMenuRead(Guid lId, QStrip? lStrip)

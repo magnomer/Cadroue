@@ -19,9 +19,10 @@ public sealed class TConsoleGate
             .CAtelierConsoleCreate();
         tConsoleGate.CConsoleChanged += () => tConsoleNotices.Add("changed");
         tConsoleGate.CConsoleDeferred += () => tConsoleNotices.Add("deferred");
-        tConsoleGate.CConsoleProgressChanged +=
-            () => tConsoleNotices.Add(
-                FormattableString.Invariant($"progress {tConsoleGate.CConsoleProgress} {tConsoleGate.CConsoleGlide}"));
+        CConsoleProgress progress = tConsoleGate.CConsoleProgress;
+        progress.CConsoleProgressChanged +=
+            () => tConsoleNotices.Add(FormattableString.Invariant(
+                $"progress {progress.CConsoleProgressValue} {progress.CConsoleProgressGlide}"));
     }
 
     private static CConsoleText TConsoleTextCreate(string key, params object[] arguments) =>
@@ -191,7 +192,7 @@ public sealed class TConsoleGate
 
         Assert.Equal(["progress 0.5 True", "progress 1 True", "progress 0.25 False", "progress 0 False"],
             tConsoleNotices);
-        Assert.Equal(0, tConsoleGate.CConsoleProgress);
+        Assert.Equal(0, tConsoleGate.CConsoleProgress.CConsoleProgressValue);
     }
 
     [Fact]

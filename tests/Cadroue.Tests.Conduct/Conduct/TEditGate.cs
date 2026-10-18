@@ -25,6 +25,7 @@ public sealed class TEditGate
     private readonly TEditPort tEditPort = new();
     private readonly TAudioPort tEditAudio = new();
     private readonly CEdit tEditGate;
+    private readonly CEditAudio tEditAudioGate;
     private readonly CInspector tEditInspector;
 
     public TEditGate()
@@ -32,13 +33,14 @@ public sealed class TEditGate
         CAtelier atelier =
             TAtelier.TAtelierCreate(port => port with { LAtelierEdit = tEditPort, LAtelierAudio = tEditAudio });
         tEditGate = atelier.CAtelierEdit;
+        tEditAudioGate = atelier.CAtelierEdit.CEditAudio;
         tEditInspector = atelier.CAtelierInspectorCreate();
     }
 
     [Fact]
     public void EditAudioSave_NothingKept_AsksNoPort()
     {
-        tEditGate.CEditAudioSave(tEditInspector, false, TEditPaths);
+        tEditAudioGate.CEditAudioSave(tEditInspector, false, TEditPaths);
 
         Assert.Empty(tEditPort.TEditCalls);
         Assert.Empty(tEditAudio.TAudioCalls);
@@ -49,7 +51,7 @@ public sealed class TEditGate
     {
         tEditInspector.CInspectorVolume.CVolumePersistentSet(true);
 
-        tEditGate.CEditAudioSave(tEditInspector, true, TEditPaths);
+        tEditAudioGate.CEditAudioSave(tEditInspector, true, TEditPaths);
 
         Assert.Empty(tEditPort.TEditCalls);
     }
@@ -60,7 +62,7 @@ public sealed class TEditGate
         tEditInspector.CInspectorVolume.CVolumePersistentSet(true);
         tEditInspector.CInspectorSkip.CSkipActiveSet(true);
 
-        tEditGate.CEditAudioSave(tEditInspector, false, TEditPaths);
+        tEditAudioGate.CEditAudioSave(tEditInspector, false, TEditPaths);
 
         Assert.Equal([@"audio:C:\a.mp4,C:\c.mp4|False|True"], tEditPort.TEditCalls);
         Assert.Same(tEditAudio.TAudioPlan, tEditPort.TEditPersistent);
@@ -71,7 +73,7 @@ public sealed class TEditGate
     {
         tEditInspector.CInspectorSkip.CSkipPersistentSet(true);
 
-        tEditGate.CEditAudioSave(tEditInspector, false, []);
+        tEditAudioGate.CEditAudioSave(tEditInspector, false, []);
 
         Assert.Equal(["audio:|True|False"], tEditPort.TEditCalls);
     }
