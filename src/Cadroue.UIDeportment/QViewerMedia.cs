@@ -15,11 +15,14 @@ public sealed class QViewerMedia
         qViewer = lOwner;
         QViewerLoupe = new QViewerLoupe(lOwner);
         QViewerTeardown = new QViewerTeardown(lOwner, this);
+        QViewerFlyleaf = new QViewerFlyleaf(lOwner);
     }
 
     public event Action? QViewerPlayerCreated;
 
     public QViewerLoupe QViewerLoupe { get; }
+
+    public QViewerFlyleaf QViewerFlyleaf { get; }
 
     public QViewerTeardown QViewerTeardown { get; }
 
@@ -70,7 +73,7 @@ public sealed class QViewerMedia
         QViewerHost.QViewerHostShow(false);
         QViewerPlayerStop();
         qViewer.QCrop.QCropHide();
-        qViewer.QViewerPreviewApply();
+        qViewer.QViewerFilter.QViewerPreviewApply();
 
         qViewer.QViewerTrace.CViewerClosedRecord(lClosedPath);
 
@@ -173,104 +176,13 @@ public sealed class QViewerMedia
             return;
         }
 
-        QViewerFlyleafCommit(lCargo, false);
+        QViewerFlyleaf.QViewerFlyleafCommit(lCargo, false);
     }
 
     private Task QViewerMediaApply(string lSourcePath, LMediaInfo? lMediaInfo, string? lFfmpegError, int lSerial) =>
         qViewer.QViewerTrace.CViewerMpvActive
             ? qViewer.QViewerMpv.QViewerMpvApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial)
-            : QViewerFlyleafApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial);
-
-    public async Task QViewerFlyleafApply(string lSourcePath, LMediaInfo? lMediaInfo, string? lFfmpegError, int lSerial)
-    {
-        if (lMediaInfo is { LMediaAudioOnly: true } && !qViewer.QViewerAudioAllowed)
-        {
-            string lAudioOnlyError = QLocalizationCatalog.QLocalizationTextRead("Viewer.Error.AudioOnlyTab");
-            QViewerFlyleafCommit(new LCargo(lSourcePath, null, false, false, lAudioOnlyError, lAudioOnlyError), false);
-            return;
-        }
-
-        bool lCreated = !QPlayer.QPlayerReady;
-        string? lPreviewError = await QViewerPlayerOpen(lSourcePath, lCreated);
-        if (!qViewer.QViewerTrace.CViewerSerialCheck(lSerial))
-        {
-            if (lCreated)
-            {
-                QPlayer.QPlayerDispose();
-            }
-
-            qViewer.QViewerTrace.CViewerDiscardedRecord(
-                lSerial, qViewer.QViewerTrace.CViewerSerial, qViewer.QViewerTrace.CViewerUnloaded);
-            return;
-        }
-
-        if (QPlayer.QPlayerReady)
-        {
-            QPlayer.QPlayerRendererSet(true);
-            QPlayer.QPlayerPause();
-            QPlayer.QPlayerSeek(TimeSpan.Zero);
-        }
-
-        QViewerFlyleafCommit(
-            new LCargo(
-                lSourcePath, lMediaInfo, lMediaInfo is not null, QPlayer.QPlayerReady, lFfmpegError, lPreviewError),
-            !lCreated);
-    }
-
-    // The Flyleaf player opens the path, timed for its record; the failure's message comes back, the player disposed.
-    private async Task<string?> QViewerPlayerOpen(string lSourcePath, bool lCreated)
-    {
-        var lChronometer = new QChronometer();
-        lChronometer.QChronometerStart();
-        try
-        {
-            if (lCreated)
-            {
-                QViewerPlayerCreated?.Invoke();
-            }
-
-            QPlayer.QPlayerVolumeSet(qViewer.QViewerAudio.QViewerVolume);
-            double lBeforeOpen = lChronometer.QChronometerRead();
-            await QPlayer.QPlayerOpenStart(lSourcePath);
-            QPlayer.QPlayerFactsRecord(
-                $"Player opened '{System.IO.Path.GetFileName(lSourcePath)}'",
-                lChronometer.QChronometerRead() - lBeforeOpen);
-        }
-        catch (Exception lException)
-        {
-            string lPreviewError = lException.Message;
-            QPlayer.QPlayerDispose();
-            return lPreviewError;
-        }
-
-        return null;
-    }
-
-    private void QViewerFlyleafCommit(LCargo lCargo, bool lReused)
-    {
-        LMediaTrace.LMediaOpenRecord(lCargo, QPlayer.QPlayerReady);
-        QPlayer.QPlayerAccurateReset();
-        qViewer.QViewerTrace.CViewerPlayerRecord(lReused, QPlayer.QPlayerReady);
-        if (!QPlayer.QPlayerReady)
-        {
-            QPlayer.QPlayerDispose();
-        }
-
-        QViewerHost.QViewerHostShow(QPlayer.QPlayerReady);
-        QPlayer.QPlayerEndSet(lCargo.LCargoMediaInfo?.LMediaVideoEnd);
-        QViewerCargoApply(lCargo);
-        if (!QPlayer.QPlayerReady)
-        {
-            qViewer.QViewerPlaybackUpdate(false, TimeSpan.Zero);
-            return;
-        }
-
-        LRotateFlip lRotate = qViewer.QViewerPreview.LRotateFlip;
-        qViewer.QViewerTrace.CViewerPreviewRecord(
-            lRotate.LRotateKind.ToString(), lRotate.LRotateFlipHorizontal, lRotate.LRotateFlipVertical);
-        QPlayer.QPlayerPreviewApply(qViewer.QViewerPreview, "preview restored");
-        QViewerCommitApply(null);
-    }
+            : QViewerFlyleaf.QViewerFlyleafApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial);
 
     public void QViewerCargoApply(LCargo lCargo)
     {

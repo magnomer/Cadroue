@@ -44,9 +44,9 @@ public sealed class PRoster : UserControl
         PRosterDetailUpdate();
     }
 
-    public LSceneTabEntry PRosterLayoutRead() => QRoster.QRosterLayoutRead();
+    public LSceneTabEntry PRosterLayoutRead() => QRoster.QRosterColumn.QRosterLayoutRead();
 
-    public double PRosterWidthRead() => QRoster.QRosterWidthResolve(pRosterLayout.PColumnTotalRead());
+    public double PRosterWidthRead() => QRosterColumn.QRosterWidthResolve(pRosterLayout.PColumnTotalRead());
 
     public void PRosterClose() => pRosterElapsedTimer.Stop();
 
@@ -109,7 +109,7 @@ public sealed class PRoster : UserControl
         PColumn pLayout = PColumn.PColumnAttach(
             pRosterBody,
             new[] { pLeftColumn, pRightColumn },
-            QRoster.QRosterPlanCreate(
+            QRoster.QRosterColumn.QRosterPlanCreate(
                 [pLeftColumn.MinWidth, pRightColumn.MinWidth], lPreferenceTabLayout?.LScenePanelWidths));
         PRosterSplitterAdd(pLayout);
         PRosterDetailAdd();

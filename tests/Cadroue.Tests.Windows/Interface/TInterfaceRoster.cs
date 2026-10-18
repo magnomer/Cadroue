@@ -64,7 +64,7 @@ internal static class TInterfaceRoster
         roster.QRosterDeferral.QRosterDeferralRaised += handler;
     internal static void TRosterWarningAttach(QRoster roster, Action<string, string> handler) =>
         roster.QRosterRemoval.QRosterWarningShown += handler;
-    internal static void TRosterRemove(QRoster roster, Guid batchId) => roster.QRosterRemove(batchId);
+    internal static void TRosterRemove(QRoster roster, Guid batchId) => roster.QRosterRemoval.QRosterRemove(batchId);
     internal static IReadOnlyList<QRosterItem> TRosterMenuRead(QRoster roster, Guid id, QStrip? strip) =>
         roster.QRosterMenu.QRosterMenuRead(id, strip);
     internal static void TRosterItemRun(QRosterItem item) => item.QRosterItemAction();

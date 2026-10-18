@@ -14,7 +14,7 @@ internal sealed partial class PSEncoder
     private void PSAudioChannelRebuild()
     {
         string pStored = PSAudioLayoutRead();
-        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
+        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudio.QSEncoderAudioEncoder);
         IReadOnlyList<string> pLayouts = PSAudioLayoutsResolve(LInventoryHelp.LInventoryLayoutRead(pEncoder));
         PSAudioLayoutsSet(pLayouts);
         PSAudioLayoutRebuild(PSAudioCaptionsResolve(pLayouts), PSAudioPositionResolve(pLayouts, pStored));

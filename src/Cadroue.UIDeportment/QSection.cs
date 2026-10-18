@@ -3,31 +3,10 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public sealed record QSectionRow(
-    int QSectionRowIndex,
-    string QSectionRowNumber,
-    string QSectionRowName,
-    string QSectionRowText,
-    bool QSectionRowUnnamed,
-    string QSectionRowPrefix,
-    string QSectionRowSuffix,
-    bool QSectionRowPrefixed,
-    bool QSectionRowSuffixed,
-    IReadOnlyList<string> QSectionRowAffixes,
-    string QSectionRowOrigin,
-    string QSectionRowEnd,
-    string QSectionRowSpan,
-    int QSectionRowColor,
-    bool QSectionRowHidden,
-    bool QSectionRowSelected,
-    bool QSectionRowEditing);
-
-// The sections panel's wiring: paints the section gate's rows with their wording and times, hands each row input to
-// the gate with the editable switch, and relays the gate's tells. Only the panel's minimized state is its own.
+// The sections panel's wiring: reads the section gate's rows, hands each row input to the gate with the editable
+// switch, and relays the gate's tells. Only the panel's minimized state is its own.
 public sealed class QSection
 {
-    private const string QSectionReturnKey = "Return";
-    private const string QSectionEscapeKey = "Escape";
     private const string QSectionStepText = ",";
 
     private readonly QFlow qFlow;
@@ -44,10 +23,13 @@ public sealed class QSection
         qFlow = lOwner;
         qSectionGate = qFlow.QFlowSection.QFlowSectionGate.CSectionList;
         QSectionDrag = new QSectionDrag(qSectionGate.CSectionDrag);
+        QSectionEdit = new QSectionEdit(qSectionGate.CSectionEdit);
         QSectionFlowAttach();
     }
 
     public QSectionDrag QSectionDrag { get; }
+
+    public QSectionEdit QSectionEdit { get; }
 
     public QFlow QFlow => qFlow;
 
@@ -55,16 +37,11 @@ public sealed class QSection
 
     public bool QSectionMinimized => qSectionMinimized;
 
-    // Forwarded for the row surface's editor.
-    public int QSectionEditSerial => qSectionGate.CSectionEdit.CSectionEditSerial;
-
     public static int QSectionCountRead() => LSectionPalette.LSectionActiveCount;
 
     public static string QSectionHexRead(int lColorIndex) => LSectionPalette.LSectionColorRead(lColorIndex);
 
     public static IReadOnlyList<string> QSectionPaletteRead(string lName) => LSectionPalette.LSectionColorsRead(lName);
-
-    public static string QSectionNumberRead(int lIndex) => (lIndex + 1).ToString();
 
     public static bool QSectionStepCheck(string lText) =>
         string.Equals(lText, QSectionStepText, StringComparison.Ordinal);
@@ -78,7 +55,7 @@ public sealed class QSection
             : QLocalizationCatalog.QLocalizationTextRead("Section.Header.Title");
 
     public IReadOnlyList<QSectionRow> QSectionRowsRead() =>
-        qSectionGate.CSectionRowsRead().Select(QSectionRowCreate).ToArray();
+        qSectionGate.CSectionRowsRead().Select(QSectionRow.QSectionRowCreate).ToArray();
 
     public bool QSectionMinimizedSet(bool lMinimized)
     {
@@ -99,30 +76,6 @@ public sealed class QSection
 
     public bool QSectionRenameHandle(int lIndex, int lClickCount) =>
         qSectionGate.CSectionRenameHandle(lIndex, lClickCount);
-
-    public void QSectionTextSet(string lName, string lPrefix, string lSuffix) =>
-        qSectionGate.CSectionEdit.CSectionEditSet(lName, lPrefix, lSuffix);
-
-    // The editor's keys: Return commits, Escape drops; any other key is not the editor's.
-    public bool QSectionKeyRun(string lKey)
-    {
-        if (string.Equals(lKey, QSectionReturnKey, StringComparison.Ordinal))
-        {
-            qSectionGate.CSectionEdit.CSectionEditCommit();
-            return true;
-        }
-
-        if (string.Equals(lKey, QSectionEscapeKey, StringComparison.Ordinal))
-        {
-            qSectionGate.CSectionEdit.CSectionEditCancel();
-            return true;
-        }
-
-        return false;
-    }
-
-    public void QSectionBlurHandle(int lSerial, bool lFocusInside) =>
-        qSectionGate.CSectionEdit.CSectionEditHandle(lSerial, lFocusInside);
 
     // The delete asks through QAskNotice, so it waits for the ask port; the pending edit is committed first.
     public void QSectionDeleteRun()
@@ -160,31 +113,4 @@ public sealed class QSection
     private void QSectionChangeRaise() => QSectionChanged?.Invoke();
 
     private void QSectionSelectRaise() => QSectionSelectApplied?.Invoke();
-
-    private static QSectionRow QSectionRowCreate(CSectionRow lRow) =>
-        new(
-            lRow.CSectionRowIndex,
-            QSectionNumberRead(lRow.CSectionRowIndex),
-            lRow.CSectionRowName,
-            lRow.CSectionRowUnnamed
-                ? QLocalizationCatalog.QLocalizationFormat("Section.DefaultName", lRow.CSectionRowIndex + 1)
-                : lRow.CSectionRowName,
-            lRow.CSectionRowUnnamed,
-            lRow.CSectionRowPrefix,
-            lRow.CSectionRowSuffix,
-            lRow.CSectionRowPrefixed,
-            lRow.CSectionRowSuffixed,
-            lRow.CSectionRowAffixes.Select(lAffix => $"  /  {lAffix}").ToArray(),
-            QSectionTimeFormat(lRow.CSectionRowOrigin),
-            QSectionTimeFormat(lRow.CSectionRowEnd),
-            $"  ({QSectionTimeFormat(lRow.CSectionRowSpan)})",
-            lRow.CSectionRowColor,
-            lRow.CSectionRowHidden,
-            lRow.CSectionRowSelected,
-            lRow.CSectionRowEditing);
-
-    private static string QSectionTimeFormat(TimeSpan lTime) =>
-        lTime.TotalHours >= 1
-            ? $"{(int)lTime.TotalHours}:{lTime.Minutes:D2}:{lTime.Seconds:D2}"
-            : $"{lTime.Minutes}:{lTime.Seconds:D2}";
 }

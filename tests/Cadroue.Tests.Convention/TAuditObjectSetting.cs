@@ -50,10 +50,10 @@ internal static class TAuditObjectSetting
         ["Hydra"] = 4,
         ["Kraken"] = 3,
         ["Spider"] = 0,
-        ["Chameleon"] = 61,
+        ["Chameleon"] = 60,
         ["Octopus"] = 3,
         ["Centipede"] = 54,
-        ["Serpent"] = 8,
+        ["Serpent"] = 7,
         ["Hub"] = 8,
     };
 
@@ -86,7 +86,7 @@ internal static class TAuditObjectSetting
         ["Cadroue.ShellEngine.LMessenger"] = 1,
         ["Cadroue.ShellEngine.LRunner"] = 1,
         ["Cadroue.ShellEngine.LSweep"] = 1,
-        ["Cadroue.UIDeportment.QSEncoder"] = 3,
+        ["Cadroue.UIDeportment.QSEncoder"] = 1,
         ["Cadroue.UIVeneer.PHouse.PWindow"] = 5,
         ["Cadroue.UIVeneer.PSDiagnosis"] = 2,
         ["Cadroue.UIVeneer.PSFader"] = 2,

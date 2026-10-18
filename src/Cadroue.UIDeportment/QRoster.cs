@@ -7,8 +7,6 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QRoster
 {
-    private const double QRosterWidthPadding = 16;
-
     private sealed record QRosterBatch(
         Guid QRosterBatchId,
         CLineageAnswer QRosterBatchAnswer,
@@ -19,13 +17,11 @@ public sealed class QRoster
     private readonly CLineage qRosterLineage;
     private readonly CRoster qRosterGate;
     private readonly LScheduleContract qSchedule;
-    private readonly LScheduleRemoverContract qScheduleRemover;
     private readonly LStation qStation;
     private readonly List<Guid> qRosterOrderedIds = [];
     private readonly HashSet<Guid> qRosterPresentIds = [];
     private readonly List<QRosterBatch> qRosterBatches = [];
     private bool qRosterClosed;
-    private QColumnPlan? qRosterPlan;
 
     public QRoster(
         CUsher lUsher,
@@ -39,13 +35,12 @@ public sealed class QRoster
         qRosterLineage = lLineage;
         qRosterGate = lRoster;
         qSchedule = lScheduleOwner;
-        qScheduleRemover = lRemoverOwner;
         qStation = lStationOwner;
         QRosterCollapse = new QRosterCollapse(QRosterCardUpdate);
         QRosterDeferral = new QRosterDeferral(() => qRosterClosed, () => QRosterDetailApplied?.Invoke());
         QRosterSelection = new QRosterSelection(
             qRosterPresentIds.Contains, QRosterBatchCheck, () => qRosterOrderedIds, QRosterSelectRaise);
-        QRosterRemoval = new QRosterRemoval();
+        QRosterRemoval = new QRosterRemoval(lScheduleOwner, lRemoverOwner);
         QRosterAttach();
         lRoster.CRosterAttach(lStationOwner);
         QRosterMenu = new QRosterMenu(lRoster);
@@ -57,7 +52,6 @@ public sealed class QRoster
         qStation.LStationSelectionSource = QRosterSelectionRead;
         qSchedule.LScheduleChanged += QRosterScheduleHandle;
         qSchedule.LScheduleItemChanged += QRosterItemHandle;
-        QRosterRemoval.QRosterRemovalConfirmed += QRosterBatchRemove;
         qRosterGate.CRosterChanged += QRosterRebuild;
     }
 
@@ -81,6 +75,8 @@ public sealed class QRoster
     public QRosterSelection QRosterSelection { get; }
 
     public QRosterRemoval QRosterRemoval { get; }
+
+    public QRosterColumn QRosterColumn { get; } = new();
 
     public LStation QRosterStation => qStation;
 
@@ -119,21 +115,6 @@ public sealed class QRoster
 
     public string? QRosterPathOpen(string lPath) =>
         qRosterUsher.CUsherPathOpen(lPath, failure: "Could not open '{0}': {1}");
-
-    public QColumnPlan QRosterPlanCreate(IReadOnlyList<double> lMinimumWidths, IReadOnlyList<double>? lStoredWidths)
-    {
-        qRosterPlan = new QColumnPlan(lMinimumWidths, lStoredWidths, null, -1);
-        return qRosterPlan;
-    }
-
-    public LSceneTabEntry QRosterLayoutRead()
-    {
-        var lLayout = new LSceneTabEntry();
-        lLayout.LScenePanelWidths.AddRange(qRosterPlan?.QColumnWeightsRead() ?? []);
-        return lLayout;
-    }
-
-    public static double QRosterWidthResolve(double lColumnTotal) => lColumnTotal + QRosterWidthPadding;
 
     private void QRosterScheduleHandle(LScheduleContract lScheduleChanged)
     {
@@ -297,18 +278,6 @@ public sealed class QRoster
             .First(lStep => lStep.CLineageStepId == lWorkId);
 
     internal CLineageBatch QRosterSummaryRead() => qRosterLineage.CLineageBatchRead(QRosterSelection.QRosterCardId);
-
-    public void QRosterRemove(Guid lBatchId) =>
-        QRosterRemoval.QRosterRemoveConfirm(qScheduleRemover.LScheduleRemovableRead(QRosterMembersRead(lBatchId)));
-
-    private IEnumerable<Guid> QRosterMembersRead(Guid lBatchId) =>
-        qSchedule.LScheduleRecords
-            .Where(lWorkItem => lWorkItem.LWorkBatchId == lBatchId)
-            .Select(lWorkItem => lWorkItem.LWorkId);
-
-    private void QRosterBatchRemove(IReadOnlyList<Guid> lRemovable) =>
-        QRosterRemoval.QRosterWarningRaise(
-            QConsoleLine.QConsoleRemovalFormat(qScheduleRemover.LScheduleBatchRemove(lRemovable)));
 
     private bool QRosterBatchCheck(Guid lBatchId) =>
         qRosterBatches.Exists(lBatch => lBatch.QRosterBatchId == lBatchId);

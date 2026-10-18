@@ -59,9 +59,10 @@ internal static partial class TInterface
     internal static void TWorkspaceClose(QWorkspace workspace) => workspace.QWorkspaceClose();
     internal static bool TWorkspaceBusyCheck(QWorkspace workspace) => workspace.QWorkspaceBusyCheck();
     internal static IReadOnlyList<string> TDocketPathsRead(LDocket docket) => docket.LDocketPathsRead();
-    internal static LHistoryEntry TWorkspaceSnapshotRead(QWorkspace workspace) => workspace.QWorkspaceSnapshotRead();
-    internal static bool TWorkspaceUndo(QWorkspace workspace) => workspace.QWorkspaceUndo();
-    internal static bool TWorkspaceRedo(QWorkspace workspace) => workspace.QWorkspaceRedo();
+    internal static LHistoryEntry TWorkspaceSnapshotRead(QWorkspace workspace) =>
+        workspace.QWorkspaceHistory.QWorkspaceSnapshotRead();
+    internal static bool TWorkspaceUndo(QWorkspace workspace) => workspace.QWorkspaceHistory.QWorkspaceUndo();
+    internal static bool TWorkspaceRedo(QWorkspace workspace) => workspace.QWorkspaceHistory.QWorkspaceRedo();
     internal static void TWorkspacePresetSelect(QWorkspace workspace, LPresetDocument record) =>
         workspace.QWorkspacePresetOwner.LPresetSelectionValue = record;
     internal static LPresetDocument TPresetRecordCreate(string display) => new() { LPresetDisplay = display };
@@ -73,9 +74,9 @@ internal static partial class TInterface
     internal static void TWorkspaceRelayRestore(QWorkspace workspace, LRelay relay, TimeSpan duration) =>
         workspace.QWorkspaceRelay.QWorkspaceRelayRestore(relay, duration);
     internal static bool TWorkspaceMediaClear(QWorkspace workspace, IReadOnlySet<Guid> cohorts) =>
-        workspace.QWorkspaceMediaClear(cohorts);
+        workspace.QWorkspaceMedia.QWorkspaceMediaClear(cohorts);
     internal static void TWorkspacePathHandle(QWorkspace workspace, string? path) =>
-        workspace.QWorkspacePathHandle(path);
+        workspace.QWorkspaceMedia.QWorkspacePathHandle(path);
     internal static void TWorkspacePathsAttach(QWorkspace workspace, Action<IReadOnlyList<string>> handler) =>
         workspace.QWorkspaceRelay.QWorkspacePathsAdded += handler;
     internal static void TWorkspaceSelectAttach(QWorkspace workspace, Action<string> handler) =>
@@ -83,7 +84,7 @@ internal static partial class TInterface
     internal static void TWorkspaceOpenAttach(QWorkspace workspace, Action<string> handler) =>
         workspace.QWorkspaceRelay.QWorkspaceSourceOpened += handler;
     internal static void TWorkspaceCloseAttach(QWorkspace workspace, Action handler) =>
-        workspace.QWorkspaceMediaClosed += handler;
+        workspace.QWorkspaceMedia.QWorkspaceMediaClosed += handler;
     internal static void TWorkspaceVolumeAttach(QWorkspace workspace, Action<double> handler) =>
         workspace.QWorkspaceRelay.QWorkspaceVolumeApplied += handler;
     internal static void TWorkspaceSeekAttach(QWorkspace workspace, Action<TimeSpan> handler) =>
@@ -101,9 +102,10 @@ internal static partial class TInterface
     internal static bool TSurfaceCollapsedCheck(QSurface surface, int index) => surface.QSurfaceCollapsedCheck(index);
     internal static double TSurfaceWidthResolve(QSurface surface, double total) => surface.QSurfaceWidthResolve(total);
     internal static double TSurfaceMinimumResolve(double element, double table) =>
-        QSurface.QSurfaceMinimumResolve(element, table);
-    internal static IReadOnlyList<int> TSurfaceSplittersResolve(int count) => QSurface.QSurfaceSplittersResolve(count);
-    internal static int TSurfaceGutterResolve(int index) => QSurface.QSurfaceGutterResolve(index);
+        QSurfaceGrid.QSurfaceMinimumResolve(element, table);
+    internal static IReadOnlyList<int> TSurfaceSplittersResolve(int count) =>
+        QSurfaceGrid.QSurfaceSplittersResolve(count);
+    internal static int TSurfaceGutterResolve(int index) => QSurfaceGrid.QSurfaceGutterResolve(index);
     internal static LSceneTabEntry TSceneTabCreate(bool exportHidden, bool autoRelay, params int[] collapsed) => new()
     {
         LSceneExportHidden = exportHidden,
@@ -124,7 +126,7 @@ internal static partial class TInterface
 
     internal static QStripTab TStripKeyCreate(string key) =>
         new QStrip(TAtelierCreate()).QStripTabCreate(key);
-    internal static string TStripKeyResolve(string key) => QStrip.QStripKeyResolve(key);
+    internal static string TStripKeyResolve(string key) => QStripCatalog.QStripKeyResolve(key);
     internal static bool TStripCloseConfirm(QStrip strip, QStripTab? tab) =>
         strip.QStripClosure.QStripCloseConfirm(tab);
     internal static void TStripClose(QStrip strip, QStripTab tab) => strip.QStripClosure.QStripClose(tab);

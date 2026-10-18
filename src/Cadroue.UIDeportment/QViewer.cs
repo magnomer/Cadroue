@@ -28,6 +28,7 @@ public sealed class QViewer
         QViewerPlayback = new QViewerPlayback(this);
         QViewerMedia = new QViewerMedia(this);
         QViewerSource = new QViewerSource(this, lUsher);
+        QViewerFilter = new QViewerFilter(this);
         QViewerRenderer = new QViewerRenderer(this);
         QViewerMpv = new QViewerMpv(this);
         QViewerNeutral = new QViewerNeutral(this);
@@ -68,6 +69,8 @@ public sealed class QViewer
     public QViewerMedia QViewerMedia { get; }
 
     public QViewerSource QViewerSource { get; }
+
+    public QViewerFilter QViewerFilter { get; }
 
     public QViewerRenderer QViewerRenderer { get; }
 
@@ -201,61 +204,6 @@ public sealed class QViewer
                 .LRotateFlipChange(LRotateFlip.LRotateDefaultCreate())
                 .LCropboxChange(null);
 
-    public void QViewerFilterUpdate()
-    {
-        if (!QViewerFilterApply())
-        {
-            return;
-        }
-
-        QViewerRefreshRun();
-    }
-
-    // The paused player redraws with the new filter; a refused refresh is recorded.
-    private void QViewerRefreshRun()
-    {
-        try
-        {
-            QPlayer.QPlayerUpdate();
-        }
-        catch (Exception lRefreshException)
-        {
-            QViewerTrace.CViewerRefreshRecord(lRefreshException);
-        }
-    }
-
-    // The preview filter goes to mpv; true when the filter changed on a paused player, which then needs a refresh.
-    public bool QViewerFilterApply()
-    {
-        if (!QViewerTrace.CViewerMpvActive || !QPlayer.QPlayerReady)
-        {
-            return false;
-        }
-
-        string lFilter = LPreviewFilter.LPreviewFilterResolve(QViewerRenderRead());
-        bool lChanged = lFilter != QPlayer.QPlayerFilterApplied;
-        if (!QPlayer.QPlayerFilterApply(lFilter) || !lChanged)
-        {
-            return false;
-        }
-
-        return !QViewerPlaying;
-    }
-
-    public void QViewerPreviewApply()
-    {
-        if (QViewerTrace.CViewerMpvActive)
-        {
-            QViewerFilterUpdate();
-            QViewerPreviewRaise();
-            return;
-        }
-
-        QPlayer.QPlayerPreviewApply(QViewerRenderRead(), "preview color/geometry");
-        QPlayer.QPlayerFactsRecord("Preview color applied");
-        QViewerPreviewRaise();
-    }
-
     public void QViewerRotateSet(LRotateFlip lRotateFlip)
     {
         QViewerPreviewSet(qViewerPreview.LRotateFlipChange(lRotateFlip));
@@ -264,14 +212,14 @@ public sealed class QViewer
             lRotateFlip.LRotateFlipHorizontal,
             lRotateFlip.LRotateFlipVertical,
             QPlayer.QPlayerReady);
-        QViewerPreviewApply();
+        QViewerFilter.QViewerPreviewApply();
         QCrop.QCropOverlayUpdate();
     }
 
     public void QViewerColorSet(LColor lColor)
     {
         QViewerPreviewSet(qViewerPreview.LColorChange(lColor));
-        QViewerPreviewApply();
+        QViewerFilter.QViewerPreviewApply();
     }
 
     public void QViewerMediaRaise(LCargo lCargo)

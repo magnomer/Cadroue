@@ -1,5 +1,4 @@
 using Cadroue.Conduct;
-using Cadroue.Core;
 
 namespace Cadroue.UIDeportment;
 
@@ -69,18 +68,6 @@ public static class QRosterFormatter
         return lHours > 0
             ? $"{lHours}:{lSpan.Minutes:00}:{lSpan.Seconds:00}"
             : $"{lSpan.Minutes}:{lSpan.Seconds:00}";
-    }
-
-    public static TimeSpan? QRosterSpentRead(LWorkItem lWorkItem)
-    {
-        if (lWorkItem.LWorkRunState.LWorkStartTime is not { } lStarted)
-        {
-            return null;
-        }
-
-        DateTimeOffset lFinished = lWorkItem.LWorkRunState.LWorkFinishTime ?? DateTimeOffset.Now;
-        TimeSpan lSpent = lFinished - lStarted;
-        return lSpent < TimeSpan.Zero ? null : lSpent;
     }
 
     public static string QRosterCodecFormat(CRosterSide lSide) =>

@@ -1,31 +1,18 @@
 
 namespace Cadroue.UIDeportment;
 
-public sealed record QSMonitorScrollbar(
-    double QSMonitorScrollViewport,
-    double QSMonitorScrollMaximum,
-    double QSMonitorScrollValue,
-    bool QSMonitorScrollEnabled,
-    double QSMonitorScrollOpacity);
-
 public sealed record QSMonitorFace(string QSMonitorFaceIcon, string QSMonitorFaceTip);
 
+// The normalize monitor's driver: it mirrors the viewer's clock, playback and bypass, and turns clicks into requests.
 public sealed class QSMonitor : IDisposable
 {
-    private const double QSMonitorZoomStep = 2;
-    private const double QSMonitorZoomMost = 32;
-    private const double QSMonitorScrollDim = 0.35;
-
     private QViewer? qMonitorViewer;
     private TimeSpan qMonitorCursor;
     private bool qMonitorPlaying;
     private bool qMonitorBypass;
-    private double qMonitorScale = 1;
-    private double qMonitorOffset;
 
     public event Action<TimeSpan>? QSMonitorCursorChanged;
     public event Action<bool>? QSMonitorPlayingChanged;
-    public event Action? QSMonitorZoomChanged;
     public event Action? QSMonitorBypassChanged;
     public event Action<bool>? QSMonitorBypassApplied;
     public event Action<TimeSpan>? QSMonitorSeekApplied;
@@ -34,15 +21,13 @@ public sealed class QSMonitor : IDisposable
 
     public QSMonitorWaveform QSMonitorWaveform { get; } = new();
 
+    public QSMonitorViewport QSMonitorViewport { get; } = new();
+
     public TimeSpan QSMonitorCursor => qMonitorCursor;
 
     public bool QSMonitorPlaying => qMonitorPlaying;
 
     public bool QSMonitorBypass => qMonitorBypass;
-
-    public double QSMonitorScale => qMonitorScale;
-
-    public double QSMonitorOffset => qMonitorOffset;
 
     public QSMonitorFace QSMonitorFaceRead() => qMonitorPlaying
         ? new QSMonitorFace("PCompassPause.svg", QLocalizationCatalog.QLocalizationTextRead(
@@ -50,25 +35,22 @@ public sealed class QSMonitor : IDisposable
         : new QSMonitorFace("PCompassPlay.svg", QLocalizationCatalog.QLocalizationTextRead(
             "NormalizePreview.PlayTooltip"));
 
-    public QSMonitorScrollbar QSMonitorScrollRead()
-    {
-        double lViewport = 1.0 / qMonitorScale;
-        bool lEnabled = qMonitorScale > 1;
-        return new QSMonitorScrollbar(
-            lViewport, 1 - lViewport, qMonitorOffset, lEnabled, lEnabled ? 1 : QSMonitorScrollDim);
-    }
-
     public QSMonitorFrame QSMonitorFrameResolve(bool lAfter, double lWidth, double lHeight)
     {
         double[] lEnvelope = QSMonitorWaveform.QSMonitorEnvelopeRead(lAfter);
         return new QSMonitorFrame(
-            QSMonitorPlan.QSMonitorOutlineResolve(lEnvelope, lWidth, lHeight, qMonitorScale, qMonitorOffset),
+            QSMonitorPlan.QSMonitorOutlineResolve(
+                lEnvelope, lWidth, lHeight, QSMonitorViewport.QSMonitorScale, QSMonitorViewport.QSMonitorOffset),
             QSMonitorPlan.QSMonitorLinesResolve(lHeight),
             QSMonitorPlan.QSMonitorLabelsResolve(lHeight));
     }
 
     public QSMonitorHead QSMonitorHeadResolve(double lWidth, TimeSpan lDuration) => QSMonitorPlan.QSMonitorHeadResolve(
-        qMonitorCursor.TotalSeconds, lDuration.TotalSeconds, lWidth, qMonitorScale, qMonitorOffset);
+        qMonitorCursor.TotalSeconds,
+        lDuration.TotalSeconds,
+        lWidth,
+        QSMonitorViewport.QSMonitorScale,
+        QSMonitorViewport.QSMonitorOffset);
 
     public void QSMonitorSeekHandle(bool lPressed, double lX, double lWidth, TimeSpan lDuration)
     {
@@ -78,7 +60,7 @@ public sealed class QSMonitor : IDisposable
         }
 
         double? lSeconds = QSMonitorPlan.QSMonitorSeekResolve(
-            lX, lWidth, lDuration.TotalSeconds, qMonitorScale, qMonitorOffset);
+            lX, lWidth, lDuration.TotalSeconds, QSMonitorViewport.QSMonitorScale, QSMonitorViewport.QSMonitorOffset);
         if (lSeconds is { } lTarget)
         {
             QSMonitorSeekApplied?.Invoke(TimeSpan.FromSeconds(lTarget));
@@ -148,10 +130,6 @@ public sealed class QSMonitor : IDisposable
         }
     }
 
-    public void QSMonitorIncreaseZoom() => QSMonitorZoom(QSMonitorZoomStep, QSMonitorZoomMost);
-
-    public void QSMonitorDecreaseZoom() => QSMonitorZoom(1 / QSMonitorZoomStep, QSMonitorZoomMost);
-
     public void QSMonitorCursorSet(TimeSpan lCursor)
     {
         qMonitorCursor = lCursor;
@@ -163,43 +141,6 @@ public sealed class QSMonitor : IDisposable
         qMonitorPlaying = lPlaying;
         QSMonitorPlayingChanged?.Invoke(lPlaying);
     }
-
-    public void QSMonitorZoom(double lFactor, double lMost)
-    {
-        (qMonitorScale, qMonitorOffset) = QSMonitorZoomResolve(lFactor, lMost);
-        QSMonitorZoomChanged?.Invoke();
-    }
-
-    private (double, double) QSMonitorZoomResolve(double lFactor, double lMost)
-    {
-        double lCenter = qMonitorOffset + 1.0 / qMonitorScale / 2;
-        double lScale = Math.Clamp(qMonitorScale * lFactor, 1, lMost);
-        double lViewport = 1.0 / lScale;
-        return (lScale, Math.Clamp(lCenter - lViewport / 2, 0, 1 - lViewport));
-    }
-
-    private double QSMonitorOffsetClamp(double lOffset) =>
-        Math.Clamp(lOffset, 0, Math.Max(0, 1 - 1.0 / qMonitorScale));
-
-    public void QSMonitorOffsetSet(double lOffset)
-    {
-        double lNormal = QSMonitorOffsetClamp(lOffset);
-        if (Math.Abs(lNormal - qMonitorOffset) <= double.Epsilon)
-        {
-            return;
-        }
-
-        qMonitorOffset = lNormal;
-        QSMonitorZoomChanged?.Invoke();
-    }
-
-    public double QSMonitorFractionResolve(double lLocal) =>
-        Math.Clamp(qMonitorOffset + Math.Clamp(lLocal, 0, 1) / qMonitorScale, 0, 1);
-
-    public double QSMonitorLocalResolve(double lFraction) => (lFraction - qMonitorOffset) * qMonitorScale;
-
-    public double QSMonitorColumnRead(double[] lEnvelope, int lColumn, int lColumns) =>
-        QSMonitorPlan.QSMonitorColumnResolve(lEnvelope, lColumn, lColumns, qMonitorScale, qMonitorOffset);
 
     public void Dispose() => QSMonitorWaveform.Dispose();
 }

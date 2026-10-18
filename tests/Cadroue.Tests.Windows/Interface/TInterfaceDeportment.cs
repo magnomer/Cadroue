@@ -241,10 +241,13 @@ internal static partial class TInterface
     internal static void TLoupePlayToggle(QSLoupe loupe) => loupe.QSLoupePlayToggle();
     internal static void TLoupeSeek(QSLoupe loupe, TimeSpan position) => loupe.QSLoupeSeek(position);
     internal static void TLoupeTick(QSLoupe loupe) => loupe.QSLoupeTick();
-    internal static void TLoupeFloatSet(QSLoupe loupe, QSLoupeFloat mode) => loupe.QSLoupeFloatSet(mode);
-    internal static void TLoupeFloatRestore(QSLoupe loupe) => loupe.QSLoupeFloatRestore();
-    internal static IReadOnlyList<QSLoupeButton> TLoupeButtonsRead(QSLoupe loupe) => loupe.QSLoupeButtonsRead();
-    internal static void TLoupeFloatAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeFloatChanged += handler;
+    internal static void TLoupeFloatSet(QSLoupe loupe, QSLoupeFloat mode) =>
+        loupe.QSLoupeFloatChoice.QSLoupeFloatSet(mode);
+    internal static void TLoupeFloatRestore(QSLoupe loupe) => loupe.QSLoupeFloatChoice.QSLoupeFloatRestore();
+    internal static IReadOnlyList<QSLoupeButton> TLoupeButtonsRead(QSLoupe loupe) =>
+        loupe.QSLoupeFloatChoice.QSLoupeButtonsRead();
+    internal static void TLoupeFloatAttach(QSLoupe loupe, Action handler) =>
+        loupe.QSLoupeFloatChoice.QSLoupeFloatChanged += handler;
     internal static void TLoupeEngineAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeEngineCreated += handler;
     internal static void TLoupeCloseAttach(QSLoupe loupe, Action handler) => loupe.QSLoupeCloseApplied += handler;
 
@@ -318,14 +321,15 @@ internal static partial class TInterface
     internal static void TStripRemove(QStrip strip, QStripTab tab) => strip.QStripRemove(tab);
     internal static bool TStripMove(QStrip strip, QStripTab tab, int index) => strip.QStripMove(tab, index);
     internal static void TStripSelect(QStrip strip, QStripTab? tab) => strip.QStripSelect(tab);
-    internal static bool TStripNameSet(QStrip strip, QStripTab tab, string? name) => strip.QStripNameSet(tab, name);
+    internal static bool TStripNameSet(QStrip strip, QStripTab tab, string? name) =>
+        strip.QStripTitle.QStripNameSet(tab, name);
     internal static void TStripHoverSet(QStrip strip, QStripTab tab) => strip.QStripSeparator.QStripHoverSet(tab);
     internal static void TStripHoverClear(QStrip strip, QStripTab? tab) => strip.QStripSeparator.QStripHoverClear(tab);
     internal static void TStripUpdateSuspend(QStrip strip) => strip.QStripUpdateSuspend();
     internal static bool TStripRelayCheck(QStripTab tab) => tab.QStripRelayCheck();
     internal static bool TStripCohortRun(QStripTab tab, Guid cohort) => tab.QStripCohortRun(cohort);
     internal static void TStripUpdateResume(QStrip strip) => strip.QStripUpdateResume();
-    internal static void TStripTitleUpdate(QStrip strip) => strip.QStripTitleUpdate();
+    internal static void TStripTitleUpdate(QStrip strip) => strip.QStripTitle.QStripTitleUpdate();
 
     internal static QColumn TColumnCreate(
         IReadOnlyList<double> minimums, IReadOnlyList<double>? stored, IReadOnlyList<bool>? compact, int flex) =>

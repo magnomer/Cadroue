@@ -42,7 +42,7 @@ internal sealed partial class PSOptions
 
         PSSystemInstallShow(pDownload, PSSystemMpvFormat());
         PSSystemIdleApply(pDownload);
-        await lsOptions.QSOptionsMpvUpdate();
+        await lsOptions.QSOptionsMpv.QSOptionsMpvUpdate();
         string pMpvTitle = QLocalizationCatalog.QLocalizationTextRead("Options.System.LocalMpv");
         if (pResult.LMpvInstallSuccess)
         {

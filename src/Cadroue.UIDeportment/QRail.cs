@@ -158,7 +158,7 @@ public sealed class QRail
     public void QRailNameCommit(QStripTab lTab, string? lText)
     {
         qStrip.QStripEditSet(lTab, false);
-        qStrip.QStripNameSet(lTab, lText);
+        qStrip.QStripTitle.QStripNameSet(lTab, lText);
     }
 
     public void QRailLeaveHandle(QStripTab? lTab, string? lText)

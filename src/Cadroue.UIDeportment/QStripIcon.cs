@@ -7,11 +7,11 @@ public static class QStripIcon
     private const string QStripAccentKey = "PStripAccent";
 
     private static readonly IReadOnlyDictionary<string, ImageSource> qStripIcons =
-        QStrip.QStripKeysRead().ToDictionary(lKey => lKey, lKey => QStripIconLoad(lKey, null));
+        QStripCatalog.QStripKeysRead().ToDictionary(lKey => lKey, lKey => QStripIconLoad(lKey, null));
 
     private static readonly Lazy<IReadOnlyDictionary<string, ImageSource>> qStripActiveIcons =
         new(
-            () => QStrip.QStripKeysRead().ToDictionary(
+            () => QStripCatalog.QStripKeysRead().ToDictionary(
                 lKey => lKey, lKey => QStripIconLoad(lKey, QContract.QContractSheetFind<Brush>(QStripAccentKey))),
             LazyThreadSafetyMode.PublicationOnly);
 

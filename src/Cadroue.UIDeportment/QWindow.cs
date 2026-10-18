@@ -11,10 +11,10 @@ public sealed record QWindowTab(
     LSceneTabEntry? QWindowTabLayout,
     string? QWindowTabName);
 
+// The main window's driver: builds its strip, scene and parts, keeps the current tab and viewer, and broadcasts the
+// tab, layout and volume changes the surface applies.
 public sealed class QWindow
 {
-    private const double QWindowWidthFloor = 900;
-
     private readonly QStrip qStrip;
     private readonly Func<CWorkspace> qWindowWorkspaceSource;
     private QStripTab? qWindowTab;
@@ -34,6 +34,8 @@ public sealed class QWindow
         qStrip = new QStrip(lAtelier);
         QWindowScene = new QWindowScene(qStrip);
         QWindowSceneAttach();
+        QWindowRelay = new QWindowRelay(this);
+        QWindowStartup = new QWindowStartup(this);
         QWindowLogo = new QLogoMenu(QWindowUsher);
         QWindowPart = new QWindowPart(this, lAtelier.CAtelierConsoleCreate());
     }
@@ -48,13 +50,14 @@ public sealed class QWindow
 
     public QWindowScene QWindowScene { get; }
 
+    public QWindowRelay QWindowRelay { get; }
+
+    public QWindowStartup QWindowStartup { get; }
+
     public QWorkspacePair QWindowPairCreate() =>
         new(new QWorkspaceFacts(string.Empty), QWindowUsher, QWindowInfo, qWindowWorkspaceSource());
 
     public QLogoMenu QWindowLogo { get; }
-
-    public void QWindowDispatcherAttach(Func<Func<bool>, bool> lDispatch) =>
-        LRelayChannel.LRelayAcceptSeam = lRelay => QWindowRelayHandle(lRelay, lDispatch);
 
     public QStripTab QWindowTabCreate(QWindowTab lTab)
     {
@@ -69,9 +72,6 @@ public sealed class QWindow
 
     public event Action<QWindowTab>? QWindowTabAdded;
     public event Action? QWindowFunnelUpdated;
-    public event Action<double, double>? QWindowPlaced;
-    public event Action? QWindowShown;
-    public event Action<string>? QWindowMediaDeferred;
     public event Action<string>? QWindowMediaOpened;
     public event Action<QStripTab, double>? QWindowTabAttached;
     public event Action<QStripTab>? QWindowTabDetached;
@@ -116,29 +116,6 @@ public sealed class QWindow
         qWindowViewer = lViewer;
     }
 
-    public void QWindowTabsStart()
-    {
-        if (LRelayStartup.LRelayPayloadRead() is null)
-        {
-            QWindowStartupRestore(LPreference.LPreferenceStateCurrent, LScene.LSceneCurrent);
-        }
-    }
-
-    public void QWindowRelayStart(double lScreenLeft, double lScreenTop, double lScreenWidth, double lScreenHeight)
-    {
-        if (LRelayStartup.LRelayPayloadRead() is { } lRelay)
-        {
-            (double lLeft, double lTop) = QSashRelay.QSashRelayResolve(
-                lRelay.LRelayDropLeft, lRelay.LRelayDropTop, lScreenLeft, lScreenTop, lScreenWidth, lScreenHeight);
-            QWindowPlaced?.Invoke(lLeft, lTop);
-            QWindowRelayAccept(lRelay);
-            LRelayStartup.LRelayStartupCommit();
-            return;
-        }
-
-        QWindowMediaRestore(LPreference.LPreferenceStateCurrent);
-    }
-
     public void QWindowMediaRun(string lPath)
     {
         if (qWindowViewer is null)
@@ -175,122 +152,10 @@ public sealed class QWindow
         QWindowVolumeSync(lPreference);
     }
 
-    public (double QWindowMinimum, double QWindowWidth) QWindowWidthResolve(
-        double? lRequired,
-        double lReserved,
-        double lWidth)
-    {
-        double lMinimum = Math.Max(QWindowWidthFloor, lRequired ?? 0) + lReserved;
-        return (lMinimum, Math.Max(lWidth, lMinimum));
-    }
-
-    public void QWindowFrameSave(bool lNormal, QSashBounds lBounds, QSashBounds lRestore)
-    {
-        if (QWindowFrameResolve(lNormal, lBounds, lRestore) is { } lState)
-        {
-            LFrameStore.LFrameSave(lState);
-        }
-    }
-
-    private static LFrameState? QWindowFrameResolve(bool lNormal, QSashBounds lBounds, QSashBounds lRestore)
-    {
-        QSashBounds lFrame = lNormal ? lBounds : lRestore;
-        if (!(lFrame.QSashWidth > 0 && lFrame.QSashHeight > 0))
-        {
-            return null;
-        }
-
-        return new LFrameState
-        {
-            LFrameLeft = lFrame.QSashLeft,
-            LFrameTop = lFrame.QSashTop,
-            LFrameWidth = lFrame.QSashWidth,
-            LFrameHeight = lFrame.QSashHeight,
-            LFrameFlowHeight = LFrameStore.LFrameStateCurrent.LFrameFlowHeight
-        };
-    }
-
     public void QWindowClose()
     {
         LScene.LSceneStateSave(QWindowScene.QWindowSceneRead(LScene.LSceneActiveName));
-        QWindowDispatcherDetach();
-    }
-
-    private static void QWindowDispatcherDetach() => LRelayChannel.LRelayAcceptSeam = null;
-
-    public void QWindowRelayAccept(LRelay lRelay)
-    {
-        QWindowTabAdded?.Invoke(new QWindowTab(
-            lRelay.LRelayLayoutKey,
-            LPreset.LPresetStateCreate(lRelay.LRelayExport),
-            lRelay.LRelayLayout,
-            lRelay.LRelayCustomName));
-        QStripTab? lAdded = qStrip.QStripTabs.LastOrDefault();
-        qStrip.QStripSelect(lAdded);
-        lAdded?.QStripTabWorkspace.QWorkspaceRelay.QWorkspaceRelayApply(lRelay);
-        QWindowFunnelUpdated?.Invoke();
-    }
-
-    private bool QWindowRelayHandle(LRelay lRelay, Func<Func<bool>, bool> lDispatch)
-    {
-        try
-        {
-            return lDispatch(() =>
-            {
-                QWindowRelayAccept(lRelay);
-                QWindowShown?.Invoke();
-                return true;
-            });
-        }
-        catch (Exception lRelayException)
-        {
-            LTraceLog.LTraceErrorRecord(
-                $"Relayed '{lRelay.LRelayLayoutKey}' tab could not be taken; refused",
-                lRelayException);
-            return false;
-        }
-    }
-
-    private void QWindowStartupRestore(LPreferenceState lPreference, LSceneDocument lScene)
-    {
-        LTrace.LTraceLoadingSet(true);
-        try
-        {
-            if (lPreference.LPreferenceStartupMode == "DefaultTab")
-            {
-                QWindowDefaultAdd(lPreference.LPreferenceStartupTabs);
-                qStrip.QStripSelect(qStrip.QStripTabs.FirstOrDefault());
-                QWindowScene.QWindowLoadingRecord(null);
-                return;
-            }
-
-            QWindowScene.QWindowSceneRestore(lScene);
-            QWindowScene.QWindowLoadingRecord(lScene.LSceneName);
-        }
-        finally
-        {
-            LTrace.LTraceLoadingSet(false);
-        }
-    }
-
-    private void QWindowDefaultAdd(IReadOnlyList<string> lKeys)
-    {
-        foreach (string lKey in lKeys)
-        {
-            QWindowTabAdded?.Invoke(new QWindowTab(lKey, null, null, null));
-        }
-    }
-
-    private void QWindowMediaRestore(LPreferenceState lPreference)
-    {
-        if (!lPreference.LPreferenceMediaAutomatic
-            || string.IsNullOrWhiteSpace(lPreference.LPreferenceMediaPath)
-            || !QWindowUsher.CUsherFileExist(lPreference.LPreferenceMediaPath))
-        {
-            return;
-        }
-
-        QWindowMediaDeferred?.Invoke(lPreference.LPreferenceMediaPath);
+        QWindowRelay.QWindowDispatcherDetach();
     }
 
     private void QWindowVolumeSync(LPreferenceState lPreference)
@@ -303,7 +168,7 @@ public sealed class QWindow
         QWindowVolumeSynced?.Invoke(lPreference.LPreferenceVolume);
     }
 
-    private void QWindowTabRaise(QWindowTab lTab) => QWindowTabAdded?.Invoke(lTab);
+    internal void QWindowTabRaise(QWindowTab lTab) => QWindowTabAdded?.Invoke(lTab);
 
-    private void QWindowFunnelRaise() => QWindowFunnelUpdated?.Invoke();
+    internal void QWindowFunnelRaise() => QWindowFunnelUpdated?.Invoke();
 }

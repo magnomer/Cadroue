@@ -88,20 +88,20 @@ public sealed class PViewfinder : FrameworkElement
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonDown(e);
-        e.Handled = QViewfinder.QViewfinderPressHandle(e.GetPosition(this).X, ActualWidth);
+        e.Handled = QViewfinder.QViewfinderDrag.QViewfinderPressHandle(e.GetPosition(this).X, ActualWidth);
         CaptureMouse();
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        e.Handled = QViewfinder.QViewfinderMoveHandle(e.GetPosition(this).X, ActualWidth);
+        e.Handled = QViewfinder.QViewfinderDrag.QViewfinderMoveHandle(e.GetPosition(this).X, ActualWidth);
     }
 
     protected override void OnMouseLeftButtonUp(MouseButtonEventArgs e)
     {
         base.OnMouseLeftButtonUp(e);
-        QViewfinder.QViewfinderDragClear();
+        QViewfinder.QViewfinderDrag.QViewfinderDragClear();
         ReleaseMouseCapture();
         e.Handled = true;
     }
@@ -109,7 +109,7 @@ public sealed class PViewfinder : FrameworkElement
     protected override void OnLostMouseCapture(MouseEventArgs e)
     {
         base.OnLostMouseCapture(e);
-        QViewfinder.QViewfinderDragClear();
+        QViewfinder.QViewfinderDrag.QViewfinderDragClear();
     }
 
     private static void PViewfinderShapeDraw(DrawingContext drawingContext, QViewfinderShape lShape) =>

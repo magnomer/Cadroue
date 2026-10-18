@@ -31,14 +31,14 @@ public sealed class TViewfinderSelection
         Assert.True(TInterface.TViewfinderPressHandle(viewfinder, 450, 600));
         Assert.Equal(1, flow.QFlowEdit.QFlowSectionIndex);
         Assert.Equal(TimeSpan.FromSeconds(45), flow.QFlowCursor);
-        Assert.True(viewfinder.QViewfinderDragActive);
+        Assert.True(viewfinder.QViewfinderDrag.QViewfinderDragActive);
 
         Assert.True(TInterface.TViewfinderMoveHandle(viewfinder, 150, 600));
         Assert.Equal(TimeSpan.FromSeconds(15), flow.QFlowCursor);
         Assert.Equal(1, flow.QFlowEdit.QFlowSectionIndex);
 
         TInterface.TViewfinderDragClear(viewfinder);
-        Assert.False(viewfinder.QViewfinderDragActive);
+        Assert.False(viewfinder.QViewfinderDrag.QViewfinderDragActive);
         Assert.False(TInterface.TViewfinderMoveHandle(viewfinder, 300, 600));
         Assert.Equal([true, false], drags);
 

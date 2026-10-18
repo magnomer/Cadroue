@@ -18,9 +18,9 @@ public sealed class TViewerEngine
     [Fact]
     public void EngineRead_MarksTheActiveChoice_AndMpvAvailability()
     {
-        (_, QViewerRenderer renderer) = TViewerBuild();
+        _ = TViewerBuild();
 
-        QViewerEnginePlan plan = TInterfaceViewer.TViewerEngineRead(renderer);
+        QViewerEnginePlan plan = TInterfaceViewer.TViewerEngineRead();
 
         Assert.Equal(LRenderer.LRendererFlyleafToken, plan.QViewerChoiceFlyleaf.QViewerChoiceKey);
         Assert.Equal(LRenderer.LRendererMpvToken, plan.QViewerChoiceMpv.QViewerChoiceKey);
@@ -33,13 +33,13 @@ public sealed class TViewerEngine
     [Fact]
     public void EngineSelect_SameEngine_LeavesPreferenceAlone()
     {
-        (_, QViewerRenderer renderer) = TViewerBuild();
+        _ = TViewerBuild();
         string before = TInterfaceViewer.TPreferenceEngineRead();
-        string active = TInterfaceViewer.TViewerEngineRead(renderer).QViewerChoiceFlyleaf.QViewerChoiceActive
+        string active = TInterfaceViewer.TViewerEngineRead().QViewerChoiceFlyleaf.QViewerChoiceActive
             ? LRenderer.LRendererFlyleafToken
             : LRenderer.LRendererMpvToken;
 
-        TInterfaceViewer.TViewerEngineSelect(renderer, active);
+        TInterfaceViewer.TViewerEngineSelect(active);
 
         Assert.Equal(before, TInterfaceViewer.TPreferenceEngineRead());
     }

@@ -1,6 +1,4 @@
-using System.Globalization;
 using Cadroue.Conduct;
-using Cadroue.Infrastructure;
 using Cadroue.Media;
 
 namespace Cadroue.UIDeportment;
@@ -18,14 +16,13 @@ public sealed record QWindowDrag(
     bool QWindowDragCopyable,
     object? QWindowDragData);
 
+// The window's file drop: decides each drag's effect on the active list or viewer, hands an accepted drop to it and
+// tells its trace what it decided.
 public sealed class QWindowDrop
 {
-    private const int QWindowDropIndent = 14;
     private readonly QWindow qWindow;
     private readonly CUsher qWindowDropUsher;
-    private readonly List<string> qWindowDropTrace = [];
-    private object? qWindowDropData;
-    private QWindowDropEffect? qWindowDropLast;
+    private readonly QWindowDropTrace qWindowDropTrace = new();
     private QWindowDropEffect qWindowDropEffect;
     private bool qWindowDropHandled;
 
@@ -55,7 +52,7 @@ public sealed class QWindowDrop
     private void QWindowEnterAppend(QWindowDrag lDrag)
     {
         QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out _, out _);
-        QWindowDropAppend(
+        qWindowDropTrace.QWindowDropAppend(
             lDrag,
             "Drag entered window: "
             + (lEffect == QWindowDropEffect.QWindowDropNone
@@ -71,33 +68,16 @@ public sealed class QWindowDrop
     {
         if (lDrag.QWindowDragGroup)
         {
-            QWindowLastClear();
+            qWindowDropTrace.QWindowLastClear();
             QWindowDropSet(QWindowDropEffect.QWindowDropNone, false);
             return;
         }
 
-        QWindowDropStart(lDrag);
+        qWindowDropTrace.QWindowDropStart(lDrag);
         QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out string lReason, out _);
-        QWindowOverAppend(lDrag, lEffect, lReason);
+        qWindowDropTrace.QWindowOverAppend(lDrag, lEffect, lReason);
         QWindowDropSet(lEffect, true);
     }
-
-    private void QWindowOverAppend(QWindowDrag lDrag, QWindowDropEffect lEffect, string lReason)
-    {
-        if (lEffect == qWindowDropLast)
-        {
-            return;
-        }
-
-        qWindowDropLast = lEffect;
-        QWindowDropAppend(
-            lDrag,
-            "Drag over: "
-            + (lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED (forbidden cursor)" : lEffect.ToString()),
-            lReason);
-    }
-
-    private void QWindowLastClear() => qWindowDropLast = null;
 
     public void QWindowDropHandle(QWindowDrag lDrag)
     {
@@ -107,16 +87,16 @@ public sealed class QWindowDrop
             return;
         }
 
-        QWindowLastClear();
+        qWindowDropTrace.QWindowLastClear();
         QWindowDropEffect lEffect = QWindowDropResolve(lDrag, out string lReason, out string lName);
         QWindowDropSet(lEffect, true);
 
         string lTarget = QWindowTargetRead();
-        QWindowReleaseAppend(lDrag, lEffect, lTarget, lReason);
+        qWindowDropTrace.QWindowReleaseAppend(lDrag, lEffect, lTarget, lReason);
 
         if (lEffect == QWindowDropEffect.QWindowDropNone)
         {
-            QWindowDropRecord($"File drag refused onto {lTarget}");
+            qWindowDropTrace.QWindowDropRecord($"File drag refused onto {lTarget}");
             return;
         }
 
@@ -124,14 +104,15 @@ public sealed class QWindowDrop
         if (qWindow.QWindowListPresent)
         {
             QWindowListAdded?.Invoke(lPaths);
-            QWindowDropAppend(lDrag, $"Drop into list: {lPaths.Count} path(s) handed to the list scan");
-            QWindowDropRecord($"File drag accepted onto list ({lEffect})");
+            qWindowDropTrace.QWindowDropAppend(
+                lDrag, $"Drop into list: {lPaths.Count} path(s) handed to the list scan");
+            qWindowDropTrace.QWindowDropRecord($"File drag accepted onto list ({lEffect})");
             return;
         }
 
         if (!qWindow.QWindowViewerPresent)
         {
-            QWindowDropRecord($"File drag accepted onto {lTarget} ({lEffect})");
+            qWindowDropTrace.QWindowDropRecord($"File drag accepted onto {lTarget} ({lEffect})");
             return;
         }
 
@@ -139,24 +120,18 @@ public sealed class QWindowDrop
         if (lSourcePath is null)
         {
             QWindowDropSet(QWindowDropEffect.QWindowDropNone, true);
-            QWindowDropAppend(lDrag, "Drop into viewer refused: no existing file in payload");
-            QWindowDropRecord("File drag refused onto viewer", true);
+            qWindowDropTrace.QWindowDropAppend(lDrag, "Drop into viewer refused: no existing file in payload");
+            qWindowDropTrace.QWindowDropRecord("File drag refused onto viewer", true);
             return;
         }
 
         QWindowViewerOpened?.Invoke(lSourcePath);
-        QWindowDropAppend(lDrag, $"Drop into viewer: opened {lName}");
-        QWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
+        qWindowDropTrace.QWindowDropAppend(lDrag, $"Drop into viewer: opened {lName}");
+        qWindowDropTrace.QWindowDropRecord($"File drag accepted onto viewer ({lEffect})");
     }
 
     private string QWindowTargetRead() =>
         qWindow.QWindowListPresent ? "list" : qWindow.QWindowViewerPresent ? "viewer" : "none";
-
-    private void QWindowReleaseAppend(QWindowDrag lDrag, QWindowDropEffect lEffect, string lTarget, string lReason) =>
-        QWindowDropAppend(
-            lDrag,
-            $"Drop released: {(lEffect == QWindowDropEffect.QWindowDropNone ? "REFUSED" : "accepted")} onto {lTarget}",
-            lReason);
 
     private void QWindowDropSet(QWindowDropEffect lEffect, bool lHandled)
     {
@@ -219,46 +194,4 @@ public sealed class QWindowDrop
 
     internal static bool QWindowMediaCheck(CUsher lUsher, IReadOnlyList<string> lPaths) =>
         lPaths.Any(lPath => lUsher.CUsherFolderExist(lPath) || LMedia.LMediaCheck(lPath));
-
-    private void QWindowDropAppend(QWindowDrag lDrag, string lSummary, string? lDetail = null)
-    {
-        QWindowDropStart(lDrag);
-        string lTime = DateTimeOffset.Now.ToString("HH:mm:ss.fff", CultureInfo.InvariantCulture);
-        qWindowDropTrace.Add($"{lTime}  {lSummary}");
-        if (!string.IsNullOrWhiteSpace(lDetail))
-        {
-            qWindowDropTrace.Add($"{new string(' ', QWindowDropIndent)}{lDetail}");
-        }
-    }
-
-    private void QWindowDropStart(QWindowDrag lDrag)
-    {
-        if (ReferenceEquals(qWindowDropData, lDrag.QWindowDragData))
-        {
-            return;
-        }
-
-        qWindowDropData = lDrag.QWindowDragData;
-        qWindowDropTrace.Clear();
-        qWindowDropLast = null;
-    }
-
-    private void QWindowDropRecord(string lSummary, bool lWarning = false)
-    {
-        string? lDetail = qWindowDropTrace.Count == 0
-            ? null
-            : string.Join(Environment.NewLine, qWindowDropTrace);
-        if (lWarning)
-        {
-            LTraceLog.LTraceWarningRecord(lSummary, lDetail);
-        }
-        else
-        {
-            LTraceLog.LTraceInfoRecord(lSummary, lDetail);
-        }
-
-        qWindowDropData = null;
-        qWindowDropTrace.Clear();
-        qWindowDropLast = null;
-    }
 }

@@ -69,7 +69,7 @@ internal sealed partial class PSEncoder
         var pDialog = new Microsoft.Win32.OpenFolderDialog
         {
             Title = QLocalizationCatalog.QLocalizationTextRead("Encoder.Location.Choose"),
-            InitialDirectory = lsEncoder.QSEncoderInitialResolve(pCurrent)
+            InitialDirectory = lsEncoder.QSEncoderLocation.QSEncoderInitialResolve(pCurrent)
         };
         return pDialog.ShowDialog() == true ? pDialog.FolderName : null;
     }
@@ -82,10 +82,11 @@ internal sealed partial class PSEncoder
 
         if (psLocationFolderBox is not null)
         {
-            psLocationFolderBox.Text = lsEncoder.QSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
+            psLocationFolderBox.Text =
+                lsEncoder.QSEncoderLocation.QSEncoderLocationSelect(pMode, psLocationFolderBox.Text);
         }
 
-        bool pFolder = QSEncoder.QSEncoderFolderCheck(pMode);
+        bool pFolder = QSEncoderLocation.QSEncoderFolderCheck(pMode);
 
         if (psLocationFolderRow is not null)
         {
@@ -94,20 +95,21 @@ internal sealed partial class PSEncoder
 
         if (psLocationBrowse is not null)
         {
-            psLocationBrowse.Visibility = QSEncoder.QSEncoderCustomCheck(pMode)
+            psLocationBrowse.Visibility = QSEncoderLocation.QSEncoderCustomCheck(pMode)
                 ? Visibility.Visible
                 : Visibility.Collapsed;
         }
 
         if (psLocationFolderLabel is not null)
         {
-            psLocationFolderLabel.Text = QLocalizationCatalog.QLocalizationTextRead(QSEncoder.QSEncoderFolderResolve(
-                pMode));
+            psLocationFolderLabel.Text = QLocalizationCatalog.QLocalizationTextRead(
+                QSEncoderLocation.QSEncoderFolderResolve(pMode));
         }
 
         if (psLocationStatus is not null)
         {
-            psLocationStatus.Text = QLocalizationCatalog.QLocalizationTextRead(QSEncoder.QSEncoderStatusResolve(pMode));
+            psLocationStatus.Text = QLocalizationCatalog.QLocalizationTextRead(
+                QSEncoderLocation.QSEncoderStatusResolve(pMode));
         }
     }
 }

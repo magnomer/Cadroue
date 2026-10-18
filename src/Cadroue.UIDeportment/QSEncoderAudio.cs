@@ -1,17 +1,25 @@
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public sealed partial class QSEncoder
+// The encoder window's audio codec: the chosen encoder and rate, the encoders a container offers, and their trial.
+public sealed class QSEncoderAudio
 {
-    private string qsEncoderAudioEncoder = string.Empty;
-    private string qsEncoderAudioRate = string.Empty;
+    private string qsEncoderAudioEncoder;
+    private string qsEncoderAudioRate;
     private IReadOnlyList<QSVerdictRow> qsEncoderAudioResults = [];
+    private CancellationTokenSource? qsEncoderAudioTrial;
+
+    internal QSEncoderAudio(LPreset lDraft)
+    {
+        qsEncoderAudioEncoder = lDraft.LPresetAudio.LPresetEncoder;
+        qsEncoderAudioRate = QSEncoder.QSEncoderRateResolve(
+            QSEncoderAudioCodec.LCapabilityModeLabels, lDraft.LPresetAudio.LPresetRateControl);
+    }
 
     public event Action? QSEncoderAudioChanged;
-
-    private Action? qsEncoderHelpHandler;
 
     public string QSEncoderAudioEncoder => qsEncoderAudioEncoder;
 
@@ -22,22 +30,14 @@ public sealed partial class QSEncoder
 
     public IReadOnlyList<QSVerdictRow> QSEncoderAudioResults => qsEncoderAudioResults;
 
-    public void QSEncoderHelpAttach(Action lHandler) => qsEncoderHelpHandler = lHandler;
-
-    private void QSEncoderHelpHandle(string lEncoder) => qsEncoderHelpHandler?.Invoke();
-
-    private void QSEncoderAudioPrepare()
-    {
-        qsEncoderAudioEncoder = qsEncoderDraft.LPresetAudio.LPresetEncoder;
-        qsEncoderAudioRate = QSEncoderRateResolve(
-            QSEncoderAudioCodec.LCapabilityModeLabels, qsEncoderDraft.LPresetAudio.LPresetRateControl);
-    }
+    public QSVerdict QSEncoderVerdictCreate() =>
+        new(QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.AudioTitle"), qsEncoderAudioResults);
 
     public bool QSEncoderAudioSet(string lEncoder, string lRate)
     {
         bool lEncoderChanged = !string.Equals(qsEncoderAudioEncoder, lEncoder, StringComparison.Ordinal);
         qsEncoderAudioEncoder = lEncoder;
-        string lResolved = QSEncoderRateResolve(QSEncoderAudioCodec.LCapabilityModeLabels, lRate);
+        string lResolved = QSEncoder.QSEncoderRateResolve(QSEncoderAudioCodec.LCapabilityModeLabels, lRate);
         if (!lEncoderChanged && string.Equals(qsEncoderAudioRate, lResolved, StringComparison.Ordinal))
         {
             return false;
@@ -81,16 +81,26 @@ public sealed partial class QSEncoder
 
     public async Task<IReadOnlyList<string>> QSEncoderAudioScan(IProgress<double> lFeed)
     {
-        CancellationToken lToken = QSEncoderScanStart(LTrialKind.LTrialKindAudio);
+        CancellationToken lToken = QSEncoderScanStart();
         (List<string> lAvailable, List<string> lNames, List<QSVerdictRow> lRows) =
             await QSEncoderAudioRun(lFeed, lToken);
         lToken.ThrowIfCancellationRequested();
         LTrialCatalog.LTrialSetApply(lNames, LTrialKind.LTrialKindAudio);
         QSEncoderAudioInsert(lAvailable);
-        QSEncoderVerdictSet(LTrialKind.LTrialKindAudio, lRows);
-        QSVerdict.QSVerdictRecord("audio", lRows);
+        qsEncoderAudioResults = lRows;
+        QSVerdictTrace.QSVerdictRecord("audio", lRows);
         return lAvailable;
     }
+
+    // A new trial cancels the one still running; closing the window cancels the last one.
+    private CancellationToken QSEncoderScanStart()
+    {
+        qsEncoderAudioTrial?.Cancel();
+        qsEncoderAudioTrial = new CancellationTokenSource();
+        return qsEncoderAudioTrial.Token;
+    }
+
+    internal void QSEncoderAudioCancel() => qsEncoderAudioTrial?.Cancel();
 
     private static async Task<(List<string>, List<string>, List<QSVerdictRow>)> QSEncoderAudioRun(
         IProgress<double> lFeed, CancellationToken lToken)
@@ -113,7 +123,7 @@ public sealed partial class QSEncoder
             }
 
             lDone++;
-            lFeed.Report(QSEncoderProgressResolve(lDone, lCandidates.Count));
+            lFeed.Report(QSEncoder.QSEncoderProgressResolve(lDone, lCandidates.Count));
         }
 
         return (lAvailable, lNames, lRows);

@@ -25,13 +25,13 @@ public partial class PWindow : Window
         lSash = lWindow.QWindowPart.QWindowPartSash;
         pStrip = new PStrip(lWindow.QWindowStrip);
         pRail = new PRail(pStrip);
-        lWindow.QWindowDispatcherAttach(PWindowDispatch);
+        lWindow.QWindowRelay.QWindowDispatcherAttach(PWindowDispatch);
         pConsole.PConsoleAttach(lWindow.QWindowPart.QWindowPartConsole);
         PWindowConsoleAttach();
         PWindowNoticesAttach();
         pStrip.QStrip.QStripDeck.QDeckAttach(pDeck);
         PWindowSizeSet(LFrameStore.LFrameStateCurrent);
-        lWindow.QWindowTabsStart();
+        lWindow.QWindowStartup.QWindowTabsStart();
         pToolbar.PToolbarTabSet(pRail);
         pToolbar.PToolbarLogoSet(lWindow.QWindowLogo);
         pToolbar.PToolbarChromeSet(lWindow.QWindowPart.QWindowPartChrome);
@@ -40,7 +40,7 @@ public partial class PWindow : Window
         PWindowPositionRestore(LFrameStore.LFrameStateCurrent);
         pStrip.QStrip.QStripSelectChanged += PWindowTabHandle;
         PWindowTabHandle(pStrip.QStrip.QStripSelected);
-        lWindow.QWindowRelayStart(
+        lWindow.QWindowStartup.QWindowRelayStart(
             SystemParameters.VirtualScreenLeft,
             SystemParameters.VirtualScreenTop,
             SystemParameters.VirtualScreenWidth,
@@ -94,9 +94,9 @@ public partial class PWindow : Window
     {
         lWindow.QWindowTabAdded += PWindowAddHandle;
         lWindow.QWindowFunnelUpdated += PWindowFunnelUpdate;
-        lWindow.QWindowPlaced += PWindowPlace;
-        lWindow.QWindowShown += PWindowShowHandle;
-        lWindow.QWindowMediaDeferred += PWindowMediaDefer;
+        lWindow.QWindowStartup.QWindowPlaced += PWindowPlace;
+        lWindow.QWindowRelay.QWindowShown += PWindowShowHandle;
+        lWindow.QWindowStartup.QWindowMediaDeferred += PWindowMediaDefer;
         lWindow.QWindowMediaOpened += PWindowMediaOpen;
         lWindow.QWindowTabAttached += PWindowTabAttach;
         lWindow.QWindowTabDetached += PWindowTabDetach;
@@ -138,7 +138,7 @@ public partial class PWindow : Window
         lWindow.QWindowTabSet(lStripTab, lStripTab?.QStripTabWorkspace.QWorkspaceViewer);
 
     private void PWindowAddHandle(QWindowTab lTab) =>
-        pStrip.QStrip.QStripNameSet(
+        pStrip.QStrip.QStripTitle.QStripNameSet(
             pStrip.PStripAdd(lWindow.QWindowTabCreate(lTab), lTab.QWindowTabLayout),
             lTab.QWindowTabName);
 
@@ -222,7 +222,7 @@ public partial class PWindow : Window
 
     private void PWindowWidthApply()
     {
-        (MinWidth, Width) = lWindow.QWindowWidthResolve(
+        (MinWidth, Width) = QWindowFrame.QWindowWidthResolve(
             pStrip.PStripSelected?.PTabWidthRead(),
             pTabRailColumn.Width.Value,
             Width);
@@ -237,12 +237,14 @@ public partial class PWindow : Window
 
     private void PWindowPause() => pStrip.PStripSelected?.PTabViewer?.QViewer.QViewerPlayback.QViewerPause();
 
-    private bool? PWindowUndo() => pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceUndo();
+    private bool? PWindowUndo() =>
+        pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceHistory.QWorkspaceUndo();
 
-    private bool? PWindowRedo() => pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceRedo();
+    private bool? PWindowRedo() =>
+        pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceHistory.QWorkspaceRedo();
 
     private bool? PWindowMediaClear(IReadOnlySet<Guid> lCohorts) =>
-        pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceMediaClear(lCohorts);
+        pStrip.QStrip.QStripSelected?.QStripTabWorkspace.QWorkspaceMedia.QWorkspaceMediaClear(lCohorts);
 
     private void PWindowExitHandle(object? sender, System.ComponentModel.CancelEventArgs eventArgs)
     {
@@ -262,7 +264,7 @@ public partial class PWindow : Window
 
     private void PWindowCloseHandle(object? sender, EventArgs eventArgs)
     {
-        lWindow.QWindowFrameSave(
+        QWindowFrame.QWindowFrameSave(
             PLook.PLookNormal[WindowState],
             new QSashBounds(Left, Top, Width, Height),
             new QSashBounds(RestoreBounds.Left, RestoreBounds.Top, RestoreBounds.Width, RestoreBounds.Height));

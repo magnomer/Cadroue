@@ -27,15 +27,15 @@ public sealed class TMonitorCursor
         TInterface.TMonitorZoomAttach(monitor, () => zooms++);
 
         TInterface.TMonitorZoom(monitor, 2, 32);
-        Assert.Equal(2, monitor.QSMonitorScale);
-        Assert.Equal(0.25, monitor.QSMonitorOffset, 6);
+        Assert.Equal(2, monitor.QSMonitorViewport.QSMonitorScale);
+        Assert.Equal(0.25, monitor.QSMonitorViewport.QSMonitorOffset, 6);
 
         TInterface.TMonitorZoom(monitor, 0.5, 32);
-        Assert.Equal(1, monitor.QSMonitorScale);
-        Assert.Equal(0, monitor.QSMonitorOffset, 6);
+        Assert.Equal(1, monitor.QSMonitorViewport.QSMonitorScale);
+        Assert.Equal(0, monitor.QSMonitorViewport.QSMonitorOffset, 6);
 
         TInterface.TMonitorZoom(monitor, 64, 32);
-        Assert.Equal(32, monitor.QSMonitorScale);
+        Assert.Equal(32, monitor.QSMonitorViewport.QSMonitorScale);
         Assert.Equal(3, zooms);
     }
 
@@ -46,7 +46,7 @@ public sealed class TMonitorCursor
         TInterface.TMonitorZoom(monitor, 4, 32);
 
         TInterface.TMonitorOffsetSet(monitor, 0.9);
-        Assert.Equal(0.75, monitor.QSMonitorOffset, 6);
+        Assert.Equal(0.75, monitor.QSMonitorViewport.QSMonitorOffset, 6);
         Assert.Equal(0.875, TInterface.TMonitorFractionResolve(monitor, 0.5), 6);
         Assert.Equal(0.5, TInterface.TMonitorLocalResolve(monitor, 0.875), 6);
         Assert.Equal(1, TInterface.TMonitorFractionResolve(monitor, 2), 6);
@@ -73,7 +73,7 @@ public sealed class TMonitorCursor
         using QSMonitor monitor = TInterface.TMonitorCreate();
 
         TInterface.TMonitorIncreaseZoom(monitor);
-        Assert.Equal(2, monitor.QSMonitorScale);
+        Assert.Equal(2, monitor.QSMonitorViewport.QSMonitorScale);
         QSMonitorScrollbar scroll = TInterface.TMonitorScrollRead(monitor);
         Assert.Equal(0.5, scroll.QSMonitorScrollViewport, 6);
         Assert.Equal(0.5, scroll.QSMonitorScrollMaximum, 6);

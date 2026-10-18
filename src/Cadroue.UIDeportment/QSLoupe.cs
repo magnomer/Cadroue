@@ -4,51 +4,16 @@ using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public enum QSLoupeFloat
-{
-    QSLoupeFloatOff,
-    QSLoupeFloatOwner,
-    QSLoupeFloatTop
-}
-
-public sealed record QSLoupeButton(
-    QSLoupeFloat QSLoupeButtonKind,
-    string QSLoupeButtonText,
-    bool QSLoupeButtonSelected);
-
+// The loupe window's player: it mirrors the viewer's media, playback and preview until the window closes.
 public sealed class QSLoupe
 {
     private const string QSLoupeStartIcon = "/PAsset/PCompass/PCompassPlay.svg";
     private const string QSLoupePauseIcon = "/PAsset/PCompass/PCompassPause.svg";
 
-    private static readonly IReadOnlyDictionary<string, QSLoupeFloat> qLoupeFloatKinds =
-        new Dictionary<string, QSLoupeFloat>
-        {
-            ["Off"] = QSLoupeFloat.QSLoupeFloatOff,
-            ["Owner"] = QSLoupeFloat.QSLoupeFloatOwner,
-            ["Top"] = QSLoupeFloat.QSLoupeFloatTop,
-        };
-
-    private static readonly IReadOnlyDictionary<QSLoupeFloat, string> qLoupeFloatTokens =
-        new Dictionary<QSLoupeFloat, string>
-        {
-            [QSLoupeFloat.QSLoupeFloatOff] = "Off",
-            [QSLoupeFloat.QSLoupeFloatOwner] = "Owner",
-            [QSLoupeFloat.QSLoupeFloatTop] = "Top",
-        };
-
-    private static readonly (QSLoupeFloat, string)[] qLoupeButtons =
-    [
-        (QSLoupeFloat.QSLoupeFloatOff, "Loupe.Float.Off"),
-        (QSLoupeFloat.QSLoupeFloatOwner, "Loupe.Float.Owner"),
-        (QSLoupeFloat.QSLoupeFloatTop, "Loupe.Float.Top"),
-    ];
-
     private bool qLoupePlaying;
     private bool qLoupeEnded;
     private bool qLoupeClosed;
     private string? qLoupeSource;
-    private QSLoupeFloat qLoupeFloat = QSLoupeFloat.QSLoupeFloatOwner;
     private QViewer? qLoupeViewer;
     private TimeSpan qLoupeFinal;
     private bool qLoupePlayingFinal;
@@ -57,8 +22,9 @@ public sealed class QSLoupe
 
     public QPlayer QPlayer { get; } = new();
 
+    public QSLoupeFloatChoice QSLoupeFloatChoice { get; } = new();
+
     public event Action<bool>? QSLoupePlayingChanged;
-    public event Action? QSLoupeFloatChanged;
     public event Action? QSLoupeEngineCreated;
     public event Action? QSLoupeCloseApplied;
 
@@ -69,12 +35,6 @@ public sealed class QSLoupe
     public bool QSLoupeClosed => qLoupeClosed;
 
     public string? QSLoupeSource => qLoupeSource;
-
-    public QSLoupeFloat QSLoupeFloat => qLoupeFloat;
-
-    public bool QSLoupeOwned => qLoupeFloat != QSLoupeFloat.QSLoupeFloatOff;
-
-    public bool QSLoupeTopmost => qLoupeFloat == QSLoupeFloat.QSLoupeFloatTop;
 
     public bool QSLoupeMpvActive => LRenderer.LRendererEngineRead() == LPreviewEngine.LPreviewEngineMpv;
 
@@ -88,31 +48,6 @@ public sealed class QSLoupe
         QLocalizationCatalog.QLocalizationTextRead(qLoupePlaying ? "Loupe.Pause.Tooltip" : "Loupe.Play.Tooltip");
 
     public bool QSLoupeResumeCheck() => qLoupePlaying && !qLoupeEnded;
-
-    public IReadOnlyList<QSLoupeButton> QSLoupeButtonsRead() =>
-        qLoupeButtons.Select(QSLoupeButtonResolve).ToList();
-
-    public void QSLoupeFloatRestore() =>
-        qLoupeFloat = QSLoupeFloatResolve(LPreference.LPreferenceStateCurrent.LPreferenceLoupeFloat);
-
-    public void QSLoupeFloatSet(QSLoupeFloat lFloat)
-    {
-        QSLoupeFloatCommit(lFloat);
-        QSLoupeFloatPersist(lFloat);
-        QSLoupeFloatChanged?.Invoke();
-    }
-
-    private static QSLoupeFloat QSLoupeFloatResolve(string lToken) =>
-        qLoupeFloatKinds.GetValueOrDefault(lToken, QSLoupeFloat.QSLoupeFloatOwner);
-
-    private void QSLoupeFloatCommit(QSLoupeFloat lFloat) => qLoupeFloat = lFloat;
-
-    private static void QSLoupeFloatPersist(QSLoupeFloat lFloat)
-    {
-        LPreferenceState lPreference = LPreference.LPreferenceStateCurrent.LPreferenceClone();
-        lPreference.LPreferenceLoupeFloat = qLoupeFloatTokens[lFloat];
-        LPreference.LPreferenceStateSet(lPreference);
-    }
 
     public void QSLoupeViewerAttach()
     {
@@ -318,11 +253,6 @@ public sealed class QSLoupe
 
         QSLoupePlayingChanged?.Invoke(lPlaying);
     }
-
-    private QSLoupeButton QSLoupeButtonResolve((QSLoupeFloat, string) lButton) => new(
-        lButton.Item1,
-        QLocalizationCatalog.QLocalizationTextRead(lButton.Item2),
-        lButton.Item1 == qLoupeFloat);
 
     private void QSLoupePreviewHandle()
     {

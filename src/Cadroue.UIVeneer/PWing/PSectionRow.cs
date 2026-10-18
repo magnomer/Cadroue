@@ -234,7 +234,7 @@ public sealed class PSectionRow
 
     private UIElement PSectionEditorBuild(QSectionRow lRow)
     {
-        int pSerial = lSection.QSectionEditSerial;
+        int pSerial = lSection.QSectionEdit.QSectionEditSerial;
         TextBox pNameBox = PSectionFieldBuild(lRow.QSectionRowName, double.NaN, pSerial);
         TextBox pPrefixBox = PSectionFieldBuild(lRow.QSectionRowPrefix, PSectionAffixWidth, pSerial);
         TextBox pSuffixBox = PSectionFieldBuild(lRow.QSectionRowSuffix, PSectionAffixWidth, pSerial);
@@ -249,7 +249,8 @@ public sealed class PSectionRow
     private void PSectionEditorAttach(
         TextBox pNameBox, TextBox pPrefixBox, TextBox pSuffixBox, TextBlock pPrefixMark, TextBlock pSuffixMark)
     {
-        Action pTextSync = () => lSection.QSectionTextSet(pNameBox.Text, pPrefixBox.Text, pSuffixBox.Text);
+        Action pTextSync = () =>
+            lSection.QSectionEdit.QSectionTextSet(pNameBox.Text, pPrefixBox.Text, pSuffixBox.Text);
         pSectionBoxes.ForEach(pBox => pBox.TextChanged += (_, _) => pTextSync());
         PSectionStepAttach(pNameBox, () => PSectionAffixSelect(pPrefixBox, pPrefixMark));
         PSectionStepAttach(pPrefixBox, () => PSectionAffixSelect(pSuffixBox, pSuffixMark));
@@ -310,7 +311,7 @@ public sealed class PSectionRow
     }
 
     private void PSectionKeyHandle(object pSender, KeyEventArgs pEvent) =>
-        pEvent.Handled = lSection.QSectionKeyRun(pEvent.Key.ToString());
+        pEvent.Handled = lSection.QSectionEdit.QSectionKeyRun(pEvent.Key.ToString());
 
     private static TextBlock PSectionMarkBuild() => new()
     {
@@ -354,7 +355,7 @@ public sealed class PSectionRow
     private void PSectionEditClose(int pSerial) =>
         pSectionPanel.Dispatcher.BeginInvoke(
             DispatcherPriority.Input,
-            new Action(() => lSection.QSectionBlurHandle(
+            new Action(() => lSection.QSectionEdit.QSectionBlurHandle(
                 pSerial, pSectionBoxes.Contains((Keyboard.FocusedElement as TextBox)!))));
 
     private static TextBlock PSectionTimeBuild(string pTimeText) => new()

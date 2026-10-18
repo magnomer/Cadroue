@@ -118,8 +118,8 @@ internal static class TInterfaceViewer
         renderer.QViewerHostApplied += handler;
     internal static Task TViewerLoadStart(QViewerMedia media, string path) => media.QViewerLoadStart(path);
     internal static Task TViewerFlyleafApply(
-        QViewerMedia media, string path, LMediaInfo? info, string? error, int serial) =>
-        media.QViewerFlyleafApply(path, info, error, serial);
+        QViewer viewer, string path, LMediaInfo? info, string? error, int serial) =>
+        viewer.QViewerMedia.QViewerFlyleaf.QViewerFlyleafApply(path, info, error, serial);
     internal static bool TViewerLoadCancel(QViewerMedia media) => media.QViewerLoadCancel();
     internal static bool TViewerMediaClose(QViewerMedia media, bool force) => media.QViewerMediaClose(force);
     internal static void TViewerCommandApply(QViewerMedia media, bool active) => media.QViewerCommandApply(active);
@@ -148,16 +148,16 @@ internal static class TInterfaceViewer
     internal static void TViewerPathHandle(QViewer viewer, string? path) =>
         viewer.QViewerWorkspace.CWorkspaceOpen(path);
     internal static void TViewerAskAttach(QViewerSource source, Action<QViewerAsk, Action<bool>> handler) =>
-        source.QViewerSourceAsk += handler;
-    internal static void TViewerDropAttach(QViewerSource source, Action<IReadOnlyList<string>> handler) =>
-        source.QViewerPathsDrop += handler;
-    internal static QWindowDropEffect TViewerDropResolve(QViewerSource source, string[]? paths, bool copyable) =>
-        source.QViewerDropResolve(paths, copyable);
-    internal static QWindowDropEffect TViewerDropHandle(QViewerSource source, string[]? paths, bool copyable) =>
-        source.QViewerDropHandle(paths, copyable);
-    internal static QViewerEnginePlan TViewerEngineRead(QViewerRenderer renderer) => renderer.QViewerEngineRead();
+        source.QViewerSidecar.QViewerSourceAsk += handler;
+    internal static void TViewerDropAttach(QViewer viewer, Action<IReadOnlyList<string>> handler) =>
+        viewer.QViewerSource.QViewerPathsDrop += handler;
+    internal static QWindowDropEffect TViewerDropResolve(QViewer viewer, string[]? paths, bool copyable) =>
+        viewer.QViewerSource.QViewerDrop.QViewerDropResolve(paths, copyable);
+    internal static QWindowDropEffect TViewerDropHandle(QViewer viewer, string[]? paths, bool copyable) =>
+        viewer.QViewerSource.QViewerDrop.QViewerDropHandle(paths, copyable);
+    internal static QViewerEnginePlan TViewerEngineRead() => QViewerEnginePreference.QViewerEngineRead();
     internal static string TPreferenceEngineRead() => LPreference.LPreferenceStateCurrent.LPreferencePreviewEngine;
-    internal static void TViewerEngineSelect(QViewerRenderer renderer, string key) => renderer.QViewerEngineSelect(key);
+    internal static void TViewerEngineSelect(string key) => QViewerEnginePreference.QViewerEngineSelect(key);
     internal static bool TViewerEngineUpdate(QViewerRenderer renderer) => renderer.QViewerEngineUpdate();
     internal static bool TViewerOverlayHandle(QViewerRenderer renderer, bool visible, double width, double height) =>
         renderer.QViewerOverlayHandle(visible, width, height);

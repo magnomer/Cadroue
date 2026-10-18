@@ -139,11 +139,13 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("Exclude", "Encoder.Stream.Exclude"));
 
         psVideoEncoderCombo = PSCombo.PSComboBuild(
-            lsEncoder.QSEncoderVideoEncoder,
-            QSEncoder.QSEncoderVideoRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderVideoEncoder));
+            lsEncoder.QSEncoderVideo.QSEncoderVideoEncoder,
+            QSEncoderVideo.QSEncoderVideoRead(
+                lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderVideo.QSEncoderVideoEncoder));
         PSEncoderChipApply(psVideoEncoderCombo);
         psVideoRateCombo = PSCombo.PSComboBuild(
-            lsEncoder.QSEncoderVideoRate, lsEncoder.QSEncoderVideoCodec.LCapabilityModeLabels);
+            lsEncoder.QSEncoderVideo.QSEncoderVideoRate,
+            lsEncoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels);
         psVideoNotice = PSAudioNoticeBuild();
         psAudioNotice = PSAudioNoticeBuild();
         psVideoEncoderNotice = PSEncoderErrorBuild();
@@ -168,11 +170,13 @@ internal sealed partial class PSEncoder : Window
             new LLocalizationChoice("yuv422p10le", "Encoder.Pixel.Yuv422Ten"),
             new LLocalizationChoice("yuv444p10le", "Encoder.Pixel.Yuv444Ten"));
         psAudioEncoderCombo = PSCombo.PSComboBuild(
-            lsEncoder.QSEncoderAudioEncoder,
-            QSEncoder.QSEncoderAudioRead(lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderAudioEncoder));
+            lsEncoder.QSEncoderAudio.QSEncoderAudioEncoder,
+            QSEncoderAudio.QSEncoderAudioRead(
+                lsExportSpecificEdit.LPresetContainer, lsEncoder.QSEncoderAudio.QSEncoderAudioEncoder));
         PSEncoderChipApply(psAudioEncoderCombo);
         psAudioRateCombo = PSCombo.PSComboBuild(
-            lsEncoder.QSEncoderAudioRate, lsEncoder.QSEncoderAudioCodec.LCapabilityModeLabels);
+            lsEncoder.QSEncoderAudio.QSEncoderAudioRate,
+            lsEncoder.QSEncoderAudio.QSEncoderAudioCodec.LCapabilityModeLabels);
         PSEncoderWindowApply();
         PSSubwindow.PSSubwindowApply(this);
         Content = PSEncoderBuild();
@@ -185,10 +189,10 @@ internal sealed partial class PSEncoder : Window
 
     private void PSEncoderAttach()
     {
-        lsEncoder.QSEncoderVideoChanged += PSVideoRowsApply;
-        lsEncoder.QSEncoderAudioChanged += PSAudioRowsApply;
+        lsEncoder.QSEncoderVideo.QSEncoderVideoChanged += PSVideoRowsApply;
+        lsEncoder.QSEncoderAudio.QSEncoderAudioChanged += PSAudioRowsApply;
         lsEncoder.QSEncoderHelpAttach(PSEncoderHelpHandle);
-        lsEncoder.QSEncoderSizeChanged += PSVideoSizeApply;
+        lsEncoder.QSEncoderSize.QSEncoderSizeChanged += PSVideoSizeApply;
     }
 
     private static void PSEncoderChipApply(ComboBox pCombo)

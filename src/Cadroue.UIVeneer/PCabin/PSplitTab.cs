@@ -68,7 +68,7 @@ public sealed class PSplitTab : PTabSurface
 
     private void PSplitEventsAttach()
     {
-        QSplitTab.QSplitPresetMissing += PExport.PExportMissingShow;
+        QSplitTab.QSplitWork.QSplitPresetMissing += PExport.PExportMissingShow;
         QSplitTab.QSplitSweep.QSplitBusyApplied += PSplitBusyApply;
         QSplitTab.QSplitSweep.QSplitProgressApplied += pInspector.PSensorProgressApply;
         QSplitTab.QSplitSweep.QSplitFailRaised += PSplitFailShow;

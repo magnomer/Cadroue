@@ -1,37 +1,27 @@
-using System.Globalization;
+using Cadroue.Application;
 using Cadroue.Core;
 using Cadroue.Infrastructure;
 
 namespace Cadroue.UIDeportment;
 
-public readonly record struct QSEncoderTier(string QSEncoderTierLabel, int QSEncoderTierWidth, int QSEncoderTierHeight);
-
-public sealed partial class QSEncoder
+// The encoder window's video codec: the chosen encoder and rate, the encoders a container offers, and their trial.
+public sealed class QSEncoderVideo
 {
-    public const int QSEncoderDimensionMost = 7680;
-
-    private static readonly QSEncoderTier[] qsEncoderTiers =
-    [
-        new("Source", 0, 0),
-        new("480p", 854, 480),
-        new("720p", 1280, 720),
-        new("1080p", 1920, 1080),
-        new("1440p", 2560, 1440),
-        new("4K", 3840, 2160),
-        new("8K", 7680, 4320)
-    ];
-
-    private string qsEncoderVideoEncoder = string.Empty;
-    private string qsEncoderVideoRate = string.Empty;
-    private int qsEncoderSizeTier;
-    private int qsEncoderWidth;
-    private int qsEncoderHeight;
+    private readonly bool qsEncoderSmart;
+    private string qsEncoderVideoEncoder;
+    private string qsEncoderVideoRate;
     private IReadOnlyList<QSVerdictRow> qsEncoderVideoResults = [];
+    private CancellationTokenSource? qsEncoderVideoTrial;
+
+    internal QSEncoderVideo(LPreset lDraft, bool lSmart)
+    {
+        qsEncoderSmart = lSmart;
+        qsEncoderVideoEncoder = lDraft.LPresetVideo.LPresetEncoder;
+        qsEncoderVideoRate = QSEncoder.QSEncoderRateResolve(
+            QSEncoderVideoCodec.LCapabilityModeLabels, lDraft.LPresetVideo.LPresetRateControl);
+    }
 
     public event Action? QSEncoderVideoChanged;
-    public event Action? QSEncoderSizeChanged;
-
-    public static IReadOnlyList<QSEncoderTier> QSEncoderTiers => qsEncoderTiers;
 
     public string QSEncoderVideoEncoder => qsEncoderVideoEncoder;
 
@@ -40,46 +30,26 @@ public sealed partial class QSEncoder
     public LCapabilityCodec QSEncoderVideoCodec =>
         LCapability.LCapabilityRead(LRepertoireVideo.LRepertoireTokenResolve(qsEncoderVideoEncoder) ?? string.Empty);
 
-    public int QSEncoderSizeTier => qsEncoderSizeTier;
-
-    public int QSEncoderWidth => qsEncoderWidth;
-
-    public int QSEncoderHeight => qsEncoderHeight;
-
     public IReadOnlyList<QSVerdictRow> QSEncoderVideoResults => qsEncoderVideoResults;
 
-    private void QSEncoderVideoPrepare()
-    {
-        qsEncoderVideoEncoder = qsEncoderDraft.LPresetVideo.LPresetEncoder;
-        qsEncoderVideoRate = QSEncoderRateResolve(
-            QSEncoderVideoCodec.LCapabilityModeLabels, qsEncoderDraft.LPresetVideo.LPresetRateControl);
-        if (QSEncoderSizeParse(qsEncoderDraft.LPresetVideo.LPresetSize) is (int lWidth, int lHeight))
-        {
-            qsEncoderWidth = lWidth;
-            qsEncoderHeight = lHeight;
-            qsEncoderSizeTier = QSEncoderTierResolve(lWidth, lHeight);
-        }
-    }
+    public QSVerdict QSEncoderVerdictCreate() =>
+        new(QLocalizationCatalog.QLocalizationTextRead("Encoder.Verification.VideoTitle"), qsEncoderVideoResults);
 
-    private static (int, int)? QSEncoderSizeParse(string lSize)
+    public string QSEncoderNoticeResolve(string lMode)
     {
-        string[] lParts = lSize.Split(
-            ['x', 'X', '×'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        if (lParts.Length == 2
-            && int.TryParse(lParts[0], out int lWidth) && lWidth > 0
-            && int.TryParse(lParts[1], out int lHeight) && lHeight > 0)
+        if (lMode != "Smart")
         {
-            return (lWidth, lHeight);
+            return "Encoder.Video.Notice.Copied";
         }
 
-        return null;
+        return qsEncoderSmart ? "Encoder.Video.Notice.Smart" : "Encoder.Video.Notice.SmartFull";
     }
 
     public bool QSEncoderVideoSet(string lEncoder, string lRate)
     {
         bool lEncoderChanged = !string.Equals(qsEncoderVideoEncoder, lEncoder, StringComparison.Ordinal);
         qsEncoderVideoEncoder = lEncoder;
-        string lResolved = QSEncoderRateResolve(QSEncoderVideoCodec.LCapabilityModeLabels, lRate);
+        string lResolved = QSEncoder.QSEncoderRateResolve(QSEncoderVideoCodec.LCapabilityModeLabels, lRate);
         if (!lEncoderChanged && string.Equals(qsEncoderVideoRate, lResolved, StringComparison.Ordinal))
         {
             return false;
@@ -125,17 +95,27 @@ public sealed partial class QSEncoder
 
     public async Task<IReadOnlyList<string>> QSEncoderVideoScan(IProgress<double> lFeed)
     {
-        CancellationToken lToken = QSEncoderScanStart(LTrialKind.LTrialKindVideo);
+        CancellationToken lToken = QSEncoderScanStart();
         IReadOnlyList<LRepertoireEncoder> lCandidates = LRepertoireVideo.LRepertoireEncodersRead();
         (List<string> lAvailable, HashSet<string> lNames, List<QSVerdictRow> lRows) =
             await QSEncoderVideoRun(lCandidates, lFeed, lToken);
         lToken.ThrowIfCancellationRequested();
         LTrialCatalog.LTrialSetApply(lNames);
         QSEncoderVideoInsert(lAvailable, lCandidates);
-        QSEncoderVerdictSet(LTrialKind.LTrialKindVideo, lRows);
-        QSVerdict.QSVerdictRecord("video", lRows);
+        qsEncoderVideoResults = lRows;
+        QSVerdictTrace.QSVerdictRecord("video", lRows);
         return lAvailable;
     }
+
+    // A new trial cancels the one still running; closing the window cancels the last one.
+    private CancellationToken QSEncoderScanStart()
+    {
+        qsEncoderVideoTrial?.Cancel();
+        qsEncoderVideoTrial = new CancellationTokenSource();
+        return qsEncoderVideoTrial.Token;
+    }
+
+    internal void QSEncoderVideoCancel() => qsEncoderVideoTrial?.Cancel();
 
     private static async Task<(List<string>, HashSet<string>, List<QSVerdictRow>)> QSEncoderVideoRun(
         IReadOnlyList<LRepertoireEncoder> lCandidates, IProgress<double> lFeed, CancellationToken lToken)
@@ -160,7 +140,7 @@ public sealed partial class QSEncoder
                 lRows.Add(new QSVerdictRow(
                     lCandidate.LRepertoireText, lEncoder, lResult.LTrialSuccess, lResult.LTrialMessage));
                 lDone++;
-                lFeed.Report(QSEncoderProgressResolve(lDone, lTotal));
+                lFeed.Report(QSEncoder.QSEncoderProgressResolve(lDone, lTotal));
             }
 
             if (lCandidateAvailable)
@@ -181,65 +161,4 @@ public sealed partial class QSEncoder
             lAvailable.Insert(0, qsEncoderVideoEncoder);
         }
     }
-
-    public static int QSEncoderTierResolve(int lWidth, int lHeight)
-    {
-        for (int lAt = 1; lAt < qsEncoderTiers.Length; lAt++)
-        {
-            (_, int lTierWidth, int lTierHeight) = qsEncoderTiers[lAt];
-            if ((lTierWidth == lWidth && lTierHeight == lHeight) || (lTierWidth == lHeight && lTierHeight == lWidth))
-            {
-                return lAt;
-            }
-        }
-
-        return -1;
-    }
-
-    public bool QSEncoderTierSelect(int lTier)
-    {
-        lTier = QSEncoderTierClamp(lTier);
-        if (lTier == qsEncoderSizeTier)
-        {
-            return false;
-        }
-
-        qsEncoderSizeTier = lTier;
-        qsEncoderWidth = qsEncoderTiers[lTier].QSEncoderTierWidth;
-        qsEncoderHeight = qsEncoderTiers[lTier].QSEncoderTierHeight;
-        QSEncoderSizeChanged?.Invoke();
-        return true;
-    }
-
-    private static int QSEncoderTierClamp(int lTier) => Math.Clamp(lTier, 0, qsEncoderTiers.Length - 1);
-
-    private static (int, int, int) QSEncoderSizeNormalize(int lWidth, int lHeight)
-    {
-        lWidth = Math.Max(0, lWidth);
-        lHeight = Math.Max(0, lHeight);
-        int lTier = lWidth == 0 && lHeight == 0
-            ? 0
-            : lWidth > 0 && lHeight > 0 ? QSEncoderTierResolve(lWidth, lHeight) : -1;
-        return (lWidth, lHeight, lTier);
-    }
-
-    public bool QSEncoderSizeSet(int lWidth, int lHeight)
-    {
-        (lWidth, lHeight, int lTier) = QSEncoderSizeNormalize(lWidth, lHeight);
-        if (lWidth == qsEncoderWidth && lHeight == qsEncoderHeight && lTier == qsEncoderSizeTier)
-        {
-            return false;
-        }
-
-        qsEncoderWidth = lWidth;
-        qsEncoderHeight = lHeight;
-        qsEncoderSizeTier = lTier;
-        QSEncoderSizeChanged?.Invoke();
-        return true;
-    }
-
-    public string QSEncoderSizeFormat() =>
-        qsEncoderSizeTier != 0 && qsEncoderWidth > 0 && qsEncoderHeight > 0
-            ? string.Create(CultureInfo.InvariantCulture, $"{qsEncoderWidth} × {qsEncoderHeight}")
-            : QSEncoderSourceMode;
 }

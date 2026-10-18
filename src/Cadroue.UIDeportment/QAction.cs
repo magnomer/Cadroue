@@ -58,7 +58,7 @@ public sealed class QAction
         qActionSourceTab = lStripTab.QStripTabId;
     }
 
-    private void QActionTitleAttach(QStrip lStrip) => lStrip.QStripTitleChanged += QActionTargetUpdate;
+    private void QActionTitleAttach(QStrip lStrip) => lStrip.QStripTitle.QStripTitleChanged += QActionTargetUpdate;
 
     public void QActionAutoSet(bool? lChecked) => qActionAutoRelay = QActionAutoNormalize(lChecked);
 

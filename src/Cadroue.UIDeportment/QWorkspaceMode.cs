@@ -58,9 +58,9 @@ public sealed class QWorkspaceMode
 
     private void QSplitTabAttach(QSplitTab lTab)
     {
-        QWorkspaceAction!.QActionExecuted += lTab.QSplitRun;
-        QWorkspaceAction.QActionAllAdded += lTab.QSplitAllRun;
-        QWorkspaceAction.QActionItemsAdded += lTab.QSplitItemsRun;
+        QWorkspaceAction!.QActionExecuted += lTab.QSplitWork.QSplitRun;
+        QWorkspaceAction.QActionAllAdded += lTab.QSplitWork.QSplitAllRun;
+        QWorkspaceAction.QActionItemsAdded += lTab.QSplitWork.QSplitItemsRun;
         QWorkspaceAction.QActionListAttach(qWorkspaceList!);
     }
 

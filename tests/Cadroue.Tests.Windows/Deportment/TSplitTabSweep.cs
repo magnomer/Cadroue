@@ -67,7 +67,7 @@ public sealed class TSplitTabSweep
 
         Assert.Empty(busy);
         Assert.False(TInterface.TSplitSweepCheck(tab));
-        Assert.False(inspector.QInspectorSensor.QSensorRunning);
+        Assert.False(inspector.QInspectorSensor.QSensorSweep.QSensorRunning);
     }
 
     [Fact]

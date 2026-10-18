@@ -14,8 +14,6 @@ public sealed record QRosterFile(
         && QRosterFileRows.SequenceEqual(lOther.QRosterFileRows);
 }
 
-public sealed record QRosterCardStep(int QRosterStepIndex, QRosterCard? QRosterStepCard);
-
 public sealed record QRosterEntry(
     QRosterCard QRosterEntryCard,
     string QRosterEntryKind,
@@ -77,48 +75,6 @@ public sealed record QRosterCard
         && QRosterCardTooltip == lOther.QRosterCardTooltip
         && QRosterCardFiles.Count == lOther.QRosterCardFiles.Count
         && QRosterCardFiles.Zip(lOther.QRosterCardFiles).All(lPair => lPair.First.QRosterFileMatch(lPair.Second));
-
-    public static QRosterCard[] QRosterReuseResolve(
-        IReadOnlyList<QRosterCard> lPrevious, IEnumerable<QRosterCard> lNext)
-    {
-        Dictionary<Guid, QRosterCard> lKept = lPrevious.ToDictionary(lCard => lCard.QRosterCardBatch);
-        return lNext
-            .Select(lCard => lKept.GetValueOrDefault(lCard.QRosterCardBatch) is { } lOld && lOld.QRosterCardMatch(lCard)
-                ? lOld
-                : lCard)
-            .ToArray();
-    }
-
-    public static IReadOnlyList<QRosterCardStep> QRosterStepsResolve(
-        IReadOnlyList<QRosterCard> lPrevious,
-        IReadOnlyList<QRosterCard> lNext)
-    {
-        var lSteps = new List<QRosterCardStep>();
-        var lKept = new HashSet<QRosterCard>(lNext, ReferenceEqualityComparer.Instance);
-        int lOld = 0;
-        int lNew = 0;
-        while (lNew < lNext.Count)
-        {
-            if (lOld < lPrevious.Count && ReferenceEquals(lPrevious[lOld], lNext[lNew]))
-            {
-                lOld++;
-                lNew++;
-            }
-            else if (lOld < lPrevious.Count && !lKept.Contains(lPrevious[lOld]))
-            {
-                lSteps.Add(new QRosterCardStep(lNew, null));
-                lOld++;
-            }
-            else
-            {
-                lSteps.Add(new QRosterCardStep(lNew, lNext[lNew]));
-                lNew++;
-            }
-        }
-
-        lSteps.AddRange(Enumerable.Range(lOld, lPrevious.Count - lOld).Select(_ => new QRosterCardStep(lNew, null)));
-        return lSteps;
-    }
 
     // The gate answers the batch and its files in one call; the card picks its brushes and wording from that answer.
     public static QRosterCard QRosterCardCreate(

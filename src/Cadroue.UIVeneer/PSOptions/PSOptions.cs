@@ -75,9 +75,9 @@ internal sealed partial class PSOptions : Window
             () => { },
             out psOptionsEngineEnable,
             PSOptionsEngineItems);
-        psOptionsEngineEnable("Mpv", lsOptions.QSOptionsMpvEnabled);
+        psOptionsEngineEnable("Mpv", lsOptions.QSOptionsMpv.QSOptionsMpvEnabled);
         PSOptionsMpvAttach();
-        _ = lsOptions.QSOptionsMpvUpdate();
+        _ = lsOptions.QSOptionsMpv.QSOptionsMpvUpdate();
 
         psOptionsAutoplayBox = PSOptionsCheckBuild(
             QLocalizationCatalog.QLocalizationTextRead("Options.Playback.AutoplayCheck"),
@@ -129,7 +129,7 @@ internal sealed partial class PSOptions : Window
     private void PSOptionsSpectrumAttach() => lsSpectrum.QSSpectrumChanged += PSSpectrumActiveApply;
 
     private void PSOptionsMpvAttach() =>
-        lsOptions.QSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
+        lsOptions.QSOptionsMpv.QSOptionsMpvChanged += pEnabled => psOptionsEngineEnable("Mpv", pEnabled);
 
     private string PSOptionsRecordResolve() =>
         lsOptionsDraft.LPreferenceRecordWorkspace ? "Workspace" : "FileLocation";

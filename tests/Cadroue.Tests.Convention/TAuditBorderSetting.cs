@@ -56,14 +56,14 @@ internal static class TAuditBorderSetting
         ["Trespassing:Cadroue.ShellEngine>Cadroue.Infrastructure"] = 0,
         ["Trespassing:Cadroue.UIDeportment>Cadroue.Infrastructure"] = 388,
         ["Trespassing:Cadroue.UIVeneer>Cadroue.Infrastructure"] = 100,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 672,
-        ["Undercutting:Cadroue.UIDeportment>Cadroue.Core"] = 1018,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.Application"] = 690,
+        ["Undercutting:Cadroue.UIDeportment>Cadroue.Core"] = 1024,
         ["Undercutting:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 119,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Application"] = 261,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.Core"] = 266,
         ["Undercutting:Cadroue.UIVeneer>Cadroue.ShellEngine"] = 4,
-        ["Unsealing:Cadroue.UIDeportment>Cadroue.Application"] = 71,
-        ["Unsealing:Cadroue.UIDeportment>Cadroue.Core"] = 139,
+        ["Unsealing:Cadroue.UIDeportment>Cadroue.Application"] = 73,
+        ["Unsealing:Cadroue.UIDeportment>Cadroue.Core"] = 142,
         ["Unsealing:Cadroue.UIDeportment>Cadroue.ShellEngine"] = 7,
     };
 

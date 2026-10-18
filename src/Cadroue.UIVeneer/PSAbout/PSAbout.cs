@@ -170,7 +170,7 @@ internal sealed class PSAbout : Window
     private void PSAboutLogoAttach(Image pLogo) => pLogo.MouseLeftButtonUp += PSAboutTapHandle;
 
     private Visibility PSAboutDeveloperRead() =>
-        lsAbout.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
+        lsAbout.QSAboutTap.QSAboutDeveloper ? Visibility.Visible : Visibility.Collapsed;
 
     private UIElement PSAboutCreditBuild()
     {
@@ -247,7 +247,7 @@ internal sealed class PSAbout : Window
 
     private void PSAboutTapHandle(object pSender, MouseButtonEventArgs pEvent)
     {
-        if (lsAbout.QSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
+        if (lsAbout.QSAboutTap.QSAboutTapChange(DateTime.UtcNow) && psAboutDeveloper is not null)
         {
             PSAboutDeveloperShow(psAboutDeveloper);
         }

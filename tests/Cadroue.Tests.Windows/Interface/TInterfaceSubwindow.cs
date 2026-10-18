@@ -15,8 +15,9 @@ internal static partial class TInterface
     internal static QSOptions TOptionsCreate(LPreferenceState draft, bool mpv) =>
         new(TAtelierCreate().CAtelierUsher, draft, mpv);
     internal static void TOptionsMpvAttach(QSOptions options, Action<bool> handler) =>
-        options.QSOptionsMpvChanged += handler;
-    internal static void TOptionsMpvSet(QSOptions options, bool enabled) => options.QSOptionsMpvSet(enabled);
+        options.QSOptionsMpv.QSOptionsMpvChanged += handler;
+    internal static void TOptionsMpvSet(QSOptions options, bool enabled) =>
+        options.QSOptionsMpv.QSOptionsMpvSet(enabled);
     internal static string TOptionsEngineRead(QSOptions options) => options.QSOptionsEngineRead();
     internal static void TOptionsPageSelect(QSOptions options, QSOptionsPage page) =>
         options.QSOptionsPageSelect(page);
@@ -35,23 +36,24 @@ internal static partial class TInterface
     internal static QSEncoder TEncoderCreate(LPreset source, bool smart) =>
         TExportCreate(TPresetSelectionCreate(string.Empty), smart ? "Split" : "Convert").QExportEncoderCreate(source);
     internal static void TEncoderVideoAttach(QSEncoder encoder, Action handler) =>
-        encoder.QSEncoderVideoChanged += handler;
+        encoder.QSEncoderVideo.QSEncoderVideoChanged += handler;
     internal static void TEncoderSizeAttach(QSEncoder encoder, Action handler) =>
-        encoder.QSEncoderSizeChanged += handler;
+        encoder.QSEncoderSize.QSEncoderSizeChanged += handler;
     internal static bool TEncoderVideoSet(QSEncoder encoder, string codec, string rate) =>
-        encoder.QSEncoderVideoSet(codec, rate);
+        encoder.QSEncoderVideo.QSEncoderVideoSet(codec, rate);
     internal static bool TEncoderAudioSet(QSEncoder encoder, string codec, string rate) =>
-        encoder.QSEncoderAudioSet(codec, rate);
-    internal static bool TEncoderTierSelect(QSEncoder encoder, int tier) => encoder.QSEncoderTierSelect(tier);
+        encoder.QSEncoderAudio.QSEncoderAudioSet(codec, rate);
+    internal static bool TEncoderTierSelect(QSEncoder encoder, int tier) =>
+        encoder.QSEncoderSize.QSEncoderTierSelect(tier);
     internal static bool TEncoderSizeSet(QSEncoder encoder, int width, int height) =>
-        encoder.QSEncoderSizeSet(width, height);
-    internal static string TEncoderSizeFormat(QSEncoder encoder) => encoder.QSEncoderSizeFormat();
+        encoder.QSEncoderSize.QSEncoderSizeSet(width, height);
+    internal static string TEncoderSizeFormat(QSEncoder encoder) => encoder.QSEncoderSize.QSEncoderSizeFormat();
     internal static string TEncoderSuffixSelect(QSEncoder encoder, string policy, string shown) =>
-        encoder.QSEncoderSuffixSelect(policy, shown);
+        encoder.QSEncoderSuffix.QSEncoderSuffixSelect(policy, shown);
     internal static string TEncoderLocationSelect(QSEncoder encoder, string mode, string shown) =>
-        encoder.QSEncoderLocationSelect(mode, shown);
+        encoder.QSEncoderLocation.QSEncoderLocationSelect(mode, shown);
     internal static string TEncoderNoticeResolve(QSEncoder encoder, string mode) =>
-        encoder.QSEncoderNoticeResolve(mode);
+        encoder.QSEncoderVideo.QSEncoderNoticeResolve(mode);
     internal static void TEncoderApply(QSEncoder encoder) => encoder.QSEncoderApply();
     internal static LPreset TPresetCreate() => new();
     internal static string TPresetSuffixRead(LPreset preset, string policy) => preset.LPresetSuffixRead(policy);
@@ -76,20 +78,22 @@ internal static partial class TInterface
     internal static void TMonitorCursorAttach(QSMonitor monitor, Action<TimeSpan> handler) =>
         monitor.QSMonitorCursorChanged += handler;
     internal static void TMonitorZoomAttach(QSMonitor monitor, Action handler) =>
-        monitor.QSMonitorZoomChanged += handler;
+        monitor.QSMonitorViewport.QSMonitorZoomChanged += handler;
     internal static void TMonitorCursorSet(QSMonitor monitor, TimeSpan cursor) => monitor.QSMonitorCursorSet(cursor);
     internal static void TMonitorZoom(QSMonitor monitor, double factor, double most) =>
-        monitor.QSMonitorZoom(factor, most);
-    internal static void TMonitorOffsetSet(QSMonitor monitor, double offset) => monitor.QSMonitorOffsetSet(offset);
+        monitor.QSMonitorViewport.QSMonitorZoom(factor, most);
+    internal static void TMonitorOffsetSet(QSMonitor monitor, double offset) =>
+        monitor.QSMonitorViewport.QSMonitorOffsetSet(offset);
     internal static double TMonitorFractionResolve(QSMonitor monitor, double local) =>
-        monitor.QSMonitorFractionResolve(local);
+        monitor.QSMonitorViewport.QSMonitorFractionResolve(local);
     internal static double TMonitorLocalResolve(QSMonitor monitor, double fraction) =>
-        monitor.QSMonitorLocalResolve(fraction);
+        monitor.QSMonitorViewport.QSMonitorLocalResolve(fraction);
     internal static double TMonitorColumnRead(QSMonitor monitor, double[] envelope, int column, int columns) =>
-        monitor.QSMonitorColumnRead(envelope, column, columns);
-    internal static void TMonitorIncreaseZoom(QSMonitor monitor) => monitor.QSMonitorIncreaseZoom();
-    internal static void TMonitorDecreaseZoom(QSMonitor monitor) => monitor.QSMonitorDecreaseZoom();
-    internal static QSMonitorScrollbar TMonitorScrollRead(QSMonitor monitor) => monitor.QSMonitorScrollRead();
+        monitor.QSMonitorViewport.QSMonitorColumnRead(envelope, column, columns);
+    internal static void TMonitorIncreaseZoom(QSMonitor monitor) => monitor.QSMonitorViewport.QSMonitorIncreaseZoom();
+    internal static void TMonitorDecreaseZoom(QSMonitor monitor) => monitor.QSMonitorViewport.QSMonitorDecreaseZoom();
+    internal static QSMonitorScrollbar TMonitorScrollRead(QSMonitor monitor) =>
+        monitor.QSMonitorViewport.QSMonitorScrollRead();
     internal static QSMonitorHead TMonitorHeadResolve(QSMonitor monitor, double width, TimeSpan duration) =>
         monitor.QSMonitorHeadResolve(width, duration);
     internal static void TMonitorSeekAttach(QSMonitor monitor, Action<TimeSpan> handler) =>
@@ -122,5 +126,5 @@ internal static partial class TInterface
     internal static bool TVerdictDetailCheck(QSVerdictRow row) => QSVerdict.QSVerdictDetailCheck(row);
 
     internal static QSAbout TAboutCreate() => new(TAtelierCreate().CAtelierUsher);
-    internal static bool TAboutTapChange(QSAbout about, DateTime now) => about.QSAboutTapChange(now);
+    internal static bool TAboutTapChange(QSAbout about, DateTime now) => about.QSAboutTap.QSAboutTapChange(now);
 }

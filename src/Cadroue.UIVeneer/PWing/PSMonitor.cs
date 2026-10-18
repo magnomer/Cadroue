@@ -92,7 +92,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource.QSMonitorWaveform.QSMonitorReady += PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged += PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged += PSMonitorPlayingApply;
-        psMonitorSource.QSMonitorZoomChanged += PSMonitorZoomApply;
+        psMonitorSource.QSMonitorViewport.QSMonitorZoomChanged += PSMonitorZoomApply;
         psMonitorSource.QSMonitorBypassChanged += PSMonitorBypassApply;
         psMonitorSource.QSMonitorSeekApplied += psMonitorFlow.QFlow.QFlowCursorSeek;
         psMonitorSource.QSMonitorPlayApplied += psMonitorFlow.QFlow.QFlowPlayRaise;
@@ -147,7 +147,8 @@ internal sealed partial class PSMonitor : Window
     }
 
     private void PSMonitorScrollAttach() =>
-        psMonitorScrollbar.ValueChanged += (_, pEvent) => psMonitorSource.QSMonitorOffsetSet(pEvent.NewValue);
+        psMonitorScrollbar.ValueChanged += (_, pEvent) =>
+            psMonitorSource.QSMonitorViewport.QSMonitorOffsetSet(pEvent.NewValue);
 
     private Grid PSMonitorGridBuild()
     {
@@ -354,7 +355,7 @@ internal sealed partial class PSMonitor : Window
         psMonitorSource.QSMonitorWaveform.QSMonitorReady -= PSMonitorReadyHandle;
         psMonitorSource.QSMonitorCursorChanged -= PSMonitorCursorApply;
         psMonitorSource.QSMonitorPlayingChanged -= PSMonitorPlayingApply;
-        psMonitorSource.QSMonitorZoomChanged -= PSMonitorZoomApply;
+        psMonitorSource.QSMonitorViewport.QSMonitorZoomChanged -= PSMonitorZoomApply;
         psMonitorSource.QSMonitorBypassChanged -= PSMonitorBypassApply;
         psMonitorSource.QSMonitorSeekApplied -= psMonitorFlow.QFlow.QFlowCursorSeek;
         psMonitorSource.QSMonitorPlayApplied -= psMonitorFlow.QFlow.QFlowPlayRaise;

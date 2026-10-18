@@ -13,7 +13,7 @@ internal sealed partial class PSEncoder
     private void PSAudioSampleRebuild()
     {
         string pStored = PSAudioHertzRead();
-        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudioEncoder);
+        string pEncoder = LCapability.LCapabilityNameRead(lsEncoder.QSEncoderAudio.QSEncoderAudioEncoder);
         IReadOnlyList<int> pRates = LInventoryHelp.LInventorySampleRead(pEncoder);
         (IReadOnlyList<int> pTicks, bool pDiscrete, double pMaximum) = PSAudioScaleResolve(pRates);
         PSAudioDetentRebuild(pTicks, pDiscrete, pMaximum, pStored);

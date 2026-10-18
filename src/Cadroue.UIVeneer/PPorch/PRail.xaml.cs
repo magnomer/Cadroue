@@ -343,7 +343,7 @@ public partial class PRail : UserControl
     private void PTabMenuHandle(object sender, RoutedEventArgs e)
     {
         ContextMenu pTabAddMenu = QMenu.QMenuBuild((Button)sender, QMenuSide.QMenuSideBelow);
-        QStrip.QStripKeysRead().ToList().ForEach(pTabLayoutKey => PTabMenuAppend(pTabAddMenu, pTabLayoutKey));
+        QStripCatalog.QStripKeysRead().ToList().ForEach(pTabLayoutKey => PTabMenuAppend(pTabAddMenu, pTabLayoutKey));
         pTabAddMenu.IsOpen = true;
         e.Handled = true;
     }
@@ -351,7 +351,7 @@ public partial class PRail : UserControl
     private void PTabMenuAppend(ContextMenu pTabAddMenu, string pTabLayoutKey)
     {
         MenuItem pTabAddMenuItem = QMenu.QMenuItemBuild(
-            QStrip.QStripTitleResolve(pTabLayoutKey),
+            QStripTitle.QStripTitleResolve(pTabLayoutKey),
             QStripIcon.QStripIconRead(pTabLayoutKey));
         PTabItemAttach(pTabAddMenuItem, pTabLayoutKey);
         pTabAddMenu.Items.Add(pTabAddMenuItem);

@@ -103,11 +103,11 @@ public sealed partial class PInspector
     private void PWhitebalanceWheelHandle(object pSender, MouseEventArgs pWheelMouse)
     {
         Point pWheelPoint = pWheelMouse.GetPosition(pWhitebalanceWheelCanvas);
-        QWhitebalance.QWhitebalanceWheelHandle(
+        QWhitebalance.QWhitebalanceWheel.QWhitebalanceWheelHandle(
             PLook.PLookPressed[pWheelMouse.LeftButton], pWheelPoint.X, pWheelPoint.Y, PWhitebalanceWheelSize);
     }
 
     // The driver draws the wheel; the blank tool's wheel shares it.
     private ImageSource PWhitebalanceWheelDraw(double pWheelValue) =>
-        QWhitebalance.QWhitebalanceWheelDraw(PWhitebalanceWheelSize, pWheelValue);
+        QWhitebalance.QWhitebalanceWheel.QWhitebalanceWheelDraw(PWhitebalanceWheelSize, pWheelValue);
 }

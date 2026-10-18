@@ -13,7 +13,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoEncoderUpdate()
     {
-        bool pAvailable = QSEncoder.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
+        bool pAvailable = QSEncoderVideo.QSEncoderVideoCheck(PSCombo.PSComboTextRead(psVideoEncoderCombo));
         PSVideoNoticeApply(pAvailable);
         if (!pAvailable)
         {
@@ -31,7 +31,7 @@ internal sealed partial class PSEncoder
     {
         string pContainer = PSCombo.PSComboTextRead(psOutputContainerCombo);
         string pCurrent = PSCodecCurrentRead();
-        string[] pItems = QSEncoder.QSEncoderVideoRead(pContainer, pCurrent);
+        string[] pItems = QSEncoderVideo.QSEncoderVideoRead(pContainer, pCurrent);
         PSCodecItemsApply(psVideoEncoderCombo, pItems, PSCodecSelectResolve(pItems, pCurrent));
         PSVideoEncoderUpdate();
     }
@@ -56,7 +56,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        string pSelected = lsEncoder.QSEncoderVideoEncoder;
+        string pSelected = lsEncoder.QSEncoderVideo.QSEncoderVideoEncoder;
         PSCodecItemsApply(pCombo, pAvailable, PSCodecSelectResolve(pAvailable, pSelected));
         PSVideoEncoderUpdate();
         PSCodecReadyApply(pButton);
@@ -72,7 +72,7 @@ internal sealed partial class PSEncoder
     {
         try
         {
-            return await lsEncoder.QSEncoderVideoScan(pFeed);
+            return await lsEncoder.QSEncoderVideo.QSEncoderVideoScan(pFeed);
         }
         catch (OperationCanceledException)
         {

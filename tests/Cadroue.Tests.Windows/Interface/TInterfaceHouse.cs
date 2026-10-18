@@ -12,7 +12,7 @@ internal static partial class TInterface
     internal static QWindow TWindowCreate(Func<Func<bool>, bool> dispatch)
     {
         QWindow window = new(TAtelierCreate());
-        window.QWindowDispatcherAttach(dispatch);
+        window.QWindowRelay.QWindowDispatcherAttach(dispatch);
         return window;
     }
     internal static QStrip TWindowStripRead(QWindow window) => window.QWindowStrip;
@@ -29,7 +29,7 @@ internal static partial class TInterface
         window.QWindowScene.QWindowSceneRead(name);
     internal static (double, double) TWindowWidthResolve(
         QWindow window, double? required, double reserved, double width) =>
-        window.QWindowWidthResolve(required, reserved, width);
+        QWindowFrame.QWindowWidthResolve(required, reserved, width);
     internal static void TStripWorkspaceAttach(QStripTab tab, LPreset preset)
     {
         tab.QStripTabWorkspace.QWorkspacePresetAccept(preset);
@@ -154,9 +154,10 @@ internal static partial class TInterface
     internal static (double, double) TSashCenterResolve(bool manual, QSashBounds window, QSashBounds owner) =>
         QSashCenter.QSashCenterResolve(manual, window, owner);
 
-    internal static IReadOnlyList<QTokenPart> TTokenParse(string text) => QToken.QTokenParse(text);
-    internal static QTokenPart TTokenPartResolve(string token) => QToken.QTokenPartResolve(token);
-    internal static string TTokenTextRead(IEnumerable<(string?, string?)> inlines) => QToken.QTokenTextRead(inlines);
+    internal static IReadOnlyList<QTokenPart> TTokenParse(string text) => QTokenNotation.QTokenParse(text);
+    internal static QTokenPart TTokenPartResolve(string token) => QTokenNotation.QTokenPartResolve(token);
+    internal static string TTokenTextRead(IEnumerable<(string?, string?)> inlines) =>
+        QTokenNotation.QTokenTextRead(inlines);
     internal static QToken TTokenCreate() => new();
     internal static bool TTokenDropHandle(QToken token, string? text) => token.QTokenDropHandle(text);
     internal static void TTokenInsertAttach(QToken token, Action<string> handler) => token.QTokenInserted += handler;

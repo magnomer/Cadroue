@@ -44,7 +44,7 @@ public static class QTokenControl
     {
         Paragraph lParagraph = (Paragraph)lBox.Document.Blocks.FirstBlock;
         lParagraph.Inlines.Clear();
-        lParagraph.Inlines.AddRange(QToken.QTokenParse(lText).Select(QTokenInline.QTokenInlineBuild));
+        lParagraph.Inlines.AddRange(QTokenNotation.QTokenParse(lText).Select(QTokenInline.QTokenInlineBuild));
         return lParagraph;
     }
 
@@ -76,7 +76,7 @@ public static class QTokenControl
     {
         ArgumentNullException.ThrowIfNull(lBox);
 
-        return QToken.QTokenTextRead(
+        return QTokenNotation.QTokenTextRead(
             (lBox.Document.Blocks.FirstBlock as Paragraph)?.Inlines.Select(QTokenInline.QTokenInlineRead) ?? []);
     }
 
@@ -92,6 +92,6 @@ public static class QTokenControl
     private static InlineUIContainer QTokenChipBuild(RichTextBox lBox, string lToken)
     {
         lBox.Selection.Text = string.Empty;
-        return QTokenInline.QTokenInlineBuild(QToken.QTokenPartResolve(lToken), lBox.CaretPosition);
+        return QTokenInline.QTokenInlineBuild(QTokenNotation.QTokenPartResolve(lToken), lBox.CaretPosition);
     }
 }

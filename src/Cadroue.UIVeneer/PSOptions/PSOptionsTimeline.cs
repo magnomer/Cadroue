@@ -160,14 +160,15 @@ internal sealed partial class PSOptions
         {
             Title = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.LoadTitle"),
             Filter = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.JsonFilter"),
-            InitialDirectory = lsSpectrum.QSSpectrumFolderRead()
+            InitialDirectory = lsSpectrum.QSSpectrumFile.QSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() != true)
         {
             return;
         }
 
-        QSSpectrumResult pResult = lsSpectrum.QSSpectrumImport(pDialog.FileName, out string pTargetPath);
+        QSSpectrumResult pResult =
+            lsSpectrum.QSSpectrumFile.QSSpectrumImport(pDialog.FileName, out string pTargetPath);
         string? pLoadedName = PSSpectrumNameFind(pResult, pTargetPath);
         if (pLoadedName is null)
         {
@@ -202,12 +203,12 @@ internal sealed partial class PSOptions
             Title = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.SaveTitle"),
             Filter = QLocalizationCatalog.QLocalizationTextRead("Options.Timeline.JsonFilter"),
             FileName = PSSpectrumFileFormat(),
-            InitialDirectory = lsSpectrum.QSSpectrumFolderRead()
+            InitialDirectory = lsSpectrum.QSSpectrumFile.QSSpectrumFolderRead()
         };
         if (pDialog.ShowDialog() == true)
         {
             string pName = lsSpectrum.QSSpectrumName;
-            lsSpectrum.QSSpectrumSave(pDialog.FileName, pName, LSectionPalette.LSectionHexRead(pName));
+            lsSpectrum.QSSpectrumFile.QSSpectrumSave(pDialog.FileName, pName, LSectionPalette.LSectionHexRead(pName));
         }
     }
 

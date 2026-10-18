@@ -13,14 +13,14 @@ public sealed class TEncoderRows
         QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
         int rows = 0;
         TInterface.TEncoderVideoAttach(encoder, () => rows++);
-        string codec = encoder.QSEncoderVideoEncoder;
-        string[] modes = encoder.QSEncoderVideoCodec.LCapabilityModeLabels;
+        string codec = encoder.QSEncoderVideo.QSEncoderVideoEncoder;
+        string[] modes = encoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels;
         bool several = modes.Length > 1;
 
         Assert.Equal(several, TInterface.TEncoderVideoSet(encoder, codec, modes[^1]));
-        Assert.Equal(modes[^1], encoder.QSEncoderVideoRate);
+        Assert.Equal(modes[^1], encoder.QSEncoderVideo.QSEncoderVideoRate);
         Assert.Equal(several, TInterface.TEncoderVideoSet(encoder, codec, "no such mode"));
-        Assert.Equal(modes[0], encoder.QSEncoderVideoRate);
+        Assert.Equal(modes[0], encoder.QSEncoderVideo.QSEncoderVideoRate);
         Assert.False(TInterface.TEncoderVideoSet(encoder, codec, modes[0]));
         Assert.Equal(several ? 2 : 0, rows);
     }
@@ -31,12 +31,15 @@ public sealed class TEncoderRows
         QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
         string other = Interface.TInterface.TRepertoireEncodersRead()
             .Select(candidate => candidate.LRepertoireText)
-            .First(text => !string.Equals(text, encoder.QSEncoderVideoEncoder, StringComparison.Ordinal));
-        string rate = encoder.QSEncoderVideoRate;
+            .First(text =>
+                !string.Equals(text, encoder.QSEncoderVideo.QSEncoderVideoEncoder, StringComparison.Ordinal));
+        string rate = encoder.QSEncoderVideo.QSEncoderVideoRate;
 
         Assert.True(TInterface.TEncoderVideoSet(encoder, other, rate));
-        Assert.Equal(other, encoder.QSEncoderVideoEncoder);
-        Assert.Contains(encoder.QSEncoderVideoRate, encoder.QSEncoderVideoCodec.LCapabilityModeLabels);
+        Assert.Equal(other, encoder.QSEncoderVideo.QSEncoderVideoEncoder);
+        Assert.Contains(
+            encoder.QSEncoderVideo.QSEncoderVideoRate,
+            encoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels);
     }
 
     [Fact]
@@ -45,23 +48,23 @@ public sealed class TEncoderRows
         QSEncoder encoder = TInterface.TEncoderCreate(TInterface.TPresetCreate(), false);
         int sizes = 0;
         TInterface.TEncoderSizeAttach(encoder, () => sizes++);
-        Assert.Equal(0, encoder.QSEncoderSizeTier);
+        Assert.Equal(0, encoder.QSEncoderSize.QSEncoderSizeTier);
         Assert.Equal("Same as source", TInterface.TEncoderSizeFormat(encoder));
 
         Assert.True(TInterface.TEncoderTierSelect(encoder, 3));
-        Assert.Equal(1920, encoder.QSEncoderWidth);
-        Assert.Equal(1080, encoder.QSEncoderHeight);
+        Assert.Equal(1920, encoder.QSEncoderSize.QSEncoderWidth);
+        Assert.Equal(1080, encoder.QSEncoderSize.QSEncoderHeight);
         Assert.Equal("1920 × 1080", TInterface.TEncoderSizeFormat(encoder));
         Assert.False(TInterface.TEncoderTierSelect(encoder, 3));
 
         Assert.False(TInterface.TEncoderSizeSet(encoder, 1920, 1080));
         Assert.True(TInterface.TEncoderSizeSet(encoder, 1080, 1920));
-        Assert.Equal(3, encoder.QSEncoderSizeTier);
+        Assert.Equal(3, encoder.QSEncoderSize.QSEncoderSizeTier);
         Assert.True(TInterface.TEncoderSizeSet(encoder, 1000, 0));
-        Assert.Equal(-1, encoder.QSEncoderSizeTier);
+        Assert.Equal(-1, encoder.QSEncoderSize.QSEncoderSizeTier);
         Assert.Equal("Same as source", TInterface.TEncoderSizeFormat(encoder));
         Assert.True(TInterface.TEncoderSizeSet(encoder, 0, 0));
-        Assert.Equal(0, encoder.QSEncoderSizeTier);
+        Assert.Equal(0, encoder.QSEncoderSize.QSEncoderSizeTier);
         Assert.Equal(4, sizes);
     }
 
@@ -85,7 +88,7 @@ public sealed class TEncoderRows
 
         TInterface.TEncoderSuffixSelect(encoder, "Rename existing", "_mine");
         Assert.Equal("_mine", TInterface.TPresetSuffixRead(encoder.QSEncoderDraft, "Rename output"));
-        Assert.Equal("Rename existing", encoder.QSEncoderSuffixMode);
+        Assert.Equal("Rename existing", encoder.QSEncoderSuffix.QSEncoderSuffixMode);
     }
 
     [Fact]

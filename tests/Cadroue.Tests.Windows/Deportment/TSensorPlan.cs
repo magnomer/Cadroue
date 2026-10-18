@@ -107,6 +107,7 @@ public sealed class TSensorPlan
 
         Assert.Equal(1, runs);
         Assert.Equal(1, stops);
-        Assert.Equal(Interface.TInterface.TLocalizationTextRead("Inspector.Detect.Stop"), sensor.QSensorRunText);
+        Assert.Equal(
+            Interface.TInterface.TLocalizationTextRead("Inspector.Detect.Stop"), sensor.QSensorSweep.QSensorRunText);
     }
 }

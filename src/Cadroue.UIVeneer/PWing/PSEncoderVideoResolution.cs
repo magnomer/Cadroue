@@ -23,11 +23,11 @@ internal sealed partial class PSEncoder
             Foreground = PSField.PSFieldText,
             VerticalAlignment = VerticalAlignment.Center
         };
-        psVideoResolutionSlider = PSFader.PSFaderCreate(0, QSEncoder.QSEncoderTiers.Count - 1, 0);
+        psVideoResolutionSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderTiers.Count - 1, 0);
         psVideoWidthBox = PSEntry.PSEntryBuild(string.Empty, 110);
         psVideoHeightBox = PSEntry.PSEntryBuild(string.Empty, 110);
-        psVideoWidthSlider = PSFader.PSFaderCreate(0, QSEncoder.QSEncoderDimensionMost, 0);
-        psVideoHeightSlider = PSFader.PSFaderCreate(0, QSEncoder.QSEncoderDimensionMost, 0);
+        psVideoWidthSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderDimensionMost, 0);
+        psVideoHeightSlider = PSFader.PSFaderCreate(0, QSEncoderSize.QSEncoderDimensionMost, 0);
         psVideoWidthLabel = PSField.PSFieldLabelBuild(string.Empty);
         psVideoHeightLabel = PSField.PSFieldLabelBuild(string.Empty);
 
@@ -50,7 +50,7 @@ internal sealed partial class PSEncoder
     private void PSVideoSizeAttach()
     {
         psVideoResolutionSlider!.ValueChanged += (_, _) =>
-            lsEncoder.QSEncoderTierSelect((int)Math.Round(psVideoResolutionSlider.Value));
+            lsEncoder.QSEncoderSize.QSEncoderTierSelect((int)Math.Round(psVideoResolutionSlider.Value));
         psVideoResolutionSlider.Loaded += (_, _) => PSVideoKnobApply();
         psVideoWidthSlider!.Loaded += (_, _) => PSVideoKnobApply();
         psVideoHeightSlider!.Loaded += (_, _) => PSVideoKnobApply();
@@ -103,7 +103,7 @@ internal sealed partial class PSEncoder
             return;
         }
 
-        lsEncoder.QSEncoderSizeSet(
+        lsEncoder.QSEncoderSize.QSEncoderSizeSet(
             PSVideoDimensionRead(psVideoWidthBox),
             PSVideoDimensionRead(psVideoHeightBox));
     }
@@ -118,11 +118,11 @@ internal sealed partial class PSEncoder
 
     private void PSVideoSizeApply()
     {
-        int pTier = lsEncoder.QSEncoderSizeTier;
+        int pTier = lsEncoder.QSEncoderSize.QSEncoderSizeTier;
         bool pSource = PSVideoNativeCheck(pTier);
         bool pCustom = PSVideoCustomCheck(pTier);
-        PSVideoDimensionApply(psVideoWidthBox, () => lsEncoder.QSEncoderWidth, pSource);
-        PSVideoDimensionApply(psVideoHeightBox, () => lsEncoder.QSEncoderHeight, pSource);
+        PSVideoDimensionApply(psVideoWidthBox, () => lsEncoder.QSEncoderSize.QSEncoderWidth, pSource);
+        PSVideoDimensionApply(psVideoHeightBox, () => lsEncoder.QSEncoderSize.QSEncoderHeight, pSource);
         PSVideoTierSet(pTier, pSource, pCustom);
         PSVideoHintSet(psVideoSizeNotice, pSource);
         PSVideoSlidersSet(pTier);
@@ -149,7 +149,7 @@ internal sealed partial class PSEncoder
             ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Value.Custom")
             : pSource
                 ? QLocalizationCatalog.QLocalizationTextRead("Encoder.Sample.Source")
-                : QSEncoder.QSEncoderTiers[pTier].QSEncoderTierLabel;
+                : QSEncoderSize.QSEncoderTiers[pTier].QSEncoderTierLabel;
 
     private void PSVideoTierSet(int pTier, bool pSource, bool pCustom)
     {
@@ -168,21 +168,21 @@ internal sealed partial class PSEncoder
 
         if (psVideoWidthSlider is not null)
         {
-            psVideoWidthSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderWidth);
+            psVideoWidthSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderSize.QSEncoderWidth);
         }
 
         if (psVideoHeightSlider is not null)
         {
-            psVideoHeightSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderHeight);
+            psVideoHeightSlider.Value = PSVideoKnobClamp(lsEncoder.QSEncoderSize.QSEncoderHeight);
         }
     }
 
-    private static int PSVideoKnobClamp(int pValue) => Math.Min(pValue, QSEncoder.QSEncoderDimensionMost);
+    private static int PSVideoKnobClamp(int pValue) => Math.Min(pValue, QSEncoderSize.QSEncoderDimensionMost);
 
     private void PSVideoKnobApply()
     {
-        PSVideoThumbApply(psVideoResolutionSlider, !PSVideoCustomCheck(lsEncoder.QSEncoderSizeTier));
-        bool pDimension = !PSVideoNativeCheck(lsEncoder.QSEncoderSizeTier);
+        PSVideoThumbApply(psVideoResolutionSlider, !PSVideoCustomCheck(lsEncoder.QSEncoderSize.QSEncoderSizeTier));
+        bool pDimension = !PSVideoNativeCheck(lsEncoder.QSEncoderSize.QSEncoderSizeTier);
         PSVideoThumbApply(psVideoWidthSlider, pDimension);
         PSVideoThumbApply(psVideoHeightSlider, pDimension);
     }

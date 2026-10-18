@@ -107,12 +107,14 @@ internal static partial class TInterface
     internal static void TSplitLockHandle(QSplitTab tab, bool locked) => tab.QSplitLockHandle(locked);
     internal static void TSplitPersistentHandle(QSplitTab tab, bool persistent) =>
         tab.QSplitPersistentHandle(persistent);
-    internal static void TSplitStateSave(QSplitTab tab) => tab.QSplitStateSave();
-    internal static void TSplitStateLoad(QSplitTab tab, string path) => tab.QSplitStateLoad(path);
-    internal static LDetectorBundle TSplitStateRead(QSplitTab tab) => tab.QSplitStateRead();
-    internal static void TSplitMissingAttach(QSplitTab tab, Action handler) => tab.QSplitPresetMissing += handler;
-    internal static void TSplitRun(QSplitTab tab, bool urgent) => tab.QSplitRun(urgent, default, default);
-    internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(QSplitTab tab) => tab.QSplitSweep.QSplitStepsRead();
+    internal static void TSplitStateSave(QSplitTab tab) => tab.QSplitDetector.QSplitStateSave();
+    internal static void TSplitStateLoad(QSplitTab tab, string path) => tab.QSplitDetector.QSplitStateLoad(path);
+    internal static LDetectorBundle TSplitStateRead(QSplitTab tab) => tab.QSplitDetector.QSplitStateRead();
+    internal static void TSplitMissingAttach(QSplitTab tab, Action handler) =>
+        tab.QSplitWork.QSplitPresetMissing += handler;
+    internal static void TSplitRun(QSplitTab tab, bool urgent) => tab.QSplitWork.QSplitRun(urgent, default, default);
+    internal static IReadOnlyList<LDetectorKind> TSplitStepsRead(QSplitTab tab) =>
+        tab.QSplitDetector.QSplitStepsRead();
     internal static Task TSplitSweepStart(QSplitTab tab) => tab.QSplitSweep.QSplitSweepStart();
     internal static void TSplitSweepCancel(QSplitTab tab) => tab.QSplitSweep.QSplitSweepCancel();
     internal static bool TSplitSweepCheck(QSplitTab tab) => tab.QSplitSweep.QSplitSweepRunning;
@@ -144,9 +146,9 @@ internal static partial class TInterface
     internal static void TSensorModeSet(QSensor sensor, LDetectorStillMode mode) => sensor.QSensorModeSet(mode);
     internal static void TSensorSpeedSet(QSensor sensor, LDetectorLuminanceMode speed) => sensor.QSensorSpeedSet(speed);
     internal static void TSensorPersistentSet(QSensor sensor, bool persistent) =>
-        sensor.QSensorPersistentSet(persistent);
-    internal static string TSensorNameRead(LDetectorKind kind) => QSensor.QSensorNameRead(kind);
-    internal static LDetectorKind? TSensorKindRead(string? name) => QSensor.QSensorKindRead(name);
+        sensor.QSensorSweep.QSensorPersistentSet(persistent);
+    internal static string TSensorNameRead(LDetectorKind kind) => QSensorName.QSensorNameRead(kind);
+    internal static LDetectorKind? TSensorKindRead(string? name) => QSensorName.QSensorKindRead(name);
 
     internal static QFixTab TFixTabCreate(LPresetSelection preset, QViewer viewer, QList list) =>
         new(TAtelierCreate().CAtelierInspectorCreate(), preset, viewer, list, TAtelierCreate().CAtelierFix);

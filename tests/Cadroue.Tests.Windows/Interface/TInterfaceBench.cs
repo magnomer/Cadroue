@@ -198,12 +198,13 @@ internal static partial class TInterface
         QViewfinderText.QViewfinderChipResolve(cursor, textWidth, textHeight, width, height);
     internal static QViewfinderPoint TViewfinderPopupResolve(
         QViewfinder viewfinder, int index, double width, double height) =>
-        viewfinder.QViewfinderPopupResolve(index, width, height);
+        viewfinder.QViewfinderLayout.QViewfinderPopupResolve(index, width, height);
     internal static bool TViewfinderPressHandle(QViewfinder viewfinder, double x, double width) =>
-        viewfinder.QViewfinderPressHandle(x, width);
+        viewfinder.QViewfinderDrag.QViewfinderPressHandle(x, width);
     internal static bool TViewfinderMoveHandle(QViewfinder viewfinder, double x, double width) =>
-        viewfinder.QViewfinderMoveHandle(x, width);
-    internal static void TViewfinderDragClear(QViewfinder viewfinder) => viewfinder.QViewfinderDragClear();
+        viewfinder.QViewfinderDrag.QViewfinderMoveHandle(x, width);
+    internal static void TViewfinderDragClear(QViewfinder viewfinder) =>
+        viewfinder.QViewfinderDrag.QViewfinderDragClear();
 
     internal static void TTraceAttach(Action<LTraceEntry> handler) => LTrace.LTraceAppended += handler;
 

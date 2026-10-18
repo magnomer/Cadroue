@@ -63,14 +63,14 @@ public sealed class TViewerLoading
     [Fact]
     public async Task FlyleafApply_OpensCreatedEngine_AndCommitsPreview()
     {
-        (QViewer viewer, QViewerMedia media, List<string> opened) = TViewerBuild();
+        (QViewer viewer, _, List<string> opened) = TViewerBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, false);
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
-        await TInterfaceViewer.TViewerFlyleafApply(media, "clip.mp4", info, null, serial);
+        await TInterfaceViewer.TViewerFlyleafApply(viewer,"clip.mp4", info, null, serial);
 
         Assert.Equal(["clip.mp4"], opened);
         Assert.True(viewer.QPlayer.QPlayerReady);
@@ -87,14 +87,14 @@ public sealed class TViewerLoading
     [Fact]
     public async Task FlyleafApply_OpenThrows_CommitsPreviewError_NoEngine()
     {
-        (QViewer viewer, QViewerMedia media, _) = TViewerBuild(openFails: true);
+        (QViewer viewer, _, _) = TViewerBuild(openFails: true);
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, null);
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
-        await TInterfaceViewer.TViewerFlyleafApply(media, "clip.mp4", info, null, serial);
+        await TInterfaceViewer.TViewerFlyleafApply(viewer,"clip.mp4", info, null, serial);
 
         Assert.False(viewer.QPlayer.QPlayerReady);
         Assert.Single(cargos);
@@ -107,14 +107,14 @@ public sealed class TViewerLoading
     [Fact]
     public async Task FlyleafApply_StaleSerial_DiscardsWithoutCommit()
     {
-        (QViewer viewer, QViewerMedia media, List<string> opened) = TViewerBuild();
+        (QViewer viewer, _, List<string> opened) = TViewerBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
         TInterfaceViewer.TViewerSerialChange(viewer);
 
-        await TInterfaceViewer.TViewerFlyleafApply(media, "clip.mp4", info, null, serial);
+        await TInterfaceViewer.TViewerFlyleafApply(viewer,"clip.mp4", info, null, serial);
 
         Assert.Single(opened);
         Assert.Empty(cargos);
@@ -125,13 +125,13 @@ public sealed class TViewerLoading
     [Fact]
     public async Task FlyleafApply_AudioOnlyRefused_WhenTabForbids()
     {
-        (QViewer viewer, QViewerMedia media, List<string> opened) = TViewerBuild();
+        (QViewer viewer, _, List<string> opened) = TViewerBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         LMediaInfo info = TInterfaceViewer.TViewerAudioCreate(TimeSpan.FromSeconds(30));
         int serial = TInterfaceViewer.TViewerSerialChange(viewer);
 
-        await TInterfaceViewer.TViewerFlyleafApply(media, "song.mp3", info, null, serial);
+        await TInterfaceViewer.TViewerFlyleafApply(viewer,"song.mp3", info, null, serial);
 
         Assert.Empty(opened);
         Assert.Single(cargos);
@@ -150,7 +150,7 @@ public sealed class TViewerLoading
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, false);
         await TInterfaceViewer.TViewerFlyleafApply(
-            media, "clip.mp4", info, null, TInterfaceViewer.TViewerSerialChange(viewer));
+            viewer, "clip.mp4", info, null, TInterfaceViewer.TViewerSerialChange(viewer));
         TInterfaceViewer.TViewerCommandSet(viewer, false);
 
         Assert.False(TInterfaceViewer.TViewerMediaClose(media, false));
@@ -190,7 +190,7 @@ public sealed class TViewerLoading
         LMediaInfo info = TInterfaceViewer.TViewerInfoCreate(TimeSpan.FromSeconds(30), 1280, 720);
         TInterfaceViewer.TViewerIntentSet(viewer, "clip.mp4", TimeSpan.Zero, true);
         await TInterfaceViewer.TViewerFlyleafApply(
-            media, "clip.mp4", info, null, TInterfaceViewer.TViewerSerialChange(viewer));
+            viewer, "clip.mp4", info, null, TInterfaceViewer.TViewerSerialChange(viewer));
         Assert.True(viewer.QViewerPlaying);
 
         TInterfaceViewer.TViewerCommandApply(media, false);

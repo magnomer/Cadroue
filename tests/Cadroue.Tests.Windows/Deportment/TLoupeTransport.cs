@@ -28,20 +28,20 @@ public sealed class TLoupeTransport
             TInterface.TLoupeFloatSet(loupe, QSLoupeFloat.QSLoupeFloatTop);
 
             Assert.Equal("Top", TInterface.TPreferenceCurrentRead().LPreferenceLoupeFloat);
-            Assert.True(loupe.QSLoupeOwned);
-            Assert.True(loupe.QSLoupeTopmost);
+            Assert.True(loupe.QSLoupeFloatChoice.QSLoupeOwned);
+            Assert.True(loupe.QSLoupeFloatChoice.QSLoupeTopmost);
             Assert.Equal(1, changes);
             Assert.Equal(
                 [false, false, true],
                 TInterface.TLoupeButtonsRead(loupe).Select(button => button.QSLoupeButtonSelected));
 
             TInterface.TLoupeFloatSet(loupe, QSLoupeFloat.QSLoupeFloatOff);
-            Assert.False(loupe.QSLoupeOwned);
-            Assert.False(loupe.QSLoupeTopmost);
+            Assert.False(loupe.QSLoupeFloatChoice.QSLoupeOwned);
+            Assert.False(loupe.QSLoupeFloatChoice.QSLoupeTopmost);
 
             QSLoupe restored = TInterface.TLoupeCreate();
             TInterface.TLoupeFloatRestore(restored);
-            Assert.Equal(QSLoupeFloat.QSLoupeFloatOff, restored.QSLoupeFloat);
+            Assert.Equal(QSLoupeFloat.QSLoupeFloatOff, restored.QSLoupeFloatChoice.QSLoupeFloat);
         }
         finally
         {

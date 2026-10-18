@@ -146,10 +146,11 @@ public sealed partial class PInspector
 
     private void PSensorRunAttach()
     {
-        PInspectorSwitchAttach(pSensorRunPersistent, QSensor.QSensorPersistentSet);
-        QSensor.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
-        QSensor.QSensorRunningChanged += _ => pSensorRunButton.Content = QSensor.QSensorRunText;
-        pSensorRunButton.Click += (_, _) => QSensor.QSensorRunHandle();
+        QSensorSweep pSweep = QSensor.QSensorSweep;
+        PInspectorSwitchAttach(pSensorRunPersistent, pSweep.QSensorPersistentSet);
+        pSweep.QSensorPersistentChanged += pPersistent => PInspectorSwitchUpdate(pSensorRunPersistent, pPersistent);
+        pSweep.QSensorRunningChanged += _ => pSensorRunButton.Content = pSweep.QSensorRunText;
+        pSensorRunButton.Click += (_, _) => pSweep.QSensorRunHandle();
     }
 
     private Border PSensorStripBuild()
@@ -161,7 +162,7 @@ public sealed partial class PInspector
 
         pSensorRunButton = new Button
         {
-            Content = QSensor.QSensorRunText,
+            Content = QSensor.QSensorSweep.QSensorRunText,
             Height = 28,
             MinWidth = 90,
             FontSize = 12,

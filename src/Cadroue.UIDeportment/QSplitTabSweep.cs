@@ -11,19 +11,16 @@ public sealed class QSplitTabSweep
 
     private readonly QInspector qSplitInspector;
     private readonly QList qSplitList;
-    private readonly LDocket qSplitDocket;
     private readonly QFlow qSplitFlow;
     private CancellationTokenSource? qSplitSweepSource;
 
     public QSplitTabSweep(
         QInspector lInspector,
         QList lList,
-        LDocket lDocket,
         QFlow lFlow)
     {
         qSplitInspector = lInspector;
         qSplitList = lList;
-        qSplitDocket = lDocket;
         qSplitFlow = lFlow;
     }
 
@@ -33,22 +30,12 @@ public sealed class QSplitTabSweep
 
     public bool QSplitSweepRunning => qSplitSweepSource is not null;
 
-    public IReadOnlyList<LDetectorKind> QSplitStepsRead()
-    {
-        QSensor lSensor = qSplitInspector.QInspectorSensor;
-        return LDetector.LDetectorKinds
-            .Where(lKind => lKind == LDetectorKind.LDetectorKindBlank
-                ? qSplitInspector.QInspectorBlank.QBlankStep.LDetectorBlankEnabled
-                : lSensor.QSensorStepRead(lKind).LDetectorStepEnabled)
-            .ToArray();
-    }
-
     public void QSplitSweepCancel() => qSplitSweepSource?.Cancel();
 
     public async Task QSplitSweepStart()
     {
         if (qSplitSweepSource is not null
-            || QSplitSelectedRead() is not { } lSelected
+            || QSplitTabWork.QSplitSelectedRead(qSplitList) is not { } lSelected
             || qSplitFlow.QFlowRange is null)
         {
             return;
@@ -66,14 +53,18 @@ public sealed class QSplitTabSweep
 
         var lSource = new CancellationTokenSource();
         QSplitSweepSet(lSource);
-        qSplitInspector.QInspectorSensor.QSensorRunningSet(true);
+        qSplitInspector.QInspectorSensor.QSensorSweep.QSensorRunningSet(true);
         QSplitBusyApplied?.Invoke(true);
         QSplitProgressApplied?.Invoke(0);
         try
         {
             // The gate turns the editable switch off for the scan and back by the lock, then applies the result.
             if (!await qSplitFlow.QFlowSection.QFlowSectionGate.CSectionSweepRun(
-                    () => QSplitStepsRun(lSteps, lSource.Token), lExcluded, lKept, lBoundaries, QSplitLockedCheck))
+                    () => QSplitStepsRun(lSteps, lSource.Token),
+                    lExcluded,
+                    lKept,
+                    lBoundaries,
+                    qSplitList.QListLockCheck))
             {
                 QSplitFailRaised?.Invoke(
                     QLocalizationCatalog.QLocalizationTextRead("Inspector.Detect.FailTitle"),
@@ -93,7 +84,7 @@ public sealed class QSplitTabSweep
         finally
         {
             QSplitBusyApplied?.Invoke(false);
-            qSplitInspector.QInspectorSensor.QSensorRunningSet(false);
+            qSplitInspector.QInspectorSensor.QSensorSweep.QSensorRunningSet(false);
             QSplitSweepSet(null);
             lSource.Dispose();
         }
@@ -211,13 +202,4 @@ public sealed class QSplitTabSweep
 
         return lSteps;
     }
-
-    private bool QSplitLockedCheck() =>
-        qSplitList.QListPathCurrent is { } lPath && qSplitDocket.LDocketLockCheck(lPath);
-
-    private LDocketEntry? QSplitSelectedRead() =>
-        qSplitList.QListPathCurrent is { } lPath
-        && qSplitDocket.LDocketItemFind(lPath) is { LDocketEntryLocked: false } lItem
-            ? lItem
-            : null;
 }

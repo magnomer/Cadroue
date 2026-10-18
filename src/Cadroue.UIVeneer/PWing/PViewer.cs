@@ -191,8 +191,8 @@ public sealed class PViewer : UserControl
         QViewer.QViewerAudio.QViewerBypassChanged += PViewerBypassHandle;
         QViewer.QViewerRenderer.QViewerHostApplied += PViewerHostApply;
         QViewer.QViewerMedia.QViewerPlayerCreated += PViewerPlayerCreate;
-        QViewer.QViewerSource.QViewerSourceAsk += PViewerAskHandle;
-        QViewer.QViewerSource.QViewerSourceLocate += PViewerAsk.PViewerAskOpen;
+        QViewer.QViewerSource.QViewerSidecar.QViewerSourceAsk += PViewerAskHandle;
+        QViewer.QViewerSource.QViewerSidecar.QViewerSourceLocate += PViewerAsk.PViewerAskOpen;
         QViewer.QViewerHost.QViewerFactsAttach(PViewerFactsRead);
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineShow;
         Cadroue.Infrastructure.LRenderer.LRendererEngineChanged += PViewerEngineHandle;
@@ -239,8 +239,8 @@ public sealed class PViewer : UserControl
 
     private void PViewerEngineShow()
     {
-        QViewerEnginePlan lPlan = QViewer.QViewerRenderer.QViewerEngineRead();
-        Action<string> lSelect = QViewer.QViewerRenderer.QViewerEngineSelect;
+        QViewerEnginePlan lPlan = QViewerEnginePreference.QViewerEngineRead();
+        Action<string> lSelect = QViewerEnginePreference.QViewerEngineSelect;
         pViewerEngineSurface.Child = PViewerEngine.PViewerEngineBuild(lPlan, lSelect);
         pViewerEngineOverlay.Child = PViewerEngine.PViewerEngineBuild(lPlan, lSelect);
     }
@@ -320,7 +320,7 @@ public sealed class PViewer : UserControl
 
     private void PViewerDragAccept(object pSender, DragEventArgs pEvent)
     {
-        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDropResolve(
+        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDrop.QViewerDropResolve(
             pEvent.Data.GetData(DataFormats.FileDrop) as string[],
             pEvent.AllowedEffects.HasFlag(DragDropEffects.Copy))];
         pEvent.Handled = true;
@@ -328,7 +328,7 @@ public sealed class PViewer : UserControl
 
     private void PViewerDropHandle(object pSender, DragEventArgs pEvent)
     {
-        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDropHandle(
+        pEvent.Effects = PLook.PLookDropEffect[QViewer.QViewerSource.QViewerDrop.QViewerDropHandle(
             pEvent.Data.GetData(DataFormats.FileDrop) as string[],
             pEvent.AllowedEffects.HasFlag(DragDropEffects.Copy))];
         pEvent.Handled = true;

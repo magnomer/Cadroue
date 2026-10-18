@@ -30,9 +30,6 @@ public sealed class QSOptions
     private readonly CUsher qsOptionsUsher;
     private readonly LPreferenceState qsOptionsDraft;
     private QSOptionsPage qsOptionsPage;
-    private bool qsOptionsMpvEnabled;
-
-    public event Action<bool>? QSOptionsMpvChanged;
 
     public QSOptions(CUsher lUsher)
         : this(lUsher, LPreference.LPreferenceStateCurrent.LPreferenceClone(), LMpvAvailability.LMpvAvailableCheck())
@@ -43,14 +40,14 @@ public sealed class QSOptions
     {
         qsOptionsUsher = lUsher;
         qsOptionsDraft = lDraft;
-        qsOptionsMpvEnabled = lMpvEnabled;
+        QSOptionsMpv = new QSOptionsMpv(lMpvEnabled);
     }
 
     public LPreferenceState QSOptionsDraft => qsOptionsDraft;
 
     public QSOptionsPage QSOptionsPage => qsOptionsPage;
 
-    public bool QSOptionsMpvEnabled => qsOptionsMpvEnabled;
+    public QSOptionsMpv QSOptionsMpv { get; }
 
     public void QSOptionsPageSelect(QSOptionsPage lPage) => qsOptionsPage = lPage;
 
@@ -67,34 +64,10 @@ public sealed class QSOptions
         string.IsNullOrWhiteSpace(lFolder) ? lFallback : lFolder;
 
     public string QSOptionsEngineRead() =>
-        qsOptionsMpvEnabled && string.Equals(qsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
+        QSOptionsMpv.QSOptionsMpvEnabled
+        && string.Equals(qsOptionsDraft.LPreferencePreviewEngine, "Mpv", StringComparison.Ordinal)
             ? "Mpv"
             : "Flyleaf";
-
-    public void QSOptionsMpvSet(bool lEnabled)
-    {
-        qsOptionsMpvEnabled = lEnabled;
-        QSOptionsMpvChanged?.Invoke(lEnabled);
-    }
-
-    public async Task QSOptionsMpvUpdate()
-    {
-        bool lUsable = await QSOptionsUsableCheck();
-        QSOptionsMpvSet(lUsable);
-    }
-
-    private static async Task<bool> QSOptionsUsableCheck()
-    {
-        try
-        {
-            return await LRenderer.LRendererMpvCheck();
-        }
-        catch (Exception lException)
-        {
-            LTraceLog.LTraceErrorRecord("Options mpv check failed", lException);
-            return false;
-        }
-    }
 
     public static string QSOptionsMpvResolve() =>
         LMpvInstall.LMpvInstalledCheck() ? "Options.System.ReinstallMpv" : "Options.System.DownloadMpv";

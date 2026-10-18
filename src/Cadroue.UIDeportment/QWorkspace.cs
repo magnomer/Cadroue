@@ -4,15 +4,14 @@ using System.Windows.Media;
 using Cadroue.Application;
 using Cadroue.Conduct;
 using Cadroue.Core;
-using Cadroue.Media;
 using Cadroue.ShellEngine;
 
 namespace Cadroue.UIDeportment;
 
+// One tab's driver: builds the tab's drivers by its key, keeps its preset in step with the preset owner, and attaches
+// and closes them with the tab.
 public sealed class QWorkspace
 {
-    private readonly LHistory qWorkspaceHistory = new();
-    private readonly CWorkspace qWorkspaceGate;
     private readonly QWorkspacePair? qWorkspacePair;
     private Func<LSceneTabEntry>? qWorkspaceLayoutSource;
 
@@ -20,7 +19,6 @@ public sealed class QWorkspace
     public QWorkspace(string lKey, CWorkspace lWorkspace, CAtelier lAtelier)
     {
         CUsher lUsher = lAtelier.CAtelierUsher;
-        qWorkspaceGate = lWorkspace;
         QWorkspaceKey = lKey;
         QWorkspaceFacts = new QWorkspaceFacts(lKey);
         QWorkspaceRoster = QWorkspaceFacts.QWorkspaceWorklist
@@ -28,7 +26,7 @@ public sealed class QWorkspace
             : null;
         QWorkspaceList = QWorkspaceFacts.QWorkspaceListPresent ? new QList(lAtelier) : null;
         qWorkspacePair = QWorkspaceFacts.QWorkspaceFlowPresent
-            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lAtelier.CAtelierInfo, qWorkspaceGate)
+            ? new QWorkspacePair(QWorkspaceFacts, lUsher, lAtelier.CAtelierInfo, lWorkspace)
             : null;
         QWorkspacePreset = LPresetTable.LPresetInitialCreate(lKey);
         QWorkspacePresetOwner = new LPresetSelection(string.Empty, lKey);
@@ -38,14 +36,15 @@ public sealed class QWorkspace
         QWorkspaceMode = new QWorkspaceMode(
             QWorkspaceFacts, lAtelier, QWorkspacePresetOwner, QWorkspaceViewer, QWorkspaceList, QWorkspaceFlow);
         QWorkspaceRelay = new QWorkspaceRelay(this);
+        QWorkspaceMedia = new QWorkspaceMedia(this, lWorkspace);
+        QWorkspaceHistory = new QWorkspaceHistory(this);
     }
 
-    public event Action<LMediaInfo, string>? QWorkspaceFlowAttached;
-    public event Action? QWorkspaceFlowCleared;
-    public event Action? QWorkspaceMediaClosed;
-    public event Action? QWorkspaceLosslesscutFound;
-
     public string QWorkspaceKey { get; }
+
+    public QWorkspaceMedia QWorkspaceMedia { get; }
+
+    public QWorkspaceHistory QWorkspaceHistory { get; }
 
     public QWorkspaceFacts QWorkspaceFacts { get; }
 
@@ -106,8 +105,7 @@ public sealed class QWorkspace
     public void QWorkspaceAttach(Func<LSceneTabEntry> lLayoutSource)
     {
         QWorkspaceHandlersAttach(lLayoutSource);
-        QWorkspaceHistoryReset();
-        QWorkspaceHistoryAttach();
+        QWorkspaceHistory.QWorkspaceHistoryAttach();
     }
 
     private void QWorkspacePresetAttach() => QWorkspacePresetOwner.LPresetSelectionChanged += QWorkspacePresetHandle;
@@ -117,25 +115,23 @@ public sealed class QWorkspace
         qWorkspaceLayoutSource = lLayoutSource;
         if (QWorkspaceViewer is { } lViewer)
         {
-            lViewer.QViewerMediaChanged += QWorkspaceMediaHandle;
+            lViewer.QViewerMediaChanged += QWorkspaceMedia.QWorkspaceMediaHandle;
         }
 
         if (QWorkspaceFlow is { } lFlow)
         {
-            lFlow.QFlowSection.QFlowSectionChanged += QWorkspaceSectionHandle;
-            lFlow.QFlowMediaChanged += QWorkspaceHistoryReset;
+            lFlow.QFlowSection.QFlowSectionChanged += QWorkspaceHistory.QWorkspaceSectionHandle;
+            lFlow.QFlowMediaChanged += QWorkspaceHistory.QWorkspaceHistoryReset;
         }
 
         if (QWorkspaceList is { } lList)
         {
-            lList.QListPathChanged += QWorkspacePathHandle;
-            lList.QListClearChanged += QWorkspaceRemovedHandle;
+            lList.QListPathChanged += QWorkspaceMedia.QWorkspacePathHandle;
+            lList.QListClearChanged += QWorkspaceMedia.QWorkspaceRemovedHandle;
         }
 
         qWorkspacePair?.QWorkspacePairAttach();
     }
-
-    private void QWorkspaceHistoryAttach() => QWorkspacePreset.LPresetChanged += QWorkspaceHistoryAdd;
 
     public void QWorkspaceClose()
     {
@@ -156,13 +152,13 @@ public sealed class QWorkspace
     {
         if (QWorkspaceViewer is not null)
         {
-            QWorkspaceViewer.QViewerMediaChanged -= QWorkspaceMediaHandle;
+            QWorkspaceViewer.QViewerMediaChanged -= QWorkspaceMedia.QWorkspaceMediaHandle;
         }
 
         if (QWorkspaceFlow is not null)
         {
-            QWorkspaceFlow.QFlowSection.QFlowSectionChanged -= QWorkspaceSectionHandle;
-            QWorkspaceFlow.QFlowMediaChanged -= QWorkspaceHistoryReset;
+            QWorkspaceFlow.QFlowSection.QFlowSectionChanged -= QWorkspaceHistory.QWorkspaceSectionHandle;
+            QWorkspaceFlow.QFlowMediaChanged -= QWorkspaceHistory.QWorkspaceHistoryReset;
         }
 
         qWorkspacePair?.QWorkspacePairDetach();
@@ -170,7 +166,7 @@ public sealed class QWorkspace
 
     private void QWorkspacePresetDetach()
     {
-        QWorkspacePreset.LPresetChanged -= QWorkspaceHistoryAdd;
+        QWorkspaceHistory.QWorkspaceHistoryDetach();
         QWorkspacePresetOwner.LPresetSelectionChanged -= QWorkspacePresetHandle;
     }
 
@@ -180,110 +176,6 @@ public sealed class QWorkspace
 
     public LSceneTabEntry QWorkspaceLayoutRead() => qWorkspaceLayoutSource?.Invoke() ?? new LSceneTabEntry();
 
-    public LHistoryEntry QWorkspaceSnapshotRead() => new(
-        QWorkspaceSegment?.LSegmentListRead() ?? Array.Empty<LPiece>(),
-        QWorkspaceSegment?.LSegmentSelectionRead(),
-        QWorkspacePreset.LPresetRecordCreate());
-
-    public void QWorkspaceSectionHandle(IReadOnlyList<LPiece> lSections, int? lSectionSelect) => QWorkspaceHistoryAdd();
-
-    public void QWorkspaceHistoryAdd() => qWorkspaceHistory.LHistoryAdd(QWorkspaceSnapshotRead());
-
-    public void QWorkspaceHistoryReset() => qWorkspaceHistory.LHistoryReset(QWorkspaceSnapshotRead());
-
-    public bool QWorkspaceUndo() =>
-        QWorkspaceEditableCheck() && QWorkspaceSnapshotApply(qWorkspaceHistory.LHistoryUndo());
-
-    public bool QWorkspaceRedo() =>
-        QWorkspaceEditableCheck() && QWorkspaceSnapshotApply(qWorkspaceHistory.LHistoryRedo());
-
-    public void QWorkspacePathHandle(string? lPath)
-    {
-        if (string.IsNullOrWhiteSpace(lPath))
-        {
-            QWorkspaceMediaClosed?.Invoke();
-        }
-    }
-
-    public void QWorkspaceRemovedHandle(IReadOnlyList<string> lRemovedPaths)
-    {
-        (bool lCancelled, bool lClosed) = qWorkspaceGate.CWorkspaceRemovalRead(lRemovedPaths);
-        if (lCancelled)
-        {
-            QWorkspaceLoadCancel();
-        }
-
-        if (lClosed)
-        {
-            QWorkspaceMediaClosed?.Invoke();
-        }
-    }
-
-    public bool QWorkspaceMediaClear(IReadOnlySet<Guid> lCohorts)
-    {
-        string[] lKept = QWorkspaceKeptRead(lCohorts);
-        (bool lClosed, bool lCancelled, bool lCleared) = qWorkspaceGate.CWorkspaceClearRead(lKept);
-        if (lClosed)
-        {
-            QWorkspaceMediaClosed?.Invoke();
-        }
-
-        if (lCancelled)
-        {
-            QWorkspaceLoadCancel();
-        }
-
-        int lStaleRemoved = QWorkspaceDocket?.LDocketStaleRemove(lCohorts) ?? 0;
-        return lCleared || lStaleRemoved > 0;
-    }
-
-    private string[] QWorkspaceKeptRead(IReadOnlySet<Guid> lCohorts) =>
-        QWorkspaceDocket?.LDocketProtectedRead(lCohorts)
-            .Select(lEntry => lEntry.LDocketEntryPath)
-            .ToArray() ?? [];
-
-    private void QWorkspaceMediaHandle(LCargo lCargo)
-    {
-        QWorkspaceLosslesscutHandle(lCargo);
-        QWorkspaceFlowHandle(lCargo);
-        QWorkspaceRelay.QWorkspaceRelayHandle(lCargo);
-    }
-
-    private void QWorkspaceFlowHandle(LCargo lCargo)
-    {
-        if (QWorkspaceFlow is null)
-        {
-            return;
-        }
-
-        if (lCargo.LCargoMediaInfo is { } lMediaInfo)
-        {
-            QWorkspaceFlowAttached?.Invoke(lMediaInfo, lCargo.LCargoSourcePath);
-            return;
-        }
-
-        QWorkspaceFlowCleared?.Invoke();
-    }
-
-    private void QWorkspaceLosslesscutHandle(LCargo lCargo)
-    {
-        if (QWorkspaceFlow is not { } lFlow || !QWorkspaceFacts.QWorkspaceSectionVisible)
-        {
-            return;
-        }
-
-        if (lCargo.LCargoMediaInfo is null || string.IsNullOrWhiteSpace(lCargo.LCargoSourcePath))
-        {
-            lFlow.QFlowStamp.QFlowLosslesscutSet(string.Empty);
-            return;
-        }
-
-        if (lFlow.QFlowStamp.QFlowLosslesscutSet(LLosslesscut.LLosslesscutPathNormalize(lCargo.LCargoSourcePath)))
-        {
-            QWorkspaceLosslesscutFound?.Invoke();
-        }
-    }
-
     public void QWorkspacePresetAccept(LPreset lPreset)
     {
         QWorkspacePresetOwner.LPresetSelectionAccept(lPreset.LPresetRecordCreate(), lPreset.LPresetName);
@@ -292,40 +184,4 @@ public sealed class QWorkspace
 
     private void QWorkspacePresetHandle() =>
         QWorkspacePreset.LPresetCopy(LPreset.LPresetStateCreate(QWorkspacePresetOwner.LPresetSelectionValue));
-
-    private bool QWorkspaceEditableCheck() => QWorkspaceFlow is null || QWorkspaceFlow.QFlowEdit.QFlowSectionEditable;
-
-    private bool QWorkspaceSnapshotApply(LHistoryEntry? lEntry)
-    {
-        if (lEntry is null)
-        {
-            return false;
-        }
-
-        qWorkspaceHistory.LHistorySuspend();
-        try
-        {
-            QWorkspaceSectionsSet(lEntry.LHistorySections, lEntry.LHistorySectionIndex);
-            QWorkspacePresetOwner.LPresetSelectionValue = lEntry.LHistoryExport;
-        }
-        finally
-        {
-            qWorkspaceHistory.LHistoryResume();
-        }
-
-        return true;
-    }
-
-    private void QWorkspaceSectionsSet(IReadOnlyList<LPiece> lSections, int? lSectionSelect)
-    {
-        if (QWorkspaceFlow is not { } lFlow || QWorkspaceSegment is not { } lSegment
-            || !lFlow.QFlowEdit.QFlowSectionEditable || lFlow.QFlowRange is null)
-        {
-            return;
-        }
-
-        lSegment.LSegmentBoundSet(lSections, lSectionSelect, lFlow.QFlowDuration);
-    }
-
-    private void QWorkspaceLoadCancel() => QWorkspaceViewer?.QViewerMedia.QViewerLoadCancel();
 }

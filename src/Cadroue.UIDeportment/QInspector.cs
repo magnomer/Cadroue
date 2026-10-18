@@ -115,15 +115,16 @@ public sealed class QInspector
 
     public bool QInspectorPersistentShown => qInspectorTitles.Keys.Any(QInspectorSectionCheck);
 
-    public bool QInspectorEmptyShown => !QInspectorPersistentShown && QSensor.QSensorKindRead(qInspectorStep) is null;
+    public bool QInspectorEmptyShown =>
+        !QInspectorPersistentShown && QSensorName.QSensorKindRead(qInspectorStep) is null;
 
     public bool QInspectorSectionCheck(string lKey) =>
-        qInspectorStep == lKey && !(lKey == "Volume" && QSensor.QSensorKindRead(qInspectorStep) is not null);
+        qInspectorStep == lKey && !(lKey == "Volume" && QSensorName.QSensorKindRead(qInspectorStep) is not null);
 
-    public bool QInspectorSensorCheck(LDetectorKind lKind) => QSensor.QSensorKindRead(qInspectorStep) == lKind;
+    public bool QInspectorSensorCheck(LDetectorKind lKind) => QSensorName.QSensorKindRead(qInspectorStep) == lKind;
 
     public string QInspectorTitleRead() => QLocalizationCatalog.QLocalizationTextRead(
-        QSensor.QSensorKindRead(qInspectorStep) is { } lKind
+        QSensorName.QSensorKindRead(qInspectorStep) is { } lKind
             ? qInspectorSensorTitles[lKind]
             : qInspectorTitles.GetValueOrDefault(qInspectorStep ?? string.Empty, "Inspector.Header.Title"));
 

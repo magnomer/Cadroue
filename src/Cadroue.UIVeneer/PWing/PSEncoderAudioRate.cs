@@ -11,8 +11,8 @@ internal sealed partial class PSEncoder
     private void PSAudioRowsRebuild()
     {
         PSAudioRowsClear();
-        LCapabilityCodec pCodec = lsEncoder.QSEncoderAudioCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderAudioRate);
+        LCapabilityCodec pCodec = lsEncoder.QSEncoderAudio.QSEncoderAudioCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderAudio.QSEncoderAudioRate);
         bool pModeStored = PSAudioModeCheck(pMode);
 
         PSAudioQualityBuild(pMode, pModeStored);

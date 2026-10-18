@@ -89,7 +89,7 @@ public sealed class QWindowScene
         }
 
         QWindowSlotsApply(lScene.LSceneTabRelays);
-        qStrip.QStripTitleUpdate();
+        qStrip.QStripTitle.QStripTitleUpdate();
         QWindowSceneRestored?.Invoke();
         qStrip.QStripSelect(QWindowSelectedResolve(lScene.LSceneTabIndex));
     }

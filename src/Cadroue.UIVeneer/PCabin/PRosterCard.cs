@@ -185,7 +185,7 @@ internal static class PRosterCard
             pGlyph,
             PRosterTheme.PRosterFailBrush);
         pButton.MouseLeave += (_, _) => PRosterGlyphApply(pButton, Brushes.Transparent, pGlyph, pControlBrush);
-        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterRemove(lCard.QRosterCardBatch);
+        pButton.MouseLeftButtonUp += (_, _) => lRoster.QRosterRemoval.QRosterRemove(lCard.QRosterCardBatch);
     }
 
     private static void PRosterGlyphApply(Border pButton, Brush pFill, TextBlock pGlyph, Brush pGlyphBrush)

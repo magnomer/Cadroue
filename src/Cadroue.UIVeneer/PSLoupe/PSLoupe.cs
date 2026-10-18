@@ -77,7 +77,7 @@ internal sealed class PSLoupe : Window
     {
         QSLoupe = lLoupe;
         psLoupeOwners = PSLoupeOwnerCreate(pOwner);
-        QSLoupe.QSLoupeFloatRestore();
+        QSLoupe.QSLoupeFloatChoice.QSLoupeFloatRestore();
         PSLoupeWindowApply(pOwner);
         QScrollbar.QScrollbarAttach(this);
         psLoupeFlyleafHost = PSLoupeFlyleafBuild();
@@ -86,7 +86,7 @@ internal sealed class PSLoupe : Window
         psLoupePlayButton = PSLoupePlayBuild(psLoupePlayImage);
         PSLoupePlayAttach();
         QButton.QButtonAttach(psLoupePlayButton, QButtonLook.QButtonLookPanel);
-        psLoupeSegments = QSLoupe.QSLoupeButtonsRead().ToDictionary(
+        psLoupeSegments = QSLoupe.QSLoupeFloatChoice.QSLoupeButtonsRead().ToDictionary(
             lButton => lButton.QSLoupeButtonKind, PSLoupeSegmentBuild);
         Content = PSDialog.PSDialogBuild(this, Title, PSLoupeBodyBuild());
         PSLoupePlayApply(QSLoupe.QSLoupePlaying);
@@ -149,7 +149,7 @@ internal sealed class PSLoupe : Window
     {
         psLoupeClock.Tick += PSLoupeClockHandle;
         QSLoupe.QSLoupePlayingChanged += PSLoupePlayApply;
-        QSLoupe.QSLoupeFloatChanged += PSLoupeFloatApply;
+        QSLoupe.QSLoupeFloatChoice.QSLoupeFloatChanged += PSLoupeFloatApply;
         QSLoupe.QSLoupeEngineCreated += PSLoupeEngineCreate;
         QSLoupe.QSLoupeCloseApplied += Close;
     }
@@ -158,7 +158,7 @@ internal sealed class PSLoupe : Window
     {
         psLoupeClock.Tick -= PSLoupeClockHandle;
         QSLoupe.QSLoupePlayingChanged -= PSLoupePlayApply;
-        QSLoupe.QSLoupeFloatChanged -= PSLoupeFloatApply;
+        QSLoupe.QSLoupeFloatChoice.QSLoupeFloatChanged -= PSLoupeFloatApply;
         QSLoupe.QSLoupeEngineCreated -= PSLoupeEngineCreate;
         QSLoupe.QSLoupeCloseApplied -= Close;
     }
@@ -240,21 +240,21 @@ internal sealed class PSLoupe : Window
     };
 
     private void PSLoupeSegmentAttach(Button pButton, QSLoupeButton lButton) =>
-        pButton.Click += (_, _) => QSLoupe.QSLoupeFloatSet(lButton.QSLoupeButtonKind);
+        pButton.Click += (_, _) => QSLoupe.QSLoupeFloatChoice.QSLoupeFloatSet(lButton.QSLoupeButtonKind);
 
     private void PSLoupeSegmentApply(QSLoupeButton lButton) =>
         psLoupeSegments[lButton.QSLoupeButtonKind].Background = psLoupeSegmentFills[lButton.QSLoupeButtonSelected];
 
     private void PSLoupeFloatApply()
     {
-        QSLoupe.QSLoupeButtonsRead().ToList().ForEach(PSLoupeSegmentApply);
+        QSLoupe.QSLoupeFloatChoice.QSLoupeButtonsRead().ToList().ForEach(PSLoupeSegmentApply);
         PSLoupeOwnerApply();
     }
 
     private void PSLoupeOwnerApply()
     {
-        Owner = psLoupeOwners[QSLoupe.QSLoupeOwned];
-        Topmost = QSLoupe.QSLoupeTopmost;
+        Owner = psLoupeOwners[QSLoupe.QSLoupeFloatChoice.QSLoupeOwned];
+        Topmost = QSLoupe.QSLoupeFloatChoice.QSLoupeTopmost;
     }
 
     private void PSLoupePlayApply(bool lPlaying)

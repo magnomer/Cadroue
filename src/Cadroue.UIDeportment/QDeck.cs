@@ -64,7 +64,7 @@ public sealed class QDeck
             return;
         }
 
-        lStripTab.QStripTabWorkspace.QWorkspaceFrame?.QWorkspaceFrameClose();
+        lStripTab.QStripTabWorkspace.QWorkspaceFrame?.QWorkspaceTeardown.QWorkspaceFrameClose();
     }
 
     public void QDeckAllClose() => qStrip.QStripTabs.ToList().ForEach(QDeckSurfaceClose);

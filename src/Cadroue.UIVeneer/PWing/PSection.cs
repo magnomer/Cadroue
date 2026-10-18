@@ -185,7 +185,7 @@ public sealed class PSection : UserControl
     }
 
     private void PSectionNumberApply(PSectionRow pRow) =>
-        pRow.PSectionNumberSet(QSection.QSectionNumberRead(PSectionIndexRead(pRow)));
+        pRow.PSectionNumberSet(QSectionRow.QSectionNumberRead(PSectionIndexRead(pRow)));
 
     private Border? PSectionDragRead() =>
         pSectionRowPanel.Children.OfType<Border>().ElementAtOrDefault(QSection.QSectionDrag.QSectionDragRead());

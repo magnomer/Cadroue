@@ -158,12 +158,13 @@ internal static partial class TInterface
         sensor.QSensorPreset.QSensorChoiceRead(kind);
     internal static void TSensorChoiceSelect(QSensor sensor, LDetectorKind kind, int index) =>
         sensor.QSensorPreset.QSensorChoiceSelect(kind, index);
-    internal static void TSensorRunningSet(QSensor sensor, bool running) => sensor.QSensorRunningSet(running);
-    internal static void TSensorRunHandle(QSensor sensor) => sensor.QSensorRunHandle();
+    internal static void TSensorRunningSet(QSensor sensor, bool running) =>
+        sensor.QSensorSweep.QSensorRunningSet(running);
+    internal static void TSensorRunHandle(QSensor sensor) => sensor.QSensorSweep.QSensorRunHandle();
     internal static void TSensorRunAttach(QSensor sensor, Action run, Action stop)
     {
-        sensor.QSensorRunApplied += run;
-        sensor.QSensorStopApplied += stop;
+        sensor.QSensorSweep.QSensorRunApplied += run;
+        sensor.QSensorSweep.QSensorStopApplied += stop;
     }
 
     internal static IReadOnlyList<QInspectorRow> TLoudnessRowsRead(CLoudness loudness, bool dynamic) =>
@@ -267,13 +268,13 @@ internal static partial class TInterface
     internal static bool TSectionRenameHandle(QSection section, int index, int clicks) =>
         section.QSectionRenameHandle(index, clicks);
     internal static void TSectionTextSet(QSection section, string name, string prefix, string suffix) =>
-        section.QSectionTextSet(name, prefix, suffix);
+        section.QSectionEdit.QSectionTextSet(name, prefix, suffix);
     internal static int? TSectionEditRead(QSection section) =>
         section.QFlow.QFlowSection.QFlowSectionGate.CSectionList.CSectionEdit.CSectionEditIndex;
     internal static int? TSectionDragRead(QSection section) =>
         section.QFlow.QFlowSection.QFlowSectionGate.CSectionList.CSectionDrag.CSectionDragIndex;
-    internal static bool TSectionKeyRun(QSection section, string key) => section.QSectionKeyRun(key);
+    internal static bool TSectionKeyRun(QSection section, string key) => section.QSectionEdit.QSectionKeyRun(key);
     internal static void TSectionBlurHandle(QSection section, int serial, bool inside) =>
-        section.QSectionBlurHandle(serial, inside);
+        section.QSectionEdit.QSectionBlurHandle(serial, inside);
     internal static bool TSectionStepCheck(string text) => QSection.QSectionStepCheck(text);
 }

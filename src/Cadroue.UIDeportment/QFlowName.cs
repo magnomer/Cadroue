@@ -38,7 +38,8 @@ public sealed class QFlowName
 
     // The prompt's place over the section the open rename shows, in a host of this size.
     public QViewfinderPoint QFlowPopupResolve(double lWidth, double lHeight) =>
-        qFlow.QFlowViewfinder.QViewfinderPopupResolve(qFlowNameGate.CFlowNameIndex ?? -1, lWidth, lHeight);
+        qFlow.QFlowViewfinder.QViewfinderLayout.QViewfinderPopupResolve(
+            qFlowNameGate.CFlowNameIndex ?? -1, lWidth, lHeight);
 
     private void QFlowNameRaise() =>
         QFlowNameShown?.Invoke(new QFlowNamePrompt(

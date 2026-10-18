@@ -9,18 +9,13 @@ namespace Cadroue.UIDeportment;
 
 public sealed class QStrip
 {
-    private const string QStripDefaultKey = "Split";
-    private static readonly string[] QStripKeys =
-        ["Split", "Edit", "Fix", "Audio", "Convert", "Merge", "Funnel", "Worklist"];
     private readonly ObservableCollection<QStripTab> qStripTabs = [];
-    private readonly Func<string, string> qStripTitleSource;
-    private readonly Func<string, int, string> qStripNumberSource;
     private readonly CAtelier qStripAtelier;
     private QStripTab? qStripSelected;
     private int qStripSuspendDepth;
 
     public QStrip(CAtelier lAtelier)
-        : this(lAtelier, QStripTitleResolve, QStripNumberResolve)
+        : this(lAtelier, QStripTitle.QStripTitleResolve, QStripNumberResolve)
     {
     }
 
@@ -28,8 +23,7 @@ public sealed class QStrip
     public QStrip(CAtelier lAtelier, Func<string, string> lTitleSource, Func<string, int, string> lNumberSource)
     {
         qStripAtelier = lAtelier;
-        qStripTitleSource = lTitleSource;
-        qStripNumberSource = lNumberSource;
+        QStripTitle = new QStripTitle(this, lTitleSource, lNumberSource);
         QStripSeparator = new QStripSeparator(this, qStripTabs);
         QStripClosure = new QStripClosure(
             this,
@@ -46,7 +40,8 @@ public sealed class QStrip
     public event Action<QStripTab?>? QStripSelectChanged;
     public event Action<QStripTab>? QStripTabChanged;
     public event Action<QStripTab>? QStripTabAdded;
-    public event Action? QStripTitleChanged;
+
+    public QStripTitle QStripTitle { get; }
 
     public QStripSeparator QStripSeparator { get; }
 
@@ -64,12 +59,7 @@ public sealed class QStrip
 
     public bool QStripSuspended => qStripSuspendDepth > 0;
 
-    public static IReadOnlyList<string> QStripKeysRead() => QStripKeys;
-
-    public static string QStripKeyResolve(string lKey) =>
-        QStripKeys.Contains(lKey, StringComparer.Ordinal) ? lKey : QStripDefaultKey;
-
-    public QStripTab QStripTabCreate(string lKey) => new(QStripKeyResolve(lKey), qStripAtelier);
+    public QStripTab QStripTabCreate(string lKey) => new(QStripCatalog.QStripKeyResolve(lKey), qStripAtelier);
 
     public QStripTab? QStripTabFind(Guid lId) => qStripTabs.FirstOrDefault(lTab => lTab.QStripTabId == lId);
 
@@ -86,7 +76,7 @@ public sealed class QStrip
         lTab.QStripTabWorkspace.QWorkspaceMode.QWorkspaceAction?.QActionRelayAttach(this, lTab);
         qStripTabs.Add(lTab);
         QStripChanged?.Invoke();
-        QStripTitleSet(lTab, qStripTitleSource(lTab.QStripTabKey));
+        QStripTitle.QStripTitleReset(lTab);
         QStripTabAdded?.Invoke(lTab);
         LTraceLog.LTraceInfoRecord(
             $"Tab opened '{lTab.QStripTabTitle}' ({lTab.QStripTabKey}): {qStripTabs.Count} tab(s) open");
@@ -95,7 +85,7 @@ public sealed class QStrip
             return;
         }
 
-        QStripTitleUpdate();
+        QStripTitle.QStripTitleUpdate();
         if (qStripSelected is null)
         {
             QStripSelect(lTab);
@@ -105,79 +95,6 @@ public sealed class QStrip
             QStripSeparator.QStripSeparatorUpdate();
         }
     }
-
-    public void QStripTitleUpdate()
-    {
-        if (QStripSuspended)
-        {
-            return;
-        }
-
-        IReadOnlyList<LTabsetSlot> lSlots = QStripSlotsCreate();
-        foreach (LTabsetTitlePlan lPlan in LTabset.LTabsetTitleResolve(lSlots))
-        {
-            if (QStripTabFind(lPlan.LTabsetId) is not { } lTab)
-            {
-                continue;
-            }
-
-            string lTitle = QStripTitleFormat(lTab, lPlan);
-            QStripTitleSet(lTab, lTitle);
-        }
-
-        QStripTitleChanged?.Invoke();
-    }
-
-    private IReadOnlyList<LTabsetSlot> QStripSlotsCreate() =>
-        qStripTabs
-            .Select(lTab => new LTabsetSlot(lTab.QStripTabId, lTab.QStripTabKey, lTab.QStripTabCustom))
-            .ToList();
-
-    private string QStripTitleFormat(QStripTab lTab, LTabsetTitlePlan lPlan) =>
-        lPlan.LTabsetCustom
-            ? lTab.QStripTabCustom
-            : lPlan.LTabsetNumbered
-                ? qStripNumberSource(qStripTitleSource(lTab.QStripTabKey), lPlan.LTabsetOrdinal)
-                : qStripTitleSource(lTab.QStripTabKey);
-
-    public bool QStripNameSet(QStripTab lTab, string? lName)
-    {
-        bool lHadCustom = QStripCustomCheck(lTab);
-        string lTrimmed = QStripNameNormalize(lName);
-        if (QStripStandardCheck(lTab, lTrimmed))
-        {
-            QStripCustomSet(lTab, string.Empty);
-            QStripTitleUpdate();
-            if (lHadCustom)
-            {
-                LTraceLog.LTraceInfoRecord($"Tab name reset to the standard name for {lTab.QStripTabKey}");
-            }
-
-            return false;
-        }
-
-        List<string> lTaken = QStripTakenRead(lTab);
-        QStripCustomSet(lTab, LTabset.LTabsetNameResolve(lTaken, lTrimmed, qStripNumberSource));
-        QStripTitleUpdate();
-        LTraceLog.LTraceInfoRecord($"Tab renamed to '{lTab.QStripTabTitle}' ({lTab.QStripTabKey})");
-        return true;
-    }
-
-    private static bool QStripCustomCheck(QStripTab lTab) => lTab.QStripTabCustom.Length > 0;
-
-    private static string QStripNameNormalize(string? lName) => (lName ?? string.Empty).Trim();
-
-    private bool QStripStandardCheck(QStripTab lTab, string lTrimmed) =>
-        lTrimmed.Length == 0
-        || string.Equals(lTrimmed, qStripTitleSource(lTab.QStripTabKey), StringComparison.Ordinal);
-
-    private List<string> QStripTakenRead(QStripTab lTab) =>
-        qStripTabs
-            .Where(lOther => !ReferenceEquals(lOther, lTab))
-            .Select(lOther => lOther.QStripTabTitle)
-            .ToList();
-
-    private static void QStripCustomSet(QStripTab lTab, string lCustom) => lTab.QStripTabCustom = lCustom;
 
     public void QStripEditSet(QStripTab lTab, bool lEditing)
     {
@@ -256,7 +173,7 @@ public sealed class QStrip
 
         qStripTabs.RemoveAt(lIndex);
         QStripChanged?.Invoke();
-        QStripTitleUpdate();
+        QStripTitle.QStripTitleUpdate();
         if (!lWasSelected)
         {
             QStripSeparator.QStripSeparatorUpdate();
@@ -289,33 +206,17 @@ public sealed class QStrip
         IReadOnlySet<Guid> lActiveBatches = LBastion.LBastionCohortsRead();
         foreach (QStripTab lTab in qStripTabs)
         {
-            lCleared |= lTab.QStripTabWorkspace.QWorkspaceMediaClear(lActiveBatches);
+            lCleared |= lTab.QStripTabWorkspace.QWorkspaceMedia.QWorkspaceMediaClear(lActiveBatches);
         }
 
         LTraceLog.LTraceInfoRecord($"Tabs cleared across {qStripTabs.Count} tab(s)");
         return lCleared;
     }
 
-    public static string QStripTitleResolve(string lKey) => QLocalizationCatalog.QLocalizationTextRead("Tab." + lKey);
-
-    private static string QStripNumberResolve(string lName, int lOrdinal) =>
-        QLocalizationCatalog.QLocalizationFormat("Tab.Numbered", lName, lOrdinal);
-
     public void QStripTabRaise(QStripTab lTab)
     {
         lTab.QStripTabUpdate();
         QStripTabChanged?.Invoke(lTab);
-    }
-
-    private void QStripTitleSet(QStripTab lTab, string lTitle)
-    {
-        if (lTab.QStripTabTitle == lTitle)
-        {
-            return;
-        }
-
-        lTab.QStripTabTitle = lTitle;
-        QStripTabRaise(lTab);
     }
 
     private void QStripSelectedSet(QStripTab? lTab)
@@ -328,4 +229,7 @@ public sealed class QStrip
         qStripSelected = lTab;
         QStripSelectChanged?.Invoke(lTab);
     }
+
+    private static string QStripNumberResolve(string lName, int lOrdinal) =>
+        QLocalizationCatalog.QLocalizationFormat("Tab.Numbered", lName, lOrdinal);
 }

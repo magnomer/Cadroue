@@ -74,7 +74,7 @@ public sealed class TSectionRows
         Assert.True(TInterface.TSectionRenameHandle(section, 0, 2));
         Assert.Equal(0, TInterface.TSectionEditRead(section));
         Assert.True(TInterface.TSectionRowsRead(section)[0].QSectionRowEditing);
-        int serial = section.QSectionEditSerial;
+        int serial = section.QSectionEdit.QSectionEditSerial;
 
         TInterface.TSectionTextSet(section, " gamma ", "p ", " s");
         Assert.True(TInterface.TSectionKeyRun(section, "Return"));
@@ -103,7 +103,7 @@ public sealed class TSectionRows
     {
         (QFlow flow, QSection section) = TSectionBuild();
         TInterface.TSectionRenameHandle(section, 0, 2);
-        int serial = section.QSectionEditSerial;
+        int serial = section.QSectionEdit.QSectionEditSerial;
         TInterface.TSectionTextSet(section, "kept", "", "");
 
         TInterface.TSectionBlurHandle(section, serial - 1, false);

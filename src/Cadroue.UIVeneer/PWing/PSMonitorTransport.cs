@@ -73,12 +73,12 @@ internal sealed partial class PSMonitor
             PSMonitorButtonBuild(
                 "/PAsset/PCompass/PCompassZoomIncrease.svg",
                 "NormalizePreview.ZoomIn",
-                psMonitorSource.QSMonitorIncreaseZoom));
+                psMonitorSource.QSMonitorViewport.QSMonitorIncreaseZoom));
         psZoom.Children.Add(
             PSMonitorButtonBuild(
                 "/PAsset/PCompass/PCompassZoomDecrease.svg",
                 "NormalizePreview.ZoomOut",
-                psMonitorSource.QSMonitorDecreaseZoom));
+                psMonitorSource.QSMonitorViewport.QSMonitorDecreaseZoom));
         return psZoom;
     }
 
@@ -115,7 +115,7 @@ internal sealed partial class PSMonitor
 
     private void PSMonitorZoomApply()
     {
-        QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorScrollRead();
+        QSMonitorScrollbar lScroll = psMonitorSource.QSMonitorViewport.QSMonitorScrollRead();
         PSMonitorScrollSet(lScroll);
         PSMonitorUpdate();
     }

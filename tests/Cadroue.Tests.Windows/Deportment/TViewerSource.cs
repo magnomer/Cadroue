@@ -125,63 +125,63 @@ public sealed class TViewerSource
     [Fact]
     public void DropResolve_ListPresent_AcceptsFoldersAndMedia()
     {
-        (QViewer viewer, QViewerSource source) = TSourceBuild();
-        TInterfaceViewer.TViewerDropAttach(source, _ => { });
+        (QViewer viewer, _) = TSourceBuild();
+        TInterfaceViewer.TViewerDropAttach(viewer, _ => { });
         string folder = Path.GetTempPath();
 
-        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [folder], true));
-        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [folder], false));
-        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, null, true));
+        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(viewer, [folder], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(viewer, [folder], false));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(viewer, null, true));
         Assert.Equal(
             QWindowDropEffect.QWindowDropNone,
             TInterfaceViewer.TViewerDropResolve(
-                source, [Path.Combine(folder, $"missing-{Guid.NewGuid():N}.txt")], true));
+                viewer, [Path.Combine(folder, $"missing-{Guid.NewGuid():N}.txt")], true));
         Assert.Null(viewer.QViewerWorkspace.CWorkspaceIntent);
     }
 
     [Fact]
     public void DropHandle_ListPresent_HandsPathsToList()
     {
-        (_, QViewerSource source) = TSourceBuild();
+        (QViewer viewer, _) = TSourceBuild();
         List<string> handed = [];
-        TInterfaceViewer.TViewerDropAttach(source, paths => handed.AddRange(paths));
+        TInterfaceViewer.TViewerDropAttach(viewer, paths => handed.AddRange(paths));
         string folder = Path.GetTempPath();
 
-        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [folder], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(viewer, [folder], true));
         Assert.Equal([folder], handed);
     }
 
     [Fact]
     public void DropResolve_ViewerOnly_NeedsExistingFile_AndAudioAllowance()
     {
-        (QViewer viewer, QViewerSource source) = TSourceBuild();
+        (QViewer viewer, _) = TSourceBuild();
         string audio = TSourceFileCreate(".mp3");
         try
         {
-            Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(viewer, [audio], true));
             TInterfaceViewer.TViewerAllowSet(viewer, true);
-            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropResolve(viewer, [audio], true));
             Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(
-                source, [audio], false));
+                viewer, [audio], false));
         }
         finally
         {
             File.Delete(audio);
         }
 
-        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(source, [audio], true));
+        Assert.Equal(QWindowDropEffect.QWindowDropNone, TInterfaceViewer.TViewerDropResolve(viewer, [audio], true));
     }
 
     [Fact]
     public void DropHandle_ViewerOnly_OpensFirstExistingFile()
     {
-        (QViewer viewer, QViewerSource source) = TSourceBuild();
+        (QViewer viewer, _) = TSourceBuild();
         List<LCargo> cargos = [];
         TInterfaceViewer.TViewerMediaAttach(viewer, cargos.Add);
         string file = TSourceFileCreate(".txt");
         try
         {
-            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(source, [file], true));
+            Assert.Equal(QWindowDropEffect.QWindowDropFile, TInterfaceViewer.TViewerDropHandle(viewer, [file], true));
         }
         finally
         {

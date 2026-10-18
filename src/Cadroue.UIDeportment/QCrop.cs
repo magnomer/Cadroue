@@ -135,7 +135,7 @@ public sealed class QCrop
 
         QCropBoxUpdate();
         QCropOverlayUpdate();
-        qViewer.QViewerPreviewApply();
+        qViewer.QViewerFilter.QViewerPreviewApply();
     }
 
     private bool QCropActiveChange(bool lActive)
@@ -221,7 +221,7 @@ public sealed class QCrop
         qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(lClamped));
         QCropBoxUpdate();
         QCropBoxRestore();
-        qViewer.QViewerFilterUpdate();
+        qViewer.QViewerFilter.QViewerFilterUpdate();
     }
 
     private void QCropRectRecord(LCropbox lClamped)
@@ -241,7 +241,7 @@ public sealed class QCrop
         QCropBoxClear();
         qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(null));
         QCropOverlayUpdate();
-        qViewer.QViewerFilterUpdate();
+        qViewer.QViewerFilter.QViewerFilterUpdate();
     }
 
     private void QCropBoxClear()
@@ -280,7 +280,7 @@ public sealed class QCrop
     public void QCropVideoCommit()
     {
         qViewer.QViewerPreviewSet(qViewer.QViewerPreview.LCropboxChange(QCropPixelRead()));
-        qViewer.QViewerFilterUpdate();
+        qViewer.QViewerFilter.QViewerFilterUpdate();
         QCropVideoChanged?.Invoke();
     }
 

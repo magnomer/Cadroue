@@ -28,13 +28,14 @@ internal sealed partial class PSEncoder
         return PSPlate.PSPlateBuild(pPanel);
     }
 
-    private void PSVideoLogApply(Button pLog) => pLog.IsEnabled = lsEncoder.QSEncoderVideoResults.Count > 0;
+    private void PSVideoLogApply(Button pLog) =>
+        pLog.IsEnabled = lsEncoder.QSEncoderVideo.QSEncoderVideoResults.Count > 0;
 
     private void PSVideoPlateAttach(Button pVerify, Button pLog, ProgressBar pProgress)
     {
         var pFeed = new Progress<double>(pValue => pProgress.Value = pValue);
         pVerify.Click += async (_, _) => await PSVideoVerifyHandle(pVerify, pLog, pProgress, pFeed);
-        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.QSEncoderVerdictCreate(false));
+        pLog.Click += (_, _) => PSVerdict.PSVerdictShow(this, lsEncoder.QSEncoderVideo.QSEncoderVerdictCreate());
         psVideoEncoderCombo.SelectionChanged += (_, _) => PSVideoSet();
         psVideoRateCombo.SelectionChanged += (_, _) => PSVideoSet();
         psVideoReactiveBox.Checked += (_, _) => PSVideoReactiveApply();
@@ -127,7 +128,7 @@ internal sealed partial class PSEncoder
         psVideoNotice.Text = QLocalizationCatalog.QLocalizationTextRead(PSVideoNoticeRead(pMode));
     }
 
-    private string PSVideoNoticeRead(string pMode) => lsEncoder.QSEncoderNoticeResolve(pMode);
+    private string PSVideoNoticeRead(string pMode) => lsEncoder.QSEncoderVideo.QSEncoderNoticeResolve(pMode);
 
     private void PSVideoSet()
     {
@@ -135,7 +136,7 @@ internal sealed partial class PSEncoder
         string pRate = PSCombo.PSComboTextRead(psVideoRateCombo);
         if (PSVideoChoiceCheck(pEncoder, pRate))
         {
-            lsEncoder.QSEncoderVideoSet(pEncoder, pRate);
+            lsEncoder.QSEncoderVideo.QSEncoderVideoSet(pEncoder, pRate);
         }
     }
 
@@ -143,7 +144,7 @@ internal sealed partial class PSEncoder
 
     private void PSVideoRowsApply()
     {
-        string[] pModeLabels = lsEncoder.QSEncoderVideoCodec.LCapabilityModeLabels;
+        string[] pModeLabels = lsEncoder.QSEncoderVideo.QSEncoderVideoCodec.LCapabilityModeLabels;
         if (PSVideoLabelsCheck(pModeLabels))
         {
             PSVideoLabelsSet(pModeLabels);
@@ -159,14 +160,14 @@ internal sealed partial class PSEncoder
 
     private void PSVideoLabelsSet(string[] pModeLabels) => psVideoRateCombo.ItemsSource = pModeLabels;
 
-    private void PSVideoRateSelect() => psVideoRateCombo.SelectedItem = lsEncoder.QSEncoderVideoRate;
+    private void PSVideoRateSelect() => psVideoRateCombo.SelectedItem = lsEncoder.QSEncoderVideo.QSEncoderVideoRate;
 
     private void PSVideoRowsRebuild()
     {
         PSVideoRowsClear();
         PSVideoRowsReset();
-        LCapabilityCodec pCodec = lsEncoder.QSEncoderVideoCodec;
-        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderVideoRate);
+        LCapabilityCodec pCodec = lsEncoder.QSEncoderVideo.QSEncoderVideoCodec;
+        LCapabilityMode pMode = pCodec.LCapabilityModeFind(lsEncoder.QSEncoderVideo.QSEncoderVideoRate);
         bool pModeStored = PSVideoStoredCheck(pMode);
         PSVideoQualityBuild(pMode, pModeStored);
         PSVideoCautionBuild(pCodec);

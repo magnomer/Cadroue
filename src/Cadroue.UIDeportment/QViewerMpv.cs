@@ -132,7 +132,7 @@ public sealed class QViewerMpv
     // The preview filter goes to mpv and a paused player refreshes; the refused refresh comes back for the record.
     private Exception? QViewerRefreshApply()
     {
-        if (!qViewer.QViewerFilterApply())
+        if (!qViewer.QViewerFilter.QViewerFilterApply())
         {
             return null;
         }
@@ -170,6 +170,6 @@ public sealed class QViewerMpv
             return;
         }
 
-        await qViewer.QViewerMedia.QViewerFlyleafApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial);
+        await qViewer.QViewerMedia.QViewerFlyleaf.QViewerFlyleafApply(lSourcePath, lMediaInfo, lFfmpegError, lSerial);
     }
 }

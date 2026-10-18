@@ -47,10 +47,10 @@
     "hydra": 4,
     "kraken": 3,
     "spider": 0,
-    "chameleon": 61,
+    "chameleon": 60,
     "octopus": 3,
     "centipede": 54,
-    "serpent": 8,
+    "serpent": 7,
     "hub": 8
   },
   "parts": {
@@ -81,7 +81,7 @@
     "Cadroue.ShellEngine.LMessenger": 1,
     "Cadroue.ShellEngine.LRunner": 1,
     "Cadroue.ShellEngine.LSweep": 1,
-    "Cadroue.UIDeportment.QSEncoder": 3,
+    "Cadroue.UIDeportment.QSEncoder": 1,
     "Cadroue.UIVeneer.PHouse.PWindow": 5,
     "Cadroue.UIVeneer.PSDiagnosis": 2,
     "Cadroue.UIVeneer.PSFader": 2,
